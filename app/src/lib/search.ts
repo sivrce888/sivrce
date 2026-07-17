@@ -267,13 +267,24 @@ export async function searchListings(filters: SearchFilters): Promise<SearchResu
     }
     const totalHits = raw.totalHits ?? raw.estimatedTotalHits ?? 0
 
+    // Read-path grammar: the index stores "buy", the UI speaks "sale".
+    // Map hits and facet keys so clients never see the DB dialect.
+    const facets = raw.facetDistribution
+    if (facets?.dealType && facets.dealType.buy !== undefined) {
+      const { buy, ...restDeals } = facets.dealType
+      facets.dealType = { ...restDeals, sale: buy }
+    }
+
     return {
-      hits: raw.hits,
+      hits: raw.hits.map((h) => ({
+        ...h,
+        dealType: h.dealType === "buy" ? "sale" : h.dealType,
+      })),
       totalHits,
       page,
       pageSize,
       totalPages: Math.ceil(totalHits / pageSize),
-      facets: raw.facetDistribution,
+      facets,
     }
   } catch (e) {
     console.error("[search] searchListings failed:", (e as Error).message)

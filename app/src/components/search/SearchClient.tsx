@@ -208,6 +208,10 @@ export default function SearchClient() {
   const [results, setResults] = useState<Listing[]>([])
   const [totalResults, setTotalResults] = useState(0)
   const [searchLoading, setSearchLoading] = useState(false)
+  // Facet counts from Meilisearch (null on the DB fallback → counts hidden).
+  const [facets, setFacets] = useState<Record<string, Record<string, number>> | null>(null)
+  const fcount = (dim: string, key: string): number | undefined => facets?.[dim]?.[key]
+  const fmtCount = (n: number | undefined) => (n === undefined ? '' : ` (${n})`)
 
   // Map filter state → /api/search query params and fetch.
   const fetchSearch = useCallback(async (pageNum: number, append: boolean) => {
@@ -234,9 +238,11 @@ export default function SearchClient() {
         const mapped: Listing[] = (json.hits as Record<string, unknown>[]).map(mapHit)
         setResults((prev) => (append ? [...prev, ...mapped] : mapped))
         setTotalResults(json.totalHits as number)
+        if (!append) setFacets((json.facets as Record<string, Record<string, number>> | undefined) ?? null)
       } else if (!append) {
         setResults([])
         setTotalResults(0)
+        setFacets(null)
       }
     } catch {
       // ponytail: silent fail — show empty state, don't break UI.
@@ -336,6 +342,7 @@ export default function SearchClient() {
             <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.dealType')}>
               {([undefined, 'sale', 'rent', 'daily'] as const).map((d) => {
                 const label = t(d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'daily' ? 'add.deal.daily' : 'search.rent')
+                const count = d === undefined ? undefined : fcount('dealType', d)
                 const active = deal === d
                 return (
                   <button
@@ -355,7 +362,14 @@ export default function SearchClient() {
                         transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
                       />
                     )}
-                    <span className="relative z-10">{label}</span>
+                    <span className="relative z-10">
+                      {label}
+                      {count !== undefined && (
+                        <span className={`ml-1 text-[11px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>
+                          {count}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 )
               })}
@@ -371,7 +385,7 @@ export default function SearchClient() {
               >
                 <option value="">{t('search.allTypes')}</option>
                 {PROP_TYPES.map((p) => (
-                  <option key={p.value} value={p.value}>{t(p.key)}</option>
+                  <option key={p.value} value={p.value}>{t(p.key)}{fmtCount(fcount('propertyType', p.value))}</option>
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
@@ -387,7 +401,7 @@ export default function SearchClient() {
               >
                 <option value="">{t('search.allCities')}</option>
                 {CITIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{c}{fmtCount(fcount('city', c))}</option>
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
@@ -403,7 +417,7 @@ export default function SearchClient() {
               >
                 <option value="">{t('search.allDistricts')}</option>
                 {districtsOf(city).map((d) => (
-                  <option key={d} value={d}>{d}</option>
+                  <option key={d} value={d}>{d}{fmtCount(fcount('district', d))}</option>
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
