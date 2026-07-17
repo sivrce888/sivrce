@@ -16,6 +16,7 @@ import ListingCard, { BADGE_STYLE } from '@/components/ListingCard'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { LeadForm } from '@/components/lead/LeadForm'
+import MapEmbed from '@/components/MapEmbed'
 import { lt } from './i18n'
 import {
   formatUSD, formatGEL, formatViews,
@@ -652,6 +653,17 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                 {t('detail.verifiedBy')}
               </p>
             </div>
+
+            {/* Map */}
+            <MapEmbed
+              lat={l.coords.lat}
+              lng={l.coords.lng}
+              zoom={15}
+              mode="place"
+              q={l.address}
+              aspect="4/3"
+              className="mt-4"
+            />
 
             {/* Lead form — anchor target for the "message" CTAs */}
             <div
