@@ -268,32 +268,99 @@ export function statsOf(listings: Listing[]): SeoStats {
   }
 }
 
-function subjectOf(def: SeoPageDef): string {
-  if (def.rooms) return `${roomLabel(def.rooms)} ${TYPES.apartments.ka}`
-  if (def.typeSlug) return TYPES[def.typeSlug]!.ka
-  return 'უძრავი ქონება'
+/** Full subject for room pages per locale; ruGen feeds "Продажа X" H1s. */
+function roomSubject(n: number): { ka: string; en: string; ru: string; ruGen: string } {
+  const t = TYPES.apartments!
+  if (n === 4)
+    return {
+      ka: `4+ ოთახიანი ${t.ka}`,
+      en: `4+ Room ${t.en}`,
+      ru: `Квартиры с 4+ комнатами`,
+      ruGen: `квартир с 4+ комнатами`,
+    }
+  return {
+    ka: `${n}-ოთახიანი ${t.ka}`,
+    en: `${n}-Room ${t.en}`,
+    ru: `${n}-комнатные квартиры`,
+    ruGen: `${n}-комнатных квартир`,
+  }
 }
 
-function placeOf(def: SeoPageDef): string {
-  if (def.district) return def.district.loc
-  if (def.city) return def.city.loc
-  return 'საქართველოში'
+function subjectOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
+  if (def.rooms) return roomSubject(def.rooms)[loc]
+  if (def.typeSlug) {
+    const t = TYPES[def.typeSlug]!
+    return loc === 'ka' ? t.ka : loc === 'en' ? t.en : t.ru
+  }
+  return loc === 'ka' ? 'უძრავი ქონება' : loc === 'en' ? 'Real Estate' : 'Недвижимость'
 }
 
-/** H1 — matches the exact Georgian query pattern, e.g. "ბინები იყიდება ვაკეში" */
-export function h1Of(def: SeoPageDef): string {
+/** Russian genitive subject for "Продажа/Аренда X в …" H1s. */
+function subjectGenOf(def: SeoPageDef): string {
+  if (def.rooms) return roomSubject(def.rooms).ruGen
+  if (def.typeSlug) return TYPES[def.typeSlug]!.ruGen
+  return 'недвижимости'
+}
+
+function placeOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
+  const g = def.district ?? def.city
+  if (!g) return loc === 'ka' ? 'საქართველოში' : loc === 'en' ? 'Georgia' : 'Грузии'
+  return loc === 'ka' ? g.loc : loc === 'en' ? g.en : g.ru
+}
+
+/** Russian 1/few/many plural — объявление/объявления/объявлений. */
+function ruPlural(n: number, one: string, few: string, many: string): string {
+  const m10 = n % 10
+  const m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return one
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
+  return many
+}
+
+/** H1 — matches the exact query pattern per locale:
+ *  "ბინები იყიდება ვაკეში" / "Apartments for sale in Vake" / "Продажа квартир в Ваке" */
+export function h1Of(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
+  const place = placeOf(def, loc)
+  if (loc === 'en') {
+    const deal = def.dealSlug ? DEALS[def.dealSlug]!.en : 'for sale and rent'
+    return `${subjectOf(def, 'en')} ${deal} in ${place}`
+  }
+  if (loc === 'ru') {
+    if (def.dealSlug === 'sale' || def.dealSlug === 'rent')
+      return `${DEALS[def.dealSlug]!.ruNoun} ${subjectGenOf(def)} в ${place}`
+    if (def.dealSlug === 'daily') return `${subjectOf(def, 'ru')} посуточно в ${place}`
+    return `${subjectOf(def, 'ru')} в ${place}: продажа и аренда`
+  }
   const dealKa = def.dealSlug ? DEALS[def.dealSlug]!.ka : 'იყიდება და ქირავდება'
-  return `${subjectOf(def)} ${dealKa} ${placeOf(def)}`
+  return `${subjectOf(def)} ${dealKa} ${place}`
 }
 
-export function titleOf(def: SeoPageDef): string {
+export function titleOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
   const s = statsOf(def.listings)
+  if (loc === 'en') return `${h1Of(def, 'en')} — ${s.count} listing${s.count === 1 ? '' : 's'}`
+  if (loc === 'ru')
+    return `${h1Of(def, 'ru')} — ${s.count} ${ruPlural(s.count, 'объявление', 'объявления', 'объявлений')}`
   const suffix = def.city && def.district ? `, ${def.city.ka}` : ''
   return `${h1Of(def)}${suffix} — ${s.count} განცხადება`
 }
 
-export function descriptionOf(def: SeoPageDef): string {
+export function descriptionOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
   const s = statsOf(def.listings)
+  if (loc === 'en') {
+    const perM2 = s.avgPerM2 ? ` Average price ${formatUSD(s.avgPerM2)}/m².` : ''
+    return (
+      `${s.count} verified listing${s.count === 1 ? '' : 's'}: ${subjectOf(def, 'en').toLowerCase()} ` +
+      `${def.dealSlug ? DEALS[def.dealSlug]!.en : 'for sale and rent'} in ${placeOf(def, 'en')} on sivrce.${perM2} ` +
+      `Prices from ${formatUSD(s.minPrice)}. AI price estimate, interactive 3D map, direct owner contact.`
+    )
+  }
+  if (loc === 'ru') {
+    const perM2 = s.avgPerM2 ? ` Средняя цена ${formatUSD(s.avgPerM2)}/м².` : ''
+    return (
+      `${h1Of(def, 'ru')} — ${s.count} ${ruPlural(s.count, 'проверенное объявление', 'проверенных объявления', 'проверенных объявлений')} ` +
+      `на sivrce.${perM2} Цены от ${formatUSD(s.minPrice)}. AI-оценка цены, 3D-карта, прямой контакт с владельцем.`
+    )
+  }
   const perM2 = s.avgPerM2 ? ` საშუალო ფასი ${formatUSD(s.avgPerM2)}/მ².` : ''
   const dealKa = def.dealSlug ? DEALS[def.dealSlug]!.ka : 'იყიდება და ქირავდება'
   return (
@@ -303,8 +370,34 @@ export function descriptionOf(def: SeoPageDef): string {
 }
 
 /** Intro paragraph under the grid — unique per page via live stats. */
-export function introOf(def: SeoPageDef): string {
+export function introOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
   const s = statsOf(def.listings)
+  if (loc === 'en') {
+    const where = def.district
+      ? `${def.district.en}, ${def.city!.en}`
+      : def.city
+        ? def.city.en
+        : 'Georgia'
+    const perM2 = s.avgPerM2
+      ? `The average price is ${formatUSD(s.avgPerM2)}/m², ranging from ${formatUSD(s.minPrice)} to ${formatUSD(s.maxPrice)}.`
+      : `Prices start at ${formatUSD(s.minPrice)}.`
+    return (
+      `There ${s.count === 1 ? 'is' : 'are'} currently ${s.count} active listing${s.count === 1 ? '' : 's'} in ${where}: ` +
+      `${subjectOf(def, 'en').toLowerCase()} ${def.dealSlug ? DEALS[def.dealSlug]!.en : 'for sale and rent'}. ${perM2} ` +
+      `Every listing passes sivrce verification, and AI compares each price against real market data — ` +
+      `so thousands of buyers and tenants find the best option in one place every day.`
+    )
+  }
+  if (loc === 'ru') {
+    const perM2 = s.avgPerM2
+      ? `Средняя цена квадратного метра — ${formatUSD(s.avgPerM2)}/м², диапазон от ${formatUSD(s.minPrice)} до ${formatUSD(s.maxPrice)}.`
+      : `Цены начинаются от ${formatUSD(s.minPrice)}.`
+    return (
+      `${h1Of(def, 'ru')}: сейчас доступно ${s.count} ${ruPlural(s.count, 'активное объявление', 'активных объявления', 'активных объявлений')}. ` +
+      `${perM2} Каждое объявление проходит проверку sivrce, а AI сравнивает цену с реальными рыночными данными — ` +
+      `поэтому тысячи покупателей и арендаторов каждый день находят лучший вариант в одном месте.`
+    )
+  }
   const dealKa = def.dealSlug ? DEALS[def.dealSlug]!.ka : 'იყიდება და ქირავდება'
   const where = def.district
     ? `${def.district.loc} (${def.city!.ka})`
@@ -327,11 +420,17 @@ export interface Faq {
   a: string
 }
 
-export function faqsOf(def: SeoPageDef): Faq[] {
+export function faqsOf(def: SeoPageDef, loc: SeoLoc = 'ka'): Faq[] {
   const s = statsOf(def.listings)
+  if (loc === 'en') return faqsEn(def, s)
+  if (loc === 'ru') return faqsRu(def, s)
+  return faqsKa(def, s)
+}
+
+function faqsKa(def: SeoPageDef, s: SeoStats): Faq[] {
   // Singular subject — Georgians ask "რა ღირს ბინა ვაკეში?", not plural.
   const single = def.rooms
-    ? `${roomLabel(def.rooms)} ${TYPES.apartments.kaSingle}`
+    ? `${roomLabel(def.rooms)} ${TYPES.apartments!.kaSingle}`
     : def.typeSlug
       ? TYPES[def.typeSlug]!.kaSingle
       : 'უძრავი ქონება'
@@ -371,6 +470,83 @@ export function faqsOf(def: SeoPageDef): Faq[] {
   return faqs
 }
 
+function faqsEn(def: SeoPageDef, s: SeoStats): Faq[] {
+  const single = def.typeSlug ? TYPES[def.typeSlug]!.enSingle : 'property'
+  const subject = subjectOf(def, 'en').toLowerCase()
+  const where = placeOf(def, 'en')
+  const faqs: Faq[] = [
+    {
+      q: `How much does ${def.typeSlug || def.rooms ? `a ${single}` : 'real estate'} cost in ${where}?`,
+      a: s.avgPerM2
+        ? `The current average price is ${formatUSD(s.avgPerM2)}/m². The most affordable option costs ${formatUSD(s.minPrice)}, while the premium segment reaches ${formatUSD(s.maxPrice)}. Every listing card shows the AI price estimate.`
+        : `Prices range from ${formatUSD(s.minPrice)} to ${formatUSD(s.maxPrice)}. Every listing card shows the AI price estimate.`,
+    },
+    {
+      q: `How do I find verified listings in ${where}?`,
+      a: `Every listing on sivrce passes data checks: owner verification, photo authenticity and a market price comparison. Use the filters for type, price and area — or describe what you need in AI search.`,
+    },
+    {
+      q: `Can I post a listing for free?`,
+      a: `Yes — posting on sivrce is free. VIP packages (VIP, VIP+, SUPER VIP) place your listing at the top of search results and bring 5× more views on average.`,
+    },
+  ]
+  if (def.dealSlug === 'rent') {
+    faqs.push({
+      q: `What are the usual rental terms for ${subject} in ${where}?`,
+      a: `Most owners ask for the first and last month upfront. Long-term rent is often negotiable — message the agent directly from the listing.`,
+    })
+  }
+  if (def.dealSlug === 'daily') {
+    faqs.push({
+      q: `How much does a daily rental cost in ${where}?`,
+      a: `Prices are per night and start from ${formatUSD(s.minPrice)}. Weekends and high season cost more — ask the owner for exact dates via the listing.`,
+    })
+    faqs.push({
+      q: `How do I book a daily-rent apartment?`,
+      a: `Pick a listing, choose your dates and message the owner in sivrce chat. Payment is on arrival or online, depending on the owner. For safety, check the listing's verification status before paying.`,
+    })
+  }
+  return faqs
+}
+
+function faqsRu(def: SeoPageDef, s: SeoStats): Faq[] {
+  const subject = subjectOf(def, 'ru').toLowerCase()
+  const where = placeOf(def, 'ru')
+  const faqs: Faq[] = [
+    {
+      q: `Какие цены на ${subject} в ${where}?`,
+      a: s.avgPerM2
+        ? `Сейчас средняя цена — ${formatUSD(s.avgPerM2)}/м². Самый доступный вариант стоит ${formatUSD(s.minPrice)}, премиум-сегмент достигает ${formatUSD(s.maxPrice)}. AI-оценка цены показана на карточке каждого объявления.`
+        : `Цены варьируются от ${formatUSD(s.minPrice)} до ${formatUSD(s.maxPrice)}. AI-оценка цены показана на карточке каждого объявления.`,
+    },
+    {
+      q: `Как найти проверенные объявления в ${where}?`,
+      a: `Каждое объявление на sivrce проходит проверку данных: верификация владельца, подлинность фото и сравнение цены с рынком. Используйте фильтры по типу, цене и площади — или опишите запрос в AI-поиске.`,
+    },
+    {
+      q: `Можно ли разместить объявление бесплатно?`,
+      a: `Да — размещение на sivrce бесплатное. VIP-пакеты (VIP, VIP+, SUPER VIP) поднимают объявление в топ выдачи и дают в среднем в 5 раз больше просмотров.`,
+    },
+  ]
+  if (def.dealSlug === 'rent') {
+    faqs.push({
+      q: `На каких условиях сдают ${subject} в ${where}?`,
+      a: `Большинство владельцев просят оплату за первый и последний месяц. При долгосрочной аренде цена часто обсуждается — напишите агенту прямо из объявления.`,
+    })
+  }
+  if (def.dealSlug === 'daily') {
+    faqs.push({
+      q: `Сколько стоит посуточная аренда в ${where}?`,
+      a: `Цена указана за ночь и начинается от ${formatUSD(s.minPrice)}. В выходные и высокий сезон цена растёт — уточняйте точные даты у владельца через объявление.`,
+    })
+    faqs.push({
+      q: `Как забронировать квартиру посуточно?`,
+      a: `Выберите объявление, укажите даты и напишите владельцу в чате sivrce. Оплата — на месте или онлайн, по условиям владельца. Для безопасности проверьте статус верификации объявления перед оплатой.`,
+    })
+  }
+  return faqs
+}
+
 /* ————— Internal linking ————— */
 
 export interface Crumb {
@@ -378,24 +554,36 @@ export interface Crumb {
   href: string
 }
 
-export function breadcrumbsOf(def: SeoPageDef): Crumb[] {
-  const crumbs: Crumb[] = [{ name: 'მთავარი', href: '/' }]
+/** Deal label for crumbs/chips: იყიდება / For sale / Продажа. */
+function dealLabel(slug: string, loc: SeoLoc): string {
+  const d = DEALS[slug]!
+  if (loc === 'en') return `For ${d.enNoun}`
+  if (loc === 'ru') return d.ruNoun
+  return d.ka
+}
+
+export function breadcrumbsOf(def: SeoPageDef, loc: SeoLoc = 'ka'): Crumb[] {
+  const p = locPrefix(loc)
+  const home = loc === 'ka' ? 'მთავარი' : loc === 'en' ? 'Home' : 'Главная'
+  const crumbs: Crumb[] = [{ name: home, href: p || '/' }]
   if (def.dealSlug) {
-    crumbs.push({ name: DEALS[def.dealSlug]!.ka, href: `/${def.dealSlug}` })
+    crumbs.push({ name: dealLabel(def.dealSlug, loc), href: `${p}/${def.dealSlug}` })
     if (def.typeSlug)
-      crumbs.push({ name: TYPES[def.typeSlug]!.ka, href: `/${def.dealSlug}/${def.typeSlug}` })
+      crumbs.push({ name: TYPES[def.typeSlug]![loc], href: `${p}/${def.dealSlug}/${def.typeSlug}` })
+    if (def.rooms)
+      crumbs.push({ name: roomLabel(def.rooms, loc), href: `${p}/${def.dealSlug}/apartments-${def.rooms}` })
     if (def.city)
       crumbs.push({
-        name: def.city.ka,
+        name: def.city[loc === 'ka' ? 'ka' : loc],
         href: def.typeSlug
-          ? `/${def.dealSlug}/${def.typeSlug}/${def.city.slug}`
-          : `/${def.dealSlug}/${def.city.slug}`,
+          ? `${p}/${def.dealSlug}/${def.rooms ? `apartments-${def.rooms}` : def.typeSlug}/${def.city.slug}`
+          : `${p}/${def.dealSlug}/${def.city.slug}`,
       })
     if (def.district)
-      crumbs.push({ name: def.district.ka, href: def.path })
+      crumbs.push({ name: def.district[loc === 'ka' ? 'ka' : loc], href: `${p}${def.path}` })
   } else if (def.city) {
-    crumbs.push({ name: def.city.ka, href: `/${def.city.slug}` })
-    if (def.district) crumbs.push({ name: def.district.ka, href: def.path })
+    crumbs.push({ name: def.city[loc === 'ka' ? 'ka' : loc], href: `${p}/${def.city.slug}` })
+    if (def.district) crumbs.push({ name: def.district[loc === 'ka' ? 'ka' : loc], href: `${p}${def.path}` })
   }
   return crumbs
 }
@@ -411,29 +599,32 @@ export interface LinkChips {
   geo: { label: string; href: string; active: boolean }[]
 }
 
-export function linkChipsOf(def: SeoPageDef): LinkChips {
+export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka'): LinkChips {
   const has = (slug: string[]) => parseSeoSlug(slug) !== null
+  const p = locPrefix(loc)
+  const name = (g: GeoLoc) => (loc === 'ka' ? g.ka : loc === 'en' ? g.en : g.ru)
 
   const dealSwitch = def.dealSlug
     ? (() => {
         const other = def.dealSlug === 'sale' ? 'rent' : 'sale'
-        const rest = [def.typeSlug, def.city?.slug, def.district?.slug].filter(Boolean) as string[]
+        const rest = [def.rooms ? `apartments-${def.rooms}` : def.typeSlug, def.city?.slug, def.district?.slug].filter(Boolean) as string[]
         return has([other, ...rest])
-          ? { label: DEALS[other]!.ka, href: `/${[other, ...rest].join('/')}` }
+          ? { label: dealLabel(other, loc), href: `${p}/${[other, ...rest].join('/')}` }
           : undefined
       })()
     : undefined
 
   const types: LinkChips['types'] = []
   if (def.dealSlug) {
+    const allTypes = loc === 'ka' ? 'ყველა ტიპი' : loc === 'en' ? 'All types' : 'Все типы'
     types.push({
-      label: 'ყველა ტიპი',
-      href: def.city ? `/${def.dealSlug}/${def.city.slug}` : `/${def.dealSlug}`,
+      label: allTypes,
+      href: def.city ? `${p}/${def.dealSlug}/${def.city.slug}` : `${p}/${def.dealSlug}`,
       active: !def.typeSlug,
     })
     for (const t of Object.keys(TYPES)) {
       const slug = [def.dealSlug, t, def.city?.slug].filter(Boolean) as string[]
-      if (has(slug)) types.push({ label: TYPES[t]!.ka, href: `/${slug.join('/')}`, active: def.typeSlug === t })
+      if (has(slug)) types.push({ label: TYPES[t]![loc], href: `${p}/${slug.join('/')}`, active: def.typeSlug === t && !def.rooms })
     }
   }
 
@@ -443,7 +634,7 @@ export function linkChipsOf(def: SeoPageDef): LinkChips {
       const typePart = `apartments-${n}`
       const slug = [def.dealSlug, typePart, def.city?.slug, def.district?.slug].filter(Boolean) as string[]
       if (has(slug)) {
-        rooms.push({ label: roomLabel(n), href: `/${slug.join('/')}`, active: def.rooms === n })
+        rooms.push({ label: roomLabel(n, loc), href: `${p}/${slug.join('/')}`, active: def.rooms === n })
       }
     }
   }
@@ -451,20 +642,21 @@ export function linkChipsOf(def: SeoPageDef): LinkChips {
   const geo: LinkChips['geo'] = []
   if (def.kind === 'deal' || def.kind === 'deal-type') {
     for (const c of CITIES) {
-      const slug = [def.dealSlug!, def.typeSlug, c.slug].filter(Boolean) as string[]
-      if (has(slug)) geo.push({ label: c.ka, href: `/${slug.join('/')}`, active: false })
+      const slug = [def.dealSlug!, def.rooms ? `apartments-${def.rooms}` : def.typeSlug, c.slug].filter(Boolean) as string[]
+      if (has(slug)) geo.push({ label: name(c), href: `${p}/${slug.join('/')}`, active: false })
     }
   } else if (def.kind === 'deal-city' || def.kind === 'deal-type-city') {
     for (const d of DISTRICTS.filter((x) => x.citySlug === def.city!.slug)) {
-      const slug = def.typeSlug
-        ? [def.dealSlug!, def.typeSlug, def.city!.slug, d.slug]
+      const typePart = def.rooms ? `apartments-${def.rooms}` : def.typeSlug
+      const slug = typePart
+        ? [def.dealSlug!, typePart, def.city!.slug, d.slug]
         : undefined
-      if (slug && has(slug)) geo.push({ label: d.ka, href: `/${slug.join('/')}`, active: false })
+      if (slug && has(slug)) geo.push({ label: name(d), href: `${p}/${slug.join('/')}`, active: false })
     }
   } else if (def.kind === 'city') {
     for (const d of DISTRICTS.filter((x) => x.citySlug === def.city!.slug)) {
       const slug = [def.city!.slug, d.slug]
-      if (has(slug)) geo.push({ label: d.ka, href: `/${slug.join('/')}`, active: false })
+      if (has(slug)) geo.push({ label: name(d), href: `${p}/${slug.join('/')}`, active: false })
     }
   }
 
