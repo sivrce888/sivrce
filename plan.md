@@ -1,5 +1,14 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-17 late (6325511, on main) — 3D floor stacks
+- `/map`: click a building → it explodes into per-floor 3D slabs (real OSM
+  footprint, 0.35 m gaps, stack top = building height). Hover a floor →
+  brand-dark tooltip: სართული N · X თავისუფალია · ₾-დან (price only when a
+  single deal type is filtered). Click a floor → panel filters to that floor
+  (dismissible chip). Construction ghosts explode too (progress tooltip, no
+  fake availability). Engine: `src/lib/map/floors.ts`, gated in
+  `npm run check:map`. Zero new deps — MapLibre fill-extrusion + feature-state.
+
 ## Shipped 2026-07-17 (commit 45e9079, pushed to main, Vercel auto-deploys)
 - Security: `jsonLd()` `</script>`-escape at all 5 JSON-LD sites, COOP header,
   AUTH_SECRET prod assert, pinned session policy.
