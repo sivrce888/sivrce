@@ -25,7 +25,7 @@ import {
 import { getDeveloper } from '@/data/professionals'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
-import { jsonLd } from '@/lib/utils'
+import { jsonLd, ogImage } from '@/lib/utils'
 
 export function generateStaticParams() {
   return BUILDINGS.map((b) => ({ slug: b.slug }))
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/buildings/${b.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      images: [{ url: b.img, alt: b.name }],
+      images: [{ url: ogImage(b.img), alt: b.name }],
     },
   }
 }

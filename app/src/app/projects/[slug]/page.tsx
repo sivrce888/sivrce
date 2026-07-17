@@ -11,7 +11,7 @@ import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { PROJECTS, getProject, getDeveloper, listingsByCity } from '@/data/professionals'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
-import { jsonLd } from '@/lib/utils'
+import { jsonLd, ogImage } from '@/lib/utils'
 
 export function generateStaticParams() {
   return PROJECTS.map((p) => ({ slug: p.slug }))
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/projects/${p.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      images: [{ url: p.img, alt: p.name }],
+      images: [{ url: ogImage(p.img), alt: p.name }],
     },
   }
 }

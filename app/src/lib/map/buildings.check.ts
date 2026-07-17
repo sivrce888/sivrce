@@ -18,8 +18,9 @@ import {
   parseStreet,
   projectsToConstructionBuildings,
 } from './buildings'
-import type { Listing } from '@/data/listings'
-import type { Project } from '@/data/professionals'
+import { LISTINGS, type Listing } from '@/data/listings'
+import { PROJECTS, type Project } from '@/data/professionals'
+import { BUILDINGS } from '@/data/buildings'
 
 const base = {
   img: '/x.webp',
@@ -139,5 +140,74 @@ assert.equal(dealColor('pledge'), '#16A34A')
 const fc = buildingsToGeoJSON(buildings)
 assert.equal(fc.features[0]!.geometry.type, 'Polygon')
 assert.equal(buildingFootprint(41.7, 44.8).coordinates[0]!.length, 5)
+
+// ——— 100% coverage gate on real data ———
+
+const GEORGIA = { latMin: 40.5, latMax: 43.7, lngMin: 39.9, lngMax: 46.8 }
+
+for (const l of LISTINGS) {
+  const { lat, lng } = l.coords
+  assert.ok(Number.isFinite(lat) && Number.isFinite(lng), `${l.id}: coords not finite`)
+  assert.ok(Math.abs(lat) <= 90 && Math.abs(lng) <= 180, `${l.id}: coords out of range`)
+  assert.ok(
+    lat >= GEORGIA.latMin && lat <= GEORGIA.latMax && lng >= GEORGIA.lngMin && lng <= GEORGIA.lngMax,
+    `${l.id}: coords outside Georgia`,
+  )
+  assert.ok(l.buildingSlug && l.buildingSlug.trim().length > 0, `${l.id}: missing buildingSlug`)
+}
+
+const withNumber = LISTINGS.filter((l) => listingBuildingNumber(l).trim().length > 0)
+assert.ok(
+  withNumber.length >= Math.ceil(LISTINGS.length * 0.9),
+  `buildingNumber coverage ${withNumber.length}/${LISTINGS.length} below 90%`,
+)
+
+const realClusters = clusterListingsToBuildings(LISTINGS)
+const clusteredIds = new Set(realClusters.flatMap((b) => b.listings.map((l) => l.id)))
+for (const l of LISTINGS) assert.ok(clusteredIds.has(l.id), `${l.id}: dropped by clustering`)
+
+const catalogProjectSlugs = new Set(
+  BUILDINGS.map((b) => b.projectSlug).filter(Boolean) as string[],
+)
+const activeProjects = PROJECTS.filter((p) => p.done < 100)
+for (const p of activeProjects) {
+  assert.ok(
+    Number.isFinite(p.coords.lat) &&
+      Number.isFinite(p.coords.lng) &&
+      Math.abs(p.coords.lat) <= 90 &&
+      Math.abs(p.coords.lng) <= 180,
+    `${p.slug}: invalid coords`,
+  )
+  assert.ok((p.floors ?? 0) > 0, `${p.slug}: floors must be > 0`)
+}
+const expectedGhosts = activeProjects.filter(
+  (p) =>
+    Number.isFinite(p.coords.lat) &&
+    Number.isFinite(p.coords.lng) &&
+    Math.abs(p.coords.lat) <= 90 &&
+    Math.abs(p.coords.lng) <= 180 &&
+    !catalogProjectSlugs.has(p.slug),
+)
+const realGhosts = projectsToConstructionBuildings(PROJECTS)
+assert.equal(realGhosts.length, expectedGhosts.length, 'construction ghost count mismatch')
+assert.deepEqual(
+  realGhosts.map((g) => g.projectSlug).sort(),
+  expectedGhosts.map((p) => p.slug).sort(),
+  'construction ghost set mismatch',
+)
+
+assert.equal(new Set(BUILDINGS.map((b) => b.slug)).size, BUILDINGS.length, 'duplicate catalog slug')
+assert.equal(new Set(BUILDINGS.map((b) => b.code)).size, BUILDINGS.length, 'duplicate catalog code')
+
+const mergedFc = buildingsToGeoJSON([...realClusters, ...realGhosts])
+for (const f of mergedFc.features) {
+  assert.ok(Number(f.properties?.height) > 0, `${String(f.id)}: height must be > 0`)
+  assert.equal(f.geometry.type, 'Polygon', `${String(f.id)}: not a polygon`)
+  assert.equal(
+    (f.geometry as GeoJSON.Polygon).coordinates[0]!.length,
+    5,
+    `${String(f.id)}: ring must have 5 points`,
+  )
+}
 
 console.log('map buildings check: ok')

@@ -4,7 +4,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import NeighborhoodDetail from '@/components/neighborhoods/NeighborhoodDetail'
 import { NEIGHBORHOODS, getNeighborhood } from '@/data/neighborhoods'
-import { jsonLd } from '@/lib/utils'
+import { jsonLd, ogImage } from '@/lib/utils'
 
 // ponytail: dynamicParams default (true) — unknown slugs hit notFound() below.
 export function generateStaticParams() {
@@ -32,13 +32,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/neighborhoods/${n.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      images: [{ url: n.img, alt: n.name.ka }],
+      images: [{ url: ogImage(n.img), alt: n.name.ka }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [n.img],
+      images: [ogImage(n.img)],
     },
   }
 }

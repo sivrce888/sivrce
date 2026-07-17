@@ -70,9 +70,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
     languages: {
-      "ka-GE": "/",
+      ka: "/",
       en: "/en",
       ru: "/ru",
+      he: "/he",
+      ar: "/ar",
+      tr: "/tr",
+      uk: "/uk",
+      hy: "/hy",
+      az: "/az",
       "x-default": "/",
     },
   },
