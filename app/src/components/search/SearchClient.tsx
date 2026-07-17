@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -265,7 +265,7 @@ export default function SearchClient() {
                     role="tab"
                     aria-selected={active}
                     onClick={() => patchParams({ deal: d })}
-                    className={`relative rounded-lg px-4 py-2 text-[13px] font-extrabold transition-colors ${
+                    className={`relative rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
                       active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
                     }`}
                   >
@@ -446,7 +446,7 @@ export default function SearchClient() {
             {(chips.length > 0 || sort !== 'date') && (
               <button
                 onClick={resetAll}
-                className="ml-auto flex items-center gap-1.5 rounded-control px-3 py-2 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
+                className="ml-auto flex items-center gap-1.5 rounded-control px-3 py-2.5 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
               >
                 <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
               </button>
@@ -471,7 +471,7 @@ export default function SearchClient() {
                 transition={{ duration: 0.25, ease }}
                 onClick={c.clear}
                 aria-label={t('search.removeFilter', { label: c.label })}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-colors ${
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition-colors ${
                   c.hue ? '' : 'bg-sv-blue/10 text-sv-blue hover:bg-sv-blue/15'
                 }`}
                 style={c.hue ? { backgroundColor: `${c.hue}1A`, color: c.hue } : undefined}
@@ -516,7 +516,7 @@ export default function SearchClient() {
         )}
 
         {/* SEO hint */}
-        {!loading && results.length > 0 && (
+        {!showSkeleton && results.length > 0 && (
           <p className="mt-10 flex items-start gap-2 text-[13px] font-semibold leading-relaxed text-sv-ink/65">
             <Home className="mt-0.5 h-4 w-4 shrink-0" />
             {t('search.seoHint')}

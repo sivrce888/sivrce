@@ -307,7 +307,7 @@ export async function deleteListing(id: string): Promise<boolean> {
 // syncAllListings
 // ---------------------------------------------------------------------------
 
-export async function syncAllListings(listings: ListingDocument[]): Promise<{
+export async function syncAllListings(listings: ListingDocument[] = []): Promise<{
   ok: boolean
   indexed: number
   error?: string
