@@ -40,10 +40,13 @@ switcher, room-count SEO pages (`/sale/apartments-2/tbilisi` — the "2-ოთ�
    /, /en, /ru, sitemap.xml revalidate hourly.
 3. **8 — Search Console**: verify property, submit sitemap, watch queries.
    Owner's Google account needed — 10 minutes, no code.
-4. **7 — Mobile LCP** (measured 2026-07-17: score 86, LCP 3.9s): hero badge/h1/
-   subtitle entrance animation (opacity-0 start) cost ~1.2s render delay. Fix
-   `b706883` pushed — LCP text now paints with FCP. **Verify deploy in Vercel,
-   then re-audit** (deploy was pending >15min at push time).
+4. **7 — Mobile LCP**: hero fix `b706883` live ✓ (h1 paints with FCP now).
+   Re-audit 2026-07-18: score 63-66 — **FCP regressed 1.6→3.6s** in the
+   8f30397…26b5db1 batch (2 blocking CSS chunks, 4 fonts = 98KB woff2,
+   root doc 730ms, weather/FX API calls on boot). h1 LCP also waits on the
+   41KB Georgian webfont → candidates: `font-display: optional` on the
+   display font, trim boot-time fetches, slim globals.css. Files owned by
+   the active parallel wave — coordinate before editing layout.tsx/globals.css.
 5. **6 — WhatsApp/email listing alerts** (Korter's only moat), saved-search →
    API, price-history block, compare tray, nonce-based CSP.
 
