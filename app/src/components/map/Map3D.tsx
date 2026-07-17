@@ -394,7 +394,7 @@ function Map3DInner() {
         </div>
 
         <p className="pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[240px] rounded-control border border-white/10 bg-sv-navy/80 px-3 py-2 text-[12px] font-semibold text-white/55 backdrop-blur-md md:block">
-          შეეხე შენობას — ნახავ რა იყიდება, ქირავდება, დღიურად ან გირავდება
+          დააჭირე კორპუსს — განცხადებები გაიხსნება
         </p>
       </div>
 

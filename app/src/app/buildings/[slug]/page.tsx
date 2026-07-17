@@ -38,9 +38,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const b = getBuilding(slug)
   if (!b) return {}
   const counts = buildingDealCounts(slug)
-  const description = `${b.name} (${b.code}) — ${b.address}. იყიდება ${counts.sale}, ქირავდება ${counts.rent}, დღიურად ${counts.daily}, გირავდება ${counts.pledge}. ${b.description.ka.replace(/\s+/g, ' ').slice(0, 100)}`
+  const description = `${b.address}. ${counts.sale} გაყიდვა, ${counts.rent} ქირა, ${counts.daily} დღიური, ${counts.pledge} გირავნობა.`
   return {
-    title: `${b.name} (${b.code}) — იყიდება, ქირავდება, დღიურად, გირავდება`,
+    title: `${b.name} (${b.code}) — ${b.district}, ${b.city}`,
     description: description.slice(0, 160),
     alternates: { canonical: `/buildings/${b.slug}` },
     openGraph: {
@@ -93,12 +93,6 @@ export default async function BuildingPage({ params }: PageProps) {
         url: `https://sivrce.ge/developers/${dev.slug}`,
       },
     }),
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: building.rating,
-      bestRating: 5,
-      ratingCount: Math.max(1, listings.length * 3),
-    },
   }
 
   const faqLd = {
@@ -107,30 +101,32 @@ export default async function BuildingPage({ params }: PageProps) {
     mainEntity: [
       {
         '@type': 'Question',
-        name: `${building.name}-ში რა იყიდება?`,
+        name: `რამდენი განცხადებაა ${building.name}-ში?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${building.name}-ში (${building.code}) ამჟამად იყიდება ${counts.sale} ბინა. სრული სია: https://sivrce.ge/buildings/${building.slug}`,
+          text: `ამჟამად ${listings.length} განცხადება: ${counts.sale} გაყიდვა, ${counts.rent} ქირა, ${counts.daily} დღიური, ${counts.pledge} გირავნობა.`,
         },
       },
       {
         '@type': 'Question',
-        name: `${building.name} კოორდინატები`,
+        name: `სად არის ${building.name}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${building.name} მდებარეობს ${building.address}. კოორდინატები: ${building.coords.lat}, ${building.coords.lng}. უნიკალური კოდი: ${building.code}.`,
+          text: `მისამართი: ${building.address}. კოდი: ${building.code}.`,
         },
       },
-      {
-        '@type': 'Question',
-        name: `ვინ ააშენა ${building.name}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: dev
-            ? `${building.name} ააშენა ${dev.name.ka}. შეფასება: ${building.rating}/5.`
-            : `${building.name} — შეფასება ${building.rating}/5.`,
-        },
-      },
+      ...(dev
+        ? [
+            {
+              '@type': 'Question' as const,
+              name: `ვინ არის დეველოპერი?`,
+              acceptedAnswer: {
+                '@type': 'Answer' as const,
+                text: `დეველოპერი: ${dev.name.ka}.`,
+              },
+            },
+          ]
+        : []),
     ],
   }
 
@@ -236,10 +232,7 @@ export default async function BuildingPage({ params }: PageProps) {
           </h2>
           {listings.length === 0 ? (
             <p className="mt-6 rounded-module bg-sv-cloud px-5 py-10 text-center text-[14px] font-semibold text-sv-ink/50">
-              ამ შენობაში ჯერ განცხადება არ არის — დაამატე ან ნახე{' '}
-              <Link href="/map" className="text-sv-blue hover:underline">
-                რუკაზე
-              </Link>
+              ამ მისამართზე განცხადება არ გვაქვს.
             </p>
           ) : (
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
