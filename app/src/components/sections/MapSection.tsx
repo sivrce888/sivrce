@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { MousePointerClick, Building2, BarChart3, Layers, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Reveal } from '@/components/Reveal'
+import MapEmbed from '@/components/MapEmbed'
 
 const FEATURES = [
   {
@@ -80,19 +80,22 @@ export default function MapSection() {
             </Reveal>
           </div>
 
-          {/* Visual */}
+          {/* Visual — real interactive map */}
           <Reveal delay={0.2} className="relative">
             <motion.div
               whileHover={{ scale: 1.015 }}
               transition={{ type: 'spring', stiffness: 200, damping: 20 }}
               className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue"
             >
-              <Image src="/images/map3d.webp" alt="სივრცის 3D რუკა — თბილისი" width={2048} height={1077} sizes="(max-width:1024px) 100vw, 700px" className="w-full" />
-              <div className="absolute inset-0 rounded-card ring-1 ring-inset ring-white/10" />
-              {/* Live pin */}
-              <div className="absolute left-[58%] top-[34%]">
-                <span className="block h-4 w-4 animate-pin rounded-full bg-sv-orange" />
-              </div>
+              <MapEmbed
+                lat={41.7151}
+                lng={44.8271}
+                zoom={13}
+                mode="view"
+                aspect="16/9"
+                className="border-0 shadow-none"
+              />
+              <div className="absolute inset-0 rounded-card ring-1 ring-inset ring-white/10 pointer-events-none" />
             </motion.div>
 
             {/* Floating card */}
