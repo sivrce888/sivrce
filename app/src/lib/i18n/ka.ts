@@ -290,6 +290,7 @@ export const ka = {
   'add.successView': 'განცხადებების ნახვა',
   'add.successNew': 'ახალი განცხადება',
   'add.successDashboard': 'ჩემი განცხადებები',
+  'add.successViewListing': 'განცხადების ნახვა',
   'add.publishing': 'ქვეყნდება…',
   'add.publishError': 'ვერ გამოქვეყნდა — სცადე თავიდან',
   'add.aiPending': 'AI შეფასება მალე',

@@ -15,6 +15,7 @@ const STRINGS = {
     allListings: 'ყველა განცხადება',
     showMore: 'მეტის ჩვენება',
     loadingMore: 'იტვირთება…',
+    recentlyViewed: 'ბოლოს ნანახი',
   },
   en: {
     saveSearch: 'Save search',
@@ -26,6 +27,7 @@ const STRINGS = {
     allListings: 'All listings',
     showMore: 'Show more',
     loadingMore: 'Loading…',
+    recentlyViewed: 'Recently viewed',
   },
   ru: {
     saveSearch: 'Сохранить поиск',
@@ -37,6 +39,7 @@ const STRINGS = {
     allListings: 'Все объявления',
     showMore: 'Показать ещё',
     loadingMore: 'Загрузка…',
+    recentlyViewed: 'Недавно просмотренные',
   },
 } as const
 

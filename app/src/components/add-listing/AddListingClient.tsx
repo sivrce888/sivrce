@@ -74,7 +74,7 @@ export default function AddListingClient() {
 
   const [step, setStep] = useState(0)
   const [touched, setTouched] = useState(false)
-  const [published, setPublished] = useState(false)
+  const [publishedId, setPublishedId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -238,7 +238,8 @@ export default function AddListingClient() {
         return
       }
       if (!res.ok) throw new Error('publish')
-      setPublished(true)
+      const data = (await res.json()) as { id?: string }
+      setPublishedId(data.id ?? 'ok')
     } catch {
       setFailed(true)
     } finally {
@@ -253,7 +254,7 @@ export default function AddListingClient() {
   const err = (bad: boolean) => (touched && bad ? 'border-sv-orange ring-4 ring-sv-orange/10' : '')
 
   /* ————— success screen ————— */
-  if (published) {
+  if (publishedId) {
     return (
       <section className="min-h-[80vh] bg-sv-cloud py-16 md:py-24">
         <div className="mx-auto max-w-[640px] px-5 text-center">
@@ -281,16 +282,14 @@ export default function AddListingClient() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6, ease }}
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
-            {/* ponytail: public /listing/[id] still reads the static catalog —
-                send publishers to their dashboard until plan #2 (db-backed catalog) lands. */}
             <Link
-              href="/seller/listings"
+              href={publishedId === 'ok' ? '/seller/listings' : `/listing/${publishedId}`}
               className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
             >
-              {t('add.successDashboard')}
+              {t('add.successViewListing')}
             </Link>
             <button
-              onClick={() => { setPublished(false); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false) }}
+              onClick={() => { setPublishedId(null); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false) }}
               className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
             >
               <Plus className="h-4 w-4" /> {t('add.successNew')}

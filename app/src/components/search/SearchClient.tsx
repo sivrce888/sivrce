@@ -12,6 +12,7 @@ import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
 import { useSearchStrings } from '@/components/search/i18n'
+import { useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import {
@@ -50,6 +51,41 @@ function SkeletonCard() {
       </div>
     </div>
   )
+}
+
+/** Map an /api/search hit → Listing shape for the card components. */
+function mapHit(h: Record<string, unknown>): Listing {
+  const postedAt = (h.createdAt as string) ?? new Date().toISOString()
+  const tier = h.tier as string | undefined
+  return {
+    id: h.id as string,
+    title: h.title as string,
+    city: h.city as string,
+    district: h.district as string,
+    dealType: h.dealType as DealType,
+    propType: h.propertyType as PropType,
+    priceUSD: h.price as number,
+    priceGEL: Math.round((h.price as number) * 2.7),
+    perM2USD: (h.pricePerSqm as number) ?? 0,
+    area: h.area as number,
+    rooms: h.rooms as number,
+    images: (h.images as string[]) ?? [],
+    img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
+    address: (h.address as string) ?? '',
+    beds: (h.bedrooms as number) ?? (h.rooms as number),
+    baths: (h.bathrooms as number) ?? 1,
+    floor: (h.floor as number) ?? 0,
+    totalFloors: (h.totalFloors as number) ?? 0,
+    views: (h.views as number) ?? 0,
+    badge: tier === 'super_vip' ? 'SUPER VIP' : tier === 'diamond' ? 'VIP+' : tier === 'vip' ? 'VIP' : null,
+    ai: { score: (h.trustScore as number) ?? 70, label: '' },
+    features: (h.features as string[]) ?? [],
+    description: (h.description as string) ?? '',
+    coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
+    postedAt,
+    agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
+    isNew: Date.now() - new Date(postedAt).getTime() < 72 * 3600_000,
+  }
 }
 
 export default function SearchClient() {
@@ -167,40 +203,7 @@ export default function SearchClient() {
       const res = await fetch(`/api/search?${sp.toString()}`)
       const json = await res.json()
       if (json.ok && Array.isArray(json.hits)) {
-        // ponytail: map API hits → Listing shape for existing card components.
-        const mapped: Listing[] = json.hits.map((h: Record<string, unknown>) => {
-          const postedAt = (h.createdAt as string) ?? new Date().toISOString()
-          const tier = h.tier as string | undefined
-          return {
-            id: h.id as string,
-            title: h.title as string,
-            city: h.city as string,
-            district: h.district as string,
-            dealType: h.dealType as DealType,
-            propType: h.propertyType as PropType,
-            priceUSD: h.price as number,
-            priceGEL: Math.round((h.price as number) * 2.7),
-            perM2USD: (h.pricePerSqm as number) ?? 0,
-            area: h.area as number,
-            rooms: h.rooms as number,
-            images: (h.images as string[]) ?? [],
-            img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
-            address: (h.address as string) ?? '',
-            beds: (h.bedrooms as number) ?? (h.rooms as number),
-            baths: (h.bathrooms as number) ?? 1,
-            floor: (h.floor as number) ?? 0,
-            totalFloors: (h.totalFloors as number) ?? 0,
-            views: (h.views as number) ?? 0,
-            badge: tier === 'super_vip' ? 'SUPER VIP' : tier === 'diamond' ? 'VIP+' : tier === 'vip' ? 'VIP' : null,
-            ai: { score: (h.trustScore as number) ?? 70, label: '' },
-            features: (h.features as string[]) ?? [],
-            description: (h.description as string) ?? '',
-            coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
-            postedAt,
-            agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
-            isNew: Date.now() - new Date(postedAt).getTime() < 72 * 3600_000,
-          }
-        })
+        const mapped: Listing[] = (json.hits as Record<string, unknown>[]).map(mapHit)
         setResults((prev) => (append ? [...prev, ...mapped] : mapped))
         setTotalResults(json.totalHits as number)
       } else if (!append) {
@@ -225,6 +228,28 @@ export default function SearchClient() {
 
   // ponytail: page derived from what's on screen — no state to keep in sync.
   const loadMore = () => fetchSearch(Math.ceil(results.length / 24) + 1, true)
+
+  // ——— Recently viewed (retention rail above results) ———
+  const recentIds = useRecentIds()
+  const recentKey = recentIds.slice(0, 8).join(',')
+  // Stored with its key: render only when it matches the live ids — no sync reset.
+  const [recents, setRecents] = useState<{ key: string; items: Listing[] }>({ key: '', items: [] })
+  useEffect(() => {
+    if (!recentKey) return
+    let alive = true
+    fetch(`/api/search?ids=${recentKey}`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && j.ok && Array.isArray(j.hits)) {
+          setRecents({ key: recentKey, items: (j.hits as Record<string, unknown>[]).map(mapHit) })
+        }
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [recentKey])
+  const recentItems = recents.key === recentKey ? recents.items : []
 
   // Skeleton only when there is nothing on screen yet — page 2+ keeps cards visible.
   const showSkeleton = (loading || searchLoading) && results.length === 0
@@ -481,6 +506,18 @@ export default function SearchClient() {
 
       {/* Results */}
       <main id="main" aria-busy={showSkeleton} className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
+        {/* Recently viewed rail — return-visit retention */}
+        {recentItems.length > 0 && !showSkeleton && (
+          <section aria-label={s('recentlyViewed')} className="mb-8">
+            <h2 className="mb-3 text-[15px] font-extrabold text-sv-ink">{s('recentlyViewed')}</h2>
+            <div className="-mx-5 flex gap-5 overflow-x-auto px-5 pb-2 md:-mx-10 md:px-10">
+              {recentItems.map((l, i) => (
+                <ListingCard key={l.id} l={l} i={i} layout="grid" />
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="mb-5 flex flex-wrap items-center gap-3">
           <p className="text-[15px] font-extrabold text-sv-ink" aria-live="polite">
             {showSkeleton ? t('search.loading') : t('search.results', { n: totalResults })}

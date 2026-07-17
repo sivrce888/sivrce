@@ -291,6 +291,7 @@ export const ar: Dict = {
   'add.successView': 'تصفح الإعلانات',
   'add.successNew': 'إعلان جديد',
   'add.successDashboard': 'إعلاناتي',
+  'add.successViewListing': 'عرض الإعلان',
   'add.publishing': 'جارٍ النشر…',
   'add.publishError': 'تعذّر النشر — حاول مجددًا',
   'add.aiPending': 'تقييم AI قريبًا',

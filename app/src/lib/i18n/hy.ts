@@ -291,6 +291,7 @@ export const hy: Dict = {
   'add.successView': 'Դիտել հայտարարությունները',
   'add.successNew': 'Նոր հայտարարություն',
   'add.successDashboard': 'Իմ հայտարարությունները',
+  'add.successViewListing': 'Դիտել հայտարարությունը',
   'add.publishing': 'Հրապարակվում է…',
   'add.publishError': 'Չհաջողվեց հրապարակել — փորձեք նորից',
   'add.aiPending': 'AI գնահատականը շուտով',

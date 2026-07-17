@@ -291,6 +291,7 @@ export const tr: Dict = {
   'add.successView': 'İlanlara göz at',
   'add.successNew': 'Yeni ilan',
   'add.successDashboard': 'İlanlarım',
+  'add.successViewListing': 'İlanı görüntüle',
   'add.publishing': 'Yayınlanıyor…',
   'add.publishError': 'Yayınlanamadı — tekrar deneyin',
   'add.aiPending': 'AI puanı yakında',

@@ -291,6 +291,7 @@ export const uk: Dict = {
   'add.successView': 'Переглянути оголошення',
   'add.successNew': 'Нове оголошення',
   'add.successDashboard': 'Мої оголошення',
+  'add.successViewListing': 'Переглянути оголошення',
   'add.publishing': 'Публікація…',
   'add.publishError': 'Не вдалося опублікувати — спробуйте ще раз',
   'add.aiPending': 'AI-оцінка незабаром',
