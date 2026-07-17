@@ -61,5 +61,10 @@ export function usePostHog() {
   return { capture, identify, reset }
 }
 
+/** True after initPostHog() successfully configured the client. */
+export function posthogReady(): boolean {
+  return initialized
+}
+
 /** Direct access to the posthog instance — use sparingly */
 export { posthog }
