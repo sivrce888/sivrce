@@ -50,7 +50,6 @@ export default function MyTours() {
   const [state, setState] = useState<State>({ status: 'loading' })
 
   const load = () => {
-    setState({ status: 'loading' })
     fetch('/api/tours')
       .then(async (r) => {
         if (r.status === 401) return setState({ status: 'anon' })
@@ -62,7 +61,11 @@ export default function MyTours() {
       .catch(() => setState({ status: 'error' }))
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const retry = () => {
+    setState({ status: 'loading' })
+    load()
+  }
+
   useEffect(load, [])
 
   if (state.status === 'anon') return null
@@ -81,7 +84,7 @@ export default function MyTours() {
       {state.status === 'error' && (
         <div className="flex items-center gap-3">
           <p className="text-[14px] font-semibold text-sv-ink/45">{s('toursError')}</p>
-          <button onClick={load} className="text-[13px] font-extrabold text-sv-blue hover:underline">
+          <button onClick={retry} className="text-[13px] font-extrabold text-sv-blue hover:underline">
             {s('retry')}
           </button>
         </div>
