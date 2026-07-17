@@ -1,6 +1,8 @@
 'use client'
 
 import { useId, useState, type FormEvent } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { RatingStars } from './RatingStars'
@@ -22,7 +24,8 @@ export interface ReviewFormProps {
 }
 
 export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitted, className }: ReviewFormProps) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const pathname = usePathname()
   const baseId = useId()
   const [rating, setRating] = useState(0)
   const [name, setName] = useState('')
@@ -100,6 +103,21 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
     } finally {
       setSubmitting(false)
     }
+  }
+
+  if (status === 'unauthenticated') {
+    // API requires a session — show a sign-in gate instead of a dead form.
+    return (
+      <div className={cn('rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card', className)}>
+        <h3 className="text-[18px] font-extrabold text-sv-ink">{s.formTitle}</h3>
+        <Link
+          href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
+          className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+        >
+          {s.signInToReview}
+        </Link>
+      </div>
+    )
   }
 
   const inputCls =

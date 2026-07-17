@@ -41,6 +41,7 @@ export interface ReviewStrings {
   starsReadOnly: (value: number) => string
   starOption: (n: number) => string
   distributionRow: (stars: number, count: number) => string
+  signInToReview: string
 }
 
 const ka: ReviewStrings = {
@@ -81,6 +82,7 @@ const ka: ReviewStrings = {
   starsReadOnly: (v) => `შეფასება: ${v} 5-დან`,
   starOption: (n) => `${n} ვარსკვლავი`,
   distributionRow: (stars, count) => `${stars} ვარსკვლავი: ${count}`,
+  signInToReview: 'შედი ანგარიშში შეფასების დასატოვებლად',
 }
 
 const en: ReviewStrings = {
@@ -121,6 +123,7 @@ const en: ReviewStrings = {
   starsReadOnly: (v) => `Rated ${v} out of 5 stars`,
   starOption: (n) => (n === 1 ? '1 star' : `${n} stars`),
   distributionRow: (stars, count) => `${stars} stars: ${count}`,
+  signInToReview: 'Sign in to leave a review',
 }
 
 const ru: ReviewStrings = {
@@ -161,6 +164,7 @@ const ru: ReviewStrings = {
   starsReadOnly: (v) => `Оценка ${v} из 5`,
   starOption: (n) => `${n} ${ruPlural(n, 'звезда', 'звезды', 'звёзд')}`,
   distributionRow: (stars, count) => `${stars} звёзд: ${count}`,
+  signInToReview: 'Войдите, чтобы оставить отзыв',
 }
 
 export function getReviewStrings(lang: Lang): ReviewStrings {
