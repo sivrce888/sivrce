@@ -19,7 +19,7 @@ import { LISTINGS } from '@/data/listings'
 import type { DealType } from '@/data/listings'
 import { PROJECTS } from '@/data/professionals'
 import { BRAND } from '@/lib/brand'
-import { DEAL_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
+import { DEAL_BRAND, CATEGORY_BRAND, SERVICE_BRAND } from '@/lib/category-brand'
 import {
   MAP_CENTER,
   buildingsToGeoJSON,
@@ -28,6 +28,7 @@ import {
   findBuildingBySlug,
   findNearestBuilding,
   mergeMapBuildings,
+  neighborhoodsToGeoJSON,
   projectsToConstructionBuildings,
   type MapBuildingCluster,
   type MapDealFilter,
@@ -47,12 +48,17 @@ import {
   FLOORS_SOURCE_ID,
   STYLE_URL,
 } from '@/lib/map/floorLayers'
-import { Layers, RotateCcw, HardHat } from 'lucide-react'
+import { Layers, RotateCcw, HardHat, CheckCircle2, MapPin } from 'lucide-react'
 
 const SOURCE_ID = 'sivrce-buildings'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
+
+const NBH_SOURCE_ID = 'sivrce-neighborhoods'
+const NBH_CIRCLE_ID = 'sivrce-neighborhoods-circle'
+const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
+const NBH_DATA = neighborhoodsToGeoJSON()
 
 const ALL_BUILDINGS = mergeMapBuildings(
   clusterListingsToBuildings(LISTINGS),
@@ -120,6 +126,40 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
 
   // ——— floor stack for the selected building ———
   ensureFloorLayers(map)
+
+  // ——— neighborhoods toggleable layer (off by default) ———
+  map.addSource(NBH_SOURCE_ID, { type: 'geojson', data: NBH_DATA })
+  map.addLayer({
+    id: NBH_CIRCLE_ID,
+    type: 'circle',
+    source: NBH_SOURCE_ID,
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 14, 12, 17, 22],
+      'circle-color': BRAND.colors.blueLight,
+      'circle-stroke-color': '#FFFFFF',
+      'circle-stroke-width': 2,
+      'circle-opacity': 0.85,
+    },
+  })
+  map.addLayer({
+    id: NBH_LABEL_ID,
+    type: 'symbol',
+    source: NBH_SOURCE_ID,
+    layout: {
+      visibility: 'none',
+      'text-field': ['get', 'name'],
+      'text-size': 12,
+      'text-font': ['Noto Sans Bold'],
+      'text-offset': [0, -1.6],
+      'text-allow-overlap': true,
+    },
+    paint: {
+      'text-color': '#FFFFFF',
+      'text-halo-color': BRAND.colors.navy,
+      'text-halo-width': 1.4,
+    },
+  })
 }
 
 const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
@@ -134,6 +174,7 @@ const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
   { id: 'all', label: 'ყველა შენობა' },
   { id: 'active', label: 'აქტიური' },
   { id: 'construction', label: 'მშენებარე' },
+  { id: 'completed', label: 'დასრულებული' },
 ]
 
 function Map3DInner() {
@@ -149,6 +190,7 @@ function Map3DInner() {
   const [dealFilter, setDealFilter] = useState<MapDealFilter>('all')
   const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
+  const [showNeighborhoods, setShowNeighborhoods] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -198,6 +240,16 @@ function Map3DInner() {
       if (map.getLayer(layer)) map.setFilter(layer, exclude)
     }
   }, [selected, dealFilter, ready])
+
+  // Neighborhoods layer visibility toggle
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const vis = showNeighborhoods ? 'visible' : 'none'
+    for (const layer of [NBH_CIRCLE_ID, NBH_LABEL_ID]) {
+      if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', vis)
+    }
+  }, [showNeighborhoods, ready])
 
   useEffect(() => {
     if (!ready || deepLinked.current) return
@@ -347,6 +399,59 @@ function Map3DInner() {
       }
     }
 
+    const nbhPopup = new maplibregl.Popup({
+      className: 'sivrce-nbh-pop',
+      closeButton: true,
+      closeOnClick: true,
+      offset: 18,
+      maxWidth: '260px',
+    })
+
+    const onNeighborhoodClick = (e: MapLayerMouseEvent) => {
+      e.originalEvent.stopPropagation()
+      const f = e.features?.[0]
+      if (!f) return
+      const p = f.properties ?? {}
+      const scoreRow = (label: string, v: number) => {
+        const row = document.createElement('div')
+        row.className = 'sivrce-nbh-pop-row'
+        const lab = document.createElement('span')
+        lab.textContent = label
+        const val = document.createElement('span')
+        val.textContent = String(v)
+        row.appendChild(lab)
+        row.appendChild(val)
+        return row
+      }
+      const root = document.createElement('div')
+      root.className = 'sivrce-nbh-pop'
+      const title = document.createElement('div')
+      title.className = 'sivrce-nbh-pop-title'
+      title.textContent = String(p.name)
+      root.appendChild(title)
+      const city = document.createElement('div')
+      city.className = 'sivrce-nbh-pop-city'
+      city.textContent = String(p.city)
+      root.appendChild(city)
+      const price = document.createElement('div')
+      price.className = 'sivrce-nbh-pop-price'
+      price.textContent = `~$${Number(p.avgPriceM2USD).toLocaleString('en-US')}/m²`
+      root.appendChild(price)
+      root.appendChild(scoreRow('ტრანსპორტი', Number(p.transport)))
+      root.appendChild(scoreRow('სკოლები', Number(p.schools)))
+      root.appendChild(scoreRow('მწვანე', Number(p.green)))
+      root.appendChild(scoreRow('უსაფრთხოება', Number(p.safety)))
+      root.appendChild(scoreRow('ღამის ცხოვრება', Number(p.nightlife)))
+      nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
+    }
+
+    const onNeighborhoodEnter = () => {
+      map.getCanvas().style.cursor = 'pointer'
+    }
+    const onNeighborhoodLeave = () => {
+      map.getCanvas().style.cursor = ''
+    }
+
     map.on('load', () => {
       if (cancelled) return
       applyBrandPaints(map)
@@ -370,6 +475,9 @@ function Map3DInner() {
     map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
     map.on('mouseleave', FLOORS_FILL_ID, clearFloorHover)
     map.on('click', FLOORS_FILL_ID, onFloorClick)
+    map.on('click', NBH_CIRCLE_ID, onNeighborhoodClick)
+    map.on('mouseenter', NBH_CIRCLE_ID, onNeighborhoodEnter)
+    map.on('mouseleave', NBH_CIRCLE_ID, onNeighborhoodLeave)
     map.on('click', onMapClick)
 
     return () => {
@@ -391,6 +499,12 @@ function Map3DInner() {
   }
 
   const constructionCount = ALL_BUILDINGS.filter((b) => b.status === 'construction').length
+  const completedCount = ALL_BUILDINGS.filter((b) => b.status === 'completed').length
+  const statusCount = (id: MapStatusFilter): string => {
+    if (id === 'construction') return ` (${constructionCount})`
+    if (id === 'completed') return ` (${completedCount})`
+    return ''
+  }
 
   return (
     <div className="relative flex h-[calc(100dvh-4.5rem)] w-full overflow-hidden bg-sv-navy md:h-[calc(100dvh-5rem)]">
@@ -464,14 +578,36 @@ function Map3DInner() {
                       ? 'bg-sv-blue text-white shadow-glow-blue-sm'
                       : 'text-white/60 hover:text-white'
                   }`}
+                  style={
+                    active && f.id === 'completed'
+                      ? { background: SERVICE_BRAND.developers.hue }
+                      : active && f.id === 'construction'
+                        ? { background: CATEGORY_BRAND.newProjects.hue }
+                        : undefined
+                  }
                 >
                   {f.id === 'construction' && <HardHat className="h-3 w-3" />}
+                  {f.id === 'completed' && <CheckCircle2 className="h-3 w-3" />}
                   {f.label}
-                  {f.id === 'construction' ? ` (${constructionCount})` : ''}
+                  {statusCount(f.id)}
                 </button>
               )
             })}
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowNeighborhoods((v) => !v)}
+            aria-pressed={showNeighborhoods}
+            className={`inline-flex min-h-11 w-fit items-center gap-1.5 rounded-tile border px-3.5 py-2 text-[12px] font-extrabold backdrop-blur-md transition ${
+              showNeighborhoods
+                ? 'border-sv-blue-light/50 bg-sv-blue-light/15 text-white shadow-glow-blue-sm'
+                : 'border-white/10 bg-sv-navy/85 text-white/60 hover:text-white'
+            }`}
+          >
+            <MapPin className="h-3.5 w-3.5" />
+            რაიონები ({NBH_DATA.features.length})
+          </button>
         </div>
 
         <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2 rounded-tile border border-white/10 bg-sv-navy/85 p-3 backdrop-blur-md">
@@ -482,6 +618,8 @@ function Map3DInner() {
               ['დღიურად', DEAL_BRAND.daily],
               ['გირავდება', DEAL_BRAND.pledge],
               ['მშენებარე', CATEGORY_BRAND.newProjects.hue],
+              ['დასრულებული', SERVICE_BRAND.developers.hue],
+              ['რაიონი', BRAND.colors.blueLight],
             ] as const
           ).map(([label, color]) => (
             <div key={label} className="flex items-center gap-1.5 text-[11px] font-extrabold text-white/80">
