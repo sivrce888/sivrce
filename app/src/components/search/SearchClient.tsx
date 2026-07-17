@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback, useSyncExternalStore } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search as SearchIcon, X, LayoutGrid, Rows3,
@@ -13,6 +15,7 @@ import ListingCard from '@/components/ListingCard'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
+import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import {
@@ -50,6 +53,30 @@ function SkeletonCard() {
         <div className="h-10 animate-pulse rounded-module bg-sv-ink/[0.05]" />
       </div>
     </div>
+  )
+}
+
+/** Compact rail card — thumb + price + one-line meta; 3–4 visible per viewport. */
+function CompactCard({ l }: { l: Listing }) {
+  const { format } = useCurrency()
+  const suffix = l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
+  return (
+    <Link
+      href={`/listing/${l.id}`}
+      className="group flex w-[264px] shrink-0 items-center gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-2.5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+    >
+      <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control">
+        {/* decorative — the title next to it carries the meaning */}
+        <Image src={l.img} alt="" fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
+          {format(l.priceGEL)}{suffix}
+        </span>
+        <span className="block truncate text-[12px] font-semibold text-sv-ink/55">{l.title}</span>
+        <span className="block text-[12px] font-semibold text-sv-ink/40">{l.area} მ² · {l.city}</span>
+      </span>
+    </Link>
   )
 }
 
@@ -510,9 +537,9 @@ export default function SearchClient() {
         {recentItems.length > 0 && !showSkeleton && (
           <section aria-label={s('recentlyViewed')} className="mb-8">
             <h2 className="mb-3 text-[15px] font-extrabold text-sv-ink">{s('recentlyViewed')}</h2>
-            <div className="-mx-5 flex gap-5 overflow-x-auto px-5 pb-2 md:-mx-10 md:px-10">
-              {recentItems.map((l, i) => (
-                <ListingCard key={l.id} l={l} i={i} layout="grid" />
+            <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-2 md:-mx-10 md:px-10">
+              {recentItems.map((l) => (
+                <CompactCard key={l.id} l={l} />
               ))}
             </div>
           </section>
