@@ -19,6 +19,9 @@ config({ path: resolve(__dirname, "..", ".env") })
 import { PrismaClient } from "../src/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { LISTINGS } from "../src/data/listings"
+import { BUILDINGS } from "../src/data/buildings"
+import { DEVELOPERS } from "../src/data/professionals"
+import footprintData from "../src/data/building-footprints.json"
 
 const connectionString = process.env.DATABASE_URL
 if (!connectionString) {
@@ -92,6 +95,63 @@ async function main() {
   }
 
   console.log(`Done. ${LISTINGS.length} listings seeded.`)
+
+  // ——— Map buildings + developers (admin-curated layer for /map) ———
+  // Idempotent upserts: reseeding syncs the DB with the static catalog.
+  console.log(`Seeding ${DEVELOPERS.length} developers...`)
+  for (const d of DEVELOPERS) {
+    const data = {
+      slug: d.slug,
+      name: d.name.ka,
+      logoText: d.name.en.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "DEV",
+      headquarters: d.city,
+      description: d.description.ka,
+      color: "#2E6BFF",
+      projectsCount: d.projectsDone,
+      completedCount: d.projectsDone,
+    }
+    await db.developerProfile.upsert({
+      where: { id: d.slug },
+      update: data,
+      create: { id: d.slug, ...data },
+    })
+  }
+
+  const rings = footprintData.footprints as unknown as Record<
+    string,
+    { ring: [number, number][]; osmId: number } | null
+  >
+  console.log(`Seeding ${BUILDINGS.length} popular map buildings...`)
+  for (const b of BUILDINGS) {
+    const ring = rings[`bldg-${b.slug}`]?.ring
+    const data = {
+      code: b.code,
+      title: b.name,
+      titleEn: b.nameEn,
+      description: b.description.ka,
+      address: b.address,
+      city: b.city,
+      district: b.district,
+      buildingNumber: b.buildingNumber,
+      polygonCoords: ring ? { ring } : undefined,
+      lat: b.coords.lat,
+      lng: b.coords.lng,
+      floors: b.floors,
+      yearBuilt: b.yearBuilt ?? null,
+      img: b.img,
+      status: b.status === "construction" ? "construction" : "active",
+      popular: true,
+      projectSlug: b.projectSlug ?? null,
+      developerId: b.developerSlug,
+    }
+    await db.mapBuilding.upsert({
+      where: { slug: b.slug },
+      update: data,
+      create: { slug: b.slug, ...data },
+    })
+    console.log(`  + ${b.slug}`)
+  }
+  console.log("Map buildings + developers seeded.")
 }
 
 main()

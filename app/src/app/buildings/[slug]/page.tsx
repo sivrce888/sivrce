@@ -23,8 +23,9 @@ import {
   buildingDealCounts,
 } from '@/data/buildings'
 import { LISTINGS } from '@/data/listings'
-import { getDeveloper } from '@/data/professionals'
+import { getDeveloper, type Developer } from '@/data/professionals'
 import { clusterListingsToBuildings, findBuildingBySlug } from '@/lib/map/buildings'
+import { getDbBuildingEntries } from '@/lib/map/db-buildings'
 import {
   buildingFloorCount,
   buildingFloors,
@@ -44,9 +45,32 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+/** Static catalog first; DB-curated buildings (admin) as fallback so map deep-links never 404. */
+async function resolveBuilding(slug: string) {
+  const staticHit = getBuilding(slug)
+  if (staticHit) return { building: staticHit, developer: undefined as Developer | undefined }
+  const hit = (await getDbBuildingEntries()).find((x) => x.entry.slug === slug)
+  if (!hit) return { building: undefined, developer: undefined as Developer | undefined }
+  // ponytail: minimal Developer shape; DB developer profiles get full pages when they exist
+  const developer: Developer | undefined = hit.developer
+    ? {
+        slug: hit.developer.slug,
+        name: { ka: hit.developer.name, en: hit.developer.name, ru: hit.developer.name },
+        city: '',
+        yearsActive: 0,
+        projectsDone: 0,
+        unitsDelivered: 0,
+        description: { ka: '', en: '', ru: '' },
+        verified: false,
+        phone: '',
+      }
+    : undefined
+  return { building: hit.entry, developer }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const b = getBuilding(slug)
+  const { building: b } = await resolveBuilding(slug)
   if (!b) return {}
   const counts = buildingDealCounts(slug)
   const description = `${b.address}. ${counts.sale} გაყიდვა, ${counts.rent} ქირა, ${counts.daily} დღიური, ${counts.pledge} გირავნობა.`
@@ -68,10 +92,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BuildingPage({ params }: PageProps) {
   const { slug } = await params
-  const building = getBuilding(slug)
+  const { building, developer: dbDeveloper } = await resolveBuilding(slug)
   if (!building) notFound()
 
-  const dev = getDeveloper(building.developerSlug)
+  const dev = getDeveloper(building.developerSlug) ?? dbDeveloper
   const listings = listingsForBuilding(slug)
   const counts = buildingDealCounts(slug)
   const aggregate = await getReviewAggregate('building', slug)
