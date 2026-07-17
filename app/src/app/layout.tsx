@@ -77,12 +77,6 @@ export const metadata: Metadata = {
       ka: "/",
       en: "/en",
       ru: "/ru",
-      he: "/he",
-      ar: "/ar",
-      tr: "/tr",
-      uk: "/uk",
-      hy: "/hy",
-      az: "/az",
       "x-default": "/",
     },
   },
@@ -238,6 +232,9 @@ export default function RootLayout({
                 gtag('config','${GA_ID}');
               };
               document.head.appendChild(g);
+              var c=document.createElement('script');c.async=true;
+              c.src='https://counter.top.ge/counter.js';
+              document.body.appendChild(c);
             }
             ['pointerdown','keydown','scroll','touchstart'].forEach(function(e){
               window.addEventListener(e,boot,{once:true,passive:true});
@@ -264,9 +261,8 @@ export default function RootLayout({
           <Toaster position="top-center" />
         </ThemeProvider>
         <SWRegister />
-        {/* TOP.GE async counter */}
+        {/* TOP.GE async counter — script injected by analytics-boot above */}
         <div id="top-ge-counter-container" data-site-id="117677" />
-        <Script src="https://counter.top.ge/counter.js" strategy="lazyOnload" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}
