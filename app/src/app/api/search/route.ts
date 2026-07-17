@@ -136,6 +136,10 @@ async function dbSearch(filters: SearchFilters) {
 // GET handler
 // ---------------------------------------------------------------------------
 
+// Anonymous, URL-keyed responses: cache at the edge for 30s. Shields DB/Meili
+// from scrapers and repeat keystrokes; new listings appear within a minute.
+const CACHE_HEADERS = { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" }
+
 export async function GET(req: Request) {
   const url = new URL(req.url)
   const sp = url.searchParams
@@ -157,10 +161,10 @@ export async function GET(req: Request) {
           ? [{ ...row, dealType: row.dealType === "buy" ? "sale" : row.dealType, agent: row.agent as unknown }]
           : []
       })
-      return Response.json({ ok: true, hits, totalHits: hits.length, page: 1, pageSize: hits.length, totalPages: 1, source: "db" })
+      return Response.json({ ok: true, hits, totalHits: hits.length, page: 1, pageSize: hits.length, totalPages: 1, source: "db" }, { headers: CACHE_HEADERS })
     } catch (e) {
       console.error("[api/search] ids lookup failed:", (e as Error).message)
-      return Response.json({ ok: true, hits: [], totalHits: 0, page: 1, pageSize: 0, totalPages: 0, source: "db" })
+      return Response.json({ ok: true, hits: [], totalHits: 0, page: 1, pageSize: 0, totalPages: 0, source: "db" }, { headers: CACHE_HEADERS })
     }
   }
 
@@ -178,12 +182,16 @@ export async function GET(req: Request) {
   const dealParam = sp.get("dealType")
   const dealType = dealParam === "sale" ? "buy" : dealParam
 
+  // Free-text / location strings are capped at the trust boundary — a 10MB q
+  // would otherwise flow into Meili, ILIKE and Meili filter strings.
+  const str = (key: string) => sp.get(key)?.slice(0, 120) || undefined
+
   const filters: SearchFilters = {
-    q: sp.get("q") ?? undefined,
+    q: str("q"),
     dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
     propertyType: (sp.get("propertyType") as SearchFilters["propertyType"]) ?? undefined,
-    city: sp.get("city") ?? undefined,
-    district: sp.get("district") ?? undefined,
+    city: str("city"),
+    district: str("district"),
     minPrice: num("minPrice"),
     maxPrice: num("maxPrice"),
     minArea: num("minArea"),
@@ -197,9 +205,9 @@ export async function GET(req: Request) {
   // Try Meilisearch first, fall back to DB.
   const meiliResult = await searchListings(filters)
   if (meiliResult) {
-    return Response.json({ ok: true, ...meiliResult, source: "meilisearch" })
+    return Response.json({ ok: true, ...meiliResult, source: "meilisearch" }, { headers: CACHE_HEADERS })
   }
 
   const dbResult = await dbSearch(filters)
-  return Response.json({ ok: true, ...dbResult })
+  return Response.json({ ok: true, ...dbResult }, { headers: CACHE_HEADERS })
 }

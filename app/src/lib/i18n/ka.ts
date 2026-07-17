@@ -104,6 +104,7 @@ export const ka = {
   'detail.fullPrice': 'სრული ფასი',
   'detail.monthlyRent': 'თვიური ქირა',
   'detail.perMonth': '/თვე',
+  'detail.perDay': '/დღე',
   'detail.currency': 'ვალუტა',
   'detail.aiScore': 'AI ფასის შეფასება',
   'detail.aiBase': 'ფასი შედარებულია {district} — {city}-ის {deal} 40+ მსგავს განცხადებასთან.',

@@ -60,7 +60,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const signals = useSocialSignals(l.views, l.postedAt)
 
   const priceGEL = l.priceGEL
-  const suffix = l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
+  const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
   const displayPrice = `${format(priceGEL)}${suffix}`
 
   const handleShare = (e: React.MouseEvent) => {
@@ -108,7 +108,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         src={l.img}
         alt={l.title}
         fill
-        sizes="(max-width:640px) 86vw, 380px"
+        sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
         priority={i === 0}
         className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
       />

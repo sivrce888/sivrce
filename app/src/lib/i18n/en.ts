@@ -105,6 +105,7 @@ export const en: Dict = {
   'detail.fullPrice': 'Full price',
   'detail.monthlyRent': 'Monthly rent',
   'detail.perMonth': '/month',
+  'detail.perDay': '/day',
   'detail.currency': 'Currency',
   'detail.aiScore': 'AI price assessment',
   'detail.aiBase': 'The price is compared with 40+ similar {deal} listings in {district}, {city}.',

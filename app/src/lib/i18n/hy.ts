@@ -105,6 +105,7 @@ export const hy: Dict = {
   'detail.fullPrice': 'Ամբողջական գին',
   'detail.monthlyRent': 'Ամսավարձ',
   'detail.perMonth': '/ամիս',
+  'detail.perDay': '/օր',
   'detail.currency': 'Արժույթ',
   'detail.aiScore': 'AI գնագնահատական',
   'detail.aiBase': 'Գինը համեմատված է {district}, {city} տարածքի 40+ նման {deal} հայտարարությունների հետ։',

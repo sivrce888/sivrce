@@ -105,6 +105,7 @@ export const he: Dict = {
   'detail.fullPrice': 'מחיר מלא',
   'detail.monthlyRent': 'שכירות חודשית',
   'detail.perMonth': '/חודש',
+  'detail.perDay': '/יום',
   'detail.currency': 'מטבע',
   'detail.aiScore': 'הערכת מחיר AI',
   'detail.aiBase': 'המחיר מושווה ל-40+ מודעות {deal} דומות ב-{district}, {city}.',
