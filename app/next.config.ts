@@ -67,6 +67,7 @@ const nextConfig: NextConfig = {
     // 9 workers × Prisma pools socket-timeout Neon's free tier mid-build;
     // cap concurrency so SSG DB traffic stays under the connection ceiling.
     staticGenerationMaxConcurrency: 3,
+    cpus: 2,
   },
   images: {
     formats: ["image/avif", "image/webp"],
