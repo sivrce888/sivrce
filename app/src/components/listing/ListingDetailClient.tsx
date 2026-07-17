@@ -21,10 +21,10 @@ import { LeadForm } from '@/components/lead/LeadForm'
 import { TourBooking } from '@/components/listing/TourBooking'
 import MapEmbed from '@/components/MapEmbed'
 import { lt } from './i18n'
-import {
-  formatUSD, formatGEL, formatViews,
+import { formatUSD, formatGEL, formatViews,
   formatFloor, getListing, USD_GEL, type Listing, type PropType,
 } from '@/data/listings'
+import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
 import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
@@ -709,10 +709,11 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   </p>
                 </div>
                 <Link
-                  href={`/search?deal=${l.dealType}&type=${l.propType}`}
+                  href={listingHubPath(l) ?? `/search?deal=${l.dealType}&type=${l.propType}`}
                   className="hidden shrink-0 items-center gap-2 text-[14px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep sm:flex"
                 >
-                  {t('detail.seeMore')} <ChevronRight className="h-4 w-4" />
+                  {/* SEO: keyword anchor (matches destination hub <h1>) over generic "See more". */}
+                  {listingHubAnchor(l) ?? t('detail.seeMore')} <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
               <div className="-mx-5 overflow-x-auto px-5 pb-2 md:-mx-10 md:px-10">

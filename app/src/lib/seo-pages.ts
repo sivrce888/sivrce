@@ -99,6 +99,54 @@ export const DISTRICTS: District[] = [
 const cityBySlug = (s: string) => CITIES.find((c) => c.slug === s)
 const districtBySlug = (s: string) => DISTRICTS.find((d) => d.slug === s)
 
+/* ————— Listing → programmatic hub ————— */
+
+/** Reverse-map a Listing's ka `city`/`district` + dealType/propType to a slug hub
+ *  (e.g. `იყიდება ბინა ვაკეში` → `/sale/apartments/tbilisi/vake`). null = no real
+ *  page (empty combo) → caller falls back to /search. ponytail: one reverse
+ *  lookup beats maintaining a parallel slug map; the registry stays canonical. */
+const DEAL_TO_SLUG: Record<DealType, string> = { sale: 'sale', rent: 'rent', daily: 'daily', pledge: 'pledge' }
+const TYPE_TO_SLUG: Record<PropType, string> = {
+  apartment: 'apartments', house: 'houses', commercial: 'commercial', land: 'land',
+}
+export function listingHubPath(l: {
+  dealType: DealType
+  propType: PropType
+  city: string
+  district: string
+}): string | null {
+  const dealSlug = DEAL_TO_SLUG[l.dealType]
+  const typeSlug = TYPE_TO_SLUG[l.propType]
+  const city = CITIES.find((c) => c.ka === l.city)
+  // try deepest real page: deal/type/city/district → deal/type/city → deal/type
+  const attempts: string[][] = city
+    ? [
+        [dealSlug, typeSlug, city.slug, DISTRICTS.find((d) => d.citySlug === city.slug && d.ka === l.district)?.slug].filter(Boolean) as string[],
+        [dealSlug, typeSlug, city.slug],
+        [dealSlug, typeSlug],
+        [dealSlug],
+      ]
+    : [[dealSlug, typeSlug], [dealSlug]]
+  for (const slug of attempts) {
+    if (parseSeoSlug(slug)) return `/${slug.join('/')}`
+  }
+  return null
+}
+
+/** Keyword anchor text for the hub link: "იყიდება ბინები ვაკეში" / "For sale in Vake".
+ *  Reuses h1Of so the anchor literally matches the destination page's <h1>. */
+export function listingHubAnchor(l: {
+  dealType: DealType
+  propType: PropType
+  city: string
+  district: string
+}): string | null {
+  const path = listingHubPath(l)
+  if (!path) return null
+  const def = parseSeoSlug(path.slice(1).split('/'))
+  return def ? h1Of(def, 'ka') : null
+}
+
 /* ————— Page model ————— */
 
 export type SeoKind =

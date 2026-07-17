@@ -45,10 +45,11 @@ export default function Listings({ items }: { items: Listing[] }) {
               </button>
             </div>
             <Link
-              href="/search"
+              href="/sale"
               className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
             >
-              ყველას ნახვა
+              {/* SEO: indexable hub + keyword anchor — /search is noindex. */}
+              ყველა განცხადების ნახვა
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>

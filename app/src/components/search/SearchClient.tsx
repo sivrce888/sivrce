@@ -339,7 +339,7 @@ export default function SearchClient() {
           {/* Row 1: deal + type + location + sort */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Deal segmented */}
-            <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.dealType')}>
+            <div className="flex max-w-full overflow-x-auto rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.dealType')}>
               {([undefined, 'sale', 'rent', 'daily'] as const).map((d) => {
                 const label = t(d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'daily' ? 'add.deal.daily' : 'search.rent')
                 const count = d === undefined ? undefined : fcount('dealType', d)
