@@ -44,3 +44,35 @@ export async function deleteReview(fd: FormData): Promise<void> {
   })
   revalidatePath("/admin/content/reviews")
 }
+
+/**
+ * ServiceProviderReview has no deletedAt/verified columns, so moderation here
+ * is a hard delete; provider rating aggregates are recomputed in the same
+ * transaction so the directory never shows stale scores.
+ */
+export async function deleteServiceProviderReview(fd: FormData): Promise<void> {
+  const session = await requireAdminAction()
+  const id = reqString(fd, "id", 120)
+  const before = await db.serviceProviderReview.findUnique({
+    where: { id },
+    select: { providerId: true, rating: true },
+  })
+  if (!before) throw new Error("Review not found")
+  await db.$transaction(async (tx) => {
+    await tx.serviceProviderReview.delete({ where: { id } })
+    const agg = await tx.serviceProviderReview.aggregate({
+      where: { providerId: before.providerId },
+      _avg: { rating: true },
+      _count: { _all: true },
+    })
+    await tx.serviceProvider.update({
+      where: { id: before.providerId },
+      data: { rating: agg._avg.rating ?? 0, reviewCount: agg._count._all },
+    })
+  })
+  await logAdminAction(session, "content.provider_review.delete", "ServiceProviderReview", id, {
+    before,
+    after: { deleted: true },
+  })
+  revalidatePath("/admin/content/reviews")
+}

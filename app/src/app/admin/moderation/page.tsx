@@ -21,6 +21,7 @@ import { SearchForm } from "@/components/admin/ui/SearchForm"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 import { fmtDate, timeAgo } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   COMPLAINT_KIND_OPTIONS,
   COMPLAINT_PRIORITY_OPTIONS,
@@ -39,6 +40,7 @@ import {
   QUEUE_STATUS_OPTIONS,
   SHADOW_BAN_SCOPE_OPTIONS,
   shortRef,
+  subjectHref,
   userLabel,
   type BlocklistKind,
 } from "@/lib/admin/moderation"
@@ -80,6 +82,7 @@ export default async function AdminModerationPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const tabRaw = param(sp.tab)
   const tab = isModerationTab(tabRaw) ? tabRaw : "queue"
@@ -153,15 +156,25 @@ async function QueueTab({ page, sp }: { page: number; sp: SearchParams }) {
             <tbody>
               {rows.map((r) => {
                 const actionable = r.status === "pending" || r.status === "in_review"
+                const href = subjectHref(r.subjectKind, r.subjectId)
                 return (
                   <TRow key={r.id}>
                     <td className={`${td} whitespace-nowrap`}>
                       <span className="font-bold text-sv-ink">
                         {r.subjectKind.replaceAll("_", " ")}
                       </span>
-                      <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
-                        {shortRef(r.subjectId)}
-                      </span>
+                      {href ? (
+                        <Link
+                          href={href}
+                          className="mt-0.5 block font-mono text-[12px] text-sv-ink/45 transition-colors hover:text-sv-blue"
+                        >
+                          {shortRef(r.subjectId)}
+                        </Link>
+                      ) : (
+                        <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
+                          {shortRef(r.subjectId)}
+                        </span>
+                      )}
                     </td>
                     <td className={td}>
                       <span className="block max-w-[260px] truncate" title={r.reason}>
@@ -274,6 +287,7 @@ async function ComplaintsTab({ page, sp }: { page: number; sp: SearchParams }) {
               <th className={th}>ID</th>
               <th className={th}>Kind</th>
               <th className={th}>Subject</th>
+              <th className={th}>Description</th>
               <th className={th}>Reporter</th>
               <th className={th}>Priority</th>
               <th className={th}>Status</th>
@@ -284,6 +298,7 @@ async function ComplaintsTab({ page, sp }: { page: number; sp: SearchParams }) {
             <tbody>
               {rows.map((r) => {
                 const open = r.status === "open" || r.status === "under_review"
+                const href = subjectHref(r.subjectKind, r.subjectId)
                 return (
                   <TRow key={r.id}>
                     <td className={`${td} font-mono text-[12.5px] whitespace-nowrap`}>
@@ -296,9 +311,30 @@ async function ComplaintsTab({ page, sp }: { page: number; sp: SearchParams }) {
                       <span className="font-bold text-sv-ink">
                         {r.subjectKind.replaceAll("_", " ")}
                       </span>
-                      <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
-                        {shortRef(r.subjectId)}
-                      </span>
+                      {href ? (
+                        <Link
+                          href={href}
+                          className="mt-0.5 block font-mono text-[12px] text-sv-ink/45 transition-colors hover:text-sv-blue"
+                        >
+                          {shortRef(r.subjectId)}
+                        </Link>
+                      ) : (
+                        <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
+                          {shortRef(r.subjectId)}
+                        </span>
+                      )}
+                    </td>
+                    <td className={td}>
+                      {r.description ? (
+                        <span
+                          className="line-clamp-2 block max-w-[260px] text-[12.5px] text-sv-ink/70"
+                          title={r.description}
+                        >
+                          {r.description}
+                        </span>
+                      ) : (
+                        <span className="text-[12px] text-sv-ink/30">—</span>
+                      )}
                     </td>
                     <td className={`${td} max-w-[200px] truncate`}>
                       {r.reporter ? userLabel(r.reporter) : (r.reporterEmail ?? "—")}

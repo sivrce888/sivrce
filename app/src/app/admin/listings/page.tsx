@@ -9,6 +9,7 @@ import { Pagination } from "@/components/admin/ui/Pagination"
 import { SearchForm } from "@/components/admin/ui/SearchForm"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { fmtDate, fmtMoney, fmtNum } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   DEAL_TYPE_OPTIONS,
   PROPERTY_TYPE_OPTIONS,
@@ -45,6 +46,7 @@ export default async function AdminListingsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const page = parsePage(sp.page)
   const where = listingListWhere(sp)

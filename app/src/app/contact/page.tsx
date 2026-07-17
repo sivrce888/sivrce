@@ -4,6 +4,8 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ContactForm from '@/components/contact/ContactForm'
 import { Reveal } from '@/components/Reveal'
+import { getConfig } from '@/lib/config'
+import { telHref } from '@/lib/inquiries/phone'
 import { jsonLd } from '@/lib/utils'
 
 export const metadata: Metadata = {
@@ -12,34 +14,39 @@ export const metadata: Metadata = {
   alternates: { canonical: '/contact' },
 }
 
-const CHANNELS = [
-  { icon: Mail, label: 'ელ. ფოსტა', value: 'info@sivrce.ge', href: 'mailto:info@sivrce.ge' },
-  { icon: Phone, label: 'ტელეფონი', value: '+995 32 2 00 00 00', href: 'tel:+995322000000' },
-  { icon: MapPin, label: 'მისამართი', value: 'თბილისი, საქართველო', href: null },
-]
+export default async function ContactPage() {
+  const [email, phone] = await Promise.all([
+    getConfig('site.contactEmail'),
+    getConfig('site.contactPhone'),
+  ])
 
-const contactLd = {
-  '@context': 'https://schema.org',
-  '@type': 'ContactPage',
-  name: 'კონტაქტი — sivrce',
-  url: 'https://sivrce.ge/contact',
-  inLanguage: 'ka',
-  isPartOf: { '@id': 'https://sivrce.ge/#website' },
-  about: {
-    '@type': 'Organization',
-    name: 'sivrce',
-    url: 'https://sivrce.ge',
-    email: 'info@sivrce.ge',
-    telephone: '+995 32 2 00 00 00',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'თბილისი',
-      addressCountry: 'GE',
+  const channels = [
+    { icon: Mail, label: 'ელ. ფოსტა', value: email, href: `mailto:${email}` },
+    { icon: Phone, label: 'ტელეფონი', value: phone, href: telHref(phone) },
+    { icon: MapPin, label: 'მისამართი', value: 'თბილისი, საქართველო', href: null },
+  ]
+
+  const contactLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'კონტაქტი — sivrce',
+    url: 'https://sivrce.ge/contact',
+    inLanguage: 'ka',
+    isPartOf: { '@id': 'https://sivrce.ge/#website' },
+    about: {
+      '@type': 'Organization',
+      name: 'sivrce',
+      url: 'https://sivrce.ge',
+      email,
+      telephone: phone,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'თბილისი',
+        addressCountry: 'GE',
+      },
     },
-  },
-}
+  }
 
-export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(contactLd) }} />
@@ -58,7 +65,7 @@ export default function ContactPage() {
           </Reveal>
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {CHANNELS.map((c, i) => {
+            {channels.map((c, i) => {
               const inner = (
                 <>
                   <div className="grid h-12 w-12 place-items-center rounded-module bg-sv-blue/10">

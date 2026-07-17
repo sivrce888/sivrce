@@ -3,6 +3,7 @@ import { ScrollText, Settings2 } from "lucide-react"
 import { deleteConfig } from "@/app/admin/system/actions"
 import { BroadcastForm } from "@/components/admin/system/BroadcastForm"
 import { ConfigForm } from "@/components/admin/system/ConfigForm"
+import { SettingsForm } from "@/components/admin/system/SettingsForm"
 import { SyncSearchButton } from "@/components/admin/system/SyncSearchButton"
 import { SystemTabs } from "@/components/admin/system/SystemTabs"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
@@ -11,13 +12,15 @@ import { EmptyState } from "@/components/admin/ui/EmptyState"
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { Pagination } from "@/components/admin/ui/Pagination"
 import { fmtDateTime, timeAgo } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
 import { prettyJson } from "@/lib/admin/system"
+import { configFormModel, getAllConfig } from "@/lib/config"
 import { db } from "@/lib/db"
 
 export const metadata = { title: "System" }
 
-const TABS = ["config", "broadcast", "audit"] as const
+const TABS = ["settings", "config", "broadcast", "audit"] as const
 type SystemTab = (typeof TABS)[number]
 
 function isTab(v: string): v is SystemTab {
@@ -29,21 +32,36 @@ export default async function AdminSystemPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const tabRaw = param(sp.tab)
-  const tab: SystemTab = isTab(tabRaw) ? tabRaw : "config"
+  const tab: SystemTab = isTab(tabRaw) ? tabRaw : "settings"
 
   return (
     <>
       <PageHeader
         title="System"
-        description="Platform configuration, broadcasts and audit trail"
+        description="Platform settings, broadcasts and audit trail"
       />
       <SystemTabs active={tab} />
+      {tab === "settings" ? <SettingsTab /> : null}
       {tab === "config" ? <ConfigTab /> : null}
       {tab === "broadcast" ? <BroadcastTab /> : null}
       {tab === "audit" ? <AuditTab sp={sp} /> : null}
     </>
+  )
+}
+
+async function SettingsTab() {
+  const sections = configFormModel(await getAllConfig())
+  return (
+    <div className="max-w-[760px]">
+      <p className="mb-4 max-w-[560px] text-[13px] text-sv-ink/55">
+        Live platform settings — these values are read across the site and apply on save.
+        Leave a field blank to revert it to the default.
+      </p>
+      <SettingsForm sections={sections} />
+    </div>
   )
 }
 
@@ -56,7 +74,7 @@ async function ConfigTab() {
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-[520px] text-[13px] text-sv-ink/55">
-          Runtime configuration keys — values are JSON and apply on save.
+          Advanced: raw JSON keys. Prefer the Settings tab for supported values.
         </p>
         <SyncSearchButton />
       </div>

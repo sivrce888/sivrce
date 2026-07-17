@@ -12,6 +12,7 @@ import { StatusPill } from "@/components/admin/ui/StatusPill"
 import type { Prisma } from "@/generated/prisma/client"
 import { BlogPostStatus } from "@/generated/prisma/enums"
 import { fmtDate, fmtNum } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   ADMIN_PAGE_SIZE,
   param,
@@ -33,6 +34,7 @@ export default async function BlogListPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const page = parsePage(sp.page)
   const q = param(sp.q)

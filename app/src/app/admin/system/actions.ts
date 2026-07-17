@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, updateTag } from "next/cache"
 
 import type { Prisma } from "@/generated/prisma/client"
 import { logAdminAction } from "@/lib/admin/audit"
@@ -12,12 +12,23 @@ import {
   NOTIFICATION_KIND_RE,
   type BroadcastFormState,
   type ConfigFormState,
+  type SettingsFormState,
 } from "@/lib/admin/system"
 import { optString, reqString } from "@/lib/admin/validate"
+import {
+  CONFIG_KEYS,
+  CONFIG_REGISTRY,
+  CONFIG_TAG,
+  getAllConfig,
+  type ConfigKey,
+} from "@/lib/config"
 import { db } from "@/lib/db"
 
 function revalidate() {
   revalidatePath("/admin/system")
+  // Rendered consumer of site.contactEmail / site.contactPhone.
+  revalidatePath("/contact")
+  updateTag(CONFIG_TAG)
 }
 
 export async function upsertConfig(
@@ -109,5 +120,65 @@ export async function sendBroadcast(
     return { error: null, createdCount }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Invalid input", createdCount: null }
+  }
+}
+
+const MAX_GEL = 1_000_000
+
+/**
+ * Structured settings save — every registry key is validated through
+ * CONFIG_REGISTRY. Blank field = revert that key to its default (row removed).
+ */
+export async function saveSettings(
+  _prev: SettingsFormState,
+  fd: FormData,
+): Promise<SettingsFormState> {
+  const session = await requireAdminAction()
+  try {
+    const before = await getAllConfig()
+    // value: null → delete the row (revert to default)
+    const writes: { key: ConfigKey; value: string | number | null }[] = []
+    for (const key of CONFIG_KEYS) {
+      const entry = CONFIG_REGISTRY[key]
+      const raw = fd.get(key)
+      const s = typeof raw === "string" ? raw.trim() : ""
+      if (!s) {
+        writes.push({ key, value: null })
+        continue
+      }
+      if (entry.input === "gel") {
+        const gel = Number(s)
+        if (!Number.isInteger(gel) || gel < 0 || gel > MAX_GEL) {
+          return { error: `${entry.label}: whole GEL amount, 0–${MAX_GEL}`, saved: false }
+        }
+        writes.push({ key, value: gel * 100 })
+      } else {
+        if (entry.parse(s) === null) {
+          return { error: `${entry.label}: invalid value`, saved: false }
+        }
+        writes.push({ key, value: s })
+      }
+    }
+    const changed = writes
+      .filter((w) => (w.value ?? CONFIG_REGISTRY[w.key].defaultValue) !== before[w.key])
+      .map((w) => w.key)
+    await db.$transaction(
+      writes.map((w) =>
+        w.value === null
+          ? db.systemConfig.deleteMany({ where: { id: w.key } })
+          : db.systemConfig.upsert({
+              where: { id: w.key },
+              create: { id: w.key, value: w.value, updatedById: session.user.id },
+              update: { value: w.value, updatedById: session.user.id },
+            }),
+      ),
+    )
+    await logAdminAction(session, "system.save_settings", "system_config", "settings", {
+      changed,
+    })
+    revalidate()
+    return { error: null, saved: true }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Invalid input", saved: false }
   }
 }

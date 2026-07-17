@@ -6,20 +6,21 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Search as SearchIcon, X, LayoutGrid, Rows3,
+  X, LayoutGrid, Rows3,
   ChevronDown, MapPin, RotateCcw, SearchX, Home,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
+import SearchSuggest from '@/components/search/SearchSuggest'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import {
-  CITIES, districtsOf,
+  CITIES, districtsOf, USD_GEL,
   type DealType, type PropType, type SortKey, type Listing,
 } from '@/data/listings'
 
@@ -92,7 +93,7 @@ function mapHit(h: Record<string, unknown>): Listing {
     dealType: h.dealType as DealType,
     propType: h.propertyType as PropType,
     priceUSD: h.price as number,
-    priceGEL: Math.round((h.price as number) * 2.7),
+    priceGEL: Math.round((h.price as number) * USD_GEL),
     perM2USD: (h.pricePerSqm as number) ?? 0,
     area: h.area as number,
     rooms: h.rooms as number,
@@ -325,8 +326,9 @@ export default function SearchClient() {
         </div>
       </div>
 
-      {/* Sticky filter bar */}
-      <div className="sticky top-[80px] z-40 border-b border-sv-ink/[0.06] glass-light md:top-[88px]">
+      {/* Sticky filter bar — desktop only; on mobile a 2-row sticky bar
+          would eat half the viewport while scrolling results */}
+      <div className="z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[88px]">
         <div className="mx-auto max-w-[1440px] px-4 py-3 md:px-10">
           {/* Row 1: deal + type + location + sort */}
           <div className="flex flex-wrap items-center gap-2">
@@ -407,17 +409,17 @@ export default function SearchClient() {
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
             </div>
 
-            {/* Keyword */}
-            <label className="relative min-w-[160px] flex-1">
-              <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-              <input
-                value={drafts.q}
-                onChange={(e) => setDrafts((d) => ({ ...d, q: e.target.value }))}
-                placeholder={t('search.keywordPlaceholder')}
-                className={`${inputClass} pl-10`}
-                aria-label={t('search.keyword')}
-              />
-            </label>
+            {/* Keyword + location autocomplete */}
+            <SearchSuggest
+              variant="light"
+              value={drafts.q}
+              onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
+              onPick={(v) => { setDrafts((d) => ({ ...d, q: v })); patchParams({ q: v }) }}
+              onSubmit={() => patchParams({ q: drafts.q || undefined })}
+              placeholder={t('search.keywordPlaceholder')}
+              ariaLabel={t('search.keyword')}
+              className="min-w-[160px] flex-1"
+            />
 
             {/* Sort */}
             <div className="relative">

@@ -47,9 +47,11 @@ export async function softDelete(formData: FormData) {
   const id = reqString(formData, "id", 120)
   const before = await db.inquiry.findUnique({ where: { id }, select: { deletedAt: true } })
   if (!before) throw new Error("Inquiry not found")
+  if (before.deletedAt) throw new Error("Inquiry is already deleted")
   await db.inquiry.update({ where: { id }, data: { deletedAt: new Date() } })
   await logAdminAction(session, "inquiry.soft_delete", "Inquiry", id, {
-    before: { deletedAt: before.deletedAt?.toISOString() ?? null },
+    // guard above proves deletedAt was null
+    before: { deletedAt: null },
     after: { deletedAt: "now" },
   })
   revalidatePath("/admin/inquiries")

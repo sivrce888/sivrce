@@ -69,10 +69,20 @@ export async function POST(req: NextRequest) {
       resolvedAgentId = profile?.id
     }
 
+    // Agent-owned listing without agent JSON: resolve via owner
+    if (!resolvedAgentId && listing.ownerId) {
+      const profile = await db.agentProfile.findFirst({
+        where: { ownerId: listing.ownerId, deletedAt: null },
+        select: { id: true },
+      })
+      resolvedAgentId = profile?.id
+    }
+
     const session = await auth()
     const tour = await createTour({
       listingId,
-      agentId: resolvedAgentId ?? listing.ownerId ?? "unknown",
+      // NULL agent = owner-hosted tour (private seller), shown in /seller/tours
+      agentId: resolvedAgentId ?? null,
       guestId: session?.user?.id,
       tourDate: parsedDate,
       tourTime,

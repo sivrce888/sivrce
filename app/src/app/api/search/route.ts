@@ -32,6 +32,7 @@ function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
           { description: { contains: filters.q, mode: "insensitive" } },
           { city: { contains: filters.q, mode: "insensitive" } },
           { district: { contains: filters.q, mode: "insensitive" } },
+          { address: { contains: filters.q, mode: "insensitive" } },
         ],
       },
     ]
@@ -48,6 +49,8 @@ function buildDbOrderBy(filters: SearchFilters): Prisma.ListingOrderByWithRelati
       return { price: "desc" }
     case "area":
       return { area: "desc" }
+    case "ai":
+      return { trustScore: "desc" }
     case "date":
     default:
       return { createdAt: "desc" }
@@ -166,9 +169,14 @@ export async function GET(req: Request) {
     return Number.isFinite(n) ? n : undefined
   }
 
+  // UI speaks "sale", DB speaks "buy" (DEALS map in /api/listings). Normalize
+  // once at the trust boundary — meili and DB filters both consume this.
+  const dealParam = sp.get("dealType")
+  const dealType = dealParam === "sale" ? "buy" : dealParam
+
   const filters: SearchFilters = {
     q: sp.get("q") ?? undefined,
-    dealType: (sp.get("dealType") as SearchFilters["dealType"]) ?? undefined,
+    dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
     propertyType: (sp.get("propertyType") as SearchFilters["propertyType"]) ?? undefined,
     city: sp.get("city") ?? undefined,
     district: sp.get("district") ?? undefined,

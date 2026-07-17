@@ -13,6 +13,7 @@ import { auth } from "@/auth"
 import { LISTINGS } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
+import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const dynamic = "force-dynamic"
@@ -88,6 +89,8 @@ export async function POST(req: NextRequest) {
 
   const rooms = asInt(body.rooms, 0, 50) ?? 0
   const baths = asInt(body.baths, 0, 50) ?? 0
+  const floor = asInt(body.floor, 0, 200)
+  const totalFloors = asInt(body.totalFloors, 0, 200)
   const images = asStrList(body.images, 16, 500).filter((u) => u.startsWith("https://"))
   const features = asStrList(body.features, 30, 60)
   const description = typeof body.description === "string" ? body.description.slice(0, 5000) : ""
@@ -109,8 +112,8 @@ export async function POST(req: NextRequest) {
       bedrooms: rooms,
       bathrooms: baths,
       area,
-      floor: asInt(body.floor, 0, 200),
-      totalFloors: asInt(body.totalFloors, 0, 200),
+      floor,
+      totalFloors,
       city,
       district,
       address,
@@ -131,6 +134,19 @@ export async function POST(req: NextRequest) {
     },
     select: { id: true },
   })
+
+  // Index into Meilisearch. ponytail: fire-and-forget — a search outage must
+  // never block publishing; the admin full-sync route is the backstop.
+  void indexListing({
+    id: listing.id,
+    title, description, city, district, address,
+    dealType, propertyType,
+    price: price ?? 0, currency: "USD", area,
+    rooms, bedrooms: rooms, bathrooms: baths,
+    floor: floor ?? undefined, totalFloors: totalFloors ?? undefined,
+    features, images, lat, lng,
+    createdAt: new Date().toISOString(), status: "active",
+  }).catch(() => {})
 
   if (session.user.role === "buyer") {
     await db.user.update({ where: { id: session.user.id }, data: { role: "seller" } })

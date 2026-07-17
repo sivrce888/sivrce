@@ -37,6 +37,8 @@ export function changedJsonKeys(before: unknown, after: unknown): string[] {
 
 export type ConfigFormState = { error: string | null; saved: boolean }
 
+export type SettingsFormState = ConfigFormState
+
 export type BroadcastFormState = {
   error: string | null
   createdCount: number | null

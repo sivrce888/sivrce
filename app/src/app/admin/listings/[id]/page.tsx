@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { StatCard } from "@/components/admin/ui/StatCard"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { fmtDate, fmtDateTime, fmtMoney, fmtNum, fmtPct, fmtTetri } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { DEAL_TYPE_OPTIONS, PROPERTY_TYPE_OPTIONS, TIER_OPTIONS, optionLabel } from "@/lib/admin/listings"
 import { db } from "@/lib/db"
 
@@ -46,6 +47,7 @@ export default async function AdminListingDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAdmin()
   const { id } = await params
   const listing = await db.listing.findUnique({
     where: { id },

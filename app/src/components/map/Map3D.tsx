@@ -12,6 +12,7 @@ import maplibregl, {
   type MapLayerMouseEvent,
   type MapMouseEvent,
   type GeoJSONSource,
+  type FilterSpecification,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { LISTINGS } from '@/data/listings'
@@ -33,6 +34,12 @@ import {
   type MapStatusFilter,
 } from '@/lib/map/buildings'
 import BuildingPanel from '@/components/map/BuildingPanel'
+import {
+  EMPTY_FLOORS,
+  floorTooltipKa,
+  floorsToGeoJSON,
+  type FloorInfo,
+} from '@/lib/map/floors'
 import { Layers, RotateCcw, HardHat } from 'lucide-react'
 
 const STYLE_URL =
@@ -42,6 +49,10 @@ const SOURCE_ID = 'sivrce-buildings'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
+const FLOORS_SOURCE_ID = 'sivrce-floors'
+const FLOORS_FILL_ID = 'sivrce-floors-3d'
+const FLOORS_LINE_ID = 'sivrce-floors-hover'
+const FLOORS_LABEL_ID = 'sivrce-floors-label'
 
 const ALL_BUILDINGS = mergeMapBuildings(
   clusterListingsToBuildings(LISTINGS),
@@ -125,6 +136,54 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
       'text-halo-width': 1.4,
     },
   })
+
+  // ——— floor stack for the selected building ———
+  map.addSource(FLOORS_SOURCE_ID, { type: 'geojson', data: EMPTY_FLOORS })
+
+  map.addLayer({
+    id: FLOORS_FILL_ID,
+    type: 'fill-extrusion',
+    source: FLOORS_SOURCE_ID,
+    paint: {
+      'fill-extrusion-color': ['get', 'color'],
+      'fill-extrusion-base': ['get', 'base'],
+      'fill-extrusion-height': ['get', 'top'],
+      'fill-extrusion-opacity': [
+        'case',
+        ['boolean', ['feature-state', 'hover'], false],
+        1,
+        ['==', ['get', 'available'], 0],
+        ['case', ['get', 'ghost'], 0.45, 0.3],
+        0.92,
+      ],
+    },
+  })
+
+  map.addLayer({
+    id: FLOORS_LINE_ID,
+    type: 'line',
+    source: FLOORS_SOURCE_ID,
+    filter: ['boolean', ['feature-state', 'hover'], false],
+    paint: { 'line-color': '#FFFFFF', 'line-width': 2, 'line-opacity': 0.9 },
+  })
+
+  map.addLayer({
+    id: FLOORS_LABEL_ID,
+    type: 'symbol',
+    source: FLOORS_SOURCE_ID,
+    minzoom: 14.5,
+    layout: {
+      'text-field': ['get', 'label'],
+      'text-size': 10,
+      'text-font': ['Noto Sans Bold'],
+      'text-allow-overlap': true,
+    },
+    paint: {
+      'text-color': '#FFFFFF',
+      'text-halo-color': BRAND.colors.navy,
+      'text-halo-width': 1.2,
+    },
+  })
 }
 
 const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
@@ -153,20 +212,30 @@ function Map3DInner() {
   const [tab, setTab] = useState<DealType | 'all'>('all')
   const [dealFilter, setDealFilter] = useState<MapDealFilter>('all')
   const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
+  const [floorFilter, setFloorFilter] = useState<number | null>(null)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const selectedRef = useRef<MapBuildingCluster | null>(null)
+  const dealRef = useRef<MapDealFilter>('all')
+  const floorRef = useRef<(n: number) => void>(() => {})
+  const popupRef = useRef<maplibregl.Popup | null>(null)
 
   const visible = useMemo(
     () => filterBuildings(ALL_BUILDINGS, dealFilter, statusFilter),
     [dealFilter, statusFilter],
   )
   useEffect(() => { visibleRef.current = visible }, [visible])
+  useEffect(() => { selectedRef.current = selected }, [selected])
+  useEffect(() => { dealRef.current = dealFilter }, [dealFilter])
 
   const selectBuilding = useCallback((b: MapBuildingCluster | null) => {
     setSelected(b)
     setTab('all')
+    setFloorFilter(null)
   }, [])
   useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
+  useEffect(() => { floorRef.current = (n) => setFloorFilter((cur) => (cur === n ? null : n)) }, [])
 
   useEffect(() => {
     const map = mapRef.current
@@ -178,6 +247,21 @@ function Map3DInner() {
       selectBuilding(null)
     }
   }, [visible, ready, selected, selectBuilding])
+
+  // Floor stack: replace the selected building's silhouette with per-floor slabs.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const src = map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource | undefined
+    src?.setData(selected ? floorsToGeoJSON(selected, dealFilter) : EMPTY_FLOORS)
+    if (!selected) popupRef.current?.remove()
+    const exclude = (selected
+      ? ['!=', ['get', 'id'], selected.id]
+      : null) as FilterSpecification | null
+    for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+      if (map.getLayer(layer)) map.setFilter(layer, exclude)
+    }
+  }, [selected, dealFilter, ready])
 
   useEffect(() => {
     if (!ready || deepLinked.current) return
@@ -247,11 +331,84 @@ function Map3DInner() {
     }
 
     const onMapClick = (e: MapMouseEvent) => {
-      const hits = map.queryRenderedFeatures(e.point, { layers: [EXTRUDE_ID, FILL_ID] })
+      const hits = map.queryRenderedFeatures(e.point, {
+        layers: [EXTRUDE_ID, FILL_ID, FLOORS_FILL_ID],
+      })
       if (hits.length > 0) return
       const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
       selectRef.current(nearest)
       if (nearest) flyTo(nearest)
+    }
+
+    const popup = new maplibregl.Popup({
+      className: 'sivrce-floor-pop',
+      closeButton: false,
+      closeOnClick: false,
+      offset: 12,
+      maxWidth: '260px',
+    })
+    popupRef.current = popup
+
+    let hoveredFloor: number | null = null
+    const clearFloorHover = () => {
+      if (hoveredFloor != null) {
+        map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hoveredFloor }, { hover: false })
+        hoveredFloor = null
+      }
+      popup.remove()
+      map.getCanvas().style.cursor = ''
+    }
+
+    const onFloorMove = (e: MapLayerMouseEvent) => {
+      const f = e.features?.[0]
+      if (!f) return
+      const p = f.properties ?? {}
+      const n = Number(p.floor)
+      if (!Number.isFinite(n)) return
+      if (hoveredFloor !== n) {
+        if (hoveredFloor != null) {
+          map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hoveredFloor }, { hover: false })
+        }
+        hoveredFloor = n
+        map.setFeatureState({ source: FLOORS_SOURCE_ID, id: n }, { hover: true })
+      }
+      map.getCanvas().style.cursor = 'pointer'
+      const b = selectedRef.current
+      const info: FloorInfo = {
+        n,
+        available: Number(p.available) || 0,
+        minPriceGEL: Number(p.minPrice) || null,
+      }
+      const tip = floorTooltipKa(info, {
+        ghost: Boolean(p.ghost),
+        progress: b?.progress,
+        showPrice: dealRef.current !== 'all',
+      })
+      // DOM-built content — no HTML injection from data
+      const root = document.createElement('div')
+      const title = document.createElement('div')
+      title.className = 'sivrce-floor-pop-title'
+      title.textContent = tip.title
+      root.appendChild(title)
+      for (const line of tip.lines) {
+        const div = document.createElement('div')
+        div.className = 'sivrce-floor-pop-line'
+        div.textContent = line
+        root.appendChild(div)
+      }
+      popup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
+    }
+
+    const onFloorClick = (e: MapLayerMouseEvent) => {
+      e.originalEvent.stopPropagation()
+      const n = Number(e.features?.[0]?.properties?.floor)
+      if (
+        Number.isFinite(n) &&
+        n > 0 &&
+        (selectedRef.current?.listings.length ?? 0) > 0
+      ) {
+        floorRef.current(n)
+      }
     }
 
     map.on('load', () => {
@@ -274,6 +431,9 @@ function Map3DInner() {
     })
     map.on('click', EXTRUDE_ID, onFeatureClick)
     map.on('click', FILL_ID, onFeatureClick)
+    map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
+    map.on('mouseleave', FLOORS_FILL_ID, clearFloorHover)
+    map.on('click', FLOORS_FILL_ID, onFloorClick)
     map.on('click', onMapClick)
 
     return () => {
@@ -396,7 +556,7 @@ function Map3DInner() {
         </div>
 
         <p className="pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[240px] rounded-control border border-white/10 bg-sv-navy/80 px-3 py-2 text-[12px] font-semibold text-white/55 backdrop-blur-md md:block">
-          დააჭირე კორპუსს — განცხადებები გაიხსნება
+          დააჭირე კორპუსს — სართულები გაიხსნება · მიატრიე მაუსი სართულს
         </p>
       </div>
 
@@ -406,6 +566,8 @@ function Map3DInner() {
             building={selected}
             tab={tab}
             onTab={setTab}
+            floor={floorFilter}
+            onFloorClear={() => setFloorFilter(null)}
             onClose={() => selectBuilding(null)}
           />
         </div>

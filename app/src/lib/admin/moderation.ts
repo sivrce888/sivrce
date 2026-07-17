@@ -73,6 +73,14 @@ export function shortRef(id: string): string {
   return id.length <= 14 ? id : `${id.slice(0, 10)}…`
 }
 
+/** Admin URL for a moderation subject, when an admin page for that kind exists. */
+export function subjectHref(kind: string, id: string): string | null {
+  if (kind === "listing") return `/admin/listings/${id}`
+  if (kind === "user") return `/admin/users/${id}`
+  if (kind === "review") return "/admin/content/reviews"
+  return null
+}
+
 /** Prisma Decimal → fixed string (structural type keeps Decimal out of imports). */
 export function fmtDecimal(d: { toString(): string } | null, digits = 2): string {
   if (!d) return "—"

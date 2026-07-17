@@ -11,6 +11,7 @@ import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { BlogPostStatus } from "@/generated/prisma/enums"
 import { fmtDateTime } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { db } from "@/lib/db"
 
 import { publishBlogPost, unpublishBlogPost } from "../actions"
@@ -41,6 +42,7 @@ export default async function BlogEditorPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAdmin()
   const { id } = await params
   const isNew = id === "new"
   const post = isNew ? null : await db.blogPost.findUnique({ where: { id } })

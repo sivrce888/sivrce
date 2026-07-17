@@ -9,6 +9,7 @@ import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 import { AUCTION_STATUS_TABS, listAuctions } from "@/lib/admin/auctions"
 import { fmtDateTime, fmtNum, fmtTetri } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   ADMIN_PAGE_SIZE,
   hrefWithParams,
@@ -23,6 +24,7 @@ export default async function AdminAuctionsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const status = param(sp.status)
   const page = parsePage(sp.page)

@@ -8,7 +8,7 @@ import type { TourStatus } from "@/generated/prisma/client"
 
 export interface CreateTourInput {
   listingId: string
-  agentId: string
+  agentId: string | null
   guestId?: string
   tourDate: Date
   tourTime: string

@@ -1,3 +1,4 @@
+import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { syncAllListings, type ListingDocument } from "@/lib/search"
 import { db } from "@/lib/db"
@@ -12,8 +13,9 @@ import { db } from "@/lib/db"
 
 export async function POST() {
   // Auth guard — throws 403 if not admin.
+  let session
   try {
-    await requireAdminAction()
+    session = await requireAdminAction()
   } catch {
     return Response.json({ ok: false, error: "forbidden" }, { status: 403 })
   }
@@ -46,6 +48,7 @@ export async function POST() {
         lng: true,
         createdAt: true,
         status: true,
+        trustScore: true,
       },
       take: 50000, // ponytail: cap for safety; upgrade: paginate.
     })
@@ -74,6 +77,11 @@ export async function POST() {
       { status: 500 },
     )
   }
+
+  await logAdminAction(session, "search.sync_listings", "search_index", "listings", {
+    indexed: result.indexed,
+    total: listings.length,
+  })
 
   return Response.json({
     ok: true,

@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { LISTINGS, type DealType } from "@/data/listings"
+import { getConfig } from "@/lib/config"
 import { db } from "@/lib/db"
 import { sendInquiryNotification } from "@/lib/email"
 import { checkRateLimit } from "@/lib/inquiries/rate-limit"
@@ -13,9 +14,6 @@ const DEAL_MAP: Record<DealType, string> = {
   daily: "daily",
   pledge: "pledge",
 }
-
-/** Where brand-level (contact form, no entity) leads are routed. */
-const SIVRCE_INBOX = "info@sivrce.ge"
 
 function clientIp(req: Request): string {
   return (
@@ -62,7 +60,7 @@ export async function POST(req: Request) {
   // ponytail: agent emails aren't in the static listing data yet, so all
   // notifications route through the Sivrce inbox. When agent.email is added
   // to the data model, the notification target will update automatically.
-  const notifyEmail = SIVRCE_INBOX
+  const notifyEmail = await getConfig("site.contactEmail")
   const listingId = targetType === "listing" ? targetId : "general"
   const buyerEmail = email || session?.user?.email || "unknown@sivrce.ge"
 
@@ -72,7 +70,7 @@ export async function POST(req: Request) {
         id: crypto.randomUUID(),
         listingId,
         agentName,
-        agentEmail: targetType === "general" ? SIVRCE_INBOX : null,
+        agentEmail: targetType === "general" ? notifyEmail : null,
         agentPhone: listing?.agent.phone ?? null,
         buyerName: name,
         buyerEmail,

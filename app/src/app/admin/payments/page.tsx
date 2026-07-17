@@ -1,6 +1,10 @@
 import { BadgeDollarSign, Banknote, CreditCard, HandCoins, RefreshCcw } from "lucide-react"
 
-import { markGeorgianOrderRefunded } from "@/app/admin/payments/actions"
+import {
+  cancelSubscription,
+  markGeorgianOrderRefunded,
+  markStripeOrderRefunded,
+} from "@/app/admin/payments/actions"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { DataTable, THeadRow, TRow, td, th } from "@/components/admin/ui/DataTable"
 import { EmptyState } from "@/components/admin/ui/EmptyState"
@@ -11,6 +15,7 @@ import { StatCard } from "@/components/admin/ui/StatCard"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 import { fmtDateTime, fmtMoney, fmtNum, fmtTetri } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   GEORGIAN_ORDER_STATUSES,
   getRevenueStats,
@@ -21,6 +26,7 @@ import {
   listSubscriptions,
   PAYMENT_TABS,
   STRIPE_ORDER_STATUSES,
+  SUBSCRIPTION_STATUSES,
   userLabels,
 } from "@/lib/admin/payments"
 import {
@@ -45,6 +51,7 @@ export default async function AdminPaymentsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const tabRaw = param(sp.tab)
   const tab = isPaymentTab(tabRaw) ? tabRaw : "georgian"
@@ -104,7 +111,7 @@ export default async function AdminPaymentsPage({
 
       {tab === "georgian" ? <GeorgianOrders page={page} status={status} sp={sp} /> : null}
       {tab === "stripe" ? <StripeOrders page={page} status={status} sp={sp} /> : null}
-      {tab === "subscriptions" ? <Subscriptions page={page} sp={sp} /> : null}
+      {tab === "subscriptions" ? <Subscriptions page={page} status={status} sp={sp} /> : null}
       {tab === "leads" ? <LeadPurchases page={page} sp={sp} /> : null}
     </div>
   )
@@ -233,6 +240,7 @@ async function StripeOrders({
               <th className={`${th} text-right`}>Amount</th>
               <th className={th}>Status</th>
               <th className={th}>Created</th>
+              <th className={th}>Actions</th>
             </THeadRow>
             <tbody>
               {rows.map((o) => (
@@ -249,6 +257,19 @@ async function StripeOrders({
                     <StatusPill status={o.status} />
                   </td>
                   <td className={`${td} whitespace-nowrap`}>{fmtDateTime(o.createdAt)}</td>
+                  <td className={td}>
+                    {o.status === "succeeded" ? (
+                      <ConfirmButton
+                        action={markStripeOrderRefunded}
+                        fields={{ id: o.id }}
+                        label="Mark refunded"
+                        tone="warning"
+                        confirm={`Mark order ${o.sessionId} as refunded? This only updates the local record — issue the actual refund in the Stripe dashboard.`}
+                      />
+                    ) : (
+                      <span className="text-[12px] text-sv-ink/30">—</span>
+                    )}
+                  </td>
                 </TRow>
               ))}
             </tbody>
@@ -266,10 +287,26 @@ async function StripeOrders({
   )
 }
 
-async function Subscriptions({ page, sp }: { page: number; sp: SearchParams }) {
-  const { rows, total } = await listSubscriptions(page)
+async function Subscriptions({
+  page,
+  status,
+  sp,
+}: {
+  page: number
+  status: string
+  sp: SearchParams
+}) {
+  const { rows, total } = await listSubscriptions(page, status)
   return (
     <div>
+      <div className="mb-4 flex justify-end">
+        <FilterSelect
+          name="status"
+          label="Status"
+          options={SUBSCRIPTION_STATUSES}
+          value={status}
+        />
+      </div>
       {rows.length === 0 ? (
         <EmptyState
           icon={RefreshCcw}
@@ -287,6 +324,7 @@ async function Subscriptions({ page, sp }: { page: number; sp: SearchParams }) {
               <th className={th}>Period ends</th>
               <th className={th}>Auto-renew</th>
               <th className={th}>Created</th>
+              <th className={th}>Actions</th>
             </THeadRow>
             <tbody>
               {rows.map((s) => (
@@ -302,6 +340,19 @@ async function Subscriptions({ page, sp }: { page: number; sp: SearchParams }) {
                   <td className={`${td} whitespace-nowrap`}>{fmtDateTime(s.currentPeriodEnd)}</td>
                   <td className={td}>{s.cancelAtPeriodEnd ? "Cancels at period end" : "Renews"}</td>
                   <td className={`${td} whitespace-nowrap`}>{fmtDateTime(s.createdAt)}</td>
+                  <td className={td}>
+                    {s.status === "active" || s.status === "trialing" ? (
+                      <ConfirmButton
+                        action={cancelSubscription}
+                        fields={{ id: s.id }}
+                        label="Cancel"
+                        tone="danger"
+                        confirm={`Cancel the ${s.tier.replaceAll("_", " ")} subscription for ${s.user.email}? This updates the local record — mirror it in the Stripe dashboard.`}
+                      />
+                    ) : (
+                      <span className="text-[12px] text-sv-ink/30">—</span>
+                    )}
+                  </td>
                 </TRow>
               ))}
             </tbody>

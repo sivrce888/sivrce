@@ -1,3 +1,4 @@
+import { SubscriptionStatus } from "@/generated/prisma/enums"
 import { ADMIN_PAGE_SIZE } from "@/lib/admin/query"
 import { db } from "@/lib/db"
 
@@ -29,6 +30,28 @@ export const STRIPE_ORDER_STATUSES = [
   { value: "canceled", label: "Canceled" },
   { value: "refunded", label: "Refunded" },
 ] as const
+
+export const SUBSCRIPTION_STATUSES = Object.values(SubscriptionStatus).map((v) => ({
+  value: v,
+  label: v.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+}))
+
+/* Status URL params are untrusted input — whitelist before they reach `where`. */
+
+const georgianStatusValues: readonly string[] = GEORGIAN_ORDER_STATUSES.map((s) => s.value)
+export function isGeorgianOrderStatus(v: string): boolean {
+  return georgianStatusValues.includes(v)
+}
+
+const stripeStatusValues: readonly string[] = STRIPE_ORDER_STATUSES.map((s) => s.value)
+export function isStripeOrderStatus(v: string): boolean {
+  return stripeStatusValues.includes(v)
+}
+
+const subscriptionStatusValues: readonly string[] = SUBSCRIPTION_STATUSES.map((s) => s.value)
+export function isSubscriptionStatus(v: string): v is SubscriptionStatus {
+  return subscriptionStatusValues.includes(v)
+}
 
 function monthStart(): Date {
   const d = new Date()
@@ -75,7 +98,7 @@ export async function userLabels(ids: readonly (string | null)[]): Promise<Map<s
 export async function listGeorgianOrders(page: number, status: string) {
   const where = {
     deletedAt: null,
-    ...(status ? { status } : {}),
+    ...(isGeorgianOrderStatus(status) ? { status } : {}),
   }
   const [rows, total] = await Promise.all([
     db.georgianPaymentOrder.findMany({
@@ -90,7 +113,7 @@ export async function listGeorgianOrders(page: number, status: string) {
 }
 
 export async function listStripeOrders(page: number, status: string) {
-  const where = status ? { status } : {}
+  const where = isStripeOrderStatus(status) ? { status } : {}
   const [rows, total] = await Promise.all([
     db.stripeOrder.findMany({
       where,
@@ -103,15 +126,17 @@ export async function listStripeOrders(page: number, status: string) {
   return { rows, total }
 }
 
-export async function listSubscriptions(page: number) {
+export async function listSubscriptions(page: number, status: string) {
+  const where = isSubscriptionStatus(status) ? { status } : {}
   const [rows, total] = await Promise.all([
     db.subscription.findMany({
+      where,
       include: { user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * ADMIN_PAGE_SIZE,
       take: ADMIN_PAGE_SIZE,
     }),
-    db.subscription.count(),
+    db.subscription.count({ where }),
   ])
   return { rows, total }
 }

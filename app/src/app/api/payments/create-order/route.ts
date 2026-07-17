@@ -78,11 +78,16 @@ export async function GET() {
   }
 
   // Return tier pricing info
+  const [vip, superVip, diamond] = await Promise.all([
+    getTierPrice("vip"),
+    getTierPrice("super_vip"),
+    getTierPrice("diamond"),
+  ])
   return NextResponse.json({
     tiers: {
-      vip: { priceTetri: getTierPrice("vip"), label: "VIP", durationDays: 30 },
-      super_vip: { priceTetri: getTierPrice("super_vip"), label: "VIP+", durationDays: 30 },
-      diamond: { priceTetri: getTierPrice("diamond"), label: "SUPER VIP", durationDays: 30 },
+      vip: { priceTetri: vip, label: "VIP", durationDays: 30 },
+      super_vip: { priceTetri: superVip, label: "VIP+", durationDays: 30 },
+      diamond: { priceTetri: diamond, label: "SUPER VIP", durationDays: 30 },
     },
   })
 }

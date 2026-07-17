@@ -10,6 +10,7 @@ import { SearchForm } from "@/components/admin/ui/SearchForm"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 import { timeAgo } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   INQUIRY_STATUSES,
   INQUIRY_STATUS_LABELS,
@@ -32,6 +33,7 @@ export default async function AdminInquiriesPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const status = param(sp.status)
   const q = param(sp.q)

@@ -45,7 +45,8 @@ function getClient(): Meilisearch | null {
 export interface SearchFilters {
   /** Free-text search query */
   q?: string
-  dealType?: "sale" | "rent" | "daily"
+  /** DB dialect (ListingDealType). The route maps UI "sale" → "buy" at the boundary. */
+  dealType?: "buy" | "rent" | "daily" | "mortgage"
   propertyType?: "apartment" | "house" | "commercial" | "land"
   city?: string
   district?: string
@@ -54,7 +55,7 @@ export interface SearchFilters {
   minArea?: number
   maxArea?: number
   rooms?: number
-  sort?: "date" | "price-asc" | "price-desc" | "area"
+  sort?: "date" | "price-asc" | "price-desc" | "area" | "ai"
   page?: number
   pageSize?: number
 }
@@ -105,6 +106,7 @@ export interface ListingDocument {
   lng: number
   createdAt: string
   status: string
+  trustScore?: number
 }
 
 const INDEX_NAME = "listings"
@@ -150,7 +152,7 @@ async function ensureIndex(): Promise<boolean> {
     ])
 
     // Sortable attributes.
-    await index.updateSortableAttributes(["price", "area", "rooms", "createdAt"])
+    await index.updateSortableAttributes(["price", "area", "rooms", "createdAt", "trustScore"])
 
     // Typo tolerance: Georgian script has no case, uses unique characters.
     // We disable typo on short words and limit to 1 typo for medium words.
@@ -225,6 +227,8 @@ function buildMeiliSort(filters: SearchFilters): string[] | undefined {
       return ["price:desc"]
     case "area":
       return ["area:desc"]
+    case "ai":
+      return ["trustScore:desc"]
     case "date":
     default:
       // Default: newest first

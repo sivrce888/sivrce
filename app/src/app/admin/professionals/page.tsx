@@ -16,6 +16,7 @@ import { SearchForm } from "@/components/admin/ui/SearchForm"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 import { fmtDate, fmtMoney, fmtNum } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   ADMIN_PAGE_SIZE,
   hrefWithParams,
@@ -98,6 +99,7 @@ export default async function AdminProfessionalsPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const kindRaw = param(sp.kind)
   const kind: ProfessionalKind = isKind(kindRaw) ? kindRaw : "agents"
