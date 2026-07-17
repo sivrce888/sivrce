@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useSyncExternalStore } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -57,13 +57,15 @@ export default function SearchClient() {
   const router = useRouter()
   const { t } = useI18n()
   const s = useSearchStrings()
-  const [view, setView] = useState<'grid' | 'list'>('grid')
+  // Remember grid/list preference across visits (SSR-safe external store).
+  const savedView = useSyncExternalStore(
+    () => () => {},
+    () => (window.localStorage.getItem('sivrce:view') === 'list' ? 'list' : 'grid'),
+    () => 'grid' as const,
+  )
+  const [chosen, setView] = useState<'grid' | 'list' | null>(null)
+  const view = chosen ?? savedView
 
-  // Remember grid/list preference across visits.
-  useEffect(() => {
-    const saved = window.localStorage.getItem('sivrce:view')
-    if (saved === 'grid' || saved === 'list') setView(saved)
-  }, [])
   useEffect(() => {
     window.localStorage.setItem('sivrce:view', view)
   }, [view])
@@ -219,9 +221,8 @@ export default function SearchClient() {
 
   useEffect(() => {
     setPage(1)
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical data-fetch effect
     fetchSearch(1, false)
-  }, [fetchSearch, paramsKey])
+  }, [fetchSearch])
 
   const loadMore = () => {
     const next = page + 1
@@ -539,6 +540,20 @@ export default function SearchClient() {
             {results.map((l, i) => (
               <ListingCard key={l.id} l={l} i={i} layout={view === 'grid' ? 'wide' : 'list'} />
             ))}
+          </div>
+        )}
+
+        {/* Load more — keeps loaded cards, appends next page */}
+        {!showSkeleton && results.length > 0 && results.length < totalResults && (
+          <div className="mt-10 flex justify-center">
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={searchLoading}
+              className="flex h-12 items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 text-[14px] font-extrabold text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue hover:shadow-glow-blue-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-60"
+            >
+              {searchLoading ? s('loadingMore') : `${s('showMore')} · ${results.length} / ${totalResults}`}
+            </button>
           </div>
         )}
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Heart, Menu, X, Plus, User } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -134,7 +134,7 @@ export default function Navbar() {
           <LangSwitcher light={light} />
           {session?.user ? (
             <Link
-              href="/favorites"
+              href="/dashboard"
               className={`flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                 light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-white hover:bg-white/10'
               }`}
@@ -149,14 +149,15 @@ export default function Navbar() {
               <span className="max-w-[120px] truncate">{session.user.name ?? t('nav.favorites')}</span>
             </Link>
           ) : (
-            <Link
-              href="/auth/signin"
+            <button
+              type="button"
+              onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
               className={`flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                 light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-white hover:bg-white/10'
               }`}
             >
               <User className="h-4 w-4" /> {t('nav.login')}
-            </Link>
+            </button>
           )}
           <Link
             href="/add-listing"
@@ -257,13 +258,16 @@ export default function Navbar() {
                 <span className="max-w-[200px] truncate">{session.user.name ?? t('nav.login')}</span>
               </Link>
             ) : (
-              <Link
-                href="/auth/signin"
-                onClick={() => setOpen(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false)
+                  signIn('google', { callbackUrl: '/dashboard' })
+                }}
                 className="mt-2 flex w-full items-center justify-center gap-2 rounded-control bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 <User className="h-4 w-4" /> {t('nav.login')}
-              </Link>
+              </button>
             )}
             <Link
               href="/add-listing"

@@ -66,9 +66,25 @@ export default function Hero() {
           </span>
         </div>
 
-        <h1 className="sv-hero-in text-balance text-center text-[44px] font-black leading-[1.06] tracking-[-0.03em] text-white md:text-[72px] lg:text-[84px]">
-          იპოვე შენი
-          <span className="text-gradient-blue"> სივრცე</span>
+        <h1 className="text-balance text-center text-[44px] font-black leading-[1.06] tracking-[-0.03em] text-white md:text-[72px] lg:text-[84px]">
+          <span className="sv-word-mask">
+            <span className="sv-word" style={{ animationDelay: '0.1s' }}>
+              იპოვე
+            </span>
+          </span>{' '}
+          <span className="sv-word-mask">
+            <span className="sv-word" style={{ animationDelay: '0.18s' }}>
+              შენი
+            </span>
+          </span>{' '}
+          <span className="sv-word-mask">
+            <span
+              className="sv-word text-gradient-blue text-gradient-shimmer"
+              style={{ animationDelay: '0.28s' }}
+            >
+              სივრცე
+            </span>
+          </span>
         </h1>
 
         <p
@@ -176,12 +192,15 @@ export default function Hero() {
 
           {/* Quick chips */}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-[13px] font-bold text-white/70">პოპულარული:</span>
-            {QUICK.map((q) => (
+            <span className="sv-hero-in text-[13px] font-bold text-white/70" style={{ animationDelay: '0.24s' }}>
+              პოპულარული:
+            </span>
+            {QUICK.map((q, i) => (
               <button
                 key={q}
                 onClick={() => goDistrict(q)}
-                className="rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                className="sv-hero-in rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                style={{ animationDelay: `${0.28 + i * 0.045}s` }}
               >
                 {q}
               </button>
