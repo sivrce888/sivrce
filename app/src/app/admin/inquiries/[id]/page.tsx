@@ -37,7 +37,7 @@ export default async function AdminInquiryDetailPage({
   const { id } = await params
   const inquiry = await getInquiry(id)
   if (!inquiry) notFound()
-  const listingTitle = await getListingTitle(inquiry.targetType, inquiry.targetId)
+  const listingTitle = await getListingTitle(inquiry.listingId)
   const deleted = inquiry.deletedAt !== null
 
   return (
@@ -194,16 +194,14 @@ export default async function AdminInquiryDetailPage({
               <p className="mt-2 text-[14px] font-bold text-sv-ink">{listingTitle}</p>
             ) : null}
             <p className="mt-1 font-mono text-[12px] break-all text-sv-ink/50">
-              {inquiry.targetType}:{inquiry.targetId}
+              listing:{inquiry.listingId}
             </p>
-            {inquiry.targetType === "listing" ? (
-              <Link
-                href={`/admin/listings/${inquiry.targetId}`}
-                className="mt-2 inline-flex items-center gap-1 text-[13px] font-bold text-sv-blue hover:underline"
-              >
-                Open in Listings
-              </Link>
-            ) : null}
+            <Link
+              href={`/admin/listings/${inquiry.listingId}`}
+              className="mt-2 inline-flex items-center gap-1 text-[13px] font-bold text-sv-blue hover:underline"
+            >
+              Open in Listings
+            </Link>
             <dl className="mt-3 space-y-1.5 border-t border-sv-ink/6 pt-3 text-[13px]">
               <div className="flex justify-between gap-3">
                 <dt className="text-sv-ink/45">Price</dt>

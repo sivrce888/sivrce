@@ -95,22 +95,13 @@ export default async function AdminInquiriesPage({
                   </Link>
                 </td>
                 <td className={td}>
-                  {inq.targetType === "listing" ? (
-                    <Link
-                      href={`/admin/listings/${inq.targetId}`}
-                      title={inq.targetId}
+                  <Link
+                      href={`/admin/listings/${inq.listingId}`}
+                      title={inq.listingId}
                       className="font-mono text-[12px] font-semibold text-sv-blue hover:underline"
                     >
-                      {shortRef(inq.targetId)}
+                      {shortRef(inq.listingId)}
                     </Link>
-                  ) : (
-                    <span
-                      title={`${inq.targetType}:${inq.targetId}`}
-                      className="font-mono text-[12px] text-sv-ink/50"
-                    >
-                      {inq.targetType}
-                    </span>
-                  )}
                 </td>
                 <td className={td}>{inq.agentName}</td>
                 <td className={td}>
