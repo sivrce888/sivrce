@@ -10,6 +10,14 @@ import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { PROJECTS, getProject, getDeveloper, listingsByCity } from '@/data/professionals'
+import { LISTINGS } from '@/data/listings'
+import {
+  clusterListingsToBuildings,
+  mergeMapBuildings,
+  projectsToConstructionBuildings,
+} from '@/lib/map/buildings'
+import { buildingFloors, floorsToGeoJSON } from '@/lib/map/floors'
+import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
 
@@ -50,6 +58,15 @@ export default async function ProjectPage({ params }: PageProps) {
   const dev = getDeveloper(project.developerSlug)
   const listings = listingsByCity(project.city, 6)
   const aggregate = await getReviewAggregate('project', slug)
+
+  // 3D floor stack (build-time): ghost for ongoing projects, real slabs when catalogued
+  const cluster = mergeMapBuildings(
+    clusterListingsToBuildings(LISTINGS),
+    projectsToConstructionBuildings(PROJECTS),
+  ).find((b) => b.projectSlug === slug)
+  const floorsFc = cluster ? floorsToGeoJSON(cluster) : null
+  const floorsInfo = cluster ? buildingFloors(cluster) : []
+  const isGhost = !!cluster && cluster.status === 'construction' && cluster.listings.length === 0
 
   const projectLd = {
     '@context': 'https://schema.org',
@@ -150,6 +167,28 @@ export default async function ProjectPage({ params }: PageProps) {
             </p>
           </div>
         </section>
+
+        {floorsFc && cluster && (
+          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              კორპუსი 3D-ში
+            </h2>
+            <div className="relative mt-6 h-[300px] overflow-hidden rounded-card bg-sv-navy md:h-[420px]">
+              <BuildingFloorsMapLazy
+                geojson={floorsFc}
+                floors={floorsInfo}
+                center={{ lat: cluster.lat, lng: cluster.lng }}
+                ghost={isGhost}
+                progress={cluster.progress}
+                label={project.name}
+              />
+            </div>
+            <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+              {floorsInfo.length} სართული · {project.flats} ბინა · აშენებულია {project.done}% ·
+              მიატრიე მაუსი სართულს
+            </p>
+          </section>
+        )}
 
         <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
