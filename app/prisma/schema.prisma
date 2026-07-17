@@ -827,6 +827,7 @@ model DeveloperProfile {
   complaintsAsSubject Complaint[] @relation("ComplaintSubjectDeveloper")
   importJobs          ImportJob[]
   buildings3D         Building3D[]
+  mapBuildings        MapBuilding[]
 
   @@index([deletedAt], map: "developer_profiles_deleted_at_idx")
   @@index([ownerId], map: "developer_profiles_owner_id_idx")
@@ -1772,20 +1773,34 @@ model SuspiciousActivityLog {
 
 model MapBuilding {
   id              String      @id @default(uuid()) @db.Uuid
+  slug            String      @unique @db.VarChar(140)
+  code            String?     @db.VarChar(20)
   title           String      @db.VarChar(180)
+  titleEn         String?     @map("title_en") @db.VarChar(180)
   description     String?     @db.Text
+  address         String?     @db.VarChar(240)
+  city            String?     @db.VarChar(100)
+  district        String?     @db.VarChar(120)
+  buildingNumber  String?     @map("building_number") @db.VarChar(12)
   polygonCoords   Json?       @map("polygon_coords")
   lat             Float
   lng             Float
   height          Float       @default(0)
+  floors          Int         @default(0)
+  yearBuilt       Int?        @map("year_built")
+  img             String?     @db.VarChar(260)
   status          String      @default("active") @db.VarChar(30)
+  popular         Boolean     @default(false)
   projectSlug     String?     @map("project_slug") @db.VarChar(140)
+  developerId     String?     @map("developer_id") @db.VarChar(120)
   createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   building3D    Building3D?
+  developer     DeveloperProfile? @relation(fields: [developerId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt(sort: Desc)], map: "map_buildings_status_created_idx")
+  @@index([popular, status], map: "map_buildings_popular_idx")
   @@map("map_buildings")
 }
 
