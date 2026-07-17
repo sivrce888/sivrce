@@ -198,7 +198,12 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await auth()
-  const parsed = parseCreate(payload, Boolean(session?.user?.id))
+  if (!session?.user?.id) {
+    // Reviews are attributable UGC — anonymous posting is a review-bombing
+    // vector with no accountability; shadow-ban tooling needs an authorId.
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  }
+  const parsed = parseCreate(payload, true)
   if (!parsed.ok) {
     return NextResponse.json({ error: parsed.error }, { status: 400 })
   }
