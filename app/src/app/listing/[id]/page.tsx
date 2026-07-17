@@ -40,6 +40,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const price = l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე` : formatUSD(l.priceUSD)
   const title = `${l.title} — ${price}`
   const description = metaDescription(l.description)
+  // Local photos have a build-time JPEG derivative (scripts/og-derivatives.mjs)
+  // because WhatsApp/Viber/FB crawlers don't render WebP OG tags. Uploaded
+  // (https) photos are served as-is; brand card is the last resort.
+  const firstImg = l.images[0] ?? ''
+  const ogImage = firstImg.startsWith('/images/')
+    ? firstImg.replace(/^\/images\/(.+)\.webp$/, '/images/og/$1.jpg')
+    : firstImg || '/images/og.jpg'
   return {
     title,
     description,
@@ -51,16 +58,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/listing/${l.id}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      // ponytail: use JPEG brand OG for social shares — WhatsApp/Viber
-      // render WebP badly. Upgrade: generate per-listing JPEG derivatives
-      // via Cloudflare Images (plan.md §7) when listing volume warrants it.
-      images: [{ url: '/images/og.jpg', width: 1200, height: 630, alt: title }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ['/images/og.jpg'],
+      images: [ogImage],
     },
   }
 }

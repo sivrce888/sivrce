@@ -144,7 +144,6 @@ export default function SearchClient() {
   const [results, setResults] = useState<Listing[]>([])
   const [totalResults, setTotalResults] = useState(0)
   const [searchLoading, setSearchLoading] = useState(false)
-  const [page, setPage] = useState(1)
 
   // Map filter state → /api/search query params and fetch.
   const fetchSearch = useCallback(async (pageNum: number, append: boolean) => {
@@ -220,15 +219,12 @@ export default function SearchClient() {
   }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort])
 
   useEffect(() => {
-    setPage(1)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical data-fetch effect
     fetchSearch(1, false)
   }, [fetchSearch])
 
-  const loadMore = () => {
-    const next = page + 1
-    setPage(next)
-    fetchSearch(next, true)
-  }
+  // ponytail: page derived from what's on screen — no state to keep in sync.
+  const loadMore = () => fetchSearch(Math.ceil(results.length / 24) + 1, true)
 
   // Skeleton only when there is nothing on screen yet — page 2+ keeps cards visible.
   const showSkeleton = (loading || searchLoading) && results.length === 0
