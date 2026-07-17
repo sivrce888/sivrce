@@ -8,6 +8,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronDown, Heart, Menu, X, Plus, User } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
+import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n } from '@/lib/i18n/context'
@@ -137,6 +138,7 @@ export default function Navbar() {
             )}
           </Link>
           <ThemeToggle light={light} />
+          <CurrencySwitcher light={light} />
           <LangSwitcher light={light} />
           {session?.user ? (
             <Link

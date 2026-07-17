@@ -23,3 +23,5 @@ prisma/*.db
 
 # playwright
 .playwright-mcp/
+.vercel
+.env*

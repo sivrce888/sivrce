@@ -800,7 +800,11 @@ export function formatListingPrice(l: Listing): string {
   return formatUSD(l.priceUSD)
 }
 
-export function formatPerM2(l: Listing): string {
+export function formatPerM2(l: Listing, currency?: 'GEL' | 'USD'): string {
+  if (currency === 'GEL') {
+    const gelPerM2 = Math.round(l.perM2USD * USD_GEL)
+    return `${gelPerM2.toLocaleString('en-US')}₾/მ²`
+  }
   return `$${l.perM2USD.toLocaleString('en-US')}/მ²`
 }
 

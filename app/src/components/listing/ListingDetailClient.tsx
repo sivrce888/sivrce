@@ -22,6 +22,7 @@ import {
   formatFloor, getListing, USD_GEL, type Listing, type PropType,
 } from '@/data/listings'
 import { useFavorites } from '@/lib/favorites'
+import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 
@@ -134,9 +135,9 @@ function Lightbox({
 export default function ListingDetailClient({ listing: l, similar }: { listing: Listing; similar: Listing[] }) {
   const { has, toggle } = useFavorites()
   const { t, lang } = useI18n()
+  const { currency, setCurrency, format } = useCurrency()
   const [photo, setPhoto] = useState(0)
   const [lightbox, setLightbox] = useState(false)
-  const [currency, setCurrency] = useState<'USD' | 'GEL'>('USD')
   const gradId = useId()
 
   // Mortgage state
@@ -174,8 +175,9 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
 
   const fav = has(l.id)
   const isSale = l.dealType === 'sale'
-  const priceMain = currency === 'USD' ? formatUSD(l.priceUSD) : formatGEL(l.priceGEL)
-  const priceAlt = currency === 'USD' ? formatGEL(l.priceGEL) : formatUSD(l.priceUSD)
+  const priceMain = format(l.priceGEL)
+  const otherCurrency = currency === 'GEL' ? 'USD' : 'GEL'
+  const priceAlt = otherCurrency === 'USD' ? formatUSD(l.priceUSD) : formatGEL(l.priceGEL)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
@@ -373,7 +375,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
               </div>
               {/* Currency toggle */}
               <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="tablist" aria-label={t('detail.currency')}>
-                {(['USD', 'GEL'] as const).map((c) => (
+                {(['GEL', 'USD'] as const).map((c) => (
                   <button
                     key={c}
                     role="tab"
