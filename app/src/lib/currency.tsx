@@ -93,17 +93,25 @@ export function useLiveRate(): number {
   useEffect(() => {
     // Already have a fresh cached value
     if (readCachedRate()) return
-    // Fetch live rate once on mount
-    fetch('https://open.er-api.com/v6/latest/USD')
-      .then((r) => r.json())
-      .then((d) => {
-        const live = d?.rates?.GEL
-        if (typeof live === 'number' && live > 0) {
-          setRate(live)
-          writeCachedRate(live)
-        }
-      })
-      .catch(() => {}) // silent fallback — next mount retries
+    // Fetch live rate once, off the boot critical path (fallback rate shows until then)
+    const run = () =>
+      fetch('https://open.er-api.com/v6/latest/USD')
+        .then((r) => r.json())
+        .then((d) => {
+          const live = d?.rates?.GEL
+          if (typeof live === 'number' && live > 0) {
+            setRate(live)
+            writeCachedRate(live)
+          }
+        })
+        .catch(() => {}) // silent fallback — next mount retries
+    const ric: Window['requestIdleCallback'] | undefined = window.requestIdleCallback
+    if (ric) {
+      const id = ric.call(window, run, { timeout: 3000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(run, 2000)
+    return () => window.clearTimeout(id)
   }, [])
 
   return rate
