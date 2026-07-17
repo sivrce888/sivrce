@@ -20,7 +20,7 @@ import { PrismaClient } from "../src/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { LISTINGS } from "../src/data/listings"
 import { BUILDINGS } from "../src/data/buildings"
-import { DEVELOPERS } from "../src/data/professionals"
+import { DEVELOPERS, PROJECTS } from "../src/data/professionals"
 import footprintData from "../src/data/building-footprints.json"
 
 const connectionString = process.env.DATABASE_URL
@@ -116,6 +116,36 @@ async function main() {
       create: { id: d.slug, ...data },
     })
   }
+
+  // ——— New-build projects directory ———
+  // Same idempotent upsert; keyed by slug, developer resolved to the ka name.
+  const devName = new Map(DEVELOPERS.map((d) => [d.slug, d.name.ka]))
+  console.log(`Seeding ${PROJECTS.length} projects...`)
+  for (const p of PROJECTS) {
+    const developer = devName.get(p.developerSlug)
+    if (!developer) {
+      console.warn(`  ! ${p.slug}: unknown developerSlug ${p.developerSlug}, skipped`)
+      continue
+    }
+    const data = {
+      slug: p.slug,
+      name: p.name,
+      developer,
+      city: p.city,
+      district: p.location,
+      status: p.done >= 100 ? "completed" : "active",
+      readyBy: p.finish,
+      pricePerSqmFrom: Number(p.priceFromM2.replace(/[^0-9]/g, "")) || 0,
+      units: p.flats,
+      image: p.img,
+    }
+    await db.projectDirectory.upsert({
+      where: { slug: p.slug },
+      update: data,
+      create: { id: p.slug, ...data },
+    })
+  }
+  console.log(`Developers + projects seeded.`)
 
   const rings = footprintData.footprints as unknown as Record<
     string,
