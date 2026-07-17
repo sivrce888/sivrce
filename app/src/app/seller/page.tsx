@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Building2, DollarSign, TrendingUp, Users } from "lucide-react"
+import { Building2, TrendingUp, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import StatCard from "@/components/dashboard/StatCard"
@@ -70,7 +70,7 @@ export default async function SellerOverviewPage() {
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
     >
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
         <StatCard
           label="აქტიური განცხადებები"
           value={activeListings}
@@ -78,12 +78,6 @@ export default async function SellerOverviewPage() {
         />
         <StatCard label="ლიდები" value={totalLeads} icon={<Users size={18} />} />
         <StatCard label="გაყიდული" value={soldListings} icon={<TrendingUp size={18} />} />
-        <StatCard
-          label="შემოსავალი"
-          value="—"
-          hint="ანალიტიკა მალე"
-          icon={<DollarSign size={18} />}
-        />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -100,7 +94,7 @@ export default async function SellerOverviewPage() {
           {recentLeads.length === 0 ? (
             <EmptyState
               title="ლიდები ჯერ არ გყავს"
-              body="ახალი მოთხოვნები აქ გამოჩნდება მაშინვე, როცა მყიდველი დაგიკავშირდება."
+              body="მყიდველის მოთხოვნა აქ გამოჩნდება, როგორც კი დაგიკავშირდება."
             />
           ) : (
             <ul className="divide-y divide-sv-ink/6">
@@ -128,7 +122,7 @@ export default async function SellerOverviewPage() {
               href="/add-listing"
               className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
             >
-              + ახალი განცხადების დამატება
+              + ახალი განცხადება
             </Link>
             <Link
               href="/seller/listings"

@@ -80,7 +80,7 @@ export default async function SettingsPage() {
             <div className="min-w-0 flex-1">
               <h2 className="text-[15px] font-extrabold text-sv-ink">შენი სივრცე</h2>
               <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
-                გადადი შენი როლის პანელზე — განცხადებები, ლიდები და ანალიტიკა ერთ ადგილას.
+                განცხადებები, ლიდები და ანალიტიკა — შენი როლის პანელში.
               </p>
               <Link
                 href={home}
@@ -100,8 +100,7 @@ export default async function SettingsPage() {
             <div className="min-w-0 flex-1">
               <h2 className="text-[15px] font-extrabold text-sv-ink">ელფოსტის შეტყობინებები</h2>
               <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
-                ახალი განცხადებების ალერტები შენს ელფოსტაზე — Korter-ის სტილის შეტყობინებები, sivrce-ს
-                სიმშვიდით.
+                ჩართე და მიიღე ახალი განცხადებები ელფოსტაზე.
               </p>
               <form action={toggleListingAlerts} className="mt-4">
                 <input type="hidden" name="enabled" value={alertsOn ? "0" : "1"} />
@@ -129,7 +128,7 @@ export default async function SettingsPage() {
           </div>
           {notifications.length === 0 ? (
             <p className="text-[13px] font-medium text-sv-ink/50">
-              შეტყობინებები ჯერ არ გაქვს — აქ გამოჩნდება ლიდები, ვიზიტები და სისტემური განახლებები.
+              ჯერ ცარიელია. ახალი მოთხოვნები და განახლებები აქ გამოჩნდება.
             </p>
           ) : (
             <ul className="divide-y divide-sv-ink/6">
