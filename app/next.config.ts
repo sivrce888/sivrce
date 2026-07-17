@@ -4,14 +4,19 @@ const isDev = process.env.NODE_ENV === "development";
 
 /* ponytail: static-site CSP — no nonce plumbing; revisit with hashes if we add
    third-party scripts (analytics, maps). */
+// ponytail: Capacitor origins — capacitor:// for iOS, http://localhost for Android WebView
+const capacitorOrigins = isDev
+  ? " capacitor://localhost http://localhost:* http://192.168.*.*:* ws://localhost:*"
+  : " capacitor://localhost"
+
 const csp = [
   "default-src 'self'",
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob:${capacitorOrigins}`,
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self'${capacitorOrigins} https://*.sivrce.ge`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

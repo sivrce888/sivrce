@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "mobile:sync": "npx cap sync",
+    "mobile:ios": "npx cap sync ios && npx cap open ios",
+    "mobile:android": "npx cap sync android && npx cap open android",
+    "mobile:dev": "NEXT_PUBLIC_CAPACITOR=true next dev -p 3000",
+    "mobile:build": "next build && npx cap sync"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
