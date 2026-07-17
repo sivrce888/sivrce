@@ -5,7 +5,9 @@ import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
+import { WeatherBadge } from '@/components/WeatherBadge'
 import { formatUSD } from '@/data/listings'
+import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
 import { jsonLd } from '@/lib/utils'
 import {
   dealLabel,
@@ -135,7 +137,7 @@ function seoLd(def: SeoPageDef, loc: SeoLoc) {
   }
 }
 
-function Chip({ label, href, active }: { label: string; href: string; active?: boolean }) {
+export function Chip({ label, href, active }: { label: string; href: string; active?: boolean }) {
   return (
     <Link
       href={href}
@@ -158,6 +160,12 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
   const chips = linkChipsOf(def, loc)
   const faqs = faqsOf(def, loc)
   const h1 = h1Of(def, loc)
+
+  // Tbilisi district extras: live weather badge + street-level link mesh (ka only).
+  const tbilisiDistrict = def.district?.citySlug === 'tbilisi' ? def.district : undefined
+  const distCoords = tbilisiDistrict ? DISTRICT_COORDS[tbilisiDistrict.slug] : undefined
+  const districtStreets =
+    loc === 'ka' && tbilisiDistrict ? streetsOfDistrict(tbilisiDistrict.slug).slice(0, 24) : []
 
   return (
     <div className="min-h-screen bg-sv-cloud">
@@ -186,6 +194,13 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
           <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {ui.badge}
           </span>
+          {tbilisiDistrict && distCoords && (
+            <WeatherBadge
+              coords={distCoords}
+              label={tbilisiDistrict.ka}
+              className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
+            />
+          )}
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             {h1}
           </h1>
@@ -257,6 +272,21 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
             <ListingCard key={l.id} l={l} i={i} />
           ))}
         </section>
+
+        {/* District streets — street-level SEO link mesh (ka only) */}
+        {districtStreets.length > 0 && tbilisiDistrict && (
+          <section className="mt-10" aria-label={`ქუჩები ${tbilisiDistrict.loc}`}>
+            <h2 className="mb-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
+              ქუჩები {tbilisiDistrict.loc}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {districtStreets.map((s) => (
+                <Chip key={s.slug} label={s.ka} href={`/tbilisi/${tbilisiDistrict.slug}/${s.slug}`} />
+              ))}
+              <Chip label="ყველა ქუჩა" href="/tbilisi/kuchebi" />
+            </div>
+          </section>
+        )}
 
         {/* SEO intro */}
         <section className="mt-14 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
