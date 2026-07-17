@@ -170,8 +170,8 @@ for (const l of LISTINGS) assert.ok(clusteredIds.has(l.id), `${l.id}: dropped by
 const catalogProjectSlugs = new Set(
   BUILDINGS.map((b) => b.projectSlug).filter(Boolean) as string[],
 )
-const activeProjects = PROJECTS.filter((p) => p.done < 100)
-for (const p of activeProjects) {
+// Every project must have valid coords + floors — pinning gate (active AND completed).
+for (const p of PROJECTS) {
   assert.ok(
     Number.isFinite(p.coords.lat) &&
       Number.isFinite(p.coords.lng) &&
@@ -181,7 +181,17 @@ for (const p of activeProjects) {
   )
   assert.ok((p.floors ?? 0) > 0, `${p.slug}: floors must be > 0`)
 }
-const expectedGhosts = activeProjects.filter(
+// Every project gets a deterministic {DEV}-{NN} code (e.g. M2-01, ARC-03).
+import { projectCode } from '@/data/professionals'
+const codeRe = /^[A-Z0-9]{2,3}-\d{2}$/
+const seenCodes = new Set<string>()
+for (const p of PROJECTS) {
+  const code = projectCode(p)
+  assert.ok(codeRe.test(code), `${p.slug}: bad project code "${code}"`)
+  assert.ok(!seenCodes.has(code), `${p.slug}: duplicate project code ${code}`)
+  seenCodes.add(code)
+}
+const pinableProjects = PROJECTS.filter(
   (p) =>
     Number.isFinite(p.coords.lat) &&
     Number.isFinite(p.coords.lng) &&
@@ -190,12 +200,23 @@ const expectedGhosts = activeProjects.filter(
     !catalogProjectSlugs.has(p.slug),
 )
 const realGhosts = projectsToConstructionBuildings(PROJECTS)
-assert.equal(realGhosts.length, expectedGhosts.length, 'construction ghost count mismatch')
+assert.equal(realGhosts.length, pinableProjects.length, 'project pin count mismatch')
 assert.deepEqual(
   realGhosts.map((g) => g.projectSlug).sort(),
-  expectedGhosts.map((p) => p.slug).sort(),
-  'construction ghost set mismatch',
+  pinableProjects.map((p) => p.slug).sort(),
+  'project pin set mismatch',
 )
+// Completed (done>=100) projects must surface as status='completed'
+const completedProjects = PROJECTS.filter((p) => p.done >= 100 && !catalogProjectSlugs.has(p.slug))
+const completedGhosts = realGhosts.filter((g) => g.status === 'completed')
+assert.equal(
+  completedGhosts.length,
+  completedProjects.length,
+  'completed-project ghost count mismatch',
+)
+for (const g of realGhosts) {
+  assert.ok(g.code && codeRe.test(g.code), `${g.id}: missing/invalid code on cluster`)
+}
 
 assert.equal(new Set(BUILDINGS.map((b) => b.slug)).size, BUILDINGS.length, 'duplicate catalog slug')
 assert.equal(new Set(BUILDINGS.map((b) => b.code)).size, BUILDINGS.length, 'duplicate catalog code')
@@ -287,6 +308,33 @@ for (const b of [...realClusters, ...realGhosts]) {
   for (const l of b.listings) {
     assert.ok(l.floor >= 0, `${b.id}/${l.id}: negative floor`) // 0 = ground/land → drawn as floor 1
   }
+}
+
+// ——— neighborhood layer gate ———
+import { neighborhoodsToGeoJSON } from './buildings'
+import { NEIGHBORHOODS } from '@/data/neighborhoods'
+
+const nbhFc = neighborhoodsToGeoJSON()
+assert.equal(nbhFc.features.length, NEIGHBORHOODS.length, 'neighborhood feature count mismatch')
+assert.equal(nbhFc.features.length, 16, 'neighborhood count drifted from 16')
+const nbhSeen = new Set<string>()
+for (const f of nbhFc.features) {
+  const p = f.properties ?? {}
+  const id = String(p.id)
+  assert.ok(id.startsWith('nbh-'), `${id}: bad neighborhood id prefix`)
+  assert.ok(!nbhSeen.has(id), `${id}: duplicate neighborhood id`)
+  nbhSeen.add(id)
+  assert.equal(f.geometry.type, 'Point', `${id}: not a point`)
+  const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
+  assert.ok(
+    lat >= GEORGIA.latMin && lat <= GEORGIA.latMax && lng >= GEORGIA.lngMin && lng <= GEORGIA.lngMax,
+    `${id}: point outside Georgia`,
+  )
+  for (const k of ['transport', 'schools', 'green', 'safety', 'nightlife'] as const) {
+    const v = Number(p[k])
+    assert.ok(v >= 1 && v <= 10, `${id}: ${k} score ${v} out of [1,10]`)
+  }
+  assert.ok(Number(p.avgPriceM2USD) > 0, `${id}: missing avgPriceM2USD`)
 }
 
 console.log('map buildings check: ok')

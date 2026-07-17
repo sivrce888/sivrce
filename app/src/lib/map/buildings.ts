@@ -13,9 +13,10 @@
 
 import type { DealType, Listing } from '@/data/listings'
 import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
-import { DEAL_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
+import { DEAL_BRAND, CATEGORY_BRAND, SERVICE_BRAND } from '@/lib/category-brand'
 import { BRAND } from '@/lib/brand'
-import { getDeveloper, type Project } from '@/data/professionals'
+import { getDeveloper, projectCode, type Project } from '@/data/professionals'
+import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import footprintData from '@/data/building-footprints.json'
 
 /** Real OSM building rings keyed by cluster id (© OpenStreetMap contributors, ODbL).
@@ -28,7 +29,7 @@ const FOOTPRINTS = footprintData.footprints as unknown as Record<
 const CELL_DEG = 0.00055 // ≈ 60 m at Tbilisi lat
 export const NEAREST_RADIUS_M = 90
 
-export type BuildingStatus = 'active' | 'construction' | 'ready'
+export type BuildingStatus = 'active' | 'construction' | 'completed' | 'ready'
 export type BuildingDealCounts = Record<DealType, number>
 
 export type MapBuildingCluster = {
@@ -62,7 +63,7 @@ export type MapBuildingCluster = {
 }
 
 export type MapDealFilter = DealType | 'all'
-export type MapStatusFilter = 'all' | 'active' | 'construction'
+export type MapStatusFilter = 'all' | 'active' | 'construction' | 'completed'
 
 function emptyCounts(): BuildingDealCounts {
   return { sale: 0, rent: 0, daily: 0, pledge: 0 }
@@ -324,7 +325,7 @@ export function clusterListingsToBuildings(listings: Listing[]): MapBuildingClus
   return out.sort((a, b) => b.listings.length - a.listings.length)
 }
 
-/** Unbuilt / ongoing developments as clickable 3D ghosts. */
+/** Unbuilt / ongoing / completed developments as clickable 3D ghosts + solids. */
 export function projectsToConstructionBuildings(
   projects: Array<Project & { coords: { lat: number; lng: number }; floors?: number }>,
 ): MapBuildingCluster[] {
@@ -334,13 +335,13 @@ export function projectsToConstructionBuildings(
   return projects
     .filter(
       (p) =>
-        p.done < 100 &&
         isValidCoords(p.coords.lat, p.coords.lng) &&
         !catalogProjectSlugs.has(p.slug),
     )
     .map((p) => {
       const floors = p.floors ?? Math.max(8, Math.round(p.flats / 12))
       const bn = parseBuildingNumber(p.location) || '—'
+      const completed = p.done >= 100
       return {
         id: `dev-${p.slug}`,
         lat: p.coords.lat,
@@ -353,11 +354,12 @@ export function projectsToConstructionBuildings(
         listings: [],
         counts: emptyCounts(),
         dominant: 'construction' as const,
-        color: CATEGORY_BRAND.newProjects.hue,
+        color: completed ? SERVICE_BRAND.developers.hue : CATEGORY_BRAND.newProjects.hue,
         heightM: Math.min(18 + floors * 3.1 * (p.done / 100 || 0.35), 110),
-        status: 'construction' as const,
+        status: completed ? ('completed' as const) : ('construction' as const),
         progress: p.done,
         projectSlug: p.slug,
+        code: projectCode(p),
         finish: p.finish,
       }
     })
@@ -377,7 +379,8 @@ export function filterBuildings(
 ): MapBuildingCluster[] {
   return buildings.filter((b) => {
     if (status === 'construction' && b.status !== 'construction') return false
-    if (status === 'active' && b.status === 'construction') return false
+    if (status === 'completed' && b.status !== 'completed') return false
+    if (status === 'active' && (b.status === 'construction' || b.status === 'completed')) return false
     if (deal === 'all') return true
     if (b.status === 'construction' && b.listings.length === 0) return status !== 'active'
     return b.counts[deal] > 0
@@ -466,9 +469,43 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
         dominant: b.dominant,
         status: b.status,
         progress: b.progress ?? 100,
-        opacity: b.status === 'construction' && b.listings.length === 0 ? 0.55 : 0.92,
+        opacity:
+          b.status === 'completed'
+            ? 0.92
+            : b.status === 'construction' && b.listings.length === 0
+              ? 0.55
+              : 0.92,
       },
       geometry: clusterGeometry(b),
+    })),
+  }
+}
+
+/**
+ * Neighborhoods as clickable map points — centroid coords + livability + avg price.
+ * Toggleable from Map3D (off by default). ponytail: O(n) static; no boundary polygons.
+ */
+export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: NEIGHBORHOODS.map((n) => ({
+      type: 'Feature' as const,
+      id: `nbh-${n.slug}`,
+      properties: {
+        id: `nbh-${n.slug}`,
+        slug: n.slug,
+        name: n.name.ka,
+        nameEn: n.name.en,
+        city: n.city.ka,
+        type: n.type,
+        avgPriceM2USD: n.avgPriceM2USD,
+        transport: n.scores.transport,
+        schools: n.scores.schools,
+        green: n.scores.green,
+        safety: n.scores.safety,
+        nightlife: n.scores.nightlife,
+      },
+      geometry: { type: 'Point', coordinates: [n.coords.lng, n.coords.lat] },
     })),
   }
 }
