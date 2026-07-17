@@ -18,7 +18,9 @@
 Done since first pass: listings API + auth gate, 3D map (maplibre), inquiries
 end-to-end, global ₾/$ provider, noindex on all 29 private/utility pages,
 AI search (Gemini adapter + AISection), building reviews, segmented currency
-switcher.
+switcher, room-count SEO pages (`/sale/apartments-2/tbilisi` — the "2-ოთახიანი
+ბინა" query family ss.ge/myhome rank with) + 4 self-throttled districts
+(ძველი თბილისი, ვარკეთილი, ჩუღურეთი, ნაძალადევი), singular-Georgian FAQ copy.
 
 1. **10 — Route-based i18n** (`app/[lang]/…` server-rendered ka/en/ru + hreflang).
    The only structural SEO gap vs myhome/ss/korter; every other technical SEO
