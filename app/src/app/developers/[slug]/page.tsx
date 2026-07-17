@@ -57,6 +57,11 @@ export default async function DeveloperPage({ params }: PageProps) {
     listingsByCity(dev.city, 6),
   ]
 
+  // Cover = most complete project's real photo (deterministic, no new assets).
+  const flagship = projects.length
+    ? projects.reduce((a, b) => (b.done > a.done ? b : a))
+    : null
+
   const orgLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -64,6 +69,7 @@ export default async function DeveloperPage({ params }: PageProps) {
     alternateName: dev.name.ka,
     url: `https://sivrce.ge/developers/${dev.slug}`,
     telephone: dev.phone,
+    ...(flagship && { image: `https://sivrce.ge${flagship.img}` }),
     address: {
       '@type': 'PostalAddress',
       addressLocality: dev.city,
@@ -82,6 +88,22 @@ export default async function DeveloperPage({ params }: PageProps) {
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main" className="pt-16">
+        {flagship && (
+          <div className="relative h-[240px] overflow-hidden md:h-[360px]">
+            <Image
+              src={flagship.img}
+              alt={`${dev.name.ka} — ${flagship.name}`}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-t from-sv-navy/55 via-sv-navy/10 to-transparent"
+            />
+          </div>
+        )}
         <EntityHeader
           kind="developer"
           name={dev.name}

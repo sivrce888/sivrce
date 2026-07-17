@@ -27,11 +27,47 @@ if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
   throw new Error("AUTH_SECRET must be set in production")
 }
 
+/** Comma-separated staff emails promoted to admin on create/sign-in. */
+function adminEmails(): Set<string> {
+  return new Set(
+    (process.env.ADMIN_EMAILS ?? "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean),
+  )
+}
+
+async function ensureAdminRole(userId: string, email: string | null | undefined) {
+  if (!email || !adminEmails().has(email.toLowerCase())) return
+  await db.user.updateMany({
+    where: { id: userId, NOT: { role: "admin" } },
+    data: { role: "admin" },
+  })
+}
+
+// Share session across sivrce.ge + admin.sivrce.ge in production.
+const crossSubdomainCookies: NextAuthConfig["cookies"] =
+  process.env.NODE_ENV === "production"
+    ? {
+        sessionToken: {
+          name: "__Secure-authjs.session-token",
+          options: {
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+            secure: true,
+            domain: ".sivrce.ge",
+          },
+        },
+      }
+    : undefined
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   providers,
   // Vercel / reverse proxies: trust X-Forwarded-Host for callback URLs.
   trustHost: true,
+  cookies: crossSubdomainCookies,
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
@@ -47,10 +83,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     async createUser({ user }) {
       if (!user.email) return
+      if (user.id) await ensureAdminRole(user.id, user.email)
       sendWelcomeEmail({
         to: user.email,
         name: user.name ?? user.email.split("@")[0] ?? "friend",
       })
+    },
+    async signIn({ user }) {
+      if (user.id) await ensureAdminRole(user.id, user.email)
     },
   },
   // Database sessions via the Prisma adapter (Session model in schema).

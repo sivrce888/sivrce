@@ -39,8 +39,70 @@ function isProtected(pathname: string): boolean {
   )
 }
 
+function hostName(req: NextRequest): string {
+  return (req.headers.get("host") ?? "").split(":")[0]!.toLowerCase()
+}
+
+/** admin.sivrce.ge → /admin tree (same app, dedicated host). */
+function isAdminHost(host: string): boolean {
+  return host === "admin.sivrce.ge" || host === "admin.localhost"
+}
+
+/** cdn.sivrce.ge — Cloudflare-proxied asset edge; non-static → apex. */
+function isCdnHost(host: string): boolean {
+  return host === "cdn.sivrce.ge"
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+  const host = hostName(req)
+
+  // CDN host: only static/public asset paths; everything else → apex.
+  if (isCdnHost(host)) {
+    const staticOk =
+      pathname.startsWith("/images/") ||
+      pathname.startsWith("/icons/") ||
+      pathname.startsWith("/logo/") ||
+      pathname.startsWith("/_next/static/") ||
+      pathname === "/favicon.ico" ||
+      pathname === "/robots.txt"
+    if (!staticOk) {
+      const apex = new URL(pathname + req.nextUrl.search, "https://sivrce.ge")
+      return NextResponse.redirect(apex, 308)
+    }
+    return NextResponse.next()
+  }
+
+  // Admin host: map / → /admin, /users → /admin/users (auth stays as-is).
+  if (isAdminHost(host)) {
+    const passthrough =
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/auth") ||
+      pathname.startsWith("/api")
+    const adminPath = passthrough
+      ? pathname
+      : pathname === "/"
+        ? "/admin"
+        : `/admin${pathname}`
+
+    if (isProtected(adminPath)) {
+      const hasSession = SESSION_COOKIES.some((c) => Boolean(req.cookies.get(c)?.value))
+      if (!hasSession) {
+        const url = req.nextUrl.clone()
+        url.pathname = "/auth/signin"
+        url.search = ""
+        url.searchParams.set("callbackUrl", adminPath)
+        return NextResponse.redirect(url)
+      }
+    }
+
+    if (adminPath !== pathname) {
+      const url = req.nextUrl.clone()
+      url.pathname = adminPath
+      return NextResponse.rewrite(url)
+    }
+    return NextResponse.next()
+  }
 
   // Strip a locale prefix; everything below works on the real app path.
   const seg = pathname.split("/")[1] ?? ""
