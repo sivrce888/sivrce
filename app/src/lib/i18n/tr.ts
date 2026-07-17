@@ -10,6 +10,7 @@ export const tr: Dict = {
   'nav.buy': 'Satılık',
   'nav.rent': 'Kiralık',
   'nav.search': 'Arama',
+  'nav.map': '3D harita',
   'nav.projects': 'Yeni projeler',
   'nav.services': 'Hizmetler',
   'nav.more': 'Daha fazla',

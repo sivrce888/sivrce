@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Noto_Sans_Georgian } from "next/font/google";
 import CurrencyProvider from "@/components/CurrencyProvider";
 import I18nProvider from "@/components/I18nProvider";
+import PostHogProvider from "@/components/PostHogProvider";
+import ChatShell from "@/components/chat/ChatShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { SWRegister } from "@/app/sw-register";
@@ -171,6 +173,7 @@ const siteLd = {
           { "@type": "SiteNavigationElement", name: "იყიდება", url: `${SITE_URL}/sale` },
           { "@type": "SiteNavigationElement", name: "ქირავდება", url: `${SITE_URL}/rent` },
           { "@type": "SiteNavigationElement", name: "დღიურად", url: `${SITE_URL}/daily` },
+          { "@type": "SiteNavigationElement", name: "3D რუკა", url: `${SITE_URL}/map` },
           { "@type": "SiteNavigationElement", name: "ძიება", url: `${SITE_URL}/search` },
           { "@type": "SiteNavigationElement", name: "უბნები", url: `${SITE_URL}/neighborhoods` },
           { "@type": "SiteNavigationElement", name: "ახალი პროექტები", url: `${SITE_URL}/projects` },
@@ -201,7 +204,11 @@ export default function RootLayout({
         </a>
         <ThemeProvider>
           <I18nProvider>
-            <CurrencyProvider>{children}</CurrencyProvider>
+            <CurrencyProvider>
+              <PostHogProvider>
+                <ChatShell>{children}</ChatShell>
+              </PostHogProvider>
+            </CurrencyProvider>
           </I18nProvider>
           <Toaster position="top-center" />
         </ThemeProvider>

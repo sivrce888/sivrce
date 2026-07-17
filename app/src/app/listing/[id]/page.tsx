@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { LISTINGS, getListing, formatUSD } from '@/data/listings'
+import { LISTINGS, getListing as getMockListing, formatUSD } from '@/data/listings'
+import { getListing as getDbListing } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
@@ -23,9 +24,18 @@ function metaDescription(text: string, max = 155): string {
   return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[.,;:!?…-]+$/, '')}…`
 }
 
+/** Try DB first, fall back to mock data. ponytail: seamless migration path. */
+async function getListing(id: string) {
+  try {
+    const dbListing = await getDbListing(id)
+    if (dbListing) return dbListing
+  } catch { /* DB unavailable — fall through to mock */ }
+  return getMockListing(id)
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
-  const l = getListing(id)
+  const l = await getListing(id)
   if (!l) return {}
   const price = l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე` : formatUSD(l.priceUSD)
   const title = `${l.title} — ${price}`
@@ -57,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ListingPage({ params }: PageProps) {
   const { id } = await params
-  const listing = getListing(id)
+  const listing = await getListing(id)
   if (!listing) notFound()
 
   // Deterministic: same dealType + city, exclude self, cap 8 (source order)

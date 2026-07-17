@@ -9,6 +9,8 @@ const en = {
   reviewsTitle: 'Reviews & rating',
   reviewsSub: 'What guests and buyers say about this listing',
   similarSub: 'Same city · {deal}',
+  tourTitle: 'Book a tour',
+  tourSubtitle: 'Schedule a visit with the agent — choose a date and time that works for you.',
 } as const
 
 export type ListingCopyKey = keyof typeof en
@@ -17,6 +19,8 @@ const ka: Record<ListingCopyKey, string> = {
   reviewsTitle: 'შეფასებები და რეიტინგი',
   reviewsSub: 'რას ამბობენ სტუმრები და მყიდველები ამ განცხადებაზე',
   similarSub: 'იგივე ქალაქი · {deal}',
+  tourTitle: 'ტურის დაჯავშნა',
+  tourSubtitle: 'დაგეგმეთ ვიზიტი აგენტთან — აირჩიეთ თქვენთვის ხელსაყრელი თარიღი და დრო.',
 }
 
 const ru: Record<ListingCopyKey, string> = {

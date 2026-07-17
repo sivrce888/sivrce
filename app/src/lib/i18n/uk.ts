@@ -10,6 +10,7 @@ export const uk: Dict = {
   'nav.buy': 'Купівля',
   'nav.rent': 'Оренда',
   'nav.search': 'Пошук',
+  'nav.map': '3D карта',
   'nav.projects': 'Нові проєкти',
   'nav.services': 'Сервіси',
   'nav.more': 'Більше',

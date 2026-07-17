@@ -9,6 +9,7 @@ export const ka = {
   'nav.buy': 'იყიდება',
   'nav.rent': 'ქირავდება',
   'nav.search': 'ძიება',
+  'nav.map': '3D რუკა',
   'nav.projects': 'ახალი პროექტები',
   'nav.services': 'სერვისები',
   'nav.more': 'მეტი',
@@ -136,6 +137,8 @@ export const ka = {
   'detail.messagingSoonText': 'ჩატი აგენტთან მუშავდება',
   'detail.agentPhone': 'აგენტის ტელეფონი',
   'detail.verifiedBy': 'განცხადება ვერიფიცირებულია სივრცის გუნდის მიერ',
+  'detail.tourTitle': 'ტურის დაჯავშნა',
+  'detail.tourSubtitle': 'დაგეგმეთ ვიზიტი აგენტთან — აირჩიეთ თქვენთვის ხელსაყრელი თარიღი და დრო.',
   'detail.safetyTitle': 'უსაფრთხოების რჩევა',
   'detail.safetyText':
     'არ გადაიხადო ავანსი ქონების ნახვამდე. სივრცე არასდროს გთხოვს გადახდას პლატფორმის გარეთ.',

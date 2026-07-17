@@ -59,6 +59,7 @@ export default function Navbar() {
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
+    { key: 'nav.map', to: '/map' },
     { key: 'nav.search', to: '/search' },
     { key: 'nav.neighborhoods', to: '/neighborhoods' },
     { key: 'nav.projects', to: '/projects' },
@@ -197,7 +198,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
-            className="mx-4 mt-2 rounded-tile glass-light p-4 shadow-card md:hidden"
+            className="mx-4 mt-2 rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card md:hidden"
           >
             {NAV_LINKS.map((l) =>
               l.to.includes('#') ? (

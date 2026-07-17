@@ -45,3 +45,16 @@ next-env.d.ts
 
 # keep the template, ignore real env files
 !.env.example
+
+# Capacitor native build outputs
+/android/app/build
+/android/.gradle
+/android/captures
+/android/local.properties
+/ios/App/build
+/ios/App/Pods
+/ios/App/*.xcworkspace
+/ios/App/*.xcodeproj/xcuserdata
+
+# Capacitor asset source
+/resources

@@ -10,6 +10,7 @@ export const he: Dict = {
   'nav.buy': 'למכירה',
   'nav.rent': 'להשכרה',
   'nav.search': 'חיפוש',
+  'nav.map': 'מפת 3D',
   'nav.projects': 'פרויקטים חדשים',
   'nav.services': 'שירותים',
   'nav.more': 'עוד',

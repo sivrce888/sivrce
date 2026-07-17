@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -14,7 +14,7 @@ import SaveSearchControl from '@/components/search/SaveSearchControl'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import {
-  filterListings, CITIES, districtsOf,
+  CITIES, districtsOf,
   type DealType, type PropType, type SortKey, type Listing,
 } from '@/data/listings'
 
@@ -127,15 +127,83 @@ export default function SearchClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- urlText/patchParams derive from drafts+paramsKey
   }, [drafts, paramsKey])
 
-  const results: Listing[] = useMemo(
-    () =>
-      filterListings({
-        deal, type, city, district,
-        minPrice, maxPrice, rooms, minArea, maxArea,
-        q: q || undefined, sort,
-      }),
-    [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort],
-  )
+  // ——— API-driven search ————————————————————————————————————————————————
+  const [results, setResults] = useState<Listing[]>([])
+  const [totalResults, setTotalResults] = useState(0)
+  const [searchLoading, setSearchLoading] = useState(false)
+
+  // Map filter state → /api/search query params and fetch.
+  const fetchSearch = useCallback(async () => {
+    setSearchLoading(true)
+    try {
+      const sp = new URLSearchParams()
+      if (deal) sp.set('dealType', deal)
+      if (type) sp.set('propertyType', type)
+      if (city) sp.set('city', city)
+      if (district) sp.set('district', district)
+      if (minPrice !== undefined) sp.set('minPrice', String(minPrice))
+      if (maxPrice !== undefined) sp.set('maxPrice', String(maxPrice))
+      if (rooms !== undefined) sp.set('rooms', String(rooms))
+      if (minArea !== undefined) sp.set('minArea', String(minArea))
+      if (maxArea !== undefined) sp.set('maxArea', String(maxArea))
+      if (q) sp.set('q', q)
+      if (sort !== 'date') sp.set('sort', sort)
+      sp.set('page', '1')
+      sp.set('pageSize', '24')
+
+      const res = await fetch(`/api/search?${sp.toString()}`)
+      const json = await res.json()
+      if (json.ok && Array.isArray(json.hits)) {
+        // ponytail: map API hits → Listing shape for existing card components.
+        setResults(json.hits.map((h: Record<string, unknown>) => ({
+          id: h.id as string,
+          title: h.title as string,
+          city: h.city as string,
+          district: h.district as string,
+          dealType: h.dealType as DealType,
+          propType: h.propertyType as PropType,
+          priceUSD: h.price as number,
+          priceGEL: Math.round((h.price as number) * 2.7),
+          perM2USD: 0,
+          area: h.area as number,
+          rooms: h.rooms as number,
+          images: (h.images as string[]) ?? [],
+          img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
+          address: (h.address as string) ?? '',
+          beds: (h.bedrooms as number) ?? (h.rooms as number),
+          baths: (h.bathrooms as number) ?? 1,
+          floor: (h.floor as number) ?? 0,
+          totalFloors: (h.totalFloors as number) ?? 0,
+          views: 0,
+          badge: null,
+          ai: { score: 70, label: '' },
+          features: (h.features as string[]) ?? [],
+          description: (h.description as string) ?? '',
+          coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
+          postedAt: (h.createdAt as string) ?? new Date().toISOString(),
+          agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
+          isNew: false,
+        })))
+        setTotalResults(json.totalHits as number)
+      } else {
+        setResults([])
+        setTotalResults(0)
+      }
+    } catch {
+      // ponytail: silent fail — show empty state, don't break UI.
+      setResults([])
+      setTotalResults(0)
+    } finally {
+      setSearchLoading(false)
+    }
+  }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort])
+
+  useEffect(() => {
+    fetchSearch()
+  }, [fetchSearch, paramsKey])
+
+  // Combine skeleton + fetch loading into one flag.
+  const showSkeleton = loading || searchLoading
 
   // ——— Active filter chips ———
   const propType = PROP_TYPES.find((p) => p.value === type)
@@ -391,7 +459,7 @@ export default function SearchClient() {
       <main id="main" className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
         <div className="mb-5 flex flex-wrap items-center gap-3">
           <p className="text-[15px] font-extrabold text-sv-ink" aria-live="polite">
-            {loading ? t('search.loading') : t('search.results', { n: results.length })}
+            {showSkeleton ? t('search.loading') : t('search.results', { n: totalResults })}
           </p>
           <AnimatePresence>
             {chips.map((c) => (
@@ -417,7 +485,7 @@ export default function SearchClient() {
           <SaveSearchControl />
         </div>
 
-        {loading ? (
+        {showSkeleton ? (
           <div className={`grid gap-6 ${view === 'grid' ? 'sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>

@@ -91,7 +91,7 @@ export default function Hero() {
                 key={tb.label}
                 onClick={() => setTab(i)}
                 aria-pressed={tab === i}
-                className={`relative rounded-module px-4 py-2.5 text-[13px] font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy md:px-5 md:text-[14px] ${
+                className={`relative rounded-module px-4 py-3 text-[13px] font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy md:px-5 md:text-[14px] ${
                   tab === i ? 'text-sv-navy' : 'text-white/75 hover:text-white'
                 }`}
               >
@@ -137,7 +137,7 @@ export default function Hero() {
                 >
                   <f.icon className="h-[18px] w-[18px] shrink-0 text-white/50" style={f.hue ? { color: f.hue } : undefined} />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[11px] font-bold uppercase tracking-wider text-white/70">
+                    <span className="block text-[12px] font-bold uppercase tracking-wider text-white/70">
                       {f.label}
                     </span>
                     <span className="block truncate text-[14px] font-bold text-white">{f.value}</span>
@@ -158,17 +158,17 @@ export default function Hero() {
             <div className="mt-2 flex flex-wrap items-center gap-2 px-1 pb-1">
               <button
                 onClick={() => router.push('/search')}
-                className="flex items-center gap-2 rounded-control px-3 py-2.5 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                className="flex items-center gap-2 rounded-control px-3 py-3 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
               >
                 <SlidersHorizontal className="h-4 w-4" /> დეტალური ფილტრი
               </button>
               <button
                 onClick={() => router.push('/search')}
-                className="flex items-center gap-2 rounded-control px-3 py-2.5 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                className="flex items-center gap-2 rounded-control px-3 py-3 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
               >
                 <MapPin className="h-4 w-4" /> ძიება რუკით
               </button>
-              <button className="flex items-center gap-2 rounded-control bg-gradient-to-r from-sv-blue/25 to-sv-violet/25 px-3 py-2.5 text-[13px] font-bold text-sv-blue-light ring-1 ring-inset ring-sv-blue/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
+              <button className="flex items-center gap-2 rounded-control bg-gradient-to-r from-sv-blue/25 to-sv-violet/25 px-3 py-3 text-[13px] font-bold text-sv-blue-light ring-1 ring-inset ring-sv-blue/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
                 <Sparkles className="h-4 w-4" /> AI ძიება ბუნებრივი ენით
               </button>
             </div>
@@ -181,7 +181,7 @@ export default function Hero() {
               <button
                 key={q}
                 onClick={() => goDistrict(q)}
-                className="rounded-full glass px-4 py-2.5 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                className="rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
               >
                 {q}
               </button>

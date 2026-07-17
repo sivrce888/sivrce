@@ -10,6 +10,7 @@ export const en: Dict = {
   'nav.buy': 'For sale',
   'nav.rent': 'For rent',
   'nav.search': 'Search',
+  'nav.map': '3D map',
   'nav.projects': 'New projects',
   'nav.services': 'Services',
   'nav.more': 'More',
@@ -137,6 +138,8 @@ export const en: Dict = {
   'detail.messagingSoonText': 'Chat with the agent is in the works',
   'detail.agentPhone': 'Agent phone',
   'detail.verifiedBy': 'Listing verified by the Sivrce team',
+  'detail.tourTitle': 'Book a tour',
+  'detail.tourSubtitle': 'Schedule a visit with the agent — choose a date and time that works for you.',
   'detail.safetyTitle': 'Safety tip',
   'detail.safetyText':
     'Never pay a deposit before viewing the property. Sivrce will never ask you to pay outside the platform.',

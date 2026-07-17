@@ -10,6 +10,7 @@ export const hy: Dict = {
   'nav.buy': 'Վաճառք',
   'nav.rent': 'Վարձակալություն',
   'nav.search': 'Որոնում',
+  'nav.map': '3D քարտեզ',
   'nav.projects': 'Նոր նախագծեր',
   'nav.services': 'Ծառայություններ',
   'nav.more': 'Ավելին',

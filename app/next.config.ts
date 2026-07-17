@@ -2,25 +2,34 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 
-/* ponytail: static-site CSP — no nonce plumbing; revisit with hashes if we add
-   third-party scripts (analytics, maps). */
-// ponytail: Capacitor origins — capacitor:// for iOS, http://localhost for Android WebView
+/* ponytail: Capacitor origins — capacitor:// for iOS, http://localhost for Android WebView */
 const capacitorOrigins = isDev
   ? " capacitor://localhost http://localhost:* http://192.168.*.*:* ws://localhost:*"
   : " capacitor://localhost"
 
+// MapLibre workers + OpenFreeMap (or custom NEXT_PUBLIC_MAP_STYLE_URL) tiles
+const mapOrigins =
+  " https://*.openfreemap.org https://tiles.openfreemap.org https://*.maptiler.com https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com"
+
+// ponytail: analytics origins reserved — enable when Sentry/PostHog ship
+const analyticsOrigins =
+  " https://*.sentry.io https://*.posthog.com https://*.i.posthog.com"
+
 const csp = [
   "default-src 'self'",
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}`,
+  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}${mapOrigins}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${capacitorOrigins}`,
+  `img-src 'self' data: blob:${capacitorOrigins}${mapOrigins}`,
   "font-src 'self' data:",
-  `connect-src 'self'${capacitorOrigins} https://*.sivrce.ge`,
+  `connect-src 'self'${capacitorOrigins} https://*.sivrce.ge${mapOrigins}${analyticsOrigins}`,
+  "worker-src 'self' blob:",
+  "child-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
+  "frame-src 'self' https://www.google.com https://maps.google.com",
   "upgrade-insecure-requests",
 ].join("; ");
 
@@ -65,4 +74,5 @@ const nextConfig: NextConfig = {
   },
 };
 
+// ponytail: withSentryConfig when @sentry/nextjs is installed
 export default nextConfig;
