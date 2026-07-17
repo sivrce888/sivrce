@@ -19,27 +19,29 @@ import {
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
-import { CATEGORY_BRAND } from '@/lib/category-brand'
+import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
+import { cap1, seoTitleParts } from '@/lib/seo-title'
 import {
   CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD, formatGEL,
-  type Listing, type PropType,
+  type DealType, type Listing, type PropType,
 } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
 
-type Deal = 'sale' | 'rent' | 'daily'
+type Deal = DealType
 type Photo = { url: string; name: string; file: File }
 
-const PROP_TYPES: { key: PropType; icon: typeof Building; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]; labelKey: DictKey }[] = [
-  { key: 'apartment', icon: Building, brand: CATEGORY_BRAND.apartments, labelKey: 'prop.apartment' },
-  { key: 'house', icon: Home, brand: CATEGORY_BRAND.houses, labelKey: 'prop.house' },
-  { key: 'commercial', icon: Briefcase, brand: CATEGORY_BRAND.commercial, labelKey: 'prop.commercial' },
-  { key: 'land', icon: Map, brand: CATEGORY_BRAND.land, labelKey: 'prop.land' },
+const PROP_TYPES: { key: PropType; icon: typeof Building; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]; labelKey: DictKey; titleKey: DictKey }[] = [
+  { key: 'apartment', icon: Building, brand: CATEGORY_BRAND.apartments, labelKey: 'prop.apartment', titleKey: 'prop.apartment' },
+  { key: 'house', icon: Home, brand: CATEGORY_BRAND.houses, labelKey: 'prop.house', titleKey: 'prop.houseShort' },
+  { key: 'commercial', icon: Briefcase, brand: CATEGORY_BRAND.commercial, labelKey: 'prop.commercial', titleKey: 'add.titleType.commercial' },
+  { key: 'land', icon: Map, brand: CATEGORY_BRAND.land, labelKey: 'prop.land', titleKey: 'prop.land' },
 ]
 
 const DEALS: { key: Deal; icon: typeof Tag; labelKey: DictKey; hue: string }[] = [
-  { key: 'sale', icon: Tag, labelKey: 'add.deal.sale', hue: '#2E6BFF' },
-  { key: 'rent', icon: KeyRound, labelKey: 'add.deal.rent', hue: '#7C3AED' },
-  { key: 'daily', icon: CalendarClock, labelKey: 'add.deal.daily', hue: CATEGORY_BRAND.dailyRent.hue },
+  { key: 'sale', icon: Tag, labelKey: 'add.deal.sale', hue: DEAL_BRAND.sale },
+  { key: 'rent', icon: KeyRound, labelKey: 'add.deal.rent', hue: DEAL_BRAND.rent },
+  { key: 'daily', icon: CalendarClock, labelKey: 'add.deal.daily', hue: DEAL_BRAND.daily },
+  { key: 'pledge', icon: BadgeCheck, labelKey: 'add.deal.pledge', hue: DEAL_BRAND.pledge },
 ]
 
 const CONDITIONS = ['add.cond.newReno', 'add.cond.oldReno', 'add.cond.needsReno', 'add.cond.whiteFrame', 'add.cond.blackFrame', 'add.cond.greenFrame'] as const
@@ -70,7 +72,7 @@ const formatPhone = (raw: string): string => {
 }
 
 export default function AddListingClient() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [step, setStep] = useState(0)
@@ -145,11 +147,17 @@ export default function AddListingClient() {
   ][step]
 
   const propLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.labelKey) : ''
-  const autoTitle = propType
-    ? rooms > 0 && propType !== 'land'
-      ? t('add.autoTitle.rooms', { rooms, type: propLabel, district: district || '—' })
-      : t('add.autoTitle.simple', { type: propLabel, district: district || '—' })
-    : t('add.previewTitle')
+  /* SEO title: deal + rooms + type + locative place — "იყიდება 2-ოთახიანი ბინა ჭავჭავაძეზე ვაკეში" */
+  const titleLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.titleKey) : ''
+  const dealLabel = deal ? t(DEALS.find((d) => d.key === deal)!.labelKey) : ''
+  const { deal: dealWord, where } = seoTitleParts({ lang, deal, dealLabel, street, district, city })
+  const autoTitle = !propType
+    ? t('add.previewTitle')
+    : cap1(
+        t(rooms > 0 && propType !== 'land' ? 'add.autoTitle.rooms' : 'add.autoTitle.simple', {
+          deal: dealWord, rooms, type: titleLabel, where,
+        }),
+      )
 
   const preview: Listing = {
     id: LISTINGS[0].id, // real id so Link prefetch doesn't 404 (card is pointer-events-none anyway)

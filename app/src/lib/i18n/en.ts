@@ -203,6 +203,7 @@ export const en: Dict = {
   'add.deal.sale': 'For sale',
   'add.deal.rent': 'For rent',
   'add.deal.daily': 'Daily rent',
+  'add.deal.pledge': 'For lease',
   'add.propType': 'Property type',
   'add.street': 'Street',
   'add.streetPh': 'e.g. Chavchavadze Ave.',
@@ -298,8 +299,9 @@ export const en: Dict = {
   'add.priceVerdict.low': 'Below market',
   'add.priceVerdict.fair': 'At market level',
   'add.priceVerdict.high': 'Above market',
-  'add.autoTitle.rooms': '{rooms}-room {type} · {district}',
-  'add.autoTitle.simple': '{type} · {district}',
+  'add.autoTitle.rooms': '{rooms}-bedroom {type} {deal} in {where}',
+  'add.autoTitle.simple': '{type} {deal} in {where}',
+  'add.titleType.commercial': 'commercial property',
   'add.previewTitle': 'Your listing',
 
   // Error pages

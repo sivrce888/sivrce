@@ -203,6 +203,7 @@ export const az: Dict = {
   'add.deal.sale': 'Satılır',
   'add.deal.rent': 'Kirayə',
   'add.deal.daily': 'Günlük kirayə',
+  'add.deal.pledge': 'Lizinq',
   'add.propType': 'Əmlak növü',
   'add.street': 'Küçə',
   'add.streetPh': 'məs. Çavçavadze pr.',
@@ -298,8 +299,9 @@ export const az: Dict = {
   'add.priceVerdict.low': 'Bazardan aşağı',
   'add.priceVerdict.fair': 'Bazar səviyyəsində',
   'add.priceVerdict.high': 'Bazardan yuxarı',
-  'add.autoTitle.rooms': '{rooms} otaqlı {type} · {district}',
-  'add.autoTitle.simple': '{type} · {district}',
+  'add.autoTitle.rooms': '{deal} {rooms} otaqlı {type} · {where}',
+  'add.autoTitle.simple': '{deal} {type} · {where}',
+  'add.titleType.commercial': 'kommersiya sahəsi',
   'add.previewTitle': 'Elanınız',
 
   // Error pages

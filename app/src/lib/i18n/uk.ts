@@ -203,6 +203,7 @@ export const uk: Dict = {
   'add.deal.sale': 'Продаж',
   'add.deal.rent': 'Оренда',
   'add.deal.daily': 'Подобова оренда',
+  'add.deal.pledge': 'Лізинг',
   'add.propType': 'Тип нерухомості',
   'add.street': 'Вулиця',
   'add.streetPh': 'напр. просп. Чавчавадзе',
@@ -298,8 +299,9 @@ export const uk: Dict = {
   'add.priceVerdict.low': 'Нижче ринку',
   'add.priceVerdict.fair': 'На рівні ринку',
   'add.priceVerdict.high': 'Вище ринку',
-  'add.autoTitle.rooms': '{rooms}-кімнатна {type} · {district}',
-  'add.autoTitle.simple': '{type} · {district}',
+  'add.autoTitle.rooms': '{deal} {rooms}-кімнатна {type} · {where}',
+  'add.autoTitle.simple': '{deal} {type} · {where}',
+  'add.titleType.commercial': 'комерційне приміщення',
   'add.previewTitle': 'Ваше оголошення',
 
   // Error pages
