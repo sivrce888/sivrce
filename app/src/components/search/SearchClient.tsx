@@ -329,7 +329,7 @@ export default function SearchClient() {
           {/* Row 1: deal + type + location + sort */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Deal segmented */}
-            <div className="flex max-w-full overflow-x-auto rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.dealType')}>
+            <div className="scrollbar-hide flex max-w-full overflow-x-auto rounded-control bg-sv-ink/[0.05] p-1 [mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent)] md:[mask-image:none]" role="group" aria-label={t('search.dealType')}>
               {([undefined, 'sale', 'rent', 'daily'] as const).map((d) => {
                 const label = t(d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'daily' ? 'add.deal.daily' : 'search.rent')
                 const count = d === undefined ? undefined : fcount('dealType', d)
@@ -340,7 +340,7 @@ export default function SearchClient() {
                     type="button"
                     aria-pressed={active}
                     onClick={() => patchParams({ deal: d })}
-                    className={`relative rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
+                    className={`relative whitespace-nowrap rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
                       active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
                     }`}
                   >

@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+const page = await ctx.newPage();
+await page.goto('http://localhost:3000/search', { waitUntil: 'networkidle', timeout: 60000 });
+await page.screenshot({ path: 'scripts/shots-mobile/nav-scroll0.png', clip: { x: 0, y: 0, width: 390, height: 110 } });
+await page.evaluate(async () => { for (let y = 0; y <= 3000; y += 150) { window.scrollTo(0, y); await new Promise(r => setTimeout(r, 80)); } });
+await page.waitForTimeout(900);
+await page.screenshot({ path: 'scripts/shots-mobile/nav-scroll3000.png', clip: { x: 0, y: 0, width: 390, height: 110 } });
+await browser.close();
