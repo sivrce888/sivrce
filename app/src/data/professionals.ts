@@ -70,6 +70,60 @@ export interface Project {
   floors?: number
 }
 
+/**
+ * Deterministic human-readable code per project: {DEV}-{NN}.
+ * Reads like a developer's own SKU (M2-01, ARC-03, BLX-07) — short enough for
+ * a 3D map pin label, globally unique by construction.
+ *
+ * Dev prefixes are hand-curated for the 19 multi-project / single-token devs
+ * (collisions + brand signatures); the rest fall back to slug initials.
+ * ponytail: tuned overrides beat 39 auto-generated codes. Auto-widen to 3
+ * digits if any dev ever ships >99 projects (max today: 9).
+ */
+const DEV_PREFIX: Record<string, string> = {
+  archi: 'ARC', axis: 'AXS', anagi: 'ANG', altergeo: 'ALT',
+  'apart-group': 'APG', blox: 'BLX', biograpi: 'BGP', davide: 'DVD',
+  dirsi: 'DRS', 'gbg-development': 'GBG', 'gumbati-holding': 'GMB',
+  'm2-development': 'M2', 'milestone-development': 'MSD', 'mziuri-development': 'MZU',
+  redco: 'RDC', redix: 'RDX', metropol: 'MET', console: 'CON', symbol: 'SYM',
+}
+const autoDevPrefix = (slug: string): string =>
+  slug.split('-').filter((s) => s.length > 0).map((s) => s[0]!).join('').toUpperCase().slice(0, 3)
+
+let _projectCodes: Map<string, string> | null = null
+function buildProjectCodes(): Map<string, string> {
+  const devCode = new Map<string, string>()
+  const used = new Set<string>()
+  for (const p of PROJECTS) {
+    if (devCode.has(p.developerSlug)) continue
+    const code = DEV_PREFIX[p.developerSlug] ?? autoDevPrefix(p.developerSlug)
+    // ponytail: if a future dev collides, fall back to {CODE}2 etc. — never silently reuse.
+    let unique = code
+    let n = 2
+    while (used.has(unique)) {
+      unique = code.slice(0, 2) + String(n)
+      n++
+    }
+    devCode.set(p.developerSlug, unique)
+    used.add(unique)
+  }
+
+  const out = new Map<string, string>()
+  const counters: Record<string, number> = {}
+  for (const p of [...PROJECTS].sort((a, b) =>
+    a.developerSlug.localeCompare(b.developerSlug) || a.name.localeCompare(b.name),
+  )) {
+    const prefix = devCode.get(p.developerSlug)!
+    const n = (counters[prefix] = (counters[prefix] ?? 0) + 1)
+    out.set(p.slug, `${prefix}-${String(n).padStart(2, '0')}`)
+  }
+  return out
+}
+export function projectCode(p: Project): string {
+  if (!_projectCodes) _projectCodes = buildProjectCodes()
+  return _projectCodes.get(p.slug) ?? 'XX-00'
+}
+
 // ——— Developers ———
 
 export const DEVELOPERS: Developer[] = [
