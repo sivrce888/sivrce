@@ -1,11 +1,11 @@
 'use client'
 
 /**
- * SIVRCE — Interactive map embed via Google Maps Embed API.
- * Free, no API key needed, no npm deps. Shows a real interactive map.
+ * SIVRCE — Interactive map embed via the keyless Google Maps output=embed
+ * endpoint. No API key, no npm deps, shows a real interactive map.
  *
- * ponytail: Google Maps Embed for MVP. Upgrade path: Google Maps JS API
- * (adapter pattern, per plan.md §10a) or MapLibre+MapTiler when >$5K/mo.
+ * ponytail: keyless embed for MVP. Upgrade path: MapLibre+MapTiler JS API
+ * when interactions (filters, clusters) outgrow a plain iframe.
  */
 
 interface MapEmbedProps {
@@ -30,27 +30,14 @@ export default function MapEmbed({
   lat,
   lng,
   zoom = 14,
-  mode = 'place',
   q,
   className = '',
   aspect = '4/3',
 }: MapEmbedProps) {
-  // Build the Google Maps embed URL
-  const params = new URLSearchParams()
-  params.set('key', '') // embed doesn't require a key for basic usage
-  params.set('center', `${lat},${lng}`)
-  params.set('zoom', String(zoom))
-  params.set('maptype', 'roadmap')
-  params.set('language', 'ka') // Georgian labels
-  params.set('region', 'GE')
-
-  if (mode === 'place') {
-    params.set('q', q ?? `${lat},${lng}`)
-  } else if (mode === 'search') {
-    params.set('q', q ?? 'თბილისი')
-  }
-
-  const src = `https://www.google.com/maps/embed/v1/${mode}?${params.toString()}`
+  const query = q ?? `${lat},${lng}`
+  const src =
+    `https://maps.google.com/maps?q=${encodeURIComponent(query)}` +
+    `&z=${zoom}&hl=ka&output=embed`
 
   return (
     <div className={`overflow-hidden rounded-card border border-sv-ink/6 ${ASPECTS[aspect]} ${className}`}>

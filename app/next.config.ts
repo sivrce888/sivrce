@@ -63,6 +63,11 @@ const nextConfig: NextConfig = {
   // ponytail: Neon cold-starts + per-worker Prisma connects can exceed the 60s
   // default on DB-backed SSG pages. Bump timeout; make builds warm the DB instead.
   staticPageGenerationTimeout: 180,
+  experimental: {
+    // 9 workers × Prisma pools socket-timeout Neon's free tier mid-build;
+    // cap concurrency so SSG DB traffic stays under the connection ceiling.
+    staticGenerationMaxConcurrency: 3,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 768, 1024, 1280, 1536, 1920],
