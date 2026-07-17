@@ -140,7 +140,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           <span className="flex items-center gap-1 rounded-full bg-sv-navy/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur">
             <Eye className="h-3 w-3" /> {formatViews(l.views)}
           </span>
-          <span className="flex items-center gap-1 rounded-full bg-sv-orange/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+          <span className="flex items-center gap-1 rounded-full bg-sv-orange/70 px-2 py-0.5 text-[11px] font-bold text-white backdrop-blur">
             <Zap className="h-2.5 w-2.5" /> {signals.viewers} ათვალიერებს
           </span>
         </div>
@@ -175,18 +175,18 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       <div className="mt-4 flex items-center gap-3 rounded-module bg-gradient-to-r from-sv-blue/[0.07] to-sv-violet/[0.07] p-3 ring-1 ring-inset ring-sv-blue/15">
         <AIScoreRing score={l.ai.score} />
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-black uppercase tracking-wider text-sv-blue">{t('detail.aiScore')}</div>
+          <div className="text-[12px] font-black uppercase tracking-wider text-sv-blue">{t('detail.aiScore')}</div>
           <div className="truncate text-[13px] font-extrabold text-sv-ink">{l.ai.label}</div>
         </div>
         {/* Urgency: new listings or recently posted */}
         {l.isNew && (
-          <span className="shrink-0 rounded-full bg-sv-orange/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-sv-orange">
+          <span className="shrink-0 rounded-full bg-sv-orange/10 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-sv-orange">
             ახალი
           </span>
         )}
       </div>
       {/* Social proof row */}
-      <div className="mt-3 flex items-center gap-3 text-[11px] font-semibold text-sv-ink/40">
+      <div className="mt-3 flex items-center gap-3 text-[12px] font-semibold text-sv-ink/40">
         <span>{signals.hoursAgo <= 24 ? 'დღეს დამატებული' : signals.hoursAgo <= 72 ? `${Math.ceil(signals.hoursAgo / 24)} დღის წინ` : `${Math.ceil(signals.hoursAgo / 168)} კვირის წინ`}</span>
         <span className="text-sv-ink/20">·</span>
         <span>{signals.viewers} ათვალიერებს ახლა</span>

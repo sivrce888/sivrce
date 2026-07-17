@@ -222,18 +222,18 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
       <main id="main" className="mx-auto max-w-[1440px] px-5 pb-28 pt-[92px] md:px-10 lg:pb-20">
         {/* Breadcrumb */}
         <nav className="mb-5 flex items-center gap-2 text-[13px] font-bold text-sv-ink/45" aria-label={t('detail.breadcrumb')}>
-          <Link href="/" className="transition-colors hover:text-sv-blue">{t('detail.home')}</Link>
+          <Link href="/" className="py-1.5 transition-colors hover:text-sv-blue">{t('detail.home')}</Link>
           <span>/</span>
-          <Link href="/search" className="transition-colors hover:text-sv-blue">{t('search.title')}</Link>
+          <Link href="/search" className="py-1.5 transition-colors hover:text-sv-blue">{t('search.title')}</Link>
           <span>/</span>
           <Link
             href={`/search?district=${encodeURIComponent(l.district)}`}
-            className="transition-colors hover:text-sv-blue"
+            className="py-1.5 transition-colors hover:text-sv-blue"
           >
             {l.district}
           </Link>
           <span>/</span>
-          <span className="truncate text-sv-ink/70">{l.title}</span>
+          <span className="truncate py-1.5 text-sv-ink/70">{l.title}</span>
         </nav>
 
         {/* ————— Gallery ————— */}
@@ -431,7 +431,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   </svg>
                   <div className="absolute text-center">
                     <div className="text-[24px] font-black leading-none text-sv-blue">{l.ai.score}</div>
-                    <div className="text-[9px] font-black uppercase tracking-wider text-sv-ink/40">/ 100</div>
+                    <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">/ 100</div>
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
@@ -651,7 +651,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                 </a>
               </div>
 
-              <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] font-bold text-sv-ink/35">
+              <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-sv-ink/35">
                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
                 {t('detail.verifiedBy')}
               </p>

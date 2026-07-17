@@ -138,6 +138,8 @@ export const az: Dict = {
   'detail.messagingSoonText': 'Agentlə söhbət hazırlanır',
   'detail.agentPhone': 'Agentin telefonu',
   'detail.verifiedBy': 'Elan Sivrce komandası tərəfindən təsdiqlənib',
+  'detail.tourTitle': 'Tur sifariş et',
+  'detail.tourSubtitle': 'Agentlə görüş planlaşdırın — sizə uyğun tarix və vaxt seçin.',
   'detail.safetyTitle': 'Təhlükəsizlik məsləhəti',
   'detail.safetyText':
     'Əmlaka baxmadan avans ödəməyin. Sivrce heç vaxt platformadan kənar ödəniş tələb etmir.',
