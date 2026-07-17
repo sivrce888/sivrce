@@ -1,0 +1,62 @@
+# Sivrce — Logo System v1.0 · "The Space Point"
+
+სივრცე means **space**. The mark: one blue space (squircle r=14/48), one infinite
+white path (the S — two tangent elliptical arcs, exact 180° rotational symmetry),
+one orange point (the home inside that space). Built 100% from BRAND.md locked tokens.
+
+Open **`index.html`** for the full award-style presentation (concept, construction,
+lockups, variants, rules, palette, assets).
+
+## Geometry contract (48-unit grid)
+
+| Element | Value |
+|---|---|
+| Tile | `rect 48×48, rx=14`, fill `#2E6BFF` |
+| S path | `M32.649 15.143 A9.2 6.6 0 1 0 24 24 A9.2 6.6 0 1 1 15.351 32.857` |
+| S stroke | 6.4 units, round caps (7.0 below 32 px — use `sivrce-mark-small.svg`) |
+| Space point | circle `(38.2, 38.2) r=3.0`, fill `#FF6A2D` |
+| Symmetry | exact 180° rotation about `(24, 24)` |
+| Wordmark | Manrope 800, lowercase, tracking −0.045em, orange final period |
+| Lockup | gap 15 units · x-height 25/48 of mark · optically centered |
+
+## Rules
+
+- Clear space = **50% of tile** on all sides.
+- Never recolor, rotate, outline, or place on busy backgrounds (dark scrim required).
+- Orange is the point only — ≤10% of any surface.
+- Ink `#0A1030` lockups on light, white lockups on navy. Tile never changes.
+
+## Files
+
+- `assets/` — master SVGs (mark, display gradient, mono ×2, horizontal ×2, stacked ×2,
+  wordmark ×2, app icons iOS + Android adaptive, favicon) + `favicon.ico`
+- `png/` — Chrome-rendered PNGs: mark 16→1024, app-icon 180→1024, lockups, wordmarks
+- `build_wordmark.py` → outlines Manrope 800 (real font paths, GPOS kerning, −0.045em)
+- `build_assets.py` → regenerates every SVG from the single geometry source
+- `fonts/Manrope-Variable.ttf` — pinned type source (OFL license)
+
+## Drop-in React component (matches SVG 1:1)
+
+```tsx
+export function LogoMark({ size = 48 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-label="Sivrce">
+      <rect width="48" height="48" rx="14" fill="#2E6BFF" />
+      <path
+        d="M32.649 15.143 A9.2 6.6 0 1 0 24 24 A9.2 6.6 0 1 1 15.351 32.857"
+        fill="none" stroke="#fff" strokeWidth={size <= 32 ? 7 : 6.4}
+        strokeLinecap="round"
+      />
+      <circle cx="38.2" cy="38.2" r={size <= 32 ? 3.3 : 3} fill="#FF6A2D" />
+    </svg>
+  );
+}
+```
+
+## Web integration
+
+```html
+<link rel="icon" href="/logo/sivrce-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/logo/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/logo/app-icon-180.png">
+```

@@ -1,0 +1,5 @@
+▲ Next.js 16.2.10
+- Local:         http://localhost:3100
+- Network:       http://192.168.1.119:3100
+✓ Ready in 51ms
+/Applications/Kimi.app/Contents/Resources/resources/runtime/npx: line 3: 31231 Killed: 9               "$dir/node" "$dir/vendor/npm/bin/npx-cli.js" "$@"
