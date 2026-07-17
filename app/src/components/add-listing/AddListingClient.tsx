@@ -17,6 +17,7 @@ import {
   ImagePlus, Star, X, Sparkles, Phone, User, MessageCircle,
   CircleCheckBig, Plus, Video, BadgeCheck, Flame,
 } from 'lucide-react'
+import { SparkMark } from '@/components/SparkMark'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import {
@@ -693,7 +694,7 @@ export default function AddListingClient() {
                     <div className="overflow-hidden rounded-tile bg-gradient-to-r from-sv-blue/[0.07] to-sv-violet/[0.07] p-6 ring-1 ring-inset ring-sv-blue/15">
                       <div className="flex items-center gap-2.5">
                         <span className="grid h-9 w-9 place-items-center rounded-module bg-gradient-to-br from-sv-blue to-sv-violet text-white">
-                          <Sparkles className="h-4 w-4" />
+                          <SparkMark className="h-4 w-4" mono />
                         </span>
                         <div>
                           <div className="text-[14px] font-black text-sv-ink">{t('add.aiEstimate')}</div>
@@ -735,7 +736,7 @@ export default function AddListingClient() {
                           disabled={!propType || !city}
                           className="mb-2 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[12px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-blue-sm disabled:opacity-40 disabled:hover:translate-y-0"
                         >
-                          <Sparkles className="h-3.5 w-3.5" /> {t('add.aiWrite')}
+                          <SparkMark className="h-3.5 w-3.5" mono /> {t('add.aiWrite')}
                         </button>
                       </div>
                       <textarea
@@ -747,7 +748,7 @@ export default function AddListingClient() {
                       />
                       <div className="mt-2 flex items-center justify-between text-[12px] font-bold text-sv-ink/40">
                         <span className="flex items-center gap-1.5">
-                          {aiUsed && <><Sparkles className="h-3.5 w-3.5 text-sv-violet" /> {t('add.aiWritten')}</>}
+                          {aiUsed && <><SparkMark className="h-3.5 w-3.5" /> {t('add.aiWritten')}</>}
                         </span>
                         <span>{t('add.descCount', { n: description.length })}</span>
                       </div>

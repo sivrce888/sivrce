@@ -8,8 +8,9 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  Phone, MessageCircle, BadgeCheck, Calculator, Sparkles,
+  Phone, MessageCircle, BadgeCheck, Calculator,
 } from 'lucide-react'
+import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard, { BADGE_STYLE } from '@/components/ListingCard'
@@ -401,7 +402,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             {/* AI assessment */}
             <div className="mt-6 overflow-hidden rounded-card border border-sv-blue/15 bg-gradient-to-br from-sv-blue/[0.06] via-sv-surface to-sv-violet/[0.06] p-6 shadow-card">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-sv-blue" />
+                <SparkMark className="h-4 w-4" />
                 <span className="text-[12px] font-black uppercase tracking-wider text-sv-blue">
                   {t('detail.aiScore')}
                 </span>
