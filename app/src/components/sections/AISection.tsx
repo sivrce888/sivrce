@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Sparkles, TrendingDown, TrendingUp, Minus, ArrowRight, BrainCircuit } from 'lucide-react'
+import { TrendingDown, TrendingUp, Minus, ArrowRight, BrainCircuit } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Reveal } from '@/components/Reveal'
 import { SparkMark } from '@/components/SparkMark'
