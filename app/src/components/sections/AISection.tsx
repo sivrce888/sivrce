@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Sparkles, TrendingDown, TrendingUp, Minus, ArrowRight, BrainCircuit } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Reveal } from '@/components/Reveal'
+import { SparkMark } from '@/components/SparkMark'
 
 const BARS = [42, 58, 50, 66, 61, 78, 72, 88, 81, 95, 90, 100]
 
@@ -99,7 +100,7 @@ export default function AISection() {
           <div className="order-1 lg:order-2">
             <Reveal>
               <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-                <Sparkles className="h-3.5 w-3.5" /> AI ტექნოლოგია
+                <SparkMark className="h-3.5 w-3.5" /> AI ტექნოლოგია
               </span>
               <h2 className="text-balance text-[32px] font-black leading-[1.12] tracking-[-0.02em] text-sv-ink md:text-[46px]">
                 იცოდე ნამდვილი ფასი — <span className="text-gradient-blue">ყიდვამდე</span>
