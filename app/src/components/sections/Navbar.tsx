@@ -55,17 +55,19 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const NAV_LINKS: { key: DictKey; to: string }[] = [
+  // Desktop shows only the 6 money links — Georgian labels are wide, anything
+  // more overflows the glass pill. Everything stays in the mobile menu + footer.
+  const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean }[] = [
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
+    { key: 'nav.projects', to: '/projects' },
     { key: 'nav.map', to: '/map' },
     { key: 'nav.buildings', to: '/buildings' },
-    { key: 'nav.search', to: '/search' },
-    { key: 'nav.neighborhoods', to: '/neighborhoods' },
-    { key: 'nav.projects', to: '/projects' },
-    { key: 'nav.blog', to: '/blog' },
-    { key: 'nav.services', to: `${pathname === '/' ? '' : '/'}#services` },
+    { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
+    { key: 'nav.blog', to: '/blog', mobileOnly: true },
+    { key: 'nav.services', to: `${pathname === '/' ? '' : '/'}#services`, mobileOnly: true },
+    { key: 'nav.search', to: '/search', mobileOnly: true },
   ]
 
   return (
@@ -90,7 +92,9 @@ export default function Navbar() {
               <a
                 key={l.key}
                 href={l.to}
-                className={`rounded-full px-3 py-2 text-[14px] font-semibold xl:px-4 xl:text-[15px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                className={`whitespace-nowrap rounded-full px-3 py-2 text-[14px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                  l.mobileOnly ? 'hidden' : ''
+                } ${
                   light
                     ? 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
                     : 'text-white/85 hover:bg-white/10 hover:text-white'
@@ -102,7 +106,9 @@ export default function Navbar() {
               <Link
                 key={l.key}
                 href={l.to}
-                className={`rounded-full px-3 py-2 text-[14px] font-semibold xl:px-4 xl:text-[15px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                className={`whitespace-nowrap rounded-full px-3 py-2 text-[14px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                  l.mobileOnly ? 'hidden' : ''
+                } ${
                   light
                     ? 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
                     : 'text-white/85 hover:bg-white/10 hover:text-white'

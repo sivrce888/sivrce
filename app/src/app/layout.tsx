@@ -219,26 +219,35 @@ export default function RootLayout({
             title="Google Tag Manager"
           />
         </noscript>
-        <Script id="gtm" strategy="afterInteractive">{`
-          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer','${GTM_ID}');
-        `}</Script>
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="gtag" strategy="afterInteractive">{`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${GA_ID}');
+        {/* Analytics boot on first interaction or 3.5s after load — never inside the LCP window */}
+        <Script id="analytics-boot" strategy="lazyOnload">{`
+          (function(){
+            var loaded=false;
+            function boot(){
+              if(loaded)return;loaded=true;
+              window.dataLayer=window.dataLayer||[];
+              window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});
+              var gtm=document.createElement('script');gtm.async=true;
+              gtm.src='https://www.googletagmanager.com/gtm.js?id=${GTM_ID}';
+              document.head.appendChild(gtm);
+              var g=document.createElement('script');g.async=true;
+              g.src='https://www.googletagmanager.com/gtag/js?id=${GA_ID}';
+              g.onload=function(){
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js',new Date());
+                gtag('config','${GA_ID}');
+              };
+              document.head.appendChild(g);
+            }
+            ['pointerdown','keydown','scroll','touchstart'].forEach(function(e){
+              window.addEventListener(e,boot,{once:true,passive:true});
+            });
+            setTimeout(boot,3500);
+          })();
         `}</Script>
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-control focus:bg-sv-blue focus:px-4 focus:py-2 focus:text-white"
+          className="sr-only bg-sv-blue text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-control focus:px-4 focus:py-2"
         >
           მთავარ შინაარსზე გადასვლა
         </a>
@@ -255,6 +264,9 @@ export default function RootLayout({
           <Toaster position="top-center" />
         </ThemeProvider>
         <SWRegister />
+        {/* TOP.GE async counter */}
+        <div id="top-ge-counter-container" data-site-id="117677" />
+        <Script src="https://counter.top.ge/counter.js" strategy="lazyOnload" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}
