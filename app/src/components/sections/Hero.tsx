@@ -101,7 +101,7 @@ export default function Hero() {
           style={{ animationDelay: '0.16s' }}
         >
           {/* Tabs */}
-          <div className="mb-0 flex w-fit items-center gap-1 rounded-t-tile glass p-1.5 max-md:mx-auto">
+          <div className="mb-0 flex w-fit items-center gap-1 rounded-t-tile glass p-1.5 max-md:mx-auto max-md:max-w-full max-md:overflow-x-auto max-md:scrollbar-hide">
             {TABS.map((tb, i) => (
               <button
                 key={tb.label}
