@@ -100,6 +100,40 @@ test.describe("API", () => {
     expect(data).toHaveProperty("reviews")
     expect(data).toHaveProperty("aggregate")
   })
+
+  test("suggest matches streets across ka/en/ru", async ({ request }) => {
+    const res = await request.get(`${BASE}/api/suggest?q=${encodeURIComponent("აღმაშენებელ")}`)
+    expect(res.status()).toBe(200)
+    const data = await res.json()
+    expect(data.ok).toBe(true)
+    expect(data.suggestions.length).toBeGreaterThan(0)
+    expect(data.suggestions[0].ka).toContain("აღმაშენებელ")
+  })
+
+  test("suggest ignores short queries", async ({ request }) => {
+    const res = await request.get(`${BASE}/api/suggest?q=%E1%83%95`)
+    expect(res.status()).toBe(200)
+    const data = await res.json()
+    expect(data.suggestions).toEqual([])
+  })
+
+  test("ai search parses a Georgian query", async ({ request }) => {
+    const res = await request.post(`${BASE}/api/ai/search`, {
+      data: { query: "2 ოთახიანი ბინა ვაკეში იყიდება" },
+      headers: { "Content-Type": "application/json" },
+    })
+    expect(res.status()).toBe(200)
+    const data = await res.json()
+    expect(data.ok).toBe(true)
+    // Exact fields are asserted only on the deterministic regex fallback;
+    // a live LLM may phrase filters differently.
+    if (data.source === "fallback") {
+      expect(data.filters.dealType).toBe("sale")
+      expect(data.filters.propertyType).toBe("apartment")
+      expect(data.filters.rooms).toBe(2)
+      expect(data.filters.district).toBe("ვაკე")
+    }
+  })
 })
 
 test.describe("Performance", () => {
