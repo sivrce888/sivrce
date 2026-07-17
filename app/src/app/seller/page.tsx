@@ -16,29 +16,50 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-const fmt = new Intl.NumberFormat("ka-GE")
-
 export default async function SellerOverviewPage() {
   const user = await requireRole("seller", "/seller")
 
-  const [activeListings, totalLeads, soldListings, recentLeads] = await Promise.all([
+  const listingIds = await safeQuery(
+    () =>
+      db.listing
+        .findMany({
+          where: { ownerId: user.id, deletedAt: null },
+          select: { id: true },
+        })
+        .then((rows) => rows.map((r) => r.id)),
+    [],
+  )
+
+  const [activeListings, soldListings, recentLeads, totalLeads] = await Promise.all([
     safeQuery(
       () => db.listing.count({ where: { ownerId: user.id, status: "active", deletedAt: null } }),
       0,
     ),
-    safeQuery(() => db.crmLead.count({ where: { agentId: user.id } }), 0),
     safeQuery(
       () => db.listing.count({ where: { ownerId: user.id, status: "sold", deletedAt: null } }),
       0,
     ),
     safeQuery(
       () =>
-        db.crmLead.findMany({
-          where: { agentId: user.id },
+        db.inquiry.findMany({
+          where: {
+            deletedAt: null,
+            OR: [{ listingId: { in: listingIds } }, { agentEmail: user.email }],
+          },
           orderBy: { createdAt: "desc" },
           take: 5,
         }),
       [],
+    ),
+    safeQuery(
+      () =>
+        db.inquiry.count({
+          where: {
+            deletedAt: null,
+            OR: [{ listingId: { in: listingIds } }, { agentEmail: user.email }],
+          },
+        }),
+      0,
     ),
   ])
 
@@ -56,11 +77,7 @@ export default async function SellerOverviewPage() {
           icon={<Building2 size={18} />}
         />
         <StatCard label="ლიდები" value={totalLeads} icon={<Users size={18} />} />
-        <StatCard
-          label="გაყიდული"
-          value={soldListings}
-          icon={<TrendingUp size={18} />}
-        />
+        <StatCard label="გაყიდული" value={soldListings} icon={<TrendingUp size={18} />} />
         <StatCard
           label="შემოსავალი"
           value="—"
@@ -70,7 +87,7 @@ export default async function SellerOverviewPage() {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
+        <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[15px] font-extrabold text-sv-ink">ბოლო ლიდები</h2>
             <Link
@@ -90,9 +107,10 @@ export default async function SellerOverviewPage() {
               {recentLeads.map((lead) => (
                 <li key={lead.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13.5px] font-bold text-sv-ink">{lead.name}</p>
+                    <p className="truncate text-[13.5px] font-bold text-sv-ink">{lead.buyerName}</p>
                     <p className="truncate text-[12px] font-medium text-sv-ink/50">
-                      {lead.phone} · {new Date(lead.createdAt).toLocaleDateString("ka-GE")}
+                      {lead.buyerPhone ?? lead.buyerEmail} ·{" "}
+                      {new Date(lead.createdAt).toLocaleDateString("ka-GE")}
                     </p>
                   </div>
                 </li>
@@ -101,20 +119,20 @@ export default async function SellerOverviewPage() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
+        <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card">
           <div className="mb-4">
             <h2 className="text-[15px] font-extrabold text-sv-ink">სწრაფი ქმედებები</h2>
           </div>
           <div className="flex flex-col gap-3">
             <Link
               href="/add-listing"
-              className="rounded-xl bg-sv-blue px-5 py-3.5 text-center text-[14px] font-bold text-white transition hover:opacity-90"
+              className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
             >
               + ახალი განცხადების დამატება
             </Link>
             <Link
               href="/seller/listings"
-              className="rounded-xl border border-sv-ink/12 bg-white px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
+              className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
             >
               განცხადებების მართვა
             </Link>

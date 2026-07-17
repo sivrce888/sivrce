@@ -15,33 +15,33 @@ export const metadata: Metadata = {
 
 const STATUS_LABEL: Record<string, string> = {
   new: "ახალი",
-  contacted: "კონტაქტი",
-  viewing_scheduled: "ვიზიტი დაგეგმილი",
-  offer_made: "შეთავაზება",
-  negotiating: "მოლაპარაკება",
-  closed_won: "მოგებული",
-  closed_lost: "წაგებული",
-  disqualified: "დისკვალიფიცირებული",
-}
-
-const STATUS_TONE: Record<string, string> = {
-  new: "info",
-  contacted: "neutral",
-  viewing_scheduled: "success",
-  offer_made: "warning",
-  negotiating: "warning",
-  closed_won: "success",
-  closed_lost: "error",
-  disqualified: "neutral",
+  contacted: "დაკავშირებული",
+  qualified: "კვალიფიცირებული",
+  closed: "დახურული",
 }
 
 export default async function SellerLeadsPage() {
   const user = await requireRole("seller", "/seller")
 
+  // ponytail: sellers share Inquiry model (no seller CRM); ceiling = CrmLead when seller CRM ships
+  const listingIds = await safeQuery(
+    () =>
+      db.listing
+        .findMany({
+          where: { ownerId: user.id, deletedAt: null },
+          select: { id: true },
+        })
+        .then((rows) => rows.map((r) => r.id)),
+    [],
+  )
+
   const leads = await safeQuery(
     () =>
-      db.crmLead.findMany({
-        where: { agentId: user.id },
+      db.inquiry.findMany({
+        where: {
+          deletedAt: null,
+          OR: [{ listingId: { in: listingIds } }, { agentEmail: user.email }],
+        },
         orderBy: { createdAt: "desc" },
         take: 50,
       }),
@@ -63,9 +63,11 @@ export default async function SellerLeadsPage() {
         <EmptyState
           title="ლიდები ჯერ არ გყავს"
           body="ახალი მოთხოვნები აქ გამოჩნდება, როცა მყიდველი დაინტერესდება შენი განცხადებით."
+          actionHref="/add-listing"
+          actionLabel="განცხადების დამატება"
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-sv-ink/6 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-card border border-sv-ink/6 bg-sv-surface shadow-card">
           <table className="w-full text-left text-[13px]">
             <thead className="border-b border-sv-ink/6 bg-sv-cloud/60">
               <tr>
@@ -73,7 +75,7 @@ export default async function SellerLeadsPage() {
                   სახელი
                 </th>
                 <th className="px-5 py-3 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/50">
-                  ტელეფონი
+                  კონტაქტი
                 </th>
                 <th className="px-5 py-3 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/50">
                   სტატუსი
@@ -86,8 +88,10 @@ export default async function SellerLeadsPage() {
             <tbody className="divide-y divide-sv-ink/5">
               {leads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-sv-cloud/40">
-                  <td className="px-5 py-3.5 font-bold text-sv-ink">{lead.name}</td>
-                  <td className="px-5 py-3.5 font-medium text-sv-ink/60">{lead.phone}</td>
+                  <td className="px-5 py-3.5 font-bold text-sv-ink">{lead.buyerName}</td>
+                  <td className="px-5 py-3.5 font-medium text-sv-ink/60">
+                    {lead.buyerPhone ?? lead.buyerEmail}
+                  </td>
                   <td className="px-5 py-3.5">
                     <span className="rounded-full bg-sv-blue/10 px-2.5 py-1 text-[11.5px] font-bold text-sv-blue">
                       {STATUS_LABEL[lead.status] ?? lead.status}

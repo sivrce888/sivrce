@@ -6,4 +6,5 @@ export const agentNav: DashboardNavItem[] = [
   { href: "/agent/leads", label: "ლიდები" },
   { href: "/agent/tours", label: "ვიზიტები" },
   { href: "/agent/profile", label: "პროფილი" },
+  { href: "/settings", label: "პარამეტრები" },
 ]
