@@ -35,3 +35,17 @@ export function optInt(fd: FormData, name: string, min = 0, max = 1_000_000_000)
   if (!Number.isInteger(n) || n < min || n > max) throw new Error(`Invalid number: ${name}`)
   return n
 }
+
+export function reqFloat(fd: FormData, name: string, min = -180, max = 180): number {
+  const n = optFloat(fd, name, min, max)
+  if (n === null) throw new Error(`Missing field: ${name}`)
+  return n
+}
+
+export function optFloat(fd: FormData, name: string, min = -180, max = 180): number | null {
+  const v = fd.get(name)
+  if (typeof v !== "string" || !v.trim()) return null
+  const n = Number(v)
+  if (!Number.isFinite(n) || n < min || n > max) throw new Error(`Invalid number: ${name}`)
+  return n
+}

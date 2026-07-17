@@ -60,6 +60,8 @@ export type MapBuildingCluster = {
   yearBuilt?: number
   floors?: number
   description?: string
+  /** Real OSM ring supplied with the cluster (DB-curated buildings); wins over FOOTPRINTS. */
+  ring?: [number, number][]
 }
 
 export type MapDealFilter = DealType | 'all'
@@ -191,7 +193,7 @@ function enrichFromCatalog(
   }
 }
 
-function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[]): MapBuildingCluster {
+export function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[]): MapBuildingCluster {
   const counts = countDeals(listings)
   const dominant = listings.length ? dominantDeal(counts) : ('sale' as DealType)
   const base: MapBuildingCluster = {
@@ -436,8 +438,8 @@ export function buildingFootprint(
 
 /** Real OSM ring for a cluster, else the synthetic square. */
 export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
-  const real = FOOTPRINTS[b.id]
-  if (real && real.ring.length >= 5) return { type: 'Polygon', coordinates: [real.ring] }
+  const ring = b.ring ?? FOOTPRINTS[b.id]?.ring
+  if (ring && ring.length >= 5) return { type: 'Polygon', coordinates: [ring] }
   return buildingFootprint(
     b.lat,
     b.lng,

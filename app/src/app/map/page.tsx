@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
+import { getDbBuildingClusters } from '@/lib/map/db-buildings'
 import { Map3DLazy } from './Map3DLazy'
 
 export const metadata: Metadata = {
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function MapPage() {
+export default async function MapPage() {
+  const dbBuildings = await getDbBuildingClusters()
   return (
     <div className="flex min-h-dvh flex-col bg-sv-navy">
       <header className="z-40 flex h-[4.5rem] shrink-0 items-center justify-between border-b border-white/8 bg-sv-navy/95 px-4 backdrop-blur-md md:h-20 md:px-8">
@@ -45,7 +47,7 @@ export default function MapPage() {
           </Link>
         </div>
       </header>
-      <Map3DLazy />
+      <Map3DLazy dbBuildings={dbBuildings} />
     </div>
   )
 }

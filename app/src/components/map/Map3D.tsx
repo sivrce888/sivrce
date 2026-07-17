@@ -177,11 +177,12 @@ const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
   { id: 'completed', label: 'დასრულებული' },
 ]
 
-function Map3DInner() {
+function Map3DInner({ dbBuildings = [] }: { dbBuildings?: MapBuildingCluster[] }) {
   const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
   const visibleRef = useRef<MapBuildingCluster[]>(ALL_BUILDINGS)
+  const allRef = useRef<MapBuildingCluster[]>(ALL_BUILDINGS)
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
 
@@ -199,9 +200,17 @@ function Map3DInner() {
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
 
+  // DB-curated buildings merged over static; static catalog wins on slug collision.
+  const allBuildings = useMemo(() => {
+    if (dbBuildings.length === 0) return ALL_BUILDINGS
+    const staticSlugs = new Set(ALL_BUILDINGS.map((b) => b.slug))
+    return [...ALL_BUILDINGS, ...dbBuildings.filter((b) => !b.slug || !staticSlugs.has(b.slug))]
+  }, [dbBuildings])
+  useEffect(() => { allRef.current = allBuildings }, [allBuildings])
+
   const visible = useMemo(
-    () => filterBuildings(ALL_BUILDINGS, dealFilter, statusFilter),
-    [dealFilter, statusFilter],
+    () => filterBuildings(allBuildings, dealFilter, statusFilter),
+    [allBuildings, dealFilter, statusFilter],
   )
   useEffect(() => { visibleRef.current = visible }, [visible])
   useEffect(() => { selectedRef.current = selected }, [selected])
@@ -255,7 +264,7 @@ function Map3DInner() {
     if (!ready || deepLinked.current) return
     const slug = searchParams.get('building')
     if (!slug) return
-    const b = findBuildingBySlug(slug, ALL_BUILDINGS)
+    const b = findBuildingBySlug(slug, allBuildings)
     if (!b) return
     deepLinked.current = true
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deep-link from URL param
@@ -267,7 +276,7 @@ function Map3DInner() {
       duration: 900,
       essential: true,
     })
-  }, [ready, searchParams, selectBuilding])
+  }, [ready, searchParams, selectBuilding, allBuildings])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -306,7 +315,7 @@ function Map3DInner() {
 
     const pickById = (id: string) => {
       const b =
-        visibleRef.current.find((x) => x.id === id) ?? ALL_BUILDINGS.find((x) => x.id === id)
+        visibleRef.current.find((x) => x.id === id) ?? allRef.current.find((x) => x.id === id)
       if (!b) return
       selectRef.current(b)
       flyTo(b)
@@ -498,8 +507,8 @@ function Map3DInner() {
     selectBuilding(null)
   }
 
-  const constructionCount = ALL_BUILDINGS.filter((b) => b.status === 'construction').length
-  const completedCount = ALL_BUILDINGS.filter((b) => b.status === 'completed').length
+  const constructionCount = allBuildings.filter((b) => b.status === 'construction').length
+  const completedCount = allBuildings.filter((b) => b.status === 'completed').length
   const statusCount = (id: MapStatusFilter): string => {
     if (id === 'construction') return ` (${constructionCount})`
     if (id === 'completed') return ` (${completedCount})`
@@ -650,7 +659,7 @@ function Map3DInner() {
   )
 }
 
-export default function Map3D() {
+export default function Map3D({ dbBuildings }: { dbBuildings?: MapBuildingCluster[] }) {
   return (
     <Suspense
       fallback={
@@ -659,7 +668,7 @@ export default function Map3D() {
         </div>
       }
     >
-      <Map3DInner />
+      <Map3DInner dbBuildings={dbBuildings} />
     </Suspense>
   )
 }
