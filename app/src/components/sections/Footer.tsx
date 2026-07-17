@@ -98,14 +98,14 @@ export default function Footer() {
             <p className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
               {t('footer.tagline')}
             </p>
-            <div className="mt-6 space-y-2.5 text-[14px] font-semibold text-white/60">
-              <a href="mailto:info@sivrce.ge" className="flex items-center gap-2.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
+            <div className="mt-6 space-y-1 text-[14px] font-semibold text-white/60">
+              <a href="mailto:info@sivrce.ge" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
                 <Mail className="h-4 w-4 text-sv-blue-light" /> info@sivrce.ge
               </a>
-              <a href="tel:+995322000000" className="flex items-center gap-2.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
+              <a href="tel:+995322000000" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
                 <Phone className="h-4 w-4 text-sv-blue-light" /> +995 32 2 00 00 00
               </a>
-              <span className="flex items-center gap-2.5">
+              <span className="flex items-center gap-2.5 py-1.5">
                 <MapPin className="h-4 w-4 text-sv-blue-light" /> {t('footer.location')}
               </span>
             </div>

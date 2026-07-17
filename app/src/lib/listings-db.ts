@@ -10,6 +10,7 @@
  */
 
 import { db } from "@/lib/db"
+import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
 import type { Prisma } from "@/generated/prisma/client"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
@@ -21,13 +22,13 @@ export type SortKey = "date" | "price-asc" | "price-desc" | "area" | "ai"
 export const USD_GEL = 2.7
 
 // Map public API deal types to Prisma enum
-function dealToDb(d: DealType): Prisma.ListingDealType {
+function dealToDb(d: DealType): ListingDealType {
   if (d === "sale") return "buy"
   if (d === "rent") return "rent"
   return "daily"
 }
 
-function propToDb(p: PropType): Prisma.ListingPropertyType {
+function propToDb(p: PropType): ListingPropertyType {
   if (p === "apartment") return "apartment"
   if (p === "house") return "house"
   if (p === "commercial") return "commercial"

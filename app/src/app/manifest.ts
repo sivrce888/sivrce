@@ -55,7 +55,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/icons/icon-512.webp',
         sizes: '512x512',
         type: 'image/webp',
-        purpose: 'any maskable',
+        purpose: 'maskable',
       },
     ],
     shortcuts: [
