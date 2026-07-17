@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server"
 
 /**
- * Edge-level defense in depth for protected routes + locale-prefixed URLs.
+ * Edge-level defense in depth for protected routes + locale-prefixed URLs
+ * + multi-host routing (admin / api / cdn / app / analytics / images).
  *
  * Locale prefixes ("/en/search", "/ru/listing/…") rewrite to the unprefixed
  * app; the client i18n provider reads the prefix from the URL. ka stays
@@ -33,6 +34,8 @@ const PROTECTED_PREFIXES = [
   "/auth/onboarding",
 ]
 
+const APEX = "https://sivrce.ge"
+
 function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
@@ -40,24 +43,40 @@ function isProtected(pathname: string): boolean {
 }
 
 function hostName(req: NextRequest): string {
-  return (req.headers.get("host") ?? "").split(":")[0]!.toLowerCase()
+  // Prefer x-forwarded-host (Vercel / Cloudflare) then Host.
+  const raw =
+    req.headers.get("x-forwarded-host") ||
+    req.headers.get("host") ||
+    ""
+  return raw.split(",")[0]!.trim().split(":")[0]!.toLowerCase()
 }
 
-/** admin.sivrce.ge → /admin tree (same app, dedicated host). */
 function isAdminHost(host: string): boolean {
   return host === "admin.sivrce.ge" || host === "admin.localhost"
 }
 
-/** cdn.sivrce.ge — Cloudflare-proxied asset edge; non-static → apex. */
 function isCdnHost(host: string): boolean {
-  return host === "cdn.sivrce.ge"
+  return host === "cdn.sivrce.ge" || host === "images.sivrce.ge"
+}
+
+function isApiHost(host: string): boolean {
+  return host === "api.sivrce.ge" || host === "api.localhost"
+}
+
+function isRedirectHost(host: string): boolean {
+  return host === "app.sivrce.ge" || host === "analytics.sivrce.ge"
 }
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const host = hostName(req)
 
-  // CDN host: only static/public asset paths; everything else → apex.
+  // app / analytics → apex (single product surface).
+  if (isRedirectHost(host)) {
+    return NextResponse.redirect(new URL(pathname + req.nextUrl.search, APEX), 308)
+  }
+
+  // CDN / images: static assets only; everything else → apex.
   if (isCdnHost(host)) {
     const staticOk =
       pathname.startsWith("/images/") ||
@@ -65,12 +84,31 @@ export function middleware(req: NextRequest) {
       pathname.startsWith("/logo/") ||
       pathname.startsWith("/_next/static/") ||
       pathname === "/favicon.ico" ||
-      pathname === "/robots.txt"
+      pathname === "/robots.txt" ||
+      pathname === "/manifest.webmanifest"
     if (!staticOk) {
-      const apex = new URL(pathname + req.nextUrl.search, "https://sivrce.ge")
-      return NextResponse.redirect(apex, 308)
+      return NextResponse.redirect(
+        new URL(pathname + req.nextUrl.search, APEX),
+        308,
+      )
     }
-    return NextResponse.next()
+    const res = NextResponse.next()
+    res.headers.set(
+      "Cache-Control",
+      "public, max-age=31536000, immutable",
+    )
+    return res
+  }
+
+  // api.sivrce.ge → /api/* (same deployment).
+  if (isApiHost(host)) {
+    if (pathname === "/api" || pathname.startsWith("/api/")) {
+      return NextResponse.next()
+    }
+    const url = req.nextUrl.clone()
+    url.pathname =
+      pathname === "/" ? "/api" : `/api${pathname.startsWith("/") ? pathname : `/${pathname}`}`
+    return NextResponse.rewrite(url)
   }
 
   // Admin host: map / → /admin, /users → /admin/users (auth stays as-is).
@@ -140,6 +178,10 @@ export function middleware(req: NextRequest) {
 const SEO_ROOTS = new Set(["sale", "rent", "daily", "pledge", "tbilisi", "batumi", "kutaisi"])
 
 export const config = {
-  // All pages, excluding api, _next internals, and file-like paths (sw.js, icons, sitemap.xml…).
-  matcher: ["/((?!api|_next|.*\\..*).*)"],
+  // MUST include `/` — the catch-all group alone skips the apex path, which
+  // broke admin.sivrce.ge → /admin. Skip only Next internals + file-like paths.
+  matcher: [
+    "/",
+    "/((?!_next/static|_next/image|.*\\..*).*)",
+  ],
 }
