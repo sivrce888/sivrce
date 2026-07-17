@@ -41,13 +41,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/listing/${l.id}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      images: [{ url: l.img, width: 1536, height: 957, alt: l.title }],
+      // ponytail: use JPEG brand OG for social shares — WhatsApp/Viber
+      // render WebP badly. Upgrade: generate per-listing JPEG derivatives
+      // via Cloudflare Images (plan.md §7) when listing volume warrants it.
+      images: [{ url: '/images/og.jpg', width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [l.img],
+      images: ['/images/og.jpg'],
     },
   }
 }

@@ -4,6 +4,7 @@ import CurrencyProvider from "@/components/CurrencyProvider";
 import I18nProvider from "@/components/I18nProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { SWRegister } from "@/app/sw-register";
 import { BRAND } from "@/lib/brand";
 import { jsonLd } from "@/lib/utils";
 import "./globals.css";
@@ -204,6 +205,7 @@ export default function RootLayout({
           </I18nProvider>
           <Toaster position="top-center" />
         </ThemeProvider>
+        <SWRegister />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}

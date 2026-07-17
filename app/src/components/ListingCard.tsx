@@ -4,13 +4,15 @@ import { useId } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame } from 'lucide-react'
+import { Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
 import { useCurrency } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
+import { useSocialSignals } from '@/lib/social-proof'
+import { WeatherBadge } from '@/components/WeatherBadge'
 
 /* VIP badge system — locked in BRAND.vipTiers, consumed here (BRAND.md §8) */
 export const BADGE_STYLE: Record<NonNullable<Listing['badge']>, string> = {
@@ -55,28 +57,49 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { t } = useI18n()
   const { format, currency } = useCurrency()
   const fav = has(l.id)
+  const signals = useSocialSignals(l.id, l.views, l.postedAt)
 
   const priceGEL = l.priceGEL
   const suffix = l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
   const displayPrice = `${format(priceGEL)}${suffix}`
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const url = `${window.location.origin}/listing/${l.id}`
+    if (navigator.share) {
+      navigator.share({ title: l.title, text: l.title, url }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(url).catch(() => {})
+    }
+  }
+
   const favButton = (
-    <button
-      aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
-      aria-pressed={fav}
-      onClick={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        toggle(l.id)
-      }}
-      className={`absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
-        fav
-          ? 'bg-sv-surface text-sv-orange'
-          : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-orange'
-      }`}
-    >
-      <Heart className={`h-4 w-4 ${fav ? 'fill-current' : ''}`} />
-    </button>
+    <div className="absolute right-4 top-4 z-10 flex gap-2">
+      <button
+        aria-label={t('detail.share')}
+        onClick={handleShare}
+        className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+      >
+        <Share2 className="h-4 w-4" />
+      </button>
+      <button
+        aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
+        aria-pressed={fav}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          toggle(l.id)
+        }}
+        className={`grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
+          fav
+            ? 'bg-sv-surface text-sv-orange'
+            : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-orange'
+        }`}
+      >
+        <Heart className={`h-4 w-4 ${fav ? 'fill-current' : ''}`} />
+      </button>
+    </div>
   )
 
   const imageBlock = (
@@ -96,6 +119,16 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           {l.badge}
         </span>
       )}
+      {signals.isHot && !l.badge && (
+        <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-1 text-[11px] font-black tracking-wider text-white">
+          <Zap className="h-3 w-3" /> HOT
+        </span>
+      )}
+      {signals.isTrending && !signals.isHot && !l.badge && (
+        <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-sv-blue/90 px-3 py-1 text-[11px] font-black tracking-wider text-white backdrop-blur">
+          <TrendingUp className="h-3 w-3" /> TRENDING
+        </span>
+      )}
       {favButton}
       <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
         <div>
@@ -103,9 +136,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           {/* perM2 only meaningful for sale; rent/daily are priced per period */}
           {l.dealType === 'sale' && <div className="text-[12px] font-bold text-white/75">{formatPerM2(l, currency)}</div>}
         </div>
-        <span className="flex items-center gap-1 rounded-full bg-sv-navy/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur">
-          <Eye className="h-3 w-3" /> {formatViews(l.views)}
-        </span>
+        <div className="flex flex-col items-end gap-1">
+          <span className="flex items-center gap-1 rounded-full bg-sv-navy/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur">
+            <Eye className="h-3 w-3" /> {formatViews(l.views)}
+          </span>
+          <span className="flex items-center gap-1 rounded-full bg-sv-orange/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur">
+            <Zap className="h-2.5 w-2.5" /> {signals.viewers} ათვალიერებს
+          </span>
+        </div>
       </div>
     </div>
   )
