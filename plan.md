@@ -24,9 +24,9 @@ switcher.
    The only structural SEO gap vs myhome/ss/korter; every other technical SEO
    item is done. Own session: moves ~150 routes, rewrites every Link, translates
    1,486 programmatic pages. Gets costlier the longer we wait.
-2. **9 — Static → DB on read paths**: homepage + sitemap still read
-   `data/listings.ts`; search API already hits Prisma. Switch reads to
-   `db.listing.findMany()` so real inventory flows everywhere.
+2. ~~**9 — Static → DB on read paths**~~ **DONE 2026-07-17** (b9f7baf): homepage
+   featured rail + sitemap read `getAllListings()` with static fallback;
+   /, /en, /ru, sitemap.xml revalidate hourly.
 3. **8 — Search Console**: verify property, submit sitemap, watch queries.
    Owner's Google account needed — 10 minutes, no code.
 4. **7 — Mobile LCP** (~85 on mobile): server-component split of homepage
