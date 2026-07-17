@@ -37,9 +37,14 @@ export interface I18nContextValue {
 
 export const I18nContext = createContext<I18nContextValue | null>(null)
 
-/** Client-only: reads localStorage. Used as the useSyncExternalStore snapshot. */
+/** Client-only: locale source of truth = URL prefix ("/en/…"), then localStorage. */
 export function readStoredLang(): Lang {
   try {
+    const seg = window.location.pathname.split('/')[1] as Lang
+    if (LANGS.includes(seg)) {
+      if (localStorage.getItem(STORAGE_KEY) !== seg) localStorage.setItem(STORAGE_KEY, seg)
+      return seg
+    }
     const raw = localStorage.getItem(STORAGE_KEY)
     return LANGS.includes(raw as Lang) ? (raw as Lang) : 'ka'
   } catch {
