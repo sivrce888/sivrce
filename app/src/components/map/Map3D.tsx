@@ -5,7 +5,8 @@
  * ponytail: OpenFreeMap (no key). setData filter = O(n) client; Meilisearch geo when scale hits.
  */
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import maplibregl, {
   type Map as MlMap,
   type MapLayerMouseEvent,
@@ -23,6 +24,7 @@ import {
   buildingsToGeoJSON,
   clusterListingsToBuildings,
   filterBuildings,
+  findBuildingBySlug,
   findNearestBuilding,
   mergeMapBuildings,
   projectsToConstructionBuildings,
@@ -100,10 +102,20 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
       'text-field': [
         'case',
         ['==', ['get', 'status'], 'construction'],
-        ['concat', ['to-string', ['get', 'progress']], '%'],
-        ['to-string', ['get', 'total']],
+        [
+          'case',
+          ['>', ['get', 'total'], 0],
+          ['to-string', ['get', 'total']],
+          ['concat', ['to-string', ['get', 'progress']], '%'],
+        ],
+        [
+          'case',
+          ['!=', ['get', 'code'], ''],
+          ['get', 'code'],
+          ['to-string', ['get', 'total']],
+        ],
       ],
-      'text-size': 12,
+      'text-size': 11,
       'text-font': ['Noto Sans Bold'],
       'text-allow-overlap': true,
     },
@@ -120,6 +132,7 @@ const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
   { id: 'sale', label: 'იყიდება', color: DEAL_BRAND.sale },
   { id: 'rent', label: 'ქირავდება', color: DEAL_BRAND.rent },
   { id: 'daily', label: 'დღიურად', color: DEAL_BRAND.daily },
+  { id: 'pledge', label: 'გირავდება', color: DEAL_BRAND.pledge },
 ]
 
 const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
@@ -128,11 +141,13 @@ const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
   { id: 'construction', label: 'მშენებარე' },
 ]
 
-export default function Map3D() {
+function Map3DInner() {
+  const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
   const visibleRef = useRef<MapBuildingCluster[]>(ALL_BUILDINGS)
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
+  const deepLinked = useRef(false)
 
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
@@ -162,6 +177,23 @@ export default function Map3D() {
       selectBuilding(null)
     }
   }, [visible, ready, selected, selectBuilding])
+
+  useEffect(() => {
+    if (!ready || deepLinked.current) return
+    const slug = searchParams.get('building')
+    if (!slug) return
+    const b = findBuildingBySlug(slug, ALL_BUILDINGS)
+    if (!b) return
+    deepLinked.current = true
+    selectBuilding(b)
+    mapRef.current?.easeTo({
+      center: [b.lng, b.lat],
+      zoom: 16,
+      pitch: 62,
+      duration: 900,
+      essential: true,
+    })
+  }, [ready, searchParams, selectBuilding])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -278,7 +310,7 @@ export default function Map3D() {
           </div>
         )}
 
-        <div className="absolute left-4 top-4 z-20 flex max-w-[min(100%-2rem,520px)] flex-col gap-2">
+        <div className="absolute left-4 top-4 z-20 flex max-w-[min(100%-2rem,560px)] flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 rounded-full border border-white/10 bg-sv-navy/85 px-3.5 py-2 text-[12px] font-extrabold text-white backdrop-blur-md">
               <Layers className="h-3.5 w-3.5 text-sv-blue-light" />
@@ -287,7 +319,7 @@ export default function Map3D() {
             <button
               type="button"
               onClick={resetView}
-              className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-sv-navy/85 text-white backdrop-blur-md transition hover:bg-sv-blue"
+              className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-sv-navy/85 text-white backdrop-blur-md transition hover:bg-sv-blue"
               aria-label="საწყისი ხედი"
             >
               <RotateCcw className="h-4 w-4" />
@@ -306,7 +338,7 @@ export default function Map3D() {
                   key={f.id}
                   type="button"
                   onClick={() => setDealFilter(f.id)}
-                  className={`rounded-full px-3 py-1.5 text-[11px] font-extrabold transition ${
+                  className={`min-h-11 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
                     active ? 'text-white shadow-glow-blue-sm' : 'text-white/60 hover:text-white'
                   }`}
                   style={active ? { background: f.color } : undefined}
@@ -329,7 +361,7 @@ export default function Map3D() {
                   key={f.id}
                   type="button"
                   onClick={() => setStatusFilter(f.id)}
-                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition ${
+                  className={`inline-flex min-h-11 items-center gap-1 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
                     active
                       ? 'bg-sv-blue text-white shadow-glow-blue-sm'
                       : 'text-white/60 hover:text-white'
@@ -350,6 +382,7 @@ export default function Map3D() {
               ['იყიდება', DEAL_BRAND.sale],
               ['ქირავდება', DEAL_BRAND.rent],
               ['დღიურად', DEAL_BRAND.daily],
+              ['გირავდება', DEAL_BRAND.pledge],
               ['მშენებარე', CATEGORY_BRAND.newProjects.hue],
             ] as const
           ).map(([label, color]) => (
@@ -360,13 +393,13 @@ export default function Map3D() {
           ))}
         </div>
 
-        <p className="pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[220px] rounded-control border border-white/10 bg-sv-navy/80 px-3 py-2 text-[11px] font-semibold text-white/50 backdrop-blur-md md:block">
-          დააჭირე შენობას ან მისამართს — იყიდება / ქირა / დღე ერთ პანელში
+        <p className="pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[240px] rounded-control border border-white/10 bg-sv-navy/80 px-3 py-2 text-[12px] font-semibold text-white/55 backdrop-blur-md md:block">
+          შეეხე შენობას — ნახავ რა იყიდება, ქირავდება, დღიურად ან გირავდება
         </p>
       </div>
 
       {selected && (
-        <div className="absolute inset-x-0 bottom-0 z-30 max-h-[55%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0">
+        <div className="absolute inset-x-0 bottom-0 z-30 max-h-[58%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0">
           <BuildingPanel
             building={selected}
             tab={tab}
@@ -376,5 +409,19 @@ export default function Map3D() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function Map3D() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid h-[calc(100dvh-4.5rem)] place-items-center bg-sv-navy text-[14px] font-bold text-white/70">
+          3D რუკა იტვირთება…
+        </div>
+      }
+    >
+      <Map3DInner />
+    </Suspense>
   )
 }

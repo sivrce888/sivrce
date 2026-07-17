@@ -11,6 +11,7 @@ export const en: Dict = {
   'nav.rent': 'For rent',
   'nav.search': 'Search',
   'nav.map': '3D map',
+  'nav.buildings': 'Buildings',
   'nav.projects': 'New projects',
   'nav.services': 'Services',
   'nav.more': 'More',

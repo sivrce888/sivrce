@@ -11,6 +11,7 @@ export const he: Dict = {
   'nav.rent': 'להשכרה',
   'nav.search': 'חיפוש',
   'nav.map': 'מפת 3D',
+  'nav.buildings': 'בניינים',
   'nav.projects': 'פרויקטים חדשים',
   'nav.services': 'שירותים',
   'nav.more': 'עוד',

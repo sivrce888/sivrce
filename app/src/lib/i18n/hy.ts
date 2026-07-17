@@ -11,6 +11,7 @@ export const hy: Dict = {
   'nav.rent': 'Վարձակալություն',
   'nav.search': 'Որոնում',
   'nav.map': '3D քարտեզ',
+  'nav.buildings': 'Շենքեր',
   'nav.projects': 'Նոր նախագծեր',
   'nav.services': 'Ծառայություններ',
   'nav.more': 'Ավելին',

@@ -1,5 +1,5 @@
 import { auth } from "@/auth"
-import { LISTINGS } from "@/data/listings"
+import { LISTINGS, type DealType } from "@/data/listings"
 import { db } from "@/lib/db"
 import { sendInquiryNotification } from "@/lib/email"
 import { checkRateLimit } from "@/lib/inquiries/rate-limit"
@@ -7,7 +7,12 @@ import { hasHoneypot, validateInquiry } from "@/lib/inquiries/validate"
 import { isSameOrigin } from "@/lib/security/origin"
 
 /** Static-listing dealType → Inquiry.deal vocabulary. */
-const DEAL_MAP = { sale: "buy", rent: "rent", daily: "daily" } as const
+const DEAL_MAP: Record<DealType, string> = {
+  sale: "buy",
+  rent: "rent",
+  daily: "daily",
+  pledge: "pledge",
+}
 
 /** Where brand-level (contact form, no entity) leads are routed. */
 const SIVRCE_INBOX = "info@sivrce.ge"

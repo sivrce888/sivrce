@@ -163,6 +163,21 @@ export const DEVELOPERS: Developer[] = [
     verified: false,
     phone: '+995 322 66 77 88',
   },
+  {
+    slug: 'king-david',
+    name: { ka: 'ქინგ დევიდ', en: 'King David', ru: 'King David' },
+    city: 'თბილისი',
+    yearsActive: 12,
+    projectsDone: 4,
+    unitsDelivered: 400,
+    description: {
+      ka: 'ქინგ დევიდ — მთაწმინდის პრემიუმ რეზიდენციების დეველოპერი, სასტუმრო სტანდარტის სერვისითა და კონსიერჟით.',
+      en: 'King David develops Mtatsminda premium residences with hotel-grade service and concierge.',
+      ru: 'King David — девелопер премиальных резиденций на Мтацминде с гостиничным сервисом.',
+    },
+    verified: true,
+    phone: '+995 322 77 88 99',
+  },
 ]
 
 // ——— Agents / agencies ———

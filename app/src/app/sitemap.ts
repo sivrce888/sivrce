@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { LISTINGS } from '@/data/listings'
+import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { BLOG_POSTS } from '@/data/blog'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
@@ -14,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE, lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 1 },
     { url: `${BASE}/search`, lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.9 },
     { url: `${BASE}/map`, lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.95 },
+    { url: `${BASE}/buildings`, lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.9 },
     { url: `${BASE}/blog`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE}/neighborhoods`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/projects`, lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
@@ -39,7 +41,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }))
 
-  // Programmatic SEO pages: shallower = higher priority
+  const buildingPages: MetadataRoute.Sitemap = BUILDINGS.map((b) => ({
+    url: `${BASE}/buildings/${b.slug}`,
+    lastModified: DEPLOY_DATE,
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }))
+
   const seoPages: MetadataRoute.Sitemap = generateAllSeoParams().map((slug) => ({
     url: `${BASE}/${slug.join('/')}`,
     lastModified: DEPLOY_DATE,
@@ -54,5 +62,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  return [...staticPages, ...blogPages, ...neighborhoodPages, ...seoPages, ...listingPages]
+  return [
+    ...staticPages,
+    ...blogPages,
+    ...neighborhoodPages,
+    ...buildingPages,
+    ...seoPages,
+    ...listingPages,
+  ]
 }
