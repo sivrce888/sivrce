@@ -83,12 +83,15 @@ function minDistM(lat: number, lng: number, ring: Ring): number {
   return best
 }
 
-// ——— overpass ———
+// ——— overpass (batched: one union query per chunk) ———
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-async function query(lat: number, lng: number, radius: number): Promise<any[]> {
-  const data = `[out:json][timeout:25];way(around:${radius},${lat},${lng})["building"];out geom;`
+async function queryBatch(points: { lat: number; lng: number }[], radius: number): Promise<any[]> {
+  const union = points
+    .map((p) => `way(around:${radius},${p.lat},${p.lng})["building"];`)
+    .join('')
+  const data = `[out:json][timeout:60];(${union});out geom;`
   for (const ep of ENDPOINTS) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
@@ -96,10 +99,10 @@ async function query(lat: number, lng: number, radius: number): Promise<any[]> {
           method: 'POST',
           headers: { 'User-Agent': UA, 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `data=${encodeURIComponent(data)}`,
-          signal: AbortSignal.timeout(45_000),
+          signal: AbortSignal.timeout(90_000),
         })
         if (res.status === 429 || res.status === 504 || res.status === 509) {
-          await sleep(4000 * (attempt + 1))
+          await sleep(5000 * (attempt + 1))
           continue
         }
         if (!res.ok) throw new Error(`http ${res.status}`)
@@ -171,14 +174,31 @@ async function main() {
   const todo = list.filter((t) => !(t.id in out))
   console.log(`footprints: ${list.length} clusters, ${todo.length} to fetch`)
 
-  for (const [i, t] of todo.entries()) {
-    let elements = await query(t.lat, t.lng, 70)
-    if (elements.length === 0) elements = await query(t.lat, t.lng, 160)
-    const fp = bestFootprint(t.lat, t.lng, elements)
-    out[t.id] = fp // null = confirmed no footprint, don't retry on rerun
+  const CHUNK = 12
+  for (let c = 0; c < todo.length; c += CHUNK) {
+    const chunk = todo.slice(c, c + CHUNK)
+    let elements = await queryBatch(chunk, 80)
+    if (elements.length === 0) {
+      console.log(`chunk ${c / CHUNK + 1}: endpoint failed, skipping (rerun to retry)`)
+      continue
+    }
+    // widen once for clusters with no nearby way at all
+    const hasNearby = new Set(
+      chunk
+        .filter((t) => elements.some((el) => el.type === 'way' && el.geometry?.some((g: any) => Math.abs(g.lat - t.lat) < 0.0015 && Math.abs(g.lon - t.lng) < 0.002)))
+        .map((t) => t.id),
+    )
+    const missing = chunk.filter((t) => !hasNearby.has(t.id))
+    if (missing.length > 0) {
+      elements = elements.concat(await queryBatch(missing, 200))
+    }
+    for (const t of chunk) {
+      const fp = bestFootprint(t.lat, t.lng, elements)
+      out[t.id] = fp // null = confirmed no footprint, don't retry on rerun
+      console.log(`${t.id} ${fp ? `osm:${fp.osmId} (${fp.ring.length}pt)` : '— square fallback'}`)
+    }
     saveOut(out)
-    console.log(`${String(i + 1).padStart(2)}/${todo.length} ${t.id} ${fp ? `osm:${fp.osmId} (${fp.ring.length}pt)` : '— square fallback'}`)
-    await sleep(800) // overpass courtesy
+    await sleep(1500) // overpass courtesy
   }
 
   const hits = Object.values(out).filter(Boolean).length
