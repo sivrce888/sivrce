@@ -8,20 +8,22 @@
 
 import { normalizePhone } from './phone'
 
-export const INQUIRY_TARGET_TYPES = ['listing', 'project', 'developer', 'agent'] as const
+export const INQUIRY_TARGET_TYPES = ['listing', 'project', 'developer', 'agent', 'general'] as const
 export type InquiryTargetType = (typeof INQUIRY_TARGET_TYPES)[number]
 
 export interface ValidInquiry {
   targetType: InquiryTargetType
   targetId: string
   name: string
+  /** Optional email — contact forms collect it, listing inquiries may not */
+  email?: string
   /** Canonical `+995 XXX XX XX XX` */
   phone: string
   message: string
 }
 
 export type InquiryFieldErrors = Partial<
-  Record<'targetType' | 'targetId' | 'name' | 'phone' | 'message', 'required' | 'invalid'>
+  Record<'targetType' | 'targetId' | 'name' | 'email' | 'phone' | 'message', 'required' | 'invalid'>
 >
 
 /** Honeypot check — any non-empty `website` value marks a bot. */
@@ -49,12 +51,15 @@ export function validateInquiry(
   const phone = normalizePhone(typeof obj.phone === 'string' ? obj.phone : '')
   if (!phone) fields.phone = 'invalid'
 
+  const email = typeof obj.email === 'string' ? obj.email.trim() : undefined
+  if (email !== undefined && (email.length < 5 || email.length > 240 || !email.includes('@'))) fields.email = 'invalid'
+
   const message = typeof obj.message === 'string' ? obj.message.trim() : ''
   if (message.length < 10 || message.length > 1000) fields.message = 'invalid'
 
   if (Object.keys(fields).length > 0) return { ok: false, fields }
   return {
     ok: true,
-    data: { targetType: targetType as InquiryTargetType, targetId, name, phone: phone as string, message },
+    data: { targetType: targetType as InquiryTargetType, targetId, name, email, phone: phone as string, message },
   }
 }
