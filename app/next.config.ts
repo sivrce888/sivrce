@@ -23,7 +23,7 @@ const csp = [
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
   `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
+  `img-src 'self' data: blob: https://cdn.sivrce.ge${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "font-src 'self' data:",
   `connect-src 'self'${capacitorOrigins} https://*.sivrce.ge${mapOrigins}${analyticsOrigins}${featureApiOrigins}`,
   "worker-src 'self' blob:",
@@ -72,6 +72,7 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 768, 1024, 1280, 1536, 1920],
+    remotePatterns: [{ protocol: "https", hostname: "cdn.sivrce.ge" }],
   },
   async headers() {
     return [
