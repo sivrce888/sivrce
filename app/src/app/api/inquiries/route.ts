@@ -106,3 +106,39 @@ export async function POST(req: Request) {
 
   return Response.json({ ok: true })
 }
+
+/** GET — the signed-in buyer's own inquiries (matched by session email). */
+export async function GET() {
+  const session = await auth()
+  if (!session?.user?.email) {
+    return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
+  }
+  const rows = await db.inquiry.findMany({
+    where: { buyerEmail: session.user.email, deletedAt: null },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  })
+
+  // Titles: one batched db query + in-memory static catalog fallback.
+  const ids = [...new Set(rows.map((r) => r.listingId))]
+  const dbRows = await db.listing.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, title: true },
+  })
+  const titles = new Map<string, string>(dbRows.map((r) => [r.id, r.title]))
+  for (const l of LISTINGS) {
+    if (ids.includes(l.id)) titles.set(l.id, l.title)
+  }
+
+  return Response.json({
+    ok: true,
+    inquiries: rows.map((r) => ({
+      id: r.id,
+      listingTitle: titles.get(r.listingId) ?? null,
+      agentName: r.agentName,
+      message: r.message,
+      status: r.status,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  })
+}

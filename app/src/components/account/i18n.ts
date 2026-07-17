@@ -38,6 +38,10 @@ const STRINGS = {
     tourConfirmed: 'დადასტურებული',
     tourCancelled: 'გაუქმებული',
     tourCompleted: 'დასრულებული',
+    myInquiries: 'ჩემი შეტყობინებები',
+    noInquiries: 'ჯერ არ გაქვს გაგზავნილი შეტყობინება.',
+    inquiriesError: 'შეტყობინებები ვერ ჩაიტვირთა.',
+    inquiryGeneral: 'ზოგადი შეტყობინება',
   },
   en: {
     profile: 'Profile',
@@ -72,6 +76,10 @@ const STRINGS = {
     tourConfirmed: 'Confirmed',
     tourCancelled: 'Cancelled',
     tourCompleted: 'Completed',
+    myInquiries: 'My inquiries',
+    noInquiries: 'No inquiries sent yet.',
+    inquiriesError: "Couldn't load inquiries.",
+    inquiryGeneral: 'General inquiry',
   },
   ru: {
     profile: 'Профиль',
@@ -106,6 +114,10 @@ const STRINGS = {
     tourConfirmed: 'Подтверждён',
     tourCancelled: 'Отменён',
     tourCompleted: 'Завершён',
+    myInquiries: 'Мои обращения',
+    noInquiries: 'У вас пока нет отправленных обращений.',
+    inquiriesError: 'Не удалось загрузить обращения.',
+    inquiryGeneral: 'Общее обращение',
   },
 } as const
 
