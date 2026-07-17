@@ -9,52 +9,81 @@ import { filterListings, formatUSD, type DealType, type Listing, type PropType }
 
 /* ————— Registries ————— */
 
+/** Locales with real server-rendered landing pages: /(ka), /en, /ru. */
+export type SeoLoc = 'ka' | 'en' | 'ru'
+export const SEO_LOCS: SeoLoc[] = ['ka', 'en', 'ru']
+/** URL prefix per locale (ka is canonical, unprefixed). */
+export const locPrefix = (loc: SeoLoc) => (loc === 'ka' ? '' : `/${loc}`)
+
 export interface GeoLoc {
   slug: string
   ka: string // nominative: თბილისი
   loc: string // locative for H1: თბილისში
   en: string
+  ru: string
 }
 
-export const DEALS: Record<string, { deal: DealType; ka: string; noun: string }> = {
-  sale: { deal: 'sale', ka: 'იყიდება', noun: 'ყიდვა' },
-  rent: { deal: 'rent', ka: 'ქირავდება', noun: 'ქირა' },
+export const DEALS: Record<
+  string,
+  { deal: DealType; ka: string; noun: string; en: string; enNoun: string; ru: string; ruNoun: string }
+> = {
+  sale: { deal: 'sale', ka: 'იყიდება', noun: 'ყიდვა', en: 'for sale', enNoun: 'sale', ru: 'на продажу', ruNoun: 'Продажа' },
+  rent: { deal: 'rent', ka: 'ქირავდება', noun: 'ქირა', en: 'for rent', enNoun: 'rent', ru: 'в аренду', ruNoun: 'Аренда' },
   // "ბინები დღიურად" — top Georgian real-estate query. Listings below render
   // /daily, /daily/apartments, /daily/apartments/tbilisi(/old-tbilisi), etc.
-  daily: { deal: 'daily', ka: 'დღიურად', noun: 'დღიური ქირა' },
+  daily: { deal: 'daily', ka: 'დღიურად', noun: 'დღიური ქირა', en: 'for daily rent', enNoun: 'daily rent', ru: 'посуточно', ruNoun: 'Посуточная аренда' },
 }
 
-export const TYPES: Record<string, { type: PropType; ka: string; kaSingle: string }> = {
-  apartments: { type: 'apartment', ka: 'ბინები', kaSingle: 'ბინა' },
-  houses: { type: 'house', ka: 'სახლები და აგარაკები', kaSingle: 'სახლი' },
-  commercial: { type: 'commercial', ka: 'კომერციული ფართები', kaSingle: 'კომერციული ფართი' },
-  land: { type: 'land', ka: 'მიწის ნაკვეთები', kaSingle: 'მიწის ნაკვეთი' },
+export const TYPES: Record<
+  string,
+  { type: PropType; ka: string; kaSingle: string; en: string; enSingle: string; ru: string; ruSingle: string; ruGen: string }
+> = {
+  apartments: { type: 'apartment', ka: 'ბინები', kaSingle: 'ბინა', en: 'Apartments', enSingle: 'apartment', ru: 'Квартиры', ruSingle: 'квартира', ruGen: 'квартир' },
+  houses: { type: 'house', ka: 'სახლები და აგარაკები', kaSingle: 'სახლი', en: 'Houses & Cottages', enSingle: 'house', ru: 'Дома и дачи', ruSingle: 'дом', ruGen: 'домов и дач' },
+  commercial: { type: 'commercial', ka: 'კომერციული ფართები', kaSingle: 'კომერციული ფართი', en: 'Commercial Property', enSingle: 'commercial property', ru: 'Коммерческая недвижимость', ruSingle: 'коммерческое помещение', ruGen: 'коммерческой недвижимости' },
+  land: { type: 'land', ka: 'მიწის ნაკვეთები', kaSingle: 'მიწის ნაკვეთი', en: 'Land Plots', enSingle: 'land plot', ru: 'Земельные участки', ruSingle: 'участок', ruGen: 'земельных участков' },
+}
+
+/** Room-page slug pattern: /sale/apartments-2 — the "2-ოთახიანი ბინა" query family. 4 = 4+. */
+export const ROOM_SLUG = /^apartments-([1-4])$/
+
+/** Room chip label per locale: 1-ოთახიანი / 1-room / 1-комн. … 4+ (myhome convention). */
+export function roomLabel(n: number, loc: SeoLoc = 'ka'): string {
+  if (loc === 'en') return n === 4 ? '4+ rooms' : `${n}-room`
+  if (loc === 'ru') return n === 4 ? '4+ комн.' : `${n}-комн.`
+  return n === 4 ? '4+ ოთახიანი' : `${n}-ოთახიანი`
 }
 
 export const CITIES: GeoLoc[] = [
-  { slug: 'tbilisi', ka: 'თბილისი', loc: 'თბილისში', en: 'Tbilisi' },
-  { slug: 'batumi', ka: 'ბათუმი', loc: 'ბათუმში', en: 'Batumi' },
-  { slug: 'kutaisi', ka: 'ქუთაისი', loc: 'ქუთაისში', en: 'Kutaisi' },
+  { slug: 'tbilisi', ka: 'თბილისი', loc: 'თბილისში', en: 'Tbilisi', ru: 'Тбилиси' },
+  { slug: 'batumi', ka: 'ბათუმი', loc: 'ბათუმში', en: 'Batumi', ru: 'Батуми' },
+  { slug: 'kutaisi', ka: 'ქუთაისი', loc: 'ქუთაისში', en: 'Kutaisi', ru: 'Кутаиси' },
 ]
 
 export type District = GeoLoc & { citySlug: string }
 
 export const DISTRICTS: District[] = [
-  { slug: 'vake', ka: 'ვაკე', loc: 'ვაკეში', en: 'Vake', citySlug: 'tbilisi' },
-  { slug: 'saburtalo', ka: 'საბურთალო', loc: 'საბურთალოზე', en: 'Saburtalo', citySlug: 'tbilisi' },
-  { slug: 'mtatsminda', ka: 'მთაწმინდა', loc: 'მთაწმინდაზე', en: 'Mtatsminda', citySlug: 'tbilisi' },
-  { slug: 'didi-dighomi', ka: 'დიდი დიღომი', loc: 'დიდ დიღომში', en: 'Didi Dighomi', citySlug: 'tbilisi' },
-  { slug: 'ortachala', ka: 'ორთაჭალა', loc: 'ორთაჭალაში', en: 'Ortachala', citySlug: 'tbilisi' },
-  { slug: 'isani', ka: 'ისანი', loc: 'ისანში', en: 'Isani', citySlug: 'tbilisi' },
-  { slug: 'gldani', ka: 'გლდანი', loc: 'გლდანში', en: 'Gldani', citySlug: 'tbilisi' },
-  { slug: 'avlabari', ka: 'ავლაბარი', loc: 'ავლაბარში', en: 'Avlabari', citySlug: 'tbilisi' },
-  { slug: 'tskneti', ka: 'წყნეთი', loc: 'წყნეთში', en: 'Tskneti', citySlug: 'tbilisi' },
-  { slug: 'tskhvarichamia', ka: 'ცხვარიჭამია', loc: 'ცხვარიჭამიაში', en: 'Tskhvarichamia', citySlug: 'tbilisi' },
-  { slug: 'akhali-bulvari', ka: 'ახალი ბულვარი', loc: 'ახალ ბულვარზე', en: 'New Boulevard', citySlug: 'batumi' },
-  { slug: 'dzveli-batumi', ka: 'ძველი ბათუმი', loc: 'ძველ ბათუმში', en: 'Old Batumi', citySlug: 'batumi' },
-  { slug: 'makhinjauri', ka: 'მახინჯაური', loc: 'მახინჯაურში', en: 'Makhinjauri', citySlug: 'batumi' },
-  { slug: 'kutaisi-centri', ka: 'ცენტრი', loc: 'ცენტრში', en: 'Center', citySlug: 'kutaisi' },
-  { slug: 'avtokarkhana', ka: 'ავტოქარხანა', loc: 'ავტოქარხანის უბანში', en: 'Avtokarkhana', citySlug: 'kutaisi' },
+  { slug: 'vake', ka: 'ვაკე', loc: 'ვაკეში', en: 'Vake', ru: 'Ваке', citySlug: 'tbilisi' },
+  { slug: 'saburtalo', ka: 'საბურთალო', loc: 'საბურთალოზე', en: 'Saburtalo', ru: 'Сабуртало', citySlug: 'tbilisi' },
+  { slug: 'mtatsminda', ka: 'მთაწმინდა', loc: 'მთაწმინდაზე', en: 'Mtatsminda', ru: 'Мтацминда', citySlug: 'tbilisi' },
+  { slug: 'didi-dighomi', ka: 'დიდი დიღომი', loc: 'დიდ დიღომში', en: 'Didi Dighomi', ru: 'Диди Дигоми', citySlug: 'tbilisi' },
+  { slug: 'ortachala', ka: 'ორთაჭალა', loc: 'ორთაჭალაში', en: 'Ortachala', ru: 'Ортачала', citySlug: 'tbilisi' },
+  { slug: 'isani', ka: 'ისანი', loc: 'ისანში', en: 'Isani', ru: 'Исани', citySlug: 'tbilisi' },
+  { slug: 'gldani', ka: 'გლდანი', loc: 'გლდანში', en: 'Gldani', ru: 'Глдани', citySlug: 'tbilisi' },
+  { slug: 'avlabari', ka: 'ავლაბარი', loc: 'ავლაბარში', en: 'Avlabari', ru: 'Авлабари', citySlug: 'tbilisi' },
+  { slug: 'tskneti', ka: 'წყნეთი', loc: 'წყნეთში', en: 'Tskneti', ru: 'Цкнети', citySlug: 'tbilisi' },
+  { slug: 'tskhvarichamia', ka: 'ცხვარიჭამია', loc: 'ცხვარიჭამიაში', en: 'Tskhvarichamia', ru: 'Цхваричамия', citySlug: 'tbilisi' },
+  // ponytail: no inventory here today — pages self-throttle (≥1 listing rule) and go
+  // live free the moment real listings land (ss.ge ranks with exactly these districts).
+  { slug: 'old-tbilisi', ka: 'ძველი თბილისი', loc: 'ძველ თბილისში', en: 'Old Tbilisi', ru: 'Старый Тбилиси', citySlug: 'tbilisi' },
+  { slug: 'varketili', ka: 'ვარკეთილი', loc: 'ვარკეთილში', en: 'Varketili', ru: 'Варкетили', citySlug: 'tbilisi' },
+  { slug: 'chughureti', ka: 'ჩუღურეთი', loc: 'ჩუღურეთში', en: 'Chughureti', ru: 'Чугурети', citySlug: 'tbilisi' },
+  { slug: 'nadzaladevi', ka: 'ნაძალადევი', loc: 'ნაძალადევში', en: 'Nadzaladevi', ru: 'Надзаладеви', citySlug: 'tbilisi' },
+  { slug: 'akhali-bulvari', ka: 'ახალი ბულვარი', loc: 'ახალ ბულვარზე', en: 'New Boulevard', ru: 'Новый бульвар', citySlug: 'batumi' },
+  { slug: 'dzveli-batumi', ka: 'ძველი ბათუმი', loc: 'ძველ ბათუმში', en: 'Old Batumi', ru: 'Старый Батуми', citySlug: 'batumi' },
+  { slug: 'makhinjauri', ka: 'მახინჯაური', loc: 'მახინჯაურში', en: 'Makhinjauri', ru: 'Махинджаури', citySlug: 'batumi' },
+  { slug: 'kutaisi-centri', ka: 'ცენტრი', loc: 'ცენტრში', en: 'Center', ru: 'Центр', citySlug: 'kutaisi' },
+  { slug: 'avtokarkhana', ka: 'ავტოქარხანა', loc: 'ავტოქარხანის უბანში', en: 'Avtokarkhana', ru: 'Автокархана', citySlug: 'kutaisi' },
 ]
 
 const cityBySlug = (s: string) => CITIES.find((c) => c.slug === s)
@@ -76,6 +105,8 @@ export interface SeoPageDef {
   path: string
   dealSlug?: string
   typeSlug?: string
+  /** Apartment room filter: 1-3 exact, 4 = 4+ ("2-ოთახიანი ბინები" pages) */
+  rooms?: number
   city?: GeoLoc
   district?: District
   listings: Listing[]
@@ -84,15 +115,19 @@ export interface SeoPageDef {
 function listingsFor(d: {
   dealSlug?: string
   typeSlug?: string
+  rooms?: number
   city?: GeoLoc
   district?: District
 }): Listing[] {
-  return filterListings({
+  const out = filterListings({
     deal: d.dealSlug ? DEALS[d.dealSlug]?.deal : undefined,
     type: d.typeSlug ? TYPES[d.typeSlug]?.type : undefined,
     city: d.city?.ka,
     district: d.district?.ka,
   })
+  // filterListings.rooms is a minimum; SEO pages need exact counts (4 = 4+).
+  if (!d.rooms) return out
+  return out.filter((l) => (d.rooms === 4 ? l.rooms >= 4 : l.rooms === d.rooms))
 }
 
 /** Parse a [...seo] slug into a page definition. null → 404. */
@@ -116,6 +151,7 @@ export function parseSeoSlug(slug: string[]): SeoPageDef | null {
   }
 
   // Deal pages: /sale, /sale/apartments, /sale/tbilisi, /sale/apartments/tbilisi(/vake)
+  // Room pages:  /sale/apartments-2(/tbilisi(/vake)) — type=apartments + room filter.
   const deal = DEALS[a]
   if (!deal) return null
   const base = { dealSlug: a }
@@ -125,7 +161,9 @@ export function parseSeoSlug(slug: string[]): SeoPageDef | null {
     return listings.length ? { kind: 'deal', path: `/${a}`, ...base, listings } : null
   }
 
-  const typeSlug = TYPES[b] ? b : undefined
+  const roomMatch = ROOM_SLUG.exec(b)
+  const rooms = roomMatch ? Number(roomMatch[1]) : undefined
+  const typeSlug = roomMatch ? 'apartments' : TYPES[b] ? b : undefined
   const cityB = typeSlug ? undefined : cityBySlug(b)
   if (!typeSlug && !cityB) return null
 
@@ -138,30 +176,31 @@ export function parseSeoSlug(slug: string[]): SeoPageDef | null {
   }
 
   if (!c) {
-    const listings = listingsFor({ ...base, typeSlug })
+    const listings = listingsFor({ ...base, typeSlug, rooms })
     return listings.length
-      ? { kind: 'deal-type', path: `/${a}/${b}`, ...base, typeSlug, listings }
+      ? { kind: 'deal-type', path: `/${a}/${b}`, ...base, typeSlug, rooms, listings }
       : null
   }
 
   const cityC = cityBySlug(c)
   if (!cityC) return null
   if (!d) {
-    const listings = listingsFor({ ...base, typeSlug, city: cityC })
+    const listings = listingsFor({ ...base, typeSlug, rooms, city: cityC })
     return listings.length
-      ? { kind: 'deal-type-city', path: `/${a}/${b}/${c}`, ...base, typeSlug, city: cityC, listings }
+      ? { kind: 'deal-type-city', path: `/${a}/${b}/${c}`, ...base, typeSlug, rooms, city: cityC, listings }
       : null
   }
 
   const dist = districtBySlug(d)
   if (!dist || dist.citySlug !== cityC.slug) return null
-  const listings = listingsFor({ ...base, typeSlug, city: cityC, district: dist })
+  const listings = listingsFor({ ...base, typeSlug, rooms, city: cityC, district: dist })
   return listings.length
     ? {
         kind: 'deal-type-city-district',
         path: `/${a}/${b}/${c}/${d}`,
         ...base,
         typeSlug,
+        rooms,
         city: cityC,
         district: dist,
         listings,
@@ -188,6 +227,17 @@ export function generateAllSeoParams(): string[][] {
       }
     }
     for (const city of CITIES) push([deal, city.slug])
+    // Room pages: /deal/apartments-N(/city(/district)) — self-throttled by ≥1 listing.
+    for (let n = 1; n <= 4; n++) {
+      const rt = `apartments-${n}`
+      push([deal, rt])
+      for (const city of CITIES) {
+        push([deal, rt, city.slug])
+        for (const dist of DISTRICTS.filter((x) => x.citySlug === city.slug)) {
+          push([deal, rt, city.slug, dist.slug])
+        }
+      }
+    }
   }
   for (const city of CITIES) {
     push([city.slug])
@@ -219,6 +269,7 @@ export function statsOf(listings: Listing[]): SeoStats {
 }
 
 function subjectOf(def: SeoPageDef): string {
+  if (def.rooms) return `${roomLabel(def.rooms)} ${TYPES.apartments.ka}`
   if (def.typeSlug) return TYPES[def.typeSlug]!.ka
   return 'უძრავი ქონება'
 }
@@ -278,11 +329,16 @@ export interface Faq {
 
 export function faqsOf(def: SeoPageDef): Faq[] {
   const s = statsOf(def.listings)
-  const subject = subjectOf(def).toLowerCase()
+  // Singular subject — Georgians ask "რა ღირს ბინა ვაკეში?", not plural.
+  const single = def.rooms
+    ? `${roomLabel(def.rooms)} ${TYPES.apartments.kaSingle}`
+    : def.typeSlug
+      ? TYPES[def.typeSlug]!.kaSingle
+      : 'უძრავი ქონება'
   const where = def.district ? def.district.loc : def.city ? def.city.loc : 'საქართველოში'
   const faqs: Faq[] = [
     {
-      q: `რა ღირს ${subject} ${where}?`,
+      q: `რა ღირს ${single} ${where}?`,
       a: s.avgPerM2
         ? `ამჟამად საშუალო ფასი ${formatUSD(s.avgPerM2)}/მ²-ია. ყველაზე ხელმისაწვდომი ვარიანტი ${formatUSD(s.minPrice)} ღირს, პრემიუმ სეგმენტი კი ${formatUSD(s.maxPrice)}-მდე აღწევს. AI ფასის შეფასება თითოეული განცხადების ბარათზე ჩანს.`
         : `ფასები ${formatUSD(s.minPrice)}-დან იწყება და ${formatUSD(s.maxPrice)}-მდე იცვლება. AI ფასის შეფასება თითოეული განცხადების ბარათზე ჩანს.`,
@@ -298,13 +354,13 @@ export function faqsOf(def: SeoPageDef): Faq[] {
   ]
   if (def.dealSlug === 'rent') {
     faqs.push({
-      q: `რა პირობებით ქირავდება ${subject} ${where}?`,
+      q: `რა პირობებით ქირავდება ${single} ${where}?`,
       a: `უმეტესი მესაკუთრე ითხოვს პირველი და ბოლო თვის გადასახადს. გრძელვადიანი ქირის შემთხვევაში ფასი ხშირად მოლაპარაკებადია — დაუკავშირდით აგენტს პირდაპირ განცხადებიდან.`,
     })
   }
   if (def.dealSlug === 'daily') {
     faqs.push({
-      q: `რა ღირს ${subject} დღიურად ${where}?`,
+      q: `რა ღირს ${single} დღიურად ${where}?`,
       a: `ფასი მოცემულია ერთ ღამეზე (დღეზე) და ${formatUSD(s.minPrice)}-დან იწყება. საბაზრო საშუალო ${s.avgPerM2 ? formatUSD(s.avgPerM2) : formatUSD(Math.round((s.minPrice + s.maxPrice) / 2))}-ს შეადგენს. შაბათ-კვირასა და სეზონში ფასი იზრდება — ზუსტი თარიღისთვის მიმართეთ მესაკუთრეს განცხადებიდან.`,
     })
     faqs.push({
@@ -349,6 +405,8 @@ export interface LinkChips {
   dealSwitch?: { label: string; href: string }
   /** Property-type chips for current deal/geo scope (active one marked) */
   types: { label: string; href: string; active: boolean }[]
+  /** Room chips on apartment pages (1–4+) */
+  rooms: { label: string; href: string; active: boolean }[]
   /** Geo children: cities on deal/type pages, districts on city pages */
   geo: { label: string; href: string; active: boolean }[]
 }
@@ -379,6 +437,17 @@ export function linkChipsOf(def: SeoPageDef): LinkChips {
     }
   }
 
+  const rooms: LinkChips['rooms'] = []
+  if (def.dealSlug && (def.typeSlug === 'apartments' || def.rooms)) {
+    for (const n of [1, 2, 3, 4] as const) {
+      const typePart = `apartments-${n}`
+      const slug = [def.dealSlug, typePart, def.city?.slug, def.district?.slug].filter(Boolean) as string[]
+      if (has(slug)) {
+        rooms.push({ label: roomLabel(n), href: `/${slug.join('/')}`, active: def.rooms === n })
+      }
+    }
+  }
+
   const geo: LinkChips['geo'] = []
   if (def.kind === 'deal' || def.kind === 'deal-type') {
     for (const c of CITIES) {
@@ -399,5 +468,5 @@ export function linkChipsOf(def: SeoPageDef): LinkChips {
     }
   }
 
-  return { dealSwitch, types, geo }
+  return { dealSwitch, types, rooms, geo }
 }

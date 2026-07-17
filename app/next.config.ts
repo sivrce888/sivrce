@@ -11,9 +11,9 @@ const capacitorOrigins = isDev
 const mapOrigins =
   " https://*.openfreemap.org https://tiles.openfreemap.org https://*.maptiler.com https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com"
 
-// ponytail: analytics — GTM + reserved Sentry/PostHog
+// ponytail: analytics — GTM + top.ge + reserved Sentry/PostHog
 const analyticsOrigins =
-  " https://www.googletagmanager.com https://*.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.sentry.io https://*.posthog.com https://*.i.posthog.com"
+  " https://www.googletagmanager.com https://*.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://counter.top.ge https://*.sentry.io https://*.posthog.com https://*.i.posthog.com"
 
 const csp = [
   "default-src 'self'",

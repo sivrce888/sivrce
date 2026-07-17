@@ -189,7 +189,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
         </header>
 
         {/* Filter chips — internal link mesh */}
-        {(chips.dealSwitch || chips.types.length > 1 || chips.geo.length > 0) && (
+        {(chips.dealSwitch || chips.types.length > 1 || chips.rooms.length > 1 || chips.geo.length > 0) && (
           <div className="mb-8 space-y-3">
             {chips.dealSwitch && (
               <div className="flex flex-wrap gap-2">
@@ -201,6 +201,13 @@ export default async function SeoLandingPage({ params }: PageProps) {
               <div className="flex flex-wrap gap-2">
                 {chips.types.map((t) => (
                   <Chip key={t.href} label={t.label} href={t.href} active={t.active} />
+                ))}
+              </div>
+            )}
+            {chips.rooms.length > 1 && (
+              <div className="flex flex-wrap gap-2">
+                {chips.rooms.map((r) => (
+                  <Chip key={r.href} label={r.label} href={r.href} active={r.active} />
                 ))}
               </div>
             )}
