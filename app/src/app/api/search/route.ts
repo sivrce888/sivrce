@@ -133,20 +133,29 @@ export async function GET(req: Request) {
   const url = new URL(req.url)
   const sp = url.searchParams
 
+  // Trust-boundary sanitize: Number('undefined'/'abc') is NaN, which Prisma
+  // rejects as a missing argument. Non-finite numbers become undefined.
+  const num = (key: string) => {
+    const raw = sp.get(key)
+    if (!raw) return undefined
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : undefined
+  }
+
   const filters: SearchFilters = {
     q: sp.get("q") ?? undefined,
     dealType: (sp.get("dealType") as SearchFilters["dealType"]) ?? undefined,
     propertyType: (sp.get("propertyType") as SearchFilters["propertyType"]) ?? undefined,
     city: sp.get("city") ?? undefined,
     district: sp.get("district") ?? undefined,
-    minPrice: sp.get("minPrice") ? Number(sp.get("minPrice")) : undefined,
-    maxPrice: sp.get("maxPrice") ? Number(sp.get("maxPrice")) : undefined,
-    minArea: sp.get("minArea") ? Number(sp.get("minArea")) : undefined,
-    maxArea: sp.get("maxArea") ? Number(sp.get("maxArea")) : undefined,
-    rooms: sp.get("rooms") ? Number(sp.get("rooms")) : undefined,
+    minPrice: num("minPrice"),
+    maxPrice: num("maxPrice"),
+    minArea: num("minArea"),
+    maxArea: num("maxArea"),
+    rooms: num("rooms"),
     sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
-    page: sp.get("page") ? Number(sp.get("page")) : 1,
-    pageSize: sp.get("pageSize") ? Number(sp.get("pageSize")) : 24,
+    page: num("page") ?? 1,
+    pageSize: num("pageSize") ?? 24,
   }
 
   // Try Meilisearch first, fall back to DB.
