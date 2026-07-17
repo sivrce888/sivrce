@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import { Image as ImageIcon, Ruler, Scan, Video } from "lucide-react"
+import Image from "next/image"
 
 import { removeMedia } from "@/app/admin/listings/actions"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
@@ -55,10 +56,12 @@ export function ListingMediaGrid({
           >
             <div className="relative aspect-[4/3] bg-sv-cloud">
               {showImage ? (
-                <img
+                <Image
                   src={m.cdnUrl ?? ""}
                   alt=""
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  unoptimized
                   className="h-full w-full object-cover"
                 />
               ) : (
