@@ -116,7 +116,7 @@ export default async function DeveloperOverviewPage() {
             {projects.map((p) => (
               <div
                 key={p.id}
-                className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm"
+                className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card"
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-[15px] font-extrabold text-sv-ink">{p.name}</p>

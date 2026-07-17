@@ -10,7 +10,7 @@ interface StatCardProps {
 /** Single metric tile for dashboard overview pages. Server component. */
 export default function StatCard({ label, value, hint, icon }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
+    <div className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/45">{label}</p>
         {icon ? <span className="text-sv-blue">{icon}</span> : null}

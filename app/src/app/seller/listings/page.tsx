@@ -23,11 +23,11 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_CLASS: Record<string, string> = {
-  active: "bg-emerald-50 text-emerald-700",
-  sold: "bg-sv-blue/10 text-sv-blue",
-  pending: "bg-amber-50 text-amber-700",
+  active: "bg-sv-blue/10 text-sv-blue",
+  sold: "bg-sv-orange/10 text-sv-orange",
+  pending: "bg-sv-cloud text-sv-ink/70",
   expired: "bg-sv-ink/6 text-sv-ink/55",
-  withdrawn: "bg-red-50 text-red-600",
+  withdrawn: "bg-sv-ink/8 text-sv-ink/60",
 }
 
 const fmt = new Intl.NumberFormat("ka-GE")
@@ -76,7 +76,7 @@ export default async function SellerListingsPage() {
           {listings.map((listing) => (
             <div
               key={listing.id}
-              className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm"
+              className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card"
             >
               <div className="flex items-start justify-between gap-3">
                 <Link
