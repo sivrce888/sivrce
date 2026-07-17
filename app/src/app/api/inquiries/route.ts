@@ -58,19 +58,19 @@ export async function POST(req: Request) {
   // notifications route through the Sivrce inbox. When agent.email is added
   // to the data model, the notification target will update automatically.
   const notifyEmail = SIVRCE_INBOX
+  const listingId = targetType === "listing" ? targetId : "general"
+  const buyerEmail = email || session?.user?.email || "unknown@sivrce.ge"
 
   try {
     await db.inquiry.create({
       data: {
         id: crypto.randomUUID(),
-        targetType,
-        targetId,
-        listingId: targetType === "listing" ? targetId : null,
+        listingId,
         agentName,
         agentEmail: targetType === "general" ? SIVRCE_INBOX : null,
         agentPhone: listing?.agent.phone ?? null,
         buyerName: name,
-        buyerEmail: email || session?.user?.email || null,
+        buyerEmail,
         buyerPhone: phone || null,
         message,
         deal: listing ? DEAL_MAP[listing.dealType] : "buy",

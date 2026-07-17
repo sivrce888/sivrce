@@ -24,29 +24,18 @@ export function shortRef(id: string): string {
   return id.length > 16 ? `${id.slice(0, 14)}…` : id
 }
 
-/** A listing-backed inquiry has a linkable admin page; other targets do not. */
-export function isListingRef(inquiry: { targetType: string }): boolean {
-  return inquiry.targetType === "listing"
-}
-
-/** Human label for a non-listing target type, used when no listing page exists. */
-const TARGET_LABELS: Record<string, string> = {
-  project: "Project",
-  developer: "Developer",
-  agent: "Agent",
+/** A listing-backed inquiry has a linkable admin page. */
+export function isListingRef(inquiry: { listingId: string }): boolean {
+  return Boolean(inquiry.listingId)
 }
 
 /**
- * Display title for an inquiry target. Returns null when the target listing
- * has been deleted or the target is a non-listing entity (no title row here).
+ * Display title for an inquiry's listing.
+ * Returns null when the listing has been deleted.
  */
-export async function getListingTitle(
-  targetType: string,
-  targetId: string,
-): Promise<string | null> {
-  if (targetType !== "listing") return TARGET_LABELS[targetType] ?? null
+export async function getListingTitle(listingId: string): Promise<string | null> {
   const listing = await db.listing.findUnique({
-    where: { id: targetId },
+    where: { id: listingId },
     select: { title: true },
   })
   return listing?.title ?? null
@@ -61,8 +50,7 @@ export async function listInquiries(status: string, q: string, page: number) {
       { buyerEmail: { contains: q, mode: "insensitive" } },
       { agentName: { contains: q, mode: "insensitive" } },
       { agentEmail: { contains: q, mode: "insensitive" } },
-      { targetId: { contains: q, mode: "insensitive" } },
-      { targetType: { contains: q, mode: "insensitive" } },
+      { listingId: { contains: q, mode: "insensitive" } },
     ]
   }
   const [rows, total, grouped] = await Promise.all([
