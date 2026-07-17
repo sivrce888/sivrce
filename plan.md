@@ -1,5 +1,11 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-18 (2) — 3D stacks on /projects/[slug]
+- Every project page gets the "კორპუსი 3D-ში" section: ghost floor stack whose
+  height tracks construction progress (`heightM × done%`), hover tooltip with
+  progress %, catalogued projects show real per-floor availability instead.
+  `BuildingFloorsMap` selection props now optional (view-only mode). Still SSG.
+
 ## Shipped 2026-07-18 — floor explorer on /buildings/[slug]
 - Building pages (still 100% SSG) now ship the floor explorer: focused 3D
   stack (shared `src/lib/map/floorLayers.ts` — one implementation for /map and

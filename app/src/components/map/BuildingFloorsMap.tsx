@@ -26,8 +26,12 @@ interface BuildingFloorsMapProps {
   geojson: GeoJSON.FeatureCollection
   floors: FloorInfo[]
   center: { lat: number; lng: number }
-  selectedFloor: number | null
-  onSelectFloor: (n: number) => void
+  /** Omit both on project pages — slabs stay view-only */
+  selectedFloor?: number | null
+  onSelectFloor?: (n: number) => void
+  /** Construction ghost: tooltip shows progress, no availability */
+  ghost?: boolean
+  progress?: number
   label: string
 }
 
@@ -35,15 +39,17 @@ export default function BuildingFloorsMap({
   geojson,
   floors,
   center,
-  selectedFloor,
+  selectedFloor = null,
   onSelectFloor,
+  ghost = false,
+  progress,
   label,
 }: BuildingFloorsMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
-  const selectRef = useRef(onSelectFloor)
+  const selectRef = useRef<(n: number) => void>(() => {})
   const selectedRef = useRef(selectedFloor)
-  useEffect(() => { selectRef.current = onSelectFloor }, [onSelectFloor])
+  useEffect(() => { selectRef.current = onSelectFloor ?? (() => {}) }, [onSelectFloor])
   useEffect(() => { selectedRef.current = selectedFloor }, [selectedFloor])
 
   // Keep the chosen slab lit.
@@ -111,7 +117,7 @@ export default function BuildingFloorsMap({
       // DOM-built content — no HTML injection from data
       const tip = floorTooltipKa(
         { n, available: Number(p?.available) || 0, minPriceGEL: null },
-        { ghost: false, showPrice: false },
+        { ghost, progress, showPrice: false },
       )
       const root = document.createElement('div')
       const title = document.createElement('div')
