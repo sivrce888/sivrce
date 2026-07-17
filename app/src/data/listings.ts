@@ -39,6 +39,8 @@ export interface Listing {
   features: string[]
   description: string
   coords: { lat: number; lng: number }
+  /** Building / door number — used by map clustering (falls back to address parse). */
+  buildingNumber?: string
   postedAt: string // ISO date
   agent: Agent
   isNew: boolean
