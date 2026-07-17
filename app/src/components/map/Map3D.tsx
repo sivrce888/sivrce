@@ -1,24 +1,37 @@
 'use client'
 
 /**
- * SIVRCE 3D map — MapLibre + OpenFreeMap, brand paints, clickable buildings.
- * ponytail: OpenFreeMap (no key). Swap tile URL → MapTiler/Google adapter when bill/key ready.
+ * SIVRCE 3D map — MapLibre + brand paints, filters, click-anywhere, construction ghosts.
+ * ponytail: OpenFreeMap (no key). setData filter = O(n) client; Meilisearch geo when scale hits.
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
-import maplibregl, { type Map as MlMap, type MapLayerMouseEvent } from 'maplibre-gl'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import maplibregl, {
+  type Map as MlMap,
+  type MapLayerMouseEvent,
+  type MapMouseEvent,
+  type GeoJSONSource,
+} from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { LISTINGS } from '@/data/listings'
 import type { DealType } from '@/data/listings'
+import { PROJECTS } from '@/data/professionals'
 import { BRAND } from '@/lib/brand'
+import { DEAL_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
 import {
   MAP_CENTER,
   buildingsToGeoJSON,
   clusterListingsToBuildings,
+  filterBuildings,
+  findNearestBuilding,
+  mergeMapBuildings,
+  projectsToConstructionBuildings,
   type MapBuildingCluster,
+  type MapDealFilter,
+  type MapStatusFilter,
 } from '@/lib/map/buildings'
 import BuildingPanel from '@/components/map/BuildingPanel'
-import { Layers, RotateCcw } from 'lucide-react'
+import { Layers, RotateCcw, HardHat } from 'lucide-react'
 
 const STYLE_URL =
   process.env.NEXT_PUBLIC_MAP_STYLE_URL ?? 'https://tiles.openfreemap.org/styles/dark'
@@ -28,12 +41,10 @@ const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
 
-const BUILDINGS = clusterListingsToBuildings(LISTINGS)
-const GEOJSON = buildingsToGeoJSON(BUILDINGS)
-const BY_ID = Object.fromEntries(BUILDINGS.map((b) => [b.id, b])) as Record<
-  string,
-  MapBuildingCluster
->
+const ALL_BUILDINGS = mergeMapBuildings(
+  clusterListingsToBuildings(LISTINGS),
+  projectsToConstructionBuildings(PROJECTS),
+)
 
 function applyBrandPaints(map: MlMap) {
   const trySet = (layer: string, prop: string, value: unknown) => {
@@ -54,10 +65,10 @@ function applyBrandPaints(map: MlMap) {
   trySet('building-3d', 'fill-extrusion-opacity', 0.45)
 }
 
-function addListingBuildings(map: MlMap) {
+function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
   if (map.getSource(SOURCE_ID)) return
 
-  map.addSource(SOURCE_ID, { type: 'geojson', data: GEOJSON })
+  map.addSource(SOURCE_ID, { type: 'geojson', data })
 
   map.addLayer({
     id: FILL_ID,
@@ -65,7 +76,7 @@ function addListingBuildings(map: MlMap) {
     source: SOURCE_ID,
     paint: {
       'fill-color': ['get', 'color'],
-      'fill-opacity': 0.25,
+      'fill-opacity': 0.22,
     },
   })
 
@@ -77,7 +88,7 @@ function addListingBuildings(map: MlMap) {
       'fill-extrusion-color': ['get', 'color'],
       'fill-extrusion-height': ['get', 'height'],
       'fill-extrusion-base': 0,
-      'fill-extrusion-opacity': 0.92,
+      'fill-extrusion-opacity': ['get', 'opacity'],
     },
   })
 
@@ -86,8 +97,13 @@ function addListingBuildings(map: MlMap) {
     type: 'symbol',
     source: SOURCE_ID,
     layout: {
-      'text-field': ['to-string', ['get', 'total']],
-      'text-size': 13,
+      'text-field': [
+        'case',
+        ['==', ['get', 'status'], 'construction'],
+        ['concat', ['to-string', ['get', 'progress']], '%'],
+        ['to-string', ['get', 'total']],
+      ],
+      'text-size': 12,
       'text-font': ['Noto Sans Bold'],
       'text-allow-overlap': true,
     },
@@ -99,18 +115,53 @@ function addListingBuildings(map: MlMap) {
   })
 }
 
+const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
+  { id: 'all', label: 'ყველა', color: BRAND.colors.blue },
+  { id: 'sale', label: 'იყიდება', color: DEAL_BRAND.sale },
+  { id: 'rent', label: 'ქირავდება', color: DEAL_BRAND.rent },
+  { id: 'daily', label: 'დღიურად', color: DEAL_BRAND.daily },
+]
+
+const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
+  { id: 'all', label: 'ყველა შენობა' },
+  { id: 'active', label: 'აქტიური' },
+  { id: 'construction', label: 'მშენებარე' },
+]
+
 export default function Map3D() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
+  const visibleRef = useRef<MapBuildingCluster[]>(ALL_BUILDINGS)
+  const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
+
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
+  const [dealFilter, setDealFilter] = useState<MapDealFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const visible = useMemo(
+    () => filterBuildings(ALL_BUILDINGS, dealFilter, statusFilter),
+    [dealFilter, statusFilter],
+  )
+  visibleRef.current = visible
 
   const selectBuilding = useCallback((b: MapBuildingCluster | null) => {
     setSelected(b)
     setTab('all')
   }, [])
+  selectRef.current = selectBuilding
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const src = map.getSource(SOURCE_ID) as GeoJSONSource | undefined
+    src?.setData(buildingsToGeoJSON(visible))
+    if (selected && !visible.some((b) => b.id === selected.id)) {
+      selectBuilding(null)
+    }
+  }, [visible, ready, selected, selectBuilding])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -124,6 +175,7 @@ export default function Map3D() {
       pitch: 58,
       bearing: -18,
       maxPitch: 70,
+      fadeDuration: 0,
     })
     mapRef.current = map
 
@@ -136,31 +188,7 @@ export default function Map3D() {
       'top-right',
     )
 
-    map.on('load', () => {
-      if (cancelled) return
-      applyBrandPaints(map)
-      addListingBuildings(map)
-      setReady(true)
-    })
-
-    map.on('error', (e) => {
-      console.error('[Map3D]', e.error)
-      setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
-    })
-
-    const onEnter = () => {
-      map.getCanvas().style.cursor = 'pointer'
-    }
-    const onLeave = () => {
-      map.getCanvas().style.cursor = ''
-    }
-    const onClick = (e: MapLayerMouseEvent) => {
-      const f = e.features?.[0]
-      const id = f?.properties?.id as string | undefined
-      if (!id) return
-      const b = BY_ID[id]
-      if (!b) return
-      selectBuilding(b)
+    const flyTo = (b: MapBuildingCluster) => {
       map.easeTo({
         center: [b.lng, b.lat],
         zoom: Math.max(map.getZoom(), 15.5),
@@ -170,17 +198,56 @@ export default function Map3D() {
       })
     }
 
-    map.on('mouseenter', EXTRUDE_ID, onEnter)
-    map.on('mouseleave', EXTRUDE_ID, onLeave)
-    map.on('click', EXTRUDE_ID, onClick)
-    map.on('click', FILL_ID, onClick)
+    const pickById = (id: string) => {
+      const b =
+        visibleRef.current.find((x) => x.id === id) ?? ALL_BUILDINGS.find((x) => x.id === id)
+      if (!b) return
+      selectRef.current(b)
+      flyTo(b)
+    }
+
+    const onFeatureClick = (e: MapLayerMouseEvent) => {
+      e.originalEvent.stopPropagation()
+      const id = e.features?.[0]?.properties?.id as string | undefined
+      if (id) pickById(id)
+    }
+
+    const onMapClick = (e: MapMouseEvent) => {
+      const hits = map.queryRenderedFeatures(e.point, { layers: [EXTRUDE_ID, FILL_ID] })
+      if (hits.length > 0) return
+      const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
+      selectRef.current(nearest)
+      if (nearest) flyTo(nearest)
+    }
+
+    map.on('load', () => {
+      if (cancelled) return
+      applyBrandPaints(map)
+      ensureLayers(map, buildingsToGeoJSON(visibleRef.current))
+      setReady(true)
+    })
+
+    map.on('error', (e) => {
+      console.error('[Map3D]', e.error)
+      setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
+    })
+
+    map.on('mouseenter', EXTRUDE_ID, () => {
+      map.getCanvas().style.cursor = 'pointer'
+    })
+    map.on('mouseleave', EXTRUDE_ID, () => {
+      map.getCanvas().style.cursor = ''
+    })
+    map.on('click', EXTRUDE_ID, onFeatureClick)
+    map.on('click', FILL_ID, onFeatureClick)
+    map.on('click', onMapClick)
 
     return () => {
       cancelled = true
       map.remove()
       mapRef.current = null
     }
-  }, [selectBuilding])
+  }, [])
 
   const resetView = () => {
     mapRef.current?.easeTo({
@@ -192,6 +259,8 @@ export default function Map3D() {
     })
     selectBuilding(null)
   }
+
+  const constructionCount = ALL_BUILDINGS.filter((b) => b.status === 'construction').length
 
   return (
     <div className="relative flex h-[calc(100dvh-4.5rem)] w-full overflow-hidden bg-sv-navy md:h-[calc(100dvh-5rem)]">
@@ -209,12 +278,79 @@ export default function Map3D() {
           </div>
         )}
 
+        <div className="absolute left-4 top-4 z-20 flex max-w-[min(100%-2rem,520px)] flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-sv-navy/85 px-3.5 py-2 text-[12px] font-extrabold text-white backdrop-blur-md">
+              <Layers className="h-3.5 w-3.5 text-sv-blue-light" />
+              {visible.length} შენობა · {LISTINGS.length} განცხადება
+            </div>
+            <button
+              type="button"
+              onClick={resetView}
+              className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-sv-navy/85 text-white backdrop-blur-md transition hover:bg-sv-blue"
+              aria-label="საწყისი ხედი"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div
+            className="flex flex-wrap gap-1.5 rounded-tile border border-white/10 bg-sv-navy/85 p-2 backdrop-blur-md"
+            role="group"
+            aria-label="გარიგების ფილტრი"
+          >
+            {DEAL_FILTERS.map((f) => {
+              const active = dealFilter === f.id
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setDealFilter(f.id)}
+                  className={`rounded-full px-3 py-1.5 text-[11px] font-extrabold transition ${
+                    active ? 'text-white shadow-glow-blue-sm' : 'text-white/60 hover:text-white'
+                  }`}
+                  style={active ? { background: f.color } : undefined}
+                >
+                  {f.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <div
+            className="flex flex-wrap gap-1.5 rounded-tile border border-white/10 bg-sv-navy/85 p-2 backdrop-blur-md"
+            role="group"
+            aria-label="სტატუსის ფილტრი"
+          >
+            {STATUS_FILTERS.map((f) => {
+              const active = statusFilter === f.id
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setStatusFilter(f.id)}
+                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition ${
+                    active
+                      ? 'bg-sv-blue text-white shadow-glow-blue-sm'
+                      : 'text-white/60 hover:text-white'
+                  }`}
+                >
+                  {f.id === 'construction' && <HardHat className="h-3 w-3" />}
+                  {f.label}
+                  {f.id === 'construction' ? ` (${constructionCount})` : ''}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2 rounded-tile border border-white/10 bg-sv-navy/85 p-3 backdrop-blur-md">
           {(
             [
-              ['იყიდება', '#2E6BFF'],
-              ['ქირავდება', '#7C3AED'],
-              ['დღიურად', '#E11D48'],
+              ['იყიდება', DEAL_BRAND.sale],
+              ['ქირავდება', DEAL_BRAND.rent],
+              ['დღიურად', DEAL_BRAND.daily],
+              ['მშენებარე', CATEGORY_BRAND.newProjects.hue],
             ] as const
           ).map(([label, color]) => (
             <div key={label} className="flex items-center gap-1.5 text-[11px] font-extrabold text-white/80">
@@ -224,20 +360,9 @@ export default function Map3D() {
           ))}
         </div>
 
-        <div className="absolute left-4 top-4 z-20 flex gap-2">
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-sv-navy/85 px-3.5 py-2 text-[12px] font-extrabold text-white backdrop-blur-md">
-            <Layers className="h-3.5 w-3.5 text-sv-blue-light" />
-            {BUILDINGS.length} შენობა · {LISTINGS.length} განცხადება
-          </div>
-          <button
-            type="button"
-            onClick={resetView}
-            className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-sv-navy/85 text-white backdrop-blur-md transition hover:bg-sv-blue"
-            aria-label="საწყისი ხედი"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </div>
+        <p className="pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[220px] rounded-control border border-white/10 bg-sv-navy/80 px-3 py-2 text-[11px] font-semibold text-white/50 backdrop-blur-md md:block">
+          დააჭირე შენობას ან მისამართს — იყიდება / ქირა / დღე ერთ პანელში
+        </p>
       </div>
 
       {selected && (

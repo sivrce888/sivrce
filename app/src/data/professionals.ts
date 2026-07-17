@@ -64,6 +64,10 @@ export interface Project {
   flats: number
   rating: number
   description: LocalText
+  /** Map placement — required for 3D construction ghosts */
+  coords: { lat: number; lng: number }
+  /** Planned floors for extrusion height */
+  floors?: number
 }
 
 // ——— Developers ———
@@ -277,6 +281,8 @@ export const PROJECTS: Project[] = [
     finish: '2027 Q2',
     flats: 214,
     rating: 4.8,
+    coords: { lat: 41.7218, lng: 44.7526 },
+    floors: 22,
     description: {
       ka: 'Downtown Residence — m2-ის პრემიუმ კომპლექსი საბურთალოზე: დაცული ეზო, ფიტნესი, კონსიერჟი და მიწისქვეშა პარკინგი. ბინები მწვანე კარკასიდან სრული რემონტით.',
       en: 'Downtown Residence is m2’s premium complex in Saburtalo: secured courtyard, fitness, concierge and underground parking — units from green frame to fully renovated.',
@@ -295,6 +301,8 @@ export const PROJECTS: Project[] = [
     finish: '2028 Q1',
     flats: 168,
     rating: 4.9,
+    coords: { lat: 41.6508, lng: 41.6362 },
+    floors: 28,
     description: {
       ka: 'Batumi Riviera Tower — ზღვის პირველი ხაზის მაღალსართულიანი კომპლექსი ახალ ბულვარზე, სასტუმრო სტანდარტის სერვისით და პანორამული ხედებით.',
       en: 'Batumi Riviera Tower is a first-line high-rise on the New Boulevard with hotel-standard services and panoramic sea views.',
@@ -313,6 +321,8 @@ export const PROJECTS: Project[] = [
     finish: '2027 Q4',
     flats: 320,
     rating: 4.7,
+    coords: { lat: 41.6482, lng: 41.6348 },
+    floors: 32,
     description: {
       ka: 'ORBI Sea Towers — სასტუმრო-საცხოვრებელი კომპლექსი ზღვისპირა ზონაში, მართვის კომპანიით და გარანტირებული შემოსავლის პროგრამით ინვესტორებისთვის.',
       en: 'ORBI Sea Towers is a hotel-residential complex in the seaside zone with an in-house management company and a guaranteed-income program for investors.',
@@ -331,6 +341,8 @@ export const PROJECTS: Project[] = [
     finish: '2026 Q4',
     flats: 540,
     rating: 4.6,
+    coords: { lat: 41.6884, lng: 44.8452 },
+    floors: 18,
     description: {
       ka: 'Dirsi Riverside — მტკვრის ნაპირის ახალი კვარტლები „ქალაქი ქალაქში“ კონცეფციით: სკვერები, სკოლა, სავაჭრო ქუჩა და საკუთარი საბავშვო ინფრასტრუქტურა.',
       en: 'Dirsi Riverside is a new Mtkvari riverside quarter built as a “city within a city”: parks, a school, a retail street and children’s infrastructure.',
@@ -349,6 +361,8 @@ export const PROJECTS: Project[] = [
     finish: '2026 Q3',
     flats: 260,
     rating: 4.7,
+    coords: { lat: 41.7812, lng: 44.7815 },
+    floors: 16,
     description: {
       ka: 'Archi Dighomi — ხელმისაწვდომი ფასის კომპლექსი დიღომში, ენერგოეფექტური ფასადით და შიდა განვადებით. იდეალური პირველი ბინისთვის.',
       en: 'Archi Dighomi is an affordable complex in Dighomi with an energy-efficient façade and in-house instalments — ideal as a first home.',
@@ -367,6 +381,8 @@ export const PROJECTS: Project[] = [
     finish: '2023 Q4',
     flats: 150,
     rating: 4.5,
+    coords: { lat: 41.7088, lng: 44.7732 },
+    floors: 24,
     description: {
       ka: 'Axis Towers Vake — ჩაბარებული პრემიუმ კოშკები ჩავჭავაძეზე: მიწისქვეშა პარკინგი, კომერციული სარდაფი და ქალაქის საუკეთესო ხედები. ბოლო ბინები იყიდება.',
       en: 'Axis Towers Vake — delivered premium towers on Chavchavadze: underground parking, a retail podium and the best city views. Last units on sale.',
