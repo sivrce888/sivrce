@@ -137,11 +137,16 @@ export default function HeroBackground() {
 
   return (
     <div ref={root} className="absolute inset-0 overflow-hidden bg-sv-navy" aria-hidden>
-      {/* Aurora gradient field — brand blue / violet / orange */}
-      <div className="animate-aurora-a absolute -left-[15%] top-[-25%] h-[70%] w-[60%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_34%,transparent),transparent_65%)] blur-[90px]" />
-      <div className="animate-aurora-b absolute right-[-12%] top-[-10%] h-[65%] w-[55%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-violet)_26%,transparent),transparent_65%)] blur-[100px]" />
-      <div className="animate-aurora-c absolute bottom-[-30%] left-[25%] h-[70%] w-[50%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange)_16%,transparent),transparent_65%)] blur-[110px]" />
-      <div className="absolute left-1/2 top-[30%] h-[50%] w-[46%] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_14%,transparent),transparent_70%)] blur-[110px]" />
+      {/* Aurora gradient field — brand blue / violet / orange; drifts with the pointer */}
+      <div
+        className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
+        style={{ transform: 'translate3d(var(--px, 0px), var(--py, 0px), 0)' }}
+      >
+        <div className="animate-aurora-a absolute -left-[15%] top-[-25%] h-[70%] w-[60%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_34%,transparent),transparent_65%)] blur-[90px]" />
+        <div className="animate-aurora-b absolute right-[-12%] top-[-10%] h-[65%] w-[55%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-violet)_26%,transparent),transparent_65%)] blur-[100px]" />
+        <div className="animate-aurora-c absolute bottom-[-30%] left-[25%] h-[70%] w-[50%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange)_16%,transparent),transparent_65%)] blur-[110px]" />
+        <div className="absolute left-1/2 top-[30%] h-[50%] w-[46%] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_14%,transparent),transparent_70%)] blur-[110px]" />
+      </div>
 
       {/* Moon — top-right crescent carved from bg, soft brand-blue glow */}
       <div className="animate-float absolute right-[10%] top-[8%] hidden h-24 w-24 md:block">
@@ -153,27 +158,50 @@ export default function HeroBackground() {
         </div>
       </div>
 
-      {/* Twinkling stars — upper sky only, staggered, pauses off-screen + under reduced-motion */}
-      {stars.map((s, i) => (
-        <span
-          key={i}
-          className="sv-star absolute hidden rounded-full md:block"
-          style={{
-            top: s.top,
-            left: s.left,
-            width: s.size,
-            height: s.size,
-            background: s.blue ? 'var(--sv-blue-light)' : 'rgba(255,255,255,0.85)',
-            boxShadow: '0 0 6px color-mix(in srgb, var(--sv-blue-light) 70%, transparent)',
-            '--st-duration': s.duration,
-            '--st-delay': s.delay,
-          } as React.CSSProperties}
-        />
-      ))}
+      {/* Comet — rare streak across the upper sky */}
+      <span className="sv-comet absolute right-[6%] top-[10%] hidden h-[2px] w-[130px] rounded-full bg-[linear-gradient(90deg,transparent,var(--sv-blue-light))] opacity-0 shadow-[0_0_10px_2px_color-mix(in_srgb,var(--sv-blue-light)_60%,transparent)] md:block" />
+
+      {/* Twinkling stars — upper sky only, staggered; closest parallax layer */}
+      <div
+        className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
+        style={{ transform: 'translate3d(calc(var(--px, 0px) * 1.6), calc(var(--py, 0px) * 1.6), 0)' }}
+      >
+        {stars.map((s, i) => (
+          <span
+            key={i}
+            className="sv-star absolute hidden rounded-full md:block"
+            style={{
+              top: s.top,
+              left: s.left,
+              width: s.size,
+              height: s.size,
+              background: s.blue ? 'var(--sv-blue-light)' : 'rgba(255,255,255,0.85)',
+              boxShadow: '0 0 6px color-mix(in srgb, var(--sv-blue-light) 70%, transparent)',
+              '--st-duration': s.duration,
+              '--st-delay': s.delay,
+            } as React.CSSProperties}
+          />
+        ))}
+      </div>
 
       {/* Map dot-grid + faint line grid */}
       <div className="bg-dots-dark absolute inset-0 [mask-image:radial-gradient(75%_65%_at_50%_42%,black,transparent)]" />
       <div className="bg-grid-faint absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent,black_30%,black_75%,transparent)]" />
+
+      {/* City light glow above the horizon */}
+      <div className="absolute bottom-[34%] left-1/2 h-[24%] w-[72%] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_bottom,color-mix(in_srgb,var(--sv-blue)_17%,transparent),transparent_70%)] blur-2xl" />
+
+      {/* Back-row skyline — dimmer + blurred, drifts slowly for depth */}
+      <svg
+        viewBox={`0 0 ${SV_W} ${SV_H}`}
+        preserveAspectRatio="xMidYMax slice"
+        className="sv-skyline-back absolute bottom-0 left-0 h-[38%] w-full min-w-[900px] opacity-50 blur-[1.5px]"
+      >
+        {BUILDINGS.map(([x, w, h], i) => {
+          const bh = h * 0.62
+          return <rect key={i} x={x + 18} y={SV_H - bh} width={w} height={bh} fill="var(--sv-navy-soft)" />
+        })}
+      </svg>
 
       {/* Stylized skyline silhouette with glowing windows */}
       <svg
@@ -195,7 +223,8 @@ export default function HeroBackground() {
         ))}
         {/* Antenna on tallest */}
         <line x1={584 + 24} y1={SV_H - 300} x2={584 + 24} y2={SV_H - 332} stroke="var(--sv-blue)" strokeWidth="2" opacity="0.5" />
-        <circle cx={584 + 24} cy={SV_H - 334} r="3" fill="var(--sv-orange)" opacity="0.9" />
+        <circle cx={584 + 24} cy={SV_H - 334} r="3" fill="var(--sv-orange)" opacity="0.9" className="sv-beacon" />
+        <circle cx={584 + 24} cy={SV_H - 334} r="8" fill="var(--sv-orange)" opacity="0.14" className="sv-beacon" />
         {windows.map((w, i) => (
           <rect
             key={i}

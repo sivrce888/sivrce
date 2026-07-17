@@ -11,6 +11,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
+import { useSearchStrings } from '@/components/search/i18n'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import {
@@ -55,7 +56,17 @@ export default function SearchClient() {
   const params = useSearchParams()
   const router = useRouter()
   const { t } = useI18n()
+  const s = useSearchStrings()
   const [view, setView] = useState<'grid' | 'list'>('grid')
+
+  // Remember grid/list preference across visits.
+  useEffect(() => {
+    const saved = window.localStorage.getItem('sivrce:view')
+    if (saved === 'grid' || saved === 'list') setView(saved)
+  }, [])
+  useEffect(() => {
+    window.localStorage.setItem('sivrce:view', view)
+  }, [view])
 
   // ——— Simulated fetch: brief skeleton on mount + every filter change ———
   // Derived loading state: a params signature is marked "loaded" after 320ms.
@@ -127,13 +138,14 @@ export default function SearchClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- urlText/patchParams derive from drafts+paramsKey
   }, [drafts, paramsKey])
 
-  // ——— API-driven search ————————————————————————————————————————————————
+  // ——— API-driven search (paged; page 2+ appends via "show more") ————————
   const [results, setResults] = useState<Listing[]>([])
   const [totalResults, setTotalResults] = useState(0)
   const [searchLoading, setSearchLoading] = useState(false)
+  const [page, setPage] = useState(1)
 
   // Map filter state → /api/search query params and fetch.
-  const fetchSearch = useCallback(async () => {
+  const fetchSearch = useCallback(async (pageNum: number, append: boolean) => {
     setSearchLoading(true)
     try {
       const sp = new URLSearchParams()
@@ -148,63 +160,77 @@ export default function SearchClient() {
       if (maxArea !== undefined) sp.set('maxArea', String(maxArea))
       if (q) sp.set('q', q)
       if (sort !== 'date') sp.set('sort', sort)
-      sp.set('page', '1')
+      sp.set('page', String(pageNum))
       sp.set('pageSize', '24')
 
       const res = await fetch(`/api/search?${sp.toString()}`)
       const json = await res.json()
       if (json.ok && Array.isArray(json.hits)) {
         // ponytail: map API hits → Listing shape for existing card components.
-        setResults(json.hits.map((h: Record<string, unknown>) => ({
-          id: h.id as string,
-          title: h.title as string,
-          city: h.city as string,
-          district: h.district as string,
-          dealType: h.dealType as DealType,
-          propType: h.propertyType as PropType,
-          priceUSD: h.price as number,
-          priceGEL: Math.round((h.price as number) * 2.7),
-          perM2USD: 0,
-          area: h.area as number,
-          rooms: h.rooms as number,
-          images: (h.images as string[]) ?? [],
-          img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
-          address: (h.address as string) ?? '',
-          beds: (h.bedrooms as number) ?? (h.rooms as number),
-          baths: (h.bathrooms as number) ?? 1,
-          floor: (h.floor as number) ?? 0,
-          totalFloors: (h.totalFloors as number) ?? 0,
-          views: 0,
-          badge: null,
-          ai: { score: 70, label: '' },
-          features: (h.features as string[]) ?? [],
-          description: (h.description as string) ?? '',
-          coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
-          postedAt: (h.createdAt as string) ?? new Date().toISOString(),
-          agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
-          isNew: false,
-        })))
+        const mapped: Listing[] = json.hits.map((h: Record<string, unknown>) => {
+          const postedAt = (h.createdAt as string) ?? new Date().toISOString()
+          const tier = h.tier as string | undefined
+          return {
+            id: h.id as string,
+            title: h.title as string,
+            city: h.city as string,
+            district: h.district as string,
+            dealType: h.dealType as DealType,
+            propType: h.propertyType as PropType,
+            priceUSD: h.price as number,
+            priceGEL: Math.round((h.price as number) * 2.7),
+            perM2USD: (h.pricePerSqm as number) ?? 0,
+            area: h.area as number,
+            rooms: h.rooms as number,
+            images: (h.images as string[]) ?? [],
+            img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
+            address: (h.address as string) ?? '',
+            beds: (h.bedrooms as number) ?? (h.rooms as number),
+            baths: (h.bathrooms as number) ?? 1,
+            floor: (h.floor as number) ?? 0,
+            totalFloors: (h.totalFloors as number) ?? 0,
+            views: (h.views as number) ?? 0,
+            badge: tier === 'super_vip' ? 'SUPER VIP' : tier === 'diamond' ? 'VIP+' : tier === 'vip' ? 'VIP' : null,
+            ai: { score: (h.trustScore as number) ?? 70, label: '' },
+            features: (h.features as string[]) ?? [],
+            description: (h.description as string) ?? '',
+            coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
+            postedAt,
+            agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
+            isNew: Date.now() - new Date(postedAt).getTime() < 72 * 3600_000,
+          }
+        })
+        setResults((prev) => (append ? [...prev, ...mapped] : mapped))
         setTotalResults(json.totalHits as number)
-      } else {
+      } else if (!append) {
         setResults([])
         setTotalResults(0)
       }
     } catch {
       // ponytail: silent fail — show empty state, don't break UI.
-      setResults([])
-      setTotalResults(0)
+      if (!append) {
+        setResults([])
+        setTotalResults(0)
+      }
     } finally {
       setSearchLoading(false)
     }
   }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort])
 
   useEffect(() => {
+    setPage(1)
     // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical data-fetch effect
-    fetchSearch()
+    fetchSearch(1, false)
   }, [fetchSearch, paramsKey])
 
-  // Combine skeleton + fetch loading into one flag.
-  const showSkeleton = loading || searchLoading
+  const loadMore = () => {
+    const next = page + 1
+    setPage(next)
+    fetchSearch(next, true)
+  }
+
+  // Skeleton only when there is nothing on screen yet — page 2+ keeps cards visible.
+  const showSkeleton = (loading || searchLoading) && results.length === 0
 
   // ——— Active filter chips ———
   const propType = PROP_TYPES.find((p) => p.value === type)
@@ -256,15 +282,15 @@ export default function SearchClient() {
           {/* Row 1: deal + type + location + sort */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Deal segmented */}
-            <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="tablist" aria-label={t('search.dealType')}>
+            <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.dealType')}>
               {([undefined, 'sale', 'rent', 'daily'] as const).map((d) => {
                 const label = t(d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'daily' ? 'add.deal.daily' : 'search.rent')
                 const active = deal === d
                 return (
                   <button
                     key={label}
-                    role="tab"
-                    aria-selected={active}
+                    type="button"
+                    aria-pressed={active}
                     onClick={() => patchParams({ deal: d })}
                     className={`relative rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
                       active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
@@ -457,7 +483,7 @@ export default function SearchClient() {
       </div>
 
       {/* Results */}
-      <main id="main" className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
+      <main id="main" aria-busy={showSkeleton} className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
         <div className="mb-5 flex flex-wrap items-center gap-3">
           <p className="text-[15px] font-extrabold text-sv-ink" aria-live="polite">
             {showSkeleton ? t('search.loading') : t('search.results', { n: totalResults })}

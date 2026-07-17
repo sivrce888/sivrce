@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { signIn } from 'next-auth/react'
 import { LogIn, Star } from 'lucide-react'
 import { getListing } from '@/data/listings'
 import { useI18n } from '@/lib/i18n/context'
@@ -112,13 +111,13 @@ export default function MyReviews({ signedIn }: { signedIn: boolean }) {
       {state.status === 'anon' && (
         <div className="flex flex-wrap items-center gap-4">
           <p className="text-[14px] font-semibold text-sv-ink/50">{tt('reviewsSignIn')}</p>
-          <button
-            onClick={() => signIn('google')}
+          <Link
+            href="/auth/signin?callbackUrl=/account"
             className="flex h-11 items-center gap-2 rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-white shadow-glow-orange transition-all hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
           >
             <LogIn className="h-4 w-4" aria-hidden="true" />
             {tt('signIn')}
-          </button>
+          </Link>
         </div>
       )}
 

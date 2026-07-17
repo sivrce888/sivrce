@@ -13,6 +13,8 @@ const STRINGS = {
     empty: 'ჯერ არაფერი გაქვს შენახული',
     remove: 'წაშლა',
     allListings: 'ყველა განცხადება',
+    showMore: 'მეტის ჩვენება',
+    loadingMore: 'იტვირთება…',
   },
   en: {
     saveSearch: 'Save search',
@@ -22,6 +24,8 @@ const STRINGS = {
     empty: 'Nothing saved yet',
     remove: 'Delete',
     allListings: 'All listings',
+    showMore: 'Show more',
+    loadingMore: 'Loading…',
   },
   ru: {
     saveSearch: 'Сохранить поиск',
@@ -31,6 +35,8 @@ const STRINGS = {
     empty: 'Пока ничего не сохранено',
     remove: 'Удалить',
     allListings: 'Все объявления',
+    showMore: 'Показать ещё',
+    loadingMore: 'Загрузка…',
   },
 } as const
 

@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Bell, LayoutDashboard, Mail, Shield } from "lucide-react"
+import { Bell, LayoutDashboard, Mail, Shield, UserCog } from "lucide-react"
 
-import DashboardShell from "@/components/dashboard/DashboardShell"
+import { chooseSelfRole } from "@/app/auth/actions"
 import { toggleListingAlerts } from "@/app/settings/actions"
+import DashboardShell from "@/components/dashboard/DashboardShell"
+import { ROLE_LABEL_KA, SELF_SERVE_ROLES, isSelfServeRole } from "@/lib/auth-roles"
 import {
   dashboardPathFor,
   settingsNavFor,
@@ -66,11 +68,51 @@ export default async function SettingsPage() {
                 {user.name ?? "სახელი არ არის მითითებული"} · {user.email}
               </p>
               <p className="mt-2 inline-flex rounded-full bg-sv-blue/10 px-3 py-1 text-[11.5px] font-bold text-sv-blue">
-                როლი: {user.role}
+                როლი:{" "}
+                {isSelfServeRole(user.role)
+                  ? ROLE_LABEL_KA[user.role].title
+                  : user.role}
               </p>
             </div>
           </div>
         </section>
+
+        {user.role !== "admin" ? (
+          <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
+            <div className="mb-4 flex items-start gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+                <UserCog size={18} aria-hidden />
+              </span>
+              <div>
+                <h2 className="text-[15px] font-extrabold text-sv-ink">პროფილის ტიპი</h2>
+                <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+                  შეცვალე როლი — პანელი და ნავიგაცია ავტომატურად განახლდება.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {SELF_SERVE_ROLES.map((role) => (
+                <form key={role} action={chooseSelfRole}>
+                  <input type="hidden" name="role" value={role} />
+                  <button
+                    type="submit"
+                    disabled={user.role === role}
+                    className={`w-full rounded-module border px-4 py-3 text-left transition ${
+                      user.role === role
+                        ? "border-sv-blue bg-sv-blue/8 text-sv-blue"
+                        : "border-sv-ink/8 hover:border-sv-blue/40 hover:bg-sv-cloud"
+                    }`}
+                  >
+                    <span className="block text-[13px] font-extrabold">{ROLE_LABEL_KA[role].title}</span>
+                    <span className="mt-0.5 block text-[11.5px] font-medium text-sv-ink/50">
+                      {ROLE_LABEL_KA[role].blurb}
+                    </span>
+                  </button>
+                </form>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <div className="flex items-start gap-3">

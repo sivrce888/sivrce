@@ -3,6 +3,7 @@ import NextAuth, { type NextAuthConfig } from "next-auth"
 import Google from "next-auth/providers/google"
 
 import { db } from "@/lib/db"
+import { sendWelcomeEmail } from "@/lib/email"
 
 const providers: NextAuthConfig["providers"] = []
 
@@ -29,6 +30,8 @@ if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   providers,
+  // Vercel / reverse proxies: trust X-Forwarded-Host for callback URLs.
+  trustHost: true,
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
@@ -39,6 +42,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.id = user.id
       session.user.role = user.role
       return session
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      if (!user.email) return
+      sendWelcomeEmail({
+        to: user.email,
+        name: user.name ?? user.email.split("@")[0] ?? "friend",
+      })
     },
   },
   // Database sessions via the Prisma adapter (Session model in schema).

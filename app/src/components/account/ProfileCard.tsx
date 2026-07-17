@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import Link from 'next/link'
 import { LogIn, User } from 'lucide-react'
 import SectionHeader from './SectionHeader'
 import { useAccountStrings } from './i18n'
@@ -35,13 +35,13 @@ export default function ProfileCard({ user }: { user: AccountUser | null }) {
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={() => signIn('google')}
+          <Link
+            href="/auth/signin?callbackUrl=/account"
             className="flex h-11 items-center gap-2 rounded-full bg-sv-orange px-6 text-[14px] font-extrabold text-white shadow-glow-orange transition-all hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
           >
             <LogIn className="h-4 w-4" aria-hidden="true" />
             {tt('signIn')}
-          </button>
+          </Link>
           <p className="text-[13px] font-semibold text-sv-ink/50">{tt('signInHint')}</p>
         </div>
       )}

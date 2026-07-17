@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { createTour, getToursByUser } from "@/lib/tours"
 import { db } from "@/lib/db"
+import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { isSameOrigin } from "@/lib/security/origin"
 
 export async function GET() {
   const session = await auth()
@@ -18,11 +20,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  // Same-origin check
-  const origin = req.headers.get("origin")
-  const host = req.headers.get("host")
-  if (origin && host && !origin.endsWith(host)) {
+  if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+  if (!checkRateLimit(`tours:${ip}`).ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 
   try {
@@ -38,6 +41,10 @@ export async function POST(req: NextRequest) {
     }
     if (guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 })
+    }
+    const parsedDate = new Date(tourDate)
+    if (typeof tourDate !== "string" || Number.isNaN(parsedDate.getTime())) {
+      return NextResponse.json({ error: "Invalid tour date" }, { status: 400 })
     }
 
     // Get listing to find agent

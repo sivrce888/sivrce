@@ -7,6 +7,7 @@ import FavoritesCard from '@/components/account/FavoritesCard'
 import SavedSearchesCard from '@/components/account/SavedSearchesCard'
 import RecentlyViewed from '@/components/account/RecentlyViewed'
 import MyReviews from '@/components/account/MyReviews'
+import MyTours from '@/components/account/MyTours'
 import { jsonLd } from '@/lib/utils'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -54,6 +55,7 @@ export default async function AccountPage() {
           <div className="grid gap-6 md:grid-cols-2">
             <FavoritesCard />
             <SavedSearchesCard />
+            <MyTours />
           </div>
           <MyReviews signedIn={user !== null} />
           <RecentlyViewed hideWhenEmpty={false} />
