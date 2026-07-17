@@ -138,6 +138,8 @@ export const ru: Dict = {
   'detail.messagingSoonText': 'Чат с агентом в разработке',
   'detail.agentPhone': 'Телефон агента',
   'detail.verifiedBy': 'Объявление проверено командой Sivrce',
+  'detail.tourTitle': 'Записаться на просмотр',
+  'detail.tourSubtitle': 'Запланируйте визит с агентом — выберите удобные дату и время.',
   'detail.safetyTitle': 'Совет по безопасности',
   'detail.safetyText':
     'Не платите аванс до просмотра недвижимости. Sivrce никогда не просит оплату вне платформы.',

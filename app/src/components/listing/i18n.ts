@@ -27,6 +27,8 @@ const ru: Record<ListingCopyKey, string> = {
   reviewsTitle: 'Отзывы и рейтинг',
   reviewsSub: 'Что гости и покупатели говорят об этом объявлении',
   similarSub: 'Тот же город · {deal}',
+  tourTitle: 'Записаться на просмотр',
+  tourSubtitle: 'Запланируйте визит с агентом — выберите удобную дату и время.',
 }
 
 const DICTS: Partial<Record<Lang, Record<ListingCopyKey, string>>> = { ka, en, ru }

@@ -168,7 +168,7 @@ export default function TierPurchaseButton({
                   <div className="text-[15px] font-black text-sv-ink">
                     {(tier.priceTetri / 100).toFixed(0)} ₾
                   </div>
-                  {loading === tier ? (
+                  {loading === tier.key ? (
                     <Loader2 className="h-4 w-4 animate-spin text-sv-blue" />
                   ) : (
                     <ChevronRight className="h-4 w-4 text-sv-ink/30" />

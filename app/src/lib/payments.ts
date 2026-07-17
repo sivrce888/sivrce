@@ -15,9 +15,9 @@ export interface PaymentOrder {
   id: string
   provider: string
   providerOrderId: string
-  providerPaymentId?: string
-  userId?: string
-  listingId?: string
+  providerPaymentId?: string | null
+  userId?: string | null
+  listingId?: string | null
   tier: string
   amountTetri: number
   currency: string
@@ -241,6 +241,7 @@ export async function createListingTierOrder(
     ...order,
     redirectUrl,
     createdAt: order.createdAt,
+    providerPaymentId: order.providerPaymentId ?? undefined,
   }
 }
 
@@ -276,6 +277,7 @@ export async function createAuctionDepositOrder(
     ...order,
     redirectUrl,
     createdAt: order.createdAt,
+    providerPaymentId: order.providerPaymentId ?? undefined,
   }
 }
 

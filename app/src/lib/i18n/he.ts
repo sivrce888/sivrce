@@ -138,6 +138,8 @@ export const he: Dict = {
   'detail.messagingSoonText': 'צ׳אט עם הסוכן בעבודה',
   'detail.agentPhone': 'טלפון הסוכן',
   'detail.verifiedBy': 'המודעה אומתה על ידי צוות Sivrce',
+  'detail.tourTitle': 'הזמנת סיור',
+  'detail.tourSubtitle': 'קבעו ביקור עם הסוכן — בחרו תאריך ושעה שמתאימים לכם.',
   'detail.safetyTitle': 'טיפ בטיחות',
   'detail.safetyText':
     'אל תשלמו מקדמה לפני צפייה בנכס. Sivrce לעולם לא תבקש תשלום מחוץ לפלטפורמה.',

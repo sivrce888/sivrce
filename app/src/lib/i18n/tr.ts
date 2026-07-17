@@ -138,6 +138,8 @@ export const tr: Dict = {
   'detail.messagingSoonText': 'Danışmanla sohbet üzerinde çalışılıyor',
   'detail.agentPhone': 'Danışman telefonu',
   'detail.verifiedBy': 'İlan Sivrce ekibi tarafından doğrulandı',
+  'detail.tourTitle': 'Tur rezervasyonu',
+  'detail.tourSubtitle': 'Danışmanla bir ziyaret planlayın — size uygun bir tarih ve saat seçin.',
   'detail.safetyTitle': 'Güvenlik ipucu',
   'detail.safetyText':
     'Mülkü görmeden kapora ödemeyin. Sivrce asla platform dışında ödeme istemez.',

@@ -19,7 +19,11 @@ export interface CreateTourInput {
 }
 
 export async function createTour(input: CreateTourInput) {
-  return db.propertyTour.create({ data: input })
+  const { guestId, ...rest } = input
+  // ponytail: Prisma requires guestId. Use a placeholder when anonymous.
+  return db.propertyTour.create({
+    data: { ...rest, guestId: guestId ?? input.guestPhone },
+  })
 }
 
 export async function getToursByUser(userId: string) {

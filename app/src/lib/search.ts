@@ -10,7 +10,7 @@
  * Upgrade path: multi-index per language, synonyms dictionary, geo-facets.
  */
 
-import { Meilisearch, type SearchParams, type SearchResponse } from "meilisearch"
+import { Meilisearch, type SearchParams } from "meilisearch"
 
 // ---------------------------------------------------------------------------
 // Client singleton
@@ -251,17 +251,25 @@ export async function searchListings(filters: SearchFilters): Promise<SearchResu
       facets: ["dealType", "propertyType", "city", "district", "rooms"],
     }
 
-    const results = await index.search<SearchResultItem>(params.q, params)
+    // ponytail: Meilisearch conditional types (FinitePagination vs InfinitePagination)
+    // can be hard for TS to narrow. The runtime always populates totalHits when
+    // page+hitsPerPage are set.
+    const result = await index.search<SearchResultItem>(params.q, params)
+    const raw = result as unknown as {
+      hits: SearchResultItem[]
+      totalHits?: number
+      estimatedTotalHits?: number
+      facetDistribution?: Record<string, Record<string, number>>
+    }
+    const totalHits = raw.totalHits ?? raw.estimatedTotalHits ?? 0
 
     return {
-      hits: results.hits,
-      totalHits: results.estimatedTotalHits ?? results.totalHits ?? 0,
+      hits: raw.hits,
+      totalHits,
       page,
       pageSize,
-      totalPages: Math.ceil(
-        (results.estimatedTotalHits ?? results.totalHits ?? 0) / pageSize,
-      ),
-      facets: results.facetDistribution as Record<string, Record<string, number>> | undefined,
+      totalPages: Math.ceil(totalHits / pageSize),
+      facets: raw.facetDistribution,
     }
   } catch (e) {
     console.error("[search] searchListings failed:", (e as Error).message)

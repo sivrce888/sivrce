@@ -138,6 +138,8 @@ export const hy: Dict = {
   'detail.messagingSoonText': 'Չաթը գործակալի հետ մշակվում է',
   'detail.agentPhone': 'Գործակալի հեռախոս',
   'detail.verifiedBy': 'Հայտարարությունը ստուգված է Sivrce թիմի կողմից',
+  'detail.tourTitle': 'Գրանցվել շրջայցի',
+  'detail.tourSubtitle': 'Պլանավորեք այցելություն գործակալի հետ — ընտրեք ձեզ հարմար ամսաթիվ և ժամ։',
   'detail.safetyTitle': 'Անվտանգության խորհուրդ',
   'detail.safetyText':
     'Մի վճարեք կանխավճար՝ առանց գույքը տեսնելու։ Sivrce-ը երբեք չի պահանջի վճարում հարթակից դուրս։',

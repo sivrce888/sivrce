@@ -138,6 +138,8 @@ export const ar: Dict = {
   'detail.messagingSoonText': 'الدردشة مع الوكيل قيد العمل',
   'detail.agentPhone': 'هاتف الوكيل',
   'detail.verifiedBy': 'إعلان موثّق من فريق Sivrce',
+  'detail.tourTitle': 'احجز جولة',
+  'detail.tourSubtitle': 'حدد موعد زيارة مع الوكيل — اختر التاريخ والوقت المناسبين لك.',
   'detail.safetyTitle': 'نصيحة أمان',
   'detail.safetyText':
     'لا تدفع أي عربون قبل معاينة العقار. لن تطلب منك Sivrce الدفع خارج المنصة أبدًا.',
