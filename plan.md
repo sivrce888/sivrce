@@ -14,21 +14,25 @@
 - Market: +995 phone validation in wizard, daily rental (დღიურად) real end-to-end,
   Google sign-in wired, minimal service worker (PWA).
 
-## Next iteration (scored, best-first)
+## Next iteration (scored, best-first) — refreshed 2026-07-17 evening
+Done since first pass: listings API + auth gate, 3D map (maplibre), inquiries
+end-to-end, global ₾/$ provider, noindex on all 29 private/utility pages,
+AI search (Gemini adapter + AISection), building reviews, segmented currency
+switcher.
+
 1. **10 — Route-based i18n** (`app/[lang]/…` server-rendered ka/en/ru + hreflang).
-   The only structural SEO gap vs myhome/ss/korter; gets costlier the longer we wait.
-2. **9 — DB persistence**: `POST /api/listings` (zod + auth gate), wizard publish →
-   real listing, `data/listings.ts` → `db.listing.findMany()`. Unblocks everything below.
-3. **9 — Real map** (maplibre-gl, OSM): search map view + detail-page map.
-   Homepage already promises it.
-4. **8 — Inquiries**: `POST /api/inquiries` (Inquiry model exists), contact form +
-   agent message form post to it.
-5. **8 — Global ₾/$ currency provider** (I18nProvider pattern; card/chips/wizard/detail).
-6. **7 — OG JPEG derivatives** for listing shares (WhatsApp/Viber render WebP badly).
-7. **7 — Server-component split** of homepage sections (kill client-tree hydration,
-   framer-motion only in leaf islands).
-8. **6 — Saved searches** (localStorage first → API after #2), price-history block,
-   compare tray, nonce-based CSP.
+   The only structural SEO gap vs myhome/ss/korter; every other technical SEO
+   item is done. Own session: moves ~150 routes, rewrites every Link, translates
+   1,486 programmatic pages. Gets costlier the longer we wait.
+2. **9 — Static → DB on read paths**: homepage + sitemap still read
+   `data/listings.ts`; search API already hits Prisma. Switch reads to
+   `db.listing.findMany()` so real inventory flows everywhere.
+3. **8 — Search Console**: verify property, submit sitemap, watch queries.
+   Owner's Google account needed — 10 minutes, no code.
+4. **7 — Mobile LCP** (~85 on mobile): server-component split of homepage
+   sections, framer-motion only in leaf islands.
+5. **6 — WhatsApp/email listing alerts** (Korter's only moat), saved-search →
+   API, price-history block, compare tray, nonce-based CSP.
 
 ## Verify gate (every batch)
 `npm run lint` 0 problems · `npm run build` exit 0 · push to main = production.

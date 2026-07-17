@@ -281,11 +281,13 @@ export default function AddListingClient() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6, ease }}
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
+            {/* ponytail: public /listing/[id] still reads the static catalog —
+                send publishers to their dashboard until plan #2 (db-backed catalog) lands. */}
             <Link
-              href="/search"
+              href="/seller/listings"
               className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
             >
-              {t('add.successView')}
+              {t('add.successDashboard')}
             </Link>
             <button
               onClick={() => { setPublished(false); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false) }}
@@ -831,12 +833,20 @@ export default function AddListingClient() {
                     {t('add.continue')}
                   </button>
                 ) : (
-                  <button
-                    onClick={() => (stepValid ? setPublished(true) : setTouched(true))}
-                    className="rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3.5 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
-                  >
-                    {t('add.publish')}
-                  </button>
+                  <>
+                    {failed && (
+                      <span className="flex items-center gap-1.5 text-[12px] font-extrabold text-sv-orange">
+                        <Flame className="h-3.5 w-3.5" /> {t('add.publishError')}
+                      </span>
+                    )}
+                    <button
+                      onClick={publish}
+                      disabled={busy}
+                      className="rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3.5 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
+                    >
+                      {busy ? t('add.publishing') : t('add.publish')}
+                    </button>
+                  </>
                 )}
               </div>
             </div>

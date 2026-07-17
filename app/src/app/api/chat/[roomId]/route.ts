@@ -7,7 +7,7 @@
 
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
-import { getChatMessages, sendMessage, markRead } from "@/lib/chat"
+import { getChatMessages, isChatParticipant, markRead, sendMessage } from "@/lib/chat"
 
 interface RouteParams {
   params: Promise<{ roomId: string }>
@@ -20,6 +20,10 @@ export async function GET(req: Request, { params }: RouteParams) {
   }
 
   const { roomId } = await params
+  if (!(await isChatParticipant(roomId, session.user.id))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 })
+  }
+
   const { searchParams } = new URL(req.url)
   const cursor = searchParams.get("cursor") ?? undefined
 
@@ -61,6 +65,9 @@ export async function POST(req: Request, { params }: RouteParams) {
     )
     return NextResponse.json({ message }, { status: 201 })
   } catch (error) {
+    if ((error as Error).message === "not_participant") {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 })
+    }
     console.error("[api/chat/roomId] POST failed:", (error as Error).message)
     return NextResponse.json({ error: "server_error" }, { status: 500 })
   }

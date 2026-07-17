@@ -52,6 +52,11 @@ export interface PaymentProvider {
 // ---------------------------------------------------------------------------
 
 function createMockProvider(): PaymentProvider {
+  // Mock is a dev tool: in production a silent mock means anyone can mark an
+  // order paid for free. Fail closed instead of falling back.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("payment provider not configured")
+  }
   const prefix = "mock"
   return {
     async createOrder(input) {
@@ -287,12 +292,13 @@ export async function handleCallback(
   provider: PaymentProvider,
   payload: { providerOrderId: string; status?: string },
 ): Promise<void> {
-  const { providerOrderId, status: callbackStatus } = payload
+  const { providerOrderId } = payload
 
-  // Fetch current status from provider
+  // Trust boundary: client-supplied `status` is never trusted. Paid state is
+  // decided only by a server-to-server lookup at the provider.
   const providerStatus = await provider.getOrderStatus(providerOrderId)
 
-  const newStatus = callbackStatus === "success" ? "paid" : providerStatus.status === "captured" ? "paid" : "failed"
+  const newStatus = providerStatus.status === "captured" ? "paid" : "failed"
 
   const order = await db.georgianPaymentOrder.findFirst({
     where: { providerOrderId },

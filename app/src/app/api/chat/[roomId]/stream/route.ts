@@ -22,16 +22,13 @@ export async function GET(req: Request, { params }: RouteParams) {
 
   const { roomId } = await params
 
-  // Verify the user is a participant — auto-join if not (open chat model)
+  // Rooms are private — participants only, membership is set at room creation.
   const { db } = await import("@/lib/db")
   const participant = await db.chatParticipant.findUnique({
     where: { roomId_userId: { roomId, userId: session.user.id } },
   })
   if (!participant) {
-    // ponytail: auto-join via stream subscription
-    await db.chatParticipant.create({
-      data: { roomId, userId: session.user.id, role: "member" },
-    })
+    return new Response("forbidden", { status: 403 })
   }
 
   const encoder = new TextEncoder()

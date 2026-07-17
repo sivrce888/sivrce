@@ -1,13 +1,14 @@
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 
 const TABS = [
-  { href: "/admin/system/config", label: "Config" },
-  { href: "/admin/system/audit", label: "Audit log" },
-  { href: "/admin/system/notifications", label: "Notifications" },
-  { href: "/admin/system/data", label: "Data" },
+  { tab: "config", href: "/admin/system", label: "Config" },
+  { tab: "broadcast", href: "/admin/system?tab=broadcast", label: "Broadcast" },
+  { tab: "audit", href: "/admin/system?tab=audit", label: "Audit log" },
 ] as const
 
 /** Sub-navigation shared by all /admin/system pages. */
 export function SystemTabs({ active }: { active: string }) {
-  return <TabLinks items={TABS.map((t) => ({ ...t, active: t.href === active }))} />
+  return (
+    <TabLinks items={TABS.map((t) => ({ href: t.href, label: t.label, active: t.tab === active }))} />
+  )
 }

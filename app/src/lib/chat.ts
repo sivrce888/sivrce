@@ -11,6 +11,15 @@ import { Prisma } from "@/generated/prisma/client"
 // Chat rooms
 // ---------------------------------------------------------------------------
 
+/** True iff the user is a participant of the room. */
+export async function isChatParticipant(roomId: string, userId: string): Promise<boolean> {
+  const p = await db.chatParticipant.findUnique({
+    where: { roomId_userId: { roomId, userId } },
+    select: { userId: true },
+  })
+  return p !== null
+}
+
 /** Find existing or create a new chat room for a listing. */
 export async function getOrCreateChatRoom(listingId: string, userId: string) {
   // Look for an existing room where this user is already a participant
@@ -28,10 +37,10 @@ export async function getOrCreateChatRoom(listingId: string, userId: string) {
 
   if (existing) return existing
 
-  // Fetch listing title for the room name
+  // Fetch listing title for the room name + owner for the counterparty seat
   const listing = await db.listing.findUnique({
     where: { id: listingId },
-    select: { title: true },
+    select: { title: true, ownerId: true },
   })
 
   const title = listing?.title ?? `Chat ${listingId.slice(0, 8)}`
@@ -41,7 +50,13 @@ export async function getOrCreateChatRoom(listingId: string, userId: string) {
       listingId,
       title,
       participants: {
-        create: { userId, role: "member" },
+        create: [
+          { userId, role: "member" },
+          // The listing owner is the other side of the conversation.
+          ...(listing?.ownerId && listing.ownerId !== userId
+            ? [{ userId: listing.ownerId, role: "owner" }]
+            : []),
+        ],
       },
     },
     include: {
@@ -121,10 +136,8 @@ export async function sendMessage(
   })
 
   if (!participant) {
-    // ponytail: auto-join if not a participant yet (open chat model)
-    await db.chatParticipant.create({
-      data: { roomId, userId: senderId, role: "member" },
-    })
+    // Rooms are private: membership is granted at room creation only.
+    throw new Error("not_participant")
   }
 
   const [message] = await Promise.all([
