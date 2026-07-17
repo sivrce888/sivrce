@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import LocalizedHome from '@/components/i18n/LocalizedHome'
 
+// Refresh featured listings from DB hourly (ISR).
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'Недвижимость в Грузии — квартиры и дома: продажа и аренда',
   description:
