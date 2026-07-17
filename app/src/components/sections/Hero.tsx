@@ -20,11 +20,9 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-36 md:px-10">
-        {/* LCP content: static markup + paint-driven CSS entrance (sv-hero-in), no hydration gate */}
-        <div
-          className="sv-hero-in mb-7 flex items-center gap-2.5 rounded-full glass px-5 py-2.5"
-          style={{ animationDelay: '0.05s' }}
-        >
+        {/* LCP content paints instantly — no entrance animation on badge/h1/subtitle
+            (opacity-0 start cost ~1.2s mobile LCP). Animation kept on trust row only. */}
+        <div className="mb-7 flex items-center gap-2.5 rounded-full glass px-5 py-2.5">
           <span className="relative flex h-2.5 w-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sv-success opacity-60" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sv-success" />
@@ -35,30 +33,10 @@ export default function Hero() {
         </div>
 
         <h1 className="text-balance text-center text-[44px] font-black leading-[1.06] tracking-[-0.03em] text-white md:text-[72px] lg:text-[84px]">
-          <span className="sv-word-mask">
-            <span className="sv-word" style={{ animationDelay: '0.1s' }}>
-              იპოვე
-            </span>
-          </span>{' '}
-          <span className="sv-word-mask">
-            <span className="sv-word" style={{ animationDelay: '0.18s' }}>
-              შენი
-            </span>
-          </span>{' '}
-          <span className="sv-word-mask">
-            <span
-              className="sv-word text-gradient-blue text-gradient-shimmer"
-              style={{ animationDelay: '0.28s' }}
-            >
-              სივრცე
-            </span>
-          </span>
+          იპოვე შენი <span className="text-gradient-blue text-gradient-shimmer">სივრცე</span>
         </h1>
 
-        <p
-          className="sv-hero-in mt-6 max-w-[640px] text-balance text-center text-[16px] font-medium leading-relaxed text-white/70 md:text-[19px]"
-          style={{ animationDelay: '0.08s' }}
-        >
+        <p className="mt-6 max-w-[640px] text-balance text-center text-[16px] font-medium leading-relaxed text-white/70 md:text-[19px]">
           ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები — ყველაფერი ერთ
           პლატფორმაზე, 3D რუკით და AI შეფასებით
         </p>
