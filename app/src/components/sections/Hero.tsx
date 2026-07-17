@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Home, Banknote, Ruler, SlidersHorizontal, Sparkles, ChevronDown, BadgeCheck, ShieldCheck, Zap } from 'lucide-react'
+import { Search, MapPin, Home, Banknote, Ruler, SlidersHorizontal, ChevronDown, BadgeCheck, ShieldCheck, Zap } from 'lucide-react'
 import HeroBackground from './HeroBackground'
+import { SparkMark } from '@/components/SparkMark'
 import { DEAL_BRAND } from '@/lib/category-brand'
 
 /* Deal tabs — locked DEAL_BRAND (BRAND.md §3.2) */
@@ -185,7 +186,7 @@ export default function Hero() {
                 <MapPin className="h-4 w-4" /> ძიება რუკით
               </button>
               <button className="flex items-center gap-2 rounded-control bg-gradient-to-r from-sv-blue/25 to-sv-violet/25 px-3 py-3 text-[13px] font-bold text-sv-blue-light ring-1 ring-inset ring-sv-blue/40 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
-                <Sparkles className="h-4 w-4" /> AI ძიება ბუნებრივი ენით
+                <SparkMark className="h-4 w-4" /> AI ძიება ბუნებრივი ენით
               </button>
             </div>
           </div>
