@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronRight, MapPin, TrendingUp, LayoutGrid, Sparkles } from 'lucide-react'
+import { ChevronRight, MapPin, TrendingUp, LayoutGrid } from 'lucide-react'
+import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
@@ -153,7 +154,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
         {/* Header */}
         <header className="mb-8">
           <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden /> AI შეფასებით
+            <SparkMark className="h-3.5 w-3.5" aria-hidden /> AI შეფასებით
           </span>
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             {h1}

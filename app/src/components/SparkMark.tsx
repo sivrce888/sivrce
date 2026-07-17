@@ -6,8 +6,17 @@ import { useId } from 'react'
    Two crescent blades, exact 180° symmetry about (24,24), locked brand
    gradients. AI features only — never replaces the Space Point master logo.
    Lucide-compatible sizing: <SparkMark className="h-4 w-4" /> */
-export function SparkMark({ className = 'h-4 w-4' }: { className?: string }) {
+export function SparkMark({ className = 'h-4 w-4', mono = false }: { className?: string; mono?: boolean }) {
   const id = useId().replace(/:/g, '')
+  if (mono) {
+    /* Mono variant (logo/assets/sivrce-spark-mono-*.svg) — for filled chips */
+    return (
+      <svg viewBox="0 0 48 48" className={className} aria-hidden>
+        <path d="M24 3.2 Q21.4 21.4 3.2 24 Q25.2 25.2 24 3.2 Z" fill="currentColor" />
+        <path d="M24 44.8 Q26.6 26.6 44.8 24 Q22.8 22.8 24 44.8 Z" fill="currentColor" />
+      </svg>
+    )
+  }
   return (
     <svg viewBox="0 0 48 48" className={className} aria-hidden>
       <defs>

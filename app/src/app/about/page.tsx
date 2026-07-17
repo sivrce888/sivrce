@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ShieldCheck, Sparkles, Map as MapIcon, MessageCircle, ArrowRight } from 'lucide-react'
+import { ShieldCheck, Map as MapIcon, MessageCircle, ArrowRight } from 'lucide-react'
+import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
@@ -18,7 +19,7 @@ const VALUES = [
     text: 'ყოველი აგენტი და განცხადება გადის შემოწმებას — ხედავ მხოლოდ რეალურ ობიექტებს, რეალური ფასებით.',
   },
   {
-    icon: Sparkles,
+    icon: SparkMark,
     title: 'AI ფასის შეფასება',
     text: 'ხელოვნური ინტელექტი ადარებს ფასს ბაზრის ათასობით მაჩვენებელს და გაჩვენებს, რამდენად სამართლიანია ის.',
   },
