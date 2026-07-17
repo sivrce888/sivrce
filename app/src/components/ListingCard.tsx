@@ -6,7 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame } from 'lucide-react'
 import type { Listing } from '@/data/listings'
-import { formatListingPrice, formatPerM2, formatViews, formatFloor } from '@/data/listings'
+import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
+import { useCurrency } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
@@ -52,7 +53,12 @@ interface ListingCardProps {
 export default function ListingCard({ l, i = 0, layout = 'grid', animate = true }: ListingCardProps) {
   const { has, toggle } = useFavorites()
   const { t } = useI18n()
+  const { format, currency } = useCurrency()
   const fav = has(l.id)
+
+  const priceGEL = l.priceGEL
+  const suffix = l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
+  const displayPrice = `${format(priceGEL)}${suffix}`
 
   const favButton = (
     <button
@@ -93,9 +99,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {favButton}
       <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
         <div>
-          <div className="text-[24px] font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">{formatListingPrice(l)}</div>
+          <div className="text-[24px] font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">{displayPrice}</div>
           {/* perM2 only meaningful for sale; rent/daily are priced per period */}
-          {l.dealType === 'sale' && <div className="text-[12px] font-bold text-white/75">{formatPerM2(l)}</div>}
+          {l.dealType === 'sale' && <div className="text-[12px] font-bold text-white/75">{formatPerM2(l, currency)}</div>}
         </div>
         <span className="flex items-center gap-1 rounded-full bg-sv-navy/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur">
           <Eye className="h-3 w-3" /> {formatViews(l.views)}
