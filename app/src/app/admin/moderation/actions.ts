@@ -6,10 +6,12 @@ import { revalidatePath } from "next/cache"
 
 import {
   ComplaintStatus,
+  ListingStatus,
   ModerationDecision,
   ModerationQueueStatus,
   ShadowBanScope,
 } from "@/generated/prisma/enums"
+import type { Prisma } from "@/generated/prisma/client"
 import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { BLOCKLIST_KINDS } from "@/lib/admin/moderation"
@@ -39,11 +41,58 @@ export async function decideQueueItem(fd: FormData) {
   const notes = optString(fd, "notes", 2000)
   const before = await db.moderationQueue.findUniqueOrThrow({
     where: { id },
-    select: { status: true, subjectKind: true, subjectId: true },
+    select: { status: true, subjectKind: true, subjectId: true, subjectUserId: true },
   })
   const status = DECISION_STATUS[decision]
   const reviewedAt = new Date()
+  // Enforcement writes — a decision must actually land on its subject.
+  const enforce: Prisma.PrismaPromise<unknown>[] = []
+  if (decision === "hide" || decision === "delete") {
+    if (before.subjectKind === "listing") {
+      enforce.push(
+        db.listing.update({
+          where: { id: before.subjectId },
+          data:
+            decision === "hide"
+              ? { status: ListingStatus.withdrawn }
+              : { deletedAt: reviewedAt },
+        }),
+      )
+    } else if (before.subjectKind === "review") {
+      enforce.push(
+        db.review.update({
+          where: { id: before.subjectId },
+          data:
+            decision === "hide"
+              ? { status: "hidden", verified: false }
+              : { deletedAt: reviewedAt },
+        }),
+      )
+    }
+  } else if (decision === "suspend_user") {
+    const userId = before.subjectKind === "user" ? before.subjectId : before.subjectUserId
+    if (userId) {
+      // Dedupe: at most one active shadow ban per user.
+      const existing = await db.shadowBan.findFirst({
+        where: { userId, active: true },
+        select: { id: true },
+      })
+      if (!existing) {
+        enforce.push(
+          db.shadowBan.create({
+            data: {
+              userId,
+              reason: notes ?? "Suspended via moderation queue decision",
+              scope: ShadowBanScope.all,
+              bannedById: session.user.id,
+            },
+          }),
+        )
+      }
+    }
+  }
   await db.$transaction([
+    ...enforce,
     db.moderationQueue.update({
       where: { id },
       data: { status, decision, decisionNotes: notes, reviewedAt, reviewedById: session.user.id },

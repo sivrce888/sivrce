@@ -3,9 +3,7 @@ import { notFound } from 'next/navigation'
 import SeoLanding, { seoMetadata } from '@/components/seo/SeoLanding'
 import { generateAllSeoParams, parseSeoSlug } from '@/lib/seo-pages'
 
-// ponytail: dynamicParams=true — unknown slugs render on demand and hit notFound()
-// below; `false` at root catch-all crashes `next start` (NoFallbackError) on any
-// unmatched asset request.
+// Russian SSR twins of the ka programmatic SEO pages (/ru/sale/apartments/tbilisi…).
 export function generateStaticParams() {
   return generateAllSeoParams().map((seo) => ({ seo }))
 }
@@ -18,12 +16,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { seo } = await params
   const def = parseSeoSlug(seo)
   if (!def) return {}
-  return seoMetadata(def, 'ka')
+  return seoMetadata(def, 'ru')
 }
 
-export default async function SeoLandingPage({ params }: PageProps) {
+export default async function SeoLandingPageRu({ params }: PageProps) {
   const { seo } = await params
   const def = parseSeoSlug(seo)
   if (!def) notFound()
-  return <SeoLanding def={def} loc="ka" />
+  return <SeoLanding def={def} loc="ru" />
 }

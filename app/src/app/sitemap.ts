@@ -14,18 +14,22 @@ export const revalidate = 3600
 // Static pages: one lastmod per deploy, not per request
 const DEPLOY_DATE = new Date('2026-07-17')
 
-// hreflang cluster for every URL: ka is unprefixed (canonical), others get a
-// locale prefix served by middleware rewrites (see src/middleware.ts).
-const PREFIXED = ['en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az'] as const
+// hreflang cluster for pages with real SSR locales: ka is unprefixed (canonical),
+// en/ru get a prefix. Other locales are client-i18n only — not declared (Google
+// ignores hreflang to pages that serve the same ka content anyway).
+const PREFIXED = ['en', 'ru'] as const
 
 type Entry = {
   path: string
   lastModified: Date
   changeFrequency: NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
   priority: number
+  /** True when /en + /ru SSR twins exist (home, programmatic SEO pages). */
+  localized?: boolean
 }
 
-function withHreflang({ path, lastModified, changeFrequency, priority }: Entry): MetadataRoute.Sitemap[number] {
+function toSitemapEntry({ path, lastModified, changeFrequency, priority, localized }: Entry): MetadataRoute.Sitemap[number] {
+  if (!localized) return { url: `${BASE}${path}`, lastModified, changeFrequency, priority }
   const languages: Record<string, string> = { ka: `${BASE}${path}` }
   for (const l of PREFIXED) languages[l] = `${BASE}/${l}${path}`
   languages['x-default'] = `${BASE}${path}`
@@ -41,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch { /* DB unavailable at build — keep static URLs */ }
 
   const entries: Entry[] = [
-    { path: '', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 1 },
+    { path: '', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 1, localized: true },
     { path: '/search', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.9 },
     { path: '/map', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.95 },
     { path: '/buildings', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.9 },

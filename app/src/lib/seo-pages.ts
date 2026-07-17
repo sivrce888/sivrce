@@ -555,7 +555,7 @@ export interface Crumb {
 }
 
 /** Deal label for crumbs/chips: იყიდება / For sale / Продажа. */
-function dealLabel(slug: string, loc: SeoLoc): string {
+export function dealLabel(slug: string, loc: SeoLoc): string {
   const d = DEALS[slug]!
   if (loc === 'en') return `For ${d.enNoun}`
   if (loc === 'ru') return d.ruNoun
