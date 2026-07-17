@@ -36,6 +36,8 @@ export function dashboardPathFor(role: UserRole): string {
       return "/agent"
     case "developer":
       return "/developer"
+    case "seller":
+      return "/seller"
     default:
       return "/account"
   }
