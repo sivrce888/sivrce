@@ -40,8 +40,10 @@ switcher, room-count SEO pages (`/sale/apartments-2/tbilisi` — the "2-ოთ�
    /, /en, /ru, sitemap.xml revalidate hourly.
 3. **8 — Search Console**: verify property, submit sitemap, watch queries.
    Owner's Google account needed — 10 minutes, no code.
-4. **7 — Mobile LCP** (~85 on mobile): server-component split of homepage
-   sections, framer-motion only in leaf islands.
+4. **7 — Mobile LCP** (measured 2026-07-17: score 86, LCP 3.9s): hero badge/h1/
+   subtitle entrance animation (opacity-0 start) cost ~1.2s render delay. Fix
+   `b706883` pushed — LCP text now paints with FCP. **Verify deploy in Vercel,
+   then re-audit** (deploy was pending >15min at push time).
 5. **6 — WhatsApp/email listing alerts** (Korter's only moat), saved-search →
    API, price-history block, compare tray, nonce-based CSP.
 
