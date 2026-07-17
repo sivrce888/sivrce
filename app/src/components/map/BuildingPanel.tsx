@@ -12,6 +12,7 @@ import { useCurrency } from '@/lib/currency'
 import { DEAL_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
 import { dealLabelKa, listingBuildingNumber } from '@/lib/map/buildings'
 import type { MapBuildingCluster } from '@/lib/map/buildings'
+import { buildingFloorCount, listingFloor } from '@/lib/map/floors'
 
 const TABS: { id: DealType | 'all'; label: string; color?: string }[] = [
   { id: 'all', label: 'ყველა' },
@@ -25,14 +26,19 @@ interface BuildingPanelProps {
   building: MapBuildingCluster
   tab: DealType | 'all'
   onTab: (t: DealType | 'all') => void
+  floor?: number | null
+  onFloorClear?: () => void
   onClose: () => void
 }
 
-export default function BuildingPanel({ building, tab, onTab, onClose }: BuildingPanelProps) {
+export default function BuildingPanel({ building, tab, onTab, floor, onFloorClear, onClose }: BuildingPanelProps) {
   const { format } = useCurrency()
   const isConstruction = building.status === 'construction' && building.listings.length === 0
-  const list =
+  const byTab =
     tab === 'all' ? building.listings : building.listings.filter((l) => l.dealType === tab)
+  const floorCount = floor != null ? buildingFloorCount(building) : 0
+  const list =
+    floor == null ? byTab : byTab.filter((l) => listingFloor(l.floor, floorCount) === floor)
 
   return (
     <aside
@@ -203,6 +209,18 @@ export default function BuildingPanel({ building, tab, onTab, onClose }: Buildin
                 )
               })}
             </div>
+
+            {floor != null && (
+              <button
+                type="button"
+                onClick={onFloorClear}
+                className="mt-3 inline-flex min-h-11 items-center gap-2 self-start rounded-full bg-sv-blue px-4 py-2 text-[12px] font-extrabold text-white shadow-glow-blue-sm transition hover:bg-sv-blue-deep"
+                aria-label={`სართული ${floor} — ფილტრის გასუფთავება`}
+              >
+                სართული {floor} · {list.length} თავისუფალია
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </>
         )}
       </header>

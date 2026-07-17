@@ -39,3 +39,36 @@ export async function restoreThread(fd: FormData) {
   })
   revalidatePath("/admin/content/forum")
 }
+
+export async function softDeleteReply(fd: FormData) {
+  const session = await requireAdminAction()
+  const id = reqString(fd, "id", 120)
+  const before = await db.forumReply.findUniqueOrThrow({
+    where: { id },
+    select: { deletedAt: true },
+  })
+  if (before.deletedAt) throw new Error("Reply is already deleted")
+  const deletedAt = new Date()
+  await db.forumReply.update({ where: { id }, data: { deletedAt } })
+  await logAdminAction(session, "content.forum.reply_soft_delete", "forum_reply", id, {
+    before: { deletedAt: null },
+    after: { deletedAt },
+  })
+  revalidatePath("/admin/content/forum")
+}
+
+export async function restoreReply(fd: FormData) {
+  const session = await requireAdminAction()
+  const id = reqString(fd, "id", 120)
+  const before = await db.forumReply.findUniqueOrThrow({
+    where: { id },
+    select: { deletedAt: true },
+  })
+  if (!before.deletedAt) throw new Error("Reply is not deleted")
+  await db.forumReply.update({ where: { id }, data: { deletedAt: null } })
+  await logAdminAction(session, "content.forum.reply_restore", "forum_reply", id, {
+    before: { deletedAt: before.deletedAt },
+    after: { deletedAt: null },
+  })
+  revalidatePath("/admin/content/forum")
+}

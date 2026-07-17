@@ -22,9 +22,11 @@ import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { StatCard } from "@/components/admin/ui/StatCard"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { fmtDate, fmtMoney, fmtNum, fmtTetri, timeAgo } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { getDashboardMetrics } from "@/lib/admin/metrics"
 
 export default async function AdminDashboardPage() {
+  await requireAdmin()
   const m = await getDashboardMetrics()
 
   const revenueHint =

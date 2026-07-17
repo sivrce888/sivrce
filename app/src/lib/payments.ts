@@ -5,6 +5,7 @@
  * fake success so the rest of the system works without payment env vars.
  */
 
+import { getConfig } from "@/lib/config"
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 
@@ -194,18 +195,19 @@ export function getPaymentProvider(): PaymentProvider {
 }
 
 // ---------------------------------------------------------------------------
-// Tier pricing (ponytail: hardcoded — real pricing comes from an admin config)
+// Tier pricing — admin-editable (Admin → System → Settings), stored in tetri
 // ---------------------------------------------------------------------------
 
-const TIER_PRICES: Record<string, number> = {
-  vip: 99_00,        // 99 GEL (tetri)
-  super_vip: 199_00, // 199 GEL
-  diamond: 499_00,   // 499 GEL
-}
+const TIER_CONFIG_KEYS = {
+  vip: "price.vip",
+  super_vip: "price.superVip",
+  diamond: "price.diamond",
+} as const
 
-/** Get the price in tetri for a listing tier upgrade. */
-export function getTierPrice(tier: string): number {
-  return TIER_PRICES[tier] ?? 99_00
+/** Get the price in tetri for a listing tier upgrade (unknown tier → VIP price). */
+export async function getTierPrice(tier: string): Promise<number> {
+  const key = TIER_CONFIG_KEYS[tier as keyof typeof TIER_CONFIG_KEYS] ?? TIER_CONFIG_KEYS.vip
+  return getConfig(key)
 }
 
 // ---------------------------------------------------------------------------
@@ -218,7 +220,7 @@ export async function createListingTierOrder(
   listingId: string,
   tier: string,
 ): Promise<PaymentOrder> {
-  const amountTetri = getTierPrice(tier)
+  const amountTetri = await getTierPrice(tier)
   const provider = getPaymentProvider()
 
   const { providerOrderId, redirectUrl } = await provider.createOrder({

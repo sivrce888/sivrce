@@ -20,6 +20,7 @@ import {
   type ActivityType,
 } from "@/lib/admin/crm"
 import { fmtDate, fmtDateTime, fmtMoney, timeAgo } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 
 export const metadata = { title: "Lead detail" }
 
@@ -61,6 +62,7 @@ export default async function AdminCrmLeadPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAdmin()
   const { id } = await params
   const lead = await getCrmLead(id)
   if (!lead) notFound()

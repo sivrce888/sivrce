@@ -14,6 +14,7 @@ import { StatusPill } from "@/components/admin/ui/StatusPill"
 import type { Prisma } from "@/generated/prisma/client"
 import { TourStatus } from "@/generated/prisma/enums"
 import { fmtDate, fmtNum, timeAgo } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
 import { db } from "@/lib/db"
 
@@ -30,6 +31,7 @@ export default async function AdminToursPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const page = parsePage(sp.page)
   const status = param(sp.status)
@@ -152,7 +154,7 @@ export default async function AdminToursPage({
                       {t.listing.title}
                     </Link>
                   </td>
-                  <td className={`${td} whitespace-nowrap`}>{t.agent.name}</td>
+                  <td className={`${td} whitespace-nowrap`}>{t.agent?.name ?? "მფლობელი"}</td>
                   <td className={`${td} whitespace-nowrap`}>
                     <span className="block">{fmtDate(t.tourDate)}</span>
                     <span className="mt-0.5 block text-[12px] text-sv-ink/45">{t.tourTime}</span>

@@ -8,6 +8,7 @@ export const AGENCY_NAV: DashboardNavItem[] = [
   { href: "/agency/leads", label: "ლიდები" },
   { href: "/agency/team", label: "გუნდი" },
   { href: "/agency/analytics", label: "ანალიტიკა" },
+  { href: "/agency/profile", label: "პროფილი" },
   { href: "/settings", label: "პარამეტრები" },
 ]
 

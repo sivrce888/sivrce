@@ -1,6 +1,10 @@
 import { Check, Star } from "lucide-react"
 
-import { deleteReview, toggleReviewVerified } from "@/app/admin/content/reviews/actions"
+import {
+  deleteReview,
+  deleteServiceProviderReview,
+  toggleReviewVerified,
+} from "@/app/admin/content/reviews/actions"
 import { ContentTabs } from "@/components/admin/content/ContentTabs"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { DataTable, THeadRow, TRow, td, th } from "@/components/admin/ui/DataTable"
@@ -9,11 +13,20 @@ import { FilterSelect } from "@/components/admin/ui/FilterSelect"
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { Pagination } from "@/components/admin/ui/Pagination"
 import { SearchForm } from "@/components/admin/ui/SearchForm"
+import { TabLinks } from "@/components/admin/ui/TabLinks"
 import type { Prisma } from "@/generated/prisma/client"
 import { REVIEW_TARGET_TYPES } from "@/lib/admin/content"
 import { fmtDate, fmtNum } from "@/lib/admin/format"
-import { shortRef } from "@/lib/admin/moderation"
-import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
+import { requireAdmin } from "@/lib/admin/guard"
+import { shortRef, userLabel } from "@/lib/admin/moderation"
+import {
+  ADMIN_PAGE_SIZE,
+  hrefWithParams,
+  mergeParams,
+  param,
+  parsePage,
+  type SearchParams,
+} from "@/lib/admin/query"
 import { db } from "@/lib/db"
 
 export const metadata = { title: "Reviews" }
@@ -33,12 +46,75 @@ export default async function ReviewsListPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const page = parsePage(sp.page)
   const q = param(sp.q)
   const targetType = param(sp.targetType)
   const verified = param(sp.verified)
+  const tab = param(sp.tab) === "providers" ? "providers" : "reviews"
 
+  const tabs = [
+    {
+      href: hrefWithParams(
+        "/admin/content/reviews",
+        mergeParams(sp, {
+          tab: undefined,
+          page: undefined,
+          q: undefined,
+          targetType: undefined,
+          verified: undefined,
+        }),
+      ),
+      label: "Reviews",
+      active: tab === "reviews",
+    },
+    {
+      href: hrefWithParams(
+        "/admin/content/reviews",
+        mergeParams(sp, {
+          tab: "providers",
+          page: undefined,
+          q: undefined,
+          targetType: undefined,
+          verified: undefined,
+        }),
+      ),
+      label: "Provider reviews",
+      active: tab === "providers",
+    },
+  ]
+
+  return (
+    <>
+      <PageHeader title="Reviews" description="Listing reviews and service-provider feedback" />
+      <ContentTabs active="/admin/content/reviews" />
+      <TabLinks items={tabs} />
+
+      {tab === "reviews" ? (
+        <ReviewsTab page={page} q={q} targetType={targetType} verified={verified} sp={sp} />
+      ) : (
+        <ProvidersTab page={page} q={q} sp={sp} />
+      )}
+    </>
+  )
+}
+
+/* --------------------------------- reviews --------------------------------- */
+
+async function ReviewsTab({
+  page,
+  q,
+  targetType,
+  verified,
+  sp,
+}: {
+  page: number
+  q: string
+  targetType: string
+  verified: string
+  sp: SearchParams
+}) {
   const where: Prisma.ReviewWhereInput = { deletedAt: null }
   if (q) {
     where.OR = [
@@ -65,12 +141,6 @@ export default async function ReviewsListPage({
 
   return (
     <>
-      <PageHeader
-        title="Reviews"
-        description={`${fmtNum(total)} reviews · soft-deleted rows are hidden`}
-      />
-      <ContentTabs active="/admin/content/reviews" />
-
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <SearchForm
           action="/admin/content/reviews"
@@ -165,6 +235,123 @@ export default async function ReviewsListPage({
                       confirm={`Delete the review by ${r.authorName}? It will be hidden from the platform.`}
                     />
                   </div>
+                </td>
+              </TRow>
+            ))}
+          </tbody>
+        </DataTable>
+      )}
+
+      <Pagination
+        basePath="/admin/content/reviews"
+        page={page}
+        pageSize={ADMIN_PAGE_SIZE}
+        total={total}
+        params={sp}
+      />
+    </>
+  )
+}
+
+/* ----------------------------- provider reviews ---------------------------- */
+
+async function ProvidersTab({
+  page,
+  q,
+  sp,
+}: {
+  page: number
+  q: string
+  sp: SearchParams
+}) {
+  const where: Prisma.ServiceProviderReviewWhereInput = {}
+  if (q) {
+    where.OR = [
+      { comment: { contains: q, mode: "insensitive" } },
+      { provider: { name: { contains: q, mode: "insensitive" } } },
+    ]
+  }
+
+  const [total, rows] = await Promise.all([
+    db.serviceProviderReview.count({ where }),
+    db.serviceProviderReview.findMany({
+      where,
+      include: { provider: { select: { id: true, name: true, category: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * ADMIN_PAGE_SIZE,
+      take: ADMIN_PAGE_SIZE,
+    }),
+  ])
+
+  // authorId is a bare id (no relation) — resolve display names in batch.
+  const authorIds = [...new Set(rows.map((r) => r.authorId))]
+  const authors = await db.user.findMany({
+    where: { id: { in: authorIds } },
+    select: { id: true, name: true, email: true },
+  })
+  const authorNames = new Map(authors.map((u) => [u.id, userLabel(u)]))
+
+  return (
+    <>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <SearchForm
+          action="/admin/content/reviews"
+          params={sp}
+          placeholder="Search comment or provider…"
+        />
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={Star}
+          title="No provider reviews found"
+          hint="Reviews left on service providers will appear here."
+        />
+      ) : (
+        <DataTable>
+          <THeadRow>
+            <th className={th}>Provider</th>
+            <th className={th}>Author</th>
+            <th className={th}>Rating</th>
+            <th className={th}>Comment</th>
+            <th className={th}>Created</th>
+            <th className={th}>Actions</th>
+          </THeadRow>
+          <tbody>
+            {rows.map((r) => (
+              <TRow key={r.id}>
+                <td className={`${td} whitespace-nowrap`}>
+                  <span className="block font-bold text-sv-ink">{r.provider.name}</span>
+                  <span className="mt-0.5 block text-[12px] text-sv-ink/45 capitalize">
+                    {r.provider.category.replaceAll("_", " ")}
+                  </span>
+                </td>
+                <td className={`${td} whitespace-nowrap`}>
+                  {authorNames.get(r.authorId) ?? shortRef(r.authorId)}
+                </td>
+                <td className={`${td} whitespace-nowrap`}>
+                  <span
+                    className={`font-bold tabular-nums ${r.rating <= 2 ? "text-rose-600" : "text-sv-ink"}`}
+                  >
+                    ★ {r.rating}
+                  </span>
+                </td>
+                <td className={td}>
+                  <span className="line-clamp-2 block max-w-[360px] text-[13px] text-sv-ink/60">
+                    {r.comment}
+                  </span>
+                </td>
+                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  {fmtDate(r.createdAt)}
+                </td>
+                <td className={td}>
+                  <ConfirmButton
+                    action={deleteServiceProviderReview}
+                    fields={{ id: r.id }}
+                    label="Delete"
+                    tone="danger"
+                    confirm="Permanently delete this provider review? This cannot be undone."
+                  />
                 </td>
               </TRow>
             ))}

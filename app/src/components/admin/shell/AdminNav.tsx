@@ -2,13 +2,16 @@
 
 import {
   BadgeCheck,
+  BedDouble,
   Building2,
   CalendarCheck,
   CreditCard,
+  FileCheck,
   Gavel,
   Inbox,
   KanbanSquare,
   LayoutDashboard,
+  MessagesSquare,
   Newspaper,
   Settings2,
   ShieldCheck,
@@ -44,8 +47,11 @@ export const ADMIN_SECTIONS: NavSection[] = [
     items: [
       { href: "/admin/listings", label: "Listings", icon: Building2 },
       { href: "/admin/moderation", label: "Moderation", icon: ShieldCheck },
+      { href: "/admin/verification", label: "Verification", icon: FileCheck },
       { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },
+      { href: "/admin/chats", label: "Chats", icon: MessagesSquare },
       { href: "/admin/tours", label: "Tours", icon: CalendarCheck },
+      { href: "/admin/rentals", label: "Rentals", icon: BedDouble },
     ],
   },
   {

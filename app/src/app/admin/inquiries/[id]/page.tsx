@@ -9,6 +9,7 @@ import { DataTable, THeadRow, TRow, td, th } from "@/components/admin/ui/DataTab
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { fmtDate, fmtDateTime, fmtMoney, timeAgo } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import {
   INQUIRY_STATUSES,
   INQUIRY_STATUS_LABELS,
@@ -34,6 +35,7 @@ export default async function AdminInquiryDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAdmin()
   const { id } = await params
   const inquiry = await getInquiry(id)
   if (!inquiry) notFound()

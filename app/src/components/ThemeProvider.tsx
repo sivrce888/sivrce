@@ -2,9 +2,9 @@
 
 /**
  * SIVRCE — theme provider (next-themes).
- * Class strategy on <html>, system by default, persisted to
- * localStorage('sivrce:theme'). Light/dark only — no `theme="system"`
- * exposed in UI; the toggle flips resolvedTheme.
+ * Class strategy on <html>, light by default (brand + photos are
+ * light-first; every winning RE portal is), persisted to
+ * localStorage('sivrce:theme'). Dark is one tap away via the toggle.
  */
 
 import { useEffect, type ReactNode } from 'react'
@@ -22,8 +22,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     <SessionProvider>
       <NextThemesProvider
         attribute="class"
-        defaultTheme="system"
-        enableSystem
+        defaultTheme="light"
         storageKey="sivrce:theme"
       >
         {children}

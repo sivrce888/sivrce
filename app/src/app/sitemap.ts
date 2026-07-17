@@ -93,6 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: DEPLOY_DATE,
       changeFrequency: 'daily',
       priority: Math.max(0.5, 0.9 - slug.length * 0.1),
+      localized: true,
     })
   }
 
@@ -105,5 +106,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
-  return entries.map(withHreflang)
+  return entries.map(toSitemapEntry)
 }

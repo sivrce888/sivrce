@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation"
 
-export default function ContentIndexPage() {
+import { requireAdmin } from "@/lib/admin/guard"
+
+export default async function ContentIndexPage() {
+  await requireAdmin()
   redirect("/admin/content/blog")
 }

@@ -11,6 +11,7 @@ import { StatCard } from "@/components/admin/ui/StatCard"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { UserRole } from "@/generated/prisma/enums"
 import { fmtDate, fmtDateTime, fmtMoney, fmtNum } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { db } from "@/lib/db"
 
 import { setUserRole, setUserTrustScore } from "../actions"
@@ -22,6 +23,7 @@ export default async function AdminUserDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAdmin()
   const { id } = await params
 
   const user = await db.user.findUnique({

@@ -13,6 +13,7 @@ import {
   listCrmBoard,
 } from "@/lib/admin/crm"
 import { fmtDate, fmtMoney, fmtNum } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { param, type SearchParams } from "@/lib/admin/query"
 import { db } from "@/lib/db"
 
@@ -34,6 +35,7 @@ export default async function AdminCrmPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const agent = param(sp.agent)
   const [{ byStatus, agents, total }, agentProfiles] = await Promise.all([

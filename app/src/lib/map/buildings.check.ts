@@ -244,4 +244,49 @@ assert.ok(
   'real footprint not used in GeoJSON',
 )
 
+// ——— floor stack gate ———
+
+import {
+  buildingFloorCount,
+  buildingFloors,
+  floorTooltipKa,
+  floorsToGeoJSON,
+} from './floors'
+
+const towerCount = buildingFloorCount(tower!)
+assert.ok(towerCount >= Math.max(...fixtures.filter((l) => l.buildingSlug === 'chavchavadze-47').map((l) => l.floor)), 'floor count below listing floor')
+
+const towerFloors = buildingFloors(tower!, 'all')
+assert.equal(towerFloors.length, towerCount)
+assert.equal(towerFloors.reduce((s, f) => s + f.available, 0), 2, 'both tower listings land on floors')
+
+const saleOnly = buildingFloors(tower!, 'sale')
+assert.equal(saleOnly.reduce((s, f) => s + f.available, 0), 1, 'deal filter respected per floor')
+
+const ffc = floorsToGeoJSON(tower!)
+assert.equal(ffc.features.length, towerCount)
+for (const [i, f] of ffc.features.entries()) {
+  const p = f.properties!
+  assert.ok(p.base < p.top, `floor ${i}: base >= top`)
+  assert.equal(p.floor, i + 1)
+  const ring = (f.geometry as GeoJSON.Polygon).coordinates[0]!
+  assert.ok(ring.length >= 5, `floor ${i}: ring needs >= 5 points`)
+}
+const lastTop = ffc.features[ffc.features.length - 1]!.properties!.top as number
+assert.ok(Math.abs(lastTop - tower!.heightM) < 0.001, 'stack top must equal building height')
+
+const ghostFc = floorsToGeoJSON(ghosts[0]!)
+assert.equal(ghostFc.features.every((f) => f.properties!.ghost === true), true)
+assert.equal(floorTooltipKa({ n: 3, available: 0, minPriceGEL: null }, { ghost: true, progress: 40, showPrice: false }).lines[0], 'მშენებარე · 40%')
+assert.equal(floorTooltipKa({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: true }).lines.length, 2)
+assert.equal(floorTooltipKa({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: false }).lines.length, 1, 'price hidden when deals are mixed')
+
+for (const b of [...realClusters, ...realGhosts]) {
+  const fc = floorsToGeoJSON(b)
+  assert.equal(fc.features.length, buildingFloorCount(b), `${b.id}: floor feature count mismatch`)
+  for (const l of b.listings) {
+    assert.ok(l.floor >= 0, `${b.id}/${l.id}: negative floor`) // 0 = ground/land → drawn as floor 1
+  }
+}
+
 console.log('map buildings check: ok')

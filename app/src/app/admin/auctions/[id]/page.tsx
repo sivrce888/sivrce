@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { getAuctionDetail } from "@/lib/admin/auctions"
 import { fmtDateTime, fmtNum, fmtTetri } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 
 function Field({
   label,
@@ -36,6 +37,7 @@ export default async function AdminAuctionDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAdmin()
   const { id } = await params
   const a = await getAuctionDetail(id)
   if (!a) notFound()

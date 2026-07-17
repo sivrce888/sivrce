@@ -2213,7 +2213,7 @@ model PropertyTour {
   listingId    String     @map("listing_id") @db.VarChar(120)
   guestId      String     @map("guest_id") @db.VarChar(120)
   userId       String?    @map("user_id") @db.VarChar(120)
-  agentId      String     @map("agent_id") @db.VarChar(120)
+  agentId      String?    @map("agent_id") @db.VarChar(120)
   tourDate     DateTime   @map("tour_date") @db.Date
   tourTime     String     @map("tour_time") @db.VarChar(10)
   status       TourStatus @default(pending)
@@ -2230,7 +2230,7 @@ model PropertyTour {
 
   listing Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
   user    User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  agent   AgentProfile @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent   AgentProfile? @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@index([listingId, tourDate], map: "property_tours_listing_date_idx")
   @@index([agentId, tourDate, status], map: "property_tours_agent_date_status_idx")

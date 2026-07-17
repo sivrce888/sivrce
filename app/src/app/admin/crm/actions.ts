@@ -26,6 +26,8 @@ export async function createLead(fd: FormData) {
   const phone = reqString(fd, "phone", 30)
   const email = optString(fd, "email", 240)
   const notes = optString(fd, "notes", 2000)
+  const agent = await db.user.findUnique({ where: { id: agentId }, select: { id: true } })
+  if (!agent) throw new Error("Agent not found")
   const lead = await db.crmLead.create({
     data: { agentId, name, phone, email, notes },
     select: { id: true },

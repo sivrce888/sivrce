@@ -11,6 +11,7 @@ import { SearchForm } from "@/components/admin/ui/SearchForm"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { UserRole } from "@/generated/prisma/enums"
 import { fmtDate, fmtNum } from "@/lib/admin/format"
+import { requireAdmin } from "@/lib/admin/guard"
 import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
 import { db } from "@/lib/db"
 import type { Prisma } from "@/generated/prisma/client"
@@ -27,6 +28,7 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdmin()
   const sp = await searchParams
   const q = param(sp.q)
   const role = param(sp.role)
