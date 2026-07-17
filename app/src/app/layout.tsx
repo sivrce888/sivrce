@@ -26,8 +26,13 @@ const manrope = Manrope({
 const notoGeorgian = Noto_Sans_Georgian({
   subsets: ["georgian"],
   variable: "--font-noto-georgian",
-  display: "swap",
-  preload: true,
+  // ponytail: optional, not swap — the h1 LCP was re-recorded ~3s after FCP when
+  // the 41KB Georgian face swapped in. Fallback paints once and stays; cached
+  // font is still used on repeat navs. Brand stack unchanged.
+  display: "optional",
+  // No preload: keeps the 41KB face off the LCP critical path on slow 4G —
+  // it still downloads post-paint and serves from cache on repeat navs.
+  preload: false,
 });
 
 const SITE_URL = "https://sivrce.ge";
@@ -157,15 +162,29 @@ const siteLd = {
       url: SITE_URL,
       logo: `${SITE_URL}/logo/sivrce-mark.svg`,
       email: "info@sivrce.ge",
+      // ponytail: E-E-A-T signals for the YMYL real-estate vertical. Founder
+      // kept as brand entity (no named individual to fabricate); foundingDate
+      // + knowsAbout anchor expertise without inventing people.
+      foundingDate: "2025",
+      knowsAbout: [
+        "საქართველოს უძრავი ქონების ბაზარი",
+        "თბილისის უბნები და ფასები",
+        "ბათუმის საკურორტო უძრავი ქონება",
+        "იპოთეკა საქართველოში",
+        "უცხოელებისთვის ქონების ყიდვა საქართველოში",
+        "AI ფასის შეფასება",
+      ],
       address: {
         "@type": "PostalAddress",
         addressLocality: "თბილისი",
         addressCountry: "GE",
       },
-      areaServed: {
-        "@type": "Country",
-        name: "Georgia",
-      },
+      areaServed: [
+        { "@type": "City", name: "თბილისი" },
+        { "@type": "City", name: "ბათუმი" },
+        { "@type": "City", name: "ქუთაისი" },
+        { "@type": "Country", name: "Georgia" },
+      ],
     },
     // SiteNavigationElement — exposes the main menu so Google can render
     // sitelinks in search results.

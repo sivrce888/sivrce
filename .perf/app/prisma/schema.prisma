@@ -1,0 +1,2365 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- NextAuth / Auth.js (composite keys aligned with @auth/prisma-adapter expectations)
+
+model User {
+  id            String    @id @default(cuid()) @db.VarChar(120)
+  name          String?   @db.VarChar(160)
+  email         String    @unique @db.VarChar(240)
+  emailVerified DateTime? @map("email_verified") @db.Timestamptz(6)
+  phone         String?   @db.VarChar(30)
+  phoneVerifiedAt DateTime? @map("phone_verified_at") @db.Timestamptz(6)
+  image         String?   @db.Text
+  role          UserRole  @default(buyer)
+  trustScore    Int       @default(70) @map("trust_score")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  accounts             Account[]
+  sessions             Session[]
+  authenticators       Authenticator[]
+  savedListings        SavedListing[]
+  uploadedListingMedia ListingMedia[]   @relation("ListingMediaUploader")
+  auctionsOrganized    Auction[]        @relation("AuctionOrganizer")
+  auctionsWon          Auction[]        @relation("AuctionWinner")
+  auctionDeposits      AuctionDeposit[]
+  bids                 Bid[]
+  auctionWatchers      AuctionWatcher[]
+
+  complaintsReported        Complaint[]             @relation("ComplaintReporter")
+  complaintsAssigned        Complaint[]             @relation("ComplaintAssignee")
+  complaintsResolved        Complaint[]             @relation("ComplaintResolver")
+  complaintsAgainstProfile  Complaint[]             @relation("ComplaintReportedUser")
+  moderationQueuesAssigned  ModerationQueue[]       @relation("ModerationQueueAssignee")
+  moderationQueuesReviewed  ModerationQueue[]       @relation("ModerationQueueReviewer")
+  moderationQueuesAsSubject ModerationQueue[]       @relation("ModerationQueueSubjectUser")
+  moderationActionLogs      ModerationAction[]      @relation("ModerationActionModerator")
+  fraudSignalsResolved      FraudSignal[]           @relation("FraudSignalResolver")
+  shadowBans                ShadowBan[]             @relation("ShadowBanSubject")
+  shadowBansIssued          ShadowBan[]             @relation("ShadowBanIssuer")
+  shadowBansLifted          ShadowBan[]             @relation("ShadowBanLifter")
+  blocklistPhonesCreated    BlocklistPhone[]        @relation("BlocklistPhoneCreator")
+  blocklistEmailsCreated    BlocklistEmail[]        @relation("BlocklistEmailCreator")
+  blocklistIpsCreated       BlocklistIp[]           @relation("BlocklistIpCreator")
+  blocklistDevicesCreated   BlocklistDevice[]       @relation("BlocklistDeviceCreator")
+  suspiciousActivityLogs    SuspiciousActivityLog[] @relation("SuspiciousActivityUser")
+  systemConfigsUpdated      SystemConfig[]          @relation("SystemConfigUpdater")
+  building3DsUpdated        Building3D[]            @relation("Building3DUpdater")
+  stripeCustomer            StripeCustomer?
+  subscriptions             Subscription[]
+  blogPosts                 BlogPost[]
+  behaviors                 UserBehavior[]
+  embedding                 UserEmbedding?
+  propertyTours             PropertyTour[]
+
+  @@map("users")
+}
+
+model Account {
+  userId            String  @map("user_id") @db.VarChar(120)
+  type              String  @db.VarChar(40)
+  provider          String  @db.VarChar(60)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(240)
+  refresh_token     String? @map("refresh_token") @db.Text
+  access_token      String? @map("access_token") @db.Text
+  expires_at        Int?    @map("expires_at")
+  token_type        String? @map("token_type") @db.VarChar(40)
+  scope             String? @db.Text
+  id_token          String? @map("id_token") @db.Text
+  session_state     String? @map("session_state") @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId], map: "accounts_user_id_idx")
+  @@map("accounts")
+}
+
+model Session {
+  sessionToken String   @id @map("session_token") @db.VarChar(240)
+  userId       String   @map("user_id") @db.VarChar(120)
+  expires      DateTime @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "sessions_user_id_idx")
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime @db.Timestamptz(6)
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Authenticator {
+  credentialID         String  @unique @map("credential_id")
+  userId               String  @map("user_id") @db.VarChar(120)
+  providerAccountId    String  @map("provider_account_id")
+  credentialPublicKey  String  @map("credential_public_key")
+  counter              Int
+  credentialDeviceType String  @map("credential_device_type")
+  credentialBackedUp   Boolean @map("credential_backed_up")
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+  @@map("authenticators")
+}
+
+enum UserRole {
+  buyer
+  seller
+  agent
+  agency
+  developer
+  admin
+
+  @@map("user_role")
+}
+
+enum ListingDealType {
+  buy
+  rent
+  daily
+  mortgage
+
+  @@map("listing_deal_type")
+}
+
+enum ListingPropertyType {
+  apartment
+  house
+  villa
+  commercial
+  land
+  hotel
+  party_house
+
+  @@map("listing_property_type")
+}
+
+enum ListingTier {
+  standard
+  vip
+  super_vip @map("super-vip")
+  diamond
+
+  @@map("listing_tier")
+}
+
+enum ListingCurrency {
+  USD
+  GEL
+
+  @@map("listing_currency")
+}
+
+enum ListingStatus {
+  active
+  sold
+  pending
+  expired
+  withdrawn
+
+  @@map("listing_status")
+}
+
+enum MediaKind {
+  photo
+  video
+  panorama
+  floor_plan
+
+  @@map("media_kind")
+}
+
+enum MediaProcessingStatus {
+  queued
+  processing
+  ready
+  failed
+
+  @@map("media_processing_status")
+}
+
+enum PoiKind {
+  metro
+  bus_stop
+  minibus_stop
+  cable_car
+  funicular
+  school
+  kindergarten
+  pharmacy
+  supermarket
+  park
+  hospital
+  cafe
+  other
+
+  @@map("poi_kind")
+}
+
+model Poi {
+  id        String                                @id @default(uuid()) @db.Uuid
+  kind      PoiKind
+  nameKa    String                                @map("name_ka") @db.VarChar(240)
+  nameEn    String?                               @map("name_en") @db.VarChar(240)
+  nameRu    String?                               @map("name_ru") @db.VarChar(240)
+  location  Unsupported("geography(Point, 4326)")
+  isActive  Boolean                               @default(true) @map("is_active")
+  metadata  Json?
+  createdAt DateTime                              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime                              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  listingNearestLinks ListingNearestPoi[]
+
+  @@map("pois")
+}
+
+model ListingNearestPoi {
+  id           BigInt   @id @default(autoincrement())
+  listingId    String   @map("listing_id") @db.VarChar(120)
+  poiId        String   @map("poi_id") @db.Uuid
+  poiKind      PoiKind  @map("poi_kind")
+  distanceM    Int      @map("distance_m")
+  walkTimeMin  Int?     @map("walk_time_min")
+  driveTimeMin Int?     @map("drive_time_min")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  poi     Poi     @relation(fields: [poiId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, poiId], map: "listing_nearest_poi_listing_poi_key")
+  @@map("listing_nearest_poi")
+}
+
+// ── Map AI Zones ──────────────────────────────────────────────────────────
+
+model MapAiZone {
+  id                  String   @id @default(cuid()) @db.VarChar(120)
+  name                String   @db.VarChar(200)
+  district            String   @db.VarChar(120)
+  city                String   @db.VarChar(120) @default("Tbilisi")
+  polygon             Unsupported("geometry(Polygon, 4326)")
+  investmentScore     Int      @default(0) @map("investment_score")
+  rentalDemandScore   Int      @default(0) @map("rental_demand_score")
+  appreciationForecast Int     @default(0) @map("appreciation_forecast")
+  riskScore           Int      @default(0) @map("risk_score")
+  livabilityScore     Int      @default(0) @map("livability_score")
+  listingCount        Int      @default(0) @map("listing_count")
+  avgPricePerSqm      Int      @default(0) @map("avg_price_per_sqm")
+  confidence          Int      @default(0)
+  reasonCodes         String?  @db.Text @map("reason_codes")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([district])
+  @@index([investmentScore])
+  @@map("map_ai_zones")
+}
+
+model ListingMedia {
+  id                 String                @id @default(uuid()) @db.Uuid
+  listingId          String                @map("listing_id") @db.VarChar(120)
+  kind               MediaKind             @default(photo)
+  storageBucket      String                @default("listing-media") @map("storage_bucket") @db.VarChar(80)
+  storagePath        String                @map("storage_path") @db.Text
+  cdnUrl             String?               @map("cdn_url") @db.Text
+  width              Int?
+  height             Int?
+  sizeBytes          BigInt?               @map("size_bytes")
+  mimeType           String?               @map("mime_type") @db.VarChar(180)
+  fileSha256         String?               @map("file_sha256") @db.VarChar(64)
+  position           Int                   @default(0) @db.SmallInt
+  isCover            Boolean               @default(false) @map("is_cover")
+  captionKa          String?               @map("caption_ka") @db.Text
+  captionEn          String?               @map("caption_en") @db.Text
+  captionRu          String?               @map("caption_ru") @db.Text
+  aiRoomTag          String?               @map("ai_room_tag") @db.VarChar(64)
+  aiFeaturesDetected String[]              @default([]) @map("ai_features_detected")
+  processingStatus   MediaProcessingStatus @default(ready) @map("processing_status")
+  processingError    String?               @map("processing_error") @db.Text
+  processedAt        DateTime?             @map("processed_at") @db.Timestamptz(6)
+  uploadedBy         String?               @map("uploaded_by") @db.VarChar(120)
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?             @map("deleted_at") @db.Timestamptz(6)
+
+  listing              Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  uploader             User?             @relation("ListingMediaUploader", fields: [uploadedBy], references: [id], onDelete: SetNull)
+  moderationQueueItems ModerationQueue[] @relation("ModerationQueueMedia")
+
+  @@index([listingId, position], map: "listing_media_listing_position_idx")
+  @@index([listingId, kind], map: "listing_media_listing_kind_idx")
+  @@index([fileSha256], map: "listing_media_sha256_idx")
+  @@index([processingStatus, createdAt], map: "listing_media_processing_idx")
+  @@map("listing_media")
+}
+
+enum ListingPriceEventType {
+  listed
+  price_drop
+  price_increase
+  sold
+
+  @@map("listing_price_event_type")
+}
+
+model ListingPriceEvent {
+  id            BigInt                @id @default(autoincrement())
+  listingId     String                @map("listing_id") @db.VarChar(120)
+  eventType     ListingPriceEventType @default(listed)
+  price         Int
+  previousPrice Int?                  @map("previous_price")
+  currency      ListingCurrency
+  pricePerSqm   Int?                  @map("price_per_sqm")
+  recordedAt    DateTime              @default(now()) @map("recorded_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, recordedAt(sort: Desc)], map: "listing_price_events_listing_recorded_idx")
+  @@index([listingId, eventType, recordedAt(sort: Desc)], map: "listing_price_events_listing_type_recorded_idx")
+  @@map("listing_price_events")
+}
+
+model MarketSnapshot {
+  id                  BigInt   @id @default(autoincrement())
+  city                String   @db.VarChar(100)
+  district            String?  @db.VarChar(120)
+  periodMonth         String   @map("period_month") @db.VarChar(7)
+  avgPricePerSqm      Int      @map("avg_price_per_sqm")
+  medianPrice         Int?
+  soldCount           Int      @default(0) @map("sold_count")
+  avgDaysOnMarket     Int      @default(0) @map("avg_days_on_market")
+  newListingsCount    Int      @default(0) @map("new_listings_count")
+  activeListingsCount Int      @default(0) @map("active_listings_count")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([city, district, periodMonth], map: "market_snapshot_city_district_period_key")
+  @@index([city, periodMonth], map: "market_snapshot_city_period_idx")
+  @@index([district, periodMonth], map: "market_snapshot_district_period_idx")
+  @@map("market_snapshots")
+}
+
+enum AuctionStatus {
+  scheduled
+  live
+  paused
+  ended_sold
+  ended_unsold
+  cancelled
+
+  @@map("auction_status")
+}
+
+enum BidStatus {
+  leading
+  outbid
+  cancelled
+  won
+
+  @@map("bid_status")
+}
+
+enum AuctionDepositStatus {
+  pending
+  held
+  refunded
+  forfeit
+  applied
+
+  @@map("auction_deposit_status")
+}
+
+enum ComplaintKind {
+  spam
+  fraud
+  harassment
+  misinformation
+  duplicate_listing
+  impersonation
+  scam_payment
+  illegal_content
+  other
+
+  @@map("complaint_kind")
+}
+
+enum ComplaintStatus {
+  open
+  under_review
+  resolved
+  dismissed
+  duplicate
+
+  @@map("complaint_status")
+}
+
+enum ComplaintPriority {
+  low
+  normal
+  high
+  urgent
+
+  @@map("complaint_priority")
+}
+
+enum ModerationDecision {
+  approve
+  reject
+  hide
+  delete
+  warn_user
+  suspend_user
+  escalate
+  no_action
+
+  @@map("moderation_decision")
+}
+
+enum ModerationQueueStatus {
+  pending
+  in_review
+  approved
+  rejected
+  auto_resolved
+
+  @@map("moderation_queue_status")
+}
+
+enum ShadowBanScope {
+  all
+  listings
+  messages
+  reviews
+
+  @@map("shadow_ban_scope")
+}
+
+model Listing {
+  id                            String                                 @id @db.VarChar(120)
+  ownerId                       String?                                @map("owner_id") @db.VarChar(120)
+  slug                          String                                 @unique @db.VarChar(180)
+  title                         String                                 @db.VarChar(180)
+  description                   String                                 @db.Text
+  dealType                      ListingDealType                        @map("deal_type")
+  propertyType                  ListingPropertyType                    @map("type")
+  tier                          ListingTier                            @default(standard)
+  verified                      Boolean                                @default(false)
+  price                         Int
+  currency                      ListingCurrency                        @default(GEL)
+  pricePerSqm                   Int?                                   @map("price_per_sqm")
+  rooms                         Int                                    @default(0)
+  bedrooms                      Int                                    @default(0)
+  bathrooms                     Int                                    @default(0)
+  area                          Float
+  floor                         Int?
+  totalFloors                   Int?                                   @map("total_floors")
+  yearBuilt                     Int?                                   @map("year_built")
+  city                          String                                 @db.VarChar(100)
+  district                      String                                 @db.VarChar(120)
+  address                       String                                 @db.VarChar(240)
+  lat                           Float
+  lng                           Float
+  location                      Unsupported("geography(Point, 4326)")?
+  searchVector                  Unsupported("tsvector")?               @map("search_vector")
+  images                        String[]                               @default([])
+  features                      String[]                               @default([])
+  extendedFields                Json?                                  @map("extended_fields")
+  agent                         Json
+  listingPhone                  String?                                @map("listing_phone") @db.VarChar(30)
+  listingPhoneVerifiedAt        DateTime?                              @map("listing_phone_verified_at") @db.Timestamptz(6)
+  views                         Int                                    @default(0)
+  trustScore                    Int                                    @default(70) @map("trust_score")
+  fillPercentage                Int                                    @default(0) @map("fill_percentage") @db.SmallInt
+  tierExpiresAt                 DateTime?                              @map("tier_expires_at") @db.Timestamptz(6)
+  tierPurchasedAt               DateTime?                              @map("tier_purchased_at") @db.Timestamptz(6)
+  tierPaymentOrderId            String?                                @map("tier_payment_order_id") @db.VarChar(36)
+  status                        ListingStatus                          @default(active)
+  soldAt                        DateTime?                              @map("sold_at") @db.Timestamptz(6)
+  soldPrice                     Int?                                   @map("sold_price")
+  createdAt                     DateTime                               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                     DateTime                               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                     DateTime?                              @map("deleted_at") @db.Timestamptz(6)
+  savedBy                       SavedListing[]
+  boostHistory                  ListingBoostHistory[]
+  nearestPois                   ListingNearestPoi[]
+  media                         ListingMedia[]
+  priceEvents                   ListingPriceEvent[]
+  auction                       Auction?
+  dailyRentalSettings           DailyRentalSettings?
+  dailyRentalBookings           DailyRentalBooking[]
+  dailyRentalBlockedDates       DailyRentalBlockedDate[]
+  complaintsAsSubject           Complaint[]                            @relation("ComplaintSubjectListing")
+  moderationQueueItems          ModerationQueue[]                      @relation("ModerationQueueListing")
+  duplicateClusterMemberships   DuplicateClusterMember[]
+  duplicateClustersRepresenting DuplicateCluster[]                     @relation("DuplicateClusterRepresentative")
+  partnerMappings               PartnerMapping[]
+  importStagingMatches          ImportStaging[]                        @relation("ImportStagingMatchedListing")
+  listingLocation               ListingLocation?
+  chatRooms                     ChatRoom[]
+  embedding                     ListingEmbedding?
+  behaviors                     UserBehavior[]
+  propertyTours                 PropertyTour[]
+
+  @@index([deletedAt], map: "listings_deleted_at_idx")
+  @@index([city, district], map: "listings_city_district_idx")
+  @@index([dealType], map: "listings_deal_type_idx")
+  @@index([tierExpiresAt], map: "listings_tier_expires_at_idx")
+  @@index([tierPurchasedAt], map: "listings_tier_purchased_at_idx")
+  @@index([dealType, city, district, deletedAt], map: "listings_search_core_idx")
+  @@index([propertyType, deletedAt], map: "listings_property_type_idx")
+  @@index([price, deletedAt], map: "listings_price_idx")
+  @@index([area, deletedAt], map: "listings_area_idx")
+  @@index([rooms, deletedAt], map: "listings_rooms_idx")
+  @@index([floor, deletedAt], map: "listings_floor_idx")
+  @@index([yearBuilt, deletedAt], map: "listings_year_built_idx")
+  @@index([createdAt(sort: Desc), deletedAt], map: "listings_created_at_idx")
+  @@index([verified, deletedAt], map: "listings_verified_idx")
+  @@index([trustScore(sort: Desc), deletedAt], map: "listings_trust_score_idx")
+  @@index([status, deletedAt], map: "listings_status_deleted_at_idx")
+  @@map("listings")
+}
+
+model ListingBoostHistory {
+  id              String    @id @default(uuid()) @db.Uuid
+  listingId       String    @map("listing_id") @db.VarChar(120)
+  userId          String?   @map("user_id") @db.VarChar(120)
+  fromTier        String    @default("standard") @map("from_tier") @db.VarChar(30)
+  toTier          String    @map("to_tier") @db.VarChar(30)
+  amountTetri     Int       @map("amount_tetri")
+  currency        String    @default("GEL") @db.VarChar(3)
+  provider        String?   @db.VarChar(20)
+  providerOrderId String?   @map("provider_order_id") @db.VarChar(240)
+  durationDays    Int       @default(30) @map("duration_days")
+  startedAt       DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  expiresAt       DateTime  @map("expires_at") @db.Timestamptz(6)
+  endedAt         DateTime? @map("ended_at") @db.Timestamptz(6)
+  endedReason     String?   @map("ended_reason") @db.VarChar(40)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, createdAt(sort: Desc)], map: "listing_boost_history_listing_id_idx")
+  @@index([userId, createdAt(sort: Desc)], map: "listing_boost_history_user_id_idx")
+  @@index([expiresAt], map: "listing_boost_history_expires_at_idx")
+  @@map("listing_boost_history")
+}
+
+model DailyRentalSettings {
+  id                String   @id @default(uuid()) @db.Uuid
+  listingId         String   @unique @map("listing_id") @db.VarChar(120)
+  enabled           Boolean  @default(true)
+  minNights         Int      @default(1) @map("min_nights")
+  maxNights         Int      @default(30) @map("max_nights")
+  instantBook       Boolean  @default(false) @map("instant_book")
+  checkInHour       Int      @default(15) @map("check_in_hour")
+  checkOutHour      Int      @default(11) @map("check_out_hour")
+  cleaningFeeTetri  Int      @default(0) @map("cleaning_fee_tetri")
+  securityDepositTetri Int   @default(0) @map("security_deposit_tetri")
+  weekendPriceTetri Int?     @map("weekend_price_tetri")
+  weeklyDiscountPct Int      @default(0) @map("weekly_discount_pct")
+  monthlyDiscountPct Int     @default(0) @map("monthly_discount_pct")
+  guestCapacity     Int      @default(2) @map("guest_capacity")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@map("daily_rental_settings")
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled_by_guest
+  cancelled_by_host
+  no_show
+  completed
+
+  @@map("booking_status")
+}
+
+model DailyRentalBooking {
+  id              String        @id @default(uuid()) @db.Uuid
+  listingId       String        @map("listing_id") @db.VarChar(120)
+  guestId         String        @map("guest_id") @db.VarChar(120)
+  checkIn         DateTime      @map("check_in") @db.Timestamptz(6)
+  checkOut        DateTime      @map("check_out") @db.Timestamptz(6)
+  nights          Int
+  guestCount      Int           @map("guest_count")
+  nightlyPriceTetri Int         @map("nightly_price_tetri")
+  cleaningFeeTetri Int         @map("cleaning_fee_tetri")
+  securityDepositTetri Int     @map("security_deposit_tetri")
+  discountTetri   Int           @default(0) @map("discount_tetri")
+  totalTetri      Int           @map("total_tetri")
+  currency        String        @default("GEL") @db.VarChar(3)
+  status          BookingStatus @default(pending)
+  guestName       String        @map("guest_name") @db.VarChar(160)
+  guestPhone      String        @map("guest_phone") @db.VarChar(30)
+  guestEmail      String?       @map("guest_email") @db.VarChar(240)
+  guestNotes      String?       @map("guest_notes") @db.Text
+  hostNotes       String?       @map("host_notes") @db.Text
+  paymentOrderId  String?       @map("payment_order_id") @db.VarChar(36)
+  paidAt          DateTime?     @map("paid_at") @db.Timestamptz(6)
+  cancelledAt     DateTime?     @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason    String?       @map("cancel_reason") @db.VarChar(200)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, checkIn, checkOut], map: "daily_rental_booking_listing_dates_idx")
+  @@index([guestId, createdAt(sort: Desc)], map: "daily_rental_booking_guest_idx")
+  @@index([status, checkIn], map: "daily_rental_booking_status_checkin_idx")
+  @@map("daily_rental_bookings")
+}
+
+model DailyRentalBlockedDate {
+  id        String   @id @default(uuid()) @db.Uuid
+  listingId String   @map("listing_id") @db.VarChar(120)
+  date      DateTime @db.Date
+  reason    String?  @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date], map: "daily_rental_blocked_date_listing_date_key")
+  @@index([listingId, date], map: "daily_rental_blocked_date_listing_date_idx")
+  @@map("daily_rental_blocked_dates")
+}
+
+enum CrmLeadStatus {
+  new
+  contacted
+  viewing_scheduled
+  offer_made
+  negotiating
+  closed_won
+  closed_lost
+  disqualified
+
+  @@map("crm_lead_status")
+}
+
+enum CrmTaskPriority {
+  low
+  medium
+  high
+  urgent
+
+  @@map("crm_task_priority")
+}
+
+enum CrmTaskStatus {
+  todo
+  in_progress
+  done
+  cancelled
+
+  @@map("crm_task_status")
+}
+
+model CrmLead {
+  id          String        @id @default(uuid()) @db.Uuid
+  agentId     String        @map("agent_id") @db.VarChar(120)
+  name        String        @db.VarChar(160)
+  phone       String        @db.VarChar(30)
+  email       String?       @db.VarChar(240)
+  source      String        @default("inquiry") @db.VarChar(40)
+  status      CrmLeadStatus @default(new)
+  budgetMin   Int?          @map("budget_min")
+  budgetMax   Int?          @map("budget_max")
+  currency    String        @default("GEL") @db.VarChar(3)
+  dealType    String?       @map("deal_type") @db.VarChar(20)
+  district    String?       @db.VarChar(120)
+  notes       String?       @db.Text
+  lastContact DateTime?     @map("last_contact") @db.Timestamptz(6)
+  nextFollowUp DateTime?    @map("next_follow_up") @db.Timestamptz(6)
+  closedAt    DateTime?     @map("closed_at") @db.Timestamptz(6)
+  closedReason String?      @map("closed_reason") @db.VarChar(200)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  activities CrmActivity[]
+  tasks      CrmTask[]
+
+  @@index([agentId, status, createdAt(sort: Desc)], map: "crm_lead_agent_status_idx")
+  @@index([agentId, nextFollowUp], map: "crm_lead_agent_followup_idx")
+  @@map("crm_leads")
+}
+
+model CrmActivity {
+  id        String   @id @default(uuid()) @db.Uuid
+  leadId    String   @map("lead_id") @db.Uuid
+  agentId   String   @map("agent_id") @db.VarChar(120)
+  type      String   @db.VarChar(40)
+  notes     String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lead CrmLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt(sort: Desc)], map: "crm_activity_lead_idx")
+  @@map("crm_activities")
+}
+
+model CrmTask {
+  id          String        @id @default(uuid()) @db.Uuid
+  agentId     String        @map("agent_id") @db.VarChar(120)
+  leadId      String?       @map("lead_id") @db.Uuid
+  title       String        @db.VarChar(200)
+  description String?       @db.Text
+  dueDate     DateTime      @map("due_date") @db.Timestamptz(6)
+  priority    CrmTaskPriority @default(medium)
+  status      CrmTaskStatus @default(todo)
+  completedAt DateTime?     @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lead CrmLead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([agentId, status, dueDate], map: "crm_task_agent_status_due_idx")
+  @@index([leadId], map: "crm_task_lead_idx")
+  @@map("crm_tasks")
+}
+
+model ServiceProvider {
+  id            String   @id @default(uuid()) @db.Uuid
+  ownerId       String   @map("owner_id") @db.VarChar(120)
+  name          String   @db.VarChar(160)
+  slug          String   @unique @db.VarChar(180)
+  category      String   @db.VarChar(40)
+  subcategory   String?  @db.VarChar(60)
+  description   String   @db.Text
+  logoUrl       String?  @map("logo_url") @db.Text
+  phone         String   @db.VarChar(30)
+  email         String?  @db.VarChar(240)
+  website       String?  @db.VarChar(240)
+  city          String   @db.VarChar(100)
+  district      String?  @db.VarChar(120)
+  address       String?  @db.VarChar(240)
+  lat           Float?
+  lng           Float?
+  priceRangeMin Int?     @map("price_range_min")
+  priceRangeMax Int?     @map("price_range_max")
+  currency      String   @default("GEL") @db.VarChar(3)
+  verified      Boolean  @default(false)
+  rating        Float    @default(0)
+  reviewCount   Int      @default(0) @map("review_count")
+  portfolioUrls String[] @default([]) @map("portfolio_urls")
+  features      String[] @default([])
+  hours         Json?
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  reviews ServiceProviderReview[]
+
+  @@index([category, city, isActive], map: "service_provider_category_city_idx")
+  @@index([slug], map: "service_provider_slug_idx")
+  @@index([deletedAt], map: "service_provider_deleted_at_idx")
+  @@map("service_providers")
+}
+
+model ServiceProviderReview {
+  id        String   @id @default(uuid()) @db.Uuid
+  providerId String  @map("provider_id") @db.Uuid
+  authorId  String   @map("author_id") @db.VarChar(120)
+  rating    Int
+  comment   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  provider ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt(sort: Desc)], map: "service_provider_review_provider_idx")
+  @@map("service_provider_reviews")
+}
+
+model SavedListing {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.VarChar(120)
+  listingId String    @map("listing_id") @db.VarChar(120)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId], map: "saved_listings_user_listing_key")
+  @@index([userId, createdAt(sort: Desc)], map: "saved_listings_user_created_at_idx")
+  @@index([listingId], map: "saved_listings_listing_id_idx")
+  @@index([deletedAt], map: "saved_listings_deleted_at_idx")
+  @@map("saved_listings")
+}
+
+model DeveloperProfile {
+  id                  String      @id @db.VarChar(120)
+  ownerId             String?     @map("owner_id") @db.VarChar(120)
+  slug                String      @unique @db.VarChar(120)
+  name                String      @db.VarChar(160)
+  logoText            String      @map("logo_text") @db.VarChar(40)
+  projectsCount       Int         @default(0) @map("projects_count")
+  completedCount      Int         @default(0) @map("completed_count")
+  headquarters        String      @db.VarChar(160)
+  rating              Float       @default(0)
+  color               String      @db.VarChar(80)
+  description         String      @db.Text
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  complaintsAsSubject Complaint[] @relation("ComplaintSubjectDeveloper")
+  importJobs          ImportJob[]
+  buildings3D         Building3D[]
+
+  @@index([deletedAt], map: "developer_profiles_deleted_at_idx")
+  @@index([ownerId], map: "developer_profiles_owner_id_idx")
+  @@map("developer_profiles")
+}
+
+model AgentProfile {
+  id            String    @id @db.VarChar(120)
+  ownerId       String?   @map("owner_id") @db.VarChar(120)
+  slug          String    @unique @db.VarChar(120)
+  name          String    @db.VarChar(160)
+  agency        String    @db.VarChar(160)
+  listingsCount Int       @default(0) @map("listings_count")
+  rating        Float     @default(0)
+  reviewsCount  Int       @default(0) @map("reviews_count")
+  avatarText    String    @map("avatar_text") @db.VarChar(24)
+  verified      Boolean   @default(false)
+  languages     String[]  @default([])
+  specialties   String[]  @default([])
+  color         String    @db.VarChar(80)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
+  propertyTours PropertyTour[]
+  tourAvailabilities TourAvailability[]
+  tourDateOverrides  TourDateOverride[]
+
+  @@index([deletedAt], map: "agent_profiles_deleted_at_idx")
+  @@index([ownerId], map: "agent_profiles_owner_id_idx")
+  @@map("agent_profiles")
+}
+
+model ProjectDirectory {
+  id                  String      @id @db.VarChar(120)
+  ownerId             String?     @map("owner_id") @db.VarChar(120)
+  slug                String      @unique @db.VarChar(140)
+  name                String      @db.VarChar(180)
+  developer           String      @db.VarChar(180)
+  city                String      @db.VarChar(100)
+  district            String      @db.VarChar(120)
+  status              String      @db.VarChar(40)
+  readyBy             String      @map("ready_by") @db.VarChar(80)
+  priceFrom           Int         @default(0) @map("price_from")
+  pricePerSqmFrom     Int         @default(0) @map("price_per_sqm_from")
+  units               Int         @default(1)
+  image               String      @db.VarChar(260)
+  features            String[]    @default([])
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  complaintsAsSubject Complaint[] @relation("ComplaintSubjectProject")
+
+  @@index([deletedAt], map: "project_directories_deleted_at_idx")
+  @@index([ownerId], map: "project_directories_owner_id_idx")
+  @@index([city], map: "project_directories_city_idx")
+  @@map("project_directories")
+}
+
+model AgencyProfile {
+  id                  String      @id @db.VarChar(120)
+  ownerId             String?     @map("owner_id") @db.VarChar(120)
+  slug                String      @unique @db.VarChar(140)
+  name                String      @db.VarChar(180)
+  logoText            String      @map("logo_text") @db.VarChar(40)
+  verified            Boolean     @default(false)
+  teamSize            Int         @default(1) @map("team_size")
+  activeListings      Int         @default(0) @map("active_listings")
+  monthlyLeads        Int         @default(0) @map("monthly_leads")
+  responseRatePct     Float       @default(0) @map("response_rate_pct")
+  avgDealDays         Int         @default(0) @map("avg_deal_days")
+  city                String      @db.VarChar(100)
+  districts           String[]    @default([])
+  specialties         String[]    @default([])
+  rating              Float       @default(0)
+  reviewsCount        Int         @default(0) @map("reviews_count")
+  color               String      @db.VarChar(80)
+  summary             String      @db.Text
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  auctions            Auction[]
+  complaintsAsSubject Complaint[] @relation("ComplaintSubjectAgency")
+  importJobs          ImportJob[]
+
+  @@index([deletedAt], map: "agency_profiles_deleted_at_idx")
+  @@index([ownerId], map: "agency_profiles_owner_id_idx")
+  @@index([city], map: "agency_profiles_city_idx")
+  @@map("agency_profiles")
+}
+
+model Auction {
+  id                 String          @id @db.VarChar(120)
+  shortPublicCode    String          @unique @map("short_public_code") @db.VarChar(10)
+  listingId          String          @unique @map("listing_id") @db.VarChar(120)
+  organizerId        String          @map("organizer_id") @db.VarChar(120)
+  agencyId           String?         @map("agency_id") @db.VarChar(120)
+  isOfficial         Boolean         @default(false) @map("is_official")
+  source             String?         @db.VarChar(40)
+  externalId         String?         @map("external_id") @db.VarChar(120)
+  startingPriceTetri Int             @map("starting_price_tetri")
+  currentPriceTetri  Int             @map("current_price_tetri")
+  reservePriceTetri  Int?            @map("reserve_price_tetri")
+  buyNowPriceTetri   Int?            @map("buy_now_price_tetri")
+  bidIncrementTetri  Int             @default(100) @map("bid_increment_tetri")
+  depositAmountTetri Int             @map("deposit_amount_tetri")
+  currency           ListingCurrency @default(GEL)
+  startsAt           DateTime        @map("starts_at") @db.Timestamptz(6)
+  endsAt             DateTime        @map("ends_at") @db.Timestamptz(6)
+  antiSnipeMinutes   Int             @default(5) @map("anti_snipe_minutes")
+  status             AuctionStatus   @default(scheduled)
+  pausedAt           DateTime?       @map("paused_at") @db.Timestamptz(6)
+  pausedReason       String?         @map("paused_reason") @db.Text
+  totalBids          Int             @default(0) @map("total_bids")
+  uniqueBidders      Int             @default(0) @map("unique_bidders")
+  viewsCount         Int             @default(0) @map("views_count")
+  winningBidId       String?         @unique @map("winning_bid_id") @db.VarChar(120)
+  winnerUserId       String?         @map("winner_user_id") @db.VarChar(120)
+  winningAmountTetri Int?            @map("winning_amount_tetri")
+  winnerPaidAt       DateTime?       @map("winner_paid_at") @db.Timestamptz(6)
+  termsUrl           String?         @map("terms_url") @db.Text
+  descriptionKa      String?         @map("description_ka") @db.Text
+  descriptionEn      String?         @map("description_en") @db.Text
+  descriptionRu      String?         @map("description_ru") @db.Text
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  listing   Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  organizer User             @relation("AuctionOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  agency    AgencyProfile?   @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  winner    User?            @relation("AuctionWinner", fields: [winnerUserId], references: [id], onDelete: SetNull)
+  deposits  AuctionDeposit[]
+  bids      Bid[]
+  watchers  AuctionWatcher[]
+
+  @@index([status, endsAt], map: "auctions_status_ends_at_idx")
+  @@index([organizerId], map: "auctions_organizer_id_idx")
+  @@index([endsAt], map: "auctions_ends_at_idx")
+  @@index([winnerUserId], map: "auctions_winner_user_id_idx")
+  @@map("auctions")
+}
+
+model AuctionDeposit {
+  id             String               @id @default(uuid()) @db.Uuid
+  auctionId      String               @map("auction_id") @db.VarChar(120)
+  bidderId       String               @map("bidder_id") @db.VarChar(120)
+  amountTetri    Int                  @map("amount_tetri")
+  currency       String               @default("GEL") @db.VarChar(3)
+  paymentOrderId String               @map("payment_order_id") @db.Uuid
+  status         AuctionDepositStatus @default(pending)
+  heldAt         DateTime             @default(now()) @map("held_at") @db.Timestamptz(6)
+  refundedAt     DateTime?            @map("refunded_at") @db.Timestamptz(6)
+  forfeitAt      DateTime?            @map("forfeit_at") @db.Timestamptz(6)
+  forfeitReason  String?              @map("forfeit_reason") @db.Text
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  auction      Auction              @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder       User                 @relation(fields: [bidderId], references: [id], onDelete: Cascade)
+  paymentOrder GeorgianPaymentOrder @relation(fields: [paymentOrderId], references: [id], onDelete: Restrict)
+  bids         Bid[]
+
+  @@unique([auctionId, bidderId], map: "auction_deposits_auction_bidder_key")
+  @@index([auctionId, status], map: "auction_deposits_auction_status_idx")
+  @@index([bidderId], map: "auction_deposits_bidder_id_idx")
+  @@map("auction_deposits")
+}
+
+model Bid {
+  id             String    @id @db.VarChar(120)
+  auctionId      String    @map("auction_id") @db.VarChar(120)
+  bidderId       String    @map("bidder_id") @db.VarChar(120)
+  depositId      String    @map("deposit_id") @db.Uuid
+  amountTetri    Int       @map("amount_tetri")
+  maxAmountTetri Int?      @map("max_amount_tetri")
+  isProxy        Boolean   @default(false) @map("is_proxy")
+  isBuyNow       Boolean   @default(false) @map("is_buy_now")
+  status         BidStatus @default(leading)
+  ipAddress      String?   @map("ip_address") @db.VarChar(45)
+  userAgent      String?   @map("user_agent") @db.Text
+  placedAt       DateTime  @default(now()) @map("placed_at") @db.Timestamptz(6)
+
+  auction Auction        @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder  User           @relation(fields: [bidderId], references: [id], onDelete: Cascade)
+  deposit AuctionDeposit @relation(fields: [depositId], references: [id], onDelete: Restrict)
+
+  @@index([auctionId, placedAt(sort: Desc)], map: "bids_auction_placed_at_idx")
+  @@index([bidderId, placedAt(sort: Desc)], map: "bids_bidder_placed_at_idx")
+  @@index([auctionId, amountTetri(sort: Desc)], map: "bids_auction_amount_idx")
+  @@map("bids")
+}
+
+model AuctionWatcher {
+  userId           String   @map("user_id") @db.VarChar(120)
+  auctionId        String   @map("auction_id") @db.VarChar(120)
+  addedAt          DateTime @default(now()) @map("added_at") @db.Timestamptz(6)
+  notify5MinBefore Boolean  @default(true) @map("notify_5min_before")
+  notifyOutbid     Boolean  @default(true) @map("notify_outbid")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, auctionId])
+  @@index([auctionId], map: "auction_watchers_auction_id_idx")
+  @@map("auction_watchers")
+}
+
+model ForumThread {
+  id                String    @id @db.VarChar(120)
+  ownerId           String?   @map("owner_id") @db.VarChar(120)
+  slug              String    @unique @db.VarChar(180)
+  title             String    @db.VarChar(200)
+  district          String    @db.VarChar(80)
+  tags              String[]  @default([])
+  replies           Int       @default(0)
+  verifiedResponses Int       @default(0) @map("verified_responses")
+  lastActivityAt    DateTime  @default(now()) @map("last_activity_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([deletedAt], map: "forum_threads_deleted_at_idx")
+  @@index([slug], map: "forum_threads_slug_idx")
+  @@index([lastActivityAt(sort: Desc)], map: "forum_threads_last_activity_at_idx")
+  @@index([district], map: "forum_threads_district_idx")
+  @@map("forum_threads")
+}
+
+model ForumReply {
+  id         String    @id @db.VarChar(120)
+  threadId   String    @map("thread_id") @db.VarChar(120)
+  ownerId    String?   @map("owner_id") @db.VarChar(120)
+  authorName String    @map("author_name") @db.VarChar(80)
+  body       String    @db.Text
+  verified   Boolean   @default(false)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([deletedAt], map: "forum_replies_deleted_at_idx")
+  @@index([threadId], map: "forum_replies_thread_id_idx")
+  @@map("forum_replies")
+}
+
+model Inquiry {
+  id                  String    @id @db.VarChar(120)
+  listingId           String    @map("listing_id") @db.VarChar(120)
+  agentName           String    @map("agent_name") @db.VarChar(160)
+  agentEmail          String?   @map("agent_email") @db.VarChar(240)
+  agentPhone          String?   @map("agent_phone") @db.VarChar(40)
+  buyerName           String    @map("buyer_name") @db.VarChar(160)
+  buyerEmail          String    @map("buyer_email") @db.VarChar(240)
+  buyerPhone          String?   @map("buyer_phone") @db.VarChar(40)
+  message             String    @db.Text
+  deal                String    @default("buy") @db.VarChar(20)
+  city                String    @default("") @db.VarChar(100)
+  district            String    @default("") @db.VarChar(120)
+  status              String    @default("new") @db.VarChar(30)
+  qualityScore        Int       @default(0) @map("quality_score")
+  isForSale           Boolean   @default(false) @map("is_for_sale")
+  price               Int       @default(0)
+  exclusivityExpiresAt DateTime? @map("exclusivity_expires_at") @db.Timestamptz(6)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  purchases LeadPurchase[]
+
+  @@index([listingId], map: "inquiries_listing_id_idx")
+  @@index([status], map: "inquiries_status_idx")
+  @@index([isForSale, qualityScore(sort: Desc)], map: "inquiries_marketplace_idx")
+  @@index([qualityScore(sort: Desc), createdAt(sort: Desc)], map: "inquiries_quality_created_idx")
+  @@map("inquiries")
+}
+
+model LeadPurchase {
+  id            String    @id @default(cuid()) @db.VarChar(120)
+  inquiryId     String    @map("inquiry_id") @db.VarChar(120)
+  buyerId       String    @map("buyer_id") @db.VarChar(120)
+  price         Int
+  currency      String    @default("GEL") @db.VarChar(3)
+  purchasedAt   DateTime  @default(now()) @map("purchased_at") @db.Timestamptz(6)
+  expiresAt     DateTime? @map("expires_at") @db.Timestamptz(6)
+
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+
+  @@unique([inquiryId, buyerId], map: "lead_purchases_inquiry_buyer_key")
+  @@index([buyerId, purchasedAt(sort: Desc)], map: "lead_purchases_buyer_purchased_idx")
+  @@index([inquiryId], map: "lead_purchases_inquiry_id_idx")
+  @@map("lead_purchases")
+}
+
+model SavedSearch {
+  id           String    @id @db.VarChar(120)
+  userId       String    @map("user_id") @db.VarChar(120)
+  name         String    @db.VarChar(160)
+  params       Json      @default("{}")
+  alertEnabled Boolean   @default(true) @map("alert_enabled")
+  lastAlertAt  DateTime? @map("last_alert_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([userId], map: "saved_searches_user_id_idx")
+  @@map("saved_searches")
+}
+
+model SavedSearchAlertLog {
+  id            String   @id @default(cuid()) @db.VarChar(120)
+  savedSearchId String   @map("saved_search_id") @db.VarChar(120)
+  listingId     String   @map("listing_id") @db.VarChar(120)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([savedSearchId, listingId], map: "saved_search_alert_logs_unique_idx")
+  @@index([savedSearchId, createdAt], map: "saved_search_alert_logs_search_created_idx")
+  @@map("saved_search_alert_logs")
+}
+
+model Review {
+  id           String    @id @db.VarChar(120)
+  targetType   String    @map("target_type") @db.VarChar(30)
+  targetId     String    @map("target_id") @db.VarChar(120)
+  authorId     String?   @map("author_id") @db.VarChar(120)
+  authorName   String    @map("author_name") @db.VarChar(160)
+  rating       Int
+  title        String?   @db.VarChar(200)
+  body         String    @db.Text
+  locale       String    @default("ka") @db.VarChar(8)
+  status       String    @default("published") @db.VarChar(20)
+  verified     Boolean   @default(false)
+  helpfulCount Int       @default(0) @map("helpful_count")
+  ownerReply   String?   @map("owner_reply") @db.Text
+  ownerReplyAt DateTime? @map("owner_reply_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  complaintsAsSubject  Complaint[]         @relation("ComplaintSubjectReview")
+  moderationQueueItems ModerationQueue[]   @relation("ModerationQueueReview")
+  helpfulVotes         ReviewHelpfulVote[]
+
+  @@index([targetType, targetId], map: "reviews_target_idx")
+  @@map("reviews")
+}
+
+model ReviewHelpfulVote {
+  id        String   @id @default(cuid()) @db.VarChar(120)
+  reviewId  String   @map("review_id") @db.VarChar(120)
+  voterKey  String   @map("voter_key") @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, voterKey], map: "review_helpful_votes_review_voter_key")
+  @@index([reviewId], map: "review_helpful_votes_review_id_idx")
+  @@map("review_helpful_votes")
+}
+
+model StripeOrder {
+  id          String      @id @db.VarChar(120)
+  sessionId   String      @unique @map("session_id") @db.VarChar(240)
+  userId      String?     @map("user_id") @db.VarChar(120)
+  listingId   String?     @map("listing_id") @db.VarChar(120)
+  tier        ListingTier
+  amountCents Int         @map("amount_cents")
+  currency    String      @default("usd") @db.VarChar(10)
+  status      String      @default("pending") @db.VarChar(30)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("stripe_orders")
+}
+
+enum SubscriptionTier {
+  agent_pro
+  super_agent
+  agency
+
+  @@map("subscription_tier")
+}
+
+enum SubscriptionInterval {
+  month
+  year
+
+  @@map("subscription_interval")
+}
+
+enum SubscriptionStatus {
+  active
+  trialing
+  past_due
+  canceled
+  unpaid
+  incomplete
+  incomplete_expired
+
+  @@map("subscription_status")
+}
+
+model StripeCustomer {
+  id               String   @id @default(cuid()) @db.VarChar(120)
+  userId           String   @unique @map("user_id") @db.VarChar(120)
+  stripeCustomerId String   @unique @map("stripe_customer_id") @db.VarChar(120)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@map("stripe_customers")
+}
+
+model Subscription {
+  id                   String               @id @default(cuid()) @db.VarChar(120)
+  userId               String               @map("user_id") @db.VarChar(120)
+  stripeCustomerId     String               @map("stripe_customer_id") @db.VarChar(120)
+  stripeSubscriptionId String               @unique @map("stripe_subscription_id") @db.VarChar(120)
+  tier                 SubscriptionTier
+  interval             SubscriptionInterval
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime             @map("current_period_start") @db.Timestamptz(6)
+  currentPeriodEnd     DateTime             @map("current_period_end") @db.Timestamptz(6)
+  cancelAtPeriodEnd    Boolean              @default(false) @map("cancel_at_period_end")
+  canceledAt           DateTime?            @map("canceled_at") @db.Timestamptz(6)
+  endedAt              DateTime?            @map("ended_at") @db.Timestamptz(6)
+  trialStart           DateTime?            @map("trial_start") @db.Timestamptz(6)
+  trialEnd             DateTime?            @map("trial_end") @db.Timestamptz(6)
+  metadata             Json?
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  stripeCustomer StripeCustomer @relation(fields: [stripeCustomerId], references: [stripeCustomerId], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status], map: "subscriptions_user_status_idx")
+  @@index([stripeCustomerId], map: "subscriptions_stripe_customer_idx")
+  @@index([status, currentPeriodEnd], map: "subscriptions_status_period_end_idx")
+  @@map("subscriptions")
+}
+
+model GeorgianPaymentOrder {
+  id                String           @id @default(uuid()) @db.Uuid
+  provider          String           @db.VarChar(20)
+  providerOrderId   String           @map("provider_order_id") @db.VarChar(240)
+  providerPaymentId String?          @map("provider_payment_id") @db.VarChar(240)
+  userId            String?          @map("user_id") @db.VarChar(120)
+  listingId         String?          @map("listing_id") @db.VarChar(120)
+  tier              String           @db.VarChar(30)
+  amountTetri       Int              @map("amount_tetri")
+  currency          String           @default("GEL") @db.VarChar(3)
+  status            String           @default("pending") @db.VarChar(30)
+  lastEventId       String?          @map("last_event_id") @db.VarChar(240)
+  lastEventPayload  Json?            @map("last_event_payload")
+  paidAt            DateTime?        @map("paid_at") @db.Timestamptz(6)
+  refundedAt        DateTime?        @map("refunded_at") @db.Timestamptz(6)
+  disputedAt        DateTime?        @map("disputed_at") @db.Timestamptz(6)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  auctionDeposits   AuctionDeposit[]
+
+  @@unique([provider, providerOrderId], map: "georgian_payment_orders_provider_order_id_key")
+  @@index([provider, providerPaymentId], map: "georgian_payment_orders_provider_provider_payment_id_idx")
+  @@index([status, createdAt(sort: Desc)], map: "georgian_payment_orders_status_created_at_idx")
+  @@index([listingId], map: "georgian_payment_orders_listing_id_idx")
+  @@map("georgian_payment_orders")
+}
+
+model VerificationRequest {
+  id                String    @id @default(uuid()) @db.Uuid
+  subjectType       String    @map("subject_type") @db.VarChar(40)
+  subjectId         String    @map("subject_id") @db.VarChar(120)
+  verificationType  String    @map("verification_type") @db.VarChar(30)
+  status            String    @default("pending") @db.VarChar(30)
+  personalId        String?   @map("personal_id") @db.VarChar(11)
+  businessNumber    String?   @map("business_number") @db.VarChar(9)
+  documentUrls      String[]  @default([]) @map("document_urls")
+  providerReference String?   @map("provider_reference") @db.VarChar(240)
+  reviewedBy        String?   @map("reviewed_by") @db.VarChar(120)
+  reviewedAt        DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  rejectionReason   String?   @map("rejection_reason") @db.Text
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  auditLogs VerificationAuditLog[]
+
+  @@index([status, createdAt(sort: Desc)], map: "verification_requests_status_created_at_idx")
+  @@index([subjectType, subjectId], map: "verification_requests_subject_idx")
+  @@map("verification_requests")
+}
+
+model VerificationAuditLog {
+  id                    String              @id @default(uuid()) @db.Uuid
+  verificationRequestId String              @map("verification_request_id") @db.Uuid
+  actorId               String?             @map("actor_id") @db.VarChar(120)
+  fromStatus            String?             @map("from_status") @db.VarChar(30)
+  toStatus              String              @map("to_status") @db.VarChar(30)
+  note                  String?             @db.Text
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  request               VerificationRequest @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade)
+
+  @@index([verificationRequestId], map: "verification_audit_logs_request_id_idx")
+  @@map("verification_audit_logs")
+}
+
+model RecommendationAudit {
+  id               String    @id @default(uuid()) @db.Uuid
+  actorUserId      String    @map("actor_user_id") @db.VarChar(120)
+  recommendationId String    @map("recommendation_id") @db.VarChar(80)
+  scope            Json      @default("{}")
+  updatedListings  Int       @default(0) @map("updated_listings")
+  message          String    @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)], map: "recommendation_audit_created_at_idx")
+  @@index([recommendationId], map: "recommendation_audit_recommendation_id_idx")
+  @@map("recommendation_audit")
+}
+
+/// Append-only admin control-plane audit (CMS, flags, etc.). Prefer soft-delete only for compliance redaction.
+model AdminAuditLog {
+  id         String    @id @default(uuid()) @db.Uuid
+  actorId    String    @map("actor_id") @db.VarChar(120)
+  actorName  String    @map("actor_name") @db.VarChar(200)
+  actorRole  String    @map("actor_role") @db.VarChar(40)
+  action     String    @db.VarChar(160)
+  targetType String    @map("target_type") @db.VarChar(80)
+  targetId   String    @map("target_id") @db.VarChar(200)
+  details    Json      @default("{}")
+  ipAddress  String?   @map("ip_address") @db.VarChar(120)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)], map: "admin_audit_logs_created_at_idx")
+  @@index([targetType, targetId], map: "admin_audit_logs_target_idx")
+  @@index([actorId, createdAt(sort: Desc)], map: "admin_audit_logs_actor_created_idx")
+  @@map("admin_audit_logs")
+}
+
+/// External feed partners (aggregators, portals, CRMs). Do not store secrets in `authConfig` — use env/KMS; this field is non-secret metadata only.
+model Partner {
+  id                 String   @id @default(uuid()) @db.Uuid
+  slug               String   @unique @db.VarChar(120)
+  name               String   @db.VarChar(200)
+  kind               String   @db.VarChar(40)
+  baseUrl            String?  @map("base_url") @db.Text
+  feedUrlTemplate    String?  @map("feed_url_template") @db.Text
+  feedFormat         String   @map("feed_format") @db.VarChar(16)
+  importsFrom        Boolean  @default(false) @map("imports_from")
+  exportsTo          Boolean  @default(false) @map("exports_to")
+  authKind           String?  @map("auth_kind") @db.VarChar(24)
+  authConfig         Json?    @map("auth_config")
+  rateLimitPerMinute Int      @default(60) @map("rate_limit_per_minute")
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  mappings         PartnerMapping[]
+  importJobs       ImportJob[]
+  exportJobs       ExportJob[]
+  categoryMappings PartnerCategoryMapping[]
+  syndicationRules SyndicationRule[]
+
+  @@map("partners")
+}
+
+model PartnerMapping {
+  id           String    @id @default(uuid()) @db.Uuid
+  partnerId    String    @map("partner_id") @db.Uuid
+  listingId    String    @map("listing_id") @db.VarChar(120)
+  externalId   String?   @map("external_id") @db.Text
+  externalUrl  String?   @map("external_url") @db.Text
+  status       String    @default("pending") @db.VarChar(20)
+  lastSyncedAt DateTime? @map("last_synced_at") @db.Timestamptz(6)
+  lastError    String?   @map("last_error") @db.Text
+  syncAttempts Int       @default(0) @map("sync_attempts")
+  metadata     Json      @default("{}")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, listingId], map: "partner_mappings_partner_listing_key")
+  @@index([partnerId, status], map: "partner_mappings_partner_idx")
+  @@index([listingId], map: "partner_mappings_listing_idx")
+  @@map("partner_mappings")
+}
+
+model ImportJob {
+  id                 String    @id @default(uuid()) @db.Uuid
+  partnerId          String    @map("partner_id") @db.Uuid
+  agencyProfileId    String?   @map("agency_profile_id") @db.VarChar(120)
+  developerProfileId String?   @map("developer_profile_id") @db.VarChar(120)
+  feedUrl            String?   @map("feed_url") @db.Text
+  feedContentHash    String?   @map("feed_content_hash") @db.VarChar(128)
+  recordsReceived    Int       @default(0) @map("records_received")
+  recordsCreated     Int       @default(0) @map("records_created")
+  recordsUpdated     Int       @default(0) @map("records_updated")
+  recordsSkipped     Int       @default(0) @map("records_skipped")
+  recordsErrored     Int       @default(0) @map("records_errored")
+  status             String    @default("queued") @db.VarChar(20)
+  startedAt          DateTime? @map("started_at") @db.Timestamptz(6)
+  completedAt        DateTime? @map("completed_at") @db.Timestamptz(6)
+  errorSummary       String?   @map("error_summary") @db.Text
+  logUrl             String?   @map("log_url") @db.Text
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  partner          Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  agencyProfile    AgencyProfile?    @relation(fields: [agencyProfileId], references: [id], onDelete: SetNull)
+  developerProfile DeveloperProfile? @relation(fields: [developerProfileId], references: [id], onDelete: SetNull)
+  stagingRows      ImportStaging[]
+
+  @@index([partnerId, createdAt(sort: Desc)], map: "import_jobs_partner_idx")
+  @@index([status, createdAt(sort: Desc)], map: "import_jobs_status_idx")
+  @@map("import_jobs")
+}
+
+model ExportJob {
+  id              String    @id @default(uuid()) @db.Uuid
+  partnerId       String    @map("partner_id") @db.Uuid
+  format          String    @db.VarChar(16)
+  filter          Json?
+  recordsCount    Int       @default(0) @map("records_count")
+  outputUrl       String?   @map("output_url") @db.Text
+  outputSizeBytes BigInt?   @map("output_size_bytes")
+  outputSha256    String?   @map("output_sha256") @db.VarChar(64)
+  status          String    @default("queued") @db.VarChar(20)
+  startedAt       DateTime? @map("started_at") @db.Timestamptz(6)
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
+  errorSummary    String?   @map("error_summary") @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId, createdAt(sort: Desc)], map: "export_jobs_partner_idx")
+  @@index([status, createdAt(sort: Desc)], map: "export_jobs_status_idx")
+  @@map("export_jobs")
+}
+
+model ImportStaging {
+  id               String    @id @default(uuid()) @db.Uuid
+  importJobId      String    @map("import_job_id") @db.Uuid
+  externalId       String    @map("external_id") @db.VarChar(512)
+  rawPayload       Json      @map("raw_payload")
+  matchedListingId String?   @map("matched_listing_id") @db.VarChar(120)
+  matchConfidence  Decimal?  @map("match_confidence") @db.Decimal(4, 3)
+  matchMethod      String?   @map("match_method") @db.VarChar(32)
+  status           String    @default("pending") @db.VarChar(20)
+  errorMessage     String?   @map("error_message") @db.Text
+  processedAt      DateTime? @map("processed_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  importJob      ImportJob @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+  matchedListing Listing?  @relation("ImportStagingMatchedListing", fields: [matchedListingId], references: [id], onDelete: SetNull)
+
+  @@index([importJobId, status], map: "import_staging_job_idx")
+  @@index([externalId], map: "import_staging_external_idx")
+  @@map("import_staging")
+}
+
+model PartnerCategoryMapping {
+  partnerId    String              @map("partner_id") @db.Uuid
+  partnerValue String              @map("partner_value") @db.VarChar(240)
+  ourCategory  ListingPropertyType @map("our_category")
+  ourDealType  ListingDealType     @map("our_deal_type")
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@id([partnerId, partnerValue])
+  @@map("partner_category_mappings")
+}
+
+/// Empty filter arrays mean “no restriction” in application logic.
+model SyndicationRule {
+  id                  String                @id @default(uuid()) @db.Uuid
+  partnerId           String                @map("partner_id") @db.Uuid
+  appliesCategories   ListingPropertyType[] @default([]) @map("applies_categories")
+  appliesDealTypes    ListingDealType[]     @default([]) @map("applies_deal_types")
+  appliesCityNames    String[]              @default([]) @map("applies_city_names")
+  minPromotionTier    ListingTier?          @map("min_promotion_tier")
+  excludeOwnerKinds   String[]              @default([]) @map("exclude_owner_kinds")
+  maskPhone           Boolean               @default(true) @map("mask_phone")
+  maskAddress         Boolean               @default(false) @map("mask_address")
+  hideCadastre        Boolean               @default(true) @map("hide_cadastre")
+  agencyPays          Boolean               @default(false) @map("agency_pays")
+  costPerListingTetri Int                   @default(0) @map("cost_per_listing_tetri")
+  isActive            Boolean               @default(true) @map("is_active")
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId], map: "syndication_rules_partner_idx")
+  @@map("syndication_rules")
+}
+
+model Complaint {
+  id                        String              @id @default(uuid()) @db.Uuid
+  shortId                   String              @unique @default(cuid()) @map("short_id") @db.VarChar(32)
+  subjectKind               String              @map("subject_kind") @db.VarChar(24)
+  subjectId                 String              @map("subject_id") @db.VarChar(120)
+  subjectListingId          String?             @map("subject_listing_id") @db.VarChar(120)
+  subjectUserId             String?             @map("subject_user_id") @db.VarChar(120)
+  subjectReviewId           String?             @map("subject_review_id") @db.VarChar(120)
+  subjectAgencyProfileId    String?             @map("subject_agency_profile_id") @db.VarChar(120)
+  subjectDeveloperProfileId String?             @map("subject_developer_profile_id") @db.VarChar(120)
+  subjectProjectDirectoryId String?             @map("subject_project_directory_id") @db.VarChar(120)
+  subjectMessageId          String?             @map("subject_message_id") @db.VarChar(120)
+  reporterId                String?             @map("reporter_id") @db.VarChar(120)
+  reporterEmail             String?             @map("reporter_email") @db.VarChar(240)
+  reporterSessionId         String?             @map("reporter_session_id") @db.Uuid
+  reporterIp                String?             @map("reporter_ip") @db.VarChar(64)
+  kind                      ComplaintKind
+  description               String?             @db.Text
+  evidenceUrls              String[]            @default([]) @map("evidence_urls")
+  status                    ComplaintStatus     @default(open)
+  priority                  ComplaintPriority   @default(normal)
+  assignedToId              String?             @map("assigned_to") @db.VarChar(120)
+  assignedAt                DateTime?           @map("assigned_at") @db.Timestamptz(6)
+  resolvedAt                DateTime?           @map("resolved_at") @db.Timestamptz(6)
+  resolvedById              String?             @map("resolved_by") @db.VarChar(120)
+  resolution                String?             @db.Text
+  resolutionAction          ModerationDecision? @map("resolution_action")
+  duplicateOfId             String?             @map("duplicate_of") @db.Uuid
+  createdAt                 DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  subjectListing          Listing?           @relation("ComplaintSubjectListing", fields: [subjectListingId], references: [id], onDelete: Cascade)
+  subjectUserProfile      User?              @relation("ComplaintReportedUser", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  subjectReview           Review?            @relation("ComplaintSubjectReview", fields: [subjectReviewId], references: [id], onDelete: Cascade)
+  subjectAgencyProfile    AgencyProfile?     @relation("ComplaintSubjectAgency", fields: [subjectAgencyProfileId], references: [id], onDelete: Cascade)
+  subjectDeveloperProfile DeveloperProfile?  @relation("ComplaintSubjectDeveloper", fields: [subjectDeveloperProfileId], references: [id], onDelete: Cascade)
+  subjectProjectDirectory ProjectDirectory?  @relation("ComplaintSubjectProject", fields: [subjectProjectDirectoryId], references: [id], onDelete: Cascade)
+  reporter                User?              @relation("ComplaintReporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  assignedTo              User?              @relation("ComplaintAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  resolvedBy              User?              @relation("ComplaintResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  duplicateOf             Complaint?         @relation("ComplaintDuplicateOf", fields: [duplicateOfId], references: [id], onDelete: SetNull)
+  duplicates              Complaint[]        @relation("ComplaintDuplicateOf")
+  linkedModerationActions ModerationAction[] @relation("ModerationActionComplaint")
+
+  @@index([status, priority(sort: Desc), createdAt], map: "complaints_status_priority_created_at_idx")
+  @@index([subjectListingId], map: "complaints_subject_listing_id_idx")
+  @@index([subjectUserId], map: "complaints_subject_user_id_idx")
+  @@index([assignedToId, status], map: "complaints_assigned_to_status_idx")
+  @@index([kind, createdAt(sort: Desc)], map: "complaints_kind_created_at_idx")
+  @@map("complaints")
+}
+
+model ModerationQueue {
+  id               String                @id @default(uuid()) @db.Uuid
+  subjectKind      String                @map("subject_kind") @db.VarChar(24)
+  subjectId        String                @map("subject_id") @db.VarChar(120)
+  subjectListingId String?               @map("subject_listing_id") @db.VarChar(120)
+  subjectReviewId  String?               @map("subject_review_id") @db.VarChar(120)
+  subjectUserId    String?               @map("subject_user_id") @db.VarChar(120)
+  subjectMediaId   String?               @map("subject_media_id") @db.Uuid
+  reason           String                @db.Text
+  fraudScore       Decimal?              @map("fraud_score") @db.Decimal(4, 2)
+  signals          Json?
+  priority         ComplaintPriority     @default(normal)
+  status           ModerationQueueStatus @default(pending)
+  assignedToId     String?               @map("assigned_to") @db.VarChar(120)
+  assignedAt       DateTime?             @map("assigned_at") @db.Timestamptz(6)
+  reviewedAt       DateTime?             @map("reviewed_at") @db.Timestamptz(6)
+  reviewedById     String?               @map("reviewed_by") @db.VarChar(120)
+  decision         ModerationDecision?
+  decisionNotes    String?               @map("decision_notes") @db.Text
+  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  subjectListing          Listing?           @relation("ModerationQueueListing", fields: [subjectListingId], references: [id], onDelete: Cascade)
+  subjectReview           Review?            @relation("ModerationQueueReview", fields: [subjectReviewId], references: [id], onDelete: Cascade)
+  subjectUser             User?              @relation("ModerationQueueSubjectUser", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  subjectMedia            ListingMedia?      @relation("ModerationQueueMedia", fields: [subjectMediaId], references: [id], onDelete: Cascade)
+  assignedTo              User?              @relation("ModerationQueueAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  reviewedBy              User?              @relation("ModerationQueueReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  linkedModerationActions ModerationAction[] @relation("ModerationActionQueue")
+
+  @@index([status, priority(sort: Desc), createdAt], map: "moderation_queue_status_priority_created_at_idx")
+  @@index([assignedToId, status], map: "moderation_queue_assigned_to_status_idx")
+  @@index([subjectListingId], map: "moderation_queue_subject_listing_id_idx")
+  @@index([priority(sort: Desc), createdAt(sort: Desc)], map: "moderation_queue_priority_created_at_idx")
+  @@map("moderation_queue")
+}
+
+model ModerationAction {
+  id                       String             @id @default(uuid()) @db.Uuid
+  moderatorId              String             @map("moderator_id") @db.VarChar(120)
+  subjectKind              String             @map("subject_kind") @db.VarChar(24)
+  subjectId                String             @map("subject_id") @db.VarChar(120)
+  action                   ModerationDecision
+  reason                   String?            @db.Text
+  notes                    String?            @db.Text
+  relatedComplaintId       String?            @map("related_complaint_id") @db.Uuid
+  relatedModerationQueueId String?            @map("related_moderation_queue_id") @db.Uuid
+  subjectSnapshot          Json?              @map("subject_snapshot")
+  createdAt                DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  moderator              User             @relation("ModerationActionModerator", fields: [moderatorId], references: [id], onDelete: Restrict)
+  relatedComplaint       Complaint?       @relation("ModerationActionComplaint", fields: [relatedComplaintId], references: [id], onDelete: SetNull)
+  relatedModerationQueue ModerationQueue? @relation("ModerationActionQueue", fields: [relatedModerationQueueId], references: [id], onDelete: SetNull)
+
+  @@index([moderatorId, createdAt(sort: Desc)], map: "moderation_actions_moderator_created_at_idx")
+  @@index([subjectKind, subjectId], map: "moderation_actions_subject_kind_id_idx")
+  @@map("moderation_actions")
+}
+
+model BlocklistPhone {
+  phone       String    @id @map("phone") @db.VarChar(32)
+  reason      String?   @db.Text
+  blockedById String?   @map("blocked_by") @db.VarChar(120)
+  blockedAt   DateTime  @default(now()) @map("blocked_at") @db.Timestamptz(6)
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  blockedBy   User?     @relation("BlocklistPhoneCreator", fields: [blockedById], references: [id], onDelete: SetNull)
+
+  @@map("blocklist_phones")
+}
+
+model BlocklistEmail {
+  emailHash   String    @id @map("email_hash") @db.VarChar(64)
+  reason      String?   @db.Text
+  blockedById String?   @map("blocked_by") @db.VarChar(120)
+  blockedAt   DateTime  @default(now()) @map("blocked_at") @db.Timestamptz(6)
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  blockedBy   User?     @relation("BlocklistEmailCreator", fields: [blockedById], references: [id], onDelete: SetNull)
+
+  @@map("blocklist_emails")
+}
+
+model BlocklistIp {
+  ipAddress   String    @id @map("ip_address") @db.VarChar(64)
+  reason      String?   @db.Text
+  blockedById String?   @map("blocked_by") @db.VarChar(120)
+  blockedAt   DateTime  @default(now()) @map("blocked_at") @db.Timestamptz(6)
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  blockedBy   User?     @relation("BlocklistIpCreator", fields: [blockedById], references: [id], onDelete: SetNull)
+
+  @@map("blocklist_ips")
+}
+
+model BlocklistDevice {
+  deviceFingerprint String    @id @map("device_fingerprint") @db.VarChar(128)
+  reason            String?   @db.Text
+  blockedById       String?   @map("blocked_by") @db.VarChar(120)
+  blockedAt         DateTime  @default(now()) @map("blocked_at") @db.Timestamptz(6)
+  expiresAt         DateTime? @map("expires_at") @db.Timestamptz(6)
+  blockedBy         User?     @relation("BlocklistDeviceCreator", fields: [blockedById], references: [id], onDelete: SetNull)
+
+  @@map("blocklist_devices")
+}
+
+model FraudSignal {
+  id           BigInt    @id @default(autoincrement())
+  subjectKind  String    @map("subject_kind") @db.VarChar(24)
+  subjectId    String    @map("subject_id") @db.VarChar(120)
+  signalKind   String    @map("signal_kind") @db.VarChar(64)
+  severity     Int       @default(1) @db.SmallInt
+  confidence   Decimal?  @db.Decimal(4, 3)
+  details      Json      @default("{}")
+  isActive     Boolean   @default(true) @map("is_active")
+  detectedAt   DateTime  @default(now()) @map("detected_at") @db.Timestamptz(6)
+  resolvedAt   DateTime? @map("resolved_at") @db.Timestamptz(6)
+  resolvedById String?   @map("resolved_by") @db.VarChar(120)
+  resolution   String?   @db.Text
+  resolvedBy   User?     @relation("FraudSignalResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([subjectKind, subjectId], map: "fraud_signals_subject_kind_id_idx")
+  @@index([signalKind, detectedAt(sort: Desc)], map: "fraud_signals_signal_kind_detected_at_idx")
+  @@index([severity(sort: Desc), detectedAt(sort: Desc)], map: "fraud_signals_severity_detected_at_idx")
+  @@map("fraud_signals")
+}
+
+model DuplicateCluster {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  clusterSignature        String                   @unique @map("cluster_signature") @db.VarChar(256)
+  representativeListingId String?                  @map("representative_listing_id") @db.VarChar(120)
+  memberCount             Int                      @default(1) @map("member_count")
+  detectionMethod         String                   @map("detection_method") @db.VarChar(32)
+  confidence              Decimal?                 @db.Decimal(4, 3)
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  representativeListing   Listing?                 @relation("DuplicateClusterRepresentative", fields: [representativeListingId], references: [id], onDelete: SetNull)
+  members                 DuplicateClusterMember[]
+
+  @@map("duplicate_clusters")
+}
+
+model DuplicateClusterMember {
+  clusterId       String   @map("cluster_id") @db.Uuid
+  listingId       String   @map("listing_id") @db.VarChar(120)
+  similarityScore Decimal? @map("similarity_score") @db.Decimal(4, 3)
+  addedAt         DateTime @default(now()) @map("added_at") @db.Timestamptz(6)
+
+  cluster DuplicateCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  listing Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([clusterId, listingId])
+  @@index([listingId], map: "duplicate_cluster_members_listing_id_idx")
+  @@map("duplicate_cluster_members")
+}
+
+model ShadowBan {
+  id         String         @id @default(uuid()) @db.Uuid
+  userId     String         @map("user_id") @db.VarChar(120)
+  bannedById String         @map("banned_by") @db.VarChar(120)
+  reason     String         @db.Text
+  scope      ShadowBanScope @default(all)
+  active     Boolean        @default(true)
+  bannedAt   DateTime       @default(now()) @map("banned_at") @db.Timestamptz(6)
+  liftedAt   DateTime?      @map("lifted_at") @db.Timestamptz(6)
+  liftedById String?        @map("lifted_by") @db.VarChar(120)
+
+  user     User  @relation("ShadowBanSubject", fields: [userId], references: [id], onDelete: Cascade)
+  bannedBy User  @relation("ShadowBanIssuer", fields: [bannedById], references: [id], onDelete: Restrict)
+  liftedBy User? @relation("ShadowBanLifter", fields: [liftedById], references: [id], onDelete: SetNull)
+
+  @@index([userId, active], map: "shadow_bans_user_active_idx")
+  @@map("shadow_bans")
+}
+
+model SuspiciousActivityLog {
+  id                BigInt   @id @default(autoincrement())
+  userId            String?  @map("user_id") @db.VarChar(120)
+  sessionId         String?  @map("session_id") @db.Uuid
+  ipAddress         String?  @map("ip_address") @db.VarChar(64)
+  deviceFingerprint String?  @map("device_fingerprint") @db.VarChar(128)
+  activityKind      String   @map("activity_kind") @db.VarChar(64)
+  details           Json?
+  occurredAt        DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+
+  user User? @relation("SuspiciousActivityUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, occurredAt(sort: Desc)], map: "suspicious_activity_user_occurred_at_idx")
+  @@index([activityKind, occurredAt(sort: Desc)], map: "suspicious_activity_kind_occurred_at_idx")
+  @@map("suspicious_activity_log")
+}
+
+model MapBuilding {
+  id              String      @id @default(uuid()) @db.Uuid
+  title           String      @db.VarChar(180)
+  description     String?     @db.Text
+  polygonCoords   Json?       @map("polygon_coords")
+  lat             Float
+  lng             Float
+  height          Float       @default(0)
+  status          String      @default("active") @db.VarChar(30)
+  projectSlug     String?     @map("project_slug") @db.VarChar(140)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  building3D    Building3D?
+
+  @@index([status, createdAt(sort: Desc)], map: "map_buildings_status_created_idx")
+  @@map("map_buildings")
+}
+
+/// Single-row (id = `default`) JSON document for the marketing / programmatic CMS managed in `/admin/cms`.
+model AdminCmsSnapshot {
+  id        String   @id @db.VarChar(32)
+  pagesJson Json     @map("pages_json")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("admin_cms_snapshot")
+}
+
+/// Dynamic system configuration to allow runtime toggling of features without redeployments.
+model SystemConfig {
+  id          String   @id @db.VarChar(64)
+  value       Json
+  description String?  @db.Text
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedById String?  @map("updated_by_id") @db.VarChar(120)
+
+  updatedBy   User?    @relation("SystemConfigUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("system_config")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIVRCE 3D MAP SYSTEM — Award Winning Building Intelligence
+// 2026 Standards: CesiumJS + Google Photorealistic 3D Tiles
+// ═══════════════════════════════════════════════════════════════
+
+enum Building3DStatus {
+  active
+  under_construction
+  planned
+  demolished
+  renovation
+
+  @@map("building_3d_status")
+}
+
+enum BuildingMaterial {
+  concrete
+  brick
+  glass_steel
+  wood
+  mixed
+  panel
+  stone
+  other
+
+  @@map("building_material")
+}
+
+/// Extended 3D building data for CesiumJS visualization
+model Building3D {
+  id                String           @id @default(uuid()) @db.Uuid
+  mapBuildingId     String           @unique @map("map_building_id") @db.Uuid
+  
+  // 3D Geometry
+  footprintGeoJson  Json             @map("footprint_geojson")
+  heightMeters      Float            @map("height_meters")
+  floorCount        Int              @map("floor_count")
+  floorHeight       Float            @default(3.0) @map("floor_height")
+  undergroundFloors Int              @default(0) @map("underground_floors")
+  
+  // 3D Model
+  modelUrl3D        String?          @map("model_url_3d") @db.Text
+  modelFormat       String?          @map("model_format") @db.VarChar(20)
+  
+  // Visual Properties
+  material          BuildingMaterial @default(concrete)
+  yearBuilt         Int?             @map("year_built")
+  yearRenovated     Int?             @map("year_renovated")
+  architect         String?          @db.VarChar(200)
+  developerId       String?          @map("developer_id") @db.VarChar(120)
+  
+  // Status
+  status            Building3DStatus @default(active)
+  constructionProgress Float?        @map("construction_progress")
+  readyBy           DateTime?        @map("ready_by") @db.Timestamptz(6)
+  
+  // Metadata
+  parkingSpaces     Int?             @map("parking_spaces")
+  elevatorCount     Int?             @map("elevator_count")
+  hasUndergroundParking Boolean      @default(false) @map("has_underground_parking")
+  hasRooftopAccess  Boolean          @default(false) @map("has_rooftop_access")
+  
+  // Cesium Position
+  cesiumPosition    Json?            @map("cesium_position")
+  boundingBox       Json?            @map("bounding_box")
+  
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedById       String?          @map("updated_by_id") @db.VarChar(120)
+  
+  mapBuilding       MapBuilding      @relation(fields: [mapBuildingId], references: [id], onDelete: Cascade)
+  floors            BuildingFloor[]
+  listingLocations  ListingLocation[]
+  developer         DeveloperProfile?       @relation(fields: [developerId], references: [id], onDelete: SetNull)
+  updatedBy         User?            @relation("Building3DUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  
+  @@index([status, yearBuilt], map: "building_3d_status_year_idx")
+  @@index([developerId], map: "building_3d_developer_idx")
+  @@index([readyBy], map: "building_3d_ready_idx")
+  @@map("buildings_3d")
+}
+
+/// Individual floor data within a 3D building
+model BuildingFloor {
+  id              String    @id @default(uuid()) @db.Uuid
+  building3DId    String    @map("building_3d_id") @db.Uuid
+  floorNumber     Int       @map("floor_number")
+  displayLabel    String?   @map("display_label") @db.VarChar(20)
+  
+  // Floor geometry
+  footprintGeoJson Json?    @map("footprint_geojson")
+  areaSqm         Float?    @map("area_sqm")
+  heightMeters    Float     @default(3.0) @map("height_meters")
+  
+  // Floor properties
+  totalUnits      Int       @default(0) @map("total_units")
+  availableUnits  Int       @default(0) @map("available_units")
+  
+  // Deal type breakdown
+  forSaleCount     Int      @default(0) @map("for_sale_count")
+  forRentCount     Int      @default(0) @map("for_rent_count")
+  forDailyCount    Int      @default(0) @map("for_daily_count")
+  forPledgeCount   Int      @default(0) @map("for_pledge_count")
+  
+  // Pricing analytics
+  pricePerSqmMin  Float?    @map("price_per_sqm_min")
+  pricePerSqmMax  Float?    @map("price_per_sqm_max")
+  pricePerSqmAvg  Float?    @map("price_per_sqm_avg")
+  
+  // Visual
+  color           String?   @db.VarChar(7)
+  opacity         Float     @default(1.0)
+  isHighlighted   Boolean   @default(false) @map("is_highlighted")
+  
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  building3D      Building3D @relation(fields: [building3DId], references: [id], onDelete: Cascade)
+  listingLocations ListingLocation[]
+  
+  @@unique([building3DId, floorNumber], map: "building_floor_unique_idx")
+  @@index([building3DId, floorNumber], map: "building_floor_building_num_idx")
+  @@map("building_floors")
+}
+
+/// Precise 3D location of a listing within a building
+model ListingLocation {
+  id            String    @id @default(uuid()) @db.Uuid
+  listingId     String    @unique @map("listing_id") @db.VarChar(120)
+  
+  // Building association
+  building3DId  String?   @map("building_3d_id") @db.Uuid
+  buildingFloorId String? @map("building_floor_id") @db.Uuid
+  floorNumber   Int?      @map("floor_number")
+  
+  // 3D Coordinates (lat, lng, altitude)
+  latitude      Float
+  longitude     Float
+  altitude      Float     @default(0)
+  
+  // Position within floor (normalized 0-1)
+  posX          Float?    @map("pos_x")
+  posY          Float?    @map("pos_y")
+  
+  // Cesium entity position
+  cesiumCartesian Json?   @map("cesium_cartesian")
+  
+  // Visual marker
+  markerColor   String?   @map("marker_color") @db.VarChar(7)
+  markerSize    Float     @default(1.0) @map("marker_size")
+  
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  
+  building3D    Building3D?  @relation(fields: [building3DId], references: [id], onDelete: SetNull)
+  buildingFloor BuildingFloor? @relation(fields: [buildingFloorId], references: [id], onDelete: SetNull)
+  listing       Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  
+  @@index([building3DId, floorNumber], map: "listing_loc_building_floor_idx")
+  @@index([latitude, longitude], map: "listing_loc_lat_lng_idx")
+  @@map("listing_locations")
+}
+
+
+/// Editorial blog posts for marketing and SEO content.
+model BlogPost {
+  id        String   @id @default(cuid()) @db.VarChar(120)
+  slug      String   @unique @db.VarChar(240)
+  status    BlogPostStatus @default(draft)
+  locale    String   @default("ka") @db.VarChar(8)
+  category  String?  @db.VarChar(80)
+  tags      String[] @default([])
+  featuredImage String? @map("featured_image") @db.Text
+  authorId  String?  @map("author_id") @db.VarChar(120)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  viewCount Int      @default(0) @map("view_count")
+
+  titleKa String @map("title_ka") @db.VarChar(300)
+  titleEn String? @map("title_en") @db.VarChar(300)
+  titleRu String? @map("title_ru") @db.VarChar(300)
+
+  excerptKa String? @map("excerpt_ka") @db.Text
+  excerptEn String? @map("excerpt_en") @db.Text
+  excerptRu String? @map("excerpt_ru") @db.Text
+
+  bodyKa String @map("body_ka") @db.Text
+  bodyEn String? @map("body_en") @db.Text
+  bodyRu String? @map("body_ru") @db.Text
+
+  metaTitleKa String? @map("meta_title_ka") @db.VarChar(300)
+  metaTitleEn String? @map("meta_title_en") @db.VarChar(300)
+  metaTitleRu String? @map("meta_title_ru") @db.VarChar(300)
+
+  metaDescriptionKa String? @map("meta_description_ka") @db.VarChar(500)
+  metaDescriptionEn String? @map("meta_description_en") @db.VarChar(500)
+  metaDescriptionRu String? @map("meta_description_ru") @db.VarChar(500)
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([status, locale], map: "blog_posts_status_locale_idx")
+  @@index([slug], map: "blog_posts_slug_idx")
+  @@index([publishedAt], map: "blog_posts_published_at_idx")
+  @@index([category], map: "blog_posts_category_idx")
+  @@map("blog_posts")
+}
+
+enum BlogPostStatus {
+  draft
+  published
+  archived
+
+  @@map("blog_post_status")
+}
+
+/// Media assets uploaded to the CMS media library.
+model MediaAsset {
+  id          String   @id @default(cuid()) @db.VarChar(120)
+  filename    String   @db.VarChar(240)
+  url         String   @db.Text
+  mimeType    String   @map("mime_type") @db.VarChar(80)
+  sizeBytes   Int      @map("size_bytes")
+  width       Int?
+  height      Int?
+  altText     String?  @map("alt_text") @db.VarChar(500)
+  tags        String[] @default([])
+  uploadedById String? @map("uploaded_by_id") @db.VarChar(120)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([mimeType], map: "media_assets_mime_type_idx")
+  @@index([createdAt], map: "media_assets_created_at_idx")
+  @@index([tags], map: "media_assets_tags_idx")
+  @@map("media_assets")
+}
+
+/// In-app notifications for users (bookings, inquiries, subscriptions, system alerts).
+model Notification {
+  id          String    @id @default(cuid()) @db.VarChar(120)
+  userId      String    @map("user_id") @db.VarChar(120)
+  kind        String    @db.VarChar(40)
+  title       String    @db.VarChar(240)
+  body        String?   @db.Text
+  actionUrl   String?   @map("action_url") @db.Text
+  readAt      DateTime? @map("read_at") @db.Timestamptz(6)
+  metadata    Json      @default("{}")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId, readAt, createdAt(sort: Desc)], map: "notifications_user_read_created_idx")
+  @@index([kind, createdAt], map: "notifications_kind_created_idx")
+  @@map("notifications")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIVRCE NEIGHBORHOOD INTELLIGENCE — Dynamic district data
+// 2026 Standard: CMS-managed via admin panel, static fallback
+// ═══════════════════════════════════════════════════════════════
+
+model City {
+  id          String   @id @default(cuid()) @db.VarChar(120)
+  slug        String   @unique @db.VarChar(120)
+  name        String   @db.VarChar(120)
+  nameKa      String   @map("name_ka") @db.VarChar(120)
+  region      String   @db.VarChar(120)
+  lat         Float    @default(0)
+  lng         Float    @default(0)
+  image       String?  @db.Text
+  order       Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  neighborhoods Neighborhood[]
+
+  @@index([isActive, order], map: "cities_active_order_idx")
+  @@map("cities")
+}
+
+model Neighborhood {
+  id                String   @id @default(cuid()) @db.VarChar(120)
+  slug              String   @unique @db.VarChar(120)
+  name              String   @db.VarChar(120)
+  nameKa            String   @map("name_ka") @db.VarChar(120)
+  cityId            String   @map("city_id") @db.VarChar(120)
+  description       String   @db.Text
+  descriptionKa     String   @map("description_ka") @db.Text
+  highlights        String[] @default([])
+  highlightsKa      String[] @default([]) @map("highlights_ka")
+  priceRangeBuy     String   @map("price_range_buy") @db.VarChar(120)
+  priceRangeRent    String   @map("price_range_rent") @db.VarChar(120)
+  avgPricePerSqm    Int      @map("avg_price_per_sqm")
+  currency          String   @default("GEL") @db.VarChar(8)
+  walkScore         Int      @default(0) @map("walk_score")
+  transitScore      Int      @default(0) @map("transit_score")
+  safetyScore       Int      @default(0) @map("safety_score")
+  schoolsNearby     Int      @default(0) @map("schools_nearby")
+  amenities         String[] @default([])
+  amenitiesKa       String[] @default([]) @map("amenities_ka")
+  bestFor           String[] @default([]) @map("best_for")
+  bestForKa         String[] @default([]) @map("best_for_ka")
+  investmentNote    String   @map("investment_note") @db.Text
+  investmentNoteKa  String   @map("investment_note_ka") @db.Text
+  lat               Float    @default(0)
+  lng               Float    @default(0)
+  image             String   @db.Text
+  imageAttribution  String?  @map("image_attribution") @db.Text
+  listingsCount     Int      @default(0) @map("listings_count")
+  trend             String   @default("stable") @db.VarChar(12)
+  trendPercent      String   @default("0%") @map("trend_percent") @db.VarChar(12)
+  isActive          Boolean  @default(true) @map("is_active")
+  featured          Boolean  @default(false)
+  order             Int      @default(0)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  city City @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  @@index([cityId, isActive, order], map: "neighborhoods_city_active_order_idx")
+  @@index([slug, isActive], map: "neighborhoods_slug_active_idx")
+  @@index([featured, order], map: "neighborhoods_featured_order_idx")
+  @@map("neighborhoods")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIVRCE REAL-TIME COMMUNICATION ENGINE — Chat + Tour Booking
+// 2026 Standard: SSE-based messaging, Redis pub/sub ready
+// ═══════════════════════════════════════════════════════════════
+
+enum ChatMessageKind {
+  text
+  image
+  file
+  system
+
+  @@map("chat_message_kind")
+}
+
+model ChatRoom {
+  id          String   @id @default(cuid()) @db.VarChar(120)
+  listingId   String?  @map("listing_id") @db.VarChar(120)
+  title       String   @db.VarChar(240)
+  status      String   @default("active") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  listing      Listing?          @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  participants ChatParticipant[]
+  messages     ChatMessage[]
+
+  @@index([listingId, status], map: "chat_rooms_listing_status_idx")
+  @@index([status, updatedAt(sort: Desc)], map: "chat_rooms_status_updated_idx")
+  @@map("chat_rooms")
+}
+
+model ChatParticipant {
+  id         String    @id @default(cuid()) @db.VarChar(120)
+  roomId     String    @map("room_id") @db.VarChar(120)
+  userId     String    @map("user_id") @db.VarChar(120)
+  role       String    @default("member") @db.VarChar(20)
+  joinedAt   DateTime  @default(now()) @map("joined_at") @db.Timestamptz(6)
+  lastReadAt DateTime? @map("last_read_at") @db.Timestamptz(6)
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId], map: "chat_participants_room_user_key")
+  @@index([userId, joinedAt(sort: Desc)], map: "chat_participants_user_joined_idx")
+  @@map("chat_participants")
+}
+
+model ChatMessage {
+  id        String          @id @default(cuid()) @db.VarChar(120)
+  roomId    String          @map("room_id") @db.VarChar(120)
+  senderId  String          @map("sender_id") @db.VarChar(120)
+  content   String          @db.Text
+  kind      ChatMessageKind @default(text)
+  metadata  Json            @default("{}")
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt(sort: Desc)], map: "chat_messages_room_created_idx")
+  @@index([senderId, createdAt(sort: Desc)], map: "chat_messages_sender_created_idx")
+  @@map("chat_messages")
+}
+
+enum TourStatus {
+  pending
+  confirmed
+  cancelled_by_guest
+  cancelled_by_agent
+  completed
+  no_show
+
+  @@map("tour_status")
+}
+
+model PropertyTour {
+  id           String     @id @default(cuid()) @db.VarChar(120)
+  listingId    String     @map("listing_id") @db.VarChar(120)
+  guestId      String     @map("guest_id") @db.VarChar(120)
+  userId       String?    @map("user_id") @db.VarChar(120)
+  agentId      String?    @map("agent_id") @db.VarChar(120)
+  tourDate     DateTime   @map("tour_date") @db.Date
+  tourTime     String     @map("tour_time") @db.VarChar(10)
+  status       TourStatus @default(pending)
+  guestName    String     @map("guest_name") @db.VarChar(160)
+  guestPhone   String     @map("guest_phone") @db.VarChar(30)
+  guestEmail   String?    @map("guest_email") @db.VarChar(240)
+  guestNotes   String?    @map("guest_notes") @db.Text
+  agentNotes   String?    @map("agent_notes") @db.Text
+  confirmedAt  DateTime?  @map("confirmed_at") @db.Timestamptz(6)
+  cancelledAt  DateTime?  @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason String?    @map("cancel_reason") @db.VarChar(200)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  listing Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user    User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  agent   AgentProfile? @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, tourDate], map: "property_tours_listing_date_idx")
+  @@index([agentId, tourDate, status], map: "property_tours_agent_date_status_idx")
+  @@index([guestId, createdAt(sort: Desc)], map: "property_tours_guest_idx")
+  @@index([userId, createdAt(sort: Desc)], map: "property_tours_user_idx")
+  @@index([status, tourDate], map: "property_tours_status_date_idx")
+  @@map("property_tours")
+}
+
+model TourAvailability {
+  id           String   @id @default(cuid()) @db.VarChar(120)
+  agentId      String   @map("agent_id") @db.VarChar(120)
+  dayOfWeek    Int      @map("day_of_week")
+  startTime    String   @map("start_time") @db.VarChar(10)
+  endTime      String   @map("end_time") @db.VarChar(10)
+  slotDuration Int      @default(30) @map("slot_duration")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agent AgentProfile @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, dayOfWeek, startTime, endTime], map: "tour_availability_agent_day_time_key")
+  @@index([agentId, dayOfWeek, isActive], map: "tour_availability_agent_day_active_idx")
+  @@map("tour_availabilities")
+}
+
+model TourDateOverride {
+  id        String    @id @default(cuid()) @db.VarChar(120)
+  agentId   String    @map("agent_id") @db.VarChar(120)
+  date      DateTime  @db.Date
+  isBlocked Boolean   @default(true) @map("is_blocked")
+  reason    String?   @db.VarChar(200)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  agent AgentProfile @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, date], map: "tour_date_override_agent_date_key")
+  @@index([agentId, date], map: "tour_date_override_agent_date_idx")
+  @@map("tour_date_overrides")
+}
+
+enum BehaviorKind {
+  view
+  save
+  inquiry
+  search
+  tour_booking
+  share
+
+  @@map("behavior_kind")
+}
+
+model UserBehavior {
+  id          String       @id @default(cuid()) @db.VarChar(120)
+  userId      String       @map("user_id") @db.VarChar(120)
+  listingId   String?      @map("listing_id") @db.VarChar(120)
+  kind        BehaviorKind
+  weight      Float        @default(1.0)
+  searchParams Json?       @map("search_params")
+  sessionId   String?      @map("session_id") @db.VarChar(120)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind, createdAt(sort: Desc)], map: "user_behaviors_user_kind_created_idx")
+  @@index([userId, createdAt(sort: Desc)], map: "user_behaviors_user_created_idx")
+  @@index([listingId, kind, createdAt(sort: Desc)], map: "user_behaviors_listing_kind_created_idx")
+  @@index([sessionId, createdAt(sort: Desc)], map: "user_behaviors_session_created_idx")
+  @@map("user_behaviors")
+}
+
+model ListingEmbedding {
+  id          String   @id @default(cuid()) @db.VarChar(120)
+  listingId   String   @unique @map("listing_id") @db.VarChar(120)
+  embedding   Unsupported("vector(1536)")
+  model       String   @db.VarChar(80)
+  contentHash String   @map("content_hash") @db.VarChar(64)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId], map: "listing_embeddings_listing_id_idx")
+  @@map("listing_embeddings")
+}
+
+model UserEmbedding {
+  id            String   @id @default(cuid()) @db.VarChar(120)
+  userId        String   @unique @map("user_id") @db.VarChar(120)
+  embedding     Unsupported("vector(1536)")
+  model         String   @db.VarChar(80)
+  behaviorCount Int      @default(0) @map("behavior_count")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "user_embeddings_user_id_idx")
+  @@map("user_embeddings")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid()) @db.VarChar(120)
+  userId    String   @map("user_id") @db.VarChar(120)
+  endpoint  String   @db.Text
+  p256dh    String   @map("p256dh") @db.VarChar(255)
+  auth      String   @db.VarChar(255)
+  kind      String   @default("web") @db.VarChar(20)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, endpoint], map: "push_subscriptions_user_endpoint_key")
+  @@index([userId, isActive], map: "push_subscriptions_user_active_idx")
+  @@index([isActive, updatedAt], map: "push_subscriptions_active_updated_idx")
+  @@map("push_subscriptions")
+}
+
+model ListingAlertSubscription {
+  id             String    @id @default(cuid()) @db.VarChar(120)
+  email          String    @map("email") @db.VarChar(320)
+  source         String    @default("homepage_cta") @map("source") @db.VarChar(60)
+  confirmedAt    DateTime? @map("confirmed_at") @db.Timestamptz(6)
+  unsubscribedAt DateTime? @map("unsubscribed_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([email, createdAt], map: "listing_alert_subs_email_created_idx")
+  @@index([createdAt], map: "listing_alert_subs_created_idx")
+  @@map("listing_alert_subscriptions")
+}

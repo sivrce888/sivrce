@@ -13,6 +13,7 @@ import {
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { monthlyPayment } from '@/lib/finance'
 import ListingCard, { BADGE_STYLE } from '@/components/ListingCard'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
@@ -50,15 +51,6 @@ function aiExplanation(l: Listing, t: (key: DictKey, vars?: Record<string, strin
   if (score >= 90) return `${base} ${t('detail.aiVerdictHigh')}`
   if (score >= 84) return `${base} ${t('detail.aiVerdictMid')}`
   return `${base} ${t('detail.aiVerdictLow')}`
-}
-
-/* ————— Annuity mortgage payment ————— */
-function monthlyPayment(principal: number, annualRatePct: number, years: number): number {
-  const r = annualRatePct / 100 / 12
-  const n = years * 12
-  if (principal <= 0 || n <= 0) return 0
-  if (r === 0) return principal / n
-  return (principal * r) / (1 - Math.pow(1 + r, -n))
 }
 
 /* ————— Lightbox ————— */

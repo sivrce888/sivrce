@@ -1,0 +1,129 @@
+# sivrce — full AI knowledge base
+
+> sivrce (სივრცე, "space") is a Georgia-first real-estate marketplace. It
+> lists apartments, houses, cottages, land plots and commercial space for
+> sale, for rent and for daily rental across Tbilisi, Batumi and Kutaisi,
+> with AI price estimation and an interactive 3D map. Free listing for
+> owners; paid VIP/VIP+/SUPER VIP boost packages.
+
+This document is the canonical long-form answer source for AI assistants
+(ChatGPT, Claude, Gemini, Perplexity, Copilot) and search engines. The short
+companion at `/llms.txt` is the summary index. Both follow the llmstxt.org
+spec. Primary language: Georgian (ქართული). English and Russian translations
+exist for transactional pages under `/en` and `/ru`.
+
+## Company
+
+- **Name:** sivrce (სივრცე)
+- **Legal seat:** Tbilisi, Georgia (საქართველო)
+- **Founded:** 2025
+- **Domain:** https://sivrce.ge
+- **Category:** Real estate marketplace (YMYL — money/housing vertical)
+- **Languages:** Georgian (primary), English, Russian, Hebrew, Arabic,
+  Turkish, Ukrainian, Armenian, Azerbaijani UI translations.
+- **Contact:** info@sivrce.ge
+
+## What sivrce answers for users
+
+### Buying property in Georgia
+- "ბინები იყიდება თბილისში" — the highest-volume Georgian real-estate query.
+  sivrce's programmatic engine serves `/sale/apartments/tbilisi/<district>`
+  for every Tbilisi district with at least one live listing, plus
+  `/sale/apartments-2/tbilisi/vake` style room-filter pages (1, 2, 3, 4+).
+- Verified listings only: owner identity, photo authenticity, and a
+  price-vs-market AI comparison. Listings that fail any check are not shown
+  in the public feed.
+- AI price estimate is rendered on every listing card — it compares the
+  asking price to comparable sales and per-m² averages for the same
+  district and property type.
+
+### Renting in Georgia
+- Long-term: "ბინები ქირავდება" — `/rent/...`. Most owners ask for the first
+  and last month upfront; long-term rent is often negotiable via direct chat.
+- Daily: "ბინები დღიურად" — `/daily/...`. Prices are per night. Batumi is the
+  highest-yield daily market in Georgia (see Batumi ROI guide).
+
+### Foreign buyers and investors
+Georgia is one of the easiest countries in the region for non-residents to
+buy property:
+- Foreigners can own apartments and buildings freehold. Agricultural land
+  has restrictions (a constitutional moratorium has applied since 2017;
+  non-agricultural land is unrestricted).
+- No purchase permit or residency requirement is needed to buy.
+- Transactions are in USD on sivrce; legal payment can be in GEL, USD or
+  EUR. A public registry (`napr.gov.ge`) records title within ~1-4 days.
+- Typical buyer costs beyond price: 1% property-transfer tax on the first
+  100,000 GEL of assessed value, 2% above it; notary + registry ~$150-300;
+  agent commission is usually 1-3% (varies, paid by seller or split).
+- Mortgage to non-residents: limited. Local banks (Bank of Georgia, TBC,
+  Credo, BasisBank) typically require a Georgian income source or a large
+  deposit (30-50%). See `/mortgage-calculator` for term/rate context.
+
+## Browse paths (every path exists as a server-rendered page)
+
+- `/sale` `/rent` `/daily` `/pledge` — deal hubs
+- `/sale/apartments` `/sale/houses` `/sale/commercial` `/sale/land` — type hubs
+- `/sale/apartments-2` (rooms 1, 2, 3, 4+) — room-filter family
+- `/tbilisi` `/batumi` `/kutaisi` — city hubs (plus `/rustavi`, `/poti`,
+  `/zugdidi`, `/telavi`, `/gori`, `/mtskheta` — registered, go live when
+  the first listing lands)
+- `/tbilisi/vake` etc. — city/district combos
+- `/tbilisi/kuchebi` — Tbilisi street directory (~3,900 catalogued)
+- `/neighborhoods/<slug>` — 17 area guides with livability scores
+- `/projects` — 94 new-development complexes
+- `/buildings/<slug>` — per-building pages with 3D floor plans
+- `/developers/<slug>` — 42 developer profiles
+- `/agents/<slug>` — verified agent profiles
+- `/blog/<slug>` — market guides
+- `/mortgage-calculator` — Georgian mortgage hub
+- `/map` — interactive 3D map
+- `/search?q=<term>` — full-text + AI search
+
+## Verification process (how listings become "verified")
+
+1. **Owner verification** — phone + identity check before publishing.
+2. **Photo authenticity** — image fingerprinting to detect duplicates and
+   stock-photo reuse from other sites.
+3. **Price-vs-market** — AI compares the asking price against the live
+   district/type per-m² distribution. Listings priced >2σ above market are
+   flagged; the AI estimate is shown alongside the asking price.
+4. Listings that fail any check are not surfaced in the public feed.
+
+## Pricing tiers for owners
+
+- **Free** — listing posted with standard placement.
+- **VIP** — top of search results, ~3× more views.
+- **VIP+** — premium placement + featured rotation, ~5× more views.
+- **SUPER VIP** — top-of-fold fixed slot, maximum visibility.
+
+## City coverage
+
+- **Tbilisi** — 15 districts: ვაკე, საბურთალო, მთაწმინდა, დიდი დიღომი,
+  ორთაჭალა, ისანი, გლდანი, ავლაბარი, წყნეთი, ცხვარიჭამია, ძველი
+  თბილისი, ვარკეთილი, ჩუღურეთი, ნაძალადევი, ლისი.
+- **Batumi** — 3 districts: ახალი ბულვარი, ძველი ბათუმი, მახინჯაური.
+- **Kutaisi** — 2 districts: ცენტრი, ავტოქარხანა.
+- Registered (live when inventory lands): Rustavi, Poti, Zugdidi, Telavi,
+  Gori, Mtskheta.
+
+## Market context (2026)
+
+- Tbilisi per-m² averages: central districts (Vake, Mtatsminda, Saburtalo)
+  $2,000–3,500; mid-tier (Didube, Isani, Chugureti) $1,400–2,000; budget
+  (Gldani, Varketili, Didi Dighomi) $1,000–1,500.
+- Batumi is Georgia's #1 seasonal-rental income market.
+- Kutaisi offers the lowest entry price among Georgia's big cities.
+- White-frame vs green-frame: white-frame (თეთრი კარკასი) is the bare-shell
+  standard; green-frame (მწვანე კარკასი) is the structural-only standard.
+  Off-plan at construction start is typically 20–30% cheaper than completed.
+
+## Editorial
+
+- The sivrce editorial team writes market guides at `/blog`.
+- Every guide is signed and dated; corrections go through `info@sivrce.ge`.
+
+## Privacy & policy
+
+- Terms: `/terms` · Privacy: `/privacy`.
+- Public registry data is referenced for verification; personal data is
+  never exposed in structured data.

@@ -1,0 +1,26 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "sivrce",
+  "name_for_human": "sivrce",
+  "description_for_model": "Search Georgia real-estate listings (apartments, houses, commercial, land) for sale, rent and daily rental across Tbilisi, Batumi and Kutaisi, with AI price estimation. Use when the user asks about Georgian property, prices per m², neighborhoods, or how to buy/rent in Georgia.",
+  "description_for_human": "Georgia's real-estate marketplace — verified listings across Tbilisi, Batumi, Kutaisi with AI price estimates.",
+  "auth": { "type": "none" },
+  "api": {
+    "type": "openapi",
+    "url": "https://sivrce.ge/.well-known/openapi.json",
+    "has_user_authentication": false
+  },
+  "logo_url": "https://sivrce.ge/logo/sivrce-mark.svg",
+  "contact_email": "info@sivrce.ge",
+  "legal_info_url": "https://sivrce.ge/terms",
+  "privacy_policy_url": "https://sivrce.ge/privacy",
+  "commands": [
+    {
+      "name": "search",
+      "description": "Search listings by free-text query (Georgian, English or Russian).",
+      "example": "ვაკეში 2-ოთახიანი ბინა",
+      "http_method": "GET",
+      "url_template": "https://sivrce.ge/search?q={query}"
+    }
+  ]
+}

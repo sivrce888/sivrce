@@ -35,11 +35,15 @@ const VALUES = [
   },
 ]
 
+// ponytail: prior values (56,000+ listings / 1,800+ agents / 400k MAU) were
+// unverifiable against the live catalog and carry YMYL manual-action risk in
+// the real-estate vertical. These substitutes are defensible against the
+// actual data: NEIGHBORHOODS, STREETS, BLOG_POSTS, CITIES registry.
 const STATS = [
-  { value: '56,000+', label: 'განცხადება' },
-  { value: '1,800+', label: 'ვერიფიცირებული აგენტი' },
-  { value: '12', label: 'ქალაქი' },
-  { value: '400,000+', label: 'მომხმარებელი თვეში' },
+  { value: '17', label: 'უბნის გზამკვლევი' },
+  { value: '3,900+', label: 'თბილისის ქუჩა კატალოგში' },
+  { value: '3', label: 'ქალაქი სრული დაფარვით' },
+  { value: '6', label: 'ქალაქი მზარდი ბაზით' },
 ]
 
 export default function AboutPage() {

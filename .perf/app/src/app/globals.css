@@ -1,0 +1,568 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ————— Sivrce Design System — Tailwind v4 CSS-first tokens —————
+   Single source of truth. Values MUST stay in sync with BRAND.md
+   and src/lib/brand.ts. NEVER add a color that is not in BRAND.md.
+   Usage: bg-sv-blue · text-sv-ink/60 · from-sv-orange to-sv-orange-deep */
+@theme {
+  /* Brand palette (BRAND.md §3) */
+  --color-sv-blue: #2e6bff;
+  --color-sv-blue-light: #8fb4ff;
+  --color-sv-blue-deep: #1a3fc0;
+  --color-sv-violet: #7a5cff;
+  --color-sv-orange: #ff6a2d;
+  --color-sv-orange-light: #ffb25e;
+  --color-sv-orange-deep: #ff4d6d;
+  --color-sv-navy: #050b26;
+  --color-sv-navy-soft: #0a1440;
+  --color-sv-ink: #0a1030;
+  --color-sv-cloud: #f6f7fb;
+  /* Semantic surface — white cards in light, elevated navy in dark.
+     Flipped in .dark below. Usage: bg-sv-surface */
+  --color-sv-surface: #ffffff;
+  --color-sv-success: #4ade80;
+
+  /* Locked category branding (BRAND.md §3.1) — every category/service owns
+     its hue + chip. Mirrors src/lib/category-brand.ts. Never reuse across
+     categories, never recolor. Usage: text-cat-houses · bg-cat-houses-chip */
+  --color-cat-apartments: #2e6bff;
+  --color-cat-apartments-chip: #eff3ff;
+  --color-cat-houses: #ff6a2d;
+  --color-cat-houses-chip: #fff3ef;
+  --color-cat-cottages: #16a34a;
+  --color-cat-cottages-chip: #edf8f1;
+  --color-cat-land: #d97706;
+  --color-cat-land-chip: #fcf4eb;
+  --color-cat-commercial: #7c3aed;
+  --color-cat-commercial-chip: #f5f0fe;
+  --color-cat-daily-rent: #e11d48;
+  --color-cat-daily-rent-chip: #fdedf1;
+  --color-cat-hotels: #0891b2;
+  --color-cat-hotels-chip: #ecf6f9;
+  --color-cat-new-projects: #5b8bff;
+  --color-cat-new-projects-chip: #eff3ff;
+
+  /* Brand shape tokens (BRAND.md §5) */
+  --radius-card: 26px;
+  --radius-tile: 22px;
+  --radius-module: 16px;
+  --radius-control: 12px;
+
+  /* Brand elevation tokens — navy-tinted, never black (BRAND.md §5) */
+  --shadow-card: 0 2px 8px -2px rgba(10, 16, 48, 0.08), 0 12px 32px -12px rgba(10, 16, 48, 0.12);
+  --shadow-card-hover: 0 6px 16px -4px rgba(10, 16, 48, 0.12), 0 24px 56px -16px rgba(10, 16, 48, 0.28);
+  --shadow-soft: 0 20px 60px -20px rgba(10, 16, 48, 0.25);
+  --shadow-glow-orange: 0 12px 32px -8px rgba(255, 106, 45, 0.8);
+  --shadow-glow-orange-lg: 0 20px 56px -12px rgba(255, 106, 45, 0.95);
+  --shadow-glow-blue: 0 16px 48px -12px rgba(46, 107, 255, 0.7);
+  --shadow-glow-blue-sm: 0 6px 16px -6px rgba(46, 107, 255, 0.7);
+  --shadow-glow-navy: 0 16px 48px -12px rgba(5, 11, 38, 0.5);
+  --shadow-panel-dark: 0 30px 80px -20px rgba(1, 4, 20, 0.65);
+  --shadow-showcase-blue: 0 40px 120px -30px rgba(46, 107, 255, 0.45);
+
+  /* Brand type stack — next/font CSS variables (layout.tsx) */
+  --font-sans: var(--font-manrope), var(--font-noto-georgian), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-manrope), var(--font-noto-georgian), ui-sans-serif, system-ui, sans-serif;
+
+  /* shadcn token mapping (CSS-first, no tailwind.config) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* shadcn base variables + raw brand hex vars (for direct var() use in SVG/inline styles) */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Raw brand hex — direct var() consumers (SVG strokes, inline styles) */
+  --sv-blue: #2e6bff;
+  --sv-blue-light: #8fb4ff;
+  --sv-blue-deep: #1a3fc0;
+  --sv-violet: #7a5cff;
+  --sv-orange: #ff6a2d;
+  --sv-orange-light: #ffb25e;
+  --sv-orange-deep: #ff4d6d;
+  --sv-navy: #050b26;
+  --sv-navy-soft: #0a1440;
+  --sv-ink: #0a1030;
+  --sv-cloud: #f6f7fb;
+  --sv-surface: #ffffff;
+  --sv-success: #4ade80;
+
+  /* Locked category/service chips (BRAND.md §3.1, category-brand.ts) —
+     consumed as var() so dark mode can retint without touching hexes */
+  --chip-apartments: #eff3ff;
+  --chip-houses: #fff3ef;
+  --chip-cottages: #edf8f1;
+  --chip-land: #fcf4eb;
+  --chip-commercial: #f5f0fe;
+  --chip-daily-rent: #fdedf1;
+  --chip-hotels: #ecf6f9;
+  --chip-new-projects: #eff3ff;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ————— Dark mode — brand token flips (BRAND.md stays single source) —————
+   sv-ink → near-white foreground, sv-cloud → deepest navy page bg,
+   sv-surface → elevated navy card. Alpha utilities (bg-sv-ink/5 etc.)
+   automatically become white-alpha overlays. Navy stays fixed — hero,
+   CTA, map and footer sections are brand-dark in BOTH themes. */
+.dark {
+  color-scheme: dark;
+
+  --color-sv-ink: #e9edff;
+  --color-sv-cloud: #060b21;
+  --color-sv-surface: #0e1737;
+  --sv-ink: #e9edff;
+  --sv-cloud: #060b21;
+  --sv-surface: #0e1737;
+
+  /* Category/service chips: locked pastel fills → translucent hue tints
+     (same locked hues, dark-appropriate luminance) */
+  --chip-apartments: color-mix(in oklab, #2e6bff 18%, transparent);
+  --chip-houses: color-mix(in oklab, #ff6a2d 18%, transparent);
+  --chip-cottages: color-mix(in oklab, #16a34a 20%, transparent);
+  --chip-land: color-mix(in oklab, #d97706 20%, transparent);
+  --chip-commercial: color-mix(in oklab, #7c3aed 20%, transparent);
+  --chip-daily-rent: color-mix(in oklab, #e11d48 20%, transparent);
+  --chip-hotels: color-mix(in oklab, #0891b2 20%, transparent);
+  --chip-new-projects: color-mix(in oklab, #5b8bff 18%, transparent);
+}
+
+/* Frosted nav/menu glass: light milk → smoked navy in dark mode.
+   0.92 keeps a hint of frost while guaranteeing text separation over
+   the animated dark hero. */
+.dark .glass-light {
+  background: rgba(8, 13, 38, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    font-family: var(--font-sans);
+    background: var(--sv-cloud);
+    color: var(--sv-ink);
+    overflow-x: hidden;
+    /* Apple-grade theme crossfade — surfaces with their own transitions
+       (cards, pills, glass) animate along via `transition-all` */
+    transition: background-color 0.35s ease, color 0.35s ease;
+  }
+  ::selection {
+    background: rgba(46, 107, 255, 0.22);
+  }
+}
+
+/* ————— Brand utilities (BRAND.md §5, §3) ————— */
+@layer utilities {
+  .font-geo {
+    font-family: var(--font-sans);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .glass-light {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .text-gradient-blue {
+    background: linear-gradient(120deg, #8fb4ff 0%, #2e6bff 55%, #7a5cff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-gradient-orange {
+    background: linear-gradient(120deg, #ffb25e 0%, #ff6a2d 60%, #ff4d6d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ring-glow-orange {
+    box-shadow: 0 0 0 1px rgba(255, 106, 45, 0.4), 0 8px 40px -8px rgba(255, 106, 45, 0.55);
+  }
+}
+
+/* Brand range slider (mortgage calculator, filters) */
+.sv-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2e6bff, #7a5cff);
+  outline: none;
+  cursor: pointer;
+}
+.sv-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 3px solid #2e6bff;
+  box-shadow: 0 4px 14px -2px rgba(46, 107, 255, 0.55);
+  transition: transform 0.2s ease;
+}
+.sv-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.sv-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 3px solid #2e6bff;
+  box-shadow: 0 4px 14px -2px rgba(46, 107, 255, 0.55);
+  transition: transform 0.2s ease;
+}
+.sv-range:focus-visible {
+  outline: 2px solid #2e6bff;
+  outline-offset: 4px;
+}
+
+/* Marquee */
+@keyframes sv-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: sv-marquee 36s linear infinite;
+}
+
+/* Slow float for decorative orbs */
+@keyframes sv-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -24px, 0) scale(1.05); }
+}
+.animate-float {
+  animation: sv-float 9s ease-in-out infinite;
+}
+
+/* Pin pulse on map */
+@keyframes sv-pin-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 106, 45, 0.55); }
+  70% { box-shadow: 0 0 0 18px rgba(255, 106, 45, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 106, 45, 0); }
+}
+.animate-pin {
+  animation: sv-pin-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Grid pattern for dark sections */
+.bg-grid-dark {
+  background-image:
+    linear-gradient(rgba(143, 180, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(143, 180, 255, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* ————— Hero ambient animations ————— */
+@keyframes sv-aurora-a {
+  0%, 100% { transform: translate3d(-8%, -4%, 0) scale(1); }
+  33% { transform: translate3d(10%, 6%, 0) scale(1.15); }
+  66% { transform: translate3d(-4%, 10%, 0) scale(0.95); }
+}
+@keyframes sv-aurora-b {
+  0%, 100% { transform: translate3d(6%, 8%, 0) scale(1.05); }
+  50% { transform: translate3d(-10%, -6%, 0) scale(1.2); }
+}
+@keyframes sv-aurora-c {
+  0%, 100% { transform: translate3d(0%, 0%, 0) scale(1) rotate(0deg); }
+  50% { transform: translate3d(4%, -10%, 0) scale(1.18) rotate(8deg); }
+}
+.animate-aurora-a { animation: sv-aurora-a 22s ease-in-out infinite; }
+.animate-aurora-b { animation: sv-aurora-b 26s ease-in-out infinite; }
+.animate-aurora-c { animation: sv-aurora-c 30s ease-in-out infinite; }
+
+@keyframes sv-particle-rise {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  12% { opacity: var(--p-opacity, 0.5); }
+  88% { opacity: var(--p-opacity, 0.5); }
+  100% { transform: translate3d(var(--p-drift, 20px), -46vh, 0); opacity: 0; }
+}
+.sv-particle {
+  animation: sv-particle-rise var(--p-duration, 14s) linear infinite;
+  animation-delay: var(--p-delay, 0s);
+}
+
+@keyframes sv-window-glow {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.85; }
+}
+.sv-window {
+  animation: sv-window-glow var(--w-duration, 5s) ease-in-out infinite;
+  animation-delay: var(--w-delay, 0s);
+}
+
+/* Twinkling stars in the hero night sky */
+@keyframes sv-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.sv-star {
+  animation: sv-twinkle var(--st-duration, 5s) ease-in-out infinite;
+  animation-delay: var(--st-delay, 0s);
+}
+
+/* Hero entrance — paint-driven (no hydration gate) so LCP text renders immediately */
+@keyframes sv-hero-in {
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.sv-hero-in {
+  animation: sv-hero-in 0.7s cubic-bezier(0.21, 0.65, 0.2, 1) both;
+}
+
+@keyframes sv-scroll-hint {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(14px); }
+}
+.animate-scroll-hint {
+  animation: sv-scroll-hint 1.8s ease-in-out infinite;
+}
+
+/* Back-row skyline — slow lateral drift for depth */
+@keyframes sv-skyline-back {
+  0%, 100% { transform: translate3d(-8px, 0, 0); }
+  50% { transform: translate3d(8px, 0, 0); }
+}
+.sv-skyline-back {
+  animation: sv-skyline-back 46s ease-in-out infinite;
+}
+
+/* Antenna beacon — soft breathing blink */
+@keyframes sv-beacon {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+.sv-beacon {
+  animation: sv-beacon 2.6s ease-in-out infinite;
+}
+
+/* Comet — brief streak across the upper sky, then long rest */
+@keyframes sv-comet {
+  0% { transform: translate3d(0, 0, 0) rotate(-24deg); opacity: 0; }
+  2% { opacity: 0.9; }
+  11% { transform: translate3d(-52vw, 16vh, 0) rotate(-24deg); opacity: 0; }
+  100% { transform: translate3d(-52vw, 16vh, 0) rotate(-24deg); opacity: 0; }
+}
+.sv-comet {
+  animation: sv-comet 16s linear infinite;
+}
+
+/* H1 masked word rise — paint-driven, SSR-safe */
+@keyframes sv-word-rise {
+  from { transform: translate3d(0, 112%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+.sv-word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.sv-word {
+  display: inline-block;
+  animation: sv-word-rise 0.9s cubic-bezier(0.21, 0.65, 0.2, 1) both;
+}
+
+/* Slow gradient shimmer for the H1 accent word */
+@keyframes sv-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.text-gradient-shimmer {
+  background-size: 220% 220%;
+  animation: sv-shimmer 9s ease-in-out infinite;
+}
+
+/* HeroBackground off-screen: freeze ambient animations (toggled via IntersectionObserver) */
+.sv-anim-paused, .sv-anim-paused * {
+  animation-play-state: paused !important;
+}
+
+/* Dot map-grid */
+.bg-dots-dark {
+  background-image: radial-gradient(rgba(143, 180, 255, 0.13) 1px, transparent 1.5px);
+  background-size: 34px 34px;
+}
+
+/* Fine line grid */
+.bg-grid-faint {
+  background-image:
+    linear-gradient(rgba(143, 180, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(143, 180, 255, 0.05) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+  }
+  .animate-aurora-a, .animate-aurora-b, .animate-aurora-c,
+  .sv-particle, .sv-window, .sv-star, .animate-float, .animate-pin, .animate-marquee,
+  .animate-ping, .sv-hero-in, .animate-scroll-hint,
+  .sv-skyline-back, .sv-beacon, .sv-comet, .sv-word, .text-gradient-shimmer {
+    animation: none !important;
+  }
+}
+
+/* MapLibre floor tooltip — brand dark */
+.sivrce-floor-pop .maplibregl-popup-content {
+  background: var(--color-sv-navy);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 10px 28px rgba(2, 6, 26, 0.55);
+}
+.sivrce-floor-pop .maplibregl-popup-tip {
+  border-top-color: var(--color-sv-navy);
+}
+.sivrce-floor-pop-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.sivrce-floor-pop-line {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+}

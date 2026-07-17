@@ -59,6 +59,15 @@ export const CITIES: GeoLoc[] = [
   { slug: 'tbilisi', ka: 'თბილისი', loc: 'თბილისში', en: 'Tbilisi', ru: 'Тбилиси' },
   { slug: 'batumi', ka: 'ბათუმი', loc: 'ბათუმში', en: 'Batumi', ru: 'Батуми' },
   { slug: 'kutaisi', ka: 'ქუთაისი', loc: 'ქუთაისში', en: 'Kutaisi', ru: 'Кутаиси' },
+  // ponytail: registered but inventory-light cities. Programmatic deal×type
+  // pages self-throttle (≥1 listing rule) so they stay dark until listings
+  // arrive; the city-info fallback below gives each a unique page today.
+  { slug: 'rustavi', ka: 'რუსთავი', loc: 'რუსთავში', en: 'Rustavi', ru: 'Рустави' },
+  { slug: 'poti', ka: 'ფოთი', loc: 'ფოთში', en: 'Poti', ru: 'Поти' },
+  { slug: 'zugdidi', ka: 'ზუგდიდი', loc: 'ზუგდიდში', en: 'Zugdidi', ru: 'Зугдиди' },
+  { slug: 'telavi', ka: 'თელავი', loc: 'თელავში', en: 'Telavi', ru: 'Телави' },
+  { slug: 'gori', ka: 'გორი', loc: 'გორში', en: 'Gori', ru: 'Гори' },
+  { slug: 'mtskheta', ka: 'მცხეთა', loc: 'მცხეთაში', en: 'Mtskheta', ru: 'Мцхета' },
 ]
 
 export type District = GeoLoc & { citySlug: string }
@@ -100,6 +109,7 @@ export type SeoKind =
   | 'deal-type-city-district'
   | 'city'
   | 'city-district'
+  | 'city-info'
 
 export interface SeoPageDef {
   kind: SeoKind
@@ -141,7 +151,12 @@ export function parseSeoSlug(slug: string[]): SeoPageDef | null {
   if (city) {
     if (!b) {
       const listings = listingsFor({ city })
-      return listings.length ? { kind: 'city', path: `/${a}`, city, listings } : null
+      // ponytail: a registered city with zero listings still gets a unique
+      // city-info page instead of a 404 — every page has real prose (below).
+      // When listings arrive, the ≥1-listing branch above wins automatically.
+      return listings.length
+        ? { kind: 'city', path: `/${a}`, city, listings }
+        : cityInfoOf(city)
     }
     const dist = districtBySlug(b)
     if (!dist || dist.citySlug !== city.slug || c || d) return null
@@ -247,6 +262,90 @@ export function generateAllSeoParams(): string[][] {
   return out
 }
 
+/* ————— City-info pages (inventory-light cities) ————— */
+
+/**
+ * Long-form prose for registered cities that don't yet carry listings.
+ * Each entry must be unique 200+ word ka prose — no thin pages. When real
+ * listings land, the ≥1-listing branch wins and this becomes a fallback
+ * only for empty combos.
+ */
+export const CITY_PROSE: Record<string, { lede: string; body: string[]; coords?: { lat: number; lng: number } }> = {
+  rustavi: {
+    lede: 'რუსთავი — ქვემო ქართლის სამრეწველო დედაქალაქი თბილისიდან 25 კილომეტრში. საბჭოთა ინდუსტრიული მემკვიდრეობიდან გამოსული ქალაქი დღეს იზიდავს ახალგაზრდა ოჯახებს ხელმისაწვდომი ფასებით და თბილისთან საავტომობილო და სარკინიგზო კავშირით.',
+    body: [
+      'ქალაქის უძრავი ქონების ბაზარი იზრდება ახალი კორპუსების მშენებლობით — ძირითადად პანელური შენობების რეკონსტრუქციითა და ახალი საცხოვრებელი კომპლექსების განვითარებით. ფასები საშუალოდ 30-50%-ით დაბალია თბილისის ცენტრთან შედარებით, რაც რუსთავს პირველი ბინის მყიდველებისთვის და ინვესტორებისთვის მიმზიდველს ხდის.',
+      'ტრანსპორტი: რეგულარული მარშრუტკა, რკინიგზა და საავტომობილო გზატკეცილი თბილისისკენ. მგზავრობა დედაქალაქამდე დაახლოებით 30-40 წუთი საათში. ქალაქში მოქმედებს ახალი სკოლები, საბავშვო ბაღები და სავაჭრო ცენტრები.',
+      'რუსთავი არის ასევე ქართული მანქანათმშენებლობის ცენტრი, რაც აქტიურ სამუშაო ბაზარს ქმნის და ამყარებს ადგილობრივ მოთხოვნას ქირავდება ბინებზე.',
+    ],
+    coords: { lat: 41.5495, lng: 44.9931 },
+  },
+  poti: {
+    lede: 'ფოთი — შავიზღვისპირა ნავსადგური ქალაქი და საქართველოს უმსხვილესი საზღვაო კარიბჭე. კოლხეთის დაბლოლანდზე, რიონის შესართავთან, ფოთი აერთიანებს ისტორიულ მემკვიდრეობას თანამედროვე ლოჯისტიკურ ეკონომიკასთან.',
+    body: [
+      'უძრავი ქონების ბაზარი ძირითადად მოიცავს საბჭოთა პერიოდის ბინებსა და ახალ სახლებს. ფასები ერთ-ერთი ყველაზე დაბალია სანაპირო ქალაქებს შორის, რაც იზიდავს ბიუჯეტურ მყიდველებს და საპორტო ინფრასტრუქტურასთან დაკავშირებულ ინვესტორებს.',
+      'ფოთის პორტი და თავისუფალი ინდუსტრიული ზონა ქმნის მუდმივ სამუშაო ბაზარს. ქალაქიდან ბათუმი დაახლოებით 1.5 საათის სავალზეა, ქუთაისის საერთაშორისო აეროპორტი — 45 წუთის მანძილზე.',
+      'კულტურული მიზანი: კოლხეთის ეროვნული პარკი, ფოთის ციხე-სიმაგრე და სვიმონ კანანელის საკათედრო ტაძარი — ერთ-ერთი უძველესი ქრისტიანული ნაგებობა საქართველოში.',
+    ],
+    coords: { lat: 42.1494, lng: 41.6656 },
+  },
+  zugdidi: {
+    lede: 'ზუგდიდი — სამეგრელოს დედაქალაქი, აფხაზეთის ადმინისტრაციული მოსაზღვრე ქალაქი. დადიანების სასახლის ბაღები და მაგნოლიების ხეივანი ზუგდიდს უნიკალურ კულტურულ ხასიათს აძლევს.',
+    body: [
+      'უძრავი ქონების ბაზარი მოიცავს როგორც ისტორიულ ხის სახლებს, ისე ახალ ბინებს. ფასები მნიშვნელოვნად დაბალია თბილისთან შედარებით, ხოლო მიწის ნაკვეთები სოფლის მეურნეობისთვის და საცხოვრებლად ფართოდ არის ხელმისაწვდომი.',
+      'ქალაქი მნიშვნელოვანი სატრანსპორტო კვანძია — რკინიგზა თბილისიდან, საავტომობილო გზა შავი ზღვისპირეთისკენ და ფოთისკენ. ახლოსაა მესტია და სვანეთი, რაც ზამთრის და ზაფხულის ტურიზმის პოტენციალს ზრდის.',
+      'დადიანების სასახლის მუზეუმი, ბოტანიკური ბაღი და ნაპოლეონ ბონაპარტის დედამისის შიშველი (სამეგრელოს მთავართა კულტურული მემკვიდრეობა) ქალაქს კულტურულ ტურისტულ მიმართულებად აქცევს.',
+    ],
+    coords: { lat: 42.5088, lng: 41.8709 },
+  },
+  telavi: {
+    lede: 'თელავი — კახეთის ისტორიული დედაქალაქი, გვერდით ალაზნის ველის და კავკასიონის პანორამით. ქართული ღვინის მრეწველობის გული — აქ არის სანაპიროდან მოზიდული ექსკურსიები, ღვინის სარდაფები და სამეფო ისტორია.',
+    body: [
+      'უძრავი ქონების ბაზარი მოიცავს ქალაქის ცენტრში ბინებს და გარეუბნებში კერძო სახლებსა და ვენახებიან ნაკვეთებს. ფასები ხელმისაწვდომია; მევენახეობის ფერმები პოპულარულია ტურისტული და ინვესტიციური მიზნებისთვის.',
+      'თელავიდან თბილისისკენ — 1.5-2 საათის სავალი ავტომობილით. ახლოს მდებარეობს სიღნაღი, გრემი, ნაფარეული — ქართული ღვინის ყველაზე ცნობილი რეგიონები.',
+      'ერეკლე II-ის სასახლე, ჭავჭავაძეების მამული და ალ. ჭავჭავაძის სახლ-მუზეუმი ქალაქს ღრმა ისტორიულ ხასიათს ანიჭებს. თელავი არის ერთ-ერთი უძველესი ქალაქი საქართველოში — ისტორიული წყაროები მას I საუკუნიდან იხსენიებს.',
+    ],
+    coords: { lat: 41.9198, lng: 45.4736 },
+  },
+  gori: {
+    lede: 'გორი — შიდა ქართლის რეგიონალური ცენტრი, მდებარეობს თბილისსა და ბორჯომს შორის. ქალაქის ზემოთ აღმართულია შუა საუკუნეების გორის ციხე, ხოლო ახლომდებარე უფლისციხე ქვის ხანის ქალაქია.',
+    body: [
+      'უძრავი ქონების ბაზარი ძირითადად საბჭოთა პერიოდის ბინებსა და კერძო სახლებს მოიცავს. ფასები დაბალია, რაც იზიდავს ინვესტორებს ქირავნების სფეროში და პირველი ბინის მყიდველებს, რომლებიც თბილისთან მშვიდ გარემოს ეძებენ.',
+      'ტრანსპორტი: საერთაშორისო ავტომაგისტრალი და რკინიგზა თბილისსა და ბათუმს შორის გორიზე გადის. მგზავრობა თბილისამდე დაახლოებით 1-1.5 საათი.',
+      'კულტურული მიმზიდველობა: გორის ციხე, უფლისციხის ნაქალაქარი (ახლომდებარე), სტალინის მუზეუმი. ქალაქი არის ასევე ადგილობრივი სასოფლო-სამეურნეო ბაზრის ცენტრი.',
+    ],
+    coords: { lat: 41.9842, lng: 44.1163 },
+  },
+  mtskheta: {
+    lede: 'მცხეთა — საქართველოს ძველი დედაქალაქი და ქრისტიანული ცენტრი. მცხეთაშია სვეტიცხოველი — ქართული სამოციქულო ეკლესიის მთავარი ტაძარი. ქალაქი შესულია იუნესკოს მსოფლიო მემკვიდრეობის სიაში.',
+    body: [
+      'უძრავი ქონების ბაზარი შედარებით მცირეა — ქალაქის ისტორიული სტატუსი ზღუდავს მასშტაბურ მშენებლობას. ბინები და კერძო სახლები ხელმისაწვდომია; ვენახებიანი და ბაღიანი ნაკვეთები პოპულარულია მეორე სახლის მყიდველებს შორის.',
+      'მცხეთა თბილისიდან 20-30 წუთის სავალზეა — საავტომობილო და სარკინიგზო კავშირით. ეს მას პოპულარულად ხდის იმ მყიდველებისთვის, რომლებიც თბილისთან ახლოს, მშვიდ ისტორიულ გარემოში ცხოვრებას ეძებენ.',
+      'კულტურული მემკვიდრეობა: სვეტიცხოველი, ჯვარის მონასტერი (მცხეთის ზემოთ, მდინარეების შესართავთან), სამთავრო, შიო-მღვიმე. ქალაქი ქართული ტურიზმის ერთ-ერთი მთავარი მიმართულებაა.',
+    ],
+    coords: { lat: 41.8434, lng: 44.7144 },
+  },
+  // Inventory-carrying cities don't need a city-info fallback, but a
+  // prose entry here would enrich them too — leave undefined for now.
+}
+
+/** Build a city-info page definition (no listings; pure prose). */
+function cityInfoOf(city: GeoLoc): SeoPageDef | null {
+  const prose = CITY_PROSE[city.slug]
+  if (!prose) return null
+  return {
+    kind: 'city-info',
+    path: `/${city.slug}`,
+    city,
+    listings: [],
+  }
+}
+
+/** Public accessor for the prose registry — used by SeoLanding to render. */
+export function cityProseOf(slug: string) {
+  return CITY_PROSE[slug] ?? null
+}
+
 /* ————— Copy ————— */
 
 export interface SeoStats {
@@ -257,6 +356,10 @@ export interface SeoStats {
 }
 
 export function statsOf(listings: Listing[]): SeoStats {
+  // ponytail: Math.min(...[]) returns Infinity, which would render as "∞" in
+  // formatUSD. Empty-listing guards now apply to city-info pages + any future
+  // no-inventory combo. The ≥1-listing rule protects the rest of the engine.
+  if (listings.length === 0) return { count: 0, avgPerM2: 0, minPrice: 0, maxPrice: 0 }
   const withPerM2 = listings.filter((l) => l.perM2USD > 0)
   const avgPerM2 = withPerM2.length
     ? Math.round(withPerM2.reduce((s, l) => s + l.perM2USD, 0) / withPerM2.length)

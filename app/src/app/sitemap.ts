@@ -6,6 +6,7 @@ import { generateAllSeoParams } from '@/lib/seo-pages'
 import { STREETS } from '@/data/tbilisi-streets'
 import { BLOG_POSTS } from '@/data/blog'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 
 const BASE = 'https://sivrce.ge'
 
@@ -59,7 +60,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/faq', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
     { path: '/terms', lastModified: DEPLOY_DATE, changeFrequency: 'yearly', priority: 0.2 },
     { path: '/privacy', lastModified: DEPLOY_DATE, changeFrequency: 'yearly', priority: 0.2 },
+    // ponytail: crawlable hubs + detail pages previously missing — sitemap
+    // is the discovery path for ~140 indexed pages (agents, developers, projects).
+    { path: '/mortgage-calculator', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
+    { path: '/agents', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.6 },
+    { path: '/developers', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.65 },
+    { path: '/projects', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
   ]
+
+  for (const a of AGENT_PROFILES) {
+    entries.push({ path: `/agents/${a.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.55 })
+  }
+  for (const d of DEVELOPERS) {
+    entries.push({ path: `/developers/${d.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.6 })
+  }
+  for (const p of PROJECTS) {
+    entries.push({ path: `/projects/${p.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 })
+  }
 
   for (const p of BLOG_POSTS) {
     entries.push({
