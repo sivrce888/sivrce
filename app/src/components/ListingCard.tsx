@@ -162,6 +162,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       </h3>
       <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
         <MapPin className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{l.address}</span>
+        <span className="mx-1 text-sv-ink/20" aria-hidden="true">·</span>
+        <WeatherBadge city={l.city} className="text-sv-ink/40" />
       </p>
       <div className="mt-4 flex items-center gap-4 border-t border-sv-ink/[0.06] pt-4 text-[13px] font-bold text-sv-ink/70">
         <span className="flex items-center gap-1.5"><BedDouble className="h-4 w-4 text-sv-ink/40" /> {l.beds > 0 ? l.beds : '—'}</span>
@@ -172,10 +174,22 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {/* AI score */}
       <div className="mt-4 flex items-center gap-3 rounded-module bg-gradient-to-r from-sv-blue/[0.07] to-sv-violet/[0.07] p-3 ring-1 ring-inset ring-sv-blue/15">
         <AIScoreRing score={l.ai.score} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="text-[11px] font-black uppercase tracking-wider text-sv-blue">{t('detail.aiScore')}</div>
           <div className="truncate text-[13px] font-extrabold text-sv-ink">{l.ai.label}</div>
         </div>
+        {/* Urgency: new listings or recently posted */}
+        {l.isNew && (
+          <span className="shrink-0 rounded-full bg-sv-orange/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-sv-orange">
+            ახალი
+          </span>
+        )}
+      </div>
+      {/* Social proof row */}
+      <div className="mt-3 flex items-center gap-3 text-[11px] font-semibold text-sv-ink/40">
+        <span>{signals.hoursAgo <= 24 ? 'დღეს დამატებული' : signals.hoursAgo <= 72 ? `${Math.ceil(signals.hoursAgo / 24)} დღის წინ` : `${Math.ceil(signals.hoursAgo / 168)} კვირის წინ`}</span>
+        <span className="text-sv-ink/20">·</span>
+        <span>{signals.viewers} ათვალიერებს ახლა</span>
       </div>
     </div>
   )
