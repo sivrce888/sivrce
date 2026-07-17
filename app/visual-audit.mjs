@@ -26,7 +26,7 @@ for (const vp of viewports) {
         const bad = [];
         for (const el of document.querySelectorAll('*')) {
           const r = el.getBoundingClientRect();
-          if (r.width > window.innerWidth + 1 && r.height > 0) {
+          if ((r.width > window.innerWidth + 1 || r.right > window.innerWidth + 1) && r.height > 0) {
             const cls = (el.className && el.className.toString().slice(0, 80)) || el.tagName;
             bad.push(`${el.tagName}.${cls} w=${Math.round(r.width)}`);
           }

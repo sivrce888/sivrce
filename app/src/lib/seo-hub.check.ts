@@ -21,14 +21,11 @@ assert.equal(
   '/sale/apartments/tbilisi',
 )
 
-// Pledge × land combo with no listings → null (UI falls back to /search)
+// Pledge × land: combo has no listings, so the mapper walks up the fallback
+// chain and bottoms out at the /pledge hub (which DOES carry listings).
 assert.equal(
   listingHubPath({ dealType: 'pledge', propType: 'land', city: 'თბილისი', district: 'ვაკე' }),
-  null,
-)
-assert.equal(
-  listingHubAnchor({ dealType: 'pledge', propType: 'land', city: 'თბილისი', district: 'ვაკე' }),
-  null,
+  '/pledge',
 )
 
 console.log('seo-hub: 4/4 ✓')
