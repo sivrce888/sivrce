@@ -58,3 +58,4 @@ next-env.d.ts
 
 # Capacitor asset source
 /resources
+public/images/og/

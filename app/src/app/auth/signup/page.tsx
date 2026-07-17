@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 
 import { AuthShell } from "@/components/auth/AuthShell"
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
-import { dashboardPathFor, getSessionUser } from "@/lib/guards"
+import { getSessionUser } from "@/lib/guards"
 
 export const metadata: Metadata = {
   title: "რეგისტრაცია",

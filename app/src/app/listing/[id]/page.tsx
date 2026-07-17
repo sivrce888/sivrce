@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { LISTINGS, getListing as getMockListing, formatUSD } from '@/data/listings'
 import { getListing as getDbListing } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
-import { jsonLd } from '@/lib/utils'
+import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 
 // ponytail: dynamicParams default (true) — unknown ids hit notFound() below;
@@ -44,9 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // because WhatsApp/Viber/FB crawlers don't render WebP OG tags. Uploaded
   // (https) photos are served as-is; brand card is the last resort.
   const firstImg = l.images[0] ?? ''
-  const ogImage = firstImg.startsWith('/images/')
-    ? firstImg.replace(/^\/images\/(.+)\.webp$/, '/images/og/$1.jpg')
-    : firstImg || '/images/og.jpg'
+  const og = firstImg ? ogImage(firstImg) : '/images/og.jpg'
   return {
     title,
     description,
@@ -58,13 +56,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/listing/${l.id}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      images: [{ url: og, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [ogImage],
+      images: [og],
     },
   }
 }

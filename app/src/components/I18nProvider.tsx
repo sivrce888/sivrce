@@ -33,9 +33,6 @@ import {
 
 export type { DictKey, Lang } from '@/lib/i18n/context'
 
-/** Locales with their own server-rendered route today. */
-const ROUTED: Partial<Record<Lang, string>> = { ka: '/', en: '/en', ru: '/ru' }
-
 export default function I18nProvider({
   children,
   initialLang,
@@ -50,22 +47,26 @@ export default function I18nProvider({
   // Upgrade path: full app/[lang] migration where the root layout owns this.
   const lang = initialLang ?? storeLang
 
-  // Persist + sync <html lang> only on explicit user action
-  const setLang = useCallback(
-    (next: Lang) => {
-      persistLang(next)
-      emitLangChange()
-      // On a URL-pinned page, switching language means switching route;
-      // unrouted locales fall back to '/', where the stored pick applies.
-      if (initialLang) window.location.assign(ROUTED[next] ?? '/')
-    },
-    [initialLang],
-  )
+  // Persist + sync <html lang> only on explicit user action.
+  // Route navigation on switch is owned by LangSwitcher, not here.
+  const setLang = useCallback((next: Lang) => {
+    persistLang(next)
+    emitLangChange()
+  }, [])
 
   // A URL-pinned locale also becomes the stored preference.
   useEffect(() => {
     if (initialLang) persistLang(initialLang)
   }, [initialLang])
+
+  // Locale prefix in the URL (/en/search) wins over stored preference —
+  // a shared link must render in the language it was shared in. Effect-based
+  // (not render-time) so SSR and hydration stay byte-identical.
+  useEffect(() => {
+    const seg = window.location.pathname.split('/')[1] as Lang
+    if (LANGS.includes(seg) && seg !== 'ka' && seg !== lang) setLang(seg)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount; prefix is stable per load
+  }, [])
 
   useEffect(() => {
     document.documentElement.lang = lang

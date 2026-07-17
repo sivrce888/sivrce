@@ -5,7 +5,7 @@ import { ChevronRight, Clock, ArrowLeft, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { BLOG_POSTS, getPost, relatedPosts } from '@/data/blog'
-import { jsonLd } from '@/lib/utils'
+import { jsonLd, ogImage } from '@/lib/utils'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       publishedTime: `${post.publishedAt}T00:00:00+04:00`,
       modifiedTime: `${post.updatedAt ?? post.publishedAt}T00:00:00+04:00`,
       authors: [post.author],
-      images: [{ url: post.cover, width: 1200, height: 630, alt: post.title }],
+      images: [{ url: ogImage(post.cover), width: 1200, height: 630, alt: post.title }],
     },
     twitter: { card: 'summary_large_image', title: post.title, description: post.excerpt, images: [post.cover] },
   }

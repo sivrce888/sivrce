@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Check, ChevronDown } from 'lucide-react'
 import { Flag, type FlagCode } from '@/components/Flag'
@@ -38,9 +39,19 @@ const LANG_NAME: Record<Lang, string> = {
 
 export function LangSwitcher({ light = false }: { light?: boolean }) {
   const { lang, setLang, t } = useI18n()
+  const router = useRouter()
+  const pathname = usePathname()
   const reduceMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+
+  // Switch = navigate to the locale-prefixed URL (ka is unprefixed).
+  const switchTo = (code: Lang) => {
+    setLang(code)
+    setOpen(false)
+    const rest = pathname.replace(/^\/(en|ru|he|ar|tr|uk|hy|az)(?=\/|$)/, '') || '/'
+    router.push(code === 'ka' ? rest : `/${code}${rest === '/' ? '' : rest}`)
+  }
 
   // Close on outside pointer / Escape while open
   useEffect(() => {
@@ -101,10 +112,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
                   type="button"
                   role="menuitemradio"
                   aria-checked={active}
-                  onClick={() => {
-                    setLang(code)
-                    setOpen(false)
-                  }}
+                  onClick={() => switchTo(code)}
                   className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-start text-[14px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
                     active ? 'text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
                   }`}
