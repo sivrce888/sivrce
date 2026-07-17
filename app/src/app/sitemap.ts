@@ -3,6 +3,7 @@ import { LISTINGS, type Listing } from '@/data/listings'
 import { getAllListings } from '@/lib/listings-db'
 import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
+import { STREETS } from '@/data/tbilisi-streets'
 import { BLOG_POSTS } from '@/data/blog'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 
@@ -94,6 +95,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: Math.max(0.5, 0.9 - slug.length * 0.1),
       localized: true,
+    })
+  }
+
+  // Street-level SEO: directory + ka-only street pages (no /en /ru twins).
+  entries.push({ path: '/tbilisi/kuchebi', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 })
+  for (const s of STREETS) {
+    if (!s.district) continue
+    entries.push({
+      path: `/tbilisi/${s.district}/${s.slug}`,
+      lastModified: DEPLOY_DATE,
+      changeFrequency: 'weekly',
+      priority: 0.6,
     })
   }
 

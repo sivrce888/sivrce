@@ -77,11 +77,9 @@ function wmoLabel(code: number): string {
   return 'ჭექა'
 }
 
-async function fetchWeather(city: string): Promise<WeatherData | null> {
-  const coords = CITY_COORDS[city]
-  if (!coords) return null
+async function fetchWeather(lat: number, lng: number): Promise<WeatherData | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,weather_code&timezone=auto&forecast_days=1`
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&timezone=auto&forecast_days=1`
     const r = await fetch(url)
     const d = await r.json()
     const temp = d?.current?.temperature_2m
@@ -93,29 +91,45 @@ async function fetchWeather(city: string): Promise<WeatherData | null> {
   }
 }
 
+/** Shared fetch/cache loop. No-op (null) when coords are unknown. */
+function useWeatherAt(key: string, lat?: number, lng?: number): WeatherData | null {
+  const [data, setData] = useState<WeatherData | null>(() => (lat === undefined ? null : cached(key)))
+
+  useEffect(() => {
+    if (lat === undefined || lng === undefined) return
+    // Already have fresh cached data
+    const existing = cached(key)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from sessionStorage cache is the point
+    if (existing) { setData(existing); return }
+    // Fetch once per session
+    let cancelled = false
+    fetchWeather(lat, lng).then((d) => {
+      if (cancelled || !d) return
+      cacheIt(key, d)
+      setData(d)
+    })
+    return () => { cancelled = true }
+  }, [key, lat, lng])
+
+  return data
+}
+
 /**
  * Returns weather for a Georgian city. Cached in sessionStorage for 30 min.
  * Returns null for unknown cities or fetch failures.
  */
 export function useWeather(city: string): WeatherData | null {
-  const [data, setData] = useState<WeatherData | null>(() => cached(city) ?? null)
+  const c = CITY_COORDS[city]
+  return useWeatherAt(city, c?.lat, c?.lng)
+}
 
-  useEffect(() => {
-    // Already have fresh cached data
-    const existing = cached(city)
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from sessionStorage cache is the point
-    if (existing) { setData(existing); return }
-    // Fetch once per session
-    let cancelled = false
-    fetchWeather(city).then((d) => {
-      if (cancelled || !d) return
-      cacheIt(city, d)
-      setData(d)
-    })
-    return () => { cancelled = true }
-  }, [city])
-
-  return data
+/**
+ * Same as useWeather but keyed by raw coordinates (district-level badges).
+ * Returns null until coords are known; cache key is the rounded coord pair.
+ */
+export function useWeatherCoords(lat?: number, lng?: number): WeatherData | null {
+  const key = lat !== undefined && lng !== undefined ? `${lat.toFixed(3)},${lng.toFixed(3)}` : 'unknown'
+  return useWeatherAt(key, lat, lng)
 }
 
 export function weatherIcon(code: number): string {
