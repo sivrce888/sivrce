@@ -107,6 +107,8 @@ async function dbSearch(filters: SearchFilters) {
     return {
       hits: hits.map((l) => ({
         ...l,
+        // DB enum "buy" → UI grammar "sale" (read side of the route's deal mapping).
+        dealType: l.dealType === "buy" ? "sale" : l.dealType,
         // ponytail: flatten agent for the client. DB stores as JSON.
         agent: l.agent as unknown,
       })),
@@ -151,7 +153,9 @@ export async function GET(req: Request) {
       const byId = new Map(rows.map((r) => [r.id, r]))
       const hits = ids.flatMap((id) => {
         const row = byId.get(id)
-        return row ? [{ ...row, agent: row.agent as unknown }] : []
+        return row
+          ? [{ ...row, dealType: row.dealType === "buy" ? "sale" : row.dealType, agent: row.agent as unknown }]
+          : []
       })
       return Response.json({ ok: true, hits, totalHits: hits.length, page: 1, pageSize: hits.length, totalPages: 1, source: "db" })
     } catch (e) {
