@@ -6,6 +6,7 @@
  */
 
 import { db } from "@/lib/db"
+import { Prisma } from "@/generated/prisma/client"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -308,7 +309,7 @@ export async function handleCallback(
       status: newStatus,
       providerPaymentId: providerStatus.providerPaymentId ?? undefined,
       paidAt: newStatus === "paid" ? new Date() : undefined,
-      lastEventPayload: payload as any,
+      lastEventPayload: payload as Prisma.InputJsonValue,
     },
   })
 

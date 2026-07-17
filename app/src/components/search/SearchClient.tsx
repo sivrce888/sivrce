@@ -199,6 +199,7 @@ export default function SearchClient() {
   }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical data-fetch effect
     fetchSearch()
   }, [fetchSearch, paramsKey])
 

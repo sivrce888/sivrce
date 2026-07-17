@@ -15,6 +15,7 @@ import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
+import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   BUILDINGS,
   getBuilding,
@@ -23,6 +24,7 @@ import {
 } from '@/data/buildings'
 import { getDeveloper } from '@/data/professionals'
 import { DEAL_BRAND } from '@/lib/category-brand'
+import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 
 export function generateStaticParams() {
@@ -63,6 +65,7 @@ export default async function BuildingPage({ params }: PageProps) {
   const dev = getDeveloper(building.developerSlug)
   const listings = listingsForBuilding(slug)
   const counts = buildingDealCounts(slug)
+  const aggregate = await getReviewAggregate('building', slug)
 
   const buildingLd = {
     '@context': 'https://schema.org',
@@ -86,6 +89,13 @@ export default async function BuildingPage({ params }: PageProps) {
     },
     numberOfAvailableAccommodationUnits: listings.length || undefined,
     ...(building.yearBuilt && { yearBuilt: building.yearBuilt }),
+    ...(aggregate && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: aggregate.average,
+        reviewCount: aggregate.count,
+      },
+    }),
     ...(dev && {
       provider: {
         '@type': 'Organization',
@@ -165,7 +175,7 @@ export default async function BuildingPage({ params }: PageProps) {
               </div>
               <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-navy">
                 <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
-                {building.rating}
+                {aggregate ? aggregate.average.toFixed(1) : building.rating}
               </div>
             </div>
           </div>
@@ -255,6 +265,10 @@ export default async function BuildingPage({ params }: PageProps) {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
+          <ReviewsSection targetType="building" targetId={building.slug} />
         </section>
 
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">

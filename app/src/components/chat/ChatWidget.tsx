@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageCircle, X, ChevronLeft, Send, Loader2 } from "lucide-react"
 import { useChat, type ChatRoom, type ChatMessage } from "./ChatProvider"

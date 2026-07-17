@@ -103,6 +103,7 @@ export function useWeather(city: string): WeatherData | null {
   useEffect(() => {
     // Already have fresh cached data
     const existing = cached(city)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from sessionStorage cache is the point
     if (existing) { setData(existing); return }
     // Fetch once per session
     let cancelled = false

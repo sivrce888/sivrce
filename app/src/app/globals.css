@@ -453,6 +453,62 @@
   animation: sv-scroll-hint 1.8s ease-in-out infinite;
 }
 
+/* Back-row skyline — slow lateral drift for depth */
+@keyframes sv-skyline-back {
+  0%, 100% { transform: translate3d(-8px, 0, 0); }
+  50% { transform: translate3d(8px, 0, 0); }
+}
+.sv-skyline-back {
+  animation: sv-skyline-back 46s ease-in-out infinite;
+}
+
+/* Antenna beacon — soft breathing blink */
+@keyframes sv-beacon {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+.sv-beacon {
+  animation: sv-beacon 2.6s ease-in-out infinite;
+}
+
+/* Comet — brief streak across the upper sky, then long rest */
+@keyframes sv-comet {
+  0% { transform: translate3d(0, 0, 0) rotate(-24deg); opacity: 0; }
+  2% { opacity: 0.9; }
+  11% { transform: translate3d(-52vw, 16vh, 0) rotate(-24deg); opacity: 0; }
+  100% { transform: translate3d(-52vw, 16vh, 0) rotate(-24deg); opacity: 0; }
+}
+.sv-comet {
+  animation: sv-comet 16s linear infinite;
+}
+
+/* H1 masked word rise — paint-driven, SSR-safe */
+@keyframes sv-word-rise {
+  from { transform: translate3d(0, 112%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+.sv-word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.sv-word {
+  display: inline-block;
+  animation: sv-word-rise 0.9s cubic-bezier(0.21, 0.65, 0.2, 1) both;
+}
+
+/* Slow gradient shimmer for the H1 accent word */
+@keyframes sv-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.text-gradient-shimmer {
+  background-size: 220% 220%;
+  animation: sv-shimmer 9s ease-in-out infinite;
+}
+
 /* HeroBackground off-screen: freeze ambient animations (toggled via IntersectionObserver) */
 .sv-anim-paused, .sv-anim-paused * {
   animation-play-state: paused !important;
@@ -481,7 +537,8 @@
   }
   .animate-aurora-a, .animate-aurora-b, .animate-aurora-c,
   .sv-particle, .sv-window, .sv-star, .animate-float, .animate-pin, .animate-marquee,
-  .animate-ping, .sv-hero-in, .animate-scroll-hint {
+  .animate-ping, .sv-hero-in, .animate-scroll-hint,
+  .sv-skyline-back, .sv-beacon, .sv-comet, .sv-word, .text-gradient-shimmer {
     animation: none !important;
   }
 }

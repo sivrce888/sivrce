@@ -120,6 +120,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   // Load rooms when panel opens
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch, state lands after await
       refreshRooms()
     }
   }, [open, refreshRooms])
@@ -127,6 +128,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   // Poll for unread counts
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch, state lands after await
       refreshUnread()
       pollRef.current = setInterval(refreshUnread, 10_000)
     }

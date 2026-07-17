@@ -160,13 +160,13 @@ function Map3DInner() {
     () => filterBuildings(ALL_BUILDINGS, dealFilter, statusFilter),
     [dealFilter, statusFilter],
   )
-  visibleRef.current = visible
+  useEffect(() => { visibleRef.current = visible }, [visible])
 
   const selectBuilding = useCallback((b: MapBuildingCluster | null) => {
     setSelected(b)
     setTab('all')
   }, [])
-  selectRef.current = selectBuilding
+  useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
 
   useEffect(() => {
     const map = mapRef.current
@@ -174,6 +174,7 @@ function Map3DInner() {
     const src = map.getSource(SOURCE_ID) as GeoJSONSource | undefined
     src?.setData(buildingsToGeoJSON(visible))
     if (selected && !visible.some((b) => b.id === selected.id)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- deselect when filters hide it
       selectBuilding(null)
     }
   }, [visible, ready, selected, selectBuilding])
@@ -185,6 +186,7 @@ function Map3DInner() {
     const b = findBuildingBySlug(slug, ALL_BUILDINGS)
     if (!b) return
     deepLinked.current = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deep-link from URL param
     selectBuilding(b)
     mapRef.current?.easeTo({
       center: [b.lng, b.lat],

@@ -87,7 +87,7 @@ export default function TierPurchaseButton({
       }
       // Redirect to payment page
       if (data.order?.redirectUrl) {
-        window.location.href = data.order.redirectUrl
+        window.location.assign(data.order.redirectUrl)
       }
     } catch {
       setError("ქსელის შეცდომა")

@@ -195,10 +195,6 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
   const navPhoto = (dir: number) =>
     setPhoto((p) => (p + dir + l.images.length) % l.images.length)
 
-  // "Message" CTAs jump to the lead form in the sidebar
-  const scrollToLead = () =>
-    document.getElementById('lead-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-
   // Native share sheet where available; clipboard copy elsewhere
   const share = async () => {
     const url = window.location.href

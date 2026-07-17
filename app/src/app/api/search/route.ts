@@ -12,8 +12,8 @@ function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
     status: "active",
   }
 
-  if (filters.dealType) where.dealType = filters.dealType as any
-  if (filters.propertyType) where.propertyType = filters.propertyType as any
+  if (filters.dealType) where.dealType = filters.dealType as Prisma.ListingWhereInput["dealType"]
+  if (filters.propertyType) where.propertyType = filters.propertyType as Prisma.ListingWhereInput["propertyType"]
   if (filters.city) where.city = filters.city
   if (filters.district) where.district = filters.district
   if (filters.minPrice !== undefined) where.price = { ...(where.price as object ?? {}), gte: filters.minPrice }

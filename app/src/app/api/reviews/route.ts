@@ -17,6 +17,7 @@ const TARGET_TYPES = new Set([
   "agent",
   "neighborhood",
   "account",
+  "building",
 ])
 const SORTS = new Set(["newest", "highest", "helpful"])
 const PAGE_SIZE = 10

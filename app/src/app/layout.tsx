@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Manrope, Noto_Sans_Georgian } from "next/font/google";
 import CurrencyProvider from "@/components/CurrencyProvider";
 import I18nProvider from "@/components/I18nProvider";
@@ -205,9 +206,11 @@ export default function RootLayout({
         <ThemeProvider>
           <I18nProvider>
             <CurrencyProvider>
-              <PostHogProvider>
-                <ChatShell>{children}</ChatShell>
-              </PostHogProvider>
+              <Suspense fallback={null}>
+                <PostHogProvider>
+                  <ChatShell>{children}</ChatShell>
+                </PostHogProvider>
+              </Suspense>
             </CurrencyProvider>
           </I18nProvider>
           <Toaster position="top-center" />
