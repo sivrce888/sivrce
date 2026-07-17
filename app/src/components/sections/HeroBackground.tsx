@@ -109,7 +109,7 @@ const stars = buildStars()
 export default function HeroBackground() {
   const root = useRef<HTMLDivElement>(null)
 
-  // Pause ambient animations while the hero is off-screen
+  // Pause ambient animations off-screen; pointer parallax for fine pointers only
   useEffect(() => {
     const el = root.current
     if (!el) return
@@ -117,7 +117,22 @@ export default function HeroBackground() {
       el.classList.toggle('sv-anim-paused', !entry.isIntersecting)
     })
     io.observe(el)
-    return () => io.disconnect()
+
+    const fine = window.matchMedia('(pointer: fine)')
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const host = el.parentElement ?? el
+    const onMove = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect()
+      const x = (e.clientX - r.left) / r.width - 0.5
+      const y = (e.clientY - r.top) / r.height - 0.5
+      el.style.setProperty('--px', `${(x * 18).toFixed(1)}px`)
+      el.style.setProperty('--py', `${(y * 12).toFixed(1)}px`)
+    }
+    if (fine.matches && !calm.matches) host.addEventListener('pointermove', onMove, { passive: true })
+    return () => {
+      io.disconnect()
+      host.removeEventListener('pointermove', onMove)
+    }
   }, [])
 
   return (

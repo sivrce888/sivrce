@@ -26,7 +26,7 @@ import {
 import ListingCard from '@/components/ListingCard'
 
 type Deal = 'sale' | 'rent' | 'daily'
-type Photo = { url: string; name: string }
+type Photo = { url: string; name: string; file: File }
 
 const PROP_TYPES: { key: PropType; icon: typeof Building; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]; labelKey: DictKey }[] = [
   { key: 'apartment', icon: Building, brand: CATEGORY_BRAND.apartments, labelKey: 'prop.apartment' },
@@ -75,6 +75,8 @@ export default function AddListingClient() {
   const [step, setStep] = useState(0)
   const [touched, setTouched] = useState(false)
   const [published, setPublished] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   const [deal, setDeal] = useState<Deal | null>(null)
   const [propType, setPropType] = useState<PropType | null>(null)
@@ -173,7 +175,7 @@ export default function AddListingClient() {
     const next = [...photos]
     for (const f of Array.from(files)) {
       if (next.length >= 16) break
-      next.push({ url: URL.createObjectURL(f), name: f.name })
+      next.push({ url: URL.createObjectURL(f), name: f.name, file: f })
     }
     setPhotos(next)
   }
@@ -197,6 +199,51 @@ export default function AddListingClient() {
     if (dir === 1 && !stepValid) { setTouched(true); return }
     setTouched(false)
     setStep((s) => Math.min(Math.max(s + dir, 0), STEPS.length - 1))
+  }
+
+  /* ————— publish: photos → R2, then POST /api/listings ————— */
+  const publish = async () => {
+    if (!stepValid) { setTouched(true); return }
+    setBusy(true)
+    setFailed(false)
+    try {
+      const images: string[] = []
+      for (const p of photos) {
+        const fd = new FormData()
+        fd.append('file', p.file)
+        const r = await fetch('/api/upload', { method: 'POST', body: fd })
+        if (!r.ok) throw new Error('upload')
+        images.push(((await r.json()) as { url: string }).url)
+      }
+      const res = await fetch('/api/listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: autoTitle,
+          deal, propType, city, district,
+          address: `${street} ${houseNo}`.trim(),
+          cadastral: cadastral || null,
+          area: areaN, rooms, baths,
+          floor: Number(floor) || null,
+          totalFloors: Number(totalFloors) || null,
+          condition: condition || null,
+          buildingStatus: status || null,
+          features, images, video: video || null,
+          price: priceN, negotiable, description,
+          name: name.trim(), phone, messengers,
+        }),
+      })
+      if (res.status === 401) {
+        window.location.href = '/auth/signin?callbackUrl=/add-listing'
+        return
+      }
+      if (!res.ok) throw new Error('publish')
+      setPublished(true)
+    } catch {
+      setFailed(true)
+    } finally {
+      setBusy(false)
+    }
   }
 
   /* ————— shared field styles ————— */

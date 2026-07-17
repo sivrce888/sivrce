@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signIn } from 'next-auth/react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { ChevronDown, Heart, Menu, X, Plus, User } from 'lucide-react'
+import { Heart, Menu, X, Plus, User } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
@@ -90,7 +90,7 @@ export default function Navbar() {
               <a
                 key={l.key}
                 href={l.to}
-                className={`rounded-full px-4 py-2 text-[15px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                className={`rounded-full px-3 py-2 text-[14px] font-semibold xl:px-4 xl:text-[15px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                   light
                     ? 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
                     : 'text-white/85 hover:bg-white/10 hover:text-white'
@@ -102,7 +102,7 @@ export default function Navbar() {
               <Link
                 key={l.key}
                 href={l.to}
-                className={`rounded-full px-4 py-2 text-[15px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                className={`rounded-full px-3 py-2 text-[14px] font-semibold xl:px-4 xl:text-[15px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                   light
                     ? 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
                     : 'text-white/85 hover:bg-white/10 hover:text-white'
@@ -112,19 +112,9 @@ export default function Navbar() {
               </Link>
             ),
           )}
-          <Link
-            href="/search"
-            className={`flex items-center gap-1 rounded-full px-4 py-2 text-[15px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-              light
-                ? 'text-sv-ink/80 hover:bg-sv-ink/5'
-                : 'text-white/85 hover:bg-white/10'
-            }`}
-          >
-            {t('nav.more')} <ChevronDown className="h-4 w-4" />
-          </Link>
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <Link
             href="/favorites"
             aria-label={`${t('nav.favorites')}${count > 0 ? ` — ${count}` : ''}`}
@@ -179,7 +169,7 @@ export default function Navbar() {
 
         <button
           ref={menuBtnRef}
-          className={`grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 md:hidden ${
+          className={`grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 lg:hidden ${
             light ? 'text-sv-ink' : 'text-white'
           }`}
           onClick={() => setOpen(!open)}
@@ -199,7 +189,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
-            className="mx-4 mt-2 rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card md:hidden"
+            className="mx-4 mt-2 rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
           >
             {NAV_LINKS.map((l) =>
               l.to.includes('#') ? (
@@ -224,6 +214,12 @@ export default function Navbar() {
             )}
             <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
               <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+                {t('nav.currency')}
+              </span>
+              <CurrencySwitcher light />
+            </div>
+            <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
                 {t('nav.language')}
               </span>
               <LangSwitcher light />
@@ -234,6 +230,44 @@ export default function Navbar() {
               </span>
               <ThemeToggle light />
             </div>
+            <Link
+              href="/favorites"
+              onClick={() => setOpen(false)}
+              className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+            >
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+                {t('nav.favorites')}
+              </span>
+              <span className="relative grid h-10 w-10 place-items-center text-sv-ink/70">
+                <Heart className="h-[18px] w-[18px]" />
+                {count > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-sv-orange px-1 text-[10px] font-black text-white">
+                    {count > 99 ? '99+' : count}
+                  </span>
+                )}
+              </span>
+            </Link>
+            {session?.user ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setOpen(false)}
+                className="mt-2 flex items-center justify-center gap-2 rounded-control bg-sv-blue px-4 py-3.5 text-[15px] font-extrabold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+              >
+                <User className="h-4 w-4" />
+                <span className="max-w-[200px] truncate">{session.user.name ?? t('nav.login')}</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false)
+                  signIn('google')
+                }}
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-control bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+              >
+                <User className="h-4 w-4" /> {t('nav.login')}
+              </button>
+            )}
             <Link
               href="/add-listing"
               onClick={() => setOpen(false)}

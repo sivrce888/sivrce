@@ -10,7 +10,7 @@ import { db } from "@/lib/db"
  * consider a background job pattern with status polling.
  */
 
-export async function POST(req: Request) {
+export async function POST() {
   // Auth guard — throws 403 if not admin.
   try {
     await requireAdminAction()

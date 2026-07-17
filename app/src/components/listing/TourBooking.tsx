@@ -21,7 +21,9 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
   const [loading, setLoading] = useState(false)
 
   const today = new Date().toISOString().split("T")[0]
-  const maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const max = new Date()
+  max.setDate(max.getDate() + 30)
+  const maxDate = max.toISOString().split("T")[0]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,8 +45,8 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
       toast.success("ტური წარმატებით დაჯავშნილია! აგენტი დაგიკავშირდებათ.")
       setOpen(false)
       setDate(""); setTime(""); setName(""); setPhone(""); setEmail(""); setNotes("")
-    } catch (err: any) {
-      toast.error(err.message ?? "დაფიქსირდა შეცდომა")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "დაფიქსირდა შეცდომა")
     } finally {
       setLoading(false)
     }

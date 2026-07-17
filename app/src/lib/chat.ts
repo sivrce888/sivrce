@@ -5,6 +5,7 @@
  */
 
 import { db } from "@/lib/db"
+import { Prisma } from "@/generated/prisma/client"
 
 // ---------------------------------------------------------------------------
 // Chat rooms
@@ -133,7 +134,7 @@ export async function sendMessage(
         senderId,
         content: text,
         kind,
-        metadata: metadata as any,
+        metadata: metadata as Prisma.InputJsonValue,
       },
     }),
     // Touch room's updatedAt so it sorts to top
