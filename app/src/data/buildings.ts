@@ -51,9 +51,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     projectSlug: 'axis-towers-vake',
     status: 'ready',
     description: {
-      ka: 'აქსის თაუერსი — ვაკის ღირსშესანიშნაობა ჩავჭავაძის გამზირზე. პრემიუმ კოშკები მიწისქვეშა პარკინგით, კომერციული სარდაფითა და ქალაქის საუკეთესო ხედებით. აქ იყიდება, ქირავდება და დღიურადაც არის ბინები.',
-      en: 'Axis Towers is Vake’s landmark on Chavchavadze Avenue — premium towers with underground parking, a retail podium and top city views. Sale, rent and daily units available.',
-      ru: 'Axis Towers — достопримечательность Ваке на проспекте Чавчавадзе: премиальные башни с подземным паркингом и лучшими видами. Продажа, аренда и посуточно.',
+      ka: 'აქსის თაუერსი — ჩავჭავაძის 37, ვაკე. ორი კოშკი, 24 სართ., მიწისქვეშა პარკინგი, კომერციული სარდაფი. ხედი ვაკის პარკისა და ცენტრისკენ.',
+      en: 'Axis Towers — Chavchavadze 37, Vake. Twin 24-floor towers, underground parking, retail podium. Views toward Vake Park and the centre.',
+      ru: 'Axis Towers — Чавчавадзе 37, Ваке. Две башни, 24 этажа, подземный паркинг, коммерческий стилобат.',
     },
   },
   {
@@ -74,9 +74,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     rating: 4.9,
     status: 'ready',
     description: {
-      ka: 'ქინგ დევიდ რეზიდენსი — მთაწმინდის პრემიუმ კომპლექსი სასტუმრო სერვისით, კონსიერჟითა და პანორამული ხედებით ძველ თბილისზე. ერთ-ერთი ყველაზე ცნობილი მისამართი ქალაქში.',
-      en: 'King David Residences is a Mtatsminda premium complex with hotel-grade service, concierge and panoramic Old Tbilisi views — one of the city’s best-known addresses.',
-      ru: 'King David Residences — премиальный комплекс на Мтацминде с гостиничным сервисом и панорамой на Старый Тбилиси.',
+      ka: 'ქინგ დევიდ რეზიდენსი — ატონელის 12, მთაწმინდა. 18 სართ., კონსიერჟი, პარკინგი. ხედი ძველ თბილისზე და მთაწმინდაზე.',
+      en: 'King David Residences — Atoneli 12, Mtatsminda. 18 floors, concierge, parking. Old Tbilisi and Mtatsminda views.',
+      ru: 'King David Residences — Атонели 12, Мтацминда. 18 этажей, консьерж, паркинг.',
     },
   },
   {
@@ -97,9 +97,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     projectSlug: 'downtown-residence',
     status: 'construction',
     description: {
-      ka: 'Downtown Residence — m2-ის პრემიუმ მშენებარე კომპლექსი საბურთალოზე: დაცული ეზო, ფიტნესი, კონსიერჟი და მიწისქვეშა პარკინგი.',
-      en: 'Downtown Residence is m2’s premium Saburtalo development: secured courtyard, fitness, concierge and underground parking.',
-      ru: 'Downtown Residence — премиальный комплекс m2 в Сабуртало.',
+      ka: 'Downtown Residence — საბურთალო, m2. მშენებარე, 22 სართ. დახურული ეზო, ფიტნესი, კონსიერჟი, მიწისქვეშა პარკინგი.',
+      en: 'Downtown Residence — Saburtalo, m2. Under construction, 22 floors. Courtyard, fitness, concierge, underground parking.',
+      ru: 'Downtown Residence — Сабуртало, m2. Строится, 22 этажа. Двор, фитнес, консьерж, подземный паркинг.',
     },
   },
   {
@@ -120,9 +120,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     projectSlug: 'dirsi-riverside',
     status: 'construction',
     description: {
-      ka: 'დირსი რივერსაიდი — მტკვრის ნაპირის „ქალაქი ქალაქში“: სკვერები, სკოლა, სავაჭრო ქუჩა და საბავშვო ინფრასტრუქტურა.',
-      en: 'Dirsi Riverside is a Mtkvari riverside “city within a city” with parks, school and retail street.',
-      ru: 'Dirsi Riverside — «город в городе» на берегу Куры.',
+      ka: 'დირსი რივერსაიდი — ისანი, მტკვრის ნაპირი. 540 ბინა, სკვერი, სკოლა, სავაჭრო ქუჩა.',
+      en: 'Dirsi Riverside — Isani, Mtkvari bank. 540 units, park, school, retail street.',
+      ru: 'Dirsi Riverside — Исани, берег Куры. 540 квартир, сквер, школа, торговая улица.',
     },
   },
   {
@@ -143,9 +143,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     projectSlug: 'archi-dighomi',
     status: 'construction',
     description: {
-      ka: 'არქი დიღომი — ხელმისაწვდომი ფასის კომპლექსი დიღომში, ენერგოეფექტური ფასადითა და შიდა განვადებით.',
-      en: 'Archi Dighomi is an affordable Dighomi complex with energy-efficient façade and in-house instalments.',
-      ru: 'Archi Dighomi — доступный комплекс в Дигоми.',
+      ka: 'არქი დიღომი — დიღომი. 16 სართ., ენერგოეფექტური ფასადი. განვადება დეველოპერისგან.',
+      en: 'Archi Dighomi — Dighomi. 16 floors, energy-efficient façade. Developer instalments available.',
+      ru: 'Archi Dighomi — Дигоми. 16 этажей, энергоэффективный фасад. Рассрочка от застройщика.',
     },
   },
   {
@@ -166,9 +166,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     rating: 4.7,
     status: 'ready',
     description: {
-      ka: 'პეკინის 12 — საბურთალოს მაღალსართულიანი კორპუსი პენტჰაუსებითა და ქალაქის ხედებით. აქ იყიდება და ქირავდება ბინები.',
-      en: 'Pekin 12 is a Saburtalo high-rise with penthouses and city views — sale and rent available.',
-      ru: 'Пекин 12 — высотка в Сабуртало с пентхаусами.',
+      ka: 'პეკინის 12 — საბურთალო. 22 სართ., პენტჰაუსები ზედა სართულებზე.',
+      en: 'Pekin 12 — Saburtalo. 22 floors, penthouses on the upper levels.',
+      ru: 'Пекин 12 — Сабуртало. 22 этажа, пентхаусы на верхних этажах.',
     },
   },
   {
@@ -189,9 +189,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     rating: 4.6,
     status: 'ready',
     description: {
-      ka: 'ჩავჭავაძის 47 — ვაკის პრემიუმ კორპუსი ჩავჭავაძის გამზირზე. პანორამული ბინები იყიდება და ქირავდება.',
-      en: 'Chavchavadze 47 is a Vake premium building on the avenue — panoramic flats for sale and rent.',
-      ru: 'Чавчавадзе 47 — премиальный дом в Ваке.',
+      ka: 'ჩავჭავაძის 47 — ვაკე, 18 სართ. ღია ხედი გამზირზე.',
+      en: 'Chavchavadze 47 — Vake, 18 floors. Open view onto the avenue.',
+      ru: 'Чавчавадзе 47 — Ваке, 18 этажей. Вид на проспект.',
     },
   },
   {
@@ -212,9 +212,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     projectSlug: 'orbi-sea-towers',
     status: 'construction',
     description: {
-      ka: 'ORBI Sea Towers — სასტუმრო-საცხოვრებელი კომპლექსი ზღვისპირა ზონაში, მართვის კომპანიითა და საინვესტიციო პროგრამით.',
-      en: 'ORBI Sea Towers is a seaside hotel-residential complex with management and investor programs.',
-      ru: 'ORBI Sea Towers — гостинично-жилой комплекс у моря.',
+      ka: 'ORBI Sea Towers — ახალი ბულვარი, ბათუმი. 32 სართ., სასტუმრო-საცხოვრებელი. მართვის კომპანია.',
+      en: 'ORBI Sea Towers — New Boulevard, Batumi. 32 floors, hotel-residential. In-house management.',
+      ru: 'ORBI Sea Towers — Новый бульвар, Батуми. 32 этажа, гостинично-жилой. Управляющая компания.',
     },
   },
   {
@@ -235,9 +235,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     projectSlug: 'batumi-riviera-tower',
     status: 'construction',
     description: {
-      ka: 'Batumi Riviera Tower — ზღვის პირველი ხაზის მაღალსართულიანი კომპლექსი ახალ ბულვარზე, პანორამული ხედებით.',
-      en: 'Batumi Riviera Tower is a first-line high-rise on the New Boulevard with panoramic sea views.',
-      ru: 'Batumi Riviera Tower — высотка на первой линии Нового бульвара.',
+      ka: 'Batumi Riviera Tower — ახალი ბულვარი. 28 სართ., ზღვის ხედი.',
+      en: 'Batumi Riviera Tower — New Boulevard. 28 floors, sea view.',
+      ru: 'Batumi Riviera Tower — Новый бульвар. 28 этажей, вид на море.',
     },
   },
   {
@@ -258,9 +258,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     rating: 4.5,
     status: 'ready',
     description: {
-      ka: 'გორგილაძის 50 — ბათუმის ცენტრალური კორპუსი ქირავდება და დღიურად. ახლოს ზღვა და ბულვარი.',
-      en: 'Gorgiladze 50 is a central Batumi building for rent and daily stays — near the sea and boulevard.',
-      ru: 'Горгиладзе 50 — центральный дом в Батуми.',
+      ka: 'გორგილაძის 50 — ბათუმის ცენტრი. 16 სართ. ზღვამდე დაახლოებით 5 წუთი.',
+      en: 'Gorgiladze 50 — Batumi centre. 16 floors. About five minutes to the sea.',
+      ru: 'Горгиладзе 50 — центр Батуми. 16 этажей. Около 5 минут до моря.',
     },
   },
   {
@@ -281,9 +281,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     rating: 4.4,
     status: 'ready',
     description: {
-      ka: 'აბაშიძის 34 — ვაკის საცხოვრებელი კორპუსი. იყიდება, ქირავდება და გირავდება ბინები ამ მისამართზე.',
-      en: 'Abashidze 34 is a Vake residential building — sale, rent and pledge listings at this address.',
-      ru: 'Абашидзе 34 — жилой дом в Ваке.',
+      ka: 'აბაშიძის 34 — ვაკე. 12 სართ., ჩაბარება 2015.',
+      en: 'Abashidze 34 — Vake. 12 floors, completed 2015.',
+      ru: 'Абашидзе 34 — Ваке. 12 этажей, сдан в 2015.',
     },
   },
   {
@@ -304,9 +304,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     rating: 4.3,
     status: 'ready',
     description: {
-      ka: 'ნუცუბიძის 77 — საბურთალოს პლატოს კორპუსი. ოჯახური ბინები იყიდება და ქირავდება.',
-      en: 'Nutsubidze 77 is a Saburtalo plateau building — family flats for sale and rent.',
-      ru: 'Нуцубидзе 77 — дом на плато Сабуртало.',
+      ka: 'ნუცუბიძის 77 — საბურთალოს პლატო. 14 სართ., ჩაბარება 2017.',
+      en: 'Nutsubidze 77 — Saburtalo plateau. 14 floors, completed 2017.',
+      ru: 'Нуцубидзе 77 — плато Сабуртало. 14 этажей, сдан в 2017.',
     },
   },
 ]

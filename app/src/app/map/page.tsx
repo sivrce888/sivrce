@@ -5,12 +5,11 @@ import { Logo } from '@/components/Logo'
 import { Map3DLazy } from './Map3DLazy'
 
 export const metadata: Metadata = {
-  title: '3D რუკა — შენობები იყიდება, ქირავდება, დღიურად, გირავდება',
-  description:
-    'ინტერაქტიული 3D რუკა. შეეხე შენობას და ნახე რა იყიდება, ქირავდება, დღიურად ან გირავდება. უნიკალური კოდი და კოორდინატები ყოველ კორპუსზე.',
+  title: '3D რუკა — კორპუსები და განცხადებები',
+  description: '3D რუკა — აირჩიე კორპუსი, ნახე განცხადებები.',
   openGraph: {
     title: 'sivrce 3D რუკა',
-    description: 'შეეხე შენობას — იყიდება / ქირავდება / დღიურად / გირავდება ერთ ადგილას.',
+    description: 'აირჩიე შენობა რუკაზე — განცხადებები პანელში.',
   },
 }
 
@@ -29,7 +28,7 @@ export default function MapPage() {
           <Logo light />
         </div>
         <p className="hidden text-[13px] font-semibold text-white/50 sm:block">
-          შეეხე შენობას — იყიდება · ქირავდება · დღიურად · გირავდება
+          აირჩიე კორპუსი — განცხადებები მარჯვნივ
         </p>
         <div className="flex items-center gap-2">
           <Link
