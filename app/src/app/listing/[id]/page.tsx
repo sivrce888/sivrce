@@ -1,10 +1,29 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { LISTINGS, getListing as getMockListing, formatUSD } from '@/data/listings'
+import { LISTINGS, getListing as getMockListing, formatUSD, type Listing, type PropType } from '@/data/listings'
 import { getListing as getDbListing } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import { ka, type DictKey } from '@/lib/i18n/ka'
+import { DEALS as SEO_DEALS } from '@/lib/seo-pages'
+import { cap1, fillTpl, seoTitleParts } from '@/lib/seo-title'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
+
+/** Title-slot type labels — the SEO keyword forms (კომერციული ფართი, not კომერციული). */
+const TITLE_TYPE: Record<PropType, DictKey> = {
+  apartment: 'prop.apartment', house: 'prop.houseShort',
+  commercial: 'add.titleType.commercial', land: 'prop.land',
+}
+
+/** Keyword-first detail title: "იყიდება 2-ოთახიანი ბინა ვაკეში" — same engine as the /add-listing default. */
+function seoTitle(l: Listing): string {
+  const dealLabel = l.dealType === 'daily' ? 'ქირავდება დღიურად' : SEO_DEALS[l.dealType].ka
+  const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, district: l.district, city: l.city })
+  return cap1(fillTpl(
+    ka[l.rooms > 0 && l.propType !== 'land' ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'],
+    { deal, rooms: l.rooms, type: ka[TITLE_TYPE[l.propType]], where },
+  ))
+}
 
 // ponytail: dynamicParams default (true) — unknown ids hit notFound() below;
 // `false` crashes `next start` (NoFallbackError) on any unknown-id request.
@@ -37,8 +56,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params
   const l = await getListing(id)
   if (!l) return {}
-  const price = l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე` : formatUSD(l.priceUSD)
-  const title = `${l.title} — ${price}`
+  const price =
+    l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე`
+      : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}/დღე`
+        : formatUSD(l.priceUSD)
+  const title = `${seoTitle(l)} — ${price} | Sivrce`
   const description = metaDescription(l.description)
   // Local photos have a build-time JPEG derivative (scripts/og-derivatives.mjs)
   // because WhatsApp/Viber/FB crawlers don't render WebP OG tags. Uploaded
@@ -92,6 +114,15 @@ export default async function ListingPage({ params }: PageProps) {
     .toISOString()
     .slice(0, 10)
 
+  // ponytail: propType → schema.org dwelling type. InStock rich-result prefers
+  // an itemOffered dwelling over a bare Offer; the Resident schema family also
+  // unlocks the "Bedrooms/Bathrooms" rich snippet in Google's RE vertical.
+  const dwellingType =
+    listing.propType === 'apartment' ? 'Apartment'
+      : listing.propType === 'house' ? 'House'
+        : listing.propType === 'commercial' ? 'Place'
+          : 'Place'
+
   const listingLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
@@ -121,6 +152,14 @@ export default async function ListingPage({ params }: PageProps) {
       priceCurrency: 'USD',
       priceValidUntil,
       availability: 'https://schema.org/InStock',
+      itemOffered: {
+        '@type': dwellingType,
+        name: listing.title,
+        numberOfBedrooms: listing.beds,
+        numberOfBathroomsTotal: listing.baths,
+        floorSize: { '@type': 'QuantitativeValue', value: listing.area, unitCode: 'MTK' },
+        ...(listing.rooms > 0 && { numberOfRooms: listing.rooms }),
+      },
       seller: {
         '@type': 'RealEstateAgent',
         name: listing.agent.name,
