@@ -20,6 +20,7 @@ import {
   breadcrumbsOf,
   linkChipsOf,
   locPrefix,
+  cityProseOf,
   type SeoLoc,
   type SeoPageDef,
 } from '@/lib/seo-pages'
@@ -63,8 +64,20 @@ const UI = {
 const OG_LOCALE: Record<SeoLoc, string> = { ka: 'ka_GE', en: 'en_US', ru: 'ru_RU' }
 
 export function seoMetadata(def: SeoPageDef, loc: SeoLoc): Metadata {
-  const title = titleOf(def, loc)
-  const description = descriptionOf(def, loc)
+  // city-info: curated title — "გორი — უძრავი ქონება, ფასები, გზამკვლევი | sivrce"
+  // (avoids the "0 განცხადება" suffix that titleOf would emit for empty listings).
+  const isCityInfo = def.kind === 'city-info' && def.city
+  const placeName = isCityInfo
+    ? (loc === 'ka' ? def.city!.ka : loc === 'en' ? def.city!.en : def.city!.ru)
+    : ''
+  const title = isCityInfo
+    ? (loc === 'ka'
+        ? `${placeName} — უძრავი ქონება, ფასები, გზამკვლევი`
+        : loc === 'en'
+          ? `${placeName} — Real Estate, Prices & Area Guide`
+          : `${placeName} — недвижимость, цены и гид`)
+    : titleOf(def, loc)
+  const description = isCityInfo ? (cityProseOf(def.city!.slug)?.lede ?? '') : descriptionOf(def, loc)
   const url = `${locPrefix(loc)}${def.path}`
   return {
     title,
@@ -94,6 +107,37 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc): Metadata {
 function seoLd(def: SeoPageDef, loc: SeoLoc) {
   const p = locPrefix(loc)
   const crumbs = breadcrumbsOf(def, loc)
+  // city-info: Place + TouristDestination + Breadcrumb. No ItemList (empty)
+  // and no FAQPage (faqsOf needs listings). The prose carries the entity.
+  if (def.kind === 'city-info' && def.city) {
+    const prose = cityProseOf(def.city.slug)
+    const placeName = loc === 'ka' ? def.city.ka : loc === 'en' ? def.city.en : def.city.ru
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Place',
+          name: placeName,
+          description: prose?.lede,
+          url: `${BASE}${p}${def.path}`,
+          inLanguage: loc,
+          address: { '@type': 'PostalAddress', addressCountry: 'GE', addressLocality: placeName },
+          ...(prose?.coords && {
+            geo: { '@type': 'GeoCoordinates', latitude: prose.coords.lat, longitude: prose.coords.lng },
+          }),
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: crumbs.map((c, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: c.name,
+            item: `${BASE}${c.href}`,
+          })),
+        },
+      ],
+    }
+  }
   const faqs = faqsOf(def, loc)
   return {
     '@context': 'https://schema.org',
@@ -160,6 +204,10 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
   const chips = linkChipsOf(def, loc)
   const faqs = faqsOf(def, loc)
   const h1 = h1Of(def, loc)
+  // city-info pages: no listings yet, just curated prose. Hide the empty
+  // grid + FAQ and substitute a long-form guide instead of a thin shell.
+  const isCityInfo = def.kind === 'city-info'
+  const cityProse = isCityInfo && def.city ? cityProseOf(def.city.slug) : null
 
   // Tbilisi district extras: live weather badge + street-level link mesh (ka only).
   const tbilisiDistrict = def.district?.citySlug === 'tbilisi' ? def.district : undefined
@@ -205,32 +253,34 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
             {h1}
           </h1>
           <p className="mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">
-            {descriptionOf(def, loc)}
+            {isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc)}
           </p>
 
-          {/* Live stats */}
-          <dl className="mt-6 flex flex-wrap gap-3">
-            {[
-              { icon: LayoutGrid, label: ui.listings, value: String(stats.count) },
-              ...(stats.avgPerM2
-                ? [{ icon: TrendingUp, label: ui.avg, value: `${formatUSD(stats.avgPerM2)}/მ²` }]
-                : []),
-              { icon: MapPin, label: ui.from, value: formatUSD(stats.minPrice) },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="flex items-center gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 shadow-card"
-              >
-                <span className="grid h-9 w-9 place-items-center rounded-control bg-sv-blue/10">
-                  <s.icon className="h-4 w-4 text-sv-blue" aria-hidden />
-                </span>
-                <div>
-                  <dd className="text-[16px] font-black text-sv-ink">{s.value}</dd>
-                  <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">{s.label}</dt>
+          {/* Live stats — hidden on city-info pages (no listings to report) */}
+          {!isCityInfo && (
+            <dl className="mt-6 flex flex-wrap gap-3">
+              {[
+                { icon: LayoutGrid, label: ui.listings, value: String(stats.count) },
+                ...(stats.avgPerM2
+                  ? [{ icon: TrendingUp, label: ui.avg, value: `${formatUSD(stats.avgPerM2)}/მ²` }]
+                  : []),
+                { icon: MapPin, label: ui.from, value: formatUSD(stats.minPrice) },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="flex items-center gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 shadow-card"
+                >
+                  <span className="grid h-9 w-9 place-items-center rounded-control bg-sv-blue/10">
+                    <s.icon className="h-4 w-4 text-sv-blue" aria-hidden />
+                  </span>
+                  <div>
+                    <dd className="text-[16px] font-black text-sv-ink">{s.value}</dd>
+                    <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">{s.label}</dt>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </dl>
+              ))}
+            </dl>
+          )}
         </header>
 
         {/* Filter chips — internal link mesh */}
@@ -266,12 +316,14 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
           </div>
         )}
 
-        {/* Listings */}
-        <section aria-label={ui.gridAria} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {def.listings.map((l, i) => (
-            <ListingCard key={l.id} l={l} i={i} />
-          ))}
-        </section>
+        {/* Listings — hidden on city-info (no inventory yet) */}
+        {!isCityInfo && (
+          <section aria-label={ui.gridAria} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {def.listings.map((l, i) => (
+              <ListingCard key={l.id} l={l} i={i} />
+            ))}
+          </section>
+        )}
 
         {/* District streets — street-level SEO link mesh (ka only) */}
         {districtStreets.length > 0 && tbilisiDistrict && (
@@ -288,36 +340,56 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
           </section>
         )}
 
-        {/* SEO intro */}
-        <section className="mt-14 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
-          <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
-            {h1} — {ui.overview}
-          </h2>
-          <p className="mt-3 max-w-[860px] text-[15px] font-medium leading-relaxed text-sv-ink/65">
-            {introOf(def, loc)}
-          </p>
-        </section>
-
-        {/* FAQ */}
-        <section className="mt-10" aria-label={ui.faq}>
-          <h2 className="mb-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
-            {ui.faq}
-          </h2>
-          <div className="grid gap-3">
-            {faqs.map((f) => (
-              <details
-                key={f.q}
-                className="group rounded-module border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card open:shadow-card-hover"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-extrabold text-sv-ink [&::-webkit-details-marker]:hidden">
-                  {f.q}
-                  <ChevronRight className="h-4 w-4 shrink-0 text-sv-blue transition-transform duration-300 group-open:rotate-90" aria-hidden />
-                </summary>
-                <p className="mt-3 text-[14px] font-medium leading-relaxed text-sv-ink/60">{f.a}</p>
-              </details>
+        {/* City-info prose (inventory-light city) — replaces the market-overview
+            block with curated long-form prose so every city page is unique. */}
+        {isCityInfo && cityProse ? (
+          <section className="mt-14 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
+            <h2 className="text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
+              {def.city![loc === 'ka' ? 'ka' : loc]}
+            </h2>
+            <p className="mt-4 max-w-[860px] text-[16px] font-semibold leading-[1.8] text-sv-ink/80">
+              {cityProse.lede}
+            </p>
+            {cityProse.body.map((para, i) => (
+              <p key={i} className="mt-4 max-w-[860px] text-[15px] font-medium leading-[1.75] text-sv-ink/65">
+                {para}
+              </p>
             ))}
-          </div>
-        </section>
+          </section>
+        ) : (
+          /* SEO intro — only on pages with listings */
+          <section className="mt-14 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
+            <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
+              {h1} — {ui.overview}
+            </h2>
+            <p className="mt-3 max-w-[860px] text-[15px] font-medium leading-relaxed text-sv-ink/65">
+              {introOf(def, loc)}
+            </p>
+          </section>
+        )}
+
+        {/* FAQ — skipped on city-info (faqsOf needs listings for live stats) */}
+        {!isCityInfo && (
+          <section className="mt-10" aria-label={ui.faq}>
+            <h2 className="mb-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
+              {ui.faq}
+            </h2>
+            <div className="grid gap-3">
+              {faqs.map((f) => (
+                <details
+                  key={f.q}
+                  className="group rounded-module border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card open:shadow-card-hover"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-extrabold text-sv-ink [&::-webkit-details-marker]:hidden">
+                    {f.q}
+                    <ChevronRight className="h-4 w-4 shrink-0 text-sv-blue transition-transform duration-300 group-open:rotate-90" aria-hidden />
+                  </summary>
+                  <p className="mt-3 text-[14px] font-medium leading-relaxed text-sv-ink/60">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(seoLd(def, loc)) }} />

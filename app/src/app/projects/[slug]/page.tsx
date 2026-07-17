@@ -75,7 +75,12 @@ export default async function ProjectPage({ params }: PageProps) {
     description: project.description.ka,
     url: `https://sivrce.ge/projects/${project.slug}`,
     image: `https://sivrce.ge${project.img}`,
-    numberOfAvailableAccommodationUnits: project.flats,
+    // ponytail: numberOfAvailableAccommodationUnits = "currently for sale" — only
+    // true for projects under construction. Sold-out/completed buildings would
+    // mislead Google's schema (policy risk). Use numberOfAccommodationUnits (total built) for those.
+    ...(project.done >= 100 || project.finish.startsWith('გადაცემულია')
+      ? { numberOfAccommodationUnits: project.flats }
+      : { numberOfAvailableAccommodationUnits: project.flats }),
     address: {
       '@type': 'PostalAddress',
       addressLocality: project.city,

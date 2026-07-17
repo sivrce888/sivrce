@@ -51,7 +51,15 @@ function postLd(slug: string) {
     inLanguage: 'ka',
     datePublished: `${post.publishedAt}T00:00:00+04:00`,
     dateModified: `${post.updatedAt ?? post.publishedAt}T00:00:00+04:00`,
-    author: { '@type': 'Organization', name: post.author, url: 'https://sivrce.ge' },
+    // ponytail: Person (not Organization) author — Google YMYL E-E-A-T signal.
+    // "sivrce რედაქცია" is the editorial team; same name shown on the byline.
+    author: {
+      '@type': 'Person',
+      name: post.author,
+      jobTitle: 'უძრავი ქონების რედაქტორი',
+      url: 'https://sivrce.ge/about',
+      worksFor: { '@type': 'Organization', name: 'sivrce', url: 'https://sivrce.ge' },
+    },
     publisher: { '@type': 'Organization', name: 'sivrce', url: 'https://sivrce.ge', logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/logo/sivrce-mark.svg' } },
     mainEntityOfPage: { '@type': 'WebPage', '@id': `https://sivrce.ge/blog/${post.slug}` },
     keywords: post.tags.join(', '),

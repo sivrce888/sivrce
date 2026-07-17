@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">sivrce</string>
+    <string name="title_activity_main">sivrce</string>
+    <string name="package_name">ge.sivrce.app</string>
+    <string name="custom_url_scheme">ge.sivrce.app</string>
+</resources>
