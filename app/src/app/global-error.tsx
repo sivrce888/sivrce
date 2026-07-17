@@ -1,13 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
+import { captureError } from '@/lib/sentry'
+
 /* ponytail: root-layout failure path — no CSS/fonts/i18n available here,
    so inline brand tokens and hardcoded Georgian. Ceiling: full brand shell. */
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    captureError(error)
+  }, [error])
   return (
     <html lang="ka">
       <body

@@ -16,6 +16,7 @@ import ListingCard, { BADGE_STYLE } from '@/components/ListingCard'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { LeadForm } from '@/components/lead/LeadForm'
+import { TourBooking } from '@/components/listing/TourBooking'
 import MapEmbed from '@/components/MapEmbed'
 import { lt } from './i18n'
 import {
@@ -26,6 +27,7 @@ import { useFavorites } from '@/lib/favorites'
 import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
+import { useChat } from '@/components/chat/ChatProvider'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 
@@ -137,6 +139,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
   const { has, toggle } = useFavorites()
   const { t, lang } = useI18n()
   const { currency, setCurrency, format } = useCurrency()
+  const { openChat } = useChat()
   const [photo, setPhoto] = useState(0)
   const [lightbox, setLightbox] = useState(false)
   const gradId = useId()
@@ -607,7 +610,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   <Phone className="h-4 w-4" /> {t('detail.call')}
                 </a>
                 <button
-                  onClick={scrollToLead}
+                  onClick={() => openChat(l.id)}
                   className="flex h-12 items-center justify-center gap-2 rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] text-[14px] font-extrabold text-sv-blue transition-all duration-300 hover:bg-sv-blue/10"
                 >
                   <MessageCircle className="h-4 w-4" /> {t('detail.message')}
@@ -664,6 +667,13 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
               aspect="4/3"
               className="mt-4"
             />
+
+            {/* Tour booking */}
+            <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
+              <div className="mb-3 text-sm font-black text-sv-ink">{t('detail.tourTitle')}</div>
+              <p className="mb-4 text-[13px] font-semibold text-sv-ink/50">{t('detail.tourSubtitle')}</p>
+              <TourBooking listingId={l.id} listingTitle={l.title} />
+            </div>
 
             {/* Lead form — anchor target for the "message" CTAs */}
             <div
@@ -758,7 +768,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             <Phone className="h-4 w-4" /> {t('detail.call')}
           </a>
           <button
-            onClick={scrollToLead}
+            onClick={() => openChat(l.id)}
             aria-label={t('detail.message')}
             className="flex h-12 items-center justify-center gap-2 rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] text-[14px] font-extrabold text-sv-blue transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
           >

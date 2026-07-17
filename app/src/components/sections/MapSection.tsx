@@ -71,7 +71,7 @@ export default function MapSection() {
 
             <Reveal delay={0.45}>
               <Link
-                href="/search"
+                href="/map"
                 className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-4 text-[15px] font-extrabold text-sv-navy transition-all duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-light hover:shadow-glow-blue"
               >
                 გახსენი 3D რუკა
@@ -87,14 +87,21 @@ export default function MapSection() {
               transition={{ type: 'spring', stiffness: 200, damping: 20 }}
               className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue"
             >
-              <MapEmbed
-                lat={41.7151}
-                lng={44.8271}
-                zoom={13}
-                mode="view"
-                aspect="16/9"
-                className="border-0 shadow-none"
-              />
+              <Link href="/map" className="block" aria-label="გახსენი 3D რუკა">
+                <MapEmbed
+                  lat={41.7151}
+                  lng={44.8271}
+                  zoom={13}
+                  mode="view"
+                  aspect="16/9"
+                  className="border-0 shadow-none pointer-events-none"
+                />
+                <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-sv-navy/70 via-transparent to-transparent pb-8">
+                  <span className="rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-extrabold text-white shadow-glow-orange">
+                    გახსენი ინტერაქტიული 3D რუკა
+                  </span>
+                </div>
+              </Link>
               <div className="absolute inset-0 rounded-card ring-1 ring-inset ring-white/10 pointer-events-none" />
             </motion.div>
 

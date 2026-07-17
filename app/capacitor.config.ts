@@ -5,16 +5,16 @@ const isDev = process.env.NODE_ENV === 'development'
 const config: CapacitorConfig = {
   appId: 'ge.sivrce.app',
   appName: 'sivrce',
-  webDir: 'out',
-  // ponytail: dev loads local server, prod loads deployed URL via WebView
+  webDir: 'mobile',
+  // ponytail: dev loads local dev server; prod loads deployed site via WebView
   server: isDev
     ? {
-        url: 'http://192.168.1.100:3000',
+        url: 'http://localhost:3000',
         cleartext: true,
       }
     : {
-        hostname: 'sivrce.ge',
-        androidScheme: 'https',
+        url: 'https://sivrce.ge',
+        cleartext: false,
       },
   ios: {
     contentInset: 'automatic',

@@ -10,6 +10,7 @@ export const ar: Dict = {
   'nav.buy': 'للبيع',
   'nav.rent': 'للإيجار',
   'nav.search': 'بحث',
+  'nav.map': 'خريطة ثلاثية الأبعاد',
   'nav.projects': 'مشاريع جديدة',
   'nav.services': 'الخدمات',
   'nav.more': 'المزيد',

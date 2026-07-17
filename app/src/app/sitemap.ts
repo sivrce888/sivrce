@@ -12,6 +12,8 @@ const DEPLOY_DATE = new Date('2026-07-17')
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 1 },
+    { url: `${BASE}/search`, lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.9 },
+    { url: `${BASE}/map`, lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.95 },
     { url: `${BASE}/blog`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE}/neighborhoods`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/projects`, lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
