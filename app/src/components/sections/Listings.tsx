@@ -5,11 +5,9 @@ import Link from 'next/link'
 import { ArrowRight, ChevronLeft, ChevronRight, Crown } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import ListingCard from '@/components/ListingCard'
-import { LISTINGS } from '@/data/listings'
+import type { Listing } from '@/data/listings'
 
-const FEATURED = LISTINGS.slice(0, 6)
-
-export default function Listings() {
+export default function Listings({ items }: { items: Listing[] }) {
   const scroller = useRef<HTMLDivElement>(null)
   const scrollBy = (dir: number) =>
     scroller.current?.scrollBy({ left: dir * 420, behavior: 'smooth' })
@@ -64,7 +62,7 @@ export default function Listings() {
         aria-label="SUPER VIP განცხადებები"
         className="scrollbar-hide flex gap-6 overflow-x-auto px-5 pb-8 pt-2 md:px-10 lg:px-[max(2.5rem,calc((100vw-1440px)/2+2.5rem))]"
       >
-        {FEATURED.map((l, i) => (
+        {items.map((l, i) => (
           <ListingCard key={l.id} l={l} i={i} />
         ))}
       </div>

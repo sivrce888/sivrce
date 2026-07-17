@@ -1,11 +1,15 @@
 import type { MetadataRoute } from 'next'
-import { LISTINGS } from '@/data/listings'
+import { LISTINGS, type Listing } from '@/data/listings'
+import { getAllListings } from '@/lib/listings-db'
 import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { BLOG_POSTS } from '@/data/blog'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 
 const BASE = 'https://sivrce.ge'
+
+// Regenerate with fresh DB inventory hourly.
+export const revalidate = 3600
 
 // Static pages: one lastmod per deploy, not per request
 const DEPLOY_DATE = new Date('2026-07-17')
@@ -28,7 +32,14 @@ function withHreflang({ path, lastModified, changeFrequency, priority }: Entry):
   return { url: `${BASE}${path}`, lastModified, changeFrequency, priority, alternates: { languages } }
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // DB-first listing URLs; static mock is the build-time/outage fallback.
+  let listings: Listing[] = LISTINGS
+  try {
+    const rows = await getAllListings()
+    if (rows.length > 0) listings = rows
+  } catch { /* DB unavailable at build — keep static URLs */ }
+
   const entries: Entry[] = [
     { path: '', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 1 },
     { path: '/search', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.9 },
@@ -81,7 +92,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   }
 
-  for (const l of LISTINGS) {
+  for (const l of listings) {
     entries.push({
       path: `/listing/${l.id}`,
       lastModified: new Date(`${l.postedAt}T00:00:00`),
