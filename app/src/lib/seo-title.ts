@@ -18,6 +18,10 @@ import type { Lang } from '@/lib/i18n/context'
 export const cap1 = (s: string): string =>
   s.replace(/^(?!\p{sc=Georgian})\p{Ll}/u, (c) => c.toUpperCase())
 
+/** Fill an i18n template's `{var}` slots — server-safe mirror of context.translate's var pass. */
+export const fillTpl = (tpl: string, vars: Record<string, string | number>): string =>
+  tpl.replace(/\{(\w+)\}/g, (m, n) => (vars[n] !== undefined ? String(vars[n]) : m))
+
 /* ————— Georgian locatives ————— */
 
 /** Obstruents can't cluster with ზ → take -ეზე (ჭავჭავაძ-ეზე, მეფ-ეზე); sonorants/vowels take -ზე. */
