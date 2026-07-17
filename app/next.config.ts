@@ -15,6 +15,9 @@ const mapOrigins =
 const analyticsOrigins =
   " https://www.googletagmanager.com https://*.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://counter.top.ge https://*.sentry.io https://*.posthog.com https://*.i.posthog.com"
 
+// First-party feature APIs: Open-Meteo (weather badges) + open.er-api (FX rates)
+const featureApiOrigins = " https://api.open-meteo.com https://open.er-api.com"
+
 const csp = [
   "default-src 'self'",
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
@@ -22,7 +25,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob:${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "font-src 'self' data:",
-  `connect-src 'self'${capacitorOrigins} https://*.sivrce.ge${mapOrigins}${analyticsOrigins}`,
+  `connect-src 'self'${capacitorOrigins} https://*.sivrce.ge${mapOrigins}${analyticsOrigins}${featureApiOrigins}`,
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
   "object-src 'none'",
@@ -57,6 +60,9 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   compress: true,
+  // ponytail: Neon cold-starts + per-worker Prisma connects can exceed the 60s
+  // default on DB-backed SSG pages. Bump timeout; make builds warm the DB instead.
+  staticPageGenerationTimeout: 180,
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 768, 1024, 1280, 1536, 1920],
