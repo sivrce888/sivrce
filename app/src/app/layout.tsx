@@ -71,6 +71,8 @@ export const metadata: Metadata = {
     canonical: "/",
     languages: {
       "ka-GE": "/",
+      en: "/en",
+      ru: "/ru",
       "x-default": "/",
     },
   },
