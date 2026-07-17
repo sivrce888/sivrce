@@ -105,6 +105,7 @@ export const az: Dict = {
   'detail.fullPrice': 'Tam qiymət',
   'detail.monthlyRent': 'Aylıq kirayə',
   'detail.perMonth': '/ay',
+  'detail.perDay': '/gün',
   'detail.currency': 'Valyuta',
   'detail.aiScore': 'AI qiymət qiymətləndirməsi',
   'detail.aiBase': 'Qiymət {district}, {city} ərazisindəki 40+ oxşar {deal} elanı ilə müqayisə olunub.',

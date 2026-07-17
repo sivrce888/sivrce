@@ -105,6 +105,7 @@ export const ar: Dict = {
   'detail.fullPrice': 'السعر الكامل',
   'detail.monthlyRent': 'الإيجار الشهري',
   'detail.perMonth': '/شهر',
+  'detail.perDay': '/يوم',
   'detail.currency': 'العملة',
   'detail.aiScore': 'تقييم السعر بالذكاء الاصطناعي',
   'detail.aiBase': 'تمت مقارنة السعر مع أكثر من 40 إعلان {deal} مشابهًا في {district}، {city}.',

@@ -105,6 +105,7 @@ export const ru: Dict = {
   'detail.fullPrice': 'Полная цена',
   'detail.monthlyRent': 'Аренда в месяц',
   'detail.perMonth': '/мес',
+  'detail.perDay': '/сутки',
   'detail.currency': 'Валюта',
   'detail.aiScore': 'AI оценка цены',
   'detail.aiBase': 'Цена сравнена с 40+ похожими объявлениями по {deal} — {district}, {city}.',

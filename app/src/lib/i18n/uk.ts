@@ -105,6 +105,7 @@ export const uk: Dict = {
   'detail.fullPrice': 'Повна ціна',
   'detail.monthlyRent': 'Місячна оренда',
   'detail.perMonth': '/міс',
+  'detail.perDay': '/добу',
   'detail.currency': 'Валюта',
   'detail.aiScore': 'AI-оцінка ціни',
   'detail.aiBase': 'Ціну порівняно з 40+ схожими оголошеннями {deal} у районі {district}, {city}.',

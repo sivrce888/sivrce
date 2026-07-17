@@ -105,6 +105,7 @@ export const tr: Dict = {
   'detail.fullPrice': 'Toplam fiyat',
   'detail.monthlyRent': 'Aylık kira',
   'detail.perMonth': '/ay',
+  'detail.perDay': '/gün',
   'detail.currency': 'Para birimi',
   'detail.aiScore': 'AI fiyat değerlendirmesi',
   'detail.aiBase': 'Fiyat, {district}, {city} bölgesindeki 40+ benzer {deal} ilanıyla karşılaştırılıyor.',

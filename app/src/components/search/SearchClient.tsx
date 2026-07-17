@@ -60,7 +60,8 @@ function SkeletonCard() {
 /** Compact rail card — thumb + price + one-line meta; 3–4 visible per viewport. */
 function CompactCard({ l }: { l: Listing }) {
   const { format } = useCurrency()
-  const suffix = l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
+  const { t } = useI18n()
+  const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
   return (
     <Link
       href={`/listing/${l.id}`}
@@ -134,19 +135,8 @@ export default function SearchClient() {
     window.localStorage.setItem('sivrce:view', view)
   }, [view])
 
-  // ——— Simulated fetch: brief skeleton on mount + every filter change ———
-  // Derived loading state: a params signature is marked "loaded" after 320ms.
-  const paramsKey = params.toString()
-  const [loadedKey, setLoadedKey] = useState('')
-  const loading = loadedKey !== paramsKey
-
-  useEffect(() => {
-    if (loadedKey === paramsKey) return
-    const timer = window.setTimeout(() => setLoadedKey(paramsKey), 320)
-    return () => window.clearTimeout(timer)
-  }, [paramsKey, loadedKey])
-
   // ——— Read filters from URL — invalid values are ignored (whitelists + numeric checks) ———
+  const paramsKey = params.toString()
   const dealParam = params.get('deal')
   const deal: DealType | undefined = dealParam === 'sale' || dealParam === 'rent' || dealParam === 'daily' ? dealParam : undefined
   const typeParam = params.get('type')
@@ -207,7 +197,7 @@ export default function SearchClient() {
   // ——— API-driven search (paged; page 2+ appends via "show more") ————————
   const [results, setResults] = useState<Listing[]>([])
   const [totalResults, setTotalResults] = useState(0)
-  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(true)
   // Facet counts from Meilisearch (null on the DB fallback → counts hidden).
   const [facets, setFacets] = useState<Record<string, Record<string, number>> | null>(null)
   const fcount = (dim: string, key: string): number | undefined => facets?.[dim]?.[key]
@@ -286,7 +276,7 @@ export default function SearchClient() {
   const recentItems = recents.key === recentKey ? recents.items : []
 
   // Skeleton only when there is nothing on screen yet — page 2+ keeps cards visible.
-  const showSkeleton = (loading || searchLoading) && results.length === 0
+  const showSkeleton = searchLoading && results.length === 0
 
   // ——— Active filter chips ———
   const propType = PROP_TYPES.find((p) => p.value === type)
