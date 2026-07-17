@@ -11,16 +11,16 @@ const capacitorOrigins = isDev
 const mapOrigins =
   " https://*.openfreemap.org https://tiles.openfreemap.org https://*.maptiler.com https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com"
 
-// ponytail: analytics origins reserved — enable when Sentry/PostHog ship
+// ponytail: analytics — GTM + reserved Sentry/PostHog
 const analyticsOrigins =
-  " https://*.sentry.io https://*.posthog.com https://*.i.posthog.com"
+  " https://www.googletagmanager.com https://*.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.sentry.io https://*.posthog.com https://*.i.posthog.com"
 
 const csp = [
   "default-src 'self'",
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
-  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}${mapOrigins}`,
+  `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${capacitorOrigins}${mapOrigins}`,
+  `img-src 'self' data: blob:${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "font-src 'self' data:",
   `connect-src 'self'${capacitorOrigins} https://*.sivrce.ge${mapOrigins}${analyticsOrigins}`,
   "worker-src 'self' blob:",
@@ -29,7 +29,7 @@ const csp = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  "frame-src 'self' https://www.google.com https://maps.google.com",
+  "frame-src 'self' https://www.google.com https://maps.google.com https://www.googletagmanager.com",
   "upgrade-insecure-requests",
 ].join("; ");
 
