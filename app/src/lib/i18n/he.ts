@@ -291,6 +291,7 @@ export const he: Dict = {
   'add.successView': 'עיון במודעות',
   'add.successNew': 'מודעה חדשה',
   'add.successDashboard': 'המודעות שלי',
+  'add.successViewListing': 'צפייה במודעה',
   'add.publishing': 'מפרסם…',
   'add.publishError': 'הפרסום נכשל — נסה שוב',
   'add.aiPending': 'ציון AI בקרוב',

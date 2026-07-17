@@ -291,6 +291,7 @@ export const az: Dict = {
   'add.successView': 'Elanlara bax',
   'add.successNew': 'Yeni elan',
   'add.successDashboard': 'Elanlarım',
+  'add.successViewListing': 'Elana bax',
   'add.publishing': 'Dərc olunur…',
   'add.publishError': 'Dərc alınmadı — yenidən cəhd edin',
   'add.aiPending': 'AI balı tezliklə',

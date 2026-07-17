@@ -54,6 +54,34 @@ function buildDbOrderBy(filters: SearchFilters): Prisma.ListingOrderByWithRelati
   }
 }
 
+const LISTING_SELECT = {
+  id: true,
+  title: true,
+  city: true,
+  district: true,
+  address: true,
+  dealType: true,
+  propertyType: true,
+  price: true,
+  currency: true,
+  pricePerSqm: true,
+  area: true,
+  rooms: true,
+  bedrooms: true,
+  bathrooms: true,
+  floor: true,
+  totalFloors: true,
+  lat: true,
+  lng: true,
+  images: true,
+  slug: true,
+  views: true,
+  tier: true,
+  trustScore: true,
+  createdAt: true,
+  agent: true,
+} satisfies Prisma.ListingSelect
+
 async function dbSearch(filters: SearchFilters) {
   const page = Math.max(1, filters.page ?? 1)
   const pageSize = Math.min(50, Math.max(1, filters.pageSize ?? 24))
@@ -68,33 +96,7 @@ async function dbSearch(filters: SearchFilters) {
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: {
-          id: true,
-          title: true,
-          city: true,
-          district: true,
-          address: true,
-          dealType: true,
-          propertyType: true,
-          price: true,
-          currency: true,
-          pricePerSqm: true,
-          area: true,
-          rooms: true,
-          bedrooms: true,
-          bathrooms: true,
-          floor: true,
-          totalFloors: true,
-          lat: true,
-          lng: true,
-          images: true,
-          slug: true,
-          views: true,
-          tier: true,
-          trustScore: true,
-          createdAt: true,
-          agent: true,
-        },
+        select: LISTING_SELECT,
       }),
       db.listing.count({ where }),
     ])
@@ -132,6 +134,28 @@ async function dbSearch(filters: SearchFilters) {
 export async function GET(req: Request) {
   const url = new URL(req.url)
   const sp = url.searchParams
+
+  // Fetch-by-ids (recently-viewed rail). Skips Meilisearch — direct DB lookup,
+  // order follows the ids array, capped to keep the URL and query small.
+  const idsParam = sp.get("ids")
+  if (idsParam) {
+    const ids = idsParam.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 12)
+    try {
+      const rows = await db.listing.findMany({
+        where: { id: { in: ids }, deletedAt: null, status: "active" },
+        select: LISTING_SELECT,
+      })
+      const byId = new Map(rows.map((r) => [r.id, r]))
+      const hits = ids.flatMap((id) => {
+        const row = byId.get(id)
+        return row ? [{ ...row, agent: row.agent as unknown }] : []
+      })
+      return Response.json({ ok: true, hits, totalHits: hits.length, page: 1, pageSize: hits.length, totalPages: 1, source: "db" })
+    } catch (e) {
+      console.error("[api/search] ids lookup failed:", (e as Error).message)
+      return Response.json({ ok: true, hits: [], totalHits: 0, page: 1, pageSize: 0, totalPages: 0, source: "db" })
+    }
+  }
 
   // Trust-boundary sanitize: Number('undefined'/'abc') is NaN, which Prisma
   // rejects as a missing argument. Non-finite numbers become undefined.

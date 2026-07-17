@@ -291,6 +291,7 @@ export const en: Dict = {
   'add.successView': 'Browse listings',
   'add.successNew': 'New listing',
   'add.successDashboard': 'My listings',
+  'add.successViewListing': 'View listing',
   'add.publishing': 'Publishing…',
   'add.publishError': "Couldn't publish — try again",
   'add.aiPending': 'AI score coming soon',

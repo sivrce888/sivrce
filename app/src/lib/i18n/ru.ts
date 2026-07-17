@@ -291,6 +291,7 @@ export const ru: Dict = {
   'add.successView': 'Смотреть объявления',
   'add.successNew': 'Новое объявление',
   'add.successDashboard': 'Мои объявления',
+  'add.successViewListing': 'Смотреть объявление',
   'add.publishing': 'Публикация…',
   'add.publishError': 'Не удалось опубликовать — попробуйте ещё раз',
   'add.aiPending': 'AI оценка скоро',
