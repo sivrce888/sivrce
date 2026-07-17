@@ -74,7 +74,8 @@ rotational symmetry about (24,24): one family, two marks.
 | Blade B | exact 180° rotation of blade A |
 | Blade B gradient | R→B: `#7A5CFF` 0 · `#FF4D6D` .62 · `#FF6A2D` 1 |
 | Assets | `assets/sivrce-spark.svg` (bare) · `sivrce-spark-navy.svg` (tile) · `sivrce-spark-mono-white.svg` · `sivrce-spark-mono-ink.svg` |
-| Generator | `build_spark.py` |
+| PNGs | `png/sivrce-spark-{16…1024}.png` · `png/sivrce-spark-navy-{180,512,1024}.png` |
+| Generator | `build_spark.py` (SVG) · `build_spark_png.py` (PNG) |
 | Component | `app/src/components/SparkMark.tsx` |
 
 Rules: AI contexts only · never a category/deal icon · never recolor · clear
