@@ -11,6 +11,7 @@ export const az: Dict = {
   'nav.rent': 'Kirayə',
   'nav.search': 'Axtarış',
   'nav.map': '3D xəritə',
+  'nav.buildings': 'Binalar',
   'nav.projects': 'Yeni layihələr',
   'nav.services': 'Xidmətlər',
   'nav.more': 'Daha çox',

@@ -10,6 +10,7 @@ export const ka = {
   'nav.rent': 'ქირავდება',
   'nav.search': 'ძიება',
   'nav.map': '3D რუკა',
+  'nav.buildings': 'შენობები',
   'nav.projects': 'ახალი პროექტები',
   'nav.services': 'სერვისები',
   'nav.more': 'მეტი',

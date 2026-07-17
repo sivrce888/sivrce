@@ -60,6 +60,7 @@ export default function Navbar() {
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
     { key: 'nav.map', to: '/map' },
+    { key: 'nav.buildings', to: '/buildings' },
     { key: 'nav.search', to: '/search' },
     { key: 'nav.neighborhoods', to: '/neighborhoods' },
     { key: 'nav.projects', to: '/projects' },

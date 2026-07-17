@@ -124,6 +124,7 @@ Source: `DEAL_BRAND` in `category-brand.ts`. Hero deal tabs + search deal chips.
 | იყიდება (sale) | `sale` | #2E6BFF | apartments |
 | ქირავდება (rent) | `rent` | #7C3AED | commercial |
 | დღიურად (daily) | `daily` | #E11D48 | dailyRent |
+| გირავდება (pledge) | `pledge` | #16A34A | mortgage service |
 | ახალი პროექტები | `newProjects` | #5B8BFF | newProjects |
 
 ### 3.3 Dark mode flips (locked)

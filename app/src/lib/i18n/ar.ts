@@ -11,6 +11,7 @@ export const ar: Dict = {
   'nav.rent': 'للإيجار',
   'nav.search': 'بحث',
   'nav.map': 'خريطة ثلاثية الأبعاد',
+  'nav.buildings': 'المباني',
   'nav.projects': 'مشاريع جديدة',
   'nav.services': 'الخدمات',
   'nav.more': 'المزيد',

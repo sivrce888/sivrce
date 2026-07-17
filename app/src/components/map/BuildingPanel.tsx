@@ -1,16 +1,16 @@
 'use client'
 
 /**
- * Building click panel — sale / rent / daily + construction developments.
+ * Building click panel — sale / rent / daily / pledge + landmark card.
  */
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { X, Building2, MapPin, HardHat, Navigation } from 'lucide-react'
+import { X, Building2, MapPin, HardHat, Navigation, Star, BadgeCheck } from 'lucide-react'
 import type { DealType } from '@/data/listings'
 import { useCurrency } from '@/lib/currency'
 import { DEAL_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
-import { listingBuildingNumber } from '@/lib/map/buildings'
+import { dealLabelKa, listingBuildingNumber } from '@/lib/map/buildings'
 import type { MapBuildingCluster } from '@/lib/map/buildings'
 
 const TABS: { id: DealType | 'all'; label: string; color?: string }[] = [
@@ -18,6 +18,7 @@ const TABS: { id: DealType | 'all'; label: string; color?: string }[] = [
   { id: 'sale', label: 'იყიდება', color: DEAL_BRAND.sale },
   { id: 'rent', label: 'ქირავდება', color: DEAL_BRAND.rent },
   { id: 'daily', label: 'დღიურად', color: DEAL_BRAND.daily },
+  { id: 'pledge', label: 'გირავდება', color: DEAL_BRAND.pledge },
 ]
 
 interface BuildingPanelProps {
@@ -29,7 +30,7 @@ interface BuildingPanelProps {
 
 export default function BuildingPanel({ building, tab, onTab, onClose }: BuildingPanelProps) {
   const { format } = useCurrency()
-  const isConstruction = building.status === 'construction'
+  const isConstruction = building.status === 'construction' && building.listings.length === 0
   const list =
     tab === 'all' ? building.listings : building.listings.filter((l) => l.dealType === tab)
 
@@ -42,16 +43,29 @@ export default function BuildingPanel({ building, tab, onTab, onClose }: Buildin
       <header className="shrink-0 border-b border-sv-ink/6 p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex gap-3">
-            <span
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-module text-white"
-              style={{ background: building.color }}
-            >
-              {isConstruction ? <HardHat className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
-            </span>
+            {building.img ? (
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-module">
+                <Image src={building.img} alt="" fill className="object-cover" sizes="56px" />
+              </div>
+            ) : (
+              <span
+                className="grid h-14 w-14 shrink-0 place-items-center rounded-module text-white"
+                style={{ background: building.color }}
+              >
+                {isConstruction ? (
+                  <HardHat className="h-6 w-6" />
+                ) : (
+                  <Building2 className="h-6 w-6" />
+                )}
+              </span>
+            )}
             <div className="min-w-0">
               <h2 className="text-[17px] font-black tracking-[-0.02em] text-sv-ink">
                 {building.label}
               </h2>
+              {building.code && (
+                <p className="mt-0.5 text-[12px] font-extrabold text-sv-blue">{building.code}</p>
+              )}
               <p className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-sv-ink/50">
                 <MapPin className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">{building.address}</span>
@@ -71,11 +85,48 @@ export default function BuildingPanel({ building, tab, onTab, onClose }: Buildin
             type="button"
             onClick={onClose}
             aria-label="დახურვა"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-control text-sv-ink/40 transition hover:bg-sv-cloud hover:text-sv-ink"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-control text-sv-ink/40 transition hover:bg-sv-cloud hover:text-sv-ink"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {(building.developerName || building.rating != null) && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-[12px] font-bold text-sv-ink/55">
+            {building.developerName && (
+              <span className="inline-flex items-center gap-1">
+                <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
+                {building.developerSlug ? (
+                  <Link
+                    href={`/developers/${building.developerSlug}`}
+                    className="text-sv-ink hover:text-sv-blue"
+                  >
+                    {building.developerName}
+                  </Link>
+                ) : (
+                  building.developerName
+                )}
+              </span>
+            )}
+            {building.rating != null && (
+              <span className="inline-flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" />
+                {building.rating}
+              </span>
+            )}
+            {building.yearBuilt && <span>{building.yearBuilt}</span>}
+            {building.floors && <span>{building.floors} სართ.</span>}
+          </div>
+        )}
+
+        {building.slug && (
+          <Link
+            href={`/buildings/${building.slug}`}
+            className="mt-3 inline-flex min-h-11 items-center rounded-full bg-sv-cloud px-4 py-2 text-[12px] font-extrabold text-sv-ink transition hover:bg-sv-blue hover:text-white"
+          >
+            შენობის გვერდი
+          </Link>
+        )}
 
         {isConstruction ? (
           <div className="mt-4 rounded-module border border-sv-blue/15 bg-sv-blue/[0.06] p-3">
@@ -97,7 +148,7 @@ export default function BuildingPanel({ building, tab, onTab, onClose }: Buildin
             {building.projectSlug && (
               <Link
                 href={`/projects/${building.projectSlug}`}
-                className="mt-3 inline-flex rounded-full bg-sv-blue px-4 py-2 text-[12px] font-extrabold text-white shadow-glow-blue-sm transition hover:bg-sv-blue-deep"
+                className="mt-3 inline-flex min-h-11 items-center rounded-full bg-sv-blue px-4 py-2 text-[12px] font-extrabold text-white shadow-glow-blue-sm transition hover:bg-sv-blue-deep"
               >
                 პროექტის ნახვა
               </Link>
@@ -105,28 +156,31 @@ export default function BuildingPanel({ building, tab, onTab, onClose }: Buildin
           </div>
         ) : (
           <>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 grid grid-cols-4 gap-1.5">
               {(
                 [
                   ['sale', building.counts.sale, DEAL_BRAND.sale, 'იყიდება'],
                   ['rent', building.counts.rent, DEAL_BRAND.rent, 'ქირა'],
                   ['daily', building.counts.daily, DEAL_BRAND.daily, 'დღე'],
+                  ['pledge', building.counts.pledge, DEAL_BRAND.pledge, 'გირავნ.'],
                 ] as const
               ).map(([key, n, color, label]) => (
-                <div
+                <button
                   key={key}
-                  className="flex-1 rounded-control px-2 py-2 text-center"
+                  type="button"
+                  onClick={() => onTab(key)}
+                  className="rounded-control px-1.5 py-2.5 text-center transition hover:opacity-90"
                   style={{ background: `${color}14` }}
                 >
                   <div className="text-[18px] font-black" style={{ color }}>
                     {n}
                   </div>
-                  <div className="text-[11px] font-bold text-sv-ink/45">{label}</div>
-                </div>
+                  <div className="text-[10px] font-bold text-sv-ink/45">{label}</div>
+                </button>
               ))}
             </div>
 
-            <div className="mt-4 flex gap-1.5 overflow-x-auto">
+            <div className="mt-4 flex gap-1.5 overflow-x-auto pb-0.5">
               {TABS.map((t) => {
                 const active = tab === t.id
                 const disabled =
@@ -137,7 +191,7 @@ export default function BuildingPanel({ building, tab, onTab, onClose }: Buildin
                     type="button"
                     disabled={disabled}
                     onClick={() => onTab(t.id)}
-                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition ${
+                    className={`min-h-11 shrink-0 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
                       active
                         ? 'text-white shadow-glow-blue-sm'
                         : 'bg-sv-cloud text-sv-ink/55 hover:text-sv-ink disabled:opacity-35'
@@ -178,11 +232,7 @@ export default function BuildingPanel({ building, tab, onTab, onClose }: Buildin
                         className="text-[11px] font-extrabold uppercase tracking-wide"
                         style={{ color: DEAL_BRAND[l.dealType] }}
                       >
-                        {l.dealType === 'sale'
-                          ? 'იყიდება'
-                          : l.dealType === 'rent'
-                            ? 'ქირავდება'
-                            : 'დღიურად'}
+                        {dealLabelKa(l.dealType)}
                       </div>
                       <div className="mt-0.5 truncate text-[13px] font-extrabold text-sv-ink">
                         {l.title}

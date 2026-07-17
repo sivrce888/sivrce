@@ -42,6 +42,7 @@ export const DEAL_BRAND = {
   sale: CATEGORY_BRAND.apartments.hue,       // იყიდება
   rent: CATEGORY_BRAND.commercial.hue,       // ქირავდება
   daily: CATEGORY_BRAND.dailyRent.hue,       // დღიურად
+  pledge: SERVICE_BRAND.mortgage.hue,        // გირავდება — locked mortgage green
   newProjects: CATEGORY_BRAND.newProjects.hue, // ახალი პროექტები
 } as const
 

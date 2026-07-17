@@ -4,7 +4,7 @@
  * listing detail page. All client-side; a future API can replace LISTINGS.
  */
 
-export type DealType = 'sale' | 'rent' | 'daily'
+export type DealType = 'sale' | 'rent' | 'daily' | 'pledge'
 export type PropType = 'apartment' | 'house' | 'commercial' | 'land'
 export type Badge = 'SUPER VIP' | 'VIP+' | 'VIP' | null
 
@@ -41,6 +41,8 @@ export interface Listing {
   coords: { lat: number; lng: number }
   /** Building / door number — used by map clustering (falls back to address parse). */
   buildingNumber?: string
+  /** Landmark catalog slug — `@/data/buildings` */
+  buildingSlug?: string
   postedAt: string // ISO date
   agent: Agent
   isNew: boolean
@@ -77,6 +79,8 @@ export const LISTINGS: Listing[] = [
     features: ['პანორამული ფანჯრები', 'ცენტრალური გათბობა', 'ავტოფარეხი', 'დიზაინერული რემონტი', 'ტექნიკით', 'აუზი კომპლექსში'],
     description: 'პრემიუმ კომპლექსში, ჩავჭავაძეზე, იყიდება განათებული 2-ოთახიანი ბინა ქალაქის პანორამული ხედით. დიზაინერული რემონტი შესრულებულია ევროპული მასალებით, ბინა სრულად არის განთავსებული ტექნიკით. კომპლექსს აქვს დაცული ეზო, ფიტნესი და მიწისქვეშა პარკინგი.',
     coords: { lat: 41.7055, lng: 44.7708 },
+    buildingNumber: '47',
+    buildingSlug: 'chavchavadze-47',
     postedAt: '2026-06-08',
     agent: AGENTS[0]!,
     isNew: true,
@@ -96,6 +100,8 @@ export const LISTINGS: Listing[] = [
     features: ['კერძო ტერასა 40 მ²', 'სარდაფიანი პარკინგი', 'სმარტ სახლი', 'კონსიერჟი 24/7', 'კამინი', 'გარდერობული'],
     description: 'უნიკალური პენტჰაუსი თბილისის ერთ-ერთ ყველაზე პრესტიჟულ კომპლექსში — 40 კვადრატული ტერასით და 360° ხედით. შინაგანი სივრცე დაპროექტებულია იტალიური სტუდიის მიერ, გამოყენებულია მხოლოდ ბუნებრივი მასალები. იდეალურია მათთვის, ვინც ეძებს გამონაკლისს.',
     coords: { lat: 41.7225, lng: 44.7619 },
+    buildingNumber: '12',
+    buildingSlug: 'pekin-12',
     postedAt: '2026-06-05',
     agent: AGENTS[1]!,
     isNew: true,
@@ -134,6 +140,8 @@ export const LISTINGS: Listing[] = [
     features: ['ახალი აშენებული', 'მწვანე კარკასი', 'პარკინგი', 'ლიფტი', 'ბავშვთა მოედანი'],
     description: 'ახალაშენებულ კომპლექსში, აბაშიძის ქუჩაზე, იყიდება მზიანი ბინა მწვანე კარკასის მდგომარეობით. პროექტი უკვე დასრულებულია, შესაძლებელია დაუყოვნებლივ შესვლა. მისაღები ფასი ვაკის ბაზრისთვის.',
     coords: { lat: 41.7078, lng: 44.7644 },
+    buildingNumber: '34',
+    buildingSlug: 'abashidze-34',
     postedAt: '2026-06-09',
     agent: AGENTS[3]!,
     isNew: true,
@@ -328,6 +336,8 @@ export const LISTINGS: Listing[] = [
     features: ['ძველი რემონტი', 'ბალკონი', 'მაღაზიები ახლოს'],
     description: 'ნუცუბიძის პლატოზე იყიდება 2-ოთახიანი ბინა საცხოვრებელ მდგომარეობით. საჭიროებს კოსმეტიკურ განახლებას, რაც ფასში ასახულია. კარგი ვარიანტია პირველი ბინისთვის ან გაქირავების ბიზნესისთვის.',
     coords: { lat: 41.7344, lng: 44.7381 },
+    buildingNumber: '77',
+    buildingSlug: 'nutsubidze-77',
     postedAt: '2026-05-20',
     agent: AGENTS[5]!,
     isNew: false,
@@ -444,6 +454,8 @@ export const LISTINGS: Listing[] = [
     features: ['ავეჯით და ტექნიკით', 'ბულვარამდე 5 წუთი', 'ინტერნეტი', 'კონდიციონერი'],
     description: 'ბათუმის ისტორიულ ცენტრში ქირავდება გარემონტებული 2-ოთახიანი ბინა. ბულვარამდე და ზღვამდე 5 წუთის სავალი. გრძელვადიანი ქირის შემთხვევაში ფასი მოლაპარაკებადია.',
     coords: { lat: 41.6481, lng: 41.6371 },
+    buildingNumber: '50',
+    buildingSlug: 'gorgiladze-50',
     postedAt: '2026-06-03',
     agent: AGENTS[4]!,
     isNew: false,
@@ -720,6 +732,133 @@ export const LISTINGS: Listing[] = [
     agent: AGENTS[1]!,
     isNew: false,
   },
+  // ——— Landmark buildings: Axis, King David, pledge ———
+  {
+    id: 'axis-towers-sale-1',
+    img: '/images/p2.webp',
+    images: ['/images/p2.webp', '/images/p1.webp', '/images/np1.webp'],
+    priceUSD: 420000, priceGEL: 1134000, perM2USD: 3500,
+    title: 'აქსის თაუერსი — 3-ოთახიანი პანორამით',
+    address: 'ჩავჭავაძის გამზ. 37, ვაკე, თბილისი',
+    city: 'თბილისი', district: 'ვაკე',
+    dealType: 'sale', propType: 'apartment',
+    rooms: 3, beds: 2, baths: 2, area: 120, floor: 18, totalFloors: 24,
+    views: 4100, badge: 'SUPER VIP',
+    ai: { score: 96, label: 'შესანიშნავი ფასი' },
+    features: ['აქსის თაუერსი', 'პანორამა', 'პარკინგი', 'კონსიერჟი', 'ფიტნესი'],
+    description: 'აქსის თაუერსში იყიდება პრემიუმ 3-ოთახიანი ბინა ქალაქის პანორამული ხედით. კომპლექსს აქვს მიწისქვეშა პარკინგი და კონსიერჟი.',
+    coords: { lat: 41.7088, lng: 44.7732 },
+    buildingNumber: '37',
+    buildingSlug: 'axis-towers',
+    postedAt: '2026-07-10',
+    agent: AGENTS[0]!,
+    isNew: true,
+  },
+  {
+    id: 'axis-towers-rent-1',
+    img: '/images/p2.webp',
+    images: ['/images/p2.webp', '/images/p6.webp'],
+    priceUSD: 2800, priceGEL: 7560, perM2USD: 28,
+    title: 'აქსის თაუერსი — ქირავდება 2-ოთახიანი',
+    address: 'ჩავჭავაძის გამზ. 37, ვაკე, თბილისი',
+    city: 'თბილისი', district: 'ვაკე',
+    dealType: 'rent', propType: 'apartment',
+    rooms: 2, beds: 1, baths: 1, area: 75, floor: 14, totalFloors: 24,
+    views: 2200, badge: 'VIP+',
+    ai: { score: 92, label: 'კარგი ფასი' },
+    features: ['ავეჯით', 'აქსის თაუერსი', 'პარკინგი', 'ტექნიკით'],
+    description: 'აქსის თაუერსში ქირავდება ავეჯიანი 2-ოთახიანი ბინა. გრძელვადიანი ქირა.',
+    coords: { lat: 41.70885, lng: 44.77325 },
+    buildingNumber: '37',
+    buildingSlug: 'axis-towers',
+    postedAt: '2026-07-08',
+    agent: AGENTS[0]!,
+    isNew: true,
+  },
+  {
+    id: 'king-david-sale-1',
+    img: '/images/p1.webp',
+    images: ['/images/p1.webp', '/images/p4.webp'],
+    priceUSD: 510000, priceGEL: 1377000, perM2USD: 4250,
+    title: 'ქინგ დევიდ — პრემიუმ 2-ოთახიანი',
+    address: 'ატონელის 12, მთაწმინდა, თბილისი',
+    city: 'თბილისი', district: 'მთაწმინდა',
+    dealType: 'sale', propType: 'apartment',
+    rooms: 2, beds: 2, baths: 2, area: 120, floor: 11, totalFloors: 18,
+    views: 3600, badge: 'SUPER VIP',
+    ai: { score: 95, label: 'შესანიშნავი ფასი' },
+    features: ['ქინგ დევიდ', 'კონსიერჟი', 'პარკინგი', 'ძველი თბილისის ხედი'],
+    description: 'ქინგ დევიდ რეზიდენსში იყიდება პრემიუმ ბინა ძველი თბილისის ხედით. სასტუმრო სტანდარტის სერვისი.',
+    coords: { lat: 41.7008, lng: 44.7912 },
+    buildingNumber: '12',
+    buildingSlug: 'king-david-residences',
+    postedAt: '2026-07-12',
+    agent: AGENTS[2]!,
+    isNew: true,
+  },
+  {
+    id: 'king-david-daily-1',
+    img: '/images/p1.webp',
+    images: ['/images/p1.webp', '/images/p5.webp'],
+    priceUSD: 180, priceGEL: 486, perM2USD: 0,
+    title: 'ქინგ დევიდ — დღიურად სტუდიო',
+    address: 'ატონელის 12, მთაწმინდა, თბილისი',
+    city: 'თბილისი', district: 'მთაწმინდა',
+    dealType: 'daily', propType: 'apartment',
+    rooms: 1, beds: 1, baths: 1, area: 45, floor: 8, totalFloors: 18,
+    views: 1900, badge: 'VIP',
+    ai: { score: 90, label: 'სტაბილური მოთხოვნა' },
+    features: ['ქინგ დევიდ', 'Wi-Fi', 'კონდიციონერი', 'კონსიერჟი'],
+    description: 'ქინგ დევიდ რეზიდენსში დღიურად ქირავდება სტუდიო. იდეალურია ტურისტებისა და ბიზნეს-მგზავრებისთვის.',
+    coords: { lat: 41.70085, lng: 44.79125 },
+    buildingNumber: '12',
+    buildingSlug: 'king-david-residences',
+    postedAt: '2026-07-11',
+    agent: AGENTS[2]!,
+    isNew: true,
+  },
+  {
+    id: 'abashidze-34-pledge-1',
+    img: '/images/p4.webp',
+    images: ['/images/p4.webp', '/images/p1.webp'],
+    priceUSD: 95000, priceGEL: 256500, perM2USD: 1900,
+    title: 'აბაშიძის 34 — გირავდება 2-ოთახიანი',
+    address: 'აბაშიძის 34, ვაკე, თბილისი',
+    city: 'თბილისი', district: 'ვაკე',
+    dealType: 'pledge', propType: 'apartment',
+    rooms: 2, beds: 2, baths: 1, area: 50, floor: 3, totalFloors: 12,
+    views: 640, badge: null,
+    ai: { score: 84, label: 'კარგი ფასი' },
+    features: ['გირავდება', 'ვაკე', 'ლიფტი'],
+    description: 'აბაშიძის 34-ში გირავდება 2-ოთახიანი ბინა. პირობები და ვადა მოლაპარაკებადია აგენტთან.',
+    coords: { lat: 41.70785, lng: 44.76445 },
+    buildingNumber: '34',
+    buildingSlug: 'abashidze-34',
+    postedAt: '2026-07-09',
+    agent: AGENTS[1]!,
+    isNew: true,
+  },
+  {
+    id: 'axis-towers-pledge-1',
+    img: '/images/p2.webp',
+    images: ['/images/p2.webp'],
+    priceUSD: 180000, priceGEL: 486000, perM2USD: 2571,
+    title: 'აქსის თაუერსი — გირავდება ბინა',
+    address: 'ჩავჭავაძის გამზ. 37, ვაკე, თბილისი',
+    city: 'თბილისი', district: 'ვაკე',
+    dealType: 'pledge', propType: 'apartment',
+    rooms: 2, beds: 1, baths: 1, area: 70, floor: 9, totalFloors: 24,
+    views: 1100, badge: 'VIP',
+    ai: { score: 88, label: 'კარგი ფასი' },
+    features: ['გირავდება', 'აქსის თაუერსი', 'პარკინგი'],
+    description: 'აქსის თაუერსში გირავდება ბინა. პრემიუმ მისამართი, გამჭვირვალე პირობები.',
+    coords: { lat: 41.7089, lng: 44.7733 },
+    buildingNumber: '37',
+    buildingSlug: 'axis-towers',
+    postedAt: '2026-07-14',
+    agent: AGENTS[0]!,
+    isNew: true,
+  },
 ]
 
 /* ————— Filters ————— */
@@ -799,6 +938,7 @@ export function formatGEL(n: number): string {
 export function formatListingPrice(l: Listing): string {
   if (l.dealType === 'rent') return `${formatUSD(l.priceUSD)}/თვე`
   if (l.dealType === 'daily') return `${formatUSD(l.priceUSD)}/დღე`
+  if (l.dealType === 'pledge') return formatUSD(l.priceUSD)
   return formatUSD(l.priceUSD)
 }
 
