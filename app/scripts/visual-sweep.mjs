@@ -5,7 +5,7 @@ import { chromium } from 'playwright'
 
 const APP_DIR = new URL('..', import.meta.url).pathname
 const OUT = new URL('../../shots/sweep', import.meta.url).pathname
-const PORT = 3100
+const PORT = 3000
 const BASE = `http://localhost:${PORT}`
 
 const ROUTES = [
@@ -20,11 +20,16 @@ const VIEWPORTS = [
 
 mkdirSync(OUT, { recursive: true })
 
-const server = spawn('npx', ['next', 'dev', '-p', String(PORT)], {
-  cwd: APP_DIR,
-  stdio: ['ignore', 'pipe', 'pipe'],
-})
-server.stderr.on('data', (d) => process.stderr.write(d))
+let server = null
+try {
+  await fetch(BASE).then((r) => { if (r.status >= 500) throw new Error('bad') })
+} catch {
+  server = spawn('npx', ['next', 'dev', '-p', String(PORT)], {
+    cwd: APP_DIR,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  server.stderr.on('data', (d) => process.stderr.write(d))
+}
 
 async function waitReady(timeoutMs = 120_000) {
   const start = Date.now()
@@ -64,5 +69,5 @@ try {
     failures.forEach((f) => console.log(' -', f))
   }
 } finally {
-  server.kill('SIGTERM')
+  server?.kill('SIGTERM')
 }

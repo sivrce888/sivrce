@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       listingId,
       agentId: resolvedAgentId ?? listing.ownerId ?? "unknown",
       guestId: session?.user?.id,
-      tourDate: new Date(tourDate),
+      tourDate: parsedDate,
       tourTime,
       guestName,
       guestPhone,
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ tour }, { status: 201 })
   } catch (err) {
-    console.error("Tour booking error:", err)
+    console.error("Tour booking error:", (err as Error).message)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
