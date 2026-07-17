@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Crown, Flame, Sparkles, Loader2, ChevronRight } from "lucide-react"
 
@@ -70,6 +70,23 @@ export default function TierPurchaseButton({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [prices, setPrices] = useState<Record<string, number> | null>(null)
+
+  // Live prices on first open — displayed price must match what the server charges.
+  useEffect(() => {
+    if (!open || prices) return
+    fetch("/api/payments/create-order")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { tiers?: Record<string, { priceTetri: number }> } | null) => {
+        if (!d?.tiers) return
+        setPrices(
+          Object.fromEntries(
+            Object.entries(d.tiers).map(([k, v]) => [k, v.priceTetri]),
+          ),
+        )
+      })
+      .catch(() => {}) // ponytail: hardcoded TIERS fallback is fine when offline
+  }, [open, prices])
 
   const purchase = async (tier: string) => {
     setLoading(tier)
@@ -166,7 +183,7 @@ export default function TierPurchaseButton({
                 </div>
                 <div className="shrink-0 text-right">
                   <div className="text-[15px] font-black text-sv-ink">
-                    {(tier.priceTetri / 100).toFixed(0)} ₾
+                    {((prices?.[tier.key] ?? tier.priceTetri) / 100).toFixed(0)} ₾
                   </div>
                   {loading === tier.key ? (
                     <Loader2 className="h-4 w-4 animate-spin text-sv-blue" />
