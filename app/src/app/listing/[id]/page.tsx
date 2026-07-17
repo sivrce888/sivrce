@@ -60,8 +60,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე`
       : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}/დღე`
         : formatUSD(l.priceUSD)
-  const title = `${seoTitle(l)} — ${price} | Sivrce`
-  const description = metaDescription(l.description)
+  const keyword = seoTitle(l)
+  const title = `${keyword} — ${price} | Sivrce`
+  /* CTR lead: keyword sentence + hard stats before the free text (Google bolds query matches) */
+  const stats = [
+    l.area > 0 && `${l.area} მ²`,
+    l.floor > 0 && `${l.floor}/${l.totalFloors} სართული`,
+  ].filter(Boolean).join(', ')
+  const description = metaDescription(`${keyword}. ${stats && `${stats}. `}${price}. ${l.description}`)
   // Local photos have a build-time JPEG derivative (scripts/og-derivatives.mjs)
   // because WhatsApp/Viber/FB crawlers don't render WebP OG tags. Uploaded
   // (https) photos are served as-is; brand card is the last resort.
