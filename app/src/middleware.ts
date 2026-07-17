@@ -59,9 +59,13 @@ export function middleware(req: NextRequest) {
   }
 
   if (hasPrefix) {
-    // Dedicated SSR homes for en/ru — don't rewrite the locale root away.
-    if (stripped === "/" && (seg === "en" || seg === "ru")) {
-      return NextResponse.next()
+    // Dedicated SSR pages for en/ru — don't rewrite them away:
+    // the locale root and the programmatic SEO pages (/en/sale/…, /ru/tbilisi/…).
+    // Keep SEO_ROOTS in sync with DEALS/CITIES in src/lib/seo-pages.ts.
+    if (seg === "en" || seg === "ru") {
+      if (stripped === "/") return NextResponse.next()
+      const root = stripped.split("/")[1] ?? ""
+      if (SEO_ROOTS.has(root)) return NextResponse.next()
     }
     const url = req.nextUrl.clone()
     url.pathname = stripped
@@ -69,6 +73,9 @@ export function middleware(req: NextRequest) {
   }
   return NextResponse.next()
 }
+
+// Deal + city roots that have physical en/ru SSR pages (see app/en/[...seo]).
+const SEO_ROOTS = new Set(["sale", "rent", "daily", "tbilisi", "batumi", "kutaisi"])
 
 export const config = {
   // All pages, excluding api, _next internals, and file-like paths (sw.js, icons, sitemap.xml…).
