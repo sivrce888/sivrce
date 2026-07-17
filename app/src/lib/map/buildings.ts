@@ -16,6 +16,14 @@ import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
 import { BRAND } from '@/lib/brand'
 import { getDeveloper, type Project } from '@/data/professionals'
+import footprintData from '@/data/building-footprints.json'
+
+/** Real OSM building rings keyed by cluster id (© OpenStreetMap contributors, ODbL).
+ *  null = confirmed no OSM coverage → square fallback. Refresh: npx tsx scripts/fetch-footprints.ts */
+const FOOTPRINTS = footprintData.footprints as unknown as Record<
+  string,
+  { ring: [number, number][]; osmId: number } | null
+>
 
 const CELL_DEG = 0.00055 // ≈ 60 m at Tbilisi lat
 export const NEAREST_RADIUS_M = 90
@@ -423,6 +431,17 @@ export function buildingFootprint(
   }
 }
 
+/** Real OSM ring for a cluster, else the synthetic square. */
+export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
+  const real = FOOTPRINTS[b.id]
+  if (real && real.ring.length >= 5) return { type: 'Polygon', coordinates: [real.ring] }
+  return buildingFootprint(
+    b.lat,
+    b.lng,
+    b.status === 'construction' && b.listings.length === 0 ? 18 : 14,
+  )
+}
+
 export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
@@ -449,11 +468,7 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
         progress: b.progress ?? 100,
         opacity: b.status === 'construction' && b.listings.length === 0 ? 0.55 : 0.92,
       },
-      geometry: buildingFootprint(
-        b.lat,
-        b.lng,
-        b.status === 'construction' && b.listings.length === 0 ? 18 : 14,
-      ),
+      geometry: clusterGeometry(b),
     })),
   }
 }

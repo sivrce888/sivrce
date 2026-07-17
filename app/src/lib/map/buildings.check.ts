@@ -21,6 +21,7 @@ import {
 import { LISTINGS, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
 import { BUILDINGS } from '@/data/buildings'
+import footprintJson from '@/data/building-footprints.json'
 
 const base = {
   img: '/x.webp',
@@ -203,11 +204,44 @@ const mergedFc = buildingsToGeoJSON([...realClusters, ...realGhosts])
 for (const f of mergedFc.features) {
   assert.ok(Number(f.properties?.height) > 0, `${String(f.id)}: height must be > 0`)
   assert.equal(f.geometry.type, 'Polygon', `${String(f.id)}: not a polygon`)
-  assert.equal(
-    (f.geometry as GeoJSON.Polygon).coordinates[0]!.length,
-    5,
-    `${String(f.id)}: ring must have 5 points`,
-  )
+  const ring = (f.geometry as GeoJSON.Polygon).coordinates[0]!
+  assert.ok(ring.length >= 5, `${String(f.id)}: ring needs >= 5 points`)
+  const first = ring[0]!
+  const last = ring[ring.length - 1]!
+  assert.ok(first[0] === last[0] && first[1] === last[1], `${String(f.id)}: ring not closed`)
+  for (const [lng, lat] of ring) {
+    assert.ok(
+      lat >= GEORGIA.latMin && lat <= GEORGIA.latMax && lng >= GEORGIA.lngMin && lng <= GEORGIA.lngMax,
+      `${String(f.id)}: ring point outside Georgia`,
+    )
+  }
 }
+
+// ——— real OSM footprint gate ———
+
+const fpData = footprintJson.footprints as unknown as Record<
+  string,
+  { ring: [number, number][] } | null
+>
+for (const [id, fp] of Object.entries(fpData)) {
+  if (!fp) continue
+  assert.ok(fp.ring.length >= 5, `${id}: footprint ring needs >= 5 points`)
+  const first = fp.ring[0]!
+  const last = fp.ring[fp.ring.length - 1]!
+  assert.ok(first[0] === last[0] && first[1] === last[1], `${id}: footprint ring not closed`)
+}
+
+const catalogWithFp = BUILDINGS.filter((b) => fpData[`bldg-${b.slug}`]).length
+assert.ok(
+  catalogWithFp >= Math.ceil(BUILDINGS.length * 0.7),
+  `catalog footprint coverage ${catalogWithFp}/${BUILDINGS.length} below 70%`,
+)
+// a known multi-point real footprint must flow into the GeoJSON
+const vazhaFeature = mergedFc.features.find((f) => f.id === 'bldg-vazha-pshavela-50')
+assert.ok(vazhaFeature, 'vazha-pshavela-50 missing from GeoJSON')
+assert.ok(
+  (vazhaFeature!.geometry as GeoJSON.Polygon).coordinates[0]!.length > 5,
+  'real footprint not used in GeoJSON',
+)
 
 console.log('map buildings check: ok')
