@@ -60,3 +60,22 @@ export function LogoMark({ size = 48 }: { size?: number }) {
 <link rel="icon" href="/logo/favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="/logo/app-icon-180.png">
 ```
+
+## Sivrce Spark — AI sub-brand (v1.3)
+
+The Spark marks AI features (AI search, assistant, recommendations) — never
+replaces the Space Point master identity. Two crescent blades with exact 180°
+rotational symmetry about (24,24): one family, two marks.
+
+| Element | Value |
+|---|---|
+| Blade A | `M24 3.2 Q21.4 21.4 3.2 24 Q25.2 25.2 24 3.2 Z` |
+| Blade A gradient | T→L: `#8FB4FF` 0 · `#2E6BFF` .55 · `#7A5CFF` 1 |
+| Blade B | exact 180° rotation of blade A |
+| Blade B gradient | R→B: `#7A5CFF` 0 · `#FF4D6D` .62 · `#FF6A2D` 1 |
+| Assets | `assets/sivrce-spark.svg` (bare) · `sivrce-spark-navy.svg` (tile) · `sivrce-spark-mono-white.svg` · `sivrce-spark-mono-ink.svg` |
+| Generator | `build_spark.py` |
+| Component | `app/src/components/SparkMark.tsx` |
+
+Rules: AI contexts only · never a category/deal icon · never recolor · clear
+space 25% of mark on all sides.

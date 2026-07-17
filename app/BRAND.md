@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.2) · FROZEN 2026-07-17
+# სივრცე — Brand Lock (v1.3) · FROZEN 2026-07-17
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -64,6 +64,19 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 - Never recolor, rotate, outline, or place on busy backgrounds without a dark scrim
 - Min clear space = 50% of tile size on all sides
 - Wordmark: Manrope 800, tracking −0.045em, lowercase, orange final period (`text-sv-orange`)
+
+### 2.1 Sivrce Spark — AI sub-brand mark (added v1.3, owner-approved 2026-07-17)
+
+- `SparkMark` — two crescent blades (48-grid), exact 180° rotational symmetry
+  about (24,24) — one family with the Space Point
+- Blade A gradient: `#8FB4FF → #2E6BFF → #7A5CFF` · Blade B gradient:
+  `#7A5CFF → #FF4D6D → #FF6A2D` (orange tip echoes the space point)
+- Geometry lock: blade A `M24 3.2 Q21.4 21.4 3.2 24 Q25.2 25.2 24 3.2 Z`,
+  blade B = exact 180° rotation. Masters: `logo/assets/sivrce-spark*.svg`
+  (`logo/build_spark.py`), contract in `logo/README.md`
+- **AI features only** (AI search, assistant, recommendations) — never replaces
+  the Space Point master identity, never a category/deal icon, never recolored
+- Component: `app/src/components/SparkMark.tsx` (token vars only, no raw hex)
 
 ## 3. Color
 | Role | Token | Hex | Usage |
