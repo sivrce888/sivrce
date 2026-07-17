@@ -40,43 +40,24 @@ import {
   floorsToGeoJSON,
   type FloorInfo,
 } from '@/lib/map/floors'
+import {
+  applyBrandPaints,
+  ensureFloorLayers,
+  FLOORS_FILL_ID,
+  FLOORS_SOURCE_ID,
+  STYLE_URL,
+} from '@/lib/map/floorLayers'
 import { Layers, RotateCcw, HardHat } from 'lucide-react'
-
-const STYLE_URL =
-  process.env.NEXT_PUBLIC_MAP_STYLE_URL ?? 'https://tiles.openfreemap.org/styles/dark'
 
 const SOURCE_ID = 'sivrce-buildings'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
-const FLOORS_SOURCE_ID = 'sivrce-floors'
-const FLOORS_FILL_ID = 'sivrce-floors-3d'
-const FLOORS_LINE_ID = 'sivrce-floors-hover'
-const FLOORS_LABEL_ID = 'sivrce-floors-label'
 
 const ALL_BUILDINGS = mergeMapBuildings(
   clusterListingsToBuildings(LISTINGS),
   projectsToConstructionBuildings(PROJECTS),
 )
-
-function applyBrandPaints(map: MlMap) {
-  const trySet = (layer: string, prop: string, value: unknown) => {
-    if (!map.getLayer(layer)) return
-    try {
-      map.setPaintProperty(layer, prop, value)
-    } catch {
-      /* style variant may omit layer */
-    }
-  }
-  trySet('background', 'background-color', BRAND.colors.navy)
-  trySet('water', 'fill-color', '#0A1440')
-  trySet('waterway', 'line-color', BRAND.colors.blueDeep)
-  trySet('park', 'fill-color', '#0A1830')
-  trySet('building', 'fill-color', '#1A274F')
-  trySet('building', 'fill-opacity', 0.55)
-  trySet('building-3d', 'fill-extrusion-color', '#1A274F')
-  trySet('building-3d', 'fill-extrusion-opacity', 0.45)
-}
 
 function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
   if (map.getSource(SOURCE_ID)) return
@@ -138,52 +119,7 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
   })
 
   // ——— floor stack for the selected building ———
-  map.addSource(FLOORS_SOURCE_ID, { type: 'geojson', data: EMPTY_FLOORS })
-
-  map.addLayer({
-    id: FLOORS_FILL_ID,
-    type: 'fill-extrusion',
-    source: FLOORS_SOURCE_ID,
-    paint: {
-      'fill-extrusion-color': ['get', 'color'],
-      'fill-extrusion-base': ['get', 'base'],
-      'fill-extrusion-height': ['get', 'top'],
-      'fill-extrusion-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        1,
-        ['==', ['get', 'available'], 0],
-        ['case', ['get', 'ghost'], 0.45, 0.3],
-        0.92,
-      ],
-    },
-  })
-
-  map.addLayer({
-    id: FLOORS_LINE_ID,
-    type: 'line',
-    source: FLOORS_SOURCE_ID,
-    filter: ['boolean', ['feature-state', 'hover'], false],
-    paint: { 'line-color': '#FFFFFF', 'line-width': 2, 'line-opacity': 0.9 },
-  })
-
-  map.addLayer({
-    id: FLOORS_LABEL_ID,
-    type: 'symbol',
-    source: FLOORS_SOURCE_ID,
-    minzoom: 14.5,
-    layout: {
-      'text-field': ['get', 'label'],
-      'text-size': 10,
-      'text-font': ['Noto Sans Bold'],
-      'text-allow-overlap': true,
-    },
-    paint: {
-      'text-color': '#FFFFFF',
-      'text-halo-color': BRAND.colors.navy,
-      'text-halo-width': 1.2,
-    },
-  })
+  ensureFloorLayers(map)
 }
 
 const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [

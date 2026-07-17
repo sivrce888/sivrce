@@ -22,7 +22,16 @@ import {
   listingsForBuilding,
   buildingDealCounts,
 } from '@/data/buildings'
+import { LISTINGS } from '@/data/listings'
 import { getDeveloper } from '@/data/professionals'
+import { clusterListingsToBuildings, findBuildingBySlug } from '@/lib/map/buildings'
+import {
+  buildingFloorCount,
+  buildingFloors,
+  floorsToGeoJSON,
+  listingFloor,
+} from '@/lib/map/floors'
+import BuildingFloorExplorer from '@/components/map/BuildingFloorExplorer'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
@@ -66,6 +75,12 @@ export default async function BuildingPage({ params }: PageProps) {
   const listings = listingsForBuilding(slug)
   const counts = buildingDealCounts(slug)
   const aggregate = await getReviewAggregate('building', slug)
+
+  // Floor explorer data (build-time): catalog cluster → per-floor availability + 3D slabs
+  const cluster = findBuildingBySlug(slug, clusterListingsToBuildings(LISTINGS))
+  const floorCount = cluster ? buildingFloorCount(cluster) : building.floors
+  const floorsInfo = cluster ? buildingFloors(cluster) : []
+  const floorsFc = cluster && listings.length > 0 ? floorsToGeoJSON(cluster) : null
 
   const buildingLd = {
     '@context': 'https://schema.org',
@@ -245,25 +260,43 @@ export default async function BuildingPage({ params }: PageProps) {
               ამ მისამართზე განცხადება არ გვაქვს.
             </p>
           ) : (
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {listings.map((l, i) => (
-                <div key={l.id} className="relative">
-                  <span
-                    className="absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-white"
-                    style={{ background: DEAL_BRAND[l.dealType] }}
-                  >
-                    {l.dealType === 'sale'
-                      ? 'იყიდება'
-                      : l.dealType === 'rent'
-                        ? 'ქირავდება'
-                        : l.dealType === 'daily'
-                          ? 'დღიურად'
-                          : 'გირავდება'}
-                  </span>
-                  <ListingCard l={l} i={i} layout="wide" />
+            (() => {
+              const grid = (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {listings.map((l, i) => (
+                    <div key={l.id} className="relative" data-card-floor={listingFloor(l.floor, floorCount)}>
+                      <span
+                        className="absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-white"
+                        style={{ background: DEAL_BRAND[l.dealType] }}
+                      >
+                        {l.dealType === 'sale'
+                          ? 'იყიდება'
+                          : l.dealType === 'rent'
+                            ? 'ქირავდება'
+                            : l.dealType === 'daily'
+                              ? 'დღიურად'
+                              : 'გირავდება'}
+                      </span>
+                      <ListingCard l={l} i={i} layout="wide" />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )
+              return floorsFc ? (
+                <div className="mt-6">
+                  <BuildingFloorExplorer
+                    label={building.name}
+                    center={building.coords}
+                    geojson={floorsFc}
+                    floors={floorsInfo}
+                  >
+                    {grid}
+                  </BuildingFloorExplorer>
+                </div>
+              ) : (
+                <div className="mt-6">{grid}</div>
+              )
+            })()
           )}
         </section>
 

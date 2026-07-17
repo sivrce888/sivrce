@@ -1,5 +1,12 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-18 — floor explorer on /buildings/[slug]
+- Building pages (still 100% SSG) now ship the floor explorer: focused 3D
+  stack (shared `src/lib/map/floorLayers.ts` — one implementation for /map and
+  building pages), floor strip with live availability, click floor →
+  server-rendered grid filters via one scoped CSS rule (no-JS = everything
+  visible). Data computed at build time; island imports no listing dataset.
+
 ## Shipped 2026-07-17 late (6325511, on main) — 3D floor stacks
 - `/map`: click a building → it explodes into per-floor 3D slabs (real OSM
   footprint, 0.35 m gaps, stack top = building height). Hover a floor →
