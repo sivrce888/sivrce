@@ -57,7 +57,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { t } = useI18n()
   const { format, currency } = useCurrency()
   const fav = has(l.id)
-  const signals = useSocialSignals(l.id, l.views, l.postedAt)
+  const signals = useSocialSignals(l.views, l.postedAt)
 
   const priceGEL = l.priceGEL
   const suffix = l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
@@ -136,14 +136,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           {/* perM2 only meaningful for sale; rent/daily are priced per period */}
           {l.dealType === 'sale' && <div className="text-[12px] font-bold text-white/75">{formatPerM2(l, currency)}</div>}
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <span className="flex items-center gap-1 rounded-full bg-sv-navy/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur">
-            <Eye className="h-3 w-3" /> {formatViews(l.views)}
-          </span>
-          <span className="flex items-center gap-1 rounded-full bg-sv-orange/70 px-2 py-0.5 text-[11px] font-bold text-white backdrop-blur">
-            <Zap className="h-2.5 w-2.5" /> {signals.viewers} ათვალიერებს
-          </span>
-        </div>
+        <span className="flex items-center gap-1 rounded-full bg-sv-navy/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur">
+          <Eye className="h-3 w-3" /> {formatViews(l.views)}
+        </span>
       </div>
     </div>
   )
@@ -185,11 +180,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           </span>
         )}
       </div>
-      {/* Social proof row */}
-      <div className="mt-3 flex items-center gap-3 text-[12px] font-semibold text-sv-ink/40">
-        <span>{signals.hoursAgo <= 24 ? 'დღეს დამატებული' : signals.hoursAgo <= 72 ? `${Math.ceil(signals.hoursAgo / 24)} დღის წინ` : `${Math.ceil(signals.hoursAgo / 168)} კვირის წინ`}</span>
-        <span className="text-sv-ink/20">·</span>
-        <span>{signals.viewers} ათვალიერებს ახლა</span>
+      <div className="mt-3 text-[12px] font-semibold text-sv-ink/40">
+        {signals.hoursAgo <= 24 ? 'დღეს დამატებული' : signals.hoursAgo <= 72 ? `${Math.ceil(signals.hoursAgo / 24)} დღის წინ` : `${Math.ceil(signals.hoursAgo / 168)} კვირის წინ`}
       </div>
     </div>
   )
