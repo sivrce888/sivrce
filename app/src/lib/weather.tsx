@@ -101,14 +101,21 @@ function useWeatherAt(key: string, lat?: number, lng?: number): WeatherData | nu
     const existing = cached(key)
     // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from sessionStorage cache is the point
     if (existing) { setData(existing); return }
-    // Fetch once per session
+    // Fetch once per session, off the boot critical path
     let cancelled = false
-    fetchWeather(lat, lng).then((d) => {
-      if (cancelled || !d) return
-      cacheIt(key, d)
-      setData(d)
-    })
-    return () => { cancelled = true }
+    const run = () =>
+      fetchWeather(lat, lng).then((d) => {
+        if (cancelled || !d) return
+        cacheIt(key, d)
+        setData(d)
+      })
+    const ric: Window['requestIdleCallback'] | undefined = window.requestIdleCallback
+    if (ric) {
+      const id = ric.call(window, run, { timeout: 3000 })
+      return () => { cancelled = true; window.cancelIdleCallback(id) }
+    }
+    const id = window.setTimeout(run, 2000)
+    return () => { cancelled = true; window.clearTimeout(id) }
   }, [key, lat, lng])
 
   return data
