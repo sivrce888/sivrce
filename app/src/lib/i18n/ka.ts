@@ -202,6 +202,7 @@ export const ka = {
   'add.deal.sale': 'იყიდება',
   'add.deal.rent': 'ქირავდება',
   'add.deal.daily': 'ქირავდება დღიურად',
+  'add.deal.pledge': 'გირავდება',
   'add.propType': 'უძრავი ქონების ტიპი',
   'add.street': 'ქუჩა',
   'add.streetPh': 'მაგ. ჭავჭავაძის გამზ.',
@@ -297,8 +298,9 @@ export const ka = {
   'add.priceVerdict.low': 'ბაზარზე დაბლა',
   'add.priceVerdict.fair': 'ბაზრის დონეზე',
   'add.priceVerdict.high': 'ბაზარზე მაღლა',
-  'add.autoTitle.rooms': '{rooms}-ოთახიანი {type} · {district}',
-  'add.autoTitle.simple': '{type} · {district}',
+  'add.autoTitle.rooms': '{deal} {rooms}-ოთახიანი {type} {where}',
+  'add.autoTitle.simple': '{deal} {type} {where}',
+  'add.titleType.commercial': 'კომერციული ფართი',
   'add.previewTitle': 'შენი განცხადება',
 
   // Error pages

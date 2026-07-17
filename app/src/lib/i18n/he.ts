@@ -203,6 +203,7 @@ export const he: Dict = {
   'add.deal.sale': 'למכירה',
   'add.deal.rent': 'להשכרה',
   'add.deal.daily': 'השכרה יומית',
+  'add.deal.pledge': 'ליזינג',
   'add.propType': 'סוג נכס',
   'add.street': 'רחוב',
   'add.streetPh': 'למשל: שדרות צ׳בצ׳בדזה',
@@ -298,8 +299,9 @@ export const he: Dict = {
   'add.priceVerdict.low': 'מתחת לשוק',
   'add.priceVerdict.fair': 'ברמת השוק',
   'add.priceVerdict.high': 'מעל לשוק',
-  'add.autoTitle.rooms': '{type} עם {rooms} חדרים · {district}',
-  'add.autoTitle.simple': '{type} · {district}',
+  'add.autoTitle.rooms': '{deal} {type} עם {rooms} חדרים · {where}',
+  'add.autoTitle.simple': '{deal} {type} · {where}',
+  'add.titleType.commercial': 'נכס מסחרי',
   'add.previewTitle': 'המודעה שלך',
 
   // Error pages

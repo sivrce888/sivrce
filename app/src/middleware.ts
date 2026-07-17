@@ -75,7 +75,7 @@ export function middleware(req: NextRequest) {
 }
 
 // Deal + city roots that have physical en/ru SSR pages (see app/en/[...seo]).
-const SEO_ROOTS = new Set(["sale", "rent", "daily", "tbilisi", "batumi", "kutaisi"])
+const SEO_ROOTS = new Set(["sale", "rent", "daily", "pledge", "tbilisi", "batumi", "kutaisi"])
 
 export const config = {
   // All pages, excluding api, _next internals, and file-like paths (sw.js, icons, sitemap.xml…).

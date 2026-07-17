@@ -203,6 +203,7 @@ export const ar: Dict = {
   'add.deal.sale': 'للبيع',
   'add.deal.rent': 'للإيجار',
   'add.deal.daily': 'إيجار يومي',
+  'add.deal.pledge': 'تأجير',
   'add.propType': 'نوع العقار',
   'add.street': 'الشارع',
   'add.streetPh': 'مثال: جادة تشافتشافادزه',
@@ -298,8 +299,9 @@ export const ar: Dict = {
   'add.priceVerdict.low': 'أقل من السوق',
   'add.priceVerdict.fair': 'عند مستوى السوق',
   'add.priceVerdict.high': 'أعلى من السوق',
-  'add.autoTitle.rooms': '{type} {rooms} غرف · {district}',
-  'add.autoTitle.simple': '{type} · {district}',
+  'add.autoTitle.rooms': '{deal} {type} {rooms} غرف · {where}',
+  'add.autoTitle.simple': '{deal} {type} · {where}',
+  'add.titleType.commercial': 'عقار تجاري',
   'add.previewTitle': 'إعلانك',
 
   // Error pages

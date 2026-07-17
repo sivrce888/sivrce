@@ -32,6 +32,7 @@ export const DEALS: Record<
   // "ბინები დღიურად" — top Georgian real-estate query. Listings below render
   // /daily, /daily/apartments, /daily/apartments/tbilisi(/old-tbilisi), etc.
   daily: { deal: 'daily', ka: 'დღიურად', noun: 'დღიური ქირა', en: 'for daily rent', enNoun: 'daily rent', ru: 'посуточно', ruNoun: 'Посуточная аренда' },
+  pledge: { deal: 'pledge', ka: 'გირავდება', noun: 'გირავნება', en: 'for lease', enNoun: 'lease', ru: 'в лизинг', ruNoun: 'Лизинг' },
 }
 
 export const TYPES: Record<

@@ -203,6 +203,7 @@ export const hy: Dict = {
   'add.deal.sale': 'Վաճառք',
   'add.deal.rent': 'Վարձակալություն',
   'add.deal.daily': 'Օրավարձ',
+  'add.deal.pledge': 'Լիզինգ',
   'add.propType': 'Գույքի տեսակ',
   'add.street': 'Փողոց',
   'add.streetPh': 'օր. Չավչավաձեի պող.',
@@ -298,8 +299,9 @@ export const hy: Dict = {
   'add.priceVerdict.low': 'Շուկայից ցածր',
   'add.priceVerdict.fair': 'Շուկայական մակարդակի',
   'add.priceVerdict.high': 'Շուկայից բարձր',
-  'add.autoTitle.rooms': '{rooms}-սենյակ {type} · {district}',
-  'add.autoTitle.simple': '{type} · {district}',
+  'add.autoTitle.rooms': '{deal} {rooms}-սենյակ {type} · {where}',
+  'add.autoTitle.simple': '{deal} {type} · {where}',
+  'add.titleType.commercial': 'կոմերցիոն տարածք',
   'add.previewTitle': 'Ձեր հայտարարությունը',
 
   // Error pages
