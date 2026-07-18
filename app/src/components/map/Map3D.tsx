@@ -59,15 +59,17 @@ import {
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
-import { Layers, RotateCcw, HardHat, CheckCircle2, MapPin, Box, Square, Plus, Minus, Moon, Sun } from 'lucide-react'
+import { Layers, RotateCcw, HardHat, CheckCircle2, Plus, Minus, Moon, Sun } from 'lucide-react'
 
 const SOURCE_ID = 'sivrce-buildings'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
+const DOT_ID = 'sivrce-buildings-dot'
+/** Below this zoom: colored dots; at/above: footprints + names. */
+const DETAIL_ZOOM = 13.5
 
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
-const NBH_CIRCLE_ID = 'sivrce-neighborhoods-circle'
 const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
 const NBH_DATA = neighborhoodsToGeoJSON()
 
@@ -81,10 +83,29 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
 
   map.addSource(SOURCE_ID, { type: 'geojson', data })
 
+  // Far zoom — deal/status colored dots (Google/Korter density read)
+  map.addLayer({
+    id: DOT_ID,
+    type: 'circle',
+    source: SOURCE_ID,
+    maxzoom: DETAIL_ZOOM,
+    paint: {
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        7, 3.5, 10, 5.5, 13, 7.5,
+      ],
+      'circle-color': ['get', 'hue'],
+      'circle-stroke-width': 1.5,
+      'circle-stroke-color': '#FFFFFF',
+      'circle-opacity': 0.95,
+    },
+  })
+
   map.addLayer({
     id: FILL_ID,
     type: 'fill',
     source: SOURCE_ID,
+    minzoom: DETAIL_ZOOM,
     paint: {
       'fill-color': ['get', 'color'],
       'fill-opacity': 0.22,
@@ -95,6 +116,7 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
     id: EXTRUDE_ID,
     type: 'fill-extrusion',
     source: SOURCE_ID,
+    minzoom: DETAIL_ZOOM,
     paint: {
       // ponytail: MapLibre 5 — fill-extrusion-opacity is constant-only; alpha lives in `color`.
       'fill-extrusion-color': ['get', 'color'],
@@ -108,6 +130,7 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
     id: LABEL_ID,
     type: 'symbol',
     source: SOURCE_ID,
+    minzoom: DETAIL_ZOOM,
     layout: {
       // Human project names first (Axis Towers, ქინგ დევიდ…); code only if label empty.
       'text-field': [
@@ -137,37 +160,30 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
   // ——— floor stack for the selected building ———
   ensureFloorLayers(map)
 
-  // ——— neighborhoods toggleable layer (off by default) ———
+  // ——— district names always on (Google suburb read) ———
   map.addSource(NBH_SOURCE_ID, { type: 'geojson', data: NBH_DATA })
-  map.addLayer({
-    id: NBH_CIRCLE_ID,
-    type: 'circle',
-    source: NBH_SOURCE_ID,
-    layout: { visibility: 'none' },
-    paint: {
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 14, 12, 17, 22],
-      'circle-color': BRAND.colors.blueLight,
-      'circle-stroke-color': '#FFFFFF',
-      'circle-stroke-width': 2,
-      'circle-opacity': 0.85,
-    },
-  })
   map.addLayer({
     id: NBH_LABEL_ID,
     type: 'symbol',
     source: NBH_SOURCE_ID,
+    minzoom: 9,
+    maxzoom: 15,
     layout: {
-      visibility: 'none',
       'text-field': ['get', 'name'],
-      'text-size': 12,
+      'text-size': [
+        'interpolate', ['linear'], ['zoom'],
+        9, 11, 12, 14, 14, 16,
+      ],
       'text-font': ['Noto Sans Bold'],
-      'text-offset': [0, -1.6],
-      'text-allow-overlap': true,
+      'text-max-width': 8,
+      'text-padding': 6,
+      'text-allow-overlap': false,
     },
     paint: {
-      'text-color': '#FFFFFF',
-      'text-halo-color': BRAND.colors.navy,
-      'text-halo-width': 1.4,
+      'text-color': '#3C4043',
+      'text-halo-color': '#FFFFFF',
+      'text-halo-width': 2,
+      'text-opacity': 0.92,
     },
   })
 }
@@ -207,7 +223,6 @@ function Map3DInner({
   const [dealFilter, setDealFilter] = useState<MapDealFilter>('all')
   const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
-  const [showNeighborhoods, setShowNeighborhoods] = useState(false)
   const [view3d, setView3d] = useState(true)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -222,12 +237,10 @@ function Map3DInner({
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
   const darkRef = useRef(isDark)
-  const nbhRef = useRef(showNeighborhoods)
   const styleGenRef = useRef(0)
   const styleUrlRef = useRef<string | null>(null)
   const remountRef = useRef<(() => void) | null>(null)
   useEffect(() => { darkRef.current = isDark }, [isDark])
-  useEffect(() => { nbhRef.current = showNeighborhoods }, [showNeighborhoods])
 
   // Live DB listings when present; else demo LISTINGS. DB buildings add inventory/rings.
   const sourceListings = listings?.length ? listings : LISTINGS
@@ -286,20 +299,10 @@ function Map3DInner({
     const exclude = (showFloors && selected
       ? ['!=', ['get', 'id'], selected.id]
       : null) as FilterSpecification | null
-    for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+    for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID, DOT_ID]) {
       if (map.getLayer(layer)) map.setFilter(layer, exclude)
     }
   }, [selected, dealFilter, ready])
-
-  // Neighborhoods layer visibility toggle
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready) return
-    const vis = showNeighborhoods ? 'visible' : 'none'
-    for (const layer of [NBH_CIRCLE_ID, NBH_LABEL_ID]) {
-      if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', vis)
-    }
-  }, [showNeighborhoods, ready])
 
   // Deep-link ?status=construction|completed|active
   useEffect(() => {
@@ -396,7 +399,7 @@ function Map3DInner({
 
       const onMapClick = (e: MapMouseEvent) => {
         const hits = map.queryRenderedFeatures(e.point, {
-          layers: [EXTRUDE_ID, FILL_ID, FLOORS_FILL_ID].filter((id) => map.getLayer(id)),
+          layers: [EXTRUDE_ID, FILL_ID, DOT_ID, FLOORS_FILL_ID].filter((id) => map.getLayer(id)),
         })
         if (hits.length > 0) return
         const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
@@ -543,16 +546,29 @@ function Map3DInner({
         const exclude = (showFloors && selectedRef.current
           ? ['!=', ['get', 'id'], selectedRef.current.id]
           : null) as FilterSpecification | null
-        for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+        for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID, DOT_ID]) {
           if (map.getLayer(layer)) map.setFilter(layer, exclude)
         }
-        const vis = nbhRef.current ? 'visible' : 'none'
-        for (const layer of [NBH_CIRCLE_ID, NBH_LABEL_ID]) {
-          if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', vis)
+        // District labels: Google gray on light, soft white on dark
+        if (map.getLayer(NBH_LABEL_ID)) {
+          try {
+            map.setPaintProperty(
+              NBH_LABEL_ID,
+              'text-color',
+              darkRef.current ? '#C8D4F0' : '#3C4043',
+            )
+            map.setPaintProperty(
+              NBH_LABEL_ID,
+              'text-halo-color',
+              darkRef.current ? BRAND.colors.navy : '#FFFFFF',
+            )
+          } catch {
+            /* paint may differ */
+          }
         }
         const labelColor = darkRef.current ? '#FFFFFF' : BRAND.colors.ink
         const labelHalo = darkRef.current ? BRAND.colors.navy : '#FFFFFF'
-        for (const layer of [LABEL_ID, FLOORS_LABEL_ID, NBH_LABEL_ID]) {
+        for (const layer of [LABEL_ID, FLOORS_LABEL_ID]) {
           if (!map.getLayer(layer)) continue
           try {
             map.setPaintProperty(layer, 'text-color', labelColor)
@@ -586,14 +602,21 @@ function Map3DInner({
       map.on('mouseleave', EXTRUDE_ID, () => {
         map.getCanvas().style.cursor = ''
       })
+      map.on('mouseenter', DOT_ID, () => {
+        map.getCanvas().style.cursor = 'pointer'
+      })
+      map.on('mouseleave', DOT_ID, () => {
+        map.getCanvas().style.cursor = ''
+      })
       map.on('click', EXTRUDE_ID, onFeatureClick)
       map.on('click', FILL_ID, onFeatureClick)
+      map.on('click', DOT_ID, onFeatureClick)
       map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
       map.on('mouseleave', FLOORS_FILL_ID, clearFloorHover)
       map.on('click', FLOORS_FILL_ID, onFloorClick)
-      map.on('click', NBH_CIRCLE_ID, onNeighborhoodClick)
-      map.on('mouseenter', NBH_CIRCLE_ID, onNeighborhoodEnter)
-      map.on('mouseleave', NBH_CIRCLE_ID, onNeighborhoodLeave)
+      map.on('click', NBH_LABEL_ID, onNeighborhoodClick)
+      map.on('mouseenter', NBH_LABEL_ID, onNeighborhoodEnter)
+      map.on('mouseleave', NBH_LABEL_ID, onNeighborhoodLeave)
       map.on('click', onMapClick)
 
       remountRef.current = mountOverlays
@@ -778,63 +801,68 @@ function Map3DInner({
               )
             })}
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowNeighborhoods((v) => !v)}
-            aria-pressed={showNeighborhoods}
-            className={`inline-flex min-h-11 w-fit items-center gap-1.5 rounded-tile border px-3.5 py-2 text-[12px] font-extrabold transition ${
-              showNeighborhoods
-                ? isDark
-                  ? 'border-sv-blue-light/50 bg-sv-blue-light/15 text-white shadow-glow-blue-sm backdrop-blur-md'
-                  : 'border-sv-blue/40 bg-sv-blue/10 text-sv-ink shadow-glow-blue-sm backdrop-blur-md'
-                : `${chip} ${chipMuted}`
-            }`}
-          >
-            <MapPin className="h-3.5 w-3.5" />
-            რაიონები ({NBH_DATA.features.length})
-          </button>
         </div>
 
-        {/* One chrome stack: zoom · 2D/3D · day/night */}
+        {/* Zoom · 2D/3D text · day/night — one chip family */}
         <div
-          className={`absolute right-3 top-4 z-20 flex flex-col overflow-hidden rounded-tile border md:right-4 ${chip}`}
+          className="absolute right-3 top-4 z-20 flex flex-col gap-2 md:right-4"
           role="toolbar"
           aria-label="რუკის კონტროლი"
         >
-          <button
-            type="button"
-            aria-label="გადიდება"
-            onClick={() => mapRef.current?.zoomIn({ duration: 280 })}
-            className={railBtn()}
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="დაპატარავება"
-            onClick={() => mapRef.current?.zoomOut({ duration: 280 })}
-            className={railBtn(railSep)}
-          >
-            <Minus className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label={view3d ? '2D ხედი' : '3D ხედი'}
-            aria-pressed={view3d}
-            onClick={toggleView3d}
-            className={railBtn(`${railSep} ${view3d ? 'bg-sv-blue/15 text-sv-blue' : ''}`)}
-          >
-            {view3d ? <Square className="h-4 w-4" /> : <Box className="h-4 w-4" />}
-          </button>
-          <button
-            type="button"
-            aria-label={isDark ? 'დღის რეჟიმი' : 'ღამის რეჟიმი'}
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className={railBtn(railSep)}
-          >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          <div className={`flex flex-col overflow-hidden rounded-tile border ${chip}`}>
+            <button
+              type="button"
+              aria-label="გადიდება"
+              onClick={() => mapRef.current?.zoomIn({ duration: 280 })}
+              className={railBtn()}
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              aria-label="დაპატარავება"
+              onClick={() => mapRef.current?.zoomOut({ duration: 280 })}
+              className={railBtn(railSep)}
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+          </div>
+          <div className={`flex overflow-hidden rounded-tile border ${chip}`} role="group" aria-label="რუკის ხედი">
+            <button
+              type="button"
+              aria-pressed={!view3d}
+              onClick={() => {
+                if (view3d) toggleView3d()
+              }}
+              className={`min-h-11 min-w-[2.75rem] px-3 text-[12px] font-extrabold tracking-wide transition hover:bg-sv-blue hover:text-white ${
+                !view3d ? 'bg-sv-blue text-white' : ''
+              }`}
+            >
+              2D
+            </button>
+            <button
+              type="button"
+              aria-pressed={view3d}
+              onClick={() => {
+                if (!view3d) toggleView3d()
+              }}
+              className={`min-h-11 min-w-[2.75rem] border-l px-3 text-[12px] font-extrabold tracking-wide transition hover:bg-sv-blue hover:text-white ${
+                isDark ? 'border-white/10' : 'border-sv-ink/8'
+              } ${view3d ? 'bg-sv-blue text-white' : ''}`}
+            >
+              3D
+            </button>
+          </div>
+          <div className={`overflow-hidden rounded-tile border ${chip}`}>
+            <button
+              type="button"
+              aria-label={isDark ? 'დღის რეჟიმი' : 'ღამის რეჟიმი'}
+              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+              className={railBtn()}
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
