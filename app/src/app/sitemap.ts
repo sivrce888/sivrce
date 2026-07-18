@@ -7,6 +7,7 @@ import { STREETS } from '@/data/tbilisi-streets'
 import { BLOG_POSTS } from '@/data/blog'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
+import { developersLive, projectsLive } from '@/lib/directory-live'
 
 const BASE = 'https://sivrce.ge'
 
@@ -51,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/buildings', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.9 },
     { path: '/blog', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },
     { path: '/neighborhoods', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
-    { path: '/projects', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
+    { path: '/projects', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.85 },
     { path: '/advertise', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.6 },
     { path: '/about', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
     { path: '/contact', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
@@ -62,18 +63,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // is the discovery path for ~140 indexed pages (agents, developers, projects).
     { path: '/mortgage-calculator', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
     { path: '/agents', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.6 },
-    { path: '/developers', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.65 },
-    { path: '/projects', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
+    { path: '/developers', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
   ]
 
   for (const a of AGENT_PROFILES) {
     entries.push({ path: `/agents/${a.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.55 })
   }
-  for (const d of DEVELOPERS) {
-    entries.push({ path: `/developers/${d.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.6 })
+  // Live directory (korter + curated) — fall back to static if DB is down.
+  let sitemapDevs = DEVELOPERS
+  let sitemapProjects = PROJECTS
+  try {
+    const [liveDevs, liveProjects] = await Promise.all([developersLive(), projectsLive()])
+    if (liveDevs.length > 0) sitemapDevs = liveDevs
+    if (liveProjects.length > 0) sitemapProjects = liveProjects
+  } catch { /* build-time DB outage */ }
+  for (const d of sitemapDevs) {
+    entries.push({ path: `/developers/${d.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 })
   }
-  for (const p of PROJECTS) {
-    entries.push({ path: `/projects/${p.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 })
+  for (const p of sitemapProjects) {
+    entries.push({ path: `/projects/${p.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.8 })
   }
 
   for (const p of BLOG_POSTS) {

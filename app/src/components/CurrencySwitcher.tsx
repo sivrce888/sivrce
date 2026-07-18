@@ -9,8 +9,8 @@
 import { useCurrency, type Currency } from '@/lib/currency'
 
 const OPTIONS: { value: Currency; symbol: string; label: string }[] = [
-  { value: 'GEL', symbol: '₾', label: 'Georgian Lari' },
   { value: 'USD', symbol: '$', label: 'US Dollar' },
+  { value: 'GEL', symbol: '₾', label: 'Georgian Lari' },
 ]
 
 export function CurrencySwitcher({ light = false }: { light?: boolean }) {

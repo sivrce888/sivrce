@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withBotId } from "botid/next/config";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -10,8 +11,9 @@ const capacitorOrigins = isDev
 // Map: basemap is same-origin /api/map (OFM proxied). Optional MapTiler override.
 const mapOrigins = " https://*.maptiler.com https://api.maptiler.com"
 
-// Korter GCS logos + project renders (img only — not scripts).
-const mediaOrigins = " https://storage.googleapis.com"
+// First-party media CDN only (R2). No third-party aggregator hosts.
+const mediaOrigins = ""
+
 
 // ponytail: analytics — GTM + top.ge + reserved Sentry/PostHog
 const analyticsOrigins =
@@ -78,8 +80,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.sivrce.ge" },
       { protocol: "https", hostname: "images.sivrce.ge" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
-      // Korter-imported project photos (directory-live / project detail).
-      { protocol: "https", hostname: "storage.googleapis.com" },
     ],
   },
   async headers() {
@@ -95,5 +95,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-// ponytail: withSentryConfig when @sentry/nextjs is installed
-export default nextConfig;
+// BotID proxy rewrites + optional Sentry wrapper later.
+export default withBotId(nextConfig);

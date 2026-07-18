@@ -169,10 +169,10 @@ export default async function ListingPage({ params }: PageProps) {
         floorSize: { '@type': 'QuantitativeValue', value: listing.area, unitCode: 'MTK' },
         ...(listing.rooms > 0 && { numberOfRooms: listing.rooms }),
       },
+      // Phone omitted on purpose — scrapers harvest JSON-LD; reveal is BotID-gated.
       seller: {
         '@type': 'RealEstateAgent',
         name: listing.agent.name,
-        telephone: listing.agent.phone,
       },
       ...(listing.dealType === 'rent' && {
         priceSpecification: {

@@ -25,3 +25,20 @@ export function normalizePhone(raw: string): string | null {
 export function telHref(phone: string): string {
   return `tel:+${phone.replace(/\D/g, '')}`
 }
+
+/**
+ * Public mask for listing pages — scrapers never see the full number in HTML/JS.
+ * `555 *** ***` (local 9 digits) or `*** *** ***` when too short.
+ */
+export function maskPhone(raw: string): string {
+  let d = raw.replace(/\D/g, '')
+  if (d.startsWith('995')) d = d.slice(3)
+  if (d.length < 3) return '*** *** ***'
+  return `${d.slice(0, 3)} *** ***`
+}
+
+/** `extendedFields.phoneReveals` counter — no schema migration. */
+export function phoneRevealsOf(extended: unknown): number {
+  const n = (extended as { phoneReveals?: unknown } | null)?.phoneReveals
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0
+}

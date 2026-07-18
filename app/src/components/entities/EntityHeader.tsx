@@ -78,14 +78,16 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
 
         <div className="flex flex-col gap-5 md:items-end">
           <StatsRow items={items} />
-          <a
-            href={telHref}
-            aria-label={`${d.call}: ${displayName}, ${phone}`}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-6 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-          >
-            <Phone className="h-4 w-4" aria-hidden />
-            {phone}
-          </a>
+          {phone ? (
+            <a
+              href={telHref}
+              aria-label={`${d.call}: ${displayName}, ${phone}`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-6 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+            >
+              <Phone className="h-4 w-4" aria-hidden />
+              {phone}
+            </a>
+          ) : null}
         </div>
       </div>
     </header>

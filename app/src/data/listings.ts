@@ -5,15 +5,21 @@
  */
 
 import { GEO_ALL_PLACES, geoDistrictsOf } from './georgia-locations'
+import { maskPhone } from '@/lib/inquiries/phone'
+import { resolveStaticAgentProfile } from '@/lib/profiles/roles'
 
 export type DealType = 'sale' | 'rent' | 'daily' | 'pledge'
-export type PropType = 'apartment' | 'house' | 'commercial' | 'land'
+export type PropType = 'apartment' | 'house' | 'villa' | 'commercial' | 'land' | 'hotel'
 export type Badge = 'SUPER VIP' | 'VIP+' | 'VIP' | null
 
 export interface Agent {
   name: string
   phone: string
   agency: string
+  profileHref?: string | null
+  role?: 'owner' | 'agent' | 'agency' | 'developer'
+  verified?: boolean
+  image?: string | null
 }
 
 export interface Listing {
@@ -56,12 +62,12 @@ export interface Listing {
 export const USD_GEL = 2.7
 
 const AGENTS: Agent[] = [
-  { name: 'ნინო ბერიძე', phone: '+995 555 12 34 56', agency: 'სივრცე პრემიუმ' },
-  { name: 'გიორგი მამულაშვილი', phone: '+995 577 98 76 54', agency: 'Capital Estate' },
-  { name: 'ანა კვარაცხელია', phone: '+995 593 45 67 89', agency: 'სივრცე პრემიუმ' },
-  { name: 'დავით ჯაფარიძე', phone: '+995 568 23 45 67', agency: 'Tbilisi Homes' },
-  { name: 'მარიამ ლომიძე', phone: '+995 551 87 65 43', agency: 'Adjarinvest' },
-  { name: 'ლუკა გელაშვილი', phone: '+995 579 11 22 33', agency: 'სივრცე პრემიუმ' },
+  { name: 'ნინო ბერიძე', phone: maskPhone('+995 555 12 34 56'), agency: 'სივრცე პრემიუმ' },
+  { name: 'გიორგი მამულაშვილი', phone: maskPhone('+995 577 98 76 54'), agency: 'Capital Estate' },
+  { name: 'ანა კვარაცხელია', phone: maskPhone('+995 593 45 67 89'), agency: 'სივრცე პრემიუმ' },
+  { name: 'დავით ჯაფარიძე', phone: maskPhone('+995 568 23 45 67'), agency: 'Tbilisi Homes' },
+  { name: 'მარიამ ლომიძე', phone: maskPhone('+995 551 87 65 43'), agency: 'Adjarinvest' },
+  { name: 'ლუკა გელაშვილი', phone: maskPhone('+995 579 11 22 33'), agency: 'სივრცე პრემიუმ' },
 ]
 
 const TBILISI = { lat: 41.7151, lng: 44.8271 }
@@ -938,7 +944,19 @@ export interface ListingFilters {
 }
 
 export function getListing(id: string): Listing | undefined {
-  return LISTINGS.find((l) => l.id === id)
+  const l = LISTINGS.find((x) => x.id === id)
+  if (!l) return undefined
+  const meta = resolveStaticAgentProfile(l.agent.name)
+  return {
+    ...l,
+    agent: {
+      ...l.agent,
+      profileHref: meta.profileHref,
+      role: meta.role,
+      verified: meta.verified,
+      image: meta.image,
+    },
+  }
 }
 
 export function filterListings(f: ListingFilters): Listing[] {

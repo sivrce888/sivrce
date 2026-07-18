@@ -15,10 +15,14 @@ import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
 import type { Prisma } from "@/generated/prisma/client"
 import { activeColorUntil, effectiveTierKey, tierKeyToBadge, tierRankOf, type PromoBadge } from "@/lib/promo-pricing"
+import { MAP_CENTER } from "@/lib/map/buildings"
+import { maskPhone } from "@/lib/inquiries/phone"
+import { resolveOwnerProfile } from "@/lib/profiles/public"
+import type { SellerRole } from "@/lib/profiles/roles"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
-export type DealType = "sale" | "rent" | "daily"
-export type PropType = "apartment" | "house" | "commercial" | "land"
+export type DealType = "sale" | "rent" | "daily" | "pledge"
+export type PropType = "apartment" | "house" | "villa" | "commercial" | "land" | "hotel"
 export type Badge = PromoBadge | null
 export type SortKey = "date" | "price-asc" | "price-desc" | "area" | "ai"
 
@@ -28,14 +32,23 @@ export const USD_GEL = 2.7
 function dealToDb(d: DealType): ListingDealType {
   if (d === "sale") return "buy"
   if (d === "rent") return "rent"
+  if (d === "pledge") return "mortgage"
   return "daily"
 }
 
 function propToDb(p: PropType): ListingPropertyType {
-  if (p === "apartment") return "apartment"
-  if (p === "house") return "house"
-  if (p === "commercial") return "commercial"
-  return "land"
+  switch (p) {
+    case "apartment": return "apartment"
+    case "house": return "house"
+    case "villa": return "villa"
+    case "commercial": return "commercial"
+    case "hotel": return "hotel"
+    case "land": return "land"
+    default: {
+      const _x: never = p
+      return _x
+    }
+  }
 }
 
 // Map DB tier → public badge (vip · super_vip=VIP+ · diamond=SUPER VIP)
@@ -47,6 +60,11 @@ export interface Agent {
   name: string
   phone: string
   agency: string
+  /** Public profile URL — /u/[id] or /agents|/developers/[slug] */
+  profileHref?: string | null
+  role?: SellerRole
+  verified?: boolean
+  image?: string | null
 }
 
 export interface Listing {
@@ -102,8 +120,16 @@ function rowToListing(row: Record<string, unknown>): Listing {
     address: (r.address as string) ?? "",
     city: (r.city as string) ?? "",
     district: (r.district as string) ?? "",
-    dealType: (r.dealType as string) === "buy" ? "sale" : (r.dealType as string) === "rent" ? "rent" : "daily",
-    propType: (r.propertyType as PropType) ?? "apartment",
+    dealType:
+      (r.dealType as string) === "buy" ? "sale"
+      : (r.dealType as string) === "mortgage" ? "pledge"
+      : (r.dealType as string) === "rent" ? "rent"
+      : "daily",
+    propType: (["apartment", "house", "villa", "commercial", "land", "hotel"] as const).includes(
+      r.propertyType as PropType,
+    )
+      ? (r.propertyType as PropType)
+      : "apartment",
     rooms: (r.rooms as number) ?? 0,
     beds: (r.bedrooms as number) ?? 0,
     baths: (r.bathrooms as number) ?? 0,
@@ -123,12 +149,19 @@ function rowToListing(row: Record<string, unknown>): Listing {
     ai: { score: aiScore, label: aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო" },
     features: (r.features as string[]) ?? [],
     description: (r.description as string) ?? "",
-    coords: { lat: (r.lat as number) ?? 41.7151, lng: (r.lng as number) ?? 44.8271 },
+    coords: { lat: (r.lat as number) ?? MAP_CENTER.lat, lng: (r.lng as number) ?? MAP_CENTER.lng },
     postedAt: createdAt.toISOString().slice(0, 10),
     agent: {
       name: agentRaw.name ?? "სივრცე",
-      phone: agentRaw.phone ?? "+995 555 00 00 00",
+      // Never ship full phone in SSR/JS — reveal via /api/listings/[id]/phone
+      phone: maskPhone(
+        (r.listingPhone as string | null) || agentRaw.phone || "+995 555 00 00 00",
+      ),
       agency: agentRaw.agency ?? "სივრცე პრემიუმ",
+      role: (r.sellerType as string) === "agency" ? "agency" : "owner",
+      profileHref: null,
+      verified: false,
+      image: null,
     },
     isNew: Date.now() - createdAt.getTime() < 7 * 86400000,
   }
@@ -140,7 +173,26 @@ export async function getListing(id: string): Promise<Listing | null> {
     where: { id, deletedAt: null, status: "active" },
   })
   if (!row) return null
-  return rowToListing(row as unknown as Record<string, unknown>)
+  const listing = rowToListing(row as unknown as Record<string, unknown>)
+  const meta = await resolveOwnerProfile(row.ownerId, row.sellerType)
+  listing.agent = {
+    ...listing.agent,
+    profileHref: meta.profileHref,
+    role: meta.role,
+    verified: meta.verified,
+    image: meta.image,
+  }
+  return listing
+}
+
+/** Active listings for a public seller profile (`/u/[id]`). */
+export async function getListingsByOwner(ownerId: string): Promise<Listing[]> {
+  const rows = await db.listing.findMany({
+    where: { ownerId, deletedAt: null, status: "active" },
+    orderBy: { createdAt: "desc" },
+    take: 48,
+  })
+  return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
 }
 
 /** Get all active listings (homepage carousel, sitemap). */

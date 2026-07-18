@@ -1,10 +1,9 @@
 'use client'
 
 import LocalizedLink from '@/components/LocalizedLink'
-import { MousePointerClick, Building2, BarChart3, Layers, ArrowRight } from 'lucide-react'
+import { MousePointerClick, Building2, BarChart3, Layers, ArrowRight, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Reveal } from '@/components/Reveal'
-import MapEmbed from '@/components/MapEmbed'
 import { useI18n } from '@/lib/i18n/context'
 
 const FEATURES = [
@@ -30,6 +29,48 @@ const FEATURES = [
   },
 ]
 
+/** Zero-JS map preview — LCP: no MapLibre on homepage. Real map lives on /map. */
+function MapPreviewCard() {
+  return (
+    <div className="relative aspect-video overflow-hidden bg-sv-navy-soft">
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(143,180,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(143,180,255,0.12) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute -left-16 top-1/4 h-64 w-64 rounded-full bg-sv-blue/25 blur-[80px]"
+      />
+      <div
+        aria-hidden
+        className="absolute -right-10 bottom-0 h-56 w-56 rounded-full bg-sv-violet/20 blur-[70px]"
+      />
+      <div aria-hidden className="absolute inset-0">
+        <span className="absolute left-[18%] top-[42%] h-10 w-7 rounded-sm bg-sv-blue/35 shadow-[0_8px_24px_rgba(5,11,38,0.35)]" />
+        <span className="absolute left-[28%] top-[36%] h-14 w-8 rounded-sm bg-sv-blue-light/30" />
+        <span className="absolute left-[48%] top-[30%] h-20 w-10 rounded-sm bg-gradient-to-t from-sv-blue to-sv-violet/80 shadow-glow-blue" />
+        <span className="absolute left-[62%] top-[40%] h-12 w-7 rounded-sm bg-sv-blue/40" />
+        <span className="absolute left-[72%] top-[46%] h-8 w-6 rounded-sm bg-sv-blue-light/25" />
+      </div>
+      <div className="absolute left-1/2 top-[38%] z-[1] -translate-x-1/2 -translate-y-full">
+        <span className="grid h-11 w-11 place-items-center rounded-full bg-sv-orange text-white shadow-glow-orange">
+          <MapPin className="h-5 w-5" strokeWidth={2.5} />
+        </span>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent pb-8 pt-16">
+        <span className="rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-extrabold text-white shadow-glow-orange">
+          გახსენი ინტერაქტიული 3D რუკა
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function MapSection() {
   const { b } = useI18n()
   return (
@@ -40,7 +81,6 @@ export default function MapSection() {
 
       <div className="relative mx-auto max-w-[1440px] px-5 md:px-10">
         <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.15fr]">
-          {/* Copy */}
           <div>
             <Reveal>
               <span className="mb-4 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-light">
@@ -81,7 +121,6 @@ export default function MapSection() {
             </Reveal>
           </div>
 
-          {/* Visual — real interactive map */}
           <Reveal delay={0.2} className="relative">
             <motion.div
               whileHover={{ scale: 1.015 }}
@@ -89,25 +128,11 @@ export default function MapSection() {
               className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue"
             >
               <LocalizedLink href="/map" className="block" aria-label="გახსენი 3D რუკა">
-                <MapEmbed
-                  lat={41.7151}
-                  lng={44.8271}
-                  zoom={13}
-                  mode="view"
-                  aspect="16/9"
-                  interactive={false}
-                  className="border-0 shadow-none pointer-events-none"
-                />
-                <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-sv-navy/70 via-transparent to-transparent pb-8">
-                  <span className="rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-extrabold text-white shadow-glow-orange">
-                    გახსენი ინტერაქტიული 3D რუკა
-                  </span>
-                </div>
+                <MapPreviewCard />
               </LocalizedLink>
-              <div className="absolute inset-0 rounded-card ring-1 ring-inset ring-white/10 pointer-events-none" />
+              <div className="pointer-events-none absolute inset-0 rounded-card ring-1 ring-inset ring-white/10" />
             </motion.div>
 
-            {/* Floating card */}
             <motion.div
               initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}

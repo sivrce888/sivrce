@@ -1,3 +1,5 @@
+import { checkBotId } from "botid/server"
+
 import { auth } from "@/auth"
 import { LISTINGS, type DealType } from "@/data/listings"
 import { getConfig } from "@/lib/config"
@@ -5,6 +7,7 @@ import { db } from "@/lib/db"
 import { sendInquiryNotification } from "@/lib/email"
 import { checkRateLimit } from "@/lib/inquiries/rate-limit"
 import { hasHoneypot, validateInquiry } from "@/lib/inquiries/validate"
+import { resolveListingPhone } from "@/lib/listings/phone-vault"
 import { isSameOrigin } from "@/lib/security/origin"
 
 /** Static-listing dealType → Inquiry.deal vocabulary. */
@@ -27,6 +30,12 @@ export async function POST(req: Request) {
   if (!isSameOrigin(req)) {
     return Response.json({ ok: false, error: "bad_origin" }, { status: 403 })
   }
+
+  const verification = await checkBotId()
+  if (verification.isBot) {
+    return Response.json({ ok: false, error: "bot_denied" }, { status: 403 })
+  }
+
   const limit = checkRateLimit(clientIp(req))
   if (!limit.ok) {
     return Response.json(
@@ -57,6 +66,9 @@ export async function POST(req: Request) {
   // Enrich known static listings (agent + geo) so the CRM row is self-contained.
   const listing = targetType === "listing" ? LISTINGS.find((l) => l.id === targetId) : undefined
   const agentName = listing?.agent.name ?? "Sivrce"
+  // Full phone from vault — LISTINGS.agent.phone is masked for scrapers.
+  const agentPhone =
+    targetType === "listing" ? await resolveListingPhone(targetId) : null
   // ponytail: agent emails aren't in the static listing data yet, so all
   // notifications route through the Sivrce inbox. When agent.email is added
   // to the data model, the notification target will update automatically.
@@ -71,7 +83,7 @@ export async function POST(req: Request) {
         listingId,
         agentName,
         agentEmail: targetType === "general" ? notifyEmail : null,
-        agentPhone: listing?.agent.phone ?? null,
+        agentPhone,
         buyerName: name,
         buyerEmail,
         buyerPhone: phone || null,

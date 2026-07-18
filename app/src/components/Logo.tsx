@@ -60,19 +60,34 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 }
 
 /* Master lockup wordmark — outlined Manrope 800 paths from
-   logo/assets/sivrce-wordmark.svg (viewBox 0 0 139.77 25). Pixel-perfect at
-   every size and immune to font swap; letters ride currentColor, the period
-   stays brand orange. */
-function LogoWordmark({ height, light }: { height: number; light: boolean }) {
+   logo/assets/sivrce-wordmark.svg. Font units → grid: XH=25 / UPMXH=1080.
+   Ink box includes i-dot (−1470) + round overshoot (+30), not bare x-height —
+   old `0 0 W 25` viewBox clipped tops/bottoms. */
+const WM_S = 25 / 1080
+const WM_W = 6038 * WM_S // 139.7685…
+const WM_BASE = 25
+const WM_TOP = -1470 * WM_S + WM_BASE // i-dot
+const WM_BOT = 30 * WM_S + WM_BASE // s/c/e overshoot
+/* Pad so viewBox mid = x-height mid (12.5) → flex items-center matches lockup. */
+const WM_PAD = Math.max(WM_BASE / 2 - WM_TOP, WM_BOT - WM_BASE / 2)
+const WM_VB_Y = WM_BASE / 2 - WM_PAD
+const WM_H = WM_PAD * 2
+
+function LogoWordmark({ light }: { light: boolean }) {
+  // Lockup: 1 grid unit = mark/48 px → x-height stays 25/48 of mark.
+  const mark = 36
+  const h = (mark * WM_H) / 48
+  const w = (mark * WM_W) / 48
   return (
     <svg
-      viewBox="0 0 139.77 25"
-      height={height}
-      width={(height * 139.77) / 25}
+      viewBox={`0 ${WM_VB_Y} ${WM_W} ${WM_H}`}
+      height={h}
+      width={w}
+      overflow="visible"
       aria-hidden
-      className={light ? 'text-white' : 'text-sv-ink'}
+      className={`shrink-0 overflow-visible ${light ? 'text-white' : 'text-sv-ink'}`}
     >
-      <g transform="translate(0 25) scale(0.023148)">
+      <g transform={`translate(0 ${WM_BASE}) scale(${WM_S})`}>
         <path d="M562.0 30Q358.0 30 232.5 -62.5Q107.0 -155 80.0 -324L358.0 -366Q375.0 -290 433.5 -247.0Q492.0 -204 582.0 -204Q656.0 -204 696.0 -232.5Q736.0 -261 736.0 -312Q736.0 -344 720.0 -363.5Q704.0 -383 648.5 -402.0Q593.0 -421 476.0 -452Q344.0 -486 265.0 -528.0Q186.0 -570 151.0 -628.5Q116.0 -687 116.0 -770Q116.0 -874 169.0 -950.5Q222.0 -1027 318.5 -1068.5Q415.0 -1110 546.0 -1110Q673.0 -1110 771.0 -1071.0Q869.0 -1032 929.5 -960.0Q990.0 -888 1004.0 -790L726.0 -740Q719.0 -800 674.0 -835.0Q629.0 -870 552.0 -876Q477.0 -881 431.5 -856.0Q386.0 -831 386.0 -784Q386.0 -756 405.5 -737.0Q425.0 -718 486.5 -698.0Q548.0 -678 674.0 -646Q797.0 -614 871.5 -571.5Q946.0 -529 980.0 -469.5Q1014.0 -410 1014.0 -326Q1014.0 -160 894.0 -65.0Q774.0 30 562.0 30Z" fill="currentColor" />
         <path d="M1164.0 -1230V-1470H1436.0V-1230ZM1164.0 0V-1080H1436.0V0Z" fill="currentColor" />
         <path d="M1938.0 0 1546.0 -1080H1818.0L2074.0 -332L2330.0 -1080H2602.0L2210.0 0Z" fill="currentColor" />
@@ -92,12 +107,12 @@ export function Logo({ light = false, compact = false, href = "/" }: { light?: b
   return (
     <LocalizedLink
       href={href}
-      className="group flex items-center"
+      className="group flex items-center overflow-visible"
       style={{ gap: (mark * 15) / 48 }}
       aria-label="სივრცე — მთავარი"
     >
       <LogoMark size={mark} />
-      {!compact && <LogoWordmark height={(mark * 25) / 48} light={light} />}
+      {!compact && <LogoWordmark light={light} />}
     </LocalizedLink>
   )
 }

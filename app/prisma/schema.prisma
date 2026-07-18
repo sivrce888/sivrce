@@ -890,6 +890,12 @@ model ProjectDirectory {
   pricePerSqmFrom     Int         @default(0) @map("price_per_sqm_from")
   units               Int         @default(1)
   image               String      @db.VarChar(320)
+  /** Local CDN gallery (renders / progress / aero) — mirrored off korter. */
+  gallery             String[]    @default([])
+  /** Project description body (plain text, from official listing). */
+  body                String?     @db.Text
+  /** Floor-plan / passport image URL (local CDN after mirror). */
+  passportUrl         String?     @map("passport_url") @db.VarChar(320)
   features            String[]    @default([])
   createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)

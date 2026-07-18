@@ -91,16 +91,24 @@ letters_w = "".join(
     else f'<path d="{g["path"]}" fill="{ORANGE}"/>'
     for g in wm["glyphs"])
 WM_W = wm["totalWidthUnits"] * S            # wordmark width on grid
-print(f"wordmark: scale={S:.6f} width={WM_W:.2f} x-height={XH}")
+# Ink box (not bare x-height): i-dot top −1470 + round overshoot +30.
+# Pad so viewBox mid = x-height mid → optical center matches lockup.
+WM_TOP = -1470 * S + XH
+WM_BOT = 30 * S + XH
+WM_PAD = max(XH / 2 - WM_TOP, WM_BOT - XH / 2)
+WM_VB_Y = XH / 2 - WM_PAD
+WM_H = WM_PAD * 2
+print(f"wordmark: scale={S:.6f} width={WM_W:.2f} x-height={XH} ink-box={WM_H:.3f}")
 
 def wordmark_group(tx, ty, white=False):
     return (f'<g transform="translate({tx:.3f} {ty:.3f}) scale({S:.6f})">'
             f'{letters_w if white else letters}</g>')
 
 # ---------- 5. wordmark alone ----------
-wm_svg = svg(wordmark_group(0, XH), vb=f"0 0 {WM_W:.2f} {XH}")
+wm_vb = f"0 {WM_VB_Y:.4f} {WM_W:.2f} {WM_H:.4f}"
+wm_svg = svg(wordmark_group(0, XH), vb=wm_vb)
 write("sivrce-wordmark.svg", wm_svg)
-wm_svg_w = svg(wordmark_group(0, XH, white=True), vb=f"0 0 {WM_W:.2f} {XH}")
+wm_svg_w = svg(wordmark_group(0, XH, white=True), vb=wm_vb)
 write("sivrce-wordmark-white.svg", wm_svg_w)
 
 # ---------- 6. horizontal lockup ----------

@@ -1,10 +1,14 @@
 /**
- * File upload endpoint: accepts image files and stores them in R2.
+ * File upload endpoint: accepts image files, normalizes them with sharp and
+ * stores two objects in R2:
+ *   <key>            — master: EXIF-rotated, ≤2560px, WebP q82
+ *   <key>.lqip.webp  — 16px blur placeholder (see src/lib/media.ts lqipOf)
  *
  * Auth-gated (requires session), rate-limited, same-origin only.
  * Allowed types: jpg, png, webp, avif. Max 10 MB.
  */
 
+import sharp from "sharp"
 import { auth } from "@/auth"
 import { isSameOrigin } from "@/lib/security/origin"
 import { uploadFile } from "@/lib/storage"
@@ -14,7 +18,8 @@ import { uploadFile } from "@/lib/storage"
 /* ------------------------------------------------------------------ */
 
 const WINDOW_MS = 10 * 60 * 1000 // 10 minutes
-const MAX_PER_WINDOW = 10
+// 16-photo listings upload in parallel + leave room for retries / re-picks.
+const MAX_PER_WINDOW = 40
 
 interface Bucket {
   count: number
@@ -57,13 +62,6 @@ const ALLOWED_TYPES = new Set([
   "image/avif",
 ])
 
-const EXT_MAP: Record<string, string> = {
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/webp": ".webp",
-  "image/avif": ".avif",
-}
-
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 
 /* ------------------------------------------------------------------ */
@@ -104,18 +102,31 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "file_too_large" }, { status: 400 })
   }
 
-  const ext = EXT_MAP[file.type] ?? ".bin"
   const now = new Date()
   const prefix = [
     "uploads",
     String(now.getFullYear()),
     String(now.getMonth() + 1).padStart(2, "0"),
   ].join("/")
-  const key = `${prefix}/${crypto.randomUUID()}${ext}`
+  const key = `${prefix}/${crypto.randomUUID()}.webp`
 
   try {
-    const body = Buffer.from(await file.arrayBuffer())
-    const result = await uploadFile({ key, body, contentType: file.type })
+    // rotate() applies EXIF orientation (phone photos), cap at 2560px so the
+    // next/image optimizer never chews on a 10 MB original, re-encode once.
+    const base = sharp(Buffer.from(await file.arrayBuffer())).rotate()
+    const master = await base
+      .clone()
+      .resize({ width: 2560, withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer()
+    const lqip = await base
+      .clone()
+      .resize({ width: 16 })
+      .webp({ quality: 30 })
+      .toBuffer()
+
+    const result = await uploadFile({ key, body: master, contentType: "image/webp" })
+    await uploadFile({ key: key.replace(/\.webp$/, ".lqip.webp"), body: lqip, contentType: "image/webp" })
     return Response.json({ ok: true, url: result.url, key }, { status: 201 })
   } catch (err) {
     const e = err as { message?: string }
