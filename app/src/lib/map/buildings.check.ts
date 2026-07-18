@@ -136,9 +136,9 @@ assert.equal(ghosts.length, 1)
 assert.equal(ghosts[0]!.status, 'construction')
 assert.equal(ghosts[0]!.developerSlug, 'x')
 assert.equal(ghosts[0]!.color, STATUS_BRAND.construction.hue)
-assert.equal(STATUS_BRAND.construction.hue, CATEGORY_BRAND.houses.hue) // brand orange
+assert.equal(STATUS_BRAND.construction.hue, CATEGORY_BRAND.newProjects.hue) // sky blue
+assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.houses.hue)
 assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.land.hue)
-assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.newProjects.hue)
 
 // Live project pin must move catalog building to exact address/coords.
 const axisCluster = buildings.find((b) => b.slug === 'axis-towers')

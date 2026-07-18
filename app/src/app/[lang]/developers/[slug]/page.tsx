@@ -10,15 +10,13 @@ import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   DEVELOPERS,
-  getDeveloper,
   listingsByCity,
   listingCountByCity,
 } from '@/data/professionals'
-import { projectsLiveByDeveloper } from '@/lib/directory-live'
+import { getLiveDeveloper, projectsLiveByDeveloper } from '@/lib/directory-live'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
-import { STATUS_BRAND } from '@/lib/category-brand'
 
 export function generateStaticParams() {
   return DEVELOPERS.map((d) => ({ slug: d.slug }))
@@ -30,7 +28,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const d = getDeveloper(slug)
+  const d = await getLiveDeveloper(slug)
   if (!d) return {}
   const description = d.description.ka.replace(/\s+/g, ' ').slice(0, 155)
   return {
@@ -44,13 +42,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/developers/${d.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
+      ...(d.logoUrl ? { images: [{ url: d.logoUrl }] } : {}),
     },
   }
 }
 
 export default async function DeveloperPage({ params }: PageProps) {
   const { slug } = await params
-  const dev = getDeveloper(slug)
+  const dev = await getLiveDeveloper(slug)
   if (!dev) notFound()
 
   const [aggregate, projects, listings] = await Promise.all([
@@ -64,6 +63,12 @@ export default async function DeveloperPage({ params }: PageProps) {
     ? projects.reduce((a, b) => (b.done > a.done ? b : a))
     : null
 
+  const coverSrc = flagship?.img
+    ? flagship.img.startsWith('http')
+      ? flagship.img
+      : `https://sivrce.ge${flagship.img}`
+    : undefined
+
   const orgLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -71,7 +76,8 @@ export default async function DeveloperPage({ params }: PageProps) {
     alternateName: dev.name.ka,
     url: `https://sivrce.ge/developers/${dev.slug}`,
     telephone: dev.phone,
-    ...(flagship && { image: `https://sivrce.ge${flagship.img}` }),
+    ...(dev.logoUrl && { logo: dev.logoUrl }),
+    ...(coverSrc && { image: coverSrc }),
     address: {
       '@type': 'PostalAddress',
       addressLocality: dev.city,
@@ -112,6 +118,7 @@ export default async function DeveloperPage({ params }: PageProps) {
           city={dev.city}
           verified={dev.verified}
           phone={dev.phone}
+          logoUrl={dev.logoUrl}
           stats={[
             { key: 'yearsActive', value: dev.yearsActive },
             { key: 'projectsDone', value: dev.projectsDone },
@@ -150,10 +157,7 @@ export default async function DeveloperPage({ params }: PageProps) {
                       sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 460px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                     />
-                    <div
-                      className="absolute left-4 top-3 rounded-full px-3 py-1 text-[12px] font-extrabold text-white"
-                      style={{ background: STATUS_BRAND.construction.hue }}
-                    >
+                    <div className="absolute left-4 top-3 rounded-full bg-sv-navy/55 px-3 py-1 text-[12px] font-extrabold text-white backdrop-blur">
                       აშენებულია {p.done}%
                     </div>
                   </div>

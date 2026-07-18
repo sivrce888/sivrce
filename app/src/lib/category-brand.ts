@@ -51,13 +51,13 @@ export const DEAL_BRAND = {
 
 /**
  * Map / listing status hues (BRAND.md §3.4).
- * Construction = brand orange (`sv-orange` / houses) — owner lock 2026-07-18.
+ * Construction = newProjects sky blue — owner revert 2026-07-18 (orange = CTAs only).
  */
 export const STATUS_BRAND = {
   construction: {
-    hue: CATEGORY_BRAND.houses.hue, // #FF6A2D — brand carrot
-    chip: CATEGORY_BRAND.houses.chip,
-    chipVar: CATEGORY_BRAND.houses.chipVar,
+    hue: CATEGORY_BRAND.newProjects.hue, // #5B8BFF
+    chip: CATEGORY_BRAND.newProjects.chip,
+    chipVar: CATEGORY_BRAND.newProjects.chipVar,
   },
 } as const satisfies Record<string, CategoryBrand>
 
