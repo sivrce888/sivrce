@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
-import { createTour, getToursByUser } from "@/lib/tours"
+import { getBookableSlots, getToursByUser, resolveListingAgentId } from "@/lib/tours"
 import { db } from "@/lib/db"
 import { checkRateLimit } from "@/lib/inquiries/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -42,59 +42,74 @@ export async function POST(req: NextRequest) {
     if (guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 })
     }
-    const parsedDate = new Date(tourDate)
+    if (typeof tourTime !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(tourTime)) {
+      return NextResponse.json({ error: "Invalid tour time" }, { status: 400 })
+    }
+    const parsedDate = new Date(`${tourDate}T00:00:00Z`)
     if (typeof tourDate !== "string" || Number.isNaN(parsedDate.getTime())) {
       return NextResponse.json({ error: "Invalid tour date" }, { status: 400 })
     }
+    const today = tbilisiToday()
+    if (parsedDate.getTime() < today) {
+      return NextResponse.json({ error: "Tour date is in the past" }, { status: 400 })
+    }
 
-    // Get listing to find agent
-    const listing = await db.listing.findUnique({
-      where: { id: listingId },
-      select: { agent: true, ownerId: true, title: true },
-    })
-    if (!listing) {
+    // NULL agent = owner-hosted tour (private seller), shown in /seller/tours
+    const resolved = await resolveListingAgentId(listingId)
+    if (!resolved) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 })
     }
+    const { agentId } = resolved
 
-    const agentData = listing.agent as { id?: string; name?: string } | null
-    const agentId = agentData?.id
-
-    // Find agent profile by name if no direct id link
-    let resolvedAgentId = agentId
-    if (!resolvedAgentId && agentData?.name) {
-      const profile = await db.agentProfile.findFirst({
-        where: { name: agentData.name },
-        select: { id: true },
-      })
-      resolvedAgentId = profile?.id
-    }
-
-    // Agent-owned listing without agent JSON: resolve via owner
-    if (!resolvedAgentId && listing.ownerId) {
-      const profile = await db.agentProfile.findFirst({
-        where: { ownerId: listing.ownerId, deletedAt: null },
-        select: { id: true },
-      })
-      resolvedAgentId = profile?.id
+    // The requested slot must come from real availability (same source the picker shows).
+    const slots = await getBookableSlots(listingId, agentId, parsedDate)
+    if (!slots.includes(tourTime)) {
+      return NextResponse.json({ error: "slot_unavailable" }, { status: 409 })
     }
 
     const session = await auth()
-    const tour = await createTour({
-      listingId,
-      // NULL agent = owner-hosted tour (private seller), shown in /seller/tours
-      agentId: resolvedAgentId ?? null,
-      guestId: session?.user?.id,
-      tourDate: parsedDate,
-      tourTime,
-      guestName,
-      guestPhone,
-      guestEmail: guestEmail ?? undefined,
-      guestNotes: guestNotes ?? undefined,
+
+    // ponytail: schema has no unique constraint on (agent, date, time) — enforce here in a
+    // transaction. Upgrade path: partial unique index via raw migration when schema thaws.
+    const tour = await db.$transaction(async (tx) => {
+      const clash = await tx.propertyTour.findFirst({
+        where: {
+          tourDate: parsedDate,
+          tourTime,
+          status: { in: ["pending", "confirmed"] },
+          ...(agentId ? { agentId } : { listingId }),
+        },
+        select: { id: true },
+      })
+      if (clash) return null
+      return tx.propertyTour.create({
+        data: {
+          listingId,
+          agentId,
+          guestId: session?.user?.id ?? guestPhone,
+          userId: session?.user?.id ?? null,
+          tourDate: parsedDate,
+          tourTime,
+          guestName,
+          guestPhone,
+          guestEmail: guestEmail ?? null,
+          guestNotes: guestNotes ?? null,
+        },
+      })
     })
+    if (!tour) {
+      return NextResponse.json({ error: "slot_unavailable" }, { status: 409 })
+    }
 
     return NextResponse.json({ tour }, { status: 201 })
   } catch (err) {
     console.error("Tour booking error:", (err as Error).message)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
+}
+
+/** UTC-midnight timestamp of "today" on the Tbilisi (UTC+4) clock. */
+function tbilisiToday(): number {
+  const shifted = new Date(Date.now() + 4 * 3600_000)
+  return Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate())
 }

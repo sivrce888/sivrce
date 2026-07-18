@@ -53,11 +53,11 @@ import {
   FLOORS_FILL_ID,
   FLOORS_LABEL_ID,
   FLOORS_SOURCE_ID,
+  loadMapBasemap,
   mapStyleUrl,
   type MapTerrain,
 } from '@/lib/map/floorLayers'
 import {
-  loadCleanStyle,
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
@@ -83,7 +83,8 @@ import {
   X,
   Map as MapIcon,
   Circle,
-  Palette,
+  Satellite,
+  SlidersHorizontal,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -95,12 +96,47 @@ const DOT_ID = 'sivrce-buildings-dot'
 /** Below this zoom: colored dots; at/above: footprints + names. */
 const DETAIL_ZOOM = 13.5
 
-/** Scored: streets 9.0 · clean 8.5 · bright 7.8 — icons, not letters. */
+/** streets 9.0 · clean 8.5 · satellite 8.2 (bright dropped). */
 const TERRAIN_OPTIONS: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
   { id: 'streets', label: 'ქუჩები', Icon: MapIcon },
   { id: 'clean', label: 'მინიმალი', Icon: Circle },
-  { id: 'bright', label: 'ფერადი', Icon: Palette },
+  { id: 'satellite', label: 'სატელიტი', Icon: Satellite },
 ]
+
+const MAP_UI_KEY = 'sivrce.map.ui'
+type MapUiSave = {
+  terrain?: MapTerrain
+  view3d?: boolean
+  deal?: MapDealFilter
+  status?: MapStatusFilter
+}
+
+function readMapUi(): MapUiSave {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = JSON.parse(localStorage.getItem(MAP_UI_KEY) ?? '{}') as MapUiSave & {
+      terrain?: string
+    }
+    // migrate dropped bright → streets
+    if (raw.terrain === 'bright') raw.terrain = 'streets'
+    return raw
+  } catch {
+    return {}
+  }
+}
+
+function writeMapUi(patch: MapUiSave) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(MAP_UI_KEY, JSON.stringify({ ...readMapUi(), ...patch }))
+  } catch {
+    /* private mode */
+  }
+}
+
+function parseTerrain(v: unknown): MapTerrain {
+  return v === 'clean' || v === 'satellite' || v === 'streets' ? v : 'streets'
+}
 
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
 const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
@@ -258,11 +294,18 @@ function Map3DInner({
   const [liveDbBuildings, setLiveDbBuildings] = useState(dbBuildings)
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
-  const [dealFilter, setDealFilter] = useState<MapDealFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
+  const [dealFilter, setDealFilter] = useState<MapDealFilter>(() => {
+    const d = readMapUi().deal
+    return DEAL_FILTERS.some((f) => f.id === d) ? (d as MapDealFilter) : 'all'
+  })
+  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>(() => {
+    const s = readMapUi().status
+    return STATUS_FILTERS.some((f) => f.id === s) ? (s as MapStatusFilter) : 'all'
+  })
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
-  const [view3d, setView3d] = useState(true)
-  const [terrain, setTerrain] = useState<MapTerrain>('streets')
+  const [view3d, setView3d] = useState(() => readMapUi().view3d !== false)
+  const [terrain, setTerrain] = useState<MapTerrain>(() => parseTerrain(readMapUi().terrain))
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -277,7 +320,7 @@ function Map3DInner({
 
   const shellRef = useRef<HTMLDivElement>(null)
   const selectedRef = useRef<MapBuildingCluster | null>(null)
-  const view3dRef = useRef(true)
+  const view3dRef = useRef(view3d)
   const dealRef = useRef<MapDealFilter>('all')
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
@@ -290,6 +333,10 @@ function Map3DInner({
   const refreshNoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => { darkRef.current = isDark }, [isDark])
   useEffect(() => { terrainRef.current = terrain }, [terrain])
+  useEffect(() => { view3dRef.current = view3d }, [view3d])
+  useEffect(() => {
+    writeMapUi({ terrain, view3d, deal: dealFilter, status: statusFilter })
+  }, [terrain, view3d, dealFilter, statusFilter])
 
   useEffect(() => {
     const onFs = () => {
@@ -314,8 +361,8 @@ function Map3DInner({
 
   const pickTerrain = useCallback((id: MapTerrain) => {
     setTerrain(id)
-    // Terrain variants are light-only; exit night so the swap is visible.
-    if (resolvedTheme === 'dark') setTheme('light')
+    // Vector terrains need light basemap; satellite works in night too.
+    if (id !== 'satellite' && resolvedTheme === 'dark') setTheme('light')
   }, [resolvedTheme, setTheme])
 
   const flashRefreshNote = useCallback((msg: string) => {
@@ -468,7 +515,7 @@ function Map3DInner({
     ;(async () => {
       let style
       try {
-        style = await loadCleanStyle(initialStyle)
+        style = await loadMapBasemap(initialStyle)
       } catch (err) {
         console.error('[Map3D] style', err)
         if (!cancelled) setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
@@ -872,7 +919,7 @@ function Map3DInner({
     let cancelled = false
     ;(async () => {
       try {
-        const style = await loadCleanStyle(next)
+        const style = await loadMapBasemap(next)
         if (cancelled || gen !== styleGenRef.current) return
         map.once('style.load', () => {
           if (gen !== styleGenRef.current) return
@@ -967,7 +1014,43 @@ function Map3DInner({
         )}
 
         <div className="absolute left-3 top-3 z-20 flex max-w-[min(100%-1.5rem,380px)] flex-col gap-2 md:left-4 md:top-4">
-          <div className={`overflow-hidden rounded-tile border ${chip}`}>
+          {/* Mobile — compact count + filter sheet trigger */}
+          <div className={`flex items-center gap-2 md:hidden`}>
+            <div className={`flex min-w-0 flex-1 items-center gap-2 rounded-tile border px-3 py-2 ${chip}`}>
+              <Layers className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[12px] font-extrabold tracking-[-0.02em]">
+                  {visible.length} · {listingCount}
+                </p>
+                {refreshNote && (
+                  <p className={`truncate text-[10px] font-bold ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`}>
+                    {refreshNote}
+                  </p>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-tile border transition ${chip} ${
+                dealFilter !== 'all' || statusFilter !== 'all' ? segOn : railHover
+              }`}
+              aria-label="ფილტრები"
+            >
+              <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              onClick={resetView}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-tile border transition ${railHover} ${chip}`}
+              aria-label="საწყისი ხედი"
+            >
+              <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
+            </button>
+          </div>
+
+          {/* Desktop — full filter card */}
+          <div className={`hidden overflow-hidden rounded-tile border md:block ${chip}`}>
             <div className="flex items-center gap-2.5 px-3.5 py-2.5">
               <Layers className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
               <div className="min-w-0 flex-1">
@@ -1078,6 +1161,81 @@ function Map3DInner({
             </div>
           )}
         </div>
+
+        {/* Mobile filter sheet */}
+        {filtersOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-sv-navy/45 backdrop-blur-[2px]"
+              aria-label="დახურვა"
+              onClick={() => setFiltersOpen(false)}
+            />
+            <div
+              className={`absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-card border-t px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 ${chip}`}
+              role="dialog"
+              aria-label="ფილტრები"
+            >
+              <div className={`mx-auto mb-3 h-1 w-10 rounded-full ${isDark ? 'bg-white/20' : 'bg-sv-ink/15'}`} />
+              <p className="mb-3 text-[13px] font-extrabold tracking-tight">ფილტრები</p>
+              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>გარიგება</p>
+              <div className="mb-4 flex flex-wrap gap-1.5" role="group" aria-label="გარიგების ფილტრი">
+                {DEAL_FILTERS.map((f) => {
+                  const active = dealFilter === f.id
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setDealFilter(f.id)}
+                      className={`min-h-10 rounded-full px-3.5 text-[13px] font-extrabold transition ${
+                        active ? 'text-white' : chipMuted
+                      }`}
+                      style={active ? { background: f.color } : undefined}
+                    >
+                      {f.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>სტატუსი</p>
+              <div className="mb-5 flex flex-wrap gap-1.5" role="group" aria-label="სტატუსის ფილტრი">
+                {STATUS_FILTERS.map((f) => {
+                  const active = statusFilter === f.id
+                  const bg =
+                    active && f.id === 'completed'
+                      ? SERVICE_BRAND.developers.hue
+                      : active && f.id === 'construction'
+                        ? STATUS_BRAND.construction.hue
+                        : active
+                          ? BRAND.colors.blue
+                          : undefined
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setStatusFilter(f.id)}
+                      className={`min-h-10 rounded-full px-3.5 text-[13px] font-extrabold transition ${
+                        active ? 'text-white' : chipMuted
+                      }`}
+                      style={bg ? { background: bg } : undefined}
+                    >
+                      {f.label}
+                      {f.id === 'construction' ? ` (${constructionCount})` : ''}
+                      {f.id === 'completed' ? ` (${completedCount})` : ''}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setFiltersOpen(false)}
+                className="flex h-12 w-full items-center justify-center rounded-full bg-sv-blue text-[14px] font-extrabold text-white transition hover:bg-sv-blue-deep"
+              >
+                მზადაა
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Apple Maps–quiet control column */}
         <div
