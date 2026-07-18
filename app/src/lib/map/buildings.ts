@@ -13,7 +13,7 @@
 
 import type { DealType, Listing } from '@/data/listings'
 import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
-import { DEAL_BRAND, CATEGORY_BRAND, SERVICE_BRAND } from '@/lib/category-brand'
+import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import { BRAND } from '@/lib/brand'
 import { getDeveloper, projectCode, type Project } from '@/data/professionals'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
@@ -240,7 +240,7 @@ export function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[])
     dominant: cat.status === 'construction' && listings.length === 0 ? 'construction' : dominant,
     color:
       cat.status === 'construction' && listings.length === 0
-        ? CATEGORY_BRAND.newProjects.hue
+        ? STATUS_BRAND.construction.hue
         : dealColor(dominant),
     heightM: Math.min(18 + cat.floors * 3.1, 110),
     status: cat.status === 'construction' ? 'construction' : 'active',
@@ -374,6 +374,7 @@ export function projectsToConstructionBuildings(
       const floors = p.floors ?? Math.max(8, Math.round(p.flats / 12))
       const bn = parseBuildingNumber(p.location) || '—'
       const completed = p.done >= 100
+      const dev = getDeveloper(p.developerSlug)
       return {
         id: `dev-${p.slug}`,
         lat: p.coords.lat,
@@ -386,15 +387,44 @@ export function projectsToConstructionBuildings(
         listings: [],
         counts: emptyCounts(),
         dominant: 'construction' as const,
-        color: completed ? SERVICE_BRAND.developers.hue : CATEGORY_BRAND.newProjects.hue,
+        color: completed ? SERVICE_BRAND.developers.hue : STATUS_BRAND.construction.hue,
         heightM: Math.min(18 + floors * 3.1 * (p.done / 100 || 0.35), 110),
         status: completed ? ('completed' as const) : ('construction' as const),
         progress: p.done,
         projectSlug: p.slug,
+        developerSlug: p.developerSlug || undefined,
+        developerName: dev?.name.ka,
         code: projectCode(p),
         finish: p.finish,
       }
     })
+}
+
+/** Pin catalog / ghost buildings to live project address + coords when linked. */
+export function applyLiveProjectPins(
+  buildings: MapBuildingCluster[],
+  projects: Array<Project & { coords: { lat: number; lng: number } }>,
+): MapBuildingCluster[] {
+  const bySlug = new Map<string, Project>()
+  for (const p of projects) {
+    if (isValidCoords(p.coords.lat, p.coords.lng)) bySlug.set(p.slug, p)
+  }
+  if (bySlug.size === 0) return buildings
+  return buildings.map((b) => {
+    const p = b.projectSlug ? bySlug.get(b.projectSlug) : undefined
+    if (!p) return b
+    const bn = parseBuildingNumber(p.location)
+    const dev = getDeveloper(p.developerSlug)
+    return {
+      ...b,
+      lat: p.coords.lat,
+      lng: p.coords.lng,
+      address: p.location || b.address,
+      buildingNumber: bn || b.buildingNumber,
+      developerSlug: p.developerSlug || b.developerSlug,
+      developerName: dev?.name.ka ?? b.developerName,
+    }
+  })
 }
 
 export function mergeMapBuildings(
@@ -404,8 +434,7 @@ export function mergeMapBuildings(
   return [...listings, ...developments]
 }
 
-/** DB-curated buildings merged over static: static catalog keeps listings/meta
- *  on slug collision but adopts the DB row's floor inventory (admin-edited stock). */
+/** DB-curated buildings win on pin (lat/lng/address/developer) + floor inventory. */
 export function mergeDbBuildings(
   staticClusters: MapBuildingCluster[],
   dbClusters: MapBuildingCluster[],
@@ -413,11 +442,23 @@ export function mergeDbBuildings(
   if (dbClusters.length === 0) return staticClusters
   const bySlug = new Map<string, MapBuildingCluster>()
   for (const b of dbClusters) if (b.slug) bySlug.set(b.slug, b)
-  const staticSlugs = new Set(staticClusters.map((b) => b.slug))
+  const staticSlugs = new Set(staticClusters.map((b) => b.slug).filter(Boolean))
   return [
     ...staticClusters.map((b) => {
       const db = b.slug ? bySlug.get(b.slug) : undefined
-      return db?.inventory ? { ...b, inventory: db.inventory } : b
+      if (!db) return b
+      return {
+        ...b,
+        lat: db.lat,
+        lng: db.lng,
+        address: db.address || b.address,
+        buildingNumber: db.buildingNumber || b.buildingNumber,
+        developerSlug: db.developerSlug || b.developerSlug,
+        developerName: db.developerName || b.developerName,
+        projectSlug: db.projectSlug || b.projectSlug,
+        ring: db.ring ?? b.ring,
+        inventory: db.inventory ?? b.inventory,
+      }
     }),
     ...dbClusters.filter((b) => !b.slug || !staticSlugs.has(b.slug)),
   ]

@@ -38,14 +38,12 @@ export function buildingFloorCount(b: MapBuildingCluster): number {
 }
 
 /**
- * Floor stack on /map only for developments with real stock — not every click.
- * Gate: admin inventory · construction ghost · multi-unit with floor-tagged listings.
+ * Floor stack on /map — only developments (inventory or construction).
+ * Secondary-market clicks stay solid extrusion (cleaner, less gimmick).
  */
 export function buildingShowsFloorStack(b: MapBuildingCluster): boolean {
   if (b.inventory?.length) return true
-  if (b.status === 'construction') return true
-  const floored = b.listings.filter((l) => (l.floor ?? 0) > 0).length
-  return floored >= 2 && buildingFloorCount(b) >= 3
+  return b.status === 'construction'
 }
 
 /** Where a listing lands in the stack: ground/land (0) → 1, overflow → top floor. */

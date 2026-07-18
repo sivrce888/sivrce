@@ -116,6 +116,44 @@ export const ADDON_TETRI = {
   facebook_7d_xl: 12000, // under SS 135
 } as const
 
+export type AddonKey = keyof typeof ADDON_TETRI
+
+/** Checkout add-ons (auto-refresh schedule is P1 SaaS, not à la carte yet). */
+export const CHECKOUT_ADDONS = [
+  "refresh_once",
+  "color",
+  "facebook",
+  "facebook_7d",
+  "facebook_7d_xl",
+] as const satisfies ReadonlyArray<AddonKey>
+
+export type CheckoutAddon = (typeof CHECKOUT_ADDONS)[number]
+
+/** Color highlight window after purchase (days). */
+export const COLOR_HIGHLIGHT_DAYS = 7
+
+/** Min gap between paid refreshes (ms). */
+export const REFRESH_COOLDOWN_MS = 60 * 60 * 1000
+
+export function isCheckoutAddon(v: string): v is CheckoutAddon {
+  return (CHECKOUT_ADDONS as ReadonlyArray<string>).includes(v)
+}
+
+export function addonPriceTetri(addon: CheckoutAddon): number {
+  return ADDON_TETRI[addon]
+}
+
+/** Active color highlight ISO, or undefined if expired/absent. */
+export function activeColorUntil(
+  ext: { colorUntil?: string } | null | undefined,
+  now: number = Date.now(),
+): string | undefined {
+  if (!ext?.colorUntil) return undefined
+  const t = Date.parse(ext.colorUntil)
+  if (Number.isNaN(t) || t < now) return undefined
+  return ext.colorUntil
+}
+
 /** Default duration chip on promo UI (commitment without sticker shock). */
 export const DEFAULT_PROMO_DAYS = 7
 
@@ -182,6 +220,37 @@ export function tierKeyToBadge(tier: string): PromoBadge | null {
   }
 }
 
+/** Search/map sort weight. Expired paid tiers collapse to 0 (standard). */
+export function tierRankOf(
+  tier: string,
+  expiresAt?: Date | string | null,
+  now: number = Date.now(),
+): number {
+  if (expiresAt) {
+    const t = typeof expiresAt === "string" ? Date.parse(expiresAt) : expiresAt.getTime()
+    if (!Number.isNaN(t) && t < now) return 0
+  }
+  switch (tier) {
+    case "diamond":
+      return 3
+    case "super_vip":
+      return 2
+    case "vip":
+      return 1
+    default:
+      return 0
+  }
+}
+
+/** Active DB tier key for indexing (expired → standard). */
+export function effectiveTierKey(
+  tier: string,
+  expiresAt?: Date | string | null,
+  now: number = Date.now(),
+): string {
+  return tierRankOf(tier, expiresAt, now) === 0 ? "standard" : tier
+}
+
 /** Display helper: "1₾" / "2.50₾" */
 export function formatGel(tetri: number): string {
   const gel = tetri / 100
@@ -222,9 +291,12 @@ export function assertPromoPricing(): void {
     ["FB XL < SS 135", ADDON_TETRI.facebook_7d_xl < COMPETITOR.ss.facebook[2]],
     ["refresh < MyHome", ADDON_TETRI.refresh_once < COMPETITOR.myhome.refresh_once],
     ["color < MyHome", ADDON_TETRI.color < COMPETITOR.myhome.color],
+    ["checkout addons 5", CHECKOUT_ADDONS.length === 5],
     ["tier vip → VIP", tierKeyToBadge("vip") === "VIP"],
     ["tier super_vip → VIP+", tierKeyToBadge("super_vip") === "VIP+"],
     ["tier diamond → SUPER VIP", tierKeyToBadge("diamond") === "SUPER VIP"],
+    ["rank diamond 3", tierRankOf("diamond") === 3],
+    ["rank expired 0", tierRankOf("diamond", new Date(0)) === 0],
   ]
   for (const [label, ok] of checks) {
     if (!ok) throw new Error(`promo-pricing assert failed: ${label}`)

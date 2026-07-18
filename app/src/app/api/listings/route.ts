@@ -164,6 +164,8 @@ export async function POST(req: NextRequest) {
     floor: floor ?? undefined, totalFloors: totalFloors ?? undefined,
     features, images, lat, lng,
     createdAt: new Date().toISOString(), status: "active",
+    tier: "standard",
+    tierRank: 0,
   }).catch(() => {})
 
   if (session.user.role === "buyer") {

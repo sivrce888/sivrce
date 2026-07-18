@@ -37,6 +37,8 @@ export interface Listing {
   totalFloors: number
   views: number
   badge: Badge
+  /** Paid color highlight (search card ring) — from extendedFields.colorUntil */
+  highlighted?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string
@@ -962,6 +964,12 @@ export function filterListings(f: ListingFilters): Listing[] {
   // ponytail: sale/rent prices are different units (price vs $/mo) — group by deal first.
   // Upgrade path: split sort per dealType or normalize rent to annual.
   const dealGroup = (x: Listing) => (x.dealType === 'sale' ? 0 : 1)
+  const badgeRank = (b: Badge): number => {
+    if (b === 'SUPER VIP') return 3
+    if (b === 'VIP+') return 2
+    if (b === 'VIP') return 1
+    return 0
+  }
   out = [...out].sort((a, b) => {
     switch (sort) {
       case 'price-asc':
@@ -974,7 +982,7 @@ export function filterListings(f: ListingFilters): Listing[] {
         return b.ai.score - a.ai.score
       case 'date':
       default:
-        return b.postedAt.localeCompare(a.postedAt)
+        return badgeRank(b.badge) - badgeRank(a.badge) || b.postedAt.localeCompare(a.postedAt)
     }
   })
   return out

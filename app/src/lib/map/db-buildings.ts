@@ -17,7 +17,7 @@ import type { DealType, Listing } from "@/data/listings"
 import { SERVICE_BRAND } from "@/lib/category-brand"
 import { db } from "@/lib/db"
 import { catalogToCluster, type MapBuildingCluster } from "@/lib/map/buildings"
-import { tierKeyToBadge } from "@/lib/promo-pricing"
+import { activeColorUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
 
 export const MAP_BUILDINGS_TAG = "map-buildings"
 export const MAP_LISTINGS_TAG = "map-listings"
@@ -58,6 +58,8 @@ function rowToMapListing(row: {
   views: number
   trustScore: number
   tier: string
+  tierExpiresAt: Date | null
+  extendedFields: unknown
   agent: unknown
   createdAt: Date
   listingLocation: {
@@ -73,6 +75,7 @@ function rowToMapListing(row: {
   const agentRaw = (row.agent as { name?: string; phone?: string; agency?: string }) ?? {}
   const buildingSlug = row.listingLocation?.building3D?.mapBuilding?.slug
   const floor = row.listingLocation?.floorNumber ?? row.floor ?? 0
+  const tierKey = effectiveTierKey(row.tier, row.tierExpiresAt)
   return {
     id: row.id,
     img: row.images[0] ?? "/images/p1.webp",
@@ -93,7 +96,10 @@ function rowToMapListing(row: {
     floor,
     totalFloors: row.totalFloors ?? 0,
     views: row.views,
-    badge: tierKeyToBadge(row.tier),
+    badge: tierKeyToBadge(tierKey),
+    highlighted: Boolean(
+      activeColorUntil(row.extendedFields as { colorUntil?: string } | null),
+    ),
     ai: { score: row.trustScore, label: "" },
     features: row.features,
     description: row.description,
@@ -138,6 +144,8 @@ async function fetchMapListings(): Promise<Listing[]> {
         views: true,
         trustScore: true,
         tier: true,
+        tierExpiresAt: true,
+        extendedFields: true,
         agent: true,
         createdAt: true,
         listingLocation: {
@@ -147,10 +155,17 @@ async function fetchMapListings(): Promise<Listing[]> {
           },
         },
       },
+      // Cap then rank in JS — Prisma can't order by custom tier weight.
       orderBy: { createdAt: "desc" },
       take: MAP_LISTINGS_CAP,
     })
-    return rows.map(rowToMapListing)
+    return rows
+      .map((row) => ({
+        listing: rowToMapListing(row),
+        rank: tierRankOf(row.tier, row.tierExpiresAt),
+      }))
+      .sort((a, b) => b.rank - a.rank || b.listing.postedAt.localeCompare(a.listing.postedAt))
+      .map((x) => x.listing)
   } catch {
     return []
   }
@@ -162,6 +177,15 @@ export const getMapListings = unstable_cache(
   ["db-map-listings"],
   { tags: [MAP_LISTINGS_TAG], revalidate: 60 },
 )
+
+/** Uncached snapshot for map refresh button — bypasses unstable_cache. */
+export async function loadMapDataFresh(): Promise<{
+  listings: Listing[]
+  buildings: MapBuildingCluster[]
+}> {
+  const [listings, rows] = await Promise.all([fetchMapListings(), fetchRows()])
+  return { listings, buildings: rows.map(rowToCluster) }
+}
 
 const SELECT = {
   slug: true,

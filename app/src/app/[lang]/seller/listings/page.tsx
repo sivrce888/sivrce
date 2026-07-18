@@ -3,9 +3,11 @@ import LocalizedLink from "@/components/LocalizedLink"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
+import TierPurchaseButton from "@/components/payments/TierPurchaseButton"
 import { sellerNav } from "@/components/seller-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { effectiveTierKey } from "@/lib/promo-pricing"
 
 export const dynamic = "force-dynamic"
 
@@ -97,6 +99,14 @@ export default async function SellerListingsPage() {
               <p className="mt-2 text-[16px] font-extrabold text-sv-ink">
                 {listing.price > 0 ? `${fmt.format(listing.price)} ₾` : "ფასი მოთხოვნით"}
               </p>
+              {listing.status === "active" && (
+                <div className="mt-4 flex justify-end">
+                  <TierPurchaseButton
+                    listingId={listing.id}
+                    currentTier={effectiveTierKey(listing.tier, listing.tierExpiresAt)}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>

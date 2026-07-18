@@ -3,6 +3,7 @@ import { requireAdminAction } from "@/lib/admin/guard"
 import { syncAllListings, type ListingDocument } from "@/lib/search"
 import { db } from "@/lib/db"
 import { USD_GEL } from "@/data/listings"
+import { activeColorUntil, effectiveTierKey, tierRankOf } from "@/lib/promo-pricing"
 
 /**
  * POST /api/admin/sync-search
@@ -55,13 +56,20 @@ export async function POST() {
         createdAt: true,
         status: true,
         trustScore: true,
+        tier: true,
+        tierExpiresAt: true,
       },
       take: 50000, // ponytail: cap for safety; upgrade: paginate.
     })
 
     listings = rows.map((row) => {
-      const { extendedFields, ...rest } = row
-      const ext = extendedFields as { condition?: string; buildingStatus?: string } | null
+      const { extendedFields, tier, tierExpiresAt, ...rest } = row
+      const ext = extendedFields as {
+        condition?: string
+        buildingStatus?: string
+        colorUntil?: string
+      } | null
+      const tierKey = effectiveTierKey(tier, tierExpiresAt)
       return {
         ...rest,
         priceUSD: row.currency === "USD" ? row.price : Math.round(row.price / USD_GEL),
@@ -74,6 +82,9 @@ export async function POST() {
         floor: row.floor ?? undefined,
         totalFloors: row.totalFloors ?? undefined,
         createdAt: row.createdAt.toISOString(),
+        colorUntil: activeColorUntil(ext),
+        tier: tierKey,
+        tierRank: tierRankOf(tier, tierExpiresAt),
       }
     })
   } catch (e) {

@@ -49,6 +49,9 @@
   --color-cat-party-houses-chip: #fae8fd;
   --color-cat-self-check-in: #0d9488;
   --color-cat-self-check-in-chip: #e6f6f4;
+  /* Status hues (BRAND.md §3.4) — mirrors brand orange / houses */
+  --color-status-construction: #ff6a2d;
+  --color-status-construction-chip: #fff3ef;
 
   /* Brand shape tokens (BRAND.md §5) */
   --radius-card: 26px;
@@ -177,6 +180,7 @@
   --chip-new-projects: #eff3ff;
   --chip-party: #fae8fd;
   --chip-self-checkin: #e6f6f4;
+  --chip-construction: #fff3ef;
 }
 
 .dark {
@@ -241,6 +245,7 @@
   --chip-new-projects: color-mix(in oklab, #5b8bff 18%, transparent);
   --chip-party: color-mix(in oklab, #c026d3 20%, transparent);
   --chip-self-checkin: color-mix(in oklab, #0d9488 20%, transparent);
+  --chip-construction: color-mix(in oklab, #ff6a2d 18%, transparent);
 }
 
 /* Frosted nav/menu glass: light milk → smoked navy in dark mode.
@@ -690,7 +695,7 @@
   color: rgba(255, 255, 255, 0.78);
 }
 
-/* Map chrome — Google/Apple quiet controls, no vendor logo */
+/* Map chrome — quiet ⓘ; legal credit in DOM, hidden until expand */
 .maplibregl-ctrl-logo {
   display: none !important;
 }
@@ -703,7 +708,14 @@
   box-shadow: 0 1px 4px rgba(10, 16, 48, 0.08) !important;
   margin: 0 10px 10px 0 !important;
 }
-/* Force ⓘ compact until user opens it — Google/Apple quiet chrome */
+/* Compact: only ⓘ — legal text remains in DOM for ODbL when opened */
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  opacity: 0.4;
+}
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show):hover,
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show):focus-within {
+  opacity: 1;
+}
 .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner {
   display: none !important;
 }

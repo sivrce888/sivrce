@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
+import { projectsLive } from '@/lib/directory-live'
 import { getDbBuildingClusters, getMapListings } from '@/lib/map/db-buildings'
 import { Map3DLazy } from './Map3DLazy'
 
@@ -15,9 +16,10 @@ export const metadata: Metadata = {
 }
 
 export default async function MapPage() {
-  const [dbBuildings, listings] = await Promise.all([
+  const [dbBuildings, listings, projects] = await Promise.all([
     getDbBuildingClusters(),
     getMapListings(),
+    projectsLive(),
   ])
   return (
     <div className="flex min-h-dvh flex-col bg-sv-navy">
@@ -50,7 +52,7 @@ export default async function MapPage() {
           </LocalizedLink>
         </div>
       </header>
-      <Map3DLazy dbBuildings={dbBuildings} listings={listings} />
+      <Map3DLazy dbBuildings={dbBuildings} listings={listings} projects={projects} />
     </div>
   )
 }

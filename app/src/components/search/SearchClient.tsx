@@ -131,6 +131,9 @@ function mapHit(h: Record<string, unknown>): Listing {
     postedAt,
     agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
     isNew: Date.now() - new Date(postedAt).getTime() < 72 * 3600_000,
+    highlighted: Boolean(
+      h.colorUntil && Date.parse(String(h.colorUntil)) > Date.now(),
+    ),
   }
 }
 

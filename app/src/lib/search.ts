@@ -135,7 +135,13 @@ export interface ListingDocument {
   lng: number
   createdAt: string
   status: string
+  /** ISO — paid color highlight expiry; omit when inactive */
+  colorUntil?: string
   trustScore?: number
+  /** DB ListingTier key; expired paid → "standard" at index time */
+  tier: string
+  /** 0 standard · 1 vip · 2 super_vip · 3 diamond — drives default sort */
+  tierRank: number
 }
 
 const INDEX_NAME = "listings"
@@ -190,7 +196,16 @@ async function ensureIndex(): Promise<boolean> {
     ])
 
     // Sortable attributes.
-    await index.updateSortableAttributes(["price", "priceUSD", "pricePerSqm", "area", "rooms", "createdAt", "trustScore"])
+    await index.updateSortableAttributes([
+      "price",
+      "priceUSD",
+      "pricePerSqm",
+      "area",
+      "rooms",
+      "createdAt",
+      "trustScore",
+      "tierRank",
+    ])
 
     // Typo tolerance: Georgian script has no case, uses unique characters.
     // We disable typo on short words and limit to 1 typo for medium words.
@@ -204,7 +219,9 @@ async function ensureIndex(): Promise<boolean> {
       disableOnAttributes: [], // typo tolerance on all searchable fields
     })
 
-    // Ranking rules: keyword match first, then freshness, then price
+    // Relevance first; paid tier only as tie-break when no explicit sort.
+    // Default API sort is tierRank+createdAt (see buildMeiliSort).
+    // ponytail: no SUPER VIP page-1 slot cap yet — add when paid share >40% of page 1.
     await index.updateRankingRules([
       "words",
       "typo",
@@ -212,6 +229,7 @@ async function ensureIndex(): Promise<boolean> {
       "attribute",
       "sort",
       "exactness",
+      "tierRank:desc",
       "createdAt:desc",
     ])
 
@@ -288,8 +306,8 @@ function buildMeiliSort(filters: SearchFilters): string[] | undefined {
       return ["pricePerSqm:desc"]
     case "date":
     default:
-      // Default: newest first
-      return ["createdAt:desc"]
+      // Paid placement is real: tier within freshness. Explicit price/area sorts skip this.
+      return ["tierRank:desc", "createdAt:desc"]
   }
 }
 
@@ -394,6 +412,7 @@ export async function syncAllListings(listings: ListingDocument[] = []): Promise
   indexed: number
   error?: string
 }> {
+  _indexReady = false // re-apply ranking rules (tierRank) on full sync
   const client = await lazyInit()
   if (!client) {
     return { ok: false, indexed: 0, error: "meilisearch_unavailable" }

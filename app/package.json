@@ -13,6 +13,7 @@
     "check:search": "npx --yes tsx src/lib/search.check.ts",
     "check:seo-title": "npx --yes tsx src/lib/seo-title.check.ts",
     "check:seo-hub": "npx --yes tsx src/lib/seo-hub.check.ts",
+    "sync:korter": "npx --yes tsx scripts/import-korter.ts",
     "postinstall": "prisma generate",
     "mobile:sync": "npx cap sync",
     "mobile:ios": "npx cap sync ios && npx cap open ios",
