@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { PartyPopper, KeyRound, Waves, Bath, ArrowUpRight } from 'lucide-react'
+import { PartyPopper, KeyRound, Waves, Bath, Palmtree, MountainSnow, PawPrint, Laptop, ArrowUpRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 
@@ -35,6 +35,34 @@ const COLLECTIONS = [
     sub: 'დასვენება ჯაკუზით',
     brand: CATEGORY_BRAND.houses,
     href: '/search?deal=daily&feat=add.f.jacuzzi',
+  },
+  {
+    icon: Palmtree,
+    label: 'ზღვისპირა',
+    sub: 'პირველი ზოლი ზღვაზე',
+    brand: CATEGORY_BRAND.newProjects,
+    href: '/search?deal=daily&feat=add.f.beachfront',
+  },
+  {
+    icon: MountainSnow,
+    label: 'სათხილამურო კურორტები',
+    sub: 'გუდაური · ბაკურიანი · მესტია',
+    brand: CATEGORY_BRAND.land,
+    href: '/search?deal=daily&feat=add.f.skiAccess',
+  },
+  {
+    icon: PawPrint,
+    label: 'შინაური ცხოველით',
+    sub: 'საოჯახო ცხოველები ნებადართულია',
+    brand: CATEGORY_BRAND.cottages,
+    href: '/search?deal=daily&feat=add.f.petsAllowed',
+  },
+  {
+    icon: Laptop,
+    label: 'სამუშაო ადგილით',
+    sub: 'დისტანციური მუშაობისთვის',
+    brand: CATEGORY_BRAND.apartments,
+    href: '/search?deal=daily&feat=add.f.workspace',
   },
 ]
 
