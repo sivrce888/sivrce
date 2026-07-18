@@ -45,6 +45,10 @@
   --color-cat-hotels-chip: #ecf6f9;
   --color-cat-new-projects: #5b8bff;
   --color-cat-new-projects-chip: #eff3ff;
+  --color-cat-party-houses: #c026d3;
+  --color-cat-party-houses-chip: #fae8fd;
+  --color-cat-self-check-in: #0d9488;
+  --color-cat-self-check-in-chip: #e6f6f4;
 
   /* Brand shape tokens (BRAND.md §5) */
   --radius-card: 26px;
