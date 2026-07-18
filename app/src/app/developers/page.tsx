@@ -3,9 +3,12 @@ import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import { EntityCard } from '@/components/entities/EntityCard'
-import { DEVELOPERS, listingCountByCity } from '@/data/professionals'
+import { listingCountByCity } from '@/data/professionals'
+import { developersLive } from '@/lib/directory-live'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
+
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'დეველოპერები საქართველოში — შეფასებები და პროექტები',
@@ -21,8 +24,9 @@ export const metadata: Metadata = {
 }
 
 export default async function DevelopersPage() {
+  const developers = await developersLive()
   const cards = await Promise.all(
-    DEVELOPERS.map(async (d) => ({
+    developers.map(async (d) => ({
       d,
       aggregate: await getReviewAggregate('developer', d.slug),
     })),
@@ -31,7 +35,7 @@ export default async function DevelopersPage() {
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    itemListElement: DEVELOPERS.map((d, i) => ({
+    itemListElement: developers.map((d, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: d.name.en,
