@@ -10,6 +10,8 @@
 
 import { ka, type DictKey } from "./i18n/ka"
 import { LANGS, translate, type Lang } from "./i18n/core"
+import { SITE_META } from "./i18n/server"
+import { SITE_META } from "./i18n/server"
 
 export const CMS_BLOCKS = {
   // ——— Hero ———
@@ -138,7 +140,7 @@ export interface PagesFormState {
   saved: boolean
 }
 
-/** Dict-key prefixes in ka order, then the marketing-blocks group. */
+/** Dict-key prefixes in ka order, then the marketing-blocks group, then SEO. */
 export function cmsGroups(): CmsGroup[] {
   const groups: CmsGroup[] = []
   for (const key of Object.keys(ka)) {
@@ -148,6 +150,7 @@ export function cmsGroups(): CmsGroup[] {
     else groups.push({ id: prefix, label: prefix, count: 1 })
   }
   groups.push({ id: CMS_BLOCKS_GROUP, label: "Homepage blocks", count: CMS_BLOCK_KEYS.length })
+  groups.push({ id: CMS_SEO_GROUP, label: "SEO meta", count: CMS_SEO_KEYS.length })
   return groups
 }
 
@@ -166,9 +169,31 @@ export function cmsRowsForGroup(
       value: overrides[`block.${key}`] ?? "",
     }))
   }
+  if (group === CMS_SEO_GROUP) {
+    return CMS_SEO_KEYS.map((key) => ({
+      key,
+      defaultText: SEO_DEFAULTS[key](lang),
+      value: overrides[key] ?? "",
+    }))
+  }
   return DICT_KEYS.filter((k) => k.split(".")[0] === group).map((k) => ({
     key: k,
     defaultText: translate(lang, k),
     value: overrides[k] ?? "",
   }))
+}
+
+// ---------------------------------------------------------------------------
+// SEO meta — site-wide <title>/<meta description> per language, overridable.
+// Defaults mirror SITE_META (the layout's metadata source).
+// ---------------------------------------------------------------------------
+
+export const CMS_SEO_GROUP = "seo"
+
+export const CMS_SEO_KEYS = ["seo.site.title", "seo.site.description"] as const
+export type CmsSeoKey = (typeof CMS_SEO_KEYS)[number]
+
+const SEO_DEFAULTS: Record<CmsSeoKey, (lang: Lang) => string> = {
+  "seo.site.title": (lang) => SITE_META[lang].title,
+  "seo.site.description": (lang) => SITE_META[lang].description,
 }
