@@ -28,6 +28,8 @@ import {
   type DealType, type Listing, type PropType,
 } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
+import { MAP_CENTER } from '@/lib/map/buildings'
+import { cityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
 
 type Deal = DealType
 type Photo = { url: string; name: string; file: File }
@@ -86,8 +88,16 @@ export default function AddListingClient() {
   const [district, setDistrict] = useState('')
   const [street, setStreet] = useState('')
   const [houseNo, setHouseNo] = useState('')
-  const [coords, setCoords] = useState({ lat: 41.7151, lng: 44.8271 })
+  const [coords, setCoords] = useState<{ lat: number; lng: number }>({
+    lat: MAP_CENTER.lat,
+    lng: MAP_CENTER.lng,
+  })
   const [geocoding, setGeocoding] = useState(false)
+  const [pinReady, setPinReady] = useState(false)
+  const [suggests, setSuggests] = useState<GeocodeHit[]>([])
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  // ponytail: mute one geocode cycle after reverse-fill / suggest so pin↔address don't fight
+  const muteGeocode = useRef(false)
   const [cadastral, setCadastral] = useState('')
   const [area, setArea] = useState('')
   const [rooms, setRooms] = useState(0)
@@ -113,30 +123,120 @@ export default function AddListingClient() {
   const priceN = Number(price) || 0
   const districts = districtsOf(city || undefined)
 
-  // Resolve pin from address → Sivrce geocode (Nominatim via /api/geocode).
+  // City → map center until street geocode lands.
   useEffect(() => {
-    const q = [street && `${street} ${houseNo}`.trim(), district, city]
-      .filter(Boolean)
-      .join(', ')
-    if (q.length < 5) return
+    if (!city || street.trim().length >= 2) return
+    setCoords(cityCenter(city))
+    setPinReady(false)
+  }, [city, street])
+
+  // Address → pin (structured geocode). House № → building-level zoom.
+  useEffect(() => {
+    if (muteGeocode.current) {
+      muteGeocode.current = false
+      return
+    }
+    if (!city || street.trim().length < 2) return
     const ac = new AbortController()
+    const params = new URLSearchParams({
+      street: street.trim(),
+      city,
+      ...(houseNo.trim() ? { houseNo: houseNo.trim() } : {}),
+      ...(district.trim() ? { district: district.trim() } : {}),
+    })
     const t = setTimeout(() => {
       setGeocoding(true)
-      fetch(`/api/geocode?q=${encodeURIComponent(`${q}, Georgia`)}`, { signal: ac.signal })
+      fetch(`/api/geocode?${params}`, { signal: ac.signal })
         .then((r) => (r.ok ? r.json() : null))
-        .then((d: { ok?: boolean; lat?: number; lng?: number } | null) => {
+        .then((d: GeocodeHit & { ok?: boolean } | null) => {
           if (d?.ok && typeof d.lat === 'number' && typeof d.lng === 'number') {
             setCoords({ lat: d.lat, lng: d.lng })
+            setPinReady(true)
+            // Soft-fill blanks from OSM; mute so we don't re-fire.
+            if ((d.houseNo && !houseNo.trim()) || (d.district && !district.trim())) {
+              muteGeocode.current = true
+              if (d.houseNo && !houseNo.trim()) setHouseNo(d.houseNo)
+              if (d.district && !district.trim()) setDistrict(d.district)
+            }
           }
         })
         .catch(() => {})
         .finally(() => setGeocoding(false))
-    }, 450)
+    }, 400)
     return () => {
       clearTimeout(t)
       ac.abort()
     }
   }, [street, houseNo, district, city])
+
+  // Street autocomplete (Nominatim suggest).
+  useEffect(() => {
+    if (!city || street.trim().length < 2) {
+      setSuggests([])
+      return
+    }
+    const ac = new AbortController()
+    const t = setTimeout(() => {
+      const params = new URLSearchParams({
+        suggest: '1',
+        q: street.trim(),
+        city,
+      })
+      fetch(`/api/geocode?${params}`, { signal: ac.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: { ok?: boolean; hits?: GeocodeHit[] } | null) => {
+          if (d?.ok && Array.isArray(d.hits)) setSuggests(d.hits)
+        })
+        .catch(() => {})
+    }, 280)
+    return () => {
+      clearTimeout(t)
+      ac.abort()
+    }
+  }, [street, city])
+
+  const applyHit = (hit: GeocodeHit) => {
+    muteGeocode.current = true
+    setCoords({ lat: hit.lat, lng: hit.lng })
+    setPinReady(true)
+    setSuggestOpen(false)
+    setSuggests([])
+    if (hit.street) setStreet(hit.street)
+    if (hit.houseNo) setHouseNo(hit.houseNo)
+    if (hit.district) setDistrict(hit.district)
+    if (hit.city && CITIES.includes(hit.city)) setCity(hit.city)
+  }
+
+  const onStreetChange = (raw: string) => {
+    const split = splitStreetHouse(raw)
+    // If user typed "Street 47" into street field, peel house № into its box.
+    if (split.houseNo && split.street !== raw.trim()) {
+      setStreet(split.street)
+      setHouseNo(split.houseNo)
+    } else {
+      setStreet(raw)
+    }
+    setSuggestOpen(true)
+  }
+
+  const onMapPick = (lat: number, lng: number) => {
+    setCoords({ lat, lng })
+    setPinReady(true)
+    setSuggestOpen(false)
+    fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: (GeocodeHit & { ok?: boolean }) | null) => {
+        if (!d?.ok) return
+        muteGeocode.current = true
+        if (d.street) setStreet(d.street)
+        if (d.houseNo) setHouseNo(d.houseNo)
+        if (d.district) setDistrict(d.district)
+        if (d.city && CITIES.includes(d.city)) setCity(d.city)
+      })
+      .catch(() => {})
+  }
+
+  const mapZoom = houseNo.trim() ? 18 : street.trim() ? 16 : 13
 
   /* ————— AI price estimate (demo model) ————— */
   const estimate = useMemo(() => {
@@ -485,14 +585,45 @@ export default function AddListingClient() {
                         {districts.map((d) => <option key={d} value={d} />)}
                       </datalist>
                     </div>
-                    <div>
+                    <div className="relative">
                       <label className={label}>{t('add.street')} *</label>
                       <input
                         className={`${input} ${err(!street)}`}
                         placeholder={t('add.streetPh')}
                         value={street}
-                        onChange={(e) => setStreet(e.target.value)}
+                        onChange={(e) => onStreetChange(e.target.value)}
+                        onFocus={() => setSuggestOpen(true)}
+                        onBlur={() => {
+                          // let suggestion click land first
+                          setTimeout(() => setSuggestOpen(false), 150)
+                        }}
+                        autoComplete="street-address"
                       />
+                      {suggestOpen && suggests.length > 0 && (
+                        <ul
+                          role="listbox"
+                          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-module border border-sv-ink/10 bg-sv-surface py-1 shadow-card"
+                        >
+                          {suggests.map((s) => (
+                            <li key={`${s.lat}:${s.lng}:${s.label}`}>
+                              <button
+                                type="button"
+                                role="option"
+                                className="flex w-full flex-col gap-0.5 px-3.5 py-2.5 text-left transition hover:bg-sv-blue/8"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => applyHit(s)}
+                              >
+                                <span className="text-[13px] font-extrabold text-sv-ink">
+                                  {[s.street, s.houseNo].filter(Boolean).join(' ') || s.label.split(',')[0]}
+                                </span>
+                                <span className="text-[11px] font-bold text-sv-ink/45">
+                                  {[s.district, s.city].filter(Boolean).join(' · ') || s.label}
+                                </span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                     <div>
                       <label className={label}>{t('add.houseNo')}</label>
@@ -510,28 +641,37 @@ export default function AddListingClient() {
                         <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" /> {t('add.cadastralNote')}
                       </p>
                     </div>
-                    {(street || city) && (
+                    {city && (
                       <div className="sm:col-span-2">
-                        <div className="mb-2 flex items-center justify-between">
+                        <div className="mb-2 flex items-center justify-between gap-3">
                           <label className={label + ' mb-0'}>
                             <span className="inline-flex items-center gap-1.5">
-                              <MapPin className="h-3.5 w-3.5 text-sv-blue" />
+                              <MapPin className="h-3.5 w-3.5 text-sv-orange" />
                               Sivrce Maps
                             </span>
                           </label>
-                          {geocoding && (
-                            <span className="text-[11px] font-bold text-sv-ink/40">მისამართი…</span>
-                          )}
+                          <span className="text-[11px] font-bold tabular-nums text-sv-ink/40">
+                            {geocoding
+                              ? 'მისამართი…'
+                              : pinReady
+                                ? `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`
+                                : 'შეიყვანე ქუჩა — პინი ავტომატურად'}
+                          </span>
                         </div>
                         <MapEmbed
                           lat={coords.lat}
                           lng={coords.lng}
-                          zoom={15}
+                          zoom={mapZoom}
                           q={[street && `${street} ${houseNo}`.trim(), district, city]
                             .filter(Boolean)
                             .join(', ')}
                           aspect="16/9"
+                          highlight
+                          onPick={onMapPick}
                         />
+                        <p className="mt-2 text-[11px] font-bold text-sv-ink/40">
+                          პინი და შენობა ავტომატურად · ან დააჭირე რუკას — შენობაზე მონიშვნისთვის
+                        </p>
                       </div>
                     )}
                   </div>
