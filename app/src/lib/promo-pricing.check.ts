@@ -6,13 +6,20 @@ import {
   COMPETITOR,
   ADDON_TETRI,
   TIER_MONTHLY_TETRI,
+  TURBO_DAYS,
   tierKeyToBadge,
   tierRankOf,
   effectiveTierKey,
   isCheckoutAddon,
+  isTurboAddon,
   addonPriceTetri,
   COLOR_HIGHLIGHT_DAYS,
+  STICKER_URGENT_DAYS,
+  STICKER_PRICE_DROP_DAYS,
   activeColorUntil,
+  activeUrgentUntil,
+  activePriceDropUntil,
+  extendIso,
 } from "./promo-pricing"
 
 assertPromoPricing()
@@ -31,14 +38,28 @@ if (tierRankOf("vip") !== 1) throw new Error("tierRank vip")
 if (tierRankOf("diamond", new Date(0)) !== 0) throw new Error("expired rank")
 if (effectiveTierKey("diamond", new Date(0)) !== "standard") throw new Error("expired key")
 if (!isCheckoutAddon("refresh_once")) throw new Error("addon key")
+if (!isCheckoutAddon("sticker_urgent")) throw new Error("urgent addon")
+if (!isCheckoutAddon("turbo_7")) throw new Error("turbo addon")
+if (!isTurboAddon("turbo_14")) throw new Error("turbo detect")
 if (addonPriceTetri("color") !== ADDON_TETRI.color) throw new Error("addon price")
 if (COLOR_HIGHLIGHT_DAYS !== 7) throw new Error("color days")
+if (STICKER_URGENT_DAYS !== 1) throw new Error("urgent days")
+if (STICKER_PRICE_DROP_DAYS !== 7) throw new Error("price-drop days")
+if (TURBO_DAYS.turbo_7 !== 7) throw new Error("turbo days")
 if (activeColorUntil({ colorUntil: new Date(Date.now() + 60_000).toISOString() }) == null) {
   throw new Error("color active")
 }
 if (activeColorUntil({ colorUntil: new Date(0).toISOString() }) != null) {
   throw new Error("color expired")
 }
+if (activeUrgentUntil({ urgentUntil: new Date(Date.now() + 60_000).toISOString() }) == null) {
+  throw new Error("urgent active")
+}
+if (activePriceDropUntil({ priceDropUntil: new Date(0).toISOString() }) != null) {
+  throw new Error("price-drop expired")
+}
+const stacked = extendIso(new Date(Date.now() + 86_400_000).toISOString(), 1)
+if (stacked.getTime() < Date.now() + 86_400_000) throw new Error("extend stacks")
 
 // Spot-check undercuts vs live competitor constants
 const table = [
@@ -62,4 +83,10 @@ console.log("promo-pricing: ok")
 console.log(
   "RE 30d packages:",
   `VIP ${formatGel(3000)} · VIP+ ${formatGel(6000)} · SUPER VIP ${formatGel(15000)}`,
+)
+console.log(
+  "addons:",
+  `Turbo ${formatGel(ADDON_TETRI.turbo_7)}/${formatGel(ADDON_TETRI.turbo_14)}/${formatGel(ADDON_TETRI.turbo_30)}`,
+  `· urgent ${formatGel(ADDON_TETRI.sticker_urgent)}`,
+  `· price↓ ${formatGel(ADDON_TETRI.sticker_price_drop)}`,
 )
