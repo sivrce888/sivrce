@@ -84,6 +84,7 @@ export const DISTRICTS: District[] = [
   { slug: 'ortachala', ka: 'ორთაჭალა', loc: 'ორთაჭალაში', en: 'Ortachala', ru: 'Ортачала', citySlug: 'tbilisi' },
   { slug: 'isani', ka: 'ისანი', loc: 'ისანში', en: 'Isani', ru: 'Исани', citySlug: 'tbilisi' },
   { slug: 'gldani', ka: 'გლდანი', loc: 'გლდანში', en: 'Gldani', ru: 'Глдани', citySlug: 'tbilisi' },
+  { slug: 'krtsanisi', ka: 'კრწანისი', loc: 'კრწანისში', en: 'Krtsanisi', ru: 'Крцаниси', citySlug: 'tbilisi' },
   { slug: 'avlabari', ka: 'ავლაბარი', loc: 'ავლაბარში', en: 'Avlabari', ru: 'Авлабари', citySlug: 'tbilisi' },
   { slug: 'tskneti', ka: 'წყნეთი', loc: 'წყნეთში', en: 'Tskneti', ru: 'Цкнети', citySlug: 'tbilisi' },
   { slug: 'tskhvarichamia', ka: 'ცხვარიჭამია', loc: 'ცხვარიჭამიაში', en: 'Tskhvarichamia', ru: 'Цхваричамия', citySlug: 'tbilisi' },
@@ -125,7 +126,12 @@ const districtBySlug = (s: string) => DISTRICTS.find((d) => d.slug === s)
  *  lookup beats maintaining a parallel slug map; the registry stays canonical. */
 const DEAL_TO_SLUG: Record<DealType, string> = { sale: 'sale', rent: 'rent', daily: 'daily', pledge: 'pledge' }
 const TYPE_TO_SLUG: Record<PropType, string> = {
-  apartment: 'apartments', house: 'houses', commercial: 'commercial', land: 'land',
+  apartment: 'apartments',
+  house: 'houses',
+  villa: 'houses', // ponytail: no /cottages hub yet
+  commercial: 'commercial',
+  land: 'land',
+  hotel: 'commercial', // ponytail: no /hotels hub yet
 }
 export function listingHubPath(l: {
   dealType: DealType

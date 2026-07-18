@@ -12,6 +12,7 @@
 
 import { Meilisearch, type SearchParams } from "meilisearch"
 import { USD_GEL } from "@/data/listings"
+import { districtSearchValues } from "@/lib/district-canon"
 
 // ---------------------------------------------------------------------------
 // Client singleton
@@ -137,6 +138,10 @@ export interface ListingDocument {
   status: string
   /** ISO — paid color highlight expiry; omit when inactive */
   colorUntil?: string
+  /** ISO — paid „სასწრაფოდ“ sticker expiry */
+  urgentUntil?: string
+  /** ISO — paid „ფასი დაწეულია“ sticker expiry */
+  priceDropUntil?: string
   trustScore?: number
   /** DB ListingTier key; expired paid → "standard" at index time */
   tier: string
@@ -265,7 +270,14 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.dealType) parts.push(`dealType = ${esc(filters.dealType)}`)
   if (filters.propertyType) parts.push(`propertyType = ${esc(filters.propertyType)}`)
   if (filters.city) parts.push(`city = ${esc(filters.city)}`)
-  if (filters.district) parts.push(`district = ${esc(filters.district)}`)
+  if (filters.district) {
+    const vals = districtSearchValues(filters.district, filters.city)
+    parts.push(
+      vals.length === 1
+        ? `district = ${esc(vals[0]!)}`
+        : `district IN [${vals.map(esc).join(", ")}]`,
+    )
+  }
   // Price bounds arrive in filters.currency (default USD) — filter the
   // normalized priceUSD so GEL and USD listings compare fairly.
   const toUSD = (v: number) => (filters.currency === "GEL" ? v / USD_GEL : v)

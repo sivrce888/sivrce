@@ -45,6 +45,10 @@ export interface Listing {
   badge: Badge
   /** Paid color highlight (search card ring) — from extendedFields.colorUntil */
   highlighted?: boolean
+  /** Paid „სასწრაფოდ“ sticker */
+  stickerUrgent?: boolean
+  /** Paid „ფასი დაწეულია“ sticker */
+  stickerPriceDrop?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string
@@ -641,7 +645,7 @@ export const LISTINGS: Listing[] = [
     rooms: 1, beds: 2, baths: 1, area: 38, floor: 3, totalFloors: 5,
     views: 4100, badge: 'SUPER VIP',
     ai: { score: 96, label: 'მაღალი შემოსავლიანობა' },
-    features: ['აივანი ხედით', 'Wi-Fi', 'კონდიციონერი', 'სრულად აღჭურვილი', 'ტურისტული ზონა', 'ფასიანი პარკინგი'],
+    features: ['add.f.selfCheckIn', 'add.f.workspace', 'აივანი ხედით', 'Wi-Fi', 'კონდიციონერი', 'ტურისტული ზონა'],
     description: 'ძველ თბილისში, აბანოთუბანთან ახლოს, დღიურად გაიქირავება გარემონტებული სტუდიო აივნით და მთაწმინდის ხედით. იდეალური ტურისტებისთვის — 5 წუთის სავალზე ნარიკალა, გოლიათი და გომბორი. AI შეფასებით ოკუპაცია 78%.',
     coords: { lat: 41.6912, lng: 44.8089 },
     buildingNumber: '12',
@@ -662,7 +666,7 @@ export const LISTINGS: Listing[] = [
     rooms: 2, beds: 4, baths: 1, area: 56, floor: 4, totalFloors: 7,
     views: 2800, badge: 'VIP+',
     ai: { score: 93, label: 'შესანიშნავი ლოკაცია' },
-    features: ['რუსთაველზე', 'მეტრო 1 წუთში', 'Wi-Fi', 'სამზარეულო', 'სამუშაო ადგილი', 'ლიფტი'],
+    features: ['add.f.workspace', 'add.f.selfCheckIn', 'რუსთაველზე', 'მეტრო 1 წუთში', 'Wi-Fi', 'სამზარეულო'],
     description: 'რუსთაველის გამზირზე, ოპერის თეატრთან, დღიურად ქირავდება ნათელი ბინა — სასიარულოდ საუკეთესო ლოკაცია თბილისში. ფასი მოლაპარაკებადია 3+ ღამეზე.',
     coords: { lat: 41.7008, lng: 44.7926 },
     buildingNumber: '28',
@@ -683,7 +687,7 @@ export const LISTINGS: Listing[] = [
     rooms: 2, beds: 4, baths: 1, area: 52, floor: 9, totalFloors: 24,
     views: 5200, badge: 'SUPER VIP',
     ai: { score: 95, label: 'სეზონური პრემიუმი' },
-    features: ['ზღვის ხედი', 'სანაპირო 50 მ', 'აუზი კომპლექსში', 'Wi-Fi', 'კონდიციონერი', 'ფიტნესი'],
+    features: ['add.f.beachfront', 'add.f.pool', 'add.f.seaView', 'Wi-Fi', 'კონდიციონერი', 'ფიტნესი'],
     description: 'ბათუმში, ახალ ბულვარზე, ზღვიდან 50 მეტრში, დღიურად გაიქირავება ბინა პანორამული ზღვის ხედით. სეზონში (ივნის-სექტემბერი) ოკუპაცია 90%+. იდეალური ინვესტიცია.',
     coords: { lat: 41.6461, lng: 41.6267 },
     buildingNumber: '90',
@@ -725,7 +729,7 @@ export const LISTINGS: Listing[] = [
     rooms: 4, beds: 6, baths: 2, area: 110, floor: 1, totalFloors: 2,
     views: 1450, badge: 'VIP',
     ai: { score: 90, label: 'ჯგუფური დასვენება' },
-    features: ['ეზო', 'გამაშები', 'მანგალი', 'პარკინგი', 'ზღვამდე 300 მ', 'Wi-Fi'],
+    features: ['add.f.partiesAllowed', 'add.f.bbq', 'add.f.yard', 'add.f.petsAllowed', 'ზღვამდე 300 მ', 'Wi-Fi'],
     description: 'მახინჯაურში, ზღვის სიახლოვეს, დღიურად ქირავდება ორსართულიანი სახლი ეზოთი — იდეალური ერთად ოჯახის ან მეგობრების დასასვენებლად. წყნარი ადგილი, მაგრამ ბათუმის ცენტრამდე 15 წუთი.',
     coords: { lat: 41.6833, lng: 41.6500 },
     buildingSlug: 'makhinjauri-daily-house',

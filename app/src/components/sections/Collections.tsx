@@ -1,74 +1,80 @@
 import Link from 'next/link'
-import { PartyPopper, KeyRound, Waves, Bath, Palmtree, MountainSnow, PawPrint, Laptop, ArrowUpRight } from 'lucide-react'
+import { PartyPopper, KeyRound, Waves, Bath, Palmtree, MountainSnow, PawPrint, Laptop, ArrowUpRight, type LucideIcon } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
-import { CATEGORY_BRAND } from '@/lib/category-brand'
+import { CATEGORY_BRAND, type CategoryBrand } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
-import type { Lang } from '@/lib/i18n/core'
+import { getServerT } from '@/lib/i18n/server'
+import { localizedHref, type Lang } from '@/lib/i18n/core'
+import type { DictKey } from '@/lib/i18n/ka'
 
-/* Locked collection branding (BRAND.md §3.1): party/selfCheckIn own locked
-   rows; pool/jacuzzi reuse locked category hues, same as services do.
-   Cards deep-link into /search with the feat vocabulary pre-applied —
-   no dedicated pages, /search IS the collection page. */
-const COLLECTIONS = [
+/* Locked collection branding (BRAND.md §3.1). Cards deep-link /search with feat vocabulary. */
+const COLLECTIONS: {
+  icon: LucideIcon
+  label: DictKey
+  sub: DictKey
+  brand: CategoryBrand
+  href: string
+}[] = [
   {
     icon: PartyPopper,
-    label: 'სახლები წვეულებებისთვის',
-    sub: 'დღიურად · წვეულებები დასაშვებია',
+    label: 'col.party',
+    sub: 'col.party.sub',
     brand: CATEGORY_BRAND.partyHouses,
     href: '/search?deal=daily&type=house&feat=add.f.partiesAllowed',
   },
   {
     icon: KeyRound,
-    label: 'უკონტაქტო ჩექინი',
-    sub: 'გასაღები შეხვედრის გარეშე',
+    label: 'col.selfCheckIn',
+    sub: 'col.selfCheckIn.sub',
     brand: CATEGORY_BRAND.selfCheckIn,
     href: '/search?deal=daily&feat=add.f.selfCheckIn',
   },
   {
     icon: Waves,
-    label: 'აუზით',
-    sub: 'დღიური ქირა აუზით',
+    label: 'col.pool',
+    sub: 'col.pool.sub',
     brand: CATEGORY_BRAND.hotels,
     href: '/search?deal=daily&feat=add.f.pool',
   },
   {
     icon: Bath,
-    label: 'ჯაკუზით',
-    sub: 'დასვენება ჯაკუზით',
+    label: 'col.jacuzzi',
+    sub: 'col.jacuzzi.sub',
     brand: CATEGORY_BRAND.houses,
     href: '/search?deal=daily&feat=add.f.jacuzzi',
   },
   {
     icon: Palmtree,
-    label: 'ზღვისპირა',
-    sub: 'პირველი ზოლი ზღვაზე',
+    label: 'col.beach',
+    sub: 'col.beach.sub',
     brand: CATEGORY_BRAND.newProjects,
     href: '/search?deal=daily&feat=add.f.beachfront',
   },
   {
     icon: MountainSnow,
-    label: 'სათხილამურო კურორტები',
-    sub: 'გუდაური · ბაკურიანი · მესტია',
+    label: 'col.ski',
+    sub: 'col.ski.sub',
     brand: CATEGORY_BRAND.land,
     href: '/search?deal=daily&feat=add.f.skiAccess',
   },
   {
     icon: PawPrint,
-    label: 'შინაური ცხოველით',
-    sub: 'საოჯახო ცხოველები ნებადართულია',
+    label: 'col.pets',
+    sub: 'col.pets.sub',
     brand: CATEGORY_BRAND.cottages,
     href: '/search?deal=daily&feat=add.f.petsAllowed',
   },
   {
     icon: Laptop,
-    label: 'სამუშაო ადგილით',
-    sub: 'დისტანციური მუშაობისთვის',
+    label: 'col.workspace',
+    sub: 'col.workspace.sub',
     brand: CATEGORY_BRAND.apartments,
     href: '/search?deal=daily&feat=add.f.workspace',
   },
 ]
 
 export default async function Collections({ lang = 'ka' }: { lang?: Lang }) {
+  const t = getServerT(lang)
   const [title, sub] = await Promise.all([
     getCmsBlock('home.collections.title', lang),
     getCmsBlock('home.collections.sub', lang),
@@ -89,7 +95,7 @@ export default async function Collections({ lang = 'ka' }: { lang?: Lang }) {
           {COLLECTIONS.map((c, i) => (
             <Reveal key={c.label} delay={i * 0.05}>
               <Link
-                href={c.href}
+                href={localizedHref(c.href, lang)}
                 className="group relative flex flex-col items-center gap-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-center transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
               >
                 <span
@@ -98,8 +104,8 @@ export default async function Collections({ lang = 'ka' }: { lang?: Lang }) {
                 >
                   <c.icon className="h-6 w-6" />
                 </span>
-                <span className="text-[14px] font-extrabold text-sv-ink">{c.label}</span>
-                <span className="text-[12px] font-bold text-sv-ink/55">{c.sub}</span>
+                <span className="text-[14px] font-extrabold text-sv-ink">{t(c.label)}</span>
+                <span className="text-[12px] font-bold text-sv-ink/55">{t(c.sub)}</span>
                 <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/40" />
               </Link>
             </Reveal>

@@ -10,6 +10,7 @@
  */
 
 import type { PrismaClient } from "@/generated/prisma/client"
+import { canonicalizeDistrict } from "@/lib/district-canon"
 
 const BASE = "https://korter.ge" // legacy; unused at runtime
 const UA = { "User-Agent": "Mozilla/5.0 (compatible; sivrce-directory-sync/1.0)" }
@@ -350,7 +351,8 @@ export async function syncKorterDirectory(
       const lat = b.location?.lat ?? null
       const lng = b.location?.lng ?? null
       const image = b.images?.[0]?.mediaSrc?.default?.x2 ?? ""
-      const district = clip(b.subLocalityNominative || "", 120)
+      const city = clip(kaCity(b.mainGeoObject?.name), 100)
+      const district = canonicalizeDistrict(b.subLocalityNominative || "", city) || clip(b.subLocalityNominative || "", 120)
       const address = clip(b.address || "", 240)
       const readyBy = b.endYear && b.endQuarter ? `${b.endYear} Q${b.endQuarter}` : ""
       // Kept only until directory:localize clears it; not shown on public pages.
@@ -363,8 +365,8 @@ export async function syncKorterDirectory(
       const data = {
         name: clip(b.name, 180),
         developer: clip(devBySlug.get(ourSlug)?.name ?? kd.name, 180),
-        city: clip(kaCity(b.mainGeoObject?.name), 100),
-        district: district || clip(address, 120),
+        city,
+        district: district || "—",
         address: address || null,
         lat,
         lng,

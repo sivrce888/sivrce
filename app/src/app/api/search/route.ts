@@ -2,6 +2,7 @@ import { searchListings, type SearchFilters } from "@/lib/search"
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 import { buildDbWhere, parseSearchParams } from "@/lib/search-filters"
+import { effectiveTierKey } from "@/lib/promo-pricing"
 
 // buildDbWhere + parseSearchParams live in @/lib/search-filters — shared with
 // the saved-search alert matcher so alerts evaluate the exact search semantics.
@@ -49,9 +50,11 @@ const LISTING_SELECT = {
   slug: true,
   views: true,
   tier: true,
+  tierExpiresAt: true,
   trustScore: true,
   createdAt: true,
   agent: true,
+  extendedFields: true,
 } satisfies Prisma.ListingSelect
 
 async function dbSearch(filters: SearchFilters) {
@@ -74,13 +77,24 @@ async function dbSearch(filters: SearchFilters) {
     ])
 
     return {
-      hits: hits.map((l) => ({
-        ...l,
-        // DB enum "buy" → UI grammar "sale" (read side of the route's deal mapping).
-        dealType: l.dealType === "buy" ? "sale" : l.dealType,
-        // ponytail: flatten agent for the client. DB stores as JSON.
-        agent: l.agent as unknown,
-      })),
+      hits: hits.map((l) => {
+        const ext = l.extendedFields as {
+          colorUntil?: string
+          urgentUntil?: string
+          priceDropUntil?: string
+        } | null
+        return {
+          ...l,
+          // DB enum "buy" → UI grammar "sale" (read side of the route's deal mapping).
+          dealType: l.dealType === "buy" ? "sale" : l.dealType,
+          // ponytail: flatten agent for the client. DB stores as JSON.
+          agent: l.agent as unknown,
+          colorUntil: ext?.colorUntil,
+          urgentUntil: ext?.urgentUntil,
+          priceDropUntil: ext?.priceDropUntil,
+          tier: effectiveTierKey(l.tier, l.tierExpiresAt),
+        }
+      }),
       totalHits,
       page,
       pageSize,

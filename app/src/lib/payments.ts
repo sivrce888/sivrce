@@ -14,13 +14,21 @@ import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
 import { deleteListing, indexListing, type ListingDocument } from "@/lib/search"
 import {
   activeColorUntil,
+  activePriceDropUntil,
+  activeUrgentUntil,
   addonPriceTetri,
   COLOR_HIGHLIGHT_DAYS,
   effectiveTierKey,
+  extendIso,
   isCheckoutAddon,
+  isTurboAddon,
   REFRESH_COOLDOWN_MS,
+  STICKER_PRICE_DROP_DAYS,
+  STICKER_URGENT_DAYS,
+  TURBO_DAYS,
   tierRankOf,
   type CheckoutAddon,
+  type PromoExtFields,
 } from "@/lib/promo-pricing"
 
 // ---------------------------------------------------------------------------
@@ -414,12 +422,6 @@ export async function handleCallback(
   }
 }
 
-type ExtFields = {
-  condition?: string
-  buildingStatus?: string
-  colorUntil?: string
-}
-
 async function applyPaidAddon(
   listingId: string,
   userId: string | null,
@@ -429,13 +431,15 @@ async function applyPaidAddon(
 ): Promise<void> {
   const listing = await db.listing.findUnique({
     where: { id: listingId },
-    select: { tier: true, extendedFields: true },
+    select: { tier: true, tierExpiresAt: true, extendedFields: true },
   })
   if (!listing) return
 
   const now = new Date()
   let durationDays = 0
   let expiresAt = now
+  const prev = (listing.extendedFields as PromoExtFields | null) ?? {}
+  let reindex = false
 
   if (addon === "refresh_once") {
     // ponytail: bump createdAt — Georgian classifieds freshness; dedicated bumpedAt if audit needs it
@@ -445,14 +449,10 @@ async function applyPaidAddon(
       where: { id: listingId },
       data: { createdAt: now },
     })
+    reindex = true
   } else if (addon === "color") {
     durationDays = COLOR_HIGHLIGHT_DAYS
-    const prev = (listing.extendedFields as ExtFields | null) ?? {}
-    const baseMs =
-      prev.colorUntil && Date.parse(prev.colorUntil) > now.getTime()
-        ? Date.parse(prev.colorUntil)
-        : now.getTime()
-    const until = new Date(baseMs + COLOR_HIGHLIGHT_DAYS * 86_400_000)
+    const until = extendIso(prev.colorUntil, COLOR_HIGHLIGHT_DAYS, now)
     expiresAt = until
     await db.listing.update({
       where: { id: listingId },
@@ -460,6 +460,58 @@ async function applyPaidAddon(
         extendedFields: { ...prev, colorUntil: until.toISOString() } as Prisma.InputJsonValue,
       },
     })
+    reindex = true
+  } else if (addon === "sticker_urgent") {
+    durationDays = STICKER_URGENT_DAYS
+    const until = extendIso(prev.urgentUntil, STICKER_URGENT_DAYS, now)
+    expiresAt = until
+    await db.listing.update({
+      where: { id: listingId },
+      data: {
+        extendedFields: { ...prev, urgentUntil: until.toISOString() } as Prisma.InputJsonValue,
+      },
+    })
+    reindex = true
+  } else if (addon === "sticker_price_drop") {
+    durationDays = STICKER_PRICE_DROP_DAYS
+    const until = extendIso(prev.priceDropUntil, STICKER_PRICE_DROP_DAYS, now)
+    expiresAt = until
+    await db.listing.update({
+      where: { id: listingId },
+      data: {
+        extendedFields: {
+          ...prev,
+          priceDropUntil: until.toISOString(),
+        } as Prisma.InputJsonValue,
+      },
+    })
+    reindex = true
+  } else if (isTurboAddon(addon)) {
+    // Turbo = SUPER VIP + color + urgent sticker + bump for N days (−20/−25/−30 vs stack).
+    durationDays = TURBO_DAYS[addon]
+    const colorUntil = extendIso(prev.colorUntil, durationDays, now)
+    const urgentUntil = extendIso(prev.urgentUntil, durationDays, now)
+    const turboExpiry = new Date(now.getTime() + durationDays * 86_400_000)
+    const keepDiamond =
+      listing.tier === "diamond" &&
+      listing.tierExpiresAt &&
+      listing.tierExpiresAt.getTime() > turboExpiry.getTime()
+    expiresAt = keepDiamond ? listing.tierExpiresAt! : turboExpiry
+    await db.listing.update({
+      where: { id: listingId },
+      data: {
+        createdAt: now,
+        tier: "diamond",
+        tierPurchasedAt: now,
+        tierExpiresAt: expiresAt,
+        extendedFields: {
+          ...prev,
+          colorUntil: colorUntil.toISOString(),
+          urgentUntil: urgentUntil.toISOString(),
+        } as Prisma.InputJsonValue,
+      },
+    })
+    reindex = true
   } else {
     // Facebook packs — paid SKU; fulfillment is ops (boost history is the queue signal).
     durationDays = addon === "facebook" ? 3 : 7
@@ -481,7 +533,7 @@ async function applyPaidAddon(
     },
   })
 
-  if (addon === "refresh_once" || addon === "color") {
+  if (reindex) {
     await reindexListingById(listingId)
   }
 }
@@ -529,7 +581,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
     return
   }
 
-  const ext = listing.extendedFields as ExtFields | null
+  const ext = listing.extendedFields as PromoExtFields | null
   const tierKey = effectiveTierKey(listing.tier, listing.tierExpiresAt)
   const doc: ListingDocument = {
     id: listing.id,
@@ -564,6 +616,8 @@ export async function reindexListingById(listingId: string): Promise<void> {
     createdAt: listing.createdAt.toISOString(),
     status: listing.status,
     colorUntil: activeColorUntil(ext),
+    urgentUntil: activeUrgentUntil(ext),
+    priceDropUntil: activePriceDropUntil(ext),
     trustScore: listing.trustScore,
     tier: tierKey,
     tierRank: tierRankOf(listing.tier, listing.tierExpiresAt),

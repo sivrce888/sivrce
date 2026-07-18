@@ -19,12 +19,15 @@ import {
   Phone,
   Plus,
   Power,
+  Rocket,
   RotateCw,
   Search,
   Share2,
   Sparkles,
   Trash2,
+  TrendingDown,
   X,
+  Zap,
 } from "lucide-react"
 
 import LocalizedLink from "@/components/LocalizedLink"
@@ -122,6 +125,30 @@ const BOOST_PILLS: Array<{
     tier: "diamond",
     icon: Crown,
     className: "bg-gradient-to-r from-sv-orange to-sv-orange-deep text-white shadow-glow-orange",
+  },
+  {
+    key: "turbo_7",
+    label: "Turbo",
+    kind: "addon",
+    addon: "turbo_7",
+    icon: Rocket,
+    className: "bg-gradient-to-r from-sv-blue to-sv-violet text-white",
+  },
+  {
+    key: "sticker_urgent",
+    label: "სასწრაფოდ",
+    kind: "addon",
+    addon: "sticker_urgent",
+    icon: Zap,
+    className: "bg-sv-orange text-white hover:bg-sv-orange-deep",
+  },
+  {
+    key: "sticker_price_drop",
+    label: "ფასი↓",
+    kind: "addon",
+    addon: "sticker_price_drop",
+    icon: TrendingDown,
+    className: "bg-sv-navy text-white hover:bg-sv-navy-soft",
   },
   {
     key: "color",

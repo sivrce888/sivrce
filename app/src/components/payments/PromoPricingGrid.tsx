@@ -181,10 +181,11 @@ export default function PromoPricingGrid() {
       </div>
 
       <p className="mx-auto mt-8 max-w-2xl text-center text-[12px] font-medium text-sv-ink/40">
-        ტარიფები უძრავი ქონებისთვის. განახლება {formatGel(ADDON_TETRI.refresh_once)} · ფერი{" "}
-        {formatGel(ADDON_TETRI.color)} · Facebook {formatGel(ADDON_TETRI.facebook)} /{" "}
-        {formatGel(ADDON_TETRI.facebook_7d)} / {formatGel(ADDON_TETRI.facebook_7d_xl)}. სხვა რუბრიკები —
-        უფრო იაფი.
+        ტარიფები უძრავი ქონებისთვის. Turbo {formatGel(ADDON_TETRI.turbo_7)} /{" "}
+        {formatGel(ADDON_TETRI.turbo_14)} / {formatGel(ADDON_TETRI.turbo_30)} · სასწრაფოდ{" "}
+        {formatGel(ADDON_TETRI.sticker_urgent)} · ფასი↓ {formatGel(ADDON_TETRI.sticker_price_drop)} ·
+        განახლება {formatGel(ADDON_TETRI.refresh_once)} · ფერი {formatGel(ADDON_TETRI.color)} ·
+        Facebook {formatGel(ADDON_TETRI.facebook)}+. სხვა რუბრიკები — უფრო იაფი.
       </p>
     </div>
   )

@@ -11,6 +11,9 @@ import {
   RotateCw,
   Palette,
   Share2,
+  Zap,
+  TrendingDown,
+  Rocket,
 } from "lucide-react"
 import {
   ADDON_TETRI,
@@ -66,6 +69,41 @@ const ADDONS: Array<{
   priceTetri: number
   icon: typeof Crown
 }> = [
+  {
+    key: "turbo_7",
+    label: "Turbo · 7 დღე",
+    description: "SUPER VIP + ფერი + სასწრაფოდ + bump",
+    priceTetri: ADDON_TETRI.turbo_7,
+    icon: Rocket,
+  },
+  {
+    key: "turbo_14",
+    label: "Turbo · 14 დღე",
+    description: "იგივე ნაკრები · უკეთესი ფასი",
+    priceTetri: ADDON_TETRI.turbo_14,
+    icon: Rocket,
+  },
+  {
+    key: "turbo_30",
+    label: "Turbo · 30 დღე",
+    description: "მაქსიმალური პაკეტი",
+    priceTetri: ADDON_TETRI.turbo_30,
+    icon: Rocket,
+  },
+  {
+    key: "sticker_urgent",
+    label: "სასწრაფოდ · 1 დღე",
+    description: "ნარინჯისფერი სტიკერი ბარათზე",
+    priceTetri: ADDON_TETRI.sticker_urgent,
+    icon: Zap,
+  },
+  {
+    key: "sticker_price_drop",
+    label: "ფასი დაწეულია · 7 დღე",
+    description: "ფასის შემცირების ნიშანი",
+    priceTetri: ADDON_TETRI.sticker_price_drop,
+    icon: TrendingDown,
+  },
   {
     key: "refresh_once",
     label: "განახლება",

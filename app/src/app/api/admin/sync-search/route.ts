@@ -3,7 +3,7 @@ import { requireAdminAction } from "@/lib/admin/guard"
 import { syncAllListings, type ListingDocument } from "@/lib/search"
 import { db } from "@/lib/db"
 import { USD_GEL } from "@/data/listings"
-import { activeColorUntil, effectiveTierKey, tierRankOf } from "@/lib/promo-pricing"
+import { activeColorUntil, activePriceDropUntil, activeUrgentUntil, effectiveTierKey, tierRankOf } from "@/lib/promo-pricing"
 
 /**
  * POST /api/admin/sync-search
@@ -68,6 +68,8 @@ export async function POST() {
         condition?: string
         buildingStatus?: string
         colorUntil?: string
+        urgentUntil?: string
+        priceDropUntil?: string
       } | null
       const tierKey = effectiveTierKey(tier, tierExpiresAt)
       return {
@@ -83,6 +85,8 @@ export async function POST() {
         totalFloors: row.totalFloors ?? undefined,
         createdAt: row.createdAt.toISOString(),
         colorUntil: activeColorUntil(ext),
+        urgentUntil: activeUrgentUntil(ext),
+        priceDropUntil: activePriceDropUntil(ext),
         tier: tierKey,
         tierRank: tierRankOf(tier, tierExpiresAt),
       }

@@ -90,14 +90,21 @@ function basicParse(query: string) {
   }
 
   const geoDistricts: Record<string, string> = {
-    ვაკე: "ვაკე", vake: "ვაკე",
-    საბურთალო: "საბურთალო", saburtalo: "საბურთალო",
-    ისანი: "ისანი", isani: "ისანი",
-    გლდანი: "გლდანი", gldani: "გლდანი",
-    მთაწმინდა: "მთაწმინდა", mtatsminda: "მთაწმინდა",
-    დიღომი: "დიდი დიღომი", dighomi: "დიდი დიღომი",
+    'დიდი დიღომი': 'დიდი დიღომი', 'didi dighomi': 'დიდი დიღომი',
+    ვაკე: 'ვაკე', vake: 'ვაკე',
+    საბურთალო: 'საბურთალო', saburtalo: 'საბურთალო',
+    ისანი: 'ისანი', isani: 'ისანი',
+    გლდანი: 'გლდანი', gldani: 'გლდანი',
+    მთაწმინდა: 'მთაწმინდა', mtatsminda: 'მთაწმინდა',
+    კრწანისი: 'კრწანისი', krtsanisi: 'კრწანისი',
+    სამგორი: 'სამგორი', samgori: 'სამგორი',
+    დიდუბე: 'დიდუბე', didube: 'დიდუბე',
+    ნაძალადევი: 'ნაძალადევი', nadzaladevi: 'ნაძალადევი',
+    ჩუღურეთი: 'ჩუღურეთი', chughureti: 'ჩუღურეთი',
+    დიღომი: 'დიღომი', dighomi: 'დიღომი', digomi: 'დიღომი',
   }
-  for (const [key, district] of Object.entries(geoDistricts)) {
+  // Longer keys first so "დიდი დიღომი" wins over "დიღომი"
+  for (const [key, district] of Object.entries(geoDistricts).sort((a, b) => b[0].length - a[0].length)) {
     if (q.includes(key)) { result.district = district; break }
   }
 

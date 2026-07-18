@@ -105,11 +105,22 @@ const TABLES: Record<PromoProduct, Partial<Record<PromoCategory, Bracket[]>>> = 
   super_vip: SUPER_VIP,
 }
 
-/** Add-ons — undercut MyHome + SS entry FB package */
+/** Add-ons — undercut MyHome + SS entry FB / urgent / turbo packages */
 export const ADDON_TETRI = {
   refresh_once: 20, // MyHome 0.25
   refresh_auto_from: 25, // MyHome from 0.30
   color: 25, // MyHome 0.30
+  /** 1 დღე — under SS სასწრაფოდ ~5₾ */
+  sticker_urgent: 400,
+  /** 7 დღე — price-drop signal (no SS twin; high intent) */
+  sticker_price_drop: 250,
+  /**
+   * Turbo = SUPER VIP + ფერი + სასწრაფოდ + bump.
+   * À la carte 7d ≈ 77₾ → −20% = 62₾ (SS Turbo ~100₾).
+   */
+  turbo_7: 6200,
+  turbo_14: 10500, // ≈ −25% vs stack
+  turbo_30: 18900, // ≈ −30% vs stack
   /** Default / entry Facebook package (3 დღე) — under SS 45 & MyHome 49 */
   facebook: 3900,
   facebook_7d: 8500, // under SS 95
@@ -122,6 +133,11 @@ export type AddonKey = keyof typeof ADDON_TETRI
 export const CHECKOUT_ADDONS = [
   "refresh_once",
   "color",
+  "sticker_urgent",
+  "sticker_price_drop",
+  "turbo_7",
+  "turbo_14",
+  "turbo_30",
   "facebook",
   "facebook_7d",
   "facebook_7d_xl",
@@ -132,6 +148,17 @@ export type CheckoutAddon = (typeof CHECKOUT_ADDONS)[number]
 /** Color highlight window after purchase (days). */
 export const COLOR_HIGHLIGHT_DAYS = 7
 
+/** Paid sticker windows (days). */
+export const STICKER_URGENT_DAYS = 1
+export const STICKER_PRICE_DROP_DAYS = 7
+
+/** Turbo duration by SKU. */
+export const TURBO_DAYS: Record<"turbo_7" | "turbo_14" | "turbo_30", number> = {
+  turbo_7: 7,
+  turbo_14: 14,
+  turbo_30: 30,
+}
+
 /** Min gap between paid refreshes (ms). */
 export const REFRESH_COOLDOWN_MS = 60 * 60 * 1000
 
@@ -139,8 +166,23 @@ export function isCheckoutAddon(v: string): v is CheckoutAddon {
   return (CHECKOUT_ADDONS as ReadonlyArray<string>).includes(v)
 }
 
+export function isTurboAddon(v: string): v is keyof typeof TURBO_DAYS {
+  return v === "turbo_7" || v === "turbo_14" || v === "turbo_30"
+}
+
 export function addonPriceTetri(addon: CheckoutAddon): number {
   return ADDON_TETRI[addon]
+}
+
+/** Active ISO expiry, or undefined if expired/absent. */
+export function activeIsoUntil(
+  iso: string | undefined | null,
+  now: number = Date.now(),
+): string | undefined {
+  if (!iso) return undefined
+  const t = Date.parse(iso)
+  if (Number.isNaN(t) || t < now) return undefined
+  return iso
 }
 
 /** Active color highlight ISO, or undefined if expired/absent. */
@@ -148,10 +190,40 @@ export function activeColorUntil(
   ext: { colorUntil?: string } | null | undefined,
   now: number = Date.now(),
 ): string | undefined {
-  if (!ext?.colorUntil) return undefined
-  const t = Date.parse(ext.colorUntil)
-  if (Number.isNaN(t) || t < now) return undefined
-  return ext.colorUntil
+  return activeIsoUntil(ext?.colorUntil, now)
+}
+
+/** Stack duration onto an existing future ISO (or now). */
+export function extendIso(
+  prev: string | undefined,
+  days: number,
+  now: Date = new Date(),
+): Date {
+  const baseMs =
+    prev && Date.parse(prev) > now.getTime() ? Date.parse(prev) : now.getTime()
+  return new Date(baseMs + Math.max(1, days) * 86_400_000)
+}
+
+export type PromoExtFields = {
+  condition?: string
+  buildingStatus?: string
+  colorUntil?: string
+  urgentUntil?: string
+  priceDropUntil?: string
+}
+
+export function activeUrgentUntil(
+  ext: PromoExtFields | null | undefined,
+  now: number = Date.now(),
+): string | undefined {
+  return activeIsoUntil(ext?.urgentUntil, now)
+}
+
+export function activePriceDropUntil(
+  ext: PromoExtFields | null | undefined,
+  now: number = Date.now(),
+): string | undefined {
+  return activeIsoUntil(ext?.priceDropUntil, now)
 }
 
 /** Default duration chip on promo UI (commitment without sticker shock). */
@@ -291,7 +363,10 @@ export function assertPromoPricing(): void {
     ["FB XL < SS 135", ADDON_TETRI.facebook_7d_xl < COMPETITOR.ss.facebook[2]],
     ["refresh < MyHome", ADDON_TETRI.refresh_once < COMPETITOR.myhome.refresh_once],
     ["color < MyHome", ADDON_TETRI.color < COMPETITOR.myhome.color],
-    ["checkout addons 5", CHECKOUT_ADDONS.length === 5],
+    ["urgent < SS 5", ADDON_TETRI.sticker_urgent < 500],
+    ["turbo_7 < SS ~100", ADDON_TETRI.turbo_7 < 10000],
+    ["turbo_7 < stack", ADDON_TETRI.turbo_7 < 7745],
+    ["checkout addons 10", CHECKOUT_ADDONS.length === 10],
     ["tier vip → VIP", tierKeyToBadge("vip") === "VIP"],
     ["tier super_vip → VIP+", tierKeyToBadge("super_vip") === "VIP+"],
     ["tier diamond → SUPER VIP", tierKeyToBadge("diamond") === "SUPER VIP"],

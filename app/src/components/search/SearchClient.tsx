@@ -20,7 +20,7 @@ import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
-import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from '@/lib/features'
+import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS } from '@/lib/features'
 import type { SearchLocations } from '@/lib/listings-db'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
@@ -34,8 +34,10 @@ const ease = [0.21, 0.65, 0.2, 1] as const
 const PROP_TYPES: { value: PropType; key: DictKey; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND] }[] = [
   { value: 'apartment', key: 'prop.apartment', brand: CATEGORY_BRAND.apartments },
   { value: 'house', key: 'prop.house', brand: CATEGORY_BRAND.houses },
+  { value: 'villa', key: 'prop.villa', brand: CATEGORY_BRAND.cottages },
   { value: 'commercial', key: 'prop.commercial', brand: CATEGORY_BRAND.commercial },
   { value: 'land', key: 'prop.land', brand: CATEGORY_BRAND.land },
+  { value: 'hotel', key: 'prop.hotel', brand: CATEGORY_BRAND.hotels },
 ]
 
 const SORTS: { value: SortKey; key: DictKey }[] = [
@@ -133,6 +135,12 @@ function mapHit(h: Record<string, unknown>): Listing {
     isNew: Date.now() - new Date(postedAt).getTime() < 72 * 3600_000,
     highlighted: Boolean(
       h.colorUntil && Date.parse(String(h.colorUntil)) > Date.now(),
+    ),
+    stickerUrgent: Boolean(
+      h.urgentUntil && Date.parse(String(h.urgentUntil)) > Date.now(),
+    ),
+    stickerPriceDrop: Boolean(
+      h.priceDropUntil && Date.parse(String(h.priceDropUntil)) > Date.now(),
     ),
   }
 }
@@ -696,6 +704,23 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         )}
 
+        {/* Daily lifestyle signals — same vocabulary as home Collections; not buried in More */}
+        {deal === 'daily' && (
+          <div className="flex w-full flex-wrap gap-1.5">
+            {DAILY_SIGNAL_KEYS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => toggleCsv('feat', feat, f)}
+                aria-pressed={feat.includes(f)}
+                className={tagChip(feat.includes(f))}
+              >
+                {t(f)}
+              </button>
+            ))}
+          </div>
+        )}
+
         {(chips.length > 0 || sort !== 'date') && (
           <button
             onClick={resetAll}
@@ -805,7 +830,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             <div>
               <span className={labelClass}>{t('search.features')}</span>
               <div className="scrollbar-hide flex max-h-32 flex-wrap gap-1 overflow-y-auto">
-                {FEATURE_KEYS.map((f) => (
+                {FEATURE_KEYS.filter((f) => deal !== 'daily' || !(DAILY_SIGNAL_KEYS as readonly string[]).includes(f)).map((f) => (
                   <button key={f} type="button" onClick={() => toggleCsv('feat', feat, f)} aria-pressed={feat.includes(f)} className={tagChip(feat.includes(f))}>
                     {t(f)}
                   </button>

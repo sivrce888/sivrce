@@ -16,7 +16,7 @@
     "check:seo-hub": "npx --yes tsx src/lib/seo-hub.check.ts",
     "check:media": "npx --yes tsx src/lib/media.check.ts",
     "directory:localize": "npx --yes tsx scripts/localize-directory.ts",
-    "directory:mirror": "npx --yes tsx scripts/localize-directory.ts --mirror-only",
+    "directory:mirror": "npx --yes tsx scripts/localize-directory.ts --mirror-only --heroes",
     "postinstall": "prisma generate",
     "mobile:sync": "npx cap sync",
     "mobile:ios": "npx cap sync ios && npx cap open ios",
