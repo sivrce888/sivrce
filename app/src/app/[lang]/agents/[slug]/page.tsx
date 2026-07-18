@@ -13,6 +13,7 @@ import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 import { db } from '@/lib/db'
+import { safeQuery } from '@/lib/guards'
 
 export function generateStaticParams() {
   // ponytail: prerender ka only (today's build surface) — other locales SSR on
@@ -43,9 +44,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
     }
   }
-  const dbAgent = await db.agentProfile
-    .findFirst({ where: { slug, deletedAt: null }, select: { name: true, agency: true } })
-    .catch(() => null)
+  const dbAgent = await safeQuery(
+    () => db.agentProfile.findFirst({ where: { slug, deletedAt: null }, select: { name: true, agency: true } }),
+    null,
+  )
   if (!dbAgent) return {}
   return {
     title: `${dbAgent.name} — ${dbAgent.agency}`,
@@ -59,9 +61,10 @@ export default async function AgentPage({ params }: PageProps) {
 
   // Live DB agents → unified /u/[id] (listings + role)
   if (!agent) {
-    const dbAgent = await db.agentProfile
-      .findFirst({ where: { slug, deletedAt: null }, select: { ownerId: true } })
-      .catch(() => null)
+    const dbAgent = await safeQuery(
+      () => db.agentProfile.findFirst({ where: { slug, deletedAt: null }, select: { ownerId: true } }),
+      null,
+    )
     if (dbAgent?.ownerId) redirect(`/u/${dbAgent.ownerId}`)
     notFound()
   }

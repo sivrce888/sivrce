@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
+import { dbAvailable } from "@/lib/db"
 import type { UserRole } from "@/generated/prisma/client"
 
 export interface SessionUser {
@@ -64,6 +65,8 @@ export async function requireRole(
 
 /** Run a DB query, returning `fallback` when the DB is unreachable. */
 export async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  // Circuit breaker: skip instantly during a known outage (Neon quota/down).
+  if (!(await dbAvailable())) return fallback
   try {
     return await fn()
   } catch {

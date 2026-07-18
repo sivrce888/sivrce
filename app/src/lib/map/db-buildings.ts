@@ -7,7 +7,7 @@
  * ListingLocation→MapBuilding when attributed.
  *
  * ponytail: one unstable_cache list, tag-revalidated from admin actions.
- * Upgrade → PostGIS ST_DWithin bbox queries when building count × viewport matters.
+ * Viewport filter: fetchMapListingIdsInBbox (PostGIS) when map passes bounds.
  */
 
 import { unstable_cache } from "next/cache"
@@ -15,7 +15,8 @@ import { unstable_cache } from "next/cache"
 import type { BuildingCatalogEntry } from "@/data/buildings"
 import type { DealType, Listing } from "@/data/listings"
 import { SERVICE_BRAND } from "@/lib/category-brand"
-import { db } from "@/lib/db"
+import { db, dbAvailable } from "@/lib/db"
+import { listingIdsInBbox, type Bbox } from "@/lib/geo/postgis"
 import { catalogToCluster, type MapBuildingCluster } from "@/lib/map/buildings"
 import { activeColorUntil, activePriceDropUntil, activeStoryUntil, activeUrgentUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
 
@@ -126,6 +127,7 @@ function rowToMapListing(row: {
 
 async function fetchMapListings(): Promise<Listing[]> {
   try {
+    if (!(await dbAvailable())) return []
     const rows = await db.listing.findMany({
       where: { deletedAt: null, status: "active" },
       select: {
@@ -175,6 +177,15 @@ async function fetchMapListings(): Promise<Listing[]> {
       }))
       .sort((a, b) => b.rank - a.rank || b.listing.postedAt.localeCompare(a.listing.postedAt))
       .map((x) => x.listing)
+  } catch {
+    return []
+  }
+}
+
+/** PostGIS bbox → listing ids (for map viewport when > MAP_LISTINGS_CAP). */
+export async function fetchMapListingIdsInBbox(bbox: Bbox): Promise<string[]> {
+  try {
+    return await listingIdsInBbox(bbox, MAP_LISTINGS_CAP)
   } catch {
     return []
   }
@@ -315,6 +326,7 @@ export function rowToCluster(row: DbBuildingRow): MapBuildingCluster {
 
 async function fetchRows(): Promise<DbBuildingRow[]> {
   try {
+    if (!(await dbAvailable())) return []
     return (await db.mapBuilding.findMany({
       where: { status: { not: "hidden" } },
       select: SELECT,
