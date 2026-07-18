@@ -85,10 +85,11 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
     type: 'fill-extrusion',
     source: SOURCE_ID,
     paint: {
+      // ponytail: MapLibre 5 — fill-extrusion-opacity is constant-only; alpha lives in `color`.
       'fill-extrusion-color': ['get', 'color'],
       'fill-extrusion-height': ['get', 'height'],
       'fill-extrusion-base': 0,
-      'fill-extrusion-opacity': ['get', 'opacity'],
+      'fill-extrusion-opacity': 1,
     },
   })
 
@@ -485,7 +486,10 @@ function Map3DInner({
 
     map.on('error', (e) => {
       console.error('[Map3D]', e.error)
-      setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
+      // ponytail: tile/glyph noise is non-fatal; only block UI if the basemap never loaded.
+      if (!map.isStyleLoaded()) {
+        setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
+      }
     })
 
     map.on('mouseenter', EXTRUDE_ID, () => {

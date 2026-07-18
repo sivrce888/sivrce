@@ -10,6 +10,7 @@
 
 import {
   clusterGeometry,
+  colorWithAlpha,
   type MapBuildingCluster,
   type MapDealFilter,
 } from './buildings'
@@ -94,7 +95,10 @@ export function floorsToGeoJSON(
         minPrice: info.minPriceGEL ?? 0,
         hasListings: b.listings.length > 0,
         ghost,
-        color: b.color,
+        color: colorWithAlpha(
+          b.color,
+          ghost ? 0.45 : info.available === 0 ? 0.3 : 0.92,
+        ),
         label: info.available > 0 ? String(info.available) : '',
       },
       geometry: { type: 'Polygon' as const, coordinates: [ring] },

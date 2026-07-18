@@ -366,4 +366,7 @@ export const en: Dict = {
   'fav.subtitle': '{n} listings',
   'fav.empty': 'Nothing saved yet — tap the heart on any listing and it will appear here.',
   'fav.browse': 'Browse listings',
+
+  // a11y
+  'a11y.skipToContent': 'Skip to main content',
 }

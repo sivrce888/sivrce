@@ -29,6 +29,22 @@ const FOOTPRINTS = footprintData.footprints as unknown as Record<
 const CELL_DEG = 0.00055 // ≈ 60 m at Tbilisi lat
 export const NEAREST_RADIUS_M = 90
 
+/** Hex → rgba string. MapLibre 5 fill-extrusion-opacity is constant-only. */
+export function colorWithAlpha(hex: string, alpha: number): string {
+  const h = hex.replace('#', '')
+  const full =
+    h.length === 3
+      ? h
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : h
+  const n = Number.parseInt(full, 16)
+  if (!Number.isFinite(n)) return hex
+  const a = Math.min(1, Math.max(0, alpha))
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`
+}
+
 export type BuildingStatus = 'active' | 'construction' | 'completed' | 'ready'
 export type BuildingDealCounts = Record<DealType, number>
 
@@ -494,7 +510,11 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
         address: b.address,
         buildingNumber: b.buildingNumber,
         district: b.district,
-        color: b.color,
+        // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
+        color: colorWithAlpha(
+          b.color,
+          b.status === 'construction' && b.listings.length === 0 ? 0.55 : 0.92,
+        ),
         height: b.heightM,
         sale: b.counts.sale,
         rent: b.counts.rent,
@@ -504,12 +524,6 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
         dominant: b.dominant,
         status: b.status,
         progress: b.progress ?? 100,
-        opacity:
-          b.status === 'completed'
-            ? 0.92
-            : b.status === 'construction' && b.listings.length === 0
-              ? 0.55
-              : 0.92,
       },
       geometry: clusterGeometry(b),
     })),

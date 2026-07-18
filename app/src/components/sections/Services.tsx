@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Users, Building2, Paintbrush, Landmark, ArrowUpRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { SERVICE_BRAND } from '@/lib/category-brand'
+import { getCmsBlock } from '@/lib/cms'
 
 /* Locked per-service branding (BRAND.md §3.1) — every service owns its
    hue + chip from SERVICE_BRAND. Never inline new tints here. */
@@ -36,16 +37,20 @@ const SERVICES = [
   },
 ]
 
-export default function Services() {
+export default async function Services() {
+  const [title, sub] = await Promise.all([
+    getCmsBlock('home.services.title'),
+    getCmsBlock('home.services.sub'),
+  ])
   return (
     <section id="services" className="bg-sv-surface py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-12 text-center">
           <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            ყველაფერი უძრავი ქონებისთვის
+            {title}
           </h2>
           <p className="mx-auto mt-3 max-w-[560px] text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            ძიებიდან გარიგებამდე — სრული ეკოსისტემა ერთ პლატფორმაზე
+            {sub}
           </p>
         </Reveal>
 

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Star } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
+import { useI18n } from '@/lib/i18n/context'
 
 const PROJECTS = [
   {
@@ -32,19 +33,20 @@ const PROJECTS = [
 ]
 
 export default function Projects() {
+  const { b } = useI18n()
   return (
     <section id="projects" className="bg-sv-cloud py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-              <Building2 className="h-3.5 w-3.5" /> ახალი კორპუსები
+              <Building2 className="h-3.5 w-3.5" /> {b('home.projects.kicker')}
             </span>
             <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-              მშენებარე პროექტები
+              {b('home.projects.title')}
             </h2>
             <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-              ყველა დეველოპერი, ყველა პროექტი — შეფასებებით და 3D ვიზუალიზაციით
+              {b('home.projects.sub')}
             </p>
           </div>
           <Link href="/projects" className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:text-sv-blue-deep">

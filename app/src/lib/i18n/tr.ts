@@ -366,4 +366,7 @@ export const tr: Dict = {
   'fav.subtitle': '{n} ilan',
   'fav.empty': 'Henüz kaydedilen yok — herhangi bir ilanda kalbe dokunun, burada görünsün.',
   'fav.browse': 'İlanlara göz at',
+
+  // a11y
+  'a11y.skipToContent': 'Ana içeriğe geç',
 }

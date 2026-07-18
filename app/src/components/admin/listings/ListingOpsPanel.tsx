@@ -5,7 +5,7 @@ import {
   setTier,
   softDelete,
   toggleVerified,
-} from "@/app/admin/listings/actions"
+} from "@/app/[lang]/admin/listings/actions"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { STATUS_OPTIONS, TIER_OPTIONS } from "@/lib/admin/listings"
 import { fmtDateTime } from "@/lib/admin/format"

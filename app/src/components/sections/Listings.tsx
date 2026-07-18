@@ -5,9 +5,11 @@ import Link from 'next/link'
 import { ArrowRight, ChevronLeft, ChevronRight, Crown } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import ListingCard from '@/components/ListingCard'
+import { useI18n } from '@/lib/i18n/context'
 import type { Listing } from '@/data/listings'
 
 export default function Listings({ items }: { items: Listing[] }) {
+  const { b } = useI18n()
   const scroller = useRef<HTMLDivElement>(null)
   const scrollBy = (dir: number) =>
     scroller.current?.scrollBy({ left: dir * 420, behavior: 'smooth' })
@@ -18,13 +20,13 @@ export default function Listings({ items }: { items: Listing[] }) {
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-orange/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-orange">
-              <Crown className="h-3.5 w-3.5" /> არჩეული შეთავაზებები
+              <Crown className="h-3.5 w-3.5" /> {b('home.listings.kicker')}
             </span>
             <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-              SUPER VIP განცხადებები
+              {b('home.listings.title')}
             </h2>
             <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-              პრემიუმ ქონებები AI ფასის შეფასებით
+              {b('home.listings.sub')}
             </p>
           </div>
           <div className="flex items-center gap-3">

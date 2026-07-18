@@ -55,13 +55,13 @@ function LogoWordmark({ height, light }: { height: number; light: boolean }) {
   )
 }
 
-export function Logo({ light = false, compact = false }: { light?: boolean; compact?: boolean }) {
+export function Logo({ light = false, compact = false, href = "/" }: { light?: boolean; compact?: boolean; href?: string }) {
   // Lockup contract (logo/README.md): gap 15/48 of mark · x-height 25/48 of
   // mark · wordmark optically centered on the 48-unit grid.
   const mark = 36
   return (
     <Link
-      href="/"
+      href={href}
       className="group flex items-center"
       style={{ gap: (mark * 15) / 48 }}
       aria-label="სივრცე — მთავარი"

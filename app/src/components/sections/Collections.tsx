@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { PartyPopper, KeyRound, Waves, Bath, Palmtree, MountainSnow, PawPrint, Laptop, ArrowUpRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
+import { getCmsBlock } from '@/lib/cms'
 
 /* Locked collection branding (BRAND.md §3.1): party/selfCheckIn own locked
    rows; pool/jacuzzi reuse locked category hues, same as services do.
@@ -66,16 +67,20 @@ const COLLECTIONS = [
   },
 ]
 
-export default function Collections() {
+export default async function Collections() {
+  const [title, sub] = await Promise.all([
+    getCmsBlock('home.collections.title'),
+    getCmsBlock('home.collections.sub'),
+  ])
   return (
     <section className="bg-sv-cloud pb-20 md:pb-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10">
           <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            კოლექციები
+            {title}
           </h2>
           <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            დღიური ქირა — შერჩეული თემებით
+            {sub}
           </p>
         </Reveal>
 

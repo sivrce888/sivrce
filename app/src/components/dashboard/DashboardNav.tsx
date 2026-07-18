@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { stripLangPrefix } from "@/lib/i18n/core"
 
 import type { DashboardNavItem } from "@/components/dashboard/DashboardShell"
 
@@ -22,7 +23,7 @@ export default function DashboardNav({
   label: string
   variant: "side" | "mobile"
 }) {
-  const pathname = usePathname()
+  const pathname = stripLangPrefix(usePathname())
 
   if (variant === "mobile") {
     return (

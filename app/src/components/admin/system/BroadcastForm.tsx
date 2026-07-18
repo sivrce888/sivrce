@@ -2,7 +2,7 @@
 
 import { useActionState } from "react"
 
-import { sendBroadcast } from "@/app/admin/system/actions"
+import { sendBroadcast } from "@/app/[lang]/admin/system/actions"
 import type { BroadcastFormState } from "@/lib/admin/system"
 
 const inputCls =

@@ -9,6 +9,7 @@
 
 import { createContext, useContext } from 'react'
 import { isValidLang, type Lang, type DictKey } from './core'
+import type { CmsBlockKey } from '../cms-blocks'
 
 export { translate, ruPlural, LANGS, RTL_LANGS, localizedHref, stripLangPrefix } from './core'
 export type { DictKey, Lang } from './core'
@@ -17,6 +18,8 @@ export interface I18nContextValue {
   lang: Lang
   setLang: (lang: Lang) => void
   t: (key: DictKey, vars?: Record<string, string | number>) => string
+  /** CMS marketing block text — DB override → registry default. */
+  b: (key: CmsBlockKey) => string
 }
 
 export const I18nContext = createContext<I18nContextValue | null>(null)

@@ -1,14 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server"
 
 /**
- * Edge-level defense in depth for protected routes + locale-prefixed URLs
+ * Edge-level defense in depth for protected routes + locale routing
  * + multi-host routing (admin / api / cdn / app / analytics / images).
  *
- * Locale prefixes ("/en/search", "/ru/listing/…") rewrite to the unprefixed
- * app; the client i18n provider reads the prefix from the URL. ka stays
- * unprefixed (canonical default). ponytail: hreflang lives in the sitemap
- * only — head <link> tags would force the root layout dynamic. Upgrade path:
- * app/[lang] segment if we ever need server-rendered non-ka HTML.
+ * Route-based i18n: every public page lives under app/[lang]. ka is the
+ * canonical default and stays URL-unprefixed — this middleware INTERNALLY
+ * rewrites "/" → "/ka" and "/x" → "/ka/x" for non-locale first segments
+ * (api/auth/_next/file-like excluded by the passthrough below and the
+ * matcher). Prefixed locales ("/en/search") resolve natively; an explicit
+ * "/ka/…" URL 308s to its unprefixed canonical form. The [lang] layout
+ * validates the locale and 404s invalid prefixes.
  *
  * The authoritative role check still happens server-side in `requireAdmin()`
  * / `requireRole()` — those query the DB-backed session. Edge middleware
@@ -20,7 +22,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"]
 
-// Every supported locale except the default (ka). Keep in sync with LANGS in src/lib/i18n/context.ts.
+// Every supported locale except the default (ka). Keep in sync with LANGS in src/lib/i18n/core.ts.
 const LOCALE_PREFIXES = ["en", "ru", "he", "ar", "tr", "uk", "hy", "az"]
 
 const PROTECTED_PREFIXES = [
@@ -31,6 +33,7 @@ const PROTECTED_PREFIXES = [
   "/developer",
   "/settings",
   "/dashboard",
+  "/auth/onboarding",
 ]
 
 const APEX = "https://sivrce.ge"
@@ -39,6 +42,27 @@ function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   )
+}
+
+/** Strip one leading locale prefix (any of the 9) so checks run on the app path. */
+function stripLocale(pathname: string): string {
+  const seg = pathname.split("/")[1] ?? ""
+  if (seg === "ka" || LOCALE_PREFIXES.includes(seg)) {
+    return pathname.slice(seg.length + 1) || "/"
+  }
+  return pathname
+}
+
+function hasSession(req: NextRequest): boolean {
+  return SESSION_COOKIES.some((c) => Boolean(req.cookies.get(c)?.value))
+}
+
+function signinRedirect(req: NextRequest, callbackUrl: string): NextResponse {
+  const url = req.nextUrl.clone()
+  url.pathname = "/auth/signin"
+  url.search = ""
+  url.searchParams.set("callbackUrl", callbackUrl)
+  return NextResponse.redirect(url)
 }
 
 function hostName(req: NextRequest): string {
@@ -110,71 +134,54 @@ export function middleware(req: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  // Admin host: map / → /admin, /users → /admin/users (auth stays as-is).
+  // Admin host: map / → /ka/admin, /users → /ka/admin/users (auth stays as-is).
   if (isAdminHost(host)) {
-    const passthrough =
-      pathname.startsWith("/admin") ||
-      pathname.startsWith("/auth") ||
-      pathname.startsWith("/api")
-    const adminPath = passthrough
-      ? pathname
-      : pathname === "/"
-        ? "/admin"
-        : `/admin${pathname}`
+    if (pathname.startsWith("/auth") || pathname.startsWith("/api")) {
+      return NextResponse.next()
+    }
+    const bare = stripLocale(pathname)
+    const adminPath = bare === "/" ? "/admin" : bare.startsWith("/admin") ? bare : `/admin${bare}`
 
-    if (isProtected(adminPath)) {
-      const hasSession = SESSION_COOKIES.some((c) => Boolean(req.cookies.get(c)?.value))
-      if (!hasSession) {
-        const url = req.nextUrl.clone()
-        url.pathname = "/auth/signin"
-        url.search = ""
-        url.searchParams.set("callbackUrl", adminPath)
-        return NextResponse.redirect(url)
-      }
+    if (isProtected(adminPath) && !hasSession(req)) {
+      return signinRedirect(req, adminPath)
     }
 
-    if (adminPath !== pathname) {
-      const url = req.nextUrl.clone()
-      url.pathname = adminPath
-      return NextResponse.rewrite(url)
-    }
+    const url = req.nextUrl.clone()
+    url.pathname = `/ka${adminPath}`
+    return NextResponse.rewrite(url)
+  }
+
+  // Canonical ka is unprefixed: an explicit /ka/… URL redirects to its clean form.
+  const seg = pathname.split("/")[1] ?? ""
+  if (seg === "ka") {
+    const url = req.nextUrl.clone()
+    url.pathname = pathname.slice(3) || "/"
+    return NextResponse.redirect(url, 308)
+  }
+
+  // Everything below works on the locale-stripped app path (as before).
+  const bare = stripLocale(pathname)
+
+  if (isProtected(bare) && !hasSession(req)) {
+    return signinRedirect(req, bare)
+  }
+
+  // Prefixed locales resolve through the app/[lang] segment natively.
+  if (LOCALE_PREFIXES.includes(seg)) {
     return NextResponse.next()
   }
 
-  // Strip a locale prefix; everything below works on the real app path.
-  const seg = pathname.split("/")[1] ?? ""
-  const hasPrefix = LOCALE_PREFIXES.includes(seg)
-  const stripped = hasPrefix ? pathname.slice(seg.length + 1) || "/" : pathname
-
-  if (isProtected(stripped)) {
-    const hasSession = SESSION_COOKIES.some((c) => Boolean(req.cookies.get(c)?.value))
-    if (!hasSession) {
-      const url = req.nextUrl.clone()
-      url.pathname = "/auth/signin"
-      url.search = ""
-      url.searchParams.set("callbackUrl", stripped)
-      return NextResponse.redirect(url)
-    }
+  // Route handlers + auth flows stay at the root, unprefixed.
+  if (pathname === "/api" || pathname.startsWith("/api/") || pathname === "/auth" || pathname.startsWith("/auth/")) {
+    return NextResponse.next()
   }
 
-  if (hasPrefix) {
-    // Dedicated SSR pages for en/ru — don't rewrite them away:
-    // the locale root and the programmatic SEO pages (/en/sale/…, /ru/tbilisi/…).
-    // Keep SEO_ROOTS in sync with DEALS/CITIES in src/lib/seo-pages.ts.
-    if (seg === "en" || seg === "ru") {
-      if (stripped === "/") return NextResponse.next()
-      const root = stripped.split("/")[1] ?? ""
-      if (SEO_ROOTS.has(root)) return NextResponse.next()
-    }
-    const url = req.nextUrl.clone()
-    url.pathname = stripped
-    return NextResponse.rewrite(url)
-  }
-  return NextResponse.next()
+  // ka-injection: unprefixed app URLs serve the ka segment internally;
+  // the external URL stays clean and canonical.
+  const url = req.nextUrl.clone()
+  url.pathname = `/ka${pathname === "/" ? "" : pathname}`
+  return NextResponse.rewrite(url)
 }
-
-// Deal + city roots that have physical en/ru SSR pages (see app/en/[...seo]).
-const SEO_ROOTS = new Set(["sale", "rent", "daily", "pledge", "tbilisi", "batumi", "kutaisi"])
 
 export const config = {
   // MUST include `/` — the catch-all group alone skips the apex path, which

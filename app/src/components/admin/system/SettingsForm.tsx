@@ -2,7 +2,7 @@
 
 import { useActionState } from "react"
 
-import { saveSettings } from "@/app/admin/system/actions"
+import { saveSettings } from "@/app/[lang]/admin/system/actions"
 import type { SettingsFormState } from "@/lib/admin/system"
 import type { ConfigSectionModel } from "@/lib/config"
 

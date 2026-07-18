@@ -1,18 +1,29 @@
 import { BadgeCheck, ShieldCheck, Zap } from 'lucide-react'
 import HeroBackground from './HeroBackground'
 import HeroSearch from './HeroSearch'
+import { getCmsBlock } from '@/lib/cms'
 
 /* Static hero shell — server component. LCP text (h1/subtitle) paints from the
    RSC payload, never gated on or re-painted by client hydration. Interactive
-   search panel lives in the HeroSearch island (the only framer-motion user). */
+   search panel lives in the HeroSearch island (the only framer-motion user).
+   Copy is CMS-overridable (/admin/content/pages → Homepage blocks); ka SSR. */
 
 const TRUST = [
-  { icon: BadgeCheck, label: 'ვერიფიცირებული განცხადებები' },
-  { icon: ShieldCheck, label: 'უსაფრთხო გარიგებები' },
-  { icon: Zap, label: 'AI ფასის შეფასება' },
-]
+  { icon: BadgeCheck, key: 'home.hero.trust1' },
+  { icon: ShieldCheck, key: 'home.hero.trust2' },
+  { icon: Zap, key: 'home.hero.trust3' },
+] as const
 
-export default function Hero() {
+export default async function Hero() {
+  const [badge, titleA, titleAccent, subtitle, ...trust] = await Promise.all([
+    getCmsBlock('home.hero.badge'),
+    getCmsBlock('home.hero.titleA'),
+    getCmsBlock('home.hero.titleAccent'),
+    getCmsBlock('home.hero.subtitle'),
+    getCmsBlock('home.hero.trust1'),
+    getCmsBlock('home.hero.trust2'),
+    getCmsBlock('home.hero.trust3'),
+  ])
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-sv-navy">
       {/* Animated brand background */}
@@ -28,17 +39,16 @@ export default function Hero() {
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sv-success" />
           </span>
           <span className="text-[13px] font-bold tracking-wide text-white/90 md:text-[14px]">
-            52,400+ აქტიური განცხადება საქართველოში
+            {badge}
           </span>
         </div>
 
         <h1 className="text-balance text-center text-[44px] font-black leading-[1.06] tracking-[-0.03em] text-white md:text-[72px] lg:text-[84px]">
-          იპოვე შენი <span className="text-gradient-blue text-gradient-shimmer">სივრცე</span>
+          {titleA} <span className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
         </h1>
 
         <p className="mt-6 max-w-[640px] text-balance text-center text-[16px] font-medium leading-relaxed text-white/70 md:text-[19px]">
-          ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები — ყველაფერი ერთ
-          პლატფორმაზე, 3D რუკით და AI შეფასებით
+          {subtitle}
         </p>
 
         <HeroSearch />
@@ -48,10 +58,10 @@ export default function Hero() {
           className="sv-hero-in mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"
           style={{ animationDelay: '0.3s' }}
         >
-          {TRUST.map((t) => (
-            <div key={t.label} className="flex items-center gap-2.5 text-white/70">
+          {TRUST.map((t, i) => (
+            <div key={t.key} className="flex items-center gap-2.5 text-white/70">
               <t.icon className="h-[18px] w-[18px] text-sv-success" />
-              <span className="text-[13px] font-bold md:text-[14px]">{t.label}</span>
+              <span className="text-[13px] font-bold md:text-[14px]">{trust[i]}</span>
             </div>
           ))}
         </div>

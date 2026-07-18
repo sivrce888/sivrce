@@ -9,6 +9,7 @@ import { WeatherBadge } from '@/components/WeatherBadge'
 import { formatUSD } from '@/data/listings'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 import {
   dealLabel,
   h1Of,
@@ -63,7 +64,7 @@ const UI = {
 
 const OG_LOCALE: Record<SeoLoc, string> = { ka: 'ka_GE', en: 'en_US', ru: 'ru_RU' }
 
-export function seoMetadata(def: SeoPageDef, loc: SeoLoc): Metadata {
+export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = locPrefix(loc)): Metadata {
   // city-info: curated title — "გორი — უძრავი ქონება, ფასები, გზამკვლევი | sivrce"
   // (avoids the "0 განცხადება" suffix that titleOf would emit for empty listings).
   const isCityInfo = def.kind === 'city-info' && def.city
@@ -78,18 +79,13 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc): Metadata {
           : `${placeName} — недвижимость, цены и гид`)
     : titleOf(def, loc)
   const description = isCityInfo ? (cityProseOf(def.city!.slug)?.lede ?? '') : descriptionOf(def, loc)
-  const url = `${locPrefix(loc)}${def.path}`
+  const url = `${urlPrefix}${def.path}`
   return {
     title,
     description,
     alternates: {
       canonical: url,
-      languages: {
-        ka: def.path,
-        en: `/en${def.path}`,
-        ru: `/ru${def.path}`,
-        'x-default': def.path,
-      },
+      languages: langAlternates(def.path),
     },
     openGraph: {
       title,
@@ -104,9 +100,8 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc): Metadata {
   }
 }
 
-function seoLd(def: SeoPageDef, loc: SeoLoc) {
-  const p = locPrefix(loc)
-  const crumbs = breadcrumbsOf(def, loc)
+function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
+  const crumbs = breadcrumbsOf(def, loc, p)
   // city-info: Place + TouristDestination + Breadcrumb. No ItemList (empty)
   // and no FAQPage (faqsOf needs listings). The prose carries the entity.
   if (def.kind === 'city-info' && def.city) {
@@ -197,11 +192,20 @@ export function Chip({ label, href, active }: { label: string; href: string; act
   )
 }
 
-export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc }) {
+export default function SeoLanding({
+  def,
+  loc,
+  urlPrefix = locPrefix(loc),
+}: {
+  def: SeoPageDef
+  loc: SeoLoc
+  /** URL prefix for internal links — differs from loc when a non-ka/en/ru locale falls back to English copy. */
+  urlPrefix?: string
+}) {
   const ui = UI[loc]
   const stats = statsOf(def.listings)
-  const crumbs = breadcrumbsOf(def, loc)
-  const chips = linkChipsOf(def, loc)
+  const crumbs = breadcrumbsOf(def, loc, urlPrefix)
+  const chips = linkChipsOf(def, loc, urlPrefix)
   const faqs = faqsOf(def, loc)
   const h1 = h1Of(def, loc)
   // city-info pages: no listings yet, just curated prose. Hide the empty
@@ -288,7 +292,7 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
           <div className="mb-8 space-y-3">
             {chips.dealSwitch && (
               <div className="flex flex-wrap gap-2">
-                <Chip label={dealLabel(def.dealSlug!, loc)} href={`${locPrefix(loc)}${def.path}`} active />
+                <Chip label={dealLabel(def.dealSlug!, loc)} href={`${urlPrefix}${def.path}`} active />
                 <Chip label={chips.dealSwitch.label} href={chips.dealSwitch.href} />
               </div>
             )}
@@ -392,7 +396,7 @@ export default function SeoLanding({ def, loc }: { def: SeoPageDef; loc: SeoLoc 
         )}
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(seoLd(def, loc)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(seoLd(def, loc, urlPrefix)) }} />
     </div>
   )
 }
