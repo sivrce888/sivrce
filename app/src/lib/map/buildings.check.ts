@@ -382,6 +382,7 @@ const axisFc = buildingsToGeoJSON([
 ])
 assert.equal(axisFc.features[0]!.properties!.label, 'აქსის თაუერსი')
 assert.equal(axisFc.features[0]!.properties!.code, axis!.code)
+assert.match(String(axisFc.features[0]!.properties!.hue), /^#[0-9A-Fa-f]{6}$/)
 const onlyBuild = filterBuildings(
   projectsToConstructionBuildings(PROJECTS),
   'all',
