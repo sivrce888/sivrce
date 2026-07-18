@@ -87,3 +87,68 @@ export function useSavedSearches() {
 
   return { searches, count: searches.length, save, remove }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Server sync (logged-in users) — /api/saved-searches                */
+/*  localStorage stays the guest cache; the server copy drives alerts. */
+/* ------------------------------------------------------------------ */
+
+export interface ServerSavedSearch {
+  id: string
+  name: string
+  query: string
+  alertEnabled: boolean
+  createdAt: string
+}
+
+/** null = logged out or unreachable — callers fall back to localStorage. */
+export async function fetchServerSavedSearches(): Promise<ServerSavedSearch[] | null> {
+  try {
+    const res = await fetch('/api/saved-searches', { cache: 'no-store' })
+    if (!res.ok) return null
+    const json = (await res.json()) as { ok?: boolean; searches?: ServerSavedSearch[] }
+    return json.ok && Array.isArray(json.searches) ? json.searches : null
+  } catch {
+    return null
+  }
+}
+
+export async function saveServerSearch(input: {
+  name: string
+  query: string
+  lang: string
+}): Promise<'ok' | 'unauthorized' | 'error'> {
+  try {
+    const res = await fetch('/api/saved-searches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (res.status === 401) return 'unauthorized'
+    return res.ok ? 'ok' : 'error'
+  } catch {
+    return 'error'
+  }
+}
+
+export async function setServerSearchAlert(id: string, alertEnabled: boolean): Promise<boolean> {
+  try {
+    const res = await fetch('/api/saved-searches', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, alertEnabled }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+export async function removeServerSearch(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/saved-searches?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+    return res.ok
+  } catch {
+    return false
+  }
+}

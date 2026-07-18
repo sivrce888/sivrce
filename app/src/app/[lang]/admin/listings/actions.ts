@@ -8,6 +8,7 @@ import { requireAdminAction } from "@/lib/admin/guard"
 import { optInt, reqEnum, reqString } from "@/lib/admin/validate"
 import { db } from "@/lib/db"
 import { attributeListing, unattributeListing } from "@/lib/map/attribution"
+import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 
 const TIERS = Object.values(ListingTier)
 const STATUSES = Object.values(ListingStatus)
@@ -60,6 +61,10 @@ export async function setStatus(fd: FormData) {
   // Keep floor inventory in sync: sold/expired/withdrawn frees the unit, reactivate re-counts it.
   if (before.status === "active" && status !== "active") await unattributeListing(id)
   else if (before.status !== "active" && status === "active") await attributeListing(id)
+  // Saved-search alerts on (re)activation — fire-and-forget, never block admin.
+  if (before.status !== "active" && status === "active") {
+    void runSavedSearchAlerts(id).catch(() => {})
+  }
   await logAdminAction(session, "listing.set_status", "listing", id, {
     before: { status: before.status },
     after: { status },

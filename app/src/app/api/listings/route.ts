@@ -14,6 +14,7 @@ import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/cl
 import { db } from "@/lib/db"
 import { attributeListing } from "@/lib/map/attribution"
 import { cityCenter, geocodeListingAddress, parseCoords } from "@/lib/map/geocode"
+import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
 
@@ -167,6 +168,10 @@ export async function POST(req: NextRequest) {
     tier: "standard",
     tierRank: 0,
   }).catch(() => {})
+
+  // Saved-search alerts: match + fan out (in-app/email/push). Fire-and-forget —
+  // alert delivery must never block publishing, same as indexing above.
+  void runSavedSearchAlerts(listing.id).catch(() => {})
 
   if (session.user.role === "buyer") {
     await db.user.update({ where: { id: session.user.id }, data: { role: "seller" } })
