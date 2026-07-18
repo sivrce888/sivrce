@@ -1,21 +1,13 @@
 import type { Metadata } from "next"
-import LocalizedLink from "@/components/LocalizedLink"
-import { Plus } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
-import EmptyState from "@/components/dashboard/EmptyState"
-import Badge from "@/components/agent-dashboard/Badge"
+import MyListingsManager, {
+  type ManagedListing,
+} from "@/components/my-listings/MyListingsManager"
 import { agentNav } from "@/components/agent-dashboard/nav"
-import {
-  fmtDate,
-  fmtPrice,
-  listingStatusLabel,
-  listingStatusTone,
-  tierLabel,
-} from "@/components/agent-dashboard/format"
-import TierPurchaseButton from "@/components/payments/TierPurchaseButton"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { effectiveTierKey } from "@/lib/promo-pricing"
 
 export const dynamic = "force-dynamic"
@@ -32,10 +24,43 @@ export default async function AgentListingsPage() {
     () =>
       db.listing.findMany({
         where: { ownerId: user.id, deletedAt: null },
-        orderBy: { createdAt: "desc" },
+        orderBy: { updatedAt: "desc" },
       }),
     [],
   )
+
+  const ids = listings.map((l) => l.id)
+  const leadGroups = await safeQuery(
+    () =>
+      ids.length === 0
+        ? Promise.resolve([])
+        : db.inquiry.groupBy({
+            by: ["listingId"],
+            where: { listingId: { in: ids }, deletedAt: null },
+            _count: { _all: true },
+          }),
+    [],
+  )
+  const leadsById = new Map(leadGroups.map((g) => [g.listingId, g._count._all]))
+
+  const managed: ManagedListing[] = listings.map((l) => ({
+    id: l.id,
+    title: l.title,
+    description: l.description,
+    city: l.city,
+    district: l.district,
+    price: l.price,
+    currency: l.currency,
+    status: l.status,
+    tier: effectiveTierKey(l.tier, l.tierExpiresAt),
+    tierExpiresAt: l.tierExpiresAt?.toISOString() ?? null,
+    views: l.views,
+    leads: leadsById.get(l.id) ?? 0,
+    phoneReveals: phoneRevealsOf(l.extendedFields),
+    image: l.images[0] ?? "/images/p1.webp",
+    createdAt: l.createdAt.toISOString(),
+    updatedAt: l.updatedAt.toISOString(),
+  }))
 
   return (
     <DashboardShell
@@ -44,87 +69,7 @@ export default async function AgentListingsPage() {
       subtitle="განცხადებები"
       userLabel={user.name ?? user.email}
     >
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-black tracking-tight text-sv-ink">
-          ჩემი განცხადებები
-          <span className="ml-2 text-[13px] font-bold text-sv-ink/40">{listings.length}</span>
-        </h1>
-        <LocalizedLink
-          href="/add-listing"
-          className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep"
-        >
-          <Plus size={15} />
-          დამატება
-        </LocalizedLink>
-      </div>
-
-      {listings.length === 0 ? (
-        <EmptyState
-          title="განცხადებები ჯერ არ გაქვს"
-          body="დაამატე პირველი განცხადება — რამდენიმე წუთში გამოქვეყნდება sivrce-ზე."
-          actionHref="/add-listing"
-          actionLabel="განცხადების დამატება"
-        />
-      ) : (
-        <div className="overflow-x-auto rounded-2xl border border-sv-ink/6 bg-white shadow-sm">
-          <table className="w-full min-w-[800px] text-left">
-            <thead>
-              <tr className="border-b border-sv-ink/8 text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
-                <th className="px-5 py-3.5">განცხადება</th>
-                <th className="px-4 py-3.5">სტატუსი</th>
-                <th className="px-4 py-3.5">ტირი</th>
-                <th className="px-4 py-3.5">ფასი</th>
-                <th className="px-4 py-3.5">ნახვები</th>
-                <th className="px-4 py-3.5">დამატებული</th>
-                <th className="px-4 py-3.5 text-right">გაძლიერება</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-sv-ink/6">
-              {listings.map((l) => (
-                <tr key={l.id} className="transition hover:bg-sv-cloud/40">
-                  <td className="max-w-64 px-5 py-3.5">
-                    <LocalizedLink
-                      href={`/listing/${l.id}`}
-                      className="block truncate text-[13.5px] font-bold text-sv-ink hover:text-sv-blue"
-                    >
-                      {l.title}
-                    </LocalizedLink>
-                    <p className="truncate text-[12px] font-medium text-sv-ink/50">
-                      {l.city} · {l.district}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <Badge
-                      label={listingStatusLabel[l.status] ?? l.status}
-                      tone={listingStatusTone[l.status] ?? "neutral"}
-                    />
-                  </td>
-                  <td className="px-4 py-3.5 text-[12.5px] font-bold text-sv-ink/70">
-                    {tierLabel[l.tier] ?? l.tier}
-                  </td>
-                  <td className="px-4 py-3.5 text-[13.5px] font-extrabold text-sv-ink">
-                    {fmtPrice(l.price, l.currency)}
-                  </td>
-                  <td className="px-4 py-3.5 text-[13px] font-semibold text-sv-ink/60">
-                    {l.views}
-                  </td>
-                  <td className="px-4 py-3.5 text-[12.5px] font-medium text-sv-ink/50">
-                    {fmtDate(l.createdAt)}
-                  </td>
-                  <td className="px-4 py-3.5 text-right">
-                    {l.status === "active" ? (
-                      <TierPurchaseButton
-                        listingId={l.id}
-                        currentTier={effectiveTierKey(l.tier, l.tierExpiresAt)}
-                      />
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <MyListingsManager listings={managed} />
     </DashboardShell>
   )
 }

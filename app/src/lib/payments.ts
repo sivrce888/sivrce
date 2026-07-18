@@ -11,7 +11,7 @@ import { Prisma } from "@/generated/prisma/client"
 import { USD_GEL } from "@/data/listings"
 import { revalidateTag } from "next/cache"
 import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
-import { indexListing, type ListingDocument } from "@/lib/search"
+import { deleteListing, indexListing, type ListingDocument } from "@/lib/search"
 import {
   activeColorUntil,
   addonPriceTetri,
@@ -486,7 +486,8 @@ async function applyPaidAddon(
   }
 }
 
-async function reindexListingById(listingId: string): Promise<void> {
+/** Reindex active listing; remove from Meili when inactive/missing. */
+export async function reindexListingById(listingId: string): Promise<void> {
   const listing = await db.listing.findUnique({
     where: { id: listingId },
     select: {
@@ -520,9 +521,13 @@ async function reindexListingById(listingId: string): Promise<void> {
       trustScore: true,
       tier: true,
       tierExpiresAt: true,
+      deletedAt: true,
     },
   })
-  if (!listing || listing.status !== "active") return
+  if (!listing || listing.deletedAt || listing.status !== "active") {
+    void deleteListing(listingId)
+    return
+  }
 
   const ext = listing.extendedFields as ExtFields | null
   const tierKey = effectiveTierKey(listing.tier, listing.tierExpiresAt)
