@@ -73,8 +73,8 @@ const nextConfig: NextConfig = {
       ? { exclude: ["error", "warn"] }
       : false,
   },
-  // ponytail: Neon cold-starts + per-worker Prisma connects can exceed the 60s
-  // default on DB-backed SSG pages. Bump timeout; make builds warm the DB instead.
+  // ponytail: cold Prisma connects can exceed the 60s default on DB-backed
+  // SSG pages. Bump timeout; make builds warm the DB instead.
   staticPageGenerationTimeout: 180,
   // Keep native/heavy pkgs out of the serverless trace — smaller Vercel functions.
   outputFileTracingExcludes: {
@@ -93,7 +93,7 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    // 9 workers × Prisma pools socket-timeout Neon's free tier mid-build;
+    // 9 workers × Prisma pools can exhaust pooler slots mid-build;
     // cap concurrency so SSG DB traffic stays under the connection ceiling.
     staticGenerationMaxConcurrency: 3,
     cpus: 2,

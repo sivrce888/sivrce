@@ -1,6 +1,6 @@
 /**
  * Seed script: inserts the 31 mock listings from src/data/listings.ts
- * into the Neon Postgres database.
+ * into the Supabase Postgres database.
  *
  * Usage: npx tsx scripts/seed.ts
  * Requires: DATABASE_URL (pooled) and DIRECT_URL (for Prisma)

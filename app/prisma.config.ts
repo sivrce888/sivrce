@@ -20,8 +20,8 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
-  // Migrate/introspect over Neon's direct (non-pooled) endpoint.
-  // The runtime client uses the pooled DATABASE_URL via src/lib/db.ts.
+  // Migrate/introspect over Supabase session pooler (DIRECT_URL :5432).
+  // The runtime client uses the transaction pooler DATABASE_URL via src/lib/db.ts.
   datasource: {
     url: dbUrl,
   },

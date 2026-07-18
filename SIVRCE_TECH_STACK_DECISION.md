@@ -13,7 +13,7 @@
 |---|--------|--------|---------|--------------------|--------------------|
 | 1 | Frontend | **Next.js 16.2** | KEEP | 8.9 vs RRv7 7.5 | Vercel lock-in pain; Astro satellite for blog only |
 | 2 | Backend | **Next.js full-stack modular monolith** | KEEP | 99.3 vs NestJS 84.4 | Team >10–15 eng, mobile public API, 100× divergent load |
-| 3 | Database | **Neon serverless Postgres + Prisma 7** | KEEP | 93.1 vs Supabase 92.0 | Sustained OLTP ceiling, multi-region, HIPAA-class compliance → Aurora |
+| 3 | Database | **Supabase Postgres + Prisma 7** | SWITCH (2026-07-18) | Neon free-tier data-transfer quota exceeded in prod | Sustained OLTP / multi-region / HIPAA → Aurora |
 | 4 | Cloud / Hosting | **Vercel** (Cloudflare DNS in front) | KEEP | CF raw 96.4 vs Vercel 95.3 — delta < switching cost | Vercel bill >$300/mo sustained → Cloudflare Workers via OpenNext |
 | 5 | AI Infrastructure | **Google Gemini API** via Vercel AI SDK + Gateway | ADOPT (greenfield) | 9.1 vs OpenAI 8.5 | ChatGPT-app distribution deal; quarterly re-score |
 | 6 | Search | **Meilisearch** | KEEP | 8.4 vs Algolia 8.3 | p99 >200ms at scale or hired relevance team → Algolia |
@@ -26,7 +26,7 @@
 | 10d | Observability | **Sentry** | ADOPT | 8.5 vs Datadog 8.1 | Own K8s/multi-cloud + SRE hire → add Datadog |
 | 10e | Auth | **Auth.js v5** | KEEP | Clerk raw 7.7 vs 6.9 — EV favors keep ($0.02/MAU at 1M MAU ≈ $20K/mo) | SAML/SCIM enterprise demand → Clerk; Auth.js stalls → Better Auth |
 
-**One-line architecture:** Next.js 16 modular monolith on Vercel (Cloudflare DNS in front) · Neon Postgres + Prisma 7 (pgvector + PostGIS) · Meilisearch · R2/Images/Stream · Gemini via AI SDK/Gateway · PostHog + GA4 · TBC/BOG payments · Google Maps · Resend · Twilio · Sentry · Auth.js v5 — every external service behind a thin internal adapter so each migration is a days-scale swap, never a rewrite.
+**One-line architecture:** Next.js 16 modular monolith on Vercel (Cloudflare DNS in front) · Supabase Postgres + Prisma 7 (pgvector + PostGIS) · Meilisearch · R2/Images/Stream · Gemini via AI SDK/Gateway · PostHog + GA4 · TBC/BOG payments · Google Maps · Resend · Twilio · Sentry · Auth.js v5 — every external service behind a thin internal adapter so each migration is a days-scale swap, never a rewrite.
 
 ---
 
@@ -75,11 +75,16 @@
 
 **Stage verdict:** modular monolith now, extraction-ready — domain folders (`/modules/listings|chat|payments`), no cross-module DB access. Move long-running work (image variants, notifications) to queues/cron. Patch discipline (2025 Next.js CVEs). **Trigger:** team >10–15 eng, a 100×-load domain, native mobile needing a public API, or payment compliance isolation → extract ONE module (search or chat first, never auth/payments first), strangler-fig style.
 
-## 3. Database — **Neon serverless Postgres + Prisma 7 · KEEP (93.1 vs 92.0)**
+## 3. Database — **Supabase Postgres + Prisma 7 · SWITCH (2026-07-18)**
+
+> **Override (2026-07-18):** Neon free-tier data-transfer quota exhausted production
+> queries. Switched to existing Supabase project `SIVRCE`
+> (`azaijzufkrdsdreszwma`, eu-central-1). Prisma unchanged — `DATABASE_URL` /
+> `DIRECT_URL` only. Neon is retired for this product.
 
 - **Option A — Self-managed/RDS/Aurora:** the Stripe/Airbnb endgame (Aurora Global, 128TB, full control). Right destination, wrong time — every ops hour is a product hour lost.
-- **Option B — Neon:** compute/storage separation, scale-to-zero, ~500ms cold start, copy-on-write branching <1s (a full DB clone per PR / per AI-agent task), read replicas, first-party Vercel integration, pgvector + PostGIS. Databricks-owned (May 2025) — product active, free tier expanded; watch incident cadence (~4/90d, ~59min median). From $19/mo.
-- **Option C — Supabase:** best compliance story (SOC 2 + HIPAA, EU residency) but its differentiators (Auth, Realtime, RLS) duplicate already-built Auth.js v5 + SSE chat; dedicated compute = cost floor; logs metered from July 2026.
+- **Option B — Neon (retired):** compute/storage separation + branching were the original win; free-tier transfer caps made it unusable for SSG builds. Keep as historical option only.
+- **Option C — Supabase (current):** managed Postgres in Frankfurt, PostGIS + pgvector available, Auth/Realtime unused (Auth.js + SSE stay). Transaction pooler `:6543` for runtime, session `:5432` for migrations.
 
 | Criterion (weight) | A: RDS | B: Neon | C: Supabase |
 |---|---|---|---|
@@ -95,7 +100,7 @@
 | Long-term (1.5) | 9 | 7 | 8 |
 | **Weighted** | **86.8** | **93.1** | **92.0** |
 
-**Why:** DB branching is a superpower for a founder + parallel AI agents; zero ops; nothing already built is wasted; exit is cheap (wire-protocol Postgres — `pg_dump` to Aurora is a weekend, Prisma untouched). **Path:** Neon → read replicas near expansion markets → Aurora Global/sharded Postgres only when data forces it. If Postgres isn't already on Neon, moving is a `DATABASE_URL`-level change.
+**Why (updated):** Neon quota killed prod reads; Supabase project was already provisioned on the sivrce888 account. Wire-protocol Postgres — Prisma untouched. **Path:** Supabase → Aurora Global/sharded Postgres only when data forces it.
 
 ## 4. Cloud / Hosting — **Vercel · KEEP, Cloudflare is the declared destination (raw: CF 96.4 vs Vercel 95.3 vs AWS 94.7)**
 
@@ -271,7 +276,7 @@ Vercel — Next.js 16.2 modular monolith (PPR + Cache Components)
    ├─ Gemini via AI SDK v6 + AI Gateway (per-task routing, ka/en/ru)
    ├─ queues/cron for image variants + notifications (off request path)
    │
-Neon Postgres (Prisma 7, pgvector + PostGIS, branch-per-PR)
+Supabase Postgres (Prisma 7, pgvector + PostGIS)
 Meilisearch (geo + facets + ka synonyms + hybrid semanticRatio≈0.4)
 Cloudflare R2 + Images (AVIF) + Stream (video tours)   ← zero egress
 PostHog EU (funnels/replay/flags) + GA4 tag (Search Console only)
@@ -285,7 +290,7 @@ Google Maps (adapter) · Resend · Twilio Verify · Sentry (OTel)
 
 1. Vercel bill >$300/mo sustained → OpenNext on Cloudflare Workers (pre-planned, 2–4 wks)
 2. Team >10–15 engineers or mobile public API → extract first module (search/chat) from the monolith
-3. Neon: sustained OLTP ceiling / multi-region / HIPAA-class compliance → Aurora via logical replication
+3. Supabase: sustained OLTP ceiling / multi-region / HIPAA-class compliance → Aurora via logical replication
 4. Gemini: quarterly re-score vs GPT/Claude on ka quality; Gateway makes it a routing change
 5. Meilisearch: p99 >200ms sharded, or relevance team hired → Algolia
 6. Storage: WORM/Rekognition/multi-PB economics → S3

@@ -1,7 +1,7 @@
 /**
  * RETIRED offline archive — do not run against production.
  *
- * Historical one-shot import that seeded Neon. Runtime media is owned on
+ * Historical one-shot import that seeded Postgres. Runtime media is owned on
  * cdn.sivrce.ge via `npm run directory:localize` / `directory:mirror`.
  * Re-importing from aggregators is forbidden (cron returns 410).
  *
@@ -324,7 +324,7 @@ export async function syncKorterDirectory(
         ourSlug = slug
       }
     } else if (website || logoUrl) {
-      // ponytail: Neon free-tier socket timeouts under 6-wide concurrency.
+      // ponytail: pool socket timeouts under 6-wide concurrency.
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           await db.developerProfile.update({
@@ -435,7 +435,7 @@ export async function syncKorterDirectory(
   }
 
   const devs = [...seen.values()]
-  // ponytail: 3-wide — Neon socket timeout at 6 under full refresh.
+  // ponytail: 3-wide — pool socket timeout at 6 under full refresh.
   for (let i = 0; i < devs.length; i += 3) {
     await Promise.all(devs.slice(i, i + 3).map(importDeveloper))
     await sleep(120)

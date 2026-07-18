@@ -5,6 +5,6 @@
 console.error(
   "import-korter is retired. Directory media lives on cdn.sivrce.ge.\n" +
     "Use: npm run directory:mirror\n" +
-    "Or update projects in admin / Neon directly.",
+    "Or update projects in admin / Supabase directly.",
 )
 process.exit(1)

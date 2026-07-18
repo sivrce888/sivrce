@@ -1,5 +1,5 @@
 /**
- * Live directory: merges Neon rows over the static catalog.
+ * Live directory: merges Postgres rows over the static catalog.
  * Developers: logoUrl/website from any DB row; owner-claimed rows also
  * override name/city/description. Unmatched DB profiles append (public).
  * Projects: non-draft rows overlay address / lat / lng / render; unmatched append.

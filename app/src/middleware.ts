@@ -14,7 +14,7 @@ import { NextResponse, type NextRequest } from "next/server"
  *
  * The authoritative role check still happens server-side in `requireAdmin()`
  * / `requireRole()` — those query the DB-backed session. Edge middleware
- * can't reach Prisma (Neon), so here we only verify session-cookie presence.
+ * can't reach Prisma, so here we only verify session-cookie presence.
  *
  * ponytail: cookie-presence only (JWT sessions). Role checks stay in
  * requireAdmin/requireRole against the DB-backed user row.
