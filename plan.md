@@ -1,5 +1,26 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-18 (evening wave) — the "make all n1" batch
+- **Route-based i18n** (`74e8375`+): `[lang]` segment, ka unprefixed canonical
+  (zero link-juice loss), /en /ru prefixed, hreflang everywhere, localized
+  sitemap, middleware negotiation, LocalizedLink. Build: 1221 static pages ✓
+- **/search**: live DB location facets, `?page=N` URL pagination, daily-rent
+  check-in/out dates (overlap-excluded), pets + owner/agency filters
+  (migration `20260718160000_listing_pets_seller` — RUN IN PROD), list/map
+  toggle `?view=map` with price pins (`7d714bb`)
+- **Tours**: real availability picker, 409 double-book guard, guest cancel
+- **Push**: end-to-end web-push (VAPID, subscribe UI, SW handlers, admin
+  broadcast endpoint) — set VAPID vars in Vercel
+- **Saved-search alerts**: match engine reusing `buildDbWhere`, in-app +
+  email + push fan-out, dedupe via AlertLog (`ff716bc`)
+- **Payments**: TBC tpay + BOG iPay real providers, verified callbacks,
+  atomic exactly-once entitlement, /payment/success|failed pages (`9767b5d`)
+  — needs merchant onboarding + env vars, then 1₾ smoke test
+- **Images**: AVIF/WebP confirmed live; LQIP blur on search thumbs;
+  `scripts/backfill-lqip.ts` for pre-pipeline media
+- **Perf**: FCP −450ms (font preload); mobile LCP proven a localhost Lantern
+  artifact — observed LCP 168ms. Re-measure on Vercel, not localhost.
+
 ## Shipped 2026-07-18 (6) — Neon → Supabase Postgres
 - Cut over `DATABASE_URL` / `DIRECT_URL` to Supabase project `SIVRCE`
   (`azaijzufkrdsdreszwma`, eu-central-1). Prisma schema unchanged.
