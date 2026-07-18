@@ -2,6 +2,13 @@
   "name": "sivrce",
   "version": "1.0.0",
   "private": true,
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 111",
+    "safari >= 16.4",
+    "not dead"
+  ],
   "scripts": {
     "dev": "next dev",
     "prebuild": "node scripts/og-derivatives.mjs || echo 'og-derivatives skipped'",
@@ -9,6 +16,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:map": "npx --yes tsx src/lib/map/buildings.check.ts",
+    "check:pois": "npx --yes tsx src/lib/map/pois.check.ts",
     "check:attribution": "npx --yes tsx src/lib/map/attribution.check.ts",
     "check:geocode": "npx --yes tsx src/lib/map/geocode.check.ts",
     "check:search": "npx --yes tsx src/lib/search.check.ts",

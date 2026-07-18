@@ -128,6 +128,8 @@ export const hy: Dict = {
   'detail.addFavorite': 'Ավելացնել նախընտրածներին',
   'detail.removeFavorite': 'Հեռացնել նախընտրածներից',
   'detail.share': 'Կիսվել',
+  'sticker.urgent': 'Շտապ',
+  'sticker.priceDrop': 'Գինը իջեցված է',
   'detail.linkCopied': 'Հղումը պատճենվեց',
   'detail.fullPrice': 'Ամբողջական գին',
   'detail.monthlyRent': 'Ամսավարձ',

@@ -128,6 +128,8 @@ export const ar: Dict = {
   'detail.addFavorite': 'إضافة إلى المفضلة',
   'detail.removeFavorite': 'إزالة من المفضلة',
   'detail.share': 'مشاركة',
+  'sticker.urgent': 'عاجل',
+  'sticker.priceDrop': 'انخفض السعر',
   'detail.linkCopied': 'تم نسخ الرابط',
   'detail.fullPrice': 'السعر الكامل',
   'detail.monthlyRent': 'الإيجار الشهري',

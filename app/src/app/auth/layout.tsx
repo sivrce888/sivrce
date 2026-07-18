@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Noto_Sans_Georgian } from "next/font/google";
 import I18nProvider from "@/components/I18nProvider";
 import PostHogProvider from "@/components/PostHogProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { BRAND } from "@/lib/brand";
 // globals.css: app/layout.tsx (root). Importing only here used to work; keep
 // root as the single CSS entry so [lang] pages never lose the stylesheet.
 
@@ -31,6 +32,17 @@ const notoGeorgian = Noto_Sans_Georgian({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sivrce.ge"),
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: BRAND.colors.navy },
+    { media: "(prefers-color-scheme: dark)", color: BRAND.colors.navy },
+  ],
 };
 
 export default function AuthLayout({

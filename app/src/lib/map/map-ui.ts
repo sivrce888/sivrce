@@ -15,6 +15,8 @@ export type MapUiSave = {
   view3d?: boolean
   deal?: string
   status?: string
+  /** Comma-separated POI categories, e.g. "metro,pharmacy". */
+  pois?: string
 }
 
 export function parseTerrain(v: unknown): MapTerrain {
@@ -31,6 +33,7 @@ export function parseMapUiJson(raw: unknown): MapUiSave {
     ...(typeof o.view3d === 'boolean' ? { view3d: o.view3d } : {}),
     ...(typeof o.deal === 'string' ? { deal: o.deal } : {}),
     ...(typeof o.status === 'string' ? { status: o.status } : {}),
+    ...(typeof o.pois === 'string' ? { pois: o.pois } : {}),
   }
 }
 
@@ -56,7 +59,8 @@ export function mapUiHasPrefs(ui: MapUiSave): boolean {
     ui.terrain != null ||
     ui.view3d != null ||
     ui.deal != null ||
-    ui.status != null
+    ui.status != null ||
+    ui.pois != null
   )
 }
 

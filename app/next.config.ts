@@ -62,20 +62,53 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  // Locked: never ship browser source maps (bloat + source leak).
+  productionBrowserSourceMaps: false,
+  // Strip console.* from prod client/server bundles; keep warn/error for ops.
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production"
+      ? { exclude: ["error", "warn"] }
+      : false,
+  },
   // ponytail: Neon cold-starts + per-worker Prisma connects can exceed the 60s
   // default on DB-backed SSG pages. Bump timeout; make builds warm the DB instead.
   staticPageGenerationTimeout: 180,
+  // Keep native/heavy pkgs out of the serverless trace — smaller Vercel functions.
+  outputFileTracingExcludes: {
+    "*": [
+      "./ios/**/*",
+      "./android/**/*",
+      "./e2e/**/*",
+      "./resources/**/*",
+      "./icons/**/*",
+      "./mobile/**/*",
+      "./scripts/**/*",
+      "node_modules/@capacitor/**/*",
+      "node_modules/@capacitor/assets/**/*",
+      "node_modules/playwright/**/*",
+      "node_modules/@playwright/**/*",
+    ],
+  },
   experimental: {
     // 9 workers × Prisma pools socket-timeout Neon's free tier mid-build;
     // cap concurrency so SSG DB traffic stays under the connection ceiling.
     staticGenerationMaxConcurrency: 3,
     cpus: 2,
+    // Tree-shake barrel imports (lucide already defaulted by Next).
+    optimizePackageImports: ["framer-motion", "@base-ui/react"],
   },
   images: {
+    // AVIF first → WebP fallback. Fewer sizes = fewer Image Optimization variants.
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [640, 768, 1024, 1280, 1536, 1920],
+    qualities: [60, 75],
+    // Mobile-first breakpoints only — matches our card/hero sizes attrs.
+    deviceSizes: [640, 750, 828, 1080, 1280, 1920],
+    imageSizes: [32, 64, 96, 128, 256, 384],
+    // Long CDN TTL for optimized images (immutable URLs via Next Image).
+    minimumCacheTTL: 31_536_000,
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sivrce.ge" },
       { protocol: "https", hostname: "images.sivrce.ge" },
@@ -85,6 +118,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      // Hashed Next assets — immutable forever (big-brand CDN trick).
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
       ...["/images/:path*", "/icons/:path*", "/logo/:path*"].map((source) => ({
         source,
         headers: [

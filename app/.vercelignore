@@ -1,0 +1,21 @@
+# Cap upload + function size — native/mobile never ships to Vercel.
+ios
+android
+mobile
+resources
+e2e
+playwright.config.ts
+.env*.local
+.env.example
+*.log
+.DS_Store
+
+# Local perf/probe scripts (prebuild still needs scripts/og-derivatives.mjs)
+scripts/probe-*.mjs
+scripts/visual-*.mjs
+scripts/visual-*.cjs
+scripts/dark-*.js
+scripts/lcp-probe.cjs
+scripts/mobile-audit.mjs
+scripts/verify-mobile.mjs
+scripts/*.log

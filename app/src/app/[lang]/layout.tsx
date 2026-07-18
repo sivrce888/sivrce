@@ -141,6 +141,9 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Notch-safe; no maxScale lock (hurts a11y / Lighthouse).
+  viewportFit: "cover",
+  colorScheme: "light dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: BRAND.colors.navy },
     { media: "(prefers-color-scheme: dark)", color: BRAND.colors.navy },

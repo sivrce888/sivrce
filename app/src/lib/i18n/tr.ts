@@ -128,6 +128,8 @@ export const tr: Dict = {
   'detail.addFavorite': 'Favorilere ekle',
   'detail.removeFavorite': 'Favorilerden kaldır',
   'detail.share': 'Paylaş',
+  'sticker.urgent': 'Acil',
+  'sticker.priceDrop': 'Fiyat düştü',
   'detail.linkCopied': 'Bağlantı kopyalandı',
   'detail.fullPrice': 'Toplam fiyat',
   'detail.monthlyRent': 'Aylık kira',

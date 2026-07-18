@@ -36,6 +36,7 @@ export const FEATURE_KEYS = [
  * Order = priority (max 2 on cards). Same keys as Collections deep-links.
  * Not a paid "sticker" SKU — free truth surface.
  * Paid ნიშნები: sticker_urgent / sticker_price_drop in promo-pricing.
+ * Owner/agency stays on the seller card — not a paid or free overlay chip.
  */
 export const DAILY_SIGNAL_KEYS = [
   'add.f.pool',

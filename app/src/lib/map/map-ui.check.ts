@@ -26,9 +26,11 @@ assert.deepEqual(parseMapUiJson({ terrain: 'satellite', deal: 'sale' }), {
   terrain: 'satellite',
   deal: 'sale',
 })
+assert.deepEqual(parseMapUiJson({ pois: 'metro,school' }), { pois: 'metro,school' })
 assert.deepEqual(parseMapUiJson({ terrain: 'garbage' }), {})
 assert.equal(mapUiHasPrefs({}), false)
 assert.equal(mapUiHasPrefs({ view3d: true }), true)
+assert.equal(mapUiHasPrefs({ pois: '' }), true)
 
 const raw = serializeMapUi({ terrain: 'streets', view3d: true })
 assert.deepEqual(parseMapUiRaw(raw), { terrain: 'streets', view3d: true })
