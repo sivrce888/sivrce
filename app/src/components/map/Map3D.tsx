@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import maplibregl, {
   type Map as MlMap,
   type MapLayerMouseEvent,
@@ -37,16 +38,19 @@ import {
 import BuildingPanel from '@/components/map/BuildingPanel'
 import {
   EMPTY_FLOORS,
+  buildingShowsFloorStack,
   floorTooltipKa,
   floorsToGeoJSON,
   type FloorInfo,
 } from '@/lib/map/floors'
 import {
   applyBrandPaints,
+  bindMissingImages,
   ensureFloorLayers,
   FLOORS_FILL_ID,
+  FLOORS_LABEL_ID,
   FLOORS_SOURCE_ID,
-  STYLE_URL,
+  mapStyleUrl,
 } from '@/lib/map/floorLayers'
 import { Layers, RotateCcw, HardHat, CheckCircle2, MapPin } from 'lucide-react'
 
@@ -201,11 +205,22 @@ function Map3DInner({
   const [showNeighborhoods, setShowNeighborhoods] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { resolvedTheme } = useTheme()
+  // ponytail: light-first (ThemeProvider default); avoid flash before hydration.
+  const isDark = resolvedTheme === 'dark'
+  const themeReady = resolvedTheme != null
 
   const selectedRef = useRef<MapBuildingCluster | null>(null)
   const dealRef = useRef<MapDealFilter>('all')
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
+  const darkRef = useRef(isDark)
+  const nbhRef = useRef(showNeighborhoods)
+  const styleGenRef = useRef(0)
+  const styleUrlRef = useRef<string | null>(null)
+  const remountRef = useRef<(() => void) | null>(null)
+  useEffect(() => { darkRef.current = isDark }, [isDark])
+  useEffect(() => { nbhRef.current = showNeighborhoods }, [showNeighborhoods])
 
   // Live DB listings when present; else demo LISTINGS. DB buildings add inventory/rings.
   const sourceListings = listings?.length ? listings : LISTINGS
@@ -251,14 +266,17 @@ function Map3DInner({
     }
   }, [visible, ready, selected, selectBuilding])
 
-  // Floor stack: replace the selected building's silhouette with per-floor slabs.
+  // Floor stack only for developments with stock — else keep solid extrusion.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
+    const showFloors = Boolean(selected && buildingShowsFloorStack(selected))
     const src = map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource | undefined
-    src?.setData(selected ? floorsToGeoJSON(selected, dealFilter) : EMPTY_FLOORS)
-    if (!selected) popupRef.current?.remove()
-    const exclude = (selected
+    src?.setData(
+      showFloors && selected ? floorsToGeoJSON(selected, dealFilter) : EMPTY_FLOORS,
+    )
+    if (!showFloors) popupRef.current?.remove()
+    const exclude = (showFloors && selected
       ? ['!=', ['get', 'id'], selected.id]
       : null) as FilterSpecification | null
     for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
@@ -295,12 +313,14 @@ function Map3DInner({
   }, [ready, searchParams, selectBuilding, allBuildings])
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return
+    if (!containerRef.current || mapRef.current || !themeReady) return
 
     let cancelled = false
+    const initialStyle = mapStyleUrl(darkRef.current)
+    styleUrlRef.current = initialStyle
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: STYLE_URL,
+      style: initialStyle,
       center: [MAP_CENTER.lng, MAP_CENTER.lat],
       zoom: 13.2,
       pitch: 58,
@@ -311,6 +331,7 @@ function Map3DInner({
     mapRef.current = map
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
+    bindMissingImages(map)
     map.addControl(
       new maplibregl.GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
@@ -345,7 +366,7 @@ function Map3DInner({
 
     const onMapClick = (e: MapMouseEvent) => {
       const hits = map.queryRenderedFeatures(e.point, {
-        layers: [EXTRUDE_ID, FILL_ID, FLOORS_FILL_ID],
+        layers: [EXTRUDE_ID, FILL_ID, FLOORS_FILL_ID].filter((id) => map.getLayer(id)),
       })
       if (hits.length > 0) return
       const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
@@ -477,12 +498,51 @@ function Map3DInner({
       map.getCanvas().style.cursor = ''
     }
 
+    const mountOverlays = () => {
+      applyBrandPaints(map, darkRef.current ? 'dark' : 'light')
+      ensureLayers(map, buildingsToGeoJSON(visibleRef.current))
+      const showFloors = Boolean(
+        selectedRef.current && buildingShowsFloorStack(selectedRef.current),
+      )
+      const floorsSrc = map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource | undefined
+      floorsSrc?.setData(
+        showFloors && selectedRef.current
+          ? floorsToGeoJSON(selectedRef.current, dealRef.current)
+          : EMPTY_FLOORS,
+      )
+      const exclude = (showFloors && selectedRef.current
+        ? ['!=', ['get', 'id'], selectedRef.current.id]
+        : null) as FilterSpecification | null
+      for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+        if (map.getLayer(layer)) map.setFilter(layer, exclude)
+      }
+      const vis = nbhRef.current ? 'visible' : 'none'
+      for (const layer of [NBH_CIRCLE_ID, NBH_LABEL_ID]) {
+        if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', vis)
+      }
+      // Theme-aware building labels
+      const labelColor = darkRef.current ? '#FFFFFF' : BRAND.colors.ink
+      const labelHalo = darkRef.current ? BRAND.colors.navy : '#FFFFFF'
+      for (const layer of [LABEL_ID, FLOORS_LABEL_ID, NBH_LABEL_ID]) {
+        if (!map.getLayer(layer)) continue
+        try {
+          map.setPaintProperty(layer, 'text-color', labelColor)
+          map.setPaintProperty(layer, 'text-halo-color', labelHalo)
+        } catch {
+          /* layer paint may differ */
+        }
+      }
+    }
+
     map.on('load', () => {
       if (cancelled) return
-      applyBrandPaints(map)
-      ensureLayers(map, buildingsToGeoJSON(visibleRef.current))
+      map.resize()
+      mountOverlays()
       setReady(true)
     })
+
+    const ro = new ResizeObserver(() => map.resize())
+    ro.observe(containerRef.current)
 
     map.on('error', (e) => {
       console.error('[Map3D]', e.error)
@@ -508,12 +568,36 @@ function Map3DInner({
     map.on('mouseleave', NBH_CIRCLE_ID, onNeighborhoodLeave)
     map.on('click', onMapClick)
 
+    // Expose remount for theme switch (setStyle wipes custom layers).
+    remountRef.current = mountOverlays
+
     return () => {
       cancelled = true
+      remountRef.current = null
+      ro.disconnect()
       map.remove()
       mapRef.current = null
     }
-  }, [])
+  }, [themeReady])
+
+  // Theme flip → swap basemap + rebuild overlays (camera preserved).
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !themeReady) return
+    const next = mapStyleUrl(isDark)
+    if (styleUrlRef.current === next) return
+    styleUrlRef.current = next
+    const gen = ++styleGenRef.current
+    const onStyle = () => {
+      if (gen !== styleGenRef.current) return
+      remountRef.current?.()
+    }
+    map.once('style.load', onStyle)
+    map.setStyle(next)
+    return () => {
+      map.off('style.load', onStyle)
+    }
+  }, [isDark, ready, themeReady])
 
   const resetView = () => {
     mapRef.current?.easeTo({
@@ -534,32 +618,42 @@ function Map3DInner({
     return ''
   }
 
+  const chip = isDark
+    ? 'border-white/10 bg-sv-navy/85 text-white backdrop-blur-md'
+    : 'border-sv-ink/10 bg-sv-surface/92 text-sv-ink shadow-soft backdrop-blur-md'
+  const chipMuted = isDark ? 'text-white/60 hover:text-white' : 'text-sv-ink/55 hover:text-sv-ink'
+  const shellBg = isDark ? 'bg-sv-navy' : 'bg-sv-cloud'
+  const showFloorHint = Boolean(selected && buildingShowsFloorStack(selected))
+
   return (
-    <div className="relative flex h-[calc(100dvh-4.5rem)] w-full overflow-hidden bg-sv-navy md:h-[calc(100dvh-5rem)]">
+    <div className={`relative flex h-[calc(100dvh-4.5rem)] w-full overflow-hidden md:h-[calc(100dvh-5rem)] ${shellBg}`}>
       <div className="relative min-w-0 flex-1">
-        <div ref={containerRef} className="absolute inset-0" />
+        {/* ponytail: MapLibre forces position:relative — absolute on the map node collapses to h=0. */}
+        <div className="absolute inset-0">
+          <div ref={containerRef} className="h-full w-full" />
+        </div>
 
         {!ready && !error && (
-          <div className="absolute inset-0 z-10 grid place-items-center bg-sv-navy/80 text-[14px] font-bold text-white/70">
+          <div className={`absolute inset-0 z-10 grid place-items-center text-[14px] font-bold ${isDark ? 'bg-sv-navy/80 text-white/70' : 'bg-sv-cloud/85 text-sv-ink/55'}`}>
             3D რუკა იტვირთება…
           </div>
         )}
         {error && (
-          <div className="absolute inset-0 z-10 grid place-items-center bg-sv-navy/90 px-6 text-center text-[14px] font-bold text-white/80">
+          <div className={`absolute inset-0 z-10 grid place-items-center px-6 text-center text-[14px] font-bold ${isDark ? 'bg-sv-navy/90 text-white/80' : 'bg-sv-cloud/90 text-sv-ink/70'}`}>
             {error}
           </div>
         )}
 
         <div className="absolute left-4 top-4 z-20 flex max-w-[min(100%-2rem,560px)] flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-sv-navy/85 px-3.5 py-2 text-[12px] font-extrabold text-white backdrop-blur-md">
-              <Layers className="h-3.5 w-3.5 text-sv-blue-light" />
+            <div className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-[12px] font-extrabold ${chip}`}>
+              <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
               {visible.length} შენობა · {listingCount} განცხადება
             </div>
             <button
               type="button"
               onClick={resetView}
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-sv-navy/85 text-white backdrop-blur-md transition hover:bg-sv-blue"
+              className={`grid h-11 w-11 place-items-center rounded-full border transition hover:bg-sv-blue hover:text-white ${chip}`}
               aria-label="საწყისი ხედი"
             >
               <RotateCcw className="h-4 w-4" />
@@ -567,7 +661,7 @@ function Map3DInner({
           </div>
 
           <div
-            className="flex flex-wrap gap-1.5 rounded-tile border border-white/10 bg-sv-navy/85 p-2 backdrop-blur-md"
+            className={`flex flex-wrap gap-1.5 rounded-tile border p-2 ${chip}`}
             role="group"
             aria-label="გარიგების ფილტრი"
           >
@@ -579,7 +673,7 @@ function Map3DInner({
                   type="button"
                   onClick={() => setDealFilter(f.id)}
                   className={`min-h-11 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
-                    active ? 'text-white shadow-glow-blue-sm' : 'text-white/60 hover:text-white'
+                    active ? 'text-white shadow-glow-blue-sm' : chipMuted
                   }`}
                   style={active ? { background: f.color } : undefined}
                 >
@@ -590,7 +684,7 @@ function Map3DInner({
           </div>
 
           <div
-            className="flex flex-wrap gap-1.5 rounded-tile border border-white/10 bg-sv-navy/85 p-2 backdrop-blur-md"
+            className={`flex flex-wrap gap-1.5 rounded-tile border p-2 ${chip}`}
             role="group"
             aria-label="სტატუსის ფილტრი"
           >
@@ -602,9 +696,7 @@ function Map3DInner({
                   type="button"
                   onClick={() => setStatusFilter(f.id)}
                   className={`inline-flex min-h-11 items-center gap-1 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
-                    active
-                      ? 'bg-sv-blue text-white shadow-glow-blue-sm'
-                      : 'text-white/60 hover:text-white'
+                    active ? 'bg-sv-blue text-white shadow-glow-blue-sm' : chipMuted
                   }`}
                   style={
                     active && f.id === 'completed'
@@ -627,10 +719,12 @@ function Map3DInner({
             type="button"
             onClick={() => setShowNeighborhoods((v) => !v)}
             aria-pressed={showNeighborhoods}
-            className={`inline-flex min-h-11 w-fit items-center gap-1.5 rounded-tile border px-3.5 py-2 text-[12px] font-extrabold backdrop-blur-md transition ${
+            className={`inline-flex min-h-11 w-fit items-center gap-1.5 rounded-tile border px-3.5 py-2 text-[12px] font-extrabold transition ${
               showNeighborhoods
-                ? 'border-sv-blue-light/50 bg-sv-blue-light/15 text-white shadow-glow-blue-sm'
-                : 'border-white/10 bg-sv-navy/85 text-white/60 hover:text-white'
+                ? isDark
+                  ? 'border-sv-blue-light/50 bg-sv-blue-light/15 text-white shadow-glow-blue-sm backdrop-blur-md'
+                  : 'border-sv-blue/40 bg-sv-blue/10 text-sv-ink shadow-glow-blue-sm backdrop-blur-md'
+                : `${chip} ${chipMuted}`
             }`}
           >
             <MapPin className="h-3.5 w-3.5" />
@@ -638,7 +732,7 @@ function Map3DInner({
           </button>
         </div>
 
-        <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2 rounded-tile border border-white/10 bg-sv-navy/85 p-3 backdrop-blur-md">
+        <div className={`absolute bottom-4 left-4 z-20 flex flex-wrap gap-2 rounded-tile border p-3 ${chip}`}>
           {(
             [
               ['იყიდება', DEAL_BRAND.sale],
@@ -650,15 +744,22 @@ function Map3DInner({
               ['რაიონი', BRAND.colors.blueLight],
             ] as const
           ).map(([label, color]) => (
-            <div key={label} className="flex items-center gap-1.5 text-[11px] font-extrabold text-white/80">
+            <div
+              key={label}
+              className={`flex items-center gap-1.5 text-[11px] font-extrabold ${isDark ? 'text-white/80' : 'text-sv-ink/75'}`}
+            >
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
               {label}
             </div>
           ))}
         </div>
 
-        <p className="pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[240px] rounded-control border border-white/10 bg-sv-navy/80 px-3 py-2 text-[12px] font-semibold text-white/55 backdrop-blur-md md:block">
-          დააჭირე კორპუსს — სართულები გაიხსნება · მიატრიე მაუსი სართულს
+        <p
+          className={`pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[240px] rounded-control border px-3 py-2 text-[12px] font-semibold md:block ${chip} ${isDark ? 'text-white/55' : 'text-sv-ink/50'}`}
+        >
+          {showFloorHint
+            ? 'დააჭირე სართულს — თავისუფალი ბინები'
+            : 'დააჭირე კორპუსს — განცხადებები გაიხსნება'}
         </p>
       </div>
 
@@ -688,7 +789,7 @@ export default function Map3D({
   return (
     <Suspense
       fallback={
-        <div className="grid h-[calc(100dvh-4.5rem)] place-items-center bg-sv-navy text-[14px] font-bold text-white/70">
+        <div className="grid h-[calc(100dvh-4.5rem)] place-items-center bg-sv-cloud text-[14px] font-bold text-sv-ink/55 dark:bg-sv-navy dark:text-white/70">
           3D რუკა იტვირთება…
         </div>
       }

@@ -594,16 +594,25 @@
   }
 }
 
-/* MapLibre floor tooltip — brand dark */
+/* MapLibre floor tooltip — theme-aware */
 .sivrce-floor-pop .maplibregl-popup-content {
+  background: var(--color-sv-surface);
+  color: var(--color-sv-ink);
+  border: 1px solid color-mix(in srgb, var(--color-sv-ink) 10%, transparent);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 10px 28px rgba(10, 16, 48, 0.14);
+}
+.dark .sivrce-floor-pop .maplibregl-popup-content {
   background: var(--color-sv-navy);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  padding: 10px 14px;
   box-shadow: 0 10px 28px rgba(2, 6, 26, 0.55);
 }
 .sivrce-floor-pop .maplibregl-popup-tip {
+  border-top-color: var(--color-sv-surface);
+}
+.dark .sivrce-floor-pop .maplibregl-popup-tip {
   border-top-color: var(--color-sv-navy);
 }
 .sivrce-floor-pop-title {
@@ -615,19 +624,31 @@
   margin-top: 2px;
   font-size: 12px;
   font-weight: 700;
+  color: color-mix(in srgb, var(--color-sv-ink) 60%, transparent);
+}
+.dark .sivrce-floor-pop-line {
   color: rgba(255, 255, 255, 0.72);
 }
 
-/* MapLibre neighborhood popup — brand dark */
+/* MapLibre neighborhood popup — theme-aware */
 .sivrce-nbh-pop .maplibregl-popup-content {
+  background: var(--color-sv-surface);
+  color: var(--color-sv-ink);
+  border: 1px solid color-mix(in srgb, var(--color-sv-ink) 10%, transparent);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 28px rgba(10, 16, 48, 0.14);
+}
+.dark .sivrce-nbh-pop .maplibregl-popup-content {
   background: var(--color-sv-navy);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  padding: 12px 14px;
   box-shadow: 0 10px 28px rgba(2, 6, 26, 0.55);
 }
 .sivrce-nbh-pop .maplibregl-popup-tip {
+  border-top-color: var(--color-sv-surface);
+}
+.dark .sivrce-nbh-pop .maplibregl-popup-tip {
   border-top-color: var(--color-sv-navy);
 }
 .sivrce-nbh-pop-title {
@@ -639,15 +660,21 @@
   margin-top: 1px;
   font-size: 11px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.55);
+  color: color-mix(in srgb, var(--color-sv-ink) 50%, transparent);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+.dark .sivrce-nbh-pop-city {
+  color: rgba(255, 255, 255, 0.55);
 }
 .sivrce-nbh-pop-price {
   margin-top: 6px;
   margin-bottom: 8px;
   font-size: 12px;
   font-weight: 800;
+  color: var(--color-sv-blue);
+}
+.dark .sivrce-nbh-pop-price {
   color: var(--color-sv-blue-light);
 }
 .sivrce-nbh-pop-row {
@@ -657,5 +684,8 @@
   margin-top: 2px;
   font-size: 12px;
   font-weight: 700;
+  color: color-mix(in srgb, var(--color-sv-ink) 75%, transparent);
+}
+.dark .sivrce-nbh-pop-row {
   color: rgba(255, 255, 255, 0.78);
 }
