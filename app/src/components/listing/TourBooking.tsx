@@ -33,31 +33,30 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
   max.setDate(max.getDate() + 30)
   const maxDate = max.toISOString().split("T")[0]
 
-  // Load the agent's real availability whenever the date changes.
-  useEffect(() => {
-    if (!date) {
+  // Load the agent's real availability when a date is picked (event handler, not effect).
+  const reqRef = useRef(0)
+  const onDateChange = (value: string) => {
+    setDate(value)
+    setTime("")
+    if (!value) {
       setSlots({ status: "idle" })
       return
     }
-    let stale = false
     setSlots({ status: "loading" })
-    setTime("")
-    fetch(`/api/tours/availability?listingId=${encodeURIComponent(listingId)}&date=${date}`)
+    const req = ++reqRef.current
+    fetch(`/api/tours/availability?listingId=${encodeURIComponent(listingId)}&date=${value}`)
       .then(async (r) => {
         if (!r.ok) throw new Error(String(r.status))
         const data = (await r.json()) as { slots?: unknown }
         const times = Array.isArray(data.slots)
           ? data.slots.filter((s): s is string => typeof s === "string")
           : []
-        if (!stale) setSlots({ status: "ready", times })
+        if (req === reqRef.current) setSlots({ status: "ready", times })
       })
       .catch(() => {
-        if (!stale) setSlots({ status: "ready", times: [] })
+        if (req === reqRef.current) setSlots({ status: "ready", times: [] })
       })
-    return () => {
-      stale = true
-    }
-  }, [date, listingId])
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,7 +112,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                 <label className="mb-1 block text-sm font-semibold text-sv-ink/70">{t("tour.date")} *</label>
                 <div className="flex items-center gap-2 rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2">
                   <Calendar className="h-4 w-4 text-sv-ink/30" />
-                  <input type="date" min={today} max={maxDate} value={date} onChange={(e) => setDate(e.target.value)} required
+                  <input type="date" min={today} max={maxDate} value={date} onChange={(e) => onDateChange(e.target.value)} required
                     className="w-full bg-transparent text-sm text-sv-ink outline-none" />
                 </div>
               </div>
