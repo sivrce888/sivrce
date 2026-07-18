@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.4) · FROZEN 2026-07-17 · +2 collection hues 2026-07-18
+# სივრცე — Brand Lock (v1.5) · FROZEN 2026-07-17 · +6 collection hues 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -122,6 +122,17 @@ Daily-rent collections (locked 2026-07-18, owner request):
 |---|---|---|---|
 | სახლები წვეულებებისთვის | `partyHouses` | #C026D3 | #FAE8FD |
 | უკონტაქტო ჩექინი | `selfCheckIn` | #0D9488 | #E6F6F4 |
+
+Collections reusing locked category hues (services precedent, 2026-07-18):
+
+| Collection (KA) | Hue source | Hue |
+|---|---|---|
+| აუზით | `hotels` | #0891B2 |
+| ჯაკუზით | `houses` | #FF6A2D |
+| ზღვისპირა | `newProjects` | #5B8BFF |
+| სათხილამურო კურორტები | `land` | #D97706 |
+| შინაური ცხოველით | `cottages` | #16A34A |
+| სამუშაო ადგილით | `apartments` | #2E6BFF |
 
 | Service (KA) | Key | Hue | Chip |
 |---|---|---|---|

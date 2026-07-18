@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useCallback, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -262,65 +262,70 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const fmtCount = (n: number | undefined) => (n === undefined ? '' : ` (${n})`)
 
   // Map filter state → /api/search query params and fetch.
-  const fetchSearch = useCallback(async () => {
-    setSearchLoading(true)
-    try {
-      const sp = new URLSearchParams()
-      if (deal) sp.set('dealType', deal)
-      if (type) sp.set('propertyType', type)
-      if (city) sp.set('city', city)
-      if (district) sp.set('district', district)
-      if (minPrice !== undefined) sp.set('minPrice', String(minPrice))
-      if (maxPrice !== undefined) sp.set('maxPrice', String(maxPrice))
-      if (rooms !== undefined) sp.set('rooms', String(rooms))
-      if (minArea !== undefined) sp.set('minArea', String(minArea))
-      if (maxArea !== undefined) sp.set('maxArea', String(maxArea))
-      if (q) sp.set('q', q)
-      if (sort !== 'date') sp.set('sort', sort)
-      if (beds !== undefined) sp.set('beds', String(beds))
-      if (baths !== undefined) sp.set('baths', String(baths))
-      if (floorMin !== undefined) sp.set('fmin', String(floorMin))
-      if (floorMax !== undefined) sp.set('fmax', String(floorMax))
-      if (condRaw) sp.set('cond', condRaw)
-      if (bstatRaw) sp.set('bstat', bstatRaw)
-      if (featRaw) sp.set('feat', featRaw)
-      if (photo) sp.set('photo', '1')
-      if (verifiedOnly) sp.set('verified', '1')
-      if (pets) sp.set('pets', '1')
-      if (seller) sp.set('seller', seller)
-      if (from) sp.set('from', from)
-      if (to) sp.set('to', to)
-      if (cur === 'GEL') sp.set('cur', 'GEL')
-      sp.set('page', String(page))
-      sp.set('pageSize', '24')
+  // ponytail: paramsKey already encodes every filter; refetch on that alone.
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      setSearchLoading(true)
+      try {
+        const sp = new URLSearchParams()
+        if (deal) sp.set('dealType', deal)
+        if (type) sp.set('propertyType', type)
+        if (city) sp.set('city', city)
+        if (district) sp.set('district', district)
+        if (minPrice !== undefined) sp.set('minPrice', String(minPrice))
+        if (maxPrice !== undefined) sp.set('maxPrice', String(maxPrice))
+        if (rooms !== undefined) sp.set('rooms', String(rooms))
+        if (minArea !== undefined) sp.set('minArea', String(minArea))
+        if (maxArea !== undefined) sp.set('maxArea', String(maxArea))
+        if (q) sp.set('q', q)
+        if (sort !== 'date') sp.set('sort', sort)
+        if (beds !== undefined) sp.set('beds', String(beds))
+        if (baths !== undefined) sp.set('baths', String(baths))
+        if (floorMin !== undefined) sp.set('fmin', String(floorMin))
+        if (floorMax !== undefined) sp.set('fmax', String(floorMax))
+        if (condRaw) sp.set('cond', condRaw)
+        if (bstatRaw) sp.set('bstat', bstatRaw)
+        if (featRaw) sp.set('feat', featRaw)
+        if (photo) sp.set('photo', '1')
+        if (verifiedOnly) sp.set('verified', '1')
+        if (pets) sp.set('pets', '1')
+        if (seller) sp.set('seller', seller)
+        if (from) sp.set('from', from)
+        if (to) sp.set('to', to)
+        if (cur === 'GEL') sp.set('cur', 'GEL')
+        sp.set('page', String(page))
+        sp.set('pageSize', '24')
 
-      const res = await fetch(`/api/search?${sp.toString()}`)
-      const json = await res.json()
-      if (json.ok && Array.isArray(json.hits)) {
-        setResults((json.hits as Record<string, unknown>[]).map(mapHit))
-        setTotalResults(json.totalHits as number)
-        setTotalPages((json.totalPages as number) ?? 0)
-        setFacets((json.facets as Record<string, Record<string, number>> | undefined) ?? null)
-      } else {
+        const res = await fetch(`/api/search?${sp.toString()}`)
+        const json = await res.json()
+        if (cancelled) return
+        if (json.ok && Array.isArray(json.hits)) {
+          setResults((json.hits as Record<string, unknown>[]).map(mapHit))
+          setTotalResults(json.totalHits as number)
+          setTotalPages((json.totalPages as number) ?? 0)
+          setFacets((json.facets as Record<string, Record<string, number>> | undefined) ?? null)
+        } else {
+          setResults([])
+          setTotalResults(0)
+          setTotalPages(0)
+          setFacets(null)
+        }
+      } catch {
+        if (cancelled) return
         setResults([])
         setTotalResults(0)
         setTotalPages(0)
-        setFacets(null)
+      } finally {
+        if (!cancelled) setSearchLoading(false)
       }
-    } catch {
-      // ponytail: silent fail — show empty state, don't break UI.
-      setResults([])
-      setTotalResults(0)
-      setTotalPages(0)
-    } finally {
-      setSearchLoading(false)
     }
-  }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort, beds, baths, floorMin, floorMax, condRaw, bstatRaw, featRaw, photo, verifiedOnly, pets, seller, from, to, cur, page])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical data-fetch effect
-    fetchSearch()
-  }, [fetchSearch])
+    void run()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- paramsKey is the single change signal
+  }, [paramsKey])
 
   // Page navigation — the page number itself lives in the URL.
   const goPage = (n: number) => {

@@ -36,7 +36,10 @@ interface Star {
   size: number
   duration: string
   delay: string
+  min: string
+  max: string
   blue: boolean
+  flare: boolean
 }
 
 /* Skyline: [x, width, height] — a stylized city silhouette */
@@ -92,14 +95,20 @@ function buildWindows(): WindowCell[] {
 /* Sparse twinkling star field — confined to the upper sky so it never collides with the H1/search panel */
 function buildStars(): Star[] {
   const rnd = seeded(91)
-  return Array.from({ length: 18 }, () => ({
-    top: `${(4 + rnd() * 42).toFixed(2)}%`,
-    left: `${(rnd() * 96).toFixed(2)}%`,
-    size: 1.5 + rnd() * 1.8,
-    duration: `${(3 + rnd() * 5).toFixed(1)}s`,
-    delay: `${(-rnd() * 6).toFixed(1)}s`,
-    blue: rnd() > 0.55,
-  }))
+  return Array.from({ length: 24 }, () => {
+    const size = 1.5 + rnd() * 2.1
+    return {
+      top: `${(4 + rnd() * 42).toFixed(2)}%`,
+      left: `${(rnd() * 96).toFixed(2)}%`,
+      size,
+      duration: `${(3 + rnd() * 6).toFixed(1)}s`,
+      delay: `${(-rnd() * 9).toFixed(1)}s`,
+      min: (0.12 + rnd() * 0.25).toFixed(2),
+      max: (0.75 + rnd() * 0.25).toFixed(2),
+      blue: rnd() > 0.55,
+      flare: size > 3,
+    }
+  })
 }
 
 const particles = buildParticles()
@@ -148,13 +157,14 @@ export default function HeroBackground() {
         <div className="absolute left-1/2 top-[30%] h-[50%] w-[46%] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_14%,transparent),transparent_70%)] blur-[110px]" />
       </div>
 
-      {/* Moon — top-right crescent carved from bg, soft brand-blue glow */}
+      {/* Moon — warm gibbous carved from bg, champagne glow (brand orange-light) */}
       <div className="animate-float absolute right-[10%] top-[8%] hidden h-24 w-24 md:block">
-        <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue-light)_28%,transparent),transparent_65%)] blur-2xl" />
-        <div className="absolute left-4 top-3 h-14 w-14 overflow-hidden rounded-full">
-          <div className="absolute left-0 top-0 h-14 w-14 rounded-full bg-white" />
+        <div className="sv-moon-halo absolute -inset-6 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange-light)_32%,transparent),transparent_65%)] blur-2xl" />
+        <div className="absolute left-4 top-3 h-14 w-14 overflow-hidden rounded-full shadow-[0_0_24px_4px_color-mix(in_srgb,var(--sv-orange-light)_28%,transparent)]">
+          {/* ponytail: warm moon + 2 craters in one background shorthand — zero new tokens, zero extra divs */}
+          <div className="absolute left-0 top-0 h-14 w-14 rounded-full bg-[radial-gradient(circle_at_30%_62%,color-mix(in_srgb,var(--sv-navy)_14%,transparent)_0_11%,transparent_12%),radial-gradient(circle_at_52%_38%,color-mix(in_srgb,var(--sv-navy)_10%,transparent)_0_7%,transparent_8%),radial-gradient(circle_at_36%_30%,#ffffff,color-mix(in_srgb,#ffffff_45%,var(--sv-orange-light))_52%,var(--sv-orange-light))]" />
           {/* ponytail: crescent carved with an offset navy disc — same color as section bg, zero new tokens */}
-          <div className="absolute left-5 top-[-4px] h-14 w-14 rounded-full bg-sv-navy" />
+          <div className="absolute left-8 top-[-5px] h-14 w-14 rounded-full bg-sv-navy" />
         </div>
       </div>
 
@@ -169,7 +179,7 @@ export default function HeroBackground() {
         {stars.map((s, i) => (
           <span
             key={i}
-            className="sv-star absolute hidden rounded-full md:block"
+            className={`sv-star absolute hidden rounded-full md:block${s.flare ? ' sv-star-flare' : ''}`}
             style={{
               top: s.top,
               left: s.left,
@@ -179,6 +189,8 @@ export default function HeroBackground() {
               boxShadow: '0 0 6px color-mix(in srgb, var(--sv-blue-light) 70%, transparent)',
               '--st-duration': s.duration,
               '--st-delay': s.delay,
+              '--st-min': s.min,
+              '--st-max': s.max,
             } as React.CSSProperties}
           />
         ))}

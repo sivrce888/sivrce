@@ -436,12 +436,15 @@
 
 /* Twinkling stars in the hero night sky */
 @keyframes sv-twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1.1); }
+  0%, 100% { opacity: var(--st-min, 0.2); transform: scale(0.85); }
+  50% { opacity: var(--st-max, 1); transform: scale(1.1); }
 }
 .sv-star {
   animation: sv-twinkle var(--st-duration, 5s) ease-in-out infinite;
   animation-delay: var(--st-delay, 0s);
+}
+.sv-star-flare {
+  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--sv-blue-light) 55%, transparent);
 }
 
 /* Hero entrance — paint-driven (no hydration gate) so LCP text renders immediately */

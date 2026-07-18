@@ -33,8 +33,8 @@ NAVY = "#050B26"; INK = "#0A1030"; WHITE = "#FFFFFF"; CLOUD = "#F6F7FB"
 #   smoothed through Catmull-Rom -> cubic Beziers. 4-fold symmetry (90° CW).
 TIP_V = 20.8          # tip radius (3.2 margin)
 BASE_V = 1.9          # base radius (center void size)
-W_MAX = 5.4           # max blade width
-SWAY = 1.9            # spine mid-bulge toward clockwise side
+W_MAX = 5.7           # max blade width
+SWAY = 2.0            # spine mid-bulge toward clockwise side
 U_TIP = 1.4           # tip hook offset (clockwise)
 U_BASE = -0.5         # base lean (counter-clockwise)
 SPLIT = 0.62          # share of width on the clockwise side
@@ -49,12 +49,13 @@ def _spine(t, sway=SWAY, u_tip=U_TIP, u_base=U_BASE):
     import math
     return u_base + (u_tip - u_base) * t + sway * math.sin(math.pi * t)
 
-def blade_samples(w_max=W_MAX, split=SPLIT, sway=SWAY, n=9):
+def blade_samples(w_max=W_MAX, split=SPLIT, sway=SWAY, base_v=BASE_V,
+                  tip_v=TIP_V, n=9):
     """Sample right (clockwise) edge tip->base and left edge base->tip."""
     right, left = [], []
     for i in range(n):
         t = i / (n - 1)              # 0 base .. 1 tip
-        v = BASE_V + (TIP_V - BASE_V) * t
+        v = base_v + (tip_v - base_v) * t
         s = _spine(t, sway)
         w = w_max * _profile(t)
         right.append((s + w * split, v))
@@ -81,11 +82,17 @@ def rot(p, k):
     if k == 2: return (24 - u, 24 + v)
     return (24 - v, 24 - u)
 
-def blade_path(k, small=False, f=".2f"):
+def blade_path(k, size_class="master", f=".2f"):
     """Closed crescent blade path in global coords (no transform attr —
-    gradients stay in one global user space)."""
-    if small:
-        right, left = blade_samples(w_max=W_MAX * 1.12, sway=SWAY * 1.1)
+    gradients stay in one global user space). Three optical size masters."""
+    if size_class == "micro":
+        # <=16px: chunkiest blades, nearly straight, big void, tips extended
+        right, left = blade_samples(w_max=W_MAX * 1.45, sway=SWAY * 0.55,
+                                    base_v=3.2, tip_v=22.4)
+    elif size_class == "small":
+        # <=32px: fuller blades, calmer swirl, bigger void — favicon-clean
+        right, left = blade_samples(w_max=W_MAX * 1.28, sway=SWAY * 0.8,
+                                    base_v=2.7, tip_v=21.6)
     else:
         right, left = blade_samples()
     outline = [rot(p, k) for p in right + left]
@@ -112,13 +119,13 @@ def gradients():
         f'<stop offset="1" stop-color="{VIOLET}"/></linearGradient>'
         f'</defs>')
 
-def mark_gradient(small=False):
+def mark_gradient(size_class="master"):
     return gradients() + "".join(
-        f'<path d="{blade_path(k, small)}" fill="url(#g{"NESW"[k]})"/>'
+        f'<path d="{blade_path(k, size_class)}" fill="url(#g{"NESW"[k]})"/>'
         for k in range(4))
 
-def mark_mono(color, small=False):
-    return "".join(f'<path d="{blade_path(k, small)}" fill="{color}"/>'
+def mark_mono(color, size_class="master"):
+    return "".join(f'<path d="{blade_path(k, size_class)}" fill="{color}"/>'
                    for k in range(4))
 
 def svg(body, w=48, h=48):
