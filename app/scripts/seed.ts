@@ -85,6 +85,8 @@ async function main() {
         images: l.images,
         features: l.features,
         agent: l.agent as unknown as object,
+        petsAllowed: l.features.includes("add.f.petsAllowed"),
+        sellerType: l.agent.agency ? "agency" : "owner",
         views: l.views,
         verified: true,
         status: "active",

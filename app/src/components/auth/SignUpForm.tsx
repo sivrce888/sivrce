@@ -75,14 +75,14 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
               ან
             </span>
           </div>
-          <GoogleSignInButton redirectTo="/auth/onboarding" label="Google-ით რეგისტრაცია" />
+          <GoogleSignInButton redirectTo="/" label="Google-ით რეგისტრაცია" />
         </>
       ) : null}
 
-      <ul className="space-y-1.5 text-[12px] font-medium text-sv-ink/45">
-        <li>როლს ირჩევ რეგისტრაციის შემდეგ — მყიდველი, გამყიდველი, აგენტი…</li>
-        <li>პაროლი ინახება დაშიფრულად · Google ერთი დაწკაპუნებით</li>
-      </ul>
+      <p className="text-[12px] font-medium leading-relaxed text-sv-ink/45">
+        ანგარიში იწყება როგორც მყიდველი. განცხადების დამატებისას ავტომატურად გახდები
+        გამყიდველი. აგენტი / სააგენტო / დეველოპერი — პარამეტრებში.
+      </p>
     </div>
   )
 }

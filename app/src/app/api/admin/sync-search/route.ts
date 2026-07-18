@@ -39,6 +39,8 @@ export async function POST() {
         currency: true,
         pricePerSqm: true,
         verified: true,
+        petsAllowed: true,
+        sellerType: true,
         extendedFields: true,
         area: true,
         rooms: true,

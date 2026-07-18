@@ -68,6 +68,10 @@ export const CITIES: GeoLoc[] = [
   { slug: 'telavi', ka: 'თელავი', loc: 'თელავში', en: 'Telavi', ru: 'Телави' },
   { slug: 'gori', ka: 'გორი', loc: 'გორში', en: 'Gori', ru: 'Гори' },
   { slug: 'mtskheta', ka: 'მცხეთა', loc: 'მცხეთაში', en: 'Mtskheta', ru: 'Мцхета' },
+  // Resort cities (myhome/ss popular row). Full municipality list lives in georgia-locations.json.
+  { slug: 'bakuriani', ka: 'ბაკურიანი', loc: 'ბაკურიანში', en: 'Bakuriani', ru: 'Бакуриани' },
+  { slug: 'borjomi', ka: 'ბორჯომი', loc: 'ბორჯომში', en: 'Borjomi', ru: 'Боржоми' },
+  { slug: 'gudauri', ka: 'გუდაური', loc: 'გუდაურში', en: 'Gudauri', ru: 'Гудаури' },
 ]
 
 export type District = GeoLoc & { citySlug: string }
@@ -89,11 +93,25 @@ export const DISTRICTS: District[] = [
   { slug: 'varketili', ka: 'ვარკეთილი', loc: 'ვარკეთილში', en: 'Varketili', ru: 'Варкетили', citySlug: 'tbilisi' },
   { slug: 'chughureti', ka: 'ჩუღურეთი', loc: 'ჩუღურეთში', en: 'Chughureti', ru: 'Чугурети', citySlug: 'tbilisi' },
   { slug: 'nadzaladevi', ka: 'ნაძალადევი', loc: 'ნაძალადევში', en: 'Nadzaladevi', ru: 'Надзаладеви', citySlug: 'tbilisi' },
+  // Leaf ubani competitors rank on (full picker list: georgia-locations.json).
+  { slug: 'didube', ka: 'დიდუბე', loc: 'დიდუბეში', en: 'Didube', ru: 'Дидубе', citySlug: 'tbilisi' },
+  { slug: 'vera', ka: 'ვერა', loc: 'ვერაში', en: 'Vera', ru: 'Вера', citySlug: 'tbilisi' },
+  { slug: 'digomis-masivi', ka: 'დიღმის მასივი', loc: 'დიღმის მასივში', en: 'Dighomi Massive', ru: 'Дигомский массив', citySlug: 'tbilisi' },
+  { slug: 'baghebi', ka: 'ბაგები', loc: 'ბაგებში', en: 'Baghebi', ru: 'Багеби', citySlug: 'tbilisi' },
+  { slug: 'nutsubidze', ka: 'ნუცუბიძის ფერდობი', loc: 'ნუცუბიძის ფერდობზე', en: 'Nutsubidze Plateau', ru: 'Плато Нуцубидзе', citySlug: 'tbilisi' },
+  { slug: 'vashlijvari', ka: 'ვაშლიჯვარი', loc: 'ვაშლიჯვარში', en: 'Vashlijvari', ru: 'Вашлиджвари', citySlug: 'tbilisi' },
+  { slug: 'samgori', ka: 'სამგორი', loc: 'სამგორში', en: 'Samgori', ru: 'Самгори', citySlug: 'tbilisi' },
+  { slug: 'temka', ka: 'თემქა', loc: 'თემქაში', en: 'Temka', ru: 'Темка', citySlug: 'tbilisi' },
+  { slug: 'mukhiani', ka: 'მუხიანი', loc: 'მუხიანში', en: 'Mukhiani', ru: 'Мухиани', citySlug: 'tbilisi' },
+  { slug: 'vazisubani', ka: 'ვაზისუბანი', loc: 'ვაზისუბანში', en: 'Vazisubani', ru: 'Вазисубани', citySlug: 'tbilisi' },
   { slug: 'akhali-bulvari', ka: 'ახალი ბულვარი', loc: 'ახალ ბულვარზე', en: 'New Boulevard', ru: 'Новый бульвар', citySlug: 'batumi' },
   { slug: 'dzveli-batumi', ka: 'ძველი ბათუმი', loc: 'ძველ ბათუმში', en: 'Old Batumi', ru: 'Старый Батуми', citySlug: 'batumi' },
   { slug: 'makhinjauri', ka: 'მახინჯაური', loc: 'მახინჯაურში', en: 'Makhinjauri', ru: 'Махинджаури', citySlug: 'batumi' },
+  { slug: 'rustavelis-ubani', ka: 'რუსთაველის უბანი', loc: 'რუსთაველის უბანში', en: 'Rustaveli District', ru: 'Район Руставели', citySlug: 'batumi' },
+  { slug: 'airport-ubani', ka: 'აეროპორტის უბანი', loc: 'აეროპორტის უბანში', en: 'Airport District', ru: 'Район аэропорта', citySlug: 'batumi' },
   { slug: 'kutaisi-centri', ka: 'ცენტრი', loc: 'ცენტრში', en: 'Center', ru: 'Центр', citySlug: 'kutaisi' },
   { slug: 'avtokarkhana', ka: 'ავტოქარხანა', loc: 'ავტოქარხანის უბანში', en: 'Avtokarkhana', ru: 'Автокархана', citySlug: 'kutaisi' },
+  { slug: 'nikea', ka: 'ნიკეა', loc: 'ნიკეაში', en: 'Nikea', ru: 'Никеа', citySlug: 'kutaisi' },
 ]
 
 const cityBySlug = (s: string) => CITIES.find((c) => c.slug === s)

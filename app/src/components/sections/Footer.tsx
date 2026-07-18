@@ -92,7 +92,9 @@ export default function Footer() {
           <p className="text-[13px] font-semibold text-white/55">
             {t('footer.rights')}
           </p>
-          <div className="flex gap-6 text-[13px] font-semibold text-white/60">
+          <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
+            {/* TOP.GE badge — script in layout.tsx targets this id */}
+            <div id="top-ge-counter-container" data-site-id="117677" className="shrink-0 leading-none [&_img]:block [&_img]:opacity-80" />
             <Link href="/terms" className="transition-colors hover:text-white">{t('footer.terms')}</Link>
             <Link href="/privacy" className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
             <Link href="/privacy#cookies" className="transition-colors hover:text-white">{t('footer.cookies')}</Link>

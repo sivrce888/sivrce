@@ -83,6 +83,15 @@ export const ru: Dict = {
   'search.currency': 'Валюта',
   'search.bedsChip': '{n}+ спальни',
   'search.bathsChip': '{n}+ ванные',
+  'search.checkIn': 'Заезд',
+  'search.checkOut': 'Выезд',
+  'search.petsOnly': 'С питомцами',
+  'search.seller': 'Продавец',
+  'search.sellerOwner': 'Собственник',
+  'search.sellerAgency': 'Агентство',
+  'search.pagination': 'Страницы',
+  'search.prev': 'Назад',
+  'search.next': 'Вперёд',
 
   // ——— Property types ———
   'prop.apartment': 'Квартира',

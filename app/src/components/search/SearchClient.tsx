@@ -20,6 +20,7 @@ import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from '@/lib/features'
+import type { SearchLocations } from '@/lib/listings-db'
 import {
   CITIES, districtsOf, USD_GEL,
   type DealType, type PropType, type SortKey, type Listing,
@@ -131,11 +132,15 @@ function mapHit(h: Record<string, unknown>): Listing {
   }
 }
 
-export default function SearchClient() {
+export default function SearchClient({ locations }: { locations?: SearchLocations }) {
   const params = useSearchParams()
   const router = useRouter()
   const { t } = useI18n()
   const s = useSearchStrings()
+  // Live location facets from the server (DB-backed); static catalog fallback.
+  const hasLive = Boolean(locations && locations.cities.length > 0)
+  const locationDistricts = (c?: string): string[] =>
+    hasLive && locations ? (c ? (locations.districts[c] ?? []) : Object.values(locations.districts).flat()) : districtsOf(c)
   // Remember grid/list preference across visits (SSR-safe external store).
   const savedView = useSyncExternalStore(
     () => () => {},
@@ -187,11 +192,32 @@ export default function SearchClient() {
   const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
   const photo = params.get('photo') === '1'
   const verifiedOnly = params.get('verified') === '1'
+  const pets = params.get('pets') === '1'
+  const sellerParam = params.get('seller')
+  const seller: 'owner' | 'agency' | undefined =
+    sellerParam === 'owner' || sellerParam === 'agency' ? sellerParam : undefined
   const cur: 'USD' | 'GEL' = params.get('cur') === 'GEL' ? 'GEL' : 'USD'
+  // Page lives in the URL — shareable and SSR-friendly. Filter changes reset it (see patchParams).
+  const page = numParam('page', 1) ?? 1
+  // Daily-rent availability window (only meaningful for the daily deal).
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+  const fromRaw = params.get('from') ?? ''
+  const toRaw = params.get('to') ?? ''
+  const from = deal === 'daily' && DATE_RE.test(fromRaw) ? fromRaw : undefined
+  const to = deal === 'daily' && DATE_RE.test(toRaw) && (!from || toRaw > from) ? toRaw : undefined
+  const todayIso = new Date().toISOString().slice(0, 10)
+
+  // City/district options: live facets, but keep a stale URL value selectable.
+  const cityBase = hasLive && locations ? locations.cities : CITIES
+  const cityOptions = city && !cityBase.includes(city) ? [...cityBase, city] : cityBase
+  const distBase = locationDistricts(city)
+  const distOptions = district && !distBase.includes(district) ? [...distBase, district] : distBase
 
   // Always build patches on the live URL — never a stale closure
   const patchParams = (patch: Record<string, string | undefined>) => {
     const next = new URLSearchParams(window.location.search)
+    // Any filter change resets pagination — unless the patch IS the page change.
+    if (!('page' in patch)) next.delete('page')
     for (const [k, v] of Object.entries(patch)) {
       if (v === undefined || v === '') next.delete(k)
       else next.set(k, v)
@@ -225,9 +251,10 @@ export default function SearchClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- urlText/patchParams derive from drafts+paramsKey
   }, [drafts, paramsKey])
 
-  // ——— API-driven search (paged; page 2+ appends via "show more") ————————
+  // ——— API-driven search (page from the URL; prev/next navigation) —————————
   const [results, setResults] = useState<Listing[]>([])
   const [totalResults, setTotalResults] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
   const [searchLoading, setSearchLoading] = useState(true)
   // Facet counts from Meilisearch (null on the DB fallback → counts hidden).
   const [facets, setFacets] = useState<Record<string, Record<string, number>> | null>(null)
@@ -235,7 +262,7 @@ export default function SearchClient() {
   const fmtCount = (n: number | undefined) => (n === undefined ? '' : ` (${n})`)
 
   // Map filter state → /api/search query params and fetch.
-  const fetchSearch = useCallback(async (pageNum: number, append: boolean) => {
+  const fetchSearch = useCallback(async () => {
     setSearchLoading(true)
     try {
       const sp = new URLSearchParams()
@@ -259,46 +286,54 @@ export default function SearchClient() {
       if (featRaw) sp.set('feat', featRaw)
       if (photo) sp.set('photo', '1')
       if (verifiedOnly) sp.set('verified', '1')
+      if (pets) sp.set('pets', '1')
+      if (seller) sp.set('seller', seller)
+      if (from) sp.set('from', from)
+      if (to) sp.set('to', to)
       if (cur === 'GEL') sp.set('cur', 'GEL')
-      sp.set('page', String(pageNum))
+      sp.set('page', String(page))
       sp.set('pageSize', '24')
 
       const res = await fetch(`/api/search?${sp.toString()}`)
       const json = await res.json()
       if (json.ok && Array.isArray(json.hits)) {
-        const mapped: Listing[] = (json.hits as Record<string, unknown>[]).map(mapHit)
-        setResults((prev) => (append ? [...prev, ...mapped] : mapped))
+        setResults((json.hits as Record<string, unknown>[]).map(mapHit))
         setTotalResults(json.totalHits as number)
-        if (!append) setFacets((json.facets as Record<string, Record<string, number>> | undefined) ?? null)
-      } else if (!append) {
+        setTotalPages((json.totalPages as number) ?? 0)
+        setFacets((json.facets as Record<string, Record<string, number>> | undefined) ?? null)
+      } else {
         setResults([])
         setTotalResults(0)
+        setTotalPages(0)
         setFacets(null)
       }
     } catch {
       // ponytail: silent fail — show empty state, don't break UI.
-      if (!append) {
-        setResults([])
-        setTotalResults(0)
-      }
+      setResults([])
+      setTotalResults(0)
+      setTotalPages(0)
     } finally {
       setSearchLoading(false)
     }
-  }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort, beds, baths, floorMin, floorMax, condRaw, bstatRaw, featRaw, photo, verifiedOnly, cur])
+  }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort, beds, baths, floorMin, floorMax, condRaw, bstatRaw, featRaw, photo, verifiedOnly, pets, seller, from, to, cur, page])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical data-fetch effect
-    fetchSearch(1, false)
+    fetchSearch()
   }, [fetchSearch])
 
-  // ponytail: page derived from what's on screen — no state to keep in sync.
-  const loadMore = () => fetchSearch(Math.ceil(results.length / 24) + 1, true)
+  // Page navigation — the page number itself lives in the URL.
+  const goPage = (n: number) => {
+    patchParams({ page: n <= 1 ? undefined : String(n) })
+    document.getElementById('main')?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   // ——— Mobile filter sheet + "More filters" panel state ———
   const [sheetOpen, setSheetOpen] = useState(false)
   const moreCount = (beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
     + cond.length + bstat.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
+    + (pets ? 1 : 0) + (seller ? 1 : 0)
   const [moreOpen, setMoreOpen] = useState(moreCount > 0)
 
   // Sheet: Escape to close + body scroll lock while open.
@@ -365,6 +400,9 @@ export default function SearchClient() {
   if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
   if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
   if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
+  if (pets) chips.push({ key: 'pets', label: t('search.petsOnly'), clear: () => patchParams({ pets: undefined }) })
+  if (seller) chips.push({ key: 'seller', label: t(seller === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency'), clear: () => patchParams({ seller: undefined }) })
+  if (from && to) chips.push({ key: 'dates', label: `${from} → ${to}`, clear: () => patchParams({ from: undefined, to: undefined }) })
   if (cur === 'GEL' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '₾', clear: () => patchParams({ cur: undefined }) })
 
   const resetAll = () => {
@@ -408,7 +446,7 @@ export default function SearchClient() {
                 key={label}
                 type="button"
                 aria-pressed={active}
-                onClick={() => patchParams({ deal: d })}
+                onClick={() => patchParams({ deal: d, ...(d === 'daily' ? {} : { from: undefined, to: undefined }) })}
                 className={`relative whitespace-nowrap rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
                   active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
                 }`}
@@ -459,7 +497,7 @@ export default function SearchClient() {
             aria-label={t('search.city')}
           >
             <option value="">{t('search.allCities')}</option>
-            {CITIES.map((c) => (
+            {cityOptions.map((c) => (
               <option key={c} value={c}>{c}{fmtCount(fcount('city', c))}</option>
             ))}
           </select>
@@ -475,7 +513,7 @@ export default function SearchClient() {
             aria-label={t('search.district')}
           >
             <option value="">{t('search.allDistricts')}</option>
-            {districtsOf(city).map((d) => (
+            {distOptions.map((d) => (
               <option key={d} value={d}>{d}{fmtCount(fcount('district', d))}</option>
             ))}
           </select>
@@ -605,6 +643,29 @@ export default function SearchClient() {
           />
         </div>
 
+        {deal === 'daily' && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.checkIn')}</span>
+            <input
+              type="date"
+              value={from ?? ''}
+              min={todayIso}
+              onChange={(e) => patchParams({ from: e.target.value || undefined, ...(from && to && e.target.value >= to ? { to: undefined } : {}) })}
+              className={`${inputClass} w-[150px]`}
+              aria-label={t('search.checkIn')}
+            />
+            <span className="text-sv-ink/65">—</span>
+            <input
+              type="date"
+              value={to ?? ''}
+              min={from ?? todayIso}
+              onChange={(e) => patchParams({ to: e.target.value || undefined })}
+              className={`${inputClass} w-[150px]`}
+              aria-label={t('search.checkOut')}
+            />
+          </div>
+        )}
+
         {(chips.length > 0 || sort !== 'date') && (
           <button
             onClick={resetAll}
@@ -675,6 +736,16 @@ export default function SearchClient() {
                   />
                 </div>
               </div>
+              <div>
+                <span className={labelClass}>{t('search.seller')}</span>
+                <div className="flex gap-1">
+                  {(['owner', 'agency'] as const).map((v) => (
+                    <button key={v} type="button" onClick={() => patchParams({ seller: seller === v ? undefined : v })} aria-pressed={seller === v} className={numChip(seller === v)}>
+                      {t(v === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency')}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div>
@@ -716,6 +787,9 @@ export default function SearchClient() {
               </button>
               <button type="button" onClick={() => patchParams({ verified: verifiedOnly ? undefined : '1' })} aria-pressed={verifiedOnly} className={tagChip(verifiedOnly)}>
                 {t('search.verifiedOnly')}
+              </button>
+              <button type="button" onClick={() => patchParams({ pets: pets ? undefined : '1' })} aria-pressed={pets} className={tagChip(pets)}>
+                {t('search.petsOnly')}
               </button>
             </div>
           </div>
@@ -830,18 +904,29 @@ export default function SearchClient() {
           </div>
         )}
 
-        {/* Load more — keeps loaded cards, appends next page */}
-        {!showSkeleton && results.length > 0 && results.length < totalResults && (
-          <div className="mt-10 flex justify-center">
+        {/* Pagination — page lives in the URL (?page=N), shareable/SSR-friendly */}
+        {!showSkeleton && totalPages > 1 && (
+          <nav className="mt-10 flex items-center justify-center gap-3" aria-label={t('search.pagination')}>
             <button
               type="button"
-              onClick={loadMore}
-              disabled={searchLoading}
-              className="flex h-12 items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 text-[14px] font-extrabold text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue hover:shadow-glow-blue-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-60"
+              onClick={() => goPage(page - 1)}
+              disabled={page <= 1 || searchLoading}
+              className="flex h-11 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-5 text-[13px] font-extrabold text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-40"
             >
-              {searchLoading ? s('loadingMore') : `${s('showMore')} · ${results.length} / ${totalResults}`}
+              ← {t('search.prev')}
             </button>
-          </div>
+            <span className="text-[13px] font-extrabold text-sv-ink/55" aria-live="polite">
+              {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => goPage(page + 1)}
+              disabled={page >= totalPages || searchLoading}
+              className="flex h-11 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-5 text-[13px] font-extrabold text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-40"
+            >
+              {t('search.next')} →
+            </button>
+          </nav>
         )}
 
         {/* SEO hint */}

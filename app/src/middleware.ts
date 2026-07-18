@@ -31,7 +31,6 @@ const PROTECTED_PREFIXES = [
   "/developer",
   "/settings",
   "/dashboard",
-  "/auth/onboarding",
 ]
 
 const APEX = "https://sivrce.ge"
