@@ -1,9 +1,18 @@
 /**
- * Payment adapter — TBC E-Commerce / BOG iPay with graceful degradation.
- * ponytail: TBC and BOG API clients are stubbed — real integration needs
- * API credentials and endpoint URLs per-bank. Mock provider logs and returns
- * fake success so the rest of the system works without payment env vars.
+ * Payment adapter — TBC E-Commerce (tpay) / BOG iPay with graceful degradation.
+ *
+ * Verification pattern (both banks, per their docs): the browser redirect and
+ * the webhook body are NEVER trusted for paid state. The only source of truth
+ * is a server-to-server status lookup at the bank (GET payment/receipt).
+ * BOG callbacks additionally carry an RSA-SHA256 `Callback-Signature` header,
+ * verified against the bank's published public key before parsing.
+ *
+ * Status flip is idempotent: one atomic `UPDATE … WHERE status='pending'`
+ * claim inside a transaction; entitlement writes ride the same transaction,
+ * so a paid order activates its boost exactly once.
  */
+
+import { createVerify } from "node:crypto"
 
 import { getConfig } from "@/lib/config"
 import { db } from "@/lib/db"
@@ -14,8 +23,6 @@ import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
 import { deleteListing, indexListing, type ListingDocument } from "@/lib/search"
 import {
   activeColorUntil,
-  activePriceDropUntil,
-  activeUrgentUntil,
   addonPriceTetri,
   COLOR_HIGHLIGHT_DAYS,
   effectiveTierKey,
@@ -25,8 +32,8 @@ import {
   REFRESH_COOLDOWN_MS,
   STICKER_PRICE_DROP_DAYS,
   STICKER_URGENT_DAYS,
-  TURBO_DAYS,
   tierRankOf,
+  TURBO_DAYS,
   type CheckoutAddon,
   type PromoExtFields,
 } from "@/lib/promo-pricing"
@@ -51,6 +58,8 @@ export interface PaymentOrder {
 }
 
 export interface CreateOrderInput {
+  /** Our internal order UUID — echoed to the bank as merchant-side reference. */
+  orderId: string
   userId: string
   listingId?: string
   tier: string
@@ -59,19 +68,54 @@ export interface CreateOrderInput {
   description?: string
 }
 
+/** Normalized provider-side status; only "captured" flips an order to paid. */
+export type ProviderStatus = "captured" | "failed" | "pending"
+
 export interface PaymentProvider {
   /** Create a new payment order and return a redirect URL for the user. */
   createOrder(input: CreateOrderInput): Promise<{ providerOrderId: string; redirectUrl: string }>
-  /** Capture/verify an authorized payment. */
-  captureOrder(providerOrderId: string): Promise<{ status: string; providerPaymentId?: string }>
-  /** Refund a captured payment. */
+  /** Server-to-server truth lookup — the ONLY way an order becomes paid. */
+  getOrderStatus(
+    providerOrderId: string,
+  ): Promise<{ status: ProviderStatus; providerPaymentId?: string }>
+  /** Refund a captured payment (best-effort; ops usually refunds in the bank dashboard). */
   refundOrder(providerOrderId: string, amountTetri?: number): Promise<{ status: string }>
-  /** Get current status of an order from the provider. */
-  getOrderStatus(providerOrderId: string): Promise<{ status: string; providerPaymentId?: string }>
 }
 
 // ---------------------------------------------------------------------------
-// Mock provider (used when env vars are missing)
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+const FETCH_TIMEOUT_MS = 15_000
+
+/** Public origin for bank callbacks + return redirects. */
+function publicBaseUrl(): string {
+  return (
+    process.env.PAYMENTS_PUBLIC_URL ??
+    process.env.AUTH_URL ??
+    "http://localhost:3000"
+  ).replace(/\/$/, "")
+}
+
+function callbackUrl(): string {
+  return `${publicBaseUrl()}/api/payments/callback`
+}
+
+/** Bank sends the user back here; this route re-verifies and 302s to a result page. */
+function returnUrl(orderId: string): string {
+  return `${publicBaseUrl()}/api/payments/return?order=${orderId}`
+}
+
+async function readJson<T>(res: Response, label: string): Promise<T> {
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
+    throw new Error(`${label} http_${res.status}: ${text.slice(0, 200)}`)
+  }
+  return (await res.json()) as T
+}
+
+// ---------------------------------------------------------------------------
+// Mock provider (dev only; fails closed in production)
 // ---------------------------------------------------------------------------
 
 function createMockProvider(): PaymentProvider {
@@ -80,70 +124,121 @@ function createMockProvider(): PaymentProvider {
   if (process.env.NODE_ENV === "production") {
     throw new Error("payment provider not configured")
   }
-  const prefix = "mock"
   return {
     async createOrder(input) {
-      const id = `${prefix}_${crypto.randomUUID()}`
+      const id = `mock_${crypto.randomUUID()}`
       console.log("[payments:mock] createOrder", { id, ...input })
-      return {
-        providerOrderId: id,
-        redirectUrl: `/api/payments/callback?mock=1&orderId=${id}&status=success`,
-      }
+      return { providerOrderId: id, redirectUrl: returnUrl(input.orderId) }
     },
-    async captureOrder(providerOrderId) {
-      console.log("[payments:mock] captureOrder", providerOrderId)
-      return { status: "captured", providerPaymentId: `pay_${providerOrderId}` }
+    async getOrderStatus(providerOrderId) {
+      console.log("[payments:mock] getOrderStatus", providerOrderId)
+      return { status: "captured" as const, providerPaymentId: `pay_${providerOrderId}` }
     },
     async refundOrder(providerOrderId) {
       console.log("[payments:mock] refundOrder", providerOrderId)
       return { status: "refunded" }
     },
-    async getOrderStatus(providerOrderId) {
-      console.log("[payments:mock] getOrderStatus", providerOrderId)
-      return { status: "captured", providerPaymentId: `pay_${providerOrderId}` }
-    },
   }
 }
 
 // ---------------------------------------------------------------------------
-// TBC E-Commerce provider
-// ponytail: stub — real implementation needs TBC API docs and credentials
+// TBC E-Commerce (tpay) — https://developers.tbcbank.ge
+// apikey header on every call; OAuth client-credentials token (valid 1 day).
 // ---------------------------------------------------------------------------
 
-function createTbcProvider(): PaymentProvider {
-  const merchantId = process.env.TBC_MERCHANT_ID
-  const apiKey = process.env.TBC_API_KEY
-  const apiSecret = process.env.TBC_API_SECRET
-  const baseUrl = process.env.TBC_CALLBACK_URL
-    ? new URL(process.env.TBC_CALLBACK_URL).origin
-    : "https://api.tbcbank.ge/v1"
+const TBC_API_BASE = "https://api.tbcbank.ge/v1/tpay"
 
-  if (!merchantId || !apiKey || !apiSecret) {
-    console.warn("[payments:tbc] TBC_MERCHANT_ID, TBC_API_KEY or TBC_API_SECRET missing — falling back to mock")
+/** TBC payment-detail statuses we treat as final. Everything else = pending. */
+const TBC_PAID = new Set(["succeeded", "partialreturned"])
+const TBC_FAILED = new Set(["failed", "canceled", "returned"])
+
+let tbcToken: { value: string; expiresAt: number } | null = null
+
+async function tbcAccessToken(apiKey: string, clientId: string, clientSecret: string): Promise<string> {
+  if (tbcToken && tbcToken.expiresAt > Date.now() + 60_000) return tbcToken.value
+  const res = await fetch(`${TBC_API_BASE}/access-token`, {
+    method: "POST",
+    headers: { apikey: apiKey, "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    cache: "no-store",
+  })
+  const data = await readJson<{ access_token: string; expires_in?: number }>(res, "tbc:token")
+  tbcToken = {
+    value: data.access_token,
+    expiresAt: Date.now() + (data.expires_in ?? 86_400) * 1000,
+  }
+  return data.access_token
+}
+
+interface TbcPayment {
+  payId: string
+  status: string
+  transactionId?: string | null
+  links?: Array<{ uri: string; method: string; rel: string }>
+  developerMessage?: string | null
+}
+
+function createTbcProvider(): PaymentProvider {
+  const apiKey = process.env.TBC_API_KEY
+  const clientId = process.env.TBC_CLIENT_ID
+  const clientSecret = process.env.TBC_CLIENT_SECRET
+
+  if (!apiKey || !clientId || !clientSecret) {
+    console.warn("[payments:tbc] TBC_API_KEY, TBC_CLIENT_ID or TBC_CLIENT_SECRET missing — falling back to mock")
     return createMockProvider()
+  }
+
+  async function authed(path: string, init: RequestInit = {}): Promise<Response> {
+    const token = await tbcAccessToken(apiKey!, clientId!, clientSecret!)
+    return fetch(`${TBC_API_BASE}${path}`, {
+      ...init,
+      headers: {
+        apikey: apiKey!,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(init.headers ?? {}),
+      },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      cache: "no-store",
+    })
   }
 
   return {
     async createOrder(input) {
-      // ponytail: real TBC e-commerce API call
-      const id = `tbc_${crypto.randomUUID()}`
-      console.log("[payments:tbc] createOrder (stub)", { id, ...input })
-      return {
-        providerOrderId: id,
-        redirectUrl: `${baseUrl}/checkout/${id}`,
+      const res = await authed("/payments", {
+        method: "POST",
+        body: JSON.stringify({
+          amount: { currency: input.currency ?? "GEL", total: input.amountTetri / 100 },
+          returnurl: returnUrl(input.orderId),
+          callbackUrl: callbackUrl(),
+          language: "KA",
+          preAuthorization: false,
+          merchantPaymentId: input.orderId,
+        }),
+      })
+      const data = await readJson<TbcPayment>(res, "tbc:create")
+      const redirect = data.links?.find((l) => l.rel.includes("approval"))
+      if (!data.payId || !redirect?.uri) {
+        throw new Error(`tbc:create missing payId/approval link: ${data.developerMessage ?? "unknown"}`)
       }
+      return { providerOrderId: data.payId, redirectUrl: redirect.uri }
     },
-    async captureOrder(providerOrderId) {
-      console.log("[payments:tbc] captureOrder (stub)", providerOrderId)
-      return { status: "captured", providerPaymentId: `tbc_pay_${providerOrderId}` }
-    },
-    async refundOrder(providerOrderId, amountTetri) {
-      console.log("[payments:tbc] refundOrder (stub)", providerOrderId, amountTetri)
-      return { status: "refunded" }
-    },
+
     async getOrderStatus(providerOrderId) {
-      console.log("[payments:tbc] getOrderStatus (stub)", providerOrderId)
-      return { status: "captured", providerPaymentId: `tbc_pay_${providerOrderId}` }
+      const res = await authed(`/payments/${encodeURIComponent(providerOrderId)}`)
+      const data = await readJson<TbcPayment>(res, "tbc:status")
+      const s = data.status.toLowerCase()
+      const status: ProviderStatus = TBC_PAID.has(s) ? "captured" : TBC_FAILED.has(s) ? "failed" : "pending"
+      return { status, providerPaymentId: data.transactionId ?? undefined }
+    },
+
+    // ponytail: cancels an unfinished/pre-auth payment. Captured-payment refunds
+    // are ops (TBC merchant dashboard); admin marks the local row refunded.
+    async refundOrder(providerOrderId) {
+      const res = await authed(`/payments/${encodeURIComponent(providerOrderId)}/cancel`, { method: "POST" })
+      await readJson(res, "tbc:cancel")
+      return { status: "refunded" }
     },
   }
 }
@@ -152,44 +247,138 @@ function createTbcProvider(): PaymentProvider {
 export { createTbcProvider }
 
 // ---------------------------------------------------------------------------
-// BOG iPay provider
-// ponytail: stub — real implementation needs BOG API docs and credentials
+// BOG iPay — https://api.bog.ge/docs/en/payments
+// OAuth2 client-credentials (Basic auth) → JWT; receipt lookup for truth.
 // ---------------------------------------------------------------------------
 
-function createBogProvider(): PaymentProvider {
-  const merchantId = process.env.BOG_MERCHANT_ID
-  const apiKey = process.env.BOG_API_KEY
-  const apiSecret = process.env.BOG_API_SECRET
-  const baseUrl = process.env.BOG_CALLBACK_URL
-    ? new URL(process.env.BOG_CALLBACK_URL).origin
-    : "https://ipay.bog.ge/api"
+const BOG_API_BASE = "https://api.bog.ge/payments/v1"
+const BOG_TOKEN_URL = "https://oauth2.bog.ge/auth/realms/bog/protocol/openid-connect/token"
 
-  if (!merchantId || !apiKey || !apiSecret) {
-    console.warn("[payments:bog] BOG_MERCHANT_ID, BOG_API_KEY or BOG_API_SECRET missing — falling back to mock")
+/** Production callback public key published in BOG docs (override via env for tests). */
+const BOG_PROD_CALLBACK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu4RUyAw3+CdkS3ZNILQh
+zHI9Hemo+vKB9U2BSabppkKjzjjkf+0Sm76hSMiu/HFtYhqWOESryoCDJoqffY0Q
+1VNt25aTxbj068QNUtnxQ7KQVLA+pG0smf+EBWlS1vBEAFbIas9d8c9b9sSEkTrr
+TYQ90WIM8bGB6S/KLVoT1a7SnzabjoLc5Qf/SLDG5fu8dH8zckyeYKdRKSBJKvhx
+tcBuHV4f7qsynQT+f2UYbESX/TLHwT5qFWZDHZ0YUOUIvb8n7JujVSGZO9/+ll/g
+4ZIWhC1MlJgPObDwRkRd8NFOopgxMcMsDIZIoLbWKhHVq67hdbwpAq9K9WMmEhPn
+PwIDAQAB
+-----END PUBLIC KEY-----`
+
+/**
+ * Verify BOG's `Callback-Signature` header: SHA256withRSA over the RAW request
+ * body (verified before deserialization, per BOG docs).
+ */
+export function verifyBogCallbackSignature(rawBody: string, signatureBase64: string): boolean {
+  try {
+    const key = process.env.BOG_CALLBACK_PUBLIC_KEY ?? BOG_PROD_CALLBACK_PUBLIC_KEY
+    return createVerify("RSA-SHA256").update(rawBody).verify(key, signatureBase64, "base64")
+  } catch {
+    return false
+  }
+}
+
+let bogToken: { value: string; expiresAt: number } | null = null
+
+async function bogAccessToken(clientId: string, clientSecret: string): Promise<string> {
+  if (bogToken && bogToken.expiresAt > Date.now() + 60_000) return bogToken.value
+  const res = await fetch(BOG_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ grant_type: "client_credentials" }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    cache: "no-store",
+  })
+  const data = await readJson<{ access_token: string; expires_in?: number }>(res, "bog:token")
+  bogToken = {
+    value: data.access_token,
+    expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
+  }
+  return data.access_token
+}
+
+interface BogOrderCreated {
+  id: string
+  _links?: { redirect?: { href?: string } }
+}
+
+interface BogReceipt {
+  order_id: string
+  order_status?: { key?: string }
+  payment_detail?: { transaction_id?: string }
+}
+
+function createBogProvider(): PaymentProvider {
+  const clientId = process.env.BOG_CLIENT_ID
+  const clientSecret = process.env.BOG_CLIENT_SECRET
+
+  if (!clientId || !clientSecret) {
+    console.warn("[payments:bog] BOG_CLIENT_ID or BOG_CLIENT_SECRET missing — falling back to mock")
     return createMockProvider()
+  }
+
+  async function authed(path: string, init: RequestInit = {}): Promise<Response> {
+    const token = await bogAccessToken(clientId!, clientSecret!)
+    return fetch(`${BOG_API_BASE}${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(init.headers ?? {}),
+      },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      cache: "no-store",
+    })
   }
 
   return {
     async createOrder(input) {
-      // ponytail: real BOG iPay API call
-      const id = `bog_${crypto.randomUUID()}`
-      console.log("[payments:bog] createOrder (stub)", { id, ...input })
-      return {
-        providerOrderId: id,
-        redirectUrl: `${baseUrl}/orders/${id}`,
-      }
+      const gel = input.amountTetri / 100
+      const back = returnUrl(input.orderId)
+      const res = await authed("/ecommerce/orders", {
+        method: "POST",
+        headers: { "Idempotency-Key": input.orderId },
+        body: JSON.stringify({
+          callback_url: callbackUrl(),
+          external_order_id: input.orderId,
+          capture: "automatic",
+          purchase_units: {
+            currency: input.currency ?? "GEL",
+            total_amount: gel,
+            basket: [{ quantity: 1, unit_price: gel, product_id: input.tier }],
+          },
+          redirect_urls: { success: back, fail: back },
+        }),
+      })
+      const data = await readJson<BogOrderCreated>(res, "bog:create")
+      const href = data._links?.redirect?.href
+      if (!data.id || !href) throw new Error("bog:create missing id/redirect link")
+      return { providerOrderId: data.id, redirectUrl: href }
     },
-    async captureOrder(providerOrderId) {
-      console.log("[payments:bog] captureOrder (stub)", providerOrderId)
-      return { status: "captured", providerPaymentId: `bog_pay_${providerOrderId}` }
-    },
-    async refundOrder(providerOrderId, amountTetri) {
-      console.log("[payments:bog] refundOrder (stub)", providerOrderId, amountTetri)
-      return { status: "refunded" }
-    },
+
     async getOrderStatus(providerOrderId) {
-      console.log("[payments:bog] getOrderStatus (stub)", providerOrderId)
-      return { status: "captured", providerPaymentId: `bog_pay_${providerOrderId}` }
+      const res = await authed(`/receipt/${encodeURIComponent(providerOrderId)}`)
+      const data = await readJson<BogReceipt>(res, "bog:receipt")
+      const key = data.order_status?.key ?? ""
+      const status: ProviderStatus =
+        key === "completed" || key === "partially_refunded"
+          ? "captured"
+          : key === "rejected" || key === "refunded"
+            ? "failed"
+            : "pending"
+      return { status, providerPaymentId: data.payment_detail?.transaction_id }
+    },
+
+    async refundOrder(providerOrderId, amountTetri) {
+      const res = await authed(`/refund/${encodeURIComponent(providerOrderId)}`, {
+        method: "POST",
+        body: JSON.stringify(amountTetri != null ? { amount: amountTetri / 100 } : {}),
+      })
+      await readJson(res, "bog:refund")
+      return { status: "refunded" }
     },
   }
 }
@@ -198,7 +387,7 @@ function createBogProvider(): PaymentProvider {
 export { createBogProvider }
 
 // ---------------------------------------------------------------------------
-// Provider factory
+// Provider factory — single obvious switch.
 // ---------------------------------------------------------------------------
 
 /** Returns the configured payment provider based on PAYMENT_PROVIDER env var. */
@@ -233,8 +422,58 @@ export async function getTierPrice(tier: string): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
-// High-level operations
+// Order creation — pending row first, then the bank, then the bank's ids.
 // ---------------------------------------------------------------------------
+
+type OrderRow = Prisma.GeorgianPaymentOrderGetPayload<object>
+
+async function placeOrder(
+  draft: Omit<CreateOrderInput, "orderId">,
+): Promise<PaymentOrder> {
+  const providerName = process.env.PAYMENT_PROVIDER?.toLowerCase() ?? "mock"
+  // Placeholder satisfies NOT NULL + unique until the bank returns its own id.
+  const row = await db.georgianPaymentOrder.create({
+    data: {
+      provider: providerName,
+      providerOrderId: `tmp_${crypto.randomUUID()}`,
+      userId: draft.userId,
+      listingId: draft.listingId,
+      tier: draft.tier,
+      amountTetri: draft.amountTetri,
+      currency: draft.currency ?? "GEL",
+      status: "pending",
+    },
+  })
+
+  try {
+    const provider = getPaymentProvider()
+    const { providerOrderId, redirectUrl } = await provider.createOrder({ ...draft, orderId: row.id })
+    const order = await db.georgianPaymentOrder.update({
+      where: { id: row.id },
+      data: { providerOrderId },
+    })
+    return toPaymentOrder(order, redirectUrl)
+  } catch (error) {
+    // Bank never saw a payable order — mark failed so it can't be claimed later.
+    await db.georgianPaymentOrder.update({
+      where: { id: row.id },
+      data: {
+        status: "failed",
+        lastEventPayload: { createError: (error as Error).message.slice(0, 300) },
+      },
+    })
+    throw error
+  }
+}
+
+function toPaymentOrder(order: OrderRow, redirectUrl?: string): PaymentOrder {
+  return {
+    ...order,
+    redirectUrl,
+    createdAt: order.createdAt,
+    providerPaymentId: order.providerPaymentId ?? undefined,
+  }
+}
 
 /** Create a payment order for listing tier upgrade. */
 export async function createListingTierOrder(
@@ -243,9 +482,7 @@ export async function createListingTierOrder(
   tier: string,
 ): Promise<PaymentOrder> {
   const amountTetri = await getTierPrice(tier)
-  const provider = getPaymentProvider()
-
-  const { providerOrderId, redirectUrl } = await provider.createOrder({
+  return placeOrder({
     userId,
     listingId,
     tier,
@@ -253,26 +490,6 @@ export async function createListingTierOrder(
     currency: "GEL",
     description: `Listing ${listingId} tier upgrade to ${tier}`,
   })
-
-  const order = await db.georgianPaymentOrder.create({
-    data: {
-      provider: process.env.PAYMENT_PROVIDER ?? "mock",
-      providerOrderId,
-      userId,
-      listingId,
-      tier,
-      amountTetri,
-      currency: "GEL",
-      status: "pending",
-    },
-  })
-
-  return {
-    ...order,
-    redirectUrl,
-    createdAt: order.createdAt,
-    providerPaymentId: order.providerPaymentId ?? undefined,
-  }
 }
 
 /** Create a payment order for a listing add-on (refresh / color / FB). */
@@ -295,37 +512,14 @@ export async function createListingAddonOrder(
     }
   }
 
-  const amountTetri = addonPriceTetri(addon)
-  const provider = getPaymentProvider()
-
-  const { providerOrderId, redirectUrl } = await provider.createOrder({
+  return placeOrder({
     userId,
     listingId,
     tier: addon,
-    amountTetri,
+    amountTetri: addonPriceTetri(addon),
     currency: "GEL",
     description: `Listing ${listingId} addon ${addon}`,
   })
-
-  const order = await db.georgianPaymentOrder.create({
-    data: {
-      provider: process.env.PAYMENT_PROVIDER ?? "mock",
-      providerOrderId,
-      userId,
-      listingId,
-      tier: addon,
-      amountTetri,
-      currency: "GEL",
-      status: "pending",
-    },
-  })
-
-  return {
-    ...order,
-    redirectUrl,
-    createdAt: order.createdAt,
-    providerPaymentId: order.providerPaymentId ?? undefined,
-  }
 }
 
 /** Create a payment order for an auction deposit. */
@@ -334,208 +528,180 @@ export async function createAuctionDepositOrder(
   auctionId: string,
   amountTetri: number,
 ): Promise<PaymentOrder> {
-  const provider = getPaymentProvider()
-
-  const { providerOrderId, redirectUrl } = await provider.createOrder({
+  return placeOrder({
     userId,
     tier: "auction_deposit",
     amountTetri,
     currency: "GEL",
     description: `Auction ${auctionId} deposit`,
   })
-
-  const order = await db.georgianPaymentOrder.create({
-    data: {
-      provider: process.env.PAYMENT_PROVIDER ?? "mock",
-      providerOrderId,
-      userId,
-      tier: "auction_deposit",
-      amountTetri,
-      currency: "GEL",
-      status: "pending",
-    },
-  })
-
-  return {
-    ...order,
-    redirectUrl,
-    createdAt: order.createdAt,
-    providerPaymentId: order.providerPaymentId ?? undefined,
-  }
 }
 
-/** Handle a payment provider callback/webhook. */
-export async function handleCallback(
+// ---------------------------------------------------------------------------
+// Finalization — idempotent claim + transactional entitlement.
+// ---------------------------------------------------------------------------
+
+export interface FinalizeResult {
+  outcome: "paid" | "failed" | "pending" | "unknown"
+  orderId?: string
+  status?: string
+}
+
+/**
+ * Verify an order server-to-server and, on a terminal state, flip it exactly
+ * once. Safe to call from webhooks, return redirects and retries — repeats
+ * after a final flip are no-ops.
+ */
+export async function finalizeOrder(
   provider: PaymentProvider,
-  payload: { providerOrderId: string; status?: string },
-): Promise<void> {
-  const { providerOrderId } = payload
-
-  // Trust boundary: client-supplied `status` is never trusted. Paid state is
-  // decided only by a server-to-server lookup at the provider.
-  const providerStatus = await provider.getOrderStatus(providerOrderId)
-
-  const newStatus = providerStatus.status === "captured" ? "paid" : "failed"
-
+  providerOrderId: string,
+  payload?: unknown,
+): Promise<FinalizeResult> {
   const order = await db.georgianPaymentOrder.findFirst({
     where: { providerOrderId },
   })
-
   if (!order) {
-    console.error("[payments:callback] unknown order:", providerOrderId)
-    return
+    console.error("[payments:finalize] unknown order:", providerOrderId)
+    return { outcome: "unknown" }
   }
 
-  await db.georgianPaymentOrder.update({
-    where: { id: order.id },
-    data: {
-      status: newStatus,
-      providerPaymentId: providerStatus.providerPaymentId ?? undefined,
-      paidAt: newStatus === "paid" ? new Date() : undefined,
-      lastEventPayload: payload as Prisma.InputJsonValue,
-    },
+  if (order.status !== "pending") {
+    return { outcome: order.status === "paid" ? "paid" : "failed", orderId: order.id, status: order.status }
+  }
+
+  // Trust boundary: only the bank's own API decides paid state.
+  const providerStatus = await provider.getOrderStatus(providerOrderId)
+  if (providerStatus.status === "pending") {
+    return { outcome: "pending", orderId: order.id, status: "pending" }
+  }
+  const newStatus = providerStatus.status === "captured" ? "paid" : "failed"
+
+  const listingToReindex = await db.$transaction(async (tx) => {
+    // Atomic claim: exactly one concurrent caller wins the pending→final flip.
+    const claimed = await tx.georgianPaymentOrder.updateMany({
+      where: { id: order.id, status: "pending" },
+      data: {
+        status: newStatus,
+        providerPaymentId: providerStatus.providerPaymentId ?? undefined,
+        paidAt: newStatus === "paid" ? new Date() : undefined,
+        lastEventPayload: (payload ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      },
+    })
+    if (claimed.count === 0) return null // someone else finalized first
+
+    if (newStatus !== "paid") return null
+    return applyEntitlementTx(tx, order)
   })
 
-  // If this is a listing tier upgrade and payment succeeded, activate the tier
-  if (newStatus === "paid" && order.listingId && order.tier && order.tier !== "auction_deposit") {
-    if (isCheckoutAddon(order.tier)) {
-      await applyPaidAddon(order.listingId, order.userId, order.tier, order.amountTetri, order.provider)
-      return
-    }
+  if (listingToReindex) await reindexListingById(listingToReindex)
 
-    const tier = order.tier as "vip" | "super_vip" | "diamond"
-    if (tier !== "vip" && tier !== "super_vip" && tier !== "diamond") return
+  return { outcome: newStatus === "paid" ? "paid" : "failed", orderId: order.id, status: newStatus }
+}
 
-    const expiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+/**
+ * Apply the purchased entitlement inside the claim transaction.
+ * Returns the listing id to reindex after commit (or null).
+ */
+async function applyEntitlementTx(
+  tx: Prisma.TransactionClient,
+  order: { id: string; listingId: string | null; userId: string | null; tier: string; amountTetri: number; provider: string },
+): Promise<string | null> {
+  if (!order.listingId || order.tier === "auction_deposit") return null
 
-    await db.listing.update({
+  const now = new Date()
+
+  // — Listing tier upgrade (VIP / VIP+ / SUPER VIP, 30 days) —
+  if (order.tier === "vip" || order.tier === "super_vip" || order.tier === "diamond") {
+    await tx.listing.update({
       where: { id: order.listingId },
       data: {
-        tier,
-        tierPurchasedAt: new Date(),
-        tierExpiresAt: expiry,
+        tier: order.tier,
+        tierPurchasedAt: now,
+        tierExpiresAt: new Date(now.getTime() + 30 * 86_400_000),
         tierPaymentOrderId: order.id,
       },
     })
-
-    await reindexListingById(order.listingId)
+    return order.listingId
   }
-}
 
-async function applyPaidAddon(
-  listingId: string,
-  userId: string | null,
-  addon: CheckoutAddon,
-  amountTetri: number,
-  provider: string | null,
-): Promise<void> {
-  const listing = await db.listing.findUnique({
-    where: { id: listingId },
-    select: { tier: true, tierExpiresAt: true, extendedFields: true },
+  if (!isCheckoutAddon(order.tier)) return null
+  const addon = order.tier
+
+  const listing = await tx.listing.findUnique({
+    where: { id: order.listingId },
+    select: { tier: true, extendedFields: true },
   })
-  if (!listing) return
+  if (!listing) return null
 
-  const now = new Date()
+  const prev = (listing.extendedFields as PromoExtFields | null) ?? {}
   let durationDays = 0
   let expiresAt = now
-  const prev = (listing.extendedFields as PromoExtFields | null) ?? {}
-  let reindex = false
 
   if (addon === "refresh_once") {
     // ponytail: bump createdAt — Georgian classifieds freshness; dedicated bumpedAt if audit needs it
-    durationDays = 0
-    expiresAt = now
-    await db.listing.update({
-      where: { id: listingId },
-      data: { createdAt: now },
-    })
-    reindex = true
+    await tx.listing.update({ where: { id: order.listingId }, data: { createdAt: now } })
   } else if (addon === "color") {
     durationDays = COLOR_HIGHLIGHT_DAYS
-    const until = extendIso(prev.colorUntil, COLOR_HIGHLIGHT_DAYS, now)
-    expiresAt = until
-    await db.listing.update({
-      where: { id: listingId },
-      data: {
-        extendedFields: { ...prev, colorUntil: until.toISOString() } as Prisma.InputJsonValue,
-      },
+    expiresAt = extendIso(prev.colorUntil, COLOR_HIGHLIGHT_DAYS, now)
+    await tx.listing.update({
+      where: { id: order.listingId },
+      data: { extendedFields: { ...prev, colorUntil: expiresAt.toISOString() } as Prisma.InputJsonValue },
     })
-    reindex = true
-  } else if (addon === "sticker_urgent") {
-    durationDays = STICKER_URGENT_DAYS
-    const until = extendIso(prev.urgentUntil, STICKER_URGENT_DAYS, now)
-    expiresAt = until
-    await db.listing.update({
-      where: { id: listingId },
-      data: {
-        extendedFields: { ...prev, urgentUntil: until.toISOString() } as Prisma.InputJsonValue,
-      },
+  } else if (addon === "sticker_urgent" || addon === "sticker_price_drop") {
+    durationDays = addon === "sticker_urgent" ? STICKER_URGENT_DAYS : STICKER_PRICE_DROP_DAYS
+    const field = addon === "sticker_urgent" ? "urgentUntil" : "priceDropUntil"
+    expiresAt = extendIso(prev[field], durationDays, now)
+    await tx.listing.update({
+      where: { id: order.listingId },
+      data: { extendedFields: { ...prev, [field]: expiresAt.toISOString() } as Prisma.InputJsonValue },
     })
-    reindex = true
-  } else if (addon === "sticker_price_drop") {
-    durationDays = STICKER_PRICE_DROP_DAYS
-    const until = extendIso(prev.priceDropUntil, STICKER_PRICE_DROP_DAYS, now)
-    expiresAt = until
-    await db.listing.update({
-      where: { id: listingId },
-      data: {
-        extendedFields: {
-          ...prev,
-          priceDropUntil: until.toISOString(),
-        } as Prisma.InputJsonValue,
-      },
-    })
-    reindex = true
   } else if (isTurboAddon(addon)) {
-    // Turbo = SUPER VIP + color + urgent sticker + bump for N days (−20/−25/−30 vs stack).
+    // Turbo = SUPER VIP + color + urgent sticker + freshness bump, N days.
     durationDays = TURBO_DAYS[addon]
-    const colorUntil = extendIso(prev.colorUntil, durationDays, now)
-    const urgentUntil = extendIso(prev.urgentUntil, durationDays, now)
-    const turboExpiry = new Date(now.getTime() + durationDays * 86_400_000)
-    const keepDiamond =
-      listing.tier === "diamond" &&
-      listing.tierExpiresAt &&
-      listing.tierExpiresAt.getTime() > turboExpiry.getTime()
-    expiresAt = keepDiamond ? listing.tierExpiresAt! : turboExpiry
-    await db.listing.update({
-      where: { id: listingId },
+    expiresAt = new Date(now.getTime() + durationDays * 86_400_000)
+    await tx.listing.update({
+      where: { id: order.listingId },
       data: {
-        createdAt: now,
         tier: "diamond",
         tierPurchasedAt: now,
         tierExpiresAt: expiresAt,
+        tierPaymentOrderId: order.id,
+        createdAt: now,
         extendedFields: {
           ...prev,
-          colorUntil: colorUntil.toISOString(),
-          urgentUntil: urgentUntil.toISOString(),
+          colorUntil: extendIso(prev.colorUntil, durationDays, now).toISOString(),
+          urgentUntil: extendIso(prev.urgentUntil, durationDays, now).toISOString(),
         } as Prisma.InputJsonValue,
       },
     })
-    reindex = true
   } else {
     // Facebook packs — paid SKU; fulfillment is ops (boost history is the queue signal).
     durationDays = addon === "facebook" ? 3 : 7
     expiresAt = new Date(now.getTime() + durationDays * 86_400_000)
   }
 
-  await db.listingBoostHistory.create({
+  await tx.listingBoostHistory.create({
     data: {
-      listingId,
-      userId: userId ?? undefined,
+      listingId: order.listingId,
+      userId: order.userId ?? undefined,
       fromTier: listing.tier,
       toTier: addon,
-      amountTetri,
+      amountTetri: order.amountTetri,
       currency: "GEL",
-      provider: provider ?? undefined,
+      provider: order.provider,
       durationDays,
       startedAt: now,
       expiresAt,
     },
   })
 
-  if (reindex) {
-    await reindexListingById(listingId)
-  }
+  return order.listingId
+}
+
+type ExtFields = {
+  condition?: string
+  buildingStatus?: string
+  colorUntil?: string
 }
 
 /** Reindex active listing; remove from Meili when inactive/missing. */
@@ -581,7 +747,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
     return
   }
 
-  const ext = listing.extendedFields as PromoExtFields | null
+  const ext = listing.extendedFields as ExtFields | null
   const tierKey = effectiveTierKey(listing.tier, listing.tierExpiresAt)
   const doc: ListingDocument = {
     id: listing.id,
@@ -616,8 +782,6 @@ export async function reindexListingById(listingId: string): Promise<void> {
     createdAt: listing.createdAt.toISOString(),
     status: listing.status,
     colorUntil: activeColorUntil(ext),
-    urgentUntil: activeUrgentUntil(ext),
-    priceDropUntil: activePriceDropUntil(ext),
     trustScore: listing.trustScore,
     tier: tierKey,
     tierRank: tierRankOf(listing.tier, listing.tierExpiresAt),

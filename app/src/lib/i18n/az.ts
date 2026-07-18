@@ -128,6 +128,8 @@ export const az: Dict = {
   'detail.addFavorite': 'Seçilmişlərə əlavə et',
   'detail.removeFavorite': 'Seçilmişlərdən sil',
   'detail.share': 'Paylaş',
+  'sticker.urgent': 'Təcili',
+  'sticker.priceDrop': 'Qiymət endirildi',
   'detail.linkCopied': 'Keçid kopyalandı',
   'detail.fullPrice': 'Tam qiymət',
   'detail.monthlyRent': 'Aylıq kirayə',

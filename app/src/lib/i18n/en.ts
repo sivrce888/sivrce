@@ -128,6 +128,8 @@ export const en: Dict = {
   'detail.addFavorite': 'Add to favorites',
   'detail.removeFavorite': 'Remove from favorites',
   'detail.share': 'Share',
+  'sticker.urgent': 'Urgent',
+  'sticker.priceDrop': 'Price dropped',
   'detail.linkCopied': 'Link copied',
   'detail.fullPrice': 'Full price',
   'detail.monthlyRent': 'Monthly rent',

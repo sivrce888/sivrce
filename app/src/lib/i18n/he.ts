@@ -128,6 +128,8 @@ export const he: Dict = {
   'detail.addFavorite': 'הוספה למועדפים',
   'detail.removeFavorite': 'הסרה ממועדפים',
   'detail.share': 'שיתוף',
+  'sticker.urgent': 'דחוף',
+  'sticker.priceDrop': 'המחיר ירד',
   'detail.linkCopied': 'הקישור הועתק',
   'detail.fullPrice': 'מחיר מלא',
   'detail.monthlyRent': 'שכירות חודשית',

@@ -66,6 +66,17 @@ import {
   type MapUiSave,
 } from '@/lib/map/map-ui'
 import {
+  POI_CATEGORIES,
+  POI_COLORS,
+  POI_DEFAULT_ON,
+  POI_LABELS,
+  parsePoiPrefs,
+  poiFilterSpec,
+  poisToGeoJSON,
+  serializePoiPrefs,
+  type PoiCategory,
+} from '@/lib/map/pois'
+import {
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
@@ -119,6 +130,11 @@ const TERRAIN_OPTIONS: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
 const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
 const NBH_DATA = neighborhoodsToGeoJSON()
+
+const POI_SOURCE_ID = 'sivrce-pois'
+const POI_DOT_ID = 'sivrce-pois-dot'
+const POI_LABEL_LAYER_ID = 'sivrce-pois-label'
+const POI_DATA = poisToGeoJSON()
 
 const STATIC_BUILDINGS = mergeMapBuildings(
   clusterListingsToBuildings(LISTINGS),
@@ -278,6 +294,48 @@ function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
       'text-opacity': 0.92,
     },
   })
+
+  // ——— amenity POIs (OSM static) ———
+  map.addSource(POI_SOURCE_ID, { type: 'geojson', data: POI_DATA })
+  map.addLayer({
+    id: POI_DOT_ID,
+    type: 'circle',
+    source: POI_SOURCE_ID,
+    minzoom: 11,
+    filter: poiFilterSpec(POI_DEFAULT_ON),
+    paint: {
+      'circle-radius': [
+        'interpolate', ['linear'], ['zoom'],
+        11, 3.5, 14, 5.5, 16, 7,
+      ],
+      'circle-color': ['get', 'color'],
+      'circle-stroke-width': 1.5,
+      'circle-stroke-color': '#FFFFFF',
+      'circle-opacity': 0.95,
+    },
+  })
+  map.addLayer({
+    id: POI_LABEL_LAYER_ID,
+    type: 'symbol',
+    source: POI_SOURCE_ID,
+    minzoom: 14.5,
+    filter: poiFilterSpec(POI_DEFAULT_ON),
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-size': 11,
+      'text-font': ['Noto Sans Bold'],
+      'text-offset': [0, 1.1],
+      'text-anchor': 'top',
+      'text-max-width': 10,
+      'text-padding': 2,
+      'text-optional': true,
+    },
+    paint: {
+      'text-color': BRAND.colors.ink,
+      'text-halo-color': '#FFFFFF',
+      'text-halo-width': 1.4,
+    },
+  })
 }
 
 const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
@@ -333,6 +391,10 @@ function Map3DInner({
     const s = savedUi.status
     return STATUS_FILTERS.some((f) => f.id === s) ? (s as MapStatusFilter) : 'all'
   })
+  const [poiOn, setPoiOn] = useState<PoiCategory[]>(() => {
+    const parsed = parsePoiPrefs(savedUi.pois)
+    return parsed ?? [...POI_DEFAULT_ON]
+  })
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
   const [view3d, setView3d] = useState(() => savedUi.view3d !== false)
   const [terrain, setTerrain] = useState<MapTerrain>(() => parseTerrain(savedUi.terrain))
@@ -358,6 +420,7 @@ function Map3DInner({
   const userDotRef = useRef<maplibregl.Marker | null>(null)
   const darkRef = useRef(isDark)
   const terrainRef = useRef<MapTerrain>(terrain)
+  const poiOnRef = useRef(poiOn)
   const styleGenRef = useRef(0)
   const styleUrlRef = useRef<string | null>(null)
   const remountRef = useRef<(() => void) | null>(null)
@@ -365,9 +428,30 @@ function Map3DInner({
   useEffect(() => { darkRef.current = isDark }, [isDark])
   useEffect(() => { terrainRef.current = terrain }, [terrain])
   useEffect(() => { view3dRef.current = view3d }, [view3d])
+  useEffect(() => { poiOnRef.current = poiOn }, [poiOn])
   useEffect(() => {
-    writeMapUi({ terrain, view3d, deal: dealFilter, status: statusFilter })
-  }, [terrain, view3d, dealFilter, statusFilter])
+    writeMapUi({
+      terrain,
+      view3d,
+      deal: dealFilter,
+      status: statusFilter,
+      pois: serializePoiPrefs(poiOn),
+    })
+  }, [terrain, view3d, dealFilter, statusFilter, poiOn])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map?.getLayer(POI_DOT_ID)) return
+    const filter = poiFilterSpec(poiOn)
+    map.setFilter(POI_DOT_ID, filter)
+    if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, filter)
+  }, [poiOn])
+
+  const togglePoi = useCallback((id: PoiCategory) => {
+    setPoiOn((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    )
+  }, [])
 
   useEffect(() => {
     const onFs = () => {
@@ -616,9 +700,16 @@ function Map3DInner({
 
       const onMapClick = (e: MapMouseEvent) => {
         const hits = map.queryRenderedFeatures(e.point, {
-          layers: [EXTRUDE_ID, FILL_ID, DOT_ID, CLUSTER_ID, FLOORS_FILL_ID].filter((id) =>
-            map.getLayer(id),
-          ),
+          layers: [
+            EXTRUDE_ID,
+            FILL_ID,
+            DOT_ID,
+            CLUSTER_ID,
+            FLOORS_FILL_ID,
+            POI_DOT_ID,
+            POI_LABEL_LAYER_ID,
+            NBH_LABEL_ID,
+          ].filter((id) => map.getLayer(id)),
         })
         if (hits.length > 0) return
         const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
@@ -749,9 +840,46 @@ function Map3DInner({
         map.getCanvas().style.cursor = ''
       }
 
+      const poiPopup = new maplibregl.Popup({
+        className: 'sivrce-nbh-pop',
+        closeButton: true,
+        closeOnClick: true,
+        offset: 14,
+        maxWidth: '220px',
+      })
+
+      const onPoiClick = (e: MapLayerMouseEvent) => {
+        e.originalEvent.stopPropagation()
+        const f = e.features?.[0]
+        if (!f) return
+        const p = f.properties ?? {}
+        const root = document.createElement('div')
+        root.className = 'sivrce-nbh-pop'
+        const kind = document.createElement('div')
+        kind.className = 'sivrce-nbh-pop-city'
+        kind.textContent = String(p.label ?? '')
+        root.appendChild(kind)
+        const title = document.createElement('div')
+        title.className = 'sivrce-nbh-pop-title'
+        title.textContent = String(p.name ?? '')
+        root.appendChild(title)
+        const coords = (f.geometry as GeoJSON.Point).coordinates
+        poiPopup.setLngLat([coords[0]!, coords[1]!]).setDOMContent(root).addTo(map)
+      }
+
+      const onPoiEnter = () => {
+        map.getCanvas().style.cursor = 'pointer'
+      }
+      const onPoiLeave = () => {
+        map.getCanvas().style.cursor = ''
+      }
+
       const mountOverlays = () => {
         applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
         ensureLayers(map, visibleRef.current)
+        const poiFilter = poiFilterSpec(poiOnRef.current)
+        if (map.getLayer(POI_DOT_ID)) map.setFilter(POI_DOT_ID, poiFilter)
+        if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
         tightenAttribution(map)
         const showFloors = Boolean(
           selectedRef.current && buildingShowsFloorStack(selectedRef.current),
@@ -790,6 +918,22 @@ function Map3DInner({
               dark ? BRAND.colors.navy : '#FFFFFF',
             )
             map.setPaintProperty(NBH_LABEL_ID, 'text-halo-width', dark ? 2.2 : 2)
+          } catch {
+            /* paint may differ */
+          }
+        }
+        if (map.getLayer(POI_LABEL_LAYER_ID)) {
+          try {
+            map.setPaintProperty(
+              POI_LABEL_LAYER_ID,
+              'text-color',
+              dark ? '#E9EDFF' : BRAND.colors.ink,
+            )
+            map.setPaintProperty(
+              POI_LABEL_LAYER_ID,
+              'text-halo-color',
+              dark ? BRAND.colors.navy : '#FFFFFF',
+            )
           } catch {
             /* paint may differ */
           }
@@ -896,6 +1040,10 @@ function Map3DInner({
       map.on('click', NBH_LABEL_ID, onNeighborhoodClick)
       map.on('mouseenter', NBH_LABEL_ID, onNeighborhoodEnter)
       map.on('mouseleave', NBH_LABEL_ID, onNeighborhoodLeave)
+      map.on('click', POI_DOT_ID, onPoiClick)
+      map.on('click', POI_LABEL_LAYER_ID, onPoiClick)
+      map.on('mouseenter', POI_DOT_ID, onPoiEnter)
+      map.on('mouseleave', POI_DOT_ID, onPoiLeave)
       map.on('click', onMapClick)
 
       remountRef.current = mountOverlays
@@ -1223,6 +1371,29 @@ function Map3DInner({
                 )
               })}
             </div>
+
+            <div
+              className={`flex flex-wrap gap-1 border-t p-1.5 ${hair}`}
+              role="group"
+              aria-label="ობიექტები რუკაზე"
+            >
+              {POI_CATEGORIES.map((id) => {
+                const active = poiOn.includes(id)
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => togglePoi(id)}
+                    className={`min-h-8 rounded-full px-2.5 text-[11px] font-extrabold tracking-tight transition ${
+                      active ? 'text-white' : chipMuted
+                    }`}
+                    style={active ? { background: POI_COLORS[id] } : undefined}
+                  >
+                    {POI_LABELS[id]}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {ipSuggest && (
@@ -1288,7 +1459,7 @@ function Map3DInner({
                 })}
               </div>
               <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>სტატუსი</p>
-              <div className="mb-5 flex flex-wrap gap-1.5" role="group" aria-label="სტატუსის ფილტრი">
+              <div className="mb-4 flex flex-wrap gap-1.5" role="group" aria-label="სტატუსის ფილტრი">
                 {STATUS_FILTERS.map((f) => {
                   const active = statusFilter === f.id
                   const bg =
@@ -1312,6 +1483,25 @@ function Map3DInner({
                       {f.label}
                       {f.id === 'construction' ? ` (${constructionCount})` : ''}
                       {f.id === 'completed' ? ` (${completedCount})` : ''}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>ობიექტები</p>
+              <div className="mb-5 flex flex-wrap gap-1.5" role="group" aria-label="ობიექტები რუკაზე">
+                {POI_CATEGORIES.map((id) => {
+                  const active = poiOn.includes(id)
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => togglePoi(id)}
+                      className={`min-h-10 rounded-full px-3.5 text-[13px] font-extrabold transition ${
+                        active ? 'text-white' : chipMuted
+                      }`}
+                      style={active ? { background: POI_COLORS[id] } : undefined}
+                    >
+                      {POI_LABELS[id]}
                     </button>
                   )
                 })}

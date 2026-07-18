@@ -8,13 +8,13 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  MessageCircle, BadgeCheck, Calculator,
+  MessageCircle, BadgeCheck, Calculator, TrendingDown,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { monthlyPayment } from '@/lib/finance'
-import ListingCard, { BADGE_STYLE } from '@/components/ListingCard'
+import ListingCard, { BADGE_STYLE, ListingStickerStack } from '@/components/ListingCard'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { LeadForm } from '@/components/lead/LeadForm'
@@ -276,7 +276,9 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease }}
-            className="group relative overflow-hidden rounded-card shadow-card"
+            className={`group relative overflow-hidden rounded-card shadow-card ${
+              l.highlighted ? 'ring-2 ring-sv-blue/35' : ''
+            }`}
           >
             <button
               className="relative block aspect-[16/10] w-full cursor-zoom-in"
@@ -316,11 +318,17 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             </button>
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sv-navy/50 via-transparent to-sv-navy/10" />
             {l.badge && (
-              <span className={`absolute left-5 top-5 flex items-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
+              <span className={`absolute left-5 top-5 z-[1] flex items-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
                 {l.badge === 'SUPER VIP' ? <Crown className="h-4 w-4" /> : <Flame className="h-4 w-4" />}
                 {l.badge}
               </span>
             )}
+            <ListingStickerStack
+              urgent={l.stickerUrgent}
+              priceDrop={l.stickerPriceDrop}
+              size="md"
+              className={`absolute left-5 z-[1] ${l.badge ? 'top-[4.25rem]' : 'top-5'}`}
+            />
             <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="flex items-center gap-1.5 rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
@@ -439,6 +447,12 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   {priceMain}
                   {!isSale && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perMonth')}</span>}
                 </div>
+                {l.stickerPriceDrop ? (
+                  <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-sv-navy/90 px-2.5 py-1 text-[11px] font-black text-white">
+                    <TrendingDown className="h-3 w-3" aria-hidden />
+                    {t('sticker.priceDrop')}
+                  </div>
+                ) : null}
                 <div className="mt-0.5 text-[14px] font-bold text-sv-ink/45">
                   {priceAlt} · {currency === 'USD'
                     ? `$${l.perM2USD.toLocaleString('en-US')}`
@@ -714,7 +728,9 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/45">
                     {l.agent.role ? (
                       <span className="rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-extrabold text-sv-blue">
-                        {SELLER_ROLE_LABEL[l.agent.role].ka}
+                        {lang === 'ka'
+                          ? SELLER_ROLE_LABEL[l.agent.role].ka
+                          : SELLER_ROLE_LABEL[l.agent.role].en}
                       </span>
                     ) : null}
                     {l.agent.agency ? <span className="truncate">{l.agent.agency}</span> : null}

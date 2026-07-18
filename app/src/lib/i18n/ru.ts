@@ -128,6 +128,8 @@ export const ru: Dict = {
   'detail.addFavorite': 'В избранное',
   'detail.removeFavorite': 'Удалить из избранного',
   'detail.share': 'Поделиться',
+  'sticker.urgent': 'Срочно',
+  'sticker.priceDrop': 'Цена снижена',
   'detail.linkCopied': 'Ссылка скопирована',
   'detail.fullPrice': 'Полная цена',
   'detail.monthlyRent': 'Аренда в месяц',

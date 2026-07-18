@@ -128,6 +128,8 @@ export const uk: Dict = {
   'detail.addFavorite': 'Додати в обране',
   'detail.removeFavorite': 'Видалити з обраного',
   'detail.share': 'Поділитися',
+  'sticker.urgent': 'Терміново',
+  'sticker.priceDrop': 'Ціну знижено',
   'detail.linkCopied': 'Посилання скопійовано',
   'detail.fullPrice': 'Повна ціна',
   'detail.monthlyRent': 'Місячна оренда',

@@ -7,6 +7,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
+  TrendingDown,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
@@ -37,6 +38,40 @@ export const BADGE_STYLE: Record<NonNullable<Listing['badge']>, string> = {
   'SUPER VIP': BRAND.vipTiers['SUPER VIP'].style,
   'VIP+': BRAND.vipTiers['VIP+'].style,
   VIP: BRAND.vipTiers.VIP.style,
+}
+
+/** Paid stickers only — amenities stay free features; owner is seller-card truth, not a chip. */
+export function ListingStickerStack({
+  urgent,
+  priceDrop,
+  className = '',
+  size = 'sm',
+}: {
+  urgent?: boolean
+  priceDrop?: boolean
+  className?: string
+  size?: 'sm' | 'md'
+}) {
+  const { t } = useI18n()
+  if (!urgent && !priceDrop) return null
+  const pad = size === 'md' ? 'px-3 py-1.5 text-[11px]' : 'px-2.5 py-1 text-[10px]'
+  const icon = size === 'md' ? 'h-3.5 w-3.5' : 'h-3 w-3'
+  return (
+    <div className={`flex flex-col items-start gap-1 ${className}`}>
+      {urgent ? (
+        <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep font-black tracking-wide text-white shadow-glow-orange ${pad}`}>
+          <Zap className={icon} aria-hidden />
+          {t('sticker.urgent')}
+        </span>
+      ) : null}
+      {priceDrop ? (
+        <span className={`flex items-center gap-1 rounded-full bg-sv-navy/90 font-black tracking-wide text-white backdrop-blur ${pad}`}>
+          <TrendingDown className={icon} aria-hidden />
+          {t('sticker.priceDrop')}
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
 function AIScoreRing({ score, size = 40 }: { score: number; size?: number }) {
@@ -134,37 +169,26 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       />
       <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/70 via-transparent to-sv-navy/10" />
       {l.badge && (
-        <span className={`absolute left-4 top-4 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
+        <span className={`absolute left-4 top-4 z-[1] flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
           {l.badge === 'SUPER VIP' ? <Crown className="h-3.5 w-3.5" /> : <Flame className="h-3.5 w-3.5" />}
           {l.badge}
         </span>
       )}
-      {(l.stickerUrgent || l.stickerPriceDrop) && (
-        <div
-          className={`absolute left-4 z-[1] flex flex-col items-start gap-1 ${
-            l.badge || signals.isHot || signals.isTrending ? 'top-14' : 'top-4'
-          }`}
-        >
-          {l.stickerUrgent && (
-            <span className="flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-2.5 py-1 text-[10px] font-black tracking-wide text-white shadow-glow-orange">
-              <Zap className="h-3 w-3" aria-hidden />
-              სასწრაფოდ
-            </span>
-          )}
-          {l.stickerPriceDrop && (
-            <span className="flex items-center gap-1 rounded-full bg-sv-navy/90 px-2.5 py-1 text-[10px] font-black tracking-wide text-white backdrop-blur">
-              <TrendingUp className="h-3 w-3 rotate-180" aria-hidden />
-              ფასი დაწეულია
-            </span>
-          )}
-        </div>
-      )}
-      {signals.isHot && !l.badge && !l.stickerUrgent && (
+      <ListingStickerStack
+        urgent={l.stickerUrgent}
+        priceDrop={l.stickerPriceDrop}
+        className={`absolute left-4 z-[1] ${
+          l.badge || (signals.isHot && !l.stickerUrgent) || (signals.isTrending && !l.stickerUrgent)
+            ? 'top-14'
+            : 'top-4'
+        }`}
+      />
+      {signals.isHot && !l.badge && !l.stickerUrgent && !l.stickerPriceDrop && (
         <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-1 text-[11px] font-black tracking-wider text-white">
           <Zap className="h-3 w-3" /> HOT
         </span>
       )}
-      {signals.isTrending && !signals.isHot && !l.badge && !l.stickerUrgent && (
+      {signals.isTrending && !signals.isHot && !l.badge && !l.stickerUrgent && !l.stickerPriceDrop && (
         <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-sv-blue/90 px-3 py-1 text-[11px] font-black tracking-wider text-white backdrop-blur">
           <TrendingUp className="h-3 w-3" /> TRENDING
         </span>

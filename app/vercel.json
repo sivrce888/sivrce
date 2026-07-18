@@ -1,4 +1,24 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "fluid": true,
+  "regions": ["fra1"],
+  "images": {
+    "sizes": [32, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1280, 1920],
+    "domains": [],
+    "remotePatterns": [
+      { "protocol": "https", "hostname": "cdn.sivrce.ge", "pathname": "/**" },
+      { "protocol": "https", "hostname": "images.sivrce.ge", "pathname": "/**" },
+      {
+        "protocol": "https",
+        "hostname": "lh3.googleusercontent.com",
+        "pathname": "/**"
+      }
+    ],
+    "minimumCacheTTL": 31536000,
+    "formats": ["image/avif", "image/webp"],
+    "qualities": [60, 75],
+    "dangerouslyAllowSVG": false,
+    "contentDispositionType": "inline"
+  }
 }

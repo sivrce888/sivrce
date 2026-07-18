@@ -128,6 +128,8 @@ export const ka = {
   'detail.addFavorite': 'ფავორიტებში დამატება',
   'detail.removeFavorite': 'ფავორიტებიდან წაშლა',
   'detail.share': 'გაზიარება',
+  'sticker.urgent': 'სასწრაფოდ',
+  'sticker.priceDrop': 'ფასი დაწეულია',
   'detail.linkCopied': 'ბმული დაკოპირდა',
   'detail.fullPrice': 'სრული ფასი',
   'detail.monthlyRent': 'თვიური ქირა',

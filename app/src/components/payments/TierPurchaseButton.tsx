@@ -5,7 +5,6 @@ import { motion } from "framer-motion"
 import {
   Crown,
   Flame,
-  Sparkles,
   Loader2,
   ChevronRight,
   RotateCw,
@@ -77,20 +76,6 @@ const ADDONS: Array<{
     icon: Rocket,
   },
   {
-    key: "turbo_14",
-    label: "Turbo · 14 დღე",
-    description: "იგივე ნაკრები · უკეთესი ფასი",
-    priceTetri: ADDON_TETRI.turbo_14,
-    icon: Rocket,
-  },
-  {
-    key: "turbo_30",
-    label: "Turbo · 30 დღე",
-    description: "მაქსიმალური პაკეტი",
-    priceTetri: ADDON_TETRI.turbo_30,
-    icon: Rocket,
-  },
-  {
     key: "sticker_urgent",
     label: "სასწრაფოდ · 1 დღე",
     description: "ნარინჯისფერი სტიკერი ბარათზე",
@@ -125,21 +110,8 @@ const ADDONS: Array<{
     priceTetri: ADDON_TETRI.facebook,
     icon: Share2,
   },
-  {
-    key: "facebook_7d",
-    label: "Facebook · 7 დღე",
-    description: "გაფართოებული პაკეტი",
-    priceTetri: ADDON_TETRI.facebook_7d,
-    icon: Share2,
-  },
-  {
-    key: "facebook_7d_xl",
-    label: "Facebook XL · 7 დღე",
-    description: "მაქსიმალური მიწოდება",
-    priceTetri: ADDON_TETRI.facebook_7d_xl,
-    icon: Share2,
-  },
 ]
+// ponytail: turbo_14/30 + FB 7d/XL stay in API + pricing page; hide from quick menu until volume justifies them.
 
 interface TierPurchaseButtonProps {
   listingId: string
@@ -229,8 +201,8 @@ export default function TierPurchaseButton({
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 rounded-control bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-all hover:shadow-glow-blue active:scale-95"
       >
-        <Sparkles className="h-4 w-4" />
-        გააძლიერე
+        <Rocket className="h-4 w-4" />
+        ბუსტი
       </button>
 
       {open && (
