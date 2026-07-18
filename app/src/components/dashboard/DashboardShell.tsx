@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
 
-import { signOut } from "@/auth"
+import { signOutToHome } from "@/app/auth/actions"
 import DashboardNav from "@/components/dashboard/DashboardNav"
 import { LogoMark } from "@/components/Logo"
 
@@ -52,12 +52,7 @@ export default function DashboardShell({
             <span className="hidden max-w-48 truncate text-[12px] font-semibold text-sv-ink/60 md:block">
               {userLabel}
             </span>
-            <form
-              action={async () => {
-                "use server"
-                await signOut({ redirectTo: "/" })
-              }}
-            >
+            <form action={signOutToHome}>
               <button
                 type="submit"
                 className="rounded-full border border-sv-ink/12 px-4 py-2 text-[12px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"

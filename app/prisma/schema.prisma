@@ -481,6 +481,9 @@ model Listing {
   searchVector                  Unsupported("tsvector")?               @map("search_vector")
   images                        String[]                               @default([])
   features                      String[]                               @default([])
+  petsAllowed                   Boolean                                @default(false) @map("pets_allowed")
+  /// "owner" | "agency" — denormalized at publish (User.role / agency profile).
+  sellerType                    String                                 @default("owner") @map("seller_type") @db.VarChar(20)
   extendedFields                Json?                                  @map("extended_fields")
   agent                         Json
   listingPhone                  String?                                @map("listing_phone") @db.VarChar(30)
@@ -532,6 +535,8 @@ model Listing {
   @@index([yearBuilt, deletedAt], map: "listings_year_built_idx")
   @@index([createdAt(sort: Desc), deletedAt], map: "listings_created_at_idx")
   @@index([verified, deletedAt], map: "listings_verified_idx")
+  @@index([petsAllowed, deletedAt], map: "listings_pets_allowed_idx")
+  @@index([sellerType, deletedAt], map: "listings_seller_type_idx")
   @@index([trustScore(sort: Desc), deletedAt], map: "listings_trust_score_idx")
   @@index([status, deletedAt], map: "listings_status_deleted_at_idx")
   @@map("listings")

@@ -2,6 +2,7 @@ import Navbar from '@/components/sections/Navbar'
 import Hero from '@/components/sections/Hero'
 import Stats from '@/components/sections/Stats'
 import Categories from '@/components/sections/Categories'
+import Collections from '@/components/sections/Collections'
 import Listings from '@/components/sections/Listings'
 import MapSection from '@/components/sections/MapSection'
 import AISection from '@/components/sections/AISection'
@@ -31,6 +32,7 @@ export default async function HomeMain() {
         <Hero />
         <Stats />
         <Categories />
+        <Collections />
         <Listings items={featured} />
         <MapSection />
         <AISection />

@@ -105,3 +105,26 @@ export async function restoreProfessional(fd: FormData) {
   })
   revalidatePath("/admin/professionals")
 }
+
+/** Bulk-approve korter-imported draft projects (optionally narrowed by the
+ *  current search). Activated rows go live on /projects within the ISR hour. */
+export async function activateDraftProjects(fd: FormData) {
+  const session = await requireAdminAction()
+  const q = String(fd.get("q") ?? "").trim().slice(0, 200)
+
+  const res = await db.projectDirectory.updateMany({
+    where: {
+      deletedAt: null,
+      status: "draft",
+      ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
+    },
+    data: { status: "active" },
+  })
+  if (res.count === 0) throw new Error("No draft projects match")
+
+  await logAdminAction(session, "professional.bulk_activate", "projects", q || "*", {
+    count: res.count,
+  })
+  revalidatePath("/admin/professionals")
+  revalidatePath("/projects")
+}

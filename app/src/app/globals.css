@@ -171,6 +171,8 @@
   --chip-daily-rent: #fdedf1;
   --chip-hotels: #ecf6f9;
   --chip-new-projects: #eff3ff;
+  --chip-party: #fae8fd;
+  --chip-self-checkin: #e6f6f4;
 }
 
 .dark {
@@ -233,6 +235,8 @@
   --chip-daily-rent: color-mix(in oklab, #e11d48 20%, transparent);
   --chip-hotels: color-mix(in oklab, #0891b2 20%, transparent);
   --chip-new-projects: color-mix(in oklab, #5b8bff 18%, transparent);
+  --chip-party: color-mix(in oklab, #c026d3 20%, transparent);
+  --chip-self-checkin: color-mix(in oklab, #0d9488 20%, transparent);
 }
 
 /* Frosted nav/menu glass: light milk → smoked navy in dark mode.

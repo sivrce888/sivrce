@@ -167,6 +167,16 @@ interface KorterBuilding {
   images?: { mediaSrc?: { default?: { x2?: string } } }[]
 }
 
+/** Korter names that are the same company as a curated entry under a
+ *  different name — import their projects onto the curated record instead
+ *  of skipping them as name-only matches. */
+const DEV_ALIAS = new Map([
+  [norm("GBG Development"), "gbg-development"],
+  [norm("Ande Group"), "ande-group"],
+  [norm("Kolos"), "kolos"],
+  [norm("One Development"), "x2-development"],
+])
+
 async function main() {
   console.log("Loading existing directory from Neon...")
   const [dbDevs, dbProjects] = await Promise.all([
@@ -197,8 +207,10 @@ async function main() {
   const importDeveloper = async (kd: KorterDev): Promise<void> => {
     const slug = slugFromLink(kd.link)
 
-    // Existing developer? (slug wins; exact-name match is reported, not merged)
-    let ourSlug = devBySlug.has(slug) ? slug : undefined
+    // Existing developer? Slug wins, then curated alias; remaining exact-name
+    // matches are reported, not merged.
+    let ourSlug = devBySlug.has(slug) ? slug : DEV_ALIAS.get(norm(kd.name))
+    if (ourSlug && !devBySlug.has(ourSlug)) ourSlug = undefined
     if (!ourSlug) {
       const named = devNames.get(norm(kd.name))
       if (named) {

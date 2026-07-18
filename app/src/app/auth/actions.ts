@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto"
 import { AuthError } from "next-auth"
 import { redirect } from "next/navigation"
 
-import { signIn } from "@/auth"
+import { signIn, signOut } from "@/auth"
 import { isSelfServeRole } from "@/lib/auth-roles"
 import { db } from "@/lib/db"
 import { sendEmail, sendWelcomeEmail } from "@/lib/email"
@@ -20,6 +20,10 @@ function normalizeEmail(raw: FormDataEntryValue | null): string {
   return String(raw ?? "")
     .trim()
     .toLowerCase()
+}
+
+export async function signOutToHome() {
+  await signOut({ redirectTo: "/" })
 }
 
 export async function signInWithGoogle(formData: FormData) {

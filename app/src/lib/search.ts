@@ -66,6 +66,12 @@ export interface SearchFilters {
   features?: string[]
   hasPhoto?: boolean
   verifiedOnly?: boolean
+  petsOnly?: boolean
+  sellerType?: "owner" | "agency"
+  /** Daily-rent availability window (YYYY-MM-DD). DB-only — Meili can't express
+   * booking overlap, so the route skips Meili when these are set. */
+  dailyFrom?: string
+  dailyTo?: string
   /** Price-filter currency; bounds are converted via USD_GEL. Default USD. */
   currency?: "USD" | "GEL"
   sort?: "date" | "price-asc" | "price-desc" | "area" | "ai" | "m2asc" | "m2desc"
@@ -112,6 +118,8 @@ export interface ListingDocument {
   pricePerSqm?: number
   verified: boolean
   hasImages: boolean
+  petsAllowed?: boolean
+  sellerType?: string
   /** Vocabulary keys from src/lib/features.ts (from extendedFields) */
   condition?: string
   buildingStatus?: string
@@ -177,6 +185,8 @@ async function ensureIndex(): Promise<boolean> {
       "buildingStatus",
       "verified",
       "hasImages",
+      "petsAllowed",
+      "sellerType",
     ])
 
     // Sortable attributes.

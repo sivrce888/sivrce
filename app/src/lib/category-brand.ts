@@ -28,6 +28,9 @@ export const CATEGORY_BRAND = {
   dailyRent:   { hue: '#E11D48', chip: '#FDEDF1', chipVar: 'var(--chip-daily-rent)' }, // დღიური ქირა — rose
   hotels:      { hue: '#0891B2', chip: '#ECF6F9', chipVar: 'var(--chip-hotels)' }, // სასტუმროები — sea cyan
   newProjects: { hue: '#5B8BFF', chip: '#EFF3FF', chipVar: 'var(--chip-new-projects)' }, // ახალი პროექტები — sky blue
+  // Daily-rent collections (locked 2026-07-18, owner request)
+  partyHouses: { hue: '#C026D3', chip: '#FAE8FD', chipVar: 'var(--chip-party)' }, // სახლები წვეულებებისთვის — party fuchsia
+  selfCheckIn: { hue: '#0D9488', chip: '#E6F6F4', chipVar: 'var(--chip-self-checkin)' }, // უკონტაქტო ჩექინი — key teal
 } as const satisfies Record<string, CategoryBrand>
 
 export const SERVICE_BRAND = {

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { ArrowUpRight, LogOut } from "lucide-react"
 import Link from "next/link"
 
-import { signOut } from "@/auth"
+import { signOutToHome } from "@/app/auth/actions"
 import { AdminNav } from "@/components/admin/shell/AdminNav"
 import { requireAdmin } from "@/lib/admin/guard"
 
@@ -55,12 +55,7 @@ export default async function AdminLayout({
               <p className="truncate text-[13px] font-bold text-white">{name}</p>
               <p className="text-[11px] font-semibold text-white/35">Administrator</p>
             </div>
-            <form
-              action={async () => {
-                "use server"
-                await signOut({ redirectTo: "/" })
-              }}
-            >
+            <form action={signOutToHome}>
               <button
                 type="submit"
                 aria-label="Sign out"

@@ -19,4 +19,7 @@ export const FEATURE_KEYS = [
   'add.f.balcony', 'add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.furniture',
   'add.f.appliances', 'add.f.centralHeating', 'add.f.gas', 'add.f.internet', 'add.f.ac',
   'add.f.storage', 'add.f.fireplace', 'add.f.security', 'add.f.yard',
+  // Daily-rent set (2026-07-18): contactless check-in, events, leisure.
+  'add.f.selfCheckIn', 'add.f.partiesAllowed', 'add.f.pool',
+  'add.f.jacuzzi', 'add.f.terrace', 'add.f.petsAllowed',
 ] as const satisfies readonly DictKey[]

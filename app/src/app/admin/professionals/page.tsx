@@ -1,6 +1,7 @@
 import { Building, Building2, Check, HardHat, Users } from "lucide-react"
 
 import {
+  activateDraftProjects,
   restoreProfessional,
   setProfessionalVerified,
   softDeleteProfessional,
@@ -40,6 +41,13 @@ const STATE_OPTIONS = [
   { value: "active", label: "Active" },
   { value: "deleted", label: "Deleted" },
   { value: "all", label: "All" },
+] as const
+
+/** Project-directory workflow status (korter imports land as draft). */
+const PROJECT_STATUS_OPTIONS = [
+  { value: "draft", label: "Draft" },
+  { value: "active", label: "Active" },
+  { value: "completed", label: "Completed" },
 ] as const
 
 function isKind(v: string): v is ProfessionalKind {
@@ -106,6 +114,7 @@ export default async function AdminProfessionalsPage({
   const page = parsePage(sp.page)
   const q = param(sp.q)
   const state = param(sp.state) || "active"
+  const status = kind === "projects" ? param(sp.status) : ""
 
   const tabs = KIND_TABS.map((t) => ({
     href: hrefWithParams(
@@ -137,17 +146,27 @@ export default async function AdminProfessionalsPage({
           placeholder="Search name…"
         />
         <FilterSelect name="state" label="State" options={STATE_OPTIONS} value={state} />
+        {kind === "projects" ? (
+          <FilterSelect
+            name="status"
+            label="Status"
+            options={PROJECT_STATUS_OPTIONS}
+            value={status}
+          />
+        ) : null}
       </div>
 
       {kind === "agents" ? <AgentsTab page={page} q={q} state={state} sp={sp} /> : null}
       {kind === "agencies" ? <AgenciesTab page={page} q={q} state={state} sp={sp} /> : null}
       {kind === "developers" ? <DevelopersTab page={page} q={q} state={state} sp={sp} /> : null}
-      {kind === "projects" ? <ProjectsTab page={page} q={q} state={state} sp={sp} /> : null}
+      {kind === "projects" ? (
+        <ProjectsTab page={page} q={q} state={state} status={status} sp={sp} />
+      ) : null}
     </div>
   )
 }
 
-type TabProps = { page: number; q: string; state: string; sp: SearchParams }
+type TabProps = { page: number; q: string; state: string; status?: string; sp: SearchParams }
 
 /* ---------------------------------- agents --------------------------------- */
 
@@ -369,9 +388,10 @@ async function DevelopersTab({ page, q, state, sp }: TabProps) {
 
 /* --------------------------------- projects -------------------------------- */
 
-async function ProjectsTab({ page, q, state, sp }: TabProps) {
+async function ProjectsTab({ page, q, state, status = "", sp }: TabProps) {
   const where = {
     ...stateWhere(state),
+    ...(status ? { status } : {}),
     ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
   }
   const [rows, total] = await Promise.all([
@@ -383,18 +403,32 @@ async function ProjectsTab({ page, q, state, sp }: TabProps) {
     }),
     db.projectDirectory.count({ where }),
   ])
-  if (rows.length === 0) {
-    return (
-      <EmptyState
-        icon={Building}
-        title="No projects found"
-        hint="Try widening the search or switching the state filter."
-      />
-    )
-  }
   return (
     <>
-      <DataTable>
+      {status === "draft" && total > 0 ? (
+        <div className="mb-3 flex items-center gap-3 rounded-[var(--radius-card)] border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-[13px] font-semibold text-amber-800">
+            {fmtNum(total)} draft projects from the korter import
+            {q ? ` matching “${q}”` : ""} — hidden from the public site.
+          </p>
+          <ConfirmButton
+            action={activateDraftProjects}
+            fields={{ q }}
+            label={`Activate all (${fmtNum(total)})`}
+            tone="primary"
+            confirm={`Activate ALL ${total} draft projects${q ? ` matching “${q}”` : ""}? They go live on /projects.`}
+          />
+        </div>
+      ) : null}
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={Building}
+          title="No projects found"
+          hint="Try widening the search or switching the state filter."
+        />
+      ) : (
+        <>
+          <DataTable>
         <THeadRow>
           <th className={th}>Name</th>
           <th className={th}>City</th>
@@ -439,6 +473,8 @@ async function ProjectsTab({ page, q, state, sp }: TabProps) {
         total={total}
         params={sp}
       />
+        </>
+      )}
     </>
   )
 }
