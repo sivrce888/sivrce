@@ -163,11 +163,12 @@ def wordmark_group(x, y_baseline, letter_color):
 # ---- masters ------------------------------------------------------------------
 def build_masters():
     write("sivrce-v3-mark.svg", svg(mark_gradient()))
-    write("sivrce-v3-mark-small.svg", svg(mark_gradient(small=True)))
+    write("sivrce-v3-mark-small.svg", svg(mark_gradient("small")))
+    write("sivrce-v3-mark-micro.svg", svg(mark_gradient("micro")))
     write("sivrce-v3-mark-mono-ink.svg", svg(mark_mono(INK)))
     write("sivrce-v3-mark-mono-white.svg", svg(mark_mono(WHITE)))
-    write("sivrce-v3-mark-mono-ink-small.svg", svg(mark_mono(INK, small=True)))
-    write("sivrce-v3-mark-mono-white-small.svg", svg(mark_mono(WHITE, small=True)))
+    write("sivrce-v3-mark-mono-ink-small.svg", svg(mark_mono(INK, "small")))
+    write("sivrce-v3-mark-mono-white-small.svg", svg(mark_mono(WHITE, "small")))
 
     # horizontal lockups — gap 15/48, x-height 25/48, optically centered
     def horizontal(letter):
@@ -180,26 +181,24 @@ def build_masters():
     # stacked lockups — mark 48, gap 10, wordmark centered below
     def stacked(letter):
         h = 48 + 10 + WM_VB_H
-        wm_x = (WM_VB_W and (0))  # placeholder, computed below
-        total_w = WM_VB_W
-        mark_x = (total_w - 48) / 2
+        mark_x = (WM_VB_W - 48) / 2
         body = (f'<g transform="translate({mark_x:.2f} 0)">{mark_gradient()}</g>'
                 + wordmark_group(0, 48 + 10 + WM_VB_H, letter))
-        return svg(body, w=f"{total_w:.2f}", h=f"{h:.2f}")
+        return svg(body, w=f"{WM_VB_W:.2f}", h=f"{h:.2f}")
     write("sivrce-v3-stacked.svg", stacked(INK))
     write("sivrce-v3-stacked-white.svg", stacked(WHITE))
 
-    # app icon — spark on navy tile (OS applies the squircle on iOS)
-    tile = (f'<rect width="48" height="48" rx="11" fill="{NAVY}"/>'
-            f'<g transform="translate(6.4 6.4) scale(0.7333)">{mark_gradient()}</g>')
+    # app icon — spark on navy tile (OS applies the squircle mask on iOS)
+    tile = (f'<rect width="48" height="48" fill="{NAVY}"/>'
+            f'<g transform="translate(9.6 9.6) scale(0.6)">{mark_gradient()}</g>')
     write("sivrce-v3-app-icon.svg", svg(tile))
-    # android adaptive: same mark, more headroom (safe zone 66%)
+    # android adaptive: more headroom (safe zone 66%)
     tile_a = (f'<rect width="48" height="48" fill="{NAVY}"/>'
-              f'<g transform="translate(9 9) scale(0.625)">{mark_gradient()}</g>')
+              f'<g transform="translate(12 12) scale(0.5)">{mark_gradient()}</g>')
     write("sivrce-v3-app-icon-android.svg", svg(tile_a))
 
-    # svg favicon (small geometry)
-    write("sivrce-v3-favicon.svg", svg(mark_gradient(small=True)))
+    # svg favicon (small optical geometry)
+    write("sivrce-v3-favicon.svg", svg(mark_gradient("small")))
 
 # ---- chrome png pipeline (same pattern as v2) ---------------------------------
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
@@ -221,28 +220,100 @@ def render_html(html, out, w, h, transparent=True):
     finally:
         os.unlink(html_path)
 
-def render_svg(src, size, out, scale=2):
+def render_svg(src, w, h, out, transparent=True):
     html = (f'<!DOCTYPE html><html><body style="margin:0">'
-            f'<img src="{os.path.abspath(src)}" width="{size}" height="{size}" '
+            f'<img src="{os.path.abspath(src)}" width="{w}" height="{h}" '
             f'style="display:block"></body></html>')
-    render_html(html, out, size, size)
+    render_html(html, out, w, h, transparent)
+
+def size_class(n):
+    return "micro" if n <= 16 else ("small" if n <= 32 else "master")
 
 def build_pngs():
-    sizes = [16, 32, 64, 128, 256, 512, 1024]
-    for n in sizes:
-        small = n <= 32
-        g = f"{OUT}/sivrce-v3-mark{'-small' if small else ''}.svg"
-        render_svg(g, n, f"{PNG}/sivrce-v3-mark-{n}.png")
-        mi = f"{OUT}/sivrce-v3-mark-mono-ink{'-small' if small else ''}.svg"
-        mw = f"{OUT}/sivrce-v3-mark-mono-white{'-small' if small else ''}.svg"
-        render_svg(mi, n, f"{PNG}/sivrce-v3-mark-mono-ink-{n}.png")
-        render_svg(mw, n, f"{PNG}/sivrce-v3-mark-mono-white-{n}.png")
+    for n in [16, 32, 64, 128, 256, 512, 1024]:
+        sc = size_class(n)
+        suffix = "" if sc == "master" else f"-{sc}"
+        render_svg(f"{OUT}/sivrce-v3-mark{suffix}.svg", n, n,
+                   f"{PNG}/sivrce-v3-mark-{n}.png")
+        ms = "-small" if sc != "master" else ""
+        render_svg(f"{OUT}/sivrce-v3-mark-mono-ink{ms}.svg", n, n,
+                   f"{PNG}/sivrce-v3-mark-mono-ink-{n}.png")
+        render_svg(f"{OUT}/sivrce-v3-mark-mono-white{ms}.svg", n, n,
+                   f"{PNG}/sivrce-v3-mark-mono-white-{n}.png")
+    # lockups
+    for name, w, h in [("horizontal", 202.77, 48), ("stacked", 139.77, 83)]:
+        for variant in ["", "-white"]:
+            for s in [4, 8]:
+                rw, rh = round(w * s), round(h * s)
+                render_svg(f"{OUT}/sivrce-v3-{name}{variant}.svg", rw, rh,
+                           f"{PNG}/sivrce-v3-{name}{variant}-{rw}.png")
+
+def build_social():
+    # avatars — mark at 58%, safe inside circle crops on every platform
+    for n in [512, 1024]:
+        m = round(n * 0.58)
+        off = (n - m) // 2
+        for key, bg in [("navy", NAVY), ("cloud", CLOUD)]:
+            html = (f'<!DOCTYPE html><html><body style="margin:0;width:{n}px;'
+                    f'height:{n}px;background:{bg}">'
+                    f'<img src="{OUT}/sivrce-v3-mark.svg" width="{m}" height="{m}" '
+                    f'style="display:block;margin:{off}px"></body></html>')
+            render_html(html, f"{PNG}/sivrce-v3-avatar-{key}-{n}.png", n, n,
+                        transparent=False)
+    # app icons (opaque navy, iOS applies its own mask)
+    for n in [180, 192, 512, 1024]:
+        render_svg(f"{OUT}/sivrce-v3-app-icon.svg", n, n,
+                   f"{PNG}/sivrce-v3-app-icon-{n}.png", transparent=False)
+    render_svg(f"{OUT}/sivrce-v3-app-icon-android.svg", 512, 512,
+               f"{PNG}/sivrce-v3-app-icon-android-512.png", transparent=False)
+    # favicon png fallbacks
+    render_svg(f"{OUT}/sivrce-v3-mark-micro.svg", 16, 16,
+               f"{PNG}/sivrce-v3-favicon-16.png")
+    render_svg(f"{OUT}/sivrce-v3-mark-small.svg", 32, 32,
+               f"{PNG}/sivrce-v3-favicon-32.png")
+    render_svg(f"{OUT}/sivrce-v3-mark.svg", 48, 48,
+               f"{PNG}/sivrce-v3-favicon-48.png")
+    # multi-size .ico
+    try:
+        from PIL import Image
+        imgs = [Image.open(f"{PNG}/sivrce-v3-favicon-{n}.png").convert("RGBA")
+                for n in (16, 32, 48)]
+        imgs[0].save(f"{OUT}/favicon.ico",
+                     sizes=[(16, 16), (32, 32), (48, 48)],
+                     append_images=imgs[1:])
+        print("wrote favicon.ico")
+    except Exception as e:
+        print("ico skipped:", e)
+    # og image 1200x630 — navy, dot grid, glow, white lockup, domain
+    og = f"""<!DOCTYPE html><html><head><style>
+@font-face {{ font-family: Manrope; src: url(../fonts/Manrope-Variable.ttf) format("truetype-variations"); font-weight: 200 1000; }}
+body {{ margin:0; width:1200px; height:630px; background:{NAVY}; position:relative;
+  font-family:Manrope, sans-serif; overflow:hidden; }}
+.dots {{ position:absolute; inset:0;
+  background-image:radial-gradient(rgba(143,180,255,.13) 1.3px, transparent 1.4px);
+  background-size:26px 26px; }}
+.glow {{ position:absolute; left:50%; top:50%; width:980px; height:520px;
+  transform:translate(-50%,-52%);
+  background:radial-gradient(closest-side, rgba(46,107,255,.34), rgba(46,107,255,0) 72%);
+  filter:blur(10px); }}
+.lock {{ position:absolute; left:50%; top:47%; transform:translate(-50%,-50%); }}
+.dom {{ position:absolute; left:0; right:0; bottom:52px; text-align:center;
+  color:rgba(255,255,255,.52); font-size:21px; font-weight:800;
+  letter-spacing:.14em; }}
+</style></head><body>
+<div class="dots"></div><div class="glow"></div>
+<img class="lock" src="{OUT}/sivrce-v3-horizontal-white.svg" width="560">
+<div class="dom">sivrce.ge</div>
+</body></html>"""
+    render_html(og, f"{PNG}/sivrce-v3-og-1200x630.png", 1200, 630,
+                transparent=False)
 
 def main():
     if not os.path.exists(CHROME):
         sys.exit("Chrome not found")
     build_masters()
     build_pngs()
+    build_social()
 
 if __name__ == "__main__":
     main()
