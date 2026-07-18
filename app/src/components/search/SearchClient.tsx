@@ -16,6 +16,7 @@ import SaveSearchControl from '@/components/search/SaveSearchControl'
 import SearchSuggest from '@/components/search/SearchSuggest'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
+import { blurProps } from '@/lib/media'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
@@ -88,7 +89,7 @@ function CompactCard({ l }: { l: Listing }) {
     >
       <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control">
         {/* decorative — the title next to it carries the meaning */}
-        <Image src={l.img} alt="" fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" />
+        <Image src={l.img} alt="" fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" {...blurProps(l.img)} />
       </span>
       <span className="min-w-0">
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
