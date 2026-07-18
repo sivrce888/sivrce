@@ -5,8 +5,11 @@ import { MapPin, CalendarCheck, Building2, Star } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
-import { PROJECTS, getDeveloper } from '@/data/professionals'
+import { getDeveloper } from '@/data/professionals'
+import { projectsLive } from '@/lib/directory-live'
 import { jsonLd } from '@/lib/utils'
+
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'ახალი პროექტები თბილისში და ბათუმში — მშენებარე კორპუსები',
@@ -21,11 +24,12 @@ export const metadata: Metadata = {
   },
 }
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = await projectsLive()
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    itemListElement: PROJECTS.map((p, i) => ({
+    itemListElement: projects.map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: p.name,
@@ -45,7 +49,7 @@ export default function ProjectsPage() {
             ყველა დეველოპერი, ყველა პროექტი — შეფასებებით, ფასებითა და ჩაბარების ვადებით
           </p>
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
-            {PROJECTS.map((p) => {
+            {projects.map((p) => {
               const dev = getDeveloper(p.developerSlug)
               return (
                 <Link
