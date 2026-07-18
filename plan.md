@@ -1,5 +1,33 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-18 (6) — Neon → Supabase Postgres
+- Cut over `DATABASE_URL` / `DIRECT_URL` to Supabase project `SIVRCE`
+  (`azaijzufkrdsdreszwma`, eu-central-1). Prisma schema unchanged.
+- Enabled `postgis` + `vector`; `prisma migrate deploy` applied all 10 migrations.
+- Neon free-tier transfer quota had killed prod reads — retired. Data must be
+  re-imported (Neon dump blocked by quota); static fallbacks cover until then.
+- **Vercel env still needs the new URLs** (CLI is on wrong account) — set
+  `DATABASE_URL` (pooler `:6543`) + `DIRECT_URL` (session `:5432`) in the
+  sivrce team project, then redeploy.
+
+## Shipped 2026-07-18 (5) — link integrity + hydration fix + ⚠ Neon quota (resolved → Supabase)
+- **Broken slugs (4)**: korter import never slugified — `panorama gori-gori`
+  (space), `…-51а-…` (Cyrillic), `сapro-1` (Cyrillic), `/process-group-2025-llc`
+  (leading slash) all 404'd. Fixed at the boundary (`slugFromLink` now slugifies
+  in `sync-korter.ts`) + 4 rows renamed + 2 `map_buildings` refs updated.
+- **All DB-only developer pages 404 in prod**: `developers/[slug]`
+  generateStaticParams omitted `lang` — Next treated the route as fully
+  enumerated, on-demand SSR never ran. One-line fix (`lang: 'ka'`, same pattern
+  as projects/agents).
+- **Price hydration mismatch on every card**: `Intl.NumberFormat('ka')` groups
+  with space in Node but comma in some browsers → server `$285 000` vs client
+  `$285,000`, full tree re-render. `formatMoney` now groups manually (group3) —
+  deterministic everywhere.
+- Tree hygiene: duplicate mid-file import in `buildings.check.ts`, `any` ×2 in
+  `sync-korter.ts` (typed `KorterState`).
+- ⚠ **Neon data-transfer quota EXCEEDED** — resolved by switching to Supabase
+  (see Shipped 2026-07-18 (6)).
+
 ## Shipped 2026-07-18 (4) — perf: one weather call on boot + tree unblocked
 - `src/lib/weather.tsx`: in-flight promise dedupe per city — N weather widgets
   on cold boot share ONE Open-Meteo request (was 5 concurrent, ~950ms each).

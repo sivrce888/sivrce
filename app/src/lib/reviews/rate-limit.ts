@@ -2,7 +2,7 @@
  * In-memory fixed-window rate limiter for review write endpoints.
  * ponytail: per-instance memory only — resets on redeploy and does not
  * coordinate across serverless instances; upgrade to a shared store
- * (Redis/Neon table) when write volume justifies it.
+ * (Redis/Postgres table) when write volume justifies it.
  */
 
 const WINDOW_MS = 10 * 60 * 1000 // 10 minutes

@@ -7,7 +7,7 @@
  * regenerates the 16px WebP placeholder with sharp, and uploads it.
  *
  * Usage:  npx tsx scripts/backfill-lqip.ts
- * Re-run safe. Neon free-tier: 2-wide concurrency (P1008 if you bump it).
+ * Re-run safe. Supabase pool: 2-wide concurrency (P1008 if you bump it).
  */
 
 import { config } from "dotenv"

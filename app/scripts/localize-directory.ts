@@ -11,7 +11,7 @@
  * completes once, re-run with --mirror-only — never re-fetch aggregators.
  *
  * ponytail: gallery capped at 16/project. Re-run safe (skips already-cdn URLs).
- * Neon free-tier: 2-wide + dbRetry — P1008 if you bump concurrency.
+ * Supabase pool: 2-wide + dbRetry — P1008 if you bump concurrency.
  */
 
 import { config } from "dotenv"
