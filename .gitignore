@@ -25,3 +25,7 @@ prisma/*.db
 .playwright-mcp/
 .vercel
 .env*
+
+# local junk
+app/src/__linttmp/
+app/scripts/*.log
