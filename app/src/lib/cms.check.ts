@@ -3,7 +3,7 @@
  * Run: npx tsx src/lib/cms.check.ts
  */
 import { CMS_BLOCKS, CMS_BLOCK_KEYS } from "./cms-blocks"
-import { buildCmsId, cmsGroups, cmsRowsForGroup, parseCmsId } from "./cms"
+import { buildCmsId, cmsGroups, cmsRowsForGroup, parseCmsId } from "./cms-blocks"
 import { ka } from "./i18n/ka"
 import { LANGS } from "./i18n/core"
 

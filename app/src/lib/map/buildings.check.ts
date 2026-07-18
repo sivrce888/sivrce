@@ -358,6 +358,46 @@ const dbOnly = mergeDbBuildings([tower!], [{ ...dbShadow!, slug: 'db-only-tower'
 assert.equal(dbOnly.length, 2, 'db-only buildings are appended')
 assert.equal(mergeDbBuildings([tower!], [])[0], tower!, 'no db rows → identity')
 
+// Human names on map GeoJSON (not SV-TB codes as primary label)
+const axis = BUILDINGS.find((b) => b.slug === 'axis-towers')
+assert.ok(axis, 'axis-towers in catalog')
+const axisFc = buildingsToGeoJSON([
+  {
+    id: 'axis-towers',
+    label: axis!.name,
+    code: axis!.code,
+    address: axis!.address,
+    buildingNumber: '37',
+    district: axis!.district,
+    city: axis!.city,
+    lat: axis!.coords.lat,
+    lng: axis!.coords.lng,
+    color: '#2E6BFF',
+    heightM: 80,
+    counts: { sale: 1, rent: 0, daily: 0, pledge: 0 },
+    dominant: 'sale',
+    status: 'active',
+    listings: [],
+  },
+])
+assert.equal(axisFc.features[0]!.properties!.label, 'აქსის თაუერსი')
+assert.equal(axisFc.features[0]!.properties!.code, axis!.code)
+const onlyBuild = filterBuildings(
+  projectsToConstructionBuildings(PROJECTS),
+  'all',
+  'construction',
+)
+assert.ok(onlyBuild.length > 0, 'construction filter returns ghosts')
+assert.ok(onlyBuild.every((b) => b.status === 'construction'))
+assert.ok(onlyBuild.every((b) => b.label.length > 0 && !/^SV-TB-/.test(b.label)))
+
+import { GEORGIA_MAX_BOUNDS, MAP_CENTER, MAP_MIN_ZOOM } from './buildings'
+assert.equal(MAP_MIN_ZOOM, 7)
+assert.ok(GEORGIA_MAX_BOUNDS[0][0] < GEORGIA_MAX_BOUNDS[1][0])
+assert.ok(GEORGIA_MAX_BOUNDS[0][1] < GEORGIA_MAX_BOUNDS[1][1])
+assert.ok(MAP_CENTER.lng > GEORGIA_MAX_BOUNDS[0][0] && MAP_CENTER.lng < GEORGIA_MAX_BOUNDS[1][0])
+assert.ok(MAP_CENTER.lat > GEORGIA_MAX_BOUNDS[0][1] && MAP_CENTER.lat < GEORGIA_MAX_BOUNDS[1][1])
+
 for (const b of [...realClusters, ...realGhosts]) {
   const fc = floorsToGeoJSON(b)
   assert.equal(fc.features.length, buildingFloorCount(b), `${b.id}: floor feature count mismatch`)

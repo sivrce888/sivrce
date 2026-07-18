@@ -70,7 +70,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
                 {building.label}
               </h2>
               {building.code && (
-                <p className="mt-0.5 text-[12px] font-extrabold text-sv-blue">{building.code}</p>
+                <p className="mt-0.5 text-[11px] font-bold text-sv-ink/35">{building.code}</p>
               )}
               <p className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-sv-ink/50">
                 <MapPin className="h-3.5 w-3.5 shrink-0" />

@@ -24,6 +24,12 @@ import {
   FLOORS_SOURCE_ID,
   mapStyleUrl,
 } from '@/lib/map/floorLayers'
+import {
+  loadCleanStyle,
+  mapChromeOptions,
+  tightenAttribution,
+} from '@/lib/map/mapChrome'
+import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
 import { floorTooltipKa, type FloorInfo } from '@/lib/map/floors'
 
 interface BuildingFloorsMapProps {
@@ -80,118 +86,138 @@ export default function BuildingFloorsMap({
   useEffect(() => {
     if (!containerRef.current || mapRef.current || !themeReady) return
     let cancelled = false
+    let ro: ResizeObserver | null = null
     const initialStyle = mapStyleUrl(isDark)
     styleUrlRef.current = initialStyle
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: initialStyle,
-      center: [center.lng, center.lat],
-      zoom: 16.2,
-      pitch: 62,
-      bearing: -20,
-      maxPitch: 70,
-      fadeDuration: 0,
-      scrollZoom: false,
-    })
-    mapRef.current = map
-    bindMissingImages(map)
-    map.addControl(
-      new maplibregl.NavigationControl({ visualizePitch: true, showCompass: false }),
-      'top-right',
-    )
+    const container = containerRef.current
+    const darkAtInit = isDark
 
-    const popup = new maplibregl.Popup({
-      className: 'sivrce-floor-pop',
-      closeButton: false,
-      closeOnClick: false,
-      offset: 12,
-      maxWidth: '240px',
-    })
-
-    let hovered: number | null = null
-    const clearHover = () => {
-      if (hovered != null) {
-        map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hovered }, { hover: false })
-        hovered = null
+    ;(async () => {
+      let style
+      try {
+        style = await loadCleanStyle(initialStyle)
+      } catch (err) {
+        console.error('[BuildingFloorsMap] style', err)
+        return
       }
-      popup.remove()
-      map.getCanvas().style.cursor = ''
-    }
+      if (cancelled || mapRef.current) return
 
-    const onMove = (e: MapLayerMouseEvent) => {
-      const p = e.features?.[0]?.properties
-      const n = Number(p?.floor)
-      if (!Number.isFinite(n)) return
-      if (hovered !== n) {
+      const map = new maplibregl.Map({
+        container,
+        style,
+        center: [center.lng, center.lat],
+        zoom: 16.2,
+        pitch: 62,
+        bearing: -20,
+        maxPitch: 70,
+        minZoom: MAP_MIN_ZOOM,
+        maxBounds: GEORGIA_MAX_BOUNDS,
+        renderWorldCopies: false,
+        fadeDuration: 0,
+        scrollZoom: false,
+        ...mapChromeOptions(),
+      })
+      mapRef.current = map
+      bindMissingImages(map)
+      map.addControl(
+        new maplibregl.NavigationControl({ visualizePitch: true, showCompass: false }),
+        'top-right',
+      )
+
+      const popup = new maplibregl.Popup({
+        className: 'sivrce-floor-pop',
+        closeButton: false,
+        closeOnClick: false,
+        offset: 12,
+        maxWidth: '240px',
+      })
+
+      let hovered: number | null = null
+      const clearHover = () => {
         if (hovered != null) {
           map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hovered }, { hover: false })
+          hovered = null
         }
-        hovered = n
-        map.setFeatureState({ source: FLOORS_SOURCE_ID, id: n }, { hover: true })
+        popup.remove()
+        map.getCanvas().style.cursor = ''
       }
-      map.getCanvas().style.cursor = 'pointer'
-      const tip = floorTooltipKa(
-        { n, available: Number(p?.available) || 0, minPriceGEL: null },
-        { ghost, progress, showPrice: false },
-      )
-      const root = document.createElement('div')
-      const title = document.createElement('div')
-      title.className = 'sivrce-floor-pop-title'
-      title.textContent = tip.title
-      root.appendChild(title)
-      for (const line of tip.lines) {
-        const div = document.createElement('div')
-        div.className = 'sivrce-floor-pop-line'
-        div.textContent = line
-        root.appendChild(div)
-      }
-      popup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
-    }
 
-    const onClick = (e: MapLayerMouseEvent) => {
-      const n = Number(e.features?.[0]?.properties?.floor)
-      if (Number.isFinite(n) && n > 0) selectRef.current(n)
-    }
-
-    const mountOverlays = (dark: boolean) => {
-      applyBrandPaints(map, dark ? 'dark' : 'light')
-      ensureFloorLayers(map, 15)
-      ;(map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource).setData(geoRef.current)
-      for (const f of floorsRef.current) {
-        map.setFeatureState(
-          { source: FLOORS_SOURCE_ID, id: f.n },
-          { selected: selectedRef.current === f.n },
+      const onMove = (e: MapLayerMouseEvent) => {
+        const p = e.features?.[0]?.properties
+        const n = Number(p?.floor)
+        if (!Number.isFinite(n)) return
+        if (hovered !== n) {
+          if (hovered != null) {
+            map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hovered }, { hover: false })
+          }
+          hovered = n
+          map.setFeatureState({ source: FLOORS_SOURCE_ID, id: n }, { hover: true })
+        }
+        map.getCanvas().style.cursor = 'pointer'
+        const tip = floorTooltipKa(
+          { n, available: Number(p?.available) || 0, minPriceGEL: null },
+          { ghost, progress, showPrice: false },
         )
+        const root = document.createElement('div')
+        const title = document.createElement('div')
+        title.className = 'sivrce-floor-pop-title'
+        title.textContent = tip.title
+        root.appendChild(title)
+        for (const line of tip.lines) {
+          const div = document.createElement('div')
+          div.className = 'sivrce-floor-pop-line'
+          div.textContent = line
+          root.appendChild(div)
+        }
+        popup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
       }
-      if (map.getLayer(FLOORS_LABEL_ID)) {
-        try {
-          map.setPaintProperty(FLOORS_LABEL_ID, 'text-color', dark ? '#FFFFFF' : BRAND.colors.ink)
-          map.setPaintProperty(
-            FLOORS_LABEL_ID,
-            'text-halo-color',
-            dark ? BRAND.colors.navy : '#FFFFFF',
+
+      const onClick = (e: MapLayerMouseEvent) => {
+        const n = Number(e.features?.[0]?.properties?.floor)
+        if (Number.isFinite(n) && n > 0) selectRef.current(n)
+      }
+
+      const mountOverlays = (dark: boolean) => {
+        applyBrandPaints(map, dark ? 'dark' : 'light')
+        ensureFloorLayers(map, 15)
+        tightenAttribution(map)
+        ;(map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource).setData(geoRef.current)
+        for (const f of floorsRef.current) {
+          map.setFeatureState(
+            { source: FLOORS_SOURCE_ID, id: f.n },
+            { selected: selectedRef.current === f.n },
           )
-        } catch {
-          /* ok */
+        }
+        if (map.getLayer(FLOORS_LABEL_ID)) {
+          try {
+            map.setPaintProperty(FLOORS_LABEL_ID, 'text-color', dark ? '#FFFFFF' : BRAND.colors.ink)
+            map.setPaintProperty(
+              FLOORS_LABEL_ID,
+              'text-halo-color',
+              dark ? BRAND.colors.navy : '#FFFFFF',
+            )
+          } catch {
+            /* ok */
+          }
         }
       }
-    }
 
-    map.on('load', () => {
-      if (cancelled) return
-      map.resize()
-      mountOverlays(isDark)
-    })
-    const ro = new ResizeObserver(() => map.resize())
-    ro.observe(containerRef.current)
-    map.on('mousemove', FLOORS_FILL_ID, onMove)
-    map.on('mouseleave', FLOORS_FILL_ID, clearHover)
-    map.on('click', FLOORS_FILL_ID, onClick)
+      map.on('load', () => {
+        if (cancelled) return
+        map.resize()
+        mountOverlays(darkAtInit)
+      })
+      ro = new ResizeObserver(() => map.resize())
+      ro.observe(container)
+      map.on('mousemove', FLOORS_FILL_ID, onMove)
+      map.on('mouseleave', FLOORS_FILL_ID, clearHover)
+      map.on('click', FLOORS_FILL_ID, onClick)
+    })()
 
     return () => {
       cancelled = true
-      ro.disconnect()
-      map.remove()
+      ro?.disconnect()
+      mapRef.current?.remove()
       mapRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- init once theme is known; server props stable
@@ -203,21 +229,30 @@ export default function BuildingFloorsMap({
     const next = mapStyleUrl(isDark)
     if (styleUrlRef.current === next) return
     styleUrlRef.current = next
-    const onStyle = () => {
-      applyBrandPaints(map, isDark ? 'dark' : 'light')
-      ensureFloorLayers(map, 15)
-      ;(map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource).setData(geoRef.current)
-      for (const f of floorsRef.current) {
-        map.setFeatureState(
-          { source: FLOORS_SOURCE_ID, id: f.n },
-          { selected: selectedRef.current === f.n },
-        )
+    let cancelled = false
+    ;(async () => {
+      try {
+        const style = await loadCleanStyle(next)
+        if (cancelled) return
+        map.once('style.load', () => {
+          applyBrandPaints(map, isDark ? 'dark' : 'light')
+          ensureFloorLayers(map, 15)
+          tightenAttribution(map)
+          ;(map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource).setData(geoRef.current)
+          for (const f of floorsRef.current) {
+            map.setFeatureState(
+              { source: FLOORS_SOURCE_ID, id: f.n },
+              { selected: selectedRef.current === f.n },
+            )
+          }
+        })
+        map.setStyle(style)
+      } catch (err) {
+        console.error('[BuildingFloorsMap] theme style', err)
       }
-    }
-    map.once('style.load', onStyle)
-    map.setStyle(next)
+    })()
     return () => {
-      map.off('style.load', onStyle)
+      cancelled = true
     }
   }, [isDark, themeReady])
 

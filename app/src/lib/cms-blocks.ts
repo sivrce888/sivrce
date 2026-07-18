@@ -1,5 +1,5 @@
 /**
- * SIVRCE — CMS block registry (client-safe, pure data).
+ * SIVRCE — CMS block registry + isomorphic key helpers (client-safe).
  * Homepage marketing copy that is NOT part of the i18n dictionaries lives
  * here as defaults; admins override per language from /admin/content/pages.
  * Components read via useI18n().b(key) (client) or getCmsBlock(key) (server).
@@ -7,6 +7,9 @@
  * Values are the current production copy — rendering is byte-identical until
  * an override exists in SystemConfig (`cms.<lang>.block.<key>`).
  */
+
+import { ka, type DictKey } from "./i18n/ka"
+import { LANGS, translate, type Lang } from "./i18n/core"
 
 export const CMS_BLOCKS = {
   // ——— Hero ———
@@ -88,9 +91,6 @@ export const CMS_BLOCK_KEYS = Object.keys(CMS_BLOCKS) as CmsBlockKey[]
 // ---------------------------------------------------------------------------
 // Isomorphic CMS key/store helpers — shared by server store, admin UI, checks.
 // ---------------------------------------------------------------------------
-
-import { ka, type DictKey } from "./i18n/ka"
-import { LANGS, translate, type Lang } from "./i18n/core"
 
 export const CMS_PREFIX = "cms."
 /** Max chars of an override text (admin textarea + server action validation). */

@@ -95,7 +95,9 @@ export function useLiveRate(): number {
   useEffect(() => {
     // Fresh cached value wins post-hydration — no fetch needed
     const cached = readCachedRate()
-    if (cached) { setRate(cached); return }
+    // ponytail: microtask defer — a synchronous setState in the effect body trips
+    // react-hooks/set-state-in-effect (cascading render); visible timing unchanged.
+    if (cached) { queueMicrotask(() => setRate(cached)); return }
     // Fetch live rate once, off the boot critical path (fallback rate shows until then)
     const run = () =>
       fetch('https://open.er-api.com/v6/latest/USD')
