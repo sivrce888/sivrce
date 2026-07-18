@@ -1,19 +1,122 @@
 /**
  * Live directory: merges Neon rows over the static catalog.
  * Developers: owner-claimed rows (ownerId set) override their static entry.
- * Projects: any non-draft row (seeded, owner-claimed, or admin-approved
- * korter import) overrides the same-slug static entry; approved rows with no
- * static counterpart are appended as new cards. `draft` rows stay admin-only.
+ * Projects: any non-draft row overrides same-slug OR same-name static entry
+ * with exact address / lat / lng from korter; unmatched rows append as cards.
  *
- * ponytail: DB-only developer profiles (653 raw korter rows) stay off public
- * pages on purpose — no descriptions/photos. They surface after admin curation
- * or owner claim; add the fallback when the first one is actually curated.
+ * ponytail: DB-only developer profiles stay off public pages until curated.
  */
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 import { DEVELOPERS, PROJECTS, type Developer, type Project } from '@/data/professionals'
 
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
+export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
+
+export function isValidCoords(lat: number | null | undefined, lng: number | null | undefined): boolean {
+  return (
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lng) <= 180 &&
+    !(Math.abs(lat) < 0.01 && Math.abs(lng) < 0.01)
+  )
+}
+
+const DEV_BY_NAME = new Map(DEVELOPERS.map((d) => [norm(d.name.en), d.slug]))
+for (const d of DEVELOPERS) DEV_BY_NAME.set(norm(d.name.ka), d.slug)
+
+type ProjectRow = {
+  slug: string
+  name: string
+  developer: string
+  city: string
+  district: string
+  address: string | null
+  lat: number | null
+  lng: number | null
+  readyBy: string
+  pricePerSqmFrom: number
+  units: number
+  image: string
+  status: string
+}
+
+/** Overlay korter/DB geo onto a catalog project — address + pin win when present. */
+export function applyProjectRow(base: Project, r: ProjectRow): Project {
+  const coords = isValidCoords(r.lat, r.lng) ? { lat: r.lat!, lng: r.lng! } : base.coords
+  const location = (r.address || '').trim() || r.district || base.location
+  const developerSlug =
+    base.developerSlug || DEV_BY_NAME.get(norm(r.developer)) || ''
+  return {
+    ...base,
+    name: r.name || base.name,
+    developerSlug,
+    city: r.city || base.city,
+    location,
+    finish: r.readyBy || base.finish,
+    priceFromM2:
+      r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : base.priceFromM2,
+    flats: r.units || base.flats,
+    img: r.image || base.img,
+    done: r.status === 'completed' ? 100 : base.done,
+    coords,
+  }
+}
+
+export function rowToProject(r: ProjectRow): Project {
+  const hasGeo = isValidCoords(r.lat, r.lng)
+  return {
+    slug: r.slug,
+    name: r.name,
+    developerSlug: DEV_BY_NAME.get(norm(r.developer)) ?? '',
+    img: r.image || '/images/np1.webp',
+    location: (r.address || '').trim() || r.district,
+    city: r.city,
+    priceFromM2: r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : '',
+    done: r.status === 'completed' ? 100 : 35,
+    finish: r.readyBy,
+    flats: r.units,
+    rating: 0,
+    description: { ka: '', en: '', ru: '' },
+    // ponytail: NaN coords keep card on /projects but drop from map ghosts.
+    coords: hasGeo ? { lat: r.lat!, lng: r.lng! } : { lat: Number.NaN, lng: Number.NaN },
+  }
+}
+
+/** Pure merge used by projectsLive + self-check. */
+export function mergeProjectsLive(staticProjects: Project[], rows: ProjectRow[]): Project[] {
+  if (rows.length === 0) return staticProjects
+  const bySlug = new Map(rows.map((r) => [r.slug, r]))
+  const merged = staticProjects.map((p) => {
+    const r = bySlug.get(p.slug)
+    if (!r) return p
+    bySlug.delete(p.slug)
+    return applyProjectRow(p, r)
+  })
+
+  // Same name, different korter slug → overlay exact address/coords onto static card.
+  const byName = new Map(merged.map((p) => [norm(p.name), p.slug]))
+  for (const r of [...bySlug.values()]) {
+    const staticSlug = byName.get(norm(r.name))
+    if (staticSlug) {
+      const i = merged.findIndex((p) => p.slug === staticSlug)
+      if (i >= 0) {
+        merged[i] = applyProjectRow(merged[i]!, r)
+        bySlug.delete(r.slug)
+      }
+    }
+  }
+
+  const taken = new Set(merged.map((p) => norm(p.name)))
+  for (const r of bySlug.values()) {
+    if (taken.has(norm(r.name))) continue
+    taken.add(norm(r.name))
+    merged.push(rowToProject(r))
+  }
+  return merged
+}
 
 export async function developersLive(): Promise<Developer[]> {
   const rows = await safeQuery(
@@ -37,54 +140,66 @@ export async function developersLive(): Promise<Developer[]> {
   })
 }
 
-export async function projectsLive(): Promise<Project[]> {
-  const rows = await safeQuery(
+const PROJECT_SELECT = {
+  slug: true,
+  name: true,
+  developer: true,
+  city: true,
+  district: true,
+  address: true,
+  lat: true,
+  lng: true,
+  readyBy: true,
+  pricePerSqmFrom: true,
+  units: true,
+  image: true,
+  status: true,
+} as const
+
+async function loadProjectRows(): Promise<ProjectRow[]> {
+  return safeQuery(
     () =>
-      db.projectDirectory.findMany({ where: { deletedAt: null, status: { not: 'draft' } } }),
+      db.projectDirectory.findMany({
+        where: { deletedAt: null, status: { not: 'draft' } },
+        select: PROJECT_SELECT,
+      }),
     [],
   )
-  if (rows.length === 0) return PROJECTS
-  const bySlug = new Map(rows.map((r) => [r.slug, r]))
-  const merged = PROJECTS.map((p) => {
-    const r = bySlug.get(p.slug)
-    if (!r) return p
-    bySlug.delete(p.slug)
-    return {
-      ...p,
-      name: r.name,
-      city: r.city,
-      location: r.district,
-      finish: r.readyBy,
-      priceFromM2:
-        r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : p.priceFromM2,
-      flats: r.units || p.flats,
-      img: r.image || p.img,
-      done: r.status === 'completed' ? 100 : p.done,
-    }
-  })
-  // Admin-approved imports with no static-catalog counterpart → new cards.
-  const taken = new Set(PROJECTS.map((p) => norm(p.name)))
-  const devSlug = new Map(DEVELOPERS.map((d) => [norm(d.name.en), d.slug]))
-  for (const r of bySlug.values()) {
-    if (taken.has(norm(r.name))) continue // same project under a korter slug — static card wins
-    taken.add(norm(r.name))
-    merged.push({
-      slug: r.slug,
-      name: r.name,
-      developerSlug: devSlug.get(norm(r.developer)) ?? '',
-      img: r.image,
-      location: r.district,
-      city: r.city,
-      priceFromM2: r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : '',
-      done: r.status === 'completed' ? 100 : 0,
-      finish: r.readyBy,
-      flats: r.units,
-      rating: 0,
-      description: { ka: '', en: '', ru: '' },
-      // ponytail: korter import carries no geocode — default pin. Map3D reads
-      // the static catalog only, so these never render as 3D ghosts.
-      coords: { lat: 41.7151, lng: 44.8271 },
-    })
+}
+
+export async function projectsLive(): Promise<Project[]> {
+  return mergeProjectsLive(PROJECTS, await loadProjectRows())
+}
+
+/** Single project with DB address/coords overlay (slug or exact-name match). */
+export async function getLiveProject(slug: string): Promise<Project | null> {
+  const staticHit = PROJECTS.find((p) => p.slug === slug)
+  const bySlug = await safeQuery(
+    () =>
+      db.projectDirectory.findFirst({
+        where: { slug, deletedAt: null, status: { not: 'draft' } },
+        select: PROJECT_SELECT,
+      }),
+    null,
+  )
+  if (staticHit && bySlug) return applyProjectRow(staticHit, bySlug)
+  if (staticHit) {
+    const byName = await safeQuery(
+      () =>
+        db.projectDirectory.findFirst({
+          where: { name: staticHit.name, deletedAt: null, status: { not: 'draft' } },
+          select: PROJECT_SELECT,
+        }),
+      null,
+    )
+    if (byName) return applyProjectRow(staticHit, byName)
+    return staticHit
   }
-  return merged
+  if (bySlug) return rowToProject(bySlug)
+  return null
+}
+
+export async function projectsLiveByDeveloper(developerSlug: string): Promise<Project[]> {
+  const all = await projectsLive()
+  return all.filter((p) => p.developerSlug === developerSlug)
 }

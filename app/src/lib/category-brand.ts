@@ -49,6 +49,19 @@ export const DEAL_BRAND = {
   newProjects: CATEGORY_BRAND.newProjects.hue, // ახალი პროექტები
 } as const
 
+/**
+ * Map / listing status hues (BRAND.md §3.4).
+ * Construction = brand orange (`sv-orange` / houses) — owner lock 2026-07-18.
+ */
+export const STATUS_BRAND = {
+  construction: {
+    hue: CATEGORY_BRAND.houses.hue, // #FF6A2D — brand carrot
+    chip: CATEGORY_BRAND.houses.chip,
+    chipVar: CATEGORY_BRAND.houses.chipVar,
+  },
+} as const satisfies Record<string, CategoryBrand>
+
 export type CategoryKey = keyof typeof CATEGORY_BRAND
 export type ServiceKey = keyof typeof SERVICE_BRAND
 export type DealKey = keyof typeof DEAL_BRAND
+export type StatusKey = keyof typeof STATUS_BRAND

@@ -1,7 +1,3 @@
-/**
- * Runnable check: npx tsx src/lib/promo-pricing.check.ts
- * ponytail: one assert file, no test framework.
- */
 import {
   assertPromoPricing,
   dailyRateTetri,
@@ -11,6 +7,12 @@ import {
   ADDON_TETRI,
   TIER_MONTHLY_TETRI,
   tierKeyToBadge,
+  tierRankOf,
+  effectiveTierKey,
+  isCheckoutAddon,
+  addonPriceTetri,
+  COLOR_HIGHLIGHT_DAYS,
+  activeColorUntil,
 } from "./promo-pricing"
 
 assertPromoPricing()
@@ -24,6 +26,19 @@ if (dailyRateTetri("super_vip", "real_estate", 30) !== 500) throw new Error("30d
 if (TIER_MONTHLY_TETRI.vip !== 3000) throw new Error("config vip monthly")
 if (TIER_MONTHLY_TETRI.super_vip !== 6000) throw new Error("config VIP+ monthly")
 if (TIER_MONTHLY_TETRI.diamond !== 15000) throw new Error("config SUPER VIP monthly")
+
+if (tierRankOf("vip") !== 1) throw new Error("tierRank vip")
+if (tierRankOf("diamond", new Date(0)) !== 0) throw new Error("expired rank")
+if (effectiveTierKey("diamond", new Date(0)) !== "standard") throw new Error("expired key")
+if (!isCheckoutAddon("refresh_once")) throw new Error("addon key")
+if (addonPriceTetri("color") !== ADDON_TETRI.color) throw new Error("addon price")
+if (COLOR_HIGHLIGHT_DAYS !== 7) throw new Error("color days")
+if (activeColorUntil({ colorUntil: new Date(Date.now() + 60_000).toISOString() }) == null) {
+  throw new Error("color active")
+}
+if (activeColorUntil({ colorUntil: new Date(0).toISOString() }) != null) {
+  throw new Error("color expired")
+}
 
 // Spot-check undercuts vs live competitor constants
 const table = [

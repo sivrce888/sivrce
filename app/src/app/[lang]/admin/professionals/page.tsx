@@ -349,6 +349,7 @@ async function DevelopersTab({ page, q, state, sp }: TabProps) {
       <DataTable>
         <THeadRow>
           <th className={th}>Name</th>
+          <th className={th}>Website</th>
           <th className={`${th} text-right`}>Projects</th>
           <th className={`${th} text-right`}>Completed</th>
           <th className={th}>Rating</th>
@@ -361,6 +362,20 @@ async function DevelopersTab({ page, q, state, sp }: TabProps) {
               <td className={td}>
                 <span className="block font-bold text-sv-ink">{d.name}</span>
                 <span className="mt-0.5 block text-[12px] text-sv-ink/45">{d.headquarters}</span>
+              </td>
+              <td className={td}>
+                {d.website ? (
+                  <a
+                    href={d.website.startsWith("http") ? d.website : `https://${d.website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="max-w-[160px] truncate text-[12px] font-semibold text-sv-blue hover:underline"
+                  >
+                    {d.website.replace(/^https?:\/\//, "")}
+                  </a>
+                ) : (
+                  <span className="text-sv-ink/30">—</span>
+                )}
               </td>
               <td className={`${td} text-right tabular-nums`}>{fmtNum(d.projectsCount)}</td>
               <td className={`${td} text-right tabular-nums`}>{fmtNum(d.completedCount)}</td>
@@ -431,25 +446,49 @@ async function ProjectsTab({ page, q, state, status = "", sp }: TabProps) {
           <DataTable>
         <THeadRow>
           <th className={th}>Name</th>
-          <th className={th}>City</th>
+          <th className={th}>Address</th>
+          <th className={th}>Map</th>
           <th className={th}>Status</th>
           <th className={`${th} text-right`}>Price from</th>
-          <th className={`${th} text-right`}>Units</th>
-          <th className={th}>Created</th>
+          <th className={`${th} text-right`}>$/m²</th>
+          <th className={th}>Ready</th>
           <th className={th}>Actions</th>
         </THeadRow>
         <tbody>
           {rows.map((p) => (
             <TRow key={p.id}>
               <td className={td}>
-                <span className="block max-w-[240px] truncate font-bold text-sv-ink">
+                <span className="block max-w-[220px] truncate font-bold text-sv-ink">
                   {p.name}
                 </span>
                 <span className="mt-0.5 block text-[12px] text-sv-ink/45">{p.developer}</span>
+                {p.sourceUrl ? (
+                  <a
+                    href={p.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-0.5 block text-[11px] font-semibold text-sv-blue hover:underline"
+                  >
+                    source
+                  </a>
+                ) : null}
               </td>
-              <td className={`${td} whitespace-nowrap`}>
-                <span className="block">{p.city}</span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45">{p.district}</span>
+              <td className={td}>
+                <span className="block max-w-[200px] truncate text-[13px] text-sv-ink">
+                  {p.address || p.district || "—"}
+                </span>
+                <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                  {[p.district, p.city].filter(Boolean).join(" · ")}
+                </span>
+              </td>
+              <td className={`${td} whitespace-nowrap text-[12px] tabular-nums`}>
+                {p.lat != null && p.lng != null ? (
+                  <span className="font-semibold text-emerald-700">
+                    {p.lat.toFixed(4)}, {p.lng.toFixed(4)}
+                  </span>
+                ) : (
+                  <span className="text-sv-ink/30">no pin</span>
+                )}
               </td>
               <td className={td}>
                 <StatusPill status={p.status} />
@@ -457,8 +496,12 @@ async function ProjectsTab({ page, q, state, status = "", sp }: TabProps) {
               <td className={`${td} text-right whitespace-nowrap tabular-nums`}>
                 {fmtMoney(p.priceFrom)}
               </td>
-              <td className={`${td} text-right tabular-nums`}>{fmtNum(p.units)}</td>
-              <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(p.createdAt)}</td>
+              <td className={`${td} text-right whitespace-nowrap tabular-nums`}>
+                {p.pricePerSqmFrom > 0 ? fmtMoney(p.pricePerSqmFrom) : "—"}
+              </td>
+              <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                {p.readyBy || "—"}
+              </td>
               <td className={td}>
                 <RowActions kind="projects" id={p.id} deleted={!!p.deletedAt} />
               </td>

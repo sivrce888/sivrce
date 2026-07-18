@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * SIVRCE 3D map — MapLibre + Google-familiar paints, filters, click-anywhere.
- * ponytail: OFM tiles (no key), vendor chrome stripped; Meilisearch geo when scale hits.
+ * SIVRCE 3D map — brand paints, filters, click-anywhere.
+ * ponytail: basemap via /api/map; Meilisearch geo when scale hits.
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react'
@@ -17,9 +17,9 @@ import maplibregl, {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { LISTINGS, type DealType, type Listing } from '@/data/listings'
-import { PROJECTS } from '@/data/professionals'
+import { PROJECTS, type Project } from '@/data/professionals'
 import { BRAND } from '@/lib/brand'
-import { DEAL_BRAND, CATEGORY_BRAND, SERVICE_BRAND } from '@/lib/category-brand'
+import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import {
   MAP_CENTER,
   GEORGIA_MAX_BOUNDS,
@@ -33,6 +33,7 @@ import {
   mergeDbBuildings,
   neighborhoodsToGeoJSON,
   projectsToConstructionBuildings,
+  applyLiveProjectPins,
   type MapBuildingCluster,
   type MapDealFilter,
   type MapStatusFilter,
@@ -53,13 +54,38 @@ import {
   FLOORS_LABEL_ID,
   FLOORS_SOURCE_ID,
   mapStyleUrl,
+  type MapTerrain,
 } from '@/lib/map/floorLayers'
 import {
   loadCleanStyle,
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
-import { Layers, RotateCcw, HardHat, CheckCircle2, Plus, Minus, Moon, Sun, Maximize2, Minimize2 } from 'lucide-react'
+import {
+  initialMapCenter,
+  nearestMapCity,
+  readIpDismiss,
+  writeIpDismiss,
+  writeSavedPlace,
+  type MapCity,
+} from '@/lib/map/user-place'
+import {
+  Layers,
+  RotateCcw,
+  RefreshCw,
+  Plus,
+  Minus,
+  Moon,
+  Sun,
+  Maximize2,
+  Minimize2,
+  LocateFixed,
+  X,
+  Map as MapIcon,
+  Circle,
+  Palette,
+  type LucideIcon,
+} from 'lucide-react'
 
 const SOURCE_ID = 'sivrce-buildings'
 const FILL_ID = 'sivrce-buildings-fill'
@@ -68,6 +94,13 @@ const LABEL_ID = 'sivrce-buildings-label'
 const DOT_ID = 'sivrce-buildings-dot'
 /** Below this zoom: colored dots; at/above: footprints + names. */
 const DETAIL_ZOOM = 13.5
+
+/** Scored: streets 9.0 · clean 8.5 · bright 7.8 — icons, not letters. */
+const TERRAIN_OPTIONS: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
+  { id: 'streets', label: 'ქუჩები', Icon: MapIcon },
+  { id: 'clean', label: 'მინიმალი', Icon: Circle },
+  { id: 'bright', label: 'ფერადი', Icon: Palette },
+]
 
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
 const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
@@ -197,18 +230,21 @@ const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
 ]
 
 const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
+  { id: 'all', label: 'ყველა' },
   { id: 'active', label: 'აქტიური' },
   { id: 'construction', label: 'მშენებარე' },
   { id: 'completed', label: 'დასრულებული' },
-  { id: 'all', label: 'ყველა' },
 ]
 
 function Map3DInner({
   dbBuildings = [],
   listings,
+  projects = PROJECTS,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
+  /** Live directory projects (korter coords) — falls back to static catalog. */
+  projects?: Project[]
 }) {
   const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -218,15 +254,22 @@ function Map3DInner({
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
 
+  const [liveListings, setLiveListings] = useState<Listing[] | undefined>(listings)
+  const [liveDbBuildings, setLiveDbBuildings] = useState(dbBuildings)
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
   const [dealFilter, setDealFilter] = useState<MapDealFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('active')
+  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
   const [view3d, setView3d] = useState(true)
+  const [terrain, setTerrain] = useState<MapTerrain>('streets')
   const [fullscreen, setFullscreen] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [ipSuggest, setIpSuggest] = useState<MapCity | null>(null)
+  const [locating, setLocating] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshNote, setRefreshNote] = useState<string | null>(null)
   const { resolvedTheme, setTheme } = useTheme()
   // ponytail: light-first (ThemeProvider default); avoid flash before hydration.
   const isDark = resolvedTheme === 'dark'
@@ -238,11 +281,15 @@ function Map3DInner({
   const dealRef = useRef<MapDealFilter>('all')
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
+  const userDotRef = useRef<maplibregl.Marker | null>(null)
   const darkRef = useRef(isDark)
+  const terrainRef = useRef<MapTerrain>(terrain)
   const styleGenRef = useRef(0)
   const styleUrlRef = useRef<string | null>(null)
   const remountRef = useRef<(() => void) | null>(null)
+  const refreshNoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => { darkRef.current = isDark }, [isDark])
+  useEffect(() => { terrainRef.current = terrain }, [terrain])
 
   useEffect(() => {
     const onFs = () => {
@@ -254,6 +301,10 @@ function Map3DInner({
     return () => document.removeEventListener('fullscreenchange', onFs)
   }, [])
 
+  useEffect(() => () => {
+    if (refreshNoteTimer.current) clearTimeout(refreshNoteTimer.current)
+  }, [])
+
   const toggleFullscreen = () => {
     const el = shellRef.current
     if (!el) return
@@ -261,22 +312,75 @@ function Map3DInner({
     else void el.requestFullscreen()
   }
 
+  const pickTerrain = useCallback((id: MapTerrain) => {
+    setTerrain(id)
+    // Terrain variants are light-only; exit night so the swap is visible.
+    if (resolvedTheme === 'dark') setTheme('light')
+  }, [resolvedTheme, setTheme])
+
+  const flashRefreshNote = useCallback((msg: string) => {
+    if (refreshNoteTimer.current) clearTimeout(refreshNoteTimer.current)
+    setRefreshNote(msg)
+    refreshNoteTimer.current = setTimeout(() => setRefreshNote(null), 2800)
+  }, [])
+
+  const refreshMapData = useCallback(async () => {
+    if (refreshing) return
+    setRefreshing(true)
+    try {
+      const res = await fetch('/api/map-data', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`map-data ${res.status}`)
+      const data = (await res.json()) as {
+        listings: Listing[]
+        buildings: MapBuildingCluster[]
+      }
+      const prevIds = new Set((liveListings ?? []).map((l) => l.id))
+      const added = data.listings.filter((l) => !prevIds.has(l.id)).length
+      setLiveListings(data.listings)
+      setLiveDbBuildings(data.buildings)
+      flashRefreshNote(
+        added > 0 ? `+${added} ახალი განცხადება` : 'რუკა განახლებულია',
+      )
+    } catch (err) {
+      console.error('[Map3D] refresh', err)
+      flashRefreshNote('განახლება ვერ მოხერხდა')
+    } finally {
+      setRefreshing(false)
+    }
+  }, [refreshing, liveListings, flashRefreshNote])
+
   // Live DB listings when present; else demo LISTINGS. DB buildings add inventory/rings.
-  const sourceListings = listings?.length ? listings : LISTINGS
+  const sourceListings = liveListings?.length ? liveListings : LISTINGS
   const listingCount = sourceListings.length
-  const baseBuildings = useMemo(
-    () =>
+  const dbProjectSlugs = useMemo(() => {
+    const s = new Set<string>()
+    for (const b of liveDbBuildings ?? []) if (b.projectSlug) s.add(b.projectSlug)
+    return s
+  }, [liveDbBuildings])
+  const baseBuildings = useMemo(() => {
+    const forGhosts = projects.filter((p) => !dbProjectSlugs.has(p.slug))
+    return applyLiveProjectPins(
       mergeMapBuildings(
         clusterListingsToBuildings(sourceListings),
-        projectsToConstructionBuildings(PROJECTS),
+        projectsToConstructionBuildings(forGhosts),
       ),
-    [sourceListings],
-  )
+      projects,
+    )
+  }, [sourceListings, projects, dbProjectSlugs])
   const allBuildings = useMemo(
-    () => mergeDbBuildings(baseBuildings, dbBuildings),
-    [baseBuildings, dbBuildings],
+    () => mergeDbBuildings(baseBuildings, liveDbBuildings),
+    [baseBuildings, liveDbBuildings],
   )
   useEffect(() => { allRef.current = allBuildings }, [allBuildings])
+
+  // Keep open panel in sync when refresh swaps listing clusters.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync selection after live data swap
+    setSelected((cur) => {
+      if (!cur) return cur
+      return allBuildings.find((b) => b.id === cur.id) ?? null
+    })
+  }, [allBuildings])
 
   const visible = useMemo(
     () => filterBuildings(allBuildings, dealFilter, statusFilter),
@@ -357,7 +461,7 @@ function Map3DInner({
 
     let cancelled = false
     let ro: ResizeObserver | null = null
-    const initialStyle = mapStyleUrl(darkRef.current)
+    const initialStyle = mapStyleUrl(darkRef.current, terrainRef.current)
     styleUrlRef.current = initialStyle
     const container = containerRef.current
 
@@ -372,10 +476,12 @@ function Map3DInner({
       }
       if (cancelled || mapRef.current) return
 
+      // ponytail: last city from localStorage; IP only suggests via soft chip.
+      const boot = initialMapCenter()
       const map = new maplibregl.Map({
         container,
         style,
-        center: [MAP_CENTER.lng, MAP_CENTER.lat],
+        center: [boot.lng, boot.lat],
         zoom: 13.2,
         pitch: 58,
         bearing: -18,
@@ -667,16 +773,99 @@ function Map3DInner({
       cancelled = true
       remountRef.current = null
       ro?.disconnect()
+      userDotRef.current?.remove()
+      userDotRef.current = null
       mapRef.current?.remove()
       mapRef.current = null
     }
   }, [themeReady])
 
-  // Theme flip → swap basemap + rebuild overlays (camera preserved).
+  // Soft IP city chip — never auto-fly; skip deep-links and dismissed / same city.
+  useEffect(() => {
+    if (!ready || deepLinked.current) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/geo')
+        if (!res.ok || cancelled) return
+        const data = (await res.json()) as
+          | { ok: true; slug: string; ka: string; lat: number; lng: number }
+          | { ok: false }
+        if (!data.ok || cancelled) return
+        const here = nearestMapCity(
+          mapRef.current?.getCenter().lat ?? MAP_CENTER.lat,
+          mapRef.current?.getCenter().lng ?? MAP_CENTER.lng,
+        )
+        if (here?.slug === data.slug) return
+        if (readIpDismiss() === data.slug) return
+        setIpSuggest({ slug: data.slug, ka: data.ka, lat: data.lat, lng: data.lng })
+      } catch {
+        /* offline / local — keep quiet */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [ready])
+
+  const flyToPlace = useCallback((lat: number, lng: number, zoom = 13.2) => {
+    const three = view3dRef.current
+    mapRef.current?.easeTo({
+      center: [lng, lat],
+      zoom,
+      pitch: three ? 58 : 0,
+      bearing: three ? -18 : 0,
+      duration: 900,
+      essential: true,
+    })
+  }, [])
+
+  const acceptIpSuggest = () => {
+    if (!ipSuggest) return
+    writeSavedPlace({ slug: ipSuggest.slug, lat: ipSuggest.lat, lng: ipSuggest.lng })
+    flyToPlace(ipSuggest.lat, ipSuggest.lng)
+    setIpSuggest(null)
+  }
+
+  const dismissIpSuggest = () => {
+    if (ipSuggest) writeIpDismiss(ipSuggest.slug)
+    setIpSuggest(null)
+  }
+
+  const locateMe = () => {
+    if (!navigator.geolocation || locating) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false)
+        const { latitude: lat, longitude: lng } = pos.coords
+        const map = mapRef.current
+        if (!map) return
+        const city = nearestMapCity(lat, lng, 120)
+        if (city) writeSavedPlace({ slug: city.slug, lat: city.lat, lng: city.lng })
+        flyToPlace(lat, lng, 15.2)
+        setIpSuggest(null)
+        if (userDotRef.current) {
+          userDotRef.current.setLngLat([lng, lat])
+        } else {
+          const d = document.createElement('div')
+          d.className =
+            'h-3.5 w-3.5 rounded-full bg-sv-blue shadow-glow-blue-sm ring-[3px] ring-white'
+          d.setAttribute('aria-hidden', 'true')
+          userDotRef.current = new maplibregl.Marker({ element: d, anchor: 'center' })
+            .setLngLat([lng, lat])
+            .addTo(map)
+        }
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
+    )
+  }
+  // Theme / terrain → swap basemap + rebuild overlays (camera preserved).
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready || !themeReady) return
-    const next = mapStyleUrl(isDark)
+    const next = mapStyleUrl(isDark, terrain)
     if (styleUrlRef.current === next) return
     styleUrlRef.current = next
     const gen = ++styleGenRef.current
@@ -697,7 +886,7 @@ function Map3DInner({
     return () => {
       cancelled = true
     }
-  }, [isDark, ready, themeReady])
+  }, [isDark, terrain, ready, themeReady])
 
   const applyViewMode = useCallback((mode3d: boolean) => {
     const map = mapRef.current
@@ -743,20 +932,17 @@ function Map3DInner({
 
   const constructionCount = allBuildings.filter((b) => b.status === 'construction').length
   const completedCount = allBuildings.filter((b) => b.status === 'completed').length
-  const statusCount = (id: MapStatusFilter): string => {
-    if (id === 'construction') return ` (${constructionCount})`
-    if (id === 'completed') return ` (${completedCount})`
-    return ''
-  }
 
   const chip = isDark
     ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
-    : 'border-sv-ink/8 bg-sv-surface/95 text-sv-ink shadow-soft backdrop-blur-xl'
-  const chipMuted = isDark ? 'text-white/55 hover:text-white' : 'text-sv-ink/50 hover:text-sv-ink'
+    : 'border-sv-ink/[0.06] bg-sv-surface/92 text-sv-ink shadow-soft backdrop-blur-xl'
+  const chipMuted = isDark ? 'text-white/45 hover:text-white' : 'text-sv-ink/40 hover:text-sv-ink'
   const shellBg = isDark ? 'bg-sv-navy' : 'bg-sv-cloud'
+  const hair = isDark ? 'border-white/10' : 'border-sv-ink/[0.06]'
   // Apple-quiet press — never paint zoom/theme as “selected” blue
-  const railHover = isDark ? 'hover:bg-white/10 active:bg-white/15' : 'hover:bg-sv-ink/[0.05] active:bg-sv-ink/[0.08]'
-  const railSep = isDark ? 'border-t border-white/10' : 'border-t border-sv-ink/8'
+  const railHover = isDark ? 'hover:bg-white/10 active:bg-white/15' : 'hover:bg-sv-ink/[0.04] active:bg-sv-ink/[0.07]'
+  const railSep = `border-t ${hair}`
+  const segOn = 'bg-sv-blue text-white shadow-glow-blue-sm'
 
   return (
     <div
@@ -780,81 +966,122 @@ function Map3DInner({
           </div>
         )}
 
-        <div className="absolute left-4 top-4 z-20 flex max-w-[min(100%-2rem,520px)] flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-[12px] font-extrabold ${chip}`}>
-              <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
-              {visible.length} შენობა · {listingCount} განცხადება
+        <div className="absolute left-3 top-3 z-20 flex max-w-[min(100%-1.5rem,380px)] flex-col gap-2 md:left-4 md:top-4">
+          <div className={`overflow-hidden rounded-tile border ${chip}`}>
+            <div className="flex items-center gap-2.5 px-3.5 py-2.5">
+              <Layers className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[12px] font-extrabold tracking-[-0.02em]">
+                  {visible.length} შენობა · {listingCount} განცხადება
+                </p>
+                {refreshNote && (
+                  <p className={`mt-0.5 text-[11px] font-bold tracking-tight ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`}>
+                    {refreshNote}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={resetView}
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition ${railHover}`}
+                aria-label="საწყისი ხედი"
+              >
+                <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={resetView}
-              className={`grid h-11 w-11 place-items-center rounded-full border transition ${railHover} ${chip}`}
-              aria-label="საწყისი ხედი"
+
+            <div
+              className={`flex gap-0.5 border-t p-1.5 ${hair}`}
+              role="group"
+              aria-label="გარიგების ფილტრი"
             >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-          </div>
+              {DEAL_FILTERS.map((f) => {
+                const active = dealFilter === f.id
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setDealFilter(f.id)}
+                    className={`min-h-8 flex-1 rounded-full px-1.5 text-[11px] font-extrabold tracking-tight transition md:text-[12px] ${
+                      active ? 'text-white' : chipMuted
+                    }`}
+                    style={active ? { background: f.color } : undefined}
+                  >
+                    {f.label}
+                  </button>
+                )
+              })}
+            </div>
 
-          <div
-            className={`flex flex-wrap gap-1 rounded-tile border p-1.5 ${chip}`}
-            role="group"
-            aria-label="გარიგების ფილტრი"
-          >
-            {DEAL_FILTERS.map((f) => {
-              const active = dealFilter === f.id
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setDealFilter(f.id)}
-                  className={`min-h-10 rounded-full px-3 py-1.5 text-[12px] font-extrabold transition ${
-                    active ? 'text-white' : chipMuted
-                  }`}
-                  style={active ? { background: f.color } : undefined}
-                >
-                  {f.label}
-                </button>
-              )
-            })}
-          </div>
-
-          <div
-            className={`flex flex-wrap gap-1 rounded-tile border p-1.5 ${chip}`}
-            role="group"
-            aria-label="სტატუსის ფილტრი"
-          >
-            {STATUS_FILTERS.map((f) => {
-              const active = statusFilter === f.id
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setStatusFilter(f.id)}
-                  className={`inline-flex min-h-10 items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-extrabold transition ${
-                    active ? 'bg-sv-blue text-white' : chipMuted
-                  }`}
-                  style={
-                    active && f.id === 'completed'
-                      ? { background: SERVICE_BRAND.developers.hue }
-                      : active && f.id === 'construction'
-                        ? { background: CATEGORY_BRAND.newProjects.hue }
+            <div
+              className={`flex gap-0.5 border-t p-1.5 ${hair}`}
+              role="group"
+              aria-label="სტატუსის ფილტრი"
+            >
+              {STATUS_FILTERS.map((f) => {
+                const active = statusFilter === f.id
+                const bg =
+                  active && f.id === 'completed'
+                    ? SERVICE_BRAND.developers.hue
+                    : active && f.id === 'construction'
+                      ? STATUS_BRAND.construction.hue
+                      : active
+                        ? BRAND.colors.blue
                         : undefined
-                  }
-                >
-                  {f.id === 'construction' && <HardHat className="h-3 w-3" />}
-                  {f.id === 'completed' && <CheckCircle2 className="h-3 w-3" />}
-                  {f.label}
-                  {statusCount(f.id)}
-                </button>
-              )
-            })}
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setStatusFilter(f.id)}
+                    title={
+                      f.id === 'construction'
+                        ? `${f.label} (${constructionCount})`
+                        : f.id === 'completed'
+                          ? `${f.label} (${completedCount})`
+                          : f.label
+                    }
+                    className={`min-h-8 flex-1 rounded-full px-1.5 text-[11px] font-extrabold tracking-tight transition md:text-[12px] ${
+                      active ? 'text-white' : chipMuted
+                    }`}
+                    style={bg ? { background: bg } : undefined}
+                  >
+                    {f.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
+
+          {ipSuggest && (
+            <div
+              className={`flex flex-wrap items-center gap-2 rounded-tile border px-3 py-2 ${chip}`}
+              role="status"
+            >
+              <p className="text-[12px] font-extrabold tracking-tight">
+                {ipSuggest.ka}? აქ გაჩვენო
+              </p>
+              <button
+                type="button"
+                onClick={acceptIpSuggest}
+                className="min-h-8 rounded-full bg-sv-blue px-3.5 text-[12px] font-extrabold text-white transition hover:bg-sv-blue-deep"
+              >
+                აქ
+              </button>
+              <button
+                type="button"
+                onClick={dismissIpSuggest}
+                className={`grid h-8 w-8 place-items-center rounded-full transition ${railHover} ${chipMuted}`}
+                aria-label="არა"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* One Apple-quiet control column */}
+        {/* Apple Maps–quiet control column */}
         <div
-          className={`absolute right-3 top-4 z-20 flex w-[5.5rem] flex-col overflow-hidden rounded-tile border md:right-4 ${chip}`}
+          className={`absolute right-3 top-3 z-20 flex w-[4.5rem] flex-col overflow-hidden rounded-tile border md:right-4 md:top-4 ${chip}`}
           role="toolbar"
           aria-label="რუკის კონტროლი"
         >
@@ -882,8 +1109,8 @@ function Map3DInner({
               onClick={() => {
                 if (view3d) toggleView3d()
               }}
-              className={`h-11 flex-1 text-[12px] font-extrabold tracking-wide transition ${
-                !view3d ? 'bg-sv-blue text-white' : railHover
+              className={`h-10 flex-1 text-[11px] font-extrabold tracking-wide transition ${
+                !view3d ? segOn : railHover
               }`}
             >
               2D
@@ -894,13 +1121,46 @@ function Map3DInner({
               onClick={() => {
                 if (!view3d) toggleView3d()
               }}
-              className={`h-11 flex-1 border-l text-[12px] font-extrabold tracking-wide transition ${
-                isDark ? 'border-white/10' : 'border-sv-ink/8'
-              } ${view3d ? 'bg-sv-blue text-white' : railHover}`}
+              className={`h-10 flex-1 border-l text-[11px] font-extrabold tracking-wide transition ${hair} ${
+                view3d ? segOn : railHover
+              }`}
             >
               3D
             </button>
           </div>
+
+          <div className={`flex ${railSep}`} role="group" aria-label="ტერიტორიის ხედი">
+            {TERRAIN_OPTIONS.map((t, i) => {
+              const active = terrain === t.id
+              const Icon = t.Icon
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  title={t.label}
+                  aria-label={t.label}
+                  aria-pressed={active}
+                  onClick={() => pickTerrain(t.id)}
+                  className={`grid h-10 flex-1 place-items-center transition ${
+                    i > 0 ? `border-l ${hair}` : ''
+                  } ${active ? segOn : railHover}`}
+                >
+                  <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+                </button>
+              )
+            })}
+          </div>
+
+          <button
+            type="button"
+            aria-label="ჩემთან ახლოს"
+            aria-busy={locating}
+            disabled={locating}
+            onClick={locateMe}
+            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover} disabled:opacity-45`}
+          >
+            <LocateFixed className={`h-4 w-4 ${locating ? 'animate-pulse' : ''}`} strokeWidth={2} />
+          </button>
 
           <button
             type="button"
@@ -908,7 +1168,18 @@ function Map3DInner({
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
             className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
           >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {isDark ? <Sun className="h-4 w-4" strokeWidth={2} /> : <Moon className="h-4 w-4" strokeWidth={2} />}
+          </button>
+
+          <button
+            type="button"
+            aria-label="განცხადებების განახლება"
+            aria-busy={refreshing}
+            disabled={refreshing}
+            onClick={() => void refreshMapData()}
+            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover} disabled:opacity-45`}
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={2} />
           </button>
 
           <button
@@ -918,7 +1189,11 @@ function Map3DInner({
             onClick={toggleFullscreen}
             className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
           >
-            {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {fullscreen ? (
+              <Minimize2 className="h-4 w-4" strokeWidth={2} />
+            ) : (
+              <Maximize2 className="h-4 w-4" strokeWidth={2} />
+            )}
           </button>
         </div>
       </div>
@@ -942,9 +1217,11 @@ function Map3DInner({
 export default function Map3D({
   dbBuildings,
   listings,
+  projects,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
+  projects?: Project[]
 }) {
   return (
     <Suspense
@@ -954,7 +1231,7 @@ export default function Map3D({
         </div>
       }
     >
-      <Map3DInner dbBuildings={dbBuildings} listings={listings} />
+      <Map3DInner dbBuildings={dbBuildings} listings={listings} projects={projects} />
     </Suspense>
   )
 }

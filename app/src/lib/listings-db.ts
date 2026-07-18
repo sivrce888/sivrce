@@ -14,7 +14,7 @@ import { unstable_cache } from "next/cache"
 import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
 import type { Prisma } from "@/generated/prisma/client"
-import { tierKeyToBadge, type PromoBadge } from "@/lib/promo-pricing"
+import { activeColorUntil, effectiveTierKey, tierKeyToBadge, tierRankOf, type PromoBadge } from "@/lib/promo-pricing"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily"
@@ -39,8 +39,8 @@ function propToDb(p: PropType): ListingPropertyType {
 }
 
 // Map DB tier → public badge (vip · super_vip=VIP+ · diamond=SUPER VIP)
-function dbTierToBadge(tier: string): Badge {
-  return tierKeyToBadge(tier)
+function dbTierToBadge(tier: string, expiresAt?: Date | string | null): Badge {
+  return tierKeyToBadge(effectiveTierKey(tier, expiresAt))
 }
 
 export interface Agent {
@@ -70,6 +70,7 @@ export interface Listing {
   totalFloors: number
   views: number
   badge: Badge
+  highlighted?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string
@@ -110,7 +111,15 @@ function rowToListing(row: Record<string, unknown>): Listing {
     floor: (r.floor as number) ?? 0,
     totalFloors: (r.totalFloors as number) ?? 0,
     views: (r.views as number) ?? 0,
-    badge: dbTierToBadge((r.tier as string) ?? "standard"),
+    badge: dbTierToBadge(
+      (r.tier as string) ?? "standard",
+      (r.tierExpiresAt as Date | null | undefined) ?? null,
+    ),
+    highlighted: Boolean(
+      activeColorUntil(
+        (r.extendedFields as { colorUntil?: string } | null) ?? null,
+      ),
+    ),
     ai: { score: aiScore, label: aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო" },
     features: (r.features as string[]) ?? [],
     description: (r.description as string) ?? "",
@@ -200,7 +209,16 @@ export async function filterListings(opts: {
     orderBy,
     take: 100,
   })
-  return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  // Default date sort: paid tiers first (Meilisearch path does the same via tierRank).
+  const ordered =
+    !opts.sort || opts.sort === "date"
+      ? [...rows].sort(
+          (a, b) =>
+            tierRankOf(b.tier, b.tierExpiresAt) - tierRankOf(a.tier, a.tierExpiresAt) ||
+            b.createdAt.getTime() - a.createdAt.getTime(),
+        )
+      : rows
+  return ordered.map((r) => rowToListing(r as unknown as Record<string, unknown>))
 }
 
 /** Distinct cities with active listings. */

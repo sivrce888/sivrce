@@ -56,6 +56,8 @@ async function main() {
     lng: 44.76,
     createdAt: new Date().toISOString(),
     status: "active",
+    tier: "standard",
+    tierRank: 0,
   }
 
   assert(await indexListing(doc), "indexListing failed")

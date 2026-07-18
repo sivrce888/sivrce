@@ -1,28 +1,38 @@
 /**
- * Shared MapLibre floor-stack layers + theme-aware brand paints.
+ * Shared floor-stack layers + theme-aware brand paints.
  * Used by /map (Map3D) and /buildings/[slug] (BuildingFloorsMap).
  *
- * Light = OFM liberty retuned to high-contrast Google-familiar streets.
- * Dark = OFM dark + navy brand lifts (readable, not flat black).
+ * Light = high-contrast Google-familiar streets.
+ * Dark = navy brand lifts (readable, not flat black).
  */
 
 import type { Map as MlMap } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { EMPTY_FLOORS } from './floors'
 
+// Defaults are first-party proxy paths — browser never sees openfreemap.org.
 export const STYLE_LIGHT =
-  process.env.NEXT_PUBLIC_MAP_STYLE_URL_LIGHT ??
-  'https://tiles.openfreemap.org/styles/liberty'
+  process.env.NEXT_PUBLIC_MAP_STYLE_URL_LIGHT ?? '/api/map/styles/liberty'
+export const STYLE_CLEAN =
+  process.env.NEXT_PUBLIC_MAP_STYLE_URL_CLEAN ?? '/api/map/styles/positron'
+export const STYLE_BRIGHT =
+  process.env.NEXT_PUBLIC_MAP_STYLE_URL_BRIGHT ?? '/api/map/styles/bright'
 export const STYLE_DARK =
   process.env.NEXT_PUBLIC_MAP_STYLE_URL_DARK ??
   process.env.NEXT_PUBLIC_MAP_STYLE_URL ??
-  'https://tiles.openfreemap.org/styles/dark'
+  '/api/map/styles/dark'
+
+/** Light basemap family — dark theme always uses STYLE_DARK. */
+export type MapTerrain = 'streets' | 'clean' | 'bright'
 
 /** @deprecated use mapStyleUrl(dark) — kept for one-off env lock */
 export const STYLE_URL = STYLE_DARK
 
-export function mapStyleUrl(dark: boolean): string {
-  return dark ? STYLE_DARK : STYLE_LIGHT
+export function mapStyleUrl(dark: boolean, terrain: MapTerrain = 'streets'): string {
+  if (dark) return STYLE_DARK
+  if (terrain === 'clean') return STYLE_CLEAN
+  if (terrain === 'bright') return STYLE_BRIGHT
+  return STYLE_LIGHT
 }
 
 export const FLOORS_SOURCE_ID = 'sivrce-floors'

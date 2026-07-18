@@ -17,10 +17,13 @@ import {
   parseBuildingNumber,
   parseStreet,
   projectsToConstructionBuildings,
+  applyLiveProjectPins,
+  mergeDbBuildings,
 } from './buildings'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
 import { BUILDINGS } from '@/data/buildings'
+import { STATUS_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
 import footprintJson from '@/data/building-footprints.json'
 
 const base = {
@@ -131,6 +134,52 @@ const projects = [
 const ghosts = projectsToConstructionBuildings(projects)
 assert.equal(ghosts.length, 1)
 assert.equal(ghosts[0]!.status, 'construction')
+assert.equal(ghosts[0]!.developerSlug, 'x')
+assert.equal(ghosts[0]!.color, STATUS_BRAND.construction.hue)
+assert.equal(STATUS_BRAND.construction.hue, CATEGORY_BRAND.houses.hue) // brand orange
+assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.land.hue)
+assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.newProjects.hue)
+
+// Live project pin must move catalog building to exact address/coords.
+const axisCluster = buildings.find((b) => b.slug === 'axis-towers')
+assert.ok(axisCluster)
+const pinned = applyLiveProjectPins([axisCluster!], [
+  {
+    slug: 'axis-towers-vake',
+    name: 'Axis Towers',
+    developerSlug: 'axis',
+    img: '/x.webp',
+    location: 'ჩავჭავაძის გამზ. 37, ვაკე, თბილისი',
+    city: 'თბილისი',
+    priceFromM2: '$1',
+    done: 100,
+    finish: '2018',
+    flats: 150,
+    rating: 4,
+    description: { ka: '', en: '', ru: '' },
+    coords: { lat: 41.7095, lng: 44.774 },
+  },
+])
+assert.equal(pinned[0]!.lat, 41.7095)
+assert.equal(pinned[0]!.address.includes('37'), true)
+assert.equal(pinned[0]!.developerSlug, 'axis')
+
+const dbMerged = mergeDbBuildings(
+  [axisCluster!],
+  [
+    {
+      ...axisCluster!,
+      lat: 41.71,
+      lng: 44.775,
+      address: 'DB exact address 37',
+      developerSlug: 'axis',
+      developerName: 'აქსისი',
+    },
+  ],
+)
+assert.equal(dbMerged.length, 1)
+assert.equal(dbMerged[0]!.lat, 41.71)
+assert.equal(dbMerged[0]!.address, 'DB exact address 37')
 
 const filtered = filterBuildings([...buildings, ...ghosts], 'sale', 'all')
 assert.ok(filtered.some((b) => b.slug === 'chavchavadze-47'))
@@ -279,7 +328,11 @@ import {
 
 const towerCount = buildingFloorCount(tower!)
 assert.ok(towerCount >= Math.max(...fixtures.filter((l) => l.buildingSlug === 'chavchavadze-47').map((l) => l.floor)), 'floor count below listing floor')
-assert.equal(buildingShowsFloorStack(tower!), true, 'multi-unit tower must open floor stack')
+assert.equal(
+  buildingShowsFloorStack(tower!),
+  false,
+  'secondary multi-unit without inventory stays solid',
+)
 assert.equal(
   buildingShowsFloorStack({
     ...tower!,
@@ -290,7 +343,7 @@ assert.equal(
     heightM: 24,
   }),
   false,
-  'single listing / short stack must stay solid extrusion',
+  'active without inventory stays solid',
 )
 assert.equal(buildingShowsFloorStack(ghosts[0]!), true, 'construction ghost opens floor stack')
 

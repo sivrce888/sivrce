@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { X, Building2, MapPin, HardHat, Navigation, Star, BadgeCheck } from 'lucide-react'
 import type { DealType } from '@/data/listings'
 import { useCurrency } from '@/lib/currency'
-import { DEAL_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
+import { DEAL_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import { dealLabelKa, listingBuildingNumber } from '@/lib/map/buildings'
 import type { MapBuildingCluster } from '@/lib/map/buildings'
 import { buildingFloorCount, listingFloor } from '@/lib/map/floors'
@@ -135,15 +135,24 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
         )}
 
         {isConstruction ? (
-          <div className="mt-4 rounded-module border border-sv-blue/15 bg-sv-blue/[0.06] p-3">
+          <div
+            className="mt-4 rounded-module border p-3"
+            style={{
+              borderColor: `${STATUS_BRAND.construction.hue}40`,
+              background: STATUS_BRAND.construction.chip,
+            }}
+          >
             <div className="flex items-center justify-between text-[12px] font-extrabold text-sv-ink">
-              <span style={{ color: CATEGORY_BRAND.newProjects.hue }}>მშენებარე პროექტი</span>
+              <span style={{ color: STATUS_BRAND.construction.hue }}>მშენებარე პროექტი</span>
               <span>{building.progress ?? 0}%</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-sv-ink/8">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
-                style={{ width: `${building.progress ?? 0}%` }}
+                className="h-full rounded-full"
+                style={{
+                  width: `${building.progress ?? 0}%`,
+                  background: STATUS_BRAND.construction.hue,
+                }}
               />
             </div>
             {building.finish && (

@@ -199,7 +199,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.7, delay: (i % 3) * 0.08, ease: [0.21, 0.65, 0.2, 1] }}
-      className={`group relative flex flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover ${sizeClass}`}
+      className={`group relative flex flex-col overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover ${sizeClass} ${
+        l.highlighted
+          ? "border-sv-blue/45 ring-2 ring-sv-blue/25"
+          : "border-sv-ink/[0.06]"
+      }`}
     >
       {imageBlock}
       {bodyBlock}

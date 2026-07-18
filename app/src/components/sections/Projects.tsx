@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Star } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { useI18n } from '@/lib/i18n/context'
+import { STATUS_BRAND } from '@/lib/category-brand'
 
 const PROJECTS = [
   {
@@ -81,7 +82,10 @@ export default function Projects() {
                     </div>
                   </div>
                   {/* progress */}
-                  <div className="absolute left-5 top-4 rounded-full bg-sv-navy/55 px-3.5 py-1.5 text-[12px] font-extrabold text-white backdrop-blur">
+                  <div
+                    className="absolute left-5 top-4 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold text-white"
+                    style={{ background: STATUS_BRAND.construction.hue }}
+                  >
                     აშენებულია {p.done}%
                   </div>
                 </div>
@@ -106,7 +110,8 @@ export default function Projects() {
                     whileInView={{ width: `${p.done}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 1, ease: [0.21, 0.65, 0.2, 1] }}
-                    className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
+                    className="h-full rounded-full"
+                    style={{ background: STATUS_BRAND.construction.hue }}
                   />
                 </div>
                 </article>

@@ -8,6 +8,20 @@
 import { getConfig } from "@/lib/config"
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
+import { USD_GEL } from "@/data/listings"
+import { revalidateTag } from "next/cache"
+import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
+import { indexListing, type ListingDocument } from "@/lib/search"
+import {
+  activeColorUntil,
+  addonPriceTetri,
+  COLOR_HIGHLIGHT_DAYS,
+  effectiveTierKey,
+  isCheckoutAddon,
+  REFRESH_COOLDOWN_MS,
+  tierRankOf,
+  type CheckoutAddon,
+} from "@/lib/promo-pricing"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -214,7 +228,7 @@ export async function getTierPrice(tier: string): Promise<number> {
 // High-level operations
 // ---------------------------------------------------------------------------
 
-/** Create a payment order for a listing tier upgrade. */
+/** Create a payment order for listing tier upgrade. */
 export async function createListingTierOrder(
   userId: string,
   listingId: string,
@@ -239,6 +253,59 @@ export async function createListingTierOrder(
       userId,
       listingId,
       tier,
+      amountTetri,
+      currency: "GEL",
+      status: "pending",
+    },
+  })
+
+  return {
+    ...order,
+    redirectUrl,
+    createdAt: order.createdAt,
+    providerPaymentId: order.providerPaymentId ?? undefined,
+  }
+}
+
+/** Create a payment order for a listing add-on (refresh / color / FB). */
+export async function createListingAddonOrder(
+  userId: string,
+  listingId: string,
+  addon: CheckoutAddon,
+): Promise<PaymentOrder> {
+  if (addon === "refresh_once") {
+    const recent = await db.listingBoostHistory.findFirst({
+      where: {
+        listingId,
+        toTier: "refresh_once",
+        createdAt: { gte: new Date(Date.now() - REFRESH_COOLDOWN_MS) },
+      },
+      select: { id: true },
+    })
+    if (recent) {
+      throw new Error("refresh_cooldown")
+    }
+  }
+
+  const amountTetri = addonPriceTetri(addon)
+  const provider = getPaymentProvider()
+
+  const { providerOrderId, redirectUrl } = await provider.createOrder({
+    userId,
+    listingId,
+    tier: addon,
+    amountTetri,
+    currency: "GEL",
+    description: `Listing ${listingId} addon ${addon}`,
+  })
+
+  const order = await db.georgianPaymentOrder.create({
+    data: {
+      provider: process.env.PAYMENT_PROVIDER ?? "mock",
+      providerOrderId,
+      userId,
+      listingId,
+      tier: addon,
       amountTetri,
       currency: "GEL",
       status: "pending",
@@ -323,7 +390,14 @@ export async function handleCallback(
 
   // If this is a listing tier upgrade and payment succeeded, activate the tier
   if (newStatus === "paid" && order.listingId && order.tier && order.tier !== "auction_deposit") {
+    if (isCheckoutAddon(order.tier)) {
+      await applyPaidAddon(order.listingId, order.userId, order.tier, order.amountTetri, order.provider)
+      return
+    }
+
     const tier = order.tier as "vip" | "super_vip" | "diamond"
+    if (tier !== "vip" && tier !== "super_vip" && tier !== "diamond") return
+
     const expiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
 
     await db.listing.update({
@@ -335,5 +409,160 @@ export async function handleCallback(
         tierPaymentOrderId: order.id,
       },
     })
+
+    await reindexListingById(order.listingId)
   }
+}
+
+type ExtFields = {
+  condition?: string
+  buildingStatus?: string
+  colorUntil?: string
+}
+
+async function applyPaidAddon(
+  listingId: string,
+  userId: string | null,
+  addon: CheckoutAddon,
+  amountTetri: number,
+  provider: string | null,
+): Promise<void> {
+  const listing = await db.listing.findUnique({
+    where: { id: listingId },
+    select: { tier: true, extendedFields: true },
+  })
+  if (!listing) return
+
+  const now = new Date()
+  let durationDays = 0
+  let expiresAt = now
+
+  if (addon === "refresh_once") {
+    // ponytail: bump createdAt — Georgian classifieds freshness; dedicated bumpedAt if audit needs it
+    durationDays = 0
+    expiresAt = now
+    await db.listing.update({
+      where: { id: listingId },
+      data: { createdAt: now },
+    })
+  } else if (addon === "color") {
+    durationDays = COLOR_HIGHLIGHT_DAYS
+    const prev = (listing.extendedFields as ExtFields | null) ?? {}
+    const baseMs =
+      prev.colorUntil && Date.parse(prev.colorUntil) > now.getTime()
+        ? Date.parse(prev.colorUntil)
+        : now.getTime()
+    const until = new Date(baseMs + COLOR_HIGHLIGHT_DAYS * 86_400_000)
+    expiresAt = until
+    await db.listing.update({
+      where: { id: listingId },
+      data: {
+        extendedFields: { ...prev, colorUntil: until.toISOString() } as Prisma.InputJsonValue,
+      },
+    })
+  } else {
+    // Facebook packs — paid SKU; fulfillment is ops (boost history is the queue signal).
+    durationDays = addon === "facebook" ? 3 : 7
+    expiresAt = new Date(now.getTime() + durationDays * 86_400_000)
+  }
+
+  await db.listingBoostHistory.create({
+    data: {
+      listingId,
+      userId: userId ?? undefined,
+      fromTier: listing.tier,
+      toTier: addon,
+      amountTetri,
+      currency: "GEL",
+      provider: provider ?? undefined,
+      durationDays,
+      startedAt: now,
+      expiresAt,
+    },
+  })
+
+  if (addon === "refresh_once" || addon === "color") {
+    await reindexListingById(listingId)
+  }
+}
+
+async function reindexListingById(listingId: string): Promise<void> {
+  const listing = await db.listing.findUnique({
+    where: { id: listingId },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      city: true,
+      district: true,
+      address: true,
+      dealType: true,
+      propertyType: true,
+      price: true,
+      currency: true,
+      pricePerSqm: true,
+      verified: true,
+      petsAllowed: true,
+      sellerType: true,
+      extendedFields: true,
+      area: true,
+      rooms: true,
+      bedrooms: true,
+      bathrooms: true,
+      floor: true,
+      totalFloors: true,
+      features: true,
+      images: true,
+      lat: true,
+      lng: true,
+      createdAt: true,
+      status: true,
+      trustScore: true,
+      tier: true,
+      tierExpiresAt: true,
+    },
+  })
+  if (!listing || listing.status !== "active") return
+
+  const ext = listing.extendedFields as ExtFields | null
+  const tierKey = effectiveTierKey(listing.tier, listing.tierExpiresAt)
+  const doc: ListingDocument = {
+    id: listing.id,
+    title: listing.title,
+    description: listing.description,
+    city: listing.city,
+    district: listing.district,
+    address: listing.address,
+    dealType: listing.dealType,
+    propertyType: listing.propertyType,
+    price: listing.price,
+    currency: listing.currency,
+    priceUSD:
+      listing.currency === "USD" ? listing.price : Math.round(listing.price / USD_GEL),
+    pricePerSqm: listing.pricePerSqm ?? undefined,
+    verified: listing.verified,
+    hasImages: listing.images.length > 0,
+    petsAllowed: listing.petsAllowed ?? undefined,
+    sellerType: listing.sellerType ?? undefined,
+    condition: ext?.condition,
+    buildingStatus: ext?.buildingStatus,
+    area: listing.area,
+    rooms: listing.rooms,
+    bedrooms: listing.bedrooms,
+    bathrooms: listing.bathrooms,
+    floor: listing.floor ?? undefined,
+    totalFloors: listing.totalFloors ?? undefined,
+    features: (listing.features as string[]) ?? [],
+    images: (listing.images as string[]) ?? [],
+    lat: listing.lat,
+    lng: listing.lng,
+    createdAt: listing.createdAt.toISOString(),
+    status: listing.status,
+    colorUntil: activeColorUntil(ext),
+    trustScore: listing.trustScore,
+    tier: tierKey,
+    tierRank: tierRankOf(listing.tier, listing.tierExpiresAt),
+  }
+  void indexListing(doc).catch(() => {})
+  revalidateTag(MAP_LISTINGS_TAG, "max")
 }

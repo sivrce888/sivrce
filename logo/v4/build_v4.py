@@ -38,15 +38,21 @@ def fmt(x):
 
 # ---- generic 4-point sparkle --------------------------------------------------
 def star_path(cx=24, cy=24, rn=20.8, re=20.8, rs=20.8, rw=20.8,
-              w_ne=6.4, w_es=6.4, w_sw=6.4, w_wn=6.4):
-    """Closed 4-point sparkle. Cubic segments with axis-aligned cusp tangents
-    at every tip (perfectly clean needles); each concave side's midpoint lands
-    exactly at the given waist radius on the 45° diagonals.
+              w_ne=6.4, w_es=6.4, w_sw=6.4, w_wn=6.4, theta=14.0):
+    """Closed 4-point sparkle. Cubic segments; tip tangents splayed `theta`
+    degrees off the axis => finite, solid needle tips (no zero-angle wisps);
+    each concave side's midpoint lands at the given waist radius.
     waist = (±(0.5*r_tip - 0.375*d)) => d = (0.5*r - w/sqrt(2)) / 0.375."""
     N = (cx, cy - rn); E = (cx + re, cy); S = (cx, cy + rs); W = (cx - rw, cy)
     tips = [N, E, S, W]
     radii = [rn, re, rs, rw]
     waists = [w_ne, w_es, w_sw, w_wn]
+    th = math.radians(theta)
+
+    def rot(v, a):
+        return (v[0] * math.cos(a) - v[1] * math.sin(a),
+                v[0] * math.sin(a) + v[1] * math.cos(a))
+
     d = f"M{fmt(N[0])} {fmt(N[1])}"
     for i in range(4):
         P0 = tips[i]; P1 = tips[(i + 1) % 4]
@@ -54,21 +60,19 @@ def star_path(cx=24, cy=24, rn=20.8, re=20.8, rs=20.8, rw=20.8,
         w = waists[i]
         d0 = (0.5 * r0 - w / math.sqrt(2)) / 0.375
         d1 = (0.5 * r1 - w / math.sqrt(2)) / 0.375
-        # control 1 slides from tip0 toward center along tip0's axis,
-        # control 2 from tip1 toward center along tip1's axis
-        ax0 = (P0[0] - cx, P0[1] - cy)
-        ax1 = (P1[0] - cx, P1[1] - cy)
-        u0 = (ax0[0] / r0, ax0[1] / r0)
-        u1 = (ax1[0] / r1, ax1[1] / r1)
-        C1 = (P0[0] - u0[0] * d0, P0[1] - u0[1] * d0)
-        C2 = (P1[0] - u1[0] * d1, P1[1] - u1[1] * d1)
+        u0 = ((P0[0] - cx) / r0, (P0[1] - cy) / r0)   # tip0 axis, outward
+        u1 = ((P1[0] - cx) / r1, (P1[1] - cy) / r1)   # tip1 axis, outward
+        t0 = rot((-u0[0], -u0[1]), -th)               # splay toward interior
+        t1 = rot((-u1[0], -u1[1]), +th)
+        C1 = (P0[0] + t0[0] * d0, P0[1] + t0[1] * d0)
+        C2 = (P1[0] + t1[0] * d1, P1[1] + t1[1] * d1)
         d += (f"C{fmt(C1[0])} {fmt(C1[1])} {fmt(C2[0])} {fmt(C2[1])} "
               f"{fmt(P1[0])} {fmt(P1[1])}")
     return d + "Z"
 
 # vertical brand-flow gradient, locked stops only
 def flow_grad(gid, y_top, y_bot, orange_tip=True):
-    stops = [(0.0, BLUE_L), (0.30, BLUE), (0.60, VIOLET)]
+    stops = [(0.0, BLUE_L), (0.34, BLUE), (0.58, VIOLET)]
     if orange_tip:
         stops += [(0.80, ORANGE_DEEP), (1.0, ORANGE)]
     else:
@@ -110,7 +114,7 @@ def a_defs(tip=A_TIP, dimensional=True, uid=""):
         # sheen: top-left light, brand 120° feel
         d += (f'<linearGradient id="sheen{uid}" x1="14" y1="4" x2="34" '
               f'y2="40" gradientUnits="userSpaceOnUse">'
-              f'<stop offset="0" stop-color="#fff" stop-opacity=".55"/>'
+              f'<stop offset="0" stop-color="#fff" stop-opacity=".45"/>'
               f'<stop offset=".38" stop-color="#fff" stop-opacity=".16"/>'
               f'<stop offset=".58" stop-color="#fff" stop-opacity="0"/>'
               f'</linearGradient>')
@@ -160,6 +164,9 @@ def a_mark(dimensional=True, size_class="master", mono=None, uid=""):
 # OPTION B — SPACE FRAME
 # ===============================================================================
 def b_brackets(color, arm=7.0, corner=14.5, width=2.6):
+    """Four focus-frame corners (stroke, round caps/joins)."""
+    c = corner
+    d = ""
     for (x, y, sx, sy) in [(24 - c, 24 - c, -1, -1), (24 + c, 24 - c, 1, -1),
                            (24 + c, 24 + c, 1, 1), (24 - c, 24 + c, -1, 1)]:
         d += (f'M{fmt(x + sx * arm)} {fmt(y)}L{fmt(x)} {fmt(y)}'

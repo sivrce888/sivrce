@@ -11,13 +11,14 @@ import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   DEVELOPERS,
   getDeveloper,
-  projectsByDeveloper,
   listingsByCity,
   listingCountByCity,
 } from '@/data/professionals'
+import { projectsLiveByDeveloper } from '@/lib/directory-live'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+import { STATUS_BRAND } from '@/lib/category-brand'
 
 export function generateStaticParams() {
   return DEVELOPERS.map((d) => ({ slug: d.slug }))
@@ -52,11 +53,11 @@ export default async function DeveloperPage({ params }: PageProps) {
   const dev = getDeveloper(slug)
   if (!dev) notFound()
 
-  const [aggregate, projects, listings] = [
-    await getReviewAggregate('developer', slug),
-    projectsByDeveloper(slug),
-    listingsByCity(dev.city, 6),
-  ]
+  const [aggregate, projects, listings] = await Promise.all([
+    getReviewAggregate('developer', slug),
+    projectsLiveByDeveloper(slug),
+    Promise.resolve(listingsByCity(dev.city, 6)),
+  ])
 
   // Cover = most complete project's real photo (deterministic, no new assets).
   const flagship = projects.length
@@ -149,7 +150,10 @@ export default async function DeveloperPage({ params }: PageProps) {
                       sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 460px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                     />
-                    <div className="absolute left-4 top-3 rounded-full bg-sv-navy/55 px-3 py-1 text-[12px] font-extrabold text-white backdrop-blur">
+                    <div
+                      className="absolute left-4 top-3 rounded-full px-3 py-1 text-[12px] font-extrabold text-white"
+                      style={{ background: STATUS_BRAND.construction.hue }}
+                    >
                       აშენებულია {p.done}%
                     </div>
                   </div>

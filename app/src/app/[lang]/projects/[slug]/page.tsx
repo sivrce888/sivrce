@@ -23,6 +23,7 @@ import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+import { STATUS_BRAND } from '@/lib/category-brand'
 
 export function generateStaticParams() {
   // Static catalog slugs prerender; korter-only slugs SSR via dynamicParams.
@@ -162,8 +163,8 @@ export default async function ProjectPage({ params }: PageProps) {
             />
             <div className="mt-6 h-1.5 max-w-xl overflow-hidden rounded-full bg-sv-ink/[0.07]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
-                style={{ width: `${project.done}%` }}
+                className="h-full rounded-full"
+                style={{ width: `${project.done}%`, background: STATUS_BRAND.construction.hue }}
               />
             </div>
             <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/55">

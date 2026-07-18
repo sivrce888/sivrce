@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.6) · FROZEN 2026-07-17 · Logo v3 Spark Star 2026-07-18
+# სივრცე — Brand Lock (v1.7) · FROZEN 2026-07-17 · Logo v3 Spark Star 2026-07-18 · Status = sv-orange 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -15,8 +15,8 @@ version bump in this file + matching updates to the three code sources below.
 ## 0. Enforcement (how to build UI)
 
 Never write raw hex in components. Use locked tokens / `CATEGORY_BRAND` /
-`SERVICE_BRAND` / `DEAL_BRAND`. Exception: logo SVG white stroke `#ffffff`
-and third-party brand marks (Google).
+`SERVICE_BRAND` / `DEAL_BRAND` / `STATUS_BRAND`. Exception: logo SVG white
+stroke `#ffffff` and third-party brand marks (Google).
 
 | Token | Class examples | Value |
 |---|---|---|
@@ -180,6 +180,20 @@ Brand hues (blue/orange/violet/category) stay fixed. Only foundations flip in `.
 Navy (`#050B26`) stays fixed — hero, CTA, map, footer are brand-dark in BOTH themes.
 Glass light → smoked navy `rgba(8,13,38,0.92)` in dark.
 
+### 3.4 Status hues (locked — owner-approved 2026-07-18)
+
+Map filters, construction ghosts, progress bars. Source: `STATUS_BRAND`.
+Uses brand orange (`sv-orange`) — the locked carrot/action hue.
+
+| Status (KA) | Key | Hue | Chip | Maps to |
+|---|---|---|---|---|
+| მშენებარე | `construction` | #FF6A2D | #FFF3EF | brand orange / houses |
+
+Rules:
+- `newProjects` category stays sky blue `#5B8BFF` (catalog / deal tab)
+- Construction status always reads `STATUS_BRAND.construction` (= `sv-orange`)
+- Completed map filter keeps `SERVICE_BRAND.developers` violet
+- ≤10% orange rule still applies to CTAs; status identity on map/projects is exempt (same as category hues)
 ## 4. Typography
 - Stack: Manrope (Latin/digits, weights 400–900 loaded) + Noto Sans Georgian
 - Headlines: weight 900 (`font-black`), tracking −0.02em…−0.045em, `text-balance`
@@ -221,7 +235,7 @@ Glass light → smoked navy `rgba(8,13,38,0.92)` in dark.
 
 ## 10. Sync checklist (before shipping UI)
 
-1. Hex exists in §3 / §3.1 / §3.2 / §3.3 of this file?
+1. Hex exists in §3 / §3.1 / §3.2 / §3.3 / §3.4 of this file?
 2. Mirrored in `brand.ts` and/or `category-brand.ts`?
 3. Mirrored in `globals.css` `@theme` / `:root` / `.dark`?
 4. Component uses token class or brand import — no raw hex?

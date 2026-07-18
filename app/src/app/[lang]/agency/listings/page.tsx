@@ -10,8 +10,10 @@ import {
 } from "@/components/agency-dashboard/nav"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
+import TierPurchaseButton from "@/components/payments/TierPurchaseButton"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { effectiveTierKey } from "@/lib/promo-pricing"
 
 export const dynamic = "force-dynamic"
 
@@ -47,7 +49,7 @@ export default async function AgencyListingsPage() {
         />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-sv-ink/6 bg-white shadow-sm">
-          <table className="w-full min-w-[720px] text-left">
+          <table className="w-full min-w-[800px] text-left">
             <thead>
               <tr className="border-b border-sv-ink/8 text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
                 <th className="px-5 py-3.5">განცხადება</th>
@@ -56,6 +58,7 @@ export default async function AgencyListingsPage() {
                 <th className="px-5 py-3.5">ნახვები</th>
                 <th className="px-5 py-3.5">სტატუსი</th>
                 <th className="px-5 py-3.5">თარიღი</th>
+                <th className="px-5 py-3.5 text-right">გაძლიერება</th>
               </tr>
             </thead>
             <tbody>
@@ -85,6 +88,14 @@ export default async function AgencyListingsPage() {
                   </td>
                   <td className="px-5 py-3.5 text-[12px] font-medium text-sv-ink/50">
                     {l.createdAt.toLocaleDateString("ka-GE")}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    {l.status === "active" ? (
+                      <TierPurchaseButton
+                        listingId={l.id}
+                        currentTier={effectiveTierKey(l.tier, l.tierExpiresAt)}
+                      />
+                    ) : null}
                   </td>
                 </tr>
               ))}
