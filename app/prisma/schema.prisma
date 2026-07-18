@@ -17,6 +17,8 @@ model User {
   phone         String?   @db.VarChar(30)
   phoneVerifiedAt DateTime? @map("phone_verified_at") @db.Timestamptz(6)
   image         String?   @db.Text
+  /// Null for OAuth-only accounts. Set on email signup / password reset.
+  passwordHash  String?   @map("password_hash") @db.VarChar(200)
   role          UserRole  @default(buyer)
   trustScore    Int       @default(70) @map("trust_score")
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -461,7 +463,7 @@ model Listing {
   tier                          ListingTier                            @default(standard)
   verified                      Boolean                                @default(false)
   price                         Int
-  currency                      ListingCurrency                        @default(GEL)
+  currency                      ListingCurrency                        @default(USD)
   pricePerSqm                   Int?                                   @map("price_per_sqm")
   rooms                         Int                                    @default(0)
   bedrooms                      Int                                    @default(0)

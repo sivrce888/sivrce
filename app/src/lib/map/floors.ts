@@ -2,8 +2,8 @@
  * SIVRCE floor stacks — per-floor 3D extrusions for the selected building.
  *
  * Algorithm (ponytail): same footprint repeated per floor, base/height as data
- * properties; availability = real listings grouped by `floor` (no fabrication —
- * per-unit developer inventory is the upgrade path via MapBuilding/Building3D).
+ * properties; availability = admin-edited BuildingFloor inventory when present,
+ * else real listings grouped by `floor` (no fabrication).
  *
  * Ceiling: one source per selected building; recluster per floor when DB-backed.
  */
@@ -21,13 +21,16 @@ export type FloorInfo = {
   available: number
   /** Cheapest listing price in GEL on this floor, when comparable */
   minPriceGEL: number | null
+  /** Developer price-list ₾/m² (inventory-backed floors only) */
+  minPricePerSqm?: number | null
 }
 
 const MIN_FLOORS = 1
 const MAX_FLOORS = 60
 
-/** Floors to draw: catalog value wins, else listings, else reverse the height formula. */
+/** Floors to draw: admin inventory wins, then catalog value, listings, height formula. */
 export function buildingFloorCount(b: MapBuildingCluster): number {
+  if (b.inventory?.length) return Math.max(MIN_FLOORS, Math.min(MAX_FLOORS, b.inventory.length))
   const fromListings = Math.max(0, ...b.listings.map((l) => l.totalFloors || l.floor || 0))
   const raw = b.floors ?? (fromListings > 0 ? fromListings : Math.round((b.heightM - 18) / 3.1))
   return Math.max(MIN_FLOORS, Math.min(MAX_FLOORS, Math.round(raw)))
@@ -39,6 +42,14 @@ export function listingFloor(floor: number, count: number): number {
 }
 
 export function buildingFloors(b: MapBuildingCluster, deal: MapDealFilter = 'all'): FloorInfo[] {
+  if (b.inventory?.length) {
+    return b.inventory.map((r) => ({
+      n: r.n,
+      available: deal === 'all' ? r.available : r[deal],
+      minPriceGEL: null,
+      minPricePerSqm: r.minPricePerSqm,
+    }))
+  }
   const count = buildingFloorCount(b)
   const floors: FloorInfo[] = Array.from({ length: count }, (_, i) => ({
     n: i + 1,
@@ -111,7 +122,9 @@ export function floorTooltipKa(
   }
   if (info.available === 0) return { title, lines: ['თავისუფალი ბინა არ არის'] }
   const lines = [`${info.available} თავისუფალია`]
-  if (opts.showPrice && info.minPriceGEL != null) {
+  if (opts.showPrice && info.minPricePerSqm != null) {
+    lines.push(`₾${info.minPricePerSqm.toLocaleString('ka-GE')}/მ²-დან`)
+  } else if (opts.showPrice && info.minPriceGEL != null) {
     lines.push(`₾${info.minPriceGEL.toLocaleString('ka-GE')}-დან`)
   }
   return { title, lines }

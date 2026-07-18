@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState, useCallback, useSyncExternalStore } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, LayoutGrid, Rows3,
-  ChevronDown, MapPin, RotateCcw, SearchX, Home,
+  ChevronDown, MapPin, RotateCcw, SearchX, Home, SlidersHorizontal,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -19,6 +19,7 @@ import { useRecentIds } from '@/lib/recent'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
+import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from '@/lib/features'
 import {
   CITIES, districtsOf, USD_GEL,
   type DealType, type PropType, type SortKey, type Listing,
@@ -39,10 +40,23 @@ const SORTS: { value: SortKey; key: DictKey }[] = [
   { value: 'price-asc', key: 'sort.priceAsc' },
   { value: 'price-desc', key: 'sort.priceDesc' },
   { value: 'area', key: 'sort.area' },
+  { value: 'm2asc', key: 'sort.m2asc' },
+  { value: 'm2desc', key: 'sort.m2desc' },
   { value: 'ai', key: 'sort.ai' },
 ]
 
+const DEALS: (DealType | undefined)[] = [undefined, 'sale', 'rent', 'daily', 'pledge']
+const dealLabelKey = (d: DealType | undefined): DictKey =>
+  d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'rent' ? 'search.rent' : d === 'daily' ? 'add.deal.daily' : 'add.deal.pledge'
+const dealHue = (d: DealType | undefined): string =>
+  d === 'rent' ? DEAL_BRAND.rent : d === 'daily' ? DEAL_BRAND.daily : d === 'pledge' ? DEAL_BRAND.pledge : DEAL_BRAND.sale
+
 const ROOM_OPTIONS = ['1+', '2', '3', '4', '5+'] as const
+const COUNT_OPTIONS = [1, 2, 3, 4] as const
+
+/** CSV param → whitelisted vocabulary keys (module-level so identity is stable). */
+const splitCsv = (raw: string, allowed: readonly string[]): DictKey[] =>
+  raw.split(',').filter((v) => allowed.includes(v)) as DictKey[]
 
 function SkeletonCard() {
   return (
@@ -138,7 +152,7 @@ export default function SearchClient() {
   // ——— Read filters from URL — invalid values are ignored (whitelists + numeric checks) ———
   const paramsKey = params.toString()
   const dealParam = params.get('deal')
-  const deal: DealType | undefined = dealParam === 'sale' || dealParam === 'rent' || dealParam === 'daily' ? dealParam : undefined
+  const deal: DealType | undefined = DEALS.includes(dealParam as DealType) ? (dealParam as DealType) : undefined
   const typeParam = params.get('type')
   const type: PropType | undefined = PROP_TYPES.some((p) => p.value === typeParam)
     ? (typeParam as PropType)
@@ -159,6 +173,21 @@ export default function SearchClient() {
   const sortParam = params.get('sort')
   const sort: SortKey = SORTS.some((s) => s.value === sortParam) ? (sortParam as SortKey) : 'date'
   const q = params.get('q') ?? ''
+  // More-filters params — CSVs whitelisted against the stored vocabulary.
+  const beds = numParam('beds', 1)
+  const baths = numParam('baths', 1)
+  const floorMin = numParam('fmin')
+  const floorMax = numParam('fmax')
+  const condRaw = params.get('cond') ?? ''
+  const bstatRaw = params.get('bstat') ?? ''
+  const featRaw = params.get('feat') ?? ''
+  // Memoized so fetchSearch's dep array only re-fires on real param changes.
+  const cond = useMemo(() => splitCsv(condRaw, CONDITION_KEYS), [condRaw])
+  const bstat = useMemo(() => splitCsv(bstatRaw, BUILDING_STATUS_KEYS), [bstatRaw])
+  const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
+  const photo = params.get('photo') === '1'
+  const verifiedOnly = params.get('verified') === '1'
+  const cur: 'USD' | 'GEL' = params.get('cur') === 'GEL' ? 'GEL' : 'USD'
 
   // Always build patches on the live URL — never a stale closure
   const patchParams = (patch: Record<string, string | undefined>) => {
@@ -178,6 +207,8 @@ export default function SearchClient() {
     max: maxPrice !== undefined ? String(maxPrice) : '',
     amin: minArea !== undefined ? String(minArea) : '',
     amax: maxArea !== undefined ? String(maxArea) : '',
+    fmin: floorMin !== undefined ? String(floorMin) : '',
+    fmax: floorMax !== undefined ? String(floorMax) : '',
   }
   const [drafts, setDrafts] = useState(urlText)
   const clearDraft = (k: keyof typeof urlText) => setDrafts((d) => ({ ...d, [k]: '' }))
@@ -185,7 +216,7 @@ export default function SearchClient() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const patch: Record<string, string | undefined> = {}
-      for (const k of ['q', 'min', 'max', 'amin', 'amax'] as const) {
+      for (const k of ['q', 'min', 'max', 'amin', 'amax', 'fmin', 'fmax'] as const) {
         if (drafts[k] !== urlText[k]) patch[k] = drafts[k] || undefined
       }
       if (Object.keys(patch).length > 0) patchParams(patch)
@@ -219,6 +250,16 @@ export default function SearchClient() {
       if (maxArea !== undefined) sp.set('maxArea', String(maxArea))
       if (q) sp.set('q', q)
       if (sort !== 'date') sp.set('sort', sort)
+      if (beds !== undefined) sp.set('beds', String(beds))
+      if (baths !== undefined) sp.set('baths', String(baths))
+      if (floorMin !== undefined) sp.set('fmin', String(floorMin))
+      if (floorMax !== undefined) sp.set('fmax', String(floorMax))
+      if (condRaw) sp.set('cond', condRaw)
+      if (bstatRaw) sp.set('bstat', bstatRaw)
+      if (featRaw) sp.set('feat', featRaw)
+      if (photo) sp.set('photo', '1')
+      if (verifiedOnly) sp.set('verified', '1')
+      if (cur === 'GEL') sp.set('cur', 'GEL')
       sp.set('page', String(pageNum))
       sp.set('pageSize', '24')
 
@@ -243,7 +284,7 @@ export default function SearchClient() {
     } finally {
       setSearchLoading(false)
     }
-  }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort])
+  }, [deal, type, city, district, minPrice, maxPrice, rooms, minArea, maxArea, q, sort, beds, baths, floorMin, floorMax, condRaw, bstatRaw, featRaw, photo, verifiedOnly, cur])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- canonical data-fetch effect
@@ -252,6 +293,30 @@ export default function SearchClient() {
 
   // ponytail: page derived from what's on screen — no state to keep in sync.
   const loadMore = () => fetchSearch(Math.ceil(results.length / 24) + 1, true)
+
+  // ——— Mobile filter sheet + "More filters" panel state ———
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const moreCount = (beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
+    + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
+    + cond.length + bstat.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
+  const [moreOpen, setMoreOpen] = useState(moreCount > 0)
+
+  // Sheet: Escape to close + body scroll lock while open.
+  useEffect(() => {
+    if (!sheetOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSheetOpen(false) }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [sheetOpen])
+
+  const toggleCsv = (key: string, current: DictKey[], v: DictKey) => {
+    const next = current.includes(v) ? current.filter((x) => x !== v) : [...current, v]
+    patchParams({ [key]: next.length ? next.join(',') : undefined })
+  }
 
   // ——— Recently viewed (retention rail above results) ———
   const recentIds = useRecentIds()
@@ -282,7 +347,7 @@ export default function SearchClient() {
   const propType = PROP_TYPES.find((p) => p.value === type)
   const propTypeKey = propType?.key
   const chips: { key: string; label: string; hue?: string; clear: () => void }[] = []
-  if (deal) chips.push({ key: 'deal', label: t(deal === 'sale' ? 'search.sale' : deal === 'daily' ? 'add.deal.daily' : 'search.rent'), hue: deal === 'rent' ? DEAL_BRAND.rent : deal === 'daily' ? DEAL_BRAND.daily : DEAL_BRAND.sale, clear: () => patchParams({ deal: undefined }) })
+  if (deal) chips.push({ key: 'deal', label: t(dealLabelKey(deal)), hue: dealHue(deal), clear: () => patchParams({ deal: undefined }) })
   if (type) chips.push({ key: 'type', label: propTypeKey ? t(propTypeKey) : type, hue: propType?.brand.hue, clear: () => patchParams({ type: undefined }) })
   if (city) chips.push({ key: 'city', label: city, clear: () => patchParams({ city: undefined, district: undefined }) })
   if (district) chips.push({ key: 'district', label: district, clear: () => patchParams({ district: undefined }) })
@@ -292,9 +357,18 @@ export default function SearchClient() {
   if (minArea !== undefined) chips.push({ key: 'amin', label: `${t('search.min')}. ${minArea} მ²`, clear: () => { clearDraft('amin'); patchParams({ amin: undefined }) } })
   if (maxArea !== undefined) chips.push({ key: 'amax', label: `${t('search.max')}. ${maxArea} მ²`, clear: () => { clearDraft('amax'); patchParams({ amax: undefined }) } })
   if (q) chips.push({ key: 'q', label: `„${q}"`, clear: () => { clearDraft('q'); patchParams({ q: undefined }) } })
+  if (beds !== undefined) chips.push({ key: 'beds', label: t('search.bedsChip', { n: beds }), clear: () => patchParams({ beds: undefined }) })
+  if (baths !== undefined) chips.push({ key: 'baths', label: t('search.bathsChip', { n: baths }), clear: () => patchParams({ baths: undefined }) })
+  if (floorMin !== undefined || floorMax !== undefined) chips.push({ key: 'floor', label: `${t('search.floor')}: ${floorMin ?? '—'}–${floorMax ?? '—'}`, clear: () => { clearDraft('fmin'); clearDraft('fmax'); patchParams({ fmin: undefined, fmax: undefined }) } })
+  if (cond.length) chips.push({ key: 'cond', label: `${t('search.condition')} · ${cond.length}`, clear: () => patchParams({ cond: undefined }) })
+  if (bstat.length) chips.push({ key: 'bstat', label: `${t('search.buildingStatus')} · ${bstat.length}`, clear: () => patchParams({ bstat: undefined }) })
+  if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
+  if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
+  if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
+  if (cur === 'GEL' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '₾', clear: () => patchParams({ cur: undefined }) })
 
   const resetAll = () => {
-    setDrafts({ q: '', min: '', max: '', amin: '', amax: '' })
+    setDrafts({ q: '', min: '', max: '', amin: '', amax: '', fmin: '', fmax: '' })
     router.replace('/search', { scroll: false })
   }
 
@@ -302,6 +376,353 @@ export default function SearchClient() {
     'h-11 w-full appearance-none rounded-control border border-sv-ink/10 bg-sv-surface pl-3.5 pr-9 text-[13px] font-bold text-sv-ink outline-none transition-colors focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30 cursor-pointer'
   const inputClass =
     'h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3.5 text-[13px] font-bold text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
+  const labelClass = 'mb-1.5 block text-[12px] font-black uppercase tracking-wide text-sv-ink/65'
+  const numChip = (active: boolean) =>
+    `h-11 min-w-[44px] rounded-control px-2.5 text-[13px] font-extrabold transition-colors ${
+      active
+        ? 'bg-sv-blue text-white shadow-glow-blue-sm'
+        : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:border-sv-blue/50 hover:text-sv-blue'
+    }`
+  const tagChip = (active: boolean) =>
+    `h-9 rounded-full px-3.5 text-[12px] font-extrabold transition-colors ${
+      active
+        ? 'bg-sv-blue text-white shadow-glow-blue-sm'
+        : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:border-sv-blue/50 hover:text-sv-blue'
+    }`
+
+  /* Whole filter UI — rendered once in the desktop sticky bar and again inside
+     the mobile bottom sheet (mobile swaps the deal-pill layoutId + hides the
+     view toggle, which only makes sense next to results). */
+  const filtersBody = (mobile: boolean) => (
+    <>
+      {/* Row 1: deal + type + location + sort */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Deal segmented */}
+        <div className="scrollbar-hide flex max-w-full overflow-x-auto rounded-control bg-sv-ink/[0.05] p-1 [mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent)] md:[mask-image:none]" role="group" aria-label={t('search.dealType')}>
+          {DEALS.map((d) => {
+            const label = t(dealLabelKey(d))
+            const count = d === undefined ? undefined : fcount('dealType', d)
+            const active = deal === d
+            return (
+              <button
+                key={label}
+                type="button"
+                aria-pressed={active}
+                onClick={() => patchParams({ deal: d })}
+                className={`relative whitespace-nowrap rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
+                  active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
+                }`}
+              >
+                {active && (
+                  <motion.span
+                    layoutId={mobile ? 'deal-seg-m' : 'deal-seg'}
+                    className="absolute inset-0 rounded-lg"
+                    style={{ backgroundColor: dealHue(d) }}
+                    transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {label}
+                  {count !== undefined && (
+                    <span className={`ml-1 text-[11px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>
+                      {count}
+                    </span>
+                  )}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Property type */}
+        <div className="relative">
+          <select
+            value={type ?? ''}
+            onChange={(e) => patchParams({ type: (e.target.value || undefined) as PropType | undefined })}
+            className={selectClass}
+            aria-label={t('search.propType')}
+          >
+            <option value="">{t('search.allTypes')}</option>
+            {PROP_TYPES.map((p) => (
+              <option key={p.value} value={p.value}>{t(p.key)}{fmtCount(fcount('propertyType', p.value))}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
+        </div>
+
+        {/* City */}
+        <div className="relative">
+          <select
+            value={city ?? ''}
+            onChange={(e) => patchParams({ city: e.target.value || undefined, district: undefined })}
+            className={selectClass}
+            aria-label={t('search.city')}
+          >
+            <option value="">{t('search.allCities')}</option>
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{c}{fmtCount(fcount('city', c))}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
+        </div>
+
+        {/* District */}
+        <div className="relative">
+          <select
+            value={district ?? ''}
+            onChange={(e) => patchParams({ district: e.target.value || undefined })}
+            className={selectClass}
+            aria-label={t('search.district')}
+          >
+            <option value="">{t('search.allDistricts')}</option>
+            {districtsOf(city).map((d) => (
+              <option key={d} value={d}>{d}{fmtCount(fcount('district', d))}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
+        </div>
+
+        {/* Keyword + location autocomplete */}
+        <SearchSuggest
+          variant="light"
+          value={drafts.q}
+          onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
+          onPick={(v) => { setDrafts((d) => ({ ...d, q: v })); patchParams({ q: v }) }}
+          onSubmit={() => patchParams({ q: drafts.q || undefined })}
+          placeholder={t('search.keywordPlaceholder')}
+          ariaLabel={t('search.keyword')}
+          className="min-w-[160px] flex-1"
+        />
+
+        {/* Sort */}
+        <div className="relative">
+          <select
+            value={sort}
+            onChange={(e) => patchParams({ sort: e.target.value === 'date' ? undefined : e.target.value })}
+            className={selectClass}
+            aria-label={t('search.sort')}
+          >
+            {SORTS.map((so) => (
+              <option key={so.value} value={so.value}>{t(so.key)}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
+        </div>
+
+        {/* View toggle — desktop only (it lives next to the results) */}
+        {!mobile && (
+          <div className="ml-auto flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.view')}>
+            <button
+              onClick={() => setView('grid')}
+              aria-label={t('search.grid')}
+              aria-pressed={view === 'grid'}
+              className={`grid h-11 w-11 place-items-center rounded-lg transition-colors ${view === 'grid' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setView('list')}
+              aria-label={t('search.list')}
+              aria-pressed={view === 'list'}
+              className={`grid h-11 w-11 place-items-center rounded-lg transition-colors ${view === 'list' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
+            >
+              <Rows3 className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Row 2: price + currency + rooms + area */}
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.price')}</span>
+          <input
+            type="number" min={0} placeholder={t('search.min')}
+            value={drafts.min}
+            onChange={(e) => setDrafts((d) => ({ ...d, min: e.target.value }))}
+            className={`${inputClass} w-[104px]`}
+            aria-label={t('search.minPrice')}
+          />
+          <span className="text-sv-ink/65">—</span>
+          <input
+            type="number" min={0} placeholder={t('search.max')}
+            value={drafts.max}
+            onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))}
+            className={`${inputClass} w-[104px]`}
+            aria-label={t('search.maxPrice')}
+          />
+          <div className="ml-1 flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.currency')}>
+            {(['USD', 'GEL'] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })}
+                aria-pressed={cur === c}
+                className={`h-9 w-9 rounded-lg text-[13px] font-extrabold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
+              >
+                {c === 'USD' ? '$' : '₾'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.rooms')}</span>
+          <div className="flex gap-1">
+            {ROOM_OPTIONS.map((r, idx) => {
+              const n = idx + 1
+              const active = rooms === n
+              return (
+                <button
+                  key={r}
+                  onClick={() => patchParams({ rooms: active ? undefined : String(n) })}
+                  aria-pressed={active}
+                  className={numChip(active)}
+                >
+                  {r}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.area')}</span>
+          <input
+            type="number" min={0} placeholder={t('search.min')}
+            value={drafts.amin}
+            onChange={(e) => setDrafts((d) => ({ ...d, amin: e.target.value }))}
+            className={`${inputClass} w-[88px]`}
+            aria-label={t('search.minArea')}
+          />
+          <span className="text-sv-ink/65">—</span>
+          <input
+            type="number" min={0} placeholder={t('search.max')}
+            value={drafts.amax}
+            onChange={(e) => setDrafts((d) => ({ ...d, amax: e.target.value }))}
+            className={`${inputClass} w-[88px]`}
+            aria-label={t('search.maxArea')}
+          />
+        </div>
+
+        {(chips.length > 0 || sort !== 'date') && (
+          <button
+            onClick={resetAll}
+            className="ml-auto flex items-center gap-1.5 rounded-control px-3 py-2.5 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
+          </button>
+        )}
+      </div>
+
+      {/* More filters: beds/baths, floor, condition, building status, features, toggles */}
+      <div className="mt-2.5">
+        <button
+          type="button"
+          onClick={() => setMoreOpen((o) => !o)}
+          aria-expanded={moreOpen}
+          className="flex items-center gap-1.5 rounded-control px-3 py-2.5 text-[13px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10"
+        >
+          {t('search.moreFilters')}
+          {moreCount > 0 && (
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-sv-blue px-1 text-[11px] font-black text-white">
+              {moreCount}
+            </span>
+          )}
+          <ChevronDown className={`h-4 w-4 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {moreOpen && (
+          <div className="mt-2 space-y-3.5 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-3.5 shadow-card">
+            <div className="flex flex-wrap gap-x-6 gap-y-3.5">
+              <div>
+                <span className={labelClass}>{t('search.bedrooms')}</span>
+                <div className="flex gap-1">
+                  {COUNT_OPTIONS.map((n) => (
+                    <button key={n} type="button" onClick={() => patchParams({ beds: beds === n ? undefined : String(n) })} aria-pressed={beds === n} className={numChip(beds === n)}>
+                      {n}+
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className={labelClass}>{t('search.bathrooms')}</span>
+                <div className="flex gap-1">
+                  {COUNT_OPTIONS.map((n) => (
+                    <button key={n} type="button" onClick={() => patchParams({ baths: baths === n ? undefined : String(n) })} aria-pressed={baths === n} className={numChip(baths === n)}>
+                      {n}+
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className={labelClass}>{t('search.floor')}</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number" min={0} placeholder={t('search.min')}
+                    value={drafts.fmin}
+                    onChange={(e) => setDrafts((d) => ({ ...d, fmin: e.target.value }))}
+                    className={`${inputClass} w-[88px]`}
+                    aria-label={`${t('search.floor')} · ${t('search.min')}`}
+                  />
+                  <span className="text-sv-ink/65">—</span>
+                  <input
+                    type="number" min={0} placeholder={t('search.max')}
+                    value={drafts.fmax}
+                    onChange={(e) => setDrafts((d) => ({ ...d, fmax: e.target.value }))}
+                    className={`${inputClass} w-[88px]`}
+                    aria-label={`${t('search.floor')} · ${t('search.max')}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <span className={labelClass}>{t('search.condition')}</span>
+              <div className="flex flex-wrap gap-1">
+                {CONDITION_KEYS.map((c) => (
+                  <button key={c} type="button" onClick={() => toggleCsv('cond', cond, c)} aria-pressed={cond.includes(c)} className={tagChip(cond.includes(c))}>
+                    {t(c)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className={labelClass}>{t('search.buildingStatus')}</span>
+              <div className="flex flex-wrap gap-1">
+                {BUILDING_STATUS_KEYS.map((bs) => (
+                  <button key={bs} type="button" onClick={() => toggleCsv('bstat', bstat, bs)} aria-pressed={bstat.includes(bs)} className={tagChip(bstat.includes(bs))}>
+                    {t(bs)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className={labelClass}>{t('search.features')}</span>
+              <div className="scrollbar-hide flex max-h-32 flex-wrap gap-1 overflow-y-auto">
+                {FEATURE_KEYS.map((f) => (
+                  <button key={f} type="button" onClick={() => toggleCsv('feat', feat, f)} aria-pressed={feat.includes(f)} className={tagChip(feat.includes(f))}>
+                    {t(f)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-1">
+              <button type="button" onClick={() => patchParams({ photo: photo ? undefined : '1' })} aria-pressed={photo} className={tagChip(photo)}>
+                {t('search.photoOnly')}
+              </button>
+              <button type="button" onClick={() => patchParams({ verified: verifiedOnly ? undefined : '1' })} aria-pressed={verifiedOnly} className={tagChip(verifiedOnly)}>
+                {t('search.verifiedOnly')}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )
 
   return (
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
@@ -322,218 +743,18 @@ export default function SearchClient() {
         </div>
       </div>
 
-      {/* Sticky filter bar — desktop only; on mobile a 2-row sticky bar
-          would eat half the viewport while scrolling results */}
+      {/* Filter bar: full controls on desktop (sticky), compact sheet trigger on mobile */}
       <div className="z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[88px]">
         <div className="mx-auto max-w-[1440px] px-4 py-3 md:px-10">
-          {/* Row 1: deal + type + location + sort */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Deal segmented */}
-            <div className="scrollbar-hide flex max-w-full overflow-x-auto rounded-control bg-sv-ink/[0.05] p-1 [mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent)] md:[mask-image:none]" role="group" aria-label={t('search.dealType')}>
-              {([undefined, 'sale', 'rent', 'daily'] as const).map((d) => {
-                const label = t(d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'daily' ? 'add.deal.daily' : 'search.rent')
-                const count = d === undefined ? undefined : fcount('dealType', d)
-                const active = deal === d
-                return (
-                  <button
-                    key={label}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => patchParams({ deal: d })}
-                    className={`relative whitespace-nowrap rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
-                      active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
-                    }`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="deal-seg"
-                        className="absolute inset-0 rounded-lg"
-                        style={{ backgroundColor: d === 'rent' ? DEAL_BRAND.rent : d === 'daily' ? DEAL_BRAND.daily : DEAL_BRAND.sale }}
-                        transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
-                      />
-                    )}
-                    <span className="relative z-10">
-                      {label}
-                      {count !== undefined && (
-                        <span className={`ml-1 text-[11px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>
-                          {count}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Property type */}
-            <div className="relative">
-              <select
-                value={type ?? ''}
-                onChange={(e) => patchParams({ type: (e.target.value || undefined) as PropType | undefined })}
-                className={selectClass}
-                aria-label={t('search.propType')}
-              >
-                <option value="">{t('search.allTypes')}</option>
-                {PROP_TYPES.map((p) => (
-                  <option key={p.value} value={p.value}>{t(p.key)}{fmtCount(fcount('propertyType', p.value))}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
-            </div>
-
-            {/* City */}
-            <div className="relative">
-              <select
-                value={city ?? ''}
-                onChange={(e) => patchParams({ city: e.target.value || undefined, district: undefined })}
-                className={selectClass}
-                aria-label={t('search.city')}
-              >
-                <option value="">{t('search.allCities')}</option>
-                {CITIES.map((c) => (
-                  <option key={c} value={c}>{c}{fmtCount(fcount('city', c))}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
-            </div>
-
-            {/* District */}
-            <div className="relative">
-              <select
-                value={district ?? ''}
-                onChange={(e) => patchParams({ district: e.target.value || undefined })}
-                className={selectClass}
-                aria-label={t('search.district')}
-              >
-                <option value="">{t('search.allDistricts')}</option>
-                {districtsOf(city).map((d) => (
-                  <option key={d} value={d}>{d}{fmtCount(fcount('district', d))}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
-            </div>
-
-            {/* Keyword + location autocomplete */}
-            <SearchSuggest
-              variant="light"
-              value={drafts.q}
-              onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
-              onPick={(v) => { setDrafts((d) => ({ ...d, q: v })); patchParams({ q: v }) }}
-              onSubmit={() => patchParams({ q: drafts.q || undefined })}
-              placeholder={t('search.keywordPlaceholder')}
-              ariaLabel={t('search.keyword')}
-              className="min-w-[160px] flex-1"
-            />
-
-            {/* Sort */}
-            <div className="relative">
-              <select
-                value={sort}
-                onChange={(e) => patchParams({ sort: e.target.value === 'date' ? undefined : e.target.value })}
-                className={selectClass}
-                aria-label={t('search.sort')}
-              >
-                {SORTS.map((s) => (
-                  <option key={s.value} value={s.value}>{t(s.key)}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
-            </div>
-
-            {/* View toggle */}
-            <div className="ml-auto flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.view')}>
-              <button
-                onClick={() => setView('grid')}
-                aria-label={t('search.grid')}
-                aria-pressed={view === 'grid'}
-                className={`grid h-11 w-11 place-items-center rounded-lg transition-colors ${view === 'grid' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
-              >
-                <LayoutGrid className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setView('list')}
-                aria-label={t('search.list')}
-                aria-pressed={view === 'list'}
-                className={`grid h-11 w-11 place-items-center rounded-lg transition-colors ${view === 'list' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
-              >
-                <Rows3 className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Row 2: price + rooms + area */}
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.price')}</span>
-              <input
-                type="number" min={0} placeholder={t('search.min')}
-                value={drafts.min}
-                onChange={(e) => setDrafts((d) => ({ ...d, min: e.target.value }))}
-                className={`${inputClass} w-[104px]`}
-                aria-label={t('search.minPrice')}
-              />
-              <span className="text-sv-ink/65">—</span>
-              <input
-                type="number" min={0} placeholder={t('search.max')}
-                value={drafts.max}
-                onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))}
-                className={`${inputClass} w-[104px]`}
-                aria-label={t('search.maxPrice')}
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.rooms')}</span>
-              <div className="flex gap-1">
-                {ROOM_OPTIONS.map((r, idx) => {
-                  const n = idx + 1
-                  const active = rooms === n
-                  return (
-                    <button
-                      key={r}
-                      onClick={() => patchParams({ rooms: active ? undefined : String(n) })}
-                      aria-pressed={active}
-                      className={`h-11 min-w-[44px] rounded-control px-2.5 text-[13px] font-extrabold transition-colors ${
-                        active
-                          ? 'bg-sv-blue text-white shadow-glow-blue-sm'
-                          : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:border-sv-blue/50 hover:text-sv-blue'
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.area')}</span>
-              <input
-                type="number" min={0} placeholder={t('search.min')}
-                value={drafts.amin}
-                onChange={(e) => setDrafts((d) => ({ ...d, amin: e.target.value }))}
-                className={`${inputClass} w-[88px]`}
-                aria-label={t('search.minArea')}
-              />
-              <span className="text-sv-ink/65">—</span>
-              <input
-                type="number" min={0} placeholder={t('search.max')}
-                value={drafts.amax}
-                onChange={(e) => setDrafts((d) => ({ ...d, amax: e.target.value }))}
-                className={`${inputClass} w-[88px]`}
-                aria-label={t('search.maxArea')}
-              />
-            </div>
-
-            {(chips.length > 0 || sort !== 'date') && (
-              <button
-                onClick={resetAll}
-                className="ml-auto flex items-center gap-1.5 rounded-control px-3 py-2.5 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
-              >
-                <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
-              </button>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-sv-blue text-[14px] font-extrabold text-white shadow-glow-blue-sm md:hidden"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {t('search.filters')}{chips.length > 0 ? ` (${chips.length})` : ''}
+          </button>
+          <div className="hidden md:block">{filtersBody(false)}</div>
         </div>
       </div>
 
@@ -631,6 +852,45 @@ export default function SearchClient() {
           </p>
         )}
       </main>
+
+      {/* Mobile filter sheet — fixed bottom overlay, Escape/backdrop close */}
+      {sheetOpen && (
+        <div className="fixed inset-0 z-[70] md:hidden" role="dialog" aria-modal="true" aria-label={t('search.filters')}>
+          <div className="absolute inset-0 bg-sv-navy/60" onClick={() => setSheetOpen(false)} aria-hidden="true" />
+          <div className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col rounded-t-card bg-sv-cloud shadow-card">
+            <div className="flex items-center justify-between border-b border-sv-ink/[0.06] bg-sv-surface px-4 py-3">
+              <h2 className="text-[16px] font-black text-sv-ink">
+                {t('search.filters')}{chips.length > 0 ? ` (${chips.length})` : ''}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setSheetOpen(false)}
+                aria-label={t('detail.close')}
+                className="grid h-9 w-9 place-items-center rounded-full text-sv-ink/55 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-3">{filtersBody(true)}</div>
+            <div className="flex gap-2 border-t border-sv-ink/[0.06] bg-sv-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={resetAll}
+                className="flex h-11 items-center justify-center gap-1.5 rounded-control border border-sv-ink/10 px-4 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSheetOpen(false)}
+                className="h-11 flex-1 rounded-control bg-sv-blue text-[14px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep"
+              >
+                {t('search.showResults', { n: totalResults })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

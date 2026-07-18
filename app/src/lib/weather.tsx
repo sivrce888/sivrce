@@ -91,6 +91,23 @@ async function fetchWeather(lat: number, lng: number): Promise<WeatherData | nul
   }
 }
 
+/* In-flight dedupe: N widgets mounting on cold boot share ONE request per city.
+   Failures are not memoized — the next mount retries. */
+const inflight = new Map<string, Promise<WeatherData | null>>()
+
+function fetchWeatherOnce(key: string, lat: number, lng: number): Promise<WeatherData | null> {
+  let p = inflight.get(key)
+  if (!p) {
+    p = fetchWeather(lat, lng).then((d) => {
+      if (d) cacheIt(key, d)
+      inflight.delete(key)
+      return d
+    })
+    inflight.set(key, p)
+  }
+  return p
+}
+
 /** Shared fetch/cache loop. No-op (null) when coords are unknown. */
 function useWeatherAt(key: string, lat?: number, lng?: number): WeatherData | null {
   const [data, setData] = useState<WeatherData | null>(() => (lat === undefined ? null : cached(key)))
@@ -104,9 +121,8 @@ function useWeatherAt(key: string, lat?: number, lng?: number): WeatherData | nu
     // Fetch once per session, off the boot critical path
     let cancelled = false
     const run = () =>
-      fetchWeather(lat, lng).then((d) => {
+      fetchWeatherOnce(key, lat, lng).then((d) => {
         if (cancelled || !d) return
-        cacheIt(key, d)
         setData(d)
       })
     const ric: Window['requestIdleCallback'] | undefined = window.requestIdleCallback

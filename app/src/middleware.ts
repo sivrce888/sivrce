@@ -14,8 +14,8 @@ import { NextResponse, type NextRequest } from "next/server"
  * / `requireRole()` — those query the DB-backed session. Edge middleware
  * can't reach Prisma (Neon), so here we only verify session-cookie presence.
  *
- * ponytail: cookie-presence only. Upgrade path: JWT sessions if we need
- * real role checks at the edge.
+ * ponytail: cookie-presence only (JWT sessions). Role checks stay in
+ * requireAdmin/requireRole against the DB-backed user row.
  */
 
 const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"]

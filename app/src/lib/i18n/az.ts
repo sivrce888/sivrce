@@ -69,6 +69,21 @@ export const az: Dict = {
   'search.seoHint':
     'Sivrce-də hər elan yoxlanılmışdır və AI qiymət qiymətləndirməsi ilə gəlir — Tbilisi, Batum və Kutaisidə mənzillər, evlər və kommersiya sahələri.',
 
+  'search.moreFilters': 'More filters',
+  'search.bedrooms': 'Bedrooms',
+  'search.bathrooms': 'Bathrooms',
+  'search.floor': 'Floor',
+  'search.condition': 'Condition',
+  'search.buildingStatus': 'Building status',
+  'search.features': 'Features',
+  'search.photoOnly': 'With photos only',
+  'search.verifiedOnly': 'Verified only',
+  'search.filters': 'Filters',
+  'search.showResults': 'Show {n} results',
+  'search.currency': 'Currency',
+  'search.bedsChip': '{n}+ beds',
+  'search.bathsChip': '{n}+ baths',
+
   // ——— Property types ———
   'prop.apartment': 'Mənzil',
   'prop.house': 'Ev / bağ evi',
@@ -82,6 +97,8 @@ export const az: Dict = {
   'sort.priceDesc': 'Qiymət: azalan',
   'sort.area': 'Sahəyə görə',
   'sort.ai': 'AI balı',
+  'sort.m2asc': 'Price/m²: low to high',
+  'sort.m2desc': 'Price/m²: high to low',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'Elan tapılmadı',

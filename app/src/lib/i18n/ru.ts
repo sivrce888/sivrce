@@ -69,6 +69,21 @@ export const ru: Dict = {
   'search.seoHint':
     'Все объявления на Sivrce проверены и сопровождаются AI-оценкой цены — квартиры, дома и коммерческие помещения в Тбилиси, Батуми и Кутаиси.',
 
+  'search.moreFilters': 'Ещё фильтры',
+  'search.bedrooms': 'Спальни',
+  'search.bathrooms': 'Ванные',
+  'search.floor': 'Этаж',
+  'search.condition': 'Состояние',
+  'search.buildingStatus': 'Статус здания',
+  'search.features': 'Удобства',
+  'search.photoOnly': 'Только с фото',
+  'search.verifiedOnly': 'Только проверенные',
+  'search.filters': 'Фильтры',
+  'search.showResults': 'Показать результаты ({n})',
+  'search.currency': 'Валюта',
+  'search.bedsChip': '{n}+ спальни',
+  'search.bathsChip': '{n}+ ванные',
+
   // ——— Property types ———
   'prop.apartment': 'Квартира',
   'prop.house': 'Дом / дача',
@@ -82,6 +97,8 @@ export const ru: Dict = {
   'sort.priceDesc': 'Цена: по убыванию',
   'sort.area': 'По площади',
   'sort.ai': 'AI оценка',
+  'sort.m2asc': 'Цена за м²: по возрастанию',
+  'sort.m2desc': 'Цена за м²: по убыванию',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'Объявление не найдено',

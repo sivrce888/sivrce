@@ -68,6 +68,21 @@ export const ka = {
   'search.seoHint':
     'სივრცეზე ყველა განცხადება ვერიფიცირებულია და თან ახლავს AI ფასის შეფასება — ბინები, სახლები და კომერციული ფართები თბილისში, ბათუმსა და ქუთაისში.',
 
+  'search.moreFilters': 'მეტი ფილტრი',
+  'search.bedrooms': 'საძინებელი',
+  'search.bathrooms': 'სააბაზანო',
+  'search.floor': 'სართული',
+  'search.condition': 'მდგომარეობა',
+  'search.buildingStatus': 'შენობის სტატუსი',
+  'search.features': 'კომფორტი',
+  'search.photoOnly': 'მხოლოდ ფოტოებით',
+  'search.verifiedOnly': 'მხოლოდ ვერიფიცირებული',
+  'search.filters': 'ფილტრი',
+  'search.showResults': 'შედეგების ნახვა ({n})',
+  'search.currency': 'ვალუტა',
+  'search.bedsChip': '{n}+ საძინებელი',
+  'search.bathsChip': '{n}+ სააბაზანო',
+
   // ——— Property types ———
   'prop.apartment': 'ბინა',
   'prop.house': 'სახლი / აგარაკი',
@@ -81,6 +96,8 @@ export const ka = {
   'sort.priceDesc': 'ფასი: კლებადი',
   'sort.area': 'ფართით',
   'sort.ai': 'AI ქულით',
+  'sort.m2asc': 'მ² ფასი: ზრდადი',
+  'sort.m2desc': 'მ² ფასი: კლებადი',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'განცხადება ვერ მოიძებნა',

@@ -38,13 +38,13 @@ export default async function OnboardingPage() {
                 type="submit"
                 className={`flex w-full items-center justify-between rounded-module border px-4 py-3.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
                   selected
-                    ? "border-sv-blue bg-sv-blue/20 text-white"
-                    : "border-white/10 bg-white/[0.04] text-white/90 hover:border-sv-blue/50 hover:bg-white/[0.08]"
+                    ? "border-sv-blue bg-sv-blue/10 text-sv-ink"
+                    : "border-sv-ink/8 bg-sv-cloud/60 text-sv-ink hover:border-sv-blue/40 hover:bg-sv-cloud"
                 }`}
               >
                 <span>
                   <span className="block text-[14px] font-extrabold tracking-tight">{meta.title}</span>
-                  <span className="mt-0.5 block text-[12px] font-medium text-white/50">{meta.blurb}</span>
+                  <span className="mt-0.5 block text-[12px] font-medium text-sv-ink/50">{meta.blurb}</span>
                 </span>
                 <span className="text-[11px] font-bold text-sv-orange">
                   {selected ? "აქტიური" : "არჩევა"}
@@ -57,7 +57,7 @@ export default async function OnboardingPage() {
 
       <Link
         href={dashboardPathFor(user.role)}
-        className="mt-4 block w-full text-center text-[12.5px] font-semibold text-white/40 underline-offset-2 hover:text-white/70 hover:underline"
+        className="mt-4 block w-full text-center text-[12.5px] font-semibold text-sv-ink/40 underline-offset-2 hover:text-sv-ink/70 hover:underline"
       >
         გამოტოვება — გავაგრძელო როგორც{" "}
         {isSelfServeRole(user.role) ? ROLE_LABEL_KA[user.role].title : "მყიდველი"}

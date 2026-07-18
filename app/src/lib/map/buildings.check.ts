@@ -179,7 +179,9 @@ for (const p of PROJECTS) {
       Math.abs(p.coords.lng) <= 180,
     `${p.slug}: invalid coords`,
   )
-  assert.ok((p.floors ?? 0) > 0, `${p.slug}: floors must be > 0`)
+  // Effective floors: declared value, else the renderer's own derivation.
+  const effFloors = p.floors ?? Math.max(8, Math.round(p.flats / 12))
+  assert.ok(Number.isFinite(effFloors) && effFloors > 0 && effFloors <= 100, `${p.slug}: bad floors`)
 }
 // Every project gets a deterministic {DEV}-{NN} code (e.g. M2-01, ARC-03).
 import { projectCode } from '@/data/professionals'
@@ -301,6 +303,44 @@ assert.equal(ghostFc.features.every((f) => f.properties!.ghost === true), true)
 assert.equal(floorTooltipKa({ n: 3, available: 0, minPriceGEL: null }, { ghost: true, progress: 40, showPrice: false }).lines[0], 'მშენებარე · 40%')
 assert.equal(floorTooltipKa({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: true }).lines.length, 2)
 assert.equal(floorTooltipKa({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: false }).lines.length, 1, 'price hidden when deals are mixed')
+
+// ——— admin floor inventory gate (BuildingFloor rows win over listing-derived stacks) ———
+
+const inventoryTower: typeof tower = {
+  ...tower!,
+  inventory: [
+    { n: 1, available: 3, sale: 2, rent: 1, daily: 0, pledge: 0, minPricePerSqm: 2500 },
+    { n: 2, available: 0, sale: 0, rent: 0, daily: 0, pledge: 0, minPricePerSqm: null },
+    { n: 3, available: 4, sale: 1, rent: 2, daily: 1, pledge: 0, minPricePerSqm: 3100 },
+  ],
+}
+assert.equal(buildingFloorCount(inventoryTower!), 3, 'inventory defines the stack height')
+const invAll = buildingFloors(inventoryTower!, 'all')
+assert.deepEqual(invAll.map((f) => f.available), [3, 0, 4], 'inventory availability used as-is')
+assert.equal(buildingFloors(inventoryTower!, 'rent')[2]!.available, 2, 'deal filter reads per-deal inventory counts')
+assert.equal(invAll[0]!.minPriceGEL, null, 'inventory price is per m², not a total')
+const invTip = floorTooltipKa(invAll[0]!, { ghost: false, showPrice: true })
+assert.equal(invTip.lines.length, 2)
+assert.ok(invTip.lines[1]!.includes('/მ²-დან'), 'inventory tooltip shows ₾/m²')
+assert.equal(floorsToGeoJSON(inventoryTower!).features.length, 3, 'inventory stack renders all floors')
+
+// ——— merge gate: shadowed DB rows donate floor inventory to static clusters ———
+
+import { mergeDbBuildings } from './buildings'
+
+const dbShadow: typeof tower = {
+  ...tower!,
+  id: 'bldg-shadow',
+  label: 'DB shadow copy',
+  inventory: [{ n: 1, available: 7, sale: 5, rent: 2, daily: 0, pledge: 0, minPricePerSqm: 2900 }],
+}
+const merged = mergeDbBuildings([tower!], [dbShadow!])
+assert.equal(merged.length, 1, 'shadowed db row must not duplicate the building')
+assert.equal(merged[0]!.label, tower!.label, 'static catalog keeps its curated meta')
+assert.equal(merged[0]!.inventory?.[0]?.available, 7, 'static cluster adopts DB floor inventory')
+const dbOnly = mergeDbBuildings([tower!], [{ ...dbShadow!, slug: 'db-only-tower' }])
+assert.equal(dbOnly.length, 2, 'db-only buildings are appended')
+assert.equal(mergeDbBuildings([tower!], [])[0], tower!, 'no db rows → identity')
 
 for (const b of [...realClusters, ...realGhosts]) {
   const fc = floorsToGeoJSON(b)

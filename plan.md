@@ -1,5 +1,26 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-18 (4) — perf: one weather call on boot + tree unblocked
+- `src/lib/weather.tsx`: in-flight promise dedupe per city — N weather widgets
+  on cold boot share ONE Open-Meteo request (was 5 concurrent, ~950ms each).
+  Mobile probe after: FCP 208ms · LCP 240ms · 0 longtasks (item 7's FCP
+  regression confirmed dead — fonts were already optional/no-preload).
+- Unblocked red tree: `?? undefined` at the Meilisearch doc boundary (asStr
+  null vs exactOptionalPropertyTypes) + `Prisma.BuildingFloorUpdateManyArgs['data']`
+  (WIP used a non-existent type). tsc 0 · lint 0 · build ✓.
+
+## Shipped 2026-07-18 (3) — /search filter parity with myhome.ge/ss.ge
+- Dead data made live: condition (6), building status (3), 14 feature chips
+  (balcony/elevator/parking/heating/…) now filter end-to-end URL → API →
+  Meili + Prisma fallback. Shared vocabulary extracted to `src/lib/features.ts`.
+- New params: beds, baths, fmin/fmax, cond, bstat, feat, photo=1, verified=1,
+  cur=USD|GEL price toggle, deal=pledge (was whitelisted out), sort m2asc/m2desc.
+- UI: "მეტი ფილტრი" panel + mobile "ფილტრი (N)" bottom sheet (Escape/backdrop
+  close, scroll lock, clear + show-N-results). Active chips + reset cover all.
+- 16 i18n keys × 9 dicts. tsc 0 · lint 0 · build ✓.
+- NOTE: Meili filterableAttributes changed → press admin sync-search button on
+  deploy (until then DB fallback serves all new filters).
+
 ## Shipped 2026-07-18 (2) — 3D stacks on /projects/[slug]
 - Every project page gets the "კორპუსი 3D-ში" section: ghost floor stack whose
   height tracks construction progress (`heightM × done%`), hover tooltip with

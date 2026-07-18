@@ -10,6 +10,7 @@ import { db } from "@/lib/db"
 
 import { deleteBuilding, togglePopular } from "../actions"
 import { BuildingForm } from "../form"
+import { FloorInventory } from "../floors"
 
 export const metadata = { title: "Edit map building" }
 
@@ -21,7 +22,13 @@ export default async function EditBuildingPage({
   await requireAdmin()
   const { id } = await params
   const [building, developers] = await Promise.all([
-    db.mapBuilding.findUnique({ where: { id }, include: { developer: { select: { name: true } } } }),
+    db.mapBuilding.findUnique({
+      where: { id },
+      include: {
+        developer: { select: { name: true } },
+        building3D: { include: { floors: { orderBy: { floorNumber: "asc" } } } },
+      },
+    }),
     db.developerProfile.findMany({
       where: { deletedAt: null },
       select: { id: true, name: true },
@@ -60,8 +67,15 @@ export default async function EditBuildingPage({
           </>
         }
       />
-      <div className="max-w-4xl rounded-module border border-sv-ink/8 bg-white p-6">
-        <BuildingForm building={building} developers={developers} />
+      <div className="max-w-4xl space-y-6">
+        <div className="rounded-module border border-sv-ink/8 bg-white p-6">
+          <BuildingForm building={building} developers={developers} />
+        </div>
+        <FloorInventory
+          mapBuildingId={building.id}
+          defaultFloors={building.floors}
+          building3D={building.building3D}
+        />
       </div>
     </>
   )

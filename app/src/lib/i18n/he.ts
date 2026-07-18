@@ -69,6 +69,21 @@ export const he: Dict = {
   'search.seoHint':
     'כל מודעה ב-Sivrce מאומתת ומלווה בהערכת מחיר AI — דירות, בתים ושטחים מסחריים בטביליסי, באטומי וכותאיסי.',
 
+  'search.moreFilters': 'More filters',
+  'search.bedrooms': 'Bedrooms',
+  'search.bathrooms': 'Bathrooms',
+  'search.floor': 'Floor',
+  'search.condition': 'Condition',
+  'search.buildingStatus': 'Building status',
+  'search.features': 'Features',
+  'search.photoOnly': 'With photos only',
+  'search.verifiedOnly': 'Verified only',
+  'search.filters': 'Filters',
+  'search.showResults': 'Show {n} results',
+  'search.currency': 'Currency',
+  'search.bedsChip': '{n}+ beds',
+  'search.bathsChip': '{n}+ baths',
+
   // ——— Property types ———
   'prop.apartment': 'דירה',
   'prop.house': 'בית / קוטג׳',
@@ -82,6 +97,8 @@ export const he: Dict = {
   'sort.priceDesc': 'מחיר: מהגבוה לנמוך',
   'sort.area': 'לפי שטח',
   'sort.ai': 'ציון AI',
+  'sort.m2asc': 'Price/m²: low to high',
+  'sort.m2desc': 'Price/m²: high to low',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'המודעה לא נמצאה',

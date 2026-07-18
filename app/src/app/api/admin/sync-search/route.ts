@@ -2,6 +2,7 @@ import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { syncAllListings, type ListingDocument } from "@/lib/search"
 import { db } from "@/lib/db"
+import { USD_GEL } from "@/data/listings"
 
 /**
  * POST /api/admin/sync-search
@@ -36,6 +37,9 @@ export async function POST() {
         propertyType: true,
         price: true,
         currency: true,
+        pricePerSqm: true,
+        verified: true,
+        extendedFields: true,
         area: true,
         rooms: true,
         bedrooms: true,
@@ -53,14 +57,23 @@ export async function POST() {
       take: 50000, // ponytail: cap for safety; upgrade: paginate.
     })
 
-    listings = rows.map((row) => ({
-      ...row,
-      features: (row.features as string[]) ?? [],
-      images: (row.images as string[]) ?? [],
-      floor: row.floor ?? undefined,
-      totalFloors: row.totalFloors ?? undefined,
-      createdAt: row.createdAt.toISOString(),
-    }))
+    listings = rows.map((row) => {
+      const { extendedFields, ...rest } = row
+      const ext = extendedFields as { condition?: string; buildingStatus?: string } | null
+      return {
+        ...rest,
+        priceUSD: row.currency === "USD" ? row.price : Math.round(row.price / USD_GEL),
+        pricePerSqm: row.pricePerSqm ?? undefined,
+        hasImages: row.images.length > 0,
+        condition: ext?.condition,
+        buildingStatus: ext?.buildingStatus,
+        features: (row.features as string[]) ?? [],
+        images: (row.images as string[]) ?? [],
+        floor: row.floor ?? undefined,
+        totalFloors: row.totalFloors ?? undefined,
+        createdAt: row.createdAt.toISOString(),
+      }
+    })
   } catch (e) {
     console.error("[admin/sync-search] DB fetch failed:", (e as Error).message)
     return Response.json(

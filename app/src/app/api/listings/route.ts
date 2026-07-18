@@ -13,6 +13,7 @@ import { auth } from "@/auth"
 import { LISTINGS } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
+import { attributeListing } from "@/lib/map/attribution"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
 
@@ -135,13 +136,24 @@ export async function POST(req: NextRequest) {
     select: { id: true },
   })
 
+  // Join building floor inventory — sold → unavailable flows through this link.
+  // ponytail: fire-and-forget, same as search indexing below.
+  void attributeListing(listing.id).catch(() => {})
+
   // Index into Meilisearch. ponytail: fire-and-forget — a search outage must
   // never block publishing; the admin full-sync route is the backstop.
   void indexListing({
     id: listing.id,
     title, description, city, district, address,
     dealType, propertyType,
-    price: price ?? 0, currency: "USD", area,
+    price: price ?? 0, currency: "USD",
+    priceUSD: price ?? 0,
+    pricePerSqm: price ? Math.round(price / area) : undefined,
+    verified: false,
+    hasImages: images.length > 0,
+    condition: asStr(body.condition, 60) ?? undefined,
+    buildingStatus: asStr(body.buildingStatus, 60) ?? undefined,
+    area,
     rooms, bedrooms: rooms, bathrooms: baths,
     floor: floor ?? undefined, totalFloors: totalFloors ?? undefined,
     features, images, lat, lng,

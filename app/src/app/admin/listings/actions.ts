@@ -7,6 +7,7 @@ import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { optInt, reqEnum, reqString } from "@/lib/admin/validate"
 import { db } from "@/lib/db"
+import { attributeListing, unattributeListing } from "@/lib/map/attribution"
 
 const TIERS = Object.values(ListingTier)
 const STATUSES = Object.values(ListingStatus)
@@ -56,6 +57,9 @@ export async function setStatus(fd: FormData) {
     select: { status: true },
   })
   await db.listing.update({ where: { id }, data: { status } })
+  // Keep floor inventory in sync: sold/expired/withdrawn frees the unit, reactivate re-counts it.
+  if (before.status === "active" && status !== "active") await unattributeListing(id)
+  else if (before.status !== "active" && status === "active") await attributeListing(id)
   await logAdminAction(session, "listing.set_status", "listing", id, {
     before: { status: before.status },
     after: { status },
@@ -73,6 +77,7 @@ export async function softDelete(fd: FormData) {
   if (before.deletedAt) throw new Error("Listing is already deleted")
   const deletedAt = new Date()
   await db.listing.update({ where: { id }, data: { deletedAt } })
+  await unattributeListing(id)
   await logAdminAction(session, "listing.soft_delete", "listing", id, {
     before: { deletedAt: null },
     after: { deletedAt },
@@ -89,6 +94,7 @@ export async function restore(fd: FormData) {
   })
   if (!before.deletedAt) throw new Error("Listing is not deleted")
   await db.listing.update({ where: { id }, data: { deletedAt: null } })
+  await attributeListing(id) // no-op unless the listing is active
   await logAdminAction(session, "listing.restore", "listing", id, {
     before: { deletedAt: before.deletedAt },
     after: { deletedAt: null },

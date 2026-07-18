@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"SF Pro Text",sans-serif; width:1440px; }
+  .light { background:#FFFFFF; padding:96px 120px 80px; }
+  .dark  { background:#050B26; padding:96px 120px 96px; }
+  .kicker { font-size:15px; letter-spacing:.32em; font-weight:600;
+            color:#8A93B8; text-transform:uppercase; }
+  .hero { display:flex; align-items:center; justify-content:center;
+          gap:120px; padding:88px 0 96px; }
+  .lockup { display:flex; align-items:center; gap:36px; }
+  .row { display:flex; align-items:flex-end; gap:56px; }
+  .label { font-size:14px; color:#8A93B8; margin-top:18px; text-align:center; }
+  .cell { text-align:center; }
+  h1 { font-size:44px; font-weight:700; color:#0A1030; letter-spacing:-.02em;
+       margin-top:18px; }
+  .dark h1 { color:#fff; }
+  .rule { font-size:16px; color:#5B6480; margin-top:10px; }
+  .dark .rule { color:#8A93B8; }
+  .grid { display:flex; justify-content:space-between; align-items:center;
+          margin-top:64px; }
+  .swatch { display:flex; align-items:center; gap:14px; font-size:15px;
+            font-weight:600; color:#0A1030; }
+  .dark .swatch { color:#fff; }
+  .chip { width:34px; height:34px; border-radius:10px; }
+</style>
+</head>
+<body>
+
+<div class="light">
+  <div class="kicker">Sivrce · Identity v2.0 — The Space Point, freed</div>
+  <div class="hero">
+    <img src="assets/sivrce-v2-mark-ink.svg" width="300" height="300">
+    <div class="lockup">
+      <img src="assets/sivrce-v2-mark-ink.svg" width="96" height="96">
+      <img src="../assets/sivrce-wordmark.svg" style="height:50px">
+    </div>
+  </div>
+  <div class="row" style="justify-content:center">
+    <div class="cell"><img src="assets/sivrce-v2-mark-ink-small.svg" width="16" height="16"><div class="label">16</div></div>
+    <div class="cell"><img src="assets/sivrce-v2-mark-ink-small.svg" width="32" height="32"><div class="label">32</div></div>
+    <div class="cell"><img src="assets/sivrce-v2-mark-ink.svg" width="64" height="64"><div class="label">64</div></div>
+    <div class="cell"><img src="assets/sivrce-v2-mark-ink.svg" width="128" height="128"><div class="label">128</div></div>
+    <div class="cell"><img src="assets/sivrce-v2-mark-blue.svg" width="128" height="128"><div class="label">blue</div></div>
+  </div>
+</div>
+
+<div class="dark">
+  <div class="kicker">Dark surface · mono discipline</div>
+  <div class="hero">
+    <img src="assets/sivrce-v2-mark-white.svg" width="300" height="300">
+    <div class="lockup">
+      <img src="assets/sivrce-v2-mark-white.svg" width="96" height="96">
+      <img src="../assets/sivrce-wordmark-white.svg" style="height:50px">
+    </div>
+  </div>
+  <div class="grid">
+    <div class="swatch"><div class="chip" style="background:#0A1030;border:1px solid #2A3358"></div>#0A1030 ink</div>
+    <div class="swatch"><div class="chip" style="background:#2E6BFF"></div>#2E6BFF</div>
+    <div class="swatch"><div class="chip" style="background:#FF6A2D"></div>#FF6A2D — the point only</div>
+    <div class="swatch"><div class="chip" style="background:#fff"></div>#FFFFFF</div>
+  </div>
+</div>
+
+</body>
+</html>

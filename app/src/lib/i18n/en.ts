@@ -69,6 +69,21 @@ export const en: Dict = {
   'search.seoHint':
     'Every listing on Sivrce is verified and comes with an AI price assessment — apartments, houses and commercial spaces in Tbilisi, Batumi and Kutaisi.',
 
+  'search.moreFilters': 'More filters',
+  'search.bedrooms': 'Bedrooms',
+  'search.bathrooms': 'Bathrooms',
+  'search.floor': 'Floor',
+  'search.condition': 'Condition',
+  'search.buildingStatus': 'Building status',
+  'search.features': 'Features',
+  'search.photoOnly': 'With photos only',
+  'search.verifiedOnly': 'Verified only',
+  'search.filters': 'Filters',
+  'search.showResults': 'Show {n} results',
+  'search.currency': 'Currency',
+  'search.bedsChip': '{n}+ beds',
+  'search.bathsChip': '{n}+ baths',
+
   // ——— Property types ———
   'prop.apartment': 'Apartment',
   'prop.house': 'House / cottage',
@@ -82,6 +97,8 @@ export const en: Dict = {
   'sort.priceDesc': 'Price: high to low',
   'sort.area': 'By area',
   'sort.ai': 'AI score',
+  'sort.m2asc': 'Price/m²: low to high',
+  'sort.m2desc': 'Price/m²: high to low',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'Listing not found',

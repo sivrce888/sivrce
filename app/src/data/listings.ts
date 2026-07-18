@@ -917,7 +917,7 @@ export const LISTINGS: Listing[] = [
 
 /* ————— Filters ————— */
 
-export type SortKey = 'date' | 'price-asc' | 'price-desc' | 'area' | 'ai'
+export type SortKey = 'date' | 'price-asc' | 'price-desc' | 'area' | 'ai' | 'm2asc' | 'm2desc'
 
 export interface ListingFilters {
   deal?: DealType
