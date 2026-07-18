@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * SIVRCE 3D map — MapLibre + brand paints, filters, click-anywhere, construction ghosts.
- * ponytail: OpenFreeMap (no key). setData filter = O(n) client; Meilisearch geo when scale hits.
+ * SIVRCE 3D map — MapLibre + Google-familiar paints, filters, click-anywhere.
+ * ponytail: OFM tiles (no key), vendor chrome stripped; Meilisearch geo when scale hits.
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react'
@@ -22,6 +22,8 @@ import { BRAND } from '@/lib/brand'
 import { DEAL_BRAND, CATEGORY_BRAND, SERVICE_BRAND } from '@/lib/category-brand'
 import {
   MAP_CENTER,
+  GEORGIA_MAX_BOUNDS,
+  MAP_MIN_ZOOM,
   buildingsToGeoJSON,
   clusterListingsToBuildings,
   filterBuildings,
@@ -52,7 +54,12 @@ import {
   FLOORS_SOURCE_ID,
   mapStyleUrl,
 } from '@/lib/map/floorLayers'
-import { Layers, RotateCcw, HardHat, CheckCircle2, MapPin } from 'lucide-react'
+import {
+  loadCleanStyle,
+  mapChromeOptions,
+  tightenAttribution,
+} from '@/lib/map/mapChrome'
+import { Layers, RotateCcw, HardHat, CheckCircle2, MapPin, Box, Square, Plus, Minus, Moon, Sun } from 'lucide-react'
 
 const SOURCE_ID = 'sivrce-buildings'
 const FILL_ID = 'sivrce-buildings-fill'
@@ -102,15 +109,11 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
     type: 'symbol',
     source: SOURCE_ID,
     layout: {
+      // Human project names first (Axis Towers, ქინგ დევიდ…); code only if label empty.
       'text-field': [
         'case',
-        ['==', ['get', 'status'], 'construction'],
-        [
-          'case',
-          ['>', ['get', 'total'], 0],
-          ['to-string', ['get', 'total']],
-          ['concat', ['to-string', ['get', 'progress']], '%'],
-        ],
+        ['!=', ['get', 'label'], ''],
+        ['get', 'label'],
         [
           'case',
           ['!=', ['get', 'code'], ''],
@@ -118,14 +121,16 @@ function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
           ['to-string', ['get', 'total']],
         ],
       ],
-      'text-size': 11,
+      'text-size': 12,
       'text-font': ['Noto Sans Bold'],
-      'text-allow-overlap': true,
+      'text-max-width': 9,
+      'text-allow-overlap': false,
+      'text-padding': 2,
     },
     paint: {
       'text-color': '#FFFFFF',
       'text-halo-color': BRAND.colors.navy,
-      'text-halo-width': 1.4,
+      'text-halo-width': 1.6,
     },
   })
 
@@ -203,14 +208,16 @@ function Map3DInner({
   const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
   const [showNeighborhoods, setShowNeighborhoods] = useState(false)
+  const [view3d, setView3d] = useState(true)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { resolvedTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   // ponytail: light-first (ThemeProvider default); avoid flash before hydration.
   const isDark = resolvedTheme === 'dark'
   const themeReady = resolvedTheme != null
 
   const selectedRef = useRef<MapBuildingCluster | null>(null)
+  const view3dRef = useRef(true)
   const dealRef = useRef<MapDealFilter>('all')
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
@@ -294,6 +301,16 @@ function Map3DInner({
     }
   }, [showNeighborhoods, ready])
 
+  // Deep-link ?status=construction|completed|active
+  useEffect(() => {
+    if (!ready) return
+    const status = searchParams.get('status')
+    if (status === 'construction' || status === 'completed' || status === 'active') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deep-link from URL param
+      setStatusFilter(status)
+    }
+  }, [ready, searchParams])
+
   useEffect(() => {
     if (!ready || deepLinked.current) return
     const slug = searchParams.get('building')
@@ -306,7 +323,8 @@ function Map3DInner({
     mapRef.current?.easeTo({
       center: [b.lng, b.lat],
       zoom: 16,
-      pitch: 62,
+      pitch: view3dRef.current ? 62 : 0,
+      bearing: view3dRef.current ? -18 : 0,
       duration: 900,
       essential: true,
     })
@@ -316,266 +334,276 @@ function Map3DInner({
     if (!containerRef.current || mapRef.current || !themeReady) return
 
     let cancelled = false
+    let ro: ResizeObserver | null = null
     const initialStyle = mapStyleUrl(darkRef.current)
     styleUrlRef.current = initialStyle
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: initialStyle,
-      center: [MAP_CENTER.lng, MAP_CENTER.lat],
-      zoom: 13.2,
-      pitch: 58,
-      bearing: -18,
-      maxPitch: 70,
-      fadeDuration: 0,
-    })
-    mapRef.current = map
+    const container = containerRef.current
 
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
-    bindMissingImages(map)
-    map.addControl(
-      new maplibregl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: false,
-      }),
-      'top-right',
-    )
-
-    const flyTo = (b: MapBuildingCluster) => {
-      map.easeTo({
-        center: [b.lng, b.lat],
-        zoom: Math.max(map.getZoom(), 15.5),
-        pitch: 62,
-        duration: 700,
-        essential: true,
-      })
-    }
-
-    const pickById = (id: string) => {
-      const b =
-        visibleRef.current.find((x) => x.id === id) ?? allRef.current.find((x) => x.id === id)
-      if (!b) return
-      selectRef.current(b)
-      flyTo(b)
-    }
-
-    const onFeatureClick = (e: MapLayerMouseEvent) => {
-      e.originalEvent.stopPropagation()
-      const id = e.features?.[0]?.properties?.id as string | undefined
-      if (id) pickById(id)
-    }
-
-    const onMapClick = (e: MapMouseEvent) => {
-      const hits = map.queryRenderedFeatures(e.point, {
-        layers: [EXTRUDE_ID, FILL_ID, FLOORS_FILL_ID].filter((id) => map.getLayer(id)),
-      })
-      if (hits.length > 0) return
-      const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
-      selectRef.current(nearest)
-      if (nearest) flyTo(nearest)
-    }
-
-    const popup = new maplibregl.Popup({
-      className: 'sivrce-floor-pop',
-      closeButton: false,
-      closeOnClick: false,
-      offset: 12,
-      maxWidth: '260px',
-    })
-    popupRef.current = popup
-
-    let hoveredFloor: number | null = null
-    const clearFloorHover = () => {
-      if (hoveredFloor != null) {
-        map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hoveredFloor }, { hover: false })
-        hoveredFloor = null
+    ;(async () => {
+      let style
+      try {
+        style = await loadCleanStyle(initialStyle)
+      } catch (err) {
+        console.error('[Map3D] style', err)
+        if (!cancelled) setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
+        return
       }
-      popup.remove()
-      map.getCanvas().style.cursor = ''
-    }
+      if (cancelled || mapRef.current) return
 
-    const onFloorMove = (e: MapLayerMouseEvent) => {
-      const f = e.features?.[0]
-      if (!f) return
-      const p = f.properties ?? {}
-      const n = Number(p.floor)
-      if (!Number.isFinite(n)) return
-      if (hoveredFloor !== n) {
+      const map = new maplibregl.Map({
+        container,
+        style,
+        center: [MAP_CENTER.lng, MAP_CENTER.lat],
+        zoom: 13.2,
+        pitch: 58,
+        bearing: -18,
+        maxPitch: 70,
+        minZoom: MAP_MIN_ZOOM,
+        maxBounds: GEORGIA_MAX_BOUNDS,
+        renderWorldCopies: false,
+        fadeDuration: 0,
+        ...mapChromeOptions(),
+      })
+      mapRef.current = map
+
+      bindMissingImages(map)
+
+      const flyTo = (b: MapBuildingCluster) => {
+        const three = view3dRef.current
+        map.easeTo({
+          center: [b.lng, b.lat],
+          zoom: Math.max(map.getZoom(), 15.5),
+          pitch: three ? 62 : 0,
+          bearing: three ? map.getBearing() : 0,
+          duration: 700,
+          essential: true,
+        })
+      }
+
+      const pickById = (id: string) => {
+        const b =
+          visibleRef.current.find((x) => x.id === id) ?? allRef.current.find((x) => x.id === id)
+        if (!b) return
+        selectRef.current(b)
+        flyTo(b)
+      }
+
+      const onFeatureClick = (e: MapLayerMouseEvent) => {
+        e.originalEvent.stopPropagation()
+        const id = e.features?.[0]?.properties?.id as string | undefined
+        if (id) pickById(id)
+      }
+
+      const onMapClick = (e: MapMouseEvent) => {
+        const hits = map.queryRenderedFeatures(e.point, {
+          layers: [EXTRUDE_ID, FILL_ID, FLOORS_FILL_ID].filter((id) => map.getLayer(id)),
+        })
+        if (hits.length > 0) return
+        const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
+        selectRef.current(nearest)
+        if (nearest) flyTo(nearest)
+      }
+
+      const popup = new maplibregl.Popup({
+        className: 'sivrce-floor-pop',
+        closeButton: false,
+        closeOnClick: false,
+        offset: 12,
+        maxWidth: '260px',
+      })
+      popupRef.current = popup
+
+      let hoveredFloor: number | null = null
+      const clearFloorHover = () => {
         if (hoveredFloor != null) {
           map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hoveredFloor }, { hover: false })
+          hoveredFloor = null
         }
-        hoveredFloor = n
-        map.setFeatureState({ source: FLOORS_SOURCE_ID, id: n }, { hover: true })
+        popup.remove()
+        map.getCanvas().style.cursor = ''
       }
-      map.getCanvas().style.cursor = 'pointer'
-      const b = selectedRef.current
-      const info: FloorInfo = {
-        n,
-        available: Number(p.available) || 0,
-        minPriceGEL: Number(p.minPrice) || null,
+
+      const onFloorMove = (e: MapLayerMouseEvent) => {
+        const f = e.features?.[0]
+        if (!f) return
+        const p = f.properties ?? {}
+        const n = Number(p.floor)
+        if (!Number.isFinite(n)) return
+        if (hoveredFloor !== n) {
+          if (hoveredFloor != null) {
+            map.setFeatureState({ source: FLOORS_SOURCE_ID, id: hoveredFloor }, { hover: false })
+          }
+          hoveredFloor = n
+          map.setFeatureState({ source: FLOORS_SOURCE_ID, id: n }, { hover: true })
+        }
+        map.getCanvas().style.cursor = 'pointer'
+        const b = selectedRef.current
+        const info: FloorInfo = {
+          n,
+          available: Number(p.available) || 0,
+          minPriceGEL: Number(p.minPrice) || null,
+        }
+        const tip = floorTooltipKa(info, {
+          ghost: Boolean(p.ghost),
+          progress: b?.progress,
+          showPrice: dealRef.current !== 'all',
+        })
+        const root = document.createElement('div')
+        const title = document.createElement('div')
+        title.className = 'sivrce-floor-pop-title'
+        title.textContent = tip.title
+        root.appendChild(title)
+        for (const line of tip.lines) {
+          const div = document.createElement('div')
+          div.className = 'sivrce-floor-pop-line'
+          div.textContent = line
+          root.appendChild(div)
+        }
+        popup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
       }
-      const tip = floorTooltipKa(info, {
-        ghost: Boolean(p.ghost),
-        progress: b?.progress,
-        showPrice: dealRef.current !== 'all',
+
+      const onFloorClick = (e: MapLayerMouseEvent) => {
+        e.originalEvent.stopPropagation()
+        const n = Number(e.features?.[0]?.properties?.floor)
+        if (
+          Number.isFinite(n) &&
+          n > 0 &&
+          (selectedRef.current?.listings.length ?? 0) > 0
+        ) {
+          floorRef.current(n)
+        }
+      }
+
+      const nbhPopup = new maplibregl.Popup({
+        className: 'sivrce-nbh-pop',
+        closeButton: true,
+        closeOnClick: true,
+        offset: 18,
+        maxWidth: '260px',
       })
-      // DOM-built content — no HTML injection from data
-      const root = document.createElement('div')
-      const title = document.createElement('div')
-      title.className = 'sivrce-floor-pop-title'
-      title.textContent = tip.title
-      root.appendChild(title)
-      for (const line of tip.lines) {
-        const div = document.createElement('div')
-        div.className = 'sivrce-floor-pop-line'
-        div.textContent = line
-        root.appendChild(div)
-      }
-      popup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
-    }
 
-    const onFloorClick = (e: MapLayerMouseEvent) => {
-      e.originalEvent.stopPropagation()
-      const n = Number(e.features?.[0]?.properties?.floor)
-      if (
-        Number.isFinite(n) &&
-        n > 0 &&
-        (selectedRef.current?.listings.length ?? 0) > 0
-      ) {
-        floorRef.current(n)
+      const onNeighborhoodClick = (e: MapLayerMouseEvent) => {
+        e.originalEvent.stopPropagation()
+        const f = e.features?.[0]
+        if (!f) return
+        const p = f.properties ?? {}
+        const scoreRow = (label: string, v: number) => {
+          const row = document.createElement('div')
+          row.className = 'sivrce-nbh-pop-row'
+          const lab = document.createElement('span')
+          lab.textContent = label
+          const val = document.createElement('span')
+          val.textContent = String(v)
+          row.appendChild(lab)
+          row.appendChild(val)
+          return row
+        }
+        const root = document.createElement('div')
+        root.className = 'sivrce-nbh-pop'
+        const title = document.createElement('div')
+        title.className = 'sivrce-nbh-pop-title'
+        title.textContent = String(p.name)
+        root.appendChild(title)
+        const city = document.createElement('div')
+        city.className = 'sivrce-nbh-pop-city'
+        city.textContent = String(p.city)
+        root.appendChild(city)
+        const price = document.createElement('div')
+        price.className = 'sivrce-nbh-pop-price'
+        price.textContent = `~$${Number(p.avgPriceM2USD).toLocaleString('en-US')}/m²`
+        root.appendChild(price)
+        root.appendChild(scoreRow('ტრანსპორტი', Number(p.transport)))
+        root.appendChild(scoreRow('სკოლები', Number(p.schools)))
+        root.appendChild(scoreRow('მწვანე', Number(p.green)))
+        root.appendChild(scoreRow('უსაფრთხოება', Number(p.safety)))
+        root.appendChild(scoreRow('ღამის ცხოვრება', Number(p.nightlife)))
+        nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
       }
-    }
 
-    const nbhPopup = new maplibregl.Popup({
-      className: 'sivrce-nbh-pop',
-      closeButton: true,
-      closeOnClick: true,
-      offset: 18,
-      maxWidth: '260px',
-    })
-
-    const onNeighborhoodClick = (e: MapLayerMouseEvent) => {
-      e.originalEvent.stopPropagation()
-      const f = e.features?.[0]
-      if (!f) return
-      const p = f.properties ?? {}
-      const scoreRow = (label: string, v: number) => {
-        const row = document.createElement('div')
-        row.className = 'sivrce-nbh-pop-row'
-        const lab = document.createElement('span')
-        lab.textContent = label
-        const val = document.createElement('span')
-        val.textContent = String(v)
-        row.appendChild(lab)
-        row.appendChild(val)
-        return row
+      const onNeighborhoodEnter = () => {
+        map.getCanvas().style.cursor = 'pointer'
       }
-      const root = document.createElement('div')
-      root.className = 'sivrce-nbh-pop'
-      const title = document.createElement('div')
-      title.className = 'sivrce-nbh-pop-title'
-      title.textContent = String(p.name)
-      root.appendChild(title)
-      const city = document.createElement('div')
-      city.className = 'sivrce-nbh-pop-city'
-      city.textContent = String(p.city)
-      root.appendChild(city)
-      const price = document.createElement('div')
-      price.className = 'sivrce-nbh-pop-price'
-      price.textContent = `~$${Number(p.avgPriceM2USD).toLocaleString('en-US')}/m²`
-      root.appendChild(price)
-      root.appendChild(scoreRow('ტრანსპორტი', Number(p.transport)))
-      root.appendChild(scoreRow('სკოლები', Number(p.schools)))
-      root.appendChild(scoreRow('მწვანე', Number(p.green)))
-      root.appendChild(scoreRow('უსაფრთხოება', Number(p.safety)))
-      root.appendChild(scoreRow('ღამის ცხოვრება', Number(p.nightlife)))
-      nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
-    }
-
-    const onNeighborhoodEnter = () => {
-      map.getCanvas().style.cursor = 'pointer'
-    }
-    const onNeighborhoodLeave = () => {
-      map.getCanvas().style.cursor = ''
-    }
-
-    const mountOverlays = () => {
-      applyBrandPaints(map, darkRef.current ? 'dark' : 'light')
-      ensureLayers(map, buildingsToGeoJSON(visibleRef.current))
-      const showFloors = Boolean(
-        selectedRef.current && buildingShowsFloorStack(selectedRef.current),
-      )
-      const floorsSrc = map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource | undefined
-      floorsSrc?.setData(
-        showFloors && selectedRef.current
-          ? floorsToGeoJSON(selectedRef.current, dealRef.current)
-          : EMPTY_FLOORS,
-      )
-      const exclude = (showFloors && selectedRef.current
-        ? ['!=', ['get', 'id'], selectedRef.current.id]
-        : null) as FilterSpecification | null
-      for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
-        if (map.getLayer(layer)) map.setFilter(layer, exclude)
+      const onNeighborhoodLeave = () => {
+        map.getCanvas().style.cursor = ''
       }
-      const vis = nbhRef.current ? 'visible' : 'none'
-      for (const layer of [NBH_CIRCLE_ID, NBH_LABEL_ID]) {
-        if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', vis)
-      }
-      // Theme-aware building labels
-      const labelColor = darkRef.current ? '#FFFFFF' : BRAND.colors.ink
-      const labelHalo = darkRef.current ? BRAND.colors.navy : '#FFFFFF'
-      for (const layer of [LABEL_ID, FLOORS_LABEL_ID, NBH_LABEL_ID]) {
-        if (!map.getLayer(layer)) continue
-        try {
-          map.setPaintProperty(layer, 'text-color', labelColor)
-          map.setPaintProperty(layer, 'text-halo-color', labelHalo)
-        } catch {
-          /* layer paint may differ */
+
+      const mountOverlays = () => {
+        applyBrandPaints(map, darkRef.current ? 'dark' : 'light')
+        ensureLayers(map, buildingsToGeoJSON(visibleRef.current))
+        tightenAttribution(map)
+        const showFloors = Boolean(
+          selectedRef.current && buildingShowsFloorStack(selectedRef.current),
+        )
+        const floorsSrc = map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource | undefined
+        floorsSrc?.setData(
+          showFloors && selectedRef.current
+            ? floorsToGeoJSON(selectedRef.current, dealRef.current)
+            : EMPTY_FLOORS,
+        )
+        const exclude = (showFloors && selectedRef.current
+          ? ['!=', ['get', 'id'], selectedRef.current.id]
+          : null) as FilterSpecification | null
+        for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+          if (map.getLayer(layer)) map.setFilter(layer, exclude)
+        }
+        const vis = nbhRef.current ? 'visible' : 'none'
+        for (const layer of [NBH_CIRCLE_ID, NBH_LABEL_ID]) {
+          if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', vis)
+        }
+        const labelColor = darkRef.current ? '#FFFFFF' : BRAND.colors.ink
+        const labelHalo = darkRef.current ? BRAND.colors.navy : '#FFFFFF'
+        for (const layer of [LABEL_ID, FLOORS_LABEL_ID, NBH_LABEL_ID]) {
+          if (!map.getLayer(layer)) continue
+          try {
+            map.setPaintProperty(layer, 'text-color', labelColor)
+            map.setPaintProperty(layer, 'text-halo-color', labelHalo)
+          } catch {
+            /* layer paint may differ */
+          }
         }
       }
-    }
 
-    map.on('load', () => {
-      if (cancelled) return
-      map.resize()
-      mountOverlays()
-      setReady(true)
-    })
+      map.on('load', () => {
+        if (cancelled) return
+        map.resize()
+        mountOverlays()
+        setReady(true)
+      })
 
-    const ro = new ResizeObserver(() => map.resize())
-    ro.observe(containerRef.current)
+      ro = new ResizeObserver(() => map.resize())
+      ro.observe(container)
 
-    map.on('error', (e) => {
-      console.error('[Map3D]', e.error)
-      // ponytail: tile/glyph noise is non-fatal; only block UI if the basemap never loaded.
-      if (!map.isStyleLoaded()) {
-        setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
-      }
-    })
+      map.on('error', (e) => {
+        console.error('[Map3D]', e.error)
+        if (!map.isStyleLoaded()) {
+          setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
+        }
+      })
 
-    map.on('mouseenter', EXTRUDE_ID, () => {
-      map.getCanvas().style.cursor = 'pointer'
-    })
-    map.on('mouseleave', EXTRUDE_ID, () => {
-      map.getCanvas().style.cursor = ''
-    })
-    map.on('click', EXTRUDE_ID, onFeatureClick)
-    map.on('click', FILL_ID, onFeatureClick)
-    map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
-    map.on('mouseleave', FLOORS_FILL_ID, clearFloorHover)
-    map.on('click', FLOORS_FILL_ID, onFloorClick)
-    map.on('click', NBH_CIRCLE_ID, onNeighborhoodClick)
-    map.on('mouseenter', NBH_CIRCLE_ID, onNeighborhoodEnter)
-    map.on('mouseleave', NBH_CIRCLE_ID, onNeighborhoodLeave)
-    map.on('click', onMapClick)
+      map.on('mouseenter', EXTRUDE_ID, () => {
+        map.getCanvas().style.cursor = 'pointer'
+      })
+      map.on('mouseleave', EXTRUDE_ID, () => {
+        map.getCanvas().style.cursor = ''
+      })
+      map.on('click', EXTRUDE_ID, onFeatureClick)
+      map.on('click', FILL_ID, onFeatureClick)
+      map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
+      map.on('mouseleave', FLOORS_FILL_ID, clearFloorHover)
+      map.on('click', FLOORS_FILL_ID, onFloorClick)
+      map.on('click', NBH_CIRCLE_ID, onNeighborhoodClick)
+      map.on('mouseenter', NBH_CIRCLE_ID, onNeighborhoodEnter)
+      map.on('mouseleave', NBH_CIRCLE_ID, onNeighborhoodLeave)
+      map.on('click', onMapClick)
 
-    // Expose remount for theme switch (setStyle wipes custom layers).
-    remountRef.current = mountOverlays
+      remountRef.current = mountOverlays
+    })()
 
     return () => {
       cancelled = true
       remountRef.current = null
-      ro.disconnect()
-      map.remove()
+      ro?.disconnect()
+      mapRef.current?.remove()
       mapRef.current = null
     }
   }, [themeReady])
@@ -588,23 +616,57 @@ function Map3DInner({
     if (styleUrlRef.current === next) return
     styleUrlRef.current = next
     const gen = ++styleGenRef.current
-    const onStyle = () => {
-      if (gen !== styleGenRef.current) return
-      remountRef.current?.()
-    }
-    map.once('style.load', onStyle)
-    map.setStyle(next)
+    let cancelled = false
+    ;(async () => {
+      try {
+        const style = await loadCleanStyle(next)
+        if (cancelled || gen !== styleGenRef.current) return
+        map.once('style.load', () => {
+          if (gen !== styleGenRef.current) return
+          remountRef.current?.()
+        })
+        map.setStyle(style)
+      } catch (err) {
+        console.error('[Map3D] theme style', err)
+      }
+    })()
     return () => {
-      map.off('style.load', onStyle)
+      cancelled = true
     }
   }, [isDark, ready, themeReady])
 
+  const applyViewMode = useCallback((mode3d: boolean) => {
+    const map = mapRef.current
+    if (!map) return
+    map.easeTo({
+      pitch: mode3d ? 58 : 0,
+      bearing: mode3d ? -18 : 0,
+      duration: 550,
+    })
+    if (map.getLayer(EXTRUDE_ID)) {
+      map.setLayoutProperty(EXTRUDE_ID, 'visibility', mode3d ? 'visible' : 'none')
+    }
+    if (map.getLayer(FILL_ID)) {
+      map.setPaintProperty(FILL_ID, 'fill-opacity', mode3d ? 0.22 : 0.5)
+    }
+  }, [])
+
+  const toggleView3d = () => {
+    setView3d((v) => {
+      const next = !v
+      view3dRef.current = next
+      applyViewMode(next)
+      return next
+    })
+  }
+
   const resetView = () => {
+    const three = view3dRef.current
     mapRef.current?.easeTo({
       center: [MAP_CENTER.lng, MAP_CENTER.lat],
       zoom: 13.2,
-      pitch: 58,
-      bearing: -18,
+      pitch: three ? 58 : 0,
+      bearing: three ? -18 : 0,
       duration: 800,
     })
     selectBuilding(null)
@@ -623,7 +685,9 @@ function Map3DInner({
     : 'border-sv-ink/10 bg-sv-surface/92 text-sv-ink shadow-soft backdrop-blur-md'
   const chipMuted = isDark ? 'text-white/60 hover:text-white' : 'text-sv-ink/55 hover:text-sv-ink'
   const shellBg = isDark ? 'bg-sv-navy' : 'bg-sv-cloud'
-  const showFloorHint = Boolean(selected && buildingShowsFloorStack(selected))
+  const railBtn = (extra = '') =>
+    `grid h-11 w-11 place-items-center transition hover:bg-sv-blue hover:text-white ${extra}`
+  const railSep = isDark ? 'border-t border-white/10' : 'border-t border-sv-ink/8'
 
   return (
     <div className={`relative flex h-[calc(100dvh-4.5rem)] w-full overflow-hidden md:h-[calc(100dvh-5rem)] ${shellBg}`}>
@@ -732,35 +796,46 @@ function Map3DInner({
           </button>
         </div>
 
-        <div className={`absolute bottom-4 left-4 z-20 flex flex-wrap gap-2 rounded-tile border p-3 ${chip}`}>
-          {(
-            [
-              ['იყიდება', DEAL_BRAND.sale],
-              ['ქირავდება', DEAL_BRAND.rent],
-              ['დღიურად', DEAL_BRAND.daily],
-              ['გირავდება', DEAL_BRAND.pledge],
-              ['მშენებარე', CATEGORY_BRAND.newProjects.hue],
-              ['დასრულებული', SERVICE_BRAND.developers.hue],
-              ['რაიონი', BRAND.colors.blueLight],
-            ] as const
-          ).map(([label, color]) => (
-            <div
-              key={label}
-              className={`flex items-center gap-1.5 text-[11px] font-extrabold ${isDark ? 'text-white/80' : 'text-sv-ink/75'}`}
-            >
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
-              {label}
-            </div>
-          ))}
-        </div>
-
-        <p
-          className={`pointer-events-none absolute bottom-4 right-4 z-20 hidden max-w-[240px] rounded-control border px-3 py-2 text-[12px] font-semibold md:block ${chip} ${isDark ? 'text-white/55' : 'text-sv-ink/50'}`}
+        {/* One chrome stack: zoom · 2D/3D · day/night */}
+        <div
+          className={`absolute right-3 top-4 z-20 flex flex-col overflow-hidden rounded-tile border md:right-4 ${chip}`}
+          role="toolbar"
+          aria-label="რუკის კონტროლი"
         >
-          {showFloorHint
-            ? 'დააჭირე სართულს — თავისუფალი ბინები'
-            : 'დააჭირე კორპუსს — განცხადებები გაიხსნება'}
-        </p>
+          <button
+            type="button"
+            aria-label="გადიდება"
+            onClick={() => mapRef.current?.zoomIn({ duration: 280 })}
+            className={railBtn()}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="დაპატარავება"
+            onClick={() => mapRef.current?.zoomOut({ duration: 280 })}
+            className={railBtn(railSep)}
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label={view3d ? '2D ხედი' : '3D ხედი'}
+            aria-pressed={view3d}
+            onClick={toggleView3d}
+            className={railBtn(`${railSep} ${view3d ? 'bg-sv-blue/15 text-sv-blue' : ''}`)}
+          >
+            {view3d ? <Square className="h-4 w-4" /> : <Box className="h-4 w-4" />}
+          </button>
+          <button
+            type="button"
+            aria-label={isDark ? 'დღის რეჟიმი' : 'ღამის რეჟიმი'}
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            className={railBtn(railSep)}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
 
       {selected && (

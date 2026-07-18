@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Crown, Flame, Sparkles, Loader2, ChevronRight } from "lucide-react"
+import { TIER_MONTHLY_TETRI, formatGel } from "@/lib/promo-pricing"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -22,29 +23,29 @@ const TIERS: TierInfo[] = [
   {
     key: "vip",
     label: "VIP",
-    priceTetri: 99_00,
+    priceTetri: TIER_MONTHLY_TETRI.vip,
     durationDays: 30,
     icon: Flame,
-    gradient: "from-sv-blue to-sv-violet",
-    description: "გამორჩეული განცხადება, მეტი ნახვა, პრიორიტეტი ძიებაში",
+    gradient: "from-sv-navy to-sv-navy-soft",
+    description: "სიაში სტანდარტულებზე წინ · VIP ნიშანი",
   },
   {
     key: "super_vip",
     label: "VIP+",
-    priceTetri: 199_00,
+    priceTetri: TIER_MONTHLY_TETRI.super_vip,
     durationDays: 30,
     icon: Flame,
     gradient: "from-sv-blue to-sv-violet",
-    description: "TOP პოზიცია, გაზრდილი ნდობის ქულა, 3x მეტი ნახვა",
+    description: "VIP+ კარუსელი · სიაში VIP-ზე წინ",
   },
   {
     key: "diamond",
     label: "SUPER VIP",
-    priceTetri: 499_00,
+    priceTetri: TIER_MONTHLY_TETRI.diamond,
     durationDays: 30,
     icon: Crown,
     gradient: "from-sv-orange to-sv-orange-deep",
-    description: "მაქსიმალური ხილვადობა, AI რეკომენდაციები, ექსკლუზივი",
+    description: "ტოპი ყველას თავზე · მთავარი სლაიდერი",
   },
 ]
 
@@ -183,7 +184,7 @@ export default function TierPurchaseButton({
                 </div>
                 <div className="shrink-0 text-right">
                   <div className="text-[15px] font-black text-sv-ink">
-                    {((prices?.[tier.key] ?? tier.priceTetri) / 100).toFixed(0)} ₾
+                    {formatGel(prices?.[tier.key] ?? tier.priceTetri)}
                   </div>
                   {loading === tier.key ? (
                     <Loader2 className="h-4 w-4 animate-spin text-sv-blue" />

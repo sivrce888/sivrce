@@ -689,3 +689,50 @@
 .dark .sivrce-nbh-pop-row {
   color: rgba(255, 255, 255, 0.78);
 }
+
+/* Map chrome — Google/Apple quiet controls, no vendor logo */
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
+.maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--color-sv-surface) 88%, transparent) !important;
+  color: color-mix(in srgb, var(--color-sv-ink) 45%, transparent) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 4px rgba(10, 16, 48, 0.08) !important;
+  margin: 0 10px 10px 0 !important;
+}
+/* Force ⓘ compact until user opens it — Google/Apple quiet chrome */
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) .maplibregl-ctrl-attrib-inner {
+  display: none !important;
+}
+.dark .maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--color-sv-navy) 88%, transparent) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 1px 4px rgba(2, 6, 26, 0.4) !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.maplibregl-ctrl-group {
+  border: 1px solid color-mix(in srgb, var(--color-sv-ink) 10%, transparent) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(10, 16, 48, 0.1) !important;
+  overflow: hidden;
+}
+.dark .maplibregl-ctrl-group {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: color-mix(in srgb, var(--color-sv-navy) 92%, transparent) !important;
+  box-shadow: 0 4px 16px rgba(2, 6, 26, 0.45) !important;
+}
+.dark .maplibregl-ctrl-group button {
+  background-color: transparent !important;
+}
+.dark .maplibregl-ctrl button + button {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+.dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) brightness(1.15);
+}

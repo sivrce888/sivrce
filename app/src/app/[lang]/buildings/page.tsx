@@ -68,9 +68,6 @@ export default function BuildingsPage() {
                         className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
-                      <span className="absolute left-4 top-4 rounded-full bg-sv-navy/80 px-3 py-1 text-[11px] font-extrabold text-white backdrop-blur-sm">
-                        {b.code}
-                      </span>
                       <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-2">
                         <div className="min-w-0">
                           <h2 className="truncate text-[20px] font-black text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">

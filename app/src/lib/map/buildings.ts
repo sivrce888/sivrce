@@ -515,6 +515,7 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
           b.color,
           b.status === 'construction' && b.listings.length === 0 ? 0.55 : 0.92,
         ),
+        hue: b.color,
         height: b.heightM,
         sale: b.counts.sale,
         rent: b.counts.rent,
@@ -560,5 +561,11 @@ export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
 }
 
 export const MAP_CENTER = { lat: 41.7151, lng: 44.8271 } as const
+/** Soft clamp — Georgia + Black Sea shelf; stops pan into Turkey/Russia. */
+export const GEORGIA_MAX_BOUNDS: [[number, number], [number, number]] = [
+  [39.9, 40.95],
+  [46.8, 43.6],
+]
+export const MAP_MIN_ZOOM = 7
 export const MAP_BRAND_WATER = BRAND.colors.navySoft
 export const MAP_BRAND_LAND = BRAND.colors.navy

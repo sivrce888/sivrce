@@ -12,6 +12,7 @@
 import { unstable_cache } from "next/cache"
 
 import { db } from "@/lib/db"
+import { TIER_MONTHLY_TETRI } from "@/lib/promo-pricing"
 
 export const CONFIG_TAG = "system-config"
 
@@ -77,26 +78,26 @@ export const CONFIG_REGISTRY: { [K in ConfigKey]: ConfigEntry<ConfigValues[K]> }
   },
   "price.vip": {
     section: "marketplace",
-    label: "VIP price (GEL / month)",
-    hint: "Charged for the VIP listing tier upgrade.",
+    label: "VIP price (GEL / 30 days)",
+    hint: "უძრავი ქონება · 30 დღე (1₾/დღე). სხვა კატეგორიები: promo-pricing.ts",
     input: "gel",
-    defaultValue: 99_00,
+    defaultValue: TIER_MONTHLY_TETRI.vip,
     parse: tetriParser,
   },
   "price.superVip": {
     section: "marketplace",
-    label: "VIP+ price (GEL / month)",
-    hint: "Charged for the VIP+ listing tier upgrade.",
+    label: "VIP+ price (GEL / 30 days)",
+    hint: "უძრავი ქონება · 30 დღე (2.00₾/დღე @30დ). სხვა კატეგორიები: promo-pricing.ts",
     input: "gel",
-    defaultValue: 199_00,
+    defaultValue: TIER_MONTHLY_TETRI.super_vip,
     parse: tetriParser,
   },
   "price.diamond": {
     section: "marketplace",
-    label: "SUPER VIP price (GEL / month)",
-    hint: "Charged for the SUPER VIP listing tier upgrade.",
+    label: "SUPER VIP price (GEL / 30 days)",
+    hint: "უძრავი ქონება · 30 დღე (5.00₾/დღე @30დ). სხვა კატეგორიები: promo-pricing.ts",
     input: "gel",
-    defaultValue: 499_00,
+    defaultValue: TIER_MONTHLY_TETRI.diamond,
     parse: tetriParser,
   },
 }

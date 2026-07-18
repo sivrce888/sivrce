@@ -197,8 +197,8 @@ export default async function BuildingPage({ params }: PageProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
-            <p className="mb-2 text-[13px] font-extrabold tracking-wide text-sv-blue-light">
-              {building.code}
+            <p className="mb-2 text-[13px] font-semibold tracking-wide text-white/55">
+              {building.district} · {building.city}
             </p>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>

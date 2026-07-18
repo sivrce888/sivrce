@@ -10,7 +10,7 @@ import { getDeveloper, type LocalText } from './professionals'
 export type BuildingCatalogEntry = {
   /** URL slug */
   slug: string
-  /** Unique public code — always shown on map/card/SEO */
+  /** Unique public code — SEO / admin ID; UI shows human `name` first */
   code: string
   name: string
   nameEn: string
