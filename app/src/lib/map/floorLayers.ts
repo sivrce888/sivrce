@@ -20,10 +20,10 @@ export const STYLE_DARK =
   process.env.NEXT_PUBLIC_MAP_STYLE_URL_DARK ??
   process.env.NEXT_PUBLIC_MAP_STYLE_URL ??
   '/api/map/styles/dark'
-/** Sentinel — not a URL; loadMapBasemap builds Esri raster style. */
-export const STYLE_SATELLITE = 'satellite:esri'
+/** Sentinel — not a URL; loadMapBasemap builds hybrid sat style. */
+export const STYLE_SATELLITE = 'satellite:hybrid'
 
-/** streets/clean = OFM; satellite = Esri imagery (works in light + dark). */
+/** streets/clean = OFM; satellite = Esri imagery + road/place labels (Apple Hybrid). */
 export type MapTerrain = 'streets' | 'clean' | 'satellite'
 
 /** @deprecated use mapStyleUrl(dark) — kept for one-off env lock */
@@ -36,22 +36,39 @@ export function mapStyleUrl(dark: boolean, terrain: MapTerrain = 'streets'): str
   return STYLE_LIGHT
 }
 
-/** Esri World Imagery — ponytail: direct tiles; proxy if Esri rate-limits. */
+/**
+ * Apple Maps–style Hybrid: photo + roads + place names.
+ * Tiles via /api/sat (same-origin) — Esri direct often trips map error handlers / CSP.
+ */
 export function satelliteStyle(): StyleSpecification {
   return {
     version: 8,
     sources: {
-      esri: {
+      sat: {
         type: 'raster',
-        tiles: [
-          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        ],
+        tiles: ['/api/sat/img/{z}/{y}/{x}'],
         tileSize: 256,
         attribution: '© Esri',
         maxzoom: 19,
       },
+      satRoads: {
+        type: 'raster',
+        tiles: ['/api/sat/roads/{z}/{y}/{x}'],
+        tileSize: 256,
+        maxzoom: 19,
+      },
+      satLabels: {
+        type: 'raster',
+        tiles: ['/api/sat/labels/{z}/{y}/{x}'],
+        tileSize: 256,
+        maxzoom: 19,
+      },
     },
-    layers: [{ id: 'esri-sat', type: 'raster', source: 'esri' }],
+    layers: [
+      { id: 'sat-img', type: 'raster', source: 'sat' },
+      { id: 'sat-roads', type: 'raster', source: 'satRoads', paint: { 'raster-opacity': 0.92 } },
+      { id: 'sat-labels', type: 'raster', source: 'satLabels' },
+    ],
   }
 }
 
@@ -86,46 +103,49 @@ function tryLayout(map: MlMap, layer: string, prop: string, value: unknown) {
 }
 
 /**
- * High-contrast Google Maps–familiar light basemap.
- * Saturated water/parks, crisp roads, readable place labels.
+ * Google Maps light palette — the look people already trust.
+ * Hex here is intentional third-party basemap mimic (BRAND.md exception).
+ * Refs: Maps road white / highway yellow / water #AADAFF / park #C8E6C9.
  */
 function applyLightPaints(map: MlMap) {
-  trySet(map, 'background', 'background-color', '#F0F1F3')
+  // Land
+  trySet(map, 'background', 'background-color', '#F5F5F5')
   trySet(map, 'natural_earth', 'raster-opacity', 0)
+  trySet(map, 'landuse_residential', 'fill-color', '#EEEEEE')
+  trySet(map, 'landuse_residential', 'fill-opacity', 1)
 
-  // Water — classic Google cyan, punchier than liberty default
-  trySet(map, 'water', 'fill-color', '#7CB8F0')
-  trySet(map, 'waterway_river', 'line-color', '#7CB8F0')
-  trySet(map, 'waterway_other', 'line-color', '#90C4F2')
+  // Water — Google cyan
+  trySet(map, 'water', 'fill-color', '#AADAFF')
+  trySet(map, 'waterway_river', 'line-color', '#AADAFF')
+  trySet(map, 'waterway_other', 'line-color', '#B8E0FF')
+  trySet(map, 'water_name', 'text-color', '#4A86C8')
+  trySet(map, 'water_name', 'text-halo-color', '#FFFFFF')
+  trySet(map, 'water_name', 'text-halo-width', 1.2)
 
-  // Parks / green — vivid but not neon
-  trySet(map, 'park', 'fill-color', '#A8D99A')
-  trySet(map, 'park', 'fill-opacity', 0.95)
-  trySet(map, 'park_outline', 'line-color', '#7CB86E')
-  trySet(map, 'landcover_grass', 'fill-color', '#C5E6A8')
-  trySet(map, 'landcover_wood', 'fill-color', '#8FBF7A')
-  trySet(map, 'landuse_residential', 'fill-color', '#E8E9EC')
-  trySet(map, 'landuse_cemetery', 'fill-color', '#C8DDB8')
-  trySet(map, 'landuse_hospital', 'fill-color', '#F8C8CC')
-  trySet(map, 'landuse_school', 'fill-color', '#FFE08A')
-  trySet(map, 'landuse_pitch', 'fill-color', '#9FD48A')
+  // Parks / green
+  trySet(map, 'park', 'fill-color', '#C8E6C9')
+  trySet(map, 'park', 'fill-opacity', 1)
+  trySet(map, 'park_outline', 'line-color', '#A5D6A7')
+  trySet(map, 'landcover_grass', 'fill-color', '#C3ECB2')
+  trySet(map, 'landcover_wood', 'fill-color', '#A8D5A2')
+  trySet(map, 'landuse_cemetery', 'fill-color', '#C5DFB5')
+  trySet(map, 'landuse_hospital', 'fill-color', '#F8D7DA')
+  trySet(map, 'landuse_school', 'fill-color', '#FFF3C4')
+  trySet(map, 'landuse_pitch', 'fill-color', '#B2DFB0')
 
-  trySet(map, 'building', 'fill-color', '#D5D8DE')
-  trySet(map, 'building', 'fill-opacity', 0.95)
-  trySet(map, 'building', 'fill-outline-color', '#A8ADB6')
-  trySet(map, 'building-3d', 'fill-extrusion-color', '#C2C6CE')
-  trySet(map, 'building-3d', 'fill-extrusion-opacity', 0.55)
+  // Buildings — soft Google gray
+  trySet(map, 'building', 'fill-color', '#E8E8E8')
+  trySet(map, 'building', 'fill-opacity', 1)
+  trySet(map, 'building', 'fill-outline-color', '#D0D0D0')
+  trySet(map, 'building-3d', 'fill-extrusion-color', '#DEDEDE')
+  trySet(map, 'building-3d', 'fill-extrusion-opacity', 0.5)
 
-  // Roads — white fill, stronger casing contrast
+  // Local streets — white + gray casing
   for (const id of [
     'road_minor',
     'road_service_track',
     'road_link',
-    'road_secondary_tertiary',
-    'road_trunk_primary',
     'bridge_street',
-    'bridge_secondary_tertiary',
-    'bridge_trunk_primary',
     'bridge_link',
   ]) {
     trySet(map, id, 'line-color', '#FFFFFF')
@@ -137,23 +157,33 @@ function applyLightPaints(map: MlMap) {
     'bridge_street_casing',
     'bridge_link_casing',
   ]) {
-    trySet(map, id, 'line-color', '#B8BCC4')
-  }
-  for (const id of ['road_secondary_tertiary_casing', 'bridge_secondary_tertiary_casing']) {
-    trySet(map, id, 'line-color', '#9AA0A8')
-  }
-  for (const id of ['road_trunk_primary_casing', 'bridge_trunk_primary_casing']) {
-    trySet(map, id, 'line-color', '#80868E')
+    trySet(map, id, 'line-color', '#B0B3B8')
   }
 
-  // Motorways — Google amber (high wow at city scale)
+  // Secondary — pale warm yellow (Google arterial)
+  for (const id of ['road_secondary_tertiary', 'bridge_secondary_tertiary']) {
+    trySet(map, id, 'line-color', '#FFF2AF')
+  }
+  for (const id of ['road_secondary_tertiary_casing', 'bridge_secondary_tertiary_casing']) {
+    trySet(map, id, 'line-color', '#E0C56A')
+  }
+
+  // Trunk / primary — signature Google yellow
+  for (const id of ['road_trunk_primary', 'bridge_trunk_primary']) {
+    trySet(map, id, 'line-color', '#F6CF65')
+  }
+  for (const id of ['road_trunk_primary_casing', 'bridge_trunk_primary_casing']) {
+    trySet(map, id, 'line-color', '#D4A017')
+  }
+
+  // Motorways — bold Google amber (the “wow” yellow)
   for (const id of [
     'road_motorway',
     'road_motorway_link',
     'bridge_motorway',
     'bridge_motorway_link',
   ]) {
-    trySet(map, id, 'line-color', '#F9C32C')
+    trySet(map, id, 'line-color', '#F5C518')
   }
   for (const id of [
     'road_motorway_casing',
@@ -161,43 +191,60 @@ function applyLightPaints(map: MlMap) {
     'bridge_motorway_casing',
     'bridge_motorway_link_casing',
   ]) {
-    trySet(map, id, 'line-color', '#D4920A')
+    trySet(map, id, 'line-color', '#C99200')
   }
 
-  trySet(map, 'road_path_pedestrian', 'line-color', '#D0D3D8')
+  trySet(map, 'road_path_pedestrian', 'line-color', '#DADCE0')
 
+  // Widths — Google-ish hierarchy (fatter yellow roads)
   for (const id of ['road_minor', 'road_service_track', 'bridge_street']) {
     trySet(map, id, 'line-width', [
       'interpolate', ['linear'], ['zoom'],
-      11, 1.4, 14, 3, 17, 9,
+      11, 1.2, 14, 2.8, 17, 10,
+    ])
+  }
+  for (const id of [
+    'road_minor_casing',
+    'road_service_track_casing',
+    'bridge_street_casing',
+  ]) {
+    trySet(map, id, 'line-width', [
+      'interpolate', ['linear'], ['zoom'],
+      11, 2.2, 14, 4.2, 17, 13,
     ])
   }
   for (const id of ['road_secondary_tertiary', 'bridge_secondary_tertiary']) {
     trySet(map, id, 'line-width', [
       'interpolate', ['linear'], ['zoom'],
-      10, 1.8, 14, 4.5, 17, 13,
+      10, 1.6, 14, 4.2, 17, 14,
     ])
   }
   for (const id of ['road_trunk_primary', 'bridge_trunk_primary']) {
     trySet(map, id, 'line-width', [
       'interpolate', ['linear'], ['zoom'],
-      9, 2.2, 14, 6, 17, 17,
+      9, 2, 14, 6.5, 17, 18,
     ])
   }
   for (const id of ['road_motorway', 'bridge_motorway']) {
     trySet(map, id, 'line-width', [
       'interpolate', ['linear'], ['zoom'],
-      8, 2.8, 14, 8, 17, 22,
+      8, 2.6, 14, 8.5, 17, 24,
+    ])
+  }
+  for (const id of ['road_motorway_casing', 'bridge_motorway_casing']) {
+    trySet(map, id, 'line-width', [
+      'interpolate', ['linear'], ['zoom'],
+      8, 3.6, 14, 11, 17, 28,
     ])
   }
 
+  // Labels — Google ink
   trySet(map, 'highway-name-path', 'text-color', '#80868E')
   for (const id of ['highway-name-minor', 'highway-name-major']) {
     trySet(map, id, 'text-color', '#3C4043')
     trySet(map, id, 'text-halo-color', '#FFFFFF')
-    trySet(map, id, 'text-halo-width', 1.5)
+    trySet(map, id, 'text-halo-width', 1.6)
   }
-  // Cities / towns / suburbs — Google gray, strong halo so districts read from afar
   for (const id of [
     'label_city',
     'label_city_capital',
@@ -205,28 +252,31 @@ function applyLightPaints(map: MlMap) {
     'label_village',
     'label_other',
     'place_city',
+    'place_city_large',
     'place_town',
     'place_village',
     'place_suburb',
     'place_neighbourhood',
     'place_hamlet',
+    'place_other',
   ]) {
     trySet(map, id, 'text-color', '#202124')
     trySet(map, id, 'text-halo-color', '#FFFFFF')
-    trySet(map, id, 'text-halo-width', 1.8)
-    trySet(map, id, 'text-opacity', 0.95)
+    trySet(map, id, 'text-halo-width', 2)
+    trySet(map, id, 'text-opacity', 1)
   }
-  for (const id of ['place_suburb', 'place_neighbourhood', 'label_other']) {
+  for (const id of ['place_suburb', 'place_neighbourhood', 'label_other', 'place_other']) {
+    trySet(map, id, 'text-color', '#5F6368')
     tryLayout(map, id, 'text-size', [
       'interpolate', ['linear'], ['zoom'],
-      10, 11, 13, 14, 15, 15,
+      10, 11, 13, 13, 15, 15,
     ])
   }
 
-  // Keep POI readable for metro/landmarks; mute the rest slightly
-  for (const id of ['poi_r20', 'poi_r7', 'poi_r1']) {
-    trySet(map, id, 'text-opacity', 0.7)
-    trySet(map, id, 'icon-opacity', 0.75)
+  // Quiet POIs — Google keeps them soft so the map stays calm
+  for (const id of ['poi_r20', 'poi_r7', 'poi_r1', 'poi']) {
+    trySet(map, id, 'text-opacity', 0.55)
+    trySet(map, id, 'icon-opacity', 0.6)
   }
 }
 
@@ -308,9 +358,22 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'boundary_country_z5-', 'line-color', '#4A5A80')
 }
 
-export function applyBrandPaints(map: MlMap, theme: MapTheme = 'dark') {
-  if (theme === 'light') applyLightPaints(map)
-  else applyDarkPaints(map)
+export function applyBrandPaints(
+  map: MlMap,
+  theme: MapTheme = 'dark',
+  terrain: MapTerrain = 'streets',
+) {
+  if (theme === 'dark') {
+    applyDarkPaints(map)
+    return
+  }
+  // Satellite is raster-only; clean stays quiet so listings pop.
+  if (terrain === 'satellite') return
+  if (terrain === 'clean') {
+    trySet(map, 'building', 'fill-opacity', 0.4)
+    return
+  }
+  applyLightPaints(map)
 }
 
 /** Silence OFM sprite gaps (e.g. wood-pattern) — empty 1×1, no visual change. */

@@ -51,6 +51,7 @@ type KorterState = {
   }
   developerLandingStore?: {
     developer?: { site?: { url?: string; name?: string } | null; logo?: unknown }
+    ongoingBuildings?: { buildings?: KorterBuilding[] }
   }
 }
 

@@ -25,11 +25,16 @@ async function main() {
 
   const sat = satelliteStyle()
   assert.equal(sat.version, 8)
-  assert.ok(sat.sources.esri)
+  assert.ok(sat.sources.sat)
+  assert.ok(sat.sources.satRoads)
+  assert.ok(sat.sources.satLabels)
   assert.equal(sat.layers?.[0]?.type, 'raster')
 
   const loaded = await loadMapBasemap(STYLE_SATELLITE)
-  assert.equal(loaded.layers?.[0]?.id, 'esri-sat')
+  assert.equal(loaded.layers?.[0]?.id, 'sat-img')
+  assert.equal(loaded.layers?.length, 3)
+  const satSrc = loaded.sources.sat as { tiles?: string[] }
+  assert.ok(satSrc.tiles?.[0]?.startsWith('/api/sat/img/'))
 
   console.log('floorLayers.check: ok')
 }
