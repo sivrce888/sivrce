@@ -19,6 +19,7 @@ import {
 } from '@/data/tbilisi-streets'
 import { DISTRICTS, parseSeoSlug, statsOf, type District, type Faq } from '@/lib/seo-pages'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.ge'
 
@@ -80,7 +81,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: path, languages: langAlternates(path) },
     openGraph: {
       title,
       description,

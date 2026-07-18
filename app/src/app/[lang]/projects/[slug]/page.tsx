@@ -20,6 +20,7 @@ import { buildingFloors, floorsToGeoJSON } from '@/lib/map/floors'
 import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export function generateStaticParams() {
   // ponytail: prerender ka only (today's build surface) — other locales SSR on
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${p.name} — ${p.location}, ფასი ${p.priceFromM2}/მ²-დან`,
     description,
-    alternates: { canonical: `/projects/${p.slug}` },
+    alternates: { canonical: `/projects/${p.slug}`, languages: langAlternates(`/projects/${p.slug}`) },
     openGraph: {
       title: `${p.name} | sivrce`,
       description,

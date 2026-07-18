@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { TriangleAlert, RotateCcw } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -42,12 +42,12 @@ export default function Error({
             >
               <RotateCcw className="h-4 w-4" /> {t('error.retry')}
             </button>
-            <Link
+            <LocalizedLink
               href="/"
               className="flex h-12 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-7 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-sv-blue/30 hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {t('error.home')}
-            </Link>
+            </LocalizedLink>
           </div>
         </Reveal>
       </main>

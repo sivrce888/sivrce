@@ -9,6 +9,7 @@ import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { AGENT_PROFILES, getAgentProfile, listingsByAgent } from '@/data/professionals'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export function generateStaticParams() {
   // ponytail: prerender ka only (today's build surface) — other locales SSR on
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${a.name.ka} — ${a.agency}`,
     description,
-    alternates: { canonical: `/agents/${a.slug}` },
+    alternates: { canonical: `/agents/${a.slug}`, languages: langAlternates(`/agents/${a.slug}`) },
     openGraph: {
       title: `${a.name.ka} — ${a.agency} | sivrce`,
       description,

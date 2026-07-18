@@ -1,12 +1,14 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Home, Banknote, Ruler, SlidersHorizontal, ChevronDown, Loader2 } from 'lucide-react'
+import { Search, MapPin, Building2, Route, SlidersHorizontal, ChevronDown, Loader2 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
-import SearchSuggest from '@/components/search/SearchSuggest'
+import SearchSuggest, { type Suggestion } from '@/components/search/SearchSuggest'
+import { useI18n, localizedHref } from '@/lib/i18n/context'
 import { DEAL_BRAND } from '@/lib/category-brand'
+import { CITIES, districtsOf } from '@/data/listings'
 
 /* Deal tabs — locked DEAL_BRAND (BRAND.md §3.2) */
 const TABS = [
@@ -18,32 +20,77 @@ const TABS = [
 
 const QUICK = ['ვაკე', 'საბურთალო', 'მთაწმინდა', 'ბათუმი', 'ძველი თბილისი', 'დიღომი']
 
-const DEFAULT_PLACEHOLDER = 'ქალაქი, უბანი, ქუჩა ან ID'
+const STREET_PLACEHOLDER = 'ქუჩა, მისამართი ან ID'
 const AI_PLACEHOLDER = 'მაგ.: 3 ოთახიანი ბინა ვაკეში $200K-მდე'
 
-/** Interactive hero search panel — the only client island in the hero. */
+const fieldShell =
+  'flex min-w-0 flex-col justify-center gap-0.5 rounded-control bg-white/[0.07] px-3.5 py-2.5 text-left transition-colors hover:bg-white/[0.12] focus-within:bg-white/[0.12]'
+
+/** Interactive hero search — location cascade first (city → district → street). */
 export default function HeroSearch() {
   const [tab, setTab] = useState(0)
+  const [city, setCity] = useState('')
+  const [district, setDistrict] = useState('')
   const [keyword, setKeyword] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiHint, setAiHint] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const { lang } = useI18n()
+  const go = (path: string) => router.push(localizedHref(path, lang))
+
+  // Cascade: districts only after city — keeps the list short and readable.
+  const districtOptions = useMemo(() => (city ? districtsOf(city) : []), [city])
 
   const dealParam = () => (tab === 0 ? 'sale' : tab === 1 ? 'rent' : tab === 2 ? 'daily' : undefined)
 
-  const submitSearch = () => {
-    if (tab === 3) {
-      // „ახალი პროექტები" tab → homepage projects section
-      document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })
-      return
-    }
+  const buildParams = (extra?: Record<string, string | undefined>) => {
     const params = new URLSearchParams()
     const deal = dealParam()
     if (deal) params.set('deal', deal)
+    if (city) params.set('city', city)
+    if (district) params.set('district', district)
     if (keyword.trim()) params.set('q', keyword.trim())
-    const qs = params.toString()
-    router.push(qs ? `/search?${qs}` : '/search')
+    if (extra) {
+      for (const [k, v] of Object.entries(extra)) {
+        if (v) params.set(k, v)
+        else params.delete(k)
+      }
+    }
+    return params
+  }
+
+  const submitSearch = () => {
+    if (tab === 3) {
+      document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    const qs = buildParams().toString()
+    go(qs ? `/search?${qs}` : '/search')
+  }
+
+  const applySuggestion = (s: Suggestion) => {
+    const params = new URLSearchParams()
+    const deal = dealParam()
+    if (deal) params.set('deal', deal)
+
+    if (s.kind === 'city') {
+      setCity(s.ka)
+      setDistrict('')
+      setKeyword('')
+      params.set('city', s.ka)
+    } else if (s.kind === 'district') {
+      setDistrict(s.ka)
+      setKeyword('')
+      if (city) params.set('city', city)
+      params.set('district', s.ka)
+    } else {
+      setKeyword(s.ka)
+      if (city) params.set('city', city)
+      if (district) params.set('district', district)
+      params.set('q', s.ka)
+    }
+    go(`/search?${params.toString()}`)
   }
 
   /** AI natural-language search: parse the query into filters, land on /search. */
@@ -67,35 +114,37 @@ export default function HeroSearch() {
       const deal = (f.dealType as string | undefined) ?? dealParam()
       if (deal) params.set('deal', deal)
       if (f.propertyType) params.set('type', String(f.propertyType))
-      if (f.city) params.set('city', String(f.city))
-      if (f.district) params.set('district', String(f.district))
+      const nextCity = (f.city as string | undefined) ?? (city || undefined)
+      const nextDistrict = (f.district as string | undefined) ?? (district || undefined)
+      if (nextCity) params.set('city', nextCity)
+      if (nextDistrict) params.set('district', nextDistrict)
       if (f.minPrice) params.set('min', String(f.minPrice))
       if (f.maxPrice) params.set('max', String(f.maxPrice))
       if (f.rooms) params.set('rooms', String(f.rooms))
       if (f.minArea) params.set('amin', String(f.minArea))
       if (f.maxArea) params.set('amax', String(f.maxArea))
       if (f.keywords) params.set('q', String(f.keywords))
-      router.push(`/search?${params.toString()}`)
+      go(`/search?${params.toString()}`)
     } catch {
-      submitSearch() // network/parse failure → plain keyword search still works
+      submitSearch()
     } finally {
       setAiLoading(false)
     }
   }
 
-  /** Filter pills → results page with the pill's filter pre-applied. */
-  const goFilters = (extra: Record<string, string>) => {
-    const params = new URLSearchParams(extra)
+  const goQuick = (name: string) => {
+    const params = new URLSearchParams()
     const deal = dealParam()
     if (deal) params.set('deal', deal)
-    router.push(`/search?${params.toString()}`)
-  }
-
-  const goDistrict = (q: string) => {
-    const params = new URLSearchParams({ q })
-    const deal = dealParam()
-    if (deal) params.set('deal', deal)
-    router.push(`/search?${params.toString()}`)
+    if (CITIES.includes(name)) {
+      params.set('city', name)
+      setCity(name)
+      setDistrict('')
+    } else {
+      params.set('district', name)
+      setDistrict(name)
+    }
+    go(`/search?${params.toString()}`)
   }
 
   return (
@@ -129,45 +178,85 @@ export default function HeroSearch() {
         ))}
       </div>
 
-      {/* Search bar */}
+      {/* Location cascade — city → district → street */}
       <div className="glass rounded-b-tile rounded-tr-tile p-2 shadow-panel-dark">
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto]">
-          <SearchSuggest
-            variant="dark"
-            value={keyword}
-            onChange={(v) => { setKeyword(v); setAiHint(false) }}
-            onPick={(v) => { setKeyword(v); router.push(`/search?q=${encodeURIComponent(v)}${dealParam() ? `&deal=${dealParam()}` : ''}`) }}
-            onSubmit={submitSearch}
-            placeholder={aiHint ? AI_PLACEHOLDER : DEFAULT_PLACEHOLDER}
-            ariaLabel={DEFAULT_PLACEHOLDER}
-            inputRef={inputRef}
-            className="col-span-2 md:col-span-1"
-          />
-          {(
-            [
-              { icon: Home, label: 'ტიპი', value: 'ბინა', tinted: true, target: { type: 'apartment' } },
-              { icon: Banknote, label: 'ფასი', value: 'ნებისმიერი', tinted: false, target: {} },
-              { icon: Ruler, label: 'ფართი', value: '40+ მ²', tinted: false, target: { amin: '40' } },
-            ] satisfies { icon: typeof Home; label: string; value: string; tinted: boolean; target: Record<string, string> }[]
-          ).map((f) => (
-            <button
-              key={f.label}
-              onClick={() => goFilters(f.target as Record<string, string>)}
-              className="group flex items-center gap-3 rounded-control bg-white/[0.07] px-4 py-3.5 text-left transition-colors hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
-            >
-              <f.icon className={`h-[18px] w-[18px] shrink-0 ${f.tinted ? 'text-sv-blue-light' : 'text-white/50'}`} />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[12px] font-bold uppercase tracking-wider text-white/70">
-                  {f.label}
-                </span>
-                <span className="block truncate text-[14px] font-bold text-white">{f.value}</span>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto]">
+          {/* City */}
+          <label className={fieldShell}>
+            <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/55">
+              <Building2 className="h-3 w-3 text-sv-blue-light" aria-hidden />
+              ქალაქი
+            </span>
+            <span className="relative flex items-center">
+              <select
+                value={city}
+                aria-label="ქალაქი"
+                onChange={(e) => {
+                  setCity(e.target.value)
+                  setDistrict('')
+                }}
+                className="w-full cursor-pointer appearance-none bg-transparent pr-6 text-[14px] font-bold text-white outline-none"
+              >
+                <option value="" className="bg-sv-navy text-white">ყველა ქალაქი</option>
+                {CITIES.map((c) => (
+                  <option key={c} value={c} className="bg-sv-navy text-white">{c}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-0 h-4 w-4 text-white/40" aria-hidden />
+            </span>
+          </label>
+
+          {/* District */}
+          <label className={fieldShell}>
+            <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/55">
+              <MapPin className="h-3 w-3 text-sv-blue-light" aria-hidden />
+              უბანი
+            </span>
+            <span className="relative flex items-center">
+              <select
+                value={district}
+                aria-label="უბანი"
+                disabled={!city}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="w-full cursor-pointer appearance-none bg-transparent pr-6 text-[14px] font-bold text-white outline-none disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <option value="" className="bg-sv-navy text-white">
+                  {city ? 'ყველა უბანი' : 'ჯერ ქალაქი'}
+                </option>
+                {districtOptions.map((d) => (
+                  <option key={d} value={d} className="bg-sv-navy text-white">{d}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-0 h-4 w-4 text-white/40" aria-hidden />
+            </span>
+          </label>
+
+          {/* Street / address */}
+          <div className={`col-span-2 md:col-span-1 ${fieldShell} !p-0 overflow-visible`}>
+            <div className="px-3.5 pt-2.5">
+              <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/55">
+                <Route className="h-3 w-3 text-sv-blue-light" aria-hidden />
+                ქუჩა
               </span>
-              <ChevronDown className="h-4 w-4 text-white/40 transition-transform group-hover:translate-y-0.5" />
-            </button>
-          ))}
+            </div>
+            <SearchSuggest
+              variant="dark"
+              bare
+              city={city || undefined}
+              value={keyword}
+              onChange={(v) => { setKeyword(v); setAiHint(false) }}
+              onPick={applySuggestion}
+              onSubmit={submitSearch}
+              placeholder={aiHint ? AI_PLACEHOLDER : STREET_PLACEHOLDER}
+              ariaLabel={STREET_PLACEHOLDER}
+              inputRef={inputRef}
+              className="w-full"
+            />
+          </div>
+
           <button
             onClick={submitSearch}
-            className="col-span-2 flex items-center justify-center gap-2.5 rounded-control bg-sv-orange px-7 py-3.5 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy active:scale-[0.98] md:col-span-1"
+            className="col-span-2 flex items-center justify-center gap-2.5 rounded-control bg-sv-orange px-7 py-3.5 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy active:scale-[0.98] md:col-span-1 md:min-w-[132px]"
           >
             <Search className="h-[18px] w-[18px]" />
             ძიება
@@ -177,13 +266,13 @@ export default function HeroSearch() {
         {/* Sub row */}
         <div className="mt-2 flex flex-wrap items-center gap-2 px-1 pb-1">
           <button
-            onClick={() => router.push('/search')}
+            onClick={() => go(`/search?${buildParams().toString()}`)}
             className="flex items-center gap-2 rounded-control px-3 py-3 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
           >
             <SlidersHorizontal className="h-4 w-4" /> დეტალური ფილტრი
           </button>
           <button
-            onClick={() => router.push('/map')}
+            onClick={() => go('/map')}
             className="flex items-center gap-2 rounded-control px-3 py-3 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
           >
             <MapPin className="h-4 w-4" /> ძიება რუკით
@@ -208,7 +297,7 @@ export default function HeroSearch() {
         {QUICK.map((q, i) => (
           <button
             key={q}
-            onClick={() => goDistrict(q)}
+            onClick={() => goQuick(q)}
             className="sv-hero-in rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
             style={{ animationDelay: `${0.28 + i * 0.045}s` }}
           >

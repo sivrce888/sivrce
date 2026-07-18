@@ -9,12 +9,13 @@ import { BUILDINGS, buildingDealCounts } from '@/data/buildings'
 import { getDeveloper } from '@/data/professionals'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'შენობები და კორპუსები — თბილისი, ბათუმი',
   description:
     'ცნობილი კორპუსები თბილისსა და ბათუმში — კოდი, მისამართი, დეველოპერი, განცხადებები.',
-  alternates: { canonical: '/buildings' },
+  alternates: { canonical: '/buildings', languages: langAlternates('/buildings') },
   openGraph: {
     title: 'შენობები და კორპუსები | sivrce',
     description: 'კორპუსების კატალოგი — მისამართი, დეველოპერი, განცხადებები.',

@@ -8,6 +8,7 @@ import { DEALS as SEO_DEALS } from '@/lib/seo-pages'
 import { cap1, fillTpl, seoTitleParts } from '@/lib/seo-title'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
+import { langAlternates } from '@/lib/i18n/server'
 
 /** Title-slot type labels — the SEO keyword forms (კომერციული ფართი, not კომერციული). */
 const TITLE_TYPE: Record<PropType, DictKey> = {
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: `/listing/${l.id}` },
+    alternates: { canonical: `/listing/${l.id}`, languages: langAlternates(`/listing/${l.id}`) },
     openGraph: {
       title,
       description,

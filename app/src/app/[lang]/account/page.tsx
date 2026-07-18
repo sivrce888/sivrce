@@ -10,12 +10,13 @@ import MyReviews from '@/components/account/MyReviews'
 import MyTours from '@/components/account/MyTours'
 import MyInquiries from '@/components/account/MyInquiries'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'ჩემი ანგარიში',
     description: 'შენი აქტივობა sivrce-ზე — ფავორიტები, შენახული ძიებები, ბოლოს ნანახი და შეფასებები.',
-    alternates: { canonical: '/account' },
+    alternates: { canonical: '/account', languages: langAlternates('/account') },
     robots: { index: false, follow: true },
   }
 }

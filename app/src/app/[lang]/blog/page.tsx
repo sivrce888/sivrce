@@ -1,16 +1,17 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { ChevronRight, Clock, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { BLOG_POSTS } from '@/data/blog'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'ბლოგი — უძრავი ქონების გზამკვლევები | sivrce',
   description:
     'საქართველოს უძრავი ქონების ბაზრის ანალიტიკა და გზამკვლევები: ბინები დღიურად, ქირავდება ბინა, იყიდება ბინა თბილისში, ბათუმსა და ქუთაისში. ინვესტიციები, ROI, რჩევები მყიდველისა და მოიჯარისთვის.',
-  alternates: { canonical: '/blog' },
+  alternates: { canonical: '/blog', languages: langAlternates('/blog') },
   openGraph: {
     title: 'ბლოგი — უძრავი ქონების გზამკვლევები | sivrce',
     description:
@@ -50,7 +51,7 @@ export default function BlogIndex() {
         <nav aria-label="ბრედკრამბი" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
             <li className="flex items-center gap-1.5">
-              <Link href="/" className="transition-colors hover:text-sv-blue">მთავარი</Link>
+              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
             </li>
             <li aria-current="page" className="text-sv-ink/80">ბლოგი</li>
@@ -68,7 +69,7 @@ export default function BlogIndex() {
         </header>
 
         {/* Featured */}
-        <Link
+        <LocalizedLink
           href={`/blog/${featured.slug}`}
           className="group mb-8 grid overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-300 hover:shadow-card-hover md:grid-cols-2"
         >
@@ -102,12 +103,12 @@ export default function BlogIndex() {
               წაიკითხეთ <ArrowRight className="h-4 w-4" aria-hidden />
             </span>
           </div>
-        </Link>
+        </LocalizedLink>
 
         {/* Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((p) => (
-            <Link
+            <LocalizedLink
               key={p.slug}
               href={`/blog/${p.slug}`}
               className="group flex flex-col overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-300 hover:shadow-card-hover"
@@ -139,7 +140,7 @@ export default function BlogIndex() {
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" aria-hidden /> {p.readingMinutes} წთ</span>
                 </div>
               </div>
-            </Link>
+            </LocalizedLink>
           ))}
         </div>
       </main>

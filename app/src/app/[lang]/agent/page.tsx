@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { Building2, CalendarDays, Star, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
@@ -122,12 +122,12 @@ export default async function AgentOverviewPage() {
         <section className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[15px] font-extrabold text-sv-ink">ბოლო ლიდები</h2>
-            <Link
+            <LocalizedLink
               href="/agent/leads"
               className="text-[12px] font-bold text-sv-blue hover:underline"
             >
               ყველა →
-            </Link>
+            </LocalizedLink>
           </div>
           {recentLeads.length === 0 ? (
             <EmptyState
@@ -157,12 +157,12 @@ export default async function AgentOverviewPage() {
         <section className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[15px] font-extrabold text-sv-ink">უახლოესი ვიზიტები</h2>
-            <Link
+            <LocalizedLink
               href="/agent/tours"
               className="text-[12px] font-bold text-sv-blue hover:underline"
             >
               ყველა →
-            </Link>
+            </LocalizedLink>
           </div>
           {nextTours.length === 0 ? (
             <EmptyState
@@ -174,12 +174,12 @@ export default async function AgentOverviewPage() {
               {nextTours.map((tour) => (
                 <li key={tour.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <Link
+                    <LocalizedLink
                       href={`/listing/${tour.listing.id}`}
                       className="block truncate text-[13.5px] font-bold text-sv-ink hover:text-sv-blue"
                     >
                       {tour.listing.title}
-                    </Link>
+                    </LocalizedLink>
                     <p className="truncate text-[12px] font-medium text-sv-ink/50">
                       {fmtDate(tour.tourDate)} · {tour.tourTime} · {tour.guestName}
                     </p>

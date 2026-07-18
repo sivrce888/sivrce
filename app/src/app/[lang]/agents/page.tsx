@@ -6,12 +6,13 @@ import { EntityCard } from '@/components/entities/EntityCard'
 import { AGENT_PROFILES, listingsByAgent } from '@/data/professionals'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'უძრავი ქონების აგენტები — ვერიფიცირებული სპეციალისტები',
   description:
     'ვერიფიცირებული უძრავი ქონების აგენტები თბილისსა და ბათუმში: გამოცდილება, დახურული გარიგებები, ენები და რეალური მიმოხილვები — აირჩიე შენი აგენტი.',
-  alternates: { canonical: '/agents' },
+  alternates: { canonical: '/agents', languages: langAlternates('/agents') },
   openGraph: {
     title: 'უძრავი ქონების აგენტები | sivrce',
     description:

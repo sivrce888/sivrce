@@ -4,11 +4,12 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'ხშირად დასმული კითხვები — sivrce',
   description: 'პასუხები მყიდველების, გამყიდველებისა და sivrce პლატფორმის შესახებ — ფასები, ვერიფიკაცია, VIP პაკეტები, AI ძიება.',
-  alternates: { canonical: '/faq' },
+  alternates: { canonical: '/faq', languages: langAlternates('/faq') },
 }
 
 interface QA {

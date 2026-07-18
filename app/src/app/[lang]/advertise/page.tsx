@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { Check, Flame, Crown, Eye, TrendingUp, Star, Plus, type LucideIcon } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
 import { BRAND } from '@/lib/brand'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'განათავსე განცხადება — sivrce',
   description: 'განათავსე განცხადება sivrce-ზე უფასოდ ან აირჩიე VIP პაკეტი — საშუალოდ 5× მეტი ნახვა, ძიების ტოპი და მთავარი გვერდის კარუსელი.',
-  alternates: { canonical: '/advertise' },
+  alternates: { canonical: '/advertise', languages: langAlternates('/advertise') },
 }
 
 interface Tier {
@@ -156,7 +157,7 @@ export default function AdvertisePage() {
                       </li>
                     ))}
                   </ul>
-                  <Link
+                  <LocalizedLink
                     href="/add-listing"
                     className={`mt-8 inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-bold transition hover:-translate-y-0.5 ${
                       tier.highlight
@@ -165,7 +166,7 @@ export default function AdvertisePage() {
                     }`}
                   >
                     განთავსება
-                  </Link>
+                  </LocalizedLink>
                 </div>
               </Reveal>
             ))}

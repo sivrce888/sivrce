@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'წესები და პირობები — sivrce',
   description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
-  alternates: { canonical: '/terms' },
+  alternates: { canonical: '/terms', languages: langAlternates('/terms') },
 }
 
 const SECTIONS = [

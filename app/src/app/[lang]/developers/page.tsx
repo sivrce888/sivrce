@@ -7,6 +7,7 @@ import { listingCountByCity } from '@/data/professionals'
 import { developersLive } from '@/lib/directory-live'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const revalidate = 3600
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   title: 'დეველოპერები საქართველოში — შეფასებები და პროექტები',
   description:
     'ქართული დეველოპერული კომპანიების კატალოგი: m2, Alliance Group, ORBI, დირსი, არქი, აქსისი — ჩაბარებული პროექტები, ფასები და რეალური მიმოხილვები ერთ სივრცეში.',
-  alternates: { canonical: '/developers' },
+  alternates: { canonical: '/developers', languages: langAlternates('/developers') },
   openGraph: {
     title: 'დეველოპერები საქართველოში | sivrce',
     description:

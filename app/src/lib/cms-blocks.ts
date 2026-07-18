@@ -53,11 +53,13 @@ export const CMS_BLOCKS = {
   'home.listings.kicker': 'არჩეული შეთავაზებები',
   'home.listings.title': 'SUPER VIP განცხადებები',
   'home.listings.sub': 'პრემიუმ ქონებები AI ფასის შეფასებით',
+  'home.map.kicker': 'ექსკლუზიური ტექნოლოგია',
   'home.map.titleA': 'პირველი',
   'home.map.titleAccent': 'ინტერაქტიული 3D რუკა',
   'home.map.titleB': 'საქართველოში',
   'home.map.sub':
     'დაივიწყე უსასრულო სიები. ნახე ქალაქი ისე, როგორც არის — და იპოვე შენი ბინა პირდაპირ რუკიდან.',
+  'home.ai.kicker': 'AI ტექნოლოგია',
   'home.ai.titleA': 'იცოდე ნამდვილი ფასი —',
   'home.ai.titleAccent': 'ყიდვამდე',
   'home.ai.sub':

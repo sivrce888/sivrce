@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { Plus } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
@@ -47,13 +47,13 @@ export default async function AgentListingsPage() {
           ჩემი განცხადებები
           <span className="ml-2 text-[13px] font-bold text-sv-ink/40">{listings.length}</span>
         </h1>
-        <Link
+        <LocalizedLink
           href="/add-listing"
           className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep"
         >
           <Plus size={15} />
           დამატება
-        </Link>
+        </LocalizedLink>
       </div>
 
       {listings.length === 0 ? (
@@ -80,12 +80,12 @@ export default async function AgentListingsPage() {
               {listings.map((l) => (
                 <tr key={l.id} className="transition hover:bg-sv-cloud/40">
                   <td className="max-w-64 px-5 py-3.5">
-                    <Link
+                    <LocalizedLink
                       href={`/listing/${l.id}`}
                       className="block truncate text-[13.5px] font-bold text-sv-ink hover:text-sv-blue"
                     >
                       {l.title}
-                    </Link>
+                    </LocalizedLink>
                     <p className="truncate text-[12px] font-medium text-sv-ink/50">
                       {l.city} · {l.district}
                     </p>

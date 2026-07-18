@@ -5,12 +5,13 @@ import Footer from '@/components/sections/Footer'
 import NeighborhoodsIndex from '@/components/neighborhoods/NeighborhoodsIndex'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'უბნების გზამკვლევი — თბილისი, ბათუმი, ქუთაისი | sivrce',
   description:
     'სად ცხოვრება ღირს: ცხოვრების ხარისხის ქულები (ტრანსპორტი, სკოლები, მწვანე ზონები, უსაფრთხოება), საშუალო ფასები კვადრატულზე და მცხოვრებლების შეფასებები ყველა უბნისთვის.',
-  alternates: { canonical: '/neighborhoods' },
+  alternates: { canonical: '/neighborhoods', languages: langAlternates('/neighborhoods') },
   openGraph: {
     title: 'უბნების გზამკვლევი — ცხოვრების ხარისხის ქულები და ფასები | sivrce',
     description:

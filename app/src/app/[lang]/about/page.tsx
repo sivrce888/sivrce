@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { ShieldCheck, Map as MapIcon, MessageCircle, ArrowRight } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'ჩვენ შესახებ — sivrce',
   description: 'sivrce — საქართველოს თანამედროვე უძრავი ქონების პლატფორმა. ვერიფიკაცია, AI ფასის შეფასება და 3D რუკა ერთ სივრცეში.',
-  alternates: { canonical: '/about' },
+  alternates: { canonical: '/about', languages: langAlternates('/about') },
 }
 
 const VALUES = [
@@ -132,7 +133,7 @@ export default function AboutPage() {
             </div>
           </Reveal>
           <p className="mt-8 text-center text-sm font-medium text-sv-ink/50">
-            გაქვს კითხვები? <Link href="/contact" className="font-bold text-sv-blue hover:text-sv-blue-deep">დაგვიკავშირდი</Link>
+            გაქვს კითხვები? <LocalizedLink href="/contact" className="font-bold text-sv-blue hover:text-sv-blue-deep">დაგვიკავშირდი</LocalizedLink>
           </p>
         </section>
       </main>

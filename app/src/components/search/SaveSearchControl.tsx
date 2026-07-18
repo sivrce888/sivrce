@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Bookmark, Check, Trash2 } from 'lucide-react'
-import { useI18n, type DictKey } from '@/lib/i18n/context'
+import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
 import { useSavedSearches } from '@/lib/saved-searches'
 import { useSearchStrings } from './i18n'
 
@@ -67,7 +67,7 @@ export default function SaveSearchControl() {
 
   const apply = (q: string) => {
     setOpen(false)
-    router.push(q ? `/search?${q}` : '/search')
+    router.push(localizedHref(q ? `/search?${q}` : '/search', lang))
   }
 
   return (

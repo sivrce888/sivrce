@@ -1,10 +1,11 @@
 'use client'
 
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { MousePointerClick, Building2, BarChart3, Layers, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Reveal } from '@/components/Reveal'
 import MapEmbed from '@/components/MapEmbed'
+import { useI18n } from '@/lib/i18n/context'
 
 const FEATURES = [
   {
@@ -30,6 +31,7 @@ const FEATURES = [
 ]
 
 export default function MapSection() {
+  const { b } = useI18n()
   return (
     <section className="relative overflow-hidden bg-sv-navy py-20 md:py-28">
       <div className="absolute inset-0 bg-grid-dark" />
@@ -42,14 +44,13 @@ export default function MapSection() {
           <div>
             <Reveal>
               <span className="mb-4 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-light">
-                <Layers className="h-3.5 w-3.5" /> ექსკლუზიური ტექნოლოგია
+                <Layers className="h-3.5 w-3.5" /> {b('home.map.kicker')}
               </span>
               <h2 className="text-balance text-[32px] font-black leading-[1.12] tracking-[-0.02em] text-white md:text-[46px]">
-                პირველი <span className="text-gradient-blue">ინტერაქტიული 3D რუკა</span> საქართველოში
+                {b('home.map.titleA')} <span className="text-gradient-blue">{b('home.map.titleAccent')}</span> {b('home.map.titleB')}
               </h2>
               <p className="mt-5 max-w-[520px] text-[15px] font-medium leading-relaxed text-white/60 md:text-[17px]">
-                დაივიწყე უსასრულო სიები. ნახე ქალაქი ისე, როგორც არის — და იპოვე
-                შენი ბინა პირდაპირ რუკიდან.
+                {b('home.map.sub')}
               </p>
             </Reveal>
 
@@ -70,13 +71,13 @@ export default function MapSection() {
             </div>
 
             <Reveal delay={0.45}>
-              <Link
+              <LocalizedLink
                 href="/map"
                 className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-4 text-[15px] font-extrabold text-sv-navy transition-all duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-light hover:shadow-glow-blue"
               >
                 გახსენი 3D რუკა
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              </LocalizedLink>
             </Reveal>
           </div>
 
@@ -87,7 +88,7 @@ export default function MapSection() {
               transition={{ type: 'spring', stiffness: 200, damping: 20 }}
               className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue"
             >
-              <Link href="/map" className="block" aria-label="გახსენი 3D რუკა">
+              <LocalizedLink href="/map" className="block" aria-label="გახსენი 3D რუკა">
                 <MapEmbed
                   lat={41.7151}
                   lng={44.8271}
@@ -101,7 +102,7 @@ export default function MapSection() {
                     გახსენი ინტერაქტიული 3D რუკა
                   </span>
                 </div>
-              </Link>
+              </LocalizedLink>
               <div className="absolute inset-0 rounded-card ring-1 ring-inset ring-white/10 pointer-events-none" />
             </motion.div>
 

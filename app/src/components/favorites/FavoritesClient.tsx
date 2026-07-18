@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { Bell, BellRing, Heart, Search } from 'lucide-react'
 import ListingCard from '@/components/ListingCard'
 import { LISTINGS } from '@/data/listings'
@@ -45,13 +45,13 @@ export default function FavoritesClient() {
         <p className="mx-auto mt-3 max-w-md text-[15px] font-medium text-sv-ink/60">
           დააჭირე გულის ხატულას ნებისმიერ განცხადებაზე და ის აქ შეინახება — შენს მოწყობილობაზე.
         </p>
-        <Link
+        <LocalizedLink
           href="/search"
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
         >
           <Search className="h-4 w-4" />
           განცხადებების ძიება
-        </Link>
+        </LocalizedLink>
       </div>
     )
   }

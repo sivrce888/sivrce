@@ -8,6 +8,7 @@ import Footer from '@/components/sections/Footer'
 import { getDeveloper } from '@/data/professionals'
 import { projectsLive } from '@/lib/directory-live'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const revalidate = 3600
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   title: 'ახალი პროექტები თბილისში და ბათუმში — მშენებარე კორპუსები',
   description:
     'ახალი საცხოვრებელი პროექტები თბილისში და ბათუმში: დეველოპერების შეფასებები, ფასები კვადრატულზე, მშენებლობის პროგრესი და ჩაბარების ვადები — ყველა პროექტი ერთ სივრცეში.',
-  alternates: { canonical: '/projects' },
+  alternates: { canonical: '/projects', languages: langAlternates('/projects') },
   openGraph: {
     title: 'ახალი პროექტები თბილისში და ბათუმში | sivrce',
     description:
