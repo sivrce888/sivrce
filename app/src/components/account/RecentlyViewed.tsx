@@ -3,6 +3,7 @@
 import LocalizedLink from '@/components/LocalizedLink'
 import { Clock } from 'lucide-react'
 import ListingCard from '@/components/ListingCard'
+import HScroll from '@/components/HScroll'
 import { getListing, type Listing } from '@/data/listings'
 import { useRecentIds } from '@/lib/recent'
 import SectionHeader from './SectionHeader'
@@ -48,11 +49,11 @@ export default function RecentlyViewed({
           </LocalizedLink>
         </div>
       ) : (
-        <div className="flex snap-x gap-6 overflow-x-auto pb-4">
+        <HScroll aria-label={heading} className="snap-x gap-6 pb-1">
           {items.map((l, i) => (
             <ListingCard key={l.id} l={l} i={i} layout="grid" />
           ))}
-        </div>
+        </HScroll>
       )}
     </section>
   )

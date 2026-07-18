@@ -1,0 +1,183 @@
+'use client'
+
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { scrollEdges } from '@/lib/h-scroll'
+import { useI18n } from '@/lib/i18n/context'
+
+type Props = {
+  children: ReactNode
+  className?: string
+  /** Scroll distance per arrow click. Default: ~80% of viewport. */
+  step?: number
+  /** sm = stories / chips; md = listing cards (default). */
+  size?: 'sm' | 'md'
+  'aria-label'?: string
+}
+
+/**
+ * Horizontal rail: no scrollbar, side arrows, mouse-drag.
+ * Touch = native overflow. Arrows stay mounted (fade) once overflow exists.
+ */
+export default function HScroll({
+  children,
+  className = '',
+  step,
+  size = 'md',
+  'aria-label': ariaLabel,
+}: Props) {
+  const { t } = useI18n()
+  const ref = useRef<HTMLDivElement>(null)
+  const drag = useRef<{ x: number; left: number; moved: boolean; id: number } | null>(null)
+  const suppressClick = useRef(false)
+  const [edges, setEdges] = useState({ canL: false, canR: false })
+  const [overflow, setOverflow] = useState(false)
+
+  const update = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const next = scrollEdges(el.scrollLeft, el.clientWidth, el.scrollWidth)
+    setEdges(next)
+    setOverflow(next.canL || next.canR || el.scrollWidth > el.clientWidth + 2)
+  }, [])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', update)
+      ro.disconnect()
+    }
+  }, [update, children])
+
+  const scrollBy = (dir: -1 | 1) => {
+    const el = ref.current
+    if (!el) return
+    const amount = step ?? Math.max(240, Math.round(el.clientWidth * 0.8))
+    const rtl = getComputedStyle(el).direction === 'rtl'
+    el.scrollBy({ left: (rtl ? -dir : dir) * amount, behavior: 'smooth' })
+  }
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    // ponytail: mouse-only; capture only after drag threshold so links stay clickable
+    if (e.pointerType !== 'mouse' || e.button !== 0) return
+    const el = ref.current
+    if (!el) return
+    drag.current = { x: e.clientX, left: el.scrollLeft, moved: false, id: e.pointerId }
+  }
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current
+    const el = ref.current
+    if (!d || !el || d.id !== e.pointerId) return
+    const dx = e.clientX - d.x
+    if (!d.moved && Math.abs(dx) > 4) {
+      d.moved = true
+      el.setPointerCapture(e.pointerId)
+      el.classList.add('select-none')
+    }
+    if (d.moved) el.scrollLeft = d.left - dx
+  }
+
+  const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current
+    const el = ref.current
+    if (!d || d.id !== e.pointerId) return
+    if (d.moved) {
+      suppressClick.current = true
+      el?.classList.remove('select-none')
+      if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
+    }
+    drag.current = null
+  }
+
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (!suppressClick.current) return
+    suppressClick.current = false
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      scrollBy(-1)
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      scrollBy(1)
+    }
+  }
+
+  const sm = size === 'sm'
+  const btnBase = sm
+    ? 'absolute top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-sm transition-[opacity,transform,border-color,color] duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
+    : 'absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-sm transition-[opacity,transform,border-color,color] duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
+  const btnOn = 'opacity-100 hover:border-sv-blue hover:text-sv-blue'
+  const btnOff = 'pointer-events-none opacity-0'
+  const icon = sm ? 'h-4 w-4' : 'h-5 w-5'
+
+  // Edge fade only on the side that still has content
+  const mask =
+    edges.canL && edges.canR
+      ? 'linear-gradient(to right, transparent, black 2rem, black calc(100% - 2rem), transparent)'
+      : edges.canL
+        ? 'linear-gradient(to right, transparent, black 2rem, black 100%)'
+        : edges.canR
+          ? 'linear-gradient(to right, black 0%, black calc(100% - 2rem), transparent)'
+          : undefined
+
+  return (
+    <div className="relative">
+      {overflow ? (
+        <>
+          <button
+            type="button"
+            aria-label={t('search.prev')}
+            disabled={!edges.canL}
+            onClick={() => scrollBy(-1)}
+            className={`${btnBase} start-2 md:start-3 ${edges.canL ? btnOn : btnOff}`}
+          >
+            <ChevronLeft className={icon} />
+          </button>
+          <button
+            type="button"
+            aria-label={t('search.next')}
+            disabled={!edges.canR}
+            onClick={() => scrollBy(1)}
+            className={`${btnBase} end-2 md:end-3 ${edges.canR ? btnOn : btnOff}`}
+          >
+            <ChevronRight className={icon} />
+          </button>
+        </>
+      ) : null}
+      <div
+        ref={ref}
+        role="region"
+        tabIndex={0}
+        aria-label={ariaLabel}
+        style={mask ? { WebkitMaskImage: mask, maskImage: mask } : undefined}
+        className={`scrollbar-hide flex cursor-grab overflow-x-auto overscroll-x-contain active:cursor-grabbing ${className}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClickCapture={onClickCapture}
+        onKeyDown={onKeyDown}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}

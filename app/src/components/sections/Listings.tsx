@@ -1,18 +1,15 @@
 'use client'
 
-import { useRef } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
-import { ArrowRight, ChevronLeft, ChevronRight, Crown } from 'lucide-react'
+import { ArrowRight, Crown } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import ListingCard from '@/components/ListingCard'
+import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
 import type { Listing } from '@/data/listings'
 
 export default function Listings({ items }: { items: Listing[] }) {
   const { b } = useI18n()
-  const scroller = useRef<HTMLDivElement>(null)
-  const scrollBy = (dir: number) =>
-    scroller.current?.scrollBy({ left: dir * 420, behavior: 'smooth' })
 
   return (
     <section className="relative overflow-hidden bg-sv-cloud py-20 md:py-28">
@@ -29,46 +26,26 @@ export default function Listings({ items }: { items: Listing[] }) {
               {b('home.listings.sub')}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden gap-2 md:flex">
-              <button
-                onClick={() => scrollBy(-1)}
-                aria-label="წინა"
-                className="grid h-11 w-11 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface text-sv-ink transition-all duration-300 hover:border-sv-blue hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => scrollBy(1)}
-                aria-label="შემდეგი"
-                className="grid h-11 w-11 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface text-sv-ink transition-all duration-300 hover:border-sv-blue hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
-            <LocalizedLink
-              href="/sale"
-              className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
-            >
-              {/* SEO: indexable hub + keyword anchor — /search is noindex. */}
-              ყველა განცხადების ნახვა
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </LocalizedLink>
-          </div>
+          <LocalizedLink
+            href="/sale"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
+          >
+            {/* SEO: indexable hub + keyword anchor — /search is noindex. */}
+            ყველა განცხადების ნახვა
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </LocalizedLink>
         </Reveal>
       </div>
 
-      <div
-        ref={scroller}
-        tabIndex={0}
-        role="region"
+      <HScroll
         aria-label="SUPER VIP განცხადებები"
-        className="scrollbar-hide flex gap-6 overflow-x-auto px-5 pb-8 pt-2 md:px-10 lg:px-[max(2.5rem,calc((100vw-1440px)/2+2.5rem))]"
+        step={420}
+        className="gap-6 px-5 pb-2 pt-2 md:px-10 lg:px-[max(2.5rem,calc((100vw-1440px)/2+2.5rem))]"
       >
         {items.map((l, i) => (
           <ListingCard key={l.id} l={l} i={i} />
         ))}
-      </div>
+      </HScroll>
     </section>
   )
 }

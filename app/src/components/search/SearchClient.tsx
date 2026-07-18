@@ -13,6 +13,7 @@ import {
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
+import HScroll from '@/components/HScroll'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
 import SearchSuggest from '@/components/search/SearchSuggest'
 import { useSearchStrings } from '@/components/search/i18n'
@@ -946,11 +947,11 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         {recentItems.length > 0 && !showSkeleton && (
           <section aria-label={s('recentlyViewed')} className="mb-8">
             <h2 className="mb-3 text-[15px] font-extrabold text-sv-ink">{s('recentlyViewed')}</h2>
-            <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-2 md:-mx-10 md:px-10">
+            <HScroll aria-label={s('recentlyViewed')} className="-mx-5 gap-3 px-5 pb-1 md:-mx-10 md:px-10">
               {recentItems.map((l) => (
                 <CompactCard key={l.id} l={l} />
               ))}
-            </div>
+            </HScroll>
           </section>
         )}
 

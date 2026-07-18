@@ -309,7 +309,23 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+    width: 0;
+    height: 0;
   }
+}
+
+/* ponytail: kill native horizontal scrollbars site-wide; HScroll arrows replace them on card rails */
+.overflow-x-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+@layer utilities {
   .text-gradient-blue {
     background: linear-gradient(120deg, #8fb4ff 0%, #2e6bff 55%, #7a5cff 100%);
     -webkit-background-clip: text;

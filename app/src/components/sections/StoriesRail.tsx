@@ -2,7 +2,9 @@
 
 import LocalizedLink from '@/components/LocalizedLink'
 import { Reveal } from '@/components/Reveal'
+import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
+import { listingPath } from '@/lib/listing-slug'
 import type { Listing } from '@/lib/listings-db'
 
 /** Homepage Stories strip — paid storyUntil listings. */
@@ -20,11 +22,11 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
           <p className="mb-3 text-[11px] font-black uppercase tracking-[0.14em] text-sv-ink/40">
             {b('home.stories.kicker')}
           </p>
-          <div className="scrollbar-hide flex gap-3.5 overflow-x-auto pb-1 pt-0.5">
+          <HScroll aria-label={b('home.stories.kicker')} step={200} size="sm" className="gap-3.5 pb-1 pt-0.5">
             {items.map((l) => (
               <LocalizedLink
                 key={l.id}
-                href={`/listing/${l.id}`}
+                href={listingPath(l)}
                 className="group flex w-[84px] shrink-0 flex-col items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
               >
                 <span className="rounded-full bg-gradient-to-br from-sv-orange via-sv-orange-deep to-sv-violet p-[2.5px] shadow-glow-orange transition-transform duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] group-hover:scale-[1.05]">
@@ -47,7 +49,7 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
                 </span>
               </LocalizedLink>
             ))}
-          </div>
+          </HScroll>
         </Reveal>
       </div>
     </section>

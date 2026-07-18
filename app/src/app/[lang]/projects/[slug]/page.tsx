@@ -6,6 +6,7 @@ import { MapPin, CalendarCheck, Building2, BadgeCheck, Star } from 'lucide-react
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
+import HScroll from '@/components/HScroll'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
@@ -46,10 +47,15 @@ function absImg(src: string) {
   return src.startsWith('http') ? src : `https://sivrce.ge${src}`
 }
 
-/** "$2,100" → 2100 — AggregateOffer lowPrice. */
+/** "$2,100" | "₾4,224" → 2100 / 4224 — AggregateOffer lowPrice. */
 function priceNumber(priceFromM2: string): number | null {
   const n = Number(priceFromM2.replace(/[^0-9.]/g, ''))
   return Number.isFinite(n) && n > 0 ? n : null
+}
+
+/** ponytail: GEL if ₾/GEL marker, else USD — covers catalog + live merge. */
+function priceCurrency(priceFromM2: string): 'GEL' | 'USD' {
+  return /₾|GEL/i.test(priceFromM2) ? 'GEL' : 'USD'
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -57,7 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const p = await getLiveProject(slug)
   if (!p) return {}
   const description = (p.description.ka || `${p.name}, ${p.location}`).replace(/\s+/g, ' ').slice(0, 155)
-  const title = `${p.name} — ${p.location}, ფასი ${p.priceFromM2}/მ²-დან`
+  const title = `${p.name} — მშენებარე ბინები ${p.city}, ფასი ${p.priceFromM2}/მ²-დან | sivrce`
   const og = ogImage(p.img)
   return {
     title,
@@ -113,6 +119,7 @@ export default async function ProjectPage({ params }: PageProps) {
   const galleryAbs = (project.gallery ?? []).map(absImg)
   const images = [heroAbs, ...galleryAbs.filter((u) => u !== heroAbs)]
   const lowPrice = priceNumber(project.priceFromM2)
+  const currency = priceCurrency(project.priceFromM2)
   const hasGeo = isValidCoords(project.coords.lat, project.coords.lng)
 
   const projectLd = {
@@ -144,7 +151,7 @@ export default async function ProjectPage({ params }: PageProps) {
     ...(lowPrice && {
       offers: {
         '@type': 'AggregateOffer',
-        priceCurrency: 'USD',
+        priceCurrency: currency,
         lowPrice,
         unitText: 'SQM',
         availability:
@@ -192,7 +199,7 @@ export default async function ProjectPage({ params }: PageProps) {
     mainEntity: [
       {
         '@type': 'Question',
-        name: `რა ღირს ${project.name}?`,
+        name: `რა ღირს კვ.მ ${project.name}-ში?`,
         acceptedAnswer: {
           '@type': 'Answer',
           text: project.priceFromM2
@@ -202,10 +209,18 @@ export default async function ProjectPage({ params }: PageProps) {
       },
       {
         '@type': 'Question',
-        name: `როდის ჩაბარდება ${project.name}?`,
+        name: `როდის შევა ექსპლუატაციაში ${project.name}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `ჩაბარების ვადა: ${project.finish}. მშენებლობის პროგრესი: ${project.done}%. სულ ${project.flats} ბინა.`,
+          text: `ჩაბარების ვადა: ${project.finish}. მშენებლობის პროგრესი: ${project.done}%. სულ ${project.flats} ბინა${project.floors ? `, სართულიანობა ${project.floors}-მდე` : ''}.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `როგორი ბინებია გაყიდვაში ${project.name} ${project.city}ში?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${project.name} — ${project.flats} ბინა, მდებარეობა ${project.location}. დეტალური გეგმარებები და ფასები — sivrce.ge/projects/${project.slug}.`,
         },
       },
       ...(dev
@@ -220,6 +235,14 @@ export default async function ProjectPage({ params }: PageProps) {
             },
           ]
         : []),
+      {
+        '@type': 'Question',
+        name: `როგორ შევიძინოთ ბინა ${project.name}-ში?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${project.name}-ში ბინის შეძენა შესაძლებელია დეველოპერის პირობებით (განვადება / იპოთეკა — დეტალები დეველოპერთან). მიმართეთ sivrce-ზე ან დეველოპერის გვერდს.`,
+        },
+      },
     ],
   }
 
@@ -350,7 +373,7 @@ export default async function ProjectPage({ params }: PageProps) {
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               გალერეა
             </h2>
-            <div className="mt-6 flex gap-3 overflow-x-auto pb-2">
+            <HScroll aria-label="გალერეა" step={300} className="mt-6 gap-3 pb-1">
               {project.gallery!.map((src, i) => (
                 <div
                   key={src}
@@ -365,7 +388,7 @@ export default async function ProjectPage({ params }: PageProps) {
                   />
                 </div>
               ))}
-            </div>
+            </HScroll>
           </section>
         )}
 
@@ -391,7 +414,7 @@ export default async function ProjectPage({ params }: PageProps) {
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               პროექტის შესახებ
             </h2>
-            <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
+            <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] font-semibold leading-relaxed text-sv-ink/70">
               {project.description.ka}
             </p>
           </section>
