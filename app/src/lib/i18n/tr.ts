@@ -387,6 +387,14 @@ export const tr: Dict = {
   'fav.empty': 'Henüz kaydedilen yok — herhangi bir ilanda kalbe dokunun, burada görünsün.',
   'fav.browse': 'İlanlara göz at',
 
+  // Push notifications (settings)
+  'settings.push.title': 'Anlık bildirimler',
+  'settings.push.desc': 'Yeni ilanlar ve fiyat değişiklikleri hakkında bildirim al — bu cihazda.',
+  'settings.push.enable': 'Aç',
+  'settings.push.disable': 'Kapat',
+  'settings.push.denied': 'Bildirimler tarayıcıda engellenmiş — tarayıcı ayarlarından açın.',
+  'settings.push.unsupported': 'Bu tarayıcı anlık bildirimleri desteklemiyor.',
+
   // a11y
   'a11y.skipToContent': 'Ana içeriğe geç',
 }

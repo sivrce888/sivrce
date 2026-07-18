@@ -387,6 +387,14 @@ export const he: Dict = {
   'fav.empty': 'עדיין לא נשמר דבר — הקישו על הלב בכל מודעה והיא תופיע כאן.',
   'fav.browse': 'עיון במודעות',
 
+  // Push notifications (settings)
+  'settings.push.title': 'התראות דחיפה',
+  'settings.push.desc': 'קבל התראות על מודעות חדשות ושינויי מחיר — במכשיר זה.',
+  'settings.push.enable': 'הפעל',
+  'settings.push.disable': 'כבה',
+  'settings.push.denied': 'ההתראות חסומות בדפדפן — הפעל אותן בהגדרות הדפדפן.',
+  'settings.push.unsupported': 'דפדפן זה אינו תומך בהתראות דחיפה.',
+
   // a11y
   'a11y.skipToContent': 'דלג לתוכן הראשי',
 }

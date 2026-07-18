@@ -388,6 +388,14 @@ export const az: Dict = {
     'Hələ heç nə saxlanılmayıb — istənilən elanda ürəyə toxunun və o, burada görünəcək.',
   'fav.browse': 'Elanlara bax',
 
+  // Push notifications (settings)
+  'settings.push.title': 'Push bildirişləri',
+  'settings.push.desc': 'Yeni elanlar və qiymət dəyişiklikləri haqqında bildiriş al — bu cihazda.',
+  'settings.push.enable': 'Aktivləşdir',
+  'settings.push.disable': 'Söndür',
+  'settings.push.denied': 'Bildirişlər brauzerdə bloklanıb — brauzer parametrlərindən aktivləşdirin.',
+  'settings.push.unsupported': 'Bu brauzer push bildirişlərini dəstəkləmir.',
+
   // a11y
   'a11y.skipToContent': 'Əsas məzmuna keç',
 }

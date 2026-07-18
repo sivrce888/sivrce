@@ -388,6 +388,14 @@ export const uk: Dict = {
     'Поки нічого не збережено — натисніть серце на будь-якому оголошенні, і воно з’явиться тут.',
   'fav.browse': 'Переглянути оголошення',
 
+  // Push notifications (settings)
+  'settings.push.title': 'Push-сповіщення',
+  'settings.push.desc': 'Отримуйте сповіщення про нові оголошення та зміну цін — на цьому пристрої.',
+  'settings.push.enable': 'Увімкнути',
+  'settings.push.disable': 'Вимкнути',
+  'settings.push.denied': 'Сповіщення заблоковано в браузері — увімкніть їх у налаштуваннях браузера.',
+  'settings.push.unsupported': 'Цей браузер не підтримує push-сповіщення.',
+
   // a11y
   'a11y.skipToContent': 'Перейти до основного вмісту',
 }

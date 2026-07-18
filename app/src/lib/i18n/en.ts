@@ -387,6 +387,14 @@ export const en: Dict = {
   'fav.empty': 'Nothing saved yet — tap the heart on any listing and it will appear here.',
   'fav.browse': 'Browse listings',
 
+  // Push notifications (settings)
+  'settings.push.title': 'Push notifications',
+  'settings.push.desc': 'Get notified about new listings and price changes — on this device.',
+  'settings.push.enable': 'Enable',
+  'settings.push.disable': 'Disable',
+  'settings.push.denied': 'Notifications are blocked in the browser — enable them in browser settings.',
+  'settings.push.unsupported': 'This browser does not support push notifications.',
+
   // a11y
   'a11y.skipToContent': 'Skip to main content',
 }
