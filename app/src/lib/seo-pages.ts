@@ -334,6 +334,57 @@ export function generateAllSeoParams(): string[][] {
   return out
 }
 
+/* ————— Footer keyword columns ————— */
+
+export interface FooterCol {
+  id: string
+  title: Record<SeoLoc, string>
+  links: { href: string; label: Record<SeoLoc, string> }[]
+}
+
+/**
+ * ss.ge/myhome-style footer: exact-query anchor columns (იყიდება 2-ოთახიანი
+ * ბინა, ბინები ქირავდება ვაკეში). Every link passes parseSeoSlug, so only pages
+ * with real inventory get footer juice — anchors literally match the target
+ * page's <h1>. Cached: static catalog makes this deterministic.
+ */
+let footerCache: FooterCol[] | null = null
+export function footerKeywordCols(): FooterCol[] {
+  if (footerCache) return footerCache
+
+  const link = (slug: string[]) => {
+    const def = parseSeoSlug(slug)
+    return def
+      ? { href: def.path, label: { ka: h1Of(def, 'ka'), en: h1Of(def, 'en'), ru: h1Of(def, 'ru') } }
+      : null
+  }
+  const cols: FooterCol[] = []
+  const push = (id: string, title: FooterCol['title'], slugs: string[][]) => {
+    const links = slugs.map(link).filter((x): x is FooterCol['links'][number] => x !== null)
+    if (links.length) cols.push({ id, title, links })
+  }
+
+  push('sale', { ka: 'იყიდება', en: 'For sale', ru: 'Продажа' }, [
+    ...[1, 2, 3, 4].map((n) => ['sale', `apartments-${n}`]),
+    ['sale', 'houses'], ['sale', 'land'], ['sale', 'commercial'],
+  ])
+  push('rent', { ka: 'ქირავდება', en: 'For rent', ru: 'Аренда' }, [
+    ...[1, 2, 3, 4].map((n) => ['rent', `apartments-${n}`]),
+    ['rent', 'houses'], ['rent', 'commercial'],
+  ])
+  push('daily', { ka: 'დღიურად', en: 'Daily rent', ru: 'Посуточно' }, [
+    ['daily'], ['daily', 'apartments'], ['daily', 'apartments', 'tbilisi'], ['daily', 'apartments', 'batumi'],
+  ])
+  const tbilisiDists = DISTRICTS.filter((d) => d.citySlug === 'tbilisi').map((d) => d.slug)
+  push('sale-tbilisi', { ka: 'ბინები იყიდება თბილისში', en: 'Apartments for sale in Tbilisi', ru: 'Квартиры на продажу в Тбилиси' },
+    tbilisiDists.map((d) => ['sale', 'apartments', 'tbilisi', d]))
+  push('rent-tbilisi', { ka: 'ბინები ქირავდება თბილისში', en: 'Apartments for rent in Tbilisi', ru: 'Квартиры в аренду в Тбилиси' },
+    tbilisiDists.map((d) => ['rent', 'apartments', 'tbilisi', d]))
+
+  footerCache = cols
+  return cols
+}
+
 /* ————— City-info pages (inventory-light cities) ————— */
 
 /**

@@ -371,7 +371,10 @@ export function projectsToConstructionBuildings(
         !catalogProjectSlugs.has(p.slug),
     )
     .map((p) => {
-      const floors = p.floors ?? Math.max(8, Math.round(p.flats / 12))
+      const floors = Math.min(
+        100,
+        p.floors ?? Math.max(8, Math.round(p.flats / 12)),
+      )
       const bn = parseBuildingNumber(p.location) || '—'
       const completed = p.done >= 100
       const dev = getDeveloper(p.developerSlug)
@@ -388,13 +391,15 @@ export function projectsToConstructionBuildings(
         counts: emptyCounts(),
         dominant: 'construction' as const,
         color: completed ? SERVICE_BRAND.developers.hue : STATUS_BRAND.construction.hue,
-        heightM: Math.min(18 + floors * 3.1 * (p.done / 100 || 0.35), 110),
+        // Full planned height — progress stays on the panel, not the massing.
+        heightM: Math.min(floors * 3.15, 110),
         status: completed ? ('completed' as const) : ('construction' as const),
         progress: p.done,
         projectSlug: p.slug,
         developerSlug: p.developerSlug || undefined,
         developerName: dev?.name.ka,
         code: projectCode(p),
+        floors,
         finish: p.finish,
       }
     })
@@ -509,9 +514,11 @@ export function buildingFootprint(
   lat: number,
   lng: number,
   halfM = 14,
+  /** >1 stretches E–W — Georgian slab towers, not cubes. */
+  aspect = 1,
 ): GeoJSON.Polygon {
   const dLat = halfM / 111_320
-  const dLng = halfM / (111_320 * Math.cos((lat * Math.PI) / 180))
+  const dLng = (halfM * aspect) / (111_320 * Math.cos((lat * Math.PI) / 180))
   return {
     type: 'Polygon',
     coordinates: [
@@ -526,15 +533,45 @@ export function buildingFootprint(
   }
 }
 
-/** Real OSM ring for a cluster, else the synthetic square. */
+/** Synthetic massing size when OSM ring missing — scales with planned floors. */
+export function ghostFootprintHalfM(floors: number): number {
+  return Math.min(34, Math.max(16, 10 + floors * 0.85))
+}
+
+/** Bbox half-extent (m) of a closed ring — used to reject shed-sized OSM hits. */
+export function ringBboxHalfM(ring: [number, number][]): number {
+  let minLng = Infinity
+  let maxLng = -Infinity
+  let minLat = Infinity
+  let maxLat = -Infinity
+  for (const [lng, lat] of ring) {
+    if (lng < minLng) minLng = lng
+    if (lng > maxLng) maxLng = lng
+    if (lat < minLat) minLat = lat
+    if (lat > maxLat) maxLat = lat
+  }
+  const latC = (minLat + maxLat) / 2
+  const w = (maxLng - minLng) * 111_320 * Math.cos((latC * Math.PI) / 180)
+  const h = (maxLat - minLat) * 111_320
+  return Math.max(w, h) / 2
+}
+
+/** Real OSM ring for a cluster, else synthetic slab (construction) / square (active). */
 export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
   const ring = b.ring ?? FOOTPRINTS[b.id]?.ring
-  if (ring && ring.length >= 5) return { type: 'Polygon', coordinates: [ring] }
-  return buildingFootprint(
-    b.lat,
-    b.lng,
-    b.status === 'construction' && b.listings.length === 0 ? 18 : 14,
-  )
+  const ghost = b.status === 'construction' && b.listings.length === 0
+  if (ring && ring.length >= 5) {
+    // ponytail: construction sites often match a neighbour shed in OSM — ignore if tiny.
+    // Upgrade → cadastral / developer site polygons.
+    if (!ghost || ringBboxHalfM(ring) >= 14) {
+      return { type: 'Polygon', coordinates: [ring] }
+    }
+  }
+  if (ghost) {
+    const floors = b.floors ?? Math.max(8, Math.round(b.heightM / 3.15))
+    return buildingFootprint(b.lat, b.lng, ghostFootprintHalfM(floors), 1.55)
+  }
+  return buildingFootprint(b.lat, b.lng, 14)
 }
 
 function buildingProps(b: MapBuildingCluster) {

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
+import { listingPath } from '@/lib/listing-slug'
 import { useCurrency } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n } from '@/lib/i18n/context'
@@ -130,7 +131,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const url = `${window.location.origin}/listing/${l.id}`
+    const url = `${window.location.origin}${listingPath(l)}`
     if (navigator.share) {
       navigator.share({ title: l.title, text: l.title, url }).catch(() => {})
     } else {
@@ -239,7 +240,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       <h3 className="line-clamp-1 text-[16px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
         {/* stretched link: ::after covers the whole card; fav button sits above via z-10 */}
         <LocalizedLink
-          href={`/listing/${l.id}`}
+          href={listingPath(l)}
           aria-label={l.title}
           className="rounded-sm after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
         >

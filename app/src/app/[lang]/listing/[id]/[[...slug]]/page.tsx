@@ -1,45 +1,23 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { LISTINGS, getListing as getMockListing, formatUSD, type Listing, type PropType } from '@/data/listings'
+import { notFound, permanentRedirect } from 'next/navigation'
+import { LISTINGS, getListing as getMockListing, formatUSD } from '@/data/listings'
 import { getListing as getDbListing } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
-import { ka, type DictKey } from '@/lib/i18n/ka'
-import { DEALS as SEO_DEALS } from '@/lib/seo-pages'
-import { cap1, fillTpl, seoTitleParts } from '@/lib/seo-title'
+import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { langAlternates } from '@/lib/i18n/server'
 
-/** Title-slot type labels — the SEO keyword forms (კომერციული ფართი, not კომერციული). */
-const TITLE_TYPE: Record<PropType, DictKey> = {
-  apartment: 'prop.apartment',
-  house: 'prop.houseShort',
-  villa: 'prop.villa',
-  commercial: 'add.titleType.commercial',
-  land: 'prop.land',
-  hotel: 'prop.hotel',
-}
-
-/** Keyword-first detail title: "იყიდება 2-ოთახიანი ბინა ვაკეში" — same engine as the /add-listing default. */
-function seoTitle(l: Listing): string {
-  const dealLabel = l.dealType === 'daily' ? 'ქირავდება დღიურად' : SEO_DEALS[l.dealType].ka
-  const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, district: l.district, city: l.city })
-  return cap1(fillTpl(
-    ka[l.rooms > 0 && l.propType !== 'land' ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'],
-    { deal, rooms: l.rooms, type: ka[TITLE_TYPE[l.propType]], where },
-  ))
-}
-
 // ponytail: dynamicParams default (true) — unknown ids hit notFound() below;
 // `false` crashes `next start` (NoFallbackError) on any unknown-id request.
 export function generateStaticParams() {
-  // ponytail: prerender ka only (today's build surface) — other locales SSR on
+  // ponytail: prerender ka only at the canonical slug URL — other locales SSR on
   // demand via dynamicParams. Upgrade path: per-locale SSG when build budget allows.
-  return LISTINGS.map((l) => ({ lang: 'ka', id: l.id }))
+  return LISTINGS.map((l) => ({ lang: 'ka', id: l.id, slug: [listingSlug(l)] }))
 }
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; slug?: string[] }>
 }
 
 /* Trim to ~155 chars at a word boundary for meta/OG descriptions */
@@ -67,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე`
       : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}/დღე`
         : formatUSD(l.priceUSD)
-  const keyword = seoTitle(l)
+  const keyword = listingKeyword(l)
   const title = `${keyword} — ${price} | Sivrce`
   /* CTR lead: keyword sentence + hard stats before the free text (Google bolds query matches) */
   const stats = [
@@ -80,15 +58,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // (https) photos are served as-is; brand card is the last resort.
   const firstImg = l.images[0] ?? ''
   const og = firstImg ? ogImage(firstImg) : '/images/og.jpg'
+  const path = listingPath(l)
   return {
     title,
     description,
-    alternates: { canonical: `/listing/${l.id}`, languages: langAlternates(`/listing/${l.id}`) },
+    alternates: { canonical: path, languages: langAlternates(path) },
     openGraph: {
       title,
       description,
       type: 'website',
-      url: `https://sivrce.ge/listing/${l.id}`,
+      url: `https://sivrce.ge${path}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
       images: [{ url: og, width: 1200, height: 630, alt: title }],
@@ -103,9 +82,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ListingPage({ params }: PageProps) {
-  const { id } = await params
+  const { id, slug } = await params
   const listing = await getListing(id)
   if (!listing) notFound()
+
+  // Competitor-style canonical: /listing/{id}/{keyword-slug}. Bare /listing/id
+  // (old links, shares) and wrong/garbage slugs 301 to it — juice consolidates.
+  const canonical = listingPath(listing)
+  if (slug?.join('/') !== listingSlug(listing)) permanentRedirect(canonical)
 
   // Deterministic: same dealType + city, exclude self, cap 8 (source order)
   const similar = LISTINGS.filter(
@@ -141,7 +125,7 @@ export default async function ListingPage({ params }: PageProps) {
     '@type': 'RealEstateListing',
     name: listing.title,
     description: listing.description,
-    url: `https://sivrce.ge/listing/${listing.id}`,
+    url: `https://sivrce.ge${canonical}`,
     image: listing.images.map((src) => `https://sivrce.ge${src}`),
     datePosted: listing.postedAt,
     numberOfBedrooms: listing.beds,
@@ -212,7 +196,7 @@ export default async function ListingPage({ params }: PageProps) {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
       { '@type': 'ListItem', position: 2, name: 'ძიება', item: 'https://sivrce.ge/search' },
-      { '@type': 'ListItem', position: 3, name: listing.title, item: `https://sivrce.ge/listing/${listing.id}` },
+      { '@type': 'ListItem', position: 3, name: listing.title, item: `https://sivrce.ge${canonical}` },
     ],
   }
 

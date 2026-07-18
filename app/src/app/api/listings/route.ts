@@ -12,9 +12,11 @@ import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
+import { recomputeNearestPois } from "@/lib/geo/nearest-poi"
 import { attributeListing } from "@/lib/map/attribution"
 import { cityCenter, geocodeListingAddress, parseCoords } from "@/lib/map/geocode"
 import { metroMeters } from "@/lib/map/pois"
+import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -103,6 +105,13 @@ export async function POST(req: NextRequest) {
   }
   const { lat, lng } = coords
 
+  const owner = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { phone: true, phoneVerifiedAt: true },
+  })
+  const phoneVerified =
+    owner?.phoneVerifiedAt && owner.phone === phone ? owner.phoneVerifiedAt : null
+
   const listing = await db.listing.create({
     data: {
       id: randomUUID(),
@@ -146,6 +155,7 @@ export async function POST(req: NextRequest) {
       },
       agent: { name, phone, agency: "" },
       listingPhone: phone,
+      listingPhoneVerifiedAt: phoneVerified,
       // Denormalized filter columns (2026-07-18) — kept in sync with the
       // feature vocabulary + author role at publish time.
       petsAllowed: features.includes("add.f.petsAllowed"),
@@ -157,6 +167,13 @@ export async function POST(req: NextRequest) {
   // Join building floor inventory — sold → unavailable flows through this link.
   // ponytail: fire-and-forget, same as search indexing below.
   void attributeListing(listing.id).catch(() => {})
+  // PostGIS trigger fills location; nearest POI needs seeded `pois` table.
+  void recomputeNearestPois(listing.id).catch(() => {})
+  void linkListingMedia({
+    listingId: listing.id,
+    urls: images,
+    uploadedBy: session.user.id,
+  }).catch(() => {})
 
   // Index into Meilisearch. ponytail: fire-and-forget — a search outage must
   // never block publishing; the admin full-sync route is the backstop.

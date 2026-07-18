@@ -21,6 +21,8 @@ export type PoiCategory =
   | 'metro'
   | 'pharmacy'
   | 'school'
+  | 'university'
+  | 'park'
   | 'shop'
   | 'gym'
   | 'hospital'
@@ -94,7 +96,19 @@ function classify(tags: Record<string, string> | undefined): PoiCategory | null 
   if (tags.station === 'subway' || tags.subway === 'yes') return 'metro'
   if (tags.railway === 'station' && tags.station === 'subway') return 'metro'
   if (tags.amenity === 'pharmacy') return 'pharmacy'
+  if (tags.amenity === 'university' || tags.amenity === 'college') {
+    const n = nameOf(tags) || 'უნივერსიტეტი'
+    // same HE filter as runtime keepUniversityPoi
+    const he =
+      /უნივერსიტეტ|university|აკადემი|academy|კონსერვატორ|კოლეჯ|college|ინსტიტუტ|institute|უნი|თსუ|თსსუ|\bTSU\b|\bGTU\b|\bISU\b|ილიაუნი|ილიას/i
+    if (/ფაკულტეტ/i.test(n) && !he.test(n)) return null
+    if (/(სკოლა|school|kindergarten)/i.test(n) && !he.test(n)) return null
+    if (!he.test(n)) return null
+    return 'university'
+  }
   if (tags.amenity === 'school' || tags.amenity === 'kindergarten') return 'school'
+  // named parks only — unnamed leisure=park floods (~thousands)
+  if (tags.leisure === 'park' && nameOf(tags)) return 'park'
   // ponytail: supermarket+mall only — convenience floods the map (~2k dots).
   if (tags.shop === 'supermarket' || tags.shop === 'mall') return 'shop'
   if (tags.leisure === 'fitness_centre' || tags.amenity === 'gym') return 'gym'
@@ -129,6 +143,10 @@ function fallbackName(cat: PoiCategory): string {
       return 'აფთიაქი'
     case 'school':
       return 'სკოლა'
+    case 'university':
+      return 'უნივერსიტეტი'
+    case 'park':
+      return 'პარკი'
     case 'shop':
       return 'მაღაზია'
     case 'gym':
@@ -153,6 +171,9 @@ async function main() {
   nwr["amenity"="pharmacy"](${t});
   nwr["amenity"="school"](${t});
   nwr["amenity"="kindergarten"](${t});
+  nwr["amenity"="university"](${t});
+  nwr["amenity"="college"](${t});
+  nwr["leisure"="park"]["name"](${t});
   nwr["shop"="supermarket"](${t});
   nwr["shop"="mall"](${t});
   nwr["leisure"="fitness_centre"](${t});

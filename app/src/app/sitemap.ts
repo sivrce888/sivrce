@@ -8,6 +8,7 @@ import { BLOG_POSTS } from '@/data/blog'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
+import { listingPath } from '@/lib/listing-slug'
 
 const BASE = 'https://sivrce.ge'
 
@@ -135,7 +136,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const l of listings) {
     entries.push({
-      path: `/listing/${l.id}`,
+      path: listingPath(l),
       lastModified: new Date(`${l.postedAt}T00:00:00`),
       changeFrequency: 'daily',
       priority: 0.7,

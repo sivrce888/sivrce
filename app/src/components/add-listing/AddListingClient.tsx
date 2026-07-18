@@ -134,6 +134,9 @@ export default function AddListingClient() {
   const [aiUsed, setAiUsed] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [phoneCode, setPhoneCode] = useState('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [phoneBusy, setPhoneBusy] = useState(false)
   const [messengers, setMessengers] = useState<string[]>(['WhatsApp', 'Viber'])
   const [terms, setTerms] = useState(false)
 
@@ -1286,8 +1289,74 @@ export default function AddListingClient() {
                         <label className={label}>{t('add.phone')} *</label>
                         <div className="relative">
                           <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11 ${err(!PHONE_RE.test(phone))}`} placeholder={t('add.phonePh')} value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} />
+                          <input
+                            className={`${input} pl-11 ${err(!PHONE_RE.test(phone))}`}
+                            placeholder={t('add.phonePh')}
+                            value={phone}
+                            onChange={(e) => {
+                              setPhone(formatPhone(e.target.value))
+                              setPhoneVerified(false)
+                            }}
+                          />
                         </div>
+                        {PHONE_RE.test(phone) && (
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            {!phoneVerified ? (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={phoneBusy}
+                                  onClick={async () => {
+                                    setPhoneBusy(true)
+                                    try {
+                                      await fetch('/api/phone/send-code', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ phone }),
+                                      })
+                                    } finally {
+                                      setPhoneBusy(false)
+                                    }
+                                  }}
+                                  className="rounded-full border border-sv-ink/12 bg-sv-surface px-3.5 py-2 text-[12px] font-extrabold text-sv-ink/75 transition-colors hover:border-sv-blue/40 hover:text-sv-blue disabled:opacity-50"
+                                >
+                                  {t('add.phoneSendCode')}
+                                </button>
+                                <input
+                                  className={`${input} max-w-[140px] py-2 text-[13px]`}
+                                  placeholder={t('add.phoneCodePh')}
+                                  value={phoneCode}
+                                  onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                  inputMode="numeric"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={phoneBusy || phoneCode.length < 4}
+                                  onClick={async () => {
+                                    setPhoneBusy(true)
+                                    try {
+                                      const r = await fetch('/api/phone/verify-code', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ phone, code: phoneCode }),
+                                      })
+                                      if (r.ok) setPhoneVerified(true)
+                                    } finally {
+                                      setPhoneBusy(false)
+                                    }
+                                  }}
+                                  className="rounded-full bg-sv-blue px-3.5 py-2 text-[12px] font-extrabold text-white disabled:opacity-50"
+                                >
+                                  {t('add.phoneVerify')}
+                                </button>
+                              </>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 text-[12px] font-extrabold text-sv-blue">
+                                <BadgeCheck className="h-4 w-4" /> {t('add.phoneVerified')}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 

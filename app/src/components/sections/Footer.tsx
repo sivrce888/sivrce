@@ -4,6 +4,10 @@ import Link from 'next/link'
 import { Mail, Phone, MapPin } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
+import { footerKeywordCols, type SeoLoc } from '@/lib/seo-pages'
+
+/** Exact-query keyword columns — computed once from the static catalog. */
+const KEYWORD_COLS = footerKeywordCols()
 
 const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
   {
@@ -44,6 +48,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
 
 export default function Footer() {
   const { t, lang } = useI18n()
+  const loc: SeoLoc = lang === 'en' || lang === 'ru' ? lang : 'ka'
 
   return (
     <footer className="relative overflow-hidden border-t border-white/[0.07] bg-sv-navy">
@@ -87,6 +92,30 @@ export default function Footer() {
             </div>
           ))}
         </div>
+
+        {/* Exact-query keyword columns (ss.ge/myhome pattern) — anchors match
+            each hub page's <h1>; only inventory-carrying pages are linked. */}
+        <nav aria-label="Popular searches" className="mt-14 border-t border-white/[0.07] pt-10">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {KEYWORD_COLS.map((c) => (
+              <div key={c.id}>
+                <h4 className="text-[12px] font-black uppercase tracking-wider text-white/45">{c.title[loc]}</h4>
+                <ul className="mt-4 space-y-2.5">
+                  {c.links.map((l) => (
+                    <li key={l.href}>
+                      <Link
+                        href={localizedHref(l.href, lang)}
+                        className="text-[13px] font-semibold text-white/55 transition-colors hover:text-white"
+                      >
+                        {l.label[loc]}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </nav>
 
         <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.07] pt-8">
           <p className="text-[13px] font-semibold text-white/55">

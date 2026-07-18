@@ -5,6 +5,7 @@
  */
 
 import { Prisma } from "@/generated/prisma/client"
+import { nearMetroWhere } from "@/lib/geo/nearest-poi-pure"
 import { USD_GEL } from "@/data/listings"
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from "@/lib/features"
 import { districtSearchValues } from "@/lib/district-canon"
@@ -143,6 +144,9 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.verifiedOnly) where.verified = true
   if (filters.petsOnly) where.petsAllowed = true
   if (filters.sellerType) where.sellerType = filters.sellerType
+  // Uses listing_nearest_poi (PostGIS ST_DWithin backfill). Empty table → no matches
+  // until /api/cron/sync-nearest-poi?seed=1 runs — same as before for alerts.
+  if (filters.nearMetro) and.push(nearMetroWhere())
 
   // Daily-rent availability: drop listings whose confirmed/pending bookings or
   // host-blocked dates overlap the requested [from, to) window. Half-open

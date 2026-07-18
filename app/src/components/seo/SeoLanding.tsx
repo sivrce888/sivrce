@@ -11,6 +11,7 @@ import { formatUSD } from '@/data/listings'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+import { listingPath } from '@/lib/listing-slug'
 import {
   dealLabel,
   h1Of,
@@ -152,7 +153,7 @@ function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
         itemListElement: def.listings.slice(0, 30).map((l, i) => ({
           '@type': 'ListItem',
           position: i + 1,
-          url: `${BASE}${p}/listing/${l.id}`,
+          url: `${BASE}${p}${listingPath(l)}`,
           name: l.title,
         })),
       },

@@ -7,11 +7,19 @@ import type { FilterSpecification } from 'maplibre-gl'
 import raw from '@/data/tbilisi-pois.json'
 import { BRAND } from '@/lib/brand'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
+import {
+  METRO_MAX_CATCHMENT_M,
+  METRO_NEAR_M,
+} from '@/lib/geo/nearest-poi-constants'
+
+export { METRO_NEAR_M }
 
 export const POI_CATEGORIES = [
   'metro',
   'pharmacy',
   'school',
+  'university',
+  'park',
   'shop',
   'gym',
   'hospital',
@@ -27,29 +35,57 @@ export type MapPoi = {
   lng: number
 }
 
-/** ~10 min walk — RE “near metro” default. */
-export const METRO_NEAR_M = 800
-
 /** Beyond this, hide metro chip (not Tbilisi catchment). */
-const METRO_MAX_SHOW_M = 2500
+const METRO_MAX_SHOW_M = METRO_MAX_CATCHMENT_M
 
 /** Default: metro only — highest RE signal, least clutter. */
 export const POI_DEFAULT_ON: readonly PoiCategory[] = ['metro']
 
+/** Dense OSM cats appear later — less clutter when toggled on. */
+export const POI_MIN_ZOOM: Record<PoiCategory, number> = {
+  metro: 11,
+  university: 11.5,
+  hospital: 12,
+  shop: 12,
+  park: 12,
+  gym: 12.5,
+  school: 13,
+  pharmacy: 13.5,
+}
+
+/** Fallback KA labels — UI prefers i18n `map.poi.*`. */
 export const POI_LABELS: Record<PoiCategory, string> = {
   metro: 'მეტრო',
   pharmacy: 'აფთიაქი',
   school: 'სკოლა',
+  university: 'უნივერსიტეტი',
+  park: 'პარკი',
   shop: 'მარკეტი',
   gym: 'სპორტდარბაზი',
   hospital: 'კლინიკა',
+}
+
+/**
+ * Drop OSM college/faculty noise tagged as university/college.
+ * Keep named HE institutions (uni / academy / college / institute).
+ */
+export function keepUniversityPoi(name: string): boolean {
+  const n = name.trim()
+  if (!n) return false
+  const he =
+    /უნივერსიტეტ|university|აკადემი|academy|კონსერვატორ|კოლეჯ|college|ინსტიტუტ|institute|უნი|თსუ|თსსუ|\bTSU\b|\bGTU\b|\bISU\b|ილიაუნი|ილიას/i
+  if (/ფაკულტეტ/i.test(n) && !he.test(n)) return false
+  if (/(სკოლა|school|kindergarten)/i.test(n) && !he.test(n)) return false
+  return he.test(n)
 }
 
 /** Locked category hues only — no new brand hex. */
 export const POI_COLORS: Record<PoiCategory, string> = {
   metro: BRAND.colors.blue,
   pharmacy: CATEGORY_BRAND.dailyRent.hue,
-  school: CATEGORY_BRAND.cottages.hue,
+  school: CATEGORY_BRAND.newProjects.hue,
+  university: CATEGORY_BRAND.land.hue,
+  park: CATEGORY_BRAND.cottages.hue,
   shop: CATEGORY_BRAND.commercial.hue,
   gym: CATEGORY_BRAND.houses.hue,
   hospital: CATEGORY_BRAND.hotels.hue,
@@ -61,9 +97,11 @@ export function isPoiCategory(v: string): v is PoiCategory {
   return CAT_SET.has(v)
 }
 
-export const MAP_POIS: MapPoi[] = (raw.pois as MapPoi[]).filter((p) =>
-  isPoiCategory(p.category),
-)
+export const MAP_POIS: MapPoi[] = (raw.pois as MapPoi[]).filter((p) => {
+  if (!isPoiCategory(p.category)) return false
+  if (p.category === 'university') return keepUniversityPoi(p.name)
+  return true
+})
 
 export const METRO_STATIONS: MapPoi[] = MAP_POIS.filter((p) => p.category === 'metro')
 
@@ -132,6 +170,7 @@ export function poisToGeoJSON(
         name: p.name,
         color: POI_COLORS[p.category],
         label: POI_LABELS[p.category],
+        icon: `sv-poi-${p.category}`,
       },
       geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
     })),
@@ -155,9 +194,14 @@ export function serializePoiPrefs(cats: readonly PoiCategory[]): string {
   return cats.join(',')
 }
 
-export function poiFilterSpec(enabled: readonly PoiCategory[]): FilterSpecification {
-  if (enabled.length === 0) {
+/** Zoom-aware: dense categories stay hidden until closer. */
+export function poiFilterSpec(
+  enabled: readonly PoiCategory[],
+  zoom = 22,
+): FilterSpecification {
+  const visible = enabled.filter((c) => zoom + 1e-6 >= POI_MIN_ZOOM[c])
+  if (visible.length === 0) {
     return ['==', ['get', 'category'], '__none__']
   }
-  return ['in', ['get', 'category'], ['literal', [...enabled]]]
+  return ['in', ['get', 'category'], ['literal', [...visible]]]
 }

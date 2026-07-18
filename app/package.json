@@ -20,6 +20,9 @@
     "check:attribution": "npx --yes tsx src/lib/map/attribution.check.ts",
     "check:geocode": "npx --yes tsx src/lib/map/geocode.check.ts",
     "check:search": "npx --yes tsx src/lib/search.check.ts",
+    "check:geo": "npx --yes tsx src/lib/geo/nearest-poi.check.ts",
+    "check:cron": "npx --yes tsx src/lib/jobs/expire-and-sync.check.ts",
+    "check:sms": "npx --yes tsx src/lib/sms/twilio-verify.check.ts",
     "check:seo-title": "npx --yes tsx src/lib/seo-title.check.ts",
     "check:seo-hub": "npx --yes tsx src/lib/seo-hub.check.ts",
     "check:media": "npx --yes tsx src/lib/media.check.ts",
@@ -30,7 +33,8 @@
     "mobile:ios": "npx cap sync ios && npx cap open ios",
     "mobile:android": "npx cap sync android && npx cap open android",
     "mobile:dev": "NEXT_PUBLIC_CAPACITOR=true next dev -p 3000",
-    "mobile:build": "next build && npx cap sync"
+    "mobile:build": "next build && npx cap sync",
+    "check:seo-slug": "npx --yes tsx src/lib/listing-slug.check.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.18",
