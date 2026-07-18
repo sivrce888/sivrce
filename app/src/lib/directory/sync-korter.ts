@@ -179,7 +179,7 @@ async function listDevelopers(geoSlug: string): Promise<KorterDev[]> {
     const state = await fetchState(`${BASE}/en/developers-in-${geoSlug}?page=${page}`)
     await sleep(80)
     const store = state?.developerListingStore
-    const batch: any[] = store?.developers ?? []
+    const batch = store?.developers ?? []
     for (const d of batch) {
       out.push({
         developerId: d.developerId,

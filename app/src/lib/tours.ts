@@ -6,19 +6,6 @@
 import { db } from "@/lib/db"
 import type { TourStatus } from "@/generated/prisma/client"
 
-export interface CreateTourInput {
-  listingId: string
-  agentId: string | null
-  guestId?: string
-  userId?: string | null
-  tourDate: Date
-  tourTime: string
-  guestName: string
-  guestPhone: string
-  guestEmail?: string
-  guestNotes?: string
-}
-
 /** Fallback booking window when an agent (or owner-hosted listing) has no availability configured. */
 const DEFAULT_WINDOW = { start: "10:00", end: "18:00", slotDuration: 30 }
 
@@ -146,8 +133,6 @@ export async function getBookableSlots(listingId: string, agentId: string | null
 
   // Same-day bookings: keep a 60-minute lead time (Tbilisi clock).
   const now = tbilisiNow()
-  const todayTbilisi = toHHMM(now.getUTCHours()) // only used via min compare below
-  void todayTbilisi
   if (date.getTime() === Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())) {
     const minLead = now.getUTCHours() * 60 + now.getUTCMinutes() + 60
     return slots.filter((s) => toMin(s) >= minLead)

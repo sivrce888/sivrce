@@ -6,33 +6,58 @@
  * Dark = navy brand lifts (readable, not flat black).
  */
 
-import type { Map as MlMap } from 'maplibre-gl'
+import type { Map as MlMap, StyleSpecification } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { EMPTY_FLOORS } from './floors'
+import { loadCleanStyle } from '@/lib/map/mapChrome'
 
 // Defaults are first-party proxy paths — browser never sees openfreemap.org.
 export const STYLE_LIGHT =
   process.env.NEXT_PUBLIC_MAP_STYLE_URL_LIGHT ?? '/api/map/styles/liberty'
 export const STYLE_CLEAN =
   process.env.NEXT_PUBLIC_MAP_STYLE_URL_CLEAN ?? '/api/map/styles/positron'
-export const STYLE_BRIGHT =
-  process.env.NEXT_PUBLIC_MAP_STYLE_URL_BRIGHT ?? '/api/map/styles/bright'
 export const STYLE_DARK =
   process.env.NEXT_PUBLIC_MAP_STYLE_URL_DARK ??
   process.env.NEXT_PUBLIC_MAP_STYLE_URL ??
   '/api/map/styles/dark'
+/** Sentinel — not a URL; loadMapBasemap builds Esri raster style. */
+export const STYLE_SATELLITE = 'satellite:esri'
 
-/** Light basemap family — dark theme always uses STYLE_DARK. */
-export type MapTerrain = 'streets' | 'clean' | 'bright'
+/** streets/clean = OFM; satellite = Esri imagery (works in light + dark). */
+export type MapTerrain = 'streets' | 'clean' | 'satellite'
 
 /** @deprecated use mapStyleUrl(dark) — kept for one-off env lock */
 export const STYLE_URL = STYLE_DARK
 
 export function mapStyleUrl(dark: boolean, terrain: MapTerrain = 'streets'): string {
+  if (terrain === 'satellite') return STYLE_SATELLITE
   if (dark) return STYLE_DARK
   if (terrain === 'clean') return STYLE_CLEAN
-  if (terrain === 'bright') return STYLE_BRIGHT
   return STYLE_LIGHT
+}
+
+/** Esri World Imagery — ponytail: direct tiles; proxy if Esri rate-limits. */
+export function satelliteStyle(): StyleSpecification {
+  return {
+    version: 8,
+    sources: {
+      esri: {
+        type: 'raster',
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        ],
+        tileSize: 256,
+        attribution: '© Esri',
+        maxzoom: 19,
+      },
+    },
+    layers: [{ id: 'esri-sat', type: 'raster', source: 'esri' }],
+  }
+}
+
+export async function loadMapBasemap(styleKey: string): Promise<StyleSpecification> {
+  if (styleKey === STYLE_SATELLITE) return satelliteStyle()
+  return loadCleanStyle(styleKey)
 }
 
 export const FLOORS_SOURCE_ID = 'sivrce-floors'
