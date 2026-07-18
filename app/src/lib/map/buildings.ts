@@ -364,6 +364,8 @@ export function projectsToConstructionBuildings(
   const catalogProjectSlugs = new Set(
     BUILDINGS.map((b) => b.projectSlug).filter(Boolean) as string[],
   )
+  // ponytail: SEO alias shares the catalog pin — don't drop a second massing on top.
+  catalogProjectSlugs.add('axis-towers-vake')
   return projects
     .filter(
       (p) =>

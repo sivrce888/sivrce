@@ -48,7 +48,7 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     floors: 24,
     units: 150,
     rating: 4.8,
-    projectSlug: 'axis-towers-vake',
+    projectSlug: 'axis-towers',
     status: 'ready',
     description: {
       ka: 'აქსის თაუერსი — ჩავჭავაძის 37, ვაკე. ორი კოშკი, 24 სართ., მიწისქვეშა პარკინგი, კომერციული სარდაფი. ხედი ვაკის პარკისა და ცენტრისკენ.',
