@@ -1,14 +1,14 @@
 /**
  * Live directory: merges Neon rows over the static catalog.
- * Developers: owner-claimed rows (ownerId set) override their static entry.
- * Projects: any non-draft row overrides same-slug OR same-name static entry
- * with exact address / lat / lng from korter; unmatched rows append as cards.
+ * Developers: logoUrl/website from any DB row; owner-claimed rows also
+ * override name/city/description. Projects: non-draft rows overlay
+ * address / lat / lng / render; unmatched append as cards.
  *
  * ponytail: DB-only developer profiles stay off public pages until curated.
  */
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
-import { DEVELOPERS, PROJECTS, type Developer, type Project } from '@/data/professionals'
+import { DEVELOPERS, PROJECTS, getDeveloper, type Developer, type Project } from '@/data/professionals'
 
 export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
 
@@ -118,26 +118,80 @@ export function mergeProjectsLive(staticProjects: Project[], rows: ProjectRow[])
   return merged
 }
 
+function applyDeveloperRow(
+  d: Developer,
+  r: {
+    slug: string
+    name: string
+    headquarters: string
+    description: string
+    completedCount: number
+    logoUrl: string | null
+    ownerId: string | null
+  },
+): Developer {
+  const owned = r.ownerId != null
+  return {
+    ...d,
+    ...(r.logoUrl ? { logoUrl: r.logoUrl } : {}),
+    ...(owned
+      ? {
+          name: { ka: r.name, en: r.name, ru: r.name },
+          city: r.headquarters,
+          description: { ka: r.description, en: r.description, ru: r.description },
+          projectsDone: r.completedCount || d.projectsDone,
+          verified: true,
+        }
+      : {}),
+  }
+}
+
 export async function developersLive(): Promise<Developer[]> {
   const rows = await safeQuery(
     () =>
-      db.developerProfile.findMany({ where: { deletedAt: null, ownerId: { not: null } } }),
+      db.developerProfile.findMany({
+        where: { deletedAt: null },
+        select: {
+          slug: true,
+          name: true,
+          headquarters: true,
+          description: true,
+          completedCount: true,
+          logoUrl: true,
+          ownerId: true,
+        },
+      }),
     [],
   )
   if (rows.length === 0) return DEVELOPERS
-  const owned = new Map(rows.map((r) => [r.slug, r]))
+  const bySlug = new Map(rows.map((r) => [r.slug, r]))
   return DEVELOPERS.map((d) => {
-    const r = owned.get(d.slug)
-    if (!r) return d
-    return {
-      ...d,
-      name: { ka: r.name, en: r.name, ru: r.name },
-      city: r.headquarters,
-      description: { ka: r.description, en: r.description, ru: r.description },
-      projectsDone: r.completedCount || d.projectsDone,
-      verified: true,
-    }
+    const r = bySlug.get(d.slug)
+    return r ? applyDeveloperRow(d, r) : d
   })
+}
+
+/** Single developer with korter logo overlay. */
+export async function getLiveDeveloper(slug: string): Promise<Developer | null> {
+  const base = getDeveloper(slug)
+  if (!base) return null
+  const r = await safeQuery(
+    () =>
+      db.developerProfile.findFirst({
+        where: { slug, deletedAt: null },
+        select: {
+          slug: true,
+          name: true,
+          headquarters: true,
+          description: true,
+          completedCount: true,
+          logoUrl: true,
+          ownerId: true,
+        },
+      }),
+    null,
+  )
+  return r ? applyDeveloperRow(base, r) : base
 }
 
 const PROJECT_SELECT = {

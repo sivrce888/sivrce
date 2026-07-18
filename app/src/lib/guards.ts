@@ -29,7 +29,9 @@ export async function requireUser(callbackUrl = "/dashboard"): Promise<SessionUs
 export function dashboardPathFor(role: UserRole): string {
   switch (role) {
     case "admin":
-      return "/admin"
+      // Staff tools live at /admin (and admin.sivrce.ge). Site "dashboard"
+      // should open the seller panel so listing owners aren't trapped in admin.
+      return "/seller"
     case "agency":
       return "/agency"
     case "agent":

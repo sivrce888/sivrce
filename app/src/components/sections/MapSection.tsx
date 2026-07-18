@@ -95,6 +95,7 @@ export default function MapSection() {
                   zoom={13}
                   mode="view"
                   aspect="16/9"
+                  interactive={false}
                   className="border-0 shadow-none pointer-events-none"
                 />
                 <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-sv-navy/70 via-transparent to-transparent pb-8">

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { BadgeCheck, MapPin, Phone } from 'lucide-react'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import type { LocalName } from '@/data/professionals'
@@ -17,9 +18,11 @@ export interface EntityHeaderProps {
   stats: { key: EntitiesKey; value: string | number }[]
   /** agency name (agents) or tagline context */
   subtitle?: string
+  /** Official developer logo URL (korter GCS) */
+  logoUrl?: string
 }
 
-export function EntityHeader({ kind, name, city, verified, phone, stats, subtitle }: EntityHeaderProps) {
+export function EntityHeader({ kind, name, city, verified, phone, stats, subtitle, logoUrl }: EntityHeaderProps) {
   const { lang, d } = useEntities()
   const brand = SERVICE_BRAND[kind === 'developer' ? 'developers' : 'agents']
   const displayName = pick(name, lang)
@@ -31,18 +34,27 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
     <header className="border-b border-sv-ink/[0.06] bg-sv-cloud">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:justify-between md:px-10 md:py-14">
         <div className="flex items-start gap-5">
-          <span
-            aria-hidden
-            className="grid h-20 w-20 shrink-0 place-items-center rounded-card text-[28px] font-black md:h-24 md:w-24"
-            style={{ color: brand.hue, backgroundColor: brand.chip }}
-          >
-            {displayName
-              .split(/\s+/)
-              .map((w) => w[0] ?? '')
-              .join('')
-              .slice(0, 2)
-              .toUpperCase()}
-          </span>
+          {logoUrl ? (
+            <span
+              aria-hidden
+              className="relative h-20 w-20 shrink-0 overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface md:h-24 md:w-24"
+            >
+              <Image src={logoUrl} alt="" fill sizes="96px" className="object-contain p-2" />
+            </span>
+          ) : (
+            <span
+              aria-hidden
+              className="grid h-20 w-20 shrink-0 place-items-center rounded-card text-[28px] font-black md:h-24 md:w-24"
+              style={{ color: brand.hue, backgroundColor: brand.chip }}
+            >
+              {displayName
+                .split(/\s+/)
+                .map((w) => w[0] ?? '')
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()}
+            </span>
+          )}
           <div>
             <span
               className="mb-2 inline-block rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"

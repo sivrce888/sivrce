@@ -153,7 +153,29 @@ const DEV_ALIAS = new Map([
   [norm("Ande Group"), "ande-group"],
   [norm("Kolos"), "kolos"],
   [norm("One Development"), "x2-development"],
+  [norm("m²"), "m2-development"],
+  [norm("m2"), "m2-development"],
+  [norm("Anagi Development"), "anagi"],
+  [norm("Anagi"), "anagi"],
+  [norm("Milestone"), "milestone-development"],
+  [norm("Silk Development"), "silk-development"],
+  [norm("Apart Development"), "apart-group"],
+  [norm("Elt Building"), "elt-group"],
+  [norm("Horizon Batumi"), "horizon-group"],
 ])
+
+/** Curated slug → korter slug that already has the official logo. */
+const LOGO_SLUG_ALIAS: Record<string, string> = {
+  "m2-development": "m-development",
+  anagi: "anagi-development",
+  "milestone-development": "milestone",
+  "silk-development": "silk-road-group",
+  "apart-group": "apart-development",
+  "elt-group": "elt-building",
+  "horizon-group": "horizons-group",
+  "one-development": "x2-development",
+  "ambassadori-group": "ambassadori-batumi-island",
+}
 
 export type SyncKorterResult = {
   developersSeen: number
@@ -164,6 +186,7 @@ export type SyncKorterResult = {
   withCoords: number
   mapBuildingsUpserted: number
   draftsActivated: number
+  logosAliased: number
 }
 
 async function listGeos(): Promise<string[]> {
@@ -286,13 +309,22 @@ export async function syncKorterDirectory(
         ourSlug = slug
       }
     } else if (website || logoUrl) {
-      await db.developerProfile.update({
-        where: { slug: ourSlug },
-        data: {
-          ...(website ? { website: clip(website, 200) } : {}),
-          ...(logoUrl ? { logoUrl: clip(logoUrl, 320) } : {}),
-        },
-      })
+      // ponytail: Neon free-tier socket timeouts under 6-wide concurrency.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await db.developerProfile.update({
+            where: { slug: ourSlug },
+            data: {
+              ...(website ? { website: clip(website, 200) } : {}),
+              ...(logoUrl ? { logoUrl: clip(logoUrl, 320) } : {}),
+            },
+          })
+          break
+        } catch (e) {
+          if ((e as { code?: string }).code !== "P1008" || attempt === 2) throw e
+          await sleep(400 * (attempt + 1))
+        }
+      }
     }
 
     if (!ourSlug) return
@@ -386,9 +418,10 @@ export async function syncKorterDirectory(
   }
 
   const devs = [...seen.values()]
-  for (let i = 0; i < devs.length; i += 6) {
-    await Promise.all(devs.slice(i, i + 6).map(importDeveloper))
-    await sleep(80)
+  // ponytail: 3-wide — Neon socket timeout at 6 under full refresh.
+  for (let i = 0; i < devs.length; i += 3) {
+    await Promise.all(devs.slice(i, i + 3).map(importDeveloper))
+    await sleep(120)
     if (i > 0 && i % 150 === 0) log(`  …${i}/${devs.length} developers processed`)
   }
 
@@ -397,6 +430,29 @@ export async function syncKorterDirectory(
     where: { status: "draft", deletedAt: null },
     data: { status: "active" },
   })
+
+  // Copy logos from korter twin slugs onto curated profiles (m2 ↔ m², etc.).
+  let logosAliased = 0
+  for (const [curated, twin] of Object.entries(LOGO_SLUG_ALIAS)) {
+    const src = await db.developerProfile.findUnique({
+      where: { slug: twin },
+      select: { logoUrl: true, website: true },
+    })
+    if (!src?.logoUrl) continue
+    const dst = await db.developerProfile.findUnique({
+      where: { slug: curated },
+      select: { logoUrl: true, website: true },
+    })
+    if (!dst || dst.logoUrl) continue
+    await db.developerProfile.update({
+      where: { slug: curated },
+      data: {
+        logoUrl: src.logoUrl,
+        ...(src.website && !dst.website ? { website: src.website } : {}),
+      },
+    })
+    logosAliased++
+  }
 
   return {
     developersSeen: seen.size,
@@ -407,5 +463,6 @@ export async function syncKorterDirectory(
     withCoords,
     mapBuildingsUpserted,
     draftsActivated: activated.count,
+    logosAliased,
   }
 }

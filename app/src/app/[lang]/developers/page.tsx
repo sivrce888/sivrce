@@ -67,6 +67,7 @@ export default async function DevelopersPage() {
                 listingsCount={listingCountByCity(d.city)}
                 verified={d.verified}
                 aggregate={aggregate}
+                logoUrl={d.logoUrl}
               />
             ))}
           </div>
