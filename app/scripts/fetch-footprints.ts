@@ -169,8 +169,18 @@ function saveOut(out: Record<string, Footprint | null>) {
 }
 
 async function main() {
-  // ponytail: optional ID allowlist — `npx tsx scripts/fetch-footprints.ts dev-blox-mukhiani …`
-  const only = new Set(process.argv.slice(2).filter((a) => !a.startsWith('-')))
+  // ponytail: optional ID allowlist — argv ids, or `--file=ids.txt` (one id per line)
+  const fileArg = process.argv.find((a) => a.startsWith('--file='))
+  const fromFile = fileArg
+    ? readFileSync(fileArg.slice('--file='.length), 'utf8')
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter((s) => s.startsWith('dev-') || s.startsWith('bldg-'))
+    : []
+  const only = new Set([
+    ...fromFile,
+    ...process.argv.slice(2).filter((a) => !a.startsWith('-')),
+  ])
   const force = process.argv.includes('--force')
   const list = only.size > 0 ? targets().filter((t) => only.has(t.id)) : targets()
   const out = loadOut() // resumable: rerun continues where it stopped
