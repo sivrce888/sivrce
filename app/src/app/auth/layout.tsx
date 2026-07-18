@@ -4,7 +4,8 @@ import I18nProvider from "@/components/I18nProvider";
 import PostHogProvider from "@/components/PostHogProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
-import "../globals.css";
+// globals.css: app/layout.tsx (root). Importing only here used to work; keep
+// root as the single CSS entry so [lang] pages never lose the stylesheet.
 
 /**
  * Tiny second root layout for the /auth tree (signin/signup/reset/onboarding).

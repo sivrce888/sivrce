@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.5) · FROZEN 2026-07-17 · +6 collection hues 2026-07-18
+# სივრცე — Brand Lock (v1.6) · FROZEN 2026-07-17 · Logo v3 Spark Star 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -10,7 +10,7 @@ version bump in this file + matching updates to the three code sources below.
 | JS tokens | `app/src/lib/brand.ts` |
 | Category / deal / service hues | `app/src/lib/category-brand.ts` |
 | CSS + Tailwind `@theme` | `app/src/app/globals.css` |
-| Logo geometry | `logo/README.md` + `app/src/components/Logo.tsx` |
+| Logo geometry | `logo/v3/README.md` + `app/src/components/Logo.tsx` |
 
 ## 0. Enforcement (how to build UI)
 
@@ -57,25 +57,33 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 - **Personality:** premium, calm, technological, trustworthy — Apple-grade restraint
 
 ## 2. Logo
-- `LogoMark` — blue squircle (r=14/48), white infinite-S path, **orange space point** at bottom-right
-- **Geometry lock (48-unit grid):** S = `M32.649 15.143 A9.2 6.6 0 1 0 24 24 A9.2 6.6 0 1 1 15.351 32.857`,
-  stroke 6.4 (7.0 below 32 px), round caps, exact 180° symmetry about (24,24);
-  point = circle (38.2, 38.2) r=3.0 (3.3 below 32 px). Masters: `logo/assets/`, see `logo/README.md`
-- Never recolor, rotate, outline, or place on busy backgrounds without a dark scrim
-- Min clear space = 50% of tile size on all sides
+- `LogoMark` — **Spark Star** (v3, owner-approved 2026-07-18): four crescent
+  blades, exact 90° rotational symmetry about (24,24), pinwheel void at center;
+  gradient `#8FB4FF→#2E6BFF→#7A5CFF` landing on the **orange point** (bottom
+  tip) — the home inside the space, rhyming with the wordmark's orange period
+- **Geometry lock (48-unit grid):** crescent spine sway 2.0 · width peak 5.7 at
+  ~41% from tip · tips radius 20.8 (3.2 margin), hook 1.4 clockwise · void
+  radius 1.9 · optical masters: display / small ≤32 px (blades ×1.28) / micro
+  ≤16 px (blades ×1.45). Masters: `logo/v3/assets/`, contract + generator:
+  `logo/v3/README.md`, `logo/v3/build_v3.py`
+- Never recolor, rotate, outline, add effects, or place on busy backgrounds
+  without a dark scrim
+- Min clear space = 25% of mark on all sides
 - Wordmark: Manrope 800, tracking −0.045em, lowercase, orange final period (`text-sv-orange`)
+- Legacy: v1 blue-tile Space Point + v2 retired to `logo/assets/`, `logo/v2/`
+  (history only — never ship them)
 
 ### 2.1 Sivrce Spark — AI sub-brand mark (added v1.3, owner-approved 2026-07-17)
 
 - `SparkMark` — two crescent blades (48-grid), exact 180° rotational symmetry
-  about (24,24) — one family with the Space Point
+  about (24,24) — one family with the Spark Star
 - Blade A gradient: `#8FB4FF → #2E6BFF → #7A5CFF` · Blade B gradient:
   `#7A5CFF → #FF4D6D → #FF6A2D` (orange tip echoes the space point)
 - Geometry lock: blade A `M24 3.2 Q21.4 21.4 3.2 24 Q25.2 25.2 24 3.2 Z`,
   blade B = exact 180° rotation. Masters: `logo/assets/sivrce-spark*.svg`
   (`logo/build_spark.py`), contract in `logo/README.md`
 - **AI features only** (AI search, assistant, recommendations) — never replaces
-  the Space Point master identity, never a category/deal icon, never recolored
+  the Spark Star master identity, never a category/deal icon, never recolored
 - Component: `app/src/components/SparkMark.tsx` (token vars only, no raw hex)
 
 ## 3. Color

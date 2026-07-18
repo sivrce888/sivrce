@@ -40,26 +40,33 @@ function matches(hay: (string | undefined)[], q: string): { prefix: boolean } | 
 }
 
 export async function GET(req: Request) {
-  const q = norm((new URL(req.url).searchParams.get("q") ?? "").trim())
+  const sp = new URL(req.url).searchParams
+  const q = norm((sp.get("q") ?? "").trim())
   if (q.length < 2) return Response.json({ ok: true, suggestions: [] })
+  // ponytail: optional city scopes streets + districts to that city
+  const cityFilter = (sp.get("city") ?? "").trim() || undefined
 
   const prefix: Suggestion[] = []
   const partial: Suggestion[] = []
   const push = (s: Suggestion, p: boolean) => (p ? prefix : partial).push(s)
 
-  for (const city of CITIES) {
-    const m = matches([city], q)
-    if (m) push({ kind: "city", ka: city }, m.prefix)
+  if (!cityFilter) {
+    for (const city of CITIES) {
+      const m = matches([city], q)
+      if (m) push({ kind: "city", ka: city }, m.prefix)
+    }
   }
   for (const d of DISTRICTS) {
+    if (cityFilter && d.city !== cityFilter) continue
     const m = matches([d.ka], q)
     if (m) push({ kind: "district", ka: d.ka }, m.prefix)
   }
   for (const s of STREETS) {
+    if (cityFilter && s.city !== cityFilter) continue
     const m = matches([s.ka, s.en, s.ru], q)
     if (m) push({ kind: "street", ka: s.ka, en: s.en }, m.prefix)
   }
 
-  const suggestions = [...prefix, ...partial].slice(0, 8)
+  const suggestions = [...prefix, ...partial].slice(0, 10)
   return Response.json({ ok: true, suggestions })
 }

@@ -88,11 +88,14 @@ function writeCachedRate(rate: number) {
  * ponytail: global fetch + cache; per-account rate sources if multi-currency matters.
  */
 export function useLiveRate(): number {
-  const [rate, setRate] = useState(() => readCachedRate() ?? USD_GEL_FALLBACK)
+  // ponytail: always init from fallback — reading localStorage in useState makes
+  // the first client render differ from SSR HTML (hydration mismatch on every price).
+  const [rate, setRate] = useState(USD_GEL_FALLBACK)
 
   useEffect(() => {
-    // Already have a fresh cached value
-    if (readCachedRate()) return
+    // Fresh cached value wins post-hydration — no fetch needed
+    const cached = readCachedRate()
+    if (cached) { setRate(cached); return }
     // Fetch live rate once, off the boot critical path (fallback rate shows until then)
     const run = () =>
       fetch('https://open.er-api.com/v6/latest/USD')
