@@ -1,10 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Bell, LayoutDashboard, Mail, Shield, UserCog } from "lucide-react"
+import { Bell, BellRing, LayoutDashboard, Mail, Shield, UserCog } from "lucide-react"
 
 import { chooseSelfRole } from "@/app/auth/actions"
 import { toggleListingAlerts } from "@/app/[lang]/settings/actions"
 import DashboardShell from "@/components/dashboard/DashboardShell"
+import { PushToggle } from "@/components/push/PushToggle"
+import { isValidLang } from "@/lib/i18n/core"
+import { getServerT } from "@/lib/i18n/server"
 import {
   CONSUMER_ROLES,
   PRO_ROLES,
@@ -26,7 +29,13 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}) {
+  const { lang: raw } = await params
+  const t = getServerT(isValidLang(raw) ? raw : "ka")
   const user = await requireUser("/settings")
   const home = dashboardPathFor(user.role)
 
@@ -195,6 +204,28 @@ export default async function SettingsPage() {
                   {alertsOn ? "გამორთვა" : "ჩართვა"}
                 </button>
               </form>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
+          <div className="flex items-start gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+              <BellRing size={18} aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[15px] font-extrabold text-sv-ink">{t("settings.push.title")}</h2>
+              <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+                {t("settings.push.desc")}
+              </p>
+              <PushToggle
+                labels={{
+                  enable: t("settings.push.enable"),
+                  disable: t("settings.push.disable"),
+                  denied: t("settings.push.denied"),
+                  unsupported: t("settings.push.unsupported"),
+                }}
+              />
             </div>
           </div>
         </section>

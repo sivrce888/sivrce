@@ -387,6 +387,14 @@ export const ar: Dict = {
   'fav.empty': 'لم تحفظ شيئًا بعد — اضغط على القلب في أي إعلان وسيظهر هنا.',
   'fav.browse': 'تصفح الإعلانات',
 
+  // Push notifications (settings)
+  'settings.push.title': 'الإشعارات الفورية',
+  'settings.push.desc': 'استلم إشعارات حول الإعلانات الجديدة وتغيّر الأسعار — على هذا الجهاز.',
+  'settings.push.enable': 'تفعيل',
+  'settings.push.disable': 'إيقاف',
+  'settings.push.denied': 'الإشعارات محظورة في المتصفح — فعّلها من إعدادات المتصفح.',
+  'settings.push.unsupported': 'هذا المتصفح لا يدعم الإشعارات الفورية.',
+
   // a11y
   'a11y.skipToContent': 'تخطى إلى المحتوى الرئيسي',
 }

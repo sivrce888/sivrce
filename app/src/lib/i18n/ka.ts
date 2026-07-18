@@ -386,6 +386,14 @@ export const ka = {
   'fav.empty': 'ჯერ არაფერი გაქვს შენახული — დააჭირე გულს ნებისმიერ განცხადებაზე და ის აქ გამოჩნდება.',
   'fav.browse': 'განცხადებების ნახვა',
 
+  // Push notifications (settings)
+  'settings.push.title': 'Push შეტყობინებები',
+  'settings.push.desc': 'მიიღე შეტყობინებები ახალი განცხადებებისა და ფასის ცვლილების შესახებ — ამ მოწყობილობაზე.',
+  'settings.push.enable': 'ჩართვა',
+  'settings.push.disable': 'გამორთვა',
+  'settings.push.denied': 'ბრაუზერში შეტყობინებები დაბლოკილია — ჩართე ბრაუზერის პარამეტრებიდან.',
+  'settings.push.unsupported': 'ეს ბრაუზერი push შეტყობინებებს არ უჭერს მხარს.',
+
   // a11y
   'a11y.skipToContent': 'მთავარ შინაარსზე გადასვლა',
 } as const

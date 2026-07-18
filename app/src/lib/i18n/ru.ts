@@ -387,6 +387,14 @@ export const ru: Dict = {
   'fav.empty': 'Пока ничего нет — нажмите на сердце в любом объявлении, и оно появится здесь.',
   'fav.browse': 'Смотреть объявления',
 
+  // Push notifications (settings)
+  'settings.push.title': 'Push-уведомления',
+  'settings.push.desc': 'Получайте уведомления о новых объявлениях и изменении цен — на этом устройстве.',
+  'settings.push.enable': 'Включить',
+  'settings.push.disable': 'Выключить',
+  'settings.push.denied': 'Уведомления заблокированы в браузере — включите их в настройках браузера.',
+  'settings.push.unsupported': 'Этот браузер не поддерживает push-уведомления.',
+
   // a11y
   'a11y.skipToContent': 'Перейти к основному содержимому',
 }
