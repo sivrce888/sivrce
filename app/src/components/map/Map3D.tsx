@@ -15,8 +15,7 @@ import maplibregl, {
   type FilterSpecification,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { LISTINGS } from '@/data/listings'
-import type { DealType } from '@/data/listings'
+import { LISTINGS, type DealType, type Listing } from '@/data/listings'
 import { PROJECTS } from '@/data/professionals'
 import { BRAND } from '@/lib/brand'
 import { DEAL_BRAND, CATEGORY_BRAND, SERVICE_BRAND } from '@/lib/category-brand'
@@ -61,7 +60,7 @@ const NBH_CIRCLE_ID = 'sivrce-neighborhoods-circle'
 const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
 const NBH_DATA = neighborhoodsToGeoJSON()
 
-const ALL_BUILDINGS = mergeMapBuildings(
+const STATIC_BUILDINGS = mergeMapBuildings(
   clusterListingsToBuildings(LISTINGS),
   projectsToConstructionBuildings(PROJECTS),
 )
@@ -178,12 +177,18 @@ const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
   { id: 'completed', label: 'დასრულებული' },
 ]
 
-function Map3DInner({ dbBuildings = [] }: { dbBuildings?: MapBuildingCluster[] }) {
+function Map3DInner({
+  dbBuildings = [],
+  listings,
+}: {
+  dbBuildings?: MapBuildingCluster[]
+  listings?: Listing[]
+}) {
   const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
-  const visibleRef = useRef<MapBuildingCluster[]>(ALL_BUILDINGS)
-  const allRef = useRef<MapBuildingCluster[]>(ALL_BUILDINGS)
+  const visibleRef = useRef<MapBuildingCluster[]>(STATIC_BUILDINGS)
+  const allRef = useRef<MapBuildingCluster[]>(STATIC_BUILDINGS)
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
 
@@ -201,8 +206,21 @@ function Map3DInner({ dbBuildings = [] }: { dbBuildings?: MapBuildingCluster[] }
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
 
-  // DB-curated buildings merged over static; static keeps meta, adopts DB inventory.
-  const allBuildings = useMemo(() => mergeDbBuildings(ALL_BUILDINGS, dbBuildings), [dbBuildings])
+  // Live DB listings when present; else demo LISTINGS. DB buildings add inventory/rings.
+  const sourceListings = listings?.length ? listings : LISTINGS
+  const listingCount = sourceListings.length
+  const baseBuildings = useMemo(
+    () =>
+      mergeMapBuildings(
+        clusterListingsToBuildings(sourceListings),
+        projectsToConstructionBuildings(PROJECTS),
+      ),
+    [sourceListings],
+  )
+  const allBuildings = useMemo(
+    () => mergeDbBuildings(baseBuildings, dbBuildings),
+    [baseBuildings, dbBuildings],
+  )
   useEffect(() => { allRef.current = allBuildings }, [allBuildings])
 
   const visible = useMemo(
@@ -532,7 +550,7 @@ function Map3DInner({ dbBuildings = [] }: { dbBuildings?: MapBuildingCluster[] }
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 rounded-full border border-white/10 bg-sv-navy/85 px-3.5 py-2 text-[12px] font-extrabold text-white backdrop-blur-md">
               <Layers className="h-3.5 w-3.5 text-sv-blue-light" />
-              {visible.length} შენობა · {LISTINGS.length} განცხადება
+              {visible.length} შენობა · {listingCount} განცხადება
             </div>
             <button
               type="button"
@@ -656,7 +674,13 @@ function Map3DInner({ dbBuildings = [] }: { dbBuildings?: MapBuildingCluster[] }
   )
 }
 
-export default function Map3D({ dbBuildings }: { dbBuildings?: MapBuildingCluster[] }) {
+export default function Map3D({
+  dbBuildings,
+  listings,
+}: {
+  dbBuildings?: MapBuildingCluster[]
+  listings?: Listing[]
+}) {
   return (
     <Suspense
       fallback={
@@ -665,7 +689,7 @@ export default function Map3D({ dbBuildings }: { dbBuildings?: MapBuildingCluste
         </div>
       }
     >
-      <Map3DInner dbBuildings={dbBuildings} />
+      <Map3DInner dbBuildings={dbBuildings} listings={listings} />
     </Suspense>
   )
 }

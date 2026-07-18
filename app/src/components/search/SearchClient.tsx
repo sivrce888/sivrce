@@ -186,7 +186,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const condRaw = params.get('cond') ?? ''
   const bstatRaw = params.get('bstat') ?? ''
   const featRaw = params.get('feat') ?? ''
-  // Memoized so fetchSearch's dep array only re-fires on real param changes.
+  // Memoized so the search effect only re-fires on real param changes.
   const cond = useMemo(() => splitCsv(condRaw, CONDITION_KEYS), [condRaw])
   const bstat = useMemo(() => splitCsv(bstatRaw, BUILDING_STATUS_KEYS), [bstatRaw])
   const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
