@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  Phone, MessageCircle, BadgeCheck, Calculator,
+  MessageCircle, BadgeCheck, Calculator,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
@@ -19,7 +19,11 @@ import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { TourBooking } from '@/components/listing/TourBooking'
+import { SELLER_ROLE_LABEL } from '@/lib/profiles/roles'
 import MapEmbed from '@/components/MapEmbed'
+import RevealPhone from '@/components/listing/RevealPhone'
+import { parseCoords } from '@/lib/map/geocode'
+import { blurProps } from '@/lib/media'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
   formatFloor, getListing, USD_GEL, type Listing, type PropType,
@@ -55,8 +59,8 @@ function aiExplanation(l: Listing, t: (key: DictKey, vars?: Record<string, strin
 
 /* ————— Lightbox ————— */
 function Lightbox({
-  images, index, onClose, onNav,
-}: { images: string[]; index: number; onClose: () => void; onNav: (dir: number) => void }) {
+  images, index, onClose, onNav, onJump,
+}: { images: string[]; index: number; onClose: () => void; onNav: (dir: number) => void; onJump: (i: number) => void }) {
   const { t } = useI18n()
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -77,6 +81,14 @@ function Lightbox({
     }
   }, [onClose, onNav])
 
+  // Preload neighbours so arrow / filmstrip navigation feels instant.
+  useEffect(() => {
+    for (const d of [-1, 1]) {
+      const img = new window.Image()
+      img.src = images[(index + d + images.length) % images.length]
+    }
+  }, [index, images])
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -92,14 +104,14 @@ function Lightbox({
         ref={closeRef}
         onClick={onClose}
         aria-label={t('detail.close')}
-        className="absolute right-5 top-5 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        className="absolute right-5 top-5 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
       >
         <X className="h-5 w-5" />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onNav(-1) }}
         aria-label={t('detail.prevPhoto')}
-        className="absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        className="absolute left-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
@@ -110,19 +122,47 @@ function Lightbox({
         transition={{ duration: 0.35, ease }}
         src={images[index]}
         alt={t('detail.photo', { n: index + 1 })}
-        className="max-h-[84vh] max-w-full rounded-module object-contain shadow-panel-dark"
+        drag={images.length > 1 ? 'x' : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.15}
+        onDragEnd={(_, info) => {
+          if (info.offset.x <= -60) onNav(1)
+          else if (info.offset.x >= 60) onNav(-1)
+        }}
+        className="max-h-[78vh] max-w-full rounded-module object-contain shadow-panel-dark"
         onClick={(e) => e.stopPropagation()}
       />
       <button
         onClick={(e) => { e.stopPropagation(); onNav(1) }}
         aria-label={t('detail.nextPhoto')}
-        className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        className="absolute right-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
       >
         <ChevronRight className="h-5 w-5" />
       </button>
-      <span className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1.5 text-[13px] font-bold text-white/85">
+      <span className="absolute left-5 top-5 rounded-full bg-white/10 px-4 py-1.5 text-[13px] font-bold text-white/85">
         {index + 1} / {images.length}
       </span>
+      {/* Filmstrip */}
+      {images.length > 1 && (
+        <div
+          className="absolute inset-x-0 bottom-5 flex justify-start gap-2 overflow-x-auto px-5 py-1 md:justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {images.map((src, i) => (
+            <button
+              key={src + i}
+              onClick={() => onJump(i)}
+              aria-label={t('detail.photo', { n: i + 1 })}
+              aria-pressed={i === index}
+              className={`relative h-14 w-[84px] shrink-0 overflow-hidden rounded-lg transition-all ${
+                i === index ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-90'
+              }`}
+            >
+              <Image src={src} alt="" fill sizes="84px" className="object-cover" {...blurProps(src)} />
+            </button>
+          ))}
+        </div>
+      )}
     </motion.div>
   )
 }
@@ -469,31 +509,42 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
               </p>
             </div>
 
-            {/* Map */}
-            <div className="mt-8">
-              <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.location')}</h2>
-              <div className="relative mt-4 h-[320px] overflow-hidden rounded-card shadow-card">
-                <Image src="/images/map3d.webp" alt={t('detail.map')} fill sizes="(max-width:1024px) 100vw, 850px" className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/60 via-transparent to-transparent" />
-                {/* Pin */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <span className="animate-pin block h-5 w-5 rounded-full border-[3px] border-white bg-sv-orange shadow-glow-orange" />
-                </div>
-                <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-center justify-between gap-3">
-                  <div className="rounded-module glass px-4 py-2.5">
-                    <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-white">
-                      <MapPin className="h-3.5 w-3.5 text-sv-orange" /> {l.address}
-                    </div>
-                    <div className="mt-0.5 text-[11px] font-bold text-white/55">
-                      {l.coords.lat.toFixed(4)}, {l.coords.lng.toFixed(4)}
+            {/* Map — Sivrce MapLibre embed at listing coords */}
+            {parseCoords(l.coords.lat, l.coords.lng) && (
+              <div className="mt-8">
+                <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.location')}</h2>
+                <div className="relative mt-4 overflow-hidden rounded-card shadow-card">
+                  <MapEmbed
+                    lat={l.coords.lat}
+                    lng={l.coords.lng}
+                    zoom={15}
+                    mode="place"
+                    q={l.address}
+                    aspect="16/9"
+                    highlight
+                    className="border-0 shadow-none rounded-none"
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-sv-navy/70 via-sv-navy/20 to-transparent p-5">
+                    <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-3">
+                      <div className="rounded-module glass px-4 py-2.5">
+                        <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-white">
+                          <MapPin className="h-3.5 w-3.5 text-sv-blue-light" /> {l.address}
+                        </div>
+                        <div className="mt-0.5 text-[11px] font-bold text-white/55">
+                          {l.coords.lat.toFixed(4)}, {l.coords.lng.toFixed(4)}
+                        </div>
+                      </div>
+                      <LocalizedLink
+                        href="/map"
+                        className="rounded-full bg-sv-orange px-3.5 py-1.5 text-[11px] font-extrabold text-white shadow-glow-orange transition hover:brightness-110"
+                      >
+                        {t('detail.map3dSoon')}
+                      </LocalizedLink>
                     </div>
                   </div>
-                  <span className="rounded-full glass px-3.5 py-1.5 text-[11px] font-bold text-white/70">
-                    {t('detail.map3dSoon')}
-                  </span>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Mortgage calculator */}
             {isSale && (
@@ -579,83 +630,101 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
           <aside className="lg:sticky lg:top-[92px] lg:self-start">
             <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div className="flex items-center gap-4">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-module bg-gradient-to-br from-sv-blue to-sv-violet text-[18px] font-black text-white">
-                  {l.agent.name.charAt(0)}
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-[16px] font-black text-sv-ink">
-                    <span className="truncate">{l.agent.name}</span>
-                    <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-label={t('detail.verifiedAgent')} />
+                {l.agent.profileHref ? (
+                  <LocalizedLink
+                    href={l.agent.profileHref}
+                    className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-module bg-gradient-to-br from-sv-blue to-sv-violet text-[18px] font-black text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                    aria-label={l.agent.name}
+                  >
+                    {l.agent.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- OAuth avatars / arbitrary hosts
+                      <img src={l.agent.image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      l.agent.name.charAt(0)
+                    )}
+                  </LocalizedLink>
+                ) : (
+                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-module bg-gradient-to-br from-sv-blue to-sv-violet text-[18px] font-black text-white">
+                    {l.agent.name.charAt(0)}
                   </div>
-                  <div className="text-[13px] font-bold text-sv-ink/45">{l.agent.agency}</div>
+                )}
+                <div className="min-w-0">
+                  <div className="flex min-w-0 items-center gap-1.5 text-[16px] font-black text-sv-ink">
+                    {l.agent.profileHref ? (
+                      <LocalizedLink
+                        href={l.agent.profileHref}
+                        className="truncate transition hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                      >
+                        {l.agent.name}
+                      </LocalizedLink>
+                    ) : (
+                      <span className="truncate">{l.agent.name}</span>
+                    )}
+                    {l.agent.verified ? (
+                      <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-label={t('detail.verifiedAgent')} />
+                    ) : null}
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/45">
+                    {l.agent.role ? (
+                      <span className="rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-extrabold text-sv-blue">
+                        {SELLER_ROLE_LABEL[l.agent.role].ka}
+                      </span>
+                    ) : null}
+                    {l.agent.agency ? <span className="truncate">{l.agent.agency}</span> : null}
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-2.5">
-                <a
-                  href={`tel:${l.agent.phone.replace(/\s/g, '')}`}
-                  className="flex h-12 items-center justify-center gap-2 rounded-full bg-sv-orange text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
-                >
-                  <Phone className="h-4 w-4" /> {t('detail.call')}
-                </a>
+              {/* One reveal CTA — competitors jam two; we keep the card frame clean */}
+              <div className="mt-5">
+                <RevealPhone
+                  listingId={l.id}
+                  maskedHint={l.agent.phone}
+                  variant="button"
+                />
+                <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11.5px] font-semibold text-sv-ink/40">
+                  <BadgeCheck className="h-3 w-3 shrink-0 text-sv-blue" />
+                  {t('detail.phoneHint')}
+                </p>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2.5">
                 <button
                   onClick={() => openChat(l.id)}
-                  className="flex h-12 items-center justify-center gap-2 rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] text-[14px] font-extrabold text-sv-blue transition-all duration-300 hover:bg-sv-blue/10"
+                  className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
                 >
-                  <MessageCircle className="h-4 w-4" /> {t('detail.message')}
+                  <MessageCircle className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('detail.message')}</span>
                 </button>
-              </div>
-
-              <div className="mt-2.5 grid grid-cols-2 gap-2.5">
                 <button
                   onClick={() => toggle(l.id)}
                   aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
                   aria-pressed={fav}
-                  className={`flex h-11 items-center justify-center gap-2 rounded-full border transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
+                  className={`flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-3 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
                     fav
                       ? 'border-sv-orange/30 bg-sv-orange/10 text-sv-orange'
                       : 'border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:text-sv-orange'
                   }`}
                 >
-                  <Heart className={`h-4.5 w-4.5 ${fav ? 'fill-sv-orange text-sv-orange' : ''}`} />
-                  <span className="text-[13px] font-extrabold">{t('nav.favorites')}</span>
-                </button>
-                <button
-                  onClick={share}
-                  aria-label={t('detail.share')}
-                  className="flex h-11 items-center justify-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface text-sv-ink/60 transition-all duration-300 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-                >
-                  <Share2 className="h-4.5 w-4.5" />
-                  <span className="text-[13px] font-extrabold">{t('detail.share')}</span>
+                  <Heart className={`h-4 w-4 shrink-0 ${fav ? 'fill-sv-orange text-sv-orange' : ''}`} />
+                  <span className="truncate text-[13px] font-extrabold">{t('nav.favorites')}</span>
                 </button>
               </div>
 
-              <div className="mt-4 rounded-module bg-sv-ink/[0.03] p-4 text-center">
-                <div className="text-[12px] font-bold text-sv-ink/45">{t('detail.agentPhone')}</div>
-                <a
-                  href={`tel:${l.agent.phone.replace(/\s/g, '')}`}
-                  className="mt-0.5 block text-[16px] font-black tracking-wide text-sv-ink transition-colors hover:text-sv-blue"
-                >
-                  {l.agent.phone}
-                </a>
-              </div>
+              <button
+                onClick={share}
+                aria-label={t('detail.share')}
+                className="mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/55 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+              >
+                <Share2 className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t('detail.share')}</span>
+              </button>
 
               <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-sv-ink/35">
                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
                 {t('detail.verifiedBy')}
               </p>
             </div>
-
-            {/* Map */}
-            <MapEmbed
-              lat={l.coords.lat}
-              lng={l.coords.lng}
-              zoom={15}
-              mode="place"
-              q={l.address}
-              aspect="4/3"
-              className="mt-4"
-            />
 
             {/* Tour booking */}
             <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
@@ -749,32 +818,32 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
 
       {/* ————— Mobile conversion bar (call / message / favorite) ————— */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sv-ink/10 bg-sv-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        <div className="grid grid-cols-3 gap-2 px-4 py-2.5">
-          <a
-            href={`tel:${l.agent.phone.replace(/\s/g, '')}`}
-            aria-label={t('detail.call')}
-            className="flex h-12 items-center justify-center gap-2 rounded-full bg-sv-orange text-[14px] font-extrabold text-white shadow-glow-orange transition-all active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange"
-          >
-            <Phone className="h-4 w-4" /> {t('detail.call')}
-          </a>
+        <div className="grid grid-cols-3 gap-2 px-3 py-2.5">
+          <RevealPhone
+            listingId={l.id}
+            maskedHint={l.agent.phone}
+            variant="call"
+            className="min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange"
+          />
           <button
             onClick={() => openChat(l.id)}
             aria-label={t('detail.message')}
-            className="flex h-12 items-center justify-center gap-2 rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] text-[14px] font-extrabold text-sv-blue transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+            className="flex h-12 min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-2 text-[13px] font-extrabold text-sv-blue transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
           >
-            <MessageCircle className="h-4 w-4" /> {t('detail.message')}
+            <MessageCircle className="h-4 w-4 shrink-0" />
+            <span className="truncate">{t('detail.message')}</span>
           </button>
           <button
             onClick={() => toggle(l.id)}
             aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
             aria-pressed={fav}
-            className={`flex h-12 items-center justify-center gap-2 rounded-full border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
+            className={`flex h-12 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
               fav
                 ? 'border-sv-orange/30 bg-sv-orange/10 text-sv-orange'
                 : 'border-sv-ink/10 bg-sv-surface text-sv-ink/70'
             }`}
           >
-            <Heart className={`h-5 w-5 ${fav ? 'fill-sv-orange text-sv-orange' : ''}`} />
+            <Heart className={`h-5 w-5 shrink-0 ${fav ? 'fill-sv-orange text-sv-orange' : ''}`} />
           </button>
         </div>
       </div>

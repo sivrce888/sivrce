@@ -315,6 +315,27 @@ export default function AddListingClient() {
     setPhotos(next)
   }
 
+  const removePhoto = (i: number) => {
+    const p = photos[i]
+    if (p) URL.revokeObjectURL(p.url)
+    setPhotos(photos.filter((_, j) => j !== i))
+    if (cover >= i && cover > 0) setCover(cover - 1)
+  }
+
+  /* drag-to-reorder: cover index follows its photo */
+  const [dragFrom, setDragFrom] = useState<number | null>(null)
+  const movePhoto = (from: number | null, to: number) => {
+    if (from === null || from === to) return
+    const next = photos.slice()
+    const [moved] = next.splice(from, 1)
+    if (!moved) return
+    next.splice(to, 0, moved)
+    setPhotos(next)
+    if (cover === from) setCover(to)
+    else if (from < cover && to >= cover) setCover(cover - 1)
+    else if (from > cover && to <= cover) setCover(cover + 1)
+  }
+
   const aiWrite = () => {
     if (!propType || !city) return
     const dealLabel = deal ? t(DEALS.find((d) => d.key === deal)!.labelKey) : ''
@@ -342,14 +363,18 @@ export default function AddListingClient() {
     setBusy(true)
     setFailed(false)
     try {
-      const images: string[] = []
-      for (const p of photos) {
-        const fd = new FormData()
-        fd.append('file', p.file)
-        const r = await fetch('/api/upload', { method: 'POST', body: fd })
-        if (!r.ok) throw new Error('upload')
-        images.push(((await r.json()) as { url: string }).url)
-      }
+      // Cover photo must upload first — the listing hero is images[0].
+      const coverPhoto = photos[cover]
+      const ordered = coverPhoto ? [coverPhoto, ...photos.filter((p) => p !== coverPhoto)] : photos
+      const images = await Promise.all(
+        ordered.map(async (p) => {
+          const fd = new FormData()
+          fd.append('file', p.file)
+          const r = await fetch('/api/upload', { method: 'POST', body: fd })
+          if (!r.ok) throw new Error('upload')
+          return ((await r.json()) as { url: string }).url
+        }),
+      )
       const res = await fetch('/api/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -813,9 +838,17 @@ export default function AddListingClient() {
                     {photos.length > 0 && (
                       <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
                         {photos.map((p, i) => (
-                          <div key={p.url} className={`group/ph relative aspect-[4/3] overflow-hidden rounded-module ring-2 transition-all ${i === cover ? 'ring-sv-orange' : 'ring-transparent'}`}>
+                          <div
+                            key={p.url}
+                            draggable
+                            onDragStart={() => setDragFrom(i)}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => { e.preventDefault(); movePhoto(dragFrom, i) }}
+                            title={t('add.photosReorder')}
+                            className={`group/ph relative aspect-[4/3] cursor-grab overflow-hidden rounded-module ring-2 transition-all active:cursor-grabbing ${i === cover ? 'ring-sv-orange' : 'ring-transparent'} ${dragFrom !== null && dragFrom !== i ? 'hover:ring-sv-blue/60' : ''}`}
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.url} alt={p.name} className="h-full w-full object-cover" />
+                            <img src={p.url} alt={p.name} className="pointer-events-none h-full w-full object-cover" draggable={false} />
                             {i === cover && (
                               <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1 text-[10px] font-black text-white">
                                 <Star className="h-3 w-3 fill-current" /> {t('add.photosCover')}
@@ -828,7 +861,7 @@ export default function AddListingClient() {
                                 </button>
                               )}
                               <button
-                                onClick={() => { setPhotos(photos.filter((_, j) => j !== i)); if (cover >= i && cover > 0) setCover(cover - 1) }}
+                                onClick={() => removePhoto(i)}
                                 className="grid w-7 place-items-center rounded-lg bg-white/15 text-white hover:bg-sv-orange"
                                 aria-label={t('add.photosRemove')}
                               >

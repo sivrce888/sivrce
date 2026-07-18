@@ -7,8 +7,8 @@
 import type { DictKey } from '@/lib/i18n/context'
 
 export const CONDITION_KEYS = [
-  'add.cond.newReno', 'add.cond.oldReno', 'add.cond.needsReno',
-  'add.cond.whiteFrame', 'add.cond.blackFrame', 'add.cond.greenFrame',
+  'add.cond.newReno', 'add.cond.oldReno', 'add.cond.currentReno', 'add.cond.needsReno',
+  'add.cond.whiteFrame', 'add.cond.blackFrame', 'add.cond.greenFrame', 'add.cond.whitePlus',
 ] as const satisfies readonly DictKey[]
 
 export const BUILDING_STATUS_KEYS = [

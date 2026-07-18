@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
@@ -7,9 +7,12 @@ import { EntityHeader } from '@/components/entities/EntityHeader'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { AGENT_PROFILES, getAgentProfile, listingsByAgent } from '@/data/professionals'
+import { cityCenter } from '@/lib/map/geocode'
+import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+import { db } from '@/lib/db'
 
 export function generateStaticParams() {
   // ponytail: prerender ka only (today's build surface) — other locales SSR on
@@ -24,30 +27,48 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const a = getAgentProfile(slug)
-  if (!a) return {}
-  const description = a.description.ka.replace(/\s+/g, ' ').slice(0, 155)
-  return {
-    title: `${a.name.ka} — ${a.agency}`,
-    description,
-    alternates: { canonical: `/agents/${a.slug}`, languages: langAlternates(`/agents/${a.slug}`) },
-    openGraph: {
-      title: `${a.name.ka} — ${a.agency} | sivrce`,
+  if (a) {
+    const description = a.description.ka.replace(/\s+/g, ' ').slice(0, 155)
+    return {
+      title: `${a.name.ka} — ${a.agency}`,
       description,
-      type: 'profile',
-      url: `https://sivrce.ge/agents/${a.slug}`,
-      siteName: 'sivrce',
-      locale: 'ka_GE',
-    },
+      alternates: { canonical: `/agents/${a.slug}`, languages: langAlternates(`/agents/${a.slug}`) },
+      openGraph: {
+        title: `${a.name.ka} — ${a.agency} | sivrce`,
+        description,
+        type: 'profile',
+        url: `https://sivrce.ge/agents/${a.slug}`,
+        siteName: 'sivrce',
+        locale: 'ka_GE',
+      },
+    }
+  }
+  const dbAgent = await db.agentProfile
+    .findFirst({ where: { slug, deletedAt: null }, select: { name: true, agency: true } })
+    .catch(() => null)
+  if (!dbAgent) return {}
+  return {
+    title: `${dbAgent.name} — ${dbAgent.agency}`,
+    alternates: { canonical: `/agents/${slug}`, languages: langAlternates(`/agents/${slug}`) },
   }
 }
 
 export default async function AgentPage({ params }: PageProps) {
   const { slug } = await params
   const agent = getAgentProfile(slug)
-  if (!agent) notFound()
+
+  // Live DB agents → unified /u/[id] (listings + role)
+  if (!agent) {
+    const dbAgent = await db.agentProfile
+      .findFirst({ where: { slug, deletedAt: null }, select: { ownerId: true } })
+      .catch(() => null)
+    if (dbAgent?.ownerId) redirect(`/u/${dbAgent.ownerId}`)
+    notFound()
+  }
 
   const listings = listingsByAgent(agent.name.ka)
   const aggregate = await getReviewAggregate('agent', slug)
+  const mapPin = cityCenter(agent.city)
 
   const agentLd = {
     '@context': 'https://schema.org',
@@ -55,7 +76,6 @@ export default async function AgentPage({ params }: PageProps) {
     name: agent.name.en,
     alternateName: agent.name.ka,
     url: `https://sivrce.ge/agents/${agent.slug}`,
-    telephone: agent.phone,
     worksFor: { '@type': 'Organization', name: agent.agency },
     address: {
       '@type': 'PostalAddress',
@@ -80,7 +100,7 @@ export default async function AgentPage({ params }: PageProps) {
           name={agent.name}
           city={agent.city}
           verified={agent.verified}
-          phone={agent.phone}
+          phone=""
           subtitle={agent.agency}
           stats={[
             { key: 'yearsActive', value: agent.yearsActive },
@@ -95,6 +115,26 @@ export default async function AgentPage({ params }: PageProps) {
           </h2>
           <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
             {agent.description.ka}
+          </p>
+        </section>
+
+        <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+          <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+            მდებარეობა
+          </h2>
+          <div className="relative mt-6 overflow-hidden rounded-card shadow-card">
+            <MapEmbed
+              lat={mapPin.lat}
+              lng={mapPin.lng}
+              zoom={12}
+              q={agent.city}
+              aspect="16/9"
+              highlight
+              className="border-0 shadow-none rounded-none"
+            />
+          </div>
+          <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+            {agent.city} · {agent.agency}
           </p>
         </section>
 

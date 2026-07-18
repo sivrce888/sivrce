@@ -9,9 +9,15 @@ import ListingCard from '@/components/ListingCard'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
-import { PROJECTS, getDeveloper, listingsByCity } from '@/data/professionals'
+import { PROJECTS, listingsByCity } from '@/data/professionals'
 import { LISTINGS } from '@/data/listings'
-import { getLiveProject, projectsLive } from '@/lib/directory-live'
+import {
+  getLiveProject,
+  getLiveDeveloper,
+  projectsLive,
+  projectsLiveByDeveloper,
+  isValidCoords,
+} from '@/lib/directory-live'
 import {
   clusterListingsToBuildings,
   mergeMapBuildings,
@@ -20,9 +26,12 @@ import {
 } from '@/lib/map/buildings'
 import { buildingFloors, floorsToGeoJSON } from '@/lib/map/floors'
 import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
+import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+
+export const revalidate = 3600
 
 export function generateStaticParams() {
   // Static catalog slugs prerender; korter-only slugs SSR via dynamicParams.
@@ -33,13 +42,25 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+function absImg(src: string) {
+  return src.startsWith('http') ? src : `https://sivrce.ge${src}`
+}
+
+/** "$2,100" → 2100 — AggregateOffer lowPrice. */
+function priceNumber(priceFromM2: string): number | null {
+  const n = Number(priceFromM2.replace(/[^0-9.]/g, ''))
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const p = await getLiveProject(slug)
   if (!p) return {}
   const description = (p.description.ka || `${p.name}, ${p.location}`).replace(/\s+/g, ' ').slice(0, 155)
+  const title = `${p.name} — ${p.location}, ფასი ${p.priceFromM2}/მ²-დან`
+  const og = ogImage(p.img)
   return {
-    title: `${p.name} — ${p.location}, ფასი ${p.priceFromM2}/მ²-დან`,
+    title,
     description,
     alternates: { canonical: `/projects/${p.slug}`, languages: langAlternates(`/projects/${p.slug}`) },
     openGraph: {
@@ -49,7 +70,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/projects/${p.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      images: [{ url: ogImage(p.img), alt: p.name }],
+      images: [{ url: og, alt: p.name }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${p.name} | sivrce`,
+      description,
+      images: [og],
     },
   }
 }
@@ -59,9 +86,16 @@ export default async function ProjectPage({ params }: PageProps) {
   const [project, liveProjects] = await Promise.all([getLiveProject(slug), projectsLive()])
   if (!project) notFound()
 
-  const dev = getDeveloper(project.developerSlug)
-  const listings = listingsByCity(project.city, 6)
-  const aggregate = await getReviewAggregate('project', slug)
+  const [dev, listings, aggregate, siblingProjects] = await Promise.all([
+    project.developerSlug ? getLiveDeveloper(project.developerSlug) : Promise.resolve(null),
+    Promise.resolve(listingsByCity(project.city, 6)),
+    getReviewAggregate('project', slug),
+    project.developerSlug
+      ? projectsLiveByDeveloper(project.developerSlug).then((ps) =>
+          ps.filter((p) => p.slug !== project.slug).slice(0, 4),
+        )
+      : Promise.resolve([]),
+  ])
 
   // 3D floor stack: live address/coords so the corpus sits on the exact pin.
   const cluster = applyLiveProjectPins(
@@ -75,13 +109,19 @@ export default async function ProjectPage({ params }: PageProps) {
   const floorsInfo = cluster ? buildingFloors(cluster) : []
   const isGhost = !!cluster && cluster.status === 'construction' && cluster.listings.length === 0
 
+  const heroAbs = absImg(project.img)
+  const galleryAbs = (project.gallery ?? []).map(absImg)
+  const images = [heroAbs, ...galleryAbs.filter((u) => u !== heroAbs)]
+  const lowPrice = priceNumber(project.priceFromM2)
+  const hasGeo = isValidCoords(project.coords.lat, project.coords.lng)
+
   const projectLd = {
     '@context': 'https://schema.org',
     '@type': 'ApartmentComplex',
     name: project.name,
     description: project.description.ka,
     url: `https://sivrce.ge/projects/${project.slug}`,
-    image: project.img.startsWith('http') ? project.img : `https://sivrce.ge${project.img}`,
+    image: images.length > 1 ? images : images[0],
     // ponytail: numberOfAvailableAccommodationUnits = "currently for sale" — only
     // true for projects under construction. Sold-out/completed buildings would
     // mislead Google's schema (policy risk). Use numberOfAccommodationUnits (total built) for those.
@@ -94,11 +134,32 @@ export default async function ProjectPage({ params }: PageProps) {
       addressLocality: project.city,
       addressCountry: 'GE',
     },
+    ...(hasGeo && {
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: project.coords.lat,
+        longitude: project.coords.lng,
+      },
+    }),
+    ...(lowPrice && {
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'USD',
+        lowPrice,
+        unitText: 'SQM',
+        availability:
+          project.done >= 100
+            ? 'https://schema.org/SoldOut'
+            : 'https://schema.org/InStock',
+        url: `https://sivrce.ge/projects/${project.slug}`,
+      },
+    }),
     ...(dev && {
       provider: {
         '@type': 'Organization',
         name: dev.name.en,
         url: `https://sivrce.ge/developers/${dev.slug}`,
+        ...(dev.website ? { sameAs: [dev.website] } : {}),
       },
     }),
     ...(aggregate && {
@@ -108,6 +169,58 @@ export default async function ProjectPage({ params }: PageProps) {
         reviewCount: aggregate.count,
       },
     }),
+  }
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: 'პროექტები', item: 'https://sivrce.ge/projects' },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: project.name,
+        item: `https://sivrce.ge/projects/${project.slug}`,
+      },
+    ],
+  }
+
+  const faqLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `რა ღირს ${project.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: project.priceFromM2
+            ? `${project.name}-ში ფასი იწყება ${project.priceFromM2}/მ²-დან. მდებარეობა: ${project.location}.`
+            : `${project.name} — ${project.location}. ფასები ხელმისაწვდომია სივრცეზე.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `როდის ჩაბარდება ${project.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `ჩაბარების ვადა: ${project.finish}. მშენებლობის პროგრესი: ${project.done}%. სულ ${project.flats} ბინა.`,
+        },
+      },
+      ...(dev
+        ? [
+            {
+              '@type': 'Question' as const,
+              name: `ვინ აშენებს ${project.name}-ს?`,
+              acceptedAnswer: {
+                '@type': 'Answer' as const,
+                text: `დეველოპერი: ${dev.name.ka}. სრული პროფილი: https://sivrce.ge/developers/${dev.slug}`,
+              },
+            },
+          ]
+        : []),
+    ],
   }
 
   return (
@@ -126,6 +239,15 @@ export default async function ProjectPage({ params }: PageProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
+            <nav aria-label="breadcrumb" className="mb-3 text-[12px] font-semibold text-white/60">
+              <Link href="/projects" className="hover:text-white">
+                პროექტები
+              </Link>
+              <span aria-hidden className="mx-1.5">
+                /
+              </span>
+              <span className="text-white/85">{project.name}</span>
+            </nav>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h1 className="text-[28px] font-black text-white [text-shadow:0_2px_12px_rgba(5,11,38,0.6)] md:text-[40px]">
@@ -181,7 +303,7 @@ export default async function ProjectPage({ params }: PageProps) {
           </div>
         </section>
 
-        {floorsFc && cluster && (
+        {floorsFc && cluster ? (
           <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               კორპუსი 3D-ში
@@ -201,6 +323,67 @@ export default async function ProjectPage({ params }: PageProps) {
               მიატრიე მაუსი სართულს
             </p>
           </section>
+        ) : hasGeo ? (
+          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              მდებარეობა
+            </h2>
+            <div className="relative mt-6 overflow-hidden rounded-card">
+              <MapEmbed
+                lat={project.coords.lat}
+                lng={project.coords.lng}
+                zoom={15}
+                q={project.location}
+                aspect="16/9"
+                highlight
+                className="border-0 shadow-none"
+              />
+            </div>
+            <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+              {project.location} · {project.coords.lat.toFixed(5)}, {project.coords.lng.toFixed(5)}
+            </p>
+          </section>
+        ) : null}
+
+        {(project.gallery?.length ?? 0) > 0 && (
+          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              გალერეა
+            </h2>
+            <div className="mt-6 flex gap-3 overflow-x-auto pb-2">
+              {project.gallery!.map((src, i) => (
+                <div
+                  key={src}
+                  className="relative h-40 w-56 shrink-0 overflow-hidden rounded-module bg-sv-cloud md:h-52 md:w-72"
+                >
+                  <Image
+                    src={src}
+                    alt={`${project.name} — რენდერი ${i + 1}`}
+                    fill
+                    sizes="288px"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {project.passportUrl && (
+          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              სართულის გეგმა
+            </h2>
+            <div className="relative mt-6 aspect-[4/3] max-w-3xl overflow-hidden rounded-card bg-sv-cloud">
+              <Image
+                src={project.passportUrl}
+                alt={`${project.name} — floor plan`}
+                fill
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-contain"
+              />
+            </div>
+          </section>
         )}
 
         {project.description.ka && (
@@ -211,6 +394,38 @@ export default async function ProjectPage({ params }: PageProps) {
             <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
               {project.description.ka}
             </p>
+          </section>
+        )}
+
+        {siblingProjects.length > 0 && dev && (
+          <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              სხვა პროექტები — {dev.name.ka}
+            </h2>
+            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {siblingProjects.map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/projects/${p.slug}`}
+                  aria-label={p.name}
+                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+                >
+                  <div className="relative aspect-[16/9] overflow-hidden">
+                    <Image
+                      src={p.img}
+                      alt={p.name}
+                      fill
+                      sizes="(max-width:640px) 100vw, 25vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+                    />
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-[14px] font-black text-sv-ink">{p.name}</h3>
+                    <p className="mt-1 text-[12px] font-bold text-sv-ink/55">{p.priceFromM2}/მ²</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </section>
         )}
 
@@ -234,6 +449,8 @@ export default async function ProjectPage({ params }: PageProps) {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />
     </div>
   )
 }

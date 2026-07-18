@@ -3,6 +3,7 @@ import Link from "next/link"
 import type { MapBuilding } from "@/generated/prisma/client"
 
 import { upsertBuilding } from "./actions"
+import { BuildingMapPicker } from "./BuildingMapPicker"
 
 export const inputCls =
   "w-full rounded-[12px] border border-sv-ink/10 bg-white px-3.5 py-2.5 text-[14px] font-semibold text-sv-ink placeholder:text-sv-ink/30 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
@@ -88,9 +89,9 @@ export function BuildingForm({
         <Field label="Building №" name="buildingNumber" defaultValue={building?.buildingNumber} placeholder="37" />
       </div>
 
+      <BuildingMapPicker lat={building?.lat} lng={building?.lng} />
+
       <div className="grid gap-4 md:grid-cols-3">
-        <Field label="Latitude" name="lat" type="number" step="any" required defaultValue={building?.lat} placeholder="41.70880" />
-        <Field label="Longitude" name="lng" type="number" step="any" required defaultValue={building?.lng} placeholder="44.77320" />
         <Field label="Floors" name="floors" type="number" defaultValue={building?.floors ?? 0} />
       </div>
 

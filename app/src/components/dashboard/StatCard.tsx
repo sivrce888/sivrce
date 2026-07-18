@@ -10,13 +10,19 @@ interface StatCardProps {
 /** Single metric tile for dashboard overview pages. Server component. */
 export default function StatCard({ label, value, hint, icon }: StatCardProps) {
   return (
-    <div className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/45">{label}</p>
-        {icon ? <span className="text-sv-blue">{icon}</span> : null}
+    <div className="min-w-0 overflow-hidden rounded-card border border-sv-ink/6 bg-sv-surface p-4 shadow-card sm:p-5">
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wide text-sv-ink/45 sm:text-[12px]">
+          {label}
+        </p>
+        {icon ? <span className="shrink-0 text-sv-blue">{icon}</span> : null}
       </div>
-      <p className="mt-2 text-3xl font-black tracking-tight text-sv-ink">{value}</p>
-      {hint ? <p className="mt-1 text-[12px] font-medium text-sv-ink/50">{hint}</p> : null}
+      <p className="mt-2 truncate text-[26px] font-black tracking-[-0.03em] text-sv-ink tabular-nums sm:text-3xl">
+        {value}
+      </p>
+      {hint ? (
+        <p className="mt-1 truncate text-[11.5px] font-medium text-sv-ink/50 sm:text-[12px]">{hint}</p>
+      ) : null}
     </div>
   )
 }

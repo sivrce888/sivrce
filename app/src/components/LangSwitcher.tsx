@@ -25,6 +25,18 @@ const LANG_FLAG: Record<Lang, FlagCode> = {
   hy: 'am',
   az: 'az',
 }
+/** Compact trigger label — ka→ge (country code reads clearer next to the flag). */
+const LANG_CODE: Record<Lang, string> = {
+  ka: 'ge',
+  en: 'en',
+  ru: 'ru',
+  he: 'he',
+  ar: 'ar',
+  tr: 'tr',
+  uk: 'uk',
+  hy: 'hy',
+  az: 'az',
+}
 const LANG_NAME: Record<Lang, string> = {
   ka: 'ქართული',
   en: 'English',
@@ -83,7 +95,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
         }`}
       >
         <Flag code={LANG_FLAG[lang]} size={16} />
-        {lang}
+        {LANG_CODE[lang]}
         <ChevronDown
           className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />

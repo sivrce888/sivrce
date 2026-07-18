@@ -12,15 +12,26 @@ import { langAlternates } from '@/lib/i18n/server'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'დეველოპერები საქართველოში — შეფასებები და პროექტები',
+  title: 'დეველოპერები საქართველოში — თბილისი, ბათუმი, მიმდინარე პროექტები',
   description:
-    'ქართული დეველოპერული კომპანიების კატალოგი: m2, Alliance Group, ORBI, დირსი, არქი, აქსისი — ჩაბარებული პროექტები, ფასები და რეალური მიმოხილვები ერთ სივრცეში.',
+    'ყველა დეველოპერი საქართველოში ერთ სივრცეზე: Archi, m², Alliance, ORBI, Domus, Blox, Eagle Hills, Mira, Ocean Capital — პროექტები, მისამართები, რუკა და ფასები.',
   alternates: { canonical: '/developers', languages: langAlternates('/developers') },
   openGraph: {
     title: 'დეველოპერები საქართველოში | sivrce',
     description:
-      'დეველოპერების კატალოგი შეფასებებით: ჩაბარებული პროექტები, ფასები და მიმოხილვები.',
+      'ქართული დეველოპერების სრული კატალოგი: მიმდინარე მშენებლობები, ლოგოები, მისამართები და კოორდინატები რუკაზე.',
     type: 'website',
+    url: 'https://sivrce.ge/developers',
+    siteName: 'sivrce',
+    locale: 'ka_GE',
+    images: [{ url: 'https://sivrce.ge/images/og.jpg', alt: 'sivrce დეველოპერები' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'დეველოპერები საქართველოში | sivrce',
+    description:
+      'ქართული დეველოპერების სრული კატალოგი: მიმდინარე მშენებლობები, ლოგოები, მისამართები და კოორდინატები რუკაზე.',
+    images: ['https://sivrce.ge/images/og.jpg'],
   },
 }
 
@@ -36,11 +47,15 @@ export default async function DevelopersPage() {
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
+    numberOfItems: developers.length,
     itemListElement: developers.map((d, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: d.name.en,
       url: `https://sivrce.ge/developers/${d.slug}`,
+      ...(d.logoUrl
+        ? { image: d.logoUrl.startsWith('http') ? d.logoUrl : `https://sivrce.ge${d.logoUrl}` }
+        : {}),
     })),
   }
 
@@ -53,7 +68,7 @@ export default async function DevelopersPage() {
             დეველოპერები
           </h1>
           <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            ყველა სანდო დეველოპერი ერთ სივრცეში — ჩაბარებული პროექტებით, ფასებითა და მიმოხილვებით
+            ყველა დეველოპერი თბილისსა და საქართველოში — მიმდინარე მშენებლობებით, მისამართებითა და რუკის კოორდინატებით
           </p>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {cards.map(({ d, aggregate }) => (

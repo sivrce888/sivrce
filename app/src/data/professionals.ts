@@ -36,6 +36,8 @@ export interface Developer {
   phone: string
   /** Official logo from korter / owner — GCS URL when synced. */
   logoUrl?: string
+  /** Official site — synced from korter; used in JSON-LD sameAs. */
+  website?: string
 }
 
 export interface AgentProfile {
@@ -57,6 +59,10 @@ export interface Project {
   name: string
   developerSlug: string
   img: string
+  /** Extra renders / progress photos (local CDN). */
+  gallery?: string[]
+  /** Floor-plan / passport image (local CDN). */
+  passportUrl?: string
   location: string
   /** ka city name — matches Listing.city */
   city: string
@@ -1235,6 +1241,68 @@ export const DEVELOPERS: Developer[] = [
     },
     verified: true,
     phone: '+995 511 25 11 11',
+  },
+  // ——— 2026-07-18 wave 3 (official sites + kalaki.ge / korter.ge) ———
+  // High-SEO gaps not yet curated; logos/coords/renders overlay from korter sync.
+  {
+    slug: 'ocean-capital',
+    name: { ka: 'ოუშენ კაპიტალი', en: 'Ocean Capital', ru: 'Ocean Capital' },
+    city: 'თბილისი',
+    yearsActive: 8,
+    projectsDone: 2,
+    unitsDelivered: 400,
+    description: {
+      ka: 'ოუშენ კაპიტალი — პრემიუმ დეველოპერი ვაკეში (ocean.ge). მიმდინარე: Ocean Vake Residences (პალიაშვილის 67), Ocean Vake Plaza (პალიაშვილის 102), Ocean Vake Park (მოსაშვილის 26), Ocean Sky Residences (ჭავჭავაძის 33).',
+      en: 'Ocean Capital is a premium Vake developer (ocean.ge). Current: Ocean Vake Residences (67 Paliashvili), Ocean Vake Plaza (102 Paliashvili), Ocean Vake Park (26 Mosashvili), Ocean Sky Residences (33 Chavchavadze Ave).',
+      ru: 'Ocean Capital — премиальный девелопер в Ваке (ocean.ge). Текущие: Ocean Vake Residences (Палиашвили 67), Plaza (102), Park (Мосашвили 26), Sky Residences (Чавчавадзе 33).',
+    },
+    verified: true,
+    phone: '+995 322 22 77 11',
+  },
+  {
+    slug: 'eagle-hills-georgia',
+    name: { ka: 'Eagle Hills', en: 'Eagle Hills Georgia', ru: 'Eagle Hills Georgia' },
+    city: 'თბილისი',
+    yearsActive: 3,
+    projectsDone: 0,
+    unitsDelivered: 0,
+    description: {
+      ka: 'Eagle Hills — აბუ-დაბის საერთაშორისო დეველოპერი (Mohamed Alabbar / Emaar). საქართველოში: Tbilisi Waterfront კრწანისში მტკვრის ნაპირზე (~6.5 მლრდ $ ინვესტიცია ორ მასტერპლანთან ერთად) და Gonio Yachts & Marina შავ ზღვაზე.',
+      en: 'Eagle Hills is an Abu Dhabi international developer (Mohamed Alabbar / Emaar). In Georgia: Tbilisi Waterfront in Krtsanisi on the Mtkvari (~USD 6.5bn across two masterplans) and Gonio Yachts & Marina on the Black Sea.',
+      ru: 'Eagle Hills — международный девелопер из Абу-Даби (Mohamed Alabbar / Emaar). В Грузии: Tbilisi Waterfront в Крцаниси на Куре (~$6,5 млрд по двум мастерпланам) и Gonio Yachts & Marina на Чёрном море.',
+    },
+    verified: true,
+    phone: '+971 2 497 9999',
+  },
+  {
+    slug: 'mira-development',
+    name: { ka: 'Mira Developments', en: 'Mira Development', ru: 'Mira Development' },
+    city: 'თბილისი',
+    yearsActive: 4,
+    projectsDone: 0,
+    unitsDelivered: 0,
+    description: {
+      ka: 'Mira Developments — საქართველოს პირველი branded community-ის შემქმნელი. Mira Verde თბილისის ჰილზში: Trussardi Residences და სხვა ბრენდირებული ბინები/ვილები, ჩაბარება Q3 2029 (mira-verde.com).',
+      en: 'Mira Developments is building Georgia’s first branded community. Mira Verde in Tbilisi Hills: Trussardi Residences and other branded apartments/villas, handover Q3 2029 (mira-verde.com).',
+      ru: 'Mira Developments — создатель первого branded community в Грузии. Mira Verde в Tbilisi Hills: Trussardi Residences и другие брендированные апартаменты/виллы, сдача Q3 2029 (mira-verde.com).',
+    },
+    verified: true,
+    phone: '+995 322 00 00 40',
+  },
+  {
+    slug: 'idea-development',
+    name: { ka: 'Idea Development', en: 'Idea Development', ru: 'Idea Development' },
+    city: 'თბილისი',
+    yearsActive: 6,
+    projectsDone: 2,
+    unitsDelivered: 350,
+    description: {
+      ka: 'Idea Development — თბილისის დეველოპერი (ideadevelopment.ge). ფლაგმანი Idea Panorama გიორგი დანელიას ქუჩაზე, ვაკე–საბურთალო: Panorama I (2025) და Panorama II (2027). ოფისი: ანჯაფარიძის 8 / დანელიას 57.',
+      en: 'Idea Development is a Tbilisi developer (ideadevelopment.ge). Flagship Idea Panorama on Giorgi Danelia St, Vake–Saburtalo: Panorama I (2025) and Panorama II (2027). Offices: 8 Anjaparidze / 57 Danelia.',
+      ru: 'Idea Development — девелопер Тбилиси (ideadevelopment.ge). Флагман Idea Panorama на ул. Гиорги Данелия, Ваке–Сабуртало: Panorama I (2025) и Panorama II (2027). Офисы: Анжапаридзе 8 / Данелия 57.',
+    },
+    verified: true,
+    phone: '+995 599 511 911',
   },
 ]
 
@@ -4036,6 +4104,159 @@ export const PROJECTS: Project[] = [
       ka: 'Megobroba Sanapiroze — მეგობრობას კომპლექსი დიდუბეში, მტკვრის ნაპირზე. ბინები $1 180/მ²-დან.',
       en: 'Megobroba Sanapiroze is Megobroba’s complex in Didube on the Mtkvari embankment. From $1,180/m².',
       ru: 'Megobroba Sanapiroze — комплекс Мегоброба в Дидубе на набережной Куры. От $1 180/м².',
+    },
+  },
+  // ——— 2026-07-18 wave 3 projects (official sites + korter addresses) ———
+  {
+    slug: 'ocean-vake-residences',
+    name: 'Ocean Vake Residences',
+    developerSlug: 'ocean-capital',
+    img: '/images/np1.webp',
+    location: 'ვაკე, ზ. პალიაშვილის ქ. 67',
+    city: 'თბილისი',
+    priceFromM2: '$3,200',
+    done: 90,
+    finish: '2026 Q2',
+    flats: 80,
+    rating: 4.7,
+    coords: { lat: 41.7096, lng: 44.7538 },
+    description: {
+      ka: 'Ocean Vake Residences — ოუშენ კაპიტალის პრემიუმ კომპლექსი პალიაშვილის 67-ში, ვაკის პარკიდან ~300 მ. ოფიციალური გაყიდვების ოფისი იმავე მისამართზე.',
+      en: 'Ocean Vake Residences is Ocean Capital’s premium complex at 67 Paliashvili St, ~300 m from Vake Park. Official sales office at the same address.',
+      ru: 'Ocean Vake Residences — премиальный комплекс Ocean Capital на ул. Палиашвили 67, ~300 м от парка Ваке. Офис продаж по тому же адресу.',
+    },
+  },
+  {
+    slug: 'ocean-vake-plaza',
+    name: 'Ocean Vake Plaza',
+    developerSlug: 'ocean-capital',
+    img: '/images/np2.webp',
+    location: 'ვაკე, ზ. პალიაშვილის ქ. 102',
+    city: 'თბილისი',
+    priceFromM2: '$3,400',
+    done: 75,
+    finish: '2026 Q4',
+    flats: 90,
+    rating: 4.7,
+    coords: { lat: 41.7108, lng: 44.7512 },
+    description: {
+      ka: 'Ocean Vake Plaza — პალიაშვილისა და მუხაძის კვეთასთან, ვაკის პარკიდან 2 წუთის სავალზე. დაბალი სიმაღლის გარემო, ღია ხედები.',
+      en: 'Ocean Vake Plaza sits between Paliashvili and Mukhadze streets, a two-minute walk from Vake Park, surrounded by low-rise buildings with open views.',
+      ru: 'Ocean Vake Plaza — между Палиашвили и Мухадзе, в двух минутах от парка Ваке, окружён малоэтажной застройкой с открытыми видами.',
+    },
+  },
+  {
+    slug: 'ocean-vake-park',
+    name: 'Ocean Vake Park',
+    developerSlug: 'ocean-capital',
+    img: '/images/np1.webp',
+    location: 'ვაკე, ი. მოსაშვილის ქ. 26',
+    city: 'თბილისი',
+    priceFromM2: '$3,600',
+    done: 85,
+    finish: '2026 Q3',
+    flats: 100,
+    rating: 4.8,
+    coords: { lat: 41.7092, lng: 44.7615 },
+    description: {
+      ka: 'Ocean Vake Park — უშუალოდ ვაკის პარკთან, მოსაშვილის 26-ში. პრემიუმ ლოკაცია მწვანე ზონასთან.',
+      en: 'Ocean Vake Park is directly at Vake Park, at 26 Mosashvili St — a premium address beside the city’s largest heritage green zone.',
+      ru: 'Ocean Vake Park — прямо у парка Ваке, ул. Мосашвили 26. Премиальная локация у крупнейшей зелёной зоны города.',
+    },
+  },
+  {
+    slug: 'ocean-sky-residences',
+    name: 'Ocean Sky Residences',
+    developerSlug: 'ocean-capital',
+    img: '/images/np2.webp',
+    location: 'ვაკე, ი. ჭავჭავაძის გამზ. 33',
+    city: 'თბილისი',
+    priceFromM2: '$3,500',
+    done: 80,
+    finish: '2026 Q3',
+    flats: 110,
+    rating: 4.7,
+    coords: { lat: 41.7085, lng: 44.7688 },
+    description: {
+      ka: 'Ocean Sky Residences — ჭავჭავაძის გამზირი 33, ვაკის პანორამული ხედებით და სწრაფი კავშირით ქალაქის სხვა უბნებთან.',
+      en: 'Ocean Sky Residences at 33 Chavchavadze Ave offers panoramic Vake views and fast access across the city via the new road link.',
+      ru: 'Ocean Sky Residences на пр. Чавчавадзе 33 — панорамные виды Ваке и быстрый доступ к другим районам города.',
+    },
+  },
+  {
+    slug: 'tbilisi-waterfront',
+    name: 'Tbilisi Waterfront',
+    developerSlug: 'eagle-hills-georgia',
+    img: '/images/np1.webp',
+    location: 'კრწანისი, მტკვრის სანაპირო',
+    city: 'თბილისი',
+    priceFromM2: '$2,800',
+    done: 15,
+    finish: '2029 Q2',
+    flats: 5000,
+    rating: 4.9,
+    coords: { lat: 41.6825, lng: 44.832 },
+    description: {
+      ka: 'Tbilisi Waterfront — Eagle Hills-ის მასტერპლანი კრწანისში მტკვრის ნაპირზე: ბინები, ტაუნჰაუსები, ვილები, სასტუმროები და ~10–17 კმ სანაპირო. ფაზები იყიდება ერთ დღეში.',
+      en: 'Tbilisi Waterfront is Eagle Hills’ masterplan in Krtsanisi on the Mtkvari: apartments, townhouses, villas, hotels and ~10–17 km of waterfront. Sales phases have sold out in a day.',
+      ru: 'Tbilisi Waterfront — мастерплан Eagle Hills в Крцаниси на Куре: квартиры, таунхаусы, виллы, отели и ~10–17 км набережной. Фазы раскупаются за день.',
+    },
+  },
+  {
+    slug: 'gonio-yachts-marina',
+    name: 'Gonio Yachts & Marina',
+    developerSlug: 'eagle-hills-georgia',
+    img: '/images/np2.webp',
+    location: 'გონიო, შავი ზღვის სანაპირო',
+    city: 'ბათუმი',
+    priceFromM2: '$3,000',
+    done: 5,
+    finish: '2030',
+    flats: 2000,
+    rating: 4.8,
+    coords: { lat: 41.573, lng: 41.572 },
+    description: {
+      ka: 'Gonio Yachts & Marina — Eagle Hills-ის 250 ჰა წყლისპირა მასტერპლანი გონიოში: მარინა, branded residences, სასტუმროები და რეკრეაცია. ინვესტიცია Tbilisi Waterfront-თან ერთად ~$6.5 მლრდ.',
+      en: 'Gonio Yachts & Marina is Eagle Hills’ 250 ha waterfront masterplan near Batumi: marina, branded residences, hotels and leisure. Combined investment with Tbilisi Waterfront ~USD 6.5bn.',
+      ru: 'Gonio Yachts & Marina — водный мастерплан Eagle Hills на 250 га у Гонио: марина, branded residences, отели и досуг. Вместе с Tbilisi Waterfront ~$6,5 млрд.',
+    },
+  },
+  {
+    slug: 'mira-verde',
+    name: 'Mira Verde',
+    developerSlug: 'mira-development',
+    img: '/images/np1.webp',
+    location: 'თბილისის ჰილზი',
+    city: 'თბილისი',
+    priceFromM2: '$2,500',
+    done: 10,
+    finish: '2029 Q3',
+    flats: 800,
+    rating: 4.8,
+    coords: { lat: 41.695, lng: 44.855 },
+    description: {
+      ka: 'Mira Verde — საქართველოს პირველი multi-branded community თბილისის ჰილზში. პირველი ფაზა Trussardi Residences; სტუდიოები $192,500-დან. მართვა Mira Developments-ისგან.',
+      en: 'Mira Verde is Georgia’s first multi-branded community in Tbilisi Hills. Phase one: Trussardi Residences; studios from $192,500. Fully managed by Mira Developments.',
+      ru: 'Mira Verde — первое multi-branded community Грузии в Tbilisi Hills. Первая фаза: Trussardi Residences; студии от $192 500. Управление — Mira Developments.',
+    },
+  },
+  {
+    slug: 'idea-panorama',
+    name: 'Idea Panorama',
+    developerSlug: 'idea-development',
+    img: '/images/np2.webp',
+    location: 'საბურთალო, გ. დანელიას ქ.',
+    city: 'თბილისი',
+    priceFromM2: '$2,200',
+    done: 70,
+    finish: '2027',
+    flats: 280,
+    rating: 4.6,
+    coords: { lat: 41.7225, lng: 44.761 },
+    description: {
+      ka: 'Idea Panorama — პრემიუმ მულტიფუნქციური კომპლექსი დანელიას ქუჩაზე, ვაკე–საბურთალოზე. Panorama I — 2025, Panorama II — 2027. გარანტირებული პანორამული ხედები.',
+      en: 'Idea Panorama is a premium mixed-use project on Danelia St in Vake–Saburtalo. Panorama I — 2025, Panorama II — 2027. Guaranteed panoramic views.',
+      ru: 'Idea Panorama — премиальный многофункциональный комплекс на ул. Данелия, Ваке–Сабуртало. Panorama I — 2025, Panorama II — 2027. Гарантированные панорамные виды.',
     },
   },
 ]

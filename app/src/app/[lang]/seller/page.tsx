@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import LocalizedLink from "@/components/LocalizedLink"
-import { Building2, TrendingUp, Users } from "lucide-react"
+import { Building2, Eye, Phone, TrendingUp, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import StatCard from "@/components/dashboard/StatCard"
@@ -8,6 +8,7 @@ import EmptyState from "@/components/dashboard/EmptyState"
 import { sellerNav } from "@/components/seller-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { phoneRevealsOf } from "@/lib/inquiries/phone"
 
 export const dynamic = "force-dynamic"
 
@@ -19,26 +20,27 @@ export const metadata: Metadata = {
 export default async function SellerOverviewPage() {
   const user = await requireRole("seller", "/seller")
 
-  const listingIds = await safeQuery(
+  const listings = await safeQuery(
     () =>
-      db.listing
-        .findMany({
-          where: { ownerId: user.id, deletedAt: null },
-          select: { id: true },
-        })
-        .then((rows) => rows.map((r) => r.id)),
+      db.listing.findMany({
+        where: { ownerId: user.id, deletedAt: null },
+        select: {
+          id: true,
+          status: true,
+          views: true,
+          extendedFields: true,
+        },
+      }),
     [],
   )
 
-  const [activeListings, soldListings, recentLeads, totalLeads] = await Promise.all([
-    safeQuery(
-      () => db.listing.count({ where: { ownerId: user.id, status: "active", deletedAt: null } }),
-      0,
-    ),
-    safeQuery(
-      () => db.listing.count({ where: { ownerId: user.id, status: "sold", deletedAt: null } }),
-      0,
-    ),
+  const listingIds = listings.map((r) => r.id)
+  const totalViews = listings.reduce((sum, l) => sum + l.views, 0)
+  const totalReveals = listings.reduce((sum, l) => sum + phoneRevealsOf(l.extendedFields), 0)
+  const activeListings = listings.filter((l) => l.status === "active").length
+  const soldListings = listings.filter((l) => l.status === "sold").length
+
+  const [recentLeads, totalLeads] = await Promise.all([
     safeQuery(
       () =>
         db.inquiry.findMany({
@@ -70,13 +72,21 @@ export default async function SellerOverviewPage() {
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
     >
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
         <StatCard
-          label="აქტიური განცხადებები"
+          label="აქტიური"
           value={activeListings}
+          hint="განცხადებები"
           icon={<Building2 size={18} />}
         />
-        <StatCard label="ლიდები" value={totalLeads} icon={<Users size={18} />} />
+        <StatCard label="ნახვები" value={totalViews} hint="ყველა განცხადება" icon={<Eye size={18} />} />
+        <StatCard label="ლიდები" value={totalLeads} hint="მოთხოვნები" icon={<Users size={18} />} />
+        <StatCard
+          label="ნომრის ნახვა"
+          value={totalReveals}
+          hint="დაცული გახსნები"
+          icon={<Phone size={18} />}
+        />
         <StatCard label="გაყიდული" value={soldListings} icon={<TrendingUp size={18} />} />
       </div>
 
@@ -129,6 +139,12 @@ export default async function SellerOverviewPage() {
               className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
             >
               განცხადებების მართვა
+            </LocalizedLink>
+            <LocalizedLink
+              href="/seller/leads"
+              className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
+            >
+              ყველა ლიდი
             </LocalizedLink>
           </div>
         </section>

@@ -1,99 +1,10 @@
 import { searchListings, type SearchFilters } from "@/lib/search"
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
-import { USD_GEL } from "@/data/listings"
-import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from "@/lib/features"
+import { buildDbWhere, parseSearchParams } from "@/lib/search-filters"
 
-// ---------------------------------------------------------------------------
-// DB fallback query builder
-// ---------------------------------------------------------------------------
-
-function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
-  const where: Prisma.ListingWhereInput = {
-    deletedAt: null,
-    status: "active",
-  }
-  const and: Prisma.ListingWhereInput[] = []
-
-  if (filters.dealType) where.dealType = filters.dealType as Prisma.ListingWhereInput["dealType"]
-  if (filters.propertyType) where.propertyType = filters.propertyType as Prisma.ListingWhereInput["propertyType"]
-  if (filters.city) where.city = filters.city
-  if (filters.district) where.district = filters.district
-  // Price bounds arrive in filters.currency (default USD): match listings
-  // priced in that currency directly, plus converted bounds on the other.
-  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-    const cur = filters.currency === "GEL" ? "GEL" : "USD"
-    const other = cur === "USD" ? "GEL" : "USD"
-    const conv = (v: number) => (cur === "USD" ? v * USD_GEL : v / USD_GEL)
-    const same: Prisma.ListingWhereInput = { currency: cur }
-    const cross: Prisma.ListingWhereInput = { currency: other }
-    if (filters.minPrice !== undefined) {
-      same.price = { gte: filters.minPrice }
-      cross.price = { gte: Math.floor(conv(filters.minPrice)) }
-    }
-    if (filters.maxPrice !== undefined) {
-      same.price = { ...(same.price as object ?? {}), lte: filters.maxPrice }
-      cross.price = { ...(cross.price as object ?? {}), lte: Math.ceil(conv(filters.maxPrice)) }
-    }
-    and.push({ OR: [same, cross] })
-  }
-  if (filters.minArea !== undefined) where.area = { ...(where.area as object ?? {}), gte: filters.minArea }
-  if (filters.maxArea !== undefined) where.area = { ...(where.area as object ?? {}), lte: filters.maxArea }
-  if (filters.rooms !== undefined) where.rooms = { ...(where.rooms as object ?? {}), gte: filters.rooms }
-  if (filters.bedrooms !== undefined) where.bedrooms = { gte: filters.bedrooms }
-  if (filters.bathrooms !== undefined) where.bathrooms = { gte: filters.bathrooms }
-  if (filters.floorMin !== undefined) where.floor = { ...(where.floor as object ?? {}), gte: filters.floorMin }
-  if (filters.floorMax !== undefined) where.floor = { ...(where.floor as object ?? {}), lte: filters.floorMax }
-  // JSON extendedFields hold the condition/building-status vocabulary keys.
-  if (filters.conditions?.length) {
-    and.push({ OR: filters.conditions.map((c) => ({ extendedFields: { path: ["condition"], equals: c } })) })
-  }
-  if (filters.buildingStatuses?.length) {
-    and.push({ OR: filters.buildingStatuses.map((s) => ({ extendedFields: { path: ["buildingStatus"], equals: s } })) })
-  }
-  if (filters.features?.length) where.features = { hasEvery: filters.features }
-  if (filters.hasPhoto) where.images = { isEmpty: false }
-  if (filters.verifiedOnly) where.verified = true
-  if (filters.petsOnly) where.petsAllowed = true
-  if (filters.sellerType) where.sellerType = filters.sellerType
-
-  // Daily-rent availability: drop listings whose confirmed/pending bookings or
-  // host-blocked dates overlap the requested [from, to) window. Half-open
-  // semantics — checkout day is free for the next guest.
-  if (filters.dailyFrom && filters.dailyTo) {
-    const from = new Date(`${filters.dailyFrom}T00:00:00Z`)
-    const to = new Date(`${filters.dailyTo}T00:00:00Z`)
-    and.push({
-      dailyRentalBookings: {
-        none: {
-          status: { in: ["pending", "confirmed"] },
-          checkIn: { lt: to },
-          checkOut: { gt: from },
-        },
-      },
-      dailyRentalBlockedDates: {
-        none: { date: { gte: from, lt: to } },
-      },
-    })
-  }
-
-  // Free-text search: simple ILIKE on title + description (Postgres).
-  // ponytail: no tsvector for DB fallback — fine for MVP. Upgrade: enable pg_trgm.
-  if (filters.q) {
-    and.push({
-      OR: [
-        { title: { contains: filters.q, mode: "insensitive" } },
-        { description: { contains: filters.q, mode: "insensitive" } },
-        { city: { contains: filters.q, mode: "insensitive" } },
-        { district: { contains: filters.q, mode: "insensitive" } },
-        { address: { contains: filters.q, mode: "insensitive" } },
-      ],
-    })
-  }
-
-  if (and.length) where.AND = and
-  return where
-}
+// buildDbWhere + parseSearchParams live in @/lib/search-filters — shared with
+// the saved-search alert matcher so alerts evaluate the exact search semantics.
 
 function buildDbOrderBy(filters: SearchFilters): Prisma.ListingOrderByWithRelationInput {
   switch (filters.sort) {

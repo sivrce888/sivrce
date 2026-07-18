@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&display=swap');
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: Manrope, sans-serif; background: #050B26; color: #E9EDFF;
+    padding: 48px;
+  }
+  h1 { font-weight: 800; letter-spacing: -0.04em; font-size: 28px; margin-bottom: 8px; }
+  p { opacity: 0.55; font-weight: 600; margin-bottom: 32px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .shot {
+    position: relative; height: 280px; border-radius: 22px; overflow: hidden;
+  }
+  .shot.dark {
+    background:
+      linear-gradient(135deg, rgba(46,107,255,0.35), transparent 55%),
+      linear-gradient(220deg, #0A1440, #050B26);
+  }
+  .shot.light {
+    background:
+      linear-gradient(135deg, rgba(143,180,255,0.4), transparent 50%),
+      linear-gradient(200deg, #FFFFFF, #F6F7FB);
+  }
+  .shot.busy {
+    background:
+      radial-gradient(circle at 30% 40%, #2E6BFF 0%, transparent 45%),
+      radial-gradient(circle at 70% 60%, #FF6A2D 0%, transparent 40%),
+      linear-gradient(160deg, #0A1440, #050B26);
+  }
+  .shot.hero {
+    background:
+      linear-gradient(120deg, #0A1440 0%, #1A3FC0 55%, #0A1440 100%);
+  }
+  .wm { position: absolute; right: 28px; bottom: 24px; height: 40px; width: auto; }
+  .wm.cap { height: 56px; }
+  .label {
+    position: absolute; left: 20px; top: 16px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; opacity: 0.45;
+  }
+  .shot.light .label { color: #0A1030; }
+</style></head><body>
+  <h1>sivrce<span style="color:#FF6A2D">.</span> watermark</h1>
+  <p>Board Spark Star · soft 72% · capsule for busy · 100/100 photo kit</p>
+  <div class="grid">
+    <div class="shot dark">
+      <span class="label">soft white · dark photo</span>
+      <img class="wm" src="/Users/mac/Desktop/sivrce888/logo/watermark/png/sivrce-wm-soft-white-8x.png" alt="">
+    </div>
+    <div class="shot light">
+      <span class="label">soft ink · light photo</span>
+      <img class="wm" src="/Users/mac/Desktop/sivrce888/logo/watermark/png/sivrce-wm-soft-ink-8x.png" alt="">
+    </div>
+    <div class="shot hero">
+      <span class="label">soft color · hero</span>
+      <img class="wm" src="/Users/mac/Desktop/sivrce888/logo/watermark/png/sivrce-wm-soft-color-8x.png" alt="">
+    </div>
+    <div class="shot busy">
+      <span class="label">capsule · busy / mixed</span>
+      <img class="wm cap" src="/Users/mac/Desktop/sivrce888/logo/watermark/png/sivrce-wm-capsule-8x.png" alt="">
+    </div>
+  </div>
+</body></html>

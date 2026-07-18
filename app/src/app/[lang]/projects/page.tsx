@@ -22,6 +22,17 @@ export const metadata: Metadata = {
     description:
       'დეველოპერების შეფასებები, ფასები კვადრატულზე, მშენებლობის პროგრესი — ყველა ახალი პროექტი ერთ სივრცეში.',
     type: 'website',
+    url: 'https://sivrce.ge/projects',
+    siteName: 'sivrce',
+    locale: 'ka_GE',
+    images: [{ url: 'https://sivrce.ge/images/og.jpg', alt: 'sivrce პროექტები' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ახალი პროექტები თბილისში და ბათუმში | sivrce',
+    description:
+      'დეველოპერების შეფასებები, ფასები კვადრატულზე, მშენებლობის პროგრესი — ყველა ახალი პროექტი ერთ სივრცეში.',
+    images: ['https://sivrce.ge/images/og.jpg'],
   },
 }
 
@@ -30,11 +41,13 @@ export default async function ProjectsPage() {
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
+    numberOfItems: projects.length,
     itemListElement: projects.map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: p.name,
       url: `https://sivrce.ge/projects/${p.slug}`,
+      image: p.img.startsWith('http') ? p.img : `https://sivrce.ge${p.img}`,
     })),
   }
 

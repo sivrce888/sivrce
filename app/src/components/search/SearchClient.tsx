@@ -629,15 +629,21 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.rooms')}</span>
+          <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">
+            {deal === 'daily' ? t('search.bedrooms') : t('search.rooms')}
+          </span>
           <div className="flex gap-1">
             {ROOM_OPTIONS.map((r, idx) => {
               const n = idx + 1
-              const active = rooms === n
+              const active = deal === 'daily' ? beds === n : rooms === n
               return (
                 <button
                   key={r}
-                  onClick={() => patchParams({ rooms: active ? undefined : String(n) })}
+                  onClick={() =>
+                    deal === 'daily'
+                      ? patchParams({ beds: active ? undefined : String(n), rooms: undefined })
+                      : patchParams({ rooms: active ? undefined : String(n), beds: undefined })
+                  }
                   aria-pressed={active}
                   className={numChip(active)}
                 >
@@ -720,6 +726,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         {moreOpen && (
           <div className="mt-2 space-y-3.5 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-3.5 shadow-card">
             <div className="flex flex-wrap gap-x-6 gap-y-3.5">
+              {deal !== 'daily' && (
               <div>
                 <span className={labelClass}>{t('search.bedrooms')}</span>
                 <div className="flex gap-1">
@@ -730,6 +737,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
                   ))}
                 </div>
               </div>
+              )}
               <div>
                 <span className={labelClass}>{t('search.bathrooms')}</span>
                 <div className="flex gap-1">

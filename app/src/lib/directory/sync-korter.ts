@@ -1,17 +1,17 @@
 /**
- * Korter.ge → Neon directory sync (shared by CLI + Vercel cron).
+ * RETIRED offline archive — do not run against production.
  *
- * Pulls every Georgian-geo developer and their for-sale ongoing projects from
- * `window.INITIAL_STATE`. Upserts address / lat / lng / render / official site.
- * Available ongoing projects are status "active" (public + map).
+ * Historical one-shot import that seeded Neon. Runtime media is owned on
+ * cdn.sivrce.ge via `npm run directory:localize` / `directory:mirror`.
+ * Re-importing from aggregators is forbidden (cron returns 410).
  *
- * ponytail: ~700 HTTP fetches, 6-wide. Ceiling: korter rate-limit → partnership
- * or sitemap dump. Name-matched developers reuse our slug (projects + map pins).
+ * Kept only so `extractState` stays available for the one-shot localize enrich
+ * of leftover sourceUrl rows. Delete this file once sourceUrl is fully null.
  */
 
 import type { PrismaClient } from "@/generated/prisma/client"
 
-const BASE = "https://korter.ge"
+const BASE = "https://korter.ge" // legacy; unused at runtime
 const UA = { "User-Agent": "Mozilla/5.0 (compatible; sivrce-directory-sync/1.0)" }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -92,7 +92,14 @@ const kaCity = (en: string | undefined): string =>
 
 const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9ა-ჰ]+/gi, "")
 const slugFromLink = (link: string): string =>
-  link.replace(/^\/(en|ka|ru)\//, "").replace(/\/$/, "")
+  link
+    .replace(/^\/(en|ka|ru)\//, "")
+    .replace(/\/$/, "")
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-+|-+$/g, "")
 const logoOf = (name: string): string =>
   name.replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase() || "DEV"
 
@@ -162,6 +169,13 @@ const DEV_ALIAS = new Map([
   [norm("Apart Development"), "apart-group"],
   [norm("Elt Building"), "elt-group"],
   [norm("Horizon Batumi"), "horizon-group"],
+  [norm("Ocean Capital"), "ocean-capital"],
+  [norm("Owen Capital"), "ocean-capital"],
+  [norm("Eagle Hills"), "eagle-hills-georgia"],
+  [norm("Eagle Hills Georgia"), "eagle-hills-georgia"],
+  [norm("Mira Developments"), "mira-development"],
+  [norm("Mira Development"), "mira-development"],
+  [norm("Idea Development"), "idea-development"],
 ])
 
 /** Curated slug → korter slug that already has the official logo. */
@@ -339,6 +353,7 @@ export async function syncKorterDirectory(
       const district = clip(b.subLocalityNominative || "", 120)
       const address = clip(b.address || "", 240)
       const readyBy = b.endYear && b.endQuarter ? `${b.endYear} Q${b.endQuarter}` : ""
+      // Kept only until directory:localize clears it; not shown on public pages.
       const sourceUrl = clip(`${BASE}${b.url}`, 320)
       const features: string[] = []
       if (b.constructionStatus) features.push(`status:${b.constructionStatus}`)
