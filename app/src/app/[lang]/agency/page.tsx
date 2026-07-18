@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { Building2, Star, TrendingUp, Users } from "lucide-react"
 
 import BarRow from "@/components/agency-dashboard/BarRow"
@@ -93,12 +93,12 @@ export default async function AgencyOverviewPage() {
               ))}
             </div>
           )}
-          <Link
+          <LocalizedLink
             href="/agency/leads"
             className="mt-5 inline-block text-[12.5px] font-bold text-sv-blue hover:underline"
           >
             ყველა ლიდი →
-          </Link>
+          </LocalizedLink>
         </section>
 
         <section className="rounded-2xl border border-sv-ink/6 bg-white p-6 shadow-sm">
@@ -129,12 +129,12 @@ export default async function AgencyOverviewPage() {
               ))}
             </ul>
           )}
-          <Link
+          <LocalizedLink
             href="/agency/team"
             className="mt-5 inline-block text-[12.5px] font-bold text-sv-blue hover:underline"
           >
             გუნდის ნახვა →
-          </Link>
+          </LocalizedLink>
         </section>
       </div>
     </DashboardShell>

@@ -1,14 +1,16 @@
 'use client'
 
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { TrendingDown, TrendingUp, Minus, ArrowRight, BrainCircuit } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Reveal } from '@/components/Reveal'
 import { SparkMark } from '@/components/SparkMark'
+import { useI18n } from '@/lib/i18n/context'
 
 const BARS = [42, 58, 50, 66, 61, 78, 72, 88, 81, 95, 90, 100]
 
 export default function AISection() {
+  const { b } = useI18n()
   return (
     <section className="relative overflow-hidden bg-sv-surface py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
@@ -100,14 +102,13 @@ export default function AISection() {
           <div className="order-1 lg:order-2">
             <Reveal>
               <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-                <SparkMark className="h-3.5 w-3.5" /> AI ტექნოლოგია
+                <SparkMark className="h-3.5 w-3.5" /> {b('home.ai.kicker')}
               </span>
               <h2 className="text-balance text-[32px] font-black leading-[1.12] tracking-[-0.02em] text-sv-ink md:text-[46px]">
-                იცოდე ნამდვილი ფასი — <span className="text-gradient-blue">ყიდვამდე</span>
+                {b('home.ai.titleA')} <span className="text-gradient-blue">{b('home.ai.titleAccent')}</span>
               </h2>
               <p className="mt-5 max-w-[520px] text-[15px] font-medium leading-relaxed text-sv-ink/55 md:text-[17px]">
-                ჩვენი AI 48 პარამეტრს ანალიზებს — მდებარეობა, იატაკი, ხედი, რემონტი,
-                ბაზრის დინამიკა — და გეუბნება, რამდენად კარგი გარიგებაა კონკრეტული ქონება.
+                {b('home.ai.sub')}
               </p>
             </Reveal>
 
@@ -129,13 +130,13 @@ export default function AISection() {
             </div>
 
             <Reveal delay={0.4}>
-              <Link
+              <LocalizedLink
                 href="/search"
                 className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-sv-navy px-7 py-4 text-[15px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-sv-navy-soft hover:shadow-glow-navy"
               >
                 შეაფასე შენი ქონება
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              </LocalizedLink>
             </Reveal>
           </div>
         </div>

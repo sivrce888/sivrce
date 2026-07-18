@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { ChevronRight, MapPin, TrendingUp, LayoutGrid } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
@@ -178,7 +179,7 @@ function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
 
 export function Chip({ label, href, active }: { label: string; href: string; active?: boolean }) {
   return (
-    <Link
+    <LocalizedLink
       href={href}
       aria-current={active ? 'page' : undefined}
       className={`whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-extrabold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
@@ -188,7 +189,7 @@ export function Chip({ label, href, active }: { label: string; href: string; act
       }`}
     >
       {label}
-    </Link>
+    </LocalizedLink>
   )
 }
 

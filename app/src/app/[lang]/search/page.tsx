@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import SearchClient from '@/components/search/SearchClient'
 import { getSearchLocations } from '@/lib/listings-db'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'ძიება — ბინები, სახლები, კომერციული',
   description:
     'მოძებნე ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები მთელ საქართველოში — ვერიფიცირებული განცხადებები AI ფასის შეფასებით.',
-  alternates: { canonical: '/search' },
+  alternates: { canonical: '/search', languages: langAlternates('/search') },
   robots: { index: false, follow: true },
 }
 

@@ -5,6 +5,7 @@ import Footer from '@/components/sections/Footer'
 import NeighborhoodDetail from '@/components/neighborhoods/NeighborhoodDetail'
 import { NEIGHBORHOODS, getNeighborhood } from '@/data/neighborhoods'
 import { jsonLd, ogImage } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 // ponytail: dynamicParams default (true) — unknown slugs hit notFound() below.
 export function generateStaticParams() {
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: `/neighborhoods/${n.slug}` },
+    alternates: { canonical: `/neighborhoods/${n.slug}`, languages: langAlternates(`/neighborhoods/${n.slug}`) },
     openGraph: {
       title: `${title} | sivrce`,
       description,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowRight, ChevronLeft, ChevronRight, Crown } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import ListingCard from '@/components/ListingCard'
@@ -46,14 +46,14 @@ export default function Listings({ items }: { items: Listing[] }) {
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
-            <Link
+            <LocalizedLink
               href="/sale"
               className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
             >
               {/* SEO: indexable hub + keyword anchor — /search is noindex. */}
               ყველა განცხადების ნახვა
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
+            </LocalizedLink>
           </div>
         </Reveal>
       </div>

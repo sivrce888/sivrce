@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { notFound } from 'next/navigation'
 import { ChevronRight, Clock, ArrowLeft, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { BLOG_POSTS, getPost, relatedPosts } from '@/data/blog'
 import { jsonLd, ogImage } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: post.title,
     description: post.excerpt,
-    alternates: { canonical: `/blog/${post.slug}` },
+    alternates: { canonical: `/blog/${post.slug}`, languages: langAlternates(`/blog/${post.slug}`) },
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -105,11 +106,11 @@ export default async function BlogPostPage({ params }: PageProps) {
         <nav aria-label="ბრედკრამბი" className="mb-8">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
             <li className="flex items-center gap-1.5">
-              <Link href="/" className="transition-colors hover:text-sv-blue">მთავარი</Link>
+              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
             </li>
             <li className="flex items-center gap-1.5">
-              <Link href="/blog" className="transition-colors hover:text-sv-blue">ბლოგი</Link>
+              <LocalizedLink href="/blog" className="transition-colors hover:text-sv-blue">ბლოგი</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
             </li>
             <li aria-current="page" className="line-clamp-1 text-sv-ink/80">{post.title}</li>
@@ -149,12 +150,12 @@ export default async function BlogPostPage({ params }: PageProps) {
             <p className="mx-auto mt-2 max-w-[420px] text-[14px] font-medium text-white/60">
               ვერიფიცირებული განცხადებები AI ფასის შეფასებითა და 3D რუკით — თბილისი, ბათუმი, ქუთაისი.
             </p>
-            <Link
+            <LocalizedLink
               href="/search"
               className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-extrabold text-white shadow-glow-orange transition-transform hover:-translate-y-0.5"
             >
               ძიება <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
+            </LocalizedLink>
           </div>
         </article>
 
@@ -164,7 +165,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <h2 className="mb-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">მსგავსი სტატიები</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {related.map((p) => (
-                <Link
+                <LocalizedLink
                   key={p.slug}
                   href={`/blog/${p.slug}`}
                   className="group flex flex-col overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-300 hover:shadow-card-hover"
@@ -176,15 +177,15 @@ export default async function BlogPostPage({ params }: PageProps) {
                   <div className="p-4">
                     <h3 className="text-[14px] font-black leading-snug text-sv-ink line-clamp-3">{p.title}</h3>
                   </div>
-                </Link>
+                </LocalizedLink>
               ))}
             </div>
           </section>
         )}
 
-        <Link href="/blog" className="mt-12 inline-flex items-center gap-1.5 text-[14px] font-extrabold text-sv-blue">
+        <LocalizedLink href="/blog" className="mt-12 inline-flex items-center gap-1.5 text-[14px] font-extrabold text-sv-blue">
           <ArrowLeft className="h-4 w-4" aria-hidden /> ყველა სტატია
-        </Link>
+        </LocalizedLink>
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(slug)) }} />

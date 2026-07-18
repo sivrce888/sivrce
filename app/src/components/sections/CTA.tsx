@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { Plus, Search } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { getCmsBlock } from '@/lib/cms'
@@ -34,20 +34,20 @@ export default async function CTA() {
         </Reveal>
         <Reveal delay={0.15}>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
+            <LocalizedLink
               href="/add-listing"
               className="group flex items-center gap-2.5 rounded-full bg-sv-orange px-8 py-4 text-[16px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
             >
               <Plus className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
               {primary}
-            </Link>
-            <Link
+            </LocalizedLink>
+            <LocalizedLink
               href="/search"
               className="flex items-center gap-2.5 rounded-full glass px-8 py-4 text-[16px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/15 active:scale-[0.98]"
             >
               <Search className="h-5 w-5" />
               {secondary}
-            </Link>
+            </LocalizedLink>
           </div>
         </Reveal>
         <Reveal delay={0.3}>

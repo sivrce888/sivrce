@@ -1,4 +1,4 @@
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import type { ReactNode } from "react"
 
 import { signOutToHome } from "@/app/auth/actions"
@@ -35,12 +35,12 @@ export default function DashboardShell({
     <div className="min-h-screen bg-sv-cloud">
       <header className="sticky top-0 z-40 border-b border-sv-ink/8 bg-sv-surface/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-5">
-          <Link href="/" className="group flex items-center gap-2.5" aria-label="sivrce — მთავარი">
+          <LocalizedLink href="/" className="group flex items-center gap-2.5" aria-label="sivrce — მთავარი">
             <LogoMark size={30} />
             <span className="text-[17px] font-black tracking-[-0.045em] text-sv-ink">
               sivrce<span className="text-sv-orange">.</span>
             </span>
-          </Link>
+          </LocalizedLink>
           <span className="hidden h-5 w-px bg-sv-ink/10 sm:block" />
           <div className="min-w-0">
             <p className="truncate text-[14px] font-extrabold text-sv-ink">{title}</p>

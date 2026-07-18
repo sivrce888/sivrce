@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'კონფიდენციალურობის პოლიტიკა — sivrce',
   description: 'როგორ იცავს sivrce შენს პირად მონაცემებს — მონაცემთა შეგროვება, გამოყენება, ქუქიები და შენი უფლებები.',
-  alternates: { canonical: '/privacy' },
+  alternates: { canonical: '/privacy', languages: langAlternates('/privacy') },
 }
 
 const SECTIONS = [

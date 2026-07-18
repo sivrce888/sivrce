@@ -36,6 +36,7 @@ import BuildingFloorExplorer from '@/components/map/BuildingFloorExplorer'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export function generateStaticParams() {
   // ponytail: prerender ka only (today's build surface) — other locales SSR on
@@ -79,7 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${b.name} (${b.code}) — ${b.district}, ${b.city}`,
     description: description.slice(0, 160),
-    alternates: { canonical: `/buildings/${b.slug}` },
+    alternates: { canonical: `/buildings/${b.slug}`, languages: langAlternates(`/buildings/${b.slug}`) },
     openGraph: {
       title: `${b.name} | sivrce`,
       description: description.slice(0, 155),

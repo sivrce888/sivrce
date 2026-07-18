@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { Building2, TrendingUp, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
@@ -84,12 +84,12 @@ export default async function SellerOverviewPage() {
         <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[15px] font-extrabold text-sv-ink">ბოლო ლიდები</h2>
-            <Link
+            <LocalizedLink
               href="/seller/leads"
               className="text-[12px] font-bold text-sv-blue hover:underline"
             >
               ყველა →
-            </Link>
+            </LocalizedLink>
           </div>
           {recentLeads.length === 0 ? (
             <EmptyState
@@ -118,18 +118,18 @@ export default async function SellerOverviewPage() {
             <h2 className="text-[15px] font-extrabold text-sv-ink">სწრაფი ქმედებები</h2>
           </div>
           <div className="flex flex-col gap-3">
-            <Link
+            <LocalizedLink
               href="/add-listing"
               className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
             >
               + ახალი განცხადება
-            </Link>
-            <Link
+            </LocalizedLink>
+            <LocalizedLink
               href="/seller/listings"
               className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
             >
               განცხადებების მართვა
-            </Link>
+            </LocalizedLink>
           </div>
         </section>
       </div>

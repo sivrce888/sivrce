@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 
 /* ponytail: pure SVG + next/link only — no framer-motion, so Footer/Navbar
    don't pull the whole animation lib just for the logo. */
@@ -60,7 +60,7 @@ export function Logo({ light = false, compact = false, href = "/" }: { light?: b
   // mark · wordmark optically centered on the 48-unit grid.
   const mark = 36
   return (
-    <Link
+    <LocalizedLink
       href={href}
       className="group flex items-center"
       style={{ gap: (mark * 15) / 48 }}
@@ -68,6 +68,6 @@ export function Logo({ light = false, compact = false, href = "/" }: { light?: b
     >
       <LogoMark size={mark} />
       {!compact && <LogoWordmark height={(mark * 25) / 48} light={light} />}
-    </Link>
+    </LocalizedLink>
   )
 }

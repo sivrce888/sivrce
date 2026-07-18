@@ -7,11 +7,12 @@ import { Reveal } from '@/components/Reveal'
 import { getConfig } from '@/lib/config'
 import { telHref } from '@/lib/inquiries/phone'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'კონტაქტი — sivrce',
   description: 'დაუკავშირდი sivrce-ის გუნდს — ელ. ფოსტა, ტელეფონი ან საკონტაქტო ფორმა. ვპასუხობთ 24 საათში.',
-  alternates: { canonical: '/contact' },
+  alternates: { canonical: '/contact', languages: langAlternates('/contact') },
 }
 
 export default async function ContactPage() {

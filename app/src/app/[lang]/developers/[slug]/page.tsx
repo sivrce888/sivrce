@@ -17,6 +17,7 @@ import {
 } from '@/data/professionals'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export function generateStaticParams() {
   return DEVELOPERS.map((d) => ({ slug: d.slug }))
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${d.name.ka} — პროექტები, ფასები და მიმოხილვები`,
     description,
-    alternates: { canonical: `/developers/${d.slug}` },
+    alternates: { canonical: `/developers/${d.slug}`, languages: langAlternates(`/developers/${d.slug}`) },
     openGraph: {
       title: `${d.name.ka} | sivrce`,
       description,

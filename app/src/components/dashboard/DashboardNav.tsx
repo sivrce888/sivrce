@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { usePathname } from "next/navigation"
 import { stripLangPrefix } from "@/lib/i18n/core"
 
@@ -31,7 +31,7 @@ export default function DashboardNav({
         {nav.map((item) => {
           const active = isActive(pathname, item.href)
           return (
-            <Link
+            <LocalizedLink
               key={item.href}
               href={item.href}
               aria-current={active ? "page" : undefined}
@@ -42,7 +42,7 @@ export default function DashboardNav({
               }`}
             >
               {item.label}
-            </Link>
+            </LocalizedLink>
           )
         })}
       </nav>
@@ -54,7 +54,7 @@ export default function DashboardNav({
       {nav.map((item) => {
         const active = isActive(pathname, item.href)
         return (
-          <Link
+          <LocalizedLink
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
@@ -65,7 +65,7 @@ export default function DashboardNav({
             }`}
           >
             {item.label}
-          </Link>
+          </LocalizedLink>
         )
       })}
     </nav>

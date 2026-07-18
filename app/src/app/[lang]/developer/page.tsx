@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { Building2, CheckCircle2, Home, Star } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
@@ -96,12 +96,12 @@ export default async function DeveloperOverviewPage() {
           <h2 className="text-[18px] font-extrabold tracking-tight text-sv-ink">
             უახლესი პროექტები
           </h2>
-          <Link
+          <LocalizedLink
             href="/developer/projects"
             className="text-[12.5px] font-bold text-sv-blue hover:underline"
           >
             ყველა პროექტი →
-          </Link>
+          </LocalizedLink>
         </div>
 
         {projects.length === 0 ? (

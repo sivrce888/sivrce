@@ -3,7 +3,7 @@
 import { useId } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
@@ -147,13 +147,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     <div className="flex min-w-0 flex-1 flex-col p-5">
       <h3 className="line-clamp-1 text-[16px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
         {/* stretched link: ::after covers the whole card; fav button sits above via z-10 */}
-        <Link
+        <LocalizedLink
           href={`/listing/${l.id}`}
           aria-label={l.title}
           className="rounded-sm after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
         >
           {l.title}
-        </Link>
+        </LocalizedLink>
       </h3>
       <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
         <MapPin className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{l.address}</span>

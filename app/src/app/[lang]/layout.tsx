@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { SWRegister } from "@/app/sw-register";
 import { BRAND } from "@/lib/brand";
-import { isValidLang, LANGS, RTL_LANGS, type Lang } from "@/lib/i18n/core";
+import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
 import { langAlternates, OG_LOCALE, SITE_META } from "@/lib/i18n/server";
 import { getCmsOverrides } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";

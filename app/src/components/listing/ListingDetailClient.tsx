@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
@@ -211,16 +211,16 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
       <main id="main" className="mx-auto max-w-[1440px] px-5 pb-28 pt-[92px] md:px-10 lg:pb-20">
         {/* Breadcrumb */}
         <nav className="mb-5 flex items-center gap-2 text-[13px] font-bold text-sv-ink/45" aria-label={t('detail.breadcrumb')}>
-          <Link href="/" className="py-1.5 transition-colors hover:text-sv-blue">{t('detail.home')}</Link>
+          <LocalizedLink href="/" className="py-1.5 transition-colors hover:text-sv-blue">{t('detail.home')}</LocalizedLink>
           <span>/</span>
-          <Link href="/search" className="py-1.5 transition-colors hover:text-sv-blue">{t('search.title')}</Link>
+          <LocalizedLink href="/search" className="py-1.5 transition-colors hover:text-sv-blue">{t('search.title')}</LocalizedLink>
           <span>/</span>
-          <Link
+          <LocalizedLink
             href={`/search?district=${encodeURIComponent(l.district)}`}
             className="py-1.5 transition-colors hover:text-sv-blue"
           >
             {l.district}
-          </Link>
+          </LocalizedLink>
           <span>/</span>
           <span className="truncate py-1.5 text-sv-ink/70">{l.title}</span>
         </nav>
@@ -708,13 +708,13 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                     {lt(lang, 'similarSub', { deal: t(isSale ? 'search.sale' : 'search.rent') })}
                   </p>
                 </div>
-                <Link
+                <LocalizedLink
                   href={listingHubPath(l) ?? `/search?deal=${l.dealType}&type=${l.propType}`}
                   className="hidden shrink-0 items-center gap-2 text-[14px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep sm:flex"
                 >
                   {/* SEO: keyword anchor (matches destination hub <h1>) over generic "See more". */}
                   {listingHubAnchor(l) ?? t('detail.seeMore')} <ChevronRight className="h-4 w-4" />
-                </Link>
+                </LocalizedLink>
               </div>
               <div className="-mx-5 overflow-x-auto px-5 pb-2 md:-mx-10 md:px-10">
                 <div className="flex snap-x snap-mandatory gap-6">

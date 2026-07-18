@@ -1,16 +1,17 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { ChevronRight, Calculator, TrendingUp, Building2 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import MortgageCalcClient from '@/components/mortgage/MortgageCalcClient'
 import { jsonLd } from '@/lib/utils'
+import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'იპოთეკის კალკულატორი საქართველოში — ყოველთვიური გადასახადი, პირველი შენატრება, პროცენტი',
   description:
     'უფასო იპოთეკის კალკულატორი საქართველოს ბაზრისთვის — გამოთვალეთ ყოველთვიური გადასახადი ნებისმიერი ბინისთვის. 2026 წლის პროცენტები Bank of Georgia, TBC Bank, Credo, BasisBank. ვადა 15-25 წელი, პირველი შენატრება 15-30%.',
-  alternates: { canonical: '/mortgage-calculator' },
+  alternates: { canonical: '/mortgage-calculator', languages: langAlternates('/mortgage-calculator') },
   openGraph: {
     title: 'იპოთეკის კალკულატორი საქართველოში',
     description: 'გამოთვალეთ ყოველთვიური გადასახადი და პროცენტი — 2026 წლის ბაზრის პირობებით.',
@@ -82,7 +83,7 @@ export default function MortgageCalculatorPage() {
         <nav aria-label="ბრედკრამბი" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
             <li className="flex items-center gap-1.5">
-              <Link href="/" className="transition-colors hover:text-sv-blue">მთავარი</Link>
+              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
             </li>
             <li aria-current="page" className="text-sv-ink/80">იპოთეკის კალკულატორი</li>
@@ -192,12 +193,12 @@ export default function MortgageCalculatorPage() {
           <p className="mx-auto mt-2 max-w-[420px] text-[14px] font-medium text-white/60">
             ვერიფიცირებული განცხადებები AI ფასის შეფასებით — თბილისი, ბათუმი, ქუთაისი.
           </p>
-          <Link
+          <LocalizedLink
             href="/sale/apartments"
             className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-extrabold text-white shadow-glow-orange transition-transform hover:-translate-y-0.5"
           >
             ვერიფიცირებული ბინები
-          </Link>
+          </LocalizedLink>
         </div>
       </main>
       <Footer />

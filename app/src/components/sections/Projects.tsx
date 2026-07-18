@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
 import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Star } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
@@ -49,16 +49,16 @@ export default function Projects() {
               {b('home.projects.sub')}
             </p>
           </div>
-          <Link href="/projects" className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:text-sv-blue-deep">
+          <LocalizedLink href="/projects" className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:text-sv-blue-deep">
             136 პროექტის ნახვა
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
+          </LocalizedLink>
         </Reveal>
 
         <div className="grid gap-6 lg:grid-cols-2">
           {PROJECTS.map((p, i) => (
             <Reveal key={p.name} delay={i * 0.12}>
-              <Link href="/search" className="block">
+              <LocalizedLink href="/search" className="block">
                 <article className="group cursor-pointer overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover">
                 <div className="relative aspect-[16/9] overflow-hidden">
                   <Image
@@ -110,7 +110,7 @@ export default function Projects() {
                   />
                 </div>
                 </article>
-              </Link>
+              </LocalizedLink>
             </Reveal>
           ))}
         </div>
