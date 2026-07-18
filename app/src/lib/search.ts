@@ -11,6 +11,7 @@
  */
 
 import { Meilisearch, type SearchParams } from "meilisearch"
+import { USD_GEL } from "@/data/listings"
 
 // ---------------------------------------------------------------------------
 // Client singleton
@@ -55,7 +56,19 @@ export interface SearchFilters {
   minArea?: number
   maxArea?: number
   rooms?: number
-  sort?: "date" | "price-asc" | "price-desc" | "area" | "ai"
+  bedrooms?: number
+  bathrooms?: number
+  floorMin?: number
+  floorMax?: number
+  /** Stored vocabulary keys (see src/lib/features.ts) */
+  conditions?: string[]
+  buildingStatuses?: string[]
+  features?: string[]
+  hasPhoto?: boolean
+  verifiedOnly?: boolean
+  /** Price-filter currency; bounds are converted via USD_GEL. Default USD. */
+  currency?: "USD" | "GEL"
+  sort?: "date" | "price-asc" | "price-desc" | "area" | "ai" | "m2asc" | "m2desc"
   page?: number
   pageSize?: number
 }
@@ -94,6 +107,14 @@ export interface ListingDocument {
   propertyType: string
   price: number
   currency: string
+  /** price normalized to USD via USD_GEL — cross-currency price filtering/sorting */
+  priceUSD: number
+  pricePerSqm?: number
+  verified: boolean
+  hasImages: boolean
+  /** Vocabulary keys from src/lib/features.ts (from extendedFields) */
+  condition?: string
+  buildingStatus?: string
   area: number
   rooms: number
   bedrooms: number
@@ -144,15 +165,22 @@ async function ensureIndex(): Promise<boolean> {
       "city",
       "district",
       "price",
+      "priceUSD",
       "area",
       "rooms",
       "bedrooms",
       "bathrooms",
+      "floor",
       "status",
+      "features",
+      "condition",
+      "buildingStatus",
+      "verified",
+      "hasImages",
     ])
 
     // Sortable attributes.
-    await index.updateSortableAttributes(["price", "area", "rooms", "createdAt", "trustScore"])
+    await index.updateSortableAttributes(["price", "priceUSD", "pricePerSqm", "area", "rooms", "createdAt", "trustScore"])
 
     // Typo tolerance: Georgian script has no case, uses unique characters.
     // We disable typo on short words and limit to 1 typo for medium words.
@@ -210,11 +238,24 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.propertyType) parts.push(`propertyType = ${esc(filters.propertyType)}`)
   if (filters.city) parts.push(`city = ${esc(filters.city)}`)
   if (filters.district) parts.push(`district = ${esc(filters.district)}`)
-  if (filters.minPrice !== undefined) parts.push(`price >= ${filters.minPrice}`)
-  if (filters.maxPrice !== undefined) parts.push(`price <= ${filters.maxPrice}`)
+  // Price bounds arrive in filters.currency (default USD) — filter the
+  // normalized priceUSD so GEL and USD listings compare fairly.
+  const toUSD = (v: number) => (filters.currency === "GEL" ? v / USD_GEL : v)
+  if (filters.minPrice !== undefined) parts.push(`priceUSD >= ${Math.floor(toUSD(filters.minPrice))}`)
+  if (filters.maxPrice !== undefined) parts.push(`priceUSD <= ${Math.ceil(toUSD(filters.maxPrice))}`)
   if (filters.minArea !== undefined) parts.push(`area >= ${filters.minArea}`)
   if (filters.maxArea !== undefined) parts.push(`area <= ${filters.maxArea}`)
   if (filters.rooms !== undefined) parts.push(`rooms >= ${filters.rooms}`)
+  if (filters.bedrooms !== undefined) parts.push(`bedrooms >= ${filters.bedrooms}`)
+  if (filters.bathrooms !== undefined) parts.push(`bathrooms >= ${filters.bathrooms}`)
+  if (filters.floorMin !== undefined) parts.push(`floor >= ${filters.floorMin}`)
+  if (filters.floorMax !== undefined) parts.push(`floor <= ${filters.floorMax}`)
+  if (filters.conditions?.length) parts.push(`condition IN [${filters.conditions.map(esc).join(", ")}]`)
+  if (filters.buildingStatuses?.length) parts.push(`buildingStatus IN [${filters.buildingStatuses.map(esc).join(", ")}]`)
+  // AND semantics: every selected feature must be present.
+  for (const f of filters.features ?? []) parts.push(`features = ${esc(f)}`)
+  if (filters.hasPhoto) parts.push("hasImages = true")
+  if (filters.verifiedOnly) parts.push("verified = true")
 
   return parts.join(" AND ")
 }
@@ -229,6 +270,10 @@ function buildMeiliSort(filters: SearchFilters): string[] | undefined {
       return ["area:desc"]
     case "ai":
       return ["trustScore:desc"]
+    case "m2asc":
+      return ["pricePerSqm:asc"]
+    case "m2desc":
+      return ["pricePerSqm:desc"]
     case "date":
     default:
       // Default: newest first
@@ -267,18 +312,20 @@ export async function searchListings(filters: SearchFilters): Promise<SearchResu
     }
     const totalHits = raw.totalHits ?? raw.estimatedTotalHits ?? 0
 
-    // Read-path grammar: the index stores "buy", the UI speaks "sale".
-    // Map hits and facet keys so clients never see the DB dialect.
+    // Read-path grammar: the index stores "buy"/"mortgage", the UI speaks
+    // "sale"/"pledge". Map hits and facet keys so clients never see the DB dialect.
+    const uiDeal = (d: string) => (d === "buy" ? "sale" : d === "mortgage" ? "pledge" : d)
     const facets = raw.facetDistribution
-    if (facets?.dealType && facets.dealType.buy !== undefined) {
-      const { buy, ...restDeals } = facets.dealType
-      facets.dealType = { ...restDeals, sale: buy }
+    if (facets?.dealType) {
+      facets.dealType = Object.fromEntries(
+        Object.entries(facets.dealType).map(([k, v]) => [uiDeal(k), v]),
+      )
     }
 
     return {
       hits: raw.hits.map((h) => ({
         ...h,
-        dealType: h.dealType === "buy" ? "sale" : h.dealType,
+        dealType: uiDeal(h.dealType),
       })),
       totalHits,
       page,

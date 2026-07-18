@@ -3,7 +3,7 @@
 /**
  * SIVRCE — Currency provider.
  * Mirror of I18nProvider: useSyncExternalStore for SSR safety, localStorage
- * persistence, cross-tab sync. Default GEL (₾). Live USD→GEL rate fetched
+ * persistence, cross-tab sync. Default USD ($). Live USD→GEL rate fetched
  * once per session, cached 6h in localStorage.
  *
  * Usage:

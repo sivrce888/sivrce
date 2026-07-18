@@ -69,6 +69,21 @@ export const tr: Dict = {
   'search.seoHint':
     'Sivrce’deki her ilan doğrulanmıştır ve AI fiyat değerlendirmesiyle gelir — Tiflis, Batum ve Kutaisi’de daireler, evler ve ticari alanlar.',
 
+  'search.moreFilters': 'More filters',
+  'search.bedrooms': 'Bedrooms',
+  'search.bathrooms': 'Bathrooms',
+  'search.floor': 'Floor',
+  'search.condition': 'Condition',
+  'search.buildingStatus': 'Building status',
+  'search.features': 'Features',
+  'search.photoOnly': 'With photos only',
+  'search.verifiedOnly': 'Verified only',
+  'search.filters': 'Filters',
+  'search.showResults': 'Show {n} results',
+  'search.currency': 'Currency',
+  'search.bedsChip': '{n}+ beds',
+  'search.bathsChip': '{n}+ baths',
+
   // ——— Property types ———
   'prop.apartment': 'Daire',
   'prop.house': 'Ev / yazlık',
@@ -82,6 +97,8 @@ export const tr: Dict = {
   'sort.priceDesc': 'Fiyat: yüksekten düşüğe',
   'sort.area': 'Alana göre',
   'sort.ai': 'AI puanı',
+  'sort.m2asc': 'Price/m²: low to high',
+  'sort.m2desc': 'Price/m²: high to low',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'İlan bulunamadı',

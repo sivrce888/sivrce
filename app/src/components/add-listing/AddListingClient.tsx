@@ -21,6 +21,7 @@ import { SparkMark } from '@/components/SparkMark'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { cap1, seoTitleParts } from '@/lib/seo-title'
+import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from '@/lib/features'
 import {
   CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD, formatGEL,
   type DealType, type Listing, type PropType,
@@ -44,13 +45,10 @@ const DEALS: { key: Deal; icon: typeof Tag; labelKey: DictKey; hue: string }[] =
   { key: 'pledge', icon: BadgeCheck, labelKey: 'add.deal.pledge', hue: DEAL_BRAND.pledge },
 ]
 
-const CONDITIONS = ['add.cond.newReno', 'add.cond.oldReno', 'add.cond.needsReno', 'add.cond.whiteFrame', 'add.cond.blackFrame', 'add.cond.greenFrame'] as const
-const STATUSES = ['add.status.new', 'add.status.old', 'add.status.construction'] as const
-const FEATURES = [
-  'add.f.balcony', 'add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.furniture',
-  'add.f.appliances', 'add.f.centralHeating', 'add.f.gas', 'add.f.internet', 'add.f.ac',
-  'add.f.storage', 'add.f.fireplace', 'add.f.security', 'add.f.yard',
-] as const
+// Stored DB values are these i18n keys — shared with /search filters via @/lib/features.
+const CONDITIONS = CONDITION_KEYS
+const STATUSES = BUILDING_STATUS_KEYS
+const FEATURES = FEATURE_KEYS
 
 const STEPS = ['add.step.type', 'add.step.location', 'add.step.details', 'add.step.photos', 'add.step.price', 'add.step.contact'] as const
 

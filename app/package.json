@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:map": "npx --yes tsx src/lib/map/buildings.check.ts",
+    "check:attribution": "npx --yes tsx src/lib/map/attribution.check.ts",
     "check:search": "npx --yes tsx src/lib/search.check.ts",
     "check:seo-title": "npx --yes tsx src/lib/seo-title.check.ts",
     "check:seo-hub": "npx --yes tsx src/lib/seo-hub.check.ts",

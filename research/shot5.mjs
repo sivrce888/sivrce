@@ -1,0 +1,14 @@
+import { chromium } from 'playwright-core';
+const exe = '/Users/mac/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing';
+const browser = await chromium.launch({ executablePath: exe, headless: true, args: ['--disable-blink-features=AutomationControlled','--no-sandbox'] });
+const ctx = await browser.newContext({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36', locale: 'en-US', viewport: { width: 1440, height: 1000 } });
+const page = await ctx.newPage();
+await page.goto('https://www.myhome.ge/en/real-estate/?currencyID=1&dealTypeID=1', { waitUntil: 'domcontentloaded', timeout: 45000 });
+await page.waitForTimeout(5000);
+await page.evaluate(() => { [...document.querySelectorAll('button')].find(x => x.innerText.trim() === 'Accept all')?.click(); });
+await page.waitForTimeout(800);
+await page.evaluate(() => { const b = [...document.querySelectorAll('button')].filter(x => x.querySelector('svg') && !x.innerText.trim()); const r = b.find(x => { const q = x.getBoundingClientRect(); return q.x > 1200 && q.x < 1270 && q.y > 250 && q.y < 290; }); r?.click(); });
+await page.waitForTimeout(3500);
+await page.screenshot({ path: 'myhome_map.png' });
+console.log('URL after map click:', page.url());
+await browser.close();

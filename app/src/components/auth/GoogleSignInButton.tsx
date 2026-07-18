@@ -1,6 +1,6 @@
-import { signIn } from "@/auth"
+import { signInWithGoogle } from "@/app/auth/actions"
 
-/** Server-action Google CTA — one click → OAuth. */
+/** Google OAuth CTA — server action (safe inside client forms). */
 export function GoogleSignInButton({
   redirectTo,
   label = "Google-ით გაგრძელება",
@@ -9,15 +9,11 @@ export function GoogleSignInButton({
   label?: string
 }) {
   return (
-    <form
-      action={async () => {
-        "use server"
-        await signIn("google", { redirectTo })
-      }}
-    >
+    <form action={signInWithGoogle}>
+      <input type="hidden" name="redirectTo" value={redirectTo} />
       <button
         type="submit"
-        className="flex w-full items-center justify-center gap-3 rounded-full bg-sv-surface px-6 py-3.5 text-[14px] font-extrabold text-sv-ink shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+        className="flex w-full items-center justify-center gap-3 rounded-full border border-sv-ink/10 bg-sv-cloud px-6 py-3.5 text-[14px] font-extrabold text-sv-ink transition hover:-translate-y-0.5 hover:border-sv-ink/20 hover:bg-sv-surface hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
           <path

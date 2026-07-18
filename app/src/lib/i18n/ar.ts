@@ -69,6 +69,21 @@ export const ar: Dict = {
   'search.seoHint':
     'كل إعلان على Sivrce موثّق ومصحوب بتقييم سعر بالذكاء الاصطناعي — شقق ومنازل ومساحات تجارية في تبليسي وباتومي وكوتايسي.',
 
+  'search.moreFilters': 'More filters',
+  'search.bedrooms': 'Bedrooms',
+  'search.bathrooms': 'Bathrooms',
+  'search.floor': 'Floor',
+  'search.condition': 'Condition',
+  'search.buildingStatus': 'Building status',
+  'search.features': 'Features',
+  'search.photoOnly': 'With photos only',
+  'search.verifiedOnly': 'Verified only',
+  'search.filters': 'Filters',
+  'search.showResults': 'Show {n} results',
+  'search.currency': 'Currency',
+  'search.bedsChip': '{n}+ beds',
+  'search.bathsChip': '{n}+ baths',
+
   // ——— Property types ———
   'prop.apartment': 'شقة',
   'prop.house': 'منزل / كوخ',
@@ -82,6 +97,8 @@ export const ar: Dict = {
   'sort.priceDesc': 'السعر: من الأعلى إلى الأقل',
   'sort.area': 'حسب المساحة',
   'sort.ai': 'تقييم AI',
+  'sort.m2asc': 'Price/m²: low to high',
+  'sort.m2desc': 'Price/m²: high to low',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'الإعلان غير موجود',

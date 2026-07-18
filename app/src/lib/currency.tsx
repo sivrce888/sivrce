@@ -3,7 +3,7 @@
 /**
  * SIVRCE — Currency context, hook and formatter.
  * Pattern: identical to I18nProvider (useSyncExternalStore, localStorage, cross-tab sync).
- * Default: GEL (₾). Live USD→GEL rate fetched from open.er-api.com (free, no key).
+ * Default: USD ($). Live USD→GEL rate fetched from open.er-api.com (free, no key).
  * Falls back to hardcoded 2.7.
  */
 
@@ -37,9 +37,9 @@ export const CurrencyContext = createContext<CurrencyContextValue | null>(null)
 export function readStoredCurrency(): Currency {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return CURRENCIES.includes(raw as Currency) ? (raw as Currency) : 'GEL'
+    return CURRENCIES.includes(raw as Currency) ? (raw as Currency) : 'USD'
   } catch {
-    return 'GEL'
+    return 'USD'
   }
 }
 
@@ -48,7 +48,7 @@ export function persistCurrency(c: Currency) {
 }
 
 export function getServerCurrency(): Currency {
-  return 'GEL'
+  return 'USD'
 }
 
 export function subscribeCurrency(onChange: () => void): () => void {

@@ -17,6 +17,7 @@ import { requireAdminAction } from "@/lib/admin/guard"
 import { BLOCKLIST_KINDS } from "@/lib/admin/moderation"
 import { optString, reqEnum, reqString } from "@/lib/admin/validate"
 import { db } from "@/lib/db"
+import { unattributeListing } from "@/lib/map/attribution"
 
 const DECISIONS = Object.values(ModerationDecision)
 const COMPLAINT_STATUSES = Object.values(ComplaintStatus)
@@ -108,6 +109,10 @@ export async function decideQueueItem(fd: FormData) {
       },
     }),
   ])
+  // Hidden/deleted listings leave the floor inventory (sold → unavailable).
+  if ((decision === "hide" || decision === "delete") && before.subjectKind === "listing") {
+    await unattributeListing(before.subjectId)
+  }
   await logAdminAction(session, "moderation.decide", "moderation_queue", id, {
     before: { status: before.status },
     after: { status, decision },

@@ -28,6 +28,7 @@ import {
   findBuildingBySlug,
   findNearestBuilding,
   mergeMapBuildings,
+  mergeDbBuildings,
   neighborhoodsToGeoJSON,
   projectsToConstructionBuildings,
   type MapBuildingCluster,
@@ -200,12 +201,8 @@ function Map3DInner({ dbBuildings = [] }: { dbBuildings?: MapBuildingCluster[] }
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
 
-  // DB-curated buildings merged over static; static catalog wins on slug collision.
-  const allBuildings = useMemo(() => {
-    if (dbBuildings.length === 0) return ALL_BUILDINGS
-    const staticSlugs = new Set(ALL_BUILDINGS.map((b) => b.slug))
-    return [...ALL_BUILDINGS, ...dbBuildings.filter((b) => !b.slug || !staticSlugs.has(b.slug))]
-  }, [dbBuildings])
+  // DB-curated buildings merged over static; static keeps meta, adopts DB inventory.
+  const allBuildings = useMemo(() => mergeDbBuildings(ALL_BUILDINGS, dbBuildings), [dbBuildings])
   useEffect(() => { allRef.current = allBuildings }, [allBuildings])
 
   const visible = useMemo(

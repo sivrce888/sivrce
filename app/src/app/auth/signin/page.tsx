@@ -3,12 +3,12 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { AuthShell } from "@/components/auth/AuthShell"
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
+import { SignInForm } from "@/components/auth/SignInForm"
 import { dashboardPathFor, getSessionUser } from "@/lib/guards"
 
 export const metadata: Metadata = {
   title: "შესვლა",
-  description: "შედი შენს sivrce ანგარიშში Google-ით — ერთი დაწკაპუნებით.",
+  description: "შედი sivrce ანგარიშში ელფოსტით ან Google-ით.",
   robots: { index: false },
 }
 
@@ -18,6 +18,7 @@ const ERROR_TEXT: Record<string, string> = {
   OAuthAccountNotLinked: "ეს ელფოსტა უკვე დაკავშირებულია სხვა შესვლის მეთოდთან.",
   AccessDenied: "წვდომა უარყოფილია.",
   Configuration: "ავტორიზაცია დროებით მიუწვდომელია — სცადე მოგვიანებით.",
+  CredentialsSignin: "ელფოსტა ან პაროლი არასწორია.",
 }
 
 export default async function SignInPage({
@@ -27,7 +28,6 @@ export default async function SignInPage({
 }) {
   const { callbackUrl, error } = await searchParams
   const user = await getSessionUser()
-  // Open-redirect guard: only local paths may be redirect targets.
   const safeCallback =
     callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : undefined
   if (user) redirect(safeCallback ?? dashboardPathFor(user.role))
@@ -37,7 +37,7 @@ export default async function SignInPage({
 
   return (
     <AuthShell
-      title="შესვლა sivrce-ში"
+      title="შესვლა"
       subtitle="უძრავი ქონება ერთ სივრცეში — შენახული განცხადებები, ტურები და შეტყობინებები."
       footer={
         <p className="text-[13px] font-medium text-white/50">
@@ -49,22 +49,12 @@ export default async function SignInPage({
       }
     >
       {error ? (
-        <p className="mb-5 rounded-module bg-sv-orange-deep/20 px-4 py-3 text-center text-[12.5px] font-bold text-sv-orange-light">
+        <p className="mb-5 rounded-module bg-sv-orange-deep/10 px-4 py-3 text-center text-[12.5px] font-bold text-sv-orange-deep">
           {ERROR_TEXT[error] ?? "შესვლა ვერ მოხერხდა — სცადე თავიდან."}
         </p>
       ) : null}
 
-      {googleEnabled ? (
-        <GoogleSignInButton redirectTo={target} label="Google-ით შესვლა" />
-      ) : (
-        <p className="rounded-module bg-white/5 px-4 py-3 text-center text-[12.5px] font-semibold text-white/55">
-          შესვლა დროებით გამორთულია — დააყენე AUTH_GOOGLE_ID და AUTH_GOOGLE_SECRET.
-        </p>
-      )}
-
-      <p className="mt-5 text-center text-[12px] font-medium text-white/40">
-        ერთი დაწკაპუნება · უსაფრთხო OAuth · პაროლი არ სჭირდება
-      </p>
+      <SignInForm callbackUrl={target} googleEnabled={googleEnabled} />
     </AuthShell>
   )
 }

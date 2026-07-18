@@ -81,8 +81,10 @@ export interface Listing {
 // Map a Prisma listing row → public Listing shape
 function rowToListing(row: Record<string, unknown>): Listing {
   const r = row as Record<string, unknown>
-  const priceGEL = (r.price as number) ?? 0
-  const perM2GEL = (r.pricePerSqm as number) ?? 0
+  // Rows store price in their own `currency` (USD default); normalize to the GEL base.
+  const usd = r.currency === "USD"
+  const priceGEL = usd ? Math.round(((r.price as number) ?? 0) * USD_GEL) : ((r.price as number) ?? 0)
+  const perM2GEL = usd ? Math.round(((r.pricePerSqm as number) ?? 0) * USD_GEL) : ((r.pricePerSqm as number) ?? 0)
   const agentRaw = (r.agent as { name?: string; phone?: string; agency?: string }) ?? {}
   const aiScore = (r.trustScore as number) ?? 70
   const createdAt = (r.createdAt as Date) ?? new Date()

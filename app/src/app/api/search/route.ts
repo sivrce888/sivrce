@@ -1,6 +1,8 @@
 import { searchListings, type SearchFilters } from "@/lib/search"
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
+import { USD_GEL } from "@/data/listings"
+import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from "@/lib/features"
 
 // ---------------------------------------------------------------------------
 // DB fallback query builder
@@ -11,33 +13,63 @@ function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
     deletedAt: null,
     status: "active",
   }
+  const and: Prisma.ListingWhereInput[] = []
 
   if (filters.dealType) where.dealType = filters.dealType as Prisma.ListingWhereInput["dealType"]
   if (filters.propertyType) where.propertyType = filters.propertyType as Prisma.ListingWhereInput["propertyType"]
   if (filters.city) where.city = filters.city
   if (filters.district) where.district = filters.district
-  if (filters.minPrice !== undefined) where.price = { ...(where.price as object ?? {}), gte: filters.minPrice }
-  if (filters.maxPrice !== undefined) where.price = { ...(where.price as object ?? {}), lte: filters.maxPrice }
+  // Price bounds arrive in filters.currency (default USD): match listings
+  // priced in that currency directly, plus converted bounds on the other.
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    const cur = filters.currency === "GEL" ? "GEL" : "USD"
+    const other = cur === "USD" ? "GEL" : "USD"
+    const conv = (v: number) => (cur === "USD" ? v * USD_GEL : v / USD_GEL)
+    const same: Prisma.ListingWhereInput = { currency: cur }
+    const cross: Prisma.ListingWhereInput = { currency: other }
+    if (filters.minPrice !== undefined) {
+      same.price = { gte: filters.minPrice }
+      cross.price = { gte: Math.floor(conv(filters.minPrice)) }
+    }
+    if (filters.maxPrice !== undefined) {
+      same.price = { ...(same.price as object ?? {}), lte: filters.maxPrice }
+      cross.price = { ...(cross.price as object ?? {}), lte: Math.ceil(conv(filters.maxPrice)) }
+    }
+    and.push({ OR: [same, cross] })
+  }
   if (filters.minArea !== undefined) where.area = { ...(where.area as object ?? {}), gte: filters.minArea }
   if (filters.maxArea !== undefined) where.area = { ...(where.area as object ?? {}), lte: filters.maxArea }
   if (filters.rooms !== undefined) where.rooms = { ...(where.rooms as object ?? {}), gte: filters.rooms }
+  if (filters.bedrooms !== undefined) where.bedrooms = { gte: filters.bedrooms }
+  if (filters.bathrooms !== undefined) where.bathrooms = { gte: filters.bathrooms }
+  if (filters.floorMin !== undefined) where.floor = { ...(where.floor as object ?? {}), gte: filters.floorMin }
+  if (filters.floorMax !== undefined) where.floor = { ...(where.floor as object ?? {}), lte: filters.floorMax }
+  // JSON extendedFields hold the condition/building-status vocabulary keys.
+  if (filters.conditions?.length) {
+    and.push({ OR: filters.conditions.map((c) => ({ extendedFields: { path: ["condition"], equals: c } })) })
+  }
+  if (filters.buildingStatuses?.length) {
+    and.push({ OR: filters.buildingStatuses.map((s) => ({ extendedFields: { path: ["buildingStatus"], equals: s } })) })
+  }
+  if (filters.features?.length) where.features = { hasEvery: filters.features }
+  if (filters.hasPhoto) where.images = { isEmpty: false }
+  if (filters.verifiedOnly) where.verified = true
 
   // Free-text search: simple ILIKE on title + description (Postgres).
   // ponytail: no tsvector for DB fallback — fine for MVP. Upgrade: enable pg_trgm.
   if (filters.q) {
-    where.AND = [
-      {
-        OR: [
-          { title: { contains: filters.q, mode: "insensitive" } },
-          { description: { contains: filters.q, mode: "insensitive" } },
-          { city: { contains: filters.q, mode: "insensitive" } },
-          { district: { contains: filters.q, mode: "insensitive" } },
-          { address: { contains: filters.q, mode: "insensitive" } },
-        ],
-      },
-    ]
+    and.push({
+      OR: [
+        { title: { contains: filters.q, mode: "insensitive" } },
+        { description: { contains: filters.q, mode: "insensitive" } },
+        { city: { contains: filters.q, mode: "insensitive" } },
+        { district: { contains: filters.q, mode: "insensitive" } },
+        { address: { contains: filters.q, mode: "insensitive" } },
+      ],
+    })
   }
 
+  if (and.length) where.AND = and
   return where
 }
 
@@ -51,6 +83,10 @@ function buildDbOrderBy(filters: SearchFilters): Prisma.ListingOrderByWithRelati
       return { area: "desc" }
     case "ai":
       return { trustScore: "desc" }
+    case "m2asc":
+      return { pricePerSqm: "asc" }
+    case "m2desc":
+      return { pricePerSqm: "desc" }
     case "date":
     default:
       return { createdAt: "desc" }
@@ -177,14 +213,24 @@ export async function GET(req: Request) {
     return Number.isFinite(n) ? n : undefined
   }
 
-  // UI speaks "sale", DB speaks "buy" (DEALS map in /api/listings). Normalize
-  // once at the trust boundary — meili and DB filters both consume this.
+  // UI speaks "sale"/"pledge", DB speaks "buy"/"mortgage" (DEALS map in
+  // /api/listings). Normalize once at the trust boundary — meili and DB
+  // filters both consume this.
   const dealParam = sp.get("dealType")
-  const dealType = dealParam === "sale" ? "buy" : dealParam
+  const dealType = dealParam === "sale" ? "buy" : dealParam === "pledge" ? "mortgage" : dealParam
 
   // Free-text / location strings are capped at the trust boundary — a 10MB q
   // would otherwise flow into Meili, ILIKE and Meili filter strings.
   const str = (key: string) => sp.get(key)?.slice(0, 120) || undefined
+
+  // CSV params, whitelisted against the stored vocabulary (src/lib/features).
+  const csv = (key: string, allowed: readonly string[]) => {
+    const raw = sp.get(key)
+    if (!raw) return undefined
+    const vals = raw.split(",").filter((v) => allowed.includes(v))
+    return vals.length ? vals : undefined
+  }
+  const curParam = sp.get("cur")
 
   const filters: SearchFilters = {
     q: str("q"),
@@ -197,6 +243,16 @@ export async function GET(req: Request) {
     minArea: num("minArea"),
     maxArea: num("maxArea"),
     rooms: num("rooms"),
+    bedrooms: num("beds"),
+    bathrooms: num("baths"),
+    floorMin: num("fmin"),
+    floorMax: num("fmax"),
+    conditions: csv("cond", CONDITION_KEYS),
+    buildingStatuses: csv("bstat", BUILDING_STATUS_KEYS),
+    features: csv("feat", FEATURE_KEYS),
+    hasPhoto: sp.get("photo") === "1" || undefined,
+    verifiedOnly: sp.get("verified") === "1" || undefined,
+    currency: curParam === "GEL" ? "GEL" : "USD",
     sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
     page: num("page") ?? 1,
     pageSize: num("pageSize") ?? 24,

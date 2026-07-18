@@ -69,6 +69,21 @@ export const hy: Dict = {
   'search.seoHint':
     'Sivrce-ի յուրաքանչյուր հայտարարություն ստուգված է և ունի AI գնագնահատական՝ բնակարաններ, տներ և կոմերցիոն տարածքներ Թբիլիսիում, Բաթումում և Քութայիսում։',
 
+  'search.moreFilters': 'More filters',
+  'search.bedrooms': 'Bedrooms',
+  'search.bathrooms': 'Bathrooms',
+  'search.floor': 'Floor',
+  'search.condition': 'Condition',
+  'search.buildingStatus': 'Building status',
+  'search.features': 'Features',
+  'search.photoOnly': 'With photos only',
+  'search.verifiedOnly': 'Verified only',
+  'search.filters': 'Filters',
+  'search.showResults': 'Show {n} results',
+  'search.currency': 'Currency',
+  'search.bedsChip': '{n}+ beds',
+  'search.bathsChip': '{n}+ baths',
+
   // ——— Property types ———
   'prop.apartment': 'Բնակարան',
   'prop.house': 'Տուն / ամառանոց',
@@ -82,6 +97,8 @@ export const hy: Dict = {
   'sort.priceDesc': 'Գին՝ նվազող',
   'sort.area': 'Ըստ մակերեսի',
   'sort.ai': 'AI գնահատական',
+  'sort.m2asc': 'Price/m²: low to high',
+  'sort.m2desc': 'Price/m²: high to low',
 
   // ——— Listing detail chrome ———
   'detail.notFoundTitle': 'Հայտարարությունը չի գտնվել',

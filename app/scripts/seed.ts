@@ -16,11 +16,12 @@ import { resolve } from "path"
 config({ path: resolve(__dirname, "..", ".env.local") })
 config({ path: resolve(__dirname, "..", ".env") })
 
-import { PrismaClient } from "../src/generated/prisma/client"
+import { Prisma, PrismaClient } from "../src/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { LISTINGS } from "../src/data/listings"
 import { BUILDINGS } from "../src/data/buildings"
 import { DEVELOPERS, PROJECTS } from "../src/data/professionals"
+import { buildingFootprint } from "../src/lib/map/buildings"
 import footprintData from "../src/data/building-footprints.json"
 
 const connectionString = process.env.DATABASE_URL
@@ -152,6 +153,13 @@ async function main() {
     { ring: [number, number][]; osmId: number } | null
   >
   console.log(`Seeding ${BUILDINGS.length} popular map buildings...`)
+  const listingsBySlug = new Map<string, typeof LISTINGS>()
+  for (const l of LISTINGS) {
+    if (!l.buildingSlug) continue
+    const arr = listingsBySlug.get(l.buildingSlug) ?? []
+    arr.push(l)
+    listingsBySlug.set(l.buildingSlug, arr)
+  }
   for (const b of BUILDINGS) {
     const ring = rings[`bldg-${b.slug}`]?.ring
     const data = {
@@ -174,14 +182,78 @@ async function main() {
       projectSlug: b.projectSlug ?? null,
       developerId: b.developerSlug,
     }
-    await db.mapBuilding.upsert({
+    const row = await db.mapBuilding.upsert({
       where: { slug: b.slug },
       update: data,
       create: { slug: b.slug, ...data },
     })
     console.log(`  + ${b.slug}`)
+
+    // Floor inventory derived from seeded listings — create-only:
+    // a Building3D that already exists is left untouched (admin edits win).
+    const existing3D = await db.building3D.findUnique({
+      where: { mapBuildingId: row.id },
+      select: { id: true },
+    })
+    if (existing3D) continue
+    const items = listingsBySlug.get(b.slug) ?? []
+    const floorCount = Math.max(
+      1,
+      b.floors || Math.max(0, ...items.map((l) => l.totalFloors || l.floor || 0)) || 1,
+    )
+    type FloorAgg = {
+      available: number
+      sale: number
+      rent: number
+      daily: number
+      pledge: number
+      minM2: number | null
+    }
+    const perFloor = new Map<number, FloorAgg>()
+    for (const l of items) {
+      const n = Math.min(Math.max(1, l.floor || 1), floorCount)
+      const f = perFloor.get(n) ?? { available: 0, sale: 0, rent: 0, daily: 0, pledge: 0, minM2: null }
+      f.available += 1
+      if (l.dealType === "sale") f.sale += 1
+      else if (l.dealType === "rent") f.rent += 1
+      else if (l.dealType === "daily") f.daily += 1
+      else f.pledge += 1
+      if (l.area > 0 && l.priceGEL > 0) {
+        const m2 = Math.round(l.priceGEL / l.area)
+        f.minM2 = f.minM2 == null ? m2 : Math.min(f.minM2, m2)
+      }
+      perFloor.set(n, f)
+    }
+    await db.building3D.create({
+      data: {
+        mapBuildingId: row.id,
+        footprintGeoJson: (
+          ring
+            ? { type: "Polygon", coordinates: [ring] }
+            : buildingFootprint(b.coords.lat, b.coords.lng)
+        ) as Prisma.InputJsonValue,
+        heightMeters: Math.min(18 + floorCount * 3.1, 110),
+        floorCount,
+        floors: {
+          create: Array.from({ length: floorCount }, (_, i) => {
+            const f = perFloor.get(i + 1)
+            return {
+              floorNumber: i + 1,
+              totalUnits: f?.available ?? 0,
+              availableUnits: f?.available ?? 0,
+              forSaleCount: f?.sale ?? 0,
+              forRentCount: f?.rent ?? 0,
+              forDailyCount: f?.daily ?? 0,
+              forPledgeCount: f?.pledge ?? 0,
+              pricePerSqmMin: f?.minM2 ?? null,
+            }
+          }),
+        },
+      },
+    })
+    console.log(`    · ${floorCount} floors of inventory`)
   }
-  console.log("Map buildings + developers seeded.")
+  console.log("Map buildings + developers + floor inventory seeded.")
 }
 
 main()

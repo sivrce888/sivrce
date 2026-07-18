@@ -1,14 +1,15 @@
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import NextAuth, { type NextAuthConfig } from "next-auth"
+import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 
+import type { UserRole } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { sendWelcomeEmail } from "@/lib/email"
+import { verifyPassword } from "@/lib/password"
 
 const providers: NextAuthConfig["providers"] = []
 
-// Google is enabled only when its credentials are configured, so a missing
-// OAuth config can never crash boot or local development.
 if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
   providers.push(
     Google({
@@ -22,7 +23,36 @@ if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) {
   )
 }
 
-// Fail fast: without AUTH_SECRET, production sessions would be signed with a weak default.
+providers.push(
+  Credentials({
+    id: "credentials",
+    name: "Email",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      const email = String(credentials?.email ?? "")
+        .trim()
+        .toLowerCase()
+      const password = String(credentials?.password ?? "")
+      if (!email || !password) return null
+
+      const user = await db.user.findUnique({ where: { email } })
+      if (!user?.passwordHash) return null
+      if (!(await verifyPassword(password, user.passwordHash))) return null
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.image,
+        role: user.role,
+      }
+    },
+  }),
+)
+
 if (process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
   throw new Error("AUTH_SECRET must be set in production")
 }
@@ -45,7 +75,6 @@ async function ensureAdminRole(userId: string, email: string | null | undefined)
   })
 }
 
-// Share session across sivrce.ge + admin.sivrce.ge in production.
 const crossSubdomainCookies: NextAuthConfig["cookies"] =
   process.env.NODE_ENV === "production"
     ? {
@@ -65,18 +94,37 @@ const crossSubdomainCookies: NextAuthConfig["cookies"] =
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   providers,
-  // Vercel / reverse proxies: trust X-Forwarded-Host for callback URLs.
   trustHost: true,
   cookies: crossSubdomainCookies,
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
+  // Credentials require JWT. Adapter still persists Google users/accounts.
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
   callbacks: {
-    // Database strategy: `user` is the adapter row, so role rides the session.
-    async session({ session, user }) {
-      session.user.id = user.id
-      session.user.role = user.role
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id!
+        token.role = (user.role as UserRole) ?? "buyer"
+        return token
+      }
+      const id = String(token.id ?? token.sub ?? "")
+      if (!id) return token
+      token.id = id
+      // Fresh role after onboarding/settings (PK lookup — same as DB sessions).
+      const row = await db.user.findUnique({ where: { id }, select: { role: true } })
+      if (row) token.role = row.role
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = String(token.id ?? token.sub)
+        session.user.role = (token.role as UserRole) ?? "buyer"
+      }
       return session
     },
   },
@@ -92,11 +140,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user }) {
       if (user.id) await ensureAdminRole(user.id, user.email)
     },
-  },
-  // Database sessions via the Prisma adapter (Session model in schema).
-  session: {
-    strategy: "database",
-    maxAge: 30 * 24 * 60 * 60,
-    updateAge: 24 * 60 * 60,
   },
 })

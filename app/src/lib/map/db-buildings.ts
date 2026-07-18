@@ -1,7 +1,7 @@
 /**
  * DB-curated map buildings (admin /admin/buildings) → MapBuildingCluster.
- * Merged into the static catalog clusters by the /map page. Static catalog
- * wins on slug collision (it carries listings + curated meta).
+ * Merged into the static catalog clusters on /map (mergeDbBuildings): static
+ * catalog keeps listings + curated meta on slug collision, DB wins inventory.
  *
  * ponytail: one unstable_cache list, tag-revalidated from admin actions.
  * Upgrade → PostGIS ST_DWithin bbox queries when building count × viewport matters.
@@ -35,6 +35,22 @@ const SELECT = {
   status: true,
   projectSlug: true,
   developer: { select: { slug: true, name: true } },
+  building3D: {
+    select: {
+      floors: {
+        select: {
+          floorNumber: true,
+          availableUnits: true,
+          forSaleCount: true,
+          forRentCount: true,
+          forDailyCount: true,
+          forPledgeCount: true,
+          pricePerSqmMin: true,
+        },
+        orderBy: { floorNumber: "asc" as const },
+      },
+    },
+  },
 } as const
 
 export type DbBuildingRow = {
@@ -56,6 +72,17 @@ export type DbBuildingRow = {
   status: string
   projectSlug: string | null
   developer: { slug: string; name: string } | null
+  building3D: {
+    floors: Array<{
+      floorNumber: number
+      availableUnits: number
+      forSaleCount: number
+      forRentCount: number
+      forDailyCount: number
+      forPledgeCount: number
+      pricePerSqmMin: number | null
+    }>
+  } | null
 }
 
 /** DB row → catalog entry shape, so every existing map/SEO consumer works unchanged. */
@@ -91,6 +118,18 @@ export function rowToCluster(row: DbBuildingRow): MapBuildingCluster {
   }
   const ring = (row.polygonCoords as { ring?: [number, number][] } | null)?.ring
   if (Array.isArray(ring) && ring.length >= 5) c.ring = ring
+  const inv = row.building3D?.floors
+  if (inv?.length) {
+    c.inventory = inv.map((f) => ({
+      n: f.floorNumber,
+      available: f.availableUnits,
+      sale: f.forSaleCount,
+      rent: f.forRentCount,
+      daily: f.forDailyCount,
+      pledge: f.forPledgeCount,
+      minPricePerSqm: f.pricePerSqmMin,
+    }))
+  }
   return c
 }
 

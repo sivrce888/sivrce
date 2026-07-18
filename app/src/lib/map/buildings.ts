@@ -32,6 +32,18 @@ export const NEAREST_RADIUS_M = 90
 export type BuildingStatus = 'active' | 'construction' | 'completed' | 'ready'
 export type BuildingDealCounts = Record<DealType, number>
 
+/** Admin-edited per-floor inventory (BuildingFloor rows). When present on a
+ *  cluster it wins over listing-derived floor stacks — real sellable stock. */
+export type FloorInventoryRow = {
+  n: number
+  available: number
+  sale: number
+  rent: number
+  daily: number
+  pledge: number
+  minPricePerSqm: number | null
+}
+
 export type MapBuildingCluster = {
   id: string
   lat: number
@@ -62,6 +74,8 @@ export type MapBuildingCluster = {
   description?: string
   /** Real OSM ring supplied with the cluster (DB-curated buildings); wins over FOOTPRINTS. */
   ring?: [number, number][]
+  /** Admin-edited floor inventory (DB); wins over listing-derived floor stacks. */
+  inventory?: FloorInventoryRow[]
 }
 
 export type MapDealFilter = DealType | 'all'
@@ -372,6 +386,25 @@ export function mergeMapBuildings(
   developments: MapBuildingCluster[],
 ): MapBuildingCluster[] {
   return [...listings, ...developments]
+}
+
+/** DB-curated buildings merged over static: static catalog keeps listings/meta
+ *  on slug collision but adopts the DB row's floor inventory (admin-edited stock). */
+export function mergeDbBuildings(
+  staticClusters: MapBuildingCluster[],
+  dbClusters: MapBuildingCluster[],
+): MapBuildingCluster[] {
+  if (dbClusters.length === 0) return staticClusters
+  const bySlug = new Map<string, MapBuildingCluster>()
+  for (const b of dbClusters) if (b.slug) bySlug.set(b.slug, b)
+  const staticSlugs = new Set(staticClusters.map((b) => b.slug))
+  return [
+    ...staticClusters.map((b) => {
+      const db = b.slug ? bySlug.get(b.slug) : undefined
+      return db?.inventory ? { ...b, inventory: db.inventory } : b
+    }),
+    ...dbClusters.filter((b) => !b.slug || !staticSlugs.has(b.slug)),
+  ]
 }
 
 export function filterBuildings(
