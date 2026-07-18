@@ -169,10 +169,18 @@ function saveOut(out: Record<string, Footprint | null>) {
 }
 
 async function main() {
-  const list = targets()
+  // ponytail: optional ID allowlist — `npx tsx scripts/fetch-footprints.ts dev-blox-mukhiani …`
+  const only = new Set(process.argv.slice(2).filter((a) => !a.startsWith('-')))
+  const force = process.argv.includes('--force')
+  const list = only.size > 0 ? targets().filter((t) => only.has(t.id)) : targets()
   const out = loadOut() // resumable: rerun continues where it stopped
-  const todo = list.filter((t) => !(t.id in out))
-  console.log(`footprints: ${list.length} clusters, ${todo.length} to fetch`)
+  const todo = list.filter((t) => force || !(t.id in out))
+  console.log(`footprints: ${list.length} clusters, ${todo.length} to fetch${only.size ? ` (allowlist ${only.size})` : ''}`)
+
+  if (todo.length === 0) {
+    console.log('nothing to fetch')
+    return
+  }
 
   const CHUNK = 12
   for (let c = 0; c < todo.length; c += CHUNK) {
@@ -202,7 +210,7 @@ async function main() {
   }
 
   const hits = Object.values(out).filter(Boolean).length
-  console.log(`done: ${hits}/${list.length} real footprints`)
+  console.log(`done: ${hits} real footprints in store; this run ${todo.length} targets`)
 }
 
 main()

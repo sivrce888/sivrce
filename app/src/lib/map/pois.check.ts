@@ -10,6 +10,8 @@ import {
   METRO_STATIONS,
   POI_CATEGORIES,
   POI_DEFAULT_ON,
+  POI_MIN_ZOOM,
+  keepUniversityPoi,
   formatMetroDist,
   isPoiCategory,
   metroMeters,
@@ -24,6 +26,16 @@ assert.ok(MAP_POIS.length > 100, `expected POIs, got ${MAP_POIS.length}`)
 assert.ok(METRO_STATIONS.length >= 20, `metro stations ${METRO_STATIONS.length}`)
 assert.ok(MAP_POIS.some((p) => p.category === 'pharmacy'), 'pharmacy required')
 assert.ok(MAP_POIS.some((p) => p.category === 'school'), 'school required')
+assert.ok(MAP_POIS.some((p) => p.category === 'university'), 'university required')
+assert.ok(MAP_POIS.some((p) => p.category === 'park'), 'park required')
+assert.ok(POI_CATEGORIES.includes('university'))
+assert.ok(POI_MIN_ZOOM.pharmacy > POI_MIN_ZOOM.metro)
+assert.ok(POI_MIN_ZOOM.school > POI_MIN_ZOOM.university)
+
+const unis = MAP_POIS.filter((p) => p.category === 'university')
+assert.ok(unis.length >= 20, `expected Tbilisi universities, got ${unis.length}`)
+assert.ok(unis.every((p) => keepUniversityPoi(p.name)), 'university noise leaked')
+assert.ok(!unis.some((p) => /ფაკულტეტ/i.test(p.name) && !/უნივერსიტეტ|university|აკადემი/i.test(p.name)))
 
 for (const p of MAP_POIS) {
   assert.ok(isPoiCategory(p.category), p.category)
@@ -46,16 +58,35 @@ assert.equal(nearestMetro(41.61, 41.62), null) // Batumi — no Tbilisi metro
 const fc = poisToGeoJSON()
 assert.equal(fc.features.length, MAP_POIS.length)
 assert.equal(fc.features[0]?.geometry.type, 'Point')
+assert.ok(
+  fc.features.every(
+    (f) => typeof f.properties?.icon === 'string' && String(f.properties.icon).startsWith('sv-poi-'),
+  ),
+)
 
 assert.deepEqual(parsePoiPrefs('metro,pharmacy'), ['metro', 'pharmacy'])
 assert.deepEqual(parsePoiPrefs(''), [])
 assert.equal(parsePoiPrefs(undefined), undefined)
 assert.equal(serializePoiPrefs(POI_DEFAULT_ON), 'metro')
-assert.ok(POI_CATEGORIES.includes('metro'))
 
 const empty = poiFilterSpec([])
 assert.deepEqual(empty, ['==', ['get', 'category'], '__none__'])
-const metro = poiFilterSpec(['metro'])
+const metro = poiFilterSpec(['metro'], 12)
 assert.deepEqual(metro, ['in', ['get', 'category'], ['literal', ['metro']]])
+// pharmacy gated until 13.5
+assert.deepEqual(poiFilterSpec(['metro', 'pharmacy'], 12), [
+  'in',
+  ['get', 'category'],
+  ['literal', ['metro']],
+])
+assert.deepEqual(poiFilterSpec(['metro', 'pharmacy'], 14), [
+  'in',
+  ['get', 'category'],
+  ['literal', ['metro', 'pharmacy']],
+])
 
-console.log(`pois.check: ok (${MAP_POIS.length} pois, ${METRO_STATIONS.length} metro)`)
+assert.equal(keepUniversityPoi('თსუ'), true)
+assert.equal(keepUniversityPoi('ეკონომიკის საერთაშორისო სკოლა'), false)
+assert.equal(keepUniversityPoi('აგრარული მეცნიერებების ფაკულტეტი'), false)
+
+console.log(`pois.check: ok (${MAP_POIS.length} pois, ${METRO_STATIONS.length} metro, ${unis.length} uni)`)

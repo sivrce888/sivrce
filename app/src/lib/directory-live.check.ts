@@ -68,6 +68,58 @@ async function main() {
   assert.equal(overlaid.gallery?.[0], row.gallery[0])
   assert.equal(overlaid.description.ka, row.body)
   assert.equal(overlaid.passportUrl, row.passportUrl)
+  // Catalog ₾ / long SEO body must not be wiped by thinner DB USD rows.
+  const gelKeep = applyProjectRow(
+    {
+      ...base,
+      slug: 'm2-highlight',
+      name: 'm² Highlight',
+      priceFromM2: '₾4,224',
+      description: {
+        ka: 'x'.repeat(200),
+        en: 'x'.repeat(200),
+        ru: 'x'.repeat(200),
+      },
+    },
+    { ...row, slug: 'm2-highlight', name: 'm² Highlight', pricePerSqmFrom: 1607, body: 'thin' },
+  )
+  assert.equal(gelKeep.priceFromM2, '₾4,224')
+  assert.equal(gelKeep.description.ka.length, 200)
+
+  // Curated street pin must beat vague DB district centroid (live-map regression).
+  const {
+    addressPrecision,
+    resolveProjectCoords,
+  } = await import('./directory-live')
+  assert.equal(addressPrecision('ალექსი გობრონიძის ქ. 25, მუხიანი'), 2)
+  assert.equal(addressPrecision('მუხიანი, გლდანი'), 0)
+  const streetPinWins = applyProjectRow(
+    {
+      ...base,
+      slug: 'blox-mukhiani',
+      name: 'Blox Mukhiani',
+      location: 'ალექსი გობრონიძის ქ. 25, მუხიანი, გლდანი, თბილისი',
+      coords: { lat: 41.7851, lng: 44.8226 },
+    },
+    {
+      ...row,
+      slug: 'blox-mukhiani',
+      name: 'Blox Mukhiani',
+      address: null,
+      district: 'მუხიანი',
+      lat: 41.7468,
+      lng: 44.7698,
+    },
+  )
+  assert.equal(streetPinWins.coords.lat, 41.7851)
+  assert.equal(streetPinWins.location.includes('გობრონიძ'), true)
+  assert.equal(
+    resolveProjectCoords(
+      { ...base, location: 'ვაკე', coords: { lat: 41.71, lng: 44.77 } },
+      { ...row, address: 'ჩავჭავაძის 37', lat: 41.7091, lng: 44.7735 },
+    ).lat,
+    41.7091,
+  )
 
   const merged = mergeProjectsLive([base], [row])
   assert.equal(merged.length, 1)

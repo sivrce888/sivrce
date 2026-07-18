@@ -8,11 +8,13 @@ import {
   buildingFootprint,
   buildingsToGeoJSON,
   buildingsToPointsGeoJSON,
+  clusterGeometry,
   clusterListingsToBuildings,
   dealColor,
   filterBuildings,
   findBuildingBySlug,
   findNearestBuilding,
+  ghostFootprintHalfM,
   haversineM,
   listingBuildingNumber,
   parseBuildingNumber,
@@ -20,6 +22,7 @@ import {
   projectsToConstructionBuildings,
   applyLiveProjectPins,
   mergeDbBuildings,
+  ringBboxHalfM,
 } from './buildings'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
@@ -137,9 +140,42 @@ assert.equal(ghosts.length, 1)
 assert.equal(ghosts[0]!.status, 'construction')
 assert.equal(ghosts[0]!.developerSlug, 'x')
 assert.equal(ghosts[0]!.color, STATUS_BRAND.construction.hue)
+assert.equal(ghosts[0]!.floors, 20)
+assert.equal(ghosts[0]!.heightM, 20 * 3.15) // full planned height, not progress-scaled
 assert.equal(STATUS_BRAND.construction.hue, CATEGORY_BRAND.newProjects.hue) // sky blue
 assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.houses.hue)
 assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.land.hue)
+
+// Ghost massing: elongated slab, sized by floors — not a 36 m cube.
+assert.equal(ghostFootprintHalfM(18), Math.min(34, Math.max(16, 10 + 18 * 0.85)))
+const ghostGeom = clusterGeometry(ghosts[0]!)
+const ring0 = ghostGeom.coordinates[0]!
+const w = Math.abs(ring0[1]![0]! - ring0[0]![0]!)
+const h = Math.abs(ring0[2]![1]! - ring0[1]![1]!)
+assert.ok(w / h > 1.4, 'ghost footprint should be E–W slab (aspect ~1.55)')
+
+// Tiny OSM shed must not win over synthetic slab for construction ghosts.
+const tinyRing: [number, number][] = [
+  [44.8, 41.7],
+  [44.80005, 41.7],
+  [44.80005, 41.70005],
+  [44.8, 41.70005],
+  [44.8, 41.7],
+]
+assert.ok(ringBboxHalfM(tinyRing) < 14)
+const shedGhost = clusterGeometry({
+  ...ghosts[0]!,
+  ring: tinyRing,
+})
+const shedW = Math.abs(shedGhost.coordinates[0]![1]![0]! - shedGhost.coordinates[0]![0]![0]!)
+const shedH = Math.abs(shedGhost.coordinates[0]![2]![1]! - shedGhost.coordinates[0]![1]![1]!)
+assert.ok(shedW / shedH > 1.4, 'tiny OSM ring should fall back to synthetic slab')
+
+// Real Blox Mukhiani pin must sit in Mukhiani, not Digomi riverside.
+const mukhiani = PROJECTS.find((p) => p.slug === 'blox-mukhiani')
+assert.ok(mukhiani)
+assert.ok(mukhiani!.coords.lat > 41.78 && mukhiani!.coords.lng > 44.81, 'blox-mukhiani coords outside Mukhiani')
+assert.ok(mukhiani!.location.includes('გობრონიძ'), 'blox-mukhiani missing street address')
 
 // Live project pin must move catalog building to exact address/coords.
 const axisCluster = buildings.find((b) => b.slug === 'axis-towers')
@@ -232,8 +268,8 @@ for (const p of PROJECTS) {
       Math.abs(p.coords.lng) <= 180,
     `${p.slug}: invalid coords`,
   )
-  // Effective floors: declared value, else the renderer's own derivation.
-  const effFloors = p.floors ?? Math.max(8, Math.round(p.flats / 12))
+  // Effective floors: declared value, else the renderer's own derivation (capped).
+  const effFloors = Math.min(100, p.floors ?? Math.max(8, Math.round(p.flats / 12)))
   assert.ok(Number.isFinite(effFloors) && effFloors > 0 && effFloors <= 100, `${p.slug}: bad floors`)
 }
 // Every project gets a deterministic {DEV}-{NN} code (e.g. M2-01, ARC-03).

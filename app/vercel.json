@@ -3,6 +3,12 @@
   "framework": "nextjs",
   "fluid": true,
   "regions": ["fra1"],
+  "crons": [
+    { "path": "/api/cron/expire-listings", "schedule": "15 * * * *" },
+    { "path": "/api/cron/expire-promos", "schedule": "20 * * * *" },
+    { "path": "/api/cron/sync-search", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/sync-nearest-poi", "schedule": "30 4 * * *" }
+  ],
   "images": {
     "sizes": [32, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1280, 1920],
     "domains": [],

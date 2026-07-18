@@ -47,28 +47,30 @@ jobs:
     env:
       DATABASE_URL: postgresql://test:test@localhost:5432/test
       AUTH_SECRET: ci-smoke-test-secret
-    services:
-      postgres:
-        image: pgvector/pgvector:pg17
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
+      - name: Build CI Postgres (PostGIS + pgvector)
+        run: docker build -t sivrce-pg-ci .github/docker/postgres-ci
+      - name: Start Postgres
+        run: |
+          docker run -d --name sivrce-pg \
+            -e POSTGRES_USER=test \
+            -e POSTGRES_PASSWORD=test \
+            -e POSTGRES_DB=test \
+            -p 5432:5432 \
+            sivrce-pg-ci
+          for i in $(seq 1 30); do
+            docker exec sivrce-pg pg_isready -U test && break
+            sleep 1
+          done
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npx prisma migrate deploy
+        env:
+          DIRECT_URL: postgresql://test:test@localhost:5432/test
       - run: npx prisma generate
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

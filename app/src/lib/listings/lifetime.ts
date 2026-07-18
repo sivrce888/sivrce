@@ -20,7 +20,8 @@ export function listingLifeRemaining(
 }
 
 /**
- * Filter tab status. Active past lifetime → expired (UI only until cron marks it).
+ * Filter tab status. Active past lifetime → expired (UI mirror of cron).
+ * Cron: GET /api/cron/expire-listings writes status=expired.
  * ponytail: no draft/blocked columns in DB — map pending→draft, withdrawn→disabled.
  */
 export function listingFilterStatus(

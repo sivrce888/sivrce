@@ -35,6 +35,36 @@ export function isValidCoords(lat: number | null | undefined, lng: number | null
   )
 }
 
+/** 2 = street+number, 1 = named street, 0 = district / vague. */
+export function addressPrecision(s: string): number {
+  const t = s.trim()
+  if (!t) return 0
+  if (/\d/.test(t)) return 2
+  if (/ქ\.|ქუჩ|გამზ|შესახვ|ჩიხ|st\.|street|ave|alley/i.test(t)) return 1
+  return 0
+}
+
+/** Curated catalog street pin wins over vague directory geo (korter district centroids). */
+export function resolveProjectCoords(
+  base: Project,
+  r: Pick<ProjectRow, 'lat' | 'lng' | 'address' | 'district'>,
+): { lat: number; lng: number } {
+  if (!isValidCoords(r.lat, r.lng)) return base.coords
+  const dbAddr = (r.address || '').trim() || r.district || ''
+  if (addressPrecision(base.location) > addressPrecision(dbAddr)) return base.coords
+  return { lat: r.lat!, lng: r.lng! }
+}
+
+export function resolveProjectLocation(
+  base: Project,
+  r: Pick<ProjectRow, 'address' | 'district'>,
+): string {
+  const dbAddr = (r.address || '').trim()
+  if (!dbAddr) return base.location
+  if (addressPrecision(base.location) > addressPrecision(dbAddr)) return base.location
+  return dbAddr
+}
+
 function nameTokens(s: string): Set<string> {
   return new Set(norm(s).match(/[a-z0-9\u10d0-\u10ff]{3,}/g) || [])
 }
@@ -155,11 +185,13 @@ export function applyProjectRow(
   r: ProjectRow,
   nameToSlug: Map<string, string> = buildDevNameMap(DEVELOPERS),
 ): Project {
-  const coords = isValidCoords(r.lat, r.lng) ? { lat: r.lat!, lng: r.lng! } : base.coords
-  const location = (r.address || '').trim() || r.district || base.location
+  // ponytail: curated street pins beat korter district centroids; upgrade → confidence score.
+  const coords = resolveProjectCoords(base, r)
+  const location = resolveProjectLocation(base, r)
   const developerSlug =
     base.developerSlug || nameToSlug.get(norm(r.developer)) || ''
   const body = (r.body || '').trim()
+  const baseBody = (base.description.ka || '').trim()
   // Never downgrade to seed stock art; prefer owned CDN, then any non-placeholder.
   const nextImg = !isPlaceholderImg(r.image)
     ? r.image
@@ -171,13 +203,16 @@ export function applyProjectRow(
     city: r.city || base.city,
     location,
     finish: r.readyBy || base.finish,
+    // ponytail: curated catalog price/currency wins; DB fills gaps only (avoids $ wipe of ₾).
     priceFromM2:
-      r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : base.priceFromM2,
+      base.priceFromM2.trim() ||
+      (r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : ''),
     flats: r.units || base.flats,
     img: nextImg,
     ...(r.gallery?.length ? { gallery: r.gallery } : {}),
     ...(r.passportUrl ? { passportUrl: r.passportUrl } : {}),
-    ...(body
+    // Longer curated SEO copy beats thin DB body.
+    ...(body.length > baseBody.length
       ? { description: { ka: body, en: body, ru: body } }
       : {}),
     done: r.status === 'completed' ? 100 : base.done,
