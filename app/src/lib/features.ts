@@ -22,4 +22,11 @@ export const FEATURE_KEYS = [
   // Daily-rent set (2026-07-18): contactless check-in, events, leisure.
   'add.f.selfCheckIn', 'add.f.partiesAllowed', 'add.f.pool',
   'add.f.jacuzzi', 'add.f.terrace', 'add.f.petsAllowed',
+  // Competitor-verified filter set (Airbnb/Booking top filters, 2026-07-18).
+  // ponytail: skipped safety items (smoke/CO alarm, extinguisher) — host
+  // checklist, not renter filters; add with a detail-page safety block.
+  'add.f.kitchen', 'add.f.washer', 'add.f.tv', 'add.f.workspace',
+  'add.f.seaView', 'add.f.mountainView', 'add.f.beachfront', 'add.f.skiAccess',
+  'add.f.bbq', 'add.f.sauna', 'add.f.gym', 'add.f.evCharger',
+  'add.f.kidFriendly', 'add.f.accessible', 'add.f.smokingAllowed',
 ] as const satisfies readonly DictKey[]
