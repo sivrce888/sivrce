@@ -11,7 +11,6 @@
 import { ka, type DictKey } from "./i18n/ka"
 import { LANGS, translate, type Lang } from "./i18n/core"
 import { SITE_META } from "./i18n/server"
-import { SITE_META } from "./i18n/server"
 
 export const CMS_BLOCKS = {
   // ——— Hero ———

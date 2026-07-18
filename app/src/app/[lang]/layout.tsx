@@ -59,15 +59,18 @@ interface LangLayoutProps {
 export async function generateMetadata({ params }: LangLayoutProps): Promise<Metadata> {
   const { lang: raw } = await params;
   const lang: Lang = isValidLang(raw) ? raw : "ka";
-  const meta = SITE_META[lang];
+  // CMS overrides win over coded meta (/admin/content/pages → SEO meta).
+  const cms = await getCmsOverrides(lang);
+  const siteTitle = cms["seo.site.title"] ?? SITE_META[lang].title;
+  const siteDescription = cms["seo.site.description"] ?? SITE_META[lang].description;
   const root = lang === "ka" ? "/" : `/${lang}`;
   return {
     metadataBase: new URL(SITE_URL),
     title: {
-      default: meta.title,
+      default: siteTitle,
       template: `%s | sivrce`,
     },
-    description: meta.description,
+    description: siteDescription,
     keywords: [
       "უძრავი ქონება",
       "ბინები იყიდება",
@@ -104,8 +107,8 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
       locale: OG_LOCALE[lang],
       url: `${SITE_URL}${root === "/" ? "" : root}`,
       siteName: SITE_NAME,
-      title: meta.title,
-      description: meta.description,
+      title: siteTitle,
+      description: siteDescription,
       images: [
         {
           url: "/images/og.jpg",
@@ -117,8 +120,8 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     },
     twitter: {
       card: "summary_large_image",
-      title: meta.title,
-      description: meta.description,
+      title: siteTitle,
+      description: siteDescription,
       images: ["/images/og.jpg"],
     },
     robots: {
