@@ -1,4 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg"
+import { Client } from "pg"
 
 import { PrismaClient } from "@/generated/prisma/client"
 
@@ -16,7 +17,7 @@ function createClient() {
   })
 }
 
-// Reuse the client across Next.js dev hot-reloads to avoid exhausting Neon connections.
+// Reuse the client across Next.js dev hot-reloads to avoid exhausting pool slots.
 export const db = globalForPrisma.prisma ?? createClient()
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db
@@ -28,7 +29,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db
 let health: { ok: boolean; at: number } | undefined
 
 /**
- * One fast probe, cached 60s. When Neon is down / over quota, data layers
+ * One fast probe, cached 60s. When Postgres is unreachable, data layers
  * short-circuit to their static fallbacks instead of paying ~1s per doomed
  * query (or worse) across a 1000-page SSG build.
  *
@@ -37,17 +38,23 @@ let health: { ok: boolean; at: number } | undefined
  */
 export async function dbAvailable(): Promise<boolean> {
   if (health && Date.now() - health.at < 60_000) return health.ok
-  if (!process.env.DATABASE_URL) {
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
     health = { ok: false, at: Date.now() }
     return false
   }
-  const ok = await Promise.race([
-    db.$queryRaw`SELECT 1`.then(
-      () => true,
-      () => false,
-    ),
-    new Promise<false>((resolve) => setTimeout(() => resolve(false), 5_000)),
-  ])
+  // Raw pg.Client with a hard connect timeout — NOT a raced Prisma query,
+  // which keeps running in the background and leaks a pool slot per probe.
+  let ok = false
+  const probe = new Client({ connectionString, connectionTimeoutMillis: 4_000 })
+  try {
+    await probe.connect()
+    ok = true
+  } catch {
+    ok = false
+  } finally {
+    await probe.end().catch(() => {})
+  }
   health = { ok, at: Date.now() }
   return ok
 }
