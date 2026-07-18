@@ -13,7 +13,7 @@ import { auth } from "@/auth"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { attributeListing } from "@/lib/map/attribution"
-import { cityCenter, geocodeAddress, parseCoords } from "@/lib/map/geocode"
+import { cityCenter, geocodeListingAddress, parseCoords } from "@/lib/map/geocode"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
 
@@ -88,7 +88,11 @@ export async function POST(req: NextRequest) {
   // Coords: client pin → geocode address → city center. Always Georgia-bounded.
   let coords = parseCoords(body.lat, body.lng)
   if (!coords) {
-    const hit = await geocodeAddress(`${address}, ${district}, ${city}, Georgia`)
+    const hit = await geocodeListingAddress({
+      street: address,
+      district,
+      city,
+    })
     coords = hit ? { lat: hit.lat, lng: hit.lng } : cityCenter(city)
   }
   const { lat, lng } = coords
