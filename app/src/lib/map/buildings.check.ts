@@ -182,7 +182,7 @@ const axisCluster = buildings.find((b) => b.slug === 'axis-towers')
 assert.ok(axisCluster)
 const pinned = applyLiveProjectPins([axisCluster!], [
   {
-    slug: 'axis-towers-vake',
+    slug: 'axis-towers',
     name: 'Axis Towers',
     developerSlug: 'axis',
     img: '/x.webp',
@@ -259,6 +259,7 @@ for (const l of LISTINGS) assert.ok(clusteredIds.has(l.id), `${l.id}: dropped by
 const catalogProjectSlugs = new Set(
   BUILDINGS.map((b) => b.projectSlug).filter(Boolean) as string[],
 )
+catalogProjectSlugs.add('axis-towers-vake') // SEO alias — same catalog pin
 // Every project must have valid coords + floors — pinning gate (active AND completed).
 for (const p of PROJECTS) {
   assert.ok(
