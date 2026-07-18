@@ -337,7 +337,8 @@ export async function searchListings(filters: SearchFilters): Promise<SearchResu
   if (!client) return null
 
   const page = Math.max(1, filters.page ?? 1)
-  const pageSize = Math.min(50, Math.max(1, filters.pageSize ?? 24))
+  // Cap 100: the /search map view pulls the first 100 matches for pins.
+  const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 24))
 
   try {
     const index = client.index(INDEX_NAME)

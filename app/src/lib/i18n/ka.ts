@@ -477,6 +477,10 @@ export const ka = {
   'pay.failed.desc': 'თანხა არ ჩამოჭრილა. სცადე ხელახლა შენი განცხადებებიდან.',
   'pay.back': 'ჩემი განცხადებები',
   'pay.order': 'შეკვეთა',
+
+  // Search map view (list/map toggle)
+  'search.map': 'რუკა',
+  'search.mapNote': 'რუკაზე ნაჩვენებია პირველი {n} შედეგი {total}-დან',
 } as const
 
 export type DictKey = keyof typeof ka

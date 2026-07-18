@@ -479,4 +479,8 @@ export const az: Dict = {
   'pay.failed.desc': 'Məbləğ çıxılmayıb. Elanlarınızdan yenidən cəhd edin.',
   'pay.back': 'Elanlarım',
   'pay.order': 'Sifariş',
+
+  // Search map view (list/map toggle)
+  'search.map': 'Xəritə',
+  'search.mapNote': 'Xəritədə {total} nəticədən ilk {n} göstərilir',
 }

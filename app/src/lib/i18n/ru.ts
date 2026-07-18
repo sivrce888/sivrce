@@ -477,4 +477,8 @@ export const ru: Dict = {
   'pay.failed.desc': 'Средства не списаны. Попробуйте снова из списка объявлений.',
   'pay.back': 'Мои объявления',
   'pay.order': 'Заказ',
+
+  // Search map view (list/map toggle)
+  'search.map': 'Карта',
+  'search.mapNote': 'На карте показаны первые {n} из {total} результатов',
 }
