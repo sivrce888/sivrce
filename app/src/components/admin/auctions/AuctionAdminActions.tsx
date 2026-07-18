@@ -4,7 +4,7 @@ import {
   cancelAuction,
   pauseAuction,
   resumeAuction,
-} from "@/app/admin/auctions/actions"
+} from "@/app/[lang]/admin/auctions/actions"
 
 const labelCls = "block text-[12px] font-bold tracking-[0.06em] text-sv-ink/50 uppercase"
 const inputCls =

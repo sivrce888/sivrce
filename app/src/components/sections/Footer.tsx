@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Mail, Phone, MapPin } from 'lucide-react'
 import { Logo } from '@/components/Logo'
-import { useI18n, type DictKey } from '@/lib/i18n/context'
+import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
 
 const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
   {
@@ -43,7 +43,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
 ]
 
 export default function Footer() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   return (
     <footer className="relative overflow-hidden border-t border-white/[0.07] bg-sv-navy">
@@ -52,7 +52,7 @@ export default function Footer() {
       <div className="relative mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
-            <Logo light />
+            <Logo light href={localizedHref('/', lang)} />
             <p className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
               {t('footer.tagline')}
             </p>
@@ -76,7 +76,7 @@ export default function Footer() {
                 {c.links.map((l) => (
                   <li key={l.key}>
                     <Link
-                      href={l.href}
+                      href={localizedHref(l.href, lang)}
                       className="text-[14px] font-semibold text-white/65 transition-colors hover:text-white"
                     >
                       {t(l.key)}
@@ -95,9 +95,9 @@ export default function Footer() {
           <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
             {/* TOP.GE badge — script in layout.tsx targets this id */}
             <div id="top-ge-counter-container" data-site-id="117677" className="shrink-0 leading-none [&_img]:block [&_img]:opacity-80" />
-            <Link href="/terms" className="transition-colors hover:text-white">{t('footer.terms')}</Link>
-            <Link href="/privacy" className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
-            <Link href="/privacy#cookies" className="transition-colors hover:text-white">{t('footer.cookies')}</Link>
+            <Link href={localizedHref("/terms", lang)} className="transition-colors hover:text-white">{t('footer.terms')}</Link>
+            <Link href={localizedHref("/privacy", lang)} className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
+            <Link href={localizedHref("/privacy#cookies", lang)} className="transition-colors hover:text-white">{t('footer.cookies')}</Link>
           </div>
         </div>
       </div>

@@ -486,6 +486,15 @@
   animation: sv-hero-in 0.7s cubic-bezier(0.21, 0.65, 0.2, 1) both;
 }
 
+/* Sky reveal — one-shot settle on first paint, paint-driven, SSR-safe */
+@keyframes sv-sky-in {
+  from { opacity: 0; transform: scale(1.045); }
+  to { opacity: 1; transform: scale(1); }
+}
+.sv-sky-in {
+  animation: sv-sky-in 1.5s cubic-bezier(0.21, 0.65, 0.2, 1) both;
+}
+
 @keyframes sv-scroll-hint {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(14px); }
@@ -579,7 +588,8 @@
   .animate-aurora-a, .animate-aurora-b, .animate-aurora-c,
   .sv-particle, .sv-window, .sv-star, .animate-float, .animate-pin, .animate-marquee,
   .animate-ping, .sv-hero-in, .animate-scroll-hint,
-  .sv-skyline-back, .sv-beacon, .sv-comet, .sv-word, .text-gradient-shimmer, .sv-moon-halo {
+  .sv-skyline-back, .sv-beacon, .sv-comet, .sv-word, .text-gradient-shimmer, .sv-moon-halo,
+  .sv-sky-in {
     animation: none !important;
   }
 }

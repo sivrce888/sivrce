@@ -365,6 +365,9 @@ export const ka = {
   'fav.subtitle': '{n} განცხადება',
   'fav.empty': 'ჯერ არაფერი გაქვს შენახული — დააჭირე გულს ნებისმიერ განცხადებაზე და ის აქ გამოჩნდება.',
   'fav.browse': 'განცხადებების ნახვა',
+
+  // a11y
+  'a11y.skipToContent': 'მთავარ შინაარსზე გადასვლა',
 } as const
 
 export type DictKey = keyof typeof ka

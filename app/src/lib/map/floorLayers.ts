@@ -45,21 +45,11 @@ export function ensureFloorLayers(map: MlMap, minzoom = 14.5) {
     type: 'fill-extrusion',
     source: FLOORS_SOURCE_ID,
     paint: {
+      // ponytail: MapLibre 5 — opacity constant-only; per-floor alpha baked into `color`.
       'fill-extrusion-color': ['get', 'color'],
       'fill-extrusion-base': ['get', 'base'],
       'fill-extrusion-height': ['get', 'top'],
-      'fill-extrusion-opacity': [
-        'case',
-        [
-          'any',
-          ['boolean', ['feature-state', 'hover'], false],
-          ['boolean', ['feature-state', 'selected'], false],
-        ],
-        1,
-        ['==', ['get', 'available'], 0],
-        ['case', ['get', 'ghost'], 0.45, 0.3],
-        0.92,
-      ],
+      'fill-extrusion-opacity': 1,
     },
   })
 
@@ -67,12 +57,21 @@ export function ensureFloorLayers(map: MlMap, minzoom = 14.5) {
     id: FLOORS_LINE_ID,
     type: 'line',
     source: FLOORS_SOURCE_ID,
-    filter: [
-      'any',
-      ['boolean', ['feature-state', 'hover'], false],
-      ['boolean', ['feature-state', 'selected'], false],
-    ],
-    paint: { 'line-color': '#FFFFFF', 'line-width': 2, 'line-opacity': 0.9 },
+    // ponytail: feature-state illegal in filters — drive visibility via paint instead.
+    paint: {
+      'line-color': '#FFFFFF',
+      'line-width': 2,
+      'line-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'hover'], false],
+          ['boolean', ['feature-state', 'selected'], false],
+        ],
+        0.9,
+        0,
+      ],
+    },
   })
 
   map.addLayer({

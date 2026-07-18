@@ -732,8 +732,8 @@ export function dealLabel(slug: string, loc: SeoLoc): string {
   return d.ka
 }
 
-export function breadcrumbsOf(def: SeoPageDef, loc: SeoLoc = 'ka'): Crumb[] {
-  const p = locPrefix(loc)
+export function breadcrumbsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string = locPrefix(loc)): Crumb[] {
+  const p = prefix
   const home = loc === 'ka' ? 'მთავარი' : loc === 'en' ? 'Home' : 'Главная'
   const crumbs: Crumb[] = [{ name: home, href: p || '/' }]
   if (def.dealSlug) {
@@ -769,9 +769,9 @@ export interface LinkChips {
   geo: { label: string; href: string; active: boolean }[]
 }
 
-export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka'): LinkChips {
+export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string = locPrefix(loc)): LinkChips {
   const has = (slug: string[]) => parseSeoSlug(slug) !== null
-  const p = locPrefix(loc)
+  const p = prefix
   const name = (g: GeoLoc) => (loc === 'ka' ? g.ka : loc === 'en' ? g.en : g.ru)
 
   const dealSwitch = def.dealSlug

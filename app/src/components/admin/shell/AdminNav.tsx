@@ -21,6 +21,7 @@ import {
 import type { LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { stripLangPrefix } from "@/lib/i18n/core"
 
 interface NavItem {
   href: string
@@ -85,7 +86,8 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 }
 
 export function AdminNav({ orientation }: { orientation: "side" | "top" }) {
-  const pathname = usePathname()
+  // strip the /ka|/en… prefix so /ka/admin/… matches the unprefixed route map
+  const pathname = stripLangPrefix(usePathname())
 
   if (orientation === "top") {
     // Mobile: single horizontal scroll strip of all items.

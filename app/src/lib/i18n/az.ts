@@ -367,4 +367,7 @@ export const az: Dict = {
   'fav.empty':
     'Hələ heç nə saxlanılmayıb — istənilən elanda ürəyə toxunun və o, burada görünəcək.',
   'fav.browse': 'Elanlara bax',
+
+  // a11y
+  'a11y.skipToContent': 'Əsas məzmuna keç',
 }

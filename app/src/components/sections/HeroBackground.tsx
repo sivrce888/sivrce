@@ -38,7 +38,7 @@ interface Star {
   delay: string
   min: string
   max: string
-  blue: boolean
+  hue: 'warm' | 'blue' | 'white'
   flare: boolean
 }
 
@@ -95,8 +95,9 @@ function buildWindows(): WindowCell[] {
 /* Sparse twinkling star field — confined to the upper sky so it never collides with the H1/search panel */
 function buildStars(): Star[] {
   const rnd = seeded(91)
-  return Array.from({ length: 24 }, () => {
+  return Array.from({ length: 30 }, () => {
     const size = 1.5 + rnd() * 2.1
+    const h = rnd()
     return {
       top: `${(4 + rnd() * 42).toFixed(2)}%`,
       left: `${(rnd() * 96).toFixed(2)}%`,
@@ -105,7 +106,8 @@ function buildStars(): Star[] {
       delay: `${(-rnd() * 9).toFixed(1)}s`,
       min: (0.12 + rnd() * 0.25).toFixed(2),
       max: (0.75 + rnd() * 0.25).toFixed(2),
-      blue: rnd() > 0.55,
+      /* ponytail: mostly brand-blue/white, a few warm champagne stars echo the moon */
+      hue: h > 0.86 ? 'warm' : h > 0.42 ? 'blue' : 'white',
       flare: size > 3,
     }
   })
@@ -145,7 +147,7 @@ export default function HeroBackground() {
   }, [])
 
   return (
-    <div ref={root} className="absolute inset-0 overflow-hidden bg-sv-navy" aria-hidden>
+    <div ref={root} className="sv-sky-in absolute inset-0 overflow-hidden bg-sv-navy" aria-hidden>
       {/* Aurora gradient field — brand blue / violet / orange; drifts with the pointer */}
       <div
         className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
@@ -159,10 +161,10 @@ export default function HeroBackground() {
 
       {/* Moon — warm gibbous carved from bg, champagne glow (brand orange-light) */}
       <div className="animate-float absolute right-[10%] top-[8%] hidden h-24 w-24 md:block">
-        <div className="sv-moon-halo absolute -inset-6 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange-light)_32%,transparent),transparent_65%)] blur-2xl" />
-        <div className="absolute left-4 top-3 h-14 w-14 overflow-hidden rounded-full shadow-[0_0_24px_4px_color-mix(in_srgb,var(--sv-orange-light)_28%,transparent)]">
+        <div className="sv-moon-halo absolute -inset-8 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange-light)_38%,transparent),transparent_65%)] blur-3xl" />
+        <div className="absolute left-4 top-3 h-14 w-14 overflow-hidden rounded-full shadow-[0_0_30px_6px_color-mix(in_srgb,var(--sv-orange-light)_36%,transparent)]">
           {/* ponytail: warm moon + 2 craters in one background shorthand — zero new tokens, zero extra divs */}
-          <div className="absolute left-0 top-0 h-14 w-14 rounded-full bg-[radial-gradient(circle_at_30%_62%,color-mix(in_srgb,var(--sv-navy)_14%,transparent)_0_11%,transparent_12%),radial-gradient(circle_at_52%_38%,color-mix(in_srgb,var(--sv-navy)_10%,transparent)_0_7%,transparent_8%),radial-gradient(circle_at_36%_30%,#ffffff,color-mix(in_srgb,#ffffff_45%,var(--sv-orange-light))_52%,var(--sv-orange-light))]" />
+          <div className="absolute left-0 top-0 h-14 w-14 rounded-full bg-[radial-gradient(circle_at_30%_62%,color-mix(in_srgb,var(--sv-navy)_16%,transparent)_0_11%,transparent_12%),radial-gradient(circle_at_52%_38%,color-mix(in_srgb,var(--sv-navy)_12%,transparent)_0_7%,transparent_8%),radial-gradient(circle_at_36%_30%,#ffffff_0%,color-mix(in_srgb,#ffffff_26%,var(--sv-orange-light))_46%,var(--sv-orange-light)_100%)]" />
           {/* ponytail: crescent carved with an offset navy disc — same color as section bg, zero new tokens */}
           <div className="absolute left-8 top-[-5px] h-14 w-14 rounded-full bg-sv-navy" />
         </div>
@@ -185,8 +187,8 @@ export default function HeroBackground() {
               left: s.left,
               width: s.size,
               height: s.size,
-              background: s.blue ? 'var(--sv-blue-light)' : 'rgba(255,255,255,0.85)',
-              boxShadow: '0 0 6px color-mix(in srgb, var(--sv-blue-light) 70%, transparent)',
+              background: s.hue === 'warm' ? 'var(--sv-orange-light)' : s.hue === 'blue' ? 'var(--sv-blue-light)' : 'rgba(255,255,255,0.85)',
+              boxShadow: `0 0 6px color-mix(in srgb, ${s.hue === 'warm' ? 'var(--sv-orange)' : 'var(--sv-blue-light)'} 70%, transparent)`,
               '--st-duration': s.duration,
               '--st-delay': s.delay,
               '--st-min': s.min,

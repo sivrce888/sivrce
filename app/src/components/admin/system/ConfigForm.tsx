@@ -2,7 +2,7 @@
 
 import { useActionState } from "react"
 
-import { upsertConfig } from "@/app/admin/system/actions"
+import { upsertConfig } from "@/app/[lang]/admin/system/actions"
 import type { ConfigFormState } from "@/lib/admin/system"
 
 const inputCls =

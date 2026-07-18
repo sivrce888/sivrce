@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useActionState, useState } from "react"
 
-import { saveBlogPost } from "@/app/admin/content/blog/actions"
+import { saveBlogPost } from "@/app/[lang]/admin/content/blog/actions"
 import type { ContentFormState } from "@/lib/admin/content"
 
 const labelCls = "mb-1.5 block text-[12.5px] font-bold text-sv-ink/60"

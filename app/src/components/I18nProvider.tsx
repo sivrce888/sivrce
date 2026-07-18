@@ -30,16 +30,25 @@ import {
   type I18nContextValue,
   type Lang,
 } from '@/lib/i18n/context'
+import { translateRaw } from '@/lib/i18n/core'
+import { CMS_BLOCKS, type CmsBlockKey } from '@/lib/cms-blocks'
 
 export type { DictKey, Lang } from '@/lib/i18n/context'
 
 export default function I18nProvider({
   children,
   initialLang,
+  overrides,
 }: {
   children: ReactNode
   /** Pin the locale (URL-driven pages like /en, /ru) — wins over stored preference. */
   initialLang?: Lang
+  /**
+   * CMS text overrides for the active locale (SystemConfig `cms.<lang>.*`),
+   * keyed by dict key or `block.<blockKey>`. Server-fetched by the [lang]
+   * layout; empty object renders the site exactly as coded.
+   */
+  overrides?: Record<string, string>
 }) {
   const storeLang = useSyncExternalStore(subscribeLang, readStoredLang, getServerLang)
   // ponytail: pinned locale ignores the store, so SSR and first client render
@@ -84,9 +93,13 @@ export default function I18nProvider({
     () => ({
       lang,
       setLang,
-      t: (key, vars) => translate(lang, key, vars),
+      t: (key, vars) =>
+        overrides?.[key] != null
+          ? translateRaw(overrides[key]!, vars)
+          : translate(lang, key, vars),
+      b: (key: CmsBlockKey) => overrides?.[`block.${key}`] ?? CMS_BLOCKS[key],
     }),
-    [lang, setLang],
+    [lang, setLang, overrides],
   )
 
   return (

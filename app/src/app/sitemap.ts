@@ -16,22 +16,20 @@ export const revalidate = 3600
 // Static pages: one lastmod per deploy, not per request
 const DEPLOY_DATE = new Date('2026-07-17')
 
-// hreflang cluster for pages with real SSR locales: ka is unprefixed (canonical),
-// en/ru get a prefix. Other locales are client-i18n only — not declared (Google
-// ignores hreflang to pages that serve the same ka content anyway).
-const PREFIXED = ['en', 'ru'] as const
+// hreflang cluster: every page is now server-rendered in all 9 locales via
+// app/[lang]. ka is unprefixed (canonical); the other eight carry a prefix.
+const PREFIXED = ['en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az'] as const
 
 type Entry = {
   path: string
   lastModified: Date
   changeFrequency: NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
   priority: number
-  /** True when /en + /ru SSR twins exist (home, programmatic SEO pages). */
+  /** ponytail: alternates emitted for every entry — all pages have SSR locales now. */
   localized?: boolean
 }
 
-function toSitemapEntry({ path, lastModified, changeFrequency, priority, localized }: Entry): MetadataRoute.Sitemap[number] {
-  if (!localized) return { url: `${BASE}${path}`, lastModified, changeFrequency, priority }
+function toSitemapEntry({ path, lastModified, changeFrequency, priority }: Entry): MetadataRoute.Sitemap[number] {
   const languages: Record<string, string> = { ka: `${BASE}${path}` }
   for (const l of PREFIXED) languages[l] = `${BASE}/${l}${path}`
   languages['x-default'] = `${BASE}${path}`

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Building, Home, TreePalm, Map, Briefcase, CalendarClock, Hotel, Sparkles, ArrowUpRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
+import { getCmsBlock } from '@/lib/cms'
 
 /* Locked per-category branding (BRAND.md §3.1) — every category owns its
    hue + chip from CATEGORY_BRAND. Never inline new tints here. */
@@ -16,17 +17,21 @@ const CATS = [
   { icon: Sparkles, label: 'ახალი პროექტები', count: '136', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
 ]
 
-export default function Categories() {
+export default async function Categories() {
+  const [title, sub] = await Promise.all([
+    getCmsBlock('home.categories.title'),
+    getCmsBlock('home.categories.sub'),
+  ])
   return (
     <section className="bg-sv-surface pb-20 md:pb-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-              რას ეძებ?
+              {title}
             </h2>
             <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-              ყველა ტიპის უძრავი ქონება — ერთ სივრცეში
+              {sub}
             </p>
           </div>
         </Reveal>

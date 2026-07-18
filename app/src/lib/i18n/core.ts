@@ -57,22 +57,36 @@ function applyPlurals(template: string, vars?: Record<string, string | number>):
   })
 }
 
+/** Interpolate a raw template (plural markers + {vars}) — shared by translate() and CMS overrides. */
+export function translateRaw(
+  template: string,
+  vars?: Record<string, string | number>,
+): string {
+  const out = applyPlurals(template, vars)
+  if (!vars) return out
+  return out.replace(/\{(\w+)\}/g, (match, name: string) =>
+    vars[name] !== undefined ? String(vars[name]) : match,
+  )
+}
+
 export function translate(
   lang: Lang,
   key: DictKey,
   vars?: Record<string, string | number>,
 ): string {
-  const template = applyPlurals(DICTS[lang][key] ?? ka[key], vars)
-  if (!vars) return template
-  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
-    vars[name] !== undefined ? String(vars[name]) : match,
-  )
+  return translateRaw(DICTS[lang][key] ?? ka[key] ?? String(key), vars)
 }
 
 /** Locale-aware internal href: ka stays unprefixed, others get /{lang}. */
 export function localizedHref(path: string, lang: Lang): string {
   return lang === DEFAULT_LANG ? path : `/${lang}${path === '/' ? '' : path}`
 }
+
+// ponytail: localizedHref is wired into the chrome that owns cross-locale
+// navigation (Navbar, Footer, LangSwitcher, Logo). Deeper call sites (cards,
+// breadcrumbs, in-body links) still emit unprefixed hrefs — middleware serves
+// them in ka and the URL-pinned provider keeps UX correct; sweeping the long
+// tail is a follow-up wave.
 
 const LANG_PREFIX_RE = /^\/(ka|en|ru|he|ar|tr|uk|hy|az)(?=\/|$)/
 

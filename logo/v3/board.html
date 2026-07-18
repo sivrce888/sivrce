@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>sivrce — Logo v3.0 · The Spark Star</title>
+<style>
+@font-face { font-family: Manrope; src: url(../fonts/Manrope-Variable.ttf) format("truetype-variations"); font-weight: 200 1000; }
+* { margin: 0; box-sizing: border-box; }
+:root {
+  --blue:#2E6BFF; --blue-l:#8FB4FF; --violet:#7A5CFF; --orange:#FF6A2D;
+  --orange-d:#FF4D6D; --navy:#050B26; --ink:#0A1030; --cloud:#F6F7FB;
+}
+body { width: 1600px; background: var(--cloud); font-family: Manrope, sans-serif; color: var(--ink); }
+.band { background: var(--navy); height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px;
+  background-image: radial-gradient(rgba(143,180,255,.12) 1.2px, transparent 1.3px); background-size: 26px 26px; }
+.band img { height: 52px; }
+.band .tag { color: rgba(255,255,255,.55); font-size: 15px; font-weight: 800; letter-spacing: .22em; }
+.hero { display: flex; align-items: center; gap: 72px; padding: 88px 64px 64px; }
+.hero img.mark { width: 300px; height: 300px; }
+h1 { font-size: 56px; font-weight: 900; letter-spacing: -.045em; line-height: 1.04; }
+h1 .dot { color: var(--orange); }
+.hero p { margin-top: 20px; font-size: 19px; font-weight: 600; color: rgba(10,16,48,.62); max-width: 560px; line-height: 1.55; }
+.grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; padding: 0 64px 28px; }
+.card { background: #fff; border-radius: 26px; padding: 34px; box-shadow: 0 2px 8px -2px rgba(10,16,48,.08), 0 12px 32px -12px rgba(10,16,48,.12); }
+.card h2 { font-size: 13px; font-weight: 900; letter-spacing: .2em; color: rgba(10,16,48,.45); margin-bottom: 22px; }
+.card p { font-size: 13.5px; font-weight: 600; color: rgba(10,16,48,.55); line-height: 1.6; margin-top: 16px; }
+.variants { display: flex; gap: 18px; align-items: center; }
+.chip { width: 108px; height: 108px; border-radius: 22px; display: flex; align-items: center; justify-content: center; }
+.chip img { width: 76px; height: 76px; }
+.chip.light { background: var(--cloud); }
+.chip.dark { background: var(--navy); }
+.chip.grad { background: linear-gradient(120deg, var(--blue-l), var(--blue) 55%, var(--violet)); }
+.ramp { display: flex; align-items: flex-end; gap: 26px; height: 108px; }
+.ramp .cell { text-align: center; }
+.ramp .cell span { display: block; margin-top: 8px; font-size: 11px; font-weight: 800; color: rgba(10,16,48,.4); }
+.row { display: grid; grid-template-columns: 1fr 1fr 1.35fr; gap: 28px; padding: 0 64px 28px; }
+.avatars { display: flex; gap: 18px; align-items: center; }
+.avatars .sq { width: 132px; height: 132px; border-radius: 22px; }
+.avatars .circ { width: 132px; height: 132px; border-radius: 50%; }
+.appicon { display: flex; gap: 18px; align-items: center; }
+.appicon .ios { width: 132px; height: 132px; border-radius: 30px; box-shadow: 0 16px 48px -12px rgba(5,11,38,.5); }
+.appicon .small { width: 66px; height: 66px; border-radius: 15px; }
+.og { width: 100%; border-radius: 16px; display: block; }
+.palette { display: flex; gap: 14px; padding: 0 64px 28px; }
+.sw { flex: 1; height: 84px; border-radius: 16px; padding: 12px 14px; color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: flex-end; }
+.rules { padding: 6px 64px 64px; font-size: 13px; font-weight: 600; color: rgba(10,16,48,.5); line-height: 1.8; }
+.rules b { color: var(--ink); font-weight: 900; }
+</style>
+</head>
+<body>
+
+<div class="band">
+  <img src="assets/sivrce-v3-horizontal-white.svg" alt="sivrce">
+  <div class="tag">LOGO v3.0 — THE SPARK STAR</div>
+</div>
+
+<div class="hero">
+  <img class="mark" src="assets/sivrce-v3-mark.svg" alt="mark">
+  <div>
+    <h1>One space.<br>One spark<span class="dot">.</span></h1>
+    <p>Four crescent blades in exact 90° rotational symmetry, swirling around a
+    pinwheel void — the space inside the space (სივრცე). The gradient flows from
+    sky blue to violet and lands on the orange point: the home, rhyming with the
+    wordmark's orange period. Built 100% from locked BRAND.md tokens.</p>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>CONSTRUCTION</h2>
+    <div class="variants">
+      <div class="chip light"><img src="assets/sivrce-v3-mark-mono-ink.svg"></div>
+      <div>
+        <p style="margin-top:0">48-unit grid · crescent spine + asymmetric width
+        profile, Catmull-Rom smoothed · blade tips at 3.2 margin · pinwheel void
+        at center · three optical masters (display / ≤32px / ≤16px).</p>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>VARIANTS</h2>
+    <div class="variants">
+      <div class="chip light"><img src="assets/sivrce-v3-mark-mono-ink.svg"></div>
+      <div class="chip dark"><img src="assets/sivrce-v3-mark-mono-white.svg"></div>
+      <div class="chip grad"><img src="assets/sivrce-v3-mark-mono-white.svg"></div>
+    </div>
+    <p>Gradient master · mono ink on light · mono white on navy, photos and
+    brand gradients.</p>
+  </div>
+  <div class="card">
+    <h2>SIZE RAMP</h2>
+    <div class="ramp">
+      <div class="cell"><img src="png/sivrce-v3-mark-64.png" width="64" height="64"><span>64</span></div>
+      <div class="cell"><img src="png/sivrce-v3-mark-32.png" width="32" height="32"><span>32</span></div>
+      <div class="cell"><img src="png/sivrce-v3-mark-16.png" width="16" height="16"><span>16</span></div>
+      <div class="cell"><img src="png/sivrce-v3-mark-mono-ink-64.png" width="64" height="64"><span>mono</span></div>
+      <div class="cell" style="margin-left:auto"><img src="png/sivrce-v3-favicon-32.png" width="32" height="32"><span>favicon</span></div>
+    </div>
+    <p>Optical small + micro masters: fuller blades, calmer swirl, bigger void.</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="card">
+    <h2>SOCIAL AVATARS</h2>
+    <div class="avatars">
+      <img class="sq" src="png/sivrce-v3-avatar-navy-512.png">
+      <img class="circ" src="png/sivrce-v3-avatar-cloud-512.png">
+    </div>
+    <p>Mark at 58% — survives circle crops on every platform. Navy + cloud.</p>
+  </div>
+  <div class="card">
+    <h2>APP ICON</h2>
+    <div class="appicon">
+      <img class="ios" src="png/sivrce-v3-app-icon-512.png">
+      <img class="small" src="png/sivrce-v3-app-icon-180.png">
+    </div>
+    <p>Spark on navy — iOS applies the squircle. Android adaptive safe zone.</p>
+  </div>
+  <div class="card">
+    <h2>SHARE CARD · 1200×630</h2>
+    <img class="og" src="png/sivrce-v3-og-1200x630.png">
+  </div>
+</div>
+
+<div class="palette">
+  <div class="sw" style="background:#8FB4FF;color:#0A1030">#8FB4FF</div>
+  <div class="sw" style="background:#2E6BFF">#2E6BFF</div>
+  <div class="sw" style="background:#7A5CFF">#7A5CFF</div>
+  <div class="sw" style="background:linear-gradient(120deg,#FF4D6D,#FF6A2D)">#FF4D6D → #FF6A2D</div>
+  <div class="sw" style="background:#050B26">#050B26</div>
+  <div class="sw" style="background:#0A1030">#0A1030</div>
+</div>
+
+<div class="rules">
+  <b>Rules.</b> Clear space = 25% of mark on all sides · never recolor, rotate, outline, or add effects ·
+  gradient master on light, white mono on navy/photo (dark scrim), ink mono for single-color ·
+  orange exists only in the bottom point and the wordmark period — never anywhere else ·
+  v1 tile and v2 marks are retired to logo history; v1.3 two-blade Spark remains the AI-features signifier.
+</div>
+
+</body>
+</html>

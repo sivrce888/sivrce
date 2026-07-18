@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react"
 import { Image as ImageIcon, Ruler, Scan, Video } from "lucide-react"
 import Image from "next/image"
 
-import { removeMedia } from "@/app/admin/listings/actions"
+import { removeMedia } from "@/app/[lang]/admin/listings/actions"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { EmptyState } from "@/components/admin/ui/EmptyState"
 import { StatusPill } from "@/components/admin/ui/StatusPill"

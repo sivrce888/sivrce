@@ -366,4 +366,7 @@ export const he: Dict = {
   'fav.subtitle': '{n} מודעות',
   'fav.empty': 'עדיין לא נשמר דבר — הקישו על הלב בכל מודעה והיא תופיע כאן.',
   'fav.browse': 'עיון במודעות',
+
+  // a11y
+  'a11y.skipToContent': 'דלג לתוכן הראשי',
 }

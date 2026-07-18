@@ -11,15 +11,18 @@ import { LangSwitcher } from '@/components/LangSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useFavorites } from '@/lib/favorites'
-import { useI18n } from '@/lib/i18n/context'
+import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const { count } = useFavorites()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const pathname = usePathname()
+  // Locale-agnostic path for chrome state (hero transparency, hash links) —
+  // also strips the internal /ka rewrite target so SSR and hydration agree.
+  const bare = stripLangPrefix(pathname)
   const reduceMotion = useReducedMotion()
   const { data: session } = useSession()
   const menuBtnRef = useRef<HTMLButtonElement>(null)
@@ -46,7 +49,7 @@ export default function Navbar() {
 
   // On dark hero (homepage top) the bar is transparent with white text.
   // Everywhere else (or once scrolled) it uses the light glass style.
-  const light = scrolled || pathname !== '/'
+  const light = scrolled || bare !== '/'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -66,7 +69,7 @@ export default function Navbar() {
     { key: 'nav.buildings', to: '/buildings' },
     { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
-    { key: 'nav.services', to: `${pathname === '/' ? '' : '/'}#services`, mobileOnly: true },
+    { key: 'nav.services', to: `${bare === '/' ? '' : '/'}#services`, mobileOnly: true },
     { key: 'nav.search', to: '/search', mobileOnly: true },
   ]
 
@@ -84,14 +87,14 @@ export default function Navbar() {
             : 'bg-transparent'
         }`}
       >
-        <Logo light={!light} />
+        <Logo light={!light} href={localizedHref('/', lang)} />
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label={t('nav.main')}>
           {NAV_LINKS.map((l) =>
             l.to.includes('#') ? (
               <a
                 key={l.key}
-                href={l.to}
+                href={localizedHref(l.to, lang)}
                 className={`whitespace-nowrap rounded-full px-3 py-2 text-[14px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                   l.mobileOnly ? 'hidden' : ''
                 } ${
@@ -105,7 +108,7 @@ export default function Navbar() {
             ) : (
               <Link
                 key={l.key}
-                href={l.to}
+                href={localizedHref(l.to, lang)}
                 className={`whitespace-nowrap rounded-full px-3 py-2 text-[14px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                   l.mobileOnly ? 'hidden' : ''
                 } ${
@@ -122,7 +125,7 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-2 lg:flex">
           <Link
-            href="/favorites"
+            href={localizedHref("/favorites", lang)}
             aria-label={`${t('nav.favorites')}${count > 0 ? ` — ${count}` : ''}`}
             className={`relative grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
               light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-white/85 hover:bg-white/10'
@@ -140,7 +143,7 @@ export default function Navbar() {
           <LangSwitcher light={light} />
           {session?.user ? (
             <Link
-              href="/dashboard"
+              href={localizedHref("/dashboard", lang)}
               className={`flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                 light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-white hover:bg-white/10'
               }`}
@@ -165,7 +168,7 @@ export default function Navbar() {
             </Link>
           )}
           <Link
-            href="/add-listing"
+            href={localizedHref("/add-listing", lang)}
             className="group flex h-11 items-center gap-2 rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
@@ -201,7 +204,7 @@ export default function Navbar() {
               l.to.includes('#') ? (
                 <a
                   key={l.key}
-                  href={l.to}
+                  href={localizedHref(l.to, lang)}
                   onClick={() => setOpen(false)}
                   className="block rounded-control px-4 py-3 text-[16px] font-semibold text-sv-ink hover:bg-sv-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
                 >
@@ -210,7 +213,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   key={l.key}
-                  href={l.to}
+                  href={localizedHref(l.to, lang)}
                   onClick={() => setOpen(false)}
                   className="block rounded-control px-4 py-3 text-[16px] font-semibold text-sv-ink hover:bg-sv-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
                 >
@@ -237,7 +240,7 @@ export default function Navbar() {
               <ThemeToggle light />
             </div>
             <Link
-              href="/favorites"
+              href={localizedHref("/favorites", lang)}
               onClick={() => setOpen(false)}
               className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
             >
@@ -255,7 +258,7 @@ export default function Navbar() {
             </Link>
             {session?.user ? (
               <Link
-                href="/dashboard"
+                href={localizedHref("/dashboard", lang)}
                 onClick={() => setOpen(false)}
                 className="mt-2 flex items-center justify-center gap-2 rounded-control bg-sv-blue px-4 py-3.5 text-[15px] font-extrabold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
               >
@@ -272,7 +275,7 @@ export default function Navbar() {
               </Link>
             )}
             <Link
-              href="/add-listing"
+              href={localizedHref("/add-listing", lang)}
               onClick={() => setOpen(false)}
               className="mt-2 flex items-center justify-center gap-2 rounded-control bg-sv-orange px-4 py-3.5 text-[15px] font-extrabold text-white shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
             >
