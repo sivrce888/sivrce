@@ -7,13 +7,21 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+// Node 24+ pg treats sslmode=require as verify-full; Supabase pooler breaks
+// that ("self-signed in chain"). uselibpqcompat restores libpq require=
+// encrypt-without-CA-verify. Upgrade: pin Supabase CA when Node defaults flip.
+function withPgSslCompat(url: string) {
+  if (/uselibpqcompat=/i.test(url) || /sslmode=disable/i.test(url)) return url
+  return `${url}${url.includes("?") ? "&" : "?"}uselibpqcompat=true`
+}
+
 function createClient() {
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is not set")
   }
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString }),
+    adapter: new PrismaPg({ connectionString: withPgSslCompat(connectionString) }),
   })
 }
 
@@ -46,7 +54,10 @@ export async function dbAvailable(): Promise<boolean> {
   // Raw pg.Client with a hard connect timeout — NOT a raced Prisma query,
   // which keeps running in the background and leaks a pool slot per probe.
   let ok = false
-  const probe = new Client({ connectionString, connectionTimeoutMillis: 4_000 })
+  const probe = new Client({
+    connectionString: withPgSslCompat(connectionString),
+    connectionTimeoutMillis: 4_000,
+  })
   try {
     await probe.connect()
     ok = true
