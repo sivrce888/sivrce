@@ -9,12 +9,14 @@ import ListingCard from '@/components/ListingCard'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
-import { PROJECTS, getProject, getDeveloper, listingsByCity } from '@/data/professionals'
+import { PROJECTS, getDeveloper, listingsByCity } from '@/data/professionals'
 import { LISTINGS } from '@/data/listings'
+import { getLiveProject, projectsLive } from '@/lib/directory-live'
 import {
   clusterListingsToBuildings,
   mergeMapBuildings,
   projectsToConstructionBuildings,
+  applyLiveProjectPins,
 } from '@/lib/map/buildings'
 import { buildingFloors, floorsToGeoJSON } from '@/lib/map/floors'
 import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
@@ -23,8 +25,7 @@ import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
 export function generateStaticParams() {
-  // ponytail: prerender ka only (today's build surface) — other locales SSR on
-  // demand via dynamicParams. Upgrade path: per-locale SSG when build budget allows.
+  // Static catalog slugs prerender; korter-only slugs SSR via dynamicParams.
   return PROJECTS.map((p) => ({ lang: 'ka', slug: p.slug }))
 }
 
@@ -34,9 +35,9 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const p = getProject(slug)
+  const p = await getLiveProject(slug)
   if (!p) return {}
-  const description = p.description.ka.replace(/\s+/g, ' ').slice(0, 155)
+  const description = (p.description.ka || `${p.name}, ${p.location}`).replace(/\s+/g, ' ').slice(0, 155)
   return {
     title: `${p.name} — ${p.location}, ფასი ${p.priceFromM2}/მ²-დან`,
     description,
@@ -55,18 +56,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProjectPage({ params }: PageProps) {
   const { slug } = await params
-  const project = getProject(slug)
+  const [project, liveProjects] = await Promise.all([getLiveProject(slug), projectsLive()])
   if (!project) notFound()
 
   const dev = getDeveloper(project.developerSlug)
   const listings = listingsByCity(project.city, 6)
   const aggregate = await getReviewAggregate('project', slug)
 
-  // 3D floor stack (build-time): ghost for ongoing projects, real slabs when catalogued
-  const cluster = mergeMapBuildings(
-    clusterListingsToBuildings(LISTINGS),
-    projectsToConstructionBuildings(PROJECTS),
-  ).find((b) => b.projectSlug === slug)
+  // 3D floor stack: live address/coords so the corpus sits on the exact pin.
+  const cluster = applyLiveProjectPins(
+    mergeMapBuildings(
+      clusterListingsToBuildings(LISTINGS),
+      projectsToConstructionBuildings(liveProjects),
+    ),
+    liveProjects,
+  ).find((b) => b.projectSlug === slug || b.projectSlug === project.slug)
   const floorsFc = cluster ? floorsToGeoJSON(cluster) : null
   const floorsInfo = cluster ? buildingFloors(cluster) : []
   const isGhost = !!cluster && cluster.status === 'construction' && cluster.listings.length === 0
@@ -77,7 +81,7 @@ export default async function ProjectPage({ params }: PageProps) {
     name: project.name,
     description: project.description.ka,
     url: `https://sivrce.ge/projects/${project.slug}`,
-    image: `https://sivrce.ge${project.img}`,
+    image: project.img.startsWith('http') ? project.img : `https://sivrce.ge${project.img}`,
     // ponytail: numberOfAvailableAccommodationUnits = "currently for sale" — only
     // true for projects under construction. Sold-out/completed buildings would
     // mislead Google's schema (policy risk). Use numberOfAccommodationUnits (total built) for those.
@@ -86,6 +90,7 @@ export default async function ProjectPage({ params }: PageProps) {
       : { numberOfAvailableAccommodationUnits: project.flats }),
     address: {
       '@type': 'PostalAddress',
+      streetAddress: project.location,
       addressLocality: project.city,
       addressCountry: 'GE',
     },
@@ -198,14 +203,16 @@ export default async function ProjectPage({ params }: PageProps) {
           </section>
         )}
 
-        <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
-          <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            პროექტის შესახებ
-          </h2>
-          <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
-            {project.description.ka}
-          </p>
-        </section>
+        {project.description.ka && (
+          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              პროექტის შესახებ
+            </h2>
+            <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
+              {project.description.ka}
+            </p>
+          </section>
+        )}
 
         {listings.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
