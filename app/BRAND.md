@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.3) · FROZEN 2026-07-17
+# სივრცე — Brand Lock (v1.4) · FROZEN 2026-07-17 · +2 collection hues 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -115,6 +115,13 @@ Never cycle tints, never recolor, never inline new hex values for these items.
 | დღიური ქირა | `dailyRent` | #E11D48 | #FDEDF1 |
 | სასტუმროები | `hotels` | #0891B2 | #ECF6F9 |
 | ახალი პროექტები | `newProjects` | #5B8BFF | #EFF3FF |
+
+Daily-rent collections (locked 2026-07-18, owner request):
+
+| Collection (KA) | Key | Hue | Chip |
+|---|---|---|---|
+| სახლები წვეულებებისთვის | `partyHouses` | #C026D3 | #FAE8FD |
+| უკონტაქტო ჩექინი | `selfCheckIn` | #0D9488 | #E6F6F4 |
 
 | Service (KA) | Key | Hue | Chip |
 |---|---|---|---|
