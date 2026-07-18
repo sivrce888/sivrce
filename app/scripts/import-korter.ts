@@ -253,7 +253,7 @@ async function main() {
     const buildings: KorterBuilding[] =
       state?.developerLandingStore?.ongoingBuildings?.buildings ?? []
     for (const b of buildings) {
-      if (b.salesStatus !== "available") continue
+      if (b.salesStatus !== "available" || !b.name) continue
       const pSlug = slugFromLink(b.url)
       if (projectSlugs.has(pSlug)) continue
       try {
