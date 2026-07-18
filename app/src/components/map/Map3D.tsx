@@ -59,7 +59,7 @@ import {
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
-import { Layers, RotateCcw, HardHat, CheckCircle2, Plus, Minus, Moon, Sun } from 'lucide-react'
+import { Layers, RotateCcw, HardHat, CheckCircle2, Plus, Minus, Moon, Sun, Maximize2, Minimize2 } from 'lucide-react'
 
 const SOURCE_ID = 'sivrce-buildings'
 const FILL_ID = 'sivrce-buildings-fill'
@@ -197,10 +197,10 @@ const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
 ]
 
 const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
-  { id: 'all', label: 'ყველა შენობა' },
   { id: 'active', label: 'აქტიური' },
   { id: 'construction', label: 'მშენებარე' },
   { id: 'completed', label: 'დასრულებული' },
+  { id: 'all', label: 'ყველა' },
 ]
 
 function Map3DInner({
@@ -221,9 +221,10 @@ function Map3DInner({
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
   const [dealFilter, setDealFilter] = useState<MapDealFilter>('all')
-  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>('active')
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
   const [view3d, setView3d] = useState(true)
+  const [fullscreen, setFullscreen] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { resolvedTheme, setTheme } = useTheme()
@@ -231,6 +232,7 @@ function Map3DInner({
   const isDark = resolvedTheme === 'dark'
   const themeReady = resolvedTheme != null
 
+  const shellRef = useRef<HTMLDivElement>(null)
   const selectedRef = useRef<MapBuildingCluster | null>(null)
   const view3dRef = useRef(true)
   const dealRef = useRef<MapDealFilter>('all')
@@ -241,6 +243,23 @@ function Map3DInner({
   const styleUrlRef = useRef<string | null>(null)
   const remountRef = useRef<(() => void) | null>(null)
   useEffect(() => { darkRef.current = isDark }, [isDark])
+
+  useEffect(() => {
+    const onFs = () => {
+      setFullscreen(Boolean(document.fullscreenElement))
+      // MapLibre needs a resize after browser chrome goes away.
+      requestAnimationFrame(() => mapRef.current?.resize())
+    }
+    document.addEventListener('fullscreenchange', onFs)
+    return () => document.removeEventListener('fullscreenchange', onFs)
+  }, [])
+
+  const toggleFullscreen = () => {
+    const el = shellRef.current
+    if (!el) return
+    if (document.fullscreenElement) void document.exitFullscreen()
+    else void el.requestFullscreen()
+  }
 
   // Live DB listings when present; else demo LISTINGS. DB buildings add inventory/rings.
   const sourceListings = listings?.length ? listings : LISTINGS
@@ -549,32 +568,54 @@ function Map3DInner({
         for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID, DOT_ID]) {
           if (map.getLayer(layer)) map.setFilter(layer, exclude)
         }
-        // District labels: Google gray on light, soft white on dark
+        const dark = darkRef.current
+        // District + building labels — Google night readable
         if (map.getLayer(NBH_LABEL_ID)) {
           try {
-            map.setPaintProperty(
-              NBH_LABEL_ID,
-              'text-color',
-              darkRef.current ? '#C8D4F0' : '#3C4043',
-            )
+            map.setPaintProperty(NBH_LABEL_ID, 'text-color', dark ? '#E9EDFF' : '#3C4043')
             map.setPaintProperty(
               NBH_LABEL_ID,
               'text-halo-color',
-              darkRef.current ? BRAND.colors.navy : '#FFFFFF',
+              dark ? BRAND.colors.navy : '#FFFFFF',
             )
+            map.setPaintProperty(NBH_LABEL_ID, 'text-halo-width', dark ? 2.2 : 2)
           } catch {
             /* paint may differ */
           }
         }
-        const labelColor = darkRef.current ? '#FFFFFF' : BRAND.colors.ink
-        const labelHalo = darkRef.current ? BRAND.colors.navy : '#FFFFFF'
+        if (map.getLayer(DOT_ID)) {
+          try {
+            map.setPaintProperty(DOT_ID, 'circle-stroke-color', dark ? BRAND.colors.blueLight : '#FFFFFF')
+            map.setPaintProperty(DOT_ID, 'circle-stroke-width', dark ? 2 : 1.5)
+            map.setPaintProperty(DOT_ID, 'circle-opacity', 1)
+          } catch {
+            /* paint may differ */
+          }
+        }
+        if (map.getLayer(FILL_ID)) {
+          try {
+            map.setPaintProperty(FILL_ID, 'fill-opacity', dark ? 0.38 : 0.22)
+          } catch {
+            /* paint may differ */
+          }
+        }
+        const labelColor = dark ? '#FFFFFF' : BRAND.colors.ink
+        const labelHalo = dark ? BRAND.colors.navy : '#FFFFFF'
         for (const layer of [LABEL_ID, FLOORS_LABEL_ID]) {
           if (!map.getLayer(layer)) continue
           try {
             map.setPaintProperty(layer, 'text-color', labelColor)
             map.setPaintProperty(layer, 'text-halo-color', labelHalo)
+            map.setPaintProperty(layer, 'text-halo-width', dark ? 2 : 1.6)
           } catch {
             /* layer paint may differ */
+          }
+        }
+        // Re-apply 2D/3D fill after style remount
+        if (!view3dRef.current && map.getLayer(EXTRUDE_ID)) {
+          map.setLayoutProperty(EXTRUDE_ID, 'visibility', 'none')
+          if (map.getLayer(FILL_ID)) {
+            map.setPaintProperty(FILL_ID, 'fill-opacity', dark ? 0.72 : 0.5)
           }
         }
       }
@@ -670,7 +711,12 @@ function Map3DInner({
       map.setLayoutProperty(EXTRUDE_ID, 'visibility', mode3d ? 'visible' : 'none')
     }
     if (map.getLayer(FILL_ID)) {
-      map.setPaintProperty(FILL_ID, 'fill-opacity', mode3d ? 0.22 : 0.5)
+      const dark = darkRef.current
+      map.setPaintProperty(
+        FILL_ID,
+        'fill-opacity',
+        mode3d ? (dark ? 0.38 : 0.22) : dark ? 0.72 : 0.5,
+      )
     }
   }, [])
 
@@ -704,16 +750,19 @@ function Map3DInner({
   }
 
   const chip = isDark
-    ? 'border-white/10 bg-sv-navy/85 text-white backdrop-blur-md'
-    : 'border-sv-ink/10 bg-sv-surface/92 text-sv-ink shadow-soft backdrop-blur-md'
-  const chipMuted = isDark ? 'text-white/60 hover:text-white' : 'text-sv-ink/55 hover:text-sv-ink'
+    ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
+    : 'border-sv-ink/8 bg-sv-surface/95 text-sv-ink shadow-soft backdrop-blur-xl'
+  const chipMuted = isDark ? 'text-white/55 hover:text-white' : 'text-sv-ink/50 hover:text-sv-ink'
   const shellBg = isDark ? 'bg-sv-navy' : 'bg-sv-cloud'
-  const railBtn = (extra = '') =>
-    `grid h-11 w-11 place-items-center transition hover:bg-sv-blue hover:text-white ${extra}`
+  // Apple-quiet press — never paint zoom/theme as “selected” blue
+  const railHover = isDark ? 'hover:bg-white/10 active:bg-white/15' : 'hover:bg-sv-ink/[0.05] active:bg-sv-ink/[0.08]'
   const railSep = isDark ? 'border-t border-white/10' : 'border-t border-sv-ink/8'
 
   return (
-    <div className={`relative flex h-[calc(100dvh-4.5rem)] w-full overflow-hidden md:h-[calc(100dvh-5rem)] ${shellBg}`}>
+    <div
+      ref={shellRef}
+      className={`relative flex w-full overflow-hidden ${fullscreen ? 'h-dvh' : 'h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)]'} ${shellBg}`}
+    >
       <div className="relative min-w-0 flex-1">
         {/* ponytail: MapLibre forces position:relative — absolute on the map node collapses to h=0. */}
         <div className="absolute inset-0">
@@ -731,7 +780,7 @@ function Map3DInner({
           </div>
         )}
 
-        <div className="absolute left-4 top-4 z-20 flex max-w-[min(100%-2rem,560px)] flex-col gap-2">
+        <div className="absolute left-4 top-4 z-20 flex max-w-[min(100%-2rem,520px)] flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <div className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-[12px] font-extrabold ${chip}`}>
               <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
@@ -740,7 +789,7 @@ function Map3DInner({
             <button
               type="button"
               onClick={resetView}
-              className={`grid h-11 w-11 place-items-center rounded-full border transition hover:bg-sv-blue hover:text-white ${chip}`}
+              className={`grid h-11 w-11 place-items-center rounded-full border transition ${railHover} ${chip}`}
               aria-label="საწყისი ხედი"
             >
               <RotateCcw className="h-4 w-4" />
@@ -748,7 +797,7 @@ function Map3DInner({
           </div>
 
           <div
-            className={`flex flex-wrap gap-1.5 rounded-tile border p-2 ${chip}`}
+            className={`flex flex-wrap gap-1 rounded-tile border p-1.5 ${chip}`}
             role="group"
             aria-label="გარიგების ფილტრი"
           >
@@ -759,8 +808,8 @@ function Map3DInner({
                   key={f.id}
                   type="button"
                   onClick={() => setDealFilter(f.id)}
-                  className={`min-h-11 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
-                    active ? 'text-white shadow-glow-blue-sm' : chipMuted
+                  className={`min-h-10 rounded-full px-3 py-1.5 text-[12px] font-extrabold transition ${
+                    active ? 'text-white' : chipMuted
                   }`}
                   style={active ? { background: f.color } : undefined}
                 >
@@ -771,7 +820,7 @@ function Map3DInner({
           </div>
 
           <div
-            className={`flex flex-wrap gap-1.5 rounded-tile border p-2 ${chip}`}
+            className={`flex flex-wrap gap-1 rounded-tile border p-1.5 ${chip}`}
             role="group"
             aria-label="სტატუსის ფილტრი"
           >
@@ -782,8 +831,8 @@ function Map3DInner({
                   key={f.id}
                   type="button"
                   onClick={() => setStatusFilter(f.id)}
-                  className={`inline-flex min-h-11 items-center gap-1 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
-                    active ? 'bg-sv-blue text-white shadow-glow-blue-sm' : chipMuted
+                  className={`inline-flex min-h-10 items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-extrabold transition ${
+                    active ? 'bg-sv-blue text-white' : chipMuted
                   }`}
                   style={
                     active && f.id === 'completed'
@@ -803,39 +852,38 @@ function Map3DInner({
           </div>
         </div>
 
-        {/* Zoom · 2D/3D text · day/night — one chip family */}
+        {/* One Apple-quiet control column */}
         <div
-          className="absolute right-3 top-4 z-20 flex flex-col gap-2 md:right-4"
+          className={`absolute right-3 top-4 z-20 flex w-[5.5rem] flex-col overflow-hidden rounded-tile border md:right-4 ${chip}`}
           role="toolbar"
           aria-label="რუკის კონტროლი"
         >
-          <div className={`flex flex-col overflow-hidden rounded-tile border ${chip}`}>
-            <button
-              type="button"
-              aria-label="გადიდება"
-              onClick={() => mapRef.current?.zoomIn({ duration: 280 })}
-              className={railBtn()}
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              aria-label="დაპატარავება"
-              onClick={() => mapRef.current?.zoomOut({ duration: 280 })}
-              className={railBtn(railSep)}
-            >
-              <Minus className="h-4 w-4" />
-            </button>
-          </div>
-          <div className={`flex overflow-hidden rounded-tile border ${chip}`} role="group" aria-label="რუკის ხედი">
+          <button
+            type="button"
+            aria-label="გადიდება"
+            onClick={() => mapRef.current?.zoomIn({ duration: 280 })}
+            className={`grid h-11 w-full place-items-center transition ${railHover}`}
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.25} />
+          </button>
+          <button
+            type="button"
+            aria-label="დაპატარავება"
+            onClick={() => mapRef.current?.zoomOut({ duration: 280 })}
+            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
+          >
+            <Minus className="h-4 w-4" strokeWidth={2.25} />
+          </button>
+
+          <div className={`flex ${railSep}`} role="group" aria-label="რუკის ხედი">
             <button
               type="button"
               aria-pressed={!view3d}
               onClick={() => {
                 if (view3d) toggleView3d()
               }}
-              className={`min-h-11 min-w-[2.75rem] px-3 text-[12px] font-extrabold tracking-wide transition hover:bg-sv-blue hover:text-white ${
-                !view3d ? 'bg-sv-blue text-white' : ''
+              className={`h-11 flex-1 text-[12px] font-extrabold tracking-wide transition ${
+                !view3d ? 'bg-sv-blue text-white' : railHover
               }`}
             >
               2D
@@ -846,23 +894,32 @@ function Map3DInner({
               onClick={() => {
                 if (!view3d) toggleView3d()
               }}
-              className={`min-h-11 min-w-[2.75rem] border-l px-3 text-[12px] font-extrabold tracking-wide transition hover:bg-sv-blue hover:text-white ${
+              className={`h-11 flex-1 border-l text-[12px] font-extrabold tracking-wide transition ${
                 isDark ? 'border-white/10' : 'border-sv-ink/8'
-              } ${view3d ? 'bg-sv-blue text-white' : ''}`}
+              } ${view3d ? 'bg-sv-blue text-white' : railHover}`}
             >
               3D
             </button>
           </div>
-          <div className={`overflow-hidden rounded-tile border ${chip}`}>
-            <button
-              type="button"
-              aria-label={isDark ? 'დღის რეჟიმი' : 'ღამის რეჟიმი'}
-              onClick={() => setTheme(isDark ? 'light' : 'dark')}
-              className={railBtn()}
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-          </div>
+
+          <button
+            type="button"
+            aria-label={isDark ? 'დღის რეჟიმი' : 'ღამის რეჟიმი'}
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+
+          <button
+            type="button"
+            aria-label={fullscreen ? 'სრული ეკრანიდან გასვლა' : 'სრული ეკრანი'}
+            aria-pressed={fullscreen}
+            onClick={toggleFullscreen}
+            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
+          >
+            {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 

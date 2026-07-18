@@ -12,6 +12,7 @@ import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { getAllListings } from '@/lib/listings-db'
+import type { Lang } from '@/lib/i18n/core'
 
 /** DB-first featured rail; static mock is the build-time/outage fallback. */
 async function getFeatured(): Promise<Listing[]> {
@@ -22,23 +23,23 @@ async function getFeatured(): Promise<Listing[]> {
   return LISTINGS.slice(0, 6)
 }
 
-/** Homepage section assembly — shared by / (ka), /en and /ru. */
-export default async function HomeMain() {
+/** Homepage section assembly — lang drives CMS block copy on server sections. */
+export default async function HomeMain({ lang = 'ka' }: { lang?: Lang }) {
   const featured = await getFeatured()
   return (
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main">
-        <Hero />
+        <Hero lang={lang} />
         <Stats />
-        <Categories />
-        <Collections />
+        <Categories lang={lang} />
+        <Collections lang={lang} />
         <Listings items={featured} />
         <MapSection />
         <AISection />
         <Projects />
-        <Services />
-        <CTA />
+        <Services lang={lang} />
+        <CTA lang={lang} />
       </main>
       <Footer />
     </div>

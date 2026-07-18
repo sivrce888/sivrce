@@ -14,11 +14,12 @@ import { unstable_cache } from "next/cache"
 import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
 import type { Prisma } from "@/generated/prisma/client"
+import { tierKeyToBadge, type PromoBadge } from "@/lib/promo-pricing"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily"
 export type PropType = "apartment" | "house" | "commercial" | "land"
-export type Badge = "SUPER VIP" | "VIP+" | "VIP" | null
+export type Badge = PromoBadge | null
 export type SortKey = "date" | "price-asc" | "price-desc" | "area" | "ai"
 
 export const USD_GEL = 2.7
@@ -37,11 +38,9 @@ function propToDb(p: PropType): ListingPropertyType {
   return "land"
 }
 
-// Map DB tier → public badge
+// Map DB tier → public badge (vip · super_vip=VIP+ · diamond=SUPER VIP)
 function dbTierToBadge(tier: string): Badge {
-  if (tier === "super_vip") return "SUPER VIP"
-  if (tier === "vip") return "VIP+"
-  return null
+  return tierKeyToBadge(tier)
 }
 
 export interface Agent {

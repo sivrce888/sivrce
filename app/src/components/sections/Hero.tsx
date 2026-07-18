@@ -2,11 +2,12 @@ import { BadgeCheck, ShieldCheck, Zap } from 'lucide-react'
 import HeroBackground from './HeroBackground'
 import HeroSearch from './HeroSearch'
 import { getCmsBlock } from '@/lib/cms'
+import type { Lang } from '@/lib/i18n/core'
 
 /* Static hero shell — server component. LCP text (h1/subtitle) paints from the
    RSC payload, never gated on or re-painted by client hydration. Interactive
    search panel lives in the HeroSearch island (the only framer-motion user).
-   Copy is CMS-overridable (/admin/content/pages → Homepage blocks); ka SSR. */
+   Copy is CMS-overridable per language (/admin/content/pages). */
 
 const TRUST = [
   { icon: BadgeCheck, key: 'home.hero.trust1' },
@@ -14,15 +15,15 @@ const TRUST = [
   { icon: Zap, key: 'home.hero.trust3' },
 ] as const
 
-export default async function Hero() {
+export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
   const [badge, titleA, titleAccent, subtitle, ...trust] = await Promise.all([
-    getCmsBlock('home.hero.badge'),
-    getCmsBlock('home.hero.titleA'),
-    getCmsBlock('home.hero.titleAccent'),
-    getCmsBlock('home.hero.subtitle'),
-    getCmsBlock('home.hero.trust1'),
-    getCmsBlock('home.hero.trust2'),
-    getCmsBlock('home.hero.trust3'),
+    getCmsBlock('home.hero.badge', lang),
+    getCmsBlock('home.hero.titleA', lang),
+    getCmsBlock('home.hero.titleAccent', lang),
+    getCmsBlock('home.hero.subtitle', lang),
+    getCmsBlock('home.hero.trust1', lang),
+    getCmsBlock('home.hero.trust2', lang),
+    getCmsBlock('home.hero.trust3', lang),
   ])
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-sv-navy">

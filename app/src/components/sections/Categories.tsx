@@ -3,6 +3,7 @@ import { Building, Home, TreePalm, Map, Briefcase, CalendarClock, Hotel, Sparkle
 import { Reveal } from '@/components/Reveal'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
+import type { Lang } from '@/lib/i18n/core'
 
 /* Locked per-category branding (BRAND.md §3.1) — every category owns its
    hue + chip from CATEGORY_BRAND. Never inline new tints here. */
@@ -17,10 +18,10 @@ const CATS = [
   { icon: Sparkles, label: 'ახალი პროექტები', count: '136', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
 ]
 
-export default async function Categories() {
+export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
   const [title, sub] = await Promise.all([
-    getCmsBlock('home.categories.title'),
-    getCmsBlock('home.categories.sub'),
+    getCmsBlock('home.categories.title', lang),
+    getCmsBlock('home.categories.sub', lang),
   ])
   return (
     <section className="bg-sv-surface pb-20 md:pb-28">

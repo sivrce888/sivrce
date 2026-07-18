@@ -17,6 +17,7 @@ import type { DealType, Listing } from "@/data/listings"
 import { SERVICE_BRAND } from "@/lib/category-brand"
 import { db } from "@/lib/db"
 import { catalogToCluster, type MapBuildingCluster } from "@/lib/map/buildings"
+import { tierKeyToBadge } from "@/lib/promo-pricing"
 
 export const MAP_BUILDINGS_TAG = "map-buildings"
 export const MAP_LISTINGS_TAG = "map-listings"
@@ -92,8 +93,7 @@ function rowToMapListing(row: {
     floor,
     totalFloors: row.totalFloors ?? 0,
     views: row.views,
-    badge:
-      row.tier === "super_vip" ? "SUPER VIP" : row.tier === "vip" ? "VIP+" : null,
+    badge: tierKeyToBadge(row.tier),
     ai: { score: row.trustScore, label: "" },
     features: row.features,
     description: row.description,
