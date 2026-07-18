@@ -395,8 +395,6 @@ assert.equal(buildingShowsFloorStack(inventoryTower!), true, 'inventory developm
 
 // ——— merge gate: shadowed DB rows donate floor inventory to static clusters ———
 
-import { mergeDbBuildings } from './buildings'
-
 const dbShadow: typeof tower = {
   ...tower!,
   id: 'bldg-shadow',

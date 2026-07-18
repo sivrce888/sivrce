@@ -38,7 +38,23 @@ export function extractState(html: string): unknown | null {
   return null
 }
 
-async function fetchState(url: string): Promise<any | null> {
+type KorterState = {
+  developerListingStore?: {
+    seo?: { seoLinks?: { link: string }[] }
+    developers?: {
+      developerId: number
+      name: string
+      link: string
+      foundationYear?: number | null
+    }[]
+    totalCount?: number
+  }
+  developerLandingStore?: {
+    developer?: { site?: { url?: string; name?: string } | null; logo?: unknown }
+  }
+}
+
+async function fetchState(url: string): Promise<KorterState | null> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, { headers: UA })
