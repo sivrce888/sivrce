@@ -7,6 +7,7 @@ import assert from 'node:assert/strict'
 import {
   buildingFootprint,
   buildingsToGeoJSON,
+  buildingsToPointsGeoJSON,
   clusterListingsToBuildings,
   dealColor,
   filterBuildings,
@@ -189,6 +190,9 @@ assert.equal(dealColor('sale'), '#2E6BFF')
 assert.equal(dealColor('pledge'), '#16A34A')
 const fc = buildingsToGeoJSON(buildings)
 assert.equal(fc.features[0]!.geometry.type, 'Polygon')
+const pts = buildingsToPointsGeoJSON(buildings)
+assert.equal(pts.features.length, buildings.length)
+assert.equal(pts.features[0]!.geometry.type, 'Point')
 assert.equal(buildingFootprint(41.7, 44.8).coordinates[0]!.length, 5)
 
 // ——— 100% coverage gate on real data ———

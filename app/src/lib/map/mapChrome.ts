@@ -7,6 +7,7 @@ import type { Map as MlMap, StyleSpecification } from 'maplibre-gl'
 import {
   MAP_PROXY_PREFIX,
   OFM_ORIGIN,
+  MAP_JSON_CACHE_VER,
   toMapProxyUrl,
 } from '@/lib/map/map-proxy'
 
@@ -79,14 +80,18 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
   const usesOfm =
     styleUrl.includes('openfreemap') || styleUrl.startsWith(MAP_PROXY_PREFIX)
 
-  const styleRaw = await fetch(assetFetchUrl(styleUrl)).then((r) => {
+  // ponytail: no-store — browser/CDN may still hold a pre-fix broken TileJSON
+  const styleRaw = await fetch(assetFetchUrl(styleUrl), { cache: 'no-store' }).then((r) => {
     if (!r.ok) throw new Error(`map style ${r.status}`)
     return r.json() as Promise<StyleSpecification>
   })
 
   let planet: PlanetJson | null = null
   if (usesOfm) {
-    const planetRes = await fetch(assetFetchUrl(`${MAP_PROXY_PREFIX}${PLANET_PATH}`))
+    const planetRes = await fetch(
+      assetFetchUrl(`${MAP_PROXY_PREFIX}${PLANET_PATH}?v=${MAP_JSON_CACHE_VER}`),
+      { cache: 'no-store' },
+    )
     if (!planetRes.ok) throw new Error(`map tiles ${planetRes.status}`)
     planet = (await planetRes.json()) as PlanetJson
   }

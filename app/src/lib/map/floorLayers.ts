@@ -118,9 +118,11 @@ function applyLightPaints(map: MlMap) {
   trySet(map, 'water', 'fill-color', '#AADAFF')
   trySet(map, 'waterway_river', 'line-color', '#AADAFF')
   trySet(map, 'waterway_other', 'line-color', '#B8E0FF')
-  trySet(map, 'water_name', 'text-color', '#4A86C8')
-  trySet(map, 'water_name', 'text-halo-color', '#FFFFFF')
-  trySet(map, 'water_name', 'text-halo-width', 1.2)
+  for (const id of ['water_name', 'water_name_point_label', 'water_name_line_label']) {
+    trySet(map, id, 'text-color', '#4A86C8')
+    trySet(map, id, 'text-halo-color', '#FFFFFF')
+    trySet(map, id, 'text-halo-width', 1.2)
+  }
 
   // Parks / green
   trySet(map, 'park', 'fill-color', '#C8E6C9')
@@ -358,19 +360,59 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'boundary_country_z5-', 'line-color', '#4A5A80')
 }
 
+/** Positron / clean — calm gray so listing hues pop (Apple Maps “muted”). */
+function applyCleanPaints(map: MlMap) {
+  trySet(map, 'background', 'background-color', '#F2F4F7')
+  trySet(map, 'water', 'fill-color', '#C9D9E8')
+  trySet(map, 'waterway', 'line-color', '#B8C9D9')
+  trySet(map, 'park', 'fill-color', '#D8E8D4')
+  trySet(map, 'park', 'fill-opacity', 0.85)
+  trySet(map, 'building', 'fill-color', '#E4E7EC')
+  trySet(map, 'building', 'fill-opacity', 0.55)
+  trySet(map, 'building', 'fill-outline-color', '#D0D4DC')
+
+  trySet(map, 'highway_path', 'line-color', '#D5D8DE')
+  trySet(map, 'highway_minor', 'line-color', '#FFFFFF')
+  trySet(map, 'highway_major_casing', 'line-color', '#C8CCD4')
+  trySet(map, 'highway_major_inner', 'line-color', '#FFFFFF')
+  trySet(map, 'highway_major_subtle', 'line-color', '#E8EAEE')
+  trySet(map, 'highway_motorway_casing', 'line-color', '#D4C4A0')
+  trySet(map, 'highway_motorway_inner', 'line-color', '#F0E6C8')
+  trySet(map, 'highway_motorway_subtle', 'line-color', '#E8DFC4')
+
+  for (const id of [
+    'highway-name-path',
+    'highway-name-minor',
+    'highway-name-major',
+    'label_city',
+    'label_city_capital',
+    'label_town',
+    'label_village',
+    'label_other',
+  ]) {
+    trySet(map, id, 'text-color', '#5F6368')
+    trySet(map, id, 'text-halo-color', '#FFFFFF')
+    trySet(map, id, 'text-halo-width', 1.4)
+  }
+  for (const id of ['water_name_point_label', 'water_name_line_label', 'waterway_line_label']) {
+    trySet(map, id, 'text-color', '#6A8AAA')
+    trySet(map, id, 'text-halo-color', '#FFFFFF')
+    trySet(map, id, 'text-halo-width', 1.1)
+  }
+}
+
 export function applyBrandPaints(
   map: MlMap,
   theme: MapTheme = 'dark',
   terrain: MapTerrain = 'streets',
 ) {
+  if (terrain === 'satellite') return
   if (theme === 'dark') {
     applyDarkPaints(map)
     return
   }
-  // Satellite is raster-only; clean stays quiet so listings pop.
-  if (terrain === 'satellite') return
   if (terrain === 'clean') {
-    trySet(map, 'building', 'fill-opacity', 0.4)
+    applyCleanPaints(map)
     return
   }
   applyLightPaints(map)

@@ -537,37 +537,56 @@ export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
   )
 }
 
+function buildingProps(b: MapBuildingCluster) {
+  return {
+    id: b.id,
+    label: b.label,
+    code: b.code ?? '',
+    slug: b.slug ?? '',
+    address: b.address,
+    buildingNumber: b.buildingNumber,
+    district: b.district,
+    // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
+    color: colorWithAlpha(
+      b.color,
+      b.status === 'construction' && b.listings.length === 0 ? 0.78 : 0.95,
+    ),
+    hue: b.color,
+    height: b.heightM,
+    sale: b.counts.sale,
+    rent: b.counts.rent,
+    daily: b.counts.daily,
+    pledge: b.counts.pledge,
+    total: b.listings.length,
+    dominant: b.dominant,
+    status: b.status,
+    progress: b.progress ?? 100,
+  }
+}
+
 export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: buildings.map((b) => ({
       type: 'Feature' as const,
       id: b.id,
-      properties: {
-        id: b.id,
-        label: b.label,
-        code: b.code ?? '',
-        slug: b.slug ?? '',
-        address: b.address,
-        buildingNumber: b.buildingNumber,
-        district: b.district,
-        // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
-        color: colorWithAlpha(
-          b.color,
-          b.status === 'construction' && b.listings.length === 0 ? 0.78 : 0.95,
-        ),
-        hue: b.color,
-        height: b.heightM,
-        sale: b.counts.sale,
-        rent: b.counts.rent,
-        daily: b.counts.daily,
-        pledge: b.counts.pledge,
-        total: b.listings.length,
-        dominant: b.dominant,
-        status: b.status,
-        progress: b.progress ?? 100,
-      },
+      properties: buildingProps(b),
       geometry: clusterGeometry(b),
+    })),
+  }
+}
+
+/** Point FC for MapLibre native clustering (polygons can't cluster). */
+export function buildingsToPointsGeoJSON(
+  buildings: MapBuildingCluster[],
+): GeoJSON.FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: buildings.map((b) => ({
+      type: 'Feature' as const,
+      id: b.id,
+      properties: buildingProps(b),
+      geometry: { type: 'Point' as const, coordinates: [b.lng, b.lat] },
     })),
   }
 }
