@@ -14,6 +14,7 @@
 
 import type { Prisma } from "@/generated/prisma/client"
 import type { ListingDealType } from "@/generated/prisma/enums"
+import { revalidateTag } from "next/cache"
 import { haversineM, NEAREST_RADIUS_M } from "./buildings"
 
 /** Floor inventory column that tracks live stock per deal type. */
@@ -103,6 +104,8 @@ export async function attributeListing(listingId: string): Promise<void> {
         ]
       : []),
   ])
+  revalidateTag("map-listings", "max")
+  revalidateTag("map-buildings", "max")
 }
 
 /**
@@ -133,4 +136,6 @@ export async function unattributeListing(listingId: string): Promise<void> {
     )
   }
   await db.$transaction(ops)
+  revalidateTag("map-listings", "max")
+  revalidateTag("map-buildings", "max")
 }
