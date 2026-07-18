@@ -528,12 +528,24 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
         </div>
 
-        {/* Keyword + location autocomplete */}
+        {/* Keyword + location autocomplete — kind maps to city/district/q */}
         <SearchSuggest
           variant="light"
+          city={city}
           value={drafts.q}
           onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
-          onPick={(v) => { setDrafts((d) => ({ ...d, q: v })); patchParams({ q: v }) }}
+          onPick={(s) => {
+            if (s.kind === 'city') {
+              setDrafts((d) => ({ ...d, q: '' }))
+              patchParams({ city: s.ka, district: undefined, q: undefined })
+            } else if (s.kind === 'district') {
+              setDrafts((d) => ({ ...d, q: '' }))
+              patchParams({ district: s.ka, q: undefined })
+            } else {
+              setDrafts((d) => ({ ...d, q: s.ka }))
+              patchParams({ q: s.ka })
+            }
+          }}
           onSubmit={() => patchParams({ q: drafts.q || undefined })}
           placeholder={t('search.keywordPlaceholder')}
           ariaLabel={t('search.keyword')}
