@@ -132,6 +132,10 @@ export async function POST(req: NextRequest) {
       },
       agent: { name, phone, agency: "" },
       listingPhone: phone,
+      // Denormalized filter columns (2026-07-18) — kept in sync with the
+      // feature vocabulary + author role at publish time.
+      petsAllowed: features.includes("add.f.petsAllowed"),
+      sellerType: session.user.role === "agency" || session.user.role === "agent" ? "agency" : "owner",
     },
     select: { id: true },
   })
@@ -151,6 +155,8 @@ export async function POST(req: NextRequest) {
     pricePerSqm: price ? Math.round(price / area) : undefined,
     verified: false,
     hasImages: images.length > 0,
+    petsAllowed: features.includes("add.f.petsAllowed"),
+    sellerType: session.user.role === "agency" || session.user.role === "agent" ? "agency" : "owner",
     condition: asStr(body.condition, 60) ?? undefined,
     buildingStatus: asStr(body.buildingStatus, 60) ?? undefined,
     area,

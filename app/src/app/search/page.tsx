@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import SearchClient from '@/components/search/SearchClient'
+import { getSearchLocations } from '@/lib/listings-db'
 
 export const metadata: Metadata = {
   title: 'ძიება — ბინები, სახლები, კომერციული',
@@ -18,10 +19,12 @@ function SearchFallback() {
   )
 }
 
-export default function SearchPage() {
+export default async function SearchPage() {
+  // Live city/district facets (DB-backed, 5-min cache; static fallback inside).
+  const locations = await getSearchLocations()
   return (
     <Suspense fallback={<SearchFallback />}>
-      <SearchClient />
+      <SearchClient locations={locations} />
     </Suspense>
   )
 }

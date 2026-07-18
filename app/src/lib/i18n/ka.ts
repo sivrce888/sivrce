@@ -82,6 +82,15 @@ export const ka = {
   'search.currency': 'ვალუტა',
   'search.bedsChip': '{n}+ საძინებელი',
   'search.bathsChip': '{n}+ სააბაზანო',
+  'search.checkIn': 'შესვლა',
+  'search.checkOut': 'გასვლა',
+  'search.petsOnly': 'შინაური ცხოველით',
+  'search.seller': 'გამყიდველი',
+  'search.sellerOwner': 'მეპატრონე',
+  'search.sellerAgency': 'სააგენტო',
+  'search.pagination': 'გვერდები',
+  'search.prev': 'წინა',
+  'search.next': 'შემდეგი',
 
   // ——— Property types ———
   'prop.apartment': 'ბინა',

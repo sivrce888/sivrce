@@ -27,32 +27,81 @@ ORANGE = "#FF6A2D"; ORANGE_DEEP = "#FF4D6D"
 NAVY = "#050B26"; INK = "#0A1030"; WHITE = "#FFFFFF"; CLOUD = "#F6F7FB"
 
 # ---- geometry parameters (48-unit grid) --------------------------------------
-TIP_Y = 3.2           # blade tip distance from top edge
-SWIRL_TIP = 1.15      # tip offset +x (pinwheel swirl, v1.3 spark DNA)
-SWIRL_BASE = -0.55    # base offset -x
-GAP = 2.6             # center gap: blade base distance from center axis
-W_R = 6.9             # right-edge max excursion (blade width)
-W_L = 5.3             # left-edge excursion (asymmetric = swirl)
+# Blade = crescent swoosh defined by a spine curve + width profile:
+#   t in [0,1], base -> tip. Spine sways clockwise (pinwheel swirl, v1.3 DNA).
+#   Width peaks ~40% from the tip; both ends needle-sharp. Sampled densely,
+#   smoothed through Catmull-Rom -> cubic Beziers. 4-fold symmetry (90° CW).
+TIP_V = 20.8          # tip radius (3.2 margin)
+BASE_V = 1.9          # base radius (center void size)
+W_MAX = 5.4           # max blade width
+SWAY = 1.9            # spine mid-bulge toward clockwise side
+U_TIP = 1.4           # tip hook offset (clockwise)
+U_BASE = -0.5         # base lean (counter-clockwise)
+SPLIT = 0.62          # share of width on the clockwise side
 
-def blade_path(gap=GAP, st=SWIRL_TIP, sb=SWIRL_BASE, w_r=W_R, w_l=W_L):
-    """One blade pointing up. Tip sharp, base sharp, edges convex-outward."""
-    tx, ty = 24 + st, TIP_Y
-    bx, by = 24 + sb, 24 - gap
-    c1x, c1y = tx + w_r * 0.80, ty + 4.4
-    c2x, c2y = 24 + w_r, by - 6.6
-    c3x, c3y = 24 - w_l, by - 5.4
-    c4x, c4y = tx - w_l * 0.86, ty + 6.6
-    return (f"M{tx:.2f} {ty:.2f}"
-            f"C{c1x:.2f} {c1y:.2f} {c2x:.2f} {c2y:.2f} {bx:.2f} {by:.2f}"
-            f"C{c3x:.2f} {c3y:.2f} {c4x:.2f} {c4y:.2f} {tx:.2f} {ty:.2f}Z")
+def _profile(t):
+    """Asymmetric width profile: 0 at both ends, peak ~41% from the tip."""
+    a, b = 1.6, 1.1
+    t0 = a / (a + b)
+    return (t / t0) ** a * ((1 - t) / (1 - t0)) ** b
+
+def _spine(t, sway=SWAY, u_tip=U_TIP, u_base=U_BASE):
+    import math
+    return u_base + (u_tip - u_base) * t + sway * math.sin(math.pi * t)
+
+def blade_samples(w_max=W_MAX, split=SPLIT, sway=SWAY, n=9):
+    """Sample right (clockwise) edge tip->base and left edge base->tip."""
+    right, left = [], []
+    for i in range(n):
+        t = i / (n - 1)              # 0 base .. 1 tip
+        v = BASE_V + (TIP_V - BASE_V) * t
+        s = _spine(t, sway)
+        w = w_max * _profile(t)
+        right.append((s + w * split, v))
+        left.append((s - w * (1 - split), v))
+    right.reverse()                  # tip -> base
+    return right, left               # then left base -> tip
+
+def _cr_to_bezier(pts):
+    """Uniform Catmull-Rom through pts -> list of cubic Bezier segments."""
+    segs = []
+    ext = [pts[0]] + list(pts) + [pts[-1]]
+    for i in range(len(pts) - 1):
+        p0, p1, p2, p3 = ext[i], ext[i + 1], ext[i + 2], ext[i + 3]
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        segs.append((c1, c2, p2))
+    return segs
+
+def rot(p, k):
+    """Local blade coords -> global 48-grid. k: 0=N, 1=E, 2=S, 3=W (90° CW)."""
+    u, v = p
+    if k == 0: return (24 + u, 24 - v)
+    if k == 1: return (24 + v, 24 + u)
+    if k == 2: return (24 - u, 24 + v)
+    return (24 - v, 24 - u)
+
+def blade_path(k, small=False, f=".2f"):
+    """Closed crescent blade path in global coords (no transform attr —
+    gradients stay in one global user space)."""
+    if small:
+        right, left = blade_samples(w_max=W_MAX * 1.12, sway=SWAY * 1.1)
+    else:
+        right, left = blade_samples()
+    outline = [rot(p, k) for p in right + left]
+    d = f"M{outline[0][0]:{f}} {outline[0][1]:{f}}"
+    for c1, c2, p in _cr_to_bezier(outline):
+        d += (f"C{c1[0]:{f}} {c1[1]:{f}} {c2[0]:{f}} {c2[1]:{f}} "
+              f"{p[0]:{f}} {p[1]:{f}}")
+    return d + "Z"
 
 def gradients():
-    """Per-blade userSpaceOnUse gradients along each blade axis.
+    """Per-blade userSpaceOnUse gradients along each blade axis, global coords.
     Flow: light blue at the top tip -> brand blue -> violet at the sides ->
     orange at the bottom tip (the space point). Locked stops only."""
     return (
         f'<defs>'
-        f'<linearGradient id="gN" x1="24" y1="{TIP_Y}" x2="24" y2="24" gradientUnits="userSpaceOnUse">'
+        f'<linearGradient id="gN" x1="24" y1="3.2" x2="24" y2="24" gradientUnits="userSpaceOnUse">'
         f'<stop offset="0" stop-color="{BLUE_L}"/><stop offset="1" stop-color="{BLUE}"/></linearGradient>'
         f'<linearGradient id="gE" x1="44.8" y1="24" x2="24" y2="24" gradientUnits="userSpaceOnUse">'
         f'<stop offset="0" stop-color="{BLUE}"/><stop offset="1" stop-color="{VIOLET}"/></linearGradient>'
@@ -64,24 +113,13 @@ def gradients():
         f'</defs>')
 
 def mark_gradient(small=False):
-    d = blade_path(gap=3.3 if small else GAP,
-                   w_r=W_R + (0.5 if small else 0),
-                   w_l=W_L + (0.4 if small else 0))
-    blades = (
-        f'<path d="{d}" fill="url(#gN)"/>'
-        f'<path d="{d}" fill="url(#gE)" transform="rotate(90 24 24)"/>'
-        f'<path d="{d}" fill="url(#gS)" transform="rotate(180 24 24)"/>'
-        f'<path d="{d}" fill="url(#gW)" transform="rotate(270 24 24)"/>')
-    return gradients() + blades
+    return gradients() + "".join(
+        f'<path d="{blade_path(k, small)}" fill="url(#g{"NESW"[k]})"/>'
+        for k in range(4))
 
 def mark_mono(color, small=False):
-    d = blade_path(gap=3.3 if small else GAP,
-                   w_r=W_R + (0.5 if small else 0),
-                   w_l=W_L + (0.4 if small else 0))
-    return (f'<path d="{d}" fill="{color}"/>'
-            f'<path d="{d}" fill="{color}" transform="rotate(90 24 24)"/>'
-            f'<path d="{d}" fill="{color}" transform="rotate(180 24 24)"/>'
-            f'<path d="{d}" fill="{color}" transform="rotate(270 24 24)"/>')
+    return "".join(f'<path d="{blade_path(k, small)}" fill="{color}"/>'
+                   for k in range(4))
 
 def svg(body, w=48, h=48):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}">'
@@ -160,7 +198,7 @@ def build_masters():
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 def render_html(html, out, w, h, transparent=True):
-    fd, html_path = tempfile.mkstemp("w", suffix=".html", dir=HERE, prefix=".render-")
+    fd, html_path = tempfile.mkstemp(suffix=".html", dir=HERE, prefix=".render-")
     with os.fdopen(fd, "w") as f:
         f.write(html)
     try:

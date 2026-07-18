@@ -83,6 +83,15 @@ export const hy: Dict = {
   'search.currency': 'Currency',
   'search.bedsChip': '{n}+ beds',
   'search.bathsChip': '{n}+ baths',
+  'search.checkIn': 'Check-in',
+  'search.checkOut': 'Check-out',
+  'search.petsOnly': 'Pets allowed',
+  'search.seller': 'Seller',
+  'search.sellerOwner': 'Owner',
+  'search.sellerAgency': 'Agency',
+  'search.pagination': 'Pagination',
+  'search.prev': 'Prev',
+  'search.next': 'Next',
 
   // ——— Property types ———
   'prop.apartment': 'Բնակարան',

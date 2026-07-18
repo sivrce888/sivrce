@@ -34,7 +34,7 @@ export async function signInWithGoogle(formData: FormData) {
 }
 
 export async function chooseSelfRole(formData: FormData) {
-  const user = await requireUser("/auth/onboarding")
+  const user = await requireUser("/settings")
   if (user.role === "admin") redirect("/admin")
 
   const raw = String(formData.get("role") ?? "")
@@ -93,7 +93,7 @@ export async function registerWithEmail(
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/auth/onboarding",
+      redirectTo: "/",
     })
   } catch (err) {
     if (err instanceof AuthError) {
@@ -109,7 +109,7 @@ export async function signInWithEmail(
 ): Promise<AuthActionState> {
   const email = normalizeEmail(formData.get("email"))
   const password = String(formData.get("password") ?? "")
-  const callbackUrl = safeCallback(formData.get("callbackUrl")) ?? "/auth/onboarding"
+  const callbackUrl = safeCallback(formData.get("callbackUrl")) ?? "/dashboard"
 
   if (!email.includes("@") || !password) {
     return { error: "შეიყვანე ელფოსტა და პაროლი" }

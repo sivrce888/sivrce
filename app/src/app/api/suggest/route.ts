@@ -1,12 +1,11 @@
 import { CITIES, districtsOf } from "@/data/listings"
-import streets from "@/data/tbilisi-streets.json"
+import { geoStreets } from "@/data/georgia-locations"
 
 /**
  * GET /api/suggest?q= — autocomplete for the search keyword box.
- * Matches cities, districts and Tbilisi streets across ka/en/ru.
- * Static in-memory data, substring match; ranked: prefix first, streets by
- * building count. ponytail: no fuzzy matching — Meilisearch handles typos in
- * the actual search. Upgrade: move streets into Meili as a second index.
+ * Matches cities, districts and streets across ka/en/ru.
+ * Static in-memory data, substring match; ranked: prefix first.
+ * ponytail: no fuzzy matching — Meilisearch handles typos in search.
  */
 
 export const dynamic = "force-dynamic"
@@ -22,6 +21,8 @@ interface Suggestion {
 const DISTRICTS: { ka: string; city: string }[] = CITIES.flatMap((city) =>
   districtsOf(city).map((d) => ({ ka: d, city })),
 )
+
+const STREETS = geoStreets()
 
 const norm = (s: string) => s.toLowerCase()
 
@@ -54,12 +55,11 @@ export async function GET(req: Request) {
     const m = matches([d.ka], q)
     if (m) push({ kind: "district", ka: d.ka }, m.prefix)
   }
-  for (const s of streets) {
+  for (const s of STREETS) {
     const m = matches([s.ka, s.en, s.ru], q)
     if (m) push({ kind: "street", ka: s.ka, en: s.en }, m.prefix)
   }
 
-  // Streets are pre-sorted by building count desc in the source data — stable.
   const suggestions = [...prefix, ...partial].slice(0, 8)
   return Response.json({ ok: true, suggestions })
 }

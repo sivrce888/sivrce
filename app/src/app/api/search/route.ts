@@ -54,6 +54,28 @@ function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.features?.length) where.features = { hasEvery: filters.features }
   if (filters.hasPhoto) where.images = { isEmpty: false }
   if (filters.verifiedOnly) where.verified = true
+  if (filters.petsOnly) where.petsAllowed = true
+  if (filters.sellerType) where.sellerType = filters.sellerType
+
+  // Daily-rent availability: drop listings whose confirmed/pending bookings or
+  // host-blocked dates overlap the requested [from, to) window. Half-open
+  // semantics — checkout day is free for the next guest.
+  if (filters.dailyFrom && filters.dailyTo) {
+    const from = new Date(`${filters.dailyFrom}T00:00:00Z`)
+    const to = new Date(`${filters.dailyTo}T00:00:00Z`)
+    and.push({
+      dailyRentalBookings: {
+        none: {
+          status: { in: ["pending", "confirmed"] },
+          checkIn: { lt: to },
+          checkOut: { gt: from },
+        },
+      },
+      dailyRentalBlockedDates: {
+        none: { date: { gte: from, lt: to } },
+      },
+    })
+  }
 
   // Free-text search: simple ILIKE on title + description (Postgres).
   // ponytail: no tsvector for DB fallback — fine for MVP. Upgrade: enable pg_trgm.
@@ -232,6 +254,20 @@ export async function GET(req: Request) {
   }
   const curParam = sp.get("cur")
 
+  // Daily-rent dates: YYYY-MM-DD, from ≥ today, from < to. Inline validation
+  // (no zod in this codebase — /api/listings precedent); invalid ranges are
+  // ignored so search degrades to unfiltered instead of 400-ing.
+  const isoDate = (key: string) => {
+    const v = sp.get(key)
+    return v && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) ? v : undefined
+  }
+  const dFrom = isoDate("from")
+  const dTo = isoDate("to")
+  const today = new Date().toISOString().slice(0, 10)
+  const dailyDates = dFrom && dTo && dFrom >= today && dFrom < dTo ? { dailyFrom: dFrom, dailyTo: dTo } : {}
+
+  const sellerParam = sp.get("seller")
+
   const filters: SearchFilters = {
     q: str("q"),
     dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
@@ -252,14 +288,18 @@ export async function GET(req: Request) {
     features: csv("feat", FEATURE_KEYS),
     hasPhoto: sp.get("photo") === "1" || undefined,
     verifiedOnly: sp.get("verified") === "1" || undefined,
+    petsOnly: sp.get("pets") === "1" || undefined,
+    sellerType: sellerParam === "owner" || sellerParam === "agency" ? sellerParam : undefined,
+    ...dailyDates,
     currency: curParam === "GEL" ? "GEL" : "USD",
     sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
     page: num("page") ?? 1,
     pageSize: num("pageSize") ?? 24,
   }
 
-  // Try Meilisearch first, fall back to DB.
-  const meiliResult = await searchListings(filters)
+  // Date-availability filtering needs booking relations that Meili can't
+  // express — date-ranged daily searches go straight to Postgres.
+  const meiliResult = filters.dailyFrom && filters.dailyTo ? null : await searchListings(filters)
   if (meiliResult) {
     return Response.json({ ok: true, ...meiliResult, source: "meilisearch" }, { headers: CACHE_HEADERS })
   }

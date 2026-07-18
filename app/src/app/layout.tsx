@@ -277,8 +277,7 @@ export default function RootLayout({
           <Toaster position="top-center" />
         </ThemeProvider>
         <SWRegister />
-        {/* TOP.GE async counter — script injected by analytics-boot above */}
-        <div id="top-ge-counter-container" data-site-id="117677" />
+        {/* TOP.GE container lives in Footer, left of terms links */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}

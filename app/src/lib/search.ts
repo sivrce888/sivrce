@@ -266,6 +266,8 @@ function buildMeiliFilter(filters: SearchFilters): string {
   for (const f of filters.features ?? []) parts.push(`features = ${esc(f)}`)
   if (filters.hasPhoto) parts.push("hasImages = true")
   if (filters.verifiedOnly) parts.push("verified = true")
+  if (filters.petsOnly) parts.push("petsAllowed = true")
+  if (filters.sellerType) parts.push(`sellerType = ${esc(filters.sellerType)}`)
 
   return parts.join(" AND ")
 }

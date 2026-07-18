@@ -4,6 +4,8 @@
  * listing detail page. All client-side; a future API can replace LISTINGS.
  */
 
+import { GEO_ALL_PLACES, geoDistrictsOf } from './georgia-locations'
+
 export type DealType = 'sale' | 'rent' | 'daily' | 'pledge'
 export type PropType = 'apartment' | 'house' | 'commercial' | 'land'
 export type Badge = 'SUPER VIP' | 'VIP+' | 'VIP' | null
@@ -1022,11 +1024,15 @@ export function postedDaysAgo(l: Listing, today = new Date()): number {
 }
 
 /* ————— Distinct locations for filter selects ————— */
+// ponytail: catalog (competitors) ∪ live listing values. Add DB-only cities when inventory lands.
 
-export const CITIES: string[] = [...new Set(LISTINGS.map((l) => l.city))]
+export const CITIES: string[] = [
+  ...new Set([...GEO_ALL_PLACES, ...LISTINGS.map((l) => l.city)]),
+]
 
 export function districtsOf(city?: string): string[] {
-  return [...new Set(LISTINGS.filter((l) => !city || l.city === city).map((l) => l.district))]
+  const fromListings = LISTINGS.filter((l) => !city || l.city === city).map((l) => l.district)
+  return [...new Set([...geoDistrictsOf(city), ...fromListings])]
 }
 
 /** Similar listings: same district first, then same property type */

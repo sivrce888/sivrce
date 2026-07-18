@@ -5,7 +5,12 @@ import { Bell, LayoutDashboard, Mail, Shield, UserCog } from "lucide-react"
 import { chooseSelfRole } from "@/app/auth/actions"
 import { toggleListingAlerts } from "@/app/settings/actions"
 import DashboardShell from "@/components/dashboard/DashboardShell"
-import { ROLE_LABEL_KA, SELF_SERVE_ROLES, isSelfServeRole } from "@/lib/auth-roles"
+import {
+  CONSUMER_ROLES,
+  PRO_ROLES,
+  ROLE_LABEL_KA,
+  isSelfServeRole,
+} from "@/lib/auth-roles"
 import {
   dashboardPathFor,
   settingsNavFor,
@@ -86,12 +91,16 @@ export default async function SettingsPage() {
               <div>
                 <h2 className="text-[15px] font-extrabold text-sv-ink">პროფილის ტიპი</h2>
                 <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
-                  შეცვალე როლი — პანელი და ნავიგაცია ავტომატურად განახლდება.
+                  ნაგულისხმევი მყიდველია. განცხადების დამატებისას ავტომატურად გახდები გამყიდველი.
                 </p>
               </div>
             </div>
+
+            <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
+              ანგარიში
+            </p>
             <div className="grid gap-2 sm:grid-cols-2">
-              {SELF_SERVE_ROLES.map((role) => (
+              {CONSUMER_ROLES.map((role) => (
                 <form key={role} action={chooseSelfRole}>
                   <input type="hidden" name="role" value={role} />
                   <button
@@ -103,7 +112,36 @@ export default async function SettingsPage() {
                         : "border-sv-ink/8 hover:border-sv-blue/40 hover:bg-sv-cloud"
                     }`}
                   >
-                    <span className="block text-[13px] font-extrabold">{ROLE_LABEL_KA[role].title}</span>
+                    <span className="block text-[13px] font-extrabold">
+                      {ROLE_LABEL_KA[role].title}
+                    </span>
+                    <span className="mt-0.5 block text-[11.5px] font-medium text-sv-ink/50">
+                      {ROLE_LABEL_KA[role].blurb}
+                    </span>
+                  </button>
+                </form>
+              ))}
+            </div>
+
+            <p className="mb-2 mt-5 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
+              პროფესიონალი ვარ
+            </p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {PRO_ROLES.map((role) => (
+                <form key={role} action={chooseSelfRole}>
+                  <input type="hidden" name="role" value={role} />
+                  <button
+                    type="submit"
+                    disabled={user.role === role}
+                    className={`w-full rounded-module border px-4 py-3 text-left transition ${
+                      user.role === role
+                        ? "border-sv-orange bg-sv-orange/8 text-sv-orange-deep"
+                        : "border-sv-ink/8 hover:border-sv-orange/40 hover:bg-sv-cloud"
+                    }`}
+                  >
+                    <span className="block text-[13px] font-extrabold">
+                      {ROLE_LABEL_KA[role].title}
+                    </span>
                     <span className="mt-0.5 block text-[11.5px] font-medium text-sv-ink/50">
                       {ROLE_LABEL_KA[role].blurb}
                     </span>

@@ -44,6 +44,8 @@ async function main() {
     priceUSD: 250000,
     verified: false,
     hasImages: false,
+    petsAllowed: true,
+    sellerType: "agency",
     area: 86,
     rooms: 3,
     bedrooms: 2,
@@ -70,6 +72,12 @@ async function main() {
 
   const filtered = await searchListings({ q: "ვაკე", maxPrice: 1000 })
   assert(!filtered?.hits.some((h) => h.id === id), "price filter leak")
+
+  // pets/seller facets (2026-07-18): doc is petsAllowed + agency.
+  const petHit = await searchListings({ q: "ვაკე", petsOnly: true })
+  assert(petHit?.hits.some((h) => h.id === id), "petsOnly filter miss")
+  const ownerHit = await searchListings({ q: "ვაკე", sellerType: "owner" })
+  assert(!ownerHit?.hits.some((h) => h.id === id), "sellerType filter leak")
 
   assert(await deleteListing(id), "deleteListing failed")
   console.log("ok: index → search → filter → delete")

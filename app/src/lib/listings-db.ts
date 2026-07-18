@@ -10,6 +10,8 @@
  */
 
 import { db } from "@/lib/db"
+import { unstable_cache } from "next/cache"
+import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
 import type { Prisma } from "@/generated/prisma/client"
 
@@ -222,6 +224,43 @@ export async function getDistricts(city: string): Promise<string[]> {
     orderBy: { district: "asc" },
   })
   return rows.map((r) => r.district)
+}
+
+// ---- Search location facets (live city/district dropdowns) ----
+
+export interface SearchLocations {
+  cities: string[]
+  districts: Record<string, string[]>
+}
+
+/** Cities + districts that actually have active listings; cached 5 min. */
+const readSearchLocations = unstable_cache(
+  async (): Promise<SearchLocations | null> => {
+    try {
+      const rows = await db.listing.groupBy({
+        by: ["city", "district"],
+        where: { deletedAt: null, status: "active" },
+        orderBy: [{ city: "asc" }, { district: "asc" }],
+      })
+      const districts: Record<string, string[]> = {}
+      for (const r of rows) (districts[r.city] ??= []).push(r.district)
+      return { cities: Object.keys(districts), districts }
+    } catch (e) {
+      console.error("[listings-db] search locations failed:", (e as Error).message)
+      return null
+    }
+  },
+  ["search-locations"],
+  { revalidate: 300 },
+)
+
+/** Live locations when the DB answers; static mock catalog as fallback. */
+export async function getSearchLocations(): Promise<SearchLocations> {
+  const live = await readSearchLocations()
+  if (live && live.cities.length > 0) return live
+  const districts: Record<string, string[]> = {}
+  for (const c of CITIES) districts[c] = districtsOf(c)
+  return { cities: [...CITIES], districts }
 }
 
 // ---- Formatting (identical to data/listings.ts) ----
