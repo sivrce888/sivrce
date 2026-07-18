@@ -6,6 +6,7 @@ import { CMS_BLOCKS, CMS_BLOCK_KEYS } from "./cms-blocks"
 import { buildCmsId, cmsGroups, cmsRowsForGroup, parseCmsId } from "./cms-blocks"
 import { ka } from "./i18n/ka"
 import { LANGS } from "./i18n/core"
+import { SITE_META } from "./i18n/server"
 
 // id build/parse round-trips
 assert(parseCmsId("cms.en.nav.buy")?.key === "nav.buy")
@@ -39,8 +40,11 @@ for (const key of CMS_BLOCK_KEYS.filter((k) => k.endsWith(".value"))) {
 // admin editor model
 const groups = cmsGroups()
 assert(groups.some((g) => g.id === "nav"), "nav group exists")
-assert(groups[groups.length - 1].id === "blocks", "blocks group last")
-const totalDict = groups.filter((g) => g.id !== "blocks").reduce((n, g) => n + g.count, 0)
+assert(groups.some((g) => g.id === "blocks"), "blocks group exists")
+assert(groups[groups.length - 1].id === "seo", "seo group last")
+const totalDict = groups
+  .filter((g) => g.id !== "blocks" && g.id !== "seo")
+  .reduce((n, g) => n + g.count, 0)
 assert(totalDict === Object.keys(ka).length, "groups cover every dict key")
 
 const navRows = cmsRowsForGroup("en", "nav", { "nav.buy": "Buy now" })
@@ -53,6 +57,17 @@ assert(blockRows.length === CMS_BLOCK_KEYS.length)
 assert(blockRows[0].key.startsWith("block."), "block rows carry storage keys")
 assert(blockRows.find((r) => r.key === "block.home.hero.titleA")?.value === "გამარჯობა")
 assert(cmsRowsForGroup("ka", "nope", {}).length === 0, "unknown group → no rows")
+
+// SEO meta group — defaults mirror SITE_META per language, overridable
+const seoRows = cmsRowsForGroup("en", "seo", { "seo.site.title": "Custom title" })
+assert(seoRows.length === 2, "title + description rows")
+assert(seoRows.find((r) => r.key === "seo.site.title")?.value === "Custom title")
+assert(seoRows.find((r) => r.key === "seo.site.title")?.defaultText === SITE_META.en.title)
+assert(cmsRowsForGroup("ru", "seo", {}).find((r) => r.key === "seo.site.description")?.defaultText === SITE_META.ru.description)
+assert(cmsGroups().some((g) => g.id === "seo"), "seo group listed")
+for (const row of seoRows) {
+  for (const lang of LANGS) assert(buildCmsId(lang, row.key) !== null, `seo key fits: ${row.key}`)
+}
 
 console.log("cms.check: ok")
 
