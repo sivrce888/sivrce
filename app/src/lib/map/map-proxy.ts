@@ -40,3 +40,56 @@ export function toMapProxyUrl(url: string): string {
   const origin = mapProxyOrigin()
   return origin ? `${origin}${path}` : path
 }
+
+/**
+ * Rewrite style/planet JSON for same-origin tiles without breaking JSON.
+ * Prior bug: regex-stripping OSM/OMT HTML attribution mangled quotes → invalid TileJSON.
+ * MAP_JSON_CACHE_VER busts sticky CDN/browser caches when scrub logic changes.
+ */
+export const MAP_JSON_CACHE_VER = '3'
+
+export function scrubMapJson(text: string, origin: string): string {
+  const proxied = text.split(OFM_ORIGIN).join(`${origin}${MAP_PROXY_PREFIX}`)
+  try {
+    const data: unknown = JSON.parse(proxied)
+    scrubVendorFields(data)
+    bustPlanetUrls(data)
+    return JSON.stringify(data)
+  } catch {
+    // Non-JSON (shouldn't happen on this path) — return host rewrite only.
+    return proxied
+  }
+}
+
+function bustPlanetUrls(node: unknown): void {
+  if (!node || typeof node !== 'object') return
+  if (Array.isArray(node)) {
+    for (const item of node) bustPlanetUrls(item)
+    return
+  }
+  const obj = node as Record<string, unknown>
+  if (typeof obj.url === 'string' && /\/api\/map\/planet\/?$/.test(obj.url.split('?')[0]!)) {
+    obj.url = `${obj.url.split('?')[0]}?v=${MAP_JSON_CACHE_VER}`
+  }
+  for (const v of Object.values(obj)) bustPlanetUrls(v)
+}
+
+function scrubVendorFields(node: unknown): void {
+  if (!node || typeof node !== 'object') return
+  if (Array.isArray(node)) {
+    for (const item of node) scrubVendorFields(item)
+    return
+  }
+  const obj = node as Record<string, unknown>
+  if (typeof obj.attribution === 'string') obj.attribution = ''
+  if (
+    typeof obj.name === 'string' &&
+    /openfreemap|openmaptiles|maplibre|openstreetmap/i.test(obj.name)
+  ) {
+    obj.name = ''
+  }
+  if (typeof obj.description === 'string' && /openfreemap|openmaptiles/i.test(obj.description)) {
+    obj.description = ''
+  }
+  for (const v of Object.values(obj)) scrubVendorFields(v)
+}

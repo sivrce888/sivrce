@@ -25,6 +25,7 @@ import {
   GEORGIA_MAX_BOUNDS,
   MAP_MIN_ZOOM,
   buildingsToGeoJSON,
+  buildingsToPointsGeoJSON,
   clusterListingsToBuildings,
   filterBuildings,
   findBuildingBySlug,
@@ -96,12 +97,17 @@ import {
 } from 'lucide-react'
 
 const SOURCE_ID = 'sivrce-buildings'
+const PTS_SOURCE_ID = 'sivrce-buildings-pts'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
 const DOT_ID = 'sivrce-buildings-dot'
-/** Below this zoom: colored dots; at/above: footprints + names. */
+const CLUSTER_ID = 'sivrce-buildings-cluster'
+const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
+/** Below this zoom: clustered dots; at/above: footprints + names. */
 const DETAIL_ZOOM = 13.5
+/** MapLibre clusterMaxZoom is exclusive-ish — stop clustering just under detail. */
+const CLUSTER_MAX_ZOOM = 13
 
 /** Top 3 people love: streets (yellow) · hybrid · clean. */
 const TERRAIN_OPTIONS: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
@@ -119,17 +125,62 @@ const STATIC_BUILDINGS = mergeMapBuildings(
   projectsToConstructionBuildings(PROJECTS),
 )
 
-function ensureLayers(map: MlMap, data: GeoJSON.FeatureCollection) {
+function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
   if (map.getSource(SOURCE_ID)) return
 
-  map.addSource(SOURCE_ID, { type: 'geojson', data })
+  map.addSource(SOURCE_ID, { type: 'geojson', data: buildingsToGeoJSON(buildings) })
+  // ponytail: MapLibre clusters Points only — parallel centroid source for far zoom.
+  map.addSource(PTS_SOURCE_ID, {
+    type: 'geojson',
+    data: buildingsToPointsGeoJSON(buildings),
+    cluster: true,
+    clusterMaxZoom: CLUSTER_MAX_ZOOM,
+    clusterRadius: 52,
+  })
 
-  // Far zoom — deal/status colored dots (Google/Korter density read)
+  map.addLayer({
+    id: CLUSTER_ID,
+    type: 'circle',
+    source: PTS_SOURCE_ID,
+    maxzoom: DETAIL_ZOOM,
+    filter: ['has', 'point_count'],
+    paint: {
+      'circle-color': BRAND.colors.blue,
+      'circle-radius': [
+        'step',
+        ['get', 'point_count'],
+        16, 8, 20, 25, 26, 60, 32,
+      ],
+      'circle-opacity': 0.92,
+      'circle-stroke-width': 2,
+      'circle-stroke-color': '#FFFFFF',
+    },
+  })
+
+  map.addLayer({
+    id: CLUSTER_COUNT_ID,
+    type: 'symbol',
+    source: PTS_SOURCE_ID,
+    maxzoom: DETAIL_ZOOM,
+    filter: ['has', 'point_count'],
+    layout: {
+      'text-field': ['get', 'point_count_abbreviated'],
+      'text-font': ['Noto Sans Bold'],
+      'text-size': 12,
+      'text-allow-overlap': true,
+    },
+    paint: {
+      'text-color': '#FFFFFF',
+    },
+  })
+
+  // Far zoom — unclustered deal/status colored dots
   map.addLayer({
     id: DOT_ID,
     type: 'circle',
-    source: SOURCE_ID,
+    source: PTS_SOURCE_ID,
     maxzoom: DETAIL_ZOOM,
+    filter: ['!', ['has', 'point_count']],
     paint: {
       'circle-radius': [
         'interpolate', ['linear'], ['zoom'],
@@ -432,6 +483,8 @@ function Map3DInner({
     if (!map || !ready) return
     const src = map.getSource(SOURCE_ID) as GeoJSONSource | undefined
     src?.setData(buildingsToGeoJSON(visible))
+    const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
+    pts?.setData(buildingsToPointsGeoJSON(visible))
     if (selected && !visible.some((b) => b.id === selected.id)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- deselect when filters hide it
       selectBuilding(null)
@@ -448,11 +501,21 @@ function Map3DInner({
       showFloors && selected ? floorsToGeoJSON(selected, dealFilter) : EMPTY_FLOORS,
     )
     if (!showFloors) popupRef.current?.remove()
-    const exclude = (showFloors && selected
-      ? ['!=', ['get', 'id'], selected.id]
-      : null) as FilterSpecification | null
-    for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID, DOT_ID]) {
-      if (map.getLayer(layer)) map.setFilter(layer, exclude)
+    const hideId = showFloors && selected ? selected.id : null
+    for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+      if (!map.getLayer(layer)) continue
+      map.setFilter(
+        layer,
+        (hideId ? ['!=', ['get', 'id'], hideId] : null) as FilterSpecification | null,
+      )
+    }
+    if (map.getLayer(DOT_ID)) {
+      map.setFilter(
+        DOT_ID,
+        (hideId
+          ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
+          : ['!', ['has', 'point_count']]) as FilterSpecification,
+      )
     }
   }, [selected, dealFilter, ready])
 
@@ -553,7 +616,9 @@ function Map3DInner({
 
       const onMapClick = (e: MapMouseEvent) => {
         const hits = map.queryRenderedFeatures(e.point, {
-          layers: [EXTRUDE_ID, FILL_ID, DOT_ID, FLOORS_FILL_ID].filter((id) => map.getLayer(id)),
+          layers: [EXTRUDE_ID, FILL_ID, DOT_ID, CLUSTER_ID, FLOORS_FILL_ID].filter((id) =>
+            map.getLayer(id),
+          ),
         })
         if (hits.length > 0) return
         const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
@@ -686,7 +751,7 @@ function Map3DInner({
 
       const mountOverlays = () => {
         applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
-        ensureLayers(map, buildingsToGeoJSON(visibleRef.current))
+        ensureLayers(map, visibleRef.current)
         tightenAttribution(map)
         const showFloors = Boolean(
           selectedRef.current && buildingShowsFloorStack(selectedRef.current),
@@ -697,11 +762,22 @@ function Map3DInner({
             ? floorsToGeoJSON(selectedRef.current, dealRef.current)
             : EMPTY_FLOORS,
         )
-        const exclude = (showFloors && selectedRef.current
-          ? ['!=', ['get', 'id'], selectedRef.current.id]
-          : null) as FilterSpecification | null
-        for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID, DOT_ID]) {
-          if (map.getLayer(layer)) map.setFilter(layer, exclude)
+        const hideId =
+          showFloors && selectedRef.current ? selectedRef.current.id : null
+        for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+          if (!map.getLayer(layer)) continue
+          map.setFilter(
+            layer,
+            (hideId ? ['!=', ['get', 'id'], hideId] : null) as FilterSpecification | null,
+          )
+        }
+        if (map.getLayer(DOT_ID)) {
+          map.setFilter(
+            DOT_ID,
+            (hideId
+              ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
+              : ['!', ['has', 'point_count']]) as FilterSpecification,
+          )
         }
         const dark = darkRef.current
         // District + building labels — Google night readable
@@ -723,6 +799,17 @@ function Map3DInner({
             map.setPaintProperty(DOT_ID, 'circle-stroke-color', dark ? BRAND.colors.blueLight : '#FFFFFF')
             map.setPaintProperty(DOT_ID, 'circle-stroke-width', dark ? 2 : 1.5)
             map.setPaintProperty(DOT_ID, 'circle-opacity', 1)
+          } catch {
+            /* paint may differ */
+          }
+        }
+        if (map.getLayer(CLUSTER_ID)) {
+          try {
+            map.setPaintProperty(
+              CLUSTER_ID,
+              'circle-stroke-color',
+              dark ? BRAND.colors.blueLight : '#FFFFFF',
+            )
           } catch {
             /* paint may differ */
           }
@@ -782,9 +869,27 @@ function Map3DInner({
       map.on('mouseleave', DOT_ID, () => {
         map.getCanvas().style.cursor = ''
       })
+      map.on('mouseenter', CLUSTER_ID, () => {
+        map.getCanvas().style.cursor = 'pointer'
+      })
+      map.on('mouseleave', CLUSTER_ID, () => {
+        map.getCanvas().style.cursor = ''
+      })
       map.on('click', EXTRUDE_ID, onFeatureClick)
       map.on('click', FILL_ID, onFeatureClick)
       map.on('click', DOT_ID, onFeatureClick)
+      map.on('click', CLUSTER_ID, (e: MapLayerMouseEvent) => {
+        e.originalEvent.stopPropagation()
+        const f = e.features?.[0]
+        if (!f || f.geometry.type !== 'Point') return
+        const clusterId = f.properties?.cluster_id as number | undefined
+        if (clusterId == null) return
+        const src = map.getSource(PTS_SOURCE_ID) as GeoJSONSource
+        const [lng, lat] = f.geometry.coordinates
+        void src.getClusterExpansionZoom(clusterId).then((zoom) => {
+          map.easeTo({ center: [lng, lat], zoom, duration: 450 })
+        })
+      })
       map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
       map.on('mouseleave', FLOORS_FILL_ID, clearFloorHover)
       map.on('click', FLOORS_FILL_ID, onFloorClick)

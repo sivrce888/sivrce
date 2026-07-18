@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { mapProxyPathOk, OFM_ORIGIN } from '@/lib/map/map-proxy'
+import { mapProxyPathOk, OFM_ORIGIN, scrubMapJson } from '@/lib/map/map-proxy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,7 +18,9 @@ export async function GET(req: Request, ctx: Ctx) {
     return new NextResponse('Not found', { status: 404 })
   }
 
-  const upstream = `${OFM_ORIGIN}/${path}${new URL(req.url).search}`
+  const reqUrl = new URL(req.url)
+  reqUrl.searchParams.delete('v') // cache-buster only — never send to OFM
+  const upstream = `${OFM_ORIGIN}/${path}${reqUrl.search}`
   let res: Response
   try {
     res = await fetch(upstream, {
@@ -39,10 +41,11 @@ export async function GET(req: Request, ctx: Ctx) {
   if (ct) headers.set('Content-Type', ct)
   // fetch() already decompresses — never forward Content-Encoding.
   const isStyle = path.startsWith('styles/')
+  // ponytail: short style/planet TTL — scrub bugs must not stick on CDN for an hour
   headers.set(
     'Cache-Control',
     isStyle || path === 'planet'
-      ? 'public, max-age=3600, stale-while-revalidate=86400'
+      ? 'public, max-age=120, stale-while-revalidate=3600'
       : 'public, max-age=86400, immutable',
   )
   headers.set('X-Content-Type-Options', 'nosniff')
@@ -50,13 +53,7 @@ export async function GET(req: Request, ctx: Ctx) {
   // Rewrite JSON so Network never shows upstream host. Absolute URLs — MapLibre workers.
   if (ct.includes('json') || path.startsWith('styles/') || path === 'planet') {
     const origin = new URL(req.url).origin
-    const text = (await res.text())
-      .split(OFM_ORIGIN)
-      .join(`${origin}/api/map`)
-      .replace(/https?:\/\/(www\.)?openfreemap\.org\/?/gi, '')
-      .replace(/https?:\/\/(www\.)?openmaptiles\.org\/?/gi, '')
-      .replace(/https?:\/\/(www\.)?openstreetmap\.org[^"'\s]*/gi, '')
-      .replace(/OpenFreeMap|OpenMapTiles|OpenStreetMap|MapLibre/gi, '')
+    const text = scrubMapJson(await res.text(), origin)
     return new NextResponse(text, { status: 200, headers })
   }
 
