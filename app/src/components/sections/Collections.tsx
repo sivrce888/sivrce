@@ -3,6 +3,7 @@ import { PartyPopper, KeyRound, Waves, Bath, Palmtree, MountainSnow, PawPrint, L
 import { Reveal } from '@/components/Reveal'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
+import type { Lang } from '@/lib/i18n/core'
 
 /* Locked collection branding (BRAND.md §3.1): party/selfCheckIn own locked
    rows; pool/jacuzzi reuse locked category hues, same as services do.
@@ -67,10 +68,10 @@ const COLLECTIONS = [
   },
 ]
 
-export default async function Collections() {
+export default async function Collections({ lang = 'ka' }: { lang?: Lang }) {
   const [title, sub] = await Promise.all([
-    getCmsBlock('home.collections.title'),
-    getCmsBlock('home.collections.sub'),
+    getCmsBlock('home.collections.title', lang),
+    getCmsBlock('home.collections.sub', lang),
   ])
   return (
     <section className="bg-sv-cloud pb-20 md:pb-28">

@@ -39,21 +39,31 @@ def fmt(x):
 # ---- generic 4-point sparkle --------------------------------------------------
 def star_path(cx=24, cy=24, rn=20.8, re=20.8, rs=20.8, rw=20.8,
               w_ne=6.4, w_es=6.4, w_sw=6.4, w_wn=6.4):
-    """Closed 4-point sparkle. Tips on the axes, concave quadratic sides whose
-    midpoint lands exactly at the given waist radius (45° diagonals)."""
+    """Closed 4-point sparkle. Cubic segments with axis-aligned cusp tangents
+    at every tip (perfectly clean needles); each concave side's midpoint lands
+    exactly at the given waist radius on the 45° diagonals.
+    waist = (±(0.5*r_tip - 0.375*d)) => d = (0.5*r - w/sqrt(2)) / 0.375."""
     N = (cx, cy - rn); E = (cx + re, cy); S = (cx, cy + rs); W = (cx - rw, cy)
     tips = [N, E, S, W]
+    radii = [rn, re, rs, rw]
     waists = [w_ne, w_es, w_sw, w_wn]
     d = f"M{fmt(N[0])} {fmt(N[1])}"
     for i in range(4):
         P0 = tips[i]; P1 = tips[(i + 1) % 4]
-        ang = math.radians(-45 + 90 * i) if False else None
-        # waist midpoint at 45° between the two tip directions
-        mx = cx + waists[i] * math.cos(math.radians(-45 + 90 * i))
-        my = cy + waists[i] * math.sin(math.radians(-45 + 90 * i))
-        cx_ = 2 * mx - 0.5 * (P0[0] + P1[0])
-        cy_ = 2 * my - 0.5 * (P0[1] + P1[1])
-        d += f"Q{fmt(cx_)} {fmt(cy_)} {fmt(P1[0])} {fmt(P1[1])}"
+        r0 = radii[i]; r1 = radii[(i + 1) % 4]
+        w = waists[i]
+        d0 = (0.5 * r0 - w / math.sqrt(2)) / 0.375
+        d1 = (0.5 * r1 - w / math.sqrt(2)) / 0.375
+        # control 1 slides from tip0 toward center along tip0's axis,
+        # control 2 from tip1 toward center along tip1's axis
+        ax0 = (P0[0] - cx, P0[1] - cy)
+        ax1 = (P1[0] - cx, P1[1] - cy)
+        u0 = (ax0[0] / r0, ax0[1] / r0)
+        u1 = (ax1[0] / r1, ax1[1] / r1)
+        C1 = (P0[0] - u0[0] * d0, P0[1] - u0[1] * d0)
+        C2 = (P1[0] - u1[0] * d1, P1[1] - u1[1] * d1)
+        d += (f"C{fmt(C1[0])} {fmt(C1[1])} {fmt(C2[0])} {fmt(C2[1])} "
+              f"{fmt(P1[0])} {fmt(P1[1])}")
     return d + "Z"
 
 # vertical brand-flow gradient, locked stops only
@@ -149,12 +159,7 @@ def a_mark(dimensional=True, size_class="master", mono=None, uid=""):
 # ===============================================================================
 # OPTION B — SPACE FRAME
 # ===============================================================================
-def b_brackets(color, arm=8.5, corner=15.0, width=2.6):
-    """Four focus-frame corners (stroke, round caps/joins)."""
-    c = corner
-    p = (f"M{fmt(24 - c - arm)} {fmt(24 - c)}h{fmt(arm)}v{fmt(-0)}"
-         )
-    d = ""
+def b_brackets(color, arm=7.0, corner=14.5, width=2.6):
     for (x, y, sx, sy) in [(24 - c, 24 - c, -1, -1), (24 + c, 24 - c, 1, -1),
                            (24 + c, 24 + c, 1, 1), (24 - c, 24 + c, -1, 1)]:
         d += (f'M{fmt(x + sx * arm)} {fmt(y)}L{fmt(x)} {fmt(y)}'

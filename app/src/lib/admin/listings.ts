@@ -37,8 +37,8 @@ export const STATUS_OPTIONS = [
 export const TIER_OPTIONS = [
   { value: ListingTier.standard, label: "Standard" },
   { value: ListingTier.vip, label: "VIP" },
-  { value: ListingTier.super_vip, label: "Super VIP" },
-  { value: ListingTier.diamond, label: "Diamond" },
+  { value: ListingTier.super_vip, label: "VIP+" },
+  { value: ListingTier.diamond, label: "SUPER VIP" },
 ] as const
 
 export const VERIFIED_OPTIONS = [

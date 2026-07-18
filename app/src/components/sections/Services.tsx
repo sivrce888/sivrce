@@ -3,6 +3,7 @@ import { Users, Building2, Paintbrush, Landmark, ArrowUpRight } from 'lucide-rea
 import { Reveal } from '@/components/Reveal'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
+import type { Lang } from '@/lib/i18n/core'
 
 /* Locked per-service branding (BRAND.md §3.1) — every service owns its
    hue + chip from SERVICE_BRAND. Never inline new tints here. */
@@ -37,10 +38,10 @@ const SERVICES = [
   },
 ]
 
-export default async function Services() {
+export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
   const [title, sub] = await Promise.all([
-    getCmsBlock('home.services.title'),
-    getCmsBlock('home.services.sub'),
+    getCmsBlock('home.services.title', lang),
+    getCmsBlock('home.services.sub', lang),
   ])
   return (
     <section id="services" className="bg-sv-surface py-20 md:py-28">

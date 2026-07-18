@@ -22,6 +22,7 @@ import { localizedHref } from '@/lib/i18n/core'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from '@/lib/features'
 import type { SearchLocations } from '@/lib/listings-db'
+import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
   CITIES, districtsOf, USD_GEL,
   type DealType, type PropType, type SortKey, type Listing,
@@ -122,7 +123,7 @@ function mapHit(h: Record<string, unknown>): Listing {
     floor: (h.floor as number) ?? 0,
     totalFloors: (h.totalFloors as number) ?? 0,
     views: (h.views as number) ?? 0,
-    badge: tier === 'super_vip' ? 'SUPER VIP' : tier === 'diamond' ? 'VIP+' : tier === 'vip' ? 'VIP' : null,
+    badge: tierKeyToBadge(String(tier ?? '')),
     ai: { score: (h.trustScore as number) ?? 70, label: '' },
     features: (h.features as string[]) ?? [],
     description: (h.description as string) ?? '',

@@ -513,7 +513,7 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
         // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
         color: colorWithAlpha(
           b.color,
-          b.status === 'construction' && b.listings.length === 0 ? 0.55 : 0.92,
+          b.status === 'construction' && b.listings.length === 0 ? 0.78 : 0.95,
         ),
         hue: b.color,
         height: b.heightM,

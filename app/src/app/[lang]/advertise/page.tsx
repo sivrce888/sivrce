@@ -15,14 +15,14 @@ export const metadata: Metadata = {
 
 const STATS = [
   { icon: Eye, value: '5×', label: 'მეტ ნახვას იღებს SUPER VIP საშუალოდ' },
-  { icon: TrendingUp, value: '−15%', label: 'უფრო იაფი ტარიფი კონკურენტებთან შედარებით' },
+  { icon: TrendingUp, value: '2.50₾', label: 'VIP+ დღეში · SS 3₾ / MyHome 4₾' },
   { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 დღე · უძრავი ქონება' },
 ]
 
 const FAQ = [
   {
     q: 'რატომ არის sivrce უფრო იაფი?',
-    a: 'ტარიფები აშენებულია კონკურენტების (SS, MyHome) დღიურ ფასებზე −15–20%-ით დაბლა — იგივე ხილვადობის ლოგიკა, ნაკლები გადასახადი.',
+    a: 'VIP+ და SUPER VIP დღიური ტარიფები SS.ge და MyHome-ზე დაბალია. VIP უძრავზე = SS (1₾/დღე), MyHome-ზე კი 2.50₾-ია. Livo და Korter საჯარო დღიურ ტარიფს არ აქვეყნებენ.',
   },
   {
     q: 'რომელი პაკეტი ავირჩიო?',

@@ -2,19 +2,20 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { Plus, Search } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { getCmsBlock } from '@/lib/cms'
+import type { Lang } from '@/lib/i18n/core'
 
-/* Closing CTA — server component; copy is CMS-overridable
+/* Closing CTA — server component; copy is CMS-overridable per language
    (/admin/content/pages → Homepage blocks). */
 
-export default async function CTA() {
+export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
   const [title, sub, primary, secondary, proofA, proofB, proofC] = await Promise.all([
-    getCmsBlock('home.cta.title'),
-    getCmsBlock('home.cta.sub'),
-    getCmsBlock('home.cta.primary'),
-    getCmsBlock('home.cta.secondary'),
-    getCmsBlock('home.cta.proofA'),
-    getCmsBlock('home.cta.proofB'),
-    getCmsBlock('home.cta.proofC'),
+    getCmsBlock('home.cta.title', lang),
+    getCmsBlock('home.cta.sub', lang),
+    getCmsBlock('home.cta.primary', lang),
+    getCmsBlock('home.cta.secondary', lang),
+    getCmsBlock('home.cta.proofA', lang),
+    getCmsBlock('home.cta.proofB', lang),
+    getCmsBlock('home.cta.proofC', lang),
   ])
   return (
     <section className="relative overflow-hidden bg-sv-navy py-20 md:py-28">

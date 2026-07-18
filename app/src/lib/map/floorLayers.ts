@@ -195,47 +195,82 @@ function applyLightPaints(map: MlMap) {
   }
 }
 
-/** Navy brand lifts on OFM dark — saturated water, crisp labels. */
+/** Google Maps night — high contrast on navy; buildings/roads/labels must read. */
 function applyDarkPaints(map: MlMap) {
   trySet(map, 'background', 'background-color', BRAND.colors.navy)
-  trySet(map, 'water', 'fill-color', '#143A6E')
-  trySet(map, 'waterway', 'line-color', BRAND.colors.blue)
-  trySet(map, 'waterway_river', 'line-color', BRAND.colors.blue)
-  trySet(map, 'landuse_park', 'fill-color', '#0E2A1C')
-  trySet(map, 'park', 'fill-color', '#0E2A1C')
-  trySet(map, 'landcover_wood', 'fill-color', '#0C2418')
-  trySet(map, 'landuse_residential', 'fill-color', '#0C1538')
-  trySet(map, 'building', 'fill-color', '#1E2E58')
-  trySet(map, 'building', 'fill-opacity', 0.65)
-  trySet(map, 'building-3d', 'fill-extrusion-color', '#243868')
-  trySet(map, 'building-3d', 'fill-extrusion-opacity', 0.5)
+  trySet(map, 'landuse_residential', 'fill-color', BRAND.colors.navySoft)
+  trySet(map, 'landuse_residential', 'fill-opacity', 1)
 
-  for (const id of ['highway_path', 'highway_minor', 'highway_major_subtle', 'highway_motorway_subtle']) {
-    trySet(map, id, 'line-color', '#4A5C8A')
+  trySet(map, 'water', 'fill-color', '#1B4F8A')
+  trySet(map, 'waterway', 'line-color', BRAND.colors.blue)
+  trySet(map, 'water_name', 'text-color', BRAND.colors.blueLight)
+  trySet(map, 'water_name', 'text-halo-color', BRAND.colors.navy)
+  trySet(map, 'water_name', 'text-halo-width', 1.4)
+
+  trySet(map, 'landuse_park', 'fill-color', '#143D28')
+  trySet(map, 'landuse_park', 'fill-opacity', 0.95)
+  trySet(map, 'landcover_wood', 'fill-color', '#0F3220')
+  trySet(map, 'landcover_glacier', 'fill-color', '#2A3A55')
+  trySet(map, 'landcover_ice_shelf', 'fill-color', '#243450')
+
+  // OSM city fabric — lighter than land so blocks read
+  trySet(map, 'building', 'fill-color', '#3A5080')
+  trySet(map, 'building', 'fill-opacity', 0.92)
+  trySet(map, 'building', 'fill-outline-color', '#5A6F9A')
+
+  trySet(map, 'highway_path', 'line-color', '#2A3A5C')
+  trySet(map, 'highway_minor', 'line-color', '#4A5F8C')
+  trySet(map, 'highway_major_subtle', 'line-color', '#5A6F9A')
+  trySet(map, 'highway_motorway_subtle', 'line-color', '#6B5A28')
+  trySet(map, 'highway_major_casing', 'line-color', '#152048')
+  trySet(map, 'highway_motorway_casing', 'line-color', '#3D3210')
+  trySet(map, 'highway_major_inner', 'line-color', BRAND.colors.blueLight)
+  trySet(map, 'highway_motorway_inner', 'line-color', '#F9C32C')
+
+  for (const id of ['highway_minor', 'highway_path']) {
+    trySet(map, id, 'line-width', [
+      'interpolate', ['linear'], ['zoom'],
+      11, 1.2, 14, 2.8, 17, 8,
+    ])
   }
-  for (const id of ['highway_major_inner', 'highway_motorway_inner']) {
-    trySet(map, id, 'line-color', BRAND.colors.blueLight)
-  }
-  for (const id of ['highway_major_casing', 'highway_motorway_casing']) {
-    trySet(map, id, 'line-color', '#152048')
-  }
+  trySet(map, 'highway_major_inner', 'line-width', [
+    'interpolate', ['linear'], ['zoom'],
+    10, 1.6, 14, 4, 17, 12,
+  ])
+  trySet(map, 'highway_motorway_inner', 'line-width', [
+    'interpolate', ['linear'], ['zoom'],
+    8, 2.2, 14, 6, 17, 16,
+  ])
+
   for (const id of [
     'highway_name_other',
     'highway_name_motorway',
+    'place_other',
     'place_suburb',
-    'place_neighbourhood',
-    'place_city',
-    'place_town',
     'place_village',
-    'label_city',
-    'label_town',
-    'label_village',
-    'label_other',
+    'place_town',
+    'place_city',
+    'place_city_large',
+    'place_state',
+    'place_country_other',
+    'place_country_minor',
+    'place_country_major',
   ]) {
-    trySet(map, id, 'text-color', '#E8EEFF')
+    trySet(map, id, 'text-color', '#E9EDFF')
     trySet(map, id, 'text-halo-color', BRAND.colors.navy)
-    trySet(map, id, 'text-halo-width', 1.6)
+    trySet(map, id, 'text-halo-width', 1.8)
+    trySet(map, id, 'text-opacity', 0.95)
   }
+  for (const id of ['place_suburb', 'place_other']) {
+    tryLayout(map, id, 'text-size', [
+      'interpolate', ['linear'], ['zoom'],
+      10, 11, 13, 14, 15, 15,
+    ])
+  }
+
+  trySet(map, 'boundary_state', 'line-color', '#3A4A70')
+  trySet(map, 'boundary_country_z0-4', 'line-color', '#4A5A80')
+  trySet(map, 'boundary_country_z5-', 'line-color', '#4A5A80')
 }
 
 export function applyBrandPaints(map: MlMap, theme: MapTheme = 'dark') {
