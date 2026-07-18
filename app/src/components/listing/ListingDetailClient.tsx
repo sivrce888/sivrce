@@ -15,6 +15,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { monthlyPayment } from '@/lib/finance'
 import ListingCard, { BADGE_STYLE, ListingStickerStack } from '@/components/ListingCard'
+import HScroll from '@/components/HScroll'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { LeadForm } from '@/components/lead/LeadForm'
@@ -150,7 +151,7 @@ function Lightbox({
       {/* Filmstrip */}
       {images.length > 1 && (
         <div
-          className="absolute inset-x-0 bottom-5 flex justify-start gap-2 overflow-x-auto px-5 py-1 md:justify-center"
+          className="absolute inset-x-0 bottom-5 flex justify-start gap-2 overflow-x-auto px-5 py-1 scrollbar-hide md:justify-center"
           onClick={(e) => e.stopPropagation()}
         >
           {images.map((src, i) => (
@@ -860,15 +861,17 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   {listingHubAnchor(l) ?? t('detail.seeMore')} <ChevronRight className="h-4 w-4" />
                 </LocalizedLink>
               </div>
-              <div className="-mx-5 overflow-x-auto px-5 pb-2 md:-mx-10 md:px-10">
-                <div className="flex snap-x snap-mandatory gap-6">
-                  {similar.map((s, i) => (
-                    <div key={s.id} className="w-[300px] shrink-0 snap-start sm:w-[340px]">
-                      <ListingCard l={s} i={i} layout="wide" />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <HScroll
+                aria-label={t('detail.similar')}
+                step={360}
+                className="-mx-5 snap-x snap-mandatory gap-6 px-5 pb-1 md:-mx-10 md:px-10"
+              >
+                {similar.map((s, i) => (
+                  <div key={s.id} className="w-[300px] shrink-0 snap-start sm:w-[340px]">
+                    <ListingCard l={s} i={i} layout="wide" />
+                  </div>
+                ))}
+              </HScroll>
             </section>
           </Reveal>
         )}
