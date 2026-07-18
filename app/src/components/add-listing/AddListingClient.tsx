@@ -8,7 +8,7 @@
  * use CATEGORY_BRAND, actions use sv-orange, brand surfaces use sv-blue.
  */
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import {
@@ -18,6 +18,7 @@ import {
   CircleCheckBig, Plus, Video, BadgeCheck, Flame,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
+import MapEmbed from '@/components/MapEmbed'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { cap1, seoTitleParts } from '@/lib/seo-title'
@@ -85,6 +86,8 @@ export default function AddListingClient() {
   const [district, setDistrict] = useState('')
   const [street, setStreet] = useState('')
   const [houseNo, setHouseNo] = useState('')
+  const [coords, setCoords] = useState({ lat: 41.7151, lng: 44.8271 })
+  const [geocoding, setGeocoding] = useState(false)
   const [cadastral, setCadastral] = useState('')
   const [area, setArea] = useState('')
   const [rooms, setRooms] = useState(0)
@@ -109,6 +112,31 @@ export default function AddListingClient() {
   const areaN = Number(area) || 0
   const priceN = Number(price) || 0
   const districts = districtsOf(city || undefined)
+
+  // Resolve pin from address → Sivrce geocode (Nominatim via /api/geocode).
+  useEffect(() => {
+    const q = [street && `${street} ${houseNo}`.trim(), district, city]
+      .filter(Boolean)
+      .join(', ')
+    if (q.length < 5) return
+    const ac = new AbortController()
+    const t = setTimeout(() => {
+      setGeocoding(true)
+      fetch(`/api/geocode?q=${encodeURIComponent(`${q}, Georgia`)}`, { signal: ac.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: { ok?: boolean; lat?: number; lng?: number } | null) => {
+          if (d?.ok && typeof d.lat === 'number' && typeof d.lng === 'number') {
+            setCoords({ lat: d.lat, lng: d.lng })
+          }
+        })
+        .catch(() => {})
+        .finally(() => setGeocoding(false))
+    }, 450)
+    return () => {
+      clearTimeout(t)
+      ac.abort()
+    }
+  }, [street, houseNo, district, city])
 
   /* ————— AI price estimate (demo model) ————— */
   const estimate = useMemo(() => {
@@ -171,7 +199,7 @@ export default function AddListingClient() {
     views: 0, badge: null,
     ai: { score: Math.max(strength, 41), label: t('add.aiPending') },
     features: features.map((f) => t(f)),
-    description, coords: { lat: 41.7151, lng: 44.8271 },
+    description, coords,
     postedAt: new Date().toISOString(),
     agent: { name: name || '—', phone: phone || '—', agency: '' },
     isNew: true,
@@ -238,6 +266,7 @@ export default function AddListingClient() {
           features, images, video: video || null,
           price: priceN, negotiable, description,
           name: name.trim(), phone, messengers,
+          lat: coords.lat, lng: coords.lng,
         }),
       })
       if (res.status === 401) {
@@ -481,6 +510,30 @@ export default function AddListingClient() {
                         <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" /> {t('add.cadastralNote')}
                       </p>
                     </div>
+                    {(street || city) && (
+                      <div className="sm:col-span-2">
+                        <div className="mb-2 flex items-center justify-between">
+                          <label className={label + ' mb-0'}>
+                            <span className="inline-flex items-center gap-1.5">
+                              <MapPin className="h-3.5 w-3.5 text-sv-blue" />
+                              Sivrce Maps
+                            </span>
+                          </label>
+                          {geocoding && (
+                            <span className="text-[11px] font-bold text-sv-ink/40">მისამართი…</span>
+                          )}
+                        </div>
+                        <MapEmbed
+                          lat={coords.lat}
+                          lng={coords.lng}
+                          zoom={15}
+                          q={[street && `${street} ${houseNo}`.trim(), district, city]
+                            .filter(Boolean)
+                            .join(', ')}
+                          aspect="16/9"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 

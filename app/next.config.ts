@@ -7,9 +7,11 @@ const capacitorOrigins = isDev
   ? " capacitor://localhost http://localhost:* http://192.168.*.*:* ws://localhost:*"
   : " capacitor://localhost"
 
-// Map: basemap is same-origin /api/map (OFM proxied). Optional MapTiler/Google embeds.
-const mapOrigins =
-  " https://*.maptiler.com https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com"
+// Map: basemap is same-origin /api/map (OFM proxied). Optional MapTiler override.
+const mapOrigins = " https://*.maptiler.com https://api.maptiler.com"
+
+// Korter GCS logos + project renders (img only — not scripts).
+const mediaOrigins = " https://storage.googleapis.com"
 
 // ponytail: analytics — GTM + top.ge + reserved Sentry/PostHog
 const analyticsOrigins =
@@ -23,7 +25,7 @@ const csp = [
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
   `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://cdn.sivrce.ge https://images.sivrce.ge${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
+  `img-src 'self' data: blob: https://cdn.sivrce.ge https://images.sivrce.ge${capacitorOrigins}${mapOrigins}${mediaOrigins}${analyticsOrigins}`,
   "font-src 'self' data:",
   `connect-src 'self'${capacitorOrigins} https://sivrce.ge https://*.sivrce.ge${mapOrigins}${analyticsOrigins}${featureApiOrigins}`,
   "worker-src 'self' blob:",
@@ -32,7 +34,7 @@ const csp = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  "frame-src 'self' https://www.google.com https://maps.google.com https://www.googletagmanager.com",
+  "frame-src 'self' https://www.googletagmanager.com",
   "upgrade-insecure-requests",
 ].join("; ");
 

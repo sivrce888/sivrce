@@ -35,7 +35,7 @@ export async function signInWithGoogle(formData: FormData) {
 
 export async function chooseSelfRole(formData: FormData) {
   const user = await requireUser("/settings")
-  if (user.role === "admin") redirect("/admin")
+  if (user.role === "admin") redirect(dashboardPathFor("admin"))
 
   const raw = String(formData.get("role") ?? "")
   if (!isSelfServeRole(raw)) {

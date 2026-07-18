@@ -34,6 +34,8 @@ export interface Developer {
   description: LocalText
   verified: boolean
   phone: string
+  /** Official logo from korter / owner — GCS URL when synced. */
+  logoUrl?: string
 }
 
 export interface AgentProfile {

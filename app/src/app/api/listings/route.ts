@@ -10,10 +10,10 @@ import { randomUUID } from "node:crypto"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
-import { LISTINGS } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { attributeListing } from "@/lib/map/attribution"
+import { cityCenter, geocodeAddress, parseCoords } from "@/lib/map/geocode"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
 
@@ -27,17 +27,6 @@ const DEALS: Record<string, ListingDealType> = {
 }
 const PROP_TYPES = new Set<ListingPropertyType>(["apartment", "house", "commercial", "land"])
 const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
-const TBILISI = { lat: 41.7151, lng: 44.8271 }
-
-/** City center = catalog average. ponytail: replace with geocoding when the address map picker lands. */
-function cityCoords(city: string): { lat: number; lng: number } {
-  const same = LISTINGS.filter((l) => l.city === city)
-  if (same.length === 0) return TBILISI
-  return {
-    lat: same.reduce((s, l) => s + l.coords.lat, 0) / same.length,
-    lng: same.reduce((s, l) => s + l.coords.lng, 0) / same.length,
-  }
-}
 
 const asStr = (v: unknown, max: number): string | null =>
   typeof v === "string" && v.trim().length > 0 && v.length <= max ? v.trim() : null
@@ -95,7 +84,14 @@ export async function POST(req: NextRequest) {
   const images = asStrList(body.images, 16, 500).filter((u) => u.startsWith("https://"))
   const features = asStrList(body.features, 30, 60)
   const description = typeof body.description === "string" ? body.description.slice(0, 5000) : ""
-  const { lat, lng } = cityCoords(city)
+
+  // Coords: client pin → geocode address → city center. Always Georgia-bounded.
+  let coords = parseCoords(body.lat, body.lng)
+  if (!coords) {
+    const hit = await geocodeAddress(`${address}, ${district}, ${city}, Georgia`)
+    coords = hit ? { lat: hit.lat, lng: hit.lng } : cityCenter(city)
+  }
+  const { lat, lng } = coords
 
   const listing = await db.listing.create({
     data: {

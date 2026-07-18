@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { BadgeCheck, MapPin, Star } from 'lucide-react'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import type { LocalName } from '@/data/professionals'
@@ -17,6 +18,8 @@ export interface EntityCardProps {
   verified: boolean
   /** server-fetched review aggregate; null → "reviews soon" placeholder */
   aggregate: { average: number; count: number } | null
+  /** Official developer logo URL (korter GCS) */
+  logoUrl?: string
 }
 
 function initials(enName: string): string {
@@ -37,6 +40,7 @@ export function EntityCard({
   listingsCount,
   verified,
   aggregate,
+  logoUrl,
 }: EntityCardProps) {
   const { lang, d } = useEntities()
   const brand = SERVICE_BRAND[kind === 'developer' ? 'developers' : 'agents']
@@ -49,13 +53,22 @@ export function EntityCard({
       className="group block rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
     >
       <div className="flex items-center gap-4">
-        <span
-          aria-hidden
-          className="grid h-14 w-14 shrink-0 place-items-center rounded-module text-[18px] font-black"
-          style={{ color: brand.hue, backgroundColor: brand.chip }}
-        >
-          {initials(name.en)}
-        </span>
+        {logoUrl ? (
+          <span
+            aria-hidden
+            className="relative h-14 w-14 shrink-0 overflow-hidden rounded-module border border-sv-ink/[0.06] bg-sv-cloud"
+          >
+            <Image src={logoUrl} alt="" fill sizes="56px" className="object-contain p-1.5" />
+          </span>
+        ) : (
+          <span
+            aria-hidden
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-module text-[18px] font-black"
+            style={{ color: brand.hue, backgroundColor: brand.chip }}
+          >
+            {initials(name.en)}
+          </span>
+        )}
         <div className="min-w-0">
           <h3 className="flex items-center gap-1.5 truncate text-[17px] font-black text-sv-ink">
             {pick(name, lang)}
