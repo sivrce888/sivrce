@@ -9,7 +9,6 @@ import { getDeveloper } from '@/data/professionals'
 import { projectsLive } from '@/lib/directory-live'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
-import { STATUS_BRAND } from '@/lib/category-brand'
 
 export const revalidate = 3600
 
@@ -84,10 +83,7 @@ export default async function ProjectsPage() {
                           {p.rating}
                         </div>
                       </div>
-                      <div
-                        className="absolute left-5 top-4 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold text-white"
-                        style={{ background: STATUS_BRAND.construction.hue }}
-                      >
+                      <div className="absolute left-5 top-4 rounded-full bg-sv-navy/55 px-3.5 py-1.5 text-[12px] font-extrabold text-white backdrop-blur">
                         აშენებულია {p.done}%
                       </div>
                     </div>
@@ -109,8 +105,8 @@ export default async function ProjectsPage() {
                     </div>
                     <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
                       <div
-                        className="h-full rounded-full"
-                        style={{ width: `${p.done}%`, background: STATUS_BRAND.construction.hue }}
+                        className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
+                        style={{ width: `${p.done}%` }}
                       />
                     </div>
                   </article>

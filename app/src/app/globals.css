@@ -49,9 +49,9 @@
   --color-cat-party-houses-chip: #fae8fd;
   --color-cat-self-check-in: #0d9488;
   --color-cat-self-check-in-chip: #e6f6f4;
-  /* Status hues (BRAND.md §3.4) — mirrors brand orange / houses */
-  --color-status-construction: #ff6a2d;
-  --color-status-construction-chip: #fff3ef;
+  /* Status hues (BRAND.md §3.4) — mirrors newProjects sky */
+  --color-status-construction: #5b8bff;
+  --color-status-construction-chip: #eff3ff;
 
   /* Brand shape tokens (BRAND.md §5) */
   --radius-card: 26px;
@@ -180,7 +180,7 @@
   --chip-new-projects: #eff3ff;
   --chip-party: #fae8fd;
   --chip-self-checkin: #e6f6f4;
-  --chip-construction: #fff3ef;
+  --chip-construction: #eff3ff;
 }
 
 .dark {
@@ -245,7 +245,7 @@
   --chip-new-projects: color-mix(in oklab, #5b8bff 18%, transparent);
   --chip-party: color-mix(in oklab, #c026d3 20%, transparent);
   --chip-self-checkin: color-mix(in oklab, #0d9488 20%, transparent);
-  --chip-construction: color-mix(in oklab, #ff6a2d 18%, transparent);
+  --chip-construction: color-mix(in oklab, #5b8bff 18%, transparent);
 }
 
 /* Frosted nav/menu glass: light milk → smoked navy in dark mode.

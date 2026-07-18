@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.7) · FROZEN 2026-07-17 · Logo v3 Spark Star 2026-07-18 · Status = sv-orange 2026-07-18
+# სივრცე — Brand Lock (v1.8) · FROZEN 2026-07-17 · Logo v3 Spark Star 2026-07-18 · Status = newProjects sky 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -180,20 +180,20 @@ Brand hues (blue/orange/violet/category) stay fixed. Only foundations flip in `.
 Navy (`#050B26`) stays fixed — hero, CTA, map, footer are brand-dark in BOTH themes.
 Glass light → smoked navy `rgba(8,13,38,0.92)` in dark.
 
-### 3.4 Status hues (locked — owner-approved 2026-07-18)
+### 3.4 Status hues (locked — owner-approved 2026-07-18, reverted from orange same day)
 
-Map filters, construction ghosts, progress bars. Source: `STATUS_BRAND`.
-Uses brand orange (`sv-orange`) — the locked carrot/action hue.
+Map filters, construction ghosts. Source: `STATUS_BRAND`.
+Sky blue (`newProjects`) — orange stays CTAs/favorites only (≤10%).
 
 | Status (KA) | Key | Hue | Chip | Maps to |
 |---|---|---|---|---|
-| მშენებარე | `construction` | #FF6A2D | #FFF3EF | brand orange / houses |
+| მშენებარე | `construction` | #5B8BFF | #EFF3FF | newProjects |
 
 Rules:
-- `newProjects` category stays sky blue `#5B8BFF` (catalog / deal tab)
-- Construction status always reads `STATUS_BRAND.construction` (= `sv-orange`)
+- Construction status always reads `STATUS_BRAND.construction` (= `newProjects` sky)
+- Project progress bars use brand gradient `from-sv-blue to-sv-violet` (not solid status hue)
 - Completed map filter keeps `SERVICE_BRAND.developers` violet
-- ≤10% orange rule still applies to CTAs; status identity on map/projects is exempt (same as category hues)
+- Orange ≤10% rule: CTAs / VIP / favorites — never construction chrome
 ## 4. Typography
 - Stack: Manrope (Latin/digits, weights 400–900 loaded) + Noto Sans Georgian
 - Headlines: weight 900 (`font-black`), tracking −0.02em…−0.045em, `text-balance`
