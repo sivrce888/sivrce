@@ -2,7 +2,7 @@
 
 /**
  * SIVRCE — Add Listing wizard (6 steps)
- * Type → Location → Details → Photos → Price & description → Contact.
+ * Type → Photos → Location → Details → Price & description → Contact.
  * Live preview, listing-strength meter, AI price estimate, AI description.
  * All colors come from locked tokens (BRAND.md §3/§3.1) — category icons
  * use CATEGORY_BRAND, actions use sv-orange, brand surfaces use sv-blue.
@@ -16,6 +16,7 @@ import {
   MapPin, Ruler, Layers, Check, ChevronLeft,
   ImagePlus, Star, X, Sparkles, Phone, User, MessageCircle,
   CircleCheckBig, Plus, Video, BadgeCheck, Flame, Trees, Hotel,
+  CircleHelp, MonitorPlay,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import MapEmbed from '@/components/MapEmbed'
@@ -58,7 +59,8 @@ const DEALS: { key: Deal; icon: typeof Tag; hue: string }[] = [
 
 const FEATURES = FEATURE_KEYS
 
-const STEPS = ['add.step.type', 'add.step.location', 'add.step.details', 'add.step.photos', 'add.step.price', 'add.step.contact'] as const
+const STEPS = ['add.step.type', 'add.step.photos', 'add.step.location', 'add.step.details', 'add.step.price', 'add.step.contact'] as const
+const STEP_TIPS = ['add.tip.type', 'add.tip.photos', 'add.tip.location', 'add.tip.details', 'add.tip.price', 'add.tip.contact'] as const
 
 /** rough market $/m² baselines for the AI estimate (display-only demo model) */
 const BASE_M2: Record<PropType, number> = {
@@ -138,6 +140,7 @@ export default function AddListingClient() {
   const [phoneVerified, setPhoneVerified] = useState(false)
   const [phoneBusy, setPhoneBusy] = useState(false)
   const [messengers, setMessengers] = useState<string[]>(['WhatsApp', 'Viber'])
+  const [onlineView, setOnlineView] = useState(false)
   const [terms, setTerms] = useState(false)
 
   const areaN = (Number(area) || 0) * (areaUnit === 'ha' ? 10_000 : 1)
@@ -344,9 +347,9 @@ export default function AddListingClient() {
 
   const stepValid = [
     !!deal && !!propType,
+    true, // photos optional — tip + strength meter push upload
     !!(city && district && street),
     detailsOk,
-    true,
     priceN > 0 || negotiable,
     !!(name.trim() && PHONE_RE.test(phone) && terms),
   ][step]
@@ -475,6 +478,7 @@ export default function AddListingClient() {
           rentType: formFields?.rentType ? rentType || null : null,
           guests: formFields?.guests ? guests || null : null,
           areaUnit: formFields?.areaHa && areaUnit === 'ha' ? 'ha' : 'm2',
+          onlineView,
           name: name.trim(), phone, messengers,
           lat: coords.lat, lng: coords.lng,
         }),
@@ -663,8 +667,95 @@ export default function AddListingClient() {
                   </div>
                 )}
 
-                {/* ——— step 2 · location ——— */}
+                {/* ——— step 2 · photos ——— */}
                 {step === 1 && (
+                  <div>
+                    <h2 className="text-[18px] font-extrabold text-sv-ink">{t('add.photosTitle')}</h2>
+                    <button
+                      onClick={() => fileRef.current?.click()}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => { e.preventDefault(); addPhotos(e.dataTransfer.files) }}
+                      className="mt-4 flex w-full flex-col items-center gap-3 rounded-tile border-2 border-dashed border-sv-blue/25 bg-sv-blue/[0.03] px-6 py-12 text-center transition-all duration-300 hover:border-sv-blue/50 hover:bg-sv-blue/[0.06]"
+                    >
+                      <span className="grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue-sm">
+                        <ImagePlus className="h-6 w-6" />
+                      </span>
+                      <span className="text-[15px] font-extrabold text-sv-ink">{t('add.photosDrop')}</span>
+                      <span className="text-[13px] font-bold text-sv-ink/40">{t('add.photosOr')}</span>
+                      <span className="rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-extrabold text-white">{t('add.photosBtn')}</span>
+                    </button>
+                    <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
+
+                    <div className="mt-4 flex items-center justify-between text-[13px] font-bold text-sv-ink/45">
+                      <span>{t('add.photosCount', { n: photos.length })}</span>
+                    </div>
+
+                    {photos.length > 0 && (
+                      <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                        {photos.map((p, i) => (
+                          <div
+                            key={p.url}
+                            draggable
+                            onDragStart={() => setDragFrom(i)}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => { e.preventDefault(); movePhoto(dragFrom, i) }}
+                            title={t('add.photosReorder')}
+                            className={`group/ph relative aspect-[4/3] cursor-grab overflow-hidden rounded-module ring-2 transition-all active:cursor-grabbing ${i === cover ? 'ring-sv-orange' : 'ring-transparent'} ${dragFrom !== null && dragFrom !== i ? 'hover:ring-sv-blue/60' : ''}`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.url} alt={p.name} className="pointer-events-none h-full w-full object-cover" draggable={false} />
+                            {i === cover && (
+                              <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1 text-[10px] font-black text-white">
+                                <Star className="h-3 w-3 fill-current" /> {t('add.photosCover')}
+                              </span>
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 flex translate-y-full gap-1 bg-sv-navy/70 p-1.5 backdrop-blur transition-transform duration-300 group-hover/ph:translate-y-0">
+                              {i !== cover && (
+                                <button onClick={() => setCover(i)} className="flex-1 rounded-lg bg-white/15 px-2 py-1 text-[10px] font-bold text-white hover:bg-white/25">
+                                  {t('add.photosSetCover')}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => removePhoto(i)}
+                                className="grid w-7 place-items-center rounded-lg bg-white/15 text-white hover:bg-sv-orange"
+                                aria-label={t('add.photosRemove')}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <p className="mt-5 flex items-start gap-2 rounded-module bg-sv-blue/[0.05] p-4 text-[13px] font-semibold leading-relaxed text-sv-ink/55 ring-1 ring-inset ring-sv-blue/10">
+                      <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" /> {t('add.photosTip')}
+                    </p>
+
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className={label}>{t('add.youtube')}</label>
+                        <div className="relative">
+                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                          <input className={`${input} pl-11`} placeholder={t('add.youtubePh')} value={video} onChange={(e) => setVideo(e.target.value)} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={label}>{t('add.matterport')}</label>
+                        <div className="relative">
+                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                          <input className={`${input} pl-11`} placeholder={t('add.matterportPh')} value={matterport} onChange={(e) => setMatterport(e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mt-4 flex items-start gap-2 rounded-module bg-sv-orange/[0.06] p-4 text-[13px] font-semibold leading-relaxed text-sv-ink/55 ring-1 ring-inset ring-sv-orange/15">
+                      <MonitorPlay className="mt-0.5 h-4 w-4 shrink-0 text-sv-orange" /> {t('add.videoTip')}
+                    </p>
+                  </div>
+                )}
+
+                {/* ——— step 3 · location ——— */}
+                {step === 2 && (
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <label className={label}>{t('search.city')} / {t('search.district')} *</label>
@@ -797,8 +888,8 @@ export default function AddListingClient() {
                   </div>
                 )}
 
-                {/* ——— step 3 · details ——— */}
-                {step === 2 && formFields && (
+                {/* ——— step 4 · details ——— */}
+                {step === 3 && formFields && (
                   <div className="grid gap-6">
                     {formFields.rentPeriod && (
                       <div>
@@ -951,7 +1042,7 @@ export default function AddListingClient() {
                         <div>
                           <label className={label}>{t('spec.baths')}</label>
                           <div className="flex flex-wrap gap-2">
-                            {[1, 2, 3].map((n) => (
+                            {[1, 2, 3, 4, 5].map((n) => (
                               <button
                                 key={n}
                                 type="button"
@@ -960,7 +1051,7 @@ export default function AddListingClient() {
                                   baths === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
                                 }`}
                               >
-                                {n === 3 ? '3+' : n}
+                                {n === 5 ? '5+' : n}
                               </button>
                             ))}
                           </div>
@@ -1021,90 +1112,24 @@ export default function AddListingClient() {
                         })}
                       </div>
                     </div>
-                  </div>
-                )}
 
-                {/* ——— step 4 · photos ——— */}
-                {step === 3 && (
-                  <div>
-                    <h2 className="text-[18px] font-extrabold text-sv-ink">{t('add.photosTitle')}</h2>
                     <button
-                      onClick={() => fileRef.current?.click()}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => { e.preventDefault(); addPhotos(e.dataTransfer.files) }}
-                      className="mt-4 flex w-full flex-col items-center gap-3 rounded-tile border-2 border-dashed border-sv-blue/25 bg-sv-blue/[0.03] px-6 py-12 text-center transition-all duration-300 hover:border-sv-blue/50 hover:bg-sv-blue/[0.06]"
+                      type="button"
+                      onClick={() => setOnlineView(!onlineView)}
+                      className={`flex w-full items-start gap-3 rounded-module border p-4 text-left transition-all ${
+                        onlineView
+                          ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm'
+                          : 'border-sv-ink/[0.08] bg-sv-cloud/60 hover:border-sv-blue/30'
+                      }`}
                     >
-                      <span className="grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue-sm">
-                        <ImagePlus className="h-6 w-6" />
+                      <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border ${onlineView ? 'border-white/40 bg-white/20' : 'border-sv-ink/20 bg-sv-surface'}`}>
+                        {onlineView && <Check className="h-3.5 w-3.5" />}
                       </span>
-                      <span className="text-[15px] font-extrabold text-sv-ink">{t('add.photosDrop')}</span>
-                      <span className="text-[13px] font-bold text-sv-ink/40">{t('add.photosOr')}</span>
-                      <span className="rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-extrabold text-white">{t('add.photosBtn')}</span>
+                      <span>
+                        <span className={`block text-[14px] font-extrabold ${onlineView ? 'text-white' : 'text-sv-ink'}`}>{t('add.onlineView')}</span>
+                        <span className={`mt-1 block text-[12px] font-semibold leading-relaxed ${onlineView ? 'text-white/75' : 'text-sv-ink/50'}`}>{t('add.onlineViewHint')}</span>
+                      </span>
                     </button>
-                    <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
-
-                    <div className="mt-4 flex items-center justify-between text-[13px] font-bold text-sv-ink/45">
-                      <span>{t('add.photosCount', { n: photos.length })}</span>
-                    </div>
-
-                    {photos.length > 0 && (
-                      <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
-                        {photos.map((p, i) => (
-                          <div
-                            key={p.url}
-                            draggable
-                            onDragStart={() => setDragFrom(i)}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => { e.preventDefault(); movePhoto(dragFrom, i) }}
-                            title={t('add.photosReorder')}
-                            className={`group/ph relative aspect-[4/3] cursor-grab overflow-hidden rounded-module ring-2 transition-all active:cursor-grabbing ${i === cover ? 'ring-sv-orange' : 'ring-transparent'} ${dragFrom !== null && dragFrom !== i ? 'hover:ring-sv-blue/60' : ''}`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.url} alt={p.name} className="pointer-events-none h-full w-full object-cover" draggable={false} />
-                            {i === cover && (
-                              <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1 text-[10px] font-black text-white">
-                                <Star className="h-3 w-3 fill-current" /> {t('add.photosCover')}
-                              </span>
-                            )}
-                            <div className="absolute inset-x-0 bottom-0 flex translate-y-full gap-1 bg-sv-navy/70 p-1.5 backdrop-blur transition-transform duration-300 group-hover/ph:translate-y-0">
-                              {i !== cover && (
-                                <button onClick={() => setCover(i)} className="flex-1 rounded-lg bg-white/15 px-2 py-1 text-[10px] font-bold text-white hover:bg-white/25">
-                                  {t('add.photosSetCover')}
-                                </button>
-                              )}
-                              <button
-                                onClick={() => removePhoto(i)}
-                                className="grid w-7 place-items-center rounded-lg bg-white/15 text-white hover:bg-sv-orange"
-                                aria-label={t('add.photosRemove')}
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <p className="mt-5 flex items-start gap-2 rounded-module bg-sv-blue/[0.05] p-4 text-[13px] font-semibold leading-relaxed text-sv-ink/55 ring-1 ring-inset ring-sv-blue/10">
-                      <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" /> {t('add.photosTip')}
-                    </p>
-
-                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className={label}>{t('add.youtube')}</label>
-                        <div className="relative">
-                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11`} placeholder={t('add.youtubePh')} value={video} onChange={(e) => setVideo(e.target.value)} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className={label}>{t('add.matterport')}</label>
-                        <div className="relative">
-                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11`} placeholder={t('add.matterportPh')} value={matterport} onChange={(e) => setMatterport(e.target.value)} />
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
 
@@ -1276,7 +1301,10 @@ export default function AddListingClient() {
                 {/* ——— step 6 · contact ——— */}
                 {step === 5 && (
                   <div className="grid gap-6">
-                    <h2 className="text-[18px] font-extrabold text-sv-ink">{t('add.contact')}</h2>
+                    <div>
+                      <h2 className="text-[18px] font-extrabold text-sv-ink">{t('add.contact')}</h2>
+                      <p className="mt-2 text-[13px] font-semibold leading-relaxed text-sv-ink/50">{t('add.contactHint')}</p>
+                    </div>
                     <div className="grid gap-5 sm:grid-cols-2">
                       <div>
                         <label className={label}>{t('add.name')} *</label>
@@ -1437,6 +1465,10 @@ export default function AddListingClient() {
 
           {/* ————— live preview column ————— */}
           <div className="sticky top-24 hidden lg:block">
+            <div className="mb-4 flex items-start gap-3 rounded-tile border border-sv-blue/15 bg-sv-blue/[0.04] p-4">
+              <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" />
+              <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t(STEP_TIPS[step])}</p>
+            </div>
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <div className="text-[14px] font-black text-sv-ink">{t('add.preview')}</div>

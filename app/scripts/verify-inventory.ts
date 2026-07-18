@@ -9,7 +9,13 @@ import { PrismaClient } from "../src/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 
 const db = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL as string }),
+  adapter: new PrismaPg({
+    connectionString: (() => {
+      const u = process.env.DATABASE_URL as string
+      // ponytail: same Node 24 SSL fix as scripts/seed.ts
+      return /uselibpqcompat=/i.test(u) ? u : `${u}${u.includes("?") ? "&" : "?"}uselibpqcompat=true`
+    })(),
+  }),
 })
 
 async function main() {

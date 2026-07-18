@@ -30,8 +30,14 @@ if (!connectionString) {
   process.exit(1)
 }
 
+// ponytail: same Node 24 + Supabase pooler SSL fix as src/lib/db.ts
+function withPgSslCompat(url: string) {
+  if (/uselibpqcompat=/i.test(url) || /sslmode=disable/i.test(url)) return url
+  return `${url}${url.includes("?") ? "&" : "?"}uselibpqcompat=true`
+}
+
 const db = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  adapter: new PrismaPg({ connectionString: withPgSslCompat(connectionString) }),
 })
 
 // Map mock data dealType → Prisma enum
