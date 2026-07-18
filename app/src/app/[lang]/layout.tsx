@@ -245,6 +245,27 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        {/* Critical font preloads (React hoists <link> to <head>).
+            ponytail: surgical — only the two chunks the h1/LCP depends on.
+            The 42KB Georgian face paints the h1; the 14KB latin chunk was
+            discovered ~750ms post-hydration and its late arrival re-recorded
+            LCP (~1s observed → ~5.5s simulated). Preloading kills the late
+            candidate. Hashed names are stable per next/font version — if a
+            bump changes them, update or drop these two lines. */}
+        <link
+          rel="preload"
+          href="/_next/static/media/9a4536d8acff75fc-s.05m5z8ok51pb_.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/_next/static/media/060be04954aa38c2-s.2_iuqcuewr555.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
