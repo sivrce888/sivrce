@@ -478,4 +478,8 @@ export const tr: Dict = {
   'pay.failed.desc': 'Ücret alınmadı. İlanlarınızdan tekrar deneyin.',
   'pay.back': 'İlanlarım',
   'pay.order': 'Sipariş',
+
+  // Search map view (list/map toggle)
+  'search.map': 'Harita',
+  'search.mapNote': 'Haritada {total} sonuçtan ilk {n} tanesi gösteriliyor',
 }

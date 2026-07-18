@@ -477,4 +477,8 @@ export const en: Dict = {
   'pay.failed.desc': 'Nothing was charged. Try again from your listings.',
   'pay.back': 'My listings',
   'pay.order': 'Order',
+
+  // Search map view (list/map toggle)
+  'search.map': 'Map',
+  'search.mapNote': 'The map shows the first {n} of {total} results',
 }

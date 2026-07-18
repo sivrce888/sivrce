@@ -478,4 +478,8 @@ export const ar: Dict = {
   'pay.failed.desc': 'لم يتم خصم أي مبلغ. حاول مجددًا من إعلاناتك.',
   'pay.back': 'إعلاناتي',
   'pay.order': 'الطلب',
+
+  // Search map view (list/map toggle)
+  'search.map': 'الخريطة',
+  'search.mapNote': 'تعرض الخريطة أول {n} من {total} نتيجة',
 }

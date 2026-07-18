@@ -478,4 +478,8 @@ export const he: Dict = {
   'pay.failed.desc': 'לא חויבת. נסה שוב מהמודעות שלך.',
   'pay.back': 'המודעות שלי',
   'pay.order': 'הזמנה',
+
+  // Search map view (list/map toggle)
+  'search.map': 'מפה',
+  'search.mapNote': 'המפה מציגה את {n} התוצאות הראשונות מתוך {total}',
 }

@@ -479,4 +479,8 @@ export const uk: Dict = {
   'pay.failed.desc': 'Кошти не списано. Спробуйте знову зі своїх оголошень.',
   'pay.back': 'Мої оголошення',
   'pay.order': 'Замовлення',
+
+  // Search map view (list/map toggle)
+  'search.map': 'Мапа',
+  'search.mapNote': 'На мапі показано перші {n} з {total} результатів',
 }

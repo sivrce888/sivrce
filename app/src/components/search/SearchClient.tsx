@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -20,6 +21,7 @@ import { blurProps } from '@/lib/media'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
+import { listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS } from '@/lib/features'
 import type { SearchLocations } from '@/lib/listings-db'
@@ -30,6 +32,16 @@ import {
 } from '@/data/listings'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
+
+/* Map view is heavy (maplibre) — load only when ?view=map is actually used. */
+const SearchMapView = dynamic(() => import('@/components/search/SearchMapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="grid h-[62vh] min-h-[420px] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" role="status" aria-label="იტვირთება">
+      <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-sv-blue/20 border-t-sv-blue" />
+    </div>
+  ),
+})
 
 /* Locked per-category branding (BRAND.md §3.1) */
 const PROP_TYPES: { value: PropType; key: DictKey; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND] }[] = [
@@ -84,7 +96,7 @@ function CompactCard({ l }: { l: Listing }) {
   const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
   return (
     <Link
-      href={`/listing/${l.id}`}
+      href={listingPath(l)}
       className="group flex w-[264px] shrink-0 items-center gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-2.5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
     >
       <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control">
@@ -217,6 +229,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const cur: 'USD' | 'GEL' = params.get('cur') === 'GEL' ? 'GEL' : 'USD'
   // Page lives in the URL — shareable and SSR-friendly. Filter changes reset it (see patchParams).
   const page = numParam('page', 1) ?? 1
+  // Results mode lives in the URL too (?view=map) — shareable; default list.
+  const mapMode = params.get('view') === 'map'
   // Daily-rent availability window (only meaningful for the daily deal).
   const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
   const fromRaw = params.get('from') ?? ''
@@ -315,8 +329,9 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         if (from) sp.set('from', from)
         if (to) sp.set('to', to)
         if (cur === 'GEL') sp.set('cur', 'GEL')
-        sp.set('page', String(page))
-        sp.set('pageSize', '24')
+        // Map mode pulls the first 100 matches for pins; list keeps paged cards.
+        sp.set('page', mapMode ? '1' : String(page))
+        sp.set('pageSize', mapMode ? '100' : '24')
 
         const res = await fetch(`/api/search?${sp.toString()}`)
         const json = await res.json()
@@ -865,6 +880,29 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
     </>
   )
 
+  /* List/Map segmented toggle — same chrome as the currency segment. Rendered in
+     two spots (mobile next to ფილტრი, desktop in the results header); CSS picks one. */
+  const viewToggle = (
+    <div className="flex shrink-0 rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.view')}>
+      {([undefined, 'map'] as const).map((v) => {
+        const active = mapMode === (v === 'map')
+        return (
+          <button
+            key={v ?? 'list'}
+            type="button"
+            aria-pressed={active}
+            onClick={() => patchParams({ view: v })}
+            className={`whitespace-nowrap rounded-lg px-4 py-2 text-[13px] font-extrabold transition-colors ${
+              active ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'
+            }`}
+          >
+            {t(v === 'map' ? 'search.map' : 'search.list')}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
       <Navbar />
@@ -887,14 +925,17 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
       {/* Filter bar: full controls on desktop (sticky), compact sheet trigger on mobile */}
       <div className="z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[88px]">
         <div className="mx-auto max-w-[1440px] px-4 py-3 md:px-10">
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-sv-blue text-[14px] font-extrabold text-white shadow-glow-blue-sm md:hidden"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            {t('search.filters')}{chips.length > 0 ? ` (${chips.length})` : ''}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-control bg-sv-blue text-[14px] font-extrabold text-white shadow-glow-blue-sm"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {t('search.filters')}{chips.length > 0 ? ` (${chips.length})` : ''}
+            </button>
+            {viewToggle}
+          </div>
           <div className="hidden md:block">{filtersBody(false)}</div>
         </div>
       </div>
@@ -939,6 +980,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             ))}
           </AnimatePresence>
           <SaveSearchControl />
+          <div className="ml-auto hidden md:block">{viewToggle}</div>
         </div>
 
         {showSkeleton ? (
@@ -963,6 +1005,16 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
               <RotateCcw className="h-4 w-4" /> {t('search.resetFilters')}
             </button>
           </div>
+        ) : mapMode ? (
+          <div>
+            <SearchMapView listings={results} />
+            {totalResults > results.length && (
+              <p className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/55">
+                <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {t('search.mapNote', { n: results.length, total: totalResults })}
+              </p>
+            )}
+          </div>
         ) : (
           <div className={view === 'grid' ? 'grid gap-6 sm:grid-cols-2 xl:grid-cols-3' : 'grid grid-cols-1 gap-5'}>
             {results.map((l, i) => (
@@ -971,8 +1023,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         )}
 
-        {/* Pagination — page lives in the URL (?page=N), shareable/SSR-friendly */}
-        {!showSkeleton && totalPages > 1 && (
+        {/* Pagination — page lives in the URL (?page=N), shareable/SSR-friendly. Map mode shows first-100 pins instead. */}
+        {!mapMode && !showSkeleton && totalPages > 1 && (
           <nav className="mt-10 flex items-center justify-center gap-3" aria-label={t('search.pagination')}>
             <button
               type="button"

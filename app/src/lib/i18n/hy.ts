@@ -479,4 +479,8 @@ export const hy: Dict = {
   'pay.failed.desc': 'Գումարը չի գանձվել: Փորձեք նորից ձեր հայտարարություններից:',
   'pay.back': 'Իմ հայտարարությունները',
   'pay.order': 'Պատվեր',
+
+  // Search map view (list/map toggle)
+  'search.map': 'Քարտեզ',
+  'search.mapNote': 'Քարտեզի վրա ցուցադրվում են առաջին {n} արդյունքները {total}-ից',
 }
