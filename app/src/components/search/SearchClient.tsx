@@ -18,6 +18,7 @@ import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
+import { localizedHref } from '@/lib/i18n/core'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from '@/lib/features'
 import type { SearchLocations } from '@/lib/listings-db'
@@ -135,7 +136,7 @@ function mapHit(h: Record<string, unknown>): Listing {
 export default function SearchClient({ locations }: { locations?: SearchLocations }) {
   const params = useSearchParams()
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const s = useSearchStrings()
   // Live location facets from the server (DB-backed); static catalog fallback.
   const hasLive = Boolean(locations && locations.cities.length > 0)
@@ -223,7 +224,9 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
       else next.set(k, v)
     }
     const qs = next.toString()
-    router.replace(qs ? `/search?${qs}` : '/search', { scroll: false })
+    // Keep the locale prefix (/en/search …) — ka stays unprefixed per core.
+    const base = localizedHref('/search', lang)
+    router.replace(qs ? `${base}?${qs}` : base, { scroll: false })
   }
 
   // ——— Keyword/price/area inputs: local drafts, debounced into the URL (~300ms) ———
@@ -412,7 +415,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
 
   const resetAll = () => {
     setDrafts({ q: '', min: '', max: '', amin: '', amax: '', fmin: '', fmax: '' })
-    router.replace('/search', { scroll: false })
+    router.replace(localizedHref('/search', lang), { scroll: false })
   }
 
   const selectClass =
