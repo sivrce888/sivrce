@@ -14,7 +14,16 @@ import { unstable_cache } from "next/cache"
 import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
 import type { Prisma } from "@/generated/prisma/client"
-import { activeColorUntil, effectiveTierKey, tierKeyToBadge, tierRankOf, type PromoBadge } from "@/lib/promo-pricing"
+import {
+  activeColorUntil,
+  activePriceDropUntil,
+  activeUrgentUntil,
+  effectiveTierKey,
+  tierKeyToBadge,
+  tierRankOf,
+  type PromoBadge,
+  type PromoExtFields,
+} from "@/lib/promo-pricing"
 import { MAP_CENTER } from "@/lib/map/buildings"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
@@ -89,6 +98,8 @@ export interface Listing {
   views: number
   badge: Badge
   highlighted?: boolean
+  stickerUrgent?: boolean
+  stickerPriceDrop?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string
@@ -143,8 +154,14 @@ function rowToListing(row: Record<string, unknown>): Listing {
     ),
     highlighted: Boolean(
       activeColorUntil(
-        (r.extendedFields as { colorUntil?: string } | null) ?? null,
+        (r.extendedFields as PromoExtFields | null) ?? null,
       ),
+    ),
+    stickerUrgent: Boolean(
+      activeUrgentUntil((r.extendedFields as PromoExtFields | null) ?? null),
+    ),
+    stickerPriceDrop: Boolean(
+      activePriceDropUntil((r.extendedFields as PromoExtFields | null) ?? null),
     ),
     ai: { score: aiScore, label: aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო" },
     features: (r.features as string[]) ?? [],

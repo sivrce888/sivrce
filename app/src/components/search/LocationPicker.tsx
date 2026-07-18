@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X, Search, MapPin, ChevronRight } from 'lucide-react'
-import { GEO_CITIES, GEO_MUNICIPALITIES } from '@/data/georgia-locations'
+import { GEO_CITIES, GEO_MUNICIPALITIES, geoRaionsOf } from '@/data/georgia-locations'
 import { districtsOf } from '@/data/listings'
 
 const POPULAR = GEO_CITIES.slice(0, 10)
@@ -41,6 +41,8 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
   }, [open, value, onClose])
 
   const districts = useMemo(() => (city ? districtsOf(city) : []), [city])
+  const raions = useMemo(() => (city ? geoRaionsOf(city) : {}), [city])
+  const raionEntries = useMemo(() => Object.entries(raions), [raions])
 
   const qn = q.trim().toLowerCase()
   const cityHits = useMemo(() => {
@@ -198,30 +200,70 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
             </div>
           ) : city ? (
             <section>
-              <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">უბნები · {city}</h3>
-              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                <button
-                  type="button"
-                  onClick={() => setDistrict('')}
-                  className={`rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
-                    !district ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
-                  }`}
-                >
-                  ყველა უბანი
-                </button>
-                {districts.map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => setDistrict(d)}
-                    className={`rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
-                      district === d ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
-                    }`}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
+              <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+                {raionEntries.length ? `რაიონები · ${city}` : `უბნები · ${city}`}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setDistrict('')}
+                className={`mb-3 rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
+                  !district ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
+                }`}
+              >
+                მთელი ქალაქი
+              </button>
+              {raionEntries.length > 0 ? (
+                <div className="space-y-5">
+                  {raionEntries.map(([raion, ubanis]) => (
+                    <div key={raion}>
+                      <button
+                        type="button"
+                        onClick={() => setDistrict(raion)}
+                        className={`mb-2 w-full rounded-control px-3 py-2.5 text-left text-[14px] font-extrabold transition-colors ${
+                          district === raion
+                            ? 'bg-sv-blue text-white'
+                            : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
+                        }`}
+                      >
+                        {raion}
+                      </button>
+                      {ubanis.length > 0 && (
+                        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                          {ubanis.map((u) => (
+                            <button
+                              key={u}
+                              type="button"
+                              onClick={() => setDistrict(u)}
+                              className={`rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
+                                district === u
+                                  ? 'bg-sv-blue text-white'
+                                  : 'bg-sv-cloud/70 text-sv-ink hover:bg-sv-ink/[0.06]'
+                              }`}
+                            >
+                              {u}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {districts.map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDistrict(d)}
+                      className={`rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
+                        district === d ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              )}
             </section>
           ) : (
             <>

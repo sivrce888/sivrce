@@ -17,7 +17,7 @@ import type { DealType, Listing } from "@/data/listings"
 import { SERVICE_BRAND } from "@/lib/category-brand"
 import { db } from "@/lib/db"
 import { catalogToCluster, type MapBuildingCluster } from "@/lib/map/buildings"
-import { activeColorUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
+import { activeColorUntil, activePriceDropUntil, activeUrgentUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
 
 export const MAP_BUILDINGS_TAG = "map-buildings"
 export const MAP_LISTINGS_TAG = "map-listings"
@@ -99,6 +99,12 @@ function rowToMapListing(row: {
     badge: tierKeyToBadge(tierKey),
     highlighted: Boolean(
       activeColorUntil(row.extendedFields as { colorUntil?: string } | null),
+    ),
+    stickerUrgent: Boolean(
+      activeUrgentUntil(row.extendedFields as { urgentUntil?: string } | null),
+    ),
+    stickerPriceDrop: Boolean(
+      activePriceDropUntil(row.extendedFields as { priceDropUntil?: string } | null),
     ),
     ai: { score: row.trustScore, label: "" },
     features: row.features,

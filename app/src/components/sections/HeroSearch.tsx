@@ -12,6 +12,7 @@ import SearchSuggest, { type Suggestion } from '@/components/search/SearchSugges
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import { useI18n, localizedHref } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
+import { DAILY_SIGNAL_KEYS } from '@/lib/features'
 import { CITIES } from '@/data/listings'
 import {
   countFilterMode,
@@ -29,10 +30,10 @@ const TAB_KEYS = ['search.sale', 'search.rent', 'nav.daily', 'nav.projects'] as 
 const PROP_TYPES = [
   { value: 'apartment', labelKey: 'prop.apartment', icon: Building2, brand: CATEGORY_BRAND.apartments },
   { value: 'house', labelKey: 'prop.houseShort', icon: Home, brand: CATEGORY_BRAND.houses },
-  { value: 'cottage', labelKey: 'prop.houseShort', icon: Trees, brand: CATEGORY_BRAND.cottages },
+  { value: 'villa', labelKey: 'prop.villa', icon: Trees, brand: CATEGORY_BRAND.cottages },
   { value: 'land', labelKey: 'prop.land', icon: LandPlot, brand: CATEGORY_BRAND.land },
   { value: 'commercial', labelKey: 'prop.commercial', icon: Store, brand: CATEGORY_BRAND.commercial },
-  { value: 'hotel', labelKey: 'prop.commercial', icon: BedDouble, brand: CATEGORY_BRAND.hotels },
+  { value: 'hotel', labelKey: 'prop.hotel', icon: BedDouble, brand: CATEGORY_BRAND.hotels },
 ] as const
 
 const COUNTS = ['1', '2', '3', '4', '5+'] as const
@@ -99,8 +100,8 @@ export default function HeroSearch() {
     const params = new URLSearchParams()
     const deal = dealParam()
     if (deal) params.set('deal', deal)
-    if (type) params.set('type', type === 'cottage' ? 'house' : type === 'hotel' ? 'commercial' : type)
-    // ponytail: cottage/hotel map to nearest PropType until schema adds them
+    if (type) params.set('type', type)
+    // villa/hotel are real PropTypes (schema + add-listing)
     if (loc.city) params.set('city', loc.city)
     if (loc.district) params.set('district', loc.district)
     const q = (keyword.trim() || loc.street.trim())
@@ -215,6 +216,14 @@ export default function HeroSearch() {
       params.set('district', name)
       if (loc.city) params.set('city', loc.city)
     }
+    persistAndGo(`/search?${params}`, params)
+  }
+
+  const goDailySignal = (feat: (typeof DAILY_SIGNAL_KEYS)[number]) => {
+    const params = buildParams()
+    params.set('deal', 'daily')
+    params.set('feat', feat)
+    if (feat === 'add.f.partiesAllowed') params.set('type', 'house')
     persistAndGo(`/search?${params}`, params)
   }
 
@@ -624,7 +633,7 @@ export default function HeroSearch() {
         </div>
       </form>
 
-      {/* Quick chips + recent (Airbnb) */}
+      {/* Quick chips: districts (sale/rent) · lifestyle signals (daily) */}
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
         {recent && (
           <button
@@ -639,27 +648,46 @@ export default function HeroSearch() {
           </button>
         )}
         <span className="sv-hero-in text-[13px] font-bold text-white/70" style={{ animationDelay: '0.24s' }}>
-          პოპულარული:
+          {isDaily ? t('search.features') : 'პოპულარული:'}
         </span>
-        {QUICK.map((q, i) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => goQuick(q)}
-            onMouseEnter={() => {
-              const p = new URLSearchParams()
-              const deal = dealParam()
-              if (deal) p.set('deal', deal)
-              if (CITIES.includes(q)) p.set('city', q)
-              else p.set('district', q)
-              router.prefetch(localizedHref(`/search?${p}`, lang))
-            }}
-            className="sv-hero-in rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
-            style={{ animationDelay: `${0.28 + i * 0.045}s` }}
-          >
-            {q}
-          </button>
-        ))}
+        {isDaily
+          ? DAILY_SIGNAL_KEYS.map((f, i) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => goDailySignal(f)}
+                onMouseEnter={() => {
+                  const p = buildParams()
+                  p.set('deal', 'daily')
+                  p.set('feat', f)
+                  if (f === 'add.f.partiesAllowed') p.set('type', 'house')
+                  router.prefetch(localizedHref(`/search?${p}`, lang))
+                }}
+                className="sv-hero-in rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                style={{ animationDelay: `${0.28 + i * 0.045}s` }}
+              >
+                {t(f)}
+              </button>
+            ))
+          : QUICK.map((q, i) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => goQuick(q)}
+                onMouseEnter={() => {
+                  const p = new URLSearchParams()
+                  const deal = dealParam()
+                  if (deal) p.set('deal', deal)
+                  if (CITIES.includes(q)) p.set('city', q)
+                  else p.set('district', q)
+                  router.prefetch(localizedHref(`/search?${p}`, lang))
+                }}
+                className="sv-hero-in rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                style={{ animationDelay: `${0.28 + i * 0.045}s` }}
+              >
+                {q}
+              </button>
+            ))}
       </div>
 
       <LocationPicker

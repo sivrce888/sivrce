@@ -4,15 +4,33 @@ import { useId } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import LocalizedLink from '@/components/LocalizedLink'
-import { Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap } from 'lucide-react'
+import {
+  Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap,
+  Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
+  type LucideIcon,
+} from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
 import { useCurrency } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
+import { blurProps } from '@/lib/media'
 import { useSocialSignals } from '@/lib/social-proof'
 import { WeatherBadge } from '@/components/WeatherBadge'
+import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
+
+/* Icon map for card overlays — mirrors Collections.tsx */
+const SIGNAL_ICON: Record<(typeof DAILY_SIGNAL_KEYS)[number], LucideIcon> = {
+  'add.f.pool': Waves,
+  'add.f.jacuzzi': BathTub,
+  'add.f.partiesAllowed': PartyPopper,
+  'add.f.beachfront': Palmtree,
+  'add.f.selfCheckIn': KeyRound,
+  'add.f.petsAllowed': PawPrint,
+  'add.f.skiAccess': MountainSnow,
+  'add.f.workspace': Laptop,
+}
 
 /* VIP badge system — locked in BRAND.vipTiers, consumed here (BRAND.md §8) */
 export const BADGE_STYLE: Record<NonNullable<Listing['badge']>, string> = {
@@ -58,6 +76,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { format, currency } = useCurrency()
   const fav = has(l.id)
   const signals = useSocialSignals(l.views, l.postedAt)
+  const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
 
   const priceGEL = l.priceGEL
   const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
@@ -111,6 +130,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
         priority={i === 0}
         className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+        {...blurProps(l.img)}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/70 via-transparent to-sv-navy/10" />
       {l.badge && (
@@ -119,17 +139,53 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           {l.badge}
         </span>
       )}
-      {signals.isHot && !l.badge && (
+      {(l.stickerUrgent || l.stickerPriceDrop) && (
+        <div
+          className={`absolute left-4 z-[1] flex flex-col items-start gap-1 ${
+            l.badge || signals.isHot || signals.isTrending ? 'top-14' : 'top-4'
+          }`}
+        >
+          {l.stickerUrgent && (
+            <span className="flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-2.5 py-1 text-[10px] font-black tracking-wide text-white shadow-glow-orange">
+              <Zap className="h-3 w-3" aria-hidden />
+              სასწრაფოდ
+            </span>
+          )}
+          {l.stickerPriceDrop && (
+            <span className="flex items-center gap-1 rounded-full bg-sv-navy/90 px-2.5 py-1 text-[10px] font-black tracking-wide text-white backdrop-blur">
+              <TrendingUp className="h-3 w-3 rotate-180" aria-hidden />
+              ფასი დაწეულია
+            </span>
+          )}
+        </div>
+      )}
+      {signals.isHot && !l.badge && !l.stickerUrgent && (
         <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-1 text-[11px] font-black tracking-wider text-white">
           <Zap className="h-3 w-3" /> HOT
         </span>
       )}
-      {signals.isTrending && !signals.isHot && !l.badge && (
+      {signals.isTrending && !signals.isHot && !l.badge && !l.stickerUrgent && (
         <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-sv-blue/90 px-3 py-1 text-[11px] font-black tracking-wider text-white backdrop-blur">
           <TrendingUp className="h-3 w-3" /> TRENDING
         </span>
       )}
       {favButton}
+      {lifestyle.length > 0 && (
+        <div className="absolute bottom-[4.25rem] left-4 flex max-w-[75%] flex-wrap gap-1.5">
+          {lifestyle.map((key) => {
+            const Icon = SIGNAL_ICON[key]
+            return (
+              <span
+                key={key}
+                className="flex max-w-full items-center gap-1 rounded-full bg-sv-navy/60 px-2.5 py-1 text-[11px] font-extrabold text-white backdrop-blur"
+              >
+                <Icon className="h-3 w-3 shrink-0" aria-hidden />
+                <span className="truncate">{t(key)}</span>
+              </span>
+            )
+          })}
+        </div>
+      )}
       <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
         <div>
           <div className="text-[24px] font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">{displayPrice}</div>

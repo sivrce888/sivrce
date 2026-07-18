@@ -7,6 +7,7 @@
 import { Prisma } from "@/generated/prisma/client"
 import { USD_GEL } from "@/data/listings"
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from "@/lib/features"
+import { districtSearchValues } from "@/lib/district-canon"
 import type { SearchFilters } from "@/lib/search"
 
 // ---------------------------------------------------------------------------
@@ -100,7 +101,10 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.dealType) where.dealType = filters.dealType as Prisma.ListingWhereInput["dealType"]
   if (filters.propertyType) where.propertyType = filters.propertyType as Prisma.ListingWhereInput["propertyType"]
   if (filters.city) where.city = filters.city
-  if (filters.district) where.district = filters.district
+  if (filters.district) {
+    const vals = districtSearchValues(filters.district, filters.city)
+    where.district = vals.length === 1 ? vals[0]! : { in: vals }
+  }
   // Price bounds arrive in filters.currency (default USD): match listings
   // priced in that currency directly, plus converted bounds on the other.
   if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {

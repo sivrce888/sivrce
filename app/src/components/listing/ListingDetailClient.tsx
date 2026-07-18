@@ -34,14 +34,18 @@ import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useChat } from '@/components/chat/ChatProvider'
+import { DAILY_SIGNAL_KEYS, featureLabel, orderFeaturesForDisplay } from '@/lib/features'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
+const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
 const PROP_TYPE_KEY: Record<PropType, DictKey> = {
   apartment: 'prop.apartment',
   house: 'prop.houseShort',
+  villa: 'prop.villa',
   commercial: 'prop.commercial',
   land: 'prop.land',
+  hotel: 'prop.hotel',
 }
 
 /* ————— AI assessment copy by score ————— */
@@ -175,6 +179,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
   const { openChat } = useChat()
   const [photo, setPhoto] = useState(0)
   const [lightbox, setLightbox] = useState(false)
+  const swipeGuard = useRef(false)
   const gradId = useId()
 
   // Mortgage state
@@ -275,18 +280,39 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
           >
             <button
               className="relative block aspect-[16/10] w-full cursor-zoom-in"
-              onClick={() => setLightbox(true)}
+              onClick={() => {
+                // A real swipe ends with pointer-up over the button — don't treat it as a zoom click.
+                if (swipeGuard.current) { swipeGuard.current = false; return }
+                setLightbox(true)
+              }}
               aria-label={t('detail.zoomPhoto')}
             >
-              <Image
+              <motion.div
                 key={photo}
-                src={l.images[photo]}
-                alt={`${l.title} — ფოტო ${photo + 1}`}
-                fill
-                sizes="(max-width:1024px) 100vw, 850px"
-                priority
-                className="object-cover"
-              />
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.35 }}
+                drag={l.images.length > 1 ? 'x' : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.12}
+                onDragEnd={(_, info) => {
+                  if (Math.abs(info.offset.x) > 8) swipeGuard.current = true
+                  if (info.offset.x <= -60) navPhoto(1)
+                  else if (info.offset.x >= 60) navPhoto(-1)
+                }}
+                className="absolute inset-0 touch-pan-y"
+              >
+                <Image
+                  src={l.images[photo]}
+                  alt={`${l.title} — ფოტო ${photo + 1}`}
+                  fill
+                  sizes="(max-width:1024px) 100vw, 850px"
+                  priority
+                  draggable={false}
+                  className="object-cover"
+                  {...blurProps(l.images[photo])}
+                />
+              </motion.div>
             </button>
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sv-navy/50 via-transparent to-sv-navy/10" />
             {l.badge && (
@@ -296,9 +322,14 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
               </span>
             )}
             <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
-                <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(l.views) })}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
+                  <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(l.views) })}
+                </span>
+                <span className="rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
+                  {photo + 1} / {l.images.length}
+                </span>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => navPhoto(-1)}
@@ -318,23 +349,31 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             </div>
           </motion.div>
 
-          {/* Thumbnails */}
+          {/* Thumbnails — 4th tile becomes a "+N more" lightbox trigger when there are extra photos */}
           <div className="grid grid-cols-4 gap-3 lg:grid-cols-2 lg:grid-rows-2">
-            {l.images.slice(0, 4).map((src, i) => (
-              <button
-                key={src + i}
-                onClick={() => setPhoto(i)}
-                aria-label={t('detail.photo', { n: i + 1 })}
-                aria-pressed={photo === i}
-                className={`relative aspect-[16/10] overflow-hidden rounded-module transition-all duration-300 lg:aspect-auto lg:h-full ${
-                  photo === i
-                    ? 'ring-2 ring-sv-blue ring-offset-2 ring-offset-sv-cloud'
-                    : 'opacity-75 hover:opacity-100'
-                }`}
-              >
-                <Image src={src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" className="object-cover" />
-              </button>
-            ))}
+            {l.images.slice(0, 4).map((src, i) => {
+              const moreTile = i === 3 && l.images.length > 4
+              return (
+                <button
+                  key={src + i}
+                  onClick={() => (moreTile ? setLightbox(true) : setPhoto(i))}
+                  aria-label={moreTile ? t('detail.zoomPhoto') : t('detail.photo', { n: i + 1 })}
+                  aria-pressed={!moreTile && photo === i}
+                  className={`relative aspect-[16/10] overflow-hidden rounded-module transition-all duration-300 lg:aspect-auto lg:h-full ${
+                    !moreTile && photo === i
+                      ? 'ring-2 ring-sv-blue ring-offset-2 ring-offset-sv-cloud'
+                      : 'opacity-75 hover:opacity-100'
+                  }`}
+                >
+                  <Image src={src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" className="object-cover" {...blurProps(src)} />
+                  {moreTile && (
+                    <span className="absolute inset-0 grid place-items-center bg-sv-navy/60 text-[16px] font-black text-white">
+                      +{l.images.length - 3}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -490,14 +529,22 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             <Reveal className="mt-8">
               <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.features')}</h2>
               <div className="mt-4 flex flex-wrap gap-2">
-                {l.features.map((f) => (
-                  <span
-                    key={f}
-                    className="flex items-center gap-1.5 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-4 py-2 text-[13px] font-bold text-sv-ink/70"
-                  >
-                    <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" /> {f}
-                  </span>
-                ))}
+                {orderFeaturesForDisplay(l.features, l.dealType).map((f) => {
+                  const signal = l.dealType === 'daily' && DAILY_SIGNAL_SET.has(f)
+                  return (
+                    <span
+                      key={f}
+                      className={
+                        signal
+                          ? 'flex items-center gap-1.5 rounded-full border border-sv-blue/25 bg-sv-blue/[0.07] px-4 py-2 text-[13px] font-extrabold text-sv-blue'
+                          : 'flex items-center gap-1.5 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-4 py-2 text-[13px] font-bold text-sv-ink/70'
+                      }
+                    >
+                      <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
+                      {featureLabel(f, t)}
+                    </span>
+                  )
+                })}
               </div>
             </Reveal>
 
@@ -856,6 +903,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             index={photo}
             onClose={() => setLightbox(false)}
             onNav={navPhoto}
+            onJump={setPhoto}
           />
         )}
       </AnimatePresence>

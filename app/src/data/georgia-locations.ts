@@ -1,7 +1,7 @@
 /**
  * Georgia location catalog for filters + autocomplete.
- * Source: myhome.ge + ss.ge pickers (2026-07-18), OSM for Tbilisi streets.
- * SEO landing pages stay in seo-pages.ts (throttled); this file is the full picker.
+ * Tbilisi raions: official 10 (matsne 2014). Cities/streets: myhome + ss + OSM.
+ * SEO landing pages stay in seo-pages.ts; this file is the full picker.
  */
 import data from './georgia-locations.json'
 import tbilisiStreets from './tbilisi-streets.json'
@@ -28,13 +28,25 @@ export const GEO_MUNICIPALITIES: string[] = GEO.municipalities
 /** All city-level picks: cities first, then municipalities. */
 export const GEO_ALL_PLACES: string[] = [...GEO.cities, ...GEO.municipalities]
 
-export function geoDistrictsOf(city?: string): string[] {
-  if (!city) {
-    return [...new Set(Object.values(GEO.districts).flatMap((d) => d.flat))]
-  }
-  return GEO.districts[city]?.flat ?? []
+function collectDistricts(d: GeoDistricts): string[] {
+  // ponytail: derive from raions so flat can't drift into duplicate/combined names
+  const names = [
+    ...Object.keys(d.raions),
+    ...Object.values(d.raions).flat(),
+    ...d.flat,
+  ]
+  return [...new Set(names)].sort((a, b) => a.localeCompare(b, 'ka'))
 }
 
+export function geoDistrictsOf(city?: string): string[] {
+  if (!city) {
+    return [...new Set(Object.values(GEO.districts).flatMap(collectDistricts))]
+  }
+  const d = GEO.districts[city]
+  return d ? collectDistricts(d) : []
+}
+
+/** Official raion → უბანი map (empty for cities without raion split). */
 export function geoRaionsOf(city: string): Record<string, string[]> {
   return GEO.districts[city]?.raions ?? {}
 }

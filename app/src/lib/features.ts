@@ -30,3 +30,50 @@ export const FEATURE_KEYS = [
   'add.f.bbq', 'add.f.sauna', 'add.f.gym', 'add.f.evCharger',
   'add.f.kidFriendly', 'add.f.accessible', 'add.f.smokingAllowed',
 ] as const satisfies readonly DictKey[]
+
+/**
+ * S-tier daily lifestyle signals — search quick chips + card overlays.
+ * Order = priority (max 2 on cards). Same keys as Collections deep-links.
+ * Not a paid "sticker" SKU — free truth surface.
+ * Paid ნიშნები: sticker_urgent / sticker_price_drop in promo-pricing.
+ */
+export const DAILY_SIGNAL_KEYS = [
+  'add.f.pool',
+  'add.f.jacuzzi',
+  'add.f.partiesAllowed',
+  'add.f.beachfront',
+  'add.f.selfCheckIn',
+  'add.f.petsAllowed',
+  'add.f.skiAccess',
+  'add.f.workspace',
+] as const satisfies readonly (typeof FEATURE_KEYS)[number][]
+
+/** Pick up to `limit` lifestyle keys present on a listing (priority order). */
+export function pickDailySignals(features: readonly string[], limit = 2): typeof DAILY_SIGNAL_KEYS[number][] {
+  const out: typeof DAILY_SIGNAL_KEYS[number][] = []
+  for (const k of DAILY_SIGNAL_KEYS) {
+    if (features.includes(k)) out.push(k)
+    if (out.length >= limit) break
+  }
+  return out
+}
+
+const FEATURE_KEY_SET = new Set<string>(FEATURE_KEYS)
+const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
+
+export function isFeatureKey(f: string): f is (typeof FEATURE_KEYS)[number] {
+  return FEATURE_KEY_SET.has(f)
+}
+
+/** DB stores i18n keys; seed/legacy rows may still be free-text. */
+export function featureLabel(f: string, t: (key: DictKey) => string): string {
+  return isFeatureKey(f) ? t(f) : f
+}
+
+/** Daily: lifestyle signals first (priority order), then the rest. */
+export function orderFeaturesForDisplay(features: readonly string[], dealType?: string): string[] {
+  if (dealType !== 'daily') return [...features]
+  const signals = DAILY_SIGNAL_KEYS.filter((k) => features.includes(k))
+  const rest = features.filter((f) => !DAILY_SIGNAL_SET.has(f))
+  return [...signals, ...rest]
+}

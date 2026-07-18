@@ -13,23 +13,29 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import {
   Building, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
-  MapPin, Ruler, BedDouble, Bath, Layers, Check, ChevronLeft,
+  MapPin, Ruler, Layers, Check, ChevronLeft,
   ImagePlus, Star, X, Sparkles, Phone, User, MessageCircle,
-  CircleCheckBig, Plus, Video, BadgeCheck, Flame,
+  CircleCheckBig, Plus, Video, BadgeCheck, Flame, Trees, Hotel,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import MapEmbed from '@/components/MapEmbed'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { cap1, seoTitleParts } from '@/lib/seo-title'
-import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from '@/lib/features'
+import { FEATURE_KEYS } from '@/lib/features'
+import {
+  DEALS_FOR, dealLabelKey, fieldsFor, conditionsFor, statusesFor,
+  RENT_PERIODS, RENT_TYPES, LAND_FEATURE_KEYS,
+} from '@/lib/add-listing-fields'
 import {
   CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD, formatGEL,
   type DealType, type Listing, type PropType,
 } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
+import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import { MAP_CENTER } from '@/lib/map/buildings'
 import { cityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
+import { canonicalizeDistrict } from '@/lib/district-canon'
 
 type Deal = DealType
 type Photo = { url: string; name: string; file: File }
@@ -37,26 +43,27 @@ type Photo = { url: string; name: string; file: File }
 const PROP_TYPES: { key: PropType; icon: typeof Building; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]; labelKey: DictKey; titleKey: DictKey }[] = [
   { key: 'apartment', icon: Building, brand: CATEGORY_BRAND.apartments, labelKey: 'prop.apartment', titleKey: 'prop.apartment' },
   { key: 'house', icon: Home, brand: CATEGORY_BRAND.houses, labelKey: 'prop.house', titleKey: 'prop.houseShort' },
-  { key: 'commercial', icon: Briefcase, brand: CATEGORY_BRAND.commercial, labelKey: 'prop.commercial', titleKey: 'add.titleType.commercial' },
+  { key: 'villa', icon: Trees, brand: CATEGORY_BRAND.cottages, labelKey: 'prop.villa', titleKey: 'prop.villa' },
   { key: 'land', icon: Map, brand: CATEGORY_BRAND.land, labelKey: 'prop.land', titleKey: 'prop.land' },
+  { key: 'commercial', icon: Briefcase, brand: CATEGORY_BRAND.commercial, labelKey: 'prop.commercial', titleKey: 'add.titleType.commercial' },
+  { key: 'hotel', icon: Hotel, brand: CATEGORY_BRAND.hotels, labelKey: 'prop.hotel', titleKey: 'prop.hotel' },
 ]
 
-const DEALS: { key: Deal; icon: typeof Tag; labelKey: DictKey; hue: string }[] = [
-  { key: 'sale', icon: Tag, labelKey: 'add.deal.sale', hue: DEAL_BRAND.sale },
-  { key: 'rent', icon: KeyRound, labelKey: 'add.deal.rent', hue: DEAL_BRAND.rent },
-  { key: 'daily', icon: CalendarClock, labelKey: 'add.deal.daily', hue: DEAL_BRAND.daily },
-  { key: 'pledge', icon: BadgeCheck, labelKey: 'add.deal.pledge', hue: DEAL_BRAND.pledge },
+const DEALS: { key: Deal; icon: typeof Tag; hue: string }[] = [
+  { key: 'sale', icon: Tag, hue: DEAL_BRAND.sale },
+  { key: 'rent', icon: KeyRound, hue: DEAL_BRAND.rent },
+  { key: 'pledge', icon: BadgeCheck, hue: DEAL_BRAND.pledge },
+  { key: 'daily', icon: CalendarClock, hue: DEAL_BRAND.daily },
 ]
 
-// Stored DB values are these i18n keys — shared with /search filters via @/lib/features.
-const CONDITIONS = CONDITION_KEYS
-const STATUSES = BUILDING_STATUS_KEYS
 const FEATURES = FEATURE_KEYS
 
 const STEPS = ['add.step.type', 'add.step.location', 'add.step.details', 'add.step.photos', 'add.step.price', 'add.step.contact'] as const
 
 /** rough market $/m² baselines for the AI estimate (display-only demo model) */
-const BASE_M2: Record<PropType, number> = { apartment: 1150, house: 720, commercial: 1350, land: 95 }
+const BASE_M2: Record<PropType, number> = {
+  apartment: 1150, house: 720, villa: 680, commercial: 1350, land: 95, hotel: 1100,
+}
 const CITY_MULT: Record<string, number> = { თბილისი: 1, ბათუმი: 0.9, ქუთაისი: 0.55, რუსთავი: 0.5 }
 
 const ease = [0.21, 0.65, 0.2, 1] as const
@@ -86,6 +93,7 @@ export default function AddListingClient() {
   const [propType, setPropType] = useState<PropType | null>(null)
   const [city, setCity] = useState('')
   const [district, setDistrict] = useState('')
+  const [locOpen, setLocOpen] = useState(false)
   const [street, setStreet] = useState('')
   const [houseNo, setHouseNo] = useState('')
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
@@ -99,19 +107,29 @@ export default function AddListingClient() {
   // ponytail: mute one geocode cycle after reverse-fill / suggest so pin↔address don't fight
   const muteGeocode = useRef(false)
   const [cadastral, setCadastral] = useState('')
+  const [cadastralPublic, setCadastralPublic] = useState(false)
   const [area, setArea] = useState('')
+  const [areaUnit, setAreaUnit] = useState<'m2' | 'ha'>('m2')
+  const [yardArea, setYardArea] = useState('')
   const [rooms, setRooms] = useState(0)
-  const [baths, setBaths] = useState(1)
+  const [baths, setBaths] = useState(0)
   const [floor, setFloor] = useState('')
   const [totalFloors, setTotalFloors] = useState('')
   const [condition, setCondition] = useState<DictKey | ''>('')
   const [status, setStatus] = useState<DictKey | ''>('')
   const [features, setFeatures] = useState<DictKey[]>([])
+  const [rentPeriod, setRentPeriod] = useState<number | null>(null)
+  const [rentType, setRentType] = useState<DictKey | ''>('')
+  const [guests, setGuests] = useState(0)
   const [photos, setPhotos] = useState<Photo[]>([])
   const [cover, setCover] = useState(0)
   const [video, setVideo] = useState('')
+  const [matterport, setMatterport] = useState('')
   const [price, setPrice] = useState('')
+  const [priceCur, setPriceCur] = useState<'USD' | 'GEL'>('USD')
+  const [priceMode, setPriceMode] = useState<'total' | 'm2'>('total')
   const [negotiable, setNegotiable] = useState(false)
+  const [exchangeable, setExchangeable] = useState(false)
   const [description, setDescription] = useState('')
   const [aiUsed, setAiUsed] = useState(false)
   const [name, setName] = useState('')
@@ -119,9 +137,35 @@ export default function AddListingClient() {
   const [messengers, setMessengers] = useState<string[]>(['WhatsApp', 'Viber'])
   const [terms, setTerms] = useState(false)
 
-  const areaN = Number(area) || 0
-  const priceN = Number(price) || 0
-  const districts = districtsOf(city || undefined)
+  const areaN = (Number(area) || 0) * (areaUnit === 'ha' ? 10_000 : 1)
+  const yardN = Number(yardArea) || 0
+  const priceEntered = Number(price) || 0
+  const priceTotalCur = priceMode === 'm2' && areaN > 0 ? priceEntered * areaN : priceEntered
+  const priceN = priceCur === 'GEL' ? Math.round(priceTotalCur / USD_GEL) : Math.round(priceTotalCur)
+  const formFields = deal && propType ? fieldsFor(propType, deal) : null
+  const availableDeals = propType ? DEALS_FOR[propType] : DEALS.map((d) => d.key)
+  const conditionOpts = propType && deal ? conditionsFor(propType, deal) : []
+  const statusOpts = propType ? statusesFor(propType) : []
+  const featureOpts = propType === 'land' ? LAND_FEATURE_KEYS : FEATURES
+
+  const pickDeal = (d: Deal) => {
+    setDeal(d)
+    setCondition('')
+    setStatus('')
+    setRentPeriod(null)
+    setRentType('')
+    setGuests(0)
+    setExchangeable(false)
+  }
+  const pickProp = (p: PropType) => {
+    setPropType(p)
+    setCondition('')
+    setStatus('')
+    setAreaUnit('m2')
+    setYardArea('')
+    setFeatures([])
+    if (deal && !DEALS_FOR[p].includes(deal)) setDeal(null)
+  }
 
   // City → map center until street geocode lands.
   useEffect(() => {
@@ -195,6 +239,23 @@ export default function AddListingClient() {
     }
   }, [street, city])
 
+  const applyLocation = (v: LocationValue) => {
+    setCity(v.city)
+    // Municipalities without ubani: district = city (search still filters).
+    const next =
+      canonicalizeDistrict(v.district, v.city) ||
+      v.district ||
+      (v.city && districtsOf(v.city).length === 0 ? v.city : '')
+    setDistrict(next)
+    if (v.street.trim()) setStreet(v.street.trim())
+    setLocOpen(false)
+  }
+
+  const setDistrictCanon = (raw: string, cityHint?: string) => {
+    const c = cityHint || city
+    setDistrict(canonicalizeDistrict(raw, c) || raw)
+  }
+
   const applyHit = (hit: GeocodeHit) => {
     muteGeocode.current = true
     setCoords({ lat: hit.lat, lng: hit.lng })
@@ -203,8 +264,8 @@ export default function AddListingClient() {
     setSuggests([])
     if (hit.street) setStreet(hit.street)
     if (hit.houseNo) setHouseNo(hit.houseNo)
-    if (hit.district) setDistrict(hit.district)
     if (hit.city && CITIES.includes(hit.city)) setCity(hit.city)
+    if (hit.district) setDistrictCanon(hit.district, hit.city)
   }
 
   const onStreetChange = (raw: string) => {
@@ -230,8 +291,8 @@ export default function AddListingClient() {
         muteGeocode.current = true
         if (d.street) setStreet(d.street)
         if (d.houseNo) setHouseNo(d.houseNo)
-        if (d.district) setDistrict(d.district)
         if (d.city && CITIES.includes(d.city)) setCity(d.city)
+        if (d.district) setDistrictCanon(d.district, d.city)
       })
       .catch(() => {})
   }
@@ -256,17 +317,32 @@ export default function AddListingClient() {
   /* ————— listing strength ————— */
   const strength = useMemo(() => {
     const signals = [
-      !!deal && !!propType, !!(city && district && street), areaN > 0, rooms > 0,
-      !!condition, features.length >= 3, photos.length >= 1, photos.length >= 5,
-      priceN > 0 || negotiable, description.length >= 80, !!video, PHONE_RE.test(phone),
+      !!deal && !!propType,
+      !!(city && district && street),
+      areaN > 0,
+      !formFields?.rooms || rooms > 0,
+      !formFields?.condition || !!condition,
+      !!status,
+      features.length >= 3,
+      photos.length >= 1,
+      photos.length >= 5,
+      priceN > 0 || negotiable,
+      description.length >= 80,
+      !!(video || matterport),
+      PHONE_RE.test(phone),
     ]
     return Math.round((signals.filter(Boolean).length / signals.length) * 100)
-  }, [deal, propType, city, district, street, areaN, rooms, condition, features, photos, priceN, negotiable, description, video, phone])
+  }, [deal, propType, city, district, street, areaN, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, phone, formFields])
+
+  const detailsOk = !!formFields && areaN > 0
+    && (!formFields.rooms || rooms > 0)
+    && (!formFields.guests || guests > 0)
+    && !!status
 
   const stepValid = [
     !!deal && !!propType,
     !!(city && district && street),
-    areaN > 0,
+    detailsOk,
     true,
     priceN > 0 || negotiable,
     !!(name.trim() && PHONE_RE.test(phone) && terms),
@@ -275,7 +351,7 @@ export default function AddListingClient() {
   const propLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.labelKey) : ''
   /* SEO title: deal + rooms + type + locative place — "იყიდება 2-ოთახიანი ბინა ჭავჭავაძეზე ვაკეში" */
   const titleLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.titleKey) : ''
-  const dealLabel = deal ? t(DEALS.find((d) => d.key === deal)!.labelKey) : ''
+  const dealLabel = deal ? t(dealLabelKey(deal, propType)) : ''
   const { deal: dealWord, where } = seoTitleParts({ lang, deal, dealLabel, street, district, city })
   const autoTitle = !propType
     ? t('add.previewTitle')
@@ -338,7 +414,6 @@ export default function AddListingClient() {
 
   const aiWrite = () => {
     if (!propType || !city) return
-    const dealLabel = deal ? t(DEALS.find((d) => d.key === deal)!.labelKey) : ''
     const text = t('add.aiDesc', {
       city, district: district || '—', deal: dealLabel,
       rooms: rooms > 0 ? t('add.aiDesc.rooms', { n: rooms }) : '',
@@ -383,13 +458,20 @@ export default function AddListingClient() {
           deal, propType, city, district,
           address: `${street} ${houseNo}`.trim(),
           cadastral: cadastral || null,
-          area: areaN, rooms, baths,
-          floor: Number(floor) || null,
-          totalFloors: Number(totalFloors) || null,
-          condition: condition || null,
+          cadastralPublic,
+          area: areaN, rooms: formFields?.rooms ? rooms : 0, baths: formFields?.baths ? baths : 0,
+          floor: formFields?.floor ? Number(floor) || null : null,
+          totalFloors: formFields?.totalFloors ? Number(totalFloors) || null : null,
+          condition: formFields?.condition ? condition || null : null,
           buildingStatus: status || null,
-          features, images, video: video || null,
-          price: priceN, negotiable, description,
+          features, images, video: video || null, matterport: matterport || null,
+          price: priceN, currency: 'USD', negotiable, exchangeable: formFields?.exchange ? exchangeable : false,
+          description,
+          yardArea: formFields?.yard ? yardN || null : null,
+          rentPeriod: formFields?.rentPeriod ? rentPeriod : null,
+          rentType: formFields?.rentType ? rentType || null : null,
+          guests: formFields?.guests ? guests || null : null,
+          areaUnit: formFields?.areaHa && areaUnit === 'ha' ? 'ha' : 'm2',
           name: name.trim(), phone, messengers,
           lat: coords.lat, lng: coords.lng,
         }),
@@ -526,39 +608,14 @@ export default function AddListingClient() {
                 {/* ——— step 1 · type ——— */}
                 {step === 0 && (
                   <div>
-                    <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/45">{t('add.dealType')}</h2>
-                    <div className="mt-3 grid grid-cols-3 gap-3">
-                      {DEALS.map((d) => {
-                        const active = deal === d.key
-                        return (
-                          <button
-                            key={d.key}
-                            onClick={() => setDeal(d.key)}
-                            className={`flex flex-col items-center gap-2.5 rounded-tile border p-5 transition-all duration-300 hover:-translate-y-0.5 ${
-                              active ? 'border-transparent shadow-card' : 'border-sv-ink/[0.08] bg-sv-surface hover:shadow-card'
-                            }`}
-                            style={active ? { backgroundColor: `${d.hue}0D`, boxShadow: `0 0 0 2px ${d.hue}` } : undefined}
-                          >
-                            <span
-                              className="grid h-11 w-11 place-items-center rounded-module"
-                              style={{ backgroundColor: active ? d.hue : `${d.hue}14`, color: active ? '#fff' : d.hue }}
-                            >
-                              <d.icon className="h-5 w-5" />
-                            </span>
-                            <span className="text-[13px] font-extrabold text-sv-ink">{t(d.labelKey)}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-
-                    <h2 className="mt-8 text-[13px] font-black uppercase tracking-wider text-sv-ink/45">{t('add.propType')}</h2>
-                    <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/45">{t('add.propType')}</h2>
+                    <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {PROP_TYPES.map((p) => {
                         const active = propType === p.key
                         return (
                           <button
                             key={p.key}
-                            onClick={() => setPropType(p.key)}
+                            onClick={() => pickProp(p.key)}
                             className={`flex flex-col items-center gap-2.5 rounded-tile border p-5 transition-all duration-300 hover:-translate-y-0.5 ${
                               active ? 'border-transparent' : 'border-sv-ink/[0.08] bg-sv-surface hover:shadow-card'
                             }`}
@@ -575,40 +632,59 @@ export default function AddListingClient() {
                         )
                       })}
                     </div>
+
+                    <h2 className="mt-8 text-[13px] font-black uppercase tracking-wider text-sv-ink/45">{t('add.dealType')}</h2>
+                    <div className={`mt-3 grid gap-3 ${availableDeals.length === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`}>
+                      {DEALS.filter((d) => availableDeals.includes(d.key)).map((d) => {
+                        const active = deal === d.key
+                        return (
+                          <button
+                            key={d.key}
+                            onClick={() => pickDeal(d.key)}
+                            className={`flex flex-col items-center gap-2.5 rounded-tile border p-5 transition-all duration-300 hover:-translate-y-0.5 ${
+                              active ? 'border-transparent shadow-card' : 'border-sv-ink/[0.08] bg-sv-surface hover:shadow-card'
+                            }`}
+                            style={active ? { backgroundColor: `${d.hue}0D`, boxShadow: `0 0 0 2px ${d.hue}` } : undefined}
+                          >
+                            <span
+                              className="grid h-11 w-11 place-items-center rounded-module"
+                              style={{ backgroundColor: active ? d.hue : `${d.hue}14`, color: active ? '#fff' : d.hue }}
+                            >
+                              <d.icon className="h-5 w-5" />
+                            </span>
+                            <span className="text-center text-[13px] font-extrabold text-sv-ink">{t(dealLabelKey(d.key, propType))}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
 
                 {/* ——— step 2 · location ——— */}
                 {step === 1 && (
                   <div className="grid gap-5 sm:grid-cols-2">
-                    <div>
-                      <label className={label}>{t('search.city')} *</label>
-                      <div className="flex flex-wrap gap-2">
-                        {CITIES.map((c) => (
-                          <button
-                            key={c}
-                            onClick={() => { setCity(c); setDistrict('') }}
-                            className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                              city === c ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
-                            }`}
-                          >
-                            {c}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className={label}>{t('search.district')} *</label>
-                      <input
-                        className={`${input} ${err(!district)}`}
-                        placeholder={t('add.districtPh')}
-                        value={district}
-                        onChange={(e) => setDistrict(e.target.value)}
-                        list="district-list"
+                    <div className="sm:col-span-2">
+                      <label className={label}>{t('search.city')} / {t('search.district')} *</label>
+                      <button
+                        type="button"
+                        onClick={() => setLocOpen(true)}
+                        className={`flex h-12 w-full items-center gap-2.5 rounded-control border bg-sv-surface px-3.5 text-left text-[14px] font-bold transition-colors ${
+                          !city || !district
+                            ? 'border-sv-orange/50 text-sv-ink'
+                            : 'border-sv-ink/10 text-sv-ink hover:border-sv-blue/40'
+                        }`}
+                      >
+                        <MapPin className={`h-4 w-4 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
+                        <span className={city ? 'text-sv-ink' : 'text-sv-ink/35'}>
+                          {locationLabel({ city, district, street: '' })}
+                        </span>
+                      </button>
+                      <LocationPicker
+                        open={locOpen}
+                        value={{ city, district, street: '' }}
+                        onClose={() => setLocOpen(false)}
+                        onApply={applyLocation}
                       />
-                      <datalist id="district-list">
-                        {districts.map((d) => <option key={d} value={d} />)}
-                      </datalist>
                     </div>
                     <div className="relative">
                       <label className={label}>{t('add.street')} *</label>
@@ -665,6 +741,22 @@ export default function AddListingClient() {
                       <p className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/40">
                         <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" /> {t('add.cadastralNote')}
                       </p>
+                      {cadastral.trim() && (
+                        <button
+                          type="button"
+                          onClick={() => setCadastralPublic(!cadastralPublic)}
+                          className={`mt-3 flex items-center gap-2.5 rounded-control border px-4 py-3 text-[13px] font-extrabold transition-all ${
+                            !cadastralPublic
+                              ? 'border-transparent bg-sv-ink text-sv-cloud'
+                              : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60'
+                          }`}
+                        >
+                          <span className={`grid h-5 w-5 place-items-center rounded-md border ${!cadastralPublic ? 'border-white/40 bg-white/15' : 'border-sv-ink/20'}`}>
+                            {!cadastralPublic && <Check className="h-3.5 w-3.5" />}
+                          </span>
+                          {t('add.cadastralHide')}
+                        </button>
+                      )}
                     </div>
                     {city && (
                       <div className="sm:col-span-2">
@@ -703,96 +795,213 @@ export default function AddListingClient() {
                 )}
 
                 {/* ——— step 3 · details ——— */}
-                {step === 2 && (
+                {step === 2 && formFields && (
                   <div className="grid gap-6">
-                    <div className="grid gap-5 sm:grid-cols-3">
+                    {formFields.rentPeriod && (
                       <div>
-                        <label className={label}>{t('search.area')} (მ²) *</label>
-                        <div className="relative">
+                        <label className={label}>{t('add.rentPeriod')}</label>
+                        <div className="flex flex-wrap gap-2">
+                          {RENT_PERIODS.map((n) => (
+                            <button
+                              key={n}
+                              onClick={() => setRentPeriod(n)}
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                rentPeriod === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                              }`}
+                            >
+                              {t('add.rentPeriod.n', { n })}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {formFields.rentType && (
+                      <div>
+                        <label className={label}>{t('add.rentType')}</label>
+                        <div className="flex flex-wrap gap-2">
+                          {RENT_TYPES.map((k) => (
+                            <button
+                              key={k}
+                              onClick={() => setRentType(k)}
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                rentType === k ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                              }`}
+                            >
+                              {t(k)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {formFields.guests && (
+                      <div>
+                        <label className={label}>{t('add.guests')}</label>
+                        <div className="flex flex-wrap gap-2">
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                            <button
+                              key={n}
+                              onClick={() => setGuests(n)}
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                guests === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                              }`}
+                            >
+                              {n === 10 ? '10+' : n}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {statusOpts.length > 0 && (
+                      <div>
+                        <label className={label}>{t('add.status')} *</label>
+                        <div className={`flex flex-wrap gap-2 rounded-control p-1 ${touched && !status ? 'ring-4 ring-sv-orange/10' : ''}`}>
+                          {statusOpts.map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => setStatus(s)}
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                status === s ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                              }`}
+                            >
+                              {t(s)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {formFields.condition && conditionOpts.length > 0 && (
+                      <div>
+                        <label className={label}>{t('add.condition')}</label>
+                        <div className="flex flex-wrap gap-2">
+                          {conditionOpts.map((c) => (
+                            <button
+                              key={c}
+                              onClick={() => setCondition(c)}
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                condition === c ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                              }`}
+                            >
+                              {t(c)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid gap-5">
+                      <div>
+                        <label className={label}>
+                          {t('search.area')} ({formFields.areaHa ? (areaUnit === 'ha' ? t('add.areaUnit.ha') : t('add.areaUnit.m2')) : t('add.areaUnit.m2')}) *
+                        </label>
+                        <div className="relative max-w-xs">
                           <Ruler className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
                           <input
                             className={`${input} pl-11 ${err(!areaN)}`}
-                            inputMode="numeric"
-                            placeholder="74"
+                            inputMode="decimal"
+                            placeholder={formFields.areaHa && areaUnit === 'ha' ? '0.5' : '74'}
                             value={area}
-                            onChange={(e) => setArea(e.target.value.replace(/[^\d]/g, ''))}
+                            onChange={(e) => setArea(e.target.value.replace(/[^\d.]/g, ''))}
                           />
                         </div>
-                      </div>
-                      <div>
-                        <label className={label}>{t('spec.rooms')}</label>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setRooms(Math.max(0, rooms - 1))} className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-control border border-sv-ink/[0.08] text-[20px] font-black text-sv-ink/50 transition-colors hover:border-sv-blue hover:text-sv-blue">−</button>
-                          <div className="grid h-[52px] flex-1 place-items-center rounded-control border border-sv-ink/[0.08] bg-sv-surface text-[17px] font-black text-sv-ink">
-                            <span className="flex items-center gap-2"><BedDouble className="h-4 w-4 text-sv-ink/35" />{rooms}</span>
+                        {formFields.areaHa && (
+                          <div className="mt-2 flex gap-2">
+                            {(['m2', 'ha'] as const).map((u) => (
+                              <button
+                                key={u}
+                                type="button"
+                                onClick={() => setAreaUnit(u)}
+                                className={`rounded-full px-3 py-1.5 text-[12px] font-extrabold ${
+                                  areaUnit === u ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/55'
+                                }`}
+                              >
+                                {t(u === 'ha' ? 'add.areaUnit.ha' : 'add.areaUnit.m2')}
+                              </button>
+                            ))}
                           </div>
-                          <button onClick={() => setRooms(Math.min(12, rooms + 1))} className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-control border border-sv-ink/[0.08] text-[20px] font-black text-sv-ink/50 transition-colors hover:border-sv-blue hover:text-sv-blue">+</button>
-                        </div>
+                        )}
                       </div>
-                      <div>
-                        <label className={label}>{t('spec.baths')}</label>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setBaths(Math.max(1, baths - 1))} className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-control border border-sv-ink/[0.08] text-[20px] font-black text-sv-ink/50 transition-colors hover:border-sv-blue hover:text-sv-blue">−</button>
-                          <div className="grid h-[52px] flex-1 place-items-center rounded-control border border-sv-ink/[0.08] bg-sv-surface text-[17px] font-black text-sv-ink">
-                            <span className="flex items-center gap-2"><Bath className="h-4 w-4 text-sv-ink/35" />{baths}</span>
+                      {formFields.rooms && (
+                        <div>
+                          <label className={label}>{t('spec.rooms')} *</label>
+                          <div className={`flex flex-wrap gap-2 ${touched && !rooms ? 'rounded-control ring-4 ring-sv-orange/10' : ''}`}>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => setRooms(n)}
+                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
+                                  rooms === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                }`}
+                              >
+                                {n === 10 ? '10+' : n}
+                              </button>
+                            ))}
                           </div>
-                          <button onClick={() => setBaths(Math.min(6, baths + 1))} className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-control border border-sv-ink/[0.08] text-[20px] font-black text-sv-ink/50 transition-colors hover:border-sv-blue hover:text-sv-blue">+</button>
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <div>
-                        <label className={label}>{t('spec.floor')}</label>
-                        <div className="relative">
-                          <Layers className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11`} inputMode="numeric" placeholder="5" value={floor} onChange={(e) => setFloor(e.target.value.replace(/[^\d]/g, ''))} />
+                      )}
+                      {formFields.baths && (
+                        <div>
+                          <label className={label}>{t('spec.baths')}</label>
+                          <div className="flex flex-wrap gap-2">
+                            {[1, 2, 3].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => setBaths(n)}
+                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
+                                  baths === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                }`}
+                              >
+                                {n === 3 ? '3+' : n}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
+                    </div>
+
+                    {formFields.yard && (
                       <div>
-                        <label className={label}>{t('add.totalFloors')}</label>
-                        <input className={input} inputMode="numeric" placeholder="12" value={totalFloors} onChange={(e) => setTotalFloors(e.target.value.replace(/[^\d]/g, ''))} />
+                        <label className={label}>{t('add.yard')} (მ²)</label>
+                        <input
+                          className={input}
+                          inputMode="numeric"
+                          placeholder="120"
+                          value={yardArea}
+                          onChange={(e) => setYardArea(e.target.value.replace(/[^\d]/g, ''))}
+                        />
                       </div>
-                    </div>
+                    )}
 
-                    <div>
-                      <label className={label}>{t('add.condition')}</label>
-                      <div className="flex flex-wrap gap-2">
-                        {CONDITIONS.map((c) => (
-                          <button
-                            key={c}
-                            onClick={() => setCondition(c)}
-                            className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                              condition === c ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
-                            }`}
-                          >
-                            {t(c)}
-                          </button>
-                        ))}
+                    {(formFields.floor || formFields.totalFloors) && (
+                      <div className={`grid gap-5 ${formFields.floor ? 'sm:grid-cols-2' : ''}`}>
+                        {formFields.floor && (
+                          <div>
+                            <label className={label}>{t('spec.floor')}</label>
+                            <div className="relative">
+                              <Layers className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                              <input className={`${input} pl-11`} inputMode="numeric" placeholder="5" value={floor} onChange={(e) => setFloor(e.target.value.replace(/[^\d]/g, ''))} />
+                            </div>
+                          </div>
+                        )}
+                        {formFields.totalFloors && (
+                          <div>
+                            <label className={label}>{t('add.totalFloors')}</label>
+                            <input className={input} inputMode="numeric" placeholder="12" value={totalFloors} onChange={(e) => setTotalFloors(e.target.value.replace(/[^\d]/g, ''))} />
+                          </div>
+                        )}
                       </div>
-                    </div>
-
-                    <div>
-                      <label className={label}>{t('add.status')}</label>
-                      <div className="flex flex-wrap gap-2">
-                        {STATUSES.map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => setStatus(s)}
-                            className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                              status === s ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
-                            }`}
-                          >
-                            {t(s)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    )}
 
                     <div>
                       <label className={label}>{t('add.features')}</label>
                       <div className="flex flex-wrap gap-2">
-                        {FEATURES.map((f) => {
+                        {featureOpts.map((f) => {
                           const on = features.includes(f)
                           return (
                             <button
@@ -877,11 +1086,20 @@ export default function AddListingClient() {
                       <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" /> {t('add.photosTip')}
                     </p>
 
-                    <div className="mt-5">
-                      <label className={label}>{t('add.videoLink')}</label>
-                      <div className="relative">
-                        <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                        <input className={`${input} pl-11`} placeholder={t('add.videoPh')} value={video} onChange={(e) => setVideo(e.target.value)} />
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className={label}>{t('add.youtube')}</label>
+                        <div className="relative">
+                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                          <input className={`${input} pl-11`} placeholder={t('add.youtubePh')} value={video} onChange={(e) => setVideo(e.target.value)} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={label}>{t('add.matterport')}</label>
+                        <div className="relative">
+                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                          <input className={`${input} pl-11`} placeholder={t('add.matterportPh')} value={matterport} onChange={(e) => setMatterport(e.target.value)} />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -890,35 +1108,92 @@ export default function AddListingClient() {
                 {/* ——— step 5 · price & description ——— */}
                 {step === 4 && (
                   <div className="grid gap-6">
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <div>
-                        <label className={label}>{t('add.price')} ($) *</label>
-                        <input
-                          className={`${input} text-[20px] font-black ${err(!priceN && !negotiable)}`}
-                          inputMode="numeric"
-                          placeholder={t('add.pricePh')}
-                          value={price}
-                          disabled={negotiable}
-                          onChange={(e) => setPrice(e.target.value.replace(/[^\d]/g, ''))}
-                        />
-                        {priceN > 0 && areaN > 0 && (
-                          <p className="mt-2 text-[13px] font-bold text-sv-ink/45">
-                            {t('add.perM2', { v: formatUSD(Math.round(priceN / areaN)) })} · {formatGEL(priceN * USD_GEL)}
-                          </p>
-                        )}
+                    <div>
+                      <label className={label}>{t('add.price')} *</label>
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {([
+                          ['total', 'add.priceTotal'],
+                          ['m2', 'add.pricePerM2'],
+                        ] as const).map(([mode, key]) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => setPriceMode(mode)}
+                            className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
+                              priceMode === mode ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] text-sv-ink/60'
+                            }`}
+                          >
+                            {t(key)}
+                          </button>
+                        ))}
+                        <span className="mx-1 hidden h-8 w-px bg-sv-ink/10 sm:block" />
+                        {(['GEL', 'USD'] as const).map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                              if (c === priceCur || !priceEntered) { setPriceCur(c); return }
+                              // keep the same USD value when flipping currency
+                              const asUsd = priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered
+                              setPrice(String(Math.round(c === 'GEL' ? asUsd * USD_GEL : asUsd)))
+                              setPriceCur(c)
+                            }}
+                            className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
+                              priceCur === c ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/60'
+                            }`}
+                          >
+                            {c === 'GEL' ? '₾' : '$'}
+                          </button>
+                        ))}
                       </div>
-                      <div className="flex items-end pb-1">
-                        <button
-                          onClick={() => setNegotiable(!negotiable)}
-                          className={`flex items-center gap-2.5 rounded-control border px-4 py-3.5 text-[14px] font-extrabold transition-all duration-300 ${
-                            negotiable ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40'
-                          }`}
-                        >
-                          <span className={`grid h-5 w-5 place-items-center rounded-md border ${negotiable ? 'border-white bg-white/20' : 'border-sv-ink/20'}`}>
-                            {negotiable && <Check className="h-3.5 w-3.5" />}
-                          </span>
-                          {t('add.negotiable')}
-                        </button>
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        <div>
+                          <input
+                            className={`${input} text-[20px] font-black ${err(!priceN && !negotiable)}`}
+                            inputMode="numeric"
+                            placeholder={t('add.pricePh')}
+                            value={price}
+                            disabled={negotiable}
+                            onChange={(e) => setPrice(e.target.value.replace(/[^\d]/g, ''))}
+                          />
+                          {priceN > 0 && areaN > 0 && (
+                            <p className="mt-2 text-[13px] font-bold text-sv-ink/45">
+                              {priceMode === 'total'
+                                ? t('add.perM2', { v: formatUSD(Math.round(priceN / areaN)) })
+                                : `${t('add.priceTotal')}: ${formatUSD(priceN)}`}
+                              {' · '}
+                              {formatGEL(priceN * USD_GEL)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col justify-end gap-2 pb-1">
+                          <button
+                            type="button"
+                            onClick={() => setNegotiable(!negotiable)}
+                            className={`flex items-center gap-2.5 rounded-control border px-4 py-3.5 text-[14px] font-extrabold transition-all duration-300 ${
+                              negotiable ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40'
+                            }`}
+                          >
+                            <span className={`grid h-5 w-5 place-items-center rounded-md border ${negotiable ? 'border-white bg-white/20' : 'border-sv-ink/20'}`}>
+                              {negotiable && <Check className="h-3.5 w-3.5" />}
+                            </span>
+                            {t('add.negotiable')}
+                          </button>
+                          {formFields?.exchange && (
+                            <button
+                              type="button"
+                              onClick={() => setExchangeable(!exchangeable)}
+                              className={`flex items-center gap-2.5 rounded-control border px-4 py-3.5 text-[14px] font-extrabold transition-all duration-300 ${
+                                exchangeable ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40'
+                              }`}
+                            >
+                              <span className={`grid h-5 w-5 place-items-center rounded-md border ${exchangeable ? 'border-white bg-white/20' : 'border-sv-ink/20'}`}>
+                                {exchangeable && <Check className="h-3.5 w-3.5" />}
+                              </span>
+                              {t('add.exchange')}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -948,7 +1223,14 @@ export default function AddListingClient() {
                             )}
                           </div>
                           <button
-                            onClick={() => { setPrice(String(estimate.mid)); setNegotiable(false) }}
+                            onClick={() => {
+                              const mid = estimate.mid
+                              const shown = priceMode === 'm2' && areaN > 0
+                                ? Math.round(mid / areaN)
+                                : mid
+                              setPrice(String(priceCur === 'GEL' ? Math.round(shown * USD_GEL) : shown))
+                              setNegotiable(false)
+                            }}
                             className="mt-4 rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-all duration-300 hover:-translate-y-0.5"
                           >
                             {t('add.aiApply')} · {formatUSD(estimate.mid)}

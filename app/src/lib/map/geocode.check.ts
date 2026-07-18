@@ -47,7 +47,7 @@ assert.equal(
   normalizeDistrict({ neighbourhood: 'ვაკე', suburb: 'ვაკის რაიონი' }),
   'ვაკე',
 )
-assert.equal(normalizeDistrict({ suburb: 'ვაკის რაიონი' }), 'ვაკის')
+assert.equal(normalizeDistrict({ suburb: 'ვაკის რაიონი' }), 'ვაკე')
 
 const a = corpusIdentity(41.7151, 44.8271, 'თბილისი')
 const b = corpusIdentity(41.7151, 44.8271, 'თბილისი')

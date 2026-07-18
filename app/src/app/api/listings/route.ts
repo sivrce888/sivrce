@@ -17,6 +17,7 @@ import { cityCenter, geocodeListingAddress, parseCoords } from "@/lib/map/geocod
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
+import { canonicalizeDistrict } from "@/lib/district-canon"
 
 export const dynamic = "force-dynamic"
 
@@ -26,7 +27,9 @@ const DEALS: Record<string, ListingDealType> = {
   daily: "daily",
   pledge: "mortgage",
 }
-const PROP_TYPES = new Set<ListingPropertyType>(["apartment", "house", "commercial", "land"])
+const PROP_TYPES: Set<ListingPropertyType> = new Set([
+  "apartment", "house", "villa", "commercial", "land", "hotel",
+])
 const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
 
 const asStr = (v: unknown, max: number): string | null =>
@@ -63,7 +66,8 @@ export async function POST(req: NextRequest) {
       ? (body.propType as ListingPropertyType)
       : undefined
   const city = asStr(body.city, 100)
-  const district = asStr(body.district, 120)
+  const districtRaw = asStr(body.district, 120)
+  const district = districtRaw ? canonicalizeDistrict(districtRaw, city ?? undefined) || districtRaw : null
   const address = asStr(body.address, 240)
   const name = asStr(body.name, 160)
   const phone = typeof body.phone === "string" && PHONE_RE.test(body.phone) ? body.phone : null
@@ -125,11 +129,19 @@ export async function POST(req: NextRequest) {
       features,
       extendedFields: {
         negotiable,
+        exchangeable: body.exchangeable === true,
         condition: asStr(body.condition, 60),
         buildingStatus: asStr(body.buildingStatus, 60),
         cadastral: asStr(body.cadastral, 60),
+        cadastralPublic: body.cadastralPublic === true,
         video: asStr(body.video, 500),
+        matterport: asStr(body.matterport, 500),
         messengers: asStrList(body.messengers, 5, 30),
+        yardArea: asInt(body.yardArea, 0, 100_000),
+        rentPeriod: asInt(body.rentPeriod, 1, 36),
+        rentType: asStr(body.rentType, 60),
+        guests: asInt(body.guests, 1, 50),
+        areaUnit: body.areaUnit === "ha" ? "ha" : "m2",
       },
       agent: { name, phone, agency: "" },
       listingPhone: phone,

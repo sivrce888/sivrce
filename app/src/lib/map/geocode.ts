@@ -5,6 +5,7 @@
 
 import { MAP_CITIES, type MapCity } from '@/lib/map/user-place'
 import { GEORGIA_MAX_BOUNDS, MAP_CENTER } from '@/lib/map/buildings'
+import { canonicalizeDistrict } from '@/lib/district-canon'
 
 export type GeocodeHit = {
   lat: number
@@ -65,7 +66,7 @@ export function matchCityKa(name?: string | null): string | undefined {
   return hit?.ka
 }
 
-/** Prefer neighbourhood over "X რაიონი" suburb. */
+/** Prefer neighbourhood over "X რაიონი" suburb; canonicalize EN/combined. */
 export function normalizeDistrict(a?: NominatimRow['address']): string | undefined {
   const raw =
     a?.neighbourhood?.trim() ||
@@ -73,7 +74,8 @@ export function normalizeDistrict(a?: NominatimRow['address']): string | undefin
     a?.suburb?.trim() ||
     a?.city_district?.trim()
   if (!raw) return undefined
-  return raw.replace(/\s*რაიონი\s*$/u, '').trim() || raw
+  const stripped = raw.replace(/\s*რაიონი\s*$/u, '').trim() || raw
+  return canonicalizeDistrict(stripped) || stripped
 }
 
 /** "ჭავჭავაძის გამზ. 47" → street + houseNo (keeps casing). */

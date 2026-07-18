@@ -12,8 +12,12 @@ import { langAlternates } from '@/lib/i18n/server'
 
 /** Title-slot type labels — the SEO keyword forms (კომერციული ფართი, not კომერციული). */
 const TITLE_TYPE: Record<PropType, DictKey> = {
-  apartment: 'prop.apartment', house: 'prop.houseShort',
-  commercial: 'add.titleType.commercial', land: 'prop.land',
+  apartment: 'prop.apartment',
+  house: 'prop.houseShort',
+  villa: 'prop.villa',
+  commercial: 'add.titleType.commercial',
+  land: 'prop.land',
+  hotel: 'prop.hotel',
 }
 
 /** Keyword-first detail title: "იყიდება 2-ოთახიანი ბინა ვაკეში" — same engine as the /add-listing default. */
