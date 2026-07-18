@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  MessageCircle, BadgeCheck, Calculator, TrendingDown,
+  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
@@ -23,6 +23,7 @@ import { SELLER_ROLE_LABEL } from '@/lib/profiles/roles'
 import MapEmbed from '@/components/MapEmbed'
 import RevealPhone from '@/components/listing/RevealPhone'
 import { parseCoords } from '@/lib/map/geocode'
+import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { blurProps } from '@/lib/media'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
@@ -200,6 +201,10 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
   }, [l.id])
 
   const recentIds = useRecentIds()
+  const metro = useMemo(
+    () => nearestMetro(l.coords.lat, l.coords.lng),
+    [l.coords.lat, l.coords.lng],
+  )
   const recent = useMemo(
     () =>
       recentIds
@@ -326,6 +331,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             <ListingStickerStack
               urgent={l.stickerUrgent}
               priceDrop={l.stickerPriceDrop}
+              inStory={l.inStory}
               size="md"
               className={`absolute left-5 z-[1] ${l.badge ? 'top-[4.25rem]' : 'top-5'}`}
             />
@@ -574,6 +580,12 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
             {parseCoords(l.coords.lat, l.coords.lng) && (
               <div className="mt-8">
                 <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.location')}</h2>
+                {metro && (
+                  <p className="mt-2 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue">
+                    <TrainFront className="h-4 w-4 shrink-0" aria-hidden />
+                    {t('detail.nearMetro')}: {metro.name} · {formatMetroDist(metro)}
+                  </p>
+                )}
                 <div className="relative mt-4 overflow-hidden rounded-card shadow-card">
                   <MapEmbed
                     lat={l.coords.lat}

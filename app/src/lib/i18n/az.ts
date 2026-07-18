@@ -86,6 +86,7 @@ export const az: Dict = {
   'search.checkIn': 'Check-in',
   'search.checkOut': 'Check-out',
   'search.petsOnly': 'Pets allowed',
+  'search.nearMetro': 'Near metro',
   'search.seller': 'Seller',
   'search.sellerOwner': 'Owner',
   'search.sellerAgency': 'Agency',
@@ -130,6 +131,7 @@ export const az: Dict = {
   'detail.share': 'Paylaş',
   'sticker.urgent': 'Təcili',
   'sticker.priceDrop': 'Qiymət endirildi',
+  'sticker.story': 'Story',
   'detail.linkCopied': 'Keçid kopyalandı',
   'detail.fullPrice': 'Tam qiymət',
   'detail.monthlyRent': 'Aylıq kirayə',
@@ -149,6 +151,7 @@ export const az: Dict = {
   'detail.features': 'Xüsusiyyətlər',
   'detail.description': 'Təsvir',
   'detail.location': 'Yer',
+  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Xəritə',
   'detail.map3dSoon': '3D xəritəni aç',
   'detail.mortgage': 'İpoteka kalkulyatoru',
@@ -466,4 +469,14 @@ export const az: Dict = {
 
   // a11y
   'a11y.skipToContent': 'Əsas məzmuna keç',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'Ödəniş uğurludur',
+  'pay.paid.desc': 'Paket artıq elanınızda aktivdir.',
+  'pay.pending.title': 'Ödəniş emal olunur',
+  'pay.pending.desc': 'Bank ödənişi hələ təsdiqləyir — bir neçə saniyədən sonra səhifəni yeniləyin.',
+  'pay.failed.title': 'Ödəniş alınmadı',
+  'pay.failed.desc': 'Məbləğ çıxılmayıb. Elanlarınızdan yenidən cəhd edin.',
+  'pay.back': 'Elanlarım',
+  'pay.order': 'Sifariş',
 }

@@ -14,6 +14,7 @@ import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/cl
 import { db } from "@/lib/db"
 import { attributeListing } from "@/lib/map/attribution"
 import { cityCenter, geocodeListingAddress, parseCoords } from "@/lib/map/geocode"
+import { metroMeters } from "@/lib/map/pois"
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -176,6 +177,7 @@ export async function POST(req: NextRequest) {
     rooms, bedrooms: rooms, bathrooms: baths,
     floor: floor ?? undefined, totalFloors: totalFloors ?? undefined,
     features, images, lat, lng,
+    metroM: metroMeters(lat, lng),
     createdAt: new Date().toISOString(), status: "active",
     tier: "standard",
     tierRank: 0,

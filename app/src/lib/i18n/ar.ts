@@ -86,6 +86,7 @@ export const ar: Dict = {
   'search.checkIn': 'Check-in',
   'search.checkOut': 'Check-out',
   'search.petsOnly': 'Pets allowed',
+  'search.nearMetro': 'Near metro',
   'search.seller': 'Seller',
   'search.sellerOwner': 'Owner',
   'search.sellerAgency': 'Agency',
@@ -130,6 +131,7 @@ export const ar: Dict = {
   'detail.share': 'مشاركة',
   'sticker.urgent': 'عاجل',
   'sticker.priceDrop': 'انخفض السعر',
+  'sticker.story': 'ستوري',
   'detail.linkCopied': 'تم نسخ الرابط',
   'detail.fullPrice': 'السعر الكامل',
   'detail.monthlyRent': 'الإيجار الشهري',
@@ -149,6 +151,7 @@ export const ar: Dict = {
   'detail.features': 'المميزات',
   'detail.description': 'الوصف',
   'detail.location': 'الموقع',
+  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'الخريطة',
   'detail.map3dSoon': 'افتح الخريطة ثلاثية الأبعاد',
   'detail.mortgage': 'حاسبة الرهن العقاري',
@@ -465,4 +468,14 @@ export const ar: Dict = {
 
   // a11y
   'a11y.skipToContent': 'تخطى إلى المحتوى الرئيسي',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'تم الدفع بنجاح',
+  'pay.paid.desc': 'الباقة مفعّلة الآن على إعلانك.',
+  'pay.pending.title': 'الدفع قيد المعالجة',
+  'pay.pending.desc': 'البنك ما زال يؤكد الدفع — أعد تحميل الصفحة بعد ثوانٍ.',
+  'pay.failed.title': 'فشل الدفع',
+  'pay.failed.desc': 'لم يتم خصم أي مبلغ. حاول مجددًا من إعلاناتك.',
+  'pay.back': 'إعلاناتي',
+  'pay.order': 'الطلب',
 }

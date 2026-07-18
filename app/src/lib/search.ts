@@ -13,6 +13,7 @@
 import { Meilisearch, type SearchParams } from "meilisearch"
 import { USD_GEL } from "@/data/listings"
 import { districtSearchValues } from "@/lib/district-canon"
+import { METRO_NEAR_M } from "@/lib/map/pois"
 
 // ---------------------------------------------------------------------------
 // Client singleton
@@ -69,6 +70,8 @@ export interface SearchFilters {
   verifiedOnly?: boolean
   petsOnly?: boolean
   sellerType?: "owner" | "agency"
+  /** Within METRO_NEAR_M of a Tbilisi metro station (indexed as metroM). */
+  nearMetro?: boolean
   /** Daily-rent availability window (YYYY-MM-DD). DB-only — Meili can't express
    * booking overlap, so the route skips Meili when these are set. */
   dailyFrom?: string
@@ -134,6 +137,8 @@ export interface ListingDocument {
   images: string[]
   lat: number
   lng: number
+  /** Meters to nearest Tbilisi metro; 999999 when far / outside catchment. */
+  metroM: number
   createdAt: string
   status: string
   /** ISO — paid color highlight expiry; omit when inactive */
@@ -142,6 +147,8 @@ export interface ListingDocument {
   urgentUntil?: string
   /** ISO — paid „ფასი დაწეულია“ sticker expiry */
   priceDropUntil?: string
+  /** ISO — paid Stories rail expiry */
+  storyUntil?: string
   trustScore?: number
   /** DB ListingTier key; expired paid → "standard" at index time */
   tier: string
@@ -198,6 +205,7 @@ async function ensureIndex(): Promise<boolean> {
       "hasImages",
       "petsAllowed",
       "sellerType",
+      "metroM",
     ])
 
     // Sortable attributes.
@@ -298,6 +306,7 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.verifiedOnly) parts.push("verified = true")
   if (filters.petsOnly) parts.push("petsAllowed = true")
   if (filters.sellerType) parts.push(`sellerType = ${esc(filters.sellerType)}`)
+  if (filters.nearMetro) parts.push(`metroM <= ${METRO_NEAR_M}`)
 
   return parts.join(" AND ")
 }

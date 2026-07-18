@@ -123,12 +123,15 @@ export function useLiveRate(): number {
 }
 
 /**
- * Georgian number formatting: groups of 3 with space, ₾ or $ prefix.
- * ponytail: Intl.NumberFormat handles locale-aware grouping; 'ka' uses space separator.
+ * Georgian number formatting: groups of 3 with (non-breaking) space, ₾ or $ prefix.
+ * ponytail: manual grouping — Intl 'ka' grouping differs between Node (space) and
+ * some browsers (comma), which hydration-mismatched every price on the site.
  */
+const group3 = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+
 export function formatMoney(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK): string {
   const value = currency === 'USD' ? Math.round(gel / rate) : Math.round(gel)
-  const formatted = new Intl.NumberFormat('ka').format(value)
+  const formatted = group3(value)
   return currency === 'USD' ? `$${formatted}` : `${formatted}₾`
 }
 

@@ -17,6 +17,7 @@ import type { Prisma } from "@/generated/prisma/client"
 import {
   activeColorUntil,
   activePriceDropUntil,
+  activeStoryUntil,
   activeUrgentUntil,
   effectiveTierKey,
   tierKeyToBadge,
@@ -100,6 +101,7 @@ export interface Listing {
   highlighted?: boolean
   stickerUrgent?: boolean
   stickerPriceDrop?: boolean
+  inStory?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string
@@ -163,6 +165,9 @@ function rowToListing(row: Record<string, unknown>): Listing {
     stickerPriceDrop: Boolean(
       activePriceDropUntil((r.extendedFields as PromoExtFields | null) ?? null),
     ),
+    inStory: Boolean(
+      activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null),
+    ),
     ai: { score: aiScore, label: aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო" },
     features: (r.features as string[]) ?? [],
     description: (r.description as string) ?? "",
@@ -220,6 +225,25 @@ export async function getAllListings(): Promise<Listing[]> {
     take: 50,
   })
   return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+}
+
+/**
+ * Active Stories rail — paid `storyUntil` still in the future.
+ * ponytail: scan recent actives in memory; JSON path index when story volume is high.
+ */
+export async function getStoryListings(limit = 24): Promise<Listing[]> {
+  const rows = await db.listing.findMany({
+    where: { deletedAt: null, status: "active" },
+    orderBy: { updatedAt: "desc" },
+    take: 200,
+  })
+  const out: Listing[] = []
+  for (const r of rows) {
+    if (!activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null)) continue
+    out.push(rowToListing(r as unknown as Record<string, unknown>))
+    if (out.length >= limit) break
+  }
+  return out
 }
 
 /** Filtered search — mirrors data/listings.ts filterListings(). */

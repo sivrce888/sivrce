@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 import { buildDbWhere, parseSearchParams } from "@/lib/search-filters"
 import { effectiveTierKey } from "@/lib/promo-pricing"
+import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
 
 // buildDbWhere + parseSearchParams live in @/lib/search-filters — shared with
 // the saved-search alert matcher so alerts evaluate the exact search semantics.
@@ -65,6 +66,30 @@ async function dbSearch(filters: SearchFilters) {
     const where = buildDbWhere(filters)
     const orderBy = buildDbOrderBy(filters)
 
+    // ponytail: nearMetro has no SQL column — over-fetch + haversine, then page.
+    // Ceiling ~500 rows; Meili metroM is the real path. Upgrade: PostGIS / metroM column.
+    if (filters.nearMetro) {
+      const rows = await db.listing.findMany({
+        where,
+        orderBy,
+        take: 500,
+        select: LISTING_SELECT,
+      })
+      const near = rows.filter((l) => {
+        const n = nearestMetro(l.lat, l.lng)
+        return n != null && n.meters <= METRO_NEAR_M
+      })
+      const slice = near.slice((page - 1) * pageSize, page * pageSize)
+      return {
+        hits: slice.map(mapDbHit),
+        totalHits: near.length,
+        page,
+        pageSize,
+        totalPages: Math.ceil(near.length / pageSize),
+        source: "db" as const,
+      }
+    }
+
     const [hits, totalHits] = await Promise.all([
       db.listing.findMany({
         where,
@@ -77,24 +102,7 @@ async function dbSearch(filters: SearchFilters) {
     ])
 
     return {
-      hits: hits.map((l) => {
-        const ext = l.extendedFields as {
-          colorUntil?: string
-          urgentUntil?: string
-          priceDropUntil?: string
-        } | null
-        return {
-          ...l,
-          // DB enum "buy" → UI grammar "sale" (read side of the route's deal mapping).
-          dealType: l.dealType === "buy" ? "sale" : l.dealType,
-          // ponytail: flatten agent for the client. DB stores as JSON.
-          agent: l.agent as unknown,
-          colorUntil: ext?.colorUntil,
-          urgentUntil: ext?.urgentUntil,
-          priceDropUntil: ext?.priceDropUntil,
-          tier: effectiveTierKey(l.tier, l.tierExpiresAt),
-        }
-      }),
+      hits: hits.map(mapDbHit),
       totalHits,
       page,
       pageSize,
@@ -112,6 +120,27 @@ async function dbSearch(filters: SearchFilters) {
       source: "db" as const,
       error: "db_error",
     }
+  }
+}
+
+function mapDbHit(
+  l: Prisma.ListingGetPayload<{ select: typeof LISTING_SELECT }>,
+) {
+  const ext = l.extendedFields as {
+    colorUntil?: string
+    urgentUntil?: string
+    priceDropUntil?: string
+    storyUntil?: string
+  } | null
+  return {
+    ...l,
+    dealType: l.dealType === "buy" ? "sale" : l.dealType,
+    agent: l.agent as unknown,
+    colorUntil: ext?.colorUntil,
+    urgentUntil: ext?.urgentUntil,
+    priceDropUntil: ext?.priceDropUntil,
+    storyUntil: ext?.storyUntil,
+    tier: effectiveTierKey(l.tier, l.tierExpiresAt),
   }
 }
 

@@ -134,6 +134,7 @@ const NBH_DATA = neighborhoodsToGeoJSON()
 const POI_SOURCE_ID = 'sivrce-pois'
 const POI_DOT_ID = 'sivrce-pois-dot'
 const POI_LABEL_LAYER_ID = 'sivrce-pois-label'
+const POI_METRO_M_ID = 'sivrce-pois-metro-m'
 const POI_DATA = poisToGeoJSON()
 
 const STATIC_BUILDINGS = mergeMapBuildings(
@@ -305,13 +306,38 @@ function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     filter: poiFilterSpec(POI_DEFAULT_ON),
     paint: {
       'circle-radius': [
-        'interpolate', ['linear'], ['zoom'],
-        11, 3.5, 14, 5.5, 16, 7,
+        'case',
+        ['==', ['get', 'category'], 'metro'],
+        ['interpolate', ['linear'], ['zoom'], 11, 6, 14, 9, 16, 11],
+        ['interpolate', ['linear'], ['zoom'], 11, 3.5, 14, 5.5, 16, 7],
       ],
       'circle-color': ['get', 'color'],
-      'circle-stroke-width': 1.5,
+      'circle-stroke-width': [
+        'case',
+        ['==', ['get', 'category'], 'metro'],
+        2.5,
+        1.5,
+      ],
       'circle-stroke-color': '#FFFFFF',
       'circle-opacity': 0.95,
+    },
+  })
+  // Metro “M” mark — reads as transit, not another amenity dot.
+  map.addLayer({
+    id: POI_METRO_M_ID,
+    type: 'symbol',
+    source: POI_SOURCE_ID,
+    minzoom: 11,
+    filter: ['==', ['get', 'category'], 'metro'],
+    layout: {
+      'text-field': 'M',
+      'text-size': 11,
+      'text-font': ['Noto Sans Bold'],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#FFFFFF',
     },
   })
   map.addLayer({
@@ -445,6 +471,14 @@ function Map3DInner({
     const filter = poiFilterSpec(poiOn)
     map.setFilter(POI_DOT_ID, filter)
     if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, filter)
+    if (map.getLayer(POI_METRO_M_ID)) {
+      map.setFilter(
+        POI_METRO_M_ID,
+        poiOn.includes('metro')
+          ? ['==', ['get', 'category'], 'metro']
+          : ['==', ['get', 'category'], '__none__'],
+      )
+    }
   }, [poiOn])
 
   const togglePoi = useCallback((id: PoiCategory) => {
@@ -880,6 +914,14 @@ function Map3DInner({
         const poiFilter = poiFilterSpec(poiOnRef.current)
         if (map.getLayer(POI_DOT_ID)) map.setFilter(POI_DOT_ID, poiFilter)
         if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
+        if (map.getLayer(POI_METRO_M_ID)) {
+          map.setFilter(
+            POI_METRO_M_ID,
+            poiOnRef.current.includes('metro')
+              ? ['==', ['get', 'category'], 'metro']
+              : ['==', ['get', 'category'], '__none__'],
+          )
+        }
         tightenAttribution(map)
         const showFloors = Boolean(
           selectedRef.current && buildingShowsFloorStack(selectedRef.current),

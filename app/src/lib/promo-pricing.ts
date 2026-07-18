@@ -40,6 +40,7 @@ export const COMPETITOR = {
     super_vip_re: [900, 800, 700, 600] as const, // 1-3 / 4-8 / 9-29 / 30+
     vip_plus_re: [300, 250] as const, // 1-7 / 10+
     vip_re: 100,
+    story: 300, // 1 დღე · სთორი
     facebook: [4500, 9500, 13500] as const, // 3d / 7d / 7d XL
   },
   myhome: {
@@ -114,6 +115,8 @@ export const ADDON_TETRI = {
   sticker_urgent: 400,
   /** 7 დღე — price-drop signal (no SS twin; high intent) */
   sticker_price_drop: 250,
+  /** 1 დღე — SS პარიტეტი 3₾ (scarcity slot, არა micro-undercut) */
+  story: 300,
   /**
    * Turbo = SUPER VIP + ფერი + სასწრაფოდ + bump.
    * À la carte 7d ≈ 77₾ → −20% = 62₾ (SS Turbo ~100₾).
@@ -135,6 +138,7 @@ export const CHECKOUT_ADDONS = [
   "color",
   "sticker_urgent",
   "sticker_price_drop",
+  "story",
   "turbo_7",
   "turbo_14",
   "turbo_30",
@@ -151,6 +155,8 @@ export const COLOR_HIGHLIGHT_DAYS = 7
 /** Paid sticker windows (days). */
 export const STICKER_URGENT_DAYS = 1
 export const STICKER_PRICE_DROP_DAYS = 7
+/** Stories rail window (days) — photo only; video when upload UX ships. */
+export const STORY_DAYS = 1
 
 /** Turbo duration by SKU. */
 export const TURBO_DAYS: Record<"turbo_7" | "turbo_14" | "turbo_30", number> = {
@@ -210,6 +216,7 @@ export type PromoExtFields = {
   colorUntil?: string
   urgentUntil?: string
   priceDropUntil?: string
+  storyUntil?: string
 }
 
 export function activeUrgentUntil(
@@ -224,6 +231,13 @@ export function activePriceDropUntil(
   now: number = Date.now(),
 ): string | undefined {
   return activeIsoUntil(ext?.priceDropUntil, now)
+}
+
+export function activeStoryUntil(
+  ext: PromoExtFields | null | undefined,
+  now: number = Date.now(),
+): string | undefined {
+  return activeIsoUntil(ext?.storyUntil, now)
 }
 
 /** Default duration chip on promo UI (commitment without sticker shock). */
@@ -364,9 +378,10 @@ export function assertPromoPricing(): void {
     ["refresh < MyHome", ADDON_TETRI.refresh_once < COMPETITOR.myhome.refresh_once],
     ["color < MyHome", ADDON_TETRI.color < COMPETITOR.myhome.color],
     ["urgent < SS 5", ADDON_TETRI.sticker_urgent < 500],
+    ["story = SS 3", ADDON_TETRI.story === COMPETITOR.ss.story],
     ["turbo_7 < SS ~100", ADDON_TETRI.turbo_7 < 10000],
     ["turbo_7 < stack", ADDON_TETRI.turbo_7 < 7745],
-    ["checkout addons 10", CHECKOUT_ADDONS.length === 10],
+    ["checkout addons 11", CHECKOUT_ADDONS.length === 11],
     ["tier vip → VIP", tierKeyToBadge("vip") === "VIP"],
     ["tier super_vip → VIP+", tierKeyToBadge("super_vip") === "VIP+"],
     ["tier diamond → SUPER VIP", tierKeyToBadge("diamond") === "SUPER VIP"],

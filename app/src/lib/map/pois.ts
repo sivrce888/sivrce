@@ -27,6 +27,12 @@ export type MapPoi = {
   lng: number
 }
 
+/** ~10 min walk — RE “near metro” default. */
+export const METRO_NEAR_M = 800
+
+/** Beyond this, hide metro chip (not Tbilisi catchment). */
+const METRO_MAX_SHOW_M = 2500
+
 /** Default: metro only — highest RE signal, least clutter. */
 export const POI_DEFAULT_ON: readonly PoiCategory[] = ['metro']
 
@@ -58,6 +64,59 @@ export function isPoiCategory(v: string): v is PoiCategory {
 export const MAP_POIS: MapPoi[] = (raw.pois as MapPoi[]).filter((p) =>
   isPoiCategory(p.category),
 )
+
+export const METRO_STATIONS: MapPoi[] = MAP_POIS.filter((p) => p.category === 'metro')
+
+export type NearMetro = {
+  name: string
+  meters: number
+  walkMin: number
+}
+
+function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6_371_000
+  const toR = Math.PI / 180
+  const dLat = (lat2 - lat1) * toR
+  const dLng = (lng2 - lng1) * toR
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * toR) * Math.cos(lat2 * toR) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)))
+}
+
+/** Nearest Tbilisi metro; null if far / no stations. */
+export function nearestMetro(lat: number, lng: number): NearMetro | null {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || METRO_STATIONS.length === 0) {
+    return null
+  }
+  let best: MapPoi | null = null
+  let bestM = Infinity
+  for (const s of METRO_STATIONS) {
+    const m = haversineM(lat, lng, s.lat, s.lng)
+    if (m < bestM) {
+      bestM = m
+      best = s
+    }
+  }
+  if (!best || bestM > METRO_MAX_SHOW_M) return null
+  const meters = Math.round(bestM)
+  return {
+    name: best.name,
+    meters,
+    walkMin: Math.max(1, Math.round(meters / 80)),
+  }
+}
+
+/** Meters for Meili filter; far listings get a large sentinel. */
+export function metroMeters(lat: number, lng: number): number {
+  const n = nearestMetro(lat, lng)
+  return n ? n.meters : 999_999
+}
+
+export function formatMetroDist(n: NearMetro): string {
+  if (n.meters < 1000) return `${n.meters} m · ${n.walkMin} min`
+  return `${(n.meters / 1000).toFixed(1)} km · ${n.walkMin} min`
+}
 
 export function poisToGeoJSON(
   pois: MapPoi[] = MAP_POIS,

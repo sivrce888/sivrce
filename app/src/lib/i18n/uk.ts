@@ -86,6 +86,7 @@ export const uk: Dict = {
   'search.checkIn': 'Check-in',
   'search.checkOut': 'Check-out',
   'search.petsOnly': 'Pets allowed',
+  'search.nearMetro': 'Near metro',
   'search.seller': 'Seller',
   'search.sellerOwner': 'Owner',
   'search.sellerAgency': 'Agency',
@@ -130,6 +131,7 @@ export const uk: Dict = {
   'detail.share': 'Поділитися',
   'sticker.urgent': 'Терміново',
   'sticker.priceDrop': 'Ціну знижено',
+  'sticker.story': 'Story',
   'detail.linkCopied': 'Посилання скопійовано',
   'detail.fullPrice': 'Повна ціна',
   'detail.monthlyRent': 'Місячна оренда',
@@ -149,6 +151,7 @@ export const uk: Dict = {
   'detail.features': 'Особливості',
   'detail.description': 'Опис',
   'detail.location': 'Розташування',
+  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Мапа',
   'detail.map3dSoon': 'Відкрити 3D-мапу',
   'detail.mortgage': 'Іпотечний калькулятор',
@@ -466,4 +469,14 @@ export const uk: Dict = {
 
   // a11y
   'a11y.skipToContent': 'Перейти до основного вмісту',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'Оплата успішна',
+  'pay.paid.desc': 'Пакет уже активний у вашому оголошенні.',
+  'pay.pending.title': 'Платіж обробляється',
+  'pay.pending.desc': 'Банк ще підтверджує оплату — оновіть сторінку за кілька секунд.',
+  'pay.failed.title': 'Оплата не вдалася',
+  'pay.failed.desc': 'Кошти не списано. Спробуйте знову зі своїх оголошень.',
+  'pay.back': 'Мої оголошення',
+  'pay.order': 'Замовлення',
 }
