@@ -272,12 +272,27 @@ assert.ok(
 import {
   buildingFloorCount,
   buildingFloors,
+  buildingShowsFloorStack,
   floorTooltipKa,
   floorsToGeoJSON,
 } from './floors'
 
 const towerCount = buildingFloorCount(tower!)
 assert.ok(towerCount >= Math.max(...fixtures.filter((l) => l.buildingSlug === 'chavchavadze-47').map((l) => l.floor)), 'floor count below listing floor')
+assert.equal(buildingShowsFloorStack(tower!), true, 'multi-unit tower must open floor stack')
+assert.equal(
+  buildingShowsFloorStack({
+    ...tower!,
+    inventory: undefined,
+    status: 'active',
+    listings: tower!.listings.slice(0, 1),
+    floors: 2,
+    heightM: 24,
+  }),
+  false,
+  'single listing / short stack must stay solid extrusion',
+)
+assert.equal(buildingShowsFloorStack(ghosts[0]!), true, 'construction ghost opens floor stack')
 
 const towerFloors = buildingFloors(tower!, 'all')
 assert.equal(towerFloors.length, towerCount)
@@ -323,6 +338,7 @@ const invTip = floorTooltipKa(invAll[0]!, { ghost: false, showPrice: true })
 assert.equal(invTip.lines.length, 2)
 assert.ok(invTip.lines[1]!.includes('/მ²-დან'), 'inventory tooltip shows ₾/m²')
 assert.equal(floorsToGeoJSON(inventoryTower!).features.length, 3, 'inventory stack renders all floors')
+assert.equal(buildingShowsFloorStack(inventoryTower!), true, 'inventory development opens floor stack')
 
 // ——— merge gate: shadowed DB rows donate floor inventory to static clusters ———
 
