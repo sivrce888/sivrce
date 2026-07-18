@@ -107,10 +107,17 @@ export const CONFIG_KEYS = Object.keys(CONFIG_REGISTRY) as ConfigKey[]
 /** All registry rows in one query; cached + tagged so admin writes can bust it. */
 const readConfigRows = unstable_cache(
   async (): Promise<Partial<Record<ConfigKey, unknown>>> => {
-    const rows = await db.systemConfig.findMany({
-      where: { id: { in: CONFIG_KEYS } },
-      select: { id: true, value: true },
-    })
+    // ponytail: same fallback as cms.ts — config is decoration with coded
+    // defaults; a DB hiccup during build/render must not fail the page.
+    let rows: { id: string; value: unknown }[] = []
+    try {
+      rows = await db.systemConfig.findMany({
+        where: { id: { in: CONFIG_KEYS } },
+        select: { id: true, value: true },
+      })
+    } catch (e) {
+      console.warn("[config] read failed, using defaults:", e instanceof Error ? e.message : e)
+    }
     const map: Partial<Record<ConfigKey, unknown>> = {}
     for (const row of rows) {
       if ((CONFIG_KEYS as string[]).includes(row.id)) {
