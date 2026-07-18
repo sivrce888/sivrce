@@ -10,10 +10,11 @@ import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   DEVELOPERS,
+  getDeveloper,
   listingsByCity,
   listingCountByCity,
 } from '@/data/professionals'
-import { getLiveDeveloper, projectsLiveByDeveloper } from '@/lib/directory-live'
+import { projectsLiveByDeveloper } from '@/lib/directory-live'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
@@ -28,7 +29,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const d = await getLiveDeveloper(slug)
+  const d = getDeveloper(slug)
   if (!d) return {}
   const description = d.description.ka.replace(/\s+/g, ' ').slice(0, 155)
   return {
@@ -42,14 +43,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge/developers/${d.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      ...(d.logoUrl ? { images: [{ url: d.logoUrl }] } : {}),
     },
   }
 }
 
 export default async function DeveloperPage({ params }: PageProps) {
   const { slug } = await params
-  const dev = await getLiveDeveloper(slug)
+  const dev = getDeveloper(slug)
   if (!dev) notFound()
 
   const [aggregate, projects, listings] = await Promise.all([
@@ -63,12 +63,6 @@ export default async function DeveloperPage({ params }: PageProps) {
     ? projects.reduce((a, b) => (b.done > a.done ? b : a))
     : null
 
-  const coverSrc = flagship?.img
-    ? flagship.img.startsWith('http')
-      ? flagship.img
-      : `https://sivrce.ge${flagship.img}`
-    : undefined
-
   const orgLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -76,8 +70,7 @@ export default async function DeveloperPage({ params }: PageProps) {
     alternateName: dev.name.ka,
     url: `https://sivrce.ge/developers/${dev.slug}`,
     telephone: dev.phone,
-    ...(dev.logoUrl && { logo: dev.logoUrl }),
-    ...(coverSrc && { image: coverSrc }),
+    ...(flagship && { image: `https://sivrce.ge${flagship.img}` }),
     address: {
       '@type': 'PostalAddress',
       addressLocality: dev.city,
@@ -118,7 +111,6 @@ export default async function DeveloperPage({ params }: PageProps) {
           city={dev.city}
           verified={dev.verified}
           phone={dev.phone}
-          logoUrl={dev.logoUrl}
           stats={[
             { key: 'yearsActive', value: dev.yearsActive },
             { key: 'projectsDone', value: dev.projectsDone },
