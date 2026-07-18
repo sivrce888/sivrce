@@ -27,9 +27,10 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
 
   // UI speaks "sale"/"pledge", DB speaks "buy"/"mortgage" (DEALS map in
   // /api/listings). Normalize once at the trust boundary — meili and DB
-  // filters both consume this.
-  const dealParam = sp.get("dealType")
+  // filters both consume this. Accept short aliases used in /search URLs.
+  const dealParam = sp.get("dealType") ?? sp.get("deal")
   const dealType = dealParam === "sale" ? "buy" : dealParam === "pledge" ? "mortgage" : dealParam
+  const propertyType = sp.get("propertyType") ?? sp.get("type") ?? undefined
 
   // Free-text / location strings are capped at the trust boundary — a 10MB q
   // would otherwise flow into Meili, ILIKE and Meili filter strings.
@@ -61,7 +62,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
   return {
     q: str("q"),
     dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
-    propertyType: (sp.get("propertyType") as SearchFilters["propertyType"]) ?? undefined,
+    propertyType: (propertyType as SearchFilters["propertyType"]) ?? undefined,
     city: str("city"),
     district: str("district"),
     minPrice: num("minPrice"),

@@ -152,6 +152,7 @@ export async function POST(req: NextRequest) {
         rentType: asStr(body.rentType, 60),
         guests: asInt(body.guests, 1, 50),
         areaUnit: body.areaUnit === "ha" ? "ha" : "m2",
+        onlineView: body.onlineView === true,
       },
       agent: { name, phone, agency: "" },
       listingPhone: phone,

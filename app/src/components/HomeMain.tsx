@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Navbar from '@/components/sections/Navbar'
 import Hero from '@/components/sections/Hero'
 import Stats from '@/components/sections/Stats'
@@ -24,27 +25,38 @@ async function getFeatured(): Promise<Listing[]> {
   return LISTINGS.slice(0, 6)
 }
 
-/** Homepage section assembly — lang drives CMS block copy on server sections. */
-export default async function HomeMain({ lang = 'ka' }: { lang?: Lang }) {
+/** Below-fold: await DB here so Hero paints without waiting on Prisma. */
+async function HomeBelowFold({ lang }: { lang: Lang }) {
   const [featured, stories] = await Promise.all([
     getFeatured(),
     getStoryListings().catch(() => [] as StoryListing[]),
   ])
   return (
+    <>
+      <StoriesRail items={stories} />
+      <Stats />
+      <Categories lang={lang} />
+      <Collections lang={lang} />
+      <Listings items={featured} />
+      <MapSection />
+      <AISection />
+      <Projects />
+      <Services lang={lang} />
+      <CTA lang={lang} />
+    </>
+  )
+}
+
+/** Homepage section assembly — lang drives CMS block copy on server sections. */
+export default function HomeMain({ lang = 'ka' }: { lang?: Lang }) {
+  return (
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main">
         <Hero lang={lang} />
-        <StoriesRail items={stories} />
-        <Stats />
-        <Categories lang={lang} />
-        <Collections lang={lang} />
-        <Listings items={featured} />
-        <MapSection />
-        <AISection />
-        <Projects />
-        <Services lang={lang} />
-        <CTA lang={lang} />
+        <Suspense fallback={null}>
+          <HomeBelowFold lang={lang} />
+        </Suspense>
       </main>
       <Footer />
     </div>

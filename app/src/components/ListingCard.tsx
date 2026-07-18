@@ -252,6 +252,10 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         <span className="mx-1 text-sv-ink/20" aria-hidden="true">·</span>
         <WeatherBadge city={l.city} className="text-sv-ink/40" />
       </p>
+      {/* Competitors show ₾/m² in card body, not only image overlay */}
+      {l.dealType === 'sale' && (
+        <p className="mt-1.5 text-[13px] font-extrabold text-sv-ink/65">{formatPerM2(l, currency)}</p>
+      )}
       {metro && (
         <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-bold text-sv-blue">
           <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />

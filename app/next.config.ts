@@ -99,6 +99,9 @@ const nextConfig: NextConfig = {
     cpus: 2,
     // Tree-shake barrel imports (lucide already defaulted by Next).
     optimizePackageImports: ["framer-motion", "@base-ui/react"],
+    // ponytail: inline critical CSS → drop render-blocking <link>s (~600ms LCP).
+    // Ceiling: large CSS grows HTML; revisit if homepage HTML > ~50KB gzip.
+    inlineCss: true,
   },
   images: {
     // AVIF first → WebP fallback. Fewer sizes = fewer Image Optimization variants.
