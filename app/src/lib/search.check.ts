@@ -54,6 +54,7 @@ async function main() {
     images: [],
     lat: 41.71,
     lng: 44.76,
+    metroM: 400,
     createdAt: new Date().toISOString(),
     status: "active",
     tier: "standard",

@@ -28,6 +28,7 @@ import {
   TrendingDown,
   X,
   Zap,
+  CircleDot,
 } from "lucide-react"
 
 import LocalizedLink from "@/components/LocalizedLink"
@@ -133,6 +134,14 @@ const BOOST_PILLS: Array<{
     addon: "turbo_7",
     icon: Rocket,
     className: "bg-gradient-to-r from-sv-blue to-sv-violet text-white",
+  },
+  {
+    key: "story",
+    label: "სთორი",
+    kind: "addon",
+    addon: "story",
+    icon: CircleDot,
+    className: "bg-gradient-to-r from-sv-orange to-sv-orange-deep text-white",
   },
   {
     key: "sticker_urgent",

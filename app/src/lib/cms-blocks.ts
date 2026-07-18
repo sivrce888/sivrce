@@ -54,6 +54,7 @@ export const CMS_BLOCKS = {
   'home.categories.sub': 'ყველა ტიპის უძრავი ქონება — ერთ სივრცეში',
   'home.collections.title': 'კოლექციები',
   'home.collections.sub': 'დღიური ქირა — შერჩეული თემებით',
+  'home.stories.kicker': 'Stories',
   'home.listings.kicker': 'არჩეული შეთავაზებები',
   'home.listings.title': 'SUPER VIP განცხადებები',
   'home.listings.sub': 'პრემიუმ ქონებები AI ფასის შეფასებით',

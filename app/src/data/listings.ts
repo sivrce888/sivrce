@@ -49,6 +49,8 @@ export interface Listing {
   stickerUrgent?: boolean
   /** Paid „ფასი დაწეულია“ sticker */
   stickerPriceDrop?: boolean
+  /** Paid homepage Stories rail slot */
+  inStory?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string

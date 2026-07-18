@@ -78,6 +78,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     hasPhoto: sp.get("photo") === "1" || undefined,
     verifiedOnly: sp.get("verified") === "1" || undefined,
     petsOnly: sp.get("pets") === "1" || undefined,
+    nearMetro: sp.get("metro") === "1" || undefined,
     sellerType: sellerParam === "owner" || sellerParam === "agency" ? sellerParam : undefined,
     ...dailyDates,
     currency: curParam === "GEL" ? "GEL" : "USD",

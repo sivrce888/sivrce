@@ -86,6 +86,7 @@ export const ru: Dict = {
   'search.checkIn': 'Заезд',
   'search.checkOut': 'Выезд',
   'search.petsOnly': 'С питомцами',
+  'search.nearMetro': 'У метро',
   'search.seller': 'Продавец',
   'search.sellerOwner': 'Собственник',
   'search.sellerAgency': 'Агентство',
@@ -130,6 +131,7 @@ export const ru: Dict = {
   'detail.share': 'Поделиться',
   'sticker.urgent': 'Срочно',
   'sticker.priceDrop': 'Цена снижена',
+  'sticker.story': 'Story',
   'detail.linkCopied': 'Ссылка скопирована',
   'detail.fullPrice': 'Полная цена',
   'detail.monthlyRent': 'Аренда в месяц',
@@ -149,6 +151,7 @@ export const ru: Dict = {
   'detail.features': 'Особенности',
   'detail.description': 'Описание',
   'detail.location': 'Расположение',
+  'detail.nearMetro': 'Ближайшее метро',
   'detail.map': 'Карта',
   'detail.map3dSoon': 'Открыть 3D карту',
   'detail.mortgage': 'Ипотечный калькулятор',
@@ -464,4 +467,14 @@ export const ru: Dict = {
 
   // a11y
   'a11y.skipToContent': 'Перейти к основному содержимому',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'Оплата прошла успешно',
+  'pay.paid.desc': 'Пакет уже активен на вашем объявлении.',
+  'pay.pending.title': 'Платёж обрабатывается',
+  'pay.pending.desc': 'Банк ещё подтверждает оплату — обновите страницу через несколько секунд.',
+  'pay.failed.title': 'Оплата не удалась',
+  'pay.failed.desc': 'Средства не списаны. Попробуйте снова из списка объявлений.',
+  'pay.back': 'Мои объявления',
+  'pay.order': 'Заказ',
 }

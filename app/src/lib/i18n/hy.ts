@@ -86,6 +86,7 @@ export const hy: Dict = {
   'search.checkIn': 'Check-in',
   'search.checkOut': 'Check-out',
   'search.petsOnly': 'Pets allowed',
+  'search.nearMetro': 'Near metro',
   'search.seller': 'Seller',
   'search.sellerOwner': 'Owner',
   'search.sellerAgency': 'Agency',
@@ -130,6 +131,7 @@ export const hy: Dict = {
   'detail.share': 'Կիսվել',
   'sticker.urgent': 'Շտապ',
   'sticker.priceDrop': 'Գինը իջեցված է',
+  'sticker.story': 'Ստորի',
   'detail.linkCopied': 'Հղումը պատճենվեց',
   'detail.fullPrice': 'Ամբողջական գին',
   'detail.monthlyRent': 'Ամսավարձ',
@@ -149,6 +151,7 @@ export const hy: Dict = {
   'detail.features': 'Առանձնահատկություններ',
   'detail.description': 'Նկարագրություն',
   'detail.location': 'Տեղադրություն',
+  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Քարտեզ',
   'detail.map3dSoon': 'Բացել 3D քարտեզը',
   'detail.mortgage': 'Հիպոթեքի հաշվիչ',
@@ -466,4 +469,14 @@ export const hy: Dict = {
 
   // a11y
   'a11y.skipToContent': 'Անցնել հիմնական բովանդակությանը',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'Վճարումը հաջողվեց',
+  'pay.paid.desc': 'Փաթեթն արդեն ակտիվ է ձեր հայտարարության վրա:',
+  'pay.pending.title': 'Վճարումը մշակվում է',
+  'pay.pending.desc': 'Բանկը դեռ հաստատում է վճարումը — թարմացրեք էջը մի քանի վայրկյանից:',
+  'pay.failed.title': 'Վճարումը ձախողվեց',
+  'pay.failed.desc': 'Գումարը չի գանձվել: Փորձեք նորից ձեր հայտարարություններից:',
+  'pay.back': 'Իմ հայտարարությունները',
+  'pay.order': 'Պատվեր',
 }

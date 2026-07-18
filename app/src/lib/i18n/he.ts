@@ -86,6 +86,7 @@ export const he: Dict = {
   'search.checkIn': 'Check-in',
   'search.checkOut': 'Check-out',
   'search.petsOnly': 'Pets allowed',
+  'search.nearMetro': 'Near metro',
   'search.seller': 'Seller',
   'search.sellerOwner': 'Owner',
   'search.sellerAgency': 'Agency',
@@ -130,6 +131,7 @@ export const he: Dict = {
   'detail.share': 'שיתוף',
   'sticker.urgent': 'דחוף',
   'sticker.priceDrop': 'המחיר ירד',
+  'sticker.story': 'סטורי',
   'detail.linkCopied': 'הקישור הועתק',
   'detail.fullPrice': 'מחיר מלא',
   'detail.monthlyRent': 'שכירות חודשית',
@@ -149,6 +151,7 @@ export const he: Dict = {
   'detail.features': 'מאפיינים',
   'detail.description': 'תיאור',
   'detail.location': 'מיקום',
+  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'מפה',
   'detail.map3dSoon': 'פתח מפת תלת-ממד',
   'detail.mortgage': 'מחשבון משכנתה',
@@ -465,4 +468,14 @@ export const he: Dict = {
 
   // a11y
   'a11y.skipToContent': 'דלג לתוכן הראשי',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'התשלום הצליח',
+  'pay.paid.desc': 'החבילה פעילה כעת במודעה שלך.',
+  'pay.pending.title': 'התשלום בעיבוד',
+  'pay.pending.desc': 'הבנק עדיין מאשר את התשלום — רענן את הדף בעוד כמה שניות.',
+  'pay.failed.title': 'התשלום נכשל',
+  'pay.failed.desc': 'לא חויבת. נסה שוב מהמודעות שלך.',
+  'pay.back': 'המודעות שלי',
+  'pay.order': 'הזמנה',
 }

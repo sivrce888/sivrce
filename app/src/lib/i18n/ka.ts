@@ -85,6 +85,7 @@ export const ka = {
   'search.checkIn': 'შესვლა',
   'search.checkOut': 'გასვლა',
   'search.petsOnly': 'შინაური ცხოველით',
+  'search.nearMetro': 'მეტროსთან',
   'search.seller': 'გამყიდველი',
   'search.sellerOwner': 'მეპატრონე',
   'search.sellerAgency': 'სააგენტო',
@@ -130,6 +131,7 @@ export const ka = {
   'detail.share': 'გაზიარება',
   'sticker.urgent': 'სასწრაფოდ',
   'sticker.priceDrop': 'ფასი დაწეულია',
+  'sticker.story': 'სთორი',
   'detail.linkCopied': 'ბმული დაკოპირდა',
   'detail.fullPrice': 'სრული ფასი',
   'detail.monthlyRent': 'თვიური ქირა',
@@ -149,6 +151,7 @@ export const ka = {
   'detail.features': 'მახასიათებლები',
   'detail.description': 'აღწერა',
   'detail.location': 'მდებარეობა',
+  'detail.nearMetro': 'უახლოესი მეტრო',
   'detail.map': 'რუკა',
   'detail.map3dSoon': 'გახსენი 3D რუკა',
   'detail.mortgage': 'იპოთეკის კალკულატორი',
@@ -464,6 +467,16 @@ export const ka = {
 
   // a11y
   'a11y.skipToContent': 'მთავარ შინაარსზე გადასვლა',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'გადახდა წარმატებით დასრულდა',
+  'pay.paid.desc': 'პაკეტი უკვე აქტიურია შენს განცხადებაზე.',
+  'pay.pending.title': 'გადახდა მუშავდება',
+  'pay.pending.desc': 'ბანკი ჯერ ადასტურებს გადახდას — განახლე გვერდი რამდენიმე წამში.',
+  'pay.failed.title': 'გადახდა ვერ შესრულდა',
+  'pay.failed.desc': 'თანხა არ ჩამოჭრილა. სცადე ხელახლა შენი განცხადებებიდან.',
+  'pay.back': 'ჩემი განცხადებები',
+  'pay.order': 'შეკვეთა',
 } as const
 
 export type DictKey = keyof typeof ka

@@ -184,8 +184,9 @@ export default function PromoPricingGrid() {
         ტარიფები უძრავი ქონებისთვის. Turbo {formatGel(ADDON_TETRI.turbo_7)} /{" "}
         {formatGel(ADDON_TETRI.turbo_14)} / {formatGel(ADDON_TETRI.turbo_30)} · სასწრაფოდ{" "}
         {formatGel(ADDON_TETRI.sticker_urgent)} · ფასი↓ {formatGel(ADDON_TETRI.sticker_price_drop)} ·
-        განახლება {formatGel(ADDON_TETRI.refresh_once)} · ფერი {formatGel(ADDON_TETRI.color)} ·
-        Facebook {formatGel(ADDON_TETRI.facebook)}+. სხვა რუბრიკები — უფრო იაფი.
+        სთორი {formatGel(ADDON_TETRI.story)} · განახლება {formatGel(ADDON_TETRI.refresh_once)} · ფერი{" "}
+        {formatGel(ADDON_TETRI.color)} · Facebook {formatGel(ADDON_TETRI.facebook)}+. სხვა რუბრიკები —
+        უფრო იაფი.
       </p>
     </div>
   )

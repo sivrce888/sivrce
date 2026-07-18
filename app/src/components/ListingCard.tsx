@@ -7,7 +7,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
-  TrendingDown,
+  TrendingDown, TrainFront, CircleDot,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
@@ -20,6 +20,7 @@ import { blurProps } from '@/lib/media'
 import { useSocialSignals } from '@/lib/social-proof'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
+import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 
 /* Icon map for card overlays — mirrors Collections.tsx */
 const SIGNAL_ICON: Record<(typeof DAILY_SIGNAL_KEYS)[number], LucideIcon> = {
@@ -44,20 +45,28 @@ export const BADGE_STYLE: Record<NonNullable<Listing['badge']>, string> = {
 export function ListingStickerStack({
   urgent,
   priceDrop,
+  inStory,
   className = '',
   size = 'sm',
 }: {
   urgent?: boolean
   priceDrop?: boolean
+  inStory?: boolean
   className?: string
   size?: 'sm' | 'md'
 }) {
   const { t } = useI18n()
-  if (!urgent && !priceDrop) return null
+  if (!urgent && !priceDrop && !inStory) return null
   const pad = size === 'md' ? 'px-3 py-1.5 text-[11px]' : 'px-2.5 py-1 text-[10px]'
   const icon = size === 'md' ? 'h-3.5 w-3.5' : 'h-3 w-3'
   return (
     <div className={`flex flex-col items-start gap-1 ${className}`}>
+      {inStory ? (
+        <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-violet to-sv-blue font-black tracking-wide text-white shadow-glow-blue-sm ${pad}`}>
+          <CircleDot className={icon} aria-hidden />
+          {t('sticker.story')}
+        </span>
+      ) : null}
       {urgent ? (
         <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep font-black tracking-wide text-white shadow-glow-orange ${pad}`}>
           <Zap className={icon} aria-hidden />
@@ -112,6 +121,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const fav = has(l.id)
   const signals = useSocialSignals(l.views, l.postedAt)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
+  const metro = nearestMetro(l.coords.lat, l.coords.lng)
 
   const priceGEL = l.priceGEL
   const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
@@ -177,6 +187,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       <ListingStickerStack
         urgent={l.stickerUrgent}
         priceDrop={l.stickerPriceDrop}
+        inStory={l.inStory}
         className={`absolute left-4 z-[1] ${
           l.badge || (signals.isHot && !l.stickerUrgent) || (signals.isTrending && !l.stickerUrgent)
             ? 'top-14'
@@ -240,6 +251,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         <span className="mx-1 text-sv-ink/20" aria-hidden="true">·</span>
         <WeatherBadge city={l.city} className="text-sv-ink/40" />
       </p>
+      {metro && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-bold text-sv-blue">
+          <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span className="truncate">
+            {metro.name} · {formatMetroDist(metro)}
+          </span>
+        </p>
+      )}
       <div className="mt-4 flex items-center gap-4 border-t border-sv-ink/[0.06] pt-4 text-[13px] font-bold text-sv-ink/70">
         <span className="flex items-center gap-1.5"><BedDouble className="h-4 w-4 text-sv-ink/40" /> {l.beds > 0 ? l.beds : '—'}</span>
         <span className="flex items-center gap-1.5"><Bath className="h-4 w-4 text-sv-ink/40" /> {l.baths > 0 ? l.baths : '—'}</span>

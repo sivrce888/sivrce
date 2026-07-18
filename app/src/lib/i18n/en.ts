@@ -86,6 +86,7 @@ export const en: Dict = {
   'search.checkIn': 'Check-in',
   'search.checkOut': 'Check-out',
   'search.petsOnly': 'Pets allowed',
+  'search.nearMetro': 'Near metro',
   'search.seller': 'Seller',
   'search.sellerOwner': 'Owner',
   'search.sellerAgency': 'Agency',
@@ -130,6 +131,7 @@ export const en: Dict = {
   'detail.share': 'Share',
   'sticker.urgent': 'Urgent',
   'sticker.priceDrop': 'Price dropped',
+  'sticker.story': 'Story',
   'detail.linkCopied': 'Link copied',
   'detail.fullPrice': 'Full price',
   'detail.monthlyRent': 'Monthly rent',
@@ -149,6 +151,7 @@ export const en: Dict = {
   'detail.features': 'Features',
   'detail.description': 'Description',
   'detail.location': 'Location',
+  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Map',
   'detail.map3dSoon': 'Open 3D map',
   'detail.mortgage': 'Mortgage calculator',
@@ -464,4 +467,14 @@ export const en: Dict = {
 
   // a11y
   'a11y.skipToContent': 'Skip to main content',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'Payment successful',
+  'pay.paid.desc': 'The package is now active on your listing.',
+  'pay.pending.title': 'Payment processing',
+  'pay.pending.desc': 'The bank is still confirming your payment — reload this page in a few seconds.',
+  'pay.failed.title': 'Payment failed',
+  'pay.failed.desc': 'Nothing was charged. Try again from your listings.',
+  'pay.back': 'My listings',
+  'pay.order': 'Order',
 }

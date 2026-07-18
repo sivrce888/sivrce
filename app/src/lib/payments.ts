@@ -21,10 +21,15 @@ import { USD_GEL } from "@/data/listings"
 import { revalidateTag } from "next/cache"
 import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
 import { deleteListing, indexListing, type ListingDocument } from "@/lib/search"
+import { metroMeters } from "@/lib/map/pois"
 import {
   activeColorUntil,
+  activePriceDropUntil,
+  activeStoryUntil,
+  activeUrgentUntil,
   addonPriceTetri,
   COLOR_HIGHLIGHT_DAYS,
+  STORY_DAYS,
   effectiveTierKey,
   extendIso,
   isCheckoutAddon,
@@ -655,6 +660,18 @@ async function applyEntitlementTx(
       where: { id: order.listingId },
       data: { extendedFields: { ...prev, [field]: expiresAt.toISOString() } as Prisma.InputJsonValue },
     })
+  } else if (addon === "story") {
+    durationDays = STORY_DAYS
+    expiresAt = extendIso(prev.storyUntil, STORY_DAYS, now)
+    await tx.listing.update({
+      where: { id: order.listingId },
+      data: {
+        extendedFields: {
+          ...prev,
+          storyUntil: expiresAt.toISOString(),
+        } as Prisma.InputJsonValue,
+      },
+    })
   } else if (isTurboAddon(addon)) {
     // Turbo = SUPER VIP + color + urgent sticker + freshness bump, N days.
     durationDays = TURBO_DAYS[addon]
@@ -702,6 +719,9 @@ type ExtFields = {
   condition?: string
   buildingStatus?: string
   colorUntil?: string
+  urgentUntil?: string
+  priceDropUntil?: string
+  storyUntil?: string
 }
 
 /** Reindex active listing; remove from Meili when inactive/missing. */
@@ -779,9 +799,13 @@ export async function reindexListingById(listingId: string): Promise<void> {
     images: (listing.images as string[]) ?? [],
     lat: listing.lat,
     lng: listing.lng,
+    metroM: metroMeters(listing.lat, listing.lng),
     createdAt: listing.createdAt.toISOString(),
     status: listing.status,
     colorUntil: activeColorUntil(ext),
+    urgentUntil: activeUrgentUntil(ext),
+    priceDropUntil: activePriceDropUntil(ext),
+    storyUntil: activeStoryUntil(ext),
     trustScore: listing.trustScore,
     tier: tierKey,
     tierRank: tierRankOf(listing.tier, listing.tierExpiresAt),

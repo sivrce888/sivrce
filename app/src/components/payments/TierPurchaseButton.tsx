@@ -13,6 +13,7 @@ import {
   Zap,
   TrendingDown,
   Rocket,
+  CircleDot,
 } from "lucide-react"
 import {
   ADDON_TETRI,
@@ -74,6 +75,13 @@ const ADDONS: Array<{
     description: "SUPER VIP + ფერი + სასწრაფოდ + bump",
     priceTetri: ADDON_TETRI.turbo_7,
     icon: Rocket,
+  },
+  {
+    key: "story",
+    label: "სთორი · 1 დღე",
+    description: "მთავარი გვერდის Stories ზოლი · 3₾",
+    priceTetri: ADDON_TETRI.story,
+    icon: CircleDot,
   },
   {
     key: "sticker_urgent",

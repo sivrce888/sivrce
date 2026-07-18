@@ -16,9 +16,11 @@ import {
   COLOR_HIGHLIGHT_DAYS,
   STICKER_URGENT_DAYS,
   STICKER_PRICE_DROP_DAYS,
+  STORY_DAYS,
   activeColorUntil,
   activeUrgentUntil,
   activePriceDropUntil,
+  activeStoryUntil,
   extendIso,
 } from "./promo-pricing"
 
@@ -45,7 +47,9 @@ if (addonPriceTetri("color") !== ADDON_TETRI.color) throw new Error("addon price
 if (COLOR_HIGHLIGHT_DAYS !== 7) throw new Error("color days")
 if (STICKER_URGENT_DAYS !== 1) throw new Error("urgent days")
 if (STICKER_PRICE_DROP_DAYS !== 7) throw new Error("price-drop days")
+if (STORY_DAYS !== 1) throw new Error("story days")
 if (TURBO_DAYS.turbo_7 !== 7) throw new Error("turbo days")
+if (!isCheckoutAddon("story")) throw new Error("story addon")
 if (activeColorUntil({ colorUntil: new Date(Date.now() + 60_000).toISOString() }) == null) {
   throw new Error("color active")
 }
@@ -58,6 +62,13 @@ if (activeUrgentUntil({ urgentUntil: new Date(Date.now() + 60_000).toISOString()
 if (activePriceDropUntil({ priceDropUntil: new Date(0).toISOString() }) != null) {
   throw new Error("price-drop expired")
 }
+if (activeStoryUntil({ storyUntil: new Date(Date.now() + 60_000).toISOString() }) == null) {
+  throw new Error("story active")
+}
+if (activeStoryUntil({ storyUntil: new Date(0).toISOString() }) != null) {
+  throw new Error("story expired")
+}
+if (ADDON_TETRI.story !== COMPETITOR.ss.story) throw new Error("story must match SS 3")
 const stacked = extendIso(new Date(Date.now() + 86_400_000).toISOString(), 1)
 if (stacked.getTime() < Date.now() + 86_400_000) throw new Error("extend stacks")
 
@@ -89,4 +100,5 @@ console.log(
   `Turbo ${formatGel(ADDON_TETRI.turbo_7)}/${formatGel(ADDON_TETRI.turbo_14)}/${formatGel(ADDON_TETRI.turbo_30)}`,
   `· urgent ${formatGel(ADDON_TETRI.sticker_urgent)}`,
   `· price↓ ${formatGel(ADDON_TETRI.sticker_price_drop)}`,
+  `· story ${formatGel(ADDON_TETRI.story)}`,
 )

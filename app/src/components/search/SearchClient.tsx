@@ -142,6 +142,9 @@ function mapHit(h: Record<string, unknown>): Listing {
     stickerPriceDrop: Boolean(
       h.priceDropUntil && Date.parse(String(h.priceDropUntil)) > Date.now(),
     ),
+    inStory: Boolean(
+      h.storyUntil && Date.parse(String(h.storyUntil)) > Date.now(),
+    ),
   }
 }
 
@@ -206,6 +209,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const photo = params.get('photo') === '1'
   const verifiedOnly = params.get('verified') === '1'
   const pets = params.get('pets') === '1'
+  const nearMetro = params.get('metro') === '1'
   const sellerParam = params.get('seller')
   const seller: 'owner' | 'agency' | undefined =
     sellerParam === 'owner' || sellerParam === 'agency' ? sellerParam : undefined
@@ -305,6 +309,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         if (photo) sp.set('photo', '1')
         if (verifiedOnly) sp.set('verified', '1')
         if (pets) sp.set('pets', '1')
+        if (nearMetro) sp.set('metro', '1')
         if (seller) sp.set('seller', seller)
         if (from) sp.set('from', from)
         if (to) sp.set('to', to)
@@ -353,7 +358,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const moreCount = (beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
     + cond.length + bstat.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
-    + (pets ? 1 : 0) + (seller ? 1 : 0)
+    + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0)
   const [moreOpen, setMoreOpen] = useState(moreCount > 0)
 
   // Sheet: Escape to close + body scroll lock while open.
@@ -421,6 +426,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
   if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
   if (pets) chips.push({ key: 'pets', label: t('search.petsOnly'), clear: () => patchParams({ pets: undefined }) })
+  if (nearMetro) chips.push({ key: 'metro', label: t('search.nearMetro'), clear: () => patchParams({ metro: undefined }) })
   if (seller) chips.push({ key: 'seller', label: t(seller === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency'), clear: () => patchParams({ seller: undefined }) })
   if (from && to) chips.push({ key: 'dates', label: `${from} → ${to}`, clear: () => patchParams({ from: undefined, to: undefined }) })
   if (cur === 'GEL' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '₾', clear: () => patchParams({ cur: undefined }) })
@@ -847,6 +853,9 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
               </button>
               <button type="button" onClick={() => patchParams({ pets: pets ? undefined : '1' })} aria-pressed={pets} className={tagChip(pets)}>
                 {t('search.petsOnly')}
+              </button>
+              <button type="button" onClick={() => patchParams({ metro: nearMetro ? undefined : '1' })} aria-pressed={nearMetro} className={tagChip(nearMetro)}>
+                {t('search.nearMetro')}
               </button>
             </div>
           </div>

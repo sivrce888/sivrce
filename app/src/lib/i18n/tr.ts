@@ -86,6 +86,7 @@ export const tr: Dict = {
   'search.checkIn': 'Check-in',
   'search.checkOut': 'Check-out',
   'search.petsOnly': 'Pets allowed',
+  'search.nearMetro': 'Near metro',
   'search.seller': 'Seller',
   'search.sellerOwner': 'Owner',
   'search.sellerAgency': 'Agency',
@@ -130,6 +131,7 @@ export const tr: Dict = {
   'detail.share': 'Paylaş',
   'sticker.urgent': 'Acil',
   'sticker.priceDrop': 'Fiyat düştü',
+  'sticker.story': 'Story',
   'detail.linkCopied': 'Bağlantı kopyalandı',
   'detail.fullPrice': 'Toplam fiyat',
   'detail.monthlyRent': 'Aylık kira',
@@ -149,6 +151,7 @@ export const tr: Dict = {
   'detail.features': 'Özellikler',
   'detail.description': 'Açıklama',
   'detail.location': 'Konum',
+  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Harita',
   'detail.map3dSoon': '3B haritayı aç',
   'detail.mortgage': 'Konut kredisi hesaplayıcı',
@@ -465,4 +468,14 @@ export const tr: Dict = {
 
   // a11y
   'a11y.skipToContent': 'Ana içeriğe geç',
+
+  // Payments (bank checkout result pages)
+  'pay.paid.title': 'Ödeme başarılı',
+  'pay.paid.desc': 'Paket artık ilanınızda aktif.',
+  'pay.pending.title': 'Ödeme işleniyor',
+  'pay.pending.desc': 'Banka ödemeyi hâlâ onaylıyor — birkaç saniye sonra sayfayı yenileyin.',
+  'pay.failed.title': 'Ödeme başarısız',
+  'pay.failed.desc': 'Ücret alınmadı. İlanlarınızdan tekrar deneyin.',
+  'pay.back': 'İlanlarım',
+  'pay.order': 'Sipariş',
 }
