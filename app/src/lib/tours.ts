@@ -24,14 +24,6 @@ function tbilisiNow(): Date {
   return new Date(Date.now() + 4 * 3600_000)
 }
 
-export async function createTour(input: CreateTourInput) {
-  const { guestId, userId, ...rest } = input
-  // ponytail: Prisma requires guestId. Use a placeholder when anonymous.
-  return db.propertyTour.create({
-    data: { ...rest, guestId: guestId ?? input.guestPhone, userId: userId ?? null },
-  })
-}
-
 export async function getToursByUser(userId: string) {
   return db.propertyTour.findMany({
     where: { guestId: userId },
@@ -110,7 +102,7 @@ export async function getBookableSlots(listingId: string, agentId: string | null
   if (overrides.some((o) => o.isBlocked)) return []
 
   // Any configured availability at all (any weekday) decides fallback vs real windows.
-  let windows = availabilities
+  const windows = availabilities
   if (agentId && windows.length === 0) {
     const anyConfigured = await db.tourAvailability.count({ where: { agentId } })
     if (anyConfigured > 0) return [] // agent works, just not this weekday

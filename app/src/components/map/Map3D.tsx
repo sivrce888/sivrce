@@ -58,6 +58,13 @@ import {
   type MapTerrain,
 } from '@/lib/map/floorLayers'
 import {
+  mapUiHasPrefs,
+  parseTerrain,
+  readMapUi,
+  writeMapUi,
+  type MapUiSave,
+} from '@/lib/map/map-ui'
+import {
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
@@ -96,47 +103,12 @@ const DOT_ID = 'sivrce-buildings-dot'
 /** Below this zoom: colored dots; at/above: footprints + names. */
 const DETAIL_ZOOM = 13.5
 
-/** streets 9.0 · clean 8.5 · satellite 8.2 (bright dropped). */
+/** Top 3 people love: streets (yellow) · hybrid · clean. */
 const TERRAIN_OPTIONS: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
   { id: 'streets', label: 'ქუჩები', Icon: MapIcon },
+  { id: 'satellite', label: 'ჰიბრიდი', Icon: Satellite },
   { id: 'clean', label: 'მინიმალი', Icon: Circle },
-  { id: 'satellite', label: 'სატელიტი', Icon: Satellite },
 ]
-
-const MAP_UI_KEY = 'sivrce.map.ui'
-type MapUiSave = {
-  terrain?: MapTerrain
-  view3d?: boolean
-  deal?: MapDealFilter
-  status?: MapStatusFilter
-}
-
-function readMapUi(): MapUiSave {
-  if (typeof window === 'undefined') return {}
-  try {
-    const raw = JSON.parse(localStorage.getItem(MAP_UI_KEY) ?? '{}') as MapUiSave & {
-      terrain?: string
-    }
-    // migrate dropped bright → streets
-    if (raw.terrain === 'bright') raw.terrain = 'streets'
-    return raw
-  } catch {
-    return {}
-  }
-}
-
-function writeMapUi(patch: MapUiSave) {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(MAP_UI_KEY, JSON.stringify({ ...readMapUi(), ...patch }))
-  } catch {
-    /* private mode */
-  }
-}
-
-function parseTerrain(v: unknown): MapTerrain {
-  return v === 'clean' || v === 'satellite' || v === 'streets' ? v : 'streets'
-}
 
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
 const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
@@ -276,11 +248,14 @@ function Map3DInner({
   dbBuildings = [],
   listings,
   projects = PROJECTS,
+  initialUi,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
   /** Live directory projects (korter coords) — falls back to static catalog. */
   projects?: Project[]
+  /** Server-read cookie — avoids first-paint default before document.cookie. */
+  initialUi?: MapUiSave
 }) {
   const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -290,21 +265,26 @@ function Map3DInner({
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
 
+  // ponytail: cookie from SSR when present; else document.cookie / LS migrate.
+  const [savedUi] = useState<MapUiSave>(() =>
+    initialUi && mapUiHasPrefs(initialUi) ? initialUi : readMapUi(),
+  )
+
   const [liveListings, setLiveListings] = useState<Listing[] | undefined>(listings)
   const [liveDbBuildings, setLiveDbBuildings] = useState(dbBuildings)
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
   const [dealFilter, setDealFilter] = useState<MapDealFilter>(() => {
-    const d = readMapUi().deal
+    const d = savedUi.deal
     return DEAL_FILTERS.some((f) => f.id === d) ? (d as MapDealFilter) : 'all'
   })
   const [statusFilter, setStatusFilter] = useState<MapStatusFilter>(() => {
-    const s = readMapUi().status
+    const s = savedUi.status
     return STATUS_FILTERS.some((f) => f.id === s) ? (s as MapStatusFilter) : 'all'
   })
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
-  const [view3d, setView3d] = useState(() => readMapUi().view3d !== false)
-  const [terrain, setTerrain] = useState<MapTerrain>(() => parseTerrain(readMapUi().terrain))
+  const [view3d, setView3d] = useState(() => savedUi.view3d !== false)
+  const [terrain, setTerrain] = useState<MapTerrain>(() => parseTerrain(savedUi.terrain))
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const [ready, setReady] = useState(false)
@@ -361,8 +341,10 @@ function Map3DInner({
 
   const pickTerrain = useCallback((id: MapTerrain) => {
     setTerrain(id)
-    // Vector terrains need light basemap; satellite works in night too.
-    if (id !== 'satellite' && resolvedTheme === 'dark') setTheme('light')
+    // Google street colors only on light; hybrid works in night too.
+    if (id === 'streets' || id === 'clean') {
+      if (resolvedTheme === 'dark') setTheme('light')
+    }
   }, [resolvedTheme, setTheme])
 
   const flashRefreshNote = useCallback((msg: string) => {
@@ -703,7 +685,7 @@ function Map3DInner({
       }
 
       const mountOverlays = () => {
-        applyBrandPaints(map, darkRef.current ? 'dark' : 'light')
+        applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
         ensureLayers(map, buildingsToGeoJSON(visibleRef.current))
         tightenAttribution(map)
         const showFloors = Boolean(
@@ -784,10 +766,8 @@ function Map3DInner({
       ro.observe(container)
 
       map.on('error', (e) => {
-        console.error('[Map3D]', e.error)
-        if (!map.isStyleLoaded()) {
-          setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
-        }
+        // Tile blips during setStyle must not kill the UI — only log.
+        console.error('[Map3D]', e.error ?? e)
       })
 
       map.on('mouseenter', EXTRUDE_ID, () => {
@@ -928,6 +908,11 @@ function Map3DInner({
         map.setStyle(style)
       } catch (err) {
         console.error('[Map3D] theme style', err)
+        // Fall back to streets if sat/proxy fails
+        if (terrain === 'satellite') {
+          styleUrlRef.current = null
+          setTerrain('streets')
+        }
       }
     })()
     return () => {
@@ -1376,10 +1361,12 @@ export default function Map3D({
   dbBuildings,
   listings,
   projects,
+  initialUi,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
   projects?: Project[]
+  initialUi?: MapUiSave
 }) {
   return (
     <Suspense
@@ -1389,7 +1376,12 @@ export default function Map3D({
         </div>
       }
     >
-      <Map3DInner dbBuildings={dbBuildings} listings={listings} projects={projects} />
+      <Map3DInner
+        dbBuildings={dbBuildings}
+        listings={listings}
+        projects={projects}
+        initialUi={initialUi}
+      />
     </Suspense>
   )
 }

@@ -61,6 +61,26 @@ export default function MyTours() {
       .catch(() => setState({ status: 'error' }))
   }
 
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+
+  const cancel = async (id: string) => {
+    if (!window.confirm(s('cancelTourConfirm'))) return
+    setCancellingId(id)
+    try {
+      const r = await fetch(`/api/tours/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel' }),
+      })
+      if (!r.ok) throw new Error(String(r.status))
+      load()
+    } catch {
+      setState({ status: 'error' })
+    } finally {
+      setCancellingId(null)
+    }
+  }
+
   const retry = () => {
     setState({ status: 'loading' })
     load()
@@ -107,9 +127,20 @@ export default function MyTours() {
                     {tour.agent?.name ? ` · ${tour.agent.name}` : ''}
                   </p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${pill}`}>
-                  {s(STATUS_KEY[tour.status] ?? 'tourPending')}
-                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  {(tour.status === 'pending' || tour.status === 'confirmed') && (
+                    <button
+                      onClick={() => cancel(tour.id)}
+                      disabled={cancellingId === tour.id}
+                      className="rounded-full border border-sv-ink/10 px-2.5 py-1 text-[11px] font-black text-sv-ink/55 transition hover:bg-sv-ink/[0.04] disabled:opacity-50"
+                    >
+                      {s('cancelTour')}
+                    </button>
+                  )}
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${pill}`}>
+                    {s(STATUS_KEY[tour.status] ?? 'tourPending')}
+                  </span>
+                </div>
               </li>
             )
           })}

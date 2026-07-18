@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { projectsLive } from '@/lib/directory-live'
 import { getDbBuildingClusters, getMapListings } from '@/lib/map/db-buildings'
+import { MAP_UI_COOKIE, parseMapUiRaw } from '@/lib/map/map-ui'
 import { Map3DLazy } from './Map3DLazy'
 
 export const metadata: Metadata = {
@@ -16,6 +18,8 @@ export const metadata: Metadata = {
 }
 
 export default async function MapPage() {
+  const cookieStore = await cookies()
+  const initialUi = parseMapUiRaw(cookieStore.get(MAP_UI_COOKIE)?.value)
   const [dbBuildings, listings, projects] = await Promise.all([
     getDbBuildingClusters(),
     getMapListings(),
@@ -52,7 +56,12 @@ export default async function MapPage() {
           </LocalizedLink>
         </div>
       </header>
-      <Map3DLazy dbBuildings={dbBuildings} listings={listings} projects={projects} />
+      <Map3DLazy
+        dbBuildings={dbBuildings}
+        listings={listings}
+        projects={projects}
+        initialUi={initialUi}
+      />
     </div>
   )
 }
