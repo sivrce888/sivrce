@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Bookmark, Check, Trash2 } from 'lucide-react'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
-import { useSavedSearches } from '@/lib/saved-searches'
+import { useSavedSearches, saveServerSearch } from '@/lib/saved-searches'
 import { useSearchStrings } from './i18n'
 
 /* Deal/type labels reuse the shared dict keys already used by SearchClient */
@@ -70,6 +70,19 @@ export default function SaveSearchControl() {
     router.push(localizedHref(q ? `/search?${q}` : '/search', lang))
   }
 
+  // Logged-in → server copy (drives instant alerts); logged-out → signin gate
+  // with callback (same pattern as /add-listing). Server error → local-only.
+  const onSave = async () => {
+    const label = currentLabel()
+    const result = await saveServerSearch({ name: label, query, lang })
+    if (result === 'unauthorized') {
+      const here = `${window.location.pathname}${window.location.search}`
+      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(here)}`
+      return
+    }
+    save({ label, query })
+  }
+
   return (
     <div ref={rootRef} className="relative ml-auto">
       <button
@@ -90,7 +103,7 @@ export default function SaveSearchControl() {
           className="absolute right-0 top-full z-50 mt-2 w-[320px] max-w-[calc(100vw-2rem)] rounded-card border border-sv-ink/[0.08] bg-sv-surface p-2 shadow-card-hover"
         >
           <button
-            onClick={() => save({ label: currentLabel(), query })}
+            onClick={() => void onSave()}
             disabled={isSaved}
             className="flex h-11 w-full items-center gap-2 rounded-module px-3 text-[13px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 disabled:text-sv-ink/40 disabled:hover:bg-transparent"
           >

@@ -137,76 +137,7 @@ export async function GET(req: Request) {
     }
   }
 
-  // Trust-boundary sanitize: Number('undefined'/'abc') is NaN, which Prisma
-  // rejects as a missing argument. Non-finite numbers become undefined.
-  const num = (key: string) => {
-    const raw = sp.get(key)
-    if (!raw) return undefined
-    const n = Number(raw)
-    return Number.isFinite(n) ? n : undefined
-  }
-
-  // UI speaks "sale"/"pledge", DB speaks "buy"/"mortgage" (DEALS map in
-  // /api/listings). Normalize once at the trust boundary — meili and DB
-  // filters both consume this.
-  const dealParam = sp.get("dealType")
-  const dealType = dealParam === "sale" ? "buy" : dealParam === "pledge" ? "mortgage" : dealParam
-
-  // Free-text / location strings are capped at the trust boundary — a 10MB q
-  // would otherwise flow into Meili, ILIKE and Meili filter strings.
-  const str = (key: string) => sp.get(key)?.slice(0, 120) || undefined
-
-  // CSV params, whitelisted against the stored vocabulary (src/lib/features).
-  const csv = (key: string, allowed: readonly string[]) => {
-    const raw = sp.get(key)
-    if (!raw) return undefined
-    const vals = raw.split(",").filter((v) => allowed.includes(v))
-    return vals.length ? vals : undefined
-  }
-  const curParam = sp.get("cur")
-
-  // Daily-rent dates: YYYY-MM-DD, from ≥ today, from < to. Inline validation
-  // (no zod in this codebase — /api/listings precedent); invalid ranges are
-  // ignored so search degrades to unfiltered instead of 400-ing.
-  const isoDate = (key: string) => {
-    const v = sp.get(key)
-    return v && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) ? v : undefined
-  }
-  const dFrom = isoDate("from")
-  const dTo = isoDate("to")
-  const today = new Date().toISOString().slice(0, 10)
-  const dailyDates = dFrom && dTo && dFrom >= today && dFrom < dTo ? { dailyFrom: dFrom, dailyTo: dTo } : {}
-
-  const sellerParam = sp.get("seller")
-
-  const filters: SearchFilters = {
-    q: str("q"),
-    dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
-    propertyType: (sp.get("propertyType") as SearchFilters["propertyType"]) ?? undefined,
-    city: str("city"),
-    district: str("district"),
-    minPrice: num("minPrice"),
-    maxPrice: num("maxPrice"),
-    minArea: num("minArea"),
-    maxArea: num("maxArea"),
-    rooms: num("rooms"),
-    bedrooms: num("beds"),
-    bathrooms: num("baths"),
-    floorMin: num("fmin"),
-    floorMax: num("fmax"),
-    conditions: csv("cond", CONDITION_KEYS),
-    buildingStatuses: csv("bstat", BUILDING_STATUS_KEYS),
-    features: csv("feat", FEATURE_KEYS),
-    hasPhoto: sp.get("photo") === "1" || undefined,
-    verifiedOnly: sp.get("verified") === "1" || undefined,
-    petsOnly: sp.get("pets") === "1" || undefined,
-    sellerType: sellerParam === "owner" || sellerParam === "agency" ? sellerParam : undefined,
-    ...dailyDates,
-    currency: curParam === "GEL" ? "GEL" : "USD",
-    sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
-    page: num("page") ?? 1,
-    pageSize: num("pageSize") ?? 24,
-  }
+  const filters = parseSearchParams(sp)
 
   // Date-availability filtering needs booking relations that Meili can't
   // express — date-ranged daily searches go straight to Postgres.
