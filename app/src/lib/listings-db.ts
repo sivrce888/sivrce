@@ -10,6 +10,7 @@
  */
 
 import { db } from "@/lib/db"
+import { safeQuery } from "@/lib/guards"
 import { unstable_cache } from "next/cache"
 import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
@@ -191,40 +192,46 @@ function rowToListing(row: Record<string, unknown>): Listing {
 
 /** Get a single listing by ID. Returns null if not found or soft-deleted. */
 export async function getListing(id: string): Promise<Listing | null> {
-  const row = await db.listing.findFirst({
-    where: { id, deletedAt: null, status: "active" },
-  })
-  if (!row) return null
-  const listing = rowToListing(row as unknown as Record<string, unknown>)
-  const meta = await resolveOwnerProfile(row.ownerId, row.sellerType)
-  listing.agent = {
-    ...listing.agent,
-    profileHref: meta.profileHref,
-    role: meta.role,
-    verified: meta.verified,
-    image: meta.image,
-  }
-  return listing
+  return safeQuery(async () => {
+    const row = await db.listing.findFirst({
+      where: { id, deletedAt: null, status: "active" },
+    })
+    if (!row) return null
+    const listing = rowToListing(row as unknown as Record<string, unknown>)
+    const meta = await resolveOwnerProfile(row.ownerId, row.sellerType)
+    listing.agent = {
+      ...listing.agent,
+      profileHref: meta.profileHref,
+      role: meta.role,
+      verified: meta.verified,
+      image: meta.image,
+    }
+    return listing
+  }, null)
 }
 
 /** Active listings for a public seller profile (`/u/[id]`). */
 export async function getListingsByOwner(ownerId: string): Promise<Listing[]> {
-  const rows = await db.listing.findMany({
-    where: { ownerId, deletedAt: null, status: "active" },
-    orderBy: { createdAt: "desc" },
-    take: 48,
-  })
-  return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: { ownerId, deletedAt: null, status: "active" },
+      orderBy: { createdAt: "desc" },
+      take: 48,
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
 }
 
 /** Get all active listings (homepage carousel, sitemap). */
 export async function getAllListings(): Promise<Listing[]> {
-  const rows = await db.listing.findMany({
-    where: { deletedAt: null, status: "active" },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  })
-  return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: { deletedAt: null, status: "active" },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
 }
 
 /**
@@ -232,18 +239,20 @@ export async function getAllListings(): Promise<Listing[]> {
  * ponytail: scan recent actives in memory; JSON path index when story volume is high.
  */
 export async function getStoryListings(limit = 24): Promise<Listing[]> {
-  const rows = await db.listing.findMany({
-    where: { deletedAt: null, status: "active" },
-    orderBy: { updatedAt: "desc" },
-    take: 200,
-  })
-  const out: Listing[] = []
-  for (const r of rows) {
-    if (!activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null)) continue
-    out.push(rowToListing(r as unknown as Record<string, unknown>))
-    if (out.length >= limit) break
-  }
-  return out
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: { deletedAt: null, status: "active" },
+      orderBy: { updatedAt: "desc" },
+      take: 200,
+    })
+    const out: Listing[] = []
+    for (const r of rows) {
+      if (!activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null)) continue
+      out.push(rowToListing(r as unknown as Record<string, unknown>))
+      if (out.length >= limit) break
+    }
+    return out
+  }, [])
 }
 
 /** Filtered search — mirrors data/listings.ts filterListings(). */
@@ -297,11 +306,15 @@ export async function filterListings(opts: {
   else if (opts.sort === "area") orderBy = { area: "desc" }
   else if (opts.sort === "ai") orderBy = { trustScore: "desc" }
 
-  const rows = await db.listing.findMany({
-    where,
-    orderBy,
-    take: 100,
-  })
+  const rows = await safeQuery(
+    () =>
+      db.listing.findMany({
+        where,
+        orderBy,
+        take: 100,
+      }),
+    [],
+  )
   // Default date sort: paid tiers first (Meilisearch path does the same via tierRank).
   const ordered =
     !opts.sort || opts.sort === "date"
@@ -316,23 +329,31 @@ export async function filterListings(opts: {
 
 /** Distinct cities with active listings. */
 export async function getCities(): Promise<string[]> {
-  const rows = await db.listing.findMany({
-    where: { deletedAt: null, status: "active" },
-    select: { city: true },
-    distinct: ["city"],
-    orderBy: { city: "asc" },
-  })
+  const rows = await safeQuery(
+    () =>
+      db.listing.findMany({
+        where: { deletedAt: null, status: "active" },
+        select: { city: true },
+        distinct: ["city"],
+        orderBy: { city: "asc" },
+      }),
+    [],
+  )
   return rows.map((r) => r.city)
 }
 
 /** Districts for a given city with active listings. */
 export async function getDistricts(city: string): Promise<string[]> {
-  const rows = await db.listing.findMany({
-    where: { city, deletedAt: null, status: "active" },
-    select: { district: true },
-    distinct: ["district"],
-    orderBy: { district: "asc" },
-  })
+  const rows = await safeQuery(
+    () =>
+      db.listing.findMany({
+        where: { city, deletedAt: null, status: "active" },
+        select: { district: true },
+        distinct: ["district"],
+        orderBy: { district: "asc" },
+      }),
+    [],
+  )
   return rows.map((r) => r.district)
 }
 
@@ -345,8 +366,8 @@ export interface SearchLocations {
 
 /** Cities + districts that actually have active listings; cached 5 min. */
 const readSearchLocations = unstable_cache(
-  async (): Promise<SearchLocations | null> => {
-    try {
+  async (): Promise<SearchLocations | null> =>
+    safeQuery(async () => {
       const rows = await db.listing.groupBy({
         by: ["city", "district"],
         where: { deletedAt: null, status: "active" },
@@ -355,11 +376,7 @@ const readSearchLocations = unstable_cache(
       const districts: Record<string, string[]> = {}
       for (const r of rows) (districts[r.city] ??= []).push(r.district)
       return { cities: Object.keys(districts), districts }
-    } catch (e) {
-      console.error("[listings-db] search locations failed:", (e as Error).message)
-      return null
-    }
-  },
+    }, null),
   ["search-locations"],
   { revalidate: 300 },
 )

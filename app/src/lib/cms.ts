@@ -19,7 +19,7 @@ import {
   parseCmsId,
   type CmsBlockKey,
 } from "@/lib/cms-blocks"
-import { db } from "@/lib/db"
+import { db, dbAvailable } from "@/lib/db"
 import type { Lang } from "@/lib/i18n/core"
 
 export {
@@ -46,10 +46,12 @@ const readOverrides = unstable_cache(
     // build/render, fall back to coded defaults instead of failing the page.
     let rows: { id: string; value: unknown }[] = []
     try {
-      rows = await db.systemConfig.findMany({
-        where: { id: { startsWith: CMS_PREFIX } },
-        select: { id: true, value: true },
-      })
+      if (await dbAvailable()) {
+        rows = await db.systemConfig.findMany({
+          where: { id: { startsWith: CMS_PREFIX } },
+          select: { id: true, value: true },
+        })
+      }
     } catch (e) {
       console.warn("[cms] override read failed, using defaults:", e instanceof Error ? e.message : e)
     }

@@ -3,7 +3,7 @@
  */
 import 'server-only'
 
-import { db } from '@/lib/db'
+import { db, dbAvailable } from '@/lib/db'
 import {
   type PublicAgentMeta,
   type SellerRole,
@@ -34,6 +34,10 @@ export async function resolveOwnerProfile(
 ): Promise<PublicAgentMeta> {
   if (!ownerId) {
     return { profileHref: null, role: sellerType === 'agency' ? 'agency' : 'owner', verified: false, image: null }
+  }
+  // Circuit breaker: DB down → safe default card, no doomed query per listing.
+  if (!(await dbAvailable())) {
+    return { profileHref: `/u/${ownerId}`, role: 'owner', verified: false, image: null }
   }
 
   try {

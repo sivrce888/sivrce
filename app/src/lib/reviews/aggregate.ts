@@ -1,4 +1,4 @@
-import { db } from "@/lib/db"
+import { db, dbAvailable } from "@/lib/db"
 
 /**
  * CONTRACT — implemented by the Reviews_Backend worker; consumed by pages
@@ -15,6 +15,7 @@ export async function getReviewAggregate(
   targetType: string,
   targetId: string,
 ): Promise<ReviewAggregate | null> {
+  if (!(await dbAvailable())) return null
   try {
     const result = await db.review.aggregate({
       where: { targetType, targetId, status: "published", deletedAt: null },
