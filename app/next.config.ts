@@ -7,9 +7,9 @@ const capacitorOrigins = isDev
   ? " capacitor://localhost http://localhost:* http://192.168.*.*:* ws://localhost:*"
   : " capacitor://localhost"
 
-// MapLibre workers + OpenFreeMap (or custom NEXT_PUBLIC_MAP_STYLE_URL) tiles
+// Map: basemap is same-origin /api/map (OFM proxied). Optional MapTiler/Google embeds.
 const mapOrigins =
-  " https://*.openfreemap.org https://tiles.openfreemap.org https://*.maptiler.com https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com"
+  " https://*.maptiler.com https://api.maptiler.com https://*.googleapis.com https://*.gstatic.com"
 
 // ponytail: analytics — GTM + top.ge + reserved Sentry/PostHog
 const analyticsOrigins =
@@ -76,6 +76,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.sivrce.ge" },
       { protocol: "https", hostname: "images.sivrce.ge" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      // Korter-imported project photos (directory-live / project detail).
+      { protocol: "https", hostname: "storage.googleapis.com" },
     ],
   },
   async headers() {
