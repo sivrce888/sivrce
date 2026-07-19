@@ -65,6 +65,8 @@ export interface SearchFilters {
   /** Stored vocabulary keys (see src/lib/features.ts) */
   conditions?: string[]
   buildingStatuses?: string[]
+  projects?: string[]
+  floorTypes?: string[]
   features?: string[]
   hasPhoto?: boolean
   verifiedOnly?: boolean
@@ -127,6 +129,8 @@ export interface ListingDocument {
   /** Vocabulary keys from src/lib/features.ts (from extendedFields) */
   condition?: string
   buildingStatus?: string
+  project?: string
+  floorType?: string
   area: number
   rooms: number
   bedrooms: number
@@ -201,6 +205,8 @@ async function ensureIndex(): Promise<boolean> {
       "features",
       "condition",
       "buildingStatus",
+      "project",
+      "floorType",
       "verified",
       "hasImages",
       "petsAllowed",
@@ -300,6 +306,8 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.floorMax !== undefined) parts.push(`floor <= ${filters.floorMax}`)
   if (filters.conditions?.length) parts.push(`condition IN [${filters.conditions.map(esc).join(", ")}]`)
   if (filters.buildingStatuses?.length) parts.push(`buildingStatus IN [${filters.buildingStatuses.map(esc).join(", ")}]`)
+  if (filters.projects?.length) parts.push(`project IN [${filters.projects.map(esc).join(", ")}]`)
+  if (filters.floorTypes?.length) parts.push(`floorType IN [${filters.floorTypes.map(esc).join(", ")}]`)
   // AND semantics: every selected feature must be present.
   for (const f of filters.features ?? []) parts.push(`features = ${esc(f)}`)
   if (filters.hasPhoto) parts.push("hasImages = true")

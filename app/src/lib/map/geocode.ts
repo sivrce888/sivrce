@@ -267,6 +267,15 @@ export async function geocodeListingAddress(
   return geocodeAddress(q, signal)
 }
 
+/** UI line from a geocode hit — street + house № first. */
+export function formatGeocodeAddress(
+  hit: Pick<GeocodeHit, 'street' | 'houseNo' | 'district' | 'city' | 'label'>,
+): string {
+  const street = [hit.street, hit.houseNo].filter(Boolean).join(' ').trim()
+  const line = [street || null, hit.district, hit.city].filter(Boolean).join(', ')
+  return line || hit.label
+}
+
 /** Click-to-address — reverse Nominatim at building zoom. */
 export async function reverseGeocode(
   lat: number,

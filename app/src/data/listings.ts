@@ -54,6 +54,12 @@ export interface Listing {
   ai: { score: number; label: string }
   features: string[]
   description: string
+  /** Soviet / Georgian apartment series key (extendedFields.project) */
+  project?: string | null
+  /** Duplex / triplex / attic (extendedFields.floorType) */
+  floorType?: string | null
+  /** Kitchen m² (extendedFields.kitchenArea) */
+  kitchenArea?: number | null
   coords: { lat: number; lng: number }
   /** Building / door number — used by map clustering (falls back to address parse). */
   buildingNumber?: string

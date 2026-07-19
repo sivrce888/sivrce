@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict'
 import {
   cityCenter,
+  formatGeocodeAddress,
   inGeorgia,
   matchCityKa,
   parseCoords,
@@ -42,6 +43,21 @@ assert.deepEqual(splitStreetHouse('Pekin 12ა'), {
   street: 'Pekin',
   houseNo: '12ა',
 })
+
+assert.equal(
+  formatGeocodeAddress({
+    street: 'ჭავჭავაძის',
+    houseNo: '47',
+    district: 'ვაკე',
+    city: 'თბილისი',
+    label: 'fallback',
+  }),
+  'ჭავჭავაძის 47, ვაკე, თბილისი',
+)
+assert.equal(
+  formatGeocodeAddress({ label: 'only label' }),
+  'only label',
+)
 
 assert.equal(
   normalizeDistrict({ neighbourhood: 'ვაკე', suburb: 'ვაკის რაიონი' }),

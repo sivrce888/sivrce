@@ -1,8 +1,9 @@
 /**
- * Shared listing vocabulary: condition, building status, feature chips.
+ * Shared listing vocabulary: condition, building status, project series, features.
  * The i18n keys ARE the stored DB values (extendedFields.condition,
- * extendedFields.buildingStatus, features[]) — keep byte-identical or old
- * rows stop matching /search filters. Labels live in the i18n dicts.
+ * extendedFields.buildingStatus, extendedFields.project, extendedFields.floorType,
+ * features[]) — keep byte-identical or old rows stop matching /search filters.
+ * Labels live in the i18n dicts.
  */
 import type { DictKey } from '@/lib/i18n/context'
 
@@ -15,10 +16,39 @@ export const BUILDING_STATUS_KEYS = [
   'add.status.new', 'add.status.old', 'add.status.construction',
 ] as const satisfies readonly DictKey[]
 
+/** Tbilisi apartment series — ss.ge / myhome vocabulary (apartments). */
+export const PROJECT_KEYS = [
+  'add.project.nonStandard',
+  'add.project.leningrad',
+  'add.project.lvov',
+  'add.project.kiev',
+  'add.project.tbilisiYard',
+  'add.project.moscow',
+  'add.project.city',
+  'add.project.czech',
+  'add.project.khrushchev',
+  'add.project.tukhareli',
+  'add.project.vedzisi',
+  'add.project.yugoslav',
+  'add.project.metromsheni',
+  'add.project.kavlashvili',
+  'add.project.other',
+] as const satisfies readonly DictKey[]
+
+/** Apartment layout extras common on Georgian classifieds. */
+export const FLOOR_TYPE_KEYS = [
+  'add.floorType.duplex',
+  'add.floorType.triplex',
+  'add.floorType.attic',
+] as const satisfies readonly DictKey[]
+
 export const FEATURE_KEYS = [
   'add.f.balcony', 'add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.furniture',
   'add.f.appliances', 'add.f.centralHeating', 'add.f.gas', 'add.f.internet', 'add.f.ac',
   'add.f.storage', 'add.f.fireplace', 'add.f.security', 'add.f.yard',
+  // Georgian classified staples (ss.ge / myhome).
+  'add.f.hotWater', 'add.f.doubleGlazing', 'add.f.ironDoor', 'add.f.cableTv', 'add.f.cellar',
+  'add.f.yardView', 'add.f.streetView', 'add.f.bright', 'add.f.quiet',
   // Daily-rent set (2026-07-18): contactless check-in, events, leisure.
   'add.f.selfCheckIn', 'add.f.partiesAllowed', 'add.f.pool',
   'add.f.jacuzzi', 'add.f.terrace', 'add.f.petsAllowed',
@@ -29,6 +59,8 @@ export const FEATURE_KEYS = [
   'add.f.seaView', 'add.f.mountainView', 'add.f.beachfront', 'add.f.skiAccess',
   'add.f.bbq', 'add.f.sauna', 'add.f.gym', 'add.f.evCharger',
   'add.f.kidFriendly', 'add.f.accessible', 'add.f.smokingAllowed',
+  // Seller capability (dedicated checkbox on /add-listing — not in amenity grid).
+  'add.f.onlineView',
 ] as const satisfies readonly DictKey[]
 
 /**
@@ -61,14 +93,32 @@ export function pickDailySignals(features: readonly string[], limit = 2): typeof
 
 const FEATURE_KEY_SET = new Set<string>(FEATURE_KEYS)
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
+const PROJECT_KEY_SET = new Set<string>(PROJECT_KEYS)
+const FLOOR_TYPE_KEY_SET = new Set<string>(FLOOR_TYPE_KEYS)
 
 export function isFeatureKey(f: string): f is (typeof FEATURE_KEYS)[number] {
   return FEATURE_KEY_SET.has(f)
 }
 
+export function isProjectKey(f: string): f is (typeof PROJECT_KEYS)[number] {
+  return PROJECT_KEY_SET.has(f)
+}
+
+export function isFloorTypeKey(f: string): f is (typeof FLOOR_TYPE_KEYS)[number] {
+  return FLOOR_TYPE_KEY_SET.has(f)
+}
+
 /** DB stores i18n keys; seed/legacy rows may still be free-text. */
 export function featureLabel(f: string, t: (key: DictKey) => string): string {
   return isFeatureKey(f) ? t(f) : f
+}
+
+export function projectLabel(f: string, t: (key: DictKey) => string): string {
+  return isProjectKey(f) ? t(f) : f
+}
+
+export function floorTypeLabel(f: string, t: (key: DictKey) => string): string {
+  return isFloorTypeKey(f) ? t(f) : f
 }
 
 /** Daily: lifestyle signals first (priority order), then the rest. */

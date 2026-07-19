@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import {
   Building, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
   MapPin, Ruler, Layers, Check, ChevronLeft,
@@ -26,7 +27,7 @@ import { cap1, seoTitleParts } from '@/lib/seo-title'
 import { FEATURE_KEYS } from '@/lib/features'
 import {
   DEALS_FOR, dealLabelKey, fieldsFor, conditionsFor, statusesFor,
-  RENT_PERIODS, RENT_TYPES, LAND_FEATURE_KEYS,
+  projectsFor, floorTypesFor, RENT_PERIODS, RENT_TYPES, LAND_FEATURE_KEYS,
 } from '@/lib/add-listing-fields'
 import {
   CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD, formatGEL,
@@ -71,6 +72,7 @@ const CITY_MULT: Record<string, number> = { თბილისი: 1, ბათ�
 const ease = [0.21, 0.65, 0.2, 1] as const
 
 const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
+const DRAFT_KEY = 'sivrce.add-listing.v1'
 
 /** Normalize to `+995 XXX XX XX XX` while typing (9 digits after the forced prefix) */
 const formatPhone = (raw: string): string => {
@@ -83,7 +85,9 @@ const formatPhone = (raw: string): string => {
 
 export default function AddListingClient() {
   const { t, lang } = useI18n()
+  const { data: session } = useSession()
   const fileRef = useRef<HTMLInputElement>(null)
+  const nameSeeded = useRef(false)
 
   const [step, setStep] = useState(0)
   const [touched, setTouched] = useState(false)
@@ -119,6 +123,9 @@ export default function AddListingClient() {
   const [totalFloors, setTotalFloors] = useState('')
   const [condition, setCondition] = useState<DictKey | ''>('')
   const [status, setStatus] = useState<DictKey | ''>('')
+  const [project, setProject] = useState<DictKey | ''>('')
+  const [floorType, setFloorType] = useState<DictKey | ''>('')
+  const [kitchenArea, setKitchenArea] = useState('')
   const [features, setFeatures] = useState<DictKey[]>([])
   const [rentPeriod, setRentPeriod] = useState<number | null>(null)
   const [rentType, setRentType] = useState<DictKey | ''>('')
@@ -152,12 +159,116 @@ export default function AddListingClient() {
   const availableDeals = propType ? DEALS_FOR[propType] : DEALS.map((d) => d.key)
   const conditionOpts = propType && deal ? conditionsFor(propType, deal) : []
   const statusOpts = propType ? statusesFor(propType) : []
-  const featureOpts = propType === 'land' ? LAND_FEATURE_KEYS : FEATURES
+  const projectOpts = propType ? projectsFor(propType) : []
+  const floorTypeOpts = propType ? floorTypesFor(propType) : []
+  const featureOpts = (propType === 'land' ? LAND_FEATURE_KEYS : FEATURES).filter(
+    (f) => f !== 'add.f.onlineView',
+  )
+
+  // ponytail: localStorage draft — photos are File blobs, not persisted; restore form only.
+  const [draftReady, setDraftReady] = useState(false)
+  const [draftSavedAt, setDraftSavedAt] = useState(0)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (!raw) { setDraftReady(true); return }
+      const d = JSON.parse(raw) as Record<string, unknown>
+      if (d.v !== 1) { setDraftReady(true); return }
+      if (typeof d.deal === 'string') setDeal(d.deal as Deal)
+      if (typeof d.propType === 'string') setPropType(d.propType as PropType)
+      if (typeof d.city === 'string') setCity(d.city)
+      if (typeof d.district === 'string') setDistrict(d.district)
+      if (typeof d.street === 'string') setStreet(d.street)
+      if (typeof d.houseNo === 'string') setHouseNo(d.houseNo)
+      if (typeof d.cadastral === 'string') setCadastral(d.cadastral)
+      if (typeof d.cadastralPublic === 'boolean') setCadastralPublic(d.cadastralPublic)
+      if (typeof d.area === 'string') setArea(d.area)
+      if (d.areaUnit === 'm2' || d.areaUnit === 'ha') setAreaUnit(d.areaUnit)
+      if (typeof d.yardArea === 'string') setYardArea(d.yardArea)
+      if (typeof d.rooms === 'number') setRooms(d.rooms)
+      if (typeof d.baths === 'number') setBaths(d.baths)
+      if (typeof d.floor === 'string') setFloor(d.floor)
+      if (typeof d.totalFloors === 'string') setTotalFloors(d.totalFloors)
+      if (typeof d.condition === 'string') setCondition(d.condition as DictKey | '')
+      if (typeof d.status === 'string') setStatus(d.status as DictKey | '')
+      if (typeof d.project === 'string') setProject(d.project as DictKey | '')
+      if (typeof d.floorType === 'string') setFloorType(d.floorType as DictKey | '')
+      if (typeof d.kitchenArea === 'string') setKitchenArea(d.kitchenArea)
+      if (Array.isArray(d.features)) {
+        const feats = d.features.filter((x): x is DictKey => typeof x === 'string')
+        setOnlineView(feats.includes('add.f.onlineView') || d.onlineView === true)
+        setFeatures(feats.filter((f) => f !== 'add.f.onlineView'))
+      } else if (typeof d.onlineView === 'boolean') {
+        setOnlineView(d.onlineView)
+      }
+      if (typeof d.rentPeriod === 'number' || d.rentPeriod === null) setRentPeriod(d.rentPeriod as number | null)
+      if (typeof d.rentType === 'string') setRentType(d.rentType as DictKey | '')
+      if (typeof d.guests === 'number') setGuests(d.guests)
+      if (typeof d.video === 'string') setVideo(d.video)
+      if (typeof d.matterport === 'string') setMatterport(d.matterport)
+      if (typeof d.price === 'string') setPrice(d.price)
+      if (d.priceCur === 'USD' || d.priceCur === 'GEL') setPriceCur(d.priceCur)
+      if (d.priceMode === 'total' || d.priceMode === 'm2') setPriceMode(d.priceMode)
+      if (typeof d.negotiable === 'boolean') setNegotiable(d.negotiable)
+      if (typeof d.exchangeable === 'boolean') setExchangeable(d.exchangeable)
+      if (typeof d.description === 'string') setDescription(d.description)
+      if (typeof d.name === 'string') setName(d.name)
+      if (typeof d.phone === 'string') setPhone(d.phone)
+      if (Array.isArray(d.messengers)) setMessengers(d.messengers.filter((x): x is string => typeof x === 'string'))
+      if (typeof d.terms === 'boolean') setTerms(d.terms)
+      if (typeof d.step === 'number' && d.step >= 0 && d.step <= 5) setStep(d.step)
+      if (d.coords && typeof d.coords === 'object') {
+        const c = d.coords as { lat?: unknown; lng?: unknown }
+        if (typeof c.lat === 'number' && typeof c.lng === 'number') {
+          setCoords({ lat: c.lat, lng: c.lng })
+          setPinReady(true)
+        }
+      }
+    } catch { /* corrupt draft — start fresh */ }
+    setDraftReady(true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once on mount
+  }, [])
+
+  // Seed contact name from session once (after draft restore). Skip phone — not on session JWT.
+  useEffect(() => {
+    if (!draftReady || nameSeeded.current) return
+    if (name.trim()) { nameSeeded.current = true; return }
+    const n = session?.user?.name?.trim()
+    if (!n) return
+    setName(n)
+    nameSeeded.current = true
+  }, [draftReady, session?.user?.name, name])
+
+  useEffect(() => {
+    if (!draftReady || publishedId) return
+    const t = window.setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          v: 1, step, deal, propType, city, district, street, houseNo, coords,
+          cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
+          floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType,
+          guests, video, matterport, price, priceCur, priceMode, negotiable,
+          exchangeable, description, name, phone, messengers, onlineView, terms,
+        }))
+        setDraftSavedAt(Date.now())
+      } catch { /* quota / private mode */ }
+    }, 500)
+    return () => window.clearTimeout(t)
+  }, [
+    draftReady, publishedId, step, deal, propType, city, district, street, houseNo,
+    coords, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
+    floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType, guests,
+    video, matterport, price, priceCur, priceMode, negotiable, exchangeable,
+    description, name, phone, messengers, onlineView, terms,
+  ])
 
   const pickDeal = (d: Deal) => {
     setDeal(d)
     setCondition('')
     setStatus('')
+    setProject('')
+    setFloorType('')
     setRentPeriod(null)
     setRentType('')
     setGuests(0)
@@ -167,6 +278,9 @@ export default function AddListingClient() {
     setPropType(p)
     setCondition('')
     setStatus('')
+    setProject('')
+    setFloorType('')
+    setKitchenArea('')
     setAreaUnit('m2')
     setYardArea('')
     setFeatures([])
@@ -335,10 +449,11 @@ export default function AddListingClient() {
       priceN > 0 || negotiable,
       description.length >= 80,
       !!(video || matterport),
+      onlineView,
       PHONE_RE.test(phone),
     ]
     return Math.round((signals.filter(Boolean).length / signals.length) * 100)
-  }, [deal, propType, city, district, street, areaN, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, phone, formFields])
+  }, [deal, propType, city, district, street, areaN, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, onlineView, phone, formFields])
 
   const detailsOk = !!formFields && areaN > 0
     && (!formFields.rooms || rooms > 0)
@@ -347,7 +462,7 @@ export default function AddListingClient() {
 
   const stepValid = [
     !!deal && !!propType,
-    true, // photos optional — tip + strength meter push upload
+    photos.length >= 1,
     !!(city && district && street),
     detailsOk,
     priceN > 0 || negotiable,
@@ -367,25 +482,28 @@ export default function AddListingClient() {
         }),
       )
 
-  const preview: Listing = {
-    id: LISTINGS[0].id, // real id so Link prefetch doesn't 404 (card is pointer-events-none anyway)
-    img: photos[cover]?.url ?? LISTINGS.find((l) => l.propType === propType)?.img ?? LISTINGS[0].img,
-    images: photos.length ? photos.map((p) => p.url) : [LISTINGS[0].img],
-    priceUSD: priceN, priceGEL: priceN * USD_GEL, perM2USD: areaN ? Math.round(priceN / areaN) : 0,
-    title: autoTitle,
-    address: [street && `${street} ${houseNo}`.trim(), district, city].filter(Boolean).join(', ') || '—',
-    city: city || '—', district: district || '—',
-    dealType: deal ?? 'sale',
-    propType: propType ?? 'apartment',
-    rooms, beds: rooms, baths, area: areaN, floor: Number(floor) || 1, totalFloors: Number(totalFloors) || 1,
-    views: 0, badge: null,
-    ai: { score: Math.max(strength, 41), label: t('add.aiPending') },
-    features: features.map((f) => t(f)),
-    description, coords,
-    postedAt: new Date().toISOString(),
-    agent: { name: name || '—', phone: phone || '—', agency: '' },
-    isNew: true,
-  }
+  const coverUrl = photos[cover]?.url
+  const preview: Listing | null = coverUrl
+    ? {
+        id: LISTINGS[0].id, // real id so Link prefetch doesn't 404 (card is pointer-events-none anyway)
+        img: coverUrl,
+        images: photos.map((p) => p.url),
+        priceUSD: priceN, priceGEL: priceN * USD_GEL, perM2USD: areaN ? Math.round(priceN / areaN) : 0,
+        title: autoTitle,
+        address: [street && `${street} ${houseNo}`.trim(), district, city].filter(Boolean).join(', ') || '—',
+        city: city || '—', district: district || '—',
+        dealType: deal ?? 'sale',
+        propType: propType ?? 'apartment',
+        rooms, beds: rooms, baths, area: areaN, floor: Number(floor) || 1, totalFloors: Number(totalFloors) || 1,
+        views: 0, badge: null,
+        ai: { score: Math.max(strength, 41), label: t('add.aiPending') },
+        features: features.map((f) => t(f)),
+        description, coords,
+        postedAt: new Date().toISOString(),
+        agent: { name: name || '—', phone: phone || '—', agency: '' },
+        isNew: true,
+      }
+    : null
 
   const addPhotos = (files: FileList | null) => {
     if (!files) return
@@ -440,7 +558,7 @@ export default function AddListingClient() {
 
   /* ————— publish: photos → R2, then POST /api/listings ————— */
   const publish = async () => {
-    if (!stepValid) { setTouched(true); return }
+    if (!stepValid || photos.length < 1) { setTouched(true); return }
     setBusy(true)
     setFailed(false)
     try {
@@ -470,7 +588,13 @@ export default function AddListingClient() {
           totalFloors: formFields?.totalFloors ? Number(totalFloors) || null : null,
           condition: formFields?.condition ? condition || null : null,
           buildingStatus: status || null,
-          features, images, video: video || null, matterport: matterport || null,
+          project: formFields?.project ? project || null : null,
+          floorType: formFields?.floorType ? floorType || null : null,
+          kitchenArea: formFields?.kitchen ? (Number(kitchenArea) || null) : null,
+          features: onlineView
+            ? [...features.filter((f) => f !== 'add.f.onlineView'), 'add.f.onlineView']
+            : features.filter((f) => f !== 'add.f.onlineView'),
+          images, video: video || null, matterport: matterport || null,
           price: priceN, currency: 'USD', negotiable, exchangeable: formFields?.exchange ? exchangeable : false,
           description,
           yardArea: formFields?.yard ? yardN || null : null,
@@ -489,6 +613,7 @@ export default function AddListingClient() {
       }
       if (!res.ok) throw new Error('publish')
       const data = (await res.json()) as { id?: string }
+      try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
       setPublishedId(data.id ?? 'ok')
     } catch {
       setFailed(true)
@@ -539,7 +664,10 @@ export default function AddListingClient() {
               {t('add.successViewListing')}
             </Link>
             <button
-              onClick={() => { setPublishedId(null); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false) }}
+              onClick={() => {
+                try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
+                setPublishedId(null); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false); setDraftSavedAt(0)
+              }}
               className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
             >
               <Plus className="h-4 w-4" /> {t('add.successNew')}
@@ -604,6 +732,10 @@ export default function AddListingClient() {
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_400px]">
           {/* ————— wizard card ————— */}
           <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
+            <div className="mb-6 flex items-start gap-3 rounded-tile border border-sv-blue/15 bg-sv-blue/[0.04] p-4 lg:hidden">
+              <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" />
+              <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t(STEP_TIPS[step])}</p>
+            </div>
             <AnimatePresence mode="wait">
               <motion.div
                 key={step}
@@ -731,6 +863,11 @@ export default function AddListingClient() {
                     <p className="mt-5 flex items-start gap-2 rounded-module bg-sv-blue/[0.05] p-4 text-[13px] font-semibold leading-relaxed text-sv-ink/55 ring-1 ring-inset ring-sv-blue/10">
                       <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" /> {t('add.photosTip')}
                     </p>
+                    {touched && photos.length < 1 && (
+                      <p className="mt-3 flex items-center gap-1.5 text-[13px] font-extrabold text-sv-orange">
+                        <Flame className="h-3.5 w-3.5" /> {t('add.photosRequired')}
+                      </p>
+                    )}
 
                     <div className="mt-5 grid gap-4 sm:grid-cols-2">
                       <div>
@@ -987,6 +1124,47 @@ export default function AddListingClient() {
                       </div>
                     )}
 
+                    {formFields.project && projectOpts.length > 0 && (
+                      <div>
+                        <label className={label}>{t('add.project')}</label>
+                        <p className="mb-2 text-[12px] font-semibold text-sv-ink/45">{t('add.projectHint')}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {projectOpts.map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => setProject(project === p ? '' : p)}
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                project === p ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
+                              }`}
+                            >
+                              {t(p)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {formFields.floorType && floorTypeOpts.length > 0 && (
+                      <div>
+                        <label className={label}>{t('add.floorType')}</label>
+                        <div className="flex flex-wrap gap-2">
+                          {floorTypeOpts.map((ft) => (
+                            <button
+                              key={ft}
+                              type="button"
+                              onClick={() => setFloorType(floorType === ft ? '' : ft)}
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                floorType === ft ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                              }`}
+                            >
+                              {t(ft)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid gap-5">
                       <div>
                         <label className={label}>
@@ -1019,6 +1197,18 @@ export default function AddListingClient() {
                           </div>
                         )}
                       </div>
+                      {formFields.kitchen && (
+                        <div>
+                          <label className={label}>{t('add.kitchenArea')} ({t('add.areaUnit.m2')})</label>
+                          <input
+                            className={`${input} max-w-xs`}
+                            inputMode="decimal"
+                            placeholder="12"
+                            value={kitchenArea}
+                            onChange={(e) => setKitchenArea(e.target.value.replace(/[^\d.]/g, ''))}
+                          />
+                        </div>
+                      )}
                       {formFields.rooms && (
                         <div>
                           <label className={label}>{t('spec.rooms')} *</label>
@@ -1430,7 +1620,7 @@ export default function AddListingClient() {
                 </button>
               ) : (
                 <span className="flex items-center gap-2 text-[12px] font-bold text-sv-ink/35">
-                  <Check className="h-3.5 w-3.5" /> {t('add.draftSaved')}
+                  {draftSavedAt > 0 && <><Check className="h-3.5 w-3.5" /> {t('add.draftSaved')}</>}
                 </span>
               )}
               <div className="flex flex-col items-end gap-2">
@@ -1477,7 +1667,17 @@ export default function AddListingClient() {
               <MapPin className="h-4 w-4 text-sv-ink/25" />
             </div>
             <div className="pointer-events-none [&>article]:w-full [&>article]:max-w-none">
-              <ListingCard l={preview} layout="wide" animate={false} />
+              {preview ? (
+                <ListingCard l={preview} layout="wide" animate={false} />
+              ) : (
+                <div className="flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-card border border-dashed border-sv-ink/15 bg-sv-surface px-6 text-center shadow-card">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+                    <ImagePlus className="h-5 w-5" />
+                  </span>
+                  <p className="text-[14px] font-extrabold text-sv-ink">{t('add.photosRequired')}</p>
+                  <p className="text-[12px] font-semibold text-sv-ink/45">{t('add.previewEmpty')}</p>
+                </div>
+              )}
             </div>
 
             {/* strength meter */}
