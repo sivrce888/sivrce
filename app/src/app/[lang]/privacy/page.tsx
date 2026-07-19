@@ -60,7 +60,7 @@ export default function PrivacyPage() {
       <main id="main" className="pt-24 md:pt-28">
         <article className="mx-auto max-w-3xl px-6 py-14 md:py-20">
           <Reveal>
-            <h1 className="text-4xl font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
+            <h1 className="text-[27px] font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
               კონფიდენციალურობის პოლიტიკა
             </h1>
             <p className="mt-4 text-[15px] font-medium text-sv-ink/50">

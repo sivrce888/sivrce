@@ -326,7 +326,7 @@ export default function SeoLanding({
         {!isCityInfo && (
           <section aria-label={ui.gridAria} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {def.listings.map((l, i) => (
-              <ListingCard key={l.id} l={l} i={i} />
+              <ListingCard key={l.id} l={l} i={i} layout="wide" />
             ))}
           </section>
         )}
