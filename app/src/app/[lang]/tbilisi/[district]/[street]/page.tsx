@@ -298,7 +298,7 @@ export default async function StreetPage({ params }: PageProps) {
         {listings.length > 0 ? (
           <section aria-label="განცხადებები" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {listings.map((l, i) => (
-              <ListingCard key={l.id} l={l} i={i} />
+              <ListingCard key={l.id} l={l} i={i} layout="wide" />
             ))}
           </section>
         ) : (

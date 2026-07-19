@@ -138,11 +138,6 @@ const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
 const DOT_ID = 'sivrce-buildings-dot'
 const DOT_ACTIVE_ID = 'sivrce-buildings-dot-active'
-const DOT_ACTIVE_FILTER: FilterSpecification = [
-  'any',
-  ['boolean', ['feature-state', 'selected'], false],
-  ['boolean', ['feature-state', 'hover'], false],
-]
 const PRICE_ID = 'sivrce-buildings-price'
 const CLUSTER_ID = 'sivrce-buildings-cluster'
 const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
@@ -250,30 +245,36 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     },
   })
 
-  // Hover/selected dots — same source, painted on top with bigger radius.
+  // Hover/selected dots — same source+filter as base, painted on top; radius 0 hides
+  // inactive features (MapLibre forbids feature-state in filters, allows it in paint).
   map.addLayer({
     id: DOT_ACTIVE_ID,
     type: 'circle',
     source: PTS_SOURCE_ID,
     maxzoom: DETAIL_ZOOM,
-    filter: DOT_ACTIVE_FILTER,
+    filter: ['!', ['has', 'point_count']],
     paint: {
       'circle-radius': [
         'case',
         ['boolean', ['feature-state', 'selected'], false], 11,
-        9,
+        ['boolean', ['feature-state', 'hover'], false], 9,
+        0,
       ],
       'circle-color': ['get', 'hue'],
       'circle-stroke-width': [
         'case',
         ['boolean', ['feature-state', 'selected'], false], 3,
-        1.5,
+        ['boolean', ['feature-state', 'hover'], false], 1.5,
+        0,
       ],
       'circle-stroke-color': '#FFFFFF',
       'circle-opacity': [
         'case',
-        ['boolean', ['feature-state', 'seen'], false], 0.55,
-        0.95,
+        ['any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false]],
+        ['case', ['boolean', ['feature-state', 'seen'], false], 0.55, 0.95],
+        0,
       ],
     },
   })
@@ -817,8 +818,8 @@ function Map3DInner({
       map.setFilter(
         DOT_ACTIVE_ID,
         (hideId
-          ? ['all', DOT_ACTIVE_FILTER, ['!=', ['get', 'id'], hideId]]
-          : DOT_ACTIVE_FILTER) as FilterSpecification,
+          ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
+          : ['!', ['has', 'point_count']]) as FilterSpecification,
       )
     }
     if (map.getLayer(PRICE_ID)) {

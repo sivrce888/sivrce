@@ -28,7 +28,6 @@ export default function Navbar() {
   const menuBtnRef = useRef<HTMLButtonElement>(null)
   // ponytail: first name only in chrome — full name lives on /dashboard; initials/truncate if i18n needs it
   const navName = session?.user?.name?.trim().split(/\s+/)[0]
-  const reduceMotion = useReducedMotion()
 
   // Escape closes the mobile menu and returns focus to the menu button
   useEffect(() => {

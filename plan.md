@@ -1,5 +1,38 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-19 — full-site audit wave (70-shot sweep + console/error capture)
+- **Global hydration mismatch (every page)**: Navbar `motion.header` entrance
+  animated via framer-motion `initial` → SSR/client style diff → full-tree
+  re-render everywhere. Replaced with paint-driven CSS `sv-nav-in` keyframe
+  (same pattern as `sv-hero-in`), registered in reduced-motion kill-list.
+- **/map buildings dots layer broken**: `circle-radius` nested zoom-interpolate
+  inside `case` (MapLibre forbids) → whole layer failed validation. Split:
+  base layer keeps top-level zoom interpolate; new `sivrce-buildings-dot-active`
+  overlay paints hover/selected via paint-only feature-state (filters can't use
+  feature-state in MapLibre) with radius 0 for inactive. Hide-on-explode filter
+  mirrors base.
+- **Duplicate React keys**: `/developers` rendered two `vr-holding` entries
+  (Tbilisi + thin Shekvetili duplicate) → merged into the Tbilisi canonical
+  entry; both projects (Krtsanisi, Shekvetili Forest-Beach) link to it.
+- **Horizontal overflows**: /privacy mobile (+101px) — h1 "კონფიდენციალურობის"
+  at 36px/30px overflowed 342px column in real Georgian font → `text-[27px]`
+  mobile. /sale/[...seo] + /tbilisi street pages desktop (+18px) —
+  `ListingCard` default `layout='grid'` is fixed 380px rail width; fluid grids
+  now pass `layout='wide'` (2 call sites).
+- **Lint 14→0**: react-hooks v6 fixes — refs written during render moved into
+  effects (MapEmbed, Map3D), SSR-safe mount-hydration effects documented with
+  targeted rule disables (AddListing draft/localStorage, HeroSearch recent,
+  weather sessionStorage, SearchMapView ref-cleanup capture), aria-selected on
+  listbox options, unused imports/directives dropped.
+- **check:map gate-aware**: floor-stack asserts compare against FLOOR_STACKS_ON
+  (feature paused behind NEXT_PUBLIC_FLOOR_STACKS=1).
+- Audit tooling: `scripts/audit-shots.mjs` (35 routes × m/d/t viewport shots +
+  console/network/overflow report → `shots/audit-*/report.txt`). Note: fullPage
+  shots blank scroll-reveal sections — verify those with scrolled viewport shots.
+- Gate after batch: lint 0 · tsc 0 · 10/10 checks PASS · build ✓ 1274 pages.
+- Known benign: basemap "Expected number, found null" (OSM height tags),
+  dev-only ERR_CONNECTION_REFUSED (local services), 192.168 CSP noise (dev LAN).
+
 ## Shipped 2026-07-18 (evening wave) — the "make all n1" batch
 - **Route-based i18n** (`74e8375`+): `[lang]` segment, ka unprefixed canonical
   (zero link-juice loss), /en /ru prefixed, hreflang everywhere, localized

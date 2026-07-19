@@ -75,6 +75,8 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
     const container = containerRef.current
+    const markers = markersRef.current
+    const els = elsRef.current
     ;(async () => {
       let style
       try {
@@ -104,9 +106,9 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
     })()
     return () => {
       cancelled = true
-      markersRef.current.forEach((m) => m.remove())
-      markersRef.current.clear()
-      elsRef.current.clear()
+      markers.forEach((m) => m.remove())
+      markers.clear()
+      els.clear()
       mapRef.current?.remove()
       mapRef.current = null
     }
@@ -180,7 +182,6 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
       })
     }
     // ponytail: style via sibling effect — don't deps paintPin (hover would remount markers)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- hover/active painted separately
   }, [ready, visible, format, currency, rate, area])
 
   // Restyle pins on hover/active/seen without rebuild
