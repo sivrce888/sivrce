@@ -177,6 +177,22 @@ assert.ok(mukhiani)
 assert.ok(mukhiani!.coords.lat > 41.78 && mukhiani!.coords.lng > 44.81, 'blox-mukhiani coords outside Mukhiani')
 assert.ok(mukhiani!.location.includes('გობრონიძ'), 'blox-mukhiani missing street address')
 
+// High-confidence street pins — fail if catalog drifts back to district centroids.
+const pinAnchors: Record<string, { lat: number; lng: number; needle: string }> = {
+  'archi-central-park': { lat: 41.7213, lng: 44.74694, needle: 'თამარაშვილ' },
+  'white-square-mindeli': { lat: 41.72617, lng: 44.71293, needle: 'ძოწ' },
+  'one-batumi': { lat: 41.63545, lng: 41.61565, needle: 'აბუსერიძ' },
+  'orbi-continental': { lat: 41.64888, lng: 41.62446, needle: 'ნურიგელ' },
+  'idea-panorama': { lat: 41.71856, lng: 44.70428, needle: 'დანელი' },
+  'alto-by-real-palace': { lat: 41.79453, lng: 44.76627, needle: 'აბრაამ' },
+}
+for (const [slug, a] of Object.entries(pinAnchors)) {
+  const p = PROJECTS.find((x) => x.slug === slug)
+  assert.ok(p, `${slug} missing`)
+  assert.ok(haversineM(p!.coords.lat, p!.coords.lng, a.lat, a.lng) < 80, `${slug} pin drifted`)
+  assert.ok(p!.location.includes(a.needle), `${slug} address needle missing`)
+}
+
 // Live project pin must move catalog building to exact address/coords.
 const axisCluster = buildings.find((b) => b.slug === 'axis-towers')
 assert.ok(axisCluster)
