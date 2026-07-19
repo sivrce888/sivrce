@@ -540,6 +540,11 @@ export const ru: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'Карта',
   'search.mapNote': 'На карте показаны первые {n} из {total} результатов',
+  'search.mapSearchArea': 'Искать в этой области',
+  'search.mapLocate': 'Моё местоположение',
+  'search.mapInArea': '{n} объявлений',
+  'search.mapClearArea': 'Все',
+  'search.mapEmptyArea': 'В этой области ничего нет',
   'add.contactHint': 'Укажите имя и мобильный номер, по которому с вами можно связаться.',
 
 }

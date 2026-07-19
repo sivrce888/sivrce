@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="ponytail">
+<title>ponytail</title>
+<rect width="48" height="48" rx="10.5" fill="#FFFFFF"/>
+<g transform="translate(9.600 9.600) scale(0.6)">
+<defs>
+  <linearGradient id="gaw" x1="24" y1="3.2" x2="24" y2="44.8" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#8FB4FF"/>
+    <stop offset="0.34" stop-color="#2E6BFF"/>
+    <stop offset="0.58" stop-color="#7A5CFF"/>
+    <stop offset="0.8" stop-color="#FF4D6D"/>
+    <stop offset="1" stop-color="#FF6A2D"/>
+  </linearGradient>
+  <clipPath id="caw"><path d="M24 3.2C24 18.87 29.13 24 44.8 24C29.13 24 24 29.13 24 44.8C24 29.13 18.87 24 3.2 24C18.87 24 24 18.87 24 3.2ZM24 19.4C24 21.95 26.05 24 28.6 24C26.05 24 24 26.05 24 28.6C24 26.05 21.95 24 19.4 24C21.95 24 24 21.95 24 19.4Z" fill-rule="evenodd"/></clipPath>
+  <linearGradient id="shaw" x1="14" y1="4" x2="34" y2="40" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#fff" stop-opacity=".55"/>
+    <stop offset=".38" stop-color="#fff" stop-opacity=".16"/>
+    <stop offset=".58" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="sdaw" x1="36" y1="40" x2="20" y2="14" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#050B26" stop-opacity=".30"/>
+    <stop offset=".5" stop-color="#050B26" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+<path d="M24 3.2C24 18.87 29.13 24 44.8 24C29.13 24 24 29.13 24 44.8C24 29.13 18.87 24 3.2 24C18.87 24 24 18.87 24 3.2ZM24 19.4C24 21.95 26.05 24 28.6 24C26.05 24 24 26.05 24 28.6C24 26.05 21.95 24 19.4 24C21.95 24 24 21.95 24 19.4Z" fill="url(#gaw)" fill-rule="evenodd"/>
+<g clip-path="url(#caw)">
+  <rect width="48" height="48" fill="url(#shaw)"/>
+  <rect width="48" height="48" fill="url(#sdaw)"/>
+</g>
+</g>
+</svg>

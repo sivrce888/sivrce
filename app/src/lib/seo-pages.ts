@@ -352,10 +352,20 @@ let footerCache: FooterCol[] | null = null
 export function footerKeywordCols(): FooterCol[] {
   if (footerCache) return footerCache
 
+  // ponytail: drop national place so 5-col footer stays 1 line / link (h1 keeps full form)
+  const footLabel = (def: NonNullable<ReturnType<typeof parseSeoSlug>>, loc: SeoLoc) => {
+    const h = h1Of(def, loc)
+    if (loc === 'ka') return h.replace(/ საქართველოში$/, '')
+    if (loc === 'en') return h.replace(/ in Georgia$/, '')
+    return h.replace(/ в Грузии$/, '')
+  }
   const link = (slug: string[]) => {
     const def = parseSeoSlug(slug)
     return def
-      ? { href: def.path, label: { ka: h1Of(def, 'ka'), en: h1Of(def, 'en'), ru: h1Of(def, 'ru') } }
+      ? {
+          href: def.path,
+          label: { ka: footLabel(def, 'ka'), en: footLabel(def, 'en'), ru: footLabel(def, 'ru') },
+        }
       : null
   }
   const cols: FooterCol[] = []
@@ -364,22 +374,36 @@ export function footerKeywordCols(): FooterCol[] {
     if (links.length) cols.push({ id, title, links })
   }
 
+  // Target ~8 inventory-backed links per column (nulls drop silently).
   push('sale', { ka: 'იყიდება', en: 'For sale', ru: 'Продажа' }, [
     ...[1, 2, 3, 4].map((n) => ['sale', `apartments-${n}`]),
     ['sale', 'houses'], ['sale', 'land'], ['sale', 'commercial'],
+    ['sale', 'apartments', 'tbilisi'],
   ])
   push('rent', { ka: 'ქირავდება', en: 'For rent', ru: 'Аренда' }, [
     ...[1, 2, 3, 4].map((n) => ['rent', `apartments-${n}`]),
     ['rent', 'houses'], ['rent', 'commercial'],
+    ['rent', 'apartments', 'tbilisi'], ['rent', 'apartments', 'batumi'],
+    ['rent', 'apartments', 'kutaisi'],
   ])
   push('daily', { ka: 'დღიურად', en: 'Daily rent', ru: 'Посуточно' }, [
-    ['daily'], ['daily', 'apartments'], ['daily', 'apartments', 'tbilisi'], ['daily', 'apartments', 'batumi'],
+    ['daily', 'apartments-1'], ['daily', 'apartments-2'],
+    ['daily', 'apartments'], ['daily', 'houses'],
+    ['daily', 'apartments', 'tbilisi'], ['daily', 'apartments', 'batumi'],
+    ['daily', 'apartments', 'kutaisi'],
+    ['daily', 'apartments', 'tbilisi', 'vake'],
   ])
   const tbilisiDists = DISTRICTS.filter((d) => d.citySlug === 'tbilisi').map((d) => d.slug)
-  push('sale-tbilisi', { ka: 'ბინები იყიდება თბილისში', en: 'Apartments for sale in Tbilisi', ru: 'Квартиры на продажу в Тбилиси' },
-    tbilisiDists.map((d) => ['sale', 'apartments', 'tbilisi', d]))
-  push('rent-tbilisi', { ka: 'ბინები ქირავდება თბილისში', en: 'Apartments for rent in Tbilisi', ru: 'Квартиры в аренду в Тбилиси' },
-    tbilisiDists.map((d) => ['rent', 'apartments', 'tbilisi', d]))
+  push('sale-tbilisi', { ka: 'ბინები იყიდება თბილისში', en: 'Apartments for sale in Tbilisi', ru: 'Квартиры на продажу в Тбилиси' }, [
+    ['sale', 'apartments', 'tbilisi'],
+    ...tbilisiDists.map((d) => ['sale', 'apartments', 'tbilisi', d]),
+  ])
+  push('rent-tbilisi', { ka: 'ბინები ქირავდება თბილისში', en: 'Apartments for rent in Tbilisi', ru: 'Квартиры в аренду в Тбилиси' }, [
+    ['rent', 'apartments', 'tbilisi'],
+    ...tbilisiDists.map((d) => ['rent', 'apartments', 'tbilisi', d]),
+    ['rent', 'apartments-1', 'tbilisi'],
+    ['rent', 'apartments-2', 'tbilisi'],
+  ])
 
   footerCache = cols
   return cols

@@ -541,6 +541,11 @@ export const he: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'מפה',
   'search.mapNote': 'המפה מציגה את {n} התוצאות הראשונות מתוך {total}',
+  'search.mapSearchArea': 'חיפוש באזור זה',
+  'search.mapLocate': 'המיקום שלי',
+  'search.mapInArea': '{n} מודעות',
+  'search.mapClearArea': 'הכל',
+  'search.mapEmptyArea': 'אין תוצאות באזור זה',
   'add.contactHint': 'ספרו לנו את השם ואת מספר הנייד שבו אפשר ליצור קשר.',
 
 }

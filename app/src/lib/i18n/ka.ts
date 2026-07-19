@@ -93,7 +93,7 @@ export const ka = {
   'map.poi.university': 'უნივერსიტეტი',
   'map.poi.park': 'პარკი',
   'map.poi.shop': 'მარკეტი',
-  'map.poi.gym': 'სპორტდარბაზი',
+  'map.poi.gym': 'ჯიმი',
   'map.poi.hospital': 'კლინიკა',
   'search.seller': 'გამყიდველი',
   'search.sellerOwner': 'მეპატრონე',
@@ -550,6 +550,11 @@ export const ka = {
   // Search map view (list/map toggle)
   'search.map': 'რუკა',
   'search.mapNote': 'რუკაზე ნაჩვენებია პირველი {n} შედეგი {total}-დან',
+  'search.mapSearchArea': 'ამ არეალში ძებნა',
+  'search.mapLocate': 'ჩემი ადგილმდებარეობა',
+  'search.mapInArea': '{n} განცხადება',
+  'search.mapClearArea': 'ყველა',
+  'search.mapEmptyArea': 'ამ არეალში შედეგი არ არის',
 } as const
 
 export type DictKey = keyof typeof ka

@@ -133,15 +133,19 @@ export default function MapEmbed({
   const mlRef = useRef<MaplibreNS | null>(null)
   const styleKeyRef = useRef<string | null>(null)
   const onPickRef = useRef(onPick)
-  onPickRef.current = onPick
   const highlightRef = useRef(highlight)
-  highlightRef.current = highlight
   const pinHueRef = useRef<string>(BRAND.colors.blue)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const themeReady = resolvedTheme != null
   const pinHue = highlight ? BRAND.colors.orange : BRAND.colors.blue
-  pinHueRef.current = pinHue
+
+  // Latest-values mirror for map callbacks — refs must not be written in render.
+  useEffect(() => {
+    onPickRef.current = onPick
+    highlightRef.current = highlight
+    pinHueRef.current = pinHue
+  })
   const coordsOk = parseCoords(lat, lng) != null
   // ponytail: skip MapLibre until near viewport
   const [near, setNear] = useState(false)
@@ -291,7 +295,7 @@ export default function MapEmbed({
     return () => {
       cancelled = true
     }
-  }, [isDark, status])
+  }, [isDark, status, lat, lng])
 
   // Camera + pin + building highlight (not on every popup label tweak).
   useEffect(() => {

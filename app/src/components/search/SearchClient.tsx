@@ -38,7 +38,7 @@ const ease = [0.21, 0.65, 0.2, 1] as const
 const SearchMapView = dynamic(() => import('@/components/search/SearchMapView'), {
   ssr: false,
   loading: () => (
-    <div className="grid h-[62vh] min-h-[420px] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" role="status" aria-label="იტვირთება">
+    <div className="grid h-[min(72vh,820px)] min-h-[480px] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" role="status" aria-label="იტვირთება">
       <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-sv-blue/20 border-t-sv-blue" />
     </div>
   ),

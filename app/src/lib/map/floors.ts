@@ -29,6 +29,9 @@ export type FloorInfo = {
 const MIN_FLOORS = 1
 const MAX_FLOORS = 60
 
+// ponytail: floor stacks paused per owner 2026-07 — re-enable with NEXT_PUBLIC_FLOOR_STACKS=1
+export const FLOOR_STACKS_ON = process.env.NEXT_PUBLIC_FLOOR_STACKS === '1'
+
 /** Floors to draw: admin inventory wins, then catalog value, listings, height formula. */
 export function buildingFloorCount(b: MapBuildingCluster): number {
   if (b.inventory?.length) return Math.max(MIN_FLOORS, Math.min(MAX_FLOORS, b.inventory.length))
@@ -42,6 +45,7 @@ export function buildingFloorCount(b: MapBuildingCluster): number {
  * Secondary-market clicks stay solid extrusion (cleaner, less gimmick).
  */
 export function buildingShowsFloorStack(b: MapBuildingCluster): boolean {
+  if (!FLOOR_STACKS_ON) return false
   if (b.inventory?.length) return true
   return b.status === 'construction'
 }

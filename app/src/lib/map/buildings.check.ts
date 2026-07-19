@@ -28,6 +28,7 @@ import { LISTINGS, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
 import { BUILDINGS } from '@/data/buildings'
 import { STATUS_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
+import { formatMapPin } from '@/lib/currency'
 import footprintJson from '@/data/building-footprints.json'
 
 const base = {
@@ -177,13 +178,19 @@ assert.ok(mukhiani)
 assert.ok(mukhiani!.coords.lat > 41.78 && mukhiani!.coords.lng > 44.81, 'blox-mukhiani coords outside Mukhiani')
 assert.ok(mukhiani!.location.includes('გობრონიძ'), 'blox-mukhiani missing street address')
 
+// ponytail: street+number coverage — was ~79/153; gate against sliding back to district labels.
+{
+  const withDigit = PROJECTS.filter((p) => /\d/.test(p.location)).length
+  assert.ok(withDigit >= 120, `project street+number coverage too low: ${withDigit}/${PROJECTS.length}`)
+}
+
 // High-confidence street pins — fail if catalog drifts back to district centroids.
 const pinAnchors: Record<string, { lat: number; lng: number; needle: string }> = {
-  'archi-central-park': { lat: 41.7213, lng: 44.74694, needle: 'თამარაშვილ' },
-  'white-square-mindeli': { lat: 41.72617, lng: 44.71293, needle: 'ძოწ' },
-  'one-batumi': { lat: 41.63545, lng: 41.61565, needle: 'აბუსერიძ' },
-  'orbi-continental': { lat: 41.64888, lng: 41.62446, needle: 'ნურიგელ' },
-  'idea-panorama': { lat: 41.71856, lng: 44.70428, needle: 'დანელი' },
+  'archi-central-park': { lat: 41.72129, lng: 44.74692, needle: 'Tamarashvili' },
+  'white-square-mindeli': { lat: 41.72583, lng: 44.71215, needle: 'Dzotsi' },
+  'one-batumi': { lat: 41.63537, lng: 41.61455, needle: 'Abuseridze' },
+  'orbi-continental': { lat: 41.64892, lng: 41.62439, needle: 'Rustaveli' },
+  'idea-panorama': { lat: 41.71883, lng: 44.7043, needle: 'Danelia' },
   'alto-by-real-palace': { lat: 41.79453, lng: 44.76627, needle: 'აბრაამ' },
 }
 for (const [slug, a] of Object.entries(pinAnchors)) {
@@ -376,6 +383,7 @@ assert.ok(
 // ——— floor stack gate ———
 
 import {
+  FLOOR_STACKS_ON,
   buildingFloorCount,
   buildingFloors,
   buildingShowsFloorStack,
@@ -402,7 +410,7 @@ assert.equal(
   false,
   'active without inventory stays solid',
 )
-assert.equal(buildingShowsFloorStack(ghosts[0]!), true, 'construction ghost opens floor stack')
+assert.equal(buildingShowsFloorStack(ghosts[0]!), FLOOR_STACKS_ON, 'construction ghost opens floor stack when stacks enabled')
 
 const towerFloors = buildingFloors(tower!, 'all')
 assert.equal(towerFloors.length, towerCount)
@@ -448,7 +456,7 @@ const invTip = floorTooltipKa(invAll[0]!, { ghost: false, showPrice: true })
 assert.equal(invTip.lines.length, 2)
 assert.ok(invTip.lines[1]!.includes('/მ²-დან'), 'inventory tooltip shows ₾/m²')
 assert.equal(floorsToGeoJSON(inventoryTower!).features.length, 3, 'inventory stack renders all floors')
-assert.equal(buildingShowsFloorStack(inventoryTower!), true, 'inventory development opens floor stack')
+assert.equal(buildingShowsFloorStack(inventoryTower!), FLOOR_STACKS_ON, 'inventory development opens floor stack when stacks enabled')
 
 // ——— merge gate: shadowed DB rows donate floor inventory to static clusters ———
 
@@ -518,14 +526,21 @@ for (const b of [...realClusters, ...realGhosts]) {
 // ——— neighborhood layer gate ———
 import { neighborhoodsToGeoJSON } from './buildings'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 
 const nbhFc = neighborhoodsToGeoJSON()
-assert.equal(nbhFc.features.length, NEIGHBORHOODS.length, 'neighborhood feature count mismatch')
-assert.equal(nbhFc.features.length, 16, 'neighborhood count drifted from 16')
+const expectedNbh = TBILISI_DISTRICT_LABELS.length + NEIGHBORHOODS.filter((n) => n.cityKey !== 'თბილისი').length
+assert.equal(nbhFc.features.length, expectedNbh, 'neighborhood feature count mismatch')
+assert.ok(nbhFc.features.length >= 60, 'district label sheet too thin')
+// OSM place centroids — fail if labels drift off-district again (Δ≈500m).
+const NBH_ANCHORS: Record<string, [number, number]> = Object.fromEntries(
+  TBILISI_DISTRICT_LABELS.map((d) => [d.slug, [d.coords.lat, d.coords.lng] as [number, number]]),
+)
 const nbhSeen = new Set<string>()
 for (const f of nbhFc.features) {
   const p = f.properties ?? {}
   const id = String(p.id)
+  const slug = String(p.slug)
   assert.ok(id.startsWith('nbh-'), `${id}: bad neighborhood id prefix`)
   assert.ok(!nbhSeen.has(id), `${id}: duplicate neighborhood id`)
   nbhSeen.add(id)
@@ -535,11 +550,45 @@ for (const f of nbhFc.features) {
     lat >= GEORGIA.latMin && lat <= GEORGIA.latMax && lng >= GEORGIA.lngMin && lng <= GEORGIA.lngMax,
     `${id}: point outside Georgia`,
   )
-  for (const k of ['transport', 'schools', 'green', 'safety', 'nightlife'] as const) {
-    const v = Number(p[k])
-    assert.ok(v >= 1 && v <= 10, `${id}: ${k} score ${v} out of [1,10]`)
+  const anchor = NBH_ANCHORS[slug]
+  if (anchor) {
+    const [alat, alng] = anchor
+    const m = Math.hypot((lat - alat) * 111_000, (lng - alng) * 111_000 * 0.75)
+    assert.ok(m < 500, `${id}: label ${m.toFixed(0)}m from OSM centroid (max 500)`)
   }
-  assert.ok(Number(p.avgPriceM2USD) > 0, `${id}: missing avgPriceM2USD`)
+  if (p.hasGuide === true) {
+    for (const k of ['transport', 'schools', 'green', 'safety', 'nightlife'] as const) {
+      const v = Number(p[k])
+      assert.ok(v >= 1 && v <= 10, `${id}: ${k} score ${v} out of [1,10]`)
+    }
+    assert.ok(Number(p.avgPriceM2USD) > 0, `${id}: missing avgPriceM2USD`)
+  }
+}
+
+// ——— Tbilisi raion borders (map fill) ———
+import TBILISI_RAIONS from '@/data/tbilisi-raions.json'
+assert.equal(TBILISI_RAIONS.features.length, 10, 'expected 10 official raions')
+for (const f of TBILISI_RAIONS.features) {
+  const slug = String(f.properties?.slug)
+  assert.ok(slug, 'raion missing slug')
+  assert.ok(
+    f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon',
+    `${slug}: not a polygon`,
+  )
 }
 
 console.log('map buildings check: ok')
+
+// ——— Compact price labels for mid-zoom pills ———
+assert.equal(formatMapPin(185_000, 'GEL'), '185კ₾')
+assert.equal(formatMapPin(1_200_000, 'GEL'), '1.2მლნ₾')
+assert.equal(formatMapPin(85_000, 'USD', 2.7), '$31k')
+{
+  const pts = buildingsToPointsGeoJSON(clusterListingsToBuildings(LISTINGS).slice(0, 5))
+  for (const f of pts.features) {
+    const label = String(f.properties?.priceLabel ?? '')
+    if ((f.properties?.total as number) > 0) {
+      assert.ok(label.length > 0, `cluster ${f.id} missing priceLabel`)
+    }
+  }
+}

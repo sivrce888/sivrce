@@ -1,16 +1,16 @@
-# სივრცე — Brand Lock (v1.9) · FROZEN 2026-07-17 · Logo v4a Aurora Spark 2026-07-19 · Status = newProjects sky 2026-07-18
+# სივრცე — Brand Lock (v1.11) · FROZEN 2026-07-17 · Logo board 1:1 live 2026-07-19 · Status = newProjects sky 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
 version bump in this file + matching updates to the three code sources below.
 
 | Source of truth | Path |
-|---|---|
+| --- | --- |
 | Spec (this file) | `app/BRAND.md` |
 | JS tokens | `app/src/lib/brand.ts` |
 | Category / deal / service hues | `app/src/lib/category-brand.ts` |
 | CSS + Tailwind `@theme` | `app/src/app/globals.css` |
-| Logo geometry | `logo/v4/` (Aurora Spark) + `app/src/components/Logo.tsx` |
+| Logo (board 1:1) | `logo/board1x1/` + `app/public/logo/` + `app/src/components/Logo.tsx` |
 
 ## 0. Enforcement (how to build UI)
 
@@ -19,7 +19,7 @@ Never write raw hex in components. Use locked tokens / `CATEGORY_BRAND` /
 stroke `#ffffff` and third-party brand marks (Google).
 
 | Token | Class examples | Value |
-|---|---|---|
+| --- | --- | --- |
 | Blue (primary) | `bg-sv-blue` `text-sv-blue/60` `ring-sv-blue/15` | #2E6BFF |
 | Blue light | `text-sv-blue-light` | #8FB4FF |
 | Blue deep | `hover:bg-sv-blue-deep` | #1A3FC0 |
@@ -51,27 +51,26 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 - No new CSS brand colors outside `BRAND.md`
 
 ## 1. Identity
+
 - **Name:** sivrce (always lowercase in the wordmark) + orange period
 - **KA name:** სივრცე · **Domain:** sivrce.ge
 - **Tagline:** „უძრავი ქონება ერთ სივრცეში" / "Real estate in one space"
 - **Personality:** premium, calm, technological, trustworthy — Apple-grade restraint
 
 ## 2. Logo
-- `LogoMark` — **Aurora Spark** (v4a, board-approved 2026-07-19): connected
-  four-point star with matching star void (evenodd); brand flow gradient
-  `#8FB4FF→#2E6BFF→#7A5CFF→#FF4D6D→#FF6A2D` lands on the **orange point**
-  (south tip) — the home inside the space, rhyming with the wordmark's orange
-  period. Display master may use vector sheen/shade (no raster gloss).
-- **Geometry lock (48-unit grid):** tip radius 20.8 · waist 6.4 · void tip 4.6 /
-  waist 1.9 · optical: display / small ≤32 px (fatter, flat) / micro ≤16 px
-  (solid, no void). Masters: `logo/v4/assets/sivrce-v4a-*`, ship:
-  `logo/v4/ship_aurora.py`
+
+- **Master = owner board** (`logo/source/sivrce-spark-board.png`). Crops in
+  `logo/board1x1/` → shipped via `app/public/logo/`.
+- Live UI (`Logo.tsx`): board PNG lockup / mark — **exact** mark + wordmark
+  font (baked raster). Do not substitute Manrope outlines or SVG approximations
+  for the primary identity.
+- Files: `lockup-ink.png` · `lockup-white.png` · `mark.png` ·
+  `wordmark-ink.png` · `wordmark-white.png` (+ size variants).
+- Favicon / apple / PWA from `logo/board1x1/app-icon-*` + `mark-*`.
 - Never recolor, rotate, outline, or place on busy backgrounds without a dark
   scrim
 - Min clear space = 25% of mark on all sides
-- Wordmark: Manrope 800, tracking −0.045em, lowercase, orange final period (`text-sv-orange`)
-- Legacy: v1 Space Point · v2 · v3 Spark Star blades → `logo/assets/`,
-  `logo/v2/`, `logo/v3/` (history only — never ship them)
+- Legacy: v1–v5 SVG Aurora approximations → history only
 
 ### 2.1 Sivrce Spark — AI sub-brand mark (added v1.3, owner-approved 2026-07-17)
 
@@ -87,8 +86,9 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 - Component: `app/src/components/SparkMark.tsx` (token vars only, no raw hex)
 
 ## 3. Color
+
 | Role | Token | Hex | Usage |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Primary | `sv-blue` | #2E6BFF | links, icons, AI features, active states |
 | Accent | `sv-orange` | #FF6A2D | CTAs, VIP, highlights, favorites — **action only** |
 | Deep bg | `sv-navy` | #050B26 | hero + dark sections + footer |
@@ -98,6 +98,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 | Violet | `sv-violet` | #7A5CFF | gradient partner only, never standalone |
 
 Rules:
+
 - Orange ≤ 10% of any viewport · white space is a feature
 - Dark sections always use dot-grid/aurora ambience, never flat color
 - **Overlays and image scrims are always navy-tinted** (`bg-sv-navy/55`, `from-sv-navy/70`) — never `bg-black/*`
@@ -114,7 +115,7 @@ Every category/service icon owns its personal hue + chip tint. Source of truth:
 Never cycle tints, never recolor, never inline new hex values for these items.
 
 | Category (KA) | Key | Hue | Chip |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | ბინები | `apartments` | #2E6BFF | #EFF3FF |
 | სახლები | `houses` | #FF6A2D | #FFF3EF |
 | აგარაკები | `cottages` | #16A34A | #EDF8F1 |
@@ -127,14 +128,14 @@ Never cycle tints, never recolor, never inline new hex values for these items.
 Daily-rent collections (locked 2026-07-18, owner request):
 
 | Collection (KA) | Key | Hue | Chip |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | სახლები წვეულებებისთვის | `partyHouses` | #C026D3 | #FAE8FD |
 | უკონტაქტო ჩექინი | `selfCheckIn` | #0D9488 | #E6F6F4 |
 
 Collections reusing locked category hues (services precedent, 2026-07-18):
 
 | Collection (KA) | Hue source | Hue |
-|---|---|---|
+| --- | --- | --- |
 | აუზით | `hotels` | #0891B2 |
 | ჯაკუზით | `houses` | #FF6A2D |
 | ზღვისპირა | `newProjects` | #5B8BFF |
@@ -143,13 +144,14 @@ Collections reusing locked category hues (services precedent, 2026-07-18):
 | სამუშაო ადგილით | `apartments` | #2E6BFF |
 
 | Service (KA) | Key | Hue | Chip |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | აგენტები და სააგენტოები | `agents` | #2E6BFF | #EFF3FF |
 | დეველოპერები | `developers` | #7C3AED | #F5F0FE |
 | რემონტი და კალკულატორი | `renovation` | #FF6A2D | #FFF3EF |
 | იპოთეკა და ფინანსები | `mortgage` | #16A34A | #EDF8F1 |
 
 Rules:
+
 - Icon chip = category `chip` bg + category `hue` glyph; hover keeps hue, upgrades scale/elevation only
 - The ≤10% orange rule applies to CTAs/highlights, NOT to the locked category identity hues
 - A new category is added ONLY by extending `category-brand.ts` + this table first
@@ -159,7 +161,7 @@ Rules:
 Source: `DEAL_BRAND` in `category-brand.ts`. Hero deal tabs + search deal chips.
 
 | Deal | Key | Hue | Maps to |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | იყიდება (sale) | `sale` | #2E6BFF | apartments |
 | ქირავდება (rent) | `rent` | #7C3AED | commercial |
 | დღიურად (daily) | `daily` | #E11D48 | dailyRent |
@@ -171,7 +173,7 @@ Source: `DEAL_BRAND` in `category-brand.ts`. Hero deal tabs + search deal chips.
 Brand hues (blue/orange/violet/category) stay fixed. Only foundations flip in `.dark`:
 
 | Token | Light | Dark |
-|---|---|---|
+| --- | --- | --- |
 | `sv-ink` | #0A1030 | #E9EDFF |
 | `sv-cloud` | #F6F7FB | #060B21 |
 | `sv-surface` | #FFFFFF | #0E1737 |
@@ -186,15 +188,18 @@ Map filters, construction ghosts. Source: `STATUS_BRAND`.
 Sky blue (`newProjects`) — orange stays CTAs/favorites only (≤10%).
 
 | Status (KA) | Key | Hue | Chip | Maps to |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | მშენებარე | `construction` | #5B8BFF | #EFF3FF | newProjects |
 
 Rules:
+
 - Construction status always reads `STATUS_BRAND.construction` (= `newProjects` sky)
 - Project progress bars use brand gradient `from-sv-blue to-sv-violet` (not solid status hue)
 - Completed map filter keeps `SERVICE_BRAND.developers` violet
 - Orange ≤10% rule: CTAs / VIP / favorites — never construction chrome
+
 ## 4. Typography
+
 - Stack: Manrope (Latin/digits, weights 400–900 loaded) + Noto Sans Georgian
 - Headlines: weight 900 (`font-black`), tracking −0.02em…−0.045em, `text-balance`
 - Body: 15–17px, weight 500–600, `sv-ink` at 45–75% opacity
@@ -202,6 +207,7 @@ Rules:
 - Layout MUST load Manrope 900 — headlines break without it
 
 ## 5. Shape & Elevation
+
 - Cards r=26 · tiles r=22 · nested modules r=16 · controls r=12 · buttons pill
 - **Concentric rule:** inner radius = outer radius − padding (e.g. segmented control:
   outer 12 + p-1 → inner 8 `rounded-lg`)
@@ -210,11 +216,13 @@ Rules:
 - Glass: `.glass` (dark) / `.glass-light` (light) — 20px blur, hairline translucent border only
 
 ## 6. Motion
+
 - Ease `[0.21,0.65,0.2,1]`, reveals: y+28 → 0, 0.7s, once (`<Reveal />`)
 - Hover: lift −6…−8px + shadow upgrade (≤0.5s)
 - Respect `prefers-reduced-motion` (handled globally in `globals.css`)
 
 ## 7. Iconography & Imagery
+
 - Lucide icons only, 1.5–2px stroke, rounded — **no emoji/unicode glyphs in UI**
   (ratings use `<Star className="fill-sv-orange text-sv-orange" />`)
 - Favorites (heart) states: default `sv-ink`, hover/active `sv-orange` (filled)
@@ -223,11 +231,13 @@ Rules:
 - 3D-map visuals: navy #050B26 base, blue pins, ONE orange highlight
 
 ## 8. VIP system (locked — `BRAND.vipTiers` is the only source)
+
 - VIP — dark navy badge + Flame
 - VIP+ — blue→violet gradient + Flame
 - SUPER VIP — orange→red gradient + Crown
 
 ## 9. Gradients (locked — `BRAND.gradients`)
+
 - Brand: `linear-gradient(120deg, #8FB4FF 0%, #2E6BFF 55%, #7A5CFF 100%)`
 - Action: `linear-gradient(120deg, #FFB25E 0%, #FF6A2D 60%, #FF4D6D 100%)`
 - VIP+: `linear-gradient(90deg, #2E6BFF, #7A5CFF)`

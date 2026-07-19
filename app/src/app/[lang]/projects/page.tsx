@@ -1,42 +1,66 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { notFound } from 'next/navigation'
 import { MapPin, CalendarCheck, Building2, Star } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
+import { FaqSection } from '@/components/seo/FaqSection'
 import { getDeveloper } from '@/data/professionals'
 import { projectsLive } from '@/lib/directory-live'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { isValidLang, type Lang } from '@/lib/i18n/core'
+import {
+  MICRO,
+  PROJECTS_HUB,
+  dirLoc,
+  faqPageLd,
+  finishLabel,
+  pickLoc,
+  unitsLabel,
+} from '@/lib/directory-seo'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: 'ახალი პროექტები თბილისში და ბათუმში — მშენებარე კორპუსები',
-  description:
-    'ახალი საცხოვრებელი პროექტები თბილისში და ბათუმში: დეველოპერების შეფასებები, ფასები კვადრატულზე, მშენებლობის პროგრესი და ჩაბარების ვადები — ყველა პროექტი ერთ სივრცეში.',
-  alternates: { canonical: '/projects', languages: langAlternates('/projects') },
-  openGraph: {
-    title: 'ახალი პროექტები თბილისში და ბათუმში | sivrce',
-    description:
-      'დეველოპერების შეფასებები, ფასები კვადრატულზე, მშენებლობის პროგრესი — ყველა ახალი პროექტი ერთ სივრცეში.',
-    type: 'website',
-    url: 'https://sivrce.ge/projects',
-    siteName: 'sivrce',
-    locale: 'ka_GE',
-    images: [{ url: 'https://sivrce.ge/images/og.jpg', alt: 'sivrce პროექტები' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'ახალი პროექტები თბილისში და ბათუმში | sivrce',
-    description:
-      'დეველოპერების შეფასებები, ფასები კვადრატულზე, მშენებლობის პროგრესი — ყველა ახალი პროექტი ერთ სივრცეში.',
-    images: ['https://sivrce.ge/images/og.jpg'],
-  },
+interface PageProps {
+  params: Promise<{ lang: string }>
 }
 
-export default async function ProjectsPage() {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang: Lang = isValidLang(raw) ? raw : 'ka'
+  const c = PROJECTS_HUB[dirLoc(lang)]
+  return {
+    title: c.title,
+    description: c.description,
+    alternates: { canonical: '/projects', languages: langAlternates('/projects') },
+    openGraph: {
+      title: c.ogTitle,
+      description: c.description,
+      type: 'website',
+      url: 'https://sivrce.ge/projects',
+      siteName: 'sivrce',
+      locale: OG_LOCALE[lang],
+      images: [{ url: 'https://sivrce.ge/images/og.jpg', alt: c.ogTitle }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: c.ogTitle,
+      description: c.description,
+      images: ['https://sivrce.ge/images/og.jpg'],
+    },
+  }
+}
+
+export default async function ProjectsPage({ params }: PageProps) {
+  const { lang: raw } = await params
+  if (!isValidLang(raw)) notFound()
+  const loc = dirLoc(raw)
+  const c = PROJECTS_HUB[loc]
+  const micro = MICRO[loc]
+
   const projects = await projectsLive()
   const listLd = {
     '@context': 'https://schema.org',
@@ -57,10 +81,10 @@ export default async function ProjectsPage() {
       <main id="main" className="pt-16">
         <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
           <h1 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            მშენებარე პროექტები
+            {c.h1}
           </h1>
           <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            ყველა დეველოპერი, ყველა პროექტი — შეფასებებით, ფასებითა და ჩაბარების ვადებით
+            {c.sub}
           </p>
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
             {projects.map((p) => {
@@ -88,7 +112,7 @@ export default async function ProjectsPage() {
                             {p.name}
                           </h2>
                           {dev && (
-                            <p className="text-[13px] font-bold text-white/80">{dev.name.ka}</p>
+                            <p className="text-[13px] font-bold text-white/80">{pickLoc(dev.name, loc)}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-navy">
@@ -97,7 +121,7 @@ export default async function ProjectsPage() {
                         </div>
                       </div>
                       <div className="absolute left-5 top-4 rounded-full bg-sv-navy/55 px-3.5 py-1.5 text-[12px] font-extrabold text-white backdrop-blur">
-                        აშენებულია {p.done}%
+                        {micro.builtPct(p.done)}
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 p-5">
@@ -105,15 +129,15 @@ export default async function ProjectsPage() {
                         <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {p.location}
                       </span>
                       <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
-                        <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> ჩაბარება{' '}
-                        {p.finish}
+                        <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> {micro.handover}{' '}
+                        {finishLabel(loc, p.finish)}
                       </span>
                       <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
-                        <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {p.flats} ბინა
+                        <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(p.flats, loc)}
                       </span>
                       <span className="ml-auto text-[16px] font-black text-sv-blue">
                         {p.priceFromM2}
-                        <span className="text-[12px] font-bold text-sv-ink/60"> /მ²-დან</span>
+                        <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
                       </span>
                     </div>
                     <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
@@ -128,10 +152,34 @@ export default async function ProjectsPage() {
             })}
           </div>
         </section>
+
+        {/* SEO prose — hub keyword block (მშენებარე ბინები თბილისი/ბათუმი, ფასები 2026) */}
+        <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+          <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
+            <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
+              {c.proseTitle}
+            </h2>
+            {c.prose.map((para, i) => (
+              <p
+                key={i}
+                className="mt-4 max-w-[860px] text-[15px] font-medium leading-[1.75] text-sv-ink/65"
+              >
+                {para}
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <FaqSection
+          title={c.faqTitle}
+          items={c.faqs}
+          className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10"
+        />
         <CTA />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(c.faqs)) }} />
     </div>
   )
 }

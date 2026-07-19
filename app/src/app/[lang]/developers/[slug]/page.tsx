@@ -8,6 +8,7 @@ import ListingCard from '@/components/ListingCard'
 import { EntityHeader } from '@/components/entities/EntityHeader'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { FaqSection } from '@/components/seo/FaqSection'
 import {
   DEVELOPERS,
   listingsByCity,
@@ -18,7 +19,17 @@ import { cityCenter, parseCoords } from '@/lib/map/geocode'
 import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { isValidLang, type Lang } from '@/lib/i18n/core'
+import {
+  DEV_DETAIL,
+  MICRO,
+  devFaqs,
+  dirLoc,
+  faqPageLd,
+  finishLabel,
+  pickLoc,
+} from '@/lib/directory-seo'
 
 export const revalidate = 3600
 
@@ -28,7 +39,7 @@ export function generateStaticParams() {
 }
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ lang: string; slug: string }>
 }
 
 function absImg(src: string) {
@@ -36,20 +47,21 @@ function absImg(src: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
+  const { lang: raw, slug } = await params
+  const lang: Lang = isValidLang(raw) ? raw : 'ka'
+  const loc = dirLoc(lang)
+  const c = DEV_DETAIL[loc]
   const d = await getLiveDeveloper(slug)
   if (!d) return {}
   const projects = await projectsLiveByDeveloper(slug)
   const flagship = projects.length
     ? projects.reduce((a, b) => (b.done > a.done ? b : a))
     : null
-  const description = (
-    d.description.ka ||
-    `${d.name.ka} — დეველოპერი ${d.city}ში. პროექტები, ფასები და მიმოხილვები სივრცეზე.`
-  )
+  const name = pickLoc(d.name, loc)
+  const description = (pickLoc(d.description, loc) || c.descFallback(name, d.city))
     .replace(/\s+/g, ' ')
     .slice(0, 155)
-  const title = `${d.name.ka} — პროექტები, ფასები და მიმოხილვები | sivrce`
+  const title = `${name} ${c.titleSuffix} | sivrce`
   // ponytail: flagship project photo beats tiny logo for OG (rich results + CTR).
   const og = flagship ? ogImage(flagship.img) : d.logoUrl || undefined
   return {
@@ -60,17 +72,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       languages: langAlternates(`/developers/${d.slug}`),
     },
     openGraph: {
-      title: `${d.name.ka} | sivrce`,
+      title: `${name} | sivrce`,
       description,
       type: 'profile',
       url: `https://sivrce.ge/developers/${d.slug}`,
       siteName: 'sivrce',
-      locale: 'ka_GE',
-      ...(og ? { images: [{ url: og, alt: d.name.ka }] } : {}),
+      locale: OG_LOCALE[lang],
+      ...(og ? { images: [{ url: og, alt: name }] } : {}),
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${d.name.ka} | sivrce`,
+      title: `${name} | sivrce`,
       description,
       ...(og ? { images: [og] } : {}),
     },
@@ -78,9 +90,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function DeveloperPage({ params }: PageProps) {
-  const { slug } = await params
+  const { lang, slug } = await params
+  if (!isValidLang(lang)) notFound()
+  const loc = dirLoc(lang)
+  const c = DEV_DETAIL[loc]
+  const micro = MICRO[loc]
   const dev = await getLiveDeveloper(slug)
   if (!dev) notFound()
+  const name = pickLoc(dev.name, loc)
 
   const [aggregate, projects, listings] = await Promise.all([
     getReviewAggregate('developer', slug),
@@ -105,8 +122,8 @@ export default async function DeveloperPage({ params }: PageProps) {
   const orgLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: dev.name.en,
-    alternateName: [dev.name.ka, dev.name.ru].filter(Boolean),
+    name,
+    alternateName: [dev.name.ka, dev.name.en, dev.name.ru].filter((n) => n && n !== name),
     url: `https://sivrce.ge/developers/${dev.slug}`,
     ...(dev.phone ? { telephone: dev.phone } : {}),
     ...(dev.logoUrl ? { logo: absImg(dev.logoUrl) } : {}),
@@ -148,12 +165,12 @@ export default async function DeveloperPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: 'დეველოპერები', item: 'https://sivrce.ge/developers' },
+      { '@type': 'ListItem', position: 1, name: c.crumbHome, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: c.crumbDevs, item: 'https://sivrce.ge/developers' },
       {
         '@type': 'ListItem',
         position: 3,
-        name: dev.name.ka,
+        name,
         item: `https://sivrce.ge/developers/${dev.slug}`,
       },
     ],
@@ -162,7 +179,7 @@ export default async function DeveloperPage({ params }: PageProps) {
   const projectListLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: `${dev.name.ka} — პროექტები`,
+    name: `${name} — ${c.projects}`,
     numberOfItems: projects.length,
     itemListElement: projects.map((p, i) => ({
       '@type': 'ListItem',
@@ -173,34 +190,8 @@ export default async function DeveloperPage({ params }: PageProps) {
     })),
   }
 
-  const faqLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `რა პროექტები აქვს ${dev.name.ka}-ს?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text:
-            projects.length > 0
-              ? `${dev.name.ka}-ს აქვს ${projects.length} პროექტი სივრცეზე: ${projects
-                  .slice(0, 5)
-                  .map((p) => p.name)
-                  .join(', ')}${projects.length > 5 ? ' და სხვა' : ''}.`
-              : `${dev.name.ka} — დეველოპერი ${dev.city}ში. პროექტები ხელმისაწვდომია სივრცეზე.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `სად მუშაობს ${dev.name.ka}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${dev.name.ka} მუშაობს ${dev.city}ში. ${dev.yearsActive > 0 ? `აქტიურია ${dev.yearsActive} წელია. ` : ''}${dev.description.ka.slice(0, 200)}`,
-        },
-      },
-    ],
-  }
+  // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
+  const faqs = devFaqs(loc, dev, projects)
 
   return (
     <div className="min-h-screen bg-sv-surface">
@@ -210,7 +201,7 @@ export default async function DeveloperPage({ params }: PageProps) {
           <div className="relative h-[240px] overflow-hidden md:h-[360px]">
             <Image
               src={flagship.img}
-              alt={`${dev.name.ka} — ${flagship.name}`}
+              alt={`${name} — ${flagship.name}`}
               fill
               priority
               sizes="100vw"
@@ -225,12 +216,12 @@ export default async function DeveloperPage({ params }: PageProps) {
               className="absolute left-5 top-4 text-[12px] font-semibold text-white/70 md:left-10"
             >
               <Link href="/developers" className="hover:text-white">
-                დეველოპერები
+                {c.crumbDevs}
               </Link>
               <span aria-hidden className="mx-1.5">
                 /
               </span>
-              <span className="text-white/90">{dev.name.ka}</span>
+              <span className="text-white/90">{name}</span>
             </nav>
           </div>
         )}
@@ -251,14 +242,14 @@ export default async function DeveloperPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            შესახებ
+            {c.about}
           </h2>
           <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
-            {dev.description.ka}
+            {pickLoc(dev.description, loc) || dev.description.ka}
           </p>
           {dev.website && (
             <p className="mt-3 text-[13px] font-bold text-sv-ink/55">
-              ვებგვერდი:{' '}
+              {micro.website}:{' '}
               <a
                 href={dev.website}
                 target="_blank"
@@ -273,7 +264,7 @@ export default async function DeveloperPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            მდებარეობა
+            {c.location}
           </h2>
           <div className="relative mt-6 overflow-hidden rounded-card shadow-card">
             <MapEmbed
@@ -294,7 +285,7 @@ export default async function DeveloperPage({ params }: PageProps) {
         {projects.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              პროექტები
+              {c.projects}
             </h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map((p) => (
@@ -313,17 +304,17 @@ export default async function DeveloperPage({ params }: PageProps) {
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                     />
                     <div className="absolute left-4 top-3 rounded-full bg-sv-navy/55 px-3 py-1 text-[12px] font-extrabold text-white backdrop-blur">
-                      აშენებულია {p.done}%
+                      {micro.builtPct(p.done)}
                     </div>
                   </div>
                   <div className="p-4">
                     <h3 className="text-[16px] font-black text-sv-ink">{p.name}</h3>
                     <p className="mt-1 text-[13px] font-bold text-sv-ink/55">
-                      {p.location} · ჩაბარება {p.finish}
+                      {p.location} · {micro.handover} {finishLabel(loc, p.finish)}
                     </p>
                     <p className="mt-2 text-[15px] font-black text-sv-blue">
                       {p.priceFromM2}
-                      <span className="text-[12px] font-bold text-sv-ink/60"> /მ²-დან</span>
+                      <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
                     </p>
                   </div>
                 </Link>
@@ -335,7 +326,7 @@ export default async function DeveloperPage({ params }: PageProps) {
         {listings.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              განცხადებები ქ. {dev.city}ში
+              {micro.listingsIn(dev.city)}
             </h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {listings.map((l, i) => (
@@ -345,8 +336,14 @@ export default async function DeveloperPage({ params }: PageProps) {
           </section>
         )}
 
+        <FaqSection
+          title={c.faqTitle}
+          items={faqs}
+          className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10"
+        />
+
         <section className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2">
-          <LeadForm targetType="developer" targetId={dev.slug} recipientName={dev.name.ka} />
+          <LeadForm targetType="developer" targetId={dev.slug} recipientName={name} />
           <ReviewsSection targetType="developer" targetId={dev.slug} />
         </section>
       </main>
@@ -354,7 +351,7 @@ export default async function DeveloperPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(orgLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectListLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />
     </div>
   )
 }

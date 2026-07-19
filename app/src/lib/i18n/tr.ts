@@ -541,6 +541,11 @@ export const tr: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'Harita',
   'search.mapNote': 'Haritada {total} sonuçtan ilk {n} tanesi gösteriliyor',
+  'search.mapSearchArea': 'Bu alanda ara',
+  'search.mapLocate': 'Konumum',
+  'search.mapInArea': '{n} ilan',
+  'search.mapClearArea': 'Tümü',
+  'search.mapEmptyArea': 'Bu alanda sonuç yok',
   'add.contactHint': 'Adınızı ve alıcıların sizi arayabileceği cep numarasını yazın.',
 
 }

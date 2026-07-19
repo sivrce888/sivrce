@@ -542,6 +542,11 @@ export const az: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'Xəritə',
   'search.mapNote': 'Xəritədə {total} nəticədən ilk {n} göstərilir',
+  'search.mapSearchArea': 'Bu ərazidə axtar',
+  'search.mapLocate': 'Mənim yerim',
+  'search.mapInArea': '{n} elan',
+  'search.mapClearArea': 'Hamısı',
+  'search.mapEmptyArea': 'Bu ərazidə nəticə yoxdur',
   'add.contactHint': 'Adınızı və alıcıların sizinlə əlaqə saxlaya biləcəyi mobil nömrəni yazın.',
 
 }

@@ -1,37 +1,76 @@
 'use client'
 
 /**
- * /search map view — price pins for the current filtered result set.
- * Shares the /map basemap stack (style proxy, Georgia bounds, chrome helpers)
- * instead of the foreign-WIP Map3D (building clusters + panels ≠ result pins).
- * ponytail: plain pill markers, no clustering — ≤100 pins is fine.
- * Upgrade path: supercluster when the map cap grows past a few hundred.
+ * /search map view — split list + price pins.
+ * Sync: list hover ↔ pin pulse; pin click → scroll card.
+ * "Search this area" = client filter of current result set (no Meili geo yet).
+ * ponytail: plain Marker pills ≤100; supercluster when cap grows.
  */
 
-import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { LocateFixed, Minus, Plus, Search } from 'lucide-react'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
 import { loadMapBasemap, mapStyleUrl } from '@/lib/map/floorLayers'
 import { mapChromeOptions } from '@/lib/map/mapChrome'
 import { initialMapCenter } from '@/lib/map/user-place'
 import { useI18n } from '@/lib/i18n/context'
-import { localizedHref } from '@/lib/i18n/core'
-import { useCurrency } from '@/lib/currency'
-import { BRAND } from '@/lib/brand'
-import type { Listing } from '@/data/listings'
+import { listingPath } from '@/lib/listing-slug'
+import { useCurrency, formatMapPin } from '@/lib/currency'
+import { DEAL_BRAND } from '@/lib/category-brand'
+import { blurProps } from '@/lib/media'
+import type { DealType, Listing } from '@/data/listings'
+
+type Bounds = { west: number; south: number; east: number; north: number }
+
+function dealHue(d: DealType): string {
+  if (d === 'rent') return DEAL_BRAND.rent
+  if (d === 'daily') return DEAL_BRAND.daily
+  if (d === 'pledge') return DEAL_BRAND.pledge
+  return DEAL_BRAND.sale
+}
+
+function inBounds(l: Listing, b: Bounds): boolean {
+  const { lat, lng } = l.coords
+  return lat >= b.south && lat <= b.north && lng >= b.west && lng <= b.east
+}
+
+function readBounds(map: maplibregl.Map): Bounds {
+  const b = map.getBounds()
+  return {
+    west: b.getWest(),
+    south: b.getSouth(),
+    east: b.getEast(),
+    north: b.getNorth(),
+  }
+}
 
 export default function SearchMapView({ listings }: { listings: Listing[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const markersRef = useRef<maplibregl.Marker[]>([])
+  const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map())
+  const elsRef = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const skipMoveRef = useRef(false)
   const [ready, setReady] = useState(false)
-  const router = useRouter()
-  const { lang } = useI18n()
-  const { format } = useCurrency()
+  const [hoverId, setHoverId] = useState<string | null>(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [seen, setSeen] = useState<Set<string>>(() => new Set())
+  const [area, setArea] = useState<Bounds | null>(null)
+  const [showSearchArea, setShowSearchArea] = useState(false)
+  const [locating, setLocating] = useState(false)
+  const { t } = useI18n()
+  const { format, currency, rate } = useCurrency()
 
-  // Boot once — light basemap through the same /api/map proxy /map uses.
+  const visible = useMemo(
+    () => (area ? listings.filter((l) => inBounds(l, area)) : listings),
+    [listings, area],
+  )
+
+  // Boot once
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
@@ -41,7 +80,7 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
       try {
         style = await loadMapBasemap(mapStyleUrl(false))
       } catch {
-        return // basemap proxy down — leave the empty shell, list view still works
+        return
       }
       if (cancelled || mapRef.current) return
       const boot = initialMapCenter()
@@ -56,47 +95,257 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
         fadeDuration: 0,
         ...mapChromeOptions(),
       })
-      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
       mapRef.current = map
+      map.on('movestart', () => {
+        if (skipMoveRef.current) return
+        setShowSearchArea(true)
+      })
       setReady(true)
     })()
     return () => {
       cancelled = true
+      markersRef.current.forEach((m) => m.remove())
+      markersRef.current.clear()
+      elsRef.current.clear()
       mapRef.current?.remove()
       mapRef.current = null
     }
   }, [])
 
-  // Pins follow the current result set; camera fits them.
+  const paintPin = useCallback(
+    (id: string) => {
+      const el = elsRef.current.get(id)
+      if (!el) return
+      const hovered = hoverId === id
+      const active = activeId === id
+      const wasSeen = seen.has(id)
+      el.style.transform = hovered || active ? 'scale(1.12)' : 'scale(1)'
+      el.style.zIndex = hovered || active ? '20' : '1'
+      el.style.opacity = wasSeen && !active && !hovered ? '0.55' : '1'
+      el.style.boxShadow = active
+        ? '0 0 0 3px rgba(255,255,255,0.95), 0 4px 14px rgba(5,11,38,0.28)'
+        : '0 2px 8px rgba(5,11,38,0.18)'
+    },
+    [hoverId, activeId, seen],
+  )
+
+  // Rebuild pins when result set / currency / area changes
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
     markersRef.current.forEach((m) => m.remove())
-    markersRef.current = []
+    markersRef.current.clear()
+    elsRef.current.clear()
+
     const bounds = new maplibregl.LngLatBounds()
-    for (const l of listings) {
+    for (const l of visible) {
       const { lat, lng } = l.coords
       if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) continue
       const el = document.createElement('button')
       el.type = 'button'
       el.className =
-        'cursor-pointer whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-black text-white shadow-glow-blue-sm transition-transform hover:z-10 hover:scale-105'
-      el.style.backgroundColor = BRAND.colors.blue
-      el.textContent = format(l.priceGEL)
+        'cursor-pointer whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-black text-white transition-transform'
+      el.style.backgroundColor = dealHue(l.dealType)
+      el.textContent = formatMapPin(l.priceGEL, currency, rate) || format(l.priceGEL)
       el.setAttribute('aria-label', l.title)
-      el.addEventListener('click', () => router.push(localizedHref(`/listing/${l.id}`, lang)))
-      markersRef.current.push(
+      el.dataset.id = l.id
+      el.addEventListener('mouseenter', () => setHoverId(l.id))
+      el.addEventListener('mouseleave', () => setHoverId((cur) => (cur === l.id ? null : cur)))
+      el.addEventListener('click', () => {
+        setActiveId(l.id)
+        setSeen((prev) => {
+          if (prev.has(l.id)) return prev
+          const next = new Set(prev)
+          next.add(l.id)
+          return next
+        })
+        const card = listRef.current?.querySelector(`[data-listing="${l.id}"]`)
+        card?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      })
+      elsRef.current.set(l.id, el)
+      markersRef.current.set(
+        l.id,
         new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map),
       )
       bounds.extend([lng, lat])
     }
-    if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 400 })
-  }, [ready, listings, format, lang, router])
+
+    // First load / filter change: fit. Area search keeps camera.
+    if (!area && !bounds.isEmpty()) {
+      skipMoveRef.current = true
+      map.fitBounds(bounds, { padding: 56, maxZoom: 14, duration: 400 })
+      map.once('moveend', () => {
+        skipMoveRef.current = false
+        setShowSearchArea(false)
+      })
+    }
+    // ponytail: style via sibling effect — don't deps paintPin (hover would remount markers)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hover/active painted separately
+  }, [ready, visible, format, currency, rate, area])
+
+  // Restyle pins on hover/active/seen without rebuild
+  useEffect(() => {
+    for (const id of elsRef.current.keys()) paintPin(id)
+  }, [paintPin])
+
+  const searchThisArea = () => {
+    const map = mapRef.current
+    if (!map) return
+    setArea(readBounds(map))
+    setShowSearchArea(false)
+    setActiveId(null)
+  }
+
+  const clearArea = () => {
+    setArea(null)
+    setShowSearchArea(false)
+  }
+
+  const zoomBy = (delta: number) => {
+    const map = mapRef.current
+    if (!map) return
+    map.easeTo({ zoom: map.getZoom() + delta, duration: 200 })
+  }
+
+  const locateMe = () => {
+    if (!navigator.geolocation || locating) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false)
+        mapRef.current?.easeTo({
+          center: [pos.coords.longitude, pos.coords.latitude],
+          zoom: 14,
+          duration: 700,
+        })
+      },
+      () => setLocating(false),
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
+    )
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className="h-[62vh] min-h-[420px] w-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card"
-    />
+    <div className="flex h-[min(72vh,820px)] min-h-[480px] flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card md:flex-row">
+      {/* List */}
+      <div
+        ref={listRef}
+        className="flex max-h-[42%] flex-col overflow-y-auto border-b border-sv-ink/[0.06] md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r"
+      >
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-sv-ink/[0.06] bg-sv-surface/95 px-3.5 py-2.5 backdrop-blur-sm">
+          <p className="text-[13px] font-extrabold text-sv-ink">
+            {t('search.mapInArea', { n: visible.length })}
+          </p>
+          {area && (
+            <button
+              type="button"
+              onClick={clearArea}
+              className="text-[12px] font-extrabold text-sv-blue hover:text-sv-blue-deep"
+            >
+              {t('search.mapClearArea')}
+            </button>
+          )}
+        </div>
+        {visible.length === 0 ? (
+          <p className="px-4 py-10 text-center text-[13px] font-semibold text-sv-ink/45">
+            {t('search.mapEmptyArea')}
+          </p>
+        ) : (
+          visible.map((l) => {
+            const hot = hoverId === l.id || activeId === l.id
+            const suffix =
+              l.dealType === 'rent'
+                ? t('detail.perMonth')
+                : l.dealType === 'daily'
+                  ? t('detail.perDay')
+                  : ''
+            return (
+              <Link
+                key={l.id}
+                href={listingPath(l)}
+                data-listing={l.id}
+                onMouseEnter={() => setHoverId(l.id)}
+                onMouseLeave={() => setHoverId((cur) => (cur === l.id ? null : cur))}
+                onFocus={() => setHoverId(l.id)}
+                onBlur={() => setHoverId((cur) => (cur === l.id ? null : cur))}
+                className={`flex gap-3 border-b border-sv-ink/[0.05] px-3.5 py-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sv-blue ${
+                  hot ? 'bg-sv-blue/[0.06]' : 'hover:bg-sv-ink/[0.02]'
+                }`}
+              >
+                <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control bg-sv-ink/[0.06]">
+                  {(l.img || l.images[0]) && (
+                    <Image
+                      src={l.img || l.images[0]!}
+                      alt=""
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                      {...blurProps(l.img || l.images[0]!)}
+                    />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] font-black tracking-tight text-sv-ink">
+                    {format(l.priceGEL)}
+                    {suffix ? (
+                      <span className="ml-1 text-[12px] font-bold text-sv-ink/45">{suffix}</span>
+                    ) : null}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/55">
+                    {l.rooms} {t('spec.rooms')} · {l.area} მ² · {l.district}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/40">
+                    {l.title}
+                  </span>
+                </span>
+              </Link>
+            )
+          })
+        )}
+      </div>
+
+      {/* Map */}
+      <div className="relative min-h-0 flex-1">
+        <div ref={containerRef} className="absolute inset-0" />
+
+        {showSearchArea && (
+          <button
+            type="button"
+            onClick={searchThisArea}
+            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-sv-blue px-4 py-2.5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition hover:bg-sv-blue-deep"
+          >
+            <Search className="h-3.5 w-3.5" aria-hidden />
+            {t('search.mapSearchArea')}
+          </button>
+        )}
+
+        <div className="absolute right-3 top-3 z-10 flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={() => zoomBy(1)}
+            className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-surface text-sv-ink shadow-card transition hover:border-sv-blue/30 hover:text-sv-blue"
+            aria-label="+"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+          <button
+            type="button"
+            onClick={() => zoomBy(-1)}
+            className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-surface text-sv-ink shadow-card transition hover:border-sv-blue/30 hover:text-sv-blue"
+            aria-label="−"
+          >
+            <Minus className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+          <button
+            type="button"
+            onClick={locateMe}
+            disabled={locating}
+            className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-surface text-sv-ink shadow-card transition hover:border-sv-blue/30 hover:text-sv-blue disabled:opacity-50"
+            aria-label={t('search.mapLocate')}
+          >
+            <LocateFixed className={`h-4 w-4 ${locating ? 'animate-pulse' : ''}`} strokeWidth={2.5} />
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

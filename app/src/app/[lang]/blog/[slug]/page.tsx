@@ -63,7 +63,7 @@ function postLd(slug: string) {
       url: 'https://sivrce.ge/about',
       worksFor: { '@type': 'Organization', name: 'sivrce', url: 'https://sivrce.ge' },
     },
-    publisher: { '@type': 'Organization', name: 'sivrce', url: 'https://sivrce.ge', logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/logo/sivrce-mark.svg' } },
+    publisher: { '@type': 'Organization', name: 'sivrce', url: 'https://sivrce.ge', logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/logo/mark.png' } },
     mainEntityOfPage: { '@type': 'WebPage', '@id': `https://sivrce.ge/blog/${post.slug}` },
     keywords: post.tags.join(', '),
     articleSection: 'უძრავი ქონება',

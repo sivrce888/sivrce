@@ -5,7 +5,6 @@
 
 import type { FilterSpecification } from 'maplibre-gl'
 import raw from '@/data/tbilisi-pois.json'
-import { BRAND } from '@/lib/brand'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import {
   METRO_MAX_CATCHMENT_M,
@@ -61,7 +60,7 @@ export const POI_LABELS: Record<PoiCategory, string> = {
   university: 'უნივერსიტეტი',
   park: 'პარკი',
   shop: 'მარკეტი',
-  gym: 'სპორტდარბაზი',
+  gym: 'ჯიმი',
   hospital: 'კლინიკა',
 }
 
@@ -81,7 +80,8 @@ export function keepUniversityPoi(name: string): boolean {
 
 /** Locked category hues only — no new brand hex. */
 export const POI_COLORS: Record<PoiCategory, string> = {
-  metro: BRAND.colors.blue,
+  // Tbilisi metro signage is red — reuse locked rose (dailyRent), not a new hex.
+  metro: CATEGORY_BRAND.dailyRent.hue,
   pharmacy: CATEGORY_BRAND.dailyRent.hue,
   school: CATEGORY_BRAND.newProjects.hue,
   university: CATEGORY_BRAND.land.hue,
