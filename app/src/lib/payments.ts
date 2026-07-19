@@ -718,6 +718,8 @@ async function applyEntitlementTx(
 type ExtFields = {
   condition?: string
   buildingStatus?: string
+  project?: string
+  floorType?: string
   colorUntil?: string
   urgentUntil?: string
   priceDropUntil?: string
@@ -789,6 +791,8 @@ export async function reindexListingById(listingId: string): Promise<void> {
     sellerType: listing.sellerType ?? undefined,
     condition: ext?.condition,
     buildingStatus: ext?.buildingStatus,
+    project: ext?.project,
+    floorType: ext?.floorType,
     area: listing.area,
     rooms: listing.rooms,
     bedrooms: listing.bedrooms,

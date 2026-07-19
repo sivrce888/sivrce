@@ -1,11 +1,16 @@
 /**
  * myhome.ge-shaped add-listing field matrix.
  * Prop type + deal → which deals/fields/status/condition options show.
- * Stored status/condition values remain i18n keys (same as /search filters).
+ * Stored status/condition/project values remain i18n keys (same as /search filters).
  */
 import type { DealType, PropType } from '@/data/listings'
 import type { DictKey } from '@/lib/i18n/context'
-import { BUILDING_STATUS_KEYS, CONDITION_KEYS } from '@/lib/features'
+import {
+  BUILDING_STATUS_KEYS,
+  CONDITION_KEYS,
+  FLOOR_TYPE_KEYS,
+  PROJECT_KEYS,
+} from '@/lib/features'
 
 export const FORM_PROP_TYPES = [
   'apartment',
@@ -83,6 +88,10 @@ export type FormFields = {
   yard: boolean
   condition: boolean
   status: boolean
+  /** Soviet / Georgian apartment series (ბინის პროექტი). */
+  project: boolean
+  floorType: boolean
+  kitchen: boolean
   areaHa: boolean
   rentPeriod: boolean
   rentType: boolean
@@ -94,6 +103,7 @@ export function fieldsFor(prop: PropType, deal: DealType): FormFields {
   const land = prop === 'land'
   const built = !land
   const houseLike = prop === 'house' || prop === 'villa'
+  const apt = prop === 'apartment'
   return {
     rooms: built,
     baths: built,
@@ -102,6 +112,9 @@ export function fieldsFor(prop: PropType, deal: DealType): FormFields {
     yard: houseLike || prop === 'hotel',
     condition: built,
     status: true,
+    project: apt,
+    floorType: apt,
+    kitchen: apt || houseLike,
     areaHa: land,
     rentPeriod: deal === 'rent' && !land,
     rentType: deal === 'rent' && !land,
@@ -133,6 +146,14 @@ export function statusesFor(prop: PropType): readonly DictKey[] {
       return _x
     }
   }
+}
+
+export function projectsFor(prop: PropType): readonly DictKey[] {
+  return prop === 'apartment' ? PROJECT_KEYS : []
+}
+
+export function floorTypesFor(prop: PropType): readonly DictKey[] {
+  return prop === 'apartment' ? FLOOR_TYPE_KEYS : []
 }
 
 export const RENT_PERIODS = [3, 6, 9, 12, 15, 18] as const

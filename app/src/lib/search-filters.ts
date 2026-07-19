@@ -7,7 +7,7 @@
 import { Prisma } from "@/generated/prisma/client"
 import { nearMetroWhere } from "@/lib/geo/nearest-poi-pure"
 import { USD_GEL } from "@/data/listings"
-import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS } from "@/lib/features"
+import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from "@/lib/features"
 import { districtSearchValues } from "@/lib/district-canon"
 import type { SearchFilters } from "@/lib/search"
 
@@ -76,6 +76,8 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     floorMax: num("fmax"),
     conditions: csv("cond", CONDITION_KEYS),
     buildingStatuses: csv("bstat", BUILDING_STATUS_KEYS),
+    projects: csv("project", PROJECT_KEYS),
+    floorTypes: csv("ftype", FLOOR_TYPE_KEYS),
     features: csv("feat", FEATURE_KEYS),
     hasPhoto: sp.get("photo") === "1" || undefined,
     verifiedOnly: sp.get("verified") === "1" || undefined,
@@ -139,6 +141,12 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   }
   if (filters.buildingStatuses?.length) {
     and.push({ OR: filters.buildingStatuses.map((s) => ({ extendedFields: { path: ["buildingStatus"], equals: s } })) })
+  }
+  if (filters.projects?.length) {
+    and.push({ OR: filters.projects.map((p) => ({ extendedFields: { path: ["project"], equals: p } })) })
+  }
+  if (filters.floorTypes?.length) {
+    and.push({ OR: filters.floorTypes.map((f) => ({ extendedFields: { path: ["floorType"], equals: f } })) })
   }
   if (filters.features?.length) where.features = { hasEvery: filters.features }
   if (filters.hasPhoto) where.images = { isEmpty: false }

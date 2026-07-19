@@ -24,7 +24,7 @@ import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
 import { listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
-import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS } from '@/lib/features'
+import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from '@/lib/features'
 import type { SearchLocations } from '@/lib/listings-db'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
@@ -215,10 +215,14 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const floorMax = numParam('fmax')
   const condRaw = params.get('cond') ?? ''
   const bstatRaw = params.get('bstat') ?? ''
+  const projectRaw = params.get('project') ?? ''
+  const ftypeRaw = params.get('ftype') ?? ''
   const featRaw = params.get('feat') ?? ''
   // Memoized so the search effect only re-fires on real param changes.
   const cond = useMemo(() => splitCsv(condRaw, CONDITION_KEYS), [condRaw])
   const bstat = useMemo(() => splitCsv(bstatRaw, BUILDING_STATUS_KEYS), [bstatRaw])
+  const project = useMemo(() => splitCsv(projectRaw, PROJECT_KEYS), [projectRaw])
+  const ftype = useMemo(() => splitCsv(ftypeRaw, FLOOR_TYPE_KEYS), [ftypeRaw])
   const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
   const photo = params.get('photo') === '1'
   const verifiedOnly = params.get('verified') === '1'
@@ -321,6 +325,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         if (floorMax !== undefined) sp.set('fmax', String(floorMax))
         if (condRaw) sp.set('cond', condRaw)
         if (bstatRaw) sp.set('bstat', bstatRaw)
+        if (projectRaw) sp.set('project', projectRaw)
+        if (ftypeRaw) sp.set('ftype', ftypeRaw)
         if (featRaw) sp.set('feat', featRaw)
         if (photo) sp.set('photo', '1')
         if (verifiedOnly) sp.set('verified', '1')
@@ -374,7 +380,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const [sheetOpen, setSheetOpen] = useState(false)
   const moreCount = (beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
-    + cond.length + bstat.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
+    + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
     + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0)
   const [moreOpen, setMoreOpen] = useState(moreCount > 0)
 
@@ -439,6 +445,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   if (floorMin !== undefined || floorMax !== undefined) chips.push({ key: 'floor', label: `${t('search.floor')}: ${floorMin ?? '—'}–${floorMax ?? '—'}`, clear: () => { clearDraft('fmin'); clearDraft('fmax'); patchParams({ fmin: undefined, fmax: undefined }) } })
   if (cond.length) chips.push({ key: 'cond', label: `${t('search.condition')} · ${cond.length}`, clear: () => patchParams({ cond: undefined }) })
   if (bstat.length) chips.push({ key: 'bstat', label: `${t('search.buildingStatus')} · ${bstat.length}`, clear: () => patchParams({ bstat: undefined }) })
+  if (project.length) chips.push({ key: 'project', label: `${t('search.project')} · ${project.length}`, clear: () => patchParams({ project: undefined }) })
+  if (ftype.length) chips.push({ key: 'ftype', label: `${t('search.floorType')} · ${ftype.length}`, clear: () => patchParams({ ftype: undefined }) })
   if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
   if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
   if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
@@ -849,6 +857,32 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
                 ))}
               </div>
             </div>
+
+            {(!type || type === 'apartment') && (
+              <div>
+                <span className={labelClass}>{t('search.project')}</span>
+                <div className="scrollbar-hide flex max-h-28 flex-wrap gap-1 overflow-y-auto">
+                  {PROJECT_KEYS.map((p) => (
+                    <button key={p} type="button" onClick={() => toggleCsv('project', project, p)} aria-pressed={project.includes(p)} className={tagChip(project.includes(p))}>
+                      {t(p)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(!type || type === 'apartment') && (
+              <div>
+                <span className={labelClass}>{t('search.floorType')}</span>
+                <div className="flex flex-wrap gap-1">
+                  {FLOOR_TYPE_KEYS.map((ft) => (
+                    <button key={ft} type="button" onClick={() => toggleCsv('ftype', ftype, ft)} aria-pressed={ftype.includes(ft)} className={tagChip(ftype.includes(ft))}>
+                      {t(ft)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <span className={labelClass}>{t('search.features')}</span>

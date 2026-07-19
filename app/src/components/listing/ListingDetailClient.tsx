@@ -36,7 +36,7 @@ import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useChat } from '@/components/chat/ChatProvider'
-import { DAILY_SIGNAL_KEYS, featureLabel, orderFeaturesForDisplay } from '@/lib/features'
+import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, orderFeaturesForDisplay, projectLabel } from '@/lib/features'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
@@ -232,7 +232,10 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
     { icon: Bath, label: t('spec.baths'), value: l.baths > 0 ? String(l.baths) : '—' },
     { icon: Ruler, label: t('spec.area'), value: `${l.area} მ²` },
+    ...(l.kitchenArea ? [{ icon: Ruler, label: t('add.kitchenArea'), value: `${l.kitchenArea} მ²` }] : []),
     { icon: Building2, label: t('spec.floor'), value: formatFloor(l) },
+    ...(l.floorType ? [{ icon: Layers, label: t('add.floorType'), value: floorTypeLabel(l.floorType, t) }] : []),
+    ...(l.project ? [{ icon: Building2, label: t('detail.project'), value: projectLabel(l.project, t) }] : []),
     { icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) },
   ]
 

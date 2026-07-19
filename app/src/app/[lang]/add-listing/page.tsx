@@ -7,7 +7,7 @@ import { langAlternates } from '@/lib/i18n/server'
 export const metadata: Metadata = {
   title: 'განცხადების დამატება',
   description:
-    'განათავსე უძრავი ქონების განცხადება სივრცეზე 6 მარტივი ნაბიჯით — AI ფასის შეფასებით, ცოცხალი გადახედვით და ვერიფიკაციით.',
+    'განათავსე უძრავი ქონების განცხადება სივრცეზე 6 მარტივი ნაბიჯით — ფოტოებით, რუკით, AI ფასის შეფასებით და ცოცხალი გადახედვით.',
   alternates: { canonical: '/add-listing', languages: langAlternates('/add-listing') },
   robots: { index: false, follow: true },
 }

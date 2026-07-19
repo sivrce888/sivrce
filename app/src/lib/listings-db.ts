@@ -106,6 +106,9 @@ export interface Listing {
   ai: { score: number; label: string }
   features: string[]
   description: string
+  project?: string | null
+  floorType?: string | null
+  kitchenArea?: number | null
   coords: { lat: number; lng: number }
   postedAt: string
   agent: Agent
@@ -172,6 +175,9 @@ function rowToListing(row: Record<string, unknown>): Listing {
     ai: { score: aiScore, label: aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო" },
     features: (r.features as string[]) ?? [],
     description: (r.description as string) ?? "",
+    project: ((r.extendedFields as { project?: string } | null)?.project) ?? null,
+    floorType: ((r.extendedFields as { floorType?: string } | null)?.floorType) ?? null,
+    kitchenArea: ((r.extendedFields as { kitchenArea?: number } | null)?.kitchenArea) ?? null,
     coords: { lat: (r.lat as number) ?? MAP_CENTER.lat, lng: (r.lng as number) ?? MAP_CENTER.lng },
     postedAt: createdAt.toISOString().slice(0, 10),
     agent: {

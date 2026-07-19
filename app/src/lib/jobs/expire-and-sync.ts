@@ -121,6 +121,8 @@ export async function syncSearchIndexJob(): Promise<{
     const ext = extendedFields as {
       condition?: string
       buildingStatus?: string
+      project?: string
+      floorType?: string
       colorUntil?: string
       urgentUntil?: string
       priceDropUntil?: string
@@ -134,6 +136,8 @@ export async function syncSearchIndexJob(): Promise<{
       hasImages: row.images.length > 0,
       condition: ext?.condition,
       buildingStatus: ext?.buildingStatus,
+      project: ext?.project,
+      floorType: ext?.floorType,
       features: (row.features as string[]) ?? [],
       images: (row.images as string[]) ?? [],
       floor: row.floor ?? undefined,

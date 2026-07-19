@@ -90,6 +90,9 @@ export async function POST(req: NextRequest) {
   const floor = asInt(body.floor, 0, 200)
   const totalFloors = asInt(body.totalFloors, 0, 200)
   const images = asStrList(body.images, 16, 500).filter((u) => u.startsWith("https://"))
+  if (images.length < 1) {
+    return NextResponse.json({ ok: false, error: "photos_required" }, { status: 400 })
+  }
   const features = asStrList(body.features, 30, 60)
   const description = typeof body.description === "string" ? body.description.slice(0, 5000) : ""
 
@@ -142,6 +145,11 @@ export async function POST(req: NextRequest) {
         exchangeable: body.exchangeable === true,
         condition: asStr(body.condition, 60),
         buildingStatus: asStr(body.buildingStatus, 60),
+        project: asStr(body.project, 60),
+        floorType: asStr(body.floorType, 60),
+        kitchenArea: typeof body.kitchenArea === "number" && body.kitchenArea > 0 && body.kitchenArea <= 500
+          ? body.kitchenArea
+          : null,
         cadastral: asStr(body.cadastral, 60),
         cadastralPublic: body.cadastralPublic === true,
         video: asStr(body.video, 500),
@@ -191,6 +199,8 @@ export async function POST(req: NextRequest) {
     sellerType: session.user.role === "agency" || session.user.role === "agent" ? "agency" : "owner",
     condition: asStr(body.condition, 60) ?? undefined,
     buildingStatus: asStr(body.buildingStatus, 60) ?? undefined,
+    project: asStr(body.project, 60) ?? undefined,
+    floorType: asStr(body.floorType, 60) ?? undefined,
     area,
     rooms, bedrooms: rooms, bathrooms: baths,
     floor: floor ?? undefined, totalFloors: totalFloors ?? undefined,

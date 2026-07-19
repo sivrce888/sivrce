@@ -91,6 +91,7 @@ import {
   writeSavedPlace,
   type MapCity,
 } from '@/lib/map/user-place'
+import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
 import {
   Layers,
   RotateCcw,
@@ -608,6 +609,38 @@ function Map3DInner({
   }, [])
   useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
   useEffect(() => { floorRef.current = (n) => setFloorFilter((cur) => (cur === n ? null : n)) }, [])
+
+  // Vague pin (district-only) → reverse Nominatim for street + house №. No map server.
+  useEffect(() => {
+    if (!selected) return
+    if (/\d/.test(selected.address)) return
+    const id = selected.id
+    const { lat, lng } = selected
+    const ac = new AbortController()
+    fetch(`/api/geocode?lat=${lat}&lng=${lng}`, { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: (GeocodeHit & { ok?: boolean }) | null) => {
+        if (!d?.ok) return
+        const line = formatGeocodeAddress(d)
+        if (!line) return
+        setSelected((cur) => {
+          if (!cur || cur.id !== id) return cur
+          if (/\d/.test(cur.address) && !/\d/.test(line)) return cur
+          if (cur.address === line) return cur
+          return {
+            ...cur,
+            address: line,
+            buildingNumber: d.houseNo || cur.buildingNumber,
+            district: d.district || cur.district,
+            city: d.city || cur.city,
+          }
+        })
+      })
+      .catch(() => {})
+    return () => ac.abort()
+    // ponytail: id-only — don't re-fetch after we fill address
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [selected?.id])
 
   useEffect(() => {
     const map = mapRef.current

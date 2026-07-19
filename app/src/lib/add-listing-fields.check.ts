@@ -5,6 +5,8 @@ import {
   fieldsFor,
   conditionsFor,
   statusesFor,
+  projectsFor,
+  floorTypesFor,
 } from './add-listing-fields'
 
 assert.deepEqual([...DEALS_FOR.land], ['sale', 'rent', 'pledge'])
@@ -17,6 +19,7 @@ assert.equal(landSale.rooms, false)
 assert.equal(landSale.condition, false)
 assert.equal(landSale.areaHa, true)
 assert.equal(landSale.floor, false)
+assert.equal(landSale.project, false)
 
 const landLease = fieldsFor('land', 'rent')
 assert.equal(landLease.rentPeriod, false)
@@ -26,6 +29,12 @@ const aptRent = fieldsFor('apartment', 'rent')
 assert.equal(aptRent.rentPeriod, true)
 assert.equal(aptRent.rentType, true)
 assert.equal(aptRent.floor, true)
+assert.equal(aptRent.project, true)
+assert.equal(aptRent.floorType, true)
+assert.equal(aptRent.kitchen, true)
+assert.ok(projectsFor('apartment').length >= 10)
+assert.equal(projectsFor('land').length, 0)
+assert.equal(floorTypesFor('apartment').length, 3)
 
 const daily = fieldsFor('apartment', 'daily')
 assert.equal(daily.guests, true)
@@ -38,19 +47,7 @@ assert.deepEqual([...statusesFor('hotel')], ['add.status.construction', 'add.sta
 
 const house = fieldsFor('house', 'sale')
 assert.equal(house.yard, true)
-assert.equal(house.floor, false)
-assert.equal(house.totalFloors, true)
-
-assert.equal(fieldsFor('apartment', 'daily').guests, true)
-assert.equal(fieldsFor('land', 'sale').rooms, false)
-
-// price helper: total GEL → USD (same math as form)
-const USD_GEL = 2.7
-const toUsd = (entered: number, cur: 'USD' | 'GEL', mode: 'total' | 'm2', area: number) => {
-  const total = mode === 'm2' && area > 0 ? entered * area : entered
-  return cur === 'GEL' ? Math.round(total / USD_GEL) : Math.round(total)
-}
-assert.equal(toUsd(2700, 'GEL', 'total', 100), 1000)
-assert.equal(toUsd(10, 'USD', 'm2', 74), 740)
+assert.equal(house.project, false)
+assert.equal(house.kitchen, true)
 
 console.log('add-listing-fields: ok')

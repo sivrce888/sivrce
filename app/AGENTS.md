@@ -11,7 +11,7 @@ radii, shadows, logo geometry, or category/deal hues.
 
 Sources: `app/BRAND.md` · `app/src/lib/brand.ts` ·
 `app/src/lib/category-brand.ts` · `app/src/app/globals.css` ·
-`logo/README.md` · Cursor rule `.cursor/rules/sivrce-brand-lock.mdc`.
+`logo/v4/` · Cursor rule `.cursor/rules/sivrce-brand-lock.mdc`.
 
 Change brand only with explicit owner approval + version bump in BRAND.md.
 
