@@ -541,6 +541,11 @@ export const ar: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'الخريطة',
   'search.mapNote': 'تعرض الخريطة أول {n} من {total} نتيجة',
+  'search.mapSearchArea': 'البحث في هذه المنطقة',
+  'search.mapLocate': 'موقعي',
+  'search.mapInArea': '{n} إعلان',
+  'search.mapClearArea': 'الكل',
+  'search.mapEmptyArea': 'لا نتائج في هذه المنطقة',
   'add.contactHint': 'أخبرنا باسمك ورقم الجوال الذي يمكن التواصل عبره.',
 
 }

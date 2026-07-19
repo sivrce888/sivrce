@@ -169,6 +169,7 @@ export default function AddListingClient() {
   const [draftReady, setDraftReady] = useState(false)
   const [draftSavedAt, setDraftSavedAt] = useState(0)
 
+  /* eslint-disable react-hooks/set-state-in-effect -- one-time draft hydration from localStorage (external store) */
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY)
@@ -227,10 +228,11 @@ export default function AddListingClient() {
       }
     } catch { /* corrupt draft — start fresh */ }
     setDraftReady(true)
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once on mount
   }, [])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Seed contact name from session once (after draft restore). Skip phone — not on session JWT.
+  /* eslint-disable react-hooks/set-state-in-effect -- seed name once from async session */
   useEffect(() => {
     if (!draftReady || nameSeeded.current) return
     if (name.trim()) { nameSeeded.current = true; return }
@@ -239,6 +241,7 @@ export default function AddListingClient() {
     setName(n)
     nameSeeded.current = true
   }, [draftReady, session?.user?.name, name])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!draftReady || publishedId) return
@@ -288,11 +291,13 @@ export default function AddListingClient() {
   }
 
   // City → map center until street geocode lands.
+  /* eslint-disable react-hooks/set-state-in-effect -- city change re-centers the pin until geocode lands */
   useEffect(() => {
     if (!city || street.trim().length >= 2) return
     setCoords(cityCenter(city))
     setPinReady(false)
   }, [city, street])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Address → pin (structured geocode). House № → building-level zoom.
   useEffect(() => {
@@ -336,6 +341,7 @@ export default function AddListingClient() {
   // Street autocomplete (Nominatim suggest).
   useEffect(() => {
     if (!city || street.trim().length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset suggestions when input drops below min length
       setSuggests([])
       return
     }
@@ -941,6 +947,7 @@ export default function AddListingClient() {
                               <button
                                 type="button"
                                 role="option"
+                                aria-selected={false}
                                 className="flex w-full flex-col gap-0.5 px-3.5 py-2.5 text-left transition hover:bg-sv-blue/8"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => applyHit(s)}

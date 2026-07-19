@@ -28,6 +28,7 @@ export default function Navbar() {
   const menuBtnRef = useRef<HTMLButtonElement>(null)
   // ponytail: first name only in chrome — full name lives on /dashboard; initials/truncate if i18n needs it
   const navName = session?.user?.name?.trim().split(/\s+/)[0]
+  const reduceMotion = useReducedMotion()
 
   // Escape closes the mobile menu and returns focus to the menu button
   useEffect(() => {
@@ -76,12 +77,7 @@ export default function Navbar() {
   ]
 
   return (
-    <motion.header
-      initial={reduceMotion ? false : { y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.7, ease: [0.21, 0.65, 0.2, 1] }}
-      className="fixed inset-x-0 top-0 z-50"
-    >
+    <header className="sv-nav-in fixed inset-x-0 top-0 z-50">
       <div
         className={`mx-auto flex h-[68px] max-w-[1440px] items-center gap-3 px-5 transition-all duration-500 md:gap-4 md:px-8 ${
           light
@@ -295,6 +291,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   )
 }

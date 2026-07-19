@@ -20,6 +20,7 @@ import maplibregl, {
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { LISTINGS, type DealType, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
+import TBILISI_RAIONS from '@/data/tbilisi-raions.json'
 import { BRAND } from '@/lib/brand'
 import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import {
@@ -108,7 +109,6 @@ import {
   Circle,
   Satellite,
   SlidersHorizontal,
-  TrainFront,
   Pill,
   School,
   GraduationCap,
@@ -118,9 +118,10 @@ import {
   Hospital,
   type LucideIcon,
 } from 'lucide-react'
+import { MetroMark } from '@/lib/map/poi-icons'
 
-const POI_ICONS: Record<PoiCategory, LucideIcon> = {
-  metro: TrainFront,
+const POI_ICONS: Record<PoiCategory, LucideIcon | typeof MetroMark> = {
+  metro: MetroMark,
   pharmacy: Pill,
   school: School,
   university: GraduationCap,
@@ -136,10 +137,19 @@ const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
 const LABEL_ID = 'sivrce-buildings-label'
 const DOT_ID = 'sivrce-buildings-dot'
+const DOT_ACTIVE_ID = 'sivrce-buildings-dot-active'
+const DOT_ACTIVE_FILTER: FilterSpecification = [
+  'any',
+  ['boolean', ['feature-state', 'selected'], false],
+  ['boolean', ['feature-state', 'hover'], false],
+]
+const PRICE_ID = 'sivrce-buildings-price'
 const CLUSTER_ID = 'sivrce-buildings-cluster'
 const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
 /** Below this zoom: clustered dots; at/above: footprints + names. */
 const DETAIL_ZOOM = 13.5
+/** Price pills appear once clusters start breaking apart. */
+const PRICE_MIN_ZOOM = 11.2
 /** MapLibre clusterMaxZoom is exclusive-ish — stop clustering just under detail. */
 const CLUSTER_MAX_ZOOM = 13
 
@@ -153,6 +163,9 @@ const TERRAIN_OPTIONS: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
 const NBH_LABEL_ID = 'sivrce-neighborhoods-label'
 const NBH_DATA = neighborhoodsToGeoJSON()
+const RAION_SOURCE_ID = 'sivrce-raions'
+const RAION_FILL_ID = 'sivrce-raions-fill'
+const RAION_LINE_ID = 'sivrce-raions-line'
 
 const POI_SOURCE_ID = 'sivrce-pois'
 const POI_ICON_ID = 'sivrce-pois-icon'
@@ -177,6 +190,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     cluster: true,
     clusterMaxZoom: CLUSTER_MAX_ZOOM,
     clusterRadius: 52,
+    promoteId: 'id',
   })
 
   map.addLayer({
@@ -223,14 +237,72 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     maxzoom: DETAIL_ZOOM,
     filter: ['!', ['has', 'point_count']],
     paint: {
-      'circle-radius': [
-        'interpolate', ['linear'], ['zoom'],
-        7, 3.5, 10, 5.5, 13, 7.5,
-      ],
+      // ponytail: zoom must stay top-level in MapLibre; hover/selected sizes live in DOT_ACTIVE_ID overlay
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 3.5, 10, 5.5, 13, 7.5],
       'circle-color': ['get', 'hue'],
       'circle-stroke-width': 1.5,
       'circle-stroke-color': '#FFFFFF',
-      'circle-opacity': 0.95,
+      'circle-opacity': [
+        'case',
+        ['boolean', ['feature-state', 'seen'], false], 0.55,
+        0.95,
+      ],
+    },
+  })
+
+  // Hover/selected dots — same source, painted on top with bigger radius.
+  map.addLayer({
+    id: DOT_ACTIVE_ID,
+    type: 'circle',
+    source: PTS_SOURCE_ID,
+    maxzoom: DETAIL_ZOOM,
+    filter: DOT_ACTIVE_FILTER,
+    paint: {
+      'circle-radius': [
+        'case',
+        ['boolean', ['feature-state', 'selected'], false], 11,
+        9,
+      ],
+      'circle-color': ['get', 'hue'],
+      'circle-stroke-width': [
+        'case',
+        ['boolean', ['feature-state', 'selected'], false], 3,
+        1.5,
+      ],
+      'circle-stroke-color': '#FFFFFF',
+      'circle-opacity': [
+        'case',
+        ['boolean', ['feature-state', 'seen'], false], 0.55,
+        0.95,
+      ],
+    },
+  })
+
+  // Mid-zoom price pills — compact GEL; hide when empty / clustered / detail footprints.
+  map.addLayer({
+    id: PRICE_ID,
+    type: 'symbol',
+    source: PTS_SOURCE_ID,
+    minzoom: PRICE_MIN_ZOOM,
+    maxzoom: DETAIL_ZOOM,
+    filter: [
+      'all',
+      ['!', ['has', 'point_count']],
+      ['!=', ['get', 'priceLabel'], ''],
+    ],
+    layout: {
+      'text-field': ['get', 'priceLabel'],
+      'text-size': 11,
+      'text-font': ['Noto Sans Bold'],
+      'text-offset': [0, -1.35],
+      'text-anchor': 'bottom',
+      'text-allow-overlap': false,
+      'text-padding': 2,
+    },
+    paint: {
+      'text-color': ['get', 'hue'],
+      'text-halo-color': '#FFFFFF',
+      'text-halo-width': 1.6,
     },
   })
 
@@ -293,6 +365,35 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
   // ——— floor stack for the selected building ———
   ensureFloorLayers(map)
 
+  // ——— 10 Tbilisi raion borders (Nominatim, simplified) ———
+  map.addSource(RAION_SOURCE_ID, {
+    type: 'geojson',
+    data: TBILISI_RAIONS as GeoJSON.FeatureCollection,
+  })
+  map.addLayer({
+    id: RAION_FILL_ID,
+    type: 'fill',
+    source: RAION_SOURCE_ID,
+    minzoom: 9,
+    maxzoom: 14,
+    paint: {
+      'fill-color': BRAND.colors.blue,
+      'fill-opacity': 0.06,
+    },
+  })
+  map.addLayer({
+    id: RAION_LINE_ID,
+    type: 'line',
+    source: RAION_SOURCE_ID,
+    minzoom: 9,
+    maxzoom: 14.5,
+    paint: {
+      'line-color': BRAND.colors.blue,
+      'line-width': 1.2,
+      'line-opacity': 0.45,
+    },
+  })
+
   // ——— district names always on (Google suburb read) ———
   map.addSource(NBH_SOURCE_ID, { type: 'geojson', data: NBH_DATA })
   map.addLayer({
@@ -305,12 +406,17 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
       'text-field': ['get', 'name'],
       'text-size': [
         'interpolate', ['linear'], ['zoom'],
-        9, 11, 12, 14, 14, 16,
+        9, 10, 11, 11, 12, 12, 14, 14,
       ],
       'text-font': ['Noto Sans Bold'],
-      'text-max-width': 8,
-      'text-padding': 6,
+      'text-anchor': 'center',
+      'text-justify': 'center',
+      'text-max-width': 7,
+      'text-padding': 2,
       'text-allow-overlap': false,
+      // ponytail: denser ubani sheet — nudge on collision
+      'text-variable-anchor': ['center', 'top', 'bottom', 'left', 'right'],
+      'text-radial-offset': 0.2,
     },
     paint: {
       'text-color': '#3C4043',
@@ -400,7 +506,9 @@ function Map3DInner({
 }) {
   const { t } = useI18n()
   const tRef = useRef(t)
-  tRef.current = t
+  useEffect(() => {
+    tRef.current = t
+  })
   const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
@@ -453,6 +561,8 @@ function Map3DInner({
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
   const userDotRef = useRef<maplibregl.Marker | null>(null)
+  const selFsRef = useRef<string | null>(null)
+  const hoverFsRef = useRef<string | null>(null)
   const darkRef = useRef(isDark)
   const terrainRef = useRef<MapTerrain>(terrain)
   const poiOnRef = useRef(poiOn)
@@ -610,6 +720,28 @@ function Map3DInner({
   useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
   useEffect(() => { floorRef.current = (n) => setFloorFilter((cur) => (cur === n ? null : n)) }, [])
 
+  // Selected / seen pins — feature-state (no GeoJSON rewrite).
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const prev = selFsRef.current
+    const next = selected?.id ?? null
+    if (prev && prev !== next) {
+      try {
+        map.setFeatureState({ source: PTS_SOURCE_ID, id: prev }, { selected: false })
+      } catch { /* source may remount */ }
+    }
+    if (next) {
+      try {
+        map.setFeatureState(
+          { source: PTS_SOURCE_ID, id: next },
+          { selected: true, seen: true },
+        )
+      } catch { /* source may remount */ }
+    }
+    selFsRef.current = next
+  }, [selected, ready])
+
   // Vague pin (district-only) → reverse Nominatim for street + house №. No map server.
   useEffect(() => {
     if (!selected) return
@@ -679,6 +811,31 @@ function Map3DInner({
         (hideId
           ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
           : ['!', ['has', 'point_count']]) as FilterSpecification,
+      )
+    }
+    if (map.getLayer(DOT_ACTIVE_ID)) {
+      map.setFilter(
+        DOT_ACTIVE_ID,
+        (hideId
+          ? ['all', DOT_ACTIVE_FILTER, ['!=', ['get', 'id'], hideId]]
+          : DOT_ACTIVE_FILTER) as FilterSpecification,
+      )
+    }
+    if (map.getLayer(PRICE_ID)) {
+      map.setFilter(
+        PRICE_ID,
+        (hideId
+          ? [
+              'all',
+              ['!', ['has', 'point_count']],
+              ['!=', ['get', 'priceLabel'], ''],
+              ['!=', ['get', 'id'], hideId],
+            ]
+          : [
+              'all',
+              ['!', ['has', 'point_count']],
+              ['!=', ['get', 'priceLabel'], ''],
+            ]) as FilterSpecification,
       )
     }
   }, [selected, dealFilter, ready])
@@ -880,6 +1037,7 @@ function Map3DInner({
         const f = e.features?.[0]
         if (!f) return
         const p = f.properties ?? {}
+        const hasGuide = p.hasGuide === true || p.hasGuide === 'true'
         const scoreRow = (label: string, v: number) => {
           const row = document.createElement('div')
           row.className = 'sivrce-nbh-pop-row'
@@ -901,15 +1059,17 @@ function Map3DInner({
         city.className = 'sivrce-nbh-pop-city'
         city.textContent = String(p.city)
         root.appendChild(city)
-        const price = document.createElement('div')
-        price.className = 'sivrce-nbh-pop-price'
-        price.textContent = `~$${Number(p.avgPriceM2USD).toLocaleString('en-US')}/m²`
-        root.appendChild(price)
-        root.appendChild(scoreRow('ტრანსპორტი', Number(p.transport)))
-        root.appendChild(scoreRow('სკოლები', Number(p.schools)))
-        root.appendChild(scoreRow('მწვანე', Number(p.green)))
-        root.appendChild(scoreRow('უსაფრთხოება', Number(p.safety)))
-        root.appendChild(scoreRow('ღამის ცხოვრება', Number(p.nightlife)))
+        if (hasGuide) {
+          const price = document.createElement('div')
+          price.className = 'sivrce-nbh-pop-price'
+          price.textContent = `~$${Number(p.avgPriceM2USD).toLocaleString('en-US')}/m²`
+          root.appendChild(price)
+          root.appendChild(scoreRow('ტრანსპორტი', Number(p.transport)))
+          root.appendChild(scoreRow('სკოლები', Number(p.schools)))
+          root.appendChild(scoreRow('მწვანე', Number(p.green)))
+          root.appendChild(scoreRow('უსაფრთხოება', Number(p.safety)))
+          root.appendChild(scoreRow('ღამის ცხოვრება', Number(p.nightlife)))
+        }
         nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
       }
 
@@ -1023,6 +1183,25 @@ function Map3DInner({
               /* paint may differ */
             }
           }
+          if (map.getLayer(RAION_FILL_ID)) {
+            try {
+              map.setPaintProperty(RAION_FILL_ID, 'fill-opacity', dark ? 0.1 : 0.06)
+            } catch {
+              /* paint may differ */
+            }
+          }
+          if (map.getLayer(RAION_LINE_ID)) {
+            try {
+              map.setPaintProperty(
+                RAION_LINE_ID,
+                'line-color',
+                dark ? BRAND.colors.blueLight : BRAND.colors.blue,
+              )
+              map.setPaintProperty(RAION_LINE_ID, 'line-opacity', dark ? 0.55 : 0.45)
+            } catch {
+              /* paint may differ */
+            }
+          }
           if (map.getLayer(POI_LABEL_LAYER_ID)) {
             try {
               map.setPaintProperty(
@@ -1112,8 +1291,33 @@ function Map3DInner({
       map.on('mouseenter', DOT_ID, () => {
         map.getCanvas().style.cursor = 'pointer'
       })
+      map.on('mousemove', DOT_ID, (e: MapLayerMouseEvent) => {
+        const id = e.features?.[0]?.properties?.id as string | undefined
+        if (!id || hoverFsRef.current === id) return
+        if (hoverFsRef.current) {
+          try {
+            map.setFeatureState(
+              { source: PTS_SOURCE_ID, id: hoverFsRef.current },
+              { hover: false },
+            )
+          } catch { /* remount */ }
+        }
+        hoverFsRef.current = id
+        try {
+          map.setFeatureState({ source: PTS_SOURCE_ID, id }, { hover: true })
+        } catch { /* remount */ }
+      })
       map.on('mouseleave', DOT_ID, () => {
         map.getCanvas().style.cursor = ''
+        if (hoverFsRef.current) {
+          try {
+            map.setFeatureState(
+              { source: PTS_SOURCE_ID, id: hoverFsRef.current },
+              { hover: false },
+            )
+          } catch { /* remount */ }
+          hoverFsRef.current = null
+        }
       })
       map.on('mouseenter', CLUSTER_ID, () => {
         map.getCanvas().style.cursor = 'pointer'
@@ -1417,7 +1621,7 @@ function Map3DInner({
               })}
             </div>
             <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
-            <div className="flex shrink-0 gap-1" role="group" aria-label={t('map.poi.group')}>
+            <div className="flex shrink-0 gap-0.5" role="group" aria-label={t('map.poi.group')}>
               {POI_CATEGORIES.map((id) => {
                 const active = poiOn.includes(id)
                 const Icon = POI_ICONS[id]
@@ -1430,12 +1634,13 @@ function Map3DInner({
                     title={label}
                     aria-label={label}
                     aria-pressed={active}
-                    className={`inline-flex min-h-8 items-center gap-1 whitespace-nowrap rounded-full px-2.5 text-[12px] font-extrabold tracking-tight transition ${
+                    className={`inline-flex min-h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-extrabold tracking-tight transition ${
                       active ? 'text-white' : chipMuted
                     }`}
                     style={active ? { background: POI_COLORS[id] } : undefined}
                   >
                     <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+                    {label}
                   </button>
                 )
               })}

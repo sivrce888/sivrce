@@ -10,6 +10,7 @@ import HScroll from '@/components/HScroll'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { FaqSection } from '@/components/seo/FaqSection'
 import { PROJECTS, listingsByCity } from '@/data/professionals'
 import { LISTINGS } from '@/data/listings'
 import {
@@ -30,7 +31,18 @@ import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
 import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { isValidLang, type Lang } from '@/lib/i18n/core'
+import {
+  MICRO,
+  PROJECT_DETAIL,
+  dirLoc,
+  faqPageLd,
+  finishLabel,
+  pickLoc,
+  projectFaqs,
+  unitsLabel,
+} from '@/lib/directory-seo'
 
 export const revalidate = 3600
 
@@ -40,7 +52,7 @@ export function generateStaticParams() {
 }
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ lang: string; slug: string }>
 }
 
 function absImg(src: string) {
@@ -59,11 +71,15 @@ function priceCurrency(priceFromM2: string): 'GEL' | 'USD' {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
+  const { lang: raw, slug } = await params
+  const lang: Lang = isValidLang(raw) ? raw : 'ka'
+  const loc = dirLoc(lang)
   const p = await getLiveProject(slug)
   if (!p) return {}
-  const description = (p.description.ka || `${p.name}, ${p.location}`).replace(/\s+/g, ' ').slice(0, 155)
-  const title = `${p.name} — მშენებარე ბინები ${p.city}, ფასი ${p.priceFromM2}/მ²-დან | sivrce`
+  const description = (pickLoc(p.description, loc) || `${p.name}, ${p.location}`)
+    .replace(/\s+/g, ' ')
+    .slice(0, 155)
+  const title = PROJECT_DETAIL[loc].titleOf(p)
   const og = ogImage(p.img)
   return {
     title,
@@ -75,7 +91,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'website',
       url: `https://sivrce.ge/projects/${p.slug}`,
       siteName: 'sivrce',
-      locale: 'ka_GE',
+      locale: OG_LOCALE[lang],
       images: [{ url: og, alt: p.name }],
     },
     twitter: {
@@ -88,7 +104,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProjectPage({ params }: PageProps) {
-  const { slug } = await params
+  const { lang, slug } = await params
+  if (!isValidLang(lang)) notFound()
+  const loc = dirLoc(lang)
+  const c = PROJECT_DETAIL[loc]
+  const micro = MICRO[loc]
+
   const [project, liveProjects] = await Promise.all([getLiveProject(slug), projectsLive()])
   if (!project) notFound()
 
@@ -121,14 +142,20 @@ export default async function ProjectPage({ params }: PageProps) {
   const lowPrice = priceNumber(project.priceFromM2)
   const currency = priceCurrency(project.priceFromM2)
   const hasGeo = isValidCoords(project.coords.lat, project.coords.lng)
+  const aboutText =
+    pickLoc(project.description, loc) || project.description.ka || project.description.en
 
   const projectLd = {
     '@context': 'https://schema.org',
     '@type': 'ApartmentComplex',
     name: project.name,
-    description: project.description.ka,
+    description: aboutText,
     url: `https://sivrce.ge/projects/${project.slug}`,
-    image: images.length > 1 ? images : images[0],
+    image: images.map((url, i) => ({
+      '@type': 'ImageObject',
+      url,
+      caption: i === 0 ? project.name : `${project.name} — ${c.renderAlt(i)}`,
+    })),
     // ponytail: numberOfAvailableAccommodationUnits = "currently for sale" — only
     // true for projects under construction. Sold-out/completed buildings would
     // mislead Google's schema (policy risk). Use numberOfAccommodationUnits (total built) for those.
@@ -164,7 +191,7 @@ export default async function ProjectPage({ params }: PageProps) {
     ...(dev && {
       provider: {
         '@type': 'Organization',
-        name: dev.name.en,
+        name: pickLoc(dev.name, loc),
         url: `https://sivrce.ge/developers/${dev.slug}`,
         ...(dev.website ? { sameAs: [dev.website] } : {}),
       },
@@ -182,8 +209,8 @@ export default async function ProjectPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: 'პროექტები', item: 'https://sivrce.ge/projects' },
+      { '@type': 'ListItem', position: 1, name: c.crumbHome, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: c.crumbProjects, item: 'https://sivrce.ge/projects' },
       {
         '@type': 'ListItem',
         position: 3,
@@ -193,58 +220,8 @@ export default async function ProjectPage({ params }: PageProps) {
     ],
   }
 
-  const faqLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `რა ღირს კვ.მ ${project.name}-ში?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: project.priceFromM2
-            ? `${project.name}-ში ფასი იწყება ${project.priceFromM2}/მ²-დან. მდებარეობა: ${project.location}.`
-            : `${project.name} — ${project.location}. ფასები ხელმისაწვდომია სივრცეზე.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `როდის შევა ექსპლუატაციაში ${project.name}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `ჩაბარების ვადა: ${project.finish}. მშენებლობის პროგრესი: ${project.done}%. სულ ${project.flats} ბინა${project.floors ? `, სართულიანობა ${project.floors}-მდე` : ''}.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `როგორი ბინებია გაყიდვაში ${project.name} ${project.city}ში?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${project.name} — ${project.flats} ბინა, მდებარეობა ${project.location}. დეტალური გეგმარებები და ფასები — sivrce.ge/projects/${project.slug}.`,
-        },
-      },
-      ...(dev
-        ? [
-            {
-              '@type': 'Question' as const,
-              name: `ვინ აშენებს ${project.name}-ს?`,
-              acceptedAnswer: {
-                '@type': 'Answer' as const,
-                text: `დეველოპერი: ${dev.name.ka}. სრული პროფილი: https://sivrce.ge/developers/${dev.slug}`,
-              },
-            },
-          ]
-        : []),
-      {
-        '@type': 'Question',
-        name: `როგორ შევიძინოთ ბინა ${project.name}-ში?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `${project.name}-ში ბინის შეძენა შესაძლებელია დეველოპერის პირობებით (განვადება / იპოთეკა — დეტალები დეველოპერთან). მიმართეთ sivrce-ზე ან დეველოპერის გვერდს.`,
-        },
-      },
-    ],
-  }
+  // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
+  const faqs = projectFaqs(loc, project, dev)
 
   return (
     <div className="min-h-screen bg-sv-surface">
@@ -264,7 +241,7 @@ export default async function ProjectPage({ params }: PageProps) {
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
             <nav aria-label="breadcrumb" className="mb-3 text-[12px] font-semibold text-white/60">
               <Link href="/projects" className="hover:text-white">
-                პროექტები
+                {c.crumbProjects}
               </Link>
               <span aria-hidden className="mx-1.5">
                 /
@@ -282,7 +259,7 @@ export default async function ProjectPage({ params }: PageProps) {
                     className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-bold text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <BadgeCheck className="h-4 w-4 text-sv-success" aria-hidden />
-                    {dev.name.ka}
+                    {pickLoc(dev.name, loc)}
                   </Link>
                 )}
               </div>
@@ -299,10 +276,10 @@ export default async function ProjectPage({ params }: PageProps) {
           <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
             <StatsRow
               items={[
-                { label: 'ფასი /მ²-დან', value: project.priceFromM2 },
-                { label: 'აშენებულია', value: `${project.done}%` },
-                { label: 'ჩაბარება', value: project.finish },
-                { label: 'ბინა', value: String(project.flats) },
+                { label: micro.priceFromM2, value: project.priceFromM2 },
+                { label: c.statsBuilt, value: `${project.done}%` },
+                { label: micro.handover, value: finishLabel(loc, project.finish) },
+                { label: micro.flats, value: String(project.flats) },
               ]}
             />
             <div className="mt-6 h-1.5 max-w-xl overflow-hidden rounded-full bg-sv-ink/[0.07]">
@@ -316,11 +293,11 @@ export default async function ProjectPage({ params }: PageProps) {
                 <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {project.location}
               </span>
               <span className="flex items-center gap-1.5">
-                <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> ჩაბარება{' '}
-                {project.finish}
+                <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> {micro.handover}{' '}
+                {finishLabel(loc, project.finish)}
               </span>
               <span className="flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {project.flats} ბინა
+                <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(project.flats, loc)}
               </span>
             </p>
           </div>
@@ -329,7 +306,7 @@ export default async function ProjectPage({ params }: PageProps) {
         {floorsFc && cluster ? (
           <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              კორპუსი 3D-ში
+              {c.building3d}
             </h2>
             <div className="relative mt-6 h-[300px] overflow-hidden rounded-card bg-sv-navy md:h-[420px]">
               <BuildingFloorsMapLazy
@@ -342,14 +319,13 @@ export default async function ProjectPage({ params }: PageProps) {
               />
             </div>
             <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
-              {floorsInfo.length} სართული · {project.flats} ბინა · აშენებულია {project.done}% ·
-              მიატრიე მაუსი სართულს
+              {c.floorsCaption(floorsInfo.length, project.flats, project.done)}
             </p>
           </section>
         ) : hasGeo ? (
           <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              მდებარეობა
+              {c.location}
             </h2>
             <div className="relative mt-6 overflow-hidden rounded-card">
               <MapEmbed
@@ -371,9 +347,9 @@ export default async function ProjectPage({ params }: PageProps) {
         {(project.gallery?.length ?? 0) > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              გალერეა
+              {c.gallery}
             </h2>
-            <HScroll aria-label="გალერეა" step={300} className="mt-6 gap-3 pb-1">
+            <HScroll aria-label={c.gallery} step={300} className="mt-6 gap-3 pb-1">
               {project.gallery!.map((src, i) => (
                 <div
                   key={src}
@@ -381,7 +357,7 @@ export default async function ProjectPage({ params }: PageProps) {
                 >
                   <Image
                     src={src}
-                    alt={`${project.name} — რენდერი ${i + 1}`}
+                    alt={`${project.name} — ${c.renderAlt(i + 1)}`}
                     fill
                     sizes="288px"
                     className="object-cover"
@@ -395,12 +371,12 @@ export default async function ProjectPage({ params }: PageProps) {
         {project.passportUrl && (
           <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              სართულის გეგმა
+              {c.floorPlan}
             </h2>
             <div className="relative mt-6 aspect-[4/3] max-w-3xl overflow-hidden rounded-card bg-sv-cloud">
               <Image
                 src={project.passportUrl}
-                alt={`${project.name} — floor plan`}
+                alt={`${project.name} — ${c.floorPlan}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 768px"
                 className="object-contain"
@@ -409,13 +385,13 @@ export default async function ProjectPage({ params }: PageProps) {
           </section>
         )}
 
-        {project.description.ka && (
+        {aboutText && (
           <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              პროექტის შესახებ
+              {c.aboutProject}
             </h2>
             <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] font-semibold leading-relaxed text-sv-ink/70">
-              {project.description.ka}
+              {aboutText}
             </p>
           </section>
         )}
@@ -423,7 +399,7 @@ export default async function ProjectPage({ params }: PageProps) {
         {siblingProjects.length > 0 && dev && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              სხვა პროექტები — {dev.name.ka}
+              {c.otherProjects(pickLoc(dev.name, loc))}
             </h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {siblingProjects.map((p) => (
@@ -444,7 +420,10 @@ export default async function ProjectPage({ params }: PageProps) {
                   </div>
                   <div className="p-3">
                     <h3 className="text-[14px] font-black text-sv-ink">{p.name}</h3>
-                    <p className="mt-1 text-[12px] font-bold text-sv-ink/55">{p.priceFromM2}/მ²</p>
+                    <p className="mt-1 text-[12px] font-bold text-sv-ink/55">
+                      {p.priceFromM2}
+                      {micro.perM2}
+                    </p>
                   </div>
                 </Link>
               ))}
@@ -455,7 +434,7 @@ export default async function ProjectPage({ params }: PageProps) {
         {listings.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              განცხადებები ქ. {project.city}ში
+              {micro.listingsIn(project.city)}
             </h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {listings.map((l, i) => (
@@ -465,6 +444,12 @@ export default async function ProjectPage({ params }: PageProps) {
           </section>
         )}
 
+        <FaqSection
+          title={c.faqTitle}
+          items={faqs}
+          className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10"
+        />
+
         <section className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2">
           <LeadForm targetType="project" targetId={project.slug} recipientName={project.name} />
           <ReviewsSection targetType="project" targetId={project.slug} />
@@ -473,7 +458,7 @@ export default async function ProjectPage({ params }: PageProps) {
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />
     </div>
   )
 }

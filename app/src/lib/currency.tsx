@@ -135,6 +135,21 @@ export function formatMoney(gel: number, currency: Currency, rate: number = USD_
   return currency === 'USD' ? `$${formatted}` : `${formatted}₾`
 }
 
+/** Compact map pin — dense labels beat full formatMoney. */
+export function formatMapPin(gel: number, currency: Currency = 'GEL', rate: number = USD_GEL_FALLBACK): string {
+  const n = currency === 'USD' ? Math.round(gel / rate) : Math.round(gel)
+  if (!Number.isFinite(n) || n <= 0) return ''
+  if (n >= 1_000_000) {
+    const m = n / 1_000_000
+    const s = m >= 10 ? String(Math.round(m)) : String(Math.round(m * 10) / 10)
+    return currency === 'USD' ? `$${s}M` : `${s}მლნ₾`
+  }
+  if (n >= 10_000) {
+    return currency === 'USD' ? `$${Math.round(n / 1000)}k` : `${Math.round(n / 1000)}კ₾`
+  }
+  return currency === 'USD' ? `$${n}` : `${n}₾`
+}
+
 export function convertGel(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK): number {
   return currency === 'USD' ? Math.round(gel / rate) : Math.round(gel)
 }

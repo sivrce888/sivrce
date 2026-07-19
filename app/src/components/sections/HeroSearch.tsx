@@ -71,6 +71,7 @@ export default function HeroSearch() {
 
   useEffect(() => {
     router.prefetch(localizedHref('/search', lang))
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate recent search from localStorage on mount (SSR-safe: starts null)
     setRecent(readRecent())
   }, [router, lang])
 

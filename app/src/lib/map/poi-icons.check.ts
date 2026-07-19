@@ -4,23 +4,19 @@
  */
 
 import assert from 'node:assert/strict'
-import { POI_CATEGORIES } from './pois'
-import { poiImageId } from './poi-icons'
+import { POI_CATEGORIES, POI_COLORS } from './pois'
+import { CATEGORY_BRAND } from '@/lib/category-brand'
+import { poiIconDataUrl, poiImageId } from './poi-icons'
 
-// Side-effect free IDs
 for (const cat of POI_CATEGORIES) {
   assert.equal(poiImageId(cat), `sv-poi-${cat}`)
 }
 
-// Render SVG sprites (uses react-dom/server)
-import { createElement } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
-import { TrainFront } from 'lucide-react'
+assert.equal(POI_COLORS.metro, CATEGORY_BRAND.dailyRent.hue)
 
-const svg = renderToStaticMarkup(
-  createElement(TrainFront, { size: 22, color: '#fff', strokeWidth: 2.4 }),
-)
-assert.ok(svg.includes('<svg'), 'lucide svg')
-assert.ok(svg.includes('stroke'), 'lucide stroke')
+const metro = poiIconDataUrl('metro')
+assert.ok(metro.startsWith('data:image/svg+xml'), 'metro data url')
+assert.ok(decodeURIComponent(metro).includes('91.405,67.947'), 'official M path')
+assert.ok(decodeURIComponent(metro).includes(CATEGORY_BRAND.dailyRent.hue), 'red fill')
 
 console.log(`poi-icons.check: ok (${POI_CATEGORIES.length} ids)`)

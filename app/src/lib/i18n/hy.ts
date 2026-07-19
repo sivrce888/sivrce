@@ -542,6 +542,11 @@ export const hy: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'Քարտեզ',
   'search.mapNote': 'Քարտեզի վրա ցուցադրվում են առաջին {n} արդյունքները {total}-ից',
+  'search.mapSearchArea': 'Փնտրել այս տարածքում',
+  'search.mapLocate': 'Իմ տեղադրությունը',
+  'search.mapInArea': '{n} հայտարարություն',
+  'search.mapClearArea': 'Բոլորը',
+  'search.mapEmptyArea': 'Այս տարածքում արդյունք չկա',
   'add.contactHint': 'Ասեք անունը և բջջային համարը, որով կարող են կապվել ձեզ հետ։',
 
 }

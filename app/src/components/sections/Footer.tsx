@@ -99,13 +99,13 @@ export default function Footer() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {KEYWORD_COLS.map((c) => (
               <div key={c.id}>
-                <h4 className="text-[12px] font-black uppercase tracking-wider text-white/45">{c.title[loc]}</h4>
-                <ul className="mt-4 space-y-2.5">
+                <h4 className="text-[13px] font-black uppercase tracking-wider text-white/45">{c.title[loc]}</h4>
+                <ul className="mt-4 space-y-2">
                   {c.links.map((l) => (
                     <li key={l.href}>
                       <Link
                         href={localizedHref(l.href, lang)}
-                        className="text-[13px] font-semibold text-white/55 transition-colors hover:text-white"
+                        className="block text-[13px] font-semibold leading-snug text-white/55 transition-colors hover:text-white"
                       >
                         {l.label[loc]}
                       </Link>

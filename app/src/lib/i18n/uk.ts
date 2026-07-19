@@ -542,6 +542,11 @@ export const uk: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'Мапа',
   'search.mapNote': 'На мапі показано перші {n} з {total} результатів',
+  'search.mapSearchArea': 'Шукати в цій області',
+  'search.mapLocate': 'Моє місцезнаходження',
+  'search.mapInArea': '{n} оголошень',
+  'search.mapClearArea': 'Усі',
+  'search.mapEmptyArea': 'У цій області немає результатів',
   'add.contactHint': 'Вкажіть ім’я та мобільний номер, за яким з вами можна зв’язатися.',
 
 }

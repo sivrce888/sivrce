@@ -196,3 +196,15 @@ No new deps, no edits to foundation files/schema/globals.css/auth.ts.
 All reads exclude soft-deleted rows (`deletedAt: null`) unless showing trash.
 Gate per worker: `npx tsc --noEmit` clean on owned files + `npx eslint` on owned dirs.
 Wave 2 (orchestrator): full `npm run lint` + `npm run build` + visual pass.
+
+სართულები_MapThumbs_Engineer (2026-07): floor stacks paused behind `FLOOR_STACKS_ON` (`NEXT_PUBLIC_FLOOR_STACKS=1` re-enables) — gated in `src/lib/map/floors.ts` + buildings/projects [slug] pages.
+Construction map clusters now pass `img: p.img` in `projectsToConstructionBuildings` so BuildingPanel shows the 56px project render instead of the HardHat fallback.
+`MapBuildingCluster.img?` already existed — no type change; `npm run typecheck` clean.
+
+## 2026-07-19 — Directory 100/100 (developers + projects + renders + SEO)
+- Catalog: 88→104 developers, 153→245 projects (new: projects-new-{tbilisi,batumi,regions}.ts, research-driven 2025-26 data, verified addresses/coords; DEV_PREFIX +3 single-token devs).
+- Renders: scripts/mirror-project-renders.ts mirrored 75/92 hero renders to public/images/projects/ (26 official, 49 korter fallback); 17 unfound reverted to stock art. Manifest: research/renders-manifest-2026-07.json.
+- Map: construction clusters now carry img → BuildingPanel shows render thumb; floor stacks OFF (FLOOR_STACKS_ON, re-enable NEXT_PUBLIC_FLOOR_STACKS=1).
+- SEO: visible FAQ ka/en/ru on all 4 directory pages (+JSON-LD sync), hub prose+FAQ, en/ru localized metadata/H1, og:locale per lang, ImageObject gallery LD. New: src/lib/directory-seo.ts, src/components/seo/FaqSection.tsx.
+- Gates: tsc ✓ check:map ✓ check:media ✓ check:seo-hub ✓ check:seo-title ✓ build ✓.
+- TODO when R2 creds land: re-run mirror → cdn.sivrce.ge + DB media backfill (149 ProjectDirectory rows still placeholder); 7+10 approximate pins need cadastral verification; gallery scrape (hero-only now).

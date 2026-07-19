@@ -27,6 +27,7 @@ import { getDeveloper, type Developer } from '@/data/professionals'
 import { clusterListingsToBuildings, findBuildingBySlug } from '@/lib/map/buildings'
 import { getDbBuildingEntries } from '@/lib/map/db-buildings'
 import {
+  FLOOR_STACKS_ON,
   buildingFloorCount,
   buildingFloors,
   floorsToGeoJSON,
@@ -107,7 +108,7 @@ export default async function BuildingPage({ params }: PageProps) {
   const cluster = findBuildingBySlug(slug, clusterListingsToBuildings(LISTINGS))
   const floorCount = cluster ? buildingFloorCount(cluster) : building.floors
   const floorsInfo = cluster ? buildingFloors(cluster) : []
-  const floorsFc = cluster && listings.length > 0 ? floorsToGeoJSON(cluster) : null
+  const floorsFc = FLOOR_STACKS_ON && cluster && listings.length > 0 ? floorsToGeoJSON(cluster) : null
 
   const buildingLd = {
     '@context': 'https://schema.org',

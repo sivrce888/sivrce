@@ -540,6 +540,11 @@ export const en: Dict = {
   // Search map view (list/map toggle)
   'search.map': 'Map',
   'search.mapNote': 'The map shows the first {n} of {total} results',
+  'search.mapSearchArea': 'Search this area',
+  'search.mapLocate': 'My location',
+  'search.mapInArea': '{n} listings',
+  'search.mapClearArea': 'Show all',
+  'search.mapEmptyArea': 'No listings in this area',
   'add.contactHint': 'Tell us your name and the mobile number buyers can use to reach you.',
 
 }

@@ -16,29 +16,41 @@ const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   ქუთაისი: { lat: 42.2491, lng: 42.7001 },
 }
 
-/* WMO weather codes → simple emoji label (brand forbids emoji in UI but these are data viz) */
-const WMO_ICON: Record<number, string> = {
-  0: '☀️',
-  1: '🌤️',
-  2: '⛅',
-  3: '☁️',
-  45: '🌫️',
-  48: '🌫️',
-  51: '🌦️',
-  53: '🌦️',
-  55: '🌧️',
-  61: '🌧️',
-  63: '🌧️',
-  65: '🌧️',
-  71: '🌨️',
-  73: '🌨️',
-  75: '❄️',
-  80: '🌦️',
-  81: '🌧️',
-  82: '⛈️',
-  95: '⛈️',
-  96: '⛈️',
-  99: '⛈️',
+/* WMO → Lucide icon name (brand: no emoji in UI) */
+export type WeatherIconName =
+  | 'sun'
+  | 'cloud-sun'
+  | 'cloud'
+  | 'cloud-fog'
+  | 'cloud-drizzle'
+  | 'cloud-rain'
+  | 'cloud-snow'
+  | 'snowflake'
+  | 'cloud-lightning'
+  | 'thermometer'
+
+const WMO_ICON: Record<number, WeatherIconName> = {
+  0: 'sun',
+  1: 'cloud-sun',
+  2: 'cloud-sun',
+  3: 'cloud',
+  45: 'cloud-fog',
+  48: 'cloud-fog',
+  51: 'cloud-drizzle',
+  53: 'cloud-drizzle',
+  55: 'cloud-rain',
+  61: 'cloud-rain',
+  63: 'cloud-rain',
+  65: 'cloud-rain',
+  71: 'cloud-snow',
+  73: 'cloud-snow',
+  75: 'snowflake',
+  80: 'cloud-drizzle',
+  81: 'cloud-rain',
+  82: 'cloud-lightning',
+  95: 'cloud-lightning',
+  96: 'cloud-lightning',
+  99: 'cloud-lightning',
 }
 
 export interface WeatherData {
@@ -110,15 +122,17 @@ function fetchWeatherOnce(key: string, lat: number, lng: number): Promise<Weathe
 
 /** Shared fetch/cache loop. No-op (null) when coords are unknown. */
 function useWeatherAt(key: string, lat?: number, lng?: number): WeatherData | null {
-  const [data, setData] = useState<WeatherData | null>(() => (lat === undefined ? null : cached(key)))
+  // Always null on first paint — sessionStorage in useState caused SSR/client mismatch
+  const [data, setData] = useState<WeatherData | null>(null)
 
   useEffect(() => {
     if (lat === undefined || lng === undefined) return
-    // Already have fresh cached data
     const existing = cached(key)
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync from sessionStorage cache is the point
-    if (existing) { setData(existing); return }
-    // Fetch once per session, off the boot critical path
+    if (existing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage cache hit on mount; lazy useState init caused SSR mismatch before
+      setData(existing)
+      return
+    }
     let cancelled = false
     const run = () =>
       fetchWeatherOnce(key, lat, lng).then((d) => {
@@ -128,10 +142,16 @@ function useWeatherAt(key: string, lat?: number, lng?: number): WeatherData | nu
     const ric: Window['requestIdleCallback'] | undefined = window.requestIdleCallback
     if (ric) {
       const id = ric.call(window, run, { timeout: 3000 })
-      return () => { cancelled = true; window.cancelIdleCallback(id) }
+      return () => {
+        cancelled = true
+        window.cancelIdleCallback(id)
+      }
     }
     const id = window.setTimeout(run, 2000)
-    return () => { cancelled = true; window.clearTimeout(id) }
+    return () => {
+      cancelled = true
+      window.clearTimeout(id)
+    }
   }, [key, lat, lng])
 
   return data
@@ -155,6 +175,6 @@ export function useWeatherCoords(lat?: number, lng?: number): WeatherData | null
   return useWeatherAt(key, lat, lng)
 }
 
-export function weatherIcon(code: number): string {
-  return WMO_ICON[code] ?? '🌡️'
+export function weatherIcon(code: number): WeatherIconName {
+  return WMO_ICON[code] ?? 'thermometer'
 }

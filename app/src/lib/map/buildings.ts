@@ -17,6 +17,7 @@ import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import { BRAND } from '@/lib/brand'
 import { getDeveloper, projectCode, type Project } from '@/data/professionals'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 import footprintData from '@/data/building-footprints.json'
 
 /** Real OSM building rings keyed by cluster id (© OpenStreetMap contributors, ODbL).
@@ -403,6 +404,7 @@ export function projectsToConstructionBuildings(
         code: projectCode(p),
         floors,
         finish: p.finish,
+        img: p.img,
       }
     })
 }
@@ -576,7 +578,17 @@ export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
   return buildingFootprint(b.lat, b.lng, 14)
 }
 
+/** Cheapest active listing on the cluster — for mid-zoom price pills. */
+export function clusterMinPriceGEL(b: MapBuildingCluster): number | null {
+  let min: number | null = null
+  for (const l of b.listings) {
+    if (l.priceGEL > 0 && (min == null || l.priceGEL < min)) min = l.priceGEL
+  }
+  return min
+}
+
 function buildingProps(b: MapBuildingCluster) {
+  const minGel = clusterMinPriceGEL(b)
   return {
     id: b.id,
     label: b.label,
@@ -600,7 +612,21 @@ function buildingProps(b: MapBuildingCluster) {
     dominant: b.dominant,
     status: b.status,
     progress: b.progress ?? 100,
+    // GEL compact — map has no currency context; list view uses formatMapPin.
+    priceLabel: minGel == null ? '' : formatMapPinGEL(minGel),
   }
+}
+
+/** ponytail: GEL-only pin label for GeoJSON (no React currency ctx). */
+function formatMapPinGEL(gel: number): string {
+  if (!Number.isFinite(gel) || gel <= 0) return ''
+  if (gel >= 1_000_000) {
+    const m = gel / 1_000_000
+    const s = m >= 10 ? String(Math.round(m)) : String(Math.round(m * 10) / 10)
+    return `${s}მლნ₾`
+  }
+  if (gel >= 10_000) return `${Math.round(gel / 1000)}კ₾`
+  return `${Math.round(gel)}₾`
 }
 
 export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.FeatureCollection {
@@ -631,14 +657,54 @@ export function buildingsToPointsGeoJSON(
 }
 
 /**
- * Neighborhoods as clickable map points — centroid coords + livability + avg price.
- * Toggleable from Map3D (off by default). ponytail: O(n) static; no boundary polygons.
+ * District/ubani labels for /map — Tbilisi label sheet + guide cities (Batumi/Kutaisi).
+ * Guide neighborhoods overlay livability; map-only labels are name+coords.
+ * Borders: tbilisi-raions.json (10 raions).
  */
 export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
-  return {
-    type: 'FeatureCollection',
-    features: NEIGHBORHOODS.map((n) => ({
+  const guideBySlug = new Map(NEIGHBORHOODS.map((n) => [n.slug, n]))
+  const features: GeoJSON.Feature[] = TBILISI_DISTRICT_LABELS.map((d) => {
+    const g = guideBySlug.get(d.slug)
+    return {
       type: 'Feature' as const,
+      id: `nbh-${d.slug}`,
+      properties: g
+        ? {
+            id: `nbh-${d.slug}`,
+            slug: d.slug,
+            name: g.name.ka,
+            nameEn: g.name.en,
+            city: g.city.ka,
+            type: g.type,
+            hasGuide: true,
+            avgPriceM2USD: g.avgPriceM2USD,
+            transport: g.scores.transport,
+            schools: g.scores.schools,
+            green: g.scores.green,
+            safety: g.scores.safety,
+            nightlife: g.scores.nightlife,
+          }
+        : {
+            id: `nbh-${d.slug}`,
+            slug: d.slug,
+            name: d.name.ka,
+            nameEn: d.name.en,
+            city: 'თბილისი',
+            type: 'Neighborhood',
+            hasGuide: false,
+          },
+      geometry: {
+        type: 'Point' as const,
+        // Guide pages keep their curated pin; label sheet is the map truth for shared slugs.
+        coordinates: [d.coords.lng, d.coords.lat],
+      },
+    }
+  })
+  // Batumi / Kutaisi city pins (not on Tbilisi sheet)
+  for (const n of NEIGHBORHOODS) {
+    if (n.cityKey === 'თბილისი') continue
+    features.push({
+      type: 'Feature',
       id: `nbh-${n.slug}`,
       properties: {
         id: `nbh-${n.slug}`,
@@ -647,6 +713,7 @@ export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
         nameEn: n.name.en,
         city: n.city.ka,
         type: n.type,
+        hasGuide: true,
         avgPriceM2USD: n.avgPriceM2USD,
         transport: n.scores.transport,
         schools: n.scores.schools,
@@ -655,8 +722,9 @@ export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
         nightlife: n.scores.nightlife,
       },
       geometry: { type: 'Point', coordinates: [n.coords.lng, n.coords.lat] },
-    })),
+    })
   }
+  return { type: 'FeatureCollection', features }
 }
 
 export const MAP_CENTER = { lat: 41.7151, lng: 44.8271 } as const
