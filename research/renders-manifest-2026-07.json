@@ -714,6 +714,13 @@
     "batch": 2
   },
   {
+    "slug": "apart-lisi-lakers",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/lisi-lakers-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "apart-vake",
     "status": "ok",
     "source": "korter",
@@ -973,6 +980,13 @@
     "batch": 2
   },
   {
+    "slug": "elt-barcelo-residences",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 2
+  },
+  {
     "slug": "gate-by-artex",
     "status": "ok",
     "source": "korter",
@@ -1019,6 +1033,13 @@
     "status": "failed",
     "source": null,
     "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "guru-status",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/guru-status-batumi",
     "batch": 2
   },
   {
@@ -1295,6 +1316,13 @@
     "batch": 2
   },
   {
+    "slug": "tekto-rakurs",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tekto-rakurs-chakvi",
+    "batch": 2
+  },
+  {
     "slug": "urban-east",
     "status": "ok",
     "source": "korter",
@@ -1306,6 +1334,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/urbanique-mziuri-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "white-square-mindeli",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/white-square-mindeli-tbilisi",
     "batch": 2
   },
   {
