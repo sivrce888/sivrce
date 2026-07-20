@@ -6,16 +6,16 @@ import { useI18n } from '@/lib/i18n/context'
  */
 const STRINGS = {
   ka: {
-    priceAlertOn: 'ფასის შეტყობინება ჩართულია',
-    priceAlertOff: 'ფასის შეტყობინების ჩართვა',
+    priceAlertOn: 'ფასის ალერტი ჩართულია',
+    priceAlertOff: 'ფასის ალერტი (ელფოსტა შესვლისას)',
   },
   en: {
     priceAlertOn: 'Price alert on',
-    priceAlertOff: 'Turn on price alert',
+    priceAlertOff: 'Price alert (email when signed in)',
   },
   ru: {
     priceAlertOn: 'Уведомление о цене включено',
-    priceAlertOff: 'Включить уведомление о цене',
+    priceAlertOff: 'Уведомление о цене (email после входа)',
   },
 } as const
 

@@ -65,7 +65,7 @@ export const CONFIG_REGISTRY: { [K in ConfigKey]: ConfigEntry<ConfigValues[K]> }
     label: "Contact email",
     hint: "Shown on /contact; receives general (brand-level) leads.",
     input: "text",
-    defaultValue: "info@sivrce.ge",
+    defaultValue: "hi@sivrce.ge",
     parse: textParser(EMAIL_RE),
   },
   "site.contactPhone": {

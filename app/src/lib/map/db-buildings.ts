@@ -18,6 +18,9 @@ import { SERVICE_BRAND } from "@/lib/category-brand"
 import { db, dbAvailable } from "@/lib/db"
 import { listingIdsInBbox, type Bbox } from "@/lib/geo/postgis"
 import { catalogToCluster, type MapBuildingCluster } from "@/lib/map/buildings"
+import {
+  aggregateBuildingDealCounts,
+} from "@/lib/map/building-inventory"
 import { activeColorUntil, activePriceDropUntil, activeStoryUntil, activeUrgentUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
 
 export const MAP_BUILDINGS_TAG = "map-buildings"
@@ -352,3 +355,21 @@ export const getDbBuildingEntries = unstable_cache(
   ["db-building-entries"],
   { tags: [MAP_BUILDINGS_TAG] },
 )
+
+export { aggregateBuildingDealCounts } from "@/lib/map/building-inventory"
+
+/**
+ * Live deal counts keyed by MapBuilding slug (from attributed listings).
+ * ponytail: reuse getMapListings cache; dedicated groupBy if MAP_LISTINGS_CAP bites.
+ */
+export async function getBuildingDealCountsBySlug(): Promise<
+  Record<string, Record<DealType, number>>
+> {
+  return aggregateBuildingDealCounts(await getMapListings())
+}
+
+/** Active attributed listings for one building slug. */
+export async function getListingsForBuildingSlug(slug: string): Promise<Listing[]> {
+  const all = await getMapListings()
+  return all.filter((l) => l.buildingSlug === slug)
+}

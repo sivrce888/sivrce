@@ -65,6 +65,8 @@ export interface InquiryNotificationParams {
   buyerEmail?: string | null
   message: string
   listingTitle?: string
+  /** Override default "New inquiry from …" subject. */
+  subject?: string
 }
 
 /**
@@ -78,9 +80,9 @@ export function sendInquiryNotification(params: InquiryNotificationParams): void
 
   void sendEmail({
     to: params.agentEmail,
-    subject: `New inquiry from ${params.buyerName}`,
+    subject: params.subject ?? `New inquiry from ${params.buyerName}`,
     html: `
-      <h2>New Inquiry</h2>
+      <h2>${params.subject?.startsWith("კარიერა") ? "კარიერა" : "New Inquiry"}</h2>
       <p><strong>From:</strong> ${escapeHtml(params.buyerName)}</p>
       ${params.buyerEmail ? `<p><strong>Email:</strong> ${escapeHtml(params.buyerEmail)}</p>` : ""}
       ${params.buyerPhone ? `<p><strong>Phone:</strong> ${escapeHtml(params.buyerPhone)}</p>` : ""}

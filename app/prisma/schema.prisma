@@ -1301,6 +1301,8 @@ model GeorgianPaymentOrder {
   userId            String?          @map("user_id") @db.VarChar(120)
   listingId         String?          @map("listing_id") @db.VarChar(120)
   tier              String           @db.VarChar(30)
+  /** Paid window in days (VIP packages + turbo use this on finalize). */
+  durationDays      Int              @default(30) @map("duration_days")
   amountTetri       Int              @map("amount_tetri")
   currency          String           @default("GEL") @db.VarChar(3)
   status            String           @default("pending") @db.VarChar(30)

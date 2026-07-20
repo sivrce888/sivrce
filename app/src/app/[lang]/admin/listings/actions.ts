@@ -8,6 +8,7 @@ import { requireAdminAction } from "@/lib/admin/guard"
 import { optInt, reqEnum, reqString } from "@/lib/admin/validate"
 import { db } from "@/lib/db"
 import { attributeListing, unattributeListing } from "@/lib/map/attribution"
+import { reindexListingById } from "@/lib/payments"
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 
 const TIERS = Object.values(ListingTier)
@@ -42,6 +43,7 @@ export async function setTier(fd: FormData) {
   })
   const tierExpiresAt = days === null ? null : new Date(Date.now() + days * 86_400_000)
   await db.listing.update({ where: { id }, data: { tier, tierExpiresAt } })
+  await reindexListingById(id).catch(() => {})
   await logAdminAction(session, "listing.set_tier", "listing", id, {
     before: { tier: before.tier, tierExpiresAt: before.tierExpiresAt },
     after: { tier, tierExpiresAt },

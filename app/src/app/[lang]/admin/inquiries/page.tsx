@@ -14,6 +14,8 @@ import { requireAdmin } from "@/lib/admin/guard"
 import {
   INQUIRY_STATUSES,
   INQUIRY_STATUS_LABELS,
+  inquiryBucketLabel,
+  isListingRef,
   listInquiries,
   shortRef,
 } from "@/lib/admin/inquiries"
@@ -97,13 +99,19 @@ export default async function AdminInquiriesPage({
                   </Link>
                 </td>
                 <td className={td}>
-                  <Link
+                  {isListingRef(inq) ? (
+                    <Link
                       href={`/admin/listings/${inq.listingId}`}
                       title={inq.listingId}
                       className="font-mono text-[12px] font-semibold text-sv-blue hover:underline"
                     >
                       {shortRef(inq.listingId)}
                     </Link>
+                  ) : (
+                    <span className="rounded-full bg-sv-orange/10 px-2.5 py-1 text-[12px] font-bold text-sv-orange">
+                      {inquiryBucketLabel(inq.listingId)}
+                    </span>
+                  )}
                 </td>
                 <td className={td}>{inq.agentName}</td>
                 <td className={td}>

@@ -3,9 +3,11 @@ import Link from "next/link"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
+import TierPurchaseButton from "@/components/payments/TierPurchaseButton"
 import { developerNav } from "@/components/developer-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { effectiveTierKey } from "@/lib/promo-pricing"
 
 export const dynamic = "force-dynamic"
 
@@ -27,7 +29,7 @@ const STATUS_KA: Record<string, string> = {
 export default async function DeveloperListingsPage() {
   const user = await requireRole("developer", "/developer")
 
-  // ponytail: schema has no Listing↔Project link; tie by ownerId (ceiling: join via project when schema grows one)
+  // ponytail: schema has no Listing↔Project link; tie by ownerId
   const listings = await safeQuery(
     () =>
       db.listing.findMany({
@@ -58,33 +60,44 @@ export default async function DeveloperListingsPage() {
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {listings.map((l) => (
-            <Link
-              key={l.id}
-              href={`/listing/${l.id}`}
-              className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm transition hover:shadow-md"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <p className="line-clamp-1 text-[15px] font-extrabold text-sv-ink">
-                  {l.title}
+          {listings.map((l) => {
+            const tier = effectiveTierKey(l.tier, l.tierExpiresAt)
+            const canBoost = l.status === "active"
+            return (
+              <div
+                key={l.id}
+                className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <Link
+                    href={`/listing/${l.id}`}
+                    className="line-clamp-1 text-[15px] font-extrabold text-sv-ink hover:text-sv-blue"
+                  >
+                    {l.title}
+                  </Link>
+                  <span className="shrink-0 rounded-full bg-sv-blue/8 px-2.5 py-1 text-[11px] font-bold text-sv-blue">
+                    {STATUS_KA[l.status] ?? l.status}
+                  </span>
+                </div>
+                <p className="mt-1 text-[12.5px] font-medium text-sv-ink/55">
+                  {l.city} · {l.district} · {l.rooms} ოთახი · {l.area} მ²
                 </p>
-                <span className="shrink-0 rounded-full bg-sv-blue/8 px-2.5 py-1 text-[11px] font-bold text-sv-blue">
-                  {STATUS_KA[l.status] ?? l.status}
-                </span>
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <span className="text-[15px] font-black text-sv-ink">
+                    {fmt.format(l.price)} {l.currency === "USD" ? "$" : "₾"}
+                  </span>
+                  <span className="text-[12px] font-semibold text-sv-ink/45">
+                    {l.views} ნახვა
+                  </span>
+                </div>
+                {canBoost ? (
+                  <div className="mt-4 flex justify-end">
+                    <TierPurchaseButton listingId={l.id} currentTier={tier} />
+                  </div>
+                ) : null}
               </div>
-              <p className="mt-1 text-[12.5px] font-medium text-sv-ink/55">
-                {l.city} · {l.district} · {l.rooms} ოთახი · {l.area} მ²
-              </p>
-              <div className="mt-3 flex items-baseline justify-between gap-2">
-                <span className="text-[15px] font-black text-sv-ink">
-                  {fmt.format(l.price)} {l.currency === "USD" ? "$" : "₾"}
-                </span>
-                <span className="text-[12px] font-semibold text-sv-ink/45">
-                  {l.views} ნახვა
-                </span>
-              </div>
-            </Link>
-          ))}
+            )
+          })}
         </div>
       )}
     </DashboardShell>

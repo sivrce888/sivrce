@@ -43,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // DB-first listing URLs; static mock is the build-time/outage fallback.
   let listings: Listing[] = LISTINGS
   try {
-    const rows = await getAllListings()
+    const rows = await getAllListings(5000)
     if (rows.length > 0) listings = rows
   } catch { /* DB unavailable at build — keep static URLs */ }
 
@@ -63,6 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/projects/ready', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 },
     { path: '/advertise', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.6 },
     { path: '/about', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
+    { path: '/careers', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
     { path: '/contact', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
     { path: '/faq', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
     { path: '/terms', lastModified: DEPLOY_DATE, changeFrequency: 'yearly', priority: 0.2 },

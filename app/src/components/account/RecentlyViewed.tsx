@@ -4,7 +4,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { Clock } from 'lucide-react'
 import ListingCard from '@/components/ListingCard'
 import HScroll from '@/components/HScroll'
-import { getListing, type Listing } from '@/data/listings'
+import { useListingsByIds } from '@/lib/use-listings-by-ids'
 import { useRecentIds } from '@/lib/recent'
 import SectionHeader from './SectionHeader'
 import { useAccountStrings } from './i18n'
@@ -27,18 +27,21 @@ export default function RecentlyViewed({
 }: RecentlyViewedProps) {
   const tt = useAccountStrings()
   const heading = title ?? tt('recentlyViewed')
-  const ids = useRecentIds()
-  const items = ids
-    .slice(0, limit)
-    .map((id) => getListing(id))
-    .filter((l): l is Listing => Boolean(l))
+  const ids = useRecentIds().slice(0, limit)
+  const { items, loading } = useListingsByIds(ids)
 
-  if (items.length === 0 && hideWhenEmpty) return null
+  if (!loading && items.length === 0 && hideWhenEmpty) return null
 
   return (
     <section aria-label={heading} className={className}>
       <SectionHeader icon={Clock} title={heading} count={items.length} chipClass="bg-sv-violet/10 text-sv-violet" />
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="flex gap-4 overflow-hidden">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="h-64 w-64 shrink-0 animate-pulse rounded-card bg-sv-cloud" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
           <p className="text-[14px] font-semibold text-sv-ink/50">{tt('noRecent')}</p>
           <LocalizedLink
@@ -49,9 +52,11 @@ export default function RecentlyViewed({
           </LocalizedLink>
         </div>
       ) : (
-        <HScroll aria-label={heading} className="snap-x gap-6 pb-1">
+        <HScroll>
           {items.map((l, i) => (
-            <ListingCard key={l.id} l={l} i={i} layout="grid" />
+            <div key={l.id} className="w-[280px] shrink-0">
+              <ListingCard l={l} i={i} layout="wide" />
+            </div>
           ))}
         </HScroll>
       )}

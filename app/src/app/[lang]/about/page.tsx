@@ -119,16 +119,15 @@ export default function AboutPage() {
                   გვინდა ჩვენთან მუშაობა?
                 </h2>
                 <p className="mx-auto mt-4 max-w-xl text-[15px] font-medium text-white/65">
-                  ვეძებთ ადამიანებს, რომლებსაც სჯერათ, რომ საქართველოს იმსახურებს
-                  მსოფლიო დონის უძრავი ქონების პლატფორმას.
+                  გვჭირდება გაყიდვების მენეჯერები თბილისსა და ბათუმში.
                 </p>
-                <a
-                  href="mailto:info@sivrce.ge"
+                <LocalizedLink
+                  href="/careers"
                   className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
                 >
-                  info@sivrce.ge
+                  ვაკანსიები
                   <ArrowRight className="h-4 w-4" />
-                </a>
+                </LocalizedLink>
               </div>
             </div>
           </Reveal>

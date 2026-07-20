@@ -2,8 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* ponytail: TW build was dropping bottom-3 (abspos fell to top) — force emit */
+/* ponytail: fractional abspos/opacity utils vanish under turbopack HMR → chrome sticks top.
+   Separate @source inline lines (space-lists don't expand). Prod/postcss emits them;
+   ListingCard also sticks to proven live utils (bottom-4, top-4, w-32, bg-white/50). */
+@source inline("bottom-2.5");
 @source inline("bottom-3");
+@source inline("bottom-14");
+@source inline("top-3.5");
+@source inline("top-12");
+@source inline("left-1.5");
+@source inline("bg-white/40");
+@source inline("max-w-[7.5rem]");
+@source inline("max-w-[9rem]");
 
 /* cache-bust 2026-07-19: responsive chrome (nav/hero) */
 
@@ -619,6 +629,10 @@
   }
   *, *::before, *::after {
     transition-duration: 0.01ms !important;
+  }
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
   }
   .animate-aurora-a, .animate-aurora-b, .animate-aurora-c,
   .sv-particle, .sv-window, .sv-star, .animate-float, .animate-pin, .animate-marquee,

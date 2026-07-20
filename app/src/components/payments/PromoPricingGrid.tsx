@@ -8,7 +8,9 @@ import { BRAND } from "@/lib/brand"
 import {
   ADDON_TETRI,
   DEFAULT_PROMO_DAYS,
+  PRODUCT_TO_TIER,
   PROMO_DAY_OPTIONS,
+  PROMO_INTENT_KEY,
   dailyRateTetri,
   formatGel,
   savingsPct,
@@ -96,6 +98,10 @@ export default function PromoPricingGrid() {
           })}
         </select>
       </div>
+      <p className="mb-8 text-center text-[12px] font-semibold text-sv-ink/45">
+        დღიური ტარიფები = რეალური გადახდა. სთორი / სასწრაფოდ = 24სთ. გამოქვეყნების შემდეგ აირჩიე
+        ბუსტი იმავე ხანგრძლივობით.
+      </p>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {CARDS.map((tier, i) => {
@@ -166,13 +172,28 @@ export default function PromoPricingGrid() {
                 </ul>
                 <LocalizedLink
                   href="/add-listing"
+                  onClick={() => {
+                    if (product === "free") return
+                    try {
+                      sessionStorage.setItem(
+                        PROMO_INTENT_KEY,
+                        JSON.stringify({
+                          tier: PRODUCT_TO_TIER[product],
+                          days,
+                        }),
+                      )
+                    } catch {
+                      /* private mode */
+                    }
+                  }}
                   className={`mt-8 inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-bold transition hover:-translate-y-0.5 ${
                     highlight
                       ? "bg-sv-orange text-white shadow-glow-orange hover:shadow-glow-orange-lg"
                       : "bg-sv-ink text-white shadow-glow-navy hover:bg-sv-navy"
                   }`}
                 >
-                  {paid && total != null ? `განთავსება · ${formatGel(total)}` : "უფასოდ განთავსება"}
+                  {/* ponytail: publish free; days/tier intent → TierPurchaseButton after publish */}
+                  {paid ? `განთავსება · ${days}დ ${tier.name}` : "უფასოდ განთავსება"}
                 </LocalizedLink>
               </div>
             </Reveal>

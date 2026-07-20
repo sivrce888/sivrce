@@ -13,7 +13,6 @@ import {
   DISTRICT_COORDS,
   STREETS,
   getStreet,
-  listingsOfStreet,
   streetLocative,
   type TbilisiStreet,
 } from '@/data/tbilisi-streets'
@@ -33,18 +32,14 @@ async function resolve(districtSlug: string, streetSlug: string) {
   const district = tbilisiDistrictOf(districtSlug)
   const street = getStreet(streetSlug)
   if (!district || !street || street.district !== district.slug) return null
-  const mock = listingsOfStreet(street)
-  let db: Listing[] = []
+  // Live inventory only — mock LISTINGS inflated SEO stats.
+  let listings: Listing[] = []
   try {
-    db = await getListingsOnStreet(street.ka, district.ka)
+    listings = await getListingsOnStreet(street.ka, district.ka)
   } catch {
-    db = []
+    listings = []
   }
-  // Merge DB + mock, prefer DB row when same id
-  const byId = new Map<string, Listing>()
-  for (const l of mock) byId.set(l.id, l)
-  for (const l of db) byId.set(l.id, l)
-  return { district, street, listings: [...byId.values()] }
+  return { district, street, listings }
 }
 
 export function generateStaticParams() {

@@ -5,7 +5,7 @@
  */
 
 import { Prisma } from "@/generated/prisma/client"
-import { nearMetroWhere } from "@/lib/geo/nearest-poi-pure"
+import { nearMetroFilter } from "@/lib/geo/nearest-poi-pure"
 import { USD_GEL } from "@/data/listings"
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from "@/lib/features"
 import { districtSearchValues } from "@/lib/district-canon"
@@ -59,6 +59,20 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
 
   const sellerParam = sp.get("seller")
 
+  const west = num("west")
+  const south = num("south")
+  const east = num("east")
+  const north = num("north")
+  const bbox =
+    west !== undefined &&
+    south !== undefined &&
+    east !== undefined &&
+    north !== undefined &&
+    west < east &&
+    south < north
+      ? { west, south, east, north }
+      : undefined
+
   return {
     q: str("q"),
     dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
@@ -85,6 +99,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     nearMetro: sp.get("metro") === "1" || undefined,
     sellerType: sellerParam === "owner" || sellerParam === "agency" ? sellerParam : undefined,
     ...dailyDates,
+    bbox,
     currency: curParam === "GEL" ? "GEL" : "USD",
     sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
     page: num("page") ?? 1,
@@ -105,6 +120,10 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
 
   if (filters.dealType) where.dealType = filters.dealType as Prisma.ListingWhereInput["dealType"]
   if (filters.propertyType) where.propertyType = filters.propertyType as Prisma.ListingWhereInput["propertyType"]
+  if (filters.idsIn) {
+    // Empty bbox → empty result (never match-all)
+    where.id = { in: filters.idsIn.length > 0 ? filters.idsIn : ["__none__"] }
+  }
   if (filters.city) where.city = filters.city
   if (filters.district) {
     const vals = districtSearchValues(filters.district, filters.city)
@@ -153,9 +172,8 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.verifiedOnly) where.verified = true
   if (filters.petsOnly) where.petsAllowed = true
   if (filters.sellerType) where.sellerType = filters.sellerType
-  // Uses listing_nearest_poi (PostGIS ST_DWithin backfill). Empty table → no matches
-  // until /api/cron/sync-nearest-poi?seed=1 runs — same as before for alerts.
-  if (filters.nearMetro) and.push(nearMetroWhere())
+  // Join table when warm; static metro boxes so filter works before cron backfill.
+  if (filters.nearMetro) and.push(nearMetroFilter())
 
   // Daily-rent availability: drop listings whose confirmed/pending bookings or
   // host-blocked dates overlap the requested [from, to) window. Half-open

@@ -14,7 +14,7 @@ import { SITE_META } from "./i18n/server"
 
 export const CMS_BLOCKS = {
   // ——— Hero ———
-  'home.hero.badge': '52,400+ აქტიური განცხადება საქართველოში',
+  'home.hero.badge': 'აქტიური განცხადებები საქართველოში',
   'home.hero.titleA': 'იპოვე შენი',
   'home.hero.titleAccent': 'სივრცე',
   'home.hero.subtitle':
@@ -23,23 +23,23 @@ export const CMS_BLOCKS = {
   'home.hero.trust2': 'უსაფრთხო გარიგებები',
   'home.hero.trust3': 'AI ფასის შეფასება',
 
-  // ——— Stats (value + suffix drive the count-up; keep value numeric) ———
-  'home.stats.1.value': '52400',
+  // ——— Stats (1–4 values come from getHomeStats; CMS keeps label/sub + 5–6 SLAs) ———
+  'home.stats.1.value': '0',
   'home.stats.1.suffix': '+',
   'home.stats.1.label': 'აქტიური განცხადება',
   'home.stats.1.sub': 'ყოველდღიურად განახლებული',
-  'home.stats.2.value': '1800',
+  'home.stats.2.value': '0',
   'home.stats.2.suffix': '+',
   'home.stats.2.label': 'აგენტი და სააგენტო',
-  'home.stats.2.sub': 'შეფასებებითა და რეიტინგით',
-  'home.stats.3.value': '136',
+  'home.stats.2.sub': 'პროფილებით პლატფორმაზე',
+  'home.stats.3.value': '0',
   'home.stats.3.suffix': '+',
   'home.stats.3.label': 'დეველოპერული პროექტი',
   'home.stats.3.sub': 'მთელი საქართველოდან',
-  'home.stats.4.value': '98',
-  'home.stats.4.suffix': '%',
-  'home.stats.4.label': 'მომხმარებლის კმაყოფილება',
-  'home.stats.4.sub': '12,000+ შეფასებიდან',
+  'home.stats.4.value': '0',
+  'home.stats.4.suffix': '+',
+  'home.stats.4.label': 'ქალაქი და რეგიონი',
+  'home.stats.4.sub': 'განცხადებებით დაფარული',
   'home.stats.5.value': '24',
   'home.stats.5.suffix': '/7',
   'home.stats.5.label': 'მხარდაჭერა',
@@ -81,9 +81,9 @@ export const CMS_BLOCKS = {
     'გამყიდველი თუ მყიდველი — დაიწყე დღეს. განცხადების დამატება უფასოა და სულ 3 წუთი სჭირდება.',
   'home.cta.primary': 'დაამატე განცხადება',
   'home.cta.secondary': 'დაიწყე ძიება',
-  'home.cta.proofA': '52,400+ განცხადება',
-  'home.cta.proofB': '136 მშენებარე პროექტი',
-  'home.cta.proofC': '#1 პლატფორმა საქართველოში',
+  'home.cta.proofA': 'აქტიური განცხადებები',
+  'home.cta.proofB': 'მშენებარე პროექტები',
+  'home.cta.proofC': '3 ენა · 3D რუკა · AI ქულა',
 } as const
 
 export type CmsBlockKey = keyof typeof CMS_BLOCKS

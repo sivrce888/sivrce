@@ -229,6 +229,52 @@ function rowToListing(row: Record<string, unknown>): Listing {
   }
 }
 
+/** Active listing counts keyed by district (neighborhoods index). */
+export async function getDistrictListingCounts(): Promise<Record<string, number>> {
+  return safeQuery(async () => {
+    const rows = await db.listing.groupBy({
+      by: ["district"],
+      where: { deletedAt: null, status: "active" },
+      _count: { _all: true },
+    })
+    const out: Record<string, number> = {}
+    for (const r of rows) out[r.district] = r._count._all
+    return out
+  }, {})
+}
+
+/** Active listings in any of the given districts (neighborhood detail rail). */
+export async function getListingsInDistricts(districts: string[], limit = 8): Promise<Listing[]> {
+  if (districts.length === 0) return []
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: { deletedAt: null, status: "active", district: { in: districts } },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+}
+
+/** Owner id for boost UI — not exposed on public Listing shape. */
+export async function getListingOwnerMeta(
+  id: string,
+): Promise<{ ownerId: string; tier: string } | null> {
+  return safeQuery(async () => {
+    const publicNum = parseListingNumber(id)
+    const row = await db.listing.findFirst({
+      where: {
+        deletedAt: null,
+        status: "active",
+        OR: publicNum ? [{ id }, { publicId: publicNum }] : [{ id }],
+      },
+      select: { ownerId: true, tier: true, tierExpiresAt: true },
+    })
+    if (!row?.ownerId) return null
+    return { ownerId: row.ownerId, tier: effectiveTierKey(row.tier, row.tierExpiresAt) }
+  }, null)
+}
+
 /** Get a single listing by string id OR public number. Returns null if not found. */
 export async function getListing(id: string): Promise<Listing | null> {
   return safeQuery(async () => {
@@ -304,6 +350,41 @@ export async function getListingsOnStreet(streetKa: string, districtKa: string):
   }, [])
 }
 
+/** Similar listings: same district+deal first, then same type+deal in city. */
+export async function getSimilarListings(
+  listing: Pick<Listing, "id" | "dealType" | "propType" | "city" | "district">,
+  limit = 8,
+): Promise<Listing[]> {
+  return safeQuery(async () => {
+    const deal = dealToDb(listing.dealType)
+    const base = { deletedAt: null, status: "active" as const, id: { not: listing.id } }
+    const districtRows = await db.listing.findMany({
+      where: { ...base, dealType: deal, city: listing.city, district: listing.district },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+    if (districtRows.length >= limit) {
+      return districtRows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+    }
+    const seen = new Set(districtRows.map((r) => r.id))
+    const typeRows = await db.listing.findMany({
+      where: {
+        deletedAt: null,
+        status: "active",
+        dealType: deal,
+        city: listing.city,
+        propertyType: propToDb(listing.propType),
+        id: { notIn: [listing.id, ...seen] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit - districtRows.length,
+    })
+    return [...districtRows, ...typeRows].map((r) =>
+      rowToListing(r as unknown as Record<string, unknown>),
+    )
+  }, [])
+}
+
 /** Peer $/m² in the same district+deal for price scale (capped). */
 export async function getDistrictPeerPerM2(
   city: string,
@@ -343,13 +424,133 @@ export async function getListingsByOwner(ownerId: string): Promise<Listing[]> {
   }, [])
 }
 
-/** Get all active listings (homepage carousel, sitemap). */
-export async function getAllListings(): Promise<Listing[]> {
+/**
+ * Agent directory inventory — AgentProfile.ownerId first, else agent JSON name.
+ * Empty = honest zero (no mock LISTINGS).
+ */
+export async function getListingsForAgentProfile(
+  slug: string,
+  kaName: string,
+): Promise<Listing[]> {
+  return safeQuery(async () => {
+    const profile = await db.agentProfile.findFirst({
+      where: { deletedAt: null, OR: [{ slug }, { name: kaName }] },
+      select: { ownerId: true },
+    })
+    if (profile?.ownerId) {
+      const rows = await db.listing.findMany({
+        where: { ownerId: profile.ownerId, deletedAt: null, status: "active" },
+        orderBy: { createdAt: "desc" },
+        take: 48,
+      })
+      return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+    }
+    const rows = await db.listing.findMany({
+      where: {
+        deletedAt: null,
+        status: "active",
+        agent: { path: ["name"], equals: kaName },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 48,
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+}
+
+/** Counts for /agents index cards — keyed by Georgian agent name. */
+export async function getAgentListingCountsByKaName(): Promise<Record<string, number>> {
+  return safeQuery(async () => {
+    const [rows, profiles] = await Promise.all([
+      db.listing.findMany({
+        where: { deletedAt: null, status: "active" },
+        select: { agent: true, ownerId: true },
+        take: 2500,
+      }),
+      db.agentProfile.findMany({
+        where: { deletedAt: null },
+        select: { name: true, ownerId: true },
+      }),
+    ])
+    const out: Record<string, number> = {}
+    const byOwner = new Map<string, number>()
+    for (const r of rows) {
+      const name = (r.agent as { name?: string } | null)?.name?.trim()
+      if (name) out[name] = (out[name] ?? 0) + 1
+      if (r.ownerId) byOwner.set(r.ownerId, (byOwner.get(r.ownerId) ?? 0) + 1)
+    }
+    for (const p of profiles) {
+      if (!p.ownerId) continue
+      const n = byOwner.get(p.ownerId) ?? 0
+      if (n > 0) out[p.name] = Math.max(out[p.name] ?? 0, n)
+    }
+    return out
+  }, {})
+}
+
+/**
+ * Listings tied to a project: extendedFields.projectSlug or catalog id prefix.
+ * Empty = honest zero (no city-wide mock filler).
+ */
+export async function getListingsForProjectSlug(
+  slug: string,
+  limit = 6,
+): Promise<Listing[]> {
+  if (!slug) return []
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: {
+        deletedAt: null,
+        status: "active",
+        OR: [
+          { extendedFields: { path: ["projectSlug"], equals: slug } },
+          { id: { startsWith: `proj-${slug}` } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+}
+
+/**
+ * Developer page rail — owner ads + ads on that developer's project slugs.
+ * ponytail: pass projectSlugs from page (already loaded); no second directory fetch.
+ */
+export async function getListingsForDeveloper(
+  slug: string,
+  projectSlugs: string[],
+  limit = 6,
+): Promise<Listing[]> {
+  return safeQuery(async () => {
+    const profile = await db.developerProfile.findFirst({
+      where: { slug, deletedAt: null },
+      select: { ownerId: true },
+    })
+    const or: Prisma.ListingWhereInput[] = []
+    if (profile?.ownerId) or.push({ ownerId: profile.ownerId })
+    for (const s of projectSlugs.slice(0, 24)) {
+      or.push({ extendedFields: { path: ["projectSlug"], equals: s } })
+      or.push({ id: { startsWith: `proj-${s}` } })
+    }
+    if (or.length === 0) return []
+    const rows = await db.listing.findMany({
+      where: { deletedAt: null, status: "active", OR: or },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+}
+
+/** Get active listings (homepage carousel, sitemap). */
+export async function getAllListings(limit = 50): Promise<Listing[]> {
   return safeQuery(async () => {
     const rows = await db.listing.findMany({
       where: { deletedAt: null, status: "active" },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: Math.min(limit, 5000),
     })
     return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
   }, [])

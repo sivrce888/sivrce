@@ -210,6 +210,28 @@ export function extendIso(
   return new Date(baseMs + Math.max(1, days) * 86_400_000)
 }
 
+/** Paid VIP package length (days). */
+export const TIER_DURATION_DAYS = 30
+
+/**
+ * Same active tier renew → stack days; upgrade or expired → fresh window from now.
+ * Matches MyHome/SS renew semantics without converting leftover lower-tier days.
+ */
+export function nextTierExpiresAt(
+  prevTier: string,
+  prevExpires: Date | string | null | undefined,
+  newTier: string,
+  days: number = TIER_DURATION_DAYS,
+  now: Date = new Date(),
+): Date {
+  const prevActive = tierRankOf(prevTier, prevExpires, now.getTime()) > 0
+  if (prevActive && prevTier === newTier && prevExpires) {
+    const iso = typeof prevExpires === "string" ? prevExpires : prevExpires.toISOString()
+    return extendIso(iso, days, now)
+  }
+  return new Date(now.getTime() + Math.max(1, days) * 86_400_000)
+}
+
 export type PromoExtFields = {
   condition?: string
   buildingStatus?: string
@@ -245,6 +267,45 @@ export const DEFAULT_PROMO_DAYS = 7
 
 /** Duration options shown in promo picker. */
 export const PROMO_DAY_OPTIONS = [1, 3, 7, 14, 30] as const
+
+/** sessionStorage key: advertise → post-publish boost handoff. */
+export const PROMO_INTENT_KEY = "sv_promo_intent"
+
+/** Clamp to 1..30 for checkout (SS/MyHome day brackets). */
+export function clampPromoDays(days: number): number {
+  if (!Number.isFinite(days)) return TIER_DURATION_DAYS
+  return Math.max(1, Math.min(30, Math.floor(days)))
+}
+
+/** DB tier key → promo product for day-rate tables. */
+export function tierKeyToProduct(tier: string): PromoProduct | null {
+  switch (tier) {
+    case "vip":
+      return "vip"
+    case "super_vip":
+      return "vip_plus"
+    case "diamond":
+      return "super_vip"
+    default:
+      return null
+  }
+}
+
+/**
+ * Checkout tetri for a VIP package.
+ * days=30 may use SystemConfig monthly override; other lengths use RE day brackets.
+ */
+export function tierCheckoutTetri(
+  tier: string,
+  days: number,
+  monthlyOverrideTetri?: number,
+): number | null {
+  const product = tierKeyToProduct(tier)
+  if (!product) return null
+  const d = clampPromoDays(days)
+  if (d === 30 && monthlyOverrideTetri != null) return monthlyOverrideTetri
+  return totalTetri(product, "real_estate", d)
+}
 
 function pickBracket(brackets: Bracket[], days: number): number {
   const d = Math.max(1, Math.floor(days))

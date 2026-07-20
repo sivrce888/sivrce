@@ -2,21 +2,32 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { Plus, Search } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { getCmsBlock } from '@/lib/cms'
+import type { HomeStats } from '@/lib/home-stats'
 import type { Lang } from '@/lib/i18n/core'
 
-/* Closing CTA — server component; copy is CMS-overridable per language
-   (/admin/content/pages → Homepage blocks). */
+/* Closing CTA — server component; proof line uses live counts when provided. */
 
-export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
-  const [title, sub, primary, secondary, proofA, proofB, proofC] = await Promise.all([
+export default async function CTA({
+  lang = 'ka',
+  live,
+}: {
+  lang?: Lang
+  live?: HomeStats
+}) {
+  const [title, sub, primary, secondary, proofC] = await Promise.all([
     getCmsBlock('home.cta.title', lang),
     getCmsBlock('home.cta.sub', lang),
     getCmsBlock('home.cta.primary', lang),
     getCmsBlock('home.cta.secondary', lang),
-    getCmsBlock('home.cta.proofA', lang),
-    getCmsBlock('home.cta.proofB', lang),
     getCmsBlock('home.cta.proofC', lang),
   ])
+  const proofA = live
+    ? `${live.listings.toLocaleString('en-US')}+ განცხადება`
+    : await getCmsBlock('home.cta.proofA', lang)
+  const proofB = live
+    ? `${live.projects.toLocaleString('en-US')} პროექტი`
+    : await getCmsBlock('home.cta.proofB', lang)
+
   return (
     <section className="relative overflow-hidden bg-sv-navy py-20 md:py-28">
       <div className="absolute inset-0 bg-grid-dark" />

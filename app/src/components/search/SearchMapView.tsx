@@ -2,12 +2,10 @@
 
 /**
  * /search map view — split list + price pins.
- * Sync: list hover ↔ pin pulse; pin click → scroll card.
- * "Search this area" = client filter of current result set (no Meili geo yet).
- * ponytail: plain Marker pills ≤100; supercluster when cap grows.
+ * "Search this area" writes west/south/east/north → PostGIS /api/search.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import maplibregl from 'maplibre-gl'
@@ -24,7 +22,7 @@ import { DEAL_BRAND } from '@/lib/category-brand'
 import { blurProps } from '@/lib/media'
 import type { DealType, Listing } from '@/data/listings'
 
-type Bounds = { west: number; south: number; east: number; north: number }
+export type MapBounds = { west: number; south: number; east: number; north: number }
 
 function dealHue(d: DealType): string {
   if (d === 'rent') return DEAL_BRAND.rent
@@ -33,12 +31,7 @@ function dealHue(d: DealType): string {
   return DEAL_BRAND.sale
 }
 
-function inBounds(l: Listing, b: Bounds): boolean {
-  const { lat, lng } = l.coords
-  return lat >= b.south && lat <= b.north && lng >= b.west && lng <= b.east
-}
-
-function readBounds(map: maplibregl.Map): Bounds {
+function readBounds(map: maplibregl.Map): MapBounds {
   const b = map.getBounds()
   return {
     west: b.getWest(),
@@ -48,7 +41,17 @@ function readBounds(map: maplibregl.Map): Bounds {
   }
 }
 
-export default function SearchMapView({ listings }: { listings: Listing[] }) {
+export default function SearchMapView({
+  listings,
+  areaActive,
+  onSearchArea,
+  onClearArea,
+}: {
+  listings: Listing[]
+  areaActive?: boolean
+  onSearchArea?: (b: MapBounds) => void
+  onClearArea?: () => void
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -59,18 +62,13 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
   const [hoverId, setHoverId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [seen, setSeen] = useState<Set<string>>(() => new Set())
-  const [area, setArea] = useState<Bounds | null>(null)
   const [showSearchArea, setShowSearchArea] = useState(false)
   const [locating, setLocating] = useState(false)
   const { t } = useI18n()
   const { format, currency, rate } = useCurrency()
 
-  const visible = useMemo(
-    () => (area ? listings.filter((l) => inBounds(l, area)) : listings),
-    [listings, area],
-  )
+  const visible = listings
 
-  // Boot once
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
@@ -131,7 +129,6 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
     [hoverId, activeId, seen],
   )
 
-  // Rebuild pins when result set / currency / area changes
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
@@ -172,8 +169,7 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
       bounds.extend([lng, lat])
     }
 
-    // First load / filter change: fit. Area search keeps camera.
-    if (!area && !bounds.isEmpty()) {
+    if (!areaActive && !bounds.isEmpty()) {
       skipMoveRef.current = true
       map.fitBounds(bounds, { padding: 56, maxZoom: 14, duration: 400 })
       map.once('moveend', () => {
@@ -181,24 +177,22 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
         setShowSearchArea(false)
       })
     }
-    // ponytail: style via sibling effect — don't deps paintPin (hover would remount markers)
-  }, [ready, visible, format, currency, rate, area])
+  }, [ready, visible, format, currency, rate, areaActive])
 
-  // Restyle pins on hover/active/seen without rebuild
   useEffect(() => {
     for (const id of elsRef.current.keys()) paintPin(id)
   }, [paintPin])
 
   const searchThisArea = () => {
     const map = mapRef.current
-    if (!map) return
-    setArea(readBounds(map))
+    if (!map || !onSearchArea) return
+    onSearchArea(readBounds(map))
     setShowSearchArea(false)
     setActiveId(null)
   }
 
   const clearArea = () => {
-    setArea(null)
+    onClearArea?.()
     setShowSearchArea(false)
   }
 
@@ -227,7 +221,6 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
 
   return (
     <div className="flex h-[min(72vh,820px)] min-h-[480px] flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card md:flex-row">
-      {/* List */}
       <div
         ref={listRef}
         className="flex max-h-[42%] flex-col overflow-y-auto border-b border-sv-ink/[0.06] md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r"
@@ -236,7 +229,7 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
           <p className="text-[13px] font-extrabold text-sv-ink">
             {t('search.mapInArea', { n: visible.length })}
           </p>
-          {area && (
+          {areaActive && (
             <button
               type="button"
               onClick={clearArea}
@@ -304,7 +297,6 @@ export default function SearchMapView({ listings }: { listings: Listing[] }) {
         )}
       </div>
 
-      {/* Map */}
       <div className="relative min-h-0 flex-1">
         <div ref={containerRef} className="absolute inset-0" />
 

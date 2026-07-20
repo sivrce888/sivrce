@@ -202,7 +202,7 @@ const siteLd = {
       alternateName: "სივრცე",
       url: SITE_URL,
       logo: `${SITE_URL}/logo/mark.png`,
-      email: "info@sivrce.ge",
+      email: "hi@sivrce.ge",
       // ponytail: E-E-A-T signals for the YMYL real-estate vertical. Founder
       // kept as brand entity (no named individual to fabricate); foundingDate
       // + knowsAbout anchor expertise without inventing people.

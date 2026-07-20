@@ -4,8 +4,11 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import NeighborhoodDetail from '@/components/neighborhoods/NeighborhoodDetail'
 import { NEIGHBORHOODS, getNeighborhood } from '@/data/neighborhoods'
+import { getListingsInDistricts } from '@/lib/listings-db'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+
+export const revalidate = 3600
 
 // ponytail: dynamicParams default (true) — unknown slugs hit notFound() below.
 export function generateStaticParams() {
@@ -51,6 +54,8 @@ export default async function NeighborhoodPage({ params }: PageProps) {
   const n = getNeighborhood(slug)
   if (!n) notFound()
 
+  const listings = await getListingsInDistricts(n.districts, 8)
+
   // aggregateRating intentionally omitted — ratings are runtime data (Review model)
   const placeLd = {
     '@context': 'https://schema.org',
@@ -89,7 +94,7 @@ export default async function NeighborhoodPage({ params }: PageProps) {
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main">
-        <NeighborhoodDetail n={n} />
+        <NeighborhoodDetail n={n} listings={listings} />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(placeLd) }} />

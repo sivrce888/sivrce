@@ -2,7 +2,14 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import SeoLanding, { seoMetadata } from '@/components/seo/SeoLanding'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { generateAllSeoParams, parseSeoSlug, type SeoLoc } from '@/lib/seo-pages'
+import { filterListings } from '@/lib/listings-db'
+import {
+  DEALS,
+  TYPES,
+  generateAllSeoParams,
+  parseSeoSlug,
+  type SeoLoc,
+} from '@/lib/seo-pages'
 
 /**
  * Programmatic SEO landings for all 9 locales (ka unprefixed, /en…/az prefixed).
@@ -33,12 +40,27 @@ interface PageProps {
   params: Promise<{ lang: string; seo: string[] }>
 }
 
+/** Live inventory for SEO grids — parseSeoSlug still gates routes; mock never shown. */
+async function hydrateSeoListings(
+  def: NonNullable<ReturnType<typeof parseSeoSlug>>,
+) {
+  const live = await filterListings({
+    dealType: def.dealSlug ? DEALS[def.dealSlug]?.deal : undefined,
+    propType: def.typeSlug ? TYPES[def.typeSlug]?.type : undefined,
+    city: def.city?.ka,
+    district: def.district?.ka,
+  }).catch(() => [])
+  if (!def.rooms) return live
+  return live.filter((l) => (def.rooms === 4 ? l.rooms >= 4 : l.rooms === def.rooms))
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang, seo } = await params
   if (!isValidLang(lang)) return {}
   const def = parseSeoSlug(seo)
   if (!def) return {}
-  return seoMetadata(def, seoLocOf(lang), lang === 'ka' ? '' : `/${lang}`)
+  const listings = await hydrateSeoListings(def)
+  return seoMetadata({ ...def, listings }, seoLocOf(lang), lang === 'ka' ? '' : `/${lang}`)
 }
 
 export default async function SeoLandingPage({ params }: PageProps) {
@@ -46,9 +68,10 @@ export default async function SeoLandingPage({ params }: PageProps) {
   if (!isValidLang(lang)) notFound()
   const def = parseSeoSlug(seo)
   if (!def) notFound()
+  const listings = await hydrateSeoListings(def)
   return (
     <SeoLanding
-      def={def}
+      def={{ ...def, listings }}
       loc={seoLocOf(lang)}
       urlPrefix={lang === 'ka' ? '' : `/${lang}`}
     />

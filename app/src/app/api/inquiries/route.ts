@@ -65,16 +65,19 @@ export async function POST(req: Request) {
 
   // Enrich known static listings (agent + geo) so the CRM row is self-contained.
   const listing = targetType === "listing" ? LISTINGS.find((l) => l.id === targetId) : undefined
-  const agentName = listing?.agent.name ?? "Sivrce"
+  const isCareers = targetId === "careers"
+  const agentName = listing?.agent.name ?? (isCareers ? "კარიერა" : "Sivrce")
   // Full phone from vault — LISTINGS.agent.phone is masked for scrapers.
   const agentPhone =
     targetType === "listing" ? await resolveListingPhone(targetId) : null
-  // ponytail: agent emails aren't in the static listing data yet, so all
-  // notifications route through the Sivrce inbox. When agent.email is added
-  // to the data model, the notification target will update automatically.
-  const notifyEmail = await getConfig("site.contactEmail")
-  const listingId = targetType === "listing" ? targetId : "general"
+  // ponytail: careers always hits hi@ so a stale DB config can't lose applications.
+  const notifyEmail = isCareers ? "hi@sivrce.ge" : await getConfig("site.contactEmail")
+  // ponytail: non-listing rows use targetId as the bucket (e.g. careers).
+  const listingId = targetType === "listing" ? targetId : targetId || "general"
   const buyerEmail = email || session?.user?.email || "unknown@sivrce.ge"
+  // Careers form prefixes "[კარიერა · ქალაქი]" — lift city into the column.
+  const cityFromCareers = isCareers ? message.match(/\[კარიერა · ([^\]]+)\]/)?.[1]?.trim() : undefined
+  const city = listing?.city ?? cityFromCareers ?? ""
 
   try {
     await db.inquiry.create({
@@ -89,7 +92,7 @@ export async function POST(req: Request) {
         buyerPhone: phone || null,
         message,
         deal: listing ? DEAL_MAP[listing.dealType] : "buy",
-        city: listing?.city ?? "",
+        city,
         district: listing?.district ?? "",
         price: listing?.priceGEL ?? 0,
       },
@@ -111,7 +114,8 @@ export async function POST(req: Request) {
     buyerPhone: phone ?? null,
     buyerEmail: email || session?.user?.email || null,
     message,
-    listingTitle: listing?.title,
+    listingTitle: listing?.title ?? (isCareers ? `კარიერა · ${city || "—"}` : undefined),
+    subject: isCareers ? `კარიერა · ${name}` : undefined,
   })
 
   return Response.json({ ok: true })

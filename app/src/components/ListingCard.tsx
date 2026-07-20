@@ -7,7 +7,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
-  TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Camera, Clock,
+  TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Images, Clock,
   Layers,
   type LucideIcon,
 } from 'lucide-react'
@@ -23,6 +23,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
 import { blurProps } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
+import { cardGalleryTeaser } from '@/lib/card-gallery-teaser'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { SparkMark } from '@/components/SparkMark'
@@ -96,9 +97,6 @@ interface ListingCardProps {
   animate?: boolean
 }
 
-/** Card gallery teaser — rest on detail. Cap 5 = Yandex/Zillow scrub feel without fat payloads. */
-const CARD_PHOTO_CAP = 5
-
 function postedLabel(days: number): string {
   if (days <= 0) return 'დღეს'
   if (days === 1) return '1 დღის წინ'
@@ -117,11 +115,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
   const metro = nearestMetro(l.coords.lat, l.coords.lng)
 
-  // ponytail: first 5 only; full gallery on detail. Cap here so search payloads can stay fat.
-  const photos = (l.images.length > 0 ? l.images : [l.img]).slice(0, CARD_PHOTO_CAP)
-  const totalPhotos = Math.max(l.images.length, photos.length)
+  // ponytail: first N only; full gallery on detail. Cap here so search payloads can stay fat.
+  const { photos, morePhotos, multi, dashSlots } = cardGalleryTeaser(l.images, l.img)
   const [photo, setPhoto] = useState(0)
-  const multi = photos.length > 1
   const imgRef = useRef<HTMLDivElement>(null)
   const touchRef = useRef<{ x: number; y: number } | null>(null)
   const axisLock = useRef<'h' | 'v' | null>(null)
@@ -226,50 +222,19 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {/* Bottom scrub only — lets the photo breathe; navy-tint per brand lock */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sv-navy/45 via-sv-navy/10 to-transparent" />
       {/* ── Photo chrome map ───────────────────────────────────────────
-          Top strip: Yandex-style segment scrub (multi)
           TL: VIP / stickers
           TR: share · compare · heart
           Mid: ‹ › chevrons (hover / touch)
-          BR: 📷 n/N
+          Bottom: fixed - - - - · +N all-photos (overflow)
       */}
-      {multi && (
-        <div
-          className="absolute inset-x-2.5 top-2 z-30 flex gap-1"
-          role="tablist"
-          aria-label={t('detail.photoViewer')}
-        >
-          {photos.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              role="tab"
-              aria-selected={photo === idx}
-              aria-label={t('detail.photo', { n: idx + 1 })}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setPhoto(idx)
-              }}
-              className="h-1 min-w-0 flex-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              <span
-                aria-hidden
-                className={`block h-full rounded-full transition-colors ${
-                  photo === idx ? 'bg-white shadow-sm' : 'bg-white/40'
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      )}
       {l.badge && (
-        <span className={`absolute left-3 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider shadow-sm ${BADGE_STYLE[l.badge]} ${multi ? 'top-10' : 'top-3.5'}`}>
+        <span className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider shadow-sm ${BADGE_STYLE[l.badge]}`}>
           {l.badge === 'SUPER VIP' ? <Crown className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
           {l.badge}
         </span>
       )}
       {l.projectCatalog && !l.badge && (
-        <span className={`absolute left-3 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white shadow-sm backdrop-blur ${multi ? 'top-10' : 'top-3.5'}`}>
+        <span className="absolute left-3 top-4 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white shadow-sm backdrop-blur">
           პროექტი
         </span>
       )}
@@ -277,12 +242,10 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         urgent={l.stickerUrgent}
         priceDrop={l.stickerPriceDrop}
         inStory={l.inStory}
-        className={`absolute left-3 z-20 ${
-          l.badge || l.projectCatalog ? (multi ? 'top-[4.75rem]' : 'top-12') : multi ? 'top-10' : 'top-3.5'
-        }`}
+        className={`absolute left-3 z-20 ${l.badge || l.projectCatalog ? 'top-14' : 'top-4'}`}
       />
 
-      <div className={`absolute right-3 z-20 flex gap-1.5 ${multi ? 'top-10' : 'top-3.5'}`}>
+      <div className="absolute right-3 top-4 z-20 flex gap-1.5">
         <button
           type="button"
           aria-label={t('detail.share')}
@@ -331,7 +294,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             type="button"
             aria-label={t('detail.prevPhoto')}
             onClick={(e) => navPhoto(-1, e)}
-            className="absolute left-1.5 top-1/2 z-10 -translate-y-1/2 opacity-100 transition-opacity focus-visible:outline-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
+            className="absolute left-2 top-1/2 z-10 -translate-y-1/2 opacity-100 transition-opacity focus-visible:outline-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
           >
             <span className="grid h-7 w-7 place-items-center rounded-full bg-sv-navy/55 text-white shadow-sm backdrop-blur">
               <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
@@ -350,23 +313,59 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         </>
       )}
 
-      {/* Bottom-right count only — segments live at top (Yandex) */}
-      <div className="pointer-events-none absolute bottom-4 right-3 z-20 flex items-center gap-2">
-        {totalPhotos > CARD_PHOTO_CAP && (
-          <span className="rounded-full bg-sv-navy/55 px-1.5 py-0.5 text-[10px] font-black text-white backdrop-blur">
-            +{totalPhotos - CARD_PHOTO_CAP}
+      {/* Bottom: fixed - - - - (CARD_PHOTO_CAP) + MyHome-style +N overflow */}
+      {/* Bottom: fixed - - - - · +N. ponytail: only live CSS utils (fractionals ghost under turbopack) */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex flex-col items-center gap-1.5 px-2.5">
+        {morePhotos > 0 && (
+          <span className="pointer-events-auto flex items-center gap-1 rounded-full bg-sv-navy/70 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-sm backdrop-blur">
+            <Images className="h-3 w-3" aria-hidden />
+            {t('card.allPhotos', { n: morePhotos })}
           </span>
         )}
-        {totalPhotos > 0 && (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-sv-navy/70 px-2 py-1 text-[11px] font-bold text-white shadow-sm backdrop-blur">
-            <Camera className="h-3 w-3" aria-hidden />
-            {multi ? `${photo + 1}/${totalPhotos}` : totalPhotos}
-          </span>
+        {multi && (
+          <div
+            className="pointer-events-auto flex w-32 gap-1.5"
+            role="tablist"
+            aria-label={t('detail.photoViewer')}
+          >
+            {Array.from({ length: dashSlots }, (_, idx) => {
+              const live = idx < photos.length
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  role="tab"
+                  disabled={!live}
+                  aria-disabled={!live}
+                  aria-selected={live && photo === idx}
+                  aria-label={live ? t('detail.photo', { n: idx + 1 }) : undefined}
+                  onClick={(e) => {
+                    if (!live) return
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setPhoto(idx)
+                  }}
+                  className="h-1 min-w-0 flex-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:pointer-events-none"
+                >
+                  <span
+                    aria-hidden
+                    className={`block h-full rounded-full transition-colors ${
+                      !live
+                        ? 'bg-white/20'
+                        : photo === idx
+                          ? 'bg-white shadow-sm'
+                          : 'bg-white/50'
+                    }`}
+                  />
+                </button>
+              )
+            })}
+          </div>
         )}
       </div>
 
       {lifestyle.length > 0 && (
-        <div className="absolute bottom-12 left-3 z-10 flex max-w-[70%] flex-wrap gap-1">
+        <div className={`absolute left-3 z-10 flex max-w-[70%] flex-wrap gap-1 ${multi || morePhotos > 0 ? 'bottom-24' : 'bottom-4'}`}>
           {lifestyle.map((key) => {
             const Icon = SIGNAL_ICON[key]
             return (
@@ -454,31 +453,32 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
       {/* Specs + AI + meta pinned to bottom — equal card heights in rails */}
       <div className="mt-auto pt-3">
-        <div className="flex min-h-[1.5rem] flex-nowrap items-center gap-x-3 overflow-hidden border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold text-sv-ink/70">
-          {l.area > 0 && (
-            <span className="flex items-center gap-1">
-              <Ruler className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
-              {l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}
-            </span>
-          )}
-          {(l.beds > 0 || l.rooms > 0) && (
-            <span className="flex items-center gap-1">
-              <BedDouble className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
-              {l.beds > 0 ? l.beds : l.rooms}
-            </span>
-          )}
-          {l.baths > 0 && (
-            <span className="flex items-center gap-1">
-              <Bath className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
-              {l.baths}
-            </span>
-          )}
-          {!l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) && (
-            <span className="flex items-center gap-1 text-sv-ink/55">
-              <Layers className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
-              {formatFloor(l)}
-            </span>
-          )}
+        {/* ponytail: 4 reserved slots — conditional hide made rails look 2-vs-3 jagged */}
+        <div className="grid min-h-[1.5rem] grid-cols-4 gap-x-2 overflow-hidden border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold text-sv-ink/70">
+          <span className={`flex min-w-0 items-center gap-1 ${l.area > 0 ? '' : 'invisible'}`} aria-hidden={l.area <= 0}>
+            <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            <span className="truncate">{l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}</span>
+          </span>
+          <span
+            className={`flex min-w-0 items-center gap-1 ${(l.beds > 0 || l.rooms > 0) ? '' : 'invisible'}`}
+            aria-hidden={l.beds <= 0 && l.rooms <= 0}
+          >
+            <BedDouble className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            {l.beds > 0 ? l.beds : l.rooms}
+          </span>
+          <span className={`flex min-w-0 items-center gap-1 ${l.baths > 0 ? '' : 'invisible'}`} aria-hidden={l.baths <= 0}>
+            <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            {l.baths}
+          </span>
+          <span
+            className={`flex min-w-0 items-center gap-1 text-sv-ink/55 ${
+              !l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) ? '' : 'invisible'
+            }`}
+            aria-hidden={l.projectCatalog || (l.floor <= 0 && l.totalFloors <= 0)}
+          >
+            <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            <span className="truncate">{formatFloor(l)}</span>
+          </span>
         </div>
 
         {/* ponytail: Spark + score, no gradient AI chrome box */}
@@ -502,7 +502,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             <Clock className="h-3 w-3" aria-hidden />
             {postedLabel(days)}
           </span>
-          <span className="font-mono text-[10px] font-black tabular-nums text-sv-ink/28">
+          <span className="min-w-0 truncate font-mono text-[10px] font-black tabular-nums text-sv-ink/28">
             ID {publicId}
           </span>
         </div>

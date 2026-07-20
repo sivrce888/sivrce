@@ -141,6 +141,12 @@ export default async function SellerOverviewPage() {
               განცხადებების მართვა
             </LocalizedLink>
             <LocalizedLink
+              href="/advertise"
+              className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
+            >
+              VIP ტარიფები
+            </LocalizedLink>
+            <LocalizedLink
               href="/seller/leads"
               className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
             >

@@ -4,11 +4,12 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Columns2, Search, X } from "lucide-react"
 import LocalizedLink from "@/components/LocalizedLink"
-import { LISTINGS, formatFloor, formatPerM2 } from "@/data/listings"
+import { formatFloor, formatPerM2 } from "@/data/listings"
 import { listingPath } from "@/lib/listing-slug"
 import { useCompare } from "@/lib/compare"
 import { useCurrency } from "@/lib/currency"
 import { useI18n, type DictKey } from "@/lib/i18n/context"
+import { useListingsByIds } from "@/lib/use-listings-by-ids"
 import { blurProps } from "@/lib/media"
 import { useCompareStrings } from "./i18n"
 import type { PropType, DealType } from "@/data/listings"
@@ -41,13 +42,11 @@ export default function CompareClient() {
     return () => cancelAnimationFrame(id)
   }, [])
 
-  if (!mounted) {
+  const { items, loading } = useListingsByIds(mounted ? ids : [])
+
+  if (!mounted || (ids.length > 0 && loading)) {
     return <div className="h-64 animate-pulse rounded-card bg-sv-cloud ring-1 ring-sv-ink/5" />
   }
-
-  const items = ids
-    .map((id) => LISTINGS.find((l) => l.id === id))
-    .filter((l): l is NonNullable<typeof l> => Boolean(l))
 
   if (items.length < 2) {
     return (

@@ -27,9 +27,7 @@ import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from '@/lib/features'
 import { featuresFor } from '@/lib/add-listing-fields'
 import type { SearchLocations } from '@/lib/listings-db'
-import { tierKeyToBadge } from '@/lib/promo-pricing'
-import { hitPrices } from '@/lib/hit-prices'
-import { aiLabel } from '@/lib/ai-label'
+import { mapSearchHit } from '@/lib/map-search-hit'
 import {
   CITIES, districtsOf,
   type DealType, type PropType, type SortKey, type Listing,
@@ -118,59 +116,6 @@ function CompactCard({ l }: { l: Listing }) {
   )
 }
 
-/** Map an /api/search hit → Listing shape for the card components. */
-function mapHit(h: Record<string, unknown>): Listing {
-  const postedAt = (h.createdAt as string) ?? new Date().toISOString()
-  const tier = h.tier as string | undefined
-  const { priceUSD, priceGEL, perM2USD } = hitPrices(h)
-  const score = (h.trustScore as number) ?? 70
-  const projectCatalog = Boolean(h.projectCatalog)
-  return {
-    id: h.id as string,
-    title: h.title as string,
-    city: h.city as string,
-    district: h.district as string,
-    dealType: h.dealType as DealType,
-    propType: h.propertyType as PropType,
-    priceUSD,
-    priceGEL,
-    perM2USD,
-    area: h.area as number,
-    rooms: (h.rooms as number) ?? 0,
-    images: (h.images as string[]) ?? [],
-    img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
-    address: (h.address as string) ?? '',
-    beds: (h.bedrooms as number) ?? 0,
-    baths: (h.bathrooms as number) ?? 0,
-    floor: (h.floor as number) ?? 0,
-    totalFloors: (h.totalFloors as number) ?? 0,
-    views: (h.views as number) ?? 0,
-    badge: tierKeyToBadge(String(tier ?? '')),
-    ai: { score, label: aiLabel(score, projectCatalog) },
-    features: (h.features as string[]) ?? [],
-    description: (h.description as string) ?? '',
-    condition: (h.condition as string) ?? null,
-    projectCatalog,
-    projectSlug: (h.projectSlug as string) ?? null,
-    coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
-    postedAt,
-    agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
-    isNew: Date.now() - new Date(postedAt).getTime() < 72 * 3600_000,
-    highlighted: Boolean(
-      h.colorUntil && Date.parse(String(h.colorUntil)) > Date.now(),
-    ),
-    stickerUrgent: Boolean(
-      h.urgentUntil && Date.parse(String(h.urgentUntil)) > Date.now(),
-    ),
-    stickerPriceDrop: Boolean(
-      h.priceDropUntil && Date.parse(String(h.priceDropUntil)) > Date.now(),
-    ),
-    inStory: Boolean(
-      h.storyUntil && Date.parse(String(h.storyUntil)) > Date.now(),
-    ),
-  }
-}
-
 export default function SearchClient({ locations }: { locations?: SearchLocations }) {
   const params = useSearchParams()
   const router = useRouter()
@@ -245,6 +190,18 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const page = numParam('page', 1) ?? 1
   // Results mode lives in the URL too (?view=map) — shareable; default list.
   const mapMode = params.get('view') === 'map'
+  const west = numParam('west')
+  const south = numParam('south')
+  const east = numParam('east')
+  const north = numParam('north')
+  const areaActive = Boolean(
+    west !== undefined &&
+      south !== undefined &&
+      east !== undefined &&
+      north !== undefined &&
+      west < east &&
+      south < north,
+  )
   // Daily-rent availability window (only meaningful for the daily deal).
   const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
   const fromRaw = params.get('from') ?? ''
@@ -285,13 +242,13 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
     fmax: floorMax !== undefined ? String(floorMax) : '',
   }
   const [drafts, setDrafts] = useState(urlText)
-  const clearDraft = (k: keyof typeof urlText) => setDrafts((d) => ({ ...d, [k]: '' }))
-
-  // Keep drafts in sync when URL changes (back/forward, chip clear).
-  useEffect(() => {
+  const [draftsKey, setDraftsKey] = useState(paramsKey)
+  // Sync drafts when URL changes (back/forward, chip clear) — not an effect.
+  if (draftsKey !== paramsKey) {
+    setDraftsKey(paramsKey)
     setDrafts(urlText)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- urlText derived from paramsKey
-  }, [paramsKey])
+  }
+  const clearDraft = (k: keyof typeof urlText) => setDrafts((d) => ({ ...d, [k]: '' }))
 
   const flushDrafts = () => {
     const patch: Record<string, string | undefined> = {}
@@ -353,6 +310,12 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         if (from) sp.set('from', from)
         if (to) sp.set('to', to)
         if (cur === 'GEL') sp.set('cur', 'GEL')
+        if (areaActive && west !== undefined && south !== undefined && east !== undefined && north !== undefined) {
+          sp.set('west', String(west))
+          sp.set('south', String(south))
+          sp.set('east', String(east))
+          sp.set('north', String(north))
+        }
         // Map mode pulls the first 100 matches for pins; list keeps paged cards.
         sp.set('page', mapMode ? '1' : String(page))
         sp.set('pageSize', mapMode ? '100' : '24')
@@ -361,7 +324,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         const json = await res.json()
         if (cancelled) return
         if (json.ok && Array.isArray(json.hits)) {
-          setResults((json.hits as Record<string, unknown>[]).map(mapHit))
+          setResults((json.hits as Record<string, unknown>[]).map(mapSearchHit))
           setTotalResults(json.totalHits as number)
           setTotalPages((json.totalPages as number) ?? 0)
           setFacets((json.facets as Record<string, Record<string, number>> | undefined) ?? null)
@@ -430,7 +393,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
       .then((r) => r.json())
       .then((j) => {
         if (alive && j.ok && Array.isArray(j.hits)) {
-          setRecents({ key: recentKey, items: (j.hits as Record<string, unknown>[]).map(mapHit) })
+          setRecents({ key: recentKey, items: (j.hits as Record<string, unknown>[]).map(mapSearchHit) })
         }
       })
       .catch(() => {})
@@ -472,6 +435,14 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   if (seller) chips.push({ key: 'seller', label: t(seller === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency'), clear: () => patchParams({ seller: undefined }) })
   if (from && to) chips.push({ key: 'dates', label: `${from} → ${to}`, clear: () => patchParams({ from: undefined, to: undefined }) })
   if (cur === 'GEL' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '₾', clear: () => patchParams({ cur: undefined }) })
+  if (areaActive) {
+    chips.push({
+      key: 'area',
+      label: t('search.mapSearchArea'),
+      clear: () =>
+        patchParams({ west: undefined, south: undefined, east: undefined, north: undefined }),
+    })
+  }
 
   const resetAll = () => {
     setDrafts({ q: '', min: '', max: '', amin: '', amax: '', fmin: '', fmax: '' })
@@ -981,7 +952,13 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             key={v ?? 'list'}
             type="button"
             aria-pressed={active}
-            onClick={() => patchParams({ view: v })}
+            onClick={() =>
+              patchParams(
+                v === 'map'
+                  ? { view: 'map' }
+                  : { view: undefined, west: undefined, south: undefined, east: undefined, north: undefined },
+              )
+            }
             className={`whitespace-nowrap rounded-lg px-4 py-2 text-[13px] font-extrabold transition-colors ${
               active ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'
             }`}
@@ -1097,7 +1074,27 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         ) : mapMode ? (
           <div>
-            <SearchMapView listings={results} />
+            <SearchMapView
+              listings={results}
+              areaActive={areaActive}
+              onSearchArea={(b) =>
+                patchParams({
+                  west: String(b.west),
+                  south: String(b.south),
+                  east: String(b.east),
+                  north: String(b.north),
+                  view: 'map',
+                })
+              }
+              onClearArea={() =>
+                patchParams({
+                  west: undefined,
+                  south: undefined,
+                  east: undefined,
+                  north: undefined,
+                })
+              }
+            />
             {totalResults > results.length && (
               <p className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/55">
                 <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />

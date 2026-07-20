@@ -14,39 +14,42 @@ import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { getFeaturedListings, getStoryListings, type Listing as StoryListing } from '@/lib/listings-db'
+import { projectsLive } from '@/lib/directory-live'
+import { getHomeStats } from '@/lib/home-stats'
 import type { Lang } from '@/lib/i18n/core'
 
-/** DB-first featured rail; static mock is the build-time/outage fallback. */
+/** DB-first featured rail; static mock only when DB returns nothing (build/outage). */
 async function getFeatured(): Promise<Listing[]> {
   try {
     const rows = await getFeaturedListings(6)
-    if (rows.length >= 6) return rows
-    if (rows.length > 0) {
-      const fill = LISTINGS.filter((l) => !rows.some((r) => r.id === l.id))
-      return [...rows, ...fill].slice(0, 6)
-    }
+    if (rows.length > 0) return rows
   } catch { /* DB unavailable at build — fall through to static */ }
   return LISTINGS.slice(0, 6)
 }
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
-  const [featured, stories] = await Promise.all([
+  const [featured, stories, projects, stats] = await Promise.all([
     getFeatured(),
     getStoryListings().catch(() => [] as StoryListing[]),
+    projectsLive().catch(() => []),
+    getHomeStats(),
   ])
+  // Prefer real CDN heroes over stock npN/pN placeholders.
+  const withHero = projects.filter((p) => !/\/(?:np|p)\d+\.webp(?:\?|$)/.test(p.img))
+  const homeProjects = (withHero.length >= 2 ? withHero : projects).slice(0, 2)
   return (
     <>
       <StoriesRail items={stories} />
-      <Stats />
+      <Stats live={stats} />
       <Categories lang={lang} />
       <Collections lang={lang} />
       <Listings items={featured} />
       <MapSection />
-      <AISection />
-      <Projects />
+      <AISection sample={featured[0] ?? null} />
+      <Projects items={homeProjects} total={projects.length} />
       <Services lang={lang} />
-      <CTA lang={lang} />
+      <CTA lang={lang} live={stats} />
     </>
   )
 }

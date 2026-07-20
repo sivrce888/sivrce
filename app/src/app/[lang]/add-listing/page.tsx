@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import AddListingClient from '@/components/add-listing/AddListingClient'
@@ -17,7 +18,9 @@ export default function AddListingPage() {
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
       <Navbar />
       <main className="pt-[68px]">
-        <AddListingClient />
+        <Suspense fallback={<div className="grid min-h-[40vh] place-items-center text-[15px] font-bold text-sv-ink/45">…</div>}>
+          <AddListingClient />
+        </Suspense>
       </main>
       <Footer />
     </div>

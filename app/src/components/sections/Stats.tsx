@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useInView } from 'framer-motion'
 import { Building2, Users, Award, Clock, TrendingUp, Headset } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
+import { useI18n } from '@/lib/i18n/context'
+import type { CmsBlockKey } from '@/lib/cms-blocks'
+import type { HomeStats } from '@/lib/home-stats'
 
 function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -37,19 +40,16 @@ function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
   )
 }
 
-import { useI18n } from '@/lib/i18n/context'
-import type { CmsBlockKey } from '@/lib/cms-blocks'
-
 const STATS = [
-  { icon: Building2, n: 1 },
-  { icon: Users, n: 2 },
-  { icon: TrendingUp, n: 3 },
-  { icon: Award, n: 4 },
-  { icon: Headset, n: 5 },
-  { icon: Clock, n: 6 },
-] as const
+  { icon: Building2, n: 1 as const, live: 'listings' as const, suffix: '+' },
+  { icon: Users, n: 2 as const, live: 'professionals' as const, suffix: '+' },
+  { icon: TrendingUp, n: 3 as const, live: 'projects' as const, suffix: '+' },
+  { icon: Award, n: 4 as const, live: 'cities' as const, suffix: '+' },
+  { icon: Headset, n: 5 as const, live: null, suffix: null },
+  { icon: Clock, n: 6 as const, live: null, suffix: null },
+]
 
-export default function Stats() {
+export default function Stats({ live }: { live: HomeStats }) {
   const { b } = useI18n()
   return (
     <section className="relative bg-sv-surface py-20 md:py-28">
@@ -57,19 +57,20 @@ export default function Stats() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
           {STATS.map((s, i) => {
             const label = b(`home.stats.${s.n}.label` as CmsBlockKey)
+            const target =
+              s.live != null
+                ? live[s.live]
+                : Number(b(`home.stats.${s.n}.value` as CmsBlockKey)) || 0
+            const suffix =
+              s.suffix ?? b(`home.stats.${s.n}.suffix` as CmsBlockKey)
             return (
               <Reveal key={s.n} delay={i * 0.02} className="h-full">
-                <div
-                  className="group relative h-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-500 hover:-translate-y-1.5 hover:border-sv-blue/25 hover:shadow-card-hover"
-                >
+                <div className="group relative h-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-500 hover:-translate-y-1.5 hover:border-sv-blue/25 hover:shadow-card-hover">
                   <div className="mb-5 grid h-11 w-11 place-items-center rounded-module bg-sv-blue/10 text-sv-blue transition-all duration-500 group-hover:scale-110 group-hover:bg-sv-blue group-hover:text-white">
                     <s.icon className="h-5 w-5" />
                   </div>
                   <div className="text-[34px] font-black tracking-tight text-sv-ink md:text-[38px]">
-                    <CountUp
-                      target={Number(b(`home.stats.${s.n}.value` as CmsBlockKey)) || 0}
-                      suffix={b(`home.stats.${s.n}.suffix` as CmsBlockKey)}
-                    />
+                    <CountUp target={target} suffix={suffix} />
                   </div>
                   <div className="mt-1 text-[14px] font-extrabold text-sv-ink/85">{label}</div>
                   <div className="mt-0.5 text-[12px] font-semibold text-sv-ink/65">

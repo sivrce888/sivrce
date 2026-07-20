@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { MapPin, Building2, Gauge, Wallet, ArrowRight } from 'lucide-react'
 import type { Neighborhood } from '@/data/neighborhoods'
 import { pick, overallScore } from '@/data/neighborhoods'
-import { LISTINGS } from '@/data/listings'
+import type { Listing } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { Reveal } from '@/components/Reveal'
@@ -13,11 +13,16 @@ import { useI18n } from '@/lib/i18n/context'
 import ScoreBars from './ScoreBars'
 import { useNb } from './i18n'
 
-export default function NeighborhoodDetail({ n }: { n: Neighborhood }) {
+export default function NeighborhoodDetail({
+  n,
+  listings,
+}: {
+  n: Neighborhood
+  listings: Listing[]
+}) {
   const { lang } = useI18n()
   const s = useNb()
   const score = overallScore(n)
-  const listings = LISTINGS.filter((l) => n.districts.includes(l.district))
   const name = pick(n.name, lang)
   const city = pick(n.city, lang)
 

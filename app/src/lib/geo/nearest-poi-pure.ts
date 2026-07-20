@@ -6,6 +6,7 @@ import { createHash } from "node:crypto"
 
 import type { Prisma } from "@/generated/prisma/client"
 import { METRO_NEAR_M } from "@/lib/geo/nearest-poi-constants"
+import { METRO_STATIONS } from "@/lib/map/pois"
 
 export { METRO_NEAR_M, METRO_MAX_CATCHMENT_M } from "@/lib/geo/nearest-poi-constants"
 
@@ -29,4 +30,27 @@ export function nearMetroWhere(): Prisma.ListingWhereInput {
       },
     },
   }
+}
+
+/**
+ * Rough lat/lng boxes around static metro stations — works before POI backfill.
+ * ponytail: square approx (not geodesic); drop when listing_nearest_poi is always warm.
+ */
+export function nearMetroApproxBoxes(): Prisma.ListingWhereInput[] {
+  const dLat = METRO_NEAR_M / 111_320
+  return METRO_STATIONS.map((s) => {
+    const cos = Math.cos((s.lat * Math.PI) / 180)
+    const dLng = METRO_NEAR_M / (111_320 * Math.max(cos, 0.2))
+    return {
+      AND: [
+        { lat: { gte: s.lat - dLat, lte: s.lat + dLat } },
+        { lng: { gte: s.lng - dLng, lte: s.lng + dLng } },
+      ],
+    }
+  })
+}
+
+/** Join table OR static boxes — search metro filter never silently empty. */
+export function nearMetroFilter(): Prisma.ListingWhereInput {
+  return { OR: [nearMetroWhere(), ...nearMetroApproxBoxes()] }
 }

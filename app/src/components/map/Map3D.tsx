@@ -672,8 +672,8 @@ function Map3DInner({
     }
   }, [refreshing, liveListings, flashRefreshNote])
 
-  // Live DB listings when present; else demo LISTINGS. DB buildings add inventory/rings.
-  const sourceListings = liveListings?.length ? liveListings : LISTINGS
+  // Live DB listings when present (incl. empty); demo LISTINGS only if prop omitted.
+  const sourceListings = liveListings ?? LISTINGS
   const listingCount = sourceListings.length
   const dbProjectSlugs = useMemo(() => {
     const s = new Set<string>()

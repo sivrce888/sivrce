@@ -19,13 +19,15 @@ import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   BUILDINGS,
   getBuilding,
-  listingsForBuilding,
   buildingDealCounts,
 } from '@/data/buildings'
-import { LISTINGS } from '@/data/listings'
 import { getDeveloper, type Developer } from '@/data/professionals'
 import { clusterListingsToBuildings, findBuildingBySlug } from '@/lib/map/buildings'
-import { getDbBuildingEntries } from '@/lib/map/db-buildings'
+import {
+  getBuildingDealCountsBySlug,
+  getDbBuildingEntries,
+  getListingsForBuildingSlug,
+} from '@/lib/map/db-buildings'
 import {
   FLOOR_STACKS_ON,
   buildingFloorCount,
@@ -76,7 +78,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params
   const { building: b } = await resolveBuilding(slug)
   if (!b) return {}
-  const counts = buildingDealCounts(slug)
+  const live = (await getBuildingDealCountsBySlug())[slug]
+  const counts = live ?? buildingDealCounts(slug)
   const description = `${b.address}. ${counts.sale} გაყიდვა, ${counts.rent} ქირა, ${counts.daily} დღიური, ${counts.pledge} გირავნობა.`
   return {
     title: `${b.name} (${b.code}) — ${b.district}, ${b.city}`,
@@ -100,12 +103,14 @@ export default async function BuildingPage({ params }: PageProps) {
   if (!building) notFound()
 
   const dev = getDeveloper(building.developerSlug) ?? dbDeveloper
-  const listings = listingsForBuilding(slug)
-  const counts = buildingDealCounts(slug)
+  const liveListings = await getListingsForBuildingSlug(slug)
+  const listings = liveListings
+  const liveCounts = (await getBuildingDealCountsBySlug())[slug]
+  const counts = liveCounts ?? { sale: 0, rent: 0, daily: 0, pledge: 0 }
   const aggregate = await getReviewAggregate('building', slug)
 
-  // Floor explorer data (build-time): catalog cluster → per-floor availability + 3D slabs
-  const cluster = findBuildingBySlug(slug, clusterListingsToBuildings(LISTINGS))
+  // Floor explorer: cluster from the same inventory we show (live preferred).
+  const cluster = findBuildingBySlug(slug, clusterListingsToBuildings(listings))
   const floorCount = cluster ? buildingFloorCount(cluster) : building.floors
   const floorsInfo = cluster ? buildingFloors(cluster) : []
   const floorsFc = FLOOR_STACKS_ON && cluster && listings.length > 0 ? floorsToGeoJSON(cluster) : null

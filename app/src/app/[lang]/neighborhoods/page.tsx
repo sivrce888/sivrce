@@ -4,8 +4,11 @@ import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import NeighborhoodsIndex from '@/components/neighborhoods/NeighborhoodsIndex'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import { getDistrictListingCounts } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'უბნების გზამკვლევი — თბილისი, ბათუმი, ქუთაისი | sivrce',
@@ -20,7 +23,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function NeighborhoodsPage() {
+export default async function NeighborhoodsPage() {
+  const counts = await getDistrictListingCounts()
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -39,7 +43,7 @@ export default function NeighborhoodsPage() {
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main" className="pt-16">
-        <NeighborhoodsIndex />
+        <NeighborhoodsIndex counts={counts} />
         <CTA />
       </main>
       <Footer />

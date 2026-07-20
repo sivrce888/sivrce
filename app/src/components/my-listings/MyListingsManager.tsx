@@ -26,15 +26,15 @@ import {
   Sparkles,
   Trash2,
   TrendingDown,
-  X,
   Zap,
   CircleDot,
 } from "lucide-react"
 
-import LocalizedLink from "@/components/LocalizedLink"
+import LocalizedLink, { localizeHref } from "@/components/LocalizedLink"
 import EmptyState from "@/components/dashboard/EmptyState"
 import { CurrencySwitcher } from "@/components/CurrencySwitcher"
 import { useCurrency } from "@/lib/currency"
+import { useI18n } from "@/lib/i18n/context"
 import {
   listingExpiresAt,
   listingFilterStatus,
@@ -44,6 +44,7 @@ import {
   ADDON_TETRI,
   formatGel,
   tierKeyToBadge,
+  tierRankOf,
   type CheckoutAddon,
 } from "@/lib/promo-pricing"
 
@@ -198,6 +199,7 @@ export default function MyListingsManager({
   addHref?: string
 }) {
   const router = useRouter()
+  const { lang } = useI18n()
   const { format, rate } = useCurrency()
   const [items, setItems] = useState(initial)
   const [tab, setTab] = useState<StatusTab>("active")
@@ -205,7 +207,6 @@ export default function MyListingsManager({
   const [sort, setSort] = useState<SortKey>("updated_desc")
   const [busyId, setBusyId] = useState<string | null>(null)
   const [analyticsId, setAnalyticsId] = useState<string | null>(null)
-  const [edit, setEdit] = useState<ManagedListing | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
@@ -323,7 +324,12 @@ export default function MyListingsManager({
       const res = await fetch("/api/payments/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId, ...body }),
+        body: JSON.stringify({
+          listingId,
+          ...body,
+          // Seller pills = one-tap 30d packages (day chips live in ბუსტი menu).
+          ...(body.tier ? { days: 30 } : {}),
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -440,7 +446,11 @@ export default function MyListingsManager({
                   onToggleAnalytics={() =>
                     setAnalyticsId((id) => (id === l.id ? null : l.id))
                   }
-                  onEdit={() => setEdit(l)}
+                  onEdit={() =>
+                    router.push(
+                      localizeHref(`/add-listing?edit=${encodeURIComponent(l.id)}`, lang),
+                    )
+                  }
                   onToggle={() =>
                     patch(l.id, {
                       status: l.status === "active" ? "withdrawn" : "active",
@@ -454,18 +464,6 @@ export default function MyListingsManager({
           )}
         </>
       )}
-
-      {edit ? (
-        <EditModal
-          listing={edit}
-          busy={busyId === edit.id}
-          onClose={() => setEdit(null)}
-          onSave={async (fields) => {
-            const ok = await patch(edit.id, fields)
-            if (ok) setEdit(null)
-          }}
-        />
-      ) : null}
     </div>
   )
 }
@@ -495,6 +493,12 @@ function ListingManageCard({
   const expires = listingExpiresAt(l.createdAt)
   const badge = tierKeyToBadge(l.tier)
   const canBoost = l.status === "active" && life > 0
+  const currentRank = tierRankOf(l.tier, l.tierExpiresAt)
+  const boostPills = BOOST_PILLS.filter(
+    (p) =>
+      p.kind !== "tier" ||
+      tierRankOf(p.tier ?? "standard") >= currentRank,
+  )
 
   return (
     <article className="overflow-hidden rounded-card border border-sv-ink/6 bg-sv-surface shadow-card transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:shadow-card-hover">
@@ -567,7 +571,12 @@ function ListingManageCard({
 
       <div className="flex flex-wrap items-center gap-2 border-t border-sv-ink/5 bg-sv-cloud/40 px-3 py-2.5 sm:px-4">
         {canBoost
-          ? BOOST_PILLS.map((p) => (
+          ? boostPills.map((p) => {
+              const renew =
+                p.kind === "tier" &&
+                currentRank > 0 &&
+                tierRankOf(p.tier ?? "standard") === currentRank
+              return (
               <button
                 key={p.key}
                 type="button"
@@ -578,14 +587,17 @@ function ListingManageCard({
                 title={
                   p.kind === "addon" && p.addon
                     ? formatGel(ADDON_TETRI[p.addon])
-                    : undefined
+                    : renew
+                      ? "გაგრძელება +30 დღე"
+                      : undefined
                 }
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-extrabold transition active:scale-[0.97] disabled:opacity-50 ${p.className}`}
               >
                 <p.icon size={12} strokeWidth={2.4} />
-                {p.label}
+                {renew ? `${p.label}+` : p.label}
               </button>
-            ))
+              )
+            })
           : null}
         <button
           type="button"
@@ -663,125 +675,3 @@ function IconBtn({
   )
 }
 
-function EditModal({
-  listing,
-  busy,
-  onClose,
-  onSave,
-}: {
-  listing: ManagedListing
-  busy: boolean
-  onClose: () => void
-  onSave: (fields: {
-    title: string
-    price: number
-    description: string
-    status: string
-  }) => void
-}) {
-  const [title, setTitle] = useState(listing.title)
-  const [price, setPrice] = useState(String(listing.price || ""))
-  const [description, setDescription] = useState(listing.description)
-  const [status, setStatus] = useState(
-    listing.status === "expired" ? "active" : listing.status,
-  )
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-sv-navy/45 p-3 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-listing-title"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg rounded-card bg-sv-surface p-5 shadow-panel-dark"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 id="edit-listing-title" className="text-[16px] font-extrabold text-sv-ink">
-            რედაქტირება
-          </h3>
-          <button
-            type="button"
-            aria-label="დახურვა"
-            onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full text-sv-ink/45 hover:bg-sv-cloud"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <label className="block text-[12px] font-bold text-sv-ink/50">
-          სათაური
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control bg-sv-cloud px-3.5 text-[14px] font-semibold text-sv-ink outline-none ring-1 ring-sv-ink/6 focus:ring-sv-blue/25"
-          />
-        </label>
-
-        <label className="mt-3 block text-[12px] font-bold text-sv-ink/50">
-          ფასი ({listing.currency === "USD" ? "$" : "₾"})
-          <input
-            type="number"
-            min={0}
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control bg-sv-cloud px-3.5 text-[14px] font-semibold text-sv-ink outline-none ring-1 ring-sv-ink/6 focus:ring-sv-blue/25"
-          />
-        </label>
-
-        <label className="mt-3 block text-[12px] font-bold text-sv-ink/50">
-          სტატუსი
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control bg-sv-cloud px-3.5 text-[14px] font-semibold text-sv-ink outline-none ring-1 ring-sv-ink/6 focus:ring-sv-blue/25"
-          >
-            <option value="active">აქტიური</option>
-            <option value="withdrawn">გამორთული</option>
-            <option value="sold">გაყიდული</option>
-            <option value="pending">მოლოდინში</option>
-          </select>
-        </label>
-
-        <label className="mt-3 block text-[12px] font-bold text-sv-ink/50">
-          აღწერა
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={5}
-            className="mt-1.5 w-full resize-y rounded-control bg-sv-cloud px-3.5 py-2.5 text-[14px] font-medium text-sv-ink outline-none ring-1 ring-sv-ink/6 focus:ring-sv-blue/25"
-          />
-        </label>
-
-        <div className="mt-5 flex gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-11 flex-1 rounded-full text-[13px] font-bold text-sv-ink/50 hover:bg-sv-cloud"
-          >
-            გაუქმება
-          </button>
-          <button
-            type="button"
-            disabled={busy || title.trim().length < 3}
-            onClick={() =>
-              onSave({
-                title: title.trim(),
-                price: Math.max(0, Math.floor(Number(price) || 0)),
-                description: description.trim(),
-                status,
-              })
-            }
-            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-sv-blue text-[13px] font-bold text-white transition hover:bg-sv-blue-deep disabled:opacity-50"
-          >
-            {busy ? <Loader2 size={15} className="animate-spin" /> : null}
-            შენახვა
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}

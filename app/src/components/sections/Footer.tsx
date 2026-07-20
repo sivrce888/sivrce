@@ -39,7 +39,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
     titleKey: 'footer.colCompany',
     links: [
       { key: 'footer.co.about', href: '/about' },
-      { key: 'footer.co.careers', href: '/contact' },
+      { key: 'footer.co.careers', href: '/careers' },
       { key: 'footer.co.blog', href: '/blog' },
       { key: 'footer.co.partnership', href: '/contact' },
       { key: 'footer.co.ads', href: '/advertise' },
@@ -64,8 +64,8 @@ export default function Footer() {
               {t('footer.tagline')}
             </p>
             <div className="mt-6 space-y-1 text-[14px] font-semibold text-white/60">
-              <a href="mailto:info@sivrce.ge" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
-                <Mail className="h-4 w-4 text-sv-blue-light" /> info@sivrce.ge
+              <a href="mailto:hi@sivrce.ge" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
+                <Mail className="h-4 w-4 text-sv-blue-light" /> hi@sivrce.ge
               </a>
               <a href="tel:+995322000000" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
                 <Phone className="h-4 w-4 text-sv-blue-light" /> +995 32 2 00 00 00

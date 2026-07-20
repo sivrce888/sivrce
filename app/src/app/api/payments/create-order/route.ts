@@ -15,11 +15,17 @@ import { db } from "@/lib/db"
 import {
   ADDON_TETRI,
   CHECKOUT_ADDONS,
+  clampPromoDays,
   isCheckoutAddon,
+  PROMO_DAY_OPTIONS,
+  TIER_DURATION_DAYS,
+  tierCheckoutTetri,
+  tierRankOf,
   type CheckoutAddon,
 } from "@/lib/promo-pricing"
 
-const VALID_TIERS = ["vip", "super_vip", "diamond"]
+const VALID_TIERS = ["vip", "super_vip", "diamond"] as const
+const TIER_RANK: Record<string, number> = { standard: 0, vip: 1, super_vip: 2, diamond: 3 }
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -27,7 +33,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
 
-  let body: { listingId?: string; tier?: string; addon?: string }
+  let body: { listingId?: string; tier?: string; addon?: string; days?: number }
   try {
     body = await req.json()
   } catch {
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
 
   const listing = await db.listing.findUnique({
     where: { id: listingId },
-    select: { ownerId: true, tier: true, status: true },
+    select: { ownerId: true, tier: true, tierExpiresAt: true, status: true },
   })
 
   if (!listing) {
@@ -69,6 +75,7 @@ export async function POST(req: Request) {
           id: order.id,
           providerOrderId: order.providerOrderId,
           tier: order.tier,
+          durationDays: order.durationDays,
           amountTetri: order.amountTetri,
           currency: order.currency,
           status: order.status,
@@ -77,22 +84,26 @@ export async function POST(req: Request) {
       })
     }
 
-    if (!tier || !VALID_TIERS.includes(tier)) {
+    if (!tier || !(VALID_TIERS as readonly string[]).includes(tier)) {
       return NextResponse.json({ error: "invalid_tier", valid: VALID_TIERS }, { status: 400 })
     }
 
-    const tierRank: Record<string, number> = { standard: 0, vip: 1, super_vip: 2, diamond: 3 }
-    if (tierRank[tier] <= tierRank[listing.tier]) {
+    // Effective rank (expired VIP → 0) so renew works before cron.
+    const currentRank = tierRankOf(listing.tier, listing.tierExpiresAt)
+    const wantRank = TIER_RANK[tier] ?? 0
+    if (wantRank < currentRank) {
       return NextResponse.json({ error: "tier_not_upgrade", current: listing.tier }, { status: 400 })
     }
 
-    const order = await createListingTierOrder(session.user.id, listingId, tier)
+    const days = clampPromoDays(body.days ?? TIER_DURATION_DAYS)
+    const order = await createListingTierOrder(session.user.id, listingId, tier, days)
     return NextResponse.json({
       ok: true,
       order: {
         id: order.id,
         providerOrderId: order.providerOrderId,
         tier: order.tier,
+        durationDays: order.durationDays,
         amountTetri: order.amountTetri,
         currency: order.currency,
         status: order.status,
@@ -120,6 +131,31 @@ export async function GET() {
     getTierPrice("super_vip"),
     getTierPrice("diamond"),
   ])
+  const monthly: Record<string, number> = {
+    vip,
+    super_vip: superVip,
+    diamond,
+  }
+
+  const tiers = Object.fromEntries(
+    VALID_TIERS.map((key) => {
+      const byDays = Object.fromEntries(
+        PROMO_DAY_OPTIONS.map((d) => [
+          d,
+          tierCheckoutTetri(key, d, monthly[key]) ?? 0,
+        ]),
+      )
+      return [
+        key,
+        {
+          label: key === "vip" ? "VIP" : key === "super_vip" ? "VIP+" : "SUPER VIP",
+          durationDays: TIER_DURATION_DAYS,
+          priceTetri: monthly[key],
+          byDays,
+        },
+      ]
+    }),
+  )
 
   const addons = Object.fromEntries(
     CHECKOUT_ADDONS.map((k: CheckoutAddon) => [
@@ -129,11 +165,8 @@ export async function GET() {
   )
 
   return NextResponse.json({
-    tiers: {
-      vip: { priceTetri: vip, label: "VIP", durationDays: 30 },
-      super_vip: { priceTetri: superVip, label: "VIP+", durationDays: 30 },
-      diamond: { priceTetri: diamond, label: "SUPER VIP", durationDays: 30 },
-    },
+    tiers,
     addons,
+    dayOptions: PROMO_DAY_OPTIONS,
   })
 }

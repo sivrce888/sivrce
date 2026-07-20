@@ -78,6 +78,10 @@ export interface SearchFilters {
    * booking overlap, so the route skips Meili when these are set. */
   dailyFrom?: string
   dailyTo?: string
+  /** Map viewport (WGS84). DB/PostGIS only — Meili skipped when set. */
+  bbox?: { west: number; south: number; east: number; north: number }
+  /** Pre-resolved id set from PostGIS bbox (set by /api/search). */
+  idsIn?: string[]
   /** Price-filter currency; bounds are converted via USD_GEL. Default USD. */
   currency?: "USD" | "GEL"
   sort?: "date" | "price-asc" | "price-desc" | "area" | "ai" | "m2asc" | "m2desc"

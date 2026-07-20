@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { Eye, TrendingUp, Star, Plus } from 'lucide-react'
+import { Eye, TrendingUp, Star, Plus, Building2, BadgeCheck, ArrowRight } from 'lucide-react'
+import LocalizedLink from '@/components/LocalizedLink'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
@@ -9,12 +10,18 @@ import { formatGel, MONTHLY_RE_TETRI } from '@/lib/promo-pricing'
 
 export const metadata: Metadata = {
   title: 'განათავსე განცხადება — sivrce',
-  description: `განათავსე უფასოდ ან აირჩიე VIP — დღეში ${formatGel(100)}-დან. VIP+ და SUPER VIP უფრო იაფია, ვიდრე SS და MyHome.`,
+  description: `უფასო განთავსება მესაკუთრეებისთვის, სააგენტოებისა და დეველოპერებისთვის. VIP დღეში ${formatGel(100)}-დან — იაფი ვიდრე SS და MyHome.`,
   alternates: { canonical: '/advertise', languages: langAlternates('/advertise') },
 }
 
+const PRO_STEPS = [
+  { n: '1', t: 'დარეგისტრირდი', d: 'ტელეფონი ან Google — 30 წამი' },
+  { n: '2', t: 'აირჩიე როლი', d: 'სააგენტო / აგენტი / დეველოპერი — Settings-ში' },
+  { n: '3', t: 'გამოაქვეყნე', d: 'უფასო ან VIP+ · ლიდები შენს დაფაზე' },
+]
+
 const STATS = [
-  { icon: Eye, value: '5×', label: 'მეტ ნახვას იღებს SUPER VIP საშუალოდ' },
+  { icon: Eye, value: 'VIP+', label: 'კარუსელი + პრიორიტეტი სიაში VIP-ზე წინ' },
   { icon: TrendingUp, value: '2.50₾', label: 'VIP+ დღეში · SS 3₾ / MyHome 4₾' },
   { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 დღე · უძრავი ქონება' },
 ]
@@ -36,6 +43,10 @@ const FAQ = [
     q: 'რა მოხდება ვადის გასვლის შემდეგ?',
     a: 'განცხადება არ იშლება — ბრუნდება უფასო რეჟიმში და რჩება ხილვადი ვადის ამოწურვამდე.',
   },
+  {
+    q: 'სააგენტო ან დეველოპერი ვარ — სად დავიწყო?',
+    a: 'დარეგისტრირდი → Settings-ში აირჩიე როლი (სააგენტო / აგენტი / დეველოპერი) → დაამატე განცხადება. პროფილი გამოჩნდება /agents ან /developers დირექტორიაში.',
+  },
 ]
 
 export default function AdvertisePage() {
@@ -52,6 +63,55 @@ export default function AdvertisePage() {
               უფასოდ დაიწყე — ან გააძლიერე VIP-ით. იგივე პრომო ლოგიკა, რაც ბაზარზეა,
               უფრო კარგ ფასად.
             </p>
+          </Reveal>
+        </section>
+
+        {/* ponytail: BD funnel for agencies — footer already points here; page was VIP-only. */}
+        <section className="mx-auto max-w-5xl px-6 pb-14">
+          <Reveal>
+            <div className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-navy p-6 text-white shadow-card md:p-8">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="max-w-xl">
+                  <p className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-wider text-sv-blue-light">
+                    <Building2 className="h-3.5 w-3.5" /> სააგენტო · აგენტი · დეველოპერი
+                  </p>
+                  <h2 className="mt-2 text-[22px] font-black tracking-[-0.02em] md:text-[28px]">
+                    პროფესიონალური ანგარიში — 3 ნაბიჯი
+                  </h2>
+                  <p className="mt-2 text-[14px] font-medium text-white/65">
+                    Footer-ის „აგენტები / დეველოპერები“ აქ მოდის. როლი Settings-ში ირჩევა —
+                    ცალკე განაცხადი არ გჭირდება.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <LocalizedLink
+                    href="/auth/signup?callbackUrl=/settings"
+                    className="inline-flex items-center gap-2 rounded-full bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+                  >
+                    რეგისტრაცია <ArrowRight className="h-4 w-4" />
+                  </LocalizedLink>
+                  <LocalizedLink
+                    href="/add-listing"
+                    className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-3 text-[14px] font-extrabold text-white transition hover:bg-white/15"
+                  >
+                    განცხადების დამატება
+                  </LocalizedLink>
+                </div>
+              </div>
+              <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+                {PRO_STEPS.map((s) => (
+                  <li
+                    key={s.n}
+                    className="rounded-module border border-white/10 bg-white/[0.04] p-4"
+                  >
+                    <span className="inline-flex items-center gap-2 text-[13px] font-black text-sv-blue-light">
+                      <BadgeCheck className="h-4 w-4" /> {s.n}. {s.t}
+                    </span>
+                    <p className="mt-1.5 text-[13px] font-medium text-white/55">{s.d}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </Reveal>
         </section>
 

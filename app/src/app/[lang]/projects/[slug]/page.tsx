@@ -11,8 +11,7 @@ import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { FaqSection } from '@/components/seo/FaqSection'
-import { PROJECTS, listingsByCity } from '@/data/professionals'
-import { LISTINGS } from '@/data/listings'
+import { PROJECTS } from '@/data/professionals'
 import {
   getLiveProject,
   getLiveDeveloper,
@@ -20,6 +19,8 @@ import {
   projectsLiveByDeveloper,
   isValidCoords,
 } from '@/lib/directory-live'
+import { getListingsForProjectSlug } from '@/lib/listings-db'
+import { getMapListings } from '@/lib/map/db-buildings'
 import {
   clusterListingsToBuildings,
   mergeMapBuildings,
@@ -113,21 +114,22 @@ export default async function ProjectPage({ params }: PageProps) {
   const [project, liveProjects] = await Promise.all([getLiveProject(slug), projectsLive()])
   if (!project) notFound()
 
-  const [dev, listings, aggregate, siblingProjects] = await Promise.all([
+  const [dev, listings, aggregate, siblingProjects, mapListings] = await Promise.all([
     project.developerSlug ? getLiveDeveloper(project.developerSlug) : Promise.resolve(null),
-    Promise.resolve(listingsByCity(project.city, 6)),
+    getListingsForProjectSlug(slug, 6),
     getReviewAggregate('project', slug),
     project.developerSlug
       ? projectsLiveByDeveloper(project.developerSlug).then((ps) =>
           ps.filter((p) => p.slug !== project.slug).slice(0, 4),
         )
       : Promise.resolve([]),
+    getMapListings().catch(() => []),
   ])
 
   // 3D floor stack: live address/coords so the corpus sits on the exact pin.
   const cluster = applyLiveProjectPins(
     mergeMapBuildings(
-      clusterListingsToBuildings(LISTINGS),
+      clusterListingsToBuildings(mapListings),
       projectsToConstructionBuildings(liveProjects),
     ),
     liveProjects,
