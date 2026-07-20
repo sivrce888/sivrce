@@ -1,10 +1,10 @@
 import LocalizedLink from '@/components/LocalizedLink'
 
 /* Board 1:1 rasters (logo/board1x1 → public/logo). Wordmark font is baked in — not Manrope outlines. */
-const LOCK_W = 655
-const LOCK_H = 227
-const MARK_W = 214
-const MARK_H = 227
+const LOCK_W = 1279
+const LOCK_H = 415
+const MARK_W = 388
+const MARK_H = 415
 
 export function LogoMark({ size = 36 }: { size?: number }) {
   const w = Math.round((size * MARK_W) / MARK_H)
