@@ -11,12 +11,14 @@
  * completes once, re-run with --mirror-only — never re-fetch aggregators.
  *
  * ponytail: gallery capped at 16/project. Re-run safe (skips already-cdn URLs).
+ * Also uploads local public/images/projects webp heroes (stock npN/pN skipped).
  * Supabase pool: 2-wide + dbRetry — P1008 if you bump concurrency.
  */
 
 import { config } from "dotenv"
-import { resolve } from "path"
 import { createHash } from "crypto"
+import { readFile } from "fs/promises"
+import { resolve } from "path"
 
 config({ path: resolve(__dirname, "..", ".env.local") })
 config({ path: resolve(__dirname, "..", ".env") })
@@ -30,6 +32,9 @@ const UA = { "User-Agent": "Mozilla/5.0 (compatible; sivrce-directory-localize/1
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const OUR = /cdn\.sivrce\.ge|images\.sivrce\.ge/
 const GALLERY_CAP = 16
+const PUBLIC_DIR = resolve(__dirname, "..", "public")
+/** Stock art — never promote to cdn as a project hero. */
+const STOCK_IMG = /^\/images\/(np\d|p\d)\.webp$/i
 
 const connectionString = process.env.DATABASE_URL
 if (!connectionString) {
@@ -37,10 +42,22 @@ if (!connectionString) {
   process.exit(1)
 }
 
+// Node 24 + Supabase pooler: same ssl compat as src/lib/db.ts
+function withPgSslCompat(url: string) {
+  if (/uselibpqcompat=/i.test(url) || /sslmode=disable/i.test(url)) return url
+  return `${url}${url.includes("?") ? "&" : "?"}uselibpqcompat=true`
+}
+
 const db = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  adapter: new PrismaPg({ connectionString: withPgSslCompat(connectionString) }),
 })
 
+/** True when URL/path should be mirrored to R2 (http remote or local project render). */
+function needsCdn(url: string | null | undefined): boolean {
+  if (!url || OUR.test(url) || STOCK_IMG.test(url)) return false
+  if (url.startsWith("http")) return true
+  return url.startsWith("/images/projects/")
+}
 function absUrl(src: string): string {
   if (!src) return ""
   if (src.startsWith("//")) return `https:${src}`
@@ -153,16 +170,44 @@ async function dbRetry<T>(fn: () => Promise<T>, tries = 5): Promise<T> {
   throw new Error("dbRetry exhausted")
 }
 
+async function readLocalPublic(pathUrl: string): Promise<{ buf: Buffer; ct: string } | null> {
+  if (!pathUrl.startsWith("/images/") || STOCK_IMG.test(pathUrl) || pathUrl.includes("..")) {
+    return null
+  }
+  try {
+    const buf = await readFile(resolve(PUBLIC_DIR, pathUrl.slice(1)))
+    if (buf.length < 64) return null
+    const ext = pathUrl.split(".").pop()?.toLowerCase()
+    const ct =
+      ext === "png" ? "image/png" : ext === "jpg" || ext === "jpeg" ? "image/jpeg" : "image/webp"
+    return { buf, ct }
+  } catch {
+    return null
+  }
+}
+
 async function mirrorOne(url: string, folder: string): Promise<string | null> {
-  if (!url || !url.startsWith("http")) return null
+  if (!url || STOCK_IMG.test(url)) return null
   if (OUR.test(url)) return url
+
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const res = await fetch(url, { headers: UA })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const buf = Buffer.from(await res.arrayBuffer())
+      let buf: Buffer
+      let ct: string
+      if (url.startsWith("http")) {
+        const res = await fetch(url, { headers: UA })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        buf = Buffer.from(await res.arrayBuffer())
+        ct = res.headers.get("content-type") || "image/jpeg"
+      } else if (url.startsWith("/images/")) {
+        const local = await readLocalPublic(url)
+        if (!local) throw new Error("local miss")
+        buf = local.buf
+        ct = local.ct
+      } else {
+        return null
+      }
       if (buf.length < 64) throw new Error("too small")
-      const ct = res.headers.get("content-type") || "image/jpeg"
       const hash = createHash("sha1").update(url).digest("hex").slice(0, 16)
       const key = `directory/${folder}/${hash}.${extOf(url, ct)}`
       const { url: pub } = await uploadFile({
@@ -257,16 +302,21 @@ async function mirrorAll(heroesOnly: boolean): Promise<{ logos: number; projects
       select: { slug: true, image: true, gallery: true, passportUrl: true },
     }),
     db.mapBuilding.findMany({
-      where: { img: { contains: "googleapis.com" } },
+      where: {
+        OR: [
+          { img: { contains: "googleapis.com" } },
+          { img: { startsWith: "/images/projects/" } },
+        ],
+      },
       select: { slug: true, img: true },
     }),
   ])
 
   const needsMirror = projects.filter(
     (p) =>
-      (p.image && !OUR.test(p.image) && p.image.startsWith("http")) ||
-      (p.passportUrl && !OUR.test(p.passportUrl)) ||
-      (!heroesOnly && (p.gallery ?? []).some((g) => g.startsWith("http") && !OUR.test(g))),
+      needsCdn(p.image) ||
+      needsCdn(p.passportUrl) ||
+      (!heroesOnly && (p.gallery ?? []).some((g) => needsCdn(g))),
   )
 
   let logos = 0
@@ -296,24 +346,24 @@ async function mirrorAll(heroesOnly: boolean): Promise<{ logos: number; projects
   for (let i = 0; i < needsMirror.length; i += 2) {
     await Promise.all(
       needsMirror.slice(i, i + 2).map(async (p) => {
-        const hero =
-          p.image?.startsWith("http") && !OUR.test(p.image)
-            ? await mirrorOne(p.image, "projects")
-            : p.image && OUR.test(p.image)
-              ? p.image
-              : null
+        const hero = needsCdn(p.image)
+          ? await mirrorOne(p.image!, "projects")
+          : p.image && OUR.test(p.image)
+            ? p.image
+            : null
         let gallery: string[] | undefined
         if (!heroesOnly) {
           gallery = []
           for (const g of p.gallery ?? []) {
-            const m = OUR.test(g) ? g : await mirrorOne(g, "projects")
+            const m = needsCdn(g) ? await mirrorOne(g, "projects") : OUR.test(g) ? g : null
             if (m) gallery.push(m)
           }
         }
-        const passport =
-          p.passportUrl && !OUR.test(p.passportUrl)
-            ? await mirrorOne(p.passportUrl, "passports")
-            : p.passportUrl || null
+        const passport = needsCdn(p.passportUrl)
+          ? await mirrorOne(p.passportUrl!, "passports")
+          : p.passportUrl && OUR.test(p.passportUrl)
+            ? p.passportUrl
+            : null
         await dbRetry(() =>
           db.projectDirectory.updateMany({
             where: { slug: p.slug },
@@ -336,8 +386,8 @@ async function mirrorAll(heroesOnly: boolean): Promise<{ logos: number; projects
   for (let i = 0; i < maps.length; i += 2) {
     await Promise.all(
       maps.slice(i, i + 2).map(async (m) => {
-        if (!m.img) return
-        const mirrored = await mirrorOne(m.img, "projects")
+        if (!needsCdn(m.img)) return
+        const mirrored = await mirrorOne(m.img!, "projects")
         if (!mirrored || mirrored === m.img) return
         await dbRetry(() =>
           db.mapBuilding.updateMany({
@@ -355,6 +405,16 @@ async function mirrorAll(heroesOnly: boolean): Promise<{ logos: number; projects
 }
 
 async function main() {
+  if (process.argv.includes("--check")) {
+    const { strictEqual } = await import("node:assert/strict")
+    strictEqual(needsCdn("https://cdn.sivrce.ge/x.webp"), false)
+    strictEqual(needsCdn("/images/np1.webp"), false)
+    strictEqual(needsCdn("/images/projects/orbi-sea-towers.webp"), true)
+    strictEqual(needsCdn("https://korter.ge/a.jpg"), true)
+    strictEqual(needsCdn(null), false)
+    console.log("localize-directory.check OK")
+    return
+  }
   if (!process.env.R2_ACCOUNT_ID || !process.env.R2_PUBLIC_URL) {
     console.error("R2 env missing — abort (would leave hotlinks)")
     process.exit(1)
