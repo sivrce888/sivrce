@@ -1,9 +1,13 @@
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { LISTINGS, getListing as getMockListing, formatUSD } from '@/data/listings'
-import { getListing as getDbListing } from '@/lib/listings-db'
+import {
+  getListing as getDbListing,
+  getDistrictPeerPerM2,
+} from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
+import { listingPublicId } from '@/lib/listing-public-id'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { langAlternates } from '@/lib/i18n/server'
@@ -96,6 +100,13 @@ export default async function ListingPage({ params }: PageProps) {
     (x) => x.id !== listing.id && x.dealType === listing.dealType && x.city === listing.city,
   ).slice(0, 8)
 
+  let peerPerM2: number[] = []
+  try {
+    peerPerM2 = await getDistrictPeerPerM2(listing.city, listing.district, listing.dealType)
+  } catch {
+    peerPerM2 = []
+  }
+
   // Reviews aggregate for rich results — a DB outage must never break the page
   let aggregate: { average: number; count: number } | null = null
   try {
@@ -126,6 +137,7 @@ export default async function ListingPage({ params }: PageProps) {
     name: listing.title,
     description: listing.description,
     url: `https://sivrce.ge${canonical}`,
+    sku: String(listingPublicId(listing)),
     image: listing.images.map((src) => `https://sivrce.ge${src}`),
     datePosted: listing.postedAt,
     numberOfBedrooms: listing.beds,
@@ -202,7 +214,7 @@ export default async function ListingPage({ params }: PageProps) {
 
   return (
     <>
-      <ListingDetailClient listing={listing} similar={similar} />
+      <ListingDetailClient listing={listing} similar={similar} peerPerM2={peerPerM2} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(listingLd) }}

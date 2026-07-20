@@ -70,6 +70,7 @@ export const CITIES: GeoLoc[] = [
   { slug: 'mtskheta', ka: 'მცხეთა', loc: 'მცხეთაში', en: 'Mtskheta', ru: 'Мцхета' },
   // Resort cities (myhome/ss popular row). Full municipality list lives in georgia-locations.json.
   { slug: 'bakuriani', ka: 'ბაკურიანი', loc: 'ბაკურიანში', en: 'Bakuriani', ru: 'Бакуриани' },
+  { slug: 'kobuleti', ka: 'ქობულეთი', loc: 'ქობულეთში', en: 'Kobuleti', ru: 'Кобулети' },
   { slug: 'borjomi', ka: 'ბორჯომი', loc: 'ბორჯომში', en: 'Borjomi', ru: 'Боржоми' },
   { slug: 'gudauri', ka: 'გუდაური', loc: 'გუდაურში', en: 'Gudauri', ru: 'Гудаури' },
 ]

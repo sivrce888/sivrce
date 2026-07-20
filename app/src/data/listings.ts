@@ -7,6 +7,7 @@
 import { GEO_ALL_PLACES, geoDistrictsOf } from './georgia-locations'
 import { maskPhone } from '@/lib/inquiries/phone'
 import { resolveStaticAgentProfile } from '@/lib/profiles/roles'
+import { parseListingNumber, PUBLIC_ID_BASE } from '@/lib/listing-public-id'
 
 export type DealType = 'sale' | 'rent' | 'daily' | 'pledge'
 export type PropType = 'apartment' | 'house' | 'villa' | 'commercial' | 'land' | 'hotel'
@@ -24,6 +25,8 @@ export interface Agent {
 
 export interface Listing {
   id: string
+  /** MyHome-style 8-digit public number — searchable. */
+  publicId?: number
   img: string
   images: string[]
   priceUSD: number
@@ -956,11 +959,21 @@ export interface ListingFilters {
 }
 
 export function getListing(id: string): Listing | undefined {
-  const l = LISTINGS.find((x) => x.id === id)
+  // ponytail: mock publicIds = PUBLIC_ID_BASE + index (stable, searchable)
+  let l = LISTINGS.find((x) => x.id === id)
+  if (!l) {
+    const publicNum = parseListingNumber(id)
+    if (publicNum != null) {
+      const i = publicNum - PUBLIC_ID_BASE
+      if (i >= 0 && i < LISTINGS.length) l = LISTINGS[i]
+    }
+  }
   if (!l) return undefined
   const meta = resolveStaticAgentProfile(l.agent.name)
+  const publicId = PUBLIC_ID_BASE + LISTINGS.indexOf(l)
   return {
     ...l,
+    publicId,
     agent: {
       ...l.agent,
       profileHref: meta.profileHref,
@@ -984,7 +997,13 @@ export function filterListings(f: ListingFilters): Listing[] {
     if (f.maxArea !== undefined && l.area > f.maxArea) return false
     if (f.q) {
       const q = f.q.toLowerCase()
-      const hay = `${l.title} ${l.address} ${l.city} ${l.district}`.toLowerCase()
+      const digits = f.q.replace(/\D/g, '')
+      const publicNum = digits.length >= 7 && digits.length <= 9 ? Number(digits) : NaN
+      if (Number.isFinite(publicNum)) {
+        const i = publicNum - PUBLIC_ID_BASE
+        if (i === LISTINGS.indexOf(l)) return true
+      }
+      const hay = `${l.title} ${l.address} ${l.city} ${l.district} ${PUBLIC_ID_BASE + LISTINGS.indexOf(l)}`.toLowerCase()
       if (!hay.includes(q)) return false
     }
     return true

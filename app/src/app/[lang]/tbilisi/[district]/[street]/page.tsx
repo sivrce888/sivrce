@@ -17,6 +17,7 @@ import {
   streetLocative,
   type TbilisiStreet,
 } from '@/data/tbilisi-streets'
+import { getListingsOnStreet } from '@/lib/listings-db'
 import { DISTRICTS, parseSeoSlug, statsOf, type District, type Faq } from '@/lib/seo-pages'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
@@ -28,11 +29,22 @@ function tbilisiDistrictOf(slug: string): District | undefined {
   return DISTRICTS.find((d) => d.slug === slug && d.citySlug === 'tbilisi')
 }
 
-function resolve(districtSlug: string, streetSlug: string) {
+async function resolve(districtSlug: string, streetSlug: string) {
   const district = tbilisiDistrictOf(districtSlug)
   const street = getStreet(streetSlug)
   if (!district || !street || street.district !== district.slug) return null
-  return { district, street, listings: listingsOfStreet(street) }
+  const mock = listingsOfStreet(street)
+  let db: Listing[] = []
+  try {
+    db = await getListingsOnStreet(street.ka, district.ka)
+  } catch {
+    db = []
+  }
+  // Merge DB + mock, prefer DB row when same id
+  const byId = new Map<string, Listing>()
+  for (const l of mock) byId.set(l.id, l)
+  for (const l of db) byId.set(l.id, l)
+  return { district, street, listings: [...byId.values()] }
 }
 
 export function generateStaticParams() {
@@ -73,7 +85,7 @@ function descriptionOfStreet(street: TbilisiStreet, district: District, listings
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { district: d, street: s } = await params
-  const ctx = resolve(d, s)
+  const ctx = await resolve(d, s)
   if (!ctx) return {}
   const title = titleOfStreet(ctx.street, ctx.district, ctx.listings.length)
   const description = descriptionOfStreet(ctx.street, ctx.district, ctx.listings)
@@ -195,7 +207,7 @@ function streetLd(
 
 export default async function StreetPage({ params }: PageProps) {
   const { district: d, street: s } = await params
-  const ctx = resolve(d, s)
+  const ctx = await resolve(d, s)
   if (!ctx) notFound()
   const { district, street, listings } = ctx
 

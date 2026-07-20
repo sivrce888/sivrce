@@ -177,18 +177,32 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
     })
   }
 
-  // Free-text search: simple ILIKE on title + description (Postgres).
+  // Free-text search: ILIKE on title/location OR exact publicId OR phone digits.
   // ponytail: no tsvector for DB fallback — fine for MVP. Upgrade: enable pg_trgm.
   if (filters.q) {
-    and.push({
-      OR: [
-        { title: { contains: filters.q, mode: "insensitive" } },
-        { description: { contains: filters.q, mode: "insensitive" } },
-        { city: { contains: filters.q, mode: "insensitive" } },
-        { district: { contains: filters.q, mode: "insensitive" } },
-        { address: { contains: filters.q, mode: "insensitive" } },
-      ],
-    })
+    const q = filters.q
+    const digits = q.replace(/\D/g, "")
+    const publicNum = digits.length >= 7 && digits.length <= 9 ? Number(digits) : NaN
+    const phone =
+      digits.length === 9 && digits.startsWith("5")
+        ? digits
+        : digits.startsWith("995") && digits.length === 12
+          ? digits.slice(3)
+          : null
+    const textOr: Prisma.ListingWhereInput[] = [
+      { title: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { city: { contains: q, mode: "insensitive" } },
+      { district: { contains: q, mode: "insensitive" } },
+      { address: { contains: q, mode: "insensitive" } },
+    ]
+    if (Number.isFinite(publicNum) && publicNum >= 1_000_000) {
+      textOr.push({ publicId: publicNum })
+    }
+    if (phone) {
+      textOr.push({ listingPhone: { contains: phone } })
+    }
+    and.push({ OR: textOr })
   }
 
   if (and.length) where.AND = and

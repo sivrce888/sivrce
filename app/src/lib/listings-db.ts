@@ -30,6 +30,7 @@ import { MAP_CENTER } from "@/lib/map/buildings"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
 import type { SellerRole } from "@/lib/profiles/roles"
+import { listingPublicId, parseListingNumber, parsePhoneDigits } from "@/lib/listing-public-id"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily" | "pledge"
@@ -80,6 +81,8 @@ export interface Agent {
 
 export interface Listing {
   id: string
+  /** MyHome-style 8-digit public number — searchable. */
+  publicId?: number
   img: string
   images: string[]
   priceUSD: number
@@ -128,6 +131,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
 
   return {
     id: r.id as string,
+    publicId: listingPublicId({ id: r.id as string, publicId: r.publicId as number | null | undefined }),
     img: ((r.images as string[]) ?? [])[0] ?? "/images/p1.webp",
     images: (r.images as string[]) ?? [],
     priceUSD: Math.round(priceGEL / USD_GEL),
@@ -196,11 +200,18 @@ function rowToListing(row: Record<string, unknown>): Listing {
   }
 }
 
-/** Get a single listing by ID. Returns null if not found or soft-deleted. */
+/** Get a single listing by string id OR public number. Returns null if not found. */
 export async function getListing(id: string): Promise<Listing | null> {
   return safeQuery(async () => {
+    const publicNum = parseListingNumber(id)
     const row = await db.listing.findFirst({
-      where: { id, deletedAt: null, status: "active" },
+      where: {
+        deletedAt: null,
+        status: "active",
+        OR: publicNum
+          ? [{ id }, { publicId: publicNum }]
+          : [{ id }],
+      },
     })
     if (!row) return null
     const listing = rowToListing(row as unknown as Record<string, unknown>)
@@ -214,6 +225,81 @@ export async function getListing(id: string): Promise<Listing | null> {
     }
     return listing
   }, null)
+}
+
+/** Resolve by public number or agent phone digits → listing id for redirect. */
+export async function resolveListingQuery(q: string): Promise<{ id: string; publicId: number } | null> {
+  return safeQuery(async () => {
+    const publicNum = parseListingNumber(q)
+    if (publicNum) {
+      const row = await db.listing.findFirst({
+        where: { publicId: publicNum, deletedAt: null, status: "active" },
+        select: { id: true, publicId: true },
+      })
+      if (row) return { id: row.id, publicId: row.publicId }
+    }
+    const phone = parsePhoneDigits(q)
+    if (phone) {
+      const row = await db.listing.findFirst({
+        where: {
+          deletedAt: null,
+          status: "active",
+          listingPhone: { contains: phone },
+        },
+        select: { id: true, publicId: true },
+        orderBy: { createdAt: "desc" },
+      })
+      if (row) return { id: row.id, publicId: row.publicId }
+    }
+    return null
+  }, null)
+}
+
+/** Active listings whose address matches a street core (Tbilisi street pages). */
+export async function getListingsOnStreet(streetKa: string, districtKa: string): Promise<Listing[]> {
+  return safeQuery(async () => {
+    const core = streetKa.split(/\s+/).filter((w) => !/^(ქუჩა|გამზირი|ხეივანი|სანაპირო|მოედანი|გზატკეცილი)$/.test(w))
+    const needle = core[core.length - 1] ?? streetKa
+    const rows = await db.listing.findMany({
+      where: {
+        deletedAt: null,
+        status: "active",
+        city: "თბილისი",
+        district: districtKa,
+        address: { contains: needle, mode: "insensitive" },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 48,
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+}
+
+/** Peer $/m² in the same district+deal for price scale (capped). */
+export async function getDistrictPeerPerM2(
+  city: string,
+  district: string,
+  dealType: DealType,
+): Promise<number[]> {
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: {
+        deletedAt: null,
+        status: "active",
+        city,
+        district,
+        dealType: dealToDb(dealType),
+        pricePerSqm: { not: null, gt: 0 },
+      },
+      select: { pricePerSqm: true, currency: true },
+      take: 200,
+    })
+    return rows.map((r) => {
+      const p = r.pricePerSqm ?? 0
+      // Match Listing.perM2USD units for priceScaleOf
+      return r.currency === "USD" ? p : Math.round(p / USD_GEL)
+    })
+  }, [])
 }
 
 /** Active listings for a public seller profile (`/u/[id]`). */

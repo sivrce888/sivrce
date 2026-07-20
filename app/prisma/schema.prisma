@@ -454,6 +454,8 @@ enum ShadowBanScope {
 
 model Listing {
   id                            String                                 @id @db.VarChar(120)
+  /// MyHome-style searchable listing number (8-digit, from 10000001).
+  publicId                      Int                                    @unique @default(autoincrement()) @map("public_id")
   ownerId                       String?                                @map("owner_id") @db.VarChar(120)
   slug                          String                                 @unique @db.VarChar(180)
   title                         String                                 @db.VarChar(180)
