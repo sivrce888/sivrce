@@ -18,7 +18,7 @@ import ListingCard, { BADGE_STYLE, ListingStickerStack } from '@/components/List
 import HScroll from '@/components/HScroll'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
-import { LeadForm } from '@/components/lead/LeadForm'
+import { LEAD_FORM_ID, LeadForm } from '@/components/lead/LeadForm'
 import { TourBooking } from '@/components/listing/TourBooking'
 import { SELLER_ROLE_LABEL } from '@/lib/profiles/roles'
 import MapEmbed from '@/components/MapEmbed'
@@ -40,7 +40,6 @@ import { useCompare } from '@/lib/compare'
 import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
-import { useChat } from '@/components/chat/ChatProvider'
 import { useCompareStrings } from '@/components/compare/i18n'
 import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
 
@@ -195,7 +194,15 @@ export default function ListingDetailClient({
   const ttCompare = useCompareStrings()
   const { t, lang } = useI18n()
   const { currency, setCurrency, format } = useCurrency()
-  const { openChat } = useChat()
+  // ponytail: same scroll+focus as StickyLeadBar — chat stays parked.
+  const scrollToLead = () => {
+    const form = document.getElementById(LEAD_FORM_ID)
+    if (!form) return
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    window.setTimeout(() => {
+      form.querySelector<HTMLElement>('input:not([tabindex="-1"])')?.focus({ preventScroll: true })
+    }, 500)
+  }
   const [photo, setPhoto] = useState(0)
   const [lightbox, setLightbox] = useState(false)
   const swipeGuard = useRef(false)
@@ -853,7 +860,8 @@ export default function ListingDetailClient({
 
               <div className="mt-3 grid grid-cols-2 gap-2.5">
                 <button
-                  onClick={() => openChat(l.id)}
+                  type="button"
+                  onClick={scrollToLead}
                   className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
@@ -911,13 +919,13 @@ export default function ListingDetailClient({
               <TourBooking listingId={l.id} listingTitle={l.title} />
             </div>
 
-            {/* Lead form — anchor target for the "message" CTAs */}
-            <div
-              id="lead-form"
-              className="mt-4 scroll-mt-28 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card"
-            >
-              <LeadForm targetType="listing" targetId={l.id} recipientName={l.agent.name} />
-            </div>
+            {/* LeadForm owns #lead-form — Message CTAs scroll here */}
+            <LeadForm
+              targetType="listing"
+              targetId={l.id}
+              recipientName={l.agent.name}
+              className="mt-4"
+            />
 
             {/* Safety note */}
             <div className="mt-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
@@ -1006,7 +1014,8 @@ export default function ListingDetailClient({
             className="min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange"
           />
           <button
-            onClick={() => openChat(l.id)}
+            type="button"
+            onClick={scrollToLead}
             aria-label={t('detail.message')}
             className="flex h-12 min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-2 text-[13px] font-extrabold text-sv-blue transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
           >
