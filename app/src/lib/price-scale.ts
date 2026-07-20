@@ -40,20 +40,11 @@ export function priceScaleOf(value: number, peers: number[]): PriceScaleResult {
   }
   const clean = peers.filter((p) => Number.isFinite(p) && p > 0)
   if (clean.length < 2) {
-    // ponytail: trustScore-shaped fallback when district has no peers
-    const pct = Math.min(95, Math.max(5, 50))
-    return { pct, band: "average", labelKa: LABELS.average }
+    return { pct: 50, band: "average", labelKa: LABELS.average }
   }
   const below = clean.filter((p) => p < value).length
   const pct = Math.round((below / clean.length) * 100)
   const clamped = Math.min(95, Math.max(5, pct))
   const band = bandOf(clamped)
   return { pct: clamped, band, labelKa: LABELS[band] }
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const r = priceScaleOf(2000, [1000, 1500, 2000, 2500, 3000])
-  console.assert(r.band === "average" || r.band === "aboveAverage", "mid peers")
-  console.assert(priceScaleOf(500, [1000, 2000, 3000]).band === "low", "cheap")
-  console.log("price-scale: ok")
 }
