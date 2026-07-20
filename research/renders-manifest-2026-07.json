@@ -686,6 +686,13 @@
     "batch": 2
   },
   {
+    "slug": "alpha-home-gldani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/alpha-home-gldani-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "altergeo-makhata-tower",
     "status": "ok",
     "source": "korter",
@@ -722,8 +729,8 @@
   },
   {
     "slug": "anagi-police-city",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -732,6 +739,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/tbilisi-acres-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "ande-metropolis",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/ande-metropolis-batumi",
     "batch": 2
   },
   {
@@ -861,6 +875,13 @@
     "batch": 2
   },
   {
+    "slug": "arcon-elegance",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/elegance-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "artex",
     "status": "ok",
     "source": "korter",
@@ -987,6 +1008,13 @@
     "batch": 2
   },
   {
+    "slug": "city-center-gldani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/city-centre-gldani-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "console-lisi-townhouse",
     "status": "ok",
     "source": "korter",
@@ -1030,8 +1058,8 @@
   },
   {
     "slug": "dirsi-riverside-2",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1078,9 +1106,16 @@
     "batch": 2
   },
   {
+    "slug": "ds-uniq-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/uniq-residence-batumi",
+    "batch": 2
+  },
+  {
     "slug": "eco-lisi-residence",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1124,6 +1159,27 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/gldani-by-index-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "gonio-yachts-marina",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/gonio-yachts-marina-gonio",
+    "batch": 2
+  },
+  {
+    "slug": "grada-park",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/grada-park-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "grada-saburtalo",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/grada-saburtalo-tbilisi",
     "batch": 2
   },
   {
@@ -1204,10 +1260,24 @@
     "batch": 2
   },
   {
+    "slug": "idea-panorama",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/idea-panorama-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "isani-by-index",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/isani-by-index-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "kings-garden",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/kings-garden-tbilisi",
     "batch": 2
   },
   {
@@ -1243,6 +1313,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/lisi-trio-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "livin-dadiani-263",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 2
   },
   {
@@ -1302,6 +1379,20 @@
     "batch": 2
   },
   {
+    "slug": "megobroba-saakadze",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/megobroba-saakadze-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "megobroba-sanapiroze",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/megobroba-sanapiroze-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "metropol-cube",
     "status": "ok",
     "source": "korter",
@@ -1348,6 +1439,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/millennium-residence-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "mira-verde",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/mira-verde-tbilisi",
     "batch": 2
   },
   {
@@ -1418,6 +1516,13 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://next-property.com/next-collection",
+    "batch": 2
+  },
+  {
+    "slug": "next-door-gelovani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/next-door-gelovani-tbilisi",
     "batch": 2
   },
   {
@@ -1498,6 +1603,34 @@
     "batch": 2
   },
   {
+    "slug": "ocean-sky-residences",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "ocean-vake-park",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/ocean-vake-park-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "ocean-vake-plaza",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/ocean-vake-plaza-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "ocean-vake-residences",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/ocean-vake-residences-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "old-city-panorama",
     "status": "ok",
     "source": "korter",
@@ -1554,6 +1687,13 @@
     "batch": 2
   },
   {
+    "slug": "pala-varketili",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/pala-varketili-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "pontus-rotana-gonio",
     "status": "ok",
     "source": "korter",
@@ -1590,6 +1730,27 @@
   },
   {
     "slug": "redix-chavchavadze-64",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "reside-breeze-chakvi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/breeze-chakvi",
+    "batch": 2
+  },
+  {
+    "slug": "reside-dest-asatiani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/dest-asatiani-batumi",
+    "batch": 2
+  },
+  {
+    "slug": "reside-riverside",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1708,6 +1869,13 @@
     "batch": 2
   },
   {
+    "slug": "tbilisi-waterfront",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tbilisi-waterfront-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "tekto-rakurs",
     "status": "ok",
     "source": "korter",
@@ -1715,10 +1883,38 @@
     "batch": 2
   },
   {
+    "slug": "tempo-queens-residence",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "tempo-serenade",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://tempoholding.ge/serenade",
+    "batch": 2
+  },
+  {
     "slug": "tetra-residential-complex",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/tetra-residential-complex-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "tower-gelovani",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "tower-panorama",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tower-group-panorama-batumi",
     "batch": 2
   },
   {
