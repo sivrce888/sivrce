@@ -1,5 +1,30 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-20 — directory CDN + DB catalog sync (best next step: 10/10)
+Auto-picked over more features: inventory surface quality beats feature debt.
+
+- **Seed**: re-ran `scripts/seed.ts` → **282** `project_directories` (was 149
+  stock placeholders), 118 developers, map buildings synced from static catalog.
+- **R2 mirror**: `localize-directory` now uploads **local** `/images/projects/*`
+  heroes (skips stock `npN`/`pN`). `npm run directory:mirror` → **260** heroes
+  + 3 map pins live on `cdn.sivrce.ge` (HTTP 200 smoke). 22 projects remain
+  stock until official renders exist.
+- Self-check: `npx tsx scripts/localize-directory.ts --check`.
+
+### Scored next steps (auto-order — do top first)
+
+| Score | Step | Owner |
+| ---: | --- | --- |
+| **10** | Agency/developer onboarding → real listing supply (41 → thousands) | Human BD |
+| **9** | Prod env: Meili, VAPID, Gemini, Twilio WA, TBC+BOG, Sentry, PostHog | Human ops |
+| **9** | Google Search Console verify + sitemap | Human (Google) |
+| **8** | Payments 1₾ smoke after merchant onboarding | Human + banks |
+| **6** | Cadastral pin audit (approx coords) | Human research |
+| **5** | Gallery beyond hero / remaining 22 stock renders | Code when sources exist |
+| **3** | Floor stacks re-enable, Stories, App Store | Later |
+
+Skipped this wave: competitor scrape (retired), fake listings, new features.
+
 ## Shipped 2026-07-19 — full-site audit wave (70-shot sweep + console/error capture)
 - **Global hydration mismatch (every page)**: Navbar `motion.header` entrance
   animated via framer-motion `initial` → SSR/client style diff → full-tree
@@ -240,4 +265,5 @@ Construction map clusters now pass `img: p.img` in `projectsToConstructionBuildi
 - Map: construction clusters now carry img → BuildingPanel shows render thumb; floor stacks OFF (FLOOR_STACKS_ON, re-enable NEXT_PUBLIC_FLOOR_STACKS=1).
 - SEO: visible FAQ ka/en/ru on all 4 directory pages (+JSON-LD sync), hub prose+FAQ, en/ru localized metadata/H1, og:locale per lang, ImageObject gallery LD. New: src/lib/directory-seo.ts, src/components/seo/FaqSection.tsx.
 - Gates: tsc ✓ check:map ✓ check:media ✓ check:seo-hub ✓ check:seo-title ✓ build ✓.
-- TODO when R2 creds land: re-run mirror → cdn.sivrce.ge + DB media backfill (149 ProjectDirectory rows still placeholder); 7+10 approximate pins need cadastral verification; gallery scrape (hero-only now).
+- Done 2026-07-20: R2 heroes on cdn (260/282). Remaining: 22 stock renders +
+  cadastral pin audit + gallery scrape when sources land.
