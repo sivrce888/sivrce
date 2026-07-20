@@ -286,14 +286,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         className={`absolute left-3 z-[1] ${l.badge || l.projectCatalog ? 'top-12' : 'top-3'}`}
       />
       {favButton}
-      {/* Edge zones > floating arrows: center still opens listing via stretched link */}
+      {/* Edge zones clear top actions (fav/share) — full-height zones ate those hits */}
       {multi && (
         <>
           <button
             type="button"
             aria-label={t('detail.prevPhoto')}
             onClick={(e) => navPhoto(-1, e)}
-            className="absolute inset-y-0 left-0 z-10 flex w-[24%] items-center justify-start bg-transparent pl-1.5 focus-visible:outline-none"
+            className="absolute bottom-0 left-0 top-12 z-10 flex w-[24%] items-center justify-start bg-transparent pl-1.5 focus-visible:outline-none"
           >
             <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur opacity-70 transition-opacity group-hover:opacity-100 max-md:opacity-80 md:opacity-0 md:group-hover:opacity-100">
               <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -303,7 +303,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             type="button"
             aria-label={t('detail.nextPhoto')}
             onClick={(e) => navPhoto(1, e)}
-            className="absolute inset-y-0 right-0 z-10 flex w-[24%] items-center justify-end bg-transparent pr-1.5 focus-visible:outline-none"
+            className="absolute bottom-0 right-0 top-12 z-10 flex w-[24%] items-center justify-end bg-transparent pr-1.5 focus-visible:outline-none"
           >
             <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur opacity-70 transition-opacity group-hover:opacity-100 max-md:opacity-80 md:opacity-0 md:group-hover:opacity-100">
               <ChevronRight className="h-4 w-4" aria-hidden />
@@ -319,11 +319,16 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
                 }`}
               />
             ))}
+            {totalPhotos > CARD_PHOTO_CAP && (
+              <span className="ml-0.5 rounded-full bg-sv-navy/55 px-1.5 py-0.5 text-[10px] font-black text-white backdrop-blur">
+                +{totalPhotos - CARD_PHOTO_CAP}
+              </span>
+            )}
           </div>
         </>
       )}
       {lifestyle.length > 0 && (
-        <div className="absolute left-3 z-[1] flex max-w-[70%] flex-wrap gap-1 bottom-10">
+        <div className="absolute bottom-10 left-3 z-[1] flex max-w-[70%] flex-wrap gap-1">
           {lifestyle.map((key) => {
             const Icon = SIGNAL_ICON[key]
             return (
@@ -338,25 +343,30 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           })}
         </div>
       )}
-      {/* Count bottom-right — clears center dots */}
-      <span className="absolute bottom-3 right-3 z-[1] flex items-center gap-1 rounded-full bg-sv-navy/60 px-2 py-1 text-[11px] font-bold text-white backdrop-blur">
-        <Camera className="h-3 w-3" aria-hidden />
-        {multi ? `${photo + 1}/${totalPhotos}` : totalPhotos}
-      </span>
+      {/* Photo count — always visible (ss.ge/myhome parity) */}
+      {totalPhotos > 0 && (
+        <span className="absolute bottom-3 right-3 z-[1] flex items-center gap-1 rounded-full bg-sv-navy/60 px-2 py-1 text-[11px] font-bold text-white backdrop-blur">
+          <Camera className="h-3 w-3" aria-hidden />
+          {multi ? `${photo + 1}/${totalPhotos}` : totalPhotos}
+        </span>
+      )}
     </div>
   )
 
   const streetHref = streetHrefForListing(l.address, l.district, l.city)
   const publicId = listingPublicId(l)
   const days = postedDaysAgo(l)
-  const place = [l.district, l.city].filter(Boolean).join(', ')
+  // District sometimes already embeds the city (project catalog addresses).
+  const place = l.district && l.city && l.district.includes(l.city)
+    ? l.district
+    : [l.district, l.city].filter(Boolean).join(', ')
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
 
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-4">
       {/* Price first — scannable like ss.ge / myhome */}
       <div className="text-[22px] font-black tracking-tight text-sv-ink">{displayPrice}</div>
-      {l.dealType === 'sale' && (
+      {l.dealType === 'sale' && l.perM2USD > 0 && (
         <p className="mt-0.5 text-[13px] font-bold text-sv-ink/50">{formatPerM2(l, currency)}</p>
       )}
 
@@ -400,12 +410,29 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         </p>
       )}
 
-      {/* Key stats — area / rooms / baths / floor */}
+      {/* Key stats — omit unknowns (project catalog often has no beds/floor) */}
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-bold text-sv-ink/70">
-        <span className="flex items-center gap-1"><Ruler className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden /> {l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}</span>
-        <span className="flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden /> {l.beds > 0 ? l.beds : '—'}</span>
-        <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden /> {l.baths > 0 ? l.baths : '—'}</span>
-        {!l.projectCatalog && <span className="text-sv-ink/45">{formatFloor(l)}</span>}
+        {l.area > 0 && (
+          <span className="flex items-center gap-1">
+            <Ruler className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
+            {l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}
+          </span>
+        )}
+        {(l.beds > 0 || l.rooms > 0) && (
+          <span className="flex items-center gap-1">
+            <BedDouble className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
+            {l.beds > 0 ? l.beds : l.rooms}
+          </span>
+        )}
+        {l.baths > 0 && (
+          <span className="flex items-center gap-1">
+            <Bath className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
+            {l.baths}
+          </span>
+        )}
+        {!l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) && (
+          <span className="text-sv-ink/45">{formatFloor(l)}</span>
+        )}
       </div>
 
       {/* AI — compact differentiator (competitors don't have this on cards) */}

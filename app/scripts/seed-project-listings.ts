@@ -62,10 +62,21 @@ export function catalogPriceGel(usdPerM2: number): number {
   return Math.round(usdPerM2 * INDICATIVE_M2 * USD_GEL)
 }
 
+/** Hero + gallery, deduped — card carousel caps at 4; detail can show the rest. */
+export function catalogImages(hero: string, gallery: string[] = []): string[] {
+  const out: string[] = []
+  for (const u of [hero, ...gallery]) {
+    if (u && !out.includes(u)) out.push(u)
+  }
+  return out.slice(0, 16)
+}
+
 async function main() {
   if (process.argv.includes("--check")) {
     assert.equal(catalogTitle("Test", 1000).includes("ახალი აშენება"), true)
     assert.equal(catalogPriceGel(1000), Math.round(1000 * 50 * USD_GEL))
+    assert.deepEqual(catalogImages("a.webp", ["a.webp", "b.webp", "c.webp"]), ["a.webp", "b.webp", "c.webp"])
+    assert.equal(catalogImages("h.webp", Array.from({ length: 20 }, (_, i) => `g${i}.webp`)).length, 16)
     console.log("seed-project-listings.check OK")
     return
   }
@@ -90,6 +101,7 @@ async function main() {
       lat: true,
       lng: true,
       image: true,
+      gallery: true,
       pricePerSqmFrom: true,
       readyBy: true,
       units: true,
@@ -147,7 +159,7 @@ async function main() {
       address,
       lat: p.lat,
       lng: p.lng,
-      images: [p.image],
+      images: catalogImages(p.image, p.gallery),
       features: ["ახალი აშენება", p.developer.slice(0, 40)],
       petsAllowed: false,
       sellerType: "agency",
