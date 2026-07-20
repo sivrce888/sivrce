@@ -51,7 +51,7 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     projectSlug: 'axis-towers',
     status: 'ready',
     description: {
-      ka: 'აქსის თაუერსი — ჩავჭავაძის 37, ვაკე. ორი კოშკი, 24 სართ., მიწისქვეშა პარკინგი, კომერციული სარდაფი. ხედი ვაკის პარკისა და ცენტრისკენ.',
+      ka: 'აქსის თაუერსი — ჭავჭავაძის 37, ვაკე. ორი კოშკი, 24 სართ., მიწისქვეშა პარკინგი, კომერციული სარდაფი. ხედი ვაკის პარკისა და ცენტრისკენ.',
       en: 'Axis Towers — Chavchavadze 37, Vake. Twin 24-floor towers, underground parking, retail podium. Views toward Vake Park and the centre.',
       ru: 'Axis Towers — Чавчавадзе 37, Ваке. Две башни, 24 этажа, подземный паркинг, коммерческий стилобат.',
     },
@@ -174,9 +174,9 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
   {
     slug: 'chavchavadze-47',
     code: 'SV-TB-0007',
-    name: 'ჩავჭავაძის 47',
+    name: 'ჭავჭავაძის 47',
     nameEn: 'Chavchavadze 47',
-    address: 'ჩავჭავაძის 47, ვაკე, თბილისი',
+    address: 'ჭავჭავაძის 47, ვაკე, თბილისი',
     city: 'თბილისი',
     district: 'ვაკე',
     coords: { lat: 41.7055, lng: 44.7708 },
@@ -189,7 +189,7 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     rating: 4.6,
     status: 'ready',
     description: {
-      ka: 'ჩავჭავაძის 47 — ვაკე, 18 სართ. ღია ხედი გამზირზე.',
+      ka: 'ჭავჭავაძის 47 — ვაკე, 18 სართ. ღია ხედი გამზირზე.',
       en: 'Chavchavadze 47 — Vake, 18 floors. Open view onto the avenue.',
       ru: 'Чавчавадзе 47 — Ваке, 18 этажей. Вид на проспект.',
     },

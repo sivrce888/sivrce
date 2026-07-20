@@ -36,7 +36,7 @@ async function main() {
     description: "check document",
     city: "თბილისი",
     district: "ვაკე",
-    address: "ჩავჭავაძის 47",
+    address: "ჭავჭავაძის 47",
     dealType: "buy",
     propertyType: "apartment",
     price: 250000,

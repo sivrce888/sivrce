@@ -61,7 +61,7 @@ const fixtures: Listing[] = [
   {
     ...base,
     id: 'a',
-    address: 'ჩავჭავაძის 47, ვაკე, თბილისი',
+    address: 'ჭავჭავაძის 47, ვაკე, თბილისი',
     buildingNumber: '47',
     buildingSlug: 'chavchavadze-47',
     dealType: 'sale',
@@ -70,7 +70,7 @@ const fixtures: Listing[] = [
   {
     ...base,
     id: 'b',
-    address: 'ჩავჭავაძის 47, ვაკე, თბილისი',
+    address: 'ჭავჭავაძის 47, ვაკე, თბილისი',
     buildingNumber: '47',
     buildingSlug: 'chavchavadze-47',
     dealType: 'rent',
@@ -94,8 +94,8 @@ const fixtures: Listing[] = [
   },
 ]
 
-assert.equal(parseBuildingNumber('ჩავჭავაძის 47, ვაკე'), '47')
-assert.equal(parseStreet('ჩავჭავაძის 47, ვაკე'), 'ჩავჭავაძის')
+assert.equal(parseBuildingNumber('ჭავჭავაძის 47, ვაკე'), '47')
+assert.equal(parseStreet('ჭავჭავაძის 47, ვაკე'), 'ჭავჭავაძის')
 assert.equal(listingBuildingNumber(fixtures[2]!), '12')
 
 const buildings = clusterListingsToBuildings(fixtures)
@@ -104,7 +104,7 @@ assert.ok(tower)
 assert.equal(tower!.code, 'SV-TB-0007')
 assert.equal(tower!.counts.sale, 1)
 assert.equal(tower!.counts.rent, 1)
-assert.equal(tower!.address.includes('ჩავჭავაძის'), true)
+assert.equal(tower!.address.includes('ჭავჭავაძის'), true)
 
 const pledgeB = buildings.find((b) => b.slug === 'abashidze-34')
 assert.ok(pledgeB)
@@ -209,7 +209,7 @@ const pinned = applyLiveProjectPins([axisCluster!], [
     name: 'Axis Towers',
     developerSlug: 'axis',
     img: '/x.webp',
-    location: 'ჩავჭავაძის გამზ. 37, ვაკე, თბილისი',
+    location: 'ჭავჭავაძის გამზ. 37, ვაკე, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1',
     done: 100,

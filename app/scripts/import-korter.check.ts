@@ -14,7 +14,7 @@ assert.equal(
 )
 assert.equal(officialWebsite({ name: "m2.ge" }), "https://m2.ge")
 assert.equal(officialWebsite(null), "")
-assert.equal(buildingNumberOf("ჩავჭავაძის გამზ. 37, ვაკე"), "37")
+assert.equal(buildingNumberOf("ჭავჭავაძის გამზ. 37, ვაკე"), "37")
 assert.equal(buildingNumberOf("Vakhtang Gorgasali St, 99"), "99")
 assert.equal(buildingNumberOf("ვაკე"), "")
 console.log("import-korter.check: ok")
