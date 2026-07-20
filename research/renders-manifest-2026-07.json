@@ -1307,5 +1307,12 @@
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/urbanique-mziuri-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "white-square-shartava",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://w2.ge/en/project/shartava",
+    "batch": 2
   }
 ]
