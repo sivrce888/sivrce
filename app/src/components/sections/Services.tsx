@@ -57,10 +57,10 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {SERVICES.map((s, i) => (
-            <Reveal key={s.title} delay={i * 0.08}>
+            <Reveal key={s.title} delay={i * 0.08} className="h-full">
               <Link
                 href={s.href}
-                className="group relative block h-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-7 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
+                className="group relative flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-7 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
               >
                 <span
                   className="grid h-14 w-14 place-items-center rounded-module transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
@@ -68,8 +68,8 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
                 >
                   <s.icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-6 text-[18px] font-extrabold text-sv-ink">{s.title}</h3>
-                <p className="mt-2.5 text-[14px] font-medium leading-relaxed text-sv-ink/55">{s.text}</p>
+                <h3 className="mt-6 line-clamp-2 min-h-[2.5em] text-[18px] font-extrabold leading-snug text-sv-ink">{s.title}</h3>
+                <p className="mt-2.5 line-clamp-3 min-h-[4.5em] flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/55">{s.text}</p>
                 <span className="mt-6 flex items-center gap-1.5 text-[14px] font-extrabold" style={{ color: s.brand.hue }}>
                   გაეცანი
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

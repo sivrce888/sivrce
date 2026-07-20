@@ -168,7 +168,7 @@ export default function HScroll({
         tabIndex={0}
         aria-label={ariaLabel}
         style={mask ? { WebkitMaskImage: mask, maskImage: mask } : undefined}
-        className={`scrollbar-hide flex cursor-grab overflow-x-auto overscroll-x-contain active:cursor-grabbing ${className}`}
+        className={`scrollbar-hide flex items-stretch cursor-grab overflow-x-auto overscroll-x-contain active:cursor-grabbing ${className}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}

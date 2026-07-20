@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ponytail: TW build was dropping bottom-3 (abspos fell to top) — force emit */
+@source inline("bottom-3");
+
 /* cache-bust 2026-07-19: responsive chrome (nav/hero) */
 
 @custom-variant dark (&:is(.dark *));

@@ -66,29 +66,45 @@ def save(im, path):
 
 
 def write_ico(path, images):
-    """Multi-size ICO with PNG-compressed entries (Pillow often drops frames)."""
-    import io
+    """Multi-size BMP-DIB ICO — Next/Turbopack rejects PNG-compressed ICO."""
     import struct
-    pngs = []
-    for im in images:
-        buf = io.BytesIO()
-        im.convert("RGBA").save(buf, format="PNG")
-        pngs.append(buf.getvalue())
-    n = len(images)
-    header = struct.pack("<HHH", 0, 1, n)
-    offset = 6 + 16 * n
-    entries = b""
-    data = b""
-    for im, png in zip(images, pngs):
+
+    def dib(im):
+        im = im.convert("RGBA")
         w, h = im.size
-        wb = 0 if w >= 256 else w
-        hb = 0 if h >= 256 else h
-        entries += struct.pack("<BBBBHHII", wb, hb, 0, 0, 1, 32, len(png), offset)
-        offset += len(png)
-        data += png
+        px = list(im.getdata())
+        xor = bytearray()
+        for y in range(h - 1, -1, -1):
+            for x in range(w):
+                r, g, b, a = px[y * w + x]
+                xor += bytes((b, g, r, a))
+        and_row = ((w + 31) // 32) * 4
+        mask = bytearray()
+        for y in range(h - 1, -1, -1):
+            row = bytearray(and_row)
+            for x in range(w):
+                if px[y * w + x][3] < 128:
+                    row[x // 8] |= 1 << (7 - (x % 8))
+            mask += row
+        hdr = struct.pack("<IIIHHIIIIII", 40, w, h * 2, 1, 32, 0, len(xor) + len(mask), 0, 0, 0, 0)
+        return hdr + bytes(xor) + bytes(mask)
+
+    rgba = [im.convert("RGBA") for im in images]
+    payloads = [dib(im) for im in rgba]
+    n = len(rgba)
+    offset = 6 + 16 * n
+    out = struct.pack("<HHH", 0, 1, n)
+    body = b""
+    for im, payload in zip(rgba, payloads):
+        wb = 0 if im.width >= 256 else im.width
+        hb = 0 if im.height >= 256 else im.height
+        out += struct.pack("<BBBBHHII", wb, hb, 0, 0, 1, 32, len(payload), offset)
+        offset += len(payload)
+        body += payload
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    open(path, "wb").write(header + entries + data)
-    print(" ", os.path.relpath(path, ROOT), [im.size for im in images])
+    open(path, "wb").write(out + body)
+    print(" ", os.path.relpath(path, ROOT), [(im.width, im.height) for im in rgba])
+
 
 
 def dilate1(mask):

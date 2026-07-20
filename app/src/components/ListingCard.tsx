@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import LocalizedLink from '@/components/LocalizedLink'
@@ -8,6 +8,7 @@ import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Camera, Clock,
+  Layers,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
@@ -21,8 +22,10 @@ import { useCompare } from '@/lib/compare'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
 import { blurProps } from '@/lib/media'
+import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
+import { SparkMark } from '@/components/SparkMark'
 
 /* Icon map for card overlays — mirrors Collections.tsx */
 const SIGNAL_ICON: Record<(typeof DAILY_SIGNAL_KEYS)[number], LucideIcon> = {
@@ -85,28 +88,6 @@ export function ListingStickerStack({
   )
 }
 
-function AIScoreRing({ score, size = 36 }: { score: number; size?: number }) {
-  const gradId = useId()
-  return (
-    <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 36 36" className="-rotate-90" style={{ width: size, height: size }}>
-        <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--sv-blue)" strokeOpacity="0.15" strokeWidth="3.5" />
-        <circle
-          cx="18" cy="18" r="15.5" fill="none" stroke={`url(#${gradId})`} strokeWidth="3.5"
-          strokeLinecap="round" strokeDasharray={`${(score / 100) * 97.4} 97.4`}
-        />
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--sv-blue)" />
-            <stop offset="100%" stopColor="var(--sv-violet)" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <span className="absolute text-[10px] font-black text-sv-blue">{score}</span>
-    </div>
-  )
-}
-
 interface ListingCardProps {
   l: Listing
   i?: number
@@ -115,8 +96,8 @@ interface ListingCardProps {
   animate?: boolean
 }
 
-/** Card gallery teaser — rest of photos live on the listing detail page (myhome/ss pattern). */
-const CARD_PHOTO_CAP = 4
+/** Card gallery teaser — rest on detail. Cap 5 = Yandex/Zillow scrub feel without fat payloads. */
+const CARD_PHOTO_CAP = 5
 
 function postedLabel(days: number): string {
   if (days <= 0) return 'დღეს'
@@ -136,11 +117,10 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
   const metro = nearestMetro(l.coords.lat, l.coords.lng)
 
-  // ponytail: first 4 only; full gallery on detail. Cap here so search payloads can stay fat.
+  // ponytail: first 5 only; full gallery on detail. Cap here so search payloads can stay fat.
   const photos = (l.images.length > 0 ? l.images : [l.img]).slice(0, CARD_PHOTO_CAP)
   const totalPhotos = Math.max(l.images.length, photos.length)
   const [photo, setPhoto] = useState(0)
-  const photoSrc = photos[Math.min(photo, photos.length - 1)] ?? l.img
   const multi = photos.length > 1
   const imgRef = useRef<HTMLDivElement>(null)
   const touchRef = useRef<{ x: number; y: number } | null>(null)
@@ -155,6 +135,17 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     e.preventDefault()
     e.stopPropagation()
     setPhoto((p) => (p + dir + photos.length) % photos.length)
+  }
+
+  // Hover scrub (fine pointer only) — move across photo = flip frames. Touch keeps swipe.
+  const onImgPointerMove = (e: React.PointerEvent) => {
+    if (!multi || e.pointerType !== 'mouse' || !imgRef.current) return
+    // Don't fight share/heart/chevrons/segments
+    if ((e.target as HTMLElement).closest('button')) return
+    const r = imgRef.current.getBoundingClientRect()
+    if (r.width <= 0) return
+    const next = photoIndexFromX((e.clientX - r.left) / r.width, photos.length)
+    setPhoto((p) => (p === next ? p : next))
   }
 
   const onImgTouchStart = (e: React.TouchEvent) => {
@@ -205,77 +196,80 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     }
   }
 
-  const favButton = (
-    <div className="absolute right-3 top-3 z-10 flex gap-1.5">
-      <button
-        aria-label={t('detail.share')}
-        onClick={handleShare}
-        className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-      >
-        <Share2 className="h-3.5 w-3.5" />
-      </button>
-      <button
-        type="button"
-        aria-label={compared ? 'Remove from compare' : compareFull ? 'Compare full (max 4)' : 'Add to compare'}
-        aria-pressed={compared}
-        disabled={!compared && compareFull}
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          toggleCompare(l.id)
-        }}
-        className={`grid h-9 w-9 place-items-center rounded-full shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:cursor-not-allowed disabled:opacity-40 ${
-          compared
-            ? 'bg-sv-surface text-sv-blue'
-            : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-blue'
-        }`}
-      >
-        <Columns2 className={`h-3.5 w-3.5 ${compared ? 'stroke-[2.5]' : ''}`} />
-      </button>
-      <button
-        aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
-        aria-pressed={fav}
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          toggle(l.id)
-        }}
-        className={`grid h-9 w-9 place-items-center rounded-full shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
-          fav
-            ? 'bg-sv-surface text-sv-orange'
-            : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-orange'
-        }`}
-      >
-        <Heart className={`h-3.5 w-3.5 ${fav ? 'fill-current' : ''}`} />
-      </button>
-    </div>
-  )
+  // Always visible — hover-hide made chrome look "missing" on desktop
+  const actionBtn =
+    'grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue'
 
   const imageBlock = (
     <div
       ref={imgRef}
-      className={`relative overflow-hidden ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[280px] sm:shrink-0' : 'aspect-[4/3]'}`}
+      // z-[1] keeps chrome above the title's full-card ::after hit layer
+      className={`relative z-[1] overflow-hidden ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[280px] sm:shrink-0' : 'aspect-[4/3]'}`}
+      onPointerMove={onImgPointerMove}
     >
-      <Image
-        key={photoSrc}
-        src={photoSrc}
-        alt={l.title}
-        fill
-        sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
-        priority={i === 0 && photo === 0}
-        className={`object-cover transition-transform duration-700 ease-out ${multi ? '' : 'group-hover:scale-[1.04]'}`}
-        {...blurProps(photoSrc)}
-      />
-      {/* Soft scrub — price lives in body (ss/myhome scan pattern) */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sv-navy/25 via-transparent to-sv-navy/35" />
+      {/* Stacked frames — instant scrub, no flash (Yandex / Zillow pattern) */}
+      {photos.map((src, idx) => (
+        <Image
+          key={`${src}-${idx}`}
+          src={src}
+          alt={idx === photo ? l.title : ''}
+          fill
+          sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
+          priority={i === 0 && idx === 0}
+          aria-hidden={idx !== photo}
+          className={`object-cover transition-[opacity,transform] duration-300 ease-out motion-reduce:duration-0 ${
+            idx === photo ? 'opacity-100' : 'pointer-events-none opacity-0'
+          } ${!multi && idx === photo ? 'group-hover:scale-[1.04]' : ''}`}
+          {...blurProps(src)}
+        />
+      ))}
+      {/* Bottom scrub only — lets the photo breathe; navy-tint per brand lock */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sv-navy/45 via-sv-navy/10 to-transparent" />
+      {/* ── Photo chrome map ───────────────────────────────────────────
+          Top strip: Yandex-style segment scrub (multi)
+          TL: VIP / stickers
+          TR: share · compare · heart
+          Mid: ‹ › chevrons (hover / touch)
+          BR: 📷 n/N
+      */}
+      {multi && (
+        <div
+          className="absolute inset-x-2.5 top-2 z-30 flex gap-1"
+          role="tablist"
+          aria-label={t('detail.photoViewer')}
+        >
+          {photos.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              role="tab"
+              aria-selected={photo === idx}
+              aria-label={t('detail.photo', { n: idx + 1 })}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setPhoto(idx)
+              }}
+              className="h-1 min-w-0 flex-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <span
+                aria-hidden
+                className={`block h-full rounded-full transition-colors ${
+                  photo === idx ? 'bg-white shadow-sm' : 'bg-white/40'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      )}
       {l.badge && (
-        <span className={`absolute left-3 top-3 z-[1] flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
+        <span className={`absolute left-3 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider shadow-sm ${BADGE_STYLE[l.badge]} ${multi ? 'top-10' : 'top-3.5'}`}>
           {l.badge === 'SUPER VIP' ? <Crown className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
           {l.badge}
         </span>
       )}
       {l.projectCatalog && !l.badge && (
-        <span className="absolute left-3 top-3 z-[1] rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white backdrop-blur">
+        <span className={`absolute left-3 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white shadow-sm backdrop-blur ${multi ? 'top-10' : 'top-3.5'}`}>
           პროექტი
         </span>
       )}
@@ -283,52 +277,96 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         urgent={l.stickerUrgent}
         priceDrop={l.stickerPriceDrop}
         inStory={l.inStory}
-        className={`absolute left-3 z-[1] ${l.badge || l.projectCatalog ? 'top-12' : 'top-3'}`}
+        className={`absolute left-3 z-20 ${
+          l.badge || l.projectCatalog ? (multi ? 'top-[4.75rem]' : 'top-12') : multi ? 'top-10' : 'top-3.5'
+        }`}
       />
-      {favButton}
-      {/* Edge zones clear top actions (fav/share) — full-height zones ate those hits */}
+
+      <div className={`absolute right-3 z-20 flex gap-1.5 ${multi ? 'top-10' : 'top-3.5'}`}>
+        <button
+          type="button"
+          aria-label={t('detail.share')}
+          onClick={handleShare}
+          className={`${actionBtn} hover:text-sv-blue`}
+        >
+          <Share2 className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          aria-label={compared ? 'Remove from compare' : compareFull ? 'Compare full (max 4)' : 'Add to compare'}
+          aria-pressed={compared}
+          disabled={!compared && compareFull}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            toggleCompare(l.id)
+          }}
+          className={`${actionBtn} disabled:cursor-not-allowed disabled:opacity-40 ${
+            compared ? 'bg-sv-surface text-sv-blue' : 'hover:text-sv-blue'
+          }`}
+        >
+          <Columns2 className={`h-3.5 w-3.5 ${compared ? 'stroke-[2.5]' : ''}`} />
+        </button>
+        <button
+          type="button"
+          aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
+          aria-pressed={fav}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            toggle(l.id)
+          }}
+          className={`${actionBtn} ${
+            fav ? 'bg-sv-surface text-sv-orange' : 'hover:text-sv-orange'
+          }`}
+        >
+          <Heart className={`h-3.5 w-3.5 ${fav ? 'fill-current' : ''}`} />
+        </button>
+      </div>
+
       {multi && (
         <>
+          {/* Chevrons: icon-only hit target so hover-scrub works edge-to-edge */}
           <button
             type="button"
             aria-label={t('detail.prevPhoto')}
             onClick={(e) => navPhoto(-1, e)}
-            className="absolute bottom-0 left-0 top-12 z-10 flex w-[24%] items-center justify-start bg-transparent pl-1.5 focus-visible:outline-none"
+            className="absolute left-1.5 top-1/2 z-10 -translate-y-1/2 opacity-100 transition-opacity focus-visible:outline-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur opacity-70 transition-opacity group-hover:opacity-100 max-md:opacity-80 md:opacity-0 md:group-hover:opacity-100">
-              <ChevronLeft className="h-4 w-4" aria-hidden />
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-sv-navy/55 text-white shadow-sm backdrop-blur">
+              <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
           <button
             type="button"
             aria-label={t('detail.nextPhoto')}
             onClick={(e) => navPhoto(1, e)}
-            className="absolute bottom-0 right-0 top-12 z-10 flex w-[24%] items-center justify-end bg-transparent pr-1.5 focus-visible:outline-none"
+            className="absolute right-1.5 top-1/2 z-10 -translate-y-1/2 opacity-100 transition-opacity focus-visible:outline-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur opacity-70 transition-opacity group-hover:opacity-100 max-md:opacity-80 md:opacity-0 md:group-hover:opacity-100">
-              <ChevronRight className="h-4 w-4" aria-hidden />
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-sv-navy/55 text-white shadow-sm backdrop-blur">
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
-          <div className="pointer-events-none absolute bottom-3 left-1/2 z-[1] flex -translate-x-1/2 items-center gap-1.5">
-            {photos.map((_, idx) => (
-              <span
-                key={idx}
-                aria-hidden
-                className={`h-1.5 rounded-full transition-all ${
-                  photo === idx ? 'w-3.5 bg-white' : 'w-1.5 bg-white/50'
-                }`}
-              />
-            ))}
-            {totalPhotos > CARD_PHOTO_CAP && (
-              <span className="ml-0.5 rounded-full bg-sv-navy/55 px-1.5 py-0.5 text-[10px] font-black text-white backdrop-blur">
-                +{totalPhotos - CARD_PHOTO_CAP}
-              </span>
-            )}
-          </div>
         </>
       )}
+
+      {/* Bottom-right count only — segments live at top (Yandex) */}
+      <div className="pointer-events-none absolute bottom-4 right-3 z-20 flex items-center gap-2">
+        {totalPhotos > CARD_PHOTO_CAP && (
+          <span className="rounded-full bg-sv-navy/55 px-1.5 py-0.5 text-[10px] font-black text-white backdrop-blur">
+            +{totalPhotos - CARD_PHOTO_CAP}
+          </span>
+        )}
+        {totalPhotos > 0 && (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-sv-navy/70 px-2 py-1 text-[11px] font-bold text-white shadow-sm backdrop-blur">
+            <Camera className="h-3 w-3" aria-hidden />
+            {multi ? `${photo + 1}/${totalPhotos}` : totalPhotos}
+          </span>
+        )}
+      </div>
+
       {lifestyle.length > 0 && (
-        <div className="absolute bottom-10 left-3 z-[1] flex max-w-[70%] flex-wrap gap-1">
+        <div className="absolute bottom-12 left-3 z-10 flex max-w-[70%] flex-wrap gap-1">
           {lifestyle.map((key) => {
             const Icon = SIGNAL_ICON[key]
             return (
@@ -343,13 +381,6 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           })}
         </div>
       )}
-      {/* Photo count — always visible (ss.ge/myhome parity) */}
-      {totalPhotos > 0 && (
-        <span className="absolute bottom-3 right-3 z-[1] flex items-center gap-1 rounded-full bg-sv-navy/60 px-2 py-1 text-[11px] font-bold text-white backdrop-blur">
-          <Camera className="h-3 w-3" aria-hidden />
-          {multi ? `${photo + 1}/${totalPhotos}` : totalPhotos}
-        </span>
-      )}
     </div>
   )
 
@@ -362,15 +393,23 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     : [l.district, l.city].filter(Boolean).join(', ')
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
 
-  const bodyBlock = (
-    <div className="flex min-w-0 flex-1 flex-col p-4">
-      {/* Price first — scannable like ss.ge / myhome */}
-      <div className="text-[22px] font-black tracking-tight text-sv-ink">{displayPrice}</div>
-      {l.dealType === 'sale' && l.perM2USD > 0 && (
-        <p className="mt-0.5 text-[13px] font-bold text-sv-ink/50">{formatPerM2(l, currency)}</p>
-      )}
+  const showPerM2 = l.dealType === 'sale' && l.perM2USD > 0
 
-      <h3 className="mt-2.5 line-clamp-2 text-[15px] font-extrabold leading-snug text-sv-ink transition-colors group-hover:text-sv-blue">
+  const bodyBlock = (
+    <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
+      {/* Price first — scannable like ss.ge / myhome */}
+      <div className="text-[22px] font-black tabular-nums tracking-[-0.03em] text-sv-ink">
+        {displayPrice}
+      </div>
+      {/* ponytail: reserved slot so rent/daily cards match sale height */}
+      <p
+        className={`mt-0.5 min-h-[1.25rem] text-[13px] font-bold tabular-nums text-sv-ink/45 ${showPerM2 ? '' : 'invisible'}`}
+        aria-hidden={!showPerM2}
+      >
+        {showPerM2 ? formatPerM2(l, currency) : '\u00a0'}
+      </p>
+
+      <h3 className="mt-2.5 line-clamp-2 min-h-[2.7em] text-[15px] font-extrabold leading-[1.35] text-sv-ink transition-colors group-hover:text-sv-blue">
         <LocalizedLink
           href={href}
           aria-label={l.title}
@@ -386,7 +425,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         </LocalizedLink>
       </h3>
 
-      <p className="relative z-10 mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
+      <p className="relative z-10 mt-1.5 flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
         <MapPin className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-hidden />
         {streetHref ? (
           <LocalizedLink
@@ -401,59 +440,72 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         )}
       </p>
 
-      {metro && (
-        <p className="mt-1 flex items-center gap-1.5 text-[12px] font-bold text-sv-blue">
-          <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span className="truncate">
-            {metro.name} · {formatMetroDist(metro)}
-          </span>
-        </p>
-      )}
-
-      {/* Key stats — omit unknowns (project catalog often has no beds/floor) */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-bold text-sv-ink/70">
-        {l.area > 0 && (
-          <span className="flex items-center gap-1">
-            <Ruler className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
-            {l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}
-          </span>
-        )}
-        {(l.beds > 0 || l.rooms > 0) && (
-          <span className="flex items-center gap-1">
-            <BedDouble className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
-            {l.beds > 0 ? l.beds : l.rooms}
-          </span>
-        )}
-        {l.baths > 0 && (
-          <span className="flex items-center gap-1">
-            <Bath className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
-            {l.baths}
-          </span>
-        )}
-        {!l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) && (
-          <span className="text-sv-ink/45">{formatFloor(l)}</span>
-        )}
-      </div>
-
-      {/* AI — compact differentiator (competitors don't have this on cards) */}
-      <div className="mt-3 flex items-center gap-2.5 rounded-module bg-gradient-to-r from-sv-blue/[0.06] to-sv-violet/[0.06] px-2.5 py-2 ring-1 ring-inset ring-sv-blue/12">
-        <AIScoreRing score={l.ai.score} />
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[12px] font-extrabold text-sv-ink">{l.ai.label || t('detail.aiScore')}</div>
-        </div>
-        {l.isNew && (
-          <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-sv-orange">
-            ახალი
-          </span>
-        )}
-      </div>
-
-      <div className="mt-2.5 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/40">
-        <span className="flex items-center gap-1">
-          <Clock className="h-3 w-3" aria-hidden />
-          {postedLabel(days)}
+      {/* Reserved metro row — cards without metro stay same height */}
+      <p
+        className={`mt-1 flex min-h-[1.25rem] min-w-0 items-center gap-1.5 text-[12px] font-bold text-sv-blue ${metro ? '' : 'invisible'}`}
+        aria-hidden={!metro}
+      >
+        <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
+        <span className="min-w-0 flex-1 truncate">{metro?.name ?? '\u00a0'}</span>
+        <span className="shrink-0 font-semibold text-sv-blue/75">
+          · {metro ? formatMetroDist(metro) : '\u00a0'}
         </span>
-        <span className="font-mono text-[10px] font-black tabular-nums text-sv-ink/30">ID {publicId}</span>
+      </p>
+
+      {/* Specs + AI + meta pinned to bottom — equal card heights in rails */}
+      <div className="mt-auto pt-3">
+        <div className="flex min-h-[1.5rem] flex-nowrap items-center gap-x-3 overflow-hidden border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold text-sv-ink/70">
+          {l.area > 0 && (
+            <span className="flex items-center gap-1">
+              <Ruler className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
+              {l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}
+            </span>
+          )}
+          {(l.beds > 0 || l.rooms > 0) && (
+            <span className="flex items-center gap-1">
+              <BedDouble className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
+              {l.beds > 0 ? l.beds : l.rooms}
+            </span>
+          )}
+          {l.baths > 0 && (
+            <span className="flex items-center gap-1">
+              <Bath className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
+              {l.baths}
+            </span>
+          )}
+          {!l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) && (
+            <span className="flex items-center gap-1 text-sv-ink/55">
+              <Layers className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden />
+              {formatFloor(l)}
+            </span>
+          )}
+        </div>
+
+        {/* ponytail: Spark + score, no gradient AI chrome box */}
+        <div className="mt-2.5 flex min-h-[1.5rem] items-center gap-2">
+          <SparkMark className="h-3.5 w-3.5 shrink-0" />
+          <span className="shrink-0 text-[13px] font-black tabular-nums tracking-tight text-sv-ink">
+            {l.ai.score}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-sv-ink/50">
+            {l.ai.label || t('detail.aiScore')}
+          </span>
+          {l.isNew && (
+            <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-sv-orange">
+              ახალი
+            </span>
+          )}
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/40">
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" aria-hidden />
+            {postedLabel(days)}
+          </span>
+          <span className="font-mono text-[10px] font-black tabular-nums text-sv-ink/28">
+            ID {publicId}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -463,18 +515,18 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       ? 'w-[86vw] max-w-[400px] shrink-0 sm:w-[380px]'
       : layout === 'list'
         ? 'w-full flex-col sm:flex-row'
-        : 'w-full'
+        : 'h-full w-full'
 
   return (
     <motion.article
       initial={animate ? { opacity: 0, y: 28 } : false}
-      whileInView={{ opacity: 1, y: 0 }}
+      whileInView={animate ? { opacity: 1, y: 0 } : undefined}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.7, delay: (i % 3) * 0.08, ease: [0.21, 0.65, 0.2, 1] }}
       onTouchStart={onImgTouchStart}
       onTouchMove={onImgTouchMove}
       onTouchEnd={onImgTouchEnd}
-      className={`group relative flex flex-col overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover ${sizeClass} ${
+      className={`group relative flex min-h-0 flex-col self-stretch overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover ${sizeClass} ${
         l.highlighted
           ? 'border-sv-blue/45 ring-2 ring-sv-blue/25'
           : 'border-sv-ink/[0.06]'
