@@ -42,7 +42,7 @@ export const tr: Dict = {
   'search.allCities': 'Tüm şehirler',
   'search.district': 'Semt',
   'search.allDistricts': 'Tüm semtler',
-  'search.keywordPlaceholder': 'Sokak, semt, anahtar kelime…',
+  'search.keywordPlaceholder': 'ID, telefon, sokak, semt…',
   'search.keyword': 'Arama kelimesi',
   'search.sort': 'Sıralama',
   'search.view': 'Görünüm',

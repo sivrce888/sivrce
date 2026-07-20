@@ -41,7 +41,7 @@ export const ka = {
   'search.allCities': 'ყველა ქალაქი',
   'search.district': 'უბანი',
   'search.allDistricts': 'ყველა უბანი',
-  'search.keywordPlaceholder': 'ქუჩა, უბანი, საკვანძო სიტყვა…',
+  'search.keywordPlaceholder': 'ID, ტელეფონი, ქუჩა, უბანი…',
   'search.keyword': 'საძიებო სიტყვა',
   'search.sort': 'დალაგება',
   'search.view': 'ხედი',

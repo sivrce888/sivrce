@@ -42,7 +42,7 @@ export const he: Dict = {
   'search.allCities': 'כל הערים',
   'search.district': 'שכונה',
   'search.allDistricts': 'כל השכונות',
-  'search.keywordPlaceholder': 'רחוב, שכונה, מילת מפתח…',
+  'search.keywordPlaceholder': 'ID, טלפון, רחוב, שכונה…',
   'search.keyword': 'מילת חיפוש',
   'search.sort': 'מיון',
   'search.view': 'תצוגה',
