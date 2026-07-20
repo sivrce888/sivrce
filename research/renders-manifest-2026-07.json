@@ -784,6 +784,13 @@
     "batch": 2
   },
   {
+    "slug": "archi-panorama",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-panorama-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "archi-rivertown",
     "status": "ok",
     "source": "official",
@@ -907,6 +914,13 @@
     "status": "failed",
     "source": null,
     "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "domus-avlabari",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://domusi.com/en/binebi/domus-avlabari/27",
     "batch": 2
   },
   {
@@ -1047,6 +1061,20 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://m2.ge/blogs/m2-at-mtatsminda-park-a-place-for-peace",
+    "batch": 2
+  },
+  {
+    "slug": "mardi-city-center",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://mardi.ge/mardi-city-center-ar",
+    "batch": 2
+  },
+  {
+    "slug": "mardi-hills",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/mardi-hills-batumi",
     "batch": 2
   },
   {
