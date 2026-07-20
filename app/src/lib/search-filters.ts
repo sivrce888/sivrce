@@ -182,7 +182,10 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.q) {
     const q = filters.q
     const digits = q.replace(/\D/g, "")
-    const publicNum = digits.length >= 7 && digits.length <= 9 ? Number(digits) : NaN
+    const publicNum =
+      digits.length >= 7 && digits.length <= 9 && Number.isFinite(Number(digits))
+        ? Number(digits)
+        : null
     const phone =
       digits.length === 9 && digits.startsWith("5")
         ? digits
@@ -196,7 +199,7 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
       { district: { contains: q, mode: "insensitive" } },
       { address: { contains: q, mode: "insensitive" } },
     ]
-    if (Number.isFinite(publicNum) && publicNum >= 1_000_000) {
+    if (publicNum != null && publicNum >= 1_000_000) {
       textOr.push({ publicId: publicNum })
     }
     if (phone) {
