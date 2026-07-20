@@ -158,7 +158,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'm² — девелопер холдинга Georgia Capital, на первичном рынке с 2006 года. Специализация: доступное и энергоэффективное жильё в Тбилиси. В портфеле 16+ проектов, включая m² Highlight, m² at Mirtskhulava и m² Mtatsminda Park.',
     },
     verified: true,
-    phone: '+995 32 2 000 222',
+    phone: '+995 32 2 444 111',
     website: 'https://m2.ge',
   },
   {
@@ -174,7 +174,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Alliance Group — ведущая девелоперская группа Батуми, строящая высотные комплексы на набережной Нового бульвара — для жизни и инвестиций.',
     },
     verified: true,
-    phone: '+995 422 22 33 44',
+    phone: '+995 32 250 00 00',
     website: 'https://alliancegroup.ge',
   },
   {
@@ -222,7 +222,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Архи — один из самых опытных грузинских девелоперов: доступные и среднеценовые комплексы во всех районах Тбилиси, часто с досрочной сдачей.',
     },
     verified: true,
-    phone: '+995 322 55 66 77',
+    phone: '+995 322 602 602',
     website: 'https://archi.ge',
   },
   {
@@ -238,7 +238,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Аксис — пионер премиум-сегмента Ваке, автор знаменитых башен на проспекте Чавчавадзе. Небольшое портфолио, высокий стандарт.',
     },
     verified: false,
-    phone: '+995 32 2 24 17',
+    phone: '+995 32 2 24 17 17',
     website: 'https://axis.ge',
   },
   {
@@ -270,7 +270,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Blox работает на рынке недвижимости Грузии с 2016 года, возводя современные энергоэффективные жилые комплексы в Вarketili, Сарджишвили и Белиашвили, рядом с Тбилисским морем.',
     },
     verified: true,
-    phone: '+995 322 00 11 22',
+    phone: '+995 32 2 05 07 07',
     website: 'https://blox.ge',
   },
   {
@@ -302,7 +302,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Метрополь — грузинский девелопер, основанный в 2022 году, в Топ-100 Luxury Lifestyle Awards. Шесть активных проектов (~1 млн м²), включая Метрополь Ортачала и Метрополь Лиси — первое частное сообщество у озера Лиси.',
     },
     verified: true,
-    phone: '+995 32 2 888 999',
+    phone: '+995 32 288 89 99',
     website: 'https://metropol.ge',
   },
   {
@@ -446,7 +446,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Gumbati Holding — девелопер премиум-сегмента с почти десятилетним опытом. Известен проектом Vake Residence — многофункциональный комплекс на ул. Кипшидзе 1, Ваке, и Villa Kokhta Mitarbi в Бакуриани.',
     },
     verified: true,
-    phone: '+995 322 00 00 02',
+    phone: '+995 551 50 18 84',
     website: 'https://gumbati.ge',
   },
   {
@@ -477,7 +477,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Biograpi (Biograpi Living) — быстрорастущий девелопер, основанный в 2022 году. Проекты: Hisni (36 этажей, пр. Кетеван Цамеули 69, Исани), Bare by Biograpi и Sakeni. Полное постпроектное обслуживание.',
     },
     verified: true,
-    phone: '+995 32 2 50 05 05',
+    phone: '+995 322 50 05 05',
     website: 'https://biograpi.ge',
   },
   {
@@ -523,7 +523,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Lisi Development с 2010 года создаёт современные экологичные жилые пространства у озера Лиси: зелёная архитектура и низкая плотность (всего 20% застройки).',
     },
     verified: true,
-    phone: '+995 322 00 00 06',
+    phone: '+995 322 00 27 27',
     website: 'https://lisi.ge',
   },
   {
@@ -1239,7 +1239,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Reside Development — батумский девелопер (reside.ge); сданы Dream Side Chakvi и DEST // Corner. Строит DEST // Asatiani в Батуми и Breeze Chakvi в Чакви.',
     },
     verified: true,
-    phone: '+995 593 90 55 55',
+    phone: '+995 593 90 5555',
     website: 'https://reside.ge',
   },
   {
@@ -2161,9 +2161,9 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     coords: { lat: 41.7505, lng: 44.7709 },
     floors: 24,
     description: {
-      ka: 'm³ Saburtalo — ანაგის ფლაგმანური პროექტი საბურთალოზე, გელოვანის გამზირზე. მასშტაბური კომპლექსი თანამედროვე ინფრასტრუქტურით, საცალო და გასტრონომიული ზონებით.',
-      en: 'm³ Saburtalo is Anagi’s flagship project on Saburtalo, Gelovani Avenue — a large-scale complex with modern infrastructure, retail and gastronomy zones.',
-      ru: 'm³ Saburtalo — флагманский проект Анаги на Сабуртало, проспект Геловани: масштабный комплекс с современной инфраструктурой, ритейлом и гастрономией.',
+      ka: 'm³ Saburtalo — m²-ის ფლაგმანური უბანი გელოვანის გამზირზე (ანაგი — გენერალური კონტრაქტორი). მასშტაბური კომპლექსი პარკით, საცალო და გასტრონომიული ზონებით.',
+      en: 'm³ Saburtalo is m²’s flagship neighbourhood on Gelovani Ave (Anagi is the general contractor) — a large-scale complex with a park, retail and gastronomy.',
+      ru: 'm³ Saburtalo — флагманский район m² на проспекте Геловани (Anagi — генподрядчик): масштабный комплекс с парком, ритейлом и гастрономией.',
     },
   },
   {
@@ -2171,20 +2171,20 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     name: 'Police City',
     developerSlug: 'anagi',
     img: '/images/np1.webp',
-    location: 'Anna Politkovskaya St, 69, თბილისი',
+    location: 'ანა პოლიტკოვსკაიას ქ. 69, საბურთალო, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,100',
-    done: 40,
-    finish: '2027 Q3',
-    flats: 380,
+    done: 70,
+    finish: '2026 Q2',
+    flats: 1100,
     rating: 4.3,
-    // ponytail: district pin until street-level cadastral; was Digomi (~7 km wrong)
+    // OSM exact: პოლიციის ქალაქი, 69 ანა პოლიტკოვსკაიას (anagi.ge + Factcheck.ge)
     coords: { lat: 41.722588, lng: 44.7020441 },
-    floors: 16,
+    floors: 13,
     description: {
-      ka: 'Police City — ანაგის მასშტაბური საცხოვრებელი პროექტი გლდანის რაიონში, ხელმისაწვდომი ფასებით და საკუთარი ინფრასტრუქტურით.',
-      en: 'Police City is Anagi’s large-scale residential project in Gldani, with affordable prices and its own infrastructure.',
-      ru: 'Police City — масштабный жилый проект Анаги в районе Глдани: доступные цены и собственная инфраструктура.',
+      ka: 'Police City — ანაგის 7 კორპუსი (12–13 სართ.) ანა პოლიტკოვსკაიას ქ. 69-ში: 1 100 ბინა სახელმწიფო პროგრამით, ჩაბარება 2026 წლამდე.',
+      en: 'Police City is Anagi’s seven-building complex (12–13 floors) at 69 Anna Politkovskaya St: 1,100 apartments under a state programme, delivery by 2026.',
+      ru: 'Police City — семь корпусов Anagi (12–13 этажей) на ул. Анны Политковской 69: 1 100 квартир по госпрограмме, сдача до 2026.',
     },
   },
   {

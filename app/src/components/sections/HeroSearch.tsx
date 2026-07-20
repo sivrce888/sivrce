@@ -260,12 +260,12 @@ export default function HeroSearch() {
 
   return (
     <div
-      className="sv-hero-in mt-11 w-full max-w-[1080px]"
+      className="sv-hero-in mt-11 w-full min-w-0 max-w-[1080px]"
       style={{ animationDelay: '0.16s' }}
     >
-      {/* Deal tabs */}
+      {/* Deal tabs — scroll when Georgian labels exceed viewport */}
       <div
-        className="mb-0 flex w-fit items-center gap-1 rounded-t-tile glass p-1.5 max-md:mx-auto max-md:max-w-full max-md:overflow-x-auto max-md:scrollbar-hide"
+        className="mb-0 flex w-full max-w-full items-center gap-1 overflow-x-auto rounded-t-tile glass p-1.5 scrollbar-hide sm:w-fit"
         role="tablist"
         aria-label={t('search.dealType')}
       >
@@ -275,7 +275,7 @@ export default function HeroSearch() {
             role="tab"
             aria-selected={tab === i}
             onClick={() => switchTab(i)}
-            className={`relative rounded-module px-4 py-3 text-[13px] font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy md:px-5 md:text-[14px] ${
+            className={`relative shrink-0 rounded-module px-3.5 py-3 text-[13px] font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy sm:px-5 sm:text-[14px] ${
               tab === i ? 'text-sv-navy' : 'text-white/75 hover:text-white'
             }`}
           >
@@ -300,11 +300,12 @@ export default function HeroSearch() {
         role="search"
         aria-label={t('nav.search')}
         onSubmit={(e) => { e.preventDefault(); submitSearch() }}
-        className="glass rounded-b-tile rounded-tr-tile p-1.5 shadow-panel-dark md:p-2"
+        className="glass w-full min-w-0 rounded-b-tile rounded-tr-tile p-1.5 shadow-panel-dark sm:p-2"
       >
-        <div className="flex flex-col gap-1.5 md:flex-row md:items-stretch md:gap-0 md:divide-x md:divide-white/10">
+        {/* ponytail: CSS grid — flex-col beats lg:flex-row in this Tailwind build */}
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Type */}
-          <div className={`${cell} md:w-[140px] md:shrink-0`}>
+          <div className={cell}>
             <button
               type="button"
               aria-expanded={typeOpen}
@@ -374,7 +375,7 @@ export default function HeroSearch() {
           </div>
 
           {/* Location */}
-          <div className={`${cell} md:min-w-[140px] md:flex-1`}>
+          <div className={cell}>
             <button type="button" onClick={() => setLocOpen(true)} className="w-full text-left">
               <span className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-white/50">
                 <MapPin className="h-3 w-3 text-sv-blue-light" /> მდებარეობა
@@ -388,7 +389,7 @@ export default function HeroSearch() {
 
           {/* When — daily only (Airbnb: dates optional) */}
           {isDaily && (
-            <div className={`${cell} md:w-[168px] md:shrink-0`}>
+            <div className={cell}>
               <span className="block text-[11px] font-bold uppercase tracking-wider text-white/50">
                 {t('search.checkIn')}
               </span>
@@ -423,7 +424,7 @@ export default function HeroSearch() {
 
           {/* Rooms (sale/rent) · Bedrooms (daily) */}
           {countMode !== 'hide' && (
-            <div className={`${cell} md:w-[128px] md:shrink-0`}>
+            <div className={cell}>
               <button
                 type="button"
                 aria-expanded={countOpen}
@@ -478,7 +479,7 @@ export default function HeroSearch() {
           )}
 
           {/* Price */}
-          <div className={`${cell} md:w-[140px] md:shrink-0`}>
+          <div className={cell}>
             <button
               type="button"
               aria-expanded={priceOpen}
@@ -500,7 +501,7 @@ export default function HeroSearch() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 6 }}
-                  className="absolute right-0 top-full z-50 mt-2 w-[280px] rounded-tile border border-sv-ink/10 bg-sv-surface p-3 shadow-card-hover"
+                  className="absolute right-0 top-full z-50 mt-2 w-[min(100vw-2rem,280px)] rounded-tile border border-sv-ink/10 bg-sv-surface p-3 shadow-card-hover"
                 >
                   <div className="mb-2 flex flex-wrap gap-1.5">
                     {presets.map((p) => (
@@ -551,9 +552,11 @@ export default function HeroSearch() {
               )}
             </AnimatePresence>
           </div>
+        </div>
 
-          {/* Keyword */}
-          <div className="min-w-0 flex-1 px-1 py-1 md:min-w-[140px]">
+        {/* Keyword + CTA — always full width under filters */}
+        <div className="mt-1.5 flex flex-col gap-1.5 sm:flex-row sm:items-stretch">
+          <div className="min-w-0 flex-1 px-1 py-1">
             <SearchSuggest
               variant="dark"
               city={loc.city || undefined}
@@ -568,14 +571,13 @@ export default function HeroSearch() {
             />
           </div>
 
-          {/* CTA */}
-          <div className="flex shrink-0 gap-1.5 p-1 md:pl-2">
+          <div className="flex shrink-0 gap-1.5 p-1">
             <button
               type="button"
               onClick={() => go('/map')}
               onMouseEnter={() => router.prefetch(localizedHref('/map', lang))}
               aria-label={t('nav.map')}
-              className="hidden h-[52px] w-11 place-items-center rounded-control text-white/60 transition-colors hover:bg-white/[0.08] hover:text-white md:grid"
+              className="hidden h-[52px] w-11 place-items-center rounded-control text-white/60 transition-colors hover:bg-white/[0.08] hover:text-white sm:grid"
             >
               <MapPin className="h-[18px] w-[18px]" />
             </button>
@@ -587,14 +589,14 @@ export default function HeroSearch() {
               }}
               onMouseEnter={() => router.prefetch(localizedHref(`/search?${buildParams()}`, lang))}
               aria-label={t('search.filters')}
-              className="hidden h-[52px] w-11 place-items-center rounded-control text-white/60 transition-colors hover:bg-white/[0.08] hover:text-white md:grid"
+              className="hidden h-[52px] w-11 place-items-center rounded-control text-white/60 transition-colors hover:bg-white/[0.08] hover:text-white sm:grid"
             >
               <SlidersHorizontal className="h-[18px] w-[18px]" />
             </button>
             <button
               type="submit"
               onMouseEnter={() => router.prefetch(localizedHref(`/search?${buildParams()}`, lang))}
-              className="flex h-[52px] flex-1 items-center justify-center gap-2 rounded-control bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy active:scale-[0.98] md:flex-none md:min-w-[120px]"
+              className="flex h-[52px] w-full flex-1 items-center justify-center gap-2 rounded-control bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy active:scale-[0.98] sm:w-auto sm:flex-none sm:min-w-[112px]"
             >
               <Search className="h-[18px] w-[18px]" />
               {t('nav.search')}
@@ -603,21 +605,21 @@ export default function HeroSearch() {
         </div>
 
         {/* Sub tools — mobile + AI */}
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 px-1 pb-0.5 md:mt-2">
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 px-1 pb-0.5">
           <button
             type="button"
             onClick={() => {
               const params = buildParams()
               persistAndGo(`/search?${params}`, params)
             }}
-            className="flex items-center gap-2 rounded-control px-3 py-2.5 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white md:hidden"
+            className="flex items-center gap-2 rounded-control px-3 py-2.5 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white sm:hidden"
           >
             <SlidersHorizontal className="h-4 w-4" /> {t('search.filters')}
           </button>
           <button
             type="button"
             onClick={() => go('/map')}
-            className="flex items-center gap-2 rounded-control px-3 py-2.5 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white md:hidden"
+            className="flex items-center gap-2 rounded-control px-3 py-2.5 text-[13px] font-bold text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white sm:hidden"
           >
             <MapPin className="h-4 w-4" /> {t('nav.map')}
           </button>

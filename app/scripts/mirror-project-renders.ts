@@ -76,7 +76,7 @@ const DEV_SITES: Record<string, { base: string; listings: string[] }> = {
   'crystal-group': { base: 'https://crystal.ge', listings: ['/en', '/en/projects'] },
   'tbilisi-hills': { base: 'https://tbilisihills.ge', listings: ['/en', '/en'] },
   dirsi: { base: 'https://dirsi.ge', listings: ['/en', '/en/projects'] },
-  anagi: { base: 'https://angi.ge', listings: ['/en'] },
+  anagi: { base: 'https://anagi.ge', listings: ['/en'] },
   'alliance-group': { base: 'https://alliancegroup.ge', listings: ['/en', '/en/projects'] },
 }
 

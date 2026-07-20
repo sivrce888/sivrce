@@ -8,7 +8,7 @@
  * use CATEGORY_BRAND, actions use sv-orange, brand surfaces use sv-blue.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -24,10 +24,9 @@ import MapEmbed from '@/components/MapEmbed'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { cap1, seoTitleParts } from '@/lib/seo-title'
-import { FEATURE_KEYS } from '@/lib/features'
 import {
   DEALS_FOR, dealLabelKey, fieldsFor, conditionsFor, statusesFor,
-  projectsFor, floorTypesFor, RENT_PERIODS, RENT_TYPES, LAND_FEATURE_KEYS,
+  projectsFor, floorTypesFor, featuresFor, RENT_PERIODS, RENT_TYPES,
 } from '@/lib/add-listing-fields'
 import {
   CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD, formatGEL,
@@ -58,8 +57,6 @@ const DEALS: { key: Deal; icon: typeof Tag; hue: string }[] = [
   { key: 'daily', icon: CalendarClock, hue: DEAL_BRAND.daily },
 ]
 
-const FEATURES = FEATURE_KEYS
-
 const STEPS = ['add.step.type', 'add.step.photos', 'add.step.location', 'add.step.details', 'add.step.price', 'add.step.contact'] as const
 const STEP_TIPS = ['add.tip.type', 'add.tip.photos', 'add.tip.location', 'add.tip.details', 'add.tip.price', 'add.tip.contact'] as const
 
@@ -73,6 +70,9 @@ const ease = [0.21, 0.65, 0.2, 1] as const
 
 const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
 const DRAFT_KEY = 'sivrce.add-listing.v1'
+
+/** Local street suggest row (ka primary, en subtitle). */
+type StreetSug = { ka: string; en?: string }
 
 /** Normalize to `+995 XXX XX XX XX` while typing (9 digits after the forced prefix) */
 const formatPhone = (raw: string): string => {
@@ -108,9 +108,11 @@ export default function AddListingClient() {
   })
   const [geocoding, setGeocoding] = useState(false)
   const [pinReady, setPinReady] = useState(false)
-  const [suggests, setSuggests] = useState<GeocodeHit[]>([])
+  // ponytail: local /api/suggest (ka+en catalog) — Nominatim only for pin after pick
+  const [suggests, setSuggests] = useState<StreetSug[]>([])
   const [suggestOpen, setSuggestOpen] = useState(false)
-  // ponytail: mute one geocode cycle after reverse-fill / suggest so pin↔address don't fight
+  const [suggestHi, setSuggestHi] = useState(-1)
+  // ponytail: mute one geocode cycle after reverse-fill so pin↔address don't fight
   const muteGeocode = useRef(false)
   const [cadastral, setCadastral] = useState('')
   const [cadastralPublic, setCadastralPublic] = useState(false)
@@ -161,9 +163,7 @@ export default function AddListingClient() {
   const statusOpts = propType ? statusesFor(propType) : []
   const projectOpts = propType ? projectsFor(propType) : []
   const floorTypeOpts = propType ? floorTypesFor(propType) : []
-  const featureOpts = (propType === 'land' ? LAND_FEATURE_KEYS : FEATURES).filter(
-    (f) => f !== 'add.f.onlineView',
-  )
+  const featureOpts = deal && propType ? featuresFor(propType, deal) : []
 
   // ponytail: localStorage draft — photos are File blobs, not persisted; restore form only.
   const [draftReady, setDraftReady] = useState(false)
@@ -199,7 +199,10 @@ export default function AddListingClient() {
       if (Array.isArray(d.features)) {
         const feats = d.features.filter((x): x is DictKey => typeof x === 'string')
         setOnlineView(feats.includes('add.f.onlineView') || d.onlineView === true)
-        setFeatures(feats.filter((f) => f !== 'add.f.onlineView'))
+        const raw = feats.filter((f) => f !== 'add.f.onlineView')
+        const dDeal = typeof d.deal === 'string' ? (d.deal as Deal) : null
+        const dProp = typeof d.propType === 'string' ? (d.propType as PropType) : null
+        setFeatures(dDeal && dProp ? raw.filter((f) => featuresFor(dProp, dDeal).includes(f)) : raw)
       } else if (typeof d.onlineView === 'boolean') {
         setOnlineView(d.onlineView)
       }
@@ -276,6 +279,10 @@ export default function AddListingClient() {
     setRentType('')
     setGuests(0)
     setExchangeable(false)
+    if (propType) {
+      const allow = new Set<string>(featuresFor(propType, d))
+      setFeatures((prev) => prev.filter((f) => allow.has(f)))
+    }
   }
   const pickProp = (p: PropType) => {
     setPropType(p)
@@ -338,27 +345,26 @@ export default function AddListingClient() {
     }
   }, [street, houseNo, district, city])
 
-  // Street autocomplete (Nominatim suggest).
+  // Street autocomplete — local ka/en catalog (/api/suggest), same as search.
   useEffect(() => {
     if (!city || street.trim().length < 2) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reset suggestions when input drops below min length
       setSuggests([])
+      setSuggestHi(-1)
       return
     }
     const ac = new AbortController()
     const t = setTimeout(() => {
-      const params = new URLSearchParams({
-        suggest: '1',
-        q: street.trim(),
-        city,
-      })
-      fetch(`/api/geocode?${params}`, { signal: ac.signal })
+      const params = new URLSearchParams({ q: street.trim(), city })
+      fetch(`/api/suggest?${params}`, { signal: ac.signal })
         .then((r) => (r.ok ? r.json() : null))
-        .then((d: { ok?: boolean; hits?: GeocodeHit[] } | null) => {
-          if (d?.ok && Array.isArray(d.hits)) setSuggests(d.hits)
+        .then((d: { ok?: boolean; suggestions?: { kind: string; ka: string; en?: string }[] } | null) => {
+          if (!d?.ok || !Array.isArray(d.suggestions)) return
+          setSuggests(d.suggestions.filter((s) => s.kind === 'street').map((s) => ({ ka: s.ka, en: s.en })))
+          setSuggestHi(-1)
         })
         .catch(() => {})
-    }, 280)
+    }, 150)
     return () => {
       clearTimeout(t)
       ac.abort()
@@ -382,16 +388,12 @@ export default function AddListingClient() {
     setDistrict(canonicalizeDistrict(raw, c) || raw)
   }
 
-  const applyHit = (hit: GeocodeHit) => {
-    muteGeocode.current = true
-    setCoords({ lat: hit.lat, lng: hit.lng })
-    setPinReady(true)
+  /** Pick catalog street → fill name; existing geocode effect fills pin + district. */
+  const applyStreetSug = (s: StreetSug) => {
+    setStreet(s.ka)
     setSuggestOpen(false)
     setSuggests([])
-    if (hit.street) setStreet(hit.street)
-    if (hit.houseNo) setHouseNo(hit.houseNo)
-    if (hit.city && CITIES.includes(hit.city)) setCity(hit.city)
-    if (hit.district) setDistrictCanon(hit.district, hit.city)
+    setSuggestHi(-1)
   }
 
   const onStreetChange = (raw: string) => {
@@ -404,6 +406,22 @@ export default function AddListingClient() {
       setStreet(raw)
     }
     setSuggestOpen(true)
+  }
+
+  const onStreetKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestOpen || suggests.length === 0) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSuggestHi((h) => (h + 1) % suggests.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSuggestHi((h) => (h <= 0 ? suggests.length - 1 : h - 1))
+    } else if (e.key === 'Enter' && suggestHi >= 0 && suggests[suggestHi]) {
+      e.preventDefault()
+      applyStreetSug(suggests[suggestHi])
+    } else if (e.key === 'Escape') {
+      setSuggestOpen(false)
+    }
   }
 
   const onMapPick = (lat: number, lng: number) => {
@@ -930,34 +948,39 @@ export default function AddListingClient() {
                         placeholder={t('add.streetPh')}
                         value={street}
                         onChange={(e) => onStreetChange(e.target.value)}
-                        onFocus={() => setSuggestOpen(true)}
+                        onKeyDown={onStreetKeyDown}
+                        onFocus={() => suggests.length > 0 && setSuggestOpen(true)}
                         onBlur={() => {
                           // let suggestion click land first
                           setTimeout(() => setSuggestOpen(false), 150)
                         }}
-                        autoComplete="street-address"
+                        role="combobox"
+                        aria-expanded={suggestOpen && suggests.length > 0}
+                        aria-autocomplete="list"
+                        autoComplete="off"
                       />
                       {suggestOpen && suggests.length > 0 && (
                         <ul
                           role="listbox"
                           className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-module border border-sv-ink/10 bg-sv-surface py-1 shadow-card"
                         >
-                          {suggests.map((s) => (
-                            <li key={`${s.lat}:${s.lng}:${s.label}`}>
+                          {suggests.map((s, i) => (
+                            <li key={s.ka}>
                               <button
                                 type="button"
                                 role="option"
-                                aria-selected={false}
-                                className="flex w-full flex-col gap-0.5 px-3.5 py-2.5 text-left transition hover:bg-sv-blue/8"
+                                aria-selected={suggestHi === i}
+                                className={`flex w-full flex-col gap-0.5 px-3.5 py-2.5 text-left transition ${
+                                  suggestHi === i ? 'bg-sv-blue/8' : 'hover:bg-sv-blue/8'
+                                }`}
                                 onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => applyHit(s)}
+                                onMouseEnter={() => setSuggestHi(i)}
+                                onClick={() => applyStreetSug(s)}
                               >
-                                <span className="text-[13px] font-extrabold text-sv-ink">
-                                  {[s.street, s.houseNo].filter(Boolean).join(' ') || s.label.split(',')[0]}
-                                </span>
-                                <span className="text-[11px] font-bold text-sv-ink/45">
-                                  {[s.district, s.city].filter(Boolean).join(' · ') || s.label}
-                                </span>
+                                <span className="text-[13px] font-extrabold text-sv-ink">{s.ka}</span>
+                                {s.en && (
+                                  <span className="text-[11px] font-bold text-sv-ink/45">{s.en}</span>
+                                )}
                               </button>
                             </li>
                           ))}

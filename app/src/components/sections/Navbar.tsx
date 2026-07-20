@@ -60,15 +60,15 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Desktop shows only the 6 money links — Georgian labels are wide, anything
-  // more overflows the glass pill. Everything stays in the mobile menu + footer.
+  // Desktop from lg (1024+). Only 4 money links — 6 Georgian labels overflow the pill.
+  // map/buildings/rest live in the hamburger + footer.
   const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean }[] = [
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
     { key: 'nav.projects', to: '/projects' },
-    { key: 'nav.map', to: '/map' },
-    { key: 'nav.buildings', to: '/buildings' },
+    { key: 'nav.map', to: '/map', mobileOnly: true },
+    { key: 'nav.buildings', to: '/buildings', mobileOnly: true },
     { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
     { key: 'nav.services', to: `${bare === '/' ? '' : '/'}#services`, mobileOnly: true },
@@ -78,7 +78,7 @@ export default function Navbar() {
   return (
     <header className="sv-nav-in fixed inset-x-0 top-0 z-50">
       <div
-        className={`mx-auto flex h-[68px] max-w-[1440px] items-center gap-3 px-5 transition-all duration-500 md:gap-4 md:px-8 ${
+        className={`mx-auto flex h-[68px] w-full max-w-[1440px] items-center gap-2 px-4 transition-all duration-500 sm:gap-3 sm:px-5 md:px-8 ${
           light
             ? 'mt-3 max-w-[1240px] rounded-tile glass-light shadow-card md:mt-4'
             : 'bg-transparent'
@@ -89,7 +89,7 @@ export default function Navbar() {
         </div>
 
         <nav
-          className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex"
+          className="hidden min-w-0 flex-1 items-center justify-center gap-0 lg:flex"
           aria-label={t('nav.main')}
         >
           {NAV_LINKS.map((l) =>
@@ -97,7 +97,7 @@ export default function Navbar() {
               <a
                 key={l.key}
                 href={localizedHref(l.to, lang)}
-                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[14px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-3 ${
+                className={`whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-2.5 ${
                   l.mobileOnly ? 'hidden' : ''
                 } ${
                   light
@@ -111,7 +111,7 @@ export default function Navbar() {
               <Link
                 key={l.key}
                 href={localizedHref(l.to, lang)}
-                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[14px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-3 ${
+                className={`whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-2.5 ${
                   l.mobileOnly ? 'hidden' : ''
                 } ${
                   light
@@ -125,7 +125,7 @@ export default function Navbar() {
           )}
         </nav>
 
-        <div className="ml-auto hidden shrink-0 items-center gap-1.5 lg:flex xl:gap-2">
+        <div className="ml-auto hidden shrink-0 items-center gap-1 lg:flex">
           <Link
             href={localizedHref("/favorites", lang)}
             aria-label={`${t('nav.favorites')}${count > 0 ? ` — ${count}` : ''}`}
@@ -148,7 +148,7 @@ export default function Navbar() {
               href={localizedHref("/dashboard", lang)}
               aria-label={session.user.name ?? t('nav.login')}
               title={session.user.name ?? undefined}
-              className={`flex h-10 max-w-[8.5rem] items-center gap-1.5 rounded-full px-2.5 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-3 ${
+              className={`flex h-10 max-w-[8.5rem] items-center gap-1.5 rounded-full px-2.5 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                 light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-white hover:bg-white/10'
               }`}
             >
@@ -159,23 +159,23 @@ export default function Navbar() {
               ) : (
                 <User className="h-4 w-4 shrink-0" />
               )}
-              {/* ponytail: xl+ only — lg keeps avatar so Georgian nav links don't shove CTA */}
-              <span className="hidden truncate xl:inline">{navName ?? t('nav.login')}</span>
+              {/* ponytail: avatar-only in chrome — name on /dashboard */}
+              <span className="sr-only">{navName ?? t('nav.login')}</span>
             </Link>
           ) : (
             <Link
               href="/auth/signin"
-              className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-4 ${
+              aria-label={t('nav.login')}
+              className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                 light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-white hover:bg-white/10'
               }`}
             >
               <User className="h-4 w-4" />
-              <span className="hidden xl:inline">{t('nav.login')}</span>
             </Link>
           )}
           <Link
             href={localizedHref("/add-listing", lang)}
-            className="group flex h-11 shrink-0 items-center gap-2 rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+            className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
           >
             <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
             {t('nav.addListing')}

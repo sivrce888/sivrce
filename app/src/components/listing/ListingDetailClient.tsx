@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront,
+  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront, Columns2,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
@@ -32,10 +32,12 @@ import { formatUSD, formatGEL, formatViews,
 } from '@/data/listings'
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
+import { useCompare } from '@/lib/compare'
 import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useChat } from '@/components/chat/ChatProvider'
+import { useCompareStrings } from '@/components/compare/i18n'
 import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, orderFeaturesForDisplay, projectLabel } from '@/lib/features'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
@@ -176,6 +178,8 @@ function Lightbox({
 /* ————— Page ————— */
 export default function ListingDetailClient({ listing: l, similar }: { listing: Listing; similar: Listing[] }) {
   const { has, toggle } = useFavorites()
+  const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
+  const ttCompare = useCompareStrings()
   const { t, lang } = useI18n()
   const { currency, setCurrency, format } = useCurrency()
   const { openChat } = useChat()
@@ -222,6 +226,7 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
   }, [l, downPct, rate, years])
 
   const fav = has(l.id)
+  const compared = inCompare(l.id)
   const isSale = l.dealType === 'sale'
   const priceMain = format(l.priceGEL)
   const otherCurrency = currency === 'GEL' ? 'USD' : 'GEL'
@@ -789,6 +794,21 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   <span className="truncate text-[13px] font-extrabold">{t('nav.favorites')}</span>
                 </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => toggleCompare(l.id)}
+                disabled={!compared && compareFull}
+                aria-pressed={compared}
+                className={`mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
+                  compared
+                    ? 'border-sv-blue/30 bg-sv-blue/10 text-sv-blue'
+                    : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/55 hover:border-sv-blue/20 hover:text-sv-blue'
+                }`}
+              >
+                <Columns2 className="h-4 w-4 shrink-0" />
+                <span className="truncate">{compared ? ttCompare('remove') : ttCompare('add')}</span>
+              </button>
 
               <button
                 onClick={share}

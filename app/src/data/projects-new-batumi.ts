@@ -38,7 +38,8 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
       ru: 'Crystal Group — грузинский девелопер, строит Crystal Loft и Crystal Resort (ул. Триалети) в Бакуриани, а также Crystal Park Hotel.',
     },
     verified: false,
-    phone: '',
+    phone: '+995 32 211 10 99',
+    website: 'https://crystal-group.ge',
   },
   {
     slug: 'resorts-development',
@@ -104,7 +105,7 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
     slug: 'telavi-estate',
     name: { ka: 'Telavi Estate', en: 'Telavi Estate', ru: 'Telavi Estate' },
     city: 'თელავი',
-    yearsActive: 0,
+    yearsActive: 3,
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
@@ -114,12 +115,13 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
     },
     verified: false,
     phone: '',
+    website: 'https://telaviestate.com',
   },
   {
     slug: 'kakheti-telavi-sun',
     name: { ka: 'Kakheti Telavi Sun', en: 'Kakheti Telavi Sun', ru: 'Kakheti Telavi Sun' },
     city: 'თელავი',
-    yearsActive: 0,
+    yearsActive: 2,
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
@@ -129,6 +131,7 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
     },
     verified: false,
     phone: '',
+    website: 'https://telavismze.com',
   },
   {
     slug: 'sun-estate',
@@ -203,7 +206,8 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
       ru: 'Tbilisi Hills — девелопер гольф-курорта в Крцаниси: поле входит в Top-100 континентальной Европы; квартиры, виллы и участки.',
     },
     verified: false,
-    phone: '',
+    phone: '+995 551 452 222',
+    website: 'https://tbilisihills.com',
   },
   {
     slug: 'artex-group',
@@ -218,7 +222,8 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
       ru: 'Artex Group — батумский девелопер, строит Artex (1-й пер. Ангиса, 35б) и Gate by Artex (ул. Анцухелидзе, 110) в районе Аэропорта.',
     },
     verified: false,
-    phone: '',
+    phone: '+995 592 400 000',
+    website: 'https://artex.ge',
   },
   {
     slug: 'kbk-development',
@@ -360,8 +365,8 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     finish: 'TBA',
     flats: 250,
     rating: 4.5,
-    coords: { lat: 41.6773609, lng: 41.6964211 },
-    // ponytail: approximate pin, verify vs cadastral — Makhinjauri centroid, project announced
+    coords: { lat: 41.6771, lng: 41.6951 },
+    // ponytail: Makhinjauri beachfront (orbi.ge) — street № not published
     description: {
       ka: 'Orbi Crystal — ORBI-ის გამოცხადებული პროექტი მახინჯაურის სანაპიროზე, ბათუმის ჩრდილოეთ შესასვლელში ზღვის პირველ ხაზზე.',
       en: 'Orbi Crystal is ORBI’s announced project on the Makhinjauri beachfront at Batumi’s northern entrance, first line from the sea.',
@@ -380,8 +385,8 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     finish: 'TBA',
     flats: 300,
     rating: 4.5,
-    coords: { lat: 41.653612, lng: 41.6345362 },
-    // ponytail: approximate pin, verify vs cadastral — boulevard waterfront, project announced
+    coords: { lat: 41.6536, lng: 41.6345 },
+    // ponytail: Batumi Boulevard waterfront (orbi.ge) — street № not published
     description: {
       ka: 'Orbi Sunset Boulevard — ORBI-ის გამოცხადებული პროექტი ბათუმის ბულვარის სანაპირო ზონაში.',
       en: 'Orbi Sunset Boulevard is ORBI’s announced project on the Batumi Boulevard waterfront.',
@@ -714,15 +719,14 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     name: 'White Line',
     developerSlug: 'ds-group',
     img: '/images/projects/ds-white-line.webp',
-    location: 'ბათუმი',
+    location: 'იუსუფ კობალაძის ქ. 18/20, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: 'მოთხოვნით',
     done: 60,
     finish: '2026',
     flats: 300,
     rating: 4.5,
-    coords: { lat: 41.6509502, lng: 41.6360085 },
-    // ponytail: approximate pin, verify vs cadastral — no street address published (Block A delivered 2023, Block B 2025/26)
+    coords: { lat: 41.6328, lng: 41.6108 },
     description: {
       ka: 'White Line — DS Group-ის კომპლექსი ბათუმში: ბლოკი A ჩაბარებულია 2023 წელს, ბლოკი B იბარება 2025/26 წლებში.',
       en: 'White Line is DS Group’s complex in Batumi: Block A delivered in 2023, Block B delivers in 2025/26.',
@@ -814,15 +818,14 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     name: 'Sensa by Tempo',
     developerSlug: 'tempo',
     img: '/images/projects/tempo-sensa.webp',
-    location: 'ბათუმი',
+    location: 'ბათუმის ბოტანიკური ბაღი / მწვანე კონცხი, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: 'მოთხოვნით',
     done: 20,
     finish: 'TBA',
     flats: 150,
     rating: 4.5,
-    coords: { lat: 41.6509502, lng: 41.6360085 },
-    // ponytail: approximate pin, verify vs cadastral — no street address published (tempoholding.ge)
+    coords: { lat: 41.7014, lng: 41.7199 },
     description: {
       ka: 'Sensa — Tempo Holding-ის ახალი პროექტი ბათუმში, Queen’s Residence-ისა და Serenade-ის გვერდით პორტფელში.',
       en: 'Sensa is Tempo Holding’s new Batumi project, alongside Queen’s Residence and Serenade in the portfolio.',
@@ -853,15 +856,15 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     name: 'Reside Riverside',
     developerSlug: 'reside-development',
     img: '/images/np1.webp',
-    location: 'ბათუმი',
+    location: 'ანგისას ქ. 95, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: 'მოთხოვნით',
     done: 20,
     finish: 'TBA',
     flats: 120,
     rating: 4.5,
-    coords: { lat: 41.6509502, lng: 41.6360085 },
-    // ponytail: approximate pin, verify vs cadastral — no street address published (reside.ge)
+    coords: { lat: 41.6262, lng: 41.6019 },
+    floors: 8,
     description: {
       ka: 'Reside Riverside — Reside Development-ის ახალი პროექტი ბათუმში, DEST სერიის კომპლექსების გვერდით.',
       en: 'Reside Riverside is Reside Development’s new Batumi project, alongside the DEST-series complexes.',

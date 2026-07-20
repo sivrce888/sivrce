@@ -8,6 +8,7 @@ import { BLOG_POSTS } from '@/data/blog'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
+import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
 
 const BASE = 'https://sivrce.ge'
@@ -54,6 +55,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/blog', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },
     { path: '/neighborhoods', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
     { path: '/projects', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.85 },
+    // New-build sub-hubs (ka/en/ru corpus in directory-seo PROJECT_HUBS).
+    { path: '/projects/tbilisi', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
+    { path: '/projects/batumi', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
+    { path: '/projects/batumi/sea-view', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 },
+    { path: '/projects/installment', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 },
+    { path: '/projects/ready', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 },
     { path: '/advertise', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.6 },
     { path: '/about', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
     { path: '/contact', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.5 },
@@ -83,6 +90,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
   for (const p of sitemapProjects) {
     entries.push({ path: `/projects/${p.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.8 })
+  }
+  for (const d of PROJECT_DISTRICTS) {
+    entries.push({ path: `/projects/tbilisi/${d.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 })
   }
 
   for (const p of BLOG_POSTS) {

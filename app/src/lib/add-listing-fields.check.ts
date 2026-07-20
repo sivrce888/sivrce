@@ -7,6 +7,7 @@ import {
   statusesFor,
   projectsFor,
   floorTypesFor,
+  featuresFor,
 } from './add-listing-fields'
 
 assert.deepEqual([...DEALS_FOR.land], ['sale', 'rent', 'pledge'])
@@ -49,5 +50,26 @@ const house = fieldsFor('house', 'sale')
 assert.equal(house.yard, true)
 assert.equal(house.project, false)
 assert.equal(house.kitchen, true)
+
+const saleFeats = featuresFor('house', 'sale')
+assert.ok(!saleFeats.includes('add.f.partiesAllowed'))
+assert.ok(!saleFeats.includes('add.f.selfCheckIn'))
+assert.ok(!saleFeats.includes('add.f.petsAllowed'))
+assert.ok(saleFeats.includes('add.f.balcony'))
+assert.ok(saleFeats.includes('add.f.pool'))
+
+const rentFeats = featuresFor('apartment', 'rent')
+assert.ok(!rentFeats.includes('add.f.partiesAllowed'))
+assert.ok(rentFeats.includes('add.f.petsAllowed'))
+assert.ok(rentFeats.includes('add.f.washer'))
+
+const dailyFeats = featuresFor('house', 'daily')
+assert.ok(dailyFeats.includes('add.f.partiesAllowed'))
+assert.ok(dailyFeats.includes('add.f.selfCheckIn'))
+assert.ok(dailyFeats.includes('add.f.petsAllowed'))
+assert.ok(!dailyFeats.includes('add.f.onlineView'))
+
+assert.ok(featuresFor('land', 'sale').every((f) => !String(f).includes('parties')))
+assert.equal(featuresFor('land', 'sale').length, 7)
 
 console.log('add-listing-fields: ok')

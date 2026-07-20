@@ -8,6 +8,7 @@ import type { DictKey } from '@/lib/i18n/context'
 import {
   BUILDING_STATUS_KEYS,
   CONDITION_KEYS,
+  FEATURE_KEYS,
   FLOOR_TYPE_KEYS,
   PROJECT_KEYS,
 } from '@/lib/features'
@@ -173,3 +174,35 @@ export const LAND_FEATURE_KEYS = [
   'add.f.mountainView',
   'add.f.beachfront',
 ] as const satisfies readonly DictKey[]
+
+/** Host-policy / stay lifestyle — daily only (parties, smoking, self check-in…). */
+const DAILY_ONLY = new Set<string>([
+  'add.f.selfCheckIn',
+  'add.f.partiesAllowed',
+  'add.f.smokingAllowed',
+  'add.f.workspace',
+  'add.f.kidFriendly',
+])
+
+/** Furnished-stay signals — rent + daily, not sale/pledge. */
+const RENT_OR_DAILY = new Set<string>([
+  'add.f.petsAllowed',
+  'add.f.kitchen',
+  'add.f.washer',
+  'add.f.tv',
+])
+
+/**
+ * Amenity chips for /add-listing (and search filters).
+ * Physical building traits stay for all deals; host-policy stays daily-only.
+ * `add.f.onlineView` is a dedicated checkbox — never in the grid.
+ */
+export function featuresFor(prop: PropType, deal: DealType): readonly DictKey[] {
+  if (prop === 'land') return LAND_FEATURE_KEYS
+  return FEATURE_KEYS.filter((f) => {
+    if (f === 'add.f.onlineView') return false
+    if (DAILY_ONLY.has(f)) return deal === 'daily'
+    if (RENT_OR_DAILY.has(f)) return deal === 'rent' || deal === 'daily'
+    return true
+  })
+}

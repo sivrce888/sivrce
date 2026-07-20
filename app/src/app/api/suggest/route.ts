@@ -30,7 +30,10 @@ function matches(hay: (string | undefined)[], q: string): { prefix: boolean } | 
   for (const h of hay) {
     if (!h) continue
     const n = norm(h)
-    if (n.startsWith(q)) return { prefix: true }
+    // full-string or any word starts with q ("beli" → Beliashvili)
+    if (n.startsWith(q) || n.split(/[\s-]+/).some((w) => w.startsWith(q))) {
+      return { prefix: true }
+    }
   }
   for (const h of hay) {
     if (!h) continue

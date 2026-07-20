@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.11) · FROZEN 2026-07-17 · Logo board 1:1 live 2026-07-19 · Status = newProjects sky 2026-07-18
+# სივრცე — Brand Lock (v1.12) · FROZEN 2026-07-17 · Logo board 1:1 re-cropped from 2x master 2026-07-19 · Status = newProjects sky 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -59,14 +59,24 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 
 ## 2. Logo
 
-- **Master = owner board** (`logo/source/sivrce-spark-board.png`). Crops in
-  `logo/board1x1/` → shipped via `app/public/logo/`.
+- **Master = owner board** (`logo/source/sivrce-spark-board.png`, 2048×1152).
+  Crops in `logo/board1x1/` → shipped via `app/public/logo/`.
+  Regenerate everything with `python3 logo/build_board1x1.py` (idempotent).
 - Live UI (`Logo.tsx`): board PNG lockup / mark — **exact** mark + wordmark
   font (baked raster). Do not substitute Manrope outlines or SVG approximations
   for the primary identity.
 - Files: `lockup-ink.png` · `lockup-white.png` · `mark.png` ·
   `wordmark-ink.png` · `wordmark-white.png` (+ size variants).
-- Favicon / apple / PWA from `logo/board1x1/app-icon-*` + `mark-*`.
+  `lockup-ink`/`lockup-white` share one canvas/registration.
+- White variants are synthesized from the light masters (spark + white-recolored
+  board wordmark) — the navy tile's glow texture must not leak onto other dark
+  surfaces. App icons: navy square + board spark at the tile's relative box.
+- Favicon / apple / PWA from `logo/board1x1/app-icon-*` + `mark-*`
+  (`app/src/app/icon.png`, `apple-icon.png`, `favicon.ico`, `app/public/icons/`).
+- OG image: `app/public/images/og-brand.png` (pristine base
+  `logo/source/og-brand-base.png` + white lockup).
+- Share watermark: `logo/watermark/png/sivrce-wm-soft-white-{8x,16x}.png`
+  (board white lockup @ 0.72 opacity). Other watermark variants = legacy.
 - Never recolor, rotate, outline, or place on busy backgrounds without a dark
   scrim
 - Min clear space = 25% of mark on all sides

@@ -1,0 +1,92 @@
+"use client"
+
+import { useI18n } from "@/lib/i18n/context"
+
+const STR = {
+  ka: {
+    trayTitle: "შედარება",
+    compare: "შეადარე",
+    open: "გახსნა",
+    clear: "გასუფთავება",
+    add: "შედარებაში დამატება",
+    remove: "შედარებიდან ამოშლა",
+    full: "მაქსიმუმ 4 ობიექტი",
+    empty: "აირჩიე 2–4 განცხადება შესადარებლად",
+    pageTitle: "ობიექტების შედარება",
+    pageSub: "გვერდიგვერდ — ფასი, ფართი, ოთახები, უბანი. არც ერთ ქართულ პორტალს არ აქვს.",
+    col: "მახასიათებელი",
+    price: "ფასი",
+    perM2: "ფასი / მ²",
+    area: "ფართი",
+    rooms: "ოთახები",
+    beds: "საძინებელი",
+    baths: "სველი წერტილი",
+    floor: "სართული",
+    district: "უბანი",
+    type: "ტიპი",
+    deal: "გარიგება",
+    ai: "AI ქულა",
+    removeCol: "ამოშლა",
+    search: "ძიება",
+  },
+  en: {
+    trayTitle: "Compare",
+    compare: "Compare",
+    open: "Open",
+    clear: "Clear",
+    add: "Add to compare",
+    remove: "Remove from compare",
+    full: "Max 4 homes",
+    empty: "Pick 2–4 listings to compare",
+    pageTitle: "Compare homes",
+    pageSub: "Side-by-side price, size, rooms, district — first in Georgia.",
+    col: "Feature",
+    price: "Price",
+    perM2: "Price / m²",
+    area: "Area",
+    rooms: "Rooms",
+    beds: "Beds",
+    baths: "Baths",
+    floor: "Floor",
+    district: "District",
+    type: "Type",
+    deal: "Deal",
+    ai: "AI score",
+    removeCol: "Remove",
+    search: "Search",
+  },
+  ru: {
+    trayTitle: "Сравнение",
+    compare: "Сравнить",
+    open: "Открыть",
+    clear: "Очистить",
+    add: "Добавить к сравнению",
+    remove: "Убрать из сравнения",
+    full: "Максимум 4 объекта",
+    empty: "Выберите 2–4 объявления",
+    pageTitle: "Сравнение объектов",
+    pageSub: "Цена, площадь, комнаты, район рядом — первыми в Грузии.",
+    col: "Параметр",
+    price: "Цена",
+    perM2: "Цена / м²",
+    area: "Площадь",
+    rooms: "Комнаты",
+    beds: "Спальни",
+    baths: "Санузлы",
+    floor: "Этаж",
+    district: "Район",
+    type: "Тип",
+    deal: "Сделка",
+    ai: "AI оценка",
+    removeCol: "Убрать",
+    search: "Поиск",
+  },
+} as const
+
+type Key = keyof (typeof STR)["ka"]
+
+export function useCompareStrings(): (key: Key) => string {
+  const { lang } = useI18n()
+  const pack = lang === "ka" ? STR.ka : lang === "ru" ? STR.ru : STR.en
+  return (key) => pack[key]
+}

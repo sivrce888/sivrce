@@ -49,25 +49,42 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
       role="dialog"
       aria-label={`${building.label} — განცხადებები`}
     >
-      <header className="shrink-0 border-b border-sv-ink/6 p-5">
-        <div className="flex items-start justify-between gap-3">
+      <header className="shrink-0 border-b border-sv-ink/6">
+        {/* ponytail: construction hero = wide official render, not map draping */}
+        {isConstruction && building.img ? (
+          <div className="relative h-36 w-full overflow-hidden bg-sv-navy/5 sm:h-40">
+            <Image
+              src={building.img}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="400px"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/55 via-sv-navy/10 to-transparent" />
+          </div>
+        ) : null}
+        <div className="flex items-start justify-between gap-3 p-5">
           <div className="flex gap-3">
-            {building.img ? (
+            {building.img && !isConstruction ? (
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-module">
                 <Image src={building.img} alt="" fill className="object-cover" sizes="56px" />
               </div>
-            ) : (
+            ) : isConstruction && !building.img ? (
               <span
                 className="grid h-14 w-14 shrink-0 place-items-center rounded-module text-white"
                 style={{ background: building.color }}
               >
-                {isConstruction ? (
-                  <HardHat className="h-6 w-6" />
-                ) : (
-                  <Building2 className="h-6 w-6" />
-                )}
+                <HardHat className="h-6 w-6" />
               </span>
-            )}
+            ) : !building.img ? (
+              <span
+                className="grid h-14 w-14 shrink-0 place-items-center rounded-module text-white"
+                style={{ background: building.color }}
+              >
+                <Building2 className="h-6 w-6" />
+              </span>
+            ) : null}
             <div className="min-w-0">
               <h2 className="text-[17px] font-black tracking-[-0.02em] text-sv-ink">
                 {building.label}
@@ -109,7 +126,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
         </div>
 
         {(building.developerName || building.rating != null) && (
-          <div className="mt-3 flex flex-wrap items-center gap-3 text-[12px] font-bold text-sv-ink/55">
+          <div className="flex flex-wrap items-center gap-3 px-5 pb-5 text-[12px] font-bold text-sv-ink/55">
             {building.developerName && (
               <span className="inline-flex items-center gap-1">
                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
@@ -139,7 +156,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
         {building.slug && (
           <Link
             href={`/buildings/${building.slug}`}
-            className="mt-3 inline-flex min-h-11 items-center rounded-full bg-sv-cloud px-4 py-2 text-[12px] font-extrabold text-sv-ink transition hover:bg-sv-blue hover:text-white"
+            className="mx-5 mb-3 inline-flex min-h-11 items-center rounded-full bg-sv-cloud px-4 py-2 text-[12px] font-extrabold text-sv-ink transition hover:bg-sv-blue hover:text-white"
           >
             შენობის გვერდი
           </Link>
@@ -147,7 +164,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
 
         {isConstruction ? (
           <div
-            className="mt-4 rounded-module border p-3"
+            className="mx-5 mb-5 rounded-module border p-3"
             style={{
               borderColor: `${STATUS_BRAND.construction.hue}40`,
               background: STATUS_BRAND.construction.chip,
