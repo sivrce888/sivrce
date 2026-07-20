@@ -23,12 +23,16 @@ import { TourBooking } from '@/components/listing/TourBooking'
 import { SELLER_ROLE_LABEL } from '@/lib/profiles/roles'
 import MapEmbed from '@/components/MapEmbed'
 import RevealPhone from '@/components/listing/RevealPhone'
+import PriceScale from '@/components/listing/PriceScale'
 import { parseCoords } from '@/lib/map/geocode'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { blurProps } from '@/lib/media'
+import { listingPublicId } from '@/lib/listing-public-id'
+import { priceScaleOf } from '@/lib/price-scale'
+import { streetHrefForListing } from '@/lib/street-href'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
-  formatFloor, getListing, USD_GEL, type Listing, type PropType,
+  formatFloor, getListing, LISTINGS, USD_GEL, type Listing, type PropType,
 } from '@/data/listings'
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
@@ -176,7 +180,16 @@ function Lightbox({
 }
 
 /* ————— Page ————— */
-export default function ListingDetailClient({ listing: l, similar }: { listing: Listing; similar: Listing[] }) {
+export default function ListingDetailClient({
+  listing: l,
+  similar,
+  peerPerM2,
+}: {
+  listing: Listing
+  similar: Listing[]
+  /** District peer $/m² from DB (optional — mock peers as fallback). */
+  peerPerM2?: number[]
+}) {
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const ttCompare = useCompareStrings()
@@ -231,6 +244,25 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
   const priceMain = format(l.priceGEL)
   const otherCurrency = currency === 'GEL' ? 'USD' : 'GEL'
   const priceAlt = otherCurrency === 'USD' ? formatUSD(l.priceUSD) : formatGEL(l.priceGEL)
+  const publicId = listingPublicId(l)
+  const streetHref = useMemo(
+    () => streetHrefForListing(l.address, l.district, l.city),
+    [l.address, l.district, l.city],
+  )
+  const priceScale = useMemo(() => {
+    const peers =
+      peerPerM2 && peerPerM2.length >= 2
+        ? peerPerM2
+        : LISTINGS.filter(
+            (x) =>
+              x.id !== l.id &&
+              x.dealType === l.dealType &&
+              x.propType === l.propType &&
+              x.district === l.district &&
+              x.perM2USD > 0,
+          ).map((x) => x.perM2USD)
+    return priceScaleOf(l.perM2USD, peers)
+  }, [l, peerPerM2])
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
@@ -416,13 +448,25 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                   <span className="flex items-center gap-1 text-[12px] font-bold text-sv-ink/45">
                     <Calendar className="h-3.5 w-3.5" /> {l.postedAt}
                   </span>
+                  <span className="rounded-full bg-sv-ink/[0.05] px-2.5 py-1 font-mono text-[11px] font-black tabular-nums text-sv-ink/55">
+                    ID {publicId}
+                  </span>
                 </div>
                 <h1 className="mt-2.5 text-balance text-[26px] font-black leading-tight tracking-[-0.02em] text-sv-ink md:text-[34px]">
                   {l.title}
                 </h1>
-                <p className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-ink/50">
-                  <MapPin className="h-4 w-4 shrink-0 text-sv-blue" /> {l.address}
-                </p>
+                {streetHref ? (
+                  <LocalizedLink
+                    href={streetHref}
+                    className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-blue transition-colors hover:text-sv-blue-deep"
+                  >
+                    <MapPin className="h-4 w-4 shrink-0" /> {l.address}
+                  </LocalizedLink>
+                ) : (
+                  <p className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-ink/50">
+                    <MapPin className="h-4 w-4 shrink-0 text-sv-blue" /> {l.address}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -498,6 +542,13 @@ export default function ListingDetailClient({ listing: l, similar }: { listing: 
                 ))}
               </div>
             </div>
+
+            {isSale && l.perM2USD > 0 ? (
+              <PriceScale
+                scale={priceScale}
+                priceLabel={`$${l.perM2USD.toLocaleString('en-US')}/მ²`}
+              />
+            ) : null}
 
             {/* AI assessment */}
             <div className="mt-6 overflow-hidden rounded-card border border-sv-blue/15 bg-gradient-to-br from-sv-blue/[0.06] via-sv-surface to-sv-violet/[0.06] p-6 shadow-card">

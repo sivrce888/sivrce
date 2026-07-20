@@ -134,10 +134,22 @@ export default function HeroSearch() {
     go(path)
   }
 
-  const submitSearch = () => {
+  const submitSearch = async () => {
     if (tab === 3) {
       document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })
       return
+    }
+    // ID / phone → jump straight to listing (MyHome parity)
+    const raw = keyword.trim()
+    if (/^\d[\d\s+-]{5,}$/.test(raw) || /^\+?995/.test(raw.replace(/\s/g, ''))) {
+      try {
+        const res = await fetch(`/api/listings/resolve?q=${encodeURIComponent(raw)}`)
+        const json = (await res.json()) as { ok?: boolean; path?: string }
+        if (json.ok && json.path) {
+          persistAndGo(json.path, new URLSearchParams())
+          return
+        }
+      } catch { /* fall through to normal search */ }
     }
     const params = buildParams()
     const qs = params.toString()

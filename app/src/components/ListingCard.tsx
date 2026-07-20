@@ -13,6 +13,8 @@ import {
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
 import { listingPath } from '@/lib/listing-slug'
+import { listingPublicId } from '@/lib/listing-public-id'
+import { streetHrefForListing } from '@/lib/street-href'
 import { useCurrency } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
@@ -256,8 +258,16 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     </div>
   )
 
+  const streetHref = streetHrefForListing(l.address, l.district, l.city)
+  const publicId = listingPublicId(l)
+
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-5">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="font-mono text-[10px] font-black tabular-nums text-sv-ink/35">
+          ID {publicId}
+        </span>
+      </div>
       <h3 className="line-clamp-1 text-[16px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
         {/* stretched link: ::after covers the whole card; fav button sits above via z-10 */}
         <LocalizedLink
@@ -268,8 +278,19 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           {l.title}
         </LocalizedLink>
       </h3>
-      <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
-        <MapPin className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{l.address}</span>
+      <p className="relative z-10 mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
+        <MapPin className="h-3.5 w-3.5 shrink-0" />
+        {streetHref ? (
+          <LocalizedLink
+            href={streetHref}
+            className="truncate text-sv-blue hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {l.address}
+          </LocalizedLink>
+        ) : (
+          <span className="truncate">{l.address}</span>
+        )}
         <span className="mx-1 text-sv-ink/20" aria-hidden="true">·</span>
         <WeatherBadge city={l.city} className="text-sv-ink/40" />
       </p>
