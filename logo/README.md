@@ -1,10 +1,10 @@
 # Sivrce — Logo System
 
-**Current master (v1.13, locked): the owner lockup** —
-`source/sivrce-lockup-master.png` (horizontal spark + wordmark on white).
-Every shipped asset is a 1:1 crop: `board1x1/` → `app/public/logo/`, app
-icons, favicon, `og-brand.png`, share watermark. Rebuild all:
-`python3 logo/build_board1x1.py` (idempotent). See `app/BRAND.md` §2.
+**Current master (v1.14, locked): owner SVG** — `source/sivrce.svg`
+(Inkscape wrapper → embedded 2048×508 lockup PNG =
+`source/sivrce-lockup-master.png`). Every shipped asset is a 1:1 crop:
+`board1x1/` → `app/public/logo/`, app icons, favicon, `og-brand.png`, share
+watermark. Rebuild: `python3 logo/build_board1x1.py`. See `app/BRAND.md` §2.
 
 Everything below (v1.0 "Space Point" geometry, Manrope wordmark outlines,
 SVG lockups) is **legacy history** — never ship it as the primary identity.
