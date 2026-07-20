@@ -25,6 +25,8 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
   {
     titleKey: 'footer.colServices',
     links: [
+      { key: 'nav.map', href: '/map' },
+      { key: 'nav.buildings', href: '/buildings' },
       { key: 'footer.sv.projects', href: '/projects' },
       { key: 'footer.sv.agents', href: '/advertise' },
       { key: 'footer.sv.developers', href: '/advertise' },
