@@ -167,11 +167,6 @@ const POI_ICON_ID = 'sivrce-pois-icon'
 const POI_LABEL_LAYER_ID = 'sivrce-pois-label'
 const POI_DATA = poisToGeoJSON()
 
-const STATIC_BUILDINGS = mergeMapBuildings(
-  clusterListingsToBuildings(LISTINGS),
-  projectsToConstructionBuildings(PROJECTS),
-)
-
 async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
   if (map.getSource(SOURCE_ID)) return
 
@@ -513,8 +508,8 @@ function Map3DInner({
   const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
-  const visibleRef = useRef<MapBuildingCluster[]>(STATIC_BUILDINGS)
-  const allRef = useRef<MapBuildingCluster[]>(STATIC_BUILDINGS)
+  const visibleRef = useRef<MapBuildingCluster[]>([])
+  const allRef = useRef<MapBuildingCluster[]>([])
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
 

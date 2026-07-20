@@ -174,6 +174,8 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.sellerType) where.sellerType = filters.sellerType
   // Join table when warm; static metro boxes so filter works before cron backfill.
   if (filters.nearMetro) and.push(nearMetroFilter())
+  // Catalog cards live on /projects — keep deal search unit-only.
+  and.push({ NOT: { extendedFields: { path: ["projectCatalog"], equals: true } } })
 
   // Daily-rent availability: drop listings whose confirmed/pending bookings or
   // host-blocked dates overlap the requested [from, to) window. Half-open

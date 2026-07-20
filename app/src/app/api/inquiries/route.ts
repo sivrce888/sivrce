@@ -1,12 +1,13 @@
 import { checkBotId } from "botid/server"
 
 import { auth } from "@/auth"
-import { LISTINGS, type DealType } from "@/data/listings"
+import type { DealType } from "@/data/listings"
 import { getConfig } from "@/lib/config"
 import { db } from "@/lib/db"
 import { sendInquiryNotification } from "@/lib/email"
 import { checkRateLimit } from "@/lib/inquiries/rate-limit"
 import { hasHoneypot, validateInquiry } from "@/lib/inquiries/validate"
+import { getListing as getDbListing } from "@/lib/listings-db"
 import { resolveListingPhone } from "@/lib/listings/phone-vault"
 import { isSameOrigin } from "@/lib/security/origin"
 
@@ -63,11 +64,12 @@ export async function POST(req: Request) {
   // Session is optional — an auth hiccup must never lose a lead.
   const session = await auth().catch(() => null)
 
-  // Enrich known static listings (agent + geo) so the CRM row is self-contained.
-  const listing = targetType === "listing" ? LISTINGS.find((l) => l.id === targetId) : undefined
+  // Enrich live listing (agent + geo) so the CRM row is self-contained.
+  const listing =
+    targetType === "listing" ? await getDbListing(targetId).catch(() => null) : null
   const isCareers = targetId === "careers"
   const agentName = listing?.agent.name ?? (isCareers ? "კარიერა" : "Sivrce")
-  // Full phone from vault — LISTINGS.agent.phone is masked for scrapers.
+  // Full phone from vault — listing card phone may be masked for scrapers.
   const agentPhone =
     targetType === "listing" ? await resolveListingPhone(targetId) : null
   // ponytail: careers always hits hi@ so a stale DB config can't lose applications.
@@ -133,16 +135,13 @@ export async function GET() {
     take: 50,
   })
 
-  // Titles: one batched db query + in-memory static catalog fallback.
+  // Titles from live listings only.
   const ids = [...new Set(rows.map((r) => r.listingId))]
   const dbRows = await db.listing.findMany({
     where: { id: { in: ids } },
     select: { id: true, title: true },
   })
   const titles = new Map<string, string>(dbRows.map((r) => [r.id, r.title]))
-  for (const l of LISTINGS) {
-    if (ids.includes(l.id)) titles.set(l.id, l.title)
-  }
 
   return Response.json({
     ok: true,

@@ -34,10 +34,6 @@ function buildDbOrderBy(filters: SearchFilters): Prisma.ListingOrderByWithRelati
   }
 }
 
-function isProjectCatalog(l: { extendedFields: unknown }): boolean {
-  return Boolean((l.extendedFields as { projectCatalog?: boolean } | null)?.projectCatalog)
-}
-
 function priceUsd(l: { price: number; currency: string }): number {
   return l.currency === "GEL" ? l.price / USD_GEL : l.price
 }
@@ -52,16 +48,11 @@ function sortHits<T extends {
   currency: string
   pricePerSqm: number | null
   createdAt: Date
-  extendedFields: unknown
   area?: number
   trustScore?: number | null
 }>(rows: T[], sort: SearchFilters["sort"]): T[] {
   const copy = [...rows]
   copy.sort((a, b) => {
-    // Always demote developer catalog below real units (inventory-thin ceiling).
-    const ap = isProjectCatalog(a) ? 1 : 0
-    const bp = isProjectCatalog(b) ? 1 : 0
-    if (ap !== bp) return ap - bp
     switch (sort) {
       case "price-asc":
         return priceUsd(a) - priceUsd(b)
