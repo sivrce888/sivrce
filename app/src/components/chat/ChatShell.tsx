@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import CompareTray from "@/components/compare/CompareTray"
 import ChatProvider from "./ChatProvider"
 import ChatWidget from "./ChatWidget"
 
@@ -35,6 +36,7 @@ export default function ChatShell({ children }: { children: React.ReactNode }) {
   return (
     <ChatProvider>
       {children}
+      <CompareTray />
       {checked && authenticated && <ChatWidget />}
     </ChatProvider>
   )

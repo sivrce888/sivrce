@@ -121,13 +121,17 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
-      // Hashed Next assets — immutable forever (big-brand CDN trick).
+      // Hashed Next assets — immutable in prod. Dev must not cache or HMR CSS goes stale
+      // (turbopack keeps a stable globals hash → browser never refetches xl:* utilities).
       {
         source: "/_next/static/:path*",
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
+            value:
+              process.env.NODE_ENV === "development"
+                ? "no-store"
+                : "public, max-age=31536000, immutable",
           },
         ],
       },

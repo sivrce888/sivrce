@@ -7,7 +7,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
-  TrendingDown, TrainFront, CircleDot,
+  TrendingDown, TrainFront, CircleDot, Columns2,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
@@ -15,6 +15,7 @@ import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
 import { listingPath } from '@/lib/listing-slug'
 import { useCurrency } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
+import { useCompare } from '@/lib/compare'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
 import { blurProps } from '@/lib/media'
@@ -117,9 +118,11 @@ interface ListingCardProps {
 
 export default function ListingCard({ l, i = 0, layout = 'grid', animate = true }: ListingCardProps) {
   const { has, toggle } = useFavorites()
+  const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t } = useI18n()
   const { format, currency } = useCurrency()
   const fav = has(l.id)
+  const compared = inCompare(l.id)
   const signals = useSocialSignals(l.views, l.postedAt)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
   const metro = nearestMetro(l.coords.lat, l.coords.lng)
@@ -147,6 +150,24 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
       >
         <Share2 className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        aria-label={compared ? 'Remove from compare' : compareFull ? 'Compare full (max 4)' : 'Add to compare'}
+        aria-pressed={compared}
+        disabled={!compared && compareFull}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          toggleCompare(l.id)
+        }}
+        className={`grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:cursor-not-allowed disabled:opacity-40 ${
+          compared
+            ? 'bg-sv-surface text-sv-blue'
+            : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-blue'
+        }`}
+      >
+        <Columns2 className={`h-4 w-4 ${compared ? 'stroke-[2.5]' : ''}`} />
       </button>
       <button
         aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}

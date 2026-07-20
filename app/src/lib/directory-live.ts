@@ -15,7 +15,10 @@ export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10f
 
 /** Seed/catalog stock art — not a real project render. */
 export function isPlaceholderImg(img: string | null | undefined): boolean {
-  return !img || img.startsWith('/images/')
+  // ponytail: /images/projects/* are mirrored official renders; only np*/p* stock counts as placeholder.
+  if (!img) return true
+  if (img.startsWith('/images/projects/')) return false
+  return img.startsWith('/images/')
 }
 
 /** First-party hosted media (R2). */

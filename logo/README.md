@@ -1,4 +1,16 @@
-# Sivrce — Logo System v1.0 · "The Space Point"
+# Sivrce — Logo System
+
+**Current master (v1.12, locked): the owner board** — `source/sivrce-spark-board.png`
+(2048×1152). Every shipped asset is a 1:1 board crop: `board1x1/` →
+`app/public/logo/`, app icons, favicon, `og-brand.png`, share watermark.
+Rebuild all: `python3 logo/build_board1x1.py` (idempotent). See `app/BRAND.md` §2.
+
+Everything below (v1.0 "Space Point" geometry, Manrope wordmark outlines,
+SVG lockups) is **legacy history** — never ship it as the primary identity.
+
+---
+
+# Sivrce — Logo System v1.0 · "The Space Point" (LEGACY)
 
 სივრცე means **space**. The mark: one blue space (squircle r=14/48), one infinite
 white path (the S — two tangent elliptical arcs, exact 180° rotational symmetry),

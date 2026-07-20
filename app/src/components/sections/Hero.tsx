@@ -26,7 +26,7 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
     getCmsBlock('home.hero.trust3', lang),
   ])
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-sv-navy">
+    <section className="relative min-h-[100svh] overflow-x-hidden bg-sv-navy">
       {/* Animated brand background */}
       <HeroBackground />
 
@@ -44,11 +44,11 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
           </span>
         </div>
 
-        <h1 className="text-balance text-center text-[44px] font-black leading-[1.06] tracking-[-0.03em] text-white md:text-[72px] lg:text-[84px]">
+        <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.03em] text-white">
           {titleA} <span className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
         </h1>
 
-        <p className="mt-6 max-w-[640px] text-balance text-center text-[16px] font-medium leading-relaxed text-white/70 md:text-[19px]">
+        <p className="mt-6 w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-white/70 sm:text-[16px] md:text-[19px]">
           {subtitle}
         </p>
 

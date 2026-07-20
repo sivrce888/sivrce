@@ -22,6 +22,7 @@ export default function robots(): MetadataRoute.Robots {
         '/auth',
         '/add-listing',
         '/favorites',
+        '/compare',
       ],
     },
     sitemap: 'https://sivrce.ge/sitemap.xml',

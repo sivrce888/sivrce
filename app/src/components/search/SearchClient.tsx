@@ -25,6 +25,7 @@ import { localizedHref } from '@/lib/i18n/core'
 import { listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from '@/lib/features'
+import { featuresFor } from '@/lib/add-listing-fields'
 import type { SearchLocations } from '@/lib/listings-db'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
@@ -887,7 +888,12 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             <div>
               <span className={labelClass}>{t('search.features')}</span>
               <div className="scrollbar-hide flex max-h-32 flex-wrap gap-1 overflow-y-auto">
-                {FEATURE_KEYS.filter((f) => deal !== 'daily' || !(DAILY_SIGNAL_KEYS as readonly string[]).includes(f)).map((f) => (
+                {(type === 'land'
+                  ? featuresFor('land', deal ?? 'sale')
+                  : featuresFor(type ?? 'apartment', deal ?? 'sale')
+                )
+                  .filter((f) => deal !== 'daily' || !(DAILY_SIGNAL_KEYS as readonly string[]).includes(f))
+                  .map((f) => (
                   <button key={f} type="button" onClick={() => toggleCsv('feat', feat, f)} aria-pressed={feat.includes(f)} className={tagChip(feat.includes(f))}>
                     {t(f)}
                   </button>

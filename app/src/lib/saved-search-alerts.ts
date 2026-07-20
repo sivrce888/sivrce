@@ -9,6 +9,7 @@
  *   1. in-app Notification row (always)
  *   2. email — only when the user has an active ListingAlertSubscription
  *   3. web push — sendPushToUser no-ops without subscriptions/keys
+ *   4. WhatsApp — verified phone + TWILIO_WHATSAPP_FROM (no-op if unset)
  *
  * Dedupe: SavedSearchAlertLog @@unique([savedSearchId, listingId]) — one
  * alert per saved search per listing, ever. createMany skipDuplicates
@@ -24,6 +25,7 @@
 import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import { sendPushToUser } from "@/lib/push"
+import { sendWhatsApp } from "@/lib/sms/whatsapp"
 import { buildDbWhere } from "@/lib/search-filters"
 import type { SearchFilters } from "@/lib/search"
 
@@ -117,7 +119,7 @@ export async function runSavedSearchAlerts(listingId: string): Promise<void> {
 
       const user = await db.user.findUnique({
         where: { id: s.userId },
-        select: { id: true, email: true },
+        select: { id: true, email: true, phone: true, phoneVerifiedAt: true },
       })
       if (!user) continue
 
@@ -153,6 +155,15 @@ export async function runSavedSearchAlerts(listingId: string): Promise<void> {
       }
 
       await sendPushToUser(user.id, { title, body, url: path })
+
+      // Korter gap: WA alerts when phone is verified and Twilio WA is configured.
+      if (user.phone && user.phoneVerifiedAt) {
+        void sendWhatsApp({
+          phone: user.phone,
+          body: `${title}\n${listing.title} — ${listing.district}, ${listing.city}\n${url}`,
+        })
+      }
+
       await db.savedSearch.update({ where: { id: s.id }, data: { lastAlertAt: new Date() } })
     } catch (e) {
       // One bad search must not kill the batch; the trigger is fire-and-forget.
