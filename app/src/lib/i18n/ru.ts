@@ -59,6 +59,7 @@ export const ru: Dict = {
   'search.minArea': 'Минимальная площадь',
   'search.maxArea': 'Максимальная площадь',
   'search.clear': 'Очистить',
+  'search.apply': 'Найти',
   'search.loading': 'Загрузка…',
   'search.results': '{n} {plural:объявление|объявления|объявлений}',
   'search.removeFilter': 'Удалить фильтр: {label}',

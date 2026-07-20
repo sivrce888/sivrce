@@ -1,17 +1,17 @@
 'use client'
 
-import { useId } from 'react'
+import { useId, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import LocalizedLink from '@/components/LocalizedLink'
 import {
-  Heart, BedDouble, Bath, Ruler, MapPin, Eye, Crown, Flame, Share2, TrendingUp, Zap,
+  Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
-  TrendingDown, TrainFront, CircleDot, Columns2,
+  TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Camera, Clock,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
-import { formatPerM2, formatViews, formatFloor } from '@/data/listings'
+import { formatPerM2, formatFloor, postedDaysAgo } from '@/data/listings'
 import { listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { streetHrefForListing } from '@/lib/street-href'
@@ -21,8 +21,6 @@ import { useCompare } from '@/lib/compare'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
 import { blurProps } from '@/lib/media'
-import { useSocialSignals } from '@/lib/social-proof'
-import { WeatherBadge } from '@/components/WeatherBadge'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 
@@ -87,8 +85,7 @@ export function ListingStickerStack({
   )
 }
 
-function AIScoreRing({ score, size = 40 }: { score: number; size?: number }) {
-  // useId: gradient id must be unique per card instance (duplicate ids across cards collide)
+function AIScoreRing({ score, size = 36 }: { score: number; size?: number }) {
   const gradId = useId()
   return (
     <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }}>
@@ -105,7 +102,7 @@ function AIScoreRing({ score, size = 40 }: { score: number; size?: number }) {
           </linearGradient>
         </defs>
       </svg>
-      <span className="absolute text-[11px] font-black text-sv-blue">{score}</span>
+      <span className="absolute text-[10px] font-black text-sv-blue">{score}</span>
     </div>
   )
 }
@@ -118,6 +115,17 @@ interface ListingCardProps {
   animate?: boolean
 }
 
+/** Card gallery teaser — rest of photos live on the listing detail page (myhome/ss pattern). */
+const CARD_PHOTO_CAP = 4
+
+function postedLabel(days: number): string {
+  if (days <= 0) return 'დღეს'
+  if (days === 1) return '1 დღის წინ'
+  if (days < 7) return `${days} დღის წინ`
+  const weeks = Math.ceil(days / 7)
+  return weeks === 1 ? '1 კვირის წინ' : `${weeks} კვირის წინ`
+}
+
 export default function ListingCard({ l, i = 0, layout = 'grid', animate = true }: ListingCardProps) {
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
@@ -125,18 +133,71 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { format, currency } = useCurrency()
   const fav = has(l.id)
   const compared = inCompare(l.id)
-  const signals = useSocialSignals(l.views, l.postedAt)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
   const metro = nearestMetro(l.coords.lat, l.coords.lng)
+
+  // ponytail: first 4 only; full gallery on detail. Cap here so search payloads can stay fat.
+  const photos = (l.images.length > 0 ? l.images : [l.img]).slice(0, CARD_PHOTO_CAP)
+  const totalPhotos = Math.max(l.images.length, photos.length)
+  const [photo, setPhoto] = useState(0)
+  const photoSrc = photos[Math.min(photo, photos.length - 1)] ?? l.img
+  const multi = photos.length > 1
+  const imgRef = useRef<HTMLDivElement>(null)
+  const touchRef = useRef<{ x: number; y: number } | null>(null)
+  const axisLock = useRef<'h' | 'v' | null>(null)
+  const swipedRef = useRef(false)
 
   const priceGEL = l.priceGEL
   const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
   const displayPrice = `${format(priceGEL)}${suffix}`
 
+  const navPhoto = (dir: number, e: React.SyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setPhoto((p) => (p + dir + photos.length) % photos.length)
+  }
+
+  const onImgTouchStart = (e: React.TouchEvent) => {
+    if (!multi || !imgRef.current) return
+    const t = e.touches[0]
+    const r = imgRef.current.getBoundingClientRect()
+    if (t.clientX < r.left || t.clientX > r.right || t.clientY < r.top || t.clientY > r.bottom) {
+      touchRef.current = null
+      return
+    }
+    touchRef.current = { x: t.clientX, y: t.clientY }
+    axisLock.current = null
+    swipedRef.current = false
+  }
+
+  const onImgTouchMove = (e: React.TouchEvent) => {
+    if (!multi || !touchRef.current) return
+    const dx = e.touches[0].clientX - touchRef.current.x
+    const dy = e.touches[0].clientY - touchRef.current.y
+    if (!axisLock.current && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+      axisLock.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+    }
+    // Claim horizontal gesture so homepage HScroll doesn't steal it
+    if (axisLock.current === 'h') e.stopPropagation()
+  }
+
+  const onImgTouchEnd = (e: React.TouchEvent) => {
+    if (!multi || !touchRef.current) return
+    const dx = e.changedTouches[0].clientX - touchRef.current.x
+    touchRef.current = null
+    if (axisLock.current !== 'h' || Math.abs(dx) < 40) {
+      axisLock.current = null
+      return
+    }
+    axisLock.current = null
+    swipedRef.current = true
+    setPhoto((p) => (p + (dx < 0 ? 1 : -1) + photos.length) % photos.length)
+  }
+
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const url = `${window.location.origin}${listingPath(l)}`
+    const url = `${window.location.origin}${l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)}`
     if (navigator.share) {
       navigator.share({ title: l.title, text: l.title, url }).catch(() => {})
     } else {
@@ -145,13 +206,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   }
 
   const favButton = (
-    <div className="absolute right-4 top-4 z-10 flex gap-2">
+    <div className="absolute right-3 top-3 z-10 flex gap-1.5">
       <button
         aria-label={t('detail.share')}
         onClick={handleShare}
-        className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+        className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
       >
-        <Share2 className="h-4 w-4" />
+        <Share2 className="h-3.5 w-3.5" />
       </button>
       <button
         type="button"
@@ -163,13 +224,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           e.stopPropagation()
           toggleCompare(l.id)
         }}
-        className={`grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:cursor-not-allowed disabled:opacity-40 ${
+        className={`grid h-9 w-9 place-items-center rounded-full shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:cursor-not-allowed disabled:opacity-40 ${
           compared
             ? 'bg-sv-surface text-sv-blue'
             : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-blue'
         }`}
       >
-        <Columns2 className={`h-4 w-4 ${compared ? 'stroke-[2.5]' : ''}`} />
+        <Columns2 className={`h-3.5 w-3.5 ${compared ? 'stroke-[2.5]' : ''}`} />
       </button>
       <button
         aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
@@ -179,64 +240,96 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           e.stopPropagation()
           toggle(l.id)
         }}
-        className={`grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
+        className={`grid h-9 w-9 place-items-center rounded-full shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
           fav
             ? 'bg-sv-surface text-sv-orange'
             : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-orange'
         }`}
       >
-        <Heart className={`h-4 w-4 ${fav ? 'fill-current' : ''}`} />
+        <Heart className={`h-3.5 w-3.5 ${fav ? 'fill-current' : ''}`} />
       </button>
     </div>
   )
 
   const imageBlock = (
-    <div className={`relative overflow-hidden ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[220px] sm:w-[300px] sm:shrink-0' : 'aspect-[4/3]'}`}>
+    <div
+      ref={imgRef}
+      className={`relative overflow-hidden ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[280px] sm:shrink-0' : 'aspect-[4/3]'}`}
+    >
       <Image
-        src={l.img}
+        key={photoSrc}
+        src={photoSrc}
         alt={l.title}
         fill
         sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
-        priority={i === 0}
-        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-        {...blurProps(l.img)}
+        priority={i === 0 && photo === 0}
+        className={`object-cover transition-transform duration-700 ease-out ${multi ? '' : 'group-hover:scale-[1.04]'}`}
+        {...blurProps(photoSrc)}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/70 via-transparent to-sv-navy/10" />
+      {/* Soft scrub — price lives in body (ss/myhome scan pattern) */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sv-navy/25 via-transparent to-sv-navy/35" />
       {l.badge && (
-        <span className={`absolute left-4 top-4 z-[1] flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
-          {l.badge === 'SUPER VIP' ? <Crown className="h-3.5 w-3.5" /> : <Flame className="h-3.5 w-3.5" />}
+        <span className={`absolute left-3 top-3 z-[1] flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
+          {l.badge === 'SUPER VIP' ? <Crown className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
           {l.badge}
+        </span>
+      )}
+      {l.projectCatalog && !l.badge && (
+        <span className="absolute left-3 top-3 z-[1] rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white backdrop-blur">
+          პროექტი
         </span>
       )}
       <ListingStickerStack
         urgent={l.stickerUrgent}
         priceDrop={l.stickerPriceDrop}
         inStory={l.inStory}
-        className={`absolute left-4 z-[1] ${
-          l.badge || (signals.isHot && !l.stickerUrgent) || (signals.isTrending && !l.stickerUrgent)
-            ? 'top-14'
-            : 'top-4'
-        }`}
+        className={`absolute left-3 z-[1] ${l.badge || l.projectCatalog ? 'top-12' : 'top-3'}`}
       />
-      {signals.isHot && !l.badge && !l.stickerUrgent && !l.stickerPriceDrop && (
-        <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-1 text-[11px] font-black tracking-wider text-white">
-          <Zap className="h-3 w-3" /> HOT
-        </span>
-      )}
-      {signals.isTrending && !signals.isHot && !l.badge && !l.stickerUrgent && !l.stickerPriceDrop && (
-        <span className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-sv-blue/90 px-3 py-1 text-[11px] font-black tracking-wider text-white backdrop-blur">
-          <TrendingUp className="h-3 w-3" /> TRENDING
-        </span>
-      )}
       {favButton}
+      {/* Edge zones > floating arrows: center still opens listing via stretched link */}
+      {multi && (
+        <>
+          <button
+            type="button"
+            aria-label={t('detail.prevPhoto')}
+            onClick={(e) => navPhoto(-1, e)}
+            className="absolute inset-y-0 left-0 z-10 flex w-[24%] items-center justify-start bg-transparent pl-1.5 focus-visible:outline-none"
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur opacity-70 transition-opacity group-hover:opacity-100 max-md:opacity-80 md:opacity-0 md:group-hover:opacity-100">
+              <ChevronLeft className="h-4 w-4" aria-hidden />
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-label={t('detail.nextPhoto')}
+            onClick={(e) => navPhoto(1, e)}
+            className="absolute inset-y-0 right-0 z-10 flex w-[24%] items-center justify-end bg-transparent pr-1.5 focus-visible:outline-none"
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur opacity-70 transition-opacity group-hover:opacity-100 max-md:opacity-80 md:opacity-0 md:group-hover:opacity-100">
+              <ChevronRight className="h-4 w-4" aria-hidden />
+            </span>
+          </button>
+          <div className="pointer-events-none absolute bottom-3 left-1/2 z-[1] flex -translate-x-1/2 items-center gap-1.5">
+            {photos.map((_, idx) => (
+              <span
+                key={idx}
+                aria-hidden
+                className={`h-1.5 rounded-full transition-all ${
+                  photo === idx ? 'w-3.5 bg-white' : 'w-1.5 bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
       {lifestyle.length > 0 && (
-        <div className="absolute bottom-[4.25rem] left-4 flex max-w-[75%] flex-wrap gap-1.5">
+        <div className="absolute left-3 z-[1] flex max-w-[70%] flex-wrap gap-1 bottom-10">
           {lifestyle.map((key) => {
             const Icon = SIGNAL_ICON[key]
             return (
               <span
                 key={key}
-                className="flex max-w-full items-center gap-1 rounded-full bg-sv-navy/60 px-2.5 py-1 text-[11px] font-extrabold text-white backdrop-blur"
+                className="flex max-w-full items-center gap-1 rounded-full bg-sv-navy/60 px-2 py-0.5 text-[10px] font-extrabold text-white backdrop-blur"
               >
                 <Icon className="h-3 w-3 shrink-0" aria-hidden />
                 <span className="truncate">{t(key)}</span>
@@ -245,89 +338,95 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           })}
         </div>
       )}
-      <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-        <div>
-          <div className="text-[24px] font-black tracking-tight text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">{displayPrice}</div>
-          {/* perM2 only meaningful for sale; rent/daily are priced per period */}
-          {l.dealType === 'sale' && <div className="text-[12px] font-bold text-white/75">{formatPerM2(l, currency)}</div>}
-        </div>
-        <span className="flex items-center gap-1 rounded-full bg-sv-navy/55 px-2.5 py-1 text-[11px] font-bold text-white/85 backdrop-blur">
-          <Eye className="h-3 w-3" /> {formatViews(l.views)}
-        </span>
-      </div>
+      {/* Count bottom-right — clears center dots */}
+      <span className="absolute bottom-3 right-3 z-[1] flex items-center gap-1 rounded-full bg-sv-navy/60 px-2 py-1 text-[11px] font-bold text-white backdrop-blur">
+        <Camera className="h-3 w-3" aria-hidden />
+        {multi ? `${photo + 1}/${totalPhotos}` : totalPhotos}
+      </span>
     </div>
   )
 
   const streetHref = streetHrefForListing(l.address, l.district, l.city)
   const publicId = listingPublicId(l)
+  const days = postedDaysAgo(l)
+  const place = [l.district, l.city].filter(Boolean).join(', ')
+  const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
 
   const bodyBlock = (
-    <div className="flex min-w-0 flex-1 flex-col p-5">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="font-mono text-[10px] font-black tabular-nums text-sv-ink/35">
-          ID {publicId}
-        </span>
-      </div>
-      <h3 className="line-clamp-1 text-[16px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
-        {/* stretched link: ::after covers the whole card; fav button sits above via z-10 */}
+    <div className="flex min-w-0 flex-1 flex-col p-4">
+      {/* Price first — scannable like ss.ge / myhome */}
+      <div className="text-[22px] font-black tracking-tight text-sv-ink">{displayPrice}</div>
+      {l.dealType === 'sale' && (
+        <p className="mt-0.5 text-[13px] font-bold text-sv-ink/50">{formatPerM2(l, currency)}</p>
+      )}
+
+      <h3 className="mt-2.5 line-clamp-2 text-[15px] font-extrabold leading-snug text-sv-ink transition-colors group-hover:text-sv-blue">
         <LocalizedLink
-          href={listingPath(l)}
+          href={href}
           aria-label={l.title}
+          onClick={(e) => {
+            if (swipedRef.current) {
+              e.preventDefault()
+              swipedRef.current = false
+            }
+          }}
           className="rounded-sm after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
         >
           {l.title}
         </LocalizedLink>
       </h3>
+
       <p className="relative z-10 mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
-        <MapPin className="h-3.5 w-3.5 shrink-0" />
+        <MapPin className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-hidden />
         {streetHref ? (
           <LocalizedLink
             href={streetHref}
             className="truncate text-sv-blue hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
-            {l.address}
+            {place || l.address}
           </LocalizedLink>
         ) : (
-          <span className="truncate">{l.address}</span>
+          <span className="truncate">{place || l.address}</span>
         )}
-        <span className="mx-1 text-sv-ink/20" aria-hidden="true">·</span>
-        <WeatherBadge city={l.city} className="text-sv-ink/40" />
       </p>
-      {/* Competitors show ₾/m² in card body, not only image overlay */}
-      {l.dealType === 'sale' && (
-        <p className="mt-1.5 text-[13px] font-extrabold text-sv-ink/65">{formatPerM2(l, currency)}</p>
-      )}
+
       {metro && (
-        <p className="mt-1.5 flex items-center gap-1.5 text-[12px] font-bold text-sv-blue">
+        <p className="mt-1 flex items-center gap-1.5 text-[12px] font-bold text-sv-blue">
           <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
           <span className="truncate">
             {metro.name} · {formatMetroDist(metro)}
           </span>
         </p>
       )}
-      <div className="mt-4 flex items-center gap-4 border-t border-sv-ink/[0.06] pt-4 text-[13px] font-bold text-sv-ink/70">
-        <span className="flex items-center gap-1.5"><BedDouble className="h-4 w-4 text-sv-ink/40" /> {l.beds > 0 ? l.beds : '—'}</span>
-        <span className="flex items-center gap-1.5"><Bath className="h-4 w-4 text-sv-ink/40" /> {l.baths > 0 ? l.baths : '—'}</span>
-        <span className="flex items-center gap-1.5"><Ruler className="h-4 w-4 text-sv-ink/40" /> {l.area} მ²</span>
-        <span className="ml-auto text-sv-ink/45">{formatFloor(l)}</span>
+
+      {/* Key stats — area / rooms / baths / floor */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] font-bold text-sv-ink/70">
+        <span className="flex items-center gap-1"><Ruler className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden /> {l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}</span>
+        <span className="flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden /> {l.beds > 0 ? l.beds : '—'}</span>
+        <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5 text-sv-ink/40" aria-hidden /> {l.baths > 0 ? l.baths : '—'}</span>
+        {!l.projectCatalog && <span className="text-sv-ink/45">{formatFloor(l)}</span>}
       </div>
-      {/* AI score */}
-      <div className="mt-4 flex items-center gap-3 rounded-module bg-gradient-to-r from-sv-blue/[0.07] to-sv-violet/[0.07] p-3 ring-1 ring-inset ring-sv-blue/15">
+
+      {/* AI — compact differentiator (competitors don't have this on cards) */}
+      <div className="mt-3 flex items-center gap-2.5 rounded-module bg-gradient-to-r from-sv-blue/[0.06] to-sv-violet/[0.06] px-2.5 py-2 ring-1 ring-inset ring-sv-blue/12">
         <AIScoreRing score={l.ai.score} />
         <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-black uppercase tracking-wider text-sv-blue">{t('detail.aiScore')}</div>
-          <div className="truncate text-[13px] font-extrabold text-sv-ink">{l.ai.label}</div>
+          <div className="truncate text-[12px] font-extrabold text-sv-ink">{l.ai.label || t('detail.aiScore')}</div>
         </div>
-        {/* Urgency: new listings or recently posted */}
         {l.isNew && (
-          <span className="shrink-0 rounded-full bg-sv-orange/10 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-sv-orange">
+          <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-sv-orange">
             ახალი
           </span>
         )}
       </div>
-      <div className="mt-3 text-[12px] font-semibold text-sv-ink/40">
-        {signals.hoursAgo <= 24 ? 'დღეს დამატებული' : signals.hoursAgo <= 72 ? `${Math.ceil(signals.hoursAgo / 24)} დღის წინ` : `${Math.ceil(signals.hoursAgo / 168)} კვირის წინ`}
+
+      <div className="mt-2.5 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/40">
+        <span className="flex items-center gap-1">
+          <Clock className="h-3 w-3" aria-hidden />
+          {postedLabel(days)}
+        </span>
+        <span className="font-mono text-[10px] font-black tabular-nums text-sv-ink/30">ID {publicId}</span>
       </div>
     </div>
   )
@@ -345,10 +444,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.7, delay: (i % 3) * 0.08, ease: [0.21, 0.65, 0.2, 1] }}
-      className={`group relative flex flex-col overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover ${sizeClass} ${
+      onTouchStart={onImgTouchStart}
+      onTouchMove={onImgTouchMove}
+      onTouchEnd={onImgTouchEnd}
+      className={`group relative flex flex-col overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover ${sizeClass} ${
         l.highlighted
-          ? "border-sv-blue/45 ring-2 ring-sv-blue/25"
-          : "border-sv-ink/[0.06]"
+          ? 'border-sv-blue/45 ring-2 ring-sv-blue/25'
+          : 'border-sv-ink/[0.06]'
       }`}
     >
       {imageBlock}

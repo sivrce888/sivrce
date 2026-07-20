@@ -132,6 +132,9 @@ function mapDbHit(
     urgentUntil?: string
     priceDropUntil?: string
     storyUntil?: string
+    projectCatalog?: boolean
+    projectSlug?: string
+    condition?: string
   } | null
   return {
     ...l,
@@ -141,6 +144,9 @@ function mapDbHit(
     urgentUntil: ext?.urgentUntil,
     priceDropUntil: ext?.priceDropUntil,
     storyUntil: ext?.storyUntil,
+    projectCatalog: Boolean(ext?.projectCatalog),
+    projectSlug: ext?.projectSlug ?? null,
+    condition: ext?.condition ?? null,
     tier: effectiveTierKey(l.tier, l.tierExpiresAt),
   }
 }

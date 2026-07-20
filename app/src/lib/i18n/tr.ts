@@ -59,6 +59,7 @@ export const tr: Dict = {
   'search.minArea': 'Minimum alan',
   'search.maxArea': 'Maksimum alan',
   'search.clear': 'Temizle',
+  'search.apply': 'Ara',
   'search.loading': 'Yükleniyor…',
   'search.results': '{n} ilan',
   'search.removeFilter': 'Filtreyi kaldır: {label}',

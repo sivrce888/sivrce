@@ -59,6 +59,7 @@ export const az: Dict = {
   'search.minArea': 'Minimum sahə',
   'search.maxArea': 'Maksimum sahə',
   'search.clear': 'Təmizlə',
+  'search.apply': 'Axtar',
   'search.loading': 'Yüklənir…',
   'search.results': '{n} elan',
   'search.removeFilter': 'Filteri sil: {label}',

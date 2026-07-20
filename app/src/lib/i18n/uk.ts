@@ -59,6 +59,7 @@ export const uk: Dict = {
   'search.minArea': 'Мінімальна площа',
   'search.maxArea': 'Максимальна площа',
   'search.clear': 'Очистити',
+  'search.apply': 'Знайти',
   'search.loading': 'Завантаження…',
   'search.results': '{n} оголошень',
   'search.removeFilter': 'Видалити фільтр: {label}',

@@ -59,6 +59,7 @@ export const ar: Dict = {
   'search.minArea': 'أدنى مساحة',
   'search.maxArea': 'أقصى مساحة',
   'search.clear': 'مسح',
+  'search.apply': 'بحث',
   'search.loading': 'جارٍ التحميل…',
   'search.results': '{n} إعلانًا',
   'search.removeFilter': 'إزالة الفلتر: {label}',

@@ -59,6 +59,7 @@ export const he: Dict = {
   'search.minArea': 'שטח מינימלי',
   'search.maxArea': 'שטח מקסימלי',
   'search.clear': 'ניקוי',
+  'search.apply': 'חיפוש',
   'search.loading': 'טוען…',
   'search.results': '{n} מודעות',
   'search.removeFilter': 'הסרת מסנן: {label}',

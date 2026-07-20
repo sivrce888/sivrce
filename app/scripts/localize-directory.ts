@@ -19,6 +19,7 @@ import { config } from "dotenv"
 import { createHash } from "crypto"
 import { readFile } from "fs/promises"
 import { resolve } from "path"
+import assert from "node:assert/strict"
 
 config({ path: resolve(__dirname, "..", ".env.local") })
 config({ path: resolve(__dirname, "..", ".env") })
@@ -406,12 +407,11 @@ async function mirrorAll(heroesOnly: boolean): Promise<{ logos: number; projects
 
 async function main() {
   if (process.argv.includes("--check")) {
-    const { strictEqual } = await import("node:assert/strict")
-    strictEqual(needsCdn("https://cdn.sivrce.ge/x.webp"), false)
-    strictEqual(needsCdn("/images/np1.webp"), false)
-    strictEqual(needsCdn("/images/projects/orbi-sea-towers.webp"), true)
-    strictEqual(needsCdn("https://korter.ge/a.jpg"), true)
-    strictEqual(needsCdn(null), false)
+    assert.equal(needsCdn("https://cdn.sivrce.ge/x.webp"), false)
+    assert.equal(needsCdn("/images/np1.webp"), false)
+    assert.equal(needsCdn("/images/projects/orbi-sea-towers.webp"), true)
+    assert.equal(needsCdn("https://korter.ge/a.jpg"), true)
+    assert.equal(needsCdn(null), false)
     console.log("localize-directory.check OK")
     return
   }

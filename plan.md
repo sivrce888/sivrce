@@ -1,5 +1,19 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-07-20 (2) — catalog listings into search (score 10 inventory)
+Auto-picked after stock-render scrape failed (22/22 korter/official 404).
+
+- **`scripts/seed-project-listings.ts`**: one searchable listing per CDN project
+  with developer phone — title says "ახალი აშენება …/მ²-დან", `extendedFields.projectCatalog`,
+  card badge **პროექტი**, link → `/projects/[slug]`. Indicative 50 m² × $/m².
+- Result: **41 → 194** active listings (153 catalog). Skipped 61 (no developer phone).
+- Card/DB mapping: `projectCatalog` / `projectSlug` on Listing + ListingCard.
+- VAPID keys written to local `.env.local` (not committed). `npm run vapid:gen`
+  for re-roll. **Still must paste into Vercel** (CLI unauthorized this session).
+- npm: `directory:seed-listings`, `vapid:gen`.
+
+Skipped: fake unit floorplans, competitor scrape, Meili/Twilio/bank keys (no creds).
+
 ## Shipped 2026-07-20 — directory CDN + DB catalog sync (best next step: 10/10)
 Auto-picked over more features: inventory surface quality beats feature debt.
 
