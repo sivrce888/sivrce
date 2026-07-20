@@ -47,7 +47,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
     name: { ka: 'ვაკე', en: 'Vake', ru: 'Ваке' },
     city: TBILISI, cityKey: 'თბილისი', districts: ['ვაკე'], type: 'Neighborhood',
     description: {
-      ka: 'თბილისის ყველაზე პრესტიჟული საცხოვრებელი უბანი — ვაკის პარკი, ჩავჭავაძის გამზირი, საუკეთესო სკოლები და კაფე-კულტურა. სტაბილური მოთხოვნა ოჯახებისა და ექსპატების მხრიდან.',
+      ka: 'თბილისის ყველაზე პრესტიჟული საცხოვრებელი უბანი — ვაკის პარკი, ჭავჭავაძის გამზირი, საუკეთესო სკოლები და კაფე-კულტურა. სტაბილური მოთხოვნა ოჯახებისა და ექსპატების მხრიდან.',
       en: 'Tbilisi’s most prestigious residential district — Vake Park, Chavchavadze Avenue, top schools and café culture. Steady demand from families and expats.',
       ru: 'Самый престижный жилой район Тбилиси — парк Ваке, проспект Чавчавадзе, лучшие школы и кафе-культура. Стабильный спрос со стороны семей и экспатов.',
     },

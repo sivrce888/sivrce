@@ -78,7 +78,7 @@ export function BuildingForm({
           name="address"
           required
           defaultValue={building?.address ?? ""}
-          placeholder="ჩავჭავაძის გამზ. 37, ვაკე, თბილისი"
+          placeholder="ჭავჭავაძის გამზ. 37, ვაკე, თბილისი"
           className={inputCls}
         />
       </div>

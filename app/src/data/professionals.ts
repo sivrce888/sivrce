@@ -233,7 +233,7 @@ export const DEVELOPERS: Developer[] = [
     projectsDone: 20,
     unitsDelivered: 3500,
     description: {
-      ka: 'აქსისი — ვაკის პრემიუმ სეგმენტის პიონერი, ჩავჭავაძის გამზირის ღირსშესანიშნაობად ქცეული კოშკებით. მცირე პორტფელი, მაღალი სტანდარტი.',
+      ka: 'აქსისი — ვაკის პრემიუმ სეგმენტის პიონერი, ჭავჭავაძის გამზირის ღირსშესანიშნაობად ქცეული კოშკებით. მცირე პორტფელი, მაღალი სტანდარტი.',
       en: 'Axis pioneered Vake’s premium segment with its landmark towers on Chavchavadze Avenue — a small portfolio at a high standard.',
       ru: 'Аксис — пионер премиум-сегмента Ваке, автор знаменитых башен на проспекте Чавчавадзе. Небольшое портфолио, высокий стандарт.',
     },
@@ -313,7 +313,7 @@ export const DEVELOPERS: Developer[] = [
     projectsDone: 3,
     unitsDelivered: 400,
     description: {
-      ka: 'Redix — ქართული უძრავი ქონებისა და ინვესტიციების მართვის კომპანია, ოფისით ვაჟა-ფშაველას გამზ. 71-ში. ცნობილია ჩავჭავაძის გამზირის 64-ში აშენებული პროექტითა და CH64 კლას A საქმიანი ცენტრით.',
+      ka: 'Redix — ქართული უძრავი ქონებისა და ინვესტიციების მართვის კომპანია, ოფისით ვაჟა-ფშაველას გამზ. 71-ში. ცნობილია ჭავჭავაძის გამზირის 64-ში აშენებული პროექტითა და CH64 კლას A საქმიანი ცენტრით.',
       en: 'Redix is a Georgian real estate and investment-management company, headquartered at 71 Vazha-Pshavela Ave. Known for its completed project at 64 Ilia Chavchavadze Ave and the CH64 Class-A business center.',
       ru: 'Redix — грузинская компания по управлению недвижимостью и инвестициями, офис на пр. Важа-Пшавела 71. Известна завершённым проектом на пр. Ильи Чавчавадзе 64 и бизнес-центром CH64 класса А.',
     },
@@ -1645,7 +1645,7 @@ export const PROJECTS: Project[] = [
     name: 'Axis Towers Vake',
     developerSlug: 'axis',
     img: '/images/projects/axis-towers.webp',
-    location: 'ჩავჭავაძის გამზ. 37, ვაკე, თბილისი',
+    location: 'ჭავჭავაძის გამზ. 37, ვაკე, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$2,300',
     done: 100,
@@ -1655,7 +1655,7 @@ export const PROJECTS: Project[] = [
     coords: { lat: 41.7088, lng: 44.7732 },
     floors: 24,
     description: {
-      ka: 'Axis Towers Vake — ჩაბარებული პრემიუმ კოშკები ჩავჭავაძეზე: მიწისქვეშა პარკინგი, კომერციული სარდაფი და ქალაქის საუკეთესო ხედები. ბოლო ბინები იყიდება.',
+      ka: 'Axis Towers Vake — ჩაბარებული პრემიუმ კოშკები ჭავჭავაძეზე: მიწისქვეშა პარკინგი, კომერციული სარდაფი და ქალაქის საუკეთესო ხედები. ბოლო ბინები იყიდება.',
       en: 'Axis Towers Vake — delivered premium towers on Chavchavadze: underground parking, a retail podium and the best city views. Last units on sale.',
       ru: 'Axis Towers Vake — сданные премиальные башни на Чавчавадзе: подземный паркинг, торговый стилобат и лучшие виды города. Продаются последние квартиры.',
     },
