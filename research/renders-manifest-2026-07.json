@@ -721,6 +721,20 @@
     "batch": 2
   },
   {
+    "slug": "archi-grand-avenue",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://archi.ge/en/complex/grand-avenue",
+    "batch": 2
+  },
+  {
+    "slug": "archi-guramishvili",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-guramishvili-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "archi-horizon",
     "status": "ok",
     "source": "official",
@@ -728,10 +742,24 @@
     "batch": 2
   },
   {
+    "slug": "archi-lilac",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-lilac-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "archi-nutsubidze",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://archi.ge/en/complex/archi-nutsubidze-2-1",
+    "batch": 2
+  },
+  {
+    "slug": "archi-rivertown",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://archi.ge/en/complex/archi-rivertown",
     "batch": 2
   },
   {
@@ -753,6 +781,20 @@
     "status": "failed",
     "source": null,
     "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "biograpi-bare",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://biograpi.ge/en/bare",
+    "batch": 2
+  },
+  {
+    "slug": "biograpi-hisni",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://biograpi.ge/en/hisni",
     "batch": 2
   },
   {
@@ -837,6 +879,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/vake-residence-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "gumbati-villa-kokhta-mitarbi",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 2
   },
   {
