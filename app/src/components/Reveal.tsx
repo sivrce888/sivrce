@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 
 interface RevealProps {
@@ -12,13 +12,12 @@ interface RevealProps {
 }
 
 export function Reveal({ children, delay = 0, y = 28, className, once = true }: RevealProps) {
-  const reduce = useReducedMotion()
+  // ponytail: no useReducedMotion branch — SSR/client disagree; MotionConfig reducedMotion="user" handles it
   return (
     <motion.div
       className={className}
-      // ponytail: reduced-motion skips tween but keeps `initial` — would stay opacity 0
-      initial={reduce ? false : { opacity: 0, y }}
-      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once, margin: '-80px' }}
       transition={{ duration: 0.7, delay, ease: [0.21, 0.65, 0.2, 1] }}
     >
