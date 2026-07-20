@@ -42,7 +42,7 @@ export const az: Dict = {
   'search.allCities': 'Bütün şəhərlər',
   'search.district': 'Rayon',
   'search.allDistricts': 'Bütün rayonlar',
-  'search.keywordPlaceholder': 'Küçə, rayon, açar söz…',
+  'search.keywordPlaceholder': 'ID, telefon, küçə, rayon…',
   'search.keyword': 'Axtarış sözü',
   'search.sort': 'Sıralama',
   'search.view': 'Görünüş',

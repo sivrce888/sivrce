@@ -42,7 +42,7 @@ export const uk: Dict = {
   'search.allCities': 'Усі міста',
   'search.district': 'Район',
   'search.allDistricts': 'Усі райони',
-  'search.keywordPlaceholder': 'Вулиця, район, ключове слово…',
+  'search.keywordPlaceholder': 'ID, телефон, вулиця, район…',
   'search.keyword': 'Пошуковий запит',
   'search.sort': 'Сортування',
   'search.view': 'Вигляд',

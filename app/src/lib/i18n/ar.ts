@@ -42,7 +42,7 @@ export const ar: Dict = {
   'search.allCities': 'كل المدن',
   'search.district': 'الحي',
   'search.allDistricts': 'كل الأحياء',
-  'search.keywordPlaceholder': 'شارع، حي، كلمة مفتاحية…',
+  'search.keywordPlaceholder': 'ID، هاتف، شارع، حي…',
   'search.keyword': 'كلمة البحث',
   'search.sort': 'ترتيب',
   'search.view': 'عرض',

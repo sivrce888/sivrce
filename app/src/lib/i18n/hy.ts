@@ -42,7 +42,7 @@ export const hy: Dict = {
   'search.allCities': 'Բոլոր քաղաքները',
   'search.district': 'Թաղամաս',
   'search.allDistricts': 'Բոլոր թաղամասերը',
-  'search.keywordPlaceholder': 'Փողոց, թաղամաս, հիմնաբառ…',
+  'search.keywordPlaceholder': 'ID, հեռախոս, փողոց, թաղամաս…',
   'search.keyword': 'Որոնման բառ',
   'search.sort': 'Դասակարգում',
   'search.view': 'Տեսք',
