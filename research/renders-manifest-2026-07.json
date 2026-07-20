@@ -644,10 +644,31 @@
     "batch": 1
   },
   {
+    "slug": "alliance-centropolis",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/alliance-centropolis-batumi",
+    "batch": 2
+  },
+  {
+    "slug": "alliance-highline",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/alliance-highline-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "alliance-palace",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/alliance-palace-batumi",
+    "batch": 2
+  },
+  {
+    "slug": "alliance-privilege",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/alliance-privilege-batumi",
     "batch": 2
   },
   {
@@ -714,6 +735,13 @@
     "batch": 2
   },
   {
+    "slug": "archi-akhmeteli",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-akhmeteli-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "archi-alley",
     "status": "ok",
     "source": "korter",
@@ -777,6 +805,20 @@
     "batch": 2
   },
   {
+    "slug": "axis-palace",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.axis.ge/en/project/axis-palace-1/44",
+    "batch": 2
+  },
+  {
+    "slug": "axis-towers",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/axis-towers-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "batumi-riviera-tower",
     "status": "failed",
     "source": null,
@@ -805,6 +847,34 @@
     "batch": 2
   },
   {
+    "slug": "blox-didi-digomi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/blox-didi-digomi-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "blox-gudauri",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/blox-gudauri-gudauri",
+    "batch": 2
+  },
+  {
+    "slug": "blox-mukhiani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/blox-mukhiani-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "blox-ortachala",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/blox-ortachala-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "blox-sarajishvili",
     "status": "ok",
     "source": "official",
@@ -830,6 +900,27 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/devart-green-gardens-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "dirsi-riverside-2",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "domus-nea",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://domusi.com/en/binebi/domus-nea/25",
+    "batch": 2
+  },
+  {
+    "slug": "domus-trees",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://domusi.com/en/binebi/domus-trees/17",
     "batch": 2
   },
   {
@@ -886,6 +977,13 @@
     "status": "failed",
     "source": null,
     "sourceUrl": null,
+    "batch": 2
+  },
+  {
+    "slug": "highlands-by-alliance",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/highlands-by-alliance-batumi",
     "batch": 2
   },
   {
@@ -959,6 +1057,20 @@
     "batch": 2
   },
   {
+    "slug": "metropol-cube",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/cube-batumi",
+    "batch": 2
+  },
+  {
+    "slug": "metropol-kavtaradze",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/metropol-kavtaradze-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "metropol-lisi",
     "status": "failed",
     "source": null,
@@ -970,6 +1082,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/metropol-ortachala-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "metropol-shindisi",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 2
   },
   {
@@ -1019,6 +1138,34 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/old-city-panorama-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "orbi-beach-tower",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-beach-tower-batumi",
+    "batch": 2
+  },
+  {
+    "slug": "orbi-continental",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://orbi.ge/en/project/orbi-continental",
+    "batch": 2
+  },
+  {
+    "slug": "orbi-millennium",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://orbi.ge/en/project/orbi-millennium",
+    "batch": 2
+  },
+  {
+    "slug": "orbi-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-residence-batumi",
     "batch": 2
   },
   {
