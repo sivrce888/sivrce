@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.12) · FROZEN 2026-07-17 · Logo board 1:1 re-cropped from 2x master 2026-07-19 · Status = newProjects sky 2026-07-18
+# სივრცე — Brand Lock (v1.13) · FROZEN 2026-07-17 · Logo lockup master (owner PNG) 2026-07-20 · Status = newProjects sky 2026-07-18
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -59,9 +59,11 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 
 ## 2. Logo
 
-- **Master = owner board** (`logo/source/sivrce-spark-board.png`, 2048×1152).
-  Crops in `logo/board1x1/` → shipped via `app/public/logo/`.
-  Regenerate everything with `python3 logo/build_board1x1.py` (idempotent).
+- **Master = owner lockup** (`logo/source/sivrce-lockup-master.png`, horizontal
+  spark + wordmark on white). Crops in `logo/board1x1/` → shipped via
+  `app/public/logo/`. Regenerate with `python3 logo/build_board1x1.py`
+  (idempotent; auto-detects spark/word boxes). Legacy board
+  `sivrce-spark-board.png` kept for reference only.
 - Live UI (`Logo.tsx`): board PNG lockup / mark — **exact** mark + wordmark
   font (baked raster). Do not substitute Manrope outlines or SVG approximations
   for the primary identity.

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""Sivrce logo kit — 1:1 crops from the owner master board.
+"""Sivrce logo kit — 1:1 crops from the owner lockup master.
 
-Master: logo/source/sivrce-spark-board.png (2048x1152).
+Master: logo/source/sivrce-lockup-master.png (horizontal spark + wordmark on white).
 Regenerates: board1x1 kit, app/public/logo rasters, app icons
 (public + src/app), favicon.ico, og-brand.png logo swap, and the
 share watermark (soft-white 8x/16x).
 
-Light-bg assets are keyed from the board bg with a soft ramp +
-bg-unblend (edges stay clean on any surface). Navy-bg assets are
-keyed from sv-navy. Run: python3 logo/build_board1x1.py
+Light-bg assets are soft-keyed from white (edges stay clean on any surface).
+App icons = sv-navy square + clean spark. Run: python3 logo/build_board1x1.py
 """
 import os
 import numpy as np
@@ -16,7 +15,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-BOARD = os.path.join(HERE, "source", "sivrce-spark-board.png")
+BOARD = os.path.join(HERE, "source", "sivrce-lockup-master.png")
 OUT_KIT = os.path.join(HERE, "board1x1")
 PUB_LOGO = os.path.join(ROOT, "app", "public", "logo")
 PUB_ICONS = os.path.join(ROOT, "app", "public", "icons")
@@ -24,22 +23,17 @@ SRC_APP = os.path.join(ROOT, "app", "src", "app")
 OG = os.path.join(ROOT, "app", "public", "images", "og-brand.png")
 WM = os.path.join(HERE, "watermark", "png")
 
-BG = np.array([246, 246, 251], dtype=np.float32)      # board light bg
-NAVY = np.array([5, 11, 38], dtype=np.float32)        # sv-navy
-
-# --- content boxes on the 2048x1152 board (detected + padded) ---
-SPARK_BOX = (289, 120, 820, 624)      # spark + soft shadow (wordmark starts ~834)
-WORD_BOX = (800, 250, 1790, 540)      # ink wordmark + orange dot
-TILE_DARK_BOX = (230, 735, 590, 1100)   # navy app tile + shadow
-TILE_LOCK_BOX = (1060, 735, 1880, 1095)  # navy lockup tile + shadow
-TILE_LIGHT_BOX = (690, 780, 965, 1090)   # white app tile + shadow
+BG = np.array([255, 255, 255], dtype=np.float32)  # lockup master bg
+NAVY = np.array([5, 11, 38], dtype=np.float32)  # sv-navy
+# app-icon spark box relative to navy tile (Apple-style inset)
+ICON_REL = (0.18, 0.18, 0.64, 0.64)
 
 
 def load_board():
     return Image.open(BOARD).convert("RGB")
 
 
-def key_from(im, bg, lo=8.0, hi=26.0):
+def key_from(im, bg, lo=6.0, hi=22.0):
     """Soft-key uniform bg -> transparency, un-blend fg color."""
     a = np.asarray(im).astype(np.float32)
     d = np.abs(a - bg).max(axis=2)
@@ -66,29 +60,9 @@ def resize_h(im, h):
 
 
 def save(im, path):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     im.save(path)
     print(" ", os.path.relpath(path, ROOT), im.size)
-
-
-def content_bbox(arr, bg, thresh):
-    d = np.abs(arr - bg).max(axis=2)
-    ys, xs = np.nonzero(d > thresh)
-    return xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
-
-
-def near_bbox(arr, bg, thresh):
-    """bbox of pixels CLOSE to bg (e.g. the navy tile body)."""
-    d = np.abs(arr - bg).max(axis=2)
-    ys, xs = np.nonzero(d < thresh)
-    return xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
-
-
-def on_bg(im, bg):
-    """Flatten RGBA onto solid bg (for opaque reference raws)."""
-    base = Image.new("RGB", im.size, tuple(bg.astype(np.uint8)))
-    base.paste(im, (0, 0), im)
-    return base
 
 
 def dilate1(mask):
@@ -108,51 +82,84 @@ def apply_gate(im, hard):
     return Image.fromarray(a, "RGBA")
 
 
+def detect_boxes(board, thresh=12):
+    """Auto-find spark / word / lock boxes from a white-bg horizontal lockup."""
+    a = np.asarray(board).astype(np.float32)
+    content = np.abs(a - BG).max(axis=2) > thresh
+    ys, xs = np.nonzero(content)
+    x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+
+    empty = [x for x in range(x0, x1) if content[y0:y1, x].sum() < 3]
+    if not empty:
+        raise SystemExit("no gap between spark and wordmark")
+    runs, s, prev = [], empty[0], empty[0]
+    for x in empty[1:]:
+        if x == prev + 1:
+            prev = x
+        else:
+            runs.append((s, prev))
+            s = prev = x
+    runs.append((s, prev))
+    gap0, gap1 = max(runs, key=lambda r: r[1] - r[0])
+    mid = (gap0 + gap1) // 2
+
+    def bbox(x_lo, x_hi):
+        sub = content[:, x_lo:x_hi]
+        ys2, xs2 = np.nonzero(sub)
+        return (x_lo + int(xs2.min()), int(ys2.min()),
+                x_lo + int(xs2.max()) + 1, int(ys2.max()) + 1)
+
+    # pad spark to include soft shadow below tip
+    sx0, sy0, sx1, sy1 = bbox(x0, mid)
+    pad = 8
+    spark = (max(0, sx0 - pad), max(0, sy0 - pad),
+             min(board.width, sx1 + pad), min(board.height, sy1 + pad + 12))
+    word = bbox(mid, x1)
+    # lock = spark x-range + word x-range, shared y from spark (taller)
+    lock = (spark[0], spark[1], word[2], spark[3])
+    return spark, word, lock
+
+
 def main():
     board = load_board()
-    print("board", board.size)
+    print("board", board.size, os.path.basename(BOARD))
+    SPARK_BOX, WORD_BOX, LOCK_BOX = detect_boxes(board)
+    print("boxes spark", SPARK_BOX, "word", WORD_BOX, "lock", LOCK_BOX)
 
     # ---------- light-bg masters (keyed) ----------
-    LOCK_BOX = (SPARK_BOX[0], SPARK_BOX[1], WORD_BOX[2], SPARK_BOX[3])
-    spark_full = key_from(board.crop(SPARK_BOX), BG)      # untrimmed
-    word_full = key_from(board.crop(WORD_BOX), BG)        # untrimmed
-    lock_full = key_from(board.crop(LOCK_BOX), BG)        # untrimmed
+    spark_full = key_from(board.crop(SPARK_BOX), BG)
+    word_full = key_from(board.crop(WORD_BOX), BG)
+    lock_full = key_from(board.crop(LOCK_BOX), BG)
     spark = trim(spark_full)
     word_ink = trim(word_full)
-    # ink lockup trim box — the white lockup reuses it so both variants
-    # share identical canvas/registration (same optical size in the header)
     la = np.asarray(lock_full.getchannel("A"))
     lys, lxs = np.nonzero(la > 6)
     lb = (max(0, lxs.min() - 3), max(0, lys.min() - 3),
           min(lock_full.width, lxs.max() + 4), min(lock_full.height, lys.max() + 4))
     lock_ink = lock_full.crop(lb)
 
-    # ---------- dark-surface spark (no shadow/glow smudge) ----------
-    # body = fully opaque + (saturated | sheen-bright); soft shadow and
-    # board glow stay below the alpha/sat bar, 1px dilation keeps edges.
+    # ---------- dark-surface spark (no soft shadow smudge) ----------
     sp = np.asarray(spark_full).astype(np.float32)
     rgb = sp[:, :, :3]
     sat = rgb.max(axis=2) - rgb.min(axis=2)
     bright = rgb.mean(axis=2)
     alpha = sp[:, :, 3]
-    body = (alpha > 240) & ((sat > 70) | (bright > 200))
-    # the soft shadow mimics body (sat ~50-90, full alpha) but lives below
-    # the true tip: anchor the cut on the unambiguous core (sat > 120)
-    core = (alpha > 240) & (sat > 120)
+    body = (alpha > 200) & ((sat > 50) | (bright > 180))
+    core = (alpha > 200) & (sat > 90)
     cry, _ = np.nonzero(core)
     ycut = np.zeros_like(body)
-    ycut[: int(cry.max()) + 3, :] = True
-    spark_dark_full = apply_gate(spark_full, body & ycut)
+    if len(cry):
+        ycut[: int(cry.max()) + 4, :] = True
+        spark_dark_full = apply_gate(spark_full, body & ycut)
+    else:
+        spark_dark_full = apply_gate(spark_full, body)
     spark_clean = trim(spark_dark_full)
-    # body bbox (saturated core) so icon scaling matches the tile's body box
     sb = np.asarray(spark_clean).astype(np.float32)[:, :, :3]
     bsat = sb.max(axis=2) - sb.min(axis=2)
     bys, bxs = np.nonzero(bsat > 40)
-    body_box = (bxs.min(), bys.min(), bxs.max() + 1, bys.max() + 1)
+    body_box = (int(bxs.min()), int(bys.min()), int(bxs.max()) + 1, int(bys.max()) + 1)
 
-    # ---------- white lockup/wordmark (synthesized from light masters) ----------
-    # tile extraction carries the tile's glow texture onto other navy bgs;
-    # top-lockup geometry + white-recolored ink glyphs is 1:1 and clean.
+    # ---------- white lockup/wordmark ----------
     wf = np.asarray(word_full).copy()
     wrgb = wf[:, :, :3].astype(np.int16)
     is_orange = (wrgb[:, :, 0] > 180) & (wrgb[:, :, 1] > 40) & \
@@ -166,25 +173,10 @@ def main():
     canvas.paste(word_white_full,
                  (WORD_BOX[0] - LOCK_BOX[0], WORD_BOX[1] - LOCK_BOX[1]),
                  word_white_full)
-    lock_white = canvas.crop(lb)  # same canvas/registration as lock_ink
+    lock_white = canvas.crop(lb)
 
-    # ---------- dark app tile -> spark-on-navy for app icons ----------
-    tile_dark = board.crop(TILE_DARK_BOX)
-    da = np.asarray(tile_dark).astype(np.float32)
-    dx0, dy0, dx1, dy1 = near_bbox(da, NAVY, 60)
-    tile_sq = tile_dark.crop((dx0, dy0, dx1, dy1))
-    # spark content inside the tile + its relative box
-    # (saturated body only, inside an inset: no glow, no rounded-corner bg)
-    sa = np.asarray(tile_sq).astype(np.float32)
-    ix, iy = round(tile_sq.width * 0.18), round(tile_sq.height * 0.18)
-    inner_rgb = sa[iy:tile_sq.height - iy, ix:tile_sq.width - ix]
-    inner_sat = inner_rgb.max(axis=2) - inner_rgb.min(axis=2)
-    ys2, xs2 = np.nonzero(inner_sat > 40)
-    sx0, sy0 = xs2.min() + ix, ys2.min() + iy
-    sx1, sy1 = xs2.max() + 1 + ix, ys2.max() + 1 + iy
-    rel = (sx0 / tile_sq.width, sy0 / tile_sq.height,
-           (sx1 - sx0) / tile_sq.width, (sy1 - sy0) / tile_sq.height)
-    print("tile", tile_sq.size, "spark rel box", [round(v, 3) for v in rel])
+    rel = ICON_REL
+    print("tile spark rel box", [round(v, 3) for v in rel])
 
     def app_icon(size):
         cv = Image.new("RGB", (size, size), tuple(NAVY.astype(np.uint8)))
@@ -199,40 +191,35 @@ def main():
         cv.paste(s, (x, y), s)
         return cv
 
-    # ---------- ship kit (1x = native/2, supersampled) ----------
+    # ---------- ship kit (native resolution — master is already 1x) ----------
     print("board1x1 kit:")
-    def half(im):
-        return im.resize((im.width // 2, im.height // 2), Image.LANCZOS)
-
-    mark1x = half(spark)
+    mark1x = spark
     save(mark1x, f"{OUT_KIT}/mark.png")
-    save(half(lock_ink), f"{OUT_KIT}/lockup-ink.png")
-    save(half(lock_white), f"{OUT_KIT}/lockup-white.png")
-    save(half(word_ink), f"{OUT_KIT}/wordmark-ink.png")
-    save(half(word_white), f"{OUT_KIT}/wordmark-white.png")
+    save(lock_ink, f"{OUT_KIT}/lockup-ink.png")
+    save(lock_white, f"{OUT_KIT}/lockup-white.png")
+    save(word_ink, f"{OUT_KIT}/wordmark-ink.png")
+    save(word_white, f"{OUT_KIT}/wordmark-white.png")
 
-    side = round(max(spark.width, spark.height) * 1.06) // 2
+    side = round(max(spark.width, spark.height) * 1.06)
     sq = Image.new("RGBA", (side, side), (0, 0, 0, 0))
-    m1 = half(spark)
-    sq.paste(m1, ((side - m1.width) // 2, (side - m1.height) // 2), m1)
+    sq.paste(spark, ((side - spark.width) // 2, (side - spark.height) // 2), spark)
     save(sq, f"{OUT_KIT}/mark-square.png")
 
     for s in (16, 32, 48, 64, 128, 180, 192, 256, 512, 1024):
-        h = min(s, spark.height)
         save(resize_h(spark, s), f"{OUT_KIT}/mark-{s}.png")
-
-    # reference raws (opaque, incl. board bg) — brand kit only
-    save(on_bg(trim(key_from(tile_dark, BG), pad=0), BG),
-         f"{OUT_KIT}/app-icon-dark.png")
-    tl = board.crop(TILE_LIGHT_BOX)
-    tla = np.asarray(tl).astype(np.float32)
-    lx0, ly0, lx1, ly1 = content_bbox(tla, BG, 6)
-    save(tl.crop((lx0, ly0, lx1, ly1)), f"{OUT_KIT}/app-icon-light.png")
-    save(on_bg(trim(key_from(board.crop(TILE_LOCK_BOX), BG), pad=0), BG),
-         f"{OUT_KIT}/lockup-dark.png")
 
     for s in (180, 192, 512, 1024):
         save(app_icon(s), f"{OUT_KIT}/app-icon-{s}.png")
+    save(app_icon(1024), f"{OUT_KIT}/app-icon-dark.png")
+    # light tile: spark on white
+    light = Image.new("RGB", (512, 512), (255, 255, 255))
+    sc = spark.resize((round(spark.width * 320 / spark.height), 320), Image.LANCZOS)
+    light.paste(sc, ((512 - sc.width) // 2, (512 - sc.height) // 2), sc)
+    save(light, f"{OUT_KIT}/app-icon-light.png")
+    # dark lockup ref
+    dark_lock = Image.new("RGB", lock_white.size, tuple(NAVY.astype(np.uint8)))
+    dark_lock.paste(lock_white, (0, 0), lock_white)
+    save(dark_lock, f"{OUT_KIT}/lockup-dark.png")
 
     # ---------- app/public/logo ----------
     print("public/logo:")
@@ -245,6 +232,7 @@ def main():
     # ---------- app icons / favicon ----------
     print("app icons:")
     save(app_icon(192), f"{ROOT}/app/public/icon.png")
+    os.makedirs(PUB_ICONS, exist_ok=True)
     save(app_icon(192), f"{PUB_ICONS}/icon-192.png")
     save(app_icon(512), f"{PUB_ICONS}/icon-512.png")
     for s in (48, 72, 96, 128, 192, 256, 512):
@@ -253,7 +241,6 @@ def main():
     save(app_icon(192), f"{SRC_APP}/icon.png")
     save(app_icon(180), f"{SRC_APP}/apple-icon.png")
 
-    # favicon: mark on transparent, square-padded, 16/32/48
     fside = max(mark1x.width, mark1x.height)
     fav = Image.new("RGBA", (fside, fside), (0, 0, 0, 0))
     fav.paste(mark1x, ((fside - mark1x.width) // 2,
@@ -264,10 +251,9 @@ def main():
 
     # ---------- og-brand.png logo swap ----------
     print("og-brand:")
-    og_base = os.path.join(HERE, "source", "og-brand-base.png")  # pristine (idempotent)
+    og_base = os.path.join(HERE, "source", "og-brand-base.png")
     og = Image.open(og_base).convert("RGB")
     oa = np.asarray(og).astype(np.float32)
-    # old logo = non-navy content inside the focus frame interior
     rx0, ry0, rx1, ry1 = 440, 245, 770, 350
     region = oa[ry0:ry1, rx0:rx1]
     d = np.abs(region - NAVY).max(axis=2)
@@ -276,34 +262,33 @@ def main():
                           rx0 + xs.max() + 1, ry0 + ys.max() + 1)
     old_h, old_cx, old_cy = by1 - by0, (bx0 + bx1) // 2, (by0 + by1) // 2
     old_w = bx1 - bx0
-    # erase old logo, clamped so the focus frame is never touched
     pad = 16
     og.paste(tuple(NAVY.astype(np.uint8)),
              (bx0 - pad, by0 - pad, min(bx1 + pad, 766), min(by1 + pad, 352)))
-    # match the old lockup's footprint width (frame interior has headroom)
     sc = old_w / lock_white.width
     nl = lock_white.resize((round(lock_white.width * sc),
                             round(lock_white.height * sc)), Image.LANCZOS)
     og.paste(nl, (old_cx - nl.width // 2, old_cy - nl.height // 2), nl)
     save(og, OG)
 
-    # ---------- share watermark (soft white) ----------
+    # ---------- share watermark ----------
     print("watermark:")
     for tag in ("8x", "16x"):
         p = f"{WM}/sivrce-wm-soft-white-{tag}.png"
         if not os.path.exists(p):
             continue
         canvas = Image.open(p).convert("RGBA")
-        # white lockup, SOFT opacity, fitted to current content area
         target_h = round(canvas.height * 0.86)
         wl = resize_h(lock_white, target_h)
         wa = np.asarray(wl).astype(np.float32)
-        wa[:, :, 3] *= 0.72  # SOFT
+        wa[:, :, 3] *= 0.72
         wl = Image.fromarray(wa.astype(np.uint8), "RGBA")
         out = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
         out.paste(wl, ((canvas.width - wl.width) // 2,
                        (canvas.height - wl.height) // 2), wl)
         save(out, p)
+
+    print("Logo.tsx ratios — LOCK", lock_ink.size, "MARK", spark.size)
 
 
 if __name__ == "__main__":
