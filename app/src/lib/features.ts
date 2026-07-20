@@ -95,6 +95,7 @@ const FEATURE_KEY_SET = new Set<string>(FEATURE_KEYS)
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 const PROJECT_KEY_SET = new Set<string>(PROJECT_KEYS)
 const FLOOR_TYPE_KEY_SET = new Set<string>(FLOOR_TYPE_KEYS)
+const CONDITION_KEY_SET = new Set<string>(CONDITION_KEYS)
 
 export function isFeatureKey(f: string): f is (typeof FEATURE_KEYS)[number] {
   return FEATURE_KEY_SET.has(f)
@@ -108,6 +109,10 @@ export function isFloorTypeKey(f: string): f is (typeof FLOOR_TYPE_KEYS)[number]
   return FLOOR_TYPE_KEY_SET.has(f)
 }
 
+export function isConditionKey(f: string): f is (typeof CONDITION_KEYS)[number] {
+  return CONDITION_KEY_SET.has(f)
+}
+
 /** DB stores i18n keys; seed/legacy rows may still be free-text. */
 export function featureLabel(f: string, t: (key: DictKey) => string): string {
   return isFeatureKey(f) ? t(f) : f
@@ -119,6 +124,10 @@ export function projectLabel(f: string, t: (key: DictKey) => string): string {
 
 export function floorTypeLabel(f: string, t: (key: DictKey) => string): string {
   return isFloorTypeKey(f) ? t(f) : f
+}
+
+export function conditionLabel(f: string, t: (key: DictKey) => string): string {
+  return isConditionKey(f) ? t(f) : f
 }
 
 /** Daily: lifestyle signals first (priority order), then the rest. */

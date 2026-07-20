@@ -63,11 +63,17 @@ export interface Listing {
   floorType?: string | null
   /** Kitchen m² (extendedFields.kitchenArea) */
   kitchenArea?: number | null
+  /** Frame / reno vocabulary key (extendedFields.condition) — ss.ge key-spec */
+  condition?: string | null
   coords: { lat: number; lng: number }
   /** Building / door number — used by map clustering (falls back to address parse). */
   buildingNumber?: string
   /** Landmark catalog slug — `@/data/buildings` */
   buildingSlug?: string
+  /** True when this card is a developer project catalog entry (not a specific unit). */
+  projectCatalog?: boolean
+  /** Directory slug — card links to /projects/[slug] when set with projectCatalog. */
+  projectSlug?: string | null
   postedAt: string // ISO date
   agent: Agent
   isNew: boolean

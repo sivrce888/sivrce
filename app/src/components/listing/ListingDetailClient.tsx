@@ -42,7 +42,7 @@ import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useChat } from '@/components/chat/ChatProvider'
 import { useCompareStrings } from '@/components/compare/i18n'
-import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, orderFeaturesForDisplay, projectLabel } from '@/lib/features'
+import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
@@ -276,6 +276,16 @@ export default function ListingDetailClient({
     { icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) },
   ]
 
+  /* ss.ge key strip — area / floor / rooms / condition first, large scan */
+  const keySpecs: { icon: typeof BedDouble; label: string; value: string }[] = [
+    { icon: Ruler, label: t('spec.area'), value: `${l.area} მ²` },
+    { icon: Building2, label: t('spec.floor'), value: formatFloor(l) },
+    { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
+    ...(l.condition
+      ? [{ icon: Layers, label: t('add.condition'), value: conditionLabel(l.condition, t) }]
+      : [{ icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) }]),
+  ]
+
   const navPhoto = (dir: number) =>
     setPhoto((p) => (p + dir + l.images.length) % l.images.length)
 
@@ -496,6 +506,20 @@ export default function ListingDetailClient({
               </div>
             </div>
 
+            {/* Key specs — competitor-beating scan strip (area · floor · rooms · condition) */}
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {keySpecs.map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-4 py-4 shadow-card"
+                >
+                  <s.icon className="h-5 w-5 text-sv-blue" aria-hidden />
+                  <div className="mt-2 text-[22px] font-black tracking-tight text-sv-ink">{s.value}</div>
+                  <div className="text-[12px] font-bold text-sv-ink/45">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
             {/* Price block */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div>
@@ -591,9 +615,12 @@ export default function ListingDetailClient({
               </div>
             </div>
 
-            {/* Specs */}
+            {/* Specs — extended (beds/baths/project/…) after the key strip */}
+            {specs.filter((s) => !keySpecs.some((k) => k.label === s.label)).length > 0 && (
             <Reveal className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {specs.map((s) => (
+              {specs
+                .filter((s) => !keySpecs.some((k) => k.label === s.label))
+                .map((s) => (
                 <div
                   key={s.label}
                   className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-4 shadow-card"
@@ -604,6 +631,7 @@ export default function ListingDetailClient({
                 </div>
               ))}
             </Reveal>
+            )}
 
             {/* Features */}
             <Reveal className="mt-8">

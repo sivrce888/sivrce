@@ -112,6 +112,9 @@ export interface Listing {
   project?: string | null
   floorType?: string | null
   kitchenArea?: number | null
+  condition?: string | null
+  projectCatalog?: boolean
+  projectSlug?: string | null
   coords: { lat: number; lng: number }
   postedAt: string
   agent: Agent
@@ -125,7 +128,24 @@ function rowToListing(row: Record<string, unknown>): Listing {
   const usd = r.currency === "USD"
   const priceGEL = usd ? Math.round(((r.price as number) ?? 0) * USD_GEL) : ((r.price as number) ?? 0)
   const perM2GEL = usd ? Math.round(((r.pricePerSqm as number) ?? 0) * USD_GEL) : ((r.pricePerSqm as number) ?? 0)
-  const agentRaw = (r.agent as { name?: string; phone?: string; agency?: string }) ?? {}
+  const ext = (r.extendedFields as {
+    project?: string
+    floorType?: string
+    kitchenArea?: number
+    condition?: string
+    projectCatalog?: boolean
+    projectSlug?: string
+  } | null) ?? null
+  const projectCatalog = Boolean(ext?.projectCatalog)
+  const projectSlug = ext?.projectSlug ?? null
+  const agentRaw = (r.agent as {
+    name?: string
+    phone?: string
+    agency?: string
+    profileHref?: string | null
+    role?: string
+    verified?: boolean
+  }) ?? {}
   const aiScore = (r.trustScore as number) ?? 70
   const createdAt = (r.createdAt as Date) ?? new Date()
 
@@ -176,12 +196,20 @@ function rowToListing(row: Record<string, unknown>): Listing {
     inStory: Boolean(
       activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null),
     ),
-    ai: { score: aiScore, label: aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო" },
+    ai: {
+      score: aiScore,
+      label: projectCatalog
+        ? "ახალი აშენება"
+        : aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო",
+    },
     features: (r.features as string[]) ?? [],
     description: (r.description as string) ?? "",
-    project: ((r.extendedFields as { project?: string } | null)?.project) ?? null,
-    floorType: ((r.extendedFields as { floorType?: string } | null)?.floorType) ?? null,
-    kitchenArea: ((r.extendedFields as { kitchenArea?: number } | null)?.kitchenArea) ?? null,
+    project: ext?.project ?? null,
+    floorType: ext?.floorType ?? null,
+    kitchenArea: ext?.kitchenArea ?? null,
+    condition: ext?.condition ?? null,
+    projectCatalog,
+    projectSlug,
     coords: { lat: (r.lat as number) ?? MAP_CENTER.lat, lng: (r.lng as number) ?? MAP_CENTER.lng },
     postedAt: createdAt.toISOString().slice(0, 10),
     agent: {
@@ -191,9 +219,11 @@ function rowToListing(row: Record<string, unknown>): Listing {
         (r.listingPhone as string | null) || agentRaw.phone || "+995 555 00 00 00",
       ),
       agency: agentRaw.agency ?? "სივრცე პრემიუმ",
-      role: (r.sellerType as string) === "agency" ? "agency" : "owner",
-      profileHref: null,
-      verified: false,
+      role: agentRaw.role === "developer"
+        ? "developer"
+        : (r.sellerType as string) === "agency" ? "agency" : "owner",
+      profileHref: agentRaw.profileHref ?? null,
+      verified: Boolean(agentRaw.verified),
       image: null,
     },
     isNew: Date.now() - createdAt.getTime() < 7 * 86400000,

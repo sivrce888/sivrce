@@ -59,6 +59,7 @@ export const hy: Dict = {
   'search.minArea': 'Նվազագույն մակերես',
   'search.maxArea': 'Առավելագույն մակերես',
   'search.clear': 'Մաքրել',
+  'search.apply': 'Որոնել',
   'search.loading': 'Բեռնվում է…',
   'search.results': '{n} հայտարարություն',
   'search.removeFilter': 'Հեռացնել զտիչը՝ {label}',

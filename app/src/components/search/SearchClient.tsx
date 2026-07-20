@@ -7,7 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  X, LayoutGrid, Rows3,
+  X, LayoutGrid, Rows3, Search,
   ChevronDown, MapPin, RotateCcw, SearchX, Home, SlidersHorizontal,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
@@ -144,6 +144,9 @@ function mapHit(h: Record<string, unknown>): Listing {
     ai: { score: (h.trustScore as number) ?? 70, label: '' },
     features: (h.features as string[]) ?? [],
     description: (h.description as string) ?? '',
+    condition: (h.condition as string) ?? null,
+    projectCatalog: Boolean(h.projectCatalog),
+    projectSlug: (h.projectSlug as string) ?? null,
     coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
     postedAt,
     agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
@@ -711,6 +714,40 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             className={`${inputClass} w-[88px]`}
             aria-label={t('search.maxArea')}
           />
+        </div>
+
+        {/* Explicit Search CTA — ss.ge parity; flushes draft inputs immediately */}
+        <button
+          type="button"
+          onClick={() => {
+            const patch: Record<string, string | undefined> = {}
+            for (const k of ['q', 'min', 'max', 'amin', 'amax', 'fmin', 'fmax'] as const) {
+              if (drafts[k] !== urlText[k]) patch[k] = drafts[k] || undefined
+            }
+            if (Object.keys(patch).length > 0) patchParams(patch)
+          }}
+          className="flex h-11 items-center gap-2 rounded-control bg-sv-blue px-5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+        >
+          <Search className="h-4 w-4" aria-hidden />
+          {t('search.apply')}
+        </button>
+
+        {/* Condition quick chips — Georgian market staple, not buried in More */}
+        <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto">
+          <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.condition')}</span>
+          <div className="flex flex-wrap gap-1">
+            {CONDITION_KEYS.slice(0, 4).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => toggleCsv('cond', cond, c)}
+                aria-pressed={cond.includes(c)}
+                className={tagChip(cond.includes(c))}
+              >
+                {t(c)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {deal === 'daily' && (

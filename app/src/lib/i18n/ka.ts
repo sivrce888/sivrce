@@ -58,6 +58,7 @@ export const ka = {
   'search.minArea': 'მინიმალური ფართი',
   'search.maxArea': 'მაქსიმალური ფართი',
   'search.clear': 'გასუფთავება',
+  'search.apply': 'ძებნა',
   'search.loading': 'იტვირთება…',
   'search.results': '{n} განცხადება',
   'search.removeFilter': 'ფილტრის წაშლა: {label}',

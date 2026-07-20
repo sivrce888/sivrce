@@ -59,6 +59,7 @@ export const en: Dict = {
   'search.minArea': 'Minimum area',
   'search.maxArea': 'Maximum area',
   'search.clear': 'Clear',
+  'search.apply': 'Search',
   'search.loading': 'Loading…',
   'search.results': '{n} listings',
   'search.removeFilter': 'Remove filter: {label}',
