@@ -57,9 +57,9 @@ export default function Projects() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           {PROJECTS.map((p, i) => (
-            <Reveal key={p.name} delay={i * 0.12}>
-              <LocalizedLink href="/search" className="block">
-                <article className="group cursor-pointer overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover">
+            <Reveal key={p.name} delay={i * 0.12} className="h-full">
+              <LocalizedLink href="/search" className="block h-full">
+                <article className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover">
                 <div className="relative aspect-[16/9] overflow-hidden">
                   <Image
                     src={p.img}
@@ -85,7 +85,7 @@ export default function Projects() {
                     აშენებულია {p.done}%
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 p-5">
+                <div className="mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 p-5">
                   <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
                     <MapPin className="h-4 w-4 text-sv-ink/35" /> {p.location}
                   </span>

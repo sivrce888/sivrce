@@ -93,10 +93,10 @@ export default async function Collections({ lang = 'ka' }: { lang?: Lang }) {
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {COLLECTIONS.map((c, i) => (
-            <Reveal key={c.label} delay={i * 0.05}>
+            <Reveal key={c.label} delay={i * 0.05} className="h-full">
               <Link
                 href={localizedHref(c.href, lang)}
-                className="group relative flex flex-col items-center gap-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-center transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
+                className="group relative flex h-full flex-col items-center gap-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-center transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
               >
                 <span
                   className="grid h-14 w-14 place-items-center rounded-module transition-transform duration-500 group-hover:scale-110"
@@ -104,8 +104,8 @@ export default async function Collections({ lang = 'ka' }: { lang?: Lang }) {
                 >
                   <c.icon className="h-6 w-6" />
                 </span>
-                <span className="text-[14px] font-extrabold text-sv-ink">{t(c.label)}</span>
-                <span className="text-[12px] font-bold text-sv-ink/55">{t(c.sub)}</span>
+                <span className="line-clamp-2 min-h-[2.5em] text-[14px] font-extrabold leading-snug text-sv-ink">{t(c.label)}</span>
+                <span className="mt-auto line-clamp-2 min-h-[2.25em] text-[12px] font-bold leading-snug text-sv-ink/55">{t(c.sub)}</span>
                 <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/40" />
               </Link>
             </Reveal>

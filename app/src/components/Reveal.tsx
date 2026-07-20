@@ -16,8 +16,9 @@ export function Reveal({ children, delay = 0, y = 28, className, once = true }: 
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: reduce ? 0 : y }}
-      whileInView={{ opacity: 1, y: 0 }}
+      // ponytail: reduced-motion skips tween but keeps `initial` — would stay opacity 0
+      initial={reduce ? false : { opacity: 0, y }}
+      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once, margin: '-80px' }}
       transition={{ duration: 0.7, delay, ease: [0.21, 0.65, 0.2, 1] }}
     >
