@@ -1,5 +1,6 @@
 import { CITIES, districtsOf } from "@/data/listings"
 import { geoStreets } from "@/data/georgia-locations"
+import { suggestMatch } from "@/lib/suggest-match"
 
 /**
  * GET /api/suggest?q= — autocomplete for the search keyword box.
@@ -24,27 +25,9 @@ const DISTRICTS: { ka: string; city: string }[] = CITIES.flatMap((city) =>
 
 const STREETS = geoStreets()
 
-const norm = (s: string) => s.toLowerCase()
-
-function matches(hay: (string | undefined)[], q: string): { prefix: boolean } | null {
-  for (const h of hay) {
-    if (!h) continue
-    const n = norm(h)
-    // full-string or any word starts with q ("beli" → Beliashvili)
-    if (n.startsWith(q) || n.split(/[\s-]+/).some((w) => w.startsWith(q))) {
-      return { prefix: true }
-    }
-  }
-  for (const h of hay) {
-    if (!h) continue
-    if (norm(h).includes(q)) return { prefix: false }
-  }
-  return null
-}
-
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams
-  const q = norm((sp.get("q") ?? "").trim())
+  const q = (sp.get("q") ?? "").trim().toLowerCase()
   if (q.length < 2) return Response.json({ ok: true, suggestions: [] })
   // ponytail: optional city scopes streets + districts to that city
   const cityFilter = (sp.get("city") ?? "").trim() || undefined
@@ -55,18 +38,18 @@ export async function GET(req: Request) {
 
   if (!cityFilter) {
     for (const city of CITIES) {
-      const m = matches([city], q)
+      const m = suggestMatch([city], q)
       if (m) push({ kind: "city", ka: city }, m.prefix)
     }
   }
   for (const d of DISTRICTS) {
     if (cityFilter && d.city !== cityFilter) continue
-    const m = matches([d.ka], q)
+    const m = suggestMatch([d.ka], q)
     if (m) push({ kind: "district", ka: d.ka }, m.prefix)
   }
   for (const s of STREETS) {
     if (cityFilter && s.city !== cityFilter) continue
-    const m = matches([s.ka, s.en, s.ru], q)
+    const m = suggestMatch([s.ka, s.en, s.ru], q)
     if (m) push({ kind: "street", ka: s.ka, en: s.en }, m.prefix)
   }
 
