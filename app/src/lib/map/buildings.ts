@@ -21,11 +21,24 @@ import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 import footprintData from '@/data/building-footprints.json'
 
 /** Real OSM building rings keyed by cluster id (© OpenStreetMap contributors, ODbL).
- *  null = confirmed no OSM coverage → square fallback. Refresh: npx tsx scripts/fetch-footprints.ts */
-const FOOTPRINTS = footprintData.footprints as unknown as Record<
-  string,
-  { ring: [number, number][]; osmId: number } | null
->
+ *  null = confirmed no OSM coverage → square fallback. Refresh: npx tsx scripts/fetch-footprints.ts
+ *  parts = multi-tower synthetic / curated massing (one Feature per part). */
+type FootprintRing = [number, number][]
+type FootprintPart = { ring: FootprintRing; floors?: number }
+type FootprintEntry =
+  | { ring: FootprintRing; osmId?: number; height?: number; parts?: undefined }
+  | { parts: FootprintPart[]; osmId?: number; ring?: undefined; height?: undefined }
+  | null
+
+const FOOTPRINTS = footprintData.footprints as unknown as Record<string, FootprintEntry>
+
+function footprintPrimaryRing(
+  fp: Exclude<FootprintEntry, null> | undefined,
+): FootprintRing | undefined {
+  if (!fp) return undefined
+  if (fp.parts?.length) return fp.parts[0]!.ring
+  return fp.ring
+}
 
 const CELL_DEG = 0.00055 // ≈ 60 m at Tbilisi lat
 export const NEAREST_RADIUS_M = 90
@@ -560,16 +573,51 @@ export function ringBboxHalfM(ring: [number, number][]): number {
   return Math.max(w, h) / 2
 }
 
+/** Distance from pin to ring centroid. Reject OSM hits glued to a neighbour block. */
+export const FOOTPRINT_MAX_PIN_M = 90
+
+export function ringCentroidDistM(
+  ring: [number, number][],
+  lat: number,
+  lng: number,
+): number {
+  let sLat = 0
+  let sLng = 0
+  let n = 0
+  const last = ring.length - 1
+  const closed =
+    last > 0 && ring[0]![0] === ring[last]![0] && ring[0]![1] === ring[last]![1]
+  const end = closed ? last : ring.length
+  for (let i = 0; i < end; i++) {
+    sLng += ring[i]![0]!
+    sLat += ring[i]![1]!
+    n++
+  }
+  if (n === 0) return Infinity
+  return haversineM(lat, lng, sLat / n, sLng / n)
+}
+
+/** True when an OSM/curated ring is safe to extrude at this pin. */
+export function footprintRingUsable(
+  ring: [number, number][],
+  lat: number,
+  lng: number,
+  opts?: { ghost?: boolean },
+): boolean {
+  if (ring.length < 5) return false
+  if (ringCentroidDistM(ring, lat, lng) > FOOTPRINT_MAX_PIN_M) return false
+  // ponytail: construction sites often match a neighbour shed — ignore if tiny.
+  // Upgrade → cadastral / developer site polygons.
+  if (opts?.ghost && ringBboxHalfM(ring) < 14) return false
+  return true
+}
+
 /** Real OSM ring for a cluster, else synthetic slab (construction) / square (active). */
 export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
-  const ring = b.ring ?? FOOTPRINTS[b.id]?.ring
+  const ring = b.ring ?? footprintPrimaryRing(FOOTPRINTS[b.id] ?? undefined)
   const ghost = b.status === 'construction' && b.listings.length === 0
-  if (ring && ring.length >= 5) {
-    // ponytail: construction sites often match a neighbour shed in OSM — ignore if tiny.
-    // Upgrade → cadastral / developer site polygons.
-    if (!ghost || ringBboxHalfM(ring) >= 14) {
-      return { type: 'Polygon', coordinates: [ring] }
-    }
+  if (ring && footprintRingUsable(ring, b.lat, b.lng, { ghost })) {
+    return { type: 'Polygon', coordinates: [ring] }
   }
   if (ghost) {
     const floors = b.floors ?? Math.max(8, Math.round(b.heightM / 3.15))
@@ -632,12 +680,42 @@ function formatMapPinGEL(gel: number): string {
 export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: buildings.map((b) => ({
-      type: 'Feature' as const,
-      id: b.id,
-      properties: buildingProps(b),
-      geometry: clusterGeometry(b),
-    })),
+    features: buildings.flatMap((b) => {
+      const fp = FOOTPRINTS[b.id]
+      // Multi-tower massing: one extrusion per part (MapLibre height is per-feature).
+      if (fp?.parts && fp.parts.length > 0 && !b.ring) {
+        const ghost = b.status === 'construction' && b.listings.length === 0
+        const parts = fp.parts.filter((part) =>
+          footprintRingUsable(part.ring, b.lat, b.lng, { ghost: false }),
+        )
+        if (parts.length > 0) {
+          return parts.map((part, i) => {
+            const floors = part.floors ?? b.floors ?? 8
+            const height = Math.min(floors * 3.15, 110)
+            return {
+              type: 'Feature' as const,
+              id: i === 0 ? b.id : `${b.id}__${i}`,
+              properties: {
+                ...buildingProps(b),
+                // Keep cluster id so map click → same panel for every tower.
+                id: b.id,
+                height,
+                color: colorWithAlpha(b.color, ghost ? 0.78 : 0.95),
+              },
+              geometry: { type: 'Polygon' as const, coordinates: [part.ring] },
+            }
+          })
+        }
+      }
+      return [
+        {
+          type: 'Feature' as const,
+          id: b.id,
+          properties: buildingProps(b),
+          geometry: clusterGeometry(b),
+        },
+      ]
+    }),
   }
 }
 
