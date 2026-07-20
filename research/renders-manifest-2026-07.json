@@ -749,6 +749,20 @@
     "batch": 2
   },
   {
+    "slug": "archi-central-park",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-central-park-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "archi-dighomi",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 2
+  },
+  {
     "slug": "archi-grand-avenue",
     "status": "ok",
     "source": "official",
@@ -823,6 +837,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/axis-towers-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "axis-towers-vake",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 2
   },
   {
@@ -907,6 +928,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/devart-green-gardens-tbilisi",
+    "batch": 2
+  },
+  {
+    "slug": "dirsi-riverside",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 2
   },
   {
@@ -1194,6 +1222,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/orbi-residence-batumi",
+    "batch": 2
+  },
+  {
+    "slug": "orbi-sea-towers",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-sea-towers-batumi",
     "batch": 2
   },
   {
