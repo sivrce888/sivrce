@@ -11,8 +11,7 @@ export const ka = {
   'nav.search': 'ძიება',
   'nav.map': '3D რუკა',
   'nav.buildings': 'შენობები',
-  // ponytail: short chrome label — page H1 keeps "ახალი პროექტები"
-  'nav.projects': 'პროექტები',
+  'nav.projects': 'ახალი პროექტები',
   'nav.services': 'სერვისები',
   'nav.more': 'მეტი',
   'nav.favorites': 'ფავორიტები',
