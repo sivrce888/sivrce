@@ -5,7 +5,7 @@
   "regions": ["fra1"],
   "crons": [
     { "path": "/api/cron/expire-listings", "schedule": "15 2 * * *" },
-    { "path": "/api/cron/expire-promos", "schedule": "5 * * * *" },
+    { "path": "/api/cron/expire-promos", "schedule": "20 2 * * *" },
     { "path": "/api/cron/sync-search", "schedule": "0 3 * * *" },
     { "path": "/api/cron/sync-nearest-poi", "schedule": "30 4 * * *" }
   ],
