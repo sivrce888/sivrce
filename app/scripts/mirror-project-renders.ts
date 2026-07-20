@@ -423,8 +423,8 @@ function batch2Targets(): Target[] {
   const out: Target[] = []
   for (const p of PROJECTS) {
     if (newSlugs.has(p.slug)) continue
-    if (!p.img.startsWith('/images/np')) continue
-    if (!BIG_DEVS_B2.has(p.developerSlug)) continue
+    // ponytail: all remaining stock heroes (np* + p*), not only BIG_DEVS
+    if (!/^\/images\/(np|p)\d+\.webp$/.test(p.img)) continue
     out.push({ slug: p.slug, name: p.name, dev: p.developerSlug, city: p.city, file: 'professionals' })
   }
   return out
