@@ -28,8 +28,10 @@ import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, 
 import { featuresFor } from '@/lib/add-listing-fields'
 import type { SearchLocations } from '@/lib/listings-db'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
+import { hitPrices } from '@/lib/hit-prices'
+import { aiLabel } from '@/lib/ai-label'
 import {
-  CITIES, districtsOf, USD_GEL,
+  CITIES, districtsOf,
   type DealType, type PropType, type SortKey, type Listing,
 } from '@/data/listings'
 
@@ -120,6 +122,9 @@ function CompactCard({ l }: { l: Listing }) {
 function mapHit(h: Record<string, unknown>): Listing {
   const postedAt = (h.createdAt as string) ?? new Date().toISOString()
   const tier = h.tier as string | undefined
+  const { priceUSD, priceGEL, perM2USD } = hitPrices(h)
+  const score = (h.trustScore as number) ?? 70
+  const projectCatalog = Boolean(h.projectCatalog)
   return {
     id: h.id as string,
     title: h.title as string,
@@ -127,25 +132,25 @@ function mapHit(h: Record<string, unknown>): Listing {
     district: h.district as string,
     dealType: h.dealType as DealType,
     propType: h.propertyType as PropType,
-    priceUSD: h.price as number,
-    priceGEL: Math.round((h.price as number) * USD_GEL),
-    perM2USD: (h.pricePerSqm as number) ?? 0,
+    priceUSD,
+    priceGEL,
+    perM2USD,
     area: h.area as number,
-    rooms: h.rooms as number,
+    rooms: (h.rooms as number) ?? 0,
     images: (h.images as string[]) ?? [],
     img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
     address: (h.address as string) ?? '',
-    beds: (h.bedrooms as number) ?? (h.rooms as number),
-    baths: (h.bathrooms as number) ?? 1,
+    beds: (h.bedrooms as number) ?? 0,
+    baths: (h.bathrooms as number) ?? 0,
     floor: (h.floor as number) ?? 0,
     totalFloors: (h.totalFloors as number) ?? 0,
     views: (h.views as number) ?? 0,
     badge: tierKeyToBadge(String(tier ?? '')),
-    ai: { score: (h.trustScore as number) ?? 70, label: '' },
+    ai: { score, label: aiLabel(score, projectCatalog) },
     features: (h.features as string[]) ?? [],
     description: (h.description as string) ?? '',
     condition: (h.condition as string) ?? null,
-    projectCatalog: Boolean(h.projectCatalog),
+    projectCatalog,
     projectSlug: (h.projectSlug as string) ?? null,
     coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
     postedAt,
@@ -282,14 +287,22 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const [drafts, setDrafts] = useState(urlText)
   const clearDraft = (k: keyof typeof urlText) => setDrafts((d) => ({ ...d, [k]: '' }))
 
+  // Keep drafts in sync when URL changes (back/forward, chip clear).
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const patch: Record<string, string | undefined> = {}
-      for (const k of ['q', 'min', 'max', 'amin', 'amax', 'fmin', 'fmax'] as const) {
-        if (drafts[k] !== urlText[k]) patch[k] = drafts[k] || undefined
-      }
-      if (Object.keys(patch).length > 0) patchParams(patch)
-    }, 300)
+    setDrafts(urlText)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- urlText derived from paramsKey
+  }, [paramsKey])
+
+  const flushDrafts = () => {
+    const patch: Record<string, string | undefined> = {}
+    for (const k of ['q', 'min', 'max', 'amin', 'amax', 'fmin', 'fmax'] as const) {
+      if (drafts[k] !== urlText[k]) patch[k] = drafts[k] || undefined
+    }
+    if (Object.keys(patch).length > 0) patchParams(patch)
+  }
+
+  useEffect(() => {
+    const timer = window.setTimeout(flushDrafts, 300)
     return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- urlText/patchParams derive from drafts+paramsKey
   }, [drafts, paramsKey])
@@ -438,8 +451,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   if (type) chips.push({ key: 'type', label: propTypeKey ? t(propTypeKey) : type, hue: propType?.brand.hue, clear: () => patchParams({ type: undefined }) })
   if (city) chips.push({ key: 'city', label: city, clear: () => patchParams({ city: undefined, district: undefined }) })
   if (district) chips.push({ key: 'district', label: district, clear: () => patchParams({ district: undefined }) })
-  if (minPrice !== undefined) chips.push({ key: 'min', label: `${t('search.min')}. $${minPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('min'); patchParams({ min: undefined }) } })
-  if (maxPrice !== undefined) chips.push({ key: 'max', label: `${t('search.max')}. $${maxPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('max'); patchParams({ max: undefined }) } })
+  if (minPrice !== undefined) chips.push({ key: 'min', label: `${t('search.min')}. ${cur === 'GEL' ? '₾' : '$'}${minPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('min'); patchParams({ min: undefined }) } })
+  if (maxPrice !== undefined) chips.push({ key: 'max', label: `${t('search.max')}. ${cur === 'GEL' ? '₾' : '$'}${maxPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('max'); patchParams({ max: undefined }) } })
   if (rooms !== undefined) chips.push({ key: 'rooms', label: t('search.roomsChip', { n: rooms }), clear: () => patchParams({ rooms: undefined }) })
   if (minArea !== undefined) chips.push({ key: 'amin', label: `${t('search.min')}. ${minArea} მ²`, clear: () => { clearDraft('amin'); patchParams({ amin: undefined }) } })
   if (maxArea !== undefined) chips.push({ key: 'amax', label: `${t('search.max')}. ${maxArea} მ²`, clear: () => { clearDraft('amax'); patchParams({ amax: undefined }) } })
@@ -447,7 +460,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   if (beds !== undefined) chips.push({ key: 'beds', label: t('search.bedsChip', { n: beds }), clear: () => patchParams({ beds: undefined }) })
   if (baths !== undefined) chips.push({ key: 'baths', label: t('search.bathsChip', { n: baths }), clear: () => patchParams({ baths: undefined }) })
   if (floorMin !== undefined || floorMax !== undefined) chips.push({ key: 'floor', label: `${t('search.floor')}: ${floorMin ?? '—'}–${floorMax ?? '—'}`, clear: () => { clearDraft('fmin'); clearDraft('fmax'); patchParams({ fmin: undefined, fmax: undefined }) } })
-  if (cond.length) chips.push({ key: 'cond', label: `${t('search.condition')} · ${cond.length}`, clear: () => patchParams({ cond: undefined }) })
+  if (cond.length) chips.push({ key: 'cond', label: cond.map((c) => t(c)).join(' · '), clear: () => patchParams({ cond: undefined }) })
   if (bstat.length) chips.push({ key: 'bstat', label: `${t('search.buildingStatus')} · ${bstat.length}`, clear: () => patchParams({ bstat: undefined }) })
   if (project.length) chips.push({ key: 'project', label: `${t('search.project')} · ${project.length}`, clear: () => patchParams({ project: undefined }) })
   if (ftype.length) chips.push({ key: 'ftype', label: `${t('search.floorType')} · ${ftype.length}`, clear: () => patchParams({ ftype: undefined }) })
@@ -501,7 +514,12 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
                 key={label}
                 type="button"
                 aria-pressed={active}
-                onClick={() => patchParams({ deal: d, ...(d === 'daily' ? {} : { from: undefined, to: undefined }) })}
+                onClick={() => patchParams({
+                  deal: d,
+                  beds: undefined,
+                  rooms: undefined,
+                  ...(d === 'daily' ? {} : { from: undefined, to: undefined }),
+                })}
                 className={`relative whitespace-nowrap rounded-lg px-4 py-2.5 text-[13px] font-extrabold transition-colors ${
                   active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
                 }`}
@@ -719,24 +737,18 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         {/* Explicit Search CTA — ss.ge parity; flushes draft inputs immediately */}
         <button
           type="button"
-          onClick={() => {
-            const patch: Record<string, string | undefined> = {}
-            for (const k of ['q', 'min', 'max', 'amin', 'amax', 'fmin', 'fmax'] as const) {
-              if (drafts[k] !== urlText[k]) patch[k] = drafts[k] || undefined
-            }
-            if (Object.keys(patch).length > 0) patchParams(patch)
-          }}
+          onClick={flushDrafts}
           className="flex h-11 items-center gap-2 rounded-control bg-sv-blue px-5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
         >
           <Search className="h-4 w-4" aria-hidden />
           {t('search.apply')}
         </button>
 
-        {/* Condition quick chips — Georgian market staple, not buried in More */}
+        {/* Condition quick chips — full Georgian vocabulary (scroll on narrow) */}
         <div className="flex w-full flex-wrap items-center gap-1.5 sm:w-auto">
           <span className="text-[12px] font-black uppercase tracking-wide text-sv-ink/65">{t('search.condition')}</span>
-          <div className="flex flex-wrap gap-1">
-            {CONDITION_KEYS.slice(0, 4).map((c) => (
+          <div className="scrollbar-hide flex max-w-full flex-wrap gap-1 overflow-x-auto">
+            {CONDITION_KEYS.map((c) => (
               <button
                 key={c}
                 type="button"
@@ -1164,7 +1176,10 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
               </button>
               <button
                 type="button"
-                onClick={() => setSheetOpen(false)}
+                onClick={() => {
+                  flushDrafts()
+                  setSheetOpen(false)
+                }}
                 className="h-11 flex-1 rounded-control bg-sv-blue text-[14px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep"
               >
                 {t('search.showResults', { n: totalResults })}

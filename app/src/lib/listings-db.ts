@@ -26,6 +26,7 @@ import {
   type PromoBadge,
   type PromoExtFields,
 } from "@/lib/promo-pricing"
+import { aiLabel } from "@/lib/ai-label"
 import { MAP_CENTER } from "@/lib/map/buildings"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
@@ -198,9 +199,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     ),
     ai: {
       score: aiScore,
-      label: projectCatalog
-        ? "ახალი აშენება"
-        : aiScore >= 90 ? "შესანიშნავი ფასი" : aiScore >= 75 ? "კარგი შეთავაზება" : "საშუალო",
+      label: aiLabel(aiScore, projectCatalog),
     },
     features: (r.features as string[]) ?? [],
     description: (r.description as string) ?? "",
@@ -353,6 +352,29 @@ export async function getAllListings(): Promise<Listing[]> {
       take: 50,
     })
     return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+}
+
+/**
+ * Homepage SUPER VIP rail — real ads with photos, not project-catalog inquiry cards.
+ * ponytail: id prefix filter; JSON path on extendedFields when catalog volume drops.
+ */
+export async function getFeaturedListings(limit = 6): Promise<Listing[]> {
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: {
+        deletedAt: null,
+        status: "active",
+        NOT: { id: { startsWith: "proj-" } },
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 80,
+    })
+    const mapped = rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+    const rank = (l: Listing) =>
+      (l.badge === "SUPER VIP" ? 40 : l.badge === "VIP+" ? 25 : l.badge === "VIP" ? 15 : 0) +
+      Math.min(l.images.length, 4)
+    return [...mapped].sort((a, b) => rank(b) - rank(a)).slice(0, limit)
   }, [])
 }
 

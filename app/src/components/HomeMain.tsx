@@ -13,14 +13,18 @@ import Services from '@/components/sections/Services'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import { LISTINGS, type Listing } from '@/data/listings'
-import { getAllListings, getStoryListings, type Listing as StoryListing } from '@/lib/listings-db'
+import { getFeaturedListings, getStoryListings, type Listing as StoryListing } from '@/lib/listings-db'
 import type { Lang } from '@/lib/i18n/core'
 
 /** DB-first featured rail; static mock is the build-time/outage fallback. */
 async function getFeatured(): Promise<Listing[]> {
   try {
-    const rows = await getAllListings()
-    if (rows.length >= 6) return rows.slice(0, 6)
+    const rows = await getFeaturedListings(6)
+    if (rows.length >= 6) return rows
+    if (rows.length > 0) {
+      const fill = LISTINGS.filter((l) => !rows.some((r) => r.id === l.id))
+      return [...rows, ...fill].slice(0, 6)
+    }
   } catch { /* DB unavailable at build — fall through to static */ }
   return LISTINGS.slice(0, 6)
 }

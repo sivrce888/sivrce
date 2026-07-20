@@ -127,17 +127,28 @@ export async function syncSearchIndexJob(): Promise<{
       urgentUntil?: string
       priceDropUntil?: string
       storyUntil?: string
+      projectCatalog?: boolean
     } | null
     const tierKey = effectiveTierKey(tier, tierExpiresAt)
+    const priceUSD = row.currency === "USD" ? row.price : Math.round(row.price / USD_GEL)
+    const rawM2 = row.pricePerSqm ?? undefined
+    const pricePerSqmUSD =
+      rawM2 == null
+        ? undefined
+        : row.currency === "USD"
+          ? rawM2
+          : Math.round(rawM2 / USD_GEL)
     return {
       ...rest,
-      priceUSD: row.currency === "USD" ? row.price : Math.round(row.price / USD_GEL),
-      pricePerSqm: row.pricePerSqm ?? undefined,
+      priceUSD,
+      pricePerSqm: rawM2,
+      pricePerSqmUSD,
       hasImages: row.images.length > 0,
       condition: ext?.condition,
       buildingStatus: ext?.buildingStatus,
       project: ext?.project,
       floorType: ext?.floorType,
+      projectCatalog: Boolean(ext?.projectCatalog),
       features: (row.features as string[]) ?? [],
       images: (row.images as string[]) ?? [],
       floor: row.floor ?? undefined,

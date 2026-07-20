@@ -143,6 +143,10 @@ export interface ListingDocument {
   lng: number
   /** Meters to nearest Tbilisi metro; 999999 when far / outside catchment. */
   metroM: number
+  /** Developer directory promo rows — excluded from unit /search by default. */
+  projectCatalog?: boolean
+  /** pricePerSqm normalized to USD (cross-currency m² sort). */
+  pricePerSqmUSD?: number
   createdAt: string
   status: string
   /** ISO — paid color highlight expiry; omit when inactive */
@@ -212,6 +216,7 @@ async function ensureIndex(): Promise<boolean> {
       "petsAllowed",
       "sellerType",
       "metroM",
+      "projectCatalog",
     ])
 
     // Sortable attributes.
@@ -219,6 +224,8 @@ async function ensureIndex(): Promise<boolean> {
       "price",
       "priceUSD",
       "pricePerSqm",
+      "pricePerSqmUSD",
+      "projectCatalog",
       "area",
       "rooms",
       "createdAt",
@@ -315,6 +322,8 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.petsOnly) parts.push("petsAllowed = true")
   if (filters.sellerType) parts.push(`sellerType = ${esc(filters.sellerType)}`)
   if (filters.nearMetro) parts.push(`metroM <= ${METRO_NEAR_M}`)
+  // ponytail: keep catalog projects searchable while inventory is thin; demote via sort.
+  // Hard-exclude when unit supply dominates (projectCatalog != true).
 
   return parts.join(" AND ")
 }
@@ -322,21 +331,21 @@ function buildMeiliFilter(filters: SearchFilters): string {
 function buildMeiliSort(filters: SearchFilters): string[] | undefined {
   switch (filters.sort) {
     case "price-asc":
-      return ["price:asc"]
+      return ["priceUSD:asc"]
     case "price-desc":
-      return ["price:desc"]
+      return ["priceUSD:desc"]
     case "area":
       return ["area:desc"]
     case "ai":
       return ["trustScore:desc"]
     case "m2asc":
-      return ["pricePerSqm:asc"]
+      return ["pricePerSqmUSD:asc"]
     case "m2desc":
-      return ["pricePerSqm:desc"]
+      return ["pricePerSqmUSD:desc"]
     case "date":
     default:
-      // Paid placement is real: tier within freshness. Explicit price/area sorts skip this.
-      return ["tierRank:desc", "createdAt:desc"]
+      // Units before developer-catalog promos; paid tier within freshness.
+      return ["projectCatalog:asc", "tierRank:desc", "createdAt:desc"]
   }
 }
 
