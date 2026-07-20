@@ -23,6 +23,9 @@ import {
   applyLiveProjectPins,
   mergeDbBuildings,
   ringBboxHalfM,
+  ringCentroidDistM,
+  footprintRingUsable,
+  FOOTPRINT_MAX_PIN_M,
 } from './buildings'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
@@ -172,6 +175,25 @@ const shedW = Math.abs(shedGhost.coordinates[0]![1]![0]! - shedGhost.coordinates
 const shedH = Math.abs(shedGhost.coordinates[0]![2]![1]! - shedGhost.coordinates[0]![1]![1]!)
 assert.ok(shedW / shedH > 1.4, 'tiny OSM ring should fall back to synthetic slab')
 
+// Far OSM neighbour block must not stick to the pin (km-scale mismatch).
+const farRing: [number, number][] = [
+  [44.81, 41.71],
+  [44.811, 41.71],
+  [44.811, 41.711],
+  [44.81, 41.711],
+  [44.81, 41.71],
+]
+assert.ok(ringCentroidDistM(farRing, ghosts[0]!.lat, ghosts[0]!.lng) > FOOTPRINT_MAX_PIN_M)
+assert.equal(footprintRingUsable(farRing, ghosts[0]!.lat, ghosts[0]!.lng), false)
+const farGeom = clusterGeometry({ ...ghosts[0]!, ring: farRing })
+const farCx =
+  (farGeom.coordinates[0]!.reduce((s, p) => s + p[0]!, 0) - farGeom.coordinates[0]![0]![0]!) /
+  (farGeom.coordinates[0]!.length - 1)
+assert.ok(
+  Math.abs(farCx - ghosts[0]!.lng) < 0.001,
+  'far OSM ring must fall back to synthetic at pin lng',
+)
+
 // Real Blox Mukhiani pin must sit in Mukhiani, not Digomi riverside.
 const mukhiani = PROJECTS.find((p) => p.slug === 'blox-mukhiani')
 assert.ok(mukhiani)
@@ -192,12 +214,30 @@ const pinAnchors: Record<string, { lat: number; lng: number; needle: string }> =
   'orbi-continental': { lat: 41.64892, lng: 41.62439, needle: 'Rustaveli' },
   'idea-panorama': { lat: 41.71883, lng: 44.7043, needle: 'Danelia' },
   'alto-by-real-palace': { lat: 41.79453, lng: 44.76627, needle: 'აბრაამ' },
+  // 2026-07-20: was east-bank wrong pin 41.7549/44.7784
+  'm2-highlight': { lat: 41.74852338, lng: 44.76985808, needle: 'ბაქრაძ' },
+  'grada-saburtalo': { lat: 41.74733768, lng: 44.76877781, needle: 'გელოვან' },
 }
 for (const [slug, a] of Object.entries(pinAnchors)) {
   const p = PROJECTS.find((x) => x.slug === slug)
   assert.ok(p, `${slug} missing`)
   assert.ok(haversineM(p!.coords.lat, p!.coords.lng, a.lat, a.lng) < 80, `${slug} pin drifted`)
   assert.ok(p!.location.includes(a.needle), `${slug} address needle missing`)
+}
+
+// m² Highlight — two cylindrical extrusions (Block 11/12), not one riverbank slab
+{
+  const ghost = projectsToConstructionBuildings(
+    PROJECTS.filter((p) => p.slug === 'm2-highlight' && p.coords) as Array<
+      (typeof PROJECTS)[number] & { coords: { lat: number; lng: number } }
+    >,
+  )[0]
+  assert.ok(ghost, 'm2-highlight ghost')
+  const twins = buildingsToGeoJSON([ghost!]).features
+  assert.equal(twins.length, 2, 'm2-highlight must extrude 2 towers')
+  assert.equal(twins[0]!.properties?.id, 'dev-m2-highlight')
+  assert.equal(twins[1]!.properties?.id, 'dev-m2-highlight')
+  assert.ok(Number(twins[0]!.properties?.height) > Number(twins[1]!.properties?.height), 'Block 11 taller')
 }
 
 // Live project pin must move catalog building to exact address/coords.
@@ -357,21 +397,63 @@ for (const f of mergedFc.features) {
 
 const fpData = footprintJson.footprints as unknown as Record<
   string,
-  { ring: [number, number][] } | null
+  { ring?: [number, number][]; parts?: { ring: [number, number][] }[] } | null
 >
 for (const [id, fp] of Object.entries(fpData)) {
   if (!fp) continue
-  assert.ok(fp.ring.length >= 5, `${id}: footprint ring needs >= 5 points`)
-  const first = fp.ring[0]!
-  const last = fp.ring[fp.ring.length - 1]!
-  assert.ok(first[0] === last[0] && first[1] === last[1], `${id}: footprint ring not closed`)
+  const rings = fp.parts?.map((p) => p.ring) ?? (fp.ring ? [fp.ring] : [])
+  assert.ok(rings.length >= 1, `${id}: footprint needs ring or parts`)
+  for (const ring of rings) {
+    assert.ok(ring.length >= 5, `${id}: footprint ring needs >= 5 points`)
+    const first = ring[0]!
+    const last = ring[ring.length - 1]!
+    assert.ok(first[0] === last[0] && first[1] === last[1], `${id}: footprint ring not closed`)
+  }
 }
 
-const catalogWithFp = BUILDINGS.filter((b) => fpData[`bldg-${b.slug}`]).length
+// Every catalog building must have a footprint key (ring | parts | explicit null).
+for (const b of BUILDINGS) {
+  assert.ok(
+    `bldg-${b.slug}` in fpData,
+    `missing footprint key bldg-${b.slug}`,
+  )
+}
+const catalogWithRing = BUILDINGS.filter((b) => {
+  const fp = fpData[`bldg-${b.slug}`]
+  return !!(fp?.ring || fp?.parts?.length)
+}).length
 assert.ok(
-  catalogWithFp >= Math.ceil(BUILDINGS.length * 0.7),
-  `catalog footprint coverage ${catalogWithFp}/${BUILDINGS.length} below 70%`,
+  catalogWithRing >= 6,
+  `catalog usable rings ${catalogWithRing}/${BUILDINGS.length} below floor`,
 )
+
+// Committed rings must sit on their pin — stale OSM after pin moves = null, not a km-off shed.
+{
+  const catalogProjects = new Set(BUILDINGS.map((b) => b.projectSlug).filter(Boolean))
+  for (const b of BUILDINGS) {
+    const fp = fpData[`bldg-${b.slug}`]
+    if (!fp?.ring) continue
+    const d = ringCentroidDistM(fp.ring, b.coords.lat, b.coords.lng)
+    assert.ok(
+      d <= FOOTPRINT_MAX_PIN_M,
+      `bldg-${b.slug}: footprint ${Math.round(d)}m from pin (max ${FOOTPRINT_MAX_PIN_M})`,
+    )
+  }
+  for (const p of PROJECTS) {
+    if (p.done >= 100 || catalogProjects.has(p.slug)) continue
+    const fp = fpData[`dev-${p.slug}`]
+    if (!fp) continue
+    const rings = fp.parts?.map((x) => x.ring) ?? (fp.ring ? [fp.ring] : [])
+    for (const ring of rings) {
+      const d = ringCentroidDistM(ring, p.coords.lat, p.coords.lng)
+      assert.ok(
+        d <= FOOTPRINT_MAX_PIN_M,
+        `dev-${p.slug}: footprint ${Math.round(d)}m from pin (max ${FOOTPRINT_MAX_PIN_M})`,
+      )
+    }
+  }
+}
+
 // a known multi-point real footprint must flow into the GeoJSON
 const vazhaFeature = mergedFc.features.find((f) => f.id === 'bldg-vazha-pshavela-50')
 assert.ok(vazhaFeature, 'vazha-pshavela-50 missing from GeoJSON')

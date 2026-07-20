@@ -1861,7 +1861,7 @@ export const PROJECTS: Project[] = [
     },
   },
   {
-    // Verified 2026-07-07 (korter.ge ka/en + m² / Georgia Capital). Price ₾4,224 ≈ $1,607/m².
+    // Verified 2026-07-20 (korter.ge) — pin west bank Bakradze 7; twin cylinders Block 11/12.
     slug: 'm2-highlight',
     name: 'm² Highlight',
     developerSlug: 'm2-development',
@@ -1873,7 +1873,7 @@ export const PROJECTS: Project[] = [
     finish: '2027',
     flats: 676,
     rating: 4.8,
-    coords: { lat: 41.7549, lng: 44.7784 },
+    coords: { lat: 41.74852338, lng: 44.76985808 },
     floors: 36,
     description: {
       ka: `m² Highlight — პრესტიჟული მშენებარე საცხოვრებელი კომპლექსი თბილისში, აკაკი ბაქრაძის ქუჩა 7 (საბურთალო / დიღომი), მტკვრის სანაპიროსთან. ორი ცათამბჯენი ერთ სტილობატზე: Block 11 — 36 სართული (254 ბინა), Block 12 — 26 სართული (422 ბინა). ჩაბარება 2027. ფასი მ²-ზე ₾4 224-დან (აქტუალური 7 ივლისი 2026). თეთრი კარკასი, მონოლითური-ჩარჩო, მიწისქვეშა პარკინგი, ლიფტი. საკადასტრო ნომერი 01.10.10.025.115. ბინები 68,98–141,62 მ²; გაყიდვაში 3-ოთახიანი 116,35–141,62 მ². განვადება დეველოპერისგან; იპოთეკა TBC Bank.
@@ -1886,7 +1886,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     },
   },
   {
-    // Verified 2026-07-07 korter.ge — active blocks 9–10 delivery 2026; 8 blocks delivered.
+    // Verified 2026-07-20 — Nominatim Alio Mirtskhulava 9 building (was ~1.5 km SE).
     slug: 'm2-at-mirtskhulava',
     name: 'm² at Mirtskhulava',
     developerSlug: 'm2-development',
@@ -1898,7 +1898,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026',
     flats: 2166,
     rating: 4.7,
-    coords: { lat: 41.7328, lng: 44.7845 },
+    coords: { lat: 41.7452397, lng: 44.7734035 },
     floors: 25,
     description: {
       ka: `m² at Mirtskhulava (m2 მირცხულავა) — მშენებარე და ნაწილობრივ ჩაბარებული საცხოვრებელი კომპლექსი დიდუბეში, ალიო მირცხულავას ქ. 9-11, მტკვრის სანაპიროსთან. 10 კორპუსი, 14–25 სართული, სულ 2166 ბინა 39,9–160 მ². ფასი მ²-ზე $1 200-დან (7 ივლისი 2026). Block 9–10 ჩაბარება 2026; Block 1–8 ჩაბარებულია. თეთრი კარკასი, ჭერი 3 მ, მიწისქვეშა და მიწისზედა პარკინგი, დახურული ეზო ~4500 მ². იპოთეკა TBC Bank. დეველოპერი m² (Georgia Capital).`,
@@ -2439,7 +2439,8 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q3',
     flats: 220,
     rating: 4.5,
-    coords: { lat: 41.79395753, lng: 41.76746684 },
+    // Verified 2026-07-20 — was Tbilisi lat + Batumi lng; pin = OSM footprint centroid.
+    coords: { lat: 41.639824, lng: 41.629898 },
     floors: 22,
     description: {
       ka: 'Solana Beach Residence — საპლაჟე ბინები $47 000-იდან, ბათუმში. ანაზღაურების პოტენციალი წლიურად 12%-მდე, ინვესტორებისთვის სრული მართვის სერვისი.',
@@ -4541,6 +4542,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     },
   },
   {
+    // Verified 2026-07-20 korter.ge — was ~2.1 km S (Hippodrome); sits next to m² Highlight.
     slug: 'grada-saburtalo',
     name: 'Grada Saburtalo',
     developerSlug: 'grada',
@@ -4552,7 +4554,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2032 Q2',
     flats: 200,
     rating: 4.4,
-    coords: { lat: 41.7255, lng: 44.7495 },
+    coords: { lat: 41.74733768, lng: 44.76877781 },
     floors: 18,
     description: {
       ka: `Grada Saburtalo — მშენებარე 18-სართულიანი კომპლექსი მარშალ გელოვანის გამზ. 4 (m² Highlight-ის მეზობლად). ჩაბარება 2032 Q2. ფასები მოთხოვნით (28 მაისი 2026). ბინები 39–98 მ². მონოლითური-ჩარჩო, 3-დონიანი მიწისქვეშა პარკინგი + EV დამტენი, 24/7 დაცვა. საკადასტრო 01.10.11.001.465. დეველოპერი Grada (2016+).`,
@@ -4561,6 +4563,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     },
   },
   {
+    // Verified 2026-07-20 korter.ge — Teimuraz I / Didi Digomi (was ~1.3 km off).
     slug: 'grada-park',
     name: 'Grada Park',
     developerSlug: 'grada',
@@ -4572,7 +4575,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q4',
     flats: 582,
     rating: 4.5,
-    coords: { lat: 41.778, lng: 44.778 },
+    coords: { lat: 41.78986237, lng: 44.74892545 },
     floors: 13,
     description: {
       ka: `Grada Park — 4 კორპუსი (12–13 სართული) თეიმურაზ I-ის 14, დიდი დიღომი. ~582 ბინა 42,6–118 მ². ფასი $1 103/მ²-დან (22 მაისი 2026). Block 1–2 ჩაბარებულია; Block 3–4 — 2026 Q3/Q4. მწვანე კარკასი. საკადასტრო 01.10.06.001.248. დეველოპერი Grada.`,
