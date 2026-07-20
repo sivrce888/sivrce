@@ -1190,6 +1190,20 @@
     "batch": 2
   },
   {
+    "slug": "next-tbilisi-downtown",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://next-property.com/tbilisi-downtown-by-next",
+    "batch": 2
+  },
+  {
+    "slug": "next-tbilisi-oriental",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tbilisi-oriental-by-next-tbilisi",
+    "batch": 2
+  },
+  {
     "slug": "old-city-panorama",
     "status": "ok",
     "source": "korter",
@@ -1201,6 +1215,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/orbi-beach-tower-batumi",
+    "batch": 2
+  },
+  {
+    "slug": "orbi-city",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://orbi.ge/en/project/orbi-city",
     "batch": 2
   },
   {
