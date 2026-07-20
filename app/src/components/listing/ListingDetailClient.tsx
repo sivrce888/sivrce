@@ -32,15 +32,17 @@ import { priceScaleOf } from '@/lib/price-scale'
 import { streetHrefForListing } from '@/lib/street-href'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
-  formatFloor, getListing, LISTINGS, USD_GEL, type Listing, type PropType,
+  formatFloor, USD_GEL, type Listing, type PropType,
 } from '@/data/listings'
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { useCurrency } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
+import { useListingsByIds } from '@/lib/use-listings-by-ids'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useCompareStrings } from '@/components/compare/i18n'
+import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
 import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
@@ -183,11 +185,15 @@ export default function ListingDetailClient({
   listing: l,
   similar,
   peerPerM2,
+  isOwner = false,
+  ownerTier = 'standard',
 }: {
   listing: Listing
   similar: Listing[]
   /** District peer $/m² from DB (optional — mock peers as fallback). */
   peerPerM2?: number[]
+  isOwner?: boolean
+  ownerTier?: string
 }) {
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
@@ -230,15 +236,11 @@ export default function ListingDetailClient({
     () => nearestMetro(l.coords.lat, l.coords.lng),
     [l.coords.lat, l.coords.lng],
   )
-  const recent = useMemo(
-    () =>
-      recentIds
-        .filter((id) => id !== l.id)
-        .map(getListing)
-        .filter((x): x is Listing => Boolean(x))
-        .slice(0, 3),
+  const recentQueryIds = useMemo(
+    () => recentIds.filter((id) => id !== l.id).slice(0, 3),
     [recentIds, l.id],
   )
+  const { items: recent } = useListingsByIds(recentQueryIds)
 
   const monthlyUSD = useMemo(() => {
     if (l.dealType !== 'sale') return 0
@@ -257,17 +259,7 @@ export default function ListingDetailClient({
     [l.address, l.district, l.city],
   )
   const priceScale = useMemo(() => {
-    const peers =
-      peerPerM2 && peerPerM2.length >= 2
-        ? peerPerM2
-        : LISTINGS.filter(
-            (x) =>
-              x.id !== l.id &&
-              x.dealType === l.dealType &&
-              x.propType === l.propType &&
-              x.district === l.district &&
-              x.perM2USD > 0,
-          ).map((x) => x.perM2USD)
+    const peers = peerPerM2 && peerPerM2.length >= 2 ? peerPerM2 : []
     return priceScaleOf(l.perM2USD, peers)
   }, [l, peerPerM2])
 
@@ -905,6 +897,12 @@ export default function ListingDetailClient({
                 <Share2 className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t('detail.share')}</span>
               </button>
+
+              {isOwner ? (
+                <div className="mt-3 flex justify-center">
+                  <TierPurchaseButton listingId={l.id} currentTier={ownerTier} />
+                </div>
+              ) : null}
 
               <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-sv-ink/35">
                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />

@@ -24,9 +24,20 @@ export function shortRef(id: string): string {
   return id.length > 16 ? `${id.slice(0, 14)}…` : id
 }
 
+/** Non-listing inquiry buckets (careers form, contact, etc.). */
+const BUCKET_LABELS: Record<string, string> = {
+  careers: "კარიერა",
+  general: "კონტაქტი",
+  contact: "კონტაქტი",
+}
+
+export function inquiryBucketLabel(listingId: string): string {
+  return BUCKET_LABELS[listingId] ?? shortRef(listingId)
+}
+
 /** A listing-backed inquiry has a linkable admin page. */
 export function isListingRef(inquiry: { listingId: string }): boolean {
-  return Boolean(inquiry.listingId)
+  return Boolean(inquiry.listingId) && !(inquiry.listingId in BUCKET_LABELS)
 }
 
 /**

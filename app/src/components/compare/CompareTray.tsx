@@ -3,8 +3,8 @@
 import Image from "next/image"
 import { Columns2, X } from "lucide-react"
 import LocalizedLink from "@/components/LocalizedLink"
-import { LISTINGS } from "@/data/listings"
 import { useCompare } from "@/lib/compare"
+import { useListingsByIds } from "@/lib/use-listings-by-ids"
 import { blurProps } from "@/lib/media"
 import { useCompareStrings } from "./i18n"
 
@@ -12,12 +12,9 @@ import { useCompareStrings } from "./i18n"
 export default function CompareTray() {
   const { ids, count, toggle, clear, max } = useCompare()
   const tt = useCompareStrings()
+  const { items } = useListingsByIds(ids)
 
   if (count === 0) return null
-
-  const items = ids
-    .map((id) => LISTINGS.find((l) => l.id === id))
-    .filter((l): l is NonNullable<typeof l> => Boolean(l))
 
   return (
     <div

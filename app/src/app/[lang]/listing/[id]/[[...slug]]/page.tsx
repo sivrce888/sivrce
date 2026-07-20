@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound, permanentRedirect } from 'next/navigation'
-import { LISTINGS, getListing as getMockListing, formatUSD } from '@/data/listings'
+import { formatUSD } from '@/data/listings'
 import {
   getListing as getDbListing,
+  getSimilarListings,
   getDistrictPeerPerM2,
+  getListingOwnerMeta,
+  getAllListings,
 } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
@@ -11,13 +14,18 @@ import { listingPublicId } from '@/lib/listing-public-id'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { langAlternates } from '@/lib/i18n/server'
+import { getSessionUser } from '@/lib/guards'
 
 // ponytail: dynamicParams default (true) — unknown ids hit notFound() below;
 // `false` crashes `next start` (NoFallbackError) on any unknown-id request.
-export function generateStaticParams() {
-  // ponytail: prerender ka only at the canonical slug URL — other locales SSR on
-  // demand via dynamicParams. Upgrade path: per-locale SSG when build budget allows.
-  return LISTINGS.map((l) => ({ lang: 'ka', id: l.id, slug: [listingSlug(l)] }))
+export async function generateStaticParams() {
+  // Live ids only — no mock inventory in the static set.
+  try {
+    const rows = await getAllListings(80)
+    return rows.map((l) => ({ lang: 'ka', id: l.id, slug: [listingSlug(l)] }))
+  } catch {
+    return []
+  }
 }
 
 interface PageProps {
@@ -32,13 +40,13 @@ function metaDescription(text: string, max = 155): string {
   return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[.,;:!?…-]+$/, '')}…`
 }
 
-/** Try DB first, fall back to mock data. ponytail: seamless migration path. */
+/** DB only — mock LISTINGS never surface as live detail pages. */
 async function getListing(id: string) {
   try {
-    const dbListing = await getDbListing(id)
-    if (dbListing) return dbListing
-  } catch { /* DB unavailable — fall through to mock */ }
-  return getMockListing(id)
+    return await getDbListing(id)
+  } catch {
+    return null
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -95,10 +103,8 @@ export default async function ListingPage({ params }: PageProps) {
   const canonical = listingPath(listing)
   if (slug?.join('/') !== listingSlug(listing)) permanentRedirect(canonical)
 
-  // Deterministic: same dealType + city, exclude self, cap 8 (source order)
-  const similar = LISTINGS.filter(
-    (x) => x.id !== listing.id && x.dealType === listing.dealType && x.city === listing.city,
-  ).slice(0, 8)
+  // Live similar only — empty rail beats fake mock comps.
+  const similar = await getSimilarListings(listing, 8).catch(() => [])
 
   let peerPerM2: number[] = []
   try {
@@ -114,6 +120,13 @@ export default async function ListingPage({ params }: PageProps) {
   } catch {
     aggregate = null
   }
+
+  const [sessionUser, ownerMeta] = await Promise.all([
+    getSessionUser(),
+    getListingOwnerMeta(listing.id),
+  ])
+  const isOwner = Boolean(sessionUser && ownerMeta && sessionUser.id === ownerMeta.ownerId)
+  const ownerTier = ownerMeta?.tier ?? 'standard'
 
   // Offer validity: 30 days after posting (matches the 30-day listing lifetime)
   const priceValidUntil = new Date(
@@ -214,7 +227,13 @@ export default async function ListingPage({ params }: PageProps) {
 
   return (
     <>
-      <ListingDetailClient listing={listing} similar={similar} peerPerM2={peerPerM2} />
+      <ListingDetailClient
+        listing={listing}
+        similar={similar}
+        peerPerM2={peerPerM2}
+        isOwner={isOwner}
+        ownerTier={ownerTier}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(listingLd) }}

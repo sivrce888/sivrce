@@ -6,9 +6,10 @@ import ListingCard from '@/components/ListingCard'
 import { EntityHeader } from '@/components/entities/EntityHeader'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
-import { AGENT_PROFILES, getAgentProfile, listingsByAgent } from '@/data/professionals'
+import { AGENT_PROFILES, getAgentProfile } from '@/data/professionals'
 import { cityCenter } from '@/lib/map/geocode'
 import MapEmbed from '@/components/MapEmbed'
+import { getListingsForAgentProfile } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
@@ -69,7 +70,7 @@ export default async function AgentPage({ params }: PageProps) {
     notFound()
   }
 
-  const listings = listingsByAgent(agent.name.ka)
+  const listings = await getListingsForAgentProfile(agent.slug, agent.name.ka)
   const aggregate = await getReviewAggregate('agent', slug)
   const mapPin = cityCenter(agent.city)
 

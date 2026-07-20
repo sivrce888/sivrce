@@ -12,9 +12,11 @@ interface RevealProps {
 }
 
 export function Reveal({ children, delay = 0, y = 28, className, once = true }: RevealProps) {
-  // ponytail: no useReducedMotion branch — SSR/client disagree; MotionConfig reducedMotion="user" handles it
+  // ponytail: MotionConfig reducedMotion="user" zeros duration; CSS [data-reveal]
+  // forces opacity/transform so reduce-motion never leaves content invisible.
   return (
     <motion.div
+      data-reveal
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}

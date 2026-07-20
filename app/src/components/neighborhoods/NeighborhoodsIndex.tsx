@@ -2,17 +2,16 @@
 
 import { Map } from 'lucide-react'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
-import { LISTINGS } from '@/data/listings'
 import { Reveal } from '@/components/Reveal'
 import NeighborhoodCard from './NeighborhoodCard'
 import { useNb } from './i18n'
 
-function countListings(districts: string[]): number {
-  return LISTINGS.filter((l) => districts.includes(l.district)).length
-}
-
-/** /neighborhoods index — card grid with score badge + avg price per m². */
-export default function NeighborhoodsIndex() {
+/** /neighborhoods index — counts from DB (passed in), never mock inventory. */
+export default function NeighborhoodsIndex({
+  counts,
+}: {
+  counts: Record<string, number>
+}) {
   const s = useNb()
   return (
     <section className="bg-sv-cloud py-20 md:py-28">
@@ -30,11 +29,14 @@ export default function NeighborhoodsIndex() {
         </Reveal>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {NEIGHBORHOODS.map((n, i) => (
-            <Reveal key={n.slug} delay={(i % 3) * 0.1}>
-              <NeighborhoodCard n={n} count={countListings(n.districts)} />
-            </Reveal>
-          ))}
+          {NEIGHBORHOODS.map((n, i) => {
+            const count = n.districts.reduce((sum, d) => sum + (counts[d] ?? 0), 0)
+            return (
+              <Reveal key={n.slug} delay={(i % 3) * 0.1}>
+                <NeighborhoodCard n={n} count={count} />
+              </Reveal>
+            )
+          })}
         </div>
       </div>
     </section>

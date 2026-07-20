@@ -32,7 +32,7 @@ function ensureVapid(): boolean {
   const privateKey = process.env.VAPID_PRIVATE_KEY
   if (!publicKey || !privateKey) return false
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT ?? "mailto:info@sivrce.ge",
+    process.env.VAPID_SUBJECT ?? "mailto:hi@sivrce.ge",
     publicKey,
     privateKey,
   )

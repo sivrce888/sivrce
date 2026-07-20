@@ -61,7 +61,7 @@ export default async function PaymentResult({ lang, orderId }: PaymentResultProp
       )}
 
       <LocalizedLink
-        href="/dashboard"
+        href="/seller/listings"
         className="mt-6 inline-flex items-center justify-center rounded-control bg-gradient-to-r from-sv-blue to-sv-violet px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-blue-sm transition-all hover:shadow-glow-blue active:scale-95"
       >
         {t("pay.back")}

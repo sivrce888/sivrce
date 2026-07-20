@@ -5,8 +5,8 @@ import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { FaqSection } from '@/components/seo/FaqSection'
-import { listingCountByCity } from '@/data/professionals'
-import { developersLive } from '@/lib/directory-live'
+import { developersLive, projectsLive } from '@/lib/directory-live'
+import { getAllListings } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
@@ -50,7 +50,20 @@ export default async function DevelopersPage({ params }: PageProps) {
   if (!isValidLang(raw)) notFound()
   const c = DEVELOPERS_HUB[dirLoc(raw)]
 
-  const developers = await developersLive()
+  const [developers, projects, liveAds] = await Promise.all([
+    developersLive(),
+    projectsLive(),
+    getAllListings(2500).catch(() => []),
+  ])
+  const projectToDev = new Map(
+    projects.filter((p) => p.developerSlug).map((p) => [p.slug, p.developerSlug]),
+  )
+  const listingCounts: Record<string, number> = {}
+  for (const l of liveAds) {
+    const ds = l.projectSlug ? projectToDev.get(l.projectSlug) : undefined
+    if (ds) listingCounts[ds] = (listingCounts[ds] ?? 0) + 1
+  }
+
   const cards = await Promise.all(
     developers.map(async (d) => ({
       d,
@@ -93,7 +106,7 @@ export default async function DevelopersPage({ params }: PageProps) {
                 name={d.name}
                 city={d.city}
                 yearsActive={d.yearsActive}
-                listingsCount={listingCountByCity(d.city)}
+                listingsCount={listingCounts[d.slug] ?? 0}
                 verified={d.verified}
                 aggregate={aggregate}
                 logoUrl={d.logoUrl}

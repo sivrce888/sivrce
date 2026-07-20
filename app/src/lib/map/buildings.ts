@@ -680,7 +680,8 @@ function formatMapPinGEL(gel: number): string {
 export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: buildings.flatMap((b) => {
+    // ponytail: GeoJSON.Feature widens FootprintRing → Position[] for @types/geojson
+    features: buildings.flatMap((b): GeoJSON.Feature[] => {
       const fp = FOOTPRINTS[b.id]
       // Multi-tower massing: one extrusion per part (MapLibre height is per-feature).
       if (fp?.parts && fp.parts.length > 0 && !b.ring) {

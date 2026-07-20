@@ -3,8 +3,15 @@ import { USD_GEL } from "@/data/listings"
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 import { buildDbWhere, parseSearchParams } from "@/lib/search-filters"
-import { effectiveTierKey } from "@/lib/promo-pricing"
+import {
+  activeColorUntil,
+  activePriceDropUntil,
+  activeStoryUntil,
+  activeUrgentUntil,
+  effectiveTierKey,
+} from "@/lib/promo-pricing"
 import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
+import { listingIdsInBbox } from "@/lib/geo/postgis"
 
 // buildDbWhere + parseSearchParams live in @/lib/search-filters — shared with
 // the saved-search alert matcher so alerts evaluate the exact search semantics.
@@ -169,10 +176,10 @@ function mapDbHit(
     ...l,
     dealType: l.dealType === "buy" ? "sale" : l.dealType,
     agent: l.agent as unknown,
-    colorUntil: ext?.colorUntil,
-    urgentUntil: ext?.urgentUntil,
-    priceDropUntil: ext?.priceDropUntil,
-    storyUntil: ext?.storyUntil,
+    colorUntil: activeColorUntil(ext),
+    urgentUntil: activeUrgentUntil(ext),
+    priceDropUntil: activePriceDropUntil(ext),
+    storyUntil: activeStoryUntil(ext),
     projectCatalog: Boolean(ext?.projectCatalog),
     projectSlug: ext?.projectSlug ?? null,
     condition: ext?.condition ?? null,
@@ -215,6 +222,18 @@ export async function GET(req: Request) {
   }
 
   const filters = parseSearchParams(sp)
+
+  // Map viewport → PostGIS ids, then DB path (Meili has no geo filter wired yet).
+  if (filters.bbox) {
+    try {
+      filters.idsIn = await listingIdsInBbox(filters.bbox, 500)
+    } catch (e) {
+      console.error("[api/search] bbox lookup failed:", (e as Error).message)
+      filters.idsIn = []
+    }
+    const dbResult = await dbSearch(filters)
+    return Response.json({ ok: true, ...dbResult }, { headers: CACHE_HEADERS })
+  }
 
   // Date-availability filtering needs booking relations that Meili can't
   // express — date-ranged daily searches go straight to Postgres.

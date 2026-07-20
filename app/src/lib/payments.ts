@@ -28,15 +28,19 @@ import {
   activeStoryUntil,
   activeUrgentUntil,
   addonPriceTetri,
+  clampPromoDays,
   COLOR_HIGHLIGHT_DAYS,
   STORY_DAYS,
   effectiveTierKey,
   extendIso,
   isCheckoutAddon,
   isTurboAddon,
+  nextTierExpiresAt,
   REFRESH_COOLDOWN_MS,
   STICKER_PRICE_DROP_DAYS,
   STICKER_URGENT_DAYS,
+  TIER_DURATION_DAYS,
+  tierCheckoutTetri,
   tierRankOf,
   TURBO_DAYS,
   type CheckoutAddon,
@@ -55,6 +59,7 @@ export interface PaymentOrder {
   userId?: string | null
   listingId?: string | null
   tier: string
+  durationDays: number
   amountTetri: number
   currency: string
   status: string
@@ -69,6 +74,7 @@ export interface CreateOrderInput {
   listingId?: string
   tier: string
   amountTetri: number
+  durationDays?: number
   currency?: string
   description?: string
 }
@@ -444,6 +450,7 @@ async function placeOrder(
       userId: draft.userId,
       listingId: draft.listingId,
       tier: draft.tier,
+      durationDays: draft.durationDays ?? TIER_DURATION_DAYS,
       amountTetri: draft.amountTetri,
       currency: draft.currency ?? "GEL",
       status: "pending",
@@ -480,20 +487,25 @@ function toPaymentOrder(order: OrderRow, redirectUrl?: string): PaymentOrder {
   }
 }
 
-/** Create a payment order for listing tier upgrade. */
+/** Create a payment order for listing tier upgrade / renew. */
 export async function createListingTierOrder(
   userId: string,
   listingId: string,
   tier: string,
+  days: number = TIER_DURATION_DAYS,
 ): Promise<PaymentOrder> {
-  const amountTetri = await getTierPrice(tier)
+  const durationDays = clampPromoDays(days)
+  const monthly = durationDays === 30 ? await getTierPrice(tier) : undefined
+  const amountTetri = tierCheckoutTetri(tier, durationDays, monthly)
+  if (amountTetri == null) throw new Error("invalid_tier_price")
   return placeOrder({
     userId,
     listingId,
     tier,
     amountTetri,
+    durationDays,
     currency: "GEL",
-    description: `Listing ${listingId} tier upgrade to ${tier}`,
+    description: `Listing ${listingId} tier ${tier} ${durationDays}d`,
   })
 }
 
@@ -522,6 +534,17 @@ export async function createListingAddonOrder(
     listingId,
     tier: addon,
     amountTetri: addonPriceTetri(addon),
+    durationDays: isTurboAddon(addon)
+      ? TURBO_DAYS[addon]
+      : addon === "story" || addon === "sticker_urgent"
+        ? 1
+        : addon === "color" || addon === "sticker_price_drop"
+          ? 7
+          : addon === "facebook"
+            ? 3
+            : addon.startsWith("facebook")
+              ? 7
+              : 0,
     currency: "GEL",
     description: `Listing ${listingId} addon ${addon}`,
   })
@@ -609,21 +632,55 @@ export async function finalizeOrder(
  */
 async function applyEntitlementTx(
   tx: Prisma.TransactionClient,
-  order: { id: string; listingId: string | null; userId: string | null; tier: string; amountTetri: number; provider: string },
+  order: {
+    id: string
+    listingId: string | null
+    userId: string | null
+    tier: string
+    amountTetri: number
+    provider: string
+    durationDays: number
+  },
 ): Promise<string | null> {
   if (!order.listingId || order.tier === "auction_deposit") return null
 
   const now = new Date()
+  const tierDays = clampPromoDays(order.durationDays || TIER_DURATION_DAYS)
 
-  // — Listing tier upgrade (VIP / VIP+ / SUPER VIP, 30 days) —
+  // — Listing tier upgrade / renew (VIP / VIP+ / SUPER VIP) —
   if (order.tier === "vip" || order.tier === "super_vip" || order.tier === "diamond") {
+    const prev = await tx.listing.findUnique({
+      where: { id: order.listingId },
+      select: { tier: true, tierExpiresAt: true },
+    })
+    const expiresAt = nextTierExpiresAt(
+      prev?.tier ?? "standard",
+      prev?.tierExpiresAt ?? null,
+      order.tier,
+      tierDays,
+      now,
+    )
     await tx.listing.update({
       where: { id: order.listingId },
       data: {
         tier: order.tier,
         tierPurchasedAt: now,
-        tierExpiresAt: new Date(now.getTime() + 30 * 86_400_000),
+        tierExpiresAt: expiresAt,
         tierPaymentOrderId: order.id,
+      },
+    })
+    await tx.listingBoostHistory.create({
+      data: {
+        listingId: order.listingId,
+        userId: order.userId ?? undefined,
+        fromTier: prev?.tier ?? "standard",
+        toTier: order.tier,
+        amountTetri: order.amountTetri,
+        currency: "GEL",
+        provider: order.provider,
+        durationDays: tierDays,
+        startedAt: now,
+        expiresAt,
       },
     })
     return order.listingId
@@ -634,7 +691,7 @@ async function applyEntitlementTx(
 
   const listing = await tx.listing.findUnique({
     where: { id: order.listingId },
-    select: { tier: true, extendedFields: true },
+    select: { tier: true, tierExpiresAt: true, extendedFields: true },
   })
   if (!listing) return null
 
@@ -673,9 +730,15 @@ async function applyEntitlementTx(
       },
     })
   } else if (isTurboAddon(addon)) {
-    // Turbo = SUPER VIP + color + urgent sticker + freshness bump, N days.
+    // Turbo = SUPER VIP + color + urgent + bump. Never shorten an active diamond window.
     durationDays = TURBO_DAYS[addon]
-    expiresAt = new Date(now.getTime() + durationDays * 86_400_000)
+    expiresAt = nextTierExpiresAt(
+      listing.tier,
+      listing.tierExpiresAt,
+      "diamond",
+      durationDays,
+      now,
+    )
     await tx.listing.update({
       where: { id: order.listingId },
       data: {

@@ -17,8 +17,13 @@ import {
 } from "lucide-react"
 import {
   ADDON_TETRI,
+  PROMO_DAY_OPTIONS,
+  PROMO_INTENT_KEY,
+  TIER_DURATION_DAYS,
   TIER_MONTHLY_TETRI,
+  clampPromoDays,
   formatGel,
+  tierCheckoutTetri,
   type CheckoutAddon,
 } from "@/lib/promo-pricing"
 
@@ -26,7 +31,6 @@ interface TierInfo {
   key: string
   label: string
   priceTetri: number
-  durationDays: number
   icon: typeof Crown
   gradient: string
   description: string
@@ -37,7 +41,6 @@ const TIERS: TierInfo[] = [
     key: "vip",
     label: "VIP",
     priceTetri: TIER_MONTHLY_TETRI.vip,
-    durationDays: 30,
     icon: Flame,
     gradient: "from-sv-navy to-sv-navy-soft",
     description: "სიაში სტანდარტულებზე წინ · VIP ნიშანი",
@@ -46,7 +49,6 @@ const TIERS: TierInfo[] = [
     key: "super_vip",
     label: "VIP+",
     priceTetri: TIER_MONTHLY_TETRI.super_vip,
-    durationDays: 30,
     icon: Flame,
     gradient: "from-sv-blue to-sv-violet",
     description: "VIP+ კარუსელი · სიაში VIP-ზე წინ",
@@ -55,7 +57,6 @@ const TIERS: TierInfo[] = [
     key: "diamond",
     label: "SUPER VIP",
     priceTetri: TIER_MONTHLY_TETRI.diamond,
-    durationDays: 30,
     icon: Crown,
     gradient: "from-sv-orange to-sv-orange-deep",
     description: "ტოპი ყველას თავზე · მთავარი სლაიდერი",
@@ -114,7 +115,7 @@ const ADDONS: Array<{
   {
     key: "facebook",
     label: "Facebook · 3 დღე",
-    description: "სოციალური გავრცელება",
+    description: "სოციალური გავრცელება · ops რიგი",
     priceTetri: ADDON_TETRI.facebook,
     icon: Share2,
   },
@@ -125,20 +126,36 @@ interface TierPurchaseButtonProps {
   listingId: string
   currentTier: string
   className?: string
+  /** Open menu on mount — publish-success screen. */
+  defaultOpen?: boolean
 }
 
 export default function TierPurchaseButton({
   listingId,
   currentTier,
   className = "",
+  defaultOpen = false,
 }: TierPurchaseButtonProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [days, setDays] = useState(TIER_DURATION_DAYS)
   const [prices, setPrices] = useState<{
-    tiers?: Record<string, number>
+    tiers?: Record<string, { priceTetri: number; byDays?: Record<string, number> }>
     addons?: Record<string, number>
   } | null>(null)
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(PROMO_INTENT_KEY)
+      if (!raw) return
+      const intent = JSON.parse(raw) as { tier?: string; days?: number }
+      if (intent.days) setDays(clampPromoDays(intent.days))
+      sessionStorage.removeItem(PROMO_INTENT_KEY)
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   useEffect(() => {
     if (!open || prices) return
@@ -147,17 +164,13 @@ export default function TierPurchaseButton({
       .then(
         (
           d: {
-            tiers?: Record<string, { priceTetri: number }>
+            tiers?: Record<string, { priceTetri: number; byDays?: Record<string, number> }>
             addons?: Record<string, { priceTetri: number }>
           } | null,
         ) => {
           if (!d) return
           setPrices({
-            tiers: d.tiers
-              ? Object.fromEntries(
-                  Object.entries(d.tiers).map(([k, v]) => [k, v.priceTetri]),
-                )
-              : undefined,
+            tiers: d.tiers,
             addons: d.addons
               ? Object.fromEntries(
                   Object.entries(d.addons).map(([k, v]) => [k, v.priceTetri]),
@@ -169,7 +182,7 @@ export default function TierPurchaseButton({
       .catch(() => {}) // ponytail: hardcoded fallback when offline
   }, [open, prices])
 
-  const purchase = async (body: { tier?: string; addon?: string }) => {
+  const purchase = async (body: { tier?: string; addon?: string; days?: number }) => {
     const key = body.tier ?? body.addon ?? ""
     setLoading(key)
     setError(null)
@@ -200,7 +213,17 @@ export default function TierPurchaseButton({
 
   const tierRank: Record<string, number> = { standard: 0, vip: 1, super_vip: 2, diamond: 3 }
   const currentRank = tierRank[currentTier] ?? 0
-  const available = TIERS.filter((t) => tierRank[t.key] > currentRank)
+  const available = TIERS.filter((t) => (tierRank[t.key] ?? 0) >= currentRank)
+
+  const priceFor = (tierKey: string) => {
+    const fromApi = prices?.tiers?.[tierKey]?.byDays?.[String(days)]
+    if (fromApi != null) return fromApi
+    return (
+      tierCheckoutTetri(tierKey, days, prices?.tiers?.[tierKey]?.priceTetri) ??
+      TIERS.find((t) => t.key === tierKey)?.priceTetri ??
+      0
+    )
+  }
 
   return (
     <div className={`relative ${className}`}>
@@ -218,7 +241,9 @@ export default function TierPurchaseButton({
           initial={{ opacity: 0, y: 8, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.2 }}
-          className="absolute right-0 top-full z-50 mt-2 w-80 rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4 shadow-panel-dark"
+          className={`absolute top-full z-50 mt-2 w-80 rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4 shadow-panel-dark ${
+            defaultOpen ? "left-0" : "right-0"
+          }`}
         >
           <h3 className="text-[14px] font-black text-sv-ink">აირჩიეთ პაკეტი</h3>
 
@@ -231,44 +256,67 @@ export default function TierPurchaseButton({
           {available.length > 0 ? (
             <>
               <p className="mt-2 text-[11px] font-bold uppercase tracking-wide text-sv-ink/40">
-                VIP · 30 დღე
+                VIP · ხანგრძლივობა
               </p>
-              <div className="mt-2 space-y-2">
-                {available.map((tier) => (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {PROMO_DAY_OPTIONS.map((d) => (
                   <button
-                    key={tier.key}
+                    key={d}
                     type="button"
-                    onClick={() => purchase({ tier: tier.key })}
-                    disabled={loading !== null}
-                    className={`flex w-full items-center gap-3 rounded-module border p-3 text-left transition-all ${
-                      loading === tier.key
-                        ? "border-sv-blue/30 bg-sv-blue/[0.06]"
-                        : "border-sv-ink/[0.06] hover:border-sv-blue/20 hover:bg-sv-blue/[0.04]"
+                    onClick={() => setDays(d)}
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
+                      days === d
+                        ? "bg-sv-blue text-white"
+                        : "bg-sv-cloud text-sv-ink/55 hover:text-sv-blue"
                     }`}
                   >
-                    <span
-                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-control bg-gradient-to-br ${tier.gradient} text-white`}
-                    >
-                      <tier.icon className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-extrabold text-sv-ink">{tier.label}</div>
-                      <div className="truncate text-[11px] font-medium text-sv-ink/45">
-                        {tier.description}
-                      </div>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <div className="text-[15px] font-black text-sv-ink">
-                        {formatGel(prices?.tiers?.[tier.key] ?? tier.priceTetri)}
-                      </div>
-                      {loading === tier.key ? (
-                        <Loader2 className="ml-auto h-4 w-4 animate-spin text-sv-blue" />
-                      ) : (
-                        <ChevronRight className="ml-auto h-4 w-4 text-sv-ink/30" />
-                      )}
-                    </div>
+                    {d}დ
                   </button>
                 ))}
+              </div>
+              <div className="mt-2 space-y-2">
+                {available.map((tier) => {
+                  const renew = currentRank > 0 && tierRank[tier.key] === currentRank
+                  return (
+                    <button
+                      key={tier.key}
+                      type="button"
+                      onClick={() => purchase({ tier: tier.key, days })}
+                      disabled={loading !== null}
+                      className={`flex w-full items-center gap-3 rounded-module border p-3 text-left transition-all ${
+                        loading === tier.key
+                          ? "border-sv-blue/30 bg-sv-blue/[0.06]"
+                          : "border-sv-ink/[0.06] hover:border-sv-blue/20 hover:bg-sv-blue/[0.04]"
+                      }`}
+                    >
+                      <span
+                        className={`grid h-9 w-9 shrink-0 place-items-center rounded-control bg-gradient-to-br ${tier.gradient} text-white`}
+                      >
+                        <tier.icon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[13px] font-extrabold text-sv-ink">
+                          {renew ? `${tier.label} · გაგრძელება` : tier.label}
+                        </div>
+                        <div className="truncate text-[11px] font-medium text-sv-ink/45">
+                          {renew
+                            ? `დაემატება +${days} დღე მიმდინარე ვადას`
+                            : tier.description}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <div className="text-[15px] font-black text-sv-ink">
+                          {formatGel(priceFor(tier.key))}
+                        </div>
+                        {loading === tier.key ? (
+                          <Loader2 className="ml-auto h-4 w-4 animate-spin text-sv-blue" />
+                        ) : (
+                          <ChevronRight className="ml-auto h-4 w-4 text-sv-ink/30" />
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </>
           ) : (

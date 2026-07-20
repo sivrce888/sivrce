@@ -3,7 +3,8 @@ import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import { EntityCard } from '@/components/entities/EntityCard'
-import { AGENT_PROFILES, listingsByAgent } from '@/data/professionals'
+import { AGENT_PROFILES } from '@/data/professionals'
+import { getAgentListingCountsByKaName } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AgentsPage() {
+  const counts = await getAgentListingCountsByKaName()
   const cards = await Promise.all(
     AGENT_PROFILES.map(async (a) => ({
       a,
@@ -60,7 +62,7 @@ export default async function AgentsPage() {
                 name={a.name}
                 city={a.city}
                 yearsActive={a.yearsActive}
-                listingsCount={listingsByAgent(a.name.ka).length}
+                listingsCount={counts[a.name.ka] ?? 0}
                 verified={a.verified}
                 aggregate={aggregate}
               />

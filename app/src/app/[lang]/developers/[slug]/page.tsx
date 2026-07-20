@@ -11,10 +11,9 @@ import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { FaqSection } from '@/components/seo/FaqSection'
 import {
   DEVELOPERS,
-  listingsByCity,
-  listingCountByCity,
 } from '@/data/professionals'
 import { getLiveDeveloper, projectsLiveByDeveloper } from '@/lib/directory-live'
+import { getListingsForDeveloper } from '@/lib/listings-db'
 import { cityCenter, parseCoords } from '@/lib/map/geocode'
 import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
@@ -99,11 +98,15 @@ export default async function DeveloperPage({ params }: PageProps) {
   if (!dev) notFound()
   const name = pickLoc(dev.name, loc)
 
-  const [aggregate, projects, listings] = await Promise.all([
+  const [aggregate, projects] = await Promise.all([
     getReviewAggregate('developer', slug),
     projectsLiveByDeveloper(slug),
-    Promise.resolve(listingsByCity(dev.city, 6)),
   ])
+  const listings = await getListingsForDeveloper(
+    slug,
+    projects.map((p) => p.slug),
+    6,
+  )
 
   // Cover = most complete project's real photo (deterministic, no new assets).
   const flagship = projects.length
@@ -236,7 +239,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             { key: 'yearsActive', value: dev.yearsActive },
             { key: 'projectsDone', value: projects.length || dev.projectsDone },
             { key: 'unitsDelivered', value: dev.unitsDelivered.toLocaleString('en-US') },
-            { key: 'activeListings', value: listingCountByCity(dev.city) },
+            { key: 'activeListings', value: listings.length },
           ]}
         />
 

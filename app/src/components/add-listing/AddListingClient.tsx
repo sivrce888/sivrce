@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import {
   Building, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
@@ -19,8 +20,10 @@ import {
   CircleCheckBig, Plus, Video, BadgeCheck, Flame, Trees, Hotel,
   CircleHelp, MonitorPlay,
 } from 'lucide-react'
+import LocalizedLink from '@/components/LocalizedLink'
 import { SparkMark } from '@/components/SparkMark'
 import MapEmbed from '@/components/MapEmbed'
+import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { cap1, seoTitleParts } from '@/lib/seo-title'
@@ -39,7 +42,8 @@ import { cityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode
 import { canonicalizeDistrict } from '@/lib/district-canon'
 
 type Deal = DealType
-type Photo = { url: string; name: string; file: File }
+/** file optional: existing CDN photos on edit have url only. */
+type Photo = { url: string; name: string; file?: File }
 
 const PROP_TYPES: { key: PropType; icon: typeof Building; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]; labelKey: DictKey; titleKey: DictKey }[] = [
   { key: 'apartment', icon: Building, brand: CATEGORY_BRAND.apartments, labelKey: 'prop.apartment', titleKey: 'prop.apartment' },
@@ -86,14 +90,19 @@ const formatPhone = (raw: string): string => {
 export default function AddListingClient() {
   const { t, lang } = useI18n()
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
+  const editId = searchParams.get('edit')?.trim() || null
   const fileRef = useRef<HTMLInputElement>(null)
   const nameSeeded = useRef(false)
+  const editLoaded = useRef(false)
 
   const [step, setStep] = useState(0)
   const [touched, setTouched] = useState(false)
   const [publishedId, setPublishedId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [editLoading, setEditLoading] = useState(Boolean(editId))
+  const [editLoadFailed, setEditLoadFailed] = useState(false)
 
   const [deal, setDeal] = useState<Deal | null>(null)
   const [propType, setPropType] = useState<PropType | null>(null)
@@ -166,11 +175,13 @@ export default function AddListingClient() {
   const featureOpts = deal && propType ? featuresFor(propType, deal) : []
 
   // ponytail: localStorage draft — photos are File blobs, not persisted; restore form only.
+  // Skip draft when editing an existing listing.
   const [draftReady, setDraftReady] = useState(false)
   const [draftSavedAt, setDraftSavedAt] = useState(0)
 
   /* eslint-disable react-hooks/set-state-in-effect -- one-time draft hydration from localStorage (external store) */
   useEffect(() => {
+    if (editId) { setDraftReady(true); return }
     try {
       const raw = localStorage.getItem(DRAFT_KEY)
       if (!raw) { setDraftReady(true); return }
@@ -231,23 +242,139 @@ export default function AddListingClient() {
       }
     } catch { /* corrupt draft — start fresh */ }
     setDraftReady(true)
-  }, [])
+  }, [editId])
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Hydrate wizard from owned listing when ?edit=.
+  useEffect(() => {
+    if (!editId || editLoaded.current) return
+    editLoaded.current = true
+    let cancelled = false
+    ;(async () => {
+      try {
+        const r = await fetch(`/api/listings/${encodeURIComponent(editId)}?edit=1`)
+        if (r.status === 401) {
+          window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(`/add-listing?edit=${editId}`)}`
+          return
+        }
+        if (!r.ok) throw new Error('load')
+        const data = (await r.json()) as {
+          listing?: {
+            deal: string
+            propType: string
+            city: string
+            district: string
+            street: string
+            houseNo: string
+            lat: number
+            lng: number
+            cadastral: string
+            cadastralPublic: boolean
+            area: string
+            areaUnit: 'm2' | 'ha'
+            yardArea: string
+            rooms: number
+            baths: number
+            floor: string
+            totalFloors: string
+            condition: string
+            buildingStatus: string
+            project: string
+            floorType: string
+            kitchenArea: string
+            features: string[]
+            rentPeriod: number | null
+            rentType: string
+            guests: number
+            images: string[]
+            video: string
+            matterport: string
+            price: string
+            negotiable: boolean
+            exchangeable: boolean
+            description: string
+            onlineView: boolean
+            name: string
+            phone: string
+            phoneVerified: boolean
+            messengers: string[]
+          }
+        }
+        const L = data.listing
+        if (!L || cancelled) return
+        setDeal(L.deal as Deal)
+        setPropType(L.propType as PropType)
+        setCity(L.city)
+        setDistrict(L.district)
+        setStreet(L.street)
+        setHouseNo(L.houseNo)
+        setCoords({ lat: L.lat, lng: L.lng })
+        setPinReady(true)
+        setCadastral(L.cadastral)
+        setCadastralPublic(L.cadastralPublic)
+        setArea(L.area)
+        setAreaUnit(L.areaUnit)
+        setYardArea(L.yardArea)
+        setRooms(L.rooms)
+        setBaths(L.baths)
+        setFloor(L.floor)
+        setTotalFloors(L.totalFloors)
+        setCondition((L.condition || '') as DictKey | '')
+        setStatus((L.buildingStatus || '') as DictKey | '')
+        setProject((L.project || '') as DictKey | '')
+        setFloorType((L.floorType || '') as DictKey | '')
+        setKitchenArea(L.kitchenArea)
+        setOnlineView(L.onlineView)
+        setFeatures(
+          L.features.filter((f): f is DictKey => typeof f === 'string' && f !== 'add.f.onlineView'),
+        )
+        setRentPeriod(L.rentPeriod)
+        setRentType((L.rentType || '') as DictKey | '')
+        setGuests(L.guests)
+        setPhotos(
+          L.images.map((url, i) => ({
+            url,
+            name: `photo-${i + 1}`,
+          })),
+        )
+        setCover(0)
+        setVideo(L.video)
+        setMatterport(L.matterport)
+        setPrice(L.price)
+        setPriceCur('USD')
+        setPriceMode('total')
+        setNegotiable(L.negotiable)
+        setExchangeable(L.exchangeable)
+        setDescription(L.description)
+        setName(L.name)
+        setPhone(L.phone)
+        setPhoneVerified(L.phoneVerified)
+        setMessengers(L.messengers.length ? L.messengers : ['WhatsApp', 'Viber'])
+        setTerms(true)
+        nameSeeded.current = true
+      } catch {
+        if (!cancelled) setEditLoadFailed(true)
+      } finally {
+        if (!cancelled) setEditLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [editId])
 
   // Seed contact name from session once (after draft restore). Skip phone — not on session JWT.
   /* eslint-disable react-hooks/set-state-in-effect -- seed name once from async session */
   useEffect(() => {
-    if (!draftReady || nameSeeded.current) return
+    if (editId || !draftReady || nameSeeded.current) return
     if (name.trim()) { nameSeeded.current = true; return }
     const n = session?.user?.name?.trim()
     if (!n) return
     setName(n)
     nameSeeded.current = true
-  }, [draftReady, session?.user?.name, name])
+  }, [draftReady, session?.user?.name, name, editId])
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
-    if (!draftReady || publishedId) return
+    if (editId || !draftReady || publishedId) return
     const t = window.setTimeout(() => {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
@@ -262,7 +389,7 @@ export default function AddListingClient() {
     }, 500)
     return () => window.clearTimeout(t)
   }, [
-    draftReady, publishedId, step, deal, propType, city, district, street, houseNo,
+    editId, draftReady, publishedId, step, deal, propType, city, district, street, houseNo,
     coords, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
     floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType, guests,
     video, matterport, price, priceCur, priceMode, negotiable, exchangeable,
@@ -447,8 +574,8 @@ export default function AddListingClient() {
   const estimate = useMemo(() => {
     if (!propType || !city || !areaN) return null
     const mid = Math.round(BASE_M2[propType] * (CITY_MULT[city] ?? 0.6) * areaN)
-    const n = Math.max(LISTINGS.filter((l) => l.propType === propType && l.city === city).length * 17, 96)
-    return { low: Math.round(mid * 0.92), high: Math.round(mid * 1.08), mid, n }
+    // ponytail: heuristic band only — no fake "N comps" from mock LISTINGS.
+    return { low: Math.round(mid * 0.92), high: Math.round(mid * 1.08), mid }
   }, [propType, city, areaN])
 
   const verdict = useMemo(() => {
@@ -482,7 +609,7 @@ export default function AddListingClient() {
   const detailsOk = !!formFields && areaN > 0
     && (!formFields.rooms || rooms > 0)
     && (!formFields.guests || guests > 0)
-    && !!status
+    && (statusOpts.length === 0 || !!status)
 
   const stepValid = [
     !!deal && !!propType,
@@ -541,7 +668,7 @@ export default function AddListingClient() {
 
   const removePhoto = (i: number) => {
     const p = photos[i]
-    if (p) URL.revokeObjectURL(p.url)
+    if (p?.url.startsWith('blob:')) URL.revokeObjectURL(p.url)
     setPhotos(photos.filter((_, j) => j !== i))
     if (cover >= i && cover > 0) setCover(cover - 1)
   }
@@ -580,7 +707,7 @@ export default function AddListingClient() {
     setStep((s) => Math.min(Math.max(s + dir, 0), STEPS.length - 1))
   }
 
-  /* ————— publish: photos → R2, then POST /api/listings ————— */
+  /* ————— publish: photos → R2, then POST (create) or PATCH (edit) ————— */
   const publish = async () => {
     if (!stepValid || photos.length < 1) { setTouched(true); return }
     setBusy(true)
@@ -591,6 +718,7 @@ export default function AddListingClient() {
       const ordered = coverPhoto ? [coverPhoto, ...photos.filter((p) => p !== coverPhoto)] : photos
       const images = await Promise.all(
         ordered.map(async (p) => {
+          if (!p.file) return p.url // existing CDN photo on edit
           const fd = new FormData()
           fd.append('file', p.file)
           const r = await fetch('/api/upload', { method: 'POST', body: fd })
@@ -598,47 +726,50 @@ export default function AddListingClient() {
           return ((await r.json()) as { url: string }).url
         }),
       )
-      const res = await fetch('/api/listings', {
-        method: 'POST',
+      const payload = {
+        title: autoTitle,
+        deal, propType, city, district,
+        address: `${street} ${houseNo}`.trim(),
+        cadastral: cadastral || null,
+        cadastralPublic,
+        area: areaN, rooms: formFields?.rooms ? rooms : 0, baths: formFields?.baths ? baths : 0,
+        floor: formFields?.floor ? Number(floor) || null : null,
+        totalFloors: formFields?.totalFloors ? Number(totalFloors) || null : null,
+        condition: formFields?.condition ? condition || null : null,
+        buildingStatus: status || null,
+        project: formFields?.project ? project || null : null,
+        floorType: formFields?.floorType ? floorType || null : null,
+        kitchenArea: formFields?.kitchen ? (Number(kitchenArea) || null) : null,
+        features: onlineView
+          ? [...features.filter((f) => f !== 'add.f.onlineView'), 'add.f.onlineView']
+          : features.filter((f) => f !== 'add.f.onlineView'),
+        images, video: video || null, matterport: matterport || null,
+        price: priceN, currency: 'USD', negotiable, exchangeable: formFields?.exchange ? exchangeable : false,
+        description,
+        yardArea: formFields?.yard ? yardN || null : null,
+        rentPeriod: formFields?.rentPeriod ? rentPeriod : null,
+        rentType: formFields?.rentType ? rentType || null : null,
+        guests: formFields?.guests ? guests || null : null,
+        areaUnit: formFields?.areaHa && areaUnit === 'ha' ? 'ha' : 'm2',
+        onlineView,
+        name: name.trim(), phone, messengers,
+        lat: coords.lat, lng: coords.lng,
+      }
+      const res = await fetch(editId ? `/api/listings/${encodeURIComponent(editId)}` : '/api/listings', {
+        method: editId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: autoTitle,
-          deal, propType, city, district,
-          address: `${street} ${houseNo}`.trim(),
-          cadastral: cadastral || null,
-          cadastralPublic,
-          area: areaN, rooms: formFields?.rooms ? rooms : 0, baths: formFields?.baths ? baths : 0,
-          floor: formFields?.floor ? Number(floor) || null : null,
-          totalFloors: formFields?.totalFloors ? Number(totalFloors) || null : null,
-          condition: formFields?.condition ? condition || null : null,
-          buildingStatus: status || null,
-          project: formFields?.project ? project || null : null,
-          floorType: formFields?.floorType ? floorType || null : null,
-          kitchenArea: formFields?.kitchen ? (Number(kitchenArea) || null) : null,
-          features: onlineView
-            ? [...features.filter((f) => f !== 'add.f.onlineView'), 'add.f.onlineView']
-            : features.filter((f) => f !== 'add.f.onlineView'),
-          images, video: video || null, matterport: matterport || null,
-          price: priceN, currency: 'USD', negotiable, exchangeable: formFields?.exchange ? exchangeable : false,
-          description,
-          yardArea: formFields?.yard ? yardN || null : null,
-          rentPeriod: formFields?.rentPeriod ? rentPeriod : null,
-          rentType: formFields?.rentType ? rentType || null : null,
-          guests: formFields?.guests ? guests || null : null,
-          areaUnit: formFields?.areaHa && areaUnit === 'ha' ? 'ha' : 'm2',
-          onlineView,
-          name: name.trim(), phone, messengers,
-          lat: coords.lat, lng: coords.lng,
-        }),
+        body: JSON.stringify(payload),
       })
       if (res.status === 401) {
-        window.location.href = '/auth/signin?callbackUrl=/add-listing'
+        window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(editId ? `/add-listing?edit=${editId}` : '/add-listing')}`
         return
       }
       if (!res.ok) throw new Error('publish')
       const data = (await res.json()) as { id?: string }
-      try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
-      setPublishedId(data.id ?? 'ok')
+      if (!editId) {
+        try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
+      }
+      setPublishedId(data.id ?? editId ?? 'ok')
     } catch {
       setFailed(true)
     } finally {
@@ -654,6 +785,8 @@ export default function AddListingClient() {
 
   /* ————— success screen ————— */
   if (publishedId) {
+    const realId = publishedId !== 'ok'
+    const wasEdit = Boolean(editId)
     return (
       <section className="min-h-[80vh] bg-sv-cloud py-16 md:py-24">
         <div className="mx-auto max-w-[640px] px-5 text-center">
@@ -669,34 +802,87 @@ export default function AddListingClient() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.6, ease }}
             className="mt-8 text-[34px] font-black tracking-[-0.02em] text-sv-ink md:text-[42px]"
           >
-            {t('add.successTitle')}
+            {wasEdit ? t('add.savedTitle') : t('add.successTitle')}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.6, ease }}
             className="mx-auto mt-4 max-w-[440px] text-[16px] font-semibold leading-relaxed text-sv-ink/55"
           >
-            {t('add.successText')}
+            {wasEdit ? t('add.savedText') : t('add.successText')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6, ease }}
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
             <Link
-              href={publishedId === 'ok' ? '/seller/listings' : `/listing/${publishedId}`}
+              href={realId ? `/listing/${publishedId}` : '/seller/listings'}
               className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
             >
               {t('add.successViewListing')}
             </Link>
-            <button
-              onClick={() => {
-                try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
-                setPublishedId(null); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false); setDraftSavedAt(0)
-              }}
-              className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
-            >
-              <Plus className="h-4 w-4" /> {t('add.successNew')}
-            </button>
+            {wasEdit ? (
+              <LocalizedLink
+                href="/seller/listings"
+                className="rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
+              >
+                {t('add.manageListings')}
+              </LocalizedLink>
+            ) : (
+              <button
+                onClick={() => {
+                  try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
+                  setPublishedId(null); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false); setDraftSavedAt(0)
+                }}
+                className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
+              >
+                <Plus className="h-4 w-4" /> {t('add.successNew')}
+              </button>
+            )}
           </motion.div>
+
+          {realId && !wasEdit ? (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.5, ease }}
+              className="mt-10 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-left shadow-card"
+            >
+              <p className="text-[15px] font-black text-sv-ink">გააძლიერე ახლავე</p>
+              <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">
+                VIP / Turbo / სთორი — იგივე გადახდა, რაც მართვის გვერდზე.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <TierPurchaseButton listingId={publishedId} currentTier="standard" defaultOpen />
+                <LocalizedLink
+                  href="/seller/listings"
+                  className="text-[13px] font-bold text-sv-blue hover:text-sv-blue-deep"
+                >
+                  {t('add.manageListings')}
+                </LocalizedLink>
+              </div>
+            </motion.div>
+          ) : null}
+        </div>
+      </section>
+    )
+  }
+
+  if (editLoading) {
+    return (
+      <section className="grid min-h-[50vh] place-items-center bg-sv-cloud py-16">
+        <p className="text-[15px] font-bold text-sv-ink/50">{t('add.loading')}</p>
+      </section>
+    )
+  }
+
+  if (editLoadFailed) {
+    return (
+      <section className="grid min-h-[50vh] place-items-center bg-sv-cloud px-5 py-16 text-center">
+        <div>
+          <p className="text-[16px] font-extrabold text-sv-ink">{t('add.editLoadError')}</p>
+          <LocalizedLink href="/seller/listings" className="mt-4 inline-block text-[14px] font-bold text-sv-blue">
+            {t('add.editBack')}
+          </LocalizedLink>
         </div>
       </section>
     )
@@ -710,8 +896,12 @@ export default function AddListingClient() {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         {/* header */}
         <div className="mb-10 text-center">
-          <h1 className="text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">{t('add.title')}</h1>
-          <p className="mx-auto mt-3 max-w-[520px] text-[15px] font-semibold text-sv-ink/50 md:text-[16px]">{t('add.subtitle')}</p>
+          <h1 className="text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
+            {editId ? t('add.editTitle') : t('add.title')}
+          </h1>
+          <p className="mx-auto mt-3 max-w-[520px] text-[15px] font-semibold text-sv-ink/50 md:text-[16px]">
+            {editId ? t('add.editSubtitle') : t('add.subtitle')}
+          </p>
         </div>
 
         {/* stepper */}
@@ -720,7 +910,7 @@ export default function AddListingClient() {
             {STEPS.map((s, i) => (
               <button
                 key={s}
-                onClick={() => i < step && setStep(i)}
+                onClick={() => (editId || i < step) && setStep(i)}
                 className="group flex flex-col items-center gap-2"
                 aria-current={i === step ? 'step' : undefined}
               >
@@ -1453,7 +1643,7 @@ export default function AddListingClient() {
                         </span>
                         <div>
                           <div className="text-[14px] font-black text-sv-ink">{t('add.aiEstimate')}</div>
-                          {estimate && <div className="text-[12px] font-bold text-sv-ink/45">{t('add.aiEstimateBody', { n: estimate.n })}</div>}
+                          {estimate && <div className="text-[12px] font-bold text-sv-ink/45">{t('add.aiEstimateBody')}</div>}
                         </div>
                       </div>
                       {estimate ? (
@@ -1675,7 +1865,9 @@ export default function AddListingClient() {
                       disabled={busy}
                       className="rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3.5 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
                     >
-                      {busy ? t('add.publishing') : t('add.publish')}
+                      {busy
+                        ? (editId ? t('add.saving') : t('add.publishing'))
+                        : (editId ? t('add.save') : t('add.publish'))}
                     </button>
                   </>
                 )}

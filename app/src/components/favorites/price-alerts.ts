@@ -2,9 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 
 /**
  * Price-alert toggles per listing id (map id → true).
- * ponytail: UI + local persistence only — alert delivery (email/push) is
- * deferred until a notifications backend exists. 'sivrce:price-alerts' is
- * the storage contract the backend should read later.
+ * Guest: localStorage only (device flag).
+ * Signed-in: FavoritesClient uses /api/price-watches → SavedSearch + email/push.
  */
 const KEY = 'sivrce:price-alerts'
 const EVENT = 'sivrce:price-alerts-changed'

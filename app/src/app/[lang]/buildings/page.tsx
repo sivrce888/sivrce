@@ -8,6 +8,7 @@ import Footer from '@/components/sections/Footer'
 import { BUILDINGS, buildingDealCounts } from '@/data/buildings'
 import { getDeveloper } from '@/data/professionals'
 import { DEAL_BRAND } from '@/lib/category-brand'
+import { getBuildingDealCountsBySlug } from '@/lib/map/db-buildings'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
@@ -23,7 +24,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function BuildingsPage() {
+export default async function BuildingsPage() {
+  const liveCounts = await getBuildingDealCountsBySlug()
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -49,7 +51,11 @@ export default function BuildingsPage() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {BUILDINGS.map((b) => {
               const dev = getDeveloper(b.developerSlug)
-              const counts = buildingDealCounts(b.slug)
+              const empty = { sale: 0, rent: 0, daily: 0, pledge: 0 }
+              const counts =
+                Object.keys(liveCounts).length > 0
+                  ? (liveCounts[b.slug] ?? empty)
+                  : buildingDealCounts(b.slug)
               const total = counts.sale + counts.rent + counts.daily + counts.pledge
               return (
                 <Link

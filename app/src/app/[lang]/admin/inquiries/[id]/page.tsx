@@ -15,6 +15,8 @@ import {
   INQUIRY_STATUS_LABELS,
   getInquiry,
   getListingTitle,
+  inquiryBucketLabel,
+  isListingRef,
   shortRef,
 } from "@/lib/admin/inquiries"
 
@@ -40,6 +42,7 @@ export default async function AdminInquiryDetailPage({
   const inquiry = await getInquiry(id)
   if (!inquiry) notFound()
   const listingTitle = await getListingTitle(inquiry.listingId)
+  const listingBacked = isListingRef(inquiry)
   const deleted = inquiry.deletedAt !== null
 
   return (
@@ -189,21 +192,28 @@ export default async function AdminInquiryDetailPage({
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-sv-ink/35" />
               <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
-                Listing reference
+                {listingBacked ? "Listing reference" : "Source"}
               </h2>
             </div>
-            {listingTitle ? (
+            {listingBacked && listingTitle ? (
               <p className="mt-2 text-[14px] font-bold text-sv-ink">{listingTitle}</p>
             ) : null}
+            {!listingBacked ? (
+              <p className="mt-2 text-[14px] font-bold text-sv-ink">
+                {inquiryBucketLabel(inquiry.listingId)}
+              </p>
+            ) : null}
             <p className="mt-1 font-mono text-[12px] break-all text-sv-ink/50">
-              listing:{inquiry.listingId}
+              {listingBacked ? `listing:${inquiry.listingId}` : `bucket:${inquiry.listingId}`}
             </p>
-            <Link
-              href={`/admin/listings/${inquiry.listingId}`}
-              className="mt-2 inline-flex items-center gap-1 text-[13px] font-bold text-sv-blue hover:underline"
-            >
-              Open in Listings
-            </Link>
+            {listingBacked ? (
+              <Link
+                href={`/admin/listings/${inquiry.listingId}`}
+                className="mt-2 inline-flex items-center gap-1 text-[13px] font-bold text-sv-blue hover:underline"
+              >
+                Open in Listings
+              </Link>
+            ) : null}
             <dl className="mt-3 space-y-1.5 border-t border-sv-ink/6 pt-3 text-[13px]">
               <div className="flex justify-between gap-3">
                 <dt className="text-sv-ink/45">Price</dt>
