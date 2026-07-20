@@ -60,20 +60,25 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Desktop from lg (1024+). Only 4 money links — 6 Georgian labels overflow the pill.
-  // map/buildings/rest live in the hamburger + footer.
+  // Desktop: deal types + 3D map + projects. Rest → hamburger + footer.
+  // ponytail: 5 desktop links; 6th Georgian label overflows the pill — demote buildings/blog.
   const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean }[] = [
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
+    { key: 'nav.map', to: '/map' },
     { key: 'nav.projects', to: '/projects' },
-    { key: 'nav.map', to: '/map', mobileOnly: true },
     { key: 'nav.buildings', to: '/buildings', mobileOnly: true },
     { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
     { key: 'nav.services', to: `${bare === '/' ? '' : '/'}#services`, mobileOnly: true },
     { key: 'nav.search', to: '/search', mobileOnly: true },
   ]
+
+  const isActive = (to: string) => {
+    if (to.includes('#')) return false
+    return bare === to || bare.startsWith(`${to}/`)
+  }
 
   return (
     <header className="sv-nav-in fixed inset-x-0 top-0 z-50">
@@ -92,37 +97,34 @@ export default function Navbar() {
           className="hidden min-w-0 flex-1 items-center justify-center gap-0 lg:flex"
           aria-label={t('nav.main')}
         >
-          {NAV_LINKS.map((l) =>
-            l.to.includes('#') ? (
-              <a
-                key={l.key}
-                href={localizedHref(l.to, lang)}
-                className={`whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-2.5 ${
-                  l.mobileOnly ? 'hidden' : ''
-                } ${
-                  light
-                    ? 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
-                    : 'text-white/85 hover:bg-white/10 hover:text-white'
-                }`}
-              >
+          {NAV_LINKS.map((l) => {
+            const active = isActive(l.to)
+            const cls = `whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-2.5 ${
+              l.mobileOnly ? 'hidden' : ''
+            } ${
+              light
+                ? active
+                  ? 'bg-sv-ink/5 text-sv-ink'
+                  : 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
+                : active
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+            }`
+            return l.to.includes('#') ? (
+              <a key={l.key} href={localizedHref(l.to, lang)} className={cls}>
                 {t(l.key)}
               </a>
             ) : (
               <Link
                 key={l.key}
                 href={localizedHref(l.to, lang)}
-                className={`whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-2.5 ${
-                  l.mobileOnly ? 'hidden' : ''
-                } ${
-                  light
-                    ? 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
-                    : 'text-white/85 hover:bg-white/10 hover:text-white'
-                }`}
+                aria-current={active ? 'page' : undefined}
+                className={cls}
               >
                 {t(l.key)}
               </Link>
-            ),
-          )}
+            )
+          })}
         </nav>
 
         <div className="ml-auto hidden shrink-0 items-center gap-1 lg:flex">
@@ -206,13 +208,17 @@ export default function Navbar() {
             transition={{ duration: 0.25 }}
             className="mx-4 mt-2 rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
           >
-            {NAV_LINKS.map((l) =>
-              l.to.includes('#') ? (
+            {NAV_LINKS.map((l) => {
+              const active = isActive(l.to)
+              const cls = `block rounded-control px-4 py-3 text-[16px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                active ? 'bg-sv-ink/5 text-sv-ink' : 'text-sv-ink hover:bg-sv-ink/5'
+              }`
+              return l.to.includes('#') ? (
                 <a
                   key={l.key}
                   href={localizedHref(l.to, lang)}
                   onClick={() => setOpen(false)}
-                  className="block rounded-control px-4 py-3 text-[16px] font-semibold text-sv-ink hover:bg-sv-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                  className={cls}
                 >
                   {t(l.key)}
                 </a>
@@ -221,12 +227,13 @@ export default function Navbar() {
                   key={l.key}
                   href={localizedHref(l.to, lang)}
                   onClick={() => setOpen(false)}
-                  className="block rounded-control px-4 py-3 text-[16px] font-semibold text-sv-ink hover:bg-sv-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                  aria-current={active ? 'page' : undefined}
+                  className={cls}
                 >
                   {t(l.key)}
                 </Link>
-              ),
-            )}
+              )
+            })}
             <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
               <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
                 {t('nav.currency')}
