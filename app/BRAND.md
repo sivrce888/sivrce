@@ -74,8 +74,10 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 - White variants are synthesized from the light masters (spark + white-recolored
   board wordmark) — the navy tile's glow texture must not leak onto other dark
   surfaces. App icons: navy square + board spark at the tile's relative box.
-- Favicon / apple / PWA from `logo/board1x1/app-icon-*` + `mark-*`
-  (`app/src/app/icon.png`, `apple-icon.png`, `favicon.ico`, `app/public/icons/`).
+- Favicon / apple / PWA: navy tile + spark (`logo/board1x1/app-icon-*`).
+  `favicon.ico` = 16+32+48 (Google/tabs); `icon.png` 512; `apple-icon.png` 180;
+  maskable `icons/icon-512.png` (safe-zone inset). Never transparent mark as
+  favicon — fails on dark browser chrome and Google SERP.
 - OG image: `app/public/images/og-brand.png` (pristine base
   `logo/source/og-brand-base.png` + white lockup).
 - Share watermark: `logo/watermark/png/sivrce-wm-soft-white-{8x,16x}.png`

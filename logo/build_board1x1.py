@@ -65,6 +65,32 @@ def save(im, path):
     print(" ", os.path.relpath(path, ROOT), im.size)
 
 
+def write_ico(path, images):
+    """Multi-size ICO with PNG-compressed entries (Pillow often drops frames)."""
+    import io
+    import struct
+    pngs = []
+    for im in images:
+        buf = io.BytesIO()
+        im.convert("RGBA").save(buf, format="PNG")
+        pngs.append(buf.getvalue())
+    n = len(images)
+    header = struct.pack("<HHH", 0, 1, n)
+    offset = 6 + 16 * n
+    entries = b""
+    data = b""
+    for im, png in zip(images, pngs):
+        w, h = im.size
+        wb = 0 if w >= 256 else w
+        hb = 0 if h >= 256 else h
+        entries += struct.pack("<BBBBHHII", wb, hb, 0, 0, 1, 32, len(png), offset)
+        offset += len(png)
+        data += png
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    open(path, "wb").write(header + entries + data)
+    print(" ", os.path.relpath(path, ROOT), [im.size for im in images])
+
+
 def dilate1(mask):
     out = mask.copy()
     out[1:, :] |= mask[:-1, :]
@@ -175,21 +201,33 @@ def main():
                  word_white_full)
     lock_white = canvas.crop(lb)
 
-    rel = ICON_REL
-    print("tile spark rel box", [round(v, 3) for v in rel])
+    print("tile spark rel box", [round(v, 3) for v in ICON_REL])
 
-    def app_icon(size):
-        cv = Image.new("RGB", (size, size), tuple(NAVY.astype(np.uint8)))
+    def app_icon(size, inset=None):
+        """Navy tile + spark. Small sizes: larger spark + 4× supersample (Google/Apple crisp)."""
+        # ≤32px: pull spark larger so 16×16 still reads in SERP / tabs
+        if inset is None:
+            inset = 0.10 if size <= 32 else (0.14 if size <= 48 else ICON_REL[0])
+        span = 1.0 - 2 * inset
+        ss = 4 if size <= 64 else 1
+        big = size * ss
+        cv = Image.new("RGB", (big, big), tuple(NAVY.astype(np.uint8)))
         bw, bh = body_box[2] - body_box[0], body_box[3] - body_box[1]
-        tw = round(size * rel[2])
-        th = round(size * rel[3])
+        tw = round(big * span)
+        th = round(big * span)
         scale = min(tw / bw, th / bh)
         s = spark_clean.resize((max(1, round(spark_clean.width * scale)),
                                 max(1, round(spark_clean.height * scale))), Image.LANCZOS)
-        x = round(size * (rel[0] + rel[2] / 2) - (body_box[0] + bw / 2) * scale)
-        y = round(size * (rel[1] + rel[3] / 2) - (body_box[1] + bh / 2) * scale)
+        x = round(big * (inset + span / 2) - (body_box[0] + bw / 2) * scale)
+        y = round(big * (inset + span / 2) - (body_box[1] + bh / 2) * scale)
         cv.paste(s, (x, y), s)
+        if ss > 1:
+            cv = cv.resize((size, size), Image.LANCZOS)
         return cv
+
+    def maskable_icon(size):
+        """Android/PWA maskable: spark inside safe zone (~40% margin → 60% content)."""
+        return app_icon(size, inset=0.22)
 
     # ---------- ship kit (native resolution — master is already 1x) ----------
     print("board1x1 kit:")
@@ -208,8 +246,6 @@ def main():
     for s in (16, 32, 48, 64, 128, 180, 192, 256, 512, 1024):
         save(resize_h(spark, s), f"{OUT_KIT}/mark-{s}.png")
 
-    for s in (180, 192, 512, 1024):
-        save(app_icon(s), f"{OUT_KIT}/app-icon-{s}.png")
     save(app_icon(1024), f"{OUT_KIT}/app-icon-dark.png")
     # light tile: spark on white
     light = Image.new("RGB", (512, 512), (255, 255, 255))
@@ -229,25 +265,30 @@ def main():
     save(resize_h(spark, 512), f"{PUB_LOGO}/mark-512.png")
     save(resize_h(spark, 1024), f"{PUB_LOGO}/mark-1024.png")
 
-    # ---------- app icons / favicon ----------
+    # ---------- app icons / favicon (Google: ≥48px navy tile; multi-size ICO) ----------
     print("app icons:")
-    save(app_icon(192), f"{ROOT}/app/public/icon.png")
     os.makedirs(PUB_ICONS, exist_ok=True)
+    # Next.js file conventions + public drop-ins
+    save(app_icon(512), f"{ROOT}/app/public/icon.png")
+    save(app_icon(512), f"{SRC_APP}/icon.png")          # app/icon.png → <link rel=icon>
+    save(app_icon(180), f"{SRC_APP}/apple-icon.png")    # apple-touch-icon
     save(app_icon(192), f"{PUB_ICONS}/icon-192.png")
-    save(app_icon(512), f"{PUB_ICONS}/icon-512.png")
+    save(maskable_icon(512), f"{PUB_ICONS}/icon-512.png")  # maskable safe zone
+    save(app_icon(48), f"{PUB_ICONS}/icon-48.png")      # Google Search prefers ≥48
+    save(app_icon(96), f"{PUB_ICONS}/icon-96.png")
+    for s in (16, 32, 48, 64, 128, 180, 192, 256, 512, 1024):
+        save(app_icon(s), f"{OUT_KIT}/app-icon-{s}.png")
     for s in (48, 72, 96, 128, 192, 256, 512):
-        app_icon(s).save(f"{PUB_ICONS}/icon-{s}.webp", quality=90, method=6)
+        src = maskable_icon(s) if s >= 512 else app_icon(s)
+        src.save(f"{PUB_ICONS}/icon-{s}.webp", quality=92, method=6)
         print(f"  app/public/icons/icon-{s}.webp")
-    save(app_icon(192), f"{SRC_APP}/icon.png")
-    save(app_icon(180), f"{SRC_APP}/apple-icon.png")
 
-    fside = max(mark1x.width, mark1x.height)
-    fav = Image.new("RGBA", (fside, fside), (0, 0, 0, 0))
-    fav.paste(mark1x, ((fside - mark1x.width) // 2,
-                       (fside - mark1x.height) // 2), mark1x)
-    fav.save(f"{SRC_APP}/favicon.ico",
-             sizes=[(16, 16), (32, 32), (48, 48)])
-    print("  app/src/app/favicon.ico", [(16, 16), (32, 32), (48, 48)])
+    # favicon.ico: 16+32+48 navy tiles (readable on light/dark browser chrome)
+    fav16, fav32, fav48 = app_icon(16), app_icon(32), app_icon(48)
+    for dest in (f"{SRC_APP}/favicon.ico", f"{ROOT}/app/public/favicon.ico"):
+        write_ico(dest, [fav16, fav32, fav48])
+    save(fav32, f"{PUB_ICONS}/favicon-32.png")
+    save(fav48, f"{PUB_ICONS}/favicon-48.png")
 
     # ---------- og-brand.png logo swap ----------
     print("og-brand:")
