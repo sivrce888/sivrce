@@ -326,8 +326,8 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.petsOnly) parts.push("petsAllowed = true")
   if (filters.sellerType) parts.push(`sellerType = ${esc(filters.sellerType)}`)
   if (filters.nearMetro) parts.push(`metroM <= ${METRO_NEAR_M}`)
-  // ponytail: keep catalog projects searchable while inventory is thin; demote via sort.
-  // Hard-exclude when unit supply dominates (projectCatalog != true).
+  // Catalog cards live on /projects — keep /sale|/rent|/daily unit-only.
+  parts.push("projectCatalog = false")
 
   return parts.join(" AND ")
 }
@@ -348,8 +348,7 @@ function buildMeiliSort(filters: SearchFilters): string[] | undefined {
       return ["pricePerSqmUSD:desc"]
     case "date":
     default:
-      // Units before developer-catalog promos; paid tier within freshness.
-      return ["projectCatalog:asc", "tierRank:desc", "createdAt:desc"]
+      return ["tierRank:desc", "createdAt:desc"]
   }
 }
 
