@@ -70,7 +70,7 @@ export const CMS_BLOCKS = {
   'home.ai.sub':
     'ჩვენი AI 48 პარამეტრს ანალიზებს — მდებარეობა, იატაკი, ხედი, რემონტი, ბაზრის დინამიკა — და გეუბნება, რამდენად კარგი გარიგებაა კონკრეტული ქონება.',
   'home.projects.kicker': 'ახალი კორპუსები',
-  'home.projects.title': 'მშენებარე პროექტები',
+  'home.projects.title': 'მშენებარე ბინები',
   'home.projects.sub': 'ყველა დეველოპერი, ყველა პროექტი — შეფასებებით და 3D ვიზუალიზაციით',
   'home.services.title': 'ყველაფერი უძრავი ქონებისთვის',
   'home.services.sub': 'ძიებიდან გარიგებამდე — სრული ეკოსისტემა ერთ პლატფორმაზე',
@@ -82,7 +82,7 @@ export const CMS_BLOCKS = {
   'home.cta.primary': 'დაამატე განცხადება',
   'home.cta.secondary': 'დაიწყე ძიება',
   'home.cta.proofA': 'აქტიური განცხადებები',
-  'home.cta.proofB': 'მშენებარე პროექტები',
+  'home.cta.proofB': 'მშენებარე ბინები',
   'home.cta.proofC': '3 ენა · 3D რუკა · AI ქულა',
 } as const
 
