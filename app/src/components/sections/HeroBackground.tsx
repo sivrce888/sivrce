@@ -103,7 +103,7 @@ export default function HeroBackground() {
   }, [])
 
   return (
-    <div ref={root} className="sv-sky-in absolute inset-0 overflow-hidden bg-sv-navy" aria-hidden>
+    <div ref={root} className="absolute inset-0 overflow-hidden bg-sv-navy" aria-hidden>
       {/* Aurora gradient field — brand blue / violet / orange; drifts with the pointer */}
       <div
         className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
@@ -159,18 +159,8 @@ export default function HeroBackground() {
       <div className="bg-dots-dark absolute inset-0 [mask-image:radial-gradient(75%_65%_at_50%_42%,black,transparent)]" />
       <div className="bg-grid-faint absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent,black_30%,black_75%,transparent)]" />
 
-      {/* City light glow above the horizon */}
-      <div className="absolute bottom-[34%] left-1/2 h-[24%] w-[72%] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_bottom,color-mix(in_srgb,var(--sv-blue)_17%,transparent),transparent_70%)] blur-2xl" />
-
-      {/* ponytail: CSS horizon only — SVG skyline scored CLS 0.35 under LH mobile */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 bottom-0 h-[42svh] bg-[linear-gradient(to_top,var(--sv-navy)_0%,var(--sv-navy-soft)_55%,transparent_100%)] opacity-90"
-      />
-      <div
-        aria-hidden
-        className="absolute inset-x-0 bottom-[18svh] h-px bg-gradient-to-r from-transparent via-sv-blue/35 to-transparent"
-      />
+      {/* City light glow — inset % of parent, not svh (mobile chrome CLS) */}
+      <div className="pointer-events-none absolute bottom-0 left-1/2 mb-[18%] h-[20%] w-[72%] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_bottom,color-mix(in_srgb,var(--sv-blue)_17%,transparent),transparent_70%)] blur-2xl" />
 
       {/* Rising particles */}
       {particles.map((p, i) => (
