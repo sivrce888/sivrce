@@ -519,6 +519,32 @@ export async function getAgentListingCountsByKaName(): Promise<Record<string, nu
 }
 
 /**
+ * Active listing counts keyed by developer slug.
+ * `projectToDev`: projectSlug → developerSlug (from live/static catalog).
+ * ponytail: scan cap 2500; Meilisearch facet when inventory > that.
+ */
+export async function getDeveloperListingCountsBySlug(
+  projectToDev: Map<string, string>,
+): Promise<Record<string, number>> {
+  if (projectToDev.size === 0) return {}
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: { deletedAt: null, status: "active" },
+      select: { extendedFields: true },
+      take: 2500,
+    })
+    const out: Record<string, number> = {}
+    for (const r of rows) {
+      const slug = (r.extendedFields as { projectSlug?: string } | null)?.projectSlug
+      if (!slug) continue
+      const ds = projectToDev.get(slug)
+      if (ds) out[ds] = (out[ds] ?? 0) + 1
+    }
+    return out
+  }, {})
+}
+
+/**
  * Listings tied to a project: extendedFields.projectSlug or catalog id prefix.
  * Empty = honest zero (no city-wide mock filler).
  */
