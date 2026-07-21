@@ -16,7 +16,7 @@ export default function HeroBackground() {
       />
       <div className="bg-dots-dark absolute inset-0 [mask-image:radial-gradient(75%_65%_at_50%_42%,black,transparent)]" />
       <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_40%,transparent_55%,color-mix(in_srgb,var(--sv-navy)_55%,transparent))]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-sv-navy/60 to-sv-surface" />
+      {/* ponytail: no absolute bottom fade — LH pinned 0.31 CLS when 100svh/font reflow moved it */}
     </div>
   )
 }

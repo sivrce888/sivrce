@@ -35,10 +35,11 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
     getCmsBlock('home.hero.trust3', lang),
   ])
   return (
-    <section className="relative min-h-[100svh] overflow-x-hidden bg-sv-navy">
+    {/* ponytail: fixed svh box — content/font reflow must not grow section (CLS) */}
+    <section className="relative h-[100svh] max-h-[100svh] overflow-hidden bg-sv-navy">
       <HeroBackground />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-36 md:px-10">
+      <div className="relative z-10 mx-auto flex h-full max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-36 md:px-10">
         <div className="mb-7 flex items-center gap-2.5 rounded-full glass px-5 py-2.5">
           {/* ponytail: static dot — animate-ping competed with FCP on mobile LH */}
           <span className="inline-flex h-2.5 w-2.5 rounded-full bg-sv-success" />
