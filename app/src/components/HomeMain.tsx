@@ -28,6 +28,8 @@ async function getFeatured(): Promise<Listing[]> {
   return LISTINGS.slice(0, 6)
 }
 
+import DeveloperSlider from '@/components/sections/DeveloperSlider'
+
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
   const [featured, stories, projects, stats] = await Promise.all([
@@ -47,6 +49,7 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
       <Collections lang={lang} />
       <Listings items={featured} />
       <MapSection />
+      <DeveloperSlider />
       <AISection sample={featured[0] ?? null} />
       <WhatsAppSection />
       <Projects items={homeProjects} total={projects.length} />
