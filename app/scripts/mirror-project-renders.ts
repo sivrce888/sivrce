@@ -523,16 +523,29 @@ async function main(): Promise<void> {
   const batch = flag('batch') === '2' ? 2 : 1
   let targets = batch === 2 ? batch2Targets() : batch1Targets()
   const only = flag('slugs')
+  const force = has('force')
   if (only) {
     const set = new Set(only.split(','))
-    targets = targets.filter((t) => set.has(t.slug))
+    // ponytail: --slugs searches all catalogs, not just the selected batch
+    const all: Target[] = [
+      ...batch1Targets(),
+      ...PROJECTS.map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        dev: p.developerSlug,
+        city: p.city,
+        file: 'professionals' as const,
+      })),
+    ]
+    const seen = new Set<string>()
+    targets = all.filter((t) => set.has(t.slug) && !seen.has(t.slug) && (seen.add(t.slug), true))
   }
   const from = Number(flag('from') ?? 0)
   const limit = flag('limit') ? Number(flag('limit')) : targets.length
   targets = targets.slice(from, from + limit)
   const dry = has('dry')
 
-  console.log(`batch ${batch}: ${targets.length} projects (from=${from} limit=${limit})`)
+  console.log(`batch ${batch}: ${targets.length} projects (from=${from} limit=${limit}${force ? ' force' : ''})`)
   await mkdir(OUT_DIR, { recursive: true })
 
   let okOfficial = 0
@@ -540,10 +553,8 @@ async function main(): Promise<void> {
   let failed = 0
   for (const t of targets) {
     const outPath = path.join(OUT_DIR, `${t.slug}.webp`)
-    if (existsSync(outPath)) {
+    if (existsSync(outPath) && !force) {
       console.log(`skip ${t.slug} (file exists)`)
-      manifest.set(`${batch}:${t.slug}`, { slug: t.slug, status: 'ok', source: manifest.get(`${batch}:${t.slug}`)?.source ?? 'official', sourceUrl: manifest.get(`${batch}:${t.slug}`)?.sourceUrl ?? null, batch: batch as 1 | 2 })
-      okOfficial++
       continue
     }
     if (dry) {

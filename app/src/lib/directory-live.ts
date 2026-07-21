@@ -306,11 +306,13 @@ export function mergeProjectsLive(
     ? merged.filter((p) => !isPlaceholderImg(p.img) || (p.gallery?.length ?? 0) > 0)
     : merged
 
-  // Owned CDN first, then other http, placeholders last.
+  // Under-construction first (მშენებარე), then completed (done≥100).
+  // Within each bucket: owned CDN → other http → placeholders.
   return publicList.sort((a, b) => {
-    const score = (p: Project) =>
+    const bucket = (p: Project) => (p.done >= 100 ? 1 : 0)
+    const media = (p: Project) =>
       isOwnedMedia(p.img) ? 0 : !isPlaceholderImg(p.img) ? 1 : 2
-    return score(a) - score(b)
+    return bucket(a) - bucket(b) || media(a) - media(b)
   })
 }
 

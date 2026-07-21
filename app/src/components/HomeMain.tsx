@@ -43,9 +43,11 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
     projectsLive().catch(() => []),
     getHomeStats(),
   ])
-  // Prefer real CDN heroes over stock npN/pN placeholders. Rail shows 8 — rest via /projects.
-  const withHero = projects.filter((p) => !/\/(?:np|p)\d+\.webp(?:\?|$)/.test(p.img))
-  const homeProjects = (withHero.length >= 2 ? withHero : projects).slice(0, 8)
+  // Under-construction first; real CDN heroes over stock npN/pN. Rail shows 8 — rest via /projects.
+  const building = projects.filter((p) => p.done < 100)
+  const pool = building.length >= 2 ? building : projects
+  const withHero = pool.filter((p) => !/\/(?:np|p)\d+\.webp(?:\?|$)/.test(p.img))
+  const homeProjects = (withHero.length >= 2 ? withHero : pool).slice(0, 8)
   return (
     <>
       <StoriesRail items={stories} />
