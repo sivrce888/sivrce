@@ -22,14 +22,6 @@ interface Particle {
   orange: boolean
 }
 
-interface WindowCell {
-  x: number
-  y: number
-  duration: string
-  delay: string
-  orange: boolean
-}
-
 interface Star {
   top: string
   left: string
@@ -41,18 +33,6 @@ interface Star {
   hue: 'warm' | 'blue' | 'white'
   flare: boolean
 }
-
-/* Skyline: [x, width, height] — a stylized city silhouette */
-const BUILDINGS: Array<[number, number, number]> = [
-  [0, 52, 120], [58, 38, 176], [102, 64, 96], [172, 44, 210], [222, 60, 140],
-  [288, 36, 258], [330, 56, 168], [392, 70, 116], [468, 42, 226], [516, 62, 152],
-  [584, 48, 300], [638, 66, 132], [710, 40, 196], [756, 58, 104], [820, 46, 244],
-  [872, 68, 158], [946, 40, 208], [992, 60, 122], [1058, 50, 268], [1114, 64, 148],
-  [1184, 42, 188], [1232, 58, 108], [1296, 52, 224], [1354, 46, 144],
-]
-
-const SV_W = 1400
-const SV_H = 340
 
 /* Pure decorative layer — deterministic, so it renders on the server */
 function buildParticles(): Particle[] {
@@ -67,29 +47,6 @@ function buildParticles(): Particle[] {
     opacity: 0.25 + rnd() * 0.45,
     orange: rnd() > 0.82,
   }))
-}
-
-function buildWindows(): WindowCell[] {
-  const rnd = seeded(7)
-  const cells: WindowCell[] = []
-  BUILDINGS.forEach(([bx, bw, bh]) => {
-    const cols = Math.floor((bw - 14) / 14)
-    const rows = Math.floor((bh - 20) / 18)
-    for (let c = 0; c < cols; c++) {
-      for (let r = 0; r < rows; r++) {
-        if (rnd() > 0.78) {
-          cells.push({
-            x: bx + 8 + c * 14,
-            y: SV_H - bh + 12 + r * 18,
-            duration: `${(3.5 + rnd() * 5).toFixed(1)}s`,
-            delay: `${(-rnd() * 6).toFixed(1)}s`,
-            orange: rnd() > 0.75,
-          })
-        }
-      }
-    }
-  })
-  return cells
 }
 
 /* Sparse twinkling star field — confined to the upper sky so it never collides with the H1/search panel */
@@ -114,7 +71,6 @@ function buildStars(): Star[] {
 }
 
 const particles = buildParticles()
-const windows = buildWindows()
 const stars = buildStars()
 
 export default function HeroBackground() {
@@ -206,56 +162,15 @@ export default function HeroBackground() {
       {/* City light glow above the horizon */}
       <div className="absolute bottom-[34%] left-1/2 h-[24%] w-[72%] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_bottom,color-mix(in_srgb,var(--sv-blue)_17%,transparent),transparent_70%)] blur-2xl" />
 
-      {/* Back-row skyline — dimmer + blurred, drifts slowly for depth */}
-      <svg
-        viewBox={`0 0 ${SV_W} ${SV_H}`}
-        preserveAspectRatio="xMidYMax slice"
-        className="sv-skyline-back absolute bottom-0 left-0 h-[38%] w-full opacity-50 blur-[1.5px]"
-      >
-        {BUILDINGS.map(([x, w, h], i) => {
-          const bh = h * 0.62
-          return <rect key={i} x={x + 18} y={SV_H - bh} width={w} height={bh} fill="var(--sv-navy-soft)" />
-        })}
-      </svg>
-
-      {/* Stylized skyline silhouette with glowing windows */}
-      <svg
-        viewBox={`0 0 ${SV_W} ${SV_H}`}
-        preserveAspectRatio="xMidYMax slice"
-        className="absolute bottom-0 left-0 h-[46%] w-full"
-      >
-        <defs>
-          <linearGradient id="skylineFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--sv-navy-soft)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="var(--sv-navy)" stopOpacity="1" />
-          </linearGradient>
-        </defs>
-        {BUILDINGS.map(([x, w, h], i) => (
-          <g key={i}>
-            <rect x={x} y={SV_H - h} width={w} height={h} fill="url(#skylineFill)" />
-            <rect x={x} y={SV_H - h} width={w} height={2} fill="var(--sv-blue)" opacity="0.22" />
-          </g>
-        ))}
-        {/* Antenna on tallest */}
-        <line x1={584 + 24} y1={SV_H - 300} x2={584 + 24} y2={SV_H - 332} stroke="var(--sv-blue)" strokeWidth="2" opacity="0.5" />
-        <circle cx={584 + 24} cy={SV_H - 334} r="3" fill="var(--sv-orange)" opacity="0.9" className="sv-beacon" />
-        <circle cx={584 + 24} cy={SV_H - 334} r="8" fill="var(--sv-orange)" opacity="0.14" className="sv-beacon" />
-        {windows.map((w, i) => (
-          <rect
-            key={i}
-            x={w.x}
-            y={w.y}
-            width={5}
-            height={7}
-            rx={1}
-            className="sv-window hidden md:block"
-            fill={w.orange ? 'var(--sv-orange-light)' : 'var(--sv-blue-light)'}
-            style={{ '--w-duration': w.duration, '--w-delay': w.delay } as React.CSSProperties}
-          />
-        ))}
-        {/* Ground fade */}
-        <rect x="0" y={SV_H - 90} width={SV_W} height={90} fill="url(#skylineFill)" opacity="0.6" />
-      </svg>
+      {/* ponytail: CSS horizon only — SVG skyline scored CLS 0.35 under LH mobile */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-[42%] bg-[linear-gradient(to_top,var(--sv-navy)_0%,var(--sv-navy-soft)_55%,transparent_100%)] opacity-90"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-[18%] h-px bg-gradient-to-r from-transparent via-sv-blue/35 to-transparent"
+      />
 
       {/* Rising particles */}
       {particles.map((p, i) => (
