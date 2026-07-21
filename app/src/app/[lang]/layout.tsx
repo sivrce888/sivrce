@@ -31,13 +31,9 @@ const manrope = Manrope({
 const notoGeorgian = Noto_Sans_Georgian({
   subsets: ["georgian"],
   variable: "--font-noto-georgian",
-  // ponytail: optional, not swap — the h1 LCP was re-recorded ~3s after FCP when
-  // the 41KB Georgian face swapped in. Fallback paints once and stays; cached
-  // font is still used on repeat navs. Brand stack unchanged.
+  // optional + preload: face ready before paint → no swap CLS, fast LCP text
   display: "optional",
-  // No preload: keeps the 41KB face off the LCP critical path on slow 4G —
-  // it still downloads post-paint and serves from cache on repeat navs.
-  preload: false,
+  preload: true,
 });
 
 const SITE_URL = "https://sivrce.ge";
