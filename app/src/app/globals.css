@@ -518,29 +518,28 @@
   animation-delay: -3s;
 }
 
-/* Hero entrance — paint-driven (no hydration gate) so LCP text renders immediately */
-/* Hero entrance — opacity only (translate scored CLS 0.44 on search panel) */
+/* Hero entrance — brand motion (y+28 / 0.7s ease from BRAND.md) */
 @keyframes sv-hero-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 .sv-hero-in {
   animation: sv-hero-in 0.7s cubic-bezier(0.21, 0.65, 0.2, 1) both;
 }
 
-/* Sky reveal — opacity only (scale was a CLS culprit under LH) */
+/* Sky reveal — soft settle on first paint */
 @keyframes sv-sky-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: scale(1.045); }
+  to { opacity: 1; transform: scale(1); }
 }
 .sv-sky-in {
   animation: sv-sky-in 1.5s cubic-bezier(0.21, 0.65, 0.2, 1) both;
 }
 
-/* Nav entrance — opacity only (translateY was a CLS risk next to svh hero) */
+/* Nav entrance — slide down from brand motion */
 @keyframes sv-nav-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(-80px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .sv-nav-in {
   animation: sv-nav-in 0.7s cubic-bezier(0.21, 0.65, 0.2, 1) both;
@@ -555,9 +554,12 @@
 }
 
 /* Back-row skyline — slow lateral drift for depth */
-/* ponytail: skyline static — translate animation + min-w SVG scored CLS 0.35 in LH */
+@keyframes sv-skyline-back {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(-2.5%, 0, 0); }
+}
 .sv-skyline-back {
-  /* was: animation sv-skyline-back 46s */
+  animation: sv-skyline-back 46s ease-in-out infinite;
 }
 
 /* Antenna beacon — soft breathing blink */
