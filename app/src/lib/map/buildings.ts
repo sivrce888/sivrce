@@ -132,6 +132,13 @@ export function dealColor(deal: DealType): string {
   }
 }
 
+/** Map pin / extrusion hue — construction always STATUS sky (never deal colors). */
+export function pinHue(b: Pick<MapBuildingCluster, 'status' | 'color'>): string {
+  if (b.status === 'construction') return STATUS_BRAND.construction.hue
+  if (b.status === 'completed') return SERVICE_BRAND.developers.hue
+  return b.color
+}
+
 export function dealLabelKa(deal: DealType): string {
   switch (deal) {
     case 'sale':
@@ -252,8 +259,9 @@ export function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[])
     listings,
     counts,
     dominant: cat.status === 'construction' && listings.length === 0 ? 'construction' : dominant,
+    // ponytail: listings don't recolor construction — one sky for every მშენებარე pin.
     color:
-      cat.status === 'construction' && listings.length === 0
+      cat.status === 'construction'
         ? STATUS_BRAND.construction.hue
         : dealColor(dominant),
     heightM: Math.min(18 + cat.floors * 3.1, 110),
@@ -340,7 +348,7 @@ export function clusterListingsToBuildings(listings: Listing[]): MapBuildingClus
         host.listings.push(...items)
         host.counts = countDeals(host.listings)
         host.dominant = dominantDeal(host.counts)
-        host.color = dealColor(host.dominant)
+        if (host.status !== 'construction') host.color = dealColor(host.dominant)
       }
       continue
     }
@@ -437,6 +445,7 @@ export function applyLiveProjectPins(
     if (!p) return b
     const bn = parseBuildingNumber(p.location)
     const dev = getDeveloper(p.developerSlug)
+    const completed = p.done >= 100
     return {
       ...b,
       lat: p.coords.lat,
@@ -445,6 +454,10 @@ export function applyLiveProjectPins(
       buildingNumber: bn || b.buildingNumber,
       developerSlug: p.developerSlug || b.developerSlug,
       developerName: dev?.name.ka ?? b.developerName,
+      progress: p.done,
+      status: completed ? ('completed' as const) : ('construction' as const),
+      color: completed ? SERVICE_BRAND.developers.hue : STATUS_BRAND.construction.hue,
+      dominant: completed ? b.dominant : ('construction' as const),
     }
   })
 }
@@ -480,6 +493,9 @@ export function mergeDbBuildings(
         projectSlug: db.projectSlug || b.projectSlug,
         ring: db.ring ?? b.ring,
         inventory: db.inventory ?? b.inventory,
+        status: db.status,
+        progress: db.progress ?? b.progress,
+        color: pinHue({ status: db.status, color: db.color || b.color }),
       }
     }),
     ...dbClusters.filter((b) => !b.slug || !staticSlugs.has(b.slug)),
@@ -637,6 +653,8 @@ export function clusterMinPriceGEL(b: MapBuildingCluster): number | null {
 
 function buildingProps(b: MapBuildingCluster) {
   const minGel = clusterMinPriceGEL(b)
+  const hue = pinHue(b)
+  const ghost = b.status === 'construction' && b.listings.length === 0
   return {
     id: b.id,
     label: b.label,
@@ -646,11 +664,8 @@ function buildingProps(b: MapBuildingCluster) {
     buildingNumber: b.buildingNumber,
     district: b.district,
     // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
-    color: colorWithAlpha(
-      b.color,
-      b.status === 'construction' && b.listings.length === 0 ? 0.78 : 0.95,
-    ),
-    hue: b.color,
+    color: colorWithAlpha(hue, ghost ? 0.78 : 0.95),
+    hue,
     height: b.heightM,
     sale: b.counts.sale,
     rent: b.counts.rent,
@@ -661,11 +676,11 @@ function buildingProps(b: MapBuildingCluster) {
     status: b.status,
     progress: b.progress ?? 100,
     // GEL compact — map has no currency context; list view uses formatMapPin.
-    // Construction ghosts: progress % so mid-zoom reads without inventing a new hue.
+    // Construction ghosts: progress % — same sky hue as the pin.
     priceLabel:
       minGel != null
         ? formatMapPinGEL(minGel)
-        : b.status === 'construction' && b.listings.length === 0
+        : ghost
           ? `${b.progress ?? 0}%`
           : '',
   }
@@ -707,7 +722,7 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
                 // Keep cluster id so map click → same panel for every tower.
                 id: b.id,
                 height,
-                color: colorWithAlpha(b.color, ghost ? 0.78 : 0.95),
+                color: colorWithAlpha(pinHue(b), ghost ? 0.78 : 0.95),
               },
               geometry: { type: 'Polygon' as const, coordinates: [part.ring] },
             }
