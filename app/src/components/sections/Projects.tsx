@@ -63,7 +63,8 @@ export default function Projects({
                     fill
                     sizes="(max-width:768px) 85vw, 520px"
                     className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
-                    priority={i < 2}
+                    // ponytail: no priority — projects sit below 100svh hero; was stealing LCP bandwidth
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-3">
