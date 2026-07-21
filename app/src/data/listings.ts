@@ -31,6 +31,10 @@ export interface Listing {
   images: string[]
   priceUSD: number
   priceGEL: number
+  /** Locked nominal price originally entered by poster (e.g. 800) */
+  priceOriginal?: number | null
+  /** Original currency selected by poster ('GEL' | 'USD') */
+  currencyOriginal?: 'GEL' | 'USD' | null
   perM2USD: number
   title: string
   address: string

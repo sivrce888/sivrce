@@ -154,6 +154,48 @@ export function convertGel(gel: number, currency: Currency, rate: number = USD_G
   return currency === 'USD' ? Math.round(gel / rate) : Math.round(gel)
 }
 
+export interface FormattedListingPrice {
+  primary: string
+  secondary: string
+}
+
+/**
+ * Currency locking engine:
+ * Preserves the listing's original nominal currency & price without drift.
+ * - GEL base (e.g. 800 ₾): GEL price stays locked at 800 ₾; USD is dynamically converted.
+ * - USD base (e.g. $800): USD price stays locked at $800; GEL is dynamically converted.
+ */
+export function formatListingPrice({
+  priceUSD,
+  priceGEL,
+  priceOriginal,
+  currencyOriginal,
+  currencyPreference,
+  rate = USD_GEL_FALLBACK,
+}: {
+  priceUSD: number
+  priceGEL: number
+  priceOriginal?: number | null
+  currencyOriginal?: 'GEL' | 'USD' | null
+  currencyPreference: Currency
+  rate?: number
+}): FormattedListingPrice {
+  const isOrigGel = currencyOriginal === 'GEL'
+  const baseGel = isOrigGel ? (priceOriginal ?? priceGEL) : Math.round(priceUSD * rate)
+  const baseUsd = !isOrigGel ? (priceOriginal ?? priceUSD) : Math.round(priceGEL / rate)
+
+  const primaryValue = currencyPreference === 'GEL' ? baseGel : baseUsd
+  const secondaryValue = currencyPreference === 'GEL' ? baseUsd : baseGel
+
+  const primaryFormatted = currencyPreference === 'GEL' ? `${group3(primaryValue)}₾` : `$${group3(primaryValue)}`
+  const secondaryFormatted = currencyPreference === 'GEL' ? `$${group3(secondaryValue)}` : `${group3(secondaryValue)}₾`
+
+  return {
+    primary: primaryFormatted,
+    secondary: `≈ ${secondaryFormatted}`,
+  }
+}
+
 export function useCurrency(): CurrencyContextValue {
   const ctx = useContext(CurrencyContext)
   if (!ctx) throw new Error('useCurrency must be used within <CurrencyProvider>')

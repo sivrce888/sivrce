@@ -16,7 +16,7 @@ import { formatPerM2, formatFloor, postedDaysAgo } from '@/data/listings'
 import { listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { streetHrefForListing } from '@/lib/street-href'
-import { useCurrency } from '@/lib/currency'
+import { useCurrency, formatListingPrice } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { useI18n } from '@/lib/i18n/context'
@@ -109,7 +109,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t } = useI18n()
-  const { format, currency } = useCurrency()
+  const { format, currency, rate } = useCurrency()
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
@@ -123,9 +123,17 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const axisLock = useRef<'h' | 'v' | null>(null)
   const swipedRef = useRef(false)
 
-  const priceGEL = l.priceGEL
+  const priceObj = formatListingPrice({
+    priceUSD: l.priceUSD,
+    priceGEL: l.priceGEL,
+    priceOriginal: l.priceOriginal,
+    currencyOriginal: l.currencyOriginal,
+    currencyPreference: currency,
+    rate,
+  })
   const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
-  const displayPrice = `${format(priceGEL)}${suffix}`
+  const displayPrice = `${priceObj.primary}${suffix}`
+  const displaySecondaryPrice = priceObj.secondary
 
   const navPhoto = (dir: number, e: React.SyntheticEvent) => {
     e.preventDefault()
@@ -396,9 +404,10 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
-      {/* Price first — scannable like ss.ge / myhome */}
-      <div className="text-[22px] font-black tabular-nums tracking-[-0.03em] text-sv-ink">
-        {displayPrice}
+      {/* Price first — scannable like ss.ge / myhome with locked nominal currency */}
+      <div className="flex items-baseline gap-2 text-[22px] font-black tabular-nums tracking-[-0.03em] text-sv-ink">
+        <span>{displayPrice}</span>
+        <span className="text-[13px] font-semibold text-sv-ink/45">{displaySecondaryPrice}</span>
       </div>
       {/* ponytail: reserved slot so rent/daily cards match sale height */}
       <p

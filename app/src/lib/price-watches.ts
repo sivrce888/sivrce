@@ -9,7 +9,7 @@ import { randomUUID } from "node:crypto"
 import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import { sendPushToUser } from "@/lib/push"
-import { isPriceWatchName, PRICE_WATCH_PREFIX, priceWatchName } from "@/lib/price-watch-name"
+import { PRICE_WATCH_PREFIX, priceWatchName } from "@/lib/price-watch-name"
 import type { Prisma } from "@/generated/prisma/client"
 
 export { isPriceWatchName, priceWatchName } from "@/lib/price-watch-name"

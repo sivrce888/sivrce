@@ -139,7 +139,17 @@ export default function TierPurchaseButton({
   const [open, setOpen] = useState(defaultOpen)
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [days, setDays] = useState(TIER_DURATION_DAYS)
+  const [days, setDays] = useState(() => {
+    if (typeof window === "undefined") return TIER_DURATION_DAYS
+    try {
+      const raw = sessionStorage.getItem(PROMO_INTENT_KEY)
+      if (!raw) return TIER_DURATION_DAYS
+      const intent = JSON.parse(raw) as { tier?: string; days?: number }
+      return intent.days ? clampPromoDays(intent.days) : TIER_DURATION_DAYS
+    } catch {
+      return TIER_DURATION_DAYS
+    }
+  })
   const [prices, setPrices] = useState<{
     tiers?: Record<string, { priceTetri: number; byDays?: Record<string, number> }>
     addons?: Record<string, number>
@@ -147,10 +157,6 @@ export default function TierPurchaseButton({
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem(PROMO_INTENT_KEY)
-      if (!raw) return
-      const intent = JSON.parse(raw) as { tier?: string; days?: number }
-      if (intent.days) setDays(clampPromoDays(intent.days))
       sessionStorage.removeItem(PROMO_INTENT_KEY)
     } catch {
       /* ignore */
