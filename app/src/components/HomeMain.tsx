@@ -29,6 +29,10 @@ async function getFeatured(): Promise<Listing[]> {
 }
 
 import DeveloperSlider from '@/components/sections/DeveloperSlider'
+import RenovationWidget from '@/components/sections/RenovationWidget'
+import MortgageWidget from '@/components/sections/MortgageWidget'
+import ForumTeaser from '@/components/sections/ForumTeaser'
+import TrustStrip from '@/components/sections/TrustStrip'
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
@@ -51,9 +55,13 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
       <MapSection />
       <DeveloperSlider />
       <AISection sample={featured[0] ?? null} />
+      <RenovationWidget />
+      <MortgageWidget />
       <WhatsAppSection />
       <Projects items={homeProjects} total={projects.length} />
       <Services lang={lang} />
+      <ForumTeaser />
+      <TrustStrip />
       <CTA lang={lang} live={stats} />
     </>
   )
