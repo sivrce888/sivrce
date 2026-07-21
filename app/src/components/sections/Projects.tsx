@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
-import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Star } from 'lucide-react'
+import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Sparkles, Star } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
@@ -25,9 +25,10 @@ export default function Projects({
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-              <Building2 className="h-3.5 w-3.5" /> {b('home.projects.kicker')}
+              <Sparkles className="h-3.5 w-3.5" /> {b('home.projects.kicker')}
             </span>
-            <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
+            {/* ponytail: 28/36 vs site 30/40 — section H2 was shouting over cards; keep SEO title intact */}
+            <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
               {b('home.projects.title')}
             </h2>
             <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
