@@ -319,25 +319,30 @@
     border: 1px solid rgba(255, 255, 255, 0.6);
   }
   .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
   }
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
   }
 }
 
-/* ponytail: kill native horizontal scrollbars site-wide; HScroll arrows replace them on card rails */
-.overflow-x-auto {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* ponytail: kill native horizontal scrollbars site-wide; HScroll arrows replace them on card rails.
+   !important: macOS “Always show scrollbars” still paints classic tracks otherwise. */
+.overflow-x-auto,
+.overflow-x-scroll {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
-.overflow-x-auto::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-x-scroll::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 @layer utilities {
@@ -522,10 +527,10 @@
   animation: sv-hero-in 0.7s cubic-bezier(0.21, 0.65, 0.2, 1) both;
 }
 
-/* Sky reveal — one-shot settle on first paint, paint-driven, SSR-safe */
+/* Sky reveal — opacity only (scale was a CLS culprit under LH) */
 @keyframes sv-sky-in {
-  from { opacity: 0; transform: scale(1.045); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .sv-sky-in {
   animation: sv-sky-in 1.5s cubic-bezier(0.21, 0.65, 0.2, 1) both;
