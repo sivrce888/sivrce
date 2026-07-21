@@ -151,6 +151,11 @@ assert.equal(
   `${ghosts[0]!.progress ?? 0}%`,
   'construction ghost mid-zoom shows progress %',
 )
+assert.equal(
+  String(buildingsToPointsGeoJSON(ghosts).features[0]!.properties?.hue),
+  STATUS_BRAND.construction.hue,
+  'construction pin hue is STATUS sky only',
+)
 assert.equal(STATUS_BRAND.construction.hue, CATEGORY_BRAND.newProjects.hue) // sky blue
 assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.houses.hue)
 assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.land.hue)

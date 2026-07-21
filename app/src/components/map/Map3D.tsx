@@ -261,7 +261,14 @@ async function ensureLayers(
         13,
         ['case', ['==', ['get', 'status'], 'construction'], 8.5, 7.5],
       ],
-      'circle-color': ['get', 'hue'],
+      'circle-color': [
+        'case',
+        ['==', ['get', 'status'], 'construction'],
+        STATUS_BRAND.construction.hue,
+        ['==', ['get', 'status'], 'completed'],
+        SERVICE_BRAND.developers.hue,
+        ['get', 'hue'],
+      ],
       'circle-stroke-width': [
         'case',
         ['==', ['get', 'status'], 'construction'],
@@ -297,7 +304,14 @@ async function ensureLayers(
         ['boolean', ['feature-state', 'hover'], false], 9,
         0,
       ],
-      'circle-color': ['get', 'hue'],
+      'circle-color': [
+        'case',
+        ['==', ['get', 'status'], 'construction'],
+        STATUS_BRAND.construction.hue,
+        ['==', ['get', 'status'], 'completed'],
+        SERVICE_BRAND.developers.hue,
+        ['get', 'hue'],
+      ],
       'circle-stroke-width': [
         'case',
         ['boolean', ['feature-state', 'selected'], false], 3,
@@ -343,7 +357,14 @@ async function ensureLayers(
       'text-padding': 2,
     },
     paint: {
-      'text-color': ['get', 'hue'],
+      'text-color': [
+        'case',
+        ['==', ['get', 'status'], 'construction'],
+        STATUS_BRAND.construction.hue,
+        ['==', ['get', 'status'], 'completed'],
+        SERVICE_BRAND.developers.hue,
+        ['get', 'hue'],
+      ],
       'text-halo-color': '#FFFFFF',
       'text-halo-width': 1.6,
     },
@@ -1320,8 +1341,19 @@ function Map3DInner({
           }
           if (map.getLayer(DOT_ID)) {
             try {
-              map.setPaintProperty(DOT_ID, 'circle-stroke-color', dark ? BRAND.colors.blueLight : '#FFFFFF')
-              map.setPaintProperty(DOT_ID, 'circle-stroke-width', dark ? 2 : 1.5)
+              // Keep construction sky stroke — never flatten to white/blueLight for all.
+              map.setPaintProperty(DOT_ID, 'circle-stroke-color', [
+                'case',
+                ['==', ['get', 'status'], 'construction'],
+                BRAND.colors.blueLight,
+                dark ? BRAND.colors.blueLight : '#FFFFFF',
+              ])
+              map.setPaintProperty(DOT_ID, 'circle-stroke-width', [
+                'case',
+                ['==', ['get', 'status'], 'construction'],
+                2.25,
+                dark ? 2 : 1.5,
+              ])
               map.setPaintProperty(DOT_ID, 'circle-opacity', 1)
             } catch {
               /* paint may differ */
