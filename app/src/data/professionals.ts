@@ -1992,7 +1992,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     slug: 'white-square-shartava',
     name: 'White Square Shartava',
     developerSlug: 'white-square',
-    img: '/images/projects/white-square-mindeli.webp',
+    img: '/images/projects/white-square-shartava.webp',
     location: 'ჟიული შართავას ქ. 43, საბურთალო, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,700',
