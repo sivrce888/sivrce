@@ -537,10 +537,10 @@
   animation: sv-sky-in 1.5s cubic-bezier(0.21, 0.65, 0.2, 1) both;
 }
 
-/* Nav entrance — paint-driven (no hydration gate), replaces framer-motion initial */
+/* Nav entrance — opacity only (translateY was a CLS risk next to svh hero) */
 @keyframes sv-nav-in {
-  from { opacity: 0; transform: translateY(-80px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .sv-nav-in {
   animation: sv-nav-in 0.7s cubic-bezier(0.21, 0.65, 0.2, 1) both;
