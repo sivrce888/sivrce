@@ -7,6 +7,7 @@ import { Reveal } from '@/components/Reveal'
 import PromoPricingGrid from '@/components/payments/PromoPricingGrid'
 import { langAlternates } from '@/lib/i18n/server'
 import { formatGel, MONTHLY_RE_TETRI } from '@/lib/promo-pricing'
+import { jsonLd } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'განათავსე განცხადება — sivrce',
@@ -161,6 +162,23 @@ export default function AdvertisePage() {
           </div>
         </section>
       </main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: FAQ.map((item) => ({
+              '@type': 'Question',
+              name: item.q,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.a,
+              },
+            })),
+          }),
+        }}
+      />
       <Footer />
     </div>
   )
