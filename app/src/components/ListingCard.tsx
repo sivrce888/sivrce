@@ -21,7 +21,7 @@ import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
-import { blurProps } from '@/lib/media'
+import { blurProps, isCdnMedia } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser } from '@/lib/card-gallery-teaser'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
@@ -213,7 +213,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       className={`relative z-[1] overflow-hidden ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[280px] sm:shrink-0' : 'aspect-[4/3]'}`}
       onPointerMove={onImgPointerMove}
     >
-      {/* Stacked frames — instant scrub, no flash (Yandex / Zillow pattern) */}
+      {/* Stacked frames — instant scrub. CDN masters skip Vercel Image Opt. */}
       {photos.map((src, idx) => (
         <Image
           key={`${src}-${idx}`}
@@ -222,6 +222,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           fill
           sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
           priority={i === 0 && idx === 0}
+          unoptimized={isCdnMedia(src)}
           aria-hidden={idx !== photo}
           className={`object-cover transition-[opacity,transform] duration-300 ease-out motion-reduce:duration-0 ${
             idx === photo ? 'opacity-100' : 'pointer-events-none opacity-0'

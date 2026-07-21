@@ -16,6 +16,7 @@ import {
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const dynamic = "force-dynamic"
+export const fetchCache = "force-no-store"
 
 export async function GET(req: NextRequest) {
   if (!(await getConfig("map.geocodeEnabled"))) {
@@ -26,14 +27,19 @@ export async function GET(req: NextRequest) {
   }
 
   const sp = req.nextUrl.searchParams
-  const lat = Number(sp.get("lat"))
-  const lng = Number(sp.get("lng"))
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    const hit = await reverseGeocode(lat, lng)
-    if (!hit) {
-      return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 })
+  // ponytail: Number(null)===0 — missing lat/lng must not enter reverse.
+  const latRaw = sp.get("lat")
+  const lngRaw = sp.get("lng")
+  if (latRaw != null && latRaw !== "" && lngRaw != null && lngRaw !== "") {
+    const lat = Number(latRaw)
+    const lng = Number(lngRaw)
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      const hit = await reverseGeocode(lat, lng)
+      if (!hit) {
+        return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 })
+      }
+      return NextResponse.json({ ok: true, ...hit })
     }
-    return NextResponse.json({ ok: true, ...hit })
   }
 
   if (sp.get("suggest") === "1") {

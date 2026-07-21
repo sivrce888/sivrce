@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import SeoLanding, { seoMetadata } from '@/components/seo/SeoLanding'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -24,6 +25,9 @@ import {
  */
 const SSG_LANGS: readonly Lang[] = ['ka', 'en', 'ru']
 
+// ponytail: ISR — top Vercel burner was SSR on every SEO hit
+export const revalidate = 3600
+
 export function generateStaticParams() {
   // Next 16 types want sync params including parent `lang` for nested catch-alls.
   return SSG_LANGS.flatMap((lang) =>
@@ -40,38 +44,42 @@ interface PageProps {
   params: Promise<{ lang: string; seo: string[] }>
 }
 
-/** Live inventory for SEO grids — parseSeoSlug still gates routes; mock never shown. */
-async function hydrateSeoListings(
-  def: NonNullable<ReturnType<typeof parseSeoSlug>>,
-) {
+/** Live inventory — cache() dedupes metadata + page in one request. */
+const hydrateSeoListings = cache(async (seoPath: string) => {
+  const def = parseSeoSlug(seoPath.split('/').filter(Boolean))
+  if (!def) return null
   const live = await filterListings({
     dealType: def.dealSlug ? DEALS[def.dealSlug]?.deal : undefined,
     propType: def.typeSlug ? TYPES[def.typeSlug]?.type : undefined,
     city: def.city?.ka,
     district: def.district?.ka,
   }).catch(() => [])
-  if (!def.rooms) return live
-  return live.filter((l) => (def.rooms === 4 ? l.rooms >= 4 : l.rooms === def.rooms))
-}
+  const listings = !def.rooms
+    ? live
+    : live.filter((l) => (def.rooms === 4 ? l.rooms >= 4 : l.rooms === def.rooms))
+  return { def, listings }
+})
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang, seo } = await params
   if (!isValidLang(lang)) return {}
-  const def = parseSeoSlug(seo)
-  if (!def) return {}
-  const listings = await hydrateSeoListings(def)
-  return seoMetadata({ ...def, listings }, seoLocOf(lang), lang === 'ka' ? '' : `/${lang}`)
+  const hydrated = await hydrateSeoListings(seo.join('/'))
+  if (!hydrated) return {}
+  return seoMetadata(
+    { ...hydrated.def, listings: hydrated.listings },
+    seoLocOf(lang),
+    lang === 'ka' ? '' : `/${lang}`,
+  )
 }
 
 export default async function SeoLandingPage({ params }: PageProps) {
   const { lang, seo } = await params
   if (!isValidLang(lang)) notFound()
-  const def = parseSeoSlug(seo)
-  if (!def) notFound()
-  const listings = await hydrateSeoListings(def)
+  const hydrated = await hydrateSeoListings(seo.join('/'))
+  if (!hydrated) notFound()
   return (
     <SeoLanding
-      def={{ ...def, listings }}
+      def={{ ...hydrated.def, listings: hydrated.listings }}
       loc={seoLocOf(lang)}
       urlPrefix={lang === 'ka' ? '' : `/${lang}`}
     />

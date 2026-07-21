@@ -37,8 +37,9 @@ import {
 } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
-import { MAP_CENTER } from '@/lib/map/buildings'
+import { FREEDOM_SQUARE } from '@/lib/map/buildings'
 import { cityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
+import { naprUniqDigits } from '@/lib/map/napr-parcel'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 
 type Deal = DealType
@@ -76,7 +77,7 @@ const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
 const DRAFT_KEY = 'sivrce.add-listing.v1'
 
 /** Local street suggest row (ka primary, en subtitle). */
-type StreetSug = { ka: string; en?: string }
+type StreetSug = { ka: string; en?: string; district?: string }
 
 /** Normalize to `+995 XXX XX XX XX` while typing (9 digits after the forced prefix) */
 const formatPhone = (raw: string): string => {
@@ -112,9 +113,11 @@ export default function AddListingClient() {
   const [street, setStreet] = useState('')
   const [houseNo, setHouseNo] = useState('')
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
-    lat: MAP_CENTER.lat,
-    lng: MAP_CENTER.lng,
+    lat: FREEDOM_SQUARE.lat,
+    lng: FREEDOM_SQUARE.lng,
   })
+  /** OSM building ring from geocode / map snap — paints exact კორპუსი. */
+  const [footprint, setFootprint] = useState<[number, number][] | null>(null)
   const [geocoding, setGeocoding] = useState(false)
   const [pinReady, setPinReady] = useState(false)
   // ponytail: local /api/suggest (ka+en catalog) — Nominatim only for pin after pick
@@ -239,6 +242,13 @@ export default function AddListingClient() {
           setCoords({ lat: c.lat, lng: c.lng })
           setPinReady(true)
         }
+      }
+      if (Array.isArray(d.footprint) && d.footprint.length >= 4) {
+        const ring = d.footprint.filter(
+          (p): p is [number, number] =>
+            Array.isArray(p) && typeof p[0] === 'number' && typeof p[1] === 'number',
+        )
+        if (ring.length >= 4) setFootprint(ring)
       }
     } catch { /* corrupt draft — start fresh */ }
     setDraftReady(true)
@@ -379,6 +389,7 @@ export default function AddListingClient() {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
           v: 1, step, deal, propType, city, district, street, houseNo, coords,
+          footprint,
           cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
           floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType,
           guests, video, matterport, price, priceCur, priceMode, negotiable,
@@ -390,7 +401,7 @@ export default function AddListingClient() {
     return () => window.clearTimeout(t)
   }, [
     editId, draftReady, publishedId, step, deal, propType, city, district, street, houseNo,
-    coords, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
+    coords, footprint, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
     floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType, guests,
     video, matterport, price, priceCur, priceMode, negotiable, exchangeable,
     description, name, phone, messengers, onlineView, terms,
@@ -429,11 +440,12 @@ export default function AddListingClient() {
   useEffect(() => {
     if (!city || street.trim().length >= 2) return
     setCoords(cityCenter(city))
+    setFootprint(null)
     setPinReady(false)
   }, [city, street])
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Address → pin (structured geocode). House № → building-level zoom.
+  // Address → pin + OSM building ring. House № → building-level zoom.
   useEffect(() => {
     if (muteGeocode.current) {
       muteGeocode.current = false
@@ -455,6 +467,9 @@ export default function AddListingClient() {
           if (d?.ok && typeof d.lat === 'number' && typeof d.lng === 'number') {
             setCoords({ lat: d.lat, lng: d.lng })
             setPinReady(true)
+            setFootprint(
+              Array.isArray(d.ring) && d.ring.length >= 4 ? (d.ring as [number, number][]) : null,
+            )
             // Soft-fill blanks from OSM; mute so we don't re-fire.
             if ((d.houseNo && !houseNo.trim()) || (d.district && !district.trim())) {
               muteGeocode.current = true
@@ -472,6 +487,42 @@ export default function AddListingClient() {
     }
   }, [street, houseNo, district, city])
 
+  // Cadastral → NAPR legal parcel ring. Pin only when street empty (address geocode owns pin).
+  useEffect(() => {
+    const digits = naprUniqDigits(cadastral)
+    if (!digits) return
+    const ac = new AbortController()
+    const t = setTimeout(() => {
+      fetch(`/api/napr?code=${encodeURIComponent(digits)}`, { signal: ac.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(
+          (
+            d: {
+              ok?: boolean
+              ring?: [number, number][]
+              lat?: number
+              lng?: number
+              uniqCode?: string
+            } | null,
+          ) => {
+            if (!d?.ok || !Array.isArray(d.ring) || d.ring.length < 4) return
+            setFootprint(d.ring)
+            // ponytail: wrong NAPR parcel must not override Digomi quarter street pin
+            if (street.trim().length >= 2) return
+            if (typeof d.lat === 'number' && typeof d.lng === 'number') {
+              setCoords({ lat: d.lat, lng: d.lng })
+              setPinReady(true)
+            }
+          },
+        )
+        .catch(() => {})
+    }, 450)
+    return () => {
+      clearTimeout(t)
+      ac.abort()
+    }
+  }, [cadastral, street])
+
   // Street autocomplete — local ka/en catalog (/api/suggest), same as search.
   useEffect(() => {
     if (!city || street.trim().length < 2) {
@@ -485,9 +536,13 @@ export default function AddListingClient() {
       const params = new URLSearchParams({ q: street.trim(), city })
       fetch(`/api/suggest?${params}`, { signal: ac.signal })
         .then((r) => (r.ok ? r.json() : null))
-        .then((d: { ok?: boolean; suggestions?: { kind: string; ka: string; en?: string }[] } | null) => {
+        .then((d: { ok?: boolean; suggestions?: { kind: string; ka: string; en?: string; district?: string }[] } | null) => {
           if (!d?.ok || !Array.isArray(d.suggestions)) return
-          setSuggests(d.suggestions.filter((s) => s.kind === 'street').map((s) => ({ ka: s.ka, en: s.en })))
+          setSuggests(
+            d.suggestions
+              .filter((s) => s.kind === 'street')
+              .map((s) => ({ ka: s.ka, en: s.en, district: s.district })),
+          )
           setSuggestHi(-1)
         })
         .catch(() => {})
@@ -518,6 +573,15 @@ export default function AddListingClient() {
   /** Pick catalog street → fill name; existing geocode effect fills pin + district. */
   const applyStreetSug = (s: StreetSug) => {
     setStreet(s.ka)
+    // Massiv / microdistrict pick → soft-fill ubani for geocode context.
+    if (!district.trim()) {
+      if (/დიღმის მასივი/u.test(s.ka)) setDistrict('დიღმის მასივი')
+      else if (/გლდანის .+მიკრო/u.test(s.ka)) setDistrict('გლდანი')
+      else if (/მუხიანის .+მიკრო/u.test(s.ka)) setDistrict('მუხიანი')
+      else if (/ვარკეთილი-3|ვარკეთილის მე-3 მასივი/u.test(s.ka)) {
+        setDistrict(/მასივი/u.test(s.ka) ? 'მესამე მასივი' : 'ვარკეთილი')
+      }
+    }
     setSuggestOpen(false)
     setSuggests([])
     setSuggestHi(-1)
@@ -551,10 +615,20 @@ export default function AddListingClient() {
     }
   }
 
-  const onMapPick = (lat: number, lng: number) => {
+  const onMapPick = (lat: number, lng: number, ring?: [number, number][] | null) => {
     setCoords({ lat, lng })
+    setFootprint(ring && ring.length >= 4 ? ring : null)
     setPinReady(true)
     setSuggestOpen(false)
+    // Upgrade basemap/OSM mesh → NAPR parcel when CadRepGeo has one under the pin.
+    fetch(`/api/napr?lat=${lat}&lng=${lng}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { ok?: boolean; ring?: [number, number][]; uniqCode?: string } | null) => {
+        if (!d?.ok || !Array.isArray(d.ring) || d.ring.length < 4) return
+        setFootprint(d.ring)
+        if (d.uniqCode && !cadastral.trim()) setCadastral(d.uniqCode)
+      })
+      .catch(() => {})
     fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d: (GeocodeHit & { ok?: boolean }) | null) => {
@@ -1241,6 +1315,7 @@ export default function AddListingClient() {
                             .join(', ')}
                           aspect="16/9"
                           highlight
+                          footprint={footprint}
                           onPick={onMapPick}
                         />
                         <p className="mt-2 text-[11px] font-bold text-sv-ink/40">

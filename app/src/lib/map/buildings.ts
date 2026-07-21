@@ -543,10 +543,14 @@ export function findBuildingBySlug(
   return buildings.find((b) => b.slug === slug || b.id === `bldg-${slug}`) ?? null
 }
 
+/** Digomi-slab synthetic when OSM ring missing (Beliashvili 68 ≈52×63 m). */
+export const FALLBACK_FOOTPRINT_HALF_M = 26
+export const FALLBACK_FOOTPRINT_ASPECT = 1.4
+
 export function buildingFootprint(
   lat: number,
   lng: number,
-  halfM = 14,
+  halfM = FALLBACK_FOOTPRINT_HALF_M,
   /** >1 stretches E–W — Georgian slab towers, not cubes. */
   aspect = 1,
 ): GeoJSON.Polygon {
@@ -623,7 +627,7 @@ export function footprintRingUsable(
   if (ring.length < 5) return false
   if (ringCentroidDistM(ring, lat, lng) > FOOTPRINT_MAX_PIN_M) return false
   // ponytail: construction sites often match a neighbour shed — ignore if tiny.
-  // Upgrade → cadastral / developer site polygons.
+  // NAPR parcel rings via napr-parcel.ts when cadastral/pin known.
   if (opts?.ghost && ringBboxHalfM(ring) < 14) return false
   return true
 }
@@ -633,13 +637,15 @@ export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
   const ring = b.ring ?? footprintPrimaryRing(FOOTPRINTS[b.id] ?? undefined)
   const ghost = b.status === 'construction' && b.listings.length === 0
   if (ring && footprintRingUsable(ring, b.lat, b.lng, { ghost })) {
+    // Exact OSM outline — no bbox/hull (user: stay inside walls).
     return { type: 'Polygon', coordinates: [ring] }
   }
   if (ghost) {
     const floors = b.floors ?? Math.max(8, Math.round(b.heightM / 3.15))
     return buildingFootprint(b.lat, b.lng, ghostFootprintHalfM(floors), 1.55)
   }
-  return buildingFootprint(b.lat, b.lng, 14)
+  // ponytail: Digomi slab, not 28 m cube — half-building look on /map (Beliashvili 68).
+  return buildingFootprint(b.lat, b.lng, FALLBACK_FOOTPRINT_HALF_M, FALLBACK_FOOTPRINT_ASPECT)
 }
 
 /** Cheapest active listing on the cluster — for mid-zoom price pills. */
@@ -827,7 +833,10 @@ export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
   return { type: 'FeatureCollection', features }
 }
 
+/** Construction / corpus meter origin — do not move (baked offsets). */
 export const MAP_CENTER = { lat: 41.7151, lng: 44.8271 } as const
+/** Add-listing + Tbilisi city pin — Freedom Square (თავისუფლების მოედანი). */
+export const FREEDOM_SQUARE = { lat: 41.69365, lng: 44.80115 } as const
 /** Soft clamp — Georgia + Black Sea shelf; stops pan into Turkey/Russia. */
 export const GEORGIA_MAX_BOUNDS: [[number, number], [number, number]] = [
   [39.9, 40.95],

@@ -223,7 +223,8 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
               ))}
             </div>
 
-            <div className="mt-4 flex gap-1.5 overflow-x-auto pb-0.5">
+            {/* ponytail: wrap beats overflow-x scrollbar on a ~360px panel */}
+            <div className="mt-4 flex flex-wrap gap-1.5">
               {TABS.map((t) => {
                 const active = tab === t.id
                 const disabled =

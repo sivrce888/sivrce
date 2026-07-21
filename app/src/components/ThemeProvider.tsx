@@ -19,7 +19,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <SessionProvider>
+    // ponytail: default focus-refetch was top /api/auth/session burner
+    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <NextThemesProvider
         attribute="class"
         defaultTheme="light"

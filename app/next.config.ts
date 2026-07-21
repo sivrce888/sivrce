@@ -104,12 +104,12 @@ const nextConfig: NextConfig = {
     inlineCss: true,
   },
   images: {
-    // AVIF first → WebP fallback. Fewer sizes = fewer Image Optimization variants.
+    // AVIF first → WebP fallback. Fewer sizes/qualities = fewer Image Opt variants.
     formats: ["image/avif", "image/webp"],
-    qualities: [60, 75],
+    qualities: [75],
     // Mobile-first breakpoints only — matches our card/hero sizes attrs.
     deviceSizes: [640, 750, 828, 1080, 1280, 1920],
-    imageSizes: [32, 64, 96, 128, 256, 384],
+    imageSizes: [64, 128, 256, 384],
     // Long CDN TTL for optimized images (immutable URLs via Next Image).
     minimumCacheTTL: 31_536_000,
     remotePatterns: [

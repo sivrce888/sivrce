@@ -5,6 +5,11 @@
  */
 
 import { createHash } from 'node:crypto'
+import {
+  buildingFootprint,
+  FALLBACK_FOOTPRINT_ASPECT,
+  FALLBACK_FOOTPRINT_HALF_M,
+} from '@/lib/map/buildings'
 
 /** ≈ 60 m at Tbilisi latitude — matches buildings.ts CELL_DEG */
 const CELL_DEG = 0.00055
@@ -55,14 +60,11 @@ export function corpusIdentity(
   }
 }
 
-/** Square ring ~40 m around pin — enough for fill-extrusion until OSM footprint lands. */
+/**
+ * Synthetic ring when OSM miss — Digomi apartment slab (halfM=26, aspect=1.4).
+ * Locked after Beliashvili 68: old ~40 m square marked half the block.
+ */
 export function corpusFootprint(lat: number, lng: number): [number, number][] {
-  const d = 0.00018 // ~20 m
-  return [
-    [lng - d, lat - d],
-    [lng + d, lat - d],
-    [lng + d, lat + d],
-    [lng - d, lat + d],
-    [lng - d, lat - d],
-  ]
+  return buildingFootprint(lat, lng, FALLBACK_FOOTPRINT_HALF_M, FALLBACK_FOOTPRINT_ASPECT)
+    .coordinates[0] as [number, number][]
 }

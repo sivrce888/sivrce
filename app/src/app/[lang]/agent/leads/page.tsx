@@ -67,7 +67,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
     >
       <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">ლიდები</h1>
 
-      <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-5 flex gap-2 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <Link
             key={tab.key}

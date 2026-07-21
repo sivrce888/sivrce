@@ -877,7 +877,7 @@ function Map3DInner({
     // Load order: GeoJSON pins already set; textured 3D massing after idle (tiles + dots first).
     const runMassing = () => {
       if (cancelled || !mapRef.current) return
-      void syncConstructionRenders(map, visible).then((textured) => {
+      void syncConstructionRenders(map, visible, { minZoom: zooms.detailZoom }).then((textured) => {
         if (cancelled || !mapRef.current) return
         texturedRef.current = textured
         const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
@@ -1257,7 +1257,7 @@ function Map3DInner({
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
           await ensureLayers(map, visibleRef.current, zooms)
-          await syncConstructionRenders(map, visibleRef.current)
+          await syncConstructionRenders(map, visibleRef.current, { minZoom: zooms.detailZoom })
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)

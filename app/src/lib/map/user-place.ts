@@ -3,7 +3,7 @@
  * ponytail: city-level only (IP is coarse). Street GPS stays on the locate button.
  */
 
-import { MAP_CENTER } from '@/lib/map/buildings'
+import { FREEDOM_SQUARE, MAP_CENTER } from '@/lib/map/buildings'
 
 export type MapCity = {
   slug: string
@@ -14,7 +14,7 @@ export type MapCity = {
 
 /** Centers for map fly-to / IP snap. Inventory cities first. */
 export const MAP_CITIES: readonly MapCity[] = [
-  { slug: 'tbilisi', ka: 'თბილისი', lat: MAP_CENTER.lat, lng: MAP_CENTER.lng },
+  { slug: 'tbilisi', ka: 'თბილისი', lat: FREEDOM_SQUARE.lat, lng: FREEDOM_SQUARE.lng },
   { slug: 'batumi', ka: 'ბათუმი', lat: 41.6417, lng: 41.6391 },
   { slug: 'kutaisi', ka: 'ქუთაისი', lat: 42.2679, lng: 42.6946 },
   { slug: 'rustavi', ka: 'რუსთავი', lat: 41.5495, lng: 44.9931 },

@@ -54,7 +54,7 @@ export default async function AgencyLeadsPage() {
           body="ახალი მოთხოვნები CRM ძარღვში გამოჩნდება მათი შემოსვლისთანავე."
         />
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
           {LEAD_STATUS_ORDER.map((status) => {
             const bucket = byStatus.get(status) ?? []
             return (

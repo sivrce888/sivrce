@@ -292,7 +292,7 @@ export const en: Dict = {
   'add.districtPh': 'e.g. Vake',
   'add.cadastral': 'Cadastral code',
   'add.cadastralPh': '01.10.01.001.001',
-  'add.cadastralNote': 'Optional — increases listing trust',
+  'add.cadastralNote': 'Optional — snaps NAPR parcel onto the map',
   'add.pricePerM2': 'Price per m²',
   'add.priceTotal': 'Total price',
   'add.matterportPh': 'https://my.matterport.com/…',

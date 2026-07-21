@@ -13,6 +13,15 @@
 
 const MASTER_RE = /\/uploads\/\d{4}\/\d{2}\/[0-9a-f-]+\.webp$/
 
+/** First-party R2 CDN — already webp ≤2560; skip Vercel Image Optimization. */
+export function isCdnMedia(url: string): boolean {
+  return (
+    url.includes("cdn.sivrce.ge") ||
+    url.includes("images.sivrce.ge") ||
+    url.startsWith("/images/")
+  )
+}
+
 /** True when the URL is a pipeline master (and therefore has an LQIP twin). */
 export function hasLqip(url: string): boolean {
   return MASTER_RE.test(url)

@@ -31,7 +31,7 @@ export default function CompareTray() {
           </span>
         </div>
 
-        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto">
+        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto scrollbar-hide">
           {items.map((l) => (
             <div
               key={l.id}

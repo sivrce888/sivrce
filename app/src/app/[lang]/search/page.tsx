@@ -4,6 +4,9 @@ import SearchClient from '@/components/search/SearchClient'
 import { getSearchLocations } from '@/lib/listings-db'
 import { langAlternates } from '@/lib/i18n/server'
 
+// Align with getSearchLocations unstable_cache (5 min) — skip full SSR each hit.
+export const revalidate = 300
+
 export const metadata: Metadata = {
   title: 'ძიება — ბინები, სახლები, კომერციული',
   description:
