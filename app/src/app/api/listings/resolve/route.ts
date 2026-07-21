@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { getListing as getDbListing, resolveListingQuery } from "@/lib/listings-db"
 import { listingPath } from "@/lib/listing-slug"
-import { parseListingNumber, parsePhoneDigits } from "@/lib/listing-public-id"
+import { parseCadastralCode, parseListingNumber, parsePhoneDigits } from "@/lib/listing-public-id"
 
 export const runtime = "nodejs"
 
 /**
- * GET /api/listings/resolve?q=24316314 | ?q=597737123
- * → { ok, id, publicId, path } for hero ID·phone jump.
+ * GET /api/listings/resolve?q=24316314 | ?q=597737123 | ?q=01.10.01.001.001
+ * → { ok, id, publicId, path } for hero ID·phone·cadastral jump.
  * Live DB only — no mock public-id table.
  */
 export async function GET(req: Request) {
@@ -15,8 +15,8 @@ export async function GET(req: Request) {
   if (!q || q.length > 40) {
     return NextResponse.json({ ok: false, error: "q required" }, { status: 400 })
   }
-  if (!parseListingNumber(q) && !parsePhoneDigits(q)) {
-    return NextResponse.json({ ok: false, error: "not an id or phone" }, { status: 400 })
+  if (!parseListingNumber(q) && !parsePhoneDigits(q) && !parseCadastralCode(q)) {
+    return NextResponse.json({ ok: false, error: "not an id, phone, or cadastral" }, { status: 400 })
   }
 
   try {

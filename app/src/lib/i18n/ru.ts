@@ -43,7 +43,7 @@ export const ru: Dict = {
   'search.allCities': 'Все города',
   'search.district': 'Район',
   'search.allDistricts': 'Все районы',
-  'search.keywordPlaceholder': 'ID, телефон, улица, район…',
+  'search.keywordPlaceholder': 'ID, телефон, кад. код, улица…',
   'search.keyword': 'Поисковый запрос',
   'search.sort': 'Сортировка',
   'search.view': 'Вид',

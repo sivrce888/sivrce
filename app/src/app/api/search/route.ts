@@ -12,6 +12,7 @@ import {
 } from "@/lib/promo-pricing"
 import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
 import { listingIdsInBbox } from "@/lib/geo/postgis"
+import { isExactLookupQuery } from "@/lib/listing-public-id"
 
 // buildDbWhere + parseSearchParams live in @/lib/search-filters — shared with
 // the saved-search alert matcher so alerts evaluate the exact search semantics.
@@ -226,9 +227,11 @@ export async function GET(req: Request) {
     return Response.json({ ok: true, ...dbResult }, { headers: CACHE_HEADERS })
   }
 
-  // Date-availability filtering needs booking relations that Meili can't
-  // express — date-ranged daily searches go straight to Postgres.
-  const meiliResult = filters.dailyFrom && filters.dailyTo ? null : await searchListings(filters)
+  // Date-availability + ID/phone/cadastral need Postgres (Meili has no phone/cad index).
+  const meiliResult =
+    (filters.dailyFrom && filters.dailyTo) || (filters.q && isExactLookupQuery(filters.q))
+      ? null
+      : await searchListings(filters)
   if (meiliResult) {
     return Response.json({ ok: true, ...meiliResult, source: "meilisearch" }, { headers: CACHE_HEADERS })
   }

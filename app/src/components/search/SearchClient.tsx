@@ -28,6 +28,7 @@ import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, 
 import { featuresFor } from '@/lib/add-listing-fields'
 import type { SearchLocations } from '@/lib/listings-db'
 import { mapSearchHit } from '@/lib/map-search-hit'
+import { isExactLookupQuery } from '@/lib/listing-public-id'
 import {
   CITIES, districtsOf,
   type DealType, type PropType, type SortKey, type Listing,
@@ -250,12 +251,33 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   }
   const clearDraft = (k: keyof typeof urlText) => setDrafts((d) => ({ ...d, [k]: '' }))
 
+  const tryResolveQ = async (raw: string): Promise<boolean> => {
+    if (!isExactLookupQuery(raw)) return false
+    try {
+      const res = await fetch(`/api/listings/resolve?q=${encodeURIComponent(raw)}`)
+      const json = (await res.json()) as { ok?: boolean; path?: string }
+      if (json.ok && json.path) {
+        router.push(localizedHref(json.path, lang))
+        return true
+      }
+    } catch { /* fall through */ }
+    return false
+  }
+
   const flushDrafts = () => {
     const patch: Record<string, string | undefined> = {}
     for (const k of ['q', 'min', 'max', 'amin', 'amax', 'fmin', 'fmax'] as const) {
       if (drafts[k] !== urlText[k]) patch[k] = drafts[k] || undefined
     }
     if (Object.keys(patch).length > 0) patchParams(patch)
+  }
+
+  const submitKeyword = () => {
+    void (async () => {
+      const raw = drafts.q.trim()
+      if (raw && (await tryResolveQ(raw))) return
+      flushDrafts()
+    })()
   }
 
   useEffect(() => {
@@ -578,7 +600,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
               patchParams({ q: s.ka })
             }
           }}
-          onSubmit={() => patchParams({ q: drafts.q || undefined })}
+          onSubmit={submitKeyword}
           placeholder={t('search.keywordPlaceholder')}
           ariaLabel={t('search.keyword')}
           className="min-w-[140px] flex-1"
@@ -586,7 +608,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
 
         <button
           type="button"
-          onClick={flushDrafts}
+          onClick={submitKeyword}
           className="flex h-9 shrink-0 items-center gap-1.5 rounded-control bg-sv-blue px-4 text-[12px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
         >
           <Search className="h-3.5 w-3.5" aria-hidden />

@@ -19,9 +19,37 @@ Shared MD5 placeholders remain (Axis cluster ×7, White Square ×3, Archi Nutsub
 `dirsi-riverside.webp` replaced with project photo (korter CDN 2560px; dirsi.ge down).
 `omnia-isani.webp` updated from korter. Official-site heroes still needed for ~30 failed slugs.
 
-## Still needs live verify (finish ≤2026 Q2, still `done<100`)
+## Status pass 2026-07-21 (20 slugs)
 
-`guru-status`, `gumbati-vake-residence`, `blox-sarajishvili`, `gumbati-villa-kokhta-mitarbi`, `orbi-residence`, `archi-nutsubidze`, `blox-beliashvili` (catalog 72კა — blox.ge only lists 84 / 68a sold out), `white-square-shartava`, `anagi-police-city`, `console-lisi-townhouse`, `grg-orientiri-lisi`, `archi-guramishvili`, `livin-dadiani-263`, `ocean-vake-residences`, `alpha-home-gldani`, `axis-chavchavadze-49`, `tbilisi-gardens`, `mtatsminda-panorama`, `horizon-nutsubidze`, `kings-garden`.
+### → done:100 (verified)
+
+| Slug | Evidence |
+|---|---|
+| `guru-status` | guruholding.ge Completed; korter Q4 2025 delivered |
+| `gumbati-vake-residence` | korter Completed 2025; gumbatiholding fulfilling 12.2025 |
+| `gumbati-villa-kokhta-mitarbi` | korter Completed 2024 |
+| `orbi-residence` | korter delivered 2015 (was wrongly UC) |
+| `blox-beliashvili` | korter Blocks A/B/C @72 delivered 2024; no developer stock |
+| `white-square-shartava` | w2.ge “Construction is complete”; korter Completed 2025 |
+| `archi-nutsubidze` | archi.ge Completed; address fixed → Avto Varazi 28a |
+| `axis-chavchavadze-49` | korter 4 houses delivered; no developer stock |
+| `ocean-vake-residences` | korter delivered 2018 |
+| `anagi-police-city` | anagi.ge finished list Completion Nov 2025 |
+
+### Still active — finish corrected
+
+| Slug | Change |
+|---|---|
+| `blox-sarajishvili` | finish → **2028 Q4**, done 37 (blox.ge 37%) |
+| `archi-guramishvili` | finish → **2027 Q1** |
+| `console-lisi-townhouse` | finish → **2026 Q4** (console.ge Dec 2026) |
+| `grg-orientiri-lisi` | finish → **2026 Q4** (orientiri.ge) |
+| `kings-garden` | Block C done; Block A → **2027 Q2** |
+| `tbilisi-gardens` | Tower 3 still UC Q2 2026 (korter); done 90 |
+| `alpha-home-gldani` | still UC Q2 2026; done 90 |
+| `mtatsminda-panorama` | still UC Q2 2026; done 90 |
+| `horizon-nutsubidze` | still UC Q2 2026 |
+| `livin-dadiani-263` | still UC Q2 2026 (korter) |
 
 ## Catalog snapshot (post Dirsi fix)
 

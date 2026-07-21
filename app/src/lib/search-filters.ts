@@ -9,6 +9,7 @@ import { nearMetroFilter } from "@/lib/geo/nearest-poi-pure"
 import { USD_GEL } from "@/data/listings"
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from "@/lib/features"
 import { districtSearchValues } from "@/lib/district-canon"
+import { cadastralVariants } from "@/lib/listing-public-id"
 import type { SearchFilters } from "@/lib/search"
 
 // ---------------------------------------------------------------------------
@@ -197,8 +198,8 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
     })
   }
 
-  // Free-text search: ILIKE on title/location OR exact publicId OR phone digits.
-  // ponytail: no tsvector for DB fallback — fine for MVP. Upgrade: enable pg_trgm.
+  // Free-text: ILIKE title/location OR publicId OR phone OR cadastral.
+  // ponytail: no tsvector for DB fallback. Upgrade: pg_trgm + cadastralDigits column.
   if (filters.q) {
     const q = filters.q
     const digits = q.replace(/\D/g, "")
@@ -224,6 +225,9 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
     }
     if (phone) {
       textOr.push({ listingPhone: { contains: phone } })
+    }
+    for (const v of cadastralVariants(q)) {
+      textOr.push({ extendedFields: { path: ["cadastral"], equals: v } })
     }
     and.push({ OR: textOr })
   }

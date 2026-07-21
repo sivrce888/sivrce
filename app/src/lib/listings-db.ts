@@ -31,7 +31,13 @@ import { MAP_CENTER } from "@/lib/map/buildings"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
 import type { SellerRole } from "@/lib/profiles/roles"
-import { listingPublicId, parseListingNumber, parsePhoneDigits } from "@/lib/listing-public-id"
+import {
+  cadastralVariants,
+  listingPublicId,
+  parseCadastralCode,
+  parseListingNumber,
+  parsePhoneDigits,
+} from "@/lib/listing-public-id"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily" | "pledge"
@@ -311,7 +317,7 @@ export async function getListing(id: string): Promise<Listing | null> {
   }, null)
 }
 
-/** Resolve by public number or agent phone digits → listing id for redirect. */
+/** Resolve by public number, phone, or cadastral → listing id for redirect. */
 export async function resolveListingQuery(q: string): Promise<{ id: string; publicId: number } | null> {
   return safeQuery(async () => {
     const publicNum = parseListingNumber(q)
@@ -329,6 +335,21 @@ export async function resolveListingQuery(q: string): Promise<{ id: string; publ
           deletedAt: null,
           status: "active",
           listingPhone: { contains: phone },
+        },
+        select: { id: true, publicId: true },
+        orderBy: { createdAt: "desc" },
+      })
+      if (row) return { id: row.id, publicId: row.publicId }
+    }
+    if (parseCadastralCode(q)) {
+      const variants = cadastralVariants(q)
+      const row = await db.listing.findFirst({
+        where: {
+          deletedAt: null,
+          status: "active",
+          OR: variants.map((v) => ({
+            extendedFields: { path: ["cadastral"], equals: v },
+          })),
         },
         select: { id: true, publicId: true },
         orderBy: { createdAt: "desc" },

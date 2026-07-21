@@ -22,6 +22,39 @@ export function parsePhoneDigits(q: string): string | null {
   return null
 }
 
+/**
+ * Georgian NAPR cadastral: `01.10.01.001.001` (dots optional).
+ * Rejects phone/listing-id shapes so those keep their own parsers.
+ */
+export function parseCadastralCode(q: string): string | null {
+  const raw = q.trim()
+  if (!raw || parsePhoneDigits(raw) || parseListingNumber(raw)) return null
+  if (/^\d{2}(\.\d{2,3}){3,5}$/.test(raw)) return raw
+  const digits = raw.replace(/\D/g, "")
+  if (digits.length >= 11 && digits.length <= 15) return digits
+  return null
+}
+
+/** Storage variants for JSON `extendedFields.cadastral` equality match. */
+export function cadastralVariants(q: string): string[] {
+  const parsed = parseCadastralCode(q)
+  if (!parsed) return []
+  const digits = parsed.replace(/\D/g, "")
+  const out = new Set<string>([parsed, digits])
+  if (digits.length === 12) {
+    out.add(
+      `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 9)}.${digits.slice(9, 12)}`,
+    )
+  }
+  return [...out]
+}
+
+/** ID / phone / cadastral — skip Meili, hit DB exact path. */
+export function isExactLookupQuery(q: string): boolean {
+  const t = q.trim()
+  return Boolean(parseListingNumber(t) || parsePhoneDigits(t) || parseCadastralCode(t))
+}
+
 /** Stable 8-digit fallback when DB publicId is missing. */
 export function publicIdFromString(id: string): number {
   let h = 2166136261

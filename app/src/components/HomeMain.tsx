@@ -7,10 +7,11 @@ import StoriesRail from '@/components/sections/StoriesRail'
 import Collections from '@/components/sections/Collections'
 import Listings from '@/components/sections/Listings'
 import MapSection from '@/components/sections/MapSection'
-import AISection from '@/components/sections/AISection'
-import WhatsAppSection from '@/components/sections/WhatsAppSection'
 import Projects from '@/components/sections/Projects'
+import DeveloperSlider from '@/components/sections/DeveloperSlider'
 import Services from '@/components/sections/Services'
+import ForumTeaser from '@/components/sections/ForumTeaser'
+import BlogNewsSection from '@/components/sections/BlogNewsSection'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import { LISTINGS, type Listing } from '@/data/listings'
@@ -27,13 +28,6 @@ async function getFeatured(): Promise<Listing[]> {
   } catch { /* DB unavailable at build — fall through to static */ }
   return LISTINGS.slice(0, 6)
 }
-
-import DeveloperSlider from '@/components/sections/DeveloperSlider'
-import RenovationWidget from '@/components/sections/RenovationWidget'
-import MortgageWidget from '@/components/sections/MortgageWidget'
-import ForumTeaser from '@/components/sections/ForumTeaser'
-import BlogNewsSection from '@/components/sections/BlogNewsSection'
-import TrustStrip from '@/components/sections/TrustStrip'
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
@@ -56,16 +50,11 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
       <Collections lang={lang} />
       <Listings items={featured} />
       <MapSection />
-      <DeveloperSlider />
-      <AISection sample={featured[0] ?? null} />
-      <RenovationWidget />
-      <MortgageWidget />
-      <WhatsAppSection />
       <Projects items={homeProjects} total={projects.length} />
+      <DeveloperSlider />
       <Services lang={lang} />
       <ForumTeaser />
       <BlogNewsSection />
-      <TrustStrip />
       <CTA lang={lang} live={stats} />
     </>
   )

@@ -1,53 +1,53 @@
 import Link from 'next/link'
-import { Calculator, Camera, Landmark, Compass, FileText, BarChart2, ArrowUpRight } from 'lucide-react'
+import { Calculator, Camera, Landmark, Paintbrush, FileText, Map, ArrowUpRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
 import type { Lang } from '@/lib/i18n/core'
 
-/* 6 Core Real Estate Services matching SS.ge & Myhome requirements */
+/* Core services — tools live here, not as heavy homepage widgets (vs MyHome/SS). */
 const SERVICES = [
   {
-    icon: Calculator,
-    title: 'შეფასება & ანალიტიკა',
-    text: 'უძრავი ქონების ობიექტური საბაზრო ღირებულების გაანგარიშება AI ალგორითმით.',
-    brand: SERVICE_BRAND.agents,
-    href: '/mortgage-calculator',
-  },
-  {
-    icon: Camera,
-    title: 'ფოტომომსახურება & 3D ტური',
-    text: 'პროფესიონალური ფოტოგადაღება და 3D ვირტუალური ტურის დამზადება ობიექტისთვის.',
-    brand: SERVICE_BRAND.developers,
-    href: '/contact',
-  },
-  {
     icon: Landmark,
-    title: 'იპოთეკური სესხი',
-    text: 'წამყვანი ქართული ბანკების შეთავაზებების შედარება და სესხის ონლაინ დამტკიცება.',
+    title: 'იპოთეკური კალკულატორი',
+    text: 'ყოველთვიური შენატანი TBC, BoG, Liberty და ტერაბანკის პირობების მიხედვით.',
     brand: SERVICE_BRAND.mortgage,
     href: '/mortgage-calculator',
   },
   {
-    icon: Compass,
-    title: 'აზომვითი ნახაზები',
-    text: 'საკადასტრო და შიდა აზომვითი ნახაზების მომზადება სერტიფიცირებული აზომველებისგან.',
+    icon: Paintbrush,
+    title: 'რემონტის ბიუჯეტი',
+    text: 'შავი / თეთრი / მწვანე კარკასი და გასაღების ჩაბარება — ორიენტირი მ²-ზე.',
     brand: SERVICE_BRAND.renovation,
     href: '/contact',
   },
   {
-    icon: FileText,
-    title: 'ხელშეკრულების შაბლონები',
-    text: 'ნასყიდობის, იჯარისა და გირავნობის იურიდიულად გამართული შაბლონები უფასოდ.',
+    icon: Map,
+    title: 'რუკაზე ძებნა',
+    text: 'უბნები, პროექტები და ფასები ერთ რუკაზე — იპოვე ბინა რუკით.',
     brand: SERVICE_BRAND.agents,
-    href: '/terms',
+    href: '/map',
   },
   {
-    icon: BarChart2,
-    title: 'ბინების ფასების სტატისტიკა',
-    text: 'კვადრატული მეტრის საშუალო ღირებულების დინამიკა თბილისისა და ბათუმის უბნებში.',
-    brand: SERVICE_BRAND.mortgage,
+    icon: Camera,
+    title: 'ფოტო & 3D ტური',
+    text: 'პროფესიონალური ფოტოგადაღება და 3D ვირტუალური ტური ობიექტისთვის.',
+    brand: SERVICE_BRAND.developers,
+    href: '/contact',
+  },
+  {
+    icon: Calculator,
+    title: 'ფასის შეფასება',
+    text: 'საბაზრო ღირებულების ორიენტირი — შეადარე მსგავს განცხადებებს.',
+    brand: SERVICE_BRAND.agents,
     href: '/search',
+  },
+  {
+    icon: FileText,
+    title: 'ხელშეკრულების შაბლონები',
+    text: 'ნასყიდობის, იჯარისა და გირავნობის იურიდიულად გამართული შაბლონები.',
+    brand: SERVICE_BRAND.agents,
+    href: '/terms',
   },
 ]
 
