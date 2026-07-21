@@ -6,7 +6,7 @@ import Footer from '@/components/sections/Footer'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { developersLive, projectsLive } from '@/lib/directory-live'
-import { getAllListings } from '@/lib/listings-db'
+import { getDeveloperListingCountsBySlug } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
@@ -50,32 +50,27 @@ export default async function DevelopersPage({ params }: PageProps) {
   if (!isValidLang(raw)) notFound()
   const c = DEVELOPERS_HUB[dirLoc(raw)]
 
-  const [developers, projects, liveAds] = await Promise.all([
-    developersLive(),
-    projectsLive(),
-    getAllListings(2500).catch(() => []),
-  ])
+  const [developers, projects] = await Promise.all([developersLive(), projectsLive()])
   const projectToDev = new Map(
-    projects.filter((p) => p.developerSlug).map((p) => [p.slug, p.developerSlug]),
+    projects.filter((p) => p.developerSlug).map((p) => [p.slug, p.developerSlug!]),
   )
-  const listingCounts: Record<string, number> = {}
-  for (const l of liveAds) {
-    const ds = l.projectSlug ? projectToDev.get(l.projectSlug) : undefined
-    if (ds) listingCounts[ds] = (listingCounts[ds] ?? 0) + 1
-  }
+  const listingCounts = await getDeveloperListingCountsBySlug(projectToDev)
 
-  const cards = await Promise.all(
-    developers.map(async (d) => ({
-      d,
-      aggregate: await getReviewAggregate('developer', d.slug),
-    })),
-  )
+  const cards = (
+    await Promise.all(
+      developers.map(async (d) => ({
+        d,
+        listingsCount: listingCounts[d.slug] ?? 0,
+        aggregate: await getReviewAggregate('developer', d.slug),
+      })),
+    )
+  ).sort((x, y) => y.listingsCount - x.listingsCount || y.d.projectsDone - x.d.projectsDone)
 
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    numberOfItems: developers.length,
-    itemListElement: developers.map((d, i) => ({
+    numberOfItems: cards.length,
+    itemListElement: cards.map(({ d }, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: d.name.en,
@@ -98,7 +93,7 @@ export default async function DevelopersPage({ params }: PageProps) {
             {c.sub}
           </p>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {cards.map(({ d, aggregate }) => (
+            {cards.map(({ d, listingsCount, aggregate }) => (
               <EntityCard
                 key={d.slug}
                 kind="developer"
@@ -106,7 +101,7 @@ export default async function DevelopersPage({ params }: PageProps) {
                 name={d.name}
                 city={d.city}
                 yearsActive={d.yearsActive}
-                listingsCount={listingCounts[d.slug] ?? 0}
+                listingsCount={listingsCount}
                 verified={d.verified}
                 aggregate={aggregate}
                 logoUrl={d.logoUrl}
