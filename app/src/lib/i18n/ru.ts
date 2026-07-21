@@ -561,23 +561,4 @@ export const ru: Dict = {
   'search.mapEmptyArea': 'В этой области ничего нет',
   'add.contactHint': 'Укажите имя и мобильный номер, по которому с вами можно связаться.',
 
-  // WhatsApp alerts section
-  'whatsapp.badge': 'WhatsApp уведомления',
-  'whatsapp.title': 'Подпишитесь на новые объявления в WhatsApp',
-  'whatsapp.subtitle': 'Получайте новые варианты недвижимости на sivrce сразу после публикации.',
-  'whatsapp.howItWorks': 'Как это работает?',
-  'whatsapp.feature1': 'Мгновенные уведомления',
-  'whatsapp.feature1Sub': 'Как только новое объявление появляется, ссылка приходить прямо в WhatsApp.',
-  'whatsapp.feature2': 'Точная настройка',
-  'whatsapp.feature2Sub': 'Уведомления только по выбранным городам, районам, комнатам и диапазону цен.',
-  'whatsapp.feature3': 'ИИ-оценка стоимости',
-  'whatsapp.feature3Sub': 'Каждое сообщение содержит оценку ИИ (рыночная цена, выше или ниже рынка).',
-  'whatsapp.city': 'Город',
-  'whatsapp.deal': 'Тип сделки',
-  'whatsapp.type': 'Тип недвижимости',
-  'whatsapp.maxPrice': 'Макс. цена ($)',
-  'whatsapp.phone': 'WhatsApp номер',
-  'whatsapp.phonePh': '5XX XX XX XX',
-  'whatsapp.subscribe': 'Подписаться в WhatsApp',
-  'whatsapp.success': 'Подписка оформлена! Вы будете получать новые объявления в WhatsApp.',
 }

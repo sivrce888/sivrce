@@ -570,25 +570,6 @@ export const ka = {
   'search.mapClearArea': 'ყველა',
   'search.mapEmptyArea': 'ამ არეალში შედეგი არ არის',
 
-  // WhatsApp alerts section
-  'whatsapp.badge': 'WhatsApp შეტყობინებები',
-  'whatsapp.title': 'გამოიწერეთ ახალი განცხადებები WhatsApp-ში',
-  'whatsapp.subtitle': 'მიიღეთ თქვენზე მორგებული განცხადებები sivrce-ზე გამოქვეყნებისთანავე.',
-  'whatsapp.howItWorks': 'როგორ მუშაობს ეს?',
-  'whatsapp.feature1': 'მყისიერი შეტყობინება',
-  'whatsapp.feature1Sub': 'ახალი განცხადება გამოქვეყნდება თუ არა, პირდაპირ WhatsApp-ში მოგივათ პირდაპირი ბმული.',
-  'whatsapp.feature2': 'ზუსტი პერსონალიზაცია',
-  'whatsapp.feature2Sub': 'მიიღეთ შეტყობინებები მხოლოდ იმ უბნებსა და ფასების დიაპაზონში, რომელიც თქვენ გაინტერესებთ.',
-  'whatsapp.feature3': 'AI ფასის შეფასება',
-  'whatsapp.feature3Sub': 'შეტყობინებას თან ახლავს AI შეფასება (ბაზრის დონე, საბაზროზე დაბალი/მაღლა).',
-  'whatsapp.city': 'ქალაქი',
-  'whatsapp.deal': 'გარიგების ტიპი',
-  'whatsapp.type': 'ქონების ტიპი',
-  'whatsapp.maxPrice': 'მაქსიმალური ფასი ($)',
-  'whatsapp.phone': 'WhatsApp ნომერი',
-  'whatsapp.phonePh': '5XX XX XX XX',
-  'whatsapp.subscribe': 'გამოიწერეთ WhatsApp-ში',
-  'whatsapp.success': 'გამოწერა წარმატებულია! ახალ განცხადებებს WhatsApp-ში მიიღებთ გამოქვეყნებისთანავე.',
 } as const
 
 export type DictKey = keyof typeof ka

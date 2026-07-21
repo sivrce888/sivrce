@@ -521,7 +521,6 @@ export const hy: Dict = {
   'settings.push.denied': 'Ծանուցումներն արգելափակված են դիտարկիչում — միացրեք դրանք դիտարկիչի կարգավորումներում։',
   'settings.push.unsupported': 'Այս դիտարկիչը չի աջակցում push ծանուցումներ։',
 
-
   // Daily-rent home collections
   'col.party': 'Party houses',
   'col.party.sub': 'Daily · parties allowed',
@@ -563,23 +562,4 @@ export const hy: Dict = {
   'search.mapEmptyArea': 'Այս տարածքում հայտարարություններ չկան',
   'add.contactHint': 'Նշեք ձեր անունը և բջջային համարը, որով գնորդները կարող են կապվել ձեզ հետ։',
 
-  // WhatsApp alerts section
-  'whatsapp.badge': 'WhatsApp Alerts',
-  'whatsapp.title': 'Subscribe to New Listings on WhatsApp',
-  'whatsapp.subtitle': 'Get instant WhatsApp alerts for listings matching your criteria as soon as they drop on sivrce.',
-  'whatsapp.howItWorks': 'How does it work?',
-  'whatsapp.feature1': 'Instant Alerts',
-  'whatsapp.feature1Sub': 'As soon as a new listing is published, you get a direct WhatsApp link instantly.',
-  'whatsapp.feature2': 'Exact Customization',
-  'whatsapp.feature2Sub': 'Receive alerts only for your selected cities, districts, rooms, and budget ranges.',
-  'whatsapp.feature3': 'AI Price Estimates',
-  'whatsapp.feature3Sub': 'Every notification includes an AI valuation (fair, deal, or above market).',
-  'whatsapp.city': 'City',
-  'whatsapp.deal': 'Deal Type',
-  'whatsapp.type': 'Property Type',
-  'whatsapp.maxPrice': 'Max Price ($)',
-  'whatsapp.phone': 'WhatsApp Number',
-  'whatsapp.phonePh': '5XX XX XX XX',
-  'whatsapp.subscribe': 'Subscribe on WhatsApp',
-  'whatsapp.success': 'Subscribed! You will receive new listing alerts on WhatsApp instantly.',
 }
