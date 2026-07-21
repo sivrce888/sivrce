@@ -109,7 +109,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t } = useI18n()
-  const { format, currency, rate } = useCurrency()
+  const { currency, rate } = useCurrency()
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []

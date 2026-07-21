@@ -199,7 +199,7 @@ export default function ListingDetailClient({
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const ttCompare = useCompareStrings()
   const { t, lang } = useI18n()
-  const { currency, setCurrency, format, rate: liveRate } = useCurrency()
+  const { currency, setCurrency, rate: liveRate } = useCurrency()
   // ponytail: same scroll+focus as StickyLeadBar — chat stays parked.
   const scrollToLead = () => {
     const form = document.getElementById(LEAD_FORM_ID)

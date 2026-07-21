@@ -729,8 +729,8 @@
   },
   {
     "slug": "anagi-police-city",
-    "status": "ok",
-    "source": "official",
+    "status": "failed",
+    "source": null,
     "sourceUrl": null,
     "batch": 2
   },
@@ -1128,8 +1128,8 @@
   },
   {
     "slug": "forms-tsatskhvebi-3-14",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1142,8 +1142,8 @@
   },
   {
     "slug": "gbg-andronikashvili",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1317,8 +1317,8 @@
   },
   {
     "slug": "livin-dadiani-263",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1422,8 +1422,8 @@
   },
   {
     "slug": "metropol-shindisi",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1548,9 +1548,9 @@
   },
   {
     "slug": "next-radisson-blu",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/radisson-residences-batumi",
     "batch": 2
   },
   {
@@ -1590,8 +1590,8 @@
   },
   {
     "slug": "nexus-residence-vakhtang",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1751,8 +1751,8 @@
   },
   {
     "slug": "reside-riverside",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1765,15 +1765,15 @@
   },
   {
     "slug": "royal-bohema-residence",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
   {
     "slug": "royal-didube-tower",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1905,8 +1905,8 @@
   },
   {
     "slug": "tower-gelovani",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
     "batch": 2
   },

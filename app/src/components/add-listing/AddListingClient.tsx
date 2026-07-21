@@ -32,7 +32,7 @@ import {
   projectsFor, floorTypesFor, featuresFor, RENT_PERIODS, RENT_TYPES,
 } from '@/lib/add-listing-fields'
 import {
-  CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD, formatGEL,
+  CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD,
   type DealType, type Listing, type PropType,
 } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
