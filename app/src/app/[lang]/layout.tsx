@@ -22,16 +22,17 @@ const GA_ID = "G-T90P2YSK4B";
 
 const manrope = Manrope({
   subsets: ["latin"],
+  // ponytail: 2 weights only — default multi-weight pulled 5 woff2 onto FCP chain
+  weight: ["600", "800"],
   variable: "--font-manrope",
   display: "optional",
-  // Latin-only subsets; Georgian text uses Noto below — save the preload slot
   preload: false,
 });
 
 const notoGeorgian = Noto_Sans_Georgian({
   subsets: ["georgian"],
+  weight: ["600", "900"],
   variable: "--font-noto-georgian",
-  // optional: no late-swap LCP; preload:false — font was costing FCP/SI ~0.5s in LH
   display: "optional",
   preload: false,
 });

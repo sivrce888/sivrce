@@ -1,13 +1,22 @@
+import dynamic from 'next/dynamic'
 import { BadgeCheck, ShieldCheck, Zap } from 'lucide-react'
 import HeroBackground from './HeroBackground'
-import HeroSearch from './HeroSearch'
 import { getCmsBlock } from '@/lib/cms'
 import type { Lang } from '@/lib/i18n/core'
 
 /* Static hero shell — server component. LCP text (h1/subtitle) paints from the
-   RSC payload, never gated on or re-painted by client hydration. Interactive
-   search panel lives in the HeroSearch island (the only framer-motion user).
-   Copy is CMS-overridable per language (/admin/content/pages). */
+   RSC payload. HeroSearch is a dynamic island so framer-motion stays off the
+   FCP critical path. */
+
+const HeroSearch = dynamic(() => import('./HeroSearch'), {
+  // ponytail: fixed-height shell — no CLS when the island hydrates
+  loading: () => (
+    <div
+      className="mx-auto mt-11 h-[132px] w-full max-w-[1080px] rounded-[26px] bg-white/[0.08]"
+      aria-hidden
+    />
+  ),
+})
 
 const TRUST = [
   { icon: BadgeCheck, key: 'home.hero.trust1' },
@@ -27,25 +36,18 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
   ])
   return (
     <section className="relative min-h-[100svh] overflow-x-hidden bg-sv-navy">
-      {/* Animated brand background */}
       <HeroBackground />
 
-      {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-36 md:px-10">
-        {/* LCP content paints instantly — no entrance animation on badge/h1/subtitle
-            (opacity-0 start cost ~1.2s mobile LCP). Animation kept on trust row only. */}
         <div className="mb-7 flex items-center gap-2.5 rounded-full glass px-5 py-2.5">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sv-success opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sv-success" />
-          </span>
+          {/* ponytail: static dot — animate-ping competed with FCP on mobile LH */}
+          <span className="inline-flex h-2.5 w-2.5 rounded-full bg-sv-success" />
           <span className="text-[13px] font-bold tracking-wide text-white/90 md:text-[14px]">
             {badge}
           </span>
         </div>
 
         <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.03em] text-white">
-          {/* ponytail: no shimmer on LCP title — animated gradient delayed LCP onto the subtitle */}
           {titleA} <span className="text-gradient-blue">{titleAccent}</span>
         </h1>
 
@@ -55,7 +57,6 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
 
         <HeroSearch />
 
-        {/* Trust row */}
         <div
           className="sv-hero-in mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"
           style={{ animationDelay: '0.3s' }}
@@ -69,7 +70,6 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
         </div>
       </div>
 
-      {/* Scroll hint */}
       <div
         className="sv-hero-in absolute bottom-6 left-1/2 z-10 -translate-x-1/2"
         style={{ animationDelay: '0.5s' }}
