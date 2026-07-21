@@ -495,9 +495,9 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
      view toggle, which only makes sense next to results). */
   const filtersBody = (mobile: boolean) => (
     <>
-      {/* Row 1: deal + type + city + district + keyword + search — ss.ge density */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <div className="scrollbar-hide flex max-w-full overflow-x-auto rounded-control bg-sv-ink/[0.05] p-0.5 [mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent)] md:[mask-image:none]" role="group" aria-label={t('search.dealType')}>
+      {/* One strip: deal · type · city · district · keyword · price · rooms · area · more — ss.ge / myhome density */}
+      <div className="scrollbar-hide flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5">
+        <div className="flex shrink-0 rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.dealType')}>
           {DEALS.map((d) => {
             const label = t(dealLabelKey(d))
             const count = d === undefined ? undefined : fcount('dealType', d)
@@ -538,7 +538,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           })}
         </div>
 
-        <div className="relative min-w-[120px]">
+        <div className="relative min-w-[112px] shrink-0">
           <select
             value={type ?? ''}
             onChange={(e) => patchParams({ type: (e.target.value || undefined) as PropType | undefined })}
@@ -553,7 +553,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
         </div>
 
-        <div className="relative min-w-[120px]">
+        <div className="relative min-w-[112px] shrink-0">
           <select
             value={city ?? ''}
             onChange={(e) => patchParams({ city: e.target.value || undefined, district: undefined })}
@@ -568,7 +568,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
         </div>
 
-        <div className="relative min-w-[120px]">
+        <div className="relative min-w-[112px] shrink-0">
           <select
             value={district ?? ''}
             onChange={(e) => patchParams({ district: e.target.value || undefined })}
@@ -603,28 +603,16 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           onSubmit={submitKeyword}
           placeholder={t('search.keywordPlaceholder')}
           ariaLabel={t('search.keyword')}
-          className="min-w-[140px] flex-1"
+          className="min-w-[160px] max-w-[280px] shrink-0 grow basis-[160px]"
         />
 
-        <button
-          type="button"
-          onClick={submitKeyword}
-          className="flex h-9 shrink-0 items-center gap-1.5 rounded-control bg-sv-blue px-4 text-[12px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-        >
-          <Search className="h-3.5 w-3.5" aria-hidden />
-          {t('search.apply')}
-        </button>
-      </div>
-
-      {/* Row 2: price · rooms · area · seller · more — condition lives in More (was duplicate row) */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">{t('search.price')}</span>
           <input
             type="number" min={0} placeholder={t('search.min')}
             value={drafts.min}
             onChange={(e) => setDrafts((d) => ({ ...d, min: e.target.value }))}
-            className={`${inputClass} w-[88px]`}
+            className={`${inputClass} w-[80px]`}
             aria-label={t('search.minPrice')}
           />
           <span className="text-sv-ink/40">—</span>
@@ -632,7 +620,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             type="number" min={0} placeholder={t('search.max')}
             value={drafts.max}
             onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))}
-            className={`${inputClass} w-[88px]`}
+            className={`${inputClass} w-[80px]`}
             aria-label={t('search.maxPrice')}
           />
           <div className="ml-0.5 flex rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.currency')}>
@@ -650,7 +638,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">
             {deal === 'daily' ? t('search.bedrooms') : t('search.rooms')}
           </span>
@@ -676,13 +664,13 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">{t('search.area')}</span>
           <input
             type="number" min={0} placeholder={t('search.min')}
             value={drafts.amin}
             onChange={(e) => setDrafts((d) => ({ ...d, amin: e.target.value }))}
-            className={`${inputClass} w-[72px]`}
+            className={`${inputClass} w-[68px]`}
             aria-label={t('search.minArea')}
           />
           <span className="text-sv-ink/40">—</span>
@@ -690,40 +678,13 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             type="number" min={0} placeholder={t('search.max')}
             value={drafts.amax}
             onChange={(e) => setDrafts((d) => ({ ...d, amax: e.target.value }))}
-            className={`${inputClass} w-[72px]`}
+            className={`${inputClass} w-[68px]`}
             aria-label={t('search.maxArea')}
           />
         </div>
 
-        <div className="flex items-center gap-0.5 rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.seller')}>
-          <button
-            type="button"
-            onClick={() => patchParams({ seller: seller === 'owner' ? undefined : 'owner' })}
-            aria-pressed={seller === 'owner'}
-            className={`h-7 rounded-md px-2.5 text-[11px] font-extrabold transition-colors ${
-              seller === 'owner'
-                ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm'
-                : 'text-sv-ink/65 hover:text-sv-ink'
-            }`}
-          >
-            {t('search.sellerOwner')}
-          </button>
-          <button
-            type="button"
-            onClick={() => patchParams({ seller: seller === 'agency' ? undefined : 'agency' })}
-            aria-pressed={seller === 'agency'}
-            className={`h-7 rounded-md px-2.5 text-[11px] font-extrabold transition-colors ${
-              seller === 'agency'
-                ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm'
-                : 'text-sv-ink/65 hover:text-sv-ink'
-            }`}
-          >
-            {t('search.sellerAgency')}
-          </button>
-        </div>
-
         {deal === 'daily' && (
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">{t('search.checkIn')}</span>
             <input
               type="date"
@@ -745,9 +706,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         )}
 
-        {/* Daily signals — compact; full feature set still in More */}
         {deal === 'daily' && (
-          <div className="flex max-w-full flex-wrap gap-1">
+          <div className="flex shrink-0 gap-1">
             {DAILY_SIGNAL_KEYS.map((f) => (
               <button
                 key={f}
@@ -766,7 +726,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           type="button"
           onClick={() => setMoreOpen((o) => !o)}
           aria-expanded={moreOpen}
-          className="flex h-9 items-center gap-1 rounded-control px-2.5 text-[12px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10"
+          className="flex h-9 shrink-0 items-center gap-1 rounded-control px-2.5 text-[12px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10"
         >
           <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
           {t('search.moreFilters')}
@@ -781,14 +741,23 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         {(chips.length > 0 || sort !== 'date') && (
           <button
             onClick={resetAll}
-            className="flex h-9 items-center gap-1 rounded-control px-2.5 text-[12px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
+            className="flex h-9 shrink-0 items-center gap-1 rounded-control px-2.5 text-[12px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
           >
             <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={submitKeyword}
+          className="ml-auto flex h-9 shrink-0 items-center gap-1.5 rounded-control bg-sv-blue px-4 text-[12px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+        >
+          <Search className="h-3.5 w-3.5" aria-hidden />
+          {t('search.apply')}
+        </button>
       </div>
 
-      {/* More filters panel — condition / status / features (was eating a full main-bar row) */}
+      {/* More filters panel — seller / condition / status / features */}
       <div>
         {moreOpen && (
           <div className="mt-1.5 space-y-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-3 shadow-card">

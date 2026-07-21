@@ -14,7 +14,7 @@ import { safeQuery } from "@/lib/guards"
 import { unstable_cache } from "next/cache"
 import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
-import type { Prisma } from "@/generated/prisma/client"
+import { Prisma } from "@/generated/prisma/client"
 import {
   activeColorUntil,
   activePriceDropUntil,
@@ -651,12 +651,15 @@ export async function filterListings(opts: {
   }
 
   if (!opts.includeProjects) {
-    where.NOT = {
-      extendedFields: {
-        path: ["projectCatalog"],
-        equals: true,
+    // Same as buildDbWhere — NOT(path=true) drops missing-key rows on PG JSONB.
+    where.AND = [
+      {
+        OR: [
+          { extendedFields: { path: ["projectCatalog"], equals: false } },
+          { extendedFields: { path: ["projectCatalog"], equals: Prisma.DbNull } },
+        ],
       },
-    }
+    ]
   }
 
   if (opts.dealType) where.dealType = dealToDb(opts.dealType)

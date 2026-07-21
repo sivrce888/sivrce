@@ -80,10 +80,10 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     propertyType: (propertyType as SearchFilters["propertyType"]) ?? undefined,
     city: str("city"),
     district: str("district"),
-    minPrice: num("minPrice"),
-    maxPrice: num("maxPrice"),
-    minArea: num("minArea"),
-    maxArea: num("maxArea"),
+    minPrice: num("minPrice") ?? num("min"),
+    maxPrice: num("maxPrice") ?? num("max"),
+    minArea: num("minArea") ?? num("amin"),
+    maxArea: num("maxArea") ?? num("amax"),
     rooms: num("rooms"),
     bedrooms: num("beds"),
     bathrooms: num("baths"),
@@ -176,7 +176,14 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   // Join table when warm; static metro boxes so filter works before cron backfill.
   if (filters.nearMetro) and.push(nearMetroFilter())
   // Catalog cards live on /projects — keep deal search unit-only.
-  and.push({ NOT: { extendedFields: { path: ["projectCatalog"], equals: true } } })
+  // ponytail: Prisma NOT(path=true) matches nothing when the key is missing on
+  // Postgres JSONB. DbNull = missing key; equals false = explicit false.
+  and.push({
+    OR: [
+      { extendedFields: { path: ["projectCatalog"], equals: false } },
+      { extendedFields: { path: ["projectCatalog"], equals: Prisma.DbNull } },
+    ],
+  })
 
   // Daily-rent availability: drop listings whose confirmed/pending bookings or
   // host-blocked dates overlap the requested [from, to) window. Half-open
