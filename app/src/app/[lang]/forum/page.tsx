@@ -3,9 +3,12 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { ChevronRight, MessageSquare, Eye, BadgeCheck, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { FORUM_THREADS } from '@/data/forum'
+import { NewThreadForm } from '@/components/forum/NewThreadForm'
+import { listForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'ფორუმი — უძრავი ქონების დისკუსიები | sivrce',
@@ -22,23 +25,23 @@ export const metadata: Metadata = {
   },
 }
 
-const forumLd = {
-  '@context': 'https://schema.org',
-  '@type': 'DiscussionForumPosting',
-  name: 'sivrce ფორუმი',
-  description: 'უძრავი ქონების სადისკუსიო თემები საქართველოში',
-  url: 'https://sivrce.ge/forum',
-  inLanguage: 'ka',
-  mainEntity: FORUM_THREADS.map((t, i) => ({
-    '@type': 'ListItem',
-    position: i + 1,
-    url: `https://sivrce.ge/forum/${t.slug}`,
-    name: t.title,
-  })),
-}
+export default async function ForumIndex() {
+  const sorted = await listForumThreads()
 
-export default function ForumIndex() {
-  const sorted = [...FORUM_THREADS].sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt))
+  const forumLd = {
+    '@context': 'https://schema.org',
+    '@type': 'DiscussionForumPosting',
+    name: 'sivrce ფორუმი',
+    description: 'უძრავი ქონების სადისკუსიო თემები საქართველოში',
+    url: 'https://sivrce.ge/forum',
+    inLanguage: 'ka',
+    mainEntity: sorted.slice(0, 20).map((t, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://sivrce.ge/forum/${t.slug}`,
+      name: t.title,
+    })),
+  }
 
   return (
     <div className="min-h-screen bg-sv-cloud">
@@ -54,7 +57,7 @@ export default function ForumIndex() {
           </ol>
         </nav>
 
-        <header className="mb-12">
+        <header className="mb-10">
           <h1 className="max-w-[800px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[48px]">
             სადისკუსიო თემები & ბაზრის მიმოხილვა
           </h1>
@@ -62,6 +65,10 @@ export default function ForumIndex() {
             ექსპერტებისა და მყიდველების გამოცდილება — რემონტი, იპოთეკა, ინვესტიცია თბილისსა და ბათუმში.
           </p>
         </header>
+
+        <div className="mb-12">
+          <NewThreadForm />
+        </div>
 
         <ul className="space-y-4">
           {sorted.map((t) => {
@@ -78,7 +85,7 @@ export default function ForumIndex() {
                       <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue">
                         {t.category}
                       </span>
-                      <span className="text-[11px] font-bold text-sv-orange">{t.badge}</span>
+                      {t.badge ? <span className="text-[11px] font-bold text-sv-orange">{t.badge}</span> : null}
                       <span className="text-[12px] font-semibold text-sv-ink/40">{t.district}</span>
                     </div>
                     <h2 className="text-[17px] font-black leading-snug tracking-[-0.01em] text-sv-ink transition-colors group-hover:text-sv-blue md:text-[19px]">
