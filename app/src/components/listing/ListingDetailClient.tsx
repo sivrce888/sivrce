@@ -26,7 +26,7 @@ import RevealPhone from '@/components/listing/RevealPhone'
 import PriceScale from '@/components/listing/PriceScale'
 import { parseCoords } from '@/lib/map/geocode'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
-import { blurProps } from '@/lib/media'
+import { blurProps, isCdnMedia } from '@/lib/media'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { priceScaleOf } from '@/lib/price-scale'
 import { streetHrefForListing } from '@/lib/street-href'
@@ -171,7 +171,7 @@ function Lightbox({
                 i === index ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-90'
               }`}
             >
-              <Image src={src} alt="" fill sizes="84px" className="object-cover" {...blurProps(src)} />
+              <Image src={src} alt="" fill sizes="84px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
             </button>
           ))}
         </div>
@@ -396,6 +396,7 @@ export default function ListingDetailClient({
                   fill
                   sizes="(max-width:1024px) 100vw, 850px"
                   priority
+                  unoptimized={isCdnMedia(l.images[photo])}
                   draggable={false}
                   className="object-cover"
                   {...blurProps(l.images[photo])}
@@ -460,7 +461,7 @@ export default function ListingDetailClient({
                       : 'opacity-75 hover:opacity-100'
                   }`}
                 >
-                  <Image src={src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" className="object-cover" {...blurProps(src)} />
+                  <Image src={src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
                   {moreTile && (
                     <span className="absolute inset-0 grid place-items-center bg-sv-navy/60 text-[16px] font-black text-white">
                       +{l.images.length - 3}
@@ -710,7 +711,7 @@ export default function ListingDetailClient({
                   <MapEmbed
                     lat={l.coords.lat}
                     lng={l.coords.lng}
-                    zoom={15}
+                    zoom={/\d/.test(l.address) ? 18 : 15}
                     mode="place"
                     q={l.address}
                     aspect="16/9"

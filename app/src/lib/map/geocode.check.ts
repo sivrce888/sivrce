@@ -29,7 +29,9 @@ assert.equal(parseCoords(99, 44.8), null)
 assert.equal(parseCoords('41', 44), null)
 
 const tb = cityCenter('თბილისი')
-assert.ok(Math.abs(tb.lat - 41.7151) < 0.01)
+// Freedom Square — add-listing / city pin default
+assert.ok(Math.abs(tb.lat - 41.69365) < 0.01)
+assert.ok(Math.abs(tb.lng - 44.80115) < 0.01)
 
 assert.equal(matchCityKa('Tbilisi'), 'თბილისი')
 assert.equal(matchCityKa('თბილისი'), 'თბილისი')
@@ -64,6 +66,14 @@ assert.equal(
   'ვაკე',
 )
 assert.equal(normalizeDistrict({ suburb: 'ვაკის რაიონი' }), 'ვაკე')
+// Digomi: catalog ubani (quarter) beats rayon neighbourhood.
+assert.equal(
+  normalizeDistrict({
+    neighbourhood: 'დიდუბის რაიონი',
+    quarter: 'დიღმის მასივი',
+  }),
+  'დიღმის მასივი',
+)
 
 const a = corpusIdentity(41.7151, 44.8271, 'თბილისი')
 const b = corpusIdentity(41.7151, 44.8271, 'თბილისი')
@@ -137,5 +147,34 @@ const snapped = snapPick(
   { type: 'Polygon', coordinates: [ring] },
 )
 assert.ok(Math.abs(snapped.lat - mid.lat) < 0.001)
+
+// Exact house № beats highway/bus_stop at same query.
+assert.ok(
+  scoreNominatimRow(
+    {
+      lat: '41.77',
+      lon: '44.78',
+      class: 'building',
+      type: 'apartments',
+      address: { house_number: '68' },
+      importance: 0.01,
+    },
+    '68',
+  ) >
+    scoreNominatimRow(
+      {
+        lat: '41.77',
+        lon: '44.78',
+        class: 'highway',
+        type: 'bus_stop',
+        importance: 0.5,
+      },
+      '68',
+    ),
+)
+
+// API route footgun reminder: Number(null)===0 is finite — reverse must gate on param presence.
+assert.equal(Number(null), 0)
+assert.equal(Number.isFinite(Number(null)), true)
 
 console.log('geocode + corpus + pick-building checks ok')

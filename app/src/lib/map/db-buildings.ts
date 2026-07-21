@@ -21,6 +21,7 @@ import { catalogToCluster, type MapBuildingCluster } from "@/lib/map/buildings"
 import {
   aggregateBuildingDealCounts,
 } from "@/lib/map/building-inventory"
+import { closeRing, parseFootprintRing } from "@/lib/map/pick-building"
 import { activeColorUntil, activePriceDropUntil, activeStoryUntil, activeUrgentUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
 
 export const MAP_BUILDINGS_TAG = "map-buildings"
@@ -310,8 +311,8 @@ export function rowToCluster(row: DbBuildingRow): MapBuildingCluster {
     c.status = "completed"
     c.color = SERVICE_BRAND.developers.hue
   }
-  const ring = (row.polygonCoords as { ring?: [number, number][] } | null)?.ring
-  if (Array.isArray(ring) && ring.length >= 5) c.ring = ring
+  const ring = parseFootprintRing(row.polygonCoords)
+  if (ring && ring.length >= 4) c.ring = closeRing(ring)
   const inv = row.building3D?.floors
   if (inv?.length) {
     c.inventory = inv.map((f) => ({

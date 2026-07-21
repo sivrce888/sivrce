@@ -89,7 +89,7 @@ export default async function AdminCrmPage({
           hint="Create the first lead with the form above."
         />
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-4">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-4">
           {LEAD_STATUS_ORDER.map((status) => {
             const leads = byStatus.get(status) ?? []
             return (

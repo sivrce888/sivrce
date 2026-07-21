@@ -10,6 +10,7 @@
  */
 
 import { LISTINGS, type Listing } from '@/data/listings'
+import { canonicalizeDistrict } from '@/lib/district-canon'
 
 export interface TbilisiStreet {
   slug: string
@@ -4032,6 +4033,66 @@ export function streetsOfDistrict(districtSlug: string): TbilisiStreet[] {
 
 /** Street-type suffix words dropped when matching listing addresses. */
 const STREET_SUFFIXES = new Set(['გამზირი', 'ქუჩა', 'ხეივანი', 'სანაპირო', 'გზატკეცილი', 'მოედანი', 'აღმართი', 'დაღმართი', 'შესახვევი', 'გასასვლელი', 'ჩიხი', 'გზა', 'I', 'II', 'III', 'IV', 'V'])
+
+const STREET_TYPES = [
+  'გამზირი',
+  'ქუჩა',
+  'ხეივანი',
+  'სანაპირო',
+  'გზატკეცილი',
+  'მოედანი',
+  'შესახვევი',
+  'გასასვლელი',
+  'ჩიხი',
+] as const
+
+/** Abbrev + case fold so „ჭავჭავაძის გამზ." hits catalog „ილია ჭავჭავაძის გამზირი". */
+function normStreetKa(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/გამზ\.?/gu, 'გამზირი')
+    .replace(/(?:^|\s)ქ\.?(?=\s|$)/gu, ' ქუჩა')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Catalog ubani (ka) for a street label — curated STREETS.district only.
+ * Short forms OK: „ჭავჭავაძის გამზირი" → ვაკე. Ambiguous bare surname → no guess.
+ * ponytail: ~104 hand pins; spatial OSM join when coverage must exceed curated set.
+ */
+export function districtKaForStreet(raw: string): string | undefined {
+  const needle = normStreetKa(raw)
+  if (needle.length < 4) return undefined
+
+  let best: TbilisiStreet | undefined
+  let bestScore = 0
+  const needleType = STREET_TYPES.find((t) => needle.includes(t))
+
+  for (const s of STREETS) {
+    if (!s.district) continue
+    const ka = normStreetKa(s.ka)
+    let score = 0
+    if (ka === needle) score = 1000 + ka.length
+    else if (needle.length >= 8 && ka.endsWith(needle)) score = 500 + needle.length
+    else if (ka.length >= 8 && needle.endsWith(ka)) score = 400 + ka.length
+    else {
+      const core = streetCore(s.ka).toLowerCase()
+      if (core.length < 5 || !needle.includes(core)) continue
+      const streetType = STREET_TYPES.find((t) => ka.includes(t))
+      // Require type agreement when user typed one — „ჭავჭავაძის გამზირი" ≠ ქუჩა.
+      if (needleType && streetType && needleType !== streetType) continue
+      if (!needleType) continue // bare „ჭავჭავაძის" — too ambiguous
+      score = 100 + core.length
+    }
+    if (score > bestScore) {
+      bestScore = score
+      best = s
+    }
+  }
+  return best?.district ? canonicalizeDistrict(best.district) || undefined : undefined
+}
 
 /**
  * Distinctive core of a street name for address matching:

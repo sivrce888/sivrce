@@ -25,6 +25,7 @@ import {
   linkChipsOf,
   locPrefix,
   cityProseOf,
+  hubProseOf,
   type SeoLoc,
   type SeoPageDef,
 } from '@/lib/seo-pages'
@@ -215,6 +216,8 @@ export default function SeoLanding({
   // grid + FAQ and substitute a long-form guide instead of a thin shell.
   const isCityInfo = def.kind === 'city-info'
   const cityProse = isCityInfo && def.city ? cityProseOf(def.city.slug) : null
+  // National deal×type hubs (myhome/ss pattern): curated ka long-form SEO.
+  const hubProse = loc === 'ka' && def.kind === 'deal-type' ? hubProseOf(def.dealSlug, def.typeSlug) : null
 
   // Tbilisi district extras: live weather badge + street-level link mesh (ka only).
   const tbilisiDistrict = def.district?.citySlug === 'tbilisi' ? def.district : undefined
@@ -260,7 +263,7 @@ export default function SeoLanding({
             {h1}
           </h1>
           <p className="mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">
-            {isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc)}
+            {hubProse ? hubProse.lede : isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc)}
           </p>
 
           {/* Live stats — hidden on city-info pages (no listings to report) */}
@@ -359,8 +362,22 @@ export default function SeoLanding({
               </p>
             ))}
           </section>
+        ) : hubProse ? (
+          /* Category hub SEO — myhome/ss-style sectioned long-form under the grid */
+          <section className="mt-14 space-y-10 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
+            {hubProse.sections.map((sec) => (
+              <div key={sec.h}>
+                <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">{sec.h}</h2>
+                {sec.body.map((para, i) => (
+                  <p key={i} className="mt-3 max-w-[860px] text-[15px] font-medium leading-[1.75] text-sv-ink/65">
+                    {para}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </section>
         ) : (
-          /* SEO intro — only on pages with listings */
+          /* SEO intro — templated stats copy for city/district pages */
           <section className="mt-14 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
             <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
               {h1} — {ui.overview}

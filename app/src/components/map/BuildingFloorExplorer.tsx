@@ -41,7 +41,7 @@ export default function BuildingFloorExplorer({
       </div>
 
       <div
-        className="mt-4 flex gap-1.5 overflow-x-auto pb-1"
+        className="mt-4 flex gap-1.5 overflow-x-auto scrollbar-hide"
         role="group"
         aria-label="სართულები"
       >

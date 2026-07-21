@@ -20,6 +20,8 @@ import type { ListingDealType } from "@/generated/prisma/enums"
 import { revalidateTag } from "next/cache"
 import { haversineM, NEAREST_RADIUS_M, parseBuildingNumber } from "./buildings"
 import { corpusFootprint, corpusIdentity } from "./corpus"
+import { fetchNaprParcelRing } from "./napr-parcel"
+import { fetchOsmBuildingRing } from "./osm-building-ring"
 
 /** Floor inventory column that tracks live stock per deal type. */
 export const DEAL_COUNT_FIELD = {
@@ -59,6 +61,7 @@ async function ensureBuilding3DId(
     city: string | null
     district: string | null
     totalFloors: number | null
+    cadastral?: string | null
   },
 ): Promise<string> {
   const { db } = await import("@/lib/db")
@@ -80,7 +83,15 @@ async function ensureBuilding3DId(
   if (existing?.building3D?.id) return existing.building3D.id
 
   const floors = Math.max(meta.totalFloors ?? 5, 1)
-  const ring = corpusFootprint(lat, lng)
+  // NAPR parcel (legal) → OSM building → Digomi slab.
+  const ring =
+    (await fetchNaprParcelRing({
+      code: meta.cadastral,
+      lat,
+      lng,
+    })) ??
+    (await fetchOsmBuildingRing(lat, lng)) ??
+    corpusFootprint(lat, lng)
   const footprint = {
     type: "Polygon",
     coordinates: [ring],
@@ -103,7 +114,7 @@ async function ensureBuilding3DId(
         height: floors * 3,
         floors,
         status: "active",
-        polygonCoords: ring,
+        polygonCoords: { ring },
         building3D: {
           create: {
             footprintGeoJson: footprint,
@@ -161,6 +172,7 @@ export async function attributeListing(listingId: string): Promise<void> {
       address: true,
       city: true,
       district: true,
+      extendedFields: true,
     },
   })
   if (!l || l.status !== "active" || l.deletedAt) return
@@ -170,11 +182,15 @@ export async function attributeListing(listingId: string): Promise<void> {
   })
   if (existing) return
 
+  const ext = (l.extendedFields ?? {}) as { cadastral?: unknown }
+  const cadastral = typeof ext.cadastral === "string" ? ext.cadastral : null
+
   const building3DId = await ensureBuilding3DId(l.lat, l.lng, {
     address: l.address,
     city: l.city,
     district: l.district,
     totalFloors: l.totalFloors,
+    cadastral,
   })
 
   const floorNumber = l.floor && l.floor > 0 ? l.floor : null

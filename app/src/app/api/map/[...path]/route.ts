@@ -46,10 +46,14 @@ export async function GET(req: Request, ctx: Ctx) {
   headers.set(
     'Cache-Control',
     isStyle || path === 'planet'
-      ? 'public, max-age=120, stale-while-revalidate=3600'
-      : 'public, max-age=86400, immutable',
+      ? 'public, max-age=120, s-maxage=120, stale-while-revalidate=3600'
+      : 'public, max-age=86400, s-maxage=86400, immutable',
   )
   headers.set('X-Content-Type-Options', 'nosniff')
+  // Vercel CDN must see s-maxage or every tile is a function invocation.
+  if (!(isStyle || path === 'planet')) {
+    headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=86400, immutable')
+  }
 
   // Rewrite JSON so Network never shows upstream host. Absolute URLs — MapLibre workers.
   if (ct.includes('json') || path.startsWith('styles/') || path === 'planet') {

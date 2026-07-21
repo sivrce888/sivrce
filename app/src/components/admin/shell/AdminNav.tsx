@@ -94,7 +94,7 @@ export function AdminNav({ orientation }: { orientation: "side" | "top" }) {
   if (orientation === "top") {
     // Mobile: single horizontal scroll strip of all items.
     return (
-      <nav aria-label="Admin" className="flex gap-1 overflow-x-auto px-3 py-2">
+      <nav aria-label="Admin" className="flex gap-1 overflow-x-auto scrollbar-hide px-3 py-2">
         {ADMIN_SECTIONS.flatMap((s) => s.items).map((item) => {
           const active = isActive(pathname, item.href, "exact" in item && item.exact)
           return (

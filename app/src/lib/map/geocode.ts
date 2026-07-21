@@ -6,6 +6,13 @@
 import { MAP_CITIES, type MapCity } from '@/lib/map/user-place'
 import { GEORGIA_MAX_BOUNDS, MAP_CENTER } from '@/lib/map/buildings'
 import { canonicalizeDistrict } from '@/lib/district-canon'
+import { geometryRing } from '@/lib/map/pick-building'
+import {
+  isQuarterLabel,
+  matchQuarter,
+  quarterSearchQuery,
+  type TbilisiQuarter,
+} from '@/data/tbilisi-quarters'
 
 export type GeocodeHit = {
   lat: number
@@ -15,6 +22,8 @@ export type GeocodeHit = {
   district?: string
   street?: string
   houseNo?: string
+  /** OSM building outer ring [lng,lat]… when Nominatim returns polygon_geojson. */
+  ring?: [number, number][]
 }
 
 const [[W, S], [E, N]] = GEORGIA_MAX_BOUNDS
@@ -29,6 +38,7 @@ type NominatimRow = {
   type?: string
   addresstype?: string
   importance?: number
+  geojson?: GeoJSON.Geometry
   address?: {
     city?: string
     town?: string
@@ -66,16 +76,24 @@ export function matchCityKa(name?: string | null): string | undefined {
   return hit?.ka
 }
 
-/** Prefer neighbourhood over "X რაიონი" suburb; canonicalize EN/combined. */
+/** Prefer catalog ubani (quarter) over rayon neighbourhood; canonicalize EN/combined. */
 export function normalizeDistrict(a?: NominatimRow['address']): string | undefined {
-  const raw =
-    a?.neighbourhood?.trim() ||
-    a?.quarter?.split(',')[0]?.trim() ||
-    a?.suburb?.trim() ||
-    a?.city_district?.trim()
-  if (!raw) return undefined
-  const stripped = raw.replace(/\s*რაიონი\s*$/u, '').trim() || raw
-  return canonicalizeDistrict(stripped) || stripped
+  // quarter first — OSM "დიღმის მასივი" beats rayon "დიდუბის რაიონი"
+  const parts = [
+    a?.quarter?.split(',')[0]?.trim(),
+    a?.neighbourhood?.trim(),
+    a?.suburb?.trim(),
+    a?.city_district?.trim(),
+  ].filter((x): x is string => Boolean(x?.trim()))
+
+  let fallback: string | undefined
+  for (const raw of parts) {
+    const stripped = raw.replace(/\s*რაიონი\s*$/u, '').trim() || raw
+    const canon = canonicalizeDistrict(stripped)
+    if (canon) return canon
+    if (!fallback) fallback = stripped
+  }
+  return fallback
 }
 
 /** "ჭავჭავაძის გამზ. 47" → street + houseNo (keeps casing). */
@@ -110,11 +128,24 @@ export function parseCoords(
   return { lat, lng }
 }
 
+/** Building footprint only — skip road/amenity polygons. */
+function buildingRing(row: NominatimRow): [number, number][] | undefined {
+  const isBldg =
+    row.class === 'building' ||
+    row.addresstype === 'building' ||
+    row.type === 'house' ||
+    row.type === 'apartments' ||
+    Boolean(row.address?.house_number)
+  if (!isBldg || !row.geojson) return undefined
+  return geometryRing(row.geojson) ?? undefined
+}
+
 function hitFromRow(row: NominatimRow, fallbackLabel: string): GeocodeHit | null {
   const lat = Number(row.lat)
   const lng = Number(row.lon)
   if (!inGeorgia(lat, lng)) return null
   const a = row.address
+  const ring = buildingRing(row)
   return {
     lat,
     lng,
@@ -123,11 +154,16 @@ function hitFromRow(row: NominatimRow, fallbackLabel: string): GeocodeHit | null
     district: normalizeDistrict(a),
     street: a?.road ?? a?.pedestrian,
     houseNo: a?.house_number,
+    ...(ring ? { ring } : {}),
   }
 }
 
+function normHouse(n: string): string {
+  return n.trim().toLowerCase().replace(/\s+/g, '')
+}
+
 /** Prefer house/building pins over cafes / street centroids. */
-export function scoreNominatimRow(row: NominatimRow): number {
+export function scoreNominatimRow(row: NominatimRow, wantHouse?: string): number {
   let s = Number(row.importance) || 0
   if (row.class === 'building' || row.addresstype === 'building') s += 12
   if (row.type === 'house' || row.type === 'apartments' || row.type === 'building') s += 8
@@ -136,16 +172,22 @@ export function scoreNominatimRow(row: NominatimRow): number {
   if (row.class === 'amenity') s -= 6
   if (row.class === 'highway') s -= 8
   if (row.class === 'shop') s -= 4
+  if (wantHouse && row.address?.house_number) {
+    if (normHouse(row.address.house_number) === normHouse(wantHouse)) s += 20
+  }
   return s
 }
 
-function pickBestRow(rows: NominatimRow[]): NominatimRow | null {
+function pickBestRow(rows: NominatimRow[], wantHouse?: string): NominatimRow | null {
   if (!rows.length) return null
-  return [...rows].sort((a, b) => scoreNominatimRow(b) - scoreNominatimRow(a))[0] ?? null
+  return (
+    [...rows].sort((a, b) => scoreNominatimRow(b, wantHouse) - scoreNominatimRow(a, wantHouse))[0] ??
+    null
+  )
 }
 
-function rankRows(rows: NominatimRow[]): NominatimRow[] {
-  return [...rows].sort((a, b) => scoreNominatimRow(b) - scoreNominatimRow(a))
+function rankRows(rows: NominatimRow[], wantHouse?: string): NominatimRow[] {
+  return [...rows].sort((a, b) => scoreNominatimRow(b, wantHouse) - scoreNominatimRow(a, wantHouse))
 }
 
 async function nominatimSearch(
@@ -156,14 +198,22 @@ async function nominatimSearch(
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
   url.searchParams.set('format', 'json')
   url.searchParams.set('addressdetails', '1')
+  url.searchParams.set('polygon_geojson', '1')
   url.searchParams.set('countrycodes', 'ge')
   url.searchParams.set('viewbox', `${W},${N},${E},${S}`)
   url.searchParams.set('bounded', '1')
 
+  // ponytail: no-store — empty 200s were poison-cached 24h → add-listing 404 in 5ms
+  // Referer+From: Next may strip User-Agent; Nominatim still accepts these.
   const res = await fetch(url, {
     signal,
-    headers: { Accept: 'application/json', 'User-Agent': NOMINATIM_UA },
-    next: { revalidate: 86_400 },
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': NOMINATIM_UA,
+      Referer: 'https://sivrce.ge/',
+      From: 'maps@sivrce.ge',
+    },
+    cache: 'no-store',
   }).catch(() => null)
   if (!res?.ok) return []
   return (await res.json()) as NominatimRow[]
@@ -180,8 +230,9 @@ export async function geocodeAddress(
   const q = query.trim()
   if (q.length < 3 || q.length > 240) return null
 
+  const { houseNo } = splitStreetHouse(q)
   const rows = await nominatimSearch({ q, limit: '8' }, signal)
-  const row = pickBestRow(rows)
+  const row = pickBestRow(rows, houseNo || undefined)
   return row ? hitFromRow(row, q) : null
 }
 
@@ -202,7 +253,7 @@ export async function suggestAddresses(
   const rows = await nominatimSearch({ q: needle, limit: '8' }, signal)
   const seen = new Set<string>()
   const out: GeocodeHit[] = []
-  for (const row of rankRows(rows)) {
+  for (const row of rankRows(rows, houseNo || undefined)) {
     const hit = hitFromRow(row, q)
     if (!hit) continue
     const key = `${hit.lat.toFixed(5)}:${hit.lng.toFixed(5)}`
@@ -212,6 +263,44 @@ export async function suggestAddresses(
     if (out.length >= 5) break
   }
   return out
+}
+
+/** ~350m — reject Nominatim false-hits (e.g. Varketili მე-3 → მე-7). */
+const QUARTER_SNAP_DEG = 0.0035
+
+function preferQuarterPin(
+  hit: GeocodeHit | null,
+  cat: TbilisiQuarter | undefined,
+  street: string,
+  houseNo: string,
+  district: string,
+  city: string,
+): GeocodeHit | null {
+  const near =
+    !!hit &&
+    !!cat &&
+    Math.abs(hit.lat - cat.lat) < QUARTER_SNAP_DEG &&
+    Math.abs(hit.lng - cat.lng) < QUARTER_SNAP_DEG
+
+  if (hit && (!cat || near)) {
+    return {
+      ...hit,
+      street: hit.street || street,
+      houseNo: hit.houseNo || houseNo || undefined,
+      city: hit.city || matchCityKa(city) || city || undefined,
+      district: hit.district || cat?.district || district || undefined,
+    }
+  }
+  if (!cat) return null
+  return {
+    lat: cat.lat,
+    lng: cat.lng,
+    label: cat.ka,
+    street: cat.ka,
+    houseNo: houseNo || undefined,
+    city: matchCityKa(city) || city || 'თბილისი',
+    district: cat.district || district || undefined,
+  }
 }
 
 /** Structured listing address — house № first when present. */
@@ -234,6 +323,20 @@ export async function geocodeListingAddress(
     }
   }
 
+  // Massiv / microdistrict labels — Nominatim rewrite + catalog pin fallback.
+  const cat = matchQuarter(street)
+  if (street && (cat || isQuarterLabel(street))) {
+    const qStreet = quarterSearchQuery(street)
+    // Digomi: drop commas. Varketili III nominatim field keeps "მესამე მასივი, მე-N".
+    const qCore = cat?.nominatim
+      ? qStreet
+      : qStreet.replace(/,\s*/g, ' ').replace(/\s+/g, ' ').trim()
+    const query = houseNo ? `${houseNo} ${qCore}` : qCore
+    const hit = await geocodeAddress(query, signal)
+    const pinned = preferQuarterPin(hit, cat, street, houseNo, district, city)
+    if (pinned) return pinned
+  }
+
   if (street) {
     const streetLine = houseNo ? `${houseNo} ${street}` : street
     const structured = await nominatimSearch(
@@ -245,7 +348,7 @@ export async function geocodeListingAddress(
       },
       signal,
     )
-    const hit = pickBestRow(structured)
+    const hit = pickBestRow(structured, houseNo || undefined)
     if (hit) {
       const out = hitFromRow(hit, streetLine)
       if (out) {
@@ -293,8 +396,13 @@ export async function reverseGeocode(
 
   const res = await fetch(url, {
     signal,
-    headers: { Accept: 'application/json', 'User-Agent': NOMINATIM_UA },
-    next: { revalidate: 86_400 },
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': NOMINATIM_UA,
+      Referer: 'https://sivrce.ge/',
+      From: 'maps@sivrce.ge',
+    },
+    cache: 'no-store',
   }).catch(() => null)
   if (!res?.ok) return null
 

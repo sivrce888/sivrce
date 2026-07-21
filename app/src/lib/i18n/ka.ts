@@ -292,7 +292,7 @@ export const ka = {
   'add.districtPh': 'მაგ. ვაკე',
   'add.cadastral': 'საკადასტრო კოდი',
   'add.cadastralPh': '01.10.01.001.001',
-  'add.cadastralNote': 'არასავალდებულო — ზრდის განცხადების სანდოობას',
+  'add.cadastralNote': 'არასავალდებულო — NAPR ნაკვეთი ავტომატურად რუკაზე',
   'add.pricePerM2': 'კვ. ფასი',
   'add.priceTotal': 'სრული ფასი',
   'add.matterportPh': 'https://my.matterport.com/…',

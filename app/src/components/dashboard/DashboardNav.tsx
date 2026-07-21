@@ -27,7 +27,7 @@ export default function DashboardNav({
 
   if (variant === "mobile") {
     return (
-      <nav className="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label={label}>
+      <nav className="mb-6 flex gap-2 overflow-x-auto scrollbar-hide lg:hidden" aria-label={label}>
         {nav.map((item) => {
           const active = isActive(pathname, item.href)
           return (

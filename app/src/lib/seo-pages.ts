@@ -6,6 +6,10 @@
  */
 
 import { filterListings, formatUSD, type DealType, type Listing, type PropType } from '@/data/listings'
+import { hubProseOf } from '@/lib/seo-hub-prose'
+
+export { hubProseOf } from '@/lib/seo-hub-prose'
+export type { HubProse, HubSection } from '@/lib/seo-hub-prose'
 
 /* ————— Registries ————— */
 
@@ -597,6 +601,11 @@ export function titleOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
 }
 
 export function descriptionOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
+  // National category hubs: curated lede ranks better than the stats template.
+  if (loc === 'ka' && def.kind === 'deal-type') {
+    const hub = hubProseOf(def.dealSlug, def.typeSlug)
+    if (hub) return hub.lede.length > 160 ? `${hub.lede.slice(0, 157)}…` : hub.lede
+  }
   const s = statsOf(def.listings)
   if (loc === 'en') {
     const perM2 = s.avgPerM2 ? ` Average price ${formatUSD(s.avgPerM2)}/m².` : ''

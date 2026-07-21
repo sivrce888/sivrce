@@ -17,11 +17,14 @@ import {
 
 export const CONSTRUCTION_3D_LAYER_ID = 'sv-construction-3d'
 const MAX_MESHES = 48
+/** Match Map3D DETAIL_ZOOM — extrusion/cluster handoff. */
+const DETAIL_MIN_ZOOM = 13.5
 
 export type Construction3DApi = {
   /** Rebuild meshes; resolves with textured building ids. */
   sync: (buildings: MapBuildingCluster[]) => Promise<Set<string>>
   texturedIds: () => Set<string>
+  setMinZoom: (z: number) => void
   remove: () => void
 }
 
@@ -40,6 +43,8 @@ type LayerState = {
   origin: { lat: number; lng: number }
   loader: InstanceType<ThreeNS['TextureLoader']>
   gltfLoader: import('three/examples/jsm/loaders/GLTFLoader.js').GLTFLoader | null
+  /** Match MapLibre extrusion minzoom — never draw over cluster digits. */
+  minZoom: number
 }
 
 function absoluteUrl(url: string): string {
@@ -89,7 +94,17 @@ function mercatorTransform(
     .multiply(rotateX)
 }
 
-function makeExtrudedMesh(
+function loadTexture(
+  loader: InstanceType<ThreeNS['TextureLoader']>,
+  url: string,
+): Promise<InstanceType<ThreeNS['Texture']>> {
+  return new Promise((resolve, reject) => {
+    loader.load(absoluteUrl(url), resolve, undefined, reject)
+  })
+}
+
+/** Await texture first — sync loader.load left meshes black while MapLibre was already hidden. */
+async function makeExtrudedMesh(
   THREE: ThreeNS,
   loader: InstanceType<ThreeNS['TextureLoader']>,
   ring: [number, number][],
@@ -97,7 +112,7 @@ function makeExtrudedMesh(
   lng: number,
   heightM: number,
   imgUrl: string,
-): InstanceType<ThreeNS['Mesh']> {
+): Promise<InstanceType<ThreeNS['Mesh']>> {
   const pts = ringToLocalEN(ring, lat, lng)
   if (pts.length < 3) throw new Error('ring too short')
   const shape = new THREE.Shape()
@@ -112,16 +127,15 @@ function makeExtrudedMesh(
   // Shape XY = east/north, depth +Z → rotate so +Y is up (MapLibre three.js convention)
   geom.rotateX(-Math.PI / 2)
 
-  const tex = loader.load(absoluteUrl(imgUrl))
+  const tex = await loadTexture(loader, imgUrl)
   tex.colorSpace = THREE.SRGBColorSpace
   tex.wrapS = THREE.RepeatWrapping
   tex.wrapT = THREE.ClampToEdgeWrapping
   tex.repeat.set(1, 1)
 
-  const mat = new THREE.MeshStandardMaterial({
+  // BasicMaterial: no light dependency; Standard + empty map → black boxes.
+  const mat = new THREE.MeshBasicMaterial({
     map: tex,
-    roughness: 0.82,
-    metalness: 0.04,
     side: THREE.DoubleSide,
   })
   return new THREE.Mesh(geom, mat)
@@ -181,7 +195,7 @@ async function applySync(state: LayerState, buildings: MapBuildingCluster[]) {
         const gltf = await state.gltfLoader.loadAsync(absoluteUrl(url))
         obj = gltf.scene
       } else {
-        obj = makeExtrudedMesh(
+        obj = await makeExtrudedMesh(
           state.THREE,
           state.loader,
           ring,
@@ -213,6 +227,7 @@ export function ensureConstruction3D(map: MlMap): Construction3DApi {
   let state: LayerState | null = null
   let syncQueue: MapBuildingCluster[] | null = null
   let readyResolvers: Array<() => void> = []
+  let pendingMinZoom = DETAIL_MIN_ZOOM
 
   function waitReady(): Promise<void> {
     if (state) return Promise.resolve()
@@ -223,10 +238,15 @@ export function ensureConstruction3D(map: MlMap): Construction3DApi {
 
   const api: Construction3DApi = {
     texturedIds: () => state?.textured ?? new Set(),
+    setMinZoom(z) {
+      pendingMinZoom = z
+      if (state) state.minZoom = z
+    },
     async sync(buildings) {
       if (!state) syncQueue = buildings
       await waitReady()
       if (!state) return new Set()
+      state.minZoom = pendingMinZoom
       await applySync(state, buildings)
       map.triggerRepaint()
       return new Set(state.textured)
@@ -278,6 +298,7 @@ export function ensureConstruction3D(map: MlMap): Construction3DApi {
         origin: { lat: MAP_CENTER.lat, lng: MAP_CENTER.lng },
         loader: new THREE.TextureLoader(),
         gltfLoader: null,
+        minZoom: pendingMinZoom,
       }
       const queued = readyResolvers
       readyResolvers = []
@@ -290,6 +311,8 @@ export function ensureConstruction3D(map: MlMap): Construction3DApi {
     },
     render(_gl, args: CustomRenderMethodInput) {
       if (!state) return
+      // ponytail: custom layers ignore minzoom — gate here or meshes cover cluster counts.
+      if (state.map.getZoom() < state.minZoom || state.map.getPitch() < 1) return
       const { THREE, camera, scene, renderer, origin } = state
       const m = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix)
       const l = mercatorTransform(THREE, origin.lat, origin.lng)
@@ -319,8 +342,9 @@ export function ensureConstruction3D(map: MlMap): Construction3DApi {
 export function syncConstructionRenders(
   map: MlMap,
   buildings: MapBuildingCluster[],
-  _opts?: { minZoom?: number; beforeId?: string },
+  opts?: { minZoom?: number; beforeId?: string },
 ): Promise<Set<string>> {
   const api = ensureConstruction3D(map)
+  if (opts?.minZoom != null) api.setMinZoom(opts.minZoom)
   return api.sync(buildings)
 }

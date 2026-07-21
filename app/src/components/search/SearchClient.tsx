@@ -496,7 +496,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   const filtersBody = (mobile: boolean) => (
     <>
       {/* One strip: deal · type · city · district · keyword · price · rooms · area · more — ss.ge / myhome density */}
-      <div className="scrollbar-hide flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5">
+      <div className="scrollbar-hide flex flex-nowrap items-center gap-1.5 overflow-x-auto">
         <div className="flex shrink-0 rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.dealType')}>
           {DEALS.map((d) => {
             const label = t(dealLabelKey(d))

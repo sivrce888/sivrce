@@ -17,7 +17,9 @@ import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import {
   closeRing,
   geometryRing,
+  OSM_PICK_RADIUS_M,
   pickHighlightPolygon,
+  pickNearestBuildingGeometry,
   snapPick,
 } from '@/lib/map/pick-building'
 
@@ -75,11 +77,42 @@ function osmLayersOn(map: MlMap): string[] {
   return OSM_BLDG_LAYERS.filter((id) => map.getLayer(id))
 }
 
-function queryBuildingAt(map: MlMap, point: { x: number; y: number }): GeoJSON.Geometry | null {
+/** ~m → screen px at current zoom (Web Mercator). */
+function metersToPx(map: MlMap, meters: number, lat: number): number {
+  const mpp =
+    (156_543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** map.getZoom()
+  return meters / Math.max(mpp, 0.05)
+}
+
+/** Point hit, else nearby buildings within OSM_PICK_RADIUS_M (curb/bus-stop pins). */
+function queryBuildingNear(
+  map: MlMap,
+  lngLat: { lat: number; lng: number },
+  point?: { x: number; y: number },
+): GeoJSON.Geometry | null {
   const layers = osmLayersOn(map)
   if (!layers.length) return null
-  const hits = map.queryRenderedFeatures([point.x, point.y], { layers })
-  return hits[0]?.geometry ?? null
+  const pt = point ?? map.project([lngLat.lng, lngLat.lat])
+  const atPoint = map.queryRenderedFeatures([pt.x, pt.y], { layers })
+  const direct = pickNearestBuildingGeometry(
+    atPoint.map((f) => f.geometry),
+    lngLat.lat,
+    lngLat.lng,
+  )
+  if (direct) return direct
+  const r = Math.min(96, Math.max(16, metersToPx(map, OSM_PICK_RADIUS_M, lngLat.lat)))
+  const nearby = map.queryRenderedFeatures(
+    [
+      [pt.x - r, pt.y - r],
+      [pt.x + r, pt.y + r],
+    ],
+    { layers },
+  )
+  return pickNearestBuildingGeometry(
+    nearby.map((f) => f.geometry),
+    lngLat.lat,
+    lngLat.lng,
+  )
 }
 
 function ensurePickLayers(map: MlMap, hue: string) {
@@ -126,8 +159,7 @@ function paintFeature(map: MlMap, feature: GeoJSON.Feature, hue: string) {
 }
 
 function paintPick(map: MlMap, lat: number, lng: number, hue: string) {
-  const pt = map.project([lng, lat])
-  const osm = queryBuildingAt(map, pt)
+  const osm = queryBuildingNear(map, { lat, lng })
   paintFeature(map, pickHighlightPolygon(lat, lng, osm), hue)
 }
 
@@ -287,7 +319,11 @@ export default function MapEmbed({
               onPickRef.current(e.lngLat.lat, e.lngLat.lng, null)
               return
             }
-            const osm = queryBuildingAt(map, e.point)
+            const osm = queryBuildingNear(
+              map,
+              { lat: e.lngLat.lat, lng: e.lngLat.lng },
+              e.point,
+            )
             const ring = geometryRing(osm)
             const snapped = snapPick(
               { lat: e.lngLat.lat, lng: e.lngLat.lng },

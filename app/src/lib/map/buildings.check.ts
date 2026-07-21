@@ -185,6 +185,32 @@ const shedW = Math.abs(shedGhost.coordinates[0]![1]![0]! - shedGhost.coordinates
 const shedH = Math.abs(shedGhost.coordinates[0]![2]![1]! - shedGhost.coordinates[0]![1]![1]!)
 assert.ok(shedW / shedH > 1.4, 'tiny OSM ring should fall back to synthetic slab')
 
+// Exact outline — L courtyard stays empty; no bbox spill past walls
+const beliashL: [number, number][] = [
+  [44.7786866, 41.7710191],
+  [44.7788968, 41.7710105],
+  [44.7789276, 41.7709574],
+  [44.7789607, 41.7709359],
+  [44.7789818, 41.7708368],
+  [44.7789448, 41.7706696],
+  [44.7789442, 41.7704598],
+  [44.7783589, 41.770454],
+  [44.7783619, 41.7706045],
+  [44.7786881, 41.7706064],
+  [44.7786872, 41.7708606],
+  [44.7786866, 41.7710191],
+]
+const exact = clusterGeometry({
+  ...ghosts[0]!,
+  lat: 41.77075,
+  lng: 44.77867,
+  status: 'active',
+  listings: [{ id: 'x' } as never],
+  ring: beliashL,
+})
+assert.equal(exact.coordinates[0]!.length, beliashL.length, 'must keep exact OSM ring')
+assert.deepEqual(exact.coordinates[0], beliashL)
+
 // Far OSM neighbour block must not stick to the pin (km-scale mismatch).
 const farRing: [number, number][] = [
   [44.81, 41.71],

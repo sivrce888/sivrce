@@ -43,7 +43,8 @@ export async function GET(_req: Request, ctx: Ctx) {
 
   const headers = new Headers()
   headers.set('Content-Type', res.headers.get('Content-Type') ?? 'image/jpeg')
-  headers.set('Cache-Control', 'public, max-age=86400, immutable')
+  headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400, immutable')
+  headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=86400, immutable')
   headers.set('X-Content-Type-Options', 'nosniff')
   return new NextResponse(res.body, { status: 200, headers })
 }
