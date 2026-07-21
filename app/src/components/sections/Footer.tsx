@@ -41,6 +41,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
       { key: 'footer.co.about', href: '/about' },
       { key: 'footer.co.careers', href: '/careers' },
       { key: 'footer.co.blog', href: '/blog' },
+      { key: 'footer.co.forum', href: '/forum' },
       { key: 'footer.co.partnership', href: '/contact' },
       { key: 'footer.co.ads', href: '/advertise' },
       { key: 'footer.co.contact', href: '/contact' },

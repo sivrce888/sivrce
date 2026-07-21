@@ -27,6 +27,7 @@ export const ka = {
   'nav.daily': 'დღიურად',
   'nav.neighborhoods': 'უბნები',
   'nav.blog': 'ბლოგი',
+  'nav.forum': 'ფორუმი',
 
   // ——— Search page chrome ———
   'search.title': 'ძიება',
@@ -97,8 +98,8 @@ export const ka = {
   'map.poi.gym': 'ჯიმი',
   'map.poi.hospital': 'კლინიკა',
   'search.seller': 'გამყიდველი',
-  'search.sellerOwner': 'მეპატრონე',
-  'search.sellerAgency': 'სააგენტო',
+  'search.sellerOwner': 'მესაკუთრე',
+  'search.sellerAgency': 'სამშენებლო',
   'search.pagination': 'გვერდები',
   'search.prev': 'წინა',
   'search.next': 'შემდეგი',
@@ -247,6 +248,7 @@ export const ka = {
   'footer.co.about': 'ჩვენ შესახებ',
   'footer.co.careers': 'კარიერა',
   'footer.co.blog': 'ბლოგი',
+  'footer.co.forum': 'ფორუმი',
   'footer.co.partnership': 'პარტნიორობა',
   'footer.co.ads': 'სარეკლამო სერვისები',
   'footer.co.contact': 'კონტაქტი',

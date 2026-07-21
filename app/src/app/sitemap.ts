@@ -5,6 +5,7 @@ import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { STREETS } from '@/data/tbilisi-streets'
 import { BLOG_POSTS } from '@/data/blog'
+import { FORUM_THREADS } from '@/data/forum'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
@@ -53,6 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/map', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.95 },
     { path: '/buildings', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.9 },
     { path: '/blog', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },
+    { path: '/forum', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.7 },
     { path: '/neighborhoods', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
     { path: '/projects', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.85 },
     // New-build sub-hubs (ka/en/ru corpus in directory-seo PROJECT_HUBS).
@@ -102,6 +104,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(`${p.updatedAt ?? p.publishedAt}T00:00:00`),
       changeFrequency: 'monthly',
       priority: 0.6,
+    })
+  }
+
+  for (const t of FORUM_THREADS) {
+    entries.push({
+      path: `/forum/${t.slug}`,
+      lastModified: new Date(`${t.lastActivityAt}T00:00:00`),
+      changeFrequency: 'weekly',
+      priority: 0.55,
     })
   }
 

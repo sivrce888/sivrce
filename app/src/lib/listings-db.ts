@@ -622,8 +622,21 @@ export async function filterListings(opts: {
   maxArea?: number
   q?: string
   sort?: SortKey
+  includeProjects?: boolean
 }): Promise<Listing[]> {
-  const where: Prisma.ListingWhereInput = { deletedAt: null, status: "active" }
+  const where: Prisma.ListingWhereInput = {
+    deletedAt: null,
+    status: "active",
+  }
+
+  if (!opts.includeProjects) {
+    where.NOT = {
+      extendedFields: {
+        path: ["projectCatalog"],
+        equals: true,
+      },
+    }
+  }
 
   if (opts.dealType) where.dealType = dealToDb(opts.dealType)
   if (opts.propType) where.propertyType = propToDb(opts.propType)

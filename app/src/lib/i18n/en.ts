@@ -28,6 +28,7 @@ export const en: Dict = {
   'nav.daily': 'Daily',
   'nav.neighborhoods': 'Neighborhoods',
   'nav.blog': 'Blog',
+  'nav.forum': 'Forum',
 
   // ——— Search page chrome ———
   'search.title': 'Search',
@@ -247,6 +248,7 @@ export const en: Dict = {
   'footer.co.about': 'About us',
   'footer.co.careers': 'Careers',
   'footer.co.blog': 'Blog',
+  'footer.co.forum': 'Forum',
   'footer.co.partnership': 'Partnership',
   'footer.co.ads': 'Advertising services',
   'footer.co.contact': 'Contact',

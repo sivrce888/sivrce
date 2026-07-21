@@ -37,7 +37,7 @@ export interface LeadStrings {
 }
 
 const ka: LeadStrings = {
-  formTitle: 'დაინტერესდა?',
+  formTitle: 'გაინტერესებს?',
   formSubtitle: 'შეავსე ფორმა — უპასუხებენ რამდენიმე საათში',
   formSubtitleTo: (name) => `${name} უპასუხებს — ჩვეულებრივ რამდენიმე საათში`,
   nameLabel: 'სახელი',
