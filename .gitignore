@@ -29,3 +29,6 @@ prisma/*.db
 # local junk
 app/src/__linttmp/
 app/scripts/*.log
+shots/
+__pycache__/
+

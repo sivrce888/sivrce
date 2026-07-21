@@ -16,6 +16,23 @@ import type { Developer, Project } from './professionals'
 
 export const NEW_DEVELOPERS_TBILISI: Developer[] = [
   {
+    slug: 'omnia-georgia',
+    name: { ka: 'ომნია ჯორჯია', en: 'OMNIA Georgia', ru: 'OMNIA Georgia' },
+    city: 'თბილისი',
+    yearsActive: 3,
+    projectsDone: 1,
+    unitsDelivered: 80,
+    description: {
+      ka: 'OMNIA Georgia — დეველოპერული კომპანია თბილისში, რომელიც აშენებს თანამედროვე მრავალფუნქციურ საცხოვრებელ კომპლექსებს მწვანე რეკრეაციით, საბავშვო ბაღით, სავაჭრო ცენტრითა და სპორტული ინფრასტრუქტურით.',
+      en: 'OMNIA Georgia is a real estate developer in Tbilisi building modern multifunctional residential complexes with green recreation, kindergarten, shopping center and sports infrastructure.',
+      ru: 'OMNIA Georgia — девелоперская компания в Тбилиси, строящая современные многофункциональные жилые комплексы с зеленой рекреацией, детским садом, торговым центром и спортивной инфраструктурой.',
+    },
+    verified: true,
+    phone: '+995 511 73 73 77',
+    logoUrl: '/images/developers/omnia-georgia.svg',
+    website: 'https://www.omnia.ge',
+  },
+  {
     slug: 'chargali-residence',
     name: { ka: 'Chargali Residence', en: 'Chargali Residence', ru: 'Chargali Residence' },
     city: 'თბილისი',
@@ -325,6 +342,31 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
 ]
 
 export const NEW_PROJECTS_TBILISI: Project[] = [
+  {
+    slug: 'omnia-isani',
+    name: 'OMNIA ისანი',
+    developerSlug: 'omnia-georgia',
+    img: '/images/projects/omnia-isani.webp',
+    gallery: [
+      '/images/projects/omnia-isani.webp',
+      '/images/projects/omnia-isani-1.webp',
+      '/images/projects/omnia-isani-2.webp',
+    ],
+    location: 'ბერი გაბრიელ სალოსის გამზ. 118',
+    city: 'თბილისი',
+    priceFromM2: '3,289 ₾',
+    done: 35,
+    finish: '2030-12',
+    flats: 80,
+    floors: 9,
+    rating: 4.8,
+    coords: { lat: 41.6784, lng: 44.8452 },
+    description: {
+      ka: 'იცხოვრე თბილისის ყველაზე სწრაფადგანვითარებად უბანში! 🏗️ შეიძინე ბინა OMNIA-ს ისნის კომპლექსში თვეში 600$-(ექვივალენტი ლარი) დან და ისარგებლე 0%-იანი განვადებით პირველი 2 წლის განმავლობაში. 🌳 კორპუსი მრავალფუნქციური კომპლექსის ნაწილია, რომლის 70% მწვანე რეკრეაციას ეთმობა (60 000 მ²), აშენდება საბავშვო ბაღი, სავაჭრო ცენტრი, გათვალისწინებულია მიწისქვეშა და მიწისზედა საპარკინგე ადგილები, სათამაშო მოედნები და ველობილიკები. 📍 OMNIA-ს სამეზობლო ბერი გაბრიელ სალოსის 118-ში შენდება. პირველი კორპუსის მშენებლობა 2027 წლის ივლისში დასრულდება. ☎️ +995 511 73 73 77 | www.omnia.ge',
+      en: 'Live in Tbilisi fast-growing district! OMNIA Isani complex features 70% green recreation area (60,000 m²), kindergarten, shopping center, underground and surface parking, playgrounds and bike paths. 0% installment for first 2 years ($600/month). First block completes July 2027.',
+      ru: 'Квартиры в OMNIA Isani от $600/мес с беспроцентной рассрочкой на первые 2 года. 70% территории отведено под зеленую рекреацию (60 000 м²), детский сад, торговый центр и велодорожки.',
+    },
+  },
   // ── m² (research: m2.ge/en/offers, active through 2026) ────────────────
   {
     slug: 'm2-at-chkondideli',

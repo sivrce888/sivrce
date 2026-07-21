@@ -230,6 +230,7 @@ export default async function DeveloperPage({ params }: PageProps) {
         )}
         <EntityHeader
           kind="developer"
+          slug={dev.slug}
           name={dev.name}
           city={dev.city}
           verified={dev.verified}

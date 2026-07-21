@@ -1,10 +1,10 @@
 'use client'
 
 import LocalizedLink from '@/components/LocalizedLink'
-import Image from 'next/image'
 import { Building2, ArrowRight, ShieldCheck, Star } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
+import { DeveloperLogo } from '@/components/entities/DeveloperLogo'
 import { DEVELOPERS } from '@/data/professionals'
 
 export default function DeveloperSlider() {
@@ -42,7 +42,6 @@ export default function DeveloperSlider() {
         className="gap-5 px-5 pb-4 md:px-10 lg:px-[max(2.5rem,calc((100vw-1440px)/2+2.5rem))]"
       >
         {topDevs.map((dev) => {
-          const logo = dev.logoUrl || '/logo/board1x1/mark.png'
           return (
             <LocalizedLink
               key={dev.slug}
@@ -50,14 +49,13 @@ export default function DeveloperSlider() {
               className="group relative flex w-[280px] shrink-0 flex-col overflow-hidden rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-5 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover"
             >
               <div className="flex items-center gap-3.5">
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-module bg-sv-surface p-1 shadow-sm border border-sv-ink/[0.06]">
-                  <Image
-                    src={logo}
-                    alt={dev.name.ka}
-                    fill
-                    className="object-contain p-1"
-                  />
-                </div>
+                <DeveloperLogo
+                  slug={dev.slug}
+                  name={dev.name}
+                  logoUrl={dev.logoUrl}
+                  size="sm"
+                  className="h-12 w-12"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <h3 className="truncate text-[16px] font-black text-sv-ink group-hover:text-sv-blue transition-colors">
