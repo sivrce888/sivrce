@@ -15,7 +15,7 @@ export default function ForumTeaser() {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep-deep">
               <MessageSquare className="h-3.5 w-3.5" /> ფორუმი & ანალიტიკა
             </span>
             <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
@@ -27,7 +27,7 @@ export default function ForumTeaser() {
           </div>
           <LocalizedLink
             href="/forum"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
           >
             ყველა თემა
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -41,10 +41,10 @@ export default function ForumTeaser() {
                 <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue">
+                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep-deep">
                         {t.category}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sv-orange">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sv-navy">
                         <Sparkles className="h-3 w-3" /> {t.badge}
                       </span>
                     </div>
@@ -53,7 +53,7 @@ export default function ForumTeaser() {
                     </h3>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-sv-ink/[0.06] pt-4 text-[12px] font-bold text-sv-ink/50">
+                  <div className="mt-6 flex items-center justify-between border-t border-sv-ink/[0.06] pt-4 text-[12px] font-bold text-sv-ink/60">
                     <span className="flex items-center gap-1.5">
                       <MessageSquare className="h-3.5 w-3.5 text-sv-ink/40" />
                       {t.replies.length} პასუხი

@@ -105,7 +105,7 @@ export default async function Collections({ lang = 'ka' }: { lang?: Lang }) {
                   <c.icon className="h-6 w-6" />
                 </span>
                 <span className="line-clamp-2 min-h-[2.5em] text-[14px] font-extrabold leading-snug text-sv-ink">{t(c.label)}</span>
-                <span className="mt-auto line-clamp-2 min-h-[2.25em] text-[12px] font-bold leading-snug text-sv-ink/55">{t(c.sub)}</span>
+                <span className="mt-auto line-clamp-2 min-h-[2.25em] text-[12px] font-bold leading-snug text-sv-ink/60">{t(c.sub)}</span>
                 <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/40" />
               </Link>
             </Reveal>

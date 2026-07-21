@@ -82,7 +82,7 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
                   <s.icon className="h-6 w-6" />
                 </span>
                 <h3 className="mt-6 text-[18px] font-extrabold leading-snug text-sv-ink">{s.title}</h3>
-                <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/55">{s.text}</p>
+                <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">{s.text}</p>
                 <span className="mt-6 flex items-center gap-1.5 text-[14px] font-extrabold" style={{ color: s.brand.hue }}>
                   ისარგებლე სერვისით
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

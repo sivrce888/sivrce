@@ -27,7 +27,7 @@ export default function BlogNewsSection() {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
               <BookOpen className="h-3.5 w-3.5" /> ბლოგი & სიახლეები
             </span>
             <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
@@ -39,7 +39,7 @@ export default function BlogNewsSection() {
           </div>
           <LocalizedLink
             href="/blog"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
           >
             ყველას ნახვა
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -67,7 +67,7 @@ export default function BlogNewsSection() {
 
                   <div className="mt-4 flex flex-1 flex-col justify-between">
                     <div>
-                      <div className="flex items-center justify-between text-[12px] font-bold text-sv-ink/50">
+                      <div className="flex items-center justify-between text-[12px] font-bold text-sv-ink/60">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5 text-sv-ink/40" />
                           {/* ponytail: fixed ka months — Node ICU ≠ Chrome locale → React #418 */}
@@ -86,7 +86,7 @@ export default function BlogNewsSection() {
                       </p>
                     </div>
 
-                    <div className="mt-4 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-blue group-hover:underline">
+                    <div className="mt-4 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-blue-deep group-hover:underline">
                       სრულად კითხვა →
                     </div>
                   </div>
