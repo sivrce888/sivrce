@@ -94,6 +94,7 @@ import {
   type MapCity,
 } from '@/lib/map/user-place'
 import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
+import { syncConstructionRenders } from '@/lib/map/construction-renders'
 import {
   Layers,
   RotateCcw,
@@ -813,6 +814,10 @@ function Map3DInner({
     src?.setData(buildingsToGeoJSON(visible))
     const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
     pts?.setData(buildingsToPointsGeoJSON(visible))
+    syncConstructionRenders(map, visible, {
+      minZoom: DETAIL_ZOOM,
+      beforeId: FILL_ID,
+    })
     if (selected && !visible.some((b) => b.id === selected.id)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- deselect when filters hide it
       selectBuilding(null)
@@ -1169,6 +1174,10 @@ function Map3DInner({
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
           await ensureLayers(map, visibleRef.current, zooms)
+          syncConstructionRenders(map, visibleRef.current, {
+            minZoom: DETAIL_ZOOM,
+            beforeId: FILL_ID,
+          })
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)

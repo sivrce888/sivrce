@@ -50,7 +50,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
       aria-label={`${building.label} — განცხადებები`}
     >
       <header className="shrink-0 border-b border-sv-ink/6">
-        {/* ponytail: construction hero = wide official render, not map draping */}
+        {/* Construction hero — map also drapes img on footprint bbox */}
         {isConstruction && building.img ? (
           <div className="relative h-36 w-full overflow-hidden bg-sv-navy/5 sm:h-40">
             <Image

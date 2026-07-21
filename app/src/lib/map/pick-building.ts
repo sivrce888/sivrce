@@ -60,3 +60,50 @@ export function snapPick(
   const ring = geometryRing(osmGeometry)
   return ring ? ringCentroid(ring) : click
 }
+
+/** Ensure first===last for GeoJSON Polygon rings. */
+export function closeRing(ring: [number, number][]): [number, number][] {
+  if (ring.length === 0) return ring
+  const first = ring[0]!
+  const last = ring[ring.length - 1]!
+  if (first[0] === last[0] && first[1] === last[1]) return ring
+  return [...ring, [first[0], first[1]]]
+}
+
+/** `{ring:[[lng,lat],…]}` from admin JSON / form. */
+export function parseFootprintRing(raw: unknown): [number, number][] | null {
+  if (!raw || typeof raw !== 'object') return null
+  const ring = (raw as { ring?: unknown }).ring
+  if (!Array.isArray(ring) || ring.length < 3) return null
+  const out: [number, number][] = []
+  for (const p of ring) {
+    if (!Array.isArray(p) || p.length < 2) return null
+    const lng = Number(p[0])
+    const lat = Number(p[1])
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
+    out.push([lng, lat])
+  }
+  return out.length >= 3 ? out : null
+}
+
+/** NW → NE → SE → SW for MapLibre `image` source. */
+export function ringToImageCoords(
+  ring: [number, number][],
+): [[number, number], [number, number], [number, number], [number, number]] {
+  let minLng = Infinity
+  let maxLng = -Infinity
+  let minLat = Infinity
+  let maxLat = -Infinity
+  for (const [lng, lat] of ring) {
+    if (lng < minLng) minLng = lng
+    if (lng > maxLng) maxLng = lng
+    if (lat < minLat) minLat = lat
+    if (lat > maxLat) maxLat = lat
+  }
+  return [
+    [minLng, maxLat],
+    [maxLng, maxLat],
+    [maxLng, minLat],
+    [minLng, minLat],
+  ]
+}

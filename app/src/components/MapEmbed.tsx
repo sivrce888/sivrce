@@ -14,18 +14,30 @@ import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
 import { loadMapBasemap, mapStyleUrl, applyBrandPaints, bindMissingImages } from '@/lib/map/floorLayers'
 import { parseCoords } from '@/lib/map/geocode'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
-import { pickHighlightPolygon, snapPick } from '@/lib/map/pick-building'
+import {
+  closeRing,
+  geometryRing,
+  pickHighlightPolygon,
+  snapPick,
+} from '@/lib/map/pick-building'
+
+export type MapEmbedPickMode = 'snap' | 'draw'
 
 interface MapEmbedProps {
   lat: number
   lng: number
   zoom?: number
   mode?: 'place' | 'view' | 'search'
+  /** snap = OSM building click; draw = vertex-by-vertex footprint */
+  pickMode?: MapEmbedPickMode
+  /** Controlled footprint ring (lng,lat). Open rings paint as a line. */
+  footprint?: [number, number][] | null
   q?: string
   className?: string
   aspect?: '4/3' | '16/9' | '1/1'
   interactive?: boolean
-  onPick?: (lat: number, lng: number) => void
+  /** Third arg = OSM ring when snap hits a building, else null. */
+  onPick?: (lat: number, lng: number, ring?: [number, number][] | null) => void
   highlight?: boolean
 }
 
@@ -99,11 +111,8 @@ function ensurePickLayers(map: MlMap, hue: string) {
   }
 }
 
-function paintPick(map: MlMap, lat: number, lng: number, hue: string) {
+function paintFeature(map: MlMap, feature: GeoJSON.Feature, hue: string) {
   ensurePickLayers(map, hue)
-  const pt = map.project([lng, lat])
-  const osm = queryBuildingAt(map, pt)
-  const feature = pickHighlightPolygon(lat, lng, osm)
   const src = map.getSource(PICK_SRC) as
     | { setData: (d: GeoJSON.FeatureCollection | GeoJSON.Feature) => void }
     | undefined
@@ -116,10 +125,58 @@ function paintPick(map: MlMap, lat: number, lng: number, hue: string) {
   }
 }
 
+function paintPick(map: MlMap, lat: number, lng: number, hue: string) {
+  const pt = map.project([lng, lat])
+  const osm = queryBuildingAt(map, pt)
+  paintFeature(map, pickHighlightPolygon(lat, lng, osm), hue)
+}
+
+/** Controlled footprint — closed polygon or open draw polyline. */
+function paintFootprint(
+  map: MlMap,
+  ring: [number, number][],
+  lat: number,
+  lng: number,
+  hue: string,
+) {
+  if (ring.length === 0) {
+    paintPick(map, lat, lng, hue)
+    return
+  }
+  const closed = closeRing(ring)
+  const isPoly =
+    ring.length >= 4 &&
+    closed[0]![0] === closed[closed.length - 1]![0] &&
+    closed[0]![1] === closed[closed.length - 1]![1]
+  if (isPoly) {
+    paintFeature(
+      map,
+      {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'Polygon', coordinates: [closed] },
+      },
+      hue,
+    )
+    return
+  }
+  paintFeature(
+    map,
+    {
+      type: 'Feature',
+      properties: {},
+      geometry: { type: 'LineString', coordinates: ring },
+    },
+    hue,
+  )
+}
+
 export default function MapEmbed({
   lat,
   lng,
   zoom = 14,
+  pickMode = 'snap',
+  footprint = null,
   q,
   className = '',
   aspect = '4/3',
@@ -134,6 +191,8 @@ export default function MapEmbed({
   const styleKeyRef = useRef<string | null>(null)
   const onPickRef = useRef(onPick)
   const highlightRef = useRef(highlight)
+  const pickModeRef = useRef(pickMode)
+  const footprintRef = useRef(footprint)
   const pinHueRef = useRef<string>(BRAND.colors.blue)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
@@ -144,6 +203,8 @@ export default function MapEmbed({
   useEffect(() => {
     onPickRef.current = onPick
     highlightRef.current = highlight
+    pickModeRef.current = pickMode
+    footprintRef.current = footprint
     pinHueRef.current = pinHue
   })
   const coordsOk = parseCoords(lat, lng) != null
@@ -222,13 +283,28 @@ export default function MapEmbed({
           map.getCanvas().style.cursor = 'crosshair'
           map.on('click', (e: MapMouseEvent) => {
             if (!onPickRef.current) return
+            if (pickModeRef.current === 'draw') {
+              onPickRef.current(e.lngLat.lat, e.lngLat.lng, null)
+              return
+            }
             const osm = queryBuildingAt(map, e.point)
+            const ring = geometryRing(osm)
             const snapped = snapPick(
               { lat: e.lngLat.lat, lng: e.lngLat.lng },
               osm,
             )
-            onPickRef.current(snapped.lat, snapped.lng)
+            onPickRef.current(snapped.lat, snapped.lng, ring)
           })
+        }
+
+        const paintHighlight = () => {
+          if (!highlightRef.current) return
+          const fp = footprintRef.current
+          if (fp && fp.length > 0) {
+            paintFootprint(map, fp, lat, lng, pinHueRef.current)
+          } else {
+            paintPick(map, lat, lng, pinHueRef.current)
+          }
         }
 
         map.once('load', () => {
@@ -236,15 +312,13 @@ export default function MapEmbed({
           applyBrandPaints(map, isDark ? 'dark' : 'light')
           tightenAttribution(map)
           map.resize()
-          if (highlightRef.current) {
-            paintPick(map, lat, lng, pinHueRef.current)
-            // OSM buildings often land after first idle
-            map.once('idle', () => {
-              if (!cancelled && mapRef.current && highlightRef.current) {
-                paintPick(mapRef.current, lat, lng, pinHueRef.current)
-              }
-            })
-          }
+          paintHighlight()
+          // OSM buildings often land after first idle
+          map.once('idle', () => {
+            if (!cancelled && mapRef.current && highlightRef.current) {
+              paintHighlight()
+            }
+          })
           if (!cancelled) setStatus('ready')
         })
         ro = new ResizeObserver(() => map.resize())
@@ -284,7 +358,12 @@ export default function MapEmbed({
           applyBrandPaints(map, isDark ? 'dark' : 'light')
           tightenAttribution(map)
           if (highlightRef.current) {
-            paintPick(map, lat, lng, pinHueRef.current)
+            const fp = footprintRef.current
+            if (fp && fp.length > 0) {
+              paintFootprint(map, fp, lat, lng, pinHueRef.current)
+            } else {
+              paintPick(map, lat, lng, pinHueRef.current)
+            }
           }
         })
         map.setStyle(style)
@@ -297,7 +376,7 @@ export default function MapEmbed({
     }
   }, [isDark, status, lat, lng])
 
-  // Camera + pin + building highlight (not on every popup label tweak).
+  // Camera + pin (footprint paint is separate — draw mode must not fly every vertex).
   useEffect(() => {
     const map = mapRef.current
     if (!map || !coordsOk || status !== 'ready') return
@@ -308,15 +387,25 @@ export default function MapEmbed({
       essential: true,
     })
     markerRef.current?.setLngLat([lng, lat])
-    if (highlight) {
-      const onMove = () => paintPick(map, lat, lng, pinHue)
-      map.once('moveend', onMove)
-      paintPick(map, lat, lng, pinHue)
-      return () => {
-        map.off('moveend', onMove)
+  }, [lat, lng, zoom, coordsOk, status])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !coordsOk || status !== 'ready' || !highlight) return
+    const paint = () => {
+      if (footprint && footprint.length > 0) {
+        paintFootprint(map, footprint, lat, lng, pinHue)
+      } else {
+        paintPick(map, lat, lng, pinHue)
       }
     }
-  }, [lat, lng, zoom, coordsOk, status, highlight, pinHue])
+    const onMove = () => paint()
+    map.once('moveend', onMove)
+    paint()
+    return () => {
+      map.off('moveend', onMove)
+    }
+  }, [lat, lng, coordsOk, status, highlight, pinHue, footprint])
 
   useEffect(() => {
     const ml = mlRef.current

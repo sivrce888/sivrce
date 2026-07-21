@@ -53,9 +53,6 @@ export function BuildingForm({
   building?: MapBuilding
   developers: Array<{ id: string; name: string }>
 }) {
-  const polygon = building?.polygonCoords
-    ? JSON.stringify(building.polygonCoords)
-    : ""
   return (
     <form action={upsertBuilding} className="flex flex-col gap-5">
       {building ? <input type="hidden" name="id" value={building.id} /> : null}
@@ -89,7 +86,11 @@ export function BuildingForm({
         <Field label="Building №" name="buildingNumber" defaultValue={building?.buildingNumber} placeholder="37" />
       </div>
 
-      <BuildingMapPicker lat={building?.lat} lng={building?.lng} />
+      <BuildingMapPicker
+        lat={building?.lat}
+        lng={building?.lng}
+        polygonCoords={building?.polygonCoords}
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Field label="Floors" name="floors" type="number" defaultValue={building?.floors ?? 0} />
@@ -111,7 +112,7 @@ export function BuildingForm({
           <label htmlFor="status" className={labelCls}>Status *</label>
           <select id="status" name="status" required defaultValue={building?.status ?? "active"} className={inputCls}>
             <option value="active">active (on map)</option>
-            <option value="construction">construction (ghost)</option>
+            <option value="construction">construction (ghost + render on map)</option>
             <option value="completed">completed project</option>
             <option value="hidden">hidden (off map)</option>
           </select>
@@ -142,20 +143,6 @@ export function BuildingForm({
           rows={3}
           defaultValue={building?.description ?? ""}
           className={inputCls}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="polygonCoords" className={labelCls}>
-          Footprint ring (OSM, optional) — {'{"ring":[[lng,lat],…]}'}
-        </label>
-        <textarea
-          id="polygonCoords"
-          name="polygonCoords"
-          rows={2}
-          defaultValue={polygon}
-          placeholder='{"ring":[[44.7730,41.7086],[44.7734,41.7086],[44.7734,41.7090],[44.7730,41.7086]]}'
-          className={`${inputCls} font-mono text-[12px]`}
         />
       </div>
 
