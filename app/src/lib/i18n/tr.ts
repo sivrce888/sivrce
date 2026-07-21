@@ -28,6 +28,7 @@ export const tr: Dict = {
   'nav.daily': 'Günlük',
   'nav.neighborhoods': 'Mahalleler',
   'nav.blog': 'Blog',
+  'nav.forum': 'Forum',
 
   // ——— Search page chrome ———
   'search.title': 'Arama',
@@ -247,6 +248,7 @@ export const tr: Dict = {
   'footer.co.about': 'Hakkımızda',
   'footer.co.careers': 'Kariyer',
   'footer.co.blog': 'Blog',
+  'footer.co.forum': 'Forum',
   'footer.co.partnership': 'İş ortaklığı',
   'footer.co.ads': 'Reklam hizmetleri',
   'footer.co.contact': 'İletişim',

@@ -32,6 +32,7 @@ import DeveloperSlider from '@/components/sections/DeveloperSlider'
 import RenovationWidget from '@/components/sections/RenovationWidget'
 import MortgageWidget from '@/components/sections/MortgageWidget'
 import ForumTeaser from '@/components/sections/ForumTeaser'
+import BlogNewsSection from '@/components/sections/BlogNewsSection'
 import TrustStrip from '@/components/sections/TrustStrip'
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
@@ -61,6 +62,7 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
       <Projects items={homeProjects} total={projects.length} />
       <Services lang={lang} />
       <ForumTeaser />
+      <BlogNewsSection />
       <TrustStrip />
       <CTA lang={lang} live={stats} />
     </>

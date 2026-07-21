@@ -265,6 +265,7 @@ const siteLd = {
           { "@type": "SiteNavigationElement", name: "უბნები", url: `${SITE_URL}/neighborhoods` },
           { "@type": "SiteNavigationElement", name: "ახალი პროექტები", url: `${SITE_URL}/projects` },
           { "@type": "SiteNavigationElement", name: "ბლოგი", url: `${SITE_URL}/blog` },
+          { "@type": "SiteNavigationElement", name: "ფორუმი", url: `${SITE_URL}/forum` },
         ],
       },
     },

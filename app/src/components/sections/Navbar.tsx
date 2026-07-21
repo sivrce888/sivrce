@@ -71,6 +71,7 @@ export default function Navbar() {
     { key: 'nav.buildings', to: '/buildings', mobileOnly: true },
     { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
+    { key: 'nav.forum', to: '/forum', mobileOnly: true },
     { key: 'nav.services', to: `${bare === '/' ? '' : '/'}#services`, mobileOnly: true },
     { key: 'nav.search', to: '/search', mobileOnly: true },
   ]

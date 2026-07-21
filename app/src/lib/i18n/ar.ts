@@ -28,6 +28,7 @@ export const ar: Dict = {
   'nav.daily': 'يومي',
   'nav.neighborhoods': 'الأحياء',
   'nav.blog': 'المدونة',
+  'nav.forum': 'المنتدى',
 
   // ——— Search page chrome ———
   'search.title': 'بحث',
@@ -247,6 +248,7 @@ export const ar: Dict = {
   'footer.co.about': 'من نحن',
   'footer.co.careers': 'الوظائف',
   'footer.co.blog': 'المدونة',
+  'footer.co.forum': 'المنتدى',
   'footer.co.partnership': 'الشراكات',
   'footer.co.ads': 'خدمات الإعلانات',
   'footer.co.contact': 'اتصل بنا',

@@ -6,6 +6,7 @@ import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
+import SeoFilterableListings from '@/components/seo/SeoFilterableListings'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { formatUSD } from '@/data/listings'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
@@ -322,13 +323,9 @@ export default function SeoLanding({
           </div>
         )}
 
-        {/* Listings — hidden on city-info (no inventory yet) */}
+        {/* Listings with interactive filter bar — hidden on city-info (no inventory yet) */}
         {!isCityInfo && (
-          <section aria-label={ui.gridAria} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {def.listings.map((l, i) => (
-              <ListingCard key={l.id} l={l} i={i} layout="wide" />
-            ))}
-          </section>
+          <SeoFilterableListings initialListings={def.listings} gridAriaLabel={ui.gridAria} />
         )}
 
         {/* District streets — street-level SEO link mesh (ka only) */}

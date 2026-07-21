@@ -705,6 +705,34 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           />
         </div>
 
+        {/* Seller type quick toggle (მესაკუთრე / სამშენებლო) */}
+        <div className="flex items-center gap-1 rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('search.seller')}>
+          <button
+            type="button"
+            onClick={() => patchParams({ seller: seller === 'owner' ? undefined : 'owner' })}
+            aria-pressed={seller === 'owner'}
+            className={`h-9 rounded-lg px-3 text-[13px] font-extrabold transition-colors ${
+              seller === 'owner'
+                ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm'
+                : 'text-sv-ink/65 hover:text-sv-ink'
+            }`}
+          >
+            {t('search.sellerOwner')}
+          </button>
+          <button
+            type="button"
+            onClick={() => patchParams({ seller: seller === 'agency' ? undefined : 'agency' })}
+            aria-pressed={seller === 'agency'}
+            className={`h-9 rounded-lg px-3 text-[13px] font-extrabold transition-colors ${
+              seller === 'agency'
+                ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm'
+                : 'text-sv-ink/65 hover:text-sv-ink'
+            }`}
+          >
+            {t('search.sellerAgency')}
+          </button>
+        </div>
+
         {/* Explicit Search CTA — ss.ge parity; flushes draft inputs immediately */}
         <button
           type="button"

@@ -1,40 +1,53 @@
 import Link from 'next/link'
-import { Users, Building2, Paintbrush, Landmark, ArrowUpRight } from 'lucide-react'
+import { Calculator, Camera, Landmark, Compass, FileText, BarChart2, ArrowUpRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
 import type { Lang } from '@/lib/i18n/core'
 
-/* Locked per-service branding (BRAND.md §3.1) — every service owns its
-   hue + chip from SERVICE_BRAND. Never inline new tints here. */
+/* 6 Core Real Estate Services matching SS.ge & Myhome requirements */
 const SERVICES = [
   {
-    icon: Users,
-    title: 'აგენტები და სააგენტოები',
-    text: '1,800+ ვერიფიცირებული პროფესიონელი შეფასებებით — აირჩიე საუკეთესო.',
+    icon: Calculator,
+    title: 'შეფასება & ანალიტიკა',
+    text: 'უძრავი ქონების ობიექტური საბაზრო ღირებულების გაანგარიშება AI ალგორითმით.',
     brand: SERVICE_BRAND.agents,
-    href: '/advertise',
+    href: '/mortgage-calculator',
   },
   {
-    icon: Building2,
-    title: 'დეველოპერები',
-    text: 'ყველა დეველოპერული კომპანია, მათი პროექტები და რეალური რეიტინგი.',
+    icon: Camera,
+    title: 'ფოტომომსახურება & 3D ტური',
+    text: 'პროფესიონალური ფოტოგადაღება და 3D ვირტუალური ტურის დამზადება ობიექტისთვის.',
     brand: SERVICE_BRAND.developers,
-    href: '/projects',
-  },
-  {
-    icon: Paintbrush,
-    title: 'რემონტი და კალკულატორი',
-    text: 'რემონტის კომპანიები შეფასებებით და ღირებულების ზუსტი კალკულატორი.',
-    brand: SERVICE_BRAND.renovation,
     href: '/contact',
   },
   {
     icon: Landmark,
-    title: 'იპოთეკა და ფინანსები',
-    text: 'ბანკების შეთავაზებების შედარება და წინასწარი დამტკიცება ონლაინ.',
+    title: 'იპოთეკური სესხი',
+    text: 'წამყვანი ქართული ბანკების შეთავაზებების შედარება და სესხის ონლაინ დამტკიცება.',
     brand: SERVICE_BRAND.mortgage,
+    href: '/mortgage-calculator',
+  },
+  {
+    icon: Compass,
+    title: 'აზომვითი ნახაზები',
+    text: 'საკადასტრო და შიდა აზომვითი ნახაზების მომზადება სერტიფიცირებული აზომველებისგან.',
+    brand: SERVICE_BRAND.renovation,
     href: '/contact',
+  },
+  {
+    icon: FileText,
+    title: 'ხელშეკრულების შაბლონები',
+    text: 'ნასყიდობის, იჯარისა და გირავნობის იურიდიულად გამართული შაბლონები უფასოდ.',
+    brand: SERVICE_BRAND.agents,
+    href: '/terms',
+  },
+  {
+    icon: BarChart2,
+    title: 'ბინების ფასების სტატისტიკა',
+    text: 'კვადრატული მეტრის საშუალო ღირებულების დინამიკა თბილისისა და ბათუმის უბნებში.',
+    brand: SERVICE_BRAND.mortgage,
+    href: '/search',
   },
 ]
 
@@ -55,7 +68,7 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
           </p>
         </Reveal>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((s, i) => (
             <Reveal key={s.title} delay={i * 0.08} className="h-full">
               <Link
@@ -68,10 +81,10 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
                 >
                   <s.icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-6 line-clamp-2 min-h-[2.5em] text-[18px] font-extrabold leading-snug text-sv-ink">{s.title}</h3>
-                <p className="mt-2.5 line-clamp-3 min-h-[4.5em] flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/55">{s.text}</p>
+                <h3 className="mt-6 text-[18px] font-extrabold leading-snug text-sv-ink">{s.title}</h3>
+                <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/55">{s.text}</p>
                 <span className="mt-6 flex items-center gap-1.5 text-[14px] font-extrabold" style={{ color: s.brand.hue }}>
-                  გაეცანი
+                  ისარგებლე სერვისით
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
                 <span

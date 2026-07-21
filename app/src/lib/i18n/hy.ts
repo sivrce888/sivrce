@@ -28,6 +28,7 @@ export const hy: Dict = {
   'nav.daily': 'Օրական',
   'nav.neighborhoods': 'Թաղամասեր',
   'nav.blog': 'Բլոգ',
+  'nav.forum': 'Ֆորում',
 
   // ——— Search page chrome ———
   'search.title': 'Որոնում',
@@ -247,6 +248,7 @@ export const hy: Dict = {
   'footer.co.about': 'Մեր մասին',
   'footer.co.careers': 'Կարիերա',
   'footer.co.blog': 'Բլոգ',
+  'footer.co.forum': 'Ֆորում',
   'footer.co.partnership': 'Գործընկերություն',
   'footer.co.ads': 'Գովազդային ծառայություններ',
   'footer.co.contact': 'Կապ',

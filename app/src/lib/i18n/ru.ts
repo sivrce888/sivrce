@@ -28,6 +28,7 @@ export const ru: Dict = {
   'nav.daily': 'Посуточно',
   'nav.neighborhoods': 'Районы',
   'nav.blog': 'Блог',
+  'nav.forum': 'Форум',
 
   // ——— Search page chrome ———
   'search.title': 'Поиск',
@@ -247,6 +248,7 @@ export const ru: Dict = {
   'footer.co.about': 'О нас',
   'footer.co.careers': 'Карьера',
   'footer.co.blog': 'Блог',
+  'footer.co.forum': 'Форум',
   'footer.co.partnership': 'Партнёрство',
   'footer.co.ads': 'Рекламные услуги',
   'footer.co.contact': 'Контакты',

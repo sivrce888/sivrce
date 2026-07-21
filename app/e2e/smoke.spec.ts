@@ -38,6 +38,14 @@ test.describe("Public pages", () => {
     await expect(page.locator("h1").first()).toBeVisible()
   })
 
+  test("forum pages load", async ({ page }) => {
+    const res = await page.goto(`${BASE}/forum`)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator("h1").first()).toBeVisible()
+    const thread = await page.goto(`${BASE}/forum/remonti-2026-tbilisi-shavi-vs-tetri-karkasi`)
+    expect(thread?.status()).toBe(200)
+  })
+
   test("agents page loads", async ({ page }) => {
     const res = await page.goto(`${BASE}/agents`)
     expect(res?.status()).toBe(200)

@@ -28,6 +28,7 @@ export const az: Dict = {
   'nav.daily': 'Günlük',
   'nav.neighborhoods': 'Məhəllələr',
   'nav.blog': 'Bloq',
+  'nav.forum': 'Forum',
 
   // ——— Search page chrome ———
   'search.title': 'Axtarış',
@@ -247,6 +248,7 @@ export const az: Dict = {
   'footer.co.about': 'Haqqımızda',
   'footer.co.careers': 'Karyera',
   'footer.co.blog': 'Bloq',
+  'footer.co.forum': 'Forum',
   'footer.co.partnership': 'Tərəfdaşlıq',
   'footer.co.ads': 'Reklam xidmətləri',
   'footer.co.contact': 'Əlaqə',

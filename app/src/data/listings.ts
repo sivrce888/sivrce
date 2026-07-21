@@ -82,6 +82,7 @@ export interface Listing {
   projectSlug?: string | null
   postedAt: string // ISO date
   agent: Agent
+  sellerType?: 'owner' | 'agency' | null
   isNew: boolean
 }
 
@@ -968,6 +969,7 @@ export interface ListingFilters {
   maxArea?: number
   q?: string
   sort?: SortKey
+  includeProjects?: boolean
 }
 
 export function getListing(id: string): Listing | undefined {
@@ -998,6 +1000,7 @@ export function getListing(id: string): Listing | undefined {
 
 export function filterListings(f: ListingFilters): Listing[] {
   let out = LISTINGS.filter((l) => {
+    if (!f.includeProjects && l.projectCatalog) return false
     if (f.deal && l.dealType !== f.deal) return false
     if (f.type && l.propType !== f.type) return false
     if (f.city && l.city !== f.city) return false
