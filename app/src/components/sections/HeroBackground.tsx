@@ -165,11 +165,11 @@ export default function HeroBackground() {
       {/* ponytail: CSS horizon only — SVG skyline scored CLS 0.35 under LH mobile */}
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-0 h-[42%] bg-[linear-gradient(to_top,var(--sv-navy)_0%,var(--sv-navy-soft)_55%,transparent_100%)] opacity-90"
+        className="absolute inset-x-0 bottom-0 h-[42svh] bg-[linear-gradient(to_top,var(--sv-navy)_0%,var(--sv-navy-soft)_55%,transparent_100%)] opacity-90"
       />
       <div
         aria-hidden
-        className="absolute inset-x-0 bottom-[18%] h-px bg-gradient-to-r from-transparent via-sv-blue/35 to-transparent"
+        className="absolute inset-x-0 bottom-[18svh] h-px bg-gradient-to-r from-transparent via-sv-blue/35 to-transparent"
       />
 
       {/* Rising particles */}
