@@ -48,12 +48,14 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
           </span>
         </div>
 
-        <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.03em] text-white [min-height:2.25em]">
-          {titleA} <span className="text-gradient-blue">{titleAccent}</span>
+        {/* ponytail: fixed h (not min-h) — Georgian fallback→Noto still shifted min-h boxes (CLS 0.14) */}
+        <h1 className="flex h-[5.2rem] w-full max-w-full items-center justify-center overflow-hidden text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.03em] text-white sm:h-[6.2rem] md:h-[7.4rem] lg:h-[9.2rem]">
+          <span>
+            {titleA} <span className="text-gradient-blue">{titleAccent}</span>
+          </span>
         </h1>
 
-        {/* ponytail: min-height absorbs Noto metric swap (was 0.12 CLS on this <p>) */}
-        <p className="mt-6 min-h-[4.75rem] w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-white/70 sm:min-h-[5.25rem] sm:text-[16px] md:min-h-[5.75rem] md:text-[19px]">
+        <p className="mt-6 h-[4.75rem] w-full max-w-[640px] overflow-hidden text-balance text-center text-[15px] font-medium leading-relaxed text-white/70 sm:h-[5.25rem] sm:text-[16px] md:h-[5.75rem] md:text-[19px]">
           {subtitle}
         </p>
 
