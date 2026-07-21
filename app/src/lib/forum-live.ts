@@ -44,6 +44,8 @@ function mapDbReply(r: DbReply): ForumReply {
     body: r.body,
     verified: r.verified,
     createdAt: DATE_ONLY(r.createdAt),
+    parentId: r.parentId,
+    helpfulCount: r.helpfulCount,
   }
 }
 
@@ -223,20 +225,38 @@ export type CreateReplyInput = {
   ownerId: string
   authorName: string
   body: string
+  /** Reply-to a top-level reply only (one nest level). */
+  parentId?: string | null
 }
 
 export async function createForumReply(input: CreateReplyInput): Promise<ForumReply> {
   const thread = await ensureThreadRow(input.slug)
   if (!thread) throw new Error("thread_not_found")
 
+  let parentId: string | null = null
+  let parentOwnerId: string | null = null
+  if (input.parentId) {
+    const parent = await db.forumReply.findFirst({
+      where: { id: input.parentId, threadId: thread.id, deletedAt: null },
+      select: { id: true, parentId: true, ownerId: true },
+    })
+    if (!parent) throw new Error("parent_not_found")
+    // ponytail: one nest level — no reply-to-child
+    if (parent.parentId) throw new Error("nest_too_deep")
+    parentId = parent.id
+    parentOwnerId = parent.ownerId
+  }
+
   const reply = await db.forumReply.create({
     data: {
       id: randomUUID(),
       threadId: thread.id,
+      parentId,
       ownerId: input.ownerId,
       authorName: input.authorName,
       body: input.body,
       verified: false,
+      helpfulCount: 0,
     },
   })
   await db.forumThread.update({
@@ -246,5 +266,31 @@ export async function createForumReply(input: CreateReplyInput): Promise<ForumRe
       lastActivityAt: new Date(),
     },
   })
+
+  // In-app only — push/email when forum volume justifies fan-out.
+  const notify = async (userId: string, title: string, body: string) => {
+    if (!userId || userId === input.ownerId) return
+    try {
+      await db.notification.create({
+        data: {
+          userId,
+          kind: parentId ? "forum_nested_reply" : "forum_reply",
+          title,
+          body,
+          actionUrl: `/forum/${input.slug}`,
+          metadata: { threadId: thread.id, replyId: reply.id, slug: input.slug },
+        },
+      })
+    } catch {
+      // best-effort
+    }
+  }
+  if (thread.ownerId) {
+    await notify(thread.ownerId, "ახალი პასუხი თემაზე", `${input.authorName}: ${input.body.slice(0, 120)}`)
+  }
+  if (parentOwnerId && parentOwnerId !== thread.ownerId) {
+    await notify(parentOwnerId, "პასუხი თქვენს კომენტარზე", `${input.authorName}: ${input.body.slice(0, 120)}`)
+  }
+
   return mapDbReply(reply)
 }

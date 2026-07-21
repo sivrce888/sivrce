@@ -1087,19 +1087,38 @@ model ForumThread {
 }
 
 model ForumReply {
-  id         String    @id @db.VarChar(120)
-  threadId   String    @map("thread_id") @db.VarChar(120)
-  ownerId    String?   @map("owner_id") @db.VarChar(120)
-  authorName String    @map("author_name") @db.VarChar(80)
-  body       String    @db.Text
-  verified   Boolean   @default(false)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  id           String    @id @db.VarChar(120)
+  threadId     String    @map("thread_id") @db.VarChar(120)
+  /// One-level nest only — parent must be a top-level reply (parentId null).
+  parentId     String?   @map("parent_id") @db.VarChar(120)
+  ownerId      String?   @map("owner_id") @db.VarChar(120)
+  authorName   String    @map("author_name") @db.VarChar(80)
+  body         String    @db.Text
+  verified     Boolean   @default(false)
+  helpfulCount Int       @default(0) @map("helpful_count")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  votes ForumReplyVote[]
 
   @@index([deletedAt], map: "forum_replies_deleted_at_idx")
   @@index([threadId], map: "forum_replies_thread_id_idx")
+  @@index([parentId], map: "forum_replies_parent_id_idx")
   @@map("forum_replies")
+}
+
+model ForumReplyVote {
+  id        String   @id @default(cuid()) @db.VarChar(120)
+  replyId   String   @map("reply_id") @db.VarChar(120)
+  voterKey  String   @map("voter_key") @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  reply ForumReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+
+  @@unique([replyId, voterKey], map: "forum_reply_votes_reply_voter_key")
+  @@index([replyId], map: "forum_reply_votes_reply_id_idx")
+  @@map("forum_reply_votes")
 }
 
 model Inquiry {

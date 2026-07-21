@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { ChevronRight, MessageSquare, Eye, BadgeCheck, ArrowLeft } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { ReplyForm } from '@/components/forum/ReplyForm'
+import { ThreadReplies } from '@/components/forum/ThreadReplies'
 import { FORUM_THREADS } from '@/data/forum'
 import { getForumThread, listForumThreads, relatedForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
@@ -168,33 +168,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
           <h2 id="replies-heading" className="text-[20px] font-black tracking-[-0.01em] text-sv-ink">
             პასუხები ({replyCount})
           </h2>
-          <ul className="mt-5 space-y-4">
-            {thread.replies.map((r) => (
-              <li
-                key={r.id}
-                className="rounded-module border border-sv-ink/[0.06] bg-sv-surface p-5"
-              >
-                <div className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-sv-ink/55">
-                  <span className="text-sv-ink">{r.authorName}</span>
-                  {r.verified && (
-                    <span className="inline-flex items-center gap-1 text-sv-blue">
-                      <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> ვერიფიცირებული
-                    </span>
-                  )}
-                  <span className="text-sv-ink/35">
-                    {new Date(r.createdAt).toLocaleDateString('ka-GE', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
-                </div>
-                <p className="mt-3 text-[15px] font-medium leading-relaxed text-sv-ink/75">{r.body}</p>
-              </li>
-            ))}
-          </ul>
-
-          <ReplyForm slug={thread.slug} />
+          <ThreadReplies slug={thread.slug} replies={thread.replies} />
         </section>
 
         {related.length > 0 && (

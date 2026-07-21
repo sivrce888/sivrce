@@ -8,7 +8,19 @@ import { cn } from '@/lib/utils'
 
 const MIN_BODY = 10
 
-export function ReplyForm({ slug, className }: { slug: string; className?: string }) {
+export function ReplyForm({
+  slug,
+  parentId,
+  onCancel,
+  className,
+  compact,
+}: {
+  slug: string
+  parentId?: string | null
+  onCancel?: () => void
+  className?: string
+  compact?: boolean
+}) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
@@ -27,9 +39,17 @@ export function ReplyForm({ slug, className }: { slug: string; className?: strin
 
   if (status === 'unauthenticated') {
     return (
-      <p className={cn('rounded-control border border-sv-ink/[0.06] bg-sv-cloud px-4 py-3 text-[13px] font-semibold text-sv-ink/55', className)}>
+      <p
+        className={cn(
+          'rounded-control border border-sv-ink/[0.06] bg-sv-cloud px-4 py-3 text-[13px] font-semibold text-sv-ink/55',
+          className,
+        )}
+      >
         პასუხის დასაწერად{' '}
-        <Link href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`} className="font-extrabold text-sv-blue hover:underline">
+        <Link
+          href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
+          className="font-extrabold text-sv-blue hover:underline"
+        >
           შეხვიდეთ ანგარიშში
         </Link>
         .
@@ -52,6 +72,7 @@ export function ReplyForm({ slug, className }: { slug: string; className?: strin
         body: JSON.stringify({
           slug,
           body: body.trim(),
+          ...(parentId ? { parentId } : {}),
           ...(authorName.trim() ? { authorName: authorName.trim() } : {}),
         }),
       })
@@ -60,13 +81,16 @@ export function ReplyForm({ slug, className }: { slug: string; className?: strin
         setError(
           data?.error === 'rate_limited'
             ? 'ძალიან ბევრი მოთხოვნა — ცოტა ხანში სცადეთ'
-            : data?.error === 'thread_not_found'
-              ? 'თემა ვერ მოიძებნა'
-              : 'ვერ გაიგზავნა — სცადეთ თავიდან',
+            : data?.error === 'nest_too_deep'
+              ? 'მხოლოდ ერთი დონის პასუხია შესაძლებელი'
+              : data?.error === 'thread_not_found' || data?.error === 'parent_not_found'
+                ? 'თემა ვერ მოიძებნა'
+                : 'ვერ გაიგზავნა — სცადეთ თავიდან',
         )
         return
       }
       setBody('')
+      onCancel?.()
       router.refresh()
     } catch {
       setError('ვერ გაიგზავნა — სცადეთ თავიდან')
@@ -79,22 +103,35 @@ export function ReplyForm({ slug, className }: { slug: string; className?: strin
     'mt-1.5 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-4 text-[15px] font-medium text-sv-ink placeholder:text-sv-ink/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
 
   return (
-    <form onSubmit={submit} noValidate className={cn('mt-6 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-5', className)}>
-      <h3 className="text-[15px] font-black text-sv-ink">თქვენი პასუხი</h3>
-      <div className="mt-3">
-        <label htmlFor={`${baseId}-name`} className="text-[13px] font-bold text-sv-ink/70">
-          სახელი
-        </label>
-        <input
-          id={`${baseId}-name`}
-          value={authorName}
-          onChange={(e) => setAuthorName(e.target.value)}
-          maxLength={80}
-          autoComplete="name"
-          className={inputCls}
-        />
-      </div>
-      <div className="mt-3">
+    <form
+      onSubmit={submit}
+      noValidate
+      className={cn(
+        compact
+          ? 'mt-3 rounded-control border border-sv-ink/[0.06] bg-sv-cloud/60 p-4'
+          : 'mt-6 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-5',
+        className,
+      )}
+    >
+      <h3 className="text-[15px] font-black text-sv-ink">
+        {parentId ? 'პასუხი კომენტარზე' : 'თქვენი პასუხი'}
+      </h3>
+      {!compact && (
+        <div className="mt-3">
+          <label htmlFor={`${baseId}-name`} className="text-[13px] font-bold text-sv-ink/70">
+            სახელი
+          </label>
+          <input
+            id={`${baseId}-name`}
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            maxLength={80}
+            autoComplete="name"
+            className={inputCls}
+          />
+        </div>
+      )}
+      <div className={compact ? 'mt-2' : 'mt-3'}>
         <label htmlFor={`${baseId}-body`} className="text-[13px] font-bold text-sv-ink/70">
           პასუხი
         </label>
@@ -102,7 +139,7 @@ export function ReplyForm({ slug, className }: { slug: string; className?: strin
           id={`${baseId}-body`}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          rows={4}
+          rows={compact ? 3 : 4}
           maxLength={4000}
           placeholder="გააზიარეთ გამოცდილება ან რჩევა…"
           className={cn(inputCls, 'h-auto resize-y py-3 leading-relaxed')}
@@ -114,13 +151,24 @@ export function ReplyForm({ slug, className }: { slug: string; className?: strin
           {error}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={submitting}
-        className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 disabled:opacity-60 sm:w-auto sm:px-8"
-      >
-        {submitting ? 'იგზავნება…' : 'პასუხის გაგზავნა'}
-      </button>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 disabled:opacity-60"
+        >
+          {submitting ? 'იგზავნება…' : 'გაგზავნა'}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="min-h-[44px] rounded-full px-4 text-[13px] font-bold text-sv-ink/55 hover:text-sv-ink"
+          >
+            გაუქმება
+          </button>
+        )}
+      </div>
     </form>
   )
 }
