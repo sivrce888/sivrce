@@ -269,6 +269,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 100,
     finish: 'ჩაბარებული',
     flats: 120,
+    floors: 10,
     rating: 4.5,
     coords: { lat: 41.63446791, lng: 41.60814114 },
     description: {
@@ -288,6 +289,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 10,
     finish: 'TBA',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     coords: { lat: 41.6447074, lng: 41.6330898 },
     description: {
@@ -307,6 +309,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 20,
     finish: 'TBA',
     flats: 180,
+    floors: 15,
     rating: 4.5,
     coords: { lat: 41.63307626, lng: 41.62444264 },
     description: {
@@ -326,6 +329,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 10,
     finish: 'TBA',
     flats: 150,
+    floors: 13,
     rating: 4.5,
     coords: { lat: 41.63932318, lng: 41.61794901 },
     description: {
@@ -345,6 +349,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 15,
     finish: 'TBA',
     flats: 120,
+    floors: 10,
     rating: 4.5,
     coords: { lat: 41.63760979, lng: 41.61612511 },
     description: {
@@ -364,6 +369,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 5,
     finish: 'TBA',
     flats: 250,
+    floors: 21,
     rating: 4.5,
     coords: { lat: 41.6771, lng: 41.6951 },
     // ponytail: Makhinjauri beachfront (orbi.ge) — street № not published
@@ -384,6 +390,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 5,
     finish: 'TBA',
     flats: 300,
+    floors: 25,
     rating: 4.5,
     coords: { lat: 41.6536, lng: 41.6345 },
     // ponytail: Batumi Boulevard waterfront (orbi.ge) — street № not published
@@ -444,6 +451,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 15,
     finish: 'TBA',
     flats: 60,
+    floors: 8,
     rating: 4.5,
     coords: { lat: 41.6494629, lng: 41.6415132 },
     // ponytail: approximate pin, verify vs cadastral — Old Batumi district pin, no street address published
@@ -504,6 +512,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 30,
     finish: '2027 Q4',
     flats: 474,
+    floors: 40,
     rating: 4.5,
     coords: { lat: 41.63667064, lng: 41.61741525 },
     description: {
@@ -625,6 +634,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 25,
     finish: 'TBA',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     coords: { lat: 41.63197946, lng: 41.60543806 },
     description: {
@@ -725,6 +735,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 60,
     finish: '2026',
     flats: 300,
+    floors: 25,
     rating: 4.5,
     coords: { lat: 41.6328, lng: 41.6108 },
     description: {
@@ -766,6 +777,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 100,
     finish: 'ჩაბარებული',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     coords: { lat: 41.65021742, lng: 41.62904239 },
     description: {
@@ -785,6 +797,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 30,
     finish: 'TBA',
     flats: 150,
+    floors: 13,
     rating: 4.5,
     coords: { lat: 41.63064005, lng: 41.60349643 },
     description: {
@@ -824,6 +837,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 20,
     finish: 'TBA',
     flats: 150,
+    floors: 13,
     rating: 4.5,
     coords: { lat: 41.7014, lng: 41.7199 },
     description: {
@@ -843,6 +857,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 100,
     finish: 'ჩაბარებული',
     flats: 80,
+    floors: 8,
     rating: 4.5,
     coords: { lat: 41.63902947, lng: 41.63028111 },
     description: {
@@ -855,7 +870,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     slug: 'reside-riverside',
     name: 'Reside Riverside',
     developerSlug: 'reside-development',
-    img: '/images/np1.webp',
+    img: '/images/projects/reside-riverside.webp',
     location: 'ანგისას ქ. 95, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: 'მოთხოვნით',
@@ -882,6 +897,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 25,
     finish: '2027',
     flats: 1100,
+    floors: 92,
     rating: 4.5,
     coords: { lat: 41.79395753, lng: 41.76746684 },
     description: {
@@ -942,6 +958,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 15,
     finish: '2029 Q1',
     flats: 4000,
+    floors: 100,
     rating: 4.7,
     coords: { lat: 41.6562, lng: 41.6081 },
     // ponytail: offshore artificial-island pin (no OSM polygon); matches ambassadori-island-first-tower
@@ -982,6 +999,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 25,
     finish: '2027 Q4',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     coords: { lat: 41.5479029, lng: 41.5643746 },
     // ponytail: street-level geocode — house number 93a not in OSM (Gonio–Kvariati hwy)
@@ -1002,6 +1020,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 100,
     finish: 'ჩაბარებული',
     flats: 150,
+    floors: 13,
     rating: 4.6,
     coords: { lat: 41.6478804, lng: 41.6433354 },
     description: {
@@ -1021,6 +1040,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 60,
     finish: '2026 Q3',
     flats: 150,
+    floors: 13,
     rating: 4.5,
     coords: { lat: 41.6453122, lng: 41.6505794 },
     description: {
@@ -1040,6 +1060,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 100,
     finish: 'ჩაბარებული',
     flats: 100,
+    floors: 8,
     rating: 4.6,
     coords: { lat: 41.6898115, lng: 41.7050716 },
     description: {
@@ -1080,6 +1101,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 30,
     finish: 'TBA',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     coords: { lat: 41.6096463, lng: 41.6076335 },
     description: {
@@ -1099,6 +1121,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 25,
     finish: '2027 Q4',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     coords: { lat: 41.6791219, lng: 41.7001359 },
     description: {
@@ -1118,6 +1141,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 10,
     finish: '2030',
     flats: 300,
+    floors: 25,
     rating: 4.5,
     coords: { lat: 41.8429696, lng: 41.7776232 },
     description: {
@@ -1137,6 +1161,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     done: 30,
     finish: '2027 Q2',
     flats: 150,
+    floors: 13,
     rating: 4.5,
     coords: { lat: 41.7260217, lng: 41.7332331 },
     description: {

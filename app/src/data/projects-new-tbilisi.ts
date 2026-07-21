@@ -337,6 +337,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 80,
     finish: '2026',
     flats: 200,
+    floors: 17,
     rating: 4.7,
     coords: { lat: 41.7397, lng: 44.7908 },
     description: {
@@ -356,6 +357,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 80,
     finish: '2026',
     flats: 180,
+    floors: 15,
     rating: 4.7,
     coords: { lat: 41.7271902, lng: 44.7337993 },
     description: {
@@ -376,6 +378,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 35,
     finish: '2027 Q2',
     flats: 250,
+    floors: 21,
     rating: 4.6,
     coords: { lat: 41.7173774, lng: 44.7837425 },
     description: {
@@ -395,6 +398,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 40,
     finish: '2027 Q2',
     flats: 300,
+    floors: 25,
     rating: 4.6,
     coords: { lat: 41.718045, lng: 44.7267693 },
     description: {
@@ -435,6 +439,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 45,
     finish: '2027 Q4',
     flats: 260,
+    floors: 22,
     rating: 4.6,
     coords: { lat: 41.7478778, lng: 44.7839995 },
     description: {
@@ -454,6 +459,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 35,
     finish: '2027 Q3',
     flats: 350,
+    floors: 29,
     rating: 4.6,
     coords: { lat: 41.6731899, lng: 44.8617288 },
     description: {
@@ -514,6 +520,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 60,
     finish: '2026 Q4',
     flats: 180,
+    floors: 15,
     rating: 4.7,
     coords: { lat: 41.7037437, lng: 44.7726168 },
     description: {
@@ -533,6 +540,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 70,
     finish: '2026 Q3',
     flats: 150,
+    floors: 13,
     rating: 4.7,
     // ponytail: Saburtalo neighbourhood centroid — street not published by Axis
     coords: { lat: 41.7247267, lng: 44.751726 },
@@ -574,6 +582,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 85,
     finish: '2026 Q2',
     flats: 120,
+    floors: 10,
     rating: 4.7,
     coords: { lat: 41.7121799, lng: 44.7443761 },
     description: {
@@ -593,6 +602,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 55,
     finish: '2026 Q4',
     flats: 140,
+    floors: 12,
     rating: 4.7,
     coords: { lat: 41.7179607, lng: 44.7955101 },
     description: {
@@ -612,6 +622,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 90,
     finish: '2026',
     flats: 220,
+    floors: 18,
     rating: 4.7,
     // OSM near M2 Hippodrome / გივი კარტოზიას — street not published by Axis
     coords: { lat: 41.7233405, lng: 44.7495315 },
@@ -633,6 +644,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 100,
     finish: 'გადაცემულია',
     flats: 150,
+    floors: 13,
     rating: 4.5,
     coords: { lat: 41.6705988, lng: 44.8115688 },
     description: {
@@ -652,6 +664,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 100,
     finish: 'გადაცემულია',
     flats: 120,
+    floors: 10,
     rating: 4.5,
     coords: { lat: 41.6858436, lng: 44.8316187 },
     description: {
@@ -671,6 +684,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 100,
     finish: 'გადაცემულია',
     flats: 90,
+    floors: 8,
     rating: 4.5,
     coords: { lat: 41.7951752, lng: 44.7488908 },
     description: {
@@ -711,6 +725,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 60,
     finish: '2026 Q4',
     flats: 250,
+    floors: 21,
     rating: 4.6,
     coords: { lat: 41.7293784, lng: 44.7872269 },
     description: {
@@ -730,6 +745,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 50,
     finish: '2027 Q2',
     flats: 180,
+    floors: 15,
     rating: 4.6,
     coords: { lat: 41.7231031, lng: 44.7869154 },
     description: {
@@ -749,6 +765,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 15,
     finish: '2029 Q1',
     flats: 220,
+    floors: 18,
     rating: 4.6,
     coords: { lat: 41.6761052, lng: 44.8261865 },
     description: {
@@ -768,6 +785,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 10,
     finish: '2029 Q2',
     flats: 200,
+    floors: 17,
     rating: 4.6,
     coords: { lat: 41.730066, lng: 44.7413021 },
     description: {
@@ -787,6 +805,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 10,
     finish: '2029 Q4',
     flats: 190,
+    floors: 16,
     rating: 4.6,
     coords: { lat: 41.7861399, lng: 44.8211652 },
     description: {
@@ -806,6 +825,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 20,
     finish: '2028',
     flats: 150,
+    floors: 13,
     rating: 4.6,
     // ponytail: pin per biograpi.ge research (Faliashvili 11), verify vs cadastral
     coords: { lat: 41.7082, lng: 44.7757 },
@@ -827,6 +847,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 40,
     finish: '2027 Q4',
     flats: 100,
+    floors: 8,
     rating: 4.6,
     coords: { lat: 41.7087976, lng: 44.7614032 },
     description: {
@@ -846,6 +867,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 30,
     finish: '2027 Q4',
     flats: 160,
+    floors: 13,
     rating: 4.6,
     coords: { lat: 41.730066, lng: 44.7413021 },
     description: {
@@ -866,6 +888,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 40,
     finish: '2027 Q2',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     coords: { lat: 41.6918966, lng: 44.8708845 },
     description: {
@@ -907,6 +930,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 5,
     finish: '2029 Q3',
     flats: 300,
+    floors: 25,
     rating: 4.7,
     coords: { lat: 41.734, lng: 44.779 },
     description: {
@@ -927,6 +951,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 30,
     finish: '2027 Q4',
     flats: 200,
+    floors: 17,
     rating: 4.6,
     coords: { lat: 41.721, lng: 44.758 },
     description: {
@@ -946,6 +971,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 25,
     finish: '2027 Q4',
     flats: 150,
+    floors: 13,
     rating: 4.6,
     coords: { lat: 41.712, lng: 44.795 },
     description: {
@@ -966,6 +992,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 15,
     finish: '2028 Q4',
     flats: 150,
+    floors: 13,
     rating: 4.3,
     coords: { lat: 41.742, lng: 44.762 },
     description: {
@@ -1005,6 +1032,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 20,
     finish: '2028 Q4',
     flats: 400,
+    floors: 33,
     rating: 4.3,
     // OSM: ილია ვეკუას ქუჩა (Akhmeteli / Gldani center) — was Saburtalo centroid ~7 km wrong
     coords: { lat: 41.8020012, lng: 44.8282306 },
@@ -1066,6 +1094,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 10,
     finish: '2029 Q4',
     flats: 300,
+    floors: 25,
     rating: 4.5,
     coords: { lat: 41.685, lng: 44.815 },
     description: {
@@ -1085,6 +1114,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 10,
     finish: '2028 Q4',
     flats: 450,
+    floors: 38,
     rating: 4.3,
     // OSM სამგორი (Moscow Ave) — project street not published
     coords: { lat: 41.6855176, lng: 44.8544828 },
@@ -1147,6 +1177,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 15,
     finish: '2029 Q1',
     flats: 180,
+    floors: 15,
     rating: 4.6,
     coords: { lat: 41.8031042, lng: 44.7828856 },
     description: {
@@ -1166,6 +1197,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 70,
     finish: '2026 Q3',
     flats: 250,
+    floors: 21,
     rating: 4.3,
     coords: { lat: 41.6712044, lng: 44.8872994 },
     description: {
@@ -1205,6 +1237,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 45,
     finish: '2027 Q2',
     flats: 140,
+    floors: 12,
     rating: 4.4,
     coords: { lat: 41.7203705, lng: 44.7130218 },
     description: {
@@ -1224,6 +1257,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 35,
     finish: '2027 Q4',
     flats: 200,
+    floors: 17,
     rating: 4.5,
     // OSM დიდი დიღომი neighbourhood — II მიკრორაიონი not on OSM
     coords: { lat: 41.7884409, lng: 44.7528291 },
@@ -1244,6 +1278,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 40,
     finish: 'TBA',
     flats: 150,
+    floors: 13,
     rating: 4.5,
     coords: { lat: 41.6792348, lng: 44.8389806 },
     description: {
@@ -1263,6 +1298,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 15,
     finish: '2029 Q1',
     flats: 90,
+    floors: 8,
     rating: 4.6,
     coords: { lat: 41.7134796, lng: 44.7433358 },
     description: {
@@ -1282,6 +1318,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 70,
     finish: '2026 Q3',
     flats: 160,
+    floors: 13,
     rating: 4.6,
     coords: { lat: 41.7016011, lng: 44.8117547 },
     description: {
@@ -1301,6 +1338,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 35,
     finish: '2027 Q4',
     flats: 220,
+    floors: 18,
     rating: 4.5,
     coords: { lat: 41.6735875, lng: 44.867743 },
     description: {
@@ -1320,6 +1358,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 55,
     finish: '2026 Q4',
     flats: 240,
+    floors: 20,
     rating: 4.5,
     coords: { lat: 41.7886823, lng: 44.81419 },
     description: {
@@ -1339,6 +1378,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 100,
     finish: 'გადაცემულია',
     flats: 120,
+    floors: 10,
     rating: 4.6,
     coords: { lat: 41.679, lng: 44.8159 },
     description: {
@@ -1358,6 +1398,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 65,
     finish: '2026 Q3',
     flats: 180,
+    floors: 15,
     rating: 4.3,
     coords: { lat: 41.7191286, lng: 44.821163 },
     description: {
@@ -1398,6 +1439,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 85,
     finish: '2026 Q2',
     flats: 120,
+    floors: 10,
     rating: 4.4,
     coords: { lat: 41.6999702, lng: 44.7899991 },
     description: {
@@ -1417,6 +1459,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 35,
     finish: '2027 Q4',
     flats: 150,
+    floors: 13,
     rating: 4.4,
     coords: { lat: 41.711595, lng: 44.7412 },
     description: {
@@ -1436,6 +1479,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 65,
     finish: '2026 Q3',
     flats: 200,
+    floors: 17,
     rating: 4.3,
     coords: { lat: 41.7429319, lng: 44.8259926 },
     description: {
@@ -1455,6 +1499,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 65,
     finish: '2026 Q3',
     flats: 180,
+    floors: 15,
     rating: 4.3,
     coords: { lat: 41.6769579, lng: 44.8417278 },
     description: {
@@ -1474,6 +1519,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 50,
     finish: '2026 Q4',
     flats: 130,
+    floors: 11,
     rating: 4.4,
     coords: { lat: 41.7147226, lng: 44.769239 },
     description: {
@@ -1493,6 +1539,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 45,
     finish: 'TBA',
     flats: 220,
+    floors: 18,
     rating: 4.5,
     coords: { lat: 41.68788, lng: 44.8489122 },
     description: {
@@ -1512,6 +1559,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     done: 80,
     finish: '2026 Q2',
     flats: 160,
+    floors: 13,
     rating: 4.3,
     coords: { lat: 41.7368854, lng: 44.7277384 },
     description: {

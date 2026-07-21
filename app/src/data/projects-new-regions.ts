@@ -104,6 +104,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     done: 100,
     finish: 'ჩაბარებული',
     flats: 300,
+    floors: 25,
     rating: 4.5,
     coords: { lat: 42.46975315, lng: 44.49186978 },
     description: {
@@ -203,6 +204,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     done: 35,
     finish: 'TBA',
     flats: 100,
+    floors: 8,
     rating: 4.5,
     coords: { lat: 41.79821786, lng: 41.78530187 },
     description: {
@@ -363,6 +365,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     done: 40,
     finish: 'TBA',
     flats: 500,
+    floors: 42,
     rating: 4.5,
     coords: { lat: 41.6567, lng: 44.8302 },
     description: {
@@ -383,6 +386,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     done: 55,
     finish: '2026 Q4',
     flats: 200,
+    floors: 17,
     rating: 4.6,
     coords: { lat: 41.5687387, lng: 44.9807002 },
     description: {
@@ -402,6 +406,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     done: 15,
     finish: '2028 Q4',
     flats: 150,
+    floors: 13,
     rating: 4.7,
     coords: { lat: 41.9984815, lng: 44.9319891 },
     description: {
@@ -421,6 +426,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     done: 55,
     finish: '2026 Q4',
     flats: 80,
+    floors: 8,
     rating: 4.5,
     coords: { lat: 41.7365786, lng: 43.5275542 },
     description: {
