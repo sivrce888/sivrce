@@ -4,9 +4,13 @@ import { notFound } from 'next/navigation'
 import { ChevronRight, MessageSquare, Eye, BadgeCheck, ArrowLeft } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { FORUM_THREADS, getThread, relatedThreads } from '@/data/forum'
+import { ReplyForm } from '@/components/forum/ReplyForm'
+import { FORUM_THREADS } from '@/data/forum'
+import { getForumThread, listForumThreads, relatedForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+
+export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -18,7 +22,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const thread = getThread(slug)
+  const thread = await getForumThread(slug)
   if (!thread) return {}
   return {
     title: `${thread.title} | sivrce ფორუმი`,
@@ -68,10 +72,11 @@ function renderBody(body: string) {
 
 export default async function ForumThreadPage({ params }: PageProps) {
   const { slug } = await params
-  const thread = getThread(slug)
+  const thread = await getForumThread(slug)
   if (!thread) notFound()
 
-  const related = relatedThreads(thread)
+  const all = await listForumThreads()
+  const related = relatedForumThreads(thread, all)
   const replyCount = thread.replies.length
   const verified = thread.replies.filter((r) => r.verified).length
 
@@ -189,14 +194,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
             ))}
           </ul>
 
-          {/* ponytail: read-only until auth + moderation; upgrade: POST /api/forum/replies */}
-          <p className="mt-6 rounded-control border border-sv-ink/[0.06] bg-sv-cloud px-4 py-3 text-[13px] font-semibold text-sv-ink/55">
-            პასუხის დასაწერად{' '}
-            <LocalizedLink href="/account" className="font-extrabold text-sv-blue hover:underline">
-              შეხვიდეთ ანგარიშში
-            </LocalizedLink>
-            . ახალი თემები მოდერირდება.
-          </p>
+          <ReplyForm slug={thread.slug} />
         </section>
 
         {related.length > 0 && (

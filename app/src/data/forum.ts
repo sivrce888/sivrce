@@ -1,8 +1,18 @@
 /**
  * SIVRCE — Forum / community discussions.
- * Georgian-first threads. Static seed mirrors DB shape (ForumThread + ForumReply).
- * ponytail: static until user posting + moderation ship; upgrade: Prisma-backed live threads.
+ * Georgian-first editorial seed. Live user threads live in Prisma (see forum-live.ts).
  */
+
+export const FORUM_CATEGORIES = [
+  'რემონტი & დიზაინი',
+  'ინვესტიცია',
+  'ფინანსები',
+  'რჩევები & უსაფრთხოება',
+  'მყიდველის გზამკვლევი',
+  'ზოგადი',
+] as const
+
+export type ForumCategory = (typeof FORUM_CATEGORIES)[number]
 
 export interface ForumReply {
   id: string
@@ -252,4 +262,21 @@ export function relatedThreads(thread: ForumThread, limit = 3): ForumThread[] {
       t.slug !== thread.slug &&
       (t.district === thread.district || t.tags.some((tag) => thread.tags.includes(tag))),
   ).slice(0, limit)
+}
+
+/** Slug for user-created threads — Unicode-safe + unique suffix. */
+export function makeForumSlug(title: string, unique = () => crypto.randomUUID().slice(0, 8)): string {
+  const base =
+    title
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[^\p{L}\p{N}]+/gu, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || 'thread'
+  return `${base}-${unique()}`
+}
+
+export function excerptFromBody(body: string, max = 200): string {
+  const one = body.replace(/\s+/g, ' ').trim()
+  return one.length <= max ? one : `${one.slice(0, max - 1)}…`
 }
