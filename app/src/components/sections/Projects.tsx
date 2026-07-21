@@ -24,7 +24,7 @@ export default function Projects({
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
               <Sparkles className="h-3.5 w-3.5" /> {b('home.projects.kicker')}
             </span>
             {/* ponytail: 28/36 vs site 30/40 — section H2 was shouting over cards; keep SEO title intact */}
@@ -37,21 +37,15 @@ export default function Projects({
           </div>
           <LocalizedLink
             href="/projects"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:text-sv-blue-deep"
           >
             {/* SEO: keyword hub /projects — count stays projects (catalog unit). */}
             {total} პროექტის ნახვა
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </LocalizedLink>
         </Reveal>
-      </div>
 
-      <HScroll
-        aria-label="მშენებარე ბინები"
-        step={560}
-        pageGutter
-        className="gap-6 px-5 pb-2 pt-2 md:px-10"
-      >
+      <HScroll aria-label="მშენებარე ბინები" step={560} className="gap-6 pb-2 pt-2">
         {items.map((p, i) => {
           const dev = getDeveloper(p.developerSlug)
           const devName = dev?.name.ka ?? p.developerSlug
@@ -90,16 +84,16 @@ export default function Projects({
                   </div>
                 </div>
                 <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 p-5">
-                  <span className="flex max-w-full items-center gap-1.5 truncate text-[13px] font-bold text-sv-ink/55">
+                  <span className="flex max-w-full items-center gap-1.5 truncate text-[13px] font-bold text-sv-ink/60">
                     <MapPin className="h-4 w-4 shrink-0 text-sv-ink/35" /> {p.location}
                   </span>
-                  <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
+                  <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
                     <CalendarCheck className="h-4 w-4 text-sv-ink/35" /> ჩაბარება {p.finish}
                   </span>
-                  <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
+                  <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
                     <Building2 className="h-4 w-4 text-sv-ink/35" /> {p.flats} ბინა
                   </span>
-                  <span className="ml-auto text-[16px] font-black text-sv-blue">
+                  <span className="ml-auto text-[16px] font-black text-sv-blue-deep">
                     {p.priceFromM2}
                     <span className="text-[12px] font-bold text-sv-ink/60"> /მ²-დან</span>
                   </span>
@@ -118,6 +112,7 @@ export default function Projects({
           )
         })}
       </HScroll>
+      </div>
     </section>
   )
 }

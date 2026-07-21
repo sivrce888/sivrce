@@ -25,7 +25,7 @@ export default function Listings({ items }: { items: Listing[] }) {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-orange/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-orange">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-orange/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-navy">
               <Crown className="h-3.5 w-3.5" /> {b('home.listings.kicker')}
             </span>
             <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
@@ -37,7 +37,7 @@ export default function Listings({ items }: { items: Listing[] }) {
           </div>
           <LocalizedLink
             href="/sale"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
           >
             {/* SEO: indexable hub + keyword anchor — /search is noindex. */}
             ყველა განცხადების ნახვა
@@ -45,7 +45,6 @@ export default function Listings({ items }: { items: Listing[] }) {
           </LocalizedLink>
         </Reveal>
 
-        {/* Super VIP Deal Filters */}
         <div className="mb-8 flex flex-wrap items-center gap-2">
           {[
             { id: 'all', label: 'ყველა' },
@@ -66,19 +65,13 @@ export default function Listings({ items }: { items: Listing[] }) {
             </button>
           ))}
         </div>
-      </div>
 
-      <HScroll
-        aria-label="SUPER VIP განცხადებები"
-        step={420}
-        pageGutter
-        className="gap-6 px-5 pb-2 pt-2 md:px-10"
-      >
-        {filteredItems.map((l, i) => (
-          <ListingCard key={l.id} l={l} i={i} />
-        ))}
-      </HScroll>
+        <HScroll aria-label="SUPER VIP განცხადებები" step={420} className="gap-6 pb-2 pt-2">
+          {filteredItems.map((l, i) => (
+            <ListingCard key={l.id} l={l} i={i} />
+          ))}
+        </HScroll>
+      </div>
     </section>
   )
 }
-
