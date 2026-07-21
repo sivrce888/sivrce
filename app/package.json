@@ -28,6 +28,7 @@
     "check:media": "npx --yes tsx src/lib/media.check.ts",
     "directory:localize": "npx --yes tsx scripts/localize-directory.ts",
     "directory:mirror": "npx --yes tsx scripts/localize-directory.ts --mirror-only --heroes",
+    "directory:logos": "npx --yes tsx scripts/sync-developer-logos.ts",
     "directory:seed-listings": "npx --yes tsx scripts/seed-project-listings.ts",
     "vapid:gen": "node -e \"const w=require('web-push');const k=w.generateVAPIDKeys();console.log('NEXT_PUBLIC_VAPID_PUBLIC_KEY='+k.publicKey);console.log('VAPID_PRIVATE_KEY='+k.privateKey);console.log('VAPID_SUBJECT=mailto:info@sivrce.ge');\"",
     "postinstall": "prisma generate",
