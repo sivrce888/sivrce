@@ -12,12 +12,17 @@ Scope: catalog vs official sites / FB / korter (secondary). Not a claim of 100/1
 | `as-group-park-boulevard` | finish already გადაცემულია but done=90 | → `done:100` |
 | `axis-palace` | finish already გადაცემულია but done=95 | → `done:100` |
 
-## Media gaps
+## Renders pass 2026-07-21
 
-Shared MD5 placeholders remain (Axis cluster ×7, White Square ×3, Archi Nutsubidze ×2, …).
-2026-07-21 remirror `--force` mostly **failed** (sites blocked / no match) — deleted files restored from git.
-`dirsi-riverside.webp` replaced with project photo (korter CDN 2560px; dirsi.ge down).
-`omnia-isani.webp` updated from korter. Official-site heroes still needed for ~30 failed slugs.
+Pass 1 (korter og): **17 OK** · Pass 2 (alt URLs): **+6 OK** (m2-hippodrome, anagi-police-city, horizon-premium-hotel, …)
+
+Also fixed wrong `img` paths: `archi-dighomi` → own webp; `axis-palace` → own webp; `axis-towers-vake` → own webp.
+
+### Still shared placeholders (need hand drop / official URL)
+
+Largest remaining cluster + fails — see `research/renders-remirror-2026-07-21.log` + `renders-remirror-pass2-2026-07-21.log`.
+
+**Hand-in format:** `slug` + official render file/URL → drop as `app/public/images/projects/<slug>.webp`
 
 ## Status pass 2026-07-21 (20 slugs)
 
