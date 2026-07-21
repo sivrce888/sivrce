@@ -34,8 +34,8 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
     getCmsBlock('home.hero.trust2', lang),
     getCmsBlock('home.hero.trust3', lang),
   ])
+  // ponytail: fixed svh box — content/font reflow must not grow section (CLS)
   return (
-    {/* ponytail: fixed svh box — content/font reflow must not grow section (CLS) */}
     <section className="relative h-[100svh] max-h-[100svh] overflow-hidden bg-sv-navy">
       <HeroBackground />
 
