@@ -609,7 +609,7 @@ export default function HeroSearch() {
             <button
               type="submit"
               onMouseEnter={() => router.prefetch(localizedHref(`/search?${buildParams()}`, lang))}
-              className="flex h-[52px] w-full flex-1 items-center justify-center gap-2 rounded-control bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy active:scale-[0.98] sm:w-auto sm:flex-none sm:min-w-[112px]"
+              className="flex h-[52px] w-full flex-1 items-center justify-center gap-2 rounded-control bg-sv-orange px-6 text-[15px] font-extrabold text-sv-navy shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy active:scale-[0.98] sm:w-auto sm:flex-none sm:min-w-[112px]"
             >
               <Search className="h-[18px] w-[18px]" />
               {t('nav.search')}

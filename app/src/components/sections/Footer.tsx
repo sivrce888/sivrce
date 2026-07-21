@@ -79,7 +79,7 @@ export default function Footer() {
 
           {COLS.map((c) => (
             <div key={c.titleKey}>
-              <h4 className="text-[13px] font-black uppercase tracking-wider text-white/60">{t(c.titleKey)}</h4>
+              <p className="text-[13px] font-black uppercase tracking-wider text-white/60">{t(c.titleKey)}</p>
               <ul className="mt-5 space-y-3">
                 {c.links.map((l) => (
                   <li key={l.key}>
@@ -102,7 +102,7 @@ export default function Footer() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {KEYWORD_COLS.map((c) => (
               <div key={c.id}>
-                <h4 className="text-[13px] font-black uppercase tracking-wider text-white/45">{c.title[loc]}</h4>
+                <p className="text-[13px] font-black uppercase tracking-wider text-white/45">{c.title[loc]}</p>
                 <ul className="mt-4 space-y-2">
                   {c.links.map((l) => (
                     <li key={l.href}>
@@ -125,8 +125,15 @@ export default function Footer() {
             {t('footer.rights')}
           </p>
           <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
-            {/* TOP.GE badge — script in layout.tsx targets this id */}
-            <div id="top-ge-counter-container" data-site-id="117677" className="shrink-0 leading-none [&_img]:block [&_img]:opacity-80" />
+            {/* ponytail: text link only — counter.js sets 3P cookies (LH BP fail) */}
+            <a
+              href="https://top.ge/rate?id=117677"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 transition-colors hover:text-white"
+            >
+              TOP.GE
+            </a>
             <Link href={localizedHref("/terms", lang)} className="transition-colors hover:text-white">{t('footer.terms')}</Link>
             <Link href={localizedHref("/privacy", lang)} className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
             <Link href={localizedHref("/privacy#cookies", lang)} className="transition-colors hover:text-white">{t('footer.cookies')}</Link>

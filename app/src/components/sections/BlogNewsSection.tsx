@@ -5,6 +5,18 @@ import { BookOpen, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { BLOG_POSTS } from '@/data/blog'
 
+const KA_MONTHS = [
+  'იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ',
+  'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ',
+] as const
+
+/** Deterministic ka date — avoids Node/Chrome toLocaleDateString drift. */
+function formatKaDate(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return `${d.getUTCDate()} ${KA_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+}
+
 const ARTICLES = [...BLOG_POSTS]
   .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
   .slice(0, 4)
@@ -58,11 +70,8 @@ export default function BlogNewsSection() {
                       <div className="flex items-center justify-between text-[12px] font-bold text-sv-ink/50">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5 text-sv-ink/40" />
-                          {new Date(art.publishedAt).toLocaleDateString('ka-GE', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                          {/* ponytail: fixed ka months — Node ICU ≠ Chrome locale → React #418 */}
+                          {formatKaDate(art.publishedAt)}
                         </span>
                         <span className="flex items-center gap-1 text-sv-ink/45">
                           <Clock className="h-3 w-3" />

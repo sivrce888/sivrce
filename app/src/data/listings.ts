@@ -1095,13 +1095,22 @@ export function formatFloor(l: Listing): string {
 
 export function postedDaysAgo(l: Listing, today = new Date()): number {
   // Hits may ship ISO datetime; static mocks use YYYY-MM-DD.
-  // Compare calendar days (not wall-clock ÷ 86400) so afternoon same-day ≠ "1 day ago".
+  // Compare calendar days in Asia/Tbilisi so SSR (UTC) and client (GE) agree.
+  const ymd = (d: Date) =>
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tbilisi',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(d)
   const raw = /T/.test(l.postedAt) ? l.postedAt : `${l.postedAt}T12:00:00`
   const posted = new Date(raw)
   if (Number.isNaN(posted.getTime())) return 0
-  const a = Date.UTC(posted.getFullYear(), posted.getMonth(), posted.getDate())
-  const b = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
-  return Math.max(0, Math.round((b - a) / 86_400_000))
+  const a = ymd(posted)
+  const b = ymd(today)
+  // en-CA → YYYY-MM-DD; day diff via UTC noon anchors
+  const toUtc = (s: string) => Date.parse(`${s}T12:00:00Z`)
+  return Math.max(0, Math.round((toUtc(b) - toUtc(a)) / 86_400_000))
 }
 
 /* ————— Distinct locations for filter selects ————— */
