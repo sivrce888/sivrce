@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
 
   const slug = typeof p.slug === "string" ? p.slug.trim() : ""
   const body = typeof p.body === "string" ? p.body.trim() : ""
+  const parentId = typeof p.parentId === "string" ? p.parentId.trim() : null
   const authorName = (
     session.user.name?.trim() ||
     (typeof p.authorName === "string" ? p.authorName.trim() : "") ||
@@ -59,11 +60,19 @@ export async function POST(req: NextRequest) {
       ownerId: session.user.id,
       authorName,
       body,
+      parentId,
     })
     return NextResponse.json({ ok: true, reply }, { status: 201 })
   } catch (err) {
-    if (err instanceof Error && err.message === "thread_not_found") {
+    const msg = err instanceof Error ? err.message : ""
+    if (msg === "thread_not_found") {
       return NextResponse.json({ error: "thread_not_found" }, { status: 404 })
+    }
+    if (msg === "parent_not_found") {
+      return NextResponse.json({ error: "parent_not_found" }, { status: 404 })
+    }
+    if (msg === "nest_too_deep") {
+      return NextResponse.json({ error: "nest_too_deep" }, { status: 400 })
     }
     return NextResponse.json({ error: "db_unavailable" }, { status: 500 })
   }

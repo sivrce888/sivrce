@@ -20,6 +20,9 @@ export interface ForumReply {
   body: string
   verified: boolean
   createdAt: string // ISO date
+  /** Top-level when null/undefined. One-level nest only. */
+  parentId?: string | null
+  helpfulCount?: number
 }
 
 export interface ForumThread {
