@@ -14,15 +14,19 @@ Scope: catalog vs official sites / FB / korter (secondary). Not a claim of 100/1
 
 ## Renders pass 2026-07-21
 
-Pass 1 (korter og): **17 OK** · Pass 2 (alt URLs): **+6 OK** (m2-hippodrome, anagi-police-city, horizon-premium-hotel, …)
+Pass 1–3 (2026-07-21): korter/official remirrors + path fixes. Also: Solana Beach, Gumbati Villa Kokhta (gumbatiholding.ge), Mindeli (w2.ge).
 
-Also fixed wrong `img` paths: `archi-dighomi` → own webp; `axis-palace` → own webp; `axis-towers-vake` → own webp.
+### Still shared placeholders (hand drop)
 
-### Still shared placeholders (need hand drop / official URL)
+Cluster A (~10): `downtown-residence`, `anagi-m3-saburtalo`, `gulfstream-seaview`, `build-group-ketevan-74`, `royal-didube-tower`, `royal-bohema-residence`, `forms-tsatskhvebi-3-14`, `nexus-residence-vakhtang`, `tower-gelovani`, `reside-riverside`
 
-Largest remaining cluster + fails — see `research/renders-remirror-2026-07-21.log` + `renders-remirror-pass2-2026-07-21.log`.
+Cluster B (~5): `metropol-lisi`, `metropol-shindisi`, `symbol-residences`, `gbg-andronikashvili`, `livin-dadiani-263`
 
-**Hand-in format:** `slug` + official render file/URL → drop as `app/public/images/projects/<slug>.webp`
+OK same-building shares: Axis Towers / Towers Vake; Ambassadori island variants.
+
+**Hand-in:** `slug` + official URL/file → `app/public/images/projects/<slug>.webp`
+
+Logs: `renders-remirror-2026-07-21.log`, `pass2`, `pass3`.
 
 ## Status pass 2026-07-21 (20 slugs)
 
