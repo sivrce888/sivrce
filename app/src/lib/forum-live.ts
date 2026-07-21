@@ -16,6 +16,7 @@ import {
 } from "@/data/forum"
 import type { ForumReply as DbReply, ForumThread as DbThread } from "@/generated/prisma/client"
 import { db, dbAvailable } from "@/lib/db"
+import { sendPushToUser } from "@/lib/push"
 
 export { FORUM_CATEGORIES, excerptFromBody, makeForumSlug }
 export type { ForumCategory } from "@/data/forum"
@@ -267,9 +268,10 @@ export async function createForumReply(input: CreateReplyInput): Promise<ForumRe
     },
   })
 
-  // In-app only — push/email when forum volume justifies fan-out.
+  // In-app + web push (no-op without VAPID/subs). Email skipped — no forum opt-in yet.
   const notify = async (userId: string, title: string, body: string) => {
     if (!userId || userId === input.ownerId) return
+    const actionUrl = `/forum/${input.slug}`
     try {
       await db.notification.create({
         data: {
@@ -277,13 +279,14 @@ export async function createForumReply(input: CreateReplyInput): Promise<ForumRe
           kind: parentId ? "forum_nested_reply" : "forum_reply",
           title,
           body,
-          actionUrl: `/forum/${input.slug}`,
+          actionUrl,
           metadata: { threadId: thread.id, replyId: reply.id, slug: input.slug },
         },
       })
     } catch {
       // best-effort
     }
+    void sendPushToUser(userId, { title, body, url: actionUrl })
   }
   if (thread.ownerId) {
     await notify(thread.ownerId, "ახალი პასუხი თემაზე", `${input.authorName}: ${input.body.slice(0, 120)}`)
