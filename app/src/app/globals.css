@@ -554,12 +554,9 @@
 }
 
 /* Back-row skyline — slow lateral drift for depth */
-@keyframes sv-skyline-back {
-  0%, 100% { transform: translate3d(-8px, 0, 0); }
-  50% { transform: translate3d(8px, 0, 0); }
-}
+/* ponytail: skyline static — translate animation + min-w SVG scored CLS 0.35 in LH */
 .sv-skyline-back {
-  animation: sv-skyline-back 46s ease-in-out infinite;
+  /* was: animation sv-skyline-back 46s */
 }
 
 /* Antenna beacon — soft breathing blink */
