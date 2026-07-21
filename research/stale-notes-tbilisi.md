@@ -21,10 +21,11 @@ research/tbilisi-mid-2026-07.md. Format: `slug → what to fix`.
 
 ## Existing catalog entries to fix
 
-- `anagi-m3-saburtalo` → wrong developer: m³ Saburtalo (Marshal Gelovani Ave 1) is an
-  m² (m2-development) project per m2.ge/en/offers, not Anagi. Fix developerSlug →
-  'm2-development' (or merge into an m² slug), re-verify address (catalog says გელოვანი 23,
-  m2.ge says გელოვანი 1) and rename slug to `m3-saburtalo` / `m2-m3-saburtalo`.
+- `anagi-m3-saburtalo` → **fixed 2026-07-21**: developerSlug already `m2-development`. Address still
+  catalog გელოვანი 23 vs m2.ge გელოვანი 1 — verify pin.
+- `dirsi-riverside` → **fixed 2026-07-21**: was UC 85%/2026 Q4; now `done:100` completed complex.
+  Removed phantom `dirsi-riverside-2` UC residential row (real Phase 2 = park/boulevard).
+- `as-group-park-boulevard` / `axis-palace` → **fixed 2026-07-21**: done→100 (finish was already გადაცემულია).
 - `king-david` (developer) → no active construction since 2018 (King David Residences,
   12 M. Aleksidze, completed Q3 2018; kd.ge unreachable). No new project added this batch;
   consider demoting from active-developer lists.

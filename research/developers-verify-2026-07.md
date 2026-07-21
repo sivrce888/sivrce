@@ -13,7 +13,7 @@ Code facts reference `app/src/data/professionals.ts` (file:line).
 | Axis | axis.ge | Tbilisi | 1998 | several (Axis Towers) | active | 032 2 24 17 | axis.ge/en; korter.ge/en/axis-towers-tbilisi |
 | Alliance Group | alliancegroup.ge | Batumi | 2005 | 20+ (w/ Orbi) | Centropolis, Renaissance, Highline | ? | propertygeorgia.ge/en/media/news/122; realting.com |
 | Orbi Group | orbi.ge | Batumi (Khimshiashvili 7) | 1998 | 30+ (3M m²) | Millennium, Crystal, Sunset Blvd, Central Park Towers | +995 555 31 00 00 | orbi.ge/about |
-| Dirsi | dirsi.ge | Tbilisi | 2017 (AS Group 2003) | 20+ buildings | multi-stage active | +995 598 02 11 11 | dirsi.ge; korter.ge/en/dirsi-tbilisi |
+| Dirsi | dirsi.ge (often down) | Tbilisi | 2017 (AS Group 2003) | ~22 bldgs / 5228 flats | **COMPLETED** (no developer stock; secondary only) | +995 598 02 11 11 | korter 2026-07; FB facebook.com/dirsi.ge; Avci Phase 3 Unbuilt |
 | Blox | blox.ge | Tbilisi | 2016 | several | Didi Dighomi, Ortachala, Krtsanisi 49 | ? | korter.ge/en/blox-ortachala-tbilisi; realting.com |
 | Next Group (NEXT) | nextgroup.ge / next-property.com | Batumi | 2018 (K. Devadze) | NEXT Apartments + | 9–11 (Gardens 2027, Tbilisi Oriental 2028/29, Radisson Blu & Wyndham Residences) | +995 514 11 11 11 | batumi.estate/en/developers/next-group; next-property.com |
 | Metropol | metropol.ge | Batumi (Shartava 7) | 2022 | 0 | 6–7 (Cube, Oval, Parallel, Bagebi, Kavtaradze, Ortachala) | 032 2 888 999 | batumi.estate/en/developers/metropol; forbes.ge |
