@@ -37,6 +37,9 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
                       alt=""
                       width={72}
                       height={72}
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
                       className="h-[72px] w-[72px] rounded-full object-cover"
                     />
                   </span>
