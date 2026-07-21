@@ -31,9 +31,9 @@ const manrope = Manrope({
 const notoGeorgian = Noto_Sans_Georgian({
   subsets: ["georgian"],
   variable: "--font-noto-georgian",
-  // optional + preload: face ready before paint → no swap CLS, fast LCP text
+  // optional: no late-swap LCP; preload:false — font was costing FCP/SI ~0.5s in LH
   display: "optional",
-  preload: true,
+  preload: false,
 });
 
 const SITE_URL = "https://sivrce.ge";
