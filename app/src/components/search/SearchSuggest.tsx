@@ -117,7 +117,7 @@ export default function SearchSuggest({
       : 'w-full bg-transparent px-3.5 pb-2.5 pt-0.5 text-[13px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35'
     : dark
       ? 'w-full rounded-control bg-white/[0.07] py-3.5 pl-11 pr-4 text-[15px] font-semibold text-white transition-colors placeholder:text-white/45 focus:bg-white/[0.12] focus:outline-none'
-      : 'h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface pl-10 pr-3.5 text-[13px] font-bold text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
+      : 'h-9 w-full rounded-control border border-sv-ink/10 bg-sv-surface pl-9 pr-3 text-[12px] font-bold text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
 
   return (
     <div className={`relative ${className}`}>
