@@ -22,8 +22,7 @@ const GA_ID = "G-T90P2YSK4B";
 
 const manrope = Manrope({
   subsets: ["latin"],
-  // ponytail: 2 weights only — default multi-weight pulled 5 woff2 onto FCP chain
-  weight: ["600", "900"],
+  // ponytail: variable = 1 woff2 (static multi-weight was 3–5 files on FCP chain)
   variable: "--font-manrope",
   display: "optional",
   preload: false,
@@ -31,6 +30,7 @@ const manrope = Manrope({
 
 const notoGeorgian = Noto_Sans_Georgian({
   subsets: ["georgian"],
+  // Noto Georgian: no variable on Google — keep two static weights for body + black
   weight: ["600", "900"],
   variable: "--font-noto-georgian",
   display: "optional",
