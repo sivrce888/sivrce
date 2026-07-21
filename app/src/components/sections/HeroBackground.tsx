@@ -147,7 +147,11 @@ export default function HeroBackground() {
   }, [])
 
   return (
-    <div ref={root} className="sv-sky-in absolute inset-0 overflow-hidden bg-sv-navy" aria-hidden>
+    <div
+      ref={root}
+      className="sv-sky-in absolute inset-0 overflow-hidden bg-sv-navy [contain:layout_paint]"
+      aria-hidden
+    >
       {/* Aurora gradient field — brand blue / violet / orange; drifts with the pointer */}
       <div
         className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
