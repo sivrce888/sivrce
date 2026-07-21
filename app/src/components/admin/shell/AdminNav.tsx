@@ -10,6 +10,7 @@ import {
   Gavel,
   Inbox,
   KanbanSquare,
+  Layers,
   LayoutDashboard,
   MapPinned,
   MessagesSquare,
@@ -49,6 +50,7 @@ export const ADMIN_SECTIONS: NavSection[] = [
     items: [
       { href: "/admin/listings", label: "Listings", icon: Building2 },
       { href: "/admin/buildings", label: "Map buildings", icon: MapPinned },
+      { href: "/admin/map", label: "Map / OSM", icon: Layers },
       { href: "/admin/moderation", label: "Moderation", icon: ShieldCheck },
       { href: "/admin/verification", label: "Verification", icon: FileCheck },
       { href: "/admin/inquiries", label: "Inquiries", icon: Inbox },

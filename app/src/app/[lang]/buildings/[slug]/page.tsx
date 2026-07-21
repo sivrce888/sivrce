@@ -29,12 +29,12 @@ import {
   getListingsForBuildingSlug,
 } from '@/lib/map/db-buildings'
 import {
-  FLOOR_STACKS_ON,
   buildingFloorCount,
   buildingFloors,
   floorsToGeoJSON,
   listingFloor,
 } from '@/lib/map/floors'
+import { getMapPlatformConfig } from '@/lib/map/platform-config'
 import BuildingFloorExplorer from '@/components/map/BuildingFloorExplorer'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
@@ -113,7 +113,10 @@ export default async function BuildingPage({ params }: PageProps) {
   const cluster = findBuildingBySlug(slug, clusterListingsToBuildings(listings))
   const floorCount = cluster ? buildingFloorCount(cluster) : building.floors
   const floorsInfo = cluster ? buildingFloors(cluster) : []
-  const floorsFc = FLOOR_STACKS_ON && cluster && listings.length > 0 ? floorsToGeoJSON(cluster) : null
+  const floorsFc =
+    (await getMapPlatformConfig()).floorStacksEnabled && cluster && listings.length > 0
+      ? floorsToGeoJSON(cluster)
+      : null
 
   const buildingLd = {
     '@context': 'https://schema.org',

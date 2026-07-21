@@ -42,6 +42,7 @@ import {
   type MapDealFilter,
   type MapStatusFilter,
 } from '@/lib/map/buildings'
+import type { MapPlatformConfig } from '@/lib/map/platform-config'
 import BuildingPanel from '@/components/map/BuildingPanel'
 import {
   EMPTY_FLOORS,
@@ -141,15 +142,15 @@ const DOT_ACTIVE_ID = 'sivrce-buildings-dot-active'
 const PRICE_ID = 'sivrce-buildings-price'
 const CLUSTER_ID = 'sivrce-buildings-cluster'
 const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
-/** Below this zoom: clustered dots; at/above: footprints + names. */
+/** Defaults — admin MapPlatformConfig overrides at runtime. */
 const DETAIL_ZOOM = 13.5
-/** Price pills appear once clusters start breaking apart. */
 const PRICE_MIN_ZOOM = 11.2
-/** MapLibre clusterMaxZoom is exclusive-ish — stop clustering just under detail. */
 const CLUSTER_MAX_ZOOM = 13
 
+type MapZoomCfg = { detailZoom: number; priceMinZoom: number; clusterMaxZoom: number }
+
 /** Top 3 people love: streets (yellow) · hybrid · clean. */
-const TERRAIN_OPTIONS: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
+const TERRAIN_OPTIONS_ALL: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
   { id: 'streets', label: 'ქუჩები', Icon: MapIcon },
   { id: 'satellite', label: 'ჰიბრიდი', Icon: Satellite },
   { id: 'clean', label: 'მინიმალი', Icon: Circle },
@@ -167,7 +168,15 @@ const POI_ICON_ID = 'sivrce-pois-icon'
 const POI_LABEL_LAYER_ID = 'sivrce-pois-label'
 const POI_DATA = poisToGeoJSON()
 
-async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
+async function ensureLayers(
+  map: MlMap,
+  buildings: MapBuildingCluster[],
+  zooms: MapZoomCfg = {
+    detailZoom: DETAIL_ZOOM,
+    priceMinZoom: PRICE_MIN_ZOOM,
+    clusterMaxZoom: CLUSTER_MAX_ZOOM,
+  },
+) {
   if (map.getSource(SOURCE_ID)) return
 
   await loadPoiImages(map)
@@ -178,7 +187,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     type: 'geojson',
     data: buildingsToPointsGeoJSON(buildings),
     cluster: true,
-    clusterMaxZoom: CLUSTER_MAX_ZOOM,
+    clusterMaxZoom: zooms.clusterMaxZoom,
     clusterRadius: 52,
     promoteId: 'id',
   })
@@ -187,7 +196,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: CLUSTER_ID,
     type: 'circle',
     source: PTS_SOURCE_ID,
-    maxzoom: DETAIL_ZOOM,
+    maxzoom: zooms.detailZoom,
     filter: ['has', 'point_count'],
     paint: {
       'circle-color': BRAND.colors.blue,
@@ -206,7 +215,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: CLUSTER_COUNT_ID,
     type: 'symbol',
     source: PTS_SOURCE_ID,
-    maxzoom: DETAIL_ZOOM,
+    maxzoom: zooms.detailZoom,
     filter: ['has', 'point_count'],
     layout: {
       'text-field': ['get', 'point_count_abbreviated'],
@@ -224,7 +233,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: DOT_ID,
     type: 'circle',
     source: PTS_SOURCE_ID,
-    maxzoom: DETAIL_ZOOM,
+    maxzoom: zooms.detailZoom,
     filter: ['!', ['has', 'point_count']],
     paint: {
       // ponytail: zoom must stay top-level in MapLibre; hover/selected sizes live in DOT_ACTIVE_ID overlay
@@ -246,7 +255,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: DOT_ACTIVE_ID,
     type: 'circle',
     source: PTS_SOURCE_ID,
-    maxzoom: DETAIL_ZOOM,
+    maxzoom: zooms.detailZoom,
     filter: ['!', ['has', 'point_count']],
     paint: {
       'circle-radius': [
@@ -279,8 +288,8 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: PRICE_ID,
     type: 'symbol',
     source: PTS_SOURCE_ID,
-    minzoom: PRICE_MIN_ZOOM,
-    maxzoom: DETAIL_ZOOM,
+    minzoom: zooms.priceMinZoom,
+    maxzoom: zooms.detailZoom,
     filter: [
       'all',
       ['!', ['has', 'point_count']],
@@ -306,7 +315,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: FILL_ID,
     type: 'fill',
     source: SOURCE_ID,
-    minzoom: DETAIL_ZOOM,
+    minzoom: zooms.detailZoom,
     paint: {
       'fill-color': ['get', 'color'],
       'fill-opacity': 0.22,
@@ -317,7 +326,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: EXTRUDE_ID,
     type: 'fill-extrusion',
     source: SOURCE_ID,
-    minzoom: DETAIL_ZOOM,
+    minzoom: zooms.detailZoom,
     paint: {
       // ponytail: MapLibre 5 — fill-extrusion-opacity is constant-only; alpha lives in `color`.
       'fill-extrusion-color': ['get', 'color'],
@@ -331,7 +340,7 @@ async function ensureLayers(map: MlMap, buildings: MapBuildingCluster[]) {
     id: LABEL_ID,
     type: 'symbol',
     source: SOURCE_ID,
-    minzoom: DETAIL_ZOOM,
+    minzoom: zooms.detailZoom,
     layout: {
       // Human project names first (Axis Towers, ქინგ დევიდ…); code only if label empty.
       'text-field': [
@@ -492,6 +501,7 @@ function Map3DInner({
   listings,
   projects = PROJECTS,
   initialUi,
+  platform,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
@@ -499,6 +509,8 @@ function Map3DInner({
   projects?: Project[]
   /** Server-read cookie — avoids first-paint default before document.cookie. */
   initialUi?: MapUiSave
+  /** Admin OSM / map knobs from SystemConfig. */
+  platform?: MapPlatformConfig
 }) {
   const { t } = useI18n()
   const tRef = useRef(t)
@@ -512,6 +524,25 @@ function Map3DInner({
   const allRef = useRef<MapBuildingCluster[]>([])
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
+
+  const centerDefault = platform?.center ?? MAP_CENTER
+  const minZoom = platform?.minZoom ?? MAP_MIN_ZOOM
+  const floorStacksOn = platform?.floorStacksEnabled ?? false
+  const styleUrls = platform
+    ? {
+        light: platform.styleUrlLight,
+        clean: platform.styleUrlClean,
+        dark: platform.styleUrlDark,
+      }
+    : undefined
+  const zooms: MapZoomCfg = {
+    detailZoom: platform?.detailZoom ?? DETAIL_ZOOM,
+    priceMinZoom: platform?.priceMinZoom ?? PRICE_MIN_ZOOM,
+    clusterMaxZoom: platform?.clusterMaxZoom ?? CLUSTER_MAX_ZOOM,
+  }
+  const terrainOptions = TERRAIN_OPTIONS_ALL.filter(
+    (o) => o.id !== 'satellite' || (platform?.satelliteEnabled ?? true),
+  )
 
   // ponytail: cookie from SSR when present; else document.cookie / LS migrate.
   const [savedUi] = useState<MapUiSave>(() =>
@@ -535,8 +566,13 @@ function Map3DInner({
     return parsed ?? [...POI_DEFAULT_ON]
   })
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
-  const [view3d, setView3d] = useState(() => savedUi.view3d !== false)
-  const [terrain, setTerrain] = useState<MapTerrain>(() => parseTerrain(savedUi.terrain))
+  const [view3d, setView3d] = useState(() =>
+    savedUi.view3d != null ? savedUi.view3d : (platform?.defaultView3d ?? true),
+  )
+  const [terrain, setTerrain] = useState<MapTerrain>(() => {
+    if (savedUi.terrain) return parseTerrain(savedUi.terrain)
+    return parseTerrain(platform?.defaultTerrain)
+  })
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const [ready, setReady] = useState(false)
@@ -787,7 +823,7 @@ function Map3DInner({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
-    const showFloors = Boolean(selected && buildingShowsFloorStack(selected))
+    const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
     const src = map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource | undefined
     src?.setData(
       showFloors && selected ? floorsToGeoJSON(selected, dealFilter) : EMPTY_FLOORS,
@@ -834,7 +870,7 @@ function Map3DInner({
             ]) as FilterSpecification,
       )
     }
-  }, [selected, dealFilter, ready])
+  }, [selected, dealFilter, ready, floorStacksOn])
 
   // Deep-link ?status=construction|completed|active
   useEffect(() => {
@@ -870,7 +906,7 @@ function Map3DInner({
 
     let cancelled = false
     let ro: ResizeObserver | null = null
-    const initialStyle = mapStyleUrl(darkRef.current, terrainRef.current)
+    const initialStyle = mapStyleUrl(darkRef.current, terrainRef.current, styleUrls)
     styleUrlRef.current = initialStyle
     const container = containerRef.current
 
@@ -895,7 +931,7 @@ function Map3DInner({
         pitch: 58,
         bearing: -18,
         maxPitch: 70,
-        minZoom: MAP_MIN_ZOOM,
+        minZoom,
         maxBounds: GEORGIA_MAX_BOUNDS,
         renderWorldCopies: false,
         fadeDuration: 0,
@@ -1132,14 +1168,14 @@ function Map3DInner({
       const mountOverlays = () => {
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
-          await ensureLayers(map, visibleRef.current)
+          await ensureLayers(map, visibleRef.current, zooms)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
           applyPoiLabelTheme(map, darkRef.current)
           tightenAttribution(map)
           const showFloors = Boolean(
-            selectedRef.current && buildingShowsFloorStack(selectedRef.current),
+            selectedRef.current && buildingShowsFloorStack(selectedRef.current, floorStacksOn),
           )
           const floorsSrc = map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource | undefined
           floorsSrc?.setData(
@@ -1447,7 +1483,7 @@ function Map3DInner({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready || !themeReady) return
-    const next = mapStyleUrl(isDark, terrain)
+    const next = mapStyleUrl(isDark, terrain, styleUrls)
     if (styleUrlRef.current === next) return
     styleUrlRef.current = next
     const gen = ++styleGenRef.current
@@ -1508,7 +1544,7 @@ function Map3DInner({
   const resetView = () => {
     const three = view3dRef.current
     mapRef.current?.easeTo({
-      center: [MAP_CENTER.lng, MAP_CENTER.lat],
+      center: [centerDefault.lng, centerDefault.lat],
       zoom: 13.2,
       pitch: three ? 58 : 0,
       bearing: three ? -18 : 0,
@@ -1868,7 +1904,7 @@ function Map3DInner({
           </div>
 
           <div className={`flex ${railSep}`} role="group" aria-label="ტერიტორიის ხედი">
-            {TERRAIN_OPTIONS.map((t, i) => {
+            {terrainOptions.map((t, i) => {
               const active = terrain === t.id
               const Icon = t.Icon
               return (
@@ -1957,11 +1993,13 @@ export default function Map3D({
   listings,
   projects,
   initialUi,
+  platform,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
   projects?: Project[]
   initialUi?: MapUiSave
+  platform?: MapPlatformConfig
 }) {
   return (
     <Suspense
@@ -1976,6 +2014,7 @@ export default function Map3D({
         listings={listings}
         projects={projects}
         initialUi={initialUi}
+        platform={platform}
       />
     </Suspense>
   )

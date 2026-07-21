@@ -29,11 +29,15 @@ export type MapTerrain = 'streets' | 'clean' | 'satellite'
 /** @deprecated use mapStyleUrl(dark) — kept for one-off env lock */
 export const STYLE_URL = STYLE_DARK
 
-export function mapStyleUrl(dark: boolean, terrain: MapTerrain = 'streets'): string {
+export function mapStyleUrl(
+  dark: boolean,
+  terrain: MapTerrain = 'streets',
+  styles?: { light?: string; clean?: string; dark?: string },
+): string {
   if (terrain === 'satellite') return STYLE_SATELLITE
-  if (dark) return STYLE_DARK
-  if (terrain === 'clean') return STYLE_CLEAN
-  return STYLE_LIGHT
+  if (dark) return styles?.dark ?? STYLE_DARK
+  if (terrain === 'clean') return styles?.clean ?? STYLE_CLEAN
+  return styles?.light ?? STYLE_LIGHT
 }
 
 /**

@@ -125,9 +125,12 @@ export async function sendBroadcast(
 
 const MAX_GEL = 1_000_000
 
+type SettingsWrite = string | number | boolean | null
+
 /**
  * Structured settings save — every registry key is validated through
  * CONFIG_REGISTRY. Blank field = revert that key to its default (row removed).
+ * Missing keys in FormData are left unchanged (map-only forms).
  */
 export async function saveSettings(
   _prev: SettingsFormState,
@@ -136,9 +139,9 @@ export async function saveSettings(
   const session = await requireAdminAction()
   try {
     const before = await getAllConfig()
-    // value: null → delete the row (revert to default)
-    const writes: { key: ConfigKey; value: string | number | null }[] = []
+    const writes: { key: ConfigKey; value: SettingsWrite }[] = []
     for (const key of CONFIG_KEYS) {
+      if (!fd.has(key)) continue
       const entry = CONFIG_REGISTRY[key]
       const raw = fd.get(key)
       const s = typeof raw === "string" ? raw.trim() : ""
@@ -152,12 +155,31 @@ export async function saveSettings(
           return { error: `${entry.label}: whole GEL amount, 0–${MAX_GEL}`, saved: false }
         }
         writes.push({ key, value: gel * 100 })
-      } else {
-        if (entry.parse(s) === null) {
-          return { error: `${entry.label}: invalid value`, saved: false }
-        }
-        writes.push({ key, value: s })
+        continue
       }
+      if (entry.input === "bool") {
+        const parsed = entry.parse(s)
+        if (parsed === null) {
+          return { error: `${entry.label}: choose On or Off`, saved: false }
+        }
+        writes.push({ key, value: parsed as boolean })
+        continue
+      }
+      if (entry.input === "number") {
+        const parsed = entry.parse(Number(s))
+        if (parsed === null) {
+          return { error: `${entry.label}: invalid number`, saved: false }
+        }
+        writes.push({ key, value: parsed as number })
+        continue
+      }
+      if (entry.parse(s) === null) {
+        return { error: `${entry.label}: invalid value`, saved: false }
+      }
+      writes.push({ key, value: s })
+    }
+    if (writes.length === 0) {
+      return { error: "No settings fields submitted", saved: false }
     }
     const changed = writes
       .filter((w) => (w.value ?? CONFIG_REGISTRY[w.key].defaultValue) !== before[w.key])
@@ -177,6 +199,8 @@ export async function saveSettings(
       changed,
     })
     revalidate()
+    revalidatePath("/admin/map")
+    revalidatePath("/map")
     return { error: null, saved: true }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Invalid input", saved: false }
