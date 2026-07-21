@@ -43,7 +43,7 @@ export const en: Dict = {
   'search.allCities': 'All cities',
   'search.district': 'District',
   'search.allDistricts': 'All districts',
-  'search.keywordPlaceholder': 'ID, phone, street, district…',
+  'search.keywordPlaceholder': 'ID, phone, cad. code, street…',
   'search.keyword': 'Search keyword',
   'search.sort': 'Sort',
   'search.view': 'View',

@@ -22,6 +22,7 @@ import {
   recentLabel,
   type RecentSearch,
 } from './hero-search-mode'
+import { isExactLookupQuery } from '@/lib/listing-public-id'
 
 /* Deal tabs — locked DEAL_BRAND (BRAND.md §3.2); labels from i18n */
 const TAB_HUES = [DEAL_BRAND.sale, DEAL_BRAND.rent, DEAL_BRAND.daily, DEAL_BRAND.newProjects] as const
@@ -139,9 +140,9 @@ export default function HeroSearch() {
       document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })
       return
     }
-    // ID / phone → jump straight to listing (MyHome parity)
+    // ID / phone / cadastral → jump straight to listing (ss.ge / MyHome parity)
     const raw = keyword.trim()
-    if (/^\d[\d\s+-]{5,}$/.test(raw) || /^\+?995/.test(raw.replace(/\s/g, ''))) {
+    if (isExactLookupQuery(raw)) {
       try {
         const res = await fetch(`/api/listings/resolve?q=${encodeURIComponent(raw)}`)
         const json = (await res.json()) as { ok?: boolean; path?: string }

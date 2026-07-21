@@ -211,6 +211,7 @@ export default function ListingDetailClient({
   }
   const [photo, setPhoto] = useState(0)
   const [lightbox, setLightbox] = useState(false)
+  const [views, setViews] = useState(l.views)
   const swipeGuard = useRef(false)
   const gradId = useId()
 
@@ -224,11 +225,34 @@ export default function ListingDetailClient({
   if (prevId !== l.id) {
     setPrevId(l.id)
     setPhoto(0)
+    setViews(l.views)
   }
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
     pushRecent(l.id)
+  }, [l.id])
+
+  // Once per browser session — optimistic +1 after the POST lands.
+  useEffect(() => {
+    const key = `lv:${l.id}`
+    try {
+      if (sessionStorage.getItem(key)) return
+      sessionStorage.setItem(key, '1')
+    } catch {
+      /* private mode — still count this visit */
+    }
+    fetch(`/api/listings/${encodeURIComponent(l.id)}/view`, {
+      method: 'POST',
+      credentials: 'same-origin',
+    })
+      .then(async (r) => {
+        if (!r.ok) return
+        const body = (await r.json().catch(() => null)) as { views?: number } | null
+        if (typeof body?.views === 'number') setViews(body.views)
+        else setViews((v) => v + 1)
+      })
+      .catch(() => undefined)
   }, [l.id])
 
   const recentIds = useRecentIds()
@@ -395,7 +419,7 @@ export default function ListingDetailClient({
             <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="flex items-center gap-1.5 rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
-                  <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(l.views) })}
+                  <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(views) })}
                 </span>
                 <span className="rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
                   {photo + 1} / {l.images.length}
@@ -517,10 +541,12 @@ export default function ListingDetailClient({
               {keySpecs.map((s) => (
                 <div
                   key={s.label}
-                  className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-4 py-4 shadow-card"
+                  className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-3 py-4 shadow-card sm:px-4"
                 >
                   <s.icon className="h-5 w-5 text-sv-blue" aria-hidden />
-                  <div className="mt-2 text-[22px] font-black tracking-tight text-sv-ink">{s.value}</div>
+                  <div className="mt-2 break-words text-[17px] font-black leading-tight tracking-tight text-sv-ink sm:text-[20px]">
+                    {s.value}
+                  </div>
                   <div className="text-[12px] font-bold text-sv-ink/45">{s.label}</div>
                 </div>
               ))}
