@@ -8,6 +8,7 @@ import Collections from '@/components/sections/Collections'
 import Listings from '@/components/sections/Listings'
 import MapSection from '@/components/sections/MapSection'
 import AISection from '@/components/sections/AISection'
+import WhatsAppSection from '@/components/sections/WhatsAppSection'
 import Projects from '@/components/sections/Projects'
 import Services from '@/components/sections/Services'
 import CTA from '@/components/sections/CTA'
@@ -47,6 +48,7 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
       <Listings items={featured} />
       <MapSection />
       <AISection sample={featured[0] ?? null} />
+      <WhatsAppSection />
       <Projects items={homeProjects} total={projects.length} />
       <Services lang={lang} />
       <CTA lang={lang} live={stats} />
