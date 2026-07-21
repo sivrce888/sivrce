@@ -48,11 +48,12 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
           </span>
         </div>
 
-        <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.03em] text-white">
+        <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.03em] text-white [min-height:2.25em]">
           {titleA} <span className="text-gradient-blue">{titleAccent}</span>
         </h1>
 
-        <p className="mt-6 w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-white/70 sm:text-[16px] md:text-[19px]">
+        {/* ponytail: min-height absorbs Noto metric swap (was 0.12 CLS on this <p>) */}
+        <p className="mt-6 min-h-[4.75rem] w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-white/70 sm:min-h-[5.25rem] sm:text-[16px] md:min-h-[5.75rem] md:text-[19px]">
           {subtitle}
         </p>
 
