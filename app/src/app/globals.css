@@ -519,9 +519,10 @@
 }
 
 /* Hero entrance — paint-driven (no hydration gate) so LCP text renders immediately */
+/* Hero entrance — opacity only (translate scored CLS 0.44 on search panel) */
 @keyframes sv-hero-in {
-  from { opacity: 0; transform: translate3d(0, 28px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .sv-hero-in {
   animation: sv-hero-in 0.7s cubic-bezier(0.21, 0.65, 0.2, 1) both;
