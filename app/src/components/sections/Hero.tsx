@@ -45,7 +45,8 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
         </div>
 
         <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.03em] text-white">
-          {titleA} <span className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
+          {/* ponytail: no shimmer on LCP title — animated gradient delayed LCP onto the subtitle */}
+          {titleA} <span className="text-gradient-blue">{titleAccent}</span>
         </h1>
 
         <p className="mt-6 w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-white/70 sm:text-[16px] md:text-[19px]">
