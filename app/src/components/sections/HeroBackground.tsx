@@ -153,9 +153,10 @@ export default function HeroBackground() {
         className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
         style={{ transform: 'translate3d(var(--px, 0px), var(--py, 0px), 0)' }}
       >
-        <div className="animate-aurora-a absolute -left-[15%] top-[-25%] h-[70%] w-[60%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_34%,transparent),transparent_65%)] blur-[90px]" />
-        <div className="animate-aurora-b absolute right-[-12%] top-[-10%] h-[65%] w-[55%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-violet)_26%,transparent),transparent_65%)] blur-[100px]" />
-        <div className="animate-aurora-c absolute bottom-[-30%] left-[25%] h-[70%] w-[50%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange)_16%,transparent),transparent_65%)] blur-[110px]" />
+        {/* ponytail: static aurora — scale keyframes on blur blobs scored CLS 0.30 in LH */}
+        <div className="absolute -left-[15%] top-[-25%] h-[70%] w-[60%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_34%,transparent),transparent_65%)] blur-[90px]" />
+        <div className="absolute right-[-12%] top-[-10%] h-[65%] w-[55%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-violet)_26%,transparent),transparent_65%)] blur-[100px]" />
+        <div className="absolute bottom-[-30%] left-[25%] h-[70%] w-[50%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange)_16%,transparent),transparent_65%)] blur-[110px]" />
         <div className="absolute left-1/2 top-[30%] h-[50%] w-[46%] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_14%,transparent),transparent_70%)] blur-[110px]" />
       </div>
 
