@@ -7,7 +7,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
-  TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Images, Clock,
+  TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Eye, Clock,
   Layers,
   type LucideIcon,
 } from 'lucide-react'
@@ -117,6 +117,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
   // ponytail: first N only; full gallery on detail. Cap here so search payloads can stay fat.
   const { photos, morePhotos, multi, dashSlots } = cardGalleryTeaser(l.images, l.img)
+  const photoTotal = photos.length + morePhotos
+  const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
   const [photo, setPhoto] = useState(0)
   const imgRef = useRef<HTMLDivElement>(null)
   const touchRef = useRef<{ x: number; y: number } | null>(null)
@@ -229,10 +231,23 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       ))}
       {/* Bottom scrub only — lets the photo breathe; navy-tint per brand lock */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sv-navy/45 via-sv-navy/10 to-transparent" />
+      {/* ponytail: photo click → same tab (Cmd/Ctrl+click = new). Chrome stays above. */}
+      <LocalizedLink
+        href={href}
+        aria-hidden
+        tabIndex={-1}
+        className="absolute inset-0 z-0"
+        onClick={(e) => {
+          if (swipedRef.current) {
+            e.preventDefault()
+            swipedRef.current = false
+          }
+        }}
+      />
       {/* ── Photo chrome map ───────────────────────────────────────────
           TL: VIP / stickers
           TR: share · compare · heart
-          Mid: ‹ › chevrons (hover / touch)
+          Mid: ‹ › white chips on hover (desktop); touch = swipe
           Bottom: fixed - - - - · +N all-photos (overflow)
       */}
       {(l.badge || l.isExclusive) && (
@@ -309,14 +324,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
       {multi && (
         <>
-          {/* Chevrons: icon-only hit target so hover-scrub works edge-to-edge */}
+          {/* Locked: white chip = share/fav chrome; hover/focus only — touch uses swipe + dashes */}
           <button
             type="button"
             aria-label={t('detail.prevPhoto')}
             onClick={(e) => navPhoto(-1, e)}
-            className="absolute left-2 top-1/2 z-10 -translate-y-1/2 opacity-100 transition-opacity focus-visible:outline-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
+            className="absolute left-3 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 [@media(pointer:coarse)]:hidden"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-sv-navy/55 text-white shadow-sm backdrop-blur">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
               <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
@@ -324,22 +339,39 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             type="button"
             aria-label={t('detail.nextPhoto')}
             onClick={(e) => navPhoto(1, e)}
-            className="absolute right-1.5 top-1/2 z-10 -translate-y-1/2 opacity-100 transition-opacity focus-visible:outline-none [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
+            className="absolute right-3 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 [@media(pointer:coarse)]:hidden"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-sv-navy/55 text-white shadow-sm backdrop-blur">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
               <ChevronRight className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
         </>
       )}
 
-      {/* Bottom: fixed - - - - (CARD_PHOTO_CAP) + MyHome-style +N overflow */}
-      {/* Bottom: fixed - - - - · +N. ponytail: only live CSS utils (fractionals ghost under turbopack) */}
+      {/* Last teaser frame + leftovers → centered CTA (ss.ge / myhome style). Opens ad. */}
+      {morePhotos > 0 && photo === photos.length - 1 && (
+        <div className="pointer-events-none absolute inset-0 z-[8] flex flex-col items-center justify-center gap-2 bg-sv-navy/55">
+          <LocalizedLink
+            href={href}
+            aria-label={t('card.allPhotos', { n: morePhotos })}
+            className="pointer-events-auto relative z-20 flex flex-col items-center gap-2 text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="grid h-12 w-12 place-items-center rounded-full border-2 border-white/90 bg-white/10 backdrop-blur">
+              <Eye className="h-6 w-6" aria-hidden />
+            </span>
+            <span className="text-[14px] font-extrabold tracking-wide drop-shadow-sm">
+              {t('card.allPhotos', { n: morePhotos })}
+            </span>
+          </LocalizedLink>
+        </div>
+      )}
+
+      {/* Bottom: 1/N counter + fixed - - - - dashes */}
       <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex flex-col items-center gap-1.5 px-2.5">
-        {morePhotos > 0 && (
-          <span className="pointer-events-auto flex items-center gap-1 rounded-full bg-sv-navy/70 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-sm backdrop-blur">
-            <Images className="h-3 w-3" aria-hidden />
-            {t('card.allPhotos', { n: morePhotos })}
+        {photoTotal > 1 && (
+          <span className="rounded-full bg-sv-navy/70 px-2 py-0.5 text-[11px] font-extrabold tabular-nums text-white shadow-sm backdrop-blur">
+            {photo + 1}/{photoTotal}
           </span>
         )}
         {multi && (
@@ -384,22 +416,6 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         )}
       </div>
 
-      {lifestyle.length > 0 && (
-        <div className={`absolute left-3 z-10 flex max-w-[70%] flex-wrap gap-1 ${multi || morePhotos > 0 ? 'bottom-24' : 'bottom-4'}`}>
-          {lifestyle.map((key) => {
-            const Icon = SIGNAL_ICON[key]
-            return (
-              <span
-                key={key}
-                className="flex max-w-full items-center gap-1 rounded-full bg-sv-navy/60 px-2 py-0.5 text-[10px] font-extrabold text-white backdrop-blur"
-              >
-                <Icon className="h-3 w-3 shrink-0" aria-hidden />
-                <span className="truncate">{t(key)}</span>
-              </span>
-            )
-          })}
-        </div>
-      )}
     </div>
   )
 
@@ -410,7 +426,6 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const place = l.district && l.city && l.district.includes(l.city)
     ? l.district
     : [l.district, l.city].filter(Boolean).join(', ')
-  const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
 
   const showPerM2 = l.dealType === 'sale' && l.perM2USD > 0
 
@@ -428,6 +443,23 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       >
         {showPerM2 ? formatPerM2(l, currency) : '\u00a0'}
       </p>
+      {/* Lifestyle under price — was photo overlay, covered dots/chevrons */}
+      {lifestyle.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {lifestyle.map((key) => {
+            const Icon = SIGNAL_ICON[key]
+            return (
+              <span
+                key={key}
+                className="flex max-w-full items-center gap-1 rounded-full bg-sv-cloud px-2 py-0.5 text-[10px] font-extrabold text-sv-ink/70"
+              >
+                <Icon className="h-3 w-3 shrink-0 text-sv-blue" aria-hidden />
+                <span className="truncate">{t(key)}</span>
+              </span>
+            )
+          })}
+        </div>
+      )}
 
       <h3 className="mt-2.5 line-clamp-2 min-h-[2.7em] text-[15px] font-extrabold leading-[1.35] text-sv-ink transition-colors group-hover:text-sv-blue">
         <LocalizedLink

@@ -64,7 +64,7 @@ export const FEATURE_KEYS = [
 ] as const satisfies readonly DictKey[]
 
 /**
- * S-tier daily lifestyle signals — search quick chips + card overlays.
+ * S-tier daily lifestyle signals — search quick chips + card body (under price).
  * Order = priority (max 2 on cards). Same keys as Collections deep-links.
  * Not a paid "sticker" SKU — free truth surface.
  * Paid ნიშნები: sticker_urgent / sticker_price_drop in promo-pricing.

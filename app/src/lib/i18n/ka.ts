@@ -136,7 +136,7 @@ export const ka = {
   'detail.zoomPhoto': 'ფოტოს გადიდება',
   'detail.photo': 'ფოტო {n}',
   'detail.photoViewer': 'ფოტოების ნახვა',
-  'card.allPhotos': 'ყველა ფოტო +{n}',
+  'card.allPhotos': 'ყველა ფოტო +({n})',
   'detail.close': 'დახურვა',
   'detail.addFavorite': 'ფავორიტებში დამატება',
   'detail.removeFavorite': 'ფავორიტებიდან წაშლა',

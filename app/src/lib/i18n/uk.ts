@@ -136,7 +136,7 @@ export const uk: Dict = {
   'detail.zoomPhoto': 'Збільшити фото',
   'detail.photo': 'Фото {n}',
   'detail.photoViewer': 'Переглядач фото',
-  'card.allPhotos': 'Усі фото +{n}',
+  'card.allPhotos': 'Усі фото +({n})',
   'detail.close': 'Закрити',
   'detail.addFavorite': 'Додати в обране',
   'detail.removeFavorite': 'Видалити з обраного',

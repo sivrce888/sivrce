@@ -136,7 +136,7 @@ export const he: Dict = {
   'detail.zoomPhoto': 'הגדלת תמונה',
   'detail.photo': 'תמונה {n}',
   'detail.photoViewer': 'מציג תמונות',
-  'card.allPhotos': 'כל התמונות +{n}',
+  'card.allPhotos': 'כל התמונות +({n})',
   'detail.close': 'סגירה',
   'detail.addFavorite': 'הוספה למועדפים',
   'detail.removeFavorite': 'הסרה ממועדפים',

@@ -136,7 +136,7 @@ export const hy: Dict = {
   'detail.zoomPhoto': 'Մեծացնել լուսանկարը',
   'detail.photo': 'Լուսանկար {n}',
   'detail.photoViewer': 'Լուսանկարների դիտիչ',
-  'card.allPhotos': 'Բոլոր լուսանկարները +{n}',
+  'card.allPhotos': 'Բոլոր լուսանկարները +({n})',
   'detail.close': 'Փակել',
   'detail.addFavorite': 'Ավելացնել նախընտրածներին',
   'detail.removeFavorite': 'Հեռացնել նախընտրածներից',
