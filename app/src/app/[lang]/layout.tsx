@@ -23,7 +23,7 @@ const GA_ID = "G-T90P2YSK4B";
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
-  display: "swap",
+  display: "optional",
   // Latin-only subsets; Georgian text uses Noto below — save the preload slot
   preload: false,
 });
