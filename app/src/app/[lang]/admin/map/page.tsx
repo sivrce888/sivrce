@@ -169,6 +169,8 @@ async function DiagnosticsTab() {
     { label: "Style light", value: platform.styleUrlLight },
     { label: "Style clean", value: platform.styleUrlClean },
     { label: "Style dark", value: platform.styleUrlDark },
+    { label: "JSON cache ver", value: platform.jsonCacheVer },
+    { label: "Geocode API", value: platform.geocodeEnabled ? "on" : "off" },
     { label: "Satellite toggle", value: platform.satelliteEnabled ? "on" : "off" },
   ]
 

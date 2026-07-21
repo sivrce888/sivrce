@@ -6,6 +6,7 @@
  */
 
 import { type NextRequest, NextResponse } from "next/server"
+import { getConfig } from "@/lib/config"
 import {
   geocodeAddress,
   geocodeListingAddress,
@@ -17,6 +18,9 @@ import { isSameOrigin } from "@/lib/security/origin"
 export const dynamic = "force-dynamic"
 
 export async function GET(req: NextRequest) {
+  if (!(await getConfig("map.geocodeEnabled"))) {
+    return NextResponse.json({ ok: false, error: "geocode_disabled" }, { status: 503 })
+  }
   if (!isSameOrigin(req) && process.env.NODE_ENV === "production") {
     return NextResponse.json({ ok: false, error: "bad_origin" }, { status: 403 })
   }

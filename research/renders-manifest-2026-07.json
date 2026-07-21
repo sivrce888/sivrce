@@ -7,860 +7,6 @@
     "batch": 1
   },
   {
-    "slug": "ambassadori-island-first-tower",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "anagi-m3-saburtalo",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "anagi-police-city",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "archi-dighomi",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "archi-dighomi-3",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://archi.ge/en/complex/archi-dighomi-3",
-    "batch": 1
-  },
-  {
-    "slug": "archi-isani-2",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/archi-isani-2-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "archi-kikvidze-garden",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/archi-kikvidze-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "archi-king-tamar",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://archi.ge/en/block/archi-king-tamar",
-    "batch": 1
-  },
-  {
-    "slug": "archi-lisi-sunrise",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://archi.ge/en/complex/lisi-sunrise-1",
-    "batch": 1
-  },
-  {
-    "slug": "archi-nutsubidze-2",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://archi.ge/en/complex/archi-nutsubidze-2-1",
-    "batch": 1
-  },
-  {
-    "slug": "archi-ramada-batumi",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/archi-ramada-batumi-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "archi-universe",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://archi.ge/en/complex/archi-universe",
-    "batch": 1
-  },
-  {
-    "slug": "axis-avlabari",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.axis.ge/en/project/aqsisi-avlabari/59",
-    "batch": 1
-  },
-  {
-    "slug": "axis-chavchavadze-49",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.axis.ge/en/project/chavchavadzis-49/41/6",
-    "batch": 1
-  },
-  {
-    "slug": "axis-hippodrome",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.axis.ge/en/project/axis-hippodrome/42",
-    "batch": 1
-  },
-  {
-    "slug": "axis-palace-1",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.axis.ge/en/project/axis-palace-1/44",
-    "batch": 1
-  },
-  {
-    "slug": "axis-palace-2",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.axis.ge/en/project/axis-palace-2/45",
-    "batch": 1
-  },
-  {
-    "slug": "axis-towers-vake",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "axis-tsinamdzghvrishvili-125",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.axis.ge/en/project/tsinamdzghvrishvili-125/55",
-    "batch": 1
-  },
-  {
-    "slug": "bakuriani-prospect",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/bakuriani-prospect-bakuriani",
-    "batch": 1
-  },
-  {
-    "slug": "batumi-riviera-tower",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "biograpi-chantan",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/chantan-by-biograpi-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "biograpi-daira",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://biograpi.ge/en/daira",
-    "batch": 1
-  },
-  {
-    "slug": "biograpi-gardani",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/gardani-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "biograpi-libretto",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://biograpi.ge/en/libretto",
-    "batch": 1
-  },
-  {
-    "slug": "biograpi-matiani",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/matiani-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "biograpi-mozaika",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://biograpi.ge/en/mozaika",
-    "batch": 1
-  },
-  {
-    "slug": "biograpi-sakeni",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://biograpi.ge/en/sakeni",
-    "batch": 1
-  },
-  {
-    "slug": "blox-avlabari",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/blox-avlabari-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "blox-krtsanisi",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://blox.ge/proeqtebi/blox-krtsanisi?fromLanding=true",
-    "batch": 1
-  },
-  {
-    "slug": "blox-teimuraz-1",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://blox.ge/en/proeqtebi/blox-didi-digomi",
-    "batch": 1
-  },
-  {
-    "slug": "build-group-ketevan-74",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "calligraphy-towers",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/calligraphy-towers-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "chargali-residence",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/chargali-residence-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "cityzen-tower",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://cityzen.ge/en",
-    "batch": 1
-  },
-  {
-    "slug": "crystal-loft-bakuriani",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/crystal-loft-bakuriani",
-    "batch": 1
-  },
-  {
-    "slug": "crystal-resort-bakuriani",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/crystal-resort-bakuriani",
-    "batch": 1
-  },
-  {
-    "slug": "dirsi-riverside",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "domus-gazapkhuli",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://domusi.com/en/binebi/domus-gazapkhuli/23",
-    "batch": 1
-  },
-  {
-    "slug": "domus-sera",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://domusi.com/en/binebi/domus-sera/26",
-    "batch": 1
-  },
-  {
-    "slug": "downtown-residence",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "ds-white-line",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/new-line-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "elt-barcelo-residences",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "forms-tsatskhvebi-3-14",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "gbg-andronikashvili",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "gg-varketili-sukhishvili",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/5-ilia-sukhishvili-street-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "gldani-inn",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.inndevelopment.ge/en/project",
-    "batch": 1
-  },
-  {
-    "slug": "gtb-didi-digomi",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/didi-digomi-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "gulfstream-seaview",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "gumbati-midtown",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/midtown-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "gumbati-montemar",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://gumbati.ge/ka/projects/montemar",
-    "batch": 1
-  },
-  {
-    "slug": "gumbati-residence-gonio",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://gumbati.ge/en/projects/gumbati-residence",
-    "batch": 1
-  },
-  {
-    "slug": "gumbati-villa-kokhta-mitarbi",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "horizon-premium-hotel",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "horizons-deluxe",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/horizons-deluxe-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "horizons-grand-residence",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://horizonsbatumi.com/horizon-grand-residence",
-    "batch": 1
-  },
-  {
-    "slug": "kobuleti-wellness-residence",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/kobuleti-wellness-residence-kobuleti",
-    "batch": 1
-  },
-  {
-    "slug": "krtsanisi-resort-residence",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://vr.ge/en/projects/vr-krtsanisi-resort-residence-2/",
-    "batch": 1
-  },
-  {
-    "slug": "kura-rustavi",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/kura-rustavi",
-    "batch": 1
-  },
-  {
-    "slug": "kvirike-residence",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/kvirike-residence-kobuleti",
-    "batch": 1
-  },
-  {
-    "slug": "lagoon-resort",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/lagoon-resort-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "like-house-azure-tower",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/bluesky-tower-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "like-house-prime-residence",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/prime-residence-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "livin-dadiani-263",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "m2-at-chkondideli",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://m2.ge/projects/m2-chkondidelze",
-    "batch": 1
-  },
-  {
-    "slug": "m2-at-nutsubidze-2",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://m2.ge/projects/m2-nutsubidzeze-2",
-    "batch": 1
-  },
-  {
-    "slug": "m2-hippodrome",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "mardi-aquapark",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://mardi.ge/aquapark-residence-ar",
-    "batch": 1
-  },
-  {
-    "slug": "metropol-lisi",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "metropol-oval",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/oval-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "metropol-parallel",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/the-parallel-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "metropol-shindisi",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "moedani",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/moedani-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "mziani-valley",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/mziani-valley-bakuriani",
-    "batch": 1
-  },
-  {
-    "slug": "new-group-dighomi",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://www.newgroup.ge/ka/projects/digomi2025",
-    "batch": 1
-  },
-  {
-    "slug": "new-gudauri-resort-residence",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/new-gudauri-resort-residence-gudauri",
-    "batch": 1
-  },
-  {
-    "slug": "new-gudauri-twins",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/twins-gudauri",
-    "batch": 1
-  },
-  {
-    "slug": "next-cinema-city",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://next-property.com/next-cinema-city-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "nexus-residence-vakhtang",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "ocean-sky-residences",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "omnia-isani",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/omnia-isani-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "one-batumi",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "orbi-avant-garde",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/avant-garde-by-orbi-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-avenue",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://orbi.ge/en/project/avenue-by-orbi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-central-park-towers",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://orbi.ge/en/project/central-park-towers",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-city-park",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/city-park-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-comfort",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/comfort-by-orbi-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-crystal",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://orbi.ge/en/projects",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-marjanishvili",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/orbi-marjanishvili-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-marjanishvili-batumi",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/orbi-marjanishvili-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-old-batumi",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/orbi-old-batumi-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-old-city",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/orbi-city-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-plaza",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/orbi-plaza-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-sunset-boulevard",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/orbi-boulevard-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "orbi-towers-kazbegi",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/central-park-towers-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "passage-gldani",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/passage-gldani-tbilisi",
-    "batch": 1
-  },
-  {
-    "slug": "premium-house-gagarin",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "redco-bamboo-beach",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/bamboo-beach-tsikhisdziri-kobuleti",
-    "batch": 1
-  },
-  {
-    "slug": "redix-chavchavadze-64",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "reside-dest-corner",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/dest-corner-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "reside-riverside",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "royal-bohema-residence",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "royal-didube-tower",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "rustaveli-xvii",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://bb.ge/en/business/news/2635",
-    "batch": 1
-  },
-  {
-    "slug": "shekvetili-forest-beach",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://vr.ge/en/projects/vr-shekvetili-forest-2/",
-    "batch": 1
-  },
-  {
-    "slug": "solana-beach-residence",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "solana-grand-residences",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/solana-grand-residences-kobuleti",
-    "batch": 1
-  },
-  {
-    "slug": "sun-estate-shekvetili",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://sunestate.ge/",
-    "batch": 1
-  },
-  {
-    "slug": "symbol-residences",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "tbilisi-hills",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://tbilisihills.com/estate/apartments/",
-    "batch": 1
-  },
-  {
-    "slug": "tekto-franco",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/tekto-franco-makhinjauri",
-    "batch": 1
-  },
-  {
-    "slug": "tekto-point",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/tekto-point-batumi",
-    "batch": 1
-  },
-  {
-    "slug": "telavalley-residence",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/telavalley-residence-telavi",
-    "batch": 1
-  },
-  {
-    "slug": "telavi-residence",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/telavi-residence-telavi",
-    "batch": 1
-  },
-  {
-    "slug": "telavi-sun",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/telavi-sun-telavi",
-    "batch": 1
-  },
-  {
-    "slug": "tempo-queens-residence",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "tempo-sensa",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://tempoholding.ge/sensa",
-    "batch": 1
-  },
-  {
-    "slug": "tower-gelovani",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
-  },
-  {
-    "slug": "white-square-kutaisi",
-    "status": "ok",
-    "source": "korter",
-    "sourceUrl": "https://korter.ge/en/white-square-kutaisi-kutaisi",
-    "batch": 1
-  },
-  {
-    "slug": "white-square-varketili-2",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://w2.ge/en/project/varketili-2",
-    "batch": 1
-  },
-  {
-    "slug": "white-square-varketili-5",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://w2.ge/en/project/varketili-5",
-    "batch": 1
-  },
-  {
-    "slug": "wyndham-grand-gonio",
-    "status": "ok",
-    "source": "official",
-    "sourceUrl": "https://wyndhamgrandbatumigonio.com/",
-    "batch": 1
-  },
-  {
     "slug": "alliance-centropolis",
     "status": "ok",
     "source": "korter",
@@ -932,22 +78,22 @@
   },
   {
     "slug": "ambassadori-island-first-tower",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
   {
     "slug": "anagi-m3-saburtalo",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
   {
     "slug": "anagi-police-city",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1030,10 +176,17 @@
   },
   {
     "slug": "archi-dighomi",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
+  },
+  {
+    "slug": "archi-dighomi-3",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://archi.ge/en/complex/archi-dighomi-3",
+    "batch": 1
   },
   {
     "slug": "archi-grand-avenue",
@@ -1057,11 +210,39 @@
     "batch": 2
   },
   {
+    "slug": "archi-isani-2",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-isani-2-tbilisi",
+    "batch": 1
+  },
+  {
+    "slug": "archi-kikvidze-garden",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-kikvidze-tbilisi",
+    "batch": 1
+  },
+  {
+    "slug": "archi-king-tamar",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://archi.ge/en/block/archi-king-tamar",
+    "batch": 1
+  },
+  {
     "slug": "archi-lilac",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/archi-lilac-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "archi-lisi-sunrise",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://archi.ge/en/complex/lisi-sunrise-1",
+    "batch": 1
   },
   {
     "slug": "archi-nutsubidze",
@@ -1071,11 +252,25 @@
     "batch": 2
   },
   {
+    "slug": "archi-nutsubidze-2",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://archi.ge/en/complex/archi-nutsubidze-2-1",
+    "batch": 1
+  },
+  {
     "slug": "archi-panorama",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/archi-panorama-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "archi-ramada-batumi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/archi-ramada-batumi-batumi",
+    "batch": 1
   },
   {
     "slug": "archi-rivertown",
@@ -1090,6 +285,13 @@
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/archi-rustavi-rustavi",
     "batch": 2
+  },
+  {
+    "slug": "archi-universe",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://archi.ge/en/complex/archi-universe",
+    "batch": 1
   },
   {
     "slug": "arcon-elegance",
@@ -1120,11 +322,46 @@
     "batch": 2
   },
   {
+    "slug": "axis-avlabari",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.axis.ge/en/project/aqsisi-avlabari/59",
+    "batch": 1
+  },
+  {
+    "slug": "axis-chavchavadze-49",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.axis.ge/en/project/chavchavadzis-49/41/6",
+    "batch": 1
+  },
+  {
+    "slug": "axis-hippodrome",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.axis.ge/en/project/axis-hippodrome/42",
+    "batch": 1
+  },
+  {
     "slug": "axis-palace",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://www.axis.ge/en/project/axis-palace-1/44",
     "batch": 2
+  },
+  {
+    "slug": "axis-palace-1",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.axis.ge/en/project/axis-palace-1/44",
+    "batch": 1
+  },
+  {
+    "slug": "axis-palace-2",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.axis.ge/en/project/axis-palace-2/45",
+    "batch": 1
   },
   {
     "slug": "axis-towers",
@@ -1135,15 +372,29 @@
   },
   {
     "slug": "axis-towers-vake",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
   {
+    "slug": "axis-tsinamdzghvrishvili-125",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.axis.ge/en/project/tsinamdzghvrishvili-125/55",
+    "batch": 1
+  },
+  {
+    "slug": "bakuriani-prospect",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/bakuriani-prospect-bakuriani",
+    "batch": 1
+  },
+  {
     "slug": "batumi-riviera-tower",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1162,11 +413,67 @@
     "batch": 2
   },
   {
+    "slug": "biograpi-chantan",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/chantan-by-biograpi-tbilisi",
+    "batch": 1
+  },
+  {
+    "slug": "biograpi-daira",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://biograpi.ge/en/daira",
+    "batch": 1
+  },
+  {
+    "slug": "biograpi-gardani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/gardani-tbilisi",
+    "batch": 1
+  },
+  {
     "slug": "biograpi-hisni",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://biograpi.ge/en/hisni",
     "batch": 2
+  },
+  {
+    "slug": "biograpi-libretto",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://biograpi.ge/en/libretto",
+    "batch": 1
+  },
+  {
+    "slug": "biograpi-matiani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/matiani-tbilisi",
+    "batch": 1
+  },
+  {
+    "slug": "biograpi-mozaika",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://biograpi.ge/en/mozaika",
+    "batch": 1
+  },
+  {
+    "slug": "biograpi-sakeni",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://biograpi.ge/en/sakeni",
+    "batch": 1
+  },
+  {
+    "slug": "blox-avlabari",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/blox-avlabari-tbilisi",
+    "batch": 1
   },
   {
     "slug": "blox-beliashvili",
@@ -1190,6 +497,13 @@
     "batch": 2
   },
   {
+    "slug": "blox-krtsanisi",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://blox.ge/proeqtebi/blox-krtsanisi?fromLanding=true",
+    "batch": 1
+  },
+  {
     "slug": "blox-mukhiani",
     "status": "ok",
     "source": "korter",
@@ -1211,6 +525,13 @@
     "batch": 2
   },
   {
+    "slug": "blox-teimuraz-1",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://blox.ge/en/proeqtebi/blox-didi-digomi",
+    "batch": 1
+  },
+  {
     "slug": "blox-varketili",
     "status": "ok",
     "source": "korter",
@@ -1219,10 +540,24 @@
   },
   {
     "slug": "build-group-ketevan-74",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
+  },
+  {
+    "slug": "calligraphy-towers",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/calligraphy-towers-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "chargali-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/chargali-residence-tbilisi",
+    "batch": 1
   },
   {
     "slug": "city-center-gldani",
@@ -1230,6 +565,13 @@
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/city-centre-gldani-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "cityzen-tower",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://cityzen.ge/en",
+    "batch": 1
   },
   {
     "slug": "console-lisi-townhouse",
@@ -1246,11 +588,25 @@
     "batch": 2
   },
   {
+    "slug": "crystal-loft-bakuriani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/crystal-loft-bakuriani",
+    "batch": 1
+  },
+  {
     "slug": "crystal-park-hotel",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/crystal-park-hotel-bakuriani",
     "batch": 2
+  },
+  {
+    "slug": "crystal-resort-bakuriani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/crystal-resort-bakuriani",
+    "batch": 1
   },
   {
     "slug": "davide-abashvili-varketili",
@@ -1268,8 +624,8 @@
   },
   {
     "slug": "dirsi-riverside",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1288,11 +644,25 @@
     "batch": 2
   },
   {
+    "slug": "domus-gazapkhuli",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://domusi.com/en/binebi/domus-gazapkhuli/23",
+    "batch": 1
+  },
+  {
     "slug": "domus-nea",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://domusi.com/en/binebi/domus-nea/25",
     "batch": 2
+  },
+  {
+    "slug": "domus-sera",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://domusi.com/en/binebi/domus-sera/26",
+    "batch": 1
   },
   {
     "slug": "domus-trees",
@@ -1317,10 +687,11 @@
   },
   {
     "slug": "downtown-residence",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "retired-stock",
     "sourceUrl": null,
-    "batch": 2
+    "batch": 4,
+    "note": "no verified unique hero; catalog img=/images/np1.webp (hidden when real media exists)"
   },
   {
     "slug": "ds-uniq-residence",
@@ -1328,6 +699,13 @@
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/uniq-residence-batumi",
     "batch": 2
+  },
+  {
+    "slug": "ds-white-line",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/new-line-batumi",
+    "batch": 1
   },
   {
     "slug": "eco-lisi-residence",
@@ -1338,8 +716,8 @@
   },
   {
     "slug": "elt-barcelo-residences",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1372,11 +750,25 @@
     "batch": 2
   },
   {
+    "slug": "gg-varketili-sukhishvili",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/5-ilia-sukhishvili-street-tbilisi",
+    "batch": 1
+  },
+  {
     "slug": "gldani-by-index",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/gldani-by-index-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "gldani-inn",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.inndevelopment.ge/en/project",
+    "batch": 1
   },
   {
     "slug": "gonio-yachts-marina",
@@ -1428,11 +820,40 @@
     "batch": 2
   },
   {
+    "slug": "gtb-didi-digomi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/didi-digomi-tbilisi",
+    "batch": 1
+  },
+  {
     "slug": "gulfstream-seaview",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "retired-stock",
     "sourceUrl": null,
-    "batch": 2
+    "batch": 4,
+    "note": "no verified unique hero; catalog img=/images/np1.webp (hidden when real media exists)"
+  },
+  {
+    "slug": "gumbati-midtown",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/midtown-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "gumbati-montemar",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://gumbati.ge/ka/projects/montemar",
+    "batch": 1
+  },
+  {
+    "slug": "gumbati-residence-gonio",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://gumbati.ge/en/projects/gumbati-residence",
+    "batch": 1
   },
   {
     "slug": "gumbati-vake-residence",
@@ -1443,8 +864,8 @@
   },
   {
     "slug": "gumbati-villa-kokhta-mitarbi",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1471,10 +892,24 @@
   },
   {
     "slug": "horizon-premium-hotel",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 2
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/horizons-deluxe-batumi",
+    "batch": 4
+  },
+  {
+    "slug": "horizons-deluxe",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/horizons-deluxe-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "horizons-grand-residence",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://horizonsbatumi.com/horizon-grand-residence",
+    "batch": 1
   },
   {
     "slug": "idea-panorama",
@@ -1498,6 +933,13 @@
     "batch": 2
   },
   {
+    "slug": "kobuleti-wellness-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/kobuleti-wellness-residence-kobuleti",
+    "batch": 1
+  },
+  {
     "slug": "krtsanisi-grande",
     "status": "ok",
     "source": "korter",
@@ -1505,11 +947,53 @@
     "batch": 2
   },
   {
+    "slug": "krtsanisi-resort-residence",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://vr.ge/en/projects/vr-krtsanisi-resort-residence-2/",
+    "batch": 1
+  },
+  {
+    "slug": "kura-rustavi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/kura-rustavi",
+    "batch": 1
+  },
+  {
+    "slug": "kvirike-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/kvirike-residence-kobuleti",
+    "batch": 1
+  },
+  {
+    "slug": "lagoon-resort",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/lagoon-resort-batumi",
+    "batch": 1
+  },
+  {
     "slug": "le-meridien-sioni-lake-resort-spa-by-archi",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/le-meridien-sioni-lake-resort-spa-by-archi-tianeti",
     "batch": 2
+  },
+  {
+    "slug": "like-house-azure-tower",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/bluesky-tower-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "like-house-prime-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/prime-residence-batumi",
+    "batch": 1
   },
   {
     "slug": "lisi-development-green-urban",
@@ -1540,11 +1024,25 @@
     "batch": 2
   },
   {
+    "slug": "m2-at-chkondideli",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://m2.ge/projects/m2-chkondidelze",
+    "batch": 1
+  },
+  {
     "slug": "m2-at-mirtskhulava",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://m2.ge/projects/m2-mirtskhulavaze",
     "batch": 2
+  },
+  {
+    "slug": "m2-at-nutsubidze-2",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://m2.ge/projects/m2-nutsubidzeze-2",
+    "batch": 1
   },
   {
     "slug": "m2-highlight",
@@ -1555,8 +1053,8 @@
   },
   {
     "slug": "m2-hippodrome",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1573,6 +1071,13 @@
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/maqro-city-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "mardi-aquapark",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://mardi.ge/aquapark-residence-ar",
+    "batch": 1
   },
   {
     "slug": "mardi-city-center",
@@ -1625,8 +1130,8 @@
   },
   {
     "slug": "metropol-lisi",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1636,6 +1141,20 @@
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/metropol-ortachala-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "metropol-oval",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/oval-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "metropol-parallel",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/the-parallel-batumi",
+    "batch": 1
   },
   {
     "slug": "metropol-shindisi",
@@ -1666,6 +1185,13 @@
     "batch": 2
   },
   {
+    "slug": "moedani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/moedani-tbilisi",
+    "batch": 1
+  },
+  {
     "slug": "monolith-dighomi-city",
     "status": "ok",
     "source": "korter",
@@ -1694,6 +1220,13 @@
     "batch": 2
   },
   {
+    "slug": "mziani-valley",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/mziani-valley-bakuriani",
+    "batch": 1
+  },
+  {
     "slug": "mziuri-gardens",
     "status": "ok",
     "source": "korter",
@@ -1706,6 +1239,13 @@
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/mziuri-residence-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "new-group-dighomi",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.newgroup.ge/ka/projects/digomi2025",
+    "batch": 1
   },
   {
     "slug": "new-group-kavtaradze-19",
@@ -1722,11 +1262,32 @@
     "batch": 2
   },
   {
+    "slug": "new-gudauri-resort-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/new-gudauri-resort-residence-gudauri",
+    "batch": 1
+  },
+  {
+    "slug": "new-gudauri-twins",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/twins-gudauri",
+    "batch": 1
+  },
+  {
     "slug": "next-address",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/next-address-batumi",
     "batch": 2
+  },
+  {
+    "slug": "next-cinema-city",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://next-property.com/next-cinema-city-tbilisi",
+    "batch": 1
   },
   {
     "slug": "next-collection",
@@ -1821,8 +1382,8 @@
   },
   {
     "slug": "ocean-sky-residences",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1855,11 +1416,32 @@
     "batch": 2
   },
   {
+    "slug": "omnia-isani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/omnia-isani-tbilisi",
+    "batch": 1
+  },
+  {
     "slug": "one-batumi",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
+  },
+  {
+    "slug": "orbi-avant-garde",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/avant-garde-by-orbi-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "orbi-avenue",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://orbi.ge/en/project/avenue-by-orbi",
+    "batch": 1
   },
   {
     "slug": "orbi-beach-tower",
@@ -1869,11 +1451,32 @@
     "batch": 2
   },
   {
+    "slug": "orbi-central-park-towers",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://orbi.ge/en/project/central-park-towers",
+    "batch": 1
+  },
+  {
     "slug": "orbi-city",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://orbi.ge/en/project/orbi-city",
     "batch": 2
+  },
+  {
+    "slug": "orbi-city-park",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/city-park-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "orbi-comfort",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/comfort-by-orbi-batumi",
+    "batch": 1
   },
   {
     "slug": "orbi-continental",
@@ -1883,11 +1486,53 @@
     "batch": 2
   },
   {
+    "slug": "orbi-crystal",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://orbi.ge/en/projects",
+    "batch": 1
+  },
+  {
+    "slug": "orbi-marjanishvili",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-marjanishvili-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "orbi-marjanishvili-batumi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-marjanishvili-batumi",
+    "batch": 1
+  },
+  {
     "slug": "orbi-millennium",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://orbi.ge/en/project/orbi-millennium",
     "batch": 2
+  },
+  {
+    "slug": "orbi-old-batumi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-old-batumi-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "orbi-old-city",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-city-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "orbi-plaza",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-plaza-batumi",
+    "batch": 1
   },
   {
     "slug": "orbi-residence",
@@ -1904,11 +1549,32 @@
     "batch": 2
   },
   {
+    "slug": "orbi-sunset-boulevard",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-boulevard-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "orbi-towers-kazbegi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/central-park-towers-tbilisi",
+    "batch": 1
+  },
+  {
     "slug": "pala-varketili",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/pala-varketili-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "passage-gldani",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/passage-gldani-tbilisi",
+    "batch": 1
   },
   {
     "slug": "pontus-rotana-gonio",
@@ -1926,8 +1592,8 @@
   },
   {
     "slug": "premium-house-gagarin",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1946,9 +1612,16 @@
     "batch": 2
   },
   {
+    "slug": "redco-bamboo-beach",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/bamboo-beach-tsikhisdziri-kobuleti",
+    "batch": 1
+  },
+  {
     "slug": "redix-chavchavadze-64",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -1967,11 +1640,19 @@
     "batch": 2
   },
   {
+    "slug": "reside-dest-corner",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/dest-corner-batumi",
+    "batch": 1
+  },
+  {
     "slug": "reside-riverside",
     "status": "ok",
-    "source": "official",
+    "source": "retired-stock",
     "sourceUrl": null,
-    "batch": 2
+    "batch": 4,
+    "note": "no verified unique hero; catalog img=/images/np1.webp (hidden when real media exists)"
   },
   {
     "slug": "river-park-by-index",
@@ -1983,9 +1664,10 @@
   {
     "slug": "royal-bohema-residence",
     "status": "ok",
-    "source": "official",
+    "source": "retired-stock",
     "sourceUrl": null,
-    "batch": 2
+    "batch": 4,
+    "note": "no verified unique hero; catalog img=/images/np1.webp (hidden when real media exists)"
   },
   {
     "slug": "royal-didube-tower",
@@ -2009,11 +1691,25 @@
     "batch": 2
   },
   {
+    "slug": "rustaveli-xvii",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://bb.ge/en/business/news/2635",
+    "batch": 1
+  },
+  {
     "slug": "seven-tsatskhvebi-16",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/tsatskhvebi-st-16-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "shekvetili-forest-beach",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://vr.ge/en/projects/vr-shekvetili-forest-2/",
+    "batch": 1
   },
   {
     "slug": "silk-towers",
@@ -2038,10 +1734,17 @@
   },
   {
     "slug": "solana-beach-residence",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
+  },
+  {
+    "slug": "solana-grand-residences",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/solana-grand-residences-kobuleti",
+    "batch": 1
   },
   {
     "slug": "sport-city-batumi",
@@ -2065,9 +1768,16 @@
     "batch": 2
   },
   {
+    "slug": "sun-estate-shekvetili",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://sunestate.ge/",
+    "batch": 1
+  },
+  {
     "slug": "symbol-residences",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
   },
@@ -2086,11 +1796,32 @@
     "batch": 2
   },
   {
+    "slug": "tbilisi-hills",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://tbilisihills.com/estate/apartments/",
+    "batch": 1
+  },
+  {
     "slug": "tbilisi-waterfront",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/tbilisi-waterfront-tbilisi",
     "batch": 2
+  },
+  {
+    "slug": "tekto-franco",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tekto-franco-makhinjauri",
+    "batch": 1
+  },
+  {
+    "slug": "tekto-point",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tekto-point-batumi",
+    "batch": 1
   },
   {
     "slug": "tekto-rakurs",
@@ -2100,11 +1831,39 @@
     "batch": 2
   },
   {
+    "slug": "telavalley-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/telavalley-residence-telavi",
+    "batch": 1
+  },
+  {
+    "slug": "telavi-residence",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/telavi-residence-telavi",
+    "batch": 1
+  },
+  {
+    "slug": "telavi-sun",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/telavi-sun-telavi",
+    "batch": 1
+  },
+  {
     "slug": "tempo-queens-residence",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "local",
     "sourceUrl": null,
     "batch": 2
+  },
+  {
+    "slug": "tempo-sensa",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://tempoholding.ge/sensa",
+    "batch": 1
   },
   {
     "slug": "tempo-serenade",
@@ -2156,6 +1915,13 @@
     "batch": 2
   },
   {
+    "slug": "white-square-kutaisi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/white-square-kutaisi-kutaisi",
+    "batch": 1
+  },
+  {
     "slug": "white-square-mindeli",
     "status": "ok",
     "source": "korter",
@@ -2168,6 +1934,27 @@
     "source": "official",
     "sourceUrl": "https://w2.ge/en/project/shartava",
     "batch": 2
+  },
+  {
+    "slug": "white-square-varketili-2",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://w2.ge/en/project/varketili-2",
+    "batch": 1
+  },
+  {
+    "slug": "white-square-varketili-5",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://w2.ge/en/project/varketili-5",
+    "batch": 1
+  },
+  {
+    "slug": "wyndham-grand-gonio",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://wyndhamgrandbatumigonio.com/",
+    "batch": 1
   },
   {
     "slug": "x2-bakuriani-4rest",

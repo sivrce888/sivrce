@@ -48,12 +48,12 @@ export function toMapProxyUrl(url: string): string {
  */
 export const MAP_JSON_CACHE_VER = '3'
 
-export function scrubMapJson(text: string, origin: string): string {
+export function scrubMapJson(text: string, origin: string, cacheVer = MAP_JSON_CACHE_VER): string {
   const proxied = text.split(OFM_ORIGIN).join(`${origin}${MAP_PROXY_PREFIX}`)
   try {
     const data: unknown = JSON.parse(proxied)
     scrubVendorFields(data)
-    bustPlanetUrls(data)
+    bustPlanetUrls(data, cacheVer)
     return JSON.stringify(data)
   } catch {
     // Non-JSON (shouldn't happen on this path) — return host rewrite only.
@@ -61,17 +61,17 @@ export function scrubMapJson(text: string, origin: string): string {
   }
 }
 
-function bustPlanetUrls(node: unknown): void {
+function bustPlanetUrls(node: unknown, cacheVer: string): void {
   if (!node || typeof node !== 'object') return
   if (Array.isArray(node)) {
-    for (const item of node) bustPlanetUrls(item)
+    for (const item of node) bustPlanetUrls(item, cacheVer)
     return
   }
   const obj = node as Record<string, unknown>
   if (typeof obj.url === 'string' && /\/api\/map\/planet\/?$/.test(obj.url.split('?')[0]!)) {
-    obj.url = `${obj.url.split('?')[0]}?v=${MAP_JSON_CACHE_VER}`
+    obj.url = `${obj.url.split('?')[0]}?v=${cacheVer}`
   }
-  for (const v of Object.values(obj)) bustPlanetUrls(v)
+  for (const v of Object.values(obj)) bustPlanetUrls(v, cacheVer)
 }
 
 function scrubVendorFields(node: unknown): void {
