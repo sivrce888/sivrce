@@ -34,7 +34,8 @@ const notoGeorgian = Noto_Sans_Georgian({
   weight: ["600", "900"],
   variable: "--font-noto-georgian",
   display: "optional",
-  preload: false,
+  // ponytail: preload LCP face so optional window catches it (lab LCP was ~8s without)
+  preload: true,
 });
 
 const SITE_URL = "https://sivrce.ge";
