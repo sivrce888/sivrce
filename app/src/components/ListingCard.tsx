@@ -235,13 +235,25 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           Mid: ‹ › chevrons (hover / touch)
           Bottom: fixed - - - - · +N all-photos (overflow)
       */}
-      {l.badge && (
-        <span className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider shadow-sm ${BADGE_STYLE[l.badge]}`}>
-          {l.badge === 'SUPER VIP' ? <Crown className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
-          {l.badge}
+      {(l.badge || l.isExclusive) && (
+        <span
+          className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider shadow-sm ${
+            l.isExclusive
+              ? 'bg-gradient-to-r from-sv-navy via-sv-blue to-sv-violet text-white shadow-glow-blue-sm border border-sv-blue-light/30'
+              : BADGE_STYLE[l.badge!]
+          }`}
+        >
+          {l.isExclusive ? (
+            <SparkMark className="h-3 w-3 text-sv-orange" />
+          ) : l.badge === 'SUPER VIP' ? (
+            <Crown className="h-3 w-3" />
+          ) : (
+            <Flame className="h-3 w-3" />
+          )}
+          {l.isExclusive ? '✦ ექსკლუზივი' : l.badge}
         </span>
       )}
-      {l.projectCatalog && !l.badge && (
+      {l.projectCatalog && !l.badge && !l.isExclusive && (
         <span className="absolute left-3 top-4 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white shadow-sm backdrop-blur">
           პროექტი
         </span>
@@ -250,7 +262,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         urgent={l.stickerUrgent}
         priceDrop={l.stickerPriceDrop}
         inStory={l.inStory}
-        className={`absolute left-3 z-20 ${l.badge || l.projectCatalog ? 'top-14' : 'top-4'}`}
+        className={`absolute left-3 z-20 ${l.badge || l.isExclusive || l.projectCatalog ? 'top-14' : 'top-4'}`}
       />
 
       <div className="absolute right-3 top-4 z-20 flex gap-1.5">
