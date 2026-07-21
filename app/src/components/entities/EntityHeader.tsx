@@ -6,6 +6,7 @@ import { SERVICE_BRAND } from '@/lib/category-brand'
 import type { LocalName } from '@/data/professionals'
 import { StatsRow, type StatItem } from './StatsRow'
 import { useEntities, pick, localizeCity, type EntitiesKey } from './i18n'
+import { DeveloperLogo } from './DeveloperLogo'
 
 export interface EntityHeaderProps {
   kind: 'developer' | 'agent'
@@ -20,9 +21,10 @@ export interface EntityHeaderProps {
   subtitle?: string
   /** Official developer logo URL (korter GCS) */
   logoUrl?: string
+  slug?: string
 }
 
-export function EntityHeader({ kind, name, city, verified, phone, stats, subtitle, logoUrl }: EntityHeaderProps) {
+export function EntityHeader({ kind, name, city, verified, phone, stats, subtitle, logoUrl, slug }: EntityHeaderProps) {
   const { lang, d } = useEntities()
   const brand = SERVICE_BRAND[kind === 'developer' ? 'developers' : 'agents']
   const displayName = pick(name, lang)
@@ -34,7 +36,14 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
     <header className="border-b border-sv-ink/[0.06] bg-sv-cloud">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:justify-between md:px-10 md:py-14">
         <div className="flex items-start gap-5">
-          {logoUrl ? (
+          {kind === 'developer' ? (
+            <DeveloperLogo
+              slug={slug || name.en.toLowerCase().replace(/\s+/g, '-')}
+              name={name}
+              logoUrl={logoUrl}
+              size="lg"
+            />
+          ) : logoUrl ? (
             <span
               aria-hidden
               className="relative h-20 w-20 shrink-0 overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface md:h-24 md:w-24"

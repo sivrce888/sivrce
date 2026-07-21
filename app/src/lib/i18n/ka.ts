@@ -320,7 +320,7 @@ export const ka = {
   'add.cond.greenFrame': 'მწვანე კარკასი',
   'add.cond.whitePlus': 'თეთრი პლიუსი',
   'add.status': 'სტატუსი',
-  'add.status.new': 'ახალი აშენებული',
+  'add.status.new': 'ახალაშენებული',
   'add.status.old': 'ძველი აშენებული',
   'add.status.construction': 'მშენებარე',
   'add.status.completed': 'დასრულებული',

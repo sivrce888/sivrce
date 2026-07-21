@@ -6,6 +6,7 @@ import { BadgeCheck, MapPin, Star } from 'lucide-react'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import type { LocalName } from '@/data/professionals'
 import { useEntities, pick, localizeCity } from './i18n'
+import { DeveloperLogo } from './DeveloperLogo'
 
 export interface EntityCardProps {
   kind: 'developer' | 'agent'
@@ -53,7 +54,14 @@ export function EntityCard({
       className="group block rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
     >
       <div className="flex items-center gap-4">
-        {logoUrl ? (
+        {kind === 'developer' ? (
+          <DeveloperLogo
+            slug={slug}
+            name={name}
+            logoUrl={logoUrl}
+            size="md"
+          />
+        ) : logoUrl ? (
           <span
             aria-hidden
             className="relative h-14 w-14 shrink-0 overflow-hidden rounded-module border border-sv-ink/[0.06] bg-sv-cloud"

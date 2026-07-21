@@ -122,9 +122,9 @@ export default function HScroll({
 
   const sm = size === 'sm'
   const btnBase = sm
-    ? 'absolute top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-sm transition-[opacity,transform,border-color,color] duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
-    : 'absolute top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-sm transition-[opacity,transform,border-color,color] duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
-  const btnOn = 'opacity-100 hover:border-sv-blue hover:text-sv-blue'
+    ? 'absolute top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
+    : 'absolute top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
+  const btnOn = 'opacity-100 hover:scale-105 hover:border-sv-blue hover:text-sv-blue hover:shadow-card-hover active:scale-95'
   const btnOff = 'pointer-events-none opacity-0'
   const icon = sm ? 'h-4 w-4' : 'h-5 w-5'
 
@@ -147,7 +147,7 @@ export default function HScroll({
             aria-label={t('search.prev')}
             disabled={!edges.canL}
             onClick={() => scrollBy(-1)}
-            className={`${btnBase} start-2 md:start-3 ${edges.canL ? btnOn : btnOff}`}
+            className={`${btnBase} left-2 md:left-4 ${edges.canL ? btnOn : btnOff}`}
           >
             <ChevronLeft className={icon} />
           </button>
@@ -156,7 +156,7 @@ export default function HScroll({
             aria-label={t('search.next')}
             disabled={!edges.canR}
             onClick={() => scrollBy(1)}
-            className={`${btnBase} end-2 md:end-3 ${edges.canR ? btnOn : btnOff}`}
+            className={`${btnBase} right-2 md:right-4 ${edges.canR ? btnOn : btnOff}`}
           >
             <ChevronRight className={icon} />
           </button>

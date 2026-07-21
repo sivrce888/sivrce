@@ -1,5 +1,5 @@
 /**
- * Seed one searchable "ახალი აშენება" listing per CDN-backed project.
+ * Seed one searchable "ახალი მშენებლობა" listing per CDN-backed project.
  *
  * Why: Georgia #1 needs inventory density. These are catalog inquiry cards
  * (not fabricated unit floorplans) — title/description say "from ₾/m²",
@@ -54,7 +54,7 @@ const slugByDevName = new Map(DEVELOPERS.map((d) => [d.name.ka, d.slug]))
 
 export function catalogTitle(name: string, usdPerM2: number): string {
   const gel = Math.round(usdPerM2 * USD_GEL)
-  const base = `${name} — ახალი აშენება, ${gel.toLocaleString("en-US")}/მ²-დან`
+  const base = `${name} — ახალი მშენებლობა, ${gel.toLocaleString("en-US")}/მ²-დან`
   return base.slice(0, 180)
 }
 
@@ -73,7 +73,7 @@ export function catalogImages(hero: string, gallery: string[] = []): string[] {
 
 async function main() {
   if (process.argv.includes("--check")) {
-    assert.equal(catalogTitle("Test", 1000).includes("ახალი აშენება"), true)
+    assert.equal(catalogTitle("Test", 1000).includes("ახალი მშენებლობა"), true)
     assert.equal(catalogPriceGel(1000), Math.round(1000 * 50 * USD_GEL))
     assert.deepEqual(catalogImages("a.webp", ["a.webp", "b.webp", "c.webp"]), ["a.webp", "b.webp", "c.webp"])
     assert.equal(catalogImages("h.webp", Array.from({ length: 20 }, (_, i) => `g${i}.webp`)).length, 16)
@@ -160,7 +160,7 @@ async function main() {
       lat: p.lat,
       lng: p.lng,
       images: catalogImages(p.image, p.gallery),
-      features: ["ახალი აშენება", p.developer.slice(0, 40)],
+      features: ["ახალი მშენებლობა", p.developer.slice(0, 40)],
       petsAllowed: false,
       sellerType: "agency",
       listingPhone: phone.slice(0, 30),
