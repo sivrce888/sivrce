@@ -61,25 +61,20 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
 
         <HeroSearch />
 
-        <div
-          className="sv-hero-in mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"
-          style={{ animationDelay: '0.3s' }}
-        >
+        {/* ponytail: no sv-hero-in — opacity entrance still attributed 0.032 CLS on this row */}
+        <div className="mt-14 flex h-9 flex-wrap items-center justify-center gap-x-10 gap-y-4 overflow-hidden">
           {TRUST.map((t, i) => (
             <div key={t.key} className="flex items-center gap-2.5 text-white/70">
-              <t.icon className="h-[18px] w-[18px] text-sv-success" />
+              <t.icon className="h-[18px] w-[18px] shrink-0 text-sv-success" />
               <span className="text-[13px] font-bold md:text-[14px]">{trust[i]}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div
-        className="sv-hero-in absolute bottom-6 left-1/2 z-10 -translate-x-1/2"
-        style={{ animationDelay: '0.5s' }}
-      >
+      <div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2">
         <div className="flex h-12 w-7 items-start justify-center rounded-full border-2 border-white/25 p-1.5">
-          <span className="animate-scroll-hint h-2 w-2 rounded-full bg-white/70" />
+          <span className="h-2 w-2 rounded-full bg-white/70" />
         </div>
       </div>
     </section>
