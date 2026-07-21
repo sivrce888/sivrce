@@ -29,8 +29,10 @@ export type FloorInfo = {
 const MIN_FLOORS = 1
 const MAX_FLOORS = 60
 
-// ponytail: floor stacks paused per owner 2026-07 — re-enable with NEXT_PUBLIC_FLOOR_STACKS=1
-export const FLOOR_STACKS_ON = process.env.NEXT_PUBLIC_FLOOR_STACKS === '1'
+// ponytail: floor stacks paused per owner 2026-07 — re-enable via admin map.floorStacksEnabled or NEXT_PUBLIC_FLOOR_STACKS=1
+export const FLOOR_STACKS_ENV = process.env.NEXT_PUBLIC_FLOOR_STACKS === '1'
+/** Sync default (env only). Prefer getMapPlatformConfig() / buildingShowsFloorStack(…, enabled). */
+export const FLOOR_STACKS_ON = FLOOR_STACKS_ENV
 
 /** Floors to draw: admin inventory wins, then catalog value, listings, height formula. */
 export function buildingFloorCount(b: MapBuildingCluster): number {
@@ -44,8 +46,11 @@ export function buildingFloorCount(b: MapBuildingCluster): number {
  * Floor stack on /map — only developments (inventory or construction).
  * Secondary-market clicks stay solid extrusion (cleaner, less gimmick).
  */
-export function buildingShowsFloorStack(b: MapBuildingCluster): boolean {
-  if (!FLOOR_STACKS_ON) return false
+export function buildingShowsFloorStack(
+  b: MapBuildingCluster,
+  enabled: boolean = FLOOR_STACKS_ON,
+): boolean {
+  if (!enabled) return false
   if (b.inventory?.length) return true
   return b.status === 'construction'
 }

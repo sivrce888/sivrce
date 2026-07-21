@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { projectsLive } from '@/lib/directory-live'
 import { getDbBuildingClusters, getMapListings } from '@/lib/map/db-buildings'
+import { getMapPlatformConfig } from '@/lib/map/platform-config'
 import { MAP_UI_COOKIE, parseMapUiRaw } from '@/lib/map/map-ui'
 import { Map3DLazy } from './Map3DLazy'
 
@@ -20,10 +21,11 @@ export const metadata: Metadata = {
 export default async function MapPage() {
   const cookieStore = await cookies()
   const initialUi = parseMapUiRaw(cookieStore.get(MAP_UI_COOKIE)?.value)
-  const [dbBuildings, listings, projects] = await Promise.all([
+  const [dbBuildings, listings, projects, platform] = await Promise.all([
     getDbBuildingClusters(),
     getMapListings(),
     projectsLive(),
+    getMapPlatformConfig(),
   ])
   return (
     <div className="flex min-h-dvh flex-col bg-sv-navy">
@@ -61,6 +63,7 @@ export default async function MapPage() {
         listings={listings}
         projects={projects}
         initialUi={initialUi}
+        platform={platform}
       />
     </div>
   )
