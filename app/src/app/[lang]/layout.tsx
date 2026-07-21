@@ -23,7 +23,7 @@ const GA_ID = "G-T90P2YSK4B";
 const manrope = Manrope({
   subsets: ["latin"],
   // ponytail: 2 weights only — default multi-weight pulled 5 woff2 onto FCP chain
-  weight: ["600", "800"],
+  weight: ["600", "900"],
   variable: "--font-manrope",
   display: "optional",
   preload: false,
