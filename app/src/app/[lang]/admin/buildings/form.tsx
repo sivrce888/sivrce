@@ -112,7 +112,7 @@ export function BuildingForm({
           <label htmlFor="status" className={labelCls}>Status *</label>
           <select id="status" name="status" required defaultValue={building?.status ?? "active"} className={inputCls}>
             <option value="active">active (on map)</option>
-            <option value="construction">construction (ghost + render on map)</option>
+            <option value="construction">construction (3D render on map)</option>
             <option value="completed">completed project</option>
             <option value="hidden">hidden (off map)</option>
           </select>
@@ -121,7 +121,12 @@ export function BuildingForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Image path" name="img" defaultValue={building?.img} placeholder="/images/p1.webp" />
+        <Field
+          label="Image / GLB path"
+          name="img"
+          defaultValue={building?.img}
+          placeholder="/images/p1.webp or https://…/building.glb"
+        />
         <div className="flex items-end pb-1">
           <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-[14px] font-bold text-sv-ink">
             <input

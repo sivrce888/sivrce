@@ -145,6 +145,17 @@ const CLUSTER_ID = 'sivrce-buildings-cluster'
 const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
 /** Defaults — admin MapPlatformConfig overrides at runtime. */
 const DETAIL_ZOOM = 13.5
+
+/** Hide MapLibre extrusion for floor-stack selection and/or textured three.js massing. */
+function massingHideFilter(
+  hideId: string | null,
+  textured: Set<string>,
+): FilterSpecification | null {
+  const ids = hideId ? [hideId, ...textured] : [...textured]
+  if (ids.length === 0) return null
+  if (ids.length === 1) return ['!=', ['get', 'id'], ids[0]!] as FilterSpecification
+  return ['!', ['in', ['get', 'id'], ['literal', ids]]] as FilterSpecification
+}
 const PRICE_MIN_ZOOM = 11.2
 const CLUSTER_MAX_ZOOM = 13
 
@@ -522,6 +533,7 @@ function Map3DInner({
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
   const visibleRef = useRef<MapBuildingCluster[]>([])
+  const texturedRef = useRef<Set<string>>(new Set())
   const allRef = useRef<MapBuildingCluster[]>([])
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
@@ -814,15 +826,26 @@ function Map3DInner({
     src?.setData(buildingsToGeoJSON(visible))
     const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
     pts?.setData(buildingsToPointsGeoJSON(visible))
-    syncConstructionRenders(map, visible, {
-      minZoom: DETAIL_ZOOM,
-      beforeId: FILL_ID,
+    let cancelled = false
+    void syncConstructionRenders(map, visible).then((textured) => {
+      if (cancelled || !mapRef.current) return
+      texturedRef.current = textured
+      const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
+      const hideId = showFloors && selected ? selected.id : null
+      const hide = massingHideFilter(hideId, textured)
+      for (const layer of [EXTRUDE_ID, FILL_ID]) {
+        if (!map.getLayer(layer)) continue
+        map.setFilter(layer, hide)
+      }
     })
     if (selected && !visible.some((b) => b.id === selected.id)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- deselect when filters hide it
       selectBuilding(null)
     }
-  }, [visible, ready, selected, selectBuilding])
+    return () => {
+      cancelled = true
+    }
+  }, [visible, ready, selected, selectBuilding, floorStacksOn])
 
   // Floor stack only for developments with stock — else keep solid extrusion.
   useEffect(() => {
@@ -835,10 +858,15 @@ function Map3DInner({
     )
     if (!showFloors) popupRef.current?.remove()
     const hideId = showFloors && selected ? selected.id : null
-    for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
+    const hide = massingHideFilter(hideId, texturedRef.current)
+    for (const layer of [EXTRUDE_ID, FILL_ID]) {
       if (!map.getLayer(layer)) continue
+      map.setFilter(layer, hide)
+    }
+    // Labels stay; only hide label for floor-stack building
+    if (map.getLayer(LABEL_ID)) {
       map.setFilter(
-        layer,
+        LABEL_ID,
         (hideId ? ['!=', ['get', 'id'], hideId] : null) as FilterSpecification | null,
       )
     }
@@ -1174,10 +1202,7 @@ function Map3DInner({
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
           await ensureLayers(map, visibleRef.current, zooms)
-          syncConstructionRenders(map, visibleRef.current, {
-            minZoom: DETAIL_ZOOM,
-            beforeId: FILL_ID,
-          })
+          await syncConstructionRenders(map, visibleRef.current)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
