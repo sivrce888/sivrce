@@ -136,7 +136,7 @@ export const az: Dict = {
   'detail.zoomPhoto': 'Şəkli böyüt',
   'detail.photo': 'Şəkil {n}',
   'detail.photoViewer': 'Şəkil baxıcısı',
-  'card.allPhotos': 'Bütün şəkillər +{n}',
+  'card.allPhotos': 'Bütün şəkillər +({n})',
   'detail.close': 'Bağla',
   'detail.addFavorite': 'Seçilmişlərə əlavə et',
   'detail.removeFavorite': 'Seçilmişlərdən sil',

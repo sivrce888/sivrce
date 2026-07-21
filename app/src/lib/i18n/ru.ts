@@ -136,7 +136,7 @@ export const ru: Dict = {
   'detail.zoomPhoto': 'Увеличить фото',
   'detail.photo': 'Фото {n}',
   'detail.photoViewer': 'Просмотр фото',
-  'card.allPhotos': 'Все фото +{n}',
+  'card.allPhotos': 'Все фото +({n})',
   'detail.close': 'Закрыть',
   'detail.addFavorite': 'В избранное',
   'detail.removeFavorite': 'Удалить из избранного',

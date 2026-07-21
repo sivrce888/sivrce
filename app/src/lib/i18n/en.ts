@@ -136,7 +136,7 @@ export const en: Dict = {
   'detail.zoomPhoto': 'Enlarge photo',
   'detail.photo': 'Photo {n}',
   'detail.photoViewer': 'Photo viewer',
-  'card.allPhotos': 'All photos +{n}',
+  'card.allPhotos': 'All photos +({n})',
   'detail.close': 'Close',
   'detail.addFavorite': 'Add to favorites',
   'detail.removeFavorite': 'Remove from favorites',

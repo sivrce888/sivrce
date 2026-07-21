@@ -136,7 +136,7 @@ export const ar: Dict = {
   'detail.zoomPhoto': 'تكبير الصورة',
   'detail.photo': 'صورة {n}',
   'detail.photoViewer': 'عارض الصور',
-  'card.allPhotos': 'كل الصور +{n}',
+  'card.allPhotos': 'كل الصور +({n})',
   'detail.close': 'إغلاق',
   'detail.addFavorite': 'إضافة إلى المفضلة',
   'detail.removeFavorite': 'إزالة من المفضلة',

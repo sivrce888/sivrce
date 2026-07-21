@@ -26,6 +26,7 @@ type Props = {
 /**
  * Horizontal rail: no scrollbar, side arrows, mouse-drag.
  * Touch = native overflow. Arrows stay mounted (fade) once overflow exists.
+ * md arrows pin to first card's media midline (not full-card mid).
  */
 export default function HScroll({
   children,
@@ -35,19 +36,33 @@ export default function HScroll({
   'aria-label': ariaLabel,
 }: Props) {
   const { t } = useI18n()
+  const wrapRef = useRef<HTMLDivElement>(null)
   const ref = useRef<HTMLDivElement>(null)
   const drag = useRef<{ x: number; left: number; moved: boolean; id: number } | null>(null)
   const suppressClick = useRef(false)
   const [edges, setEdges] = useState({ canL: false, canR: false })
   const [overflow, setOverflow] = useState(false)
+  // ponytail: null until measure; CSS fallback top-[7.5rem] for 4/3 cards
+  const [arrowY, setArrowY] = useState<number | null>(null)
 
   const update = useCallback(() => {
     const el = ref.current
+    const wrap = wrapRef.current
     if (!el) return
     const next = scrollEdges(el.scrollLeft, el.clientWidth, el.scrollWidth)
     setEdges(next)
     setOverflow(next.canL || next.canR || el.scrollWidth > el.clientWidth + 2)
-  }, [])
+
+    if (size === 'sm' || !wrap) return
+    const card = el.firstElementChild as HTMLElement | null
+    const media =
+      card?.querySelector<HTMLElement>('img, video, [class*="aspect-"]') ?? card
+    if (!media) return
+    const wr = wrap.getBoundingClientRect()
+    const mr = media.getBoundingClientRect()
+    if (mr.height < 8) return
+    setArrowY(Math.round(mr.top - wr.top + mr.height / 2))
+  }, [size])
 
   useEffect(() => {
     const el = ref.current
@@ -56,6 +71,8 @@ export default function HScroll({
     el.addEventListener('scroll', update, { passive: true })
     const ro = new ResizeObserver(update)
     ro.observe(el)
+    const first = el.firstElementChild
+    if (first instanceof HTMLElement) ro.observe(first)
     return () => {
       el.removeEventListener('scroll', update)
       ro.disconnect()
@@ -123,10 +140,11 @@ export default function HScroll({
   const sm = size === 'sm'
   const btnBase = sm
     ? 'absolute top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
-    : 'absolute top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
+    : `absolute z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${arrowY == null ? 'top-[7.5rem]' : ''}`
   const btnOn = 'opacity-100 hover:scale-105 hover:border-sv-blue hover:text-sv-blue hover:shadow-card-hover active:scale-95'
   const btnOff = 'pointer-events-none opacity-0'
   const icon = sm ? 'h-4 w-4' : 'h-5 w-5'
+  const btnStyle = !sm && arrowY != null ? { top: arrowY } : undefined
 
   // Edge fade only on the side that still has content
   const mask =
@@ -139,7 +157,7 @@ export default function HScroll({
           : undefined
 
   return (
-    <div className="relative">
+    <div ref={wrapRef} className="relative">
       {overflow ? (
         <>
           <button
@@ -147,7 +165,8 @@ export default function HScroll({
             aria-label={t('search.prev')}
             disabled={!edges.canL}
             onClick={() => scrollBy(-1)}
-            className={`${btnBase} left-2 md:left-4 ${edges.canL ? btnOn : btnOff}`}
+            style={btnStyle}
+            className={`${btnBase} left-3 md:left-5 ${edges.canL ? btnOn : btnOff}`}
           >
             <ChevronLeft className={icon} />
           </button>
@@ -156,7 +175,8 @@ export default function HScroll({
             aria-label={t('search.next')}
             disabled={!edges.canR}
             onClick={() => scrollBy(1)}
-            className={`${btnBase} right-2 md:right-4 ${edges.canR ? btnOn : btnOff}`}
+            style={btnStyle}
+            className={`${btnBase} right-3 md:right-5 ${edges.canR ? btnOn : btnOff}`}
           >
             <ChevronRight className={icon} />
           </button>
