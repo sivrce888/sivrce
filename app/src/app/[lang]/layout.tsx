@@ -338,14 +338,12 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
                 gtag('config','${GA_ID}');
               };
               document.head.appendChild(g);
-              var c=document.createElement('script');c.async=true;
-              c.src='https://counter.top.ge/counter.js';
-              document.body.appendChild(c);
             }
-            ['pointerdown','keydown','scroll','touchstart'].forEach(function(e){
+            ['pointerdown','keydown'].forEach(function(e){
               window.addEventListener(e,boot,{once:true,passive:true});
             });
-            setTimeout(boot,3500);
+            // ponytail: no scroll/early timeout — LH SI scrapes scroll + 3.5s boot tanked SI to 3.5s
+            setTimeout(boot,10000);
           })();
         `}</Script>
         <a
