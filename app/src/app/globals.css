@@ -15,7 +15,7 @@
 @source inline("max-w-[7.5rem]");
 @source inline("max-w-[9rem]");
 
-/* cache-bust 2026-07-19: responsive chrome (nav/hero) */
+/* cache-bust 2026-07-21b: homepage rail gutter */
 
 @custom-variant dark (&:is(.dark *));
 

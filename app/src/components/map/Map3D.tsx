@@ -241,6 +241,7 @@ async function ensureLayers(
   })
 
   // Far zoom — unclustered deal/status colored dots
+  // Construction = STATUS sky (#5B8BFF) + blue-light ring so it separates from sale blue on navy.
   map.addLayer({
     id: DOT_ID,
     type: 'circle',
@@ -249,10 +250,30 @@ async function ensureLayers(
     filter: ['!', ['has', 'point_count']],
     paint: {
       // ponytail: zoom must stay top-level in MapLibre; hover/selected sizes live in DOT_ACTIVE_ID overlay
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 3.5, 10, 5.5, 13, 7.5],
+      'circle-radius': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        7,
+        ['case', ['==', ['get', 'status'], 'construction'], 4.2, 3.5],
+        10,
+        ['case', ['==', ['get', 'status'], 'construction'], 6.4, 5.5],
+        13,
+        ['case', ['==', ['get', 'status'], 'construction'], 8.5, 7.5],
+      ],
       'circle-color': ['get', 'hue'],
-      'circle-stroke-width': 1.5,
-      'circle-stroke-color': '#FFFFFF',
+      'circle-stroke-width': [
+        'case',
+        ['==', ['get', 'status'], 'construction'],
+        2.25,
+        1.5,
+      ],
+      'circle-stroke-color': [
+        'case',
+        ['==', ['get', 'status'], 'construction'],
+        BRAND.colors.blueLight,
+        '#FFFFFF',
+      ],
       'circle-opacity': [
         'case',
         ['boolean', ['feature-state', 'seen'], false], 0.55,
@@ -283,7 +304,12 @@ async function ensureLayers(
         ['boolean', ['feature-state', 'hover'], false], 1.5,
         0,
       ],
-      'circle-stroke-color': '#FFFFFF',
+      'circle-stroke-color': [
+        'case',
+        ['==', ['get', 'status'], 'construction'],
+        BRAND.colors.blueLight,
+        '#FFFFFF',
+      ],
       'circle-opacity': [
         'case',
         ['any',
@@ -827,23 +853,31 @@ function Map3DInner({
     const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
     pts?.setData(buildingsToPointsGeoJSON(visible))
     let cancelled = false
-    void syncConstructionRenders(map, visible).then((textured) => {
+    // Load order: GeoJSON pins already set; textured 3D massing after idle (tiles + dots first).
+    const runMassing = () => {
       if (cancelled || !mapRef.current) return
-      texturedRef.current = textured
-      const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
-      const hideId = showFloors && selected ? selected.id : null
-      const hide = massingHideFilter(hideId, textured)
-      for (const layer of [EXTRUDE_ID, FILL_ID]) {
-        if (!map.getLayer(layer)) continue
-        map.setFilter(layer, hide)
-      }
-    })
+      void syncConstructionRenders(map, visible).then((textured) => {
+        if (cancelled || !mapRef.current) return
+        texturedRef.current = textured
+        const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
+        const hideId = showFloors && selected ? selected.id : null
+        const hide = massingHideFilter(hideId, textured)
+        for (const layer of [EXTRUDE_ID, FILL_ID]) {
+          if (!map.getLayer(layer)) continue
+          map.setFilter(layer, hide)
+        }
+      })
+    }
+    const ric = window.requestIdleCallback?.(runMassing, { timeout: 900 })
+    const tid = ric == null ? window.setTimeout(runMassing, 0) : 0
     if (selected && !visible.some((b) => b.id === selected.id)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- deselect when filters hide it
       selectBuilding(null)
     }
     return () => {
       cancelled = true
+      if (ric != null) window.cancelIdleCallback?.(ric)
+      if (tid) window.clearTimeout(tid)
     }
   }, [visible, ready, selected, selectBuilding, floorStacksOn])
 
@@ -1613,8 +1647,21 @@ function Map3DInner({
         </div>
 
         {!ready && !error && (
-          <div className={`absolute inset-0 z-10 grid place-items-center text-[14px] font-bold ${isDark ? 'bg-sv-navy/80 text-white/70' : 'bg-sv-cloud/85 text-sv-ink/55'}`}>
-            3D რუკა იტვირთება…
+          <div
+            className={`absolute inset-0 z-10 grid place-items-center ${isDark ? 'bg-sv-navy/80' : 'bg-sv-cloud/85'}`}
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <span
+                className="h-10 w-7 rounded-sm opacity-90 shadow-glow-blue"
+                style={{ background: STATUS_BRAND.construction.hue }}
+                aria-hidden
+              />
+              <p className={`text-[14px] font-bold ${isDark ? 'text-white/70' : 'text-sv-ink/55'}`}>
+                3D რუკა იტვირთება…
+              </p>
+            </div>
           </div>
         )}
         {error && (

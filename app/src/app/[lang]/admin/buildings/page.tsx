@@ -1,4 +1,4 @@
-import { MapPinned, Plus, Star } from "lucide-react"
+import { Download, MapPinned, Plus, Star } from "lucide-react"
 import Link from "next/link"
 
 import { DataTable, THeadRow, TRow, td, th } from "@/components/admin/ui/DataTable"
@@ -12,6 +12,8 @@ import { fmtDate, fmtNum } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
 import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
 import { db } from "@/lib/db"
+
+import { importProjectPins } from "./actions"
 
 export const metadata = { title: "Map buildings" }
 
@@ -32,6 +34,7 @@ export default async function AdminBuildingsPage({
   const page = parsePage(sp.page)
   const q = param(sp.q)
   const status = param(sp.status)
+  const imported = param(sp.imported)
 
   const where = {
     ...(status ? { status } : {}),
@@ -62,16 +65,32 @@ export default async function AdminBuildingsPage({
     <>
       <PageHeader
         title="Map buildings"
-        description={`${fmtNum(total)} curated buildings on the 3D map · hidden rows stay off the map`}
+        description={`${fmtNum(total)} buildings editable on the 3D map · hidden rows stay off the map`}
         actions={
-          <Link
-            href="/admin/buildings/new"
-            className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-4 py-2 text-[13px] font-extrabold text-white transition hover:bg-sv-blue-deep"
-          >
-            <Plus className="h-4 w-4" /> Add building
-          </Link>
+          <>
+            <form action={importProjectPins}>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[13px] font-extrabold text-sv-ink/70 transition hover:border-sv-blue/40 hover:text-sv-blue"
+              >
+                <Download className="h-4 w-4" /> Import all projects
+              </button>
+            </form>
+            <Link
+              href="/admin/buildings/new"
+              className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-4 py-2 text-[13px] font-extrabold text-white transition hover:bg-sv-blue-deep"
+            >
+              <Plus className="h-4 w-4" /> Add building
+            </Link>
+          </>
         }
       />
+
+      {imported ? (
+        <p className="mb-4 rounded-module border border-sv-blue/20 bg-sv-blue/5 px-4 py-2.5 text-[13px] font-bold text-sv-blue">
+          +{imported} project pin(s) added — click any row to edit lat/lng.
+        </p>
+      ) : null}
 
       <div className="mb-4 flex flex-wrap items-end gap-x-6 gap-y-3">
         <SearchForm
@@ -86,7 +105,7 @@ export default async function AdminBuildingsPage({
         <EmptyState
           icon={MapPinned}
           title="No buildings found"
-          hint="Add a building or run the seed (npx tsx scripts/seed.ts) to load the 12 popular landmarks."
+          hint='Click "Import all projects" to pull every map pin into this list for editing.'
         />
       ) : (
         <DataTable>

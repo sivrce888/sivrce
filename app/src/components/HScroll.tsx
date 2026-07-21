@@ -20,6 +20,11 @@ type Props = {
   step?: number
   /** sm = stories / chips; md = listing cards (default). */
   size?: 'sm' | 'md'
+  /**
+   * Align rail padding with max-w-[1440px] + md:px-10 page columns.
+   * Uses element width (not 100vw) so scrollbar doesn’t skew the edge.
+   */
+  pageGutter?: boolean
   'aria-label'?: string
 }
 
@@ -33,6 +38,7 @@ export default function HScroll({
   className = '',
   step,
   size = 'md',
+  pageGutter = false,
   'aria-label': ariaLabel,
 }: Props) {
   const { t } = useI18n()
@@ -44,6 +50,8 @@ export default function HScroll({
   const [overflow, setOverflow] = useState(false)
   // ponytail: null until measure; CSS fallback top-[7.5rem] for 4/3 cards
   const [arrowY, setArrowY] = useState<number | null>(null)
+  // ponytail: JS gutter — 100vw misses scrollbar; CSS class flaky under turbopack HMR
+  const [gutterPad, setGutterPad] = useState<string | undefined>()
 
   const update = useCallback(() => {
     const el = ref.current
@@ -78,6 +86,25 @@ export default function HScroll({
       ro.disconnect()
     }
   }, [update, children])
+
+  useEffect(() => {
+    if (!pageGutter) {
+      setGutterPad(undefined)
+      return
+    }
+    const el = ref.current
+    if (!el) return
+    const sync = () => {
+      const w = el.clientWidth
+      if (w >= 1024) setGutterPad(`${Math.max(40, w / 2 - 720 + 40)}px`)
+      else if (w >= 768) setGutterPad('2.5rem')
+      else setGutterPad('1.25rem')
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [pageGutter, children])
 
   const scrollBy = (dir: -1 | 1) => {
     const el = ref.current
@@ -187,7 +214,12 @@ export default function HScroll({
         role="region"
         tabIndex={0}
         aria-label={ariaLabel}
-        style={mask ? { WebkitMaskImage: mask, maskImage: mask } : undefined}
+        style={{
+          ...(mask ? { WebkitMaskImage: mask, maskImage: mask } : {}),
+          ...(gutterPad
+            ? { paddingLeft: gutterPad, paddingRight: gutterPad }
+            : {}),
+        }}
         className={`scrollbar-hide flex items-stretch cursor-grab overflow-x-auto overscroll-x-contain active:cursor-grabbing ${className}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

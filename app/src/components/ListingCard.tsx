@@ -565,7 +565,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
   const sizeClass =
     layout === 'grid'
-      ? 'w-[86vw] max-w-[400px] shrink-0 sm:w-[380px]'
+      ? 'w-[min(86%,400px)] shrink-0 sm:w-[380px]'
       : layout === 'list'
         ? 'w-full flex-col sm:flex-row'
         : 'h-full w-full'

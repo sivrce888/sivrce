@@ -84,7 +84,7 @@ export default function Navbar() {
   return (
     <header className="sv-nav-in fixed inset-x-0 top-0 z-50">
       <div
-        className={`mx-auto flex h-[68px] w-full max-w-[1440px] items-center gap-2 px-4 transition-all duration-500 sm:gap-3 sm:px-5 md:px-8 ${
+        className={`mx-auto flex h-[68px] w-full max-w-[1440px] items-center gap-2 px-5 transition-all duration-500 sm:gap-3 md:px-10 ${
           light
             ? 'mt-3 max-w-[1240px] rounded-tile glass-light shadow-card md:mt-4'
             : 'bg-transparent'

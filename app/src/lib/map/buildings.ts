@@ -661,7 +661,13 @@ function buildingProps(b: MapBuildingCluster) {
     status: b.status,
     progress: b.progress ?? 100,
     // GEL compact — map has no currency context; list view uses formatMapPin.
-    priceLabel: minGel == null ? '' : formatMapPinGEL(minGel),
+    // Construction ghosts: progress % so mid-zoom reads without inventing a new hue.
+    priceLabel:
+      minGel != null
+        ? formatMapPinGEL(minGel)
+        : b.status === 'construction' && b.listings.length === 0
+          ? `${b.progress ?? 0}%`
+          : '',
   }
 }
 

@@ -49,7 +49,8 @@ export default function Projects({
       <HScroll
         aria-label="მშენებარე ბინები"
         step={560}
-        className="gap-6 px-5 pb-2 pt-2 md:px-10 lg:px-[max(2.5rem,calc((100vw-1440px)/2+2.5rem))]"
+        pageGutter
+        className="gap-6 px-5 pb-2 pt-2 md:px-10"
       >
         {items.map((p, i) => {
           const dev = getDeveloper(p.developerSlug)
@@ -58,7 +59,7 @@ export default function Projects({
             <LocalizedLink
               key={p.slug}
               href={`/projects/${p.slug}`}
-              className="group block w-[min(85vw,520px)] shrink-0"
+              className="group block w-[min(85%,520px)] shrink-0"
             >
               <article className="flex h-full cursor-pointer flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover">
                 <div className="relative aspect-[16/9] overflow-hidden">

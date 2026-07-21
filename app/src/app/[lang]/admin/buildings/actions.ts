@@ -9,6 +9,7 @@ import { optInt, optString, reqEnum, reqFloat, reqString } from "@/lib/admin/val
 import { db } from "@/lib/db"
 import { buildingFootprint } from "@/lib/map/buildings"
 import { MAP_BUILDINGS_TAG } from "@/lib/map/db-buildings"
+import { ensureProjectMapPins } from "@/lib/map/ensure-project-pins"
 import { Prisma } from "@/generated/prisma/client"
 
 const STATUSES = ["active", "construction", "completed", "hidden"] as const
@@ -67,6 +68,17 @@ function readBuildingForm(fd: FormData) {
     developerId: optString(fd, "developerId", 120),
     polygonCoords: parsePolygonCoords(optString(fd, "polygonCoords", 20000)),
   }
+}
+
+/** Pull every project pin into Map buildings (create-only; admin edits kept). */
+export async function importProjectPins() {
+  const session = await requireAdminAction()
+  const created = await ensureProjectMapPins()
+  await logAdminAction(session, "map_building.import_projects", "map_building", "bulk", {
+    after: { created },
+  })
+  revalidateAll()
+  redirect(created > 0 ? `/admin/buildings?imported=${created}` : "/admin/buildings")
 }
 
 export async function upsertBuilding(fd: FormData) {
