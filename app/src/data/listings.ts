@@ -50,6 +50,8 @@ export interface Listing {
   totalFloors: number
   views: number
   badge: Badge
+  /** Exclusive direct listing (✦ ექსკლუზივი badge) */
+  isExclusive?: boolean
   /** Paid color highlight (search card ring) — from extendedFields.colorUntil */
   highlighted?: boolean
   /** Paid „სასწრაფოდ“ sticker */
