@@ -4,6 +4,8 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { MousePointerClick, Building2, BarChart3, Layers, ArrowRight, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Reveal } from '@/components/Reveal'
+import { STATUS_BRAND } from '@/lib/category-brand'
+import { BRAND } from '@/lib/brand'
 import { useI18n } from '@/lib/i18n/context'
 
 const FEATURES = [
@@ -51,11 +53,23 @@ function MapPreviewCard() {
         className="absolute -right-10 bottom-0 h-56 w-56 rounded-full bg-sv-violet/20 blur-[70px]"
       />
       <div aria-hidden className="absolute inset-0">
+        {/* Active listings = brand blue; construction ghosts = STATUS sky (BRAND §3.4). */}
         <span className="absolute left-[18%] top-[42%] h-10 w-7 rounded-sm bg-sv-blue/35 shadow-[0_8px_24px_rgba(5,11,38,0.35)]" />
-        <span className="absolute left-[28%] top-[36%] h-14 w-8 rounded-sm bg-sv-blue-light/30" />
-        <span className="absolute left-[48%] top-[30%] h-20 w-10 rounded-sm bg-gradient-to-t from-sv-blue to-sv-violet/80 shadow-glow-blue" />
+        <span
+          className="absolute left-[28%] top-[36%] h-14 w-8 rounded-sm opacity-90"
+          style={{ background: STATUS_BRAND.construction.hue }}
+        />
+        <span
+          className="absolute left-[48%] top-[30%] h-20 w-10 rounded-sm shadow-glow-blue opacity-95"
+          style={{
+            background: `linear-gradient(to top, ${STATUS_BRAND.construction.hue}, ${BRAND.colors.blueLight})`,
+          }}
+        />
         <span className="absolute left-[62%] top-[40%] h-12 w-7 rounded-sm bg-sv-blue/40" />
-        <span className="absolute left-[72%] top-[46%] h-8 w-6 rounded-sm bg-sv-blue-light/25" />
+        <span
+          className="absolute left-[72%] top-[46%] h-8 w-6 rounded-sm opacity-75"
+          style={{ background: STATUS_BRAND.construction.hue }}
+        />
       </div>
       <div className="absolute left-1/2 top-[38%] z-[1] -translate-x-1/2 -translate-y-full">
         <span className="grid h-11 w-11 place-items-center rounded-full bg-sv-orange text-white shadow-glow-orange">
@@ -138,7 +152,7 @@ export default function MapSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.6, duration: 0.7, ease: [0.21, 0.65, 0.2, 1] }}
-              className="absolute -bottom-6 -left-2 rounded-tile glass p-4 shadow-soft md:-left-8"
+              className="absolute bottom-3 left-3 rounded-tile glass p-4 shadow-soft md:-bottom-6 md:-left-8"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-control bg-sv-blue/20 text-sv-blue-light">

@@ -146,6 +146,11 @@ assert.equal(ghosts[0]!.developerSlug, 'x')
 assert.equal(ghosts[0]!.color, STATUS_BRAND.construction.hue)
 assert.equal(ghosts[0]!.floors, 20)
 assert.equal(ghosts[0]!.heightM, 20 * 3.15) // full planned height, not progress-scaled
+assert.equal(
+  String(buildingsToPointsGeoJSON(ghosts).features[0]!.properties?.priceLabel),
+  `${ghosts[0]!.progress ?? 0}%`,
+  'construction ghost mid-zoom shows progress %',
+)
 assert.equal(STATUS_BRAND.construction.hue, CATEGORY_BRAND.newProjects.hue) // sky blue
 assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.houses.hue)
 assert.notEqual(STATUS_BRAND.construction.hue, CATEGORY_BRAND.land.hue)

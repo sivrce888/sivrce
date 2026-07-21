@@ -273,7 +273,7 @@ export default function HeroSearch() {
 
   return (
     <div
-      className="sv-hero-in mt-11 w-full min-w-0 max-w-[1080px]"
+      className="sv-hero-in mx-auto mt-11 w-full min-w-0 max-w-[1080px]"
       style={{ animationDelay: '0.16s' }}
     >
       {/* Deal tabs — scroll when Georgian labels exceed viewport */}

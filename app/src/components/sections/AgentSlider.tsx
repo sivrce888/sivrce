@@ -52,7 +52,8 @@ export default function AgentSlider({
       <HScroll
         aria-label="ტოპ აგენტების კარუსელი"
         step={340}
-        className="gap-5 px-5 pb-4 md:px-10 lg:px-[max(2.5rem,calc((100vw-1440px)/2+2.5rem))]"
+        pageGutter
+        className="gap-5 px-5 pb-4 md:px-10"
       >
         {agents.map((a, i) => (
           <LocalizedLink

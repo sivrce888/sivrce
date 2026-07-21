@@ -71,7 +71,8 @@ export default function Listings({ items }: { items: Listing[] }) {
       <HScroll
         aria-label="SUPER VIP განცხადებები"
         step={420}
-        className="gap-6 px-5 pb-2 pt-2 md:px-10 lg:px-[max(2.5rem,calc((100vw-1440px)/2+2.5rem))]"
+        pageGutter
+        className="gap-6 px-5 pb-2 pt-2 md:px-10"
       >
         {filteredItems.map((l, i) => (
           <ListingCard key={l.id} l={l} i={i} />
