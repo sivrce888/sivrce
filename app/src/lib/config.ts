@@ -44,6 +44,8 @@ export interface ConfigValues {
   "map.styleUrlLight": string
   "map.styleUrlClean": string
   "map.styleUrlDark": string
+  "map.jsonCacheVer": string
+  "map.geocodeEnabled": boolean
 }
 
 export type ConfigKey = keyof ConfigValues
@@ -265,6 +267,22 @@ export const CONFIG_REGISTRY: { [K in ConfigKey]: ConfigEntry<ConfigValues[K]> }
     input: "text",
     defaultValue: "/api/map/styles/dark",
     parse: textParser(MAP_STYLE_RE),
+  },
+  "map.jsonCacheVer": {
+    section: "map",
+    label: "TileJSON cache bust",
+    hint: "Bump when proxy scrub changes — forces clients off sticky CDN JSON.",
+    input: "text",
+    defaultValue: "3",
+    parse: textParser(/^[a-zA-Z0-9._-]{1,16}$/),
+  },
+  "map.geocodeEnabled": {
+    section: "map",
+    label: "Nominatim geocode API",
+    hint: "Kill-switch for /api/geocode (OSM Nominatim). Off = 503.",
+    input: "bool",
+    defaultValue: true,
+    parse: boolParser,
   },
 }
 

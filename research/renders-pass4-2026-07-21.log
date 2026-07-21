@@ -1,0 +1,34 @@
+batch 1: 31 projects (from=0 limit=31 force)
+FAIL reside-riverside 
+FAIL downtown-residence 
+FAIL batumi-riviera-tower 
+FAIL dirsi-riverside 
+FAIL archi-dighomi 
+FAIL axis-towers-vake 
+FAIL m2-hippodrome 
+FAIL metropol-lisi 
+FAIL elt-barcelo-residences 
+FAIL redix-chavchavadze-64 
+FAIL anagi-m3-saburtalo 
+FAIL anagi-police-city 
+FAIL gumbati-villa-kokhta-mitarbi 
+FAIL horizon-premium-hotel 
+FAIL solana-beach-residence 
+FAIL one-batumi 
+FAIL gulfstream-seaview 
+OK  symbol-residences (korter: https://korter.ge/en/monogram-batumi)
+FAIL build-group-ketevan-74 
+FAIL metropol-shindisi 
+FAIL royal-didube-tower 
+FAIL gbg-andronikashvili 
+FAIL royal-bohema-residence 
+FAIL forms-tsatskhvebi-3-14 
+FAIL premium-house-gagarin 
+FAIL ambassadori-island-first-tower 
+FAIL nexus-residence-vakhtang 
+FAIL tempo-queens-residence 
+FAIL livin-dadiani-263 
+FAIL ocean-sky-residences 
+FAIL tower-gelovani 
+
+batch 1 done: official=0 korter=1 failed=30

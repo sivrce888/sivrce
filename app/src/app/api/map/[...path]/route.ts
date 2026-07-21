@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { getConfig } from '@/lib/config'
 import { mapProxyPathOk, OFM_ORIGIN, scrubMapJson } from '@/lib/map/map-proxy'
 
 export const runtime = 'nodejs'
@@ -53,7 +54,8 @@ export async function GET(req: Request, ctx: Ctx) {
   // Rewrite JSON so Network never shows upstream host. Absolute URLs — MapLibre workers.
   if (ct.includes('json') || path.startsWith('styles/') || path === 'planet') {
     const origin = new URL(req.url).origin
-    const text = scrubMapJson(await res.text(), origin)
+    const cacheVer = await getConfig('map.jsonCacheVer')
+    const text = scrubMapJson(await res.text(), origin, cacheVer)
     return new NextResponse(text, { status: 200, headers })
   }
 

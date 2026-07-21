@@ -20,6 +20,8 @@ export type MapPlatformConfig = {
   styleUrlLight: string
   styleUrlClean: string
   styleUrlDark: string
+  jsonCacheVer: string
+  geocodeEnabled: boolean
 }
 
 export function mapPlatformFromConfig(c: ConfigValues): MapPlatformConfig {
@@ -37,6 +39,8 @@ export function mapPlatformFromConfig(c: ConfigValues): MapPlatformConfig {
     styleUrlLight: c["map.styleUrlLight"],
     styleUrlClean: c["map.styleUrlClean"],
     styleUrlDark: c["map.styleUrlDark"],
+    jsonCacheVer: c["map.jsonCacheVer"],
+    geocodeEnabled: c["map.geocodeEnabled"],
   }
 }
 

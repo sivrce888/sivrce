@@ -1,0 +1,18 @@
+# Cluster A/B remirror + pin pass — 2026-07-21
+
+OK anagi-m3-saburtalo https://korter.ge/en/m-saburtalo-tbilisi → bd-ge 15536 @ 41.7517996,44.7705609
+OK forms-tsatskhvebi-3-14 https://korter.ge/en/14-cackhvebi-iii-lane-tbilisi → 22377 @ 41.73901101,44.74966703
+OK build-group-ketevan-74 https://korter.ge/en/78-ketevan-tsamebuli-avenue-tbilisi → 1835 @ 41.68758969,44.83101886
+OK tower-gelovani https://korter.ge/en/house-on-sarajishvili-5a-tbilisi → 18367 @ 41.75778743,44.76667517
+OK nexus-residence-vakhtang https://korter.ge/en/10-vakhtang-vi-street-tbilisi → 25071 @ 41.69546838,44.81331015
+OK symbol-residences https://korter.ge/en/monogram-batumi (+ symboldevelopment.ge/monogram) → 33627 @ 41.62726306,41.603221
+OK livin-dadiani-263 https://korter.ge/en/livin-tbilisi → 18372 @ 41.74551897,44.79479044
+OK gbg-andronikashvili https://korter.ge/en/gbg-development-tbilisi → 35943 @ 41.77320619,44.76586708 (Digomi, Luarsab 1)
+OK royal-didube-tower royalgroup.ge + geoln + OSM Tsereteli 35/37 @ 41.7278474,44.7885005
+OK metropol-lisi forbes.ge Photo-1-1.jpg (official site 429)
+OK metropol-shindisi forbes.ge shindisis-statiis-qaveri_1920x1080.png
+
+FAIL downtown-residence — no m2 project; do not use Next Tbilisi Downtown
+FAIL gulfstream-seaview — broker, no project hero
+FAIL royal-bohema-residence — no verified page
+FAIL reside-riverside — not on Reside korter portfolio
