@@ -88,6 +88,10 @@ export interface Listing {
   images: string[]
   priceUSD: number
   priceGEL: number
+  /** Locked nominal price originally entered by poster (e.g. 800) */
+  priceOriginal?: number | null
+  /** Original currency selected by poster ('GEL' | 'USD') */
+  currencyOriginal?: 'GEL' | 'USD' | null
   perM2USD: number
   title: string
   address: string
@@ -125,9 +129,12 @@ export interface Listing {
 // Map a Prisma listing row → public Listing shape
 function rowToListing(row: Record<string, unknown>): Listing {
   const r = row as Record<string, unknown>
-  // Rows store price in their own `currency` (USD default); normalize to the GEL base.
-  const usd = r.currency === "USD"
-  const priceGEL = usd ? Math.round(((r.price as number) ?? 0) * USD_GEL) : ((r.price as number) ?? 0)
+  // Rows store price in their own `currency` (USD default); preserve locked currencyOriginal & priceOriginal.
+  const rawPrice = (r.price as number) ?? 0
+  const cur = (r.currency as string) === "GEL" ? "GEL" : "USD"
+  const usd = cur === "USD"
+  const priceGEL = usd ? Math.round(rawPrice * USD_GEL) : rawPrice
+  const priceUSD = usd ? rawPrice : Math.round(rawPrice / USD_GEL)
   const perM2GEL = usd ? Math.round(((r.pricePerSqm as number) ?? 0) * USD_GEL) : ((r.pricePerSqm as number) ?? 0)
   const ext = (r.extendedFields as {
     project?: string
@@ -155,8 +162,10 @@ function rowToListing(row: Record<string, unknown>): Listing {
     publicId: listingPublicId({ id: r.id as string, publicId: r.publicId as number | null | undefined }),
     img: ((r.images as string[]) ?? [])[0] ?? "/images/p1.webp",
     images: (r.images as string[]) ?? [],
-    priceUSD: Math.round(priceGEL / USD_GEL),
+    priceUSD,
     priceGEL,
+    priceOriginal: rawPrice,
+    currencyOriginal: cur,
     perM2USD: Math.round(perM2GEL / USD_GEL),
     title: (r.title as string) ?? "",
     address: (r.address as string) ?? "",

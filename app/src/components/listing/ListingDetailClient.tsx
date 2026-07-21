@@ -37,7 +37,7 @@ import { formatUSD, formatGEL, formatViews,
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
-import { useCurrency } from '@/lib/currency'
+import { useCurrency, formatListingPrice } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useListingsByIds } from '@/lib/use-listings-by-ids'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
@@ -199,7 +199,7 @@ export default function ListingDetailClient({
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const ttCompare = useCompareStrings()
   const { t, lang } = useI18n()
-  const { currency, setCurrency, format } = useCurrency()
+  const { currency, setCurrency, format, rate: liveRate } = useCurrency()
   // ponytail: same scroll+focus as StickyLeadBar — chat stays parked.
   const scrollToLead = () => {
     const form = document.getElementById(LEAD_FORM_ID)
@@ -250,9 +250,16 @@ export default function ListingDetailClient({
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const isSale = l.dealType === 'sale'
-  const priceMain = format(l.priceGEL)
-  const otherCurrency = currency === 'GEL' ? 'USD' : 'GEL'
-  const priceAlt = otherCurrency === 'USD' ? formatUSD(l.priceUSD) : formatGEL(l.priceGEL)
+  const priceDetailObj = formatListingPrice({
+    priceUSD: l.priceUSD,
+    priceGEL: l.priceGEL,
+    priceOriginal: l.priceOriginal,
+    currencyOriginal: l.currencyOriginal,
+    currencyPreference: currency,
+    rate: liveRate,
+  })
+  const priceMain = priceDetailObj.primary
+  const priceAlt = priceDetailObj.secondary
   const publicId = listingPublicId(l)
   const streetHref = useMemo(
     () => streetHrefForListing(l.address, l.district, l.city),

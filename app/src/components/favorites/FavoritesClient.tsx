@@ -27,10 +27,7 @@ export default function FavoritesClient() {
 
   // Logged-in: hydrate watches from server (email path). Guest: localStorage only.
   useEffect(() => {
-    if (!session?.user) {
-      setServerIds(null)
-      return
-    }
+    if (!session?.user) return
     let alive = true
     fetch('/api/price-watches')
       .then((r) => r.json())
@@ -44,11 +41,13 @@ export default function FavoritesClient() {
     }
   }, [session?.user])
 
+  const activeServerIds = session?.user ? serverIds : null
+
   const { items, loading } = useListingsByIds(mounted ? favs : [])
 
   const hasAlert = useCallback(
-    (id: string) => (serverIds ? serverIds.has(id) : hasLocal(id)),
-    [serverIds, hasLocal],
+    (id: string) => (activeServerIds ? activeServerIds.has(id) : hasLocal(id)),
+    [activeServerIds, hasLocal],
   )
 
   const toggleAlert = useCallback(

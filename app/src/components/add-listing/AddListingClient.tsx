@@ -639,7 +639,11 @@ export default function AddListingClient() {
         id: LISTINGS[0].id, // real id so Link prefetch doesn't 404 (card is pointer-events-none anyway)
         img: coverUrl,
         images: photos.map((p) => p.url),
-        priceUSD: priceN, priceGEL: priceN * USD_GEL, perM2USD: areaN ? Math.round(priceN / areaN) : 0,
+        priceUSD: priceCur === 'USD' ? priceEntered : Math.round(priceEntered / USD_GEL),
+        priceGEL: priceCur === 'GEL' ? priceEntered : Math.round(priceEntered * USD_GEL),
+        priceOriginal: priceEntered,
+        currencyOriginal: priceCur,
+        perM2USD: areaN ? Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) / areaN) : 0,
         title: autoTitle,
         address: [street && `${street} ${houseNo}`.trim(), district, city].filter(Boolean).join(', ') || '—',
         city: city || '—', district: district || '—',
@@ -1146,11 +1150,13 @@ export default function AddListingClient() {
                         }}
                         role="combobox"
                         aria-expanded={suggestOpen && suggests.length > 0}
+                        aria-controls="street-suggest-list"
                         aria-autocomplete="list"
                         autoComplete="off"
                       />
                       {suggestOpen && suggests.length > 0 && (
                         <ul
+                          id="street-suggest-list"
                           role="listbox"
                           className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-module border border-sv-ink/10 bg-sv-surface py-1 shadow-card"
                         >
@@ -1569,13 +1575,7 @@ export default function AddListingClient() {
                           <button
                             key={c}
                             type="button"
-                            onClick={() => {
-                              if (c === priceCur || !priceEntered) { setPriceCur(c); return }
-                              // keep the same USD value when flipping currency
-                              const asUsd = priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered
-                              setPrice(String(Math.round(c === 'GEL' ? asUsd * USD_GEL : asUsd)))
-                              setPriceCur(c)
-                            }}
+                            onClick={() => setPriceCur(c)}
                             className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
                               priceCur === c ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/60'
                             }`}
@@ -1587,20 +1587,26 @@ export default function AddListingClient() {
                       <div className="grid gap-5 sm:grid-cols-2">
                         <div>
                           <input
-                            className={`${input} text-[20px] font-black ${err(!priceN && !negotiable)}`}
+                            className={`${input} text-[20px] font-black ${err(!priceEntered && !negotiable)}`}
                             inputMode="numeric"
                             placeholder={t('add.pricePh')}
                             value={price}
                             disabled={negotiable}
                             onChange={(e) => setPrice(e.target.value.replace(/[^\d]/g, ''))}
                           />
-                          {priceN > 0 && areaN > 0 && (
+                          {priceEntered > 0 && (
                             <p className="mt-2 text-[13px] font-bold text-sv-ink/45">
-                              {priceMode === 'total'
-                                ? t('add.perM2', { v: formatUSD(Math.round(priceN / areaN)) })
-                                : `${t('add.priceTotal')}: ${formatUSD(priceN)}`}
-                              {' · '}
-                              {formatGEL(priceN * USD_GEL)}
+                              {priceCur === 'GEL'
+                                ? `${priceEntered} ₾ (≈ $${Math.round(priceEntered / USD_GEL)})`
+                                : `$${priceEntered} (≈ ${Math.round(priceEntered * USD_GEL)} ₾)`}
+                              {areaN > 0 && (
+                                <>
+                                  {' · '}
+                                  {priceMode === 'total'
+                                    ? `≈ $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) / areaN)} / მ²`
+                                    : `სრული: $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) * areaN)}`}
+                                </>
+                              )}
                             </p>
                           )}
                         </div>
