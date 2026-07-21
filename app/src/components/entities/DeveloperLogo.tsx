@@ -29,10 +29,11 @@ export function DeveloperLogo({
   size = 'md',
   className = '',
 }: DeveloperLogoProps) {
+  // ponytail: webp = real mirrored logo; svg = generated placeholder; initials last.
+  const [src, setSrc] = useState(logoUrl || `/images/developers/${slug}.webp`)
   const [error, setError] = useState(false)
   const brand = SERVICE_BRAND.developers
   const displayName = typeof name === 'string' ? name : name.en || name.ka || slug
-  const resolvedLogo = logoUrl || `/images/developers/${slug}.svg`
 
   const sizeClasses = {
     sm: 'h-10 w-10 text-[14px]',
@@ -64,12 +65,18 @@ export function DeveloperLogo({
       className={`relative grid shrink-0 place-items-center overflow-hidden rounded-module border border-sv-ink/[0.08] bg-sv-surface shadow-sm ${sizeClasses} ${className}`}
     >
       <Image
-        src={resolvedLogo}
+        src={src}
         alt={displayName}
         fill
         sizes={pxSizes}
         className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105"
-        onError={() => setError(true)}
+        onError={() => {
+          if (!logoUrl && src.endsWith('.webp')) {
+            setSrc(`/images/developers/${slug}.svg`)
+            return
+          }
+          setError(true)
+        }}
       />
     </span>
   )
