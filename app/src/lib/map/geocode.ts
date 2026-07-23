@@ -13,6 +13,7 @@ import {
   quarterSearchQuery,
   type TbilisiQuarter,
 } from '@/data/tbilisi-quarters'
+import { districtKaForStreet } from '@/data/tbilisi-streets'
 
 export type GeocodeHit = {
   lat: number
@@ -352,13 +353,15 @@ export async function geocodeListingAddress(
     if (hit) {
       const out = hitFromRow(hit, streetLine)
       if (out) {
+        const catDistrict = districtKaForStreet(street)
         // Keep user's street text if OSM road is empty; prefer OSM house №.
+        // Catalog ubani beats Nominatim rayon when street is pinned (ჭავჭავაძე → ვაკე).
         return {
           ...out,
           street: out.street || street,
           houseNo: out.houseNo || houseNo || undefined,
           city: out.city || matchCityKa(city) || city || undefined,
-          district: out.district || district || undefined,
+          district: catDistrict || out.district || district || undefined,
         }
       }
     }
@@ -367,7 +370,13 @@ export async function geocodeListingAddress(
   const q = [street && `${street} ${houseNo}`.trim(), district, city, 'Georgia']
     .filter(Boolean)
     .join(', ')
-  return geocodeAddress(q, signal)
+  const free = await geocodeAddress(q, signal)
+  if (!free) return null
+  const catDistrict = street ? districtKaForStreet(street) : undefined
+  return {
+    ...free,
+    district: catDistrict || free.district || district || undefined,
+  }
 }
 
 /** UI line from a geocode hit — street + house № first. */

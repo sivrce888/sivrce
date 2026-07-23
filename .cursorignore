@@ -1,0 +1,10 @@
+node_modules
+.next
+dist
+build
+*.svg
+*.png
+*.jpg
+package-lock.json
+yarn.lock
+public/

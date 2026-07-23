@@ -597,7 +597,10 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
               patchParams({ district: s.ka, q: undefined })
             } else {
               setDrafts((d) => ({ ...d, q: s.ka }))
-              patchParams({ q: s.ka })
+              patchParams({
+                q: s.ka,
+                ...(s.district ? { district: s.district } : {}),
+              })
             }
           }}
           onSubmit={submitKeyword}

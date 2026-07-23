@@ -570,18 +570,11 @@ export default function AddListingClient() {
     setDistrict(canonicalizeDistrict(raw, c) || raw)
   }
 
-  /** Pick catalog street → fill name; existing geocode effect fills pin + district. */
+  /** Pick catalog street → fill name + soft-fill ubani when catalog-pinned. */
   const applyStreetSug = (s: StreetSug) => {
     setStreet(s.ka)
-    // Massiv / microdistrict pick → soft-fill ubani for geocode context.
-    if (!district.trim()) {
-      if (/დიღმის მასივი/u.test(s.ka)) setDistrict('დიღმის მასივი')
-      else if (/გლდანის .+მიკრო/u.test(s.ka)) setDistrict('გლდანი')
-      else if (/მუხიანის .+მიკრო/u.test(s.ka)) setDistrict('მუხიანი')
-      else if (/ვარკეთილი-3|ვარკეთილის მე-3 მასივი/u.test(s.ka)) {
-        setDistrict(/მასივი/u.test(s.ka) ? 'მესამე მასივი' : 'ვარკეთილი')
-      }
-    }
+    // Catalog street → ubani; corrects wrong manual picks (ჭავჭავაძე ≠ საბურთალო).
+    if (s.district) setDistrictCanon(s.district)
     setSuggestOpen(false)
     setSuggests([])
     setSuggestHi(-1)
@@ -1248,8 +1241,10 @@ export default function AddListingClient() {
                                 onClick={() => applyStreetSug(s)}
                               >
                                 <span className="text-[13px] font-extrabold text-sv-ink">{s.ka}</span>
-                                {s.en && (
-                                  <span className="text-[11px] font-bold text-sv-ink/45">{s.en}</span>
+                                {(s.district || s.en) && (
+                                  <span className="text-[11px] font-bold text-sv-ink/45">
+                                    {[s.district, s.en].filter(Boolean).join(' · ')}
+                                  </span>
                                 )}
                               </button>
                             </li>

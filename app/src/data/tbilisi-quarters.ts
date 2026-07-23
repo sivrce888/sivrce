@@ -1,7 +1,7 @@
 /**
  * Micro-quarters for autocomplete + geocode — OSM city_block labels (2026-07).
- * Digomi: Roman კვარტალი. Gldani/Mukhiani/Varketili-3/Zghvisubani/Zemo Plato: მიკრო რაიონი.
- * Vazisubani OSM: მიკრორაიონი (no space). Varketili III მასივი: KA ordinal კვარტალი.
+ * Digomi: Roman კვარტალი. Massiv micros: მიკრო რაიონი. Vazisubani: მიკრორაიონი.
+ * Plus full OSM city_block dump (Nutsubidze, Vazha-Pshavela, Vashlijvari, Lilo, …).
  */
 import type { GeoStreet } from './georgia-locations'
 
@@ -63,6 +63,7 @@ export const TBILISI_QUARTERS: TbilisiQuarter[] = [
     '5 კვარტალი',
     'მე-5 კვარტალი',
     'Digomi V',
+    'დიღმის მასივი მე-5 კვარტალი',
   ]),
   q('დიღმის მასივი, VI კვარტალი', 'Digomi Massiv 6th Block', 'დიღმის მასივი', 41.7611286, 44.772028, [
     'მეექვსე კვარტალი',
@@ -380,6 +381,59 @@ export const TBILISI_QUARTERS: TbilisiQuarter[] = [
     44.8753416,
     ['ზემო პლატო 2 მიკრო', 'Zemo Plato 2'],
   ),
+
+  // —— OSM city_blocks dump (Tbilisi, 2026-07) — fill gaps vs portals ——
+  q('არსენალი', 'Arsenal', 'ავლაბარი', 41.7050717, 44.8186612, ['Arsenal']),
+  q('ახალი დიღომი', 'Akhali Digomi', 'დიდი დიღომი', 41.7966667, 44.7437424, ['Akhali Digomi']),
+  q('ბაგების სტუდქალაქი', 'Studkalaki', 'ბაგები', 41.7135519, 44.7184294, ['Studkalaki']),
+  q('დიდი დიღომის 1-ლი მიკრო რაიონი', 'Didi Dighomi 1st Micro District', 'დიდი დიღომი', 41.7900207, 44.760065, ['დიდი დიღომ 1-ლი', 'Didi Dighomi 1st Micro District']),
+  q('დიდი დიღომის მე-2 მიკრო რაიონი', 'Didi Dighomi 2nd Micro District', 'დიდი დიღომი', 41.7945015, 44.760076, ['დიდი დიღომ მე-2', 'Didi Dighomi 2nd Micro District']),
+  q('დიდი დიღომის მე-3 მიკრო რაიონი', 'Didi Dighomi 3rd Micro District', 'დიდი დიღომი', 41.7899263, 44.7427936, ['დიდი დიღომ მე-3', 'Didi Dighomi 3rd Micro District']),
+  q('დიდი დიღომის მე-4 მიკრო რაიონი', 'Didi Dighomi 4th Micro District', 'დიდი დიღომი', 41.7931933, 44.7418036, ['დიდი დიღომ მე-4', 'Didi Dighomi 4th Micro District']),
+  q('დიღომი 7', 'Digomi 7', 'დიღომი 1-9', 41.8036812, 44.7743129, ['Digomi 7']),
+  q('დიღომი 7ა', 'Digomi 7a', 'დიღომი 1-9', 41.8048009, 44.77324, ['Digomi 7a']),
+  q('დიღომი 8', 'Dighomi 8', 'დიღომი 1-9', 41.8107667, 44.7763943, ['Dighomi 8']),
+  q('ვაჟა-ფშაველას გამზირის I კვარტალი', 'Vazha-Pshavela Avenue 1st Quarter', 'ვაჟა-ფშაველას კვარტლები', 41.7264747, 44.7421217, ['ვაჟა-ფშაველას გამზირ I', 'Vazha-Pshavela Avenue 1st Quarter']),
+  q('ვაჟა-ფშაველას გამზირის II კვარტალი', 'Vazha-Pshavela Avenue 2nd Quarter', 'ვაჟა-ფშაველას კვარტლები', 41.7261103, 44.7351667, ['ვაჟა-ფშაველას გამზირ II', 'Vazha-Pshavela Avenue 2nd Quarter']),
+  q('ვაჟა-ფშაველას გამზირის III კვარტალი', 'Vazha-Pshavela Avenue 3rd Quarter', 'ვაჟა-ფშაველას კვარტლები', 41.7251174, 44.7271013, ['ვაჟა-ფშაველას გამზირ III', 'Vazha-Pshavela Avenue 3rd Quarter']),
+  q('ვაჟა-ფშაველას გამზირის IV კვარტალი', 'Vazha-Pshavela Avenue 4th Quarter', 'ვაჟა-ფშაველას კვარტლები', 41.7243527, 44.7198003, ['ვაჟა-ფშაველას გამზირ IV', 'Vazha-Pshavela Avenue 4th Quarter']),
+  q('ვაჟა-ფშაველას გამზირის V კვარტალი', 'Vazha-Pshavela Avenue 5th Quarter', 'ვაჟა-ფშაველას კვარტლები', 41.7238904, 44.7138283, ['ვაჟა-ფშაველას გამზირ V', 'Vazha-Pshavela Avenue 5th Quarter']),
+  q('ვაჟა-ფშაველას გამზირის VI კვარტალი', 'Vazha-Pshavela Avenue 6th Quarter', 'ვაჟა-ფშაველას კვარტლები', 41.7209222, 44.7204709, ['ვაჟა-ფშაველას გამზირ VI', 'Vazha-Pshavela Avenue 6th Quarter']),
+  q('ვაჟა-ფშაველას გამზირის VII კვარტალი', 'Vazha-Pshavela Avenue 7th Quarter', 'ვაჟა-ფშაველას კვარტლები', 41.7222207, 44.7273695, ['ვაჟა-ფშაველას გამზირ VII', 'Vazha-Pshavela Avenue 7th Quarter']),
+  q('ვაშლიჯვარის მე-2 ზონა', 'Vashlijvari 2nd Zone', 'ვაშლიჯვარი', 41.7531745, 44.7629068, ['ვაშლიჯვარ მე-2', 'Vashlijvari 2nd Zone']),
+  q('ვაშლიჯვარის მე-2ა ზონა', 'Vashlijvari Zone 2A', 'ვაშლიჯვარი', 41.7549532, 44.7565966, ['ვაშლიჯვარ მე-2ა', 'Vashlijvari Zone 2A']),
+  q('ვაშლიჯვარის მე-3 ზონა', 'Vashlijvari 3rd Zone', 'ვაშლიჯვარი', 41.7500974, 44.7622267, ['ვაშლიჯვარ მე-3', 'Vashlijvari 3rd Zone']),
+  q('ვაშლიჯვარის მე-4 ზონა', 'Vashlijvari 4th Zone', 'ვაშლიჯვარი', 41.7494001, 44.7651068, ['ვაშლიჯვარ მე-4', 'Vashlijvari 4th Zone']),
+  q('ვაშლიჯვარის მე-5 ზონა', 'Vashlijvari 5th Zone', 'ვაშლიჯვარი', 41.7524814, 44.7652784, ['ვაშლიჯვარ მე-5', 'Vashlijvari 5th Zone']),
+  q('თბილისის დიპლომატიური სოფელი', 'Tbilisi Diplomatic Village', 'ლისი', 41.8023734, 44.7606332, ['Tbilisi Diplomatic Village']),
+  q('თქვენი სახლი ნინუაზე', 'Your home on Ninua', 'დიდუბე', 41.7429321, 44.7857601, ['Your home on Ninua']),
+  q('ლილოს დასახლება, I კვარტალი', 'Lilo Dasakhleba, 1st Block', 'ლილო', 41.6808821, 44.9859681, ['ლილოს დასახლება I', 'Lilo Dasakhleba']),
+  q('ლილოს დასახლება, II კვარტალი', 'Lilo Dasakhleba, 2nd Block', 'ლილო', 41.6812979, 44.9816349, ['ლილოს დასახლება II', 'Lilo Dasakhleba']),
+  q('ლილოს დასახლება, IV კვარტალი', 'Lilo Dasakhleba, 4th Block', 'ლილო', 41.679521, 44.9795616, ['ლილოს დასახლება IV', 'Lilo Dasakhleba']),
+  q('ლილოს დასახლება, V კვარტალი', 'Lilo Dasakhleba, 5th Block', 'ლილო', 41.6810575, 44.9791244, ['ლილოს დასახლება V', 'Lilo Dasakhleba']),
+  q('ლისი პანორამა', 'Lisi Panorama', 'ლისი', 41.7399942, 44.7508465, ['Lisi Panorama']),
+  q('მე-8 ლეგიონი', '8th Legion', 'ისანი', 41.6889489, 44.8601583, ['8th Legion']),
+  q('მწვანე ალმასი', 'Green Diamond', 'დიღომი', 41.7958627, 44.7798275, ['Green Diamond']),
+  q('მწვანე ქალაქი ლისი', 'Lisi Green Town', 'ლისი', 41.7395648, 44.7568556, ['Lisi Green Town']),
+  q('მხატვრების დასახლება', 'Mkhatvrebi Dasakhleba', 'ვაჟა-ფშაველას კვარტლები', 41.7368723, 44.7180864, ['Mkhatvrebi Dasakhleba']),
+  q('მხატვრის დასახლება', 'Artist\'s Settlement', 'ვაჟა-ფშაველას კვარტლები', 41.7269897, 44.7283894, ['Artist\'s Settlement']),
+  q('ნუცუბიძის პლატოს 1-ლი მიკრო რაიონი', 'Nutsubidze Plateau 1st Micro District', 'ნუცუბიძის ფერდობი', 41.7268878, 44.7190522, ['ნუცუბიძის პლატოს 1-ლი', 'Nutsubidze Plateau 1st Micro District']),
+  q('ნუცუბიძის პლატოს მე-2 მიკრო რაიონი', 'Nutsubidze Plateau 2nd Micro District', 'ნუცუბიძის ფერდობი', 41.7289107, 44.7240194, ['ნუცუბიძის პლატოს მე-2', 'Nutsubidze Plateau 2nd Micro District']),
+  q('ნუცუბიძის პლატოს მე-3 მიკრო რაიონი', 'Nutsubidze Plateau 3rd Micro District', 'ნუცუბიძის ფერდობი', 41.7296986, 44.7333036, ['ნუცუბიძის პლატოს მე-3', 'Nutsubidze Plateau 3rd Micro District']),
+  q('ნუცუბიძის პლატოს მე-4 მიკრო რაიონი', 'Nutsubidze Plateau 4th Micro District', 'ნუცუბიძის ფერდობი', 41.733944, 44.7284681, ['ნუცუბიძის პლატოს მე-4', 'Nutsubidze Plateau 4th Micro District']),
+  q('ნუცუბიძის პლატოს მე-5 მიკრო რაიონი', 'Nutsubidze Plateau 5th Micro District', 'ნუცუბიძის ფერდობი', 41.7327335, 44.7205182, ['ნუცუბიძის პლატოს მე-5', 'Nutsubidze Plateau 5th Micro District']),
+  q('ოცდამეთერთმეტე', '31st', 'მესამე მასივი', 41.6712502, 44.8717215, ['31st']),
+  q('პეკინის გამზირის II კვარტალი', 'Pekini Avenue 2nd Quarter', 'საბურთალო', 41.7245171, 44.7732854, ['პეკინის გამზირ II', 'Pekini Avenue 2nd Quarter']),
+  q('სამხედრო განთავსება', 'Military Settlement', 'აეროპორტის დასახლება', 41.6841508, 44.9198195, ['Military Settlement']),
+  q('სამხედრო დასახლება', 'Samkhedro Dasakhleba', 'აეროპორტის დასახლება', 41.6889617, 44.8911667, ['Samkhedro Dasakhleba']),
+  q('საქსოფმანქანის დასახლება', 'Saksopmankani Settlement', 'აეროპორტის დასახლება', 41.6909306, 44.981246, ['Saksopmankani Settlement']),
+  q('ტრამვაელთა დასახლება', 'Tramvaelta Dasakhleba', 'კუკია', 41.7211486, 44.7899428, ['Tramvaelta Dasakhleba']),
+  q('ქაქუცა ჩოლოყაშვილის I კვარტალი', 'Kakutsa Choloqashvili 1st Block', 'ორთაჭალა', 41.6760772, 44.8433295, ['ქაქუცა ჩოლოყაშვილ I', 'Kakutsa Choloqashvili 1st Block']),
+  q('ქაქუცა ჩოლოყაშვილის II კვარტალი', 'Kakutsa Choloqashvili 2nd Block', 'ორთაჭალა', 41.6754462, 44.8495898, ['ქაქუცა ჩოლოყაშვილ II', 'Kakutsa Choloqashvili 2nd Block']),
+  q('შავსოფელი', 'Shavsopeli', 'ორთაჭალა', 41.6859783, 44.8251253, ['Shavsopeli']),
+  q('ცოტნე დადიანის II მიკრო/რაიონი', 'ცოტნე დადიანის II მიკრო/რაიონი', 'დიდუბე', 41.7362201, 44.7965195, ['ცოტნე დადიან II']),
+  q('ჰუალინგის დასახლება', 'Hualing Dasakhleba', 'ვარკეთილი', 41.7131372, 44.8786407, ['Hualing Dasakhleba']),
+
 ]
 
 const ORD_BEFORE_KVARTALI: [RegExp, string][] = [
@@ -404,7 +458,7 @@ export function matchQuarter(street: string): TbilisiQuarter | undefined {
 export function romanizeQuarter(raw: string): string {
   let s = raw.trim()
   if (!/კვარტალ/u.test(s)) return s
-  if (/ვარკეთილ|მესამე მასივი|ზღვისუბან/u.test(s)) return s
+  if (/ვარკეთილ|მესამე მასივი|ზღვისუბან|ვაჟა-ფშაველ|ლილოს დასახლებ/u.test(s)) return s
   for (const [re, rep] of ORD_BEFORE_KVARTALI) s = s.replace(re, rep)
   // Nominatim miss on "მასივი, II" — drop comma before Roman quarter.
   return s.replace(/,\s*(?=(?:I{1,3}|IV|V|VI)\s*კვარტალ)/u, ' ').replace(/\s+/g, ' ').trim()
@@ -422,5 +476,5 @@ export function quarterSearchQuery(street: string): string {
 }
 
 export function isQuarterLabel(raw: string): boolean {
-  return /კვარტალ|მიკრო\s*რაიონ/u.test(raw)
+  return /კვარტალ|მიკრო\s*რაიონ|მიკრორაიონ|ზონა|დასახლებ|დიღომი\s*\d/u.test(raw)
 }

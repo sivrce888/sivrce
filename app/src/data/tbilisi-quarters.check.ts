@@ -10,7 +10,7 @@ import {
   romanizeQuarter,
 } from './tbilisi-quarters'
 
-assert.equal(TBILISI_QUARTERS.length, 56)
+assert.equal(TBILISI_QUARTERS.length, 106)
 
 assert.equal(romanizeQuarter('მეორე კვარტალი'), 'II კვარტალი')
 assert.equal(romanizeQuarter('დიღმის მასივი, მეორე კვარტალი'), 'დიღმის მასივი II კვარტალი')
@@ -33,6 +33,9 @@ assert.equal(matchQuarter('გლდანის მე-5 მიკრო რა
 assert.equal(matchQuarter('ვაზისუბანი 2 მიკრო')?.district, 'ვაზისუბანი')
 assert.equal(matchQuarter('ზღვისუბანი 4 მიკრო')?.district, 'ზღვისუბანი')
 assert.equal(matchQuarter('ზემო პლატო 1 მიკრო')?.district, 'მესამე მასივი')
+assert.equal(matchQuarter('ნუცუბიძის პლატოს მე-2 მიკრო რაიონი')?.district, 'ნუცუბიძის ფერდობი')
+assert.equal(matchQuarter('ვაჟა-ფშაველას გამზირის III კვარტალი')?.district, 'ვაჟა-ფშაველას კვარტლები')
+assert.equal(matchQuarter('დიღმის მასივი მე-5 კვარტალი')?.ka, 'დიღმის მასივი, V კვარტალი')
 assert.equal(
   quarterSearchQuery('ვარკეთილის მე-3 მასივი, მე-3 კვარტალი'),
   'მესამე მასივი, მე-3 კვარტალი',

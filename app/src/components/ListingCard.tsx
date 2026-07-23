@@ -221,7 +221,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           alt={idx === photo ? l.title : ''}
           fill
           sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
-          priority={i === 0 && idx === 0}
+          // ponytail: never priority — homepage cards sit below hero; was racing LCP
           unoptimized={isCdnMedia(src)}
           aria-hidden={idx !== photo}
           className={`object-cover transition-[opacity,transform] duration-300 ease-out motion-reduce:duration-0 ${

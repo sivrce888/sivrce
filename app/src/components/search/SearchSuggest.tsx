@@ -12,6 +12,8 @@ export interface Suggestion {
   kind: 'city' | 'district' | 'street'
   ka: string
   en?: string
+  /** Catalog ubani — soft-fill when picking a street */
+  district?: string
 }
 
 const KIND_LABEL: Record<Suggestion['kind'], string> = {
@@ -189,9 +191,9 @@ export default function SearchSuggest({
                         <Icon className={`h-4 w-4 shrink-0 ${dark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
                         <span className={`min-w-0 flex-1 truncate text-[13px] font-bold ${dark ? 'text-white' : 'text-sv-ink'}`}>
                           {s.ka}
-                          {s.en && (
+                          {(s.district || s.en) && (
                             <span className={`ml-1.5 font-semibold ${dark ? 'text-white/40' : 'text-sv-ink/40'}`}>
-                              {s.en}
+                              {[s.district, s.en].filter(Boolean).join(' · ')}
                             </span>
                           )}
                         </span>
