@@ -18,8 +18,8 @@ export interface I18nContextValue {
   lang: Lang
   setLang: (lang: Lang) => void
   t: (key: DictKey, vars?: Record<string, string | number>) => string
-  /** CMS marketing block text — DB override → registry default. */
-  b: (key: CmsBlockKey) => string
+  /** CMS marketing block text — lang map (override → default), with {var}/{plural} templates. */
+  b: (key: CmsBlockKey, vars?: Record<string, string | number>) => string
 }
 
 export const I18nContext = createContext<I18nContextValue | null>(null)

@@ -718,7 +718,8 @@ export default function AddListingClient() {
         propType: propType ?? 'apartment',
         rooms, beds: rooms, baths, area: areaN, floor: Number(floor) || 1, totalFloors: Number(totalFloors) || 1,
         views: 0, badge: null,
-        ai: { score: Math.max(strength, 41), label: t('add.aiPending') },
+        // 0 → card renders '—': no fabricated score next to a "pending" label
+        ai: { score: 0, label: t('add.aiPending') },
         features: features.map((f) => t(f)),
         description, coords,
         postedAt: new Date().toISOString(),

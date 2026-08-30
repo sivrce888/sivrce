@@ -214,7 +214,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     ),
     ai: {
       score: aiScore,
-      label: aiLabel(aiScore, projectCatalog),
+      label: aiLabel(aiScore),
     },
     features: (r.features as string[]) ?? [],
     description: (r.description as string) ?? "",

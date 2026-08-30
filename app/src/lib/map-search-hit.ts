@@ -34,7 +34,7 @@ export function mapSearchHit(h: Record<string, unknown>): Listing {
     totalFloors: (h.totalFloors as number) ?? 0,
     views: (h.views as number) ?? 0,
     badge: tierKeyToBadge(String(tier ?? '')),
-    ai: { score, label: aiLabel(score, projectCatalog) },
+    ai: { score, label: aiLabel(score) },
     features: (h.features as string[]) ?? [],
     description: (h.description as string) ?? '',
     condition: (h.condition as string) ?? null,

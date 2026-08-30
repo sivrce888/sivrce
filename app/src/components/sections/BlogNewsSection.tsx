@@ -4,17 +4,14 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { BookOpen, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { BLOG_POSTS } from '@/data/blog'
+import { useI18n } from '@/lib/i18n/context'
 
-const KA_MONTHS = [
-  'იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ',
-  'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ',
-] as const
-
-/** Deterministic ka date — avoids Node/Chrome toLocaleDateString drift. */
-function formatKaDate(iso: string): string {
+/** Deterministic date — month names come from the home.blog.months block
+ * (comma-separated, locale-coded) to avoid Node/Chrome ICU drift (React #418). */
+function formatBlockDate(iso: string, months: string[]): string {
   const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return `${d.getUTCDate()} ${KA_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  if (Number.isNaN(d.getTime()) || months.length !== 12) return iso
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
 const ARTICLES = [...BLOG_POSTS]
@@ -22,26 +19,28 @@ const ARTICLES = [...BLOG_POSTS]
   .slice(0, 4)
 
 export default function BlogNewsSection() {
+  const { b } = useI18n()
+  const months = b('home.blog.months').split(',')
   return (
     <section className="relative overflow-hidden bg-sv-surface py-16 md:py-24 border-t border-sv-ink/[0.06]">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
-              <BookOpen className="h-3.5 w-3.5" /> ბლოგი & სიახლეები
+              <BookOpen className="h-3.5 w-3.5" /> {b('home.blog.kicker')}
             </span>
             <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
-              უძრავი ქონების სიახლეები & რჩევები
+              {b('home.blog.title')}
             </h2>
             <p className="mt-2 text-[14px] font-semibold text-sv-ink/65 md:text-[15px]">
-              უახლესი სტატიები, ბაზრის ანალიზი და ექსპერტების რეკომენდაციები
+              {b('home.blog.sub')}
             </p>
           </div>
           <LocalizedLink
             href="/blog"
             className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
           >
-            ყველას ნახვა
+            {b('home.blog.viewAll')}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </LocalizedLink>
         </Reveal>
@@ -56,6 +55,8 @@ export default function BlogNewsSection() {
                     <img
                       src={art.cover}
                       alt={art.title}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute left-3 top-3">
@@ -70,12 +71,11 @@ export default function BlogNewsSection() {
                       <div className="flex items-center justify-between text-[12px] font-bold text-sv-ink/60">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5 text-sv-ink/40" />
-                          {/* ponytail: fixed ka months — Node ICU ≠ Chrome locale → React #418 */}
-                          {formatKaDate(art.publishedAt)}
+                          {formatBlockDate(art.publishedAt, months)}
                         </span>
                         <span className="flex items-center gap-1 text-sv-ink/45">
                           <Clock className="h-3 w-3" />
-                          {art.readingMinutes} წთ
+                          {b('home.blog.minutes', { n: art.readingMinutes })}
                         </span>
                       </div>
                       <h3 className="mt-2 text-[15px] font-extrabold leading-snug text-sv-ink transition-colors line-clamp-2 group-hover:text-sv-blue">
@@ -87,7 +87,7 @@ export default function BlogNewsSection() {
                     </div>
 
                     <div className="mt-4 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-blue-deep group-hover:underline">
-                      სრულად კითხვა →
+                      {b('home.blog.readMore')} →
                     </div>
                   </div>
                 </article>

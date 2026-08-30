@@ -38,7 +38,15 @@ const PROP_TYPES = [
 ] as const
 
 const COUNTS = ['1', '2', '3', '4', '5+'] as const
-const QUICK = ['ვაკე', 'საბურთალო', 'მთაწმინდა', 'ბათუმი', 'ძველი თბილისი', 'დიღომი']
+/* Quick chips: ka value is the canonical search param; label is localized per lang. */
+const QUICK: { q: string; labelKey: 'home.search.quick.vake' | 'home.search.quick.saburtalo' | 'home.search.quick.mtatsminda' | 'home.search.quick.batumi' | 'home.search.quick.oldTbilisi' | 'home.search.quick.digomi' }[] = [
+  { q: 'ვაკე', labelKey: 'home.search.quick.vake' },
+  { q: 'საბურთალო', labelKey: 'home.search.quick.saburtalo' },
+  { q: 'მთაწმინდა', labelKey: 'home.search.quick.mtatsminda' },
+  { q: 'ბათუმი', labelKey: 'home.search.quick.batumi' },
+  { q: 'ძველი თბილისი', labelKey: 'home.search.quick.oldTbilisi' },
+  { q: 'დიღომი', labelKey: 'home.search.quick.digomi' },
+]
 
 const cell =
   'group relative flex min-w-0 flex-col justify-center gap-0.5 px-3.5 py-2.5 text-left transition-colors hover:bg-white/[0.08] focus-within:bg-white/[0.08]'
@@ -64,7 +72,7 @@ export default function HeroSearch() {
   const inputRef = useRef<HTMLInputElement>(null)
   const barRef = useRef<HTMLFormElement>(null)
   const router = useRouter()
-  const { lang, t } = useI18n()
+  const { lang, t, b } = useI18n()
   const go = (path: string) => router.push(localizedHref(path, lang))
   const countMode = countFilterMode(tab, type)
   const isDaily = tab === 2
@@ -664,7 +672,7 @@ export default function HeroSearch() {
           </button>
         )}
         <span className="sv-hero-in text-[13px] font-bold text-white/70" style={{ animationDelay: '0.24s' }}>
-          {isDaily ? t('search.features') : 'პოპულარული:'}
+          {isDaily ? t('search.features') : b('home.search.popular')}
         </span>
         {isDaily
           ? DAILY_SIGNAL_KEYS.map((f, i) => (
@@ -685,23 +693,23 @@ export default function HeroSearch() {
                 {t(f)}
               </button>
             ))
-          : QUICK.map((q, i) => (
+          : QUICK.map((chip, i) => (
               <button
-                key={q}
+                key={chip.q}
                 type="button"
-                onClick={() => goQuick(q)}
+                onClick={() => goQuick(chip.q)}
                 onMouseEnter={() => {
                   const p = new URLSearchParams()
                   const deal = dealParam()
                   if (deal) p.set('deal', deal)
-                  if (CITIES.includes(q)) p.set('city', q)
-                  else p.set('district', q)
+                  if (CITIES.includes(chip.q)) p.set('city', chip.q)
+                  else p.set('district', chip.q)
                   router.prefetch(localizedHref(`/search?${p}`, lang))
                 }}
                 className="sv-hero-in rounded-full glass px-4 py-3 text-[13px] font-bold text-white/85 transition-all duration-200 hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
                 style={{ animationDelay: `${0.28 + i * 0.045}s` }}
               >
-                {q}
+                {b(chip.labelKey)}
               </button>
             ))}
       </div>

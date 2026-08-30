@@ -15,10 +15,12 @@ import { unstable_cache } from "next/cache"
 
 import {
   CMS_BLOCKS,
+  CMS_BLOCK_KEYS,
   CMS_PREFIX,
   parseCmsId,
   type CmsBlockKey,
 } from "@/lib/cms-blocks"
+import { BLOCK_I18N } from "@/lib/cms-blocks.i18n"
 import { db, dbAvailable } from "@/lib/db"
 import type { Lang } from "@/lib/i18n/core"
 
@@ -84,8 +86,26 @@ export async function getCmsOverrides(lang: Lang): Promise<Record<string, string
 export async function getCmsBlock(key: CmsBlockKey, lang: Lang = "ka"): Promise<string> {
   try {
     const map = await readOverrides()
-    return map[lang]?.[`block.${key}`] ?? map.ka?.[`block.${key}`] ?? CMS_BLOCKS[key]
+    const coded = lang === "ka" ? undefined : BLOCK_I18N[lang]?.[key]
+    return (
+      map[lang]?.[`block.${key}`] ?? coded ?? map.ka?.[`block.${key}`] ?? CMS_BLOCKS[key]
+    )
   } catch {
     return CMS_BLOCKS[key]
   }
+}
+
+/**
+ * Full block map for one language (DB override → coded default → ka) — the
+ * [lang] layout injects this into I18nProvider so `b()` reads one plain map
+ * and the client never bundles all 8 translated dicts.
+ */
+export async function getBlocksForLang(lang: Lang): Promise<Record<CmsBlockKey, string>> {
+  const overrides = await getCmsOverrides(lang)
+  const defaults = lang === "ka" ? undefined : BLOCK_I18N[lang]
+  const out = {} as Record<CmsBlockKey, string>
+  for (const key of CMS_BLOCK_KEYS) {
+    out[key] = overrides[`block.${key}`] ?? defaults?.[key] ?? CMS_BLOCKS[key]
+  }
+  return out
 }

@@ -222,6 +222,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           fill
           sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
           // ponytail: never priority — homepage cards sit below hero; was racing LCP
+          // fetchPriority low also stops React Float from <link preload>-ing these
+          // during SSR — 4 card photos were eating ~150KB of pre-FCP 4G bandwidth.
+          fetchPriority="low"
           unoptimized={isCdnMedia(src)}
           aria-hidden={idx !== photo}
           className={`object-cover transition-[opacity,transform] duration-300 ease-out motion-reduce:duration-0 ${
@@ -539,7 +542,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         <div className="mt-2.5 flex min-h-[1.5rem] items-center gap-2">
           <SparkMark className="h-3.5 w-3.5 shrink-0" />
           <span className="shrink-0 text-[13px] font-black tabular-nums tracking-tight text-sv-ink">
-            {l.ai.score}
+            {l.ai.score || '—'}
           </span>
           <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-sv-ink/50">
             {l.ai.label || t('detail.aiScore')}

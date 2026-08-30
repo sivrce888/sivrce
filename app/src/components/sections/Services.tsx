@@ -5,56 +5,26 @@ import { SERVICE_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
 import type { Lang } from '@/lib/i18n/core'
 
-/* Core services — tools live here, not as heavy homepage widgets (vs MyHome/SS). */
+/* Core services — tools live here, not as heavy homepage widgets (vs MyHome/SS).
+   Copy lives in CMS blocks (home.services.*) — localized per lang. */
 const SERVICES = [
-  {
-    icon: Landmark,
-    title: 'იპოთეკური კალკულატორი',
-    text: 'ყოველთვიური შენატანი TBC, BoG, Liberty და ტერაბანკის პირობების მიხედვით.',
-    brand: SERVICE_BRAND.mortgage,
-    href: '/mortgage-calculator',
-  },
-  {
-    icon: Paintbrush,
-    title: 'რემონტის ბიუჯეტი',
-    text: 'შავი / თეთრი / მწვანე კარკასი და გასაღების ჩაბარება — ორიენტირი მ²-ზე.',
-    brand: SERVICE_BRAND.renovation,
-    href: '/contact',
-  },
-  {
-    icon: Map,
-    title: 'რუკაზე ძებნა',
-    text: 'უბნები, პროექტები და ფასები ერთ რუკაზე — იპოვე ბინა რუკით.',
-    brand: SERVICE_BRAND.agents,
-    href: '/map',
-  },
-  {
-    icon: Camera,
-    title: 'ფოტო & 3D ტური',
-    text: 'პროფესიონალური ფოტოგადაღება და 3D ვირტუალური ტური ობიექტისთვის.',
-    brand: SERVICE_BRAND.developers,
-    href: '/contact',
-  },
-  {
-    icon: Calculator,
-    title: 'ფასის შეფასება',
-    text: 'საბაზრო ღირებულების ორიენტირი — შეადარე მსგავს განცხადებებს.',
-    brand: SERVICE_BRAND.agents,
-    href: '/search',
-  },
-  {
-    icon: FileText,
-    title: 'ხელშეკრულების შაბლონები',
-    text: 'ნასყიდობის, იჯარისა და გირავნობის იურიდიულად გამართული შაბლონები.',
-    brand: SERVICE_BRAND.agents,
-    href: '/terms',
-  },
-]
+  { icon: Landmark, titleKey: 'home.services.mortgage.title', textKey: 'home.services.mortgage.text', brand: SERVICE_BRAND.mortgage, href: '/mortgage-calculator' },
+  { icon: Paintbrush, titleKey: 'home.services.renovation.title', textKey: 'home.services.renovation.text', brand: SERVICE_BRAND.renovation, href: '/contact' },
+  { icon: Map, titleKey: 'home.services.map.title', textKey: 'home.services.map.text', brand: SERVICE_BRAND.agents, href: '/map' },
+  { icon: Camera, titleKey: 'home.services.tour.title', textKey: 'home.services.tour.text', brand: SERVICE_BRAND.developers, href: '/contact' },
+  { icon: Calculator, titleKey: 'home.services.price.title', textKey: 'home.services.price.text', brand: SERVICE_BRAND.agents, href: '/search' },
+  { icon: FileText, titleKey: 'home.services.docs.title', textKey: 'home.services.docs.text', brand: SERVICE_BRAND.agents, href: '/terms' },
+] as const
 
 export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
-  const [title, sub] = await Promise.all([
+  const [title, sub, cta, ...cards] = await Promise.all([
     getCmsBlock('home.services.title', lang),
     getCmsBlock('home.services.sub', lang),
+    getCmsBlock('home.services.cta', lang),
+    ...SERVICES.flatMap((s) => [
+      getCmsBlock(s.titleKey, lang),
+      getCmsBlock(s.textKey, lang),
+    ]),
   ])
   return (
     <section id="services" className="bg-sv-surface py-20 md:py-28">
@@ -70,7 +40,7 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((s, i) => (
-            <Reveal key={s.title} delay={i * 0.08} className="h-full">
+            <Reveal key={s.titleKey} delay={i * 0.08} className="h-full">
               <Link
                 href={s.href}
                 className="group relative flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-7 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
@@ -81,10 +51,10 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
                 >
                   <s.icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-6 text-[18px] font-extrabold leading-snug text-sv-ink">{s.title}</h3>
-                <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">{s.text}</p>
+                <h3 className="mt-6 text-[18px] font-extrabold leading-snug text-sv-ink">{cards[i * 2]}</h3>
+                <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">{cards[i * 2 + 1]}</p>
                 <span className="mt-6 flex items-center gap-1.5 text-[14px] font-extrabold" style={{ color: s.brand.hue }}>
-                  ისარგებლე სერვისით
+                  {cta}
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
                 <span

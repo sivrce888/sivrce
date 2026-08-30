@@ -87,6 +87,11 @@ export default async function ProjectsPage({ params }: PageProps) {
             {c.sub}
           </p>
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
+            {projects.length === 0 && (
+              <div className="rounded-card border border-dashed border-sv-ink/15 px-6 py-12 text-center text-[14px] font-semibold text-sv-ink/50 lg:col-span-2">
+                პროექტები ჯერ არ არის ხელმისაწვდომი — სცადე მოგვიანებით
+              </div>
+            )}
             {projects.map((p) => {
               const dev = getDeveloper(p.developerSlug)
               return (

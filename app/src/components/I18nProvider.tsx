@@ -39,6 +39,7 @@ export default function I18nProvider({
   children,
   initialLang,
   overrides,
+  blocks,
 }: {
   children: ReactNode
   /** Pin the locale (URL-driven pages like /en, /ru) — wins over stored preference. */
@@ -49,6 +50,12 @@ export default function I18nProvider({
    * layout; empty object renders the site exactly as coded.
    */
   overrides?: Record<string, string>
+  /**
+   * Resolved marketing blocks for the active locale (override → coded
+   * default → ka), server-fetched via getBlocksForLang. Keeps the 8-lang
+   * block dicts server-side.
+   */
+  blocks?: Record<CmsBlockKey, string>
 }) {
   const storeLang = useSyncExternalStore(subscribeLang, readStoredLang, getServerLang)
   // ponytail: pinned locale ignores the store, so SSR and first client render
@@ -97,9 +104,13 @@ export default function I18nProvider({
         overrides?.[key] != null
           ? translateRaw(overrides[key]!, vars)
           : translate(lang, key, vars),
-      b: (key: CmsBlockKey) => overrides?.[`block.${key}`] ?? CMS_BLOCKS[key],
+      b: (key, vars) =>
+        translateRaw(
+          blocks?.[key] ?? overrides?.[`block.${key}`] ?? CMS_BLOCKS[key],
+          vars,
+        ),
     }),
-    [lang, setLang, overrides],
+    [lang, setLang, overrides, blocks],
   )
 
   return (

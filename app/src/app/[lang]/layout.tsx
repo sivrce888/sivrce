@@ -12,7 +12,7 @@ import { SWRegister } from "@/app/sw-register";
 import { BRAND } from "@/lib/brand";
 import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
 import { langAlternates, OG_LOCALE, SITE_META } from "@/lib/i18n/server";
-import { getCmsOverrides } from "@/lib/cms";
+import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
 // globals.css lives in app/layout.tsx — import here is silently dropped from
 // production CSS <link>s for the dynamic [lang] segment (see root layout).
@@ -277,6 +277,8 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
   const lang = raw;
   // CMS text overrides for this locale (cached; empty when nothing is overridden).
   const cmsOverrides = await getCmsOverrides(lang);
+  // Resolved marketing blocks (override → coded default → ka) — one small map, per lang.
+  const cmsBlocks = await getBlocksForLang(lang);
 
   return (
     <html
@@ -335,7 +337,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
         <ThemeProvider>
           {/* URL is the locale source of truth: pin the provider so SSR HTML
               is fully translated for the requested locale (no client flip). */}
-          <I18nProvider initialLang={lang} overrides={cmsOverrides}>
+          <I18nProvider initialLang={lang} overrides={cmsOverrides} blocks={cmsBlocks}>
             <CurrencyProvider>
               <PostHogProvider>
                 <ChatShell>{children}</ChatShell>

@@ -1,5 +1,46 @@
 # Sivrce → 100/100 · n1 Georgia → global
 
+## Shipped 2026-08-30 — 9-locale homepage + perf/UX repair wave
+What was left (found by audit): /en /ru … homepages rendered 100% Georgian
+(all section copy hardcoded ka), blog covers eager-loaded 627KB before FCP,
+logo PNGs 4× oversized, 5 lists had no empty states, add-listing preview
+showed a fabricated AI score (max(strength,41)), lint had regressed to 7.
+
+- **Homepage fully localized in all 9 locales** (~120 marketing strings × 8):
+  new `home.*` CMS block keys (cards, rails, chips, months) with ka source in
+  `CMS_BLOCKS` + `src/lib/cms-blocks.i18n.ts` (en/ru/he/ar/tr/uk/hy/az).
+  Fallback chain: DB override → coded lang default → ka. The [lang] layout
+  injects ONE merged map via `getBlocksForLang` — the 8-lang dict never ships
+  to the client. `b(key, vars)` now interpolates `{n}`/`{plural:}` templates.
+  Quick-search chips translate labels, keep ka values as search params.
+  `cms.check.ts` gates completeness (symbol-only keys exempt, months=12,
+  `{n}`/`{v}` preserved). Fixed CTA lie "3 ენა" → "9 ენა".
+- **Perf 74→98 mobile (local devtools), visuals kept**: blog-cover `<img>`s
+  had no `loading=lazy` → React Float preloaded all 4 (627KB) ahead of CSS;
+  now lazy. Logo lockup PNGs re-encoded same-art at render size (117→14KB,
+  166→17KB, mark 91→22KB). FCP 2.1→1.9s, TBT 130→80-120ms, CLS 0. Remaining
+  ~2 pts are harness-bound (62KB doc + 32KB CSS on emulated 1.6Mbps HTTP/1.1
+  localhost; Vercel H2+brotli+edge beats it — 98 matches the all-time local
+  ceiling that was previously only reachable WITHOUT hero visuals).
+- **Honest-data fixes**: add-listing preview shows `—` instead of a fake AI
+  score; homepage featured rail hides on DB outage (fallback cards 404'd —
+  detail pages are DB-only by design).
+- **Empty states**: home listings rail (tab filter), forum index, thread
+  replies, /projects hub.
+- **Lint 7→0**: Map3D React-Compiler memoization errors (setters in deps +
+  toggleFloor useCallback), unused import/var, 3 documented exhaustive-deps
+  disables (mount-once map builder closures).
+- Gates: tsc 0 · lint 0 · build ✓ · cms/map/media/seo-hub/seo-title/search
+  checks PASS · LH mobile full: perf 98 / a11y 100 / BP 100 / SEO 100.
+
+⚠ **OPS (human): Supabase DB is rejecting connections** —
+`ENOTFOUND tenant/user postgres.azaijzufkrdsdreszwma` on the pooler
+(project paused or ref/creds stale in app/.env.local and possibly Vercel).
+All DB surfaces (featured rail, /search, listing details, CMS overrides)
+run on static fallbacks until fixed; homepage rail is hidden meanwhile
+(by design, no dead links). Check the Supabase dashboard, restore/unpause,
+re-verify `DATABASE_URL`/`DIRECT_URL` locally + in Vercel.
+
 ## Shipped 2026-07-20 (2) — catalog listings into search (score 10 inventory)
 Auto-picked after stock-render scrape failed (22/22 korter/official 404).
 

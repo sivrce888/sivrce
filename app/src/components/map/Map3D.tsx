@@ -808,9 +808,10 @@ function Map3DInner({
     setSelected(b)
     setTab('all')
     setFloorFilter(null)
-  }, [])
+  }, [setSelected, setTab, setFloorFilter])
   useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
-  useEffect(() => { floorRef.current = (n) => setFloorFilter((cur) => (cur === n ? null : n)) }, [])
+  const toggleFloor = useCallback((n: number) => setFloorFilter((cur) => (cur === n ? null : n)), [setFloorFilter])
+  useEffect(() => { floorRef.current = toggleFloor }, [toggleFloor])
 
   // Selected / seen pins — feature-state (no GeoJSON rewrite).
   useEffect(() => {
@@ -900,6 +901,9 @@ function Map3DInner({
       if (ric != null) window.cancelIdleCallback?.(ric)
       if (tid) window.clearTimeout(tid)
     }
+    // zooms is a per-render object — as a dep this effect would re-sync layers
+    // every render; detailZoom only matters when visible/selected change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional zooms.detailZoom closure
   }, [visible, ready, selected, selectBuilding, floorStacksOn])
 
   // Floor stack only for developments with stock — else keep solid extrusion.
@@ -1496,6 +1500,10 @@ function Map3DInner({
       mapRef.current?.remove()
       mapRef.current = null
     }
+    // Mount-once builder: closes over boot-time config (zooms/floorStacksOn/
+    // styleUrls); theme/style changes are handled by the remount + style-swap
+    // effects below instead of re-running this initializer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional mount-once closures
   }, [themeReady])
 
   // Soft IP city chip — never auto-fly; skip deep-links and dismissed / same city.
@@ -1609,6 +1617,9 @@ function Map3DInner({
     return () => {
       cancelled = true
     }
+    // styleUrlRef guard already no-ops when the built URL is unchanged;
+    // styleUrls is a stable module constant and zooms a per-render object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- styleUrlRef guard covers staleness
   }, [isDark, terrain, ready, themeReady])
 
   const applyViewMode = useCallback((mode3d: boolean) => {

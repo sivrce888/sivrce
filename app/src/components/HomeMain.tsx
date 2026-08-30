@@ -15,7 +15,7 @@ import ForumTeaser from '@/components/sections/ForumTeaser'
 import BlogNewsSection from '@/components/sections/BlogNewsSection'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
-import { LISTINGS, type Listing } from '@/data/listings'
+import type { Listing } from '@/data/listings'
 import { AGENT_PROFILES } from '@/data/professionals'
 import {
   getAgentListingCountsByKaName,
@@ -28,13 +28,13 @@ import { developersLive, projectsLive } from '@/lib/directory-live'
 import { getHomeStats } from '@/lib/home-stats'
 import type { Lang } from '@/lib/i18n/core'
 
-/** DB-first featured rail; static mock only when DB returns nothing (build/outage). */
+/** DB-first featured rail; empty when DB is down — fallback cards 404'd
+ * (detail pages are DB-only by design), so the section hides instead. */
 async function getFeatured(): Promise<Listing[]> {
   try {
-    const rows = await getFeaturedListings(6)
-    if (rows.length > 0) return rows
-  } catch { /* DB unavailable at build — fall through to static */ }
-  return LISTINGS.slice(0, 6)
+    return await getFeaturedListings(6)
+  } catch { /* DB unavailable — hide the rail, never link to 404s */ }
+  return []
 }
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */

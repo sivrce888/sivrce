@@ -4,9 +4,32 @@
  */
 import { CMS_BLOCKS, CMS_BLOCK_KEYS } from "./cms-blocks"
 import { buildCmsId, cmsGroups, cmsRowsForGroup, parseCmsId } from "./cms-blocks"
+import { BLOCK_I18N } from "./cms-blocks.i18n"
 import { ka } from "./i18n/ka"
 import { LANGS } from "./i18n/core"
 import { SITE_META } from "./i18n/server"
+
+// translated block defaults: every locale-neutral-symbolic ka value is exempt;
+// every other key must exist, keep {n}/{v} vars, and months must have 12 parts.
+const SYMBOLIC_KA = /^[\d\s/+%.·-]*$/
+// Latin brand words identical in every locale — no translation needed.
+type CmsBlockKeyTest = (typeof CMS_BLOCK_KEYS)[number]
+const NEUTRAL_KEYS = new Set<CmsBlockKeyTest>(["home.stories.kicker"])
+for (const [lang, dict] of Object.entries(BLOCK_I18N)) {
+  for (const key of CMS_BLOCK_KEYS) {
+    if (SYMBOLIC_KA.test(CMS_BLOCKS[key]) || NEUTRAL_KEYS.has(key)) continue
+    const val = dict[key]
+    assert(val != null && val.trim().length > 0, `block i18n missing: ${lang} ${key}`)
+    for (const v of ["{n}", "{v}"]) {
+      if (CMS_BLOCKS[key].includes(v))
+        assert(val.includes(v), `block i18n lost ${v}: ${lang} ${key}`)
+    }
+  }
+  assert(
+    (dict["home.blog.months"] ?? "").split(",").length === 12,
+    `block i18n months must have 12 entries: ${lang}`,
+  )
+}
 
 // id build/parse round-trips
 assert(parseCmsId("cms.en.nav.buy")?.key === "nav.buy")

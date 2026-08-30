@@ -3,6 +3,7 @@ import { Building, Home, TreePalm, Map, Briefcase, CalendarClock, Hotel, Sparkle
 import { Reveal } from '@/components/Reveal'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
+import type { CmsBlockKey } from '@/lib/cms-blocks'
 import { db } from '@/lib/db'
 import { projectsLive } from '@/lib/directory-live'
 import type { Lang } from '@/lib/i18n/core'
@@ -20,22 +21,22 @@ type CatKey =
 const CATS: {
   key: CatKey
   icon: typeof Building
-  label: string
+  labelKey: CmsBlockKey
   brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]
   href: string
 }[] = [
-  { key: 'apartments', icon: Building, label: 'ბინები', brand: CATEGORY_BRAND.apartments, href: '/sale/apartments' },
-  { key: 'houses', icon: Home, label: 'სახლები', brand: CATEGORY_BRAND.houses, href: '/sale/houses' },
-  { key: 'cottages', icon: TreePalm, label: 'აგარაკები', brand: CATEGORY_BRAND.cottages, href: '/search?type=villa' },
-  { key: 'land', icon: Map, label: 'მიწის ნაკვეთები', brand: CATEGORY_BRAND.land, href: '/sale/land' },
-  { key: 'commercial', icon: Briefcase, label: 'კომერციული', brand: CATEGORY_BRAND.commercial, href: '/sale/commercial' },
-  { key: 'dailyRent', icon: CalendarClock, label: 'დღიური ქირა', brand: CATEGORY_BRAND.dailyRent, href: '/daily' },
-  { key: 'hotels', icon: Hotel, label: 'სასტუმროები', brand: CATEGORY_BRAND.hotels, href: '/search?type=hotel' },
-  { key: 'newProjects', icon: Sparkles, label: 'ახალი პროექტები', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
+  { key: 'apartments', icon: Building, labelKey: 'home.categories.apartments', brand: CATEGORY_BRAND.apartments, href: '/sale/apartments' },
+  { key: 'houses', icon: Home, labelKey: 'home.categories.houses', brand: CATEGORY_BRAND.houses, href: '/sale/houses' },
+  { key: 'cottages', icon: TreePalm, labelKey: 'home.categories.cottages', brand: CATEGORY_BRAND.cottages, href: '/search?type=villa' },
+  { key: 'land', icon: Map, labelKey: 'home.categories.land', brand: CATEGORY_BRAND.land, href: '/sale/land' },
+  { key: 'commercial', icon: Briefcase, labelKey: 'home.categories.commercial', brand: CATEGORY_BRAND.commercial, href: '/sale/commercial' },
+  { key: 'dailyRent', icon: CalendarClock, labelKey: 'home.categories.dailyRent', brand: CATEGORY_BRAND.dailyRent, href: '/daily' },
+  { key: 'hotels', icon: Hotel, labelKey: 'home.categories.hotels', brand: CATEGORY_BRAND.hotels, href: '/search?type=hotel' },
+  { key: 'newProjects', icon: Sparkles, labelKey: 'home.categories.newProjects', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
 ]
 
-function formatCount(n: number): string {
-  if (n <= 0) return 'იხილე'
+function formatCount(n: number, explore: string): string {
+  if (n <= 0) return explore
   return n.toLocaleString('en-US')
 }
 
@@ -81,10 +82,12 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
 }
 
 export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
-  const [title, sub, counts] = await Promise.all([
+  const [title, sub, counts, explore, ...labels] = await Promise.all([
     getCmsBlock('home.categories.title', lang),
     getCmsBlock('home.categories.sub', lang),
     categoryCounts(),
+    getCmsBlock('home.categories.explore', lang),
+    ...CATS.map((c) => getCmsBlock(c.labelKey, lang)),
   ])
   return (
     <section className="bg-sv-surface pb-20 md:pb-28">
@@ -102,7 +105,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
           {CATS.map((c, i) => (
-            <Reveal key={c.label} delay={i * 0.05} className="h-full">
+            <Reveal key={c.key} delay={i * 0.05} className="h-full">
               <Link
                 href={c.href}
                 className="group relative flex h-full flex-col items-center gap-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-center transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
@@ -113,8 +116,8 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
                 >
                   <c.icon className="h-6 w-6" />
                 </span>
-                <span className="line-clamp-2 min-h-[2.5em] text-[14px] font-extrabold leading-snug text-sv-ink">{c.label}</span>
-                <span className="mt-auto text-[12px] font-bold text-sv-ink/60">{formatCount(counts[c.key])}</span>
+                <span className="line-clamp-2 min-h-[2.5em] text-[14px] font-extrabold leading-snug text-sv-ink">{labels[i]}</span>
+                <span className="mt-auto text-[12px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
                 <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/40" />
               </Link>
             </Reveal>

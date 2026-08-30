@@ -5,6 +5,7 @@ import { Building2, ArrowRight, ShieldCheck } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import { DeveloperLogo } from '@/components/entities/DeveloperLogo'
+import { useI18n } from '@/lib/i18n/context'
 import type { LocalName } from '@/data/professionals'
 
 export type TopDeveloperCard = {
@@ -24,6 +25,7 @@ export default function DeveloperSlider({
   developers: TopDeveloperCard[]
   total: number
 }) {
+  const { b } = useI18n()
   if (developers.length === 0) return null
 
   return (
@@ -32,25 +34,25 @@ export default function DeveloperSlider({
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep-deep">
-              <Building2 className="h-3.5 w-3.5" /> ტოპ დეველოპერები
+              <Building2 className="h-3.5 w-3.5" /> {b('home.devs.kicker')}
             </span>
             <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
-              წამყვანი დეველოპერული კომპანიები
+              {b('home.devs.title')}
             </h2>
             <p className="mt-2 text-[14px] font-semibold text-sv-ink/65 md:text-[15px]">
-              რეიტინგი აქტიური განცხადებებით — დაათვალიერე პროექტები და ობიექტები
+              {b('home.devs.sub')}
             </p>
           </div>
           <LocalizedLink
             href="/developers"
             className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
           >
-            ყველა დეველოპერი ({total})
+            {b('home.devs.viewAll')} ({total})
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </LocalizedLink>
         </Reveal>
 
-        <HScroll aria-label="დეველოპერების კარუსელი" step={340} className="gap-5 pb-4">
+        <HScroll aria-label={b('home.devs.scrollLabel')} step={340} className="gap-5 pb-4">
           {developers.map((dev, i) => (
             <LocalizedLink
               key={dev.slug}
@@ -81,14 +83,14 @@ export default function DeveloperSlider({
                     )}
                   </div>
                   <p className="truncate text-[12px] font-bold text-sv-ink/60">
-                    {dev.city} · {dev.projectsDone} პროექტი
+                    {dev.city} · {b('home.devs.projectsCount', { n: dev.projectsDone })}
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 flex items-center justify-between border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-ink/75">
-                <span className="text-sv-ink/60">{dev.listingsCount} აქტიური</span>
-                <span className="text-sv-blue-deep group-hover:underline">პროექტები →</span>
+                <span className="text-sv-ink/60">{b('home.devs.active', { n: dev.listingsCount })}</span>
+                <span className="text-sv-blue-deep group-hover:underline">{b('home.devs.projectsCta')} →</span>
               </div>
             </LocalizedLink>
           ))}

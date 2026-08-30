@@ -10,8 +10,11 @@ import { useI18n } from '@/lib/i18n/context'
 import type { Listing } from '@/data/listings'
 
 export default function Listings({ items }: { items: Listing[] }) {
-  const { b } = useI18n()
+  const { b, t } = useI18n()
   const [dealFilter, setDealFilter] = useState<'all' | 'sale' | 'rent' | 'daily'>('all')
+  // Sister rails null-render when empty (DB down) — same contract here;
+  // the tab-filter empty state below covers the interactive case.
+  if (items.length === 0) return null
 
   const filteredItems = items.filter((l) => {
     if (dealFilter === 'sale') return l.dealType === 'sale'
@@ -19,6 +22,14 @@ export default function Listings({ items }: { items: Listing[] }) {
     if (dealFilter === 'daily') return l.dealType === 'daily'
     return true
   })
+
+  // Existing 9-locale dict keys — same vocabulary the search UI uses.
+  const TABS = [
+    { id: 'all', label: t('search.all') },
+    { id: 'sale', label: t('search.sale') },
+    { id: 'rent', label: t('search.rent') },
+    { id: 'daily', label: t('nav.daily') },
+  ] as const
 
   return (
     <section className="relative overflow-hidden bg-sv-cloud py-20 md:py-28">
@@ -40,18 +51,13 @@ export default function Listings({ items }: { items: Listing[] }) {
             className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
           >
             {/* SEO: indexable hub + keyword anchor — /search is noindex. */}
-            ყველა განცხადების ნახვა
+            {b('home.listings.viewAll')}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </LocalizedLink>
         </Reveal>
 
         <div className="mb-8 flex flex-wrap items-center gap-2">
-          {[
-            { id: 'all', label: 'ყველა' },
-            { id: 'sale', label: 'იყიდება' },
-            { id: 'rent', label: 'ქირავდება' },
-            { id: 'daily', label: 'დღიურად' },
-          ].map((tab) => (
+          {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setDealFilter(tab.id as typeof dealFilter)}
@@ -66,7 +72,12 @@ export default function Listings({ items }: { items: Listing[] }) {
           ))}
         </div>
 
-        <HScroll aria-label="SUPER VIP განცხადებები" step={420} className="gap-6 pb-2 pt-2">
+        <HScroll aria-label={b('home.listings.scrollLabel')} step={420} className="gap-6 pb-2 pt-2">
+          {filteredItems.length === 0 && (
+            <div className="w-full rounded-card border border-dashed border-sv-ink/15 px-6 py-10 text-center text-[14px] font-semibold text-sv-ink/50">
+              {t('search.emptyTitle')}
+            </div>
+          )}
           {filteredItems.map((l, i) => (
             <ListingCard key={l.id} l={l} i={i} />
           ))}

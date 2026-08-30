@@ -40,13 +40,13 @@ export default function Projects({
             className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:text-sv-blue-deep"
           >
             {/* SEO: keyword hub /projects — count stays projects (catalog unit). */}
-            {total} პროექტის ნახვა
+            {b('home.projects.viewAll')} ({total})
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </LocalizedLink>
         </Reveal>
 
-      <HScroll aria-label="მშენებარე ბინები" step={560} className="gap-6 pb-2 pt-2">
-        {items.map((p, i) => {
+      <HScroll aria-label={b('home.projects.homesWord')} step={560} className="gap-6 pb-2 pt-2">
+        {items.map((p) => {
           const dev = getDeveloper(p.developerSlug)
           const devName = dev?.name.ka ?? p.developerSlug
           return (
@@ -59,7 +59,7 @@ export default function Projects({
                 <div className="relative aspect-[16/9] overflow-hidden">
                   <Image
                     src={p.img}
-                    alt={`${p.name} — მშენებარე ბინები`}
+                    alt={`${p.name} — ${b('home.projects.homesWord')}`}
                     fill
                     sizes="(max-width:768px) 85vw, 520px"
                     className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
@@ -81,7 +81,7 @@ export default function Projects({
                     </div>
                   </div>
                   <div className="absolute left-5 top-4 rounded-full bg-sv-navy/55 px-3.5 py-1.5 text-[12px] font-extrabold text-white backdrop-blur">
-                    აშენებულია {p.done}%
+                    {b('home.projects.built', { n: p.done })}
                   </div>
                 </div>
                 <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 p-5">
@@ -89,14 +89,14 @@ export default function Projects({
                     <MapPin className="h-4 w-4 shrink-0 text-sv-ink/35" /> {p.location}
                   </span>
                   <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
-                    <CalendarCheck className="h-4 w-4 text-sv-ink/35" /> ჩაბარება {p.finish}
+                    <CalendarCheck className="h-4 w-4 text-sv-ink/35" /> {b('home.projects.delivery', { v: p.finish })}
                   </span>
                   <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
-                    <Building2 className="h-4 w-4 text-sv-ink/35" /> {p.flats} ბინა
+                    <Building2 className="h-4 w-4 text-sv-ink/35" /> {b('home.projects.flats', { n: p.flats })}
                   </span>
                   <span className="ml-auto text-[16px] font-black text-sv-blue-deep">
                     {p.priceFromM2}
-                    <span className="text-[12px] font-bold text-sv-ink/60"> /მ²-დან</span>
+                    <span className="text-[12px] font-bold text-sv-ink/60">{b('home.perM2')}</span>
                   </span>
                 </div>
                 <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">

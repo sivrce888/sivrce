@@ -90,6 +90,11 @@ export function ThreadReplies({ slug, replies }: { slug: string; replies: ForumR
   return (
     <div className="mt-5 space-y-4">
       <ul className="space-y-4">
+        {tops.length === 0 && (
+          <li className="rounded-tile border border-dashed border-sv-ink/15 px-6 py-8 text-center text-[14px] font-semibold text-sv-ink/50">
+            ჯერ პასუხები არ არის — გახდი პირველი ვისაც უპასუხებს
+          </li>
+        )}
         {tops.map((r) => (
           <li key={r.id} className="space-y-3">
             <ul className="space-y-3">

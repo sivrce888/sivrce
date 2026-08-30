@@ -71,6 +71,11 @@ export default async function ForumIndex() {
         </div>
 
         <ul className="space-y-4">
+          {sorted.length === 0 && (
+            <li className="rounded-tile border border-dashed border-sv-ink/15 bg-sv-surface px-6 py-10 text-center text-[14px] font-semibold text-sv-ink/50">
+              ჯერ სადისკუსიო თემები არ არის — დაწერე პირველი!
+            </li>
+          )}
           {sorted.map((t) => {
             const replyCount = t.replies.length
             const verified = t.replies.filter((r) => r.verified).length
