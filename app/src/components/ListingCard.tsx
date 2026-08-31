@@ -510,9 +510,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
       {/* Price first — scannable like ss.ge / myhome with locked nominal currency */}
-      <div className="flex min-w-0 items-baseline gap-2 text-[clamp(1.125rem,0.9rem+2.2cqi,1.375rem)] font-black tabular-nums tracking-[-0.03em] text-sv-ink">
+      <div className="flex min-w-0 items-baseline gap-2 text-[clamp(1.125rem,0.9rem+2.2cqi,1.375rem)] font-black tabular-nums tracking-[-0.03em] text-sv-ink dark:text-sv-blue">
         <span>{displayPrice}</span>
-        <span className="text-[13px] font-semibold text-sv-ink/45">{displaySecondaryPrice}</span>
+        <span className="text-[13px] font-semibold text-sv-ink/45 dark:text-sv-blue-light/70">{displaySecondaryPrice}</span>
         {l.dealType === 'pledge' && (
           <span
             className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-white"

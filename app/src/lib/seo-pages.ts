@@ -36,7 +36,9 @@ export const DEALS: Record<
   // "ბინები დღიურად" — top Georgian real-estate query. Listings below render
   // /daily, /daily/apartments, /daily/apartments/tbilisi(/old-tbilisi), etc.
   daily: { deal: 'daily', ka: 'დღიურად', noun: 'დღიური ქირა', en: 'for daily rent', enNoun: 'daily rent', ru: 'посуточно', ruNoun: 'Посуточная аренда' },
-  pledge: { deal: 'pledge', ka: 'გირავდება', noun: 'გირავნება', en: 'for lease', enNoun: 'lease', ru: 'в лизинг', ruNoun: 'Лизинг' },
+  pledge: { deal: 'pledge', ka: 'გირავდება', noun: 'გირავნება', en: 'for pledge', enNoun: 'pledge', ru: 'под залог', ruNoun: 'Залог' },
+  // Display/SEO alias of rent × land (Civil Code იჯარა). Not a 5th DealType.
+  lease: { deal: 'rent', ka: 'გაიცემა იჯარით', noun: 'იჯარა', en: 'for lease', enNoun: 'lease', ru: 'в долгосрочную аренду', ruNoun: 'Аренда' },
 }
 
 export const TYPES: Record<
@@ -148,18 +150,24 @@ export function listingHubPath(l: {
   city: string
   district: string
 }): string | null {
-  const dealSlug = DEAL_TO_SLUG[l.dealType]
-  const typeSlug = TYPE_TO_SLUG[l.propType]
+  const dealSlug = l.dealType === 'rent' && l.propType === 'land' ? 'lease' : DEAL_TO_SLUG[l.dealType]
+  const typeSlug = dealSlug === 'lease' ? undefined : TYPE_TO_SLUG[l.propType]
   const city = CITIES.find((c) => c.ka === l.city)
-  // try deepest real page: deal/type/city/district → deal/type/city → deal/type
-  const attempts: string[][] = city
-    ? [
-        [dealSlug, typeSlug, city.slug, DISTRICTS.find((d) => d.citySlug === city.slug && d.ka === l.district)?.slug].filter(Boolean) as string[],
-        [dealSlug, typeSlug, city.slug],
-        [dealSlug, typeSlug],
-        [dealSlug],
-      ]
-    : [[dealSlug, typeSlug], [dealSlug]]
+  const distSlug = city
+    ? DISTRICTS.find((d) => d.citySlug === city.slug && d.ka === l.district)?.slug
+    : undefined
+  const attempts: string[][] = dealSlug === 'lease'
+    ? city
+      ? [[dealSlug, city.slug, distSlug].filter(Boolean) as string[], [dealSlug, city.slug], [dealSlug]]
+      : [[dealSlug]]
+    : city
+      ? [
+          [dealSlug, typeSlug!, city.slug, distSlug].filter(Boolean) as string[],
+          [dealSlug, typeSlug!, city.slug],
+          [dealSlug, typeSlug!],
+          [dealSlug],
+        ]
+      : [[dealSlug, typeSlug!], [dealSlug]]
   for (const slug of attempts) {
     if (parseSeoSlug(slug)) return `/${slug.join('/')}`
   }
@@ -211,9 +219,10 @@ function listingsFor(d: {
   city?: GeoLoc
   district?: District
 }): Listing[] {
+  const lease = d.dealSlug === 'lease'
   const out = filterListings({
     deal: d.dealSlug ? DEALS[d.dealSlug]?.deal : undefined,
-    type: d.typeSlug ? TYPES[d.typeSlug]?.type : undefined,
+    type: lease ? 'land' : d.typeSlug ? TYPES[d.typeSlug]?.type : undefined,
     city: d.city?.ka,
     district: d.district?.ka,
   })
@@ -251,6 +260,32 @@ export function parseSeoSlug(slug: string[]): SeoPageDef | null {
   // Room pages:  /sale/apartments-2(/tbilisi(/vake)) — type=apartments + room filter.
   const deal = DEALS[a]
   if (!deal) return null
+
+  // /lease = rent × land (იჯარა). Not a 5th DealType. /lease/tbilisi(/gldani).
+  if (a === 'lease') {
+    if (b && (TYPES[b] || ROOM_SLUG.test(b))) return null
+    const typeSlug = 'land'
+    const leaseBase = { dealSlug: 'lease' as const, typeSlug }
+    if (!b) {
+      const listings = listingsFor(leaseBase)
+      return listings.length ? { kind: 'deal-type', path: '/lease', ...leaseBase, listings } : null
+    }
+    const cityB = cityBySlug(b)
+    if (!cityB || d) return null
+    if (!c) {
+      const listings = listingsFor({ ...leaseBase, city: cityB })
+      return listings.length
+        ? { kind: 'deal-type-city', path: `/lease/${b}`, ...leaseBase, city: cityB, listings }
+        : null
+    }
+    const dist = districtBySlug(c)
+    if (!dist || dist.citySlug !== cityB.slug) return null
+    const listings = listingsFor({ ...leaseBase, city: cityB, district: dist })
+    return listings.length
+      ? { kind: 'deal-type-city-district', path: `/lease/${b}/${c}`, ...leaseBase, city: cityB, district: dist, listings }
+      : null
+  }
+
   const base = { dealSlug: a }
 
   if (!b) {
@@ -313,6 +348,16 @@ export function generateAllSeoParams(): string[][] {
     if (def) out.push(slug)
   }
   for (const deal of Object.keys(DEALS)) {
+    if (deal === 'lease') {
+      push(['lease'])
+      for (const city of CITIES) {
+        push(['lease', city.slug])
+        for (const dist of DISTRICTS.filter((x) => x.citySlug === city.slug)) {
+          push(['lease', city.slug, dist.slug])
+        }
+      }
+      continue
+    }
     push([deal])
     for (const type of Object.keys(TYPES)) {
       push([deal, type])
@@ -351,6 +396,11 @@ export function generateSeoBuildParams(): string[][] {
     if (parseSeoSlug(slug)) out.push(slug)
   }
   for (const deal of Object.keys(DEALS)) {
+    if (deal === 'lease') {
+      push(['lease'])
+      for (const city of hubs) push(['lease', city])
+      continue
+    }
     push([deal])
     for (const type of Object.keys(TYPES)) {
       push([deal, type])
@@ -424,7 +474,7 @@ export function footerKeywordCols(): FooterCol[] {
   ])
   push('rent', { ka: 'ქირავდება', en: 'For rent', ru: 'Аренда' }, [
     ...[1, 2, 3, 4].map((n) => ['rent', `apartments-${n}`]),
-    ['rent', 'houses'], ['rent', 'commercial'],
+    ['rent', 'houses'], ['rent', 'commercial'], ['lease'],
     ['rent', 'apartments', 'tbilisi'], ['rent', 'apartments', 'batumi'],
     ['rent', 'apartments', 'kutaisi'],
   ])
@@ -751,21 +801,27 @@ function ruPlural(n: number, one: string, few: string, many: string): string {
   return many
 }
 
+function dealCopy(def: SeoPageDef) {
+  if (def.dealSlug === 'rent' && def.typeSlug === 'land') return DEALS.lease
+  return def.dealSlug ? DEALS[def.dealSlug] : undefined
+}
+
 /** H1 — matches the exact query pattern per locale:
  *  "ბინები იყიდება ვაკეში" / "Apartments for sale in Vake" / "Продажа квартир в Ваке" */
 export function h1Of(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
   const place = placeOf(def, loc)
+  const copy = dealCopy(def)
   if (loc === 'en') {
-    const deal = def.dealSlug ? DEALS[def.dealSlug]!.en : 'for sale and rent'
+    const deal = copy?.en ?? 'for sale and rent'
     return `${subjectOf(def, 'en')} ${deal} in ${place}`
   }
   if (loc === 'ru') {
-    if (def.dealSlug === 'sale' || def.dealSlug === 'rent')
-      return `${DEALS[def.dealSlug]!.ruNoun} ${subjectGenOf(def)} в ${place}`
+    if (def.dealSlug === 'sale' || def.dealSlug === 'rent' || def.dealSlug === 'lease')
+      return `${copy!.ruNoun} ${subjectGenOf(def)} в ${place}`
     if (def.dealSlug === 'daily') return `${subjectOf(def, 'ru')} посуточно в ${place}`
     return `${subjectOf(def, 'ru')} в ${place}: продажа и аренда`
   }
-  const dealKa = def.dealSlug ? DEALS[def.dealSlug]!.ka : 'იყიდება და ქირავდება'
+  const dealKa = copy?.ka ?? 'იყიდება და ქირავდება'
   return `${subjectOf(def)} ${dealKa} ${place}`
 }
 
@@ -1067,7 +1123,13 @@ export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string 
     : undefined
 
   const types: LinkChips['types'] = []
-  if (def.dealSlug) {
+  if (def.dealSlug === 'lease') {
+    types.push({
+      label: TYPES.land![loc],
+      href: def.city ? `${p}/lease/${def.city.slug}` : `${p}/lease`,
+      active: true,
+    })
+  } else if (def.dealSlug) {
     const allTypes = loc === 'ka' ? 'ყველა ტიპი' : loc === 'en' ? 'All types' : 'Все типы'
     types.push({
       label: allTypes,

@@ -8,7 +8,7 @@
  */
 
 import { ka, type DictKey } from '@/lib/i18n/ka'
-import { DEALS } from '@/lib/seo-pages'
+import { dealLabelKey } from '@/lib/add-listing-fields'
 import { cap1, fillTpl, seoTitleParts } from '@/lib/seo-title'
 import type { DealType, PropType } from '@/data/listings'
 
@@ -35,7 +35,9 @@ const TITLE_TYPE: Record<PropType, DictKey> = {
 
 /** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა ვაკეში" — bedrooms first. */
 export function listingKeyword(l: SlugListing): string {
-  const dealLabel = l.dealType === 'daily' ? 'ქირავდება დღიურად' : (DEALS[l.dealType]?.ka ?? DEALS.sale.ka)
+  const dealLabel = l.dealType === 'daily'
+    ? 'ქირავდება დღიურად'
+    : ka[dealLabelKey(l.dealType, l.propType)]
   const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, district: l.district, city: l.city })
   const useBeds = l.beds > 0 && l.propType !== 'land'
   const useRooms = !useBeds && l.rooms > 0 && l.propType !== 'land'

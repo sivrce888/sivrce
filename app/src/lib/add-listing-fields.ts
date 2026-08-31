@@ -39,9 +39,20 @@ export const DEAL_LABEL: Record<DealType, DictKey> = {
   pledge: 'add.deal.pledge',
 }
 
+export function isLandLease(deal: DealType | null | undefined, prop: PropType | null | undefined): boolean {
+  return deal === 'rent' && prop === 'land'
+}
+
 export function dealLabelKey(deal: DealType, prop: PropType | null): DictKey {
-  if (prop === 'land' && deal === 'rent') return 'add.deal.lease'
+  if (isLandLease(deal, prop)) return 'add.deal.lease'
   return DEAL_LABEL[deal]
+}
+
+/** Price period chip — land იჯარა is negotiated (year/season), not /month. */
+export function rentPeriodKey(deal: DealType, prop: PropType): DictKey | null {
+  if (deal === 'daily') return 'detail.perDay'
+  if (deal === 'rent' && prop !== 'land') return 'detail.perMonth'
+  return null
 }
 
 const BUILDING_CONDS = CONDITION_KEYS

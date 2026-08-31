@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs'
 import {
   DEALS_FOR,
   dealLabelKey,
+  isLandLease,
+  rentPeriodKey,
   fieldsFor,
   conditionsFor,
   statusesFor,
@@ -15,6 +17,11 @@ assert.deepEqual([...DEALS_FOR.land], ['sale', 'rent', 'pledge'])
 assert.ok(!DEALS_FOR.land.includes('daily'))
 assert.equal(dealLabelKey('rent', 'land'), 'add.deal.lease')
 assert.equal(dealLabelKey('rent', 'apartment'), 'add.deal.rent')
+assert.equal(isLandLease('rent', 'land'), true)
+assert.equal(isLandLease('rent', 'apartment'), false)
+assert.equal(rentPeriodKey('rent', 'land'), null)
+assert.equal(rentPeriodKey('rent', 'apartment'), 'detail.perMonth')
+assert.equal(rentPeriodKey('daily', 'land'), 'detail.perDay')
 
 const landSale = fieldsFor('land', 'sale')
 assert.equal(landSale.rooms, false)

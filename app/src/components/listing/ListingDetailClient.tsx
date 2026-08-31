@@ -732,7 +732,7 @@ export default function ListingDetailClient({
                 <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">
                   {isRent ? t('detail.monthlyRent') : isDailyDeal ? t('nav.daily') : isPledge ? t('map.pledge') : t('detail.fullPrice')}
                 </div>
-                <div className="mt-1 text-[32px] font-black tracking-tight text-sv-ink md:text-[36px]">
+                <div className="mt-1 text-[32px] font-black tracking-tight text-sv-ink dark:text-sv-blue md:text-[36px]">
                   {priceMain}
                   {isRent && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perMonth')}</span>}
                   {isDailyDeal && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perDay')}</span>}
@@ -743,7 +743,7 @@ export default function ListingDetailClient({
                     {t('sticker.priceDrop')}
                   </div>
                 ) : null}
-                <div className="mt-0.5 text-[14px] font-bold text-sv-ink/45">
+                <div className="mt-0.5 text-[14px] font-bold text-sv-ink/45 dark:text-sv-blue-light/70">
                   {priceAlt} · {currency === 'USD'
                     ? `$${l.perM2USD.toLocaleString('en-US')}`
                     : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`}/მ²
