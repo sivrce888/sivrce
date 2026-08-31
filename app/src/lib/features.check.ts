@@ -3,6 +3,7 @@
  * Run: npx tsx src/lib/features.check.ts
  */
 import { DAILY_SIGNAL_KEYS, FEATURE_KEYS, FEATURE_GROUPS, pickDailySignals, featureLabel, groupedFeatures, orderFeaturesForDisplay, isFeatureKey } from "./features"
+import { ka } from "./i18n/ka"
 
 function assert(ok: boolean, label: string) {
   if (!ok) throw new Error(`features assert failed: ${label}`)
@@ -36,5 +37,7 @@ assert(isFeatureKey("add.f.loggia"), "loggia key")
 }
 assert(groupedFeatures(["add.f.balcony", "add.f.pool"]).map((g) => g.key).join() === "add.fg.space,add.fg.extra", "group order")
 assert(groupedFeatures(["add.f.onlineView"]).length === 0, "onlineView no group")
+assert(ka["add.f.partiesAllowed"] === "წვეულების სახლი", "feature is house-for-parties, not 'parties'")
+assert(ka["col.party"] === "სახლები წვეულებისთვის", "collection is houses for parties")
 
 console.log("features: ok")

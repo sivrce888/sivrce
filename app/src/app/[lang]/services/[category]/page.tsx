@@ -113,7 +113,7 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
               .
             </p>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="sv-card-grid-3">
               {providers.map((p) => (
                 <ServiceCard key={p.slug} p={p} lang={lang} />
               ))}

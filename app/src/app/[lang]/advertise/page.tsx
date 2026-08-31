@@ -12,6 +12,8 @@ import { isValidLang } from '@/lib/i18n/core'
 import { formatGel, MONTHLY_RE_TETRI, ADDON_TETRI } from '@/lib/promo-pricing'
 import { jsonLd } from '@/lib/utils'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'განათავსე განცხადება — sivrce',
   description: `უფასო განთავსება მესაკუთრეებისთვის, სააგენტოებისა და დეველოპერებისთვის. VIP დღეში ${formatGel(100)}-დან.`,

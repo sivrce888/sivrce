@@ -8,6 +8,8 @@ import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'უძრავი ქონება საქართველოში — ჩვენ შესახებ | sivrce',
   description: 'სივრცე — უძრავი ქონება საქართველოში. ბინები დღიურად თბილისში, იყიდება და ქირავდება. მარტივი, სწრაფი, დაცული ძიება, 3D რუკა და AI ფასი.',

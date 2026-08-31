@@ -499,7 +499,7 @@ export default async function BuildingPage({ params }: PageProps) {
           ) : (
             (() => {
               const grid = (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="sv-card-grid-3">
                   {listings.map((l, i) => (
                     <div key={l.id} className="relative" data-card-floor={listingFloor(l.floor, floorCount)}>
                       <span
@@ -542,7 +542,7 @@ export default async function BuildingPage({ params }: PageProps) {
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               იგივე რაიონში
             </h2>
-            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 sv-card-grid-3">
               {related.map((b) => (
                 <Link
                   key={b.slug}

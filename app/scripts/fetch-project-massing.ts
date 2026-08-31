@@ -35,6 +35,24 @@ const EXTRA_URL: Record<string, string> = {
   'biograpi-mozaika': 'https://korter.ge/en/mozaika-tbilisi',
   'biograpi-gardani': 'https://korter.ge/en/gardani-tbilisi',
   'biograpi-libretto': 'https://korter.ge/en/libretto-by-biograpi-tbilisi',
+  'relevance-nutsubidze': 'https://korter.ge/en/relevance-nucubidze-tbilisi',
+  'new-group-paliashvili': 'https://korter.ge/en/new-group-paliashvili-tbilisi',
+  'roof-vazisubani': 'https://korter.ge/en/roof-vazisubani-tbilisi',
+  'corner-gldani': 'https://korter.ge/en/corner-gldani-tbilisi',
+  'pillar-park': 'https://korter.ge/en/pillar-park-tbilisi',
+  'dasan-residence': 'https://korter.ge/en/dasan-residence-tbilisi',
+  'tbilisi-waterfront': 'https://korter.ge/en/tbilisi-waterfront-tbilisi',
+  'axis-palace-2': 'https://korter.ge/en/axis-palace-2-tbilisi',
+  'vertikal-batumi': 'https://korter.ge/en/vertikal-batumi',
+  'batumi-concept': 'https://korter.ge/en/batumi-concept-batumi',
+  'summer-365': 'https://korter.ge/en/summer-365-batumi',
+  'olympus-residence-batumi': 'https://korter.ge/en/olympus-residence-batumi',
+  'sunrise-palace': 'https://korter.ge/en/sunrise-palace-batumi',
+  'panorama-park-kutaisi': 'https://korter.ge/en/panorama-park-kutaisi',
+  'zenari-kutaisi': 'https://korter.ge/en/zenari-kutaisi',
+  'one-batumi': 'https://korter.ge/en/one-batumi',
+  'sport-city-batumi': 'https://korter.ge/en/sport-city-batumi',
+  'next-magnolia': 'https://korter.ge/en/next-magnolia-batumi',
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -147,7 +165,7 @@ function massingFromState(state: unknown): Massing | null {
     if (!h || typeof h !== 'object') continue
     const house = h as { polygon?: unknown; floorCount?: unknown }
     const ring = latLngPairsToRing(house.polygon)
-    if (!ring || ringBboxHalfM(ring) < 12) continue
+    if (!ring || ringBboxHalfM(ring) < 12 || ringBboxHalfM(ring) > 280) continue
     const floors = Number(house.floorCount)
     parts.push({
       ring,
@@ -159,7 +177,7 @@ function massingFromState(state: unknown): Massing | null {
     return { lat, lng, parts, floors: Number(houses[0]?.floorCount) || undefined }
   }
   const ring = parts[0]?.ring ?? poly
-  if (!ring || ringBboxHalfM(ring) < 12) return { lat, lng }
+  if (!ring || ringBboxHalfM(ring) < 12 || ringBboxHalfM(ring) > 280) return { lat, lng }
   const floors = parts[0]?.floors
   return { lat, lng, ring, ...(floors ? { floors } : {}) }
 }
@@ -175,7 +193,14 @@ function loadFootprints(): Record<string, Footprint | null> {
 function saveFootprints(out: Record<string, Footprint | null>) {
   writeFileSync(
     OUT,
-    JSON.stringify({ attribution: '© OpenStreetMap contributors (ODbL)', footprints: out }, null, 1),
+    JSON.stringify(
+      {
+        attribution: '© OpenStreetMap contributors (ODbL); TAS ARCHITECTURE_LR; NAPR CadRepGeo',
+        footprints: out,
+      },
+      null,
+      1,
+    ),
   )
 }
 
@@ -247,14 +272,21 @@ function haversineM(aLat: number, aLng: number, bLat: number, bLng: number): num
 }
 
 async function main() {
+  const only = new Set(process.argv.slice(2).filter((a) => !a.startsWith('-')))
   const urls = sourceUrls()
   const fp = loadFootprints()
   let nPoly = 0
   let nPin = 0
   let nSkip = 0
   for (const p of PROJECTS) {
+    if (only.size && !only.has(p.slug)) continue
     const url = urls.get(p.slug)
     if (!url) {
+      nSkip++
+      continue
+    }
+    const prev = fp[`dev-${p.slug}`] ?? fp[`bldg-${p.slug}`]
+    if (prev && 'source' in prev && prev.source === 'tas') {
       nSkip++
       continue
     }
@@ -270,7 +302,7 @@ async function main() {
       await sleep(250)
       continue
     }
-    const campus = !!(mass.parts && mass.parts.length >= 2)
+    const campus = !!(mass.parts && mass.parts.length >= 2) || (p.flats ?? 0) >= 400
     const drift = haversineM(p.coords.lat, p.coords.lng, mass.lat, mass.lng)
     if (drift > (campus ? 2000 : 800)) {
       console.log(`${p.slug} — skip (${Math.round(drift)}m off current pin)`)

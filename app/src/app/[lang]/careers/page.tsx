@@ -17,6 +17,8 @@ import CareersApplyForm from '@/components/careers/CareersApplyForm'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'კარიერა — გაყიდვების მენეჯერი | sivrce',
   description: 'გვჭირდება გაყიდვების მენეჯერები თბილისსა და ბათუმში. მოთხოვნები საიტიდან, თავისუფალი გრაფიკი.',

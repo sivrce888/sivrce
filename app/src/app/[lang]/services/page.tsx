@@ -172,7 +172,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
             <h2 className="mb-6 text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {copy.featured}
             </h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="sv-card-grid-3">
               {featured.map((p) => (
                 <ServiceCard key={p.slug} p={p} lang={lang} />
               ))}

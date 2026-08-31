@@ -195,7 +195,7 @@ export default function HeroBackground() {
       <svg
         viewBox={`0 0 ${SV_W} ${SV_H}`}
         preserveAspectRatio="xMidYMax slice"
-        className="sv-skyline-back absolute bottom-0 left-0 h-[30%] w-full min-w-[900px] opacity-35 blur-[1.5px] dark:h-[38%] dark:opacity-50"
+        className="sv-skyline-back absolute bottom-0 left-0 h-[30%] w-full opacity-35 blur-[1.5px] dark:h-[38%] dark:opacity-50"
       >
         {BUILDINGS.map(([x, w, h], i) => {
           const bh = h * 0.62
@@ -207,7 +207,7 @@ export default function HeroBackground() {
       <svg
         viewBox={`0 0 ${SV_W} ${SV_H}`}
         preserveAspectRatio="xMidYMax slice"
-        className="sv-skyline-front absolute bottom-0 left-0 h-[36%] w-full min-w-[900px] dark:h-[46%]"
+        className="sv-skyline-front absolute bottom-0 left-0 h-[36%] w-full dark:h-[46%]"
       >
         <defs>
           <linearGradient id="skylineFill" x1="0" y1="0" x2="0" y2="1">

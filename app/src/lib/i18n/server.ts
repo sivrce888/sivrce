@@ -37,49 +37,49 @@ export const OG_LOCALE: Record<Lang, string> = {
  */
 export const SITE_META: Record<Lang, { title: string; description: string }> = {
   ka: {
-    title: 'უძრავი ქონება საქართველოში — ბინები დღიურად თბილისში | sivrce',
+    title: 'უძრავი ქონება საქართველოში — ბინები, სახლები, აგარაკები | sivrce',
     description:
-      'ბინები დღიურად თბილისში და საბურთალოზე, იყიდება და ქირავდება ბინები, სახლები, მიწა. სივრცე — უძრავი ქონება ერთ სივრცეში. 3D რუკა, ვერიფიკაცია, AI ფასი.',
+      'ბინები, სახლები და აგარაკები საქართველოში — იყიდება, ქირავდება და ქირავდება დღიურად. თბილისში, საბურთალოზე, ბათუმში. 3D რუკა, ვერიფიკაცია, AI ფასი.',
   },
   en: {
-    title: 'Real Estate in Georgia — Daily Apartments in Tbilisi | sivrce',
+    title: 'Real Estate in Georgia — Apartments, Houses, Cottages | sivrce',
     description:
-      'Daily apartments in Tbilisi and Saburtalo. Buy, rent or list apartments, houses and land in Georgia. sivrce — 3D map, verification, AI price estimates.',
+      'Apartments, houses and cottages in Georgia — for sale, rent and daily stays. Tbilisi, Saburtalo, Batumi. 3D map, verification, AI price estimates.',
   },
   ru: {
-    title: 'Недвижимость в Грузии — квартиры посуточно в Тбилиси | sivrce',
+    title: 'Недвижимость в Грузии — квартиры, дома, дачи | sivrce',
     description:
-      'Квартиры посуточно в Тбилиси и Сабуртало, продажа и аренда квартир, домов и земли. sivrce — 3D-карта, верификация, ИИ-оценка цены.',
+      'Квартиры, дома и дачи в Грузии — продажа, аренда и посуточно. Тбилиси, Сабуртало, Батуми. 3D-карта, верификация, ИИ-оценка цены.',
   },
   he: {
-    title: 'נדל״ן בגאורגיה — דירות להשכרה יומית בטביליסי | sivrce',
+    title: 'נדל״ן בגאורגיה — דירות, בתים, צימרים | sivrce',
     description:
-      'sivrce — נדל״ן במקום אחד. הדרך הפשוטה, המהירה והבטוחה לקנות, לשכור או לפרסם בגאורגיה: דירות, בתים, קרקע ומסחר — מפה תלת־ממדית, אימות והערכת מחיר בבינה מלאכותית.',
+      'דירות, בתים וצימרים בגאורגיה — למכירה, להשכרה ולהשכרה יומית. טביליסי, סבורתלו, בתומי. מפה תלת־ממדית, אימות והערכת מחיר בבינה מלאכותית.',
   },
   ar: {
-    title: 'عقارات في جورجيا — شقق يومية في تبليسي | sivrce',
+    title: 'عقارات في جورجيا — شقق، منازل، استراحات | sivrce',
     description:
-      'sivrce — العقارات في مكان واحد. الطريقة البسيطة والسريعة والآمنة للشراء أو الإيجار أو النشر في جورجيا: شقق ومنازل وأراضٍ وعقارات تجارية — مع خريطة ثلاثية الأبعاد والتحقق وتقدير السعر بالذكاء الاصطناعي.',
+      'شقق ومنازل واستراحات في جورجيا — للبيع والإيجار والإيجار اليومي. تبليسي، سابورتالو، باتومي. خريطة ثلاثية الأبعاد والتحقق وتقدير السعر بالذكاء الاصطناعي.',
   },
   tr: {
-    title: 'Gürcistan’da emlak — Tiflis günlük kiralık daireler | sivrce',
+    title: 'Gürcistan’da emlak — daireler, evler, yazlıklar | sivrce',
     description:
-      'sivrce — emlak tek yerde. Gürcistan’da almak, kiralamak veya ilan vermek için basit, hızlı ve güvenli yol: daireler, evler, arsa ve ticari — 3B harita, doğrulama ve yapay zekâ fiyat tahmini.',
+      'Gürcistan’da daireler, evler ve yazlıklar — satılık, kiralık ve günlük. Tiflis, Saburtalo, Batum. 3B harita, doğrulama, yapay zekâ fiyat tahmini.',
   },
   uk: {
-    title: 'Нерухомість у Грузії — квартири подобово в Тбілісі | sivrce',
+    title: 'Нерухомість у Грузії — квартири, будинки, дачі | sivrce',
     description:
-      'sivrce — нерухомість в одному місці. Простий, швидкий і безпечний спосіб купити, орендувати або розмістити в Грузії: квартири, будинки, земля і комерція — 3D-карта, верифікація та ШІ-оцінка ціни.',
+      'Квартири, будинки та дачі в Грузії — продаж, оренда і подобово. Тбілісі, Сабуртало, Батумі. 3D-карта, верифікація, ШІ-оцінка ціни.',
   },
   hy: {
-    title: 'Անշարժ գույք Վրաստանում — օրավարձով բնակարաններ Թբիլիսիում | sivrce',
+    title: 'Անշարժ գույք Վրաստանում — բնակարաններ, տներ, ամառանոցներ | sivrce',
     description:
-      'sivrce — անշարժ գույք մեկ տեղում. Վրաստանում գնելու, վարձակալելու կամ հայտարարություն տեղադրելու պարզ, արագ և ապահով ճանապարհ՝ բնակարաններ, տներ, հող և առևտուր — 3D քարտեզ, ստուգում և AI գնահատում.',
+      'Բնակարաններ, տներ և ամառանոցներ Վրաստանում — վաճառք, վարձակալություն և օրավարձ։ Թբիլիսի, Սաբուրթալո, Բաթում։ 3D քարտեզ, ստուգում և AI գնահատում։',
   },
   az: {
-    title: 'Gürcüstanda daşınmaz əmlak — Tbilisidə günlük mənzillər | sivrce',
+    title: 'Gürcüstanda daşınmaz əmlak — mənzillər, evlər, bağ evləri | sivrce',
     description:
-      'Tbilisi və Saburtaloda günlük mənzillər, satış və icarə. sivrce — 3D xəritə, təsdiq, AI qiymət.',
+      'Gürcüstanda mənzillər, evlər və bağ evləri — satış, kirayə və günlük. Tbilisi, Saburtalo, Batumi. 3D xəritə, təsdiq, AI qiymət.',
   },
 }
 
@@ -87,33 +87,57 @@ export const SITE_META: Record<Lang, { title: string; description: string }> = {
 export const SITE_KEYWORDS: Record<Lang, string[]> = {
   ka: [
     'უძრავი ქონება საქართველოში',
+    'ბინები საქართველოში',
+    'სახლები საქართველოში',
+    'აგარაკები საქართველოში',
+    'იყიდება ბინა',
+    'ქირავდება ბინა',
+    'ქირავდება დღიურად',
     'უძრავი ქონება თბილისში',
     'ბინები დღიურად თბილისში',
     'ბინები დღიურად საბურთალოზე',
     'ბინები დღიურად',
     'ბინები დღიურად ვაკეში',
+    'ბინები დღიურად ბათუმში',
     'იყიდება ბინა თბილისში',
     'ქირავდება ბინა თბილისში',
+    'იყიდება სახლი თბილისში',
     'ბინები საბურთალოზე',
     'ბინები ვაკეში',
     'უძრავი ქონება ბათუმში',
     'ახალი პროექტები თბილისში',
+    'ბინა დეველოპერისგან',
+    'იპოთეკა საქართველოში',
+    'ბინები ბაკურიანში',
+    'ბინები გუდაურში',
     'sivrce',
     'სივრცე',
   ],
   en: [
     'real estate georgia',
+    'apartments georgia',
+    'houses georgia',
+    'cottages georgia',
     'apartments tbilisi',
     'daily rent tbilisi',
     'apartments saburtalo',
     'apartments batumi',
+    'buy apartment tbilisi',
+    'new buildings tbilisi',
+    'bakuriani apartments',
     'sivrce',
   ],
   ru: [
     'недвижимость в грузии',
+    'квартиры грузия',
+    'дома грузия',
+    'дачи грузия',
     'квартиры тбилиси',
     'квартиры посуточно тбилиси',
     'сабуртало посуточно',
+    'купить квартиру в тбилиси',
+    'новостройки тбилиси',
+    'бакуриани квартиры',
     'sivrce',
   ],
   he: ['נדל״ן בגאורגיה', 'דירות בטביליסי', 'השכרה יומית טביליסי', 'sivrce'],

@@ -11,7 +11,7 @@ import type { Lang } from '@/lib/i18n/core'
 const HeroSearch = dynamic(() => import('./HeroSearch'), {
   // ponytail: glass shell matching the island — chips reserved so hydrate doesn't CLS
   loading: () => (
-    <div className="mx-auto mt-11 w-full max-w-[760px]" aria-hidden>
+    <div className="mx-auto mt-11 w-full max-w-[1100px]" aria-hidden>
       <div className="mx-auto h-12 w-[min(100%,420px)] rounded-full glass-hero" />
       <div className="mt-2.5 h-14 w-full rounded-full glass-hero" />
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -40,40 +40,42 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
   const subtitle = b['home.hero.subtitle']
   const trust = [b['home.hero.trust1'], b['home.hero.trust2'], b['home.hero.trust3']]
   return (
-    <section data-cms-section="hero" className="relative min-h-[calc(100svh-var(--sv-dock))] overflow-x-hidden bg-sv-cloud dark:bg-sv-navy">
+    <section data-cms-section="hero" className="relative min-h-[calc(100svh-var(--sv-dock))] overflow-x-clip bg-sv-cloud dark:bg-sv-navy">
       <HeroBackground />
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--sv-dock))] max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-[calc(9rem+env(safe-area-inset-top,0px))] md:px-10">
         {/* LCP: badge/h1/subtitle paint instantly — motion only on trust + scroll hint */}
-        <div className="mb-7 flex items-center gap-2.5 rounded-full glass-hero px-5 py-2 shadow-card">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sv-blue opacity-60 dark:bg-sv-success" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sv-blue dark:bg-sv-success" />
-          </span>
-          <span data-cms-key="block.home.hero.badge" className="text-[13px] font-bold tracking-wide text-sv-ink/80 dark:text-white/90 md:text-[14px]">
-            {badge}
-          </span>
+        <div className="flex flex-col items-center">
+          <div className="mb-5 flex items-center gap-2.5 rounded-full glass-hero px-5 py-2 shadow-card">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sv-blue opacity-60 dark:bg-sv-success" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sv-blue dark:bg-sv-success" />
+            </span>
+            <span data-cms-key="block.home.hero.badge" className="text-[13px] font-bold leading-snug tracking-wide text-sv-ink/80 dark:text-white/90 md:text-[14px]">
+              {badge}
+            </span>
+          </div>
+
+          <h1 className="w-full max-w-full text-balance text-center text-[length:var(--sv-type-display)] font-black tracking-[-0.035em] text-sv-ink dark:text-white">
+            <span data-cms-key="block.home.hero.titleA" className="block">{titleA}</span>
+            <span data-cms-key="block.home.hero.titleAccent" className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
+          </h1>
+
+          <p data-cms-key="block.home.hero.subtitle" className="speakable-lead mt-4 w-full max-w-[min(56rem,100%)] text-pretty text-center text-[length:var(--sv-type-lead)] font-medium leading-[1.4] tracking-[-0.012em] text-sv-ink/60 dark:text-white/75 sm:mt-5">
+            {subtitle}
+          </p>
         </div>
-
-        <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.038em] text-sv-ink dark:text-white">
-          <span data-cms-key="block.home.hero.titleA">{titleA}</span>{' '}
-          <span data-cms-key="block.home.hero.titleAccent" className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
-        </h1>
-
-        <p data-cms-key="block.home.hero.subtitle" className="speakable-lead mt-6 w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-sv-ink/55 dark:text-white/70 sm:text-[16px] md:text-[19px]">
-          {subtitle}
-        </p>
 
         <HeroSearch />
 
         <div
-          className="sv-hero-in mt-14 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"
+          className="sv-hero-in mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"
           style={{ animationDelay: '0.3s' }}
         >
           {TRUST.map((t, i) => (
-            <div key={t.key} className="flex items-center gap-2.5 text-sv-ink/55 dark:text-white/70">
+            <div key={t.key} className="flex items-center gap-2.5 text-sv-ink/60 dark:text-white/75">
               <t.icon className="h-[18px] w-[18px] text-sv-blue dark:text-sv-success" />
-              <span data-cms-key={`block.${t.key}`} className="text-[13px] font-bold md:text-[14px]">{trust[i]}</span>
+              <span data-cms-key={`block.${t.key}`} className="text-[13px] font-bold leading-snug md:text-[14px]">{trust[i]}</span>
             </div>
           ))}
         </div>

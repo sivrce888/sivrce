@@ -47,18 +47,18 @@ assert.deepEqual(vercel.regions, ["fra1"])
 assert.ok(vercel.crons.length <= 4, "extra crons = extra invocations")
 assert.ok(vercel.images.minimumCacheTTL >= 31_536_000)
 const caps: Record<string, { dur: number; ram: number }> = {
-  "src/app/api/map/**/*": { dur: 8, ram: 512 },
-  "src/app/api/sat/**/*": { dur: 8, ram: 512 },
-  "src/app/api/napr/**/*": { dur: 8, ram: 512 },
-  "src/app/api/tas/**/*": { dur: 8, ram: 512 },
-  "src/app/api/site/**/*": { dur: 8, ram: 512 },
-  "src/app/api/corpus/**/*": { dur: 8, ram: 512 },
-  "src/app/api/geocode/**/*": { dur: 8, ram: 512 },
+  "src/app/api/map/**/*": { dur: 8, ram: 256 },
+  "src/app/api/sat/**/*": { dur: 8, ram: 256 },
+  "src/app/api/napr/**/*": { dur: 8, ram: 256 },
+  "src/app/api/tas/**/*": { dur: 8, ram: 256 },
+  "src/app/api/site/**/*": { dur: 8, ram: 256 },
+  "src/app/api/corpus/**/*": { dur: 8, ram: 256 },
+  "src/app/api/geocode/**/*": { dur: 8, ram: 256 },
   "src/app/api/map-data/**/*": { dur: 10, ram: 1024 },
   "src/app/api/search/**/*": { dur: 15, ram: 1024 },
-  "src/app/api/suggest/**/*": { dur: 5, ram: 512 },
+  "src/app/api/suggest/**/*": { dur: 5, ram: 256 },
   "src/app/api/ai/**/*": { dur: 15, ram: 1024 },
-  "src/app/api/geo/**/*": { dur: 3, ram: 512 },
+  "src/app/api/geo/**/*": { dur: 3, ram: 256 },
   "src/app/api/cron/**/*": { dur: 300, ram: 1024 },
 }
 for (const [glob, cap] of Object.entries(caps)) {
@@ -104,6 +104,7 @@ for (const api of [
 }
 
 lock("src/app/api/search/route.ts", ["Vercel-CDN-Cache-Control", "s-maxage=60"])
+lock("src/app/api/suggest/route.ts", ["Vercel-CDN-Cache-Control", "s-maxage=86400"])
 lock("src/lib/posthog.ts", [
   "autocapture: false",
   "disable_session_recording: true",
@@ -112,17 +113,23 @@ lock("src/lib/posthog.ts", [
 ])
 
 lock("src/lib/device-budget.ts", ["maxTileCacheSize", "data-lite", "deviceMemory"])
-lock("src/app/[lang]/layout.tsx", ["LITE_BOOT", "beforeInteractive", "slogan: BRAND.tagline.ka"])
+lock("src/app/[lang]/layout.tsx", ["LITE_BOOT", "beforeInteractive", "slogan: BRAND.tagline.ka", "cdn.sivrce.ge"])
+lock("src/components/ThemeProvider.tsx", ["session={null}", "refetchInterval={0}"], ["refetchOnWindowFocus={true}"])
 lock("src/lib/brand.ts", ["Real Estate in one place", "უძრავი ქონება ერთ სივრცეში"])
 lock("src/app/globals.css", ["html[data-lite] [data-reveal]"])
-lock("next.config.ts", ["webpackMemoryOptimizations: true"])
+lock("next.config.ts", ["webpackMemoryOptimizations: true", "staleTimes"])
 lock("package.json", ["max-old-space-size=4096", "max-old-space-size=768"])
 lock("src/components/sections/Listings.tsx", [
   "homeRailSearchHref('diamond')",
   "homeRailSearchHref('super_vip')",
 ])
-lock("src/components/ListingCard.tsx", ['loading="lazy"', 'fetchPriority="low"'], ["from 'next/image'"])
+lock("src/components/ListingCard.tsx", ['loading="lazy"', 'fetchPriority="low"', "cardOf"], ["from 'next/image'"])
+lock("src/lib/media.ts", ["cardOf", ".card.webp"])
+lock("src/app/[lang]/blog/page.tsx", ["export const revalidate = 86400"], ["force-dynamic"])
 lock("src/data/georgia-locations.ts", ["georgia-locations.json"], ["tbilisi-streets.json"])
+lock("src/app/llms.txt/route.ts", ["llmsTxt", "text/plain"])
+lock("src/app/llms-full.txt/route.ts", ["llmsFullTxt", "text/plain"])
+lock("src/app/.well-known/security.txt/route.ts", ["mailto:hi@sivrce.ge", "Expires:"])
 
 for (const sentry of [
   "sentry.client.config.ts",

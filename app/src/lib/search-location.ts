@@ -9,6 +9,39 @@ export function splitDistricts(raw: string | null | undefined): string[] {
   return raw.split(',').map((s) => s.trim()).filter(Boolean)
 }
 
+export function locStamp(v: Pick<LocationValue, 'city' | 'district' | 'street'>): string {
+  return `${v.city}\0${v.district}\0${v.street}`
+}
+
+/** Newest first. Nationwide (no city) is not a place. */
+export function mergeLocRecent(cur: LocationValue[], v: LocationValue, max = 4): LocationValue[] {
+  if (!v.city) return cur
+  const stamp = locStamp(v)
+  const next: LocationValue = { city: v.city, district: v.district, street: v.street }
+  return [next, ...cur.filter((x) => locStamp(x) !== stamp)].slice(0, max)
+}
+
+const LOC_RECENT_KEY = 'sivrce.loc.recent'
+
+export function readLocRecent(): LocationValue[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw: unknown = JSON.parse(localStorage.getItem(LOC_RECENT_KEY) ?? '[]')
+    if (!Array.isArray(raw)) return []
+    return raw.filter((x): x is LocationValue =>
+      !!x && typeof x === 'object' && typeof (x as LocationValue).city === 'string',
+    ).slice(0, 4)
+  } catch {
+    return []
+  }
+}
+
+export function pushLocRecent(v: LocationValue): LocationValue[] {
+  const next = mergeLocRecent(readLocRecent(), v)
+  try { localStorage.setItem(LOC_RECENT_KEY, JSON.stringify(next)) } catch { /* private mode */ }
+  return next
+}
+
 /** Compact label for the location trigger. */
 export function locationLabel(v: LocationValue, empty = 'აირჩიე ქალაქი'): string {
   const districts = splitDistricts(v.district)

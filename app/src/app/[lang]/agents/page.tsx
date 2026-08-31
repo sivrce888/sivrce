@@ -112,7 +112,7 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
             </div>
           )}
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 sv-card-grid-3">
             {cards.map(({ a, listingsCount, aggregate }) => (
               <EntityCard
                 key={a.slug}

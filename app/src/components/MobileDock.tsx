@@ -37,7 +37,7 @@ export default function MobileDock() {
 
   const items = [
     { href: '/', label: 'sivrce', match: bare === '/', icon: 'home' as const },
-    { href: '/search', label: t('nav.search'), match: bare === '/search' || bare.startsWith('/search/') || bare === '/sale' || bare.startsWith('/sale/') || bare === '/rent' || bare.startsWith('/rent/') || bare === '/daily' || bare.startsWith('/daily/'), icon: 'search' as const },
+    { href: '/search', label: t('nav.search'), match: bare === '/search' || bare.startsWith('/search/') || bare === '/sale' || bare.startsWith('/sale/') || bare === '/rent' || bare.startsWith('/rent/') || bare === '/daily' || bare.startsWith('/daily/') || bare === '/pledge' || bare.startsWith('/pledge/'), icon: 'search' as const },
     { href: '/map', label: t('nav.map'), match: bare === '/map' || bare.startsWith('/map/'), icon: 'map' as const },
     { href: '/favorites', label: t('nav.favorites'), match: bare === '/favorites' || bare.startsWith('/favorites/'), icon: 'heart' as const },
     { href: '/add-listing', label: t('nav.addListing'), match: bare.startsWith('/add-listing'), icon: 'add' as const },
@@ -79,7 +79,7 @@ export default function MobileDock() {
                   <Plus className="h-4 w-4" strokeWidth={2.6} />
                 </span>
               )}
-              <span className="max-w-full truncate px-0.5 text-[10px] font-extrabold leading-none">
+              <span className="max-w-full px-0 text-center text-[10px] font-extrabold leading-tight tracking-[-0.03em]">
                 {item.label}
               </span>
             </LocalizedLink>

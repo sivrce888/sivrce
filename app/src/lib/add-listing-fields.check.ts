@@ -91,7 +91,7 @@ assert.ok(ui.includes("add.step.photos"), 'nav lists photos–contact, not 3 pha
 assert.ok(ui.includes("spec.rooms"), 'ოთახი სულ')
 assert.ok(ui.includes("spec.beds"), 'საძინებელი')
 assert.ok(ui.includes("t('spec.area')"), 'area label is spec.area + unit')
-assert.ok(!ui.includes("t('search.area')"), 'search.area already contains m² — would double-unit')
+assert.ok(!ui.includes("t('search.area')"), 'add-listing uses spec.area, not search.area')
 assert.ok(ui.includes("t('spec.rooms')} *"), 'total rooms required')
 assert.ok(ui.includes("t('spec.beds')} *"), 'bedrooms required')
 const page = readFileSync(new URL('../app/[lang]/add-listing/page.tsx', import.meta.url), 'utf8')

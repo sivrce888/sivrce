@@ -5,6 +5,8 @@ import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'კონფიდენციალურობის პოლიტიკა — sivrce',
   description: 'როგორ იცავს sivrce შენს პირად მონაცემებს — მონაცემთა შეგროვება, გამოყენება, ქუქიები და შენი უფლებები.',

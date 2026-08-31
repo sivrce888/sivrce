@@ -59,20 +59,28 @@ export const ru: Dict = {
   'loc.streetHint': 'Выберите район или введите улицу',
   'loc.close': 'Закрыть',
   'loc.cities': 'Города',
+  'loc.nearby': 'Рядом с вами',
+  'loc.nearbyHint': 'Город по вашей позиции',
+  'loc.locating': 'Ищем…',
+  'loc.denied': 'Доступ к геолокации запрещён',
+  'loc.nearbyFail': 'Ближний город не найден',
+  'loc.georgiaHint': 'Все объявления',
+  'loc.where': 'Где',
+  'loc.recents': 'Недавние',
   'search.keywordPlaceholder': 'Квартиры посуточно Тбилиси, Сабуртало… или ID',
   'search.keyword': 'Поисковый запрос',
   'search.sort': 'Сортировка',
   'search.view': 'Вид',
   'search.grid': 'Сетка',
   'search.list': 'Список',
-  'search.price': 'Цена $',
+  'search.price': 'Цена',
   'search.min': 'Мин',
   'search.max': 'Макс',
   'search.minPrice': 'Минимальная цена',
   'search.maxPrice': 'Максимальная цена',
-  'search.rooms': 'Комнат всего',
-  'search.roomsChip': '{n}+ {plural:комната|комнаты|комнат} всего',
-  'search.area': 'Площадь м²',
+  'search.rooms': 'Комнаты',
+  'search.roomsChip': '{n}+ {plural:комната|комнаты|комнат}',
+  'search.area': 'Площадь',
   'search.minArea': 'Минимальная площадь',
   'search.maxArea': 'Максимальная площадь',
   'search.clear': 'Очистить',
@@ -85,7 +93,7 @@ export const ru: Dict = {
     'По выбранным фильтрам объявлений нет. Попробуйте изменить фильтры или сбросить их полностью.',
   'search.resetFilters': 'Сбросить фильтры',
   'search.seoHint':
-    'Недвижимость в Грузии: квартиры посуточно в Тбилиси и Сабуртало, продажа и аренда. Каждое объявление проверено, с ИИ-оценкой цены.',
+    'Недвижимость в Грузии: квартиры, дома и дачи — продажа, аренда и посуточно. Каждое объявление проверено, с ИИ-оценкой цены.',
 
   'search.moreFilters': 'Ещё фильтры',
   'search.bedrooms': 'Спальни',
@@ -303,7 +311,7 @@ export const ru: Dict = {
   'detail.seeMore': 'Смотреть ещё',
 
   // ——— Spec labels ———
-  'spec.rooms': 'Комнат всего',
+  'spec.rooms': 'Комнаты',
   'spec.beds': 'Спальни',
   'spec.baths': 'Санузлы',
   'spec.area': 'Площадь',
@@ -312,7 +320,7 @@ export const ru: Dict = {
 
   // ——— Footer ———
   'footer.tagline':
-    'sivrce — недвижимость в Грузии. Квартиры посуточно в Тбилиси, продажа и аренда. 3D-карта, AI-оценка.',
+    'sivrce — недвижимость в Грузии. Квартиры, дома и дачи — продажа, аренда, посуточно. 3D-карта, AI-оценка.',
   'footer.location': 'Тбилиси, Грузия',
   'footer.colRealEstate': 'Недвижимость',
   'footer.re.apartments': 'Квартиры на продажу',
@@ -455,7 +463,7 @@ export const ru: Dict = {
   'add.f.security': 'Охрана',
   'add.f.yard': 'Двор',
   'add.f.selfCheckIn': 'Без ключа',
-  'add.f.partiesAllowed': 'Вечеринки',
+  'add.f.partiesAllowed': 'Дом для вечеринок',
   'add.f.pool': 'Бассейн',
   'add.f.jacuzzi': 'Джакузи',
   'add.f.terrace': 'Терраса',
@@ -624,7 +632,7 @@ export const ru: Dict = {
 
   // Daily-rent home collections
   'col.party': 'Дома для вечеринок',
-  'col.party.sub': 'Посуточно · вечеринки разрешены',
+  'col.party.sub': 'Посуточно · мероприятия, дни рождения',
   'col.selfCheckIn': 'Заезд без встречи',
   'col.selfCheckIn.sub': 'Ключ без личной встречи',
   'col.pool': 'С бассейном',

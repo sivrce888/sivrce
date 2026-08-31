@@ -46,7 +46,10 @@ const STREETS: GeoStreet[] = []
 }
 
 // Static catalog — CDN cache; query string keys the variant.
-const CACHE = { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" }
+const CACHE = {
+  "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
+  "Vercel-CDN-Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
+}
 
 function browseStreets(city: string, districtCsv: string): Suggestion[] {
   const wanted = districtCsv ? new Set(districtSearchValues(districtCsv, city)) : null

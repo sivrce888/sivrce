@@ -292,7 +292,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {c.projects}
             </h2>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 sv-card-grid-3">
               {projects.map((p) => (
                 <Link
                   key={p.slug}
@@ -333,7 +333,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {micro.listingsIn(dev.city)}
             </h2>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 sv-card-grid-3">
               {listings.map((l, i) => (
                 <ListingCard key={l.id} l={l} i={i} layout="wide" />
               ))}

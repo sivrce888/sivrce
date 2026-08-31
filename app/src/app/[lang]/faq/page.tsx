@@ -7,6 +7,8 @@ import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'უძრავი ქონება საქართველოში — ხშირი კითხვები | sivrce',
   description:

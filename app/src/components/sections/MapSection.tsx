@@ -85,7 +85,7 @@ export default function MapSection() {
               <span className="mb-4 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-light">
                 <Layers className="h-3.5 w-3.5" /> {b('home.map.kicker')}
               </span>
-              <h2 className="text-balance text-[32px] font-black leading-[1.12] tracking-[-0.02em] text-white md:text-[46px]">
+              <h2 className="text-balance text-[clamp(1.75rem,1.15rem+2.6vw,2.875rem)] font-black tracking-[-0.02em] text-white">
                 {b('home.map.titleA')} <span className="text-gradient-blue">{b('home.map.titleAccent')}</span> {b('home.map.titleB')}
               </h2>
               <p className="mt-5 max-w-[520px] text-[15px] font-medium leading-relaxed text-white/60 md:text-[17px]">

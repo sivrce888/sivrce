@@ -110,7 +110,9 @@ const nextConfig: NextConfig = {
     cpus: 2,
     webpackMemoryOptimizations: true,
     // Tree-shake barrel imports (lucide already defaulted by Next).
-    optimizePackageImports: ["framer-motion", "@base-ui/react"],
+    optimizePackageImports: ["framer-motion", "@base-ui/react", "lucide-react"],
+    // Client router cache — back-nav skips RSC refetch (Vercel invocations).
+    staleTimes: { dynamic: 30, static: 180 },
     // ponytail: inlineCss OFF — 180KB style in HTML (133KB gzip page) blew past
     // the ~50KB gzip ceiling and capped lab FCP ~1.6s. Linked CSS caches + parses off critical HTML.
     // inlineCss: true,
@@ -184,6 +186,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/llms-full.txt",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" },
+        ],
+      },
+      {
+        source: "/.well-known/security.txt",
         headers: [
           { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" },
         ],

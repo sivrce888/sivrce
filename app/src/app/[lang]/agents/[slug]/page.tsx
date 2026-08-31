@@ -149,7 +149,7 @@ export default async function AgentPage({ params }: PageProps) {
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               აგენტის განცხადებები
             </h2>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 sv-card-grid-3">
               {listings.map((l, i) => (
                 <ListingCard key={l.id} l={l} i={i} layout="wide" />
               ))}

@@ -51,6 +51,9 @@ const CAMPUS = new Set([
   'dighomi-gardens',
   'solum-ponichala',
   'gwg-krtsanisi',
+  'mega-gldani',
+  'astoria-isani',
+  'summer-365',
 ])
 
 type Target = {
@@ -264,6 +267,8 @@ function bestFootprint(
   ) {
     return null
   }
+  // Construction: 1–3 storey OSM neighbour is not the tower.
+  if (ghost && best.levels && best.levels < 4 && (planned ?? 10) >= 8) return null
   return {
     ring: best.ring,
     osmId: best.osmId,

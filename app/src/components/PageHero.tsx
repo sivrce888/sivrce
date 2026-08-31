@@ -24,7 +24,7 @@ export function PageHero({
               {kicker}
             </p>
           ) : null}
-          <h1 className="max-w-4xl text-balance text-[32px] font-black tracking-[-0.03em] text-sv-ink md:text-[48px]">
+          <h1 className="sv-h1 max-w-4xl text-sv-ink">
             {title}
           </h1>
           {subtitle ? (
@@ -56,7 +56,7 @@ export function PageHero({
               {kicker}
             </p>
           ) : null}
-          <h1 className="mt-4 text-4xl font-black tracking-[-0.03em] text-white text-balance md:text-6xl">
+          <h1 className="mt-4 max-w-full text-balance text-[clamp(2rem,1.1rem+3.6vw,3.75rem)] font-black tracking-[-0.03em] text-white">
             {title}
           </h1>
           {subtitle ? (

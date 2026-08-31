@@ -19,7 +19,7 @@ const BASE = 'https://sivrce.ge'
 export const revalidate = 3600
 
 // Static pages: one lastmod per deploy, not per request
-const DEPLOY_DATE = new Date('2026-08-31')
+const DEPLOY_DATE = new Date('2026-09-01')
 
 // hreflang cluster: every page is now server-rendered in all 9 locales via
 // app/[lang]. ka is unprefixed (canonical); the other eight carry a prefix.

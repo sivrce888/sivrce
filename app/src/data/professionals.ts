@@ -117,6 +117,9 @@ const DEV_PREFIX: Record<string, string> = {
   bilderz: 'BLD', 'bala-construction': 'BAL', 'smart-development': 'SMD',
   olympus: 'OLY', 'sunrise-development': 'SNR', 'zenar-development': 'ZNR',
   'panorama-park-kutaisi': 'PPK', 'batumi-concept': 'BTC',
+  'terrametric-development': 'TRM', 'ratevani-development': 'RTV',
+  'pillar-group': 'PLR', 'dasan-residence': 'DSN',
+  terracon: 'TRC', 'kokhta-ubani': 'KOK',
 }
 const autoDevPrefix = (slug: string): string =>
   slug.split('-').filter((s) => s.length > 0).map((s) => s[0]!).join('').toUpperCase().slice(0, 3)
@@ -1924,7 +1927,7 @@ export const PROJECTS: Project[] = [
     finish: '2028 Q4',
     flats: 190,
     rating: 4.6,
-    coords: { lat: 41.7879, lng: 44.8048 },
+    coords: { lat: 41.78756256, lng: 44.80474534 },
     floors: 14,
     description: {
       ka: 'Blox Sarajishvili — 14-სართულიანი საცხოვრებელი კომპლექსი ჩრდილოეთ თბილისში, მეტროს სიახლოვეს. ენერგოეფექტური გადაწყვეტები და დახურული ეზო.',
@@ -1964,7 +1967,7 @@ export const PROJECTS: Project[] = [
     finish: '2027 Q2',
     flats: 340,
     rating: 4.7,
-    coords: { lat: 41.6925, lng: 44.7958 },
+    coords: { lat: 41.69229878, lng: 44.79613286 },
     floors: 18,
     description: {
       ka: 'm² Mtatsminda Park — პრემიუმ კომპლექსი მთაწმინდაზე, ინოვაციების ქუჩაზე, ქალაქისა და მთის ხედებით. ფასები $186 728-იდან, ~$2 250/მ².',
@@ -2431,7 +2434,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q3',
     flats: 180,
     rating: 4.4,
-    coords: { lat: 41.6812, lng: 44.8245 },
+    coords: { lat: 41.68145642, lng: 44.82435859 },
     floors: 14,
     description: {
       ka: 'Bare by Biograpi — თანამედროვე საცხოვრებელი კომპლექსი ლომურის ქ. 3-ში, ისანში, Biograpi-ის სრული მომსახურებით ჩაბარების შემდეგ.',
@@ -2471,7 +2474,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q4',
     flats: 240,
     rating: 4.4,
-    coords: { lat: 41.68150952, lng: 44.8579376 },
+    coords: { lat: 41.68162405, lng: 44.85745655 },
     floors: 14,
     description: {
       ka: 'Console Samgori — საცხოვრებელი კომპლექსი მოსკოვის გამზ. 9ა-ში, ისანში, სამგორის მეტროს სიახლოვეს. ხელმისაწვდომი ფასები, ხარისხიანი მასალები.',
@@ -2491,7 +2494,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q4',
     flats: 200,
     rating: 4.6,
-    coords: { lat: 41.74729713, lng: 44.72330956 },
+    coords: { lat: 41.74742655, lng: 44.72349879 },
     floors: 10,
     description: {
       ka: 'Orientiri Lisi — GRG Development-ის პროექტი ლისის ტბის სიახლოვეს, ექსკლუზიური მართვით GREA-ს მიერ. ჩაბარება 2026 წლის გაზაფხულზე, მწვანე გარემოში.',
@@ -2592,7 +2595,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q3',
     flats: 320,
     rating: 4.4,
-    coords: { lat: 41.62490679, lng: 41.60844129 },
+    coords: { lat: 41.6250501, lng: 41.60581628 },
     floors: 20,
     description: {
       ka: 'Sport City Batumi — სპორტული თემატიკის საცხოვრებელი კომპლექსი ONE Development-ისგან, გამართული სპორტული ინფრასტრუქტურით.',
@@ -2673,7 +2676,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     flats: 380,
     rating: 4.7,
     // Wagon-repair factory lot east of Dinamo Arena — was wrongly pinned on Bendeliani / Gamsakhurdia.
-    coords: { lat: 41.72255, lng: 44.79790 },
+    coords: { lat: 41.72253261, lng: 44.79766827 },
     floors: 24,
     description: {
       ka: 'Grand Avenue by Archi — ფლაგმანური ქალაქქმედი პროექტი ცოტნე დადიანის ქ. 32-ში, ჩუღურეთში, დინამო არენასთან. ძველი ვაგონშემკეთებელი ქარხნის ტერიტორია.',
@@ -2733,7 +2736,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q1',
     flats: 280,
     rating: 4.5,
-    coords: { lat: 41.76789738, lng: 44.78830598 },
+    coords: { lat: 41.76797793, lng: 44.78802094 },
     floors: 16,
     description: {
       ka: 'Archi Guramishvili — საცხოვრებელი კომპლექსი დიდუბეში, გურამიშვილის გამზ. 64-ში, მეტროს სიახლოვეს. ენერგოეფექტური, დროული ჩაბარება.',
@@ -3074,7 +3077,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q1',
     flats: 220,
     rating: 4.5,
-    coords: { lat: 41.67339117, lng: 44.83605344 },
+    coords: { lat: 41.67339378, lng: 44.83663298 },
     floors: 14,
     description: {
       ka: 'Blox Ortachala — თანამედროვე საცხოვრებელი კომპლექსი ორთაჭალაში, მტკვრის სიახლოვეს, $47 560-იდან. Blox-ის ენერგოეფექტური სტანდარტით.',
@@ -3315,7 +3318,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q3',
     flats: 470,
     rating: 4.4,
-    coords: { lat: 41.77320619, lng: 44.76586708 },
+    coords: { lat: 41.77339367, lng: 44.76567481 },
     floors: 13,
     description: {
       ka: 'GBG Andronikashvili — 7 ბლოკიანი კომპლექსი ლუარსაბ ანდრონიკაშვილის 1-ში, დიღომში (სასამართლოს მოპირდაპირედ). A/B ჩაბარებულია; C–E → 2026, F/G → 2027.',
@@ -3495,7 +3498,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q4',
     flats: 180,
     rating: 4.4,
-    coords: { lat: 41.72209448, lng: 44.70836449 },
+    coords: { lat: 41.72200729, lng: 44.70874115 },
     floors: 14,
     description: {
       ka: 'Dona Palace Saburtalo — DONA Group-ის საცხოვრებელი კომპლექსი საბურთალოზე, Dona Palace ქსელის ნაწილი. თანამედროვე დაგეგმარება, ხელმისაწვდომი ფასები.',
@@ -3515,7 +3518,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q1',
     flats: 200,
     rating: 4.4,
-    coords: { lat: 41.67299274, lng: 44.83472604 },
+    coords: { lat: 41.6730727, lng: 44.83461655 },
     floors: 16,
     description: {
       ka: 'Dona Palace Ortachala — DONA Group-ის საცხოვრებელი კომპლექსი ორთაჭალაში, მტკვრის სიახლოვეს. მწვანე და მშვიდი რაიონი.',
@@ -3535,7 +3538,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q4',
     flats: 220,
     rating: 4.2,
-    coords: { lat: 41.73634086, lng: 44.79765415 },
+    coords: { lat: 41.73628257, lng: 44.79746511 },
     floors: 14,
     description: {
       ka: 'TETRA Residential Complex — Tetra Development-ის საცხოვრებელი კომპლექსი გიორგი სააკაძის ქ. 63-ში, ნაძალადევში, $770/მ²-დან. მრავალსართულიანი შენობები ფართო ბინებით (145 მ²+), სწრაფად განვითარებად ზონაში.',
@@ -3555,7 +3558,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q3',
     flats: 120,
     rating: 4.5,
-    coords: { lat: 41.7305, lng: 44.7542 },
+    coords: { lat: 41.73042301, lng: 44.75422384 },
     floors: 14,
     description: {
       ka: 'Vinci-ის საცხოვრებელი კომპლექსი ცაცხვების VIII შესახვევში, ლისის ტბის მიმდებარედ. ბინები ~171 000 ₾-დან (3 420 ₾/მ²-დან), მწვანე კარკასის მდგომარეობით.',
@@ -3590,17 +3593,17 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     img: '/images/projects/new-group-vazisubani.webp',
     location: 'შანდორ პეტეფის ქ. 30, ვაზისუბანი, ისანი, თბილისი',
     city: 'თბილისი',
-    priceFromM2: '$1,120',
-    done: 55,
-    finish: '2027 Q2',
+    priceFromM2: '$1,150',
+    done: 70,
+    finish: '2026 Q4',
     flats: 200,
     rating: 4.4,
-    coords: { lat: 41.69556729, lng: 44.86075671 },
+    coords: { lat: 41.69553189, lng: 44.86060982 },
     floors: 16,
     description: {
-      ka: 'New Group Vazisubani — საცხოვრებელი კომპლექსი შანდორ პეტეფის ქ. 30-ში, ისანში. ბინები ~187 900 ₾-დან (3 025 ₾/მ²-დან) — ხელმისაწვდომი ფასი ცენტრალურ ლოკაციაზე.',
-      en: 'New Group Vazisubani is a residential complex at 30 Shandor Petefi St, Isani. Apartments from ~₾187,900 (from ₾3,025/m²) — affordable for a central location.',
-      ru: 'New Group Vazisubani — жилой комплекс на ул. Шандора Петёфи 30, Исани. Квартиры от ~187 900 ₾ (от 3 025 ₾/м²) — доступная цена для центральной локации.',
+      ka: 'New Group Vazisubani — საცხოვრებელი კომპლექსი შანდორ პეტეფის ქ. 30-ში, ისანში. თეთრი კარკასი $1 150/მ²-დან, ჩაბარება 2026 Q4 (korter 2026-08).',
+      en: 'New Group Vazisubani is a residential complex at 30 Shandor Petefi St, Isani. White frame from $1,150/m², handover Q4 2026 (korter Aug 2026).',
+      ru: 'New Group Vazisubani — жилой комплекс на ул. Шандора Петёфи 30, Исани. Белый каркас от $1 150/м², сдача IV кв. 2026.',
     },
   },
   {
@@ -3610,17 +3613,17 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     img: '/images/projects/new-group-kavtaradze-19.webp',
     location: 'პეტრე ქავთარაძის ქ. 19, საბურთალო, თბილისი',
     city: 'თბილისი',
-    priceFromM2: '$1,705',
-    done: 45,
-    finish: '2027 Q3',
+    priceFromM2: '$1,700',
+    done: 100,
+    finish: 'დასრულებული · 2025',
     flats: 160,
     rating: 4.5,
     coords: { lat: 41.72000248, lng: 44.72469002 },
     floors: 18,
     description: {
-      ka: 'New Group Kavtaradze 19 — კომპლექსი ქავთარაძის ქ. 19-ში, საბურთალოში. ბინები ~323 600 ₾-დან (4 603 ₾/მ²-დან), გამართული ინფრასტრუქტურის ზონაში.',
-      en: 'New Group Kavtaradze 19 is a complex at 19 Petre Kavtaradze St, Saburtalo. Apartments from ~₾323,600 (from ₾4,603/m²), in a well-served infrastructure zone.',
-      ru: 'New Group Kavtaradze 19 — комплекс на ул. Петре Кавтарадзе 19, Сабуртало. Квартиры от ~323 600 ₾ (от 4 603 ₾/м²), в зоне с развитой инфраструктурой.',
+      ka: 'New Group Kavtaradze 19 — ჩაბარებული კომპლექსი ქავთარაძის ქ. 19-ში, საბურთალოში (korter: Completed 2025).',
+      en: 'New Group Kavtaradze 19 is a delivered complex at 19 Petre Kavtaradze St, Saburtalo (korter: Completed 2025).',
+      ru: 'New Group Kavtaradze 19 — сданный комплекс на ул. Петре Кавтарадзе 19, Сабуртало (Completed 2025).',
     },
   },
   {
@@ -3675,7 +3678,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2028 Q1',
     flats: 140,
     rating: 4.6,
-    coords: { lat: 41.7289, lng: 44.7519 },
+    coords: { lat: 41.72924633, lng: 44.75208314 },
     floors: 10,
     description: {
       ka: 'Eco Lisi — ეკო-კონცეფციის კომპლექსი ლისის ტბის მიმდებარედ, კვაჭაძისა და ერისთავის ქუჩების კვეთაზე. ბინები ~239 900 ₾-დან (5 261 ₾/მ²-დან).',
@@ -4102,7 +4105,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     flats: 19,
     floors: 5,
     rating: 4.9,
-    coords: { lat: 41.70920791, lng: 44.80154409 },
+    coords: { lat: 41.70920131, lng: 44.80163134 },
     description: {
       ka: 'Nexus Javakhishvili — ნექსუს ჯგუფის პრემიუმ საცხოვრებელი კომპლექსი ჩუღურეთში, ივანე ჯავახიშვილის ქუჩა 62-ში (საბჭოს მოედნის სიახლოვეს). 1 მ²-ის ფასი 7,093 ₾-დან (341,719 ₾-დან 2-ოთახიანი 44.85 მ²). ჩაბარება 2026 წლის 3 კვარტალში. 5 სართული, 19 ბინა (5 ბინა სართულზე). კეთილმოწყობილი ეზო, უცხოური ლიფტი, ჭერის სიმაღლე 3მ. კონსულტანტი: ბაჩო აბესაძე.',
       en: 'Nexus Javakhishvili — premium residential complex by Nexus Group in Chugureti, at 62 Ivane Javakhishvili St. From 7,093 GEL/m² (from 341,719 GEL for 44.85 m² 2-room). Completion Q3 2026. 5 floors, 19 units. 3m ceilings, noise isolation, elevator.',
@@ -4122,7 +4125,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     flats: 90,
     floors: 8,
     rating: 4.6,
-    coords: { lat: 41.69547, lng: 44.81331 },
+    coords: { lat: 41.69547346, lng: 44.81343294 },
     description: {
       ka: 'Residence Vakhtang VI 10 — ნექსუსის ბუტიკ-კომპლექსი ისანში. ბინები $2 800/მ²-დან, ჩაბარება 2026-ის მესამე კვარტალში.',
       en: 'Residence Vakhtang VI 10 is Nexus’s boutique complex in Isani. From $2,800/m², completion Q3 2026.',
@@ -4342,7 +4345,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     flats: 160,
     floors: 13,
     rating: 4.4,
-    coords: { lat: 41.74552, lng: 44.79479 },
+    coords: { lat: 41.74556303, lng: 44.79508824 },
     description: {
       ka: 'Dadiani 263 — Livin-ის კომპლექსი ნაძალადევში, დადიანის ქ. 263-ში. ბინები $1 480/მ²-დან, ჩაბარება 2026-ის მეორე კვარტალში.',
       en: 'Dadiani 263 is Livin’s complex in Nadzaladevi at 263 Dadiani St. From $1,480/m², completion Q2 2026.',
@@ -4382,7 +4385,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     flats: 300,
     floors: 25,
     rating: 4.4,
-    coords: { lat: 41.73546089, lng: 44.77546103 },
+    coords: { lat: 41.73506391, lng: 44.77564983 },
     description: {
       ka: 'Megobroba Sanapiroze — მეგობრობას კომპლექსი დიდუბეში, მტკვრის ნაპირზე. ბინები $1 180/მ²-დან.',
       en: 'Megobroba Sanapiroze is Megobroba’s complex in Didube on the Mtkvari embankment. From $1,180/m².',
@@ -4565,7 +4568,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q2',
     flats: 208,
     rating: 4.7,
-    coords: { lat: 41.74973733, lng: 44.76732533 },
+    coords: { lat: 41.74971114, lng: 44.76741378 },
     floors: 13,
     description: {
       ka: `Archi Panorama (Archi Vashlijvari) — მშენებარე კომპლექსი ბროცეულის ქ. 5/1, საბურთალო/ვაშლიჯვარი. 13 სართული, 208 ბინა 50,4–116,2 მ². ფასი $1 240/მ²-დან (13 ივლისი 2026). ჩაბარება 2027 Q2. მონოლითური-ჩარჩო, YTONG, მიწისქვეშა პარკინგი. საკადასტრო 01.10.11.001.462. იპოთეკა TBC. დეველოპერი Archi (2006+).`,
@@ -4585,7 +4588,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q3',
     flats: 981,
     rating: 4.7,
-    coords: { lat: 41.74841477, lng: 44.76823899 },
+    coords: { lat: 41.74881757, lng: 44.7684363 },
     floors: 24,
     description: {
       ka: `Next Door Gelovani — 24-სართულიანი მშენებარე კომპლექსი იასამნის ქ. 4, საბურთალო (მტკვართან ~500 მ). 981 ბინა, ჭერი 4,4 მ-მდე, მწვანე კარკასი. ფასი $1 440/მ²-დან (30 ივნისი 2026). ჩაბარება 2027 Q3. ორდონიანი მიწისქვეშა პარკინგი. საკადასტრო 01.10.11.001.469. იპოთეკა TBC. დეველოპერი Next Door.`,

@@ -7,7 +7,7 @@
  * Falls back to hardcoded 2.7.
  */
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
 
 export type Currency = 'GEL' | 'USD'
 
@@ -196,8 +196,29 @@ export function formatListingPrice({
   }
 }
 
+/** Per-consumer hydration gate — parent CurrencyProvider can already hold a live
+ *  rate before Suspense children hydrate; reading that rate on first paint
+ *  mismatches SSR HTML that used USD_GEL_FALLBACK. */
+const hydrateSubscribe = () => () => {}
+function useHydrated(): boolean {
+  return useSyncExternalStore(hydrateSubscribe, () => true, () => false)
+}
+
 export function useCurrency(): CurrencyContextValue {
   const ctx = useContext(CurrencyContext)
   if (!ctx) throw new Error('useCurrency must be used within <CurrencyProvider>')
+  // ponytail: gate at consumer, not provider — streaming below-fold hydrates after rate fetch.
+  const hydrated = useHydrated()
+  if (!hydrated) {
+    const currency = getServerCurrency()
+    const rate = USD_GEL_FALLBACK
+    return {
+      ...ctx,
+      currency,
+      rate,
+      format: (gel: number) => formatMoney(gel, currency, rate),
+      convert: (gel: number) => convertGel(gel, currency, rate),
+    }
+  }
   return ctx
 }

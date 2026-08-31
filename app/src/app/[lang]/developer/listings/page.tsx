@@ -81,7 +81,7 @@ export default async function DeveloperListingsPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-[12.5px] font-medium text-sv-ink/55">
-                  {l.city} · {l.district} · {l.bedrooms > 0 ? `${l.bedrooms} საძინებელი` : `${l.rooms} ოთახები სულ`}{l.rooms > 0 && l.bedrooms > 0 ? ` · ${l.rooms} ოთახები სულ` : ''} · {l.area} მ²
+                  {l.city} · {l.district} · {l.bedrooms > 0 ? `${l.bedrooms} საძინებელი` : `${l.rooms} ოთახი`}{l.rooms > 0 && l.bedrooms > 0 ? ` · ${l.rooms} ოთახი` : ''} · {l.area} მ²
                 </p>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <span className="text-[15px] font-black text-sv-ink">

@@ -32,7 +32,7 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
     <section id="services" className="bg-sv-surface py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-12 text-center">
-          <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
+          <h2 className="sv-h2 text-sv-ink">
             {title}
           </h2>
           <p className="mx-auto mt-3 max-w-[560px] text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
@@ -40,7 +40,7 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
           </p>
         </Reveal>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="sv-card-grid-3">
           {SERVICES.map((s, i) => (
             <Reveal key={s.titleKey} delay={i * 0.08} className="h-full">
               <LocalizedLink

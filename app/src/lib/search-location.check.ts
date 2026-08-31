@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { suggestionToFilters, searchHref, filtersToParams, exactSuggestHit, locationLabel, compactDistrictParam, splitDistricts } from './search-location'
+import { suggestionToFilters, searchHref, filtersToParams, exactSuggestHit, locationLabel, compactDistrictParam, splitDistricts, mergeLocRecent, locStamp } from './search-location'
 
 assert.deepEqual(suggestionToFilters({ kind: 'city', ka: 'თბილისი' }), {
   city: 'თბილისი',
@@ -45,6 +45,7 @@ assert.equal(exactSuggestHit([{ kind: 'city', ka: 'ბათუმი' }], 'ბ�
 assert.equal(exactSuggestHit([{ kind: 'city', ka: 'ბათუმი' }], 'xyz'), undefined)
 
 assert.deepEqual(splitDistricts('ვაკე, საბურთალო'), ['ვაკე', 'საბურთალო'])
+assert.equal(locationLabel({ city: '', district: '', street: '' }, 'მთელი საქართველო'), 'მთელი საქართველო')
 assert.equal(locationLabel({ city: 'თბილისი', district: '', street: '' }), 'თბილისი')
 assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე', street: '' }), 'ვაკე, თბილისი')
 assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე,საბურთალო,დიღომი', street: '' }), 'თბილისი · 3')
@@ -59,6 +60,22 @@ assert.equal(
 assert.equal(
   compactDistrictParam(['საბურთალო'], { საბურთალო: ['ლისი', 'დიღომი'] }),
   'საბურთალო',
+)
+
+assert.equal(mergeLocRecent([], { city: '', district: '', street: '' }).length, 0)
+assert.deepEqual(
+  mergeLocRecent(
+    [{ city: 'ბათუმი', district: '', street: '' }],
+    { city: 'თბილისი', district: 'ვაკე', street: '' },
+  ).map(locStamp),
+  ['თბილისი\0ვაკე\0', 'ბათუმი\0\0'],
+)
+assert.equal(
+  mergeLocRecent(
+    [{ city: 'თბილისი', district: 'ვაკე', street: '' }],
+    { city: 'თბილისი', district: 'ვაკე', street: '' },
+  ).length,
+  1,
 )
 
 console.log('ok: suggestionToFilters')

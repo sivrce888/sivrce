@@ -19,6 +19,7 @@ import {
   bindMissingImages,
   loadMapBasemap,
   mapStyleUrl,
+  overlayHybridLabels,
   STYLE_SATELLITE,
 } from '@/lib/map/floorLayers'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
@@ -93,14 +94,21 @@ export default function SearchMapView({
     const els = elsRef.current
     const dark = isDark
     ;(async () => {
-      // ponytail: satellite is sync — streets/OFM used to hang 80s and leave a white pane
+      // ponytail: streets first (same /map look). sat+hybrid only if OFM 5s timeout.
+      let terrain: 'streets' | 'satellite' = 'streets'
       let style
       try {
-        style = await loadMapBasemap(STYLE_SATELLITE)
+        style = await loadMapBasemap(mapStyleUrl(dark))
       } catch (err) {
-        console.error('[SearchMap] sat', err)
-        if (!cancelled) setFailed(true)
-        return
+        console.error('[SearchMap] streets', err)
+        try {
+          style = await overlayHybridLabels(await loadMapBasemap(STYLE_SATELLITE))
+          terrain = 'satellite'
+        } catch (satErr) {
+          console.error('[SearchMap] sat', satErr)
+          if (!cancelled) setFailed(true)
+          return
+        }
       }
       if (cancelled || mapRef.current) return
       const boot = initialMapCenter()
@@ -134,7 +142,7 @@ export default function SearchMapView({
       const paint = () => {
         map.resize()
         tightenAttribution(map)
-        applyBrandPaints(map, dark ? 'dark' : 'light', 'satellite')
+        applyBrandPaints(map, dark ? 'dark' : 'light', terrain)
       }
       map.once('load', () => {
         if (cancelled) return
@@ -144,21 +152,6 @@ export default function SearchMapView({
       })
       ro = new ResizeObserver(() => map.resize())
       ro.observe(container)
-
-      loadMapBasemap(mapStyleUrl(dark))
-        .then((next) => {
-          if (cancelled || mapRef.current !== map) return
-          map.setStyle(next)
-          map.once('idle', () => {
-            if (cancelled || mapRef.current !== map) return
-            applyBrandPaints(map, dark ? 'dark' : 'light')
-            tightenAttribution(map)
-            map.resize()
-          })
-        })
-        .catch((err) => {
-          console.error('[SearchMap] streets', err)
-        })
     })()
     return () => {
       cancelled = true
@@ -283,7 +276,7 @@ export default function SearchMapView({
     <div className="flex h-[min(78dvh,860px)] min-h-[min(56dvh,420px)] flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card md:flex-row">
       <div
         ref={listRef}
-        className="flex max-h-[42%] flex-col overflow-y-auto border-b border-sv-ink/[0.06] md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r"
+        className="flex max-h-[42%] min-w-0 flex-col overflow-y-auto border-b border-sv-ink/[0.06] md:max-h-none md:w-[min(22.5rem,40%)] md:shrink-0 md:border-b-0 md:border-r"
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-sv-ink/[0.06] bg-sv-surface/95 px-3.5 py-2.5 backdrop-blur-sm">
           <p className="text-[13px] font-extrabold text-sv-ink">

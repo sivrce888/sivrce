@@ -367,7 +367,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     flats: 500,
     floors: 42,
     rating: 4.5,
-    coords: { lat: 41.6567, lng: 44.8302 },
+    coords: { lat: 41.65679348, lng: 44.83137492 },
     description: {
       ka: 'Tbilisi Hills — გოლფ-საცხოვრებელი კურორტი კრწანისში: კონტინენტური ევროპის Top-100 გოლფის მოედანი, ბინები, ვილები და ნაკვეთები; შიგნით Mira Verde-ს branded რეზიდენციები.',
       en: 'Tbilisi Hills is a golf-and-residences resort in Krtsanisi: a Top-100 continental Europe course with apartments, villas and plots — Mira Verde branded residences inside.',

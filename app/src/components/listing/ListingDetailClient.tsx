@@ -12,6 +12,7 @@ import {
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront, Columns2, Copy,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
+import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { monthlyPayment } from '@/lib/finance'
@@ -28,6 +29,7 @@ import MapEmbed from '@/components/MapEmbed'
 import RevealPhone from '@/components/listing/RevealPhone'
 import PriceScale from '@/components/listing/PriceScale'
 import { parseCoords } from '@/lib/map/geocode'
+import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { mapHrefForListing } from '@/lib/map/buildings'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { blurProps, isCdnMedia } from '@/lib/media'
@@ -68,17 +70,25 @@ function FeatureGroups({ features, dealType }: { features: string[]; dealType: s
   const grouped = new Set<string>(groups.flatMap((g) => g.items))
   const rest = shown.filter((f) => !grouped.has(f))
   const chip = (f: string) => {
+    const party = f === 'add.f.partiesAllowed'
     const signal = dealType === 'daily' && DAILY_SIGNAL_SET.has(f)
     return (
       <span
         key={f}
         className={
-          signal
-            ? 'flex items-center gap-1.5 rounded-full border border-sv-blue/25 bg-sv-blue/[0.07] px-4 py-2 text-[13px] font-extrabold text-sv-blue'
-            : 'flex items-center gap-1.5 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-4 py-2 text-[13px] font-bold text-sv-ink/70'
+          party
+            ? 'flex items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-extrabold'
+            : signal
+              ? 'flex items-center gap-1.5 rounded-full border border-sv-blue/25 bg-sv-blue/[0.07] px-4 py-2 text-[13px] font-extrabold text-sv-blue'
+              : 'flex items-center gap-1.5 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-4 py-2 text-[13px] font-bold text-sv-ink/70'
         }
+        style={party ? { borderColor: `${CATEGORY_BRAND.partyHouses.hue}40`, backgroundColor: CATEGORY_BRAND.partyHouses.chipVar, color: CATEGORY_BRAND.partyHouses.hue } : undefined}
       >
-        <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
+        {party ? (
+          <PartyHouseIcon className="h-3.5 w-3.5" />
+        ) : (
+          <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
+        )}
         {featureLabel(f, t)}
       </span>
     )
@@ -321,6 +331,9 @@ export default function ListingDetailClient({
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const isSale = l.dealType === 'sale'
+  const isRent = l.dealType === 'rent'
+  const isDailyDeal = l.dealType === 'daily'
+  const isPledge = l.dealType === 'pledge'
   const priceDetailObj = formatListingPrice({
     priceUSD: l.priceUSD,
     priceGEL: l.priceGEL,
@@ -717,11 +730,12 @@ export default function ListingDetailClient({
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div>
                 <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">
-                  {isSale ? t('detail.fullPrice') : t('detail.monthlyRent')}
+                  {isRent ? t('detail.monthlyRent') : isDailyDeal ? t('nav.daily') : isPledge ? t('map.pledge') : t('detail.fullPrice')}
                 </div>
                 <div className="mt-1 text-[32px] font-black tracking-tight text-sv-ink md:text-[36px]">
                   {priceMain}
-                  {!isSale && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perMonth')}</span>}
+                  {isRent && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perMonth')}</span>}
+                  {isDailyDeal && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perDay')}</span>}
                 </div>
                 {l.stickerPriceDrop ? (
                   <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-sv-navy/90 px-2.5 py-1 text-[11px] font-black text-white">
@@ -1219,7 +1233,7 @@ export default function ListingDetailClient({
                     {t('detail.similar')}
                   </h2>
                   <p className="mt-1 text-[14px] font-semibold text-sv-ink/50">
-                    {lt(lang, 'similarSub', { deal: t(isSale ? 'search.sale' : 'search.rent') })}
+                    {lt(lang, 'similarSub', { deal: t(isSale ? 'search.sale' : isRent ? 'search.rent' : isDailyDeal ? 'nav.daily' : 'map.pledge') })}
                   </p>
                 </div>
                 <LocalizedLink

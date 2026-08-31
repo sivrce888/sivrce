@@ -1,14 +1,13 @@
 /**
  * Listing photo URL conventions.
  *
- * /api/upload stores, for every accepted photo, two R2 objects:
+ * /api/upload stores, for every accepted photo, three R2 objects:
  *   uploads/YYYY/MM/<uuid>.webp        — master (EXIF-rotated, ≤2560px, q82)
+ *   uploads/YYYY/MM/<uuid>.card.webp   — 800px grid/card (q78)
  *   uploads/YYYY/MM/<uuid>.lqip.webp   — 16px blur placeholder
  *
- * lqipOf() derives the placeholder URL from the master URL, so blurDataURL
- * needs no DB column and works for every photo uploaded through the pipeline.
- * Static/demo images (Unsplash, local /images/*) have no placeholder and
- * return undefined — callers fall back to no blur.
+ * lqipOf()/cardOf() derive sibling URLs from the master, so no DB column.
+ * Static/demo images (Unsplash, local /images/*) have no twins.
  */
 
 const MASTER_RE = /\/uploads\/\d{4}\/\d{2}\/[0-9a-f-]+\.webp$/
@@ -30,6 +29,11 @@ export function hasLqip(url: string): boolean {
 /** LQIP blurDataURL for a pipeline master URL, undefined for anything else. */
 export function lqipOf(url: string): string | undefined {
   return hasLqip(url) ? url.replace(/\.webp$/, ".lqip.webp") : undefined
+}
+
+/** 800px card twin — grid/search. Undefined for non-pipeline URLs. */
+export function cardOf(url: string): string | undefined {
+  return hasLqip(url) ? url.replace(/\.webp$/, ".card.webp") : undefined
 }
 
 /** next/image blur props for a listing photo — spread onto <Image>. */

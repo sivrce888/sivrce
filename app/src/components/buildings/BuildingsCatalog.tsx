@@ -187,7 +187,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
           ვერ მოიძებნა — შეცვალე ფილტრი ან ძებნის სიტყვა
         </p>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="sv-card-grid-3">
           {filtered.map((b, i) => {
             const devName = developerNames[b.developerSlug]
             const counts = countsBySlug[b.slug] ?? empty

@@ -46,6 +46,8 @@ export default function robots(): MetadataRoute.Robots {
           'Grok',
           'CCBot',
           'meta-externalagent',
+          'MistralAI-User',
+          'TikTokSpider',
         ],
         allow: ['/', '/llms.txt', '/llms-full.txt'],
         disallow: DISALLOW,

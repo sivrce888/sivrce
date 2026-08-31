@@ -30,6 +30,7 @@ export const TBILISI_DISTRICT_LABELS: DistrictLabel[] = [
   { slug: 'vazha-pshavela', name: { ka: 'ვაჟა-ფშაველას კვარტლები', en: 'Vazha-Pshavela Quarters' }, coords: { lat: 41.72396, lng: 44.73002 } },
   { slug: 'kus-tba', name: { ka: 'კუს ტბა', en: 'Turtle Lake' }, coords: { lat: 41.70039, lng: 44.75446 } },
   { slug: 'tskneti', name: { ka: 'წყნეთი', en: 'Tskneti' }, coords: { lat: 41.69391, lng: 44.69366 } },
+  { slug: 'tskhvarichamia', name: { ka: 'ცხვარიჭამია', en: 'Tskhvarichamia' }, coords: { lat: 41.752, lng: 44.657 } },
   { slug: 'akhaldaba', name: { ka: 'ახალდაბა', en: 'Akhaldaba' }, coords: { lat: 41.68464, lng: 44.66414 } },
   { slug: 'okrokana', name: { ka: 'ოქროყანა', en: 'Okrokana' }, coords: { lat: 41.68738, lng: 44.77355 } },
   { slug: 'betania', name: { ka: 'ბეთანია', en: 'Betania' }, coords: { lat: 41.67827, lng: 44.63474 } },

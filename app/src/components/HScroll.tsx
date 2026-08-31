@@ -20,6 +20,8 @@ type Props = {
   step?: number
   /** sm = stories / chips; md = listing cards (default). */
   size?: 'sm' | 'md'
+  /** Navy / dark surfaces: translucent white chevrons (Apple TV). */
+  invert?: boolean
   'aria-label'?: string
 }
 
@@ -33,6 +35,7 @@ export default function HScroll({
   className = '',
   step,
   size = 'md',
+  invert = false,
   'aria-label': ariaLabel,
 }: Props) {
   const { t } = useI18n()
@@ -138,10 +141,15 @@ export default function HScroll({
   }
 
   const sm = size === 'sm'
+  const btnTone = invert
+    ? 'border-white/15 bg-white/[0.12] text-white backdrop-blur-md focus-visible:ring-offset-sv-navy'
+    : 'border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card'
   const btnBase = sm
-    ? 'absolute top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
-    : `absolute z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${arrowY == null ? 'top-[7.5rem]' : ''}`
-  const btnOn = 'opacity-100 hover:scale-105 hover:border-sv-blue hover:text-sv-blue hover:shadow-card-hover active:scale-95'
+    ? `absolute top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full ${btnTone} transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2`
+    : `absolute z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full ${btnTone} transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${arrowY == null ? 'top-[7.5rem]' : ''}`
+  const btnOn = invert
+    ? 'opacity-100 hover:scale-105 hover:bg-white/20 active:scale-95'
+    : 'opacity-100 hover:scale-105 hover:border-sv-blue hover:text-sv-blue hover:shadow-card-hover active:scale-95'
   const btnOff = 'pointer-events-none opacity-0'
   const icon = sm ? 'h-4 w-4' : 'h-5 w-5'
   const btnStyle = !sm && arrowY != null ? { top: arrowY } : undefined
@@ -156,7 +164,7 @@ export default function HScroll({
           : undefined
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="relative min-w-0 max-w-full">
       {overflow ? (
         <>
           <button

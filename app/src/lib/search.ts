@@ -50,7 +50,7 @@ export interface SearchFilters {
   q?: string
   /** DB dialect (ListingDealType). The route maps UI "sale" → "buy" at the boundary. */
   dealType?: "buy" | "rent" | "daily" | "mortgage"
-  propertyType?: "apartment" | "house" | "commercial" | "land"
+  propertyType?: "apartment" | "house" | "villa" | "commercial" | "land" | "hotel"
   city?: string
   district?: string
   minPrice?: number

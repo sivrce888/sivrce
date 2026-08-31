@@ -34,7 +34,7 @@ export default function AgentSlider({
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
               <UserRound className="h-3.5 w-3.5" /> {b('home.agents.kicker')}
             </span>
-            <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
+            <h2 className="sv-h2 text-sv-ink">
               {b('home.agents.title')}
             </h2>
             <p className="mt-2 text-[14px] font-semibold text-sv-ink/65 md:text-[15px]">
@@ -66,14 +66,14 @@ export default function AgentSlider({
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="truncate text-[16px] font-black text-sv-ink transition-colors group-hover:text-sv-blue">
+                    <h3 className="text-[16px] font-black leading-snug text-sv-ink transition-colors group-hover:text-sv-blue">
                       {a.name.ka}
                     </h3>
                     {a.verified && (
                       <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" />
                     )}
                   </div>
-                  <p className="truncate text-[12px] font-bold text-sv-ink/60">
+                  <p className="text-[12px] font-bold leading-snug text-sv-ink/60">
                     {a.agency} · {a.city}
                   </p>
                 </div>

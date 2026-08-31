@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { SparkMark } from '@/components/SparkMark'
+import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import MapEmbed from '@/components/MapEmbed'
 import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
@@ -1320,6 +1321,7 @@ export default function AddListingClient() {
                         open={locOpen}
                         value={{ city, district, street }}
                         multi={false}
+                        nationwide={false}
                         onClose={() => setLocOpen(false)}
                         onApply={applyLocation}
                       />
@@ -1770,7 +1772,14 @@ export default function AddListingClient() {
                                       on ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                     }`}
                                   >
-                                    {on && <Check className="h-3.5 w-3.5" />}
+                                    {f === 'add.f.partiesAllowed' ? (
+                                      <PartyHouseIcon
+                                        className="h-3.5 w-3.5"
+                                        style={on ? undefined : { color: CATEGORY_BRAND.partyHouses.hue }}
+                                      />
+                                    ) : (
+                                      on && <Check className="h-3.5 w-3.5" />
+                                    )}
                                     {t(f)}
                                   </button>
                                 )

@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npx --yes tsx src/lib/cdn-cache.check.ts && npx --yes tsx src/lib/device-budget.check.ts && npx --yes tsx src/lib/listings-home-rail.check.ts && (node scripts/og-derivatives.mjs || echo 'og-derivatives skipped')",
+    "prebuild": "npx --yes tsx src/lib/cdn-cache.check.ts && npx --yes tsx src/lib/device-budget.check.ts && npx --yes tsx src/lib/listings-home-rail.check.ts && npx --yes tsx src/lib/llms-txt.check.ts && (node scripts/og-derivatives.mjs || echo 'og-derivatives skipped')",
     "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "NODE_OPTIONS=--max-old-space-size=768 next start",
     "lint": "eslint",
@@ -31,6 +31,7 @@
     "check:listing-share": "npx --yes tsx src/lib/listing-share.check.ts",
     "check:seo-title": "npx --yes tsx src/lib/seo-title.check.ts",
     "check:seo-hub": "npx --yes tsx src/lib/seo-hub.check.ts",
+    "check:llms": "npx --yes tsx src/lib/llms-txt.check.ts",
     "check:cdn": "npx --yes tsx src/lib/cdn-cache.check.ts",
     "check:device": "npx --yes tsx src/lib/device-budget.check.ts",
     "check:home-rail": "npx --yes tsx src/lib/listings-home-rail.check.ts",

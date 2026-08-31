@@ -6,6 +6,8 @@ import { CMS_BLOCKS, CMS_BLOCK_KEYS } from "./cms-blocks"
 import { buildCmsId, cmsGroups, cmsRowForKey, cmsRowsForGroup, isKnownCmsKey, parseCmsId } from "./cms-blocks"
 import { BLOCK_I18N } from "./cms-blocks.i18n"
 import { ka } from "./i18n/ka"
+import { en } from "./i18n/en"
+import { ru } from "./i18n/ru"
 import { LANGS } from "./i18n/core"
 import { SITE_META } from "./i18n/server"
 
@@ -99,9 +101,24 @@ assert(SITE_META.he.title !== SITE_META.en.title, "he meta not english copy")
 assert(SITE_META.ar.title !== SITE_META.en.title, "ar meta not english copy")
 assert(SITE_META.tr.title !== SITE_META.en.title, "tr meta not english copy")
 assert(SITE_META.ka.title.includes("უძრავი ქონება საქართველოში"), "ka title money query")
-assert(SITE_META.ka.title.includes("ბინები დღიურად თბილისში"), "ka title daily tbilisi")
+assert(SITE_META.ka.title.includes("ბინები") && SITE_META.ka.title.includes("სახლები") && SITE_META.ka.title.includes("აგარაკები"), "ka title types")
 assert(SITE_META.ka.description.includes("საბურთალოზე"), "ka desc saburtalo")
+assert(SITE_META.ka.description.includes("ქირავდება დღიურად"), "ka desc daily rent")
 assert(CMS_BLOCKS["home.hero.titleAccent"] === "საქართველოში", "home h1 locative")
+assert(CMS_BLOCKS["home.hero.subtitle"] === "იყიდება ქირავდება გირავდება ქირავდება დღიურად ბინები სახლები აგარაკები მშენებარე ბინები", "ka hero sub")
+assert(BLOCK_I18N.en["home.hero.subtitle"] === "Daily apartments in Tbilisi — for sale and for rent.", "en hero sub")
+assert(!CMS_BLOCKS["home.hero.subtitle"].includes("განათავსე უფასოდ"), "hero sub no seller cta")
+assert(!BLOCK_I18N.en["home.hero.subtitle"]?.includes("Saburtalo"), "saburtalo stays in chips, not hero")
+assert(!/Forget endless|immersive|ecosystem|BoG/.test(JSON.stringify(BLOCK_I18N.en)), "en homepage no kalaki")
+assert(!/Забудьте о бесконечных|иммерсивн|экосистем|BoG/.test(JSON.stringify(BLOCK_I18N.ru)), "ru homepage no kalaki")
+for (const [lang, dict] of Object.entries(BLOCK_I18N)) {
+  for (const [k, v] of Object.entries(dict)) {
+    assert(!/\bBoG\b/.test(v ?? ""), `no BoG: ${lang} ${k}`)
+  }
+}
+assert(!ka["spec.rooms"].includes("სულ") && !ka["search.roomsChip"].includes("სულ"), "ka rooms short")
+assert(!/total/i.test(en["spec.rooms"]) && !/total/i.test(en["search.roomsChip"]), "en rooms short")
+assert(!/всего/i.test(ru["spec.rooms"]) && !/всего/i.test(ru["search.roomsChip"]), "ru rooms short")
 
 console.log("cms.check: ok")
 

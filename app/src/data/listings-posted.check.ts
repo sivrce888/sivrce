@@ -3,7 +3,7 @@
  * Run: npx tsx src/data/listings-posted.check.ts
  */
 import assert from 'node:assert/strict'
-import { postedDaysAgo, stayCount, stayLine, type Listing } from './listings'
+import { postedDaysAgo, postedAgoLabel, stayCount, stayLine, type Listing } from './listings'
 
 const today = new Date(2026, 6, 20, 18, 0, 0) // Jul 20 local afternoon
 assert.equal(postedDaysAgo({ postedAt: '2026-07-20' } as Listing, today), 0)
@@ -19,9 +19,14 @@ assert.deepEqual(stayCount({ rooms: 2, beds: 0 }), {
   n: 2, rooms: 2, labelKey: 'spec.rooms', kind: 'rooms',
 })
 assert.equal(stayCount({ rooms: 1, beds: 2 }).n, 2)
-const t = (k: 'spec.rooms' | 'spec.beds') => (k === 'spec.beds' ? 'საძინებელი' : 'ოთახები სულ')
-assert.equal(stayLine({ rooms: 3, beds: 2 }, t), '2 საძინებელი · 3 ოთახები სულ')
-assert.equal(stayLine({ rooms: 2, beds: 0 }, t), '2 ოთახები სულ')
+const t = (k: 'spec.rooms' | 'spec.beds') => (k === 'spec.beds' ? 'საძინებელი' : 'ოთახი')
+assert.equal(stayLine({ rooms: 3, beds: 2 }, t), '2 საძინებელი · 3 ოთახი')
+assert.equal(stayLine({ rooms: 2, beds: 0 }, t), '2 ოთახი')
 assert.equal(stayLine({ rooms: 0, beds: 0 }, t), '')
+
+assert.equal(postedAgoLabel(0, 'ka'), 'დღეს')
+assert.equal(postedAgoLabel(1, 'ka'), 'გუშინ')
+assert.equal(postedAgoLabel(3, 'ka'), '3 დღის წინ')
+assert.equal(postedAgoLabel(8, 'ka'), '2 კვირის წინ')
 
 console.log('listings-posted.check: ok')

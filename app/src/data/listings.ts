@@ -758,7 +758,7 @@ export const LISTINGS: Listing[] = [
     views: 1450, badge: 'VIP',
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['add.f.partiesAllowed', 'add.f.bbq', 'add.f.yard', 'add.f.petsAllowed', 'ზღვამდე 300 მ', 'Wi-Fi'],
-    description: 'მახინჯაურში, ზღვის სიახლოვეს, დღიურად ქირავდება ორსართულიანი სახლი ეზოთი — იდეალური ერთად ოჯახის ან მეგობრების დასასვენებლად. წყნარი ადგილი, მაგრამ ბათუმის ცენტრამდე 15 წუთი.',
+    description: 'მახინჯაურში, ზღვის სიახლოვეს, დღიურად ქირავდება ორსართულიანი სახლი ეზოთი — იდეალური წვეულებისთვის, დაბადების დღისთვის ან ივენთისთვის. წყნარი ადგილი, მაგრამ ბათუმის ცენტრამდე 15 წუთი.',
     coords: { lat: 41.6833, lng: 41.6500 },
     buildingSlug: 'makhinjauri-daily-house',
     postedAt: '2026-07-01',
@@ -1184,7 +1184,7 @@ export function stayCount(l: Pick<Listing, 'rooms' | 'beds'>): {
   return { n: l.rooms, rooms: l.rooms, labelKey: 'spec.rooms', kind: 'rooms' }
 }
 
-/** "2 საძინებელი · 3 ოთახები სულ" — bedrooms first, total rooms second. */
+/** "2 საძინებელი · 3 ოთახი" — bedrooms first, total rooms second. */
 export function stayLine(
   l: Pick<Listing, 'rooms' | 'beds'>,
   t: (k: 'spec.rooms' | 'spec.beds') => string,
@@ -1222,6 +1222,21 @@ export function postedDaysAgo(l: Listing, today = new Date()): number {
   // en-CA → YYYY-MM-DD; day diff via UTC noon anchors
   const toUtc = (s: string) => Date.parse(`${s}T12:00:00Z`)
   return Math.max(0, Math.round((toUtc(b) - toUtc(a)) / 86_400_000))
+}
+
+/** Card timestamp. ka is hardcoded — ICU RelativeTimeFormat falls back to English "today". */
+export function postedAgoLabel(days: number, lang: string): string {
+  if (lang === 'ka') {
+    if (days < 1) return 'დღეს'
+    if (days === 1) return 'გუშინ'
+    if (days < 7) return `${days} დღის წინ`
+    const w = Math.ceil(days / 7)
+    return `${w} კვირის წინ`
+  }
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
+  if (days < 1) return rtf.format(0, 'day')
+  if (days < 7) return rtf.format(-days, 'day')
+  return rtf.format(-Math.ceil(days / 7), 'week')
 }
 
 /* ————— Distinct locations for filter selects ————— */

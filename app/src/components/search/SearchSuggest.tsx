@@ -122,10 +122,10 @@ export default function SearchSuggest({
     : dark
     ? md
       ? 'h-10 w-full rounded-full bg-white/[0.08] py-0 pl-10 pr-9 text-[13px] font-semibold text-white outline-none placeholder:text-white/40 focus:bg-white/[0.12]'
-      : 'h-12 w-full rounded-control bg-white/[0.07] py-0 pl-11 pr-10 text-[15px] font-semibold text-white outline-none placeholder:text-white/45 focus:bg-white/[0.12]'
+      : 'h-12 w-full rounded-full bg-white/[0.07] py-0 pl-11 pr-10 text-[15px] font-semibold text-white outline-none placeholder:text-white/45 focus:bg-white/[0.12]'
     : md
-      ? 'h-10 w-full rounded-full border border-sv-ink/10 bg-sv-surface pl-10 pr-9 text-[13px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
-      : 'h-12 w-full rounded-control border border-sv-ink/10 bg-sv-surface pl-11 pr-10 text-[14px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
+      ? 'h-10 w-full rounded-full bg-sv-ink/[0.045] pl-10 pr-9 text-[13px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:bg-sv-ink/[0.07] focus-visible:ring-2 focus-visible:ring-sv-blue/30'
+      : 'h-12 w-full rounded-full bg-sv-ink/[0.045] pl-11 pr-10 text-[14px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:bg-sv-ink/[0.07] focus-visible:ring-2 focus-visible:ring-sv-blue/30'
 
   return (
     <div className={`relative ${className}`}>

@@ -3,17 +3,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, Search, MapPin, ChevronLeft, Route, Check, TrainFront } from 'lucide-react'
+import { X, Search, MapPin, ChevronLeft, Route, Check, TrainFront, Globe, LocateFixed, History } from 'lucide-react'
 import { GEO_CITIES, GEO_MUNICIPALITIES, geoPickerColumns, geoRaionsOf } from '@/data/georgia-locations'
 import { districtsOf } from '@/data/listings'
 import { useI18n } from '@/lib/i18n/context'
 import {
   compactDistrictParam,
   locationLabel,
+  pushLocRecent,
+  readLocRecent,
+  locStamp,
   splitDistricts,
   type LocationValue,
 } from '@/lib/search-location'
 import type { Suggestion } from '@/components/search/SearchSuggest'
+import { nearestMapCity } from '@/lib/map/user-place'
 
 export type { LocationValue }
 export { locationLabel }
@@ -31,6 +35,8 @@ type Props = {
   /** Search: many უბანი. Add-listing: one. */
   multi?: boolean
   showMetro?: boolean
+  /** Search can be Georgia-wide. Add-listing must pick a city. */
+  nationwide?: boolean
 }
 
 export default function LocationPicker({
@@ -40,6 +46,7 @@ export default function LocationPicker({
   onApply,
   multi = true,
   showMetro = false,
+  nationwide = true,
 }: Props) {
   const { t } = useI18n()
   const [city, setCity] = useState(value.city)
@@ -51,6 +58,8 @@ export default function LocationPicker({
   const [remote, setRemote] = useState<Suggestion[]>([])
   const [streets, setStreets] = useState<Suggestion[]>([])
   const [mounted, setMounted] = useState(false)
+  const [nearby, setNearby] = useState<'idle' | 'locating' | 'denied' | 'miss'>('idle')
+  const [recent, setRecent] = useState<LocationValue[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setMounted(true) }, [])
@@ -64,9 +73,14 @@ export default function LocationPicker({
     setMetro(Boolean(value.metro))
     setQ('')
     setPane('districts')
+    setNearby('idle')
+    setRecent(readLocRecent())
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    const tFocus = window.setTimeout(() => inputRef.current?.focus(), 40)
+    const tFocus = window.setTimeout(() => {
+      // ponytail: skip mobile autofocus — keyboard covers destination cards.
+      if (window.matchMedia('(pointer: fine)').matches) inputRef.current?.focus()
+    }, 40)
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -191,12 +205,51 @@ export default function LocationPicker({
   }
 
   const apply = () => {
-    onApply({
+    const next: LocationValue = {
       city,
       district: compactDistrictParam(picked, raions),
       street: street.trim(),
       ...(showMetro ? { metro } : {}),
+    }
+    setRecent(pushLocRecent(next))
+    onApply(next)
+  }
+
+  const applyNationwide = () => {
+    setCity('')
+    setPicked([])
+    setStreet('')
+    setMetro(false)
+    onApply({ city: '', district: '', street: '', ...(showMetro ? { metro: false } : {}) })
+  }
+
+  const adoptRecent = (v: LocationValue) => {
+    setRecent(pushLocRecent(v))
+    onApply({
+      city: v.city,
+      district: v.district,
+      street: v.street,
+      ...(showMetro ? { metro: Boolean(v.metro) } : {}),
     })
+  }
+
+  // ponytail: city snap via MAP_CITIES (55km). Street GPS stays on the map locate button.
+  const locateNearby = () => {
+    if (!navigator.geolocation || nearby === 'locating') return
+    setNearby('locating')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const hit = nearestMapCity(pos.coords.latitude, pos.coords.longitude)
+        if (!hit) {
+          setNearby('miss')
+          return
+        }
+        setNearby('idle')
+        pickCity(hit.ka)
+      },
+      () => setNearby('denied'),
+      { enableHighAccuracy: false, timeout: 8_000, maximumAge: 120_000 },
+    )
   }
 
   const sheet = (
@@ -322,6 +375,15 @@ export default function LocationPicker({
                   className="hidden w-[168px] shrink-0 overflow-y-auto border-r border-sv-ink/[0.06] bg-sv-cloud/60 py-2 sm:block"
                   aria-label={t('loc.cities')}
                 >
+                  {nationwide ? (
+                    <button
+                      type="button"
+                      onClick={applyNationwide}
+                      className="flex w-full items-center border-l-2 border-transparent px-3 py-2.5 text-left text-[13px] font-bold text-sv-ink/70 transition-colors hover:bg-sv-surface hover:text-sv-ink"
+                    >
+                      {t('search.allGeorgia')}
+                    </button>
+                  ) : null}
                   {sidebarCities.map((c) => (
                     <button
                       key={c}
@@ -360,6 +422,54 @@ export default function LocationPicker({
                   />
                 ) : !city ? (
                   <>
+                    <div className={`mb-7 grid min-w-0 gap-2 ${nationwide ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      {nationwide ? (
+                        <DestCard
+                          selected
+                          icon={Globe}
+                          title={t('search.allGeorgia')}
+                          hint={t('loc.georgiaHint')}
+                          onClick={applyNationwide}
+                        />
+                      ) : null}
+                      <DestCard
+                        icon={LocateFixed}
+                        title={t('loc.nearby')}
+                        hint={
+                          nearby === 'locating'
+                            ? t('loc.locating')
+                            : nearby === 'denied'
+                              ? t('loc.denied')
+                              : nearby === 'miss'
+                                ? t('loc.nearbyFail')
+                                : t('loc.nearbyHint')
+                        }
+                        hintWarn={nearby === 'denied' || nearby === 'miss'}
+                        busy={nearby === 'locating'}
+                        onClick={locateNearby}
+                      />
+                    </div>
+                    {recent.length > 0 ? (
+                      <section className="mb-7">
+                        <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+                          {t('loc.recents')}
+                        </h3>
+                        <ul className="space-y-0.5">
+                          {recent.map((v) => (
+                            <li key={locStamp(v)}>
+                              <button
+                                type="button"
+                                onClick={() => adoptRecent(v)}
+                                className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.04]"
+                              >
+                                <History className="h-4 w-4 shrink-0 text-sv-blue" />
+                                <span className="min-w-0 truncate">{locationLabel(v)}</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    ) : null}
                     <section className="mb-7">
                       <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
                         {t('loc.popular')}
@@ -372,7 +482,9 @@ export default function LocationPicker({
                             onClick={() => pickCity(c)}
                             className="flex items-center gap-2.5 rounded-control bg-sv-cloud px-3 py-2.5 text-left text-[13px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.06]"
                           >
-                            <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 border-sv-ink/20" />
+                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-control bg-sv-surface text-sv-ink/35">
+                              <MapPin className="h-3.5 w-3.5" />
+                            </span>
                             {c}
                           </button>
                         ))}
@@ -511,6 +623,56 @@ export default function LocationPicker({
 
   if (!mounted) return null
   return createPortal(sheet, document.body)
+}
+
+function DestCard({
+  selected,
+  icon: Icon,
+  title,
+  hint,
+  hintWarn,
+  busy,
+  onClick,
+}: {
+  selected?: boolean
+  icon: typeof Globe
+  title: string
+  hint: string
+  hintWarn?: boolean
+  busy?: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={Boolean(selected)}
+      disabled={busy}
+      onClick={onClick}
+      className={`flex min-h-[104px] min-w-0 w-full flex-col items-start gap-3 rounded-module border p-3.5 text-left transition-colors disabled:opacity-70 ${
+        selected
+          ? 'border-sv-blue bg-sv-blue/[0.06] shadow-glow-blue-sm'
+          : 'border-sv-ink/[0.06] bg-sv-cloud hover:border-sv-ink/12 hover:bg-sv-ink/[0.04]'
+      }`}
+    >
+      <span
+        className={`grid h-9 w-9 place-items-center rounded-control ${
+          selected ? 'bg-sv-blue text-white' : 'bg-sv-surface text-sv-ink/45'
+        }`}
+      >
+        {busy ? (
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-sv-blue/20 border-t-sv-blue" />
+        ) : (
+          <Icon className="h-4 w-4" />
+        )}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[14px] font-extrabold tracking-tight text-sv-ink">{title}</span>
+        <span className={`mt-0.5 block text-[12px] font-semibold ${hintWarn ? 'text-sv-orange' : 'text-sv-ink/40'}`}>
+          {hint}
+        </span>
+      </span>
+    </button>
+  )
 }
 
 function Tick({ on }: { on: boolean }) {

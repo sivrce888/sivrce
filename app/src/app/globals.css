@@ -14,6 +14,7 @@
 @source inline("bg-white/40");
 @source inline("max-w-[7.5rem]");
 @source inline("max-w-[9rem]");
+@source inline("@container");
 
 /* cache-bust 2026-07-21b: homepage rail gutter */
 
@@ -284,6 +285,10 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     color-scheme: light;
+    overflow-x: clip;
+    min-width: 0;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   html.dark {
     color-scheme: dark;
@@ -292,10 +297,19 @@
     font-family: var(--font-sans);
     background: var(--sv-cloud);
     color: var(--sv-ink);
-    overflow-x: hidden;
+    overflow-x: clip;
+    min-width: 0;
+    overflow-wrap: break-word;
     /* Apple-grade theme crossfade — surfaces with their own transitions
        (cards, pills, glass) animate along via `transition-all` */
     transition: background-color 0.35s ease, color 0.35s ease;
+  }
+  img, video, iframe, canvas {
+    max-width: 100%;
+  }
+  #main, main {
+    min-width: 0;
+    max-width: 100%;
   }
   button, a, [role="button"] {
     touch-action: manipulation;
@@ -309,6 +323,48 @@
 :root {
   --sv-dock: 0px;
   --sv-safe-top: env(safe-area-inset-top, 0px);
+  /* Fluid page chrome — interpolates every pixel, no 768/1024 jumps.
+     build-locked: src/lib/device-budget.check.ts (prebuild). */
+  --sv-gutter: clamp(1.25rem, 0.6rem + 2.6vw, 2.5rem);
+  --sv-page-max: 90rem;
+  --sv-card-min: 17.5rem;
+  --sv-type-title: clamp(1.5rem, 1.05rem + 1.7vw, 2.25rem);
+  --sv-type-lead: clamp(0.9375rem, 0.86rem + 0.4vw, 1.25rem);
+  --sv-type-h1: clamp(1.75rem, 1.1rem + 2.8vw, 3rem);
+  --sv-type-display: clamp(2rem, 1.05rem + 4.4vw, 5rem);
+}
+
+/* ponytail: unlayered so it beats utility leading-[1.04] — Georgian glyphs clip under 1.12 */
+h1, h2, h3, h4, .sv-h1, .sv-h2 {
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  line-height: 1.18;
+  max-width: 100%;
+}
+p, li, label, dd {
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+/* ponytail: unlayered so it beats utility px-5/md:px-10 on every 1440 shell */
+.max-w-\[1440px\] {
+  width: min(100%, var(--sv-page-max));
+  box-sizing: border-box;
+  padding-left: max(var(--sv-gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--sv-gutter), env(safe-area-inset-right, 0px));
+}
+
+/* ponytail: unlayered so @container isn't stripped from @layer utilities */
+.sv-card-specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+/* ponytail: 4-up needs ~26rem; listing cards cap at 23.75rem and Georgian spec labels clip at 18rem */
+@container (min-width: 26rem) {
+  .sv-card-specs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 html.sv-has-dock {
   --sv-dock: calc(3.5rem + env(safe-area-inset-bottom, 0px));
@@ -325,14 +381,38 @@ html.sv-has-dock body {
   .text-balance {
     text-wrap: balance;
   }
-  /* Inner-page top pad under fixed nav + notch */
+  /* Inner-page top pad under fixed nav + notch — fluid, not 768 jump */
   .sv-pt-nav {
-    padding-top: calc(6rem + env(safe-area-inset-top, 0px));
+    padding-top: calc(clamp(5.75rem, 5rem + 2.2vw, 7rem) + env(safe-area-inset-top, 0px));
   }
-  @media (min-width: 768px) {
-    .sv-pt-nav {
-      padding-top: calc(7rem + env(safe-area-inset-top, 0px));
-    }
+  .sv-h1 {
+    font-size: var(--sv-type-h1);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.18;
+    text-wrap: balance;
+  }
+  .sv-h2 {
+    font-size: var(--sv-type-title);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.18;
+    text-wrap: balance;
+  }
+  .sv-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--sv-card-min)), 1fr));
+    gap: clamp(1rem, 0.7rem + 1.2vw, 1.5rem);
+  }
+  .sv-card-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18.75rem), 1fr));
+    gap: clamp(1rem, 0.7rem + 1.2vw, 1.5rem);
+  }
+  .sv-link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+    gap: clamp(1.25rem, 1rem + 1vw, 2rem);
   }
   .glass {
     background: rgba(255, 255, 255, 0.08);

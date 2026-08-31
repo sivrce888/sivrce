@@ -21,6 +21,7 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
   const paths = [
     { href: '/sale', label: t('nav.buy') },
     { href: '/rent', label: t('nav.rent') },
+    { href: '/pledge', label: t('map.pledge') },
     { href: '/daily', label: t('nav.daily') },
     { href: '/advertise', label: t('nav.advertise') },
   ] as const
@@ -33,7 +34,7 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
 
       <div className="relative mx-auto max-w-[900px] px-5 text-center md:px-10">
         <Reveal>
-          <h2 data-cms-key="block.home.cta.title" className="text-balance text-[34px] font-black leading-[1.1] tracking-[-0.02em] text-white md:text-[56px]">
+          <h2 data-cms-key="block.home.cta.title" className="text-balance text-[clamp(1.75rem,1.1rem+3.2vw,3.5rem)] font-black tracking-[-0.02em] text-white">
             {title}
             <span className="text-sv-orange">.</span>
           </h2>
@@ -46,7 +47,7 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
             <LocalizedLink
               href="/add-listing"
               data-cms-key="block.home.cta.primary"
-              className="group flex items-center gap-2.5 rounded-full bg-sv-orange px-8 py-4 text-[16px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
+              className="group flex flex-wrap items-center justify-center gap-2.5 rounded-full bg-sv-orange px-8 py-4 text-center text-[16px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
             >
               <Plus className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
               {primary}
@@ -54,7 +55,7 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
             <LocalizedLink
               href="/search"
               data-cms-key="block.home.cta.secondary"
-              className="flex items-center gap-2.5 rounded-full glass px-8 py-4 text-[16px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/15 active:scale-[0.98]"
+              className="flex flex-wrap items-center justify-center gap-2.5 rounded-full glass px-8 py-4 text-center text-[16px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/15 active:scale-[0.98]"
             >
               <Search className="h-5 w-5" />
               {secondary}

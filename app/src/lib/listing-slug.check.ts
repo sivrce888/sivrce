@@ -32,6 +32,11 @@ for (const x of LISTINGS) {
 const cols = footerKeywordCols()
 assert.ok(cols.length >= 4, `expected ≥4 footer cols, got ${cols.length}`)
 assert.ok(cols.some((c) => c.id === 'sale-tbilisi' && c.links.length > 0), 'sale-tbilisi col empty')
+const cityCol = cols.find((c) => c.id === 'cities')
+assert.ok(cityCol && cityCol.links.length >= 10, 'cities col thin')
+assert.ok(cityCol.links.every((l) => !l.label.ka.includes('იყიდება')), 'cities must be short names, not H1s')
+const saleTb = cols.find((c) => c.id === 'sale-tbilisi')
+assert.ok(saleTb && saleTb.links.every((l) => !l.label.ka.includes('იყიდება')), 'sale-tbilisi must be place names, not H1s')
 for (const c of cols)
   for (const l of c.links) {
     assert.match(l.href, /^\/[a-z0-9/-]+$/, `bad footer href: ${l.href}`)

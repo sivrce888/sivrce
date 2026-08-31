@@ -467,7 +467,11 @@ export function projectsToConstructionBuildings(
       const dev = getDeveloper(p.developerSlug)
       const id = `dev-${p.slug}`
       // NAPR CadRepGeo override wins over OSM/catalog pin when snap script succeeded.
-      const napr = naprOverrideFor(p.slug)
+      const naprRaw = naprOverrideFor(p.slug)
+      const napr =
+        naprRaw && haversineM(p.coords.lat, p.coords.lng, naprRaw.lat, naprRaw.lng) <= 80
+          ? naprRaw
+          : null
       const fp = footprintEntry({ id, slug: p.slug, projectSlug: p.slug })
       const glued = fp ? footprintCentroid(fp) : null
       const fpRing = footprintPrimaryRing(fp ?? undefined)
@@ -528,7 +532,11 @@ export function applyLiveProjectPins(
     const bn = parseBuildingNumber(p.location)
     const dev = getDeveloper(p.developerSlug)
     const completed = p.done >= 100
-    const napr = naprOverrideFor(p.slug)
+    const naprRaw = naprOverrideFor(p.slug)
+    const napr =
+      naprRaw && haversineM(p.coords.lat, p.coords.lng, naprRaw.lat, naprRaw.lng) <= 80
+        ? naprRaw
+        : null
     // TAS/OSM building outline for extrusion; NAPR lot only when no footprint.
     const fp = footprintEntry(b)
     const glued = fp ? footprintCentroid(fp) : null

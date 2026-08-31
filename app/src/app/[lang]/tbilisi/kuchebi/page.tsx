@@ -12,6 +12,8 @@ import { langAlternates } from '@/lib/i18n/server'
 const BASE = 'https://sivrce.ge'
 const PATH = '/tbilisi/kuchebi'
 
+export const revalidate = 86400
+
 const TITLE = 'თბილისის ქუჩები — ბინები ქუჩების მიხედვით'
 const DESCRIPTION =
   'თბილისის ქუჩების სრული კატალოგი უბნებით: იყიდება და ქირავდება ბინები, ფასები და ბაზრის სტატისტიკა კონკრეტული მისამართისთვის — ვაკე, საბურთალო, მთაწმინდა, ძველი თბილისი და სხვა უბნები.'

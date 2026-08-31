@@ -27,7 +27,7 @@ export default function Projects({
               <Sparkles className="h-3.5 w-3.5" /> {b('home.projects.kicker')}
             </span>
             {/* ponytail: 28/36 vs site 30/40 — section H2 was shouting over cards; keep SEO title intact */}
-            <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
+            <h2 className="sv-h2 text-sv-ink">
               {b('home.projects.title')}
             </h2>
             <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
@@ -68,7 +68,7 @@ export default function Projects({
                   <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className="truncate text-[20px] font-black text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)] md:text-[22px]">
+                      <h3 className="line-clamp-2 text-[20px] font-black leading-snug text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)] md:text-[22px]">
                         {p.name}
                       </h3>
                       <p className="flex items-center gap-1.5 text-[13px] font-bold text-white/80">
@@ -84,7 +84,7 @@ export default function Projects({
                   </div>
                 </div>
                 <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 p-5">
-                  <span className="flex max-w-full items-center gap-1.5 truncate text-[13px] font-bold text-sv-ink/60">
+                  <span className="flex max-w-full items-center gap-1.5 text-[13px] font-bold leading-snug text-sv-ink/60">
                     <MapPin className="h-4 w-4 shrink-0 text-sv-ink/35" /> {p.location}
                   </span>
                   <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">

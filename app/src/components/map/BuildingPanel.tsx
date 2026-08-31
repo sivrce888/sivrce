@@ -320,7 +320,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                         {bn ? ` · #${bn}` : ''}
                       </div>
                       <div className="text-[11px] font-semibold text-sv-ink/35">
-                        {l.area} მ² · {stay.n > 0 ? `${stayLine(l, (k) => (k === 'spec.beds' ? 'საძინებელი' : 'ოთახები სულ'))} · ` : ''}სართ. {l.floor}/{l.totalFloors}
+                        {l.area} მ² · {stay.n > 0 ? `${stayLine(l, (k) => (k === 'spec.beds' ? 'საძინებელი' : 'ოთახი'))} · ` : ''}სართ. {l.floor}/{l.totalFloors}
                       </div>
                     </div>
                   </Link>

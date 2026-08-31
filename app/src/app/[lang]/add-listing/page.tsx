@@ -6,6 +6,8 @@ import AddListingClient from '@/components/add-listing/AddListingClient'
 import { isValidLang } from '@/lib/i18n/core'
 import { getServerT, langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 86400
+
 export async function generateMetadata({
   params,
 }: {

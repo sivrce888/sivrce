@@ -156,7 +156,7 @@ const siteLd = {
       inLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],
       publisher: { "@id": `${SITE_URL}/#organization` },
       description:
-        "სივრცე — უძრავი ქონება საქართველოში. ბინები დღიურად თბილისში და საბურთალოზე, იყიდება და ქირავდება — 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება.",
+        "სივრცე — უძრავი ქონება ერთ სივრცეში. ბინები, სახლები და აგარაკები საქართველოში — იყიდება, ქირავდება, ქირავდება დღიურად. 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება.",
       potentialAction: {
         "@type": "SearchAction",
         target: {
@@ -199,6 +199,8 @@ const siteLd = {
         itemListElement: [
           { "@type": "OfferCatalog", name: "იყიდება", url: `${SITE_URL}/sale` },
           { "@type": "OfferCatalog", name: "ქირავდება", url: `${SITE_URL}/rent` },
+          { "@type": "OfferCatalog", name: "ქირავდება დღიურად", url: `${SITE_URL}/daily` },
+          { "@type": "OfferCatalog", name: "სახლები და აგარაკები", url: `${SITE_URL}/sale/houses` },
           { "@type": "OfferCatalog", name: "ბინები დღიურად", url: `${SITE_URL}/daily` },
           { "@type": "OfferCatalog", name: "ბინები დღიურად თბილისში", url: `${SITE_URL}/daily/apartments/tbilisi` },
           { "@type": "OfferCatalog", name: "ბინები დღიურად საბურთალოზე", url: `${SITE_URL}/daily/apartments/tbilisi/saburtalo` },
@@ -211,16 +213,24 @@ const siteLd = {
       // + knowsAbout anchor expertise without inventing people.
       foundingDate: "2025",
       description:
-        "sivrce (სივრცე) — Georgian real-estate platform. Simple, fast, secure search and listing: sale, rent, daily stays, new-build projects, 3D map, verified listings, AI price estimates.",
+        "sivrce (სივრცე) — უძრავი ქონება საქართველოში ერთ სივრცეში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება და ქირავდება დღიურად. ახალი პროექტები, 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება.",
       knowsAbout: [
         "უძრავი ქონება საქართველოში",
+        "ბინები საქართველოში",
+        "სახლები საქართველოში",
+        "აგარაკები საქართველოში",
+        "ქირავდება დღიურად",
         "ბინები დღიურად თბილისში",
         "ბინები დღიურად საბურთალოზე",
+        "ბინები დღიურად ბათუმში",
         "საქართველოს უძრავი ქონების ბაზარი",
         "თბილისის უბნები და ფასები",
         "ბათუმის საკურორტო უძრავი ქონება",
+        "ახალი პროექტები თბილისში",
+        "ბინა დეველოპერისგან",
         "იპოთეკა საქართველოში",
         "უცხოელებისთვის ქონების ყიდვა საქართველოში",
+        "საკურორტო უძრავი ქონება ბაკურიანში და გუდაურში",
         "AI ფასის შეფასება",
       ],
       address: {
@@ -232,6 +242,13 @@ const siteLd = {
         { "@type": "City", name: "თბილისი" },
         { "@type": "City", name: "ბათუმი" },
         { "@type": "City", name: "ქუთაისი" },
+        { "@type": "City", name: "რუსთავი" },
+        { "@type": "City", name: "ბაკურიანი" },
+        { "@type": "City", name: "გუდაური" },
+        { "@type": "City", name: "ქობულეთი" },
+        { "@type": "City", name: "ბორჯომი" },
+        { "@type": "City", name: "მესტია" },
+        { "@type": "City", name: "ყაზბეგი" },
         { "@type": "Country", name: "Georgia" },
       ],
     },
@@ -279,6 +296,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
       suppressHydrationWarning
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
+      <link rel="preconnect" href="https://cdn.sivrce.ge" crossOrigin="anonymous" />
       <body className="min-h-full">
         <Script id="lite-boot" strategy="beforeInteractive">
           {LITE_BOOT}

@@ -38,4 +38,14 @@ const tw = buildDbWhere({ tier: 'diamond' })
 assert.equal(tw.tier, 'diamond')
 assert.ok(Array.isArray(tw.AND) && tw.AND.some((c) => Array.isArray(c.OR) && c.OR.some((o) => 'tierExpiresAt' in o)))
 
+assert.equal(parseSearchParams(new URLSearchParams('type=villa')).propertyType, 'villa')
+assert.equal(parseSearchParams(new URLSearchParams('propertyType=hotel')).propertyType, 'hotel')
+assert.equal(parseSearchParams(new URLSearchParams('type=spaceship')).propertyType, undefined)
+assert.equal(parseSearchParams(new URLSearchParams('type=apartment')).propertyType, 'apartment')
+assert.deepEqual(
+  parseSearchParams(new URLSearchParams('deal=daily&feat=add.f.partiesAllowed')).features,
+  ['add.f.partiesAllowed'],
+)
+assert.equal(parseSearchParams(new URLSearchParams('deal=daily&feat=add.f.partiesAllowed')).dealType, 'daily')
+
 console.log('search-filters.catalog: ok')

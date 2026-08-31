@@ -81,7 +81,7 @@ export default function FavoritesClient() {
 
   if (!mounted || (favs.length > 0 && loading)) {
     return (
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="sv-card-grid-3">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="h-80 animate-pulse rounded-card bg-sv-cloud ring-1 ring-sv-ink/5" />
         ))}
@@ -122,7 +122,7 @@ export default function FavoritesClient() {
           </span>
         ) : null}
       </p>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="sv-card-grid-3">
         {items.map((l, i) => {
           const alertOn = hasAlert(l.id)
           return (

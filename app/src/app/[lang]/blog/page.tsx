@@ -10,6 +10,8 @@ import { BLOG_POSTS } from '@/data/blog'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'ბლოგი — უძრავი ქონების გზამკვლევები | sivrce',
   description:
@@ -100,7 +102,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
         </LocalizedLink>
 
         {/* Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="sv-card-grid-3">
           {rest.map((p) => (
             <LocalizedLink
               key={p.slug}

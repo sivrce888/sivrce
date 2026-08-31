@@ -13,7 +13,7 @@ interface SeoFilterableListingsProps {
 
 function FallbackGrid({ listings, aria }: { listings: Listing[]; aria: string }) {
   return (
-    <section aria-label={aria} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <section aria-label={aria} className="sv-card-grid">
       {listings.slice(0, 24).map((l, i) => (
         <ListingCard key={l.id} l={l} i={i} layout="wide" />
       ))}

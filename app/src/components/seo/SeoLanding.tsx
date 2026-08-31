@@ -9,6 +9,7 @@ import SeoFilterableListings from '@/components/seo/SeoFilterableListings'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { formatUSD } from '@/data/listings'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
+import { getNeighborhood, pick as pickNb } from '@/data/neighborhoods'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 import { listingPath } from '@/lib/listing-slug'
@@ -45,6 +46,7 @@ const UI = {
     overview: 'ბაზრის მიმოხილვა',
     faq: 'ხშირად დასმული კითხვები',
     related: 'დაკავშირებული ძიებები',
+    guide: 'უბნის გზამკვლევი',
   },
   en: {
     badge: 'AI priced',
@@ -56,6 +58,7 @@ const UI = {
     overview: 'market overview',
     faq: 'Frequently asked questions',
     related: 'Related searches',
+    guide: 'Neighbourhood guide',
   },
   ru: {
     badge: 'AI-оценка',
@@ -67,8 +70,16 @@ const UI = {
     overview: 'обзор рынка',
     faq: 'Частые вопросы',
     related: 'Похожие запросы',
+    guide: 'Гид по району',
   },
 } as const
+
+/** District/city landing → livability guide (chughureti SEO slug ≠ chugureti guide). */
+function guideSlugOf(def: SeoPageDef): string | undefined {
+  if (def.district) return def.district.slug === 'chughureti' ? 'chugureti' : def.district.slug
+  if (def.city?.slug === 'batumi' || def.city?.slug === 'kutaisi') return def.city.slug
+  return undefined
+}
 
 const OG_LOCALE: Record<SeoLoc, string> = { ka: 'ka_GE', en: 'en_US', ru: 'ru_RU' }
 
@@ -110,11 +121,11 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = lo
 
 function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
   const crumbs = breadcrumbsOf(def, loc, p)
-  // city-info: Place + TouristDestination + Breadcrumb. No ItemList (empty)
-  // and no FAQPage (faqsOf needs listings). The prose carries the entity.
+  // city-info: Place + Breadcrumb + ka FAQPage. No ItemList (empty inventory).
   if (def.kind === 'city-info' && def.city) {
     const prose = cityProseOf(def.city.slug)
     const placeName = loc === 'ka' ? def.city.ka : loc === 'en' ? def.city.en : def.city.ru
+    const cityFaqs = loc === 'ka' ? (prose?.faqs ?? []) : []
     return {
       '@context': 'https://schema.org',
       '@graph': [
@@ -138,6 +149,16 @@ function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
             item: `${BASE}${c.href}`,
           })),
         },
+        ...(cityFaqs.length
+          ? [{
+              '@type': 'FAQPage',
+              mainEntity: cityFaqs.map((f) => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a },
+              })),
+            }]
+          : []),
       ],
     }
   }
@@ -189,10 +210,10 @@ export function Chip({ label, href, active }: { label: string; href: string; act
     <LocalizedLink
       href={href}
       aria-current={active ? 'page' : undefined}
-      className={`whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-extrabold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+      className={`whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
         active
-          ? 'bg-sv-blue text-white shadow-glow-blue-sm'
-          : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/70 hover:border-sv-blue/40 hover:text-sv-blue'
+          ? 'bg-sv-blue text-white'
+          : 'bg-sv-ink/[0.045] text-sv-ink/70 hover:bg-sv-ink/[0.08] hover:text-sv-ink'
       }`}
     >
       {label}
@@ -220,6 +241,8 @@ export default function SeoLanding({
   // grid + FAQ and substitute a long-form guide instead of a thin shell.
   const isCityInfo = def.kind === 'city-info'
   const cityProse = isCityInfo && def.city ? cityProseOf(def.city.slug) : null
+  // ponytail: city-info FAQs are ka-only corpus; en/ru city-info stays prose-only.
+  const faqItems = isCityInfo ? (loc === 'ka' ? (cityProse?.faqs ?? []) : []) : faqs
   // National deal×type hubs (myhome/ss pattern): curated ka long-form SEO.
   const hubProse = loc === 'ka' && def.kind === 'deal-type' ? hubProseOf(def.dealSlug, def.typeSlug) : null
 
@@ -228,6 +251,8 @@ export default function SeoLanding({
   const distCoords = tbilisiDistrict ? DISTRICT_COORDS[tbilisiDistrict.slug] : undefined
   const districtStreets =
     loc === 'ka' && tbilisiDistrict ? streetsOfDistrict(tbilisiDistrict.slug).slice(0, 24) : []
+  const guideSlug = guideSlugOf(def)
+  const guide = guideSlug ? getNeighborhood(guideSlug) : undefined
 
   return (
     <div className="min-h-screen bg-sv-cloud">
@@ -263,12 +288,21 @@ export default function SeoLanding({
               className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
             />
           )}
-          <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
+          <h1 className="max-w-[min(56.25rem,100%)] text-balance text-[clamp(1.75rem,1.1rem+2.4vw,2.75rem)] font-black tracking-[-0.02em] text-sv-ink">
             {h1}
           </h1>
           <p className="speakable-lead mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">
             {hubProse ? hubProse.lede : isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc)}
           </p>
+          {guide && (
+            <LocalizedLink
+              href={`${urlPrefix}/neighborhoods/${guide.slug}`}
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
+            >
+              {ui.guide}
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+            </LocalizedLink>
+          )}
 
           {/* Live stats — skip the hollow "0 listings" chip Apple would never ship */}
           {!isCityInfo && stats.count > 0 && (
@@ -402,17 +436,21 @@ export default function SeoLanding({
             <p className="mt-3 max-w-[860px] text-[15px] font-medium leading-relaxed text-sv-ink/65">
               {introOf(def, loc)}
             </p>
+            {guide && (
+              <p className="mt-3 max-w-[860px] text-[15px] font-medium leading-[1.75] text-sv-ink/65">
+                {pickNb(guide.description, loc)}
+              </p>
+            )}
           </section>
         )}
 
-        {/* FAQ — skipped on city-info (faqsOf needs listings for live stats) */}
-        {!isCityInfo && (
+        {faqItems.length > 0 && (
           <section className="mt-10" aria-label={ui.faq}>
             <h2 className="mb-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
               {ui.faq}
             </h2>
             <div className="grid gap-3">
-              {faqs.map((f) => (
+              {faqItems.map((f) => (
                 <details
                   key={f.q}
                   className="group rounded-module border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card open:shadow-card-hover"

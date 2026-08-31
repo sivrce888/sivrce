@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Heart, Menu, X, Plus, User, Search } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -24,10 +23,7 @@ export default function Navbar() {
   // also strips the internal /ka rewrite target so SSR and hydration agree.
   const bare = stripLangPrefix(pathname)
   const reduceMotion = useReducedMotion()
-  const { data: session } = useSession()
   const menuBtnRef = useRef<HTMLButtonElement>(null)
-  // ponytail: first name only in chrome — full name lives on /dashboard; initials/truncate if i18n needs it
-  const navName = session?.user?.name?.trim().split(/\s+/)[0]
 
   // Escape closes the mobile menu and returns focus to the menu button
   useEffect(() => {
@@ -70,6 +66,7 @@ export default function Navbar() {
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
+    { key: 'map.pledge', to: '/pledge', mobileOnly: true },
     { key: 'nav.map', to: '/map' },
     { key: 'nav.projects', to: '/projects' },
     { key: 'nav.buildings', to: '/buildings', mobileOnly: true },
@@ -91,7 +88,7 @@ export default function Navbar() {
   return (
     <header data-cms-section="nav" className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
       <div
-        className={`mx-auto flex h-[68px] w-full max-w-[1440px] items-center gap-2 px-5 transition-all duration-500 sm:gap-3 md:px-10 ${
+        className={`mx-auto flex min-h-[clamp(3.75rem,3.4rem+1vw,4.25rem)] min-w-0 w-full max-w-[1440px] items-center gap-2 px-5 py-1.5 transition-all duration-500 sm:gap-3 md:px-10 ${
           light
             ? 'mt-3 max-w-[1240px] rounded-tile glass-light shadow-card md:mt-4'
             : 'bg-transparent'
@@ -167,36 +164,16 @@ export default function Navbar() {
           <ThemeToggle light={light} />
           <CurrencySwitcher light={light} />
           <LangSwitcher light={light} />
-          {session?.user ? (
-            <Link
-              href={localizedHref("/dashboard", lang)}
-              aria-label={session.user.name ?? t('nav.login')}
-              title={session.user.name ?? undefined}
-              className={`flex h-10 max-w-[8.5rem] items-center gap-1.5 rounded-full px-2.5 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-                light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-sv-ink hover:bg-sv-ink/5 dark:text-white dark:hover:bg-white/10'
-              }`}
-            >
-              {session.user.image ? (
-                // Remote OAuth avatar — next/image remotePatterns not configured
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={session.user.image} alt="" className="h-5 w-5 shrink-0 rounded-full" referrerPolicy="no-referrer" />
-              ) : (
-                <User className="h-4 w-4 shrink-0" />
-              )}
-              {/* ponytail: avatar-only in chrome — name on /dashboard */}
-              <span className="sr-only">{navName ?? t('nav.login')}</span>
-            </Link>
-          ) : (
-            <Link
-              href="/auth/signin"
-              aria-label={t('nav.login')}
-              className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-                light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-sv-ink hover:bg-sv-ink/5 dark:text-white dark:hover:bg-white/10'
-              }`}
-            >
-              <User className="h-4 w-4" />
-            </Link>
-          )}
+          <Link
+            href={localizedHref("/dashboard", lang)}
+            aria-label={t('nav.login')}
+            className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+              light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-sv-ink hover:bg-sv-ink/5 dark:text-white dark:hover:bg-white/10'
+            }`}
+          >
+            <User className="h-4 w-4" />
+            <span className="sr-only">{t('nav.login')}</span>
+          </Link>
           <Link
             href={localizedHref("/add-listing", lang)}
             data-cms-key="nav.addListing"
@@ -307,24 +284,13 @@ export default function Navbar() {
                 )}
               </span>
             </Link>
-            {session?.user ? (
-              <Link
-                href={localizedHref("/dashboard", lang)}
-                onClick={() => setOpen(false)}
-                className="mt-2 flex items-center justify-center gap-2 rounded-full bg-sv-blue px-4 py-3.5 text-[15px] font-extrabold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
-              >
-                <User className="h-4 w-4" />
-                <span className="truncate">{navName ?? t('nav.login')}</span>
-              </Link>
-            ) : (
-              <Link
-                href="/auth/signin"
-                onClick={() => setOpen(false)}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
-              >
-                <User className="h-4 w-4" /> {t('nav.login')}
-              </Link>
-            )}
+            <Link
+              href={localizedHref("/dashboard", lang)}
+              onClick={() => setOpen(false)}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+            >
+              <User className="h-4 w-4" /> {t('nav.login')}
+            </Link>
             <Link
               href={localizedHref("/add-listing", lang)}
               onClick={() => setOpen(false)}

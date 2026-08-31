@@ -3,11 +3,14 @@
 import Link from 'next/link'
 import { Mail, MapPin } from 'lucide-react'
 import { Logo } from '@/components/Logo'
+import HScroll from '@/components/HScroll'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
 import { footerKeywordCols, type SeoLoc } from '@/lib/seo-pages'
 
 /** Exact-query keyword columns — computed once from the static catalog. */
 const KEYWORD_COLS = footerKeywordCols()
+const CITY_COL = KEYWORD_COLS.find((c) => c.id === 'cities')
+const GRID_COLS = KEYWORD_COLS.filter((c) => c.id !== 'cities')
 
 const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
   {
@@ -17,6 +20,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
       { key: 'footer.re.houses', href: '/sale/houses' },
       { key: 'footer.re.rent', href: '/rent/apartments' },
       { key: 'footer.re.daily', href: '/daily/apartments' },
+      { key: 'col.party', href: '/search?deal=daily&feat=add.f.partiesAllowed' },
       { key: 'footer.re.land', href: '/sale/land' },
       { key: 'footer.re.commercial', href: '/sale/commercial' },
       { key: 'nav.neighborhoods', href: '/neighborhoods' },
@@ -59,7 +63,7 @@ export default function Footer() {
       <div aria-hidden className="absolute inset-0 bg-grid-dark opacity-50" />
       <div aria-hidden className="absolute -top-40 left-1/3 h-[360px] w-[560px] rounded-full bg-sv-blue/10 blur-[160px]" />
       <div className="relative mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-20">
-        <div className="grid gap-12 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
           <div>
             <Logo light href={localizedHref('/', lang)} />
             <p data-cms-key="footer.tagline" className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
@@ -101,8 +105,8 @@ export default function Footer() {
           aria-label={lang === 'ka' ? 'პოპულარული ძიებები' : lang === 'ru' ? 'Популярные запросы' : 'Popular searches'}
           className="mt-14 border-t border-white/[0.07] pt-10"
         >
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {KEYWORD_COLS.map((c) => (
+          <div className="sv-link-grid">
+            {GRID_COLS.map((c) => (
               <div key={c.id}>
                 <p className="text-[13px] font-black uppercase tracking-wider text-white/45">{c.title[loc]}</p>
                 <ul className="mt-4 space-y-2">
@@ -120,6 +124,30 @@ export default function Footer() {
               </div>
             ))}
           </div>
+          {CITY_COL && (
+            <div className="mt-10">
+              <p className="text-[13px] font-black uppercase tracking-wider text-white/45">{CITY_COL.title[loc]}</p>
+              <div className="mt-4">
+                <HScroll
+                  size="sm"
+                  invert
+                  step={280}
+                  aria-label={CITY_COL.title[loc]}
+                  className="snap-x snap-proximity gap-2 py-0.5"
+                >
+                  {CITY_COL.links.map((l) => (
+                    <Link
+                      key={l.href}
+                      href={localizedHref(l.href, lang)}
+                      className="shrink-0 snap-start whitespace-nowrap rounded-full bg-white/[0.08] px-3.5 py-1.5 text-[13px] font-extrabold tracking-[-0.015em] text-white/75 transition-[color,background-color] duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-white/[0.14] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light"
+                    >
+                      {l.label[loc]}
+                    </Link>
+                  ))}
+                </HScroll>
+              </div>
+            </div>
+          )}
         </nav>
 
         <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.07] pt-8">

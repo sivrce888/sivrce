@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -20,6 +20,7 @@ import HScroll from '@/components/HScroll'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
 import SearchSuggest, { resolveExactPlace } from '@/components/search/SearchSuggest'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
+import PropertyTypePicker, { SEARCH_PROP_TYPES, isSearchPropType } from '@/components/search/PropertyTypePicker'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
 import { blurProps } from '@/lib/media'
@@ -28,7 +29,8 @@ import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
 import { listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
-import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from '@/lib/features'
+import { PartyHouseIcon } from '@/components/PartyHouseIcon'
+import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS, featureLabel } from '@/lib/features'
 import { featuresFor } from '@/lib/add-listing-fields'
 import { mapSearchHit } from '@/lib/map-search-hit'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
@@ -52,16 +54,6 @@ const SearchMapView = dynamic(() => import('@/components/search/SearchMapView'),
   ),
 })
 
-/* Locked per-category branding (BRAND.md §3.1) */
-const PROP_TYPES: { value: PropType; key: DictKey; brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND] }[] = [
-  { value: 'apartment', key: 'prop.apartment', brand: CATEGORY_BRAND.apartments },
-  { value: 'house', key: 'prop.house', brand: CATEGORY_BRAND.houses },
-  { value: 'villa', key: 'prop.villa', brand: CATEGORY_BRAND.cottages },
-  { value: 'commercial', key: 'prop.commercial', brand: CATEGORY_BRAND.commercial },
-  { value: 'land', key: 'prop.land', brand: CATEGORY_BRAND.land },
-  { value: 'hotel', key: 'prop.hotel', brand: CATEGORY_BRAND.hotels },
-]
-
 const SORTS: { value: SortKey; key: DictKey }[] = [
   { value: 'date', key: 'sort.date' },
   { value: 'price-asc', key: 'sort.priceAsc' },
@@ -72,7 +64,7 @@ const SORTS: { value: SortKey; key: DictKey }[] = [
   { value: 'ai', key: 'sort.ai' },
 ]
 
-const DEALS: (DealType | undefined)[] = [undefined, 'sale', 'rent', 'daily', 'pledge']
+const DEALS: (DealType | undefined)[] = [undefined, 'sale', 'rent', 'pledge', 'daily']
 const dealLabelKey = (d: DealType | undefined): DictKey =>
   d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'rent' ? 'search.rent' : d === 'daily' ? 'add.deal.daily' : 'add.deal.pledge'
 const dealHue = (d: DealType | undefined): string =>
@@ -185,7 +177,7 @@ export default function SearchClient({
     ? (dealParam as DealType)
     : lock?.deal
   const typeParam = params.get('type')
-  const type: PropType | undefined = PROP_TYPES.some((p) => p.value === typeParam)
+  const type: PropType | undefined = isSearchPropType(typeParam)
     ? (typeParam as PropType)
     : lock?.type
   const city = params.get('city') ?? lock?.city ?? undefined
@@ -222,6 +214,7 @@ export default function SearchClient({
   const project = useMemo(() => splitCsv(projectRaw, PROJECT_KEYS), [projectRaw])
   const ftype = useMemo(() => splitCsv(ftypeRaw, FLOOR_TYPE_KEYS), [ftypeRaw])
   const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
+  const partyLanding = deal === 'daily' && feat.length === 1 && feat[0] === 'add.f.partiesAllowed'
   const photo = params.get('photo') === '1'
   const verifiedOnly = params.get('verified') === '1'
   const tierRaw = params.get('tier')
@@ -359,7 +352,6 @@ export default function SearchClient({
   // Facet counts from Meilisearch (null on the DB fallback → counts hidden).
   const [facets, setFacets] = useState<Record<string, Record<string, number>> | null>(null)
   const fcount = (dim: string, key: string): number | undefined => facets?.[dim]?.[key]
-  const fmtCount = (n: number | undefined) => (n === undefined ? '' : ` (${n})`)
 
   // Map filter state → /api/search query params and fetch.
   // ponytail: paramsKey already encodes every filter; refetch on that alone.
@@ -442,11 +434,27 @@ export default function SearchClient({
 
   // ——— Mobile filter sheet + "More filters" panel state ———
   const [sheetOpen, setSheetOpen] = useState(false)
-  const moreCount = (deal === 'daily' ? 0 : beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
+  const moreCount = (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
     + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
-    + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0)
-  const [moreOpen, setMoreOpen] = useState(moreCount > 0)
+    + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0) + (tier ? 1 : 0)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [menu, setMenu] = useState<'price' | 'rooms' | 'area' | 'dates' | null>(null)
+  const filterRowRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menu) return
+    const onDown = (e: MouseEvent) => {
+      if (filterRowRef.current && e.target instanceof Node && !filterRowRef.current.contains(e.target)) setMenu(null)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(null) }
+    document.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menu])
 
   // Sheet: Escape to close + body scroll lock while open.
   useEffect(() => {
@@ -491,7 +499,7 @@ export default function SearchClient({
   const showSkeleton = searchLoading && results.length === 0
 
   // ——— Active filter chips ———
-  const propType = PROP_TYPES.find((p) => p.value === type)
+  const propType = SEARCH_PROP_TYPES.find((p) => p.value === type)
   const propTypeKey = propType?.key
   const chips: { key: string; label: string; hue?: string; clear: () => void }[] = []
   if (deal && params.get('deal')) chips.push({ key: 'deal', label: t(dealLabelKey(deal)), hue: dealHue(deal), clear: () => patchParams({ deal: undefined }) })
@@ -514,7 +522,15 @@ export default function SearchClient({
   if (bstat.length) chips.push({ key: 'bstat', label: `${t('search.buildingStatus')} · ${bstat.length}`, clear: () => patchParams({ bstat: undefined }) })
   if (project.length) chips.push({ key: 'project', label: `${t('search.project')} · ${project.length}`, clear: () => patchParams({ project: undefined }) })
   if (ftype.length) chips.push({ key: 'ftype', label: `${t('search.floorType')} · ${ftype.length}`, clear: () => patchParams({ ftype: undefined }) })
-  if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
+  if (feat.length === 1) {
+    const f = feat[0]!
+    chips.push({
+      key: 'feat',
+      label: featureLabel(f, t),
+      hue: f === 'add.f.partiesAllowed' ? CATEGORY_BRAND.partyHouses.hue : undefined,
+      clear: () => patchParams({ feat: undefined }),
+    })
+  } else if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
   if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
   if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
   if (tier) chips.push({ key: 'tier', label: tierKeyToBadge(tier) ?? tier, clear: () => patchParams({ tier: undefined }) })
@@ -537,24 +553,105 @@ export default function SearchClient({
     router.replace(embed ? window.location.pathname : localizedHref('/search', lang), { scroll: false })
   }
 
-  // ponytail: h-9 / py-1.5 matches ss.ge density; bump if touch targets fail QA
   const selectClass =
-    'h-9 w-full appearance-none rounded-control border border-sv-ink/10 bg-sv-surface pl-3 pr-8 text-[12px] font-bold text-sv-ink outline-none transition-colors focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30 cursor-pointer'
+    'h-10 w-full appearance-none rounded-full border-0 bg-sv-ink/[0.045] pl-3.5 pr-8 text-[13px] font-bold text-sv-ink outline-none transition-colors focus:bg-sv-ink/[0.07] focus-visible:ring-2 focus-visible:ring-sv-blue/30 cursor-pointer'
   const inputClass =
-    'h-9 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 text-[12px] font-bold text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
-  const labelClass = 'mb-1 block text-[11px] font-black uppercase tracking-wide text-sv-ink/65'
+    'h-10 w-full rounded-full border-0 bg-sv-ink/[0.045] px-3.5 text-[13px] font-bold text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:bg-sv-ink/[0.07] focus-visible:ring-2 focus-visible:ring-sv-blue/30'
+  const labelClass = 'mb-1.5 block text-[12px] font-semibold tracking-[-0.01em] text-sv-ink/45'
   const numChip = (active: boolean) =>
-    `h-9 min-w-[36px] rounded-control px-2 text-[12px] font-extrabold transition-colors ${
+    `h-10 min-w-10 rounded-full px-3 text-[13px] font-bold transition-colors ${
       active
-        ? 'bg-sv-blue text-white shadow-glow-blue-sm'
-        : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:border-sv-blue/50 hover:text-sv-blue'
+        ? 'bg-sv-blue text-white'
+        : 'bg-sv-ink/[0.045] text-sv-ink/65 hover:bg-sv-ink/[0.08] hover:text-sv-ink'
     }`
   const tagChip = (active: boolean) =>
-    `h-8 rounded-full px-3 text-[11px] font-extrabold transition-colors ${
+    `h-9 rounded-full px-3.5 text-[12px] font-bold transition-colors ${
       active
-        ? 'bg-sv-blue text-white shadow-glow-blue-sm'
-        : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:border-sv-blue/50 hover:text-sv-blue'
+        ? 'bg-sv-blue text-white'
+        : 'bg-sv-ink/[0.045] text-sv-ink/65 hover:bg-sv-ink/[0.08] hover:text-sv-ink'
     }`
+  const pillCls = (on: boolean) =>
+    `flex h-10 shrink-0 items-center gap-1 rounded-full px-3.5 text-[13px] font-bold transition-colors ${
+      on ? 'bg-sv-blue/12 text-sv-blue' : 'bg-sv-ink/[0.045] text-sv-ink/70 hover:bg-sv-ink/[0.08] hover:text-sv-ink'
+    }`
+  const toggleMenu = (id: 'price' | 'rooms' | 'area' | 'dates') => {
+    setMoreOpen(false)
+    setMenu((m) => (m === id ? null : id))
+  }
+  const money = (n: number) => {
+    const s = cur === 'GEL' ? '₾' : '$'
+    if (n >= 1_000_000) return `${s}${n % 1_000_000 === 0 ? n / 1_000_000 : (n / 1_000_000).toFixed(1)}m`
+    if (n >= 1000) return `${s}${Math.round(n / 1000)}k`
+    return `${s}${n}`
+  }
+  const priceSummary =
+    minPrice !== undefined && maxPrice !== undefined ? `${money(minPrice)}–${money(maxPrice)}`
+    : minPrice !== undefined ? `${money(minPrice)}+`
+    : maxPrice !== undefined ? `≤${money(maxPrice)}`
+    : null
+  const roomN = deal === 'daily' ? beds : rooms
+  const roomMaxN = deal === 'daily' ? bedsMax : roomsMax
+  const roomsSummary = roomN === undefined ? null : roomMaxN === roomN ? String(roomN) : `${roomN}+`
+  const areaUnit = t('add.areaUnit.m2')
+  const areaSummary =
+    minArea !== undefined && maxArea !== undefined ? `${minArea}–${maxArea} ${areaUnit}`
+    : minArea !== undefined ? `${minArea}+ ${areaUnit}`
+    : maxArea !== undefined ? `≤${maxArea} ${areaUnit}`
+    : null
+  const datesSummary = from && to ? `${from} → ${to}` : from || null
+
+  const roomChipActive = (r: (typeof ROOM_CHIPS)[number]) =>
+    deal === 'daily'
+      ? r.exact ? beds === r.n && bedsMax === r.n : beds === r.n && bedsMax === undefined
+      : r.exact ? rooms === r.n && roomsMax === r.n : rooms === r.n && roomsMax === undefined
+  const applyRoomChip = (r: (typeof ROOM_CHIPS)[number], active: boolean) => {
+    if (deal === 'daily') {
+      patchParams(active ? { beds: undefined, bmax: undefined } : r.exact ? { beds: String(r.n), bmax: String(r.n) } : { beds: String(r.n), bmax: undefined })
+      return
+    }
+    patchParams(active ? { rooms: undefined, rmax: undefined } : r.exact ? { rooms: String(r.n), rmax: String(r.n) } : { rooms: String(r.n), rmax: undefined })
+  }
+  const roomsBtns = (
+    <div className="flex gap-1">
+      {ROOM_CHIPS.map((r) => {
+        const active = roomChipActive(r)
+        return (
+          <button key={r.label} type="button" onClick={() => applyRoomChip(r, active)} aria-pressed={active} className={numChip(active)}>
+            {r.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+  const priceFields = (
+    <div className="flex items-center gap-1.5">
+      <input type="number" min={0} placeholder={t('search.min')} value={drafts.min} onChange={(e) => setDrafts((d) => ({ ...d, min: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.minPrice')} />
+      <span className="text-sv-ink/30">—</span>
+      <input type="number" min={0} placeholder={t('search.max')} value={drafts.max} onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.maxPrice')} />
+      <div className="ml-0.5 flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.currency')}>
+        {(['USD', 'GEL'] as const).map((c) => (
+          <button key={c} type="button" onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })} aria-pressed={cur === c} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/55 hover:text-sv-ink'}`}>
+            {c === 'USD' ? '$' : '₾'}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+  const areaFields = (
+    <div className="flex items-center gap-1.5">
+      <input type="number" min={0} placeholder={t('search.min')} value={drafts.amin} onChange={(e) => setDrafts((d) => ({ ...d, amin: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.minArea')} />
+      <span className="text-sv-ink/30">—</span>
+      <input type="number" min={0} placeholder={t('search.max')} value={drafts.amax} onChange={(e) => setDrafts((d) => ({ ...d, amax: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.maxArea')} />
+      <span className="text-[12px] font-semibold text-sv-ink/35">{areaUnit}</span>
+    </div>
+  )
+  const dateFields = (
+    <div className="flex items-center gap-1.5">
+      <input type="date" value={from ?? ''} min={todayIso} onChange={(e) => patchParams({ from: e.target.value || undefined, ...(from && to && e.target.value >= to ? { to: undefined } : {}) })} className={`${inputClass} w-[148px]`} aria-label={t('search.checkIn')} />
+      <span className="text-sv-ink/30">—</span>
+      <input type="date" value={to ?? ''} min={from ?? todayIso} onChange={(e) => patchParams({ to: e.target.value || undefined })} className={`${inputClass} w-[148px]`} aria-label={t('search.checkOut')} />
+    </div>
+  )
 
   /* Whole filter UI — rendered once in the desktop sticky bar and again inside
      the mobile bottom sheet (mobile swaps the deal-pill layoutId + hides the
@@ -578,12 +675,12 @@ export default function SearchClient({
     <>
       {mobile && <div className="mb-3">{keywordBox('lg')}</div>}
       {!mobile && (
-        <div className="mb-2 flex items-center gap-2">
+        <div className="mb-3 flex items-center gap-2">
           {keywordBox('lg', 'min-w-0 flex-1')}
           <button
             type="button"
             onClick={submitKeyword}
-            className="flex h-12 shrink-0 items-center gap-1.5 rounded-control bg-sv-blue px-5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+            className="flex h-12 shrink-0 items-center gap-1.5 rounded-full bg-sv-blue px-5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
           >
             <Search className="h-4 w-4" aria-hidden />
             {t('search.apply')}
@@ -591,289 +688,273 @@ export default function SearchClient({
         </div>
       )}
 
-      {/* Deal · type · city · district · price · rooms · area · more */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <div className="flex shrink-0 rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.dealType')}>
-          {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS).map((d) => {
-            const label = t(dealLabelKey(d))
-            const count = d === undefined ? undefined : fcount('dealType', d)
-            const active = deal === d
-            return (
-              <button
-                key={label}
-                type="button"
-                aria-pressed={active}
-                onClick={() => {
-                  if (active) return
-                  if (embed && d && d !== lock?.deal) {
-                    const next = new URLSearchParams(window.location.search)
-                    next.delete('page')
-                    next.delete('deal')
-                    const path = embedDealHref(d)
-                    const qs = next.toString()
-                    router.push(qs ? `${path}?${qs}` : path, { scroll: false })
-                    return
-                  }
-                  patchParams({
-                    deal: d,
-                    beds: undefined,
-                    bmax: undefined,
-                    rooms: undefined,
-                    rmax: undefined,
-                    ...(d === 'daily' ? {} : { from: undefined, to: undefined }),
-                  })
-                }}
-                className={`relative whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[12px] font-extrabold transition-colors ${
-                  active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
-                }`}
-              >
-                {active && (
-                  <motion.span
-                    layoutId={mobile ? 'deal-seg-m' : 'deal-seg'}
-                    className="absolute inset-0 rounded-lg"
-                    style={{ backgroundColor: dealHue(d) }}
-                    transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
-                  />
-                )}
-                <span className="relative z-10">
-                  {label}
-                  {count !== undefined && (
-                    <span className={`ml-1 text-[10px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>
-                      {count}
-                    </span>
-                  )}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="relative min-w-[112px] shrink-0">
-          <select
-            value={type ?? ''}
-            onChange={(e) => patchParams({ type: (e.target.value || undefined) as PropType | undefined })}
-            className={selectClass}
-            aria-label={t('search.propType')}
-          >
-            <option value="">{t('search.allTypes')}</option>
-            {PROP_TYPES.map((p) => (
-              <option key={p.value} value={p.value}>{t(p.key)}{fmtCount(fcount('propertyType', p.value))}</option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setLocOpen(true)}
-          aria-label={t('loc.title')}
-          className={`flex h-9 min-w-[148px] max-w-[240px] shrink-0 items-center gap-2 rounded-control border bg-sv-surface px-3 text-left text-[12px] font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sv-blue/30 ${
-            city || distList.length
-              ? 'border-sv-blue/40 text-sv-ink'
-              : 'border-sv-ink/10 text-sv-ink/55 hover:border-sv-blue/40'
-          }`}
-        >
-          <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
-          <span className="min-w-0 flex-1 truncate">
-            {distList.length > 2
-              ? `${city} · ${t('loc.nDistricts', { n: distList.length })}`
-              : locationLabel(locValue, t('loc.pickPlace'))}
-          </span>
-        </button>
-
-        <div className="flex shrink-0 items-center gap-1">
-          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">{t('search.price')}</span>
-          <input
-            type="number" min={0} placeholder={t('search.min')}
-            value={drafts.min}
-            onChange={(e) => setDrafts((d) => ({ ...d, min: e.target.value }))}
-            className={`${inputClass} w-[80px]`}
-            aria-label={t('search.minPrice')}
-          />
-          <span className="text-sv-ink/40">—</span>
-          <input
-            type="number" min={0} placeholder={t('search.max')}
-            value={drafts.max}
-            onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))}
-            className={`${inputClass} w-[80px]`}
-            aria-label={t('search.maxPrice')}
-          />
-          <div className="ml-0.5 flex rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.currency')}>
-            {(['USD', 'GEL'] as const).map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })}
-                aria-pressed={cur === c}
-                className={`h-7 w-7 rounded-md text-[12px] font-extrabold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'}`}
-              >
-                {c === 'USD' ? '$' : '₾'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1">
-          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">
-            {deal === 'daily' ? t('search.bedrooms') : t('search.rooms')}
-          </span>
-          <div className="flex gap-0.5">
-            {ROOM_CHIPS.map((r) => {
-              const active = deal === 'daily'
-                ? r.exact
-                  ? beds === r.n && bedsMax === r.n
-                  : beds === r.n && bedsMax === undefined
-                : r.exact
-                  ? rooms === r.n && roomsMax === r.n
-                  : rooms === r.n && roomsMax === undefined
+      {/* Deal · type · place · price/rooms/area as compact menus — one chip language */}
+      {mobile ? (
+        <div className="space-y-4">
+          <div className="flex shrink-0 rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.dealType')}>
+            {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS).map((d) => {
+              const label = t(dealLabelKey(d))
+              const count = d === undefined ? undefined : fcount('dealType', d)
+              const active = deal === d
               return (
                 <button
-                  key={r.label}
+                  key={label}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => {
-                    if (deal === 'daily') {
-                      patchParams(
-                        active
-                          ? { beds: undefined, bmax: undefined }
-                          : r.exact
-                            ? { beds: String(r.n), bmax: String(r.n) }
-                            : { beds: String(r.n), bmax: undefined },
-                      )
+                    if (active) return
+                    if (embed && d && d !== lock?.deal) {
+                      const next = new URLSearchParams(window.location.search)
+                      next.delete('page')
+                      next.delete('deal')
+                      const path = embedDealHref(d)
+                      const qs = next.toString()
+                      router.push(qs ? `${path}?${qs}` : path, { scroll: false })
                       return
                     }
-                    patchParams(
-                      active
-                        ? { rooms: undefined, rmax: undefined }
-                        : r.exact
-                          ? { rooms: String(r.n), rmax: String(r.n) }
-                          : { rooms: String(r.n), rmax: undefined },
-                    )
+                    patchParams({
+                      deal: d,
+                      beds: undefined,
+                      bmax: undefined,
+                      rooms: undefined,
+                      rmax: undefined,
+                      ...(d === 'daily' ? {} : { from: undefined, to: undefined }),
+                    })
                   }}
-                  aria-pressed={active}
-                  className={numChip(active)}
+                  className={`relative min-w-0 flex-1 whitespace-nowrap rounded-full px-2 py-2 text-[12px] font-extrabold transition-colors ${
+                    active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
+                  }`}
                 >
-                  {r.label}
+                  {active && (
+                    <motion.span
+                      layoutId="deal-seg-m"
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: dealHue(d) }}
+                      transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
+                    />
+                  )}
+                  <span className="relative z-10 truncate">
+                    {label}
+                    {count !== undefined && (
+                      <span className={`ml-1 text-[10px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>{count}</span>
+                    )}
+                  </span>
                 </button>
               )
             })}
           </div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1">
-          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">{t('search.area')}</span>
-          <input
-            type="number" min={0} placeholder={t('search.min')}
-            value={drafts.amin}
-            onChange={(e) => setDrafts((d) => ({ ...d, amin: e.target.value }))}
-            className={`${inputClass} w-[68px]`}
-            aria-label={t('search.minArea')}
-          />
-          <span className="text-sv-ink/40">—</span>
-          <input
-            type="number" min={0} placeholder={t('search.max')}
-            value={drafts.amax}
-            onChange={(e) => setDrafts((d) => ({ ...d, amax: e.target.value }))}
-            className={`${inputClass} w-[68px]`}
-            aria-label={t('search.maxArea')}
-          />
-        </div>
-
-        {deal === 'daily' && (
-          <div className="flex shrink-0 items-center gap-1">
-            <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">{t('search.checkIn')}</span>
-            <input
-              type="date"
-              value={from ?? ''}
-              min={todayIso}
-              onChange={(e) => patchParams({ from: e.target.value || undefined, ...(from && to && e.target.value >= to ? { to: undefined } : {}) })}
-              className={`${inputClass} w-[132px]`}
-              aria-label={t('search.checkIn')}
+          <div className="flex gap-2">
+            <PropertyTypePicker
+              value={type}
+              onChange={(v) => patchParams({ type: v })}
+              counts={facets?.propertyType}
+              className="min-w-0 flex-1"
             />
-            <span className="text-sv-ink/40">—</span>
-            <input
-              type="date"
-              value={to ?? ''}
-              min={from ?? todayIso}
-              onChange={(e) => patchParams({ to: e.target.value || undefined })}
-              className={`${inputClass} w-[132px]`}
-              aria-label={t('search.checkOut')}
-            />
-          </div>
-        )}
-
-        {deal === 'daily' && (
-          <div className="flex shrink-0 gap-1">
-            {DAILY_SIGNAL_KEYS.map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => toggleCsv('feat', feat, f)}
-                aria-pressed={feat.includes(f)}
-                className={tagChip(feat.includes(f))}
-              >
-                {t(f)}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="flex shrink-0 items-center gap-1" role="group" aria-label={t('search.promo')}>
-          {SEARCH_TIERS.map((tk) => (
             <button
-              key={tk}
               type="button"
-              onClick={() => patchParams({ tier: tier === tk ? undefined : tk })}
-              aria-pressed={tier === tk}
-              className={tagChip(tier === tk)}
+              onClick={() => setLocOpen(true)}
+              aria-label={t('loc.title')}
+              className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-sv-ink/[0.045] px-3.5 text-left text-[13px] font-bold text-sv-ink outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sv-blue/30"
             >
-              {tierKeyToBadge(tk) ?? tk}
+              <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
+              <span className="min-w-0 flex-1 truncate">
+                {distList.length > 2 ? `${city} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'))}
+              </span>
             </button>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setMoreOpen((o) => !o)}
-          aria-expanded={moreOpen}
-          className="flex h-9 shrink-0 items-center gap-1 rounded-control px-2.5 text-[12px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10"
-        >
-          <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
-          {t('search.moreFilters')}
-          {moreCount > 0 && (
-            <span className="grid h-4 min-w-4 place-items-center rounded-full bg-sv-blue px-1 text-[10px] font-black text-white">
-              {moreCount}
-            </span>
+          </div>
+          <div>
+            <span className={labelClass}>{t('search.price')}</span>
+            {priceFields}
+          </div>
+          <div>
+            <span className={labelClass}>{deal === 'daily' ? t('search.bedrooms') : t('search.rooms')}</span>
+            {roomsBtns}
+          </div>
+          <div>
+            <span className={labelClass}>{t('search.area')}</span>
+            {areaFields}
+          </div>
+          {deal === 'daily' && (
+            <div>
+              <span className={labelClass}>{t('search.checkIn')}</span>
+              {dateFields}
+            </div>
           )}
-          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
-        </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => { setMenu(null); setMoreOpen((o) => !o) }}
+              aria-expanded={moreOpen}
+              className={pillCls(moreOpen || moreCount > 0)}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
+              {t('search.moreFilters')}
+              {moreCount > 0 && (
+                <span className="grid h-5 min-w-5 place-items-center rounded-full bg-sv-blue px-1 text-[10px] font-black text-white">{moreCount}</span>
+              )}
+            </button>
+            {(chips.length > 0 || sort !== 'date') && (
+              <button type="button" onClick={resetAll} className="flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold text-sv-orange transition-colors hover:bg-sv-orange/10">
+                <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div ref={filterRowRef}>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex shrink-0 rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.dealType')}>
+            {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS).map((d) => {
+              const label = t(dealLabelKey(d))
+              const count = d === undefined ? undefined : fcount('dealType', d)
+              const active = deal === d
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => {
+                    if (active) return
+                    if (embed && d && d !== lock?.deal) {
+                      const next = new URLSearchParams(window.location.search)
+                      next.delete('page')
+                      next.delete('deal')
+                      const path = embedDealHref(d)
+                      const qs = next.toString()
+                      router.push(qs ? `${path}?${qs}` : path, { scroll: false })
+                      return
+                    }
+                    patchParams({
+                      deal: d,
+                      beds: undefined,
+                      bmax: undefined,
+                      rooms: undefined,
+                      rmax: undefined,
+                      ...(d === 'daily' ? {} : { from: undefined, to: undefined }),
+                    })
+                  }}
+                  className={`relative whitespace-nowrap rounded-full px-2.5 py-2 text-[13px] font-bold transition-colors ${
+                    active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
+                  }`}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="deal-seg"
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: dealHue(d) }}
+                      transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
+                    />
+                  )}
+                  <span className="relative z-10">
+                    {label}
+                    {count !== undefined && (
+                      <span className={`ml-1 text-[10px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>{count}</span>
+                    )}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
 
-        {(chips.length > 0 || sort !== 'date') && (
+          <PropertyTypePicker
+            value={type}
+            onChange={(v) => { setMenu(null); patchParams({ type: v }) }}
+            counts={facets?.propertyType}
+            onOpen={() => setMenu(null)}
+            className="min-w-[132px] max-w-[188px] shrink-0"
+          />
+
           <button
-            onClick={resetAll}
-            className="flex h-9 shrink-0 items-center gap-1 rounded-control px-2.5 text-[12px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
+            type="button"
+            onClick={() => { setMenu(null); setLocOpen(true) }}
+            aria-label={t('loc.title')}
+            className="flex h-10 min-w-[128px] max-w-[220px] shrink-0 items-center gap-2 rounded-full bg-sv-ink/[0.045] px-3.5 text-left text-[13px] font-bold text-sv-ink outline-none transition-colors hover:bg-sv-ink/[0.08] focus-visible:ring-2 focus-visible:ring-sv-blue/30"
           >
-            <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
+            <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
+            <span className="min-w-0 flex-1 truncate">
+              {distList.length > 2 ? `${city} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'))}
+            </span>
           </button>
+
+          <button type="button" aria-expanded={menu === 'price'} aria-haspopup="dialog" onClick={() => toggleMenu('price')} className={pillCls(!!priceSummary || menu === 'price')}>
+            {priceSummary ?? t('search.price')}
+            <ChevronDown className={`h-3 w-3 opacity-40 transition-transform ${menu === 'price' ? 'rotate-180' : ''}`} />
+          </button>
+
+          <button type="button" aria-expanded={menu === 'rooms'} aria-haspopup="dialog" onClick={() => toggleMenu('rooms')} className={pillCls(!!roomsSummary || menu === 'rooms')}>
+            {roomsSummary ?? (deal === 'daily' ? t('search.bedrooms') : t('search.rooms'))}
+            <ChevronDown className={`h-3 w-3 opacity-40 transition-transform ${menu === 'rooms' ? 'rotate-180' : ''}`} />
+          </button>
+
+          <button type="button" aria-expanded={menu === 'area'} aria-haspopup="dialog" onClick={() => toggleMenu('area')} className={pillCls(!!areaSummary || menu === 'area')}>
+            {areaSummary ?? t('search.area')}
+            <ChevronDown className={`h-3 w-3 opacity-40 transition-transform ${menu === 'area' ? 'rotate-180' : ''}`} />
+          </button>
+
+          {deal === 'daily' && (
+            <button type="button" aria-expanded={menu === 'dates'} aria-haspopup="dialog" onClick={() => toggleMenu('dates')} className={pillCls(!!datesSummary || menu === 'dates')}>
+              {datesSummary ?? t('search.checkIn')}
+              <ChevronDown className={`h-3 w-3 opacity-40 transition-transform ${menu === 'dates' ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+
+          <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => { setMenu(null); setMoreOpen((o) => !o) }}
+            aria-expanded={moreOpen}
+            aria-label={t('search.moreFilters')}
+            className={pillCls(moreOpen || moreCount > 0)}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
+            {t('search.moreFilters')}
+            {moreCount > 0 && (
+              <span className="grid h-5 min-w-5 place-items-center rounded-full bg-sv-blue px-1 text-[10px] font-black text-white">{moreCount}</span>
+            )}
+          </button>
+
+          {(chips.length > 0 || sort !== 'date') && (
+            <button type="button" onClick={resetAll} aria-label={t('search.clear')} className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sv-orange transition-colors hover:bg-sv-orange/10">
+              <RotateCcw className="h-4 w-4" />
+            </button>
+          )}
+          </div>
+        </div>
+        {menu && (
+          <div
+            className="mt-2.5 rounded-module bg-sv-ink/[0.035] p-3.5"
+            role="dialog"
+            aria-label={
+              menu === 'price' ? t('search.price')
+              : menu === 'rooms' ? (deal === 'daily' ? t('search.bedrooms') : t('search.rooms'))
+              : menu === 'area' ? t('search.area')
+              : t('search.checkIn')
+            }
+          >
+            {menu === 'price' && priceFields}
+            {menu === 'rooms' && roomsBtns}
+            {menu === 'area' && areaFields}
+            {menu === 'dates' && dateFields}
+          </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* More filters panel — seller / condition / status / features */}
       <div>
         {moreOpen && (
-          <div className="mt-1.5 space-y-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-3 shadow-card">
-            <div className="flex flex-wrap gap-x-5 gap-y-3">
-              {deal !== 'daily' && (
+          <div className="mt-2 space-y-4 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-4 shadow-card">
+            <div className="flex flex-wrap gap-x-6 gap-y-4">
               <div>
-                <span className={labelClass}>{t('search.rooms')}</span>
-                <div className="flex gap-1">
-                  {COUNT_OPTIONS.map((n) => (
-                    <button key={n} type="button" onClick={() => patchParams({ rooms: rooms === n && roomsMax === undefined ? undefined : String(n), rmax: undefined })} aria-pressed={rooms === n && roomsMax === undefined} className={numChip(rooms === n && roomsMax === undefined)}>
-                      {n}+
+                <span className={labelClass}>{t('search.promo')}</span>
+                <div className="flex flex-wrap gap-1" role="group" aria-label={t('search.promo')}>
+                  {SEARCH_TIERS.map((tk) => (
+                    <button key={tk} type="button" onClick={() => patchParams({ tier: tier === tk ? undefined : tk })} aria-pressed={tier === tk} className={tagChip(tier === tk)}>
+                      {tierKeyToBadge(tk) ?? tk}
                     </button>
                   ))}
                 </div>
               </div>
-              )}
               <div>
                 <span className={labelClass}>{t('search.bathrooms')}</span>
                 <div className="flex gap-1">
@@ -970,10 +1051,20 @@ export default function SearchClient({
                 {(type === 'land'
                   ? featuresFor('land', deal ?? 'sale', city)
                   : featuresFor(type ?? 'apartment', deal ?? 'sale', city)
-                )
-                  .filter((f) => deal !== 'daily' || !(DAILY_SIGNAL_KEYS as readonly string[]).includes(f))
-                  .map((f) => (
-                  <button key={f} type="button" onClick={() => toggleCsv('feat', feat, f)} aria-pressed={feat.includes(f)} className={tagChip(feat.includes(f))}>
+                ).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => toggleCsv('feat', feat, f)}
+                    aria-pressed={feat.includes(f)}
+                    className={`${tagChip(feat.includes(f))} inline-flex items-center gap-1.5`}
+                  >
+                    {f === 'add.f.partiesAllowed' && (
+                      <PartyHouseIcon
+                        className="h-3.5 w-3.5"
+                        style={feat.includes(f) ? undefined : { color: CATEGORY_BRAND.partyHouses.hue }}
+                      />
+                    )}
                     {t(f)}
                   </button>
                 ))}
@@ -1002,7 +1093,7 @@ export default function SearchClient({
 
   const viewToggle = (
     <div className="flex shrink-0 items-center gap-1.5">
-      <div className="flex rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.view')}>
+      <div className="flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.view')}>
         {([undefined, 'map'] as const).map((v) => {
           const active = mapMode === (v === 'map')
           return (
@@ -1017,8 +1108,8 @@ export default function SearchClient({
                     : { view: undefined, west: undefined, south: undefined, east: undefined, north: undefined },
                 )
               }
-              className={`whitespace-nowrap rounded-md px-3 py-1.5 text-[12px] font-extrabold transition-colors ${
-                active ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'
+              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-bold transition-colors ${
+                active ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/65 hover:text-sv-ink'
               }`}
             >
               {t(v === 'map' ? 'search.map' : 'search.list')}
@@ -1072,11 +1163,20 @@ export default function SearchClient({
           className="absolute -bottom-16 right-1/5 h-40 w-40 rounded-full bg-sv-violet/15 blur-[80px]"
         />
         <div className="relative mx-auto max-w-[1440px] px-5 md:px-10">
-          <h1 className="text-[24px] font-black tracking-[-0.03em] text-white md:text-[32px]">
-            {t('search.title')}
+          <h1 className="flex items-center gap-3 text-balance text-[clamp(1.375rem,1.1rem+1.4vw,2rem)] font-black tracking-[-0.03em] text-white">
+            {partyLanding && (
+              <span
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-module"
+                style={{ backgroundColor: `color-mix(in oklab, ${CATEGORY_BRAND.partyHouses.hue} 22%, transparent)`, color: CATEGORY_BRAND.partyHouses.hue }}
+              >
+                <PartyHouseIcon className="h-5 w-5" />
+              </span>
+            )}
+            {partyLanding ? t('col.party') : t('search.title')}
           </h1>
-          <p className="mt-0.5 flex items-center gap-1.5 text-[13px] font-semibold text-white/55">
-            <MapPin className="h-3.5 w-3.5 text-sv-blue-light" />
+          <p className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13px] font-semibold leading-snug text-white/55">
+            {partyLanding ? t('col.party.sub') : null}
+            {partyLanding ? ' · ' : <MapPin className="h-3.5 w-3.5 text-sv-blue-light" />}
             {city ?? t('search.allGeorgia')}
             {distList.length === 1 ? ` · ${distList[0]}` : distList.length > 1 ? ` · ${t('loc.nDistricts', { n: distList.length })}` : ''}
             {q ? ` · ${q}` : ''}
@@ -1088,8 +1188,8 @@ export default function SearchClient({
       {/* Filter bar: full controls on desktop (sticky), compact sheet trigger on mobile */}
       <div className={embed
         ? 'z-30 mb-5 rounded-card border border-sv-ink/[0.06] bg-sv-surface/95 p-3 shadow-card backdrop-blur-md md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'
-        : 'z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'}>
-        <div className={embed ? '' : 'mx-auto max-w-[1440px] px-4 py-2 md:px-10'}>
+        : 'z-40 overflow-visible border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'}>
+        <div className={embed ? '' : 'mx-auto max-w-[1440px] px-4 py-3 md:px-10'}>
           <div className="flex items-center gap-2 md:hidden">
             {keywordBox('md', 'min-w-0 flex-1')}
             <button
@@ -1144,7 +1244,11 @@ export default function SearchClient({
                 }`}
                 style={c.hue ? { backgroundColor: `${c.hue}1A`, color: c.hue } : undefined}
               >
-                {c.hue && <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: c.hue }} aria-hidden />}
+                {c.hue === CATEGORY_BRAND.partyHouses.hue ? (
+                  <PartyHouseIcon className="h-3 w-3" aria-hidden />
+                ) : c.hue ? (
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: c.hue }} aria-hidden />
+                ) : null}
                 {c.label}
                 <X className="h-3 w-3" aria-hidden="true" />
               </motion.button>
@@ -1165,12 +1269,12 @@ export default function SearchClient({
               </select>
               <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
             </div>
-            <div className="flex rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.view')}>
+            <div className="flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.view')}>
               <button
                 onClick={() => setView('grid')}
                 aria-label={t('search.grid')}
                 aria-pressed={view === 'grid'}
-                className={`grid h-11 w-11 place-items-center rounded-md transition-colors ${view === 'grid' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'}`}
+                className={`grid h-10 w-10 place-items-center rounded-full transition-colors ${view === 'grid' ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/65 hover:text-sv-ink'}`}
               >
                 <LayoutGrid className="h-4 w-4" />
               </button>
@@ -1178,7 +1282,7 @@ export default function SearchClient({
                 onClick={() => setView('list')}
                 aria-label={t('search.list')}
                 aria-pressed={view === 'list'}
-                className={`grid h-11 w-11 place-items-center rounded-md transition-colors ${view === 'list' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'}`}
+                className={`grid h-10 w-10 place-items-center rounded-full transition-colors ${view === 'list' ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/65 hover:text-sv-ink'}`}
               >
                 <Rows3 className="h-4 w-4" />
               </button>
@@ -1224,7 +1328,7 @@ export default function SearchClient({
             )}
           </div>
         ) : showSkeleton ? (
-          <div className={`grid gap-6 ${view === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+          <div className={view === 'grid' ? 'sv-card-grid' : 'grid grid-cols-1 gap-6'}>
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : results.length === 0 ? (
@@ -1246,7 +1350,7 @@ export default function SearchClient({
             </button>
           </div>
         ) : (
-          <div className={view === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid grid-cols-1 gap-5'}>
+          <div className={view === 'grid' ? 'sv-card-grid' : 'grid grid-cols-1 gap-5'}>
             {results.flatMap((l, i) => {
               const card = (
                 <ListingCard key={l.id} l={l} i={i} layout={view === 'grid' ? 'wide' : 'list'} />
@@ -1319,7 +1423,7 @@ export default function SearchClient({
               <button
                 type="button"
                 onClick={resetAll}
-                className="flex h-11 items-center justify-center gap-1.5 rounded-control border border-sv-ink/10 px-4 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
+                className="flex h-11 items-center justify-center gap-1.5 rounded-full px-4 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
               >
                 <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
               </button>
@@ -1329,7 +1433,7 @@ export default function SearchClient({
                   flushDrafts()
                   setSheetOpen(false)
                 }}
-                className="h-11 flex-1 rounded-control bg-sv-blue text-[14px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep"
+                className="h-11 flex-1 rounded-full bg-sv-blue text-[14px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep"
               >
                 {t('search.showResults', { n: totalResults })}
               </button>

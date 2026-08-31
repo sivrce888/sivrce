@@ -1,12 +1,16 @@
 import LocalizedLink from '@/components/LocalizedLink'
-import { Building, Home, TreePalm, Map, Briefcase, CalendarClock, Hotel, Sparkles, ArrowUpRight } from 'lucide-react'
+import { Building, Home, TreePalm, Map, Briefcase, CalendarClock, Hotel, Sparkles, ArrowUpRight, type LucideIcon } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
+import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
 import type { CmsBlockKey } from '@/lib/cms-blocks'
 import { db } from '@/lib/db'
 import { projectsLive } from '@/lib/directory-live'
 import type { Lang } from '@/lib/i18n/core'
+
+/** Daily listings tagged as houses for parties — events, birthdays. */
+export const PARTY_HOUSES_HREF = '/search?deal=daily&feat=add.f.partiesAllowed'
 
 type CatKey =
   | 'apartments'
@@ -15,12 +19,13 @@ type CatKey =
   | 'land'
   | 'commercial'
   | 'dailyRent'
+  | 'partyHouses'
   | 'hotels'
   | 'newProjects'
 
 const CATS: {
   key: CatKey
-  icon: typeof Building
+  icon: LucideIcon
   labelKey: CmsBlockKey
   brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]
   href: string
@@ -31,6 +36,7 @@ const CATS: {
   { key: 'land', icon: Map, labelKey: 'home.categories.land', brand: CATEGORY_BRAND.land, href: '/sale/land' },
   { key: 'commercial', icon: Briefcase, labelKey: 'home.categories.commercial', brand: CATEGORY_BRAND.commercial, href: '/sale/commercial' },
   { key: 'dailyRent', icon: CalendarClock, labelKey: 'home.categories.dailyRent', brand: CATEGORY_BRAND.dailyRent, href: '/daily/apartments' },
+  { key: 'partyHouses', icon: PartyHouseIcon, labelKey: 'home.categories.partyHouses', brand: CATEGORY_BRAND.partyHouses, href: PARTY_HOUSES_HREF },
   { key: 'hotels', icon: Hotel, labelKey: 'home.categories.hotels', brand: CATEGORY_BRAND.hotels, href: '/search?type=hotel' },
   { key: 'newProjects', icon: Sparkles, labelKey: 'home.categories.newProjects', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
 ]
@@ -49,11 +55,12 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
     land: 0,
     commercial: 0,
     dailyRent: 0,
+    partyHouses: 0,
     hotels: 0,
     newProjects: 0,
   }
   try {
-    const [byProp, daily, projects] = await Promise.all([
+    const [byProp, daily, partyHouses, projects] = await Promise.all([
       db.listing.groupBy({
         by: ['propertyType'],
         where: { deletedAt: null, status: 'active', dealType: 'buy' },
@@ -61,6 +68,9 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
       }),
       db.listing.count({
         where: { deletedAt: null, status: 'active', dealType: 'daily' },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', dealType: 'daily', features: { has: 'add.f.partiesAllowed' } },
       }),
       projectsLive().then((ps) => ps.length).catch(() => 0),
     ])
@@ -74,6 +84,7 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
       else if (row.propertyType === 'hotel') empty.hotels = n
     }
     empty.dailyRent = daily
+    empty.partyHouses = partyHouses
     empty.newProjects = projects
   } catch {
     /* DB down — show soft labels via formatCount(0) */
@@ -94,7 +105,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
+            <h2 className="sv-h2 text-[clamp(1.75rem,1.2rem+1.8vw,2.5rem)] text-sv-ink">
               {title}
             </h2>
             <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
@@ -103,7 +114,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9">
           {CATS.map((c, i) => (
             <Reveal key={c.key} delay={i * 0.05} className="h-full">
               <LocalizedLink
@@ -116,7 +127,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
                 >
                   <c.icon className="h-6 w-6" />
                 </span>
-                <span className="line-clamp-2 min-h-[2.5em] text-[14px] font-extrabold leading-snug text-sv-ink">{labels[i]}</span>
+                <span className="line-clamp-2 min-h-[2.8em] text-[14px] font-extrabold leading-[1.3] text-sv-ink">{labels[i]}</span>
                 <span className="mt-auto text-[12px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
                 <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/40" />
               </LocalizedLink>

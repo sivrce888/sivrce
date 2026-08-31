@@ -7,8 +7,8 @@ import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geoDistrictsOf } from '@/data/georgia-locations'
 
 export type NlFilters = {
-  dealType?: 'sale' | 'rent' | 'daily'
-  propertyType?: 'apartment' | 'house' | 'commercial' | 'land'
+  dealType?: 'sale' | 'rent' | 'daily' | 'pledge'
+  propertyType?: 'apartment' | 'house' | 'villa' | 'commercial' | 'land' | 'hotel'
   city?: string
   district?: string
   minPrice?: number
@@ -46,6 +46,7 @@ const FEATURE_RX: [RegExp, string][] = [
   [/loggia|ლოჯ|лоджи/i, 'add.f.loggia'],
   [/balcony|აივან|балкон/i, 'add.f.balcony'],
   [/furnish|ავეჯ/i, 'add.f.furniture'],
+  [/წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b/i, 'add.f.partiesAllowed'],
 ]
 
 function parseMoney(raw: string): number | undefined {
@@ -95,10 +96,16 @@ export function parseNlQuery(query: string): NlFilters {
 
   if (/იყიდება|შეძენა|გაყიდვა|\bbuy\b|\bsale\b|\bsell\b/i.test(q)) out.dealType = 'sale'
   else if (/დღიურად|\bdaily\b|\bovernight\b/i.test(q)) out.dealType = 'daily'
+  else if (/გირავდ|გირავნ|\bpledge\b|\bcollateral\b|\bзалог/i.test(q)) out.dealType = 'pledge'
   else if (/ქირავდება|გაქირავება|\brent\b|\blease\b|ქირა/i.test(q)) out.dealType = 'rent'
 
-  if (/ბინა|\bapartment\b|\bflat\b|\bstudio\b/i.test(q)) out.propertyType = 'apartment'
-  else if (/სახლი|\bhouse\b|\bvilla\b|ვილა|\bcottage\b/i.test(q)) out.propertyType = 'house'
+  const party = /წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b/i.test(q)
+  if (party && !out.dealType) out.dealType = 'daily'
+
+  if (/ბინა|\bapartment\b|\bflat\b|\bstudio\b/i.test(q) && !party) out.propertyType = 'apartment'
+  else if (/აგარაკ|\bcottage\b|\bdacha\b/i.test(q)) out.propertyType = 'villa'
+  else if (/სასტუმრო|\bhotel\b/i.test(q)) out.propertyType = 'hotel'
+  else if (!party && /სახლი|\bhouse\b|\bvilla\b|ვილა/i.test(q)) out.propertyType = 'house'
   else if (/კომერც|\bcommercial\b|\bshop\b|მაღაზია|\boffice\b|ოფისი/i.test(q)) out.propertyType = 'commercial'
   else if (/მიწა|\bland\b|\bplot\b|ნაკვეთი/i.test(q)) out.propertyType = 'land'
 

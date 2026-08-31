@@ -55,4 +55,30 @@ const garage = parseNlQuery('house with garage in Vake')
 assert.ok(garage.features?.includes('add.f.garage'))
 assert.ok(!garage.features?.includes('add.f.parking'))
 
+assert.equal(parseNlQuery('აგარაკი ვაკე').propertyType, 'villa')
+assert.equal(parseNlQuery('სასტუმრო ბათუმი').propertyType, 'hotel')
+assert.equal(parseNlQuery('კერძო სახლი თბილისი').propertyType, 'house')
+assert.equal(nlToSearchPatch(parseNlQuery('აგარაკი ვაკე')).type, 'villa')
+
+const partyKa = parseNlQuery('წვეულების სახლი თბილისი')
+assert.equal(partyKa.dealType, 'daily')
+assert.equal(partyKa.propertyType, undefined)
+assert.ok(partyKa.features?.includes('add.f.partiesAllowed'))
+assert.equal(nlToSearchPatch(partyKa).deal, 'daily')
+assert.equal(nlToSearchPatch(partyKa).feat, 'add.f.partiesAllowed')
+assert.equal(nlToSearchPatch(partyKa).type, undefined)
+
+const birthday = parseNlQuery('birthday party house Batumi')
+assert.equal(birthday.dealType, 'daily')
+assert.ok(birthday.features?.includes('add.f.partiesAllowed'))
+assert.equal(birthday.city, 'ბათუმი')
+
+const eventKa = parseNlQuery('ივენთის სახლი ბადაბა')
+assert.ok(eventKa.features?.includes('add.f.partiesAllowed'))
+assert.equal(eventKa.dealType, 'daily')
+
+assert.equal(parseNlQuery('გირავდება ბინა ვაკე').dealType, 'pledge')
+assert.equal(nlToSearchPatch(parseNlQuery('გირავდება ბინა ვაკე')).deal, 'pledge')
+assert.equal(parseNlQuery('pledge apartment Vake').dealType, 'pledge')
+
 console.log('ok: nl-search')

@@ -101,7 +101,7 @@ export default async function DevelopersPage({ params }: PageProps) {
         </PageHero>
         <AdSlot slot="developers" lang={raw} />
         <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="sv-card-grid-3">
             {cards.map(({ d, listingsCount, aggregate }) => (
               <EntityCard
                 key={d.slug}

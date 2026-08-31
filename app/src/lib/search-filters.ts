@@ -13,6 +13,8 @@ import { cadastralVariants } from "@/lib/listing-public-id"
 import { isSearchTier } from "@/lib/listings-home-rail"
 import type { SearchFilters } from "@/lib/search"
 
+const PROP_TYPES = ["apartment", "house", "villa", "commercial", "land", "hotel"] as const
+
 // ---------------------------------------------------------------------------
 // URL params → SearchFilters (trust-boundary sanitize)
 // ---------------------------------------------------------------------------
@@ -32,7 +34,10 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
   // filters both consume this. Accept short aliases used in /search URLs.
   const dealParam = sp.get("dealType") ?? sp.get("deal")
   const dealType = dealParam === "sale" ? "buy" : dealParam === "pledge" ? "mortgage" : dealParam
-  const propertyType = sp.get("propertyType") ?? sp.get("type") ?? undefined
+  const propertyTypeRaw = sp.get("propertyType") ?? sp.get("type")
+  const propertyType = PROP_TYPES.includes(propertyTypeRaw as (typeof PROP_TYPES)[number])
+    ? (propertyTypeRaw as SearchFilters["propertyType"])
+    : undefined
 
   // Free-text / location strings are capped at the trust boundary — a 10MB q
   // would otherwise flow into Meili, ILIKE and Meili filter strings.
@@ -78,7 +83,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
   return {
     q: str("q"),
     dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
-    propertyType: (propertyType as SearchFilters["propertyType"]) ?? undefined,
+    propertyType,
     city: str("city"),
     district: str("district", 500),
     minPrice: num("minPrice") ?? num("min"),

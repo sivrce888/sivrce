@@ -10,6 +10,8 @@ import MortgageCalcClient from '@/components/mortgage/MortgageCalcClient'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: 'იპოთეკის კალკულატორი საქართველოში — ყოველთვიური გადასახადი, პირველი შენატანი, პროცენტი',
   description:

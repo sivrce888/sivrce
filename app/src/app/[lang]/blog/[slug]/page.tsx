@@ -12,6 +12,8 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+export const revalidate = 86400
+
 export function generateStaticParams() {
   // ponytail: prerender ka only (today's build surface) — other locales SSR on
   // demand via dynamicParams. Upgrade path: per-locale SSG when build budget allows.

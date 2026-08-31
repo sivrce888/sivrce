@@ -58,20 +58,28 @@ export const ka = {
   'loc.streetHint': 'აირჩიე უბანი ან ჩაწერე ქუჩა',
   'loc.close': 'დახურვა',
   'loc.cities': 'ქალაქები',
-  'search.keywordPlaceholder': 'ბინები დღიურად თბილისში, საბურთალო… ან ID',
+  'loc.nearby': 'შენთან ახლოს',
+  'loc.nearbyHint': 'ქალაქი ამ ადგილიდან',
+  'loc.locating': 'გიპოვი…',
+  'loc.denied': 'ლოკაცია აკრძალულია',
+  'loc.nearbyFail': 'ახლოს ქალაქი ვერ მოიძებნა',
+  'loc.georgiaHint': 'ყველა განცხადება',
+  'loc.where': 'სად',
+  'loc.recents': 'ბოლოს',
+  'search.keywordPlaceholder': 'ბინები დღიურად თბილისში, საბურთალოზე… ან ID',
   'search.keyword': 'საძიებო სიტყვა',
   'search.sort': 'დალაგება',
   'search.view': 'ხედი',
   'search.grid': 'ბადე',
   'search.list': 'სია',
-  'search.price': 'ფასი $',
+  'search.price': 'ფასი',
   'search.min': 'მინ',
   'search.max': 'მაქს',
   'search.minPrice': 'მინიმალური ფასი',
   'search.maxPrice': 'მაქსიმალური ფასი',
-  'search.rooms': 'ოთახები სულ',
-  'search.roomsChip': '{n}+ ოთახი სულ',
-  'search.area': 'ფართი მ²',
+  'search.rooms': 'ოთახები',
+  'search.roomsChip': '{n}+ ოთახი',
+  'search.area': 'ფართი',
   'search.minArea': 'მინიმალური ფართი',
   'search.maxArea': 'მაქსიმალური ფართი',
   'search.clear': 'გასუფთავება',
@@ -84,7 +92,7 @@ export const ka = {
     'არჩეული ფილტრებით განცხადება არ არსებობს. სცადე ფილტრების შეცვლა ან სრული გასუფთავება.',
   'search.resetFilters': 'ფილტრების გასუფთავება',
   'search.seoHint':
-    'უძრავი ქონება საქართველოში: ბინები დღიურად თბილისში და საბურთალოზე, იყიდება და ქირავდება. ყველა განცხადება ვერიფიცირებულია, თან ახლავს AI ფასი.',
+    'უძრავი ქონება საქართველოში — ბინები, სახლები, აგარაკები. იყიდება, ქირავდება, ქირავდება დღიურად. ვერიფიცირებული განცხადებები, AI ფასის შეფასება.',
 
   'search.moreFilters': 'მეტი ფილტრი',
   'search.bedrooms': 'საძინებელი',
@@ -148,7 +156,7 @@ export const ka = {
   'map.refreshAdded': '+{n} ახალი განცხადება',
   'map.meta.title': '3D რუკა — უძრავი ქონება თბილისში და ბინები დღიურად',
   'map.meta.description':
-    'sivrce 3D რუკა — ბინები დღიურად თბილისში, იყიდება და ქირავდება. აირჩიე კორპუსი თბილისში, ბათუმსა და მთელ საქართველოში.',
+    '3D რუკა — ბინები დღიურად თბილისში, იყიდება და ქირავდება. აირჩიე კორპუსი თბილისში, ბათუმსა და მთელ საქართველოში.',
   'search.seller': 'გამყიდველი',
   'search.sellerOwner': 'მესაკუთრე',
   'search.sellerAgency': 'სააგენტო',
@@ -303,7 +311,7 @@ export const ka = {
   'detail.seeMore': 'მეტის ნახვა',
 
   // ——— Spec labels ———
-  'spec.rooms': 'ოთახები სულ',
+  'spec.rooms': 'ოთახი',
   'spec.beds': 'საძინებელი',
   'spec.baths': 'სვ. წერტილი',
   'spec.area': 'ფართი',
@@ -312,7 +320,7 @@ export const ka = {
 
   // ——— Footer ———
   'footer.tagline':
-    'სივრცე — უძრავი ქონება საქართველოში. ბინები დღიურად თბილისში, იყიდება და ქირავდება. 3D რუკა, AI შეფასება.',
+    'სივრცე — უძრავი ქონება ერთ სივრცეში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, ქირავდება დღიურად. 3D რუკა, AI შეფასება.',
   'footer.location': 'თბილისი, საქართველო',
   'footer.colRealEstate': 'უძრავი ქონება',
   'footer.re.apartments': 'ბინები იყიდება',
@@ -455,7 +463,7 @@ export const ka = {
   'add.f.security': 'დაცვა',
   'add.f.yard': 'ეზო',
   'add.f.selfCheckIn': 'უკონტაქტო ჩექინი',
-  'add.f.partiesAllowed': 'წვეულებები',
+  'add.f.partiesAllowed': 'წვეულების სახლი',
   'add.f.pool': 'აუზი',
   'add.f.jacuzzi': 'ჯაკუზი',
   'add.f.terrace': 'ტერასა',
@@ -540,7 +548,7 @@ export const ka = {
   'add.tip.location':
     'ჩაწერე ზუსტი ქუჩა და სახლის ნომერი — ობიექტი ავტომატურად მოინიშნება რუკაზე და უფრო ადვილად მოიძებნება.',
   'add.tip.details':
-    'შეავსე ზუსტი მონაცემები: საძინებლები, ოთახები სულ, ფართი, სართული, სტატუსი და მახასიათებლები.',
+    'შეავსე ზუსტი მონაცემები: საძინებლები, ოთახები, ფართი, სართული, სტატუსი და მახასიათებლები.',
   'add.tip.price':
     'მიუთითე რეალისტური ფასი ან „შეთანხმებით“. AI შეფასება ბაზრის დიაპაზონს გიჩვენებს.',
   'add.tip.contact':
@@ -633,8 +641,8 @@ export const ka = {
   'settings.push.unsupported': 'ეს ბრაუზერი push შეტყობინებებს არ უჭერს მხარს.',
 
   // Daily-rent home collections (labels + one-line sub)
-  'col.party': 'სახლები წვეულებებისთვის',
-  'col.party.sub': 'დღიურად · წვეულებები დასაშვებია',
+  'col.party': 'სახლები წვეულებისთვის',
+  'col.party.sub': 'დღიურად · ივენთი, დაბადების დღე',
   'col.selfCheckIn': 'უკონტაქტო ჩექინი',
   'col.selfCheckIn.sub': 'გასაღები შეხვედრის გარეშე',
   'col.pool': 'აუზით',
@@ -651,7 +659,7 @@ export const ka = {
   'col.workspace.sub': 'დისტანციური მუშაობისთვის',
 
   // a11y
-  'a11y.skipToContent': 'მთავარ შინაარსზე გადასვლა',
+  'a11y.skipToContent': 'გადასვლა ძირითად შინაარსზე',
 
   // Payments (bank checkout result pages)
   'pay.paid.title': 'გადახდა წარმატებით დასრულდა',

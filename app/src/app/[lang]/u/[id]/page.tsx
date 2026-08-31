@@ -136,7 +136,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
               ამ მომენტში აქტიური განცხადება არ არის.
             </p>
           ) : (
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 sv-card-grid-3">
               {listings.map((l, i) => (
                 <ListingCard key={l.id} l={l} i={i} layout="wide" />
               ))}

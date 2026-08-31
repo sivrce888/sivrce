@@ -1,7 +1,8 @@
 /**
  * File upload endpoint: accepts image files, normalizes them with sharp and
- * stores two objects in R2:
+ * stores three objects in R2:
  *   <key>            — master: EXIF-rotated, ≤2560px, WebP q82
+ *   <key>.card.webp  — 800px grid/card, WebP q78 (see src/lib/media.ts cardOf)
  *   <key>.lqip.webp  — 16px blur placeholder (see src/lib/media.ts lqipOf)
  *
  * Auth-gated (requires session), rate-limited, same-origin only.
@@ -119,6 +120,11 @@ export async function POST(req: Request) {
       .resize({ width: 2560, withoutEnlargement: true })
       .webp({ quality: 82 })
       .toBuffer()
+    const card = await base
+      .clone()
+      .resize({ width: 800, withoutEnlargement: true })
+      .webp({ quality: 78 })
+      .toBuffer()
     const lqip = await base
       .clone()
       .resize({ width: 16 })
@@ -126,7 +132,10 @@ export async function POST(req: Request) {
       .toBuffer()
 
     const result = await uploadFile({ key, body: master, contentType: "image/webp" })
-    await uploadFile({ key: key.replace(/\.webp$/, ".lqip.webp"), body: lqip, contentType: "image/webp" })
+    await Promise.all([
+      uploadFile({ key: key.replace(/\.webp$/, ".card.webp"), body: card, contentType: "image/webp" }),
+      uploadFile({ key: key.replace(/\.webp$/, ".lqip.webp"), body: lqip, contentType: "image/webp" }),
+    ])
     return Response.json({ ok: true, url: result.url, key }, { status: 201 })
   } catch (err) {
     const e = err as { message?: string }

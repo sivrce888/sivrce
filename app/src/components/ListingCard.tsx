@@ -5,13 +5,13 @@ import { motion } from 'framer-motion'
 import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
-  Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
+  Waves, Bath as BathTub, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
   Layers, BadgeCheck,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
-import { formatPerM2, formatFloor, postedDaysAgo, stayCount, stayLine } from '@/data/listings'
+import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine } from '@/data/listings'
 import { listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingShareLines, listingShareText } from '@/lib/listing-share'
@@ -21,7 +21,10 @@ import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { useCompareStrings } from '@/components/compare/i18n'
 import { useI18n } from '@/lib/i18n/context'
+import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import { BRAND } from '@/lib/brand'
+import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
+import { cardOf } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
@@ -34,7 +37,7 @@ import { aiLabel } from '@/lib/ai-label'
 const SIGNAL_ICON: Record<(typeof DAILY_SIGNAL_KEYS)[number], LucideIcon> = {
   'add.f.pool': Waves,
   'add.f.jacuzzi': BathTub,
-  'add.f.partiesAllowed': PartyPopper,
+  'add.f.partiesAllowed': PartyHouseIcon,
   'add.f.beachfront': Palmtree,
   'add.f.selfCheckIn': KeyRound,
   'add.f.petsAllowed': PawPrint,
@@ -189,13 +192,6 @@ interface ListingCardProps {
   animate?: boolean
 }
 
-function postedAgo(days: number, lang: string): string {
-  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
-  if (days < 1) return rtf.format(0, 'day')
-  if (days < 7) return rtf.format(-days, 'day')
-  return rtf.format(-Math.ceil(days / 7), 'week')
-}
-
 export default function ListingCard({ l, i = 0, layout = 'grid', animate = true }: ListingCardProps) {
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
@@ -321,24 +317,28 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     <div
       ref={imgRef}
       // z-[1] keeps chrome above the title's full-card ::after hit layer
-      className={`relative z-[1] overflow-hidden bg-sv-navy/[0.06] ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[280px] sm:shrink-0' : 'aspect-[4/3]'}`}
+      className={`relative z-[1] overflow-hidden bg-sv-navy/[0.06] ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[min(17.5rem,38%)] sm:shrink-0' : 'aspect-[4/3]'}`}
       onPointerMove={onImgPointerMove}
     >
       {/* Current ±1 only — full gallery, no 15-frame stack. CDN masters skip Vercel Image Opt. */}
       {photoMountIdx(frame, photos.length).map((idx) => {
         const src = photos[idx]
+        const card = cardOf(src)
         return (
           // ponytail: native lazy img — next/image was emitting <link rel=preload> for below-fold cards
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={`${src}-${idx}`}
-            src={src}
+            src={card ?? src}
             alt={idx === frame ? l.title : ''}
+            width={800}
+            height={600}
             draggable={false}
             loading="lazy"
             decoding="async"
             fetchPriority="low"
             aria-hidden={idx !== frame}
+            onError={card ? (e) => { if (e.currentTarget.src !== src) e.currentTarget.src = src } : undefined}
             className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0 ${
               idx === frame ? 'opacity-100' : 'pointer-events-none opacity-0'
             } ${!multi && idx === frame ? 'group-hover:scale-[1.04]' : ''}`}
@@ -367,13 +367,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           Bottom: hairline dashes (center) · 1 / N (right)
       */}
       {l.badge && (
-        <span className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
+        <span className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
           {l.badge === 'SUPER VIP' ? <Crown className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
           {l.badge}
         </span>
       )}
       {l.projectCatalog && !l.badge && (
-        <span className="absolute left-3 top-4 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white backdrop-blur">
+        <span className="absolute left-3 top-4 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[11px] font-black tracking-wider text-white backdrop-blur">
           {t('detail.project')}
         </span>
       )}
@@ -510,9 +510,17 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
       {/* Price first — scannable like ss.ge / myhome with locked nominal currency */}
-      <div className="flex items-baseline gap-2 text-[22px] font-black tabular-nums tracking-[-0.03em] text-sv-ink">
+      <div className="flex min-w-0 items-baseline gap-2 text-[clamp(1.125rem,0.9rem+2.2cqi,1.375rem)] font-black tabular-nums tracking-[-0.03em] text-sv-ink">
         <span>{displayPrice}</span>
         <span className="text-[13px] font-semibold text-sv-ink/45">{displaySecondaryPrice}</span>
+        {l.dealType === 'pledge' && (
+          <span
+            className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-white"
+            style={{ backgroundColor: DEAL_BRAND.pledge }}
+          >
+            {t('map.pledge')}
+          </span>
+        )}
       </div>
       {/* ponytail: reserved slot so rent/daily cards match sale height */}
       <p
@@ -529,9 +537,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             return (
               <span
                 key={key}
-                className="flex max-w-full items-center gap-1 rounded-full bg-sv-cloud px-2 py-0.5 text-[10px] font-extrabold text-sv-ink/70"
+                className="flex max-w-full items-center gap-1 rounded-full bg-sv-cloud px-2 py-0.5 text-[11px] font-extrabold leading-tight text-sv-ink/70"
               >
-                <Icon className="h-3 w-3 shrink-0 text-sv-blue" aria-hidden />
+                <Icon
+                  className={`h-3 w-3 shrink-0 ${key === 'add.f.partiesAllowed' ? '' : 'text-sv-blue'}`}
+                  style={key === 'add.f.partiesAllowed' ? { color: CATEGORY_BRAND.partyHouses.hue } : undefined}
+                  aria-hidden
+                />
                 <span className="truncate">{t(key)}</span>
               </span>
             )
@@ -539,7 +551,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         </div>
       )}
 
-      <h3 className="mt-2.5 line-clamp-2 min-h-[2.7em] text-[15px] font-extrabold leading-[1.35] text-sv-ink transition-colors group-hover:text-sv-blue">
+      <h3 className="mt-2.5 line-clamp-2 min-h-[2.8em] text-[15px] font-extrabold leading-[1.4] text-sv-ink transition-colors group-hover:text-sv-blue">
         <LocalizedLink
           href={href}
           aria-label={l.title}
@@ -576,7 +588,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         aria-hidden={!metro}
       >
         <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        <span className="min-w-0 flex-1 truncate">{metro?.name ?? '\u00a0'}</span>
+        <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro?.name ?? '\u00a0'}</span>
         <span className="shrink-0 font-semibold text-sv-blue/75">
           · {metro ? formatMetroDist(metro) : '\u00a0'}
         </span>
@@ -585,10 +597,10 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {/* Specs + AI + meta pinned to bottom — equal card heights in rails */}
       <div className="mt-auto pt-3">
         {/* ponytail: 4 reserved slots — conditional hide made rails look 2-vs-3 jagged */}
-        <div className="grid min-h-[1.5rem] grid-cols-4 gap-x-2 overflow-hidden border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold text-sv-ink/70">
+        <div className="sv-card-specs min-h-[1.5rem] gap-x-2 gap-y-1.5 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold leading-snug text-sv-ink/70">
           <span className={`flex min-w-0 items-center gap-1 ${l.area > 0 ? '' : 'invisible'}`} aria-hidden={l.area <= 0}>
             <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
-            <span className="truncate">
+            <span>
               {l.projectCatalog ? t('card.areaFrom', { n: l.area }) : `${l.area} ${t('add.areaUnit.m2')}`}
             </span>
           </span>
@@ -598,7 +610,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             title={stay.kind === 'beds' && stay.rooms > 0 ? stayText : undefined}
           >
             <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
-            <span className="truncate">{stayText}</span>
+            <span>{stayText}</span>
           </span>
           <span className={`flex min-w-0 items-center gap-1 ${l.baths > 0 ? '' : 'invisible'}`} aria-hidden={l.baths <= 0}>
             <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
@@ -611,7 +623,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             aria-hidden={l.projectCatalog || (l.floor <= 0 && l.totalFloors <= 0)}
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
-            <span className="truncate">{formatFloor(l)}</span>
+            <span>{formatFloor(l)}</span>
           </span>
         </div>
 
@@ -621,14 +633,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           <span className="shrink-0 text-[13px] font-black tabular-nums tracking-tight text-sv-ink">
             {displayScore || '—'}
           </span>
-          <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-sv-ink/50">
+          <span className="min-w-0 flex-1 text-[12px] font-semibold leading-snug text-sv-ink/50">
             {displayLabel || t('detail.aiScore')}
           </span>
           {l.verified ? (
             <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-label={t('detail.scoreVerified')} />
           ) : null}
           {l.isNew && (
-            <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-sv-orange">
+            <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-sv-orange">
               {t('card.new')}
             </span>
           )}
@@ -637,7 +649,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/40">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" aria-hidden />
-            {postedAgo(days, lang)}
+            {postedAgoLabel(days, lang)}
           </span>
           <span className="min-w-0 truncate font-mono text-[10px] font-black tabular-nums text-sv-ink/28">
             ID {publicId}
@@ -649,10 +661,10 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
   const sizeClass =
     layout === 'grid'
-      ? 'w-[min(86%,400px)] shrink-0 sm:w-[380px]'
+      ? 'w-[clamp(16.5rem,82%,23.75rem)] shrink-0'
       : layout === 'list'
-        ? 'w-full flex-col sm:flex-row'
-        : 'h-full w-full'
+        ? 'w-full min-w-0 flex-col sm:flex-row'
+        : 'h-full min-w-0 w-full'
 
   return (
     <motion.article
@@ -663,7 +675,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       onTouchStart={onImgTouchStart}
       onTouchMove={onImgTouchMove}
       onTouchEnd={onImgTouchEnd}
-      className={`group relative flex min-h-0 flex-col self-stretch overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover ${sizeClass} ${
+      className={`group @container relative flex min-h-0 flex-col self-stretch overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover ${sizeClass} ${
         l.highlighted
           ? 'border-sv-blue/45 ring-2 ring-sv-blue/25'
           : 'border-sv-ink/[0.06]'

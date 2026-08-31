@@ -57,14 +57,14 @@ export default function Listings({ items, rail }: { items: Listing[]; rail: List
   const Icon = r.Icon
 
   return (
-    <section id={rail === 'superVip' ? 'super-vip' : 'vip-plus'} className={`relative overflow-hidden py-20 md:py-28 ${r.sectionClass}`}>
+    <section id={rail === 'superVip' ? 'super-vip' : 'vip-plus'} className={`relative overflow-hidden py-[clamp(3.5rem,2.4rem+4vw,7rem)] ${r.sectionClass}`}>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div>
             <span className={`mb-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[12px] font-black uppercase tracking-wider ${r.kickerClass}`}>
               <Icon className="h-3.5 w-3.5" aria-hidden /> {b(r.kicker)}
             </span>
-            <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
+            <h2 className="sv-h2 text-sv-ink">
               {b(r.title)}
             </h2>
             <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
