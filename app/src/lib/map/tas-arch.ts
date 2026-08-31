@@ -4,7 +4,7 @@
  * ponytail: point/cadastral lookup only — no city-wide dump (GeoServer + DWR rate limits).
  */
 
-import { closeRing, geometryRing, ringCentroid } from './pick-building'
+import { closeRing, geometryRing, ringCentroid, ringContains } from './pick-building'
 
 const UA = 'sivrce-maps/1.0 (sivrce888@gmail.com)'
 const WFS =
@@ -270,14 +270,99 @@ async function dwrCall(
   }
 }
 
-/** Permit polygons near a pin (ARCHITECTURE_LR WFS). */
-export async function fetchTasShapesAt(
+/** უარყოფა last; თანხმობა first. */
+export function tasStatusRank(name: string | null): number {
+  if (name === 'უარყოფა') return 99
+  if (name === 'თანხმობა') return 0
+  if (name === 'შუალედური') return 1
+  if (name === 'განუხილველი') return 2
+  return 3
+}
+
+function tasHaversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6_371_000
+  const p1 = (lat1 * Math.PI) / 180
+  const p2 = (lat2 * Math.PI) / 180
+  const dp = ((lat2 - lat1) * Math.PI) / 180
+  const dl = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function tasBboxHalfM(ring: [number, number][]): number {
+  let minLng = Infinity
+  let maxLng = -Infinity
+  let minLat = Infinity
+  let maxLat = -Infinity
+  for (const p of ring) {
+    const lng = p[0]
+    const lat = p[1]
+    if (lng === undefined || lat === undefined) continue
+    if (lng < minLng) minLng = lng
+    if (lng > maxLng) maxLng = lng
+    if (lat < minLat) minLat = lat
+    if (lat > maxLat) maxLat = lat
+  }
+  const latC = (minLat + maxLat) / 2
+  const w = (maxLng - minLng) * 111_320 * Math.cos((latC * Math.PI) / 180)
+  const h = (maxLat - minLat) * 111_320
+  return Math.max(w, h) / 2
+}
+
+/** Building-scale TAS permits at a pin. Dedupes revisions; skips უარყოფა + district blobs. */
+export function pickTasShapesForPin(
+  shapes: TasArchShape[],
   lat: number,
   lng: number,
-  /** ~650 m — permit parcels often sit off the marketing pin. */
-  padDeg = 0.006,
+  opts?: { campus?: boolean; maxPinM?: number },
+): TasArchShape[] {
+  const maxPin = opts?.maxPinM ?? (opts?.campus ? 350 : 220)
+  const maxHalf = opts?.campus ? 280 : 150
+  type Row = { s: TasArchShape; d: number; contains: boolean; rank: number; half: number }
+  const scored: Row[] = []
+  for (const s of shapes) {
+    const rank = tasStatusRank(s.statusName)
+    if (rank >= 99) continue
+    const half = tasBboxHalfM(s.ring)
+    if (half < 12 || half > maxHalf) continue
+    const contains = ringContains(s.ring, lng, lat)
+    const d = tasHaversineM(lat, lng, s.lat, s.lng)
+    if (!contains && d > maxPin) continue
+    scored.push({ s, d, contains, rank, half })
+  }
+  const byKey = new Map<string, Row>()
+  for (const row of scored) {
+    const k = `${row.s.lat.toFixed(5)}:${row.s.lng.toFixed(5)}:${Math.round(row.half)}`
+    const prev = byKey.get(k)
+    if (!prev || row.rank < prev.rank || (row.rank === prev.rank && row.d < prev.d)) {
+      byKey.set(k, row)
+    }
+  }
+  const uniq = [...byKey.values()].sort((a, b) => {
+    if (a.contains !== b.contains) return a.contains ? -1 : 1
+    if (a.rank !== b.rank) return a.rank - b.rank
+    if (Math.abs(a.d - b.d) <= 30 && a.s.ring.length !== b.s.ring.length) {
+      return b.s.ring.length - a.s.ring.length
+    }
+    return a.d - b.d
+  })
+  if (!uniq.length) return []
+  const best = uniq[0]!
+  // Site-scale permit already is the project outline — don't glue neighbours.
+  if (!opts?.campus || best.half >= 70) return [best.s]
+  const parts = uniq.filter(
+    (r) => r.half >= 16 && tasHaversineM(best.s.lat, best.s.lng, r.s.lat, r.s.lng) <= 90,
+  )
+  return (parts.length >= 2 ? parts : [best]).map((r) => r.s)
+}
+
+async function fetchTasShapesOnce(
+  lat: number,
+  lng: number,
+  padDeg: number,
+  maxFeatures: number,
 ): Promise<TasArchShape[]> {
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return []
   const minLng = lng - padDeg
   const minLat = lat - padDeg
   const maxLng = lng + padDeg
@@ -291,20 +376,43 @@ export async function fetchTasShapesAt(
       typeName: 'cite:ARCHITECTURE_LR',
       outputFormat: 'application/json',
       srsName: 'EPSG:4326',
-      maxFeatures: '40',
+      maxFeatures: String(Math.min(Math.max(maxFeatures, 1), 80)),
       bbox: `${minLng},${minLat},${maxLng},${maxLat},EPSG:4326`,
     }).toString()
+  const res = await fetch(url, {
+    headers: { 'User-Agent': UA },
+    signal: AbortSignal.timeout(14_000),
+    cache: 'no-store',
+  })
+  if (!res.ok) return []
+  const text = await res.text()
+  if (!text || text.startsWith('<?xml') || text.startsWith('<')) return []
   try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': UA },
-      signal: AbortSignal.timeout(14_000),
-      cache: 'no-store',
-    })
-    if (!res.ok) return []
-    return shapesFromWfsJson(await res.json())
+    return shapesFromWfsJson(JSON.parse(text) as unknown)
   } catch {
     return []
   }
+}
+
+/** Permit polygons at the pin. Tight bbox first — wide 650 m dumps the first 40 of the city. */
+export async function fetchTasShapesAt(
+  lat: number,
+  lng: number,
+  padDeg = 0.0009,
+  maxFeatures = 40,
+): Promise<TasArchShape[]> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return []
+  const pads = [...new Set([0.00045, padDeg, Math.max(padDeg, 0.0015)])].sort((a, b) => a - b)
+  for (let i = 0; i < pads.length; i++) {
+    try {
+      const shapes = await fetchTasShapesOnce(lat, lng, pads[i]!, maxFeatures)
+      if (shapes.length) return shapes
+    } catch {
+      /* GeoServer 503 / truncated JSON */
+    }
+    if (i < pads.length - 1) await new Promise((r) => setTimeout(r, 220))
+  }
+  return []
 }
 
 /** Public permit list by NAPR cadastral (dotted). */

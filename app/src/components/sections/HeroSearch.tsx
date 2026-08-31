@@ -2,14 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import LocalizedLink from '@/components/LocalizedLink'
 import { useRouter } from 'next/navigation'
 import { Search, History, MapPin } from 'lucide-react'
 import SearchSuggest, { type Suggestion, resolveExactPlace } from '@/components/search/SearchSuggest'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import { useI18n, localizedHref } from '@/lib/i18n/context'
 import { DEAL_BRAND } from '@/lib/category-brand'
-import { DAILY_SIGNAL_KEYS } from '@/lib/features'
-import { CITIES } from '@/data/listings'
 import { readRecent, writeRecent, recentLabel, type RecentSearch } from './hero-search-mode'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import { searchHref, suggestionToFilters } from '@/lib/search-location'
@@ -18,14 +17,73 @@ import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 const TAB_HUES = [DEAL_BRAND.sale, DEAL_BRAND.rent, DEAL_BRAND.daily, DEAL_BRAND.newProjects] as const
 const TAB_KEYS = ['search.sale', 'search.rent', 'nav.daily', 'nav.projects'] as const
 
-const QUICK: { q: string; labelKey: 'home.search.quick.vake' | 'home.search.quick.saburtalo' | 'home.search.quick.mtatsminda' | 'home.search.quick.batumi' | 'home.search.quick.oldTbilisi' | 'home.search.quick.digomi' }[] = [
-  { q: 'ვაკე', labelKey: 'home.search.quick.vake' },
-  { q: 'საბურთალო', labelKey: 'home.search.quick.saburtalo' },
-  { q: 'მთაწმინდა', labelKey: 'home.search.quick.mtatsminda' },
-  { q: 'ბათუმი', labelKey: 'home.search.quick.batumi' },
-  { q: 'ძველი თბილისი', labelKey: 'home.search.quick.oldTbilisi' },
-  { q: 'დიღომი', labelKey: 'home.search.quick.digomi' },
+type QuickKey =
+  | 'home.search.quick.dailyTbilisi'
+  | 'home.search.quick.vake'
+  | 'home.search.quick.saburtalo'
+  | 'home.search.quick.mtatsminda'
+  | 'home.search.quick.batumi'
+  | 'home.search.quick.oldTbilisi'
+  | 'home.search.quick.digomi'
+
+const QUICK: { labelKey: QuickKey; sale: string; rent: string; daily: string; projects: string }[] = [
+  {
+    labelKey: 'home.search.quick.dailyTbilisi',
+    sale: '/daily/apartments/tbilisi',
+    rent: '/daily/apartments/tbilisi',
+    daily: '/daily/apartments/tbilisi',
+    projects: '/projects/tbilisi',
+  },
+  {
+    labelKey: 'home.search.quick.vake',
+    sale: '/sale/apartments/tbilisi/vake',
+    rent: '/rent/apartments/tbilisi/vake',
+    daily: '/daily/apartments/tbilisi/vake',
+    projects: '/projects/tbilisi/vake',
+  },
+  {
+    labelKey: 'home.search.quick.saburtalo',
+    sale: '/sale/apartments/tbilisi/saburtalo',
+    rent: '/rent/apartments/tbilisi/saburtalo',
+    daily: '/daily/apartments/tbilisi/saburtalo',
+    projects: '/projects/tbilisi/saburtalo',
+  },
+  {
+    labelKey: 'home.search.quick.mtatsminda',
+    sale: '/sale/apartments/tbilisi/mtatsminda',
+    rent: '/rent/apartments/tbilisi/mtatsminda',
+    daily: '/daily/apartments/tbilisi/mtatsminda',
+    projects: '/projects/tbilisi',
+  },
+  {
+    labelKey: 'home.search.quick.batumi',
+    sale: '/sale/apartments/batumi',
+    rent: '/rent/apartments/batumi',
+    daily: '/daily/apartments/batumi',
+    projects: '/projects/batumi',
+  },
+  {
+    labelKey: 'home.search.quick.oldTbilisi',
+    sale: '/sale/apartments/tbilisi/old-tbilisi',
+    rent: '/rent/apartments/tbilisi/old-tbilisi',
+    daily: '/daily/apartments/tbilisi/old-tbilisi',
+    projects: '/projects/tbilisi',
+  },
+  {
+    labelKey: 'home.search.quick.digomi',
+    sale: '/sale/apartments/tbilisi/didi-dighomi',
+    rent: '/rent/apartments/tbilisi/didi-dighomi',
+    daily: '/daily/apartments/tbilisi/didi-dighomi',
+    projects: '/projects/tbilisi/didi-dighomi',
+  },
 ]
+
+function quickHref(chip: (typeof QUICK)[number], tab: number): string {
+  if (tab === 1) return chip.rent
+  if (tab === 2) return chip.daily
+  if (tab === 3) return chip.projects
+  return chip.sale
+}
 
 /** Hero search — one box. Filters live on /search. */
 export default function HeroSearch() {
@@ -102,18 +160,6 @@ export default function HeroSearch() {
   const applySuggestion = (s: Suggestion) => {
     setKeyword(s.kind === 'street' ? s.ka : '')
     withDeal(suggestionToFilters(s))
-  }
-
-  const goQuick = (name: string) => {
-    withDeal(CITIES.includes(name) ? { city: name } : { district: name })
-  }
-
-  const goDailySignal = (feat: (typeof DAILY_SIGNAL_KEYS)[number]) => {
-    withDeal({
-      deal: 'daily',
-      feat,
-      ...(feat === 'add.f.partiesAllowed' ? { type: 'house' } : {}),
-    })
   }
 
   const switchTab = (i: number) => {
@@ -250,31 +296,18 @@ export default function HeroSearch() {
           </button>
         )}
         <span className="sv-hero-in text-[13px] font-bold text-sv-ink/50 dark:text-white/70" style={{ animationDelay: '0.24s' }}>
-          {isDaily ? t('search.features') : b('home.search.popular')}
+          {b('home.search.popular')}
         </span>
-        {isDaily
-          ? DAILY_SIGNAL_KEYS.map((f, i) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => goDailySignal(f)}
-                className="sv-hero-in rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
-                style={{ animationDelay: `${0.28 + i * 0.045}s` }}
-              >
-                {t(f)}
-              </button>
-            ))
-          : QUICK.map((chip, i) => (
-              <button
-                key={chip.q}
-                type="button"
-                onClick={() => goQuick(chip.q)}
-                className="sv-hero-in rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
-                style={{ animationDelay: `${0.28 + i * 0.045}s` }}
-              >
-                {b(chip.labelKey)}
-              </button>
-            ))}
+        {QUICK.map((chip, i) => (
+          <LocalizedLink
+            key={chip.labelKey}
+            href={quickHref(chip, tab)}
+            className="sv-hero-in rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
+            style={{ animationDelay: `${0.28 + i * 0.045}s` }}
+          >
+            {b(chip.labelKey)}
+          </LocalizedLink>
+        ))}
       </div>
     </div>
   )

@@ -1,13 +1,13 @@
 /**
- * NAPR pin overrides — written by scripts/snap-napr-pins.ts when CadRepGeo is up.
- * Empty overrides until first successful snap. Safe to import when file missing fields.
+ * Official pin overrides — TAS permit (building) wins over NAPR lot.
+ * Written by scripts/snap-official-footprints.ts / snap-napr-pins.ts.
  */
 export type NaprPinOverride = {
   lat: number
   lng: number
-  uniqCode: string
+  uniqCode?: string
   ring: [number, number][]
-  source: 'napr'
+  source: 'napr' | 'tas'
 }
 
 type FileShape = {
@@ -16,12 +16,16 @@ type FileShape = {
   overrides?: Record<string, NaprPinOverride>
 }
 
-// ponytail: static JSON import; regenerate via snap-napr-pins.ts
-import raw from '@/data/napr-pin-overrides.json'
+import naprRaw from '@/data/napr-pin-overrides.json'
+import tasRaw from '@/data/tas-pin-overrides.json'
 
-const data = raw as FileShape
+const naprData = naprRaw as FileShape
+const tasData = tasRaw as FileShape
 
-export const NAPR_PIN_OVERRIDES: Record<string, NaprPinOverride> = data.overrides ?? {}
+export const NAPR_PIN_OVERRIDES: Record<string, NaprPinOverride> = {
+  ...(naprData.overrides ?? {}),
+  ...(tasData.overrides ?? {}),
+}
 
 export function naprOverrideFor(slug: string): NaprPinOverride | null {
   return NAPR_PIN_OVERRIDES[slug] ?? null

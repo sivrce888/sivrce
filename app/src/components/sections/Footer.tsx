@@ -16,7 +16,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
       { key: 'footer.re.apartments', href: '/sale/apartments' },
       { key: 'footer.re.houses', href: '/sale/houses' },
       { key: 'footer.re.rent', href: '/rent/apartments' },
-      { key: 'footer.re.daily', href: '/daily' },
+      { key: 'footer.re.daily', href: '/daily/apartments' },
       { key: 'footer.re.land', href: '/sale/land' },
       { key: 'footer.re.commercial', href: '/sale/commercial' },
       { key: 'nav.neighborhoods', href: '/neighborhoods' },

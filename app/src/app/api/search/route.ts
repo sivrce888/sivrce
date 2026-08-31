@@ -168,6 +168,8 @@ function mapDbHit(
     projectCatalog?: boolean
     projectSlug?: string
     condition?: string
+    exclusive?: boolean
+    sivrceExclusive?: boolean
   } | null
   return {
     ...l,
@@ -180,6 +182,8 @@ function mapDbHit(
     projectCatalog: Boolean(ext?.projectCatalog),
     projectSlug: ext?.projectSlug ?? null,
     condition: ext?.condition ?? null,
+    exclusive: ext?.exclusive === true,
+    sivrceExclusive: ext?.sivrceExclusive === true,
     tier: effectiveTierKey(l.tier, l.tierExpiresAt),
   }
 }

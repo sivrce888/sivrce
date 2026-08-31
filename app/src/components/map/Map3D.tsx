@@ -62,6 +62,7 @@ import {
   FLOORS_SOURCE_ID,
   loadMapBasemap,
   mapStyleUrl,
+  STYLE_SATELLITE,
   type MapTerrain,
 } from '@/lib/map/floorLayers'
 import {
@@ -1131,8 +1132,12 @@ function Map3DInner({
         style = await loadMapBasemap(initialStyle)
       } catch (err) {
         console.error('[Map3D] style', err)
-        if (!cancelled) setError(tRef.current('map.error'))
-        return
+        try {
+          style = await loadMapBasemap(STYLE_SATELLITE)
+        } catch {
+          if (!cancelled) setError(tRef.current('map.error'))
+          return
+        }
       }
       if (cancelled || mapRef.current) return
 

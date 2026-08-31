@@ -13,6 +13,7 @@ import { LISTINGS, type Listing } from './listings'
 import { NEW_DEVELOPERS_TBILISI, NEW_PROJECTS_TBILISI } from './projects-new-tbilisi'
 import { NEW_DEVELOPERS_BATUMI_REGIONS, NEW_PROJECTS_BATUMI } from './projects-new-batumi'
 import { NEW_PROJECTS_REGIONS } from './projects-new-regions'
+import { NEW_DEVELOPERS_2026_08, NEW_PROJECTS_2026_08 } from './projects-new-2026-08'
 
 export interface LocalName {
   ka: string
@@ -107,6 +108,15 @@ const DEV_PREFIX: Record<string, string> = {
   'alpha-home': 'ALH', 'next-door': 'NDR',
   'loft-development': 'LFT', 'apollo-gs': 'APO', grada: 'GRD',
   moedani: 'MOE', homex: 'HOM', schuchmann: 'SCH', 'omnia-georgia': 'OMN',
+  'keystone-development': 'KEY', parkwood: 'PWK', 'roof-development': 'ROF',
+  solum: 'SOL', 'gwg-development': 'GWG', harmonica: 'HRM', dreamland: 'DRM',
+  'plaza-development': 'PLZ', 'dighomi-gardens': 'DGH',
+  'saburtalo-residence': 'SBR', 'bagrationi-residence': 'BGR',
+  'gb-georgia': 'GBS', 'mega-construction': 'MGC', 'astoria-group': 'AST',
+  'z-group': 'ZGR', 'arx-development': 'ARX', 'legi-construction': 'LGI',
+  bilderz: 'BLD', 'bala-construction': 'BAL', 'smart-development': 'SMD',
+  olympus: 'OLY', 'sunrise-development': 'SNR', 'zenar-development': 'ZNR',
+  'panorama-park-kutaisi': 'PPK', 'batumi-concept': 'BTC',
 }
 const autoDevPrefix = (slug: string): string =>
   slug.split('-').filter((s) => s.length > 0).map((s) => s[0]!).join('').toUpperCase().slice(0, 3)
@@ -1470,6 +1480,7 @@ export const DEVELOPERS: Developer[] = [
   },
   ...NEW_DEVELOPERS_TBILISI,
   ...NEW_DEVELOPERS_BATUMI_REGIONS,
+  ...NEW_DEVELOPERS_2026_08,
 ]
 
 // ——— Agents / agencies ———
@@ -4708,6 +4719,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_TBILISI,
   ...NEW_PROJECTS_BATUMI,
   ...NEW_PROJECTS_REGIONS,
+  ...NEW_PROJECTS_2026_08,
 ]
 
 export function getDeveloper(slug: string): Developer | undefined {

@@ -15,6 +15,7 @@ import { fetchOsmBuilding, type OsmBuildingHit } from './osm-building-ring'
 import {
   fetchTasDocsByCadastral,
   fetchTasShapesAt,
+  pickTasShapesForPin,
   type TasArchShape,
   type TasPublicDoc,
 } from './tas-arch'
@@ -24,9 +25,9 @@ export type SiteLookup = {
   lng: number
   parcel: NaprParcel | null
   building: OsmBuildingHit | null
-  /** Best contour for map paint: building first, else parcel. */
+  /** Best contour for map paint: building → TAS permit → cadastral lot. */
   ring: [number, number][] | null
-  ringSource: 'osm' | 'napr' | 'corpus' | null
+  ringSource: 'osm' | 'tas' | 'napr' | 'corpus' | null
   /** TAS Architecture Service permit polygons near pin (Tbilisi). */
   tasShapes: TasArchShape[]
   /** TAS public permits when cadastral known. */
@@ -100,8 +101,11 @@ export async function lookupSite(opts: {
     }
   }
 
-  const ring = building?.ring ?? parcel?.ring ?? null
-  if (!ringSource) ringSource = building ? 'osm' : parcel ? 'napr' : null
+  const tasBest = pickTasShapesForPin(tasShapes, lat!, lng!)[0]
+  const ring = building?.ring ?? tasBest?.ring ?? parcel?.ring ?? null
+  if (!ringSource) {
+    ringSource = building ? 'osm' : tasBest ? 'tas' : parcel ? 'napr' : null
+  }
 
   return {
     lat: lat!,

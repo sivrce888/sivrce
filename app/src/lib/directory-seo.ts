@@ -250,12 +250,12 @@ export const PROJECTS_HUB: Record<DirLoc, DirectoryHubCopy> = {
     title: 'მშენებარე ბინები — ბინა ახალ კორპუსში თბილისში და ბათუმში',
     ogTitle: 'მშენებარე ბინები — თბილისი და ბათუმი | sivrce',
     description:
-      'მშენებარე ბინები თბილისში და ბათუმში: დეველოპერების შეფასებები, ფასები კვადრატულზე, მშენებლობის პროგრესი და ჩაბარების ვადები — ყველა პროექტი ერთ სივრცეში.',
+      'მშენებარე ბინები თბილისში და ბათუმში 2026: Coordinate, Archi Horizon, m² Highlight, Alliance Highline — ფასები კვადრატულზე, პროგრესი და ჩაბარების ვადები.',
     h1: 'მშენებარე ბინები — თბილისი და ბათუმი',
     sub: 'მშენებარე ბინები ყველა დეველოპერისგან — ფასები კვადრატულზე, ჩაბარების ვადები, შიდა განვადება და მშენებლობის რეალური პროგრესი ერთ სივრცეში',
     proseTitle: 'მშენებარე ბინები ახალ პროექტებში — ბაზრის მიმოხილვა',
     prose: [
-      'აქ ნახავთ ყველა ახალ საცხოვრებელ კომპლექსს თბილისში, ბათუმსა და საქართველოს სხვა ქალაქებში — m², Archi, Alliance, ORBI და სხვა დეველოპერების მშენებარე კორპუსებით. თითოეული პროექტისთვის მითითებულია კვადრატული მეტრის ფასი, მშენებლობის პროგრესი პროცენტებში, ჩაბარების ვადა და ბინების რაოდენობა.',
+      'აქ ნახავთ ყველა ახალ საცხოვრებელ კომპლექსს თბილისში, ბათუმსა და საქართველოს სხვა ქალაქებში — m² Highlight, Archi Horizon, Alliance Highline, Coordinate by Keystone, ORBI, Blox და სხვა დეველოპერების მშენებარე კორპუსებით. თითოეული პროექტისთვის მითითებულია კვადრატული მეტრის ფასი, მშენებლობის პროგრესი პროცენტებში, ჩაბარების ვადა და ბინების რაოდენობა.',
       'მშენებარე ბინის ყიდვა იაფია დასრულებულზე — ფასი იზრდება ჩაბარებასთან მიახლოებით, ამიტომ ახალი პროექტები ერთ-ერთი ყველაზე პოპულარული ინვესტიციაა საქართველოში. შეადარეთ უბნები, კარკასის ტიპები და ფასები 2026 წელს და იპოვეთ ბინა საცხოვრებლად ან გასაქირავებლად.',
     ],
     faqTitle: 'ხშირად დასმული კითხვები',
@@ -286,12 +286,12 @@ export const PROJECTS_HUB: Record<DirLoc, DirectoryHubCopy> = {
     title: 'Apartments in New Buildings in Tbilisi & Batumi — New Developments',
     ogTitle: 'Apartments in New Buildings in Tbilisi & Batumi | sivrce',
     description:
-      'Apartments in new buildings in Tbilisi and Batumi: developer ratings, price per m², construction progress and handover dates — every project in one place.',
+      'Apartments in new buildings in Tbilisi and Batumi 2026: Coordinate, Archi Horizon, m² Highlight, Alliance Highline — price per m², progress and handover dates.',
     h1: 'Apartments in new buildings in Tbilisi and Batumi',
     sub: 'Under-construction apartments from every developer — price per m², handover dates, installment plans and real construction progress in one place.',
     proseTitle: 'New-build apartments in Georgia — market overview',
     prose: [
-      'Here you find every new residential complex in Tbilisi, Batumi and other Georgian cities — under-construction buildings by m², Archi, Alliance, ORBI and other developers. Each project shows price per square meter, construction progress in percent, handover date and unit count.',
+      'Here you find every new residential complex in Tbilisi, Batumi and other Georgian cities — under-construction buildings by m² Highlight, Archi Horizon, Alliance Highline, Coordinate by Keystone, ORBI, Blox and other developers. Each project shows price per square meter, construction progress in percent, handover date and unit count.',
       'Buying an apartment under construction is cheaper than a completed one — prices rise toward handover, which makes new developments one of the most popular investments in Georgia. Compare districts, frame conditions and 2026 prices, and find an apartment to live in or rent out.',
     ],
     faqTitle: 'Frequently asked questions',
@@ -322,12 +322,12 @@ export const PROJECTS_HUB: Record<DirLoc, DirectoryHubCopy> = {
     title: 'Квартиры в новостройках Тбилиси и Батуми — цены 2026',
     ogTitle: 'Квартиры в новостройках Тбилиси и Батуми | sivrce',
     description:
-      'Квартиры в новостройках Тбилиси и Батуми: рейтинги застройщиков, цена за м², ход строительства и сроки сдачи — все проекты в одном месте.',
+      'Квартиры в новостройках Тбилиси и Батуми 2026: Coordinate, Archi Horizon, m² Highlight, Alliance Highline — цена за м², ход строительства и сроки сдачи.',
     h1: 'Квартиры в новостройках Тбилиси и Батуми',
     sub: 'Квартиры в строящихся домах от всех застройщиков — цена за м², сроки сдачи, рассрочка и реальный ход строительства в одном месте.',
     proseTitle: 'Квартиры в новостройках Грузии — обзор рынка',
     prose: [
-      'Здесь собраны все новые жилые комплексы Тбилиси, Батуми и других городов Грузии — строящиеся дома от m², Archi, Alliance, ORBI и других застройщиков. Для каждого проекта указаны цена за квадратный метр, процент готовности, срок сдачи и количество квартир.',
+      'Здесь собраны все новые жилые комплексы Тбилиси, Батуми и других городов Грузии — строящиеся дома от m² Highlight, Archi Horizon, Alliance Highline, Coordinate by Keystone, ORBI, Blox и других застройщиков. Для каждого проекта указаны цена за квадратный метр, процент готовности, срок сдачи и количество квартир.',
       'Купить квартиру в строящемся доме дешевле, чем в готовом — цена растёт к сдаче, поэтому новостройки остаются одной из самых популярных инвестиций в Грузии. Сравнивайте районы, типы каркаса и цены 2026 года и найдите квартиру для жизни или сдачи в аренду.',
     ],
     faqTitle: 'Частые вопросы',

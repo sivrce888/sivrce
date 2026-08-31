@@ -38,6 +38,11 @@ lock("src/app/[lang]/layout.tsx", ["LITE_BOOT", "beforeInteractive", "suppressHy
 lock("src/app/auth/layout.tsx", ["LITE_BOOT", "beforeInteractive", "suppressHydrationWarning"])
 lock("src/components/map/Map3D.tsx", ["...mapRuntimeOptions()"])
 lock("src/components/map/BuildingFloorsMap.tsx", ["...mapRuntimeOptions()"])
+lock("src/components/search/SearchMapView.tsx", [
+  "...mapRuntimeOptions()",
+  "new ResizeObserver",
+  "STYLE_SATELLITE",
+])
 lock("src/lib/db.ts", ["max: 1"], ["max: 10"])
 lock("sentry.client.config.ts", ["replaysSessionSampleRate: 0"], ["replaysSessionSampleRate: 1"])
 

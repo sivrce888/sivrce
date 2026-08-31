@@ -28,4 +28,21 @@ assert.equal(
   '/pledge',
 )
 
-console.log('seo-hub: 4/4 ✓')
+const dailySab = listingHubPath({
+  dealType: 'daily',
+  propType: 'apartment',
+  city: 'თბილისი',
+  district: 'საბურთალო',
+})
+assert.ok(dailySab?.startsWith('/daily'), 'daily saburtalo maps to a daily hub')
+assert.ok(
+  (listingHubAnchor({
+    dealType: 'daily',
+    propType: 'apartment',
+    city: 'თბილისი',
+    district: 'საბურთალო',
+  }) ?? '').includes('დღიურად'),
+  'daily saburtalo anchor keeps the query word',
+)
+
+console.log('seo-hub: 5/5 ✓')

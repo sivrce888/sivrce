@@ -128,6 +128,8 @@ export async function syncSearchIndexJob(): Promise<{
       priceDropUntil?: string
       storyUntil?: string
       projectCatalog?: boolean
+      exclusive?: boolean
+      sivrceExclusive?: boolean
     } | null
     const tierKey = effectiveTierKey(tier, tierExpiresAt)
     const priceUSD = row.currency === "USD" ? row.price : Math.round(row.price / USD_GEL)
@@ -159,6 +161,8 @@ export async function syncSearchIndexJob(): Promise<{
       urgentUntil: activeUrgentUntil(ext),
       priceDropUntil: activePriceDropUntil(ext),
       storyUntil: activeStoryUntil(ext),
+      exclusive: ext?.exclusive === true,
+      sivrceExclusive: ext?.sivrceExclusive === true,
       tier: tierKey,
       tierRank: tierRankOf(tier, tierExpiresAt),
     }

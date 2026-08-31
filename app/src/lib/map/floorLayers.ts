@@ -15,6 +15,7 @@ import {
 } from '@/lib/map/buildings'
 import { EMPTY_FLOORS } from './floors'
 import { loadCleanStyle } from '@/lib/map/mapChrome'
+import { mapProxyOrigin } from '@/lib/map/map-proxy'
 
 // Defaults are first-party proxy paths — browser never sees openfreemap.org.
 export const STYLE_LIGHT =
@@ -50,25 +51,28 @@ export function mapStyleUrl(
  * Tiles via /api/sat (same-origin) — Esri direct often trips map error handlers / CSP.
  */
 export function satelliteStyle(): StyleSpecification {
+  // ponytail: absolute tiles — MapLibre workers reject relative /api/sat
+  const origin = mapProxyOrigin()
+  const tile = (path: string) => (origin ? `${origin}${path}` : path)
   return {
     version: 8,
     sources: {
       sat: {
         type: 'raster',
-        tiles: ['/api/sat/img/{z}/{y}/{x}'],
+        tiles: [tile('/api/sat/img/{z}/{y}/{x}')],
         tileSize: 256,
         attribution: '© Esri',
         maxzoom: 19,
       },
       satRoads: {
         type: 'raster',
-        tiles: ['/api/sat/roads/{z}/{y}/{x}'],
+        tiles: [tile('/api/sat/roads/{z}/{y}/{x}')],
         tileSize: 256,
         maxzoom: 19,
       },
       satLabels: {
         type: 'raster',
-        tiles: ['/api/sat/labels/{z}/{y}/{x}'],
+        tiles: [tile('/api/sat/labels/{z}/{y}/{x}')],
         tileSize: 256,
         maxzoom: 19,
       },
@@ -84,6 +88,49 @@ export function satelliteStyle(): StyleSpecification {
 export async function loadMapBasemap(styleKey: string): Promise<StyleSpecification> {
   const style = styleKey === STYLE_SATELLITE ? satelliteStyle() : await loadCleanStyle(styleKey)
   return withGeorgiaLock(style, styleKey)
+}
+
+const HYBRID_NAME_IDS = ['highway-name-minor', 'highway-name-major', 'highway-name-path'] as const
+
+/** Esri road/place rasters go empty at pin zoom (~z18). Graft OFM street names. */
+export async function overlayHybridLabels(
+  sat: StyleSpecification,
+): Promise<StyleSpecification> {
+  try {
+    const ofm = await loadCleanStyle(STYLE_LIGHT)
+    const sivrce = ofm.sources?.sivrce
+    if (!sivrce || !ofm.glyphs) return sat
+    const want = new Set<string>(HYBRID_NAME_IDS)
+    const labels = (ofm.layers ?? [])
+      .filter((l) => l.type === 'symbol' && want.has(l.id))
+      .map((l) =>
+        l.type === 'symbol'
+          ? {
+              ...l,
+              paint: {
+                ...l.paint,
+                'text-color': BRAND.colors.paper,
+                'text-halo-color': BRAND.colors.navy,
+                'text-halo-width': 1.6,
+              },
+            }
+          : l,
+      )
+    if (!labels.length) return sat
+    const layers = sat.layers ?? []
+    const maskAt = layers.findIndex((l) => l.id === GEORGIA_MASK_LAYER)
+    const before = maskAt >= 0 ? layers.slice(0, maskAt) : layers
+    const after = maskAt >= 0 ? layers.slice(maskAt) : []
+    return {
+      ...sat,
+      glyphs: ofm.glyphs,
+      sources: { ...sat.sources, sivrce },
+      layers: [...before, ...labels, ...after],
+    }
+  } catch {
+    // ponytail: OFM 5s timeout → photo-only. Vector-first hybrid if Esri z18 stays empty.
+    return sat
+  }
 }
 
 /** Light void — navy-tint gray so Georgia reads (cloud ≈ land, silhouette vanished). */
@@ -457,7 +504,14 @@ export function applyBrandPaints(
   const voidColor =
     theme === 'dark' || terrain === 'satellite' ? BRAND.colors.navy : VOID_LIGHT
   trySet(map, GEORGIA_MASK_LAYER, 'fill-color', voidColor)
-  if (terrain === 'satellite') return
+  if (terrain === 'satellite') {
+    for (const id of HYBRID_NAME_IDS) {
+      trySet(map, id, 'text-color', BRAND.colors.paper)
+      trySet(map, id, 'text-halo-color', BRAND.colors.navy)
+      trySet(map, id, 'text-halo-width', 1.6)
+    }
+    return
+  }
   if (theme === 'dark') {
     applyDarkPaints(map)
     return

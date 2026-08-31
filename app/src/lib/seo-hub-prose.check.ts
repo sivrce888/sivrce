@@ -10,6 +10,7 @@ const required = [
   'sale/apartments',
   'sale/houses',
   'rent/commercial',
+  'daily/apartments',
 ] as const
 
 for (const key of required) {

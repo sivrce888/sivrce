@@ -89,7 +89,7 @@ export default async function MapPage({
           </LocalizedLink>
         </div>
       </header>
-      <div className="min-h-0 flex-1">
+      <div id="main" className="min-h-0 flex-1">
         <Map3DLazy
           dbBuildings={dbBuildings}
           listings={listings}

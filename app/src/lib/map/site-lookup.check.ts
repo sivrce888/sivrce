@@ -41,4 +41,15 @@ const source = buildingRing ? 'osm' : 'napr'
 assert.equal(source, 'osm')
 assert.equal(preferred[0]![0], 44.77845)
 
+const tasRing: [number, number][] = [
+  [44.7785, 41.7706],
+  [44.7789, 41.7706],
+  [44.7789, 41.7709],
+  [44.7785, 41.7709],
+  [44.7785, 41.7706],
+]
+const noOsm = null as [number, number][] | null
+const viaTas = noOsm ?? tasRing ?? parcelRing
+assert.equal(viaTas[0]![0], 44.7785)
+
 console.log('site-lookup.check: ok')

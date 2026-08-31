@@ -50,8 +50,10 @@ export interface Listing {
   totalFloors: number
   views: number
   badge: Badge
-  /** Exclusive direct listing (✦ ექსკლუზივი badge) */
+  /** Agency exclusive (ექსკლუზივი) */
   isExclusive?: boolean
+  /** Listing published only on Sivrce */
+  isSivrceExclusive?: boolean
   /** Paid color highlight (search card ring) — from extendedFields.colorUntil */
   highlighted?: boolean
   /** Paid „სასწრაფოდ“ sticker */
@@ -114,7 +116,7 @@ export const LISTINGS: Listing[] = [
     city: 'თბილისი', district: 'ვაკე',
     dealType: 'sale', propType: 'apartment',
     rooms: 2, beds: 3, baths: 2, area: 90, floor: 12, totalFloors: 18,
-    views: 3200, badge: 'SUPER VIP',
+    views: 3200, badge: 'SUPER VIP', isExclusive: true, isSivrceExclusive: true,
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['პანორამული ფანჯრები', 'ცენტრალური გათბობა', 'ავტოფარეხი', 'დიზაინერული რემონტი', 'ტექნიკით', 'აუზი კომპლექსში'],
     description: 'პრემიუმ კომპლექსში, ჭავჭავაძეზე, იყიდება განათებული 2-ოთახიანი ბინა ქალაქის პანორამული ხედით. დიზაინერული რემონტი შესრულებულია ევროპული მასალებით, ბინა სრულად არის განთავსებული ტექნიკით. კომპლექსს აქვს დაცული ეზო, ფიტნესი და მიწისქვეშა პარკინგი.',
@@ -1169,6 +1171,28 @@ export function formatPerM2(l: Listing, currency?: 'GEL' | 'USD'): string {
 export function formatViews(v: number): string {
   if (v >= 1000) return `${(v / 1000).toFixed(1)}კ`
   return String(v)
+}
+
+/** Bedrooms first; total rooms after. Legacy sale rows with beds=0 fall back to rooms. */
+export function stayCount(l: Pick<Listing, 'rooms' | 'beds'>): {
+  n: number
+  rooms: number
+  labelKey: 'spec.rooms' | 'spec.beds'
+  kind: 'rooms' | 'beds'
+} {
+  if (l.beds > 0) return { n: l.beds, rooms: l.rooms, labelKey: 'spec.beds', kind: 'beds' }
+  return { n: l.rooms, rooms: l.rooms, labelKey: 'spec.rooms', kind: 'rooms' }
+}
+
+/** "2 საძინებელი · 3 ოთახები სულ" — bedrooms first, total rooms second. */
+export function stayLine(
+  l: Pick<Listing, 'rooms' | 'beds'>,
+  t: (k: 'spec.rooms' | 'spec.beds') => string,
+): string {
+  const s = stayCount(l)
+  if (s.n <= 0) return ''
+  if (s.kind === 'beds' && s.rooms > 0) return `${s.n} ${t('spec.beds')} · ${s.rooms} ${t('spec.rooms')}`
+  return `${s.n} ${t(s.labelKey)}`
 }
 
 export function formatFloor(l: Listing): string {

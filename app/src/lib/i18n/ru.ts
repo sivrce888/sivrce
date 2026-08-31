@@ -59,7 +59,7 @@ export const ru: Dict = {
   'loc.streetHint': 'Выберите район или введите улицу',
   'loc.close': 'Закрыть',
   'loc.cities': 'Города',
-  'search.keywordPlaceholder': 'Ваке, 3 комнаты, паркинг… или ID',
+  'search.keywordPlaceholder': 'Квартиры посуточно Тбилиси, Сабуртало… или ID',
   'search.keyword': 'Поисковый запрос',
   'search.sort': 'Сортировка',
   'search.view': 'Вид',
@@ -70,8 +70,8 @@ export const ru: Dict = {
   'search.max': 'Макс',
   'search.minPrice': 'Минимальная цена',
   'search.maxPrice': 'Максимальная цена',
-  'search.rooms': 'Комнаты',
-  'search.roomsChip': '{n}+ {plural:комната|комнаты|комнат}',
+  'search.rooms': 'Комнат всего',
+  'search.roomsChip': '{n}+ {plural:комната|комнаты|комнат} всего',
   'search.area': 'Площадь м²',
   'search.minArea': 'Минимальная площадь',
   'search.maxArea': 'Максимальная площадь',
@@ -85,7 +85,7 @@ export const ru: Dict = {
     'По выбранным фильтрам объявлений нет. Попробуйте изменить фильтры или сбросить их полностью.',
   'search.resetFilters': 'Сбросить фильтры',
   'search.seoHint':
-    'Все объявления на Sivrce проверены и сопровождаются AI-оценкой цены — квартиры, дома и коммерческие помещения в Тбилиси, Батуми и Кутаиси.',
+    'Недвижимость в Грузии: квартиры посуточно в Тбилиси и Сабуртало, продажа и аренда. Каждое объявление проверено, с ИИ-оценкой цены.',
 
   'search.moreFilters': 'Ещё фильтры',
   'search.bedrooms': 'Спальни',
@@ -200,6 +200,14 @@ export const ru: Dict = {
   'sticker.urgent': 'Срочно',
   'sticker.priceDrop': 'Цена снижена',
   'sticker.story': 'Story',
+  'badge.exclusive': 'Эксклюзив',
+  'badge.exclusiveHint': 'Объект является эксклюзивом агентства',
+  'badge.sivrceExclusive': 'Эксклюзивно на Sivrce',
+  'badge.sivrceExclusiveShort': 'Только Sivrce',
+  'badge.sivrceExclusiveHint': 'Объявление опубликовано только на Sivrce',
+  'card.new': 'Новое',
+  'card.areaFrom': 'от {n} м²',
+  'search.promo': 'Платный статус',
   'detail.linkCopied': 'Ссылка скопирована',
   'detail.fullPrice': 'Полная цена',
   'detail.monthlyRent': 'Аренда в месяц',
@@ -295,7 +303,7 @@ export const ru: Dict = {
   'detail.seeMore': 'Смотреть ещё',
 
   // ——— Spec labels ———
-  'spec.rooms': 'Комнаты',
+  'spec.rooms': 'Комнат всего',
   'spec.beds': 'Спальни',
   'spec.baths': 'Санузлы',
   'spec.area': 'Площадь',
@@ -304,13 +312,13 @@ export const ru: Dict = {
 
   // ——— Footer ———
   'footer.tagline':
-    'Sivrce — недвижимость в одном пространстве. Технологическая платформа №1 в Грузии: 3D карта, AI-оценка и полная экосистема.',
+    'sivrce — недвижимость в Грузии. Квартиры посуточно в Тбилиси, продажа и аренда. 3D-карта, AI-оценка.',
   'footer.location': 'Тбилиси, Грузия',
   'footer.colRealEstate': 'Недвижимость',
   'footer.re.apartments': 'Квартиры на продажу',
   'footer.re.houses': 'Дома на продажу',
   'footer.re.rent': 'Аренда',
-  'footer.re.daily': 'Посуточно',
+  'footer.re.daily': 'Квартиры посуточно',
   'footer.re.land': 'Земельные участки',
   'footer.re.commercial': 'Коммерческие помещения',
   'footer.colServices': 'Сервисы',
@@ -335,9 +343,9 @@ export const ru: Dict = {
 
   // ——— Add listing wizard ———
   'add.title': 'Добавить объявление',
-  'add.subtitle': 'Три шага — тип, объявление, контакт. Ваш объект на платформе №1 в Грузии.',
+  'add.subtitle': 'Одна страница — заполните и опубликуйте. Ваш объект на платформе №1 в Грузии.',
   'add.editTitle': 'Редактирование объявления',
-  'add.editSubtitle': 'Измените поля — те же 3 шага, что при добавлении.',
+  'add.editSubtitle': 'Измените поля на одной странице.',
   'add.save': 'Сохранить',
   'add.saving': 'Сохранение…',
   'add.savedTitle': 'Сохранено',
@@ -549,6 +557,7 @@ export const ru: Dict = {
   'add.aiDesc':
     '{deal}: {type} в районе {district}, {city} — {area} м²{rooms}{floor}. Состояние: {condition}.{features} Отличный выбор для жизни и инвестиций — с AI-оценкой цены.',
   'add.aiDesc.rooms': ', {n} комн.',
+  'add.aiDesc.beds': ', {n} спален',
   'add.aiDesc.floor': ', этаж {f}/{t}',
   'add.aiDesc.features': ' Особенности: {list}.',
   'add.contact': 'Контактная информация',
@@ -585,6 +594,7 @@ export const ru: Dict = {
   'add.priceVerdict.fair': 'На уровне рынка',
   'add.priceVerdict.high': 'Выше рынка',
   'add.autoTitle.rooms': '{rooms}-комн. {type} {deal} в {where}',
+  'add.autoTitle.beds': '{beds}-спал. {type} {deal} в {where}',
   'add.autoTitle.simple': '{type} {deal} в {where}',
   'add.titleType.commercial': 'коммерческое помещение',
   'add.previewTitle': 'Ваше объявление',

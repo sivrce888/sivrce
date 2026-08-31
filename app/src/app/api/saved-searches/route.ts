@@ -35,7 +35,7 @@ const KEY_MAP: Record<string, string> = {
   amax: "maxArea",
 }
 const PASS_THROUGH = new Set([
-  "q", "city", "district", "rooms", "beds", "baths", "fmin", "fmax",
+  "q", "city", "district", "rooms", "rmax", "beds", "bmax", "baths", "fmin", "fmax",
   "cond", "bstat", "feat", "photo", "verified", "pets", "seller",
   "from", "to", "cur", "sort",
 ])

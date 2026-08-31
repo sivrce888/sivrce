@@ -6,12 +6,14 @@
  */
 
 import { writeFileSync } from 'node:fs'
+import { PROJECTS } from '../src/data/professionals'
 import { fetchNaprParcelByCode, probeNaprCadRep } from '../src/lib/map/napr-parcel'
 
-/** Curated cadastral codes — only human-verified UNIQ_CODE rows. */
-const KNOWN: Array<{ slug: string; code: string }> = [
-  { slug: 'axis-avlabari', code: '01.17.13.045.217' },
-]
+/** Every catalog cadastral — CadRepGeo when up. */
+const KNOWN = PROJECTS.filter((p) => p.cadastral).map((p) => ({
+  slug: p.slug,
+  code: p.cadastral!,
+}))
 
 const OUT = new URL('../src/data/napr-pin-overrides.json', import.meta.url)
 

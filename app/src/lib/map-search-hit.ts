@@ -48,6 +48,8 @@ export function mapSearchHit(h: Record<string, unknown>): Listing {
     stickerUrgent: Boolean(h.urgentUntil && Date.parse(String(h.urgentUntil)) > Date.now()),
     stickerPriceDrop: Boolean(h.priceDropUntil && Date.parse(String(h.priceDropUntil)) > Date.now()),
     inStory: Boolean(h.storyUntil && Date.parse(String(h.storyUntil)) > Date.now()),
+    isExclusive: Boolean(h.exclusive),
+    isSivrceExclusive: Boolean(h.sivrceExclusive),
     verified: Boolean(h.verified),
   }
 }

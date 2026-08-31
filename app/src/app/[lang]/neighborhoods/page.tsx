@@ -13,9 +13,9 @@ import { langAlternates } from '@/lib/i18n/server'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'უბნების გზამკვლევი — თბილისი, ბათუმი, ქუთაისი | sivrce',
+  title: 'უბნები თბილისში — ვაკე, საბურთალო, ბინები დღიურად | sivrce',
   description:
-    'სად ღირს ცხოვრება: ცხოვრების ხარისხის ქულები (ტრანსპორტი, სკოლები, მწვანე ზონები, უსაფრთხოება), საშუალო ფასები კვადრატულზე და მცხოვრებლების შეფასებები ყველა უბნისთვის.',
+    'ბინები დღიურად საბურთალოზე და ვაკეში, იყიდება და ქირავდება. ცხოვრების ხარისხის ქულები, ფასი მ²-ზე და რეალური ფოტოები.',
   alternates: { canonical: '/neighborhoods', languages: langAlternates('/neighborhoods') },
   openGraph: {
     title: 'უბნების გზამკვლევი — ცხოვრების ხარისხის ქულები და ფასები | sivrce',

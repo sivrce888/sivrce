@@ -468,25 +468,24 @@ export function projectsToConstructionBuildings(
       const id = `dev-${p.slug}`
       // NAPR CadRepGeo override wins over OSM/catalog pin when snap script succeeded.
       const napr = naprOverrideFor(p.slug)
-      const baseLat = napr?.lat ?? p.coords.lat
-      const baseLng = napr?.lng ?? p.coords.lng
       const fp = footprintEntry({ id, slug: p.slug, projectSlug: p.slug })
       const glued = fp ? footprintCentroid(fp) : null
-      const ring = napr?.ring ?? footprintPrimaryRing(fp ?? undefined)
+      const fpRing = footprintPrimaryRing(fp ?? undefined)
       const campus = !!(fp && fp.parts && fp.parts.length >= 2)
-      const pinOk =
-        !napr &&
-        !!ring &&
-        footprintRingUsable(ring, baseLat, baseLng, {
+      const fpOk =
+        !!fpRing &&
+        footprintRingUsable(fpRing, glued?.lat ?? p.coords.lat, glued?.lng ?? p.coords.lng, {
           campus,
           ghost: !completed,
           floors,
           osmHeightM: footprintOsmHeightM(fp),
         })
+      const baseLat = (fpOk && glued ? glued.lat : null) ?? napr?.lat ?? p.coords.lat
+      const baseLng = (fpOk && glued ? glued.lng : null) ?? napr?.lng ?? p.coords.lng
       return {
         id,
-        lat: pinOk && glued ? glued.lat : baseLat,
-        lng: pinOk && glued ? glued.lng : baseLng,
+        lat: baseLat,
+        lng: baseLng,
         label: p.name,
         address: p.location,
         buildingNumber: bn,
@@ -508,7 +507,7 @@ export function projectsToConstructionBuildings(
         floors,
         finish: p.finish,
         img: p.img,
-        ...(napr?.ring ? { ring: napr.ring } : {}),
+        ...(napr?.ring && !fpOk ? { ring: napr.ring } : {}),
       }
     })
 }
@@ -530,33 +529,27 @@ export function applyLiveProjectPins(
     const dev = getDeveloper(p.developerSlug)
     const completed = p.done >= 100
     const napr = naprOverrideFor(p.slug)
-    // Keep OSM/campus centroid — project GPS is often a street geocode a block off.
-    // NAPR CadRepGeo override wins when snap-napr-pins wrote a ring.
+    // TAS/OSM building outline for extrusion; NAPR lot only when no footprint.
     const fp = footprintEntry(b)
     const glued = fp ? footprintCentroid(fp) : null
-    const ring = napr?.ring ?? footprintPrimaryRing(fp ?? undefined)
+    const fpRing = footprintPrimaryRing(fp ?? undefined)
     const campus = !!(fp && fp.parts && fp.parts.length >= 2)
     const floors = p.floors ?? b.floors
     const osmHeightM = footprintOsmHeightM(fp)
-    const ringOk = (lat: number, lng: number) =>
-      !napr &&
-      !!ring &&
-      footprintRingUsable(ring, lat, lng, {
+    const fpOk =
+      !!fpRing &&
+      footprintRingUsable(fpRing, glued?.lat ?? p.coords.lat, glued?.lng ?? p.coords.lng, {
         campus,
         ghost: !completed,
         floors,
         osmHeightM,
       })
-    const snap = napr
-      ? { lat: napr.lat, lng: napr.lng }
-      : glued && (ringOk(b.lat, b.lng) || ringOk(p.coords.lat, p.coords.lng))
-        ? glued
-        : null
+    const snap = fpOk && glued ? glued : napr ? { lat: napr.lat, lng: napr.lng } : null
     return {
       ...b,
       lat: snap?.lat ?? p.coords.lat,
       lng: snap?.lng ?? p.coords.lng,
-      ...(napr?.ring ? { ring: napr.ring } : {}),
+      ...(napr?.ring && !fpOk ? { ring: napr.ring } : {}),
       address: p.location || b.address,
       buildingNumber: bn || b.buildingNumber,
       developerSlug: p.developerSlug || b.developerSlug,

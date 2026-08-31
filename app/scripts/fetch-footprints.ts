@@ -16,8 +16,8 @@ import { PROJECTS } from '../src/data/professionals'
 type Ring = [number, number][]
 type Part = { ring: Ring; floors?: number }
 type Footprint =
-  | { ring: Ring; osmId: number; height?: number; parts?: undefined }
-  | { parts: Part[]; osmId?: number; ring?: undefined; height?: undefined }
+  | { ring: Ring; osmId: number; height?: number; parts?: undefined; source?: 'osm' | 'tas' | 'napr' }
+  | { parts: Part[]; osmId?: number; ring?: undefined; height?: undefined; source?: 'osm' | 'tas' | 'napr' }
 
 const UA = 'sivrce-maps/1.0 (sivrce888@gmail.com)'
 const ENDPOINTS = [
@@ -47,6 +47,10 @@ const CAMPUS = new Set([
   'archi-rivertown',
   'silk-towers',
   'ambassadori-island-first-tower',
+  'coordinate-by-keystone',
+  'dighomi-gardens',
+  'solum-ponichala',
+  'gwg-krtsanisi',
 ])
 
 type Target = {
@@ -460,11 +464,12 @@ function loadOut(): Record<string, Footprint | null> {
 function saveOut(out: Record<string, Footprint | null>) {
   writeFileSync(
     OUT,
-    JSON.stringify({ attribution: '© OpenStreetMap contributors (ODbL)', footprints: out }, null, 1),
+    JSON.stringify({ attribution: '© OpenStreetMap contributors (ODbL); TAS ARCHITECTURE_LR; NAPR CadRepGeo', footprints: out }, null, 1),
   )
 }
 
 function needsRepair(t: Target, fp: Footprint | null | undefined, forceParts: boolean): boolean {
+  if (fp?.source === 'tas') return false
   if (hasParts(fp) && !forceParts) {
     const maxParts = (t.flats ?? 0) >= 800 ? 24 : 8
     if (fp.parts.length <= maxParts) return false

@@ -53,6 +53,7 @@ export type PublishParsed = {
   price: number
   negotiable: boolean
   rooms: number
+  beds: number
   baths: number
   floor: number | null
   totalFloors: number | null
@@ -116,6 +117,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
       price: price ?? 0,
       negotiable,
       rooms: asInt(body.rooms, 0, 50) ?? 0,
+      beds: asInt(body.beds, 0, 50) ?? 0,
       baths: asInt(body.baths, 0, 50) ?? 0,
       floor: asInt(body.floor, 0, 200),
       totalFloors: asInt(body.totalFloors, 0, 200),
@@ -146,9 +148,16 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
         guests: asInt(body.guests, 1, 50),
         areaUnit: body.areaUnit === "ha" ? "ha" : "m2",
         onlineView: body.onlineView === true,
+        exclusive: body.exclusive === true,
+        sivrceExclusive: body.sivrceExclusive === true,
       },
     },
   }
+}
+
+/** Store both: bedrooms first, total rooms second. */
+export function persistRoomCounts(rooms: number, beds: number): { rooms: number; bedrooms: number } {
+  return { rooms, bedrooms: beds }
 }
 
 /** Self-check: `npx tsx src/lib/listings-publish.check.ts` */
@@ -213,4 +222,31 @@ export function _checkParsePublishBody() {
   })
   if (!batumi.ok) throw new Error(batumi.error)
   if (!batumi.data.features.includes("add.f.seaView")) throw new Error("batumi sea")
+  const sale = persistRoomCounts(3, 2)
+  if (sale.rooms !== 3 || sale.bedrooms !== 2) throw new Error("sale both")
+  const daily = persistRoomCounts(1, 2)
+  if (daily.rooms !== 1 || daily.bedrooms !== 2) throw new Error("daily both")
+  if (good.data.extendedFields.exclusive !== false) throw new Error("exclusive default")
+  if (good.data.extendedFields.sivrceExclusive !== false) throw new Error("sivrce exclusive default")
+  const exo = parsePublishBody({
+    title: "იყიდება ბინა",
+    deal: "sale",
+    propType: "apartment",
+    city: "თბილისი",
+    district: "ვაკე",
+    address: "ჭავჭავაძის 12",
+    name: "გიორგი",
+    phone: "+995 555 12 34 56",
+    area: 80,
+    price: 100000,
+    images: ["https://cdn.example.com/a.webp"],
+    features: ["add.f.elevator"],
+    description: "ok",
+    negotiable: false,
+    exclusive: true,
+    sivrceExclusive: true,
+  })
+  if (!exo.ok) throw new Error(exo.error)
+  if (exo.data.extendedFields.exclusive !== true) throw new Error("exclusive")
+  if (exo.data.extendedFields.sivrceExclusive !== true) throw new Error("sivrce exclusive")
 }

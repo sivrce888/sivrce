@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * SIVRCE — Add Listing, 3 phases (Apple-short).
- * Type → Listing (photos–price) → Contact. One-scroll inside Listing.
+ * SIVRCE — Add Listing, one page (ss.ge / myhome shape).
+ * Sticky chips jump to sections; publish scrolls to the first gap.
  */
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
@@ -14,7 +14,7 @@ import {
   Building, Building2, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
   MapPin, Ruler, Layers, Check, Construction,
   ImagePlus, X, Phone, User, MessageCircle,
-  CircleCheckBig, Plus, Video, BadgeCheck, Trees, Hotel,
+  CircleCheckBig, Plus, Video, BadgeCheck, Trees, Hotel, Crown,
 } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { SparkMark } from '@/components/SparkMark'
@@ -26,7 +26,6 @@ import { cap1, seoTitleParts } from '@/lib/seo-title'
 import {
   DEALS_FOR, dealLabelKey, fieldsFor, conditionsFor, statusesFor,
   projectsFor, floorTypesFor, featuresFor, RENT_PERIODS, RENT_TYPES,
-  phaseOfSection,
 } from '@/lib/add-listing-fields'
 import { groupedFeatures } from '@/lib/features'
 import {
@@ -60,7 +59,14 @@ const DEALS: { key: Deal; icon: typeof Tag; hue: string }[] = [
   { key: 'daily', icon: CalendarClock, hue: DEAL_BRAND.daily },
 ]
 
-const PHASES = ['add.step.type', 'add.step.listing', 'add.step.contact'] as const
+const SECTIONS = [
+  'add.step.type',
+  'add.step.photos',
+  'add.step.location',
+  'add.step.details',
+  'add.step.price',
+  'add.step.contact',
+] as const
 
 const STATUS_ICON: Partial<Record<DictKey, typeof Building>> = {
   'add.status.new': Building2,
@@ -101,7 +107,7 @@ export default function AddListingClient() {
   const nameSeeded = useRef(false)
   const editLoaded = useRef(false)
 
-  const [phase, setPhase] = useState<0 | 1 | 2>(0)
+  const [activeSec, setActiveSec] = useState(0)
   const [touched, setTouched] = useState(false)
   const [publishedId, setPublishedId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -138,6 +144,7 @@ export default function AddListingClient() {
   const [areaUnit, setAreaUnit] = useState<'m2' | 'ha'>('m2')
   const [yardArea, setYardArea] = useState('')
   const [rooms, setRooms] = useState(0)
+  const [beds, setBeds] = useState(0)
   const [baths, setBaths] = useState(0)
   const [floor, setFloor] = useState('')
   const [totalFloors, setTotalFloors] = useState('')
@@ -159,6 +166,8 @@ export default function AddListingClient() {
   const [priceMode, setPriceMode] = useState<'total' | 'm2'>('total')
   const [negotiable, setNegotiable] = useState(false)
   const [exchangeable, setExchangeable] = useState(false)
+  const [exclusive, setExclusive] = useState(false)
+  const [sivrceExclusive, setSivrceExclusive] = useState(false)
   const [description, setDescription] = useState('')
   const [aiUsed, setAiUsed] = useState(false)
   const [name, setName] = useState('')
@@ -209,6 +218,8 @@ export default function AddListingClient() {
       if (d.areaUnit === 'm2' || d.areaUnit === 'ha') setAreaUnit(d.areaUnit)
       if (typeof d.yardArea === 'string') setYardArea(d.yardArea)
       if (typeof d.rooms === 'number') setRooms(d.rooms)
+      if (typeof d.beds === 'number') setBeds(d.beds)
+      else if (typeof d.rooms === 'number' && d.deal === 'daily') setBeds(d.rooms)
       if (typeof d.baths === 'number') setBaths(d.baths)
       if (typeof d.floor === 'string') setFloor(d.floor)
       if (typeof d.totalFloors === 'string') setTotalFloors(d.totalFloors)
@@ -238,6 +249,8 @@ export default function AddListingClient() {
       if (d.priceMode === 'total' || d.priceMode === 'm2') setPriceMode(d.priceMode)
       if (typeof d.negotiable === 'boolean') setNegotiable(d.negotiable)
       if (typeof d.exchangeable === 'boolean') setExchangeable(d.exchangeable)
+      if (typeof d.exclusive === 'boolean') setExclusive(d.exclusive)
+      if (typeof d.sivrceExclusive === 'boolean') setSivrceExclusive(d.sivrceExclusive)
       if (typeof d.description === 'string') setDescription(d.description)
       if (typeof d.name === 'string') setName(d.name)
       if (typeof d.phone === 'string') setPhone(d.phone)
@@ -291,6 +304,7 @@ export default function AddListingClient() {
             areaUnit: 'm2' | 'ha'
             yardArea: string
             rooms: number
+            beds: number
             baths: number
             floor: string
             totalFloors: string
@@ -309,6 +323,8 @@ export default function AddListingClient() {
             price: string
             negotiable: boolean
             exchangeable: boolean
+            exclusive: boolean
+            sivrceExclusive: boolean
             description: string
             onlineView: boolean
             name: string
@@ -333,6 +349,7 @@ export default function AddListingClient() {
         setAreaUnit(L.areaUnit)
         setYardArea(L.yardArea)
         setRooms(L.rooms)
+        setBeds(L.beds)
         setBaths(L.baths)
         setFloor(L.floor)
         setTotalFloors(L.totalFloors)
@@ -362,6 +379,8 @@ export default function AddListingClient() {
         setPriceMode('total')
         setNegotiable(L.negotiable)
         setExchangeable(L.exchangeable)
+        setExclusive(L.exclusive)
+        setSivrceExclusive(L.sivrceExclusive)
         setDescription(L.description)
         setName(L.name)
         setPhone(L.phone)
@@ -397,10 +416,10 @@ export default function AddListingClient() {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
           v: 1, deal, propType, city, district, street, houseNo, coords,
           footprint,
-          cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
+          cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, beds, baths,
           floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType,
           guests, video, matterport, price, priceCur, priceMode, negotiable,
-          exchangeable, description, name, phone, messengers, onlineView, terms,
+          exchangeable, exclusive, sivrceExclusive, description, name, phone, messengers, onlineView, terms,
         }))
         setDraftSavedAt(Date.now())
       } catch { /* quota / private mode */ }
@@ -408,9 +427,10 @@ export default function AddListingClient() {
     return () => window.clearTimeout(t)
   }, [
     editId, draftReady, publishedId, deal, propType, city, district, street, houseNo,
-    coords, footprint, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
+    coords, footprint, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, beds, baths,
     floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType, guests,
     video, matterport, price, priceCur, priceMode, negotiable, exchangeable,
+    exclusive, sivrceExclusive,
     description, name, phone, messengers, onlineView, terms,
   ])
 
@@ -689,7 +709,7 @@ export default function AddListingClient() {
       !!deal && !!propType,
       !!(city && district && street),
       areaN > 0,
-      !formFields?.rooms || rooms > 0,
+      !formFields?.rooms || (beds > 0 && rooms > 0),
       !formFields?.condition || !!condition,
       !!status,
       features.length >= 3,
@@ -701,11 +721,13 @@ export default function AddListingClient() {
       onlineView,
       PHONE_RE.test(phone),
     ]
-    return Math.round((signals.filter(Boolean).length / signals.length) * 100)
-  }, [deal, propType, city, district, street, areaN, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, onlineView, phone, formFields])
+    const pct = Math.round((signals.filter(Boolean).length / signals.length) * 100)
+    // ponytail: no "excellent" on a listing that cannot publish (photo required)
+    return photos.length < 1 ? Math.min(pct, 70) : pct
+  }, [deal, propType, city, district, street, areaN, beds, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, onlineView, phone, formFields])
 
   const detailsOk = !!formFields && areaN > 0
-    && (!formFields.rooms || rooms > 0)
+    && (!formFields.rooms || (beds > 0 && rooms > 0))
     && (!formFields.guests || guests > 0)
     && (statusOpts.length === 0 || !!status)
 
@@ -715,22 +737,21 @@ export default function AddListingClient() {
   const priceOk = priceN > 0 || negotiable
   const contactOk = !!(name.trim() && PHONE_RE.test(phone) && terms)
   const sectionOk = [typeOk, photosOk, locOk, detailsOk, priceOk, contactOk]
-  const listingOk = photosOk && locOk && detailsOk && priceOk
-  const phaseOk = [typeOk, listingOk, contactOk] as const
   const formOk = sectionOk.every(Boolean)
 
   const propLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.labelKey) : ''
-  /* SEO title: deal + rooms + type + locative place — "იყიდება 2-ოთახიანი ბინა ჭავჭავაძეზე ვაკეში" */
+  /* SEO title: bedrooms first — "იყიდება 2-საძინებლიანი ბინა ჭავჭავაძეზე ვაკეში" */
   const titleLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.titleKey) : ''
   const dealLabel = deal ? t(dealLabelKey(deal, propType)) : ''
   const { deal: dealWord, where } = seoTitleParts({ lang, deal, dealLabel, street, district, city })
+  const titleKey =
+    !propType || propType === 'land' ? 'add.autoTitle.simple'
+    : beds > 0 ? 'add.autoTitle.beds'
+    : rooms > 0 ? 'add.autoTitle.rooms'
+    : 'add.autoTitle.simple'
   const autoTitle = !propType
     ? t('add.previewTitle')
-    : cap1(
-        t(rooms > 0 && propType !== 'land' ? 'add.autoTitle.rooms' : 'add.autoTitle.simple', {
-          deal: dealWord, rooms, type: titleLabel, where,
-        }),
-      )
+    : cap1(t(titleKey, { deal: dealWord, rooms, beds, type: titleLabel, where }))
 
   const coverUrl = photos[cover]?.url
   const preview: Listing | null = coverUrl
@@ -748,7 +769,7 @@ export default function AddListingClient() {
         city: city || '—', district: district || '—',
         dealType: deal ?? 'sale',
         propType: propType ?? 'apartment',
-        rooms, beds: rooms, baths, area: areaN, floor: Number(floor) || 1, totalFloors: Number(totalFloors) || 1,
+        rooms, beds, baths, area: areaN, floor: Number(floor) || 1, totalFloors: Number(totalFloors) || 1,
         views: 0, badge: null,
         // 0 → card renders '—': no fabricated score next to a "pending" label
         ai: { score: 0, label: t('add.aiPending') },
@@ -795,7 +816,7 @@ export default function AddListingClient() {
     if (!propType || !city) return
     const text = t('add.aiDesc', {
       city, district: district || '—', deal: dealLabel,
-      rooms: rooms > 0 ? t('add.aiDesc.rooms', { n: rooms }) : '',
+      rooms: beds > 0 ? t('add.aiDesc.beds', { n: beds }) : rooms > 0 ? t('add.aiDesc.rooms', { n: rooms }) : '',
       type: propLabel.toLowerCase(), area: areaN,
       floor: floor && totalFloors ? t('add.aiDesc.floor', { f: floor, t: totalFloors }) : '',
       condition: condition ? t(condition) : '—',
@@ -805,31 +826,30 @@ export default function AddListingClient() {
     setAiUsed(true)
   }
 
-  const goPhase = (p: 0 | 1 | 2) => {
-    setPhase(p)
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
-  }
-
   const jumpTo = (i: number) => {
-    const p = phaseOfSection(i)
-    if (p !== phase) setPhase(p)
-    // double rAF: wait until hidden sections paint before scroll
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        document.getElementById(`add-sec-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    })
+    setActiveSec(i)
+    document.getElementById(`add-sec-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const onContinue = () => {
-    if (!phaseOk[phase]) {
-      setTouched(true)
-      const i = sectionOk.findIndex((ok, n) => phaseOfSection(n) === phase && !ok)
-      if (i >= 0) jumpTo(i)
-      return
-    }
-    goPhase((phase + 1) as 1 | 2)
-  }
+  useEffect(() => {
+    if (publishedId || editLoading || editLoadFailed) return
+    const els = SECTIONS.map((_, i) => document.getElementById(`add-sec-${i}`)).filter(
+      (el): el is HTMLElement => !!el,
+    )
+    if (!els.length) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const vis = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        const i = Number((vis?.target as HTMLElement | undefined)?.dataset.sec)
+        if (Number.isInteger(i)) setActiveSec((cur) => (cur === i ? cur : i))
+      },
+      { rootMargin: '-22% 0px -58% 0px', threshold: [0, 0.25, 0.6] },
+    )
+    for (const el of els) io.observe(el)
+    return () => io.disconnect()
+  }, [publishedId, editLoading, editLoadFailed])
 
   /* ————— publish: photos → R2, then POST (create) or PATCH (edit) ————— */
   const publish = async () => {
@@ -861,7 +881,7 @@ export default function AddListingClient() {
         address: `${street} ${houseNo}`.trim(),
         cadastral: cadastral || null,
         cadastralPublic,
-        area: areaN, rooms: formFields?.rooms ? rooms : 0, baths: formFields?.baths ? baths : 0,
+        area: areaN, rooms: formFields?.rooms ? rooms : 0, beds: formFields?.rooms ? beds : 0, baths: formFields?.baths ? baths : 0,
         floor: formFields?.floor ? Number(floor) || null : null,
         totalFloors: formFields?.totalFloors ? Number(totalFloors) || null : null,
         condition: formFields?.condition ? condition || null : null,
@@ -874,6 +894,7 @@ export default function AddListingClient() {
           : features.filter((f) => f !== 'add.f.onlineView'),
         images, video: video || null, matterport: matterport || null,
         price: priceN, currency: 'USD', negotiable, exchangeable: formFields?.exchange ? exchangeable : false,
+        exclusive, sivrceExclusive,
         description,
         yardArea: formFields?.yard ? yardN || null : null,
         rentPeriod: formFields?.rentPeriod ? rentPeriod : null,
@@ -1024,7 +1045,7 @@ export default function AddListingClient() {
     }`
 
   return (
-    <section className="bg-sv-cloud pb-28 pt-8 md:pb-16 md:pt-12">
+    <section className="bg-sv-cloud pb-28 pt-8 md:pt-12">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <div className="mb-6 max-w-[820px]">
           <h1 className="truncate text-[22px] font-black tracking-[-0.035em] text-sv-ink md:text-[28px]">
@@ -1048,21 +1069,19 @@ export default function AddListingClient() {
 
         <nav
           className="sticky top-[calc(68px+env(safe-area-inset-top,0px))] z-20 -mx-5 mb-6 border-y border-sv-ink/[0.06] bg-sv-cloud/92 px-5 py-2.5 backdrop-blur-xl md:-mx-10 md:px-10"
-          aria-label={t('add.stepOf', { n: phase + 1, total: PHASES.length })}
+          aria-label={t('add.title')}
         >
           <ol className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {PHASES.map((s, i) => {
-              const current = phase === i
-              const done = phaseOk[i]
-              const locked = i > 0 && !phaseOk.slice(0, i).every(Boolean)
+            {SECTIONS.map((s, i) => {
+              const current = activeSec === i
+              const done = sectionOk[i]
               return (
                 <li key={s} className="shrink-0">
                   <button
                     type="button"
                     aria-current={current ? 'true' : undefined}
-                    disabled={locked}
-                    onClick={() => goPhase(i as 0 | 1 | 2)}
-                    className={`flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-colors disabled:opacity-40 ${
+                    onClick={() => jumpTo(i)}
+                    className={`flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-colors ${
                       current
                         ? 'bg-sv-orange text-white shadow-glow-orange'
                         : done
@@ -1080,8 +1099,8 @@ export default function AddListingClient() {
         </nav>
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_400px]">
-          <div id="add-form" className="grid gap-5">
-                <section id="add-sec-0" data-sec="0" hidden={phase !== 0} className={secCls(0)}>
+          <div id="add-form" className="grid gap-6">
+                <section id="add-sec-0" data-sec="0" className={secCls(0)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.type')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.type')}</p>
@@ -1179,7 +1198,7 @@ export default function AddListingClient() {
                     )}
                 </section>
 
-                <section id="add-sec-1" data-sec="1" hidden={phase !== 1} className={secCls(1)}>
+                <section id="add-sec-1" data-sec="1" className={secCls(1)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.photos')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.photos')}</p>
@@ -1275,7 +1294,7 @@ export default function AddListingClient() {
                 </section>
 
                 {/* ——— location ——— */}
-                <section id="add-sec-2" data-sec="2" hidden={phase !== 1} className={secCls(2)}>
+                <section id="add-sec-2" data-sec="2" className={secCls(2)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.location')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.location')}</p>
@@ -1408,6 +1427,7 @@ export default function AddListingClient() {
                           lat={coords.lat}
                           lng={coords.lng}
                           zoom={mapZoom}
+                          terrain="satellite"
                           q={[street && `${street} ${houseNo}`.trim(), district, city]
                             .filter(Boolean)
                             .join(', ')}
@@ -1445,7 +1465,7 @@ export default function AddListingClient() {
                 </section>
 
                 {/* ——— details ——— */}
-                <section id="add-sec-3" data-sec="3" hidden={phase !== 1} className={secCls(3)}>
+                <section id="add-sec-3" data-sec="3" className={secCls(3)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.details')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.details')}</p>
@@ -1592,7 +1612,7 @@ export default function AddListingClient() {
                     <div className="grid gap-5">
                       <div>
                         <label className={label}>
-                          {t('search.area')} ({formFields.areaHa ? (areaUnit === 'ha' ? t('add.areaUnit.ha') : t('add.areaUnit.m2')) : t('add.areaUnit.m2')}) *
+                          {t('spec.area')} ({formFields.areaHa && areaUnit === 'ha' ? t('add.areaUnit.ha') : t('add.areaUnit.m2')}) *
                         </label>
                         <div className="relative max-w-xs">
                           <Ruler className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
@@ -1634,6 +1654,27 @@ export default function AddListingClient() {
                         </div>
                       )}
                       {formFields.rooms && (
+                        <>
+                        <div>
+                          <label className={label}>{t('spec.beds')} *</label>
+                          <div className={`flex flex-wrap gap-2 ${touched && !beds ? 'rounded-control ring-4 ring-sv-orange/10' : ''}`}>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => {
+                                  setBeds(n)
+                                  if (rooms < n) setRooms(n)
+                                }}
+                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
+                                  beds === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
+                                }`}
+                              >
+                                {n === 10 ? '10+' : n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                         <div>
                           <label className={label}>{t('spec.rooms')} *</label>
                           <div className={`flex flex-wrap gap-2 ${touched && !rooms ? 'rounded-control ring-4 ring-sv-orange/10' : ''}`}>
@@ -1641,7 +1682,10 @@ export default function AddListingClient() {
                               <button
                                 key={n}
                                 type="button"
-                                onClick={() => setRooms(n)}
+                                onClick={() => {
+                                  setRooms(n)
+                                  if (beds > n) setBeds(n)
+                                }}
                                 className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
                                   rooms === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                 }`}
@@ -1651,6 +1695,7 @@ export default function AddListingClient() {
                             ))}
                           </div>
                         </div>
+                        </>
                       )}
                       {formFields.baths && (
                         <div>
@@ -1675,7 +1720,7 @@ export default function AddListingClient() {
 
                     {formFields.yard && (
                       <div>
-                        <label className={label}>{t('add.yard')} (მ²)</label>
+                        <label className={label}>{t('add.yard')} ({t('add.areaUnit.m2')})</label>
                         <input
                           className={input}
                           inputMode="numeric"
@@ -1760,7 +1805,7 @@ export default function AddListingClient() {
                 </section>
 
                 {/* ——— price & description ——— */}
-                <section id="add-sec-4" data-sec="4" hidden={phase !== 1} className={secCls(4)}>
+                <section id="add-sec-4" data-sec="4" className={secCls(4)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.price')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.price')}</p>
@@ -1853,6 +1898,38 @@ export default function AddListingClient() {
                           )}
                         </div>
                       </div>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => setExclusive(!exclusive)}
+                          className={`flex items-start gap-2.5 rounded-control border px-4 py-3.5 text-left transition-all duration-300 ${
+                            exclusive ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/70 hover:border-sv-blue/40'
+                          }`}
+                        >
+                          <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border ${exclusive ? 'border-white bg-white/20' : 'border-sv-ink/20'}`}>
+                            {exclusive ? <Check className="h-3.5 w-3.5" /> : <Crown className="h-3.5 w-3.5" />}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[14px] font-extrabold">{t('badge.exclusive')}</span>
+                            <span className={`mt-0.5 block text-[11px] font-bold leading-snug ${exclusive ? 'text-white/75' : 'text-sv-ink/40'}`}>{t('badge.exclusiveHint')}</span>
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSivrceExclusive(!sivrceExclusive)}
+                          className={`flex items-start gap-2.5 rounded-control border px-4 py-3.5 text-left transition-all duration-300 ${
+                            sivrceExclusive ? 'border-transparent bg-sv-navy text-white shadow-glow-navy' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/70 hover:border-sv-blue/40'
+                          }`}
+                        >
+                          <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border ${sivrceExclusive ? 'border-white bg-white/20' : 'border-sv-ink/20'}`}>
+                            {sivrceExclusive ? <Check className="h-3.5 w-3.5" /> : <SparkMark className="h-3.5 w-3.5 text-sv-orange" mono />}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[14px] font-extrabold">{t('badge.sivrceExclusive')}</span>
+                            <span className={`mt-0.5 block text-[11px] font-bold leading-snug ${sivrceExclusive ? 'text-white/75' : 'text-sv-ink/40'}`}>{t('badge.sivrceExclusiveHint')}</span>
+                          </span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* AI estimate */}
@@ -1929,7 +2006,7 @@ export default function AddListingClient() {
                     </div>
                 </section>
 
-                <section id="add-sec-5" data-sec="5" hidden={phase !== 2} className={secCls(5)}>
+                <section id="add-sec-5" data-sec="5" className={secCls(5)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.contact')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.contact')}</p>
@@ -2053,37 +2130,21 @@ export default function AddListingClient() {
                     </div>
                 </section>
 
-            <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] bg-sv-surface/92 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-card backdrop-blur-xl md:static md:mt-2 md:rounded-card md:border md:px-6 md:py-4 md:shadow-card md:backdrop-blur-none">
+            <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] bg-sv-surface/92 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-card backdrop-blur-xl md:px-10">
               <span className="flex min-w-0 items-center gap-2 text-[12px] font-bold text-sv-ink/40">
                 {draftSavedAt > 0 && <><Check className="h-3.5 w-3.5 shrink-0 text-sv-blue" /> <span className="truncate">{t('add.draftSaved')}</span></>}
-                <span className="hidden tabular-nums sm:inline">{t('add.stepOf', { n: phase + 1, total: PHASES.length })}</span>
+                <span className="hidden tabular-nums sm:inline">
+                  {sectionOk.filter(Boolean).length}/{SECTIONS.length}
+                </span>
               </span>
               <div className="flex shrink-0 items-center gap-2">
-                {phase > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => goPhase((phase - 1) as 0 | 1)}
-                    className="min-h-[44px] rounded-full border border-sv-ink/[0.08] bg-sv-surface px-5 py-3 text-[14px] font-extrabold text-sv-ink/70 hover:text-sv-ink"
-                  >
-                    {t('add.back')}
-                  </button>
-                )}
                 <div className="flex flex-col items-end gap-1.5">
-                {touched && !phaseOk[phase] && (
+                {touched && !formOk && (
                   <span className="text-[12px] font-extrabold text-sv-orange">{t('add.fillRequired')}</span>
                 )}
                 {failed && (
                   <span className="text-[12px] font-extrabold text-sv-orange">{t('add.publishError')}</span>
                 )}
-                {phase < 2 ? (
-                  <button
-                    type="button"
-                    onClick={onContinue}
-                    className="min-h-[44px] rounded-full bg-sv-blue px-8 py-3 text-[14px] font-extrabold text-white shadow-glow-blue-sm transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-60"
-                  >
-                    {t('add.continue')}
-                  </button>
-                ) : (
                 <button
                   type="button"
                   onClick={publish}
@@ -2094,7 +2155,6 @@ export default function AddListingClient() {
                     ? (editId ? t('add.saving') : t('add.publishing'))
                     : (editId ? t('add.save') : t('add.publish'))}
                 </button>
-                )}
                 </div>
               </div>
             </div>

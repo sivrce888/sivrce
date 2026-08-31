@@ -24,6 +24,7 @@ import {
   FLOORS_SOURCE_ID,
   loadMapBasemap,
   mapStyleUrl,
+  STYLE_SATELLITE,
 } from '@/lib/map/floorLayers'
 import {
   mapChromeOptions,
@@ -99,7 +100,11 @@ export default function BuildingFloorsMap({
         style = await loadMapBasemap(initialStyle)
       } catch (err) {
         console.error('[BuildingFloorsMap] style', err)
-        return
+        try {
+          style = await loadMapBasemap(STYLE_SATELLITE)
+        } catch {
+          return
+        }
       }
       if (cancelled || mapRef.current) return
 

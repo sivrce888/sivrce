@@ -54,7 +54,9 @@
     "check:cms": "npx --yes tsx src/lib/cms.check.ts && npx --yes tsx src/lib/cms-studio.check.ts",
     "ingest:buildings": "npx --yes tsx scripts/ingest-osm-buildings.ts",
     "ingest:buildings:all": "npx --yes tsx scripts/ingest-osm-buildings.ts --city=all",
-    "napr:snap": "npx --yes tsx scripts/snap-napr-pins.ts"
+    "napr:snap": "npx --yes tsx scripts/snap-napr-pins.ts",
+    "tas:snap": "npx --yes tsx scripts/snap-official-footprints.ts",
+    "official:snap": "npx --yes tsx scripts/snap-official-footprints.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.18",

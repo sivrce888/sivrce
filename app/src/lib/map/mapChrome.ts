@@ -88,8 +88,12 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
   const usesOfm =
     styleUrl.includes('openfreemap') || styleUrl.startsWith(MAP_PROXY_PREFIX)
 
-  // ponytail: no-store — browser/CDN may still hold a pre-fix broken TileJSON
-  const styleRaw = await fetch(assetFetchUrl(styleUrl), { cache: 'no-store' }).then((r) => {
+  // ponytail: 5s browser / 20s Node — OFM hang used to leave search map white forever
+  const fetchMs = typeof window === 'undefined' ? 20_000 : 5_000
+  const styleRaw = await fetch(assetFetchUrl(styleUrl), {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(fetchMs),
+  }).then((r) => {
     if (!r.ok) throw new Error(`map style ${r.status}`)
     return r.json() as Promise<StyleSpecification>
   })
@@ -98,7 +102,7 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
   if (usesOfm) {
     const planetRes = await fetch(
       assetFetchUrl(`${MAP_PROXY_PREFIX}${PLANET_PATH}?v=${MAP_JSON_CACHE_VER}`),
-      { cache: 'no-store' },
+      { cache: 'no-store', signal: AbortSignal.timeout(fetchMs) },
     )
     if (!planetRes.ok) throw new Error(`map tiles ${planetRes.status}`)
     planet = (await planetRes.json()) as PlanetJson

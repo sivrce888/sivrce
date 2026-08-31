@@ -3,11 +3,13 @@ import { PROJECTS } from '../src/data/professionals'
 import { NEW_PROJECTS_TBILISI } from '../src/data/projects-new-tbilisi'
 import { NEW_PROJECTS_BATUMI } from '../src/data/projects-new-batumi'
 import { NEW_PROJECTS_REGIONS } from '../src/data/projects-new-regions'
+import { NEW_PROJECTS_2026_08 } from '../src/data/projects-new-2026-08'
 
 const all = [
   ...NEW_PROJECTS_TBILISI.map((p) => ({ ...p, file: 'tbilisi' })),
   ...NEW_PROJECTS_BATUMI.map((p) => ({ ...p, file: 'batumi' })),
   ...NEW_PROJECTS_REGIONS.map((p) => ({ ...p, file: 'regions' })),
+  ...NEW_PROJECTS_2026_08.map((p) => ({ ...p, file: '2026-08' })),
   ...PROJECTS.map((p) => ({ ...p, file: 'professionals' })),
 ]
 const out = all.map((p) => ({

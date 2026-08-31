@@ -88,6 +88,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     rooms: num("rooms"),
     roomsMax: num("rmax"),
     bedrooms: num("beds"),
+    bedroomsMax: num("bmax"),
     bathrooms: num("baths"),
     floorMin: num("fmin"),
     floorMax: num("fmax"),
@@ -155,7 +156,15 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.maxArea !== undefined) where.area = { ...(where.area as object ?? {}), lte: filters.maxArea }
   if (filters.rooms !== undefined) where.rooms = { ...(where.rooms as object ?? {}), gte: filters.rooms }
   if (filters.roomsMax !== undefined) where.rooms = { ...(where.rooms as object ?? {}), lte: filters.roomsMax }
-  if (filters.bedrooms !== undefined) where.bedrooms = { gte: filters.bedrooms }
+  // ponytail: old sale rows stored the count in rooms with bedrooms=0. Drop the OR once those are backfilled.
+  if (filters.bedrooms !== undefined || filters.bedroomsMax !== undefined) {
+    const bed: Prisma.IntFilter = {}
+    if (filters.bedrooms !== undefined) bed.gte = filters.bedrooms
+    if (filters.bedroomsMax !== undefined) bed.lte = filters.bedroomsMax
+    and.push({
+      OR: [{ bedrooms: bed }, { AND: [{ bedrooms: 0 }, { rooms: bed }] }],
+    })
+  }
   if (filters.bathrooms !== undefined) where.bathrooms = { gte: filters.bathrooms }
   if (filters.floorMin !== undefined) where.floor = { ...(where.floor as object ?? {}), gte: filters.floorMin }
   if (filters.floorMax !== undefined) where.floor = { ...(where.floor as object ?? {}), lte: filters.floorMax }

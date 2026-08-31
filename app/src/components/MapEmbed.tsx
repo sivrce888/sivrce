@@ -11,9 +11,10 @@ import { useTheme } from 'next-themes'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
-import { loadMapBasemap, mapStyleUrl, applyBrandPaints, bindMissingImages } from '@/lib/map/floorLayers'
+import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
 import { parseCoords } from '@/lib/map/geocode'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
+import { mapRuntimeOptions } from '@/lib/device-budget'
 import {
   closeRing,
   geometryRing,
@@ -41,6 +42,8 @@ interface MapEmbedProps {
   /** Third arg = OSM ring when snap hits a building, else null. */
   onPick?: (lat: number, lng: number, ring?: [number, number][] | null) => void
   highlight?: boolean
+  /** streets = OFM; satellite = Esri hybrid (photo + roads + labels). */
+  terrain?: MapTerrain
 }
 
 const ASPECTS = { '4/3': 'aspect-[4/3]', '16/9': 'aspect-video', '1/1': 'aspect-square' }
@@ -61,6 +64,18 @@ function resolveMaplibre(mlMod: MaplibreNS | { default: MaplibreNS }): MaplibreN
     return mlMod.default as MaplibreNS
   }
   return mlMod as MaplibreNS
+}
+
+async function loadPinBasemap(styleKey: string) {
+  let key = styleKey
+  let style
+  try {
+    style = await loadMapBasemap(styleKey)
+  } catch {
+    key = STYLE_SATELLITE
+    style = await loadMapBasemap(STYLE_SATELLITE)
+  }
+  return key === STYLE_SATELLITE ? overlayHybridLabels(style) : style
 }
 
 function makePin(hue: string) {
@@ -215,6 +230,7 @@ export default function MapEmbed({
   interactive = true,
   onPick,
   highlight = false,
+  terrain = 'streets',
 }: MapEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
@@ -267,14 +283,14 @@ export default function MapEmbed({
     let cancelled = false
     let ro: ResizeObserver | null = null
     const container = containerRef.current
-    const styleKey = mapStyleUrl(isDark)
+    const styleKey = mapStyleUrl(isDark, terrain)
 
     setStatus('loading')
     ;(async () => {
       try {
         const [mlMod, style] = await Promise.all([
           import('maplibre-gl'),
-          loadMapBasemap(styleKey),
+          loadPinBasemap(styleKey),
           import('maplibre-gl/dist/maplibre-gl.css'),
         ]).then(([ml, st]) => [ml, st] as const)
         if (cancelled || mapRef.current) return
@@ -297,6 +313,7 @@ export default function MapEmbed({
           fadeDuration: 0,
           interactive,
           scrollZoom: interactive,
+          ...mapRuntimeOptions(),
           ...mapChromeOptions(),
         })
         mapRef.current = map
@@ -345,7 +362,7 @@ export default function MapEmbed({
 
         map.once('load', () => {
           bindMissingImages(map)
-          applyBrandPaints(map, isDark ? 'dark' : 'light')
+          applyBrandPaints(map, isDark ? 'dark' : 'light', terrain)
           tightenAttribution(map)
           map.resize()
           paintHighlight()
@@ -382,16 +399,16 @@ export default function MapEmbed({
   useEffect(() => {
     const map = mapRef.current
     if (!map || status !== 'ready') return
-    const next = mapStyleUrl(isDark)
+    const next = mapStyleUrl(isDark, terrain)
     if (styleKeyRef.current === next) return
     let cancelled = false
     ;(async () => {
       try {
-        const style = await loadMapBasemap(next)
+        const style = await loadPinBasemap(next)
         if (cancelled || !mapRef.current) return
         styleKeyRef.current = next
         map.once('style.load', () => {
-          applyBrandPaints(map, isDark ? 'dark' : 'light')
+          applyBrandPaints(map, isDark ? 'dark' : 'light', terrain)
           tightenAttribution(map)
           if (highlightRef.current) {
             const fp = footprintRef.current
@@ -410,7 +427,7 @@ export default function MapEmbed({
     return () => {
       cancelled = true
     }
-  }, [isDark, status, lat, lng])
+  }, [isDark, status, lat, lng, terrain])
 
   // Camera + pin (footprint paint is separate — draw mode must not fly every vertex).
   useEffect(() => {

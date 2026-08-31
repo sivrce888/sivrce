@@ -37,6 +37,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     res = await fetch(upstream, {
       headers: { Accept: 'image/*' },
       cache: 'force-cache',
+      signal: AbortSignal.timeout(5_000),
     })
   } catch {
     return new NextResponse('Upstream unavailable', { status: 502 })

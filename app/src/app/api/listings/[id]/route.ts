@@ -15,6 +15,7 @@ import { recomputeNearestPois } from "@/lib/geo/nearest-poi"
 import {
   DEAL_FROM_DB,
   parsePublishBody,
+  persistRoomCounts,
 } from "@/lib/listings-publish"
 import { attributeListing, unattributeListing } from "@/lib/map/attribution"
 import { cityCenter, geocodeListingAddress, parseCoords, splitStreetHouse } from "@/lib/map/geocode"
@@ -90,6 +91,7 @@ export async function GET(
       lng: true,
       area: true,
       rooms: true,
+      bedrooms: true,
       bathrooms: true,
       floor: true,
       totalFloors: true,
@@ -137,6 +139,7 @@ export async function GET(
       areaUnit,
       yardArea: typeof ext.yardArea === "number" ? String(ext.yardArea) : "",
       rooms: row.rooms,
+      beds: row.bedrooms,
       baths: row.bathrooms,
       floor: row.floor != null ? String(row.floor) : "",
       totalFloors: row.totalFloors != null ? String(row.totalFloors) : "",
@@ -155,6 +158,8 @@ export async function GET(
       price: String(row.price || ""),
       negotiable: ext.negotiable === true,
       exchangeable: ext.exchangeable === true,
+      exclusive: ext.exclusive === true,
+      sivrceExclusive: ext.sivrceExclusive === true,
       description: row.description,
       onlineView: ext.onlineView === true || row.features.includes("add.f.onlineView"),
       name: agent.name || "",
@@ -204,6 +209,7 @@ export async function PATCH(
       return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 })
     }
     const p = parsed.data
+    const counts = persistRoomCounts(p.rooms, p.beds)
     const district = canonicalizeDistrict(p.district, p.city) || p.district
 
     let coords = parseCoords(p.lat, p.lng)
@@ -243,8 +249,8 @@ export async function PATCH(
         price: p.price,
         currency: "USD",
         pricePerSqm: p.price ? Math.round(p.price / p.area) : null,
-        rooms: p.rooms,
-        bedrooms: p.rooms,
+        rooms: counts.rooms,
+        bedrooms: counts.bedrooms,
         bathrooms: p.baths,
         area: p.area,
         floor: p.floor,

@@ -30,6 +30,7 @@ export async function GET(req: Request, ctx: Ctx) {
       headers: { Accept: req.headers.get('Accept') ?? '*/*' },
       // ponytail: edge/CDN cache via Cache-Control below; no Next data cache for pbf churn
       cache: 'force-cache',
+      signal: AbortSignal.timeout(5_000),
     })
   } catch {
     return new NextResponse('Upstream unavailable', { status: 502 })

@@ -17,7 +17,7 @@ import { attributeListing } from "@/lib/map/attribution"
 import { cityCenter, geocodeListingAddress, parseCoords } from "@/lib/map/geocode"
 import { metroMeters } from "@/lib/map/pois"
 import { linkListingMedia } from "@/lib/media/link-listing-media"
-import { parsePublishBody } from "@/lib/listings-publish"
+import { parsePublishBody, persistRoomCounts } from "@/lib/listings-publish"
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 import { indexListing } from "@/lib/search"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 })
   }
   const p = parsed.data
+  const counts = persistRoomCounts(p.rooms, p.beds)
   const district = canonicalizeDistrict(p.district, p.city) || p.district
 
   // Coords: client pin → geocode address → city center. Always Georgia-bounded.
@@ -79,8 +80,8 @@ export async function POST(req: NextRequest) {
       price: p.price,
       currency: "USD",
       pricePerSqm: p.price ? Math.round(p.price / p.area) : null,
-      rooms: p.rooms,
-      bedrooms: p.rooms,
+      rooms: counts.rooms,
+      bedrooms: counts.bedrooms,
       bathrooms: p.baths,
       area: p.area,
       floor: p.floor,
@@ -132,8 +133,8 @@ export async function POST(req: NextRequest) {
     project: (p.extendedFields.project as string | null) ?? undefined,
     floorType: (p.extendedFields.floorType as string | null) ?? undefined,
     area: p.area,
-    rooms: p.rooms,
-    bedrooms: p.rooms,
+    rooms: counts.rooms,
+    bedrooms: counts.bedrooms,
     bathrooms: p.baths,
     floor: p.floor ?? undefined,
     totalFloors: p.totalFloors ?? undefined,

@@ -114,6 +114,8 @@ function rowToMapListing(row: {
     inStory: Boolean(
       activeStoryUntil(row.extendedFields as { storyUntil?: string } | null),
     ),
+    isExclusive: (row.extendedFields as { exclusive?: boolean } | null)?.exclusive === true,
+    isSivrceExclusive: (row.extendedFields as { sivrceExclusive?: boolean } | null)?.sivrceExclusive === true,
     ai: { score: row.trustScore, label: "" },
     features: row.features,
     description: row.description,

@@ -787,6 +787,8 @@ type ExtFields = {
   urgentUntil?: string
   priceDropUntil?: string
   storyUntil?: string
+  exclusive?: boolean
+  sivrceExclusive?: boolean
 }
 
 /** Reindex active listing; remove from Meili when inactive/missing. */
@@ -873,6 +875,8 @@ export async function reindexListingById(listingId: string): Promise<void> {
     urgentUntil: activeUrgentUntil(ext),
     priceDropUntil: activePriceDropUntil(ext),
     storyUntil: activeStoryUntil(ext),
+    exclusive: ext?.exclusive === true,
+    sivrceExclusive: ext?.sivrceExclusive === true,
     trustScore: listing.trustScore,
     tier: tierKey,
     tierRank: tierRankOf(listing.tier, listing.tierExpiresAt),

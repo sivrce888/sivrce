@@ -14,11 +14,11 @@ import { SITE_META } from "./i18n/server"
 
 export const CMS_BLOCKS = {
   // ——— Hero ———
-  'home.hero.badge': 'აქტიური განცხადებები საქართველოში',
-  'home.hero.titleA': 'იპოვე შენი',
-  'home.hero.titleAccent': 'სივრცე',
+  'home.hero.badge': 'უძრავი ქონება ერთ სივრცეში',
+  'home.hero.titleA': 'უძრავი ქონება',
+  'home.hero.titleAccent': 'საქართველოში',
   'home.hero.subtitle':
-    'უძრავი ქონება ერთ სივრცეში — იყიდე, იქირავე ან განათავსე',
+    'ბინები დღიურად თბილისში და საბურთალოზე — იყიდე, იქირავე ან განათავსე',
   'home.hero.trust1': 'ვერიფიცირებული განცხადებები',
   'home.hero.trust2': 'უსაფრთხო გარიგებები',
   'home.hero.trust3': 'AI ფასის შეფასება',
@@ -51,7 +51,7 @@ export const CMS_BLOCKS = {
 
   // ——— Section headings ———
   'home.categories.title': 'რას ეძებ?',
-  'home.categories.sub': 'ყველა ტიპის უძრავი ქონება — ერთ სივრცეში',
+  'home.categories.sub': 'ბინები დღიურად თბილისში, იყიდება და ქირავდება — ერთ სივრცეში',
   'home.collections.title': 'კოლექციები',
   'home.collections.sub': 'დღიური ქირა — შერჩეული თემებით',
   'home.stories.kicker': 'რჩეული',
@@ -71,7 +71,7 @@ export const CMS_BLOCKS = {
     'ჩვენი AI 48 პარამეტრს ანალიზებს — მდებარეობა, სართული, ხედი, რემონტი, ბაზრის დინამიკა — და გეუბნება, რამდენად კარგი გარიგებაა კონკრეტული ქონება.',
   'home.projects.kicker': 'ახალი პროექტები',
   'home.projects.title': 'მშენებარე ბინები',
-  'home.projects.sub': 'ყველა დეველოპერი, ყველა პროექტი — შეფასებებით და 3D ვიზუალიზაციით',
+  'home.projects.sub': 'ყველა დეველოპერი, ყველა პროექტი — Coordinate, Archi Horizon, m² Highlight, 3D რუკა',
   'home.services.title': 'ყველაფერი უძრავი ქონებისთვის',
   'home.services.sub': 'ძიებიდან გარიგებამდე — სრული ეკოსისტემა ერთ პლატფორმაზე',
   'home.services.mortgage.title': 'იპოთეკური კალკულატორი',
@@ -123,7 +123,7 @@ export const CMS_BLOCKS = {
   // ——— Neighborhoods rail ———
   'home.nb.kicker': 'უბნები',
   'home.nb.title': 'სად ღირს ცხოვრება',
-  'home.nb.sub': 'ცხოვრების ხარისხის ქულები, ფასი მ²-ზე და რეალური ფოტოები — ვაკედან ბათუმამდე',
+  'home.nb.sub': 'ვაკე, საბურთალო, ძველი თბილისი — ბინები დღიურად და იყიდება, ფასი მ²-ზე',
   'home.nb.viewAll': 'ყველა უბანი',
 
   // ——— Agents rail ———
@@ -168,7 +168,7 @@ export const CMS_BLOCKS = {
   'home.categories.cottages': 'აგარაკები',
   'home.categories.land': 'მიწის ნაკვეთები',
   'home.categories.commercial': 'კომერციული',
-  'home.categories.dailyRent': 'დღიური ქირა',
+  'home.categories.dailyRent': 'ბინები დღიურად',
   'home.categories.hotels': 'სასტუმროები',
   'home.categories.newProjects': 'ახალი პროექტები',
   'home.categories.explore': 'იხილე',
@@ -191,17 +191,18 @@ export const CMS_BLOCKS = {
 
   // ——— Hero quick chips ———
   'home.search.popular': 'პოპულარული:',
-  'home.search.quick.vake': 'ვაკე',
-  'home.search.quick.saburtalo': 'საბურთალო',
-  'home.search.quick.mtatsminda': 'მთაწმინდა',
-  'home.search.quick.batumi': 'ბათუმი',
-  'home.search.quick.oldTbilisi': 'ძველი თბილისი',
-  'home.search.quick.digomi': 'დიღომი',
+  'home.search.quick.dailyTbilisi': 'ბინები დღიურად თბილისში',
+  'home.search.quick.vake': 'ვაკეში',
+  'home.search.quick.saburtalo': 'საბურთალოზე',
+  'home.search.quick.mtatsminda': 'მთაწმინდაზე',
+  'home.search.quick.batumi': 'ბათუმში',
+  'home.search.quick.oldTbilisi': 'ძველ თბილისში',
+  'home.search.quick.digomi': 'დიღომში',
 
   // ——— CTA ———
   'home.cta.title': 'შენი სივრცე გელოდება',
   'home.cta.sub':
-    'მყიდველი, დამქირავებელი, გამყიდველი, აგენტი თუ დეველოპერი — ერთი ანგარიში. განთავსება უფასოა, 3 წუთი.',
+    'უძრავი ქონება საქართველოში — იყიდე, იქირავე დღიურად ან განათავსე. ერთი ანგარიში, 3 წუთი, უფასო.',
   'home.cta.primary': 'დაამატე განცხადება',
   'home.cta.secondary': 'დაიწყე ძიება',
   'home.cta.proofA': 'აქტიური განცხადებები',

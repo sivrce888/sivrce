@@ -56,21 +56,27 @@ async function getListing(id: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params
+  const { id, lang: raw } = await params
   const l = await getListing(id)
   if (!l) return {}
+  const lang: Lang = raw && isValidLang(raw) ? raw : 'ka'
+  const t = getServerT(lang)
   const price =
     l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე`
       : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}/დღე`
         : formatUSD(l.priceUSD)
   const keyword = listingKeyword(l)
-  const title = `${keyword} — ${price} | Sivrce`
-  /* CTR lead: keyword sentence + hard stats before the free text (Google bolds query matches) */
+  const exclusiveLead = [
+    l.isExclusive && t('badge.exclusive'),
+    l.isSivrceExclusive && t('badge.sivrceExclusive'),
+  ].filter(Boolean).join(' · ')
+  const title = `${exclusiveLead ? `${exclusiveLead} · ` : ''}${keyword} — ${price} | Sivrce`
+  /* CTR lead: exclusive + keyword sentence + hard stats before the free text */
   const stats = [
     l.area > 0 && `${l.area} მ²`,
     l.floor > 0 && `${l.floor}/${l.totalFloors} სართული`,
   ].filter(Boolean).join(', ')
-  const description = metaDescription(`${keyword}. ${stats && `${stats}. `}${price}. ${l.description}`)
+  const description = metaDescription(`${exclusiveLead ? `${exclusiveLead}. ` : ''}${keyword}. ${stats && `${stats}. `}${price}. ${l.description}`)
   // Local photos have a build-time JPEG derivative (scripts/og-derivatives.mjs)
   // because WhatsApp/Viber/FB crawlers don't render WebP OG tags. Uploaded
   // (https) photos are served as-is; brand card is the last resort.
@@ -203,6 +209,12 @@ export default async function ListingPage({ params }: PageProps) {
       unitCode: 'MTK',
     },
     ...(listing.rooms > 0 && { numberOfRooms: listing.rooms }),
+    ...((listing.isExclusive || listing.isSivrceExclusive) && {
+      additionalProperty: [
+        ...(listing.isExclusive ? [{ '@type': 'PropertyValue' as const, name: t('badge.exclusive'), value: true }] : []),
+        ...(listing.isSivrceExclusive ? [{ '@type': 'PropertyValue' as const, name: t('badge.sivrceExclusive'), value: true }] : []),
+      ],
+    }),
     // ponytail: no `review` node — the aggregate contract exposes only
     // {average,count}; synthesizing review bodies would fabricate content.
     ...(aggregate && {

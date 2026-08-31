@@ -9,8 +9,8 @@ import { Reveal } from '@/components/Reveal'
 import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
-  title: 'ჩვენ შესახებ — sivrce',
-  description: 'sivrce — საქართველოს თანამედროვე უძრავი ქონების პლატფორმა. მარტივი, სწრაფი, დაცული ძიება, ვერიფიკაცია, AI ფასის შეფასება და 3D რუკა ერთ სივრცეში.',
+  title: 'უძრავი ქონება საქართველოში — ჩვენ შესახებ | sivrce',
+  description: 'სივრცე — უძრავი ქონება საქართველოში. ბინები დღიურად თბილისში, იყიდება და ქირავდება. მარტივი, სწრაფი, დაცული ძიება, 3D რუკა და AI ფასი.',
   alternates: { canonical: '/about', languages: langAlternates('/about') },
 }
 

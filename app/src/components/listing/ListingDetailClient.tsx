@@ -15,7 +15,7 @@ import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { monthlyPayment } from '@/lib/finance'
-import ListingCard, { BADGE_STYLE, ListingStickerStack } from '@/components/ListingCard'
+import ListingCard, { BADGE_STYLE, ExclusiveBadges, ListingStickerStack } from '@/components/ListingCard'
 import { AdCreative } from '@/components/ads/AdCreative'
 import type { PublicAd } from '@/lib/ads'
 import HScroll from '@/components/HScroll'
@@ -398,8 +398,8 @@ export default function ListingDetailClient({
   const displayLabel = aiLabel(displayScore)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
-    { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
+    { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
     { icon: Bath, label: t('spec.baths'), value: l.baths > 0 ? String(l.baths) : '—' },
     { icon: Ruler, label: t('spec.area'), value: `${l.area} მ²` },
     ...(l.kitchenArea ? [{ icon: Ruler, label: t('add.kitchenArea'), value: `${l.kitchenArea} მ²` }] : []),
@@ -409,14 +409,19 @@ export default function ListingDetailClient({
     { icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) },
   ]
 
-  /* ss.ge key strip — area / floor / rooms / condition first, large scan */
+  /* key strip — area / floor / bedrooms / total rooms */
   const keySpecs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: Ruler, label: t('spec.area'), value: `${l.area} მ²` },
     { icon: Building2, label: t('spec.floor'), value: formatFloor(l) },
-    { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
+    { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
+    ...(l.rooms > 0
+      ? [{ icon: DoorOpen, label: t('spec.rooms'), value: String(l.rooms) }]
+      : []),
     ...(l.condition
       ? [{ icon: Layers, label: t('add.condition'), value: conditionLabel(l.condition, t) }]
-      : [{ icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) }]),
+      : l.rooms > 0
+        ? []
+        : [{ icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) }]),
   ]
 
   const navPhoto = (dir: number) =>
@@ -618,9 +623,10 @@ export default function ListingDetailClient({
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
+                  <ExclusiveBadges exclusive={l.isExclusive} sivrceExclusive={l.isSivrceExclusive} size="md" compact={false} />
                   {l.isNew && (
                     <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sv-blue">
-                      {t('detail.newComplex')}
+                      {t('card.new')}
                     </span>
                   )}
                   {l.verified ? (

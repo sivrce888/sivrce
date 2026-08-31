@@ -1,7 +1,7 @@
 # sivrce — full AI index
 
-> სივრცე — უძრავი ქონება ერთ სივრცეში.
-> sivrce is Georgia's real-estate platform — Real Estate in one place: sale, rent, daily stays, new-build projects, 3D map, verified listings, AI price estimates, and property services.
+> უძრავი ქონება საქართველოში — ბინები დღიურად თბილისში და საბურთალოზე.
+> sivrce (სივრცე) is Georgia's real-estate platform: sale, rent, daily apartments in Tbilisi and Saburtalo, new-build projects, 3D map, verified listings, AI price estimates.
 
 Canonical language: Georgian, unprefixed URLs (https://sivrce.ge/sale). Locales: /en /ru /he /ar /tr /uk /hy /az.
 
@@ -25,7 +25,9 @@ Short index: https://sivrce.ge/llms.txt
 
 - [იყიდება — for sale](https://sivrce.ge/sale)
 - [ქირავდება — for rent](https://sivrce.ge/rent)
-- [დღიურად — daily](https://sivrce.ge/daily)
+- [ბინები დღიურად](https://sivrce.ge/daily/apartments)
+- [ბინები დღიურად თბილისში](https://sivrce.ge/daily/apartments/tbilisi)
+- [ბინები დღიურად საბურთალოზე](https://sivrce.ge/daily/apartments/tbilisi/saburtalo)
 - [გირავდება — pledge](https://sivrce.ge/pledge)
 - Apartments: /sale/apartments /rent/apartments /daily/apartments
 - Houses: /sale/houses /rent/houses
@@ -34,7 +36,7 @@ Short index: https://sivrce.ge/llms.txt
 
 ## Cities
 
-- [თბილისი](https://sivrce.ge/tbilisi) · [sale](https://sivrce.ge/sale/apartments/tbilisi) · [rent](https://sivrce.ge/rent/apartments/tbilisi) · [daily](https://sivrce.ge/daily/apartments/tbilisi) · [streets](https://sivrce.ge/tbilisi/kuchebi)
+- [თბილისი](https://sivrce.ge/tbilisi) · [sale](https://sivrce.ge/sale/apartments/tbilisi) · [rent](https://sivrce.ge/rent/apartments/tbilisi) · [ბინები დღიურად თბილისში](https://sivrce.ge/daily/apartments/tbilisi) · [საბურთალო](https://sivrce.ge/tbilisi/saburtalo) · [ვაკე](https://sivrce.ge/tbilisi/vake) · [streets](https://sivrce.ge/tbilisi/kuchebi)
 - [ბათუმი](https://sivrce.ge/batumi) · [sale](https://sivrce.ge/sale/apartments/batumi) · [daily](https://sivrce.ge/daily/apartments/batumi)
 - [ქუთაისი](https://sivrce.ge/kutaisi)
 - [რუსთავი](https://sivrce.ge/rustavi) · [ფოთი](https://sivrce.ge/poti) · [ზუგდიდი](https://sivrce.ge/zugdidi) · [თელავი](https://sivrce.ge/telavi) · [გორი](https://sivrce.ge/gori) · [მცხეთა](https://sivrce.ge/mtskheta)
@@ -71,6 +73,7 @@ Guides with livability scores: https://sivrce.ge/neighborhoods
 - [Ready](https://sivrce.ge/projects/ready)
 - [Developers](https://sivrce.ge/developers)
 - [Buildings / 3D stock](https://sivrce.ge/buildings)
+- Active 2026: [Coordinate](https://sivrce.ge/projects/coordinate-by-keystone) · [Zygma](https://sivrce.ge/projects/zygma) · [Tower Ketevani](https://sivrce.ge/projects/tower-ketevani) · [Mega Gldani](https://sivrce.ge/projects/mega-gldani) · [Astoria](https://sivrce.ge/projects/astoria-isani) · [Parkside Temka](https://sivrce.ge/projects/parkside-temka) · [Parkside Varketili](https://sivrce.ge/projects/parkside-varketili) · [Mziuri Park Plaza](https://sivrce.ge/projects/mziuri-park-plaza) · [Isani Bilderz](https://sivrce.ge/projects/isani-bilderz) · [SUMMER 365](https://sivrce.ge/projects/summer-365) · [Olympus Residence](https://sivrce.ge/projects/olympus-residence-batumi) · [Sunrise Palace](https://sivrce.ge/projects/sunrise-palace) · [Vertikal](https://sivrce.ge/projects/vertikal-batumi) · [Batumi Concept](https://sivrce.ge/projects/batumi-concept) · [Panorama Park Kutaisi](https://sivrce.ge/projects/panorama-park-kutaisi) · [Zenari](https://sivrce.ge/projects/zenari-kutaisi)
 
 ## Services
 

@@ -9,7 +9,6 @@ import {
   projectsFor,
   floorTypesFor,
   featuresFor,
-  phaseOfSection,
 } from './add-listing-fields'
 
 assert.deepEqual([...DEALS_FOR.land], ['sale', 'rent', 'pledge'])
@@ -85,13 +84,17 @@ assert.ok(!dailyFeats.includes('add.f.onlineView'))
 assert.ok(featuresFor('land', 'sale').every((f) => !String(f).includes('parties')))
 assert.equal(featuresFor('land', 'sale').length, 7)
 
-assert.equal(phaseOfSection(0), 0)
-assert.equal(phaseOfSection(1), 1)
-assert.equal(phaseOfSection(4), 1)
-assert.equal(phaseOfSection(5), 2)
-
 const ui = readFileSync(new URL('../components/add-listing/AddListingClient.tsx', import.meta.url), 'utf8')
-assert.ok(ui.includes('phaseOfSection'), 'wizard uses 3-phase helper')
-assert.ok(ui.includes("add.step.listing"), 'wizard chrome is Type / Listing / Contact')
+assert.ok(!ui.includes('hidden={phase'), 'one-page form — no phase gating')
+assert.ok(ui.includes('SECTIONS'), 'sticky chips jump across all 6 sections')
+assert.ok(ui.includes("add.step.photos"), 'nav lists photos–contact, not 3 phases')
+assert.ok(ui.includes("spec.rooms"), 'ოთახი სულ')
+assert.ok(ui.includes("spec.beds"), 'საძინებელი')
+assert.ok(ui.includes("t('spec.area')"), 'area label is spec.area + unit')
+assert.ok(!ui.includes("t('search.area')"), 'search.area already contains m² — would double-unit')
+assert.ok(ui.includes("t('spec.rooms')} *"), 'total rooms required')
+assert.ok(ui.includes("t('spec.beds')} *"), 'bedrooms required')
+const page = readFileSync(new URL('../app/[lang]/add-listing/page.tsx', import.meta.url), 'utf8')
+assert.ok(page.includes('id="main"'), 'skip-to-content target')
 
 console.log('add-listing-fields: ok')

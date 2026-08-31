@@ -46,7 +46,7 @@ const ease = [0.21, 0.65, 0.2, 1] as const
 const SearchMapView = dynamic(() => import('@/components/search/SearchMapView'), {
   ssr: false,
   loading: () => (
-    <div className="grid h-[min(72vh,820px)] min-h-[480px] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" role="status" aria-label="იტვირთება">
+    <div className="grid h-[min(78dvh,860px)] min-h-[min(56dvh,420px)] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" role="status" aria-label="იტვირთება">
       <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-sv-blue/20 border-t-sv-blue" />
     </div>
   ),
@@ -207,6 +207,7 @@ export default function SearchClient({
   const q = params.get('q') ?? ''
   // More-filters params — CSVs whitelisted against the stored vocabulary.
   const beds = numParam('beds', 1)
+  const bedsMax = numParam('bmax', 1)
   const baths = numParam('baths', 1)
   const floorMin = numParam('fmin')
   const floorMax = numParam('fmax')
@@ -381,6 +382,7 @@ export default function SearchClient({
         if (q) sp.set('q', q)
         if (sort !== 'date') sp.set('sort', sort)
         if (beds !== undefined) sp.set('beds', String(beds))
+        if (bedsMax !== undefined) sp.set('bmax', String(bedsMax))
         if (baths !== undefined) sp.set('baths', String(baths))
         if (floorMin !== undefined) sp.set('fmin', String(floorMin))
         if (floorMax !== undefined) sp.set('fmax', String(floorMax))
@@ -440,10 +442,10 @@ export default function SearchClient({
 
   // ——— Mobile filter sheet + "More filters" panel state ———
   const [sheetOpen, setSheetOpen] = useState(false)
-  const moreCount = (beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
+  const moreCount = (deal === 'daily' ? 0 : beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
     + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
-    + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0) + (tier ? 1 : 0)
+    + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0)
   const [moreOpen, setMoreOpen] = useState(moreCount > 0)
 
   // Sheet: Escape to close + body scroll lock while open.
@@ -501,11 +503,11 @@ export default function SearchClient({
   }
   if (minPrice !== undefined) chips.push({ key: 'min', label: `${t('search.min')}. ${cur === 'GEL' ? '₾' : '$'}${minPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('min'); patchParams({ min: undefined }) } })
   if (maxPrice !== undefined) chips.push({ key: 'max', label: `${t('search.max')}. ${cur === 'GEL' ? '₾' : '$'}${maxPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('max'); patchParams({ max: undefined }) } })
-  if (rooms !== undefined && params.get('rooms')) chips.push({ key: 'rooms', label: roomsMax === rooms ? String(rooms) : t('search.roomsChip', { n: rooms }), clear: () => patchParams({ rooms: undefined, rmax: undefined }) })
-  if (minArea !== undefined) chips.push({ key: 'amin', label: `${t('search.min')}. ${minArea} მ²`, clear: () => { clearDraft('amin'); patchParams({ amin: undefined }) } })
-  if (maxArea !== undefined) chips.push({ key: 'amax', label: `${t('search.max')}. ${maxArea} მ²`, clear: () => { clearDraft('amax'); patchParams({ amax: undefined }) } })
+  if (beds !== undefined) chips.push({ key: 'beds', label: bedsMax === beds ? `${beds} ${t('spec.beds')}` : t('search.bedsChip', { n: beds }), clear: () => patchParams({ beds: undefined, bmax: undefined }) })
+  if (rooms !== undefined && params.get('rooms')) chips.push({ key: 'rooms', label: roomsMax === rooms ? `${rooms} ${t('spec.rooms')}` : t('search.roomsChip', { n: rooms }), clear: () => patchParams({ rooms: undefined, rmax: undefined }) })
+  if (minArea !== undefined) chips.push({ key: 'amin', label: `${t('search.min')}. ${minArea} ${t('add.areaUnit.m2')}`, clear: () => { clearDraft('amin'); patchParams({ amin: undefined }) } })
+  if (maxArea !== undefined) chips.push({ key: 'amax', label: `${t('search.max')}. ${maxArea} ${t('add.areaUnit.m2')}`, clear: () => { clearDraft('amax'); patchParams({ amax: undefined }) } })
   if (q) chips.push({ key: 'q', label: `„${q}"`, clear: () => { clearDraft('q'); patchParams({ q: undefined }) } })
-  if (beds !== undefined) chips.push({ key: 'beds', label: t('search.bedsChip', { n: beds }), clear: () => patchParams({ beds: undefined }) })
   if (baths !== undefined) chips.push({ key: 'baths', label: t('search.bathsChip', { n: baths }), clear: () => patchParams({ baths: undefined }) })
   if (floorMin !== undefined || floorMax !== undefined) chips.push({ key: 'floor', label: `${t('search.floor')}: ${floorMin ?? '—'}–${floorMax ?? '—'}`, clear: () => { clearDraft('fmin'); clearDraft('fmax'); patchParams({ fmin: undefined, fmax: undefined }) } })
   if (cond.length) chips.push({ key: 'cond', label: cond.map((c) => t(c)).join(' · '), clear: () => patchParams({ cond: undefined }) })
@@ -615,6 +617,7 @@ export default function SearchClient({
                   patchParams({
                     deal: d,
                     beds: undefined,
+                    bmax: undefined,
                     rooms: undefined,
                     rmax: undefined,
                     ...(d === 'daily' ? {} : { from: undefined, to: undefined }),
@@ -717,24 +720,33 @@ export default function SearchClient({
           <div className="flex gap-0.5">
             {ROOM_CHIPS.map((r) => {
               const active = deal === 'daily'
-                ? beds === r.n
+                ? r.exact
+                  ? beds === r.n && bedsMax === r.n
+                  : beds === r.n && bedsMax === undefined
                 : r.exact
                   ? rooms === r.n && roomsMax === r.n
                   : rooms === r.n && roomsMax === undefined
               return (
                 <button
                   key={r.label}
+                  type="button"
                   onClick={() => {
                     if (deal === 'daily') {
-                      patchParams({ beds: active ? undefined : String(r.n), rooms: undefined, rmax: undefined })
+                      patchParams(
+                        active
+                          ? { beds: undefined, bmax: undefined }
+                          : r.exact
+                            ? { beds: String(r.n), bmax: String(r.n) }
+                            : { beds: String(r.n), bmax: undefined },
+                      )
                       return
                     }
                     patchParams(
                       active
                         ? { rooms: undefined, rmax: undefined }
                         : r.exact
-                          ? { rooms: String(r.n), rmax: String(r.n), beds: undefined }
-                          : { rooms: String(r.n), rmax: undefined, beds: undefined },
+                          ? { rooms: String(r.n), rmax: String(r.n) }
+                          : { rooms: String(r.n), rmax: undefined },
                     )
                   }}
                   aria-pressed={active}
@@ -805,6 +817,20 @@ export default function SearchClient({
           </div>
         )}
 
+        <div className="flex shrink-0 items-center gap-1" role="group" aria-label={t('search.promo')}>
+          {SEARCH_TIERS.map((tk) => (
+            <button
+              key={tk}
+              type="button"
+              onClick={() => patchParams({ tier: tier === tk ? undefined : tk })}
+              aria-pressed={tier === tk}
+              className={tagChip(tier === tk)}
+            >
+              {tierKeyToBadge(tk) ?? tk}
+            </button>
+          ))}
+        </div>
+
         <button
           type="button"
           onClick={() => setMoreOpen((o) => !o)}
@@ -838,10 +864,10 @@ export default function SearchClient({
             <div className="flex flex-wrap gap-x-5 gap-y-3">
               {deal !== 'daily' && (
               <div>
-                <span className={labelClass}>{t('search.bedrooms')}</span>
+                <span className={labelClass}>{t('search.rooms')}</span>
                 <div className="flex gap-1">
                   {COUNT_OPTIONS.map((n) => (
-                    <button key={n} type="button" onClick={() => patchParams({ beds: beds === n ? undefined : String(n) })} aria-pressed={beds === n} className={numChip(beds === n)}>
+                    <button key={n} type="button" onClick={() => patchParams({ rooms: rooms === n && roomsMax === undefined ? undefined : String(n), rmax: undefined })} aria-pressed={rooms === n && roomsMax === undefined} className={numChip(rooms === n && roomsMax === undefined)}>
                       {n}+
                     </button>
                   ))}
@@ -967,17 +993,6 @@ export default function SearchClient({
               <button type="button" onClick={() => patchParams({ metro: nearMetro ? undefined : '1' })} aria-pressed={nearMetro} className={tagChip(nearMetro)}>
                 {t('search.nearMetro')}
               </button>
-              {SEARCH_TIERS.map((tk) => (
-                <button
-                  key={tk}
-                  type="button"
-                  onClick={() => patchParams({ tier: tier === tk ? undefined : tk })}
-                  aria-pressed={tier === tk}
-                  className={tagChip(tier === tk)}
-                >
-                  {tierKeyToBadge(tk) ?? tk}
-                </button>
-              ))}
             </div>
           </div>
         )}
@@ -1178,29 +1193,7 @@ export default function SearchClient({
           </div>
         ) : null}
 
-        {showSkeleton ? (
-          <div className={`grid gap-6 ${view === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
-            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
-          </div>
-        ) : results.length === 0 ? (
-          <div className="flex flex-col items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-20 text-center shadow-card">
-            <span className="grid h-16 w-16 place-items-center rounded-module bg-sv-blue/10">
-              <SearchX className="h-7 w-7 text-sv-blue" />
-            </span>
-            <h2 className="mt-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">
-              {t('search.emptyTitle')}
-            </h2>
-            <p className="mt-2 max-w-[380px] text-[15px] font-semibold leading-relaxed text-sv-ink/65">
-              {t('search.emptyText')}
-            </p>
-            <button
-              onClick={resetAll}
-              className="mt-6 flex h-11 items-center gap-2 rounded-full bg-sv-blue px-6 text-[14px] font-extrabold text-white transition-all hover:bg-sv-blue-deep"
-            >
-              <RotateCcw className="h-4 w-4" /> {t('search.resetFilters')}
-            </button>
-          </div>
-        ) : mapMode ? (
+        {mapMode ? (
           <div>
             <SearchMapView
               listings={results}
@@ -1229,6 +1222,28 @@ export default function SearchClient({
                 {t('search.mapNote', { n: results.length, total: totalResults })}
               </p>
             )}
+          </div>
+        ) : showSkeleton ? (
+          <div className={`grid gap-6 ${view === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : results.length === 0 ? (
+          <div className="flex flex-col items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-20 text-center shadow-card">
+            <span className="grid h-16 w-16 place-items-center rounded-module bg-sv-blue/10">
+              <SearchX className="h-7 w-7 text-sv-blue" />
+            </span>
+            <h2 className="mt-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">
+              {t('search.emptyTitle')}
+            </h2>
+            <p className="mt-2 max-w-[380px] text-[15px] font-semibold leading-relaxed text-sv-ink/65">
+              {t('search.emptyText')}
+            </p>
+            <button
+              onClick={resetAll}
+              className="mt-6 flex h-11 items-center gap-2 rounded-full bg-sv-blue px-6 text-[14px] font-extrabold text-white transition-all hover:bg-sv-blue-deep"
+            >
+              <RotateCcw className="h-4 w-4" /> {t('search.resetFilters')}
+            </button>
           </div>
         ) : (
           <div className={view === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid grid-cols-1 gap-5'}>

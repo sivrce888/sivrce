@@ -98,6 +98,10 @@ for (const lang of LANGS) {
 assert(SITE_META.he.title !== SITE_META.en.title, "he meta not english copy")
 assert(SITE_META.ar.title !== SITE_META.en.title, "ar meta not english copy")
 assert(SITE_META.tr.title !== SITE_META.en.title, "tr meta not english copy")
+assert(SITE_META.ka.title.includes("უძრავი ქონება საქართველოში"), "ka title money query")
+assert(SITE_META.ka.title.includes("ბინები დღიურად თბილისში"), "ka title daily tbilisi")
+assert(SITE_META.ka.description.includes("საბურთალოზე"), "ka desc saburtalo")
+assert(CMS_BLOCKS["home.hero.titleAccent"] === "საქართველოში", "home h1 locative")
 
 console.log("cms.check: ok")
 

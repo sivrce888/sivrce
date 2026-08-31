@@ -26,7 +26,7 @@ export default function AddListingPage() {
   return (
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
       <Navbar />
-      <main className="pt-[calc(68px+env(safe-area-inset-top,0px))]">
+      <main id="main" className="pt-[calc(68px+env(safe-area-inset-top,0px))]">
         <Suspense fallback={<div className="grid min-h-[40vh] place-items-center text-[15px] font-bold text-sv-ink/45">…</div>}>
           <AddListingClient />
         </Suspense>

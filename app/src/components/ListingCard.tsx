@@ -1,17 +1,17 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import LocalizedLink from '@/components/LocalizedLink'
 import {
-  Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
+  Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
   Layers, BadgeCheck,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
-import { formatPerM2, formatFloor, postedDaysAgo } from '@/data/listings'
+import { formatPerM2, formatFloor, postedDaysAgo, stayCount, stayLine } from '@/data/listings'
 import { listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingShareLines, listingShareText } from '@/lib/listing-share'
@@ -49,26 +49,116 @@ export const BADGE_STYLE: Record<NonNullable<Listing['badge']>, string> = {
   VIP: BRAND.vipTiers.VIP.style,
 }
 
-/** Paid stickers only — amenities stay free features; owner is seller-card truth, not a chip. */
+const CHIP_PAD = { md: 'px-3 py-1.5 text-[11px]', sm: 'px-2.5 py-1 text-[10px]' } as const
+const CHIP_ICON = { md: 'h-3.5 w-3.5', sm: 'h-3 w-3' } as const
+
+function ExclusiveChip({
+  compact,
+  size,
+  label,
+  hint,
+  chipClass,
+  icon,
+}: {
+  compact: boolean
+  size: 'sm' | 'md'
+  label: string
+  hint: string
+  chipClass: string
+  icon: ReactNode
+}) {
+  const tipId = useId()
+  const chip = `${CHIP_PAD[size]} inline-flex items-center gap-1 whitespace-nowrap rounded-full font-black tracking-wide ${chipClass}`
+  if (compact) {
+    return <span title={hint} className={`pointer-events-auto ${chip}`}>{icon}{label}</span>
+  }
+  return (
+    <span className="group relative">
+      <button
+        type="button"
+        aria-describedby={tipId}
+        className={`${chip} pointer-events-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2`}
+      >
+        {icon}{label}
+      </button>
+      <span
+        id={tipId}
+        role="tooltip"
+        className="invisible absolute left-0 top-[calc(100%+8px)] z-40 w-[min(18rem,calc(100vw-2rem))] rounded-module bg-sv-surface p-3.5 text-left opacity-0 shadow-card ring-1 ring-sv-ink/[0.08] transition duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:ring-white/10"
+      >
+        <span className="block text-[13px] font-black text-sv-blue">{label}</span>
+        <span className="mt-1 block text-[12px] font-semibold leading-snug text-sv-ink/55">{hint}</span>
+      </span>
+    </span>
+  )
+}
+
+/** Agency exclusive + Sivrce-only. Cards: compact. Detail: hover/focus tooltip. */
+export function ExclusiveBadges({
+  exclusive,
+  sivrceExclusive,
+  size = 'sm',
+  compact = true,
+}: {
+  exclusive?: boolean
+  sivrceExclusive?: boolean
+  size?: 'sm' | 'md'
+  compact?: boolean
+}) {
+  const { t } = useI18n()
+  if (!exclusive && !sivrceExclusive) return null
+  const icon = CHIP_ICON[size]
+  return (
+    <>
+      {exclusive ? (
+        <ExclusiveChip
+          compact={compact}
+          size={size}
+          label={t('badge.exclusive')}
+          hint={t('badge.exclusiveHint')}
+          chipClass="border border-sv-blue-light/30 bg-gradient-to-r from-sv-navy via-sv-blue to-sv-violet text-white shadow-glow-blue-sm"
+          icon={<Crown className={icon} aria-hidden />}
+        />
+      ) : null}
+      {sivrceExclusive ? (
+        <ExclusiveChip
+          compact={compact}
+          size={size}
+          label={compact ? t('badge.sivrceExclusiveShort') : t('badge.sivrceExclusive')}
+          hint={t('badge.sivrceExclusiveHint')}
+          chipClass="bg-sv-navy text-white"
+          icon={<SparkMark className={`${icon} text-sv-orange`} mono />}
+        />
+      ) : null}
+    </>
+  )
+}
+
+/** Paid stickers + exclusive flags — amenities stay free features. */
 export function ListingStickerStack({
   urgent,
   priceDrop,
   inStory,
+  exclusive,
+  sivrceExclusive,
   className = '',
   size = 'sm',
 }: {
   urgent?: boolean
   priceDrop?: boolean
   inStory?: boolean
+  exclusive?: boolean
+  sivrceExclusive?: boolean
   className?: string
   size?: 'sm' | 'md'
 }) {
   const { t } = useI18n()
-  if (!urgent && !priceDrop && !inStory) return null
-  const pad = size === 'md' ? 'px-3 py-1.5 text-[11px]' : 'px-2.5 py-1 text-[10px]'
-  const icon = size === 'md' ? 'h-3.5 w-3.5' : 'h-3 w-3'
+  if (!urgent && !priceDrop && !inStory && !exclusive && !sivrceExclusive) return null
+  const pad = CHIP_PAD[size]
+  const icon = CHIP_ICON[size]
   return (
     <div className={`flex flex-col items-start gap-1 ${className}`}>
+      <ExclusiveBadges exclusive={exclusive} sivrceExclusive={sivrceExclusive} size={size} />
       {inStory ? (
         <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-violet to-sv-blue font-black tracking-wide text-white shadow-glow-blue-sm ${pad}`}>
           <CircleDot className={icon} aria-hidden />
@@ -99,18 +189,17 @@ interface ListingCardProps {
   animate?: boolean
 }
 
-function postedLabel(days: number): string {
-  if (days <= 0) return 'დღეს'
-  if (days === 1) return '1 დღის წინ'
-  if (days < 7) return `${days} დღის წინ`
-  const weeks = Math.ceil(days / 7)
-  return weeks === 1 ? '1 კვირის წინ' : `${weeks} კვირის წინ`
+function postedAgo(days: number, lang: string): string {
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
+  if (days < 1) return rtf.format(0, 'day')
+  if (days < 7) return rtf.format(-days, 'day')
+  return rtf.format(-Math.ceil(days / 7), 'week')
 }
 
 export default function ListingCard({ l, i = 0, layout = 'grid', animate = true }: ListingCardProps) {
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const cs = useCompareStrings()
   const { currency, rate } = useCurrency()
   const fav = has(l.id)
@@ -144,6 +233,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     rate,
   })
   const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
+  const stay = stayCount(l)
+  const stayText = stayLine(l, t)
+  const StayIcon = stay.kind === 'beds' ? BedDouble : DoorOpen
   const displayPrice = `${priceObj.primary}${suffix}`
   const displaySecondaryPrice = priceObj.secondary
 
@@ -274,34 +366,24 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           Mid: ‹ › white chips on hover (desktop); touch = swipe
           Bottom: hairline dashes (center) · 1 / N (right)
       */}
-      {(l.badge || l.isExclusive) && (
-        <span
-          className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider ${
-            l.isExclusive
-              ? 'bg-gradient-to-r from-sv-navy via-sv-blue to-sv-violet text-white shadow-glow-blue-sm border border-sv-blue-light/30'
-              : BADGE_STYLE[l.badge!]
-          }`}
-        >
-          {l.isExclusive ? (
-            <SparkMark className="h-3 w-3 text-sv-orange" />
-          ) : l.badge === 'SUPER VIP' ? (
-            <Crown className="h-3 w-3" />
-          ) : (
-            <Flame className="h-3 w-3" />
-          )}
-          {l.isExclusive ? 'ექსკლუზივი' : l.badge}
+      {l.badge && (
+        <span className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
+          {l.badge === 'SUPER VIP' ? <Crown className="h-3 w-3" /> : <Flame className="h-3 w-3" />}
+          {l.badge}
         </span>
       )}
-      {l.projectCatalog && !l.badge && !l.isExclusive && (
+      {l.projectCatalog && !l.badge && (
         <span className="absolute left-3 top-4 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white backdrop-blur">
-          პროექტი
+          {t('detail.project')}
         </span>
       )}
       <ListingStickerStack
         urgent={l.stickerUrgent}
         priceDrop={l.stickerPriceDrop}
         inStory={l.inStory}
-        className={`absolute left-3 z-20 ${l.badge || l.isExclusive || l.projectCatalog ? 'top-14' : 'top-4'}`}
+        exclusive={l.isExclusive}
+        sivrceExclusive={l.isSivrceExclusive}
+        className={`absolute left-3 z-20 ${l.badge || l.projectCatalog ? 'top-14' : 'top-4'}`}
       />
 
       <div className="absolute right-3 top-4 z-20 flex gap-1.5">
@@ -506,14 +588,17 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         <div className="grid min-h-[1.5rem] grid-cols-4 gap-x-2 overflow-hidden border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold text-sv-ink/70">
           <span className={`flex min-w-0 items-center gap-1 ${l.area > 0 ? '' : 'invisible'}`} aria-hidden={l.area <= 0}>
             <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
-            <span className="truncate">{l.projectCatalog ? `${l.area} მ²-დან` : `${l.area} მ²`}</span>
+            <span className="truncate">
+              {l.projectCatalog ? t('card.areaFrom', { n: l.area }) : `${l.area} ${t('add.areaUnit.m2')}`}
+            </span>
           </span>
           <span
-            className={`flex min-w-0 items-center gap-1 ${(l.beds > 0 || l.rooms > 0) ? '' : 'invisible'}`}
-            aria-hidden={l.beds <= 0 && l.rooms <= 0}
+            className={`flex min-w-0 items-center gap-1 ${stay.n > 0 ? '' : 'invisible'}`}
+            aria-hidden={stay.n <= 0}
+            title={stay.kind === 'beds' && stay.rooms > 0 ? stayText : undefined}
           >
-            <BedDouble className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
-            {l.beds > 0 ? l.beds : l.rooms}
+            <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            <span className="truncate">{stayText}</span>
           </span>
           <span className={`flex min-w-0 items-center gap-1 ${l.baths > 0 ? '' : 'invisible'}`} aria-hidden={l.baths <= 0}>
             <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
@@ -544,7 +629,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           ) : null}
           {l.isNew && (
             <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-sv-orange">
-              ახალი
+              {t('card.new')}
             </span>
           )}
         </div>
@@ -552,7 +637,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/40">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" aria-hidden />
-            {postedLabel(days)}
+            {postedAgo(days, lang)}
           </span>
           <span className="min-w-0 truncate font-mono text-[10px] font-black tabular-nums text-sv-ink/28">
             ID {publicId}

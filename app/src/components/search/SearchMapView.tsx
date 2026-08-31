@@ -9,20 +9,28 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
+import { useTheme } from 'next-themes'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Layers, LocateFixed, Minus, Plus, Search } from 'lucide-react'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
-import { loadMapBasemap, mapStyleUrl } from '@/lib/map/floorLayers'
-import { mapChromeOptions } from '@/lib/map/mapChrome'
+import {
+  applyBrandPaints,
+  bindMissingImages,
+  loadMapBasemap,
+  mapStyleUrl,
+  STYLE_SATELLITE,
+} from '@/lib/map/floorLayers'
+import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
+import { mapRuntimeOptions } from '@/lib/device-budget'
 import { initialMapCenter } from '@/lib/map/user-place'
 import { useI18n } from '@/lib/i18n/context'
 import { listingPath } from '@/lib/listing-slug'
 import { mapHrefForListing } from '@/lib/map/buildings'
+import { stayCount, stayLine, type DealType, type Listing } from '@/data/listings'
 import { useCurrency, formatMapPin } from '@/lib/currency'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { blurProps } from '@/lib/media'
-import type { DealType, Listing } from '@/data/listings'
 
 export type MapBounds = { west: number; south: number; east: number; north: number }
 
@@ -61,6 +69,8 @@ export default function SearchMapView({
   const elsRef = useRef<Map<string, HTMLButtonElement>>(new Map())
   const skipMoveRef = useRef(false)
   const [ready, setReady] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const [retry, setRetry] = useState(0)
   const [hoverId, setHoverId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [seen, setSeen] = useState<Set<string>>(() => new Set())
@@ -68,51 +78,99 @@ export default function SearchMapView({
   const [locating, setLocating] = useState(false)
   const { t } = useI18n()
   const { format, currency, rate } = useCurrency()
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  const themeReady = resolvedTheme != null
 
   const visible = listings
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return
+    if (!containerRef.current || mapRef.current || !themeReady) return
     let cancelled = false
+    let ro: ResizeObserver | null = null
     const container = containerRef.current
     const markers = markersRef.current
     const els = elsRef.current
+    const dark = isDark
     ;(async () => {
+      // ponytail: satellite is sync — streets/OFM used to hang 80s and leave a white pane
       let style
       try {
-        style = await loadMapBasemap(mapStyleUrl(false))
-      } catch {
+        style = await loadMapBasemap(STYLE_SATELLITE)
+      } catch (err) {
+        console.error('[SearchMap] sat', err)
+        if (!cancelled) setFailed(true)
         return
       }
       if (cancelled || mapRef.current) return
       const boot = initialMapCenter()
-      const map = new maplibregl.Map({
-        container,
-        style,
-        center: [boot.lng, boot.lat],
-        zoom: 11,
-        minZoom: MAP_MIN_ZOOM,
-        maxBounds: GEORGIA_MAX_BOUNDS,
-        renderWorldCopies: false,
-        fadeDuration: 0,
-        ...mapChromeOptions(),
-      })
+      let map: maplibregl.Map
+      try {
+        map = new maplibregl.Map({
+          container,
+          style,
+          center: [boot.lng, boot.lat],
+          zoom: 11,
+          minZoom: MAP_MIN_ZOOM,
+          maxBounds: GEORGIA_MAX_BOUNDS,
+          renderWorldCopies: false,
+          fadeDuration: 0,
+          ...mapRuntimeOptions(),
+          ...mapChromeOptions(),
+        })
+      } catch (err) {
+        console.error('[SearchMap] gl', err)
+        if (!cancelled) setFailed(true)
+        return
+      }
       mapRef.current = map
+      map.dragRotate.disable()
+      map.touchPitch.disable()
+      bindMissingImages(map)
       map.on('movestart', () => {
         if (skipMoveRef.current) return
         setShowSearchArea(true)
       })
-      setReady(true)
+      const paint = () => {
+        map.resize()
+        tightenAttribution(map)
+        applyBrandPaints(map, dark ? 'dark' : 'light', 'satellite')
+      }
+      map.once('load', () => {
+        if (cancelled) return
+        paint()
+        setFailed(false)
+        setReady(true)
+      })
+      ro = new ResizeObserver(() => map.resize())
+      ro.observe(container)
+
+      loadMapBasemap(mapStyleUrl(dark))
+        .then((next) => {
+          if (cancelled || mapRef.current !== map) return
+          map.setStyle(next)
+          map.once('idle', () => {
+            if (cancelled || mapRef.current !== map) return
+            applyBrandPaints(map, dark ? 'dark' : 'light')
+            tightenAttribution(map)
+            map.resize()
+          })
+        })
+        .catch((err) => {
+          console.error('[SearchMap] streets', err)
+        })
     })()
     return () => {
       cancelled = true
+      ro?.disconnect()
       markers.forEach((m) => m.remove())
       markers.clear()
       els.clear()
       mapRef.current?.remove()
       mapRef.current = null
+      setReady(false)
     }
-  }, [])
+  }, [themeReady, isDark, retry])
 
   const paintPin = useCallback(
     (id: string) => {
@@ -222,7 +280,7 @@ export default function SearchMapView({
   }
 
   return (
-    <div className="flex h-[min(72vh,820px)] min-h-[480px] flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card md:flex-row">
+    <div className="flex h-[min(78dvh,860px)] min-h-[min(56dvh,420px)] flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card md:flex-row">
       <div
         ref={listRef}
         className="flex max-h-[42%] flex-col overflow-y-auto border-b border-sv-ink/[0.06] md:max-h-none md:w-[360px] md:shrink-0 md:border-b-0 md:border-r"
@@ -248,6 +306,7 @@ export default function SearchMapView({
         ) : (
           visible.map((l) => {
             const hot = hoverId === l.id || activeId === l.id
+            const stay = stayCount(l)
             const suffix =
               l.dealType === 'rent'
                 ? t('detail.perMonth')
@@ -287,7 +346,9 @@ export default function SearchMapView({
                     ) : null}
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/55">
-                    {l.rooms} {t('spec.rooms')} · {l.area} მ² · {l.district}
+                    {stay.n > 0
+                      ? `${stayLine(l, t)} · ${l.area} მ² · ${l.district}`
+                      : `${l.area} მ² · ${l.district}`}
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/40">
                     {l.title}
@@ -299,8 +360,39 @@ export default function SearchMapView({
         )}
       </div>
 
-      <div className="relative min-h-0 flex-1">
-        <div ref={containerRef} className="absolute inset-0" />
+      <div className="relative min-h-[280px] flex-1 md:min-h-0">
+        <div
+          ref={containerRef}
+          className="absolute inset-0 h-full w-full touch-none overscroll-contain"
+          role="application"
+          aria-label={t('search.map')}
+          aria-busy={!ready && !failed}
+        />
+        {!ready && !failed && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-sv-blue/10 via-sv-cloud to-sv-violet/10 dark:from-sv-navy dark:via-sv-navy-soft dark:to-sv-blue/20"
+          />
+        )}
+        {failed && (
+          <div className="absolute inset-0 z-20 grid place-items-center bg-sv-cloud/95 px-4 text-center dark:bg-sv-navy/95">
+            <div>
+              <p className="text-[13px] font-bold text-sv-ink/60 dark:text-white/60">{t('map.error')}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  mapRef.current?.remove()
+                  mapRef.current = null
+                  setFailed(false)
+                  setRetry((n) => n + 1)
+                }}
+                className="mt-3 rounded-full bg-sv-blue px-4 py-2 text-[12px] font-extrabold text-white transition hover:bg-sv-blue-deep"
+              >
+                {t('error.retry')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {showSearchArea && (
           <button
@@ -325,7 +417,7 @@ export default function SearchMapView({
             type="button"
             onClick={() => zoomBy(1)}
             className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-surface text-sv-ink shadow-card transition hover:border-sv-blue/30 hover:text-sv-blue"
-            aria-label="+"
+            aria-label={t('map.zoomIn')}
           >
             <Plus className="h-4 w-4" strokeWidth={2.5} />
           </button>
@@ -333,7 +425,7 @@ export default function SearchMapView({
             type="button"
             onClick={() => zoomBy(-1)}
             className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-surface text-sv-ink shadow-card transition hover:border-sv-blue/30 hover:text-sv-blue"
-            aria-label="−"
+            aria-label={t('map.zoomOut')}
           >
             <Minus className="h-4 w-4" strokeWidth={2.5} />
           </button>

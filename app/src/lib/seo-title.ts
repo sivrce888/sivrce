@@ -2,7 +2,7 @@
  * SIVRCE — SEO listing title engine.
  * Builds MyHome.ge/SS.ge-style keyword-first titles:
  *   "იყიდება 2-ოთახიანი ბინა ჭავჭავაძეზე ვაკეში"
- *   "2-bedroom apartment for sale in Vake, Tbilisi"
+ *   "2-room apartment for sale in Vake, Tbilisi"
  * Georgian locatives come from the curated seo-pages registry first
  * (ვაკე → ვაკეში), with a suffix heuristic as fallback for free-form input.
  */

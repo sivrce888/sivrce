@@ -30,7 +30,7 @@ const CATS: {
   { key: 'cottages', icon: TreePalm, labelKey: 'home.categories.cottages', brand: CATEGORY_BRAND.cottages, href: '/search?type=villa' },
   { key: 'land', icon: Map, labelKey: 'home.categories.land', brand: CATEGORY_BRAND.land, href: '/sale/land' },
   { key: 'commercial', icon: Briefcase, labelKey: 'home.categories.commercial', brand: CATEGORY_BRAND.commercial, href: '/sale/commercial' },
-  { key: 'dailyRent', icon: CalendarClock, labelKey: 'home.categories.dailyRent', brand: CATEGORY_BRAND.dailyRent, href: '/daily' },
+  { key: 'dailyRent', icon: CalendarClock, labelKey: 'home.categories.dailyRent', brand: CATEGORY_BRAND.dailyRent, href: '/daily/apartments' },
   { key: 'hotels', icon: Hotel, labelKey: 'home.categories.hotels', brand: CATEGORY_BRAND.hotels, href: '/search?type=hotel' },
   { key: 'newProjects', icon: Sparkles, labelKey: 'home.categories.newProjects', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
 ]

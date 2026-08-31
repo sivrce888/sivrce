@@ -58,7 +58,7 @@ export const ka = {
   'loc.streetHint': 'აირჩიე უბანი ან ჩაწერე ქუჩა',
   'loc.close': 'დახურვა',
   'loc.cities': 'ქალაქები',
-  'search.keywordPlaceholder': 'ვაკე, 3 ოთახი, პარკინგი… ან ID',
+  'search.keywordPlaceholder': 'ბინები დღიურად თბილისში, საბურთალო… ან ID',
   'search.keyword': 'საძიებო სიტყვა',
   'search.sort': 'დალაგება',
   'search.view': 'ხედი',
@@ -69,8 +69,8 @@ export const ka = {
   'search.max': 'მაქს',
   'search.minPrice': 'მინიმალური ფასი',
   'search.maxPrice': 'მაქსიმალური ფასი',
-  'search.rooms': 'ოთახები',
-  'search.roomsChip': '{n}+ ოთახი',
+  'search.rooms': 'ოთახები სულ',
+  'search.roomsChip': '{n}+ ოთახი სულ',
   'search.area': 'ფართი მ²',
   'search.minArea': 'მინიმალური ფართი',
   'search.maxArea': 'მაქსიმალური ფართი',
@@ -84,7 +84,7 @@ export const ka = {
     'არჩეული ფილტრებით განცხადება არ არსებობს. სცადე ფილტრების შეცვლა ან სრული გასუფთავება.',
   'search.resetFilters': 'ფილტრების გასუფთავება',
   'search.seoHint':
-    'სივრცეზე ყველა განცხადება ვერიფიცირებულია და თან ახლავს AI ფასის შეფასება — ბინები, სახლები და კომერციული ფართები თბილისში, ბათუმსა და ქუთაისში.',
+    'უძრავი ქონება საქართველოში: ბინები დღიურად თბილისში და საბურთალოზე, იყიდება და ქირავდება. ყველა განცხადება ვერიფიცირებულია, თან ახლავს AI ფასი.',
 
   'search.moreFilters': 'მეტი ფილტრი',
   'search.bedrooms': 'საძინებელი',
@@ -146,9 +146,9 @@ export const ka = {
   'map.refreshed': 'რუკა განახლებულია',
   'map.refreshFail': 'განახლება ვერ მოხერხდა',
   'map.refreshAdded': '+{n} ახალი განცხადება',
-  'map.meta.title': '3D რუკა — კორპუსები და განცხადებები საქართველოში',
+  'map.meta.title': '3D რუკა — უძრავი ქონება თბილისში და ბინები დღიურად',
   'map.meta.description':
-    'sivrce 3D რუკა — აირჩიე კორპუსი, ნახე იყიდება, ქირავდება და ახალი პროექტები თბილისში, ბათუმსა და მთელ საქართველოში.',
+    'sivrce 3D რუკა — ბინები დღიურად თბილისში, იყიდება და ქირავდება. აირჩიე კორპუსი თბილისში, ბათუმსა და მთელ საქართველოში.',
   'search.seller': 'გამყიდველი',
   'search.sellerOwner': 'მესაკუთრე',
   'search.sellerAgency': 'სააგენტო',
@@ -200,6 +200,14 @@ export const ka = {
   'sticker.urgent': 'სასწრაფოდ',
   'sticker.priceDrop': 'ფასი დაწეულია',
   'sticker.story': 'სთორი',
+  'badge.exclusive': 'ექსკლუზივი',
+  'badge.exclusiveHint': 'უძრავი ქონება წარმოადგენს სააგენტოს ექსკლუზივს',
+  'badge.sivrceExclusive': 'ექსკლუზიურად სივრცეზე',
+  'badge.sivrceExclusiveShort': 'მხოლოდ სივრცე',
+  'badge.sivrceExclusiveHint': 'განცხადება გამოქვეყნებულია მხოლოდ სივრცეზე',
+  'card.new': 'ახალი',
+  'card.areaFrom': '{n} მ²-დან',
+  'search.promo': 'ფასიანი სტატუსი',
   'detail.linkCopied': 'ბმული დაკოპირდა',
   'detail.fullPrice': 'სრული ფასი',
   'detail.monthlyRent': 'თვიური ქირა',
@@ -295,7 +303,7 @@ export const ka = {
   'detail.seeMore': 'მეტის ნახვა',
 
   // ——— Spec labels ———
-  'spec.rooms': 'ოთახი',
+  'spec.rooms': 'ოთახები სულ',
   'spec.beds': 'საძინებელი',
   'spec.baths': 'სვ. წერტილი',
   'spec.area': 'ფართი',
@@ -304,13 +312,13 @@ export const ka = {
 
   // ——— Footer ———
   'footer.tagline':
-    'სივრცე — უძრავი ქონება ერთ სივრცეში. №1 ტექნოლოგიური პლატფორმა საქართველოში: 3D რუკა, AI შეფასება და სრული ეკოსისტემა.',
+    'სივრცე — უძრავი ქონება საქართველოში. ბინები დღიურად თბილისში, იყიდება და ქირავდება. 3D რუკა, AI შეფასება.',
   'footer.location': 'თბილისი, საქართველო',
   'footer.colRealEstate': 'უძრავი ქონება',
   'footer.re.apartments': 'ბინები იყიდება',
   'footer.re.houses': 'სახლები იყიდება',
   'footer.re.rent': 'ქირავდება',
-  'footer.re.daily': 'დღიური ქირა',
+  'footer.re.daily': 'ბინები დღიურად',
   'footer.re.land': 'მიწის ნაკვეთები',
   'footer.re.commercial': 'კომერციული ფართები',
   'footer.colServices': 'სერვისები',
@@ -335,9 +343,9 @@ export const ka = {
 
   // ——— Add listing wizard ———
   'add.title': 'განცხადების დამატება',
-  'add.subtitle': 'სამი ნაბიჯი — ტიპი, განცხადება, კონტაქტი. შენი ქონება საქართველოს №1 პლატფორმაზე.',
+  'add.subtitle': 'ერთი გვერდი — შეავსე და გამოაქვეყნე. შენი ქონება საქართველოს №1 პლატფორმაზე.',
   'add.editTitle': 'განცხადების რედაქტირება',
-  'add.editSubtitle': 'შეცვალე ველები იგივე 3 ნაბიჯით.',
+  'add.editSubtitle': 'შეცვალე ველები ერთ გვერდზე.',
   'add.save': 'შენახვა',
   'add.saving': 'ინახება…',
   'add.savedTitle': 'შენახულია',
@@ -532,7 +540,7 @@ export const ka = {
   'add.tip.location':
     'ჩაწერე ზუსტი ქუჩა და სახლის ნომერი — ობიექტი ავტომატურად მოინიშნება რუკაზე და უფრო ადვილად მოიძებნება.',
   'add.tip.details':
-    'შეავსე ზუსტი მონაცემები: ოთახები, ფართი, სართული, სტატუსი და მახასიათებლები.',
+    'შეავსე ზუსტი მონაცემები: საძინებლები, ოთახები სულ, ფართი, სართული, სტატუსი და მახასიათებლები.',
   'add.tip.price':
     'მიუთითე რეალისტური ფასი ან „შეთანხმებით“. AI შეფასება ბაზრის დიაპაზონს გიჩვენებს.',
   'add.tip.contact':
@@ -557,6 +565,7 @@ export const ka = {
   'add.aiDesc':
     '{city}, {district} — {deal} {rooms}{type} {area} მ²{floor}. მდგომარეობა: {condition}.{features} შესანიშნავი არჩევანია როგორც საცხოვრებლად, ისე ინვესტიციისთვის — AI შეფასებით დადასტურებული ფასით.',
   'add.aiDesc.rooms': '{n}-ოთახიანი ',
+  'add.aiDesc.beds': '{n}-საძინებლიანი ',
   'add.aiDesc.floor': ', {f}/{t} სართული',
   'add.aiDesc.features': ' მახასიათებლები: {list}.',
   'add.contact': 'საკონტაქტო ინფორმაცია',
@@ -595,6 +604,7 @@ export const ka = {
   'add.priceVerdict.fair': 'ბაზრის დონეზე',
   'add.priceVerdict.high': 'ბაზარზე მაღლა',
   'add.autoTitle.rooms': '{deal} {rooms}-ოთახიანი {type} {where}',
+  'add.autoTitle.beds': '{deal} {beds}-საძინებლიანი {type} {where}',
   'add.autoTitle.simple': '{deal} {type} {where}',
   'add.titleType.commercial': 'კომერციული ფართი',
   'add.previewTitle': 'შენი განცხადება',

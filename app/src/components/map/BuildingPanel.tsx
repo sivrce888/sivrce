@@ -7,7 +7,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { X, Building2, MapPin, HardHat, Navigation, Star, BadgeCheck, TrainFront } from 'lucide-react'
-import type { DealType } from '@/data/listings'
+import { stayCount, stayLine, type DealType } from '@/data/listings'
 import { useCurrency } from '@/lib/currency'
 import { DEAL_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import { dealLabelKa, listingBuildingNumber } from '@/lib/map/buildings'
@@ -277,6 +277,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                 l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
               const bn = listingBuildingNumber(l)
               const hot = highlightId === l.id
+              const stay = stayCount(l)
               const perM2 =
                 l.dealType === 'sale' && l.area > 0
                   ? ` · ${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾/მ²`
@@ -319,7 +320,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                         {bn ? ` · #${bn}` : ''}
                       </div>
                       <div className="text-[11px] font-semibold text-sv-ink/35">
-                        {l.area} მ² · {l.rooms} ოთახი · სართ. {l.floor}/{l.totalFloors}
+                        {l.area} მ² · {stay.n > 0 ? `${stayLine(l, (k) => (k === 'spec.beds' ? 'საძინებელი' : 'ოთახები სულ'))} · ` : ''}სართ. {l.floor}/{l.totalFloors}
                       </div>
                     </div>
                   </Link>

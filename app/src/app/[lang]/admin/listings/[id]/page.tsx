@@ -127,8 +127,8 @@ export default async function AdminListingDetailPage({
               <Def label="Price per m²">{fmtMoney(listing.pricePerSqm, listing.currency)}</Def>
               <Def label="Currency">{listing.currency}</Def>
               <Def label="Area">{`${fmtNum(listing.area)} m²`}</Def>
-              <Def label="Rooms">{fmtNum(listing.rooms)}</Def>
               <Def label="Bedrooms">{fmtNum(listing.bedrooms)}</Def>
+              <Def label="Total rooms">{fmtNum(listing.rooms)}</Def>
               <Def label="Bathrooms">{fmtNum(listing.bathrooms)}</Def>
               <Def label="Floor">
                 {listing.floor ?? "—"}

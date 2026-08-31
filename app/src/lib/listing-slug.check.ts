@@ -10,13 +10,14 @@ import { listingPath, listingSlug, listingKeyword, transliterateKa } from './lis
 
 assert.equal(transliterateKa('იყიდება 3-ოთახიანი ბინა გლდანში'), 'iyideba-3-otaxiani-bina-gldanshi')
 assert.equal(transliterateKa('იყიდება 2-ოთახიანი ბინა ორთაჭალაში'), 'iyideba-2-otaxiani-bina-ortachalashi')
+assert.equal(transliterateKa('იყიდება 2-საძინებლიანი ბინა ვაკეში'), 'iyideba-2-sadzinebliani-bina-vakeshi')
 assert.equal(transliterateKa('ქირავდება დღიურად ბინა ძველ თბილისში'), 'kiravdeba-dghiurad-bina-dzvel-tbilisshi')
 assert.equal(transliterateKa('  —  '), '')
 
-const l = LISTINGS.find((x) => x.propType === 'apartment' && x.rooms > 0)!
+const l = LISTINGS.find((x) => x.propType === 'apartment' && x.beds > 0)!
 const slug = listingSlug(l)
 assert.match(slug, /^[a-z0-9-]+$/, `slug not url-safe: ${slug}`)
-assert.ok(slug.includes('otaxiani-bina'), `keyword missing: ${slug}`)
+assert.ok(slug.includes('sadzinebliani-bina'), `keyword missing: ${slug}`)
 assert.equal(listingPath(l), `/listing/${l.id}/${slug}`)
 assert.ok(listingKeyword({ ...l, dealType: 'buy' as never }).length > 0, 'db dialect must not crash slug')
 

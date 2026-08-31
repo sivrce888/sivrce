@@ -14,6 +14,7 @@ export type NlFilters = {
   minPrice?: number
   maxPrice?: number
   rooms?: number
+  bedrooms?: number
   minArea?: number
   maxArea?: number
   features?: string[]
@@ -101,7 +102,9 @@ export function parseNlQuery(query: string): NlFilters {
   else if (/კომერც|\bcommercial\b|\bshop\b|მაღაზია|\boffice\b|ოფისი/i.test(q)) out.propertyType = 'commercial'
   else if (/მიწა|\bland\b|\bplot\b|ნაკვეთი/i.test(q)) out.propertyType = 'land'
 
-  const roomMatch = q.match(/(\d+)\s*[-]?\s*(ოთახიანი|ოთახი|\brooms?\b|\bbedrooms?\b|\bbeds?\b)/i)
+  const bedMatch = q.match(/(\d+)\s*[-]?\s*(საძინებელ|საძინებლიან|\bbedrooms?\b|\bbeds?\b)/i)
+  if (bedMatch) out.bedrooms = Number(bedMatch[1])
+  const roomMatch = q.match(/(\d+)\s*[-]?\s*(ოთახიანი|ოთახი|\brooms?\b)/i)
   if (roomMatch) out.rooms = Number(roomMatch[1])
 
   const under = q.match(/(?:under|below|ქვემოთ|მდე|up to)\s*\$?\s*₾?\s*([\d.,]+)\s*([kKmM])?/i)
@@ -142,6 +145,7 @@ export function nlHasStructure(f: NlFilters): boolean {
       f.maxPrice ||
       f.minPrice ||
       f.rooms ||
+      f.bedrooms ||
       f.minArea ||
       f.maxArea ||
       f.pets ||
@@ -159,6 +163,7 @@ export function nlToSearchPatch(f: NlFilters): Record<string, string | undefined
   if (f.maxPrice) patch.max = String(f.maxPrice)
   if (f.minPrice) patch.min = String(f.minPrice)
   if (f.rooms) patch.rooms = String(f.rooms)
+  if (f.bedrooms) patch.beds = String(f.bedrooms)
   if (f.minArea) patch.amin = String(f.minArea)
   if (f.maxArea) patch.amax = String(f.maxArea)
   if (f.features?.length) patch.feat = f.features.join(',')

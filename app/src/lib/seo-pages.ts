@@ -414,8 +414,9 @@ export function footerKeywordCols(): FooterCol[] {
     ['daily', 'apartments-1'], ['daily', 'apartments-2'],
     ['daily', 'apartments'], ['daily', 'houses'],
     ['daily', 'apartments', 'tbilisi'], ['daily', 'apartments', 'batumi'],
-    ['daily', 'apartments', 'kutaisi'],
+    ['daily', 'apartments', 'tbilisi', 'saburtalo'],
     ['daily', 'apartments', 'tbilisi', 'vake'],
+    ['daily', 'apartments', 'tbilisi', 'old-tbilisi'],
   ])
   const tbilisiDists = DISTRICTS.filter((d) => d.citySlug === 'tbilisi').map((d) => d.slug)
   push('sale-tbilisi', { ka: 'ბინები იყიდება თბილისში', en: 'Apartments for sale in Tbilisi', ru: 'Квартиры на продажу в Тбилиси' }, [

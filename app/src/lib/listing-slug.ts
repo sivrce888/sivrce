@@ -18,6 +18,7 @@ export interface SlugListing {
   dealType: DealType
   propType: PropType
   rooms: number
+  beds: number
   district: string
   city: string
 }
@@ -32,13 +33,16 @@ const TITLE_TYPE: Record<PropType, DictKey> = {
   hotel: 'prop.hotel',
 }
 
-/** Keyword-first detail title: "იყიდება 2-ოთახიანი ბინა ვაკეში" — same engine as the /add-listing default. */
+/** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა ვაკეში" — bedrooms first. */
 export function listingKeyword(l: SlugListing): string {
   const dealLabel = l.dealType === 'daily' ? 'ქირავდება დღიურად' : (DEALS[l.dealType]?.ka ?? DEALS.sale.ka)
   const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, district: l.district, city: l.city })
+  const useBeds = l.beds > 0 && l.propType !== 'land'
+  const useRooms = !useBeds && l.rooms > 0 && l.propType !== 'land'
+  const key = useBeds ? 'add.autoTitle.beds' : useRooms ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'
   return cap1(fillTpl(
-    ka[l.rooms > 0 && l.propType !== 'land' ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'],
-    { deal, rooms: l.rooms, type: ka[TITLE_TYPE[l.propType]], where },
+    ka[key],
+    { deal, rooms: l.rooms, beds: l.beds, type: ka[TITLE_TYPE[l.propType]], where },
   ))
 }
 
@@ -58,7 +62,7 @@ export function transliterateKa(s: string): string {
   return out.replace(/[^a-z0-9]+/g, '-').replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '')
 }
 
-/** "iyideba-2-otaxiani-bina-vakeshi" */
+/** "iyideba-2-sadzinebliani-bina-vakeshi" */
 export function listingSlug(l: SlugListing): string {
   return transliterateKa(listingKeyword(l))
 }

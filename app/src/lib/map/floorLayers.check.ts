@@ -7,6 +7,7 @@ import assert from 'node:assert/strict'
 import {
   loadMapBasemap,
   mapStyleUrl,
+  overlayHybridLabels,
   STYLE_CLEAN,
   STYLE_DARK,
   STYLE_LIGHT,
@@ -36,7 +37,15 @@ async function main() {
   assert.equal(loaded.layers?.at(-1)?.id, 'sivrce-georgia-mask-fill')
   assert.equal(loaded.layers?.length, 4)
   const satSrc = loaded.sources.sat as { tiles?: string[] }
-  assert.ok(satSrc.tiles?.[0]?.startsWith('/api/sat/img/'))
+  assert.ok(satSrc.tiles?.[0]?.includes('/api/sat/img/'))
+
+  const hybrid = await overlayHybridLabels(loaded)
+  assert.ok(hybrid.glyphs)
+  assert.ok(hybrid.sources.sivrce)
+  for (const id of ['highway-name-minor', 'highway-name-major', 'highway-name-path']) {
+    assert.ok(hybrid.layers?.some((l) => l.id === id), id)
+  }
+  assert.equal(hybrid.layers?.at(-1)?.id, 'sivrce-georgia-mask-fill')
 
   console.log('floorLayers.check: ok')
 }

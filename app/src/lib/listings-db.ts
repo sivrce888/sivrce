@@ -114,6 +114,8 @@ export interface Listing {
   totalFloors: number
   views: number
   badge: Badge
+  isExclusive?: boolean
+  isSivrceExclusive?: boolean
   highlighted?: boolean
   stickerUrgent?: boolean
   stickerPriceDrop?: boolean
@@ -151,6 +153,8 @@ function rowToListing(row: Record<string, unknown>): Listing {
     condition?: string
     projectCatalog?: boolean
     projectSlug?: string
+    exclusive?: boolean
+    sivrceExclusive?: boolean
   } | null) ?? null
   const projectCatalog = Boolean(ext?.projectCatalog)
   const projectSlug = ext?.projectSlug ?? null
@@ -200,6 +204,8 @@ function rowToListing(row: Record<string, unknown>): Listing {
       (r.tier as string) ?? "standard",
       (r.tierExpiresAt as Date | null | undefined) ?? null,
     ),
+    isExclusive: ext?.exclusive === true,
+    isSivrceExclusive: ext?.sivrceExclusive === true,
     highlighted: Boolean(
       activeColorUntil(
         (r.extendedFields as PromoExtFields | null) ?? null,

@@ -61,6 +61,8 @@ export interface SearchFilters {
   /** Inclusive ceiling. With `rooms` equal, this is an exact room count (ss.ge). */
   roomsMax?: number
   bedrooms?: number
+  /** Inclusive ceiling. With `bedrooms` equal, exact bedroom count. */
+  bedroomsMax?: number
   bathrooms?: number
   floorMin?: number
   floorMax?: number
@@ -165,6 +167,8 @@ export interface ListingDocument {
   priceDropUntil?: string
   /** ISO — paid Stories rail expiry */
   storyUntil?: string
+  exclusive?: boolean
+  sivrceExclusive?: boolean
   trustScore?: number
   /** DB ListingTier key; expired paid → "standard" at index time */
   tier: string
@@ -317,7 +321,15 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.maxArea !== undefined) parts.push(`area <= ${filters.maxArea}`)
   if (filters.rooms !== undefined) parts.push(`rooms >= ${filters.rooms}`)
   if (filters.roomsMax !== undefined) parts.push(`rooms <= ${filters.roomsMax}`)
-  if (filters.bedrooms !== undefined) parts.push(`bedrooms >= ${filters.bedrooms}`)
+  if (filters.bedrooms !== undefined || filters.bedroomsMax !== undefined) {
+    const lo = filters.bedrooms !== undefined ? `bedrooms >= ${filters.bedrooms}` : null
+    const hi = filters.bedroomsMax !== undefined ? `bedrooms <= ${filters.bedroomsMax}` : null
+    const bed = [lo, hi].filter(Boolean).join(" AND ")
+    const roomLo = filters.bedrooms !== undefined ? `rooms >= ${filters.bedrooms}` : null
+    const roomHi = filters.bedroomsMax !== undefined ? `rooms <= ${filters.bedroomsMax}` : null
+    const rooms = [roomLo, roomHi].filter(Boolean).join(" AND ")
+    parts.push(`((${bed}) OR (bedrooms = 0 AND ${rooms}))`)
+  }
   if (filters.bathrooms !== undefined) parts.push(`bathrooms >= ${filters.bathrooms}`)
   if (filters.floorMin !== undefined) parts.push(`floor >= ${filters.floorMin}`)
   if (filters.floorMax !== undefined) parts.push(`floor <= ${filters.floorMax}`)

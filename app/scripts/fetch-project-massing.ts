@@ -22,6 +22,7 @@ const DATA_FILES = [
   'src/data/projects-new-tbilisi.ts',
   'src/data/projects-new-batumi.ts',
   'src/data/projects-new-regions.ts',
+  'src/data/projects-new-2026-08.ts',
   'src/data/professionals.ts',
 ].map((p) => new URL('../' + p, import.meta.url))
 
