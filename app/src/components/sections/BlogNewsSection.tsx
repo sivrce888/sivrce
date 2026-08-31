@@ -22,7 +22,7 @@ export default function BlogNewsSection() {
   const { b } = useI18n()
   const months = b('home.blog.months').split(',')
   return (
-    <section className="relative overflow-hidden bg-sv-surface py-16 md:py-24 border-t border-sv-ink/[0.06]">
+    <section className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
