@@ -17,6 +17,13 @@ assert.ok(
   'deal search must exclude projectCatalog (false | DbNull)',
 )
 
+const exact2 = parseSearchParams(new URLSearchParams('rooms=2&rmax=2'))
+assert.equal(exact2.rooms, 2)
+assert.equal(exact2.roomsMax, 2)
+const exactWhere = buildDbWhere(exact2)
+assert.equal((exactWhere.rooms as { gte?: number; lte?: number }).gte, 2)
+assert.equal((exactWhere.rooms as { gte?: number; lte?: number }).lte, 2)
+
 const diamond = parseSearchParams(new URLSearchParams('tier=diamond'))
 assert.equal(diamond.tier, 'diamond')
 assert.equal(parseSearchParams(new URLSearchParams('tier=standard')).tier, undefined)

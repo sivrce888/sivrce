@@ -31,12 +31,17 @@ import { getHomeLayout } from '@/lib/cms'
 import type { HomeFlowId } from '@/lib/cms-studio'
 import type { Lang } from '@/lib/i18n/core'
 
+/** Drop description + extra gallery frames from the RSC payload (homepage HTML was ~500KB). */
+function railCard(l: StoryListing): StoryListing {
+  return { ...l, description: '', images: (l.images.length ? l.images : [l.img]).slice(0, 3) }
+}
+
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
   const [superVip, vipPlus, stories, projects, stats, developers, agentCounts, districtCounts] = await Promise.all([
     getHomeTierListings('diamond', 8).catch(() => []),
     getHomeTierListings('super_vip', 8).catch(() => []),
-    getStoryListings().catch(() => [] as StoryListing[]),
+    getStoryListings(12).catch(() => [] as StoryListing[]),
     projectsLive().catch(() => []),
     getHomeStats(),
     developersLive().catch(() => []),
@@ -82,10 +87,10 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
 
   const layout = await getHomeLayout()
   const nodes: Record<HomeFlowId, ReactNode> = {
-    stories: <StoriesRail items={stories} />,
+    stories: <StoriesRail items={stories.map(railCard)} />,
     categories: <Categories lang={lang} />,
-    listings: <Listings items={superVip} rail="superVip" />,
-    vip_plus: <Listings items={vipPlus} rail="vipPlus" />,
+    listings: <Listings items={superVip.map(railCard)} rail="superVip" />,
+    vip_plus: <Listings items={vipPlus.map(railCard)} rail="vipPlus" />,
     ad_mid: <AdSlot slot="home_mid" lang={lang} />,
     neighborhoods: <NeighborhoodsRail counts={districtCounts} />,
     map: <MapSection />,

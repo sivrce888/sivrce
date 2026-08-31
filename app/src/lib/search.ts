@@ -58,6 +58,8 @@ export interface SearchFilters {
   minArea?: number
   maxArea?: number
   rooms?: number
+  /** Inclusive ceiling. With `rooms` equal, this is an exact room count (ss.ge). */
+  roomsMax?: number
   bedrooms?: number
   bathrooms?: number
   floorMin?: number
@@ -314,6 +316,7 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.minArea !== undefined) parts.push(`area >= ${filters.minArea}`)
   if (filters.maxArea !== undefined) parts.push(`area <= ${filters.maxArea}`)
   if (filters.rooms !== undefined) parts.push(`rooms >= ${filters.rooms}`)
+  if (filters.roomsMax !== undefined) parts.push(`rooms <= ${filters.roomsMax}`)
   if (filters.bedrooms !== undefined) parts.push(`bedrooms >= ${filters.bedrooms}`)
   if (filters.bathrooms !== undefined) parts.push(`bathrooms >= ${filters.bathrooms}`)
   if (filters.floorMin !== undefined) parts.push(`floor >= ${filters.floorMin}`)

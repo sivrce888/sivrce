@@ -16,16 +16,18 @@
 
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { initPostHog, posthog, posthogReady } from '@/lib/posthog'
 
 function Pageview({ armed }: { armed: boolean }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (!armed || !posthogReady()) return
+    if (!armed) return
     const url = `${pathname}${searchParams?.size ? `?${searchParams.toString()}` : ''}`
-    posthog.capture('$pageview', { $current_url: url })
+    void import('@/lib/posthog').then(({ posthog, posthogReady }) => {
+      if (!posthogReady()) return
+      posthog.capture('$pageview', { $current_url: url })
+    })
   }, [armed, pathname, searchParams])
 
   return null
@@ -38,16 +40,16 @@ export default function PostHogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const boot = () => {
       if (initialized.current) return
-      initPostHog()
       initialized.current = true
-      setArmed(true)
+      // ponytail: posthog-js stays out of the homepage JS until a real tap
+      void import('@/lib/posthog').then(({ initPostHog }) => {
+        initPostHog()
+        setArmed(true)
+      })
     }
-    // ponytail: stay off the LCP path. First tap or 10s — same window as GTM.
-    const t = window.setTimeout(boot, 10_000)
     window.addEventListener("pointerdown", boot, { once: true, passive: true })
     window.addEventListener("keydown", boot, { once: true, passive: true })
     return () => {
-      clearTimeout(t)
       window.removeEventListener("pointerdown", boot)
       window.removeEventListener("keydown", boot)
     }

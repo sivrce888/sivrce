@@ -25,6 +25,8 @@ import {
   locPrefix,
   cityProseOf,
   hubProseOf,
+  DEALS,
+  TYPES,
   type SeoLoc,
   type SeoPageDef,
 } from '@/lib/seo-pages'
@@ -42,6 +44,7 @@ const UI = {
     gridAria: 'განცხადებები',
     overview: 'ბაზრის მიმოხილვა',
     faq: 'ხშირად დასმული კითხვები',
+    related: 'დაკავშირებული ძიებები',
   },
   en: {
     badge: 'AI priced',
@@ -52,6 +55,7 @@ const UI = {
     gridAria: 'Listings',
     overview: 'market overview',
     faq: 'Frequently asked questions',
+    related: 'Related searches',
   },
   ru: {
     badge: 'AI-оценка',
@@ -62,6 +66,7 @@ const UI = {
     gridAria: 'Объявления',
     overview: 'обзор рынка',
     faq: 'Частые вопросы',
+    related: 'Похожие запросы',
   },
 } as const
 
@@ -261,7 +266,7 @@ export default function SeoLanding({
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             {h1}
           </h1>
-          <p className="mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">
+          <p className="speakable-lead mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">
             {hubProse ? hubProse.lede : isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc)}
           </p>
 
@@ -292,9 +297,27 @@ export default function SeoLanding({
           )}
         </header>
 
-        {/* Filter chips — internal link mesh */}
+        {/* Listings — full /search filters, locked to this hub. Hidden on city-info. */}
+        {!isCityInfo && (
+          <SeoFilterableListings
+            initialListings={def.listings}
+            gridAriaLabel={ui.gridAria}
+            lock={{
+              deal: def.dealSlug ? DEALS[def.dealSlug]?.deal : undefined,
+              type: def.typeSlug ? TYPES[def.typeSlug]?.type : undefined,
+              city: def.city?.ka,
+              citySlug: def.city?.slug,
+              district: def.district?.ka,
+              districtSlug: def.district?.slug,
+              rooms: def.rooms,
+            }}
+          />
+        )}
+
+        {/* Related landings — crawlable mesh, below the working filters */}
         {(chips.dealSwitch || chips.types.length > 1 || chips.rooms.length > 1 || chips.geo.length > 0) && (
-          <div className="mb-8 space-y-3">
+          <nav className="mt-10 space-y-3" aria-label={ui.related}>
+            <h2 className="text-[16px] font-black tracking-[-0.02em] text-sv-ink">{ui.related}</h2>
             {chips.dealSwitch && (
               <div className="flex flex-wrap gap-2">
                 <Chip label={dealLabel(def.dealSlug!, loc)} href={`${urlPrefix}${def.path}`} active />
@@ -322,12 +345,7 @@ export default function SeoLanding({
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Listings with interactive filter bar — hidden on city-info (no inventory yet) */}
-        {!isCityInfo && (
-          <SeoFilterableListings initialListings={def.listings} gridAriaLabel={ui.gridAria} />
+          </nav>
         )}
 
         {/* District streets — street-level SEO link mesh (ka only) */}

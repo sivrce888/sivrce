@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion'
 import LocalizedLink from '@/components/LocalizedLink'
-import Image from 'next/image'
 import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Sparkles, Star } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
@@ -57,14 +56,14 @@ export default function Projects({
             >
               <article className="flex h-full cursor-pointer flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover">
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: native lazy, no next/image preload */}
+                  <img
                     src={p.img}
                     alt={`${p.name} — ${b('home.projects.homesWord')}`}
-                    fill
-                    sizes="(max-width:768px) 85vw, 520px"
-                    className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
-                    // ponytail: no priority — projects sit below 100svh hero; was stealing LCP bandwidth
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                     loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-3">

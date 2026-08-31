@@ -126,7 +126,7 @@ export default function MapSection() {
               transition={{ type: 'spring', stiffness: 200, damping: 20 }}
               className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue"
             >
-              <LocalizedLink href="/map" className="block" aria-label={b('home.map.openCta')}>
+              <LocalizedLink href="/map" className="block">
                 <MapPreviewCard badge={b('home.map.openBadge')} />
               </LocalizedLink>
               <div className="pointer-events-none absolute inset-0 rounded-card ring-1 ring-inset ring-white/10" />

@@ -90,6 +90,7 @@ lock("src/app/[lang]/forum/page.tsx", ["export const revalidate = 60"], ["force-
 lock("src/app/[lang]/forum/[slug]/page.tsx", ["export const revalidate = 60"], ["force-dynamic"])
 lock("src/app/[lang]/u/[id]/page.tsx", ["export const revalidate = 300"], ["force-dynamic"])
 lock("src/app/[lang]/layout.tsx", ['["ka", "en", "ru"]'])
+lock("src/app/[lang]/layout.tsx", ["preload: false"], ["preload: true", "setTimeout(boot,10000)"])
 
 for (const api of [
   "src/app/api/napr/route.ts",
@@ -120,6 +121,7 @@ lock("src/components/sections/Listings.tsx", [
   "homeRailSearchHref('diamond')",
   "homeRailSearchHref('super_vip')",
 ])
+lock("src/components/ListingCard.tsx", ['loading="lazy"', 'fetchPriority="low"'], ["from 'next/image'"])
 lock("src/data/georgia-locations.ts", ["georgia-locations.json"], ["tbilisi-streets.json"])
 
 for (const sentry of [

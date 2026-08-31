@@ -86,6 +86,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     minArea: num("minArea") ?? num("amin"),
     maxArea: num("maxArea") ?? num("amax"),
     rooms: num("rooms"),
+    roomsMax: num("rmax"),
     bedrooms: num("beds"),
     bathrooms: num("baths"),
     floorMin: num("fmin"),
@@ -153,6 +154,7 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.minArea !== undefined) where.area = { ...(where.area as object ?? {}), gte: filters.minArea }
   if (filters.maxArea !== undefined) where.area = { ...(where.area as object ?? {}), lte: filters.maxArea }
   if (filters.rooms !== undefined) where.rooms = { ...(where.rooms as object ?? {}), gte: filters.rooms }
+  if (filters.roomsMax !== undefined) where.rooms = { ...(where.rooms as object ?? {}), lte: filters.roomsMax }
   if (filters.bedrooms !== undefined) where.bedrooms = { gte: filters.bedrooms }
   if (filters.bathrooms !== undefined) where.bathrooms = { gte: filters.bathrooms }
   if (filters.floorMin !== undefined) where.floor = { ...(where.floor as object ?? {}), gte: filters.floorMin }

@@ -187,7 +187,7 @@ export const CMS_BLOCKS = {
   'home.for.host.title': 'გამქირავებლები',
   'home.for.host.text': 'ყოველთვიური და დღიური ქირა ერთ ანგარიშზე',
   'home.for.pro.title': 'აგენტები და დეველოპერები',
-  'home.for.pro.text': 'პროფილი, ლიდები, VIP — უფრო იაფი, ვიდრე SS და MyHome',
+  'home.for.pro.text': 'პროფილი, ლიდები, VIP — ხელმისაწვდომი ფასად',
 
   // ——— Hero quick chips ———
   'home.search.popular': 'პოპულარული:',

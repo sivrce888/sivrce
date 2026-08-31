@@ -149,12 +149,19 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      ...["/images/:path*", "/icons/:path*", "/logo/:path*"].map((source) => ({
+      ...["/images/:path*", "/icons/:path*"].map((source) => ({
         source,
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       })),
+      // ponytail: logos are replaced in place — immutable froze the 117KB PNG on the CDN
+      {
+        source: "/logo/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=31536000" },
+        ],
+      },
       // Sat tiles only here — map styles need short TTL (set in the route handler).
       {
         source: "/api/sat/:path*",

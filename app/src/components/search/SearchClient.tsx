@@ -34,7 +34,7 @@ import { mapSearchHit } from '@/lib/map-search-hit'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
-import { isSearchTier } from '@/lib/listings-home-rail'
+import { isSearchTier, SEARCH_TIERS } from '@/lib/listings-home-rail'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
   type DealType, type PropType, type SortKey, type Listing,
@@ -78,8 +78,33 @@ const dealLabelKey = (d: DealType | undefined): DictKey =>
 const dealHue = (d: DealType | undefined): string =>
   d === 'rent' ? DEAL_BRAND.rent : d === 'daily' ? DEAL_BRAND.daily : d === 'pledge' ? DEAL_BRAND.pledge : DEAL_BRAND.sale
 
-const ROOM_OPTIONS = ['1+', '2', '3', '4', '5+'] as const
+/** Exact 1–4 (ss.ge / myhome); 5+ is gte. */
+const ROOM_CHIPS = [
+  { label: '1', n: 1, exact: true },
+  { label: '2', n: 2, exact: true },
+  { label: '3', n: 3, exact: true },
+  { label: '4', n: 4, exact: true },
+  { label: '5+', n: 5, exact: false },
+] as const
+const TYPE_PATH: Record<PropType, string> = {
+  apartment: 'apartments',
+  house: 'houses',
+  villa: 'houses',
+  commercial: 'commercial',
+  land: 'land',
+  hotel: 'commercial',
+}
 const COUNT_OPTIONS = [1, 2, 3, 4] as const
+
+export type SearchLock = {
+  deal?: DealType
+  type?: PropType
+  city?: string
+  citySlug?: string
+  district?: string
+  districtSlug?: string
+  rooms?: number
+}
 
 /** CSV param → whitelisted vocabulary keys (module-level so identity is stable). */
 const splitCsv = (raw: string, allowed: readonly string[]): DictKey[] =>
@@ -125,8 +150,15 @@ function CompactCard({ l }: { l: Listing }) {
 
 export default function SearchClient({
   ads,
+  embed,
+  lock,
+  initialHits,
 }: {
   ads?: { top: PublicAd | null; native: PublicAd | null }
+  /** SEO landings: no chrome, lock from the slug, stay on this path. */
+  embed?: boolean
+  lock?: SearchLock
+  initialHits?: Listing[]
 }) {
   const params = useSearchParams()
   const router = useRouter()
@@ -149,13 +181,15 @@ export default function SearchClient({
   // ——— Read filters from URL — invalid values are ignored (whitelists + numeric checks) ———
   const paramsKey = params.toString()
   const dealParam = params.get('deal')
-  const deal: DealType | undefined = DEALS.includes(dealParam as DealType) ? (dealParam as DealType) : undefined
+  const deal: DealType | undefined = DEALS.includes(dealParam as DealType)
+    ? (dealParam as DealType)
+    : lock?.deal
   const typeParam = params.get('type')
   const type: PropType | undefined = PROP_TYPES.some((p) => p.value === typeParam)
     ? (typeParam as PropType)
-    : undefined
-  const city = params.get('city') ?? undefined
-  const district = params.get('district') ?? undefined
+    : lock?.type
+  const city = params.get('city') ?? lock?.city ?? undefined
+  const district = params.get('district') ?? lock?.district ?? undefined
   const numParam = (key: string, min = 0): number | undefined => {
     const raw = params.get(key)
     if (raw === null || raw === '') return undefined
@@ -164,7 +198,8 @@ export default function SearchClient({
   }
   const minPrice = numParam('min')
   const maxPrice = numParam('max')
-  const rooms = numParam('rooms', 1)
+  const rooms = numParam('rooms', 1) ?? lock?.rooms
+  const roomsMax = numParam('rmax', 1) ?? (lock?.rooms && lock.rooms < 4 ? lock.rooms : undefined)
   const minArea = numParam('amin')
   const maxArea = numParam('amax')
   const sortParam = params.get('sort')
@@ -238,9 +273,16 @@ export default function SearchClient({
       else next.set(k, v)
     }
     const qs = next.toString()
-    // Keep the locale prefix (/en/search …) — ka stays unprefixed per core.
-    const base = localizedHref('/search', lang)
+    // Embed stays on the SEO path (/sale/apartments/tbilisi); /search keeps its prefix.
+    const base = embed ? window.location.pathname : localizedHref('/search', lang)
     router.replace(qs ? `${base}?${qs}` : base, { scroll: false })
+  }
+
+  const embedDealHref = (d: DealType) => {
+    const dealSlug = d
+    const typeSlug = type ? TYPE_PATH[type] : undefined
+    const segs = [dealSlug, typeSlug, lock?.citySlug, lock?.districtSlug].filter(Boolean)
+    return localizedHref(`/${segs.join('/')}`, lang)
   }
 
   // ——— Keyword/price/area inputs: local drafts, debounced into the URL (~300ms) ———
@@ -309,10 +351,10 @@ export default function SearchClient({
   }, [drafts, paramsKey])
 
   // ——— API-driven search (page from the URL; prev/next navigation) —————————
-  const [results, setResults] = useState<Listing[]>([])
-  const [totalResults, setTotalResults] = useState(0)
+  const [results, setResults] = useState<Listing[]>(initialHits ?? [])
+  const [totalResults, setTotalResults] = useState(initialHits?.length ?? 0)
   const [totalPages, setTotalPages] = useState(0)
-  const [searchLoading, setSearchLoading] = useState(true)
+  const [searchLoading, setSearchLoading] = useState(!initialHits?.length)
   // Facet counts from Meilisearch (null on the DB fallback → counts hidden).
   const [facets, setFacets] = useState<Record<string, Record<string, number>> | null>(null)
   const fcount = (dim: string, key: string): number | undefined => facets?.[dim]?.[key]
@@ -333,6 +375,7 @@ export default function SearchClient({
         if (minPrice !== undefined) sp.set('minPrice', String(minPrice))
         if (maxPrice !== undefined) sp.set('maxPrice', String(maxPrice))
         if (rooms !== undefined) sp.set('rooms', String(rooms))
+        if (roomsMax !== undefined) sp.set('rmax', String(roomsMax))
         if (minArea !== undefined) sp.set('minArea', String(minArea))
         if (maxArea !== undefined) sp.set('maxArea', String(maxArea))
         if (q) sp.set('q', q)
@@ -374,16 +417,10 @@ export default function SearchClient({
           setTotalPages((json.totalPages as number) ?? 0)
           setFacets((json.facets as Record<string, Record<string, number>> | undefined) ?? null)
         } else {
-          setResults([])
-          setTotalResults(0)
-          setTotalPages(0)
           setFacets(null)
         }
       } catch {
         if (cancelled) return
-        setResults([])
-        setTotalResults(0)
-        setTotalPages(0)
       } finally {
         if (!cancelled) setSearchLoading(false)
       }
@@ -406,7 +443,7 @@ export default function SearchClient({
   const moreCount = (beds !== undefined ? 1 : 0) + (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
     + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
-    + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0)
+    + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0) + (tier ? 1 : 0)
   const [moreOpen, setMoreOpen] = useState(moreCount > 0)
 
   // Sheet: Escape to close + body scroll lock while open.
@@ -455,14 +492,16 @@ export default function SearchClient({
   const propType = PROP_TYPES.find((p) => p.value === type)
   const propTypeKey = propType?.key
   const chips: { key: string; label: string; hue?: string; clear: () => void }[] = []
-  if (deal) chips.push({ key: 'deal', label: t(dealLabelKey(deal)), hue: dealHue(deal), clear: () => patchParams({ deal: undefined }) })
-  if (type) chips.push({ key: 'type', label: propTypeKey ? t(propTypeKey) : type, hue: propType?.brand.hue, clear: () => patchParams({ type: undefined }) })
-  if (city) chips.push({ key: 'city', label: city, clear: () => patchParams({ city: undefined, district: undefined }) })
-  if (distList.length === 1) chips.push({ key: 'district', label: distList[0]!, clear: () => patchParams({ district: undefined }) })
-  else if (distList.length > 1) chips.push({ key: 'district', label: t('loc.nDistricts', { n: distList.length }), clear: () => patchParams({ district: undefined }) })
+  if (deal && params.get('deal')) chips.push({ key: 'deal', label: t(dealLabelKey(deal)), hue: dealHue(deal), clear: () => patchParams({ deal: undefined }) })
+  if (type && params.get('type')) chips.push({ key: 'type', label: propTypeKey ? t(propTypeKey) : type, hue: propType?.brand.hue, clear: () => patchParams({ type: undefined }) })
+  if (city && params.get('city')) chips.push({ key: 'city', label: city, clear: () => patchParams({ city: undefined, district: undefined }) })
+  if (params.get('district')) {
+    if (distList.length === 1) chips.push({ key: 'district', label: distList[0]!, clear: () => patchParams({ district: undefined }) })
+    else if (distList.length > 1) chips.push({ key: 'district', label: t('loc.nDistricts', { n: distList.length }), clear: () => patchParams({ district: undefined }) })
+  }
   if (minPrice !== undefined) chips.push({ key: 'min', label: `${t('search.min')}. ${cur === 'GEL' ? '₾' : '$'}${minPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('min'); patchParams({ min: undefined }) } })
   if (maxPrice !== undefined) chips.push({ key: 'max', label: `${t('search.max')}. ${cur === 'GEL' ? '₾' : '$'}${maxPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('max'); patchParams({ max: undefined }) } })
-  if (rooms !== undefined) chips.push({ key: 'rooms', label: t('search.roomsChip', { n: rooms }), clear: () => patchParams({ rooms: undefined }) })
+  if (rooms !== undefined && params.get('rooms')) chips.push({ key: 'rooms', label: roomsMax === rooms ? String(rooms) : t('search.roomsChip', { n: rooms }), clear: () => patchParams({ rooms: undefined, rmax: undefined }) })
   if (minArea !== undefined) chips.push({ key: 'amin', label: `${t('search.min')}. ${minArea} მ²`, clear: () => { clearDraft('amin'); patchParams({ amin: undefined }) } })
   if (maxArea !== undefined) chips.push({ key: 'amax', label: `${t('search.max')}. ${maxArea} მ²`, clear: () => { clearDraft('amax'); patchParams({ amax: undefined }) } })
   if (q) chips.push({ key: 'q', label: `„${q}"`, clear: () => { clearDraft('q'); patchParams({ q: undefined }) } })
@@ -493,7 +532,7 @@ export default function SearchClient({
 
   const resetAll = () => {
     setDrafts({ q: '', min: '', max: '', amin: '', amax: '', fmin: '', fmax: '' })
-    router.replace(localizedHref('/search', lang), { scroll: false })
+    router.replace(embed ? window.location.pathname : localizedHref('/search', lang), { scroll: false })
   }
 
   // ponytail: h-9 / py-1.5 matches ss.ge density; bump if touch targets fail QA
@@ -551,9 +590,9 @@ export default function SearchClient({
       )}
 
       {/* Deal · type · city · district · price · rooms · area · more */}
-      <div className="scrollbar-hide flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+      <div className="flex flex-wrap items-center gap-1.5">
         <div className="flex shrink-0 rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.dealType')}>
-          {DEALS.map((d) => {
+          {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS).map((d) => {
             const label = t(dealLabelKey(d))
             const count = d === undefined ? undefined : fcount('dealType', d)
             const active = deal === d
@@ -562,12 +601,25 @@ export default function SearchClient({
                 key={label}
                 type="button"
                 aria-pressed={active}
-                onClick={() => patchParams({
-                  deal: d,
-                  beds: undefined,
-                  rooms: undefined,
-                  ...(d === 'daily' ? {} : { from: undefined, to: undefined }),
-                })}
+                onClick={() => {
+                  if (active) return
+                  if (embed && d && d !== lock?.deal) {
+                    const next = new URLSearchParams(window.location.search)
+                    next.delete('page')
+                    next.delete('deal')
+                    const path = embedDealHref(d)
+                    const qs = next.toString()
+                    router.push(qs ? `${path}?${qs}` : path, { scroll: false })
+                    return
+                  }
+                  patchParams({
+                    deal: d,
+                    beds: undefined,
+                    rooms: undefined,
+                    rmax: undefined,
+                    ...(d === 'daily' ? {} : { from: undefined, to: undefined }),
+                  })
+                }}
                 className={`relative whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[12px] font-extrabold transition-colors ${
                   active ? 'text-white' : 'text-sv-ink/65 hover:text-sv-ink'
                 }`}
@@ -663,21 +715,32 @@ export default function SearchClient({
             {deal === 'daily' ? t('search.bedrooms') : t('search.rooms')}
           </span>
           <div className="flex gap-0.5">
-            {ROOM_OPTIONS.map((r, idx) => {
-              const n = idx + 1
-              const active = deal === 'daily' ? beds === n : rooms === n
+            {ROOM_CHIPS.map((r) => {
+              const active = deal === 'daily'
+                ? beds === r.n
+                : r.exact
+                  ? rooms === r.n && roomsMax === r.n
+                  : rooms === r.n && roomsMax === undefined
               return (
                 <button
-                  key={r}
-                  onClick={() =>
-                    deal === 'daily'
-                      ? patchParams({ beds: active ? undefined : String(n), rooms: undefined })
-                      : patchParams({ rooms: active ? undefined : String(n), beds: undefined })
-                  }
+                  key={r.label}
+                  onClick={() => {
+                    if (deal === 'daily') {
+                      patchParams({ beds: active ? undefined : String(r.n), rooms: undefined, rmax: undefined })
+                      return
+                    }
+                    patchParams(
+                      active
+                        ? { rooms: undefined, rmax: undefined }
+                        : r.exact
+                          ? { rooms: String(r.n), rmax: String(r.n), beds: undefined }
+                          : { rooms: String(r.n), rmax: undefined, beds: undefined },
+                    )
+                  }}
                   aria-pressed={active}
                   className={numChip(active)}
                 >
-                  {r}
+                  {r.label}
                 </button>
               )
             })}
@@ -904,6 +967,17 @@ export default function SearchClient({
               <button type="button" onClick={() => patchParams({ metro: nearMetro ? undefined : '1' })} aria-pressed={nearMetro} className={tagChip(nearMetro)}>
                 {t('search.nearMetro')}
               </button>
+              {SEARCH_TIERS.map((tk) => (
+                <button
+                  key={tk}
+                  type="button"
+                  onClick={() => patchParams({ tier: tier === tk ? undefined : tk })}
+                  aria-pressed={tier === tk}
+                  className={tagChip(tier === tk)}
+                >
+                  {tierKeyToBadge(tk) ?? tk}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -911,8 +985,6 @@ export default function SearchClient({
     </>
   )
 
-  /* List/Map segmented toggle — same chrome as the currency segment. Rendered in
-     two spots (mobile next to ფილტრი, desktop in the results header); CSS picks one. */
   const viewToggle = (
     <div className="flex shrink-0 items-center gap-1.5">
       <div className="flex rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.view')}>
@@ -949,9 +1021,11 @@ export default function SearchClient({
     </div>
   )
 
+  const Shell = embed ? 'div' : 'main'
+
   return (
-    <div className="font-geo min-h-screen bg-sv-cloud antialiased">
-      <Navbar />
+    <div className={embed ? 'font-geo' : 'font-geo min-h-screen bg-sv-cloud antialiased'}>
+      {!embed && <Navbar />}
       <LocationPicker
         open={locOpen}
         value={locValue}
@@ -970,7 +1044,8 @@ export default function SearchClient({
       />
 
       {/* Page header — compact so listings start above the fold */}
-      <main id="main" aria-busy={showSkeleton}>
+      <Shell id={embed ? undefined : 'main'} aria-busy={showSkeleton}>
+      {!embed && (
       <div className="relative overflow-hidden bg-sv-navy pb-6 pt-[calc(100px+env(safe-area-inset-top,0px))]">
         <div aria-hidden className="absolute inset-0 bg-grid-dark" />
         <div
@@ -993,10 +1068,13 @@ export default function SearchClient({
           </p>
         </div>
       </div>
+      )}
 
       {/* Filter bar: full controls on desktop (sticky), compact sheet trigger on mobile */}
-      <div className="z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]">
-        <div className="mx-auto max-w-[1440px] px-4 py-2 md:px-10">
+      <div className={embed
+        ? 'z-30 mb-5 rounded-card border border-sv-ink/[0.06] bg-sv-surface/95 p-3 shadow-card backdrop-blur-md md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'
+        : 'z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'}>
+        <div className={embed ? '' : 'mx-auto max-w-[1440px] px-4 py-2 md:px-10'}>
           <div className="flex items-center gap-2 md:hidden">
             {keywordBox('md', 'min-w-0 flex-1')}
             <button
@@ -1019,9 +1097,9 @@ export default function SearchClient({
       </div>
 
       {/* Results */}
-      <div className="mx-auto max-w-[1440px] px-5 py-5 md:px-10">
+      <div className={embed ? 'pt-1' : 'mx-auto max-w-[1440px] px-5 py-5 md:px-10'}>
         {/* Recently viewed rail — return-visit retention */}
-        {recentItems.length > 0 && !showSkeleton && (
+        {!embed && recentItems.length > 0 && !showSkeleton && (
           <section aria-label={s('recentlyViewed')} className="mb-6">
             <h2 className="mb-2 text-[14px] font-extrabold text-sv-ink">{s('recentlyViewed')}</h2>
             <HScroll aria-label={s('recentlyViewed')} className="-mx-5 gap-3 px-5 pb-1 md:-mx-10 md:px-10">
@@ -1101,7 +1179,7 @@ export default function SearchClient({
         ) : null}
 
         {showSkeleton ? (
-          <div className={`grid gap-6 ${view === 'grid' ? 'sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+          <div className={`grid gap-6 ${view === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : results.length === 0 ? (
@@ -1153,7 +1231,7 @@ export default function SearchClient({
             )}
           </div>
         ) : (
-          <div className={view === 'grid' ? 'grid gap-6 sm:grid-cols-2 xl:grid-cols-3' : 'grid grid-cols-1 gap-5'}>
+          <div className={view === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid grid-cols-1 gap-5'}>
             {results.flatMap((l, i) => {
               const card = (
                 <ListingCard key={l.id} l={l} i={i} layout={view === 'grid' ? 'wide' : 'list'} />
@@ -1195,7 +1273,7 @@ export default function SearchClient({
         )}
 
         {/* SEO hint */}
-        {!showSkeleton && results.length > 0 && (
+        {!embed && !showSkeleton && results.length > 0 && (
           <p className="mt-10 flex items-start gap-2 text-[13px] font-semibold leading-relaxed text-sv-ink/65">
             <Home className="mt-0.5 h-4 w-4 shrink-0" />
             {t('search.seoHint')}
@@ -1245,9 +1323,9 @@ export default function SearchClient({
         </div>
       )}
 
-      </main>
+      </Shell>
 
-      <Footer />
+      {!embed && <Footer />}
     </div>
   )
 }

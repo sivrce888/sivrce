@@ -36,8 +36,8 @@ const notoGeorgian = Noto_Sans_Georgian({
   weight: ["600", "900"],
   variable: "--font-noto-georgian",
   display: "optional",
-  // ponytail: preload LCP face so optional window catches it (lab LCP was ~8s without)
-  preload: true,
+  // ponytail: preload+optional waits for the face on slow 4G → LCP 8s on the subtitle
+  preload: false,
 });
 
 const SITE_URL = "https://sivrce.ge";
@@ -375,8 +375,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
             ['pointerdown','keydown'].forEach(function(e){
               window.addEventListener(e,boot,{once:true,passive:true});
             });
-            // ponytail: no scroll/early timeout — LH SI scrapes scroll + 3.5s boot tanked SI to 3.5s
-            setTimeout(boot,10000);
+            // ponytail: no idle timeout — lab traces run ~10s and GTM was TTI/SI
           })();
         `}</Script>
         <a

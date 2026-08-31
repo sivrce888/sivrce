@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Eye, TrendingUp, Star, Plus, Building2, BadgeCheck, ArrowRight, Check, Minus, Layers, KeyRound, CalendarClock, Briefcase, Home, Megaphone, Zap, CircleDot, Palette, RefreshCw, Wrench } from 'lucide-react'
+import { Eye, TrendingUp, Star, Plus, Building2, BadgeCheck, ArrowRight, KeyRound, CalendarClock, Briefcase, Home, Megaphone, Zap, CircleDot, Palette, RefreshCw, Wrench } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -9,12 +9,12 @@ import { Reveal } from '@/components/Reveal'
 import PromoPricingGrid from '@/components/payments/PromoPricingGrid'
 import { langAlternates } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
-import { formatGel, MONTHLY_RE_TETRI, COMPETITOR, ADDON_TETRI } from '@/lib/promo-pricing'
+import { formatGel, MONTHLY_RE_TETRI, ADDON_TETRI } from '@/lib/promo-pricing'
 import { jsonLd } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'განათავსე განცხადება — sivrce',
-  description: `უფასო განთავსება მესაკუთრეებისთვის, სააგენტოებისა და დეველოპერებისთვის. VIP დღეში ${formatGel(100)}-დან — უფრო იაფი, ვიდრე SS და MyHome.`,
+  description: `უფასო განთავსება მესაკუთრეებისთვის, სააგენტოებისა და დეველოპერებისთვის. VIP დღეში ${formatGel(100)}-დან.`,
   alternates: { canonical: '/advertise', languages: langAlternates('/advertise') },
 }
 
@@ -22,7 +22,7 @@ const AUDIENCES = [
   { icon: Home, title: 'გამყიდველი', text: 'უფასო განთავსება · 3 წუთი · ლიდები დაფაზე', href: '/add-listing' },
   { icon: KeyRound, title: 'გამქირავებელი', text: 'ყოველთვიური ქირა — იგივე ანგარიში, იგივე VIP', href: '/add-listing' },
   { icon: CalendarClock, title: 'დღიური მასპინძელი', text: 'კოლექციები, თარიღები, უკონტაქტო ჩექინი', href: '/add-listing' },
-  { icon: BadgeCheck, title: 'აგენტი', text: 'პროფილი /agents-ზე · ლიდები · VIP უფრო იაფი, ვიდრე SS', href: '/auth/signup?callbackUrl=/settings' },
+  { icon: BadgeCheck, title: 'აგენტი', text: 'პროფილი /agents-ზე · ლიდები · ხელმისაწვდომი VIP', href: '/auth/signup?callbackUrl=/settings' },
   { icon: Building2, title: 'სააგენტო', text: 'გუნდი, ანალიტიკა, განცხადებები ერთ დაფაზე', href: '/auth/signup?callbackUrl=/settings' },
   { icon: Briefcase, title: 'დეველოპერი', text: 'პროექტები, ინვენტარი, 3D რუკა კორპუსზე', href: '/auth/signup?callbackUrl=/settings' },
   { icon: Wrench, title: 'სერვისის კომპანია', text: 'რემონტი, იურიდიული, ფოტო — სერვისი და განცხადება ერთ ანგარიშზე', href: '/add-service' },
@@ -54,36 +54,14 @@ const BRAND_PACKS = [
 
 const STATS = [
   { icon: Eye, value: 'VIP+', label: 'კარუსელი + პრიორიტეტი სიაში VIP-ზე წინ' },
-  { icon: TrendingUp, value: '2.50₾', label: 'VIP+ დღეში · SS 3₾ / MyHome 4₾' },
+  { icon: TrendingUp, value: '2.50₾', label: 'VIP+ დღეში · უძრავი ქონება' },
   { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 დღე · უძრავი ქონება' },
 ]
 
-const COMPARE = {
-  cols: ['sivrce', 'SS.ge', 'MyHome', 'Livo', 'Korter'] as const,
-  rows: [
-    { label: '3D რუკა + კორპუსის ინვენტარი', cells: ['yes', 'no', 'no', 'no', '2D'] },
-    { label: 'VIP+ დღეში (უძრავი)', cells: [formatGel(250), formatGel(COMPETITOR.ss.vip_plus_re[0]), formatGel(COMPETITOR.myhome.vip_plus_re), '—', '—'] },
-    { label: 'VIP დღეში', cells: [formatGel(100), formatGel(COMPETITOR.ss.vip_re), formatGel(COMPETITOR.myhome.vip_re), '—', '—'] },
-    { label: 'AI ფასის შეფასება', cells: ['yes', 'ჩატი', 'no', 'ძიება', 'no'] },
-    { label: 'მეტროსთან მანძილი', cells: ['yes', 'no', 'no', 'yes', 'no'] },
-    { label: '9 ენა + PWA', cells: ['yes', 'no', 'no', 'no', 'აპი'] },
-  ],
-} as const
-
-function CompareCell({ value }: { value: string }) {
-  if (value === 'yes') {
-    return <Check className="mx-auto h-4 w-4 text-sv-blue" aria-label="კი" />
-  }
-  if (value === 'no') {
-    return <Minus className="mx-auto h-4 w-4 text-sv-ink/25" aria-label="არა" />
-  }
-  return <span className="text-[12px] font-extrabold text-sv-ink">{value}</span>
-}
-
 const FAQ = [
   {
-    q: 'რატომ არის sivrce უფრო იაფი?',
-    a: 'VIP+ და SUPER VIP დღიური ტარიფები SS.ge და MyHome-ზე დაბალია. VIP უძრავზე = SS (1₾/დღე), MyHome-ზე კი 2.50₾-ია. Livo და Korter საჯარო დღიურ ტარიფს არ აქვეყნებენ.',
+    q: 'რატომ არის sivrce ხელმისაწვდომი?',
+    a: 'VIP+ დღეში 2.50₾-დან, VIP უძრავზე 1₾/დღე, SUPER VIP — ტოპ პოზიცია. უფასო განთავსება ყველასთვის.',
   },
   {
     q: 'რომელი პაკეტი ავირჩიო?',
@@ -261,59 +239,6 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
               >
                 დაგვიკავშირდი ბანერისთვის <ArrowRight className="h-4 w-4" />
               </LocalizedLink>
-            </div>
-          </Reveal>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-6 pb-16">
-          <Reveal>
-            <div className="mb-6 flex items-end justify-between gap-4">
-              <div>
-                <p className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-                  <Layers className="h-3.5 w-3.5" /> ბაზარი
-                </p>
-                <h2 className="mt-2 text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
-                  sivrce vs SS · MyHome · Livo · Korter
-                </h2>
-              </div>
-              <LocalizedLink
-                href="/map"
-                className="hidden shrink-0 rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange sm:inline-flex"
-              >
-                3D რუკა
-              </LocalizedLink>
-            </div>
-            <div className="overflow-x-auto rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">
-              <table className="w-full min-w-[640px] text-left">
-                <thead>
-                  <tr className="border-b border-sv-ink/[0.06]">
-                    <th className="px-4 py-3 text-[12px] font-bold text-sv-ink/45"> </th>
-                    {COMPARE.cols.map((c) => (
-                      <th
-                        key={c}
-                        className={`px-3 py-3 text-center text-[13px] font-black ${c === 'sivrce' ? 'text-sv-blue' : 'text-sv-ink'}`}
-                      >
-                        {c}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {COMPARE.rows.map((row) => (
-                    <tr key={row.label} className="border-b border-sv-ink/[0.04] last:border-0">
-                      <th className="px-4 py-3 text-[13px] font-bold text-sv-ink/70">{row.label}</th>
-                      {row.cells.map((cell, i) => (
-                        <td
-                          key={COMPARE.cols[i]}
-                          className={`px-3 py-3 text-center ${i === 0 ? 'bg-sv-blue/[0.04]' : ''}`}
-                        >
-                          <CompareCell value={cell} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </Reveal>
         </section>

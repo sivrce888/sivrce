@@ -1,7 +1,4 @@
-'use client'
-
-/* Deterministic pseudo-random so SSR/build output is stable */
-import { useEffect, useRef } from 'react'
+/* Deterministic pseudo-random so SSR/build output is stable — no client JS. */
 
 function seeded(seed: number) {
   let s = seed
@@ -118,38 +115,8 @@ const windows = buildWindows()
 const stars = buildStars()
 
 export default function HeroBackground() {
-  const root = useRef<HTMLDivElement>(null)
-
-  // Pause ambient animations off-screen; pointer parallax for fine pointers only
-  useEffect(() => {
-    const el = root.current
-    if (!el) return
-    const io = new IntersectionObserver(([entry]) => {
-      el.classList.toggle('sv-anim-paused', !entry.isIntersecting)
-    })
-    io.observe(el)
-
-    const fine = window.matchMedia('(pointer: fine)')
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const lite = document.documentElement.hasAttribute('data-lite')
-    const host = el.parentElement ?? el
-    const onMove = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect()
-      const x = (e.clientX - r.left) / r.width - 0.5
-      const y = (e.clientY - r.top) / r.height - 0.5
-      el.style.setProperty('--px', `${(x * 18).toFixed(1)}px`)
-      el.style.setProperty('--py', `${(y * 12).toFixed(1)}px`)
-    }
-    if (fine.matches && !calm.matches && !lite) host.addEventListener('pointermove', onMove, { passive: true })
-    return () => {
-      io.disconnect()
-      host.removeEventListener('pointermove', onMove)
-    }
-  }, [])
-
   return (
     <div
-      ref={root}
       className="sv-hero-bg sv-sky-in absolute inset-0 overflow-hidden bg-sv-cloud dark:bg-sv-navy [contain:layout_paint]"
       aria-hidden
     >

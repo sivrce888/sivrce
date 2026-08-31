@@ -2,7 +2,6 @@
 
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
@@ -23,7 +22,6 @@ import { useCompare } from '@/lib/compare'
 import { useCompareStrings } from '@/components/compare/i18n'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
-import { blurProps, isCdnMedia } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
@@ -238,21 +236,20 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {photoMountIdx(frame, photos.length).map((idx) => {
         const src = photos[idx]
         return (
-          <Image
+          // ponytail: native lazy img — next/image was emitting <link rel=preload> for below-fold cards
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             key={`${src}-${idx}`}
             src={src}
             alt={idx === frame ? l.title : ''}
-            fill
-            sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
-            // ponytail: never priority — homepage cards sit below hero; was racing LCP
-            fetchPriority="low"
             draggable={false}
-            unoptimized={isCdnMedia(src)}
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
             aria-hidden={idx !== frame}
-            className={`object-cover transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0 ${
+            className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0 ${
               idx === frame ? 'opacity-100' : 'pointer-events-none opacity-0'
             } ${!multi && idx === frame ? 'group-hover:scale-[1.04]' : ''}`}
-            {...blurProps(src)}
           />
         )
       })}

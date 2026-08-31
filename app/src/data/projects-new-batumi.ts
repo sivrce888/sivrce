@@ -141,9 +141,9 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Sun Estate (korter-ზე Sun Estate Georgia) — შეკვეთილის საკურორტო ბინების დეველოპერი, ეტაპობრივი მშენებლობით (sunestate.ge).',
-      en: 'Sun Estate (listed as Sun Estate Georgia on korter) is a Shekvetili resort-apartment developer building in phases (sunestate.ge).',
-      ru: 'Sun Estate (на korter — Sun Estate Georgia) — девелопер курортных апартаментов в Шекветили, поэтапное строительство (sunestate.ge).',
+      ka: 'Sun Estate — შეკვეთილის საკურორტო ბინების დეველოპერი, ეტაპობრივი მშენებლობით (sunestate.ge).',
+      en: 'Sun Estate is a Shekvetili resort-apartment developer building in phases (sunestate.ge).',
+      ru: 'Sun Estate — девелопер курортных апартаментов в Шекветили, поэтапное строительство (sunestate.ge).',
     },
     verified: false,
     phone: '',
@@ -516,9 +516,9 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     rating: 4.5,
     coords: { lat: 41.63667064, lng: 41.61741525 },
     description: {
-      ka: 'Metropol Parallel (korter-ზე The Parallel) — ორი ბლოკი თ. აბუსერიძის ქ. 19-23-ში, ცენტრალურ ბათუმში: 474 ბინა 32–184 მ².',
-      en: 'Metropol Parallel (listed as The Parallel on korter) is two blocks at 19–23 Tbel Abuseridze St in central Batumi: 474 units of 32–184 m².',
-      ru: 'Metropol Parallel (на korter — The Parallel) — два блока на ул. Тбел Абусеридзе, 19-23 в центре Батуми: 474 квартиры 32-184 м².',
+      ka: 'Metropol Parallel — ორი ბლოკი თ. აბუსერიძის ქ. 19-23-ში, ცენტრალურ ბათუმში: 474 ბინა 32–184 მ².',
+      en: 'Metropol Parallel is two blocks at 19–23 Tbel Abuseridze St in central Batumi: 474 units of 32–184 m².',
+      ru: 'Metropol Parallel — два блока на ул. Тбел Абусеридзе, 19-23 в центре Батуми: 474 квартиры 32-184 м².',
     },
   },
   {
