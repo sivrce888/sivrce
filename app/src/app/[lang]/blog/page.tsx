@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import LocalizedLink from '@/components/LocalizedLink'
-import { ChevronRight, Clock, ArrowRight } from 'lucide-react'
+import { Clock, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
+import { AdSlot } from '@/components/ads/AdSlot'
+import { isValidLang } from '@/lib/i18n/core'
 import { BLOG_POSTS } from '@/data/blog'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
@@ -40,33 +43,24 @@ const blogLd = {
   })),
 }
 
-export default function BlogIndex() {
+export default async function BlogIndex({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
   const sorted = [...BLOG_POSTS].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
   const [featured, ...rest] = sorted
 
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20 pt-24 md:px-10 md:pt-28">
-        <nav aria-label="ბრედკრამბი" className="mb-6">
-          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
-            <li className="flex items-center gap-1.5">
-              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
-              <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
-            </li>
-            <li aria-current="page" className="text-sv-ink/80">ბლოგი</li>
-          </ol>
-        </nav>
-
-        <header className="mb-12">
-          <h1 className="max-w-[800px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[48px]">
-            უძრავი ქონების ბლოგი
-          </h1>
-          <p className="mt-4 max-w-[680px] text-[16px] font-semibold text-sv-ink/60">
-            ანალიტიკა, გზამკვლევები და რჩევები საქართველოს ბაზრისთვის — თბილისი, ბათუმი, ქუთაისი.
-            ბინები დღიურად, ქირავდება, იყიდება, ინვესტიციები და ROI.
-          </p>
-        </header>
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="ბლოგი"
+          title="უძრავი ქონების ბლოგი"
+          subtitle="ანალიტიკა, გზამკვლევები და რჩევები საქართველოს ბაზრისთვის — თბილისი, ბათუმი, ქუთაისი."
+        />
+        <AdSlot slot="blog" lang={lang} />
+        <div className="mx-auto max-w-[1200px] px-5 pb-20 md:px-10">
 
         {/* Featured */}
         <LocalizedLink
@@ -142,6 +136,7 @@ export default function BlogIndex() {
               </div>
             </LocalizedLink>
           ))}
+        </div>
         </div>
       </main>
       <Footer />

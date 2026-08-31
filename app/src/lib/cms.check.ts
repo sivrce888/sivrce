@@ -12,12 +12,9 @@ import { SITE_META } from "./i18n/server"
 // translated block defaults: every locale-neutral-symbolic ka value is exempt;
 // every other key must exist, keep {n}/{v} vars, and months must have 12 parts.
 const SYMBOLIC_KA = /^[\d\s/+%.·-]*$/
-// Latin brand words identical in every locale — no translation needed.
-type CmsBlockKeyTest = (typeof CMS_BLOCK_KEYS)[number]
-const NEUTRAL_KEYS = new Set<CmsBlockKeyTest>(["home.stories.kicker"])
 for (const [lang, dict] of Object.entries(BLOCK_I18N)) {
   for (const key of CMS_BLOCK_KEYS) {
-    if (SYMBOLIC_KA.test(CMS_BLOCKS[key]) || NEUTRAL_KEYS.has(key)) continue
+    if (SYMBOLIC_KA.test(CMS_BLOCKS[key])) continue
     const val = dict[key]
     assert(val != null && val.trim().length > 0, `block i18n missing: ${lang} ${key}`)
     for (const v of ["{n}", "{v}"]) {

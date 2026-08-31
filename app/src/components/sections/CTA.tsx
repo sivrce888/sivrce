@@ -2,31 +2,28 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { Plus, Search } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { getCmsBlock } from '@/lib/cms'
-import type { HomeStats } from '@/lib/home-stats'
+import { getServerT } from '@/lib/i18n/server'
 import type { Lang } from '@/lib/i18n/core'
 
-/* Closing CTA — server component; proof line uses live counts when provided. */
+/* Closing CTA — server component; proof line is locale copy, not live counts. */
 
-export default async function CTA({
-  lang = 'ka',
-  live,
-}: {
-  lang?: Lang
-  live?: HomeStats
-}) {
-  const [title, sub, primary, secondary, proofC] = await Promise.all([
+export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
+  const [title, sub, primary, secondary, proofA, proofB, proofC] = await Promise.all([
     getCmsBlock('home.cta.title', lang),
     getCmsBlock('home.cta.sub', lang),
     getCmsBlock('home.cta.primary', lang),
     getCmsBlock('home.cta.secondary', lang),
+    getCmsBlock('home.cta.proofA', lang),
+    getCmsBlock('home.cta.proofB', lang),
     getCmsBlock('home.cta.proofC', lang),
   ])
-  const proofA = live
-    ? `${live.listings.toLocaleString('en-US')}+ განცხადება`
-    : await getCmsBlock('home.cta.proofA', lang)
-  const proofB = live
-    ? `${live.projects.toLocaleString('en-US')} პროექტი`
-    : await getCmsBlock('home.cta.proofB', lang)
+  const t = getServerT(lang)
+  const paths = [
+    { href: '/sale', label: t('nav.buy') },
+    { href: '/rent', label: t('nav.rent') },
+    { href: '/daily', label: t('nav.daily') },
+    { href: '/advertise', label: t('nav.advertise') },
+  ] as const
 
   return (
     <section className="relative overflow-hidden bg-sv-navy py-20 md:py-28">
@@ -48,7 +45,7 @@ export default async function CTA({
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <LocalizedLink
               href="/add-listing"
-              className="group flex items-center gap-2.5 rounded-full bg-sv-orange px-8 py-4 text-[16px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
+              className="group flex items-center gap-2.5 rounded-full bg-sv-orange px-8 py-4 text-[16px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
             >
               <Plus className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
               {primary}
@@ -61,6 +58,20 @@ export default async function CTA({
               {secondary}
             </LocalizedLink>
           </div>
+          <nav
+            aria-label={t('nav.main')}
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+          >
+            {paths.map((p) => (
+              <LocalizedLink
+                key={p.href}
+                href={p.href}
+                className="text-[13px] font-extrabold text-white/55 transition-colors hover:text-white"
+              >
+                {p.label}
+              </LocalizedLink>
+            ))}
+          </nav>
         </Reveal>
         <Reveal delay={0.3}>
           <p className="mt-8 flex flex-wrap items-center justify-center text-[13px] font-bold text-white/60">

@@ -75,7 +75,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
             className={`shrink-0 rounded-full px-4 py-2 text-[12.5px] font-bold transition ${
               tab.key === activeTab.key
                 ? "bg-sv-blue text-white"
-                : "bg-white text-sv-ink/65 shadow-sm hover:text-sv-ink"
+                : "bg-sv-surface text-sv-ink/65 hover:text-sv-ink"
             }`}
           >
             {tab.label}
@@ -97,7 +97,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
           {leads.map((lead) => (
             <li
               key={lead.id}
-              className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm"
+              className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">

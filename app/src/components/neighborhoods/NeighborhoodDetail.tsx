@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { MapPin, Building2, Gauge, Wallet, ArrowRight } from 'lucide-react'
 import type { Neighborhood } from '@/data/neighborhoods'
 import { pick, overallScore } from '@/data/neighborhoods'
@@ -36,10 +36,10 @@ export default function NeighborhoodDetail({
           fill
           priority
           sizes="100vw"
-          className="object-cover opacity-70"
+          className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-sv-navy via-sv-navy/40 to-sv-navy/20" />
-        <div className="relative mx-auto w-full max-w-[1440px] px-5 pb-12 pt-32 md:px-10">
+        <div className="absolute inset-0 bg-gradient-to-t from-sv-navy via-sv-navy/55 to-sv-navy/25" />
+        <div className="relative mx-auto w-full max-w-[1440px] px-5 pb-12 pt-[calc(8rem+env(safe-area-inset-top,0px))] md:px-10">
           <Reveal>
             <p className="mb-3 flex items-center gap-1.5 text-[14px] font-bold text-white/75">
               <MapPin className="h-4 w-4" /> {city}, {s.georgia}
@@ -127,13 +127,13 @@ export default function NeighborhoodDetail({
             <Reveal>
               <div className="rounded-card border border-dashed border-sv-ink/15 bg-sv-cloud p-10 text-center">
                 <p className="mb-5 text-[15px] font-semibold text-sv-ink/60">{s.noListings}</p>
-                <Link
+                <LocalizedLink
                   href={`/search?city=${encodeURIComponent(n.cityKey)}`}
-                  className="inline-flex min-h-[44px] items-center gap-2 rounded-control bg-sv-blue px-6 py-3 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-sv-blue px-6 py-3 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
                 >
                   {s.exploreCity} — {city}
                   <ArrowRight className="h-4 w-4" />
-                </Link>
+                </LocalizedLink>
               </div>
             </Reveal>
           )}

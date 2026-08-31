@@ -102,7 +102,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[760px] px-5 pb-20 pt-24 md:pt-28">
+      <main id="main" className="sv-pt-nav mx-auto max-w-[760px] px-5 pb-20">
         <nav aria-label="ბრედკრამბი" className="mb-8">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
             <li className="flex items-center gap-1.5">
@@ -152,7 +152,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </p>
             <LocalizedLink
               href="/search"
-              className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-extrabold text-white shadow-glow-orange transition-transform hover:-translate-y-0.5"
+              className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-white shadow-glow-orange transition-transform hover:-translate-y-0.5"
             >
               ძიება <ArrowRight className="h-4 w-4" aria-hidden />
             </LocalizedLink>

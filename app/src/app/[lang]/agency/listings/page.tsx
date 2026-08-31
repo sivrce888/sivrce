@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import LocalizedLink from "@/components/LocalizedLink"
 
 import { getAgencyContext } from "@/components/agency-dashboard/data"
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/components/agency-dashboard/nav"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
+import { SendToClientButton } from "@/components/listing/SharePack"
 import TierPurchaseButton from "@/components/payments/TierPurchaseButton"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
@@ -42,13 +44,23 @@ export default async function AgencyListingsPage() {
       subtitle="განცხადებები"
       userLabel={user.name ?? user.email}
     >
+      <div className="mb-5 flex justify-end">
+        <LocalizedLink
+          href="/add-listing"
+          className="inline-flex items-center rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+        >
+          დამატება
+        </LocalizedLink>
+      </div>
       {listings.length === 0 ? (
         <EmptyState
           title="განცხადებები ჯერ არ არის"
-          body="სააგენტოს განცხადებები აქ გამოჩნდება მათი დამატებისთანავე."
+          body="დაამატე პირველი განცხადება დღეს — უფასოდ. კლიენტს ერთი ღილაკით გაუგზავნი WhatsApp-ით."
+          actionHref="/add-listing"
+          actionLabel="განცხადების დამატება"
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-sv-ink/6 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">
           <table className="w-full min-w-[800px] text-left">
             <thead>
               <tr className="border-b border-sv-ink/8 text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
@@ -58,6 +70,7 @@ export default async function AgencyListingsPage() {
                 <th className="px-5 py-3.5">ნახვები</th>
                 <th className="px-5 py-3.5">სტატუსი</th>
                 <th className="px-5 py-3.5">თარიღი</th>
+                <th className="px-5 py-3.5 text-right">კლიენტს</th>
                 <th className="px-5 py-3.5 text-right">გაძლიერება</th>
               </tr>
             </thead>
@@ -88,6 +101,19 @@ export default async function AgencyListingsPage() {
                   </td>
                   <td className="px-5 py-3.5 text-[12px] font-medium text-sv-ink/50">
                     {l.createdAt.toLocaleDateString("ka-GE")}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    {l.status === "active" ? (
+                      <SendToClientButton
+                        title={l.title}
+                        district={l.district}
+                        city={l.city}
+                        price={l.price}
+                        currency={l.currency}
+                        listingId={l.id}
+                        area={l.area}
+                      />
+                    ) : null}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     {l.status === "active" ? (

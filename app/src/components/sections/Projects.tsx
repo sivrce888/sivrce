@@ -76,7 +76,7 @@ export default function Projects({
                         <BadgeCheck className="h-4 w-4 shrink-0 text-sv-success" /> {devName}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-navy">
+                    <div className="flex shrink-0 items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-ink">
                       <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" /> {p.rating}
                     </div>
                   </div>

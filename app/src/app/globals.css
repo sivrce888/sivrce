@@ -236,8 +236,8 @@
 /* ————— Dark mode — brand token flips (BRAND.md stays single source) —————
    sv-ink → near-white foreground, sv-cloud → deepest navy page bg,
    sv-surface → elevated navy card. Alpha utilities (bg-sv-ink/5 etc.)
-   automatically become white-alpha overlays. Navy stays fixed — hero,
-   CTA, map and footer sections are brand-dark in BOTH themes. */
+   automatically become white-alpha overlays. Navy stays fixed on CTA,
+   map and footer. Hero follows theme: day sky in light, night sky in dark. */
 .dark {
   color-scheme: dark;
 
@@ -270,6 +270,10 @@
   background: rgba(8, 13, 38, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+.dark .glass-hero {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
 
 @layer base {
   * {
@@ -293,9 +297,24 @@
        (cards, pills, glass) animate along via `transition-all` */
     transition: background-color 0.35s ease, color 0.35s ease;
   }
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
   ::selection {
     background: rgba(46, 107, 255, 0.22);
   }
+}
+
+/* Mobile dock clearance — class toggled by MobileDock (listing/admin = off). */
+:root {
+  --sv-dock: 0px;
+  --sv-safe-top: env(safe-area-inset-top, 0px);
+}
+html.sv-has-dock {
+  --sv-dock: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+}
+html.sv-has-dock body {
+  padding-bottom: var(--sv-dock);
 }
 
 /* ————— Brand utilities (BRAND.md §5, §3) ————— */
@@ -306,11 +325,27 @@
   .text-balance {
     text-wrap: balance;
   }
+  /* Inner-page top pad under fixed nav + notch */
+  .sv-pt-nav {
+    padding-top: calc(6rem + env(safe-area-inset-top, 0px));
+  }
+  @media (min-width: 768px) {
+    .sv-pt-nav {
+      padding-top: calc(7rem + env(safe-area-inset-top, 0px));
+    }
+  }
   .glass {
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  /* Hero chrome — milk glass on day sky, smoked frost on night */
+  .glass-hero {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.92);
   }
   .glass-light {
     background: rgba(255, 255, 255, 0.92);
@@ -465,12 +500,18 @@
   animation: sv-particle-rise var(--p-duration, 14s) linear infinite;
   animation-delay: var(--p-delay, 0s);
 }
+html:not(.dark) .sv-particle {
+  display: none;
+}
 
 @keyframes sv-window-glow {
   0%, 100% { opacity: 0.12; }
   50% { opacity: 0.85; }
 }
 .sv-window {
+  opacity: 0.2;
+}
+.dark .sv-window {
   animation: sv-window-glow var(--w-duration, 5s) ease-in-out infinite;
   animation-delay: var(--w-delay, 0s);
 }
@@ -518,6 +559,58 @@
   animation-delay: -3s;
 }
 
+/* Distant birds — comet-rare, then rest. Tiny chevrons, never a flock. */
+@keyframes sv-birds {
+  0% { transform: translate3d(-8vw, 0, 0); opacity: 0; }
+  6% { opacity: 1; }
+  38% { transform: translate3d(58vw, 7vh, 0); opacity: 1; }
+  46% { transform: translate3d(72vw, 9vh, 0); opacity: 0; }
+  100% { transform: translate3d(72vw, 9vh, 0); opacity: 0; }
+}
+.sv-birds {
+  animation: sv-birds 36s linear infinite;
+  animation-delay: -10s;
+}
+.sv-cirrus {
+  border-radius: 999px;
+  background: radial-gradient(ellipse 80% 55% at 50% 50%, color-mix(in srgb, var(--sv-surface) 58%, transparent), transparent 72%);
+  filter: blur(32px);
+  animation: sv-skyline-back 64s ease-in-out infinite;
+}
+
+/* Day sky — zenith blue-light, sun as light-in-sky (not a sticker), warm horizon kiss */
+.sv-day-sky {
+  background:
+    radial-gradient(
+      circle at 86% 9%,
+      var(--sv-surface) 0 0.9%,
+      color-mix(in srgb, var(--sv-orange-light) 72%, var(--sv-surface)) 2.4%,
+      color-mix(in srgb, var(--sv-orange-light) 38%, transparent) 9%,
+      color-mix(in srgb, var(--sv-orange-light) 16%, transparent) 18%,
+      transparent 32%
+    ),
+    radial-gradient(ellipse 100% 58% at 14% -6%, color-mix(in srgb, var(--sv-blue-light) 48%, transparent), transparent 62%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--sv-blue-light) 42%, var(--sv-cloud)) 0%,
+      color-mix(in srgb, var(--sv-blue-light) 14%, var(--sv-cloud)) 42%,
+      var(--sv-cloud) 68%,
+      color-mix(in srgb, var(--sv-orange-light) 12%, var(--sv-cloud)) 100%
+    );
+}
+
+/* Skyline recode — day haze vs night navy */
+.sv-hero-bg {
+  --skyline-a: color-mix(in srgb, var(--sv-blue-light) 58%, var(--sv-cloud));
+  --skyline-b: color-mix(in srgb, var(--sv-blue-light) 28%, var(--sv-cloud));
+  --skyline-cap: color-mix(in srgb, var(--sv-blue) 22%, transparent);
+}
+.dark .sv-hero-bg {
+  --skyline-a: var(--sv-navy-soft);
+  --skyline-b: var(--sv-navy);
+  --skyline-cap: var(--sv-blue);
+}
+
 /* Hero entrance — brand motion (y+28 / 0.7s ease from BRAND.md) */
 @keyframes sv-hero-in {
   from { opacity: 0; transform: translate3d(0, 28px, 0); }
@@ -560,6 +653,21 @@
 }
 .sv-skyline-back {
   animation: sv-skyline-back 46s ease-in-out infinite;
+}
+
+/* Front skyline — opposite drift, slower; parallax without JS */
+@keyframes sv-skyline-front {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(1.4%, 0, 0); }
+}
+.sv-skyline-front {
+  animation: sv-skyline-front 64s ease-in-out infinite;
+}
+
+/* Below-fold homepage — skip paint until near viewport (LCP stays on hero) */
+.sv-below-fold {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 2800px;
 }
 
 /* Antenna beacon — soft breathing blink */
@@ -639,10 +747,13 @@
     opacity: 1 !important;
     transform: none !important;
   }
+  /* Vestibular: kill translation/scale. Keep opacity-only ambient so the
+     night sky still lives for users with Reduce Motion on (macOS default
+     for many). Stars/windows/beacon/halos are 2–8px, no large motion. */
   .animate-aurora-a, .animate-aurora-b, .animate-aurora-c,
-  .sv-particle, .sv-window, .sv-star, .animate-float, .animate-pin, .animate-marquee,
+  .sv-particle, .animate-float, .animate-pin, .animate-marquee,
   .animate-ping, .sv-hero-in, .animate-scroll-hint,
-  .sv-skyline-back, .sv-beacon, .sv-comet, .sv-word, .text-gradient-shimmer, .sv-moon-halo,
+  .sv-skyline-back, .sv-skyline-front, .sv-comet, .sv-birds, .sv-cirrus, .sv-word, .text-gradient-shimmer,
   .sv-sky-in, .sv-nav-in {
     animation: none !important;
   }
@@ -747,6 +858,10 @@
 /* Map chrome — quiet ⓘ; legal credit in DOM, hidden until expand */
 .maplibregl-ctrl-logo {
   display: none !important;
+}
+/* Sit above the POI rail (44px chips + 1.25rem inset). */
+.maplibregl-ctrl-bottom-right {
+  bottom: 5rem !important;
 }
 .maplibregl-ctrl-attrib {
   background: color-mix(in srgb, var(--color-sv-surface) 88%, transparent) !important;

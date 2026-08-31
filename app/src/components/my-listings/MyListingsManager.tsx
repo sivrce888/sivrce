@@ -14,6 +14,7 @@ import {
   Flame,
   Loader2,
   MessagesSquare,
+  MessageCircle,
   Palette,
   Pencil,
   Phone,
@@ -27,12 +28,15 @@ import {
   Trash2,
   TrendingDown,
   Zap,
+  CircleCheck,
   CircleDot,
 } from "lucide-react"
 
 import LocalizedLink, { localizeHref } from "@/components/LocalizedLink"
 import EmptyState from "@/components/dashboard/EmptyState"
 import { CurrencySwitcher } from "@/components/CurrencySwitcher"
+import { openWhatsAppShare } from "@/components/listing/SharePack"
+import { listingPriceLabel } from "@/lib/listing-share"
 import { useCurrency } from "@/lib/currency"
 import { useI18n } from "@/lib/i18n/context"
 import {
@@ -456,6 +460,27 @@ export default function MyListingsManager({
                       status: l.status === "active" ? "withdrawn" : "active",
                     })
                   }
+                  onSend={() =>
+                    openWhatsAppShare(
+                      {
+                        title: l.title,
+                        district: l.district,
+                        city: l.city,
+                        priceLabel: listingPriceLabel(l.price, l.currency),
+                      },
+                      `/listing/${l.id}`,
+                      lang,
+                    )
+                  }
+                  onSold={() => {
+                    if (
+                      !window.confirm(
+                        "მოვნიშნოთ გაყიდულად? განცხადება აღარ გამოჩნდება ძიებაში.",
+                      )
+                    )
+                      return
+                    void patch(l.id, { status: "sold" })
+                  }}
                   onDelete={() => remove(l.id)}
                   onBoost={(body) => purchase(l.id, body)}
                 />
@@ -476,6 +501,8 @@ function ListingManageCard({
   onToggleAnalytics,
   onEdit,
   onToggle,
+  onSend,
+  onSold,
   onDelete,
   onBoost,
 }: {
@@ -486,6 +513,8 @@ function ListingManageCard({
   onToggleAnalytics: () => void
   onEdit: () => void
   onToggle: () => void
+  onSend: () => void
+  onSold: () => void
   onDelete: () => void
   onBoost: (body: { tier?: string; addon?: string }) => void
 }) {
@@ -570,6 +599,28 @@ function ListingManageCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-sv-ink/5 bg-sv-cloud/40 px-3 py-2.5 sm:px-4">
+        {l.status === "active" ? (
+          <>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onSend}
+              className="inline-flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1.5 text-[11px] font-extrabold text-white shadow-glow-orange transition hover:opacity-95 disabled:opacity-50"
+            >
+              <MessageCircle size={12} strokeWidth={2.4} />
+              კლიენტს
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onSold}
+              className="inline-flex items-center gap-1 rounded-full bg-sv-navy px-2.5 py-1.5 text-[11px] font-extrabold text-white transition hover:bg-sv-navy-soft disabled:opacity-50"
+            >
+              <CircleCheck size={12} strokeWidth={2.4} />
+              გაყიდულია
+            </button>
+          </>
+        ) : null}
         {canBoost
           ? boostPills.map((p) => {
               const renew =

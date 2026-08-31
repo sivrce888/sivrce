@@ -21,7 +21,7 @@ export function CurrencySwitcher({ light = false }: { light?: boolean }) {
       role="group"
       aria-label="Currency"
       className={`flex h-10 items-center rounded-full p-1 ${
-        light ? 'bg-sv-ink/[0.06]' : 'bg-white/10'
+        light ? 'bg-sv-ink/[0.06]' : 'bg-sv-ink/[0.06] dark:bg-white/10'
       }`}
     >
       {OPTIONS.map((o) => {
@@ -37,10 +37,10 @@ export function CurrencySwitcher({ light = false }: { light?: boolean }) {
               active
                 ? light
                   ? 'bg-sv-surface text-sv-ink'
-                  : 'bg-white/20 text-white'
+                  : 'bg-sv-surface text-sv-ink dark:bg-white/20 dark:text-white'
                 : light
                   ? 'text-sv-ink/50 hover:text-sv-ink'
-                  : 'text-white/60 hover:text-white'
+                  : 'text-sv-ink/50 hover:text-sv-ink dark:text-white/60 dark:hover:text-white'
             }`}
           >
             {o.symbol}

@@ -25,8 +25,8 @@ import {
  */
 const SSG_LANGS: readonly Lang[] = ['ka', 'en', 'ru']
 
-// ponytail: ISR — top Vercel burner was SSR on every SEO hit
-export const revalidate = 3600
+// ponytail: 60s — 3600 left /sale empty for an hour after seed. Marketplace inventory.
+export const revalidate = 60
 
 export function generateStaticParams() {
   // Next 16 types want sync params including parent `lang` for nested catch-alls.

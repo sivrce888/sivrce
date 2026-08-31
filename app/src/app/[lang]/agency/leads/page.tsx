@@ -60,7 +60,7 @@ export default async function AgencyLeadsPage() {
             return (
               <section
                 key={status}
-                className="w-60 shrink-0 rounded-2xl border border-sv-ink/6 bg-white/70 p-3"
+                className="w-60 shrink-0 rounded-card border border-sv-ink/[0.06] bg-sv-surface/70 p-3"
               >
                 <header className="flex items-center justify-between px-1 pb-2">
                   <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/55">
@@ -79,7 +79,7 @@ export default async function AgencyLeadsPage() {
                     bucket.map((lead) => (
                       <article
                         key={lead.id}
-                        className="rounded-xl border border-sv-ink/6 bg-white p-3 shadow-sm"
+                        className="rounded-module border border-sv-ink/[0.06] bg-sv-surface p-3 shadow-card"
                       >
                         <p className="truncate text-[13px] font-bold text-sv-ink">{lead.name}</p>
                         <p className="mt-0.5 text-[12px] font-semibold tabular-nums text-sv-blue">

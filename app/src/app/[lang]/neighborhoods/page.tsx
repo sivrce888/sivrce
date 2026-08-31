@@ -3,6 +3,8 @@ import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import NeighborhoodsIndex from '@/components/neighborhoods/NeighborhoodsIndex'
+import { AdSlot } from '@/components/ads/AdSlot'
+import { isValidLang } from '@/lib/i18n/core'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { getDistrictListingCounts } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
@@ -13,7 +15,7 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   title: 'უბნების გზამკვლევი — თბილისი, ბათუმი, ქუთაისი | sivrce',
   description:
-    'სად ცხოვრება ღირს: ცხოვრების ხარისხის ქულები (ტრანსპორტი, სკოლები, მწვანე ზონები, უსაფრთხოება), საშუალო ფასები კვადრატულზე და მცხოვრებლების შეფასებები ყველა უბნისთვის.',
+    'სად ღირს ცხოვრება: ცხოვრების ხარისხის ქულები (ტრანსპორტი, სკოლები, მწვანე ზონები, უსაფრთხოება), საშუალო ფასები კვადრატულზე და მცხოვრებლების შეფასებები ყველა უბნისთვის.',
   alternates: { canonical: '/neighborhoods', languages: langAlternates('/neighborhoods') },
   openGraph: {
     title: 'უბნების გზამკვლევი — ცხოვრების ხარისხის ქულები და ფასები | sivrce',
@@ -23,7 +25,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function NeighborhoodsPage() {
+export default async function NeighborhoodsPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
   const counts = await getDistrictListingCounts()
   const listLd = {
     '@context': 'https://schema.org',
@@ -40,10 +48,11 @@ export default async function NeighborhoodsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
+      <main id="main">
         <NeighborhoodsIndex counts={counts} />
+        <AdSlot slot="neighborhoods" lang={lang} />
         <CTA />
       </main>
       <Footer />

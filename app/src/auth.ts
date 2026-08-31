@@ -3,8 +3,11 @@ import NextAuth, { type NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 
+import { finishLogin } from "@/lib/auth-passkey"
+import { isPhoneEmail } from "@/lib/auth-phone"
 import type { UserRole } from "@/generated/prisma/client"
-import { db } from "@/lib/db"
+import { findOrCreatePhoneUser, verifyPhoneOtp } from "@/lib/auth-phone-otp"
+import { db, dbAvailable } from "@/lib/db"
 import { sendWelcomeEmail } from "@/lib/email"
 import { verifyPassword } from "@/lib/password"
 
@@ -46,6 +49,45 @@ providers.push(
         id: user.id,
         email: user.email,
         name: user.name,
+        image: user.image,
+        role: user.role,
+      }
+    },
+  }),
+)
+
+providers.push(
+  Credentials({
+    id: "passkey",
+    name: "Passkey",
+    credentials: { cred: { label: "cred", type: "text" } },
+    async authorize(credentials) {
+      const cred = String(credentials?.cred ?? "")
+      if (!cred) return null
+      return finishLogin(cred)
+    },
+  }),
+)
+
+providers.push(
+  Credentials({
+    id: "phone",
+    name: "Phone",
+    credentials: {
+      phone: { label: "Phone", type: "tel" },
+      code: { label: "Code", type: "text" },
+    },
+    async authorize(credentials) {
+      const checked = await verifyPhoneOtp(
+        String(credentials?.phone ?? ""),
+        String(credentials?.code ?? ""),
+      )
+      if (!checked.ok) return null
+      const user = await findOrCreatePhoneUser(checked.phone)
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name || checked.phone,
         image: user.image,
         role: user.role,
       }
@@ -116,8 +158,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!id) return token
       token.id = id
       // Fresh role after onboarding/settings (PK lookup — same as DB sessions).
-      const row = await db.user.findUnique({ where: { id }, select: { role: true } })
-      if (row) token.role = row.role
+      // ponytail: never 500 /api/auth/session when Postgres is down — chrome polls this on every page.
+      try {
+        if (!(await dbAvailable())) return token
+        const row = await db.user.findUnique({ where: { id }, select: { role: true } })
+        if (row) token.role = row.role
+      } catch { /* keep last-known role */ }
       return token
     },
     async session({ session, token }) {
@@ -130,7 +176,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async createUser({ user }) {
-      if (!user.email) return
+      if (!user.email || isPhoneEmail(user.email)) return
       if (user.id) await ensureAdminRole(user.id, user.email)
       sendWelcomeEmail({
         to: user.email,

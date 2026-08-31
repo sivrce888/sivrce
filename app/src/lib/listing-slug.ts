@@ -34,7 +34,7 @@ const TITLE_TYPE: Record<PropType, DictKey> = {
 
 /** Keyword-first detail title: "იყიდება 2-ოთახიანი ბინა ვაკეში" — same engine as the /add-listing default. */
 export function listingKeyword(l: SlugListing): string {
-  const dealLabel = l.dealType === 'daily' ? 'ქირავდება დღიურად' : DEALS[l.dealType].ka
+  const dealLabel = l.dealType === 'daily' ? 'ქირავდება დღიურად' : (DEALS[l.dealType]?.ka ?? DEALS.sale.ka)
   const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, district: l.district, city: l.city })
   return cap1(fillTpl(
     ka[l.rooms > 0 && l.propType !== 'land' ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'],

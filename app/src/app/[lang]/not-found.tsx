@@ -13,7 +13,7 @@ export default function NotFound() {
   return (
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
       <Navbar />
-      <main className="mx-auto flex min-h-[80vh] max-w-[1440px] flex-col items-center justify-center px-5 pt-24 text-center">
+      <main className="sv-pt-nav mx-auto flex min-h-[80vh] max-w-[1440px] flex-col items-center justify-center px-5 text-center">
         <Reveal className="flex flex-col items-center">
           <span className="grid h-20 w-20 place-items-center rounded-module bg-sv-blue/10">
             <SearchX className="h-9 w-9 text-sv-blue" />
@@ -26,7 +26,7 @@ export default function NotFound() {
           </p>
           <LocalizedLink
             href="/search"
-            className="mt-8 flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
+            className="mt-8 flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             <ArrowLeft className="h-4 w-4" /> {t('detail.backToSearch')}
           </LocalizedLink>

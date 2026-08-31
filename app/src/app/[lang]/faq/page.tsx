@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Plus } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
@@ -39,7 +40,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
       },
       {
         q: 'როგორ გამოვიყენო AI ძიება?',
-        a: 'მთავარი გვერდის ძიების ველში ჩაწერე თავისუფალი ტექსტი — მაგალითად „ოროთალიანი ბინა ვაკეში 200 ათასამდე". AI გაარჩევს შენს მოთხოვნას და აჩვენებს შესაბამის განცხადებებს. მუშაობს ქართულად, ინგლისურად და რუსულად.',
+        a: 'მთავარი გვერდის ძიების ველში ჩაწერე თავისუფალი ტექსტი — მაგალითად „ოროთახიანი ბინა ვაკეში 200 ათასამდე". AI გაარჩევს შენს მოთხოვნას და აჩვენებს შესაბამის განცხადებებს. მუშაობს ქართულად, ინგლისურად და რუსულად.',
       },
     ],
   },
@@ -62,6 +63,10 @@ const SECTIONS: { title: string; items: QA[] }[] = [
         q: 'როგორ მუშაობს ვერიფიკაცია?',
         a: 'ვერიფიკაციისთვის აგენტი ან მფლობელი ატვირთავს პირადობის დამადასტურებელ დოკუმენტს და ქონების საკადასტრო მონაცემებს. ჩვენი გუნდი ამოწმებს ინფორმაციას 1-2 სამუშაო დღეში და წარმატებული შემოწმების შემდეგ განცხადებას ენიჭება ვერიფიცირებული ნიშანი.',
       },
+      {
+        q: 'შემიძლია რემონტის ან იურიდიული სერვისის გამოქვეყნება?',
+        a: 'დიახ. sivrce-ზე არის სერვისების ბაზარი — რემონტი, ინტერიერი, ფოტო და 3D, იურისტი, შეფასება, გადატანა, დასუფთავება, ქონების მართვა. კომპანია აქვეყნებს სერვისს /add-service-ზე და ქონების განცხადებას იმავე ანგარიშით /add-listing-ზე. ორივე ჩანს კომპანიის პროფილზე.',
+      },
     ],
   },
   {
@@ -73,7 +78,7 @@ const SECTIONS: { title: string; items: QA[] }[] = [
       },
       {
         q: 'უსაფრთხოა თუ არა პირდაპირი კონტაქტი?',
-        a: 'დიახ. ყველა აგენტი, ვისთანაც ლაპარაკობ, გარდაიცვლება ვერიფიკაციას. შეტყობინებები ხდება პლატფორმის შიგნით, რაც ინახავს მიმოწერის ისტორიას და გიცავს თაღლითობისგან. არასდროს გადაურიცხო ფული პირად შეხვედრამდე.',
+        a: 'დიახ. ყველა აგენტი, ვისთანაც ლაპარაკობ, გაივლის ვერიფიკაციას. შეტყობინებები ხდება პლატფორმის შიგნით, რაც ინახავს მიმოწერის ისტორიას და გიცავს თაღლითობისგან. არასდროს გადაურიცხო ფული პირად შეხვედრამდე.',
       },
     ],
   },
@@ -95,23 +100,18 @@ const faqLd = {
 
 export default function FaqPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-sv-cloud">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
-        <section className="mx-auto max-w-4xl px-6 py-14 md:py-20">
-          <Reveal>
-            <div className="text-center">
-              <h1 className="text-4xl font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
-                ხშირად დასმული კითხვები
-              </h1>
-              <p className="mx-auto mt-4 max-w-xl text-[15px] font-medium text-sv-ink/60">
-                ყველაფერი, რაც sivrce-ის გამოყენებისთვის უნდა იცოდე — ერთ გვერდზე.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="mt-14 space-y-14">
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="დახმარება"
+          title="ხშირად დასმული კითხვები"
+          subtitle="ყველაფერი, რაც sivrce-ის გამოყენებისთვის უნდა იცოდე — ერთ გვერდზე."
+        />
+        <section className="mx-auto max-w-4xl px-6 pb-20 pt-8 md:pb-28">
+          <div className="space-y-14">
             {SECTIONS.map((section, si) => (
               <Reveal key={section.title} delay={si * 0.05}>
                 <section>
@@ -122,7 +122,7 @@ export default function FaqPage() {
                     {section.items.map((item) => (
                       <details
                         key={item.q}
-                        className="group rounded-card bg-white shadow-card ring-1 ring-sv-ink/5 transition open:shadow-card-hover"
+                        className="group rounded-card bg-sv-surface shadow-card ring-1 ring-sv-ink/5 transition open:shadow-card-hover"
                       >
                         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 text-[16px] font-bold text-sv-ink marker:hidden [&::-webkit-details-marker]:hidden">
                           {item.q}

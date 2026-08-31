@@ -1,18 +1,19 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { Search, Building2, MapPin, Route } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, Building2, MapPin, Route, X } from 'lucide-react'
+import { useI18n, localizedHref } from '@/lib/i18n/context'
+import { isExactLookupQuery } from '@/lib/listing-public-id'
+import { searchHref, suggestionToFilters, exactSuggestHit } from '@/lib/search-location'
 
-/**
- * Keyword / street input with location autocomplete (cities · districts · streets).
- * Grouped listbox. Keyboard: ↑↓ Enter Esc. aria combobox pattern.
- */
+/** Keyword input with city / district / street autocomplete. Keyboard: ↑↓ Enter Esc. */
 
 export interface Suggestion {
   kind: 'city' | 'district' | 'street'
   ka: string
   en?: string
-  /** Catalog ubani — soft-fill when picking a street */
+  city?: string
   district?: string
 }
 
@@ -27,28 +28,28 @@ const KIND_ORDER: Suggestion['kind'][] = ['city', 'district', 'street']
 const KIND_ICON = { city: Building2, district: MapPin, street: Route } as const
 
 interface Props {
-  variant: 'dark' | 'light'
+  variant: 'dark' | 'light' | 'auto'
   value: string
   onChange: (v: string) => void
-  /** Picked a suggestion — parent maps kind → city/district/q. */
   onPick: (s: Suggestion) => void
-  /** Enter pressed with no highlighted suggestion. */
   onSubmit: () => void
   placeholder: string
   ariaLabel: string
   className?: string
   inputRef?: React.Ref<HTMLInputElement>
-  /** Scope street matches to this city (passed to /api/suggest). */
   city?: string
-  /** No leading search icon / outer chrome — parent owns the label shell. */
-  bare?: boolean
+  /** Compact chrome (nav / map). Default is the large search box. */
+  size?: 'md' | 'lg'
 }
 
 export default function SearchSuggest({
   variant, value, onChange, onPick, onSubmit, placeholder, ariaLabel,
-  className = '', inputRef, city, bare = false,
+  className = '', inputRef, city, size = 'lg',
 }: Props) {
   const dark = variant === 'dark'
+  const auto = variant === 'auto'
+  const md = size === 'md'
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<Suggestion[]>([])
   const [hi, setHi] = useState(-1)
@@ -100,39 +101,49 @@ export default function SearchSuggest({
         e.preventDefault()
         pick(items[hi])
       } else {
-        setOpen(false)
-        onSubmit()
+        const exact = exactSuggestHit(items, value)
+        if (exact) {
+          e.preventDefault()
+          pick(exact)
+        } else {
+          setOpen(false)
+          onSubmit()
+        }
       }
     } else if (e.key === 'Escape') {
       setOpen(false)
     }
   }
 
-  // Flat index → grouped render (headers don't count as options).
   const groups = KIND_ORDER
     .map((kind) => ({ kind, rows: items.map((s, i) => ({ s, i })).filter((x) => x.s.kind === kind) }))
     .filter((g) => g.rows.length > 0)
 
-  const inputClass = bare
-    ? dark
-      ? 'w-full bg-transparent px-3.5 pb-2.5 pt-0.5 text-[14px] font-bold text-white outline-none placeholder:text-white/40'
-      : 'w-full bg-transparent px-3.5 pb-2.5 pt-0.5 text-[13px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35'
+  const inputClass = auto
+    ? 'h-12 w-full rounded-full bg-transparent py-0 pl-11 pr-10 text-[15px] font-semibold tracking-[-0.01em] text-sv-ink outline-none placeholder:text-sv-ink/38 focus-visible:ring-0 dark:text-white dark:placeholder:text-white/45'
     : dark
-      ? 'w-full rounded-control bg-white/[0.07] py-3.5 pl-11 pr-4 text-[15px] font-semibold text-white transition-colors placeholder:text-white/45 focus:bg-white/[0.12] focus:outline-none'
-      : 'h-9 w-full rounded-control border border-sv-ink/10 bg-sv-surface pl-9 pr-3 text-[12px] font-bold text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
+    ? md
+      ? 'h-10 w-full rounded-full bg-white/[0.08] py-0 pl-10 pr-9 text-[13px] font-semibold text-white outline-none placeholder:text-white/40 focus:bg-white/[0.12]'
+      : 'h-12 w-full rounded-control bg-white/[0.07] py-0 pl-11 pr-10 text-[15px] font-semibold text-white outline-none placeholder:text-white/45 focus:bg-white/[0.12]'
+    : md
+      ? 'h-10 w-full rounded-full border border-sv-ink/10 bg-sv-surface pl-10 pr-9 text-[13px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
+      : 'h-12 w-full rounded-control border border-sv-ink/10 bg-sv-surface pl-11 pr-10 text-[14px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/30'
 
   return (
     <div className={`relative ${className}`}>
-      {!bare && (
-        <Search
-          className={`pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 ${
-            dark ? 'text-white/50' : 'left-3.5 h-4 w-4 text-sv-ink/35'
-          }`}
-        />
-      )}
+      <Search
+        className={`pointer-events-none absolute top-1/2 -translate-y-1/2 ${
+          auto
+            ? 'left-4 h-[18px] w-[18px] text-sv-ink/35 dark:text-white/50'
+            : dark
+            ? md ? 'left-3.5 h-4 w-4 text-white/45' : 'left-4 h-[18px] w-[18px] text-white/50'
+            : md ? 'left-3.5 h-4 w-4 text-sv-ink/35' : 'left-4 h-[18px] w-[18px] text-sv-ink/35'
+        }`}
+      />
       <input
         ref={inputRef}
-        type="text"
+        type="search"
+        enterKeyHint="search"
         role="combobox"
         aria-expanded={open}
         aria-controls={listId}
@@ -146,15 +157,32 @@ export default function SearchSuggest({
         onKeyDown={onKeyDown}
         onFocus={() => items.length > 0 && setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 120)}
-        className={inputClass}
+        className={`${inputClass} [&::-webkit-search-cancel-button]:hidden`}
       />
+      {value && (
+        <button
+          type="button"
+          aria-label={t('search.clear')}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onChange('')}
+          className={`absolute top-1/2 -translate-y-1/2 rounded-full p-1 ${
+            auto
+              ? 'right-2.5 text-sv-ink/35 hover:text-sv-ink dark:text-white/45 dark:hover:text-white'
+              : dark ? 'right-2.5 text-white/45 hover:text-white' : 'right-2.5 text-sv-ink/35 hover:text-sv-ink'
+          }`}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
       {open && (
         <ul
           id={listId}
           role="listbox"
           aria-label={ariaLabel}
-          className={`absolute inset-x-0 top-full z-50 mt-2 max-h-72 overflow-y-auto rounded-module p-1 ${
-            dark
+          className={`absolute inset-x-0 top-full z-[80] mt-2 max-h-72 overflow-y-auto rounded-module p-1 ${
+            auto
+              ? 'border border-sv-ink/10 bg-sv-surface shadow-card-hover dark:border-white/10 dark:bg-sv-navy/95 dark:shadow-panel-dark dark:backdrop-blur-xl'
+              : dark
               ? 'border border-white/10 bg-sv-navy/95 shadow-panel-dark backdrop-blur-xl'
               : 'border border-sv-ink/10 bg-sv-surface shadow-card-hover'
           }`}
@@ -163,7 +191,7 @@ export default function SearchSuggest({
             <li key={g.kind} role="presentation">
               <div
                 className={`px-3 pb-1 pt-2 text-[10px] font-extrabold uppercase tracking-[0.08em] ${
-                  dark ? 'text-white/35' : 'text-sv-ink/35'
+                  auto ? 'text-sv-ink/35 dark:text-white/35' : dark ? 'text-white/35' : 'text-sv-ink/35'
                 }`}
               >
                 {KIND_LABEL[g.kind]}
@@ -174,7 +202,7 @@ export default function SearchSuggest({
                   return (
                     <li
                       id={`${listId}-${i}`}
-                      key={`${s.kind}:${s.ka}`}
+                      key={`${s.kind}:${s.city ?? ''}:${s.ka}`}
                       role="option"
                       aria-selected={hi === i}
                     >
@@ -184,16 +212,16 @@ export default function SearchSuggest({
                         onMouseEnter={() => setHi(i)}
                         className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left transition-colors ${
                           hi === i
-                            ? dark ? 'bg-white/10' : 'bg-sv-ink/[0.05]'
+                            ? auto ? 'bg-sv-ink/[0.05] dark:bg-white/10' : dark ? 'bg-white/10' : 'bg-sv-ink/[0.05]'
                             : ''
                         }`}
                       >
-                        <Icon className={`h-4 w-4 shrink-0 ${dark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
-                        <span className={`min-w-0 flex-1 truncate text-[13px] font-bold ${dark ? 'text-white' : 'text-sv-ink'}`}>
+                        <Icon className={`h-4 w-4 shrink-0 ${auto ? 'text-sv-blue dark:text-sv-blue-light' : dark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
+                        <span className={`min-w-0 flex-1 truncate text-[13px] font-bold ${auto ? 'text-sv-ink dark:text-white' : dark ? 'text-white' : 'text-sv-ink'}`}>
                           {s.ka}
-                          {(s.district || s.en) && (
-                            <span className={`ml-1.5 font-semibold ${dark ? 'text-white/40' : 'text-sv-ink/40'}`}>
-                              {[s.district, s.en].filter(Boolean).join(' · ')}
+                          {(s.city || s.district || s.en) && (
+                            <span className={`ml-1.5 font-semibold ${auto ? 'text-sv-ink/40 dark:text-white/40' : dark ? 'text-white/40' : 'text-sv-ink/40'}`}>
+                              {[s.district, s.city, s.en].filter(Boolean).join(' · ')}
                             </span>
                           )}
                         </span>
@@ -207,5 +235,76 @@ export default function SearchSuggest({
         </ul>
       )}
     </div>
+  )
+}
+
+/** Nav / map / menu — one box, goes to /search (or the listing on ID/phone/cadastral). */
+export async function resolveExactPlace(q: string, city?: string): Promise<Suggestion | undefined> {
+  const needle = q.trim()
+  if (needle.length < 2) return undefined
+  try {
+    const sp = new URLSearchParams({ q: needle })
+    if (city) sp.set('city', city)
+    const res = await fetch(`/api/suggest?${sp}`)
+    const json = (await res.json()) as { ok?: boolean; suggestions?: Suggestion[] }
+    return exactSuggestHit(json.ok ? (json.suggestions ?? []) : [], needle)
+  } catch {
+    return undefined
+  }
+}
+
+export function ChromeSearch({
+  variant,
+  className = '',
+  onNavigate,
+  onPlace,
+}: {
+  variant: 'dark' | 'light'
+  className?: string
+  onNavigate?: () => void
+  /** Map page: fly in-place instead of leaving for /search. */
+  onPlace?: (q: string, s?: Suggestion) => void | Promise<void>
+}) {
+  const [q, setQ] = useState('')
+  const router = useRouter()
+  const { lang, t } = useI18n()
+
+  const go = async (s?: Suggestion) => {
+    const raw = s ? s.ka : q.trim()
+    if (onPlace) {
+      onNavigate?.()
+      await onPlace(raw, s)
+      return
+    }
+    const typed = s ? '' : q.trim()
+    if (typed && isExactLookupQuery(typed)) {
+      try {
+        const res = await fetch(`/api/listings/resolve?q=${encodeURIComponent(typed)}`)
+        const json = (await res.json()) as { ok?: boolean; path?: string }
+        if (json.ok && json.path) {
+          onNavigate?.()
+          router.push(localizedHref(json.path, lang))
+          return
+        }
+      } catch { /* fall through */ }
+    }
+    const place = s ?? (typed ? await resolveExactPlace(typed) : undefined)
+    const f = place ? suggestionToFilters(place) : { q: typed || undefined }
+    onNavigate?.()
+    router.push(localizedHref(searchHref(f), lang))
+  }
+
+  return (
+    <SearchSuggest
+      variant={variant}
+      size="md"
+      value={q}
+      onChange={setQ}
+      onPick={(s) => void go(s)}
+      onSubmit={() => void go()}
+      placeholder={t('search.keywordPlaceholder')}
+      ariaLabel={t('nav.search')}
+      className={className}
+    />
   )
 }

@@ -38,13 +38,13 @@ export function projectHubMetadata(path: string, lang: Lang, c: DirectoryHubCopy
       url: `https://sivrce.ge${path}`,
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
-      images: [{ url: 'https://sivrce.ge/images/og.jpg', alt: c.ogTitle }],
+      images: [{ url: 'https://sivrce.ge/images/og-brand.png', alt: c.ogTitle }],
     },
     twitter: {
       card: 'summary_large_image',
       title: c.ogTitle,
       description: c.description,
-      images: ['https://sivrce.ge/images/og.jpg'],
+      images: ['https://sivrce.ge/images/og-brand.png'],
     },
   }
 }
@@ -112,7 +112,7 @@ export function ProjectHub({
                             <p className="text-[13px] font-bold text-white/80">{pickLoc(dev.name, loc)}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-navy">
+                        <div className="flex items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-ink">
                           <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
                           {p.rating}
                         </div>

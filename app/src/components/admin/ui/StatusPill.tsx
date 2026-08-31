@@ -13,6 +13,7 @@ const MAP: Record<string, { cls: string; dot: string }> = {
   closed_won: { cls: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
   published: { cls: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
   ready: { cls: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
+  paused: { cls: "bg-sv-ink/6 text-sv-ink/55", dot: "bg-sv-ink/30" },
   // attention
   pending: { cls: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
   scheduled: { cls: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },

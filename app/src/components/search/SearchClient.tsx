@@ -8,14 +8,17 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, LayoutGrid, Rows3, Search,
-  ChevronDown, MapPin, RotateCcw, SearchX, Home, SlidersHorizontal,
+  ChevronDown, MapPin, RotateCcw, SearchX, Home, SlidersHorizontal, Layers,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import LocalizedLink from '@/components/LocalizedLink'
 import ListingCard from '@/components/ListingCard'
+import { AdCreative } from '@/components/ads/AdCreative'
+import type { PublicAd } from '@/lib/ads'
 import HScroll from '@/components/HScroll'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
-import SearchSuggest from '@/components/search/SearchSuggest'
+import SearchSuggest, { resolveExactPlace } from '@/components/search/SearchSuggest'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
 import { blurProps } from '@/lib/media'
@@ -28,6 +31,7 @@ import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, 
 import { featuresFor } from '@/lib/add-listing-fields'
 import type { SearchLocations } from '@/lib/listings-db'
 import { mapSearchHit } from '@/lib/map-search-hit'
+import { suggestionToFilters } from '@/lib/search-location'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import {
   CITIES, districtsOf,
@@ -110,14 +114,20 @@ function CompactCard({ l }: { l: Listing }) {
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
           {format(l.priceGEL)}{suffix}
         </span>
-        <span className="block truncate text-[12px] font-semibold text-sv-ink/55">{l.title}</span>
+        <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{l.title}</span>
         <span className="block text-[12px] font-semibold text-sv-ink/40">{l.area} მ² · {l.city}</span>
       </span>
     </Link>
   )
 }
 
-export default function SearchClient({ locations }: { locations?: SearchLocations }) {
+export default function SearchClient({
+  locations,
+  ads,
+}: {
+  locations?: SearchLocations
+  ads?: { top: PublicAd | null; native: PublicAd | null }
+}) {
   const params = useSearchParams()
   const router = useRouter()
   const { t, lang } = useI18n()
@@ -276,6 +286,11 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
     void (async () => {
       const raw = drafts.q.trim()
       if (raw && (await tryResolveQ(raw))) return
+      const place = raw ? await resolveExactPlace(raw, city) : undefined
+      if (place) {
+        patchParams(suggestionToFilters(place))
+        return
+      }
       flushDrafts()
     })()
   }
@@ -493,9 +508,39 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   /* Whole filter UI — rendered once in the desktop sticky bar and again inside
      the mobile bottom sheet (mobile swaps the deal-pill layoutId + hides the
      view toggle, which only makes sense next to results). */
+  const keywordBox = (size: 'md' | 'lg', className = 'min-w-0 w-full') => (
+    <SearchSuggest
+      variant="light"
+      size={size}
+      city={city}
+      value={drafts.q}
+      onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
+      onPick={(s) => patchParams(suggestionToFilters(s))}
+      onSubmit={submitKeyword}
+      placeholder={t('search.keywordPlaceholder')}
+      ariaLabel={t('search.keyword')}
+      className={className}
+    />
+  )
+
   const filtersBody = (mobile: boolean) => (
     <>
-      {/* One strip: deal · type · city · district · keyword · price · rooms · area · more — ss.ge / myhome density */}
+      {mobile && <div className="mb-3">{keywordBox('lg')}</div>}
+      {!mobile && (
+        <div className="mb-2 flex items-center gap-2">
+          {keywordBox('lg', 'min-w-0 flex-1')}
+          <button
+            type="button"
+            onClick={submitKeyword}
+            className="flex h-12 shrink-0 items-center gap-1.5 rounded-control bg-sv-blue px-5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+          >
+            <Search className="h-4 w-4" aria-hidden />
+            {t('search.apply')}
+          </button>
+        </div>
+      )}
+
+      {/* Deal · type · city · district · price · rooms · area · more */}
       <div className="scrollbar-hide flex flex-nowrap items-center gap-1.5 overflow-x-auto">
         <div className="flex shrink-0 rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.dealType')}>
           {DEALS.map((d) => {
@@ -583,34 +628,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
         </div>
 
-        <SearchSuggest
-          variant="light"
-          city={city}
-          value={drafts.q}
-          onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
-          onPick={(s) => {
-            if (s.kind === 'city') {
-              setDrafts((d) => ({ ...d, q: '' }))
-              patchParams({ city: s.ka, district: undefined, q: undefined })
-            } else if (s.kind === 'district') {
-              setDrafts((d) => ({ ...d, q: '' }))
-              patchParams({ district: s.ka, q: undefined })
-            } else {
-              setDrafts((d) => ({ ...d, q: s.ka }))
-              patchParams({
-                q: s.ka,
-                ...(s.district ? { district: s.district } : {}),
-              })
-            }
-          }}
-          onSubmit={submitKeyword}
-          placeholder={t('search.keywordPlaceholder')}
-          ariaLabel={t('search.keyword')}
-          className="min-w-[160px] max-w-[280px] shrink-0 grow basis-[160px]"
-        />
-
         <div className="flex shrink-0 items-center gap-1">
-          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">{t('search.price')}</span>
+          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">{t('search.price')}</span>
           <input
             type="number" min={0} placeholder={t('search.min')}
             value={drafts.min}
@@ -633,7 +652,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
                 type="button"
                 onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })}
                 aria-pressed={cur === c}
-                className={`h-7 w-7 rounded-md text-[12px] font-extrabold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
+                className={`h-7 w-7 rounded-md text-[12px] font-extrabold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'}`}
               >
                 {c === 'USD' ? '$' : '₾'}
               </button>
@@ -642,7 +661,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">
+          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">
             {deal === 'daily' ? t('search.bedrooms') : t('search.rooms')}
           </span>
           <div className="flex gap-0.5">
@@ -668,7 +687,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">{t('search.area')}</span>
+          <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">{t('search.area')}</span>
           <input
             type="number" min={0} placeholder={t('search.min')}
             value={drafts.amin}
@@ -688,7 +707,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
 
         {deal === 'daily' && (
           <div className="flex shrink-0 items-center gap-1">
-            <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/55">{t('search.checkIn')}</span>
+            <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">{t('search.checkIn')}</span>
             <input
               type="date"
               value={from ?? ''}
@@ -749,15 +768,6 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
           </button>
         )}
-
-        <button
-          type="button"
-          onClick={submitKeyword}
-          className="ml-auto flex h-9 shrink-0 items-center gap-1.5 rounded-control bg-sv-blue px-4 text-[12px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-        >
-          <Search className="h-3.5 w-3.5" aria-hidden />
-          {t('search.apply')}
-        </button>
       </div>
 
       {/* More filters panel — seller / condition / status / features */}
@@ -906,29 +916,38 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
   /* List/Map segmented toggle — same chrome as the currency segment. Rendered in
      two spots (mobile next to ფილტრი, desktop in the results header); CSS picks one. */
   const viewToggle = (
-    <div className="flex shrink-0 rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.view')}>
-      {([undefined, 'map'] as const).map((v) => {
-        const active = mapMode === (v === 'map')
-        return (
-          <button
-            key={v ?? 'list'}
-            type="button"
-            aria-pressed={active}
-            onClick={() =>
-              patchParams(
-                v === 'map'
-                  ? { view: 'map' }
-                  : { view: undefined, west: undefined, south: undefined, east: undefined, north: undefined },
-              )
-            }
-            className={`whitespace-nowrap rounded-md px-3 py-1.5 text-[12px] font-extrabold transition-colors ${
-              active ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'
-            }`}
-          >
-            {t(v === 'map' ? 'search.map' : 'search.list')}
-          </button>
-        )
-      })}
+    <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex rounded-control bg-sv-ink/[0.05] p-0.5" role="group" aria-label={t('search.view')}>
+        {([undefined, 'map'] as const).map((v) => {
+          const active = mapMode === (v === 'map')
+          return (
+            <button
+              key={v ?? 'list'}
+              type="button"
+              aria-pressed={active}
+              onClick={() =>
+                patchParams(
+                  v === 'map'
+                    ? { view: 'map' }
+                    : { view: undefined, west: undefined, south: undefined, east: undefined, north: undefined },
+                )
+              }
+              className={`whitespace-nowrap rounded-md px-3 py-1.5 text-[12px] font-extrabold transition-colors ${
+                active ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'
+              }`}
+            >
+              {t(v === 'map' ? 'search.map' : 'search.list')}
+            </button>
+          )
+        })}
+      </div>
+      <LocalizedLink
+        href="/map"
+        className="inline-flex h-11 items-center gap-1.5 rounded-full bg-sv-orange px-3 text-[12px] font-extrabold text-white shadow-glow-orange transition hover:brightness-110"
+      >
+        <Layers className="h-3.5 w-3.5" aria-hidden />
+        {t('nav.map')}
+      </LocalizedLink>
     </div>
   )
 
@@ -937,31 +956,47 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
       <Navbar />
 
       {/* Page header — compact so listings start above the fold */}
-      <div className="relative overflow-hidden bg-sv-navy pb-4 pt-[96px]">
-        <div aria-hidden className="absolute inset-0 bg-dots-dark" />
+      <main id="main" aria-busy={showSkeleton}>
+      <div className="relative overflow-hidden bg-sv-navy pb-6 pt-[calc(100px+env(safe-area-inset-top,0px))]">
+        <div aria-hidden className="absolute inset-0 bg-grid-dark" />
+        <div
+          aria-hidden
+          className="absolute -top-24 left-1/4 h-56 w-56 rounded-full bg-sv-blue/20 blur-[100px]"
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-16 right-1/5 h-40 w-40 rounded-full bg-sv-violet/15 blur-[80px]"
+        />
         <div className="relative mx-auto max-w-[1440px] px-5 md:px-10">
-          <h1 className="text-[22px] font-black tracking-[-0.02em] text-white md:text-[26px]">
+          <h1 className="text-[24px] font-black tracking-[-0.03em] text-white md:text-[32px]">
             {t('search.title')}
           </h1>
           <p className="mt-0.5 flex items-center gap-1.5 text-[13px] font-semibold text-white/55">
-            <MapPin className="h-3.5 w-3.5 text-sv-blue" />
+            <MapPin className="h-3.5 w-3.5 text-sv-blue-light" />
             {city ?? t('search.allGeorgia')}
             {district ? ` · ${district}` : ''}
+            {q ? ` · ${q}` : ''}
           </p>
         </div>
       </div>
 
       {/* Filter bar: full controls on desktop (sticky), compact sheet trigger on mobile */}
-      <div className="z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[88px]">
+      <div className="z-40 border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]">
         <div className="mx-auto max-w-[1440px] px-4 py-2 md:px-10">
           <div className="flex items-center gap-2 md:hidden">
+            {keywordBox('md', 'min-w-0 flex-1')}
             <button
               type="button"
               onClick={() => setSheetOpen(true)}
-              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-control bg-sv-blue text-[13px] font-extrabold text-white shadow-glow-blue-sm"
+              className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue-sm"
+              aria-label={`${t('search.filters')}${chips.length > 0 ? ` (${chips.length})` : ''}`}
             >
               <SlidersHorizontal className="h-4 w-4" />
-              {t('search.filters')}{chips.length > 0 ? ` (${chips.length})` : ''}
+              {chips.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-sv-orange px-1 text-[9px] font-black text-white">
+                  {chips.length}
+                </span>
+              )}
             </button>
             {viewToggle}
           </div>
@@ -970,7 +1005,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
       </div>
 
       {/* Results */}
-      <main id="main" aria-busy={showSkeleton} className="mx-auto max-w-[1440px] px-5 py-5 md:px-10">
+      <div className="mx-auto max-w-[1440px] px-5 py-5 md:px-10">
         {/* Recently viewed rail — return-visit retention */}
         {recentItems.length > 0 && !showSkeleton && (
           <section aria-label={s('recentlyViewed')} className="mb-6">
@@ -1028,7 +1063,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
                 onClick={() => setView('grid')}
                 aria-label={t('search.grid')}
                 aria-pressed={view === 'grid'}
-                className={`grid h-8 w-8 place-items-center rounded-md transition-colors ${view === 'grid' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
+                className={`grid h-11 w-11 place-items-center rounded-md transition-colors ${view === 'grid' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'}`}
               >
                 <LayoutGrid className="h-4 w-4" />
               </button>
@@ -1036,7 +1071,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
                 onClick={() => setView('list')}
                 aria-label={t('search.list')}
                 aria-pressed={view === 'list'}
-                className={`grid h-8 w-8 place-items-center rounded-md transition-colors ${view === 'list' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/45 hover:text-sv-ink'}`}
+                className={`grid h-11 w-11 place-items-center rounded-md transition-colors ${view === 'list' ? 'bg-sv-surface text-sv-blue shadow-glow-blue-sm' : 'text-sv-ink/65 hover:text-sv-ink'}`}
               >
                 <Rows3 className="h-4 w-4" />
               </button>
@@ -1044,6 +1079,12 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             <div className="hidden md:block">{viewToggle}</div>
           </div>
         </div>
+
+        {ads?.top ? (
+          <div className="mb-6">
+            <AdCreative ad={ads.top} lang={lang} />
+          </div>
+        ) : null}
 
         {showSkeleton ? (
           <div className={`grid gap-6 ${view === 'grid' ? 'sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
@@ -1057,7 +1098,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             <h2 className="mt-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">
               {t('search.emptyTitle')}
             </h2>
-            <p className="mt-2 max-w-[380px] text-[15px] font-semibold leading-relaxed text-sv-ink/50">
+            <p className="mt-2 max-w-[380px] text-[15px] font-semibold leading-relaxed text-sv-ink/65">
               {t('search.emptyText')}
             </p>
             <button
@@ -1091,7 +1132,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
               }
             />
             {totalResults > results.length && (
-              <p className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/55">
+              <p className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/70">
                 <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 {t('search.mapNote', { n: results.length, total: totalResults })}
               </p>
@@ -1099,9 +1140,18 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         ) : (
           <div className={view === 'grid' ? 'grid gap-6 sm:grid-cols-2 xl:grid-cols-3' : 'grid grid-cols-1 gap-5'}>
-            {results.map((l, i) => (
-              <ListingCard key={l.id} l={l} i={i} layout={view === 'grid' ? 'wide' : 'list'} />
-            ))}
+            {results.flatMap((l, i) => {
+              const card = (
+                <ListingCard key={l.id} l={l} i={i} layout={view === 'grid' ? 'wide' : 'list'} />
+              )
+              if (ads?.native && i === 2) {
+                return [
+                  <AdCreative key={`ad-${ads.native.id}`} ad={ads.native} lang={lang} />,
+                  card,
+                ]
+              }
+              return [card]
+            })}
           </div>
         )}
 
@@ -1116,7 +1166,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             >
               ← {t('search.prev')}
             </button>
-            <span className="text-[13px] font-extrabold text-sv-ink/55" aria-live="polite">
+            <span className="text-[13px] font-extrabold text-sv-ink/70" aria-live="polite">
               {page} / {totalPages}
             </span>
             <button
@@ -1137,7 +1187,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
             {t('search.seoHint')}
           </p>
         )}
-      </main>
+      </div>
 
       {/* Mobile filter sheet — fixed bottom overlay, Escape/backdrop close */}
       {sheetOpen && (
@@ -1152,7 +1202,7 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
                 type="button"
                 onClick={() => setSheetOpen(false)}
                 aria-label={t('detail.close')}
-                className="grid h-9 w-9 place-items-center rounded-full text-sv-ink/55 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+                className="grid h-11 w-11 place-items-center rounded-full text-sv-ink/70 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1180,6 +1230,8 @@ export default function SearchClient({ locations }: { locations?: SearchLocation
           </div>
         </div>
       )}
+
+      </main>
 
       <Footer />
     </div>

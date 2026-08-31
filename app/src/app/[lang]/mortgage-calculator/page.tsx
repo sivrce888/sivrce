@@ -1,16 +1,19 @@
 import type { Metadata } from 'next'
 import LocalizedLink from '@/components/LocalizedLink'
-import { ChevronRight, Calculator, TrendingUp, Building2 } from 'lucide-react'
+import { ChevronRight, TrendingUp, Building2 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
+import { AdSlot } from '@/components/ads/AdSlot'
+import { isValidLang } from '@/lib/i18n/core'
 import MortgageCalcClient from '@/components/mortgage/MortgageCalcClient'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
-  title: 'იპოთეკის კალკულატორი საქართველოში — ყოველთვიური გადასახადი, პირველი შენატრება, პროცენტი',
+  title: 'იპოთეკის კალკულატორი საქართველოში — ყოველთვიური გადასახადი, პირველი შენატანი, პროცენტი',
   description:
-    'უფასო იპოთეკის კალკულატორი საქართველოს ბაზრისთვის — გამოთვალეთ ყოველთვიური გადასახადი ნებისმიერი ბინისთვის. 2026 წლის პროცენტები Bank of Georgia, TBC Bank, Credo, BasisBank. ვადა 15-25 წელი, პირველი შენატრება 15-30%.',
+    'უფასო იპოთეკის კალკულატორი საქართველოს ბაზრისთვის — გამოთვალეთ ყოველთვიური გადასახადი ნებისმიერი ბინისთვის. 2026 წლის პროცენტები Bank of Georgia, TBC Bank, Credo, BasisBank. ვადა 15-25 წელი, პირველი შენატანი 15-30%.',
   alternates: { canonical: '/mortgage-calculator', languages: langAlternates('/mortgage-calculator') },
   openGraph: {
     title: 'იპოთეკის კალკულატორი საქართველოში',
@@ -24,8 +27,8 @@ export const metadata: Metadata = {
 
 const faqs = [
   {
-    q: 'რა არის მინიმალური პირველი შენატრება იპოთეკაზე საქართველოში?',
-    a: 'რეზიდენტი მოქალაქეებისთვის მინიმალური პირველი შენატრება ჩვეულებრივ 10-20% იყო, თუმცა 2026 წლის ბაზარზე ბანკების უმრავლესობა ითხოვს 20-30%-ს. არა-რეზიდენტებისთვის მოთხოვნა ხშირად 30-50%-მდე იზრდება, რადგან ქართული შემოსავალი არ აქვთ.',
+    q: 'რა არის მინიმალური პირველი შენატანი იპოთეკაზე საქართველოში?',
+    a: 'რეზიდენტი მოქალაქეებისთვის მინიმალური პირველი შენატანი ჩვეულებრივ 10-20% იყო, თუმცა 2026 წლის ბაზარზე ბანკების უმრავლესობა ითხოვს 20-30%-ს. არარეზიდენტებისთვის მოთხოვნა ხშირად 30-50%-მდე იზრდება, რადგან ქართული შემოსავალი არ აქვთ.',
   },
   {
     q: 'რომელი ბანკი იძლევა საუკეთესო იპოთეკურ პირობებს 2026-ში?',
@@ -33,7 +36,7 @@ const faqs = [
   },
   {
     q: 'შემიძლია მივიღო იპოთეკა უცხოელმა საქართველოში?',
-    a: 'დიახ, მაგრამ შეზღუდვებით. ქართული შემოსავლის გარეშე ბანკები ითხოვენ მსხვილ პირველ შენატრებას (30-50%) და მოკლე ვადას (10-15 წელი). ზოგიერთი ბანკი მოითხოვს საქართველოში ადგილობრივ გარანტს ან კომპანიის რეგისტრაციას. სრული ფასის ქეშით გადახდა ყოველთვის შესაძლებელია და ყველაზე გავრცელებული გზაა უცხოელებისთვის.',
+    a: 'დიახ, მაგრამ შეზღუდვებით. ქართული შემოსავლის გარეშე ბანკები ითხოვენ მსხვილ პირველ შენატანს (30-50%) და მოკლე ვადას (10-15 წელი). ზოგიერთი ბანკი მოითხოვს საქართველოში ადგილობრივ გარანტს ან კომპანიის რეგისტრაციას. სრული ფასის ქეშით გადახდა ყოველთვის შესაძლებელია და ყველაზე გავრცელებული გზაა უცხოელებისთვის.',
   },
   {
     q: 'რა დამატებითი ხარჯები მოსდევს ქონების ყიდვას?',
@@ -49,7 +52,7 @@ const banks = [
   { name: 'Bank of Georgia', ka: 'საქართველოს ბანკი', rate: '8.9-12.5%', term: '5-25 წელი', note: 'ყველაზე დიდი პორტფელი; რეზიდენტებისთვის სწრაფი განხილვა' },
   { name: 'TBC Bank', ka: 'ტი-ბი-სი ბანკი', rate: '9.2-13%', term: '5-25 წელი', note: 'ციფრული განაცხადი, ონლაინ პრე-აპრუვალი' },
   { name: 'Credo Bank', ka: 'კრედო ბანკი', rate: '10-14%', term: '5-20 წელი', note: 'მიკრო და მცირე იპოთეკის სპეციალისტი' },
-  { name: 'BasisBank', ka: 'ბაზისბანკი', rate: '9.5-13%', term: '5-20 წელი', note: 'არა-რეზიდენტებისთვის მოქნილი პირობები' },
+  { name: 'BasisBank', ka: 'ბაზისბანკი', rate: '9.5-13%', term: '5-20 წელი', note: 'არარეზიდენტებისთვის მოქნილი პირობები' },
 ]
 
 const hubLd = {
@@ -75,34 +78,25 @@ const hubLd = {
   ],
 }
 
-export default function MortgageCalculatorPage() {
+export default async function MortgageCalculatorPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[1100px] px-5 pb-20 pt-24 md:px-10 md:pt-28">
-        <nav aria-label="ბრედკრამბი" className="mb-6">
-          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
-            <li className="flex items-center gap-1.5">
-              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
-              <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
-            </li>
-            <li aria-current="page" className="text-sv-ink/80">იპოთეკის კალკულატორი</li>
-          </ol>
-        </nav>
-
-        <header className="mb-10">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-            <Calculator className="h-3.5 w-3.5" aria-hidden /> 2026 წლის ბაზრის პირობებით
-          </span>
-          <h1 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
-            იპოთეკის კალკულატორი საქართველოში
-          </h1>
-          <p className="mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">
-            გამოთვალეთ ყოველთვიური გადასახადი, პროცენტის ჯამი და პირველი შენატრება ნებისმიერი
-            ბინისთვის. კალკულატორი იყენებს სტანდარტულ ანუიტეტის ფორმულას — იგივეს, რასაც Bank of
-            Georgia-ც და TBC-ც.
-          </p>
-        </header>
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="2026 წლის ბაზრის პირობებით"
+          title="იპოთეკის კალკულატორი საქართველოში"
+          subtitle="გამოთვალეთ ყოველთვიური გადასახადი, პროცენტის ჯამი და პირველი შენატანი ნებისმიერი ბინისთვის. კალკულატორი იყენებს სტანდარტულ ანუიტეტის ფორმულას — იგივეს, რასაც Bank of Georgia-ც და TBC-ც."
+        />
+        <AdSlot slot="mortgage" lang={lang} />
+        <div className="mx-auto max-w-[1100px] px-5 pb-20 md:px-10">
 
         <MortgageCalcClient />
 
@@ -113,7 +107,7 @@ export default function MortgageCalculatorPage() {
           </h2>
           <div className="overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card">
             <table className="w-full text-left text-[14px]">
-              <thead className="bg-sv-ink/[0.02] text-[12px] font-black uppercase tracking-wide text-sv-ink/55">
+              <thead className="bg-sv-ink/[0.02] text-[12px] font-black uppercase tracking-wide text-sv-ink/70">
                 <tr>
                   <th className="px-5 py-4">ბანკი</th>
                   <th className="px-5 py-4">წლიური პროცენტი</th>
@@ -126,18 +120,18 @@ export default function MortgageCalculatorPage() {
                   <tr key={b.name} className="text-sv-ink/80">
                     <td className="px-5 py-4">
                       <div className="font-black text-sv-ink">{b.name}</div>
-                      <div className="text-[12px] font-bold text-sv-ink/45">{b.ka}</div>
+                      <div className="text-[12px] font-bold text-sv-ink/60">{b.ka}</div>
                     </td>
                     <td className="px-5 py-4 font-black text-sv-blue">{b.rate}</td>
                     <td className="px-5 py-4 font-bold">{b.term}</td>
-                    <td className="hidden px-5 py-4 text-sv-ink/55 md:table-cell">{b.note}</td>
+                    <td className="hidden px-5 py-4 text-sv-ink/70 md:table-cell">{b.note}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
-            პროცენტები ამსახურებს 2026 წლის ბაზარს და შეიძლება შეიცვალოს. ზუსტი წინადადებისთვის
+          <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">
+            პროცენტები ასახავს 2026 წლის ბაზარს და შეიძლება შეიცვალოს. ზუსტი წინადადებისთვის
             დაუკავშირდით კონკრეტულ ბანკს.
           </p>
         </section>
@@ -156,11 +150,11 @@ export default function MortgageCalculatorPage() {
             </p>
             <p>
               სტანდარტული მოთხოვნები: 21+ წლის ასაკი, ქართული შემოსავლის დადასტურება (ბოლო 3-6
-              თვის ფულადი ნაკადი), საკუთრების დაზღვევა. არა-რეზიდენტებმა შეიძლება მოგცეთ უფრო
-              მოკლე ვადა და მსხვილი პირველი შენატრება.
+              თვის ამონაწერი), საკუთრების დაზღვევა. არარეზიდენტებისთვის ხშირად უფრო
+              მოკლე ვადა და უფრო დიდი პირველი შენატანია.
             </p>
             <p>
-              განაცხადის განხილვა იკავს 3-10 სამუშაო დღე. პრე-აპრუვალი (წინასწარი თანხმობა)
+              განაცხადის განხილვას სჭირდება 3-10 სამუშაო დღე. პრე-აპრუვალი (წინასწარი თანხმობა)
               TBC-სა და Bank of Georgia-ს ციფრულ აპში ხშირად რამდენიმე საათში გაიცემა.
               საბოლოო ხელშეკრულება იდება ქონების შერჩევის შემდეგ.
             </p>
@@ -189,7 +183,7 @@ export default function MortgageCalculatorPage() {
         </section>
 
         <div className="mt-12 rounded-tile bg-sv-navy p-8 text-center md:p-10">
-          <h2 className="text-[22px] font-black text-white md:text-[26px]">ვეძებთ ბინას?</h2>
+          <h2 className="text-[22px] font-black text-white md:text-[26px]">ბინას ეძებთ?</h2>
           <p className="mx-auto mt-2 max-w-[420px] text-[14px] font-medium text-white/60">
             ვერიფიცირებული განცხადებები AI ფასის შეფასებით — თბილისი, ბათუმი, ქუთაისი.
           </p>
@@ -199,6 +193,7 @@ export default function MortgageCalculatorPage() {
           >
             ვერიფიცირებული ბინები
           </LocalizedLink>
+        </div>
         </div>
       </main>
       <Footer />

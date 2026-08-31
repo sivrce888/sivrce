@@ -1,14 +1,18 @@
 import type { Metadata } from 'next'
+import LocalizedLink from '@/components/LocalizedLink'
 import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
+import { AdSlot } from '@/components/ads/AdSlot'
+import { isValidLang } from '@/lib/i18n/core'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { AGENT_PROFILES } from '@/data/professionals'
 import { getAgentListingCountsByKaName } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
-import { Building2 } from 'lucide-react'
+import { ArrowRight, Building2 } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'უძრავი ქონების აგენტები — ვერიფიცირებული სპეციალისტები',
@@ -23,7 +27,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function AgentsPage() {
+export default async function AgentsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
   const counts = await getAgentListingCountsByKaName()
   const cards = (
     await Promise.all(
@@ -60,19 +66,27 @@ export default async function AgentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
-        <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
-          <h1 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            აგენტები და სააგენტოები
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            დალაგებული აქტიური განცხადებების რაოდენობით — ვერიფიცირებული სპეციალისტები გამოცდილებითა და მიმოხილვებით
-          </p>
-
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="დირექტორია"
+          title="აგენტები და სააგენტოები"
+          subtitle="დალაგებული აქტიური განცხადებების რაოდენობით — ვერიფიცირებული სპეციალისტები გამოცდილებითა და მიმოხილვებით"
+        >
+          <LocalizedLink
+            href="/advertise"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+          >
+            გახდი აგენტი სივრცეზე
+            <ArrowRight className="h-4 w-4" />
+          </LocalizedLink>
+        </PageHero>
+        <AdSlot slot="agents" lang={lang} />
+        <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           {topAgencies.some((x) => x.listings > 0) && (
-            <div className="mt-8">
+            <div className="mt-2">
               <div className="mb-3 flex items-center gap-2 text-[13px] font-black uppercase tracking-wider text-sv-blue">
                 <Building2 className="h-3.5 w-3.5" />
                 ტოპ სააგენტოები
@@ -81,7 +95,7 @@ export default async function AgentsPage() {
                 {topAgencies.map((ag, i) => (
                   <li
                     key={ag.name}
-                    className="inline-flex items-center gap-2 rounded-control border border-sv-ink/[0.07] bg-sv-cloud px-3.5 py-2 text-[13px] font-extrabold text-sv-ink"
+                    className="inline-flex items-center gap-2 rounded-control border border-sv-ink/[0.07] bg-sv-surface px-3.5 py-2 text-[13px] font-extrabold text-sv-ink"
                   >
                     <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[10px] font-black text-sv-blue">
                       {i + 1}
@@ -112,7 +126,7 @@ export default async function AgentsPage() {
             ))}
           </div>
         </section>
-        <CTA />
+        <CTA lang={lang} />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import LocalizedLink from "@/components/LocalizedLink"
-import { Building2, Eye, Phone, TrendingUp, Users } from "lucide-react"
+import { Building2, Eye, Phone, Plus, TrendingUp, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import StatCard from "@/components/dashboard/StatCard"
@@ -72,6 +72,15 @@ export default async function SellerOverviewPage() {
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
     >
+      <div className="mb-5 flex justify-end">
+        <LocalizedLink
+          href="/add-listing"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+        >
+          <Plus size={15} strokeWidth={2.5} />
+          დაამატე განცხადება
+        </LocalizedLink>
+      </div>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
         <StatCard
           label="აქტიური"
@@ -139,6 +148,12 @@ export default async function SellerOverviewPage() {
               className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
             >
               განცხადებების მართვა
+            </LocalizedLink>
+            <LocalizedLink
+              href="/add-service"
+              className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
+            >
+              დაამატე სერვისი
             </LocalizedLink>
             <LocalizedLink
               href="/advertise"

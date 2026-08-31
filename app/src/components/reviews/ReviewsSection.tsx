@@ -23,6 +23,7 @@ export type ReviewTargetType =
   | 'neighborhood'
   | 'account'
   | 'building'
+  | 'service'
 
 export interface ReviewsSectionProps {
   targetType: ReviewTargetType

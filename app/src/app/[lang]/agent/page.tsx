@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import LocalizedLink from "@/components/LocalizedLink"
-import { Building2, CalendarDays, Star, Users } from "lucide-react"
+import { Building2, CalendarDays, Plus, Star, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import StatCard from "@/components/dashboard/StatCard"
@@ -98,6 +98,15 @@ export default async function AgentOverviewPage() {
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
     >
+      <div className="mb-5 flex justify-end">
+        <LocalizedLink
+          href="/add-listing"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+        >
+          <Plus size={15} strokeWidth={2.5} />
+          დაამატე განცხადება
+        </LocalizedLink>
+      </div>
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard
           label="აქტიური განცხადებები"
@@ -119,7 +128,7 @@ export default async function AgentOverviewPage() {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
+        <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[15px] font-extrabold text-sv-ink">ბოლო ლიდები</h2>
             <LocalizedLink
@@ -154,7 +163,7 @@ export default async function AgentOverviewPage() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
+        <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-[15px] font-extrabold text-sv-ink">უახლოესი ვიზიტები</h2>
             <LocalizedLink

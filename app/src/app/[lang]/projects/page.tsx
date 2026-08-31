@@ -6,6 +6,8 @@ import { MapPin, CalendarCheck, Building2, Star } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
+import { AdSlot } from '@/components/ads/AdSlot'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { getDeveloper } from '@/data/professionals'
 import { projectsLive } from '@/lib/directory-live'
@@ -43,13 +45,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: 'https://sivrce.ge/projects',
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
-      images: [{ url: 'https://sivrce.ge/images/og.jpg', alt: c.ogTitle }],
+      images: [{ url: 'https://sivrce.ge/images/og-brand.png', alt: c.ogTitle }],
     },
     twitter: {
       card: 'summary_large_image',
       title: c.ogTitle,
       description: c.description,
-      images: ['https://sivrce.ge/images/og.jpg'],
+      images: ['https://sivrce.ge/images/og-brand.png'],
     },
   }
 }
@@ -76,19 +78,15 @@ export default async function ProjectsPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
-        <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
-          <h1 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            {c.h1}
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            {c.sub}
-          </p>
-          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+      <main id="main">
+        <PageHero tone="light" kicker="ახალი პროექტები" title={c.h1} subtitle={c.sub} />
+        <AdSlot slot="projects" lang={raw} />
+        <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
             {projects.length === 0 && (
-              <div className="rounded-card border border-dashed border-sv-ink/15 px-6 py-12 text-center text-[14px] font-semibold text-sv-ink/50 lg:col-span-2">
+              <div className="rounded-card border border-dashed border-sv-ink/15 px-6 py-12 text-center text-[14px] font-semibold text-sv-ink/65 lg:col-span-2">
                 პროექტები ჯერ არ არის ხელმისაწვდომი — სცადე მოგვიანებით
               </div>
             )}
@@ -120,7 +118,7 @@ export default async function ProjectsPage({ params }: PageProps) {
                             <p className="text-[13px] font-bold text-white/80">{pickLoc(dev.name, loc)}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-navy">
+                        <div className="flex items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-ink">
                           <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
                           {p.rating}
                         </div>
@@ -130,14 +128,14 @@ export default async function ProjectsPage({ params }: PageProps) {
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 p-5">
-                      <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
+                      <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/70">
                         <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {p.location}
                       </span>
-                      <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
+                      <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/70">
                         <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> {micro.handover}{' '}
                         {finishLabel(loc, p.finish)}
                       </span>
-                      <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/55">
+                      <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/70">
                         <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(p.flats, loc)}
                       </span>
                       <span className="ml-auto text-[16px] font-black text-sv-blue">

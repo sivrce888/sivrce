@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import CareersApplyForm from '@/components/careers/CareersApplyForm'
 import { jsonLd } from '@/lib/utils'
@@ -105,30 +106,24 @@ export default function CareersPage() {
     <div className="min-h-screen bg-sv-cloud">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(jobLd) }} />
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
-        <section className="relative overflow-hidden bg-sv-navy">
-          <div className="absolute inset-0 bg-grid-dark" aria-hidden />
-          <div className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-sv-blue/10 blur-[160px]" aria-hidden />
-          <div className="absolute -bottom-24 right-1/5 h-80 w-80 rounded-full bg-sv-orange/10 blur-[160px]" aria-hidden />
-          <div className="relative mx-auto max-w-5xl px-6 py-20 text-center md:py-28">
-            <Reveal>
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-sv-blue-light">კარიერა</p>
-              <h1 className="mt-4 text-4xl font-black tracking-[-0.02em] text-white text-balance md:text-6xl">
-                მოდი <span className="text-sv-orange">გაყიდვების</span> გუნდში
-              </h1>
-              <p className="mx-auto mt-6 max-w-xl text-[16px] font-medium leading-relaxed text-white/65">
-                გვჭირდება კარგი სეილსები თბილისსა და ბათუმში.
-              </p>
-            </Reveal>
-            <a
-              href="#apply"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
-            >
-              განაცხადი
-              <ArrowRight className="h-4 w-4" />
-            </a>
-          </div>
-        </section>
+      <main id="main">
+        <PageHero
+          kicker="კარიერა"
+          title={
+            <>
+              მოდი <span className="text-gradient-blue">გაყიდვების</span> გუნდში
+            </>
+          }
+          subtitle="გვჭირდება კარგი სეილსები თბილისსა და ბათუმში."
+        >
+          <a
+            href="#apply"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-black text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+          >
+            განაცხადი
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </PageHero>
 
         <section className="mx-auto max-w-4xl px-6 py-14 md:py-16">
           <div className="grid gap-4 sm:grid-cols-2">

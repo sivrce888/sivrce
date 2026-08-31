@@ -11,6 +11,7 @@ import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
+import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
 
 const BASE = 'https://sivrce.ge'
 
@@ -18,7 +19,7 @@ const BASE = 'https://sivrce.ge'
 export const revalidate = 3600
 
 // Static pages: one lastmod per deploy, not per request
-const DEPLOY_DATE = new Date('2026-07-17')
+const DEPLOY_DATE = new Date('2026-08-31')
 
 // hreflang cluster: every page is now server-rendered in all 9 locales via
 // app/[lang]. ka is unprefixed (canonical); the other eight carry a prefix.
@@ -75,10 +76,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/mortgage-calculator', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
     { path: '/agents', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.6 },
     { path: '/developers', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
+    { path: '/services', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.8 },
   ]
 
   for (const a of AGENT_PROFILES) {
     entries.push({ path: `/agents/${a.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.55 })
+  }
+  for (const c of SERVICE_CATEGORIES) {
+    entries.push({ path: `/services/${c.id}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 })
+  }
+  for (const p of SERVICE_PROVIDERS) {
+    entries.push({ path: `/services/${p.category}/${p.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.55 })
   }
   // Live directory (korter + curated) — fall back to static if DB is down.
   let sitemapDevs = DEVELOPERS

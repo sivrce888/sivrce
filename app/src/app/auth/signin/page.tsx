@@ -8,7 +8,7 @@ import { dashboardPathFor, getSessionUser } from "@/lib/guards"
 
 export const metadata: Metadata = {
   title: "შესვლა",
-  description: "შედი sivrce ანგარიშში ელფოსტით ან Google-ით.",
+  description: "შედი sivrce-ში Passkey-ით, მობილურის ნომრით, Google-ით ან ელფოსტით.",
   robots: { index: false },
 }
 
@@ -19,6 +19,8 @@ const ERROR_TEXT: Record<string, string> = {
   AccessDenied: "წვდომა უარყოფილია.",
   Configuration: "ავტორიზაცია დროებით მიუწვდომელია — სცადე მოგვიანებით.",
   CredentialsSignin: "ელფოსტა ან პაროლი არასწორია.",
+  WebAuthnVerificationError: "Passkey ვერ დადასტურდა — სცადე თავიდან.",
+  Verification: "Passkey ვერ დადასტურდა — სცადე თავიდან.",
 }
 
 export default async function SignInPage({
@@ -38,7 +40,7 @@ export default async function SignInPage({
   return (
     <AuthShell
       title="შესვლა"
-      subtitle="უძრავი ქონება ერთ სივრცეში — შენახული განცხადებები, ტურები და შეტყობინებები."
+      subtitle="Passkey — ერთი შეხება. ან ნომერი, კოდი მოვა SMS-ით."
       footer={
         <p className="text-[13px] font-medium text-white/50">
           ახალი ხარ?{" "}

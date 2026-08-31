@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
+import { SendToClientButton } from "@/components/listing/SharePack"
 import TierPurchaseButton from "@/components/payments/TierPurchaseButton"
 import { developerNav } from "@/components/developer-dashboard/nav"
 import { db } from "@/lib/db"
@@ -66,7 +67,7 @@ export default async function DeveloperListingsPage() {
             return (
               <div
                 key={l.id}
-                className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm"
+                className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card"
               >
                 <div className="flex items-start justify-between gap-3">
                   <Link
@@ -90,11 +91,22 @@ export default async function DeveloperListingsPage() {
                     {l.views} ნახვა
                   </span>
                 </div>
-                {canBoost ? (
-                  <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                  {l.status === "active" ? (
+                    <SendToClientButton
+                      title={l.title}
+                      district={l.district}
+                      city={l.city}
+                      price={l.price}
+                      currency={l.currency}
+                      listingId={l.id}
+                      area={l.area}
+                    />
+                  ) : null}
+                  {canBoost ? (
                     <TierPurchaseButton listingId={l.id} currentTier={tier} />
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
               </div>
             )
           })}

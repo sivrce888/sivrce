@@ -13,7 +13,10 @@ import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
+import { audienceFromRole } from '@/lib/ads'
+import { pickAd } from '@/lib/ads-db'
 import { langAlternates } from '@/lib/i18n/server'
+import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { getSessionUser } from '@/lib/guards'
 
 // ponytail: dynamicParams default (true) — unknown ids hit notFound() below;
@@ -29,7 +32,7 @@ export async function generateStaticParams() {
 }
 
 interface PageProps {
-  params: Promise<{ id: string; slug?: string[] }>
+  params: Promise<{ lang?: string; id: string; slug?: string[] }>
 }
 
 /* Trim to ~155 chars at a word boundary for meta/OG descriptions */
@@ -69,7 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // because WhatsApp/Viber/FB crawlers don't render WebP OG tags. Uploaded
   // (https) photos are served as-is; brand card is the last resort.
   const firstImg = l.images[0] ?? ''
-  const og = firstImg ? ogImage(firstImg) : '/images/og.jpg'
+  const og = firstImg ? ogImage(firstImg) : '/images/og-brand.png'
   const path = listingPath(l)
   return {
     title,
@@ -94,7 +97,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ListingPage({ params }: PageProps) {
-  const { id, slug } = await params
+  const { id, slug, lang: raw } = await params
+  const lang: Lang = raw && isValidLang(raw) ? raw : "ka"
   const listing = await getListing(id)
   if (!listing) notFound()
 
@@ -121,9 +125,10 @@ export default async function ListingPage({ params }: PageProps) {
     aggregate = null
   }
 
-  const [sessionUser, ownerMeta] = await Promise.all([
-    getSessionUser(),
+  const sessionUser = await getSessionUser()
+  const [ownerMeta, railAd] = await Promise.all([
     getListingOwnerMeta(listing.id),
+    pickAd('listing_rail', { audience: audienceFromRole(sessionUser?.role), lang }),
   ])
   const isOwner = Boolean(sessionUser && ownerMeta && sessionUser.id === ownerMeta.ownerId)
   const ownerTier = ownerMeta?.tier ?? 'standard'
@@ -233,6 +238,7 @@ export default async function ListingPage({ params }: PageProps) {
         peerPerM2={peerPerM2}
         isOwner={isOwner}
         ownerTier={ownerTier}
+        railAd={railAd}
       />
       <script
         type="application/ld+json"

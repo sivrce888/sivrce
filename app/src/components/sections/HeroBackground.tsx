@@ -149,12 +149,24 @@ export default function HeroBackground() {
   return (
     <div
       ref={root}
-      className="sv-sky-in absolute inset-0 overflow-hidden bg-sv-navy [contain:layout_paint]"
+      className="sv-hero-bg sv-sky-in absolute inset-0 overflow-hidden bg-sv-cloud dark:bg-sv-navy [contain:layout_paint]"
       aria-hidden
     >
-      {/* Aurora gradient field — brand blue / violet / orange; drifts with the pointer */}
+      {/* Day sky — sun lives in the CSS field, not a sticker. Hidden in dark. */}
+      <div className="sv-day-sky absolute inset-0 dark:hidden" />
+      {/* ponytail: 3 chevrons = day comet. Wrap dark:hidden so md:block can't leak into night. */}
+      <div className="pointer-events-none absolute inset-0 max-md:hidden dark:hidden">
+        <div className="sv-cirrus absolute left-[-12%] top-[20%] h-[20%] w-[62%]" />
+        <svg viewBox="0 0 64 16" className="sv-birds absolute top-[13%] left-0 h-3.5 w-[4.5rem]" fill="none">
+          <path d="M3 11 Q8 4 13 11" stroke="var(--sv-ink)" strokeWidth="1.15" strokeLinecap="round" opacity="0.28" />
+          <path d="M20 8 Q24.5 2.5 29 8" stroke="var(--sv-ink)" strokeWidth="1" strokeLinecap="round" opacity="0.2" />
+          <path d="M36 12 Q40 6.5 44 12" stroke="var(--sv-ink)" strokeWidth="0.9" strokeLinecap="round" opacity="0.16" />
+        </svg>
+      </div>
+
+      {/* Night aurora — hidden in light */}
       <div
-        className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
+        className="absolute inset-0 hidden dark:block [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
         style={{ transform: 'translate3d(var(--px, 0px), var(--py, 0px), 0)' }}
       >
         <div className="animate-aurora-a absolute -left-[15%] top-[-25%] h-[70%] w-[60%] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-blue)_34%,transparent),transparent_65%)] blur-[90px]" />
@@ -164,22 +176,24 @@ export default function HeroBackground() {
       </div>
 
       {/* Moon — warm gibbous carved from bg, champagne glow (brand orange-light) */}
-      <div className="animate-float absolute right-[10%] top-[8%] hidden h-24 w-24 md:block">
-        <div className="sv-moon-halo absolute -inset-8 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange-light)_38%,transparent),transparent_65%)] blur-3xl" />
-        <div className="absolute left-4 top-3 h-14 w-14 overflow-hidden rounded-full shadow-[0_0_30px_6px_color-mix(in_srgb,var(--sv-orange-light)_36%,transparent)]">
-          {/* ponytail: warm moon + 2 craters in one background shorthand — zero new tokens, zero extra divs */}
-          <div className="absolute left-0 top-0 h-14 w-14 rounded-full bg-[radial-gradient(circle_at_30%_62%,color-mix(in_srgb,var(--sv-navy)_16%,transparent)_0_11%,transparent_12%),radial-gradient(circle_at_52%_38%,color-mix(in_srgb,var(--sv-navy)_12%,transparent)_0_7%,transparent_8%),radial-gradient(circle_at_36%_30%,#ffffff_0%,color-mix(in_srgb,#ffffff_26%,var(--sv-orange-light))_46%,var(--sv-orange-light)_100%)]" />
-          {/* ponytail: crescent carved with an offset navy disc — same color as section bg, zero new tokens */}
-          <div className="absolute left-8 top-[-5px] h-14 w-14 rounded-full bg-sv-navy" />
+      <div className="hidden dark:contents">
+        <div className="animate-float absolute right-[10%] top-[8%] hidden h-24 w-24 md:block">
+          <div className="sv-moon-halo absolute -inset-8 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange-light)_38%,transparent),transparent_65%)] blur-3xl" />
+          <div className="absolute left-4 top-3 h-14 w-14 overflow-hidden rounded-full shadow-[0_0_30px_6px_color-mix(in_srgb,var(--sv-orange-light)_36%,transparent)]">
+            {/* ponytail: warm moon + 2 craters in one background shorthand — zero new tokens, zero extra divs */}
+            <div className="absolute left-0 top-0 h-14 w-14 rounded-full bg-[radial-gradient(circle_at_30%_62%,color-mix(in_srgb,var(--sv-navy)_16%,transparent)_0_11%,transparent_12%),radial-gradient(circle_at_52%_38%,color-mix(in_srgb,var(--sv-navy)_12%,transparent)_0_7%,transparent_8%),radial-gradient(circle_at_36%_30%,#ffffff_0%,color-mix(in_srgb,#ffffff_26%,var(--sv-orange-light))_46%,var(--sv-orange-light)_100%)]" />
+            {/* ponytail: crescent carved with an offset navy disc — same color as section bg, zero new tokens */}
+            <div className="absolute left-8 top-[-5px] h-14 w-14 rounded-full bg-sv-navy" />
+          </div>
         </div>
+        {/* Comets — rare streaks; second offset so the loop never reads as a metronome */}
+        <span className="sv-comet absolute right-[6%] top-[10%] hidden h-[2px] w-[130px] rounded-full bg-[linear-gradient(90deg,transparent,var(--sv-blue-light))] opacity-0 shadow-[0_0_10px_2px_color-mix(in_srgb,var(--sv-blue-light)_60%,transparent)] md:block" />
+        <span className="sv-comet absolute right-[28%] top-[18%] hidden h-[1.5px] w-[90px] rounded-full bg-[linear-gradient(90deg,transparent,var(--sv-orange-light))] opacity-0 shadow-[0_0_8px_2px_color-mix(in_srgb,var(--sv-orange-light)_50%,transparent)] md:block" style={{ animationDelay: '-8s' }} />
       </div>
-
-      {/* Comet — rare streak across the upper sky */}
-      <span className="sv-comet absolute right-[6%] top-[10%] hidden h-[2px] w-[130px] rounded-full bg-[linear-gradient(90deg,transparent,var(--sv-blue-light))] opacity-0 shadow-[0_0_10px_2px_color-mix(in_srgb,var(--sv-blue-light)_60%,transparent)] md:block" />
 
       {/* Twinkling stars — upper sky only, staggered; closest parallax layer */}
       <div
-        className="absolute inset-0 will-change-transform [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
+        className="absolute inset-0 hidden dark:block [transition:transform_0.9s_cubic-bezier(0.21,0.65,0.2,1)]"
         style={{ transform: 'translate3d(calc(var(--px, 0px) * 1.6), calc(var(--py, 0px) * 1.6), 0)' }}
       >
         {stars.map((s, i) => (
@@ -202,22 +216,22 @@ export default function HeroBackground() {
         ))}
       </div>
 
-      {/* Map dot-grid + faint line grid */}
-      <div className="bg-dots-dark absolute inset-0 [mask-image:radial-gradient(75%_65%_at_50%_42%,black,transparent)]" />
-      <div className="bg-grid-faint absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent,black_30%,black_75%,transparent)]" />
+      {/* Map dot-grid + faint line grid — night only. Day sky stays clean. */}
+      <div className="bg-dots-dark absolute inset-0 hidden dark:block [mask-image:radial-gradient(75%_65%_at_50%_42%,black,transparent)]" />
+      <div className="bg-grid-faint absolute inset-0 hidden dark:block [mask-image:linear-gradient(to_bottom,transparent,black_30%,black_75%,transparent)]" />
 
       {/* City light glow above the horizon */}
-      <div className="absolute bottom-[34%] left-1/2 h-[24%] w-[72%] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_bottom,color-mix(in_srgb,var(--sv-blue)_17%,transparent),transparent_70%)] blur-2xl" />
+      <div className="absolute bottom-[34%] left-1/2 h-[24%] w-[72%] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_bottom,color-mix(in_srgb,var(--sv-blue-light)_22%,transparent),transparent_70%)] blur-2xl dark:bg-[radial-gradient(ellipse_at_bottom,color-mix(in_srgb,var(--sv-blue)_17%,transparent),transparent_70%)]" />
 
       {/* Back-row skyline — dimmer + blurred, drifts slowly for depth */}
       <svg
         viewBox={`0 0 ${SV_W} ${SV_H}`}
         preserveAspectRatio="xMidYMax slice"
-        className="sv-skyline-back absolute bottom-0 left-0 h-[38%] w-full min-w-[900px] opacity-50 blur-[1.5px]"
+        className="sv-skyline-back absolute bottom-0 left-0 h-[30%] w-full min-w-[900px] opacity-35 blur-[1.5px] dark:h-[38%] dark:opacity-50"
       >
         {BUILDINGS.map(([x, w, h], i) => {
           const bh = h * 0.62
-          return <rect key={i} x={x + 18} y={SV_H - bh} width={w} height={bh} fill="var(--sv-navy-soft)" />
+          return <rect key={i} x={x + 18} y={SV_H - bh} width={w} height={bh} fill="var(--skyline-a)" />
         })}
       </svg>
 
@@ -225,18 +239,18 @@ export default function HeroBackground() {
       <svg
         viewBox={`0 0 ${SV_W} ${SV_H}`}
         preserveAspectRatio="xMidYMax slice"
-        className="absolute bottom-0 left-0 h-[46%] w-full min-w-[900px]"
+        className="sv-skyline-front absolute bottom-0 left-0 h-[36%] w-full min-w-[900px] dark:h-[46%]"
       >
         <defs>
           <linearGradient id="skylineFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--sv-navy-soft)" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="var(--sv-navy)" stopOpacity="1" />
+            <stop offset="0%" stopColor="var(--skyline-a)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="var(--skyline-b)" stopOpacity="1" />
           </linearGradient>
         </defs>
         {BUILDINGS.map(([x, w, h], i) => (
           <g key={i}>
             <rect x={x} y={SV_H - h} width={w} height={h} fill="url(#skylineFill)" />
-            <rect x={x} y={SV_H - h} width={w} height={2} fill="var(--sv-blue)" opacity="0.22" />
+            <rect x={x} y={SV_H - h} width={w} height={2} fill="var(--skyline-cap)" opacity="0.22" />
           </g>
         ))}
         {/* Antenna on tallest */}
@@ -260,7 +274,7 @@ export default function HeroBackground() {
         <rect x="0" y={SV_H - 90} width={SV_W} height={90} fill="url(#skylineFill)" opacity="0.6" />
       </svg>
 
-      {/* Rising particles */}
+      {/* Rising particles — night only */}
       {particles.map((p, i) => (
         <span
           key={i}
@@ -282,13 +296,15 @@ export default function HeroBackground() {
         />
       ))}
 
-      {/* Brand map pins */}
-      <span className="absolute left-[16%] top-[30%] hidden h-3 w-3 animate-pin rounded-full bg-sv-orange md:block" />
-      <span className="absolute right-[20%] top-[24%] hidden h-2.5 w-2.5 animate-pin rounded-full bg-sv-blue md:block" style={{ animationDelay: '1.2s' }} />
+      {/* Brand map pins — night sky only */}
+      <div className="hidden dark:contents">
+        <span className="absolute left-[16%] top-[30%] hidden h-3 w-3 animate-pin rounded-full bg-sv-orange md:block" />
+        <span className="absolute right-[20%] top-[24%] hidden h-2.5 w-2.5 animate-pin rounded-full bg-sv-blue md:block" style={{ animationDelay: '1.2s' }} />
+      </div>
 
       {/* Vignette + transition into next section */}
-      <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_40%,transparent_55%,color-mix(in_srgb,var(--sv-navy)_55%,transparent))]" />
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-sv-navy/60 to-sv-surface" />
+      <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_40%,transparent_58%,color-mix(in_srgb,var(--sv-cloud)_50%,transparent))] dark:bg-[radial-gradient(90%_70%_at_50%_40%,transparent_55%,color-mix(in_srgb,var(--sv-navy)_55%,transparent))]" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-sv-cloud/80 to-sv-surface dark:via-sv-navy/60" />
     </div>
   )
 }

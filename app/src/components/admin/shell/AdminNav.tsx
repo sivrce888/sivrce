@@ -13,6 +13,7 @@ import {
   Layers,
   LayoutDashboard,
   MapPinned,
+  Megaphone,
   MessagesSquare,
   Newspaper,
   Settings2,
@@ -77,6 +78,7 @@ export const ADMIN_SECTIONS: NavSection[] = [
   {
     label: "Platform",
     items: [
+      { href: "/admin/ads", label: "Banners", icon: Megaphone },
       { href: "/admin/content", label: "Content", icon: Newspaper },
       { href: "/admin/system", label: "System", icon: Settings2 },
     ],

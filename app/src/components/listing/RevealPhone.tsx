@@ -5,9 +5,9 @@
  * Visual: brand pills only; labels truncate so 2/3-col grids never overflow.
  */
 import { useState } from 'react'
-import { Loader2, Phone, ShieldCheck } from 'lucide-react'
+import { Loader2, Phone, ShieldCheck, MessageCircle } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
-import { telHref } from '@/lib/inquiries/phone'
+import { telHref, waHref } from '@/lib/inquiries/phone'
 
 type Props = {
   listingId: string
@@ -66,15 +66,35 @@ export default function RevealPhone({
         : `flex h-12 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange px-4 text-[14px] font-extrabold text-white shadow-glow-orange transition-all ${ease} hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]`
 
   if (phone) {
+    if (variant === 'call') {
+      return (
+        <a
+          href={telHref(phone)}
+          className={`${shell} ${className}`}
+          aria-label={t('detail.call')}
+        >
+          <Phone className="h-4 w-4 shrink-0" />
+          <span className="truncate tabular-nums tracking-wide">{phone}</span>
+        </a>
+      )
+    }
     return (
-      <a
-        href={telHref(phone)}
-        className={`${shell} ${className}`}
-        aria-label={t('detail.call')}
-      >
-        <Phone className="h-4 w-4 shrink-0" />
-        <span className="truncate tabular-nums tracking-wide">{phone}</span>
-      </a>
+      <div className={`grid grid-cols-2 gap-2 ${className}`}>
+        <a href={telHref(phone)} className={shell} aria-label={t('detail.call')}>
+          <Phone className="h-4 w-4 shrink-0" />
+          <span className="truncate tabular-nums tracking-wide">{phone}</span>
+        </a>
+        <a
+          href={waHref(phone)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-12 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
+          aria-label={t('detail.whatsapp')}
+        >
+          <MessageCircle className="h-4 w-4 shrink-0" />
+          <span className="truncate">{t('detail.whatsapp')}</span>
+        </a>
+      </div>
     )
   }
 

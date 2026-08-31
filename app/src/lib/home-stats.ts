@@ -1,11 +1,12 @@
 /**
- * Homepage trust metrics — live DB counts only.
- * ponytail: never invent inventory; product SLAs (24/7) stay CMS copy.
+ * Homepage trust metrics — live DB where it exists, catalog for public directory.
+ * ponytail: never invent listing inventory; projects/cities/pros are the shipped catalog.
  */
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 import { projectsLive } from '@/lib/directory-live'
-import { AGENT_PROFILES, DEVELOPERS } from '@/data/professionals'
+import { CITIES } from '@/data/listings'
+import { AGENT_PROFILES, DEVELOPERS, PROJECTS } from '@/data/professionals'
 
 export type HomeStats = {
   listings: number
@@ -15,11 +16,11 @@ export type HomeStats = {
 }
 
 export async function getHomeStats(): Promise<HomeStats> {
-  const fallback: HomeStats = {
+  const catalog: HomeStats = {
     listings: 0,
     professionals: AGENT_PROFILES.length + DEVELOPERS.length,
-    projects: 0,
-    cities: 0,
+    projects: PROJECTS.length,
+    cities: CITIES.length,
   }
 
   return safeQuery(async () => {
@@ -38,9 +39,9 @@ export async function getHomeStats(): Promise<HomeStats> {
     const professionals = agents + agencies
     return {
       listings,
-      professionals: professionals > 0 ? professionals : fallback.professionals,
-      projects: projectRows,
-      cities: cityRows.length,
+      professionals: professionals > 0 ? professionals : catalog.professionals,
+      projects: projectRows > 0 ? projectRows : catalog.projects,
+      cities: cityRows.length > 0 ? cityRows.length : catalog.cities,
     }
-  }, fallback)
+  }, catalog)
 }

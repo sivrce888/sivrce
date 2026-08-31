@@ -37,7 +37,7 @@ const UI = {
     badge: 'AI შეფასებით',
     listings: 'განცხადება',
     avg: 'საშუალო ფასი',
-    from: 'ფასი დაწყება',
+    from: 'საწყისი ფასი',
     crumbAria: 'ბრედკრამბი',
     gridAria: 'განცხადებები',
     overview: 'ბაზრის მიმოხილვა',
@@ -97,9 +97,9 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = lo
       url: `${BASE}${url}`,
       siteName: 'sivrce',
       locale: OG_LOCALE[loc],
-      images: [{ url: '/images/og.jpg', width: 1200, height: 630, alt: title }],
+      images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: 'summary_large_image', title, description, images: ['/images/og.jpg'] },
+    twitter: { card: 'summary_large_image', title, description, images: ['/images/og-brand.png'] },
   }
 }
 
@@ -227,7 +227,7 @@ export default function SeoLanding({
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[1440px] px-5 pb-20 pt-24 md:px-10 md:pt-28">
+      <main id="main" className="sv-pt-nav mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
         {/* Breadcrumbs */}
         <nav aria-label={ui.crumbAria} className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
@@ -265,8 +265,8 @@ export default function SeoLanding({
             {hubProse ? hubProse.lede : isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc)}
           </p>
 
-          {/* Live stats — hidden on city-info pages (no listings to report) */}
-          {!isCityInfo && (
+          {/* Live stats — skip the hollow "0 listings" chip Apple would never ship */}
+          {!isCityInfo && stats.count > 0 && (
             <dl className="mt-6 flex flex-wrap gap-3">
               {[
                 { icon: LayoutGrid, label: ui.listings, value: String(stats.count) },

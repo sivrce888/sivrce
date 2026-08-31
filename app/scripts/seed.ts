@@ -41,19 +41,24 @@ const db = new PrismaClient({
 })
 
 // Map mock data dealType → Prisma enum
-function mapDealType(d: string): "buy" | "rent" | "daily" {
+function mapDealType(d: string): "buy" | "rent" | "daily" | "mortgage" {
   if (d === "sale") return "buy"
   if (d === "rent") return "rent"
   if (d === "daily") return "daily"
+  if (d === "pledge") return "mortgage"
   return "buy"
 }
 
 // Map mock data propType → Prisma enum
-function mapPropType(p: string): "apartment" | "house" | "commercial" | "land" {
+function mapPropType(
+  p: string,
+): "apartment" | "house" | "villa" | "commercial" | "land" | "hotel" {
   if (p === "apartment") return "apartment"
   if (p === "house") return "house"
+  if (p === "villa") return "villa"
   if (p === "commercial") return "commercial"
   if (p === "land") return "land"
+  if (p === "hotel") return "hotel"
   return "apartment"
 }
 
@@ -63,7 +68,13 @@ async function main() {
   for (const l of LISTINGS) {
     const existing = await db.listing.findUnique({ where: { id: l.id } })
     if (existing) {
-      console.log(`  skip ${l.id} (exists)`)
+      // Keep inventory in sync for demo: trustScore always mirrors mock AI score.
+      if (existing.trustScore !== l.ai.score) {
+        await db.listing.update({ where: { id: l.id }, data: { trustScore: l.ai.score } })
+        console.log(`  trust→${l.ai.score} ${l.id}`)
+      } else {
+        console.log(`  skip ${l.id} (exists)`)
+      }
       continue
     }
 

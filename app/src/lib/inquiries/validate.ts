@@ -8,7 +8,7 @@
 
 import { normalizePhone } from './phone'
 
-export const INQUIRY_TARGET_TYPES = ['listing', 'project', 'developer', 'agent', 'general'] as const
+export const INQUIRY_TARGET_TYPES = ['listing', 'project', 'developer', 'agent', 'service', 'general'] as const
 export type InquiryTargetType = (typeof INQUIRY_TARGET_TYPES)[number]
 
 export interface ValidInquiry {

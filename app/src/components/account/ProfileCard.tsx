@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { LogIn, User } from 'lucide-react'
 import SectionHeader from './SectionHeader'
 import { useAccountStrings } from './i18n'
+import { isPhoneEmail } from '@/lib/auth-phone'
 
 export interface AccountUser {
   name: string | null
@@ -13,6 +14,7 @@ export interface AccountUser {
 
 export default function ProfileCard({ user }: { user: AccountUser | null }) {
   const tt = useAccountStrings()
+  const emailLine = user?.email && !isPhoneEmail(user.email) ? user.email : null
 
   return (
     <section aria-label={tt('profile')} className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
@@ -30,7 +32,9 @@ export default function ProfileCard({ user }: { user: AccountUser | null }) {
           )}
           <div className="min-w-0">
             <p className="truncate text-[17px] font-black text-sv-ink">{user.name ?? '—'}</p>
-            <p className="truncate text-[14px] font-semibold text-sv-ink/55">{user.email ?? '—'}</p>
+            {emailLine ? (
+              <p className="truncate text-[14px] font-semibold text-sv-ink/55">{emailLine}</p>
+            ) : null}
           </div>
         </div>
       ) : (

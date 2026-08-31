@@ -78,7 +78,7 @@ export default async function AgencyAnalyticsPage() {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-6 shadow-sm">
+        <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
           <h2 className="text-[15px] font-extrabold text-sv-ink">ლიდები სტატუსით</h2>
           <div className="mt-4 flex flex-col gap-2.5">
             {LEAD_STATUS_ORDER.map((status) => (
@@ -92,7 +92,7 @@ export default async function AgencyAnalyticsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-6 shadow-sm">
+        <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
           <h2 className="text-[15px] font-extrabold text-sv-ink">განცხადებები სტატუსით</h2>
           <div className="mt-4 flex flex-col gap-2.5">
             {LISTING_STATUS_ORDER.map((status) => (

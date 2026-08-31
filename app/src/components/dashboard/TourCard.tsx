@@ -16,7 +16,7 @@ export const tourListingInclude = {
 /** Tour booking card shared by /agent/tours and /seller/tours. Server component. */
 export default function TourCard({ tour }: { tour: TourWithListing }) {
   return (
-    <li className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm">
+    <li className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <Link

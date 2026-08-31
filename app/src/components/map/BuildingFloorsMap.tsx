@@ -22,10 +22,10 @@ import {
   FLOORS_FILL_ID,
   FLOORS_LABEL_ID,
   FLOORS_SOURCE_ID,
+  loadMapBasemap,
   mapStyleUrl,
 } from '@/lib/map/floorLayers'
 import {
-  loadCleanStyle,
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
@@ -95,7 +95,7 @@ export default function BuildingFloorsMap({
     ;(async () => {
       let style
       try {
-        style = await loadCleanStyle(initialStyle)
+        style = await loadMapBasemap(initialStyle)
       } catch (err) {
         console.error('[BuildingFloorsMap] style', err)
         return
@@ -232,7 +232,7 @@ export default function BuildingFloorsMap({
     let cancelled = false
     ;(async () => {
       try {
-        const style = await loadCleanStyle(next)
+        const style = await loadMapBasemap(next)
         if (cancelled) return
         map.once('style.load', () => {
           applyBrandPaints(map, isDark ? 'dark' : 'light')

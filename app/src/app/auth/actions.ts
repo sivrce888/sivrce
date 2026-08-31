@@ -2,9 +2,13 @@
 
 import { randomBytes } from "node:crypto"
 import { AuthError } from "next-auth"
+import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { signIn, signOut } from "@/auth"
+import { sendPhoneOtp } from "@/lib/auth-phone-otp"
+import { isCredentialId } from "@/lib/auth-passkey"
 import { isSelfServeRole } from "@/lib/auth-roles"
 import { db } from "@/lib/db"
 import { sendEmail, sendWelcomeEmail } from "@/lib/email"
@@ -49,7 +53,66 @@ export async function chooseSelfRole(formData: FormData) {
   redirect(dashboardPathFor(raw))
 }
 
-export type AuthActionState = { error?: string; ok?: string } | undefined
+export type AuthActionState =
+  | { error?: string; ok?: string; phone?: string; sentAt?: number }
+  | undefined
+
+export async function requestPhoneCode(
+  _prev: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const result = await sendPhoneOtp(String(formData.get("phone") ?? ""), await headers())
+  if (!result.ok) return { error: result.error }
+  return { ok: "კოდი გაიგზავნა SMS-ით", phone: result.phone, sentAt: Date.now() }
+}
+
+export async function signInWithPasskey(
+  callbackUrl: string,
+  cred: string,
+): Promise<AuthActionState> {
+  const target =
+    callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+      ? callbackUrl
+      : "/dashboard"
+  if (!cred) return { error: "Passkey ვერ წაიკითხა" }
+  try {
+    await signIn("passkey", { cred, redirectTo: target })
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: "Passkey ვერ დადასტურდა — სცადე თავიდან" }
+    }
+    throw err
+  }
+}
+
+export async function deletePasskey(credentialID: string) {
+  const user = await requireUser("/settings")
+  if (!isCredentialId(credentialID)) return
+  await db.authenticator.deleteMany({
+    where: { userId: user.id, credentialID },
+  })
+  revalidatePath("/settings")
+  revalidatePath("/account")
+}
+
+export async function signInWithPhone(
+  _prev: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const phone = String(formData.get("phone") ?? "")
+  const code = String(formData.get("code") ?? "")
+  const callbackUrl = safeCallback(formData.get("callbackUrl")) ?? "/dashboard"
+  if (!phone || !code) return { error: "შეიყვანე ნომერი და კოდი" }
+
+  try {
+    await signIn("phone", { phone, code, redirectTo: callbackUrl })
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: "კოდი არასწორია ან ვადაგასულია" }
+    }
+    throw err
+  }
+}
 
 export async function registerWithEmail(
   _prev: AuthActionState,

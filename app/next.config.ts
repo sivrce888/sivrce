@@ -37,6 +37,8 @@ const csp = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "frame-src 'self' https://www.googletagmanager.com",
+  "publickey-credentials-get 'self'",
+  "publickey-credentials-create 'self'",
   "upgrade-insecure-requests",
 ].join("; ");
 
@@ -53,7 +55,7 @@ const securityHeaders = [
   {
     key: "Permissions-Policy",
     value:
-      "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), browsing-topics=()",
+      "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), browsing-topics=(), publickey-credentials-get=(self), publickey-credentials-create=(self)",
   },
   { key: "X-DNS-Prefetch-Control", value: "on" },
 ];
@@ -141,6 +143,18 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       })),
+      {
+        source: "/llms.txt",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" },
+        ],
+      },
+      {
+        source: "/llms-full.txt",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" },
+        ],
+      },
     ];
   },
 };

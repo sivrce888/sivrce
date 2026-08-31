@@ -41,7 +41,7 @@ export default async function AgentProfilePage() {
         />
       ) : (
         <div className="space-y-6">
-          <section className="rounded-2xl border border-sv-ink/6 bg-white p-6 shadow-sm">
+          <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
             <div className="flex flex-wrap items-center gap-4">
               <span
                 className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-black text-white"

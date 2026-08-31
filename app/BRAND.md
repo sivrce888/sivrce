@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.14) · FROZEN 2026-07-17 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18
+# სივრცე — Brand Lock (v1.16) · FROZEN 2026-07-17 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Orange fills = white fg 2026-08-31 · Hero day/night 2026-08-31
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -24,7 +24,7 @@ stroke `#ffffff` and third-party brand marks (Google).
 | Blue light | `text-sv-blue-light` | #8FB4FF |
 | Blue deep | `hover:bg-sv-blue-deep` | #1A3FC0 |
 | Violet — gradients only | `to-sv-violet` | #7A5CFF |
-| Orange (action) | `bg-sv-orange` `text-sv-orange` | #FF6A2D |
+| Orange (action) | `bg-sv-orange` `text-white` (fills) · `text-sv-orange` (on light) | #FF6A2D |
 | Orange light | `to-sv-orange-light` | #FFB25E |
 | Orange deep — gradients only | `to-sv-orange-deep` | #FF4D6D |
 | Navy (dark bg) | `bg-sv-navy` | #050B26 |
@@ -106,7 +106,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 | --- | --- | --- | --- |
 | Primary | `sv-blue` | #2E6BFF | links, icons, AI features, active states |
 | Accent | `sv-orange` | #FF6A2D | CTAs, VIP, highlights, favorites — **action only** |
-| Deep bg | `sv-navy` | #050B26 | hero + dark sections + footer |
+| Deep bg | `sv-navy` | #050B26 | night hero + dark sections + footer |
 | Text | `sv-ink` | #0A1030 | headlines/body on light |
 | Light bg | `sv-cloud` | #F6F7FB | alternating section background |
 | Surface | `sv-surface` | #FFFFFF | cards / elevated panels (light) |
@@ -115,6 +115,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 Rules:
 
 - Orange ≤ 10% of any viewport · white space is a feature
+- **Filled orange** (`bg-sv-orange`, badges, action CTAs) uses `text-white` — same system as filled blue. Never `text-sv-navy` / ink on orange. Owner-approved 2026-08-31.
 - Dark sections always use dot-grid/aurora ambience, never flat color
 - **Overlays and image scrims are always navy-tinted** (`bg-sv-navy/55`, `from-sv-navy/70`) — never `bg-black/*`
 - Shadows are navy-tinted (`rgba(10,16,48,…)` / `rgba(5,11,38,…)` / `rgba(1,4,20,…)`) — never pure black
@@ -194,7 +195,8 @@ Brand hues (blue/orange/violet/category) stay fixed. Only foundations flip in `.
 | `sv-surface` | #FFFFFF | #0E1737 |
 | category chips | pastel fills | `color-mix(in oklab, <hue> 18–20%, transparent)` |
 
-Navy (`#050B26`) stays fixed — hero, CTA, map, footer are brand-dark in BOTH themes.
+Navy (`#050B26`) stays fixed — night hero, CTA, map, footer.
+Light hero is a **day sky** (sun + `sv-cloud` / `sv-blue-light` / `sv-orange-light` horizon kiss, locked tokens only) — owner 2026-08-31. Dark hero keeps the night sky (moon, stars, aurora).
 Glass light → smoked navy `rgba(8,13,38,0.92)` in dark.
 
 ### 3.4 Status hues (locked — owner-approved 2026-07-18, reverted from orange same day)

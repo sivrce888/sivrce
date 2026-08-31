@@ -105,7 +105,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[860px] px-5 pb-20 pt-24 md:px-10 md:pt-28">
+      <main id="main" className="sv-pt-nav mx-auto max-w-[860px] px-5 pb-20 md:px-10">
         <nav aria-label="ბრედკრამბი" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
             <li className="flex items-center gap-1.5">

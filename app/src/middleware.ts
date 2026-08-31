@@ -172,7 +172,15 @@ export function middleware(req: NextRequest) {
   }
 
   // Route handlers + auth flows stay at the root, unprefixed.
-  if (pathname === "/api" || pathname.startsWith("/api/") || pathname === "/auth" || pathname.startsWith("/auth/")) {
+  if (
+    pathname === "/api" ||
+    pathname.startsWith("/api/") ||
+    pathname === "/auth" ||
+    pathname.startsWith("/auth/") ||
+    pathname === "/llms.txt" ||
+    pathname === "/llms-full.txt" ||
+    pathname.startsWith("/.well-known/")
+  ) {
     return NextResponse.next()
   }
 

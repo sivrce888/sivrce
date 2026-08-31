@@ -29,11 +29,12 @@ interface BuildingPanelProps {
   tab: DealType | 'all'
   onTab: (t: DealType | 'all') => void
   floor?: number | null
+  highlightId?: string | null
   onFloorClear?: () => void
   onClose: () => void
 }
 
-export default function BuildingPanel({ building, tab, onTab, floor, onFloorClear, onClose }: BuildingPanelProps) {
+export default function BuildingPanel({ building, tab, onTab, floor, highlightId, onFloorClear, onClose }: BuildingPanelProps) {
   const { format } = useCurrency()
   const isConstruction = building.status === 'construction' && building.listings.length === 0
   const byTab =
@@ -49,6 +50,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
       role="dialog"
       aria-label={`${building.label} — განცხადებები`}
     >
+      <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-sv-ink/15 md:hidden" aria-hidden />
       <header className="shrink-0 border-b border-sv-ink/6">
         {/* Construction hero — map shows textured 3D massing from same img */}
         {isConstruction && building.img ? (
@@ -274,14 +276,28 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
               const suffix =
                 l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
               const bn = listingBuildingNumber(l)
+              const hot = highlightId === l.id
+              const perM2 =
+                l.dealType === 'sale' && l.area > 0
+                  ? ` · ${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾/მ²`
+                  : ''
               return (
                 <li key={l.id}>
                   <Link
                     href={listingPath(l)}
-                    className="flex gap-3 rounded-module border border-sv-ink/6 bg-sv-cloud/60 p-2.5 transition hover:border-sv-blue/30 hover:bg-sv-surface"
+                    className={`flex gap-3 rounded-module border p-2.5 transition hover:border-sv-blue/30 hover:bg-sv-surface ${
+                      hot
+                        ? 'border-sv-blue/40 bg-sv-blue/[0.06] ring-2 ring-sv-blue/25'
+                        : 'border-sv-ink/6 bg-sv-cloud/60'
+                    }`}
                   >
                     <div className="relative h-[72px] w-[88px] shrink-0 overflow-hidden rounded-control">
                       <Image src={l.img} alt="" fill className="object-cover" sizes="88px" />
+                      {l.badge ? (
+                        <span className="absolute left-1 top-1 rounded-full bg-sv-navy/80 px-1.5 py-0.5 text-[9px] font-black tracking-wide text-white">
+                          {l.badge}
+                        </span>
+                      ) : null}
                     </div>
                     <div className="min-w-0 flex-1 py-0.5">
                       <div
@@ -296,10 +312,11 @@ export default function BuildingPanel({ building, tab, onTab, floor, onFloorClea
                       <div className="mt-1 text-[15px] font-black tracking-tight text-sv-ink">
                         {format(l.priceGEL)}
                         {suffix}
+                        <span className="text-[11px] font-bold text-sv-ink/40">{perM2}</span>
                       </div>
                       <div className="truncate text-[11px] font-semibold text-sv-ink/40">
                         {l.address}
-                        {bn ? ` · #${bn}` : ''} · {l.coords.lat.toFixed(4)}, {l.coords.lng.toFixed(4)}
+                        {bn ? ` · #${bn}` : ''}
                       </div>
                       <div className="text-[11px] font-semibold text-sv-ink/35">
                         {l.area} მ² · {l.rooms} ოთახი · სართ. {l.floor}/{l.totalFloors}

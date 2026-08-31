@@ -3,8 +3,8 @@ import Navbar from '@/components/sections/Navbar'
 import Hero from '@/components/sections/Hero'
 import Stats from '@/components/sections/Stats'
 import Categories from '@/components/sections/Categories'
+import NeighborhoodsRail from '@/components/sections/NeighborhoodsRail'
 import StoriesRail from '@/components/sections/StoriesRail'
-import Collections from '@/components/sections/Collections'
 import Listings from '@/components/sections/Listings'
 import MapSection from '@/components/sections/MapSection'
 import Projects from '@/components/sections/Projects'
@@ -19,13 +19,14 @@ import type { Listing } from '@/data/listings'
 import { AGENT_PROFILES } from '@/data/professionals'
 import {
   getAgentListingCountsByKaName,
-  getDeveloperListingCountsBySlug,
+  getDistrictListingCounts,
   getFeaturedListings,
   getStoryListings,
   type Listing as StoryListing,
 } from '@/lib/listings-db'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { getHomeStats } from '@/lib/home-stats'
+import { AdSlot } from '@/components/ads/AdSlot'
 import type { Lang } from '@/lib/i18n/core'
 
 /** DB-first featured rail; empty when DB is down — fallback cards 404'd
@@ -39,13 +40,14 @@ async function getFeatured(): Promise<Listing[]> {
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
-  const [featured, stories, projects, stats, developers, agentCounts] = await Promise.all([
+  const [featured, stories, projects, stats, developers, agentCounts, districtCounts] = await Promise.all([
     getFeatured(),
     getStoryListings().catch(() => [] as StoryListing[]),
     projectsLive().catch(() => []),
     getHomeStats(),
     developersLive().catch(() => []),
     getAgentListingCountsByKaName().catch(() => ({}) as Record<string, number>),
+    getDistrictListingCounts().catch(() => ({}) as Record<string, number>),
   ])
   // Under-construction first; real CDN heroes over stock npN/pN. Rail shows 8 — rest via /projects.
   const building = projects.filter((p) => p.done < 100)
@@ -53,12 +55,12 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
   const withHero = pool.filter((p) => !/\/(?:np|p)\d+\.webp(?:\?|$)/.test(p.img))
   const homeProjects = (withHero.length >= 2 ? withHero : pool).slice(0, 8)
 
-  const projectToDev = new Map(
-    projects.filter((p) => p.developerSlug).map((p) => [p.slug, p.developerSlug!]),
-  )
-  const devCounts = await getDeveloperListingCountsBySlug(projectToDev).catch(
-    () => ({}) as Record<string, number>,
-  )
+  const activeByDev: Record<string, number> = {}
+  for (const p of projects) {
+    if (p.developerSlug && p.done < 100) {
+      activeByDev[p.developerSlug] = (activeByDev[p.developerSlug] ?? 0) + 1
+    }
+  }
   const topDevelopers = [...developers]
     .map((d) => ({
       slug: d.slug,
@@ -67,7 +69,7 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
       verified: d.verified,
       logoUrl: d.logoUrl,
       projectsDone: d.projectsDone,
-      listingsCount: devCounts[d.slug] ?? 0,
+      listingsCount: activeByDev[d.slug] ?? 0,
     }))
     .sort((a, b) => b.listingsCount - a.listingsCount || b.projectsDone - a.projectsDone)
     .slice(0, 12)
@@ -87,18 +89,20 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
   return (
     <>
       <StoriesRail items={stories} />
-      <Stats live={stats} />
       <Categories lang={lang} />
-      <Collections lang={lang} />
       <Listings items={featured} />
+      <AdSlot slot="home_mid" lang={lang} />
+      <NeighborhoodsRail counts={districtCounts} />
       <MapSection />
       <Projects items={homeProjects} total={projects.length} />
+      <AdSlot slot="home_after_projects" lang={lang} />
       <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} />
       <DeveloperSlider developers={topDevelopers} total={developers.length} />
       <Services lang={lang} />
+      <Stats live={stats} />
       <ForumTeaser />
       <BlogNewsSection />
-      <CTA lang={lang} live={stats} />
+      <CTA lang={lang} />
     </>
   )
 }
@@ -106,12 +110,14 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
 /** Homepage section assembly — lang drives CMS block copy on server sections. */
 export default function HomeMain({ lang = 'ka' }: { lang?: Lang }) {
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
         <Hero lang={lang} />
         <Suspense fallback={null}>
-          <HomeBelowFold lang={lang} />
+          <div className="sv-below-fold">
+            <HomeBelowFold lang={lang} />
+          </div>
         </Suspense>
       </main>
       <Footer />

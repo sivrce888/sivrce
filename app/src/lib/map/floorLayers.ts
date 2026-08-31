@@ -8,6 +8,11 @@
 
 import type { Map as MlMap, StyleSpecification } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
+import {
+  GEORGIA_MASK_FC,
+  GEORGIA_MASK_LAYER,
+  GEORGIA_MASK_SOURCE,
+} from '@/lib/map/buildings'
 import { EMPTY_FLOORS } from './floors'
 import { loadCleanStyle } from '@/lib/map/mapChrome'
 
@@ -77,8 +82,35 @@ export function satelliteStyle(): StyleSpecification {
 }
 
 export async function loadMapBasemap(styleKey: string): Promise<StyleSpecification> {
-  if (styleKey === STYLE_SATELLITE) return satelliteStyle()
-  return loadCleanStyle(styleKey)
+  const style = styleKey === STYLE_SATELLITE ? satelliteStyle() : await loadCleanStyle(styleKey)
+  return withGeorgiaLock(style, styleKey)
+}
+
+/** Light void — navy-tint gray so Georgia reads (cloud ≈ land, silhouette vanished). */
+const VOID_LIGHT = '#C5CBD8'
+
+/** Void outside the 50 km halo. Neighbor country labels stay — they sit in the rim. */
+function withGeorgiaLock(style: StyleSpecification, styleKey: string): StyleSpecification {
+  const voidColor =
+    styleKey === STYLE_SATELLITE || /dark/i.test(styleKey)
+      ? BRAND.colors.navy
+      : VOID_LIGHT
+  return {
+    ...style,
+    sources: {
+      ...style.sources,
+      [GEORGIA_MASK_SOURCE]: { type: 'geojson', data: GEORGIA_MASK_FC },
+    },
+    layers: [
+      ...(style.layers ?? []),
+      {
+        id: GEORGIA_MASK_LAYER,
+        type: 'fill',
+        source: GEORGIA_MASK_SOURCE,
+        paint: { 'fill-color': voidColor, 'fill-opacity': 1 },
+      },
+    ],
+  }
 }
 
 export const FLOORS_SOURCE_ID = 'sivrce-floors'
@@ -112,10 +144,13 @@ function tryLayout(map: MlMap, layer: string, prop: string, value: unknown) {
  * Refs: Maps road white / highway yellow / water #AADAFF / park #C8E6C9.
  */
 function applyLightPaints(map: MlMap) {
-  // Land
-  trySet(map, 'background', 'background-color', '#F5F5F5')
-  trySet(map, 'natural_earth', 'raster-opacity', 0)
-  trySet(map, 'landuse_residential', 'fill-color', '#EEEEEE')
+  // Land — NE on at country zoom so mkhare/terrain read (was 0 → paper white)
+  trySet(map, 'background', 'background-color', '#E6EBE3')
+  trySet(map, 'natural_earth', 'raster-opacity', [
+    'interpolate', ['linear'], ['zoom'],
+    5, 0.52, 7, 0.4, 9, 0.18, 11, 0,
+  ])
+  trySet(map, 'landuse_residential', 'fill-color', '#E4E6EA')
   trySet(map, 'landuse_residential', 'fill-opacity', 1)
 
   // Water — Google cyan
@@ -132,8 +167,17 @@ function applyLightPaints(map: MlMap) {
   trySet(map, 'park', 'fill-color', '#C8E6C9')
   trySet(map, 'park', 'fill-opacity', 1)
   trySet(map, 'park_outline', 'line-color', '#A5D6A7')
-  trySet(map, 'landcover_grass', 'fill-color', '#C3ECB2')
-  trySet(map, 'landcover_wood', 'fill-color', '#A8D5A2')
+  trySet(map, 'landcover_grass', 'fill-color', '#B7D9A4')
+  trySet(map, 'landcover_grass', 'fill-opacity', 0.8)
+  trySet(map, 'landcover_wood', 'fill-color', '#8FC484')
+  trySet(map, 'landcover_wood', 'fill-opacity', 0.85)
+  trySet(map, 'boundary_3', 'line-color', '#7A8499')
+  trySet(map, 'boundary_3', 'line-opacity', 0.95)
+  trySet(map, 'boundary_3', 'line-width', [
+    'interpolate', ['linear'], ['zoom'],
+    6, 0.7, 8, 1.1, 11, 1.8,
+  ])
+  trySet(map, 'boundary_2', 'line-color', '#5A6480')
   trySet(map, 'landuse_cemetery', 'fill-color', '#C5DFB5')
   trySet(map, 'landuse_hospital', 'fill-color', '#F8D7DA')
   trySet(map, 'landuse_school', 'fill-color', '#FFF3C4')
@@ -410,6 +454,9 @@ export function applyBrandPaints(
   theme: MapTheme = 'dark',
   terrain: MapTerrain = 'streets',
 ) {
+  const voidColor =
+    theme === 'dark' || terrain === 'satellite' ? BRAND.colors.navy : VOID_LIGHT
+  trySet(map, GEORGIA_MASK_LAYER, 'fill-color', voidColor)
   if (terrain === 'satellite') return
   if (theme === 'dark') {
     applyDarkPaints(map)
@@ -447,6 +494,7 @@ export function ensureFloorLayers(map: MlMap, minzoom = 14.5) {
       'fill-extrusion-base': ['get', 'base'],
       'fill-extrusion-height': ['get', 'top'],
       'fill-extrusion-opacity': 1,
+      'fill-extrusion-vertical-gradient': true,
     },
   })
 

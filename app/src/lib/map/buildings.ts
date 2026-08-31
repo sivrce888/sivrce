@@ -32,12 +32,63 @@ type FootprintEntry =
 
 const FOOTPRINTS = footprintData.footprints as unknown as Record<string, FootprintEntry>
 
+/** DB pins are `bldg-{slug}`; construction ghosts are `dev-{slug}`. Try both. */
+function footprintEntry(b: {
+  id?: string
+  slug?: string
+  projectSlug?: string
+}): FootprintEntry | undefined {
+  const keys = [b.id, b.slug && `bldg-${b.slug}`, b.slug && `dev-${b.slug}`]
+  if (b.projectSlug) keys.push(`dev-${b.projectSlug}`, `bldg-${b.projectSlug}`)
+  const seen = new Set<string>()
+  for (const k of keys) {
+    if (!k || seen.has(k)) continue
+    seen.add(k)
+    if (k in FOOTPRINTS) return FOOTPRINTS[k]
+  }
+  return undefined
+}
+
 function footprintPrimaryRing(
   fp: Exclude<FootprintEntry, null> | undefined,
 ): FootprintRing | undefined {
   if (!fp) return undefined
   if (fp.parts?.length) return fp.parts[0]!.ring
   return fp.ring
+}
+
+function footprintOsmHeightM(fp: FootprintEntry | undefined): number | undefined {
+  if (!fp || fp.parts) return undefined
+  return fp.height
+}
+
+/** OSM ring/parts centroid — pins stay glued to real massing, not catalog drift. */
+function footprintCentroid(
+  fp: Exclude<FootprintEntry, null> | undefined,
+): { lat: number; lng: number } | null {
+  if (!fp) return null
+  const rings = fp.parts?.length ? fp.parts.map((p) => p.ring) : fp.ring ? [fp.ring] : []
+  let sLat = 0
+  let sLng = 0
+  let n = 0
+  for (const ring of rings) {
+    const last = ring.length - 1
+    const closed =
+      last > 0 && ring[0]![0] === ring[last]![0] && ring[0]![1] === ring[last]![1]
+    const end = closed ? last : ring.length
+    for (let i = 0; i < end; i++) {
+      sLng += ring[i]![0]!
+      sLat += ring[i]![1]!
+      n++
+    }
+  }
+  return n ? { lat: sLat / n, lng: sLng / n } : null
+}
+
+/** Catalog pin: prefer committed OSM footprint centroid when present. */
+function catalogCoords(cat: BuildingCatalogEntry): { lat: number; lng: number } {
+  const fp = footprintEntry({ id: `bldg-${cat.slug}`, slug: cat.slug, projectSlug: cat.projectSlug })
+  return (fp ? footprintCentroid(fp) : null) ?? cat.coords
 }
 
 const CELL_DEG = 0.00055 // ≈ 60 m at Tbilisi lat
@@ -133,9 +184,13 @@ export function dealColor(deal: DealType): string {
 }
 
 /** Map pin / extrusion hue — construction always STATUS sky (never deal colors). */
-export function pinHue(b: Pick<MapBuildingCluster, 'status' | 'color'>): string {
+export function pinHue(
+  b: Pick<MapBuildingCluster, 'status' | 'color'>,
+  deal: MapDealFilter = 'all',
+): string {
   if (b.status === 'construction') return STATUS_BRAND.construction.hue
   if (b.status === 'completed') return SERVICE_BRAND.developers.hue
+  if (deal !== 'all') return dealColor(deal)
   return b.color
 }
 
@@ -219,6 +274,7 @@ function enrichFromCatalog(
   cat: BuildingCatalogEntry,
 ): MapBuildingCluster {
   const dev = getDeveloper(cat.developerSlug)
+  const pin = catalogCoords(cat)
   return {
     ...cluster,
     id: `bldg-${cat.slug}`,
@@ -227,8 +283,8 @@ function enrichFromCatalog(
     buildingNumber: cat.buildingNumber,
     district: cat.district,
     city: cat.city,
-    lat: cat.coords.lat,
-    lng: cat.coords.lng,
+    lat: pin.lat,
+    lng: pin.lng,
     code: cat.code,
     slug: cat.slug,
     img: cat.img,
@@ -247,10 +303,11 @@ function enrichFromCatalog(
 export function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[]): MapBuildingCluster {
   const counts = countDeals(listings)
   const dominant = listings.length ? dominantDeal(counts) : ('sale' as DealType)
+  const pin = catalogCoords(cat)
   const base: MapBuildingCluster = {
     id: `bldg-${cat.slug}`,
-    lat: cat.coords.lat,
-    lng: cat.coords.lng,
+    lat: pin.lat,
+    lng: pin.lng,
     label: cat.name,
     address: cat.address,
     buildingNumber: cat.buildingNumber,
@@ -402,10 +459,23 @@ export function projectsToConstructionBuildings(
       const bn = parseBuildingNumber(p.location) || '—'
       const completed = p.done >= 100
       const dev = getDeveloper(p.developerSlug)
+      const id = `dev-${p.slug}`
+      const fp = footprintEntry({ id, slug: p.slug, projectSlug: p.slug })
+      const glued = fp ? footprintCentroid(fp) : null
+      const ring = footprintPrimaryRing(fp ?? undefined)
+      const campus = !!(fp && fp.parts && fp.parts.length >= 2)
+      const pinOk =
+        !!ring &&
+        footprintRingUsable(ring, p.coords.lat, p.coords.lng, {
+          campus,
+          ghost: !completed,
+          floors,
+          osmHeightM: footprintOsmHeightM(fp),
+        })
       return {
-        id: `dev-${p.slug}`,
-        lat: p.coords.lat,
-        lng: p.coords.lng,
+        id,
+        lat: pinOk && glued ? glued.lat : p.coords.lat,
+        lng: pinOk && glued ? glued.lng : p.coords.lng,
         label: p.name,
         address: p.location,
         buildingNumber: bn,
@@ -446,10 +516,27 @@ export function applyLiveProjectPins(
     const bn = parseBuildingNumber(p.location)
     const dev = getDeveloper(p.developerSlug)
     const completed = p.done >= 100
+    // Keep OSM/campus centroid — project GPS is often a street geocode a block off.
+    const fp = footprintEntry(b)
+    const glued = fp ? footprintCentroid(fp) : null
+    const ring = footprintPrimaryRing(fp ?? undefined)
+    const campus = !!(fp && fp.parts && fp.parts.length >= 2)
+    const floors = p.floors ?? b.floors
+    const osmHeightM = footprintOsmHeightM(fp)
+    const ringOk = (lat: number, lng: number) =>
+      !!ring &&
+      footprintRingUsable(ring, lat, lng, {
+        campus,
+        ghost: !completed,
+        floors,
+        osmHeightM,
+      })
+    const snap =
+      glued && (ringOk(b.lat, b.lng) || ringOk(p.coords.lat, p.coords.lng)) ? glued : null
     return {
       ...b,
-      lat: p.coords.lat,
-      lng: p.coords.lng,
+      lat: snap?.lat ?? p.coords.lat,
+      lng: snap?.lng ?? p.coords.lng,
       address: p.location || b.address,
       buildingNumber: bn || b.buildingNumber,
       developerSlug: p.developerSlug || b.developerSlug,
@@ -512,7 +599,8 @@ export function filterBuildings(
     if (status === 'completed' && b.status !== 'completed') return false
     if (status === 'active' && (b.status === 'construction' || b.status === 'completed')) return false
     if (deal === 'all') return true
-    if (b.status === 'construction' && b.listings.length === 0) return status !== 'active'
+    // Empty construction shells are sale-side inventory — hide on rent/daily/pledge.
+    if (b.status === 'construction' && b.listings.length === 0) return deal === 'sale'
     return b.counts[deal] > 0
   })
 }
@@ -541,6 +629,31 @@ export function findBuildingBySlug(
   buildings: MapBuildingCluster[],
 ): MapBuildingCluster | null {
   return buildings.find((b) => b.slug === slug || b.id === `bldg-${slug}`) ?? null
+}
+
+export function findBuildingForListing(
+  listingId: string,
+  buildings: MapBuildingCluster[],
+): MapBuildingCluster | null {
+  return buildings.find((b) => b.listings.some((l) => l.id === listingId)) ?? null
+}
+
+/** Listing page → /map so the 3D camera opens on this ad (ss/myhome only have 2D pins). */
+export function mapHrefForListing(l: {
+  id: string
+  buildingSlug?: string
+  coords: { lat: number; lng: number }
+  dealType?: DealType
+  floor?: number
+}): string {
+  const q = new URLSearchParams()
+  if (l.buildingSlug) q.set('building', l.buildingSlug)
+  q.set('lat', l.coords.lat.toFixed(6))
+  q.set('lng', l.coords.lng.toFixed(6))
+  q.set('listing', l.id)
+  if (l.dealType) q.set('deal', l.dealType)
+  if (l.floor && l.floor > 0) q.set('floor', String(l.floor))
+  return `/map?${q}`
 }
 
 /** Digomi-slab synthetic when OSM ring missing (Beliashvili 68 ≈52×63 m). */
@@ -576,12 +689,15 @@ export function ghostFootprintHalfM(floors: number): number {
 }
 
 /** Bbox half-extent (m) of a closed ring — used to reject shed-sized OSM hits. */
-export function ringBboxHalfM(ring: [number, number][]): number {
+export function ringBboxHalfM(ring: ReadonlyArray<readonly number[]>): number {
   let minLng = Infinity
   let maxLng = -Infinity
   let minLat = Infinity
   let maxLat = -Infinity
-  for (const [lng, lat] of ring) {
+  for (const pt of ring) {
+    const lng = pt[0]
+    const lat = pt[1]
+    if (lng === undefined || lat === undefined) continue
     if (lng < minLng) minLng = lng
     if (lng > maxLng) maxLng = lng
     if (lat < minLat) minLat = lat
@@ -595,6 +711,8 @@ export function ringBboxHalfM(ring: [number, number][]): number {
 
 /** Distance from pin to ring centroid. Reject OSM hits glued to a neighbour block. */
 export const FOOTPRINT_MAX_PIN_M = 90
+/** Multi-tower campus (Dirsi, ORBI, Axis twins) — parts may sit a block off the pin. */
+export const FOOTPRINT_CAMPUS_MAX_PIN_M = 320
 
 export function ringCentroidDistM(
   ring: [number, number][],
@@ -622,21 +740,38 @@ export function footprintRingUsable(
   ring: [number, number][],
   lat: number,
   lng: number,
-  opts?: { ghost?: boolean },
+  opts?: { ghost?: boolean; campus?: boolean; floors?: number; osmHeightM?: number },
 ): boolean {
   if (ring.length < 5) return false
-  if (ringCentroidDistM(ring, lat, lng) > FOOTPRINT_MAX_PIN_M) return false
+  const maxM = opts?.campus ? FOOTPRINT_CAMPUS_MAX_PIN_M : FOOTPRINT_MAX_PIN_M
+  if (ringCentroidDistM(ring, lat, lng) > maxM) return false
   // ponytail: construction sites often match a neighbour shed — ignore if tiny.
   // NAPR parcel rings via napr-parcel.ts when cadastral/pin known.
   if (opts?.ghost && ringBboxHalfM(ring) < 14) return false
+  const planned = opts?.floors ?? 0
+  if (opts?.ghost && planned >= 12 && (opts.osmHeightM ?? 0) > 0) {
+    const osmFloors = opts.osmHeightM! / 3.1
+    if (osmFloors < planned * 0.4) return false
+  }
   return true
+}
+
+function clusterFootprintOpts(b: MapBuildingCluster, fp: FootprintEntry | undefined) {
+  const ghost = b.status === 'construction' && b.listings.length === 0
+  return {
+    ghost,
+    floors: b.floors,
+    osmHeightM: footprintOsmHeightM(fp),
+    campus: !!(fp && fp.parts && fp.parts.length >= 2),
+  }
 }
 
 /** Real OSM ring for a cluster, else synthetic slab (construction) / square (active). */
 export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
-  const ring = b.ring ?? footprintPrimaryRing(FOOTPRINTS[b.id] ?? undefined)
+  const fp = footprintEntry(b)
+  const ring = b.ring ?? footprintPrimaryRing(fp ?? undefined)
   const ghost = b.status === 'construction' && b.listings.length === 0
-  if (ring && footprintRingUsable(ring, b.lat, b.lng, { ghost })) {
+  if (ring && footprintRingUsable(ring, b.lat, b.lng, clusterFootprintOpts(b, fp))) {
     // Exact OSM outline — no bbox/hull (user: stay inside walls).
     return { type: 'Polygon', coordinates: [ring] }
   }
@@ -648,18 +783,37 @@ export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
   return buildingFootprint(b.lat, b.lng, FALLBACK_FOOTPRINT_HALF_M, FALLBACK_FOOTPRINT_ASPECT)
 }
 
-/** Cheapest active listing on the cluster — for mid-zoom price pills. */
-export function clusterMinPriceGEL(b: MapBuildingCluster): number | null {
+/** All rings to extrude — campus parts, else the primary cluster polygon. */
+export function clusterRings(
+  b: MapBuildingCluster,
+): { ring: FootprintRing; floors?: number }[] {
+  const fp = footprintEntry(b)
+  if (!b.ring && fp?.parts?.length) {
+    const parts = fp.parts.filter((part) =>
+      footprintRingUsable(part.ring, b.lat, b.lng, { campus: true }),
+    )
+    if (parts.length > 0) return parts.map((p) => ({ ring: p.ring, floors: p.floors }))
+  }
+  const ring = clusterGeometry(b).coordinates[0] as FootprintRing | undefined
+  return ring && ring.length >= 5 ? [{ ring, floors: b.floors }] : []
+}
+
+/** Cheapest listing on the cluster — for mid-zoom price pills. */
+export function clusterMinPriceGEL(
+  b: MapBuildingCluster,
+  deal: MapDealFilter = 'all',
+): number | null {
   let min: number | null = null
   for (const l of b.listings) {
+    if (deal !== 'all' && l.dealType !== deal) continue
     if (l.priceGEL > 0 && (min == null || l.priceGEL < min)) min = l.priceGEL
   }
   return min
 }
 
-function buildingProps(b: MapBuildingCluster) {
-  const minGel = clusterMinPriceGEL(b)
-  const hue = pinHue(b)
+function buildingProps(b: MapBuildingCluster, deal: MapDealFilter = 'all') {
+  const minGel = clusterMinPriceGEL(b, deal)
+  const hue = pinHue(b, deal)
   const ghost = b.status === 'construction' && b.listings.length === 0
   return {
     id: b.id,
@@ -704,17 +858,20 @@ function formatMapPinGEL(gel: number): string {
   return `${Math.round(gel)}₾`
 }
 
-export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.FeatureCollection {
+export function buildingsToGeoJSON(
+  buildings: MapBuildingCluster[],
+  deal: MapDealFilter = 'all',
+): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     // ponytail: GeoJSON.Feature widens FootprintRing → Position[] for @types/geojson
     features: buildings.flatMap((b): GeoJSON.Feature[] => {
-      const fp = FOOTPRINTS[b.id]
+      const fp = footprintEntry(b)
       // Multi-tower massing: one extrusion per part (MapLibre height is per-feature).
       if (fp?.parts && fp.parts.length > 0 && !b.ring) {
         const ghost = b.status === 'construction' && b.listings.length === 0
         const parts = fp.parts.filter((part) =>
-          footprintRingUsable(part.ring, b.lat, b.lng, { ghost: false }),
+          footprintRingUsable(part.ring, b.lat, b.lng, { campus: true }),
         )
         if (parts.length > 0) {
           return parts.map((part, i) => {
@@ -724,11 +881,11 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
               type: 'Feature' as const,
               id: i === 0 ? b.id : `${b.id}__${i}`,
               properties: {
-                ...buildingProps(b),
+                ...buildingProps(b, deal),
                 // Keep cluster id so map click → same panel for every tower.
                 id: b.id,
                 height,
-                color: colorWithAlpha(pinHue(b), ghost ? 0.78 : 0.95),
+                color: colorWithAlpha(pinHue(b, deal), ghost ? 0.78 : 0.95),
               },
               geometry: { type: 'Polygon' as const, coordinates: [part.ring] },
             }
@@ -739,7 +896,7 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
         {
           type: 'Feature' as const,
           id: b.id,
-          properties: buildingProps(b),
+          properties: buildingProps(b, deal),
           geometry: clusterGeometry(b),
         },
       ]
@@ -750,13 +907,14 @@ export function buildingsToGeoJSON(buildings: MapBuildingCluster[]): GeoJSON.Fea
 /** Point FC for MapLibre native clustering (polygons can't cluster). */
 export function buildingsToPointsGeoJSON(
   buildings: MapBuildingCluster[],
+  deal: MapDealFilter = 'all',
 ): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: buildings.map((b) => ({
       type: 'Feature' as const,
       id: b.id,
-      properties: buildingProps(b),
+      properties: buildingProps(b, deal),
       geometry: { type: 'Point' as const, coordinates: [b.lng, b.lat] },
     })),
   }
@@ -837,11 +995,118 @@ export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
 export const MAP_CENTER = { lat: 41.7151, lng: 44.8271 } as const
 /** Add-listing + Tbilisi city pin — Freedom Square (თავისუფლების მოედანი). */
 export const FREEDOM_SQUARE = { lat: 41.69365, lng: 44.80115 } as const
-/** Soft clamp — Georgia + Black Sea shelf; stops pan into Turkey/Russia. */
+/** Soft clamp — Georgia + halo; country-shaped clip is GEORGIA_MASK_FC. */
 export const GEORGIA_MAX_BOUNDS: [[number, number], [number, number]] = [
-  [39.9, 40.95],
-  [46.8, 43.6],
+  [38.7, 40.35],
+  [47.8, 44.25],
 ]
 export const MAP_MIN_ZOOM = 7
+export const GEORGIA_HALO_KM = 50
+
+/** Expand a closed CW ring outward. ponytail: local ENU + miter cap 4; turf.buffer if the outline gets denser. */
+function bufferRingKm(ring: [number, number][], km: number): [number, number][] {
+  const n = ring.length - 1
+  const out: [number, number][] = []
+  for (let i = 0; i < n; i++) {
+    const [lng0, lat0] = ring[(i - 1 + n) % n]!
+    const [lng1, lat1] = ring[i]!
+    const [lng2, lat2] = ring[(i + 1) % n]!
+    const kx = 111 * Math.cos((lat1 * Math.PI) / 180)
+    const e1x = (lng1 - lng0) * kx
+    const e1y = (lat1 - lat0) * 111
+    const e2x = (lng2 - lng1) * kx
+    const e2y = (lat2 - lat1) * 111
+    const l1 = Math.hypot(e1x, e1y) || 1
+    const l2 = Math.hypot(e2x, e2y) || 1
+    const n1x = -e1y / l1
+    const n1y = e1x / l1
+    const n2x = -e2y / l2
+    const n2y = e2x / l2
+    let ox = n1x + n2x
+    let oy = n1y + n2y
+    const ol = Math.hypot(ox, oy) || 1
+    const miter = Math.min(4, 1 / Math.max((ox * n1x + oy * n1y) / ol, 0.05))
+    ox = ((ox / ol) * km * miter) / kx
+    oy = ((oy / ol) * km * miter) / 111
+    out.push([lng1 + ox, lat1 + oy])
+  }
+  out.push(out[0]!)
+  return out
+}
+
+/** Country outline, CW, closed. Coast ~6 km offshore. */
+export const GEORGIA_BORDER: [number, number][] = [
+  [41.47841, 41.5097],
+  [41.54, 41.64],
+  [41.63, 41.73],
+  [41.68, 41.82],
+  [41.75, 41.99],
+  [41.56, 42.15],
+  [41.47, 42.28],
+  [41.46, 42.4],
+  [41.38, 42.62],
+  [41.37522, 42.66177],
+  [41.16, 42.85],
+  [40.9, 43.01],
+  [40.5, 43.11],
+  [40.2, 43.33],
+  [40.02, 43.39],
+  [40.25, 43.52],
+  [40.7, 43.56],
+  [40.84933, 43.41521],
+  [41.55, 43.38],
+  [42.33512, 43.27404],
+  [42.85, 43.18],
+  [43.4, 42.98],
+  [43.78931, 42.81357],
+  [43.99279, 42.60603],
+  [44.60941, 42.74731],
+  [45.2, 42.62],
+  [45.54938, 42.51472],
+  [45.85631, 42.08839],
+  [46.48438, 41.85116],
+  [46.22411, 41.70833],
+  [46.71392, 41.15673],
+  [46.57636, 41.03588],
+  [46.03577, 41.09153],
+  [45.28992, 41.37762],
+  [45.03935, 41.20422],
+  [44.2, 41.12],
+  [43.58782, 41.0123],
+  [42.9, 41.28],
+  [42.55399, 41.53732],
+  [41.9, 41.49],
+  [41.47841, 41.5097],
+]
+
+/** Mask hole = border + 50 km so neighbors/sea stay in frame. */
+export const GEORGIA_HOLE: [number, number][] = bufferRingKm(GEORGIA_BORDER, GEORGIA_HALO_KM)
+
+export const GEORGIA_MASK_SOURCE = 'sivrce-georgia-mask'
+export const GEORGIA_MASK_LAYER = 'sivrce-georgia-mask-fill'
+
+/** World-rect minus Georgia — covers neighbors even when the camera is pitched. */
+export const GEORGIA_MASK_FC: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [20, 30],
+            [60, 30],
+            [60, 55],
+            [20, 55],
+            [20, 30],
+          ],
+          GEORGIA_HOLE,
+        ],
+      },
+    },
+  ],
+}
 export const MAP_BRAND_WATER = BRAND.colors.navySoft
 export const MAP_BRAND_LAND = BRAND.colors.navy

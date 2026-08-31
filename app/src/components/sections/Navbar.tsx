@@ -10,6 +10,7 @@ import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { ChromeSearch } from '@/components/search/SearchSuggest'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
@@ -49,9 +50,11 @@ export default function Navbar() {
     setOpen(false)
   }
 
-  // On dark hero (homepage top) the bar is transparent with white text.
-  // Everywhere else (or once scrolled) it uses the light glass style.
+  // On homepage top: transparent bar. Light theme = ink chrome over the day
+  // sky; dark theme = white chrome over the night sky. Everywhere else (or
+  // once scrolled) the glass pill uses ink tokens (they flip in .dark).
   const light = scrolled || bare !== '/'
+  const chromeSearch = bare !== '/' && !bare.startsWith('/search')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -72,7 +75,10 @@ export default function Navbar() {
     { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
     { key: 'nav.forum', to: '/forum', mobileOnly: true },
-    { key: 'nav.services', to: `${bare === '/' ? '' : '/'}#services`, mobileOnly: true },
+    { key: 'nav.agents', to: '/agents', mobileOnly: true },
+    { key: 'nav.developers', to: '/developers', mobileOnly: true },
+    { key: 'nav.advertise', to: '/advertise', mobileOnly: true },
+    { key: 'nav.services', to: '/services', mobileOnly: true },
     { key: 'nav.search', to: '/search', mobileOnly: true },
   ]
 
@@ -82,7 +88,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sv-nav-in fixed inset-x-0 top-0 z-50">
+    <header className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
       <div
         className={`mx-auto flex h-[68px] w-full max-w-[1440px] items-center gap-2 px-5 transition-all duration-500 sm:gap-3 md:px-10 ${
           light
@@ -91,8 +97,14 @@ export default function Navbar() {
         }`}
       >
         <div className="shrink-0">
-          <Logo light={!light} href={localizedHref('/', lang)} />
+          <Logo adaptive href={localizedHref('/', lang)} />
         </div>
+
+        {chromeSearch && (
+          <div className="hidden min-w-0 max-w-[280px] flex-1 xl:block">
+            <ChromeSearch variant={light ? 'light' : 'dark'} />
+          </div>
+        )}
 
         <nav
           className="hidden min-w-0 flex-1 items-center justify-center gap-0 lg:flex"
@@ -108,8 +120,8 @@ export default function Navbar() {
                   ? 'bg-sv-ink/5 text-sv-ink'
                   : 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink'
                 : active
-                  ? 'bg-white/10 text-white'
-                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                  ? 'bg-sv-ink/5 text-sv-ink dark:bg-white/10 dark:text-white'
+                  : 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/85 dark:hover:bg-white/10 dark:hover:text-white'
             }`
             return l.to.includes('#') ? (
               <a key={l.key} href={localizedHref(l.to, lang)} className={cls}>
@@ -133,7 +145,7 @@ export default function Navbar() {
             href={localizedHref("/favorites", lang)}
             aria-label={`${t('nav.favorites')}${count > 0 ? ` — ${count}` : ''}`}
             className={`relative grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-              light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-white/85 hover:bg-white/10'
+              light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-sv-ink/70 hover:bg-sv-ink/5 dark:text-white/85 dark:hover:bg-white/10'
             }`}
           >
             <Heart className="h-[18px] w-[18px]" />
@@ -152,7 +164,7 @@ export default function Navbar() {
               aria-label={session.user.name ?? t('nav.login')}
               title={session.user.name ?? undefined}
               className={`flex h-10 max-w-[8.5rem] items-center gap-1.5 rounded-full px-2.5 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-                light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-white hover:bg-white/10'
+                light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-sv-ink hover:bg-sv-ink/5 dark:text-white dark:hover:bg-white/10'
               }`}
             >
               {session.user.image ? (
@@ -170,7 +182,7 @@ export default function Navbar() {
               href="/auth/signin"
               aria-label={t('nav.login')}
               className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-                light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-white hover:bg-white/10'
+                light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-sv-ink hover:bg-sv-ink/5 dark:text-white dark:hover:bg-white/10'
               }`}
             >
               <User className="h-4 w-4" />
@@ -178,7 +190,7 @@ export default function Navbar() {
           )}
           <Link
             href={localizedHref("/add-listing", lang)}
-            className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
+            className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
           >
             <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
             {t('nav.addListing')}
@@ -188,7 +200,7 @@ export default function Navbar() {
         <button
           ref={menuBtnRef}
           className={`ml-auto grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 lg:hidden ${
-            light ? 'text-sv-ink' : 'text-white'
+            light ? 'text-sv-ink' : 'text-sv-ink dark:text-white'
           }`}
           onClick={() => setOpen(!open)}
           aria-label={t('nav.menu')}
@@ -207,8 +219,11 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
-            className="mx-4 mt-2 rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
+            className="mx-4 mt-2 max-h-[min(80dvh,calc(100dvh-5.5rem-env(safe-area-inset-top,0px)))] overflow-y-auto overscroll-contain rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
           >
+            <div className="mb-2">
+              <ChromeSearch variant="light" onNavigate={() => setOpen(false)} />
+            </div>
             {NAV_LINKS.map((l) => {
               const active = isActive(l.to)
               const cls = `block rounded-control px-4 py-3 text-[16px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
@@ -274,7 +289,7 @@ export default function Navbar() {
               <Link
                 href={localizedHref("/dashboard", lang)}
                 onClick={() => setOpen(false)}
-                className="mt-2 flex items-center justify-center gap-2 rounded-control bg-sv-blue px-4 py-3.5 text-[15px] font-extrabold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+                className="mt-2 flex items-center justify-center gap-2 rounded-full bg-sv-blue px-4 py-3.5 text-[15px] font-extrabold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 <User className="h-4 w-4" />
                 <span className="truncate">{navName ?? t('nav.login')}</span>
@@ -283,7 +298,7 @@ export default function Navbar() {
               <Link
                 href="/auth/signin"
                 onClick={() => setOpen(false)}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-control bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 <User className="h-4 w-4" /> {t('nav.login')}
               </Link>
@@ -291,7 +306,7 @@ export default function Navbar() {
             <Link
               href={localizedHref("/add-listing", lang)}
               onClick={() => setOpen(false)}
-              className="mt-2 flex items-center justify-center gap-2 rounded-control bg-sv-orange px-4 py-3.5 text-[15px] font-extrabold text-white shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="mt-2 flex items-center justify-center gap-2 rounded-full bg-sv-orange px-4 py-3.5 text-[15px] font-black text-white shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               <Plus className="h-4 w-4" /> {t('nav.addListingFull')}
             </Link>

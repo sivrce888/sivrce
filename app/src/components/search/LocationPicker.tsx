@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { X, Search, MapPin, ChevronRight } from 'lucide-react'
+import { X, Search, MapPin, ChevronRight, Route } from 'lucide-react'
 import { GEO_CITIES, GEO_MUNICIPALITIES, geoRaionsOf } from '@/data/georgia-locations'
 import { districtsOf } from '@/data/listings'
+import type { Suggestion } from '@/components/search/SearchSuggest'
 
 const POPULAR = GEO_CITIES.slice(0, 10)
 
@@ -22,6 +23,7 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
   const [district, setDistrict] = useState(value.district)
   const [street, setStreet] = useState(value.street)
   const [q, setQ] = useState('')
+  const [remote, setRemote] = useState<Suggestion[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -40,6 +42,28 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
     return () => { window.clearTimeout(t); window.removeEventListener('keydown', onKey) }
   }, [open, value, onClose])
 
+  // Streets/quarters live in /api/suggest — don't ship the 3.9k catalog to this island.
+  useEffect(() => {
+    if (!open || q.trim().length < 2) {
+      const t = window.setTimeout(() => setRemote([]), 0)
+      return () => window.clearTimeout(t)
+    }
+    const ac = new AbortController()
+    const timer = window.setTimeout(async () => {
+      try {
+        const sp = new URLSearchParams({ q: q.trim() })
+        if (city) sp.set('city', city)
+        const res = await fetch(`/api/suggest?${sp}`, { signal: ac.signal })
+        const json = (await res.json()) as { ok?: boolean; suggestions?: Suggestion[] }
+        if (ac.signal.aborted) return
+        setRemote(json.ok ? (json.suggestions ?? []) : [])
+      } catch {
+        /* aborted or offline */
+      }
+    }, 150)
+    return () => { ac.abort(); window.clearTimeout(timer) }
+  }, [open, q, city])
+
   const districts = useMemo(() => (city ? districtsOf(city) : []), [city])
   const raions = useMemo(() => (city ? geoRaionsOf(city) : {}), [city])
   const raionEntries = useMemo(() => Object.entries(raions), [raions])
@@ -53,6 +77,14 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
     if (!qn || !city) return []
     return districts.filter((d) => d.toLowerCase().includes(qn)).slice(0, 16)
   }, [qn, city, districts])
+  const streetHits = useMemo(
+    () => remote.filter((s) => s.kind === 'street').slice(0, 12),
+    [remote],
+  )
+  const remoteDistHits = useMemo(
+    () => (city ? [] : remote.filter((s) => s.kind === 'district').slice(0, 8)),
+    [remote, city],
+  )
 
   // Alphabet groups for municipalities when browsing (no query, no city).
   const muniGroups = useMemo(() => {
@@ -71,6 +103,14 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
   const pickCity = (c: string) => {
     setCity(c)
     setDistrict('')
+    setStreet('')
+    setQ('')
+  }
+
+  const pickStreet = (s: Suggestion) => {
+    if (s.city) setCity(s.city)
+    if (s.district) setDistrict(s.district)
+    setStreet(s.ka)
     setQ('')
   }
 
@@ -92,12 +132,12 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
         <div className="flex items-center justify-between border-b border-sv-ink/[0.06] px-5 py-4">
           <div className="min-w-0">
             <h2 className="text-[17px] font-extrabold tracking-tight text-sv-ink">მდებარეობა</h2>
-            {(city || district) && (
+            {(city || district || street) && (
               <p className="mt-1 flex flex-wrap items-center gap-1 text-[13px] font-semibold text-sv-ink/50">
                 {city && (
                   <button
                     type="button"
-                    onClick={() => { setCity(''); setDistrict('') }}
+                    onClick={() => { setCity(''); setDistrict(''); setStreet('') }}
                     className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-sv-blue hover:bg-sv-blue/15"
                   >
                     {city}
@@ -109,10 +149,23 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
                     <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" />
                     <button
                       type="button"
-                      onClick={() => setDistrict('')}
+                      onClick={() => { setDistrict(''); setStreet('') }}
                       className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-sv-blue hover:bg-sv-blue/15"
                     >
                       {district}
+                      <X className="h-3 w-3" />
+                    </button>
+                  </>
+                )}
+                {street && (
+                  <>
+                    <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" />
+                    <button
+                      type="button"
+                      onClick={() => setStreet('')}
+                      className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-sv-blue hover:bg-sv-blue/15"
+                    >
+                      {street}
                       <X className="h-3 w-3" />
                     </button>
                   </>
@@ -194,7 +247,59 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
                   </ul>
                 </section>
               )}
-              {cityHits.length === 0 && distHits.length === 0 && (
+              {remoteDistHits.length > 0 && (
+                <section>
+                  <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">უბნები</h3>
+                  <ul className="space-y-0.5">
+                    {remoteDistHits.map((s) => (
+                      <li key={`${s.city}:${s.ka}`}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (s.city) setCity(s.city)
+                            setDistrict(s.ka)
+                            setQ('')
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                        >
+                          <MapPin className="h-4 w-4 text-sv-blue" />
+                          <span className="min-w-0">
+                            <span className="block truncate">{s.ka}</span>
+                            {s.city ? (
+                              <span className="block text-[12px] font-semibold text-sv-ink/40">{s.city}</span>
+                            ) : null}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              {streetHits.length > 0 && (
+                <section>
+                  <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">ქუჩები</h3>
+                  <ul className="space-y-0.5">
+                    {streetHits.map((s) => (
+                      <li key={`${s.city}:${s.ka}`}>
+                        <button
+                          type="button"
+                          onClick={() => pickStreet(s)}
+                          className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                        >
+                          <Route className="h-4 w-4 shrink-0 text-sv-blue" />
+                          <span className="min-w-0">
+                            <span className="block truncate">{s.ka}</span>
+                            <span className="block truncate text-[12px] font-semibold text-sv-ink/40">
+                              {[s.district, s.city].filter(Boolean).join(' · ')}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              {cityHits.length === 0 && distHits.length === 0 && remoteDistHits.length === 0 && streetHits.length === 0 && (
                 <p className="py-8 text-center text-[14px] font-semibold text-sv-ink/45">ვერაფერი მოიძებნა</p>
               )}
             </div>
@@ -327,14 +432,14 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
             <button
               type="button"
               onClick={onClose}
-              className="h-11 rounded-control border border-sv-ink/10 px-5 text-[13px] font-extrabold text-sv-ink transition-colors hover:bg-sv-ink/[0.04]"
+              className="h-11 rounded-full border border-sv-ink/10 px-5 text-[13px] font-extrabold text-sv-ink transition-colors hover:bg-sv-ink/[0.04]"
             >
               გაუქმება
             </button>
             <button
               type="button"
               onClick={apply}
-              className="h-11 rounded-control bg-sv-blue px-6 text-[13px] font-extrabold text-white transition-colors hover:bg-sv-blue-deep"
+              className="h-11 rounded-full bg-sv-blue px-6 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep"
             >
               არჩევა
             </button>
@@ -347,9 +452,13 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
 
 /** Compact label for the hero location trigger. */
 export function locationLabel(v: LocationValue): string {
+  if (v.street) {
+    if (v.district) return `${v.street}, ${v.district}`
+    if (v.city) return `${v.street}, ${v.city}`
+    return v.street
+  }
   if (v.district && v.city) return `${v.district}, ${v.city}`
   if (v.city) return v.city
   if (v.district) return v.district
-  if (v.street) return v.street
   return 'აირჩიე ქალაქი'
 }

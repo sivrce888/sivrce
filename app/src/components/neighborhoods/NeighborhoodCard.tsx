@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { MapPin, ArrowRight } from 'lucide-react'
 import type { Neighborhood } from '@/data/neighborhoods'
 import { pick, overallScore } from '@/data/neighborhoods'
@@ -15,7 +15,7 @@ export default function NeighborhoodCard({ n, count }: { n: Neighborhood; count:
   const score = overallScore(n)
 
   return (
-    <Link
+    <LocalizedLink
       href={`/neighborhoods/${n.slug}`}
       aria-label={`${pick(n.name, lang)} — ${s.viewGuide}`}
       className="group block rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
@@ -31,7 +31,7 @@ export default function NeighborhoodCard({ n, count }: { n: Neighborhood; count:
           />
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
           <div
-            className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[13px] font-black text-sv-navy"
+            className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[13px] font-black text-sv-ink"
             aria-label={`${s.scoreLabel} ${score}/10`}
           >
             <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[11px] text-sv-blue">
@@ -63,6 +63,6 @@ export default function NeighborhoodCard({ n, count }: { n: Neighborhood; count:
           </span>
         </div>
       </article>
-    </Link>
+    </LocalizedLink>
   )
 }

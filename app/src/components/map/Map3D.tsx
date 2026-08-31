@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * SIVRCE 3D map — brand paints, filters, click-anywhere.
+ * SIVRCE 3D map — brand paints, filters, tap a building.
  * ponytail: basemap via /api/map; Meilisearch geo when scale hits.
  */
 
@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'rea
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
+import { motion } from 'framer-motion'
 import maplibregl, {
   type Map as MlMap,
   type MapLayerMouseEvent,
@@ -32,6 +33,7 @@ import {
   clusterListingsToBuildings,
   filterBuildings,
   findBuildingBySlug,
+  findBuildingForListing,
   findNearestBuilding,
   mergeMapBuildings,
   mergeDbBuildings,
@@ -67,6 +69,7 @@ import {
   parseTerrain,
   readMapUi,
   writeMapUi,
+  mapBootCamera,
   type MapUiSave,
 } from '@/lib/map/map-ui'
 import {
@@ -87,6 +90,7 @@ import {
 } from '@/lib/map/mapChrome'
 import {
   initialMapCenter,
+  MAP_CITIES,
   nearestMapCity,
   readIpDismiss,
   writeIpDismiss,
@@ -111,6 +115,7 @@ import {
   Circle,
   Satellite,
   SlidersHorizontal,
+  Compass,
   Pill,
   School,
   GraduationCap,
@@ -121,6 +126,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { MetroMark } from '@/lib/map/poi-icons'
+import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 
 const POI_ICONS: Record<PoiCategory, LucideIcon | typeof MetroMark> = {
   metro: MetroMark,
@@ -145,6 +151,8 @@ const CLUSTER_ID = 'sivrce-buildings-cluster'
 const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
 /** Defaults — admin MapPlatformConfig overrides at runtime. */
 const DETAIL_ZOOM = 13.5
+/** Bottom POI rail height — camera padding so chips don’t eat the map. */
+const POI_RAIL_PAD = 56
 
 /** Hide MapLibre extrusion for floor-stack selection and/or textured three.js massing. */
 function massingHideFilter(
@@ -158,14 +166,16 @@ function massingHideFilter(
 }
 const PRICE_MIN_ZOOM = 11.2
 const CLUSTER_MAX_ZOOM = 13
+/** Filter recasts — MapLibre paint ms. Radius stays instant so zoom doesn’t lag. */
+const MAP_FADE = { duration: 320 } as const
 
 type MapZoomCfg = { detailZoom: number; priceMinZoom: number; clusterMaxZoom: number }
 
 /** Top 3 people love: streets (yellow) · hybrid · clean. */
-const TERRAIN_OPTIONS_ALL: { id: MapTerrain; label: string; Icon: LucideIcon }[] = [
-  { id: 'streets', label: 'ქუჩები', Icon: MapIcon },
-  { id: 'satellite', label: 'ჰიბრიდი', Icon: Satellite },
-  { id: 'clean', label: 'მინიმალი', Icon: Circle },
+const TERRAIN_OPTIONS_ALL: { id: MapTerrain; labelKey: DictKey; Icon: LucideIcon }[] = [
+  { id: 'streets', labelKey: 'map.terrain.streets', Icon: MapIcon },
+  { id: 'satellite', labelKey: 'map.terrain.satellite', Icon: Satellite },
+  { id: 'clean', labelKey: 'map.terrain.clean', Icon: Circle },
 ]
 
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
@@ -188,16 +198,17 @@ async function ensureLayers(
     priceMinZoom: PRICE_MIN_ZOOM,
     clusterMaxZoom: CLUSTER_MAX_ZOOM,
   },
+  deal: MapDealFilter = 'all',
 ) {
   if (map.getSource(SOURCE_ID)) return
 
   await loadPoiImages(map)
 
-  map.addSource(SOURCE_ID, { type: 'geojson', data: buildingsToGeoJSON(buildings) })
+  map.addSource(SOURCE_ID, { type: 'geojson', data: buildingsToGeoJSON(buildings, deal) })
   // ponytail: MapLibre clusters Points only — parallel centroid source for far zoom.
   map.addSource(PTS_SOURCE_ID, {
     type: 'geojson',
-    data: buildingsToPointsGeoJSON(buildings),
+    data: buildingsToPointsGeoJSON(buildings, deal),
     cluster: true,
     clusterMaxZoom: zooms.clusterMaxZoom,
     clusterRadius: 52,
@@ -286,6 +297,8 @@ async function ensureLayers(
         ['boolean', ['feature-state', 'seen'], false], 0.55,
         0.95,
       ],
+      'circle-color-transition': MAP_FADE,
+      'circle-opacity-transition': MAP_FADE,
     },
   })
 
@@ -367,6 +380,7 @@ async function ensureLayers(
       ],
       'text-halo-color': '#FFFFFF',
       'text-halo-width': 1.6,
+      'text-color-transition': MAP_FADE,
     },
   })
 
@@ -378,6 +392,8 @@ async function ensureLayers(
     paint: {
       'fill-color': ['get', 'color'],
       'fill-opacity': 0.22,
+      'fill-color-transition': MAP_FADE,
+      'fill-opacity-transition': MAP_FADE,
     },
   })
 
@@ -392,6 +408,8 @@ async function ensureLayers(
       'fill-extrusion-height': ['get', 'height'],
       'fill-extrusion-base': 0,
       'fill-extrusion-opacity': 1,
+      'fill-extrusion-vertical-gradient': true,
+      'fill-extrusion-color-transition': MAP_FADE,
     },
   })
 
@@ -540,20 +558,87 @@ function applyPoiLabelTheme(map: MlMap, dark: boolean) {
   map.setPaintProperty(POI_LABEL_LAYER_ID, 'text-halo-color', dark ? '#0A1440' : '#FFFFFF')
 }
 
-const DEAL_FILTERS: { id: MapDealFilter; label: string; color: string }[] = [
-  { id: 'all', label: 'ყველა', color: BRAND.colors.blue },
-  { id: 'sale', label: 'იყიდება', color: DEAL_BRAND.sale },
-  { id: 'rent', label: 'ქირავდება', color: DEAL_BRAND.rent },
-  { id: 'daily', label: 'დღიურად', color: DEAL_BRAND.daily },
-  { id: 'pledge', label: 'გირავდება', color: DEAL_BRAND.pledge },
+const DEAL_FILTERS: { id: MapDealFilter; labelKey: DictKey; color: string }[] = [
+  { id: 'all', labelKey: 'search.all', color: BRAND.colors.blue },
+  { id: 'sale', labelKey: 'search.sale', color: DEAL_BRAND.sale },
+  { id: 'rent', labelKey: 'search.rent', color: DEAL_BRAND.rent },
+  { id: 'daily', labelKey: 'nav.daily', color: DEAL_BRAND.daily },
+  { id: 'pledge', labelKey: 'map.pledge', color: DEAL_BRAND.pledge },
 ]
 
-const STATUS_FILTERS: { id: MapStatusFilter; label: string }[] = [
-  { id: 'all', label: 'ყველა' },
-  { id: 'active', label: 'აქტიური' },
-  { id: 'construction', label: 'მშენებარე' },
-  { id: 'completed', label: 'დასრულებული' },
+const STATUS_FILTERS: { id: MapStatusFilter; labelKey: DictKey; color: string }[] = [
+  { id: 'all', labelKey: 'search.all', color: BRAND.colors.blue },
+  { id: 'active', labelKey: 'map.status.active', color: BRAND.colors.blue },
+  { id: 'construction', labelKey: 'map.status.construction', color: STATUS_BRAND.construction.hue },
+  { id: 'completed', labelKey: 'map.status.completed', color: SERVICE_BRAND.developers.hue },
 ]
+
+function MapFilterPills<T extends string>({
+  items,
+  value,
+  onChange,
+  layoutId,
+  muted,
+  groupLabel,
+  size = 'compact',
+}: {
+  items: { id: T; label: string; color: string; title?: string }[]
+  value: T
+  onChange: (id: T) => void
+  layoutId: string
+  muted: string
+  groupLabel: string
+  size?: 'compact' | 'sheet'
+}) {
+  const pad = size === 'sheet' ? 'min-h-10 px-3.5 text-[13px]' : 'min-h-8 px-2.5 text-[12px]'
+  return (
+    <div
+      className={`flex gap-0.5 ${size === 'sheet' ? 'flex-wrap' : 'shrink-0'}`}
+      role="radiogroup"
+      aria-label={groupLabel}
+    >
+      {items.map((f) => {
+        const on = value === f.id
+        return (
+          <button
+            key={f.id}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            title={f.title}
+            onClick={() => onChange(f.id)}
+            className={`relative ${pad} whitespace-nowrap rounded-full font-extrabold tracking-tight transition-colors duration-200 ease-[cubic-bezier(0.21,0.65,0.2,1)] active:scale-[0.97] ${
+              on ? 'text-white' : muted
+            }`}
+          >
+            {on && (
+              <motion.span
+                layoutId={layoutId}
+                className="absolute inset-0 rounded-full shadow-soft"
+                style={{ background: f.color }}
+                transition={{ type: 'spring', bounce: 0.18, duration: 0.45 }}
+              />
+            )}
+            <span className="relative z-10">{f.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+const BUILDING_HIT_LAYERS = [
+  EXTRUDE_ID,
+  FILL_ID,
+  DOT_ID,
+  DOT_ACTIVE_ID,
+  LABEL_ID,
+  PRICE_ID,
+  FLOORS_FILL_ID,
+] as const
+
+/** Apple-like tap slop around small footprints. */
+const HIT_PAD_PX = 18
 
 function Map3DInner({
   dbBuildings = [],
@@ -612,7 +697,10 @@ function Map3DInner({
   const [liveListings, setLiveListings] = useState<Listing[] | undefined>(listings)
   const [liveDbBuildings, setLiveDbBuildings] = useState(dbBuildings)
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
-  const [tab, setTab] = useState<DealType | 'all'>('all')
+  const [tab, setTab] = useState<DealType | 'all'>(() => {
+    const d = savedUi.deal
+    return d === 'sale' || d === 'rent' || d === 'daily' || d === 'pledge' ? d : 'all'
+  })
   const [dealFilter, setDealFilter] = useState<MapDealFilter>(() => {
     const d = savedUi.deal
     return DEAL_FILTERS.some((f) => f.id === d) ? (d as MapDealFilter) : 'all'
@@ -634,6 +722,8 @@ function Map3DInner({
     return parseTerrain(platform?.defaultTerrain)
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [layersOpen, setLayersOpen] = useState(false)
+  const [bearing, setBearing] = useState(() => mapBootCamera(savedUi.view3d != null ? savedUi.view3d : (platform?.defaultView3d ?? true)).bearing)
   const [fullscreen, setFullscreen] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -649,7 +739,7 @@ function Map3DInner({
   const shellRef = useRef<HTMLDivElement>(null)
   const selectedRef = useRef<MapBuildingCluster | null>(null)
   const view3dRef = useRef(view3d)
-  const dealRef = useRef<MapDealFilter>('all')
+  const dealRef = useRef<MapDealFilter>(dealFilter)
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
   const userDotRef = useRef<maplibregl.Marker | null>(null)
@@ -753,11 +843,11 @@ function Map3DInner({
       setLiveListings(data.listings)
       setLiveDbBuildings(data.buildings)
       flashRefreshNote(
-        added > 0 ? `+${added} ახალი განცხადება` : 'რუკა განახლებულია',
+        added > 0 ? tRef.current('map.refreshAdded', { n: added }) : tRef.current('map.refreshed'),
       )
     } catch (err) {
       console.error('[Map3D] refresh', err)
-      flashRefreshNote('განახლება ვერ მოხერხდა')
+      flashRefreshNote(tRef.current('map.refreshFail'))
     } finally {
       setRefreshing(false)
     }
@@ -765,7 +855,6 @@ function Map3DInner({
 
   // Live DB listings when present (incl. empty); demo LISTINGS only if prop omitted.
   const sourceListings = liveListings ?? LISTINGS
-  const listingCount = sourceListings.length
   const dbProjectSlugs = useMemo(() => {
     const s = new Set<string>()
     for (const b of liveDbBuildings ?? []) if (b.projectSlug) s.add(b.projectSlug)
@@ -773,17 +862,15 @@ function Map3DInner({
   }, [liveDbBuildings])
   const baseBuildings = useMemo(() => {
     const forGhosts = projects.filter((p) => !dbProjectSlugs.has(p.slug))
-    return applyLiveProjectPins(
-      mergeMapBuildings(
-        clusterListingsToBuildings(sourceListings),
-        projectsToConstructionBuildings(forGhosts),
-      ),
-      projects,
+    return mergeMapBuildings(
+      clusterListingsToBuildings(sourceListings),
+      projectsToConstructionBuildings(forGhosts),
     )
   }, [sourceListings, projects, dbProjectSlugs])
   const allBuildings = useMemo(
-    () => mergeDbBuildings(baseBuildings, liveDbBuildings),
-    [baseBuildings, liveDbBuildings],
+    () =>
+      applyLiveProjectPins(mergeDbBuildings(baseBuildings, liveDbBuildings), projects),
+    [baseBuildings, liveDbBuildings, projects],
   )
   useEffect(() => { allRef.current = allBuildings }, [allBuildings])
 
@@ -800,15 +887,24 @@ function Map3DInner({
     () => filterBuildings(allBuildings, dealFilter, statusFilter),
     [allBuildings, dealFilter, statusFilter],
   )
+  const matchListings = useMemo(() => {
+    let n = 0
+    for (const b of visible) n += dealFilter === 'all' ? b.listings.length : b.counts[dealFilter]
+    return n
+  }, [visible, dealFilter])
   useEffect(() => { visibleRef.current = visible }, [visible])
   useEffect(() => { selectedRef.current = selected }, [selected])
   useEffect(() => { dealRef.current = dealFilter }, [dealFilter])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- panel tab follows map deal chip
+    setTab(dealFilter === 'all' ? 'all' : dealFilter)
+  }, [dealFilter])
 
   const selectBuilding = useCallback((b: MapBuildingCluster | null) => {
     setSelected(b)
-    setTab('all')
+    setTab(dealFilter === 'all' ? 'all' : dealFilter)
     setFloorFilter(null)
-  }, [setSelected, setTab, setFloorFilter])
+  }, [dealFilter])
   useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
   const toggleFloor = useCallback((n: number) => setFloorFilter((cur) => (cur === n ? null : n)), [setFloorFilter])
   useEffect(() => { floorRef.current = toggleFloor }, [toggleFloor])
@@ -871,9 +967,9 @@ function Map3DInner({
     const map = mapRef.current
     if (!map || !ready) return
     const src = map.getSource(SOURCE_ID) as GeoJSONSource | undefined
-    src?.setData(buildingsToGeoJSON(visible))
+    src?.setData(buildingsToGeoJSON(visible, dealFilter))
     const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
-    pts?.setData(buildingsToPointsGeoJSON(visible))
+    pts?.setData(buildingsToPointsGeoJSON(visible, dealFilter))
     let cancelled = false
     // Load order: GeoJSON pins already set; textured 3D massing after idle (tiles + dots first).
     const runMassing = () => {
@@ -977,21 +1073,47 @@ function Map3DInner({
   useEffect(() => {
     if (!ready || deepLinked.current) return
     const slug = searchParams.get('building')
-    if (!slug) return
-    const b = findBuildingBySlug(slug, allBuildings)
-    if (!b) return
+    const listingId = searchParams.get('listing')
+    const lat = Number(searchParams.get('lat'))
+    const lng = Number(searchParams.get('lng'))
+    const floorQ = Number(searchParams.get('floor'))
+    const dealQ = searchParams.get('deal')
+    const dealOk: DealType | null =
+      dealQ === 'sale' || dealQ === 'rent' || dealQ === 'daily' || dealQ === 'pledge'
+        ? dealQ
+        : null
+    const hasLink = Boolean(
+      slug || listingId || (Number.isFinite(lat) && Number.isFinite(lng)),
+    )
+    if (!hasLink) return
+
+    let b = slug ? findBuildingBySlug(slug, allBuildings) : null
+    if (!b && listingId) b = findBuildingForListing(listingId, allBuildings)
+    if (!b && Number.isFinite(lat) && Number.isFinite(lng)) {
+      b = findNearestBuilding(lat, lng, allBuildings, 250)
+    }
+    const flyLat = b?.lat ?? (Number.isFinite(lat) ? lat : null)
+    const flyLng = b?.lng ?? (Number.isFinite(lng) ? lng : null)
+    if (flyLat == null || flyLng == null) return
+
     deepLinked.current = true
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deep-link from URL param
-    selectBuilding(b)
+    if (b) {
+      // ponytail: skip selectBuilding — it resets tab/floor before listing deep-link applies.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deep-link from URL param
+      setSelected(b)
+      setTab(dealOk ?? 'all')
+      setFloorFilter(Number.isFinite(floorQ) && floorQ > 0 ? floorQ : null)
+      if (dealOk) setDealFilter(dealOk)
+    }
     mapRef.current?.easeTo({
-      center: [b.lng, b.lat],
+      center: [flyLng, flyLat],
       zoom: 16,
       pitch: view3dRef.current ? 62 : 0,
       bearing: view3dRef.current ? -18 : 0,
       duration: 900,
       essential: true,
     })
-  }, [ready, searchParams, selectBuilding, allBuildings])
+  }, [ready, searchParams, allBuildings])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current || !themeReady) return
@@ -1008,20 +1130,20 @@ function Map3DInner({
         style = await loadMapBasemap(initialStyle)
       } catch (err) {
         console.error('[Map3D] style', err)
-        if (!cancelled) setError('რუკის ჩატვირთვა ვერ მოხერხდა. სცადე განახლება.')
+        if (!cancelled) setError(tRef.current('map.error'))
         return
       }
       if (cancelled || mapRef.current) return
 
-      // ponytail: last city from localStorage; IP only suggests via soft chip.
+      const bootCam = mapBootCamera(view3dRef.current)
       const boot = initialMapCenter()
       const map = new maplibregl.Map({
         container,
         style,
         center: [boot.lng, boot.lat],
         zoom: 13.2,
-        pitch: 58,
-        bearing: -18,
+        pitch: bootCam.pitch,
+        bearing: bootCam.bearing,
         maxPitch: 70,
         minZoom,
         maxBounds: GEORGIA_MAX_BOUNDS,
@@ -1060,22 +1182,29 @@ function Map3DInner({
       }
 
       const onMapClick = (e: MapMouseEvent) => {
-        const hits = map.queryRenderedFeatures(e.point, {
-          layers: [
-            EXTRUDE_ID,
-            FILL_ID,
-            DOT_ID,
-            CLUSTER_ID,
-            FLOORS_FILL_ID,
-            POI_ICON_ID,
-            POI_LABEL_LAYER_ID,
-            NBH_LABEL_ID,
-          ].filter((id) => map.getLayer(id)),
-        })
+        const liveLayers = [
+          ...BUILDING_HIT_LAYERS,
+          CLUSTER_ID,
+          POI_ICON_ID,
+          POI_LABEL_LAYER_ID,
+          NBH_LABEL_ID,
+        ].filter((id) => map.getLayer(id))
+        const hits = map.queryRenderedFeatures(e.point, { layers: liveLayers })
         if (hits.length > 0) return
-        const nearest = findNearestBuilding(e.lngLat.lat, e.lngLat.lng, visibleRef.current)
-        selectRef.current(nearest)
-        if (nearest) flyTo(nearest)
+        const pad = HIT_PAD_PX
+        const near = map.queryRenderedFeatures(
+          [
+            [e.point.x - pad, e.point.y - pad],
+            [e.point.x + pad, e.point.y + pad],
+          ],
+          { layers: BUILDING_HIT_LAYERS.filter((id) => map.getLayer(id)) },
+        )
+        const id = near[0]?.properties?.id as string | undefined
+        if (id) {
+          pickById(id)
+          return
+        }
+        selectRef.current(null)
       }
 
       const popup = new maplibregl.Popup({
@@ -1260,7 +1389,7 @@ function Map3DInner({
       const mountOverlays = () => {
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
-          await ensureLayers(map, visibleRef.current, zooms)
+          await ensureLayers(map, visibleRef.current, zooms, dealRef.current)
           await syncConstructionRenders(map, visibleRef.current, { minZoom: zooms.detailZoom })
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
@@ -1359,6 +1488,17 @@ function Map3DInner({
                 dark ? 2 : 1.5,
               ])
               map.setPaintProperty(DOT_ID, 'circle-opacity', 1)
+            } catch {
+              /* paint may differ */
+            }
+          }
+          if (map.getLayer(PRICE_ID)) {
+            try {
+              map.setPaintProperty(
+                PRICE_ID,
+                'text-halo-color',
+                dark ? BRAND.colors.navy : '#FFFFFF',
+              )
             } catch {
               /* paint may differ */
             }
@@ -1464,6 +1604,8 @@ function Map3DInner({
       map.on('click', EXTRUDE_ID, onFeatureClick)
       map.on('click', FILL_ID, onFeatureClick)
       map.on('click', DOT_ID, onFeatureClick)
+      map.on('click', LABEL_ID, onFeatureClick)
+      map.on('click', PRICE_ID, onFeatureClick)
       map.on('click', CLUSTER_ID, (e: MapLayerMouseEvent) => {
         e.originalEvent.stopPropagation()
         const f = e.features?.[0]
@@ -1486,6 +1628,7 @@ function Map3DInner({
       map.on('click', POI_LABEL_LAYER_ID, onPoiClick)
       map.on('mouseenter', POI_ICON_ID, onPoiEnter)
       map.on('mouseleave', POI_ICON_ID, onPoiLeave)
+      map.on('rotate', () => setBearing(map.getBearing()))
       map.on('click', onMapClick)
 
       remountRef.current = mountOverlays
@@ -1535,12 +1678,14 @@ function Map3DInner({
   }, [ready])
 
   const flyToPlace = useCallback((lat: number, lng: number, zoom = 13.2) => {
-    const three = view3dRef.current
-    mapRef.current?.easeTo({
+    const map = mapRef.current
+    if (!map) return
+    const cam = mapBootCamera(view3dRef.current)
+    map.easeTo({
       center: [lng, lat],
       zoom,
-      pitch: three ? 58 : 0,
-      bearing: three ? -18 : 0,
+      pitch: cam.pitch,
+      bearing: view3dRef.current ? map.getBearing() : 0,
       duration: 900,
       essential: true,
     })
@@ -1587,6 +1732,87 @@ function Map3DInner({
       { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
     )
   }
+
+  const flyToQuery = useCallback(
+    async (q: string, s?: Suggestion) => {
+      const needle = (s?.ka ?? q).trim()
+      if (!needle) return
+      const low = needle.toLowerCase()
+      const city = MAP_CITIES.find(
+        (c) => c.ka.toLowerCase() === low || c.slug === low,
+      )
+      if (city) {
+        flyToPlace(city.lat, city.lng, 12.4)
+        writeSavedPlace({ slug: city.slug, lat: city.lat, lng: city.lng })
+        return
+      }
+      const b = allRef.current.find((x) => x.label.toLowerCase() === low)
+      if (b) {
+        selectRef.current(b)
+        flyToPlace(b.lat, b.lng, 16)
+        return
+      }
+      const feat = NBH_DATA.features.find((f) => {
+        const p = f.properties
+        if (!p) return false
+        return (
+          String(p.name ?? '').toLowerCase() === low ||
+          String(p.nameEn ?? '').toLowerCase() === low
+        )
+      })
+      if (feat?.geometry.type === 'Point') {
+        const [lng, lat] = feat.geometry.coordinates
+        if (lat != null && lng != null) flyToPlace(lat, lng, 14.4)
+        return
+      }
+      try {
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(needle)}`)
+        const d = (await res.json()) as { ok?: boolean; lat?: number; lng?: number }
+        const lat = d.lat
+        const lng = d.lng
+        if (d.ok && lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng)) {
+          flyToPlace(lat, lng, 15.4)
+        }
+      } catch {
+        /* offline */
+      }
+    },
+    [flyToPlace],
+  )
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const desktop = window.matchMedia('(min-width: 768px)').matches
+    map.easeTo({
+      padding: {
+        top: 0,
+        left: 0,
+        right: selected && desktop ? 400 : 0,
+        bottom:
+          selected && !desktop ? Math.round(window.innerHeight * 0.42) : POI_RAIL_PAD,
+      },
+      duration: 280,
+    })
+  }, [selected, ready])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return
+      if (e.key === 'Escape') {
+        if (filtersOpen) setFiltersOpen(false)
+        else if (layersOpen) setLayersOpen(false)
+        else if (selected) selectBuilding(null)
+        return
+      }
+      if (e.key === '+' || e.key === '=') mapRef.current?.zoomIn({ duration: 220 })
+      if (e.key === '-' || e.key === '_') mapRef.current?.zoomOut({ duration: 220 })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [filtersOpen, layersOpen, selected, selectBuilding])
+
   // Theme / terrain → swap basemap + rebuild overlays (camera preserved).
   useEffect(() => {
     const map = mapRef.current
@@ -1625,9 +1851,10 @@ function Map3DInner({
   const applyViewMode = useCallback((mode3d: boolean) => {
     const map = mapRef.current
     if (!map) return
+    const cam = mapBootCamera(mode3d)
     map.easeTo({
-      pitch: mode3d ? 58 : 0,
-      bearing: mode3d ? -18 : 0,
+      pitch: cam.pitch,
+      bearing: cam.bearing,
       duration: 550,
     })
     if (map.getLayer(EXTRUDE_ID)) {
@@ -1653,19 +1880,28 @@ function Map3DInner({
   }
 
   const resetView = () => {
-    const three = view3dRef.current
+    const cam = mapBootCamera(view3dRef.current)
     mapRef.current?.easeTo({
       center: [centerDefault.lng, centerDefault.lat],
       zoom: 13.2,
-      pitch: three ? 58 : 0,
-      bearing: three ? -18 : 0,
+      pitch: cam.pitch,
+      bearing: cam.bearing,
       duration: 800,
     })
     selectBuilding(null)
   }
 
+  const resetNorth = () => {
+    const map = mapRef.current
+    if (!map) return
+    map.easeTo({ bearing: 0, duration: 450 })
+  }
+
   const constructionCount = allBuildings.filter((b) => b.status === 'construction').length
   const completedCount = allBuildings.filter((b) => b.status === 'completed').length
+  const filtersActive = dealFilter !== 'all' || statusFilter !== 'all'
+  const showCompass = Math.abs(bearing) > 2.5
+  const searchVariant = isDark ? 'dark' : 'light'
 
   const chip = isDark
     ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
@@ -1681,7 +1917,7 @@ function Map3DInner({
   return (
     <div
       ref={shellRef}
-      className={`relative flex w-full overflow-hidden ${fullscreen ? 'h-dvh' : 'h-[calc(100dvh-4.5rem)] md:h-[calc(100dvh-5rem)]'} ${shellBg}`}
+      className={`relative flex w-full overflow-hidden ${fullscreen ? 'h-dvh' : 'h-full min-h-0'} ${shellBg}`}
     >
       <div className="relative min-w-0 flex-1">
         {/* ponytail: MapLibre forces position:relative — absolute on the map node collapses to h=0. */}
@@ -1702,7 +1938,7 @@ function Map3DInner({
                 aria-hidden
               />
               <p className={`text-[14px] font-bold ${isDark ? 'text-white/70' : 'text-sv-ink/55'}`}>
-                3D რუკა იტვირთება…
+                {t('map.loading')}
               </p>
             </div>
           </div>
@@ -1713,171 +1949,119 @@ function Map3DInner({
           </div>
         )}
 
-        {/* Top filter strip — below page header, map stays open on the left.
-            ponytail: not inside navy nav; leaves room for right toolbar. */}
-        <div className="absolute left-3 right-[5.25rem] top-3 z-20 hidden md:block md:left-4 md:right-[5.5rem] md:top-4">
-          <div className={`flex items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide ${chip}`}>
-            <div className="flex shrink-0 items-center gap-1.5 px-2">
-              <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
-              <p className="whitespace-nowrap text-[12px] font-extrabold tracking-tight">
-                {visible.length} · {listingCount}
-              </p>
+        {/* Top chrome — search + deal/status. POIs live on the bottom rail. */}
+        <div className="absolute left-3 right-16 top-[max(0.75rem,env(safe-area-inset-top))] z-20 md:left-4 md:right-[4.25rem] md:top-4">
+          <div className="flex flex-col gap-2">
+            <div className={`rounded-tile border ${chip}`}>
+              <ChromeSearch
+                variant={searchVariant}
+                className="w-full"
+                onPlace={(q, s) => flyToQuery(q, s)}
+              />
             </div>
-            <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
-            <div className="flex shrink-0 gap-0.5" role="group" aria-label="გარიგების ფილტრი">
-              {DEAL_FILTERS.map((f) => {
-                const active = dealFilter === f.id
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setDealFilter(f.id)}
-                    className={`min-h-8 whitespace-nowrap rounded-full px-2.5 text-[12px] font-extrabold tracking-tight transition ${
-                      active ? 'text-white' : chipMuted
-                    }`}
-                    style={active ? { background: f.color } : undefined}
-                  >
-                    {f.label}
-                  </button>
-                )
-              })}
-            </div>
-            <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
-            <div className="flex shrink-0 gap-0.5" role="group" aria-label="სტატუსის ფილტრი">
-              {STATUS_FILTERS.map((f) => {
-                const active = statusFilter === f.id
-                const bg =
-                  active && f.id === 'completed'
-                    ? SERVICE_BRAND.developers.hue
-                    : active && f.id === 'construction'
-                      ? STATUS_BRAND.construction.hue
-                      : active
-                        ? BRAND.colors.blue
-                        : undefined
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setStatusFilter(f.id)}
-                    title={
-                      f.id === 'construction'
-                        ? `${f.label} (${constructionCount})`
-                        : f.id === 'completed'
-                          ? `${f.label} (${completedCount})`
-                          : f.label
-                    }
-                    className={`min-h-8 whitespace-nowrap rounded-full px-2.5 text-[12px] font-extrabold tracking-tight transition ${
-                      active ? 'text-white' : chipMuted
-                    }`}
-                    style={bg ? { background: bg } : undefined}
-                  >
-                    {f.label}
-                  </button>
-                )
-              })}
-            </div>
-            <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
-            <div className="flex shrink-0 gap-0.5" role="group" aria-label={t('map.poi.group')}>
-              {POI_CATEGORIES.map((id) => {
-                const active = poiOn.includes(id)
-                const Icon = POI_ICONS[id]
-                const label = t(`map.poi.${id}` as DictKey)
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => togglePoi(id)}
-                    title={label}
-                    aria-label={label}
-                    aria-pressed={active}
-                    className={`inline-flex min-h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-[12px] font-extrabold tracking-tight transition ${
-                      active ? 'text-white' : chipMuted
-                    }`}
-                    style={active ? { background: POI_COLORS[id] } : undefined}
-                  >
-                    <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-            <button
-              type="button"
-              onClick={resetView}
-              className={`ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full transition ${railHover}`}
-              aria-label="საწყისი ხედი"
-            >
-              <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
-            </button>
-          </div>
-          {refreshNote && (
-            <p className={`mt-1.5 px-1 text-[11px] font-bold ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`}>
-              {refreshNote}
-            </p>
-          )}
-        </div>
-
-        <div className="absolute left-3 top-3 z-20 flex max-w-[min(100%-1.5rem,380px)] flex-col gap-2 md:left-4 md:top-[4.75rem]">
-          {/* Mobile — count + filter sheet */}
-          <div className="flex items-center gap-2 md:hidden">
-            <div className={`flex min-w-0 flex-1 items-center gap-2 rounded-tile border px-3 py-2 ${chip}`}>
-              <Layers className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[12px] font-extrabold tracking-[-0.02em]">
-                  {visible.length} · {listingCount}
+            <div className={`hidden items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide md:flex ${chip}`}>
+              <div className="flex shrink-0 items-center gap-1.5 px-2">
+                <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
+                <p className="whitespace-nowrap text-[12px] font-extrabold tabular-nums tracking-tight">
+                  {visible.length} · {matchListings}
                 </p>
-                {refreshNote && (
-                  <p className={`truncate text-[10px] font-bold ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`}>
-                    {refreshNote}
-                  </p>
-                )}
               </div>
+              <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
+              <MapFilterPills
+                items={DEAL_FILTERS.map((f) => ({ id: f.id, label: t(f.labelKey), color: f.color }))}
+                value={dealFilter}
+                onChange={setDealFilter}
+                layoutId="map-deal-bar"
+                muted={chipMuted}
+                groupLabel={t('map.deal')}
+              />
+              <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
+              <MapFilterPills
+                items={STATUS_FILTERS.map((f) => ({
+                  id: f.id,
+                  label: t(f.labelKey),
+                  color: f.color,
+                  title:
+                    f.id === 'construction'
+                      ? `${t(f.labelKey)} (${constructionCount})`
+                      : f.id === 'completed'
+                        ? `${t(f.labelKey)} (${completedCount})`
+                        : t(f.labelKey),
+                }))}
+                value={statusFilter}
+                onChange={setStatusFilter}
+                layoutId="map-status-bar"
+                muted={chipMuted}
+                groupLabel={t('map.status')}
+              />
+              <button
+                type="button"
+                onClick={resetView}
+                className={`ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full transition ${railHover}`}
+                aria-label={t('map.reset')}
+              >
+                <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setFiltersOpen(true)}
-              className={`grid h-11 w-11 shrink-0 place-items-center rounded-tile border transition ${chip} ${
-                dealFilter !== 'all' || statusFilter !== 'all' || poiOn.length > 0 ? segOn : railHover
-              }`}
-              aria-label="ფილტრები"
-            >
-              <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              onClick={resetView}
-              className={`grid h-11 w-11 shrink-0 place-items-center rounded-tile border transition ${railHover} ${chip}`}
-              aria-label="საწყისი ხედი"
-            >
-              <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
-            </button>
-          </div>
-
-          {ipSuggest && (
-            <div
-              className={`flex flex-wrap items-center gap-2 rounded-tile border px-3 py-2 ${chip}`}
-              role="status"
-            >
-              <p className="text-[12px] font-extrabold tracking-tight">
-                {ipSuggest.ka}? აქ გაჩვენო
+            {visible.length === 0 && ready && (
+              <p className={`px-1 text-[11px] font-bold ${isDark ? 'text-white/55' : 'text-sv-ink/45'}`}>
+                {t('search.emptyTitle')}
+              </p>
+            )}
+            {refreshNote && (
+              <p className={`px-1 text-[11px] font-bold ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`}>
+                {refreshNote}
+              </p>
+            )}
+            <div className="flex items-center gap-2 md:hidden">
+              <p className={`min-w-0 flex-1 truncate rounded-tile border px-3 py-2.5 text-[12px] font-extrabold tabular-nums ${chip}`}>
+                {visible.length} · {matchListings}
               </p>
               <button
                 type="button"
-                onClick={acceptIpSuggest}
-                className="min-h-8 rounded-full bg-sv-blue px-3.5 text-[12px] font-extrabold text-white transition hover:bg-sv-blue-deep"
+                onClick={() => setFiltersOpen(true)}
+                className={`grid h-11 w-11 shrink-0 place-items-center rounded-tile border transition ${chip} ${
+                  filtersActive ? segOn : railHover
+                }`}
+                aria-label={t('search.filters')}
               >
-                აქ
+                <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
               </button>
               <button
                 type="button"
-                onClick={dismissIpSuggest}
-                className={`grid h-8 w-8 place-items-center rounded-full transition ${railHover} ${chipMuted}`}
-                aria-label="არა"
+                onClick={resetView}
+                className={`grid h-11 w-11 shrink-0 place-items-center rounded-tile border transition ${railHover} ${chip}`}
+                aria-label={t('map.reset')}
               >
-                <X className="h-3.5 w-3.5" strokeWidth={2} />
+                <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
               </button>
             </div>
-          )}
+            {ipSuggest && (
+              <div
+                className={`flex flex-wrap items-center gap-2 rounded-tile border px-3 py-2 ${chip}`}
+                role="status"
+              >
+                <p className="text-[12px] font-extrabold tracking-tight">
+                  {t('map.ipHere', { city: ipSuggest.ka })}
+                </p>
+                <button
+                  type="button"
+                  onClick={acceptIpSuggest}
+                  className="min-h-8 rounded-full bg-sv-blue px-3.5 text-[12px] font-extrabold text-white transition hover:bg-sv-blue-deep"
+                >
+                  {t('map.ipYes')}
+                </button>
+                <button
+                  type="button"
+                  onClick={dismissIpSuggest}
+                  className={`grid h-8 w-8 place-items-center rounded-full transition ${railHover} ${chipMuted}`}
+                  aria-label={t('map.close')}
+                >
+                  <X className="h-3.5 w-3.5" strokeWidth={2} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile filter sheet */}
@@ -1886,82 +2070,66 @@ function Map3DInner({
             <button
               type="button"
               className="absolute inset-0 bg-sv-navy/45 backdrop-blur-[2px]"
-              aria-label="დახურვა"
+              aria-label={t('map.close')}
               onClick={() => setFiltersOpen(false)}
             />
             <div
               className={`absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-card border-t px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 ${chip}`}
               role="dialog"
-              aria-label="ფილტრები"
+              aria-label={t('search.filters')}
             >
               <div className={`mx-auto mb-3 h-1 w-10 rounded-full ${isDark ? 'bg-white/20' : 'bg-sv-ink/15'}`} />
-              <p className="mb-3 text-[13px] font-extrabold tracking-tight">ფილტრები</p>
-              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>გარიგება</p>
-              <div className="mb-4 flex flex-wrap gap-1.5" role="group" aria-label="გარიგების ფილტრი">
-                {DEAL_FILTERS.map((f) => {
-                  const active = dealFilter === f.id
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setDealFilter(f.id)}
-                      className={`min-h-10 rounded-full px-3.5 text-[13px] font-extrabold transition ${
-                        active ? 'text-white' : chipMuted
-                      }`}
-                      style={active ? { background: f.color } : undefined}
-                    >
-                      {f.label}
-                    </button>
-                  )
-                })}
+              <p className="mb-3 text-[13px] font-extrabold tracking-tight">{t('search.filters')}</p>
+              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>{t('map.deal')}</p>
+              <div className="mb-4">
+                <MapFilterPills
+                  items={DEAL_FILTERS.map((f) => ({ id: f.id, label: t(f.labelKey), color: f.color }))}
+                  value={dealFilter}
+                  onChange={setDealFilter}
+                  layoutId="map-deal-sheet"
+                  muted={chipMuted}
+                  groupLabel={t('map.deal')}
+                  size="sheet"
+                />
               </div>
-              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>სტატუსი</p>
-              <div className="mb-4 flex flex-wrap gap-1.5" role="group" aria-label="სტატუსის ფილტრი">
-                {STATUS_FILTERS.map((f) => {
-                  const active = statusFilter === f.id
-                  const bg =
-                    active && f.id === 'completed'
-                      ? SERVICE_BRAND.developers.hue
-                      : active && f.id === 'construction'
-                        ? STATUS_BRAND.construction.hue
-                        : active
-                          ? BRAND.colors.blue
-                          : undefined
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setStatusFilter(f.id)}
-                      className={`min-h-10 rounded-full px-3.5 text-[13px] font-extrabold transition ${
-                        active ? 'text-white' : chipMuted
-                      }`}
-                      style={bg ? { background: bg } : undefined}
-                    >
-                      {f.label}
-                      {f.id === 'construction' ? ` (${constructionCount})` : ''}
-                      {f.id === 'completed' ? ` (${completedCount})` : ''}
-                    </button>
-                  )
-                })}
+              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>{t('map.status')}</p>
+              <div className="mb-4">
+                <MapFilterPills
+                  items={STATUS_FILTERS.map((f) => ({
+                    id: f.id,
+                    label:
+                      f.id === 'construction'
+                        ? `${t(f.labelKey)} (${constructionCount})`
+                        : f.id === 'completed'
+                          ? `${t(f.labelKey)} (${completedCount})`
+                          : t(f.labelKey),
+                    color: f.color,
+                  }))}
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  layoutId="map-status-sheet"
+                  muted={chipMuted}
+                  groupLabel={t('map.status')}
+                  size="sheet"
+                />
               </div>
-              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>{t('map.poi.group')}</p>
-              <div className="mb-5 flex flex-wrap gap-1.5" role="group" aria-label={t('map.poi.group')}>
-                {POI_CATEGORIES.map((id) => {
-                  const active = poiOn.includes(id)
-                  const Icon = POI_ICONS[id]
-                  const label = t(`map.poi.${id}` as DictKey)
+              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>{t('map.terrain')}</p>
+              <div className="mb-5 flex flex-wrap gap-1.5" role="group" aria-label={t('map.terrain')}>
+                {terrainOptions.map((opt) => {
+                  const active = terrain === opt.id
+                  const Icon = opt.Icon
                   return (
                     <button
-                      key={id}
+                      key={opt.id}
                       type="button"
-                      onClick={() => togglePoi(id)}
+                      onClick={() => pickTerrain(opt.id)}
                       className={`inline-flex min-h-10 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-extrabold transition ${
                         active ? 'text-white' : chipMuted
                       }`}
-                      style={active ? { background: POI_COLORS[id] } : undefined}
+                      style={active ? { background: BRAND.colors.blue } : undefined}
                     >
                       <Icon className="h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden />
-                      {label}
+                      {t(opt.labelKey)}
                     </button>
                   )
                 })}
@@ -1971,21 +2139,58 @@ function Map3DInner({
                 onClick={() => setFiltersOpen(false)}
                 className="flex h-12 w-full items-center justify-center rounded-full bg-sv-blue text-[14px] font-extrabold text-white transition hover:bg-sv-blue-deep"
               >
-                მზადაა
+                {t('map.done')}
               </button>
             </div>
           </div>
         )}
 
-        {/* Apple Maps–quiet control column */}
+        {/* Apple Maps–quiet 44px control column */}
+        {layersOpen && (
+          <button
+            type="button"
+            className="absolute inset-0 z-[19] hidden md:block"
+            aria-label={t('map.close')}
+            onClick={() => setLayersOpen(false)}
+          />
+        )}
+        {layersOpen && (
+          <div
+            className={`absolute right-16 top-[max(0.75rem,env(safe-area-inset-top))] z-20 hidden w-[min(18rem,calc(100%-5.5rem))] flex-col gap-3 rounded-tile border p-3 md:flex md:right-[4.25rem] md:top-4 ${chip}`}
+            role="dialog"
+            aria-label={t('map.layers')}
+          >
+            <p className="text-[12px] font-extrabold tracking-tight">{t('map.terrain')}</p>
+            <div className="flex gap-1" role="group" aria-label={t('map.terrain')}>
+              {terrainOptions.map((opt) => {
+                const active = terrain === opt.id
+                const Icon = opt.Icon
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => pickTerrain(opt.id)}
+                    className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full px-2 text-[11px] font-extrabold transition ${
+                      active ? 'text-white' : chipMuted
+                    }`}
+                    style={active ? { background: BRAND.colors.blue } : undefined}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+                    {t(opt.labelKey)}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
         <div
-          className={`absolute right-3 top-3 z-20 flex w-[4.5rem] flex-col overflow-hidden rounded-tile border md:right-4 md:top-4 ${chip}`}
+          className={`absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex w-11 flex-col overflow-hidden rounded-tile border md:right-4 md:top-4 ${chip}`}
           role="toolbar"
-          aria-label="რუკის კონტროლი"
+          aria-label={t('map.controls')}
         >
           <button
             type="button"
-            aria-label="გადიდება"
+            aria-label={t('map.zoomIn')}
             onClick={() => mapRef.current?.zoomIn({ duration: 280 })}
             className={`grid h-11 w-full place-items-center transition ${railHover}`}
           >
@@ -1993,21 +2198,22 @@ function Map3DInner({
           </button>
           <button
             type="button"
-            aria-label="დაპატარავება"
+            aria-label={t('map.zoomOut')}
             onClick={() => mapRef.current?.zoomOut({ duration: 280 })}
             className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
           >
             <Minus className="h-4 w-4" strokeWidth={2.25} />
           </button>
 
-          <div className={`flex ${railSep}`} role="group" aria-label="რუკის ხედი">
+          <div className={`flex ${railSep}`} role="group" aria-label={t('map.view')}>
             <button
               type="button"
+              aria-label="2D"
               aria-pressed={!view3d}
               onClick={() => {
                 if (view3d) toggleView3d()
               }}
-              className={`h-10 flex-1 text-[11px] font-extrabold tracking-wide transition ${
+              className={`h-10 flex-1 text-[10px] font-extrabold tracking-wide transition ${
                 !view3d ? segOn : railHover
               }`}
             >
@@ -2015,11 +2221,12 @@ function Map3DInner({
             </button>
             <button
               type="button"
+              aria-label="3D"
               aria-pressed={view3d}
               onClick={() => {
                 if (!view3d) toggleView3d()
               }}
-              className={`h-10 flex-1 border-l text-[11px] font-extrabold tracking-wide transition ${hair} ${
+              className={`h-10 flex-1 border-l text-[10px] font-extrabold tracking-wide transition ${hair} ${
                 view3d ? segOn : railHover
               }`}
             >
@@ -2027,31 +2234,36 @@ function Map3DInner({
             </button>
           </div>
 
-          <div className={`flex ${railSep}`} role="group" aria-label="ტერიტორიის ხედი">
-            {terrainOptions.map((t, i) => {
-              const active = terrain === t.id
-              const Icon = t.Icon
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  title={t.label}
-                  aria-label={t.label}
-                  aria-pressed={active}
-                  onClick={() => pickTerrain(t.id)}
-                  className={`grid h-10 flex-1 place-items-center transition ${
-                    i > 0 ? `border-l ${hair}` : ''
-                  } ${active ? segOn : railHover}`}
-                >
-                  <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
-                </button>
-              )
-            })}
-          </div>
+          {showCompass && (
+            <button
+              type="button"
+              aria-label={t('map.compass')}
+              onClick={resetNorth}
+              className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
+            >
+              <Compass
+                className="h-4 w-4"
+                strokeWidth={2}
+                style={{ transform: `rotate(${-bearing}deg)` }}
+              />
+            </button>
+          )}
 
           <button
             type="button"
-            aria-label="ჩემთან ახლოს"
+            aria-label={t('map.layers')}
+            aria-pressed={layersOpen}
+            onClick={() => setLayersOpen((v) => !v)}
+            className={`hidden h-11 w-full place-items-center transition md:grid ${railSep} ${
+              layersOpen ? segOn : railHover
+            }`}
+          >
+            <Layers className="h-4 w-4" strokeWidth={2} />
+          </button>
+
+          <button
+            type="button"
+            aria-label={t('map.locate')}
             aria-busy={locating}
             disabled={locating}
             onClick={locateMe}
@@ -2062,7 +2274,7 @@ function Map3DInner({
 
           <button
             type="button"
-            aria-label={isDark ? 'დღის რეჟიმი' : 'ღამის რეჟიმი'}
+            aria-label={isDark ? t('map.day') : t('map.night')}
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
             className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
           >
@@ -2071,7 +2283,7 @@ function Map3DInner({
 
           <button
             type="button"
-            aria-label="განცხადებების განახლება"
+            aria-label={t('map.refresh')}
             aria-busy={refreshing}
             disabled={refreshing}
             onClick={() => void refreshMapData()}
@@ -2082,7 +2294,7 @@ function Map3DInner({
 
           <button
             type="button"
-            aria-label={fullscreen ? 'სრული ეკრანიდან გასვლა' : 'სრული ეკრანი'}
+            aria-label={fullscreen ? t('map.fullscreenOff') : t('map.fullscreenOn')}
             aria-pressed={fullscreen}
             onClick={toggleFullscreen}
             className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
@@ -2094,15 +2306,50 @@ function Map3DInner({
             )}
           </button>
         </div>
+
+        {/* ponytail: one row, no title card — Apple Maps / 2GIS amenity chips. */}
+        <div
+          className={`absolute inset-x-3 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-20 md:inset-x-4 md:bottom-4 ${
+            selected ? 'max-md:hidden' : ''
+          } ${filtersOpen ? 'hidden' : ''}`}
+        >
+          <div
+            className={`flex w-full max-w-full gap-1 overflow-x-auto overscroll-x-contain rounded-full border p-1 scrollbar-hide md:mx-auto md:w-fit ${chip}`}
+            role="group"
+            aria-label={t('map.poi.group')}
+          >
+            {POI_CATEGORIES.map((id) => {
+              const active = poiOn.includes(id)
+              const Icon = POI_ICONS[id]
+              const label = t(`map.poi.${id}` as DictKey)
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => togglePoi(id)}
+                  aria-pressed={active}
+                  className={`inline-flex h-11 shrink-0 touch-manipulation items-center gap-1.5 rounded-full px-3 text-[12px] font-extrabold tracking-tight transition ${
+                    active ? 'text-white' : `${chipMuted} ${railHover}`
+                  }`}
+                  style={active ? { background: POI_COLORS[id] } : undefined}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       {selected && (
-        <div className="absolute inset-x-0 bottom-0 z-30 max-h-[58%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0">
+        <div className="absolute inset-x-0 bottom-0 z-30 max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0">
           <BuildingPanel
             building={selected}
             tab={tab}
             onTab={setTab}
             floor={floorFilter}
+            highlightId={searchParams.get('listing')}
             onFloorClear={() => setFloorFilter(null)}
             onClose={() => selectBuilding(null)}
           />
@@ -2126,20 +2373,22 @@ export default function Map3D({
   platform?: MapPlatformConfig
 }) {
   return (
-    <Suspense
-      fallback={
-        <div className="grid h-[calc(100dvh-4.5rem)] place-items-center bg-sv-cloud text-[14px] font-bold text-sv-ink/55 dark:bg-sv-navy dark:text-white/70">
-          3D რუკა იტვირთება…
-        </div>
-      }
-    >
-      <Map3DInner
-        dbBuildings={dbBuildings}
-        listings={listings}
-        projects={projects}
-        initialUi={initialUi}
-        platform={platform}
-      />
-    </Suspense>
+    <div className="h-full">
+      <Suspense
+        fallback={
+          <div className="grid h-full place-items-center bg-sv-navy text-[14px] font-bold text-white/70">
+            …
+          </div>
+        }
+      >
+        <Map3DInner
+          dbBuildings={dbBuildings}
+          listings={listings}
+          projects={projects}
+          initialUi={initialUi}
+          platform={platform}
+        />
+      </Suspense>
+    </div>
   )
 }

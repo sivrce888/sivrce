@@ -17,6 +17,8 @@ interface Suggestion {
   ka: string
   /** Latin subtitle (en) for recognition */
   en?: string
+  /** Parent city — search must scope to it on pick */
+  city?: string
   /** Soft-fill ubani when street/quarter is catalog-pinned */
   district?: string
 }
@@ -44,26 +46,26 @@ export async function GET(req: Request) {
   if (!cityFilter) {
     for (const city of CITIES) {
       const m = suggestMatch([city], q)
-      if (m) push({ kind: "city", ka: city }, m.prefix)
+      if (m) push({ kind: "city", ka: city, city }, m.prefix)
     }
   }
   for (const d of DISTRICTS) {
     if (cityFilter && d.city !== cityFilter) continue
     const m = suggestMatch([d.ka], q)
-    if (m) push({ kind: "district", ka: d.ka }, m.prefix)
+    if (m) push({ kind: "district", ka: d.ka, city: d.city }, m.prefix)
   }
   // Quarters before streets — "მეორე კვარტალი" must beat random street substrings.
   for (const qtr of TBILISI_QUARTERS) {
     if (cityFilter && qtr.city !== cityFilter) continue
     const m = suggestMatch([qtr.ka, qtr.en, ...qtr.aliases], q)
-    if (m) push({ kind: "street", ka: qtr.ka, en: qtr.en, district: qtr.district }, m.prefix)
+    if (m) push({ kind: "street", ka: qtr.ka, en: qtr.en, city: qtr.city, district: qtr.district }, m.prefix)
   }
   for (const s of STREETS) {
     if (cityFilter && s.city !== cityFilter) continue
     const m = suggestMatch([s.ka, s.en, s.ru], q)
     if (m) {
       push(
-        { kind: "street", ka: s.ka, en: s.en, district: districtKaForStreet(s.ka) },
+        { kind: "street", ka: s.ka, en: s.en, city: s.city, district: districtKaForStreet(s.ka) },
         m.prefix,
       )
     }

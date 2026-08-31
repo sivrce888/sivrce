@@ -166,7 +166,7 @@ function mapDbHit(
   } | null
   return {
     ...l,
-    dealType: l.dealType === "buy" ? "sale" : l.dealType,
+    dealType: l.dealType === "buy" ? "sale" : l.dealType === "mortgage" ? "pledge" : l.dealType,
     agent: l.agent as unknown,
     colorUntil: activeColorUntil(ext),
     urgentUntil: activeUrgentUntil(ext),
@@ -232,7 +232,7 @@ export async function GET(req: Request) {
     (filters.dailyFrom && filters.dailyTo) || (filters.q && isExactLookupQuery(filters.q))
       ? null
       : await searchListings(filters)
-  if (meiliResult) {
+  if (meiliResult && meiliResult.totalHits > 0) {
     return Response.json({ ok: true, ...meiliResult, source: "meilisearch" }, { headers: CACHE_HEADERS })
   }
 

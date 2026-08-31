@@ -1,13 +1,12 @@
-/** Card photo teaser — first N frames; rest on detail. */
-export const CARD_PHOTO_CAP = 4
+/** Card gallery — full set; mount only current ±1. */
+export function cardGalleryTeaser(images: string[], fallback: string) {
+  const photos = images.length > 0 ? images : [fallback]
+  return { photos, multi: photos.length > 1 }
+}
 
-export function cardGalleryTeaser(images: string[], fallback: string, cap = CARD_PHOTO_CAP) {
-  const photos = (images.length > 0 ? images : [fallback]).slice(0, cap)
-  return {
-    photos,
-    morePhotos: Math.max(0, images.length - photos.length),
-    multi: photos.length > 1,
-    // ponytail: always `cap` dashes — live count made rails look 2-vs-3
-    dashSlots: cap,
-  }
+/** Keep current ±1 in the DOM so swipe is instant. Wrap-around. */
+export function photoMountIdx(i: number, n: number): number[] {
+  if (n <= 1) return [0]
+  if (n === 2) return [0, 1]
+  return [(i - 1 + n) % n, i, (i + 1) % n]
 }

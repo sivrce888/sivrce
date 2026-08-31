@@ -138,7 +138,7 @@ export default function SeoFilterableListings({ initialListings, gridAriaLabel }
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/40" />
           </div>
 
-          {/* Seller Type Filter (მესაკუთრე / სამშენებლო) */}
+          {/* Seller Type Filter (მესაკუთრე / სააგენტო) */}
           <div className="flex items-center gap-1 rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label="Seller Filter">
             <button
               type="button"

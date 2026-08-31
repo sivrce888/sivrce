@@ -37,7 +37,7 @@ export type NbKey = keyof typeof en
 
 const ka: Record<NbKey, string> = {
   badge: 'უბნების გზამკვლევი',
-  indexTitle: 'სად ცხოვრება ღირს საქართველოში',
+  indexTitle: 'სად ღირს ცხოვრება საქართველოში',
   indexSub: 'ცხოვრების ხარისხის ქულები, რეალური ფასები მ²-ზე და მცხოვრებლების შეფასებები ყველა უბნისთვის',
   scoreLabel: 'ცხოვრების ხარისხი',
   perM2: '/მ²',

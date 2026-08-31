@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import FavoritesClient from '@/components/favorites/FavoritesClient'
 
 export const metadata: Metadata = {
@@ -11,19 +12,17 @@ export const metadata: Metadata = {
 
 export default function FavoritesPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
-        <section className="mx-auto max-w-6xl px-6 py-14 md:py-20">
-          <h1 className="text-4xl font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
-            ფავორიტები
-          </h1>
-          <p className="mt-3 text-[15px] font-medium text-sv-ink/60">
-            განცხადებები, რომლებიც გულით მონიშნე — ინახება მხოლოდ შენს მოწყობილობაზე.
-          </p>
-          <div className="mt-10">
-            <FavoritesClient />
-          </div>
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="შენახული"
+          title="ფავორიტები"
+          subtitle="განცხადებები, რომლებიც გულით მონიშნე — ინახება მხოლოდ შენს მოწყობილობაზე."
+        />
+        <section className="mx-auto max-w-6xl px-6 pb-20">
+          <FavoritesClient />
         </section>
       </main>
       <Footer />

@@ -11,6 +11,10 @@ function creds(): { sid: string; token: string; service: string } | null {
   return { sid, token, service }
 }
 
+export function smsReady(): boolean {
+  return creds() !== null
+}
+
 function authHeader(sid: string, token: string): string {
   return `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`
 }

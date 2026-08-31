@@ -5,6 +5,7 @@ import { MapPin, Building2, Star, Navigation } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import { BUILDINGS, buildingDealCounts } from '@/data/buildings'
 import { getDeveloper } from '@/data/professionals'
 import { DEAL_BRAND } from '@/lib/category-brand'
@@ -38,17 +39,17 @@ export default async function BuildingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
-        <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
-          <h1 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            შენობები და კორპუსები
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            კორპუსის კოდი, მისამართი და განცხადებები — აირჩიე შენობა და გახსენი დეტალები
-          </p>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="კატალოგი"
+          title="შენობები და კორპუსები"
+          subtitle="კორპუსის კოდი, მისამართი და განცხადებები — აირჩიე შენობა და გახსენი დეტალები"
+        />
+        <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {BUILDINGS.map((b) => {
               const dev = getDeveloper(b.developerSlug)
               const empty = { sale: 0, rent: 0, daily: 0, pledge: 0 }
@@ -83,7 +84,7 @@ export default async function BuildingsPage() {
                             <p className="text-[12px] font-bold text-white/80">{dev.name.ka}</p>
                           )}
                         </div>
-                        <div className="flex shrink-0 items-center gap-1 rounded-control bg-white/95 px-2.5 py-1.5 text-[13px] font-black text-sv-navy">
+                        <div className="flex shrink-0 items-center gap-1 rounded-control bg-white/95 px-2.5 py-1.5 text-[13px] font-black text-sv-ink">
                           <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
                           {b.rating}
                         </div>

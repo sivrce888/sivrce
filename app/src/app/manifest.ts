@@ -89,6 +89,11 @@ export default function manifest(): MetadataRoute.Manifest {
         icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
       },
       {
+        name: '3D რუკა',
+        url: '/map',
+        icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+      },
+      {
         name: 'განცხადების დამატება',
         url: '/add-listing',
         icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],

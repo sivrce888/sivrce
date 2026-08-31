@@ -14,7 +14,7 @@ model User {
   name          String?   @db.VarChar(160)
   email         String    @unique @db.VarChar(240)
   emailVerified DateTime? @map("email_verified") @db.Timestamptz(6)
-  phone         String?   @db.VarChar(30)
+  phone         String?   @unique @db.VarChar(30)
   phoneVerifiedAt DateTime? @map("phone_verified_at") @db.Timestamptz(6)
   image         String?   @db.Text
   /// Null for OAuth-only accounts. Set on email signup / password reset.
@@ -1876,6 +1876,33 @@ model SystemConfig {
   updatedBy   User?    @relation("SystemConfigUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@map("system_config")
+}
+
+/// Site display ads — admin-owned creatives for homepage, search, listing rail, etc.
+model AdBanner {
+  id         String    @id @default(cuid()) @db.VarChar(120)
+  slot       String    @db.VarChar(40)
+  format     String    @default("billboard") @db.VarChar(20)
+  status     String    @default("draft") @db.VarChar(20)
+  title      String    @db.VarChar(180)
+  subtitle   String?   @db.VarChar(280)
+  ctaLabel   String?   @map("cta_label") @db.VarChar(80)
+  href       String    @db.VarChar(500)
+  imageUrl   String?   @map("image_url") @db.Text
+  advertiser String?   @db.VarChar(120)
+  audiences  String[]  @default(["all"])
+  langs      String[]  @default(["all"])
+  weight     Int       @default(10)
+  startsAt   DateTime? @map("starts_at") @db.Timestamptz(6)
+  endsAt     DateTime? @map("ends_at") @db.Timestamptz(6)
+  clicks     Int       @default(0)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdById String?  @map("created_by_id") @db.VarChar(120)
+
+  @@index([slot, status], map: "ad_banners_slot_status_idx")
+  @@index([status, startsAt, endsAt], map: "ad_banners_live_window_idx")
+  @@map("ad_banners")
 }
 
 // ═══════════════════════════════════════════════════════════════

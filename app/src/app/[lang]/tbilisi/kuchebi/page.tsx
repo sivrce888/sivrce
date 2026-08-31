@@ -27,9 +27,9 @@ export const metadata: Metadata = {
     url: `${BASE}${PATH}`,
     siteName: 'sivrce',
     locale: 'ka_GE',
-    images: [{ url: '/images/og.jpg', width: 1200, height: 630, alt: TITLE }],
+    images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: TITLE }],
   },
-  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: ['/images/og.jpg'] },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: ['/images/og-brand.png'] },
 }
 
 const GEO_ALPHABET = 'აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ'
@@ -88,7 +88,7 @@ export default function StreetsDirectoryPage() {
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[1440px] px-5 pb-20 pt-24 md:px-10 md:pt-28">
+      <main id="main" className="sv-pt-nav mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
         {/* Breadcrumbs */}
         <nav aria-label="ბრედკრამბი" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">

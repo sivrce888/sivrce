@@ -96,9 +96,9 @@ export default async function AgentPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
+      <main id="main" className="pt-[68px]">
         <EntityHeader
           kind="agent"
           name={agent.name}

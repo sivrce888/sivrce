@@ -25,14 +25,21 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 export function Logo({
   light = false,
   compact = false,
+  adaptive = false,
   href = '/',
+  size = 36,
 }: {
   light?: boolean
   compact?: boolean
+  /** Ink in light theme, white in dark — homepage hero over day/night sky */
+  adaptive?: boolean
   href?: string
+  size?: number
 }) {
-  const mark = 36
+  const mark = size
   const lockW = Math.round((mark * LOCK_W) / LOCK_H)
+  const imgClass =
+    'shrink-0 object-contain transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-95'
   return (
     <LocalizedLink
       href={href}
@@ -41,6 +48,29 @@ export function Logo({
     >
       {compact ? (
         <LogoMark size={mark} />
+      ) : adaptive ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font */}
+          <img
+            src="/logo/lockup-ink.png"
+            alt=""
+            width={lockW}
+            height={mark}
+            className={`${imgClass} dark:hidden`}
+            decoding="async"
+            fetchPriority="high"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font */}
+          <img
+            src="/logo/lockup-white.png"
+            alt=""
+            width={lockW}
+            height={mark}
+            className={`${imgClass} hidden dark:block`}
+            decoding="async"
+            fetchPriority="high"
+          />
+        </>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font
         <img
@@ -48,7 +78,7 @@ export function Logo({
           alt=""
           width={lockW}
           height={mark}
-          className="shrink-0 object-contain transition-transform duration-300 group-hover:scale-[1.02] group-active:scale-95"
+          className={imgClass}
           decoding="async"
           fetchPriority="high"
         />

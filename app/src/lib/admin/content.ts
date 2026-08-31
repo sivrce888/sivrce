@@ -11,6 +11,7 @@ export const REVIEW_TARGET_TYPES = [
   "agent",
   "neighborhood",
   "account",
+  "service",
 ] as const
 
 /** Form state returned by content server actions (useActionState). */

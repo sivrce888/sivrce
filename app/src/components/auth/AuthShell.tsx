@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
 
-import { LogoMark } from "@/components/Logo"
+import { Logo } from "@/components/Logo"
 
 export function AuthShell({
   title,
@@ -16,7 +16,7 @@ export function AuthShell({
 }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-sv-navy px-5 py-14 sm:px-6">
-      {/* Atmosphere — brand navy, not competitor pastel or flat blue */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-grid-dark opacity-40" />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_15%_0%,rgba(46,107,255,0.42),transparent_52%),radial-gradient(ellipse_at_88%_95%,rgba(255,106,45,0.14),transparent_48%),radial-gradient(ellipse_at_50%_120%,rgba(122,92,255,0.18),transparent_45%)]"
@@ -32,12 +32,7 @@ export function AuthShell({
 
       <div className="relative w-full max-w-[420px]">
         <div className="mb-7 flex flex-col items-center text-center">
-          <Link href="/" className="group flex flex-col items-center focus-visible:outline-none">
-            <LogoMark size={52} />
-            <p className="mt-4 font-[family-name:var(--font-manrope)] text-[30px] font-black tracking-[-0.045em] text-white transition group-hover:opacity-90">
-              sivrce<span className="text-sv-orange">.</span>
-            </p>
-          </Link>
+          <Logo light href="/" size={48} />
           <h1 className="mt-5 text-[22px] font-black tracking-[-0.025em] text-white sm:text-[24px]">
             {title}
           </h1>

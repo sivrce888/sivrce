@@ -13,7 +13,7 @@ export default function ContactForm() {
 
   if (sent) {
     return (
-      <div className="rounded-card bg-white p-8 shadow-card ring-1 ring-sv-ink/5 text-center">
+      <div className="rounded-card bg-sv-surface p-8 shadow-card ring-1 ring-sv-ink/5 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-module bg-sv-blue/10">
           <CheckCircle2 className="h-7 w-7 text-sv-blue" />
         </div>
@@ -38,7 +38,7 @@ export default function ContactForm() {
     'w-full rounded-control bg-sv-cloud px-4 py-3 text-[15px] font-medium text-sv-ink ring-1 ring-sv-ink/5 outline-none transition placeholder:text-sv-ink/35 focus:ring-2 focus:ring-sv-blue/40'
 
   return (
-    <form onSubmit={onSubmit} className="rounded-card bg-white p-6 shadow-card ring-1 ring-sv-ink/5 md:p-8">
+    <form onSubmit={onSubmit} className="rounded-card bg-sv-surface p-6 shadow-card ring-1 ring-sv-ink/5 md:p-8">
       <div className="grid gap-5">
         <div>
           <label htmlFor="contact-name" className="mb-2 block text-sm font-bold text-sv-ink">

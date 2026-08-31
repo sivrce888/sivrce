@@ -182,7 +182,7 @@ async function main() {
       verified: true,
       status: "active" as const,
       tier: "standard" as const,
-      trustScore: 82,
+      trustScore: 100,
       fillPercentage: 65,
     }
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { normalizePhone } from "@/lib/auth-phone"
 import { isSameOrigin } from "@/lib/security/origin"
 import { checkVerifySms } from "@/lib/sms/twilio-verify"
 
@@ -32,11 +33,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: result.error }, { status })
   }
 
+  const phone = normalizePhone(body.phone ?? "") ?? body.phone ?? undefined
+  if (phone) {
+    const taken = await db.user.findFirst({
+      where: { phone, NOT: { id: session.user.id } },
+      select: { id: true },
+    })
+    if (taken) {
+      return NextResponse.json({ ok: false, error: "phone_taken" }, { status: 409 })
+    }
+  }
+
   const now = new Date()
   await db.user.update({
     where: { id: session.user.id },
     data: {
-      phone: body.phone ?? undefined,
+      phone,
       phoneVerifiedAt: now,
     },
   })
@@ -50,7 +62,7 @@ export async function POST(req: Request) {
       await db.listing.update({
         where: { id: owned.id },
         data: {
-          listingPhone: body.phone,
+          listingPhone: phone ?? body.phone,
           listingPhoneVerifiedAt: now,
         },
       })

@@ -10,10 +10,13 @@ import {
   buildingsToPointsGeoJSON,
   clusterGeometry,
   clusterListingsToBuildings,
+  clusterMinPriceGEL,
   dealColor,
   filterBuildings,
   findBuildingBySlug,
+  findBuildingForListing,
   findNearestBuilding,
+  mapHrefForListing,
   ghostFootprintHalfM,
   haversineM,
   listingBuildingNumber,
@@ -25,12 +28,14 @@ import {
   ringBboxHalfM,
   ringCentroidDistM,
   footprintRingUsable,
+  clusterRings,
   FOOTPRINT_MAX_PIN_M,
+  FOOTPRINT_CAMPUS_MAX_PIN_M,
 } from './buildings'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
 import { BUILDINGS } from '@/data/buildings'
-import { STATUS_BRAND, CATEGORY_BRAND } from '@/lib/category-brand'
+import { STATUS_BRAND, CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { formatMapPin } from '@/lib/currency'
 import footprintJson from '@/data/building-footprints.json'
 
@@ -68,7 +73,7 @@ const fixtures: Listing[] = [
     buildingNumber: '47',
     buildingSlug: 'chavchavadze-47',
     dealType: 'sale',
-    coords: { lat: 41.7055, lng: 44.7708 },
+    coords: { lat: 41.711826, lng: 44.747685 },
   },
   {
     ...base,
@@ -77,7 +82,7 @@ const fixtures: Listing[] = [
     buildingNumber: '47',
     buildingSlug: 'chavchavadze-47',
     dealType: 'rent',
-    coords: { lat: 41.70552, lng: 44.77081 },
+    coords: { lat: 41.71183, lng: 44.74769 },
   },
   {
     ...base,
@@ -85,7 +90,7 @@ const fixtures: Listing[] = [
     address: 'პეკინის 12, საბურთალო, თბილისი',
     buildingSlug: 'pekin-12',
     dealType: 'daily',
-    coords: { lat: 41.7225, lng: 44.7619 },
+    coords: { lat: 41.72079, lng: 44.77487 },
   },
   {
     ...base,
@@ -93,7 +98,7 @@ const fixtures: Listing[] = [
     address: 'აბაშიძის 34, ვაკე, თბილისი',
     buildingSlug: 'abashidze-34',
     dealType: 'pledge',
-    coords: { lat: 41.7078, lng: 44.7644 },
+    coords: { lat: 41.70744, lng: 44.76569 },
   },
 ]
 
@@ -115,10 +120,27 @@ assert.equal(pledgeB!.counts.pledge, 1)
 
 assert.ok(haversineM(41.7, 44.8, 41.7001, 44.8) < 20)
 
-const near = findNearestBuilding(41.7055, 44.7708, buildings, 100)
+const near = findNearestBuilding(41.711826, 44.747685, buildings, 100)
 assert.equal(near?.slug, 'chavchavadze-47')
 
 assert.equal(findBuildingBySlug('axis-towers', buildings)?.code, 'SV-TB-0001')
+assert.equal(findBuildingForListing('a', buildings)?.slug, 'chavchavadze-47')
+assert.equal(findBuildingForListing('missing', buildings), null)
+{
+  const href = mapHrefForListing({
+    id: 'a',
+    buildingSlug: 'chavchavadze-47',
+    coords: { lat: 41.711826, lng: 44.747685 },
+    dealType: 'sale',
+    floor: 4,
+  })
+  assert.ok(href.startsWith('/map?'))
+  assert.ok(href.includes('building=chavchavadze-47'))
+  assert.ok(href.includes('listing=a'))
+  assert.ok(href.includes('deal=sale'))
+  assert.ok(href.includes('floor=4'))
+  assert.ok(href.includes('lat=41.711826'))
+}
 
 const projects = [
   {
@@ -185,6 +207,42 @@ const shedW = Math.abs(shedGhost.coordinates[0]![1]![0]! - shedGhost.coordinates
 const shedH = Math.abs(shedGhost.coordinates[0]![2]![1]! - shedGhost.coordinates[0]![1]![1]!)
 assert.ok(shedW / shedH > 1.4, 'tiny OSM ring should fall back to synthetic slab')
 
+// 1-storey OSM tagged onto a 24-floor ghost must not become the massing.
+{
+  const shedHRing: [number, number][] = [
+    [44.798, 41.722],
+    [44.7984, 41.722],
+    [44.7984, 41.7223],
+    [44.798, 41.7223],
+    [44.798, 41.722],
+  ]
+  assert.equal(
+    footprintRingUsable(shedHRing, 41.72215, 44.7982, {
+      ghost: true,
+      floors: 24,
+      osmHeightM: 3.1,
+    }),
+    false,
+    'low OSM height vs planned floors',
+  )
+}
+
+// Grand Avenue sits on the Dinamo/Dadiani factory lot — not Bendeliani/Gamsakhurdia.
+{
+  const ga = projectsToConstructionBuildings(
+    PROJECTS.filter((p) => p.slug === 'archi-grand-avenue') as Array<
+      (typeof PROJECTS)[number] & { coords: { lat: number; lng: number } }
+    >,
+  )[0]
+  assert.ok(ga, 'grand avenue ghost')
+  assert.ok(haversineM(ga!.lat, ga!.lng, 41.72255, 44.7979) < 120, 'grand avenue pin not at factory')
+  assert.ok(!ga!.address.includes('ვაკე'), 'grand avenue still labelled Vake')
+  const gaRing = clusterGeometry(ga!).coordinates[0]!
+  assert.ok(ringBboxHalfM(gaRing) > 40, 'grand avenue massing is a shed')
+  const dbId = clusterGeometry({ ...ga!, id: 'bldg-archi-grand-avenue', slug: 'archi-grand-avenue' })
+  assert.ok(ringBboxHalfM(dbId.coordinates[0]!) > 40, 'bldg- id missed dev- footprint')
+}
+
 // Exact outline — L courtyard stays empty; no bbox spill past walls
 const beliashL: [number, number][] = [
   [44.7786866, 41.7710191],
@@ -244,6 +302,7 @@ assert.ok(mukhiani!.location.includes('გობრონიძ'), 'blox-mukhian
 
 // High-confidence street pins — fail if catalog drifts back to district centroids.
 const pinAnchors: Record<string, { lat: number; lng: number; needle: string }> = {
+  'archi-grand-avenue': { lat: 41.72255, lng: 44.7979, needle: 'დადიან' },
   'archi-central-park': { lat: 41.72129, lng: 44.74692, needle: 'Tamarashvili' },
   'white-square-mindeli': { lat: 41.72583, lng: 44.71215, needle: 'Dzotsi' },
   'one-batumi': { lat: 41.63537, lng: 41.61455, needle: 'Abuseridze' },
@@ -271,12 +330,13 @@ for (const [slug, a] of Object.entries(pinAnchors)) {
   assert.ok(ghost, 'm2-highlight ghost')
   const twins = buildingsToGeoJSON([ghost!]).features
   assert.equal(twins.length, 2, 'm2-highlight must extrude 2 towers')
+  assert.equal(clusterRings(ghost!).length, 2, 'm2-highlight clusterRings matches GeoJSON')
   assert.equal(twins[0]!.properties?.id, 'dev-m2-highlight')
   assert.equal(twins[1]!.properties?.id, 'dev-m2-highlight')
   assert.ok(Number(twins[0]!.properties?.height) > Number(twins[1]!.properties?.height), 'Block 11 taller')
 }
 
-// Live project pin must move catalog building to exact address/coords.
+// Live project pin updates address/dev — coords stay on OSM footprint (not a street geocode).
 const axisCluster = buildings.find((b) => b.slug === 'axis-towers')
 assert.ok(axisCluster)
 const pinned = applyLiveProjectPins([axisCluster!], [
@@ -296,7 +356,8 @@ const pinned = applyLiveProjectPins([axisCluster!], [
     coords: { lat: 41.7095, lng: 44.774 },
   },
 ])
-assert.equal(pinned[0]!.lat, 41.7095)
+assert.equal(pinned[0]!.lat, axisCluster!.lat)
+assert.equal(pinned[0]!.lng, axisCluster!.lng)
 assert.equal(pinned[0]!.address.includes('37'), true)
 assert.equal(pinned[0]!.developerSlug, 'axis')
 
@@ -320,6 +381,26 @@ assert.equal(dbMerged[0]!.address, 'DB exact address 37')
 const filtered = filterBuildings([...buildings, ...ghosts], 'sale', 'all')
 assert.ok(filtered.some((b) => b.slug === 'chavchavadze-47'))
 assert.ok(filtered.some((b) => b.status === 'construction'))
+
+const rentOnly = filterBuildings([...buildings, ...ghosts], 'rent', 'all')
+assert.ok(rentOnly.some((b) => b.slug === 'chavchavadze-47'))
+assert.equal(
+  rentOnly.filter((b) => b.status === 'construction' && b.listings.length === 0).length,
+  0,
+  'rent hides empty construction shells',
+)
+assert.equal(filterBuildings(ghosts, 'daily', 'all').length, 0)
+assert.equal(filterBuildings(ghosts, 'pledge', 'all').length, 0)
+assert.ok(filterBuildings(ghosts, 'sale', 'all').some((b) => b.status === 'construction'))
+assert.ok(filterBuildings(ghosts, 'all', 'construction').every((b) => b.status === 'construction'))
+assert.equal(filterBuildings(ghosts, 'all', 'active').length, 0)
+assert.equal(filterBuildings(ghosts, 'all', 'completed').length, 0)
+
+const rentPts = buildingsToPointsGeoJSON(buildings, 'rent')
+const rentTower = rentPts.features.find((f) => f.properties?.slug === 'chavchavadze-47')
+assert.equal(rentTower?.properties?.hue, DEAL_BRAND.rent)
+assert.equal(clusterMinPriceGEL(tower!, 'rent'), fixtures[1]!.priceGEL)
+assert.equal(clusterMinPriceGEL(tower!, 'sale'), fixtures[0]!.priceGEL)
 
 assert.equal(dealColor('sale'), '#2E6BFF')
 assert.equal(dealColor('pledge'), '#16A34A')
@@ -468,23 +549,28 @@ assert.ok(
   const catalogProjects = new Set(BUILDINGS.map((b) => b.projectSlug).filter(Boolean))
   for (const b of BUILDINGS) {
     const fp = fpData[`bldg-${b.slug}`]
-    if (!fp?.ring) continue
-    const d = ringCentroidDistM(fp.ring, b.coords.lat, b.coords.lng)
-    assert.ok(
-      d <= FOOTPRINT_MAX_PIN_M,
-      `bldg-${b.slug}: footprint ${Math.round(d)}m from pin (max ${FOOTPRINT_MAX_PIN_M})`,
-    )
+    if (!fp) continue
+    const rings = fp.parts?.map((x) => x.ring) ?? (fp.ring ? [fp.ring] : [])
+    const maxM = fp.parts?.length ? FOOTPRINT_CAMPUS_MAX_PIN_M : FOOTPRINT_MAX_PIN_M
+    for (const ring of rings) {
+      const d = ringCentroidDistM(ring, b.coords.lat, b.coords.lng)
+      assert.ok(
+        d <= maxM,
+        `bldg-${b.slug}: footprint ${Math.round(d)}m from pin (max ${maxM})`,
+      )
+    }
   }
   for (const p of PROJECTS) {
     if (p.done >= 100 || catalogProjects.has(p.slug)) continue
     const fp = fpData[`dev-${p.slug}`]
     if (!fp) continue
     const rings = fp.parts?.map((x) => x.ring) ?? (fp.ring ? [fp.ring] : [])
+    const maxM = fp.parts?.length ? FOOTPRINT_CAMPUS_MAX_PIN_M : FOOTPRINT_MAX_PIN_M
     for (const ring of rings) {
       const d = ringCentroidDistM(ring, p.coords.lat, p.coords.lng)
       assert.ok(
-        d <= FOOTPRINT_MAX_PIN_M,
-        `dev-${p.slug}: footprint ${Math.round(d)}m from pin (max ${FOOTPRINT_MAX_PIN_M})`,
+        d <= maxM,
+        `dev-${p.slug}: footprint ${Math.round(d)}m from pin (max ${maxM})`,
       )
     }
   }
@@ -593,6 +679,22 @@ assert.equal(dbOnly.length, 2, 'db-only buildings are appended')
 assert.equal(mergeDbBuildings([tower!], [])[0], tower!, 'no db rows → identity')
 
 // Human names on map GeoJSON (not SV-TB codes as primary label)
+// Catalog listings must sit on the building, not a km-off street geocode.
+for (const cat of BUILDINGS) {
+  for (const l of LISTINGS.filter((x) => x.buildingSlug === cat.slug)) {
+    const m = haversineM(l.coords.lat, l.coords.lng, cat.coords.lat, cat.coords.lng)
+    assert.ok(m < 150, `${l.id}: ${Math.round(m)}m from ${cat.slug} pin`)
+  }
+}
+
+const axisVake = PROJECTS.find((p) => p.slug === 'axis-towers-vake')
+const axisLive = PROJECTS.find((p) => p.slug === 'axis-towers')
+assert.ok(axisVake && axisLive)
+assert.ok(
+  haversineM(axisVake!.coords.lat, axisVake!.coords.lng, axisLive!.coords.lat, axisLive!.coords.lng) < 40,
+  'axis-towers-vake must share Axis Towers pin',
+)
+
 const axis = BUILDINGS.find((b) => b.slug === 'axis-towers')
 assert.ok(axis, 'axis-towers in catalog')
 const axisFc = buildingsToGeoJSON([
@@ -626,12 +728,56 @@ assert.ok(onlyBuild.length > 0, 'construction filter returns ghosts')
 assert.ok(onlyBuild.every((b) => b.status === 'construction'))
 assert.ok(onlyBuild.every((b) => b.label.length > 0 && !/^SV-TB-/.test(b.label)))
 
-import { GEORGIA_MAX_BOUNDS, MAP_CENTER, MAP_MIN_ZOOM } from './buildings'
+import { GEORGIA_BORDER, GEORGIA_HALO_KM, GEORGIA_HOLE, GEORGIA_MASK_FC, GEORGIA_MAX_BOUNDS, MAP_CENTER, MAP_MIN_ZOOM } from './buildings'
 assert.equal(MAP_MIN_ZOOM, 7)
+assert.equal(GEORGIA_HALO_KM, 50)
 assert.ok(GEORGIA_MAX_BOUNDS[0][0] < GEORGIA_MAX_BOUNDS[1][0])
 assert.ok(GEORGIA_MAX_BOUNDS[0][1] < GEORGIA_MAX_BOUNDS[1][1])
 assert.ok(MAP_CENTER.lng > GEORGIA_MAX_BOUNDS[0][0] && MAP_CENTER.lng < GEORGIA_MAX_BOUNDS[1][0])
 assert.ok(MAP_CENTER.lat > GEORGIA_MAX_BOUNDS[0][1] && MAP_CENTER.lat < GEORGIA_MAX_BOUNDS[1][1])
+
+function pip(lng: number, lat: number, ring: [number, number][]): boolean {
+  let ok = false
+  for (let i = 0; i < ring.length - 1; i++) {
+    const [x1, y1] = ring[i]!
+    const [x2, y2] = ring[i + 1]!
+    if (y1 > lat !== y2 > lat && lng < ((x2 - x1) * (lat - y1)) / (y2 - y1) + x1) ok = !ok
+  }
+  return ok
+}
+assert.ok(pip(MAP_CENTER.lng, MAP_CENTER.lat, GEORGIA_HOLE), 'Tbilisi in Georgia hole')
+assert.ok(pip(41.6367, 41.6168, GEORGIA_HOLE), 'Batumi in Georgia hole')
+assert.ok(pip(41.55, 41.52, GEORGIA_HOLE), 'Sarpi in Georgia hole')
+assert.ok(pip(41.67, 42.15, GEORGIA_HOLE), 'Poti in Georgia hole')
+assert.ok(pip(42.73, 43.05, GEORGIA_HOLE), 'Mestia in Georgia hole')
+assert.ok(!pip(41.42, 41.4, GEORGIA_BORDER), 'Hopa (TR) outside border')
+assert.ok(pip(41.42, 41.4, GEORGIA_HOLE), 'Hopa (TR) in 50km halo')
+assert.ok(pip(41.5, 41.73, GEORGIA_HOLE), 'nearshore west of Batumi in halo')
+assert.ok(pip(39.88, 43.46, GEORGIA_HOLE), 'Sochi-sea nearshore in halo')
+assert.ok(!pip(44.51, 40.18, GEORGIA_HOLE), 'Yerevan outside hole')
+assert.ok(!pip(38.4, 43.5, GEORGIA_HOLE), 'deep Black Sea outside halo')
+assert.equal(GEORGIA_MASK_FC.features[0]?.geometry.type, 'Polygon')
+assert.equal((GEORGIA_MASK_FC.features[0]?.geometry as GeoJSON.Polygon).coordinates.length, 2)
+assert.equal((GEORGIA_MASK_FC.features[0]?.geometry as GeoJSON.Polygon).coordinates[1], GEORGIA_HOLE)
+{
+  const box = (ring: [number, number][]) => {
+    let w = 180, s = 90, e = -180, n = -90
+    for (const [lng, lat] of ring) {
+      if (lng < w) w = lng
+      if (lng > e) e = lng
+      if (lat < s) s = lat
+      if (lat > n) n = lat
+    }
+    return { w, s, e, n }
+  }
+  const b = box(GEORGIA_BORDER)
+  const h = box(GEORGIA_HOLE)
+  assert.ok(h.w < b.w && h.e > b.e && h.s < b.s && h.n > b.n, 'halo expands bbox')
+  assert.ok((b.w - h.w) * 82 > 45 && (h.e - b.e) * 82 > 45, 'halo ≥45km E-W')
+  assert.ok((b.s - h.s) * 111 > 45 && (h.n - b.n) * 111 > 45, 'halo ≥45km N-S')
+  assert.ok(h.w > GEORGIA_MAX_BOUNDS[0][0] && h.s > GEORGIA_MAX_BOUNDS[0][1])
+  assert.ok(h.e < GEORGIA_MAX_BOUNDS[1][0] && h.n < GEORGIA_MAX_BOUNDS[1][1])
+}
 
 for (const b of [...realClusters, ...realGhosts]) {
   const fc = floorsToGeoJSON(b)

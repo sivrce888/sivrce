@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import { Building, Home, TreePalm, Map, Briefcase, CalendarClock, Hotel, Sparkles, ArrowUpRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
@@ -90,7 +90,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
     ...CATS.map((c) => getCmsBlock(c.labelKey, lang)),
   ])
   return (
-    <section className="bg-sv-surface pb-20 md:pb-28">
+    <section className="bg-sv-cloud pb-20 md:pb-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -106,7 +106,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
           {CATS.map((c, i) => (
             <Reveal key={c.key} delay={i * 0.05} className="h-full">
-              <Link
+              <LocalizedLink
                 href={c.href}
                 className="group relative flex h-full flex-col items-center gap-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-center transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
               >
@@ -119,7 +119,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
                 <span className="line-clamp-2 min-h-[2.5em] text-[14px] font-extrabold leading-snug text-sv-ink">{labels[i]}</span>
                 <span className="mt-auto text-[12px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
                 <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/40" />
-              </Link>
+              </LocalizedLink>
             </Reveal>
           ))}
         </div>

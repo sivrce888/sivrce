@@ -96,9 +96,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `${BASE}${path}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
-      images: [{ url: '/images/og.jpg', width: 1200, height: 630, alt: title }],
+      images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: 'summary_large_image', title, description, images: ['/images/og.jpg'] },
+    twitter: { card: 'summary_large_image', title, description, images: ['/images/og-brand.png'] },
   }
 }
 
@@ -131,7 +131,7 @@ function faqsOfStreet(street: TbilisiStreet, district: District, listings: Listi
         ? s.avgPerM2
           ? `ამჟამად საშუალო ფასი ${formatUSD(s.avgPerM2)}/მ²-ია. ყველაზე ხელმისაწვდომი ვარიანტი ${formatUSD(s.minPrice)} ღირს, პრემიუმ სეგმენტი კი ${formatUSD(s.maxPrice)}-მდე აღწევს. AI ფასის შეფასება თითოეული განცხადების ბარათზე ჩანს.`
           : `ფასები ${formatUSD(s.minPrice)}-დან იწყება და ${formatUSD(s.maxPrice)}-მდე იცვლება. AI ფასის შეფასება თითოეული განცხადების ბარათზე ჩანს.`
-        : `ფასი ბინის ფართზე, სართულზე, რემონტსა და კორპუსის მდებარეობაზეა დამოკიდებული. ${district.loc} მიმდინარე ფასები დაათვალიერეთ უბნის გვერდზე, ხოლო კონკრეტული ბინის ღირებულებას თითოეული განცხადების AI შეფასება გაჩვენებს.`,
+        : `ფასი ბინის ფართზე, სართულზე, რემონტსა და კორპუსის მდებარეობაზეა დამოკიდებული. ${district.loc} მიმდინარე ფასები დაათვალიერე უბნის გვერდზე, ხოლო კონკრეტული ბინის ღირებულებას თითოეული განცხადების AI შეფასება გიჩვენებს.`,
     },
     {
       q: `როგორ ვიპოვო ვერიფიცირებული განცხადებები ${loc}?`,
@@ -225,7 +225,7 @@ export default async function StreetPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[1440px] px-5 pb-20 pt-24 md:px-10 md:pt-28">
+      <main id="main" className="sv-pt-nav mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
         {/* Breadcrumbs */}
         <nav aria-label="ბრედკრამბი" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
@@ -271,7 +271,7 @@ export default async function StreetPage({ params }: PageProps) {
                 ...(stats.avgPerM2
                   ? [{ icon: TrendingUp, label: 'საშუალო ფასი', value: `${formatUSD(stats.avgPerM2)}/მ²` }]
                   : []),
-                { icon: MapPin, label: 'ფასი დაწყება', value: formatUSD(stats.minPrice) },
+                { icon: MapPin, label: 'საწყისი ფასი', value: formatUSD(stats.minPrice) },
               ].map((s) => (
                 <div
                   key={s.label}

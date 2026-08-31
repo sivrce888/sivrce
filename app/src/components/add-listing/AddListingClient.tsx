@@ -1953,7 +1953,7 @@ export default function AddListingClient() {
           </div>
 
           {/* ————— live preview column ————— */}
-          <div className="sticky top-24 hidden lg:block">
+          <div className="sticky top-[calc(6rem+env(safe-area-inset-top,0px))] hidden lg:block">
             <div className="mb-4 flex items-start gap-3 rounded-tile border border-sv-blue/15 bg-sv-blue/[0.04] p-4">
               <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" />
               <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t(STEP_TIPS[step])}</p>

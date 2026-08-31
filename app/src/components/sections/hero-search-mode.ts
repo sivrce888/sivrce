@@ -1,30 +1,4 @@
-/** Hero count filter: GE sale/rent = rooms (SEO); daily = beds (Airbnb); hide when N/A. */
-export type CountMode = 'rooms' | 'beds' | 'hide'
-
-export function countFilterMode(tab: number, type: string): CountMode {
-  if (tab === 3 || type === 'land' || type === 'commercial' || type === 'hotel') return 'hide'
-  if (tab === 2) return 'beds'
-  return 'rooms'
-}
-
-/** Deal-aware max-price chips (Airbnb progressive disclosure). */
-export function pricePresets(tab: number): readonly { label: string; max: string }[] {
-  if (tab === 2) return [
-    { label: '≤$50', max: '50' },
-    { label: '≤$100', max: '100' },
-    { label: '≤$200', max: '200' },
-  ]
-  if (tab === 1) return [
-    { label: '≤$500', max: '500' },
-    { label: '≤$1K', max: '1000' },
-    { label: '≤$2K', max: '2000' },
-  ]
-  return [
-    { label: '≤$100K', max: '100000' },
-    { label: '≤$200K', max: '200000' },
-    { label: '≤$500K', max: '500000' },
-  ]
-}
+/** Recent-search chip helpers for the homepage hero. */
 
 export const RECENT_KEY = 'sivrce:hero-recent'
 
@@ -49,13 +23,15 @@ export function writeRecent(r: RecentSearch): void {
   }
 }
 
-/** Build a short chip label from search params (Airbnb recent searches). */
+/** Build a short chip label from search params. */
 export function recentLabel(params: URLSearchParams, dealLabel: string): string {
   const bits = [dealLabel]
   const city = params.get('city')
   const district = params.get('district')
   if (district) bits.push(district)
   else if (city) bits.push(city)
+  const q = params.get('q')
+  if (q) bits.push(q)
   const rooms = params.get('rooms')
   const beds = params.get('beds')
   if (rooms) bits.push(`${rooms}+ ოთ.`)

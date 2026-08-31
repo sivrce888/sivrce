@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import LocalizedLink from '@/components/LocalizedLink'
-import { ChevronRight, MessageSquare, Eye, BadgeCheck, ArrowRight } from 'lucide-react'
+import { MessageSquare, Eye, BadgeCheck, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import { NewThreadForm } from '@/components/forum/NewThreadForm'
 import { listForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
@@ -46,25 +47,14 @@ export default async function ForumIndex() {
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="mx-auto max-w-[1200px] px-5 pb-20 pt-24 md:px-10 md:pt-28">
-        <nav aria-label="ბრედკრამბი" className="mb-6">
-          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
-            <li className="flex items-center gap-1.5">
-              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
-              <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
-            </li>
-            <li aria-current="page" className="text-sv-ink/80">ფორუმი</li>
-          </ol>
-        </nav>
-
-        <header className="mb-10">
-          <h1 className="max-w-[800px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[48px]">
-            სადისკუსიო თემები & ბაზრის მიმოხილვა
-          </h1>
-          <p className="mt-4 max-w-[680px] text-[16px] font-semibold text-sv-ink/60">
-            ექსპერტებისა და მყიდველების გამოცდილება — რემონტი, იპოთეკა, ინვესტიცია თბილისსა და ბათუმში.
-          </p>
-        </header>
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="ფორუმი"
+          title="სადისკუსიო თემები და ბაზრის მიმოხილვა"
+          subtitle="ექსპერტებისა და მყიდველების გამოცდილება — რემონტი, იპოთეკა, ინვესტიცია თბილისსა და ბათუმში."
+        />
+        <div className="mx-auto max-w-[1200px] px-5 pb-20 md:px-10">
 
         <div className="mb-12">
           <NewThreadForm />
@@ -124,6 +114,7 @@ export default async function ForumIndex() {
             )
           })}
         </ul>
+        </div>
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(forumLd) }} />

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { langAlternates } from '@/lib/i18n/server'
 
@@ -49,25 +50,23 @@ const SECTIONS = [
   {
     id: undefined,
     title: '8. ცვლილებები და კონტაქტი',
-    text: 'ეს პოლიტიკა შეიძლება განახლდეს — ცვლილებები ძალაში შედის ამ გვერდზე გამოქვეყნებისთანავე. კონფიდენციალურობასთან დაკავშირებული ნებისმიერი კითხვისთვის დაგვიკავშირდი: hi@sivrce.ge, +995 32 2 00 00 00, თბილისი, საქართველო.',
+    text: 'ეს პოლიტიკა შეიძლება განახლდეს — ცვლილებები ძალაში შედის ამ გვერდზე გამოქვეყნებისთანავე. კონფიდენციალურობასთან დაკავშირებული ნებისმიერი კითხვისთვის დაგვიკავშირდი: hi@sivrce.ge, თბილისი, საქართველო.',
   },
 ]
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
-        <article className="mx-auto max-w-3xl px-6 py-14 md:py-20">
-          <Reveal>
-            <h1 className="text-[27px] font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
-              კონფიდენციალურობის პოლიტიკა
-            </h1>
-            <p className="mt-4 text-[15px] font-medium text-sv-ink/50">
-              ბოლო განახლება: 2026 წელი
-            </p>
-          </Reveal>
-          <div className="mt-12 space-y-10">
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="იურიდიული"
+          title="კონფიდენციალურობის პოლიტიკა"
+          subtitle="ბოლო განახლება: 2026 წელი"
+        />
+        <article className="mx-auto max-w-3xl px-6 pb-20 pt-4 md:pb-28">
+          <div className="space-y-10">
             {SECTIONS.map((s, i) => (
               <Reveal key={s.title} delay={Math.min(i * 0.04, 0.2)}>
                 <section id={s.id}>

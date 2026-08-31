@@ -7,7 +7,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
-  TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Eye, Clock,
+  TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
   Layers,
   type LucideIcon,
 } from 'lucide-react'
@@ -15,15 +15,17 @@ import type { Listing } from '@/data/listings'
 import { formatPerM2, formatFloor, postedDaysAgo } from '@/data/listings'
 import { listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
+import { listingShareLines, listingShareText } from '@/lib/listing-share'
 import { streetHrefForListing } from '@/lib/street-href'
 import { useCurrency, formatListingPrice } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
+import { useCompareStrings } from '@/components/compare/i18n'
 import { useI18n } from '@/lib/i18n/context'
 import { BRAND } from '@/lib/brand'
 import { blurProps, isCdnMedia } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
-import { cardGalleryTeaser } from '@/lib/card-gallery-teaser'
+import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { SparkMark } from '@/components/SparkMark'
@@ -109,17 +111,17 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t } = useI18n()
+  const cs = useCompareStrings()
   const { currency, rate } = useCurrency()
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
   const metro = nearestMetro(l.coords.lat, l.coords.lng)
 
-  // ponytail: first N only; full gallery on detail. Cap here so search payloads can stay fat.
-  const { photos, morePhotos, multi, dashSlots } = cardGalleryTeaser(l.images, l.img)
-  const photoTotal = photos.length + morePhotos
+  const { photos, multi } = cardGalleryTeaser(l.images, l.img)
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
   const [photo, setPhoto] = useState(0)
+  const frame = photos.length ? Math.min(photo, photos.length - 1) : 0
   const imgRef = useRef<HTMLDivElement>(null)
   const touchRef = useRef<{ x: number; y: number } | null>(null)
   const axisLock = useRef<'h' | 'v' | null>(null)
@@ -195,46 +197,57 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     e.preventDefault()
     e.stopPropagation()
     const url = `${window.location.origin}${l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)}`
+    const input = {
+      title: l.title,
+      district: l.district,
+      city: l.city,
+      area: l.area,
+      priceLabel: displayPrice,
+      agentName: l.agent.name,
+      agency: l.agent.agency,
+    }
     if (navigator.share) {
-      navigator.share({ title: l.title, text: l.title, url }).catch(() => {})
+      navigator.share({ title: l.title, text: listingShareLines(input).join('\n'), url }).catch(() => {})
     } else {
-      navigator.clipboard.writeText(url).catch(() => {})
+      navigator.clipboard.writeText(listingShareText(input, url)).catch(() => {})
     }
   }
 
   // Always visible — hover-hide made chrome look "missing" on desktop
   const actionBtn =
-    'grid h-8 w-8 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue'
+    'grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue [@media(pointer:fine)]:h-8 [@media(pointer:fine)]:w-8'
 
   const imageBlock = (
     <div
       ref={imgRef}
       // z-[1] keeps chrome above the title's full-card ::after hit layer
-      className={`relative z-[1] overflow-hidden ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[280px] sm:shrink-0' : 'aspect-[4/3]'}`}
+      className={`relative z-[1] overflow-hidden bg-sv-navy/[0.06] ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[280px] sm:shrink-0' : 'aspect-[4/3]'}`}
       onPointerMove={onImgPointerMove}
     >
-      {/* Stacked frames — instant scrub. CDN masters skip Vercel Image Opt. */}
-      {photos.map((src, idx) => (
-        <Image
-          key={`${src}-${idx}`}
-          src={src}
-          alt={idx === photo ? l.title : ''}
-          fill
-          sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
-          // ponytail: never priority — homepage cards sit below hero; was racing LCP
-          // fetchPriority low also stops React Float from <link preload>-ing these
-          // during SSR — 4 card photos were eating ~150KB of pre-FCP 4G bandwidth.
-          fetchPriority="low"
-          unoptimized={isCdnMedia(src)}
-          aria-hidden={idx !== photo}
-          className={`object-cover transition-[opacity,transform] duration-300 ease-out motion-reduce:duration-0 ${
-            idx === photo ? 'opacity-100' : 'pointer-events-none opacity-0'
-          } ${!multi && idx === photo ? 'group-hover:scale-[1.04]' : ''}`}
-          {...blurProps(src)}
-        />
-      ))}
-      {/* Bottom scrub only — lets the photo breathe; navy-tint per brand lock */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sv-navy/45 via-sv-navy/10 to-transparent" />
+      {/* Current ±1 only — full gallery, no 15-frame stack. CDN masters skip Vercel Image Opt. */}
+      {photoMountIdx(frame, photos.length).map((idx) => {
+        const src = photos[idx]
+        return (
+          <Image
+            key={`${src}-${idx}`}
+            src={src}
+            alt={idx === frame ? l.title : ''}
+            fill
+            sizes="(max-width:640px) 86vw, (max-width:1280px) 44vw, 440px"
+            // ponytail: never priority — homepage cards sit below hero; was racing LCP
+            fetchPriority="low"
+            draggable={false}
+            unoptimized={isCdnMedia(src)}
+            aria-hidden={idx !== frame}
+            className={`object-cover transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0 ${
+              idx === frame ? 'opacity-100' : 'pointer-events-none opacity-0'
+            } ${!multi && idx === frame ? 'group-hover:scale-[1.04]' : ''}`}
+            {...blurProps(src)}
+          />
+        )
+      })}
+      {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sv-navy/50 to-transparent" />
       {/* ponytail: photo click → same tab (Cmd/Ctrl+click = new). Chrome stays above. */}
       <LocalizedLink
         href={href}
@@ -252,11 +265,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           TL: VIP / stickers
           TR: share · compare · heart
           Mid: ‹ › white chips on hover (desktop); touch = swipe
-          Bottom: fixed - - - - · +N all-photos (overflow)
+          Bottom: hairline dashes (center) · 1 / N (right)
       */}
       {(l.badge || l.isExclusive) && (
         <span
-          className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider shadow-sm ${
+          className={`absolute left-3 top-4 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black tracking-wider ${
             l.isExclusive
               ? 'bg-gradient-to-r from-sv-navy via-sv-blue to-sv-violet text-white shadow-glow-blue-sm border border-sv-blue-light/30'
               : BADGE_STYLE[l.badge!]
@@ -269,11 +282,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           ) : (
             <Flame className="h-3 w-3" />
           )}
-          {l.isExclusive ? '✦ ექსკლუზივი' : l.badge}
+          {l.isExclusive ? 'ექსკლუზივი' : l.badge}
         </span>
       )}
       {l.projectCatalog && !l.badge && !l.isExclusive && (
-        <span className="absolute left-3 top-4 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white shadow-sm backdrop-blur">
+        <span className="absolute left-3 top-4 z-20 rounded-full bg-sv-navy/85 px-2.5 py-1 text-[10px] font-black tracking-wider text-white backdrop-blur">
           პროექტი
         </span>
       )}
@@ -289,13 +302,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           type="button"
           aria-label={t('detail.share')}
           onClick={handleShare}
-          className={`${actionBtn} hover:text-sv-blue`}
+          className={`${actionBtn} hidden hover:text-sv-blue [@media(hover:hover)]:grid`}
         >
           <Share2 className="h-3.5 w-3.5" />
         </button>
         <button
           type="button"
-          aria-label={compared ? 'Remove from compare' : compareFull ? 'Compare full (max 4)' : 'Add to compare'}
+          aria-label={compared ? cs('remove') : compareFull ? cs('full') : cs('add')}
           aria-pressed={compared}
           disabled={!compared && compareFull}
           onClick={(e) => {
@@ -303,7 +316,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             e.stopPropagation()
             toggleCompare(l.id)
           }}
-          className={`${actionBtn} disabled:cursor-not-allowed disabled:opacity-40 ${
+          className={`${actionBtn} hidden disabled:cursor-not-allowed disabled:opacity-40 [@media(hover:hover)]:grid ${
             compared ? 'bg-sv-surface text-sv-blue' : 'hover:text-sv-blue'
           }`}
         >
@@ -328,14 +341,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
       {multi && (
         <>
-          {/* Locked: white chip = share/fav chrome; hover/focus only — touch uses swipe + dashes */}
+          {/* Hover/focus only — touch uses swipe + dashes */}
           <button
             type="button"
             aria-label={t('detail.prevPhoto')}
             onClick={(e) => navPhoto(-1, e)}
             className="absolute left-3 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 [@media(pointer:coarse)]:hidden"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
               <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
@@ -345,80 +358,52 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             onClick={(e) => navPhoto(1, e)}
             className="absolute right-3 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 [@media(pointer:coarse)]:hidden"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-navy shadow-sm backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
               <ChevronRight className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
         </>
       )}
 
-      {/* Last teaser frame + leftovers → centered CTA (ss.ge / myhome style). Opens ad. */}
-      {morePhotos > 0 && photo === photos.length - 1 && (
-        <div className="pointer-events-none absolute inset-0 z-[8] flex flex-col items-center justify-center gap-2 bg-sv-navy/55">
-          <LocalizedLink
-            href={href}
-            aria-label={t('card.allPhotos', { n: morePhotos })}
-            className="pointer-events-auto relative z-20 flex flex-col items-center gap-2 text-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-full border-2 border-white/90 bg-white/10 backdrop-blur">
-              <Eye className="h-6 w-6" aria-hidden />
-            </span>
-            <span className="text-[14px] font-extrabold tracking-wide drop-shadow-sm">
-              {t('card.allPhotos', { n: morePhotos })}
-            </span>
-          </LocalizedLink>
-        </div>
-      )}
-
-      {/* Bottom: 1/N counter + fixed - - - - dashes */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex flex-col items-center gap-1.5 px-2.5">
-        {photoTotal > 1 && (
-          <span className="rounded-full bg-sv-navy/70 px-2 py-0.5 text-[11px] font-extrabold tabular-nums text-white shadow-sm backdrop-blur">
-            {photo + 1}/{photoTotal}
-          </span>
-        )}
-        {multi && (
+      {/* Bottom: hairline dashes (center) + 1 / N (right) — Renti layout, real count */}
+      {multi && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3">
+          <span />
           <div
-            className="pointer-events-auto flex w-32 gap-1.5"
-            role="tablist"
+            className="pointer-events-auto flex w-[7.5rem] gap-[3px] sm:w-36"
+            role="group"
             aria-label={t('detail.photoViewer')}
           >
-            {Array.from({ length: dashSlots }, (_, idx) => {
-              const live = idx < photos.length
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  role="tab"
-                  disabled={!live}
-                  aria-disabled={!live}
-                  aria-selected={live && photo === idx}
-                  aria-label={live ? t('detail.photo', { n: idx + 1 }) : undefined}
-                  onClick={(e) => {
-                    if (!live) return
-                    e.preventDefault()
-                    e.stopPropagation()
-                    setPhoto(idx)
-                  }}
-                  className="h-1 min-w-0 flex-1 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:pointer-events-none"
-                >
-                  <span
-                    aria-hidden
-                    className={`block h-full rounded-full transition-colors ${
-                      !live
-                        ? 'bg-white/20'
-                        : photo === idx
-                          ? 'bg-white shadow-sm'
-                          : 'bg-white/50'
-                    }`}
-                  />
-                </button>
-              )
-            })}
+            {photos.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                aria-current={frame === idx ? 'true' : undefined}
+                aria-label={t('detail.photo', { n: idx + 1 })}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setPhoto(idx)
+                }}
+                className="-my-2 flex h-4 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <span
+                  aria-hidden
+                  className={`block h-[2px] w-full rounded-full transition-colors duration-200 ${
+                    frame === idx ? 'bg-white' : 'bg-white/40'
+                  }`}
+                />
+              </button>
+            ))}
           </div>
-        )}
-      </div>
+          <span
+            aria-live="polite"
+            className="justify-self-end rounded-full bg-sv-navy/60 px-2 py-0.5 text-[10px] font-bold tabular-nums tracking-wide text-white/95 backdrop-blur-sm"
+          >
+            {frame + 1} / {photos.length}
+          </span>
+        </div>
+      )}
 
     </div>
   )

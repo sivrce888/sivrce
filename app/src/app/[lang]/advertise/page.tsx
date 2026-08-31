@@ -1,19 +1,32 @@
 import type { Metadata } from 'next'
-import { Eye, TrendingUp, Star, Plus, Building2, BadgeCheck, ArrowRight } from 'lucide-react'
+import { Eye, TrendingUp, Star, Plus, Building2, BadgeCheck, ArrowRight, Check, Minus, Layers, KeyRound, CalendarClock, Briefcase, Home, Megaphone, Zap, CircleDot, Palette, RefreshCw, Wrench } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
+import { AdSlot } from '@/components/ads/AdSlot'
 import { Reveal } from '@/components/Reveal'
 import PromoPricingGrid from '@/components/payments/PromoPricingGrid'
 import { langAlternates } from '@/lib/i18n/server'
-import { formatGel, MONTHLY_RE_TETRI } from '@/lib/promo-pricing'
+import { isValidLang } from '@/lib/i18n/core'
+import { formatGel, MONTHLY_RE_TETRI, COMPETITOR, ADDON_TETRI } from '@/lib/promo-pricing'
 import { jsonLd } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'განათავსე განცხადება — sivrce',
-  description: `უფასო განთავსება მესაკუთრეებისთვის, სააგენტოებისა და დეველოპერებისთვის. VIP დღეში ${formatGel(100)}-დან — იაფი ვიდრე SS და MyHome.`,
+  description: `უფასო განთავსება მესაკუთრეებისთვის, სააგენტოებისა და დეველოპერებისთვის. VIP დღეში ${formatGel(100)}-დან — უფრო იაფი, ვიდრე SS და MyHome.`,
   alternates: { canonical: '/advertise', languages: langAlternates('/advertise') },
 }
+
+const AUDIENCES = [
+  { icon: Home, title: 'გამყიდველი', text: 'უფასო განთავსება · 3 წუთი · ლიდები დაფაზე', href: '/add-listing' },
+  { icon: KeyRound, title: 'გამქირავებელი', text: 'ყოველთვიური ქირა — იგივე ანგარიში, იგივე VIP', href: '/add-listing' },
+  { icon: CalendarClock, title: 'დღიური მასპინძელი', text: 'კოლექციები, თარიღები, უკონტაქტო ჩექინი', href: '/add-listing' },
+  { icon: BadgeCheck, title: 'აგენტი', text: 'პროფილი /agents-ზე · ლიდები · VIP უფრო იაფი, ვიდრე SS', href: '/auth/signup?callbackUrl=/settings' },
+  { icon: Building2, title: 'სააგენტო', text: 'გუნდი, ანალიტიკა, განცხადებები ერთ დაფაზე', href: '/auth/signup?callbackUrl=/settings' },
+  { icon: Briefcase, title: 'დეველოპერი', text: 'პროექტები, ინვენტარი, 3D რუკა კორპუსზე', href: '/auth/signup?callbackUrl=/settings' },
+  { icon: Wrench, title: 'სერვისის კომპანია', text: 'რემონტი, იურიდიული, ფოტო — სერვისი და განცხადება ერთ ანგარიშზე', href: '/add-service' },
+] as const
 
 const PRO_STEPS = [
   { n: '1', t: 'დარეგისტრირდი', d: 'ტელეფონი ან Google — 30 წამი' },
@@ -21,11 +34,51 @@ const PRO_STEPS = [
   { n: '3', t: 'გამოაქვეყნე', d: 'უფასო ან VIP+ · ლიდები შენს დაფაზე' },
 ]
 
+const ADDONS = [
+  { icon: Zap, title: 'Turbo', text: 'SUPER VIP + ფერი + სასწრაფოდ', price: formatGel(ADDON_TETRI.turbo_7) + ' / 7დ' },
+  { icon: CircleDot, title: 'სთორი', text: 'მთავარი გვერდის სთორი · 24სთ', price: formatGel(ADDON_TETRI.story) },
+  { icon: Zap, title: 'სასწრაფოდ', text: 'ნარინჯისფერი ნიშანი · 24სთ', price: formatGel(ADDON_TETRI.sticker_urgent) },
+  { icon: TrendingUp, title: 'ფასი დაწეულია', text: 'სიგნალი მყიდველისთვის · 7დ', price: formatGel(ADDON_TETRI.sticker_price_drop) },
+  { icon: Palette, title: 'ფერი', text: 'ლურჯი ჩარჩო ძიებაში · 7დ', price: formatGel(ADDON_TETRI.color) },
+  { icon: RefreshCw, title: 'განახლება', text: 'სიის თავში აყვანა', price: formatGel(ADDON_TETRI.refresh_once) },
+] as const
+
+const BRAND_PACKS = [
+  { title: 'მთავარი გვერდი', text: 'Billboard ჰეროს ქვემოთ — დეველოპერი, ბანკი, ბრენდი' },
+  { title: 'ძიება', text: 'Native ბარათი შედეგებში + ზედა ზოლი' },
+  { title: 'განცხადება', text: 'Sidebar ქვემოთ აგენტის ბარათისა' },
+  { title: 'დირექტორიები', text: 'აგენტები, დეველოპერები, პროექტები, უბნები' },
+  { title: 'იპოთეკა', text: 'კალკულატორზე — ბანკის პროდუქტი' },
+  { title: 'ბლოგი', text: 'სარედაქციო აუდიტორია, მაღალი intent' },
+] as const
+
 const STATS = [
   { icon: Eye, value: 'VIP+', label: 'კარუსელი + პრიორიტეტი სიაში VIP-ზე წინ' },
   { icon: TrendingUp, value: '2.50₾', label: 'VIP+ დღეში · SS 3₾ / MyHome 4₾' },
   { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 დღე · უძრავი ქონება' },
 ]
+
+const COMPARE = {
+  cols: ['sivrce', 'SS.ge', 'MyHome', 'Livo', 'Korter'] as const,
+  rows: [
+    { label: '3D რუკა + კორპუსის ინვენტარი', cells: ['yes', 'no', 'no', 'no', '2D'] },
+    { label: 'VIP+ დღეში (უძრავი)', cells: [formatGel(250), formatGel(COMPETITOR.ss.vip_plus_re[0]), formatGel(COMPETITOR.myhome.vip_plus_re), '—', '—'] },
+    { label: 'VIP დღეში', cells: [formatGel(100), formatGel(COMPETITOR.ss.vip_re), formatGel(COMPETITOR.myhome.vip_re), '—', '—'] },
+    { label: 'AI ფასის შეფასება', cells: ['yes', 'ჩატი', 'no', 'ძიება', 'no'] },
+    { label: 'მეტროსთან მანძილი', cells: ['yes', 'no', 'no', 'yes', 'no'] },
+    { label: '9 ენა + PWA', cells: ['yes', 'no', 'no', 'no', 'აპი'] },
+  ],
+} as const
+
+function CompareCell({ value }: { value: string }) {
+  if (value === 'yes') {
+    return <Check className="mx-auto h-4 w-4 text-sv-blue" aria-label="კი" />
+  }
+  if (value === 'no') {
+    return <Minus className="mx-auto h-4 w-4 text-sv-ink/25" aria-label="არა" />
+  }
+  return <span className="text-[12px] font-extrabold text-sv-ink">{value}</span>
+}
 
 const FAQ = [
   {
@@ -48,27 +101,53 @@ const FAQ = [
     q: 'სააგენტო ან დეველოპერი ვარ — სად დავიწყო?',
     a: 'დარეგისტრირდი → Settings-ში აირჩიე როლი (სააგენტო / აგენტი / დეველოპერი) → დაამატე განცხადება. პროფილი გამოჩნდება /agents ან /developers დირექტორიაში.',
   },
+  {
+    q: 'სერვისის კომპანია ვარ — რემონტი, იურიდიული, ფოტო. სად დავდო?',
+    a: 'დაამატე კომპანია /add-service-ზე. ქონების განცხადება იმავე ანგარიშით /add-listing-ზე — ორივე გამოჩნდება შენს პროფილზე.',
+  },
 ]
 
-export default function AdvertisePage() {
+export default async function AdvertisePage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
-        <section className="mx-auto max-w-5xl px-6 py-14 text-center md:py-20">
+      <main id="main">
+        <PageHero
+          kicker="განთავსება"
+          title="განათავსე განცხადება"
+          subtitle="უფასოდ დაიწყე — ან გააძლიერე VIP-ით. მესაკუთრე, გამქირავებელი, აგენტი, სააგენტო, დეველოპერი თუ სერვისის კომპანია — ერთი ანგარიში."
+        />
+
+        <section className="mx-auto max-w-6xl px-6 pb-6 pt-10">
           <Reveal>
-            <h1 className="text-4xl font-black tracking-[-0.02em] text-sv-ink text-balance md:text-6xl">
-              განათავსე განცხადება
-            </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-[16px] font-medium text-sv-ink/60">
-              უფასოდ დაიწყე — ან გააძლიერე VIP-ით. იგივე პრომო ლოგიკა, რაც ბაზარზეა,
-              უფრო კარგ ფასად.
-            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {AUDIENCES.map((a) => (
+                <LocalizedLink
+                  key={a.title}
+                  href={a.href}
+                  className="group flex gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1 hover:border-transparent hover:shadow-card-hover"
+                >
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+                    <a.icon className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <span className="block text-[16px] font-extrabold tracking-[-0.02em] text-sv-ink">
+                      {a.title}
+                    </span>
+                    <span className="mt-1 block text-[13px] font-medium leading-relaxed text-sv-ink/60">
+                      {a.text}
+                    </span>
+                  </span>
+                </LocalizedLink>
+              ))}
+            </div>
           </Reveal>
         </section>
 
         {/* ponytail: BD funnel for agencies — footer already points here; page was VIP-only. */}
-        <section className="mx-auto max-w-5xl px-6 pb-14">
+        <section className="mx-auto max-w-5xl px-6 pb-14 pt-10">
           <Reveal>
             <div className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-navy p-6 text-white shadow-card md:p-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
@@ -118,6 +197,125 @@ export default function AdvertisePage() {
 
         <section className="mx-auto max-w-7xl px-6 pb-16">
           <PromoPricingGrid />
+        </section>
+
+        <AdSlot slot="advertise" lang={lang} />
+
+        <section className="mx-auto max-w-6xl px-6 pb-16">
+          <Reveal>
+            <p className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-wider text-sv-blue">
+              <Zap className="h-3.5 w-3.5" /> დანამატები
+            </p>
+            <h2 className="mt-2 text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
+              ბუსტები გამოქვეყნების შემდეგ
+            </h2>
+            <p className="mt-2 max-w-xl text-[14px] font-medium text-sv-ink/55">
+              VIP-ის გარდა — სთორი, სასწრაფოდ, ფერი, Turbo. ყიდულობ შენი განცხადებიდან.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {ADDONS.map((a) => (
+                <div
+                  key={a.title}
+                  className="flex gap-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-4 shadow-card"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+                    <a.icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="text-[15px] font-extrabold text-sv-ink">{a.title}</span>
+                      <span className="shrink-0 text-[13px] font-black text-sv-blue">{a.price}</span>
+                    </span>
+                    <span className="mt-0.5 block text-[13px] font-medium text-sv-ink/55">{a.text}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-6 pb-16">
+          <Reveal>
+            <div className="overflow-hidden rounded-card bg-sv-navy p-6 text-white shadow-card md:p-10">
+              <p className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-wider text-sv-blue-light">
+                <Megaphone className="h-3.5 w-3.5" /> ბრენდის განთავსება
+              </p>
+              <h2 className="mt-2 max-w-xl text-[22px] font-black tracking-[-0.02em] md:text-[28px]">
+                ბანერები მთელ სივრცეზე
+              </h2>
+              <p className="mt-2 max-w-xl text-[14px] font-medium text-white/65">
+                დეველოპერი, ბანკი, დაზღვევა, სააგენტო — ერთი კამპანია, აუდიტორიით (მყიდველი / გამყიდველი / აგენტი) და ენით.
+                ადმინი აკონტროლებს ყოველ სლოტს.
+              </p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {BRAND_PACKS.map((p) => (
+                  <div key={p.title} className="rounded-module border border-white/10 bg-white/[0.04] p-4">
+                    <p className="text-[14px] font-black">{p.title}</p>
+                    <p className="mt-1 text-[13px] font-medium text-white/55">{p.text}</p>
+                  </div>
+                ))}
+              </div>
+              <LocalizedLink
+                href="/contact"
+                className="mt-7 inline-flex items-center gap-2 rounded-full bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+              >
+                დაგვიკავშირდი ბანერისთვის <ArrowRight className="h-4 w-4" />
+              </LocalizedLink>
+            </div>
+          </Reveal>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-6 pb-16">
+          <Reveal>
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <p className="inline-flex items-center gap-2 text-[12px] font-black uppercase tracking-wider text-sv-blue">
+                  <Layers className="h-3.5 w-3.5" /> ბაზარი
+                </p>
+                <h2 className="mt-2 text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
+                  sivrce vs SS · MyHome · Livo · Korter
+                </h2>
+              </div>
+              <LocalizedLink
+                href="/map"
+                className="hidden shrink-0 rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange sm:inline-flex"
+              >
+                3D რუკა
+              </LocalizedLink>
+            </div>
+            <div className="overflow-x-auto rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">
+              <table className="w-full min-w-[640px] text-left">
+                <thead>
+                  <tr className="border-b border-sv-ink/[0.06]">
+                    <th className="px-4 py-3 text-[12px] font-bold text-sv-ink/45"> </th>
+                    {COMPARE.cols.map((c) => (
+                      <th
+                        key={c}
+                        className={`px-3 py-3 text-center text-[13px] font-black ${c === 'sivrce' ? 'text-sv-blue' : 'text-sv-ink'}`}
+                      >
+                        {c}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARE.rows.map((row) => (
+                    <tr key={row.label} className="border-b border-sv-ink/[0.04] last:border-0">
+                      <th className="px-4 py-3 text-[13px] font-bold text-sv-ink/70">{row.label}</th>
+                      {row.cells.map((cell, i) => (
+                        <td
+                          key={COMPARE.cols[i]}
+                          className={`px-3 py-3 text-center ${i === 0 ? 'bg-sv-blue/[0.04]' : ''}`}
+                        >
+                          <CompareCell value={cell} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Reveal>
         </section>
 
         <section className="bg-sv-surface">

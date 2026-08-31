@@ -35,17 +35,30 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db
 /* ------------------------------------------------------------------ */
 
 let health: { ok: boolean; at: number } | undefined
+let inflight: Promise<boolean> | undefined
 
 /**
  * One fast probe, cached 60s. When Postgres is unreachable, data layers
  * short-circuit to their static fallbacks instead of paying ~1s per doomed
  * query (or worse) across a 1000-page SSG build.
  *
- * ponytail: process-global breaker. Upgrade path: pg stat statements /
- * per-query timeout if a driver ever exposes one that survives pool churn.
+ * ponytail: process-global breaker + coalesced in-flight probe. Cold homepage
+ * used to fire 3 parallel DNS probes (layout meta, layout body, Hero).
+ * Upgrade path: pg stat statements / per-query timeout if a driver ever
+ * exposes one that survives pool churn.
  */
 export async function dbAvailable(): Promise<boolean> {
-  if (health && Date.now() - health.at < 60_000) return health.ok
+  // ponytail: ok caches 60s; fail caches 3s. 60s-closed after an 800ms probe miss emptied /sale and 404'd every listing.
+  const ttl = health?.ok ? 60_000 : 3_000
+  if (health && Date.now() - health.at < ttl) return health.ok
+  if (inflight) return inflight
+  inflight = probeDb().finally(() => {
+    inflight = undefined
+  })
+  return inflight
+}
+
+async function probeDb(): Promise<boolean> {
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
     health = { ok: false, at: Date.now() }
@@ -53,18 +66,21 @@ export async function dbAvailable(): Promise<boolean> {
   }
   // Raw pg.Client with a hard connect timeout — NOT a raced Prisma query,
   // which keeps running in the background and leaks a pool slot per probe.
+  // ponytail: 3s — 800ms false-open on cold TLS to the Supabase pooler.
   let ok = false
-  const probe = new Client({
-    connectionString: withPgSslCompat(connectionString),
-    connectionTimeoutMillis: 4_000,
-  })
   try {
-    await probe.connect()
-    ok = true
+    const probe = new Client({
+      connectionString: withPgSslCompat(connectionString),
+      connectionTimeoutMillis: 3_000,
+    })
+    try {
+      await probe.connect()
+      ok = true
+    } finally {
+      await probe.end().catch(() => {})
+    }
   } catch {
     ok = false
-  } finally {
-    await probe.end().catch(() => {})
   }
   health = { ok, at: Date.now() }
   return ok

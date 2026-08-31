@@ -32,7 +32,7 @@ export default function MortgageCalcClient() {
         <div className="space-y-6">
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label htmlFor="mc-price" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/55">
+              <label htmlFor="mc-price" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
                 ბინის ფასი
               </label>
               <span className="text-[14px] font-black text-sv-ink">{formatUSD(price)}</span>
@@ -60,8 +60,8 @@ export default function MortgageCalcClient() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label htmlFor="mc-down" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/55">
-                პირველი შენატრება ({downPct}%)
+              <label htmlFor="mc-down" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
+                პირველი შენატანი ({downPct}%)
               </label>
               <span className="text-[14px] font-black text-sv-ink">{formatUSD(price * downPct / 100)}</span>
             </div>
@@ -76,7 +76,7 @@ export default function MortgageCalcClient() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label htmlFor="mc-rate" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/55">
+              <label htmlFor="mc-rate" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
                 წლიური პროცენტი
               </label>
               <span className="text-[14px] font-black text-sv-ink">{rate.toFixed(1)}%</span>
@@ -92,7 +92,7 @@ export default function MortgageCalcClient() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label htmlFor="mc-years" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/55">
+              <label htmlFor="mc-years" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
                 ვადა
               </label>
               <span className="text-[14px] font-black text-sv-ink">{years} წელი</span>
@@ -131,7 +131,7 @@ export default function MortgageCalcClient() {
           </div>
         </div>
       </div>
-      <p className="mt-4 text-[12px] font-semibold text-sv-ink/45">
+      <p className="mt-4 text-[12px] font-semibold text-sv-ink/60">
         ეს არის მაჩვენებელი გამოთვალა სტანდარტული ანუიტეტის ფორმულით და არ წარმოადგენს საბანკო
         წინადადებას.
       </p>

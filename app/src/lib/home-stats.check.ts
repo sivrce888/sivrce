@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { CITIES } from '@/data/listings'
+import { AGENT_PROFILES, DEVELOPERS, PROJECTS } from '@/data/professionals'
 import type { HomeStats } from './home-stats'
 
 /** Shape guard — values must be finite non-negative (no fake 52k injection). */
@@ -11,5 +13,9 @@ function assertStats(s: HomeStats) {
 
 assertStats({ listings: 0, professionals: 1, projects: 2, cities: 3 })
 assert.throws(() => assertStats({ listings: -1, professionals: 0, projects: 0, cities: 0 } as HomeStats))
+
+assert.ok(PROJECTS.length > 0, 'catalog projects')
+assert.ok(CITIES.length > 0, 'catalog cities')
+assert.ok(AGENT_PROFILES.length + DEVELOPERS.length > 0, 'catalog professionals')
 
 console.log('home-stats: ok')

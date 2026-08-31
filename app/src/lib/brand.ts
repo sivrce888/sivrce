@@ -1,5 +1,5 @@
 /**
- * SIVRCE — Locked Brand Tokens (FROZEN 2026-07-17 · BRAND.md v1.2)
+ * SIVRCE — Locked Brand Tokens (FROZEN 2026-07-17 · BRAND.md v1.16)
  * Single source of truth. Every new component, section, or page MUST
  * consume these tokens instead of inventing new values.
  * Change only with owner approval + BRAND.md version bump.
@@ -20,13 +20,13 @@ export const BRAND = {
     blueDeep: '#1A3FC0',
     violet: '#7A5CFF', // only inside gradients, never standalone
 
-    /** Accent — action, energy, VIP. CTAs and highlights only */
+    /** Accent — action, energy, VIP. CTAs and highlights only. Fills use white fg. */
     orange: '#FF6A2D',
     orangeLight: '#FFB25E',
     orangeDeep: '#FF4D6D', // only inside gradients (VIP, SUPER VIP)
 
     /** Foundations */
-    navy: '#050B26', // darkest background (hero, dark sections)
+    navy: '#050B26', // darkest background (night hero, dark sections)
     navySoft: '#0A1440',
     ink: '#0A1030', // primary text on light
     paper: '#FFFFFF',

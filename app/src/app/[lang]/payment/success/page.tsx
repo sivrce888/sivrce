@@ -23,9 +23,9 @@ export default async function PaymentSuccessPage({
   const lang = isValidLang(raw) ? raw : "ka"
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
+      <main id="main" className="sv-pt-nav">
         <section className="mx-auto max-w-6xl px-6 py-14 md:py-20">
           <PaymentResult lang={lang} orderId={order} />
         </section>

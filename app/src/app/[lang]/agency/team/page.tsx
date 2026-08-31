@@ -39,7 +39,7 @@ export default async function AgencyTeamPage() {
           {team.map((agent) => (
             <article
               key={agent.id}
-              className="rounded-2xl border border-sv-ink/6 bg-white p-5 shadow-sm"
+              className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card"
             >
               <div className="flex items-center gap-3">
                 <span

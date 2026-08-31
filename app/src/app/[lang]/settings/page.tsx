@@ -4,6 +4,7 @@ import { Bell, BellRing, LayoutDashboard, Mail, Shield, UserCog } from "lucide-r
 
 import { chooseSelfRole } from "@/app/auth/actions"
 import { toggleListingAlerts } from "@/app/[lang]/settings/actions"
+import { PasskeysCard } from "@/components/auth/PasskeysCard"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import { PushToggle } from "@/components/push/PushToggle"
 import { isValidLang } from "@/lib/i18n/core"
@@ -20,6 +21,7 @@ import {
   settingsTitleFor,
 } from "@/lib/dashboard-nav"
 import { db } from "@/lib/db"
+import { isPhoneEmail } from "@/lib/auth-phone"
 import { requireUser, safeQuery } from "@/lib/guards"
 
 export const dynamic = "force-dynamic"
@@ -39,7 +41,7 @@ export default async function SettingsPage({
   const user = await requireUser("/settings")
   const home = dashboardPathFor(user.role)
 
-  const [alertSub, notifications] = await Promise.all([
+  const [alertSub, notifications, passkeys] = await Promise.all([
     safeQuery(
       () =>
         db.listingAlertSubscription.findFirst({
@@ -54,6 +56,18 @@ export default async function SettingsPage({
           where: { userId: user.id },
           orderBy: { createdAt: "desc" },
           take: 8,
+        }),
+      [],
+    ),
+    safeQuery(
+      () =>
+        db.authenticator.findMany({
+          where: { userId: user.id },
+          select: {
+            credentialID: true,
+            credentialDeviceType: true,
+            credentialBackedUp: true,
+          },
         }),
       [],
     ),
@@ -79,7 +93,8 @@ export default async function SettingsPage({
             <div className="min-w-0 flex-1">
               <h2 className="text-[15px] font-extrabold text-sv-ink">ანგარიში</h2>
               <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
-                {user.name ?? "სახელი არ არის მითითებული"} · {user.email}
+                {user.name ?? "სახელი არ არის მითითებული"}
+                {isPhoneEmail(user.email) ? "" : ` · ${user.email}`}
               </p>
               <p className="mt-2 inline-flex rounded-full bg-sv-blue/10 px-3 py-1 text-[11.5px] font-bold text-sv-blue">
                 როლი:{" "}
@@ -90,6 +105,8 @@ export default async function SettingsPage({
             </div>
           </div>
         </section>
+
+        <PasskeysCard keys={passkeys} />
 
         {user.role !== "admin" ? (
           <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">

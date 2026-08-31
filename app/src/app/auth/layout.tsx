@@ -32,6 +32,13 @@ const notoGeorgian = Noto_Sans_Georgian({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sivrce.ge"),
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {

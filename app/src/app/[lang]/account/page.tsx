@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { auth } from '@/auth'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import ProfileCard, { type AccountUser } from '@/components/account/ProfileCard'
 import FavoritesCard from '@/components/account/FavoritesCard'
 import SavedSearchesCard from '@/components/account/SavedSearchesCard'
@@ -11,6 +12,9 @@ import MyTours from '@/components/account/MyTours'
 import MyInquiries from '@/components/account/MyInquiries'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+import { PasskeysCard } from '@/components/auth/PasskeysCard'
+import { db } from '@/lib/db'
+import { safeQuery } from '@/lib/guards'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -31,6 +35,22 @@ export default async function AccountPage() {
       }
     : null
 
+  const userId = session?.user?.id
+  const passkeys = userId
+    ? await safeQuery(
+        () =>
+          db.authenticator.findMany({
+            where: { userId },
+            select: {
+              credentialID: true,
+              credentialDeviceType: true,
+              credentialBackedUp: true,
+            },
+          }),
+        [],
+      )
+    : []
+
   return (
     <div className="min-h-screen bg-sv-cloud">
       <script
@@ -45,15 +65,17 @@ export default async function AccountPage() {
         }}
       />
       <Navbar />
-      <main id="main" className="mx-auto max-w-6xl px-6 pb-20 pt-24 md:pt-28">
-        <h1 className="text-4xl font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
-          ჩემი ანგარიში
-        </h1>
-        <p className="mt-3 text-[15px] font-medium text-sv-ink/60">
-          ფავორიტები, შენახული ძიებები, ბოლოს ნანახი და შეფასებები — ერთ სივრცეში.
-        </p>
-        <div className="mt-10 grid gap-6">
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="ანგარიში"
+          title="ჩემი ანგარიში"
+          subtitle="ფავორიტები, შენახული ძიებები, ბოლოს ნანახი და შეფასებები — ერთ სივრცეში."
+        />
+        <div className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="mt-4 grid gap-6">
           <ProfileCard user={user} />
+          {user ? <PasskeysCard keys={passkeys} /> : null}
           <div className="grid gap-6 md:grid-cols-2">
             <FavoritesCard />
             <SavedSearchesCard />
@@ -62,6 +84,7 @@ export default async function AccountPage() {
           </div>
           <MyReviews signedIn={user !== null} />
           <RecentlyViewed hideWhenEmpty={false} />
+        </div>
         </div>
       </main>
       <Footer />

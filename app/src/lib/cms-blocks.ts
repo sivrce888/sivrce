@@ -18,7 +18,7 @@ export const CMS_BLOCKS = {
   'home.hero.titleA': 'იპოვე შენი',
   'home.hero.titleAccent': 'სივრცე',
   'home.hero.subtitle':
-    'ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები — ყველაფერი ერთ პლატფორმაზე, 3D რუკით და AI შეფასებით',
+    'უძრავი ქონება ერთ სივრცეში — იყიდე, იქირავე ან განათავსე',
   'home.hero.trust1': 'ვერიფიცირებული განცხადებები',
   'home.hero.trust2': 'უსაფრთხო გარიგებები',
   'home.hero.trust3': 'AI ფასის შეფასება',
@@ -54,10 +54,10 @@ export const CMS_BLOCKS = {
   'home.categories.sub': 'ყველა ტიპის უძრავი ქონება — ერთ სივრცეში',
   'home.collections.title': 'კოლექციები',
   'home.collections.sub': 'დღიური ქირა — შერჩეული თემებით',
-  'home.stories.kicker': 'Stories',
+  'home.stories.kicker': 'რჩეული',
   'home.listings.kicker': 'არჩეული შეთავაზებები',
-  'home.listings.title': 'SUPER VIP განცხადებები',
-  'home.listings.sub': 'პრემიუმ ქონებები AI ფასის შეფასებით',
+  'home.listings.title': 'რჩეული განცხადებები',
+  'home.listings.sub': 'ვერიფიცირებული ქონება — AI ფასის შეფასებით',
   'home.map.kicker': 'ექსკლუზიური ტექნოლოგია',
   'home.map.titleA': 'პირველი',
   'home.map.titleAccent': 'ინტერაქტიული 3D რუკა',
@@ -68,7 +68,7 @@ export const CMS_BLOCKS = {
   'home.ai.titleA': 'იცოდე ნამდვილი ფასი —',
   'home.ai.titleAccent': 'ყიდვამდე',
   'home.ai.sub':
-    'ჩვენი AI 48 პარამეტრს ანალიზებს — მდებარეობა, იატაკი, ხედი, რემონტი, ბაზრის დინამიკა — და გეუბნება, რამდენად კარგი გარიგებაა კონკრეტული ქონება.',
+    'ჩვენი AI 48 პარამეტრს ანალიზებს — მდებარეობა, სართული, ხედი, რემონტი, ბაზრის დინამიკა — და გეუბნება, რამდენად კარგი გარიგებაა კონკრეტული ქონება.',
   'home.projects.kicker': 'ახალი პროექტები',
   'home.projects.title': 'მშენებარე ბინები',
   'home.projects.sub': 'ყველა დეველოპერი, ყველა პროექტი — შეფასებებით და 3D ვიზუალიზაციით',
@@ -90,13 +90,13 @@ export const CMS_BLOCKS = {
 
   // ——— Listings rail ———
   'home.listings.viewAll': 'ყველა განცხადების ნახვა',
-  'home.listings.scrollLabel': 'SUPER VIP განცხადებები',
+  'home.listings.scrollLabel': 'რჩეული განცხადებები',
 
   // ——— Map section ———
   'home.map.f1.title': 'დააჭირე ნებისმიერ შენობას',
-  'home.map.f1.text': '3D რუკაზე შენობაზე დაჭერით ხედავ ყველა გასაყიდ და გასაქირავებელ ფართს კონკრეტულ კორპუსში.',
+  'home.map.f1.text': '3D რუკაზე შენობაზე დაჭერით ხედავ ყველა გასაყიდსა და გასაქირავებელ ფართს კონკრეტულ კორპუსში.',
   'home.map.f2.title': 'მშენებარე კორპუსების ვიზუალიზაცია',
-  'home.map.f2.text': 'ჯერ არსასრულ პროექტებსაც კი ვაჩვენებთ 3D-ში — აირჩიე ბინა პირდაპირ სამშენებლო მაკეტიდან.',
+  'home.map.f2.text': 'ჯერ დაუსრულებელ პროექტებსაც კი ვაჩვენებთ 3D-ში — აირჩიე ბინა პირდაპირ სამშენებლო მაკეტიდან.',
   'home.map.f3.title': 'უბნის სრული ანალიტიკა',
   'home.map.f3.text': 'ფასების დინამიკა, მ²-ის ღირებულება, ინფრასტრუქტურა და ინვესტიციური პოტენციალი ერთ ეკრანზე.',
   'home.map.f4.title': '2D / 3D რეჟიმები',
@@ -113,10 +113,16 @@ export const CMS_BLOCKS = {
   'home.projects.delivery': 'ჩაბარება {v}',
   'home.projects.flats': '{n} ბინა',
 
+  // ——— Neighborhoods rail ———
+  'home.nb.kicker': 'უბნები',
+  'home.nb.title': 'სად ღირს ცხოვრება',
+  'home.nb.sub': 'ცხოვრების ხარისხის ქულები, ფასი მ²-ზე და რეალური ფოტოები — ვაკედან ბათუმამდე',
+  'home.nb.viewAll': 'ყველა უბანი',
+
   // ——— Agents rail ———
   'home.agents.kicker': 'ტოპ აგენტები',
   'home.agents.title': 'ყველაზე მეტი აქტიური განცხადება',
-  'home.agents.sub': 'რეიტინგი ცოცხალი ინვენტარით — ვინც ახლა ყველაზე მეტ ბაზარზეა',
+  'home.agents.sub': 'რეიტინგი აქტიური განცხადებებით — ვისაც ახლა ყველაზე მეტი აქვს ბაზარზე',
   'home.agents.viewAll': 'ყველა აგენტი',
   'home.agents.active': '{n} აქტიური',
   'home.agents.profile': 'პროფილი',
@@ -125,7 +131,7 @@ export const CMS_BLOCKS = {
   // ——— Developers rail ———
   'home.devs.kicker': 'ტოპ დეველოპერები',
   'home.devs.title': 'წამყვანი დეველოპერული კომპანიები',
-  'home.devs.sub': 'რეიტინგი აქტიური განცხადებებით — დაათვალიერე პროექტები და ობიექტები',
+  'home.devs.sub': 'რეიტინგი აქტიური პროექტებით — დაათვალიერე პროექტები და ობიექტები',
   'home.devs.viewAll': 'ყველა დეველოპერი',
   'home.devs.projectsCount': '{n} პროექტი',
   'home.devs.active': '{n} აქტიური',
@@ -135,7 +141,7 @@ export const CMS_BLOCKS = {
   // ——— Forum teaser ———
   'home.forum.kicker': 'ფორუმი & ანალიტიკა',
   'home.forum.title': 'სადისკუსიო თემები & ბაზრის მიმოხილვა',
-  'home.forum.sub': 'გაეცანი ექსპერტებისა და მომხმარებლების გამოცდილებას უძრავ ქონებაზე',
+  'home.forum.sub': 'გაეცანი ექსპერტებისა და მომხმარებლების გამოცდილებას უძრავი ქონების შესახებ',
   'home.forum.viewAll': 'ყველა თემა',
   'home.forum.replies': '{n} პასუხი',
   'home.forum.views': '{n} ნახვა',
@@ -145,7 +151,7 @@ export const CMS_BLOCKS = {
   'home.blog.title': 'უძრავი ქონების სიახლეები & რჩევები',
   'home.blog.sub': 'უახლესი სტატიები, ბაზრის ანალიზი და ექსპერტების რეკომენდაციები',
   'home.blog.viewAll': 'ყველა სტატია',
-  'home.blog.readMore': 'სრულად კითხვა',
+  'home.blog.readMore': 'წაიკითხე სრულად',
   'home.blog.minutes': '{n} წთ',
   'home.blog.months': 'იან,თებ,მარ,აპრ,მაი,ივნ,ივლ,აგვ,სექ,ოქტ,ნოე,დეკ',
 
@@ -160,6 +166,22 @@ export const CMS_BLOCKS = {
   'home.categories.newProjects': 'ახალი პროექტები',
   'home.categories.explore': 'იხილე',
 
+  // ——— Audience paths ———
+  'home.for.title': 'ვისთვისაა სივრცე',
+  'home.for.sub': 'ყველა გზა ერთ პლატფორმაზე — ძიება, განთავსება, პროფესიონალური ანგარიში',
+  'home.for.buy.title': 'მყიდველები',
+  'home.for.buy.text': '3D რუკა, AI ფასი, ვერიფიცირებული განცხადებები',
+  'home.for.rent.title': 'დამქირავებლები',
+  'home.for.rent.text': 'გრძელვადიანი ქირა უბნებით, ფილტრებით და რუკით',
+  'home.for.daily.title': 'დღიური ქირა',
+  'home.for.daily.text': 'კოლექციები: აუზი, პლაჟი, უკონტაქტო ჩექინი',
+  'home.for.sell.title': 'გამყიდველები',
+  'home.for.sell.text': 'უფასო განთავსება — 3 წუთი, ლიდები შენს დაფაზე',
+  'home.for.host.title': 'გამქირავებლები',
+  'home.for.host.text': 'ყოველთვიური და დღიური ქირა ერთ ანგარიშზე',
+  'home.for.pro.title': 'აგენტები და დეველოპერები',
+  'home.for.pro.text': 'პროფილი, ლიდები, VIP — უფრო იაფი, ვიდრე SS და MyHome',
+
   // ——— Hero quick chips ———
   'home.search.popular': 'პოპულარული:',
   'home.search.quick.vake': 'ვაკე',
@@ -172,7 +194,7 @@ export const CMS_BLOCKS = {
   // ——— CTA ———
   'home.cta.title': 'შენი სივრცე გელოდება',
   'home.cta.sub':
-    'გამყიდველი თუ მყიდველი — დაიწყე დღეს. განცხადების დამატება უფასოა და სულ 3 წუთი სჭირდება.',
+    'მყიდველი, დამქირავებელი, გამყიდველი, აგენტი თუ დეველოპერი — ერთი ანგარიში. განთავსება უფასოა, 3 წუთი.',
   'home.cta.primary': 'დაამატე განცხადება',
   'home.cta.secondary': 'დაიწყე ძიება',
   'home.cta.proofA': 'აქტიური განცხადებები',

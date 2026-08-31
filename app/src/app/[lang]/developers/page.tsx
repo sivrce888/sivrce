@@ -1,15 +1,19 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import LocalizedLink from '@/components/LocalizedLink'
+import { ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
+import { AdSlot } from '@/components/ads/AdSlot'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { getDeveloperListingCountsBySlug } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { langAlternates, OG_LOCALE, getServerT } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { DEVELOPERS_HUB, dirLoc, faqPageLd } from '@/lib/directory-seo'
 
@@ -34,13 +38,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: 'https://sivrce.ge/developers',
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
-      images: [{ url: 'https://sivrce.ge/images/og.jpg', alt: c.ogTitle }],
+      images: [{ url: 'https://sivrce.ge/images/og-brand.png', alt: c.ogTitle }],
     },
     twitter: {
       card: 'summary_large_image',
       title: c.ogTitle,
       description: c.description,
-      images: ['https://sivrce.ge/images/og.jpg'],
+      images: ['https://sivrce.ge/images/og-brand.png'],
     },
   }
 }
@@ -48,6 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DevelopersPage({ params }: PageProps) {
   const { lang: raw } = await params
   if (!isValidLang(raw)) notFound()
+  const t = getServerT(raw)
   const c = DEVELOPERS_HUB[dirLoc(raw)]
 
   const [developers, projects] = await Promise.all([developersLive(), projectsLive()])
@@ -82,17 +87,21 @@ export default async function DevelopersPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
-        <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
-          <h1 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            {c.h1}
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            {c.sub}
-          </p>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <main id="main">
+        <PageHero tone="light" kicker="დირექტორია" title={c.h1} subtitle={c.sub}>
+          <LocalizedLink
+            href="/advertise"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+          >
+            {t('nav.advertise')}
+            <ArrowRight className="h-4 w-4" />
+          </LocalizedLink>
+        </PageHero>
+        <AdSlot slot="developers" lang={raw} />
+        <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {cards.map(({ d, listingsCount, aggregate }) => (
               <EntityCard
                 key={d.slug}
@@ -132,7 +141,7 @@ export default async function DevelopersPage({ params }: PageProps) {
           items={c.faqs}
           className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10"
         />
-        <CTA />
+        <CTA lang={raw} />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />

@@ -26,6 +26,13 @@ export function telHref(phone: string): string {
   return `tel:+${phone.replace(/\D/g, '')}`
 }
 
+/** WhatsApp click-to-chat — ss.ge / myhome conversion path, after reveal only. */
+export function waHref(phone: string, text?: string): string {
+  const digits = phone.replace(/\D/g, '')
+  const q = text ? `?text=${encodeURIComponent(text)}` : ''
+  return `https://wa.me/${digits}${q}`
+}
+
 /**
  * Public mask for listing pages — scrapers never see the full number in HTML/JS.
  * `555 *** ***` (local 9 digits) or `*** *** ***` when too short.

@@ -32,7 +32,9 @@ async function main() {
 
   const loaded = await loadMapBasemap(STYLE_SATELLITE)
   assert.equal(loaded.layers?.[0]?.id, 'sat-img')
-  assert.equal(loaded.layers?.length, 3)
+  assert.ok(loaded.sources['sivrce-georgia-mask'])
+  assert.equal(loaded.layers?.at(-1)?.id, 'sivrce-georgia-mask-fill')
+  assert.equal(loaded.layers?.length, 4)
   const satSrc = loaded.sources.sat as { tiles?: string[] }
   assert.ok(satSrc.tiles?.[0]?.startsWith('/api/sat/img/'))
 

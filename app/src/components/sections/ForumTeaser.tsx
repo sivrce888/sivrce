@@ -17,7 +17,7 @@ export default function ForumTeaser() {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
               <MessageSquare className="h-3.5 w-3.5" /> {b('home.forum.kicker')}
             </span>
             <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
@@ -43,10 +43,10 @@ export default function ForumTeaser() {
                 <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep-deep">
+                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep">
                         {t.category}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sv-navy">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sv-ink">
                         <Sparkles className="h-3 w-3" /> {t.badge}
                       </span>
                     </div>

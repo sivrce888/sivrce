@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import SearchClient from '@/components/search/SearchClient'
+import { audienceFromRole } from '@/lib/ads'
+import { pickAds } from '@/lib/ads-db'
+import { getSessionUser } from '@/lib/guards'
+import { isValidLang } from '@/lib/i18n/core'
 import { getSearchLocations } from '@/lib/listings-db'
 import { langAlternates } from '@/lib/i18n/server'
 
@@ -23,12 +27,23 @@ function SearchFallback() {
   )
 }
 
-export default async function SearchPage() {
-  // Live city/district facets (DB-backed, 5-min cache; static fallback inside).
-  const locations = await getSearchLocations()
+export default async function SearchPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  const user = await getSessionUser()
+  const [locations, ads] = await Promise.all([
+    getSearchLocations(),
+    pickAds(['search_top', 'search_native'], {
+      audience: audienceFromRole(user?.role),
+      lang,
+    }),
+  ])
   return (
     <Suspense fallback={<SearchFallback />}>
-      <SearchClient locations={locations} />
+      <SearchClient
+        locations={locations}
+        ads={{ top: ads.search_top ?? null, native: ads.search_native ?? null }}
+      />
     </Suspense>
   )
 }

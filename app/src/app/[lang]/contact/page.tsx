@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ContactForm from '@/components/contact/ContactForm'
+import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { getConfig } from '@/lib/config'
 import { telHref } from '@/lib/inquiries/phone'
@@ -21,9 +22,13 @@ export default async function ContactPage() {
     getConfig('site.contactPhone'),
   ])
 
+  // ponytail: hide the registry dummy until a real switchboard is saved in admin
+  const phoneLive = phone && phone !== '+995 32 2 00 00 00'
   const channels = [
     { icon: Mail, label: 'ელ. ფოსტა', value: email, href: `mailto:${email}` },
-    { icon: Phone, label: 'ტელეფონი', value: phone, href: telHref(phone) },
+    ...(phoneLive
+      ? [{ icon: Phone, label: 'ტელეფონი', value: phone, href: telHref(phone) }]
+      : []),
     { icon: MapPin, label: 'მისამართი', value: 'თბილისი, საქართველო', href: null },
   ]
 
@@ -39,7 +44,7 @@ export default async function ContactPage() {
       name: 'sivrce',
       url: 'https://sivrce.ge',
       email,
-      telephone: phone,
+      ...(phoneLive ? { telephone: phone } : {}),
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'თბილისი',
@@ -49,23 +54,17 @@ export default async function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-sv-cloud">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(contactLd) }} />
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
+      <main id="main">
+        <PageHero
+          kicker="კონტაქტი"
+          title="დაგვიკავშირდი"
+          subtitle="კითხვა, შეთავაზება თუ პარტნიორობა — ჩვენი გუნდი გიპასუხებთ 24 საათის განმავლობაში."
+        />
         <section className="mx-auto max-w-6xl px-6 py-14 md:py-20">
-          <Reveal>
-            <div className="text-center">
-              <h1 className="text-4xl font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
-                დაგვიკავშირდი
-              </h1>
-              <p className="mx-auto mt-4 max-w-xl text-[15px] font-medium text-sv-ink/60">
-                კითხვა, შეთავაზება თუ პარტნიორობა — ჩვენი გუნდი გიპასუხებთ 24 საათის განმავლობაში.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {channels.map((c, i) => {
               const inner = (
                 <>
@@ -81,12 +80,12 @@ export default async function ContactPage() {
                   {c.href ? (
                     <a
                       href={c.href}
-                      className="block h-full rounded-card bg-white p-7 shadow-card ring-1 ring-sv-ink/5 transition hover:-translate-y-1 hover:shadow-card-hover"
+                      className="block h-full rounded-card bg-sv-surface p-7 shadow-card ring-1 ring-sv-ink/5 transition hover:-translate-y-1 hover:shadow-card-hover"
                     >
                       {inner}
                     </a>
                   ) : (
-                    <div className="h-full rounded-card bg-white p-7 shadow-card ring-1 ring-sv-ink/5">{inner}</div>
+                    <div className="h-full rounded-card bg-sv-surface p-7 shadow-card ring-1 ring-sv-ink/5">{inner}</div>
                   )}
                 </Reveal>
               )

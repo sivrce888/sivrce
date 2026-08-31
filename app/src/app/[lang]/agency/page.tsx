@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import LocalizedLink from "@/components/LocalizedLink"
-import { Building2, Star, TrendingUp, Users } from "lucide-react"
+import { Building2, Plus, Star, TrendingUp, Users } from "lucide-react"
 
 import BarRow from "@/components/agency-dashboard/BarRow"
 import { getAgencyContext } from "@/components/agency-dashboard/data"
@@ -41,6 +41,15 @@ export default async function AgencyOverviewPage() {
       subtitle={profile?.name}
       userLabel={user.name ?? user.email}
     >
+      <div className="mb-5 flex justify-end">
+        <LocalizedLink
+          href="/add-listing"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+        >
+          <Plus size={15} strokeWidth={2.5} />
+          დაამატე განცხადება
+        </LocalizedLink>
+      </div>
       {!profile ? (
         <EmptyState
           title="სააგენტოს პროფილი ვერ მოიძებნა"
@@ -75,7 +84,7 @@ export default async function AgencyOverviewPage() {
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-6 shadow-sm">
+        <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
           <h2 className="text-[15px] font-extrabold text-sv-ink">ლიდების ძარღვი</h2>
           {totalLeads === 0 ? (
             <p className="mt-4 text-[13px] font-medium text-sv-ink/50">
@@ -101,7 +110,7 @@ export default async function AgencyOverviewPage() {
           </LocalizedLink>
         </section>
 
-        <section className="rounded-2xl border border-sv-ink/6 bg-white p-6 shadow-sm">
+        <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
           <h2 className="text-[15px] font-extrabold text-sv-ink">გუნდი</h2>
           {team.length === 0 ? (
             <p className="mt-4 text-[13px] font-medium text-sv-ink/50">

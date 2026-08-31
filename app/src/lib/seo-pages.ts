@@ -593,6 +593,7 @@ export function h1Of(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
 
 export function titleOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
   const s = statsOf(def.listings)
+  if (s.count === 0) return h1Of(def, loc)
   if (loc === 'en') return `${h1Of(def, 'en')} — ${s.count} listing${s.count === 1 ? '' : 's'}`
   if (loc === 'ru')
     return `${h1Of(def, 'ru')} — ${s.count} ${ruPlural(s.count, 'объявление', 'объявления', 'объявлений')}`
@@ -607,6 +608,16 @@ export function descriptionOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
     if (hub) return hub.lede.length > 160 ? `${hub.lede.slice(0, 157)}…` : hub.lede
   }
   const s = statsOf(def.listings)
+  if (s.count === 0) {
+    const dealKa = def.dealSlug ? DEALS[def.dealSlug]!.ka : 'იყიდება და ქირავდება'
+    if (loc === 'en') {
+      return `${subjectOf(def, 'en')} ${def.dealSlug ? DEALS[def.dealSlug]!.en : 'for sale and rent'} in ${placeOf(def, 'en')} on sivrce. AI price estimate, 3D map, direct owner contact.`
+    }
+    if (loc === 'ru') {
+      return `${h1Of(def, 'ru')} на sivrce. AI-оценка цены, 3D-карта, прямой контакт с владельцем.`
+    }
+    return `${subjectOf(def)} ${dealKa} ${placeOf(def)} — sivrce. AI ფასის შეფასება, 3D რუკა, პირდაპირი კონტაქტი მესაკუთრესთან.`
+  }
   if (loc === 'en') {
     const perM2 = s.avgPerM2 ? ` Average price ${formatUSD(s.avgPerM2)}/m².` : ''
     return (
@@ -633,6 +644,11 @@ export function descriptionOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
 /** Intro paragraph under the grid — unique per page via live stats. */
 export function introOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
   const s = statsOf(def.listings)
+  if (s.count === 0) {
+    if (loc === 'en') return `No active listings in this search yet. Post for free or save the search.`
+    if (loc === 'ru') return `Пока нет активных объявлений. Разместите бесплатно или сохраните поиск.`
+    return `ამჟამად აქტიური განცხადება არ არის. დაამატეთ უფასოდ ან შეინახეთ ძიება.`
+  }
   if (loc === 'en') {
     const where = def.district
       ? `${def.district.en}, ${def.city!.en}`
@@ -699,7 +715,9 @@ function faqsKa(def: SeoPageDef, s: SeoStats): Faq[] {
   const faqs: Faq[] = [
     {
       q: `რა ღირს ${single} ${where}?`,
-      a: s.avgPerM2
+      a: s.count === 0
+        ? `ამ მომენტში აქტიური განცხადება არ არის. დაამატეთ განცხადება უფასოდ ან შეინახეთ ძიება.`
+        : s.avgPerM2
         ? `ამჟამად საშუალო ფასი ${formatUSD(s.avgPerM2)}/მ²-ია. ყველაზე ხელმისაწვდომი ვარიანტი ${formatUSD(s.minPrice)} ღირს, პრემიუმ სეგმენტი კი ${formatUSD(s.maxPrice)}-მდე აღწევს. AI ფასის შეფასება თითოეული განცხადების ბარათზე ჩანს.`
         : `ფასები ${formatUSD(s.minPrice)}-დან იწყება და ${formatUSD(s.maxPrice)}-მდე იცვლება. AI ფასის შეფასება თითოეული განცხადების ბარათზე ჩანს.`,
     },

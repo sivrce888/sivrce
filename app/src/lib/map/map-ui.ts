@@ -23,6 +23,13 @@ export function parseTerrain(v: unknown): MapTerrain {
   return v === 'clean' || v === 'satellite' || v === 'streets' ? v : 'streets'
 }
 
+/** Boot / reset camera — 3D is pitched; 2D is north-up. */
+export function mapBootCamera(view3d: boolean) {
+  return view3d
+    ? { pitch: 58, bearing: -18 }
+    : { pitch: 0, bearing: 0 }
+}
+
 export function parseMapUiJson(raw: unknown): MapUiSave {
   if (!raw || typeof raw !== 'object') return {}
   const o = raw as Record<string, unknown>

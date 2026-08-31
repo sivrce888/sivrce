@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useInView } from 'framer-motion'
-import { Building2, Users, Award, Clock, TrendingUp, Headset } from 'lucide-react'
+import { Building2, Users, Award, TrendingUp } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { useI18n } from '@/lib/i18n/context'
 import type { CmsBlockKey } from '@/lib/cms-blocks'
@@ -41,28 +41,23 @@ function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
 }
 
 const STATS = [
-  { icon: Building2, n: 1 as const, live: 'listings' as const, suffix: '+' },
-  { icon: Users, n: 2 as const, live: 'professionals' as const, suffix: '+' },
-  { icon: TrendingUp, n: 3 as const, live: 'projects' as const, suffix: '+' },
-  { icon: Award, n: 4 as const, live: 'cities' as const, suffix: '+' },
-  { icon: Headset, n: 5 as const, live: null, suffix: null },
-  { icon: Clock, n: 6 as const, live: null, suffix: null },
+  { icon: Building2, n: 1 as const, live: 'listings' as const },
+  { icon: Users, n: 2 as const, live: 'professionals' as const },
+  { icon: TrendingUp, n: 3 as const, live: 'projects' as const },
+  { icon: Award, n: 4 as const, live: 'cities' as const },
 ]
 
 export default function Stats({ live }: { live: HomeStats }) {
   const { b } = useI18n()
   return (
-    <section className="relative bg-sv-surface py-20 md:py-28">
+    <section className="relative bg-sv-cloud py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {STATS.map((s, i) => {
             const label = b(`home.stats.${s.n}.label` as CmsBlockKey)
-            const target =
-              s.live != null
-                ? live[s.live]
-                : Number(b(`home.stats.${s.n}.value` as CmsBlockKey)) || 0
-            const suffix =
-              s.suffix ?? b(`home.stats.${s.n}.suffix` as CmsBlockKey)
+            const target = live[s.live]
+            if (target === 0) return null
+            const suffix = '+'
             return (
               <Reveal key={s.n} delay={i * 0.02} className="h-full">
                 <div className="group relative h-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-500 hover:-translate-y-1.5 hover:border-sv-blue/25 hover:shadow-card-hover">

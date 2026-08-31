@@ -192,9 +192,9 @@ export default async function BuildingPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
+      <main id="main">
         <div className="relative aspect-[16/9] max-h-[480px] w-full overflow-hidden md:aspect-[21/9]">
           <Image
             src={building.img}
@@ -205,6 +205,7 @@ export default async function BuildingPage({ params }: PageProps) {
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
+          <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
             <p className="mb-2 text-[13px] font-semibold tracking-wide text-white/55">
               {building.district} · {building.city}
@@ -224,7 +225,7 @@ export default async function BuildingPage({ params }: PageProps) {
                   </Link>
                 )}
               </div>
-              <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-navy">
+              <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
                 <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
                 {aggregate ? aggregate.average.toFixed(1) : building.rating}
               </div>

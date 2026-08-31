@@ -53,7 +53,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
     },
     scores: { transport: 8, schools: 9, green: 8, safety: 9, nightlife: 7 },
     // ponytail: OSM place centroids — label on district, not metro/peak
-    avgPriceM2USD: 1450, img: '/images/p1.webp', coords: { lat: 41.70929, lng: 44.76366 },
+    avgPriceM2USD: 1450, img: '/images/neighborhoods/vake.webp', coords: { lat: 41.70929, lng: 44.76366 },
   },
   {
     slug: 'saburtalo',
@@ -65,7 +65,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Район новостроек и инфраструктуры — метро, университеты, торговые центры. Активно застраивается; цены пока ниже Ваке.',
     },
     scores: { transport: 9, schools: 8, green: 6, safety: 8, nightlife: 7 },
-    avgPriceM2USD: 1150, img: '/images/p2.webp', coords: { lat: 41.72473, lng: 44.75173 },
+    avgPriceM2USD: 1150, img: '/images/neighborhoods/saburtalo.webp', coords: { lat: 41.72473, lng: 44.75173 },
   },
   {
     slug: 'old-tbilisi',
@@ -77,7 +77,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Историческое ядро — резные балконы, серные бани Абанотубани, виды на Нарикалу. Магнит для туристов; идеален для посуточной аренды.',
     },
     scores: { transport: 8, schools: 6, green: 5, safety: 7, nightlife: 9 },
-    avgPriceM2USD: 1600, img: '/images/p3.webp', coords: { lat: 41.6915, lng: 44.8055 },
+    avgPriceM2USD: 1600, img: '/images/neighborhoods/old-tbilisi.webp', coords: { lat: 41.6915, lng: 44.8055 },
   },
   {
     slug: 'mtatsminda',
@@ -89,7 +89,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Проспект Руставели, театры и горный воздух — культурное сердце города с премиальной стоимостью жилья.',
     },
     scores: { transport: 8, schools: 8, green: 7, safety: 9, nightlife: 8 },
-    avgPriceM2USD: 1850, img: '/images/p4.webp', coords: { lat: 41.69636, lng: 44.79385 },
+    avgPriceM2USD: 1850, img: '/images/neighborhoods/mtatsminda.webp', coords: { lat: 41.69636, lng: 44.79385 },
   },
   {
     slug: 'vera',
@@ -101,7 +101,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Богемный квартал между Ваке и центром — тихие улицы, бары и студии для молодых профессионалов.',
     },
     scores: { transport: 7, schools: 7, green: 6, safety: 8, nightlife: 8 },
-    avgPriceM2USD: 1500, img: '/images/p5.webp', coords: { lat: 41.7058, lng: 44.78278 },
+    avgPriceM2USD: 1500, img: '/images/neighborhoods/vera.webp', coords: { lat: 41.7058, lng: 44.78278 },
   },
   {
     slug: 'chugureti',
@@ -113,7 +113,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Восходящий правобережный район — «Фабрика», европейские площади и отреставрированные исторические здания. Новый фокус инвесторов.',
     },
     scores: { transport: 8, schools: 6, green: 5, safety: 7, nightlife: 8 },
-    avgPriceM2USD: 1200, img: '/images/p6.webp', coords: { lat: 41.71116, lng: 44.79943 },
+    avgPriceM2USD: 1200, img: '/images/neighborhoods/chugureti.webp', coords: { lat: 41.71116, lng: 44.79943 },
   },
   {
     slug: 'didube',
@@ -125,7 +125,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Район станций метро и базара — доступные цены и отличная транспортная связь с любой точкой города.',
     },
     scores: { transport: 8, schools: 6, green: 5, safety: 6, nightlife: 4 },
-    avgPriceM2USD: 900, img: '/images/np1.webp', coords: { lat: 41.73538, lng: 44.78126 },
+    avgPriceM2USD: 900, img: '/images/neighborhoods/didube.webp', coords: { lat: 41.73538, lng: 44.78126 },
   },
   {
     slug: 'gldani',
@@ -137,7 +137,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Большой спальный район с веткой метро — бюджетные цены для семей, новые парки и школы.',
     },
     scores: { transport: 7, schools: 7, green: 6, safety: 7, nightlife: 3 },
-    avgPriceM2USD: 780, img: '/images/np2.webp', coords: { lat: 41.80268, lng: 44.82915 },
+    avgPriceM2USD: 780, img: '/images/neighborhoods/gldani.webp', coords: { lat: 41.80268, lng: 44.82915 },
   },
   {
     slug: 'isani',
@@ -149,7 +149,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Левый берег Куры рядом с центром — новые комплексы с видом на реку и потенциалом быстрого роста.',
     },
     scores: { transport: 7, schools: 6, green: 6, safety: 7, nightlife: 4 },
-    avgPriceM2USD: 950, img: '/images/p1.webp', coords: { lat: 41.68813, lng: 44.83411 },
+    avgPriceM2USD: 950, img: '/images/neighborhoods/isani.webp', coords: { lat: 41.68813, lng: 44.83411 },
   },
   {
     slug: 'samgori',
@@ -161,19 +161,19 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Практичный район восточного Тбилиси — метро, главный автовокзал и одни из самых низких цен за м² в городе.',
     },
     scores: { transport: 7, schools: 6, green: 5, safety: 6, nightlife: 3 },
-    avgPriceM2USD: 820, img: '/images/p2.webp', coords: { lat: 41.6847, lng: 44.85468 },
+    avgPriceM2USD: 820, img: '/images/neighborhoods/samgori.webp', coords: { lat: 41.6847, lng: 44.85468 },
   },
   {
     slug: 'nadzaladevi',
     name: { ka: 'ნაძალადევი', en: 'Nadzaladevi', ru: 'Надзаладеви' },
     city: TBILISI, cityKey: 'თბილისი', districts: [], type: 'Neighborhood',
     description: {
-      ka: 'დიდი დიღმის მეზობელი უბანი ტრამვაის ხაზით — ოჯახური, მშვიდი და ფასებით, რომელიც ჯერ არ არის გაფუჭებული მოთხოვნით.',
-      en: 'Dighomi’s neighbour on the tram line — family-oriented, calm, with prices not yet spoiled by demand.',
-      ru: 'Соседний с Дигоми район на трамвайной линии — семейный, спокойный, с ценами, ещё не испорченными спросом.',
+      ka: 'ჩრდილოეთ თბილისის საძილე უბანი მეტროთი — დიდუბეს მეზობლად, ხელმისაწვდომი ფასები და კარგი კავშირი ცენტრთან.',
+      en: 'A northern Tbilisi residential district on the metro — next to Didube, affordable prices and a solid link to the centre.',
+      ru: 'Северный спальный район Тбилиси у метро — рядом с Дидубе, доступные цены и хорошая связь с центром.',
     },
     scores: { transport: 6, schools: 7, green: 6, safety: 7, nightlife: 3 },
-    avgPriceM2USD: 850, img: '/images/p3.webp', coords: { lat: 41.74711, lng: 44.82073 },
+    avgPriceM2USD: 850, img: '/images/neighborhoods/nadzaladevi.webp', coords: { lat: 41.74711, lng: 44.82073 },
   },
   {
     slug: 'lisi',
@@ -185,7 +185,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Вокруг Лисского озера — зелёный экологический пояс с таунхаусами и премиальными комплексами, воздух и тишина.',
     },
     scores: { transport: 5, schools: 6, green: 10, safety: 8, nightlife: 2 },
-    avgPriceM2USD: 1300, img: '/images/p4.webp', coords: { lat: 41.7439, lng: 44.7346 },
+    avgPriceM2USD: 1300, img: '/images/neighborhoods/lisi.webp', coords: { lat: 41.7439, lng: 44.7346 },
   },
   {
     slug: 'ortachala',
@@ -197,7 +197,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Спокойный район на холме рядом со Старым Тбилиси — виды на центр, тихие улицы и умеренные цены.',
     },
     scores: { transport: 6, schools: 6, green: 6, safety: 7, nightlife: 4 },
-    avgPriceM2USD: 1050, img: '/images/p5.webp', coords: { lat: 41.68204, lng: 44.82625 },
+    avgPriceM2USD: 1050, img: '/images/neighborhoods/ortachala.webp', coords: { lat: 41.68204, lng: 44.82625 },
   },
   {
     slug: 'didi-dighomi',
@@ -209,7 +209,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Быстрорастущий северо-запад — новые рынки, школы и просторные семейные квартиры вдвое дешевле центра.',
     },
     scores: { transport: 6, schools: 7, green: 6, safety: 7, nightlife: 3 },
-    avgPriceM2USD: 980, img: '/images/p6.webp', coords: { lat: 41.78844, lng: 44.75283 },
+    avgPriceM2USD: 980, img: '/images/neighborhoods/didi-dighomi.webp', coords: { lat: 41.78844, lng: 44.75283 },
   },
   {
     slug: 'batumi',
@@ -222,7 +222,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Курортная столица Черного моря — бульвар, башни Нового бульвара и вид на горы. Рынок №1 в Грузии по доходу от сезонной аренды.',
     },
     scores: { transport: 7, schools: 6, green: 8, safety: 8, nightlife: 9 },
-    avgPriceM2USD: 1100, img: '/images/np2.webp', coords: { lat: 41.6461, lng: 41.636 },
+    avgPriceM2USD: 1100, img: '/images/neighborhoods/batumi.webp', coords: { lat: 41.6461, lng: 41.636 },
   },
   {
     slug: 'kutaisi',
@@ -234,7 +234,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Столица Имерети и город международного аэропорта — каменные мосты, собор Баграти и самые доступные цены среди крупных городов Грузии.',
     },
     scores: { transport: 6, schools: 7, green: 7, safety: 8, nightlife: 5 },
-    avgPriceM2USD: 650, img: '/images/np1.webp', coords: { lat: 42.2679, lng: 42.718 },
+    avgPriceM2USD: 650, img: '/images/neighborhoods/kutaisi.webp', coords: { lat: 42.2679, lng: 42.718 },
   },
 ]
 

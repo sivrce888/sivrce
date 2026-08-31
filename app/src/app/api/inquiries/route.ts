@@ -9,6 +9,7 @@ import { checkRateLimit } from "@/lib/inquiries/rate-limit"
 import { hasHoneypot, validateInquiry } from "@/lib/inquiries/validate"
 import { getListing as getDbListing } from "@/lib/listings-db"
 import { resolveListingPhone } from "@/lib/listings/phone-vault"
+import { getServiceBySlug } from "@/lib/services-db"
 import { isSameOrigin } from "@/lib/security/origin"
 
 /** Static-listing dealType → Inquiry.deal vocabulary. */
@@ -67,11 +68,16 @@ export async function POST(req: Request) {
   // Enrich live listing (agent + geo) so the CRM row is self-contained.
   const listing =
     targetType === "listing" ? await getDbListing(targetId).catch(() => null) : null
+  const service =
+    targetType === "service" ? await getServiceBySlug(targetId).catch(() => null) : null
   const isCareers = targetId === "careers"
-  const agentName = listing?.agent.name ?? (isCareers ? "კარიერა" : "Sivrce")
+  const agentName =
+    listing?.agent.name ?? service?.name.ka ?? (isCareers ? "კარიერა" : "Sivrce")
   // Full phone from vault — listing card phone may be masked for scrapers.
   const agentPhone =
-    targetType === "listing" ? await resolveListingPhone(targetId) : null
+    targetType === "listing"
+      ? await resolveListingPhone(targetId)
+      : service?.phone ?? null
   // ponytail: careers always hits hi@ so a stale DB config can't lose applications.
   const notifyEmail = isCareers ? "hi@sivrce.ge" : await getConfig("site.contactEmail")
   // ponytail: non-listing rows use targetId as the bucket (e.g. careers).
@@ -79,7 +85,7 @@ export async function POST(req: Request) {
   const buyerEmail = email || session?.user?.email || "unknown@sivrce.ge"
   // Careers form prefixes "[კარიერა · ქალაქი]" — lift city into the column.
   const cityFromCareers = isCareers ? message.match(/\[კარიერა · ([^\]]+)\]/)?.[1]?.trim() : undefined
-  const city = listing?.city ?? cityFromCareers ?? ""
+  const city = listing?.city ?? service?.city ?? cityFromCareers ?? ""
 
   try {
     await db.inquiry.create({
@@ -95,7 +101,7 @@ export async function POST(req: Request) {
         message,
         deal: listing ? DEAL_MAP[listing.dealType] : "buy",
         city,
-        district: listing?.district ?? "",
+        district: listing?.district ?? service?.district ?? "",
         price: listing?.priceGEL ?? 0,
       },
     })
@@ -116,7 +122,7 @@ export async function POST(req: Request) {
     buyerPhone: phone ?? null,
     buyerEmail: email || session?.user?.email || null,
     message,
-    listingTitle: listing?.title ?? (isCareers ? `კარიერა · ${city || "—"}` : undefined),
+    listingTitle: listing?.title ?? service?.name.ka ?? (isCareers ? `კარიერა · ${city || "—"}` : undefined),
     subject: isCareers ? `კარიერა · ${name}` : undefined,
   })
 

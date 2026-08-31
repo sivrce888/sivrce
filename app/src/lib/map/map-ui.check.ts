@@ -10,6 +10,7 @@ import {
   parseMapUiRaw,
   parseTerrain,
   serializeMapUi,
+  mapBootCamera,
 } from './map-ui'
 
 assert.equal(parseTerrain('streets'), 'streets')
@@ -36,5 +37,8 @@ const raw = serializeMapUi({ terrain: 'streets', view3d: true })
 assert.deepEqual(parseMapUiRaw(raw), { terrain: 'streets', view3d: true })
 assert.deepEqual(parseMapUiRaw('%7B'), {})
 assert.deepEqual(parseMapUiRaw(null), {})
+
+assert.deepEqual(mapBootCamera(true), { pitch: 58, bearing: -18 })
+assert.deepEqual(mapBootCamera(false), { pitch: 0, bearing: 0 })
 
 console.log('map-ui.check: ok')

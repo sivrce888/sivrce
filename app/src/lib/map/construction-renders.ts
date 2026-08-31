@@ -11,7 +11,7 @@ import maplibregl, {
 } from 'maplibre-gl'
 import {
   MAP_CENTER,
-  clusterGeometry,
+  clusterRings,
   type MapBuildingCluster,
 } from '@/lib/map/buildings'
 
@@ -178,11 +178,11 @@ async function applySync(state: LayerState, buildings: MapBuildingCluster[]) {
   for (const b of buildings) {
     if (n >= MAX_MESHES) break
     if (b.status !== 'construction' || b.listings.length > 0 || !b.img) continue
-    const ring = clusterGeometry(b).coordinates[0] as [number, number][] | undefined
-    if (!ring || ring.length < 4) continue
+    const rings = clusterRings(b)
+    if (rings.length === 0) continue
 
     n++
-    const height = b.heightM > 0 ? b.heightM : Math.max(8, (b.floors ?? 8) * 3.15)
+    const fallbackH = b.heightM > 0 ? b.heightM : Math.max(8, (b.floors ?? 8) * 3.15)
     const url = b.img
 
     try {
@@ -195,15 +195,24 @@ async function applySync(state: LayerState, buildings: MapBuildingCluster[]) {
         const gltf = await state.gltfLoader.loadAsync(absoluteUrl(url))
         obj = gltf.scene
       } else {
-        obj = await makeExtrudedMesh(
-          state.THREE,
-          state.loader,
-          ring,
-          b.lat,
-          b.lng,
-          height,
-          url,
-        )
+        const group = new state.THREE.Group()
+        for (const part of rings) {
+          const height = part.floors
+            ? Math.min(part.floors * 3.15, 110)
+            : fallbackH
+          group.add(
+            await makeExtrudedMesh(
+              state.THREE,
+              state.loader,
+              part.ring,
+              b.lat,
+              b.lng,
+              height,
+              url,
+            ),
+          )
+        }
+        obj = group
       }
 
       // Meters east / up / south-from-north relative to fixed MAP_CENTER origin

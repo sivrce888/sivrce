@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, MapPin } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
 import { footerKeywordCols, type SeoLoc } from '@/lib/seo-pages'
@@ -25,14 +25,15 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
   {
     titleKey: 'footer.colServices',
     links: [
+      { key: 'nav.services', href: '/services' },
       { key: 'nav.map', href: '/map' },
       { key: 'nav.buildings', href: '/buildings' },
       { key: 'footer.sv.projects', href: '/projects' },
-      { key: 'footer.sv.agents', href: '/advertise' },
-      { key: 'footer.sv.developers', href: '/advertise' },
-      { key: 'footer.sv.renovation', href: '/contact' },
+      { key: 'footer.sv.agents', href: '/agents' },
+      { key: 'footer.sv.developers', href: '/developers' },
+      { key: 'footer.sv.renovation', href: '/services/renovation' },
       { key: 'footer.sv.mortgage', href: '/mortgage-calculator' },
-      { key: 'footer.sv.ai', href: '/#ai' },
+      { key: 'footer.sv.ai', href: '/services/appraisal' },
     ],
   },
   {
@@ -68,9 +69,6 @@ export default function Footer() {
               <a href="mailto:hi@sivrce.ge" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
                 <Mail className="h-4 w-4 text-sv-blue-light" /> hi@sivrce.ge
               </a>
-              <a href="tel:+995322000000" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
-                <Phone className="h-4 w-4 text-sv-blue-light" /> +995 32 2 00 00 00
-              </a>
               <span className="flex items-center gap-2.5 py-1.5">
                 <MapPin className="h-4 w-4 text-sv-blue-light" /> {t('footer.location')}
               </span>
@@ -98,7 +96,10 @@ export default function Footer() {
 
         {/* Exact-query keyword columns (ss.ge/myhome pattern) — anchors match
             each hub page's <h1>; only inventory-carrying pages are linked. */}
-        <nav aria-label="Popular searches" className="mt-14 border-t border-white/[0.07] pt-10">
+        <nav
+          aria-label={lang === 'ka' ? 'პოპულარული ძიებები' : lang === 'ru' ? 'Популярные запросы' : 'Popular searches'}
+          className="mt-14 border-t border-white/[0.07] pt-10"
+        >
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {KEYWORD_COLS.map((c) => (
               <div key={c.id}>

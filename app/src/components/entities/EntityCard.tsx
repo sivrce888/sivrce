@@ -17,7 +17,7 @@ export interface EntityCardProps {
   /** pre-computed deterministic listings count */
   listingsCount: number
   verified: boolean
-  /** server-fetched review aggregate; null → "reviews soon" placeholder */
+  /** server-fetched review aggregate; null → omit rating (don't advertise unfinished) */
   aggregate: { average: number; count: number } | null
   /** Official developer logo URL (korter GCS) */
   logoUrl?: string
@@ -96,16 +96,14 @@ export function EntityCard({
           {listingsCount} {d.listingsShort}
         </span>
         {aggregate ? (
-          <span className="flex items-center gap-1 text-[14px] font-black text-sv-navy">
+          <span className="flex items-center gap-1 text-[14px] font-black text-sv-ink">
             <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
             {aggregate.average.toFixed(1)}
             <span className="text-[12px] font-bold text-sv-ink/50">
               ({aggregate.count} {d.reviewsCount})
             </span>
           </span>
-        ) : (
-          <span className="text-[12px] font-bold text-sv-ink/40">{d.reviewsSoon}</span>
-        )}
+        ) : null}
       </div>
     </Link>
   )

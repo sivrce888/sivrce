@@ -2,15 +2,17 @@
 
 import dynamic from 'next/dynamic'
 import { STATUS_BRAND } from '@/lib/category-brand'
+import { useI18n } from '@/lib/i18n/context'
 
 /** Navy shell before MapLibre chunk — matches /map chrome; no GL until idle. */
 function MapLoadingShell() {
+  const { t } = useI18n()
   return (
     <div
-      className="relative grid h-[calc(100dvh-4.5rem)] place-items-center overflow-hidden bg-sv-navy md:h-[calc(100dvh-5rem)]"
+      className="relative grid h-full min-h-[50dvh] place-items-center overflow-hidden bg-sv-navy"
       role="status"
       aria-live="polite"
-      aria-label="3D რუკა იტვირთება"
+      aria-label={t('map.loading')}
     >
       <div
         aria-hidden
@@ -26,7 +28,7 @@ function MapLoadingShell() {
         className="absolute left-1/2 top-[42%] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-sm opacity-80 shadow-glow-blue"
         style={{ background: STATUS_BRAND.construction.hue }}
       />
-      <p className="relative z-[1] text-[14px] font-bold text-white/70">3D რუკა იტვირთება…</p>
+      <p className="relative z-[1] text-[14px] font-bold text-white/70">{t('map.loading')}</p>
     </div>
   )
 }

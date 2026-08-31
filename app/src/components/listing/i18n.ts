@@ -20,7 +20,7 @@ const ka: Record<ListingCopyKey, string> = {
   reviewsSub: 'რას ამბობენ სტუმრები და მყიდველები ამ განცხადებაზე',
   similarSub: 'იგივე ქალაქი · {deal}',
   tourTitle: 'ტურის დაჯავშნა',
-  tourSubtitle: 'დაგეგმეთ ვიზიტი აგენტთან — აირჩიეთ თქვენთვის ხელსაყრელი თარიღი და დრო.',
+  tourSubtitle: 'დაგეგმე ვიზიტი აგენტთან — აირჩიე შენთვის ხელსაყრელი თარიღი და დრო.',
 }
 
 const ru: Record<ListingCopyKey, string> = {

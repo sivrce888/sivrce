@@ -197,9 +197,9 @@ export default async function DeveloperPage({ params }: PageProps) {
   const faqs = devFaqs(loc, dev, projects)
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-16">
+      <main id="main" className={flagship ? undefined : 'pt-[68px]'}>
         {flagship && (
           <div className="relative h-[240px] overflow-hidden md:h-[360px]">
             <Image
@@ -214,9 +214,10 @@ export default async function DeveloperPage({ params }: PageProps) {
               aria-hidden
               className="absolute inset-0 bg-gradient-to-t from-sv-navy/55 via-sv-navy/10 to-transparent"
             />
+            <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
             <nav
               aria-label="breadcrumb"
-              className="absolute left-5 top-4 text-[12px] font-semibold text-white/70 md:left-10"
+              className="absolute left-5 top-[4.75rem] text-[12px] font-semibold text-white/70 md:left-10"
             >
               <Link href="/developers" className="hover:text-white">
                 {c.crumbDevs}

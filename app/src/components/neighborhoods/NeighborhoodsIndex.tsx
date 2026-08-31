@@ -1,8 +1,8 @@
 'use client'
 
-import { Map } from 'lucide-react'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { Reveal } from '@/components/Reveal'
+import { PageHero } from '@/components/PageHero'
 import NeighborhoodCard from './NeighborhoodCard'
 import { useNb } from './i18n'
 
@@ -14,31 +14,22 @@ export default function NeighborhoodsIndex({
 }) {
   const s = useNb()
   return (
-    <section className="bg-sv-cloud py-20 md:py-28">
-      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <Reveal className="mb-10">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
-            <Map className="h-3.5 w-3.5" /> {s.badge}
-          </span>
-          <h1 className="text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
-            {s.indexTitle}
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-            {s.indexSub}
-          </p>
-        </Reveal>
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {NEIGHBORHOODS.map((n, i) => {
-            const count = n.districts.reduce((sum, d) => sum + (counts[d] ?? 0), 0)
-            return (
-              <Reveal key={n.slug} delay={(i % 3) * 0.1}>
-                <NeighborhoodCard n={n} count={count} />
-              </Reveal>
-            )
-          })}
+    <>
+      <PageHero tone="light" kicker={s.badge} title={s.indexTitle} subtitle={s.indexSub} />
+      <section className="bg-sv-cloud pb-20 md:pb-28">
+        <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {NEIGHBORHOODS.map((n, i) => {
+              const count = n.districts.reduce((sum, d) => sum + (counts[d] ?? 0), 0)
+              return (
+                <Reveal key={n.slug} delay={(i % 3) * 0.1}>
+                  <NeighborhoodCard n={n} count={count} />
+                </Reveal>
+              )
+            })}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   )
 }

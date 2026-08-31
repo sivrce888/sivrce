@@ -135,7 +135,7 @@ export default function FavoritesClient() {
                 className={`absolute right-4 top-[68px] z-10 grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
                   alertOn
                     ? 'bg-sv-surface text-sv-orange'
-                    : 'bg-white/90 text-sv-navy hover:bg-sv-surface hover:text-sv-orange'
+                    : 'bg-white/90 text-sv-ink hover:bg-sv-surface hover:text-sv-orange'
                 }`}
               >
                 {alertOn ? (

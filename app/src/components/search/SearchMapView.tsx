@@ -7,16 +7,18 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { LocateFixed, Minus, Plus, Search } from 'lucide-react'
+import { Layers, LocateFixed, Minus, Plus, Search } from 'lucide-react'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
 import { loadMapBasemap, mapStyleUrl } from '@/lib/map/floorLayers'
 import { mapChromeOptions } from '@/lib/map/mapChrome'
 import { initialMapCenter } from '@/lib/map/user-place'
 import { useI18n } from '@/lib/i18n/context'
 import { listingPath } from '@/lib/listing-slug'
+import { mapHrefForListing } from '@/lib/map/buildings'
 import { useCurrency, formatMapPin } from '@/lib/currency'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { blurProps } from '@/lib/media'
@@ -312,6 +314,13 @@ export default function SearchMapView({
         )}
 
         <div className="absolute right-3 top-3 z-10 flex flex-col gap-1.5">
+          <LocalizedLink
+            href={visible[0] ? mapHrefForListing(visible[0]) : '/map'}
+            className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-orange text-white shadow-glow-orange transition hover:brightness-110"
+            aria-label={t('nav.map')}
+          >
+            <Layers className="h-4 w-4" strokeWidth={2.5} />
+          </LocalizedLink>
           <button
             type="button"
             onClick={() => zoomBy(1)}

@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SWRegister } from "@/app/sw-register";
 import { BRAND } from "@/lib/brand";
 import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
-import { langAlternates, OG_LOCALE, SITE_META } from "@/lib/i18n/server";
+import { getServerT, langAlternates, OG_LOCALE, SITE_META } from "@/lib/i18n/server";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
 // globals.css lives in app/layout.tsx — import here is silently dropped from
@@ -141,6 +141,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     alternates: {
       canonical: root,
       languages: langAlternates("/"),
+      types: { "text/plain": `${SITE_URL}/llms.txt` },
     },
     openGraph: {
       type: "website",
@@ -151,7 +152,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
       description: siteDescription,
       images: [
         {
-          url: "/images/og.jpg",
+          url: "/images/og-brand.png",
           width: 1200,
           height: 630,
           alt: "sivrce — უძრავი ქონება ერთ სივრცეში",
@@ -162,7 +163,20 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
       card: "summary_large_image",
       title: siteTitle,
       description: siteDescription,
-      images: ["/images/og.jpg"],
+      images: ["/images/og-brand.png"],
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: SITE_NAME,
+    },
+    formatDetection: { telephone: false, email: false, address: false },
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      ],
+      apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
     },
     robots: {
       index: true,
@@ -199,7 +213,10 @@ const siteLd = {
       url: SITE_URL,
       name: SITE_NAME,
       alternateName: "სივრცე",
-      inLanguage: "ka",
+      inLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      description:
+        "სივრცე — უძრავი ქონება ერთ სივრცეში. ბინები, სახლები, მიწა და კომერციული ფართები საქართველოში — 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება.",
       potentialAction: {
         "@type": "SearchAction",
         target: {
@@ -220,12 +237,38 @@ const siteLd = {
       name: SITE_NAME,
       alternateName: "სივრცე",
       url: SITE_URL,
-      logo: `${SITE_URL}/logo/mark.png`,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/icon.png`,
+        width: 512,
+        height: 512,
+      },
+      image: `${SITE_URL}/images/og-brand.png`,
       email: "hi@sivrce.ge",
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "hi@sivrce.ge",
+        url: `${SITE_URL}/contact`,
+        availableLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],
+      },
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "უძრავი ქონება საქართველოში",
+        itemListElement: [
+          { "@type": "OfferCatalog", name: "იყიდება", url: `${SITE_URL}/sale` },
+          { "@type": "OfferCatalog", name: "ქირავდება", url: `${SITE_URL}/rent` },
+          { "@type": "OfferCatalog", name: "დღიურად", url: `${SITE_URL}/daily` },
+          { "@type": "OfferCatalog", name: "ახალი პროექტები", url: `${SITE_URL}/projects` },
+          { "@type": "OfferCatalog", name: "სერვისები", url: `${SITE_URL}/services` },
+        ],
+      },
       // ponytail: E-E-A-T signals for the YMYL real-estate vertical. Founder
       // kept as brand entity (no named individual to fabricate); foundingDate
       // + knowsAbout anchor expertise without inventing people.
       foundingDate: "2025",
+      description:
+        "sivrce (სივრცე) — Georgian real-estate platform. Simple, fast, secure search and listing: sale, rent, daily stays, new-build projects, 3D map, verified listings, AI price estimates.",
       knowsAbout: [
         "საქართველოს უძრავი ქონების ბაზარი",
         "თბილისის უბნები და ფასები",
@@ -262,8 +305,9 @@ const siteLd = {
           { "@type": "SiteNavigationElement", name: "ძიება", url: `${SITE_URL}/search` },
           { "@type": "SiteNavigationElement", name: "უბნები", url: `${SITE_URL}/neighborhoods` },
           { "@type": "SiteNavigationElement", name: "ახალი პროექტები", url: `${SITE_URL}/projects` },
+          { "@type": "SiteNavigationElement", name: "სერვისები", url: `${SITE_URL}/services` },
           { "@type": "SiteNavigationElement", name: "ბლოგი", url: `${SITE_URL}/blog` },
-          { "@type": "SiteNavigationElement", name: "ფორუმი", url: `${SITE_URL}/forum` },
+          { "@type": "SiteNavigationElement", name: "განათავსე", url: `${SITE_URL}/advertise` },
         ],
       },
     },
@@ -279,6 +323,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
   const cmsOverrides = await getCmsOverrides(lang);
   // Resolved marketing blocks (override → coded default → ka) — one small map, per lang.
   const cmsBlocks = await getBlocksForLang(lang);
+  const t = getServerT(lang);
 
   return (
     <html
@@ -331,8 +376,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
           href="#main"
           className="sr-only bg-sv-blue text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-control focus:px-4 focus:py-2"
         >
-          {/* ponytail: no a11y dict keys yet — hardcoded ka until the dicts grow them */}
-          მთავარ შინაარსზე გადასვლა
+          {t("a11y.skipToContent")}
         </a>
         <ThemeProvider>
           {/* URL is the locale source of truth: pin the provider so SSR HTML

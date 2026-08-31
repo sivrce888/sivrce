@@ -6,7 +6,7 @@
 import assert from 'node:assert'
 import { LISTINGS } from '@/data/listings'
 import { footerKeywordCols } from './seo-pages'
-import { listingPath, listingSlug, transliterateKa } from './listing-slug'
+import { listingPath, listingSlug, listingKeyword, transliterateKa } from './listing-slug'
 
 assert.equal(transliterateKa('იყიდება 3-ოთახიანი ბინა გლდანში'), 'iyideba-3-otaxiani-bina-gldanshi')
 assert.equal(transliterateKa('იყიდება 2-ოთახიანი ბინა ორთაჭალაში'), 'iyideba-2-otaxiani-bina-ortachalashi')
@@ -18,6 +18,7 @@ const slug = listingSlug(l)
 assert.match(slug, /^[a-z0-9-]+$/, `slug not url-safe: ${slug}`)
 assert.ok(slug.includes('otaxiani-bina'), `keyword missing: ${slug}`)
 assert.equal(listingPath(l), `/listing/${l.id}/${slug}`)
+assert.ok(listingKeyword({ ...l, dealType: 'buy' as never }).length > 0, 'db dialect must not crash slug')
 
 // every listing in the catalog produces a non-empty, url-safe slug
 for (const x of LISTINGS) {

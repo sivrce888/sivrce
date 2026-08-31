@@ -1,6 +1,7 @@
-"use client"
+'use client'
 
 import CompareTray from "@/components/compare/CompareTray"
+import MobileDock from "@/components/MobileDock"
 
 /**
  * Client shell for app-wide trays.
@@ -11,6 +12,7 @@ export default function ChatShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
+      <MobileDock />
       <CompareTray />
     </>
   )

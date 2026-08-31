@@ -31,7 +31,7 @@ export default function AgentSlider({
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
               <UserRound className="h-3.5 w-3.5" /> {b('home.agents.kicker')}
             </span>
             <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
@@ -60,7 +60,7 @@ export default function AgentSlider({
               <div className="flex items-center gap-3.5">
                 <span
                   aria-hidden
-                  className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-[14px] font-black text-sv-blue-deep-deep"
+                  className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-[14px] font-black text-sv-blue-deep"
                 >
                   {i + 1}
                 </span>

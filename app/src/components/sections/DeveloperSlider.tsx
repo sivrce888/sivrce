@@ -33,7 +33,7 @@ export default function DeveloperSlider({
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
               <Building2 className="h-3.5 w-3.5" /> {b('home.devs.kicker')}
             </span>
             <h2 className="text-balance text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
@@ -71,7 +71,7 @@ export default function DeveloperSlider({
                   <div className="flex items-center gap-1.5">
                     <span
                       aria-hidden
-                      className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-sv-blue/10 text-[10px] font-black text-sv-blue-deep-deep"
+                      className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-sv-blue/10 text-[10px] font-black text-sv-blue-deep"
                     >
                       {i + 1}
                     </span>

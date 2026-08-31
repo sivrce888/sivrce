@@ -8,22 +8,29 @@ import { dashboardPathFor, getSessionUser } from "@/lib/guards"
 
 export const metadata: Metadata = {
   title: "რეგისტრაცია",
-  description: "შექმენი sivrce ანგარიში ელფოსტით ან Google-ით.",
+  description: "შექმენი sivrce ანგარიში მობილურის ნომრით, Passkey-ით, Google-ით ან ელფოსტით.",
   robots: { index: false },
 }
 
 export const dynamic = "force-dynamic"
 
-export default async function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>
+}) {
+  const { callbackUrl } = await searchParams
   const user = await getSessionUser()
-  if (user) redirect(dashboardPathFor(user.role))
+  const safeCallback =
+    callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : undefined
+  if (user) redirect(safeCallback ?? dashboardPathFor(user.role))
 
   const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)
 
   return (
     <AuthShell
       title="ანგარიშის შექმნა"
-      subtitle="რეგისტრაცია ერთ წუთში — შემდეგ პირდაპირ ძიება ან განცხადების დამატება."
+      subtitle="ნომერი საკმარისია. შემდეგ დაამატე Passkey — Face ID-ით შესვლა."
       footer={
         <p className="text-[13px] font-medium text-white/50">
           უკვე გაქვს ანგარიში?{" "}
@@ -33,7 +40,7 @@ export default async function SignUpPage() {
         </p>
       }
     >
-      <SignUpForm googleEnabled={googleEnabled} />
+      <SignUpForm googleEnabled={googleEnabled} callbackUrl={safeCallback ?? "/"} />
     </AuthShell>
   )
 }

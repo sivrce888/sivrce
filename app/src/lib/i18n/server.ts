@@ -41,17 +41,17 @@ export const SITE_META: Record<Lang, { title: string; description: string }> = {
   ka: {
     title: 'უძრავი ქონება საქართველოში — ბინები, სახლები იყიდება და ქირავდება | sivrce',
     description:
-      'სივრცე — საქართველოს №1 ტექნოლოგიური უძრავი ქონების პლატფორმა. ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები იყიდება და ქირავდება — ინტერაქტიული 3D რუკით და AI ფასის შეფასებით.',
+      'სივრცე — უძრავი ქონება ერთ სივრცეში. მარტივი, სწრაფი და დაცული ძიება საქართველოში: ბინები, სახლები, მიწა და კომერციული ფართები იყიდება, ქირავდება და დღიურად — 3D რუკა, ვერიფიკაცია და AI ფასის შეფასება.',
   },
   en: {
     title: 'Real Estate in Georgia — Apartments & Houses for Sale and Rent | sivrce',
     description:
-      "sivrce — Georgia's most advanced real estate platform. Apartments, houses, cottages, land and commercial property for sale and rent — with an interactive 3D map and AI price estimates.",
+      'sivrce — real estate in one space. The simple, fast, secure way to buy, rent or list in Georgia: apartments, houses, land and commercial property — with a 3D map, verification and AI price estimates.',
   },
   ru: {
     title: 'Недвижимость в Грузии — квартиры и дома: продажа и аренда | sivrce',
     description:
-      'sivrce — самая технологичная платформа недвижимости в Грузии. Квартиры, дома, дачи, земельные участки и коммерческая недвижимость — с интерактивной 3D-картой и ИИ-оценкой цены.',
+      'sivrce — недвижимость в одном пространстве. Простой, быстрый и безопасный поиск в Грузии: квартиры, дома, земля и коммерция — продажа, аренда и посуточно. 3D-карта, верификация и ИИ-оценка цены.',
   },
   he: { title: '', description: '' },
   ar: { title: '', description: '' },

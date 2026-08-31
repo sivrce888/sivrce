@@ -59,7 +59,7 @@ export default async function DeveloperProjectsPage() {
           body="შენი სამშენებლო პროექტები აქ გამოჩნდება, როგორც კი რეესტრში დაემატება."
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-sv-ink/6 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">
           <table className="w-full min-w-[720px] text-left text-[13px]">
             <thead>
               <tr className="border-b border-sv-ink/8 text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">

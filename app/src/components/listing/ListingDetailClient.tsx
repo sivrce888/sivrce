@@ -8,13 +8,15 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront, Columns2,
+  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront, Columns2, Copy,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { monthlyPayment } from '@/lib/finance'
 import ListingCard, { BADGE_STYLE, ListingStickerStack } from '@/components/ListingCard'
+import { AdCreative } from '@/components/ads/AdCreative'
+import type { PublicAd } from '@/lib/ads'
 import HScroll from '@/components/HScroll'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
@@ -25,11 +27,15 @@ import MapEmbed from '@/components/MapEmbed'
 import RevealPhone from '@/components/listing/RevealPhone'
 import PriceScale from '@/components/listing/PriceScale'
 import { parseCoords } from '@/lib/map/geocode'
+import { mapHrefForListing } from '@/lib/map/buildings'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { blurProps, isCdnMedia } from '@/lib/media'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { priceScaleOf } from '@/lib/price-scale'
+import { listingPath } from '@/lib/listing-slug'
 import { streetHrefForListing } from '@/lib/street-href'
+import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
+import type { ListingShareInput } from '@/lib/listing-share'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
   formatFloor, USD_GEL, type Listing, type PropType,
@@ -76,6 +82,7 @@ function Lightbox({
 }: { images: string[]; index: number; onClose: () => void; onNav: (dir: number) => void; onJump: (i: number) => void }) {
   const { t } = useI18n()
   const closeRef = useRef<HTMLButtonElement>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -100,6 +107,8 @@ function Lightbox({
       const img = new window.Image()
       img.src = images[(index + d + images.length) % images.length]
     }
+    const active = stripRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]')
+    active?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [index, images])
 
   return (
@@ -158,6 +167,7 @@ function Lightbox({
       {/* Filmstrip */}
       {images.length > 1 && (
         <div
+          ref={stripRef}
           className="absolute inset-x-0 bottom-5 flex justify-start gap-2 overflow-x-auto px-5 py-1 scrollbar-hide md:justify-center"
           onClick={(e) => e.stopPropagation()}
         >
@@ -187,6 +197,7 @@ export default function ListingDetailClient({
   peerPerM2,
   isOwner = false,
   ownerTier = 'standard',
+  railAd = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -194,6 +205,7 @@ export default function ListingDetailClient({
   peerPerM2?: number[]
   isOwner?: boolean
   ownerTier?: string
+  railAd?: PublicAd | null
 }) {
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
@@ -319,27 +331,23 @@ export default function ListingDetailClient({
   const navPhoto = (dir: number) =>
     setPhoto((p) => (p + dir + l.images.length) % l.images.length)
 
-  // Native share sheet where available; clipboard copy elsewhere
-  const share = async () => {
-    const url = window.location.href
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: document.title, url })
-      } catch {
-        /* user dismissed the sheet — nothing to do */
-      }
-      return
-    }
-    navigator.clipboard?.writeText(url)
-      .then(() => toast.success(t('detail.linkCopied')))
-      .catch(() => toast.error('ბმულის კოპირება ვერ მოხერხდა'))
+  const [shareOpen, setShareOpen] = useState(false)
+  const shareInput: ListingShareInput = {
+    title: l.title,
+    district: l.district,
+    city: l.city,
+    area: l.area,
+    priceLabel: priceMain,
+    agentName: l.agent.name,
+    agency: l.agent.agency,
   }
+  const sharePath = listingPath(l)
 
   return (
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
       <Navbar />
 
-      <main id="main" className="mx-auto max-w-[1440px] px-5 pb-28 pt-[92px] md:px-10 lg:pb-20">
+      <main id="main" className="mx-auto max-w-[1440px] px-5 pb-28 pt-[calc(92px+env(safe-area-inset-top,0px))] md:px-10 lg:pb-20">
         {/* Breadcrumb */}
         <nav className="mb-5 flex items-center gap-2 text-[13px] font-bold text-sv-ink/45" aria-label={t('detail.breadcrumb')}>
           <LocalizedLink href="/" className="py-1.5 transition-colors hover:text-sv-blue">{t('detail.home')}</LocalizedLink>
@@ -357,21 +365,26 @@ export default function ListingDetailClient({
         </nav>
 
         {/* ————— Gallery ————— */}
-        <div className="grid gap-4 lg:grid-cols-[1.9fr_1fr]">
+        <div className="grid items-stretch gap-4 lg:grid-cols-[1.9fr_1fr] lg:min-h-[min(52vh,520px)]">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease }}
-            className={`group relative overflow-hidden rounded-card shadow-card ${
+            className={`group relative overflow-hidden rounded-card shadow-card lg:min-h-[min(52vh,520px)] ${
               l.highlighted ? 'ring-2 ring-sv-blue/35' : ''
             }`}
           >
             <button
-              className="relative block aspect-[16/10] w-full cursor-zoom-in"
+              className="relative block aspect-[16/10] w-full cursor-zoom-in lg:aspect-auto lg:h-full lg:min-h-[min(52vh,520px)]"
               onClick={() => {
                 // A real swipe ends with pointer-up over the button — don't treat it as a zoom click.
                 if (swipeGuard.current) { swipeGuard.current = false; return }
                 setLightbox(true)
+              }}
+              onKeyDown={(e) => {
+                if (l.images.length < 2) return
+                if (e.key === 'ArrowRight') { e.preventDefault(); navPhoto(1) }
+                if (e.key === 'ArrowLeft') { e.preventDefault(); navPhoto(-1) }
               }}
               aria-label={t('detail.zoomPhoto')}
             >
@@ -403,7 +416,7 @@ export default function ListingDetailClient({
                 />
               </motion.div>
             </button>
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-sv-navy/50 via-transparent to-sv-navy/10" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-sv-navy/50 to-transparent" />
             {l.badge && (
               <span className={`absolute left-5 top-5 z-[1] flex items-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
                 {l.badge === 'SUPER VIP' ? <Crown className="h-4 w-4" /> : <Flame className="h-4 w-4" />}
@@ -417,30 +430,63 @@ export default function ListingDetailClient({
               size="md"
               className={`absolute left-5 z-[1] ${l.badge ? 'top-[4.25rem]' : 'top-5'}`}
             />
-            <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] px-5 pb-5">
+              {l.images.length > 1 && (
+                <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                  <span />
+                  <div
+                    className="pointer-events-auto flex w-40 gap-[3px] sm:w-48"
+                    role="group"
+                    aria-label={t('detail.photoViewer')}
+                  >
+                    {l.images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        aria-current={photo === idx ? 'true' : undefined}
+                        aria-label={t('detail.photo', { n: idx + 1 })}
+                        onClick={() => setPhoto(idx)}
+                        className="-my-2 flex h-4 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      >
+                        <span
+                          aria-hidden
+                          className={`block h-[2px] w-full rounded-full transition-colors duration-200 ${
+                            photo === idx ? 'bg-white' : 'bg-white/40'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <span
+                    aria-live="polite"
+                    className="justify-self-end rounded-full bg-sv-navy/60 px-2.5 py-0.5 text-[11px] font-bold tabular-nums tracking-wide text-white/95 backdrop-blur-sm"
+                  >
+                    {photo + 1} / {l.images.length}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
                   <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(views) })}
                 </span>
-                <span className="rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
-                  {photo + 1} / {l.images.length}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => navPhoto(-1)}
-                  aria-label={t('detail.prevPhoto')}
-                  className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-navy backdrop-blur transition-all hover:bg-sv-surface"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => navPhoto(1)}
-                  aria-label={t('detail.nextPhoto')}
-                  className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-navy backdrop-blur transition-all hover:bg-sv-surface"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
+                {l.images.length > 1 ? (
+                  <div className="pointer-events-auto flex gap-2">
+                    <button
+                      onClick={() => navPhoto(-1)}
+                      aria-label={t('detail.prevPhoto')}
+                      className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink backdrop-blur transition-all hover:scale-105 hover:bg-sv-surface"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => navPhoto(1)}
+                      aria-label={t('detail.nextPhoto')}
+                      className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink backdrop-blur transition-all hover:scale-105 hover:bg-sv-surface"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
           </motion.div>
@@ -489,9 +535,19 @@ export default function ListingDetailClient({
                   <span className="flex items-center gap-1 text-[12px] font-bold text-sv-ink/45">
                     <Calendar className="h-3.5 w-3.5" /> {l.postedAt}
                   </span>
-                  <span className="rounded-full bg-sv-ink/[0.05] px-2.5 py-1 font-mono text-[11px] font-black tabular-nums text-sv-ink/55">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(String(publicId))
+                        .then(() => toast.success(t('detail.idCopied')))
+                        .catch(() => toast.error(t('detail.showPhoneDenied')))
+                    }}
+                    aria-label={t('detail.copyId')}
+                    className="inline-flex items-center gap-1 rounded-full bg-sv-ink/[0.05] px-2.5 py-1 font-mono text-[11px] font-black tabular-nums text-sv-ink/55 transition hover:bg-sv-blue/10 hover:text-sv-blue"
+                  >
                     ID {publicId}
-                  </span>
+                    <Copy className="h-3 w-3" aria-hidden />
+                  </button>
                 </div>
                 <h1 className="mt-2.5 text-balance text-[26px] font-black leading-tight tracking-[-0.02em] text-sv-ink md:text-[34px]">
                   {l.title}
@@ -528,7 +584,8 @@ export default function ListingDetailClient({
                   />
                 </button>
                 <button
-                  onClick={share}
+                  type="button"
+                  onClick={() => setShareOpen(true)}
                   aria-label={t('detail.share')}
                   className="grid h-11 w-11 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface text-sv-ink/60 transition-all duration-300 hover:scale-105 hover:text-sv-blue"
                 >
@@ -729,7 +786,7 @@ export default function ListingDetailClient({
                         </div>
                       </div>
                       <LocalizedLink
-                        href="/map"
+                        href={mapHrefForListing(l)}
                         className="rounded-full bg-sv-orange px-3.5 py-1.5 text-[11px] font-extrabold text-white shadow-glow-orange transition hover:brightness-110"
                       >
                         {t('detail.map3dSoon')}
@@ -923,8 +980,20 @@ export default function ListingDetailClient({
                 <span className="truncate">{compared ? ttCompare('remove') : ttCompare('add')}</span>
               </button>
 
+              {isOwner ? (
+                <button
+                  type="button"
+                  onClick={() => openWhatsAppShare(shareInput, sharePath, lang)}
+                  className="mt-2.5 flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange text-[13px] font-extrabold text-white shadow-glow-orange transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:opacity-95"
+                >
+                  <MessageCircle className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('detail.sendToClient')}</span>
+                </button>
+              ) : null}
+
               <button
-                onClick={share}
+                type="button"
+                onClick={() => setShareOpen(true)}
                 aria-label={t('detail.share')}
                 className="mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/55 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
               >
@@ -966,6 +1035,11 @@ export default function ListingDetailClient({
                 {t('detail.safetyText')}
               </p>
             </div>
+            {railAd ? (
+              <div className="mt-4">
+                <AdCreative ad={railAd} lang={lang} />
+              </div>
+            ) : null}
           </aside>
         </div>
 
@@ -1081,6 +1155,14 @@ export default function ListingDetailClient({
           />
         )}
       </AnimatePresence>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        input={shareInput}
+        path={sharePath}
+        agent={isOwner}
+      />
     </div>
   )
 }

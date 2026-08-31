@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { langAlternates } from '@/lib/i18n/server'
 
@@ -41,25 +42,23 @@ const SECTIONS = [
   },
   {
     title: '8. კონტაქტი',
-    text: 'წესებთან დაკავშირებული კითხვების შემთხვევაში მოგვწერეთ hi@sivrce.ge მისამართზე ან დაგვიკავშირდით ნომერზე +995 32 2 00 00 00.',
+    text: 'წესებთან დაკავშირებული კითხვების შემთხვევაში მოგვწერეთ hi@sivrce.ge მისამართზე.',
   },
 ]
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main" className="pt-24 md:pt-28">
-        <article className="mx-auto max-w-3xl px-6 py-14 md:py-20">
-          <Reveal>
-            <h1 className="text-4xl font-black tracking-[-0.02em] text-sv-ink text-balance md:text-5xl">
-              წესები და პირობები
-            </h1>
-            <p className="mt-4 text-[15px] font-medium text-sv-ink/50">
-              ბოლო განახლება: 2026 წელი
-            </p>
-          </Reveal>
-          <div className="mt-12 space-y-10">
+      <main id="main">
+        <PageHero
+          tone="light"
+          kicker="იურიდიული"
+          title="წესები და პირობები"
+          subtitle="ბოლო განახლება: 2026 წელი"
+        />
+        <article className="mx-auto max-w-3xl px-6 pb-20 pt-4 md:pb-28">
+          <div className="space-y-10">
             {SECTIONS.map((s, i) => (
               <Reveal key={s.title} delay={Math.min(i * 0.04, 0.2)}>
                 <section>

@@ -37,7 +37,7 @@ export function ThemeToggle({ light = false }: { light?: boolean }) {
       <span
         aria-hidden
         className={`inline-block shrink-0 rounded-full ${
-          light ? 'bg-sv-ink/[0.05]' : 'bg-white/10'
+          light ? 'bg-sv-ink/[0.05]' : 'bg-sv-ink/[0.05] dark:bg-white/10'
         }`}
         style={{ width: W, height: H }}
       />
@@ -52,7 +52,7 @@ export function ThemeToggle({ light = false }: { light?: boolean }) {
       aria-label={t('nav.themeToggle')}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={`group relative inline-flex shrink-0 items-center rounded-full transition-colors duration-300 before:absolute before:-inset-[7px] before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-        light ? 'bg-sv-ink/[0.07]' : 'bg-white/10'
+        light ? 'bg-sv-ink/[0.07]' : 'bg-sv-ink/[0.07] dark:bg-white/10'
       }`}
       style={{ width: W, height: H }}
     >
@@ -60,7 +60,7 @@ export function ThemeToggle({ light = false }: { light?: boolean }) {
       <span
         aria-hidden
         className={`absolute inset-0 rounded-full shadow-[inset_0_1px_2px_rgba(5,11,38,0.12)] ring-1 ring-inset transition-colors duration-300 ${
-          light ? 'ring-sv-ink/[0.06]' : 'ring-white/15'
+          light ? 'ring-sv-ink/[0.06]' : 'ring-sv-ink/[0.06] dark:ring-white/15'
         }`}
       />
       {/* Stars — fade in with the dark track */}

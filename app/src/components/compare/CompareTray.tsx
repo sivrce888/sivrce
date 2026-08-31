@@ -20,7 +20,7 @@ export default function CompareTray() {
     <div
       role="region"
       aria-label={tt("trayTitle")}
-      className="fixed inset-x-0 bottom-0 z-[60] border-t border-sv-ink/10 bg-sv-surface/95 px-4 py-3 shadow-panel-dark backdrop-blur md:px-6"
+      className="fixed inset-x-0 bottom-[var(--sv-dock)] z-[60] border-t border-sv-ink/10 bg-sv-surface/95 px-4 py-3 shadow-panel-dark backdrop-blur md:px-6"
     >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 text-[13px] font-black text-sv-ink">
