@@ -19,8 +19,8 @@ type FileShape = {
 import naprRaw from '@/data/napr-pin-overrides.json'
 import tasRaw from '@/data/tas-pin-overrides.json'
 
-const naprData = naprRaw as FileShape
-const tasData = tasRaw as FileShape
+const naprData = naprRaw as unknown as FileShape
+const tasData = tasRaw as unknown as FileShape
 
 export const NAPR_PIN_OVERRIDES: Record<string, NaprPinOverride> = {
   ...(naprData.overrides ?? {}),
