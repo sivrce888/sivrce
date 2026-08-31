@@ -15,7 +15,7 @@ import {
 export const MAP_CREDIT_PLAIN = 'Sivrce Maps'
 
 /** Required basemap credit — present in DOM, hidden until ⓘ expand. */
-export const MAP_CREDIT_LEGAL = '© OpenMapTiles · © OpenStreetMap'
+export const MAP_CREDIT_LEGAL = '© OpenMapTiles · © OpenStreetMap · NAPR parcels'
 
 const PLANET_PATH = '/planet'
 
@@ -72,7 +72,15 @@ function fillLegalAttribution(inner: Element) {
   osm.rel = 'noopener noreferrer'
   osm.textContent = '© OpenStreetMap'
 
-  inner.append(brand, sep1, omt, sep2, osm)
+  const sep3 = document.createTextNode(' · ')
+
+  const napr = document.createElement('a')
+  napr.href = 'https://napr.gov.ge/'
+  napr.target = '_blank'
+  napr.rel = 'noopener noreferrer'
+  napr.textContent = 'NAPR parcels'
+
+  inner.append(brand, sep1, omt, sep2, osm, sep3, napr)
 }
 
 /** Fetch style; proxy URLs; legal credit lives on the attribution control (not sources). */

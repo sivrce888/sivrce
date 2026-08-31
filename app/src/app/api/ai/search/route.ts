@@ -1,12 +1,16 @@
 import { parseSearchQuery } from "@/lib/ai"
+import { mergeNl, nlHasStructure, parseNlQuery, type NlFilters } from "@/lib/nl-search"
 
 /**
  * AI-powered natural-language search parser.
  * POST a Georgian real estate query ("3-bedroom apartment in Vake under $200K")
  * and get back structured filters.
  *
- * Falls back to basic keyword matching when AI is unavailable.
+ * Falls back to regex parse when AI is unavailable.
+ * ponytail: skip Gemini when regex already structured — AI bill only for leftovers.
  */
+
+export const maxDuration = 15
 
 function clientIp(req: Request): string {
   return (
@@ -18,7 +22,7 @@ function clientIp(req: Request): string {
 
 // ponytail: simple in-memory rate limiter — shared pattern with translate route.
 const WINDOW_MS = 5 * 60 * 1000
-const MAX_PER_WINDOW = 50
+const MAX_PER_WINDOW = 20
 const buckets = new Map<string, { count: number; resetAt: number }>()
 let lastSweep = 0
 
@@ -45,70 +49,36 @@ function checkRateLimit(key: string): { ok: boolean; retryAfterSec: number } {
   return { ok: true, retryAfterSec: 0 }
 }
 
-/**
- * Basic keyword extraction fallback when AI is unavailable.
- * Extracts simple patterns from Georgian or English text.
- */
-function basicParse(query: string) {
-  const q = query.toLowerCase().trim()
-  const result: Record<string, unknown> = { keywords: query.trim() }
-
-  // Deal type
-  if (/იყიდება|sell|sale|buy|შეძენა|გაყიდვა/i.test(q)) result.dealType = "sale"
-  else if (/ქირავდება|rent|lease|ქირა|გაქირავება/i.test(q)) result.dealType = "rent"
-  else if (/დღიურად|daily|overnight/i.test(q)) result.dealType = "daily"
-
-  // Property type
-  if (/ბინა|apartment|flat|studio/i.test(q)) result.propertyType = "apartment"
-  else if (/სახლი|house|villa|ვილა|cottage/i.test(q)) result.propertyType = "house"
-  else if (/კომერც|commercial|shop|მაღაზია|office|ოფისი/i.test(q)) result.propertyType = "commercial"
-  else if (/მიწა|land|plot|ნაკვეთი/i.test(q)) result.propertyType = "land"
-
-  // Rooms
-  const roomMatch = q.match(/(\d+)[-\s]?(ოთახიანი|room|bedroom|bed)/i)
-  if (roomMatch) result.rooms = parseInt(roomMatch[1]!, 10)
-
-  // Price range
-  const priceMatch = q.match(/\$?\s?(\d+)\s?[kK]/)
-  if (priceMatch) result.maxPrice = parseInt(priceMatch[1]!, 10) * 1000
-  const underMatch = q.match(/under\s+\$?\s?(\d+[\d,]*[kKmM]?)/i)
-  if (underMatch) {
-    const val = underMatch[1]!.replace(/[,]/g, "")
-    if (/[kK]$/.test(val)) result.maxPrice = parseInt(val, 10) * 1000
-    else if (/[mM]$/.test(val)) result.maxPrice = parseInt(val, 10) * 1000000
-    else result.maxPrice = parseInt(val, 10)
+function fromAi(ai: {
+  dealType?: "sale" | "rent" | "daily"
+  propertyType?: "apartment" | "house" | "commercial" | "land"
+  city?: string
+  district?: string
+  minPrice?: number
+  maxPrice?: number
+  rooms?: number
+  minArea?: number
+  maxArea?: number
+  keywords?: string
+  parking?: boolean
+  bright?: boolean
+}): NlFilters {
+  const features: string[] = []
+  if (ai.parking) features.push("add.f.parking")
+  if (ai.bright) features.push("add.f.bright")
+  return {
+    dealType: ai.dealType,
+    propertyType: ai.propertyType,
+    city: ai.city,
+    district: ai.district,
+    minPrice: ai.minPrice,
+    maxPrice: ai.maxPrice,
+    rooms: ai.rooms,
+    minArea: ai.minArea,
+    maxArea: ai.maxArea,
+    keywords: ai.keywords,
+    features: features.length ? features : undefined,
   }
-
-  // City / District (Georgian)
-  const geoCities: Record<string, string> = {
-    თბილისი: "თბილისი", tbilisi: "თბილისი",
-    ბათუმი: "ბათუმი", batumi: "ბათუმი",
-    ქუთაისი: "ქუთაისი", kutaisi: "ქუთაისი",
-  }
-  for (const [key, city] of Object.entries(geoCities)) {
-    if (q.includes(key)) { result.city = city; break }
-  }
-
-  const geoDistricts: Record<string, string> = {
-    'დიდი დიღომი': 'დიდი დიღომი', 'didi dighomi': 'დიდი დიღომი',
-    ვაკე: 'ვაკე', vake: 'ვაკე',
-    საბურთალო: 'საბურთალო', saburtalo: 'საბურთალო',
-    ისანი: 'ისანი', isani: 'ისანი',
-    გლდანი: 'გლდანი', gldani: 'გლდანი',
-    მთაწმინდა: 'მთაწმინდა', mtatsminda: 'მთაწმინდა',
-    კრწანისი: 'კრწანისი', krtsanisi: 'კრწანისი',
-    სამგორი: 'სამგორი', samgori: 'სამგორი',
-    დიდუბე: 'დიდუბე', didube: 'დიდუბე',
-    ნაძალადევი: 'ნაძალადევი', nadzaladevi: 'ნაძალადევი',
-    ჩუღურეთი: 'ჩუღურეთი', chughureti: 'ჩუღურეთი',
-    დიღომი: 'დიღომი', dighomi: 'დიღომი', digomi: 'დიღომი',
-  }
-  // Longer keys first so "დიდი დიღომი" wins over "დიღომი"
-  for (const [key, district] of Object.entries(geoDistricts).sort((a, b) => b[0].length - a[0].length)) {
-    if (q.includes(key)) { result.district = district; break }
-  }
-
-  return result
 }
 
 export async function POST(req: Request) {
@@ -135,12 +105,20 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "query_too_long" }, { status: 400 })
   }
 
-  // Try AI first, fall back to basic parsing.
-  const aiResult = await parseSearchQuery(query.trim())
-  if (aiResult) {
-    return Response.json({ ok: true, filters: aiResult, source: "ai" })
+  const fallback = parseNlQuery(query.trim())
+  // Regex covers the common Georgian/EN patterns — don't burn Gemini tokens.
+  if (nlHasStructure(fallback)) {
+    return Response.json({ ok: true, filters: fallback, source: "fallback" })
   }
 
-  const fallback = basicParse(query.trim())
+  const aiResult = await parseSearchQuery(query.trim())
+  if (aiResult) {
+    return Response.json({
+      ok: true,
+      filters: mergeNl(fallback, fromAi(aiResult)),
+      source: "ai",
+    })
+  }
+
   return Response.json({ ok: true, filters: fallback, source: "fallback" })
 }

@@ -7,7 +7,7 @@ import { filterListings } from '@/lib/listings-db'
 import {
   DEALS,
   TYPES,
-  generateAllSeoParams,
+  generateSeoBuildParams,
   parseSeoSlug,
   type SeoLoc,
 } from '@/lib/seo-pages'
@@ -18,21 +18,14 @@ import {
  * locales render English copy under their own URL prefix (urlPrefix) with
  * correct hreflang. Upgrade path: translate lib/seo-pages corpus per locale.
  *
- * ponytail: dynamicParams default (true) — unknown slugs render on demand and
- * hit notFound() below; `false` crashes `next start` (NoFallbackError) on any
- * unmatched asset request. Static params stay limited to ka/en/ru (today's
- * build surface); the other locales prerender on first request.
+ * ponytail: dynamicParams default (true) — unknown slugs ISR on first request.
+ * Build only ka hubs (~38 pages). Sitemap still lists every combo for Google.
  */
-const SSG_LANGS: readonly Lang[] = ['ka', 'en', 'ru']
-
-// ponytail: 60s — 3600 left /sale empty for an hour after seed. Marketplace inventory.
-export const revalidate = 60
+export const revalidate = 300
+export const maxDuration = 15
 
 export function generateStaticParams() {
-  // Next 16 types want sync params including parent `lang` for nested catch-alls.
-  return SSG_LANGS.flatMap((lang) =>
-    generateAllSeoParams().map((seo) => ({ lang, seo })),
-  )
+  return generateSeoBuildParams().map((seo) => ({ lang: 'ka', seo }))
 }
 
 /** Content corpus locale — ka/en/ru have real copy, everything else falls back to English. */

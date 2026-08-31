@@ -11,7 +11,6 @@ import { Chip } from '@/components/seo/SeoLanding'
 import { formatUSD, type Listing } from '@/data/listings'
 import {
   DISTRICT_COORDS,
-  STREETS,
   getStreet,
   streetLocative,
   type TbilisiStreet,
@@ -23,7 +22,7 @@ import { langAlternates } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.ge'
 
-/** Tbilisi districts only — street pages live under /tbilisi/{district}/{street}. */
+export const revalidate = 300
 function tbilisiDistrictOf(slug: string): District | undefined {
   return DISTRICTS.find((d) => d.slug === slug && d.citySlug === 'tbilisi')
 }
@@ -40,16 +39,6 @@ async function resolve(districtSlug: string, streetSlug: string) {
     listings = []
   }
   return { district, street, listings }
-}
-
-export function generateStaticParams() {
-  // ponytail: prerender ka only (today's build surface) — other locales SSR on
-  // demand via dynamicParams. Upgrade path: per-locale SSG when build budget allows.
-  return STREETS.filter((s) => s.district !== undefined).map((s) => ({
-    lang: 'ka',
-    district: s.district!,
-    street: s.slug,
-  }))
 }
 
 interface PageProps {

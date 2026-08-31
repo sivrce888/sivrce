@@ -23,7 +23,8 @@ export function PhoneAuthForm({
 }) {
   const [phone, setPhone] = useState("")
   const [code, setCode] = useState("")
-  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [dismissed, setDismissed] = useState(false)
+  const [seenAt, setSeenAt] = useState<number | undefined>(undefined)
   const [cooldown, setCooldown] = useState(0)
   const codeRef = useRef<HTMLInputElement>(null)
   const verifyFormRef = useRef<HTMLFormElement>(null)
@@ -38,12 +39,14 @@ export function PhoneAuthForm({
     undefined,
   )
 
-  useEffect(() => {
-    if (!sendState?.ok || !sendState.phone) return
-    setSentTo(sendState.phone)
+  const sentAt = sendState?.ok ? sendState.sentAt : undefined
+  if (sentAt && sentAt !== seenAt) {
+    setSeenAt(sentAt)
+    setDismissed(false)
     setCode("")
     setCooldown(COOLDOWN_S)
-  }, [sendState?.sentAt, sendState?.ok, sendState?.phone])
+  }
+  const sentTo = dismissed ? null : sendState?.ok && sendState.phone ? sendState.phone : null
 
   useEffect(() => {
     if (!sentTo) return
@@ -134,7 +137,7 @@ export function PhoneAuthForm({
           <button
             type="button"
             onClick={() => {
-              setSentTo(null)
+              setDismissed(true)
               setCode("")
               setCooldown(0)
             }}

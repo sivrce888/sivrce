@@ -904,7 +904,7 @@ function Map3DInner({
     setSelected(b)
     setTab(dealFilter === 'all' ? 'all' : dealFilter)
     setFloorFilter(null)
-  }, [dealFilter])
+  }, [dealFilter, setSelected, setTab, setFloorFilter])
   useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
   const toggleFloor = useCallback((n: number) => setFloorFilter((cur) => (cur === n ? null : n)), [setFloorFilter])
   useEffect(() => { floorRef.current = toggleFloor }, [toggleFloor])

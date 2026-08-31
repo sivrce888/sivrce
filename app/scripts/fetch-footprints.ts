@@ -100,7 +100,7 @@ function targets(): Target[] {
 
   const catalogProjects = new Set(BUILDINGS.map((b) => b.projectSlug).filter(Boolean))
   for (const p of PROJECTS) {
-    if (p.done >= 100 || catalogProjects.has(p.slug)) continue
+    if (catalogProjects.has(p.slug)) continue
     out.set(`dev-${p.slug}`, {
       id: `dev-${p.slug}`,
       lat: p.coords.lat,
@@ -545,15 +545,31 @@ async function main() {
           continue
         }
       }
+      // Ghost / under-construction: NAPR lot first (OSM often matches a neighbour shed).
+      if (t.ghost && !osmOnly) {
+        const napr = await naprRing(t.lat, t.lng, t.campus)
+        if (napr) {
+          out[t.id] = napr
+          console.log(`${t.id} napr (${(napr.ring ?? napr.parts?.[0]?.ring)?.length ?? 0}pt)`)
+          continue
+        }
+      }
       const fp = bestFootprint(t.lat, t.lng, near, t.floors, t.ghost)
       if (fp) {
         out[t.id] = fp
         console.log(`${t.id} osm:${fp.osmId} (${(fp.ring ?? fp.parts?.[0]?.ring)?.length ?? 0}pt${fp.height ? ` ${Math.round(fp.height / 3.1)}fl` : ''})`)
         continue
       }
-      const napr = await naprRing(t.lat, t.lng, t.campus)
-      out[t.id] = napr
-      console.log(`${t.id} ${napr ? `napr (${(napr.ring ?? napr.parts?.[0]?.ring)?.length ?? 0}pt)` : '— square fallback'}`)
+      if (!osmOnly && !t.ghost) {
+        const napr = await naprRing(t.lat, t.lng, t.campus)
+        if (napr) {
+          out[t.id] = napr
+          console.log(`${t.id} napr (${(napr.ring ?? napr.parts?.[0]?.ring)?.length ?? 0}pt)`)
+          continue
+        }
+      }
+      out[t.id] = null
+      console.log(`${t.id} — square fallback`)
     }
     saveOut(out)
     await sleep(osmOnly ? 200 : 2500)

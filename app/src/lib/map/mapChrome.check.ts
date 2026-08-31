@@ -11,6 +11,7 @@ async function main() {
   assert.equal(MAP_CREDIT_PLAIN, 'Sivrce Maps')
   assert.ok(/OpenMapTiles/.test(MAP_CREDIT_LEGAL), 'legal credit must name OpenMapTiles')
   assert.ok(/OpenStreetMap/.test(MAP_CREDIT_LEGAL), 'legal credit must name OpenStreetMap')
+  assert.ok(/NAPR/.test(MAP_CREDIT_LEGAL), 'legal credit must name NAPR parcels')
   assert.ok(!/OpenFreeMap|MapLibre/i.test(MAP_CREDIT_LEGAL))
 
   assert.equal(mapProxyPathOk('styles/liberty'), true)

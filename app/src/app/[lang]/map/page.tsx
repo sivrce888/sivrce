@@ -1,18 +1,18 @@
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { projectsLive } from '@/lib/directory-live'
 import { getDbBuildingClusters, getMapListings } from '@/lib/map/db-buildings'
 import { getMapPlatformConfig } from '@/lib/map/platform-config'
-import { MAP_UI_COOKIE, parseMapUiRaw } from '@/lib/map/map-ui'
 import { isValidLang } from '@/lib/i18n/core'
 import { getServerT, langAlternates } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import { Map3DLazy } from './Map3DLazy'
 
 const SITE = 'https://sivrce.ge'
+
+export const revalidate = 300
 
 export async function generateMetadata({
   params,
@@ -41,8 +41,6 @@ export default async function MapPage({
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const t = getServerT(lang)
-  const cookieStore = await cookies()
-  const initialUi = parseMapUiRaw(cookieStore.get(MAP_UI_COOKIE)?.value)
   const [dbBuildings, listings, projects, platform] = await Promise.all([
     getDbBuildingClusters(),
     getMapListings(),
@@ -96,7 +94,6 @@ export default async function MapPage({
           dbBuildings={dbBuildings}
           listings={listings}
           projects={projects}
-          initialUi={initialUi}
           platform={platform}
         />
       </div>

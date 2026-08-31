@@ -40,7 +40,7 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
   const subtitle = b['home.hero.subtitle']
   const trust = [b['home.hero.trust1'], b['home.hero.trust2'], b['home.hero.trust3']]
   return (
-    <section className="relative min-h-[calc(100svh-var(--sv-dock))] overflow-x-hidden bg-sv-cloud dark:bg-sv-navy">
+    <section data-cms-section="hero" className="relative min-h-[calc(100svh-var(--sv-dock))] overflow-x-hidden bg-sv-cloud dark:bg-sv-navy">
       <HeroBackground />
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--sv-dock))] max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-[calc(9rem+env(safe-area-inset-top,0px))] md:px-10">
@@ -50,17 +50,17 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sv-blue opacity-60 dark:bg-sv-success" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sv-blue dark:bg-sv-success" />
           </span>
-          <span className="text-[13px] font-bold tracking-wide text-sv-ink/80 dark:text-white/90 md:text-[14px]">
+          <span data-cms-key="block.home.hero.badge" className="text-[13px] font-bold tracking-wide text-sv-ink/80 dark:text-white/90 md:text-[14px]">
             {badge}
           </span>
         </div>
 
         <h1 className="w-full max-w-full text-balance text-center text-[clamp(2.25rem,7vw,5.25rem)] font-black leading-[1.06] tracking-[-0.038em] text-sv-ink dark:text-white">
-          {titleA}{' '}
-          <span className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
+          <span data-cms-key="block.home.hero.titleA">{titleA}</span>{' '}
+          <span data-cms-key="block.home.hero.titleAccent" className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
         </h1>
 
-        <p className="speakable-lead mt-6 w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-sv-ink/55 dark:text-white/70 sm:text-[16px] md:text-[19px]">
+        <p data-cms-key="block.home.hero.subtitle" className="speakable-lead mt-6 w-full max-w-[640px] text-balance text-center text-[15px] font-medium leading-relaxed text-sv-ink/55 dark:text-white/70 sm:text-[16px] md:text-[19px]">
           {subtitle}
         </p>
 
@@ -73,7 +73,7 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
           {TRUST.map((t, i) => (
             <div key={t.key} className="flex items-center gap-2.5 text-sv-ink/55 dark:text-white/70">
               <t.icon className="h-[18px] w-[18px] text-sv-blue dark:text-sv-success" />
-              <span className="text-[13px] font-bold md:text-[14px]">{trust[i]}</span>
+              <span data-cms-key={`block.${t.key}`} className="text-[13px] font-bold md:text-[14px]">{trust[i]}</span>
             </div>
           ))}
         </div>

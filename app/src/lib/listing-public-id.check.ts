@@ -8,7 +8,7 @@ import {
   publicIdFromString,
   PUBLIC_ID_BASE,
 } from "./listing-public-id"
-import { priceScaleOf } from "./price-scale"
+import { fairPriceOf, priceScaleOf } from "./price-scale"
 
 const a = publicIdFromString("vake-chavchavadze-47")
 const b = publicIdFromString("vake-chavchavadze-47")
@@ -22,4 +22,7 @@ console.assert(cadastralVariants("011001001001").includes("01.10.01.001.001"), "
 console.assert(isExactLookupQuery("01.10.01.001.001"), "exact cad")
 console.assert(priceScaleOf(500, [1000, 2000, 3000]).band === "low", "cheap band")
 console.assert(priceScaleOf(4000, [1000, 2000, 3000]).band === "high", "high band")
+const fair = fairPriceOf(285_000, 100, [2500, 2600, 2680, 2700, 2780, 2900, 3100])
+console.assert(fair !== null && fair.position === "above", "above comps")
+console.assert(fairPriceOf(100, 80, [1000, 2000]) === null, "thin sample")
 console.log("listing-public-id + price-scale: ok")

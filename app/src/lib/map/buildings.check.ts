@@ -8,6 +8,7 @@ import {
   buildingFootprint,
   buildingsToGeoJSON,
   buildingsToPointsGeoJSON,
+  catalogToCluster,
   clusterGeometry,
   clusterListingsToBuildings,
   clusterMinPriceGEL,
@@ -34,7 +35,7 @@ import {
 } from './buildings'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { PROJECTS, type Project } from '@/data/professionals'
-import { BUILDINGS } from '@/data/buildings'
+import { BUILDINGS, relatedBuildings } from '@/data/buildings'
 import { STATUS_BRAND, CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { formatMapPin } from '@/lib/currency'
 import footprintJson from '@/data/building-footprints.json'
@@ -229,18 +230,16 @@ assert.ok(shedW / shedH > 1.4, 'tiny OSM ring should fall back to synthetic slab
 
 // Grand Avenue sits on the Dinamo/Dadiani factory lot — not Bendeliani/Gamsakhurdia.
 {
-  const ga = projectsToConstructionBuildings(
-    PROJECTS.filter((p) => p.slug === 'archi-grand-avenue') as Array<
-      (typeof PROJECTS)[number] & { coords: { lat: number; lng: number } }
-    >,
-  )[0]
-  assert.ok(ga, 'grand avenue ghost')
-  assert.ok(haversineM(ga!.lat, ga!.lng, 41.72255, 44.7979) < 120, 'grand avenue pin not at factory')
-  assert.ok(!ga!.address.includes('ვაკე'), 'grand avenue still labelled Vake')
-  const gaRing = clusterGeometry(ga!).coordinates[0]!
+  // ponytail: Tbilisi projects live in BUILDINGS now — assert catalog pin, not ghost.
+  const gaCat = BUILDINGS.find((b) => b.slug === 'archi-grand-avenue')
+  assert.ok(gaCat, 'grand avenue in catalog')
+  assert.ok(haversineM(gaCat!.coords.lat, gaCat!.coords.lng, 41.72255, 44.7979) < 120, 'grand avenue pin not at factory')
+  assert.ok(!gaCat!.address.includes('ვაკე'), 'grand avenue still labelled Vake')
+  const ga = catalogToCluster(gaCat!, [])
+  const gaRing = clusterGeometry(ga).coordinates[0]!
   assert.ok(ringBboxHalfM(gaRing) > 40, 'grand avenue massing is a shed')
-  const dbId = clusterGeometry({ ...ga!, id: 'bldg-archi-grand-avenue', slug: 'archi-grand-avenue' })
-  assert.ok(ringBboxHalfM(dbId.coordinates[0]!) > 40, 'bldg- id missed dev- footprint')
+  const dbId = clusterGeometry({ ...ga, id: 'bldg-archi-grand-avenue', slug: 'archi-grand-avenue' })
+  assert.ok(ringBboxHalfM(dbId.coordinates[0]!) > 40, 'bldg- id missed footprint')
 }
 
 // Exact outline — L courtyard stays empty; no bbox spill past walls
@@ -322,17 +321,14 @@ for (const [slug, a] of Object.entries(pinAnchors)) {
 
 // m² Highlight — two cylindrical extrusions (Block 11/12), not one riverbank slab
 {
-  const ghost = projectsToConstructionBuildings(
-    PROJECTS.filter((p) => p.slug === 'm2-highlight' && p.coords) as Array<
-      (typeof PROJECTS)[number] & { coords: { lat: number; lng: number } }
-    >,
-  )[0]
-  assert.ok(ghost, 'm2-highlight ghost')
-  const twins = buildingsToGeoJSON([ghost!]).features
+  const cat = BUILDINGS.find((b) => b.slug === 'm2-highlight')
+  assert.ok(cat, 'm2-highlight in catalog')
+  const twin = catalogToCluster(cat!, [])
+  const twins = buildingsToGeoJSON([twin]).features
   assert.equal(twins.length, 2, 'm2-highlight must extrude 2 towers')
-  assert.equal(clusterRings(ghost!).length, 2, 'm2-highlight clusterRings matches GeoJSON')
-  assert.equal(twins[0]!.properties?.id, 'dev-m2-highlight')
-  assert.equal(twins[1]!.properties?.id, 'dev-m2-highlight')
+  assert.equal(clusterRings(twin).length, 2, 'm2-highlight clusterRings matches GeoJSON')
+  assert.equal(twins[0]!.properties?.id, 'bldg-m2-highlight')
+  assert.equal(twins[1]!.properties?.id, 'bldg-m2-highlight')
   assert.ok(Number(twins[0]!.properties?.height) > Number(twins[1]!.properties?.height), 'Block 11 taller')
 }
 
@@ -492,6 +488,48 @@ for (const g of realGhosts) {
 
 assert.equal(new Set(BUILDINGS.map((b) => b.slug)).size, BUILDINGS.length, 'duplicate catalog slug')
 assert.equal(new Set(BUILDINGS.map((b) => b.code)).size, BUILDINGS.length, 'duplicate catalog code')
+assert.ok(
+  BUILDINGS.filter((b) => b.city === 'თბილისი').length >= 100,
+  'Tbilisi catalog too thin — projects should expand BUILDINGS',
+)
+assert.ok(BUILDINGS.every((b) => b.img.startsWith('/images/')), 'catalog img must be local')
+assert.ok(BUILDINGS.every((b) => b.description.ka.length > 20), 'catalog needs ka description')
+
+const gradaPark = BUILDINGS.find((b) => b.slug === 'grada-park')
+assert.ok(gradaPark, 'grada-park in catalog')
+assert.equal(gradaPark!.district, 'საბურთალო')
+assert.equal(gradaPark!.ubani, 'დიდი დიღომი')
+
+const yorkVista = BUILDINGS.find((b) => b.slug === 'york-vista-garden')
+assert.equal(yorkVista?.district, 'მთაწმინდა')
+
+const officialRaions = new Set([
+  'გლდანი', 'დიდუბე', 'ვაკე', 'ისანი', 'კრწანისი',
+  'მთაწმინდა', 'ნაძალადევი', 'საბურთალო', 'სამგორი', 'ჩუღურეთი',
+])
+const tbilisiRaionMiss = BUILDINGS.filter(
+  (b) => b.city === 'თბილისი' && !officialRaions.has(b.district),
+)
+assert.ok(
+  tbilisiRaionMiss.length <= 8,
+  `non-raion districts: ${tbilisiRaionMiss.map((b) => b.district + '/' + b.slug).join(', ')}`,
+)
+
+const axisTowers = BUILDINGS.find((b) => b.slug === 'axis-towers')
+assert.ok(axisTowers, 'axis-towers in catalog')
+assert.equal(axisTowers!.district, 'ვაკე')
+assert.notEqual(axisTowers!.ubani, 'ლისი') // "ლისი" is a substring of "თბილისი"
+
+const tbilisi = BUILDINGS.filter((b) => b.city === 'თბილისი')
+assert.ok(
+  tbilisi.filter((b) => b.ubani).length >= 20,
+  'Tbilisi ubani coverage too thin',
+)
+assert.ok(
+  tbilisi.every((b) => b.floors >= 1 && Number.isFinite(b.coords.lat)),
+  'Tbilisi buildings need floors + coords',
+)
+assert.ok(relatedBuildings('axis-towers').length >= 3, 'related buildings for axis')
 
 const mergedFc = buildingsToGeoJSON([...realClusters, ...realGhosts])
 for (const f of mergedFc.features) {
@@ -575,6 +613,37 @@ assert.ok(
     }
   }
 }
+
+const sakeniP = PROJECTS.find((p) => p.slug === 'biograpi-sakeni')
+assert.ok(sakeniP)
+assert.ok(
+  haversineM(sakeniP!.coords.lat, sakeniP!.coords.lng, 41.72737673, 44.76061168) < 25,
+  'sakeni pin must sit on the building, not the avenue geocode',
+)
+const sakeniFp = fpData['bldg-biograpi-sakeni'] ?? fpData['dev-biograpi-sakeni']
+assert.ok(sakeniFp?.ring && sakeniFp.ring.length >= 6)
+assert.ok(
+  ringBboxHalfM(sakeniFp.ring!) > 40,
+  'sakeni uses the real lot outline, not a synthetic slab',
+)
+const sakeniCat = BUILDINGS.find((b) => b.slug === 'biograpi-sakeni')
+assert.ok(sakeniCat, 'sakeni in catalog')
+assert.ok((sakeniCat.floors ?? 0) >= 35, 'sakeni floors')
+const sakeniCluster = catalogToCluster(sakeniCat!, [])
+assert.ok(
+  haversineM(sakeniCluster.lat, sakeniCluster.lng, 41.72737673, 44.76061168) < 25,
+  'sakeni 3D massing pin must match the building centroid',
+)
+assert.ok(
+  (sakeniCluster.heightM ?? 0) >= 35 * 3.15 - 0.01,
+  'sakeni extrudes full 35 floors',
+)
+
+const orbiM = PROJECTS.find((p) => p.slug === 'orbi-marjanishvili')
+assert.ok(orbiM!.coords.lng > 44.2, 'orbi-marjanishvili must stay in Tbilisi')
+const sportCity = PROJECTS.find((p) => p.slug === 'sport-city-batumi')
+assert.ok(sportCity)
+assert.ok(sportCity!.coords.lng < 42.2, 'sport-city-batumi must stay in Batumi')
 
 // a known multi-point real footprint must flow into the GeoJSON
 const vazhaFeature = mergedFc.features.find((f) => f.id === 'bldg-vazha-pshavela-50')

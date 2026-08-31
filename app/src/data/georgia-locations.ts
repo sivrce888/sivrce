@@ -53,6 +53,11 @@ export function geoRaionsOf(city: string): Record<string, string[]> {
 
 export type GeoStreet = { ka: string; en?: string; ru?: string; city: string }
 
+/** City street names from the competitor catalog (not Tbilisi OSM). */
+export function geoStreetsOf(city: string): string[] {
+  return GEO.streets[city] ?? []
+}
+
 /** Streets for suggest: OSM Tbilisi + competitor Batumi/Kutaisi/Rustavi. */
 export function geoStreets(): GeoStreet[] {
   const out: GeoStreet[] = []

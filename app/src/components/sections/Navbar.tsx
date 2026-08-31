@@ -88,7 +88,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
+    <header data-cms-section="nav" className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
       <div
         className={`mx-auto flex h-[68px] w-full max-w-[1440px] items-center gap-2 px-5 transition-all duration-500 sm:gap-3 md:px-10 ${
           light
@@ -124,13 +124,14 @@ export default function Navbar() {
                   : 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/85 dark:hover:bg-white/10 dark:hover:text-white'
             }`
             return l.to.includes('#') ? (
-              <a key={l.key} href={localizedHref(l.to, lang)} className={cls}>
+              <a key={l.key} href={localizedHref(l.to, lang)} data-cms-key={l.key} className={cls}>
                 {t(l.key)}
               </a>
             ) : (
               <Link
                 key={l.key}
                 href={localizedHref(l.to, lang)}
+                data-cms-key={l.key}
                 aria-current={active ? 'page' : undefined}
                 className={cls}
               >
@@ -143,6 +144,7 @@ export default function Navbar() {
         <div className="ml-auto hidden shrink-0 items-center gap-1 lg:flex">
           <Link
             href={localizedHref("/favorites", lang)}
+            data-cms-key="nav.favorites"
             aria-label={`${t('nav.favorites')}${count > 0 ? ` — ${count}` : ''}`}
             className={`relative grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
               light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-sv-ink/70 hover:bg-sv-ink/5 dark:text-white/85 dark:hover:bg-white/10'
@@ -190,6 +192,7 @@ export default function Navbar() {
           )}
           <Link
             href={localizedHref("/add-listing", lang)}
+            data-cms-key="nav.addListing"
             className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
           >
             <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
@@ -233,6 +236,7 @@ export default function Navbar() {
                 <a
                   key={l.key}
                   href={localizedHref(l.to, lang)}
+                  data-cms-key={l.key}
                   onClick={() => setOpen(false)}
                   className={cls}
                 >
@@ -242,6 +246,7 @@ export default function Navbar() {
                 <Link
                   key={l.key}
                   href={localizedHref(l.to, lang)}
+                  data-cms-key={l.key}
                   onClick={() => setOpen(false)}
                   aria-current={active ? 'page' : undefined}
                   className={cls}

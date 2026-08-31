@@ -6,7 +6,9 @@
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400
+export const maxDuration = 8
+export const preferredRegion = 'fra1'
 
 const UPSTREAM: Record<string, string> = {
   img: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile',
@@ -43,8 +45,8 @@ export async function GET(_req: Request, ctx: Ctx) {
 
   const headers = new Headers()
   headers.set('Content-Type', res.headers.get('Content-Type') ?? 'image/jpeg')
-  headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400, immutable')
-  headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=86400, immutable')
+  headers.set('Cache-Control', 'public, max-age=604800, s-maxage=604800, immutable')
+  headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=604800, immutable')
   headers.set('X-Content-Type-Options', 'nosniff')
   return new NextResponse(res.body, { status: 200, headers })
 }

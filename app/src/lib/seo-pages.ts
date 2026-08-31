@@ -301,7 +301,7 @@ export function parseSeoSlug(slug: string[]): SeoPageDef | null {
     : null
 }
 
-/** Every valid page with ≥1 listing — used by generateStaticParams + sitemap. */
+/** Full SEO URL set for the sitemap. Do not SSG this at build — see generateSeoBuildParams. */
 export function generateAllSeoParams(): string[][] {
   const out: string[][] = []
   const push = (slug: string[]) => {
@@ -336,6 +336,22 @@ export function generateAllSeoParams(): string[][] {
     push([city.slug])
     for (const dist of DISTRICTS.filter((x) => x.citySlug === city.slug)) push([city.slug, dist.slug])
   }
+  return out
+}
+
+/** Build-time SSG hubs only (ka). Long-tail ISR on first crawl — sitemap still lists every URL. */
+export function generateSeoBuildParams(): string[][] {
+  const hubs = ['tbilisi', 'batumi']
+  const out: string[][] = []
+  for (const deal of Object.keys(DEALS)) {
+    out.push([deal])
+    for (const type of Object.keys(TYPES)) {
+      out.push([deal, type])
+      for (const city of hubs) out.push([deal, type, city])
+    }
+    for (const city of hubs) out.push([deal, city])
+  }
+  for (const city of hubs) out.push([city])
   return out
 }
 

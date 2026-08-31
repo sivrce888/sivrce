@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import {
   browserSupportsWebAuthn,
   browserSupportsWebAuthnAutofill,
@@ -15,15 +15,13 @@ function cancelled(err: unknown): boolean {
   return name === "NotAllowedError" || name === "AbortError"
 }
 
+const emptySubscribe = () => () => {}
+
 export function PasskeyButton({ callbackUrl }: { callbackUrl: string }) {
-  const [ready, setReady] = useState(true)
+  const ready = useSyncExternalStore(emptySubscribe, browserSupportsWebAuthn, () => true)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const autofill = useRef(false)
-
-  useEffect(() => {
-    setReady(browserSupportsWebAuthn())
-  }, [])
 
   useEffect(() => {
     if (!ready || autofill.current) return

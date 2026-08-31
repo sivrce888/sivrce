@@ -13,11 +13,13 @@ import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
-import { audienceFromRole } from '@/lib/ads'
 import { pickAd } from '@/lib/ads-db'
 import { langAlternates } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { getSessionUser } from '@/lib/guards'
+
+// ponytail: 60s ISR. auth() on this page dynamized every listing view.
+export const revalidate = 60
+export const maxDuration = 15
 
 // ponytail: dynamicParams default (true) — unknown ids hit notFound() below;
 // `false` crashes `next start` (NoFallbackError) on any unknown-id request.
@@ -107,30 +109,13 @@ export default async function ListingPage({ params }: PageProps) {
   const canonical = listingPath(listing)
   if (slug?.join('/') !== listingSlug(listing)) permanentRedirect(canonical)
 
-  // Live similar only — empty rail beats fake mock comps.
-  const similar = await getSimilarListings(listing, 8).catch(() => [])
-
-  let peerPerM2: number[] = []
-  try {
-    peerPerM2 = await getDistrictPeerPerM2(listing.city, listing.district, listing.dealType)
-  } catch {
-    peerPerM2 = []
-  }
-
-  // Reviews aggregate for rich results — a DB outage must never break the page
-  let aggregate: { average: number; count: number } | null = null
-  try {
-    aggregate = await getReviewAggregate('listing', listing.id)
-  } catch {
-    aggregate = null
-  }
-
-  const sessionUser = await getSessionUser()
-  const [ownerMeta, railAd] = await Promise.all([
+  const [similar, peerPerM2, aggregate, ownerMeta, railAd] = await Promise.all([
+    getSimilarListings(listing, 8).catch(() => []),
+    getDistrictPeerPerM2(listing.city, listing.district, listing.dealType).catch(() => []),
+    getReviewAggregate('listing', listing.id).catch(() => null),
     getListingOwnerMeta(listing.id),
-    pickAd('listing_rail', { audience: audienceFromRole(sessionUser?.role), lang }),
+    pickAd('listing_rail', { audience: 'guest', lang }),
   ])
-  const isOwner = Boolean(sessionUser && ownerMeta && sessionUser.id === ownerMeta.ownerId)
   const ownerTier = ownerMeta?.tier ?? 'standard'
 
   // Offer validity: 30 days after posting (matches the 30-day listing lifetime)
@@ -156,7 +141,7 @@ export default async function ListingPage({ params }: PageProps) {
     description: listing.description,
     url: `https://sivrce.ge${canonical}`,
     sku: String(listingPublicId(listing)),
-    image: listing.images.map((src) => `https://sivrce.ge${src}`),
+    image: listing.images.map((src) => (src.startsWith('http') ? src : `https://sivrce.ge${src}`)),
     datePosted: listing.postedAt,
     numberOfBedrooms: listing.beds,
     numberOfBathroomsTotal: listing.baths,
@@ -236,7 +221,7 @@ export default async function ListingPage({ params }: PageProps) {
         listing={listing}
         similar={similar}
         peerPerM2={peerPerM2}
-        isOwner={isOwner}
+        ownerId={ownerMeta?.ownerId ?? null}
         ownerTier={ownerTier}
         railAd={railAd}
       />

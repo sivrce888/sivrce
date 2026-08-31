@@ -156,6 +156,47 @@ export function formatMetroDist(n: NearMetro): string {
   return `${(n.meters / 1000).toFixed(1)} km · ${n.walkMin} min`
 }
 
+export type NearAmenity = {
+  category: PoiCategory
+  name: string
+  meters: number
+  walkMin: number
+}
+
+/** Catchments for building-page “როგორ მივიდე” — metro reuses map max. */
+const AMENITY_MAX_M: Partial<Record<PoiCategory, number>> = {
+  metro: METRO_MAX_SHOW_M,
+  school: 1500,
+  park: 1200,
+  hospital: 2500,
+  shop: 800,
+  university: 2500,
+  gym: 1200,
+  pharmacy: 700,
+}
+
+/** Nearest amenity per category within catchment. Empty far from Tbilisi POIs. */
+export function nearestAmenities(lat: number, lng: number): NearAmenity[] {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || MAP_POIS.length === 0) return []
+  const best = new Map<PoiCategory, NearAmenity>()
+  for (const p of MAP_POIS) {
+    const max = AMENITY_MAX_M[p.category]
+    if (max == null) continue
+    const m = haversineM(lat, lng, p.lat, p.lng)
+    if (m > max) continue
+    const prev = best.get(p.category)
+    if (prev && prev.meters <= m) continue
+    const meters = Math.round(m)
+    best.set(p.category, {
+      category: p.category,
+      name: p.name,
+      meters,
+      walkMin: Math.max(1, Math.round(meters / 80)),
+    })
+  }
+  return [...best.values()].sort((a, b) => a.meters - b.meters)
+}
+
 export function poisToGeoJSON(
   pois: MapPoi[] = MAP_POIS,
 ): GeoJSON.FeatureCollection {

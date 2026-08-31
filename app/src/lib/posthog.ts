@@ -24,13 +24,17 @@ export function initPostHog(): void {
 
   posthog.init(key, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
-    // ponytail: capture unhandled exceptions via PostHog error tracking
-    capture_exceptions: true,
-    // ponytail: session replay — 10% of sessions, 100% of error sessions
-    session_recording: {
-      maskAllInputs: true,
-      maskTextSelector: '[data-ph-mask]',
-    },
+    // Cost lock: manual $pageview only; Sentry owns errors; no replay/flags/autocapture.
+    autocapture: false,
+    capture_pageview: false,
+    capture_pageleave: false,
+    capture_exceptions: false,
+    disable_session_recording: true,
+    advanced_disable_feature_flags: true,
+    advanced_disable_toolbar_metrics: true,
+    rageclick: false,
+    persistence: 'localStorage',
+    person_profiles: 'identified_only',
   })
 
   initialized = true

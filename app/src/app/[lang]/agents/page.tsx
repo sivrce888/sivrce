@@ -14,6 +14,8 @@ import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 import { ArrowRight, Building2 } from 'lucide-react'
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'უძრავი ქონების აგენტები — ვერიფიცირებული სპეციალისტები',
   description:

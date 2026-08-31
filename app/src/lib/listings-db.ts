@@ -117,6 +117,7 @@ export interface Listing {
   stickerUrgent?: boolean
   stickerPriceDrop?: boolean
   inStory?: boolean
+  verified?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string
@@ -212,6 +213,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     inStory: Boolean(
       activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null),
     ),
+    verified: Boolean(r.verified),
     ai: {
       score: aiScore,
       label: aiLabel(aiScore),
@@ -245,17 +247,24 @@ function rowToListing(row: Record<string, unknown>): Listing {
 }
 
 /** Active listing counts keyed by district (neighborhoods index). */
+const readDistrictCounts = unstable_cache(
+  async (): Promise<Record<string, number>> =>
+    safeQuery(async () => {
+      const rows = await db.listing.groupBy({
+        by: ["district"],
+        where: { deletedAt: null, status: "active" },
+        _count: { _all: true },
+      })
+      const out: Record<string, number> = {}
+      for (const r of rows) out[r.district] = r._count._all
+      return out
+    }, {}),
+  ["district-listing-counts"],
+  { revalidate: 300 },
+)
+
 export async function getDistrictListingCounts(): Promise<Record<string, number>> {
-  return safeQuery(async () => {
-    const rows = await db.listing.groupBy({
-      by: ["district"],
-      where: { deletedAt: null, status: "active" },
-      _count: { _all: true },
-    })
-    const out: Record<string, number> = {}
-    for (const r of rows) out[r.district] = r._count._all
-    return out
-  }, {})
+  return readDistrictCounts()
 }
 
 /** Active listings in any of the given districts (neighborhood detail rail). */
@@ -489,33 +498,40 @@ export async function getListingsForAgentProfile(
 }
 
 /** Counts for /agents index cards — keyed by Georgian agent name. */
+const readAgentListingCounts = unstable_cache(
+  async (): Promise<Record<string, number>> =>
+    safeQuery(async () => {
+      const [rows, profiles] = await Promise.all([
+        db.listing.findMany({
+          where: { deletedAt: null, status: "active" },
+          select: { agent: true, ownerId: true },
+          take: 2500,
+        }),
+        db.agentProfile.findMany({
+          where: { deletedAt: null },
+          select: { name: true, ownerId: true },
+        }),
+      ])
+      const out: Record<string, number> = {}
+      const byOwner = new Map<string, number>()
+      for (const r of rows) {
+        const name = (r.agent as { name?: string } | null)?.name?.trim()
+        if (name) out[name] = (out[name] ?? 0) + 1
+        if (r.ownerId) byOwner.set(r.ownerId, (byOwner.get(r.ownerId) ?? 0) + 1)
+      }
+      for (const p of profiles) {
+        if (!p.ownerId) continue
+        const n = byOwner.get(p.ownerId) ?? 0
+        if (n > 0) out[p.name] = Math.max(out[p.name] ?? 0, n)
+      }
+      return out
+    }, {}),
+  ["agent-listing-counts"],
+  { revalidate: 300 },
+)
+
 export async function getAgentListingCountsByKaName(): Promise<Record<string, number>> {
-  return safeQuery(async () => {
-    const [rows, profiles] = await Promise.all([
-      db.listing.findMany({
-        where: { deletedAt: null, status: "active" },
-        select: { agent: true, ownerId: true },
-        take: 2500,
-      }),
-      db.agentProfile.findMany({
-        where: { deletedAt: null },
-        select: { name: true, ownerId: true },
-      }),
-    ])
-    const out: Record<string, number> = {}
-    const byOwner = new Map<string, number>()
-    for (const r of rows) {
-      const name = (r.agent as { name?: string } | null)?.name?.trim()
-      if (name) out[name] = (out[name] ?? 0) + 1
-      if (r.ownerId) byOwner.set(r.ownerId, (byOwner.get(r.ownerId) ?? 0) + 1)
-    }
-    for (const p of profiles) {
-      if (!p.ownerId) continue
-      const n = byOwner.get(p.ownerId) ?? 0
-      if (n > 0) out[p.name] = Math.max(out[p.name] ?? 0, n)
-    }
-    return out
-  }, {})
+  return readAgentListingCounts()
 }
 
 /**
@@ -613,47 +629,57 @@ export async function getAllListings(limit = 50): Promise<Listing[]> {
 }
 
 /**
- * Homepage SUPER VIP rail — real ads with photos, not project-catalog inquiry cards.
+ * Homepage featured rail — real ads with photos, not project-catalog inquiry cards.
  * ponytail: id prefix filter; JSON path on extendedFields when catalog volume drops.
  */
+const readFeaturedListings = unstable_cache(
+  async (limit: number): Promise<Listing[]> =>
+    safeQuery(async () => {
+      const rows = await db.listing.findMany({
+        where: {
+          deletedAt: null,
+          status: "active",
+          NOT: { id: { startsWith: "proj-" } },
+        },
+        orderBy: [{ createdAt: "desc" }],
+        take: 80,
+      })
+      const mapped = rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+      const rank = (l: Listing) =>
+        (l.badge === "SUPER VIP" ? 40 : l.badge === "VIP+" ? 25 : l.badge === "VIP" ? 15 : 0) +
+        Math.min(l.images.length, 4)
+      return [...mapped].sort((a, b) => rank(b) - rank(a)).slice(0, limit)
+    }, []),
+  ["featured-listings"],
+  { revalidate: 300 },
+)
+
 export async function getFeaturedListings(limit = 6): Promise<Listing[]> {
-  return safeQuery(async () => {
-    const rows = await db.listing.findMany({
-      where: {
-        deletedAt: null,
-        status: "active",
-        NOT: { id: { startsWith: "proj-" } },
-      },
-      orderBy: [{ createdAt: "desc" }],
-      take: 80,
-    })
-    const mapped = rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
-    const rank = (l: Listing) =>
-      (l.badge === "SUPER VIP" ? 40 : l.badge === "VIP+" ? 25 : l.badge === "VIP" ? 15 : 0) +
-      Math.min(l.images.length, 4)
-    return [...mapped].sort((a, b) => rank(b) - rank(a)).slice(0, limit)
-  }, [])
+  return readFeaturedListings(limit)
 }
 
-/**
- * Active Stories rail — paid `storyUntil` still in the future.
- * ponytail: scan recent actives in memory; JSON path index when story volume is high.
- */
+const readStoryListings = unstable_cache(
+  async (limit: number): Promise<Listing[]> =>
+    safeQuery(async () => {
+      const rows = await db.listing.findMany({
+        where: { deletedAt: null, status: "active" },
+        orderBy: { updatedAt: "desc" },
+        take: 200,
+      })
+      const out: Listing[] = []
+      for (const r of rows) {
+        if (!activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null)) continue
+        out.push(rowToListing(r as unknown as Record<string, unknown>))
+        if (out.length >= limit) break
+      }
+      return out
+    }, []),
+  ["story-listings"],
+  { revalidate: 300 },
+)
+
 export async function getStoryListings(limit = 24): Promise<Listing[]> {
-  return safeQuery(async () => {
-    const rows = await db.listing.findMany({
-      where: { deletedAt: null, status: "active" },
-      orderBy: { updatedAt: "desc" },
-      take: 200,
-    })
-    const out: Listing[] = []
-    for (const r of rows) {
-      if (!activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null)) continue
-      out.push(rowToListing(r as unknown as Record<string, unknown>))
-      if (out.length >= limit) break
-    }
-    return out
-  }, [])
+  return readStoryListings(limit)
 }
 
 /** Filtered search — mirrors data/listings.ts filterListings(). */

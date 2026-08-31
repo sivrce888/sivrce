@@ -19,6 +19,7 @@ import type { PublicAd } from '@/lib/ads'
 import HScroll from '@/components/HScroll'
 import SaveSearchControl from '@/components/search/SaveSearchControl'
 import SearchSuggest, { resolveExactPlace } from '@/components/search/SearchSuggest'
+import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
 import { blurProps } from '@/lib/media'
@@ -29,12 +30,11 @@ import { listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, DAILY_SIGNAL_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from '@/lib/features'
 import { featuresFor } from '@/lib/add-listing-fields'
-import type { SearchLocations } from '@/lib/listings-db'
 import { mapSearchHit } from '@/lib/map-search-hit'
-import { suggestionToFilters } from '@/lib/search-location'
+import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
+import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import {
-  CITIES, districtsOf,
   type DealType, type PropType, type SortKey, type Listing,
 } from '@/data/listings'
 
@@ -122,20 +122,14 @@ function CompactCard({ l }: { l: Listing }) {
 }
 
 export default function SearchClient({
-  locations,
   ads,
 }: {
-  locations?: SearchLocations
   ads?: { top: PublicAd | null; native: PublicAd | null }
 }) {
   const params = useSearchParams()
   const router = useRouter()
   const { t, lang } = useI18n()
   const s = useSearchStrings()
-  // Live location facets from the server (DB-backed); static catalog fallback.
-  const hasLive = Boolean(locations && locations.cities.length > 0)
-  const locationDistricts = (c?: string): string[] =>
-    hasLive && locations ? (c ? (locations.districts[c] ?? []) : Object.values(locations.districts).flat()) : districtsOf(c)
   // Remember grid/list preference across visits (SSR-safe external store).
   const savedView = useSyncExternalStore(
     () => () => {},
@@ -143,6 +137,7 @@ export default function SearchClient({
     () => 'grid' as const,
   )
   const [chosen, setView] = useState<'grid' | 'list' | null>(null)
+  const [locOpen, setLocOpen] = useState(false)
   const view = chosen ?? savedView
 
   useEffect(() => {
@@ -221,11 +216,13 @@ export default function SearchClient({
   const to = deal === 'daily' && DATE_RE.test(toRaw) && (!from || toRaw > from) ? toRaw : undefined
   const todayIso = new Date().toISOString().slice(0, 10)
 
-  // City/district options: live facets, but keep a stale URL value selectable.
-  const cityBase = hasLive && locations ? locations.cities : CITIES
-  const cityOptions = city && !cityBase.includes(city) ? [...cityBase, city] : cityBase
-  const distBase = locationDistricts(city)
-  const distOptions = district && !distBase.includes(district) ? [...distBase, district] : distBase
+  const locValue: LocationValue = {
+    city: city ?? '',
+    district: district ?? '',
+    street: '',
+    metro: nearMetro,
+  }
+  const distList = splitDistricts(district)
 
   // Always build patches on the live URL — never a stale closure
   const patchParams = (patch: Record<string, string | undefined>) => {
@@ -289,6 +286,12 @@ export default function SearchClient({
       const place = raw ? await resolveExactPlace(raw, city) : undefined
       if (place) {
         patchParams(suggestionToFilters(place))
+        return
+      }
+      const parsed = raw ? parseNlQuery(raw) : null
+      if (parsed && nlHasStructure(parsed)) {
+        setDrafts((d) => ({ ...d, q: '' }))
+        patchParams(nlToSearchPatch(parsed))
         return
       }
       flushDrafts()
@@ -450,7 +453,8 @@ export default function SearchClient({
   if (deal) chips.push({ key: 'deal', label: t(dealLabelKey(deal)), hue: dealHue(deal), clear: () => patchParams({ deal: undefined }) })
   if (type) chips.push({ key: 'type', label: propTypeKey ? t(propTypeKey) : type, hue: propType?.brand.hue, clear: () => patchParams({ type: undefined }) })
   if (city) chips.push({ key: 'city', label: city, clear: () => patchParams({ city: undefined, district: undefined }) })
-  if (district) chips.push({ key: 'district', label: district, clear: () => patchParams({ district: undefined }) })
+  if (distList.length === 1) chips.push({ key: 'district', label: distList[0]!, clear: () => patchParams({ district: undefined }) })
+  else if (distList.length > 1) chips.push({ key: 'district', label: t('loc.nDistricts', { n: distList.length }), clear: () => patchParams({ district: undefined }) })
   if (minPrice !== undefined) chips.push({ key: 'min', label: `${t('search.min')}. ${cur === 'GEL' ? '₾' : '$'}${minPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('min'); patchParams({ min: undefined }) } })
   if (maxPrice !== undefined) chips.push({ key: 'max', label: `${t('search.max')}. ${cur === 'GEL' ? '₾' : '$'}${maxPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('max'); patchParams({ max: undefined }) } })
   if (rooms !== undefined) chips.push({ key: 'rooms', label: t('search.roomsChip', { n: rooms }), clear: () => patchParams({ rooms: undefined }) })
@@ -598,35 +602,23 @@ export default function SearchClient({
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
         </div>
 
-        <div className="relative min-w-[112px] shrink-0">
-          <select
-            value={city ?? ''}
-            onChange={(e) => patchParams({ city: e.target.value || undefined, district: undefined })}
-            className={selectClass}
-            aria-label={t('search.city')}
-          >
-            <option value="">{t('search.allCities')}</option>
-            {cityOptions.map((c) => (
-              <option key={c} value={c}>{c}{fmtCount(fcount('city', c))}</option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
-        </div>
-
-        <div className="relative min-w-[112px] shrink-0">
-          <select
-            value={district ?? ''}
-            onChange={(e) => patchParams({ district: e.target.value || undefined })}
-            className={selectClass}
-            aria-label={t('search.district')}
-          >
-            <option value="">{t('search.allDistricts')}</option>
-            {distOptions.map((d) => (
-              <option key={d} value={d}>{d}{fmtCount(fcount('district', d))}</option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
-        </div>
+        <button
+          type="button"
+          onClick={() => setLocOpen(true)}
+          aria-label={t('loc.title')}
+          className={`flex h-9 min-w-[148px] max-w-[240px] shrink-0 items-center gap-2 rounded-control border bg-sv-surface px-3 text-left text-[12px] font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sv-blue/30 ${
+            city || distList.length
+              ? 'border-sv-blue/40 text-sv-ink'
+              : 'border-sv-ink/10 text-sv-ink/55 hover:border-sv-blue/40'
+          }`}
+        >
+          <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
+          <span className="min-w-0 flex-1 truncate">
+            {distList.length > 2
+              ? `${city} · ${t('loc.nDistricts', { n: distList.length })}`
+              : locationLabel(locValue, t('loc.pickPlace'))}
+          </span>
+        </button>
 
         <div className="flex shrink-0 items-center gap-1">
           <span className="text-[11px] font-black uppercase tracking-wide text-sv-ink/70">{t('search.price')}</span>
@@ -954,6 +946,22 @@ export default function SearchClient({
   return (
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
       <Navbar />
+      <LocationPicker
+        open={locOpen}
+        value={locValue}
+        multi
+        showMetro
+        onClose={() => setLocOpen(false)}
+        onApply={(v) => {
+          setLocOpen(false)
+          patchParams({
+            city: v.city || undefined,
+            district: v.district || undefined,
+            ...(v.street ? { q: v.street } : {}),
+            metro: v.metro ? '1' : undefined,
+          })
+        }}
+      />
 
       {/* Page header — compact so listings start above the fold */}
       <main id="main" aria-busy={showSkeleton}>
@@ -974,7 +982,7 @@ export default function SearchClient({
           <p className="mt-0.5 flex items-center gap-1.5 text-[13px] font-semibold text-white/55">
             <MapPin className="h-3.5 w-3.5 text-sv-blue-light" />
             {city ?? t('search.allGeorgia')}
-            {district ? ` · ${district}` : ''}
+            {distList.length === 1 ? ` · ${distList[0]}` : distList.length > 1 ? ` · ${t('loc.nDistricts', { n: distList.length })}` : ''}
             {q ? ` · ${q}` : ''}
           </p>
         </div>

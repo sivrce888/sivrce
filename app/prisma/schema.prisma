@@ -2457,3 +2457,23 @@ model ListingAlertSubscription {
   @@index([createdAt], map: "listing_alert_subs_created_idx")
   @@map("listing_alert_subscriptions")
 }
+
+/// Mass OSM building corpus (Tbilisi / Batumi / GE). Not MapBuilding (curated).
+/// Write-through from /api/site + tiled Overpass ingest.
+model OsmBuilding {
+  osmId     BigInt                               @id @map("osm_id")
+  osmType   String                               @default("way") @map("osm_type") @db.VarChar(10)
+  city      String                               @db.VarChar(40)
+  lat       Float
+  lng       Float
+  levels    Int?
+  heightM   Float?                               @map("height_m")
+  name      String?                              @db.VarChar(240)
+  building  String?                              @db.VarChar(40)
+  ring      Json
+  location  Unsupported("geography(Point, 4326)")?
+  updatedAt DateTime                             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([city], map: "osm_buildings_city_idx")
+  @@map("osm_buildings")
+}

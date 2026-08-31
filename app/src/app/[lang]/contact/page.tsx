@@ -10,6 +10,8 @@ import { telHref } from '@/lib/inquiries/phone'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
+export const revalidate = 3600
+
 export const metadata: Metadata = {
   title: 'კონტაქტი — sivrce',
   description: 'დაუკავშირდი sivrce-ის გუნდს — ელ. ფოსტა, ტელეფონი ან საკონტაქტო ფორმა. ვპასუხობთ 24 საათში.',

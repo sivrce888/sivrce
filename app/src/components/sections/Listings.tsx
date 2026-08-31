@@ -35,7 +35,7 @@ export default function Listings({ items }: { items: Listing[] }) {
 
         <HScroll aria-label={b('home.listings.scrollLabel')} step={420} className="gap-6 pb-2 pt-2">
           {items.map((l, i) => (
-            <ListingCard key={l.id} l={l} i={i} />
+            <ListingCard key={l.id} l={l} i={i} animate={false} />
           ))}
         </HScroll>
       </div>

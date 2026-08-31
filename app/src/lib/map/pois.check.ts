@@ -16,6 +16,7 @@ import {
   isPoiCategory,
   metroMeters,
   nearestMetro,
+  nearestAmenities,
   parsePoiPrefs,
   poiFilterSpec,
   poisToGeoJSON,
@@ -54,6 +55,11 @@ assert.ok(near!.walkMin >= 1)
 assert.ok(formatMetroDist(near!).includes('m'))
 assert.ok(metroMeters(rustaveli!.lat, rustaveli!.lng) <= METRO_NEAR_M)
 assert.equal(nearestMetro(41.61, 41.62), null) // Batumi — no Tbilisi metro
+
+const axisNear = nearestAmenities(41.71174204, 44.75668685)
+assert.ok(axisNear.length >= 2, `axis amenities ${axisNear.length}`)
+assert.ok(axisNear.every((a) => a.meters > 0 && a.walkMin >= 1))
+assert.equal(nearestAmenities(41.61, 41.62).length, 0) // Batumi — Tbilisi POIs out of catchment
 
 const fc = poisToGeoJSON()
 assert.equal(fc.features.length, MAP_POIS.length)

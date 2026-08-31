@@ -14,6 +14,9 @@ import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
 import { listingIdsInBbox } from "@/lib/geo/postgis"
 import { isExactLookupQuery } from "@/lib/listing-public-id"
 
+export const maxDuration = 15
+export const preferredRegion = "fra1"
+
 // buildDbWhere + parseSearchParams live in @/lib/search-filters — shared with
 // the saved-search alert matcher so alerts evaluate the exact search semantics.
 
@@ -100,6 +103,8 @@ const LISTING_SELECT = {
   tier: true,
   tierExpiresAt: true,
   trustScore: true,
+  verified: true,
+  features: true,
   createdAt: true,
   agent: true,
   extendedFields: true,
@@ -185,7 +190,10 @@ function mapDbHit(
 
 // Anonymous, URL-keyed responses: cache at the edge for 30s. Shields DB/Meili
 // from scrapers and repeat keystrokes; new listings appear within a minute.
-const CACHE_HEADERS = { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" }
+const CACHE_HEADERS = {
+  "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+  "Vercel-CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+}
 
 export async function GET(req: Request) {
   const url = new URL(req.url)

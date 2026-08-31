@@ -60,6 +60,8 @@ export interface Listing {
   stickerPriceDrop?: boolean
   /** Paid homepage Stories rail slot */
   inStory?: boolean
+  /** Listing-level verification (admin), not agent identity. */
+  verified?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string

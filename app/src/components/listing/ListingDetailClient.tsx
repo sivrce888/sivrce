@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
@@ -31,7 +32,10 @@ import { mapHrefForListing } from '@/lib/map/buildings'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { blurProps, isCdnMedia } from '@/lib/media'
 import { listingPublicId } from '@/lib/listing-public-id'
-import { priceScaleOf } from '@/lib/price-scale'
+import { priceScaleOf, fairPriceOf } from '@/lib/price-scale'
+import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
+import { aiLabel } from '@/lib/ai-label'
+import type { TasPublicDoc } from '@/lib/map/tas-arch'
 import { listingPath } from '@/lib/listing-slug'
 import { streetHrefForListing } from '@/lib/street-href'
 import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
@@ -63,20 +67,6 @@ const PROP_TYPE_KEY: Record<PropType, DictKey> = {
   hotel: 'prop.hotel',
 }
 
-/* ————— AI assessment copy by score ————— */
-function aiExplanation(l: Listing, t: (key: DictKey, vars?: Record<string, string | number>) => string): string {
-  const { score } = l.ai
-  const base = t('detail.aiBase', {
-    district: l.district,
-    city: l.city,
-    deal: t(l.dealType === 'rent' ? 'detail.dealRent' : 'detail.dealSale'),
-  })
-  if (score >= 90) return `${base} ${t('detail.aiVerdictHigh')}`
-  if (score >= 84) return `${base} ${t('detail.aiVerdictMid')}`
-  return `${base} ${t('detail.aiVerdictLow')}`
-}
-
-/* ————— Lightbox ————— */
 function Lightbox({
   images, index, onClose, onNav, onJump,
 }: { images: string[]; index: number; onClose: () => void; onNav: (dir: number) => void; onJump: (i: number) => void }) {
@@ -195,7 +185,7 @@ export default function ListingDetailClient({
   listing: l,
   similar,
   peerPerM2,
-  isOwner = false,
+  ownerId = null,
   ownerTier = 'standard',
   railAd = null,
 }: {
@@ -203,10 +193,12 @@ export default function ListingDetailClient({
   similar: Listing[]
   /** District peer $/m² from DB (optional — mock peers as fallback). */
   peerPerM2?: number[]
-  isOwner?: boolean
+  ownerId?: string | null
   ownerTier?: string
   railAd?: PublicAd | null
 }) {
+  const { data: session } = useSession()
+  const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const ttCompare = useCompareStrings()
@@ -231,6 +223,11 @@ export default function ListingDetailClient({
   const [downPct, setDownPct] = useState(20)
   const [years, setYears] = useState(15)
   const [rate, setRate] = useState(9.5)
+  const [siteBoost, setSiteBoost] = useState<{
+    hasFootprint: boolean
+    hasPermit: boolean
+    tasDocs: TasPublicDoc[]
+  }>({ hasFootprint: false, hasPermit: false, tasDocs: [] })
 
   // Reset photo + scroll on listing change (render-time state adjustment)
   const [prevId, setPrevId] = useState(l.id)
@@ -305,6 +302,62 @@ export default function ListingDetailClient({
     const peers = peerPerM2 && peerPerM2.length >= 2 ? peerPerM2 : []
     return priceScaleOf(l.perM2USD, peers)
   }, [l, peerPerM2])
+  const fairPrice = useMemo(
+    () => (isSale ? fairPriceOf(l.priceUSD, l.area, peerPerM2 ?? []) : null),
+    [isSale, l.priceUSD, l.area, peerPerM2],
+  )
+
+  useEffect(() => {
+    if (!Number.isFinite(l.coords.lat) || !Number.isFinite(l.coords.lng)) return
+    const ac = new AbortController()
+    fetch(`/api/site?lat=${l.coords.lat}&lng=${l.coords.lng}`, { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then(
+        (d: {
+          ok?: boolean
+          ring?: unknown
+          tasDocs?: TasPublicDoc[]
+          tasShapes?: unknown[]
+        } | null) => {
+          if (!d?.ok) return
+          const docs = Array.isArray(d.tasDocs) ? d.tasDocs : []
+          setSiteBoost({
+            hasFootprint: Array.isArray(d.ring) && d.ring.length >= 4,
+            hasPermit: docs.length > 0 || (Array.isArray(d.tasShapes) && d.tasShapes.length > 0),
+            tasDocs: docs.slice(0, 5),
+          })
+        },
+      )
+      .catch(() => {})
+    return () => ac.abort()
+  }, [l.coords.lat, l.coords.lng])
+
+  const scored = useMemo(
+    () =>
+      sivrceScore({
+        verified: l.verified,
+        photos: l.images.length,
+        features: l.features.length,
+        band: isSale ? priceScale.band : null,
+        hasCoords: Number.isFinite(l.coords.lat) && Number.isFinite(l.coords.lng),
+        hasFootprint: siteBoost.hasFootprint,
+        hasPermit: siteBoost.hasPermit,
+      }),
+    [
+      l.verified,
+      l.images.length,
+      l.features.length,
+      l.coords.lat,
+      l.coords.lng,
+      isSale,
+      priceScale.band,
+      siteBoost.hasFootprint,
+      siteBoost.hasPermit,
+    ],
+  )
+  const scoreWhy = scored
+  const displayScore = scored.score
+  const displayLabel = aiLabel(displayScore)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
@@ -532,6 +585,12 @@ export default function ListingDetailClient({
                       {t('detail.newComplex')}
                     </span>
                   )}
+                  {l.verified ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sv-blue">
+                      <BadgeCheck className="h-3 w-3" aria-hidden />
+                      {t('detail.scoreVerified')}
+                    </span>
+                  ) : null}
                   <span className="flex items-center gap-1 text-[12px] font-bold text-sv-ink/45">
                     <Calendar className="h-3.5 w-3.5" /> {l.postedAt}
                   </span>
@@ -664,8 +723,31 @@ export default function ListingDetailClient({
               />
             ) : null}
 
-            {/* AI assessment */}
-            <div className="mt-6 overflow-hidden rounded-card border border-sv-blue/15 bg-gradient-to-br from-sv-blue/[0.06] via-sv-surface to-sv-violet/[0.06] p-6 shadow-card">
+            {fairPrice ? (
+              <div className="mt-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/45">
+                  {t('detail.fairPrice')}
+                </div>
+                <div className="mt-1 text-[18px] font-black tabular-nums tracking-tight text-sv-ink">
+                  {currency === 'GEL'
+                    ? `${formatGEL(Math.round(fairPrice.rangeMin * (liveRate || USD_GEL)))}–${formatGEL(Math.round(fairPrice.rangeMax * (liveRate || USD_GEL)))}`
+                    : `${formatUSD(fairPrice.rangeMin)}–${formatUSD(fairPrice.rangeMax)}`}
+                </div>
+                <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">
+                  {fairPrice.position === 'above'
+                    ? t('detail.fairPriceAbove', { pct: fairPrice.deltaPct })
+                    : fairPrice.position === 'below'
+                      ? t('detail.fairPriceBelow', { pct: fairPrice.deltaPct })
+                      : t('detail.fairPriceInRange')}
+                </p>
+                <p className="mt-1 text-[12px] font-semibold text-sv-ink/40">
+                  {t('detail.fairPriceNote', { n: fairPrice.sample })}
+                </p>
+              </div>
+            ) : null}
+
+            {/* Sivrce Score */}
+            <div className="mt-6 overflow-hidden rounded-card border border-sv-blue/15 bg-sv-surface p-6 shadow-card">
               <div className="flex items-center gap-2">
                 <SparkMark className="h-4 w-4" />
                 <span className="text-[12px] font-black uppercase tracking-wider text-sv-blue">
@@ -680,7 +762,7 @@ export default function ListingDetailClient({
                       cx="18" cy="18" r="15.5" fill="none" stroke={`url(#${gradId})`} strokeWidth="3"
                       strokeLinecap="round"
                       initial={{ strokeDasharray: '0 97.4' }}
-                      whileInView={{ strokeDasharray: `${(l.ai.score / 100) * 97.4} 97.4` }}
+                      whileInView={{ strokeDasharray: `${(displayScore / 100) * 97.4} 97.4` }}
                       viewport={{ once: true }}
                       transition={{ duration: 1.2, ease }}
                     />
@@ -692,18 +774,60 @@ export default function ListingDetailClient({
                     </defs>
                   </svg>
                   <div className="absolute text-center">
-                    <div className="text-[24px] font-black leading-none text-sv-blue">{l.ai.score}</div>
+                    <div className="text-[24px] font-black leading-none text-sv-blue">{displayScore}</div>
                     <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">/ 100</div>
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[18px] font-black text-sv-ink">{l.ai.label}</div>
-                  <p className="mt-1.5 text-[14px] font-semibold leading-relaxed text-sv-ink/55">
-                    {aiExplanation(l, t)}
+                  <div className="text-[18px] font-black text-sv-ink">{displayLabel}</div>
+                  <p className="mt-1 text-[12px] font-bold uppercase tracking-wider text-sv-ink/40">
+                    {t('detail.scoreConfidence', { n: scoreWhy.confidence })}
                   </p>
+                  {scoreWhy.ids.length > 0 ? (
+                    <ul className="mt-2 space-y-1">
+                      {scoreWhy.ids.map((id) => (
+                        <li key={id} className="text-[14px] font-semibold text-sv-ink/60">
+                          {t(scoreReasonKey(id))}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-1.5 text-[14px] font-semibold leading-relaxed text-sv-ink/55">
+                      {t('detail.scoreWhy')}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
+
+            {/* TAS Architecture Service — public permits near pin */}
+            {siteBoost.tasDocs.length > 0 && (
+              <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
+                <div className="text-[12px] font-black uppercase tracking-wider text-sv-ink/45">
+                  {t('detail.tasPermits')}
+                </div>
+                <ul className="mt-3 space-y-2">
+                  {siteBoost.tasDocs.map((d) => (
+                    <li key={d.documentId} className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="text-[14px] font-bold text-sv-ink">
+                        {d.documentNo}
+                        {d.address ? (
+                          <span className="ml-2 font-semibold text-sv-ink/50">{d.address}</span>
+                        ) : null}
+                      </span>
+                      <a
+                        href={d.publicUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[13px] font-black text-sv-blue hover:underline"
+                      >
+                        {t('detail.tasOpen')}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Specs — extended (beds/baths/project/…) after the key strip */}
             {specs.filter((s) => !keySpecs.some((k) => k.label === s.label)).length > 0 && (
@@ -1007,10 +1131,12 @@ export default function ListingDetailClient({
                 </div>
               ) : null}
 
+              {l.verified ? (
               <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-sv-ink/35">
                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
                 {t('detail.verifiedBy')}
               </p>
+              ) : null}
             </div>
 
             {/* Tour booking */}

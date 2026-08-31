@@ -21,6 +21,12 @@ import {
   type CmsBlockKey,
 } from "@/lib/cms-blocks"
 import { BLOCK_I18N } from "@/lib/cms-blocks.i18n"
+import {
+  CMS_LAYOUT_ID,
+  defaultHomeLayout,
+  parseHomeLayout,
+  type HomeLayoutItem,
+} from "@/lib/cms-studio"
 import { db, dbAvailable } from "@/lib/db"
 import type { Lang } from "@/lib/i18n/core"
 
@@ -30,7 +36,9 @@ export {
   CMS_MAX_VALUE_LEN,
   CMS_PREFIX,
   cmsGroups,
+  cmsRowForKey,
   cmsRowsForGroup,
+  isKnownCmsKey,
   parseCmsId,
   type CmsGroup,
   type CmsRow,
@@ -108,4 +116,31 @@ export async function getBlocksForLang(lang: Lang): Promise<Record<CmsBlockKey, 
     out[key] = overrides[`block.${key}`] ?? defaults?.[key] ?? CMS_BLOCKS[key]
   }
   return out
+}
+
+const readHomeLayout = unstable_cache(
+  async (): Promise<HomeLayoutItem[]> => {
+    try {
+      if (!(await dbAvailable())) return defaultHomeLayout()
+      const row = await db.systemConfig.findUnique({
+        where: { id: CMS_LAYOUT_ID },
+        select: { value: true },
+      })
+      return parseHomeLayout(row?.value)
+    } catch (e) {
+      console.warn("[cms] layout read failed, using default:", e instanceof Error ? e.message : e)
+      return defaultHomeLayout()
+    }
+  },
+  ["cms-home-layout"],
+  { tags: [CMS_TAG] },
+)
+
+/** Homepage below-fold order + visibility. Coded default until an admin saves. */
+export async function getHomeLayout(): Promise<HomeLayoutItem[]> {
+  try {
+    return await readHomeLayout()
+  } catch {
+    return defaultHomeLayout()
+  }
 }

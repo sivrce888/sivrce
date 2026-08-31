@@ -8,6 +8,8 @@ import { cityBySlug, nearestMapCity, type MapCity } from '@/lib/map/user-place'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 3
+export const preferredRegion = 'fra1'
 
 type GeoBody = {
   slug: string

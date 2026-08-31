@@ -1,11 +1,19 @@
 /**
  * SIVRCE — Landmark building catalog (map + SEO).
- * Unique code + coords + card meta. Listings attach via `buildingSlug`.
- * ponytail: static catalog; MapBuilding/Building3D DB when curation UI exists.
+ * Street landmarks stay hand-curated; every Tbilisi project becomes a building.
+ * ponytail: derive from PROJECTS — one source for photo / coords / copy.
  */
 
 import { LISTINGS, type DealType, type Listing } from './listings'
-import { getDeveloper, type LocalText } from './professionals'
+import { geoRaionsOf } from './georgia-locations'
+import { TBILISI_QUARTERS } from './tbilisi-quarters'
+import {
+  PROJECTS,
+  getDeveloper,
+  projectCode,
+  type LocalText,
+  type Project,
+} from './professionals'
 
 export type BuildingCatalogEntry = {
   /** URL slug */
@@ -17,9 +25,13 @@ export type BuildingCatalogEntry = {
   address: string
   city: string
   district: string
+  /** Microdistrict / ubani when the address names one (ლისი, დიდი დიღომი, …). */
+  ubani?: string
   coords: { lat: number; lng: number }
   buildingNumber: string
   img: string
+  gallery?: string[]
+  passportUrl?: string
   developerSlug: string
   yearBuilt?: number
   floors: number
@@ -29,9 +41,12 @@ export type BuildingCatalogEntry = {
   /** Optional link to /projects/[slug] */
   projectSlug?: string
   status: 'ready' | 'construction'
+  priceFromM2?: string
+  finish?: string
 }
 
-export const BUILDINGS: BuildingCatalogEntry[] = [
+/** Address-level landmarks that are not (or not only) a PROJECTS slug. */
+const STREET_LANDMARKS: BuildingCatalogEntry[] = [
   {
     slug: 'axis-towers',
     code: 'SV-TB-0001',
@@ -77,75 +92,6 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
       ka: 'ქინგ დევიდ რეზიდენსი — გიორგი ათონელის 12, მთაწმინდა. 18 სართ., კონსიერჟი, პარკინგი. ხედი ძველ თბილისზე და მთაწმინდაზე.',
       en: 'King David Residences — 12 Giorgi Atoneli St, Mtatsminda. 18 floors, concierge, parking. Old Tbilisi and Mtatsminda views.',
       ru: 'King David Residences — Атонели 12, Мтацминда. 18 этажей, консьерж, паркинг.',
-    },
-  },
-  {
-    slug: 'downtown-residence',
-    code: 'SV-TB-0003',
-    name: 'Downtown Residence',
-    nameEn: 'Downtown Residence',
-    address: 'საბურთალო, თბილისი',
-    city: 'თბილისი',
-    district: 'საბურთალო',
-    coords: { lat: 41.72188414, lng: 44.75250752 },
-    buildingNumber: '—',
-    img: '/images/projects/downtown-residence.webp',
-    developerSlug: 'm2-development',
-    floors: 22,
-    units: 214,
-    rating: 4.8,
-    projectSlug: 'downtown-residence',
-    status: 'construction',
-    description: {
-      ka: 'Downtown Residence — საბურთალო, m2. მშენებარე, 22 სართ. დახურული ეზო, ფიტნესი, კონსიერჟი, მიწისქვეშა პარკინგი.',
-      en: 'Downtown Residence — Saburtalo, m2. Under construction, 22 floors. Courtyard, fitness, concierge, underground parking.',
-      ru: 'Downtown Residence — Сабуртало, m2. Строится, 22 этажа. Двор, фитнес, консьерж, подземный паркинг.',
-    },
-  },
-  {
-    slug: 'dirsi-riverside',
-    code: 'SV-TB-0004',
-    name: 'დირსი რივერსაიდი',
-    nameEn: 'Dirsi Riverside',
-    address: 'შოთა ნადირაშვილის ქ. 22-44, ისანი, თბილისი',
-    city: 'თბილისი',
-    district: 'ისანი',
-    coords: { lat: 41.6722599, lng: 44.8555565 },
-    buildingNumber: '—',
-    img: '/images/projects/dirsi-riverside.webp',
-    developerSlug: 'dirsi',
-    floors: 26,
-    units: 5228,
-    rating: 4.6,
-    projectSlug: 'dirsi-riverside',
-    status: 'ready',
-    description: {
-      ka: 'დირსი — ისანი, მტკვრის ნაპირი. ~22 კორპუსი, 5 000+ ბინა; დასრულებული.',
-      en: 'Dirsi — Isani, Mtkvari bank. ~22 buildings, 5,000+ units; completed.',
-      ru: 'Dirsi — Исани, берег Куры. ~22 корпуса, 5000+ квартир; сдан.',
-    },
-  },
-  {
-    slug: 'archi-dighomi',
-    code: 'SV-TB-0005',
-    name: 'არქი დიღომი',
-    nameEn: 'Archi Dighomi',
-    address: 'პეტრე იბერის შესახვევი, დიღომი, თბილისი',
-    city: 'თბილისი',
-    district: 'დიღომი',
-    coords: { lat: 41.7911462, lng: 44.7536968 },
-    buildingNumber: '—',
-    img: '/images/projects/archi-dighomi.webp',
-    developerSlug: 'archi',
-    floors: 16,
-    units: 260,
-    rating: 4.7,
-    projectSlug: 'archi-dighomi',
-    status: 'construction',
-    description: {
-      ka: 'არქი დიღომი — დიღომი. 16 სართ., ენერგოეფექტური ფასადი. განვადება დეველოპერისგან.',
-      en: 'Archi Dighomi — Dighomi. 16 floors, energy-efficient façade. Developer instalments available.',
-      ru: 'Archi Dighomi — Дигоми. 16 этажей, энергоэффективный фасад. Рассрочка от застройщика.',
     },
   },
   {
@@ -294,7 +240,7 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     address: 'ნუცუბიძის 77, საბურთალო, თბილისი',
     city: 'თბილისი',
     district: 'საბურთალო',
-    coords: { lat: 41.73396720, lng: 44.73783090 },
+    coords: { lat: 41.7339672, lng: 44.7378309 },
     buildingNumber: '77',
     img: '/images/projects/archi-nutsubidze.webp',
     developerSlug: 'archi',
@@ -310,6 +256,198 @@ export const BUILDINGS: BuildingCatalogEntry[] = [
     },
   },
 ]
+
+/** SEO alias — same pin as axis-towers; do not double-list. */
+const PROJECT_SLUG_ALIASES = new Set(['axis-towers-vake'])
+
+const STREET_HINT =
+  /(?:\bst\.?\b|\bstreet\b|\bave\b|\bavenue\b|\bline\b|ქ\.|ქუჩ|გამზ|შესახვ|ხეივან)/i
+const HOUSE_NO = /^[\d]+[a-zA-Zა-ჰ]?(?:-[\d]+[a-zA-Zა-ჰ]?)*$/
+
+function districtFrom(location: string, city: string): string {
+  const parts = location
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (parts.length && parts[parts.length - 1] === city) parts.pop()
+  while (parts.length && HOUSE_NO.test(parts[parts.length - 1]!)) parts.pop()
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i]!
+    if (!STREET_HINT.test(p) && !/\d/.test(p)) return p
+  }
+  return city
+}
+
+/** Official raion → ubani for Tbilisi; longest ubani name wins. */
+const TB_RAIONS = geoRaionsOf('თბილისი')
+const TB_UBANI_TO_RAION: Record<string, string> = {}
+for (const [raion, list] of Object.entries(TB_RAIONS)) {
+  for (const u of list) TB_UBANI_TO_RAION[u] = raion
+}
+const TB_UBANI = Object.keys(TB_UBANI_TO_RAION).sort((a, b) => b.length - a.length)
+const TB_RAION_SET = new Set(Object.keys(TB_RAIONS))
+
+function locationHasName(location: string, city: string, name: string): boolean {
+  return location
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && s !== city)
+    .some((p) => p === name || p.includes(name))
+}
+
+function quarterUbani(location: string, city: string): string | undefined {
+  let best: string | undefined
+  let bestLen = 0
+  for (const q of TBILISI_QUARTERS) {
+    if (locationHasName(location, city, q.ka) && q.ka.length > bestLen) {
+      best = q.district
+      bestLen = q.ka.length
+    }
+  }
+  return best
+}
+
+const EXTRA_PLACE: Record<string, { district: string; ubani?: string }> = {
+  თაბახმელა: { district: 'მთაწმინდა', ubani: 'ტაბახმელა' },
+  ტაბახმელა: { district: 'მთაწმინდა', ubani: 'ტაბახმელა' },
+  ჯიქია: { district: 'საბურთალო' },
+  'კრწანისის პარკი / მტკვრის ნაპირი': { district: 'კრწანისი' },
+}
+
+const SLUG_PLACE: [RegExp, string, string?][] = [
+  [/lisi/, 'საბურთალო', 'ლისი'],
+  [/dighomi|digomi/, 'საბურთალო', 'დიღომი'],
+  [/nutsubidze/, 'საბურთალო', 'ნუცუბიძის ფერდობი'],
+  [/ortachala/, 'კრწანისი', 'ორთაჭალა'],
+  [/saburtalo|mindeli|tamarashvili|holbrooke|barcelo/, 'საბურთალო'],
+  [/vake|mziuri/, 'ვაკე'],
+  [/isani|omnia/, 'ისანი'],
+  [/gldani/, 'გლდანი'],
+  [/varketili/, 'სამგორი', 'ვარკეთილი'],
+  [/avlabari/, 'ისანი', 'ავლაბარი'],
+  [/didube/, 'დიდუბე'],
+  [/mtatsminda/, 'მთაწმინდა'],
+  [/krtsanisi|gorgasali|waterfront|horizon|oriental|riverfront/, 'კრწანისი'],
+  [/jikia/, 'საბურთალო'],
+  [/central-park/, 'საბურთალო'],
+  [/rivertown/, 'ჩუღურეთი'],
+  [/kavtaradze/, 'საბურთალო'],
+  [/gagarin/, 'გლდანი'],
+  [/apex-towers/, 'საბურთალო', 'დიდი დიღომი'],
+  [/axis-palace/, 'საბურთალო'],
+]
+
+function hintFromSlug(slug: string): { district: string; ubani?: string } | undefined {
+  // ponytail: "lisi" is a substring of "tbilisi" — strip the city token first.
+  const s = slug.replaceAll('tbilisi', '')
+  for (const [re, district, ubani] of SLUG_PLACE) {
+    if (re.test(s)) return ubani ? { district, ubani } : { district }
+  }
+  return undefined
+}
+
+function placeFrom(
+  location: string,
+  city: string,
+  slug?: string,
+): { district: string; ubani?: string } {
+  let district = districtFrom(location, city)
+  if (city !== 'თბილისი') return { district }
+
+  const extra = EXTRA_PLACE[district]
+  if (extra) return extra
+
+  const ubani =
+    TB_UBANI.find((n) => locationHasName(location, city, n)) ?? quarterUbani(location, city)
+  if (ubani) {
+    const raion = TB_UBANI_TO_RAION[ubani] ?? (TB_RAION_SET.has(district) ? district : undefined)
+    if (raion && (district === ubani || district === city || !TB_RAION_SET.has(district))) {
+      district = raion
+    }
+    return { district, ubani: ubani === district ? undefined : ubani }
+  }
+  if (TB_RAION_SET.has(district)) return { district }
+
+  const hinted = slug ? hintFromSlug(slug) : undefined
+  if (hinted) return hinted
+  return { district }
+}
+
+function yearBuiltFrom(p: Project): number | undefined {
+  if (p.done < 100) return undefined
+  const m = p.finish.match(/20\d{2}/)
+  return m ? Number(m[0]) : undefined
+}
+
+function buildingNumberFrom(location: string): string {
+  const head = location.split(',')[0] ?? location
+  const m = head.match(/(\d+[a-zA-Zა-ჰ]?)\s*$/)
+  return m?.[1] ?? '—'
+}
+
+function projectToBuilding(p: Project): BuildingCatalogEntry {
+  const floors = Math.min(100, p.floors ?? Math.max(8, Math.round(p.flats / 12)))
+  const { district, ubani } = placeFrom(p.location, p.city, p.slug)
+  return {
+    slug: p.slug,
+    code: projectCode(p),
+    name: p.name,
+    nameEn: p.name,
+    address: p.location,
+    city: p.city,
+    district,
+    ubani,
+    coords: p.coords,
+    buildingNumber: buildingNumberFrom(p.location),
+    img: p.img,
+    gallery: p.gallery,
+    passportUrl: p.passportUrl,
+    developerSlug: p.developerSlug,
+    yearBuilt: yearBuiltFrom(p),
+    floors,
+    units: p.flats,
+    rating: p.rating,
+    description: p.description,
+    projectSlug: p.slug,
+    status: p.done >= 100 ? 'ready' : 'construction',
+    priceFromM2: p.priceFromM2,
+    finish: p.finish,
+  }
+}
+
+function enrichPlace(b: BuildingCatalogEntry): BuildingCatalogEntry {
+  if (b.ubani) return b
+  const { district, ubani } = placeFrom(b.address, b.city, b.slug)
+  return {
+    ...b,
+    district: TB_RAION_SET.has(b.district) ? b.district : district,
+    ubani,
+  }
+}
+
+function buildCatalog(): BuildingCatalogEntry[] {
+  const taken = new Set(STREET_LANDMARKS.map((b) => b.slug))
+  for (const b of STREET_LANDMARKS) {
+    if (b.projectSlug) taken.add(b.projectSlug)
+  }
+  for (const alias of PROJECT_SLUG_ALIASES) taken.add(alias)
+
+  const fromProjects = PROJECTS.filter(
+    (p) =>
+      p.city === 'თბილისი' &&
+      Number.isFinite(p.coords.lat) &&
+      Number.isFinite(p.coords.lng) &&
+      !taken.has(p.slug),
+  ).map(projectToBuilding)
+
+  // Street first (stable SV-* codes), then Tbilisi projects A→Z by name.
+  return [
+    ...STREET_LANDMARKS.map(enrichPlace),
+    ...fromProjects.sort((a, b) => a.name.localeCompare(b.name, 'ka')),
+  ]
+}
+
+export const BUILDINGS: BuildingCatalogEntry[] = buildCatalog()
 
 export function getBuilding(slug: string): BuildingCatalogEntry | undefined {
   return BUILDINGS.find((b) => b.slug === slug)
@@ -333,4 +471,17 @@ export function buildingDeveloperName(slug: string): string | undefined {
   const b = getBuilding(slug)
   if (!b) return undefined
   return getDeveloper(b.developerSlug)?.name.ka
+}
+
+export function relatedBuildings(slug: string, limit = 6): BuildingCatalogEntry[] {
+  const me = getBuilding(slug)
+  if (!me) return []
+  const same = BUILDINGS.filter(
+    (b) => b.slug !== slug && b.city === me.city && b.district === me.district,
+  ).sort((a, b) => b.rating - a.rating)
+  if (same.length >= 3) return same.slice(0, limit)
+  const fill = BUILDINGS.filter(
+    (b) => b.slug !== slug && b.city === me.city && !same.some((x) => x.slug === b.slug),
+  ).sort((a, b) => b.rating - a.rating)
+  return [...same, ...fill].slice(0, limit)
 }

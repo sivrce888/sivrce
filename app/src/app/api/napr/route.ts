@@ -1,17 +1,20 @@
 /**
  * GET /api/napr?code=01.10.10.025.115 — parcel by cadastral
  * GET /api/napr?lat=&lng= — parcel under pin
+ * GET /api/napr?health=1 — CadRepGeo up/down
  */
 
 import { type NextRequest, NextResponse } from 'next/server'
+import { cdnJson } from '@/lib/cdn-cache'
 import {
   fetchNaprParcelAt,
   fetchNaprParcelByCode,
+  probeNaprCadRep,
 } from '@/lib/map/napr-parcel'
 import { isSameOrigin } from '@/lib/security/origin'
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
+export const maxDuration = 8
+export const preferredRegion = 'fra1'
 
 export async function GET(req: NextRequest) {
   if (!isSameOrigin(req) && process.env.NODE_ENV === 'production') {
@@ -19,13 +22,22 @@ export async function GET(req: NextRequest) {
   }
 
   const sp = req.nextUrl.searchParams
+  if (sp.get('health') === '1') {
+    const up = await probeNaprCadRep()
+    return NextResponse.json(
+      { ok: up, service: 'CadRepGeo' },
+      { status: up ? 200 : 503, headers: { 'Cache-Control': 'no-store' } },
+    )
+  }
+
   const code = sp.get('code')?.trim() ?? ''
   if (code) {
     const parcel = await fetchNaprParcelByCode(code)
     if (!parcel) {
-      return NextResponse.json({ ok: false, error: 'not_found' }, { status: 404 })
+      // ponytail: 404 covers both missing parcel and CadRepGeo outage (retry client-side).
+      return cdnJson({ ok: false, error: 'not_found' }, 60, 404)
     }
-    return NextResponse.json({ ok: true, ...parcel })
+    return cdnJson({ ok: true, source: 'napr', ...parcel })
   }
 
   const lat = Number(sp.get('lat'))
@@ -33,9 +45,9 @@ export async function GET(req: NextRequest) {
   if (Number.isFinite(lat) && Number.isFinite(lng)) {
     const parcel = await fetchNaprParcelAt(lat, lng)
     if (!parcel) {
-      return NextResponse.json({ ok: false, error: 'not_found' }, { status: 404 })
+      return cdnJson({ ok: false, error: 'not_found' }, 60, 404)
     }
-    return NextResponse.json({ ok: true, ...parcel })
+    return cdnJson({ ok: true, source: 'napr', ...parcel })
   }
 
   return NextResponse.json({ ok: false, error: 'need_code_or_latlng' }, { status: 400 })

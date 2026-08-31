@@ -2,6 +2,45 @@
 
 export type SuggestKind = 'city' | 'district' | 'street'
 
+export type LocationValue = { city: string; district: string; street: string; metro?: boolean }
+
+export function splitDistricts(raw: string | null | undefined): string[] {
+  if (!raw) return []
+  return raw.split(',').map((s) => s.trim()).filter(Boolean)
+}
+
+/** Compact label for the location trigger. */
+export function locationLabel(v: LocationValue, empty = 'აირჩიე ქალაქი'): string {
+  const districts = splitDistricts(v.district)
+  if (v.street) {
+    if (districts[0]) return `${v.street}, ${districts[0]}`
+    if (v.city) return `${v.street}, ${v.city}`
+    return v.street
+  }
+  if (districts.length === 1) return v.city ? `${districts[0]}, ${v.city}` : districts[0]!
+  if (districts.length === 2) return districts.join(', ')
+  if (districts.length > 2) return v.city ? `${v.city} · ${districts.length}` : String(districts.length)
+  if (v.city) return v.city
+  return empty
+}
+
+/** Prefer raion name when every leaf is selected — shorter URL, search expands. */
+export function compactDistrictParam(selected: string[], raions: Record<string, string[]>): string {
+  const set = new Set(selected)
+  const parts: string[] = []
+  const covered = new Set<string>()
+  for (const [raion, ubanis] of Object.entries(raions)) {
+    const allLeaves = ubanis.length > 0 && ubanis.every((u) => set.has(u))
+    if (set.has(raion) || allLeaves) {
+      parts.push(raion)
+      covered.add(raion)
+      for (const u of ubanis) covered.add(u)
+    }
+  }
+  for (const s of selected) if (!covered.has(s)) parts.push(s)
+  return parts.join(',')
+}
+
 export type SuggestHit = {
   kind: SuggestKind
   ka: string

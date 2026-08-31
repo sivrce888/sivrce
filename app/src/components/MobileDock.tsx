@@ -44,6 +44,7 @@ export default function MobileDock() {
 
   return (
     <nav
+      data-sv-dock
       aria-label={t('nav.main')}
       className="fixed inset-x-0 bottom-0 z-[45] border-t border-sv-ink/[0.08] bg-sv-surface/92 pb-[env(safe-area-inset-bottom,0px)] shadow-card backdrop-blur-xl lg:hidden dark:border-white/10"
     >

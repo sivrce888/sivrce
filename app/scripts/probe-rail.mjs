@@ -6,7 +6,7 @@ const page = await ctx.newPage();
 await page.goto('http://localhost:3000/', { waitUntil: 'networkidle', timeout: 60000 });
 // slow user-like scroll to listings rail (find it first)
 const railY = await page.evaluate(() => {
-  const el = document.querySelector('[role="region"][aria-label*="SUPER VIP"]');
+  const el = document.querySelector('[role="region"][aria-label*="რჩეული"]');
   return el ? el.getBoundingClientRect().top + window.scrollY : 0;
 });
 await page.evaluate(async (target) => {

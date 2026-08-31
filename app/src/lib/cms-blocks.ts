@@ -272,6 +272,33 @@ export function cmsGroups(): CmsGroup[] {
 
 const DICT_KEYS = Object.keys(ka) as DictKey[]
 
+/** Allowlist for a single-key admin write — dict, homepage block, or SEO. */
+export function isKnownCmsKey(key: string): boolean {
+  if (key.startsWith("block.")) {
+    return (CMS_BLOCK_KEYS as string[]).includes(key.slice("block.".length))
+  }
+  if ((CMS_SEO_KEYS as readonly string[]).includes(key)) return true
+  return (DICT_KEYS as string[]).includes(key)
+}
+
+/** One row for a known key. Unknown → null (caller must not write). */
+export function cmsRowForKey(
+  lang: Lang,
+  key: string,
+  overrides: Record<string, string>,
+): CmsRow | null {
+  if (!isKnownCmsKey(key)) return null
+  if (key.startsWith("block.")) {
+    const block = key.slice("block.".length) as CmsBlockKey
+    return { key, defaultText: CMS_BLOCKS[block], value: overrides[key] ?? "" }
+  }
+  if ((CMS_SEO_KEYS as readonly string[]).includes(key)) {
+    const seo = key as CmsSeoKey
+    return { key, defaultText: SEO_DEFAULTS[seo](lang), value: overrides[key] ?? "" }
+  }
+  return { key, defaultText: translate(lang, key as DictKey), value: overrides[key] ?? "" }
+}
+
 /** Rows for one group+language. Unknown group → []. Reused by page AND action (never trust client keys). */
 export function cmsRowsForGroup(
   lang: Lang,

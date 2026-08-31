@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import Navbar from '@/components/sections/Navbar'
 import Hero from '@/components/sections/Hero'
 import Stats from '@/components/sections/Stats'
@@ -27,6 +27,9 @@ import {
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { getHomeStats } from '@/lib/home-stats'
 import { AdSlot } from '@/components/ads/AdSlot'
+import { CmsSection } from '@/components/cms/CmsPreviewBridge'
+import { getHomeLayout } from '@/lib/cms'
+import type { HomeFlowId } from '@/lib/cms-studio'
 import type { Lang } from '@/lib/i18n/core'
 
 /** DB-first featured rail; empty when DB is down — fallback cards 404'd
@@ -86,23 +89,34 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
     .sort((a, b) => b.listingsCount - a.listingsCount)
     .slice(0, 12)
 
+  const layout = await getHomeLayout()
+  const nodes: Record<HomeFlowId, ReactNode> = {
+    stories: <StoriesRail items={stories} />,
+    categories: <Categories lang={lang} />,
+    listings: <Listings items={featured} />,
+    ad_mid: <AdSlot slot="home_mid" lang={lang} />,
+    neighborhoods: <NeighborhoodsRail counts={districtCounts} />,
+    map: <MapSection />,
+    projects: <Projects items={homeProjects} total={projects.length} />,
+    ad_after_projects: <AdSlot slot="home_after_projects" lang={lang} />,
+    agents: <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} />,
+    developers: <DeveloperSlider developers={topDevelopers} total={developers.length} />,
+    services: <Services lang={lang} />,
+    stats: <Stats live={stats} />,
+    forum: <ForumTeaser />,
+    blog: <BlogNewsSection />,
+    cta: <CTA lang={lang} />,
+  }
+
   return (
     <>
-      <StoriesRail items={stories} />
-      <Categories lang={lang} />
-      <Listings items={featured} />
-      <AdSlot slot="home_mid" lang={lang} />
-      <NeighborhoodsRail counts={districtCounts} />
-      <MapSection />
-      <Projects items={homeProjects} total={projects.length} />
-      <AdSlot slot="home_after_projects" lang={lang} />
-      <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} />
-      <DeveloperSlider developers={topDevelopers} total={developers.length} />
-      <Services lang={lang} />
-      <Stats live={stats} />
-      <ForumTeaser />
-      <BlogNewsSection />
-      <CTA lang={lang} />
+      {layout.map((item) =>
+        item.hidden ? null : (
+          <CmsSection key={item.id} id={item.id}>
+            {nodes[item.id]}
+          </CmsSection>
+        ),
+      )}
     </>
   )
 }

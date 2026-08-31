@@ -128,6 +128,8 @@ export default function AddListingClient() {
   const muteGeocode = useRef(false)
   const [cadastral, setCadastral] = useState('')
   const [cadastralPublic, setCadastralPublic] = useState(false)
+  /** TAS public permits from /api/site when cadastral / pin known. */
+  const [tasDocs, setTasDocs] = useState<{ documentNo: string; publicUrl: string; address?: string }[]>([])
   const [area, setArea] = useState('')
   const [areaUnit, setAreaUnit] = useState<'m2' | 'ha'>('m2')
   const [yardArea, setYardArea] = useState('')
@@ -487,13 +489,13 @@ export default function AddListingClient() {
     }
   }, [street, houseNo, district, city])
 
-  // Cadastral → NAPR legal parcel ring. Pin only when street empty (address geocode owns pin).
+  // Cadastral → site lookup (OSM building ring preferred, NAPR parcel fallback).
   useEffect(() => {
     const digits = naprUniqDigits(cadastral)
     if (!digits) return
     const ac = new AbortController()
     const t = setTimeout(() => {
-      fetch(`/api/napr?code=${encodeURIComponent(digits)}`, { signal: ac.signal })
+      fetch(`/api/site?code=${encodeURIComponent(digits)}`, { signal: ac.signal })
         .then((r) => (r.ok ? r.json() : null))
         .then(
           (
@@ -502,10 +504,12 @@ export default function AddListingClient() {
               ring?: [number, number][]
               lat?: number
               lng?: number
-              uniqCode?: string
+              tasDocs?: { documentNo: string; publicUrl: string; address?: string }[]
             } | null,
           ) => {
-            if (!d?.ok || !Array.isArray(d.ring) || d.ring.length < 4) return
+            if (!d?.ok) return
+            if (Array.isArray(d.tasDocs)) setTasDocs(d.tasDocs.slice(0, 5))
+            if (!Array.isArray(d.ring) || d.ring.length < 4) return
             setFootprint(d.ring)
             // ponytail: wrong NAPR parcel must not override Digomi quarter street pin
             if (street.trim().length >= 2) return
@@ -613,14 +617,25 @@ export default function AddListingClient() {
     setFootprint(ring && ring.length >= 4 ? ring : null)
     setPinReady(true)
     setSuggestOpen(false)
-    // Upgrade basemap/OSM mesh → NAPR parcel when CadRepGeo has one under the pin.
-    fetch(`/api/napr?lat=${lat}&lng=${lng}`)
+    // Site lookup: keep / upgrade to OSM building contour; fill cadastral from NAPR.
+    fetch(`/api/site?lat=${lat}&lng=${lng}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: { ok?: boolean; ring?: [number, number][]; uniqCode?: string } | null) => {
-        if (!d?.ok || !Array.isArray(d.ring) || d.ring.length < 4) return
-        setFootprint(d.ring)
-        if (d.uniqCode && !cadastral.trim()) setCadastral(d.uniqCode)
-      })
+      .then(
+        (
+          d: {
+            ok?: boolean
+            ring?: [number, number][]
+            parcel?: { uniqCode?: string } | null
+            tasDocs?: { documentNo: string; publicUrl: string; address?: string }[]
+          } | null,
+        ) => {
+          if (!d?.ok) return
+          if (Array.isArray(d.ring) && d.ring.length >= 4) setFootprint(d.ring)
+          if (Array.isArray(d.tasDocs)) setTasDocs(d.tasDocs.slice(0, 5))
+          const uniq = d.parcel?.uniqCode
+          if (uniq && !cadastral.trim()) setCadastral(uniq)
+        },
+      )
       .catch(() => {})
     fetch(`/api/geocode?lat=${lat}&lng=${lng}`)
       .then((r) => (r.ok ? r.json() : null))
@@ -1198,7 +1213,8 @@ export default function AddListingClient() {
                       </button>
                       <LocationPicker
                         open={locOpen}
-                        value={{ city, district, street: '' }}
+                        value={{ city, district, street }}
+                        multi={false}
                         onClose={() => setLocOpen(false)}
                         onApply={applyLocation}
                       />
@@ -1317,6 +1333,26 @@ export default function AddListingClient() {
                         <p className="mt-2 text-[11px] font-bold text-sv-ink/40">
                           პინი და შენობა ავტომატურად · ან დააჭირე რუკას — შენობაზე მონიშვნისთვის
                         </p>
+                        {tasDocs.length > 0 && (
+                          <ul className="mt-3 space-y-1.5 rounded-control border border-sv-ink/[0.06] bg-sv-cloud/60 px-3 py-2.5">
+                            <li className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">
+                              {t('detail.tasPermits')}
+                            </li>
+                            {tasDocs.map((d) => (
+                              <li key={d.publicUrl} className="flex items-baseline justify-between gap-2 text-[13px]">
+                                <span className="font-bold text-sv-ink">{d.documentNo}</span>
+                                <a
+                                  href={d.publicUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-black text-sv-blue hover:underline"
+                                >
+                                  {t('detail.tasOpen')}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     )}
                   </div>

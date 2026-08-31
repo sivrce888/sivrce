@@ -10,9 +10,11 @@ assert.equal(canonicalizeDistrict('Airport (district)', 'ბათუმი'), '
 assert.equal(canonicalizeDistrict('Chugureti'), 'ჩუღურეთი')
 assert.ok(districtSearchValues('ვაკე-საბურთალო').includes('ვაკე'))
 assert.ok(districtSearchValues('ვაკე', 'თბილისი').includes('ბაგები'))
+assert.ok(!districtSearchValues('ვაკე', 'თბილისი').includes('დიღომი'))
 assert.equal(canonicalizeDistrict('აეროპორტის რაიონი, ადლიას ქ. 53', 'ბათუმი'), 'აეროპორტის უბანი')
 assert.equal(canonicalizeDistrict('ჩაკვი, შავი ზღვის სანაპირო'), '')
 assert.equal(canonicalizeDistrict('ვაკის რაიონი'), 'ვაკე')
-assert.ok(!districtSearchValues('ვაკე', 'თბილისი').includes('დიღომი'))
+assert.ok(districtSearchValues('ვაკე,საბურთალო', 'თბილისი').includes('ბაგები'))
+assert.ok(districtSearchValues('ვაკე,საბურთალო', 'თბილისი').includes('ვეძისი'))
 
 console.log('district-canon: ok')

@@ -1,7 +1,8 @@
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 
 const TABS = [
-  { href: "/admin/content/pages", label: "Pages" },
+  { href: "/admin/content/studio", label: "Studio" },
+  { href: "/admin/content/pages", label: "All texts" },
   { href: "/admin/content/blog", label: "Blog" },
   { href: "/admin/content/reviews", label: "Reviews" },
   { href: "/admin/content/forum", label: "Forum" },

@@ -198,7 +198,7 @@ async function applySync(state: LayerState, buildings: MapBuildingCluster[]) {
         const group = new state.THREE.Group()
         for (const part of rings) {
           const height = part.floors
-            ? Math.min(part.floors * 3.15, 110)
+            ? Math.min(part.floors * 3.15, 350)
             : fallbackH
           group.add(
             await makeExtrudedMesh(

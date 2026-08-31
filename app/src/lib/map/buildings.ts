@@ -19,6 +19,7 @@ import { getDeveloper, projectCode, type Project } from '@/data/professionals'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 import footprintData from '@/data/building-footprints.json'
+import { naprOverrideFor } from '@/lib/map/napr-overrides'
 
 /** Real OSM building rings keyed by cluster id (© OpenStreetMap contributors, ODbL).
  *  null = confirmed no OSM coverage → square fallback. Refresh: npx tsx scripts/fetch-footprints.ts
@@ -295,7 +296,10 @@ function enrichFromCatalog(
     floors: cat.floors,
     description: cat.description.ka,
     projectSlug: cat.projectSlug ?? cluster.projectSlug,
-    heightM: Math.min(18 + cat.floors * 3.1, 110),
+    // ponytail: 110 m cap flattened 40–100 fl project towers; 350 m ≈ 110 fl.
+    heightM: cat.projectSlug
+      ? Math.min(cat.floors * 3.15, 350)
+      : Math.min(18 + cat.floors * 3.1, 110),
     status: cat.status === 'construction' ? 'construction' : 'active',
   }
 }
@@ -321,7 +325,9 @@ export function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[])
       cat.status === 'construction'
         ? STATUS_BRAND.construction.hue
         : dealColor(dominant),
-    heightM: Math.min(18 + cat.floors * 3.1, 110),
+    heightM: cat.projectSlug
+      ? Math.min(cat.floors * 3.15, 350)
+      : Math.min(18 + cat.floors * 3.1, 110),
     status: cat.status === 'construction' ? 'construction' : 'active',
     projectSlug: cat.projectSlug,
     progress: cat.status === 'construction' ? 55 : 100,
@@ -460,13 +466,18 @@ export function projectsToConstructionBuildings(
       const completed = p.done >= 100
       const dev = getDeveloper(p.developerSlug)
       const id = `dev-${p.slug}`
+      // NAPR CadRepGeo override wins over OSM/catalog pin when snap script succeeded.
+      const napr = naprOverrideFor(p.slug)
+      const baseLat = napr?.lat ?? p.coords.lat
+      const baseLng = napr?.lng ?? p.coords.lng
       const fp = footprintEntry({ id, slug: p.slug, projectSlug: p.slug })
       const glued = fp ? footprintCentroid(fp) : null
-      const ring = footprintPrimaryRing(fp ?? undefined)
+      const ring = napr?.ring ?? footprintPrimaryRing(fp ?? undefined)
       const campus = !!(fp && fp.parts && fp.parts.length >= 2)
       const pinOk =
+        !napr &&
         !!ring &&
-        footprintRingUsable(ring, p.coords.lat, p.coords.lng, {
+        footprintRingUsable(ring, baseLat, baseLng, {
           campus,
           ghost: !completed,
           floors,
@@ -474,8 +485,8 @@ export function projectsToConstructionBuildings(
         })
       return {
         id,
-        lat: pinOk && glued ? glued.lat : p.coords.lat,
-        lng: pinOk && glued ? glued.lng : p.coords.lng,
+        lat: pinOk && glued ? glued.lat : baseLat,
+        lng: pinOk && glued ? glued.lng : baseLng,
         label: p.name,
         address: p.location,
         buildingNumber: bn,
@@ -486,7 +497,8 @@ export function projectsToConstructionBuildings(
         dominant: 'construction' as const,
         color: completed ? SERVICE_BRAND.developers.hue : STATUS_BRAND.construction.hue,
         // Full planned height — progress stays on the panel, not the massing.
-        heightM: Math.min(floors * 3.15, 110),
+        // ponytail: 110 m cap flattened 40–100 fl towers; 350 m ≈ 110 fl.
+        heightM: Math.min(floors * 3.15, 350),
         status: completed ? ('completed' as const) : ('construction' as const),
         progress: p.done,
         projectSlug: p.slug,
@@ -496,6 +508,7 @@ export function projectsToConstructionBuildings(
         floors,
         finish: p.finish,
         img: p.img,
+        ...(napr?.ring ? { ring: napr.ring } : {}),
       }
     })
 }
@@ -516,14 +529,17 @@ export function applyLiveProjectPins(
     const bn = parseBuildingNumber(p.location)
     const dev = getDeveloper(p.developerSlug)
     const completed = p.done >= 100
+    const napr = naprOverrideFor(p.slug)
     // Keep OSM/campus centroid — project GPS is often a street geocode a block off.
+    // NAPR CadRepGeo override wins when snap-napr-pins wrote a ring.
     const fp = footprintEntry(b)
     const glued = fp ? footprintCentroid(fp) : null
-    const ring = footprintPrimaryRing(fp ?? undefined)
+    const ring = napr?.ring ?? footprintPrimaryRing(fp ?? undefined)
     const campus = !!(fp && fp.parts && fp.parts.length >= 2)
     const floors = p.floors ?? b.floors
     const osmHeightM = footprintOsmHeightM(fp)
     const ringOk = (lat: number, lng: number) =>
+      !napr &&
       !!ring &&
       footprintRingUsable(ring, lat, lng, {
         campus,
@@ -531,12 +547,16 @@ export function applyLiveProjectPins(
         floors,
         osmHeightM,
       })
-    const snap =
-      glued && (ringOk(b.lat, b.lng) || ringOk(p.coords.lat, p.coords.lng)) ? glued : null
+    const snap = napr
+      ? { lat: napr.lat, lng: napr.lng }
+      : glued && (ringOk(b.lat, b.lng) || ringOk(p.coords.lat, p.coords.lng))
+        ? glued
+        : null
     return {
       ...b,
       lat: snap?.lat ?? p.coords.lat,
       lng: snap?.lng ?? p.coords.lng,
+      ...(napr?.ring ? { ring: napr.ring } : {}),
       address: p.location || b.address,
       buildingNumber: bn || b.buildingNumber,
       developerSlug: p.developerSlug || b.developerSlug,
@@ -712,7 +732,7 @@ export function ringBboxHalfM(ring: ReadonlyArray<readonly number[]>): number {
 /** Distance from pin to ring centroid. Reject OSM hits glued to a neighbour block. */
 export const FOOTPRINT_MAX_PIN_M = 90
 /** Multi-tower campus (Dirsi, ORBI, Axis twins) — parts may sit a block off the pin. */
-export const FOOTPRINT_CAMPUS_MAX_PIN_M = 320
+export const FOOTPRINT_CAMPUS_MAX_PIN_M = 400
 
 export function ringCentroidDistM(
   ring: [number, number][],
@@ -876,7 +896,7 @@ export function buildingsToGeoJSON(
         if (parts.length > 0) {
           return parts.map((part, i) => {
             const floors = part.floors ?? b.floors ?? 8
-            const height = Math.min(floors * 3.15, 110)
+            const height = Math.min(floors * 3.15, 350)
             return {
               type: 'Feature' as const,
               id: i === 0 ? b.id : `${b.id}__${i}`,

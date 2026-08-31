@@ -18,6 +18,7 @@ export default function CompareTray() {
 
   return (
     <div
+      data-sv-compare
       role="region"
       aria-label={tt("trayTitle")}
       className="fixed inset-x-0 bottom-[var(--sv-dock)] z-[60] border-t border-sv-ink/10 bg-sv-surface/95 px-4 py-3 shadow-panel-dark backdrop-blur md:px-6"

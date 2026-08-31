@@ -1,7 +1,7 @@
 /**
  * NAPR cadastral parcel rings via CadRepGeo ArcGIS (reestri.gov.ge).
  * Legal site polygon — prefer over OSM/basemap mesh when cadastral or pin known.
- * ponytail: http Find/Identify only; no tile cache. Upgrade → NSDI WFS if they open it.
+ * ponytail: http Find/Identify + short retry; no tile cache. Upgrade → NSDI WFS if they open it.
  */
 
 import { parseCadastralCode } from '@/lib/listing-public-id'
@@ -14,7 +14,10 @@ export type NaprParcel = {
   lng: number
 }
 
-const BASE = 'http://gisappsn.reestri.gov.ge/ArcGIS/rest/services/CadRepGeo/MapServer'
+/** Override when CadRepGeo moves hosts (ops: NAPR_CADREP_URL). */
+const BASE =
+  (typeof process !== 'undefined' && process.env.NAPR_CADREP_URL?.replace(/\/$/, '')) ||
+  'http://gisappsn.reestri.gov.ge/ArcGIS/rest/services/CadRepGeo/MapServer'
 /** Regional ნაკვეთი layers (Tbilisi…Shida Kartli). */
 const PARCEL_LAYERS = '10,14,19,24,29,34,39,44,49,54,59'
 const UA = 'sivrce-maps/1.0 (sivrce888@gmail.com)'
@@ -96,17 +99,45 @@ export function pickNaprParcelFromResults(
   return best
 }
 
-async function naprGet(url: string): Promise<unknown | null> {
-  try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': UA },
-      signal: AbortSignal.timeout(14_000),
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch {
-    return null
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+type NaprGetOk = { ok: true; json: unknown }
+type NaprGetFail = { ok: false; down: boolean }
+
+/** Fetch CadRepGeo JSON. Retries transient 5xx / network. */
+async function naprGet(url: string): Promise<NaprGetOk | NaprGetFail> {
+  let sawDown = false
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': UA },
+        signal: AbortSignal.timeout(14_000),
+        cache: 'no-store',
+      })
+      if (res.status === 503 || res.status === 502 || res.status === 504) {
+        sawDown = true
+        await sleep(400 * (attempt + 1))
+        continue
+      }
+      if (!res.ok) {
+        if (res.status >= 500) sawDown = true
+        return { ok: false, down: sawDown || res.status >= 500 }
+      }
+      return { ok: true, json: await res.json() }
+    } catch {
+      sawDown = true
+      await sleep(400 * (attempt + 1))
+    }
   }
+  return { ok: false, down: sawDown }
+}
+
+/** True when CadRepGeo MapServer answers JSON (not 503 HTML). */
+export async function probeNaprCadRep(): Promise<boolean> {
+  const hit = await naprGet(`${BASE}?f=json`)
+  if (!hit.ok) return false
+  const j = hit.json as { layers?: unknown } | null
+  return Array.isArray(j?.layers)
 }
 
 /** Parcel ring by cadastral code (dotted or digits). */
@@ -124,7 +155,9 @@ export async function fetchNaprParcelByCode(code: string): Promise<NaprParcel | 
       sr: '4326',
       f: 'json',
     }).toString()
-  const json = (await naprGet(url)) as { results?: Array<{ attributes?: EsriAttrs; geometry?: EsriGeom }> } | null
+  const hit = await naprGet(url)
+  if (!hit.ok) return null
+  const json = hit.json as { results?: Array<{ attributes?: EsriAttrs; geometry?: EsriGeom }> }
   return pickNaprParcelFromResults(json?.results ?? [])
 }
 
@@ -148,7 +181,9 @@ export async function fetchNaprParcelAt(
       returnGeometry: 'true',
       f: 'json',
     }).toString()
-  const json = (await naprGet(url)) as { results?: Array<{ attributes?: EsriAttrs; geometry?: EsriGeom }> } | null
+  const hit = await naprGet(url)
+  if (!hit.ok) return null
+  const json = hit.json as { results?: Array<{ attributes?: EsriAttrs; geometry?: EsriGeom }> }
   return pickNaprParcelFromResults(json?.results ?? [])
 }
 

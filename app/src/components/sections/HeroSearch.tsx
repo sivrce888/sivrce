@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Search, History } from 'lucide-react'
+import { Search, History, MapPin } from 'lucide-react'
 import SearchSuggest, { type Suggestion, resolveExactPlace } from '@/components/search/SearchSuggest'
+import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import { useI18n, localizedHref } from '@/lib/i18n/context'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { DAILY_SIGNAL_KEYS } from '@/lib/features'
@@ -12,6 +13,7 @@ import { CITIES } from '@/data/listings'
 import { readRecent, writeRecent, recentLabel, type RecentSearch } from './hero-search-mode'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import { searchHref, suggestionToFilters } from '@/lib/search-location'
+import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 
 const TAB_HUES = [DEAL_BRAND.sale, DEAL_BRAND.rent, DEAL_BRAND.daily, DEAL_BRAND.newProjects] as const
 const TAB_KEYS = ['search.sale', 'search.rent', 'nav.daily', 'nav.projects'] as const
@@ -32,6 +34,8 @@ export default function HeroSearch() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [recent, setRecent] = useState<RecentSearch | null>(null)
+  const [loc, setLoc] = useState<LocationValue>({ city: '', district: '', street: '' })
+  const [locOpen, setLocOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { lang, t, b } = useI18n()
@@ -56,6 +60,9 @@ export default function HeroSearch() {
   const withDeal = (extra?: Record<string, string | undefined>) => {
     const f: Record<string, string | undefined> = {
       deal: dealParam(),
+      city: loc.city || undefined,
+      district: loc.district || undefined,
+      ...(loc.metro ? { metro: '1' } : {}),
       ...(isDaily && from && to && from >= todayIso && from < to ? { from, to } : {}),
       ...extra,
     }
@@ -80,7 +87,16 @@ export default function HeroSearch() {
       } catch { /* fall through */ }
     }
     const place = raw ? await resolveExactPlace(raw) : undefined
-    withDeal(place ? suggestionToFilters(place) : { q: raw || undefined })
+    if (place) {
+      withDeal(suggestionToFilters(place))
+      return
+    }
+    const parsed = raw ? parseNlQuery(raw) : null
+    if (parsed && nlHasStructure(parsed)) {
+      withDeal(nlToSearchPatch(parsed))
+      return
+    }
+    withDeal({ q: raw || loc.street || undefined })
   }
 
   const applySuggestion = (s: Suggestion) => {
@@ -152,6 +168,26 @@ export default function HeroSearch() {
         className="w-full min-w-0 rounded-tile bg-sv-surface/90 p-1.5 shadow-card ring-1 ring-white/80 backdrop-blur-2xl focus-within:ring-sv-blue/25 dark:bg-white/[0.10] dark:shadow-panel-dark dark:ring-white/14 sm:rounded-full sm:p-1.5"
       >
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={() => setLocOpen(true)}
+            aria-label={t('loc.title')}
+            className="flex h-12 shrink-0 items-center gap-2 rounded-full px-4 text-left text-[13px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.04] dark:text-white sm:max-w-[200px]"
+          >
+            <MapPin className={`h-4 w-4 shrink-0 ${loc.city ? 'text-sv-blue' : 'text-sv-ink/35 dark:text-white/40'}`} />
+            <span className={`min-w-0 truncate ${loc.city ? 'text-sv-ink dark:text-white' : 'text-sv-ink/45 dark:text-white/45'}`}>
+              {locationLabel(loc, t('loc.pickPlace'))}
+            </span>
+          </button>
+          <LocationPicker
+            open={locOpen}
+            value={loc}
+            multi
+            showMetro
+            onClose={() => setLocOpen(false)}
+            onApply={(v) => { setLoc(v); setLocOpen(false) }}
+          />
+          <span className="hidden h-7 w-px shrink-0 bg-sv-ink/10 dark:bg-white/15 sm:block" aria-hidden />
           <SearchSuggest
             variant="auto"
             size="lg"

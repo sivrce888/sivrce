@@ -4,7 +4,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { pickOsmBuildingRingFromElements } from './osm-building-ring'
+import { pickOsmBuildingFromElements, pickOsmBuildingRingFromElements } from './osm-building-ring'
 
 const shed = {
   type: 'way',
@@ -19,6 +19,8 @@ const shed = {
 
 const aptWay = {
   type: 'way',
+  id: 42,
+  tags: { building: 'apartments', 'building:levels': '9' },
   geometry: [
     { lon: 44.77845, lat: 41.7705 },
     { lon: 44.77907, lat: 41.7705 },
@@ -61,6 +63,11 @@ const inside = { lat: 41.77078, lng: 44.77876 }
 const ring = pickOsmBuildingRingFromElements([shed, aptWay], inside.lat, inside.lng)
 assert.ok(ring)
 assert.equal(ring![0]![0], 44.77845)
+
+const hit = pickOsmBuildingFromElements([shed, aptWay], inside.lat, inside.lng)
+assert.ok(hit)
+assert.equal(hit!.osmId, 42)
+assert.equal(hit!.levels, 9)
 
 const mpRing = pickOsmBuildingRingFromElements([mp], 41.7706, 44.7786)
 assert.ok(mpRing)

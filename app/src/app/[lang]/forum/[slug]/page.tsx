@@ -10,7 +10,7 @@ import { getForumThread, listForumThreads, relatedForumThreads } from '@/lib/for
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 interface PageProps {
   params: Promise<{ slug: string }>

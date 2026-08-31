@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Script from "next/script";
 import CurrencyProvider from "@/components/CurrencyProvider";
 import I18nProvider from "@/components/I18nProvider";
+import { CmsPreviewBridge } from "@/components/cms/CmsPreviewBridge";
 import PostHogProvider from "@/components/PostHogProvider";
 import ChatShell from "@/components/chat/ChatShell";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -385,6 +386,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
             <CurrencyProvider>
               <PostHogProvider>
                 <ChatShell>{children}</ChatShell>
+                <CmsPreviewBridge />
               </PostHogProvider>
             </CurrencyProvider>
           </I18nProvider>

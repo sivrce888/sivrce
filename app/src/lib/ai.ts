@@ -46,6 +46,8 @@ export interface ParsedSearchFilters {
   minArea?: number
   maxArea?: number
   keywords?: string
+  parking?: boolean
+  bright?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -133,6 +135,8 @@ const searchFilterSchema = z.object({
   minArea: z.number().optional().describe("Minimum area in square meters"),
   maxArea: z.number().optional().describe("Maximum area in square meters"),
   keywords: z.string().optional().describe("Free-text keywords extracted from query"),
+  parking: z.boolean().optional().describe("True if the query asks for parking"),
+  bright: z.boolean().optional().describe("True if the query asks for natural light / bright"),
 })
 
 export async function parseSearchQuery(query: string): Promise<ParsedSearchFilters | null> {
@@ -151,7 +155,9 @@ Rules:
 - All prices are in USD. Convert "K" (thousands) and "M" (millions). "$200K" = 200000.
 - Only include fields that are clearly mentioned in the query.
 - City and district names should be in Georgian.
-- "ვაკე", "საბურთალო", "ისანი" etc. are districts of Tbilisi.`,
+- "ვაკე", "საბურთალო", "ისანი" etc. are districts of Tbilisi.
+- parking=true if the query mentions parking / პარკინგი.
+- bright=true if the query mentions bright / natural light / ნათელი.`,
     })
     return result.object as ParsedSearchFilters
   } catch (e) {

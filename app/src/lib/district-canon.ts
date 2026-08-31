@@ -177,7 +177,11 @@ export function canonicalizeDistrict(raw: string | null | undefined, city?: stri
 /** Values to match in DB/search for a user-picked district (handles legacy combined). */
 export function districtSearchValues(raw: string | null | undefined, city?: string): string[] {
   if (!raw) return []
-  const trimmed = raw.trim()
+  const parts = raw.split(',').map((s) => s.trim()).filter(Boolean)
+  if (parts.length > 1) {
+    return [...new Set(parts.flatMap((p) => districtSearchValues(p, city)))]
+  }
+  const trimmed = parts[0] ?? ''
   if (EXPAND[trimmed]) return EXPAND[trimmed]
   const canon = canonicalizeDistrict(trimmed, city)
   if (EXPAND[canon]) return EXPAND[canon]

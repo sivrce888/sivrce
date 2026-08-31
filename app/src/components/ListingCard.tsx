@@ -8,7 +8,7 @@ import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap,
   Waves, Bath as BathTub, PartyPopper, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
-  Layers,
+  Layers, BadgeCheck,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
@@ -29,6 +29,8 @@ import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
 import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { SparkMark } from '@/components/SparkMark'
+import { sivrceScore } from '@/lib/sivrce-score'
+import { aiLabel } from '@/lib/ai-label'
 
 /* Icon map for card overlays — mirrors Collections.tsx */
 const SIGNAL_ICON: Record<(typeof DAILY_SIGNAL_KEYS)[number], LucideIcon> = {
@@ -117,6 +119,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const compared = inCompare(l.id)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
   const metro = nearestMetro(l.coords.lat, l.coords.lng)
+  const scored = sivrceScore({
+    verified: l.verified,
+    photos: l.images?.length || (l.img ? 1 : 0),
+    features: l.features?.length ?? 0,
+    hasCoords: Number.isFinite(l.coords.lat) && Number.isFinite(l.coords.lng),
+  })
+  const displayScore = scored.score
+  const displayLabel = aiLabel(displayScore)
 
   const { photos, multi } = cardGalleryTeaser(l.images, l.img)
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
@@ -527,11 +537,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         <div className="mt-2.5 flex min-h-[1.5rem] items-center gap-2">
           <SparkMark className="h-3.5 w-3.5 shrink-0" />
           <span className="shrink-0 text-[13px] font-black tabular-nums tracking-tight text-sv-ink">
-            {l.ai.score || '—'}
+            {displayScore || '—'}
           </span>
           <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-sv-ink/50">
-            {l.ai.label || t('detail.aiScore')}
+            {displayLabel || t('detail.aiScore')}
           </span>
+          {l.verified ? (
+            <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-label={t('detail.scoreVerified')} />
+          ) : null}
           {l.isNew && (
             <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-sv-orange">
               ახალი

@@ -6,6 +6,7 @@
  */
 
 import { type NextRequest, NextResponse } from "next/server"
+import { cdnJson } from "@/lib/cdn-cache"
 import { getConfig } from "@/lib/config"
 import {
   geocodeAddress,
@@ -15,8 +16,8 @@ import {
 } from "@/lib/map/geocode"
 import { isSameOrigin } from "@/lib/security/origin"
 
-export const dynamic = "force-dynamic"
-export const fetchCache = "force-no-store"
+export const maxDuration = 8
+export const preferredRegion = "fra1"
 
 export async function GET(req: NextRequest) {
   if (!(await getConfig("map.geocodeEnabled"))) {
@@ -35,10 +36,8 @@ export async function GET(req: NextRequest) {
     const lng = Number(lngRaw)
     if (Number.isFinite(lat) && Number.isFinite(lng)) {
       const hit = await reverseGeocode(lat, lng)
-      if (!hit) {
-        return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 })
-      }
-      return NextResponse.json({ ok: true, ...hit })
+      if (!hit) return cdnJson({ ok: false, error: "not_found" }, 300, 404)
+      return cdnJson({ ok: true, ...hit })
     }
   }
 
@@ -46,10 +45,10 @@ export async function GET(req: NextRequest) {
     const q = sp.get("q")?.trim() ?? ""
     const city = sp.get("city")?.trim() ?? undefined
     if (q.length < 2) {
-      return NextResponse.json({ ok: true, hits: [] })
+      return cdnJson({ ok: true, hits: [] })
     }
     const hits = await suggestAddresses(q, city)
-    return NextResponse.json({ ok: true, hits })
+    return cdnJson({ ok: true, hits })
   }
 
   const street = sp.get("street")?.trim() ?? ""
@@ -58,10 +57,8 @@ export async function GET(req: NextRequest) {
   const district = sp.get("district")?.trim() ?? ""
   if (street || (city && houseNo)) {
     const hit = await geocodeListingAddress({ street, houseNo, city, district })
-    if (!hit) {
-      return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 })
-    }
-    return NextResponse.json({ ok: true, ...hit })
+    if (!hit) return cdnJson({ ok: false, error: "not_found" }, 300, 404)
+    return cdnJson({ ok: true, ...hit })
   }
 
   const q = sp.get("q")?.trim() ?? ""
@@ -69,8 +66,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "short_query" }, { status: 400 })
   }
   const hit = await geocodeAddress(q)
-  if (!hit) {
-    return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 })
-  }
-  return NextResponse.json({ ok: true, ...hit })
+  if (!hit) return cdnJson({ ok: false, error: "not_found" }, 300, 404)
+  return cdnJson({ ok: true, ...hit })
 }

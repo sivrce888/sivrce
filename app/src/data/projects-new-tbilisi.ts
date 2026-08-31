@@ -360,7 +360,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 80,
     floors: 9,
     rating: 4.8,
-    coords: { lat: 41.6784, lng: 44.8452 },
+    coords: { lat: 41.67490611, lng: 44.86485946 },
     description: {
       ka: 'იცხოვრე თბილისის ყველაზე სწრაფადგანვითარებად უბანში! 🏗️ შეიძინე ბინა OMNIA-ს ისნის კომპლექსში თვეში 600$-(ექვივალენტი ლარი) დან და ისარგებლე 0%-იანი განვადებით პირველი 2 წლის განმავლობაში. 🌳 კორპუსი მრავალფუნქციური კომპლექსის ნაწილია, რომლის 70% მწვანე რეკრეაციას ეთმობა (60 000 მ²), აშენდება საბავშვო ბაღი, სავაჭრო ცენტრი, გათვალისწინებულია მიწისქვეშა და მიწისზედა საპარკინგე ადგილები, სათამაშო მოედნები და ველობილიკები. 📍 OMNIA-ს სამეზობლო ბერი გაბრიელ სალოსის 118-ში შენდება. პირველი კორპუსის მშენებლობა 2027 წლის ივლისში დასრულდება. ☎️ +995 511 73 73 77 | www.omnia.ge',
       en: 'Live in Tbilisi fast-growing district! OMNIA Isani complex features 70% green recreation area (60,000 m²), kindergarten, shopping center, underground and surface parking, playgrounds and bike paths. 0% installment for first 2 years ($600/month). First block completes July 2027.',
@@ -483,7 +483,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 260,
     floors: 22,
     rating: 4.6,
-    coords: { lat: 41.7478778, lng: 44.7839995 },
+    coords: { lat: 41.74571322, lng: 44.78331238 },
     description: {
       ka: 'Archi Kikvidze Garden — არქის მშენებარე ბინები ნაძალადევში, კიკვიძის ქ. 4-ში; A კორპუსი ჩაბარებულია, ფასი $1 400/მ²-დან.',
       en: 'Archi Kikvidze Garden is Archi’s new-build in Nadzaladevi at 4 Kikvidze St; block A delivered, prices from $1,400/m² (completion Q4 2027).',
@@ -503,7 +503,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 350,
     floors: 29,
     rating: 4.6,
-    coords: { lat: 41.6731899, lng: 44.8617288 },
+    coords: { lat: 41.66992368, lng: 44.87872366 },
     description: {
       ka: 'Archi Isani 2 — არქის ახალი პროექტი ისანში, ბერი გაბრიელ სალოსის გამზირზე. მშენებარე ბინები მეტრო ისანის მახლობლად.',
       en: 'Archi Isani 2 is Archi’s new project in Isani on Beri Gabriel Salosi Ave — under-construction apartments near Isani metro.',
@@ -604,7 +604,8 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2027 Q1',
     flats: 160,
     rating: 4.7,
-    // OSM ბოჭორმის ქუჩა, Avlabari — cadastral 01.17.13.045.217
+    // OSM Bochorma / Avlabari — legal lot when CadRepGeo up
+    cadastral: '01.17.13.045.217',
     coords: { lat: 41.6870544, lng: 44.8255765 },
     floors: 23,
     description: {
@@ -708,7 +709,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 120,
     floors: 10,
     rating: 4.5,
-    coords: { lat: 41.6858436, lng: 44.8316187 },
+    coords: { lat: 41.68635078, lng: 44.83094841 },
     description: {
       ka: 'Blox Avlabari — Blox-ის პრემიუმ კომპლექსი ავლაბარში, ბოჭორმის ქ. 18-ში. შენობა აშენებულია, ბინები იყიდება.',
       en: 'Blox Avlabari is Blox’s premium complex in Avlabari at 18 Bochorma St — built, apartments on sale.',
@@ -748,7 +749,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2026 Q4',
     flats: 364,
     rating: 4.6,
-    coords: { lat: 41.7271114, lng: 44.7597033 },
+    coords: { lat: 41.72737673, lng: 44.76061168 },
     floors: 35,
     description: {
       ka: 'Sakeni — Biograpi Living-ის 35-სართულიანი ახალი პროექტი საბურთალოზე, ვაჟა-ფშაველას გამზ. 25-ში: 364 ბინა, $72M ინვესტიცია, ფასი $2 940/მ²-დან.',
@@ -769,7 +770,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 250,
     floors: 21,
     rating: 4.6,
-    coords: { lat: 41.7293784, lng: 44.7872269 },
+    coords: { lat: 41.72947844, lng: 44.78716437 },
     description: {
       ka: 'Matiani — Biograpi Living-ის ახალი პროექტი დიდუბეში, წერეთლის გამზ. 45-ში. მშენებარე ბინები $1 830/მ²-დან, ჩაბარება 2026 Q4.',
       en: 'Matiani is Biograpi Living’s new project in Didube at 45 Akaki Tsereteli Ave — new-build apartments from $1,830/m², delivery Q4 2026.',
@@ -789,7 +790,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 180,
     floors: 15,
     rating: 4.6,
-    coords: { lat: 41.7231031, lng: 44.7869154 },
+    coords: { lat: 41.72350925, lng: 44.78749931 },
     description: {
       ka: 'Chantan — Biograpi Living-ის ახალი პროექტი დიდუბეში, მაიაკოვსკის ქ. 9-ში. მშენებარე ბინები $2 000/მ²-დან, ჩაბარება 2027 Q2.',
       en: 'Chantan is Biograpi Living’s new project in Didube at 9 Maiakovski St — new-build apartments from $2,000/m², delivery Q2 2027.',
@@ -809,7 +810,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 220,
     floors: 18,
     rating: 4.6,
-    coords: { lat: 41.6761052, lng: 44.8261865 },
+    coords: { lat: 41.67550186, lng: 44.82785848 },
     description: {
       ka: 'Daira by Biograpi — Biograpi Living-ის ახალი პროექტი კრწანისში, გორგასლის ქ. 73/1-ში. მშენებარე ბინები $1 920/მ²-დან, ჩაბარება 2029 Q1.',
       en: 'Daira by Biograpi is Biograpi Living’s new project in Krtsanisi at 73/1 Vakhtang Gorgasali St — from $1,920/m², delivery Q1 2029.',
@@ -829,7 +830,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.6,
-    coords: { lat: 41.730066, lng: 44.7413021 },
+    coords: { lat: 41.73057279, lng: 44.74093409 },
     description: {
       ka: 'Mozaika — Biograpi Living-ის ახალი პროექტი საბურთალოზე, გაზაფხულის ქ. 10-ში. მშენებარე ბინები $1 858/მ²-დან, ჩაბარება 2029 Q2.',
       en: 'Mozaika is Biograpi Living’s new project on Saburtalo at 10 Gazapkhuli St — new-build apartments from $1,858/m², delivery Q2 2029.',
@@ -849,7 +850,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 190,
     floors: 16,
     rating: 4.6,
-    coords: { lat: 41.7861399, lng: 44.8211652 },
+    coords: { lat: 41.78926695, lng: 44.81868387 },
     description: {
       ka: 'Gardani — Biograpi Living-ის ახალი პროექტი გლდანში, გობრონიძის ქ. 6-ში. მშენებარე ბინები $1 325/მ²-დან, ჩაბარება 2029 Q4.',
       en: 'Gardani is Biograpi Living’s new project in Gldani at 6 Aleksi Gobronidze St — new-build apartments from $1,325/m², delivery Q4 2029.',
@@ -869,8 +870,8 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.6,
-    // ponytail: pin per biograpi.ge research (Faliashvili 11), verify vs cadastral
-    coords: { lat: 41.7082, lng: 44.7757 },
+    // OSM way 224230165 — ფალიაშვილის 11ა building centroid (NAPR when CadRepGeo up)
+    coords: { lat: 41.7082895, lng: 44.775279 },
     description: {
       ka: 'Libretto by Biograpi — Biograpi Living-ის ახალი პროექტი ვაკეში. ბინები იყიდება.',
       en: 'Libretto by Biograpi is Biograpi Living’s new project in Vake, Tbilisi. Apartments on sale.',
@@ -995,7 +996,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.6,
-    coords: { lat: 41.721, lng: 44.758 },
+    coords: { lat: 41.72408903, lng: 44.74923147 },
     description: {
       ka: 'ORBI Towers Kazbegi — Orbi Group-ის პრემიუმ ახალი პროექტი საბურთალოზე, ყაზბეგის გამზ. 22-ში. ბინები $142 560-დან (~$4 400/მ²).',
       en: 'ORBI Towers Kazbegi is Orbi Group’s premium new project on Saburtalo at 22 Aleksandre Kazbegi Ave — apartments from $142,560 (~$4,400/m²).',
@@ -1097,7 +1098,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 220,
     rating: 4.3,
     // OSM house №12 მარატ ნოზაძის — was Saburtalo centroid ~6 km wrong
-    coords: { lat: 41.7865809, lng: 44.8340603 },
+    coords: { lat: 41.79116642, lng: 44.82013732 },
     floors: 12,
     description: {
       ka: 'Passage Gldani — Lider Development-ის პროექტი გლდანში, მარატ ნოზაძის ქ. 12: ორი 12-სართულიანი კორპუსი, ბინები 55–175 მ².',
@@ -1117,7 +1118,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2026 Q4',
     flats: 250,
     rating: 4.3,
-    coords: { lat: 41.705, lng: 44.865 },
+    coords: { lat: 41.70191271, lng: 44.87318784 },
     floors: 14,
     description: {
       ka: 'G&G Varketili Sukhishvili — G&G Group-ის ახალი პროექტი ვარკეთილში, სუხიშვილის ქ. 1/5-ში: ორი 14-სართულიანი კორპუსი შავი კარკასით.',
@@ -1221,7 +1222,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 180,
     floors: 15,
     rating: 4.6,
-    coords: { lat: 41.8031042, lng: 44.7828856 },
+    coords: { lat: 41.79301953, lng: 44.7808072 },
     description: {
       ka: 'Archi Alley — არქის ახალი პროექტი პატარა დიღომში, ბობ უოლშის ქ. 26-28-ში. მშენებარე ბინები $1 070/მ²-დან, ჩაბარება 2029 Q1.',
       en: 'Archi Alley is Archi’s new project in Patara Dighomi at 26–28 Bob Walsh St — new-build apartments from $1,070/m², delivery Q1 2029.',
@@ -1241,7 +1242,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 250,
     floors: 21,
     rating: 4.3,
-    coords: { lat: 41.6712044, lng: 44.8872994 },
+    coords: { lat: 41.682353, lng: 44.85629158 },
     description: {
       ka: 'Alliance City Samgori — Alliance City-ს ახალი პროექტი სამგორში, მოსკოვის გამზ. 9გ-ში. მშენებარე ბინები $1 120/მ²-დან, ჩაბარება 2026 Q3.',
       en: 'Alliance City Samgori is Alliance City’s new project in Samgori at 9g Moscow Ave — new-build apartments from $1,120/m², delivery Q3 2026.',
@@ -1260,7 +1261,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2026 Q3',
     flats: 120,
     rating: 4.4,
-    coords: { lat: 41.6873849, lng: 44.7735456 },
+    coords: { lat: 41.68161077, lng: 44.7653858 },
     floors: 10,
     description: {
       ka: 'Simetria Park — Simetria-ს 10-სართულიანი ახალი პროექტი ოქროყანაში, მთაწმინდის ფერდობზე. მშენებარე ბინები $2 200/მ²-დან, ჩაბარება 2026 Q3.',
@@ -1281,7 +1282,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 140,
     floors: 12,
     rating: 4.4,
-    coords: { lat: 41.7203705, lng: 44.7130218 },
+    coords: { lat: 41.72057094, lng: 44.71617669 },
     description: {
       ka: 'Simetria Jikia — Simetria-ს ახალი პროექტი ჯიქიაში, ანა პოლიტკოვსკაიას ქუჩაზე. მშენებარე ბინები $2 061/მ²-დან, ჩაბარება 2027 Q2.',
       en: 'Simetria Jikia is Simetria’s new project in Jikia on Anna Politkovskaya St — new-build apartments from $2,061/m², delivery Q2 2027.',
@@ -1302,7 +1303,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     floors: 17,
     rating: 4.5,
     // OSM დიდი დიღომი neighbourhood — II მიკრორაიონი not on OSM
-    coords: { lat: 41.7884409, lng: 44.7528291 },
+    coords: { lat: 41.7947539, lng: 44.76282853 },
     description: {
       ka: 'Apex Dighomi — Apex Development-ის ახალი პროექტი დიდ დიღომში, II მიკრორაიონში. მშენებარე ბინები $1 250/მ²-დან, ჩაბარება 2027 Q4.',
       en: 'Apex Dighomi is Apex Development’s new project in Didi Digomi’s 2nd microdistrict — new-build apartments from $1,250/m², delivery Q4 2027.',
@@ -1322,7 +1323,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.5,
-    coords: { lat: 41.6792348, lng: 44.8389806 },
+    coords: { lat: 41.67791397, lng: 44.83797246 },
     description: {
       ka: 'Apex Holbruk — Apex Development-ის მშენებარე პროექტი ჰოლბრუკის ქ. 11-ში, ისნის მიმართულებით. ბინები $1 350/მ²-დან.',
       en: 'Apex Holbruk is Apex Development’s under-construction project at 11 Richard Holbrooke St towards Isani — apartments from $1,350/m².',
@@ -1342,7 +1343,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 90,
     floors: 8,
     rating: 4.6,
-    coords: { lat: 41.7134796, lng: 44.7433358 },
+    coords: { lat: 41.71347756, lng: 44.74410767 },
     description: {
       ka: 'Apart Vake — Apart Development-ის პრემიუმ ახალი პროექტი ვაკეში, ციციშვილის I შესახვ. 7-ში. მშენებარე ბინები $2 800/მ²-დან, ჩაბარება 2029 Q1.',
       en: 'Apart Vake is Apart Development’s premium new project in Vake at 7 Irakli Tsitsishvili 1st Lane — new-build apartments from $2,800/m², delivery Q1 2029.',
@@ -1362,7 +1363,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 160,
     floors: 13,
     rating: 4.6,
-    coords: { lat: 41.7016011, lng: 44.8117547 },
+    coords: { lat: 41.70114958, lng: 44.8114362 },
     description: {
       ka: 'Old City Panorama — Apart Development-ის ახალი პროექტი ბუხაიძის ქ. 44გ-ში, ძველი თბილისის პანორამით. მშენებარე ბინები $2 300/მ²-დან, ჩაბარება 2026 Q3.',
       en: 'Old City Panorama is Apart Development’s new project at 44g Mikheil Bukhaidze St with old-Tbilisi views — new-build apartments from $2,300/m², delivery Q3 2026.',
@@ -1382,7 +1383,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 220,
     floors: 18,
     rating: 4.5,
-    coords: { lat: 41.6735875, lng: 44.867743 },
+    coords: { lat: 41.67429449, lng: 44.86985922 },
     description: {
       ka: 'Isani by Index — Index-ის ახალი პროექტი ისანში, სალოსის V შესახვ. 7ა-ში. მშენებარე ბინები $1 045/მ²-დან, ჩაბარება 2027 Q4.',
       en: 'Isani by Index is Index’s new project in Isani at 7a Beri Gabriel Salosi 5th Lane — new-build apartments from $1,045/m², delivery Q4 2027.',
@@ -1402,7 +1403,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 240,
     floors: 20,
     rating: 4.5,
-    coords: { lat: 41.7886823, lng: 44.81419 },
+    coords: { lat: 41.78861357, lng: 44.81315259 },
     description: {
       ka: 'Gldani by Index — Index-ის ახალი პროექტი გლდანში, რამაზ შენგელიას ქუჩაზე. მშენებარე ბინები $1 000/მ²-დან, ჩაბარება 2026 Q4.',
       en: 'Gldani by Index is Index’s new project in Gldani on Ramaz Shengelia St — new-build apartments from $1,000/m², delivery Q4 2026.',
@@ -1422,7 +1423,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 120,
     floors: 10,
     rating: 4.6,
-    coords: { lat: 41.679, lng: 44.8159 },
+    coords: { lat: 41.67967347, lng: 44.81366762 },
     description: {
       ka: 'Monolith Green City — მონოლითის ჩაბარებული დაბალსართულიანი პროექტი ნადიკვარის III ქუჩაზე, კრწანისში: 21 სახლი, ბინები $1 300/მ²-დან, იყიდება.',
       en: 'Monolith Green City is Monolith’s delivered low-rise project on Nadikvari III St in Krtsanisi: 21 houses handed over, units from $1,300/m² still on sale.',
@@ -1442,7 +1443,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 180,
     floors: 15,
     rating: 4.3,
-    coords: { lat: 41.7191286, lng: 44.821163 },
+    coords: { lat: 41.71917612, lng: 44.82071364 },
     description: {
       ka: 'Green Gardens — Devart Group-ის ახალი პროექტი ჩუღურეთში, სამურზაყანოს ქ. 39-ში. მშენებარე ბინები $1 150/მ²-დან, ჩაბარება 2026 Q3.',
       en: 'Green Gardens is Devart Group’s new project in Chugureti at 39 Samurzakano St — new-build apartments from $1,150/m², delivery Q3 2026.',
@@ -1462,7 +1463,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 400,
     rating: 4.4,
     // OSM hit: project sales office at Asatiani 6
-    coords: { lat: 41.7265677, lng: 44.749917 },
+    coords: { lat: 41.72725938, lng: 44.74914683 },
     floors: 30,
     description: {
       ka: 'Tbilisi Gardens — Quadrum Global-ის 30-სართულიანი ახალი პროექტი საბურთალოზე, ასათიანის ქ. 6-ში. მშენებარე ბინები $2 660/მ²-დან, ჩაბარება 2026 Q2.',
@@ -1483,7 +1484,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 120,
     floors: 10,
     rating: 4.4,
-    coords: { lat: 41.6999702, lng: 44.7899991 },
+    coords: { lat: 41.70001163, lng: 44.79000046 },
     description: {
       ka: 'Mtatsminda Panorama — KTW Development-ის პრემიუმ ახალი პროექტი მთაწმინდაზე, ტარიელის ქ. 13-17-ში. მშენებარე ბინები $3 700/მ²-დან, ჩაბარება 2026 Q2.',
       en: 'Mtatsminda Panorama is KTW Development’s premium new project on Mtatsminda at 13–17 Tarieli St — new-build apartments from $3,700/m², delivery Q2 2026.',
@@ -1503,7 +1504,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.4,
-    coords: { lat: 41.711595, lng: 44.7412 },
+    coords: { lat: 41.7110846, lng: 44.77534646 },
     description: {
       ka: 'Vake Tower — Structura Development-ის ახალი პროექტი ვაკეში, ჭავჭავაძის გამზ. 5ა-ში. მშენებარე ბინები $2 400/მ²-დან, ჩაბარება 2027 Q4.',
       en: 'Vake Tower is Structura Development’s new project in Vake at 5a Ilia Chavchavadze Ave — new-build apartments from $2,400/m², delivery Q4 2027.',
@@ -1523,7 +1524,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.3,
-    coords: { lat: 41.7429319, lng: 44.8259926 },
+    coords: { lat: 41.74197892, lng: 44.83303682 },
     description: {
       ka: 'Tbilisi Boulevard — Eco Invest-ის ახალი პროექტი ნაძალადევში, უცნობ გმირთა ქ. 7-ში. მშენებარე ბინები $1 500/მ²-დან, ჩაბარება 2026 Q3.',
       en: 'Tbilisi Boulevard is Eco Invest’s new project in Nadzaladevi at 7 Utsnob Gmirta St — new-build apartments from $1,500/m², delivery Q3 2026.',
@@ -1543,7 +1544,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 180,
     floors: 15,
     rating: 4.3,
-    coords: { lat: 41.6769579, lng: 44.8417278 },
+    coords: { lat: 41.67231079, lng: 44.87774994 },
     description: {
       ka: 'Millennium Residence — Gradburg Development-ის ახალი პროექტი ისანში, სალოსის გამზ. 14-ში. მშენებარე ბინები $1 100/მ²-დან, ჩაბარება 2026 Q3.',
       en: 'Millennium Residence is Gradburg Development’s new project in Isani at 14 Beri Gabriel Salosi Ave — new-build apartments from $1,100/m², delivery Q3 2026.',
@@ -1563,7 +1564,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 130,
     floors: 11,
     rating: 4.4,
-    coords: { lat: 41.7147226, lng: 44.769239 },
+    coords: { lat: 41.71485604, lng: 44.76676356 },
     description: {
       ka: 'Urbanique Mziuri — Urbanique-ს ახალი პროექტი საბურთალოზე, ჩიქოვანის ქ. 26-ში, მზიურის პარკთან. მშენებარე ბინები $1 800/მ²-დან, ჩაბარება 2026 Q4.',
       en: 'Urbanique Mziuri is Urbanique’s new project on Saburtalo at 26 Simon Chikovani St by Mziuri Park — new-build apartments from $1,800/m², delivery Q4 2026.',
@@ -1583,7 +1584,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 220,
     floors: 18,
     rating: 4.5,
-    coords: { lat: 41.68788, lng: 44.8489122 },
+    coords: { lat: 41.68368354, lng: 44.88435187 },
     description: {
       ka: 'Urban East — White Square-ის მშენებარე პროექტი კახეთის გზატკეცილ 63-ში, სამგორის მიმართულებით. ბინები $1 088/მ²-დან.',
       en: 'Urban East is White Square’s under-construction project at 63 Kakheti Highway towards Samgori — apartments from $1,088/m².',
@@ -1603,7 +1604,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 160,
     floors: 13,
     rating: 4.3,
-    coords: { lat: 41.7368854, lng: 44.7277384 },
+    coords: { lat: 41.73561906, lng: 44.72969666 },
     description: {
       ka: 'Horizon Nutsubidze — Kolkhi-ს ახალი პროექტი ნუცუბიძის ფერდობზე, ბანძელაძის ქ. 12-ში. მშენებარე ბინები $1 200/მ²-დან, ჩაბარება 2026 Q2.',
       en: 'Horizon Nutsubidze is Kolkhi’s new project on the Nutsubidze slope at 12 Aleksandre Bandzeladze St — new-build apartments from $1,200/m², delivery Q2 2026.',
@@ -1622,7 +1623,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2027 Q2',
     flats: 180,
     rating: 4.4,
-    coords: { lat: 41.7331904, lng: 44.7412641 },
+    coords: { lat: 41.73457806, lng: 44.74350252 },
     floors: 15,
     description: {
       ka: 'Lisi Trio — Trio Group-ის 15-სართულიანი ახალი პროექტი ლისის მიმართულებით, ამაშუკელის ქ. 5-ში. მშენებარე ბინები $1 900/მ²-დან, ჩაბარება 2027 Q2.',
@@ -1642,7 +1643,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2026 Q4',
     flats: 140,
     rating: 4.3,
-    coords: { lat: 41.75, lng: 44.6969 },
+    coords: { lat: 41.74994976, lng: 44.69692116 },
     floors: 4,
     description: {
       ka: 'Lisi Kvarteti — ბესიკ საბაშვილის ახალი პროექტი ქვემო ლისიში, ლისის ტბის მახლობლად. მშენებარე ბინები $2 400/მ²-დან, ჩაბარება 2026 Q4.',

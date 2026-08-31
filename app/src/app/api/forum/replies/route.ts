@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
@@ -62,6 +63,8 @@ export async function POST(req: NextRequest) {
       body,
       parentId,
     })
+    revalidatePath("/forum")
+    revalidatePath(`/forum/${slug}`)
     return NextResponse.json({ ok: true, reply }, { status: 201 })
   } catch (err) {
     const msg = err instanceof Error ? err.message : ""

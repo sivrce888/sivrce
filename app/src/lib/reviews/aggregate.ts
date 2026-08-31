@@ -1,4 +1,5 @@
 import { db, dbAvailable } from "@/lib/db"
+import { unstable_cache } from "next/cache"
 
 /**
  * CONTRACT — implemented by the Reviews_Backend worker; consumed by pages
@@ -16,17 +17,25 @@ export async function getReviewAggregate(
   targetId: string,
 ): Promise<ReviewAggregate | null> {
   if (!(await dbAvailable())) return null
-  try {
-    const result = await db.review.aggregate({
-      where: { targetType, targetId, status: "published", deletedAt: null },
-      _avg: { rating: true },
-      _count: { _all: true },
-    })
-    const count = result._count?._all ?? 0
-    const average = result._avg?.rating
-    if (count === 0 || average == null) return null
-    return { average: Math.round(average * 10) / 10, count }
-  } catch {
-    return null
-  }
+  return readAggregate(targetType, targetId)
 }
+
+const readAggregate = unstable_cache(
+  async (targetType: string, targetId: string): Promise<ReviewAggregate | null> => {
+    try {
+      const result = await db.review.aggregate({
+        where: { targetType, targetId, status: "published", deletedAt: null },
+        _avg: { rating: true },
+        _count: { _all: true },
+      })
+      const count = result._count?._all ?? 0
+      const average = result._avg?.rating
+      if (count === 0 || average == null) return null
+      return { average: Math.round(average * 10) / 10, count }
+    } catch {
+      return null
+    }
+  },
+  ["review-aggregate"],
+  { revalidate: 300 },
+)

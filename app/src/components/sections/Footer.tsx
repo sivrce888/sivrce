@@ -55,14 +55,14 @@ export default function Footer() {
   const loc: SeoLoc = lang === 'en' || lang === 'ru' ? lang : 'ka'
 
   return (
-    <footer className="relative overflow-hidden border-t border-white/[0.07] bg-sv-navy">
+    <footer data-cms-section="footer" className="relative overflow-hidden border-t border-white/[0.07] bg-sv-navy">
       <div aria-hidden className="absolute inset-0 bg-grid-dark opacity-50" />
       <div aria-hidden className="absolute -top-40 left-1/3 h-[360px] w-[560px] rounded-full bg-sv-blue/10 blur-[160px]" />
       <div className="relative mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
             <Logo light href={localizedHref('/', lang)} />
-            <p className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
+            <p data-cms-key="footer.tagline" className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
               {t('footer.tagline')}
             </p>
             <div className="mt-6 space-y-1 text-[14px] font-semibold text-white/60">
@@ -83,6 +83,7 @@ export default function Footer() {
                   <li key={l.key}>
                     <Link
                       href={localizedHref(l.href, lang)}
+                      data-cms-key={l.key}
                       className="text-[14px] font-semibold text-white/65 transition-colors hover:text-white"
                     >
                       {t(l.key)}
@@ -135,9 +136,9 @@ export default function Footer() {
             >
               TOP.GE
             </a>
-            <Link href={localizedHref("/terms", lang)} className="transition-colors hover:text-white">{t('footer.terms')}</Link>
-            <Link href={localizedHref("/privacy", lang)} className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
-            <Link href={localizedHref("/privacy#cookies", lang)} className="transition-colors hover:text-white">{t('footer.cookies')}</Link>
+            <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="transition-colors hover:text-white">{t('footer.terms')}</Link>
+            <Link href={localizedHref("/privacy", lang)} data-cms-key="footer.privacy" className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
+            <Link href={localizedHref("/privacy#cookies", lang)} data-cms-key="footer.cookies" className="transition-colors hover:text-white">{t('footer.cookies')}</Link>
           </div>
         </div>
       </div>

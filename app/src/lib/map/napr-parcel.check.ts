@@ -15,6 +15,7 @@ assert.equal(naprUniqDigits('011010025115'), '011010025115')
 assert.equal(naprUniqDigits('05.28.25.001'), '052825001')
 assert.equal(naprUniqDigits('052825001'), '052825001')
 assert.equal(naprUniqDigits('55512'), null)
+assert.equal(naprUniqDigits('01.17.13.045.217'), '011713045217')
 
 const square = [
   [44.77, 41.74],

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { suggestionToFilters, searchHref, filtersToParams, exactSuggestHit } from './search-location'
+import { suggestionToFilters, searchHref, filtersToParams, exactSuggestHit, locationLabel, compactDistrictParam, splitDistricts } from './search-location'
 
 assert.deepEqual(suggestionToFilters({ kind: 'city', ka: 'თბილისი' }), {
   city: 'თბილისი',
@@ -43,5 +43,18 @@ assert.equal(
 )
 assert.equal(exactSuggestHit([{ kind: 'city', ka: 'ბათუმი' }], 'ბათუმი')?.ka, 'ბათუმი')
 assert.equal(exactSuggestHit([{ kind: 'city', ka: 'ბათუმი' }], 'xyz'), undefined)
+
+assert.deepEqual(splitDistricts('ვაკე, საბურთალო'), ['ვაკე', 'საბურთალო'])
+assert.equal(locationLabel({ city: 'თბილისი', district: '', street: '' }), 'თბილისი')
+assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე', street: '' }), 'ვაკე, თბილისი')
+assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე,საბურთალო,დიღომი', street: '' }), 'თბილისი · 3')
+assert.equal(
+  compactDistrictParam(['ვაკე', 'ბაგები', 'წყნეთი'], { ვაკე: ['ბაგები', 'წყნეთი'] }),
+  'ვაკე',
+)
+assert.equal(
+  compactDistrictParam(['ბაგები'], { ვაკე: ['ბაგები', 'წყნეთი'] }),
+  'ბაგები',
+)
 
 console.log('ok: suggestionToFilters')

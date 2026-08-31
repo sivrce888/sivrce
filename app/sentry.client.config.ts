@@ -1,6 +1,6 @@
 /**
- * Sentry client-side config — error monitoring + Web Vitals.
- * ponytail: default config. Tune sample rates when traffic grows.
+ * Sentry client-side config — errors only, minimal bill.
+ * ponytail: traces 1%, no session replay; error replay 5%.
  */
 
 import * as Sentry from "@sentry/nextjs"
@@ -8,16 +8,22 @@ import * as Sentry from "@sentry/nextjs"
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0 : 1.0,
+  // Session replay is the Sentry bill. Error-only snippets stay tiny.
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: process.env.NODE_ENV === "production" ? 0.01 : 0.1,
 
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  sendDefaultPii: false,
+  enableLogs: false,
 
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: false,
-    }),
+  ignoreErrors: [
+    "ResizeObserver loop",
+    "Non-Error promise rejection",
+    "AbortError",
+    "Load failed",
+    "Failed to fetch",
+    "NetworkError",
+    "ChunkLoadError",
   ],
 
   enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,

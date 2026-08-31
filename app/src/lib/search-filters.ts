@@ -35,7 +35,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
 
   // Free-text / location strings are capped at the trust boundary — a 10MB q
   // would otherwise flow into Meili, ILIKE and Meili filter strings.
-  const str = (key: string) => sp.get(key)?.slice(0, 120) || undefined
+  const str = (key: string, max = 120) => sp.get(key)?.slice(0, max) || undefined
 
   // CSV params, whitelisted against the stored vocabulary (src/lib/features).
   const csv = (key: string, allowed: readonly string[]) => {
@@ -79,7 +79,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     dealType: (dealType as SearchFilters["dealType"]) ?? undefined,
     propertyType: (propertyType as SearchFilters["propertyType"]) ?? undefined,
     city: str("city"),
-    district: str("district"),
+    district: str("district", 500),
     minPrice: num("minPrice") ?? num("min"),
     maxPrice: num("maxPrice") ?? num("max"),
     minArea: num("minArea") ?? num("amin"),

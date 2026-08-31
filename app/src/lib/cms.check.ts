@@ -3,7 +3,7 @@
  * Run: npx tsx src/lib/cms.check.ts
  */
 import { CMS_BLOCKS, CMS_BLOCK_KEYS } from "./cms-blocks"
-import { buildCmsId, cmsGroups, cmsRowsForGroup, parseCmsId } from "./cms-blocks"
+import { buildCmsId, cmsGroups, cmsRowForKey, cmsRowsForGroup, isKnownCmsKey, parseCmsId } from "./cms-blocks"
 import { BLOCK_I18N } from "./cms-blocks.i18n"
 import { ka } from "./i18n/ka"
 import { LANGS } from "./i18n/core"
@@ -77,6 +77,9 @@ assert(blockRows.length === CMS_BLOCK_KEYS.length)
 assert(blockRows[0].key.startsWith("block."), "block rows carry storage keys")
 assert(blockRows.find((r) => r.key === "block.home.hero.titleA")?.value === "გამარჯობა")
 assert(cmsRowsForGroup("ka", "nope", {}).length === 0, "unknown group → no rows")
+assert(isKnownCmsKey("nav.buy") && isKnownCmsKey("block.home.hero.titleA"))
+assert(isKnownCmsKey("seo.site.title") && !isKnownCmsKey("not.a.key"))
+assert(cmsRowForKey("en", "nav.buy", {})?.defaultText === "For sale")
 
 // SEO meta group — defaults mirror SITE_META per language, overridable
 const seoRows = cmsRowsForGroup("en", "seo", { "seo.site.title": "Custom title" })

@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
@@ -84,6 +85,8 @@ export async function POST(req: NextRequest) {
       district,
       tags: parseTags(p.tags),
     })
+    revalidatePath("/forum")
+    revalidatePath(`/forum/${thread.slug}`)
     return NextResponse.json({ ok: true, slug: thread.slug, thread }, { status: 201 })
   } catch {
     return NextResponse.json({ error: "db_unavailable" }, { status: 500 })

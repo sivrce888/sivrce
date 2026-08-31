@@ -1,72 +1,129 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { X, Search, MapPin, ChevronRight, Route } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'framer-motion'
+import { X, Search, MapPin, ChevronLeft, Route, Check, Minus, TrainFront } from 'lucide-react'
 import { GEO_CITIES, GEO_MUNICIPALITIES, geoRaionsOf } from '@/data/georgia-locations'
 import { districtsOf } from '@/data/listings'
+import { useI18n } from '@/lib/i18n/context'
+import {
+  compactDistrictParam,
+  locationLabel,
+  splitDistricts,
+  type LocationValue,
+} from '@/lib/search-location'
 import type { Suggestion } from '@/components/search/SearchSuggest'
 
-const POPULAR = GEO_CITIES.slice(0, 10)
+export type { LocationValue }
+export { locationLabel }
 
-export type LocationValue = { city: string; district: string; street: string }
+const POPULAR = GEO_CITIES.slice(0, 10)
+const ease = [0.21, 0.65, 0.2, 1] as const
+
+type Pane = 'districts' | 'streets'
 
 type Props = {
   open: boolean
   value: LocationValue
   onClose: () => void
   onApply: (v: LocationValue) => void
+  /** Search: many უბანი. Add-listing: one. */
+  multi?: boolean
+  showMetro?: boolean
 }
 
-/** SS/MyHome-class location modal — search + popular cities + districts. Brand-locked. */
-export default function LocationPicker({ open, value, onClose, onApply }: Props) {
+export default function LocationPicker({
+  open,
+  value,
+  onClose,
+  onApply,
+  multi = true,
+  showMetro = false,
+}: Props) {
+  const { t } = useI18n()
   const [city, setCity] = useState(value.city)
-  const [district, setDistrict] = useState(value.district)
+  const [picked, setPicked] = useState<string[]>(() => splitDistricts(value.district))
   const [street, setStreet] = useState(value.street)
+  const [metro, setMetro] = useState(Boolean(value.metro))
   const [q, setQ] = useState('')
+  const [pane, setPane] = useState<Pane>('districts')
   const [remote, setRemote] = useState<Suggestion[]>([])
+  const [streets, setStreets] = useState<Suggestion[]>([])
+  const [mounted, setMounted] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (!open) return
-    // ponytail: microtask defer — sync setState in the effect body trips
-    // react-hooks/set-state-in-effect; still runs before paint, so no visible change.
-    queueMicrotask(() => {
-      setCity(value.city)
-      setDistrict(value.district)
-      setStreet(value.street)
-      setQ('')
-    })
-    const t = window.setTimeout(() => inputRef.current?.focus(), 40)
+    // ponytail: sync once per open. Parent `value`/`onClose` identity must not wipe in-progress picks.
+    setCity(value.city)
+    setPicked(splitDistricts(value.district))
+    setStreet(value.street)
+    setMetro(Boolean(value.metro))
+    setQ('')
+    setPane('districts')
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const tFocus = window.setTimeout(() => inputRef.current?.focus(), 40)
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
-    return () => { window.clearTimeout(t); window.removeEventListener('keydown', onKey) }
-  }, [open, value, onClose])
+    return () => {
+      document.body.style.overflow = prev
+      window.clearTimeout(tFocus)
+      window.removeEventListener('keydown', onKey)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open-only
+  }, [open])
 
-  // Streets/quarters live in /api/suggest — don't ship the 3.9k catalog to this island.
+  const distCsv = picked.join(',')
+
   useEffect(() => {
-    if (!open || q.trim().length < 2) {
-      const t = window.setTimeout(() => setRemote([]), 0)
-      return () => window.clearTimeout(t)
+    if (!open) return
+    const qn = q.trim()
+    const browsing = pane === 'streets' && qn.length < 2
+    if (qn.length < 2 && !browsing) {
+      const tClr = window.setTimeout(() => { setRemote([]); setStreets([]) }, 0)
+      return () => window.clearTimeout(tClr)
+    }
+    if (browsing && !city) {
+      const tClr = window.setTimeout(() => setStreets([]), 0)
+      return () => window.clearTimeout(tClr)
     }
     const ac = new AbortController()
     const timer = window.setTimeout(async () => {
       try {
-        const sp = new URLSearchParams({ q: q.trim() })
+        const sp = new URLSearchParams()
         if (city) sp.set('city', city)
+        if (distCsv) sp.set('district', distCsv)
+        if (qn.length >= 2) sp.set('q', qn)
+        else sp.set('browse', '1')
         const res = await fetch(`/api/suggest?${sp}`, { signal: ac.signal })
         const json = (await res.json()) as { ok?: boolean; suggestions?: Suggestion[] }
         if (ac.signal.aborted) return
-        setRemote(json.ok ? (json.suggestions ?? []) : [])
+        const list = json.ok ? (json.suggestions ?? []) : []
+        if (qn.length >= 2) setRemote(list)
+        else setStreets(list.filter((s) => s.kind === 'street'))
       } catch {
         /* aborted or offline */
       }
     }, 150)
     return () => { ac.abort(); window.clearTimeout(timer) }
-  }, [open, q, city])
+  }, [open, q, city, distCsv, pane])
 
   const districts = useMemo(() => (city ? districtsOf(city) : []), [city])
   const raions = useMemo(() => (city ? geoRaionsOf(city) : {}), [city])
   const raionEntries = useMemo(() => Object.entries(raions), [raions])
+  const leftover = useMemo(() => {
+    const inRaions = new Set([...Object.keys(raions), ...Object.values(raions).flat()])
+    return districts.filter((d) => !inRaions.has(d))
+  }, [districts, raions])
+  const pickedSet = useMemo(() => new Set(picked), [picked])
+  const chipDistricts = useMemo(
+    () => splitDistricts(compactDistrictParam(picked, raions)),
+    [picked, raions],
+  )
 
   const qn = q.trim().toLowerCase()
   const cityHits = useMemo(() => {
@@ -75,10 +132,10 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
   }, [qn])
   const distHits = useMemo(() => {
     if (!qn || !city) return []
-    return districts.filter((d) => d.toLowerCase().includes(qn)).slice(0, 16)
+    return districts.filter((d) => d.toLowerCase().includes(qn)).slice(0, 24)
   }, [qn, city, districts])
   const streetHits = useMemo(
-    () => remote.filter((s) => s.kind === 'street').slice(0, 12),
+    () => remote.filter((s) => s.kind === 'street').slice(0, 16),
     [remote],
   )
   const remoteDistHits = useMemo(
@@ -86,7 +143,6 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
     [remote, city],
   )
 
-  // Alphabet groups for municipalities when browsing (no query, no city).
   const muniGroups = useMemo(() => {
     const map = new Map<string, string[]>()
     for (const m of GEO_MUNICIPALITIES) {
@@ -98,367 +154,585 @@ export default function LocationPicker({ open, value, onClose, onApply }: Props)
     return [...map.entries()]
   }, [])
 
-  if (!open) return null
+  const sidebarCities = useMemo(() => {
+    const list = GEO_CITIES.slice(0, 14)
+    if (city && !list.includes(city)) return [city, ...list]
+    return list
+  }, [city])
 
   const pickCity = (c: string) => {
     setCity(c)
-    setDistrict('')
+    setPicked([])
     setStreet('')
     setQ('')
+    setPane('districts')
+  }
+
+  const toggleDistrict = (name: string) => {
+    if (multi) {
+      setPicked((cur) => (cur.includes(name) ? cur.filter((x) => x !== name) : [...cur, name]))
+      return
+    }
+    setPicked((cur) => (cur[0] === name ? [] : [name]))
+  }
+
+  const adoptDistrict = (name: string, nextCity?: string) => {
+    if (nextCity) setCity(nextCity)
+    setPicked([name])
+    setQ('')
+  }
+
+  const toggleRaion = (raion: string, ubanis: string[]) => {
+    if (!multi) {
+      setPicked((cur) => (cur[0] === raion ? [] : [raion]))
+      return
+    }
+    const allOn = pickedSet.has(raion) || (ubanis.length > 0 && ubanis.every((u) => pickedSet.has(u)))
+    if (allOn) {
+      const drop = new Set([raion, ...ubanis])
+      setPicked((cur) => cur.filter((x) => !drop.has(x)))
+      return
+    }
+    setPicked((cur) => [...new Set([...cur.filter((x) => x !== raion && !ubanis.includes(x)), raion, ...ubanis])])
   }
 
   const pickStreet = (s: Suggestion) => {
     if (s.city) setCity(s.city)
-    if (s.district) setDistrict(s.district)
-    setStreet(s.ka)
+    if (s.district) setPicked(splitDistricts(s.district))
+    setStreet((cur) => (cur === s.ka ? '' : s.ka))
     setQ('')
   }
 
-  const apply = () => onApply({ city, district, street: street.trim() })
+  const apply = () => {
+    onApply({
+      city,
+      district: compactDistrictParam(picked, raions),
+      street: street.trim(),
+      ...(showMetro ? { metro } : {}),
+    })
+  }
 
-  return (
-    <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-sv-navy/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-label="მდებარეობა"
-      onClick={onClose}
-    >
-      <div
-        className="flex max-h-[92dvh] w-full max-w-[720px] flex-col overflow-hidden rounded-t-tile bg-sv-surface shadow-card-hover sm:rounded-tile"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-sv-ink/[0.06] px-5 py-4">
-          <div className="min-w-0">
-            <h2 className="text-[17px] font-extrabold tracking-tight text-sv-ink">მდებარეობა</h2>
-            {(city || district || street) && (
-              <p className="mt-1 flex flex-wrap items-center gap-1 text-[13px] font-semibold text-sv-ink/50">
-                {city && (
-                  <button
-                    type="button"
-                    onClick={() => { setCity(''); setDistrict(''); setStreet('') }}
-                    className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-sv-blue hover:bg-sv-blue/15"
-                  >
-                    {city}
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-                {district && (
-                  <>
-                    <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" />
-                    <button
-                      type="button"
-                      onClick={() => { setDistrict(''); setStreet('') }}
-                      className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-sv-blue hover:bg-sv-blue/15"
-                    >
-                      {district}
-                      <X className="h-3 w-3" />
-                    </button>
-                  </>
-                )}
-                {street && (
-                  <>
-                    <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" />
-                    <button
-                      type="button"
-                      onClick={() => setStreet('')}
-                      className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-sv-blue hover:bg-sv-blue/15"
-                    >
-                      {street}
-                      <X className="h-3 w-3" />
-                    </button>
-                  </>
-                )}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="დახურვა"
-            className="grid h-10 w-10 place-items-center rounded-control text-sv-ink/45 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+  const raionState = (raion: string, ubanis: string[]): 'on' | 'mixed' | 'off' => {
+    if (pickedSet.has(raion) || (ubanis.length > 0 && ubanis.every((u) => pickedSet.has(u)))) return 'on'
+    if (ubanis.some((u) => pickedSet.has(u))) return 'mixed'
+    return 'off'
+  }
+
+  const sheet = (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-[80] flex items-end justify-center bg-sv-navy/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="loc-title"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22, ease }}
+        >
+          <motion.div
+            className="flex h-[92dvh] w-full max-w-[960px] flex-col overflow-hidden rounded-t-tile bg-sv-surface shadow-card-hover sm:h-[min(820px,92dvh)] sm:rounded-tile"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, y: 28, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.98 }}
+            transition={{ duration: 0.35, ease }}
           >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Search */}
-        <div className="border-b border-sv-ink/[0.06] px-5 py-3">
-          <label className="relative block">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-            <input
-              ref={inputRef}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="ჩაწერე ქალაქი, უბანი ან ქუჩა"
-              className="h-12 w-full rounded-control border border-sv-ink/10 bg-sv-cloud pl-10 pr-3.5 text-[14px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/25"
-            />
-          </label>
-          {city && (
-            <input
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              placeholder="ქუჩა (არასავალდებულო)"
-              className="mt-2 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3.5 text-[13px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:border-sv-blue"
-            />
-          )}
-        </div>
-
-        {/* Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          {qn ? (
-            <div className="space-y-4">
-              {cityHits.length > 0 && (
-                <section>
-                  <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">ქალაქები</h3>
-                  <ul className="space-y-0.5">
-                    {cityHits.map((c) => (
-                      <li key={c}>
-                        <button
-                          type="button"
-                          onClick={() => pickCity(c)}
-                          className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
-                        >
-                          <MapPin className="h-4 w-4 text-sv-blue" />
-                          {c}
-                        </button>
-                      </li>
+            <div className="flex items-start justify-between gap-3 border-b border-sv-ink/[0.06] px-5 py-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  {city ? (
+                    <button
+                      type="button"
+                      onClick={() => pickCity('')}
+                      className="grid h-8 w-8 place-items-center rounded-control text-sv-ink/45 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+                      aria-label={t('loc.cities')}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                  ) : null}
+                  <h2 id="loc-title" className="text-[17px] font-extrabold tracking-tight text-sv-ink">
+                    {t('loc.title')}
+                  </h2>
+                </div>
+                {(city || picked.length > 0 || street) && (
+                  <div className="mt-2 flex max-h-[52px] flex-wrap items-center gap-1.5 overflow-y-auto">
+                    {city ? (
+                      <Chip onClear={() => pickCity('')}>{city}</Chip>
+                    ) : null}
+                    {chipDistricts.map((d) => (
+                      <Chip
+                        key={d}
+                        onClear={() => {
+                          const ubanis = raions[d]
+                          if (ubanis) toggleRaion(d, ubanis)
+                          else toggleDistrict(d)
+                        }}
+                      >
+                        {d}
+                      </Chip>
                     ))}
-                  </ul>
-                </section>
-              )}
-              {distHits.length > 0 && (
-                <section>
-                  <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">უბნები · {city}</h3>
-                  <ul className="space-y-0.5">
-                    {distHits.map((d) => (
-                      <li key={d}>
-                        <button
-                          type="button"
-                          onClick={() => { setDistrict(d); setQ('') }}
-                          className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
-                        >
-                          <MapPin className="h-4 w-4 text-sv-blue" />
-                          {d}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-              {remoteDistHits.length > 0 && (
-                <section>
-                  <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">უბნები</h3>
-                  <ul className="space-y-0.5">
-                    {remoteDistHits.map((s) => (
-                      <li key={`${s.city}:${s.ka}`}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (s.city) setCity(s.city)
-                            setDistrict(s.ka)
-                            setQ('')
-                          }}
-                          className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
-                        >
-                          <MapPin className="h-4 w-4 text-sv-blue" />
-                          <span className="min-w-0">
-                            <span className="block truncate">{s.ka}</span>
-                            {s.city ? (
-                              <span className="block text-[12px] font-semibold text-sv-ink/40">{s.city}</span>
-                            ) : null}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-              {streetHits.length > 0 && (
-                <section>
-                  <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">ქუჩები</h3>
-                  <ul className="space-y-0.5">
-                    {streetHits.map((s) => (
-                      <li key={`${s.city}:${s.ka}`}>
-                        <button
-                          type="button"
-                          onClick={() => pickStreet(s)}
-                          className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
-                        >
-                          <Route className="h-4 w-4 shrink-0 text-sv-blue" />
-                          <span className="min-w-0">
-                            <span className="block truncate">{s.ka}</span>
-                            <span className="block truncate text-[12px] font-semibold text-sv-ink/40">
-                              {[s.district, s.city].filter(Boolean).join(' · ')}
-                            </span>
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-              {cityHits.length === 0 && distHits.length === 0 && remoteDistHits.length === 0 && streetHits.length === 0 && (
-                <p className="py-8 text-center text-[14px] font-semibold text-sv-ink/45">ვერაფერი მოიძებნა</p>
-              )}
-            </div>
-          ) : city ? (
-            <section>
-              <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
-                {raionEntries.length ? `რაიონები · ${city}` : `უბნები · ${city}`}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setDistrict('')}
-                className={`mb-3 rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
-                  !district ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
-                }`}
-              >
-                მთელი ქალაქი
-              </button>
-              {raionEntries.length > 0 ? (
-                <div className="space-y-5">
-                  {raionEntries.map(([raion, ubanis]) => (
-                    <div key={raion}>
+                    {street ? (
+                      <Chip onClear={() => setStreet('')}>{street}</Chip>
+                    ) : null}
+                    {showMetro ? (
                       <button
                         type="button"
-                        onClick={() => setDistrict(raion)}
-                        className={`mb-2 w-full rounded-control px-3 py-2.5 text-left text-[14px] font-extrabold transition-colors ${
-                          district === raion
+                        onClick={() => setMetro((m) => !m)}
+                        aria-pressed={metro}
+                        className={`inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-extrabold transition-colors ${
+                          metro
                             ? 'bg-sv-blue text-white'
-                            : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
+                            : 'bg-sv-cloud text-sv-ink/70 hover:bg-sv-ink/[0.06]'
                         }`}
                       >
-                        {raion}
+                        <TrainFront className="h-3.5 w-3.5" />
+                        {t('search.nearMetro')}
                       </button>
-                      {ubanis.length > 0 && (
-                        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                          {ubanis.map((u) => (
-                            <button
-                              key={u}
-                              type="button"
-                              onClick={() => setDistrict(u)}
-                              className={`rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
-                                district === u
-                                  ? 'bg-sv-blue text-white'
-                                  : 'bg-sv-cloud/70 text-sv-ink hover:bg-sv-ink/[0.06]'
-                              }`}
-                            >
-                              {u}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                  {districts.map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setDistrict(d)}
-                      className={`rounded-control px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
-                        district === d ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </section>
-          ) : (
-            <>
-              <section className="mb-6">
-                <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">პოპულარული ქალაქები</h3>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-2">
-                  {POPULAR.map((c) => (
+                    ) : null}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label={t('loc.close')}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-control text-sv-ink/45 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="border-b border-sv-ink/[0.06] px-5 py-3">
+              <label className="relative block">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                <input
+                  ref={inputRef}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t('loc.searchPh')}
+                  className="h-12 w-full rounded-control border border-sv-ink/10 bg-sv-cloud pl-10 pr-3.5 text-[14px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:border-sv-blue focus-visible:ring-2 focus-visible:ring-sv-blue/25"
+                />
+              </label>
+            </div>
+
+            {city && !qn ? (
+              <div className="flex gap-1 border-b border-sv-ink/[0.06] px-5">
+                {(['districts', 'streets'] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPane(p)}
+                    className={`relative h-11 px-3 text-[13px] font-extrabold transition-colors ${
+                      pane === p ? 'text-sv-blue' : 'text-sv-ink/45 hover:text-sv-ink'
+                    }`}
+                  >
+                    {p === 'districts' ? t('loc.districts') : t('loc.streets')}
+                    {pane === p && (
+                      <motion.span
+                        layoutId="loc-tab"
+                        className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-sv-blue"
+                        transition={{ type: 'spring', bounce: 0.18, duration: 0.45 }}
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+              {city && !qn ? (
+                <nav
+                  className="hidden w-[168px] shrink-0 overflow-y-auto border-r border-sv-ink/[0.06] bg-sv-cloud/60 py-2 sm:block"
+                  aria-label={t('loc.cities')}
+                >
+                  {sidebarCities.map((c) => (
                     <button
                       key={c}
                       type="button"
                       onClick={() => pickCity(c)}
-                      className="flex items-center gap-2.5 rounded-control px-2 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                      className={`flex w-full items-center border-l-2 px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
+                        city === c
+                          ? 'border-sv-blue bg-sv-surface text-sv-blue'
+                          : 'border-transparent text-sv-ink/70 hover:bg-sv-surface hover:text-sv-ink'
+                      }`}
                     >
-                      <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 ${
-                        city === c ? 'border-sv-blue bg-sv-blue' : 'border-sv-ink/20'
-                      }`}>
-                        {city === c && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-                      </span>
                       {c}
                     </button>
                   ))}
-                </div>
-              </section>
-              <section>
-                <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">მუნიციპალიტეტები</h3>
-                <div className="columns-2 gap-6 sm:columns-3">
-                  {muniGroups.map(([letter, list]) => (
-                    <div key={letter} className="mb-4 break-inside-avoid">
-                      <div className="mb-1 rounded-md bg-sv-cloud px-2 py-1 text-[12px] font-extrabold text-sv-ink/50">{letter}</div>
-                      <ul>
-                        {list.map((m) => (
-                          <li key={m}>
+                </nav>
+              ) : null}
+
+              <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 py-4">
+                {qn ? (
+                  <SearchResults
+                    city={city}
+                    cityHits={cityHits}
+                    distHits={distHits}
+                    remoteDistHits={remoteDistHits}
+                    streetHits={streetHits}
+                    pickedSet={pickedSet}
+                    street={street}
+                    onCity={pickCity}
+                    onDistrict={toggleDistrict}
+                    onAdoptDistrict={adoptDistrict}
+                    onStreet={pickStreet}
+                    empty={t('search.emptyTitle')}
+                    citiesLabel={t('loc.cities')}
+                    distLabel={t('search.district')}
+                    streetsLabel={t('loc.streets')}
+                  />
+                ) : !city ? (
+                  <>
+                    <section className="mb-7">
+                      <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+                        {t('loc.popular')}
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+                        {POPULAR.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => pickCity(c)}
+                            className="flex items-center gap-2.5 rounded-control bg-sv-cloud px-3 py-2.5 text-left text-[13px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.06]"
+                          >
+                            <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 border-sv-ink/20" />
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                    <section>
+                      <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+                        {t('loc.muni')}
+                      </h3>
+                      <div className="columns-2 gap-6 sm:columns-3">
+                        {muniGroups.map(([letter, list]) => (
+                          <div key={letter} className="mb-4 break-inside-avoid">
+                            <div className="mb-1 rounded-md bg-sv-cloud px-2 py-1 text-[12px] font-extrabold text-sv-ink/50">
+                              {letter}
+                            </div>
+                            <ul>
+                              {list.map((m) => (
+                                <li key={m}>
+                                  <button
+                                    type="button"
+                                    onClick={() => pickCity(m)}
+                                    className="w-full rounded-md px-2 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04] hover:text-sv-ink"
+                                  >
+                                    {m}
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  </>
+                ) : pane === 'streets' ? (
+                  <StreetList
+                    items={streets}
+                    street={street}
+                    onPick={pickStreet}
+                    hint={t('loc.streetHint')}
+                    empty={t('search.emptyTitle')}
+                  />
+                ) : (
+                  <section>
+                    <button
+                      type="button"
+                      onClick={() => { setPicked([]); setStreet('') }}
+                      className={`mb-4 inline-flex items-center gap-2 rounded-control px-3 py-2 text-[13px] font-bold transition-colors ${
+                        picked.length === 0
+                          ? 'bg-sv-blue text-white'
+                          : 'bg-sv-cloud text-sv-ink hover:bg-sv-ink/[0.06]'
+                      }`}
+                    >
+                      {t('loc.wholeCity')}
+                    </button>
+                    {raionEntries.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+                        {raionEntries.map(([raion, ubanis]) => {
+                          const st = raionState(raion, ubanis)
+                          return (
+                            <div key={raion}>
+                              <button
+                                type="button"
+                                onClick={() => toggleRaion(raion, ubanis)}
+                                className="mb-1.5 flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[14px] font-extrabold text-sv-ink hover:bg-sv-ink/[0.04]"
+                              >
+                                <Tick on={st === 'on'} mixed={st === 'mixed'} />
+                                {raion}
+                              </button>
+                              <ul className="space-y-0.5">
+                                {ubanis.map((u) => (
+                                  <li key={u}>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleDistrict(u)}
+                                      className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04] hover:text-sv-ink"
+                                    >
+                                      <Tick on={pickedSet.has(u)} />
+                                      {u}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )
+                        })}
+                        {leftover.map((d) => (
+                          <div key={d}>
                             <button
                               type="button"
-                              onClick={() => pickCity(m)}
-                              className="w-full rounded-md px-2 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04] hover:text-sv-ink"
+                              onClick={() => toggleDistrict(d)}
+                              className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[14px] font-extrabold text-sv-ink hover:bg-sv-ink/[0.04]"
                             >
-                              {m}
+                              <Tick on={pickedSet.has(d)} />
+                              {d}
                             </button>
-                          </li>
+                          </div>
                         ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
-        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-0.5 sm:grid-cols-2 lg:grid-cols-3">
+                        {districts.map((d) => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => toggleDistrict(d)}
+                            className="flex items-center gap-2 rounded-control px-2 py-2 text-left text-[13px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                          >
+                            <Tick on={pickedSet.has(d)} />
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )}
+              </div>
+            </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] px-5 py-4">
-          <button
-            type="button"
-            onClick={() => { setCity(''); setDistrict(''); setStreet(''); setQ('') }}
-            className="h-11 rounded-control px-4 text-[13px] font-extrabold text-sv-ink/55 transition-colors hover:bg-sv-ink/[0.04] hover:text-sv-ink"
-          >
-            გასუფთავება
-          </button>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-11 rounded-full border border-sv-ink/10 px-5 text-[13px] font-extrabold text-sv-ink transition-colors hover:bg-sv-ink/[0.04]"
-            >
-              გაუქმება
-            </button>
-            <button
-              type="button"
-              onClick={apply}
-              className="h-11 rounded-full bg-sv-blue px-6 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep"
-            >
-              არჩევა
-            </button>
-          </div>
-        </div>
-      </div>
+            <div className="flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] px-5 py-3.5">
+              <button
+                type="button"
+                onClick={() => { setCity(''); setPicked([]); setStreet(''); setQ(''); setMetro(false) }}
+                className="h-11 rounded-control px-3 text-[13px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10"
+              >
+                {t('search.clear')}
+              </button>
+              <button
+                type="button"
+                onClick={apply}
+                className="h-11 min-w-[120px] rounded-full bg-sv-blue px-7 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-colors hover:bg-sv-blue-deep"
+              >
+                {t('loc.choose')}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+
+  if (!mounted) return null
+  return createPortal(sheet, document.body)
+}
+
+function Tick({ on, mixed }: { on: boolean; mixed?: boolean }) {
+  return (
+    <span
+      className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] border-2 transition-colors ${
+        on || mixed ? 'border-sv-blue bg-sv-blue' : 'border-sv-ink/20 bg-sv-surface'
+      }`}
+    >
+      {on ? <Check className="h-3 w-3 text-white" strokeWidth={3} /> : null}
+      {mixed && !on ? <Minus className="h-3 w-3 text-white" strokeWidth={3} /> : null}
+    </span>
+  )
+}
+
+function Chip({ children, onClear }: { children: string; onClear: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClear}
+      className="inline-flex max-w-[220px] items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-[12px] font-bold text-sv-blue hover:bg-sv-blue/15"
+    >
+      <span className="truncate">{children}</span>
+      <X className="h-3 w-3 shrink-0" />
+    </button>
+  )
+}
+
+function SearchResults({
+  city,
+  cityHits,
+  distHits,
+  remoteDistHits,
+  streetHits,
+  pickedSet,
+  street,
+  onCity,
+  onDistrict,
+  onAdoptDistrict,
+  onStreet,
+  empty,
+  citiesLabel,
+  distLabel,
+  streetsLabel,
+}: {
+  city: string
+  cityHits: string[]
+  distHits: string[]
+  remoteDistHits: Suggestion[]
+  streetHits: Suggestion[]
+  pickedSet: Set<string>
+  street: string
+  onCity: (c: string) => void
+  onDistrict: (d: string) => void
+  onAdoptDistrict: (d: string, city?: string) => void
+  onStreet: (s: Suggestion) => void
+  empty: string
+  citiesLabel: string
+  distLabel: string
+  streetsLabel: string
+}) {
+  if (cityHits.length === 0 && distHits.length === 0 && remoteDistHits.length === 0 && streetHits.length === 0) {
+    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/45">{empty}</p>
+  }
+  return (
+    <div className="space-y-4">
+      {cityHits.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">{citiesLabel}</h3>
+          <ul className="space-y-0.5">
+            {cityHits.map((c) => (
+              <li key={c}>
+                <button
+                  type="button"
+                  onClick={() => onCity(c)}
+                  className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                >
+                  <MapPin className="h-4 w-4 text-sv-blue" />
+                  {c}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {distHits.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+            {distLabel}{city ? ` · ${city}` : ''}
+          </h3>
+          <ul className="space-y-0.5">
+            {distHits.map((d) => (
+              <li key={d}>
+                <button
+                  type="button"
+                  onClick={() => onDistrict(d)}
+                  className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                >
+                  <Tick on={pickedSet.has(d)} />
+                  {d}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {remoteDistHits.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">{distLabel}</h3>
+          <ul className="space-y-0.5">
+            {remoteDistHits.map((s) => (
+              <li key={`${s.city}:${s.ka}`}>
+                <button
+                  type="button"
+                  onClick={() => onAdoptDistrict(s.ka, s.city)}
+                  className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                >
+                  <MapPin className="h-4 w-4 text-sv-blue" />
+                  <span className="min-w-0">
+                    <span className="block truncate">{s.ka}</span>
+                    {s.city ? <span className="block text-[12px] font-semibold text-sv-ink/40">{s.city}</span> : null}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {streetHits.length > 0 && (
+        <section>
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">{streetsLabel}</h3>
+          <ul className="space-y-0.5">
+            {streetHits.map((s) => (
+              <li key={`${s.city}:${s.ka}`}>
+                <button
+                  type="button"
+                  onClick={() => onStreet(s)}
+                  className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+                >
+                  <Route className="h-4 w-4 shrink-0 text-sv-blue" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{s.ka}</span>
+                    <span className="block truncate text-[12px] font-semibold text-sv-ink/40">
+                      {[s.district, s.city].filter(Boolean).join(' · ')}
+                    </span>
+                  </span>
+                  {street === s.ka ? <Check className="h-4 w-4 text-sv-blue" /> : null}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }
 
-/** Compact label for the hero location trigger. */
-export function locationLabel(v: LocationValue): string {
-  if (v.street) {
-    if (v.district) return `${v.street}, ${v.district}`
-    if (v.city) return `${v.street}, ${v.city}`
-    return v.street
+function StreetList({
+  items,
+  street,
+  onPick,
+  hint,
+  empty,
+}: {
+  items: Suggestion[]
+  street: string
+  onPick: (s: Suggestion) => void
+  hint: string
+  empty: string
+}) {
+  if (items.length === 0) {
+    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/45">{hint || empty}</p>
   }
-  if (v.district && v.city) return `${v.district}, ${v.city}`
-  if (v.city) return v.city
-  if (v.district) return v.district
-  return 'აირჩიე ქალაქი'
+  return (
+    <ul className="space-y-0.5">
+      {items.map((s) => (
+        <li key={`${s.city}:${s.ka}`}>
+          <button
+            type="button"
+            onClick={() => onPick(s)}
+            className="flex w-full items-center gap-2.5 rounded-control px-2 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
+          >
+            <Tick on={street === s.ka} />
+            <span className="min-w-0">
+              <span className="block truncate">{s.ka}</span>
+              {s.district ? (
+                <span className="block truncate text-[12px] font-semibold text-sv-ink/40">{s.district}</span>
+              ) : null}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
 }

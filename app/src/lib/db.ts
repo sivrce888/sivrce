@@ -1,10 +1,11 @@
 import { PrismaPg } from "@prisma/adapter-pg"
-import { Client } from "pg"
+import { Pool } from "pg"
 
 import { PrismaClient } from "@/generated/prisma/client"
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
+  pool: Pool | undefined
 }
 
 // Node 24+ pg treats sslmode=require as verify-full; Supabase pooler breaks
@@ -15,14 +16,25 @@ function withPgSslCompat(url: string) {
   return `${url}${url.includes("?") ? "&" : "?"}uselibpqcompat=true`
 }
 
-function createClient() {
+function getPool(): Pool {
+  if (globalForPrisma.pool) return globalForPrisma.pool
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is not set")
   }
-  return new PrismaClient({
-    adapter: new PrismaPg({ connectionString: withPgSslCompat(connectionString) }),
+  // ponytail: 1 conn per Fluid isolate. Bump max to 3 if p99 wait shows queueing.
+  globalForPrisma.pool = new Pool({
+    connectionString: withPgSslCompat(connectionString),
+    max: 1,
+    idleTimeoutMillis: 20_000,
+    connectionTimeoutMillis: 3_000,
+    allowExitOnIdle: true,
   })
+  return globalForPrisma.pool
+}
+
+function createClient() {
+  return new PrismaClient({ adapter: new PrismaPg(getPool()) })
 }
 
 // Reuse the client across Next.js dev hot-reloads to avoid exhausting pool slots.
@@ -64,21 +76,11 @@ async function probeDb(): Promise<boolean> {
     health = { ok: false, at: Date.now() }
     return false
   }
-  // Raw pg.Client with a hard connect timeout — NOT a raced Prisma query,
-  // which keeps running in the background and leaks a pool slot per probe.
-  // ponytail: 3s — 800ms false-open on cold TLS to the Supabase pooler.
+  // Same Pool Prisma uses — a second Client was a leaked pooler slot per probe.
   let ok = false
   try {
-    const probe = new Client({
-      connectionString: withPgSslCompat(connectionString),
-      connectionTimeoutMillis: 3_000,
-    })
-    try {
-      await probe.connect()
-      ok = true
-    } finally {
-      await probe.end().catch(() => {})
-    }
+    await getPool().query("SELECT 1")
+    ok = true
   } catch {
     ok = false
   }

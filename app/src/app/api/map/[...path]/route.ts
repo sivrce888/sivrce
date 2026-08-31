@@ -8,7 +8,9 @@ import { getConfig } from '@/lib/config'
 import { mapProxyPathOk, OFM_ORIGIN, scrubMapJson } from '@/lib/map/map-proxy'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400
+export const maxDuration = 8
+export const preferredRegion = 'fra1'
 
 type Ctx = { params: Promise<{ path: string[] }> }
 
@@ -43,17 +45,19 @@ export async function GET(req: Request, ctx: Ctx) {
   // fetch() already decompresses — never forward Content-Encoding.
   const isStyle = path.startsWith('styles/')
   // ponytail: short style/planet TTL — scrub bugs must not stick on CDN for an hour
-  headers.set(
-    'Cache-Control',
-    isStyle || path === 'planet'
-      ? 'public, max-age=120, s-maxage=120, stale-while-revalidate=3600'
-      : 'public, max-age=86400, s-maxage=86400, immutable',
-  )
+  const styleCache =
+    'public, max-age=120, s-maxage=120, stale-while-revalidate=3600'
+  const tileCache =
+    'public, max-age=604800, s-maxage=604800, immutable'
+  headers.set('Cache-Control', isStyle || path === 'planet' ? styleCache : tileCache)
   headers.set('X-Content-Type-Options', 'nosniff')
   // Vercel CDN must see s-maxage or every tile is a function invocation.
-  if (!(isStyle || path === 'planet')) {
-    headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=86400, immutable')
-  }
+  headers.set(
+    'Vercel-CDN-Cache-Control',
+    isStyle || path === 'planet'
+      ? 'public, s-maxage=120, stale-while-revalidate=3600'
+      : 'public, s-maxage=604800, immutable',
+  )
 
   // Rewrite JSON so Network never shows upstream host. Absolute URLs — MapLibre workers.
   if (ct.includes('json') || path.startsWith('styles/') || path === 'planet') {

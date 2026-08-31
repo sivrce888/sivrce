@@ -388,7 +388,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.6,
-    coords: { lat: 41.5687387, lng: 44.9807002 },
+    coords: { lat: 41.57135876, lng: 44.97325945 },
     description: {
       ka: 'Archi Rustavi — არქის პირველი პროექტი რუსთავში, ლეონიძისა და ჩერკასკის ქუჩების კვეთაზე. მშენებარე ბინები $995/მ²-დან, ჩაბარება 2026 Q4.',
       en: 'Archi Rustavi is Archi’s first project in Rustavi at the Leonidze × Cherkask crossing — new-build apartments from $995/m², delivery Q4 2026.',
@@ -428,7 +428,7 @@ export const NEW_PROJECTS_REGIONS: Project[] = [
     flats: 80,
     floors: 8,
     rating: 4.5,
-    coords: { lat: 41.7365786, lng: 43.5275542 },
+    coords: { lat: 41.72838697, lng: 43.53420556 },
     description: {
       ka: 'Crystal Park Hotel — Crystal Group-ის მშენებარე სასტუმრო-საცხოვრებელი კომპლექსი ბაკურიანში, დიდველის ქ. 26-ში; ფასი მოთხოვნით, ჩაბარება 2026 Q4.',
       en: 'Crystal Park Hotel is Crystal Group’s under-construction hotel-residential complex in Bakuriani at 26 Didveli St — price on request, delivery Q4 2026.',

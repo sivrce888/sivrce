@@ -9,7 +9,7 @@ import { listForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'ფორუმი — უძრავი ქონების დისკუსიები | sivrce',

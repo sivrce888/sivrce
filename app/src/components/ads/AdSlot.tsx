@@ -1,7 +1,6 @@
 import { AdCreative } from "@/components/ads/AdCreative"
-import { audienceFromRole, SLOT_META, sponsoredLabel, type AdSlotId } from "@/lib/ads"
+import { SLOT_META, sponsoredLabel, type AdSlotId } from "@/lib/ads"
 import { pickAd } from "@/lib/ads-db"
-import { getSessionUser } from "@/lib/guards"
 import type { Lang } from "@/lib/i18n/core"
 
 const PAD: Partial<Record<AdSlotId, string>> = {
@@ -28,8 +27,8 @@ export async function AdSlot({
   lang?: Lang
   className?: string
 }) {
-  const user = await getSessionUser()
-  const ad = await pickAd(slot, { audience: audienceFromRole(user?.role), lang })
+  // ponytail: guest ads only — auth() here dynamized every public page (home ISR dead).
+  const ad = await pickAd(slot, { audience: "guest", lang })
   if (!ad) return null
   const format = ad.format || SLOT_META[slot].format
   return (

@@ -1,8 +1,10 @@
 import { translateText } from "@/lib/ai"
 
-/** Per-IP rate limiter: 30 translations per 5 minutes. */
+/** Per-IP rate limiter: 15 translations per 5 minutes — Gemini cost lock. */
+export const maxDuration = 15
+
 const WINDOW_MS = 5 * 60 * 1000
-const MAX_PER_WINDOW = 30
+const MAX_PER_WINDOW = 15
 const buckets = new Map<string, { count: number; resetAt: number }>()
 let lastSweep = 0
 

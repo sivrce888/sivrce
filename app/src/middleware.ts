@@ -90,9 +90,18 @@ function isRedirectHost(host: string): boolean {
   return host === "app.sivrce.ge" || host === "analytics.sivrce.ge"
 }
 
+function pass(req: NextRequest, res: NextResponse): NextResponse {
+  if (req.nextUrl.searchParams.get("cmsPreview") === "1") {
+    res.headers.set("x-cms-preview", "1")
+    res.headers.set("X-Robots-Tag", "noindex, nofollow")
+  }
+  return res
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const host = hostName(req)
+  const seg = pathname.split("/")[1] ?? ""
 
   // app / analytics → apex (single product surface).
   if (isRedirectHost(host)) {
@@ -135,9 +144,18 @@ export function middleware(req: NextRequest) {
   }
 
   // Admin host: map / → /ka/admin, /users → /ka/admin/users (auth stays as-is).
+  // ?cmsPreview=1 is the visual CMS iframe — serve the real public page.
   if (isAdminHost(host)) {
     if (pathname.startsWith("/auth") || pathname.startsWith("/api")) {
       return NextResponse.next()
+    }
+    if (req.nextUrl.searchParams.get("cmsPreview") === "1") {
+      if (LOCALE_PREFIXES.includes(seg) || seg === "ka") {
+        return pass(req, NextResponse.next())
+      }
+      const pub = req.nextUrl.clone()
+      pub.pathname = `/ka${pathname === "/" ? "" : pathname}`
+      return pass(req, NextResponse.rewrite(pub))
     }
     const bare = stripLocale(pathname)
     const adminPath = bare === "/" ? "/admin" : bare.startsWith("/admin") ? bare : `/admin${bare}`
@@ -152,7 +170,6 @@ export function middleware(req: NextRequest) {
   }
 
   // Canonical ka is unprefixed: an explicit /ka/… URL redirects to its clean form.
-  const seg = pathname.split("/")[1] ?? ""
   if (seg === "ka") {
     const url = req.nextUrl.clone()
     url.pathname = pathname.slice(3) || "/"
@@ -168,7 +185,7 @@ export function middleware(req: NextRequest) {
 
   // Prefixed locales resolve through the app/[lang] segment natively.
   if (LOCALE_PREFIXES.includes(seg)) {
-    return NextResponse.next()
+    return pass(req, NextResponse.next())
   }
 
   // Route handlers + auth flows stay at the root, unprefixed.
@@ -188,7 +205,7 @@ export function middleware(req: NextRequest) {
   // the external URL stays clean and canonical.
   const url = req.nextUrl.clone()
   url.pathname = `/ka${pathname === "/" ? "" : pathname}`
-  return NextResponse.rewrite(url)
+  return pass(req, NextResponse.rewrite(url))
 }
 
 export const config = {

@@ -12,7 +12,7 @@ import { SERVICE_BRAND } from '@/lib/category-brand'
 import { langAlternates } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 interface PageProps {
   params: Promise<{ id: string }>

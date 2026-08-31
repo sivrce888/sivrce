@@ -35,7 +35,7 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
+  "frame-ancestors 'self'",
   "frame-src 'self' https://www.googletagmanager.com",
   "publickey-credentials-get 'self'",
   "publickey-credentials-create 'self'",
@@ -49,7 +49,7 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains; preload",
   },
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
@@ -58,6 +58,7 @@ const securityHeaders = [
       "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), browsing-topics=(), publickey-credentials-get=(self), publickey-credentials-create=(self)",
   },
   { key: "X-DNS-Prefetch-Control", value: "on" },
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
 ];
 
 const nextConfig: NextConfig = {
@@ -75,9 +76,17 @@ const nextConfig: NextConfig = {
       ? { exclude: ["error", "warn"] }
       : false,
   },
+  // Keep Prisma/pg out of the serverless bundle graph where possible.
+  serverExternalPackages: ["@prisma/client", "prisma", "pg", "@prisma/adapter-pg"],
+  // Quiet fetch logging in prod — less I/O on Fluid isolates.
+  logging: {
+    fetches: { fullUrl: false },
+  },
   // ponytail: cold Prisma connects can exceed the 60s default on DB-backed
   // SSG pages. Bump timeout; make builds warm the DB instead.
   staticPageGenerationTimeout: 180,
+  // ISR stale-while-revalidate on the CDN — origin regenerates in the background.
+  expireTime: 86400,
   // Keep native/heavy pkgs out of the serverless trace — smaller Vercel functions.
   outputFileTracingExcludes: {
     "*": [
@@ -106,6 +115,8 @@ const nextConfig: NextConfig = {
     // inlineCss: true,
   },
   images: {
+    // R2 already ships webp ≤2560 + LQIP. Optimizer = Vercel Image bill for no gain.
+    unoptimized: true,
     // AVIF first → WebP fallback. Fewer sizes/qualities = fewer Image Opt variants.
     formats: ["image/avif", "image/webp"],
     qualities: [75],
@@ -143,6 +154,20 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       })),
+      // Sat tiles only here — map styles need short TTL (set in the route handler).
+      {
+        source: "/api/sat/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, s-maxage=604800, immutable",
+          },
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "public, s-maxage=604800, immutable",
+          },
+        ],
+      },
       {
         source: "/llms.txt",
         headers: [

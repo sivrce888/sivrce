@@ -351,7 +351,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 120,
     floors: 10,
     rating: 4.5,
-    coords: { lat: 41.63760979, lng: 41.61612511 },
+    coords: { lat: 41.63759876, lng: 41.61624581 },
     description: {
       ka: 'Comfort by Orbi — ORBI-ის მშენებარე ბინები პიროსმანის ქ. 21ა-ში, გმირთა ხეივნის ზონაში, ზღვიდან ~250 მეტრში.',
       en: 'Comfort by Orbi is ORBI’s under-construction residences at 21a Pirosmani St in the Alley of Heroes zone, ~250 m from the sea.',
@@ -392,7 +392,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 300,
     floors: 25,
     rating: 4.5,
-    coords: { lat: 41.6536, lng: 41.6345 },
+    coords: { lat: 41.64572798, lng: 41.6332307 },
     // ponytail: Batumi Boulevard waterfront (orbi.ge) — street № not published
     description: {
       ka: 'Orbi Sunset Boulevard — ORBI-ის გამოცხადებული პროექტი ბათუმის ბულვარის სანაპირო ზონაში.',
@@ -453,7 +453,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 60,
     floors: 8,
     rating: 4.5,
-    coords: { lat: 41.6494629, lng: 41.6415132 },
+    coords: { lat: 41.63942012, lng: 41.61364993 },
     // ponytail: approximate pin, verify vs cadastral — Old Batumi district pin, no street address published
     description: {
       ka: 'Orbi Old City — ORBI-ის ახალი პროექტი ძველი ბათუმის ისტორიულ უბანში.',
@@ -636,7 +636,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.5,
-    coords: { lat: 41.63197946, lng: 41.60543806 },
+    coords: { lat: 41.63181879, lng: 41.60553259 },
     description: {
       ka: 'Archi Ramada Batumi — არქის მშენებარე პროექტი ბათუმში (მამულაძის ქ. 25), Ramada სასტუმროს ბრენდით მართვის მოდელით.',
       en: 'Archi Ramada Batumi is Archi’s under-construction project in Batumi (25 Mamuladze St) under the Ramada hotel brand.',
@@ -737,7 +737,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 300,
     floors: 25,
     rating: 4.5,
-    coords: { lat: 41.6328, lng: 41.6108 },
+    coords: { lat: 41.64078783, lng: 41.63201377 },
     description: {
       ka: 'White Line — DS Group-ის კომპლექსი ბათუმში: ბლოკი A ჩაბარებულია 2023 წელს, ბლოკი B იბარება 2025/26 წლებში.',
       en: 'White Line is DS Group’s complex in Batumi: Block A delivered in 2023, Block B delivers in 2025/26.',
@@ -779,7 +779,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.5,
-    coords: { lat: 41.65021742, lng: 41.62904239 },
+    coords: { lat: 41.63816806, lng: 41.61857932 },
     description: {
       ka: 'Azure Tower — მაღალსართულიანი კომპლექსი რუსთაველის ქ. 30-ში, ბათუმის ცენტრში; პრემიუმ ბინები ზღვისა და ქალაქის ხედებით.',
       en: 'Azure Tower is a high-rise complex at 30 Rustaveli St in central Batumi — premium apartments with sea and city views.',
@@ -939,7 +939,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     finish: '2027 Q4',
     flats: 600,
     rating: 4.5,
-    coords: { lat: 41.8612551, lng: 41.7786533 },
+    coords: { lat: 41.85943169, lng: 41.77904192 },
     floors: 44,
     description: {
       ka: 'Alliance Renaissance — Alliance Group-ის სამი 44-სართულიანი კოშკი ქობულეთის სანაპიროზე (აღმაშენებლის გამზ. 291). პირველი ეტაპი იბარება 2027-ის ბოლოს, ეტაპები 2029-მდე; ფასი $1 810/მ²-დან.',
@@ -960,7 +960,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 4000,
     floors: 100,
     rating: 4.7,
-    coords: { lat: 41.6562, lng: 41.6081 },
+    coords: { lat: 41.65745121, lng: 41.66681201 },
     // ponytail: offshore artificial-island pin (no OSM polygon); matches ambassadori-island-first-tower
     description: {
       ka: 'Ambassadori Batumi Island — შავი ზღვის პირველი ხელოვნური არქიპელაგი 84 ჰა-ზე ბათუმთან: რეზიდენციები, მარინა, კაზინო და კერძო პლაჟები; პირველი ფაზა 2029-ის დასაწყისში, ფასი $2 898/მ²-დან. ავსებს ambassadori-island-first-tower-ს (პირველი კოშკის ცალკე ჩანაწერი).',
@@ -980,7 +980,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     finish: '2028 Q4',
     flats: 400,
     rating: 4.5,
-    coords: { lat: 41.638761, lng: 41.6200795 },
+    coords: { lat: 41.63847091, lng: 41.61914996 },
     floors: 47,
     description: {
       ka: 'Next Address — Next Group-ის 47-სართულიანი კოშკი თ. აბუსერიძის ქ. 11-ში, გმირთა ხეივნის ზონაში — ბათუმის ერთ-ერთი უმაღლესი შენობა, ზღვიდან ~250 მეტრში. ჩაბარება 2028-ის ბოლო, ფასი $1 810/მ²-დან.',
@@ -1022,7 +1022,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.6,
-    coords: { lat: 41.6478804, lng: 41.6433354 },
+    coords: { lat: 41.64779326, lng: 41.64314032 },
     description: {
       ka: 'Next Downtown — Next Group-ის პრემიუმ კომპლექსი ძველ ბათუმში (კომახიძის ქ. 1), ბულვარიდან ნაბიჯების დაშორებით. ჩაბარებულია 2025-ის ბოლოს, ბოლო ბინები იყიდება $5 400/მ²-დან.',
       en: 'Next Downtown is Next Group’s premium complex in Old Batumi (1 Komakhidze St), steps from the Boulevard. Delivered Q4 2025 — last units selling from $5,400/m².',
@@ -1042,7 +1042,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.5,
-    coords: { lat: 41.6453122, lng: 41.6505794 },
+    coords: { lat: 41.64531193, lng: 41.65057808 },
     description: {
       ka: 'Portline by Gumbati — Gumbati-ს მშენებარე კომპლექსი მაქაცარიას ქ. 11-ში, ბონი-გოროდოკის უბანში, ბათუმის პორტისა და ბულვარის სიახლოვეს. ჩაბარება 2026-ის მესამე კვარტალი, ფასი $2 600/მ²-დან.',
       en: 'Portline by Gumbati is Gumbati’s under-construction complex at 11 Makatsaria St in the Boni-Gorodok district, near Batumi Port and the Boulevard. Delivery Q3 2026, from $2,600/m².',
@@ -1062,7 +1062,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 100,
     floors: 8,
     rating: 4.6,
-    coords: { lat: 41.6898115, lng: 41.7050716 },
+    coords: { lat: 41.69005724, lng: 41.70534291 },
     description: {
       ka: 'Green Cape Botanico — Silk Development-ის დაბალსართულიანი კურორტი მწვანე კონცხზე (ბაღის I ჩიხი 3), ბოტანიკური ბაღის სიახლოვეს, ზღვის პირველ ხაზზე. სამი კორპუსი ჩაბარებულია, ბინები კვლავ იყიდება $2 700/მ²-დან.',
       en: 'Green Cape Botanico is Silk Development’s low-rise resort at Green Cape (3 Baghi 1st Dead-end) near the Botanical Garden, first sea line. Three buildings delivered, units still selling from $2,700/m².',
@@ -1081,7 +1081,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     finish: '2029 Q2',
     flats: 250,
     rating: 4.5,
-    coords: { lat: 41.6257586, lng: 41.603605 },
+    coords: { lat: 41.62796748, lng: 41.60794723 },
     floors: 26,
     // ponytail: street-level geocode — 35b not in OSM (Angisa 1st Lane)
     description: {
@@ -1103,7 +1103,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.5,
-    coords: { lat: 41.6096463, lng: 41.6076335 },
+    coords: { lat: 41.60959619, lng: 41.60747302 },
     description: {
       ka: 'Gate by Artex — Artex Group-ის მშენებარე კომპლექსი ანწუხელიძის ქ. 110-ში, აეროპორტის რაიონში, ზღვისპირა ზოლიდან ახლოს. ფასი $1 250/მ²-დან.',
       en: 'Gate by Artex is Artex Group’s under-construction complex at 110 Antsukhelidze St in the Airport district, close to the seaside strip. From $1,250/m².',
@@ -1123,7 +1123,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.5,
-    coords: { lat: 41.6791219, lng: 41.7001359 },
+    coords: { lat: 41.67917611, lng: 41.69999643 },
     description: {
       ka: 'Mardi Residence — Mardi Holding-ის მშენებარე კომპლექსი ახალგაზრდობის ქ. 10-ში, მახინჯაურის/მწვანე კონცხის სანაპირო ზონაში. ჩაბარება 2027-ის ბოლო, ფასი $920/მ²-დან.',
       en: 'Mardi Residence is Mardi Holding’s under-construction complex at 10 Akhalgazrdoba St in the Makhinjauri / Green Cape seaside zone. Delivery Q4 2027, from $920/m².',
@@ -1143,7 +1143,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 300,
     floors: 25,
     rating: 4.5,
-    coords: { lat: 41.8429696, lng: 41.7776232 },
+    coords: { lat: 41.84255168, lng: 41.77771776 },
     description: {
       ka: 'Grand Millennium Kobuleti — KBK Development-ის საკურორტო კომპლექსი ქობულეთის სანაპიროზე (აღმაშენებლის გამზ. 277). ჩაბარება 2030 წელი, ფასი $2 900/მ²-დან.',
       en: 'Grand Millennium Kobuleti is KBK Development’s resort complex on the Kobuleti seafront (277 Agmashenebeli Ave). Delivery 2030, from $2,900/m².',
@@ -1163,7 +1163,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.5,
-    coords: { lat: 41.7260217, lng: 41.7332331 },
+    coords: { lat: 41.72587811, lng: 41.7351265 },
     description: {
       ka: 'Grand Botanico Residence — Batumi Investment-ის მშენებარე კომპლექსი ჩაქვში (აბაშიძის ქ. 2), ბოტანიკური ბაღისა და მწვანე კონცხის სიახლოვეს. ჩაბარება 2027-ის მეორე კვარტალი, ფასი $1 300/მ²-დან.',
       en: 'Grand Botanico Residence is Batumi Investment’s under-construction complex in Chakvi (2 Abashidze St), near the Botanical Garden and Green Cape. Delivery Q2 2027, from $1,300/m².',
