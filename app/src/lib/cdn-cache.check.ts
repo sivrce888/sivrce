@@ -119,6 +119,7 @@ lock("src/lib/brand.ts", ["Real Estate in one place", "უძრავი ქო
 lock("src/app/globals.css", ["html[data-lite] [data-reveal]"])
 lock("next.config.ts", ["webpackMemoryOptimizations: true", "staleTimes"])
 lock("package.json", ["max-old-space-size=4096", "max-old-space-size=768"])
+lock(".npmrc", ["legacy-peer-deps=true"])
 lock("src/components/sections/Listings.tsx", [
   "homeRailSearchHref('diamond')",
   "homeRailSearchHref('super_vip')",
