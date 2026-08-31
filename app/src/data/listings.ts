@@ -639,6 +639,44 @@ export const LISTINGS: Listing[] = [
     isNew: false,
   },
   {
+    id: 'tbilisi-land-gldani-lease',
+    img: '/images/np1.webp',
+    images: ['/images/np1.webp', '/images/p3.webp'],
+    priceUSD: 280, priceGEL: 756, perM2USD: 0,
+    title: 'გაიცემა იჯარით სასოფლო მიწა გლდანში',
+    address: 'გლდანი, თბილისის მიდამო',
+    city: 'თბილისი', district: 'გლდანი',
+    dealType: 'rent', propType: 'land',
+    rooms: 0, beds: 0, baths: 0, area: 2500, floor: 0, totalFloors: 0,
+    views: 410, badge: null,
+    ai: { score: 100, label: 'შესანიშნავი ფასი' },
+    features: ['სასოფლო-სამეურნეო დანიშნულება', 'გზა ნაკვეთთან', 'სარწყავი წყალი'],
+    description: 'გლდანში გაიცემა იჯარით 2500 მ² სასოფლო-სამეურნეო მიწის ნაკვეთი. გზა და სარწყავი წყალი მისულია. ხელშეკრულება წლიური ციკლით — ბაღის, სათბურის ან მცირე მეურნეობისთვის.',
+    coords: { lat: 41.8052, lng: 44.8451 },
+    postedAt: '2026-08-12',
+    agent: AGENTS[5]!,
+    isNew: true,
+  },
+  {
+    id: 'telavi-land-vineyard-lease',
+    img: '/images/np2.webp',
+    images: ['/images/np2.webp', '/images/np1.webp'],
+    priceUSD: 900, priceGEL: 2430, perM2USD: 0,
+    title: 'გაიცემა იჯარით ვენახი თელავში',
+    address: 'თელავი, კახეთი',
+    city: 'თელავი', district: 'თელავი',
+    dealType: 'rent', propType: 'land',
+    rooms: 0, beds: 0, baths: 0, area: 20000, floor: 0, totalFloors: 0,
+    views: 260, badge: null,
+    ai: { score: 100, label: 'შესანიშნავი ფასი' },
+    features: ['ვენახი', 'სასოფლო-სამეურნეო დანიშნულება', 'add.f.mountainView'],
+    description: 'თელავში გაიცემა იჯარით 2 ჰა ვენახი. ნაკვეთი სასოფლო-სამეურნეო დანიშნულებისაა, მისასვლელი გზით. იჯარა გრძელვადიანი — ღვინის მეურნეობისთვის ან საინვესტიციო კულტივაციისთვის.',
+    coords: { lat: 41.9198, lng: 45.4731 },
+    postedAt: '2026-07-28',
+    agent: AGENTS[5]!,
+    isNew: false,
+  },
+  {
     id: 'tbilisi-commercial-vake-rent',
     img: '/images/np1.webp',
     images: ['/images/np1.webp', '/images/np2.webp'],
@@ -1153,9 +1191,8 @@ export function formatGEL(n: number): string {
 
 /** Card price — appends /თვე for monthly rent, /დღე for daily rent */
 export function formatListingPrice(l: Listing): string {
-  if (l.dealType === 'rent') return `${formatUSD(l.priceUSD)}/თვე`
+  if (l.dealType === 'rent' && l.propType !== 'land') return `${formatUSD(l.priceUSD)}/თვე`
   if (l.dealType === 'daily') return `${formatUSD(l.priceUSD)}/დღე`
-  if (l.dealType === 'pledge') return formatUSD(l.priceUSD)
   return formatUSD(l.priceUSD)
 }
 
