@@ -29,7 +29,7 @@ export default function DeveloperSlider({
   if (developers.length === 0) return null
 
   return (
-    <section className="relative overflow-hidden bg-sv-surface py-16 md:py-24">
+    <section className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
