@@ -41,7 +41,7 @@ export const TBILISI_DISTRICT_LABELS: DistrictLabel[] = [
   // Digomi cluster — four distinct places (do not merge)
   { slug: 'digomis-masivi', name: { ka: 'დიღმის მასივი', en: 'Dighomi Massive' }, coords: { lat: 41.76266, lng: 44.77492 } },
   { slug: 'dighomi', name: { ka: 'დიღომი', en: 'Dighomi' }, coords: { lat: 41.78389, lng: 44.73058 } },
-  { slug: 'sopeli-dighomi', name: { ka: 'სოფელი დიღომი', en: 'Village Dighomi' }, coords: { lat: 41.77564, lng: 44.73793 } },
+  { slug: 'sopeli-dighomi', name: { ka: 'სოფ. დიღომი', en: 'Village Dighomi' }, coords: { lat: 41.77564, lng: 44.73793 } },
   { slug: 'didi-dighomi', name: { ka: 'დიდი დიღომი', en: 'Didi Dighomi' }, coords: { lat: 41.78844, lng: 44.75283 } },
   { slug: 'zurgovana', name: { ka: 'ზურგოვანა', en: 'Zurgovana' }, coords: { lat: 41.79971, lng: 44.75907 } },
   { slug: 'dighmis-chala', name: { ka: 'დიღმის ჭალა', en: 'Dighomi Meadow' }, coords: { lat: 41.80446, lng: 44.77931 } },
@@ -85,6 +85,6 @@ export const TBILISI_DISTRICT_LABELS: DistrictLabel[] = [
   { slug: 'gldanula', name: { ka: 'გლდანულა', en: 'Gldanula' }, coords: { lat: 41.81285, lng: 44.81686 } },
   { slug: 'avchala', name: { ka: 'ავჭალა', en: 'Avchala' }, coords: { lat: 41.82489, lng: 44.78801 } },
   { slug: 'zahesi', name: { ka: 'ზაჰესი', en: 'Zahesi' }, coords: { lat: 41.82782, lng: 44.76274 } },
-  { slug: 'sopeli-gldani', name: { ka: 'სოფელი გლდანი', en: 'Village Gldani' }, coords: { lat: 41.82392, lng: 44.82753 } },
+  { slug: 'sopeli-gldani', name: { ka: 'სოფ. გლდანი', en: 'Village Gldani' }, coords: { lat: 41.82392, lng: 44.82753 } },
   { slug: 'tbilisis-zgva', name: { ka: 'თბილისის ზღვა', en: 'Tbilisi Sea' }, coords: { lat: 41.74206, lng: 44.85465 } },
 ]

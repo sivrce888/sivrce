@@ -2,7 +2,7 @@
  * Runnable check for daily signal priority / pickDailySignals.
  * Run: npx tsx src/lib/features.check.ts
  */
-import { DAILY_SIGNAL_KEYS, FEATURE_KEYS, pickDailySignals, featureLabel, orderFeaturesForDisplay, isFeatureKey } from "./features"
+import { DAILY_SIGNAL_KEYS, FEATURE_KEYS, FEATURE_GROUPS, pickDailySignals, featureLabel, groupedFeatures, orderFeaturesForDisplay, isFeatureKey } from "./features"
 
 function assert(ok: boolean, label: string) {
   if (!ok) throw new Error(`features assert failed: ${label}`)
@@ -26,5 +26,15 @@ assert(
   "daily order",
 )
 assert(orderFeaturesForDisplay(["add.f.yard", "add.f.pool"], "sale").join() === "add.f.yard,add.f.pool", "sale keeps order")
+assert(isFeatureKey("add.f.loggia"), "loggia key")
+{
+  const grouped = new Set<string>(FEATURE_GROUPS.flatMap((g) => [...g.items]))
+  for (const k of FEATURE_KEYS) {
+    if (k === "add.f.onlineView") assert(!grouped.has(k), "onlineView stays off grid")
+    else assert(grouped.has(k), `group covers ${k}`)
+  }
+}
+assert(groupedFeatures(["add.f.balcony", "add.f.pool"]).map((g) => g.key).join() === "add.fg.space,add.fg.extra", "group order")
+assert(groupedFeatures(["add.f.onlineView"]).length === 0, "onlineView no group")
 
 console.log("features: ok")

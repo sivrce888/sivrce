@@ -4,6 +4,8 @@
  */
 
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/client"
+import type { DealType, PropType } from "@/data/listings"
+import { featuresFor } from "@/lib/add-listing-fields"
 
 export const DEAL_TO_DB: Record<string, ListingDealType> = {
   sale: "buy",
@@ -94,7 +96,9 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
     return { ok: false, error: "photos_required" }
   }
 
-  const features = asStrList(body.features, 30, 60)
+  const allow = new Set<string>(featuresFor(propertyType as PropType, dealKey as DealType, city))
+  allow.add("add.f.onlineView")
+  const features = asStrList(body.features, 50, 60).filter((f) => allow.has(f))
 
   return {
     ok: true,
@@ -170,4 +174,43 @@ export function _checkParsePublishBody() {
   if (!good.ok) throw new Error(good.error)
   if (good.data.dealType !== "buy") throw new Error("deal map")
   if (DEAL_FROM_DB.buy !== "sale") throw new Error("reverse deal")
+  const fakeSea = parsePublishBody({
+    title: "იყიდება ბინა",
+    deal: "sale",
+    propType: "apartment",
+    city: "თბილისი",
+    district: "ვაკე",
+    address: "ჭავჭავაძის 12",
+    name: "გიორგი",
+    phone: "+995 555 12 34 56",
+    area: 80,
+    price: 100000,
+    images: ["https://cdn.example.com/a.webp"],
+    features: ["add.f.elevator", "add.f.seaView", "add.f.loggia", "junk"],
+    description: "ok",
+    negotiable: false,
+  })
+  if (!fakeSea.ok) throw new Error(fakeSea.error)
+  if (fakeSea.data.features.includes("add.f.seaView")) throw new Error("tbilisi sea")
+  if (fakeSea.data.features.includes("junk")) throw new Error("junk feat")
+  if (!fakeSea.data.features.includes("add.f.elevator")) throw new Error("keep elevator")
+  if (!fakeSea.data.features.includes("add.f.loggia")) throw new Error("keep loggia")
+  const batumi = parsePublishBody({
+    title: "იყიდება ბინა",
+    deal: "sale",
+    propType: "apartment",
+    city: "ბათუმი",
+    district: "ბათუმი",
+    address: "ნინოშვილი 1",
+    name: "გიორგი",
+    phone: "+995 555 12 34 56",
+    area: 80,
+    price: 100000,
+    images: ["https://cdn.example.com/a.webp"],
+    features: ["add.f.seaView"],
+    description: "ok",
+    negotiable: false,
+  })
+  if (!batumi.ok) throw new Error(batumi.error)
+  if (!batumi.data.features.includes("add.f.seaView")) throw new Error("batumi sea")
 }

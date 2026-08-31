@@ -1,24 +1,20 @@
 'use client'
 
 /**
- * SIVRCE — Add Listing wizard (6 steps)
+ * SIVRCE — Add Listing, one-scroll (ss.ge / myhome pattern)
  * Type → Photos → Location → Details → Price & description → Contact.
- * Live preview, listing-strength meter, AI price estimate, AI description.
- * All colors come from locked tokens (BRAND.md §3/§3.1) — category icons
- * use CATEGORY_BRAND, actions use sv-orange, brand surfaces use sv-blue.
  */
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import {
-  Building, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
-  MapPin, Ruler, Layers, Check, ChevronLeft,
-  ImagePlus, Star, X, Sparkles, Phone, User, MessageCircle,
-  CircleCheckBig, Plus, Video, BadgeCheck, Flame, Trees, Hotel,
-  CircleHelp, MonitorPlay,
+  Building, Building2, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
+  MapPin, Ruler, Layers, Check, Construction,
+  ImagePlus, X, Phone, User, MessageCircle,
+  CircleCheckBig, Plus, Video, BadgeCheck, Trees, Hotel,
 } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { SparkMark } from '@/components/SparkMark'
@@ -31,6 +27,7 @@ import {
   DEALS_FOR, dealLabelKey, fieldsFor, conditionsFor, statusesFor,
   projectsFor, floorTypesFor, featuresFor, RENT_PERIODS, RENT_TYPES,
 } from '@/lib/add-listing-fields'
+import { groupedFeatures } from '@/lib/features'
 import {
   CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD,
   type DealType, type Listing, type PropType,
@@ -63,7 +60,13 @@ const DEALS: { key: Deal; icon: typeof Tag; hue: string }[] = [
 ]
 
 const STEPS = ['add.step.type', 'add.step.photos', 'add.step.location', 'add.step.details', 'add.step.price', 'add.step.contact'] as const
-const STEP_TIPS = ['add.tip.type', 'add.tip.photos', 'add.tip.location', 'add.tip.details', 'add.tip.price', 'add.tip.contact'] as const
+
+const STATUS_ICON: Partial<Record<DictKey, typeof Building>> = {
+  'add.status.new': Building2,
+  'add.status.old': Building,
+  'add.status.construction': Construction,
+  'add.status.completed': CircleCheckBig,
+}
 
 /** rough market $/m² baselines for the AI estimate (display-only demo model) */
 const BASE_M2: Record<PropType, number> = {
@@ -97,7 +100,7 @@ export default function AddListingClient() {
   const nameSeeded = useRef(false)
   const editLoaded = useRef(false)
 
-  const [step, setStep] = useState(0)
+  const [activeSec, setActiveSec] = useState(0)
   const [touched, setTouched] = useState(false)
   const [publishedId, setPublishedId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -177,7 +180,8 @@ export default function AddListingClient() {
   const statusOpts = propType ? statusesFor(propType) : []
   const projectOpts = propType ? projectsFor(propType) : []
   const floorTypeOpts = propType ? floorTypesFor(propType) : []
-  const featureOpts = deal && propType ? featuresFor(propType, deal) : []
+  const featureOpts = deal && propType ? featuresFor(propType, deal, city || undefined) : []
+  const earlyStatus = statusOpts.length > 0 && statusOpts.length <= 3
 
   // ponytail: localStorage draft — photos are File blobs, not persisted; restore form only.
   // Skip draft when editing an existing listing.
@@ -218,7 +222,8 @@ export default function AddListingClient() {
         const raw = feats.filter((f) => f !== 'add.f.onlineView')
         const dDeal = typeof d.deal === 'string' ? (d.deal as Deal) : null
         const dProp = typeof d.propType === 'string' ? (d.propType as PropType) : null
-        setFeatures(dDeal && dProp ? raw.filter((f) => featuresFor(dProp, dDeal).includes(f)) : raw)
+        const dCity = typeof d.city === 'string' ? d.city : undefined
+        setFeatures(dDeal && dProp ? raw.filter((f) => featuresFor(dProp, dDeal, dCity).includes(f)) : raw)
       } else if (typeof d.onlineView === 'boolean') {
         setOnlineView(d.onlineView)
       }
@@ -237,7 +242,6 @@ export default function AddListingClient() {
       if (typeof d.phone === 'string') setPhone(d.phone)
       if (Array.isArray(d.messengers)) setMessengers(d.messengers.filter((x): x is string => typeof x === 'string'))
       if (typeof d.terms === 'boolean') setTerms(d.terms)
-      if (typeof d.step === 'number' && d.step >= 0 && d.step <= 5) setStep(d.step)
       if (d.coords && typeof d.coords === 'object') {
         const c = d.coords as { lat?: unknown; lng?: unknown }
         if (typeof c.lat === 'number' && typeof c.lng === 'number') {
@@ -390,7 +394,7 @@ export default function AddListingClient() {
     const t = window.setTimeout(() => {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
-          v: 1, step, deal, propType, city, district, street, houseNo, coords,
+          v: 1, deal, propType, city, district, street, houseNo, coords,
           footprint,
           cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
           floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType,
@@ -402,7 +406,7 @@ export default function AddListingClient() {
     }, 500)
     return () => window.clearTimeout(t)
   }, [
-    editId, draftReady, publishedId, step, deal, propType, city, district, street, houseNo,
+    editId, draftReady, publishedId, deal, propType, city, district, street, houseNo,
     coords, footprint, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, baths,
     floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType, guests,
     video, matterport, price, priceCur, priceMode, negotiable, exchangeable,
@@ -420,7 +424,7 @@ export default function AddListingClient() {
     setGuests(0)
     setExchangeable(false)
     if (propType) {
-      const allow = new Set<string>(featuresFor(propType, d))
+      const allow = new Set<string>(featuresFor(propType, d, city || undefined))
       setFeatures((prev) => prev.filter((f) => allow.has(f)))
     }
   }
@@ -436,6 +440,17 @@ export default function AddListingClient() {
     setFeatures([])
     if (deal && !DEALS_FOR[p].includes(deal)) setDeal(null)
   }
+
+  /* eslint-disable react-hooks/set-state-in-effect -- drop sea/ski chips when city can't have them */
+  useEffect(() => {
+    if (!deal || !propType) return
+    const allow = new Set<string>(featuresFor(propType, deal, city || undefined))
+    setFeatures((prev) => {
+      const next = prev.filter((f) => allow.has(f))
+      return next.length === prev.length ? prev : next
+    })
+  }, [deal, propType, city])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // City → map center until street geocode lands.
   /* eslint-disable react-hooks/set-state-in-effect -- city change re-centers the pin until geocode lands */
@@ -693,14 +708,14 @@ export default function AddListingClient() {
     && (!formFields.guests || guests > 0)
     && (statusOpts.length === 0 || !!status)
 
-  const stepValid = [
-    !!deal && !!propType,
-    photos.length >= 1,
-    !!(city && district && street),
-    detailsOk,
-    priceN > 0 || negotiable,
-    !!(name.trim() && PHONE_RE.test(phone) && terms),
-  ][step]
+  const typeOk = !!deal && !!propType && (!earlyStatus || !!status)
+  const photosOk = photos.length >= 1
+  const locOk = !!(city && district && street)
+  const priceOk = priceN > 0 || negotiable
+  const contactOk = !!(name.trim() && PHONE_RE.test(phone) && terms)
+  const sectionOk = [typeOk, photosOk, locOk, detailsOk, priceOk, contactOk]
+  const formOk = sectionOk.every(Boolean)
+  const filled = sectionOk.filter(Boolean).length
 
   const propLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.labelKey) : ''
   /* SEO title: deal + rooms + type + locative place — "იყიდება 2-ოთახიანი ბინა ჭავჭავაძეზე ვაკეში" */
@@ -788,15 +803,36 @@ export default function AddListingClient() {
     setAiUsed(true)
   }
 
-  const go = (dir: 1 | -1) => {
-    if (dir === 1 && !stepValid) { setTouched(true); return }
-    setTouched(false)
-    setStep((s) => Math.min(Math.max(s + dir, 0), STEPS.length - 1))
+  const jumpTo = (i: number) => {
+    document.getElementById(`add-sec-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setActiveSec(i)
   }
+
+  useEffect(() => {
+    const nodes = STEPS.map((_, i) => document.getElementById(`add-sec-${i}`)).filter((n): n is HTMLElement => n != null)
+    if (nodes.length === 0) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const hit = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        const i = hit ? Number((hit.target as HTMLElement).dataset.sec) : NaN
+        if (Number.isInteger(i)) setActiveSec(i)
+      },
+      { rootMargin: '-28% 0px -58% 0px', threshold: [0, 0.25, 0.5] },
+    )
+    nodes.forEach((n) => io.observe(n))
+    return () => io.disconnect()
+  }, [editLoading, publishedId])
 
   /* ————— publish: photos → R2, then POST (create) or PATCH (edit) ————— */
   const publish = async () => {
-    if (!stepValid || photos.length < 1) { setTouched(true); return }
+    if (!formOk) {
+      setTouched(true)
+      const i = Math.max(0, sectionOk.findIndex((ok) => !ok))
+      jumpTo(i)
+      return
+    }
     setBusy(true)
     setFailed(false)
     try {
@@ -918,7 +954,7 @@ export default function AddListingClient() {
               <button
                 onClick={() => {
                   try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
-                  setPublishedId(null); setStep(0); setPhotos([]); setPrice(''); setDescription(''); setTouched(false); setDraftSavedAt(0)
+                  setPublishedId(null); setPhotos([]); setPrice(''); setDescription(''); setTouched(false); setDraftSavedAt(0)
                 }}
                 className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
               >
@@ -934,10 +970,8 @@ export default function AddListingClient() {
               transition={{ delay: 0.45, duration: 0.5, ease }}
               className="mt-10 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-left shadow-card"
             >
-              <p className="text-[15px] font-black text-sv-ink">გააძლიერე ახლავე</p>
-              <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">
-                VIP / Turbo / სთორი — იგივე გადახდა, რაც მართვის გვერდზე.
-              </p>
+              <p className="text-[15px] font-black text-sv-ink">{t('add.boostNow')}</p>
+              <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">{t('add.boostHint')}</p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <TierPurchaseButton listingId={publishedId} currentTier="standard" defaultOpen />
                 <LocalizedLink
@@ -975,95 +1009,98 @@ export default function AddListingClient() {
     )
   }
 
-  const strengthColor = strength < 40 ? '#FF6A2D' : strength < 75 ? '#D97706' : '#2E6BFF'
+  const strengthTone = strength < 75 ? 'text-sv-orange' : 'text-sv-blue'
+  const strengthBar = strength < 75 ? 'bg-sv-orange' : 'bg-sv-blue'
   const strengthLabel = strength < 40 ? t('add.strength.low') : strength < 75 ? t('add.strength.mid') : t('add.strength.high')
+  const secCls = (i: number) =>
+    `scroll-mt-[calc(7.5rem+env(safe-area-inset-top,0px))] rounded-card border bg-sv-surface p-6 shadow-card md:p-8 ${
+      touched && !sectionOk[i] ? 'border-sv-orange/45 ring-2 ring-sv-orange/20' : 'border-sv-ink/[0.06]'
+    }`
 
   return (
-    <section className="bg-sv-cloud py-10 md:py-16">
+    <section className="bg-sv-cloud pb-28 pt-8 md:pb-16 md:pt-12">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        {/* header */}
-        <div className="mb-10 text-center">
-          <h1 className="text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[40px]">
+        <div className="mb-6 max-w-[820px]">
+          <h1 className="truncate text-[22px] font-black tracking-[-0.035em] text-sv-ink md:text-[28px]">
             {editId ? t('add.editTitle') : t('add.title')}
           </h1>
-          <p className="mx-auto mt-3 max-w-[520px] text-[15px] font-semibold text-sv-ink/50 md:text-[16px]">
+          <p className="mt-1.5 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">
             {editId ? t('add.editSubtitle') : t('add.subtitle')}
           </p>
+          <div className="mt-3 flex items-center gap-2 lg:hidden">
+            <span className="text-[11px] font-extrabold text-sv-ink/40">{t('add.strength')}</span>
+            <div className="h-1 flex-1 overflow-hidden rounded-full bg-sv-ink/[0.06]">
+              <motion.div
+                className={`h-full rounded-full ${strengthBar}`}
+                animate={{ width: `${strength}%` }}
+                transition={{ duration: 0.45, ease }}
+              />
+            </div>
+            <span className={`text-[11px] font-black tabular-nums ${strengthTone}`}>{strength}%</span>
+          </div>
         </div>
 
-        {/* stepper */}
-        <div className="mx-auto mb-10 max-w-[820px]">
-          <div className="flex items-center justify-between">
-            {STEPS.map((s, i) => (
-              <button
-                key={s}
-                onClick={() => (editId || i < step) && setStep(i)}
-                className="group flex flex-col items-center gap-2"
-                aria-current={i === step ? 'step' : undefined}
-              >
-                <span
-                  className={`grid h-10 w-10 place-items-center rounded-full text-[13px] font-black transition-all duration-300 ${
-                    i < step
-                      ? 'bg-sv-blue text-white'
-                      : i === step
+        <nav
+          className="sticky top-[calc(68px+env(safe-area-inset-top,0px))] z-20 -mx-5 mb-6 border-y border-sv-ink/[0.06] bg-sv-cloud/92 px-5 py-2.5 backdrop-blur-xl md:-mx-10 md:px-10"
+          aria-label={t('add.stepOf', { n: activeSec + 1, total: STEPS.length })}
+        >
+          <ol className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {STEPS.map((s, i) => {
+              const current = activeSec === i
+              const done = sectionOk[i]
+              return (
+                <li key={s} className="shrink-0">
+                  <button
+                    type="button"
+                    aria-current={current ? 'true' : undefined}
+                    onClick={() => jumpTo(i)}
+                    className={`flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-colors ${
+                      current
                         ? 'bg-sv-orange text-white shadow-glow-orange'
-                        : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/40'
-                  }`}
-                >
-                  {i < step ? <Check className="h-4 w-4" /> : i + 1}
-                </span>
-                <span className={`hidden text-[11px] font-extrabold sm:block ${i === step ? 'text-sv-ink' : 'text-sv-ink/40'}`}>
-                  {t(s)}
-                </span>
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.06]">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
-              animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-              transition={{ duration: 0.5, ease }}
-            />
-          </div>
-          <div className="mt-2 text-center text-[12px] font-bold text-sv-ink/40">
-            {t('add.stepOf', { n: step + 1, total: STEPS.length })}
-          </div>
-        </div>
+                        : done
+                          ? 'bg-sv-blue/10 text-sv-blue'
+                          : 'bg-sv-ink/[0.05] text-sv-ink/45 hover:text-sv-ink'
+                    }`}
+                  >
+                    {done ? <Check className="h-3 w-3" strokeWidth={3} /> : <span className="tabular-nums opacity-70">{i + 1}</span>}
+                    {t(s)}
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+        </nav>
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_400px]">
-          {/* ————— wizard card ————— */}
-          <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
-            <div className="mb-6 flex items-start gap-3 rounded-tile border border-sv-blue/15 bg-sv-blue/[0.04] p-4 lg:hidden">
-              <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" />
-              <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t(STEP_TIPS[step])}</p>
-            </div>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -24 }}
-                transition={{ duration: 0.4, ease }}
-              >
-                {/* ——— step 1 · type ——— */}
-                {step === 0 && (
-                  <div>
-                    <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/45">{t('add.propType')}</h2>
+          <div id="add-form" className="grid gap-5">
+                <section id="add-sec-0" data-sec="0" className={secCls(0)}>
+                    <header className="mb-6">
+                      <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.type')}</h2>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.type')}</p>
+                    </header>
+                    <h3 className="text-[13px] font-semibold text-sv-ink/45">{t('add.propType')}</h3>
                     <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {PROP_TYPES.map((p) => {
                         const active = propType === p.key
                         return (
                           <button
                             key={p.key}
+                            type="button"
+                            aria-pressed={active}
                             onClick={() => pickProp(p.key)}
-                            className={`flex flex-col items-center gap-2.5 rounded-tile border p-5 transition-all duration-300 hover:-translate-y-0.5 ${
-                              active ? 'border-transparent' : 'border-sv-ink/[0.08] bg-sv-surface hover:shadow-card'
+                            className={`relative flex min-h-[44px] flex-col items-center gap-2.5 rounded-tile border p-5 transition-colors ${
+                              active ? 'border-transparent' : 'border-sv-ink/[0.08] bg-sv-surface hover:border-sv-ink/20'
                             }`}
                             style={active ? { backgroundColor: p.brand.chipVar, boxShadow: `0 0 0 2px ${p.brand.hue}` } : undefined}
                           >
+                            {active && (
+                              <span className="absolute right-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full bg-sv-blue text-white">
+                                <Check className="h-3 w-3" strokeWidth={3} />
+                              </span>
+                            )}
                             <span
-                              className="grid h-11 w-11 place-items-center rounded-module transition-colors"
-                              style={{ backgroundColor: active ? p.brand.hue : p.brand.chipVar, color: active ? '#fff' : p.brand.hue }}
+                              className={`grid h-11 w-11 place-items-center rounded-module ${active ? 'text-white' : 'bg-sv-cloud'}`}
+                              style={{ backgroundColor: active ? p.brand.hue : undefined, color: active ? undefined : p.brand.hue }}
                             >
                               <p.icon className="h-5 w-5" />
                             </span>
@@ -1073,58 +1110,89 @@ export default function AddListingClient() {
                       })}
                     </div>
 
-                    <h2 className="mt-8 text-[13px] font-black uppercase tracking-wider text-sv-ink/45">{t('add.dealType')}</h2>
-                    <div className={`mt-3 grid gap-3 ${availableDeals.length === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'}`}>
-                      {DEALS.filter((d) => availableDeals.includes(d.key)).map((d) => {
-                        const active = deal === d.key
-                        return (
-                          <button
-                            key={d.key}
-                            onClick={() => pickDeal(d.key)}
-                            className={`flex flex-col items-center gap-2.5 rounded-tile border p-5 transition-all duration-300 hover:-translate-y-0.5 ${
-                              active ? 'border-transparent shadow-card' : 'border-sv-ink/[0.08] bg-sv-surface hover:shadow-card'
-                            }`}
-                            style={active ? { backgroundColor: `${d.hue}0D`, boxShadow: `0 0 0 2px ${d.hue}` } : undefined}
-                          >
-                            <span
-                              className="grid h-11 w-11 place-items-center rounded-module"
-                              style={{ backgroundColor: active ? d.hue : `${d.hue}14`, color: active ? '#fff' : d.hue }}
-                            >
-                              <d.icon className="h-5 w-5" />
-                            </span>
-                            <span className="text-center text-[13px] font-extrabold text-sv-ink">{t(dealLabelKey(d.key, propType))}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
+                    {propType && (
+                      <>
+                        <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/45">{t('add.dealType')}</h3>
+                        <div
+                          className="mt-3 flex rounded-full bg-sv-cloud p-1 ring-1 ring-sv-ink/[0.06]"
+                          role="radiogroup"
+                          aria-label={t('add.dealType')}
+                        >
+                          {DEALS.filter((d) => availableDeals.includes(d.key)).map((d) => {
+                            const active = deal === d.key
+                            return (
+                              <button
+                                key={d.key}
+                                type="button"
+                                role="radio"
+                                aria-checked={active}
+                                onClick={() => pickDeal(d.key)}
+                                className={`flex min-h-[44px] min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-[12px] font-extrabold transition-all sm:text-[13px] ${
+                                  active ? 'bg-sv-surface text-sv-ink shadow-card' : 'text-sv-ink/45 hover:text-sv-ink'
+                                }`}
+                              >
+                                <d.icon className="h-3.5 w-3.5 shrink-0" style={{ color: active ? d.hue : undefined }} />
+                                <span className="truncate">{t(dealLabelKey(d.key, propType))}</span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )}
 
-                {/* ——— step 2 · photos ——— */}
-                {step === 1 && (
-                  <div>
-                    <h2 className="text-[18px] font-extrabold text-sv-ink">{t('add.photosTitle')}</h2>
-                    <button
-                      onClick={() => fileRef.current?.click()}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => { e.preventDefault(); addPhotos(e.dataTransfer.files) }}
-                      className="mt-4 flex w-full flex-col items-center gap-3 rounded-tile border-2 border-dashed border-sv-blue/25 bg-sv-blue/[0.03] px-6 py-12 text-center transition-all duration-300 hover:border-sv-blue/50 hover:bg-sv-blue/[0.06]"
-                    >
-                      <span className="grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue-sm">
-                        <ImagePlus className="h-6 w-6" />
-                      </span>
-                      <span className="text-[15px] font-extrabold text-sv-ink">{t('add.photosDrop')}</span>
-                      <span className="text-[13px] font-bold text-sv-ink/40">{t('add.photosOr')}</span>
-                      <span className="rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-extrabold text-white">{t('add.photosBtn')}</span>
-                    </button>
-                    <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
+                    {propType && deal && earlyStatus && (
+                      <>
+                        <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/45">{t('add.status')} *</h3>
+                        <div className={`mt-3 grid gap-3 ${statusOpts.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                          {statusOpts.map((s) => {
+                            const active = status === s
+                            const Icon = STATUS_ICON[s] ?? Building
+                            return (
+                              <button
+                                key={s}
+                                type="button"
+                                aria-pressed={active}
+                                onClick={() => setStatus(s)}
+                                className={`flex min-h-[44px] flex-col items-center gap-2 rounded-tile border px-3 py-4 transition-colors ${
+                                  active
+                                    ? 'border-sv-blue bg-sv-blue/[0.06] shadow-glow-blue-sm'
+                                    : 'border-sv-ink/[0.08] bg-sv-surface hover:border-sv-ink/20'
+                                }`}
+                              >
+                                <span className={`grid h-10 w-10 place-items-center rounded-module ${active ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-blue'}`}>
+                                  <Icon className="h-5 w-5" />
+                                </span>
+                                <span className="text-center text-[12px] font-extrabold leading-tight text-sv-ink sm:text-[13px]">{t(s)}</span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )}
+                </section>
 
-                    <div className="mt-4 flex items-center justify-between text-[13px] font-bold text-sv-ink/45">
-                      <span>{t('add.photosCount', { n: photos.length })}</span>
-                    </div>
-
-                    {photos.length > 0 && (
-                      <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                <section id="add-sec-1" data-sec="1" className={secCls(1)}>
+                    <header className="mb-6">
+                      <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.photos')}</h2>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.photos')}</p>
+                    </header>
+                    {photos.length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => { e.preventDefault(); addPhotos(e.dataTransfer.files) }}
+                        className="flex min-h-[220px] w-full flex-col items-center justify-center gap-3 rounded-tile border border-dashed border-sv-ink/15 bg-sv-cloud/80 px-6 py-14 text-center transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04]"
+                      >
+                        <span className="grid h-14 w-14 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+                          <ImagePlus className="h-6 w-6" />
+                        </span>
+                        <span className="text-[15px] font-extrabold text-sv-ink">{t('add.photosDrop')}</span>
+                        <span className="text-[13px] font-semibold text-sv-ink/40">{t('add.photosCount', { n: photos.length })}</span>
+                        <span className="max-w-[28em] text-[12px] font-semibold leading-relaxed text-sv-ink/40">{t('add.photosTip')}</span>
+                      </button>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                         {photos.map((p, i) => (
                           <div
                             key={p.url}
@@ -1133,44 +1201,54 @@ export default function AddListingClient() {
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => { e.preventDefault(); movePhoto(dragFrom, i) }}
                             title={t('add.photosReorder')}
-                            className={`group/ph relative aspect-[4/3] cursor-grab overflow-hidden rounded-module ring-2 transition-all active:cursor-grabbing ${i === cover ? 'ring-sv-orange' : 'ring-transparent'} ${dragFrom !== null && dragFrom !== i ? 'hover:ring-sv-blue/60' : ''}`}
+                            className={`relative aspect-[4/3] cursor-grab overflow-hidden rounded-module ring-2 active:cursor-grabbing ${i === cover ? 'ring-sv-orange' : 'ring-transparent'}`}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.url} alt={p.name} className="pointer-events-none h-full w-full object-cover" draggable={false} />
-                            {i === cover && (
-                              <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1 text-[10px] font-black text-white">
-                                <Star className="h-3 w-3 fill-current" /> {t('add.photosCover')}
+                            {i === cover ? (
+                              <span className="absolute left-1.5 top-1.5 rounded-full bg-sv-orange px-2 py-0.5 text-[10px] font-black text-white">
+                                {t('add.photosCover')}
                               </span>
-                            )}
-                            <div className="absolute inset-x-0 bottom-0 flex translate-y-full gap-1 bg-sv-navy/70 p-1.5 backdrop-blur transition-transform duration-300 group-hover/ph:translate-y-0">
-                              {i !== cover && (
-                                <button onClick={() => setCover(i)} className="flex-1 rounded-lg bg-white/15 px-2 py-1 text-[10px] font-bold text-white hover:bg-white/25">
-                                  {t('add.photosSetCover')}
-                                </button>
-                              )}
+                            ) : (
                               <button
-                                onClick={() => removePhoto(i)}
-                                className="grid w-7 place-items-center rounded-lg bg-white/15 text-white hover:bg-sv-orange"
-                                aria-label={t('add.photosRemove')}
+                                type="button"
+                                onClick={() => setCover(i)}
+                                className="absolute bottom-1.5 left-1.5 rounded-full bg-sv-navy/70 px-2 py-1 text-[10px] font-bold text-white"
                               >
-                                <X className="h-3.5 w-3.5" />
+                                {t('add.photosSetCover')}
                               </button>
-                            </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removePhoto(i)}
+                              className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-sv-navy/70 text-white"
+                              aria-label={t('add.photosRemove')}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         ))}
+                        {photos.length < 16 && (
+                          <button
+                            type="button"
+                            onClick={() => fileRef.current?.click()}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => { e.preventDefault(); addPhotos(e.dataTransfer.files) }}
+                            className="flex aspect-[4/3] flex-col items-center justify-center gap-1.5 rounded-module border border-dashed border-sv-ink/15 bg-sv-cloud/80 text-sv-ink/45 transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04] hover:text-sv-blue"
+                          >
+                            <Plus className="h-5 w-5" />
+                            <span className="text-[11px] font-extrabold">{t('add.photosAdd')}</span>
+                            <span className="text-[10px] font-bold tabular-nums">{t('add.photosCount', { n: photos.length })}</span>
+                          </button>
+                        )}
                       </div>
                     )}
-
-                    <p className="mt-5 flex items-start gap-2 rounded-module bg-sv-blue/[0.05] p-4 text-[13px] font-semibold leading-relaxed text-sv-ink/55 ring-1 ring-inset ring-sv-blue/10">
-                      <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" /> {t('add.photosTip')}
-                    </p>
+                    <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
                     {touched && photos.length < 1 && (
-                      <p className="mt-3 flex items-center gap-1.5 text-[13px] font-extrabold text-sv-orange">
-                        <Flame className="h-3.5 w-3.5" /> {t('add.photosRequired')}
-                      </p>
+                      <p className="mt-3 text-[13px] font-extrabold text-sv-orange">{t('add.photosRequired')}</p>
                     )}
 
-                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className={label}>{t('add.youtube')}</label>
                         <div className="relative">
@@ -1186,15 +1264,15 @@ export default function AddListingClient() {
                         </div>
                       </div>
                     </div>
-                    <p className="mt-4 flex items-start gap-2 rounded-module bg-sv-orange/[0.06] p-4 text-[13px] font-semibold leading-relaxed text-sv-ink/55 ring-1 ring-inset ring-sv-orange/15">
-                      <MonitorPlay className="mt-0.5 h-4 w-4 shrink-0 text-sv-orange" /> {t('add.videoTip')}
-                    </p>
-                  </div>
-                )}
+                </section>
 
-                {/* ——— step 3 · location ——— */}
-                {step === 2 && (
-                  <div className="grid gap-5 sm:grid-cols-2">
+                {/* ——— location ——— */}
+                <section id="add-sec-2" data-sec="2" className={secCls(2)}>
+                    <header className="mb-6">
+                      <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.location')}</h2>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.location')}</p>
+                    </header>
+                    <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <label className={label}>{t('search.city')} / {t('search.district')} *</label>
                       <button
@@ -1290,7 +1368,7 @@ export default function AddListingClient() {
                           onClick={() => setCadastralPublic(!cadastralPublic)}
                           className={`mt-3 flex items-center gap-2.5 rounded-control border px-4 py-3 text-[13px] font-extrabold transition-all ${
                             !cadastralPublic
-                              ? 'border-transparent bg-sv-ink text-sv-cloud'
+                              ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm'
                               : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60'
                           }`}
                         >
@@ -1312,10 +1390,10 @@ export default function AddListingClient() {
                           </label>
                           <span className="text-[11px] font-bold tabular-nums text-sv-ink/40">
                             {geocoding
-                              ? 'მისამართი…'
+                              ? t('add.mapLocating')
                               : pinReady
                                 ? `${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`
-                                : 'შეიყვანე ქუჩა — პინი ავტომატურად'}
+                                : t('add.mapStreetFirst')}
                           </span>
                         </div>
                         <MapEmbed
@@ -1331,7 +1409,7 @@ export default function AddListingClient() {
                           onPick={onMapPick}
                         />
                         <p className="mt-2 text-[11px] font-bold text-sv-ink/40">
-                          პინი და შენობა ავტომატურად · ან დააჭირე რუკას — შენობაზე მონიშვნისთვის
+                          {t('add.mapPickHint')}
                         </p>
                         {tasDocs.length > 0 && (
                           <ul className="mt-3 space-y-1.5 rounded-control border border-sv-ink/[0.06] bg-sv-cloud/60 px-3 py-2.5">
@@ -1355,11 +1433,16 @@ export default function AddListingClient() {
                         )}
                       </div>
                     )}
-                  </div>
-                )}
+                    </div>
+                </section>
 
-                {/* ——— step 4 · details ——— */}
-                {step === 3 && formFields && (
+                {/* ——— details ——— */}
+                <section id="add-sec-3" data-sec="3" className={secCls(3)}>
+                    <header className="mb-6">
+                      <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.details')}</h2>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.details')}</p>
+                    </header>
+                    {formFields ? (
                   <div className="grid gap-6">
                     {formFields.rentPeriod && (
                       <div>
@@ -1370,7 +1453,7 @@ export default function AddListingClient() {
                               key={n}
                               onClick={() => setRentPeriod(n)}
                               className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                                rentPeriod === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                rentPeriod === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
                               {t('add.rentPeriod.n', { n })}
@@ -1389,7 +1472,7 @@ export default function AddListingClient() {
                               key={k}
                               onClick={() => setRentType(k)}
                               className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                                rentType === k ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                rentType === k ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
                               {t(k)}
@@ -1408,7 +1491,7 @@ export default function AddListingClient() {
                               key={n}
                               onClick={() => setGuests(n)}
                               className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                                guests === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                guests === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
                               {n === 10 ? '10+' : n}
@@ -1418,7 +1501,7 @@ export default function AddListingClient() {
                       </div>
                     )}
 
-                    {statusOpts.length > 0 && (
+                    {(statusOpts.length > 0 && (!earlyStatus || !status)) && (
                       <div>
                         <label className={label}>{t('add.status')} *</label>
                         <div className={`flex flex-wrap gap-2 rounded-control p-1 ${touched && !status ? 'ring-4 ring-sv-orange/10' : ''}`}>
@@ -1428,7 +1511,7 @@ export default function AddListingClient() {
                               type="button"
                               onClick={() => setStatus(s)}
                               className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                                status === s ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                status === s ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
                               {t(s)}
@@ -1447,7 +1530,7 @@ export default function AddListingClient() {
                               key={c}
                               onClick={() => setCondition(c)}
                               className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                                condition === c ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                condition === c ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
                               {t(c)}
@@ -1488,7 +1571,7 @@ export default function AddListingClient() {
                               type="button"
                               onClick={() => setFloorType(floorType === ft ? '' : ft)}
                               className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                                floorType === ft ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                floorType === ft ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
                               {t(ft)}
@@ -1552,7 +1635,7 @@ export default function AddListingClient() {
                                 type="button"
                                 onClick={() => setRooms(n)}
                                 className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
-                                  rooms === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                  rooms === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                 }`}
                               >
                                 {n === 10 ? '10+' : n}
@@ -1571,7 +1654,7 @@ export default function AddListingClient() {
                                 type="button"
                                 onClick={() => setBaths(n)}
                                 className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
-                                  baths === n ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-ink/30'
+                                  baths === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                 }`}
                               >
                                 {n === 5 ? '5+' : n}
@@ -1617,22 +1700,31 @@ export default function AddListingClient() {
 
                     <div>
                       <label className={label}>{t('add.features')}</label>
-                      <div className="flex flex-wrap gap-2">
-                        {featureOpts.map((f) => {
-                          const on = features.includes(f)
-                          return (
-                            <button
-                              key={f}
-                              onClick={() => setFeatures(on ? features.filter((x) => x !== f) : [...features, f])}
-                              className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
-                                on ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
-                              }`}
-                            >
-                              {on && <Check className="h-3.5 w-3.5" />}
-                              {t(f)}
-                            </button>
-                          )
-                        })}
+                      <p className="mb-3 text-[12px] font-semibold text-sv-ink/45">{t('add.featuresHint')}</p>
+                      <div className="grid gap-5">
+                        {groupedFeatures(featureOpts).map((g) => (
+                          <div key={g.key}>
+                            <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-sv-ink/40">{t(g.key)}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {g.items.map((f) => {
+                                const on = features.includes(f)
+                                return (
+                                  <button
+                                    key={f}
+                                    type="button"
+                                    onClick={() => setFeatures(on ? features.filter((x) => x !== f) : [...features, f])}
+                                    className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                      on ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
+                                    }`}
+                                  >
+                                    {on && <Check className="h-3.5 w-3.5" />}
+                                    {t(f)}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
@@ -1654,11 +1746,18 @@ export default function AddListingClient() {
                       </span>
                     </button>
                   </div>
-                )}
+                    ) : (
+                      <p className="rounded-module bg-sv-cloud px-4 py-6 text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.type')}</p>
+                    )}
+                </section>
 
-                {/* ——— step 5 · price & description ——— */}
-                {step === 4 && (
-                  <div className="grid gap-6">
+                {/* ——— price & description ——— */}
+                <section id="add-sec-4" data-sec="4" className={secCls(4)}>
+                    <header className="mb-6">
+                      <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.price')}</h2>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.price')}</p>
+                    </header>
+                    <div className="grid gap-6">
                     <div>
                       <label className={label}>{t('add.price')} *</label>
                       <div className="mb-3 flex flex-wrap gap-2">
@@ -1671,7 +1770,7 @@ export default function AddListingClient() {
                             type="button"
                             onClick={() => setPriceMode(mode)}
                             className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
-                              priceMode === mode ? 'bg-sv-ink text-sv-cloud' : 'border border-sv-ink/[0.08] text-sv-ink/60'
+                              priceMode === mode ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                             }`}
                           >
                             {t(key)}
@@ -1766,8 +1865,9 @@ export default function AddListingClient() {
                             <span className="text-[26px] font-black tracking-tight text-sv-ink">{formatUSD(estimate.low)} — {formatUSD(estimate.high)}</span>
                             {verdict && (
                               <span
-                                className="rounded-full px-3 py-1 text-[11px] font-black text-white"
-                                style={{ backgroundColor: verdict === 'high' ? '#FF6A2D' : verdict === 'low' ? '#2E6BFF' : '#16A34A' }}
+                                className={`rounded-full px-3 py-1 text-[11px] font-black text-white ${
+                                  verdict === 'high' ? 'bg-sv-orange' : verdict === 'low' ? 'bg-sv-blue' : 'bg-sv-ink'
+                                }`}
                               >
                                 {t(`add.priceVerdict.${verdict}` as DictKey)}
                               </span>
@@ -1818,22 +1918,22 @@ export default function AddListingClient() {
                         <span>{t('add.descCount', { n: description.length })}</span>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* ——— step 6 · contact ——— */}
-                {step === 5 && (
-                  <div className="grid gap-6">
-                    <div>
-                      <h2 className="text-[18px] font-extrabold text-sv-ink">{t('add.contact')}</h2>
-                      <p className="mt-2 text-[13px] font-semibold leading-relaxed text-sv-ink/50">{t('add.contactHint')}</p>
                     </div>
+                </section>
+
+                <section id="add-sec-5" data-sec="5" className={secCls(5)}>
+                    <header className="mb-6">
+                      <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.contact')}</h2>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.contact')}</p>
+                    </header>
+                    <div className="grid gap-6">
+                    <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/50">{t('add.contactHint')}</p>
                     <div className="grid gap-5 sm:grid-cols-2">
                       <div>
                         <label className={label}>{t('add.name')} *</label>
                         <div className="relative">
                           <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11 ${err(!name.trim())}`} placeholder={t('add.namePh')} value={name} onChange={(e) => setName(e.target.value)} />
+                          <input className={`${input} pl-11 ${err(!name.trim())}`} placeholder={t('add.namePh')} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" autoCapitalize="words" />
                         </div>
                       </div>
                       <div>
@@ -1844,6 +1944,8 @@ export default function AddListingClient() {
                             className={`${input} pl-11 ${err(!PHONE_RE.test(phone))}`}
                             placeholder={t('add.phonePh')}
                             value={phone}
+                            autoComplete="tel"
+                            inputMode="tel"
                             onChange={(e) => {
                               setPhone(formatPhone(e.target.value))
                               setPhoneVerified(false)
@@ -1940,66 +2042,39 @@ export default function AddListingClient() {
                       </span>
                       <span className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.terms')}</span>
                     </button>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                    </div>
+                </section>
 
-            {/* footer nav */}
-            <div className="mt-10 flex items-center justify-between border-t border-sv-ink/[0.06] pt-6">
-              {step > 0 ? (
-                <button onClick={() => go(-1)} className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-6 py-3.5 text-[14px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card">
-                  <ChevronLeft className="h-4 w-4" /> {t('add.back')}
+            <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] bg-sv-surface/92 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-card backdrop-blur-xl md:static md:mt-2 md:rounded-card md:border md:px-6 md:py-4 md:shadow-card md:backdrop-blur-none">
+              <span className="flex min-w-0 items-center gap-2 text-[12px] font-bold text-sv-ink/40">
+                {draftSavedAt > 0 && <><Check className="h-3.5 w-3.5 shrink-0 text-sv-blue" /> <span className="truncate">{t('add.draftSaved')}</span></>}
+                <span className="hidden tabular-nums sm:inline">{filled}/{STEPS.length}</span>
+              </span>
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                {touched && !formOk && (
+                  <span className="text-[12px] font-extrabold text-sv-orange">{t('add.fillRequired')}</span>
+                )}
+                {failed && (
+                  <span className="text-[12px] font-extrabold text-sv-orange">{t('add.publishError')}</span>
+                )}
+                <button
+                  type="button"
+                  onClick={publish}
+                  disabled={busy}
+                  className="min-h-[44px] rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
+                >
+                  {busy
+                    ? (editId ? t('add.saving') : t('add.publishing'))
+                    : (editId ? t('add.save') : t('add.publish'))}
                 </button>
-              ) : (
-                <span className="flex items-center gap-2 text-[12px] font-bold text-sv-ink/35">
-                  {draftSavedAt > 0 && <><Check className="h-3.5 w-3.5" /> {t('add.draftSaved')}</>}
-                </span>
-              )}
-              <div className="flex flex-col items-end gap-2">
-                {touched && !stepValid && (
-                  <span className="flex items-center gap-1.5 text-[12px] font-extrabold text-sv-orange">
-                    <Flame className="h-3.5 w-3.5" /> {t('add.fillRequired')}
-                  </span>
-                )}
-                {step < STEPS.length - 1 ? (
-                  <button onClick={() => go(1)} className="rounded-full bg-sv-orange px-8 py-3.5 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg">
-                    {t('add.continue')}
-                  </button>
-                ) : (
-                  <>
-                    {failed && (
-                      <span className="flex items-center gap-1.5 text-[12px] font-extrabold text-sv-orange">
-                        <Flame className="h-3.5 w-3.5" /> {t('add.publishError')}
-                      </span>
-                    )}
-                    <button
-                      onClick={publish}
-                      disabled={busy}
-                      className="rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3.5 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
-                    >
-                      {busy
-                        ? (editId ? t('add.saving') : t('add.publishing'))
-                        : (editId ? t('add.save') : t('add.publish'))}
-                    </button>
-                  </>
-                )}
               </div>
             </div>
           </div>
 
-          {/* ————— live preview column ————— */}
-          <div className="sticky top-[calc(6rem+env(safe-area-inset-top,0px))] hidden lg:block">
-            <div className="mb-4 flex items-start gap-3 rounded-tile border border-sv-blue/15 bg-sv-blue/[0.04] p-4">
-              <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-sv-blue" />
-              <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t(STEP_TIPS[step])}</p>
-            </div>
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <div className="text-[14px] font-black text-sv-ink">{t('add.preview')}</div>
-                <div className="text-[12px] font-bold text-sv-ink/40">{t('add.previewHint')}</div>
-              </div>
-              <MapPin className="h-4 w-4 text-sv-ink/25" />
+          <div className="sticky top-[calc(7.75rem+env(safe-area-inset-top,0px))] hidden lg:block">
+            <div className="mb-3">
+              <div className="text-[14px] font-black text-sv-ink">{t('add.preview')}</div>
+              <div className="text-[12px] font-bold text-sv-ink/40">{t('add.previewHint')}</div>
             </div>
             <div className="pointer-events-none [&>article]:w-full [&>article]:max-w-none">
               {preview ? (
@@ -2019,12 +2094,11 @@ export default function AddListingClient() {
             <div className="mt-5 rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] font-black text-sv-ink">{t('add.strength')}</span>
-                <span className="text-[13px] font-black" style={{ color: strengthColor }}>{strength}%</span>
+                <span className={`text-[13px] font-black ${strengthTone}`}>{strength}%</span>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-sv-ink/[0.06]">
                 <motion.div
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: strengthColor }}
+                  className={`h-full rounded-full ${strengthBar}`}
                   animate={{ width: `${strength}%` }}
                   transition={{ duration: 0.6, ease }}
                 />

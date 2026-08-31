@@ -1,14 +1,17 @@
 /**
  * Georgia location catalog for filters + autocomplete.
  * Tbilisi raions: official 10 (matsne 2014). Cities/streets: myhome + ss + OSM.
- * SEO landing pages stay in seo-pages.ts; this file is the full picker.
+ * Refresh: `python3 scripts/sync-competitor-locations.py`
  */
 import data from './georgia-locations.json'
-import tbilisiStreets from './tbilisi-streets.json'
+
+export type GeoPickerGroup = { title: string; items: string[] }
 
 export type GeoDistricts = {
   raions: Record<string, string[]>
   flat: string[]
+  /** Display-only columns (myhome/ss layout). Titles are not catalog keys. */
+  picker?: GeoPickerGroup[]
 }
 
 type Catalog = {
@@ -51,6 +54,21 @@ export function geoRaionsOf(city: string): Record<string, string[]> {
   return GEO.districts[city]?.raions ?? {}
 }
 
+/** Picker columns. Tbilisi: 5 cols, Didube+Old Tbilisi stacked. */
+export function geoPickerColumns(city: string): GeoPickerGroup[][] {
+  const groups = GEO.districts[city]?.picker ?? []
+  if (city === 'თბილისი' && groups.length === 6) {
+    return [
+      [groups[0]!],
+      [groups[1]!],
+      [groups[2]!],
+      [groups[3]!, groups[4]!],
+      [groups[5]!],
+    ]
+  }
+  return groups.map((g) => [g])
+}
+
 export type GeoStreet = { ka: string; en?: string; ru?: string; city: string }
 
 /** City street names from the competitor catalog (not Tbilisi OSM). */
@@ -58,12 +76,9 @@ export function geoStreetsOf(city: string): string[] {
   return GEO.streets[city] ?? []
 }
 
-/** Streets for suggest: OSM Tbilisi + competitor Batumi/Kutaisi/Rustavi. */
+/** Competitor city streets for /api/suggest. OSM Tbilisi stays in tbilisi-streets.ts (server-only). */
 export function geoStreets(): GeoStreet[] {
   const out: GeoStreet[] = []
-  for (const s of tbilisiStreets as { ka: string; en?: string; ru?: string }[]) {
-    out.push({ ka: s.ka, en: s.en, ru: s.ru, city: 'თბილისი' })
-  }
   for (const [city, names] of Object.entries(GEO.streets)) {
     for (const ka of names) out.push({ ka, city })
   }

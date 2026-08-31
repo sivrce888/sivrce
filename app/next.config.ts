@@ -108,6 +108,7 @@ const nextConfig: NextConfig = {
     // cap concurrency so SSG DB traffic stays under the connection ceiling.
     staticGenerationMaxConcurrency: 3,
     cpus: 2,
+    webpackMemoryOptimizations: true,
     // Tree-shake barrel imports (lucide already defaulted by Next).
     optimizePackageImports: ["framer-motion", "@base-ui/react"],
     // ponytail: inlineCss OFF — 180KB style in HTML (133KB gzip page) blew past

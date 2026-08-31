@@ -53,10 +53,48 @@ import { useListingsByIds } from '@/lib/use-listings-by-ids'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useCompareStrings } from '@/components/compare/i18n'
 import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
-import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
+import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, groupedFeatures, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
+
+function FeatureGroups({ features, dealType }: { features: string[]; dealType: string }) {
+  const { t } = useI18n()
+  const shown = orderFeaturesForDisplay(
+    features.filter((f) => f !== 'add.f.onlineView'),
+    dealType,
+  )
+  const groups = groupedFeatures(shown)
+  const grouped = new Set<string>(groups.flatMap((g) => g.items))
+  const rest = shown.filter((f) => !grouped.has(f))
+  const chip = (f: string) => {
+    const signal = dealType === 'daily' && DAILY_SIGNAL_SET.has(f)
+    return (
+      <span
+        key={f}
+        className={
+          signal
+            ? 'flex items-center gap-1.5 rounded-full border border-sv-blue/25 bg-sv-blue/[0.07] px-4 py-2 text-[13px] font-extrabold text-sv-blue'
+            : 'flex items-center gap-1.5 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-4 py-2 text-[13px] font-bold text-sv-ink/70'
+        }
+      >
+        <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
+        {featureLabel(f, t)}
+      </span>
+    )
+  }
+  return (
+    <div className="mt-4 grid gap-5">
+      {groups.map((g) => (
+        <div key={g.key}>
+          <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-sv-ink/40">{t(g.key)}</p>
+          <div className="flex flex-wrap gap-2">{g.items.map(chip)}</div>
+        </div>
+      ))}
+      {rest.length > 0 && <div className="flex flex-wrap gap-2">{rest.map(chip)}</div>}
+    </div>
+  )
+}
 
 const PROP_TYPE_KEY: Record<PropType, DictKey> = {
   apartment: 'prop.apartment',
@@ -850,24 +888,7 @@ export default function ListingDetailClient({
             {/* Features */}
             <Reveal className="mt-8">
               <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.features')}</h2>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {orderFeaturesForDisplay(l.features, l.dealType).map((f) => {
-                  const signal = l.dealType === 'daily' && DAILY_SIGNAL_SET.has(f)
-                  return (
-                    <span
-                      key={f}
-                      className={
-                        signal
-                          ? 'flex items-center gap-1.5 rounded-full border border-sv-blue/25 bg-sv-blue/[0.07] px-4 py-2 text-[13px] font-extrabold text-sv-blue'
-                          : 'flex items-center gap-1.5 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-4 py-2 text-[13px] font-bold text-sv-ink/70'
-                      }
-                    >
-                      <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
-                      {featureLabel(f, t)}
-                    </span>
-                  )
-                })}
-              </div>
+              <FeatureGroups features={l.features} dealType={l.dealType} />
             </Reveal>
 
             {/* Description */}

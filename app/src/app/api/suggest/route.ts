@@ -1,5 +1,5 @@
 import { CITIES, districtsOf } from "@/data/listings"
-import { geoStreets, geoStreetsOf } from "@/data/georgia-locations"
+import { geoStreets, geoStreetsOf, type GeoStreet } from "@/data/georgia-locations"
 import { TBILISI_QUARTERS } from "@/data/tbilisi-quarters"
 import { districtKaForStreet, STREETS as TBILISI_STREETS } from "@/data/tbilisi-streets"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"
@@ -31,7 +31,19 @@ const DISTRICTS: { ka: string; city: string }[] = CITIES.flatMap((city) =>
   districtsOf(city).map((d) => ({ ka: d, city })),
 )
 
-const STREETS = geoStreets()
+const STREETS: GeoStreet[] = []
+{
+  const seen = new Set<string>()
+  for (const s of [
+    ...TBILISI_STREETS.map((s) => ({ ka: s.ka, en: s.en, city: "თბილისი" })),
+    ...geoStreets(),
+  ]) {
+    const k = `${s.city}\0${s.ka}`
+    if (seen.has(k)) continue
+    seen.add(k)
+    STREETS.push(s)
+  }
+}
 
 // Static catalog — CDN cache; query string keys the variant.
 const CACHE = { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" }

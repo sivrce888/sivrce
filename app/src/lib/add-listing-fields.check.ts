@@ -8,6 +8,7 @@ import {
   projectsFor,
   floorTypesFor,
   featuresFor,
+  phaseOfSection,
 } from './add-listing-fields'
 
 assert.deepEqual([...DEALS_FOR.land], ['sale', 'rent', 'pledge'])
@@ -45,6 +46,9 @@ assert.ok(conditionsFor('apartment', 'sale').length > 3)
 assert.ok(statusesFor('land').some((k) => k.includes('land.')))
 assert.ok(statusesFor('commercial').some((k) => k.includes('comm.')))
 assert.deepEqual([...statusesFor('hotel')], ['add.status.construction', 'add.status.completed'])
+assert.equal(statusesFor('apartment').length, 3)
+assert.equal(statusesFor('house').length, 3)
+assert.ok(statusesFor('commercial').length > 3)
 
 const house = fieldsFor('house', 'sale')
 assert.equal(house.yard, true)
@@ -57,6 +61,14 @@ assert.ok(!saleFeats.includes('add.f.selfCheckIn'))
 assert.ok(!saleFeats.includes('add.f.petsAllowed'))
 assert.ok(saleFeats.includes('add.f.balcony'))
 assert.ok(saleFeats.includes('add.f.pool'))
+assert.ok(saleFeats.includes('add.f.loggia'))
+
+assert.ok(!featuresFor('apartment', 'sale', 'თბილისი').includes('add.f.seaView'))
+assert.ok(!featuresFor('apartment', 'sale', 'თბილისი').includes('add.f.skiAccess'))
+assert.ok(featuresFor('apartment', 'sale', 'ბათუმი').includes('add.f.seaView'))
+assert.ok(!featuresFor('apartment', 'sale', 'ბათუმი').includes('add.f.skiAccess'))
+assert.ok(featuresFor('apartment', 'sale', 'ბაკურიანი').includes('add.f.skiAccess'))
+assert.equal(featuresFor('land', 'sale', 'თბილისი').length, 5)
 
 const rentFeats = featuresFor('apartment', 'rent')
 assert.ok(!rentFeats.includes('add.f.partiesAllowed'))
@@ -71,5 +83,10 @@ assert.ok(!dailyFeats.includes('add.f.onlineView'))
 
 assert.ok(featuresFor('land', 'sale').every((f) => !String(f).includes('parties')))
 assert.equal(featuresFor('land', 'sale').length, 7)
+
+assert.equal(phaseOfSection(0), 0)
+assert.equal(phaseOfSection(1), 1)
+assert.equal(phaseOfSection(4), 1)
+assert.equal(phaseOfSection(5), 2)
 
 console.log('add-listing-fields: ok')

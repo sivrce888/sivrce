@@ -1,7 +1,7 @@
 # sivrce
 
 > უძრავი ქონება ერთ სივრცეში — იყიდე, იქირავე ან განათავსე.
-> sivrce (სივრცე) is Georgia's real-estate platform: simple, fast, secure search and listing — verified sale, rent and daily stays in Tbilisi, Batumi, Kutaisi and across the country, with a 3D map and AI price estimates.
+> sivrce (სივრცე) is Georgia's real-estate platform — Real Estate in one place: simple, fast, secure search and listing — verified sale, rent and daily stays in Tbilisi, Batumi, Kutaisi and across the country, with a 3D map and AI price estimates.
 
 Language: Georgian (canonical, unprefixed URLs). English, Russian, Hebrew, Arabic, Turkish, Ukrainian, Armenian and Azerbaijani live under /en, /ru, /he, /ar, /tr, /uk, /hy, /az.
 
@@ -37,7 +37,7 @@ https://sivrce.ge/listing/{id}/{slug}
 
 ## For owners and professionals
 
-Listing is free. Paid VIP / VIP+ / SUPER VIP boost placement. Advertise: https://sivrce.ge/advertise
+Homepage rails: live SUPER VIP and VIP+ listings. Listing is free. Paid VIP / VIP+ / SUPER VIP boost placement. Advertise: https://sivrce.ge/advertise
 Service companies (renovation, legal, photography, appraisal, moving, cleaning, management) post at https://sivrce.ge/add-service — same account as property listings.
 
 ## Optional

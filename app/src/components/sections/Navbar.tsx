@@ -5,12 +5,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Heart, Menu, X, Plus, User } from 'lucide-react'
+import { Heart, Menu, X, Plus, User, Search } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { ChromeSearch } from '@/components/search/SearchSuggest'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
@@ -54,7 +53,9 @@ export default function Navbar() {
   // sky; dark theme = white chrome over the night sky. Everywhere else (or
   // once scrolled) the glass pill uses ink tokens (they flip in .dark).
   const light = scrolled || bare !== '/'
-  const chromeSearch = bare !== '/' && !bare.startsWith('/search')
+  // Field lives on home hero + /search + map. Nav gets an icon so inner pages
+  // (and the home pill after scroll) still have one tap to search.
+  const searchEntry = !bare.startsWith('/search') && (bare !== '/' || scrolled)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -100,12 +101,6 @@ export default function Navbar() {
           <Logo adaptive href={localizedHref('/', lang)} />
         </div>
 
-        {chromeSearch && (
-          <div className="hidden min-w-0 max-w-[280px] flex-1 xl:block">
-            <ChromeSearch variant={light ? 'light' : 'dark'} />
-          </div>
-        )}
-
         <nav
           className="hidden min-w-0 flex-1 items-center justify-center gap-0 lg:flex"
           aria-label={t('nav.main')}
@@ -142,6 +137,18 @@ export default function Navbar() {
         </nav>
 
         <div className="ml-auto hidden shrink-0 items-center gap-1 lg:flex">
+          {searchEntry && (
+            <Link
+              href={localizedHref('/search', lang)}
+              data-cms-key="nav.search"
+              aria-label={t('nav.search')}
+              className={`grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-sv-ink/70 hover:bg-sv-ink/5 dark:text-white/85 dark:hover:bg-white/10'
+              }`}
+            >
+              <Search className="h-[18px] w-[18px]" />
+            </Link>
+          )}
           <Link
             href={localizedHref("/favorites", lang)}
             data-cms-key="nav.favorites"
@@ -200,18 +207,31 @@ export default function Navbar() {
           </Link>
         </div>
 
-        <button
-          ref={menuBtnRef}
-          className={`ml-auto grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 lg:hidden ${
-            light ? 'text-sv-ink' : 'text-sv-ink dark:text-white'
-          }`}
-          onClick={() => setOpen(!open)}
-          aria-label={t('nav.menu')}
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="ml-auto flex shrink-0 items-center lg:hidden">
+          {searchEntry && (
+            <Link
+              href={localizedHref('/search', lang)}
+              aria-label={t('nav.search')}
+              className={`grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+                light ? 'text-sv-ink/70' : 'text-sv-ink/70 dark:text-white/85'
+              }`}
+            >
+              <Search className="h-[18px] w-[18px]" />
+            </Link>
+          )}
+          <button
+            ref={menuBtnRef}
+            className={`grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
+              light ? 'text-sv-ink' : 'text-sv-ink dark:text-white'
+            }`}
+            onClick={() => setOpen(!open)}
+            aria-label={t('nav.menu')}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+          >
+            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -224,9 +244,6 @@ export default function Navbar() {
             transition={{ duration: 0.25 }}
             className="mx-4 mt-2 max-h-[min(80dvh,calc(100dvh-5.5rem-env(safe-area-inset-top,0px)))] overflow-y-auto overscroll-contain rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
           >
-            <div className="mb-2">
-              <ChromeSearch variant="light" onNavigate={() => setOpen(false)} />
-            </div>
             {NAV_LINKS.map((l) => {
               const active = isActive(l.to)
               const cls = `block rounded-control px-4 py-3 text-[16px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${

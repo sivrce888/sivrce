@@ -27,7 +27,7 @@ function getPool(): Pool {
     connectionString: withPgSslCompat(connectionString),
     max: 1,
     idleTimeoutMillis: 20_000,
-    connectionTimeoutMillis: 3_000,
+    connectionTimeoutMillis: 8_000,
     allowExitOnIdle: true,
   })
   return globalForPrisma.pool

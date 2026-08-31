@@ -1,8 +1,8 @@
 import HomeMain from '@/components/HomeMain'
 import { isValidLang } from '@/lib/i18n/core'
 
-// Refresh featured listings from DB hourly (ISR).
-export const revalidate = 3600
+// Paid SUPER VIP / VIP+ rails — 60s ISR so a just-purchased slot lands on home.
+export const revalidate = 60
 
 export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params

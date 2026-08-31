@@ -39,4 +39,10 @@ assert.equal(merged.maxPrice, 200000)
 assert.ok(merged.features?.includes('add.f.parking'))
 assert.ok(merged.features?.includes('add.f.elevator'))
 
+const loggia = parseNlQuery('ბინა ლოჯით ვაკეში')
+assert.ok(loggia.features?.includes('add.f.loggia'))
+const garage = parseNlQuery('house with garage in Vake')
+assert.ok(garage.features?.includes('add.f.garage'))
+assert.ok(!garage.features?.includes('add.f.parking'))
+
 console.log('ok: nl-search')

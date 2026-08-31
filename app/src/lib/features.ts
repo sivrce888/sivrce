@@ -43,25 +43,42 @@ export const FLOOR_TYPE_KEYS = [
 ] as const satisfies readonly DictKey[]
 
 export const FEATURE_KEYS = [
-  'add.f.balcony', 'add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.furniture',
-  'add.f.appliances', 'add.f.centralHeating', 'add.f.gas', 'add.f.internet', 'add.f.ac',
-  'add.f.storage', 'add.f.fireplace', 'add.f.security', 'add.f.yard',
-  // Georgian classified staples (ss.ge / myhome).
-  'add.f.hotWater', 'add.f.doubleGlazing', 'add.f.ironDoor', 'add.f.cableTv', 'add.f.cellar',
-  'add.f.yardView', 'add.f.streetView', 'add.f.bright', 'add.f.quiet',
-  // Daily-rent set (2026-07-18): contactless check-in, events, leisure.
-  'add.f.selfCheckIn', 'add.f.partiesAllowed', 'add.f.pool',
-  'add.f.jacuzzi', 'add.f.terrace', 'add.f.petsAllowed',
-  // Competitor-verified filter set (Airbnb/Booking top filters, 2026-07-18).
-  // ponytail: skipped safety items (smoke/CO alarm, extinguisher) — host
-  // checklist, not renter filters; add with a detail-page safety block.
-  'add.f.kitchen', 'add.f.washer', 'add.f.tv', 'add.f.workspace',
-  'add.f.seaView', 'add.f.mountainView', 'add.f.beachfront', 'add.f.skiAccess',
-  'add.f.bbq', 'add.f.sauna', 'add.f.gym', 'add.f.evCharger',
-  'add.f.kidFriendly', 'add.f.accessible', 'add.f.smokingAllowed',
+  'add.f.balcony', 'add.f.loggia', 'add.f.terrace', 'add.f.yard', 'add.f.storage', 'add.f.cellar',
+  'add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.security', 'add.f.ironDoor',
+  'add.f.doubleGlazing', 'add.f.accessible',
+  'add.f.centralHeating', 'add.f.gas', 'add.f.hotWater', 'add.f.internet', 'add.f.cableTv',
+  'add.f.furniture', 'add.f.appliances', 'add.f.ac', 'add.f.fireplace',
+  'add.f.kitchen', 'add.f.washer', 'add.f.tv',
+  'add.f.seaView', 'add.f.mountainView', 'add.f.yardView', 'add.f.streetView',
+  'add.f.beachfront', 'add.f.bright', 'add.f.quiet',
+  'add.f.pool', 'add.f.jacuzzi', 'add.f.sauna', 'add.f.gym', 'add.f.bbq',
+  'add.f.evCharger', 'add.f.skiAccess',
+  'add.f.selfCheckIn', 'add.f.petsAllowed', 'add.f.partiesAllowed',
+  'add.f.kidFriendly', 'add.f.workspace', 'add.f.smokingAllowed',
   // Seller capability (dedicated checkbox on /add-listing — not in amenity grid).
   'add.f.onlineView',
 ] as const satisfies readonly DictKey[]
+
+export type FeatureKey = (typeof FEATURE_KEYS)[number]
+
+/** Add-listing + detail grouping. `onlineView` stays out of the grid. */
+export const FEATURE_GROUPS = [
+  { key: 'add.fg.space', items: ['add.f.balcony', 'add.f.loggia', 'add.f.terrace', 'add.f.yard', 'add.f.storage', 'add.f.cellar'] },
+  { key: 'add.fg.building', items: ['add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.security', 'add.f.ironDoor', 'add.f.doubleGlazing', 'add.f.accessible'] },
+  { key: 'add.fg.utilities', items: ['add.f.centralHeating', 'add.f.gas', 'add.f.hotWater', 'add.f.internet', 'add.f.cableTv'] },
+  { key: 'add.fg.comfort', items: ['add.f.furniture', 'add.f.appliances', 'add.f.ac', 'add.f.fireplace', 'add.f.kitchen', 'add.f.washer', 'add.f.tv'] },
+  { key: 'add.fg.view', items: ['add.f.seaView', 'add.f.mountainView', 'add.f.yardView', 'add.f.streetView', 'add.f.beachfront', 'add.f.bright', 'add.f.quiet'] },
+  { key: 'add.fg.extra', items: ['add.f.pool', 'add.f.jacuzzi', 'add.f.sauna', 'add.f.gym', 'add.f.bbq', 'add.f.evCharger', 'add.f.skiAccess'] },
+  { key: 'add.fg.stay', items: ['add.f.selfCheckIn', 'add.f.petsAllowed', 'add.f.partiesAllowed', 'add.f.kidFriendly', 'add.f.workspace', 'add.f.smokingAllowed'] },
+] as const satisfies readonly { key: DictKey; items: readonly FeatureKey[] }[]
+
+/** Keep group order; drop empty groups after deal/city filter. */
+export function groupedFeatures(keys: readonly string[]): { key: DictKey; items: FeatureKey[] }[] {
+  const allow = new Set(keys)
+  return FEATURE_GROUPS
+    .map((g) => ({ key: g.key, items: g.items.filter((k) => allow.has(k)) }))
+    .filter((g) => g.items.length > 0)
+}
 
 /**
  * S-tier daily lifestyle signals — search quick chips + card body (under price).

@@ -29,6 +29,7 @@ import {
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
+import { mapRuntimeOptions } from '@/lib/device-budget'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
 import { floorTooltipKa, type FloorInfo } from '@/lib/map/floors'
 
@@ -115,6 +116,7 @@ export default function BuildingFloorsMap({
         renderWorldCopies: false,
         fadeDuration: 0,
         scrollZoom: false,
+        ...mapRuntimeOptions(),
         ...mapChromeOptions(),
       })
       mapRef.current = map

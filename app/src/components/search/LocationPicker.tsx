@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { X, Search, MapPin, ChevronLeft, Route, Check, Minus, TrainFront } from 'lucide-react'
-import { GEO_CITIES, GEO_MUNICIPALITIES, geoRaionsOf } from '@/data/georgia-locations'
+import { X, Search, MapPin, ChevronLeft, Route, Check, TrainFront } from 'lucide-react'
+import { GEO_CITIES, GEO_MUNICIPALITIES, geoPickerColumns, geoRaionsOf } from '@/data/georgia-locations'
 import { districtsOf } from '@/data/listings'
 import { useI18n } from '@/lib/i18n/context'
 import {
@@ -114,11 +114,12 @@ export default function LocationPicker({
 
   const districts = useMemo(() => (city ? districtsOf(city) : []), [city])
   const raions = useMemo(() => (city ? geoRaionsOf(city) : {}), [city])
-  const raionEntries = useMemo(() => Object.entries(raions), [raions])
+  const pickerCols = useMemo(() => (city ? geoPickerColumns(city) : []), [city])
   const leftover = useMemo(() => {
-    const inRaions = new Set([...Object.keys(raions), ...Object.values(raions).flat()])
-    return districts.filter((d) => !inRaions.has(d))
-  }, [districts, raions])
+    const inPicker = new Set(pickerCols.flatMap((col) => col.flatMap((g) => g.items)))
+    if (inPicker.size === 0) return districts
+    return districts.filter((d) => !inPicker.has(d))
+  }, [districts, pickerCols])
   const pickedSet = useMemo(() => new Set(picked), [picked])
   const chipDistricts = useMemo(
     () => splitDistricts(compactDistrictParam(picked, raions)),
@@ -182,20 +183,6 @@ export default function LocationPicker({
     setQ('')
   }
 
-  const toggleRaion = (raion: string, ubanis: string[]) => {
-    if (!multi) {
-      setPicked((cur) => (cur[0] === raion ? [] : [raion]))
-      return
-    }
-    const allOn = pickedSet.has(raion) || (ubanis.length > 0 && ubanis.every((u) => pickedSet.has(u)))
-    if (allOn) {
-      const drop = new Set([raion, ...ubanis])
-      setPicked((cur) => cur.filter((x) => !drop.has(x)))
-      return
-    }
-    setPicked((cur) => [...new Set([...cur.filter((x) => x !== raion && !ubanis.includes(x)), raion, ...ubanis])])
-  }
-
   const pickStreet = (s: Suggestion) => {
     if (s.city) setCity(s.city)
     if (s.district) setPicked(splitDistricts(s.district))
@@ -210,12 +197,6 @@ export default function LocationPicker({
       street: street.trim(),
       ...(showMetro ? { metro } : {}),
     })
-  }
-
-  const raionState = (raion: string, ubanis: string[]): 'on' | 'mixed' | 'off' => {
-    if (pickedSet.has(raion) || (ubanis.length > 0 && ubanis.every((u) => pickedSet.has(u)))) return 'on'
-    if (ubanis.some((u) => pickedSet.has(u))) return 'mixed'
-    return 'off'
   }
 
   const sheet = (
@@ -233,7 +214,7 @@ export default function LocationPicker({
           transition={{ duration: 0.22, ease }}
         >
           <motion.div
-            className="flex h-[92dvh] w-full max-w-[960px] flex-col overflow-hidden rounded-t-tile bg-sv-surface shadow-card-hover sm:h-[min(820px,92dvh)] sm:rounded-tile"
+            className="flex h-[92dvh] w-full max-w-[1080px] flex-col overflow-hidden rounded-t-tile bg-sv-surface shadow-card-hover sm:h-[min(820px,92dvh)] sm:rounded-tile"
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, y: 28, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -263,14 +244,7 @@ export default function LocationPicker({
                       <Chip onClear={() => pickCity('')}>{city}</Chip>
                     ) : null}
                     {chipDistricts.map((d) => (
-                      <Chip
-                        key={d}
-                        onClear={() => {
-                          const ubanis = raions[d]
-                          if (ubanis) toggleRaion(d, ubanis)
-                          else toggleDistrict(d)
-                        }}
-                      >
+                      <Chip key={d} onClear={() => toggleDistrict(d)}>
                         {d}
                       </Chip>
                     ))}
@@ -453,43 +427,39 @@ export default function LocationPicker({
                     >
                       {t('loc.wholeCity')}
                     </button>
-                    {raionEntries.length > 0 ? (
-                      <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-                        {raionEntries.map(([raion, ubanis]) => {
-                          const st = raionState(raion, ubanis)
-                          return (
-                            <div key={raion}>
-                              <button
-                                type="button"
-                                onClick={() => toggleRaion(raion, ubanis)}
-                                className="mb-1.5 flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[14px] font-extrabold text-sv-ink hover:bg-sv-ink/[0.04]"
-                              >
-                                <Tick on={st === 'on'} mixed={st === 'mixed'} />
-                                {raion}
-                              </button>
-                              <ul className="space-y-0.5">
-                                {ubanis.map((u) => (
-                                  <li key={u}>
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleDistrict(u)}
-                                      className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04] hover:text-sv-ink"
-                                    >
-                                      <Tick on={pickedSet.has(u)} />
-                                      {u}
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )
-                        })}
+                    {pickerCols.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
+                        {pickerCols.map((col, i) => (
+                          <div key={i} className="space-y-6">
+                            {col.map((g) => (
+                              <div key={g.title}>
+                                <div className="mb-1.5 px-1 text-[13px] font-extrabold tracking-tight text-sv-ink">
+                                  {g.title}
+                                </div>
+                                <ul className="space-y-0.5">
+                                  {g.items.map((u) => (
+                                    <li key={u}>
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleDistrict(u)}
+                                        className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04] hover:text-sv-ink"
+                                      >
+                                        <Tick on={pickedSet.has(u)} />
+                                        {u}
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
                         {leftover.map((d) => (
                           <div key={d}>
                             <button
                               type="button"
                               onClick={() => toggleDistrict(d)}
-                              className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[14px] font-extrabold text-sv-ink hover:bg-sv-ink/[0.04]"
+                              className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04]"
                             >
                               <Tick on={pickedSet.has(d)} />
                               {d}
@@ -543,15 +513,14 @@ export default function LocationPicker({
   return createPortal(sheet, document.body)
 }
 
-function Tick({ on, mixed }: { on: boolean; mixed?: boolean }) {
+function Tick({ on }: { on: boolean }) {
   return (
     <span
       className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] border-2 transition-colors ${
-        on || mixed ? 'border-sv-blue bg-sv-blue' : 'border-sv-ink/20 bg-sv-surface'
+        on ? 'border-sv-blue bg-sv-blue' : 'border-sv-ink/20 bg-sv-surface'
       }`}
     >
       {on ? <Check className="h-3 w-3 text-white" strokeWidth={3} /> : null}
-      {mixed && !on ? <Minus className="h-3 w-3 text-white" strokeWidth={3} /> : null}
     </span>
   )
 }

@@ -10,19 +10,19 @@
     { "path": "/api/cron/sync-nearest-poi", "schedule": "30 4 * * *" }
   ],
   "functions": {
-    "src/app/api/map/**/*": { "maxDuration": 8 },
-    "src/app/api/sat/**/*": { "maxDuration": 8 },
-    "src/app/api/napr/**/*": { "maxDuration": 8 },
-    "src/app/api/tas/**/*": { "maxDuration": 8 },
-    "src/app/api/site/**/*": { "maxDuration": 8 },
-    "src/app/api/corpus/**/*": { "maxDuration": 8 },
-    "src/app/api/geocode/**/*": { "maxDuration": 8 },
-    "src/app/api/map-data/**/*": { "maxDuration": 10 },
-    "src/app/api/search/**/*": { "maxDuration": 15 },
-    "src/app/api/suggest/**/*": { "maxDuration": 5 },
-    "src/app/api/ai/**/*": { "maxDuration": 15 },
-    "src/app/api/geo/**/*": { "maxDuration": 3 },
-    "src/app/api/cron/**/*": { "maxDuration": 300 }
+    "src/app/api/map/**/*": { "maxDuration": 8, "memory": 512 },
+    "src/app/api/sat/**/*": { "maxDuration": 8, "memory": 512 },
+    "src/app/api/napr/**/*": { "maxDuration": 8, "memory": 512 },
+    "src/app/api/tas/**/*": { "maxDuration": 8, "memory": 512 },
+    "src/app/api/site/**/*": { "maxDuration": 8, "memory": 512 },
+    "src/app/api/corpus/**/*": { "maxDuration": 8, "memory": 512 },
+    "src/app/api/geocode/**/*": { "maxDuration": 8, "memory": 512 },
+    "src/app/api/map-data/**/*": { "maxDuration": 10, "memory": 1024 },
+    "src/app/api/search/**/*": { "maxDuration": 15, "memory": 1024 },
+    "src/app/api/suggest/**/*": { "maxDuration": 5, "memory": 512 },
+    "src/app/api/ai/**/*": { "maxDuration": 15, "memory": 1024 },
+    "src/app/api/geo/**/*": { "maxDuration": 3, "memory": 512 },
+    "src/app/api/cron/**/*": { "maxDuration": 300, "memory": 1024 }
   },
   "images": {
     "sizes": [640, 750, 828, 1080, 1280, 1920],

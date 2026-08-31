@@ -88,16 +88,17 @@ import {
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
+import { mapRuntimeOptions } from '@/lib/device-budget'
 import {
   initialMapCenter,
-  MAP_CITIES,
   nearestMapCity,
   readIpDismiss,
   writeIpDismiss,
   writeSavedPlace,
+  MAP_CITIES,
   type MapCity,
 } from '@/lib/map/user-place'
-import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
+import { cityCenter, formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
 import { syncConstructionRenders } from '@/lib/map/construction-renders'
 import {
   Layers,
@@ -126,7 +127,6 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { MetroMark } from '@/lib/map/poi-icons'
-import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 
 const POI_ICONS: Record<PoiCategory, LucideIcon | typeof MetroMark> = {
   metro: MetroMark,
@@ -1149,6 +1149,7 @@ function Map3DInner({
         maxBounds: GEORGIA_MAX_BOUNDS,
         renderWorldCopies: false,
         fadeDuration: 0,
+        ...mapRuntimeOptions(),
         ...mapChromeOptions(),
       })
       mapRef.current = map
@@ -1733,53 +1734,6 @@ function Map3DInner({
     )
   }
 
-  const flyToQuery = useCallback(
-    async (q: string, s?: Suggestion) => {
-      const needle = (s?.ka ?? q).trim()
-      if (!needle) return
-      const low = needle.toLowerCase()
-      const city = MAP_CITIES.find(
-        (c) => c.ka.toLowerCase() === low || c.slug === low,
-      )
-      if (city) {
-        flyToPlace(city.lat, city.lng, 12.4)
-        writeSavedPlace({ slug: city.slug, lat: city.lat, lng: city.lng })
-        return
-      }
-      const b = allRef.current.find((x) => x.label.toLowerCase() === low)
-      if (b) {
-        selectRef.current(b)
-        flyToPlace(b.lat, b.lng, 16)
-        return
-      }
-      const feat = NBH_DATA.features.find((f) => {
-        const p = f.properties
-        if (!p) return false
-        return (
-          String(p.name ?? '').toLowerCase() === low ||
-          String(p.nameEn ?? '').toLowerCase() === low
-        )
-      })
-      if (feat?.geometry.type === 'Point') {
-        const [lng, lat] = feat.geometry.coordinates
-        if (lat != null && lng != null) flyToPlace(lat, lng, 14.4)
-        return
-      }
-      try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(needle)}`)
-        const d = (await res.json()) as { ok?: boolean; lat?: number; lng?: number }
-        const lat = d.lat
-        const lng = d.lng
-        if (d.ok && lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng)) {
-          flyToPlace(lat, lng, 15.4)
-        }
-      } catch {
-        /* offline */
-      }
-    },
-    [flyToPlace],
-  )
-
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -1901,7 +1855,6 @@ function Map3DInner({
   const completedCount = allBuildings.filter((b) => b.status === 'completed').length
   const filtersActive = dealFilter !== 'all' || statusFilter !== 'all'
   const showCompass = Math.abs(bearing) > 2.5
-  const searchVariant = isDark ? 'dark' : 'light'
 
   const chip = isDark
     ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
@@ -1949,16 +1902,9 @@ function Map3DInner({
           </div>
         )}
 
-        {/* Top chrome — search + deal/status. POIs live on the bottom rail. */}
+        {/* Top chrome — deal/status. POIs on the bottom rail. */}
         <div className="absolute left-3 right-16 top-[max(0.75rem,env(safe-area-inset-top))] z-20 md:left-4 md:right-[4.25rem] md:top-4">
           <div className="flex flex-col gap-2">
-            <div className={`rounded-tile border ${chip}`}>
-              <ChromeSearch
-                variant={searchVariant}
-                className="w-full"
-                onPlace={(q, s) => flyToQuery(q, s)}
-              />
-            </div>
             <div className={`hidden items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide md:flex ${chip}`}>
               <div className="flex shrink-0 items-center gap-1.5 px-2">
                 <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />

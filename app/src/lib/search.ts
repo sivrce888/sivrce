@@ -84,6 +84,8 @@ export interface SearchFilters {
   idsIn?: string[]
   /** Price-filter currency; bounds are converted via USD_GEL. Default USD. */
   currency?: "USD" | "GEL"
+  /** Paid listing tier (diamond SUPER VIP · super_vip VIP+ · vip VIP). */
+  tier?: "diamond" | "super_vip" | "vip"
   sort?: "date" | "price-asc" | "price-desc" | "area" | "ai" | "m2asc" | "m2desc"
   page?: number
   pageSize?: number
@@ -221,6 +223,7 @@ async function ensureIndex(): Promise<boolean> {
       "sellerType",
       "metroM",
       "projectCatalog",
+      "tier",
     ])
 
     // Sortable attributes.
@@ -326,6 +329,7 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.petsOnly) parts.push("petsAllowed = true")
   if (filters.sellerType) parts.push(`sellerType = ${esc(filters.sellerType)}`)
   if (filters.nearMetro) parts.push(`metroM <= ${METRO_NEAR_M}`)
+  if (filters.tier) parts.push(`tier = ${esc(filters.tier)}`)
   // Catalog cards live on /projects — keep /sale|/rent|/daily unit-only.
   parts.push("projectCatalog = false")
 

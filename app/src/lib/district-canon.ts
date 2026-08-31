@@ -2,7 +2,7 @@
  * Canonical Georgian district / უბანი labels.
  * Maps EN (korter), combined Soviet raions, and junk aliases → ka catalog names.
  */
-import { geoDistrictsOf, geoRaionsOf } from '@/data/georgia-locations'
+import { geoDistrictsOf } from '@/data/georgia-locations'
 
 /** Exact renames (storage + write path). Combined Soviet labels → nearest official raion pair expand on search. */
 const ALIAS: Record<string, string> = {
@@ -49,6 +49,9 @@ const ALIAS: Record<string, string> = {
   metekhi: 'მეტეხი',
   lilo: 'ლილო',
   tskneti: 'წყნეთი',
+  tskhvarichamia: 'ცხვარიჭამია',
+  tskvarichamia: 'ცხვარიჭამია',
+  cxvarichamia: 'ცხვარიჭამია',
   'old-tbilisi': 'ძველი თბილისი',
   'sea suburb': 'ზღვისუბანი',
   'ზღვის უბანი': 'ზღვისუბანი',
@@ -78,7 +81,10 @@ const ALIAS: Record<string, string> = {
   ბაგრატიონი: 'ბაგრატიონის უბანი',
   თამარი: 'თამარის დასახლება',
   კახაბერი: 'კახაბრის უბანი',
-  'ძველი ქალაქი': 'ძველი ბათუმი',
+  'ძველი ქალაქი': 'ძველი ბათუმის უბანი',
+  'ძველი ბათუმი': 'ძველი ბათუმის უბანი',
+  'old batumi': 'ძველი ბათუმის უბანი',
+  'გიორგიწმინდა': 'გიორგიწმინდას დასახლება',
   // Nominatim genitive "X რაიონი" leftovers
   ვაკის: 'ვაკე',
   საბურთალოს: 'საბურთალო',
@@ -99,7 +105,6 @@ const ALIAS: Record<string, string> = {
   'აეროპორტის გზატ': 'აეროპორტის დასახლება',
   'აფრიკის დას': 'აფრიკა',
   'ვაჟა ფშაველას კვარტლები': 'ვაჟა-ფშაველას კვარტლები',
-  'ძველი ბათუმის უბანი': 'ძველი ბათუმი',
   // Combined Soviet → pick primary raion for storage (search expands both)
   'ვაკე-საბურთალო': 'საბურთალო',
   'დიდუბე-ჩუღურეთი': 'დიდუბე',
@@ -185,10 +190,6 @@ export function districtSearchValues(raw: string | null | undefined, city?: stri
   if (EXPAND[trimmed]) return EXPAND[trimmed]
   const canon = canonicalizeDistrict(trimmed, city)
   if (EXPAND[canon]) return EXPAND[canon]
-  // If user picked a raion, include its ubani so inventory tagged by leaf still matches.
-  if (city) {
-    const ubanis = geoRaionsOf(city)[canon]
-    if (ubanis?.length) return [canon, ...ubanis]
-  }
+  // ponytail: raion name is a leaf pick (საბურთალო ≠ ლისი). Combined labels still EXPAND.
   return canon ? [canon] : []
 }

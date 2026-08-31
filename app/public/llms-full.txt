@@ -1,7 +1,7 @@
 # sivrce — full AI index
 
 > სივრცე — უძრავი ქონება ერთ სივრცეში.
-> sivrce is Georgia's real-estate platform: sale, rent, daily stays, new-build projects, 3D map, verified listings, AI price estimates, and property services.
+> sivrce is Georgia's real-estate platform — Real Estate in one place: sale, rent, daily stays, new-build projects, 3D map, verified listings, AI price estimates, and property services.
 
 Canonical language: Georgian, unprefixed URLs (https://sivrce.ge/sale). Locales: /en /ru /he /ar /tr /uk /hy /az.
 
@@ -17,6 +17,7 @@ Short index: https://sivrce.ge/llms.txt
 - Mortgage calculator: https://sivrce.ge/mortgage-calculator
 - List a home (free): https://sivrce.ge/add-listing
 - List a service: https://sivrce.ge/add-service
+- Homepage SUPER VIP + VIP+ rails: https://sivrce.ge
 - Advertise / VIP: https://sivrce.ge/advertise
 - Contact: https://sivrce.ge/contact — hi@sivrce.ge
 

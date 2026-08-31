@@ -33,6 +33,11 @@ export function checkRateLimit(key: string): { ok: boolean; retryAfterSec: numbe
   const bucket = buckets.get(key)
   if (!bucket || bucket.resetAt <= now) {
     buckets.set(key, { count: 1, resetAt: now + WINDOW_MS })
+    if (buckets.size > 5000) {
+      for (const [k, b] of buckets) {
+        if (b.resetAt <= now) buckets.delete(k)
+      }
+    }
     return { ok: true, retryAfterSec: 0 }
   }
   if (bucket.count >= MAX_PER_WINDOW) {

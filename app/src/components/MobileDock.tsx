@@ -16,6 +16,7 @@ export default function MobileDock() {
   const bare = stripLangPrefix(pathname)
   const hidden =
     bare.startsWith('/listing/') ||
+    bare.startsWith('/add-listing') ||
     bare.startsWith('/admin') ||
     bare === '/map' ||
     bare.startsWith('/map/')

@@ -17,6 +17,9 @@ import { ContentTabs } from "@/components/admin/content/ContentTabs"
 import type { CmsRow } from "@/lib/cms"
 import {
   HOME_SECTIONS,
+  HOME_VIP_FOLLOW,
+  lockHomeVipRails,
+  moveHomeLayout,
   previewPath,
   sectionById,
   sectionIdForKey,
@@ -112,9 +115,10 @@ export function Studio({
     page.id === "home" ? sectionById(selected) : { id: page.id, label: page.label, keys: [] }
 
   function persistLayout(next: HomeLayoutItem[]) {
-    setLayout(next)
+    const locked = lockHomeVipRails(next)
+    setLayout(locked)
     start(async () => {
-      const r = await saveHomeLayout(next)
+      const r = await saveHomeLayout(locked)
       setStatus(r.error ?? "Layout live")
       if (!r.error) {
         setBust((n) => n + 1)
@@ -127,14 +131,7 @@ export function Studio({
     const from = dragId.current
     dragId.current = null
     if (!from || from === overId) return
-    const ids = layout.map((i) => i.id)
-    const fi = ids.indexOf(from as HomeLayoutItem["id"])
-    const ti = ids.indexOf(overId as HomeLayoutItem["id"])
-    if (fi < 0 || ti < 0) return
-    const next = [...layout]
-    const [moved] = next.splice(fi, 1)
-    next.splice(ti, 0, moved)
-    persistLayout(next)
+    persistLayout(moveHomeLayout(layout, from, overId))
   }
 
   function toggleHidden(id: HomeLayoutItem["id"]) {
@@ -246,18 +243,20 @@ export function Studio({
                 {layout.map((item) => {
                   const s = sectionById(item.id)
                   if (!s) return null
+                  const glued = item.id === HOME_VIP_FOLLOW
                   return (
                     <li
                       key={item.id}
-                      draggable
+                      draggable={!glued}
                       onDragStart={() => {
+                        if (glued) return
                         dragId.current = item.id
                       }}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={() => onDrop(item.id)}
-                      className={`flex items-center gap-1 rounded-[12px] ${item.hidden ? "opacity-45" : ""}`}
+                      className={`flex items-center gap-1 rounded-[12px] ${item.hidden ? "opacity-45" : ""} ${glued ? "pl-4" : ""}`}
                     >
-                      <span className="cursor-grab px-1 text-sv-ink/25" aria-hidden>
+                      <span className={`px-1 ${glued ? "text-sv-ink/15" : "cursor-grab text-sv-ink/25"}`} aria-hidden>
                         <GripVertical className="h-3.5 w-3.5" />
                       </span>
                       <button

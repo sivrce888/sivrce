@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.16) · FROZEN 2026-07-17 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Orange fills = white fg 2026-08-31 · Hero day/night 2026-08-31
+# სივრცე — Brand Lock (v1.17) · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Orange fills = white fg 2026-08-31 · Hero day/night 2026-08-31
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -54,7 +54,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 
 - **Name:** sivrce (always lowercase in the wordmark) + orange period
 - **KA name:** სივრცე · **Domain:** sivrce.ge
-- **Tagline:** „უძრავი ქონება ერთ სივრცეში" / "Real estate in one space"
+- **Tagline:** „უძრავი ქონება ერთ სივრცეში" / "Real Estate in one place"
 - **Personality:** premium, calm, technological, trustworthy — Apple-grade restraint
 
 ## 2. Logo

@@ -192,17 +192,43 @@ const RENT_OR_DAILY = new Set<string>([
   'add.f.tv',
 ])
 
+/** Catalog names + municipality prefix (ქობულეთის მუნიციპალიტეტი). */
+const COASTAL = ['ბათუმი', 'ქობულეთი', 'ფოთი', 'ხელვაჩაური', 'ოზურგეთი', 'ლანჩხუთი', 'აფხაზეთი'] as const
+const SKI = ['ბაკურიანი', 'გუდაური', 'მესტია', 'ბორჯომი', 'ყაზბეგი'] as const
+
+function placeIn(city: string, names: readonly string[]): boolean {
+  return names.some((n) => city === n || city.startsWith(n))
+}
+
 /**
  * Amenity chips for /add-listing (and search filters).
  * Physical building traits stay for all deals; host-policy stays daily-only.
  * `add.f.onlineView` is a dedicated checkbox — never in the grid.
+ * Sea/beach/ski chips hide when the city can't have them (stops Tbilisi "sea view").
  */
-export function featuresFor(prop: PropType, deal: DealType): readonly DictKey[] {
-  if (prop === 'land') return LAND_FEATURE_KEYS
+export function featuresFor(prop: PropType, deal: DealType, city?: string): readonly DictKey[] {
+  if (prop === 'land') {
+    if (!city) return LAND_FEATURE_KEYS
+    return LAND_FEATURE_KEYS.filter((f) => {
+      if ((f === 'add.f.seaView' || f === 'add.f.beachfront') && !placeIn(city, COASTAL)) return false
+      return true
+    })
+  }
   return FEATURE_KEYS.filter((f) => {
     if (f === 'add.f.onlineView') return false
     if (DAILY_ONLY.has(f)) return deal === 'daily'
     if (RENT_OR_DAILY.has(f)) return deal === 'rent' || deal === 'daily'
+    if (city) {
+      if ((f === 'add.f.seaView' || f === 'add.f.beachfront') && !placeIn(city, COASTAL)) return false
+      if (f === 'add.f.skiAccess' && !placeIn(city, SKI)) return false
+    }
     return true
   })
+}
+
+/** 6 form sections → 3 UI phases: type | listing (photos–price) | contact. */
+export function phaseOfSection(i: number): 0 | 1 | 2 {
+  if (i <= 0) return 0
+  if (i >= 5) return 2
+  return 1
 }

@@ -1,11 +1,9 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Search, Building2, MapPin, Route, X } from 'lucide-react'
-import { useI18n, localizedHref } from '@/lib/i18n/context'
-import { isExactLookupQuery } from '@/lib/listing-public-id'
-import { searchHref, suggestionToFilters, exactSuggestHit } from '@/lib/search-location'
+import { useI18n } from '@/lib/i18n/context'
+import { exactSuggestHit } from '@/lib/search-location'
 
 /** Keyword input with city / district / street autocomplete. Keyboard: ↑↓ Enter Esc. */
 
@@ -251,60 +249,4 @@ export async function resolveExactPlace(q: string, city?: string): Promise<Sugge
   } catch {
     return undefined
   }
-}
-
-export function ChromeSearch({
-  variant,
-  className = '',
-  onNavigate,
-  onPlace,
-}: {
-  variant: 'dark' | 'light'
-  className?: string
-  onNavigate?: () => void
-  /** Map page: fly in-place instead of leaving for /search. */
-  onPlace?: (q: string, s?: Suggestion) => void | Promise<void>
-}) {
-  const [q, setQ] = useState('')
-  const router = useRouter()
-  const { lang, t } = useI18n()
-
-  const go = async (s?: Suggestion) => {
-    const raw = s ? s.ka : q.trim()
-    if (onPlace) {
-      onNavigate?.()
-      await onPlace(raw, s)
-      return
-    }
-    const typed = s ? '' : q.trim()
-    if (typed && isExactLookupQuery(typed)) {
-      try {
-        const res = await fetch(`/api/listings/resolve?q=${encodeURIComponent(typed)}`)
-        const json = (await res.json()) as { ok?: boolean; path?: string }
-        if (json.ok && json.path) {
-          onNavigate?.()
-          router.push(localizedHref(json.path, lang))
-          return
-        }
-      } catch { /* fall through */ }
-    }
-    const place = s ?? (typed ? await resolveExactPlace(typed) : undefined)
-    const f = place ? suggestionToFilters(place) : { q: typed || undefined }
-    onNavigate?.()
-    router.push(localizedHref(searchHref(f), lang))
-  }
-
-  return (
-    <SearchSuggest
-      variant={variant}
-      size="md"
-      value={q}
-      onChange={setQ}
-      onPick={(s) => void go(s)}
-      onSubmit={() => void go()}
-      placeholder={t('search.keywordPlaceholder')}
-      ariaLabel={t('nav.search')}
-      className={className}
-    />
-  )
 }

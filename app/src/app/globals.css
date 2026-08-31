@@ -736,6 +736,24 @@ html:not(.dark) .sv-particle {
   background-size: 72px 72px;
 }
 
+/* Low-RAM / Save-Data / ≤2-core — freeze ambient GPU work (same list as reduce). */
+html[data-lite] {
+  scroll-behavior: auto;
+}
+html[data-lite] .animate-aurora-a, html[data-lite] .animate-aurora-b, html[data-lite] .animate-aurora-c,
+html[data-lite] .sv-particle, html[data-lite] .animate-float, html[data-lite] .animate-pin,
+html[data-lite] .animate-marquee, html[data-lite] .animate-ping, html[data-lite] .sv-hero-in,
+html[data-lite] .animate-scroll-hint, html[data-lite] .sv-skyline-back, html[data-lite] .sv-skyline-front,
+html[data-lite] .sv-comet, html[data-lite] .sv-birds, html[data-lite] .sv-cirrus, html[data-lite] .sv-word,
+html[data-lite] .text-gradient-shimmer, html[data-lite] .sv-sky-in, html[data-lite] .sv-nav-in,
+html[data-lite] .sv-star, html[data-lite] .sv-beacon {
+  animation: none !important;
+}
+html[data-lite] [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

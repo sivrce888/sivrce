@@ -15,6 +15,7 @@ import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
 import { getServerT, langAlternates, OG_LOCALE, SITE_META } from "@/lib/i18n/server";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
+import { LITE_BOOT } from "@/lib/device-budget";
 // globals.css lives in app/layout.tsx — import here is silently dropped from
 // production CSS <link>s for the dynamic [lang] segment (see root layout).
 
@@ -156,7 +157,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
           url: "/images/og-brand.png",
           width: 1200,
           height: 630,
-          alt: "sivrce — უძრავი ქონება ერთ სივრცეში",
+          alt: `sivrce — ${BRAND.tagline.ka}`,
         },
       ],
     },
@@ -214,6 +215,7 @@ const siteLd = {
       url: SITE_URL,
       name: SITE_NAME,
       alternateName: "სივრცე",
+      slogan: BRAND.tagline.ka,
       inLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],
       publisher: { "@id": `${SITE_URL}/#organization` },
       description:
@@ -237,6 +239,7 @@ const siteLd = {
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
       alternateName: "სივრცე",
+      slogan: BRAND.tagline.ka,
       url: SITE_URL,
       logo: {
         "@type": "ImageObject",
@@ -334,6 +337,9 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        <Script id="lite-boot" strategy="beforeInteractive">
+          {LITE_BOOT}
+        </Script>
         {/* Fonts: next/font display=optional + preload:false — no manual preload
             (was fighting FCP; optional already prevents late-swap LCP). */}
         {/* Google Tag Manager (noscript) */}

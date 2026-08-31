@@ -34,6 +34,8 @@ import { mapSearchHit } from '@/lib/map-search-hit'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
+import { isSearchTier } from '@/lib/listings-home-rail'
+import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
   type DealType, type PropType, type SortKey, type Listing,
 } from '@/data/listings'
@@ -186,6 +188,8 @@ export default function SearchClient({
   const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
   const photo = params.get('photo') === '1'
   const verifiedOnly = params.get('verified') === '1'
+  const tierRaw = params.get('tier')
+  const tier = isSearchTier(tierRaw) ? tierRaw : undefined
   const pets = params.get('pets') === '1'
   const nearMetro = params.get('metro') === '1'
   const sellerParam = params.get('seller')
@@ -344,6 +348,7 @@ export default function SearchClient({
         if (featRaw) sp.set('feat', featRaw)
         if (photo) sp.set('photo', '1')
         if (verifiedOnly) sp.set('verified', '1')
+        if (tier) sp.set('tier', tier)
         if (pets) sp.set('pets', '1')
         if (nearMetro) sp.set('metro', '1')
         if (seller) sp.set('seller', seller)
@@ -471,6 +476,7 @@ export default function SearchClient({
   if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
   if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
   if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
+  if (tier) chips.push({ key: 'tier', label: tierKeyToBadge(tier) ?? tier, clear: () => patchParams({ tier: undefined }) })
   if (pets) chips.push({ key: 'pets', label: t('search.petsOnly'), clear: () => patchParams({ pets: undefined }) })
   if (nearMetro) chips.push({ key: 'metro', label: t('search.nearMetro'), clear: () => patchParams({ metro: undefined }) })
   if (seller) chips.push({ key: 'seller', label: t(seller === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency'), clear: () => patchParams({ seller: undefined }) })
@@ -873,8 +879,8 @@ export default function SearchClient({
               <span className={labelClass}>{t('search.features')}</span>
               <div className="scrollbar-hide flex max-h-32 flex-wrap gap-1 overflow-y-auto">
                 {(type === 'land'
-                  ? featuresFor('land', deal ?? 'sale')
-                  : featuresFor(type ?? 'apartment', deal ?? 'sale')
+                  ? featuresFor('land', deal ?? 'sale', city)
+                  : featuresFor(type ?? 'apartment', deal ?? 'sale', city)
                 )
                   .filter((f) => deal !== 'daily' || !(DAILY_SIGNAL_KEYS as readonly string[]).includes(f))
                   .map((f) => (

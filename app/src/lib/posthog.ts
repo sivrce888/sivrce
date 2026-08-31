@@ -35,6 +35,7 @@ export function initPostHog(): void {
     rageclick: false,
     persistence: 'localStorage',
     person_profiles: 'identified_only',
+    disable_surveys: true,
   })
 
   initialized = true

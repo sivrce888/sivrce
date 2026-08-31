@@ -107,7 +107,7 @@ async function main() {
         views: l.views,
         verified: true,
         status: "active",
-        tier: l.badge === "SUPER VIP" ? "super_vip" : l.badge === "VIP+" ? "vip" : l.badge === "VIP" ? "vip" : "standard",
+        tier: l.badge === "SUPER VIP" ? "diamond" : l.badge === "VIP+" ? "super_vip" : l.badge === "VIP" ? "vip" : "standard",
         trustScore: l.ai.score,
       },
     })

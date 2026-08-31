@@ -304,7 +304,7 @@ export const en: Dict = {
 
   // ——— Footer ———
   'footer.tagline':
-    'Sivrce — real estate in one space. The #1 technology platform in Georgia: 3D map, AI assessment and a full ecosystem.',
+    'Sivrce — Real Estate in one place. The #1 technology platform in Georgia: 3D map, AI assessment and a full ecosystem.',
   'footer.location': 'Tbilisi, Georgia',
   'footer.colRealEstate': 'Real estate',
   'footer.re.apartments': 'Apartments for sale',
@@ -335,9 +335,9 @@ export const en: Dict = {
 
   // ——— Add listing wizard ———
   'add.title': 'Add a listing',
-  'add.subtitle': '6 simple steps — and your property is live on Georgia’s #1 platform.',
+  'add.subtitle': 'One page — scroll, fill, publish. Your property on Georgia’s #1 platform.',
   'add.editTitle': 'Edit listing',
-  'add.editSubtitle': 'Change every field — same steps as when adding.',
+  'add.editSubtitle': 'Change any field — same 3 steps as when adding.',
   'add.save': 'Save',
   'add.saving': 'Saving…',
   'add.savedTitle': 'Saved',
@@ -350,6 +350,7 @@ export const en: Dict = {
   'add.continue': 'Continue',
   'add.stepOf': 'Step {n} of {total}',
   'add.step.type': 'Type',
+  'add.step.listing': 'Listing',
   'add.step.photos': 'Photos',
   'add.step.location': 'Location',
   'add.step.details': 'Details',
@@ -422,7 +423,16 @@ export const en: Dict = {
   'add.status.comm.carService': 'Car service',
   'add.status.comm.universal': 'Universal',
   'add.features': 'Features',
+  'add.featuresHint': 'Select only what the property actually has.',
+  'add.fg.space': 'Space',
+  'add.fg.building': 'Building',
+  'add.fg.utilities': 'Utilities',
+  'add.fg.comfort': 'Comfort',
+  'add.fg.view': 'Views',
+  'add.fg.extra': 'Extra',
+  'add.fg.stay': 'Stay',
   'add.f.balcony': 'Balcony',
+  'add.f.loggia': 'Loggia',
   'add.f.elevator': 'Elevator',
   'add.f.parking': 'Parking',
   'add.f.garage': 'Garage',
@@ -504,6 +514,12 @@ export const en: Dict = {
   'add.photosTip':
     'Listings without photos get less interest. Even 1 photo gets 5× more responses — the first shot is the cover.',
   'add.photosRequired': 'At least 1 photo is required',
+  'add.photosAdd': 'Add photo',
+  'add.mapLocating': 'Locating…',
+  'add.mapStreetFirst': 'Enter the street — the pin drops automatically',
+  'add.mapPickHint': 'Pin and building snap automatically · or tap the map to mark a building',
+  'add.boostNow': 'Boost it now',
+  'add.boostHint': 'VIP / Turbo / Story — same checkout as on the listings manager.',
   'add.previewEmpty': 'Upload a photo — your listing preview appears here',
   'add.videoLink': 'Video / virtual tour',
   'add.videoPh': 'YouTube or Matterport link…',

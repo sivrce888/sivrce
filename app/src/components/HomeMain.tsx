@@ -15,12 +15,11 @@ import ForumTeaser from '@/components/sections/ForumTeaser'
 import BlogNewsSection from '@/components/sections/BlogNewsSection'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
-import type { Listing } from '@/data/listings'
 import { AGENT_PROFILES } from '@/data/professionals'
 import {
   getAgentListingCountsByKaName,
   getDistrictListingCounts,
-  getFeaturedListings,
+  getHomeTierListings,
   getStoryListings,
   type Listing as StoryListing,
 } from '@/lib/listings-db'
@@ -32,19 +31,11 @@ import { getHomeLayout } from '@/lib/cms'
 import type { HomeFlowId } from '@/lib/cms-studio'
 import type { Lang } from '@/lib/i18n/core'
 
-/** DB-first featured rail; empty when DB is down — fallback cards 404'd
- * (detail pages are DB-only by design), so the section hides instead. */
-async function getFeatured(): Promise<Listing[]> {
-  try {
-    return await getFeaturedListings(6)
-  } catch { /* DB unavailable — hide the rail, never link to 404s */ }
-  return []
-}
-
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
-  const [featured, stories, projects, stats, developers, agentCounts, districtCounts] = await Promise.all([
-    getFeatured(),
+  const [superVip, vipPlus, stories, projects, stats, developers, agentCounts, districtCounts] = await Promise.all([
+    getHomeTierListings('diamond', 8).catch(() => []),
+    getHomeTierListings('super_vip', 8).catch(() => []),
     getStoryListings().catch(() => [] as StoryListing[]),
     projectsLive().catch(() => []),
     getHomeStats(),
@@ -93,7 +84,8 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
   const nodes: Record<HomeFlowId, ReactNode> = {
     stories: <StoriesRail items={stories} />,
     categories: <Categories lang={lang} />,
-    listings: <Listings items={featured} />,
+    listings: <Listings items={superVip} rail="superVip" />,
+    vip_plus: <Listings items={vipPlus} rail="vipPlus" />,
     ad_mid: <AdSlot slot="home_mid" lang={lang} />,
     neighborhoods: <NeighborhoodsRail counts={districtCounts} />,
     map: <MapSection />,

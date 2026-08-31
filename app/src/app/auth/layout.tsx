@@ -4,7 +4,9 @@ import I18nProvider from "@/components/I18nProvider";
 import PostHogProvider from "@/components/PostHogProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import Script from "next/script";
 import { BRAND } from "@/lib/brand";
+import { LITE_BOOT } from "@/lib/device-budget";
 // globals.css: app/layout.tsx (root). Importing only here used to work; keep
 // root as the single CSS entry so [lang] pages never lose the stylesheet.
 
@@ -64,6 +66,9 @@ export default function AuthLayout({
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        <Script id="lite-boot" strategy="beforeInteractive">
+          {LITE_BOOT}
+        </Script>
         <ThemeProvider>
           <I18nProvider>
             <PostHogProvider>{children}</PostHogProvider>

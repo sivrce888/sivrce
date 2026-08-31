@@ -1,5 +1,5 @@
 /**
- * SIVRCE — Locked Brand Tokens (FROZEN 2026-07-17 · BRAND.md v1.16)
+ * SIVRCE — Locked Brand Tokens (FROZEN 2026-07-17 · BRAND.md v1.17)
  * Single source of truth. Every new component, section, or page MUST
  * consume these tokens instead of inventing new values.
  * Change only with owner approval + BRAND.md version bump.
@@ -10,7 +10,7 @@ export const BRAND = {
   domain: 'sivrce.ge',
   tagline: {
     ka: 'უძრავი ქონება ერთ სივრცეში',
-    en: 'Real estate in one space',
+    en: 'Real Estate in one place',
   },
 
   colors: {

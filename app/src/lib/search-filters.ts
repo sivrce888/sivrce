@@ -10,6 +10,7 @@ import { USD_GEL } from "@/data/listings"
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from "@/lib/features"
 import { districtSearchValues } from "@/lib/district-canon"
 import { cadastralVariants } from "@/lib/listing-public-id"
+import { isSearchTier } from "@/lib/listings-home-rail"
 import type { SearchFilters } from "@/lib/search"
 
 // ---------------------------------------------------------------------------
@@ -105,6 +106,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
     page: num("page") ?? 1,
     pageSize: num("pageSize") ?? 24,
+    tier: isSearchTier(sp.get("tier")) ? (sp.get("tier") as SearchFilters["tier"]) : undefined,
   }
 }
 
@@ -173,6 +175,10 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.verifiedOnly) where.verified = true
   if (filters.petsOnly) where.petsAllowed = true
   if (filters.sellerType) where.sellerType = filters.sellerType
+  if (filters.tier) {
+    where.tier = filters.tier
+    and.push({ OR: [{ tierExpiresAt: null }, { tierExpiresAt: { gt: new Date() } }] })
+  }
   // Join table when warm; static metro boxes so filter works before cron backfill.
   if (filters.nearMetro) and.push(nearMetroFilter())
   // Catalog cards live on /projects — keep deal search unit-only.

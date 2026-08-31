@@ -24,21 +24,9 @@ export function locationLabel(v: LocationValue, empty = 'აირჩიე ქ�
   return empty
 }
 
-/** Prefer raion name when every leaf is selected — shorter URL, search expands. */
-export function compactDistrictParam(selected: string[], raions: Record<string, string[]>): string {
-  const set = new Set(selected)
-  const parts: string[] = []
-  const covered = new Set<string>()
-  for (const [raion, ubanis] of Object.entries(raions)) {
-    const allLeaves = ubanis.length > 0 && ubanis.every((u) => set.has(u))
-    if (set.has(raion) || allLeaves) {
-      parts.push(raion)
-      covered.add(raion)
-      for (const u of ubanis) covered.add(u)
-    }
-  }
-  for (const s of selected) if (!covered.has(s)) parts.push(s)
-  return parts.join(',')
+/** URL param: selected names only. Raion ≠ all its ubani. */
+export function compactDistrictParam(selected: string[], _raions?: Record<string, string[]>): string {
+  return [...new Set(selected)].join(',')
 }
 
 export type SuggestHit = {

@@ -50,11 +50,15 @@ assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკ
 assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე,საბურთალო,დიღომი', street: '' }), 'თბილისი · 3')
 assert.equal(
   compactDistrictParam(['ვაკე', 'ბაგები', 'წყნეთი'], { ვაკე: ['ბაგები', 'წყნეთი'] }),
-  'ვაკე',
+  'ვაკე,ბაგები,წყნეთი',
 )
 assert.equal(
   compactDistrictParam(['ბაგები'], { ვაკე: ['ბაგები', 'წყნეთი'] }),
   'ბაგები',
+)
+assert.equal(
+  compactDistrictParam(['საბურთალო'], { საბურთალო: ['ლისი', 'დიღომი'] }),
+  'საბურთალო',
 )
 
 console.log('ok: suggestionToFilters')

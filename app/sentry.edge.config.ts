@@ -9,6 +9,7 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0 : 1.0,
+  maxBreadcrumbs: 20,
   sendDefaultPii: false,
 
   enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,

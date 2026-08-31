@@ -38,10 +38,12 @@ for (const city of ['თბილისი', 'ბათუმი', 'ქუთა
 }
 
 const FEATURE_RX: [RegExp, string][] = [
-  [/parking|პარკინგ|ავტოსადგომ|garage|გარაჟ/i, 'add.f.parking'],
+  [/parking|პარკინგ|ავტოსადგომ/i, 'add.f.parking'],
+  [/garage|გარაჟ|ავტოფარეხ/i, 'add.f.garage'],
   [/bright|ნათელ|ბუნებრივი სინათლ/i, 'add.f.bright'],
   [/elevator|lift|ლიფტ/i, 'add.f.elevator'],
-  [/balcony|აივან/i, 'add.f.balcony'],
+  [/loggia|ლოჯ|лоджи/i, 'add.f.loggia'],
+  [/balcony|აივან|балкон/i, 'add.f.balcony'],
   [/furnish|ავეჯ/i, 'add.f.furniture'],
 ]
 

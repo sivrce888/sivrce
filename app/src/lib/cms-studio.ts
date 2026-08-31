@@ -20,6 +20,7 @@ export const HOME_FLOW = [
   "stories",
   "categories",
   "listings",
+  "vip_plus",
   "ad_mid",
   "neighborhoods",
   "map",
@@ -89,7 +90,8 @@ export const HOME_SECTIONS: readonly StudioSection[] = [
   },
   { id: "stories", label: "Stories", keys: blockKeys("home.stories") },
   { id: "categories", label: "Categories", keys: blockKeys("home.categories") },
-  { id: "listings", label: "Listings", keys: blockKeys("home.listings") },
+  { id: "listings", label: "SUPER VIP", keys: blockKeys("home.listings") },
+  { id: "vip_plus", label: "VIP+", keys: blockKeys("home.vipPlus") },
   { id: "ad_mid", label: "Banner · mid", keys: [] },
   { id: "neighborhoods", label: "Neighborhoods", keys: blockKeys("home.nb") },
   { id: "map", label: "3D Map", keys: blockKeys("home.map") },
@@ -137,7 +139,43 @@ export function parseHomeLayout(raw: unknown): HomeLayoutItem[] {
   for (const id of HOME_FLOW) {
     if (!items.some((i) => i.id === id)) items.push({ id })
   }
-  return items
+  return lockHomeVipRails(items)
+}
+
+export const HOME_VIP_LEAD = "listings"
+export const HOME_VIP_FOLLOW = "vip_plus"
+
+function isVipRail(id: string): boolean {
+  return id === HOME_VIP_LEAD || id === HOME_VIP_FOLLOW
+}
+
+/** SUPER VIP → VIP+ glued. CMS / studio cannot split them. */
+export function lockHomeVipRails(items: HomeLayoutItem[]): HomeLayoutItem[] {
+  const vipIdx = items.findIndex((i) => i.id === HOME_VIP_FOLLOW)
+  const superIdx = items.findIndex((i) => i.id === HOME_VIP_LEAD)
+  if (vipIdx < 0 || superIdx < 0 || vipIdx === superIdx + 1) return items
+  const next = items.slice()
+  const [vip] = next.splice(vipIdx, 1)
+  next.splice(next.findIndex((i) => i.id === HOME_VIP_LEAD) + 1, 0, vip)
+  return next
+}
+
+/** Studio drag: SUPER VIP moves VIP+ with it. Dropping on VIP+ = drop on the pair. */
+export function moveHomeLayout(
+  items: HomeLayoutItem[],
+  fromId: string,
+  overId: string,
+): HomeLayoutItem[] {
+  const from = fromId === HOME_VIP_FOLLOW ? HOME_VIP_LEAD : fromId
+  const over = overId === HOME_VIP_FOLLOW ? HOME_VIP_LEAD : overId
+  if (from === over || (isVipRail(fromId) && isVipRail(overId))) return lockHomeVipRails(items)
+  const next = items.slice()
+  const fi = next.findIndex((i) => i.id === from)
+  const ti = next.findIndex((i) => i.id === over)
+  if (fi < 0 || ti < 0) return lockHomeVipRails(items)
+  const [moved] = next.splice(fi, 1)
+  next.splice(ti, 0, moved)
+  return lockHomeVipRails(next)
 }
 
 export function studioPageById(id: string): StudioPage | undefined {

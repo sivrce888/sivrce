@@ -55,9 +55,9 @@ export const CMS_BLOCKS = {
   'home.collections.title': 'კოლექციები',
   'home.collections.sub': 'დღიური ქირა — შერჩეული თემებით',
   'home.stories.kicker': 'რჩეული',
-  'home.listings.kicker': 'არჩეული შეთავაზებები',
-  'home.listings.title': 'რჩეული განცხადებები',
-  'home.listings.sub': 'ვერიფიცირებული ქონება — AI ფასის შეფასებით',
+  'home.listings.kicker': 'SUPER VIP',
+  'home.listings.title': 'სუპერ VIP განცხადებები',
+  'home.listings.sub': 'მაქსიმალური ხილვადობა — ტოპ შეთავაზებები პირველ ადგილზე',
   'home.map.kicker': 'ექსკლუზიური ტექნოლოგია',
   'home.map.titleA': 'პირველი',
   'home.map.titleAccent': 'ინტერაქტიული 3D რუკა',
@@ -88,9 +88,16 @@ export const CMS_BLOCKS = {
   'home.services.docs.text': 'ნასყიდობის, იჯარისა და გირავნობის იურიდიულად გამართული შაბლონები.',
   'home.services.cta': 'ისარგებლე სერვისით',
 
-  // ——— Listings rail ———
-  'home.listings.viewAll': 'ყველა განცხადების ნახვა',
-  'home.listings.scrollLabel': 'რჩეული განცხადებები',
+  // ——— SUPER VIP rail ———
+  'home.listings.viewAll': 'ყველა SUPER VIP',
+  'home.listings.scrollLabel': 'SUPER VIP განცხადებები',
+
+  // ——— VIP+ rail ———
+  'home.vipPlus.kicker': 'VIP+',
+  'home.vipPlus.title': 'VIP+ განცხადებები',
+  'home.vipPlus.sub': 'პრიორიტეტული შეთავაზებები — ვერიფიცირებული ქონება AI ფასის შეფასებით',
+  'home.vipPlus.viewAll': 'ყველა VIP+',
+  'home.vipPlus.scrollLabel': 'VIP+ განცხადებები',
 
   // ——— Map section ———
   'home.map.f1.title': 'დააჭირე ნებისმიერ შენობას',

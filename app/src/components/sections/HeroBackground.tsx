@@ -131,6 +131,7 @@ export default function HeroBackground() {
 
     const fine = window.matchMedia('(pointer: fine)')
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const lite = document.documentElement.hasAttribute('data-lite')
     const host = el.parentElement ?? el
     const onMove = (e: PointerEvent) => {
       const r = el.getBoundingClientRect()
@@ -139,7 +140,7 @@ export default function HeroBackground() {
       el.style.setProperty('--px', `${(x * 18).toFixed(1)}px`)
       el.style.setProperty('--py', `${(y * 12).toFixed(1)}px`)
     }
-    if (fine.matches && !calm.matches) host.addEventListener('pointermove', onMove, { passive: true })
+    if (fine.matches && !calm.matches && !lite) host.addEventListener('pointermove', onMove, { passive: true })
     return () => {
       io.disconnect()
       host.removeEventListener('pointermove', onMove)

@@ -38,6 +38,7 @@ import {
   parseListingNumber,
   parsePhoneDigits,
 } from "@/lib/listing-public-id"
+import { HOME_RAIL_BADGE, pickHomeRail, type HomeRailTier } from "@/lib/listings-home-rail"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily" | "pledge"
@@ -629,33 +630,33 @@ export async function getAllListings(limit = 50): Promise<Listing[]> {
 }
 
 /**
- * Homepage featured rail — real ads with photos, not project-catalog inquiry cards.
+ * Homepage SUPER VIP / VIP+ rails — live paid ads with photos.
  * ponytail: id prefix filter; JSON path on extendedFields when catalog volume drops.
  */
-const readFeaturedListings = unstable_cache(
-  async (limit: number): Promise<Listing[]> =>
+const readHomeTierListings = unstable_cache(
+  async (tier: HomeRailTier, limit: number): Promise<Listing[]> =>
     safeQuery(async () => {
+      const now = new Date()
       const rows = await db.listing.findMany({
         where: {
           deletedAt: null,
           status: "active",
+          tier,
           NOT: { id: { startsWith: "proj-" } },
+          OR: [{ tierExpiresAt: null }, { tierExpiresAt: { gt: now } }],
         },
-        orderBy: [{ createdAt: "desc" }],
-        take: 80,
+        orderBy: [{ updatedAt: "desc" }],
+        take: 40,
       })
       const mapped = rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
-      const rank = (l: Listing) =>
-        (l.badge === "SUPER VIP" ? 40 : l.badge === "VIP+" ? 25 : l.badge === "VIP" ? 15 : 0) +
-        Math.min(l.images.length, 4)
-      return [...mapped].sort((a, b) => rank(b) - rank(a)).slice(0, limit)
+      return pickHomeRail(mapped, HOME_RAIL_BADGE[tier], limit)
     }, []),
-  ["featured-listings"],
-  { revalidate: 300 },
+  ["home-tier-listings-v2"],
+  { revalidate: 60 },
 )
 
-export async function getFeaturedListings(limit = 6): Promise<Listing[]> {
-  return readFeaturedListings(limit)
+export async function getHomeTierListings(tier: HomeRailTier, limit = 8): Promise<Listing[]> {
+  return readHomeTierListings(tier, limit)
 }
 
 const readStoryListings = unstable_cache(

@@ -91,6 +91,13 @@ assert(cmsGroups().some((g) => g.id === "seo"), "seo group listed")
 for (const row of seoRows) {
   for (const lang of LANGS) assert(buildCmsId(lang, row.key) !== null, `seo key fits: ${row.key}`)
 }
+for (const lang of LANGS) {
+  assert(SITE_META[lang].title.trim().length > 20, `seo title ${lang}`)
+  assert(SITE_META[lang].description.trim().length > 40, `seo desc ${lang}`)
+}
+assert(SITE_META.he.title !== SITE_META.en.title, "he meta not english copy")
+assert(SITE_META.ar.title !== SITE_META.en.title, "ar meta not english copy")
+assert(SITE_META.tr.title !== SITE_META.en.title, "tr meta not english copy")
 
 console.log("cms.check: ok")
 

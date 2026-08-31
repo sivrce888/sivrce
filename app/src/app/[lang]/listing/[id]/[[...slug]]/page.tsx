@@ -14,8 +14,9 @@ import { listingPublicId } from '@/lib/listing-public-id'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { pickAd } from '@/lib/ads-db'
-import { langAlternates } from '@/lib/i18n/server'
+import { getServerT, langAlternates } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
+import { featureLabel, isFeatureKey } from '@/lib/features'
 
 // ponytail: 60s ISR. auth() on this page dynamized every listing view.
 export const revalidate = 60
@@ -125,6 +126,15 @@ export default async function ListingPage({ params }: PageProps) {
     .toISOString()
     .slice(0, 10)
 
+  const t = getServerT(lang)
+  const amenityFeature = listing.features
+    .filter((f): f is typeof f => isFeatureKey(f) && f !== 'add.f.onlineView')
+    .map((f) => ({
+      '@type': 'LocationFeatureSpecification',
+      name: featureLabel(f, t),
+      value: true,
+    }))
+
   // ponytail: propType → schema.org dwelling type. InStock rich-result prefers
   // an itemOffered dwelling over a bare Offer; the Resident schema family also
   // unlocks the "Bedrooms/Bathrooms" rich snippet in Google's RE vertical.
@@ -171,6 +181,7 @@ export default async function ListingPage({ params }: PageProps) {
         numberOfBathroomsTotal: listing.baths,
         floorSize: { '@type': 'QuantitativeValue', value: listing.area, unitCode: 'MTK' },
         ...(listing.rooms > 0 && { numberOfRooms: listing.rooms }),
+        ...(amenityFeature.length > 0 && { amenityFeature }),
       },
       // Phone omitted on purpose — scrapers harvest JSON-LD; reveal is BotID-gated.
       seller: {

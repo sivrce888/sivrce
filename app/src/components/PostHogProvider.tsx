@@ -14,34 +14,42 @@
  * whole provider blanked the SSR shell of every page (SEO kill).
  */
 
-import { Suspense, useEffect, useRef, type ReactNode } from 'react'
+import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { initPostHog, posthog, posthogReady } from '@/lib/posthog'
 
-function Pageview() {
+function Pageview({ armed }: { armed: boolean }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Effects run child-first — init here (idempotent) so capture never fires pre-init.
-    initPostHog()
-    if (!posthogReady()) return
-    // ponytail: $pageview with the full URL — matches PostHog autocapture convention
+    if (!armed || !posthogReady()) return
     const url = `${pathname}${searchParams?.size ? `?${searchParams.toString()}` : ''}`
     posthog.capture('$pageview', { $current_url: url })
-  }, [pathname, searchParams])
+  }, [armed, pathname, searchParams])
 
   return null
 }
 
 export default function PostHogProvider({ children }: { children: ReactNode }) {
   const initialized = useRef(false)
+  const [armed, setArmed] = useState(false)
 
-  // One-time init
   useEffect(() => {
-    if (!initialized.current) {
+    const boot = () => {
+      if (initialized.current) return
       initPostHog()
       initialized.current = true
+      setArmed(true)
+    }
+    // ponytail: stay off the LCP path. First tap or 10s — same window as GTM.
+    const t = window.setTimeout(boot, 10_000)
+    window.addEventListener("pointerdown", boot, { once: true, passive: true })
+    window.addEventListener("keydown", boot, { once: true, passive: true })
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener("pointerdown", boot)
+      window.removeEventListener("keydown", boot)
     }
   }, [])
 
@@ -49,7 +57,7 @@ export default function PostHogProvider({ children }: { children: ReactNode }) {
     <>
       {children}
       <Suspense fallback={null}>
-        <Pageview />
+        <Pageview armed={armed} />
       </Suspense>
     </>
   )
