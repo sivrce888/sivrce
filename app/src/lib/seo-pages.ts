@@ -343,15 +343,18 @@ export function generateAllSeoParams(): string[][] {
 export function generateSeoBuildParams(): string[][] {
   const hubs = ['tbilisi', 'batumi']
   const out: string[][] = []
-  for (const deal of Object.keys(DEALS)) {
-    out.push([deal])
-    for (const type of Object.keys(TYPES)) {
-      out.push([deal, type])
-      for (const city of hubs) out.push([deal, type, city])
-    }
-    for (const city of hubs) out.push([deal, city])
+  const push = (slug: string[]) => {
+    if (parseSeoSlug(slug)) out.push(slug)
   }
-  for (const city of hubs) out.push([city])
+  for (const deal of Object.keys(DEALS)) {
+    push([deal])
+    for (const type of Object.keys(TYPES)) {
+      push([deal, type])
+      for (const city of hubs) push([deal, type, city])
+    }
+    for (const city of hubs) push([deal, city])
+  }
+  for (const city of hubs) push([city])
   return out
 }
 
