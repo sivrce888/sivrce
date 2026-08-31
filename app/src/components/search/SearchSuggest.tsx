@@ -250,3 +250,33 @@ export async function resolveExactPlace(q: string, city?: string): Promise<Sugge
     return undefined
   }
 }
+
+/** Map overlay fly-to. Nav uses an icon; /search owns the full field. */
+export function ChromeSearch({
+  variant,
+  className = '',
+  onPlace,
+}: {
+  variant: 'dark' | 'light'
+  className?: string
+  onPlace: (q: string, s?: Suggestion) => void | Promise<void>
+}) {
+  const [q, setQ] = useState('')
+  const { t } = useI18n()
+  const go = (s?: Suggestion) => {
+    void onPlace(s ? s.ka : q.trim(), s)
+  }
+  return (
+    <SearchSuggest
+      variant={variant}
+      size="md"
+      value={q}
+      onChange={setQ}
+      onPick={(s) => void go(s)}
+      onSubmit={() => void go()}
+      placeholder={t('search.keywordPlaceholder')}
+      ariaLabel={t('nav.search')}
+      className={className}
+    />
+  )
+}

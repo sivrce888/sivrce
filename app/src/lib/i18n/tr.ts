@@ -335,7 +335,7 @@ export const tr: Dict = {
 
   // ——— Add listing wizard ———
   'add.title': 'İlan ekle',
-  'add.subtitle': 'Tek sayfa — kaydır, doldur, yayınla. Mülkünüz Gürcüstan’ın 1 numaralı platformunda.',
+  'add.subtitle': 'Üç adım — tür, ilan, iletişim. Mülkünüz Gürcüstan’ın 1 numaralı platformunda.',
   'add.editTitle': 'İlanı düzenle',
   'add.editSubtitle': 'Alanları değiştirin — eklerken olduğu gibi 3 adım.',
   'add.save': 'Kaydet',

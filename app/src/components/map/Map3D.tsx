@@ -98,7 +98,8 @@ import {
   MAP_CITIES,
   type MapCity,
 } from '@/lib/map/user-place'
-import { cityCenter, formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
+import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
+import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 import { syncConstructionRenders } from '@/lib/map/construction-renders'
 import {
   Layers,
@@ -1692,6 +1693,25 @@ function Map3DInner({
     })
   }, [])
 
+  const flyToQuery = useCallback(async (q: string, s?: Suggestion) => {
+    const needle = (s?.ka ?? q).trim()
+    if (!needle) return
+    const known = MAP_CITIES.find((c) => c.ka === needle)
+    if (known) {
+      flyToPlace(known.lat, known.lng, 12)
+      return
+    }
+    try {
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(needle)}`)
+      const json = (await res.json()) as { ok?: boolean; lat?: number; lng?: number }
+      if (json.ok && json.lat != null && json.lng != null) {
+        flyToPlace(json.lat, json.lng, s?.kind === 'street' ? 16 : 14)
+      }
+    } catch {
+      /* offline — map stays put */
+    }
+  }, [flyToPlace])
+
   const acceptIpSuggest = () => {
     if (!ipSuggest) return
     writeSavedPlace({ slug: ipSuggest.slug, lat: ipSuggest.lat, lng: ipSuggest.lng })
@@ -1902,9 +1922,14 @@ function Map3DInner({
           </div>
         )}
 
-        {/* Top chrome — deal/status. POIs on the bottom rail. */}
+        {/* Top chrome — search flies the camera. Deal/status on the same rail. */}
         <div className="absolute left-3 right-16 top-[max(0.75rem,env(safe-area-inset-top))] z-20 md:left-4 md:right-[4.25rem] md:top-4">
           <div className="flex flex-col gap-2">
+            <ChromeSearch
+              variant={isDark ? 'dark' : 'light'}
+              className="w-full"
+              onPlace={(q, s) => void flyToQuery(q, s)}
+            />
             <div className={`hidden items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide md:flex ${chip}`}>
               <div className="flex shrink-0 items-center gap-1.5 px-2">
                 <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />

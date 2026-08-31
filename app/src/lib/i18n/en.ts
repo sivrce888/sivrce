@@ -335,7 +335,7 @@ export const en: Dict = {
 
   // ——— Add listing wizard ———
   'add.title': 'Add a listing',
-  'add.subtitle': 'One page — scroll, fill, publish. Your property on Georgia’s #1 platform.',
+  'add.subtitle': 'Three steps — type, listing, contact. Your property on Georgia’s #1 platform.',
   'add.editTitle': 'Edit listing',
   'add.editSubtitle': 'Change any field — same 3 steps as when adding.',
   'add.save': 'Save',

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import {
   DEALS_FOR,
   dealLabelKey,
@@ -88,5 +89,9 @@ assert.equal(phaseOfSection(0), 0)
 assert.equal(phaseOfSection(1), 1)
 assert.equal(phaseOfSection(4), 1)
 assert.equal(phaseOfSection(5), 2)
+
+const ui = readFileSync(new URL('../components/add-listing/AddListingClient.tsx', import.meta.url), 'utf8')
+assert.ok(ui.includes('phaseOfSection'), 'wizard uses 3-phase helper')
+assert.ok(ui.includes("add.step.listing"), 'wizard chrome is Type / Listing / Contact')
 
 console.log('add-listing-fields: ok')

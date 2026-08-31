@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * SIVRCE — Add Listing, one-scroll (ss.ge / myhome pattern)
- * Type → Photos → Location → Details → Price & description → Contact.
+ * SIVRCE — Add Listing, 3 phases (Apple-short).
+ * Type → Listing (photos–price) → Contact. One-scroll inside Listing.
  */
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
@@ -26,6 +26,7 @@ import { cap1, seoTitleParts } from '@/lib/seo-title'
 import {
   DEALS_FOR, dealLabelKey, fieldsFor, conditionsFor, statusesFor,
   projectsFor, floorTypesFor, featuresFor, RENT_PERIODS, RENT_TYPES,
+  phaseOfSection,
 } from '@/lib/add-listing-fields'
 import { groupedFeatures } from '@/lib/features'
 import {
@@ -59,7 +60,7 @@ const DEALS: { key: Deal; icon: typeof Tag; hue: string }[] = [
   { key: 'daily', icon: CalendarClock, hue: DEAL_BRAND.daily },
 ]
 
-const STEPS = ['add.step.type', 'add.step.photos', 'add.step.location', 'add.step.details', 'add.step.price', 'add.step.contact'] as const
+const PHASES = ['add.step.type', 'add.step.listing', 'add.step.contact'] as const
 
 const STATUS_ICON: Partial<Record<DictKey, typeof Building>> = {
   'add.status.new': Building2,
@@ -100,7 +101,7 @@ export default function AddListingClient() {
   const nameSeeded = useRef(false)
   const editLoaded = useRef(false)
 
-  const [activeSec, setActiveSec] = useState(0)
+  const [phase, setPhase] = useState<0 | 1 | 2>(0)
   const [touched, setTouched] = useState(false)
   const [publishedId, setPublishedId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -714,8 +715,9 @@ export default function AddListingClient() {
   const priceOk = priceN > 0 || negotiable
   const contactOk = !!(name.trim() && PHONE_RE.test(phone) && terms)
   const sectionOk = [typeOk, photosOk, locOk, detailsOk, priceOk, contactOk]
+  const listingOk = photosOk && locOk && detailsOk && priceOk
+  const phaseOk = [typeOk, listingOk, contactOk] as const
   const formOk = sectionOk.every(Boolean)
-  const filled = sectionOk.filter(Boolean).length
 
   const propLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.labelKey) : ''
   /* SEO title: deal + rooms + type + locative place — "იყიდება 2-ოთახიანი ბინა ჭავჭავაძეზე ვაკეში" */
@@ -803,27 +805,31 @@ export default function AddListingClient() {
     setAiUsed(true)
   }
 
-  const jumpTo = (i: number) => {
-    document.getElementById(`add-sec-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    setActiveSec(i)
+  const goPhase = (p: 0 | 1 | 2) => {
+    setPhase(p)
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
   }
 
-  useEffect(() => {
-    const nodes = STEPS.map((_, i) => document.getElementById(`add-sec-${i}`)).filter((n): n is HTMLElement => n != null)
-    if (nodes.length === 0) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-        const i = hit ? Number((hit.target as HTMLElement).dataset.sec) : NaN
-        if (Number.isInteger(i)) setActiveSec(i)
-      },
-      { rootMargin: '-28% 0px -58% 0px', threshold: [0, 0.25, 0.5] },
-    )
-    nodes.forEach((n) => io.observe(n))
-    return () => io.disconnect()
-  }, [editLoading, publishedId])
+  const jumpTo = (i: number) => {
+    const p = phaseOfSection(i)
+    if (p !== phase) setPhase(p)
+    // double rAF: wait until hidden sections paint before scroll
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById(`add-sec-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    })
+  }
+
+  const onContinue = () => {
+    if (!phaseOk[phase]) {
+      setTouched(true)
+      const i = sectionOk.findIndex((ok, n) => phaseOfSection(n) === phase && !ok)
+      if (i >= 0) jumpTo(i)
+      return
+    }
+    goPhase((phase + 1) as 1 | 2)
+  }
 
   /* ————— publish: photos → R2, then POST (create) or PATCH (edit) ————— */
   const publish = async () => {
@@ -1042,19 +1048,21 @@ export default function AddListingClient() {
 
         <nav
           className="sticky top-[calc(68px+env(safe-area-inset-top,0px))] z-20 -mx-5 mb-6 border-y border-sv-ink/[0.06] bg-sv-cloud/92 px-5 py-2.5 backdrop-blur-xl md:-mx-10 md:px-10"
-          aria-label={t('add.stepOf', { n: activeSec + 1, total: STEPS.length })}
+          aria-label={t('add.stepOf', { n: phase + 1, total: PHASES.length })}
         >
           <ol className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {STEPS.map((s, i) => {
-              const current = activeSec === i
-              const done = sectionOk[i]
+            {PHASES.map((s, i) => {
+              const current = phase === i
+              const done = phaseOk[i]
+              const locked = i > 0 && !phaseOk.slice(0, i).every(Boolean)
               return (
                 <li key={s} className="shrink-0">
                   <button
                     type="button"
                     aria-current={current ? 'true' : undefined}
-                    onClick={() => jumpTo(i)}
-                    className={`flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-colors ${
+                    disabled={locked}
+                    onClick={() => goPhase(i as 0 | 1 | 2)}
+                    className={`flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-colors disabled:opacity-40 ${
                       current
                         ? 'bg-sv-orange text-white shadow-glow-orange'
                         : done
@@ -1073,7 +1081,7 @@ export default function AddListingClient() {
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_400px]">
           <div id="add-form" className="grid gap-5">
-                <section id="add-sec-0" data-sec="0" className={secCls(0)}>
+                <section id="add-sec-0" data-sec="0" hidden={phase !== 0} className={secCls(0)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.type')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.type')}</p>
@@ -1171,7 +1179,7 @@ export default function AddListingClient() {
                     )}
                 </section>
 
-                <section id="add-sec-1" data-sec="1" className={secCls(1)}>
+                <section id="add-sec-1" data-sec="1" hidden={phase !== 1} className={secCls(1)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.photos')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.photos')}</p>
@@ -1267,7 +1275,7 @@ export default function AddListingClient() {
                 </section>
 
                 {/* ——— location ——— */}
-                <section id="add-sec-2" data-sec="2" className={secCls(2)}>
+                <section id="add-sec-2" data-sec="2" hidden={phase !== 1} className={secCls(2)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.location')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.location')}</p>
@@ -1437,7 +1445,7 @@ export default function AddListingClient() {
                 </section>
 
                 {/* ——— details ——— */}
-                <section id="add-sec-3" data-sec="3" className={secCls(3)}>
+                <section id="add-sec-3" data-sec="3" hidden={phase !== 1} className={secCls(3)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.details')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.details')}</p>
@@ -1752,7 +1760,7 @@ export default function AddListingClient() {
                 </section>
 
                 {/* ——— price & description ——— */}
-                <section id="add-sec-4" data-sec="4" className={secCls(4)}>
+                <section id="add-sec-4" data-sec="4" hidden={phase !== 1} className={secCls(4)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.price')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.price')}</p>
@@ -1921,7 +1929,7 @@ export default function AddListingClient() {
                     </div>
                 </section>
 
-                <section id="add-sec-5" data-sec="5" className={secCls(5)}>
+                <section id="add-sec-5" data-sec="5" hidden={phase !== 2} className={secCls(5)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.contact')}</h2>
                       <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.contact')}</p>
@@ -2048,15 +2056,34 @@ export default function AddListingClient() {
             <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] bg-sv-surface/92 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-card backdrop-blur-xl md:static md:mt-2 md:rounded-card md:border md:px-6 md:py-4 md:shadow-card md:backdrop-blur-none">
               <span className="flex min-w-0 items-center gap-2 text-[12px] font-bold text-sv-ink/40">
                 {draftSavedAt > 0 && <><Check className="h-3.5 w-3.5 shrink-0 text-sv-blue" /> <span className="truncate">{t('add.draftSaved')}</span></>}
-                <span className="hidden tabular-nums sm:inline">{filled}/{STEPS.length}</span>
+                <span className="hidden tabular-nums sm:inline">{t('add.stepOf', { n: phase + 1, total: PHASES.length })}</span>
               </span>
-              <div className="flex shrink-0 flex-col items-end gap-1.5">
-                {touched && !formOk && (
+              <div className="flex shrink-0 items-center gap-2">
+                {phase > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => goPhase((phase - 1) as 0 | 1)}
+                    className="min-h-[44px] rounded-full border border-sv-ink/[0.08] bg-sv-surface px-5 py-3 text-[14px] font-extrabold text-sv-ink/70 hover:text-sv-ink"
+                  >
+                    {t('add.back')}
+                  </button>
+                )}
+                <div className="flex flex-col items-end gap-1.5">
+                {touched && !phaseOk[phase] && (
                   <span className="text-[12px] font-extrabold text-sv-orange">{t('add.fillRequired')}</span>
                 )}
                 {failed && (
                   <span className="text-[12px] font-extrabold text-sv-orange">{t('add.publishError')}</span>
                 )}
+                {phase < 2 ? (
+                  <button
+                    type="button"
+                    onClick={onContinue}
+                    className="min-h-[44px] rounded-full bg-sv-blue px-8 py-3 text-[14px] font-extrabold text-white shadow-glow-blue-sm transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-60"
+                  >
+                    {t('add.continue')}
+                  </button>
+                ) : (
                 <button
                   type="button"
                   onClick={publish}
@@ -2067,6 +2094,8 @@ export default function AddListingClient() {
                     ? (editId ? t('add.saving') : t('add.publishing'))
                     : (editId ? t('add.save') : t('add.publish'))}
                 </button>
+                )}
+                </div>
               </div>
             </div>
           </div>

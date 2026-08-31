@@ -335,7 +335,7 @@ export const az: Dict = {
 
   // ——— Add listing wizard ———
   'add.title': 'Elan əlavə et',
-  'add.subtitle': 'Bir səhifə — sürüşdür, doldur, dərc et. Əmlakın Gürcüstanın №1 platformasında.',
+  'add.subtitle': 'Üç addım — növ, elan, əlaqə. Əmlakın Gürcüstanın №1 platformasında.',
   'add.editTitle': 'Elanı redaktə et',
   'add.editSubtitle': 'Sahələri dəyişin — əlavə edərkənki kimi 3 addım.',
   'add.save': 'Saxla',
