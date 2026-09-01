@@ -13,7 +13,7 @@ Keep the repo lean. **Deletion over addition** for artifacts.
 | --- | --- |
 | Build cache | `.next/`, `out/`, `node_modules/` |
 | Perf duplicate | `.perf/` (full app snapshot + Lighthouse JSON) |
-| Audit screenshots | `shots/` |
+| Audit screenshots | `shots/`, `app/scripts/shots-mobile/` |
 | Logo scratch | `logo-refs/`, `logo/concepts/` |
 | Research scrapes | `research/*.{html,png,log,mjs,txt}` — keep only `research/competitor-locations/*.json` and `research/renders-manifest-*.json` |
 | Tool caches | `.playwright-mcp/`, `supabase/.temp/`, `.vercel/`, `__pycache__/` |
@@ -31,8 +31,16 @@ Keep the repo lean. **Deletion over addition** for artifacts.
 ## Hook (once per clone)
 
 ```bash
-git config core.hooksPath .githooks
-chmod +x .githooks/pre-commit
+./scripts/setup-hooks.sh
 ```
 
-Pre-commit runs `scripts/check-repo-weight.mjs` automatically.
+- **pre-commit** — blocks banned staged paths and oversize new files
+- **pre-push** — full tracked-tree scan (catches `--no-verify` commits)
+- **CI** — `prebuild` runs `check-repo-weight --ci` before every build
+- **install** — `prepare` runs `./scripts/setup-hooks.sh` automatically
+
+## Stay fast
+
+- No duplicate app trees, scrape dumps, or audit PNGs in git (clone + CI stay fast).
+- New deps need a one-line why; prefer stdlib / existing packages.
+- Build caches (`.next/`, `*.sst`) stay gitignored — never commit them.

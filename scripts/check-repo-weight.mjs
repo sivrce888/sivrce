@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Fail if staged files match banned junk paths or exceed size budget. */
+/** Fail if staged or tracked files match banned junk paths or exceed size budget. */
 import { execFileSync } from 'node:child_process'
 import { statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -11,6 +11,7 @@ const MAX_NEW_BYTES = 512 * 1024
 const BANNED = [
   /^\.perf(\/|$)/,
   /^shots(\/|$)/,
+  /^app\/scripts\/shots-mobile(\/|$)/,
   /^logo-refs(\/|$)/,
   /^research\/node_modules(\/|$)/,
   /^research\/.*\.(html|png|log|mjs|txt)$/,
@@ -24,57 +25,87 @@ const BANNED = [
   /\.(docx|sst)$/,
 ]
 
-/** New blobs above MAX may live only under these prefixes. */
+/** Blobs above MAX may live only under these prefixes. */
 const LARGE_OK = [
   /^app\/src\/data\//,
+  /^app\/package-lock\.json$/,
   /^logo\//,
   /^app\/public\//,
   /^app\/android\//,
   /^app\/ios\//,
+  /^research\/competitor-locations\//,
+  /^scripts\/.*\.json$/,
 ]
 
 function rel(path) {
   return path.replace(/\\/g, '/')
 }
 
-function staged(mode) {
-  const out = execFileSync(
-    'git',
-    ['diff', '--cached', '--name-only', `--diff-filter=${mode}`, '-z'],
-    { cwd: ROOT, encoding: 'utf8' },
-  )
+function git(args) {
+  return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' })
+}
+
+function listed(mode) {
+  const out = git(['diff', '--cached', '--name-only', `--diff-filter=${mode}`, '-z'])
   return out ? out.split('\0').filter(Boolean) : []
 }
 
-const errors = []
+function tracked() {
+  const out = git(['ls-files', '-z'])
+  return out ? out.split('\0').filter(Boolean) : []
+}
 
-for (const file of staged('ACMRT')) {
-  const p = rel(file)
-  if (BANNED.some((re) => re.test(p))) {
-    errors.push(`banned path: ${p}`)
+function checkBanned(paths, errors, label) {
+  for (const file of paths) {
+    const p = rel(file)
+    if (BANNED.some((re) => re.test(p))) errors.push(`${label}: ${p}`)
   }
 }
 
-for (const file of staged('A')) {
-  const p = rel(file)
-  const abs = join(ROOT, file)
-  let size
-  try {
-    size = statSync(abs).size
-  } catch {
-    continue
+function checkLarge(paths, errors, label, newOnly) {
+  for (const file of paths) {
+    const p = rel(file)
+    if (LARGE_OK.some((re) => re.test(p))) continue
+    let size
+    try {
+      size = statSync(join(ROOT, file)).size
+    } catch {
+      continue
+    }
+    if (size <= MAX_NEW_BYTES) continue
+    errors.push(`${label} too large (${Math.round(size / 1024)} KB, max ${MAX_NEW_BYTES / 1024} KB): ${p}`)
   }
-  if (size <= MAX_NEW_BYTES || LARGE_OK.some((re) => re.test(p))) continue
-  errors.push(`new file too large (${Math.round(size / 1024)} KB, max ${MAX_NEW_BYTES / 1024} KB): ${p}`)
 }
 
-if (errors.length) {
-  console.error('repo-weight: commit blocked\n')
-  for (const e of errors) console.error(`  • ${e}`)
-  console.error('\nSee .cursor/rules/repo-lightweight-lock.mdc')
-  process.exit(1)
+function run({ ci = false, verbose = false } = {}) {
+  const errors = []
+  checkBanned(listed('ACMRT'), errors, 'banned path')
+  checkLarge(listed('A'), errors, 'new file', true)
+  if (ci) {
+    const all = tracked()
+    checkBanned(all, errors, 'tracked banned')
+    checkLarge(all, errors, 'tracked file', false)
+  }
+  if (errors.length) {
+    console.error('repo-weight: blocked\n')
+    for (const e of errors) console.error(`  • ${e}`)
+    console.error('\nSee .cursor/rules/repo-lightweight-lock.mdc')
+    return 1
+  }
+  if (verbose) console.log(`repo-weight: ok${ci ? ' (ci)' : ''}`)
+  return 0
 }
 
-if (process.argv.includes('--verbose')) {
-  console.log('repo-weight: ok')
+function selfCheck() {
+  const samples = ['.perf/x', 'shots/a.png', 'research/foo.html', 'app/src/data/x.json']
+  if (!BANNED.some((re) => re.test('.perf/x'))) throw new Error('banned .perf')
+  if (!BANNED.some((re) => re.test('research/x.html'))) throw new Error('banned research html')
+  if (!LARGE_OK.some((re) => re.test('app/src/data/x.json'))) throw new Error('large_ok data')
+  if (BANNED.some((re) => re.test(samples[3]))) throw new Error('data must not be banned')
+  console.log('repo-weight self-check: ok')
 }
+
+const ci = process.argv.includes('--ci')
+const verbose = process.argv.includes('--verbose')
+if (process.argv.includes('--self-check')) selfCheck()
+else process.exit(run({ ci, verbose }))

@@ -18,6 +18,7 @@ out/
 .cursor/*
 !.cursor/rules/
 !.cursor/rules/**
+app/.cursor/
 .zcode/
 
 # prisma
@@ -36,6 +37,7 @@ app/scripts/*.log
 # perf / audit (never commit)
 .perf/
 shots/
+app/scripts/shots-mobile/
 lh-*.json
 
 # research scrapes (keep manifests + competitor-locations JSON only)

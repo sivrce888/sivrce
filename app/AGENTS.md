@@ -43,4 +43,7 @@ logo refs, or files \>512 KB (except data/logo/public/mobile assets). Full ban
 list: `.cursor/rules/repo-lightweight-lock.mdc` · enforced by
 `scripts/check-repo-weight.mjs`.
 
-Once per clone: `git config core.hooksPath .githooks && chmod +x .githooks/pre-commit`
+Once per clone: `./scripts/setup-hooks.sh`
+
+Enforced on commit (pre-commit), push (pre-push), install (`prepare`), and CI
+(`prebuild` → `check-repo-weight --ci`).
