@@ -31,7 +31,7 @@ import { listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS, featureLabel } from '@/lib/features'
-import { featuresFor } from '@/lib/add-listing-fields'
+import { dealLabelKey as dealKeyFor, featuresFor, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapSearchHit } from '@/lib/map-search-hit'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
@@ -65,8 +65,8 @@ const SORTS: { value: SortKey; key: DictKey }[] = [
 ]
 
 const DEALS: (DealType | undefined)[] = [undefined, 'sale', 'rent', 'pledge', 'daily']
-const dealLabelKey = (d: DealType | undefined): DictKey =>
-  d === undefined ? 'search.all' : d === 'sale' ? 'search.sale' : d === 'rent' ? 'search.rent' : d === 'daily' ? 'add.deal.daily' : 'add.deal.pledge'
+const dealChipKey = (d: DealType | undefined, prop?: PropType): DictKey =>
+  d === undefined ? 'search.all' : dealKeyFor(d, prop ?? null)
 const dealHue = (d: DealType | undefined): string =>
   d === 'rent' ? DEAL_BRAND.rent : d === 'daily' ? DEAL_BRAND.daily : d === 'pledge' ? DEAL_BRAND.pledge : DEAL_BRAND.sale
 
@@ -119,7 +119,8 @@ function SkeletonCard() {
 function CompactCard({ l }: { l: Listing }) {
   const { format } = useCurrency()
   const { t } = useI18n()
-  const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
+  const suffixKey = rentPeriodKey(l.dealType, l.propType)
+  const suffix = suffixKey ? t(suffixKey) : ''
   return (
     <Link
       href={listingPath(l)}
@@ -173,13 +174,18 @@ export default function SearchClient({
   // ——— Read filters from URL — invalid values are ignored (whitelists + numeric checks) ———
   const paramsKey = params.toString()
   const dealParam = params.get('deal')
-  const deal: DealType | undefined = DEALS.includes(dealParam as DealType)
-    ? (dealParam as DealType)
-    : lock?.deal
+  const leaseAlias = dealParam === 'lease'
+  const deal: DealType | undefined = leaseAlias
+    ? 'rent'
+    : DEALS.includes(dealParam as DealType)
+      ? (dealParam as DealType)
+      : lock?.deal
   const typeParam = params.get('type')
-  const type: PropType | undefined = isSearchPropType(typeParam)
-    ? (typeParam as PropType)
-    : lock?.type
+  const type: PropType | undefined = leaseAlias
+    ? 'land'
+    : isSearchPropType(typeParam)
+      ? (typeParam as PropType)
+      : lock?.type
   const city = params.get('city') ?? lock?.city ?? undefined
   const district = params.get('district') ?? lock?.district ?? undefined
   const numParam = (key: string, min = 0): number | undefined => {
@@ -273,6 +279,10 @@ export default function SearchClient({
   }
 
   const embedDealHref = (d: DealType) => {
+    if (d === 'rent' && type === 'land') {
+      const segs = ['lease', lock?.citySlug, lock?.districtSlug].filter(Boolean)
+      return localizedHref(`/${segs.join('/')}`, lang)
+    }
     const dealSlug = d
     const typeSlug = type ? TYPE_PATH[type] : undefined
     const segs = [dealSlug, typeSlug, lock?.citySlug, lock?.districtSlug].filter(Boolean)
@@ -302,8 +312,8 @@ export default function SearchClient({
     if (!isExactLookupQuery(raw)) return false
     try {
       const res = await fetch(`/api/listings/resolve?q=${encodeURIComponent(raw)}`)
-      const json = (await res.json()) as { ok?: boolean; path?: string }
-      if (json.ok && json.path) {
+      const json = (await res.json()) as { ok?: boolean; path?: string; many?: boolean }
+      if (json.ok && json.path && !json.many) {
         router.push(localizedHref(json.path, lang))
         return true
       }
@@ -322,7 +332,11 @@ export default function SearchClient({
   const submitKeyword = () => {
     void (async () => {
       const raw = drafts.q.trim()
-      if (raw && (await tryResolveQ(raw))) return
+      if (raw && isExactLookupQuery(raw)) {
+        if (await tryResolveQ(raw)) return
+        flushDrafts()
+        return
+      }
       const place = raw ? await resolveExactPlace(raw, city) : undefined
       if (place) {
         patchParams(suggestionToFilters(place))
@@ -502,7 +516,7 @@ export default function SearchClient({
   const propType = SEARCH_PROP_TYPES.find((p) => p.value === type)
   const propTypeKey = propType?.key
   const chips: { key: string; label: string; hue?: string; clear: () => void }[] = []
-  if (deal && params.get('deal')) chips.push({ key: 'deal', label: t(dealLabelKey(deal)), hue: dealHue(deal), clear: () => patchParams({ deal: undefined }) })
+  if (deal && params.get('deal')) chips.push({ key: 'deal', label: t(dealChipKey(deal, type)), hue: dealHue(deal), clear: () => patchParams({ deal: undefined }) })
   if (type && params.get('type')) chips.push({ key: 'type', label: propTypeKey ? t(propTypeKey) : type, hue: propType?.brand.hue, clear: () => patchParams({ type: undefined }) })
   if (city && params.get('city')) chips.push({ key: 'city', label: city, clear: () => patchParams({ city: undefined, district: undefined }) })
   if (params.get('district')) {
@@ -692,8 +706,10 @@ export default function SearchClient({
       {mobile ? (
         <div className="space-y-4">
           <div className="flex shrink-0 rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.dealType')}>
-            {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS).map((d) => {
-              const label = t(dealLabelKey(d))
+            {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS)
+              .filter((d) => type !== 'land' || d !== 'daily')
+              .map((d) => {
+              const label = t(dealChipKey(d, type))
               const count = d === undefined ? undefined : fcount('dealType', d)
               const active = deal === d
               return (
@@ -804,8 +820,10 @@ export default function SearchClient({
         <div ref={filterRowRef}>
         <div className="flex flex-wrap items-center gap-1.5">
           <div className="flex shrink-0 rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.dealType')}>
-            {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS).map((d) => {
-              const label = t(dealLabelKey(d))
+            {(embed ? DEALS.filter((d): d is DealType => d !== undefined) : DEALS)
+              .filter((d) => type !== 'land' || d !== 'daily')
+              .map((d) => {
+              const label = t(dealChipKey(d, type))
               const count = d === undefined ? undefined : fcount('dealType', d)
               const active = deal === d
               return (
@@ -1337,10 +1355,10 @@ export default function SearchClient({
               <SearchX className="h-7 w-7 text-sv-blue" />
             </span>
             <h2 className="mt-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">
-              {t('search.emptyTitle')}
+              {t(isExactLookupQuery(q) ? 'search.lookupMiss' : 'search.emptyTitle')}
             </h2>
             <p className="mt-2 max-w-[380px] text-[15px] font-semibold leading-relaxed text-sv-ink/65">
-              {t('search.emptyText')}
+              {t(isExactLookupQuery(q) ? 'search.lookupMissText' : 'search.emptyText')}
             </p>
             <button
               onClick={resetAll}

@@ -196,6 +196,7 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/auth/") ||
     pathname === "/llms.txt" ||
     pathname === "/llms-full.txt" ||
+    pathname === "/a8f3c91e2b7d4e6a9c1f0d5b8e4a7c2d.txt" ||
     pathname.startsWith("/.well-known/")
   ) {
     return NextResponse.next()

@@ -5,6 +5,7 @@ import Stats from '@/components/sections/Stats'
 import Categories from '@/components/sections/Categories'
 import NeighborhoodsRail from '@/components/sections/NeighborhoodsRail'
 import StoriesRail from '@/components/sections/StoriesRail'
+import VideoListingsRail from '@/components/sections/VideoListingsRail'
 import Listings from '@/components/sections/Listings'
 import MapSection from '@/components/sections/MapSection'
 import Projects from '@/components/sections/Projects'
@@ -21,6 +22,7 @@ import {
   getDistrictListingCounts,
   getHomeTierListings,
   getStoryListings,
+  getVideoListings,
   type Listing as StoryListing,
 } from '@/lib/listings-db'
 import { developersLive, projectsLive } from '@/lib/directory-live'
@@ -38,10 +40,11 @@ function railCard(l: StoryListing): StoryListing {
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
-  const [superVip, vipPlus, stories, projects, stats, developers, agentCounts, districtCounts] = await Promise.all([
+  const [superVip, vipPlus, stories, videos, projects, stats, developers, agentCounts, districtCounts] = await Promise.all([
     getHomeTierListings('diamond', 8).catch(() => []),
     getHomeTierListings('super_vip', 8).catch(() => []),
     getStoryListings(12).catch(() => [] as StoryListing[]),
+    getVideoListings(16).catch(() => [] as StoryListing[]),
     projectsLive().catch(() => []),
     getHomeStats(),
     developersLive().catch(() => []),
@@ -87,7 +90,12 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
 
   const layout = await getHomeLayout()
   const nodes: Record<HomeFlowId, ReactNode> = {
-    stories: <StoriesRail items={stories.map(railCard)} />,
+    stories: (
+      <>
+        <StoriesRail items={stories.map(railCard)} />
+        <VideoListingsRail items={videos.map(railCard)} />
+      </>
+    ),
     categories: <Categories lang={lang} />,
     listings: <Listings items={superVip.map(railCard)} rail="superVip" />,
     vip_plus: <Listings items={vipPlus.map(railCard)} rail="vipPlus" />,

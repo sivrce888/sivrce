@@ -19,6 +19,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
       { key: 'footer.re.apartments', href: '/sale/apartments' },
       { key: 'footer.re.houses', href: '/sale/houses' },
       { key: 'footer.re.rent', href: '/rent/apartments' },
+      { key: 'add.deal.lease', href: '/lease' },
       { key: 'footer.re.daily', href: '/daily/apartments' },
       { key: 'col.party', href: '/search?deal=daily&feat=add.f.partiesAllowed' },
       { key: 'footer.re.land', href: '/sale/land' },

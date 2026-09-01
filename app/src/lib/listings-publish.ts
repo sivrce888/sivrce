@@ -6,6 +6,7 @@
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/client"
 import type { DealType, PropType } from "@/data/listings"
 import { featuresFor } from "@/lib/add-listing-fields"
+import { sanitizeListingVideoUrl } from "@/lib/listing-video"
 
 export const DEAL_TO_DB: Record<string, ListingDealType> = {
   sale: "buy",
@@ -139,7 +140,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
             : null,
         cadastral: asStr(body.cadastral, 60),
         cadastralPublic: body.cadastralPublic === true,
-        video: asStr(body.video, 500),
+        video: sanitizeListingVideoUrl(body.video),
         matterport: asStr(body.matterport, 500),
         messengers: asStrList(body.messengers, 5, 30),
         yardArea: asInt(body.yardArea, 0, 100_000),
@@ -249,4 +250,42 @@ export function _checkParsePublishBody() {
   if (!exo.ok) throw new Error(exo.error)
   if (exo.data.extendedFields.exclusive !== true) throw new Error("exclusive")
   if (exo.data.extendedFields.sivrceExclusive !== true) throw new Error("sivrce exclusive")
+  const vid = parsePublishBody({
+    title: "იყიდება ბინა",
+    deal: "sale",
+    propType: "apartment",
+    city: "თბილისი",
+    district: "ვაკე",
+    address: "ჭავჭავაძის 12",
+    name: "გიორგი",
+    phone: "+995 555 12 34 56",
+    area: 80,
+    price: 100000,
+    images: ["https://cdn.example.com/a.webp"],
+    features: ["add.f.elevator"],
+    description: "ok",
+    negotiable: false,
+    video: "https://youtu.be/dQw4w9wgGcQ",
+  })
+  if (!vid.ok) throw new Error(vid.error)
+  if (vid.data.extendedFields.video !== "https://youtu.be/dQw4w9wgGcQ") throw new Error("youtube video")
+  const xss = parsePublishBody({
+    title: "იყიდება ბინა",
+    deal: "sale",
+    propType: "apartment",
+    city: "თბილისი",
+    district: "ვაკე",
+    address: "ჭავჭავაძის 12",
+    name: "გიორგი",
+    phone: "+995 555 12 34 56",
+    area: 80,
+    price: 100000,
+    images: ["https://cdn.example.com/a.webp"],
+    features: ["add.f.elevator"],
+    description: "ok",
+    negotiable: false,
+    video: "javascript:alert(1)",
+  })
+  if (!xss.ok) throw new Error(xss.error)
+  if (xss.data.extendedFields.video != null) throw new Error("reject xss video")
 }

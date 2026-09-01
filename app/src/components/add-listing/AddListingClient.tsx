@@ -14,7 +14,7 @@ import {
   Building, Building2, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
   MapPin, Ruler, Layers, Check, Construction,
   ImagePlus, X, Phone, User, MessageCircle,
-  CircleCheckBig, Plus, Video, BadgeCheck, Trees, Hotel, Crown,
+  CircleCheckBig, Plus, Video, BadgeCheck, Trees, Hotel, Crown, Play, Loader2,
 } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { SparkMark } from '@/components/SparkMark'
@@ -36,6 +36,15 @@ import {
 import ListingCard from '@/components/ListingCard'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import { FREEDOM_SQUARE } from '@/lib/map/buildings'
+import {
+  VIDEO_ACCEPT,
+  VIDEO_MAX_BYTES,
+  VIDEO_MAX_SECONDS,
+  isNativeVideoUrl,
+  mimeOfVideoFile,
+  youtubeId,
+  youtubePoster,
+} from '@/lib/listing-video'
 import { cityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
 import { naprUniqDigits } from '@/lib/map/napr-parcel'
 import { canonicalizeDistrict } from '@/lib/district-canon'
@@ -105,6 +114,7 @@ export default function AddListingClient() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')?.trim() || null
   const fileRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLInputElement>(null)
   const nameSeeded = useRef(false)
   const editLoaded = useRef(false)
 
@@ -161,6 +171,9 @@ export default function AddListingClient() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [cover, setCover] = useState(0)
   const [video, setVideo] = useState('')
+  const [videoPct, setVideoPct] = useState(0)
+  const [videoBusy, setVideoBusy] = useState(false)
+  const [videoErr, setVideoErr] = useState<DictKey | null>(null)
   const [matterport, setMatterport] = useState('')
   const [price, setPrice] = useState('')
   const [priceCur, setPriceCur] = useState<'USD' | 'GEL'>('USD')
@@ -744,7 +757,7 @@ export default function AddListingClient() {
   /* SEO title: bedrooms first — "იყიდება 2-საძინებლიანი ბინა ჭავჭავაძეზე ვაკეში" */
   const titleLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.titleKey) : ''
   const dealLabel = deal ? t(dealLabelKey(deal, propType)) : ''
-  const { deal: dealWord, where } = seoTitleParts({ lang, deal, dealLabel, street, district, city })
+  const { deal: dealWord, where } = seoTitleParts({ lang, deal, dealLabel, propType: propType ?? undefined, street, district, city })
   const titleKey =
     !propType || propType === 'land' ? 'add.autoTitle.simple'
     : beds > 0 ? 'add.autoTitle.beds'
@@ -776,6 +789,7 @@ export default function AddListingClient() {
         ai: { score: 0, label: t('add.aiPending') },
         features: features.map((f) => t(f)),
         description, coords,
+        video: video || null,
         postedAt: new Date().toISOString(),
         agent: { name: name || '—', phone: phone || '—', agency: '' },
         isNew: true,
@@ -797,6 +811,78 @@ export default function AddListingClient() {
     if (p?.url.startsWith('blob:')) URL.revokeObjectURL(p.url)
     setPhotos(photos.filter((_, j) => j !== i))
     if (cover >= i && cover > 0) setCover(cover - 1)
+  }
+
+  const pickVideo = async (files: FileList | null) => {
+    const file = files?.[0]
+    if (!file) return
+    setVideoErr(null)
+    if (!mimeOfVideoFile(file)) {
+      setVideoErr('add.videoBadType')
+      return
+    }
+    if (file.size > VIDEO_MAX_BYTES) {
+      setVideoErr('add.videoTooBig')
+      return
+    }
+    try {
+      const dur = await new Promise<number>((resolve, reject) => {
+        const url = URL.createObjectURL(file)
+        const el = document.createElement('video')
+        el.preload = 'metadata'
+        el.onloadedmetadata = () => {
+          const d = el.duration
+          URL.revokeObjectURL(url)
+          resolve(Number.isFinite(d) ? d : 0)
+        }
+        el.onerror = () => {
+          URL.revokeObjectURL(url)
+          reject(new Error('meta'))
+        }
+        el.src = url
+      })
+      if (dur > VIDEO_MAX_SECONDS) {
+        setVideoErr('add.videoTooLong')
+        return
+      }
+    } catch {
+      setVideoErr('add.videoBadType')
+      return
+    }
+    setVideoBusy(true)
+    setVideoPct(0)
+    try {
+      const url = await new Promise<string>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', '/api/upload/video')
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setVideoPct(Math.round((e.loaded / e.total) * 100))
+        }
+        xhr.onload = () => {
+          if (xhr.status < 200 || xhr.status >= 300) {
+            reject(new Error('upload'))
+            return
+          }
+          try {
+            const j = JSON.parse(xhr.responseText) as { url?: string }
+            if (j.url) resolve(j.url)
+            else reject(new Error('upload'))
+          } catch {
+            reject(new Error('upload'))
+          }
+        }
+        xhr.onerror = () => reject(new Error('upload'))
+        const fd = new FormData()
+        fd.append('file', file)
+        xhr.send(fd)
+      })
+      setVideo(url)
+    } catch {
+      setVideoErr('add.videoBadType')
+    } finally {
+      setVideoBusy(false)
+      if (videoRef.current) videoRef.current.value = ''
+    }
   }
 
   /* drag-to-reorder: cover index follows its photo */
@@ -1276,13 +1362,76 @@ export default function AddListingClient() {
                       <p className="mt-3 text-[13px] font-extrabold text-sv-orange">{t('add.photosRequired')}</p>
                     )}
 
+                    <div id="add-video" className="mt-8 scroll-mt-28">
+                      <label className={label}>{t('add.videoUpload')}</label>
+                      <p className="mb-3 text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.videoTip')}</p>
+                      {isNativeVideoUrl(video) || videoBusy ? (
+                        <div className="relative overflow-hidden rounded-module bg-sv-navy-soft">
+                          {isNativeVideoUrl(video) ? (
+                            <video src={video} controls playsInline className="aspect-video w-full object-contain" />
+                          ) : (
+                            <div className="flex aspect-video items-center justify-center">
+                              <Loader2 className="h-8 w-8 animate-spin text-white/80" />
+                            </div>
+                          )}
+                          {videoBusy ? (
+                            <div className="absolute inset-x-0 bottom-0 bg-sv-navy/70 px-4 py-2 text-center text-[12px] font-extrabold text-white">
+                              {t('add.videoUploading', { n: videoPct })}
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setVideo('')}
+                              className="absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/70 text-white"
+                              aria-label={t('add.videoRemove')}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => videoRef.current?.click()}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => { e.preventDefault(); void pickVideo(e.dataTransfer.files) }}
+                          className="flex min-h-[140px] w-full flex-col items-center justify-center gap-2 rounded-tile border border-dashed border-sv-ink/15 bg-sv-cloud/80 px-6 py-8 text-center transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04]"
+                        >
+                          <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+                            <Video className="h-5 w-5" />
+                          </span>
+                          <span className="text-[15px] font-extrabold text-sv-ink">{t('add.videoDrop')}</span>
+                          <span className="max-w-[32em] text-[12px] font-semibold leading-relaxed text-sv-ink/40">{t('add.videoHint')}</span>
+                        </button>
+                      )}
+                      <input ref={videoRef} type="file" accept={VIDEO_ACCEPT} hidden onChange={(e) => void pickVideo(e.target.files)} />
+                      {videoErr ? (
+                        <p className="mt-2 text-[13px] font-extrabold text-sv-orange">{t(videoErr)}</p>
+                      ) : null}
+                    </div>
+
                     <div className="mt-6 grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className={label}>{t('add.youtube')}</label>
                         <div className="relative">
-                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11`} placeholder={t('add.youtubePh')} value={video} onChange={(e) => setVideo(e.target.value)} />
+                          <Play className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                          <input
+                            className={`${input} pl-11`}
+                            placeholder={t('add.youtubePh')}
+                            value={isNativeVideoUrl(video) ? '' : video}
+                            onChange={(e) => { setVideoErr(null); setVideo(e.target.value) }}
+                            disabled={isNativeVideoUrl(video) || videoBusy}
+                          />
                         </div>
+                        {!isNativeVideoUrl(video) && youtubeId(video) ? (
+                          <div className="relative mt-3 overflow-hidden rounded-module">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={youtubePoster(youtubeId(video)!)} alt="" className="aspect-video w-full object-cover" />
+                            <span className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white">
+                              <Play className="ml-0.5 h-5 w-5 fill-white" />
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
                       <div>
                         <label className={label}>{t('add.matterport')}</label>

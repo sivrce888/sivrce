@@ -97,6 +97,7 @@ export function parseNlQuery(query: string): NlFilters {
   if (/იყიდება|შეძენა|გაყიდვა|\bbuy\b|\bsale\b|\bsell\b/i.test(q)) out.dealType = 'sale'
   else if (/დღიურად|\bdaily\b|\bovernight\b/i.test(q)) out.dealType = 'daily'
   else if (/გირავდ|გირავნ|\bpledge\b|\bcollateral\b|\bзалог/i.test(q)) out.dealType = 'pledge'
+  else if (/გაიცემა\s*იჯარ|იჯარით|\bijara\b/i.test(q)) out.dealType = 'rent'
   else if (/ქირავდება|გაქირავება|\brent\b|\blease\b|ქირა/i.test(q)) out.dealType = 'rent'
 
   const party = /წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b/i.test(q)
@@ -108,6 +109,10 @@ export function parseNlQuery(query: string): NlFilters {
   else if (!party && /სახლი|\bhouse\b|\bvilla\b|ვილა/i.test(q)) out.propertyType = 'house'
   else if (/კომერც|\bcommercial\b|\bshop\b|მაღაზია|\boffice\b|ოფისი/i.test(q)) out.propertyType = 'commercial'
   else if (/მიწა|\bland\b|\bplot\b|ნაკვეთი/i.test(q)) out.propertyType = 'land'
+
+  if (out.dealType === 'rent' && /გაიცემა\s*იჯარ|იჯარით|\bijara\b/i.test(q) && !out.propertyType) {
+    out.propertyType = 'land'
+  }
 
   const bedMatch = q.match(/(\d+)\s*[-]?\s*(საძინებელ|საძინებლიან|\bbedrooms?\b|\bbeds?\b)/i)
   if (bedMatch) out.bedrooms = Number(bedMatch[1])

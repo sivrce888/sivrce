@@ -10,6 +10,7 @@ import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront, Columns2, Copy,
+  Play,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
@@ -30,9 +31,11 @@ import RevealPhone from '@/components/listing/RevealPhone'
 import PriceScale from '@/components/listing/PriceScale'
 import { parseCoords } from '@/lib/map/geocode'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
+import { isLandLease, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapHrefForListing } from '@/lib/map/buildings'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { blurProps, isCdnMedia } from '@/lib/media'
+import { listingVideoKind, youtubeId } from '@/lib/listing-video'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { priceScaleOf, fairPriceOf } from '@/lib/price-scale'
 import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
@@ -228,6 +231,72 @@ function Lightbox({
   )
 }
 
+function ListingVideoPlayer({
+  url, poster, onClose,
+}: { url: string; poster: string; onClose: () => void }) {
+  const { t } = useI18n()
+  const kind = listingVideoKind(url)
+  const yt = youtubeId(url)
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    closeRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-sv-navy/95 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('detail.playVideo')}
+    >
+      <button
+        ref={closeRef}
+        type="button"
+        onClick={onClose}
+        aria-label={t('detail.close')}
+        className="absolute right-5 top-5 z-[1] grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      <div
+        className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-card bg-sv-navy shadow-panel-dark"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {kind === 'youtube' && yt ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0`}
+            title={t('detail.playVideo')}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 h-full w-full"
+          />
+        ) : kind === 'file' ? (
+          <video
+            src={url}
+            poster={poster}
+            controls
+            autoPlay
+            playsInline
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        ) : null}
+      </div>
+    </motion.div>
+  )
+}
+
 /* ————— Page ————— */
 export default function ListingDetailClient({
   listing: l,
@@ -263,6 +332,7 @@ export default function ListingDetailClient({
   }
   const [photo, setPhoto] = useState(0)
   const [lightbox, setLightbox] = useState(false)
+  const [videoOpen, setVideoOpen] = useState(false)
   const [views, setViews] = useState(l.views)
   const swipeGuard = useRef(false)
   const gradId = useId()
@@ -282,6 +352,7 @@ export default function ListingDetailClient({
   if (prevId !== l.id) {
     setPrevId(l.id)
     setPhoto(0)
+    setVideoOpen(false)
     setViews(l.views)
   }
 
@@ -289,6 +360,13 @@ export default function ListingDetailClient({
     window.scrollTo({ top: 0 })
     pushRecent(l.id)
   }, [l.id])
+
+  useEffect(() => {
+    if (!l.video) return
+    try {
+      if (new URLSearchParams(window.location.search).get('play') === '1') setVideoOpen(true)
+    } catch { /* ignore */ }
+  }, [l.id, l.video])
 
   // Once per browser session — optimistic +1 after the POST lands.
   useEffect(() => {
@@ -332,8 +410,10 @@ export default function ListingDetailClient({
   const compared = inCompare(l.id)
   const isSale = l.dealType === 'sale'
   const isRent = l.dealType === 'rent'
+  const isLease = isLandLease(l.dealType, l.propType)
   const isDailyDeal = l.dealType === 'daily'
   const isPledge = l.dealType === 'pledge'
+  const periodKey = rentPeriodKey(l.dealType, l.propType)
   const priceDetailObj = formatListingPrice({
     priceUSD: l.priceUSD,
     priceGEL: l.priceGEL,
@@ -525,6 +605,16 @@ export default function ListingDetailClient({
                 />
               </motion.div>
             </button>
+            {l.video ? (
+              <button
+                type="button"
+                onClick={() => setVideoOpen(true)}
+                aria-label={t('detail.playVideo')}
+                className="absolute left-1/2 top-1/2 z-[2] grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white shadow-glow-blue-sm backdrop-blur-sm transition-transform duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:scale-110"
+              >
+                <Play className="ml-0.5 h-7 w-7 fill-white" />
+              </button>
+            ) : null}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-sv-navy/50 to-transparent" />
             {l.badge && (
               <span className={`absolute left-5 top-5 z-[1] flex items-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-black tracking-wider ${BADGE_STYLE[l.badge]}`}>
@@ -730,12 +820,11 @@ export default function ListingDetailClient({
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div>
                 <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">
-                  {isRent ? t('detail.monthlyRent') : isDailyDeal ? t('nav.daily') : isPledge ? t('map.pledge') : t('detail.fullPrice')}
+                  {isLease ? t('add.deal.lease') : isRent ? t('detail.monthlyRent') : isDailyDeal ? t('nav.daily') : isPledge ? t('map.pledge') : t('detail.fullPrice')}
                 </div>
                 <div className="mt-1 text-[32px] font-black tracking-tight text-sv-ink dark:text-sv-blue md:text-[36px]">
                   {priceMain}
-                  {isRent && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perMonth')}</span>}
-                  {isDailyDeal && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t('detail.perDay')}</span>}
+                  {periodKey && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t(periodKey)}</span>}
                 </div>
                 {l.stickerPriceDrop ? (
                   <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-sv-navy/90 px-2.5 py-1 text-[11px] font-black text-white">
@@ -1233,7 +1322,7 @@ export default function ListingDetailClient({
                     {t('detail.similar')}
                   </h2>
                   <p className="mt-1 text-[14px] font-semibold text-sv-ink/50">
-                    {lt(lang, 'similarSub', { deal: t(isSale ? 'search.sale' : isRent ? 'search.rent' : isDailyDeal ? 'nav.daily' : 'map.pledge') })}
+                    {lt(lang, 'similarSub', { deal: t(isSale ? 'search.sale' : isLease ? 'add.deal.lease' : isRent ? 'search.rent' : isDailyDeal ? 'nav.daily' : 'map.pledge') })}
                   </p>
                 </div>
                 <LocalizedLink
@@ -1321,6 +1410,13 @@ export default function ListingDetailClient({
             onJump={setPhoto}
           />
         )}
+        {videoOpen && l.video ? (
+          <ListingVideoPlayer
+            url={l.video}
+            poster={l.img}
+            onClose={() => setVideoOpen(false)}
+          />
+        ) : null}
       </AnimatePresence>
 
       <ShareSheet

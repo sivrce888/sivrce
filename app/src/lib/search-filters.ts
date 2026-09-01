@@ -9,7 +9,7 @@ import { nearMetroFilter } from "@/lib/geo/nearest-poi-pure"
 import { USD_GEL } from "@/data/listings"
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from "@/lib/features"
 import { districtSearchValues } from "@/lib/district-canon"
-import { cadastralVariants } from "@/lib/listing-public-id"
+import { cadastralVariants, parseListingNumber, phoneSearchNeedles } from "@/lib/listing-public-id"
 import { isSearchTier } from "@/lib/listings-home-rail"
 import type { SearchFilters } from "@/lib/search"
 
@@ -231,17 +231,6 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   // ponytail: no tsvector for DB fallback. Upgrade: pg_trgm + cadastralDigits column.
   if (filters.q) {
     const q = filters.q
-    const digits = q.replace(/\D/g, "")
-    const publicNum =
-      digits.length >= 7 && digits.length <= 9 && Number.isFinite(Number(digits))
-        ? Number(digits)
-        : null
-    const phone =
-      digits.length === 9 && digits.startsWith("5")
-        ? digits
-        : digits.startsWith("995") && digits.length === 12
-          ? digits.slice(3)
-          : null
     const textOr: Prisma.ListingWhereInput[] = [
       { title: { contains: q, mode: "insensitive" } },
       { description: { contains: q, mode: "insensitive" } },
@@ -249,11 +238,11 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
       { district: { contains: q, mode: "insensitive" } },
       { address: { contains: q, mode: "insensitive" } },
     ]
-    if (publicNum != null && publicNum >= 1_000_000) {
-      textOr.push({ publicId: publicNum })
-    }
-    if (phone) {
-      textOr.push({ listingPhone: { contains: phone } })
+    const publicNum = parseListingNumber(q)
+    if (publicNum != null) textOr.push({ publicId: publicNum })
+    for (const n of phoneSearchNeedles(q)) {
+      textOr.push({ listingPhone: { contains: n } })
+      textOr.push({ agent: { path: ["phone"], string_contains: n } })
     }
     for (const v of cadastralVariants(q)) {
       textOr.push({ extendedFields: { path: ["cadastral"], equals: v } })

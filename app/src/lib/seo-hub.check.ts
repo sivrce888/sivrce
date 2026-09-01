@@ -45,4 +45,13 @@ assert.ok(
   'daily saburtalo anchor keeps the query word',
 )
 
-console.log('seo-hub: 5/5 ✓')
+assert.equal(
+  listingHubPath({ dealType: 'rent', propType: 'land', city: 'თბილისი', district: 'გლდანი' }),
+  '/lease/tbilisi/gldani',
+)
+assert.ok(
+  (listingHubAnchor({ dealType: 'rent', propType: 'land', city: 'თბილისი', district: 'გლდანი' }) ?? '').includes('გაიცემა იჯარით'),
+  'land lease hub H1 is იჯარა',
+)
+
+console.log('seo-hub: 6/6 ✓')

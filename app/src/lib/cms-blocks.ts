@@ -18,7 +18,7 @@ export const CMS_BLOCKS = {
   'home.hero.titleA': 'უძრავი ქონება',
   'home.hero.titleAccent': 'საქართველოში',
   'home.hero.subtitle':
-    'იყიდება ქირავდება გირავდება ქირავდება დღიურად ბინები სახლები აგარაკები მშენებარე ბინები',
+    'იყიდება ქირავდება გაიცემა იჯარით გირავდება ქირავდება დღიურად ბინები სახლები აგარაკები მშენებარე ბინები',
   'home.hero.trust1': 'ვერიფიცირებული განცხადებები',
   'home.hero.trust2': 'უსაფრთხო გარიგებები',
   'home.hero.trust3': 'AI ფასის შეფასება',
@@ -51,10 +51,12 @@ export const CMS_BLOCKS = {
 
   // ——— Section headings ———
   'home.categories.title': 'რას ეძებ?',
-  'home.categories.sub': 'ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, დღიურად',
+  'home.categories.sub': 'ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, გაიცემა იჯარით, დღიურად',
   'home.collections.title': 'კოლექციები',
   'home.collections.sub': 'დღიური ქირა — შერჩეული თემებით',
   'home.stories.kicker': 'რჩეული',
+  'home.stories.videoTitle': 'განცხადებები ვიდეოთი',
+  'home.stories.videoHow': 'როგორ მოვხვდე აქ',
   'home.listings.kicker': 'SUPER VIP',
   'home.listings.title': 'სუპერ VIP განცხადებები',
   'home.listings.sub': 'ტოპ შეთავაზებები პირველ ადგილზე — მაქსიმალური ხილვადობა',

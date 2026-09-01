@@ -105,7 +105,7 @@ assert(SITE_META.ka.title.includes("ბინები") && SITE_META.ka.title.i
 assert(SITE_META.ka.description.includes("საბურთალოზე"), "ka desc saburtalo")
 assert(SITE_META.ka.description.includes("ქირავდება დღიურად"), "ka desc daily rent")
 assert(CMS_BLOCKS["home.hero.titleAccent"] === "საქართველოში", "home h1 locative")
-assert(CMS_BLOCKS["home.hero.subtitle"] === "იყიდება ქირავდება გირავდება ქირავდება დღიურად ბინები სახლები აგარაკები მშენებარე ბინები", "ka hero sub")
+assert(CMS_BLOCKS["home.hero.subtitle"] === "იყიდება ქირავდება გაიცემა იჯარით გირავდება ქირავდება დღიურად ბინები სახლები აგარაკები მშენებარე ბინები", "ka hero sub")
 assert(BLOCK_I18N.en["home.hero.subtitle"] === "Daily apartments in Tbilisi — for sale and for rent.", "en hero sub")
 assert(!CMS_BLOCKS["home.hero.subtitle"].includes("განათავსე უფასოდ"), "hero sub no seller cta")
 assert(!BLOCK_I18N.en["home.hero.subtitle"]?.includes("Saburtalo"), "saburtalo stays in chips, not hero")

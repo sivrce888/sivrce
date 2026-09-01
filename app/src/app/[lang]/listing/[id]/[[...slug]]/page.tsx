@@ -10,11 +10,13 @@ import {
 } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
+import { isLandLease } from '@/lib/add-listing-fields'
 import { listingPublicId } from '@/lib/listing-public-id'
+import { listingVideoObject } from '@/lib/listing-video'
 import { jsonLd, ogImage } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { pickAd } from '@/lib/ads-db'
-import { getServerT, langAlternates } from '@/lib/i18n/server'
+import { getServerT, langAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { featureLabel, isFeatureKey } from '@/lib/features'
 
@@ -62,7 +64,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const lang: Lang = raw && isValidLang(raw) ? raw : 'ka'
   const t = getServerT(lang)
   const price =
-    l.dealType === 'rent' ? `${formatUSD(l.priceUSD)}/თვე`
+    l.dealType === 'rent' && !isLandLease(l.dealType, l.propType) ? `${formatUSD(l.priceUSD)}/თვე`
       : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}/დღე`
         : formatUSD(l.priceUSD)
   const keyword = listingKeyword(l)
@@ -83,6 +85,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const firstImg = l.images[0] ?? ''
   const og = firstImg ? ogImage(firstImg) : '/images/og-brand.png'
   const path = listingPath(l)
+  const videoLd = listingVideoObject(l.video, {
+    name: keyword,
+    description,
+    poster: firstImg || '/images/og-brand.png',
+    uploadDate: `${l.postedAt}T00:00:00Z`,
+  })
   return {
     title,
     description,
@@ -90,11 +98,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title,
       description,
-      type: 'website',
+      type: videoLd ? 'video.other' : 'website',
       url: `https://sivrce.ge${path}`,
       siteName: 'sivrce',
-      locale: 'ka_GE',
+      locale: OG_LOCALE[lang],
       images: [{ url: og, width: 1200, height: 630, alt: title }],
+      ...(videoLd && {
+        videos: [{
+          url: videoLd.contentUrl ?? videoLd.embedUrl ?? l.video!,
+          width: 1280,
+          height: 720,
+        }],
+      }),
     },
     twitter: {
       card: 'summary_large_image',
@@ -150,6 +165,13 @@ export default async function ListingPage({ params }: PageProps) {
         : listing.propType === 'commercial' ? 'Place'
           : 'Place'
 
+  const videoLd = listingVideoObject(listing.video, {
+    name: listing.title,
+    description: listing.description,
+    poster: listing.images[0] ?? listing.img,
+    uploadDate: `${listing.postedAt}T00:00:00Z`,
+  })
+
   const listingLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
@@ -199,7 +221,7 @@ export default async function ListingPage({ params }: PageProps) {
           '@type': 'UnitPriceSpecification',
           price: listing.priceUSD,
           priceCurrency: 'USD',
-          unitText: 'MONTH',
+          unitText: isLandLease(listing.dealType, listing.propType) ? 'ANN' : 'MONTH',
         },
       }),
     },
@@ -226,6 +248,8 @@ export default async function ListingPage({ params }: PageProps) {
         worstRating: 1,
       },
     }),
+    ...(videoLd && { video: videoLd }),
+    inLanguage: lang,
   }
 
   const breadcrumbLd = {

@@ -23,6 +23,7 @@ import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { reindexListingById } from "@/lib/payments"
 import { runPriceWatchAlerts } from "@/lib/price-watches"
 import { deleteListing as unindexListing } from "@/lib/search"
+import { listingIndexUrl, notifyIndexNow } from "@/lib/indexnow"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const dynamic = "force-dynamic"
@@ -300,6 +301,7 @@ export async function PATCH(
     void attributeListing(id).catch(() => {})
     void recomputeNearestPois(id).catch(() => {})
     void reindexListingById(id)
+    notifyIndexNow([listingIndexUrl(id)])
 
     return NextResponse.json({ ok: true, id })
   }
@@ -376,6 +378,7 @@ export async function PATCH(
   }
 
   void reindexListingById(id)
+  notifyIndexNow([listingIndexUrl(id)])
 
   return NextResponse.json({
     ok: true,
@@ -414,6 +417,7 @@ export async function DELETE(
   await db.listing.update({ where: { id }, data: { deletedAt } })
   await unattributeListing(id)
   void unindexListing(id)
+  notifyIndexNow([listingIndexUrl(id)])
 
   return NextResponse.json({ ok: true, id, deletedAt: deletedAt.toISOString() })
 }

@@ -199,6 +199,7 @@ const siteLd = {
         itemListElement: [
           { "@type": "OfferCatalog", name: "იყიდება", url: `${SITE_URL}/sale` },
           { "@type": "OfferCatalog", name: "ქირავდება", url: `${SITE_URL}/rent` },
+          { "@type": "OfferCatalog", name: "გაიცემა იჯარით", url: `${SITE_URL}/lease` },
           { "@type": "OfferCatalog", name: "ქირავდება დღიურად", url: `${SITE_URL}/daily` },
           { "@type": "OfferCatalog", name: "სახლები და აგარაკები", url: `${SITE_URL}/sale/houses` },
           { "@type": "OfferCatalog", name: "ბინები დღიურად", url: `${SITE_URL}/daily` },
@@ -220,6 +221,8 @@ const siteLd = {
         "სახლები საქართველოში",
         "აგარაკები საქართველოში",
         "ქირავდება დღიურად",
+        "გაიცემა იჯარით",
+        "მიწის ნაკვეთი იჯარით",
         "ბინები დღიურად თბილისში",
         "ბინები დღიურად საბურთალოზე",
         "ბინები დღიურად ბათუმში",
@@ -263,6 +266,7 @@ const siteLd = {
         itemListElement: [
           { "@type": "SiteNavigationElement", name: "იყიდება", url: `${SITE_URL}/sale` },
           { "@type": "SiteNavigationElement", name: "ქირავდება", url: `${SITE_URL}/rent` },
+          { "@type": "SiteNavigationElement", name: "გაიცემა იჯარით", url: `${SITE_URL}/lease` },
           { "@type": "SiteNavigationElement", name: "ბინები დღიურად", url: `${SITE_URL}/daily` },
           { "@type": "SiteNavigationElement", name: "ბინები დღიურად თბილისში", url: `${SITE_URL}/daily/apartments/tbilisi` },
           { "@type": "SiteNavigationElement", name: "3D რუკა", url: `${SITE_URL}/map` },

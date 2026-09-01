@@ -206,12 +206,14 @@ export default function HeroSearch() {
     if (isExactLookupQuery(raw)) {
       try {
         const res = await fetch(`/api/listings/resolve?q=${encodeURIComponent(raw)}`)
-        const json = (await res.json()) as { ok?: boolean; path?: string }
-        if (json.ok && json.path) {
+        const json = (await res.json()) as { ok?: boolean; path?: string; many?: boolean }
+        if (json.ok && json.path && !json.many) {
           persistAndGo(json.path, new URLSearchParams())
           return
         }
-      } catch { /* fall through */ }
+      } catch { /* fall through to search results */ }
+      persistAndGo(searchHref({ q: raw }), new URLSearchParams({ q: raw }))
+      return
     }
     const place = raw ? await resolveExactPlace(raw) : undefined
     if (place) {

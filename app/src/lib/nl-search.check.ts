@@ -81,4 +81,12 @@ assert.equal(parseNlQuery('გირავდება ბინა ვაკე
 assert.equal(nlToSearchPatch(parseNlQuery('გირავდება ბინა ვაკე')).deal, 'pledge')
 assert.equal(parseNlQuery('pledge apartment Vake').dealType, 'pledge')
 
+const leaseKa = parseNlQuery('გაიცემა იჯარით მიწა გლდანი')
+assert.equal(leaseKa.dealType, 'rent')
+assert.equal(leaseKa.propertyType, 'land')
+assert.equal(nlToSearchPatch(leaseKa).deal, 'rent')
+assert.equal(nlToSearchPatch(leaseKa).type, 'land')
+assert.equal(parseNlQuery('იჯარით ნაკვეთი თელავი').dealType, 'rent')
+assert.equal(parseNlQuery('იჯარით ნაკვეთი თელავი').propertyType, 'land')
+
 console.log('ok: nl-search')

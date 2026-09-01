@@ -20,6 +20,7 @@ import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { parsePublishBody, persistRoomCounts } from "@/lib/listings-publish"
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 import { indexListing } from "@/lib/search"
+import { listingIndexUrl, notifyIndexNow } from "@/lib/indexnow"
 import { isSameOrigin } from "@/lib/security/origin"
 import { canonicalizeDistrict } from "@/lib/district-canon"
 
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest) {
     totalFloors: p.totalFloors ?? undefined,
     features: p.features,
     images: p.images,
+    video: typeof p.extendedFields.video === "string" ? p.extendedFields.video : undefined,
     lat,
     lng,
     metroM: metroMeters(lat, lng),
@@ -150,6 +152,7 @@ export async function POST(req: NextRequest) {
   }).catch(() => {})
 
   void runSavedSearchAlerts(listing.id).catch(() => {})
+  notifyIndexNow([listingIndexUrl(listing.id)])
 
   if (session.user.role === "buyer") {
     await db.user.update({ where: { id: session.user.id }, data: { role: "seller" } })

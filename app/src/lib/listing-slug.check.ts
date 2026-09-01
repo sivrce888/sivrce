@@ -28,6 +28,11 @@ for (const x of LISTINGS) {
   assert.match(s, /^[a-z0-9-]+$/, `unsafe slug for ${x.id}: ${s}`)
 }
 
+const landLease = LISTINGS.find((x) => x.dealType === 'rent' && x.propType === 'land')
+assert.ok(landLease, 'catalog needs a land lease listing')
+assert.ok(listingKeyword(landLease).includes('გაიცემა იჯარით'), 'land rent title must be იჯარა')
+assert.ok(listingSlug(landLease).includes('gaitsema-ijarit'), `lease slug missing იჯარა: ${listingSlug(landLease)}`)
+
 // footer keyword columns: exact-query anchors, only real pages, both district cols present
 const cols = footerKeywordCols()
 assert.ok(cols.length >= 4, `expected ≥4 footer cols, got ${cols.length}`)

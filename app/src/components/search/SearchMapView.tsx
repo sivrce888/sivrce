@@ -31,6 +31,7 @@ import { mapHrefForListing } from '@/lib/map/buildings'
 import { stayCount, stayLine, type DealType, type Listing } from '@/data/listings'
 import { useCurrency, formatMapPin } from '@/lib/currency'
 import { DEAL_BRAND } from '@/lib/category-brand'
+import { rentPeriodKey } from '@/lib/add-listing-fields'
 import { blurProps } from '@/lib/media'
 
 export type MapBounds = { west: number; south: number; east: number; north: number }
@@ -300,12 +301,8 @@ export default function SearchMapView({
           visible.map((l) => {
             const hot = hoverId === l.id || activeId === l.id
             const stay = stayCount(l)
-            const suffix =
-              l.dealType === 'rent'
-                ? t('detail.perMonth')
-                : l.dealType === 'daily'
-                  ? t('detail.perDay')
-                  : ''
+            const suffixKey = rentPeriodKey(l.dealType, l.propType)
+            const suffix = suffixKey ? t(suffixKey) : ''
             return (
               <Link
                 key={l.id}

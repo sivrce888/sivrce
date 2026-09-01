@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Search, Building2, MapPin, Route, X } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import { exactSuggestHit } from '@/lib/search-location'
+import { isExactLookupQuery, lookupKind } from '@/lib/listing-public-id'
 
 /** Keyword input with city / district / street autocomplete. Keyboard: ↑↓ Enter Esc. */
 
@@ -56,7 +57,7 @@ export default function SearchSuggest({
 
   useEffect(() => {
     const q = value.trim()
-    if (q.length < 2) {
+    if (q.length < 2 || isExactLookupQuery(q)) {
       const t = window.setTimeout(() => { setItems([]); setOpen(false) }, 0)
       return () => window.clearTimeout(t)
     }
@@ -141,6 +142,7 @@ export default function SearchSuggest({
       <input
         ref={inputRef}
         type="search"
+        inputMode={lookupKind(value) === 'phone' ? 'tel' : 'search'}
         enterKeyHint="search"
         role="combobox"
         aria-expanded={open}

@@ -7,7 +7,7 @@ import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   Waves, Bath as BathTub, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
-  Layers, BadgeCheck,
+  Layers, BadgeCheck, Play,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
@@ -24,6 +24,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import { BRAND } from '@/lib/brand'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
+import { isLandLease, rentPeriodKey } from '@/lib/add-listing-fields'
 import { cardOf } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
@@ -228,7 +229,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     currencyPreference: currency,
     rate,
   })
-  const suffix = l.dealType === 'rent' ? t('detail.perMonth') : l.dealType === 'daily' ? t('detail.perDay') : ''
+  const suffixKey = rentPeriodKey(l.dealType, l.propType)
+  const suffix = suffixKey ? t(suffixKey) : ''
   const stay = stayCount(l)
   const stayText = stayLine(l, t)
   const StayIcon = stay.kind === 'beds' ? BedDouble : DoorOpen
@@ -347,6 +349,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       })}
       {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sv-navy/50 to-transparent" />
+      {l.video ? (
+        <span
+          className="pointer-events-none absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white shadow-glow-blue-sm backdrop-blur-sm"
+          aria-hidden
+        >
+          <Play className="ml-px h-4 w-4 fill-white" />
+        </span>
+      ) : null}
       {/* ponytail: photo click → same tab (Cmd/Ctrl+click = new). Chrome stays above. */}
       <LocalizedLink
         href={href}
@@ -519,6 +529,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             style={{ backgroundColor: DEAL_BRAND.pledge }}
           >
             {t('map.pledge')}
+          </span>
+        )}
+        {isLandLease(l.dealType, l.propType) && (
+          <span
+            className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-white"
+            style={{ backgroundColor: CATEGORY_BRAND.land.hue }}
+          >
+            {t('add.deal.lease')}
           </span>
         )}
       </div>

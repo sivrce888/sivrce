@@ -11,6 +11,7 @@ import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
+import { listingVideoObject } from '@/lib/listing-video'
 import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
 
 const BASE = 'https://sivrce.ge'
@@ -32,13 +33,27 @@ type Entry = {
   priority: number
   /** ponytail: alternates emitted for every entry — all pages have SSR locales now. */
   localized?: boolean
+  images?: string[]
+  videos?: NonNullable<MetadataRoute.Sitemap[number]['videos']>
 }
 
-function toSitemapEntry({ path, lastModified, changeFrequency, priority }: Entry): MetadataRoute.Sitemap[number] {
+function absMedia(src: string): string {
+  return src.startsWith('http') ? src : `${BASE}${src.startsWith('/') ? src : `/${src}`}`
+}
+
+function toSitemapEntry({ path, lastModified, changeFrequency, priority, images, videos }: Entry): MetadataRoute.Sitemap[number] {
   const languages: Record<string, string> = { ka: `${BASE}${path}` }
   for (const l of PREFIXED) languages[l] = `${BASE}/${l}${path}`
   languages['x-default'] = `${BASE}${path}`
-  return { url: `${BASE}${path}`, lastModified, changeFrequency, priority, alternates: { languages } }
+  return {
+    url: `${BASE}${path}`,
+    lastModified,
+    changeFrequency,
+    priority,
+    alternates: { languages },
+    ...(images?.length ? { images } : {}),
+    ...(videos?.length ? { videos } : {}),
+  }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -165,11 +180,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   for (const l of listings) {
+    const poster = absMedia(l.img)
+    const video = listingVideoObject(l.video, {
+      name: l.title,
+      description: l.description,
+      poster,
+      uploadDate: `${l.postedAt}T00:00:00Z`,
+    })
     entries.push({
       path: listingPath(l),
       lastModified: new Date(`${l.postedAt}T00:00:00`),
       changeFrequency: 'daily',
-      priority: 0.7,
+      priority: l.video ? 0.8 : 0.7,
+      images: (l.images.length ? l.images : [l.img]).slice(0, 8).map(absMedia),
+      ...(video && {
+        videos: [{
+          title: video.name,
+          thumbnail_loc: video.thumbnailUrl,
+          description: video.description,
+          ...(video.contentUrl ? { content_loc: video.contentUrl } : {}),
+          ...(video.embedUrl ? { player_loc: video.embedUrl } : {}),
+          publication_date: l.postedAt,
+          family_friendly: 'yes' as const,
+        }],
+      }),
     })
   }
 

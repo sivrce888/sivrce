@@ -62,6 +62,8 @@ export interface Listing {
   stickerPriceDrop?: boolean
   /** Paid homepage Stories rail slot */
   inStory?: boolean
+  /** YouTube or CDN mp4/webm/mov — extendedFields.video */
+  video?: string | null
   /** Listing-level verification (admin), not agent identity. */
   verified?: boolean
   ai: { score: number; label: string }

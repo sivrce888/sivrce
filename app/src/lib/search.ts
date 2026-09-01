@@ -149,6 +149,8 @@ export interface ListingDocument {
   totalFloors?: number
   features: string[]
   images: string[]
+  /** YouTube or CDN video URL */
+  video?: string
   lat: number
   lng: number
   /** Meters to nearest Tbilisi metro; 999999 when far / outside catchment. */

@@ -12,6 +12,8 @@ const DEAL_KEYS: Record<string, DictKey> = {
   sale: 'search.sale',
   rent: 'search.rent',
   daily: 'add.deal.daily',
+  pledge: 'add.deal.pledge',
+  lease: 'add.deal.lease',
 }
 const TYPE_KEYS: Record<string, DictKey> = {
   apartment: 'prop.apartment',
@@ -52,8 +54,13 @@ export default function SaveSearchControl() {
   // Auto-label from the main facets: "იყიდება · ბინა · თბილისი · …"
   const currentLabel = () => {
     const parts: string[] = []
-    const dealKey = DEAL_KEYS[params.get('deal') ?? '']
-    if (dealKey) parts.push(t(dealKey))
+    const deal = params.get('deal') ?? ''
+    const type = params.get('type') ?? ''
+    if (deal === 'rent' && type === 'land') parts.push(t('add.deal.lease'))
+    else {
+      const dealKey = DEAL_KEYS[deal]
+      if (dealKey) parts.push(t(dealKey))
+    }
     const typeKey = TYPE_KEYS[params.get('type') ?? '']
     if (typeKey) parts.push(t(typeKey))
     const city = params.get('city')

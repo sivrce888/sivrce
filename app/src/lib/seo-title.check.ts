@@ -47,7 +47,8 @@ assert.deepEqual(
   seoTitleParts({ lang: 'ru', deal: 'daily', dealLabel: 'Посуточно', district: 'გლდანი', city: 'თბილისი' }),
   { deal: 'посуточно', where: 'Глдани, Тбилиси' },
 )
-assert.equal(seoTitleParts({ lang: 'en', deal: 'pledge', dealLabel: 'For lease', district: 'ვაკე' }).deal, 'for lease')
+assert.equal(seoTitleParts({ lang: 'en', deal: 'rent', dealLabel: 'For rent', propType: 'land', district: 'გლდანი' }).deal, 'for lease')
+assert.equal(seoTitleParts({ lang: 'ka', deal: 'rent', dealLabel: 'გაიცემა იჯარით', propType: 'land', district: 'გლდანი' }).deal, 'გაიცემა იჯარით')
 
 /* ——— misc ——— */
 assert.equal(cap1('land plot for sale in Vake'), 'Land plot for sale in Vake')

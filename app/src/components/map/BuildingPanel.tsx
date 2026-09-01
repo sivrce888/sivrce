@@ -274,7 +274,11 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
           ) : (
             list.map((l) => {
               const suffix =
-                l.dealType === 'rent' ? '/თვე' : l.dealType === 'daily' ? '/დღე' : ''
+                l.dealType === 'rent' && l.propType !== 'land'
+                  ? '/თვე'
+                  : l.dealType === 'daily'
+                    ? '/დღე'
+                    : ''
               const bn = listingBuildingNumber(l)
               const hot = highlightId === l.id
               const stay = stayCount(l)
@@ -305,7 +309,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                         className="text-[11px] font-extrabold uppercase tracking-wide"
                         style={{ color: DEAL_BRAND[l.dealType] }}
                       >
-                        {dealLabelKa(l.dealType)}
+                        {dealLabelKa(l.dealType, l.propType)}
                       </div>
                       <div className="mt-0.5 truncate text-[13px] font-extrabold text-sv-ink">
                         {l.title}

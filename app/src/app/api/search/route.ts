@@ -170,6 +170,7 @@ function mapDbHit(
     condition?: string
     exclusive?: boolean
     sivrceExclusive?: boolean
+    video?: string
   } | null
   return {
     ...l,
@@ -184,6 +185,7 @@ function mapDbHit(
     condition: ext?.condition ?? null,
     exclusive: ext?.exclusive === true,
     sivrceExclusive: ext?.sivrceExclusive === true,
+    video: typeof ext?.video === "string" && ext.video ? ext.video : undefined,
     tier: effectiveTierKey(l.tier, l.tierExpiresAt),
   }
 }

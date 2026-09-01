@@ -6,6 +6,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell"
 import StatCard from "@/components/dashboard/StatCard"
 import EmptyState from "@/components/dashboard/EmptyState"
 import Badge from "@/components/agent-dashboard/Badge"
+import ImportCompetitorPanel from "@/components/agent-dashboard/ImportCompetitorPanel"
 import { agentNav } from "@/components/agent-dashboard/nav"
 import {
   fmtDate,
@@ -107,6 +108,8 @@ export default async function AgentOverviewPage() {
           დაამატე განცხადება
         </LocalizedLink>
       </div>
+
+      <ImportCompetitorPanel />
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard
           label="აქტიური განცხადებები"

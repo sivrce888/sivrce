@@ -152,7 +152,8 @@ async function main() {
           const lat = sLat / picked.length
           const lng = sLng / picked.length
           tasOverrides[p.slug] = { lat, lng, ring: picked[0]!.ring, source: 'tas' }
-          if (haversineM(p.coords.lat, p.coords.lng, lat, lng) > 6 && haversineM(p.coords.lat, p.coords.lng, lat, lng) <= 50) patchCoords(p.slug, lat, lng)
+          const drift = haversineM(p.coords.lat, p.coords.lng, lat, lng)
+          if (drift > 6 && drift <= (campus ? 180 : 50)) patchCoords(p.slug, lat, lng)
           tasHits++
           console.log(`${p.slug} tas campus ${picked.length} @ ${lat.toFixed(6)},${lng.toFixed(6)}`)
         } else if (picked.length === 1) {
@@ -160,9 +161,8 @@ async function main() {
           footprints[id] = { ring: s.ring, osmId: 0, source: 'tas' }
           footprints[catId] = { ring: s.ring, osmId: 0, source: 'tas' }
           tasOverrides[p.slug] = { lat: s.lat, lng: s.lng, ring: s.ring, source: 'tas' }
-          if (haversineM(p.coords.lat, p.coords.lng, s.lat, s.lng) > 6 && haversineM(p.coords.lat, p.coords.lng, s.lat, s.lng) <= 50) {
-            patchCoords(p.slug, s.lat, s.lng)
-          }
+          const drift = haversineM(p.coords.lat, p.coords.lng, s.lat, s.lng)
+          if (drift > 6 && drift <= (campus ? 180 : 50)) patchCoords(p.slug, s.lat, s.lng)
           tasHits++
           console.log(`${p.slug} tas ${s.ring.length}pt @ ${s.lat.toFixed(6)},${s.lng.toFixed(6)}`)
         } else {
@@ -186,6 +186,12 @@ async function main() {
       }),
     )
     await sleep(180)
+  }
+
+  // ponytail: catalog uses bldg-*; ghosts use dev-* — keep identical after snap.
+  for (const p of list) {
+    const dev = footprints[`dev-${p.slug}`]
+    if (dev) footprints[`bldg-${p.slug}`] = dev
   }
 
   writeFileSync(

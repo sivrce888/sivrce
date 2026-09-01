@@ -38,7 +38,7 @@ export function listingKeyword(l: SlugListing): string {
   const dealLabel = l.dealType === 'daily'
     ? 'ქირავდება დღიურად'
     : ka[dealLabelKey(l.dealType, l.propType)]
-  const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, district: l.district, city: l.city })
+  const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, propType: l.propType, district: l.district, city: l.city })
   const useBeds = l.beds > 0 && l.propType !== 'land'
   const useRooms = !useBeds && l.rooms > 0 && l.propType !== 'land'
   const key = useBeds ? 'add.autoTitle.beds' : useRooms ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'

@@ -309,8 +309,8 @@ const pinAnchors: Record<string, { lat: number; lng: number; needle: string }> =
   'idea-panorama': { lat: 41.71883, lng: 44.7043, needle: 'Danelia' },
   'alto-by-real-palace': { lat: 41.79453, lng: 44.76627, needle: 'აბრაამ' },
   // 2026-07-20: was east-bank wrong pin 41.7549/44.7784
-  'm2-highlight': { lat: 41.74852338, lng: 44.76985808, needle: 'ბაქრაძ' },
-  'grada-saburtalo': { lat: 41.74733768, lng: 44.76877781, needle: 'გელოვან' },
+  'm2-highlight': { lat: 41.7493512, lng: 44.76901119, needle: 'ბაქრაძ' },
+  'grada-saburtalo': { lat: 41.74713, lng: 44.769784, needle: 'გელოვან' },
 }
 for (const [slug, a] of Object.entries(pinAnchors)) {
   const p = PROJECTS.find((x) => x.slug === slug)
@@ -319,17 +319,26 @@ for (const [slug, a] of Object.entries(pinAnchors)) {
   assert.ok(p!.location.includes(a.needle), `${slug} address needle missing`)
 }
 
-// m² Highlight — two cylindrical extrusions (Block 11/12), not one riverbank slab
+// m² Highlight — TAS campus (multi-tower), not one riverbank slab
 {
   const cat = BUILDINGS.find((b) => b.slug === 'm2-highlight')
   assert.ok(cat, 'm2-highlight in catalog')
   const twin = catalogToCluster(cat!, [])
   const twins = buildingsToGeoJSON([twin]).features
-  assert.equal(twins.length, 2, 'm2-highlight must extrude 2 towers')
-  assert.equal(clusterRings(twin).length, 2, 'm2-highlight clusterRings matches GeoJSON')
-  assert.equal(twins[0]!.properties?.id, 'bldg-m2-highlight')
-  assert.equal(twins[1]!.properties?.id, 'bldg-m2-highlight')
-  assert.ok(Number(twins[0]!.properties?.height) > Number(twins[1]!.properties?.height), 'Block 11 taller')
+  assert.ok(twins.length >= 2, 'm2-highlight must extrude multiple TAS towers')
+  assert.equal(clusterRings(twin).length, twins.length, 'm2-highlight clusterRings matches GeoJSON')
+  assert.ok(twins.every((f) => f.properties?.id === 'bldg-m2-highlight'))
+  assert.ok(haversineM(cat!.coords.lat, cat!.coords.lng, 41.7493512, 44.76901119) < 25, 'm2-highlight pin on TAS')
+}
+
+// m³ Saburtalo (Gelovani) — TAS permit outline, dev/bldg identical
+{
+  const cat = BUILDINGS.find((b) => b.slug === 'anagi-m3-saburtalo')
+  assert.ok(cat, 'anagi-m3-saburtalo in catalog')
+  const c = catalogToCluster(cat!, [])
+  const fc = buildingsToGeoJSON([c]).features
+  assert.ok(fc.length >= 1, 'm3 saburtalo must extrude TAS massing')
+  assert.ok(haversineM(cat!.coords.lat, cat!.coords.lng, 41.75164387, 44.76875396) < 15, 'm3 saburtalo pin on TAS')
 }
 
 // Live project pin updates address/dev — coords stay on OSM footprint (not a street geocode).
@@ -554,6 +563,11 @@ const fpData = footprintJson.footprints as unknown as Record<
   string,
   { ring?: [number, number][]; parts?: { ring: [number, number][] }[] } | null
 >
+assert.equal(
+  JSON.stringify(fpData['dev-anagi-m3-saburtalo']),
+  JSON.stringify(fpData['bldg-anagi-m3-saburtalo']),
+  'm3 dev/bldg footprint sync',
+)
 for (const [id, fp] of Object.entries(fpData)) {
   if (!fp) continue
   const rings = fp.parts?.map((p) => p.ring) ?? (fp.ring ? [fp.ring] : [])
@@ -908,6 +922,19 @@ for (const f of TBILISI_RAIONS.features) {
     f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon',
     `${slug}: not a polygon`,
   )
+}
+
+// Tbilisi project footprints: dev-* and bldg-* must match (same 3D massing on /map).
+{
+  const fpAll = footprintJson.footprints as unknown as Record<string, unknown>
+  for (const p of PROJECTS) {
+    if (p.city !== 'თბილისი') continue
+    const dev = fpAll[`dev-${p.slug}`]
+    const bldg = fpAll[`bldg-${p.slug}`]
+    if (dev && bldg) {
+      assert.equal(JSON.stringify(dev), JSON.stringify(bldg), `${p.slug}: dev/bldg footprint drift`)
+    }
+  }
 }
 
 console.log('map buildings check: ok')

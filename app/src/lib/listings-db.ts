@@ -36,7 +36,7 @@ import {
   listingPublicId,
   parseCadastralCode,
   parseListingNumber,
-  parsePhoneDigits,
+  phoneSearchNeedles,
 } from "@/lib/listing-public-id"
 import { HOME_RAIL_BADGE, pickHomeRail, type HomeRailTier } from "@/lib/listings-home-rail"
 
@@ -120,6 +120,8 @@ export interface Listing {
   stickerUrgent?: boolean
   stickerPriceDrop?: boolean
   inStory?: boolean
+  /** YouTube or CDN mp4/webm/mov — extendedFields.video */
+  video?: string | null
   verified?: boolean
   ai: { score: number; label: string }
   features: string[]
@@ -155,6 +157,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     projectSlug?: string
     exclusive?: boolean
     sivrceExclusive?: boolean
+    video?: string
   } | null) ?? null
   const projectCatalog = Boolean(ext?.projectCatalog)
   const projectSlug = ext?.projectSlug ?? null
@@ -220,6 +223,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     inStory: Boolean(
       activeStoryUntil((r.extendedFields as PromoExtFields | null) ?? null),
     ),
+    video: typeof ext?.video === "string" && ext.video ? ext.video : null,
     verified: Boolean(r.verified),
     ai: {
       score: aiScore,
@@ -333,45 +337,66 @@ export async function getListing(id: string): Promise<Listing | null> {
   }, null)
 }
 
-/** Resolve by public number, phone, or cadastral → listing id for redirect. */
-export async function resolveListingQuery(q: string): Promise<{ id: string; publicId: number } | null> {
+const LOOKUP_SELECT = { id: true, publicId: true } as const
+const LOOKUP_BASE = { deletedAt: null, status: "active" as const }
+
+/** Phone: listingPhone + agent.phone, formatted or digits. take 2 = unique vs many. */
+function phoneLookupWhere(q: string): Prisma.ListingWhereInput | null {
+  const needles = phoneSearchNeedles(q)
+  if (!needles.length) return null
+  return {
+    ...LOOKUP_BASE,
+    OR: needles.flatMap((n) => [
+      { listingPhone: { contains: n } },
+      { agent: { path: ["phone"], string_contains: n } },
+    ]),
+  }
+}
+
+function cadastralLookupWhere(q: string): Prisma.ListingWhereInput | null {
+  if (!parseCadastralCode(q)) return null
+  return {
+    ...LOOKUP_BASE,
+    OR: cadastralVariants(q).map((v) => ({
+      extendedFields: { path: ["cadastral"], equals: v },
+    })),
+  }
+}
+
+async function firstOrMany(
+  where: Prisma.ListingWhereInput,
+): Promise<{ id: string; publicId: number; count: number } | null> {
+  const rows = await db.listing.findMany({
+    where,
+    select: LOOKUP_SELECT,
+    orderBy: { createdAt: "desc" },
+    take: 2,
+  })
+  const row = rows[0]
+  if (!row) return null
+  return { id: row.id, publicId: row.publicId, count: rows.length }
+}
+
+/** Resolve by phone, public number, or cadastral. count 2 = more exist (don't jump). */
+export async function resolveListingQuery(
+  q: string,
+): Promise<{ id: string; publicId: number; count: number } | null> {
   return safeQuery(async () => {
+    const phoneWhere = phoneLookupWhere(q)
+    if (phoneWhere) return firstOrMany(phoneWhere)
+
     const publicNum = parseListingNumber(q)
     if (publicNum) {
       const row = await db.listing.findFirst({
-        where: { publicId: publicNum, deletedAt: null, status: "active" },
-        select: { id: true, publicId: true },
+        where: { ...LOOKUP_BASE, publicId: publicNum },
+        select: LOOKUP_SELECT,
       })
-      if (row) return { id: row.id, publicId: row.publicId }
+      if (row) return { id: row.id, publicId: row.publicId, count: 1 }
     }
-    const phone = parsePhoneDigits(q)
-    if (phone) {
-      const row = await db.listing.findFirst({
-        where: {
-          deletedAt: null,
-          status: "active",
-          listingPhone: { contains: phone },
-        },
-        select: { id: true, publicId: true },
-        orderBy: { createdAt: "desc" },
-      })
-      if (row) return { id: row.id, publicId: row.publicId }
-    }
-    if (parseCadastralCode(q)) {
-      const variants = cadastralVariants(q)
-      const row = await db.listing.findFirst({
-        where: {
-          deletedAt: null,
-          status: "active",
-          OR: variants.map((v) => ({
-            extendedFields: { path: ["cadastral"], equals: v },
-          })),
-        },
-        select: { id: true, publicId: true },
-        orderBy: { createdAt: "desc" },
-      })
-      if (row) return { id: row.id, publicId: row.publicId }
-    }
+
+    const cadWhere = cadastralLookupWhere(q)
+    if (cadWhere) return firstOrMany(cadWhere)
+
     return null
   }, null)
 }
@@ -689,6 +714,31 @@ export async function getStoryListings(limit = 24): Promise<Listing[]> {
   return readStoryListings(limit)
 }
 
+const readVideoListings = unstable_cache(
+  async (limit: number): Promise<Listing[]> =>
+    safeQuery(async () => {
+      const rows = await db.listing.findMany({
+        where: {
+          deletedAt: null,
+          status: "active",
+          NOT: { id: { startsWith: "proj-" } },
+          extendedFields: { path: ["video"], string_starts_with: "http" },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: Math.min(40, Math.max(1, limit)),
+      })
+      return rows
+        .map((r) => rowToListing(r as unknown as Record<string, unknown>))
+        .filter((l) => l.video)
+    }, []),
+  ["video-listings"],
+  { revalidate: 60 },
+)
+
+export async function getVideoListings(limit = 16): Promise<Listing[]> {
+  return readVideoListings(limit)
+}
+
 /** Filtered search — mirrors data/listings.ts filterListings(). */
 export async function filterListings(opts: {
   dealType?: DealType
@@ -851,7 +901,7 @@ export function formatGEL(n: number): string {
 }
 
 export function formatListingPrice(l: Listing): string {
-  if (l.dealType === 'rent') return `${formatUSD(l.priceUSD)}/თვე`
+  if (l.dealType === 'rent' && l.propType !== 'land') return `${formatUSD(l.priceUSD)}/თვე`
   if (l.dealType === 'daily') return `${formatUSD(l.priceUSD)}/დღე`
   return formatUSD(l.priceUSD)
 }

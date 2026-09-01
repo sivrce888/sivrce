@@ -34,7 +34,7 @@ import {
   relatedBuildings,
 } from '@/data/buildings'
 import { getDeveloper, type Developer } from '@/data/professionals'
-import { clusterListingsToBuildings, findBuildingBySlug } from '@/lib/map/buildings'
+import { clusterListingsToBuildings, dealLabelKa, findBuildingBySlug } from '@/lib/map/buildings'
 import {
   getBuildingDealCountsBySlug,
   getDbBuildingEntries,
@@ -506,13 +506,7 @@ export default async function BuildingPage({ params }: PageProps) {
                         className="absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-white"
                         style={{ background: DEAL_BRAND[l.dealType] }}
                       >
-                        {l.dealType === 'sale'
-                          ? 'იყიდება'
-                          : l.dealType === 'rent'
-                            ? 'ქირავდება'
-                            : l.dealType === 'daily'
-                              ? 'დღიურად'
-                              : 'გირავდება'}
+                        {dealLabelKa(l.dealType, l.propType)}
                       </span>
                       <ListingCard l={l} i={i} layout="wide" />
                     </div>

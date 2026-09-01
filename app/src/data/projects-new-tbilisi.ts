@@ -483,7 +483,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 260,
     floors: 22,
     rating: 4.6,
-    coords: { lat: 41.74571322, lng: 44.78331238 },
+    coords: { lat: 41.74549979, lng: 44.78354394 },
     description: {
       ka: 'Archi Kikvidze Garden — არქის მშენებარე ბინები ნაძალადევში, კიკვიძის ქ. 4-ში; A კორპუსი ჩაბარებულია, ფასი $1 400/მ²-დან.',
       en: 'Archi Kikvidze Garden is Archi’s new-build in Nadzaladevi at 4 Kikvidze St; block A delivered, prices from $1,400/m² (completion Q4 2027).',
@@ -749,7 +749,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2026 Q4',
     flats: 364,
     rating: 4.6,
-    coords: { lat: 41.72737673, lng: 44.76061168 },
+    coords: { lat: 41.72735134, lng: 44.76030397 },
     floors: 35,
     description: {
       ka: 'Sakeni — Biograpi Living-ის 35-სართულიანი ახალი პროექტი საბურთალოზე, ვაჟა-ფშაველას გამზ. 25-ში: 364 ბინა, $72M ინვესტიცია, ფასი $2 940/მ²-დან.',
@@ -1078,7 +1078,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     floors: 33,
     rating: 4.3,
     // OSM: ილია ვეკუას ქუჩა (Akhmeteli / Gldani center) — was Saburtalo centroid ~7 km wrong
-    coords: { lat: 41.8020012, lng: 44.8282306 },
+    coords: { lat: 41.80173956, lng: 44.82737581 },
     description: {
       ka: 'Gldani Inn — Inn Development-ის პრემიუმ კომპლექსი გლდანის ცენტრში, ილია ვეკუას ქ. 11გ: 4 საცხოვრებელი და 1 კომერციული ბლოკი, მეტრო ახმეტელის თეატრთან.',
       en: 'Gldani Inn is Inn Development’s premium complex at 11g Ilia Vekua St in central Gldani: four residential blocks plus one commercial block, by Akhmeteli Theatre metro.',
@@ -1160,7 +1160,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     floors: 38,
     rating: 4.3,
     // OSM სამგორი (Moscow Ave) — project street not published
-    coords: { lat: 41.6855176, lng: 44.8544828 },
+    coords: { lat: 41.68503456, lng: 44.85327384 },
     description: {
       ka: 'Moedani — ახალი პროექტი სამგორის რაიონში: 1,3 ჰა ტერიტორია, 4 საცხოვრებელი ბლოკი, სასტუმრო და 5 100 მ² საჯარო სივრცე.',
       en: 'Moedani is a new project in Tbilisi’s Samgori district: a 1.3 ha site with four residential blocks, a hotel and 5,100 m² of public space.',
@@ -1242,7 +1242,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 250,
     floors: 21,
     rating: 4.3,
-    coords: { lat: 41.682353, lng: 44.85629158 },
+    coords: { lat: 41.68227698, lng: 44.85576498 },
     description: {
       ka: 'Alliance City Samgori — Alliance City-ს ახალი პროექტი სამგორში, მოსკოვის გამზ. 9გ-ში. მშენებარე ბინები $1 120/მ²-დან, ჩაბარება 2026 Q3.',
       en: 'Alliance City Samgori is Alliance City’s new project in Samgori at 9g Moscow Ave — new-build apartments from $1,120/m², delivery Q3 2026.',
@@ -1343,7 +1343,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 90,
     floors: 8,
     rating: 4.6,
-    coords: { lat: 41.71381497, lng: 44.74433131 },
+    coords: { lat: 41.71370523, lng: 44.74476911 },
     description: {
       ka: 'Apart Vake — Apart Development-ის პრემიუმ ახალი პროექტი ვაკეში, ციციშვილის I შესახვ. 7-ში. მშენებარე ბინები $2 800/მ²-დან, ჩაბარება 2029 Q1.',
       en: 'Apart Vake is Apart Development’s premium new project in Vake at 7 Irakli Tsitsishvili 1st Lane — new-build apartments from $2,800/m², delivery Q1 2029.',
@@ -1443,7 +1443,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 180,
     floors: 15,
     rating: 4.3,
-    coords: { lat: 41.71917612, lng: 44.82071364 },
+    coords: { lat: 41.71929297, lng: 44.82070025 },
     description: {
       ka: 'Green Gardens — Devart Group-ის ახალი პროექტი ჩუღურეთში, სამურზაყანოს ქ. 39-ში. მშენებარე ბინები $1 150/მ²-დან, ჩაბარება 2026 Q3.',
       en: 'Green Gardens is Devart Group’s new project in Chugureti at 39 Samurzakano St — new-build apartments from $1,150/m², delivery Q3 2026.',
@@ -1463,7 +1463,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 400,
     rating: 4.4,
     // OSM hit: project sales office at Asatiani 6
-    coords: { lat: 41.72725938, lng: 44.74914683 },
+    coords: { lat: 41.72743485, lng: 44.74787057 },
     floors: 30,
     description: {
       ka: 'Tbilisi Gardens — Quadrum Global-ის 30-სართულიანი ახალი პროექტი საბურთალოზე, ასათიანის ქ. 6-ში. მშენებარე ბინები $2 660/მ²-დან, ჩაბარება 2026 Q2.',
@@ -1623,7 +1623,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2027 Q2',
     flats: 180,
     rating: 4.4,
-    coords: { lat: 41.73457806, lng: 44.74350252 },
+    coords: { lat: 41.73465473, lng: 44.74369591 },
     floors: 15,
     description: {
       ka: 'Lisi Trio — Trio Group-ის 15-სართულიანი ახალი პროექტი ლისის მიმართულებით, ამაშუკელის ქ. 5-ში. მშენებარე ბინები $1 900/მ²-დან, ჩაბარება 2027 Q2.',

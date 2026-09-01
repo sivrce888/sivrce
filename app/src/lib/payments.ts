@@ -789,6 +789,7 @@ type ExtFields = {
   storyUntil?: string
   exclusive?: boolean
   sivrceExclusive?: boolean
+  video?: string
 }
 
 /** Reindex active listing; remove from Meili when inactive/missing. */
@@ -866,6 +867,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
     totalFloors: listing.totalFloors ?? undefined,
     features: (listing.features as string[]) ?? [],
     images: (listing.images as string[]) ?? [],
+    video: ext?.video,
     lat: listing.lat,
     lng: listing.lng,
     metroM: metroMeters(listing.lat, listing.lng),

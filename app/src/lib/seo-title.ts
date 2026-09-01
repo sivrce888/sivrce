@@ -8,7 +8,7 @@
  */
 
 import { CITIES as SEO_CITIES, DEALS as SEO_DEALS, DISTRICTS as SEO_DISTRICTS } from '@/lib/seo-pages'
-import type { DealType } from '@/data/listings'
+import type { DealType, PropType } from '@/data/listings'
 import type { Lang } from '@/lib/i18n/context'
 
 /**
@@ -89,16 +89,18 @@ export function seoTitleParts(o: {
   lang: Lang
   deal: DealType | null
   dealLabel: string
+  propType?: PropType
   street?: string
   district?: string
   city?: string
 }): { deal: string; where: string } {
+  const slug = o.deal === 'rent' && o.propType === 'land' ? 'lease' : o.deal
   const deal = !o.deal
     ? ''
     : o.lang === 'en'
-      ? SEO_DEALS[o.deal].en
+      ? (SEO_DEALS[slug!]?.en ?? o.dealLabel)
       : o.lang === 'ru'
-        ? SEO_DEALS[o.deal].ru
+        ? (SEO_DEALS[slug!]?.ru ?? o.dealLabel)
         : o.dealLabel
 
   const place = o.district || o.city || ''

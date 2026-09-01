@@ -155,7 +155,7 @@ export const COLOR_HIGHLIGHT_DAYS = 7
 /** Paid sticker windows (days). */
 export const STICKER_URGENT_DAYS = 1
 export const STICKER_PRICE_DROP_DAYS = 7
-/** Stories rail window (days) — photo only; video when upload UX ships. */
+/** Stories rail window (days). Video listings use the separate home rail. */
 export const STORY_DAYS = 1
 
 /** Turbo duration by SKU. */

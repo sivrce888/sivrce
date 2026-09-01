@@ -12,7 +12,8 @@ import { useI18n, type DictKey } from "@/lib/i18n/context"
 import { useListingsByIds } from "@/lib/use-listings-by-ids"
 import { blurProps } from "@/lib/media"
 import { useCompareStrings } from "./i18n"
-import type { PropType, DealType } from "@/data/listings"
+import { dealLabelKey, rentPeriodKey } from "@/lib/add-listing-fields"
+import type { PropType } from "@/data/listings"
 
 const PROP_KEY: Record<PropType, DictKey> = {
   apartment: "prop.apartment",
@@ -21,13 +22,6 @@ const PROP_KEY: Record<PropType, DictKey> = {
   commercial: "prop.commercial",
   land: "prop.land",
   hotel: "prop.hotel",
-}
-
-const DEAL_KEY: Record<DealType, DictKey> = {
-  sale: "add.deal.sale",
-  rent: "add.deal.rent",
-  daily: "add.deal.daily",
-  pledge: "add.deal.pledge",
 }
 
 export default function CompareClient() {
@@ -70,10 +64,10 @@ export default function CompareClient() {
     {
       key: "price",
       label: tt("price"),
-      cell: (l) =>
-        `${format(l.priceGEL)}${
-          l.dealType === "rent" ? t("detail.perMonth") : l.dealType === "daily" ? t("detail.perDay") : ""
-        }`,
+      cell: (l) => {
+        const k = rentPeriodKey(l.dealType, l.propType)
+        return `${format(l.priceGEL)}${k ? t(k) : ""}`
+      },
     },
     {
       key: "perM2",
@@ -87,7 +81,7 @@ export default function CompareClient() {
     { key: "floor", label: tt("floor"), cell: (l) => formatFloor(l) },
     { key: "district", label: tt("district"), cell: (l) => `${l.district}, ${l.city}` },
     { key: "type", label: tt("type"), cell: (l) => t(PROP_KEY[l.propType]) },
-    { key: "deal", label: tt("deal"), cell: (l) => t(DEAL_KEY[l.dealType]) },
+    { key: "deal", label: tt("deal"), cell: (l) => t(dealLabelKey(l.dealType, l.propType)) },
     { key: "ai", label: tt("ai"), cell: (l) => `${l.ai.score} · ${l.ai.label}` },
   ]
 

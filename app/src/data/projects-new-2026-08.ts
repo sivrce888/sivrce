@@ -609,7 +609,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 12,
     rating: 4.4,
     cadastral: '01.18.13.020.066',
-    coords: { lat: 41.64312195, lng: 44.90597127 },
+    coords: { lat: 41.64405512, lng: 44.90550472 },
     description: {
       ka: 'Solum Ponichala — სამი 12-სართულიანი კორპუსი ღოღობერიძის ქ. 9-ში. Block A ჩაბარებულია; B და C — 2027 Q1. თეთრი კარკასი, 159 ბინა. საკადასტრო 01.18.13.020.066.',
       en: 'Solum Ponichala is three 12-storey blocks at 9 Gogoberidze St. Block A delivered; B and C handover Q1 2027. White frame, 159 units. Cadastre 01.18.13.020.066.',
@@ -1260,7 +1260,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 18,
     rating: 4.5,
     cadastral: '01.17.10.010.010',
-    coords: { lat: 41.68844611, lng: 44.85006564 },
+    coords: { lat: 41.68819254, lng: 44.85006435 },
     description: {
       ka: 'Pillar Park Samgori — 18-სართულიანი კორპუსი კახეთის გზატკეცილი 1ა-ში. 196 ბინა მწვანე კარკასით $1 210/მ²-დან, ჩაბარება 2027 Q3. საკადასტრო 01.17.10.010.010.',
       en: 'Pillar Park Samgori is an 18-storey building at 1a Kakheti Highway. 196 green-frame apartments from $1,210/m², handover Q3 2027. Cadastre 01.17.10.010.010.',
@@ -1366,7 +1366,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 23,
     rating: 4.6,
     cadastral: '01.14.01.001.515',
-    coords: { lat: 41.73457488, lng: 44.7197474 },
+    coords: { lat: 41.73419992, lng: 44.72005973 },
     description: {
       ka: 'Relevance Nutsubidze — ორი კოშკი (20–23 სართული, 580 ბინა) ავთო ვარაზის ქ. 22ა-ში. თეთრი კარკასი $1 250/მ²-დან, ჩაბარება 2029 Q3. საკადასტრო 01.14.01.001.515.',
       en: 'Relevance Nutsubidze is two towers (20–23 floors, 580 units) at 22a Avto Varazi St. White frame from $1,250/m², handover Q3 2029. Cadastre 01.14.01.001.515.',

@@ -22,9 +22,12 @@ export async function GET(req: Request) {
   try {
     const hit = await resolveListingQuery(q)
     if (hit) {
+      if (hit.count > 1) {
+        return NextResponse.json({ ok: true, many: true, count: hit.count })
+      }
       const listing = await getDbListing(hit.id)
       const path = listing ? listingPath(listing) : `/listing/${hit.id}`
-      return NextResponse.json({ ok: true, id: hit.id, publicId: hit.publicId, path })
+      return NextResponse.json({ ok: true, id: hit.id, publicId: hit.publicId, path, count: 1 })
     }
   } catch {
     /* DB down */

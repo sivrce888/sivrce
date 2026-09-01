@@ -11,7 +11,7 @@
  * Ceiling: O(n) cluster. Upgrade → PostGIS ST_DWithin when DB-backed.
  */
 
-import type { DealType, Listing } from '@/data/listings'
+import type { DealType, Listing, PropType } from '@/data/listings'
 import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import { BRAND } from '@/lib/brand'
@@ -195,7 +195,8 @@ export function pinHue(
   return b.color
 }
 
-export function dealLabelKa(deal: DealType): string {
+export function dealLabelKa(deal: DealType, prop?: PropType): string {
+  if (deal === 'rent' && prop === 'land') return 'გაიცემა იჯარით'
   switch (deal) {
     case 'sale':
       return 'იყიდება'
