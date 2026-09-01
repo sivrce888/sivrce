@@ -30,5 +30,9 @@ prisma/*.db
 app/src/__linttmp/
 app/scripts/*.log
 shots/
+.perf/
+logo-refs/
+research/node_modules/
+supabase/.temp/
 __pycache__/
 
