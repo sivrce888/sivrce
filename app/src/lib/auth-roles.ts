@@ -26,6 +26,39 @@ export function isSelfServeRole(value: string): value is SelfServeRole {
   return (SELF_SERVE_ROLES as readonly string[]).includes(value)
 }
 
+export function isProRole(role: SelfServeRole): role is (typeof PRO_ROLES)[number] {
+  return (PRO_ROLES as readonly string[]).includes(role)
+}
+
+/** `?intent=agent` from signup CTAs — invalid values ignored. */
+export function parseRoleIntent(raw: string | null | undefined): SelfServeRole | null {
+  const v = String(raw ?? "").trim()
+  return isSelfServeRole(v) ? v : null
+}
+
+export function roleOnboardingHref(intent?: SelfServeRole | null): string {
+  return intent ? `/auth/onboarding?intent=${intent}` : "/auth/onboarding"
+}
+
+/** Signup that lands on the role screen. Logged-in users bounce straight through. */
+export function roleSignupHref(intent?: SelfServeRole | null): string {
+  return `/auth/signup?callbackUrl=${encodeURIComponent(roleOnboardingHref(intent))}`
+}
+
+/** First-run profile setup after choosing a pro role. */
+export function profileSetupPathFor(role: SelfServeRole): string | null {
+  switch (role) {
+    case "agent":
+      return "/agent/profile"
+    case "agency":
+      return "/agency/profile"
+    case "developer":
+      return "/developer/profile"
+    default:
+      return null
+  }
+}
+
 export const ROLE_LABEL_KA: Record<SelfServeRole, { title: string; blurb: string }> = {
   buyer: { title: "მყიდველი", blurb: "ძიება, ფავორიტები და ტურები" },
   seller: { title: "გამყიდველი", blurb: "განცხადებები და ლიდები" },

@@ -2,18 +2,17 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Bell, BellRing, LayoutDashboard, Mail, Shield, UserCog } from "lucide-react"
 
-import { chooseSelfRole } from "@/app/auth/actions"
 import { toggleListingAlerts } from "@/app/[lang]/settings/actions"
 import { PasskeysCard } from "@/components/auth/PasskeysCard"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import { PushToggle } from "@/components/push/PushToggle"
+import { RolePicker } from "@/components/settings/RolePicker"
 import { isValidLang } from "@/lib/i18n/core"
 import { getServerT } from "@/lib/i18n/server"
 import {
-  CONSUMER_ROLES,
-  PRO_ROLES,
   ROLE_LABEL_KA,
   isSelfServeRole,
+  parseRoleIntent,
 } from "@/lib/auth-roles"
 import {
   dashboardPathFor,
@@ -33,10 +32,14 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>
+  searchParams: Promise<{ intent?: string }>
 }) {
   const { lang: raw } = await params
+  const { intent: rawIntent } = await searchParams
+  const intent = parseRoleIntent(rawIntent)
   const t = getServerT(isValidLang(raw) ? raw : "ka")
   const user = await requireUser("/settings")
   const home = dashboardPathFor(user.role)
@@ -122,59 +125,11 @@ export default async function SettingsPage({
               </div>
             </div>
 
-            <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
-              ანგარიში
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {CONSUMER_ROLES.map((role) => (
-                <form key={role} action={chooseSelfRole}>
-                  <input type="hidden" name="role" value={role} />
-                  <button
-                    type="submit"
-                    disabled={user.role === role}
-                    className={`w-full rounded-module border px-4 py-3 text-left transition ${
-                      user.role === role
-                        ? "border-sv-blue bg-sv-blue/8 text-sv-blue"
-                        : "border-sv-ink/8 hover:border-sv-blue/40 hover:bg-sv-cloud"
-                    }`}
-                  >
-                    <span className="block text-[13px] font-extrabold">
-                      {ROLE_LABEL_KA[role].title}
-                    </span>
-                    <span className="mt-0.5 block text-[11.5px] font-medium text-sv-ink/50">
-                      {ROLE_LABEL_KA[role].blurb}
-                    </span>
-                  </button>
-                </form>
-              ))}
-            </div>
-
-            <p className="mb-2 mt-5 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
-              პროფესიონალი ვარ
-            </p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {PRO_ROLES.map((role) => (
-                <form key={role} action={chooseSelfRole}>
-                  <input type="hidden" name="role" value={role} />
-                  <button
-                    type="submit"
-                    disabled={user.role === role}
-                    className={`w-full rounded-module border px-4 py-3 text-left transition ${
-                      user.role === role
-                        ? "border-sv-orange bg-sv-orange/8 text-sv-orange-deep"
-                        : "border-sv-ink/8 hover:border-sv-orange/40 hover:bg-sv-cloud"
-                    }`}
-                  >
-                    <span className="block text-[13px] font-extrabold">
-                      {ROLE_LABEL_KA[role].title}
-                    </span>
-                    <span className="mt-0.5 block text-[11.5px] font-medium text-sv-ink/50">
-                      {ROLE_LABEL_KA[role].blurb}
-                    </span>
-                  </button>
-                </form>
-              ))}
-            </div>
+            <RolePicker
+              currentRole={isSelfServeRole(user.role) ? user.role : "buyer"}
+              intent={intent}
+              compact
+            />
           </section>
         ) : null}
 

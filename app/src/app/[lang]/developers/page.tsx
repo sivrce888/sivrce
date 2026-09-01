@@ -9,11 +9,12 @@ import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { FaqSection } from '@/components/seo/FaqSection'
+import { roleSignupHref } from '@/lib/auth-roles'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { getDeveloperListingCountsBySlug } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates, OG_LOCALE, getServerT } from '@/lib/i18n/server'
+import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { DEVELOPERS_HUB, dirLoc, faqPageLd } from '@/lib/directory-seo'
 
@@ -52,7 +53,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DevelopersPage({ params }: PageProps) {
   const { lang: raw } = await params
   if (!isValidLang(raw)) notFound()
-  const t = getServerT(raw)
   const c = DEVELOPERS_HUB[dirLoc(raw)]
 
   const [developers, projects] = await Promise.all([developersLive(), projectsLive()])
@@ -92,10 +92,10 @@ export default async function DevelopersPage({ params }: PageProps) {
       <main id="main">
         <PageHero tone="light" kicker="დირექტორია" title={c.h1} subtitle={c.sub}>
           <LocalizedLink
-            href="/advertise"
+            href={roleSignupHref("developer")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
-            {t('nav.advertise')}
+            გახდი დეველოპერი სივრცეზე
             <ArrowRight className="h-4 w-4" />
           </LocalizedLink>
         </PageHero>

@@ -48,6 +48,7 @@ export function SignUpForm({
               </p>
             ) : null}
             <form action={action} className="space-y-3.5">
+              <input type="hidden" name="callbackUrl" value={callbackUrl} />
               <AuthInput
                 label="სახელი"
                 name="name"
@@ -96,7 +97,8 @@ export function SignUpForm({
 
       <p className="text-[12px] font-medium leading-relaxed text-sv-ink/45">
         ანგარიში იწყება როგორც მყიდველი. განცხადების დამატებისას ავტომატურად გახდები
-        გამყიდველი. აგენტი / სააგენტო / დეველოპერი — პარამეტრებში.
+        გამყიდველი. აგენტი / სააგენტო / დეველოპერი — რეგისტრაციის შემდეგ აირჩევ ან
+        პარამეტრებში.
       </p>
     </div>
   )

@@ -44,7 +44,14 @@ export default async function SignInPage({
       footer={
         <p className="text-[13px] font-medium text-white/50">
           ახალი ხარ?{" "}
-          <Link href="/auth/signup" className="font-bold text-sv-orange hover:underline">
+          <Link
+            href={
+              safeCallback
+                ? `/auth/signup?callbackUrl=${encodeURIComponent(safeCallback)}`
+                : "/auth/signup"
+            }
+            className="font-bold text-sv-orange hover:underline"
+          >
             შექმენი ანგარიში
           </Link>
         </p>

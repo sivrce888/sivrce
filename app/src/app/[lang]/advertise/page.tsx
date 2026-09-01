@@ -9,6 +9,7 @@ import { Reveal } from '@/components/Reveal'
 import PromoPricingGrid from '@/components/payments/PromoPricingGrid'
 import { langAlternates } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
+import { roleSignupHref } from '@/lib/auth-roles'
 import { formatGel, MONTHLY_RE_TETRI, ADDON_TETRI } from '@/lib/promo-pricing'
 import { jsonLd } from '@/lib/utils'
 
@@ -24,15 +25,15 @@ const AUDIENCES = [
   { icon: Home, title: 'გამყიდველი', text: 'უფასო განთავსება · 3 წუთი · ლიდები დაფაზე', href: '/add-listing' },
   { icon: KeyRound, title: 'გამქირავებელი', text: 'ყოველთვიური ქირა — იგივე ანგარიში, იგივე VIP', href: '/add-listing' },
   { icon: CalendarClock, title: 'დღიური მასპინძელი', text: 'კოლექციები, თარიღები, უკონტაქტო ჩექინი', href: '/add-listing' },
-  { icon: BadgeCheck, title: 'აგენტი', text: 'პროფილი /agents-ზე · ლიდები · ხელმისაწვდომი VIP', href: '/auth/signup?callbackUrl=/settings' },
-  { icon: Building2, title: 'სააგენტო', text: 'გუნდი, ანალიტიკა, განცხადებები ერთ დაფაზე', href: '/auth/signup?callbackUrl=/settings' },
-  { icon: Briefcase, title: 'დეველოპერი', text: 'პროექტები, ინვენტარი, 3D რუკა კორპუსზე', href: '/auth/signup?callbackUrl=/settings' },
+  { icon: BadgeCheck, title: 'აგენტი', text: 'პროფილი /agents-ზე · ლიდები · ხელმისაწვდომი VIP', href: roleSignupHref('agent') },
+  { icon: Building2, title: 'სააგენტო', text: 'გუნდი, ანალიტიკა, განცხადებები ერთ დაფაზე', href: roleSignupHref('agency') },
+  { icon: Briefcase, title: 'დეველოპერი', text: 'პროექტები, ინვენტარი, 3D რუკა კორპუსზე', href: roleSignupHref('developer') },
   { icon: Wrench, title: 'სერვისის კომპანია', text: 'რემონტი, იურიდიული, ფოტო — სერვისი და განცხადება ერთ ანგარიშზე', href: '/add-service' },
 ] as const
 
 const PRO_STEPS = [
   { n: '1', t: 'დარეგისტრირდი', d: 'ტელეფონი ან Google — 30 წამი' },
-  { n: '2', t: 'აირჩიე როლი', d: 'სააგენტო / აგენტი / დეველოპერი — Settings-ში' },
+  { n: '2', t: 'აირჩიე როლი', d: 'აგენტი / სააგენტო / დეველოპერი — ერთი ეკრანი' },
   { n: '3', t: 'გამოაქვეყნე', d: 'უფასო ან VIP+ · ლიდები შენს დაფაზე' },
 ]
 
@@ -79,7 +80,7 @@ const FAQ = [
   },
   {
     q: 'სააგენტო ან დეველოპერი ვარ — სად დავიწყო?',
-    a: 'დარეგისტრირდი → Settings-ში აირჩიე როლი (სააგენტო / აგენტი / დეველოპერი) → დაამატე განცხადება. პროფილი გამოჩნდება /agents ან /developers დირექტორიაში.',
+    a: 'დარეგისტრირდი → აირჩიე როლი → შეავსე პროფილი. გამოჩნდები /agents ან /developers დირექტორიაში.',
   },
   {
     q: 'სერვისის კომპანია ვარ — რემონტი, იურიდიული, ფოტო. სად დავდო?',
@@ -139,13 +140,13 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
                     პროფესიონალური ანგარიში — 3 ნაბიჯი
                   </h2>
                   <p className="mt-2 text-[14px] font-medium text-white/65">
-                    Footer-ის „აგენტები / დეველოპერები“ აქ მოდის. როლი Settings-ში ირჩევა —
-                    ცალკე განაცხადი არ გჭირდება.
+                    Footer-ის „აგენტები / დეველოპერები“ აქ მოდის. როლი რეგისტრაციის
+                    შემდეგ ირჩევა — ცალკე განაცხადი არ გჭირდება.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <LocalizedLink
-                    href="/auth/signup?callbackUrl=/settings"
+                    href={roleSignupHref()}
                     className="inline-flex items-center gap-2 rounded-full bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
                   >
                     რეგისტრაცია <ArrowRight className="h-4 w-4" />

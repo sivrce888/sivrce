@@ -12,8 +12,9 @@ import {
 async function main() {
   assert.equal(detectCompetitorSource('https://ss.ge/ka/x-31099402'), 'ss.ge')
   assert.equal(detectCompetitorSource('https://www.myhome.ge/ka/pr/25529861/'), 'myhome.ge')
+  assert.equal(detectCompetitorSource('https://korter.ge/qiravdeba-binebi-tbilisshi/869577'), 'korter.ge')
+  assert.equal(extractCompetitorId('https://korter.ge/binebis-yidva-gayidva-tbilisi/archi-kikvidze-garden/843242'), '843242')
   assert.equal(extractCompetitorId('https://ss.ge/ka/udzravi-qoneba/iyideba-2-otaxiani-bina-saburtaloze-31099402'), '31099402')
-  assert.equal(extractCompetitorId('https://www.myhome.ge/en/pr/5-room-apartment-for-rent-in-vake-25529861'), '25529861')
 
   const ssUrl = 'https://ss.ge/ka/udzravi-qoneba/iyideba-2-otaxiani-bina-saburtaloze-31099402'
   const ss = await importCompetitorListing(ssUrl)
@@ -33,10 +34,27 @@ async function main() {
   assert.ok(mh.area != null && mh.area > 0, 'myhome area')
   assert.ok(mh.description.length > 20, 'myhome description')
 
-  const { listings, best } = await importCompetitorListings([ssUrl, 'https://www.myhome.ge/ka/pr/25529861/'])
-  assert.equal(listings.length, 2, 'both sources import')
-  assert.ok(best && best.score >= ss.score, 'best is top score')
-  assert.equal(best.sourceId, ss.score >= mh.score ? ss.sourceId : mh.sourceId)
+  assert.equal(extractCompetitorId('https://www.myhome.ge/en/pr/5-room-apartment-for-rent-in-vake-25529861'), '25529861')
+
+  const korterUrl = 'https://korter.ge/qiravdeba-binebi-tbilisshi/869577'
+  const ko = await importCompetitorListing(korterUrl)
+  assert.equal(ko.source, 'korter.ge')
+  assert.equal(ko.sourceId, '869577')
+  assert.ok(ko.deal === 'rent', 'korter deal')
+  assert.ok(ko.area != null && ko.area > 0, 'korter area')
+  assert.ok(ko.priceUsd != null && ko.priceUsd > 0, 'korter price')
+  assert.ok(ko.description.length > 20, 'korter description')
+  assert.ok(ko.lat != null && ko.lng != null, 'korter coords')
+  assert.ok(ko.phone != null, 'korter phone')
+  assert.equal(ko.score, 100, 'korter fixture scores 100/100')
+  const koDraft = toAddListingDraft(ko)
+  assert.equal(koDraft.deal, 'rent')
+  assert.ok(typeof koDraft.baths === 'number' && (koDraft.baths as number) > 0, 'korter draft baths')
+  assert.ok(typeof koDraft.name === 'string' && (koDraft.name as string).length > 0, 'korter draft name')
+
+  const { listings, best } = await importCompetitorListings([ssUrl, 'https://www.myhome.ge/ka/pr/25529861/', korterUrl])
+  assert.equal(listings.length, 3, 'all sources import')
+  assert.ok(best && best.score >= ss.score && best.score >= mh.score && best.score >= ko.score, 'best is top score')
 
   const draft = toAddListingDraft(ss)
   assert.equal(draft.v, 1)

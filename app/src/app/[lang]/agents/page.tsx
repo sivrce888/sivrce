@@ -12,6 +12,7 @@ import { getAgentListingCountsByKaName } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+import { roleSignupHref } from '@/lib/auth-roles'
 import { ArrowRight, Building2 } from 'lucide-react'
 
 export const revalidate = 3600
@@ -78,7 +79,7 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
           subtitle="დალაგებული აქტიური განცხადებების რაოდენობით — ვერიფიცირებული სპეციალისტები გამოცდილებითა და მიმოხილვებით"
         >
           <LocalizedLink
-            href="/advertise"
+            href={roleSignupHref("agent")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
             გახდი აგენტი სივრცეზე

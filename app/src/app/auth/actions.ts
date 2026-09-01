@@ -9,7 +9,7 @@ import { redirect } from "next/navigation"
 import { signIn, signOut } from "@/auth"
 import { sendPhoneOtp } from "@/lib/auth-phone-otp"
 import { isCredentialId } from "@/lib/auth-passkey"
-import { isSelfServeRole } from "@/lib/auth-roles"
+import { isSelfServeRole, isProRole, profileSetupPathFor } from "@/lib/auth-roles"
 import { db } from "@/lib/db"
 import { sendEmail, sendWelcomeEmail } from "@/lib/email"
 import { dashboardPathFor, requireUser } from "@/lib/guards"
@@ -42,12 +42,33 @@ export async function chooseSelfRole(formData: FormData) {
   if (user.role === "admin") redirect(dashboardPathFor("admin"))
 
   const raw = String(formData.get("role") ?? "")
-  if (!isSelfServeRole(raw)) {
-    throw new Error("Invalid role")
-  }
+  if (!isSelfServeRole(raw)) redirect("/settings")
 
   if (user.role !== raw) {
     await db.user.update({ where: { id: user.id }, data: { role: raw } })
+  }
+
+  revalidatePath("/settings")
+  revalidatePath("/", "layout")
+
+  if (isProRole(raw)) {
+    const profile =
+      raw === "agent"
+        ? await db.agentProfile.findFirst({
+            where: { ownerId: user.id, deletedAt: null },
+            select: { id: true },
+          })
+        : raw === "agency"
+          ? await db.agencyProfile.findFirst({
+              where: { ownerId: user.id, deletedAt: null },
+              select: { id: true },
+            })
+          : await db.developerProfile.findFirst({
+              where: { ownerId: user.id, deletedAt: null },
+              select: { id: true },
+            })
+    const setup = profileSetupPathFor(raw)
+    if (setup && !profile) redirect(setup)
   }
 
   redirect(dashboardPathFor(raw))
@@ -152,11 +173,13 @@ export async function registerWithEmail(
     }
   }
 
+  const callbackUrl = safeCallback(formData.get("callbackUrl")) ?? "/"
+
   try {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/",
+      redirectTo: callbackUrl,
     })
   } catch (err) {
     if (err instanceof AuthError) {

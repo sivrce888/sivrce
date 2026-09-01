@@ -26,7 +26,7 @@ export default function ImportCompetitorPanel() {
   async function onImport() {
     const list = parseUrls(urls)
     if (!list.length) {
-      setErr('ჩასვი ss.ge ან myhome.ge ლინკი')
+      setErr('ჩასვი ss.ge, myhome.ge ან korter.ge ლინკი')
       return
     }
     setBusy(true)
@@ -76,7 +76,7 @@ export default function ImportCompetitorPanel() {
         </span>
         <div>
           <h2 className="text-[15px] font-extrabold text-sv-ink">სხვა საიტიდან</h2>
-          <p className="text-[12px] font-medium text-sv-ink/50">ss.ge · myhome.ge · livo.ge — ფოტოების გარეშე</p>
+          <p className="text-[12px] font-medium text-sv-ink/50">ss.ge · myhome.ge · livo.ge · korter.ge — ფოტოების გარეშე</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function ImportCompetitorPanel() {
         value={urls}
         onChange={(e) => setUrls(e.target.value)}
         rows={2}
-        placeholder="https://ss.ge/ka/... ან https://www.myhome.ge/ka/pr/..."
+        placeholder="https://ss.ge/ka/... · https://www.myhome.ge/ka/pr/... · https://korter.ge/binebis-yidva-gayidva-tbilisi/..."
         className="w-full resize-none rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2.5 text-[13px] font-medium text-sv-ink outline-none ring-sv-blue/20 placeholder:text-sv-ink/35 focus:border-sv-blue/40 focus:ring-2"
       />
 

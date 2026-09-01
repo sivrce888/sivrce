@@ -161,7 +161,8 @@ export function middleware(req: NextRequest) {
     const adminPath = bare === "/" ? "/admin" : bare.startsWith("/admin") ? bare : `/admin${bare}`
 
     if (isProtected(adminPath) && !hasSession(req)) {
-      return signinRedirect(req, adminPath)
+      const cb = req.nextUrl.search ? `${adminPath}${req.nextUrl.search}` : adminPath
+      return signinRedirect(req, cb)
     }
 
     const url = req.nextUrl.clone()
@@ -180,7 +181,8 @@ export function middleware(req: NextRequest) {
   const bare = stripLocale(pathname)
 
   if (isProtected(bare) && !hasSession(req)) {
-    return signinRedirect(req, bare)
+    const cb = req.nextUrl.search ? `${bare}${req.nextUrl.search}` : bare
+    return signinRedirect(req, cb)
   }
 
   // Prefixed locales resolve through the app/[lang] segment natively.

@@ -1,17 +1,19 @@
 /**
- * Import competitor listing URLs (ss.ge, myhome.ge, livo.ge) → normalized text card.
- * ponytail: __NEXT_DATA__ + TNET API — no Playwright, no new deps.
+ * Import competitor listing URLs (ss.ge, myhome.ge, livo.ge, korter.ge) → normalized text card.
+ * ponytail: __NEXT_DATA__ + TNET API + korter INITIAL_STATE — no Playwright, no new deps.
  * Upgrade path: Playwright fallback if CF blocks API/HTML fetch.
  */
 
 import type { DealType, PropType } from '@/data/listings'
 import { canonicalizeDistrict } from '@/lib/district-canon'
+import { extractState } from '@/lib/directory/sync-korter'
+import type { DictKey } from '@/lib/i18n/context'
 import { splitStreetHouse } from '@/lib/map/geocode'
 
 /** Same key as AddListingClient — keep in sync. */
 export const ADD_LISTING_DRAFT_KEY = 'sivrce.add-listing.v1'
 
-export type CompetitorSource = 'ss.ge' | 'myhome.ge'
+export type CompetitorSource = 'ss.ge' | 'myhome.ge' | 'korter.ge'
 
 export type ImportedListing = {
   source: CompetitorSource
@@ -45,6 +47,11 @@ export type ImportedListing = {
   views: number | null
   score: number
   scoreNotes: string[]
+  /** Extra fields for add-listing draft (korter / future sources). */
+  bathroomCount?: number | null
+  kitchenArea?: number | null
+  videoUrl?: string | null
+  contactName?: string | null
 }
 
 const UA =
@@ -142,17 +149,29 @@ export function detectCompetitorSource(url: string): CompetitorSource | null {
   const u = url.toLowerCase()
   if (/ss\.ge|home\.ss\.ge/.test(u)) return 'ss.ge'
   if (/myhome\.ge|livo\.ge/.test(u)) return 'myhome.ge'
+  if (/korter\.ge/.test(u)) return 'korter.ge'
   return null
 }
 
 export function extractCompetitorId(url: string): string | null {
   const pr = url.match(/\/pr\/(?:[\w-]*-)?(\d{5,})(?:[/?#]|$)/i)
   if (pr) return pr[1]!
+  if (/korter\.ge/i.test(url)) {
+    const ko = url.match(/\/(\d{5,})(?:[/?#]|$)/)
+    if (ko) return ko[1]!
+  }
   const tail = url.match(/-(\d{6,})(?:[/?#]|$)/)
   if (tail) return tail[1]!
   const q = url.match(/[?&](?:id|applicationId|statementId)=(\d+)/i)
   if (q) return q[1]!
   return null
+}
+
+function normalizeKorterUrl(url: string): string {
+  const raw = url.startsWith('http') ? url : `https://korter.ge${url.startsWith('/') ? '' : '/'}${url}`
+  const u = new URL(raw)
+  u.pathname = u.pathname.replace(/^\/(ka|en|ru)(?=\/)/, '')
+  return u.toString().replace(/\/$/, '') || u.toString()
 }
 
 function num(v: unknown): number | null {
@@ -400,13 +419,251 @@ async function importMyhome(url: string, id: string): Promise<ImportedListing> {
   return { ...base, score, scoreNotes }
 }
 
+type KorterLayout = {
+  price?: number
+  area?: number
+  description?: string
+  address?: string
+  currency?: string
+  roomCount?: number
+  bedroomCount?: number
+  bathroomCount?: number
+  ceilingHeight?: number
+  livingArea?: number
+  kitchenArea?: number
+  builtYear?: number
+  videoLink?: string | null
+  section?: string
+  hasBalcony?: boolean
+  hasTerrace?: boolean
+  isOpenPlan?: boolean
+  isMultilevel?: boolean
+  isFacade?: boolean
+  parking?: unknown
+  propertyType?: { type?: string; name?: string; propertyTypeRoomCountLabel?: string }
+  floorsByHouse?: { floorCount?: number; floorNumbers?: (string | number)[] }[]
+  houses?: { floorCount?: number; constructionStatus?: string; endYear?: number }[]
+}
+
+type KorterLandingState = {
+  layoutId?: number | null
+  objectId?: number
+  layout?: KorterLayout
+  building?: {
+    city?: string
+    name?: string
+    address?: string
+    geoObjects?: { nominative?: string; isMain?: boolean }[]
+  }
+  constructionState?: { lat?: number; lng?: number }[] | null
+  seller?: {
+    name?: string
+    phones?: { displayNumber?: string; hasWhatsapp?: boolean }[]
+    agency?: { name?: string } | null
+  }
+}
+
+type KorterPageState = {
+  layoutLandingStore?: KorterLandingState
+  seoStore?: { title?: string; description?: string }
+  currencyStore?: { rate?: number }
+}
+
+const KORTER_PROP: Record<string, string> = {
+  flat: 'ბინა',
+  house: 'სახლი',
+  cottage: 'აგარაკი',
+  land: 'მიწა',
+  commercial: 'კომერციული',
+  parking: 'კომერციული',
+  warehouse: 'კომერციული',
+  office: 'კომერციული',
+  hotel: 'სასტუმრო',
+}
+
+const KORTER_DEAL: Record<string, ImportedListing['deal']> = {
+  sale: 'sale',
+  rent: 'rent',
+  daily: 'daily',
+  daily_rent: 'daily',
+}
+
+const FEAT_LABEL_TO_DICT: Record<string, DictKey> = {
+  'აივანი': 'add.f.balcony',
+  'ტერასა': 'add.f.terrace',
+  'პარკინგი': 'add.f.parking',
+  'კონდიციონერი': 'add.f.ac',
+  'ლიფტი': 'add.f.elevator',
+  'ავეჯი': 'add.f.furniture',
+  'გარაჟი': 'add.f.garage',
+  'ინტერნეტი': 'add.f.internet',
+  'ბუნებრივი აირი': 'add.f.gas',
+  'სიგნალიზაცია': 'add.f.security',
+  'რკინის კარი': 'add.f.ironDoor',
+}
+
+function featureLabelKeys(features: string[]): DictKey[] {
+  const keys = new Set<DictKey>()
+  for (const f of features) {
+    const k = FEAT_LABEL_TO_DICT[f]
+    if (k) keys.add(k)
+  }
+  return [...keys]
+}
+
+function korterLatLng(store: KorterLandingState): { lat: number; lng: number } | null {
+  const cs = store.constructionState?.[0]
+  if (cs?.lat != null && cs?.lng != null) return { lat: cs.lat, lng: cs.lng }
+  return null
+}
+
+function korterDistrict(building?: KorterLandingState['building']): string {
+  const geo = building?.geoObjects ?? []
+  const sub = geo.find((g) => g.isMain === false)?.nominative ?? ''
+  return canonicalizeDistrict(sub.replace(/\s*რაიონი\s*$/i, '').trim(), building?.city ?? '') || sub
+}
+
+function korterFeatures(layout: KorterLayout): string[] {
+  const out: string[] = []
+  if (layout.hasBalcony) out.push('აივანი')
+  if (layout.hasTerrace) out.push('ტერასა')
+  if (layout.isOpenPlan) out.push('გახსნილი გეგმარება')
+  if (layout.isMultilevel) out.push('ორდონიანი')
+  if (layout.isFacade) out.push('ფასადი')
+  if (layout.parking) out.push('პარკინგი')
+  if (layout.ceilingHeight) out.push(`ჭერის სიმაღლე ${layout.ceilingHeight} მ`)
+  return out
+}
+
+function korterDescription(
+  layout: KorterLayout,
+  building: KorterLandingState['building'],
+  seo?: { title?: string; description?: string },
+): string {
+  const direct = layout.description?.trim() ?? ''
+  if (direct.length > 20) return direct
+  const parts = [
+    seo?.title?.trim(),
+    layout.propertyType?.propertyTypeRoomCountLabel,
+    building?.name ? `კომპლექსი: ${building.name}` : null,
+    layout.address?.trim(),
+    layout.bedroomCount != null ? `${layout.bedroomCount} საძინებელი` : null,
+    layout.bathroomCount != null ? `${layout.bathroomCount} საპირფერო` : null,
+    layout.kitchenArea != null ? `${layout.kitchenArea} მ² სამზარეული` : null,
+    layout.builtYear ? `აშენების წელი: ${layout.builtYear}` : null,
+    ...korterFeatures(layout),
+  ].filter(Boolean)
+  const built = parts.join('. ').replace(/\.\s*\./g, '.').trim()
+  if (built.length > 20) return built.endsWith('.') ? built : `${built}.`
+  const seoDesc = seo?.description?.trim() ?? ''
+  return seoDesc.length > 20 ? seoDesc : built || seo?.title?.trim() || 'Korter.ge განცხადება'
+}
+
+function korterStatus(layout: KorterLayout): string | null {
+  const house = layout.houses?.[0]
+  if (house?.constructionStatus === 'construction') return 'add.status.construction'
+  const year = layout.builtYear ?? house?.endYear
+  if (year != null && year >= new Date().getFullYear() - 1) return 'add.status.new'
+  if (year != null) return 'add.status.old'
+  return null
+}
+
+function korterCondition(desc: string): string | null {
+  const t = desc.toLowerCase()
+  if (/ახალი გარემონტ|newly renovated|გარემონტებ/i.test(t)) return 'add.cond.newReno'
+  if (/თეთრი კარკას|white frame|თეთრი ჩარჩ/i.test(t)) return 'add.cond.whiteFrame'
+  if (/შავი კარკას|black frame|შავი ჩარჩ/i.test(t)) return 'add.cond.blackFrame'
+  if (/მწვანე|green frame/i.test(t)) return 'add.cond.greenFrame'
+  if (/სარემონტ|needs reno|renovation/i.test(t)) return 'add.cond.needsReno'
+  return null
+}
+
+async function importKorter(url: string, id: string): Promise<ImportedListing> {
+  const canonical = normalizeKorterUrl(url)
+  const html = await fetchText(canonical, 'https://korter.ge/')
+  const state = extractState(html) as KorterPageState | null
+  const store = state?.layoutLandingStore
+  if (!store?.layout) throw new Error('korter.ge: layoutLandingStore missing (404 or layout change)')
+  const layout = store.layout
+  const objectId = store.objectId ?? id
+
+  const building = store.building
+  const seo = state?.seoStore
+  const coords = korterLatLng(store)
+  const desc = korterDescription(layout, building, seo)
+  const feats = korterFeatures(layout)
+  const floorBlock = layout.floorsByHouse?.[0]
+  const floorRaw = floorBlock?.floorNumbers?.[0]
+  const totalFloors = num(floorBlock?.floorCount) ?? num(layout.houses?.[0]?.floorCount)
+  const propKey = layout.propertyType?.type ?? 'flat'
+  const currency = (layout.currency ?? 'USD').toUpperCase()
+  const price = num(layout.price)
+  const area = num(layout.area)
+  const rate = num(state?.currencyStore?.rate) ?? 2.65
+  const useUsd = currency === 'USD'
+  const priceUsd = useUsd ? price : price != null ? Math.round(price / rate) : null
+  const priceGel = !useUsd ? price : priceUsd != null ? Math.round(priceUsd * rate) : null
+  const pricePerM2Usd = priceUsd && area ? Math.round(priceUsd / area) : null
+  const phone = store.seller?.phones?.find((p) => p.displayNumber)?.displayNumber ?? null
+  const title =
+    seo?.title?.trim() ||
+    layout.propertyType?.propertyTypeRoomCountLabel ||
+    `${layout.roomCount ?? ''} ოთახიანი ${layout.propertyType?.name ?? 'ბინა'}`
+  const district = korterDistrict(building)
+  const street = layout.address?.trim() || building?.address?.trim() || null
+  const address = [building?.city, district, street].filter(Boolean).join(', ')
+
+  const base: Omit<ImportedListing, 'score' | 'scoreNotes'> = {
+    source: 'korter.ge',
+    sourceId: String(objectId),
+    sourceUrl: canonical,
+    title,
+    deal: KORTER_DEAL[layout.section ?? ''] ?? 'unknown',
+    propType: KORTER_PROP[propKey] ?? layout.propertyType?.name ?? 'ბინა',
+    priceUsd,
+    priceGel,
+    pricePerM2Usd,
+    city: building?.city ?? 'თბილისი',
+    district,
+    subdistrict: district || null,
+    street,
+    address,
+    area,
+    rooms: num(layout.roomCount),
+    bedrooms: num(layout.bedroomCount),
+    floor: num(floorRaw),
+    totalFloors,
+    condition: korterCondition(desc),
+    status: korterStatus(layout),
+    description: desc,
+    features: feats,
+    phone,
+    lat: coords?.lat ?? null,
+    lng: coords?.lng ?? null,
+    metro: null,
+    agency: store.seller?.agency?.name ?? store.seller?.name ?? null,
+    views: null,
+  }
+  const { score, scoreNotes } = scoreListing(base)
+  return {
+    ...base,
+    score,
+    scoreNotes,
+    bathroomCount: num(layout.bathroomCount),
+    kitchenArea: num(layout.kitchenArea),
+    videoUrl: layout.videoLink?.trim() || null,
+    contactName: store.seller?.name ?? null,
+  }
+}
+
 export async function importCompetitorListing(url: string): Promise<ImportedListing> {
   const trimmed = url.trim()
   const source = detectCompetitorSource(trimmed)
-  if (!source) throw new Error('მხოლოდ ss.ge / myhome.ge / livo.ge ლინკები')
+  if (!source) throw new Error('მხოლოდ ss.ge / myhome.ge / livo.ge / korter.ge ლინკები')
   const id = extractCompetitorId(trimmed)
   if (!id) throw new Error('ID ვერ ამოვიღე URL-დან')
   if (source === 'ss.ge') return importSs(trimmed, id)
+  if (source === 'korter.ge') return importKorter(trimmed, id)
   return importMyhome(trimmed, id)
 }
 
@@ -509,12 +766,19 @@ export function toAddListingDraft(l: ImportedListing): Record<string, unknown> {
     areaUnit: 'm2',
     rooms: l.rooms ?? 0,
     beds: l.bedrooms ?? l.rooms ?? 0,
+    baths: l.bathroomCount ?? 0,
     floor: l.floor != null ? String(l.floor) : '',
     totalFloors: l.totalFloors != null ? String(l.totalFloors) : '',
+    condition: l.condition ?? '',
+    status: l.status ?? '',
+    kitchenArea: l.kitchenArea != null ? String(l.kitchenArea) : '',
+    features: featureLabelKeys(l.features),
     price: priceVal != null ? String(Math.round(priceVal)) : '',
     priceCur: useUsd ? 'USD' : 'GEL',
     priceMode: 'total',
     description: l.description,
+    name: l.contactName ?? l.agency ?? '',
+    video: l.videoUrl ?? '',
     phone,
     messengers: ['WhatsApp', 'Viber'],
     terms: false,
