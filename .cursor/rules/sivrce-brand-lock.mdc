@@ -1,0 +1,55 @@
+---
+description: SIVRCE brand lock — frozen colors, type, logo, motion. Never invent UI style.
+alwaysApply: true
+---
+
+# SIVRCE Brand Lock (FROZEN 2026-07-17)
+
+Before any UI / CSS / component work: read `app/BRAND.md`. Do not invent colors,
+fonts, radii, shadows, logo geometry, or category hues. Owner-approved lock.
+
+## Sources of truth (must stay in sync)
+
+1. `app/BRAND.md` — full spec
+2. `app/src/lib/brand.ts` — JS tokens
+3. `app/src/lib/category-brand.ts` — category / service / deal hues
+4. `app/src/app/globals.css` — `@theme` + dark flips
+5. `logo/source/sivrce-lockup-master.png` + `logo/board1x1/` + `app/public/logo/` + `Logo.tsx` — lockup 1:1
+
+## Palette (use token classes, never raw hex)
+
+| Token | Hex | Role |
+| --- | --- | --- |
+| `sv-blue` | #2E6BFF | primary |
+| `sv-blue-light` | #8FB4FF | light |
+| `sv-blue-deep` | #1A3FC0 | blue hover |
+| `sv-violet` | #7A5CFF | gradients only |
+| `sv-orange` | #FF6A2D | CTAs / action ≤10% · fills use `text-white` |
+| `sv-orange-light` | #FFB25E | action gradient |
+| `sv-orange-deep` | #FF4D6D | VIP gradients |
+| `sv-navy` | #050B26 | hero / dark / footer |
+| `sv-navy-soft` | #0A1440 | navy gradient |
+| `sv-ink` | #0A1030 | text (light) |
+| `sv-cloud` | #F6F7FB | page bg (light) |
+| `sv-surface` | #FFFFFF | cards (light) |
+| `sv-success` | #4ADE80 | dark surfaces only |
+
+Dark flips only: ink→`#E9EDFF`, cloud→`#060B21`, surface→`#0E1737`. Navy fixed.
+
+Category / deal / service: `CATEGORY_BRAND` · `SERVICE_BRAND` · `DEAL_BRAND` only.
+
+## Hard bans
+
+- No purple-on-white / cream+terracotta / Inter-default AI looks
+- No `bg-black/*` — navy-tint overlays only
+- No pure-black shadows — navy-tint only
+- No emoji in UI · Lucide only · Manrope + Noto Sans Georgian only
+- No new brand hex without updating BRAND.md + brand.ts + globals.css together
+- Logo: never recolor / rotate / outline; board PNG lockup in Logo.tsx is locked
+
+## Shape / type / motion quick refs
+
+- Radius: card 26 · tile 22 · module 16 · control 12 · buttons pill
+- Type: Manrope 900 headlines, tracking −0.02…−0.045em; body 500–600
+- Motion ease `[0.21,0.65,0.2,1]`, reveal y+28 / 0.7s
+- Wordmark: lowercase `sivrce` + orange period

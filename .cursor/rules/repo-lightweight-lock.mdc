@@ -1,0 +1,38 @@
+---
+description: Repo weight lock — no junk commits, no duplicate trees, no scrape dumps.
+alwaysApply: true
+---
+
+# Repo lightweight lock (FROZEN 2026-09-01)
+
+Keep the repo lean. **Deletion over addition** for artifacts.
+
+## Never commit
+
+| Category | Paths / patterns |
+| --- | --- |
+| Build cache | `.next/`, `out/`, `node_modules/` |
+| Perf duplicate | `.perf/` (full app snapshot + Lighthouse JSON) |
+| Audit screenshots | `shots/` |
+| Logo scratch | `logo-refs/`, `logo/concepts/` |
+| Research scrapes | `research/*.{html,png,log,mjs,txt}` — keep only `research/competitor-locations/*.json` and `research/renders-manifest-*.json` |
+| Tool caches | `.playwright-mcp/`, `supabase/.temp/`, `.vercel/`, `__pycache__/` |
+| Root scratch PNGs | `Screenshot *.png`, `v-*.png`, `*.docx` |
+| Oversize new files | \>512 KB unless under `app/src/data/`, `logo/`, `app/public/`, or mobile `res/` assets |
+
+## Agent rules
+
+- Do not recreate `.perf/`, duplicate app trees, or commit visual audit PNGs.
+- Competitor HTML/screenshots belong outside git or in local-only paths (already gitignored).
+- Prefer updating existing JSON manifests over adding new research dumps.
+- Run `node scripts/check-repo-weight.mjs --verbose` before large commits.
+- After local audits: delete `shots/` — do not `git add` them.
+
+## Hook (once per clone)
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
+Pre-commit runs `scripts/check-repo-weight.mjs` automatically.

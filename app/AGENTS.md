@@ -35,3 +35,12 @@ prevents data loss, security measures, accessibility basics, anything
 explicitly requested. Bug fix = root cause, not symptom.
 
 Levels: `/ponytail lite|full|ultra`. Off only on "stop ponytail" / "normal mode".
+
+# Repo lightweight lock (FROZEN 2026-09-01)
+
+Never commit build caches, `.perf/` duplicates, `shots/`, research scrapes,
+logo refs, or files \>512 KB (except data/logo/public/mobile assets). Full ban
+list: `.cursor/rules/repo-lightweight-lock.mdc` · enforced by
+`scripts/check-repo-weight.mjs`.
+
+Once per clone: `git config core.hooksPath .githooks && chmod +x .githooks/pre-commit`

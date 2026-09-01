@@ -14,8 +14,10 @@ out/
 # OS
 .DS_Store
 
-# IDE
-.cursor/
+# IDE — track rules only
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .zcode/
 
 # prisma
@@ -26,13 +28,37 @@ prisma/*.db
 .vercel
 .env*
 
-# local junk
+# local junk — see .cursor/rules/repo-lightweight-lock.mdc
 app/src/__linttmp/
 app/scripts/*.log
-shots/
+*.log
+
+# perf / audit (never commit)
 .perf/
-logo-refs/
+shots/
+lh-*.json
+
+# research scrapes (keep manifests + competitor-locations JSON only)
+research/*.html
+research/*.txt
+research/*.png
+research/*.log
+research/*.mjs
+research/package.json
+research/package-lock.json
 research/node_modules/
+
+# logo / design scratch
+logo-refs/
+logo/concepts/
+
+# root scratch assets
+/Screenshot *.png
+/v-*.png
+/*.docx
+
+# tool / OS caches
 supabase/.temp/
 __pycache__/
+*.sst
 

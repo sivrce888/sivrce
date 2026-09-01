@@ -56,6 +56,7 @@
     "check:competitor-import": "npx --yes tsx src/lib/competitor-import.check.ts",
     "check:listing-video": "npx --yes tsx src/lib/listing-video.check.ts",
     "check:indexnow": "npx --yes tsx src/lib/indexnow.check.ts",
+    "check:repo-weight": "node ../scripts/check-repo-weight.mjs --verbose",
     "ingest:buildings": "npx --yes tsx scripts/ingest-osm-buildings.ts",
     "ingest:buildings:all": "npx --yes tsx scripts/ingest-osm-buildings.ts --city=all",
     "napr:snap": "npx --yes tsx scripts/snap-napr-pins.ts",
