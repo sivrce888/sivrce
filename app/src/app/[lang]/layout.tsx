@@ -244,6 +244,7 @@ const siteLd = {
         addressLocality: "თბილისი",
         addressCountry: "GE",
       },
+      geo: { "@type": "GeoCoordinates", latitude: 41.7151, longitude: 44.8271 },
       areaServed: [
         { "@type": "City", name: "თბილისი" },
         { "@type": "City", name: "ბათუმი" },
