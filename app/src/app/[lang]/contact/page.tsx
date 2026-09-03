@@ -8,14 +8,35 @@ import { Reveal } from '@/components/Reveal'
 import { getConfig } from '@/lib/config'
 import { telHref } from '@/lib/inquiries/phone'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: 'კონტაქტი — sivrce',
-  description: 'დაუკავშირდი sivrce-ის გუნდს — ელ. ფოსტა, ტელეფონი ან საკონტაქტო ფორმა. ვპასუხობთ 24 საათში.',
-  alternates: { canonical: '/contact', languages: langAlternates('/contact') },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return pageMeta('/contact', lang, {
+    ka: {
+      title: 'კონტაქტი',
+      description:
+        'დაუკავშირდი sivrce-ის გუნდს — ელ. ფოსტა, ტელეფონი ან საკონტაქტო ფორმა. ვპასუხობთ 24 საათში.',
+    },
+    en: {
+      title: 'Contact sivrce',
+      description:
+        'Reach the sivrce team — email, phone or the contact form. We reply within 24 hours.',
+    },
+    ru: {
+      title: 'Контакты sivrce',
+      description:
+        'Напишите команде sivrce — эл. почта, телефон или форма. Отвечаем в течение 24 часов.',
+    },
+  })
 }
 
 export default async function ContactPage() {

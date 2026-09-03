@@ -5,15 +5,35 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'უძრავი ქონება საქართველოში — ხშირი კითხვები | sivrce',
-  description:
-    'ბინები დღიურად თბილისში და საბურთალოზე, ყიდვა-გაყიდვა და ქირა — პასუხები sivrce-ზე. ვერიფიკაცია, VIP, AI ძიება.',
-  alternates: { canonical: '/faq', languages: langAlternates('/faq') },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return pageMeta('/faq', lang, {
+    ka: {
+      title: 'უძრავი ქონება საქართველოში — ხშირი კითხვები',
+      description:
+        'ბინები დღიურად თბილისში და საბურთალოზე, ყიდვა-გაყიდვა და ქირა — პასუხები sivrce-ზე. ვერიფიკაცია, VIP, AI ძიება.',
+    },
+    en: {
+      title: 'Real Estate in Georgia — FAQ',
+      description:
+        'Daily rentals in Tbilisi and Saburtalo, buying, selling and rent — answered on sivrce. Verification, VIP, AI search.',
+    },
+    ru: {
+      title: 'Недвижимость в Грузии — частые вопросы',
+      description:
+        'Посуточные квартиры в Тбилиси и Сабуртало, покупка-продажа и аренда — ответы на sivrce. Верификация, VIP, ИИ-поиск.',
+    },
+  })
 }
 
 interface QA {

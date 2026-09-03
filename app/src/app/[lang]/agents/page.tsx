@@ -11,23 +11,44 @@ import { AGENT_PROFILES } from '@/data/professionals'
 import { getAgentListingCountsByKaName } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
 import { roleSignupHref } from '@/lib/auth-roles'
 import { ArrowRight, Building2 } from 'lucide-react'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: 'უძრავი ქონების აგენტები — ვერიფიცირებული სპეციალისტები',
-  description:
-    'ვერიფიცირებული უძრავი ქონების აგენტები თბილისსა და ბათუმში: გამოცდილება, დახურული გარიგებები, ენები და რეალური მიმოხილვები — აირჩიე შენი აგენტი.',
-  alternates: { canonical: '/agents', languages: langAlternates('/agents') },
-  openGraph: {
-    title: 'უძრავი ქონების აგენტები | sivrce',
-    description:
-      'ვერიფიცირებული აგენტები თბილისსა და ბათუმში — გამოცდილებით, სტატისტიკითა და მიმოხილვებით.',
-    type: 'website',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/agents', lang, {
+      ka: {
+        title: 'უძრავი ქონების აგენტები — ვერიფიცირებული სპეციალისტები',
+        description:
+          'ვერიფიცირებული უძრავი ქონების აგენტები თბილისსა და ბათუმში: გამოცდილება, დახურული გარიგებები, ენები და რეალური მიმოხილვები — აირჩიე შენი აგენტი.',
+      },
+      en: {
+        title: 'Verified Real Estate Agents in Tbilisi & Batumi',
+        description:
+          'Verified real estate agents in Tbilisi and Batumi: experience, closed deals, languages and real reviews — choose your agent.',
+      },
+      ru: {
+        title: 'Проверенные риелторы в Тбилиси и Батуми',
+        description:
+          'Проверенные агенты по недвижимости в Тбилиси и Батуми: опыт, закрытые сделки, языки и реальные отзывы — выберите своего агента.',
+      },
+    }),
+    openGraph: {
+      title: 'უძრავი ქონების აგენტები | sivrce',
+      description:
+        'ვერიფიცირებული აგენტები თბილისსა და ბათუმში — გამოცდილებით, სტატისტიკითა და მიმოხილვებით.',
+      type: 'website',
+    },
+  }
 }
 
 export default async function AgentsPage({ params }: { params: Promise<{ lang: string }> }) {

@@ -7,23 +7,45 @@ import { PageHero } from '@/components/PageHero'
 import { NewThreadForm } from '@/components/forum/NewThreadForm'
 import { listForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
 export const revalidate = 60
 
-export const metadata: Metadata = {
-  title: 'ფორუმი — უძრავი ქონების დისკუსიები | sivrce',
-  description:
-    'სადისკუსიო თემები საქართველოს უძრავი ქონების ბაზარზე: რემონტი, იპოთეკა, ბათუმის ინვესტიცია, ძველი კორპუსები და მყიდველის რჩევები.',
-  alternates: { canonical: '/forum', languages: langAlternates('/forum') },
-  openGraph: {
-    title: 'ფორუმი — უძრავი ქონების დისკუსიები | sivrce',
-    description: 'ექსპერტებისა და მყიდველების გამოცდილება თბილისსა და ბათუმში.',
-    type: 'website',
-    url: 'https://sivrce.ge/forum',
-    siteName: 'sivrce',
-    locale: 'ka_GE',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/forum', lang, {
+      ka: {
+        title: 'ფორუმი — უძრავი ქონების დისკუსიები',
+        description:
+          'სადისკუსიო თემები საქართველოს უძრავი ქონების ბაზარზე: რემონტი, იპოთეკა, ბათუმის ინვესტიცია, ძველი კორპუსები და მყიდველის რჩევები.',
+      },
+      en: {
+        title: 'Forum — Georgia Real Estate Discussions',
+        description:
+          'Community discussions on the Georgian property market: renovation, mortgages, Batumi investments, older buildings and buyer advice.',
+      },
+      ru: {
+        title: 'Форум — обсуждение недвижимости в Грузии',
+        description:
+          'Обсуждения рынка недвижимости Грузии: ремонт, ипотека, инвестиции в Батуми, старые корпуса и советы покупателям.',
+      },
+    }),
+    openGraph: {
+      title: 'ფორუმი — უძრავი ქონების დისკუსიები | sivrce',
+      description: 'ექსპერტებისა და მყიდველების გამოცდილება თბილისსა და ბათუმში.',
+      type: 'website',
+      url: 'https://sivrce.ge/forum',
+      siteName: 'sivrce',
+      locale: 'ka_GE',
+    },
+  }
 }
 
 export default async function ForumIndex() {

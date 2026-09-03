@@ -19,8 +19,9 @@ const BASE = 'https://sivrce.ge'
 // Regenerate with fresh DB inventory hourly.
 export const revalidate = 3600
 
-// Static pages: one lastmod per deploy, not per request
-const DEPLOY_DATE = new Date('2026-09-01')
+// Static pages: one lastmod per build, not per request — a stale hardcoded
+// date teaches Google to ignore lastmod for half the URLs.
+const DEPLOY_DATE = new Date()
 
 // hreflang cluster: every page is now server-rendered in all 9 locales via
 // app/[lang]. ka is unprefixed (canonical); the other eight carry a prefix.
@@ -66,7 +67,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: Entry[] = [
     { path: '', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 1, localized: true },
-    { path: '/search', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.9 },
+    // /search is meta-noindex — never list it here (conflicting signals).
     { path: '/map', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.95 },
     { path: '/buildings', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.9 },
     { path: '/blog', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },

@@ -7,7 +7,9 @@ const DISALLOW = [
   '/settings',
   '/dashboard',
   '/seller',
-  '/agent',
+  // Trailing slash required: bare '/agent' prefix-matches the public /agents
+  // directory and would deindex ~140 sitemap pages.
+  '/agent/',
   '/agency',
   '/developer/',
   '/auth',

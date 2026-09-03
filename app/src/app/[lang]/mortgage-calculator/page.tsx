@@ -8,23 +8,45 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { isValidLang } from '@/lib/i18n/core'
 import MortgageCalcClient from '@/components/mortgage/MortgageCalcClient'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'იპოთეკის კალკულატორი საქართველოში — ყოველთვიური გადასახადი, პირველი შენატანი, პროცენტი',
-  description:
-    'უფასო იპოთეკის კალკულატორი საქართველოს ბაზრისთვის — გამოთვალეთ ყოველთვიური გადასახადი ნებისმიერი ბინისთვის. 2026 წლის პროცენტები Bank of Georgia, TBC Bank, Credo, BasisBank. ვადა 15-25 წელი, პირველი შენატანი 15-30%.',
-  alternates: { canonical: '/mortgage-calculator', languages: langAlternates('/mortgage-calculator') },
-  openGraph: {
-    title: 'იპოთეკის კალკულატორი საქართველოში',
-    description: 'გამოთვალეთ ყოველთვიური გადასახადი და პროცენტი — 2026 წლის ბაზრის პირობებით.',
-    url: 'https://sivrce.ge/mortgage-calculator',
-    siteName: 'sivrce',
-    locale: 'ka_GE',
-    type: 'website',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/mortgage-calculator', lang, {
+      ka: {
+        title:
+          'იპოთეკის კალკულატორი საქართველოში — ყოველთვიური გადასახადი, პირველი შენატანი, პროცენტი',
+        description:
+          'უფასო იპოთეკის კალკულატორი საქართველოს ბაზრისთვის — გამოთვალეთ ყოველთვიური გადასახადი ნებისმიერი ბინისთვის. 2026 წლის პროცენტები Bank of Georgia, TBC Bank, Credo, BasisBank. ვადა 15-25 წელი, პირველი შენატანი 15-30%.',
+      },
+      en: {
+        title: 'Mortgage Calculator Georgia — Monthly Payment, Down Payment, Rates',
+        description:
+          'Free mortgage calculator for the Georgian market — monthly payment for any apartment. 2026 rates at Bank of Georgia, TBC, Credo, BasisBank. 15–25 year terms, 15–30% down.',
+      },
+      ru: {
+        title: 'Ипотечный калькулятор Грузии — платёж, взнос, ставка',
+        description:
+          'Бесплатный ипотечный калькулятор для рынка Грузии — ежемесячный платёж для любой квартиры. Ставки 2026: Bank of Georgia, TBC, Credo, BasisBank. Срок 15–25 лет, взнос 15–30%.',
+      },
+    }),
+    openGraph: {
+      title: 'იპოთეკის კალკულატორი საქართველოში',
+      description: 'გამოთვალეთ ყოველთვიური გადასახადი და პროცენტი — 2026 წლის ბაზრის პირობებით.',
+      url: 'https://sivrce.ge/mortgage-calculator',
+      siteName: 'sivrce',
+      locale: 'ka_GE',
+      type: 'website',
+    },
+  }
 }
 
 const faqs = [

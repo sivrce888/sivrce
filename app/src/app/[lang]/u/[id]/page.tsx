@@ -67,7 +67,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     robots: { index: true, follow: true },
     alternates: { canonical: `/u/${id}`, languages: langAlternates(`/u/${id}`) },
-    openGraph: { title: `${title} | sivrce`, description, type: 'profile', url: `https://sivrce.ge/u/${id}` },
+    openGraph: {
+      title: `${title} | sivrce`,
+      description,
+      type: 'profile',
+      url: `https://sivrce.ge/u/${id}`,
+      // Page-level openGraph replaces the layout's — carry the brand card.
+      images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: title }],
+    },
   }
 }
 

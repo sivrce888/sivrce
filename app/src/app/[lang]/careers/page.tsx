@@ -15,19 +15,42 @@ import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import CareersApplyForm from '@/components/careers/CareersApplyForm'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'კარიერა — გაყიდვების მენეჯერი | sivrce',
-  description: 'გვჭირდება გაყიდვების მენეჯერები თბილისსა და ბათუმში. მოთხოვნები საიტიდან, თავისუფალი გრაფიკი.',
-  alternates: { canonical: '/careers', languages: langAlternates('/careers') },
-  openGraph: {
-    title: 'კარიერა — გაყიდვების მენეჯერი | sivrce',
-    description: 'გაყიდვების მენეჯერები თბილისსა და ბათუმში.',
-    type: 'website',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/careers', lang, {
+      ka: {
+        title: 'კარიერა — გაყიდვების მენეჯერი',
+        description:
+          'გვჭირდება გაყიდვების მენეჯერები თბილისსა და ბათუმში. მოთხოვნები საიტიდან, თავისუფალი გრაფიკი.',
+      },
+      en: {
+        title: 'Careers — Sales Manager',
+        description:
+          'We are hiring sales managers in Tbilisi and Batumi. Leads from the site, flexible schedule.',
+      },
+      ru: {
+        title: 'Карьера — менеджер по продажам',
+        description:
+          'Ищем менеджеров по продажам в Тбилиси и Батуми. Лиды с сайта, свободный график.',
+      },
+    }),
+    openGraph: {
+      title: 'კარიერა — გაყიდვების მენეჯერი | sivrce',
+      description: 'გაყიდვების მენეჯერები თბილისსა და ბათუმში.',
+      type: 'website',
+    },
+  }
 }
 
 const CITIES = [

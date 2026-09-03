@@ -8,24 +8,45 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { isValidLang } from '@/lib/i18n/core'
 import { BLOG_POSTS } from '@/data/blog'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'ბლოგი — უძრავი ქონების გზამკვლევები | sivrce',
-  description:
-    'საქართველოს უძრავი ქონების ბაზრის ანალიტიკა და გზამკვლევები: ბინები დღიურად, ქირავდება ბინა, იყიდება ბინა თბილისში, ბათუმსა და ქუთაისში. ინვესტიციები, ROI, რჩევები მყიდველისა და მოიჯარისთვის.',
-  alternates: { canonical: '/blog', languages: langAlternates('/blog') },
-  openGraph: {
-    title: 'ბლოგი — უძრავი ქონების გზამკვლევები | sivrce',
-    description:
-      'საქართველოს უძრავი ქონების ბაზრის ანალიტიკა და გზამკვლევები. ინვესტიციები, ROI, რჩევები.',
-    type: 'website',
-    url: 'https://sivrce.ge/blog',
-    siteName: 'sivrce',
-    locale: 'ka_GE',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/blog', lang, {
+      ka: {
+        title: 'ბლოგი — უძრავი ქონების გზამკვლევები',
+        description:
+          'საქართველოს უძრავი ქონების ბაზრის ანალიტიკა და გზამკვლევები: ბინები დღიურად, ქირავდება ბინა, იყიდება ბინა თბილისში, ბათუმსა და ქუთაისში. ინვესტიციები, ROI, რჩევები მყიდველისა და მოიჯარისთვის.',
+      },
+      en: {
+        title: 'Blog — Georgia Real Estate Guides',
+        description:
+          'Market analytics and guides for Georgian real estate: daily rentals, buying and renting in Tbilisi, Batumi and Kutaisi. Investments, ROI, buyer tips.',
+      },
+      ru: {
+        title: 'Блог — гиды по недвижимости в Грузии',
+        description:
+          'Аналитика и гиды по рынку недвижимости Грузии: посуточно, покупка и аренда в Тбилиси, Батуми и Кутаиси. Инвестиции, ROI, советы покупателям.',
+      },
+    }),
+    openGraph: {
+      title: 'ბლოგი — უძრავი ქონების გზამკვლევები | sivrce',
+      description:
+        'საქართველოს უძრავი ქონების ბაზრის ანალიტიკა და გზამკვლევები. ინვესტიციები, ROI, რჩევები.',
+      type: 'website',
+      url: 'https://sivrce.ge/blog',
+      siteName: 'sivrce',
+      locale: 'ka_GE',
+    },
+  }
 }
 
 const blogLd = {

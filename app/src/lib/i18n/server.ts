@@ -3,6 +3,7 @@
  * Dicts are plain TS objects, so t() is synchronous; ka is the fallback.
  */
 
+import type { Metadata } from 'next'
 import { translate, DEFAULT_LANG, LANGS, type DictKey, type Lang } from './core'
 
 /** t(key) bound to a lang, for server components/layouts. ka fallback inside translate(). */
@@ -18,8 +19,7 @@ export function langAlternates(path = '/'): Record<string, string> {
   return map
 }
 
-/** OpenGraph locale per lang. */
-export const OG_LOCALE: Record<Lang, string> = {
+/** OpenGraph locale per lang. */export const OG_LOCALE: Record<Lang, string> = {
   ka: 'ka_GE',
   en: 'en_US',
   ru: 'ru_RU',
@@ -146,4 +146,27 @@ export const SITE_KEYWORDS: Record<Lang, string[]> = {
   uk: ['нерухомість грузія', 'квартири тбілісі подобово', 'sivrce'],
   hy: ['անշարժ գույք վրաստան', 'բնակարաններ թբիլիսի', 'sivrce'],
   az: ['gürcüstan daşınmaz əmlak', 'tbilisi günlük mənzil', 'sivrce'],
+}
+
+export interface PageCopy {
+  title: string
+  description: string
+}
+
+/**
+ * Standard static-page metadata: native ka/en/ru copy (the other six locales
+ * read en — never serve ka copy on non-ka URLs) + per-path canonical/hreflang.
+ * The [lang] layout title template appends "| sivrce" — don't hardcode it.
+ */
+export function pageMeta(
+  path: string,
+  lang: Lang,
+  copy: { ka: PageCopy; en: PageCopy } & Partial<Record<Lang, PageCopy>>,
+): Metadata {
+  const c = copy[lang] ?? copy.en
+  return {
+    title: c.title,
+    description: c.description,
+    alternates: { canonical: path, languages: langAlternates(path) },
+  }
 }

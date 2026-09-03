@@ -6,14 +6,35 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'უძრავი ქონება საქართველოში — ჩვენ შესახებ | sivrce',
-  description: 'სივრცე — უძრავი ქონება საქართველოში. ბინები დღიურად თბილისში, იყიდება და ქირავდება. მარტივი, სწრაფი, დაცული ძიება, 3D რუკა და AI ფასი.',
-  alternates: { canonical: '/about', languages: langAlternates('/about') },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return pageMeta('/about', lang, {
+    ka: {
+      title: 'უძრავი ქონება საქართველოში — ჩვენ შესახებ',
+      description:
+        'სივრცე — უძრავი ქონება საქართველოში. ბინები დღიურად თბილისში, იყიდება და ქირავდება. მარტივი, სწრაფი, დაცული ძიება, 3D რუკა და AI ფასი.',
+    },
+    en: {
+      title: 'About sivrce — Real Estate in One Place',
+      description:
+        'sivrce — real estate in Georgia in one place. Daily rentals in Tbilisi, for sale and for rent. Simple, fast, safe search, 3D map and AI pricing.',
+    },
+    ru: {
+      title: 'О sivrce — недвижимость в одном пространстве',
+      description:
+        'sivrce — недвижимость в Грузии в одном пространстве. Посуточно в Тбилиси, продажа и аренда. Простой, быстрый и безопасный поиск, 3D-карта и ИИ-оценка.',
+    },
+  })
 }
 
 const VALUES = [

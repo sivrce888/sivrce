@@ -79,12 +79,16 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     alternates: {
       canonical: root,
       languages: langAlternates("/"),
-      types: { "text/plain": `${SITE_URL}/llms.txt` },
+      types: {
+        "text/plain": `${SITE_URL}/llms.txt`,
+        "application/rss+xml": `${SITE_URL}/rss.xml`,
+      },
     },
     openGraph: {
       type: "website",
       locale: OG_LOCALE[lang],
-      url: `${SITE_URL}${root === "/" ? "" : root}`,
+      // No `url` here: pages without their own openGraph would inherit the
+      // lang root as og:url and consolidate on Facebook.
       siteName: SITE_NAME,
       title: siteTitle,
       description: siteDescription,
@@ -128,9 +132,20 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
         "max-snippet": -1,
       },
     },
-    ...(process.env.GOOGLE_SITE_VERIFICATION
-      ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
-      : {}),
+    verification: {
+      ...(process.env.GOOGLE_SITE_VERIFICATION && {
+        google: process.env.GOOGLE_SITE_VERIFICATION,
+      }),
+      // IndexNow pings Bing/Yandex — their webmaster tags verify ownership.
+      other: {
+        ...(process.env.BING_SITE_VERIFICATION && {
+          "msvalidate.01": process.env.BING_SITE_VERIFICATION,
+        }),
+        ...(process.env.YANDEX_SITE_VERIFICATION && {
+          "yandex-verification": process.env.YANDEX_SITE_VERIFICATION,
+        }),
+      },
+    },
   };
 }
 

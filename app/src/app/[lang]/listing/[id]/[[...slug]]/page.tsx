@@ -7,9 +7,12 @@ import {
   getDistrictPeerPerM2,
   getListingOwnerMeta,
   getAllListings,
+  getListingPriceEvents,
 } from '@/lib/listings-db'
+import { daysSince } from '@/lib/price-scale'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
+import { listingHubAnchor, listingHubPath } from '@/lib/seo-pages'
 import { isLandLease } from '@/lib/add-listing-fields'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingVideoObject } from '@/lib/listing-video'
@@ -72,7 +75,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     l.isExclusive && t('badge.exclusive'),
     l.isSivrceExclusive && t('badge.sivrceExclusive'),
   ].filter(Boolean).join(' · ')
-  const title = `${exclusiveLead ? `${exclusiveLead} · ` : ''}${keyword} — ${price} | Sivrce`
+  // No brand suffix here — the layout title template appends "| sivrce"
+  // (hardcoding it produced "… | Sivrce | sivrce" on every listing SERP).
+  const title = `${exclusiveLead ? `${exclusiveLead} · ` : ''}${keyword} — ${price}`
   /* CTR lead: exclusive + keyword sentence + hard stats before the free text */
   const stats = [
     l.area > 0 && `${l.area} მ²`,
@@ -131,14 +136,17 @@ export default async function ListingPage({ params }: PageProps) {
   const canonical = listingPath(listing)
   if (slug?.join('/') !== listingSlug(listing)) permanentRedirect(canonical)
 
-  const [similar, peerPerM2, aggregate, ownerMeta, railAd] = await Promise.all([
+  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents] = await Promise.all([
     getSimilarListings(listing, 8).catch(() => []),
     getDistrictPeerPerM2(listing.city, listing.district, listing.dealType).catch(() => []),
     getReviewAggregate('listing', listing.id).catch(() => null),
     getListingOwnerMeta(listing.id),
     pickAd('listing_rail', { audience: 'guest', lang }),
+    getListingPriceEvents(listing.id),
   ])
   const ownerTier = ownerMeta?.tier ?? 'standard'
+  // Whole days since posting — feeds the freshness line (60s ISR stays honest).
+  const postedDays = daysSince(listing.postedAt)
 
   // Offer validity: 30 days after posting (matches the 30-day listing lifetime)
   const priceValidUntil = new Date(
@@ -252,13 +260,23 @@ export default async function ListingPage({ params }: PageProps) {
     inLanguage: lang,
   }
 
+  const hubPath = listingHubPath(listing)
+  const hubAnchor = hubPath ? listingHubAnchor(listing) : null
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
+    // Middle crumb points at the indexable programmatic hub, not noindex /search.
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: 'ძიება', item: 'https://sivrce.ge/search' },
-      { '@type': 'ListItem', position: 3, name: listing.title, item: `https://sivrce.ge${canonical}` },
+      ...(hubPath && hubAnchor
+        ? [{ '@type': 'ListItem', position: 2, name: hubAnchor, item: `https://sivrce.ge${hubPath}` }]
+        : []),
+      {
+        '@type': 'ListItem',
+        position: hubPath ? 3 : 2,
+        name: listing.title,
+        item: `https://sivrce.ge${canonical}`,
+      },
     ],
   }
 
@@ -271,6 +289,8 @@ export default async function ListingPage({ params }: PageProps) {
         ownerId={ownerMeta?.ownerId ?? null}
         ownerTier={ownerTier}
         railAd={railAd}
+        priceEvents={priceEvents}
+        postedDays={postedDays}
       />
       <script
         type="application/ld+json"

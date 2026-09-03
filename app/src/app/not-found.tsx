@@ -9,6 +9,10 @@ import Link from "next/link";
 export default function RootNotFound() {
   return (
     <html lang="ka">
+      <head>
+        <title>გვერდი ვერ მოიძებნა — sivrce</title>
+        <meta name="robots" content="noindex" />
+      </head>
       <body
         style={{
           margin: 0,

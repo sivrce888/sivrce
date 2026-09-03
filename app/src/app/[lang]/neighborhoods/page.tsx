@@ -8,21 +8,42 @@ import { isValidLang } from '@/lib/i18n/core'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { getDistrictListingCounts } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: 'უბნები თბილისში — ვაკე, საბურთალო, ბინები დღიურად | sivrce',
-  description:
-    'ბინები დღიურად საბურთალოზე და ვაკეში, იყიდება და ქირავდება. ცხოვრების ხარისხის ქულები, ფასი მ²-ზე და რეალური ფოტოები.',
-  alternates: { canonical: '/neighborhoods', languages: langAlternates('/neighborhoods') },
-  openGraph: {
-    title: 'უბნების გზამკვლევი — ცხოვრების ხარისხის ქულები და ფასები | sivrce',
-    description:
-      'ვაკე, საბურთალო, ძველი თბილისი, ბათუმი, ქუთაისი — ქულები, ფასები მ²-ზე და მცხოვრებლების შეფასებები.',
-    type: 'website',
-  },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/neighborhoods', lang, {
+      ka: {
+        title: 'უბნები თბილისში — ვაკე, საბურთალო, ბინები დღიურად',
+        description:
+          'ბინები დღიურად საბურთალოზე და ვაკეში, იყიდება და ქირავდება. ცხოვრების ხარისხის ქულები, ფასი მ²-ზე და რეალური ფოტოები.',
+      },
+      en: {
+        title: 'Tbilisi Neighborhoods — Vake, Saburtalo Guides & Prices',
+        description:
+          'Daily rentals in Saburtalo and Vake, for sale and for rent. Quality-of-life scores, price per m² and real photos.',
+      },
+      ru: {
+        title: 'Районы Тбилиси — Ваке, Сабуртало: гиды и цены',
+        description:
+          'Посуточно в Сабуртало и Ваке, продажа и аренда. Оценки качества жизни, цена за м² и реальные фото.',
+      },
+    }),
+    openGraph: {
+      title: 'უბნების გზამკვლევი — ცხოვრების ხარისხის ქულები და ფასები | sivrce',
+      description:
+        'ვაკე, საბურთალო, ძველი თბილისი, ბათუმი, ქუთაისი — ქულები, ფასები მ²-ზე და მცხოვრებლების შეფასებები.',
+      type: 'website',
+    },
+  }
 }
 
 export default async function NeighborhoodsPage({

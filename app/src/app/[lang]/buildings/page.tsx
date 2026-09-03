@@ -10,7 +10,8 @@ import { getDeveloper } from '@/data/professionals'
 import { getBuildingDealCountsBySlug } from '@/lib/map/db-buildings'
 import { faqPageLd } from '@/lib/directory-seo'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
 const tbilisi = BUILDINGS.filter((b) => b.city === 'თბილისი')
 const tbilisiCount = tbilisi.length
@@ -38,18 +39,40 @@ const faqs = [
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: `შენობები და კორპუსები — თბილისი (${tbilisiCount})`,
-  description: `თბილისის ${tbilisiCount} კორპუსი ${districtCount} რაიონში და ${ubaniCount}+ უბანში — ფოტო, მისამართი, დეველოპერი, სართულები, მეტრო და განცხადებები. Sivrce — უძრავი ქონება ერთ სივრცეში.`,
-  alternates: { canonical: '/buildings', languages: langAlternates('/buildings') },
-  openGraph: {
-    title: 'შენობები და კორპუსები | sivrce',
-    description: `თბილისის ${tbilisiCount} კორპუსი — ფოტო, უბანი, მეტრო, აღწერა, განცხადებები.`,
-    type: 'website',
-    url: 'https://sivrce.ge/buildings',
-    siteName: 'sivrce',
-    locale: 'ka_GE',
-  },
+// Shared with the CollectionPage JSON-LD below.
+const buildingsDescription = `თბილისის ${tbilisiCount} კორპუსი ${districtCount} რაიონში და ${ubaniCount}+ უბანში — ფოტო, მისამართი, დეველოპერი, სართულები, მეტრო და განცხადებები. Sivrce — უძრავი ქონება ერთ სივრცეში.`
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/buildings', lang, {
+      ka: {
+        title: `შენობები და კორპუსები — თბილისი (${tbilisiCount})`,
+        description: buildingsDescription,
+      },
+      en: {
+        title: `Buildings & Residential Complexes — Tbilisi (${tbilisiCount})`,
+        description: `${tbilisiCount} Tbilisi buildings across ${districtCount} districts and ${ubaniCount}+ neighborhoods — photo, address, developer, floors, metro and listings. Sivrce — real estate in one place.`,
+      },
+      ru: {
+        title: `Жилые комплексы и корпуса — Тбилиси (${tbilisiCount})`,
+        description: `${tbilisiCount} корпусов Тбилиси в ${districtCount} районах и ${ubaniCount}+ кварталах — фото, адрес, застройщик, этажи, метро и объявления. Sivrce — недвижимость в одном пространстве.`,
+      },
+    }),
+    openGraph: {
+      title: 'შენობები და კორპუსები | sivrce',
+      description: `თბილისის ${tbilisiCount} კორპუსი — ფოტო, უბანი, მეტრო, აღწერა, განცხადებები.`,
+      type: 'website',
+      url: 'https://sivrce.ge/buildings',
+      siteName: 'sivrce',
+      locale: 'ka_GE',
+    },
+  }
 }
 
 export default async function BuildingsPage() {
@@ -71,7 +94,7 @@ export default async function BuildingsPage() {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: 'შენობები და კორპუსები — თბილისი',
-    description: metadata.description,
+    description: buildingsDescription,
     url: 'https://sivrce.ge/buildings',
     isPartOf: { '@type': 'WebSite', name: 'sivrce', url: 'https://sivrce.ge' },
     mainEntity: {
