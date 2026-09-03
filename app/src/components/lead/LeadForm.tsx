@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { leadStrings } from './i18n'
 
 export interface LeadFormProps {
-  targetType: 'listing' | 'project' | 'developer' | 'agent' | 'service'
+  targetType: 'listing' | 'project' | 'developer' | 'agent' | 'agency' | 'service'
   targetId: string
   /** Displayed as the form heading context, e.g. agent or developer name. */
   recipientName?: string

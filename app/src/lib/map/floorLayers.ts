@@ -71,7 +71,11 @@ export function satelliteStyle(): StyleSpecification {
 }
 
 export async function loadMapBasemap(styleKey: string): Promise<StyleSpecification> {
-  return styleKey === STYLE_SATELLITE ? satelliteStyle() : await loadCleanStyle(styleKey)
+  // Satellite is always hybrid — Map3D/MapEmbed/SearchMapView share this path.
+  // overlayHybridLabels is idempotent (skips when labels are already grafted).
+  return styleKey === STYLE_SATELLITE
+    ? overlayHybridLabels(satelliteStyle())
+    : await loadCleanStyle(styleKey)
 }
 
 const HYBRID_NAME_IDS = [

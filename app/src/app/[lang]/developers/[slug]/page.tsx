@@ -279,7 +279,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             <MapEmbed
               lat={shownPin.lat}
               lng={shownPin.lng}
-              zoom={fpPin ? 16 : geoProject ? 14 : 12}
+              zoom={fpPin ? 17 : geoProject ? 14 : 12}
               q={mapLabel}
               aspect="16/9"
               highlight

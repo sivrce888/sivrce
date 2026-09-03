@@ -29,6 +29,7 @@ export const ka = {
   'nav.blog': 'ბლოგი',
   'nav.forum': 'ფორუმი',
   'nav.agents': 'აგენტები',
+  'nav.agencies': '',
   'nav.developers': 'დეველოპერები',
   'nav.advertise': 'განთავსება',
 
@@ -347,6 +348,7 @@ export const ka = {
   'footer.colServices': 'სერვისები',
   'footer.sv.projects': 'ახალი პროექტები',
   'footer.sv.agents': 'აგენტები და სააგენტოები',
+  'footer.sv.agencies': '',
   'footer.sv.developers': 'დეველოპერები',
   'footer.sv.renovation': 'რემონტის კალკულატორი',
   'footer.sv.mortgage': 'იპოთეკა',

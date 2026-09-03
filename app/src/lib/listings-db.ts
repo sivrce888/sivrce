@@ -31,6 +31,7 @@ import { priceEventViews, type PriceEventView } from "@/lib/price-scale"
 import { MAP_CENTER } from "@/lib/map/map-geo"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
+import { streetHrefForListing } from "@/lib/street-href"
 import type { SellerRole } from "@/lib/profiles/roles"
 import {
   cadastralVariants,
@@ -92,6 +93,8 @@ export interface Listing {
   id: string
   /** MyHome-style 8-digit public number — searchable. */
   publicId?: number
+  /** Street SEO hub link — precomputed here so the street catalog stays server-side. */
+  streetHref?: string | null
   img: string
   images: string[]
   /** Full gallery size. Set when `images` is a 4-frame card teaser. */
@@ -174,9 +177,16 @@ function rowToListing(row: Record<string, unknown>): Listing {
   }) ?? {}
   const aiScore = (r.trustScore as number) ?? 70
   const createdAt = (r.createdAt as Date) ?? new Date()
+  // Precomputed street SEO link — keeps the 740KB street catalog server-side.
+  const streetHref = streetHrefForListing(
+    (r.address as string) ?? "",
+    (r.district as string) ?? "",
+    (r.city as string) ?? "",
+  )
 
   return {
     id: r.id as string,
+    streetHref,
     publicId: listingPublicId({ id: r.id as string, publicId: r.publicId as number | null | undefined }),
     img: ((r.images as string[]) ?? [])[0] ?? "/images/p1.webp",
     images: (r.images as string[]) ?? [],

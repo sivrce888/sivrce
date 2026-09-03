@@ -126,6 +126,9 @@ export interface ListingDocument {
   city: string
   district: string
   address: string
+  /** Street SEO hub link, precomputed server-side (street-href.ts) so the
+   *  street catalog never reaches the client bundle. */
+  streetHref?: string | null
   dealType: string
   propertyType: string
   price: number

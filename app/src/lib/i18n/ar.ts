@@ -30,6 +30,7 @@ export const ar: Dict = {
   'nav.blog': 'المدونة',
   'nav.forum': 'المنتدى',
   'nav.agents': 'الوكلاء',
+  'nav.agencies': '',
   'nav.developers': 'المطوّرون',
   'nav.advertise': 'أعلن معنا',
 
@@ -347,6 +348,7 @@ export const ar: Dict = {
   'footer.colServices': 'الخدمات',
   'footer.sv.projects': 'مشاريع جديدة',
   'footer.sv.agents': 'الوكلاء والوكالات',
+  'footer.sv.agencies': '',
   'footer.sv.developers': 'المطورون',
   'footer.sv.renovation': 'حاسبة التجديد',
   'footer.sv.mortgage': 'الرهن العقاري',

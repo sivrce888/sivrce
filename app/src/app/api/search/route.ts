@@ -14,6 +14,7 @@ import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
 import { listingIdsInBbox } from "@/lib/geo/postgis"
 import { isExactLookupQuery } from "@/lib/listing-public-id"
 import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
+import { streetHrefForListing } from "@/lib/street-href"
 
 export const maxDuration = 15
 export const preferredRegion = "fra1"
@@ -176,6 +177,7 @@ function mapDbHit(
   const photos = cardPhotoPayload((l.images as string[]) ?? [])
   return {
     ...l,
+    streetHref: streetHrefForListing(l.address, l.district, l.city),
     images: photos.images,
     photoCount: photos.photoCount,
     dealType: l.dealType === "buy" ? "sale" : l.dealType === "mortgage" ? "pledge" : l.dealType,

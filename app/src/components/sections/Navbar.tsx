@@ -75,6 +75,7 @@ export default function Navbar() {
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
     { key: 'nav.forum', to: '/forum', mobileOnly: true },
     { key: 'nav.agents', to: '/agents', mobileOnly: true },
+    { key: 'nav.agencies', to: '/agencies', mobileOnly: true },
     { key: 'nav.developers', to: '/developers', mobileOnly: true },
     { key: 'nav.advertise', to: '/advertise', mobileOnly: true },
     { key: 'nav.services', to: '/services', mobileOnly: true },

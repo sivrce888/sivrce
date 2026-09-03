@@ -337,7 +337,7 @@ export default async function ProjectPage({ params }: PageProps) {
               <MapEmbed
                 lat={fpPin?.lat ?? project.coords.lat}
                 lng={fpPin?.lng ?? project.coords.lng}
-                zoom={15}
+                zoom={fpPin ? 16 : 15}
                 q={project.location}
                 aspect="16/9"
                 highlight

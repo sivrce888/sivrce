@@ -30,6 +30,7 @@ export const az: Dict = {
   'nav.blog': 'Bloq',
   'nav.forum': 'Forum',
   'nav.agents': 'Agentlər',
+  'nav.agencies': '',
   'nav.developers': 'Tikinti şirkətləri',
   'nav.advertise': 'Elan yerləşdir',
 
@@ -347,6 +348,7 @@ export const az: Dict = {
   'footer.colServices': 'Xidmətlər',
   'footer.sv.projects': 'Yeni layihələr',
   'footer.sv.agents': 'Agentlər və agentliklər',
+  'footer.sv.agencies': '',
   'footer.sv.developers': 'Tikinti şirkətləri',
   'footer.sv.renovation': 'Təmir kalkulyatoru',
   'footer.sv.mortgage': 'İpoteka',

@@ -13,6 +13,7 @@ import type { LocalName, LocalText } from '@/data/professionals'
 const ka = {
   developer: 'დეველოპერი',
   agent: 'აგენტი',
+  agency: 'სააგენტო',
   verified: 'ვერიფიცირებული',
   call: 'დარეკვა',
   yearsActive: 'წელი ბაზარზე',
@@ -29,6 +30,10 @@ const ka = {
   about: 'შესახებ',
   contactEntity: 'დაგვიკავშირდით',
   languages: 'ენები',
+  teamSize: 'გუნდი',
+  teamMembers: 'გუნდის აგენტები',
+  responseRate: 'პასუხის მაჩვენებელი',
+  avgDealDays: 'საშ. დღე გარიგებამდე',
 } as const
 
 export type EntitiesKey = keyof typeof ka
@@ -36,6 +41,7 @@ export type EntitiesKey = keyof typeof ka
 const en: Record<EntitiesKey, string> = {
   developer: 'Developer',
   agent: 'Agent',
+  agency: 'Agency',
   verified: 'Verified',
   call: 'Call',
   yearsActive: 'Years on market',
@@ -52,11 +58,16 @@ const en: Record<EntitiesKey, string> = {
   about: 'About',
   contactEntity: 'Get in touch',
   languages: 'Languages',
+  teamSize: 'Team',
+  teamMembers: 'Team agents',
+  responseRate: 'Response rate',
+  avgDealDays: 'Avg. days to deal',
 }
 
 const ru: Record<EntitiesKey, string> = {
   developer: 'Девелопер',
   agent: 'Агент',
+  agency: 'Агентство',
   verified: 'Проверен',
   call: 'Позвонить',
   yearsActive: 'Лет на рынке',
@@ -73,6 +84,10 @@ const ru: Record<EntitiesKey, string> = {
   about: 'О компании',
   contactEntity: 'Связаться',
   languages: 'Языки',
+  teamSize: 'Команда',
+  teamMembers: 'Агенты команды',
+  responseRate: 'Показатель ответов',
+  avgDealDays: 'Ср. дней до сделки',
 }
 
 const DICTS: Record<string, Record<EntitiesKey, string>> = { ka, en, ru }

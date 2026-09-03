@@ -9,7 +9,7 @@ import { useEntities, pick, localizeCity, type EntitiesKey } from './i18n'
 import { DeveloperLogo } from './DeveloperLogo'
 
 export interface EntityHeaderProps {
-  kind: 'developer' | 'agent'
+  kind: 'developer' | 'agent' | 'agency'
   name: LocalName
   city: string
   verified: boolean
@@ -69,7 +69,7 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
               className="mb-2 inline-block rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
               style={{ color: brand.hue, backgroundColor: brand.chip }}
             >
-              {kind === 'developer' ? d.developer : d.agent}
+              {kind === 'developer' ? d.developer : kind === 'agency' ? d.agency : d.agent}
             </span>
             <h1 className="flex flex-wrap items-center gap-2 text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
               {displayName}

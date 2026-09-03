@@ -21,6 +21,7 @@ import { USD_GEL } from "@/data/listings"
 import { revalidateTag } from "next/cache"
 import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
 import { deleteListing, indexListing, type ListingDocument } from "@/lib/search"
+import { streetHrefForListing } from "@/lib/street-href"
 import { metroMeters } from "@/lib/map/pois"
 import {
   activeColorUntil,
@@ -839,6 +840,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
   const tierKey = effectiveTierKey(listing.tier, listing.tierExpiresAt)
   const doc: ListingDocument = {
     id: listing.id,
+    streetHref: streetHrefForListing(listing.address, listing.district, listing.city),
     title: listing.title,
     description: listing.description,
     city: listing.city,

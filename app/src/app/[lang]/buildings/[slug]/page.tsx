@@ -578,7 +578,7 @@ export default async function BuildingPage({ params }: PageProps) {
             <MapEmbed
               lat={fpPin?.lat ?? building.coords.lat}
               lng={fpPin?.lng ?? building.coords.lng}
-              zoom={16}
+              zoom={fpPin ? 17 : 16}
               q={building.address}
               aspect="16/9"
               highlight

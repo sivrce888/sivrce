@@ -15,6 +15,7 @@ import { unstable_cache } from "next/cache"
 import type { BuildingCatalogEntry } from "@/data/buildings"
 import type { DealType, Listing } from "@/data/listings"
 import { SERVICE_BRAND } from "@/lib/category-brand"
+import { streetHrefForListing } from "@/lib/street-href"
 import { db, dbAvailable } from "@/lib/db"
 import { listingIdsInBbox, type Bbox } from "@/lib/geo/postgis"
 import { catalogToCluster, type MapBuildingCluster } from "@/lib/map/buildings"
@@ -83,6 +84,7 @@ function rowToMapListing(row: {
   const tierKey = effectiveTierKey(row.tier, row.tierExpiresAt)
   return {
     id: row.id,
+    streetHref: streetHrefForListing(row.address, row.district, row.city),
     img: row.images[0] ?? "/images/p1.webp",
     images: row.images,
     priceUSD: Math.round(priceGEL / USD_GEL),

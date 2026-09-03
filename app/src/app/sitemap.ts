@@ -9,6 +9,7 @@ import { FORUM_THREADS } from '@/data/forum'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
+import { db } from '@/lib/db'
 import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
 import { listingVideoObject } from '@/lib/listing-video'
@@ -92,6 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // is the discovery path for ~140 indexed pages (agents, developers, projects).
     { path: '/mortgage-calculator', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
     { path: '/agents', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.6 },
+    { path: '/agencies', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.6 },
     { path: '/developers', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },
     { path: '/services', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.8 },
   ]
@@ -99,6 +101,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const a of AGENT_PROFILES) {
     entries.push({ path: `/agents/${a.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.55 })
   }
+  // Public agency profiles (DB) — fall back to hub-only on build-time DB outage.
+  try {
+    const agencyRows = await db.agencyProfile.findMany({
+      where: { deletedAt: null },
+      select: { slug: true },
+    })
+    for (const a of agencyRows) {
+      entries.push({ path: `/agencies/${a.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.55 })
+    }
+  } catch { /* build-time DB outage */ }
   for (const c of SERVICE_CATEGORIES) {
     entries.push({ path: `/services/${c.id}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 })
   }

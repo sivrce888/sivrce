@@ -525,10 +525,12 @@ for (const l of LISTINGS) {
   assert.ok(l.buildingSlug && l.buildingSlug.trim().length > 0, `${l.id}: missing buildingSlug`)
 }
 
-const withNumber = LISTINGS.filter((l) => listingBuildingNumber(l).trim().length > 0)
+// Lands/settlement pins have no street number by nature — count only addressable kinds.
+const addressable = LISTINGS.filter((l) => l.propType !== 'land')
+const withNumber = addressable.filter((l) => listingBuildingNumber(l).trim().length > 0)
 assert.ok(
-  withNumber.length >= Math.ceil(LISTINGS.length * 0.9),
-  `buildingNumber coverage ${withNumber.length}/${LISTINGS.length} below 90%`,
+  withNumber.length >= Math.ceil(addressable.length * 0.9),
+  `buildingNumber coverage ${withNumber.length}/${addressable.length} below 90%`,
 )
 
 const realClusters = clusterListingsToBuildings(LISTINGS)

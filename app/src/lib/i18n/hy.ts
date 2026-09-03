@@ -30,6 +30,7 @@ export const hy: Dict = {
   'nav.blog': 'Բլոգ',
   'nav.forum': 'Ֆորում',
   'nav.agents': 'Գործակալներ',
+  'nav.agencies': '',
   'nav.developers': 'Կառուցապատողներ',
   'nav.advertise': 'Տեղադրում',
 
@@ -347,6 +348,7 @@ export const hy: Dict = {
   'footer.colServices': 'Ծառայություններ',
   'footer.sv.projects': 'Նոր նախագծեր',
   'footer.sv.agents': 'Գործակալներ և գործակալություններ',
+  'footer.sv.agencies': '',
   'footer.sv.developers': 'Կառուցապատողներ',
   'footer.sv.renovation': 'Վերանորոգման հաշվիչ',
   'footer.sv.mortgage': 'Հիպոթեք',

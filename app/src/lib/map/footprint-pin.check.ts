@@ -6,21 +6,28 @@ import assert from 'node:assert/strict'
 import { footprintPin, ringLabelPoint, haversineM } from './buildings'
 import { ringContains } from './pick-building'
 
-// L-shape: vertex average lands in the inner notch, label point stays inside.
+// L-shape: vertex average lands inside the cut-out quadrant, label point inside.
 const lRing: [number, number][] = [
   [44.79, 41.72],
-  [44.81, 41.72],
-  [44.81, 41.725],
-  [44.795, 41.725],
-  [44.795, 41.73],
+  [44.82, 41.72],
+  [44.82, 41.724],
+  [44.794, 41.724],
+  [44.794, 41.73],
   [44.79, 41.73],
 ]
 const avg = lRing
   .reduce((a, p) => [a[0] + p[0], a[1] + p[1]], [0, 0])
   .map((v) => v / lRing.length) as [number, number]
-assert.ok(!ringContains(lRing, avg[0], avg[1]), 'L-shape vertex avg sits in the notch')
+assert.ok(
+  !ringContains(lRing, avg[0], avg[1]),
+  `L-shape vertex avg (${avg[0]}, ${avg[1]}) sits in the cut-out`,
+)
 const lp = ringLabelPoint(lRing)
 assert.ok(ringContains(lRing, lp.lng, lp.lat), 'label point inside the walls')
+assert.ok(
+  haversineM(lp.lat, lp.lng, avg[1], avg[0]) > 30,
+  'label point moved off the vertex average',
+)
 
 // Square ring → dead center.
 const sq = ringLabelPoint([

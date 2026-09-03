@@ -9,11 +9,12 @@ import { useEntities, pick, localizeCity } from './i18n'
 import { DeveloperLogo } from './DeveloperLogo'
 
 export interface EntityCardProps {
-  kind: 'developer' | 'agent'
+  kind: 'developer' | 'agent' | 'agency'
   slug: string
   name: LocalName
   city: string
-  yearsActive: number
+  /** undefined for DB-only profiles (no such column) — the sub-line adapts */
+  yearsActive?: number
   /** pre-computed deterministic listings count */
   listingsCount: number
   verified: boolean
@@ -21,6 +22,8 @@ export interface EntityCardProps {
   aggregate: { average: number; count: number } | null
   /** Official developer logo URL (korter GCS) */
   logoUrl?: string
+  /** fallback sub-line when city/yearsActive are unknown (e.g. agency name) */
+  subtitle?: string
 }
 
 function initials(enName: string): string {
@@ -42,10 +45,19 @@ export function EntityCard({
   verified,
   aggregate,
   logoUrl,
+  subtitle,
 }: EntityCardProps) {
   const { lang, d } = useEntities()
   const brand = SERVICE_BRAND[kind === 'developer' ? 'developers' : 'agents']
-  const href = `/${kind === 'developer' ? 'developers' : 'agents'}/${slug}`
+  const hub = kind === 'developer' ? 'developers' : kind === 'agency' ? 'agencies' : 'agents'
+  const href = `/${hub}/${slug}`
+  const sub =
+    [
+      city ? localizeCity(city, lang) : '',
+      yearsActive != null ? `${yearsActive} ${d.yearsActive}` : '',
+    ]
+      .filter(Boolean)
+      .join(' · ') || subtitle || ''
 
   return (
     <Link
@@ -84,10 +96,12 @@ export function EntityCard({
               <BadgeCheck className="h-4 w-4 shrink-0 text-sv-success" aria-label={d.verified} />
             )}
           </h3>
-          <p className="mt-0.5 flex items-center gap-1 text-[13px] font-bold text-sv-ink/55">
-            <MapPin className="h-3.5 w-3.5 text-sv-ink/35" aria-hidden />
-            {localizeCity(city, lang)} · {yearsActive} {d.yearsActive}
-          </p>
+          {sub ? (
+            <p className="mt-0.5 flex items-center gap-1 text-[13px] font-bold text-sv-ink/55">
+              <MapPin className="h-3.5 w-3.5 text-sv-ink/35" aria-hidden />
+              {sub}
+            </p>
+          ) : null}
         </div>
       </div>
 

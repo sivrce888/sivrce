@@ -9,6 +9,7 @@ import { db } from "@/lib/db"
 import { LISTING_LIFETIME_MS } from "@/lib/listings/lifetime"
 import { unattributeListing } from "@/lib/map/attribution"
 import { metroMeters } from "@/lib/map/pois"
+import { streetHrefForListing } from "@/lib/street-href"
 import { reindexListingById } from "@/lib/payments"
 import {
   activeColorUntil,
@@ -142,6 +143,7 @@ export async function syncSearchIndexJob(): Promise<{
           : Math.round(rawM2 / USD_GEL)
     return {
       ...rest,
+      streetHref: streetHrefForListing(row.address, row.district, row.city),
       priceUSD,
       pricePerSqm: rawM2,
       pricePerSqmUSD,

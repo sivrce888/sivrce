@@ -21,6 +21,7 @@ export function mapSearchHit(h: Record<string, unknown>): Listing {
     title: h.title as string,
     city: h.city as string,
     district: h.district as string,
+    streetHref: (h.streetHref as string | null | undefined) ?? null,
     dealType: h.dealType as DealType,
     propType: h.propertyType as PropType,
     priceUSD,

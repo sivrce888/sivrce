@@ -13,7 +13,7 @@ import { BRAND } from '@/lib/brand'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
 import { parseCoords } from '@/lib/map/map-geo'
-import { ringLabelPoint } from '@/lib/map/buildings'
+import { ringLabelPoint } from '@/lib/map/ring-label'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { mapBootCamera } from '@/lib/map/map-ui'
 import { mapRuntimeOptions } from '@/lib/device-budget'
@@ -207,6 +207,9 @@ function ensurePickLayers(map: MlMap, hue: string) {
 }
 
 function paintFeature(map: MlMap, feature: GeoJSON.Feature, hue: string) {
+  // Watchdog/flyTo can reach us before the style parses — addLayer/setPaintProperty
+  // would throw and spam errors; the boot-idle/moveend repaints cover us later.
+  if (!map.isStyleLoaded()) return
   ensurePickLayers(map, hue)
   const src = map.getSource(PICK_SRC) as
     | { setData: (d: GeoJSON.FeatureCollection | GeoJSON.Feature) => void }
@@ -429,13 +432,15 @@ export default function MapEmbed({
           applyBrandPaints(map, isDark ? 'dark' : 'light', terrain)
           tightenAttribution(map)
           map.resize()
-          paintHighlight()
+          setStatus('ready')
+          // Watchdog can fire before the style parses — painting then throws
+          // ("Style is not done loading") and wedges the embed; idle repaint covers it.
+          if (map.isStyleLoaded()) paintHighlight()
           map.once('idle', () => {
             if (!cancelled && mapRef.current && highlightRef.current) {
               paintHighlight()
             }
           })
-          setStatus('ready')
         }
         map.once('load', boot)
         if (map.loaded()) boot()

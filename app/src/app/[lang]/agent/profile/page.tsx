@@ -6,6 +6,7 @@ import { saveAgentProfile } from "@/app/[lang]/agent/profile/actions"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
 import StatCard from "@/components/dashboard/StatCard"
+import { RequestVerification } from "@/components/dashboard/RequestVerification"
 import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
@@ -130,6 +131,10 @@ export default async function AgentProfilePage() {
           </button>
         </form>
       </section>
+
+      {profile ? (
+        <RequestVerification subjectType="agent" subjectId={profile.id} verified={profile.verified} />
+      ) : null}
 
       {profile ? (
         <section className="mt-6 rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">

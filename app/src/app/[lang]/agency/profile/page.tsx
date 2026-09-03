@@ -7,6 +7,7 @@ import { AGENCY_NAV } from "@/components/agency-dashboard/nav"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
 import StatCard from "@/components/dashboard/StatCard"
+import { RequestVerification } from "@/components/dashboard/RequestVerification"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 
@@ -124,6 +125,10 @@ export default async function AgencyProfilePage() {
           </button>
         </form>
       </section>
+
+      {profile ? (
+        <RequestVerification subjectType="agency" subjectId={profile.id} verified={profile.verified} />
+      ) : null}
     </DashboardShell>
   )
 }

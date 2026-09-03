@@ -5,6 +5,9 @@ import { BadgeCheck, MapPin } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
+import { StatsRow } from '@/components/entities/StatsRow'
+import { LeadForm } from '@/components/lead/LeadForm'
+import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { db } from '@/lib/db'
 import { getListingsByOwner } from '@/lib/listings-db'
 import { SELLER_ROLE_LABEL, type SellerRole } from '@/lib/profiles/roles'
@@ -53,15 +56,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         ? await db.agentProfile
             .findFirst({ where: { ownerId: id, deletedAt: null }, select: { name: true, agency: true } })
             .catch(() => null)
-        : null
+        : role === 'developer'
+          ? await db.developerProfile
+              .findFirst({ where: { ownerId: id, deletedAt: null }, select: { name: true, description: true, headquarters: true } })
+              .catch(() => null)
+          : null
   const name = extra && 'name' in extra ? extra.name : user.name
   const title = `${name ?? 'sivrce'} — ${SELLER_ROLE_LABEL[role].ka}`
   const description =
     extra && 'summary' in extra && extra.summary
       ? extra.summary.replace(/\s+/g, ' ').slice(0, 155)
-      : extra && 'agency' in extra
-        ? `${extra.name} · ${extra.agency} · სივრცე.ge`
-        : `უძრავი ქონება ერთ სივრცეში — ${SELLER_ROLE_LABEL[role].ka}`
+      : extra && 'description' in extra && extra.description
+        ? extra.description.replace(/\s+/g, ' ').slice(0, 155)
+        : extra && 'agency' in extra
+          ? `${extra.name} · ${extra.agency} · სივრცე.ge`
+          : `უძრავი ქონება ერთ სივრცეში — ${SELLER_ROLE_LABEL[role].ka}`
   return {
     title,
     description,
@@ -94,12 +103,27 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
   const brand = brandFor(role)
   const label = SELLER_ROLE_LABEL[role]
 
-  const [agentProfile, agencyProfile] = await Promise.all([
+  const [agentProfile, agencyProfile, developerProfile] = await Promise.all([
     role === 'agent'
       ? db.agentProfile.findFirst({ where: { ownerId: id, deletedAt: null } }).catch(() => null)
       : Promise.resolve(null),
     role === 'agency'
       ? db.agencyProfile.findFirst({ where: { ownerId: id, deletedAt: null } }).catch(() => null)
+      : Promise.resolve(null),
+    role === 'developer'
+      ? db.developerProfile
+          .findFirst({
+            where: { ownerId: id, deletedAt: null },
+            select: {
+              slug: true,
+              name: true,
+              description: true,
+              headquarters: true,
+              projectsCount: true,
+              completedCount: true,
+            },
+          })
+          .catch(() => null)
       : Promise.resolve(null),
   ])
 
@@ -117,11 +141,33 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
   const listings = await getListingsByOwner(ownerIds).catch(() => [])
 
   const displayName =
-    agencyProfile?.name?.trim() || agentProfile?.name?.trim() || user.name?.trim() || 'sivrce'
-  const verified = agencyProfile?.verified || agentProfile?.verified || user.trustScore >= 85
-  const city = agencyProfile?.city
-  const summary = agencyProfile?.summary
+    agencyProfile?.name?.trim() ||
+    agentProfile?.name?.trim() ||
+    developerProfile?.name?.trim() ||
+    user.name?.trim() ||
+    'sivrce'
+  // Developers have no `verified` column — a claimed DeveloperProfile IS the
+  // claim==verified contract (directory-live.ts).
+  const verified =
+    !!agencyProfile?.verified || !!agentProfile?.verified || !!developerProfile || user.trustScore >= 85
+  const city = agencyProfile?.city ?? developerProfile?.headquarters
+  const summary = agencyProfile?.summary ?? developerProfile?.description ?? undefined
   const subtitle = agentProfile?.agency
+  const profileSlug = agencyProfile?.slug ?? agentProfile?.slug ?? developerProfile?.slug ?? null
+
+  const stats: { label: string; value: string }[] = []
+  if (agencyProfile) {
+    stats.push({ label: 'გუნდი', value: String(agencyProfile.teamSize) })
+    if (listings.length > 0) stats.push({ label: 'აქტიური განცხადება', value: String(listings.length) })
+    if (agencyProfile.responseRatePct > 0)
+      stats.push({ label: 'პასუხის მაჩვენებელი', value: `${Math.round(agencyProfile.responseRatePct)}%` })
+  }
+  if (developerProfile) {
+    stats.push({ label: 'დასრულებული პროექტი', value: String(developerProfile.projectsCount) })
+    if (developerProfile.completedCount > 0)
+      stats.push({ label: 'ჩაბარებული ბინა', value: String(developerProfile.completedCount) })
+    if (listings.length > 0) stats.push({ label: 'აქტიური განცხადება', value: String(listings.length) })
+  }
   const initials = displayName
     .split(/\s+/)
     .map((w) => w[0] ?? '')
@@ -185,6 +231,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                 ) : null}
               </div>
             </div>
+            {stats.length > 0 ? <StatsRow items={stats} className="md:ml-auto md:self-center" /> : null}
           </div>
         </header>
 
@@ -204,6 +251,24 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
             </div>
           )}
         </section>
+
+        {profileSlug ? (
+          <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
+            <div className="grid gap-10 lg:grid-cols-2">
+              <LeadForm
+                targetType={role === 'developer' ? 'developer' : role === 'agency' ? 'agency' : 'agent'}
+                targetId={profileSlug}
+                recipientName={displayName}
+              />
+              {role !== 'agency' ? (
+                <ReviewsSection
+                  targetType={role === 'developer' ? 'developer' : 'agent'}
+                  targetId={profileSlug}
+                />
+              ) : null}
+            </div>
+          </section>
+        ) : null}
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(personLd) }} />

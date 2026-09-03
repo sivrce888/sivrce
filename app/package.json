@@ -16,6 +16,7 @@
     "start": "NODE_OPTIONS=--max-old-space-size=768 next start",
     "lint": "eslint",
     "check:map": "npx --yes tsx src/lib/map/buildings.check.ts",
+    "check:pin": "npx --yes tsx src/lib/map/footprint-pin.check.ts",
     "check:admin": "npx --yes tsx src/lib/admin/admin-guard.check.ts",
     "check:i18n": "npx --yes tsx src/lib/i18n.check.ts",
     "check:market": "npx --yes tsx src/lib/market-stats.check.ts",

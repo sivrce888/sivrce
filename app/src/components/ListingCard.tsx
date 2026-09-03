@@ -15,7 +15,6 @@ import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, sta
 import { listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingShareLines, listingShareText } from '@/lib/listing-share'
-import { streetHrefForListing } from '@/lib/street-href'
 import { useCurrency, formatListingPrice } from '@/lib/currency'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
@@ -515,7 +514,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     </div>
   )
 
-  const streetHref = streetHrefForListing(l.address, l.district, l.city)
+  const streetHref = l.streetHref ?? null
   const publicId = listingPublicId(l)
   const days = postedDaysAgo(l)
   // District sometimes already embeds the city (project catalog addresses).

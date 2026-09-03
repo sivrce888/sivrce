@@ -6,6 +6,7 @@ import { saveDeveloperProfile } from "@/app/[lang]/developer/profile/actions"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
 import StatCard from "@/components/dashboard/StatCard"
+import { RequestVerification } from "@/components/dashboard/RequestVerification"
 import { developerNav } from "@/components/developer-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
@@ -137,6 +138,10 @@ export default async function DeveloperProfilePage() {
           </button>
         </form>
       </section>
+
+      {profile ? (
+        <RequestVerification subjectType="developer" subjectId={profile.id} verified={!!profile.ownerId} />
+      ) : null}
     </DashboardShell>
   )
 }

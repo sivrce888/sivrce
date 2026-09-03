@@ -41,7 +41,6 @@ import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
 import { aiLabel } from '@/lib/ai-label'
 import type { TasPublicDoc } from '@/lib/map/tas-arch'
 import { listingPath } from '@/lib/listing-slug'
-import { streetHrefForListing } from '@/lib/street-href'
 import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
 import type { ListingShareInput } from '@/lib/listing-share'
 import { lt } from './i18n'
@@ -453,10 +452,7 @@ export default function ListingDetailClient({
   const priceMain = priceDetailObj.primary
   const priceAlt = priceDetailObj.secondary
   const publicId = listingPublicId(l)
-  const streetHref = useMemo(
-    () => streetHrefForListing(l.address, l.district, l.city),
-    [l.address, l.district, l.city],
-  )
+  const streetHref = l.streetHref ?? null
   const priceScale = useMemo(() => {
     const peers = peerPerM2 && peerPerM2.length >= 2 ? peerPerM2 : []
     return priceScaleOf(l.perM2USD, peers)

@@ -92,7 +92,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                 {building.label}
               </h2>
               {building.code && (
-                <p className="mt-0.5 text-[11px] font-bold text-sv-ink/35">{building.code}</p>
+                <p className="mt-0.5 text-[11px] font-bold text-sv-ink/55">{building.code}</p>
               )}
               <p className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-sv-ink/50">
                 <MapPin className="h-3.5 w-3.5 shrink-0" />
@@ -106,7 +106,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                   </span>
                 </p>
               )}
-              <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] font-bold text-sv-ink/40">
+              <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] font-bold text-sv-ink/55">
                 {building.buildingNumber && building.buildingNumber !== '—' && (
                   <span>კორპ. #{building.buildingNumber}</span>
                 )}
@@ -144,7 +144,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                 )}
               </span>
             )}
-            {building.rating != null && (
+            {building.rating != null && building.rating > 0 && (
               <span className="inline-flex items-center gap-1">
                 <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" />
                 {building.rating}

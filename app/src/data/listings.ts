@@ -27,6 +27,9 @@ export interface Listing {
   id: string
   /** MyHome-style 8-digit public number — searchable. */
   publicId?: number
+  /** Street SEO hub link (/tbilisi/{district}/{street}) — precomputed server-side
+   *  in rowToListing/mapDbHit so the street catalog never ships in client JS. */
+  streetHref?: string | null
   img: string
   images: string[]
   /** Full gallery size. Set when `images` is a 4-frame card teaser. */
