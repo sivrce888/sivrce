@@ -34,7 +34,12 @@ import {
   relatedBuildings,
 } from '@/data/buildings'
 import { getDeveloper, type Developer } from '@/data/professionals'
-import { clusterListingsToBuildings, dealLabelKa, findBuildingBySlug } from '@/lib/map/buildings'
+import {
+  clusterListingsToBuildings,
+  dealLabelKa,
+  findBuildingBySlug,
+  footprintPin,
+} from '@/lib/map/buildings'
 import {
   getBuildingDealCountsBySlug,
   getDbBuildingEntries,
@@ -128,7 +133,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     alternates: { canonical: `/buildings/${b.slug}`, languages: langAlternates(`/buildings/${b.slug}`) },
     openGraph: {
-      title: `${b.name} | sivrce`,
+      title: `${b.name}`,
       description,
       type: 'website',
       url: `https://sivrce.ge/buildings/${b.slug}`,
@@ -143,6 +148,8 @@ export default async function BuildingPage({ params }: PageProps) {
   const { slug } = await params
   const { building, developer: dbDeveloper } = await resolveBuilding(slug)
   if (!building) notFound()
+  // Exact-building pin — committed OSM footprint beats street-level geocode drift.
+  const fpPin = footprintPin({ slug }, building.coords)
 
   const dev = getDeveloper(building.developerSlug) ?? dbDeveloper
   const liveListings = await getListingsForBuildingSlug(slug)
@@ -569,17 +576,19 @@ export default async function BuildingPage({ params }: PageProps) {
           </h2>
           <div className="relative mt-6 overflow-hidden rounded-card">
             <MapEmbed
-              lat={building.coords.lat}
-              lng={building.coords.lng}
+              lat={fpPin?.lat ?? building.coords.lat}
+              lng={fpPin?.lng ?? building.coords.lng}
               zoom={16}
               q={building.address}
               aspect="16/9"
               highlight
+              footprint={fpPin?.ring ?? null}
               className="border-0 shadow-none"
             />
           </div>
           <p className="mt-3 text-[13px] font-semibold text-sv-ink/50">
-            {building.address} · {building.coords.lat.toFixed(5)}, {building.coords.lng.toFixed(5)}
+            {building.address} · {(fpPin?.lat ?? building.coords.lat).toFixed(5)},{' '}
+            {(fpPin?.lng ?? building.coords.lng).toFixed(5)}
           </p>
         </section>
 

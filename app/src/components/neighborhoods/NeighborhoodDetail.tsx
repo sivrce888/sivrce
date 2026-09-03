@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import LocalizedLink from '@/components/LocalizedLink'
-import { MapPin, Building2, Gauge, Wallet, ArrowRight } from 'lucide-react'
+import { MapPin, Building2, Gauge, Wallet, ArrowRight, ArrowUpRight, TrendingUp } from 'lucide-react'
 import type { Neighborhood } from '@/data/neighborhoods'
 import { pick, overallScore } from '@/data/neighborhoods'
 import type { Listing } from '@/data/listings'
@@ -108,6 +108,16 @@ export default function NeighborhoodDetail({
               </div>
             </div>
           ))}
+          <LocalizedLink
+            href="/market"
+            className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 transition-colors hover:border-sv-blue/30 sm:col-span-3"
+          >
+            <span className="inline-flex items-center gap-2.5 text-[14px] font-extrabold text-sv-ink">
+              <TrendingUp className="h-4 w-4 text-sv-blue" aria-hidden />
+              {s.marketHub}
+            </span>
+            <ArrowUpRight className="h-4 w-4 text-sv-ink/35" aria-hidden />
+          </LocalizedLink>
         </div>
       </section>
 

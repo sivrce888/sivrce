@@ -38,7 +38,7 @@ export async function generateMetadata({
       },
     }),
     openGraph: {
-      title: 'ბლოგი — უძრავი ქონების გზამკვლევები | sivrce',
+      title: 'ბლოგი — უძრავი ქონების გზამკვლევები',
       description:
         'საქართველოს უძრავი ქონების ბაზრის ანალიტიკა და გზამკვლევები. ინვესტიციები, ROI, რჩევები.',
       type: 'website',

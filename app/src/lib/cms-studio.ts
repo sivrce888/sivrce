@@ -5,13 +5,7 @@
  */
 
 import { ka } from "./i18n/ka"
-import {
-  CMS_BLOCK_KEYS,
-  CMS_SEO_KEYS,
-  type CmsRow,
-  cmsRowForKey,
-  cmsRowsForGroup,
-} from "./cms-blocks"
+import { CMS_BLOCK_KEYS, CMS_SEO_KEYS } from "./cms-blocks"
 import type { Lang } from "./i18n/core"
 
 export const CMS_LAYOUT_ID = "cms.layout.home"
@@ -190,28 +184,8 @@ export function sectionIdForKey(key: string): string | undefined {
   return HOME_SECTIONS.find((s) => s.keys.includes(key))?.id
 }
 
-export function rowsForSection(
-  lang: Lang,
-  section: StudioSection,
-  overrides: Record<string, string>,
-): CmsRow[] {
-  const rows: CmsRow[] = []
-  for (const key of section.keys) {
-    const row = cmsRowForKey(lang, key, overrides)
-    if (row) rows.push(row)
-  }
-  return rows
-}
-
-export function rowsForPage(
-  lang: Lang,
-  page: StudioPage,
-  overrides: Record<string, string>,
-): CmsRow[] {
-  if (page.id === "home") return []
-  if (page.group) return cmsRowsForGroup(lang, page.group, overrides)
-  return []
-}
+// rowsForSection / rowsForPage moved to ./cms-admin (they build rows via
+// dictionaries; this module stays client-safe for the Studio UI).
 
 export function previewPath(lang: Lang, path: string): string {
   const suffix = path === "/" ? "" : path

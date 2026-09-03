@@ -28,6 +28,58 @@ function clientIp(req: Request): string {
   )
 }
 
+/** LeadForm targetTypes whose lead belongs to a profile owner, not the site. */
+const PROFILE_TARGETS = new Set(["agent", "agency", "developer", "project"])
+
+interface ProfileTarget {
+  ownerId: string | null
+  name: string | null
+  city: string | null
+}
+
+/**
+ * Resolve a profile-slug target to its owning account + display data.
+ * Static-catalog targets have no owner → null → site fallback keeps the lead.
+ */
+async function resolveProfileTarget(
+  targetType: string,
+  targetId: string,
+): Promise<ProfileTarget | null> {
+  try {
+    if (targetType === "agent") {
+      const r = await db.agentProfile.findFirst({
+        where: { slug: targetId, deletedAt: null },
+        select: { ownerId: true, name: true },
+      })
+      return r ? { ownerId: r.ownerId, name: r.name, city: null } : null
+    }
+    if (targetType === "agency") {
+      const r = await db.agencyProfile.findFirst({
+        where: { slug: targetId, deletedAt: null },
+        select: { ownerId: true, name: true, city: true },
+      })
+      return r ? { ownerId: r.ownerId, name: r.name, city: r.city } : null
+    }
+    if (targetType === "developer") {
+      const r = await db.developerProfile.findFirst({
+        where: { slug: targetId, deletedAt: null },
+        select: { ownerId: true, name: true, headquarters: true },
+      })
+      return r ? { ownerId: r.ownerId, name: r.name, city: r.headquarters } : null
+    }
+    if (targetType === "project") {
+      const r = await db.projectDirectory.findFirst({
+        where: { slug: targetId, deletedAt: null },
+        select: { ownerId: true, name: true, city: true },
+      })
+      return r ? { ownerId: r.ownerId, name: r.name, city: r.city } : null
+    }
+  } catch {
+    // DB hiccup — fall through to the site-contact path so the lead survives.
+  }
+  return null
+}
+
 export async function POST(req: Request) {
   if (!isSameOrigin(req)) {
     return Response.json({ ok: false, error: "bad_origin" }, { status: 403 })

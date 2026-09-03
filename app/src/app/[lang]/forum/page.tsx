@@ -38,7 +38,7 @@ export async function generateMetadata({
       },
     }),
     openGraph: {
-      title: 'ფორუმი — უძრავი ქონების დისკუსიები | sivrce',
+      title: 'ფორუმი — უძრავი ქონების დისკუსიები',
       description: 'ექსპერტებისა და მყიდველების გამოცდილება თბილისსა და ბათუმში.',
       type: 'website',
       url: 'https://sivrce.ge/forum',

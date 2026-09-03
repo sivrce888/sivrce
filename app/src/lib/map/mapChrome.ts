@@ -51,6 +51,19 @@ type PlanetJson = {
   bounds?: [number, number, number, number]
 }
 
+/**
+ * Parsed-style cache — theme toggle back is instant (no fetch/rewrite).
+ * ponytail: structuredClone on hit; MapLibre must not mutate the cached spec.
+ */
+const styleCache = new Map<string, StyleSpecification>()
+
+/** OFM US-only shield layers ship null filters (console spam) — dead in Georgia. */
+const DEAD_SHIELD_LAYERS = new Set([
+  'highway-shield-non-us',
+  'highway-shield-us-interstate',
+  'road_shield_us',
+])
+
 function fillLegalAttribution(inner: Element) {
   while (inner.firstChild) inner.removeChild(inner.firstChild)
 
@@ -85,6 +98,9 @@ function fillLegalAttribution(inner: Element) {
 
 /** Fetch style; proxy URLs; legal credit lives on the attribution control (not sources). */
 export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecification> {
+  const cached = styleCache.get(styleUrl)
+  if (cached) return structuredClone(cached)
+
   const usesOfm =
     styleUrl.includes('openfreemap') || styleUrl.startsWith(MAP_PROXY_PREFIX)
 
@@ -111,7 +127,6 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
   const style = rewriteDeep(styleRaw) as StyleSpecification
   const nextSources: StyleSpecification['sources'] = {}
   const renamed: Record<string, string> = {}
-
   for (const [id, raw] of Object.entries(style.sources ?? {})) {
     if (!raw || typeof raw !== 'object') continue
     const src = { ...raw } as Record<string, unknown>
@@ -142,16 +157,20 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
     nextSources[outId] = src as StyleSpecification['sources'][string]
   }
 
-  const layers = (style.layers ?? []).map((layer) => {
-    if (!layer || typeof layer !== 'object') return layer
-    const src = 'source' in layer ? String((layer as { source?: string }).source ?? '') : ''
-    if (src && renamed[src]) {
-      return { ...layer, source: renamed[src] }
-    }
-    return layer
-  })
+  const layers = (style.layers ?? [])
+    .filter((layer) => !layer || typeof layer !== 'object' || !DEAD_SHIELD_LAYERS.has(layer.id))
+    .map((layer) => {
+      if (!layer || typeof layer !== 'object') return layer
+      const src = 'source' in layer ? String((layer as { source?: string }).source ?? '') : ''
+      if (src && renamed[src]) {
+        return { ...layer, source: renamed[src] }
+      }
+      return layer
+    })
 
-  return { ...style, sources: nextSources, layers }
+  const out = { ...style, sources: nextSources, layers }
+  styleCache.set(styleUrl, out)
+  return structuredClone(out)
 }
 
 /** Shared Map constructor chrome — compact ⓘ, legal text on expand. */

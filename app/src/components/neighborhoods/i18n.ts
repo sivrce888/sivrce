@@ -32,6 +32,7 @@ const en = {
   breadcrumbAreas: 'Neighborhoods',
   georgia: 'Georgia',
   vsPrevMonth: 'vs previous month',
+  marketHub: 'Full market analytics',
 } as const
 
 export type NbKey = keyof typeof en
@@ -61,6 +62,7 @@ const ka: Record<NbKey, string> = {
   breadcrumbAreas: 'უბნები',
   georgia: 'საქართველო',
   vsPrevMonth: 'წინა თვესთან შედარებით',
+  marketHub: 'სრული ბაზრის ანალიტიკა',
 }
 
 const ru: Record<NbKey, string> = {
@@ -88,6 +90,7 @@ const ru: Record<NbKey, string> = {
   breadcrumbAreas: 'Районы',
   georgia: 'Грузия',
   vsPrevMonth: 'к предыдущему месяцу',
+  marketHub: 'Полная аналитика рынка',
 }
 
 const DICTS: Record<string, Record<NbKey, string>> = { ka, en, ru }

@@ -2,7 +2,8 @@
  * Runnable check for the CMS studio model (pure — no DB).
  * Run: npx tsx src/lib/cms-studio.check.ts
  */
-import { CMS_BLOCK_KEYS, cmsRowForKey, isKnownCmsKey } from "./cms-blocks"
+import { CMS_BLOCK_KEYS } from "./cms-blocks"
+import { cmsRowForKey, isKnownCmsKey, rowsForSection } from "./cms-admin"
 import {
   CMS_LAYOUT_ID,
   HOME_FLOW,
@@ -13,7 +14,6 @@ import {
   moveHomeLayout,
   parseHomeLayout,
   previewPath,
-  rowsForSection,
   sectionById,
   sectionIdForKey,
   studioPageById,

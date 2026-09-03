@@ -2,10 +2,9 @@ import { Studio } from "@/components/admin/content/studio/Studio"
 import { requireAdmin } from "@/lib/admin/guard"
 import { param, type SearchParams } from "@/lib/admin/query"
 import { getCmsOverrides, getHomeLayout } from "@/lib/cms"
+import { rowsForPage, rowsForSection } from "@/lib/cms-admin"
 import {
   HOME_SECTIONS,
-  rowsForPage,
-  rowsForSection,
   STUDIO_PAGES,
   studioPageById,
 } from "@/lib/cms-studio"

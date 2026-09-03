@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       alternates: { canonical: `/agents/${a.slug}`, languages: langAlternates(`/agents/${a.slug}`) },
       openGraph: {
-        title: `${a.name.ka} — ${a.agency} | sivrce`,
+        title: `${a.name.ka} — ${a.agency}`,
         description,
         type: 'profile',
         url: `https://sivrce.ge/agents/${a.slug}`,

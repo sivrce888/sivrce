@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       languages: langAlternates(`/services/${p.category}/${p.slug}`),
     },
     openGraph: {
-      title: `${name} | sivrce`,
+      title: `${name}`,
       description,
       type: 'profile',
       url: `https://sivrce.ge/services/${p.category}/${p.slug}`,

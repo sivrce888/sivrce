@@ -43,7 +43,7 @@ export async function generateMetadata({
       },
     }),
     openGraph: {
-      title: 'უძრავი ქონების აგენტები | sivrce',
+      title: 'უძრავი ქონების აგენტები',
       description:
         'ვერიფიცირებული აგენტები თბილისსა და ბათუმში — გამოცდილებით, სტატისტიკითა და მიმოხილვებით.',
       type: 'website',

@@ -4,7 +4,8 @@
  */
 
 import type { Metadata } from 'next'
-import { translate, DEFAULT_LANG, LANGS, type DictKey, type Lang } from './core'
+import { DEFAULT_LANG, LANGS, type DictKey, type Lang } from './core'
+import { translate } from './dicts'
 
 /** t(key) bound to a lang, for server components/layouts. ka fallback inside translate(). */
 export function getServerT(lang: Lang) {

@@ -8,54 +8,60 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { EntityCard } from '@/components/entities/EntityCard'
-import { FaqSection } from '@/components/seo/FaqSection'
 import { roleSignupHref } from '@/lib/auth-roles'
-import { PER_PAGE, Pager } from '../projects/ProjectsGrid'
-import { rankedDevelopers } from './ranked'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { DEVELOPERS_HUB, dirLoc, faqPageLd } from '@/lib/directory-seo'
+import { DEVELOPERS_HUB, dirLoc, MICRO } from '@/lib/directory-seo'
+import { PER_PAGE, Pager } from '../../../projects/ProjectsGrid'
+import { rankedDevelopers } from '../../ranked'
 
 export const revalidate = 3600
 
 interface PageProps {
-  params: Promise<{ lang: string }>
+  params: Promise<{ lang: string; pg: string }>
+}
+
+/** Only integers ≥ 2 land here — page 1 is the canonical /developers. */
+function parsePg(raw: string): number {
+  const n = Number(raw)
+  return Number.isInteger(n) && n >= 2 ? n : 0
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { lang: raw } = await params
+  const { lang: raw, pg: rawPg } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
+  const pg = parsePg(rawPg)
   const c = DEVELOPERS_HUB[dirLoc(lang)]
+  const path = `/developers/page/${pg}`
+  const title = pg ? `${c.title} — ${MICRO[dirLoc(lang)].page(pg)}` : c.title
   return {
-    title: c.title,
+    title,
     description: c.description,
-    alternates: { canonical: '/developers', languages: langAlternates('/developers') },
+    alternates: { canonical: pg ? path : '/developers', languages: langAlternates(path) },
     openGraph: {
-      title: c.ogTitle,
+      title,
       description: c.description,
       type: 'website',
-      url: 'https://sivrce.ge/developers',
+      url: `https://sivrce.ge${pg ? path : '/developers'}`,
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
       images: [{ url: 'https://sivrce.ge/images/og-brand.png', alt: c.ogTitle }],
     },
-    twitter: {
-      card: 'summary_large_image',
-      title: c.ogTitle,
-      description: c.description,
-      images: ['https://sivrce.ge/images/og-brand.png'],
-    },
   }
 }
 
-export default async function DevelopersPage({ params }: PageProps) {
-  const { lang: raw } = await params
+export default async function DevelopersPageN({ params }: PageProps) {
+  const { lang: raw, pg: rawPg } = await params
   if (!isValidLang(raw)) notFound()
-  const c = DEVELOPERS_HUB[dirLoc(raw)]
+  const pg = parsePg(rawPg)
+  if (!pg) notFound()
+  const loc = dirLoc(raw)
+  const c = DEVELOPERS_HUB[loc]
 
-  const { cards, total } = await rankedDevelopers(1)
+  const { cards, total } = await rankedDevelopers(pg)
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE))
+  if (pg > totalPages) notFound()
 
   const listLd = {
     '@context': 'https://schema.org',
@@ -63,7 +69,7 @@ export default async function DevelopersPage({ params }: PageProps) {
     numberOfItems: cards.length,
     itemListElement: cards.map(({ d }, i) => ({
       '@type': 'ListItem',
-      position: i + 1,
+      position: (pg - 1) * PER_PAGE + i + 1,
       name: d.name.en,
       url: `https://sivrce.ge/developers/${d.slug}`,
       ...(d.logoUrl
@@ -103,36 +109,12 @@ export default async function DevelopersPage({ params }: PageProps) {
               />
             ))}
           </div>
-          <Pager page={1} totalPages={totalPages} loc={dirLoc(raw)} basePath="/developers" />
+          <Pager page={pg} totalPages={totalPages} loc={loc} basePath="/developers" />
         </section>
-
-        {/* SEO prose — hub keyword block (დეველოპერები საქართველოში) */}
-        <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
-          <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
-            <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink md:text-[24px]">
-              {c.proseTitle}
-            </h2>
-            {c.prose.map((para, i) => (
-              <p
-                key={i}
-                className="mt-4 max-w-[860px] text-[15px] font-medium leading-[1.75] text-sv-ink/65"
-              >
-                {para}
-              </p>
-            ))}
-          </div>
-        </section>
-
-        <FaqSection
-          title={c.faqTitle}
-          items={c.faqs}
-          className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10"
-        />
         <CTA lang={raw} />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(c.faqs)) }} />
     </div>
   )
 }

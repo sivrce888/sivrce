@@ -5,7 +5,7 @@
  * ponytail: basemap via /api/map; Meilisearch geo when scale hits.
  */
 
-import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
@@ -86,6 +86,7 @@ import {
   POI_CATEGORIES,
   POI_COLORS,
   POI_DEFAULT_ON,
+  POI_MIN_ZOOM,
   isPoiCategory,
   parsePoiPrefs,
   poiFilterSpec,
@@ -202,24 +203,23 @@ const POI_DATA = poisToGeoJSON()
 
 async function ensureLayers(
   map: MlMap,
-  buildings: MapBuildingCluster[],
+  fc: { poly: GeoJSON.FeatureCollection; pts: GeoJSON.FeatureCollection },
   zooms: MapZoomCfg = {
     detailZoom: DETAIL_ZOOM,
     priceMinZoom: PRICE_MIN_ZOOM,
     clusterMaxZoom: CLUSTER_MAX_ZOOM,
   },
-  deal: MapDealFilter = 'all',
 ) {
   if (map.getSource(SOURCE_ID)) return
 
   await loadPoiImages(map)
   addPricePillImages(map)
 
-  map.addSource(SOURCE_ID, { type: 'geojson', data: buildingsToGeoJSON(buildings, deal) })
+  map.addSource(SOURCE_ID, { type: 'geojson', data: fc.poly })
   // ponytail: MapLibre clusters Points only — parallel centroid source for far zoom.
   map.addSource(PTS_SOURCE_ID, {
     type: 'geojson',
-    data: buildingsToPointsGeoJSON(buildings, deal),
+    data: fc.pts,
     cluster: true,
     clusterMaxZoom: zooms.clusterMaxZoom,
     clusterRadius: 52,
@@ -746,6 +746,8 @@ function Map3DInner({
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
   const visibleRef = useRef<MapBuildingCluster[]>([])
+  const polyFcRef = useRef<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] })
+  const ptsFcRef = useRef<GeoJSON.FeatureCollection>({ type: 'FeatureCollection', features: [] })
   const allRef = useRef<MapBuildingCluster[]>([])
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
@@ -811,7 +813,12 @@ function Map3DInner({
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [layersOpen, setLayersOpen] = useState(false)
-  const [bearing, setBearing] = useState(() =>
+  // ponytail: bearing lives in a ref — per-frame setState re-rendered the whole
+  // island during rotation. Compass needle turns via direct style; only the
+  // |b|>2.5 visibility flip is React state.
+  const [showCompass, setShowCompass] = useState(false)
+  const compassRef = useRef<HTMLSpanElement | null>(null)
+  const bearingRef = useRef(
     mapBootCamera(
       savedUi.view3d != null
         ? savedUi.view3d
@@ -863,8 +870,16 @@ function Map3DInner({
   useEffect(() => {
     const map = mapRef.current
     if (!map?.getLayer(POI_ICON_ID)) return
+    // ponytail: setFilter only when the zoom-qualified set actually changes —
+    // calling it every zoom frame cost a worker round-trip per frame.
+    let lastKey = ''
     const apply = () => {
-      const filter = poiFilterSpec(poiOn, map.getZoom())
+      const z = map.getZoom()
+      const visible = poiOn.filter((c) => z + 1e-6 >= POI_MIN_ZOOM[c])
+      const key = visible.join(',')
+      if (key === lastKey) return
+      lastKey = key
+      const filter = poiFilterSpec(visible)
       map.setFilter(POI_ICON_ID, filter)
       if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, filter)
     }
@@ -900,6 +915,14 @@ function Map3DInner({
   useEffect(() => () => {
     if (refreshNoteTimer.current) clearTimeout(refreshNoteTimer.current)
   }, [])
+
+  // Needle mounts only when the compass appears — aim it before paint (refs are
+  // off-limits in render).
+  useLayoutEffect(() => {
+    if (showCompass && compassRef.current) {
+      compassRef.current.style.transform = `rotate(${-bearingRef.current}deg)`
+    }
+  }, [showCompass])
 
   const toggleFullscreen = () => {
     const el = shellRef.current
@@ -998,12 +1021,24 @@ function Map3DInner({
     () => filterBuildings(allBuildings, dealFilter, statusFilter, kindFilter),
     [allBuildings, dealFilter, statusFilter, kindFilter],
   )
+  // ponytail: FCs memoized once — shared by boot + every data push; re-toggling a
+  // filter reuses the cached FC instead of rebuilding polygon geometry.
+  const polyFc = useMemo(
+    () => buildingsToGeoJSON(visible, dealFilter),
+    [visible, dealFilter],
+  )
+  const ptsFc = useMemo(
+    () => buildingsToPointsGeoJSON(visible, dealFilter),
+    [visible, dealFilter],
+  )
   const matchListings = useMemo(() => {
     let n = 0
     for (const b of visible) n += b.listings.length
     return n
   }, [visible])
   useEffect(() => { visibleRef.current = visible }, [visible])
+  useEffect(() => { polyFcRef.current = polyFc }, [polyFc])
+  useEffect(() => { ptsFcRef.current = ptsFc }, [ptsFc])
   useEffect(() => { selectedRef.current = selected }, [selected])
   useEffect(() => { dealRef.current = dealFilter }, [dealFilter])
   useEffect(() => {
@@ -1114,24 +1149,26 @@ function Map3DInner({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
-    const src = map.getSource(SOURCE_ID) as GeoJSONSource | undefined
-    src?.setData(buildingsToGeoJSON(visible, dealFilter))
+    // Pins/clusters answer the tap first; polygon massing is detail-zoom only
+    // and settles off the interaction's critical path (MAP_FADE hides the beat).
     const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
-    pts?.setData(buildingsToPointsGeoJSON(visible, dealFilter))
+    pts?.setData(ptsFc)
     let cancelled = false
     // ponytail: geometric MapLibre massing only (no photo-wrap sync).
-    const runMassing = () => {
+    const pushPolygons = () => {
       if (cancelled || !mapRef.current) return
+      const src = mapRef.current.getSource(SOURCE_ID) as GeoJSONSource | undefined
+      src?.setData(polyFc)
       const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
       const hideId = showFloors && selected ? selected.id : null
       const hide = massingHideFilter(hideId)
       for (const layer of [EXTRUDE_ID, FILL_ID]) {
-        if (!map.getLayer(layer)) continue
-        map.setFilter(layer, hide)
+        if (!mapRef.current.getLayer(layer)) continue
+        mapRef.current.setFilter(layer, hide)
       }
     }
-    const ric = window.requestIdleCallback?.(runMassing, { timeout: 900 })
-    const tid = ric == null ? window.setTimeout(runMassing, 0) : 0
+    const ric = window.requestIdleCallback?.(pushPolygons, { timeout: 400 })
+    const tid = ric == null ? window.setTimeout(pushPolygons, 0) : 0
     if (selected && !visible.some((b) => b.id === selected.id)) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- deselect when filters hide it
       selectBuilding(null)
@@ -1141,8 +1178,7 @@ function Map3DInner({
       if (ric != null) window.cancelIdleCallback?.(ric)
       if (tid) window.clearTimeout(tid)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
-  }, [visible, ready, selected, selectBuilding, floorStacksOn])
+  }, [ptsFc, polyFc, visible, ready, selected, selectBuilding, floorStacksOn])
 
   // Floor stack only for developments with stock — else keep solid extrusion.
   useEffect(() => {
@@ -1551,7 +1587,7 @@ function Map3DInner({
       const mountOverlays = () => {
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
-          await ensureLayers(map, visibleRef.current, zooms, dealRef.current)
+          await ensureLayers(map, { poly: polyFcRef.current, pts: ptsFcRef.current }, zooms)
           muteBasemapExtrusions(map, KEEP_EXTRUDE)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
@@ -1794,8 +1830,16 @@ function Map3DInner({
       map.on('click', POI_LABEL_LAYER_ID, onPoiClick)
       map.on('mouseenter', POI_ICON_ID, onPoiEnter)
       map.on('mouseleave', POI_ICON_ID, onPoiLeave)
-      map.on('rotate', () => setBearing(map.getBearing()))
+      map.on('rotate', () => {
+        const b = map.getBearing()
+        bearingRef.current = b
+        if (compassRef.current) compassRef.current.style.transform = `rotate(${-b}deg)`
+        const show = Math.abs(b) > 2.5
+        setShowCompass((prev) => (prev === show ? prev : show))
+      })
       map.on('click', onMapClick)
+      // Boot bearing (3D starts at -18°) — show compass before any rotate event fires.
+      if (Math.abs(bearingRef.current) > 2.5) setShowCompass(true)
 
       remountRef.current = mountOverlays
     })()
@@ -2045,9 +2089,11 @@ function Map3DInner({
     map.easeTo({ bearing: 0, duration: 450 })
   }
 
-  const constructionCount = allBuildings.filter((b) => b.status === 'construction').length
+  const constructionCount = useMemo(
+    () => allBuildings.reduce((n, b) => n + (b.status === 'construction' ? 1 : 0), 0),
+    [allBuildings],
+  )
   const filtersActive = dealFilter !== 'all' || kindFilter !== 'all'
-  const showCompass = Math.abs(bearing) > 2.5
 
   const chip = isDark
     ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
@@ -2377,11 +2423,9 @@ function Map3DInner({
               onClick={resetNorth}
               className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
             >
-              <Compass
-                className="h-4 w-4"
-                strokeWidth={2}
-                style={{ transform: `rotate(${-bearing}deg)` }}
-              />
+              <span ref={compassRef} className="grid place-items-center">
+                <Compass className="h-4 w-4" strokeWidth={2} />
+              </span>
             </button>
           )}
 

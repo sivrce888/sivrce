@@ -8,9 +8,7 @@
  * an override exists in SystemConfig (`cms.<lang>.block.<key>`).
  */
 
-import { ka, type DictKey } from "./i18n/ka"
-import { LANGS, translate, type Lang } from "./i18n/core"
-import { SITE_META } from "./i18n/server"
+import { LANGS, type Lang } from "./i18n/core"
 
 export const CMS_BLOCKS = {
   // ——— Hero ———
@@ -244,7 +242,9 @@ export function buildCmsId(lang: Lang, key: string): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// Admin editor model — groups + rows for /admin/content/pages
+// Admin editor model — groups + row builders live in ./cms-admin (server:
+// they read dictionaries + SITE_META). Types + pure constants stay here so
+// the client studio keeps importing them without dragging dictionaries.
 // ---------------------------------------------------------------------------
 
 export interface CmsGroup {
@@ -267,87 +267,12 @@ export interface PagesFormState {
   saved: boolean
 }
 
-/** Dict-key prefixes in ka order, then the marketing-blocks group, then SEO. */
-export function cmsGroups(): CmsGroup[] {
-  const groups: CmsGroup[] = []
-  for (const key of Object.keys(ka)) {
-    const prefix = key.split(".")[0]
-    const g = groups.find((x) => x.id === prefix)
-    if (g) g.count++
-    else groups.push({ id: prefix, label: prefix, count: 1 })
-  }
-  groups.push({ id: CMS_BLOCKS_GROUP, label: "Homepage blocks", count: CMS_BLOCK_KEYS.length })
-  groups.push({ id: CMS_SEO_GROUP, label: "SEO meta", count: CMS_SEO_KEYS.length })
-  return groups
-}
-
-const DICT_KEYS = Object.keys(ka) as DictKey[]
-
-/** Allowlist for a single-key admin write — dict, homepage block, or SEO. */
-export function isKnownCmsKey(key: string): boolean {
-  if (key.startsWith("block.")) {
-    return (CMS_BLOCK_KEYS as string[]).includes(key.slice("block.".length))
-  }
-  if ((CMS_SEO_KEYS as readonly string[]).includes(key)) return true
-  return (DICT_KEYS as string[]).includes(key)
-}
-
-/** One row for a known key. Unknown → null (caller must not write). */
-export function cmsRowForKey(
-  lang: Lang,
-  key: string,
-  overrides: Record<string, string>,
-): CmsRow | null {
-  if (!isKnownCmsKey(key)) return null
-  if (key.startsWith("block.")) {
-    const block = key.slice("block.".length) as CmsBlockKey
-    return { key, defaultText: CMS_BLOCKS[block], value: overrides[key] ?? "" }
-  }
-  if ((CMS_SEO_KEYS as readonly string[]).includes(key)) {
-    const seo = key as CmsSeoKey
-    return { key, defaultText: SEO_DEFAULTS[seo](lang), value: overrides[key] ?? "" }
-  }
-  return { key, defaultText: translate(lang, key as DictKey), value: overrides[key] ?? "" }
-}
-
-/** Rows for one group+language. Unknown group → []. Reused by page AND action (never trust client keys). */
-export function cmsRowsForGroup(
-  lang: Lang,
-  group: string,
-  overrides: Record<string, string>,
-): CmsRow[] {
-  if (group === CMS_BLOCKS_GROUP) {
-    return CMS_BLOCK_KEYS.map((key) => ({
-      key: `block.${key}`,
-      defaultText: CMS_BLOCKS[key],
-      value: overrides[`block.${key}`] ?? "",
-    }))
-  }
-  if (group === CMS_SEO_GROUP) {
-    return CMS_SEO_KEYS.map((key) => ({
-      key,
-      defaultText: SEO_DEFAULTS[key](lang),
-      value: overrides[key] ?? "",
-    }))
-  }
-  return DICT_KEYS.filter((k) => k.split(".")[0] === group).map((k) => ({
-    key: k,
-    defaultText: translate(lang, k),
-    value: overrides[k] ?? "",
-  }))
-}
-
 // ---------------------------------------------------------------------------
 // SEO meta — site-wide <title>/<meta description> per language, overridable.
-// Defaults mirror SITE_META (the layout's metadata source).
+// Defaults (SITE_META-backed) live in ./cms-admin with the row builders.
 // ---------------------------------------------------------------------------
 
 export const CMS_SEO_GROUP = "seo"
 
 export const CMS_SEO_KEYS = ["seo.site.title", "seo.site.description"] as const
 export type CmsSeoKey = (typeof CMS_SEO_KEYS)[number]
-
-const SEO_DEFAULTS: Record<CmsSeoKey, (lang: Lang) => string> = {
-  "seo.site.title": (lang) => SITE_META[lang].title,
-  "seo.site.description": (lang) => SITE_META[lang].description,
-}

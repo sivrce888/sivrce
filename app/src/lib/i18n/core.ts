@@ -1,18 +1,12 @@
 /**
  * SIVRCE — isomorphic i18n core (no 'use client', no React).
  * Safe to import from server components, middleware and client code.
+ * Dictionary-free on purpose: middleware/edge stays lean and client bundles
+ * receive their locale via <I18nProvider> props (see ./dicts, server-only).
  * The React context/hook lives in ./context; a server-bound t() in ./server.
  */
 
-import { ka, type DictKey } from './ka'
-import { en } from './en'
-import { ru } from './ru'
-import { he } from './he'
-import { ar } from './ar'
-import { tr } from './tr'
-import { uk } from './uk'
-import { hy } from './hy'
-import { az } from './az'
+import type { DictKey } from './ka'
 
 export type { DictKey }
 export type Lang = 'ka' | 'en' | 'ru' | 'he' | 'ar' | 'tr' | 'uk' | 'hy' | 'az'
@@ -31,8 +25,6 @@ export const RTL_LANGS: ReadonlySet<Lang> = new Set(['he', 'ar'])
 export function isValidLang(seg: string): seg is Lang {
   return (LANGS as readonly string[]).includes(seg)
 }
-
-const DICTS: Record<Lang, Record<DictKey, string>> = { ka, en, ru, he, ar, tr, uk, hy, az }
 
 /** Russian plural rule: n%10==1 && n%100!=11 → one; n%10 in 2..4 && n%100 not in 12..14 → few; else many. */
 export function ruPlural(n: number, one: string, few: string, many: string): string {
@@ -67,14 +59,6 @@ export function translateRaw(
   return out.replace(/\{(\w+)\}/g, (match, name: string) =>
     vars[name] !== undefined ? String(vars[name]) : match,
   )
-}
-
-export function translate(
-  lang: Lang,
-  key: DictKey,
-  vars?: Record<string, string | number>,
-): string {
-  return translateRaw(DICTS[lang][key] ?? ka[key] ?? String(key), vars)
 }
 
 /** Locale-aware internal href: ka stays unprefixed, others get /{lang}. */

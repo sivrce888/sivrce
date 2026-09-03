@@ -73,6 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/blog', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },
     { path: '/forum', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.7 },
     { path: '/neighborhoods', lastModified: DEPLOY_DATE, changeFrequency: 'monthly', priority: 0.7 },
+    { path: '/market', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.8 },
     { path: '/projects', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.85 },
     // New-build sub-hubs (ka/en/ru corpus in directory-seo PROJECT_HUBS).
     { path: '/projects/tbilisi', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.8 },

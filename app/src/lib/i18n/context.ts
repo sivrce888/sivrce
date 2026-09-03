@@ -11,7 +11,7 @@ import { createContext, useContext } from 'react'
 import { isValidLang, type Lang, type DictKey } from './core'
 import type { CmsBlockKey } from '../cms-blocks'
 
-export { translate, ruPlural, LANGS, RTL_LANGS, localizedHref, stripLangPrefix } from './core'
+export { ruPlural, LANGS, RTL_LANGS, localizedHref, stripLangPrefix } from './core'
 export type { DictKey, Lang } from './core'
 
 export interface I18nContextValue {

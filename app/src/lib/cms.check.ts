@@ -2,8 +2,8 @@
  * Runnable check for the CMS override store (pure parts — no DB).
  * Run: npx tsx src/lib/cms.check.ts
  */
-import { CMS_BLOCKS, CMS_BLOCK_KEYS } from "./cms-blocks"
-import { buildCmsId, cmsGroups, cmsRowForKey, cmsRowsForGroup, isKnownCmsKey, parseCmsId } from "./cms-blocks"
+import { CMS_BLOCKS, CMS_BLOCK_KEYS, buildCmsId, parseCmsId } from "./cms-blocks"
+import { cmsGroups, cmsRowForKey, cmsRowsForGroup, isKnownCmsKey } from "./cms-admin"
 import { BLOCK_I18N } from "./cms-blocks.i18n"
 import { ka } from "./i18n/ka"
 import { en } from "./i18n/en"

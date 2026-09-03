@@ -15,6 +15,7 @@ import {
 import { getLiveDeveloper, projectsLiveByDeveloper } from '@/lib/directory-live'
 import { getListingsForDeveloper } from '@/lib/listings-db'
 import { cityCenter, parseCoords } from '@/lib/map/geocode'
+import { footprintPin } from '@/lib/map/buildings'
 import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
@@ -71,7 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       languages: langAlternates(`/developers/${d.slug}`),
     },
     openGraph: {
-      title: `${name} | sivrce`,
+      title: `${name}`,
       description,
       type: 'profile',
       url: `https://sivrce.ge/developers/${d.slug}`,
@@ -81,7 +82,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${name} | sivrce`,
+      title: `${name}`,
       description,
       ...(og ? { images: [og] } : {}),
     },
@@ -121,6 +122,9 @@ export default async function DeveloperPage({ params }: PageProps) {
     null
   const mapPin = geoProject?.coords ?? cityCenter(dev.city)
   const mapLabel = geoProject?.location ?? dev.city
+  // Exact-building pin — committed OSM footprint beats street-level geocode drift.
+  const fpPin = geoProject ? footprintPin({ slug: geoProject.slug }, mapPin) : null
+  const shownPin = fpPin ?? mapPin
 
   const orgLd = {
     '@context': 'https://schema.org',
@@ -273,17 +277,18 @@ export default async function DeveloperPage({ params }: PageProps) {
           </h2>
           <div className="relative mt-6 overflow-hidden rounded-card shadow-card">
             <MapEmbed
-              lat={mapPin.lat}
-              lng={mapPin.lng}
-              zoom={geoProject ? 14 : 12}
+              lat={shownPin.lat}
+              lng={shownPin.lng}
+              zoom={fpPin ? 16 : geoProject ? 14 : 12}
               q={mapLabel}
               aspect="16/9"
               highlight
+              footprint={fpPin?.ring ?? null}
               className="border-0 shadow-none rounded-none"
             />
           </div>
           <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
-            {mapLabel} · {mapPin.lat.toFixed(5)}, {mapPin.lng.toFixed(5)}
+            {mapLabel} · {shownPin.lat.toFixed(5)}, {shownPin.lng.toFixed(5)}
           </p>
         </section>
 

@@ -17,12 +17,95 @@ import {
   statsFromRows,
   momDeltaPct,
   type DistrictStats,
+  type StatRow,
 } from "./market-stats-core"
 
 export type { DistrictStats, StatRow } from "./market-stats-core"
 export { MIN_SAMPLE, medianOf, momDeltaPct, periodKey, statsFromRows } from "./market-stats-core"
 
 const ROW_CAP = 10_000
+
+export interface DistrictMarketRow {
+  district: string
+  stats: DistrictStats
+  mom: number | null
+}
+
+export interface MarketOverview {
+  total: DistrictStats | null
+  totalMom: number | null
+  districts: DistrictMarketRow[]
+}
+
+/**
+ * Platform-wide live overview for the public /market page: totals plus a
+ * per-district board, MoM from last month's snapshots (read-only, page-safe).
+ */
+export async function getMarketOverview(usdGel: number): Promise<MarketOverview> {
+  const cached = unstable_cache(
+    async () => {
+      const rows = await safeQuery(
+        async () =>
+          db.listing.findMany({
+            where: { status: "active", deletedAt: null },
+            select: {
+              district: true,
+              pricePerSqm: true,
+              currency: true,
+              price: true,
+              createdAt: true,
+            },
+            take: ROW_CAP,
+          }),
+        [],
+      )
+      const byDistrict = new Map<string, StatRow[]>()
+      for (const r of rows) {
+        if (!r.district) continue
+        const list = byDistrict.get(r.district)
+        if (list) list.push(r)
+        else byDistrict.set(r.district, [r])
+      }
+      const names = [...byDistrict.keys()]
+      const snaps = names.length
+        ? await safeQuery(
+            async () =>
+              db.marketSnapshot.findMany({
+                where: { district: { in: names }, periodMonth: prevMonthKey() },
+                select: { district: true, avgPricePerSqm: true },
+              }),
+            [],
+          )
+        : []
+      const prev = new Map(snaps.map((s) => [s.district, s.avgPricePerSqm]))
+      const prevMean = snaps.length
+        ? snaps.reduce((a, s) => a + s.avgPricePerSqm, 0) / snaps.length
+        : null
+      const total = statsFromRows(rows, usdGel)
+      const districts = names
+        .map((district) => {
+          const list = byDistrict.get(district)!
+          const stats = statsFromRows(list, usdGel)
+          return stats
+            ? { district, stats, mom: momDeltaPct(stats.avgPerM2USD, prev.get(district)) }
+            : null
+        })
+        .filter((d): d is DistrictMarketRow => d !== null)
+        .sort(
+          (a, b) =>
+            b.stats.activeCount - a.stats.activeCount || b.stats.sample - a.stats.sample,
+        )
+      return {
+        total,
+        totalMom: total ? momDeltaPct(total.avgPerM2USD, prevMean) : null,
+        districts,
+      }
+    },
+    ["market-overview", String(usdGel)],
+    { revalidate: 3600 },
+  )
+  return cached()
+}
 
 function prevMonthKey(now: number = Date.now()): string {
   const d = new Date(now)

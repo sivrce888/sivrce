@@ -13,6 +13,7 @@ import { BRAND } from '@/lib/brand'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
 import { parseCoords } from '@/lib/map/map-geo'
+import { ringLabelPoint } from '@/lib/map/buildings'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { mapBootCamera } from '@/lib/map/map-ui'
 import { mapRuntimeOptions } from '@/lib/device-budget'
@@ -219,9 +220,21 @@ function paintFeature(map: MlMap, feature: GeoJSON.Feature, hue: string) {
   }
 }
 
-function paintPick(map: MlMap, lat: number, lng: number, hue: string) {
+function paintPick(
+  map: MlMap,
+  lat: number,
+  lng: number,
+  hue: string,
+  marker?: MlMarker | null,
+) {
   const osm = queryBuildingNear(map, { lat, lng })
   paintFeature(map, pickHighlightPolygon(lat, lng, osm), hue)
+  // Pin glued to the exact building being highlighted — pin & ring never disagree.
+  const ring = geometryRing(osm)
+  if (ring && marker) {
+    const p = ringLabelPoint(ring)
+    marker.setLngLat([p.lng, p.lat])
+  }
 }
 
 /** Controlled footprint — closed polygon or open draw polyline. */
@@ -403,7 +416,7 @@ export default function MapEmbed({
           if (fp && fp.length > 0) {
             paintFootprint(map, fp, lat, lng, pinHueRef.current)
           } else {
-            paintPick(map, lat, lng, pinHueRef.current)
+            paintPick(map, lat, lng, pinHueRef.current, markerRef.current)
           }
         }
 
@@ -469,7 +482,7 @@ export default function MapEmbed({
             if (fp && fp.length > 0) {
               paintFootprint(map, fp, lat, lng, pinHueRef.current)
             } else {
-              paintPick(map, lat, lng, pinHueRef.current)
+              paintPick(map, lat, lng, pinHueRef.current, markerRef.current)
             }
           }
         })
@@ -503,7 +516,7 @@ export default function MapEmbed({
       if (footprint && footprint.length > 0) {
         paintFootprint(map, footprint, lat, lng, pinHue)
       } else {
-        paintPick(map, lat, lng, pinHue)
+        paintPick(map, lat, lng, pinHue, markerRef.current)
       }
     }
     const onMove = () => paint()

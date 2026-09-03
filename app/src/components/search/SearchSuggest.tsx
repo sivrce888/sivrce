@@ -142,6 +142,7 @@ export default function SearchSuggest({
       <input
         ref={inputRef}
         type="search"
+        name="q"
         inputMode={lookupKind(value) === 'phone' ? 'tel' : 'search'}
         enterKeyHint="search"
         role="combobox"

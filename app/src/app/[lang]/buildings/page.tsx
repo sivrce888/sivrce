@@ -65,7 +65,7 @@ export async function generateMetadata({
       },
     }),
     openGraph: {
-      title: 'შენობები და კორპუსები | sivrce',
+      title: 'შენობები და კორპუსები',
       description: `თბილისის ${tbilisiCount} კორპუსი — ფოტო, უბანი, მეტრო, აღწერა, განცხადებები.`,
       type: 'website',
       url: 'https://sivrce.ge/buildings',

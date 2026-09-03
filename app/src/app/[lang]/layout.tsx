@@ -13,6 +13,7 @@ import { SWRegister } from "@/app/sw-register";
 import { BRAND } from "@/lib/brand";
 import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
 import { getServerT, langAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from "@/lib/i18n/server";
+import { getDict } from "@/lib/i18n/dicts";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
 import { LITE_BOOT } from "@/lib/device-budget";
@@ -345,8 +346,10 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
         </a>
         <ThemeProvider>
           {/* URL is the locale source of truth: pin the provider so SSR HTML
-              is fully translated for the requested locale (no client flip). */}
-          <I18nProvider initialLang={lang} overrides={cmsOverrides} blocks={cmsBlocks}>
+              is fully translated for the requested locale (no client flip).
+              Non-ka dictionaries travel as this RSC prop — only ka (fallback)
+              ships in the shared JS chunk. */}
+          <I18nProvider initialLang={lang} dict={lang === "ka" ? undefined : getDict(lang)} overrides={cmsOverrides} blocks={cmsBlocks}>
             <CurrencyProvider>
               <PostHogProvider>
                 <ChatShell>{children}</ChatShell>

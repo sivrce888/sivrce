@@ -46,7 +46,7 @@ export async function generateMetadata({
       },
     }),
     openGraph: {
-      title: 'კარიერა — გაყიდვების მენეჯერი | sivrce',
+      title: 'კარიერა — გაყიდვების მენეჯერი',
       description: 'გაყიდვების მენეჯერები თბილისსა და ბათუმში.',
       type: 'website',
     },

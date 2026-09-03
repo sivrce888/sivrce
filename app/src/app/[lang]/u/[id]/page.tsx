@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     robots: { index: true, follow: true },
     alternates: { canonical: `/u/${id}`, languages: langAlternates(`/u/${id}`) },
     openGraph: {
-      title: `${title} | sivrce`,
+      title: `${title}`,
       description,
       type: 'profile',
       url: `https://sivrce.ge/u/${id}`,

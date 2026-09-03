@@ -23,7 +23,7 @@ export function ProjectsGrid({ projects, loc }: { projects: Project[]; loc: DirL
   }
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
-      {projects.map((p) => {
+      {projects.map((p, i) => {
         const dev = getDeveloper(p.developerSlug)
         const delivered = isDelivered(p)
         return (
@@ -40,6 +40,7 @@ export function ProjectsGrid({ projects, loc }: { projects: Project[]; loc: DirL
                   alt={p.name}
                   fill
                   sizes="(max-width:1024px) 100vw, 690px"
+                  priority={i < 2}
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />

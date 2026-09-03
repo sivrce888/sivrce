@@ -23,6 +23,7 @@ import { getListingsForProjectSlug } from '@/lib/listings-db'
 import { getMapListings } from '@/lib/map/db-buildings'
 import {
   clusterListingsToBuildings,
+  footprintPin,
   mergeMapBuildings,
   projectsToConstructionBuildings,
   applyLiveProjectPins,
@@ -87,7 +88,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     alternates: { canonical: `/projects/${p.slug}`, languages: langAlternates(`/projects/${p.slug}`) },
     openGraph: {
-      title: `${p.name} | sivrce`,
+      title: `${p.name}`,
       description,
       type: 'website',
       url: `https://sivrce.ge/projects/${p.slug}`,
@@ -97,7 +98,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${p.name} | sivrce`,
+      title: `${p.name}`,
       description,
       images: [og],
     },
@@ -144,6 +145,8 @@ export default async function ProjectPage({ params }: PageProps) {
   const lowPrice = priceNumber(project.priceFromM2)
   const currency = priceCurrency(project.priceFromM2)
   const hasGeo = isValidCoords(project.coords.lat, project.coords.lng)
+  // Exact-building pin — committed OSM footprint beats street-level geocode drift.
+  const fpPin = hasGeo ? footprintPin({ slug: project.slug }, project.coords) : null
   const aboutText =
     pickLoc(project.description, loc) || project.description.ka || project.description.en
 
@@ -332,17 +335,19 @@ export default async function ProjectPage({ params }: PageProps) {
             </h2>
             <div className="relative mt-6 overflow-hidden rounded-card">
               <MapEmbed
-                lat={project.coords.lat}
-                lng={project.coords.lng}
+                lat={fpPin?.lat ?? project.coords.lat}
+                lng={fpPin?.lng ?? project.coords.lng}
                 zoom={15}
                 q={project.location}
                 aspect="16/9"
                 highlight
+                footprint={fpPin?.ring ?? null}
                 className="border-0 shadow-none"
               />
             </div>
             <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
-              {project.location} · {project.coords.lat.toFixed(5)}, {project.coords.lng.toFixed(5)}
+              {project.location} · {(fpPin?.lat ?? project.coords.lat).toFixed(5)},{' '}
+              {(fpPin?.lng ?? project.coords.lng).toFixed(5)}
             </p>
           </section>
         ) : null}

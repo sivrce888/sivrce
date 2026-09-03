@@ -35,15 +35,20 @@ export {
   CMS_BLOCKS_GROUP,
   CMS_MAX_VALUE_LEN,
   CMS_PREFIX,
-  cmsGroups,
-  cmsRowForKey,
-  cmsRowsForGroup,
-  isKnownCmsKey,
   parseCmsId,
   type CmsGroup,
   type CmsRow,
   type PagesFormState,
 } from "@/lib/cms-blocks"
+
+export {
+  cmsGroups,
+  cmsRowForKey,
+  cmsRowsForGroup,
+  isKnownCmsKey,
+  rowsForPage,
+  rowsForSection,
+} from "@/lib/cms-admin"
 
 export const CMS_TAG = "cms-overrides"
 

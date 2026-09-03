@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description,
     alternates: { canonical: `/neighborhoods/${n.slug}`, languages: langAlternates(`/neighborhoods/${n.slug}`) },
     openGraph: {
-      title: `${title} | sivrce`,
+      title: `${title}`,
       description,
       type: 'website',
       url: `https://sivrce.ge/neighborhoods/${n.slug}`,
