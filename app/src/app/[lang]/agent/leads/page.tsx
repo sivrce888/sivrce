@@ -1,15 +1,13 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { Mail, Phone } from "lucide-react"
+import LocalizedLink from "@/components/LocalizedLink"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
-import Badge from "@/components/agent-dashboard/Badge"
+import LeadInbox from "@/components/dashboard/LeadInbox"
 import { agentNav } from "@/components/agent-dashboard/nav"
-import { fmtDate, fmtPrice, leadStatusLabel, leadStatusTone } from "@/components/agent-dashboard/format"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
-import type { CrmLeadStatus } from "@/generated/prisma/client"
+import { inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
 
 export const dynamic = "force-dynamic"
 
@@ -19,18 +17,10 @@ export const metadata: Metadata = {
 }
 
 const tabs = [
-  { key: "all", label: "ყველა", statuses: null },
+  { key: "all", label: "ყველა", statuses: null as string[] | null },
   { key: "new", label: "ახალი", statuses: ["new"] },
-  {
-    key: "active",
-    label: "მიმდინარე",
-    statuses: ["contacted", "viewing_scheduled", "offer_made", "negotiating"],
-  },
-  {
-    key: "closed",
-    label: "დასრულებული",
-    statuses: ["closed_won", "closed_lost", "disqualified"],
-  },
+  { key: "active", label: "მიმდინარე", statuses: ["contacted", "qualified"] },
+  { key: "closed", label: "დასრულებული", statuses: ["closed"] },
 ] as const
 
 interface LeadsPageProps {
@@ -39,21 +29,30 @@ interface LeadsPageProps {
 
 export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
   const user = await requireRole("agent", "/agent")
-
   const { status: rawStatus } = await searchParams
   const activeKey = typeof rawStatus === "string" ? rawStatus : "all"
   const activeTab = tabs.find((t) => t.key === activeKey) ?? tabs[0]
 
+  const listingRows = await safeQuery(
+    () =>
+      db.listing.findMany({
+        where: listingOwnerWhere([user.id]),
+        select: { id: true, title: true },
+      }),
+    [],
+  )
+  const listingIds = listingRows.map((l) => l.id)
+  const titles = Object.fromEntries(listingRows.map((l) => [l.id, l.title]))
+
   const leads = await safeQuery(
     () =>
-      db.crmLead.findMany({
+      db.inquiry.findMany({
         where: {
-          agentId: user.id,
-          ...(activeTab.statuses
-            ? { status: { in: [...activeTab.statuses] as CrmLeadStatus[] } }
-            : {}),
+          ...inquiryWhere(listingIds, user.email),
+          ...(activeTab.statuses ? { status: { in: [...activeTab.statuses] } } : {}),
         },
         orderBy: { createdAt: "desc" },
+        take: 80,
       }),
     [],
   )
@@ -69,7 +68,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
 
       <div className="mb-5 flex gap-2 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
-          <Link
+          <LocalizedLink
             key={tab.key}
             href={tab.key === "all" ? "/agent/leads" : `/agent/leads?status=${tab.key}`}
             className={`shrink-0 rounded-full px-4 py-2 text-[12.5px] font-bold transition ${
@@ -79,7 +78,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
             }`}
           >
             {tab.label}
-          </Link>
+          </LocalizedLink>
         ))}
       </div>
 
@@ -93,54 +92,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
           }
         />
       ) : (
-        <ul className="space-y-3">
-          {leads.map((lead) => (
-            <li
-              key={lead.id}
-              className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[15px] font-extrabold text-sv-ink">{lead.name}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] font-medium text-sv-ink/55">
-                    <a
-                      href={`tel:${lead.phone}`}
-                      className="inline-flex items-center gap-1.5 hover:text-sv-blue"
-                    >
-                      <Phone size={13} />
-                      {lead.phone}
-                    </a>
-                    {lead.email ? (
-                      <a
-                        href={`mailto:${lead.email}`}
-                        className="inline-flex items-center gap-1.5 hover:text-sv-blue"
-                      >
-                        <Mail size={13} />
-                        {lead.email}
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-                <Badge
-                  label={leadStatusLabel[lead.status] ?? lead.status}
-                  tone={leadStatusTone[lead.status] ?? "neutral"}
-                />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-sv-ink/6 pt-3 text-[12px] font-medium text-sv-ink/50">
-                <span>დამატებული: {fmtDate(lead.createdAt)}</span>
-                <span>წყარო: {lead.source}</span>
-                {lead.district ? <span>უბანი: {lead.district}</span> : null}
-                {lead.budgetMin != null || lead.budgetMax != null ? (
-                  <span>
-                    ბიუჯეტი: {lead.budgetMin != null ? fmtPrice(lead.budgetMin, lead.currency) : "—"}
-                    {" — "}
-                    {lead.budgetMax != null ? fmtPrice(lead.budgetMax, lead.currency) : "—"}
-                  </span>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <LeadInbox leads={leads} titles={titles} />
       )}
     </DashboardShell>
   )

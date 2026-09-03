@@ -29,6 +29,8 @@ export interface Listing {
   publicId?: number
   img: string
   images: string[]
+  /** Full gallery size. Set when `images` is a 4-frame card teaser. */
+  photoCount?: number
   priceUSD: number
   priceGEL: number
   /** Locked nominal price originally entered by poster (e.g. 800) */
@@ -655,6 +657,7 @@ export const LISTINGS: Listing[] = [
     features: ['სასოფლო-სამეურნეო დანიშნულება', 'გზა ნაკვეთთან', 'სარწყავი წყალი'],
     description: 'გლდანში გაიცემა იჯარით 2500 მ² სასოფლო-სამეურნეო მიწის ნაკვეთი. გზა და სარწყავი წყალი მისულია. ხელშეკრულება წლიური ციკლით — ბაღის, სათბურის ან მცირე მეურნეობისთვის.',
     coords: { lat: 41.8052, lng: 44.8451 },
+    buildingSlug: 'gldani-land-lease',
     postedAt: '2026-08-12',
     agent: AGENTS[5]!,
     isNew: true,
@@ -674,6 +677,7 @@ export const LISTINGS: Listing[] = [
     features: ['ვენახი', 'სასოფლო-სამეურნეო დანიშნულება', 'add.f.mountainView'],
     description: 'თელავში გაიცემა იჯარით 2 ჰა ვენახი. ნაკვეთი სასოფლო-სამეურნეო დანიშნულებისაა, მისასვლელი გზით. იჯარა გრძელვადიანი — ღვინის მეურნეობისთვის ან საინვესტიციო კულტივაციისთვის.',
     coords: { lat: 41.9198, lng: 45.4731 },
+    buildingSlug: 'telavi-vineyard-lease',
     postedAt: '2026-07-28',
     agent: AGENTS[5]!,
     isNew: false,

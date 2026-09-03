@@ -135,7 +135,13 @@ async function fetchMapListings(): Promise<Listing[]> {
   try {
     if (!(await dbAvailable())) return []
     const rows = await db.listing.findMany({
-      where: { deletedAt: null, status: "active" },
+      // Cap is for mappable pins — drop 0,0 / out-of-Georgia so they don't eat the budget.
+      where: {
+        deletedAt: null,
+        status: "active",
+        lat: { gte: 40.5, lte: 43.7 },
+        lng: { gte: 39.9, lte: 46.8 },
+      },
       select: {
         id: true,
         title: true,
@@ -197,12 +203,18 @@ export async function fetchMapListingIdsInBbox(bbox: Bbox): Promise<string[]> {
   }
 }
 
-/** Active listings for /map clustering. Empty → Map3D keeps static LISTINGS. */
-export const getMapListings = unstable_cache(
+const getMapListingsCached = unstable_cache(
   fetchMapListings,
   ["db-map-listings"],
   { tags: [MAP_LISTINGS_TAG], revalidate: 60 },
 )
+
+/** Active listings for /map. Empty cache is treated as miss — never pin a blank map for 60s. */
+export async function getMapListings(): Promise<Listing[]> {
+  const cached = await getMapListingsCached()
+  if (cached.length > 0) return cached
+  return fetchMapListings()
+}
 
 /** Uncached snapshot for map refresh button — bypasses unstable_cache. */
 export async function loadMapDataFresh(): Promise<{
@@ -314,6 +326,7 @@ export function rowToCluster(row: DbBuildingRow): MapBuildingCluster {
     c.color = SERVICE_BRAND.developers.hue
   }
   const ring = parseFootprintRing(row.polygonCoords)
+  // mergeDbBuildings drops this when FOOTPRINTS has official TAS/OSM massing.
   if (ring && ring.length >= 4) c.ring = closeRing(ring)
   const inv = row.building3D?.floors
   if (inv?.length) {

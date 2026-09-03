@@ -349,12 +349,88 @@ export function pickTasShapesForPin(
   })
   if (!uniq.length) return []
   const best = uniq[0]!
-  // Site-scale permit already is the project outline — don't glue neighbours.
-  if (!opts?.campus || best.half >= 70) return [best.s]
+  // Single pin: one permit. Campus: keep going so a lot outline can yield to towers.
+  if (!opts?.campus) return [best.s]
   const parts = uniq.filter(
     (r) => r.half >= 16 && tasHaversineM(best.s.lat, best.s.lng, r.s.lat, r.s.lng) <= 90,
   )
-  return (parts.length >= 2 ? parts : [best]).map((r) => r.s)
+  let picked: Row[] = parts.length >= 2 ? parts : [best]
+
+  // Drop whole-site outlines when building-scale permits exist (m² Highlight, m³ Saburtalo).
+  const buildingScale = picked.filter((r) => r.half <= 95)
+  if (buildingScale.length >= 1 && picked.some((r) => r.half > 100)) {
+    picked = buildingScale
+  }
+
+  const dedupeByLoc = (rows: Row[]): Row[] => {
+    const byLoc = new Map<string, Row>()
+    for (const r of rows) {
+      const k = `${r.s.lat.toFixed(4)}:${r.s.lng.toFixed(4)}`
+      const prev = byLoc.get(k)
+      if (
+        !prev ||
+        r.rank < prev.rank ||
+        (r.rank === prev.rank && r.s.ring.length > prev.s.ring.length)
+      ) {
+        byLoc.set(k, r)
+      }
+    }
+    return [...byLoc.values()].sort((a, b) => a.d - b.d)
+  }
+
+  /** Best-separated medium footprints — twin towers when major blobs overlap (m² Highlight). */
+  const pickTwinPair = (candidates: Row[], maxPinM: number): Row[] | null => {
+    const twinMaxD = Math.min(55, maxPinM * 0.35)
+    const pool = candidates.filter((r) => r.half >= 18 && r.half <= 44 && r.d <= twinMaxD)
+    let best: [Row, Row] | null = null
+    let bestScore = -Infinity
+    for (let i = 0; i < pool.length; i++) {
+      for (let j = i + 1; j < pool.length; j++) {
+        const a = pool[i]!
+        const b = pool[j]!
+        const dist = tasHaversineM(a.s.lat, a.s.lng, b.s.lat, b.s.lng)
+        const minSep = (a.half + b.half) * 0.3
+        if (dist < minSep) continue
+        const score = dist - (a.d + b.d) * 0.4
+        if (score > bestScore) {
+          bestScore = score
+          best = [a, b]
+        }
+      }
+    }
+    return best
+  }
+
+  // Twin-cylinder: compact rings with half ≥45 — but reject when they overlap (TAS site pentagons).
+  const compact = picked.filter((r) => r.s.ring.length <= 12 && r.half >= 18 && r.half <= 65)
+  const majorTowers = compact.filter((r) => r.half >= 45)
+  if (majorTowers.length >= 2) {
+    const towers = dedupeByLoc(majorTowers)
+    if (towers.length >= 2) {
+      const dist = tasHaversineM(towers[0]!.s.lat, towers[0]!.s.lng, towers[1]!.s.lat, towers[1]!.s.lng)
+      const minSep = (towers[0]!.half + towers[1]!.half) * 0.35
+      if (dist >= minSep) return towers.map((r) => r.s)
+    }
+  }
+
+  const mediumPool = dedupeByLoc(picked.filter((r) => r.half >= 18 && r.half <= 44))
+  const twinPair = pickTwinPair(mediumPool, maxPin)
+  if (twinPair) return twinPair.map((r) => r.s)
+
+  if (compact.length >= 2) {
+    const towers = dedupeByLoc(compact)
+    if (towers.length >= 2) return towers.map((r) => r.s)
+  }
+
+  // Large campus: drop shed-sized hits when real blocks exist (m³ Saburtalo).
+  if (opts?.campus && picked.length >= 2) {
+    const blocks = dedupeByLoc(picked.filter((r) => r.half >= 40 && r.half <= 95))
+    if (blocks.length >= 2) return blocks.map((r) => r.s)
+    const mid = dedupeByLoc(picked.filter((r) => r.half >= 30 && r.half <= 95))
+    if (mid.length >= 2) return mid.map((r) => r.s)
+  }
+
+  return picked.map((r) => r.s)
 }
 
 async function fetchTasShapesOnce(

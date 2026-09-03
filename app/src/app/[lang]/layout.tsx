@@ -16,11 +16,10 @@ import { getServerT, langAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from 
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
 import { LITE_BOOT } from "@/lib/device-budget";
+import { GoogleTags } from "@/components/GoogleTags";
+import { GTM_ID } from "@/lib/analytics";
 // globals.css lives in app/layout.tsx — import here is silently dropped from
 // production CSS <link>s for the dynamic [lang] segment (see root layout).
-
-const GTM_ID = "GTM-W5KLL4K3";
-const GA_ID = "G-T90P2YSK4B";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -113,6 +112,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     icons: {
       icon: [
         { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icons/favicon-32.png", type: "image/png", sizes: "32x32" },
         { url: "/icon.png", type: "image/png", sizes: "512x512" },
       ],
       apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
@@ -128,6 +128,9 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
         "max-snippet": -1,
       },
     },
+    ...(process.env.GOOGLE_SITE_VERIFICATION
+      ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+      : {}),
   };
 }
 
@@ -317,32 +320,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
             title="Google Tag Manager"
           />
         </noscript>
-        {/* Analytics boot on first interaction or 3.5s after load — never inside the LCP window */}
-        <Script id="analytics-boot" strategy="lazyOnload">{`
-          (function(){
-            var loaded=false;
-            function boot(){
-              if(loaded)return;loaded=true;
-              window.dataLayer=window.dataLayer||[];
-              window.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});
-              var gtm=document.createElement('script');gtm.async=true;
-              gtm.src='https://www.googletagmanager.com/gtm.js?id=${GTM_ID}';
-              document.head.appendChild(gtm);
-              var g=document.createElement('script');g.async=true;
-              g.src='https://www.googletagmanager.com/gtag/js?id=${GA_ID}';
-              g.onload=function(){
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js',new Date());
-                gtag('config','${GA_ID}');
-              };
-              document.head.appendChild(g);
-            }
-            ['pointerdown','keydown'].forEach(function(e){
-              window.addEventListener(e,boot,{once:true,passive:true});
-            });
-            // ponytail: no idle timeout — lab traces run ~10s and GTM was TTI/SI
-          })();
-        `}</Script>
+        <GoogleTags />
         <a
           href="#main"
           className="sr-only bg-sv-blue text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-control focus:px-4 focus:py-2"
@@ -363,7 +341,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
           <Toaster position="top-center" />
         </ThemeProvider>
         <SWRegister />
-        {/* TOP.GE container lives in Footer, left of terms links */}
+        <Script src="https://counter.top.ge/counter.js" strategy="lazyOnload" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}

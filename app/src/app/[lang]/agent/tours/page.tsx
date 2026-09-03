@@ -26,14 +26,19 @@ export default async function AgentToursPage() {
   today.setHours(0, 0, 0, 0)
 
   const include = tourListingInclude
+  const mine = {
+    OR: [
+      ...(profile ? [{ agentId: profile.id }] : []),
+      { listing: { ownerId: user.id, deletedAt: null } },
+    ],
+  } as const
 
-  const [upcoming, past] = profile
-    ? await Promise.all([
+  const [upcoming, past] = await Promise.all([
         safeQuery(
           () =>
             db.propertyTour.findMany({
               where: {
-                agentId: profile.id,
+                ...mine,
                 tourDate: { gte: today },
                 status: { in: ["pending", "confirmed"] },
               },
@@ -46,7 +51,7 @@ export default async function AgentToursPage() {
           () =>
             db.propertyTour.findMany({
               where: {
-                agentId: profile.id,
+                ...mine,
                 OR: [
                   { tourDate: { lt: today } },
                   { status: { in: ["cancelled_by_guest", "cancelled_by_agent", "completed", "no_show"] } },
@@ -59,7 +64,6 @@ export default async function AgentToursPage() {
           [],
         ),
       ])
-    : [[], []]
 
   return (
     <DashboardShell
@@ -71,14 +75,17 @@ export default async function AgentToursPage() {
       <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">ვიზიტები</h1>
 
       {!profile ? (
-        <EmptyState
-          title="აგენტის პროფილი საჭიროა"
-          body="ვიზიტების სანახავად ჯერ უნდა შეიქმნას შენი საჯარო აგენტის პროფილი. მიმართე ადმინისტრაციას."
-          actionHref="/agent/profile"
-          actionLabel="პროფილის ნახვა"
-        />
-      ) : (
-        <div className="space-y-8">
+        <div className="mb-6">
+          <EmptyState
+            title="აგენტის პროფილი ჯერ არ გაქვს"
+            body="საჯარო პროფილი კლიენტებს ეხმარება შენს პოვნაში. ვიზიტები მაინც ჩანს შენს განცხადებებზე."
+            actionHref="/agent/profile"
+            actionLabel="პროფილის შევსება"
+          />
+        </div>
+      ) : null}
+
+      <div className="space-y-8">
           <section>
             <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/50">
               მომავალი ({upcoming.length})
@@ -110,7 +117,6 @@ export default async function AgentToursPage() {
             </section>
           ) : null}
         </div>
-      )}
     </DashboardShell>
   )
 }

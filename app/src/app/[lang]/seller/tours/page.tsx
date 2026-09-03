@@ -6,6 +6,8 @@ import TourCard, { tourListingInclude } from "@/components/dashboard/TourCard"
 import { sellerNav } from "@/components/seller-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { panelTitle } from "@/lib/workspace"
+import { readPersona } from "@/lib/workspace-cookie"
 
 export const dynamic = "force-dynamic"
 
@@ -16,6 +18,7 @@ export const metadata: Metadata = {
 
 export default async function SellerToursPage() {
   const user = await requireRole("seller", "/seller")
+  const persona = await readPersona(user.role)
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -55,7 +58,7 @@ export default async function SellerToursPage() {
   return (
     <DashboardShell
       nav={sellerNav}
-      title="გამყიდველის პანელი"
+      title={panelTitle(persona)}
       subtitle="ვიზიტები"
       userLabel={user.name ?? user.email}
     >

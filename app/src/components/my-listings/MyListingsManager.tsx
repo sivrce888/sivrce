@@ -66,20 +66,41 @@ export type ManagedListing = {
   views: number
   leads: number
   phoneReveals: number
-  image: string
-  createdAt: string
-  updatedAt: string
+    image: string
+    createdAt: string
+    updatedAt: string
+    dealType: string
 }
 
 type StatusTab = "active" | "pending" | "withdrawn" | "sold" | "expired"
+type DealTab = "all" | "buy" | "rent" | "daily" | "mortgage"
 
 const TABS: { key: StatusTab; label: string }[] = [
   { key: "active", label: "აქტიური" },
   { key: "pending", label: "მოლოდინში" },
   { key: "withdrawn", label: "გამორთული" },
-  { key: "sold", label: "გაყიდული" },
+  { key: "sold", label: "დახურული" },
   { key: "expired", label: "ვადაგასული" },
 ]
+
+const DEAL_TABS: { key: DealTab; label: string }[] = [
+  { key: "all", label: "ყველა" },
+  { key: "buy", label: "იყიდება" },
+  { key: "rent", label: "ქირავდება" },
+  { key: "daily", label: "დღიურად" },
+  { key: "mortgage", label: "იპოთეკა" },
+]
+
+const DEAL_BADGE: Record<string, string> = {
+  buy: "იყიდება",
+  rent: "ქირავდება",
+  daily: "დღიურად",
+  mortgage: "იპოთეკა",
+}
+
+function isRentDeal(dealType: string): boolean {
+  return dealType === "rent" || dealType === "daily"
+}
 
 const SORTS = [
   { key: "updated_desc", label: "განახლება ↓" },
@@ -198,15 +219,20 @@ function priceAsGel(price: number, currency: string, rate: number): number {
 export default function MyListingsManager({
   listings: initial,
   addHref = "/add-listing",
+  focusRent = false,
 }: {
   listings: ManagedListing[]
   addHref?: string
+  focusRent?: boolean
 }) {
   const router = useRouter()
   const { lang } = useI18n()
   const { format, rate } = useCurrency()
   const [items, setItems] = useState(initial)
   const [tab, setTab] = useState<StatusTab>("active")
+  const [dealTab, setDealTab] = useState<DealTab>(() =>
+    focusRent && initial.some((l) => isRentDeal(l.dealType)) ? "rent" : "all",
+  )
   const [q, setQ] = useState("")
   const [sort, setSort] = useState<SortKey>("updated_desc")
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -232,6 +258,9 @@ export default function MyListingsManager({
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
     let rows = items.filter((l) => listingFilterStatus(l.status, l.createdAt) === tab)
+    if (dealTab !== "all") {
+      rows = rows.filter((l) => l.dealType === dealTab)
+    }
     if (needle) {
       rows = rows.filter(
         (l) =>
@@ -261,7 +290,7 @@ export default function MyListingsManager({
       }
     })
     return sorted
-  }, [items, tab, q, sort])
+  }, [items, tab, dealTab, q, sort])
 
   async function patch(id: string, body: Record<string, unknown>) {
     setBusyId(id)
@@ -373,7 +402,11 @@ export default function MyListingsManager({
       {items.length === 0 ? (
         <EmptyState
           title="განცხადებები ჯერ არ გაქვს"
-          body="დაამატე შენი პირველი განცხადება და ის აქ გამოჩნდება."
+          body={
+            focusRent
+              ? "დაამატე ქირის განცხადება და ის აქ გამოჩნდება."
+              : "დაამატე შენი პირველი განცხადება და ის აქ გამოჩნდება."
+          }
           actionHref={addHref}
           actionLabel="განცხადების დამატება"
         />
@@ -405,6 +438,26 @@ export default function MyListingsManager({
               ))}
             </select>
             <CurrencySwitcher light />
+          </div>
+
+          <div className="mb-3 flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {DEAL_TABS.map((d) => {
+              const active = dealTab === d.key
+              return (
+                <button
+                  key={d.key}
+                  type="button"
+                  onClick={() => setDealTab(d.key)}
+                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${
+                    active
+                      ? "bg-sv-blue text-white"
+                      : "bg-sv-cloud text-sv-ink/55 hover:text-sv-ink"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              )
+            })}
           </div>
 
           <div className="mb-5 flex gap-1 overflow-x-auto border-b border-sv-ink/6 pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -473,9 +526,12 @@ export default function MyListingsManager({
                     )
                   }
                   onSold={() => {
+                    const rent = isRentDeal(l.dealType)
                     if (
                       !window.confirm(
-                        "მოვნიშნოთ გაყიდულად? განცხადება აღარ გამოჩნდება ძიებაში.",
+                        rent
+                          ? "მოვნიშნოთ გაქირავებულად? განცხადება აღარ გამოჩნდება ძიებაში."
+                          : "მოვნიშნოთ გაყიდულად? განცხადება აღარ გამოჩნდება ძიებაში.",
                       )
                     )
                       return
@@ -548,7 +604,14 @@ function ListingManageCard({
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-bold tabular-nums text-sv-ink/35">ID {l.id}</p>
+              <p className="text-[11px] font-bold tabular-nums text-sv-ink/35">
+                ID {l.id}
+                {DEAL_BADGE[l.dealType] ? (
+                  <span className="ml-2 font-extrabold text-sv-blue/70">
+                    {DEAL_BADGE[l.dealType]}
+                  </span>
+                ) : null}
+              </p>
               <LocalizedLink
                 href={`/listing/${l.id}`}
                 className="mt-0.5 line-clamp-2 text-[15px] font-extrabold tracking-[-0.02em] text-sv-ink transition hover:text-sv-blue"
@@ -617,7 +680,7 @@ function ListingManageCard({
               className="inline-flex items-center gap-1 rounded-full bg-sv-navy px-2.5 py-1.5 text-[11px] font-extrabold text-white transition hover:bg-sv-navy-soft disabled:opacity-50"
             >
               <CircleCheck size={12} strokeWidth={2.4} />
-              გაყიდულია
+              {isRentDeal(l.dealType) ? "გაქირავებულია" : "გაყიდულია"}
             </button>
           </>
         ) : null}

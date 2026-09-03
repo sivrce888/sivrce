@@ -11,6 +11,7 @@ import {
   createListingTierOrder,
   getTierPrice,
 } from "@/lib/payments"
+import { canManageListing } from "@/lib/listing-access"
 import { db } from "@/lib/db"
 import {
   ADDON_TETRI,
@@ -53,7 +54,11 @@ export async function POST(req: Request) {
   if (!listing) {
     return NextResponse.json({ error: "listing_not_found" }, { status: 404 })
   }
-  if (listing.ownerId !== session.user.id) {
+  const allowed = await canManageListing(
+    { id: session.user.id, role: session.user.role ?? "" },
+    listing.ownerId,
+  )
+  if (!allowed) {
     return NextResponse.json({ error: "not_owner" }, { status: 403 })
   }
   if (listing.status !== "active") {

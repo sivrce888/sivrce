@@ -73,4 +73,5 @@ export async function saveAgencyProfile(formData: FormData): Promise<void> {
 
   revalidatePath("/agency/profile")
   revalidatePath("/agency")
+  revalidatePath(`/u/${user.id}`)
 }

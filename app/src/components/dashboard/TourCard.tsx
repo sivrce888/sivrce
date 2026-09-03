@@ -1,8 +1,10 @@
 import Link from "next/link"
-import { Phone } from "lucide-react"
+import { MessageCircle, Phone } from "lucide-react"
 
 import Badge from "@/components/agent-dashboard/Badge"
 import { fmtDate, tourStatusLabel, tourStatusTone } from "@/components/agent-dashboard/format"
+import { telHref, waHref } from "@/lib/inquiries/phone"
+import { leadWaText } from "@/lib/pro-leads"
 import type { Prisma } from "@/generated/prisma/client"
 
 export type TourWithListing = Prisma.PropertyTourGetPayload<{
@@ -40,11 +42,20 @@ export default function TourCard({ tour }: { tour: TourWithListing }) {
         </span>
         <span>{tour.guestName}</span>
         <a
-          href={`tel:${tour.guestPhone}`}
+          href={telHref(tour.guestPhone)}
           className="inline-flex items-center gap-1.5 hover:text-sv-blue"
         >
           <Phone size={13} />
           {tour.guestPhone}
+        </a>
+        <a
+          href={waHref(tour.guestPhone, leadWaText(tour.guestName, tour.listing.title))}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 font-bold text-sv-blue hover:underline"
+        >
+          <MessageCircle size={13} />
+          WhatsApp
         </a>
       </div>
       {tour.guestNotes ? (

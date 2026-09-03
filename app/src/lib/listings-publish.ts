@@ -101,6 +101,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
   const allow = new Set<string>(featuresFor(propertyType as PropType, dealKey as DealType, city))
   allow.add("add.f.onlineView")
   const features = asStrList(body.features, 50, 60).filter((f) => allow.has(f))
+  const projectSlug = asStr(body.projectSlug, 140)
 
   return {
     ok: true,
@@ -133,6 +134,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
         condition: asStr(body.condition, 60),
         buildingStatus: asStr(body.buildingStatus, 60),
         project: asStr(body.project, 60),
+        ...(projectSlug ? { projectSlug } : {}),
         floorType: asStr(body.floorType, 60),
         kitchenArea:
           typeof body.kitchenArea === "number" && body.kitchenArea > 0 && body.kitchenArea <= 500
@@ -184,6 +186,24 @@ export function _checkParsePublishBody() {
   if (!good.ok) throw new Error(good.error)
   if (good.data.dealType !== "buy") throw new Error("deal map")
   if (DEAL_FROM_DB.buy !== "sale") throw new Error("reverse deal")
+  if ("projectSlug" in good.data.extendedFields) throw new Error("no slug leak")
+  const withSlug = parsePublishBody({
+    title: "იყიდება ბინა",
+    deal: "sale",
+    propType: "apartment",
+    city: "თბილისი",
+    district: "ვაკე",
+    address: "ჭავჭავაძის 12",
+    name: "გიორგი",
+    phone: "+995 555 12 34 56",
+    area: 80,
+    price: 100000,
+    images: ["https://cdn.example.com/a.webp"],
+    projectSlug: "axis-towers",
+    negotiable: false,
+  })
+  if (!withSlug.ok) throw new Error(withSlug.error)
+  if (withSlug.data.extendedFields.projectSlug !== "axis-towers") throw new Error("projectSlug")
   const fakeSea = parsePublishBody({
     title: "იყიდება ბინა",
     deal: "sale",

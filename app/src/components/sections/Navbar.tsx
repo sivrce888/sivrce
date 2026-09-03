@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Heart, Menu, X, Plus, User, Search } from 'lucide-react'
+import { Heart, Menu, X, Plus, Search } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { AccountMenu } from '@/components/nav/AccountMenu'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
@@ -164,16 +165,7 @@ export default function Navbar() {
           <ThemeToggle light={light} />
           <CurrencySwitcher light={light} />
           <LangSwitcher light={light} />
-          <Link
-            href={localizedHref("/dashboard", lang)}
-            aria-label={t('nav.login')}
-            className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
-              light ? 'text-sv-ink hover:bg-sv-ink/5' : 'text-sv-ink hover:bg-sv-ink/5 dark:text-white dark:hover:bg-white/10'
-            }`}
-          >
-            <User className="h-4 w-4" />
-            <span className="sr-only">{t('nav.login')}</span>
-          </Link>
+          <AccountMenu light={light} />
           <Link
             href={localizedHref("/add-listing", lang)}
             data-cms-key="nav.addListing"
@@ -284,13 +276,7 @@ export default function Navbar() {
                 )}
               </span>
             </Link>
-            <Link
-              href={localizedHref("/dashboard", lang)}
-              onClick={() => setOpen(false)}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
-            >
-              <User className="h-4 w-4" /> {t('nav.login')}
-            </Link>
+            <AccountMenu light variant="panel" onNavigate={() => setOpen(false)} />
             <Link
               href={localizedHref("/add-listing", lang)}
               onClick={() => setOpen(false)}

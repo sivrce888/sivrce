@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { setDeveloperLeadStatus } from "@/app/[lang]/developer/leads/actions"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
 import { developerNav } from "@/components/developer-dashboard/nav"
@@ -65,8 +66,8 @@ export default async function DeveloperLeadsPage() {
       {leads.length === 0 ? (
         <EmptyState
           title="ლიდები ჯერ არ გაქვს"
-          body="მყიდველების მოთხოვნები შენს განცხადებებზე აქ გამოჩნდება. დაამატე განცხადება, რომ პირველი მოთხოვნები მიიღო."
-          actionHref="/add-listing"
+          body="მყიდველების მოთხოვნები შენს განცხადებებზე აქ გამოჩნდება. დაამატე გასაყიდი ბინა, რომ პირველი მოთხოვნები მიიღო."
+          actionHref="/add-listing?deal=sale&propType=apartment"
           actionLabel="განცხადების დამატება"
         />
       ) : (
@@ -83,7 +84,14 @@ export default async function DeveloperLeadsPage() {
                   </p>
                   <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/55">
                     {lead.buyerEmail}
-                    {lead.buyerPhone ? ` · ${lead.buyerPhone}` : ""}
+                    {lead.buyerPhone ? (
+                      <>
+                        {" · "}
+                        <a href={`tel:${lead.buyerPhone}`} className="hover:text-sv-blue">
+                          {lead.buyerPhone}
+                        </a>
+                      </>
+                    ) : null}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -92,20 +100,40 @@ export default async function DeveloperLeadsPage() {
                       {lead.city}
                     </span>
                   ) : null}
-                  <span className="rounded-full bg-sv-orange/10 px-2.5 py-1 text-[11px] font-bold text-sv-orange">
-                    {STATUS_KA[lead.status] ?? lead.status}
-                  </span>
                 </div>
               </div>
               <p className="mt-3 line-clamp-2 text-[13px] font-medium leading-relaxed text-sv-ink/70">
                 {lead.message}
               </p>
-              <p className="mt-2 text-[11.5px] font-semibold text-sv-ink/40">
-                {new Intl.DateTimeFormat("ka-GE", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(lead.createdAt)}
-              </p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[11.5px] font-semibold text-sv-ink/40">
+                  {new Intl.DateTimeFormat("ka-GE", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(lead.createdAt)}
+                </p>
+                <form action={setDeveloperLeadStatus} className="flex items-center gap-2">
+                  <input type="hidden" name="id" value={lead.id} />
+                  <select
+                    name="status"
+                    defaultValue={lead.status}
+                    aria-label="ლიდის სტატუსი"
+                    className="h-9 rounded-full border border-sv-ink/12 bg-sv-cloud/40 px-3 text-[12px] font-bold text-sv-ink outline-none focus:border-sv-blue"
+                  >
+                    {Object.entries(STATUS_KA).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-sv-blue px-3.5 py-1.5 text-[12px] font-bold text-white transition hover:bg-sv-blue-deep"
+                  >
+                    შენახვა
+                  </button>
+                </form>
+              </div>
             </div>
           ))}
         </div>

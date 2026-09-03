@@ -57,13 +57,21 @@ export default async function DeveloperAnalyticsPage() {
           [],
         )
       : Promise.resolve([]),
-    safeQuery(
-      () =>
-        db.projectDirectory.count({
-          where: { ownerId: user.id, deletedAt: null },
-        }),
-      0,
-    ),
+    safeQuery(async () => {
+      const profile = await db.developerProfile.findFirst({
+        where: { ownerId: user.id, deletedAt: null },
+        select: { name: true },
+      })
+      return db.projectDirectory.count({
+        where: {
+          deletedAt: null,
+          OR: [
+            { ownerId: user.id },
+            ...(profile ? [{ developer: profile.name }] : []),
+          ],
+        },
+      })
+    }, 0),
   ])
 
   const leadCounts = new Map(leadGroups.map((g) => [g.status, g._count._all]))
@@ -105,7 +113,7 @@ export default async function DeveloperAnalyticsPage() {
             <EmptyState
               title="ჯერ არ არის საკმარისი მონაცემი"
               body="როცა მყიდველები დაგიკავშირდებიან, აქ გამოჩნდება ლიდების განაწილება სტატუსების მიხედვით."
-              actionHref="/add-listing"
+              actionHref="/add-listing?deal=sale&propType=apartment"
               actionLabel="განცხადების დამატება"
             />
           </div>

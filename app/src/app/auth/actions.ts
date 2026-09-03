@@ -13,6 +13,8 @@ import { isSelfServeRole, isProRole, profileSetupPathFor } from "@/lib/auth-role
 import { db } from "@/lib/db"
 import { sendEmail, sendWelcomeEmail } from "@/lib/email"
 import { dashboardPathFor, requireUser } from "@/lib/guards"
+import { parsePersonaIntent, roleForPersona } from "@/lib/workspace"
+import { writePersonaCookie } from "@/lib/workspace-cookie"
 import { hashPassword, validatePassword } from "@/lib/password"
 
 function safeCallback(raw: FormDataEntryValue | null): string | undefined {
@@ -41,24 +43,28 @@ export async function chooseSelfRole(formData: FormData) {
   const user = await requireUser("/settings")
   if (user.role === "admin") redirect(dashboardPathFor("admin"))
 
-  const raw = String(formData.get("role") ?? "")
-  if (!isSelfServeRole(raw)) redirect("/settings")
+  const persona = parsePersonaIntent(
+    String(formData.get("persona") ?? formData.get("role") ?? ""),
+  )
+  if (!persona || persona === "admin") redirect("/settings")
+  const role = roleForPersona(persona)
 
-  if (user.role !== raw) {
-    await db.user.update({ where: { id: user.id }, data: { role: raw } })
+  if (user.role !== role) {
+    await db.user.update({ where: { id: user.id }, data: { role } })
   }
+  await writePersonaCookie(persona)
 
   revalidatePath("/settings")
   revalidatePath("/", "layout")
 
-  if (isProRole(raw)) {
+  if (isSelfServeRole(role) && isProRole(role)) {
     const profile =
-      raw === "agent"
+      role === "agent"
         ? await db.agentProfile.findFirst({
             where: { ownerId: user.id, deletedAt: null },
             select: { id: true },
           })
-        : raw === "agency"
+        : role === "agency"
           ? await db.agencyProfile.findFirst({
               where: { ownerId: user.id, deletedAt: null },
               select: { id: true },
@@ -67,11 +73,11 @@ export async function chooseSelfRole(formData: FormData) {
               where: { ownerId: user.id, deletedAt: null },
               select: { id: true },
             })
-    const setup = profileSetupPathFor(raw)
+    const setup = profileSetupPathFor(role)
     if (setup && !profile) redirect(setup)
   }
 
-  redirect(dashboardPathFor(raw))
+  redirect(dashboardPathFor(role))
 }
 
 export type AuthActionState =

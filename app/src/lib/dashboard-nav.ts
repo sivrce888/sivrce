@@ -4,10 +4,13 @@ import { agentNav } from "@/components/agent-dashboard/nav"
 import { developerNav } from "@/components/developer-dashboard/nav"
 import { sellerNav } from "@/components/seller-dashboard/nav"
 import { dashboardPathFor } from "@/lib/guards"
+import { panelTitle, type Persona } from "@/lib/workspace"
 import type { UserRole } from "@/generated/prisma/client"
 
-const buyerNav: DashboardNavItem[] = [
-  { href: "/account", label: "ანგარიში" },
+export const buyerNav: DashboardNavItem[] = [
+  { href: "/account", label: "მიმოხილვა" },
+  { href: "/favorites", label: "ფავორიტები" },
+  { href: "/compare", label: "შედარება" },
   { href: "/settings", label: "პარამეტრები" },
 ]
 
@@ -38,25 +41,8 @@ export function settingsNavFor(role: UserRole): DashboardNavItem[] {
   }
 }
 
-export function settingsTitleFor(role: UserRole): string {
-  switch (role) {
-    case "developer":
-      return "დეველოპერის პანელი"
-    case "agent":
-      return "აგენტის პანელი"
-    case "agency":
-      return "სააგენტოს პანელი"
-    case "seller":
-      return "გამყიდველის პანელი"
-    case "admin":
-      return "ადმინ პანელი"
-    case "buyer":
-      return "ჩემი სივრცე"
-    default: {
-      const _exhaustive: never = role
-      return _exhaustive
-    }
-  }
+export function settingsTitleFor(role: UserRole, persona?: Persona): string {
+  return panelTitle(persona ?? role)
 }
 
 export { dashboardPathFor }

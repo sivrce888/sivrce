@@ -27,7 +27,7 @@ import {
   type PromoExtFields,
 } from "@/lib/promo-pricing"
 import { aiLabel } from "@/lib/ai-label"
-import { MAP_CENTER } from "@/lib/map/buildings"
+import { MAP_CENTER } from "@/lib/map/map-geo"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
 import type { SellerRole } from "@/lib/profiles/roles"
@@ -93,6 +93,8 @@ export interface Listing {
   publicId?: number
   img: string
   images: string[]
+  /** Full gallery size. Set when `images` is a 4-frame card teaser. */
+  photoCount?: number
   priceUSD: number
   priceGEL: number
   /** Locked nominal price originally entered by poster (e.g. 800) */
@@ -484,10 +486,12 @@ export async function getDistrictPeerPerM2(
 }
 
 /** Active listings for a public seller profile (`/u/[id]`). */
-export async function getListingsByOwner(ownerId: string): Promise<Listing[]> {
+export async function getListingsByOwner(ownerId: string | string[]): Promise<Listing[]> {
+  const ids = (Array.isArray(ownerId) ? ownerId : [ownerId]).filter(Boolean)
+  if (!ids.length) return []
   return safeQuery(async () => {
     const rows = await db.listing.findMany({
-      where: { ownerId, deletedAt: null, status: "active" },
+      where: { ownerId: { in: ids }, deletedAt: null, status: "active" },
       orderBy: { createdAt: "desc" },
       take: 48,
     })

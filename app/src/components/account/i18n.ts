@@ -7,8 +7,11 @@ import { useI18n } from '@/lib/i18n/context'
 const STRINGS = {
   ka: {
     profile: 'პროფილი',
-    signIn: 'Google-ით შესვლა',
+    signIn: 'შესვლა',
     signInHint: 'შედი, რომ ნახო შენი შეფასებები და აქტივობა ყველა მოწყობილობაზე.',
+    editProfile: 'რედაქტირება',
+    changePassword: 'პაროლი',
+    signOut: 'გასვლა',
     favorites: 'ფავორიტები',
     savedListings: 'შენახული განცხადებები',
     viewAll: 'ყველას ნახვა',
@@ -49,8 +52,11 @@ const STRINGS = {
   },
   en: {
     profile: 'Profile',
-    signIn: 'Sign in with Google',
+    signIn: 'Sign in',
     signInHint: 'Sign in to see your reviews and sync your activity.',
+    editProfile: 'Edit profile',
+    changePassword: 'Password',
+    signOut: 'Sign out',
     favorites: 'Favorites',
     savedListings: 'Saved listings',
     viewAll: 'View all',
@@ -91,8 +97,11 @@ const STRINGS = {
   },
   ru: {
     profile: 'Профиль',
-    signIn: 'Войти через Google',
+    signIn: 'Войти',
     signInHint: 'Войдите, чтобы видеть свои отзывы и синхронизировать активность.',
+    editProfile: 'Редактировать',
+    changePassword: 'Пароль',
+    signOut: 'Выйти',
     favorites: 'Избранное',
     savedListings: 'Сохранённые объявления',
     viewAll: 'Смотреть все',

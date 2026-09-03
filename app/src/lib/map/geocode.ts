@@ -4,7 +4,7 @@
  */
 
 import { MAP_CITIES, type MapCity } from '@/lib/map/user-place'
-import { GEORGIA_MAX_BOUNDS, MAP_CENTER } from '@/lib/map/buildings'
+import { MAP_CENTER, GEORGIA_MAX_BOUNDS, inGeorgia, parseCoords } from '@/lib/map/map-geo'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geometryRing } from '@/lib/map/pick-building'
 import {
@@ -26,8 +26,6 @@ export type GeocodeHit = {
   /** OSM building outer ring [lng,lat]… when Nominatim returns polygon_geojson. */
   ring?: [number, number][]
 }
-
-const [[W, S], [E, N]] = GEORGIA_MAX_BOUNDS
 
 const NOMINATIM_UA = 'Sivrce/1.0 (https://sivrce.ge; maps@sivrce.ge)'
 
@@ -55,9 +53,9 @@ type NominatimRow = {
   }
 }
 
-export function inGeorgia(lat: number, lng: number): boolean {
-  return lat >= S && lat <= N && lng >= W && lng <= E
-}
+const [[W, S], [E, N]] = GEORGIA_MAX_BOUNDS
+
+export { inGeorgia, parseCoords }
 
 export function cityCenter(city: string): { lat: number; lng: number } {
   const needle = city.trim().toLowerCase()
@@ -116,17 +114,6 @@ export function nearestCity(lat: number, lng: number): MapCity | null {
     }
   }
   return best
-}
-
-/** Parse body lat/lng; reject out-of-Georgia. */
-export function parseCoords(
-  lat: unknown,
-  lng: unknown,
-): { lat: number; lng: number } | null {
-  if (typeof lat !== 'number' || typeof lng !== 'number') return null
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
-  if (!inGeorgia(lat, lng)) return null
-  return { lat, lng }
 }
 
 /** Building footprint only — skip road/amenity polygons. */

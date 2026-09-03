@@ -40,7 +40,8 @@ const csp = [
   "frame-src 'self' https://www.googletagmanager.com https://www.youtube-nocookie.com",
   "publickey-credentials-get 'self'",
   "publickey-credentials-create 'self'",
-  "upgrade-insecure-requests",
+  // ponytail: upgrade-insecure-requests on http://localhost forces map workers onto https://localhost → tiles never load
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [
@@ -176,6 +177,19 @@ const nextConfig: NextConfig = {
           {
             key: "Vercel-CDN-Cache-Control",
             value: "public, s-maxage=604800, immutable",
+          },
+        ],
+      },
+      {
+        source: "/maplibre/:path*",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "text/javascript; charset=utf-8",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },

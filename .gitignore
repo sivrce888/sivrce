@@ -59,6 +59,9 @@ logo/concepts/
 /v-*.png
 /*.docx
 
+# MapLibre ESM worker copies (node scripts/copy-maplibre-worker.mjs)
+app/public/maplibre/
+
 # tool / OS caches
 supabase/.temp/
 __pycache__/

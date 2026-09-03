@@ -1078,7 +1078,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     floors: 33,
     rating: 4.3,
     // OSM: ილია ვეკუას ქუჩა (Akhmeteli / Gldani center) — was Saburtalo centroid ~7 km wrong
-    coords: { lat: 41.80173956, lng: 44.82737581 },
+    coords: { lat: 41.80207889, lng: 44.82708915 },
     description: {
       ka: 'Gldani Inn — Inn Development-ის პრემიუმ კომპლექსი გლდანის ცენტრში, ილია ვეკუას ქ. 11გ: 4 საცხოვრებელი და 1 კომერციული ბლოკი, მეტრო ახმეტელის თეატრთან.',
       en: 'Gldani Inn is Inn Development’s premium complex at 11g Ilia Vekua St in central Gldani: four residential blocks plus one commercial block, by Akhmeteli Theatre metro.',
@@ -1160,7 +1160,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     floors: 38,
     rating: 4.3,
     // OSM სამგორი (Moscow Ave) — project street not published
-    coords: { lat: 41.68503456, lng: 44.85327384 },
+    coords: { lat: 41.68412923, lng: 44.85328909 },
     description: {
       ka: 'Moedani — ახალი პროექტი სამგორის რაიონში: 1,3 ჰა ტერიტორია, 4 საცხოვრებელი ბლოკი, სასტუმრო და 5 100 მ² საჯარო სივრცე.',
       en: 'Moedani is a new project in Tbilisi’s Samgori district: a 1.3 ha site with four residential blocks, a hotel and 5,100 m² of public space.',
@@ -1323,7 +1323,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.5,
-    coords: { lat: 41.67791397, lng: 44.83797246 },
+    coords: { lat: 41.67787964, lng: 44.83782878 },
     description: {
       ka: 'Apex Holbruk — Apex Development-ის მშენებარე პროექტი ჰოლბრუკის ქ. 11-ში, ისნის მიმართულებით. ბინები $1 350/მ²-დან.',
       en: 'Apex Holbruk is Apex Development’s under-construction project at 11 Richard Holbrooke St towards Isani — apartments from $1,350/m².',
@@ -1463,7 +1463,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 400,
     rating: 4.4,
     // OSM hit: project sales office at Asatiani 6
-    coords: { lat: 41.72743485, lng: 44.74787057 },
+    coords: { lat: 41.72732704, lng: 44.74743216 },
     floors: 30,
     description: {
       ka: 'Tbilisi Gardens — Quadrum Global-ის 30-სართულიანი ახალი პროექტი საბურთალოზე, ასათიანის ქ. 6-ში. მშენებარე ბინები $2 660/მ²-დან, ჩაბარება 2026 Q2.',

@@ -22,6 +22,18 @@ function initials(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase()
 }
 
+function parseWebsite(raw: string): string | null {
+  const s = raw.trim().slice(0, 200)
+  if (!s) return ""
+  try {
+    const u = new URL(s.includes("://") ? s : `https://${s}`)
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null
+    return u.toString().slice(0, 200)
+  } catch {
+    return null
+  }
+}
+
 /** Update (or create) the signed-in developer's public profile. */
 export async function saveDeveloperProfile(formData: FormData): Promise<void> {
   const user = await requireRole("developer", "/developer/profile")
@@ -30,6 +42,7 @@ export async function saveDeveloperProfile(formData: FormData): Promise<void> {
   const headquarters = String(formData.get("headquarters") ?? "").trim().slice(0, 160)
   const description = String(formData.get("description") ?? "").trim().slice(0, 4000)
   const logoText = String(formData.get("logoText") ?? "").trim().slice(0, 40)
+  const website = parseWebsite(String(formData.get("website") ?? ""))
 
   if (!name || !headquarters || !description) return
 
@@ -37,6 +50,7 @@ export async function saveDeveloperProfile(formData: FormData): Promise<void> {
     () => db.developerProfile.findFirst({ where: { ownerId: user.id, deletedAt: null } }),
     null,
   )
+  let publicSlug = existing?.slug ?? ""
 
   if (existing) {
     await db.developerProfile.update({
@@ -46,6 +60,7 @@ export async function saveDeveloperProfile(formData: FormData): Promise<void> {
         headquarters,
         description,
         logoText: logoText || existing.logoText || initials(name),
+        ...(website !== null ? { website: website || null } : {}),
       },
     })
   } else {
@@ -67,11 +82,14 @@ export async function saveDeveloperProfile(formData: FormData): Promise<void> {
         headquarters,
         description,
         color: BRAND.colors.blue,
+        ...(website ? { website } : {}),
       },
     })
+    publicSlug = slug
   }
 
   revalidatePath("/developer/profile")
   revalidatePath("/developer")
   revalidatePath("/developers")
+  if (publicSlug) revalidatePath(`/developers/${publicSlug}`)
 }

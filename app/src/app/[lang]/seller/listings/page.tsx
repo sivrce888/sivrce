@@ -9,6 +9,8 @@ import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { effectiveTierKey } from "@/lib/promo-pricing"
+import { addListingHref, isRentFocus, panelTitle } from "@/lib/workspace"
+import { readPersona } from "@/lib/workspace-cookie"
 
 export const dynamic = "force-dynamic"
 
@@ -19,6 +21,7 @@ export const metadata: Metadata = {
 
 export default async function SellerListingsPage() {
   const user = await requireRole("seller", "/seller")
+  const persona = await readPersona(user.role)
 
   const listings = await safeQuery(
     () =>
@@ -53,6 +56,7 @@ export default async function SellerListingsPage() {
     price: l.price,
     currency: l.currency,
     status: l.status,
+    dealType: l.dealType,
     tier: effectiveTierKey(l.tier, l.tierExpiresAt),
     tierExpiresAt: l.tierExpiresAt?.toISOString() ?? null,
     views: l.views,
@@ -66,11 +70,15 @@ export default async function SellerListingsPage() {
   return (
     <DashboardShell
       nav={sellerNav}
-      title="გამყიდველის პანელი"
+      title={panelTitle(persona)}
       subtitle="განცხადებები"
       userLabel={user.name ?? user.email}
     >
-      <MyListingsManager listings={managed} />
+      <MyListingsManager
+        listings={managed}
+        addHref={addListingHref(persona)}
+        focusRent={isRentFocus(persona)}
+      />
     </DashboardShell>
   )
 }

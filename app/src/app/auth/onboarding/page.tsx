@@ -7,12 +7,12 @@ import { ConfirmRole, RolePicker } from "@/components/settings/RolePicker"
 import {
   isProRole,
   isSelfServeRole,
-  parseRoleIntent,
   ROLE_LABEL_KA,
-  roleOnboardingHref,
   type SelfServeRole,
 } from "@/lib/auth-roles"
 import { dashboardPathFor, requireUser } from "@/lib/guards"
+import { parsePersonaIntent, PRO_PERSONAS } from "@/lib/workspace"
+import { readPersona } from "@/lib/workspace-cookie"
 
 export const metadata: Metadata = {
   title: "პროფილის ტიპი",
@@ -28,8 +28,8 @@ export default async function OnboardingPage({
   searchParams: Promise<{ intent?: string; pick?: string }>
 }) {
   const { intent: rawIntent, pick } = await searchParams
-  const intent = parseRoleIntent(rawIntent)
-  const user = await requireUser(roleOnboardingHref(intent))
+  const intent = parsePersonaIntent(rawIntent)
+  const user = await requireUser(intent ? `/auth/onboarding?intent=${intent}` : "/auth/onboarding")
 
   if (user.role === "admin") redirect(dashboardPathFor("admin"))
 
@@ -38,9 +38,11 @@ export default async function OnboardingPage({
     redirect(dashboardPathFor(user.role))
   }
 
-  const current: SelfServeRole = isSelfServeRole(user.role) ? user.role : "buyer"
+  const current = await readPersona(user.role)
   const confirmIntent =
-    intent && isProRole(intent) && pick !== "1" ? intent : null
+    intent && (PRO_PERSONAS as readonly string[]).includes(intent) && pick !== "1"
+      ? (intent as SelfServeRole)
+      : null
 
   return (
     <AuthShell
@@ -61,7 +63,7 @@ export default async function OnboardingPage({
             </Link>
           ) : null}
           <Link
-            href={dashboardPathFor(current)}
+            href={dashboardPathFor(user.role)}
             className="text-[13px] font-bold text-sv-blue-light transition hover:underline"
           >
             გამოტოვება — მყიდველად დავრჩები
@@ -72,7 +74,7 @@ export default async function OnboardingPage({
       {confirmIntent ? (
         <ConfirmRole role={confirmIntent} />
       ) : (
-        <RolePicker currentRole={current} intent={intent} />
+        <RolePicker currentPersona={current} intent={intent} />
       )}
     </AuthShell>
   )

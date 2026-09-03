@@ -5,6 +5,8 @@ import EmptyState from "@/components/dashboard/EmptyState"
 import { sellerNav } from "@/components/seller-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { isRentFocus, panelTitle } from "@/lib/workspace"
+import { readPersona } from "@/lib/workspace-cookie"
 
 export const dynamic = "force-dynamic"
 
@@ -22,6 +24,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function SellerLeadsPage() {
   const user = await requireRole("seller", "/seller")
+  const persona = await readPersona(user.role)
+  const seeker = isRentFocus(persona) ? "დამქირავებელი" : "მყიდველი"
 
   // ponytail: sellers share Inquiry model (no seller CRM); ceiling = CrmLead when seller CRM ships
   const listingIds = await safeQuery(
@@ -51,7 +55,7 @@ export default async function SellerLeadsPage() {
   return (
     <DashboardShell
       nav={sellerNav}
-      title="გამყიდველის პანელი"
+      title={panelTitle(persona)}
       subtitle="ლიდები"
       userLabel={user.name ?? user.email}
     >
@@ -62,7 +66,7 @@ export default async function SellerLeadsPage() {
       {leads.length === 0 ? (
         <EmptyState
           title="ლიდები ჯერ არ გყავს"
-          body="ახალი მოთხოვნები აქ გამოჩნდება, როცა მყიდველი დაინტერესდება შენი განცხადებით."
+          body={`ახალი მოთხოვნები აქ გამოჩნდება, როცა ${seeker} დაინტერესდება შენი განცხადებით.`}
           actionHref="/add-listing"
           actionLabel="განცხადების დამატება"
         />

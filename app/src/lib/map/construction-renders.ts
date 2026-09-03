@@ -1,19 +1,23 @@
 /**
- * Construction 1:1 massing — MapLibre custom layer + three.js.
- * Footprint extrude textured with admin render (or GLB if URL ends .glb/.gltf).
+ * Construction 1:1 massing — MapLibre custom layer + three.js (GLB / façade wrap).
+ * ACTIVE PATH: syncConstructionRenders is a no-op — MapLibre TAS/OSM extrusion only.
+ * Restore photo-wrap: reinstate ensureConstruction3D + api.sync in syncConstructionRenders
+ * and re-import it from Map3D.tsx.
  * ponytail: Cesium skipped (second engine); add when Google Photorealistic 3D Tiles needed.
  */
 
-import maplibregl, {
+import * as maplibregl from 'maplibre-gl'
+import {
   type CustomLayerInterface,
   type CustomRenderMethodInput,
   type Map as MlMap,
 } from 'maplibre-gl'
 import {
-  MAP_CENTER,
   clusterRings,
   type MapBuildingCluster,
 } from '@/lib/map/buildings'
+import { MAP_CENTER } from '@/lib/map/map-geo'
+import { ringCentroid } from '@/lib/map/footprint-circle'
 
 export const CONSTRUCTION_3D_LAYER_ID = 'sv-construction-3d'
 const MAX_MESHES = 48
@@ -80,6 +84,30 @@ export function ringToLocalEN(
   return out
 }
 
+export function ringPerimeterM(pts: { x: number; y: number }[]): number {
+  let p = 0
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i]!
+    const b = pts[(i + 1) % pts.length]!
+    p += Math.hypot(b.x - a.x, b.y - a.y)
+  }
+  return p
+}
+
+/** Cylindrical facade UVs after ExtrudeGeometry + rotateX(-90). Roof stays quiet. */
+export function facadeUV(
+  x: number,
+  y: number,
+  z: number,
+  ny: number,
+  heightM: number,
+): [number, number] {
+  if (Math.abs(ny) > 0.55) return [0.5, 0.98]
+  const u = Math.atan2(x, z) / (Math.PI * 2) + 0.5
+  const v = Math.min(1, Math.max(0, y / Math.max(heightM, 1)))
+  return [u, v]
+}
+
 function mercatorTransform(
   THREE: ThreeNS,
   lat: number,
@@ -120,18 +148,38 @@ async function makeExtrudedMesh(
   for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i]!.x, pts[i]!.y)
   shape.closePath()
 
+  const height = Math.max(heightM, 8)
   const geom = new THREE.ExtrudeGeometry(shape, {
-    depth: Math.max(heightM, 8),
+    depth: height,
     bevelEnabled: false,
   })
   // Shape XY = east/north, depth +Z → rotate so +Y is up (MapLibre three.js convention)
   geom.rotateX(-Math.PI / 2)
+  geom.computeVertexNormals()
+  const pos = geom.attributes.position
+  const nrm = geom.attributes.normal
+  const uv = geom.attributes.uv
+  if (pos && nrm && uv) {
+    for (let i = 0; i < pos.count; i++) {
+      const [u, v] = facadeUV(pos.getX(i), pos.getY(i), pos.getZ(i), nrm.getY(i), height)
+      uv.setXY(i, u, v)
+    }
+    uv.needsUpdate = true
+  }
 
   const tex = await loadTexture(loader, imgUrl)
   tex.colorSpace = THREE.SRGBColorSpace
   tex.wrapS = THREE.RepeatWrapping
   tex.wrapT = THREE.ClampToEdgeWrapping
-  tex.repeat.set(1, 1)
+  tex.anisotropy = 8
+  const img = tex.image as { width?: number; height?: number } | undefined
+  const aspect =
+    img?.width && img?.height ? img.width / img.height : 0.7
+  const copies = Math.min(
+    6,
+    Math.max(1, Math.round(ringPerimeterM(pts) / (height * aspect))),
+  )
+  tex.repeat.set(copies, 1)
 
   // BasicMaterial: no light dependency; Standard + empty map → black boxes.
   const mat = new THREE.MeshBasicMaterial({
@@ -139,6 +187,23 @@ async function makeExtrudedMesh(
     side: THREE.DoubleSide,
   })
   return new THREE.Mesh(geom, mat)
+}
+
+async function makeCylinderMesh(
+  THREE: ThreeNS,
+  loader: InstanceType<ThreeNS['TextureLoader']>,
+  radiusM: number,
+  heightM: number,
+  imgUrl: string,
+): Promise<InstanceType<ThreeNS['Mesh']>> {
+  const geom = new THREE.CylinderGeometry(radiusM, radiusM, Math.max(heightM, 8), 32)
+  const tex = await loadTexture(loader, imgUrl)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.anisotropy = 8
+  const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+  const mesh = new THREE.Mesh(geom, mat)
+  mesh.position.y = Math.max(heightM, 8) / 2
+  return mesh
 }
 
 function disposeObject(obj: Object3D) {
@@ -180,6 +245,8 @@ async function applySync(state: LayerState, buildings: MapBuildingCluster[]) {
     if (b.status !== 'construction' || b.listings.length > 0 || !b.img) continue
     const rings = clusterRings(b)
     if (rings.length === 0) continue
+    // ponytail: MapLibre 64-gon fill-extrusion reads as cylinders; photo-wrap three.js hid them behind wrong massing.
+    if (rings.every((r) => r.circular && r.radiusM)) continue
 
     n++
     const fallbackH = b.heightM > 0 ? b.heightM : Math.max(8, (b.floors ?? 8) * 3.15)
@@ -200,24 +267,31 @@ async function applySync(state: LayerState, buildings: MapBuildingCluster[]) {
           const height = part.floors
             ? Math.min(part.floors * 3.15, 350)
             : fallbackH
-          group.add(
-            await makeExtrudedMesh(
-              state.THREE,
-              state.loader,
-              part.ring,
-              b.lat,
-              b.lng,
-              height,
-              url,
-            ),
-          )
+          const cen = ringCentroid(part.ring)
+          const mesh =
+            part.circular && part.radiusM
+              ? await makeCylinderMesh(state.THREE, state.loader, part.radiusM, height, url)
+              : await makeExtrudedMesh(
+                  state.THREE,
+                  state.loader,
+                  part.ring,
+                  cen.lat,
+                  cen.lng,
+                  height,
+                  url,
+                )
+          const en = ringToLocalEN(
+            [[cen.lng, cen.lat]],
+            state.origin.lat,
+            state.origin.lng,
+          )[0]!
+          mesh.position.x += en.x
+          mesh.position.z += -en.y
+          group.add(mesh)
         }
         obj = group
       }
 
-      // Meters east / up / south-from-north relative to fixed MAP_CENTER origin
-      const en = ringToLocalEN([[b.lng, b.lat]], state.origin.lat, state.origin.lng)[0]!
-      obj.position.set(en.x, 0, -en.y)
       state.root.add(obj)
       state.meshes.set(b.id, obj)
       state.textured.add(b.id)
@@ -350,10 +424,14 @@ export function ensureConstruction3D(map: MlMap): Construction3DApi {
 /** Ensure layer + sync meshes. Call after style reload / buildings change. */
 export function syncConstructionRenders(
   map: MlMap,
-  buildings: MapBuildingCluster[],
+  _buildings: MapBuildingCluster[],
   opts?: { minZoom?: number; beforeId?: string },
 ): Promise<Set<string>> {
-  const api = ensureConstruction3D(map)
-  if (opts?.minZoom != null) api.setMinZoom(opts.minZoom)
-  return api.sync(buildings)
+  // ponytail: photo-wrap off — MapLibre TAS/OSM extrusion is the future massing.
+  // Ceiling: marketing façade wraps. Upgrade: call ensureConstruction3D + api.sync again
+  // (or GLB-only) when product wants 1:1 renders back.
+  const bag = map as unknown as { __svConstruction3D?: Construction3DApi }
+  if (bag.__svConstruction3D) bag.__svConstruction3D.remove()
+  void opts
+  return Promise.resolve(new Set())
 }

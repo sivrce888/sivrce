@@ -152,6 +152,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id!
         token.role = (user.role as UserRole) ?? "buyer"
+        if (user.name) token.name = user.name
         return token
       }
       const id = String(token.id ?? token.sub ?? "")
@@ -161,8 +162,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // ponytail: never 500 /api/auth/session when Postgres is down — chrome polls this on every page.
       try {
         if (!(await dbAvailable())) return token
-        const row = await db.user.findUnique({ where: { id }, select: { role: true } })
-        if (row) token.role = row.role
+        const row = await db.user.findUnique({
+          where: { id },
+          select: { role: true, name: true },
+        })
+        if (row) {
+          token.role = row.role
+          if (row.name) token.name = row.name
+        }
       } catch { /* keep last-known role */ }
       return token
     },
@@ -170,6 +177,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = String(token.id ?? token.sub)
         session.user.role = (token.role as UserRole) ?? "buyer"
+        if (typeof token.name === "string") session.user.name = token.name
       }
       return session
     },

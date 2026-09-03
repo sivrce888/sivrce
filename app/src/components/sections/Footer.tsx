@@ -156,15 +156,7 @@ export default function Footer() {
             {t('footer.rights')}
           </p>
           <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
-            {/* ponytail: text link only — counter.js sets 3P cookies (LH BP fail) */}
-            <a
-              href="https://top.ge/rate?id=117677"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 transition-colors hover:text-white"
-            >
-              TOP.GE
-            </a>
+            <div id="top-ge-counter-container" data-site-id="118924" className="shrink-0" />
             <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="transition-colors hover:text-white">{t('footer.terms')}</Link>
             <Link href={localizedHref("/privacy", lang)} data-cms-key="footer.privacy" className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
             <Link href={localizedHref("/privacy#cookies", lang)} data-cms-key="footer.cookies" className="transition-colors hover:text-white">{t('footer.cookies')}</Link>

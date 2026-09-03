@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { BadgeCheck } from "lucide-react"
+import LocalizedLink from "@/components/LocalizedLink"
+import { BadgeCheck, Star } from "lucide-react"
 
 import { getAgencyContext } from "@/components/agency-dashboard/data"
 import { AGENCY_NAV } from "@/components/agency-dashboard/nav"
@@ -56,7 +57,8 @@ export default async function AgencyTeamPage() {
                     ) : null}
                   </p>
                   <p className="text-[12px] font-semibold text-sv-ink/50">
-                    ★ {agent.rating.toFixed(1)} · {agent.reviewsCount} შეფასება
+                    <Star size={12} className="mr-0.5 inline -translate-y-px text-sv-blue" aria-hidden />
+                    {agent.rating.toFixed(1)} · {agent.reviewsCount} შეფასება
                   </p>
                 </div>
               </div>
@@ -80,6 +82,14 @@ export default async function AgencyTeamPage() {
                 <p className="mt-2 truncate text-[11.5px] font-medium text-sv-ink/45">
                   {agent.specialties.join(" · ")}
                 </p>
+              ) : null}
+              {agent.ownerId ? (
+                <LocalizedLink
+                  href={`/u/${agent.ownerId}`}
+                  className="mt-3 inline-block text-[12px] font-bold text-sv-blue hover:underline"
+                >
+                  საჯარო პროფილი →
+                </LocalizedLink>
               ) : null}
             </article>
           ))}

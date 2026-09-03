@@ -1,7 +1,9 @@
 'use client'
 
-import CompareTray from "@/components/compare/CompareTray"
-import MobileDock from "@/components/MobileDock"
+import dynamic from 'next/dynamic'
+import MobileDock from '@/components/MobileDock'
+
+const CompareTray = dynamic(() => import('@/components/compare/CompareTray'), { ssr: false })
 
 /**
  * Client shell for app-wide trays.

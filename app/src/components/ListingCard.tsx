@@ -7,7 +7,7 @@ import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   Waves, Bath as BathTub, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
-  Layers, BadgeCheck, Play,
+  Layers, BadgeCheck, Play, Camera,
   type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
@@ -205,14 +205,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const metro = nearestMetro(l.coords.lat, l.coords.lng)
   const scored = sivrceScore({
     verified: l.verified,
-    photos: l.images?.length || (l.img ? 1 : 0),
+    photos: l.photoCount ?? (l.images?.length || (l.img ? 1 : 0)),
     features: l.features?.length ?? 0,
     hasCoords: Number.isFinite(l.coords.lat) && Number.isFinite(l.coords.lng),
   })
   const displayScore = scored.score
   const displayLabel = aiLabel(displayScore)
 
-  const { photos, multi } = cardGalleryTeaser(l.images, l.img)
+  const { photos, multi, more, total } = cardGalleryTeaser(l.images, l.img, l.photoCount)
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
   const [photo, setPhoto] = useState(0)
   const frame = photos.length ? Math.min(photo, photos.length - 1) : 0
@@ -349,12 +349,20 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       })}
       {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sv-navy/50 to-transparent" />
-      {l.video ? (
+      {l.video && !(more > 0 && frame === photos.length - 1) ? (
         <span
           className="pointer-events-none absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white shadow-glow-blue-sm backdrop-blur-sm"
           aria-hidden
         >
           <Play className="ml-px h-4 w-4 fill-white" />
+        </span>
+      ) : null}
+      {more > 0 && frame === photos.length - 1 ? (
+        <span className="pointer-events-none absolute inset-0 z-[5] grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
+          <span className="flex flex-col items-center gap-1.5">
+            <Camera className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+            <span className="text-[13px] font-black tracking-wide">{t('card.allPhotos', { n: more })}</span>
+          </span>
         </span>
       ) : null}
       {/* ponytail: photo click → same tab (Cmd/Ctrl+click = new). Chrome stays above. */}
@@ -499,7 +507,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             aria-live="polite"
             className="justify-self-end rounded-full bg-sv-navy/60 px-2 py-0.5 text-[10px] font-bold tabular-nums tracking-wide text-white/95 backdrop-blur-sm"
           >
-            {frame + 1} / {photos.length}
+            {frame + 1} / {total}
           </span>
         </div>
       )}

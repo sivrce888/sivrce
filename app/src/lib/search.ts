@@ -12,6 +12,7 @@
 
 import { Meilisearch, type SearchParams } from "meilisearch"
 import { USD_GEL } from "@/data/listings"
+import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 import { districtSearchValues } from "@/lib/district-canon"
 import { METRO_NEAR_M } from "@/lib/map/pois"
 
@@ -419,6 +420,7 @@ export async function searchListings(filters: SearchFilters): Promise<SearchResu
       hits: raw.hits.map((h) => ({
         ...h,
         dealType: uiDeal(h.dealType),
+        ...cardPhotoPayload(h.images ?? []),
       })),
       totalHits,
       page,

@@ -3,7 +3,7 @@
  */
 import assert from 'node:assert/strict'
 import { cityBySlug, nearestMapCity, MAP_CITIES } from './user-place'
-import { MAP_CENTER } from './buildings'
+import { MAP_CENTER } from '@/lib/map/map-geo'
 
 assert.equal(MAP_CITIES[0]!.slug, 'tbilisi')
 assert.equal(cityBySlug('batumi')?.ka, 'ბათუმი')

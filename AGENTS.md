@@ -1,8 +1,13 @@
 # Standing rule: ponytail always-on
 
-Apply the ponytail skill (lazy senior dev, level `full`) to ALL coding work in
+Apply the ponytail skill (lazy senior dev, level **`lite`**) to ALL coding work in
 this repo and any other project. Installed at
 `~/Library/Application Support/kimi-desktop/daimon-share/daimon/skills/ponytail/`.
+
+Owner mandate: minimal RAM (client + server), minimal Vercel spend, lightweight
+bundle/repo, fast on all devices, no freeze/jank. Locks:
+`.cursor/rules/perf-cost-lock.mdc` · `app/src/lib/device-budget.ts` ·
+`app/src/lib/device-budget.check.ts` · `app/vercel.json`.
 
 # Brand lock (FROZEN 2026-07-17) — anti-hallucination
 

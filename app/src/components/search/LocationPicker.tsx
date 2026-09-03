@@ -660,7 +660,7 @@ function DestCard({
         }`}
       >
         {busy ? (
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-sv-blue/20 border-t-sv-blue" />
+          <span className={`sv-spinner-sm ${selected ? 'sv-spinner-light' : ''}`} aria-hidden />
         ) : (
           <Icon className="h-4 w-4" />
         )}

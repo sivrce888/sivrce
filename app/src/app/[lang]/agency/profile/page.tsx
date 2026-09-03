@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { Building2, MapPin, Star, Users } from "lucide-react"
+import Link from "next/link"
+import { Building2, ExternalLink, MapPin, Star, Users } from "lucide-react"
 
 import { saveAgencyProfile } from "@/app/[lang]/agency/profile/actions"
 import { AGENCY_NAV } from "@/components/agency-dashboard/nav"
@@ -31,7 +32,16 @@ export default async function AgencyProfilePage() {
       subtitle="პროფილი"
       userLabel={user.name ?? user.email}
     >
-      <h1 className="mb-5 text-[22px] font-black tracking-tight text-sv-ink">პროფილი</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-[22px] font-black tracking-tight text-sv-ink">პროფილი</h1>
+        <Link
+          href={`/u/${user.id}`}
+          className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
+        >
+          საჯარო გვერდი
+          <ExternalLink size={13} aria-hidden />
+        </Link>
+      </div>
 
       {profile ? (
         <div className="mb-6 grid gap-4 sm:grid-cols-3">

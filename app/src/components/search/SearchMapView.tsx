@@ -5,15 +5,15 @@
  * "Search this area" writes west/south/east/north → PostGIS /api/search.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
-import maplibregl from 'maplibre-gl'
+import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { Layers, LocateFixed, Minus, Plus, Search } from 'lucide-react'
-import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
+import { ChevronLeft, ChevronRight, Heart, Layers, LocateFixed, Minus, Plus, Search, X } from 'lucide-react'
+import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import {
   applyBrandPaints,
   bindMissingImages,
@@ -23,24 +23,137 @@ import {
   STYLE_SATELLITE,
 } from '@/lib/map/floorLayers'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
+import { groupListingsByPin, paintPricePinEl, pinMinPriceGEL } from '@/lib/map/price-pin'
 import { mapRuntimeOptions } from '@/lib/device-budget'
+import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
 import { initialMapCenter } from '@/lib/map/user-place'
 import { useI18n } from '@/lib/i18n/context'
 import { listingPath } from '@/lib/listing-slug'
-import { mapHrefForListing } from '@/lib/map/buildings'
-import { stayCount, stayLine, type DealType, type Listing } from '@/data/listings'
-import { useCurrency, formatMapPin } from '@/lib/currency'
-import { DEAL_BRAND } from '@/lib/category-brand'
+import { mapHrefForListing } from '@/lib/map/map-href'
+import { stayCount, stayLine, type Listing } from '@/data/listings'
+import { useCurrency, formatMapPin, formatListingPrice } from '@/lib/currency'
 import { rentPeriodKey } from '@/lib/add-listing-fields'
 import { blurProps } from '@/lib/media'
+import { useFavorites } from '@/lib/favorites'
 
 export type MapBounds = { west: number; south: number; east: number; north: number }
 
-function dealHue(d: DealType): string {
-  if (d === 'rent') return DEAL_BRAND.rent
-  if (d === 'daily') return DEAL_BRAND.daily
-  if (d === 'pledge') return DEAL_BRAND.pledge
-  return DEAL_BRAND.sale
+function MapPinCard({
+  listing: l,
+  index,
+  total,
+  onIndex,
+  onClose,
+}: {
+  listing: Listing
+  index: number
+  total: number
+  onIndex: (i: number) => void
+  onClose: () => void
+}) {
+  const { t } = useI18n()
+  const { currency, rate } = useCurrency()
+  const { has, toggle } = useFavorites()
+  const stay = stayCount(l)
+  const suffixKey = rentPeriodKey(l.dealType, l.propType)
+  const suffix = suffixKey ? t(suffixKey) : ''
+  const photo = l.img || l.images[0]
+  const fav = has(l.id)
+  const price = formatListingPrice({
+    priceUSD: l.priceUSD,
+    priceGEL: l.priceGEL,
+    priceOriginal: l.priceOriginal,
+    currencyOriginal: l.currencyOriginal,
+    currencyPreference: currency,
+    rate,
+  })
+  const multi = total > 1
+  return (
+    <div className="sv-hero-in relative [animation-duration:0.4s]" data-map-pin-card>
+      <LocalizedLink
+        href={listingPath(l)}
+        className="block overflow-hidden rounded-card bg-sv-surface shadow-card-hover ring-1 ring-sv-ink/[0.08] transition hover:ring-sv-blue/25 dark:ring-white/10"
+      >
+        <span className="relative block aspect-[4/3] bg-sv-ink/[0.06]">
+          {photo && (
+            <Image
+              src={photo}
+              alt=""
+              fill
+              sizes="360px"
+              className="object-cover"
+              {...blurProps(photo)}
+            />
+          )}
+          {multi && (
+            <span className="absolute bottom-2.5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-sv-navy/70 px-2 py-1 text-[11px] font-extrabold text-white backdrop-blur-sm">
+              {index + 1}/{total}
+            </span>
+          )}
+        </span>
+        <span className="block px-3.5 py-3">
+          <span className="block text-[17px] font-black tracking-tight text-sv-ink">
+            {price.primary}
+            {suffix ? (
+              <span className="ml-1 text-[12px] font-bold text-sv-ink/45">{suffix}</span>
+            ) : null}
+          </span>
+          <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/45">{price.secondary}</span>
+          <span className="mt-1 block truncate text-[13px] font-semibold text-sv-ink/60">
+            {stay.n > 0
+              ? `${stayLine(l, t)} · ${l.area} მ² · ${l.district}`
+              : `${l.area} მ² · ${l.district}`}
+          </span>
+          <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/40">{l.title}</span>
+        </span>
+      </LocalizedLink>
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute left-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/55 text-white backdrop-blur-sm transition hover:bg-sv-navy/75"
+        aria-label={t('map.close')}
+      >
+        <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+      </button>
+      <button
+        type="button"
+        aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
+        aria-pressed={fav}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          toggle(l.id)
+        }}
+        className={`absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-full backdrop-blur-sm transition ${
+          fav ? 'bg-sv-surface text-sv-orange' : 'bg-sv-navy/55 text-white hover:bg-sv-navy/75'
+        }`}
+      >
+        <Heart className={`h-3.5 w-3.5 ${fav ? 'fill-current' : ''}`} strokeWidth={2.5} />
+      </button>
+      {multi && (
+        <>
+          <button
+            type="button"
+            aria-label={t('detail.prevPhoto')}
+            disabled={index === 0}
+            onClick={() => onIndex(index - 1)}
+            className="absolute left-2.5 top-[22%] grid h-8 w-8 place-items-center rounded-full bg-sv-surface/90 text-sv-ink shadow-card backdrop-blur-sm transition hover:bg-sv-surface disabled:opacity-30"
+          >
+            <ChevronLeft className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+          <button
+            type="button"
+            aria-label={t('detail.nextPhoto')}
+            disabled={index >= total - 1}
+            onClick={() => onIndex(index + 1)}
+            className="absolute right-2.5 top-[22%] grid h-8 w-8 place-items-center rounded-full bg-sv-surface/90 text-sv-ink shadow-card backdrop-blur-sm transition hover:bg-sv-surface disabled:opacity-30"
+          >
+            <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+        </>
+      )}
+    </div>
+  )
 }
 
 function readBounds(map: maplibregl.Map): MapBounds {
@@ -69,12 +182,13 @@ export default function SearchMapView({
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map())
   const elsRef = useRef<Map<string, HTMLButtonElement>>(new Map())
-  const skipMoveRef = useRef(false)
+  const skipMoveRef = useRef(0)
   const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
   const [retry, setRetry] = useState(0)
   const [hoverId, setHoverId] = useState<string | null>(null)
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeKey, setActiveKey] = useState<string | null>(null)
+  const [cardIdx, setCardIdx] = useState(0)
   const [seen, setSeen] = useState<Set<string>>(() => new Set())
   const [showSearchArea, setShowSearchArea] = useState(false)
   const [locating, setLocating] = useState(false)
@@ -85,11 +199,15 @@ export default function SearchMapView({
   const themeReady = resolvedTheme != null
 
   const visible = listings
+  const groups = useMemo(() => groupListingsByPin(visible), [visible])
+  const groupsRef = useRef(groups)
+  groupsRef.current = groups
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current || !themeReady) return
     let cancelled = false
     let ro: ResizeObserver | null = null
+    let watchdog: ReturnType<typeof setTimeout> | undefined
     const container = containerRef.current
     const markers = markersRef.current
     const els = elsRef.current
@@ -115,6 +233,7 @@ export default function SearchMapView({
       const boot = initialMapCenter()
       let map: maplibregl.Map
       try {
+        bindMaplibreWorker(maplibregl)
         map = new maplibregl.Map({
           container,
           style,
@@ -140,22 +259,34 @@ export default function SearchMapView({
         if (skipMoveRef.current) return
         setShowSearchArea(true)
       })
+      map.on('click', (e) => {
+        const node = e.originalEvent.target
+        if (node instanceof Element && node.closest('[data-map-pin]')) return
+        setActiveKey(null)
+      })
       const paint = () => {
         map.resize()
         tightenAttribution(map)
         applyBrandPaints(map, dark ? 'dark' : 'light', terrain)
       }
-      map.once('load', () => {
-        if (cancelled) return
+      let booted = false
+      const reveal = () => {
+        if (cancelled || booted) return
+        booted = true
+        if (watchdog) clearTimeout(watchdog)
         paint()
         setFailed(false)
         setReady(true)
-      })
+      }
+      map.once('load', reveal)
+      if (map.loaded()) reveal()
+      watchdog = window.setTimeout(reveal, 1600)
       ro = new ResizeObserver(() => map.resize())
       ro.observe(container)
     })()
     return () => {
       cancelled = true
+      if (watchdog) clearTimeout(watchdog)
       ro?.disconnect()
       markers.forEach((m) => m.remove())
       markers.clear()
@@ -167,20 +298,19 @@ export default function SearchMapView({
   }, [themeReady, isDark, retry])
 
   const paintPin = useCallback(
-    (id: string) => {
-      const el = elsRef.current.get(id)
-      if (!el) return
-      const hovered = hoverId === id
-      const active = activeId === id
-      const wasSeen = seen.has(id)
-      el.style.transform = hovered || active ? 'scale(1.12)' : 'scale(1)'
-      el.style.zIndex = hovered || active ? '20' : '1'
-      el.style.opacity = wasSeen && !active && !hovered ? '0.55' : '1'
-      el.style.boxShadow = active
-        ? '0 0 0 3px rgba(255,255,255,0.95), 0 4px 14px rgba(5,11,38,0.28)'
-        : '0 2px 8px rgba(5,11,38,0.18)'
+    (key: string) => {
+      const el = elsRef.current.get(key)
+      const inner = el?.firstElementChild as HTMLElement | null
+      if (!el || !inner) return
+      const g = groupsRef.current.find((x) => x.key === key)
+      const hover = !!g && !!hoverId && g.listings.some((l) => l.id === hoverId)
+      paintPricePinEl(el, inner, {
+        hover,
+        active: activeKey === key,
+        seen: seen.has(key),
+      })
     },
-    [hoverId, activeId, seen],
+    [hoverId, activeKey, seen],
   )
 
   useEffect(() => {
@@ -191,58 +321,116 @@ export default function SearchMapView({
     elsRef.current.clear()
 
     const bounds = new maplibregl.LngLatBounds()
-    for (const l of visible) {
-      const { lat, lng } = l.coords
-      if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) continue
+    for (const g of groups) {
+      const { lat, lng, key, listings: items } = g
+      const cheapest = items[0]!
+      const minGel = pinMinPriceGEL(items)
       const el = document.createElement('button')
       el.type = 'button'
-      el.className =
-        'cursor-pointer whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-black text-white transition-transform'
-      el.style.backgroundColor = dealHue(l.dealType)
-      el.textContent = formatMapPin(l.priceGEL, currency, rate) || format(l.priceGEL)
-      el.setAttribute('aria-label', l.title)
-      el.dataset.id = l.id
-      el.addEventListener('mouseenter', () => setHoverId(l.id))
-      el.addEventListener('mouseleave', () => setHoverId((cur) => (cur === l.id ? null : cur)))
-      el.addEventListener('click', () => {
-        setActiveId(l.id)
+      el.className = 'relative cursor-pointer border-0 bg-transparent p-0'
+      el.setAttribute(
+        'aria-label',
+        items.length > 1 ? `${cheapest.title} · ${items.length}` : cheapest.title,
+      )
+      el.dataset.id = key
+      el.dataset.mapPin = ''
+      const inner = document.createElement('span')
+      inner.className =
+        'pointer-events-none block whitespace-nowrap rounded-full border border-sv-ink/[0.08] bg-sv-surface px-2.5 py-1 text-[12px] font-black tracking-tight text-sv-ink'
+      inner.style.transition =
+        'transform 180ms cubic-bezier(0.21, 0.65, 0.2, 1), background-color 180ms cubic-bezier(0.21, 0.65, 0.2, 1), color 180ms cubic-bezier(0.21, 0.65, 0.2, 1)'
+      inner.textContent = formatMapPin(minGel, currency, rate) || format(minGel)
+      el.appendChild(inner)
+      if (items.length > 1) {
+        const nEl = document.createElement('span')
+        nEl.dataset.pinN = ''
+        nEl.className =
+          'pointer-events-none absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-sv-navy px-1 text-[9px] font-black text-white'
+        nEl.textContent = String(items.length)
+        el.appendChild(nEl)
+      }
+      el.addEventListener('mouseenter', () => setHoverId(cheapest.id))
+      el.addEventListener('mouseleave', () =>
+        setHoverId((cur) => (cur === cheapest.id ? null : cur)),
+      )
+      el.addEventListener('mousedown', (e) => e.stopPropagation())
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        setActiveKey(key)
+        setCardIdx(0)
         setSeen((prev) => {
-          if (prev.has(l.id)) return prev
+          if (prev.has(key)) return prev
           const next = new Set(prev)
-          next.add(l.id)
+          next.add(key)
           return next
         })
-        const card = listRef.current?.querySelector(`[data-listing="${l.id}"]`)
-        card?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        listRef.current?.querySelector(`[data-listing="${cheapest.id}"]`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        })
+        skipMoveRef.current += 1
+        map.easeTo({
+          center: [lng, lat],
+          zoom: Math.max(map.getZoom(), 13),
+          offset: [0, -140],
+          duration: 380,
+        })
+        map.once('moveend', () => {
+          skipMoveRef.current = Math.max(0, skipMoveRef.current - 1)
+        })
       })
-      elsRef.current.set(l.id, el)
+      elsRef.current.set(key, el)
       markersRef.current.set(
-        l.id,
+        key,
         new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map),
       )
       bounds.extend([lng, lat])
     }
 
     if (!areaActive && !bounds.isEmpty()) {
-      skipMoveRef.current = true
+      skipMoveRef.current += 1
       map.fitBounds(bounds, { padding: 56, maxZoom: 14, duration: 400 })
       map.once('moveend', () => {
-        skipMoveRef.current = false
+        skipMoveRef.current = Math.max(0, skipMoveRef.current - 1)
         setShowSearchArea(false)
       })
     }
-  }, [ready, visible, format, currency, rate, areaActive])
+  }, [ready, groups, format, currency, rate, areaActive])
 
   useEffect(() => {
     for (const id of elsRef.current.keys()) paintPin(id)
-  }, [paintPin])
+  }, [paintPin, groups, ready])
+
+  useEffect(() => {
+    if (activeKey && !groups.some((g) => g.key === activeKey)) setActiveKey(null)
+  }, [groups, activeKey])
+
+  useEffect(() => {
+    if (!activeKey) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveKey(null)
+        return
+      }
+      const g = groupsRef.current.find((x) => x.key === activeKey)
+      if (!g || g.listings.length < 2) return
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault()
+        const dir = e.key === 'ArrowRight' ? 1 : -1
+        setCardIdx((i) => Math.max(0, Math.min(g.listings.length - 1, i + dir)))
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [activeKey])
 
   const searchThisArea = () => {
     const map = mapRef.current
     if (!map || !onSearchArea) return
     onSearchArea(readBounds(map))
     setShowSearchArea(false)
-    setActiveId(null)
+    setActiveKey(null)
   }
 
   const clearArea = () => {
@@ -273,6 +461,10 @@ export default function SearchMapView({
     )
   }
 
+  const picked = activeKey ? groups.find((g) => g.key === activeKey) : undefined
+  const pickedListing = picked?.listings[Math.min(cardIdx, (picked.listings.length || 1) - 1)]
+  const activeIds = picked ? new Set(picked.listings.map((l) => l.id)) : null
+
   return (
     <div className="flex h-[min(78dvh,860px)] min-h-[min(56dvh,420px)] flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card md:flex-row">
       <div
@@ -299,7 +491,7 @@ export default function SearchMapView({
           </p>
         ) : (
           visible.map((l) => {
-            const hot = hoverId === l.id || activeId === l.id
+            const hot = hoverId === l.id || !!activeIds?.has(l.id)
             const stay = stayCount(l)
             const suffixKey = rentPeriodKey(l.dealType, l.propType)
             const suffix = suffixKey ? t(suffixKey) : ''
@@ -330,7 +522,14 @@ export default function SearchMapView({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-black tracking-tight text-sv-ink">
-                    {format(l.priceGEL)}
+                    {formatListingPrice({
+                      priceUSD: l.priceUSD,
+                      priceGEL: l.priceGEL,
+                      priceOriginal: l.priceOriginal,
+                      currencyOriginal: l.currencyOriginal,
+                      currencyPreference: currency,
+                      rate,
+                    }).primary}
                     {suffix ? (
                       <span className="ml-1 text-[12px] font-bold text-sv-ink/45">{suffix}</span>
                     ) : null}
@@ -429,6 +628,20 @@ export default function SearchMapView({
             <LocateFixed className={`h-4 w-4 ${locating ? 'animate-pulse' : ''}`} strokeWidth={2.5} />
           </button>
         </div>
+
+        {picked && pickedListing && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-3 pb-[env(safe-area-inset-bottom)]">
+            <div className="pointer-events-auto w-full max-w-[20rem] overflow-hidden">
+              <MapPinCard
+                listing={pickedListing}
+                index={Math.min(cardIdx, picked.listings.length - 1)}
+                total={picked.listings.length}
+                onIndex={setCardIdx}
+                onClose={() => setActiveKey(null)}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

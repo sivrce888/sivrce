@@ -168,6 +168,121 @@ const site: TasArchShape = {
 }
 const noGlue = pickTasShapesForPin([site, b2], 41.6752, 44.8272, { campus: true })
 assert.equal(noGlue.length, 1)
-assert.equal(noGlue[0]!.objId, 9)
+assert.equal(noGlue[0]!.objId, 4)
+
+// Compact twin towers + verbose site polygon at pin → towers only.
+const cylA: TasArchShape = {
+  ...tower,
+  objId: 10,
+  lat: 41.67521,
+  lng: 44.82721,
+  ring: [
+    [44.8271, 41.675],
+    [44.8273, 41.675],
+    [44.8273, 41.6754],
+    [44.8271, 41.6754],
+    [44.8271, 41.675],
+  ],
+}
+const cylB: TasArchShape = {
+  ...cylA,
+  objId: 11,
+  lat: 41.67522,
+  lng: 44.82755,
+  ring: [
+    [44.82745, 41.675],
+    [44.82765, 41.675],
+    [44.82765, 41.6754],
+    [44.82745, 41.6754],
+    [44.82745, 41.675],
+  ],
+}
+const verboseSite: TasArchShape = {
+  ...tower,
+  objId: 12,
+  statusName: 'თანხმობა',
+  lat: 41.67521,
+  lng: 44.82738,
+  ring: [
+    [44.8268, 41.6748],
+    [44.827, 41.67485],
+    [44.8272, 41.6749],
+    [44.8274, 41.67495],
+    [44.8276, 41.675],
+    [44.8278, 41.67505],
+    [44.828, 41.6751],
+    [44.828, 41.6756],
+    [44.8276, 41.67555],
+    [44.8272, 41.6755],
+    [44.8268, 41.67545],
+    [44.82675, 41.6752],
+    [44.8268, 41.6748],
+  ],
+}
+const twinPick = pickTasShapesForPin([cylA, cylB, verboseSite], 41.67521, 44.82721, {
+  campus: true,
+})
+assert.equal(twinPick.length, 2)
+assert.ok(twinPick.every((s) => s.ring.length <= 12))
+
+// Overlapping major pentagons → fall back to medium twin pair.
+const blobA: TasArchShape = {
+  ...tower,
+  objId: 20,
+  lat: 41.749242,
+  lng: 44.769021,
+  ring: [
+    [44.7688, 41.7487],
+    [44.7696, 41.7487],
+    [44.7696, 41.7498],
+    [44.7688, 41.7498],
+    [44.7688, 41.7487],
+  ],
+}
+const blobB: TasArchShape = {
+  ...blobA,
+  objId: 21,
+  lat: 41.749202,
+  lng: 44.76901,
+  ring: [
+    [44.76875, 41.74865],
+    [44.76955, 41.74865],
+    [44.76955, 41.74975],
+    [44.76875, 41.74975],
+    [44.76875, 41.74865],
+  ],
+}
+const medA: TasArchShape = {
+  ...tower,
+  objId: 22,
+  lat: 41.749223,
+  lng: 44.769259,
+  ring: [
+    [44.7690, 41.74905],
+    [44.7695, 41.74905],
+    [44.7695, 41.7494],
+    [44.7690, 41.7494],
+    [44.7690, 41.74905],
+  ],
+}
+const medB: TasArchShape = {
+  ...medA,
+  objId: 23,
+  lat: 41.749472,
+  lng: 44.76943,
+  ring: [
+    [44.76925, 41.74935],
+    [44.7696, 41.74935],
+    [44.7696, 41.7496],
+    [44.76925, 41.7496],
+    [44.76925, 41.74935],
+  ],
+}
+const noOverlap = pickTasShapesForPin([blobA, blobB, medA, medB], 41.74935, 44.76901, {
+  campus: true,
+  maxPinM: 180,
+})
+assert.equal(noOverlap.length, 2)
+assert.ok(noOverlap[0]!.ring.length <= 12 && noOverlap[1]!.ring.length <= 12)
 
 console.log('tas-arch.check: ok')

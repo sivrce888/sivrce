@@ -1,19 +1,20 @@
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { LITE_BOOT, isLiteDevice, mapRuntimeOptions } from "./device-budget"
+import { FULL_TILE_CACHE, LITE_BOOT, isLiteDevice, mapRuntimeOptions } from "./device-budget"
 
 assert.equal(typeof window, "undefined")
 assert.equal(isLiteDevice(), false)
 
 const map = mapRuntimeOptions()
 assert.equal(map.antialias, true)
-assert.equal(map.maxTileCacheSize, 80)
+assert.equal(map.maxTileCacheSize, FULL_TILE_CACHE)
 assert.equal(map.collectResourceTiming, false)
 assert.equal(map.preserveDrawingBuffer, false)
-assert.ok(map.maxTileCacheSize <= 80)
+assert.ok(map.maxTileCacheSize <= FULL_TILE_CACHE)
 
 assert.ok(LITE_BOOT.includes("data-lite"))
+assert.ok(LITE_BOOT.includes("sv-lite"))
 assert.ok(LITE_BOOT.includes("deviceMemory"))
 assert.ok(LITE_BOOT.includes("saveData"))
 assert.ok(LITE_BOOT.includes("hardwareConcurrency"))
@@ -46,6 +47,10 @@ lock("src/app/globals.css", [
   "sv-card-specs",
   "max(var(--sv-gutter), env(safe-area-inset-left",
   "img, video, iframe, canvas",
+  "accent-color: var(--sv-blue)",
+  "scrollbar-color:",
+  ".sv-spinner",
+  "-webkit-tap-highlight-color:",
 ], ["overflow-x: hidden"])
 lock("src/components/ListingCard.tsx", ["@container", "sv-card-specs", "w-[clamp(16.5rem,82%,23.75rem)]"], [
   "sm:w-[380px]",
@@ -67,22 +72,55 @@ lock("src/app/[lang]/layout.tsx", [
   "beforeInteractive",
   "suppressHydrationWarning",
   'viewportFit: "cover"',
+  "/icons/favicon-32.png",
+  "/apple-icon.png",
+  "BRAND.colors.navy",
 ], ["maximumScale"])
 lock("src/app/auth/layout.tsx", [
   "LITE_BOOT",
   "beforeInteractive",
   "suppressHydrationWarning",
   'viewportFit: "cover"',
+  "/icons/favicon-32.png",
+  "/apple-icon.png",
+  "BRAND.colors.navy",
 ], ["maximumScale"])
-lock("src/components/map/Map3D.tsx", ["...mapRuntimeOptions()"])
-lock("src/components/map/BuildingFloorsMap.tsx", ["...mapRuntimeOptions()"])
+lock("src/lib/map/maplibre-worker.ts", ["/maplibre/maplibre-gl-worker.mjs", "setWorkerUrl", "prewarm"], ["setWorkerCount"])
+lock("src/components/map/Map3D.tsx", ["...mapRuntimeOptions()", "isLiteDevice()", "bindMaplibreWorker("], ["setWorkerCount"])
+lock("src/components/map/BuildingFloorsMap.tsx", ["...mapRuntimeOptions()", "bindMaplibreWorker("], ["setWorkerCount"])
 lock("src/components/search/SearchMapView.tsx", [
   "...mapRuntimeOptions()",
   "new ResizeObserver",
   "STYLE_SATELLITE",
   "mapStyleUrl(dark)",
-])
+  "from '@/lib/map/map-geo'",
+  "bindMaplibreWorker(",
+], ["from '@/lib/map/buildings'", "setWorkerCount"])
+lock("src/components/MapEmbed.tsx", ["from '@/lib/map/map-geo'", "bindMaplibreWorker("], ["from '@/lib/map/buildings'", "from '@/lib/map/geocode'", "setWorkerCount"])
+lock("src/lib/map/floorLayers.ts", ["from '@/lib/map/map-geo'"], ["from '@/lib/map/buildings'"])
+lock("src/components/listing/ListingDetailClient.tsx", [
+  "from '@/lib/map/map-href'",
+  "from '@/lib/map/map-geo'",
+  "next/dynamic",
+  "import('@/lib/map/pois')",
+], ["from '@/lib/map/buildings'", "from '@/lib/map/geocode'", "from '@/lib/map/pois'"])
+lock("src/components/GoogleTags.tsx", ["isLiteDevice", "lazyOnload", "requestIdleCallback"], ["afterInteractive"])
+lock("src/components/chat/ChatShell.tsx", ["next/dynamic"])
 lock("src/lib/db.ts", ["max: 1"], ["max: 10"])
 lock("sentry.client.config.ts", ["replaysSessionSampleRate: 0"], ["replaysSessionSampleRate: 1"])
+
+for (const f of [
+  "src/app/favicon.ico",
+  "src/app/icon.png",
+  "src/app/apple-icon.png",
+  "public/icon.png",
+  "public/apple-icon.png",
+  "public/icons/favicon-32.png",
+  "public/icons/icon-192.png",
+  "public/icons/icon-512.png",
+  "public/images/og-brand.png",
+]) {
+  assert.ok(existsSync(join(root, f)), `missing chrome asset ${f}`)
+}
 
 console.log("device-budget: ssr-safe + glitch locks ✓")

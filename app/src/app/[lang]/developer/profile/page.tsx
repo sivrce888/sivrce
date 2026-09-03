@@ -108,6 +108,17 @@ export default async function DeveloperProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
+            <span className="text-[12px] font-bold text-sv-ink/55">ვებსაიტი</span>
+            <input
+              name="website"
+              type="url"
+              maxLength={200}
+              defaultValue={profile?.website ?? ""}
+              placeholder="https://"
+              className="h-11 rounded-control border border-sv-ink/12 bg-sv-cloud/40 px-4 text-[14px] font-semibold text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
+            />
+          </label>
+          <label className="grid gap-1.5">
             <span className="text-[12px] font-bold text-sv-ink/55">აღწერა</span>
             <textarea
               name="description"

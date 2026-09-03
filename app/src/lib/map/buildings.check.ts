@@ -17,11 +17,15 @@ import {
   findBuildingBySlug,
   findBuildingForListing,
   findNearestBuilding,
+  listingMatchesKind,
+  mapFiltersToSearchHref,
   mapHrefForListing,
   ghostFootprintHalfM,
   haversineM,
   listingBuildingNumber,
   parseBuildingNumber,
+  parseMapDeal,
+  parseMapKind,
   parseStreet,
   projectsToConstructionBuildings,
   applyLiveProjectPins,
@@ -208,6 +212,23 @@ const shedW = Math.abs(shedGhost.coordinates[0]![1]![0]! - shedGhost.coordinates
 const shedH = Math.abs(shedGhost.coordinates[0]![2]![1]! - shedGhost.coordinates[0]![1]![1]!)
 assert.ok(shedW / shedH > 1.4, 'tiny OSM ring should fall back to synthetic slab')
 
+// Masterplan / hill OSM must not become one 400 m tower.
+{
+  const hill: [number, number][] = [
+    [44.81, 41.65],
+    [44.817, 41.65],
+    [44.817, 41.657],
+    [44.81, 41.657],
+    [44.81, 41.65],
+  ]
+  assert.ok(ringBboxHalfM(hill) > 200)
+  assert.equal(
+    footprintRingUsable(hill, 41.6535, 44.8135, { ghost: true, floors: 67 }),
+    false,
+    'oversize lot is not a building',
+  )
+}
+
 // 1-storey OSM tagged onto a 24-floor ghost must not become the massing.
 {
   const shedHRing: [number, number][] = [
@@ -308,8 +329,8 @@ const pinAnchors: Record<string, { lat: number; lng: number; needle: string }> =
   'orbi-continental': { lat: 41.64892, lng: 41.62439, needle: 'Rustaveli' },
   'idea-panorama': { lat: 41.71883, lng: 44.7043, needle: 'Danelia' },
   'alto-by-real-palace': { lat: 41.79453, lng: 44.76627, needle: 'აბრაამ' },
-  // 2026-07-20: was east-bank wrong pin 41.7549/44.7784
-  'm2-highlight': { lat: 41.7493512, lng: 44.76901119, needle: 'ბაქრაძ' },
+  // 2026-09-02: was west-of-Gelovani 41.74935/44.76901 — korter twin towers east.
+  'm2-highlight': { lat: 41.74844103, lng: 44.77113605, needle: 'ბაქრაძ' },
   'grada-saburtalo': { lat: 41.74713, lng: 44.769784, needle: 'გელოვან' },
 }
 for (const [slug, a] of Object.entries(pinAnchors)) {
@@ -325,10 +346,40 @@ for (const [slug, a] of Object.entries(pinAnchors)) {
   assert.ok(cat, 'm2-highlight in catalog')
   const twin = catalogToCluster(cat!, [])
   const twins = buildingsToGeoJSON([twin]).features
-  assert.ok(twins.length >= 2, 'm2-highlight must extrude multiple TAS towers')
+  assert.equal(twins.length, 2, 'm2-highlight must extrude exactly 2 cylindrical TAS towers')
+  const heights = twins.map((f) => Number(f.properties?.height)).sort((a, b) => b - a)
+  assert.equal(heights[0], 36 * 3.15)
+  assert.equal(heights[1], 26 * 3.15)
   assert.equal(clusterRings(twin).length, twins.length, 'm2-highlight clusterRings matches GeoJSON')
   assert.ok(twins.every((f) => f.properties?.id === 'bldg-m2-highlight'))
-  assert.ok(haversineM(cat!.coords.lat, cat!.coords.lng, 41.7493512, 44.76901119) < 25, 'm2-highlight pin on TAS')
+  assert.ok(haversineM(cat!.coords.lat, cat!.coords.lng, 41.74844103, 44.77113605) < 25, 'm2-highlight pin on korter twins')
+  // DB admin ring must not wipe twin cylinders
+  const wiped = {
+    ...twin,
+    ring: [
+      [44.7708, 41.748],
+      [44.7715, 41.748],
+      [44.7715, 41.749],
+      [44.7708, 41.749],
+      [44.7708, 41.748],
+    ] as [number, number][],
+  }
+  assert.equal(buildingsToGeoJSON([wiped]).features.length, 2, 'parts beat stale DB ring')
+  const idOnly = { ...twin, slug: undefined, projectSlug: undefined }
+  assert.equal(buildingsToGeoJSON([idOnly]).features.length, 2, 'id bldg-m2-highlight still locks twins')
+  const blob = {
+    ...twin,
+    id: 'db-site-blob',
+    slug: 'm2-highlight-lot',
+    lat: twin.lat + 0.0002,
+    lng: twin.lng,
+    ring: wiped.ring,
+  }
+  assert.equal(
+    mergeDbBuildings([twin], [blob]).length,
+    1,
+    'DB site blob next to locked twins is dropped',
+  )
 }
 
 // m³ Saburtalo (Gelovani) — TAS permit outline, dev/bldg identical
@@ -338,7 +389,7 @@ for (const [slug, a] of Object.entries(pinAnchors)) {
   const c = catalogToCluster(cat!, [])
   const fc = buildingsToGeoJSON([c]).features
   assert.ok(fc.length >= 1, 'm3 saburtalo must extrude TAS massing')
-  assert.ok(haversineM(cat!.coords.lat, cat!.coords.lng, 41.75164387, 44.76875396) < 15, 'm3 saburtalo pin on TAS')
+  assert.ok(haversineM(cat!.coords.lat, cat!.coords.lng, 41.751800, 44.770561) < 25, 'm3 saburtalo pin east of Gelovani')
 }
 
 // Live project pin updates address/dev — coords stay on OSM footprint (not a street geocode).
@@ -380,12 +431,23 @@ const dbMerged = mergeDbBuildings(
   ],
 )
 assert.equal(dbMerged.length, 1)
-assert.equal(dbMerged[0]!.lat, 41.71)
+// Official footprint owns the pin — DB may update address/meta, not drag coords.
+assert.equal(dbMerged[0]!.lat, axisCluster!.lat)
+assert.equal(dbMerged[0]!.lng, axisCluster!.lng)
 assert.equal(dbMerged[0]!.address, 'DB exact address 37')
 
 const filtered = filterBuildings([...buildings, ...ghosts], 'sale', 'all')
 assert.ok(filtered.some((b) => b.slug === 'chavchavadze-47'))
-assert.ok(filtered.some((b) => b.status === 'construction'))
+assert.equal(
+  filtered.filter((b) => b.status === 'construction' && b.listings.length === 0).length,
+  0,
+  'all/sale hides empty construction shells',
+)
+assert.ok(
+  filterBuildings([...buildings, ...ghosts], 'sale', 'all', 'construction').some(
+    (b) => b.status === 'construction',
+  ),
+)
 
 const rentOnly = filterBuildings([...buildings, ...ghosts], 'rent', 'all')
 assert.ok(rentOnly.some((b) => b.slug === 'chavchavadze-47'))
@@ -396,10 +458,42 @@ assert.equal(
 )
 assert.equal(filterBuildings(ghosts, 'daily', 'all').length, 0)
 assert.equal(filterBuildings(ghosts, 'pledge', 'all').length, 0)
-assert.ok(filterBuildings(ghosts, 'sale', 'all').some((b) => b.status === 'construction'))
+assert.ok(filterBuildings(ghosts, 'sale', 'all', 'construction').some((b) => b.status === 'construction'))
+assert.equal(filterBuildings(ghosts, 'sale', 'all').length, 0)
 assert.ok(filterBuildings(ghosts, 'all', 'construction').every((b) => b.status === 'construction'))
 assert.equal(filterBuildings(ghosts, 'all', 'active').length, 0)
 assert.equal(filterBuildings(ghosts, 'all', 'completed').length, 0)
+
+assert.equal(parseMapKind('apartment'), 'apartment')
+assert.equal(parseMapKind('nope'), 'all')
+assert.equal(listingMatchesKind({ propType: 'villa' }, 'house'), true)
+assert.equal(listingMatchesKind({ propType: 'apartment' }, 'house'), false)
+assert.equal(listingMatchesKind({ propType: 'commercial' }, 'commercial'), true)
+
+const mixedKind: Listing[] = [
+  fixtures[0]!,
+  { ...fixtures[0]!, id: 'rent-apt', dealType: 'rent' },
+  { ...fixtures[0]!, id: 'com-1', propType: 'commercial', dealType: 'rent' },
+]
+const mixedClusters = clusterListingsToBuildings(mixedKind)
+const aptOnly = filterBuildings(mixedClusters, 'all', 'all', 'apartment')
+assert.ok(aptOnly.some((b) => b.listings.length > 0))
+assert.ok(aptOnly.every((b) => b.listings.every((l) => l.propType === 'apartment')))
+const comOnly = filterBuildings(mixedClusters, 'all', 'all', 'commercial')
+assert.ok(comOnly.some((b) => b.listings.some((l) => l.propType === 'commercial')))
+assert.ok(comOnly.every((b) => b.listings.every((l) => l.propType === 'commercial')))
+const rentApt = filterBuildings(mixedClusters, 'rent', 'all', 'apartment')
+assert.ok(rentApt.some((b) => b.listings.length > 0))
+assert.ok(rentApt.every((b) => b.listings.every((l) => l.dealType === 'rent' && l.propType === 'apartment')))
+assert.ok(filterBuildings(ghosts, 'sale', 'all', 'construction').every((b) => b.status === 'construction'))
+assert.equal(filterBuildings(ghosts, 'daily', 'all', 'construction').length, 0)
+assert.ok(filterBuildings(clusterListingsToBuildings(fixtures), 'all', 'all').every((b) => b.listings.length > 0))
+assert.equal(parseMapDeal('rent'), 'rent')
+assert.equal(parseMapDeal('nope'), 'all')
+assert.equal(mapFiltersToSearchHref('all', 'all'), '/search')
+assert.equal(mapFiltersToSearchHref('rent', 'apartment'), '/search?deal=rent&type=apartment')
+assert.equal(mapFiltersToSearchHref('all', 'construction'), '/search?bstat=add.status.construction')
+assert.equal(mapFiltersToSearchHref('sale', 'house'), '/search?deal=sale&type=house')
 
 const rentPts = buildingsToPointsGeoJSON(buildings, 'rent')
 const rentTower = rentPts.features.find((f) => f.properties?.slug === 'chavchavadze-47')
@@ -811,7 +905,8 @@ assert.ok(onlyBuild.length > 0, 'construction filter returns ghosts')
 assert.ok(onlyBuild.every((b) => b.status === 'construction'))
 assert.ok(onlyBuild.every((b) => b.label.length > 0 && !/^SV-TB-/.test(b.label)))
 
-import { GEORGIA_BORDER, GEORGIA_HALO_KM, GEORGIA_HOLE, GEORGIA_MASK_FC, GEORGIA_MAX_BOUNDS, MAP_CENTER, MAP_MIN_ZOOM } from './buildings'
+import { GEORGIA_BORDER, GEORGIA_HALO_KM, GEORGIA_HOLE, GEORGIA_MASK_FC, GEORGIA_MASK_MAXZOOM, GEORGIA_MAX_BOUNDS, MAP_CENTER, MAP_MIN_ZOOM } from './buildings'
+assert.equal(GEORGIA_MASK_MAXZOOM, 8)
 assert.equal(MAP_MIN_ZOOM, 7)
 assert.equal(GEORGIA_HALO_KM, 50)
 assert.ok(GEORGIA_MAX_BOUNDS[0][0] < GEORGIA_MAX_BOUNDS[1][0])
@@ -839,9 +934,16 @@ assert.ok(pip(41.5, 41.73, GEORGIA_HOLE), 'nearshore west of Batumi in halo')
 assert.ok(pip(39.88, 43.46, GEORGIA_HOLE), 'Sochi-sea nearshore in halo')
 assert.ok(!pip(44.51, 40.18, GEORGIA_HOLE), 'Yerevan outside hole')
 assert.ok(!pip(38.4, 43.5, GEORGIA_HOLE), 'deep Black Sea outside halo')
-assert.equal(GEORGIA_MASK_FC.features[0]?.geometry.type, 'Polygon')
-assert.equal((GEORGIA_MASK_FC.features[0]?.geometry as GeoJSON.Polygon).coordinates.length, 2)
-assert.equal((GEORGIA_MASK_FC.features[0]?.geometry as GeoJSON.Polygon).coordinates[1], GEORGIA_HOLE)
+assert.equal(GEORGIA_MASK_FC.features.length, 4)
+{
+  const covered = (lng: number, lat: number) =>
+    GEORGIA_MASK_FC.features.some((f) =>
+      pip(lng, lat, (f.geometry as GeoJSON.Polygon).coordinates[0] as [number, number][]),
+    )
+  assert.ok(!covered(MAP_CENTER.lng, MAP_CENTER.lat), 'Tbilisi not masked')
+  assert.ok(covered(21, 31), 'SW void masked')
+  assert.ok(covered(59, 54), 'NE void masked')
+}
 {
   const box = (ring: [number, number][]) => {
     let w = 180, s = 90, e = -180, n = -90

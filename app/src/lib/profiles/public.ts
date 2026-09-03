@@ -66,6 +66,19 @@ export async function resolveOwnerProfile(
       }
     }
 
+    if (role === 'agency') {
+      const ag = await db.agencyProfile.findFirst({
+        where: { ownerId, deletedAt: null },
+        select: { verified: true },
+      })
+      return {
+        profileHref: `/u/${ownerId}`,
+        role,
+        verified: ag?.verified ?? false,
+        image: user.image,
+      }
+    }
+
     if (role === 'developer') {
       const dp = await db.developerProfile.findFirst({
         where: { ownerId, deletedAt: null },

@@ -10,20 +10,24 @@ import {
   KeyRound,
   Loader2,
   Search,
+  Tag,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { chooseSelfRole } from "@/app/auth/actions"
+import { ROLE_LABEL_KA, type SelfServeRole } from "@/lib/auth-roles"
 import {
-  CONSUMER_ROLES,
-  PRO_ROLES,
-  ROLE_LABEL_KA,
-  type SelfServeRole,
-} from "@/lib/auth-roles"
+  CONSUMER_PERSONAS,
+  PERSONA_LABEL_KA,
+  PRO_PERSONAS,
+  type Persona,
+} from "@/lib/workspace"
 
-const ROLE_ICON: Record<SelfServeRole, LucideIcon> = {
+const PERSONA_ICON: Record<Exclude<Persona, "admin">, LucideIcon> = {
   buyer: Search,
-  seller: KeyRound,
+  tenant: Home,
+  seller: Tag,
+  landlord: KeyRound,
   agent: BadgeCheck,
   agency: Building2,
   developer: Briefcase,
@@ -34,25 +38,25 @@ function PendingLabel({ idle, busy = "იტვირთება…" }: { idle:
   return <>{pending ? busy : idle}</>
 }
 
-function RoleCard({
-  role,
+function PersonaCard({
+  persona,
   current,
   intent,
 }: {
-  role: SelfServeRole
-  current: SelfServeRole | string
-  intent: SelfServeRole | null
+  persona: Exclude<Persona, "admin">
+  current: Persona | string
+  intent: Persona | null
 }) {
-  const active = current === role
-  const highlighted = !active && intent === role
-  const pro = (PRO_ROLES as readonly string[]).includes(role)
-  const { title, blurb } = ROLE_LABEL_KA[role]
+  const active = current === persona
+  const highlighted = !active && intent === persona
+  const pro = (PRO_PERSONAS as readonly string[]).includes(persona)
+  const { title, blurb } = PERSONA_LABEL_KA[persona]
 
   return (
     <form action={chooseSelfRole} className="contents">
-      <input type="hidden" name="role" value={role} />
-      <RoleSubmitButton
-        role={role}
+      <input type="hidden" name="persona" value={persona} />
+      <PersonaSubmitButton
+        persona={persona}
         active={active}
         highlighted={highlighted}
         pro={pro}
@@ -63,15 +67,15 @@ function RoleCard({
   )
 }
 
-function RoleSubmitButton({
-  role,
+function PersonaSubmitButton({
+  persona,
   active,
   highlighted,
   pro,
   title,
   blurb,
 }: {
-  role: SelfServeRole
+  persona: Exclude<Persona, "admin">
   active: boolean
   highlighted: boolean
   pro: boolean
@@ -79,7 +83,7 @@ function RoleSubmitButton({
   blurb: string
 }) {
   const { pending } = useFormStatus()
-  const Icon = ROLE_ICON[role]
+  const Icon = PERSONA_ICON[persona]
   return (
     <button
       type="submit"
@@ -131,12 +135,12 @@ function RoleSubmitButton({
 
 /** Apple-style confirm when we already know the intended pro role. */
 export function ConfirmRole({ role }: { role: SelfServeRole }) {
-  const Icon = ROLE_ICON[role]
+  const Icon = PERSONA_ICON[role]
   const { title, blurb } = ROLE_LABEL_KA[role]
 
   return (
     <form action={chooseSelfRole} className="space-y-5">
-      <input type="hidden" name="role" value={role} />
+      <input type="hidden" name="persona" value={role} />
       <div className="flex flex-col items-center px-2 text-center">
         <span className="grid h-16 w-16 place-items-center rounded-tile bg-sv-orange/12 text-sv-orange">
           <Icon size={28} aria-hidden />
@@ -166,32 +170,47 @@ function ConfirmSubmit() {
 }
 
 export function RolePicker({
+  currentPersona,
   currentRole,
   intent = null,
   compact = false,
 }: {
-  currentRole: SelfServeRole | string
-  intent?: SelfServeRole | null
+  currentPersona?: Persona | string
+  /** @deprecated prefer currentPersona */
+  currentRole?: SelfServeRole | string
+  intent?: Persona | null
   compact?: boolean
 }) {
+  const current = currentPersona ?? currentRole ?? "buyer"
   return (
     <div className={compact ? "space-y-4" : "space-y-5"}>
-      {!compact && intent ? (
+      {!compact && intent && intent !== "admin" ? (
         <p className="rounded-module border border-sv-orange/20 bg-sv-orange/[0.06] px-4 py-3 text-[13px] font-semibold text-sv-ink/70">
           <Home size={14} className="mr-1.5 inline -translate-y-px text-sv-orange" aria-hidden />
           შენ გამოგზავნენ როგორც{" "}
-          <span className="font-extrabold text-sv-ink">{ROLE_LABEL_KA[intent].title}-ს</span>.
+          <span className="font-extrabold text-sv-ink">{PERSONA_LABEL_KA[intent].title}-ს</span>.
           აირჩიე ქვემოთ ან გამოტოვე — ნაგულისხმევი მყიდველია.
         </p>
       ) : null}
 
       <div>
         <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
-          ანგარიში
+          ვეძებ
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
-          {CONSUMER_ROLES.map((role) => (
-            <RoleCard key={role} role={role} current={currentRole} intent={intent} />
+          {CONSUMER_PERSONAS.slice(0, 2).map((persona) => (
+            <PersonaCard key={persona} persona={persona} current={current} intent={intent} />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
+          ვაქვეყნებ
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {CONSUMER_PERSONAS.slice(2).map((persona) => (
+            <PersonaCard key={persona} persona={persona} current={current} intent={intent} />
           ))}
         </div>
       </div>
@@ -201,8 +220,8 @@ export function RolePicker({
           პროფესიონალი ვარ
         </p>
         <div className="grid gap-2 sm:grid-cols-3">
-          {PRO_ROLES.map((role) => (
-            <RoleCard key={role} role={role} current={currentRole} intent={intent} />
+          {PRO_PERSONAS.map((persona) => (
+            <PersonaCard key={persona} persona={persona} current={current} intent={intent} />
           ))}
         </div>
       </div>

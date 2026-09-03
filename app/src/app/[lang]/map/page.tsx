@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
@@ -9,6 +10,7 @@ import { isValidLang } from '@/lib/i18n/core'
 import { getServerT, langAlternates } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import { Map3DLazy } from './Map3DLazy'
+import MapListLink from './MapListLink'
 
 const SITE = 'https://sivrce.ge'
 
@@ -81,12 +83,20 @@ export default async function MapPage({
           >
             {t('nav.buildings')}
           </LocalizedLink>
-          <LocalizedLink
-            href="/search"
-            className="rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+          <Suspense
+            fallback={
+              <LocalizedLink
+                href="/search"
+                className="rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+              >
+                {t('search.list')}
+              </LocalizedLink>
+            }
           >
-            {t('search.list')}
-          </LocalizedLink>
+            <MapListLink className="rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5">
+              {t('search.list')}
+            </MapListLink>
+          </Suspense>
         </div>
       </header>
       <div id="main" className="min-h-0 flex-1">

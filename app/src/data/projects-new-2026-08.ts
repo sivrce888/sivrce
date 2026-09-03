@@ -1323,7 +1323,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 6,
     rating: 4.6,
     cadastral: '01.14.16.015.526',
-    coords: { lat: 41.7335554, lng: 44.7364368 },
+    coords: { lat: 41.73345104, lng: 44.73638023 },
     description: {
       ka: 'Prime Lisi — 6-სართულიანი კორპუსი ხომლის ქ. 11-ში (Leader). 39 ბინა მწვანე კარკასით $1 500/მ²-დან, ჩაბარება 2026 Q3. საკადასტრო 01.14.16.015.526.',
       en: 'Prime Lisi is a 6-storey building at 11 Khomli St (Leader). 39 green-frame apartments from $1,500/m², handover Q3 2026. Cadastre 01.14.16.015.526.',
@@ -1366,7 +1366,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 23,
     rating: 4.6,
     cadastral: '01.14.01.001.515',
-    coords: { lat: 41.73419992, lng: 44.72005973 },
+    coords: { lat: 41.73387615, lng: 44.72064649 },
     description: {
       ka: 'Relevance Nutsubidze — ორი კოშკი (20–23 სართული, 580 ბინა) ავთო ვარაზის ქ. 22ა-ში. თეთრი კარკასი $1 250/მ²-დან, ჩაბარება 2029 Q3. საკადასტრო 01.14.01.001.515.',
       en: 'Relevance Nutsubidze is two towers (20–23 floors, 580 units) at 22a Avto Varazi St. White frame from $1,250/m², handover Q3 2029. Cadastre 01.14.01.001.515.',

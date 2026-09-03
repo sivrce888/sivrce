@@ -23,9 +23,10 @@ assert.deepEqual(parseMapUiJson({ terrain: 'bright', view3d: false }), {
   terrain: 'streets',
   view3d: false,
 })
-assert.deepEqual(parseMapUiJson({ terrain: 'satellite', deal: 'sale' }), {
+assert.deepEqual(parseMapUiJson({ terrain: 'satellite', deal: 'sale', kind: 'apartment' }), {
   terrain: 'satellite',
   deal: 'sale',
+  kind: 'apartment',
 })
 assert.deepEqual(parseMapUiJson({ pois: 'metro,school' }), { pois: 'metro,school' })
 assert.deepEqual(parseMapUiJson({ terrain: 'garbage' }), {})

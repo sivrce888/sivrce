@@ -44,11 +44,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .catch(() => null)
   if (!user || user.role === 'buyer' || user.role === 'admin') return {}
   const role = roleOf(user.role)
-  const title = `${user.name ?? 'sivrce'} — ${SELLER_ROLE_LABEL[role].ka}`
+  const extra =
+    role === 'agency'
+      ? await db.agencyProfile
+          .findFirst({ where: { ownerId: id, deletedAt: null }, select: { name: true, summary: true, city: true } })
+          .catch(() => null)
+      : role === 'agent'
+        ? await db.agentProfile
+            .findFirst({ where: { ownerId: id, deletedAt: null }, select: { name: true, agency: true } })
+            .catch(() => null)
+        : null
+  const name = extra && 'name' in extra ? extra.name : user.name
+  const title = `${name ?? 'sivrce'} — ${SELLER_ROLE_LABEL[role].ka}`
+  const description =
+    extra && 'summary' in extra && extra.summary
+      ? extra.summary.replace(/\s+/g, ' ').slice(0, 155)
+      : extra && 'agency' in extra
+        ? `${extra.name} · ${extra.agency} · სივრცე.ge`
+        : `უძრავი ქონება ერთ სივრცეში — ${SELLER_ROLE_LABEL[role].ka}`
   return {
     title,
+    description,
     robots: { index: true, follow: true },
     alternates: { canonical: `/u/${id}`, languages: langAlternates(`/u/${id}`) },
+    openGraph: { title: `${title} | sivrce`, description, type: 'profile', url: `https://sivrce.ge/u/${id}` },
   }
 }
 
@@ -67,9 +86,35 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
   const role = roleOf(user.role)
   const brand = brandFor(role)
   const label = SELLER_ROLE_LABEL[role]
-  const listings = await getListingsByOwner(user.id).catch(() => [])
 
-  const displayName = user.name?.trim() || 'sivrce'
+  const [agentProfile, agencyProfile] = await Promise.all([
+    role === 'agent'
+      ? db.agentProfile.findFirst({ where: { ownerId: id, deletedAt: null } }).catch(() => null)
+      : Promise.resolve(null),
+    role === 'agency'
+      ? db.agencyProfile.findFirst({ where: { ownerId: id, deletedAt: null } }).catch(() => null)
+      : Promise.resolve(null),
+  ])
+
+  let ownerIds = [user.id]
+  if (agencyProfile) {
+    const team = await db.agentProfile
+      .findMany({
+        where: { agency: agencyProfile.name, deletedAt: null, ownerId: { not: null } },
+        select: { ownerId: true },
+      })
+      .catch(() => [])
+    ownerIds = [...new Set([user.id, ...team.map((t) => t.ownerId).filter((x): x is string => !!x)])]
+  }
+
+  const listings = await getListingsByOwner(ownerIds).catch(() => [])
+
+  const displayName =
+    agencyProfile?.name?.trim() || agentProfile?.name?.trim() || user.name?.trim() || 'sivrce'
+  const verified = agencyProfile?.verified || agentProfile?.verified || user.trustScore >= 85
+  const city = agencyProfile?.city
+  const summary = agencyProfile?.summary
+  const subtitle = agentProfile?.agency
   const initials = displayName
     .split(/\s+/)
     .map((w) => w[0] ?? '')
@@ -83,13 +128,15 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
     name: displayName,
     url: `https://sivrce.ge/u/${user.id}`,
     ...(user.image ? { image: user.image } : {}),
+    ...(summary ? { description: summary } : {}),
+    ...(city ? { address: { '@type': 'PostalAddress', addressLocality: city, addressCountry: 'GE' } } : {}),
   }
 
   return (
-    <div className="min-h-screen bg-sv-surface">
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main" className="pt-16">
-        <header className="border-b border-sv-ink/[0.06] bg-sv-cloud">
+        <header className="border-b border-sv-ink/[0.06] bg-sv-surface">
           <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:px-10 md:py-14">
             <div className="flex min-w-0 items-start gap-5">
               {user.image ? (
@@ -114,14 +161,21 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                 </span>
                 <h1 className="flex flex-wrap items-center gap-2 text-[28px] font-black tracking-[-0.02em] text-sv-ink md:text-[36px]">
                   <span className="truncate">{displayName}</span>
-                  {user.trustScore >= 85 ? (
+                  {verified ? (
                     <BadgeCheck className="h-6 w-6 shrink-0 text-sv-blue" aria-label="ვერიფიცირებული" />
                   ) : null}
                 </h1>
                 <p className="mt-1.5 flex items-center gap-1.5 text-[14px] font-bold text-sv-ink/55">
                   <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden />
-                  საქართველო · {listings.length} აქტიური განცხადება
+                  {city || 'საქართველო'}
+                  {subtitle ? ` · ${subtitle}` : ''}
+                  {` · ${listings.length} აქტიური განცხადება`}
                 </p>
+                {summary ? (
+                  <p className="mt-3 max-w-2xl text-[14px] font-medium leading-relaxed text-sv-ink/65">
+                    {summary}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>

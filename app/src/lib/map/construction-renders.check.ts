@@ -4,7 +4,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { ringToLocalEN } from './construction-renders'
+import { facadeUV, ringPerimeterM, ringToLocalEN } from './construction-renders'
 
 const origin = { lat: 41.7151, lng: 44.8271 }
 const ring: [number, number][] = [
@@ -20,5 +20,15 @@ assert.ok(Math.abs(pts[0]!.x) < 1e-6)
 assert.ok(Math.abs(pts[0]!.y) < 1e-6)
 assert.ok(pts[1]!.x > 5 && pts[1]!.x < 15) // ~8–11 m east
 assert.ok(pts[2]!.y > 5 && pts[2]!.y < 15)
+
+const peri = ringPerimeterM(pts)
+assert.ok(peri > 30 && peri < 50)
+
+const roof = facadeUV(0, 40, 0, 1, 40)
+assert.equal(roof[0], 0.5)
+assert.ok(roof[1]! > 0.9)
+const wall = facadeUV(10, 20, 0, 0, 40)
+assert.ok(wall[1]! > 0.4 && wall[1]! < 0.6)
+assert.ok(wall[0]! >= 0 && wall[0]! <= 1)
 
 console.log('construction-renders.check: ok')

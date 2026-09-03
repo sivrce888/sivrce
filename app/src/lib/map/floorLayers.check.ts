@@ -7,6 +7,7 @@ import assert from 'node:assert/strict'
 import {
   loadMapBasemap,
   mapStyleUrl,
+  muteBasemapExtrusions,
   overlayHybridLabels,
   STYLE_CLEAN,
   STYLE_DARK,
@@ -14,6 +15,7 @@ import {
   STYLE_SATELLITE,
   satelliteStyle,
 } from './floorLayers'
+import type { Map as MlMap } from 'maplibre-gl'
 
 async function main() {
   assert.equal(mapStyleUrl(false, 'streets'), STYLE_LIGHT)
@@ -27,25 +29,46 @@ async function main() {
   const sat = satelliteStyle()
   assert.equal(sat.version, 8)
   assert.ok(sat.sources.sat)
-  assert.ok(sat.sources.satRoads)
-  assert.ok(sat.sources.satLabels)
+  assert.equal(sat.sources.satRoads, undefined)
+  assert.equal(sat.sources.satLabels, undefined)
+  assert.equal(sat.layers?.length, 1)
   assert.equal(sat.layers?.[0]?.type, 'raster')
 
   const loaded = await loadMapBasemap(STYLE_SATELLITE)
   assert.equal(loaded.layers?.[0]?.id, 'sat-img')
-  assert.ok(loaded.sources['sivrce-georgia-mask'])
-  assert.equal(loaded.layers?.at(-1)?.id, 'sivrce-georgia-mask-fill')
-  assert.equal(loaded.layers?.length, 4)
+  assert.equal(loaded.sources['sivrce-georgia-mask'], undefined)
+  assert.equal(loaded.layers?.length, 1)
   const satSrc = loaded.sources.sat as { tiles?: string[] }
   assert.ok(satSrc.tiles?.[0]?.includes('/api/sat/img/'))
 
   const hybrid = await overlayHybridLabels(loaded)
   assert.ok(hybrid.glyphs)
   assert.ok(hybrid.sources.sivrce)
-  for (const id of ['highway-name-minor', 'highway-name-major', 'highway-name-path']) {
+  for (const id of ['highway-name-minor', 'highway-name-major', 'highway-name-path', 'label_other']) {
     assert.ok(hybrid.layers?.some((l) => l.id === id), id)
   }
-  assert.equal(hybrid.layers?.at(-1)?.id, 'sivrce-georgia-mask-fill')
+  assert.ok((hybrid.layers?.length ?? 0) >= 5)
+  const twice = await overlayHybridLabels(hybrid)
+  assert.equal(twice.layers?.length, hybrid.layers?.length)
+
+  const hidden: string[] = []
+  muteBasemapExtrusions(
+    {
+      getStyle: () => ({
+        layers: [
+          { id: 'building-3d', type: 'fill-extrusion' },
+          { id: 'sivrce-buildings-3d', type: 'fill-extrusion' },
+          { id: 'road', type: 'line' },
+        ],
+      }),
+      getLayer: (id: string) => ({ id }),
+      setLayoutProperty: (id: string, _p: string, v: unknown) => {
+        if (v === 'none') hidden.push(id)
+      },
+    } as unknown as MlMap,
+    new Set(['sivrce-buildings-3d']),
+  )
+  assert.deepEqual(hidden, ['building-3d'])
 
   console.log('floorLayers.check: ok')
 }

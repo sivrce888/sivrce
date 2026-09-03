@@ -32,10 +32,12 @@ import { CmsSection } from '@/components/cms/CmsPreviewBridge'
 import { getHomeLayout } from '@/lib/cms'
 import type { HomeFlowId } from '@/lib/cms-studio'
 import type { Lang } from '@/lib/i18n/core'
+import { cardPhotoPayload } from '@/lib/card-gallery-teaser'
 
 /** Drop description + extra gallery frames from the RSC payload (homepage HTML was ~500KB). */
 function railCard(l: StoryListing): StoryListing {
-  return { ...l, description: '', images: (l.images.length ? l.images : [l.img]).slice(0, 3) }
+  const images = l.images.length ? l.images : [l.img]
+  return { ...l, description: '', ...cardPhotoPayload(images) }
 }
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */

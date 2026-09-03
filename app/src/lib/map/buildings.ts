@@ -14,18 +14,55 @@
 import type { DealType, Listing, PropType } from '@/data/listings'
 import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
-import { BRAND } from '@/lib/brand'
 import { getDeveloper, projectCode, type Project } from '@/data/professionals'
+import type { MapDealFilter, MapKindFilter, MapStatusFilter } from '@/lib/map/map-href'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 import footprintData from '@/data/building-footprints.json'
 import { naprOverrideFor } from '@/lib/map/napr-overrides'
+import { circleRing } from '@/lib/map/footprint-circle'
+
+/** Hard lock — m² Highlight is twin cylinders (korter Block 11/12). Never site polygons.
+ *  Centroids from korter Block 11/12 polygons (Bakradze 7, east of Gelovani) — 2026-09-02. */
+const CYLINDER_TOWERS: Record<
+  string,
+  ReadonlyArray<{ lat: number; lng: number; radiusM: number; floors: number }>
+> = {
+  'm2-highlight': [
+    // Block 11 — 36 floors (south). Block 12 — 26 floors (north).
+    { lat: 41.7481504, lng: 44.77095509, radiusM: 19.25, floors: 36 },
+    { lat: 41.74873166, lng: 44.771317, radiusM: 17.75, floors: 26 },
+  ],
+}
+
+function cylinderKey(b: { slug?: string; projectSlug?: string; id?: string }): string | undefined {
+  const keys = [b.slug, b.projectSlug, b.id?.replace(/^(bldg|dev)-/, '')]
+  for (const k of keys) if (k && k in CYLINDER_TOWERS) return k
+  return undefined
+}
+
+function cylinderPartsFor(b: { slug?: string; projectSlug?: string; id?: string }): FootprintPart[] | null {
+  const key = cylinderKey(b)
+  if (!key) return null
+  return CYLINDER_TOWERS[key]!.map((t) => ({
+    ring: circleRing(t.lat, t.lng, t.radiusM, 64),
+    floors: t.floors,
+    circular: true as const,
+    radiusM: t.radiusM,
+  }))
+}
 
 /** Real OSM building rings keyed by cluster id (© OpenStreetMap contributors, ODbL).
  *  null = confirmed no OSM coverage → square fallback. Refresh: npx tsx scripts/fetch-footprints.ts
  *  parts = multi-tower synthetic / curated massing (one Feature per part). */
 type FootprintRing = [number, number][]
-type FootprintPart = { ring: FootprintRing; floors?: number }
+type FootprintPart = {
+  ring: FootprintRing
+  floors?: number
+  /** Round tower extrusion (m² Highlight cylinders). */
+  circular?: boolean
+  radiusM?: number
+}
 type FootprintEntry =
   | { ring: FootprintRing; osmId?: number; height?: number; parts?: undefined }
   | { parts: FootprintPart[]; osmId?: number; ring?: undefined; height?: undefined }
@@ -160,8 +197,35 @@ export type MapBuildingCluster = {
   inventory?: FloorInventoryRow[]
 }
 
-export type MapDealFilter = DealType | 'all'
-export type MapStatusFilter = 'all' | 'active' | 'construction' | 'completed'
+export type { MapDealFilter, MapKindFilter, MapStatusFilter } from '@/lib/map/map-href'
+export {
+  parseMapKind,
+  parseMapDeal,
+  mapFiltersToSearchHref,
+  mapHrefForListing,
+} from '@/lib/map/map-href'
+
+export function listingMatchesKind(l: { propType: PropType }, kind: MapKindFilter): boolean {
+  switch (kind) {
+    case 'all':
+    case 'construction':
+      return true
+    case 'apartment':
+      return l.propType === 'apartment'
+    case 'house':
+      return l.propType === 'house' || l.propType === 'villa'
+    case 'commercial':
+      return l.propType === 'commercial'
+    case 'land':
+      return l.propType === 'land'
+    case 'hotel':
+      return l.propType === 'hotel'
+    default: {
+      const _exhaustive: never = kind
+      return _exhaustive
+    }
+  }
+}
 
 function emptyCounts(): BuildingDealCounts {
   return { sale: 0, rent: 0, daily: 0, pledge: 0 }
@@ -591,23 +655,33 @@ export function mergeDbBuildings(
     ...staticClusters.map((b) => {
       const db = b.slug ? bySlug.get(b.slug) : undefined
       if (!db) return b
+      // Official massing owns the pin — DB lat/lng must not drag the label off the towers.
+      const official =
+        !!cylinderPartsFor(b) || !!footprintEntry(b)?.parts?.length || !!footprintEntry(b)?.ring
       return {
         ...b,
-        lat: db.lat,
-        lng: db.lng,
+        lat: official ? b.lat : db.lat,
+        lng: official ? b.lng : db.lng,
         address: db.address || b.address,
         buildingNumber: db.buildingNumber || b.buildingNumber,
         developerSlug: db.developerSlug || b.developerSlug,
         developerName: db.developerName || b.developerName,
         projectSlug: db.projectSlug || b.projectSlug,
-        ring: db.ring ?? b.ring,
+        // Official FOOTPRINTS / locked cylinders beat admin polygonCoords.
+        ring: official ? undefined : (db.ring ?? b.ring),
         inventory: db.inventory ?? b.inventory,
         status: db.status,
         progress: db.progress ?? b.progress,
         color: pinHue({ status: db.status, color: db.color || b.color }),
       }
     }),
-    ...dbClusters.filter((b) => !b.slug || !staticSlugs.has(b.slug)),
+    ...dbClusters.filter((b) => {
+      if (b.slug && staticSlugs.has(b.slug)) return false
+      // ponytail: DB site-blob next to locked twins (m² Highlight) — drop, not a third mass.
+      return !staticClusters.some(
+        (s) => cylinderPartsFor(s) && haversineM(s.lat, s.lng, b.lat, b.lng) < 80,
+      )
+    }),
   ]
 }
 
@@ -615,16 +689,49 @@ export function filterBuildings(
   buildings: MapBuildingCluster[],
   deal: MapDealFilter,
   status: MapStatusFilter,
+  kind: MapKindFilter = 'all',
 ): MapBuildingCluster[] {
-  return buildings.filter((b) => {
-    if (status === 'construction' && b.status !== 'construction') return false
-    if (status === 'completed' && b.status !== 'completed') return false
-    if (status === 'active' && (b.status === 'construction' || b.status === 'completed')) return false
-    if (deal === 'all') return true
-    // Empty construction shells are sale-side inventory — hide on rent/daily/pledge.
-    if (b.status === 'construction' && b.listings.length === 0) return deal === 'sale'
-    return b.counts[deal] > 0
-  })
+  const wantStatus: MapStatusFilter = kind === 'construction' ? 'construction' : status
+  const out: MapBuildingCluster[] = []
+  for (const b of buildings) {
+    if (wantStatus === 'construction' && b.status !== 'construction') continue
+    if (wantStatus === 'completed' && b.status !== 'completed') continue
+    if (wantStatus === 'active' && (b.status === 'construction' || b.status === 'completed')) continue
+
+    const kindListings =
+      kind === 'all' || kind === 'construction'
+        ? b.listings
+        : b.listings.filter((l) => listingMatchesKind(l, kind))
+    if (kind !== 'all' && kind !== 'construction' && kindListings.length === 0) continue
+
+    const listings = deal === 'all' ? kindListings : kindListings.filter((l) => l.dealType === deal)
+    if (listings.length === 0) {
+      // Empty shells only on the construction chip/status — default "all" is live ads.
+      if (
+        b.status === 'construction' &&
+        b.listings.length === 0 &&
+        (deal === 'all' || deal === 'sale') &&
+        (kind === 'construction' || wantStatus === 'construction')
+      ) {
+        out.push(b)
+      }
+      continue
+    }
+    if (listings.length === b.listings.length) {
+      out.push(b)
+      continue
+    }
+    const counts = countDeals(listings)
+    const dominant = dominantDeal(counts)
+    out.push({
+      ...b,
+      listings,
+      counts,
+      dominant,
+      color: b.status === 'construction' ? b.color : dealColor(dominant),
+    })
+  }
+  return out
 }
 
 /** Nearest building within radius — powers click-anywhere on the map. */
@@ -658,24 +765,6 @@ export function findBuildingForListing(
   buildings: MapBuildingCluster[],
 ): MapBuildingCluster | null {
   return buildings.find((b) => b.listings.some((l) => l.id === listingId)) ?? null
-}
-
-/** Listing page → /map so the 3D camera opens on this ad (ss/myhome only have 2D pins). */
-export function mapHrefForListing(l: {
-  id: string
-  buildingSlug?: string
-  coords: { lat: number; lng: number }
-  dealType?: DealType
-  floor?: number
-}): string {
-  const q = new URLSearchParams()
-  if (l.buildingSlug) q.set('building', l.buildingSlug)
-  q.set('lat', l.coords.lat.toFixed(6))
-  q.set('lng', l.coords.lng.toFixed(6))
-  q.set('listing', l.id)
-  if (l.dealType) q.set('deal', l.dealType)
-  if (l.floor && l.floor > 0) q.set('floor', String(l.floor))
-  return `/map?${q}`
 }
 
 /** Digomi-slab synthetic when OSM ring missing (Beliashvili 68 ≈52×63 m). */
@@ -769,7 +858,10 @@ export function footprintRingUsable(
   if (ringCentroidDistM(ring, lat, lng) > maxM) return false
   // ponytail: construction sites often match a neighbour shed — ignore if tiny.
   // NAPR parcel rings via napr-parcel.ts when cadastral/pin known.
-  if (opts?.ghost && ringBboxHalfM(ring) < 14) return false
+  const half = ringBboxHalfM(ring)
+  if (opts?.ghost && half < 14) return false
+  // Lot / hill / masterplan polygons are not a tower. TAS podium ≤150 m is real.
+  if (opts?.ghost && half > (opts?.campus ? 160 : 150)) return false
   const planned = opts?.floors ?? 0
   if (opts?.ghost && planned >= 12 && (opts.osmHeightM ?? 0) > 0) {
     const osmFloors = opts.osmHeightM! / 3.1
@@ -791,7 +883,14 @@ function clusterFootprintOpts(b: MapBuildingCluster, fp: FootprintEntry | undefi
 /** Real OSM ring for a cluster, else synthetic slab (construction) / square (active). */
 export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
   const fp = footprintEntry(b)
-  const ring = b.ring ?? footprintPrimaryRing(fp ?? undefined)
+  // Official campus parts beat DB single ring.
+  if (fp?.parts?.length) {
+    const part = fp.parts.find((p) =>
+      footprintRingUsable(p.ring, b.lat, b.lng, clusterFootprintOpts(b, fp)),
+    )
+    if (part) return { type: 'Polygon', coordinates: [part.ring] }
+  }
+  const ring = footprintPrimaryRing(fp ?? undefined) ?? b.ring
   const ghost = b.status === 'construction' && b.listings.length === 0
   if (ring && footprintRingUsable(ring, b.lat, b.lng, clusterFootprintOpts(b, fp))) {
     // Exact OSM outline — no bbox/hull (user: stay inside walls).
@@ -808,13 +907,30 @@ export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
 /** All rings to extrude — campus parts, else the primary cluster polygon. */
 export function clusterRings(
   b: MapBuildingCluster,
-): { ring: FootprintRing; floors?: number }[] {
+): { ring: FootprintRing; floors?: number; circular?: boolean; radiusM?: number }[] {
+  const locked = cylinderPartsFor(b)
+  if (locked) {
+    return locked.map((p) => ({
+      ring: p.ring,
+      floors: p.floors,
+      circular: p.circular,
+      radiusM: p.radiusM,
+    }))
+  }
   const fp = footprintEntry(b)
-  if (!b.ring && fp?.parts?.length) {
+  // Official multi-tower parts beat DB/OSM single ring (admin polygonCoords overwrote twins).
+  if (fp?.parts?.length) {
     const parts = fp.parts.filter((part) =>
-      footprintRingUsable(part.ring, b.lat, b.lng, { campus: true }),
+      footprintRingUsable(part.ring, b.lat, b.lng, clusterFootprintOpts(b, fp)),
     )
-    if (parts.length > 0) return parts.map((p) => ({ ring: p.ring, floors: p.floors }))
+    if (parts.length > 0) {
+      return parts.map((p) => ({
+        ring: p.ring,
+        floors: p.floors,
+        circular: p.circular,
+        radiusM: p.radiusM,
+      }))
+    }
   }
   const ring = clusterGeometry(b).coordinates[0] as FootprintRing | undefined
   return ring && ring.length >= 5 ? [{ ring, floors: b.floors }] : []
@@ -888,13 +1004,17 @@ export function buildingsToGeoJSON(
     type: 'FeatureCollection',
     // ponytail: GeoJSON.Feature widens FootprintRing → Position[] for @types/geojson
     features: buildings.flatMap((b): GeoJSON.Feature[] => {
-      const fp = footprintEntry(b)
+      const locked = cylinderPartsFor(b)
+      const fp = locked ? { parts: locked } : footprintEntry(b)
       // Multi-tower massing: one extrusion per part (MapLibre height is per-feature).
-      if (fp?.parts && fp.parts.length > 0 && !b.ring) {
+      // Ignore b.ring when parts exist — DB polygonCoords was a site blob over twins.
+      if (fp?.parts && fp.parts.length > 0) {
         const ghost = b.status === 'construction' && b.listings.length === 0
-        const parts = fp.parts.filter((part) =>
-          footprintRingUsable(part.ring, b.lat, b.lng, { campus: true }),
-        )
+        const parts = locked
+          ? fp.parts
+          : fp.parts.filter((part) =>
+              footprintRingUsable(part.ring, b.lat, b.lng, clusterFootprintOpts(b, fp)),
+            )
         if (parts.length > 0) {
           return parts.map((part, i) => {
             const floors = part.floors ?? b.floors ?? 8
@@ -908,6 +1028,9 @@ export function buildingsToGeoJSON(
                 id: b.id,
                 height,
                 color: colorWithAlpha(pinHue(b, deal), ghost ? 0.78 : 0.95),
+                // One label per campus — duplicate "m² Highlight" / M2-05 looked fused.
+                label: i === 0 ? b.label : '',
+                code: i === 0 ? (b.code ?? '') : '',
               },
               geometry: { type: 'Polygon' as const, coordinates: [part.ring] },
             }
@@ -1013,122 +1136,18 @@ export function neighborhoodsToGeoJSON(): GeoJSON.FeatureCollection {
   return { type: 'FeatureCollection', features }
 }
 
-/** Construction / corpus meter origin — do not move (baked offsets). */
-export const MAP_CENTER = { lat: 41.7151, lng: 44.8271 } as const
-/** Add-listing + Tbilisi city pin — Freedom Square (თავისუფლების მოედანი). */
-export const FREEDOM_SQUARE = { lat: 41.69365, lng: 44.80115 } as const
-/** Soft clamp — Georgia + halo; country-shaped clip is GEORGIA_MASK_FC. */
-export const GEORGIA_MAX_BOUNDS: [[number, number], [number, number]] = [
-  [38.7, 40.35],
-  [47.8, 44.25],
-]
-export const MAP_MIN_ZOOM = 7
-export const GEORGIA_HALO_KM = 50
-
-/** Expand a closed CW ring outward. ponytail: local ENU + miter cap 4; turf.buffer if the outline gets denser. */
-function bufferRingKm(ring: [number, number][], km: number): [number, number][] {
-  const n = ring.length - 1
-  const out: [number, number][] = []
-  for (let i = 0; i < n; i++) {
-    const [lng0, lat0] = ring[(i - 1 + n) % n]!
-    const [lng1, lat1] = ring[i]!
-    const [lng2, lat2] = ring[(i + 1) % n]!
-    const kx = 111 * Math.cos((lat1 * Math.PI) / 180)
-    const e1x = (lng1 - lng0) * kx
-    const e1y = (lat1 - lat0) * 111
-    const e2x = (lng2 - lng1) * kx
-    const e2y = (lat2 - lat1) * 111
-    const l1 = Math.hypot(e1x, e1y) || 1
-    const l2 = Math.hypot(e2x, e2y) || 1
-    const n1x = -e1y / l1
-    const n1y = e1x / l1
-    const n2x = -e2y / l2
-    const n2y = e2x / l2
-    let ox = n1x + n2x
-    let oy = n1y + n2y
-    const ol = Math.hypot(ox, oy) || 1
-    const miter = Math.min(4, 1 / Math.max((ox * n1x + oy * n1y) / ol, 0.05))
-    ox = ((ox / ol) * km * miter) / kx
-    oy = ((oy / ol) * km * miter) / 111
-    out.push([lng1 + ox, lat1 + oy])
-  }
-  out.push(out[0]!)
-  return out
-}
-
-/** Country outline, CW, closed. Coast ~6 km offshore. */
-export const GEORGIA_BORDER: [number, number][] = [
-  [41.47841, 41.5097],
-  [41.54, 41.64],
-  [41.63, 41.73],
-  [41.68, 41.82],
-  [41.75, 41.99],
-  [41.56, 42.15],
-  [41.47, 42.28],
-  [41.46, 42.4],
-  [41.38, 42.62],
-  [41.37522, 42.66177],
-  [41.16, 42.85],
-  [40.9, 43.01],
-  [40.5, 43.11],
-  [40.2, 43.33],
-  [40.02, 43.39],
-  [40.25, 43.52],
-  [40.7, 43.56],
-  [40.84933, 43.41521],
-  [41.55, 43.38],
-  [42.33512, 43.27404],
-  [42.85, 43.18],
-  [43.4, 42.98],
-  [43.78931, 42.81357],
-  [43.99279, 42.60603],
-  [44.60941, 42.74731],
-  [45.2, 42.62],
-  [45.54938, 42.51472],
-  [45.85631, 42.08839],
-  [46.48438, 41.85116],
-  [46.22411, 41.70833],
-  [46.71392, 41.15673],
-  [46.57636, 41.03588],
-  [46.03577, 41.09153],
-  [45.28992, 41.37762],
-  [45.03935, 41.20422],
-  [44.2, 41.12],
-  [43.58782, 41.0123],
-  [42.9, 41.28],
-  [42.55399, 41.53732],
-  [41.9, 41.49],
-  [41.47841, 41.5097],
-]
-
-/** Mask hole = border + 50 km so neighbors/sea stay in frame. */
-export const GEORGIA_HOLE: [number, number][] = bufferRingKm(GEORGIA_BORDER, GEORGIA_HALO_KM)
-
-export const GEORGIA_MASK_SOURCE = 'sivrce-georgia-mask'
-export const GEORGIA_MASK_LAYER = 'sivrce-georgia-mask-fill'
-
-/** World-rect minus Georgia — covers neighbors even when the camera is pitched. */
-export const GEORGIA_MASK_FC: GeoJSON.FeatureCollection = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'Polygon',
-        coordinates: [
-          [
-            [20, 30],
-            [60, 30],
-            [60, 55],
-            [20, 55],
-            [20, 30],
-          ],
-          GEORGIA_HOLE,
-        ],
-      },
-    },
-  ],
-}
-export const MAP_BRAND_WATER = BRAND.colors.navySoft
-export const MAP_BRAND_LAND = BRAND.colors.navy
+export {
+  MAP_CENTER,
+  FREEDOM_SQUARE,
+  GEORGIA_MAX_BOUNDS,
+  MAP_MIN_ZOOM,
+  GEORGIA_HALO_KM,
+  GEORGIA_BORDER,
+  GEORGIA_HOLE,
+  GEORGIA_MASK_SOURCE,
+  GEORGIA_MASK_LAYER,
+  GEORGIA_MASK_MAXZOOM,
+  GEORGIA_MASK_FC,
+  MAP_BRAND_WATER,
+  MAP_BRAND_LAND,
+} from '@/lib/map/map-geo'

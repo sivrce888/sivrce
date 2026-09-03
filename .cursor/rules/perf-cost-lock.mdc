@@ -1,0 +1,43 @@
+---
+description: RAM + Vercel cost + client perf lock — ponytail lite, no jank regressions.
+alwaysApply: true
+---
+
+# Perf / cost lock (FROZEN 2026-09-02)
+
+Owner mandate: **minimal RAM**, **minimal Vercel spend**, **fast on all devices**, **no freeze/jank**.
+Ponytail level: **`lite`** (not full/ultra unless owner says otherwise).
+
+## Client RAM / speed
+
+| Source | Lock |
+| --- | --- |
+| `app/src/lib/device-budget.ts` | `LITE_BOOT` sets `data-lite` on user lock (`sv-lite`), ≤4 GB RAM, ≤4 cores, Save-Data, reduced motion |
+| Map caps | `mapRuntimeOptions()`: lite tile cache 16, full 48; pixelRatio cap; no resource timing / preserveDrawingBuffer |
+| Regression guard | `device-budget.check.ts` — run on change; build fails if locks break |
+| Heavy UI | Dynamic import maps (`Map3DLazy`), listing `MapEmbed` lazy, lite skips reveal + GTM |
+| Listing/search clients | Import `map-geo` / `map-href` — never `buildings.ts` or `geocode.ts` (footprints + streets JSON) |
+| Motion | `reducedMotion="user"` in I18nProvider — never `"never"` |
+
+## Server / Vercel
+
+| Source | Lock |
+| --- | --- |
+| `app/vercel.json` | Per-route `memory` + `maxDuration` — do not bump without owner approval |
+| Default API routes | 256 MB / short timeout unless listed |
+| Hot paths | search/map-data/ai/cron: 1024 MB max — already ceiling |
+| DB pool | `src/lib/db.ts` `max: 1` — one connection per lambda |
+| Runtime | Fluid Compute (Node), **not** `runtime = 'edge'` unless required |
+| Region | `fra1` only unless multi-region approved |
+| Sentry | `replaysSessionSampleRate: 0` |
+
+## Agent rules (ponytail lite)
+
+1. **Deletion over addition** — no new deps, bundles, or serverless routes without measuring need.
+2. **Lazy load** heavy client chunks; SSR only what LCP needs.
+3. **Cache** at CDN/ISR before adding compute; prefer static/JSON over live API.
+4. **No polling** `performance.memory`; detect once via `LITE_BOOT` / `isLiteDevice()`.
+5. **No background work** on main thread — ResizeObserver/debounce for map resize only.
+6. Change `device-budget.ts`, `vercel.json`, or `db.ts` pool → update `device-budget.check.ts` in same PR.
+
+Change locks only with explicit owner approval + date bump here.

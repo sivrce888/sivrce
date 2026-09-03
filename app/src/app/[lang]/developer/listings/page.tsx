@@ -1,13 +1,13 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
-import EmptyState from "@/components/dashboard/EmptyState"
-import { SendToClientButton } from "@/components/listing/SharePack"
-import TierPurchaseButton from "@/components/payments/TierPurchaseButton"
+import MyListingsManager, {
+  type ManagedListing,
+} from "@/components/my-listings/MyListingsManager"
 import { developerNav } from "@/components/developer-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { effectiveTierKey } from "@/lib/promo-pricing"
 
 export const dynamic = "force-dynamic"
@@ -17,29 +17,52 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-const fmt = new Intl.NumberFormat("ka-GE")
-
-const STATUS_KA: Record<string, string> = {
-  active: "აქტიური",
-  sold: "გაყიდული",
-  pending: "მოლოდინში",
-  expired: "ვადაგასული",
-  withdrawn: "მოხსნილი",
-}
-
 export default async function DeveloperListingsPage() {
   const user = await requireRole("developer", "/developer")
 
-  // ponytail: schema has no Listing↔Project link; tie by ownerId
   const listings = await safeQuery(
     () =>
       db.listing.findMany({
         where: { ownerId: user.id, deletedAt: null },
-        orderBy: { createdAt: "desc" },
-        take: 50,
+        orderBy: { updatedAt: "desc" },
+        take: 100,
       }),
     [],
   )
+
+  const ids = listings.map((l) => l.id)
+  const leadGroups = await safeQuery(
+    () =>
+      ids.length === 0
+        ? Promise.resolve([])
+        : db.inquiry.groupBy({
+            by: ["listingId"],
+            where: { listingId: { in: ids }, deletedAt: null },
+            _count: { _all: true },
+          }),
+    [],
+  )
+  const leadsById = new Map(leadGroups.map((g) => [g.listingId, g._count._all]))
+
+  const managed: ManagedListing[] = listings.map((l) => ({
+    id: l.id,
+    title: l.title,
+    description: l.description,
+    city: l.city,
+    district: l.district,
+    price: l.price,
+    currency: l.currency,
+    status: l.status,
+    dealType: l.dealType,
+    tier: effectiveTierKey(l.tier, l.tierExpiresAt),
+    tierExpiresAt: l.tierExpiresAt?.toISOString() ?? null,
+    views: l.views,
+    leads: leadsById.get(l.id) ?? 0,
+    phoneReveals: phoneRevealsOf(l.extendedFields),
+    image: l.images[0] ?? "/images/p1.webp",
+    createdAt: l.createdAt.toISOString(),
+    updatedAt: l.updatedAt.toISOString(),
+  }))
 
   return (
     <DashboardShell
@@ -48,70 +71,10 @@ export default async function DeveloperListingsPage() {
       subtitle="განცხადებები"
       userLabel={user.name ?? user.email}
     >
-      <h1 className="mb-5 text-[22px] font-black tracking-tight text-sv-ink">
-        განცხადებები
-      </h1>
-
-      {listings.length === 0 ? (
-        <EmptyState
-          title="განცხადებები ჯერ არ გაქვს"
-          body="დაამატე შენი პროექტების ბინების განცხადებები — ისინი აქ გამოჩნდება სტატუსითა და ნახვების სტატისტიკით."
-          actionHref="/add-listing"
-          actionLabel="განცხადების დამატება"
-        />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {listings.map((l) => {
-            const tier = effectiveTierKey(l.tier, l.tierExpiresAt)
-            const canBoost = l.status === "active"
-            return (
-              <div
-                key={l.id}
-                className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <Link
-                    href={`/listing/${l.id}`}
-                    className="line-clamp-1 text-[15px] font-extrabold text-sv-ink hover:text-sv-blue"
-                  >
-                    {l.title}
-                  </Link>
-                  <span className="shrink-0 rounded-full bg-sv-blue/8 px-2.5 py-1 text-[11px] font-bold text-sv-blue">
-                    {STATUS_KA[l.status] ?? l.status}
-                  </span>
-                </div>
-                <p className="mt-1 text-[12.5px] font-medium text-sv-ink/55">
-                  {l.city} · {l.district} · {l.bedrooms > 0 ? `${l.bedrooms} საძინებელი` : `${l.rooms} ოთახი`}{l.rooms > 0 && l.bedrooms > 0 ? ` · ${l.rooms} ოთახი` : ''} · {l.area} მ²
-                </p>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <span className="text-[15px] font-black text-sv-ink">
-                    {fmt.format(l.price)} {l.currency === "USD" ? "$" : "₾"}
-                  </span>
-                  <span className="text-[12px] font-semibold text-sv-ink/45">
-                    {l.views} ნახვა
-                  </span>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-                  {l.status === "active" ? (
-                    <SendToClientButton
-                      title={l.title}
-                      district={l.district}
-                      city={l.city}
-                      price={l.price}
-                      currency={l.currency}
-                      listingId={l.id}
-                      area={l.area}
-                    />
-                  ) : null}
-                  {canBoost ? (
-                    <TierPurchaseButton listingId={l.id} currentTier={tier} />
-                  ) : null}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      <MyListingsManager
+        listings={managed}
+        addHref="/add-listing?deal=sale&propType=apartment"
+      />
     </DashboardShell>
   )
 }

@@ -8,7 +8,8 @@
 
 import { useEffect, useRef } from 'react'
 import { useTheme } from 'next-themes'
-import maplibregl, {
+import * as maplibregl from 'maplibre-gl'
+import {
   type Map as MlMap,
   type MapLayerMouseEvent,
   type GeoJSONSource,
@@ -31,7 +32,8 @@ import {
   tightenAttribution,
 } from '@/lib/map/mapChrome'
 import { mapRuntimeOptions } from '@/lib/device-budget'
-import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
+import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
+import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import { floorTooltipKa, type FloorInfo } from '@/lib/map/floors'
 
 interface BuildingFloorsMapProps {
@@ -89,6 +91,7 @@ export default function BuildingFloorsMap({
     if (!containerRef.current || mapRef.current || !themeReady) return
     let cancelled = false
     let ro: ResizeObserver | null = null
+    let watchdog: ReturnType<typeof setTimeout> | undefined
     const initialStyle = mapStyleUrl(isDark)
     styleUrlRef.current = initialStyle
     const container = containerRef.current
@@ -108,6 +111,7 @@ export default function BuildingFloorsMap({
       }
       if (cancelled || mapRef.current) return
 
+      bindMaplibreWorker(maplibregl)
       const map = new maplibregl.Map({
         container,
         style,
@@ -209,11 +213,17 @@ export default function BuildingFloorsMap({
         }
       }
 
-      map.on('load', () => {
-        if (cancelled) return
+      let booted = false
+      const boot = () => {
+        if (cancelled || booted) return
+        booted = true
+        if (watchdog) clearTimeout(watchdog)
         map.resize()
         mountOverlays(darkAtInit)
-      })
+      }
+      map.on('load', boot)
+      if (map.loaded()) boot()
+      watchdog = window.setTimeout(boot, 1600)
       ro = new ResizeObserver(() => map.resize())
       ro.observe(container)
       map.on('mousemove', FLOORS_FILL_ID, onMove)
@@ -223,6 +233,7 @@ export default function BuildingFloorsMap({
 
     return () => {
       cancelled = true
+      if (watchdog) clearTimeout(watchdog)
       ro?.disconnect()
       mapRef.current?.remove()
       mapRef.current = null

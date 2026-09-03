@@ -6,8 +6,11 @@
 import assert from 'node:assert/strict'
 import {
   naprRingsToOuter,
+  naprSearchKeyword,
   naprUniqDigits,
+  pickMapsParcelFromPayload,
   pickNaprParcelFromResults,
+  wktPolygonToRing,
 } from './napr-parcel'
 
 assert.equal(naprUniqDigits('01.10.10.025.115'), '011010025115')
@@ -16,6 +19,10 @@ assert.equal(naprUniqDigits('05.28.25.001'), '052825001')
 assert.equal(naprUniqDigits('052825001'), '052825001')
 assert.equal(naprUniqDigits('55512'), null)
 assert.equal(naprUniqDigits('01.17.13.045.217'), '011713045217')
+
+assert.equal(naprSearchKeyword('011010025115'), '01.10.10.025.115')
+assert.equal(naprSearchKeyword('01.10.10.025.115'), '01.10.10.025.115')
+assert.equal(naprSearchKeyword('05.28.25.001'), '05.28.25.001')
 
 const square = [
   [44.77, 41.74],
@@ -35,6 +42,32 @@ const outer = naprRingsToOuter([square, hole])
 assert.ok(outer)
 assert.equal(outer!.length, 5)
 assert.equal(outer![0]![0], 44.77)
+
+const wkt =
+  'POLYGON ((44.77 41.74, 44.771 41.74, 44.771 41.741, 44.77 41.741, 44.77 41.74))'
+const fromWkt = wktPolygonToRing(wkt)
+assert.ok(fromWkt)
+assert.equal(fromWkt!.length, 5)
+assert.equal(fromWkt![0]![0], 44.77)
+
+const maps = pickMapsParcelFromPayload({
+  provider: 'immovable',
+  data: [
+    {
+      id: 1,
+      name: '01.10.10.025.115',
+      proj: 'EPSG:4326',
+      shape: wkt,
+      shape_format: 'WKT',
+    },
+  ],
+})
+assert.ok(maps)
+assert.equal(maps!.uniqCode, '01.10.10.025.115')
+assert.equal(maps!.source, 'maps.gov.ge')
+assert.ok(maps!.lat > 41.74 && maps!.lat < 41.741)
+
+assert.equal(pickMapsParcelFromPayload({ provider: 'immovable', data: [] }), null)
 
 const big = pickNaprParcelFromResults([
   {

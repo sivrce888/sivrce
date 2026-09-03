@@ -3,7 +3,7 @@
  * ponytail: city-level only (IP is coarse). Street GPS stays on the locate button.
  */
 
-import { FREEDOM_SQUARE, MAP_CENTER } from '@/lib/map/buildings'
+import { FREEDOM_SQUARE, MAP_CENTER } from '@/lib/map/map-geo'
 
 export type MapCity = {
   slug: string

@@ -1,7 +1,6 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { STATUS_BRAND } from '@/lib/category-brand'
 import { useI18n } from '@/lib/i18n/context'
 
 /** Navy shell before MapLibre chunk — matches /map chrome; no GL until idle. */
@@ -23,12 +22,10 @@ function MapLoadingShell() {
           backgroundSize: '40px 40px',
         }}
       />
-      <div
-        aria-hidden
-        className="absolute left-1/2 top-[42%] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-sm opacity-80 shadow-glow-blue"
-        style={{ background: STATUS_BRAND.construction.hue }}
-      />
-      <p className="relative z-[1] text-[14px] font-bold text-white/70">{t('map.loading')}</p>
+      <div className="relative z-[1] flex flex-col items-center gap-3">
+        <span className="sv-spinner sv-spinner-light" aria-hidden />
+        <p className="text-[14px] font-bold text-white/70">{t('map.loading')}</p>
+      </div>
     </div>
   )
 }

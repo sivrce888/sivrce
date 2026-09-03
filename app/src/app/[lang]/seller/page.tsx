@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import LocalizedLink from "@/components/LocalizedLink"
-import { Building2, Eye, Phone, Plus, TrendingUp, Users } from "lucide-react"
+import { Building2, Eye, KeyRound, Plus, TrendingUp, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import StatCard from "@/components/dashboard/StatCard"
@@ -9,6 +9,12 @@ import { sellerNav } from "@/components/seller-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { phoneRevealsOf } from "@/lib/inquiries/phone"
+import {
+  addListingHref,
+  isRentFocus,
+  panelTitle,
+} from "@/lib/workspace"
+import { readPersona } from "@/lib/workspace-cookie"
 
 export const dynamic = "force-dynamic"
 
@@ -19,6 +25,9 @@ export const metadata: Metadata = {
 
 export default async function SellerOverviewPage() {
   const user = await requireRole("seller", "/seller")
+  const persona = await readPersona(user.role)
+  const rent = isRentFocus(persona)
+  const addHref = addListingHref(persona)
 
   const listings = await safeQuery(
     () =>
@@ -28,6 +37,7 @@ export default async function SellerOverviewPage() {
           id: true,
           status: true,
           views: true,
+          dealType: true,
           extendedFields: true,
         },
       }),
@@ -37,8 +47,14 @@ export default async function SellerOverviewPage() {
   const listingIds = listings.map((r) => r.id)
   const totalViews = listings.reduce((sum, l) => sum + l.views, 0)
   const totalReveals = listings.reduce((sum, l) => sum + phoneRevealsOf(l.extendedFields), 0)
-  const activeListings = listings.filter((l) => l.status === "active").length
-  const soldListings = listings.filter((l) => l.status === "sold").length
+  const activeSale = listings.filter((l) => l.status === "active" && l.dealType === "buy").length
+  const activeRent = listings.filter(
+    (l) => l.status === "active" && (l.dealType === "rent" || l.dealType === "daily"),
+  ).length
+  const closedSale = listings.filter((l) => l.status === "sold" && l.dealType === "buy").length
+  const closedRent = listings.filter(
+    (l) => l.status === "sold" && (l.dealType === "rent" || l.dealType === "daily"),
+  ).length
 
   const [recentLeads, totalLeads] = await Promise.all([
     safeQuery(
@@ -65,39 +81,56 @@ export default async function SellerOverviewPage() {
     ),
   ])
 
+  const seeker = rent ? "დამქირავებელი" : "მყიდველი"
+
   return (
     <DashboardShell
       nav={sellerNav}
-      title="გამყიდველის პანელი"
+      title={panelTitle(persona)}
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
     >
       <div className="mb-5 flex justify-end">
         <LocalizedLink
-          href="/add-listing"
+          href={addHref}
           className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
-          დაამატე განცხადება
+          {rent ? "დაამატე ქირა" : "დაამატე განცხადება"}
         </LocalizedLink>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
         <StatCard
-          label="აქტიური"
-          value={activeListings}
-          hint="განცხადებები"
+          label="იყიდება"
+          value={activeSale}
+          hint="აქტიური"
           icon={<Building2 size={18} />}
         />
-        <StatCard label="ნახვები" value={totalViews} hint="ყველა განცხადება" icon={<Eye size={18} />} />
-        <StatCard label="ლიდები" value={totalLeads} hint="მოთხოვნები" icon={<Users size={18} />} />
         <StatCard
-          label="ნომრის ნახვა"
-          value={totalReveals}
-          hint="დაცული გახსნები"
-          icon={<Phone size={18} />}
+          label="ქირავდება"
+          value={activeRent}
+          hint="აქტიური"
+          icon={<KeyRound size={18} />}
         />
-        <StatCard label="გაყიდული" value={soldListings} icon={<TrendingUp size={18} />} />
+        <StatCard label="ნახვები" value={totalViews} hint="ყველა განცხადება" icon={<Eye size={18} />} />
+        <StatCard
+          label="ლიდები"
+          value={totalLeads}
+          hint="მოთხოვნები"
+          icon={<Users size={18} />}
+        />
+        <StatCard
+          label={rent ? "გაქირავებული" : "დახურული"}
+          value={rent ? closedRent : closedSale + closedRent}
+          hint={rent ? undefined : `ქირა ${closedRent}`}
+          icon={<TrendingUp size={18} />}
+        />
       </div>
+      {totalReveals > 0 ? (
+        <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+          ნომრის ნახვა: {totalReveals}
+        </p>
+      ) : null}
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-5 shadow-card">
@@ -113,7 +146,7 @@ export default async function SellerOverviewPage() {
           {recentLeads.length === 0 ? (
             <EmptyState
               title="ლიდები ჯერ არ გყავს"
-              body="მყიდველის მოთხოვნა აქ გამოჩნდება, როგორც კი დაგიკავშირდება."
+              body={`${seeker}ს მოთხოვნა აქ გამოჩნდება, როგორც კი დაგიკავშირდება.`}
             />
           ) : (
             <ul className="divide-y divide-sv-ink/6">
@@ -138,10 +171,10 @@ export default async function SellerOverviewPage() {
           </div>
           <div className="flex flex-col gap-3">
             <LocalizedLink
-              href="/add-listing"
+              href={addHref}
               className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
             >
-              + ახალი განცხადება
+              {rent ? "+ ქირის განცხადება" : "+ ახალი განცხადება"}
             </LocalizedLink>
             <LocalizedLink
               href="/seller/listings"
@@ -150,22 +183,16 @@ export default async function SellerOverviewPage() {
               განცხადებების მართვა
             </LocalizedLink>
             <LocalizedLink
-              href="/add-service"
+              href="/seller/tours"
               className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
             >
-              დაამატე სერვისი
+              ვიზიტები
             </LocalizedLink>
             <LocalizedLink
               href="/advertise"
               className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
             >
               VIP ტარიფები
-            </LocalizedLink>
-            <LocalizedLink
-              href="/seller/leads"
-              className="rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
-            >
-              ყველა ლიდი
             </LocalizedLink>
           </div>
         </section>

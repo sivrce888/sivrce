@@ -11,8 +11,9 @@ import { BRAND } from '@/lib/brand'
 import {
   GEORGIA_MASK_FC,
   GEORGIA_MASK_LAYER,
+  GEORGIA_MASK_MAXZOOM,
   GEORGIA_MASK_SOURCE,
-} from '@/lib/map/buildings'
+} from '@/lib/map/map-geo'
 import { EMPTY_FLOORS } from './floors'
 import { loadCleanStyle } from '@/lib/map/mapChrome'
 import { mapProxyOrigin } from '@/lib/map/map-proxy'
@@ -47,8 +48,8 @@ export function mapStyleUrl(
 }
 
 /**
- * Apple Maps–style Hybrid: photo + roads + place names.
- * Tiles via /api/sat (same-origin) — Esri direct often trips map error handlers / CSP.
+ * Apple Hybrid photo. Vector street/place names graft in overlayHybridLabels.
+ * Esri road/place rasters are GIS chrome (and empty at pin zoom) — skip them.
  */
 export function satelliteStyle(): StyleSpecification {
   // ponytail: absolute tiles — MapLibre workers reject relative /api/sat
@@ -64,38 +65,27 @@ export function satelliteStyle(): StyleSpecification {
         attribution: '© Esri',
         maxzoom: 19,
       },
-      satRoads: {
-        type: 'raster',
-        tiles: [tile('/api/sat/roads/{z}/{y}/{x}')],
-        tileSize: 256,
-        maxzoom: 19,
-      },
-      satLabels: {
-        type: 'raster',
-        tiles: [tile('/api/sat/labels/{z}/{y}/{x}')],
-        tileSize: 256,
-        maxzoom: 19,
-      },
     },
-    layers: [
-      { id: 'sat-img', type: 'raster', source: 'sat' },
-      { id: 'sat-roads', type: 'raster', source: 'satRoads', paint: { 'raster-opacity': 0.92 } },
-      { id: 'sat-labels', type: 'raster', source: 'satLabels' },
-    ],
+    layers: [{ id: 'sat-img', type: 'raster', source: 'sat' }],
   }
 }
 
 export async function loadMapBasemap(styleKey: string): Promise<StyleSpecification> {
-  const style = styleKey === STYLE_SATELLITE ? satelliteStyle() : await loadCleanStyle(styleKey)
-  return withGeorgiaLock(style, styleKey)
+  return styleKey === STYLE_SATELLITE ? satelliteStyle() : await loadCleanStyle(styleKey)
 }
 
-const HYBRID_NAME_IDS = ['highway-name-minor', 'highway-name-major', 'highway-name-path'] as const
+const HYBRID_NAME_IDS = [
+  'highway-name-minor',
+  'highway-name-major',
+  'highway-name-path',
+  'label_other',
+] as const
 
-/** Esri road/place rasters go empty at pin zoom (~z18). Graft OFM street names. */
+/** OFM vector names on photo — bilingual layout kept (name:latin + name:nonlatin). */
 export async function overlayHybridLabels(
   sat: StyleSpecification,
 ): Promise<StyleSpecification> {
+  if (sat.layers?.some((l) => l.id === 'highway-name-major')) return sat
   try {
     const ofm = await loadCleanStyle(STYLE_LIGHT)
     const sivrce = ofm.sources?.sivrce
@@ -111,7 +101,7 @@ export async function overlayHybridLabels(
                 ...l.paint,
                 'text-color': BRAND.colors.paper,
                 'text-halo-color': BRAND.colors.navy,
-                'text-halo-width': 1.6,
+                'text-halo-width': 2.2,
               },
             }
           : l,
@@ -128,7 +118,7 @@ export async function overlayHybridLabels(
       layers: [...before, ...labels, ...after],
     }
   } catch {
-    // ponytail: OFM 5s timeout → photo-only. Vector-first hybrid if Esri z18 stays empty.
+    // ponytail: OFM 5s timeout → photo-only. Vector-first; Esri rasters stay unused.
     return sat
   }
 }
@@ -137,26 +127,33 @@ export async function overlayHybridLabels(
 const VOID_LIGHT = '#C5CBD8'
 
 /** Void outside the 50 km halo. Neighbor country labels stay — they sit in the rim. */
-function withGeorgiaLock(style: StyleSpecification, styleKey: string): StyleSpecification {
-  const voidColor =
-    styleKey === STYLE_SATELLITE || /dark/i.test(styleKey)
-      ? BRAND.colors.navy
-      : VOID_LIGHT
-  return {
-    ...style,
-    sources: {
-      ...style.sources,
-      [GEORGIA_MASK_SOURCE]: { type: 'geojson', data: GEORGIA_MASK_FC },
-    },
-    layers: [
-      ...(style.layers ?? []),
-      {
-        id: GEORGIA_MASK_LAYER,
-        type: 'fill',
-        source: GEORGIA_MASK_SOURCE,
-        paint: { 'fill-color': voidColor, 'fill-opacity': 1 },
-      },
-    ],
+function georgiaVoid(theme: MapTheme, terrain: MapTerrain) {
+  return theme === 'dark' || terrain === 'satellite' ? BRAND.colors.navy : VOID_LIGHT
+}
+
+/** Add neighbor void after the first frame so basemap tiles win the worker. */
+export function ensureGeorgiaMask(
+  map: MlMap,
+  theme: MapTheme,
+  terrain: MapTerrain = 'streets',
+) {
+  try {
+    if (map.getSource(GEORGIA_MASK_SOURCE)) return
+    map.addSource(GEORGIA_MASK_SOURCE, {
+      type: 'geojson',
+      data: GEORGIA_MASK_FC,
+      maxzoom: GEORGIA_MASK_MAXZOOM,
+      tolerance: 0,
+      buffer: 0,
+    })
+    map.addLayer({
+      id: GEORGIA_MASK_LAYER,
+      type: 'fill',
+      source: GEORGIA_MASK_SOURCE,
+      paint: { 'fill-color': georgiaVoid(theme, terrain), 'fill-opacity': 1 },
+    })
+  } catch {
+    // map already removed
   }
 }
 
@@ -170,7 +167,12 @@ type MapTheme = 'light' | 'dark'
 function trySet(map: MlMap, layer: string, prop: string, value: unknown) {
   if (!map.getLayer(layer)) return
   try {
-    map.setPaintProperty(layer, prop, value)
+    // ponytail: dynamic layer props; MapLibre 6 strict paint keys — cast at trust boundary
+    map.setPaintProperty(
+      layer,
+      prop as Parameters<MlMap['setPaintProperty']>[1],
+      value as Parameters<MlMap['setPaintProperty']>[2],
+    )
   } catch {
     /* style variant may omit layer */
   }
@@ -179,9 +181,22 @@ function trySet(map: MlMap, layer: string, prop: string, value: unknown) {
 function tryLayout(map: MlMap, layer: string, prop: string, value: unknown) {
   if (!map.getLayer(layer)) return
   try {
-    map.setLayoutProperty(layer, prop, value)
+    map.setLayoutProperty(
+      layer,
+      prop as Parameters<MlMap['setLayoutProperty']>[1],
+      value as Parameters<MlMap['setLayoutProperty']>[2],
+    )
   } catch {
     /* style variant may omit layer */
+  }
+}
+
+/** OSM/OFM 3D buildings compete with our massing (m² Highlight twins looked like one slab). */
+export function muteBasemapExtrusions(map: MlMap, keep: ReadonlySet<string>) {
+  for (const layer of map.getStyle()?.layers ?? []) {
+    if (layer.type !== 'fill-extrusion') continue
+    if (keep.has(layer.id)) continue
+    tryLayout(map, layer.id, 'visibility', 'none')
   }
 }
 
@@ -503,12 +518,15 @@ export function applyBrandPaints(
 ) {
   const voidColor =
     theme === 'dark' || terrain === 'satellite' ? BRAND.colors.navy : VOID_LIGHT
-  trySet(map, GEORGIA_MASK_LAYER, 'fill-color', voidColor)
+  requestAnimationFrame(() => {
+    ensureGeorgiaMask(map, theme, terrain)
+    trySet(map, GEORGIA_MASK_LAYER, 'fill-color', voidColor)
+  })
   if (terrain === 'satellite') {
     for (const id of HYBRID_NAME_IDS) {
       trySet(map, id, 'text-color', BRAND.colors.paper)
       trySet(map, id, 'text-halo-color', BRAND.colors.navy)
-      trySet(map, id, 'text-halo-width', 1.6)
+      trySet(map, id, 'text-halo-width', 2.2)
     }
     return
   }

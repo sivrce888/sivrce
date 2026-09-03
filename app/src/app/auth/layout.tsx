@@ -5,6 +5,8 @@ import PostHogProvider from "@/components/PostHogProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script";
+import { GoogleTags } from "@/components/GoogleTags";
+import { GTM_ID } from "@/lib/analytics";
 import { BRAND } from "@/lib/brand";
 import { LITE_BOOT } from "@/lib/device-budget";
 // globals.css: app/layout.tsx (root). Importing only here used to work; keep
@@ -13,9 +15,8 @@ import { LITE_BOOT } from "@/lib/device-budget";
 /**
  * Tiny second root layout for the /auth tree (signin/signup/reset/onboarding).
  * Auth URLs stay unprefixed and locale-stable for OAuth callbacks and email
- * links. ponytail: ka chrome only, no ChatShell/SWRegister/analytics here —
- * the full shell lives in ../[lang]/layout.tsx. Upgrade path: localize auth
- * pages under [lang] once callback URLs are migrated.
+ * links. ponytail: ka chrome only, no ChatShell/SWRegister — full shell in
+ * ../[lang]/layout.tsx. GA/GTM included for sign-in funnel attribution.
  */
 
 const manrope = Manrope({
@@ -37,10 +38,14 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icons/favicon-32.png", type: "image/png", sizes: "32x32" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
     apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 export const viewport: Viewport = {
@@ -69,6 +74,16 @@ export default function AuthLayout({
         <Script id="lite-boot" strategy="beforeInteractive">
           {LITE_BOOT}
         </Script>
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="Google Tag Manager"
+          />
+        </noscript>
+        <GoogleTags />
         <ThemeProvider>
           <I18nProvider>
             <PostHogProvider>{children}</PostHogProvider>

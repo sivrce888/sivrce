@@ -35,9 +35,8 @@ import {
 } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
-import { FREEDOM_SQUARE } from '@/lib/map/buildings'
-import {
-  VIDEO_ACCEPT,
+import { FREEDOM_SQUARE } from '@/lib/map/map-geo'
+import { VIDEO_ACCEPT,
   VIDEO_MAX_BYTES,
   VIDEO_MAX_SECONDS,
   isNativeVideoUrl,
@@ -108,11 +107,31 @@ const formatPhone = (raw: string): string => {
   return `+995${groups.length ? ` ${groups.join(' ')}` : ''}`
 }
 
+const PROP_Q = new Set<string>(['apartment', 'house', 'villa', 'land', 'commercial', 'hotel'])
+
+function listingsManageHref(role?: string): string {
+  switch (role) {
+    case 'developer':
+      return '/developer/listings'
+    case 'agent':
+      return '/agent/listings'
+    case 'agency':
+      return '/agency/listings'
+    default:
+      return '/seller/listings'
+  }
+}
+
 export default function AddListingClient() {
   const { t, lang } = useI18n()
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')?.trim() || null
+  const dealParam = searchParams.get('deal')
+  const projectSlugParam = searchParams.get('projectSlug')?.trim().slice(0, 140) || ''
+  const propParam = searchParams.get('propType')?.trim() || ''
+  const cityParam = searchParams.get('city')?.trim() || ''
+  const districtParam = searchParams.get('district')?.trim().slice(0, 120) || ''
   const fileRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLInputElement>(null)
   const nameSeeded = useRef(false)
@@ -126,10 +145,16 @@ export default function AddListingClient() {
   const [editLoading, setEditLoading] = useState(Boolean(editId))
   const [editLoadFailed, setEditLoadFailed] = useState(false)
 
-  const [deal, setDeal] = useState<Deal | null>(null)
-  const [propType, setPropType] = useState<PropType | null>(null)
-  const [city, setCity] = useState('')
-  const [district, setDistrict] = useState('')
+  const [deal, setDeal] = useState<Deal | null>(
+    dealParam === "sale" || dealParam === "rent" || dealParam === "daily" || dealParam === "pledge"
+      ? dealParam
+      : null,
+  )
+  const [propType, setPropType] = useState<PropType | null>(
+    PROP_Q.has(propParam) ? (propParam as PropType) : null,
+  )
+  const [city, setCity] = useState(() => (CITIES.includes(cityParam) ? cityParam : ''))
+  const [district, setDistrict] = useState(districtParam)
   const [locOpen, setLocOpen] = useState(false)
   const [street, setStreet] = useState('')
   const [houseNo, setHouseNo] = useState('')
@@ -991,6 +1016,7 @@ export default function AddListingClient() {
         onlineView,
         name: name.trim(), phone, messengers,
         lat: coords.lat, lng: coords.lng,
+        ...(projectSlugParam ? { projectSlug: projectSlugParam } : {}),
       }
       const res = await fetch(editId ? `/api/listings/${encodeURIComponent(editId)}` : '/api/listings', {
         method: editId ? 'PATCH' : 'POST',
@@ -1021,6 +1047,7 @@ export default function AddListingClient() {
   const err = (bad: boolean) => (touched && bad ? 'border-sv-orange ring-4 ring-sv-orange/10' : '')
 
   /* ————— success screen ————— */
+  const manageHref = listingsManageHref(session?.user?.role)
   if (publishedId) {
     const realId = publishedId !== 'ok'
     const wasEdit = Boolean(editId)
@@ -1052,14 +1079,14 @@ export default function AddListingClient() {
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
             <Link
-              href={realId ? `/listing/${publishedId}` : '/seller/listings'}
+              href={realId ? `/listing/${publishedId}` : manageHref}
               className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
             >
               {t('add.successViewListing')}
             </Link>
             {wasEdit ? (
               <LocalizedLink
-                href="/seller/listings"
+                href={manageHref}
                 className="rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
               >
                 {t('add.manageListings')}
@@ -1089,7 +1116,7 @@ export default function AddListingClient() {
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <TierPurchaseButton listingId={publishedId} currentTier="standard" defaultOpen />
                 <LocalizedLink
-                  href="/seller/listings"
+                  href={manageHref}
                   className="text-[13px] font-bold text-sv-blue hover:text-sv-blue-deep"
                 >
                   {t('add.manageListings')}
@@ -1115,7 +1142,7 @@ export default function AddListingClient() {
       <section className="grid min-h-[50vh] place-items-center bg-sv-cloud px-5 py-16 text-center">
         <div>
           <p className="text-[16px] font-extrabold text-sv-ink">{t('add.editLoadError')}</p>
-          <LocalizedLink href="/seller/listings" className="mt-4 inline-block text-[14px] font-bold text-sv-blue">
+          <LocalizedLink href={manageHref} className="mt-4 inline-block text-[14px] font-bold text-sv-blue">
             {t('add.editBack')}
           </LocalizedLink>
         </div>
@@ -1578,7 +1605,6 @@ export default function AddListingClient() {
                           lat={coords.lat}
                           lng={coords.lng}
                           zoom={mapZoom}
-                          terrain="satellite"
                           q={[street && `${street} ${houseNo}`.trim(), district, city]
                             .filter(Boolean)
                             .join(', ')}

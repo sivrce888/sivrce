@@ -13,6 +13,7 @@ import {
 import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
 import { listingIdsInBbox } from "@/lib/geo/postgis"
 import { isExactLookupQuery } from "@/lib/listing-public-id"
+import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 
 export const maxDuration = 15
 export const preferredRegion = "fra1"
@@ -172,8 +173,11 @@ function mapDbHit(
     sivrceExclusive?: boolean
     video?: string
   } | null
+  const photos = cardPhotoPayload((l.images as string[]) ?? [])
   return {
     ...l,
+    images: photos.images,
+    photoCount: photos.photoCount,
     dealType: l.dealType === "buy" ? "sale" : l.dealType === "mortgage" ? "pledge" : l.dealType,
     agent: l.agent as unknown,
     colorUntil: activeColorUntil(ext),

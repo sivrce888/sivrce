@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 import LocalizedLink from "@/components/LocalizedLink"
-import { Building2, CalendarDays, Plus, Star, Users } from "lucide-react"
+import { Building2, CalendarDays, Eye, Plus, Users } from "lucide-react"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
+import DashboardQuickLinks from "@/components/dashboard/DashboardQuickLinks"
 import StatCard from "@/components/dashboard/StatCard"
 import EmptyState from "@/components/dashboard/EmptyState"
 import Badge from "@/components/agent-dashboard/Badge"
@@ -10,11 +11,11 @@ import ImportCompetitorPanel from "@/components/agent-dashboard/ImportCompetitor
 import { agentNav } from "@/components/agent-dashboard/nav"
 import {
   fmtDate,
-  leadStatusLabel,
-  leadStatusTone,
   tourStatusLabel,
   tourStatusTone,
 } from "@/components/agent-dashboard/format"
+import { INQUIRY_STATUS_KA, inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
+import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import type { Prisma } from "@/generated/prisma/client"
@@ -34,63 +35,60 @@ export default async function AgentOverviewPage() {
     null,
   )
 
+  const listings = await safeQuery(
+    () =>
+      db.listing.findMany({
+        where: listingOwnerWhere([user.id]),
+        select: { id: true, status: true, views: true, extendedFields: true },
+      }),
+    [],
+  )
+  const listingIds = listings.map((l) => l.id)
+  const totalViews = listings.reduce((sum, l) => sum + l.views, 0)
+  const totalReveals = listings.reduce((sum, l) => sum + phoneRevealsOf(l.extendedFields), 0)
+  const activeListings = listings.filter((l) => l.status === "active").length
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const upcomingTourWhere: Prisma.PropertyTourWhereInput | null = profile
-    ? { agentId: profile.id, tourDate: { gte: today }, status: { in: ["pending", "confirmed"] } }
-    : null
+  const tourWhere: Prisma.PropertyTourWhereInput = {
+    OR: [
+      ...(profile ? [{ agentId: profile.id }] : []),
+      { listing: { ownerId: user.id, deletedAt: null } },
+    ],
+  }
 
-  const [activeListings, newLeads, upcomingTours, reviewAgg, recentLeads, nextTours] =
-    await Promise.all([
-      safeQuery(
-        () => db.listing.count({ where: { ownerId: user.id, status: "active", deletedAt: null } }),
-        0,
-      ),
-      safeQuery(() => db.crmLead.count({ where: { agentId: user.id, status: "new" } }), 0),
-      upcomingTourWhere
-        ? safeQuery(() => db.propertyTour.count({ where: upcomingTourWhere }), 0)
-        : Promise.resolve(0),
-      profile
-        ? safeQuery(
-            () =>
-              db.review.aggregate({
-                where: {
-                  targetType: "agent",
-                  targetId: profile.id,
-                  status: "published",
-                  deletedAt: null,
-                },
-                _avg: { rating: true },
-                _count: { _all: true },
-              }),
-            null,
-          )
-        : Promise.resolve(null),
-      safeQuery(
-        () =>
-          db.crmLead.findMany({
-            where: { agentId: user.id },
-            orderBy: { createdAt: "desc" },
-            take: 5,
-          }),
-        [],
-      ),
-      upcomingTourWhere
-        ? safeQuery(
-            () =>
-              db.propertyTour.findMany({
-                where: upcomingTourWhere,
-                orderBy: [{ tourDate: "asc" }, { tourTime: "asc" }],
-                take: 5,
-                include: { listing: { select: { id: true, title: true } } },
-              }),
-            [],
-          )
-        : Promise.resolve([]),
-    ])
-
-  const rating = reviewAgg?._avg.rating ?? profile?.rating ?? 0
-  const reviewsCount = reviewAgg?._count._all ?? profile?.reviewsCount ?? 0
+  const [newLeads, upcomingTours, recentLeads, nextTours] = await Promise.all([
+    safeQuery(
+      () => db.inquiry.count({ where: { ...inquiryWhere(listingIds, user.email), status: "new" } }),
+      0,
+    ),
+    safeQuery(
+      () =>
+        db.propertyTour.count({
+          where: { ...tourWhere, tourDate: { gte: today }, status: { in: ["pending", "confirmed"] } },
+        }),
+      0,
+    ),
+    safeQuery(
+      () =>
+        db.inquiry.findMany({
+          where: inquiryWhere(listingIds, user.email),
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        }),
+      [],
+    ),
+    safeQuery(
+      () =>
+        db.propertyTour.findMany({
+          where: { ...tourWhere, tourDate: { gte: today }, status: { in: ["pending", "confirmed"] } },
+          orderBy: [{ tourDate: "asc" }, { tourTime: "asc" }],
+          take: 5,
+          include: { listing: { select: { id: true, title: true } } },
+        }),
+      [],
+    ),
+  ])
 
   return (
     <DashboardShell
@@ -110,24 +108,21 @@ export default async function AgentOverviewPage() {
       </div>
 
       <ImportCompetitorPanel />
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
-          label="აქტიური განცხადებები"
+          label="აქტიური"
           value={activeListings}
+          hint={`${listings.length} სულ`}
           icon={<Building2 size={18} />}
         />
-        <StatCard label="ახალი ლიდები" value={newLeads} icon={<Users size={18} />} />
+        <StatCard label="ნახვები" value={totalViews} hint="ყველა განცხადება" icon={<Eye size={18} />} />
         <StatCard
-          label="მომავალი ვიზიტები"
-          value={upcomingTours}
-          icon={<CalendarDays size={18} />}
+          label="ახალი ლიდები"
+          value={newLeads}
+          hint={totalReveals > 0 ? `ნომრის ნახვა: ${totalReveals}` : "მოთხოვნები"}
+          icon={<Users size={18} />}
         />
-        <StatCard
-          label="რეიტინგი"
-          value={rating ? rating.toFixed(1) : "—"}
-          hint={`${reviewsCount} შეფასება`}
-          icon={<Star size={18} />}
-        />
+        <StatCard label="მომავალი ვიზიტები" value={upcomingTours} icon={<CalendarDays size={18} />} />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -144,21 +139,21 @@ export default async function AgentOverviewPage() {
           {recentLeads.length === 0 ? (
             <EmptyState
               title="ლიდები ჯერ არ გყავს"
-              body="ახალი მოთხოვნები აქ გამოჩნდება მაშინვე, როცა მომხმარებელი დაგიკავშირდება."
+              body="მყიდველის მოთხოვნა აქ გამოჩნდება, როგორც კი განცხადებაზე დაგიკავშირდება."
             />
           ) : (
             <ul className="divide-y divide-sv-ink/6">
               {recentLeads.map((lead) => (
                 <li key={lead.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13.5px] font-bold text-sv-ink">{lead.name}</p>
+                    <p className="truncate text-[13.5px] font-bold text-sv-ink">{lead.buyerName}</p>
                     <p className="truncate text-[12px] font-medium text-sv-ink/50">
-                      {lead.phone} · {fmtDate(lead.createdAt)}
+                      {lead.buyerPhone ?? lead.buyerEmail} · {fmtDate(lead.createdAt)}
                     </p>
                   </div>
                   <Badge
-                    label={leadStatusLabel[lead.status] ?? lead.status}
-                    tone={leadStatusTone[lead.status] ?? "neutral"}
+                    label={INQUIRY_STATUS_KA[lead.status as keyof typeof INQUIRY_STATUS_KA] ?? lead.status}
+                    tone={lead.status === "new" ? "blue" : "neutral"}
                   />
                 </li>
               ))}
@@ -167,45 +162,60 @@ export default async function AgentOverviewPage() {
         </section>
 
         <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[15px] font-extrabold text-sv-ink">უახლოესი ვიზიტები</h2>
-            <LocalizedLink
-              href="/agent/tours"
-              className="text-[12px] font-bold text-sv-blue hover:underline"
-            >
-              ყველა →
-            </LocalizedLink>
+          <div className="mb-4">
+            <h2 className="text-[15px] font-extrabold text-sv-ink">სწრაფი ქმედებები</h2>
           </div>
-          {nextTours.length === 0 ? (
-            <EmptyState
-              title="დაგეგმილი ვიზიტები არ არის"
-              body="როცა მყიდველი განცხადების ნახვას დაჯავშნის, ვიზიტი აქ გამოჩნდება."
-            />
-          ) : (
-            <ul className="divide-y divide-sv-ink/6">
-              {nextTours.map((tour) => (
-                <li key={tour.id} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1">
-                    <LocalizedLink
-                      href={`/listing/${tour.listing.id}`}
-                      className="block truncate text-[13.5px] font-bold text-sv-ink hover:text-sv-blue"
-                    >
-                      {tour.listing.title}
-                    </LocalizedLink>
-                    <p className="truncate text-[12px] font-medium text-sv-ink/50">
-                      {fmtDate(tour.tourDate)} · {tour.tourTime} · {tour.guestName}
-                    </p>
-                  </div>
-                  <Badge
-                    label={tourStatusLabel[tour.status] ?? tour.status}
-                    tone={tourStatusTone[tour.status] ?? "neutral"}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
+          <DashboardQuickLinks
+            links={[
+              { href: "/add-listing", label: "+ ახალი განცხადება", primary: true },
+              { href: "/agent/listings", label: "განცხადებების მართვა" },
+              { href: "/agent/tours", label: "ვიზიტები" },
+              { href: "/advertise", label: "VIP ტარიფები" },
+              ...(profile ? [{ href: `/u/${user.id}`, label: "საჯარო პროფილი" }] : []),
+            ]}
+          />
         </section>
       </div>
+
+      <section className="mt-6 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[15px] font-extrabold text-sv-ink">უახლოესი ვიზიტები</h2>
+          <LocalizedLink
+            href="/agent/tours"
+            className="text-[12px] font-bold text-sv-blue hover:underline"
+          >
+            ყველა →
+          </LocalizedLink>
+        </div>
+        {nextTours.length === 0 ? (
+          <EmptyState
+            title="დაგეგმილი ვიზიტები არ არის"
+            body="როცა მყიდველი განცხადების ნახვას დაჯავშნის, ვიზიტი აქ გამოჩნდება."
+          />
+        ) : (
+          <ul className="divide-y divide-sv-ink/6">
+            {nextTours.map((tour) => (
+              <li key={tour.id} className="flex items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <LocalizedLink
+                    href={`/listing/${tour.listing.id}`}
+                    className="block truncate text-[13.5px] font-bold text-sv-ink hover:text-sv-blue"
+                  >
+                    {tour.listing.title}
+                  </LocalizedLink>
+                  <p className="truncate text-[12px] font-medium text-sv-ink/50">
+                    {fmtDate(tour.tourDate)} · {tour.tourTime} · {tour.guestName}
+                  </p>
+                </div>
+                <Badge
+                  label={tourStatusLabel[tour.status] ?? tour.status}
+                  tone={tourStatusTone[tour.status] ?? "neutral"}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </DashboardShell>
   )
 }

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 function SearchFallback() {
   return (
     <div className="grid min-h-screen place-items-center bg-sv-cloud" role="status" aria-label="იტვირთება">
-      <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-sv-blue/20 border-t-sv-blue" />
+      <span className="sv-spinner" aria-hidden />
     </div>
   )
 }

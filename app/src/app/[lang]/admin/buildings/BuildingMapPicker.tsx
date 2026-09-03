@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react'
 import MapEmbed, { type MapEmbedPickMode } from '@/components/MapEmbed'
-import { MAP_CENTER } from '@/lib/map/buildings'
+import { MAP_CENTER } from '@/lib/map/map-geo'
 import {
   closeRing,
   parseFootprintRing,

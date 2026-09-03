@@ -6,11 +6,12 @@
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { motion } from 'framer-motion'
-import maplibregl, {
+import * as maplibregl from 'maplibre-gl'
+import {
   type Map as MlMap,
   type MapLayerMouseEvent,
   type MapMouseEvent,
@@ -19,11 +20,16 @@ import maplibregl, {
   type ExpressionSpecification,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { LISTINGS, type DealType, type Listing } from '@/data/listings'
-import { PROJECTS, type Project } from '@/data/professionals'
+import type { DealType, Listing } from '@/data/listings'
+import type { Project } from '@/data/professionals'
 import TBILISI_RAIONS from '@/data/tbilisi-raions.json'
 import { BRAND } from '@/lib/brand'
-import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
+import {
+  addPricePillImages,
+  PRICE_PILL_ACTIVE,
+  PRICE_PILL_IDLE,
+} from '@/lib/map/price-pin'
+import { CATEGORY_BRAND, DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import {
   MAP_CENTER,
   GEORGIA_MAX_BOUNDS,
@@ -42,7 +48,9 @@ import {
   applyLiveProjectPins,
   type MapBuildingCluster,
   type MapDealFilter,
+  type MapKindFilter,
   type MapStatusFilter,
+  parseMapKind,
 } from '@/lib/map/buildings'
 import type { MapPlatformConfig } from '@/lib/map/platform-config'
 import BuildingPanel from '@/components/map/BuildingPanel'
@@ -62,6 +70,7 @@ import {
   FLOORS_SOURCE_ID,
   loadMapBasemap,
   mapStyleUrl,
+  muteBasemapExtrusions,
   STYLE_SATELLITE,
   type MapTerrain,
 } from '@/lib/map/floorLayers'
@@ -89,7 +98,8 @@ import {
   mapChromeOptions,
   tightenAttribution,
 } from '@/lib/map/mapChrome'
-import { mapRuntimeOptions } from '@/lib/device-budget'
+import { isLiteDevice, mapRuntimeOptions } from '@/lib/device-budget'
+import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
 import {
   initialMapCenter,
   nearestMapCity,
@@ -101,7 +111,8 @@ import {
 } from '@/lib/map/user-place'
 import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
 import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
-import { syncConstructionRenders } from '@/lib/map/construction-renders'
+// ponytail: construction photo-wrap retired — MapLibre TAS massing only.
+// Restore: import { syncConstructionRenders } from '@/lib/map/construction-renders'
 import {
   Layers,
   RotateCcw,
@@ -145,10 +156,12 @@ const SOURCE_ID = 'sivrce-buildings'
 const PTS_SOURCE_ID = 'sivrce-buildings-pts'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
+const KEEP_EXTRUDE = new Set([EXTRUDE_ID, FLOORS_FILL_ID])
 const LABEL_ID = 'sivrce-buildings-label'
 const DOT_ID = 'sivrce-buildings-dot'
 const DOT_ACTIVE_ID = 'sivrce-buildings-dot-active'
 const PRICE_ID = 'sivrce-buildings-price'
+const PRICE_ACTIVE_ID = 'sivrce-buildings-price-on'
 const CLUSTER_ID = 'sivrce-buildings-cluster'
 const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
 /** Defaults — admin MapPlatformConfig overrides at runtime. */
@@ -156,15 +169,10 @@ const DETAIL_ZOOM = 13.5
 /** Bottom POI rail height — camera padding so chips don’t eat the map. */
 const POI_RAIL_PAD = 56
 
-/** Hide MapLibre extrusion for floor-stack selection and/or textured three.js massing. */
-function massingHideFilter(
-  hideId: string | null,
-  textured: Set<string>,
-): FilterSpecification | null {
-  const ids = hideId ? [hideId, ...textured] : [...textured]
-  if (ids.length === 0) return null
-  if (ids.length === 1) return ['!=', ['get', 'id'], ids[0]!] as FilterSpecification
-  return ['!', ['in', ['get', 'id'], ['literal', ids]]] as FilterSpecification
+/** Hide MapLibre extrusion while floor-stack is open for that building. */
+function massingHideFilter(hideId: string | null): FilterSpecification | null {
+  if (!hideId) return null
+  return ['!=', ['get', 'id'], hideId] as FilterSpecification
 }
 const PRICE_MIN_ZOOM = 11.2
 const CLUSTER_MAX_ZOOM = 13
@@ -205,6 +213,7 @@ async function ensureLayers(
   if (map.getSource(SOURCE_ID)) return
 
   await loadPoiImages(map)
+  addPricePillImages(map)
 
   map.addSource(SOURCE_ID, { type: 'geojson', data: buildingsToGeoJSON(buildings, deal) })
   // ponytail: MapLibre clusters Points only — parallel centroid source for far zoom.
@@ -253,13 +262,13 @@ async function ensureLayers(
     },
   })
 
-  // Far zoom — unclustered deal/status colored dots
+  // Far zoom — unclustered deal/status colored dots. Pills take over at priceMinZoom.
   // Construction = STATUS sky (#5B8BFF) + blue-light ring so it separates from sale blue on navy.
   map.addLayer({
     id: DOT_ID,
     type: 'circle',
     source: PTS_SOURCE_ID,
-    maxzoom: zooms.detailZoom,
+    maxzoom: zooms.priceMinZoom,
     filter: ['!', ['has', 'point_count']],
     paint: {
       // ponytail: zoom must stay top-level in MapLibre; hover/selected sizes live in DOT_ACTIVE_ID overlay
@@ -310,7 +319,7 @@ async function ensureLayers(
     id: DOT_ACTIVE_ID,
     type: 'circle',
     source: PTS_SOURCE_ID,
-    maxzoom: zooms.detailZoom,
+    maxzoom: zooms.priceMinZoom,
     filter: ['!', ['has', 'point_count']],
     paint: {
       'circle-radius': [
@@ -350,39 +359,105 @@ async function ensureLayers(
     },
   })
 
-  // Mid-zoom price pills — compact GEL; hide when empty / clustered / detail footprints.
+  // Mid-zoom Airbnb capsules — stretchable white pill + ink price; hide when clustered / footprints.
+  const priceFilter: FilterSpecification = [
+    'all',
+    ['!', ['has', 'point_count']],
+    ['!=', ['get', 'priceLabel'], ''],
+  ]
   map.addLayer({
     id: PRICE_ID,
     type: 'symbol',
     source: PTS_SOURCE_ID,
     minzoom: zooms.priceMinZoom,
     maxzoom: zooms.detailZoom,
-    filter: [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['!=', ['get', 'priceLabel'], ''],
-    ],
+    filter: priceFilter,
     layout: {
+      'icon-image': PRICE_PILL_IDLE,
+      'icon-text-fit': 'both',
+      'icon-text-fit-padding': [5, 10, 5, 10],
+      'icon-allow-overlap': false,
+      'icon-padding': 4,
+      'symbol-sort-key': ['*', -1, ['coalesce', ['get', 'total'], 1]],
       'text-field': ['get', 'priceLabel'],
-      'text-size': 11,
+      'text-size': 12,
       'text-font': ['Noto Sans Bold'],
-      'text-offset': [0, -1.35],
-      'text-anchor': 'bottom',
+      'text-anchor': 'center',
       'text-allow-overlap': false,
       'text-padding': 2,
     },
     paint: {
-      'text-color': [
+      'text-color': BRAND.colors.ink,
+      'icon-opacity': [
         'case',
-        ['==', ['get', 'status'], 'construction'],
-        STATUS_BRAND.construction.hue,
-        ['==', ['get', 'status'], 'completed'],
-        SERVICE_BRAND.developers.hue,
-        ['get', 'hue'],
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        0,
+        ['boolean', ['feature-state', 'seen'], false],
+        0.55,
+        1,
       ],
-      'text-halo-color': '#FFFFFF',
-      'text-halo-width': 1.6,
-      'text-color-transition': MAP_FADE,
+      'text-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        0,
+        ['boolean', ['feature-state', 'seen'], false],
+        0.55,
+        1,
+      ],
+      'icon-opacity-transition': MAP_FADE,
+      'text-opacity-transition': MAP_FADE,
+    },
+  })
+  map.addLayer({
+    id: PRICE_ACTIVE_ID,
+    type: 'symbol',
+    source: PTS_SOURCE_ID,
+    minzoom: zooms.priceMinZoom,
+    maxzoom: zooms.detailZoom,
+    filter: priceFilter,
+    layout: {
+      'icon-image': PRICE_PILL_ACTIVE,
+      'icon-text-fit': 'both',
+      'icon-text-fit-padding': [5, 10, 5, 10],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+      'text-field': ['get', 'priceLabel'],
+      'text-size': 12,
+      'text-font': ['Noto Sans Bold'],
+      'text-anchor': 'center',
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#FFFFFF',
+      'icon-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        1,
+        0,
+      ],
+      'text-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        1,
+        0,
+      ],
     },
   })
 
@@ -568,11 +643,14 @@ const DEAL_FILTERS: { id: MapDealFilter; labelKey: DictKey; color: string }[] = 
   { id: 'pledge', labelKey: 'map.pledge', color: DEAL_BRAND.pledge },
 ]
 
-const STATUS_FILTERS: { id: MapStatusFilter; labelKey: DictKey; color: string }[] = [
+const KIND_FILTERS: { id: MapKindFilter; labelKey: DictKey; color: string }[] = [
   { id: 'all', labelKey: 'search.all', color: BRAND.colors.blue },
-  { id: 'active', labelKey: 'map.status.active', color: BRAND.colors.blue },
+  { id: 'apartment', labelKey: 'prop.apartment', color: CATEGORY_BRAND.apartments.hue },
+  { id: 'house', labelKey: 'prop.houseShort', color: CATEGORY_BRAND.houses.hue },
   { id: 'construction', labelKey: 'map.status.construction', color: STATUS_BRAND.construction.hue },
-  { id: 'completed', labelKey: 'map.status.completed', color: SERVICE_BRAND.developers.hue },
+  { id: 'commercial', labelKey: 'prop.commercial', color: CATEGORY_BRAND.commercial.hue },
+  { id: 'land', labelKey: 'prop.land', color: CATEGORY_BRAND.land.hue },
+  { id: 'hotel', labelKey: 'prop.hotel', color: CATEGORY_BRAND.hotels.hue },
 ]
 
 function MapFilterPills<T extends string>({
@@ -645,13 +723,13 @@ const HIT_PAD_PX = 18
 function Map3DInner({
   dbBuildings = [],
   listings,
-  projects = PROJECTS,
+  projects = [],
   initialUi,
   platform,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
-  /** Live directory projects (korter coords) — falls back to static catalog. */
+  /** Live directory projects (korter coords). */
   projects?: Project[]
   /** Server-read cookie — avoids first-paint default before document.cookie. */
   initialUi?: MapUiSave
@@ -664,10 +742,10 @@ function Map3DInner({
     tRef.current = t
   })
   const searchParams = useSearchParams()
+  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MlMap | null>(null)
   const visibleRef = useRef<MapBuildingCluster[]>([])
-  const texturedRef = useRef<Set<string>>(new Set())
   const allRef = useRef<MapBuildingCluster[]>([])
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
@@ -699,25 +777,33 @@ function Map3DInner({
   const [liveListings, setLiveListings] = useState<Listing[] | undefined>(listings)
   const [liveDbBuildings, setLiveDbBuildings] = useState(dbBuildings)
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
-  const [tab, setTab] = useState<DealType | 'all'>(() => {
-    const d = savedUi.deal
-    return d === 'sale' || d === 'rent' || d === 'daily' || d === 'pledge' ? d : 'all'
-  })
+  const [tab, setTab] = useState<DealType | 'all'>('all')
   const [dealFilter, setDealFilter] = useState<MapDealFilter>(() => {
-    const d = savedUi.deal
-    return DEAL_FILTERS.some((f) => f.id === d) ? (d as MapDealFilter) : 'all'
+    const q = searchParams.get('deal')
+    return DEAL_FILTERS.some((f) => f.id === q) ? (q as MapDealFilter) : 'all'
   })
-  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>(() => {
-    const s = savedUi.status
-    return STATUS_FILTERS.some((f) => f.id === s) ? (s as MapStatusFilter) : 'all'
+  const [kindFilter, setKindFilter] = useState<MapKindFilter>(() => {
+    const q = searchParams.get('kind')
+    const fromUrl = parseMapKind(q)
+    if (q && fromUrl !== 'all') return fromUrl
+    return searchParams.get('status') === 'construction' ? 'construction' : 'all'
   })
+  const [statusFilter, setStatusFilter] = useState<MapStatusFilter>(() =>
+    searchParams.get('status') === 'construction' || searchParams.get('kind') === 'construction'
+      ? 'construction'
+      : 'all',
+  )
   const [poiOn, setPoiOn] = useState<PoiCategory[]>(() => {
     const parsed = parsePoiPrefs(savedUi.pois)
     return parsed ?? [...POI_DEFAULT_ON]
   })
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
   const [view3d, setView3d] = useState(() =>
-    savedUi.view3d != null ? savedUi.view3d : (platform?.defaultView3d ?? true),
+    savedUi.view3d != null
+      ? savedUi.view3d
+      : isLiteDevice()
+        ? false
+        : (platform?.defaultView3d ?? true),
   )
   const [terrain, setTerrain] = useState<MapTerrain>(() => {
     if (savedUi.terrain) return parseTerrain(savedUi.terrain)
@@ -725,7 +811,15 @@ function Map3DInner({
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [layersOpen, setLayersOpen] = useState(false)
-  const [bearing, setBearing] = useState(() => mapBootCamera(savedUi.view3d != null ? savedUi.view3d : (platform?.defaultView3d ?? true)).bearing)
+  const [bearing, setBearing] = useState(() =>
+    mapBootCamera(
+      savedUi.view3d != null
+        ? savedUi.view3d
+        : isLiteDevice()
+          ? false
+          : (platform?.defaultView3d ?? true),
+    ).bearing,
+  )
   const [fullscreen, setFullscreen] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -762,11 +856,9 @@ function Map3DInner({
     writeMapUi({
       terrain,
       view3d,
-      deal: dealFilter,
-      status: statusFilter,
       pois: serializePoiPrefs(poiOn),
     })
-  }, [terrain, view3d, dealFilter, statusFilter, poiOn])
+  }, [terrain, view3d, poiOn])
 
   useEffect(() => {
     const map = mapRef.current
@@ -855,8 +947,25 @@ function Map3DInner({
     }
   }, [refreshing, liveListings, flashRefreshNote])
 
-  // Live DB listings when present (incl. empty); demo LISTINGS only if prop omitted.
-  const sourceListings = liveListings ?? LISTINGS
+  // ponytail: SSR getMapListings can be a stale empty cache; live /api/map-data fills pins.
+  useEffect(() => {
+    if ((listings?.length ?? 0) > 0) return
+    let cancelled = false
+    fetch('/api/map-data', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { listings?: Listing[]; buildings?: MapBuildingCluster[] } | null) => {
+        if (cancelled || !data?.listings?.length) return
+        setLiveListings(data.listings)
+        if (data.buildings) setLiveDbBuildings(data.buildings)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [listings])
+
+  // Live DB listings when present (incl. empty).
+  const sourceListings = liveListings ?? []
   const dbProjectSlugs = useMemo(() => {
     const s = new Set<string>()
     for (const b of liveDbBuildings ?? []) if (b.projectSlug) s.add(b.projectSlug)
@@ -876,7 +985,7 @@ function Map3DInner({
   )
   useEffect(() => { allRef.current = allBuildings }, [allBuildings])
 
-  // Keep open panel in sync when refresh swaps listing clusters.
+  // Keep open panel in sync with live data + the active deal/kind slice.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- sync selection after live data swap
     setSelected((cur) => {
@@ -886,17 +995,24 @@ function Map3DInner({
   }, [allBuildings])
 
   const visible = useMemo(
-    () => filterBuildings(allBuildings, dealFilter, statusFilter),
-    [allBuildings, dealFilter, statusFilter],
+    () => filterBuildings(allBuildings, dealFilter, statusFilter, kindFilter),
+    [allBuildings, dealFilter, statusFilter, kindFilter],
   )
   const matchListings = useMemo(() => {
     let n = 0
-    for (const b of visible) n += dealFilter === 'all' ? b.listings.length : b.counts[dealFilter]
+    for (const b of visible) n += b.listings.length
     return n
-  }, [visible, dealFilter])
+  }, [visible])
   useEffect(() => { visibleRef.current = visible }, [visible])
   useEffect(() => { selectedRef.current = selected }, [selected])
   useEffect(() => { dealRef.current = dealFilter }, [dealFilter])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- panel listings follow deal/kind slice
+    setSelected((cur) => {
+      if (!cur) return cur
+      return visible.find((b) => b.id === cur.id) ?? null
+    })
+  }, [visible])
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- panel tab follows map deal chip
     setTab(dealFilter === 'all' ? 'all' : dealFilter)
@@ -907,6 +1023,36 @@ function Map3DInner({
     setTab(dealFilter === 'all' ? 'all' : dealFilter)
     setFloorFilter(null)
   }, [dealFilter, setSelected, setTab, setFloorFilter])
+
+  const patchFilterUrl = useCallback(
+    (deal: MapDealFilter, kind: MapKindFilter) => {
+      const next = new URLSearchParams(searchParams.toString())
+      if (deal === 'all') next.delete('deal')
+      else next.set('deal', deal)
+      if (kind === 'all') next.delete('kind')
+      else next.set('kind', kind)
+      if (kind === 'construction') next.set('status', 'construction')
+      else next.delete('status')
+      const qs = next.toString()
+      router.replace(qs ? `?${qs}` : window.location.pathname, { scroll: false })
+    },
+    [router, searchParams],
+  )
+  const pickDeal = useCallback(
+    (deal: MapDealFilter) => {
+      setDealFilter(deal)
+      patchFilterUrl(deal, kindFilter)
+    },
+    [kindFilter, patchFilterUrl],
+  )
+  const pickKind = useCallback(
+    (kind: MapKindFilter) => {
+      setKindFilter(kind)
+      setStatusFilter(kind === 'construction' ? 'construction' : 'all')
+      patchFilterUrl(dealFilter, kind)
+    },
+    [dealFilter, patchFilterUrl],
+  )
   useEffect(() => { selectRef.current = selectBuilding }, [selectBuilding])
   const toggleFloor = useCallback((n: number) => setFloorFilter((cur) => (cur === n ? null : n)), [setFloorFilter])
   useEffect(() => { floorRef.current = toggleFloor }, [toggleFloor])
@@ -973,20 +1119,16 @@ function Map3DInner({
     const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
     pts?.setData(buildingsToPointsGeoJSON(visible, dealFilter))
     let cancelled = false
-    // Load order: GeoJSON pins already set; textured 3D massing after idle (tiles + dots first).
+    // ponytail: geometric MapLibre massing only (no photo-wrap sync).
     const runMassing = () => {
       if (cancelled || !mapRef.current) return
-      void syncConstructionRenders(map, visible, { minZoom: zooms.detailZoom }).then((textured) => {
-        if (cancelled || !mapRef.current) return
-        texturedRef.current = textured
-        const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
-        const hideId = showFloors && selected ? selected.id : null
-        const hide = massingHideFilter(hideId, textured)
-        for (const layer of [EXTRUDE_ID, FILL_ID]) {
-          if (!map.getLayer(layer)) continue
-          map.setFilter(layer, hide)
-        }
-      })
+      const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
+      const hideId = showFloors && selected ? selected.id : null
+      const hide = massingHideFilter(hideId)
+      for (const layer of [EXTRUDE_ID, FILL_ID]) {
+        if (!map.getLayer(layer)) continue
+        map.setFilter(layer, hide)
+      }
     }
     const ric = window.requestIdleCallback?.(runMassing, { timeout: 900 })
     const tid = ric == null ? window.setTimeout(runMassing, 0) : 0
@@ -999,9 +1141,7 @@ function Map3DInner({
       if (ric != null) window.cancelIdleCallback?.(ric)
       if (tid) window.clearTimeout(tid)
     }
-    // zooms is a per-render object — as a dep this effect would re-sync layers
-    // every render; detailZoom only matters when visible/selected change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional zooms.detailZoom closure
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
   }, [visible, ready, selected, selectBuilding, floorStacksOn])
 
   // Floor stack only for developments with stock — else keep solid extrusion.
@@ -1015,7 +1155,7 @@ function Map3DInner({
     )
     if (!showFloors) popupRef.current?.remove()
     const hideId = showFloors && selected ? selected.id : null
-    const hide = massingHideFilter(hideId, texturedRef.current)
+    const hide = massingHideFilter(hideId)
     for (const layer of [EXTRUDE_ID, FILL_ID]) {
       if (!map.getLayer(layer)) continue
       map.setFilter(layer, hide)
@@ -1043,10 +1183,9 @@ function Map3DInner({
           : ['!', ['has', 'point_count']]) as FilterSpecification,
       )
     }
-    if (map.getLayer(PRICE_ID)) {
-      map.setFilter(
-        PRICE_ID,
-        (hideId
+    if (map.getLayer(PRICE_ID) || map.getLayer(PRICE_ACTIVE_ID)) {
+      const priceHide = (
+        hideId
           ? [
               'all',
               ['!', ['has', 'point_count']],
@@ -1057,18 +1196,30 @@ function Map3DInner({
               'all',
               ['!', ['has', 'point_count']],
               ['!=', ['get', 'priceLabel'], ''],
-            ]) as FilterSpecification,
-      )
+            ]
+      ) as FilterSpecification
+      if (map.getLayer(PRICE_ID)) map.setFilter(PRICE_ID, priceHide)
+      if (map.getLayer(PRICE_ACTIVE_ID)) map.setFilter(PRICE_ACTIVE_ID, priceHide)
     }
   }, [selected, dealFilter, ready, floorStacksOn])
 
-  // Deep-link ?status=construction|completed|active
+  // Deep-link ?deal= ?kind= ?status=construction
   useEffect(() => {
     if (!ready) return
+    const dealQ = searchParams.get('deal')
+    if (DEAL_FILTERS.some((f) => f.id === dealQ)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- URL is the shareable source of truth
+      setDealFilter(dealQ as MapDealFilter)
+    }
+    const kindQ = searchParams.get('kind')
+    const kind = parseMapKind(kindQ)
     const status = searchParams.get('status')
-    if (status === 'construction' || status === 'completed' || status === 'active') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deep-link from URL param
-      setStatusFilter(status)
+    if (kindQ && kind !== 'all') {
+      setKindFilter(kind)
+      setStatusFilter(kind === 'construction' ? 'construction' : 'all')
+    } else if (status === 'construction') {
+      setKindFilter('construction')
+      setStatusFilter('construction')
     }
   }, [ready, searchParams])
 
@@ -1078,6 +1229,8 @@ function Map3DInner({
     const listingId = searchParams.get('listing')
     const lat = Number(searchParams.get('lat'))
     const lng = Number(searchParams.get('lng'))
+    const zoomQ = Number(searchParams.get('zoom'))
+    const pitchQ = Number(searchParams.get('pitch'))
     const floorQ = Number(searchParams.get('floor'))
     const dealQ = searchParams.get('deal')
     const dealOk: DealType | null =
@@ -1109,8 +1262,8 @@ function Map3DInner({
     }
     mapRef.current?.easeTo({
       center: [flyLng, flyLat],
-      zoom: 16,
-      pitch: view3dRef.current ? 62 : 0,
+      zoom: Number.isFinite(zoomQ) && zoomQ >= minZoom ? zoomQ : 16,
+      pitch: Number.isFinite(pitchQ) ? pitchQ : view3dRef.current ? 62 : 0,
       bearing: view3dRef.current ? -18 : 0,
       duration: 900,
       essential: true,
@@ -1122,6 +1275,7 @@ function Map3DInner({
 
     let cancelled = false
     let ro: ResizeObserver | null = null
+    let watchdog: ReturnType<typeof setTimeout> | undefined
     const initialStyle = mapStyleUrl(darkRef.current, terrainRef.current, styleUrls)
     styleUrlRef.current = initialStyle
     const container = containerRef.current
@@ -1143,6 +1297,7 @@ function Map3DInner({
 
       const bootCam = mapBootCamera(view3dRef.current)
       const boot = initialMapCenter()
+      bindMaplibreWorker(maplibregl)
       const map = new maplibregl.Map({
         container,
         style,
@@ -1397,7 +1552,7 @@ function Map3DInner({
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
           await ensureLayers(map, visibleRef.current, zooms, dealRef.current)
-          await syncConstructionRenders(map, visibleRef.current, { minZoom: zooms.detailZoom })
+          muteBasemapExtrusions(map, KEEP_EXTRUDE)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
@@ -1501,11 +1656,7 @@ function Map3DInner({
           }
           if (map.getLayer(PRICE_ID)) {
             try {
-              map.setPaintProperty(
-                PRICE_ID,
-                'text-halo-color',
-                dark ? BRAND.colors.navy : '#FFFFFF',
-              )
+              map.setPaintProperty(PRICE_ID, 'text-color', BRAND.colors.ink)
             } catch {
               /* paint may differ */
             }
@@ -1540,6 +1691,7 @@ function Map3DInner({
               /* layer paint may differ */
             }
           }
+          muteBasemapExtrusions(map, KEEP_EXTRUDE)
           // Re-apply 2D/3D fill after style remount
           if (!view3dRef.current && map.getLayer(EXTRUDE_ID)) {
             map.setLayoutProperty(EXTRUDE_ID, 'visibility', 'none')
@@ -1550,12 +1702,19 @@ function Map3DInner({
         })()
       }
 
-      map.on('load', () => {
-        if (cancelled) return
+      let booted = false
+      const reveal = () => {
+        if (cancelled || booted) return
+        booted = true
+        if (watchdog) clearTimeout(watchdog)
         map.resize()
         mountOverlays()
         setReady(true)
-      })
+      }
+      // ponytail: mask geojson used to block `load` forever; style.load is sync on inline JSON so we miss it. Watchdog + load.
+      map.on('load', reveal)
+      if (map.loaded()) reveal()
+      watchdog = window.setTimeout(reveal, 1600)
 
       ro = new ResizeObserver(() => map.resize())
       ro.observe(container)
@@ -1643,6 +1802,7 @@ function Map3DInner({
 
     return () => {
       cancelled = true
+      if (watchdog) clearTimeout(watchdog)
       remountRef.current = null
       ro?.disconnect()
       userDotRef.current?.remove()
@@ -1836,6 +1996,7 @@ function Map3DInner({
       bearing: cam.bearing,
       duration: 550,
     })
+    muteBasemapExtrusions(map, KEEP_EXTRUDE)
     if (map.getLayer(EXTRUDE_ID)) {
       map.setLayoutProperty(EXTRUDE_ID, 'visibility', mode3d ? 'visible' : 'none')
     }
@@ -1870,6 +2031,14 @@ function Map3DInner({
     selectBuilding(null)
   }
 
+  const resetFiltersAndView = () => {
+    setDealFilter('all')
+    setKindFilter('all')
+    setStatusFilter('all')
+    patchFilterUrl('all', 'all')
+    resetView()
+  }
+
   const resetNorth = () => {
     const map = mapRef.current
     if (!map) return
@@ -1877,8 +2046,7 @@ function Map3DInner({
   }
 
   const constructionCount = allBuildings.filter((b) => b.status === 'construction').length
-  const completedCount = allBuildings.filter((b) => b.status === 'completed').length
-  const filtersActive = dealFilter !== 'all' || statusFilter !== 'all'
+  const filtersActive = dealFilter !== 'all' || kindFilter !== 'all'
   const showCompass = Math.abs(bearing) > 2.5
 
   const chip = isDark
@@ -1910,11 +2078,7 @@ function Map3DInner({
             aria-live="polite"
           >
             <div className="flex flex-col items-center gap-3">
-              <span
-                className="h-10 w-7 rounded-sm opacity-90 shadow-glow-blue"
-                style={{ background: STATUS_BRAND.construction.hue }}
-                aria-hidden
-              />
+              <span className={`sv-spinner ${isDark ? 'sv-spinner-light' : ''}`} aria-hidden />
               <p className={`text-[14px] font-bold ${isDark ? 'text-white/70' : 'text-sv-ink/55'}`}>
                 {t('map.loading')}
               </p>
@@ -1927,7 +2091,7 @@ function Map3DInner({
           </div>
         )}
 
-        {/* Top chrome — search flies the camera. Deal/status on the same rail. */}
+        {/* Top chrome — search full width; chips scroll on their own rail. */}
         <div className="absolute left-3 right-16 top-[max(0.75rem,env(safe-area-inset-top))] z-20 md:left-4 md:right-[4.25rem] md:top-4">
           <div className="flex flex-col gap-2">
             <ChromeSearch
@@ -1936,43 +2100,41 @@ function Map3DInner({
               onPlace={(q, s) => void flyToQuery(q, s)}
             />
             <div className={`hidden items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide md:flex ${chip}`}>
-              <div className="flex shrink-0 items-center gap-1.5 px-2">
+              <div className="flex shrink-0 items-center gap-1.5 px-1">
                 <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
                 <p className="whitespace-nowrap text-[12px] font-extrabold tabular-nums tracking-tight">
-                  {visible.length} · {matchListings}
+                  {matchListings}
                 </p>
               </div>
               <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
               <MapFilterPills
                 items={DEAL_FILTERS.map((f) => ({ id: f.id, label: t(f.labelKey), color: f.color }))}
                 value={dealFilter}
-                onChange={setDealFilter}
+                onChange={pickDeal}
                 layoutId="map-deal-bar"
                 muted={chipMuted}
                 groupLabel={t('map.deal')}
               />
               <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
               <MapFilterPills
-                items={STATUS_FILTERS.map((f) => ({
+                items={KIND_FILTERS.map((f) => ({
                   id: f.id,
                   label: t(f.labelKey),
                   color: f.color,
                   title:
                     f.id === 'construction'
                       ? `${t(f.labelKey)} (${constructionCount})`
-                      : f.id === 'completed'
-                        ? `${t(f.labelKey)} (${completedCount})`
-                        : t(f.labelKey),
+                      : t(f.labelKey),
                 }))}
-                value={statusFilter}
-                onChange={setStatusFilter}
-                layoutId="map-status-bar"
+                value={kindFilter}
+                onChange={pickKind}
+                layoutId="map-kind-bar"
                 muted={chipMuted}
-                groupLabel={t('map.status')}
+                groupLabel={t('map.kind')}
               />
               <button
                 type="button"
-                onClick={resetView}
+                onClick={resetFiltersAndView}
                 className={`ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full transition ${railHover}`}
                 aria-label={t('map.reset')}
               >
@@ -1991,7 +2153,7 @@ function Map3DInner({
             )}
             <div className="flex items-center gap-2 md:hidden">
               <p className={`min-w-0 flex-1 truncate rounded-tile border px-3 py-2.5 text-[12px] font-extrabold tabular-nums ${chip}`}>
-                {visible.length} · {matchListings}
+                {matchListings}
               </p>
               <button
                 type="button"
@@ -2005,7 +2167,7 @@ function Map3DInner({
               </button>
               <button
                 type="button"
-                onClick={resetView}
+                onClick={resetFiltersAndView}
                 className={`grid h-11 w-11 shrink-0 place-items-center rounded-tile border transition ${railHover} ${chip}`}
                 aria-label={t('map.reset')}
               >
@@ -2061,31 +2223,29 @@ function Map3DInner({
                 <MapFilterPills
                   items={DEAL_FILTERS.map((f) => ({ id: f.id, label: t(f.labelKey), color: f.color }))}
                   value={dealFilter}
-                  onChange={setDealFilter}
+                  onChange={pickDeal}
                   layoutId="map-deal-sheet"
                   muted={chipMuted}
                   groupLabel={t('map.deal')}
                   size="sheet"
                 />
               </div>
-              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>{t('map.status')}</p>
+              <p className={`mb-2 text-[11px] font-bold ${chipMuted}`}>{t('map.kind')}</p>
               <div className="mb-4">
                 <MapFilterPills
-                  items={STATUS_FILTERS.map((f) => ({
+                  items={KIND_FILTERS.map((f) => ({
                     id: f.id,
                     label:
                       f.id === 'construction'
                         ? `${t(f.labelKey)} (${constructionCount})`
-                        : f.id === 'completed'
-                          ? `${t(f.labelKey)} (${completedCount})`
-                          : t(f.labelKey),
+                        : t(f.labelKey),
                     color: f.color,
                   }))}
-                  value={statusFilter}
-                  onChange={setStatusFilter}
-                  layoutId="map-status-sheet"
+                  value={kindFilter}
+                  onChange={pickKind}
+                  layoutId="map-kind-sheet"
                   muted={chipMuted}
-                  groupLabel={t('map.status')}
+                  groupLabel={t('map.kind')}
                   size="sheet"
                 />
               </div>

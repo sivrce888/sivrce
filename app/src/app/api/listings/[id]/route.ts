@@ -24,6 +24,7 @@ import { reindexListingById } from "@/lib/payments"
 import { runPriceWatchAlerts } from "@/lib/price-watches"
 import { deleteListing as unindexListing } from "@/lib/search"
 import { listingIndexUrl, notifyIndexNow } from "@/lib/indexnow"
+import { canManageListing } from "@/lib/listing-access"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const dynamic = "force-dynamic"
@@ -53,7 +54,8 @@ async function loadOwned(id: string, userId: string, role: string | undefined) {
     },
   })
   if (!listing) return null
-  if (listing.ownerId !== userId && role !== "admin") return "forbidden" as const
+  const allowed = await canManageListing({ id: userId, role: role ?? "" }, listing.ownerId)
+  if (!allowed) return "forbidden" as const
   return listing
 }
 
@@ -105,7 +107,11 @@ export async function GET(
     },
   })
   if (!row) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 })
-  if (row.ownerId !== session.user.id && session.user.role !== "admin") {
+  const allowed = await canManageListing(
+    { id: session.user.id, role: session.user.role ?? "" },
+    row.ownerId,
+  )
+  if (!allowed) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 })
   }
 

@@ -54,7 +54,7 @@ export async function lookupSite(opts: {
 
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
 
-  // ponytail: NAPR often 503; don't block OSM/TAS on CadRepGeo retries (ceiling ~6s).
+  // ponytail: don't block OSM/TAS if maps.gov.ge is slow (ceiling ~6s).
   const parcelWait = parcel
     ? Promise.resolve(parcel)
     : Promise.race([

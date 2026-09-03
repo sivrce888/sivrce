@@ -23,6 +23,8 @@ import { indexListing } from "@/lib/search"
 import { listingIndexUrl, notifyIndexNow } from "@/lib/indexnow"
 import { isSameOrigin } from "@/lib/security/origin"
 import { canonicalizeDistrict } from "@/lib/district-canon"
+import { personaFromDealType } from "@/lib/workspace"
+import { writePersonaCookie } from "@/lib/workspace-cookie"
 
 export const dynamic = "force-dynamic"
 
@@ -156,6 +158,7 @@ export async function POST(req: NextRequest) {
 
   if (session.user.role === "buyer") {
     await db.user.update({ where: { id: session.user.id }, data: { role: "seller" } })
+    await writePersonaCookie(personaFromDealType(p.dealType))
   }
 
   return NextResponse.json({ ok: true, id: listing.id }, { status: 201 })

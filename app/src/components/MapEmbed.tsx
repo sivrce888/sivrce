@@ -10,11 +10,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
-import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/buildings'
+import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
-import { parseCoords } from '@/lib/map/geocode'
+import { parseCoords } from '@/lib/map/map-geo'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
+import { mapBootCamera } from '@/lib/map/map-ui'
 import { mapRuntimeOptions } from '@/lib/device-budget'
+import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
 import {
   closeRing,
   geometryRing,
@@ -49,6 +51,7 @@ interface MapEmbedProps {
 const ASPECTS = { '4/3': 'aspect-[4/3]', '16/9': 'aspect-video', '1/1': 'aspect-square' }
 const PICK_SRC = 'sivrce-pick-bldg'
 const PICK_FILL = 'sivrce-pick-fill'
+const PICK_HALO = 'sivrce-pick-halo'
 const PICK_LINE = 'sivrce-pick-line'
 const OSM_BLDG_LAYERS = ['building', 'building-3d'] as const
 
@@ -82,10 +85,36 @@ function makePin(hue: string) {
   const pin = document.createElement('div')
   pin.setAttribute('aria-hidden', 'true')
   pin.style.cssText =
-    `width:18px;height:18px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);` +
-    `background:${hue};border:2px solid #fff;` +
-    `box-shadow:0 2px 8px rgba(5,11,38,0.35)`
+    'width:32px;height:42px;pointer-events:none;filter:drop-shadow(0 4px 10px rgba(5,11,38,.34))'
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('width', '32')
+  svg.setAttribute('height', '42')
+  svg.setAttribute('viewBox', '0 0 28 36')
+  svg.setAttribute('fill', 'none')
+  const shell = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  shell.setAttribute(
+    'd',
+    'M14 1.2c6.8 0 12.3 5.4 12.3 12.5 0 8.6-10.4 18.6-12.3 21.6-1.9-3-12.3-13-12.3-21.6C1.7 6.6 7.2 1.2 14 1.2z',
+  )
+  shell.setAttribute('fill', '#fff')
+  shell.setAttribute('stroke', hue)
+  shell.setAttribute('stroke-width', '1.8')
+  const core = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+  core.setAttribute('data-pin-core', '')
+  core.setAttribute('cx', '14')
+  core.setAttribute('cy', '13.4')
+  core.setAttribute('r', '5.2')
+  core.setAttribute('fill', hue)
+  svg.append(shell, core)
+  pin.append(svg)
   return pin
+}
+
+function tintPin(el: HTMLElement, hue: string) {
+  const shell = el.querySelector('path')
+  const core = el.querySelector('[data-pin-core]')
+  if (shell) shell.setAttribute('stroke', hue)
+  if (core) core.setAttribute('fill', hue)
 }
 
 function osmLayersOn(map: MlMap): string[] {
@@ -142,17 +171,34 @@ function ensurePickLayers(map: MlMap, hue: string) {
       id: PICK_FILL,
       type: 'fill',
       source: PICK_SRC,
-      paint: { 'fill-color': hue, 'fill-opacity': 0.32 },
+      paint: { 'fill-color': hue, 'fill-opacity': 0.26 },
     })
+  }
+  if (!map.getLayer(PICK_HALO)) {
+    map.addLayer(
+      {
+        id: PICK_HALO,
+        type: 'line',
+        source: PICK_SRC,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': '#fff',
+          'line-width': 5,
+          'line-opacity': 0.7,
+        },
+      },
+      map.getLayer(PICK_LINE) ? PICK_LINE : undefined,
+    )
   }
   if (!map.getLayer(PICK_LINE)) {
     map.addLayer({
       id: PICK_LINE,
       type: 'line',
       source: PICK_SRC,
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
         'line-color': hue,
-        'line-width': 2.5,
+        'line-width': 2,
         'line-opacity': 0.95,
       },
     })
@@ -282,6 +328,7 @@ export default function MapEmbed({
     if (!containerRef.current || mapRef.current || !themeReady || !near || !coordsOk) return
     let cancelled = false
     let ro: ResizeObserver | null = null
+    let watchdog: ReturnType<typeof setTimeout> | undefined
     const container = containerRef.current
     const styleKey = mapStyleUrl(isDark, terrain)
 
@@ -299,13 +346,13 @@ export default function MapEmbed({
         mlRef.current = maplibregl
         styleKeyRef.current = styleKey
 
+        bindMaplibreWorker(maplibregl)
         const map = new maplibregl.Map({
           container,
           style,
           center: [lng, lat],
           zoom,
-          pitch: interactive ? 45 : 35,
-          bearing: -12,
+          ...mapBootCamera(interactive),
           maxPitch: 60,
           minZoom: MAP_MIN_ZOOM,
           maxBounds: GEORGIA_MAX_BOUNDS,
@@ -318,7 +365,7 @@ export default function MapEmbed({
         })
         mapRef.current = map
 
-        const marker = new maplibregl.Marker({ element: makePin(pinHue), anchor: 'center' })
+        const marker = new maplibregl.Marker({ element: makePin(pinHue), anchor: 'bottom' })
           .setLngLat([lng, lat])
           .addTo(map)
         if (q) {
@@ -360,20 +407,26 @@ export default function MapEmbed({
           }
         }
 
-        map.once('load', () => {
+        let booted = false
+        const boot = () => {
+          if (cancelled || booted) return
+          booted = true
+          if (watchdog) clearTimeout(watchdog)
           bindMissingImages(map)
           applyBrandPaints(map, isDark ? 'dark' : 'light', terrain)
           tightenAttribution(map)
           map.resize()
           paintHighlight()
-          // OSM buildings often land after first idle
           map.once('idle', () => {
             if (!cancelled && mapRef.current && highlightRef.current) {
               paintHighlight()
             }
           })
-          if (!cancelled) setStatus('ready')
-        })
+          setStatus('ready')
+        }
+        map.once('load', boot)
+        if (map.loaded()) boot()
+        watchdog = window.setTimeout(boot, 1600)
         ro = new ResizeObserver(() => map.resize())
         ro.observe(container)
       } catch (err) {
@@ -384,6 +437,7 @@ export default function MapEmbed({
 
     return () => {
       cancelled = true
+      if (watchdog) clearTimeout(watchdog)
       ro?.disconnect()
       markerRef.current?.remove()
       markerRef.current = null
@@ -470,7 +524,7 @@ export default function MapEmbed({
 
   useEffect(() => {
     const el = markerRef.current?.getElement()
-    if (el) el.style.background = pinHue
+    if (el) tintPin(el, pinHue)
   }, [pinHue])
 
   const onRetry = useCallback(() => {
@@ -485,7 +539,7 @@ export default function MapEmbed({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-card border border-sv-ink/6 bg-sv-cloud dark:bg-sv-navy ${ASPECTS[aspect]} ${className}`}
+      className={`relative overflow-hidden rounded-card border border-sv-ink/6 bg-sv-cloud shadow-card dark:bg-sv-navy ${ASPECTS[aspect]} ${className}`}
     >
       <div
         ref={containerRef}

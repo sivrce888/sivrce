@@ -275,6 +275,10 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
+.dark ::selection {
+  background: rgba(46, 107, 255, 0.35);
+  color: #e9edff;
+}
 
 @layer base {
   * {
@@ -289,6 +293,8 @@
     min-width: 0;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    accent-color: var(--sv-blue);
+    -webkit-tap-highlight-color: color-mix(in oklab, var(--sv-blue) 18%, transparent);
   }
   html.dark {
     color-scheme: dark;
@@ -300,6 +306,7 @@
     overflow-x: clip;
     min-width: 0;
     overflow-wrap: break-word;
+    caret-color: var(--sv-blue);
     /* Apple-grade theme crossfade — surfaces with their own transitions
        (cards, pills, glass) animate along via `transition-all` */
     transition: background-color 0.35s ease, color 0.35s ease;
@@ -316,6 +323,7 @@
   }
   ::selection {
     background: rgba(46, 107, 255, 0.22);
+    color: var(--sv-ink);
   }
 }
 
@@ -458,6 +466,96 @@ html.sv-has-dock body {
   width: 0 !important;
   height: 0 !important;
   background: transparent !important;
+}
+
+/* Brand vertical scrollbar — thin overlay, navy-tint, never black.
+   Horizontal stays hidden (HScroll). .scrollbar-hide keeps !important none. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--sv-ink) 28%, transparent) transparent;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklab, var(--sv-ink) 22%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--sv-ink) 40%, transparent);
+}
+.dark html,
+html.dark {
+  scrollbar-color: color-mix(in oklab, var(--sv-ink) 38%, transparent) transparent;
+}
+
+/* Nested panes (chat, filters, admin) — same thin overlay */
+.overflow-y-auto,
+.overflow-y-scroll,
+.overflow-auto {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--sv-ink) 28%, transparent) transparent;
+}
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-y-scroll::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.overflow-y-auto::-webkit-scrollbar-track,
+.overflow-y-scroll::-webkit-scrollbar-track,
+.overflow-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.overflow-y-scroll::-webkit-scrollbar-thumb,
+.overflow-auto::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklab, var(--sv-ink) 22%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Page / island loader — brand ring. .sv-spinner-light on navy. */
+@keyframes sv-spin {
+  to { transform: rotate(360deg); }
+}
+.sv-spinner,
+.sv-spinner-sm {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border-style: solid;
+  animation: sv-spin 0.7s linear infinite;
+}
+.sv-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-width: 3px;
+  border-color: color-mix(in oklab, var(--sv-blue) 22%, transparent);
+  border-top-color: var(--sv-blue);
+}
+.sv-spinner-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+  border-color: color-mix(in oklab, var(--sv-blue) 22%, transparent);
+  border-top-color: var(--sv-blue);
+}
+.sv-spinner-light,
+.sv-spinner-sm.sv-spinner-light {
+  border-color: rgb(255 255 255 / 0.22);
+  border-top-color: #fff;
 }
 
 @layer utilities {
@@ -816,7 +914,7 @@ html:not(.dark) .sv-particle {
   background-size: 72px 72px;
 }
 
-/* Low-RAM / Save-Data / ≤2-core — freeze ambient GPU work (same list as reduce). */
+/* Low-RAM / Save-Data / ≤4-core — freeze ambient GPU work (same list as reduce). */
 html[data-lite] {
   scroll-behavior: auto;
 }
@@ -852,7 +950,8 @@ html[data-lite] [data-reveal] {
   .sv-particle, .animate-float, .animate-pin, .animate-marquee,
   .animate-ping, .sv-hero-in, .animate-scroll-hint,
   .sv-skyline-back, .sv-skyline-front, .sv-comet, .sv-birds, .sv-cirrus, .sv-word, .text-gradient-shimmer,
-  .sv-sky-in, .sv-nav-in {
+  .sv-sky-in, .sv-nav-in,
+  .sv-spinner, .sv-spinner-sm {
     animation: none !important;
   }
 }

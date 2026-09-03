@@ -4,6 +4,7 @@
  */
 import type { DealType, Listing, PropType } from '@/data/listings'
 import { aiLabel } from '@/lib/ai-label'
+import { CARD_PHOTO_CAP } from '@/lib/card-gallery-teaser'
 import { hitPrices } from '@/lib/hit-prices'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
 
@@ -13,6 +14,8 @@ export function mapSearchHit(h: Record<string, unknown>): Listing {
   const { priceUSD, priceGEL, perM2USD } = hitPrices(h)
   const score = (h.trustScore as number) ?? 70
   const projectCatalog = Boolean(h.projectCatalog)
+  const rawImages = (h.images as string[]) ?? []
+  const photoCount = typeof h.photoCount === 'number' ? h.photoCount : rawImages.length
   return {
     id: h.id as string,
     title: h.title as string,
@@ -25,8 +28,9 @@ export function mapSearchHit(h: Record<string, unknown>): Listing {
     perM2USD,
     area: h.area as number,
     rooms: (h.rooms as number) ?? 0,
-    images: (h.images as string[]) ?? [],
-    img: ((h.images as string[])?.[0]) ?? '/images/p1.webp',
+    images: rawImages.slice(0, CARD_PHOTO_CAP),
+    photoCount,
+    img: rawImages[0] ?? '/images/p1.webp',
     address: (h.address as string) ?? '',
     beds: (h.bedrooms as number) ?? 0,
     baths: (h.bathrooms as number) ?? 0,

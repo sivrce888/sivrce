@@ -60,6 +60,7 @@ export default async function AgentListingsPage() {
     image: l.images[0] ?? "/images/p1.webp",
     createdAt: l.createdAt.toISOString(),
     updatedAt: l.updatedAt.toISOString(),
+    dealType: l.dealType,
   }))
 
   return (

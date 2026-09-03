@@ -1,27 +1,34 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Bell, BellRing, LayoutDashboard, Mail, Shield, UserCog } from "lucide-react"
+import {
+  ArrowLeftRight,
+  Bell,
+  BellRing,
+  Heart,
+  LayoutDashboard,
+  Mail,
+  UserCog,
+} from "lucide-react"
 
 import { toggleListingAlerts } from "@/app/[lang]/settings/actions"
 import { PasskeysCard } from "@/components/auth/PasskeysCard"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import { PushToggle } from "@/components/push/PushToggle"
+import { AccountForms } from "@/components/settings/AccountForms"
+import { LiteModeToggle } from "@/components/settings/LiteModeToggle"
 import { RolePicker } from "@/components/settings/RolePicker"
 import { isValidLang } from "@/lib/i18n/core"
 import { getServerT } from "@/lib/i18n/server"
-import {
-  ROLE_LABEL_KA,
-  isSelfServeRole,
-  parseRoleIntent,
-} from "@/lib/auth-roles"
 import {
   dashboardPathFor,
   settingsNavFor,
   settingsTitleFor,
 } from "@/lib/dashboard-nav"
 import { db } from "@/lib/db"
-import { isPhoneEmail } from "@/lib/auth-phone"
+import { displayFromEmail, isPhoneEmail } from "@/lib/auth-phone"
 import { requireUser, safeQuery } from "@/lib/guards"
+import { parsePersonaIntent } from "@/lib/workspace"
+import { readPersona } from "@/lib/workspace-cookie"
 
 export const dynamic = "force-dynamic"
 
@@ -39,12 +46,13 @@ export default async function SettingsPage({
 }) {
   const { lang: raw } = await params
   const { intent: rawIntent } = await searchParams
-  const intent = parseRoleIntent(rawIntent)
+  const intent = parsePersonaIntent(rawIntent)
   const t = getServerT(isValidLang(raw) ? raw : "ka")
   const user = await requireUser("/settings")
+  const persona = await readPersona(user.role)
   const home = dashboardPathFor(user.role)
 
-  const [alertSub, notifications, passkeys] = await Promise.all([
+  const [alertSub, notifications, passkeys, me] = await Promise.all([
     safeQuery(
       () =>
         db.listingAlertSubscription.findFirst({
@@ -72,7 +80,20 @@ export default async function SettingsPage({
             credentialBackedUp: true,
           },
         }),
-      [],
+        [],
+      ),
+    safeQuery(
+      () =>
+        db.user.findUnique({
+          where: { id: user.id },
+          select: {
+            name: true,
+            email: true,
+            phone: true,
+            passwordHash: true,
+          },
+        }),
+      null,
     ),
   ])
 
@@ -81,35 +102,24 @@ export default async function SettingsPage({
   return (
     <DashboardShell
       nav={settingsNavFor(user.role)}
-      title={settingsTitleFor(user.role)}
+      title={settingsTitleFor(user.role, persona)}
       subtitle="პარამეტრები"
       userLabel={user.name ?? user.email}
     >
       <h1 className="mb-6 text-[22px] font-black tracking-tight text-sv-ink">პარამეტრები</h1>
 
       <div className="grid gap-5">
-        <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
-          <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
-              <Shield size={18} aria-hidden />
-            </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-[15px] font-extrabold text-sv-ink">ანგარიში</h2>
-              <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
-                {user.name ?? "სახელი არ არის მითითებული"}
-                {isPhoneEmail(user.email) ? "" : ` · ${user.email}`}
-              </p>
-              <p className="mt-2 inline-flex rounded-full bg-sv-blue/10 px-3 py-1 text-[11.5px] font-bold text-sv-blue">
-                როლი:{" "}
-                {isSelfServeRole(user.role)
-                  ? ROLE_LABEL_KA[user.role].title
-                  : user.role}
-              </p>
-            </div>
-          </div>
-        </section>
+        <AccountForms
+          name={me?.name ?? user.name ?? ""}
+          email={isPhoneEmail(user.email) ? "" : user.email}
+          phone={me?.phone ?? (isPhoneEmail(user.email) ? displayFromEmail(user.email) : "")}
+          hasPassword={Boolean(me?.passwordHash)}
+          isPhoneAccount={isPhoneEmail(user.email)}
+        />
 
         <PasskeysCard keys={passkeys} />
+
+        <LiteModeToggle />
 
         {user.role !== "admin" ? (
           <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
@@ -120,13 +130,13 @@ export default async function SettingsPage({
               <div>
                 <h2 className="text-[15px] font-extrabold text-sv-ink">პროფილის ტიპი</h2>
                 <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
-                  ნაგულისხმევი მყიდველია. განცხადების დამატებისას ავტომატურად გახდები გამყიდველი.
+                  ნაგულისხმევი მყიდველია. გამქირავებელი და გამყიდველი ერთ ანგარიშზეა — განცხადების ტიპი განასხვავებს.
                 </p>
               </div>
             </div>
 
             <RolePicker
-              currentRole={isSelfServeRole(user.role) ? user.role : "buyer"}
+              currentPersona={persona}
               intent={intent}
               compact
             />
@@ -141,14 +151,36 @@ export default async function SettingsPage({
             <div className="min-w-0 flex-1">
               <h2 className="text-[15px] font-extrabold text-sv-ink">შენი სივრცე</h2>
               <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
-                განცხადებები, ლიდები და ანალიტიკა — შენი როლის პანელში.
+                ფავორიტები, შედარება, განცხადებები — ერთ ადგილას.
               </p>
-              <Link
-                href={home}
-                className="mt-4 inline-flex rounded-full bg-sv-blue px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep"
-              >
-                პანელის გახსნა
-              </Link>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  href="/account"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
+                >
+                  ანგარიში
+                </Link>
+                <Link
+                  href="/favorites"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
+                >
+                  <Heart size={13} aria-hidden />
+                  ფავორიტები
+                </Link>
+                <Link
+                  href="/compare"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
+                >
+                  <ArrowLeftRight size={13} aria-hidden />
+                  შედარება
+                </Link>
+                <Link
+                  href={home}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-sv-blue-deep"
+                >
+                  პანელი
+                </Link>
+              </div>
             </div>
           </div>
         </section>

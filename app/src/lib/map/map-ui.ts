@@ -15,6 +15,7 @@ export type MapUiSave = {
   view3d?: boolean
   deal?: string
   status?: string
+  kind?: string
   /** Comma-separated POI categories, e.g. "metro,pharmacy". */
   pois?: string
 }
@@ -40,6 +41,7 @@ export function parseMapUiJson(raw: unknown): MapUiSave {
     ...(typeof o.view3d === 'boolean' ? { view3d: o.view3d } : {}),
     ...(typeof o.deal === 'string' ? { deal: o.deal } : {}),
     ...(typeof o.status === 'string' ? { status: o.status } : {}),
+    ...(typeof o.kind === 'string' ? { kind: o.kind } : {}),
     ...(typeof o.pois === 'string' ? { pois: o.pois } : {}),
   }
 }
@@ -67,6 +69,7 @@ export function mapUiHasPrefs(ui: MapUiSave): boolean {
     ui.view3d != null ||
     ui.deal != null ||
     ui.status != null ||
+    ui.kind != null ||
     ui.pois != null
   )
 }

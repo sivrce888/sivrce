@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -10,7 +11,7 @@ import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront, Columns2, Copy,
-  Play,
+  Play, Camera,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
@@ -26,14 +27,12 @@ import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { LEAD_FORM_ID, LeadForm } from '@/components/lead/LeadForm'
 import { TourBooking } from '@/components/listing/TourBooking'
 import { SELLER_ROLE_LABEL } from '@/lib/profiles/roles'
-import MapEmbed from '@/components/MapEmbed'
 import RevealPhone from '@/components/listing/RevealPhone'
 import PriceScale from '@/components/listing/PriceScale'
-import { parseCoords } from '@/lib/map/geocode'
+import { parseCoords } from '@/lib/map/map-geo'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { isLandLease, rentPeriodKey } from '@/lib/add-listing-fields'
-import { mapHrefForListing } from '@/lib/map/buildings'
-import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
+import { mapHrefForListing } from '@/lib/map/map-href'
 import { blurProps, isCdnMedia } from '@/lib/media'
 import { listingVideoKind, youtubeId } from '@/lib/listing-video'
 import { listingPublicId } from '@/lib/listing-public-id'
@@ -61,6 +60,10 @@ import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
 import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, groupedFeatures, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
+const MapEmbed = dynamic(() => import('@/components/MapEmbed'), {
+  ssr: false,
+  loading: () => <div className="aspect-video bg-sv-navy-soft" aria-hidden />,
+})
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
 function FeatureGroups({ features, dealType }: { features: string[]; dealType: string }) {
@@ -391,10 +394,18 @@ export default function ListingDetailClient({
   }, [l.id])
 
   const recentIds = useRecentIds()
-  const metro = useMemo(
-    () => nearestMetro(l.coords.lat, l.coords.lng),
-    [l.coords.lat, l.coords.lng],
-  )
+  const [metroLine, setMetroLine] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    void import('@/lib/map/pois').then(({ nearestMetro, formatMetroDist }) => {
+      if (cancelled) return
+      const n = nearestMetro(l.coords.lat, l.coords.lng)
+      setMetroLine(n ? `${n.name} · ${formatMetroDist(n)}` : null)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [l.coords.lat, l.coords.lng])
   const recentQueryIds = useMemo(
     () => recentIds.filter((id) => id !== l.id).slice(0, 3),
     [recentIds, l.id],
@@ -697,8 +708,15 @@ export default function ListingDetailClient({
               return (
                 <button
                   key={src + i}
-                  onClick={() => (moreTile ? setLightbox(true) : setPhoto(i))}
-                  aria-label={moreTile ? t('detail.zoomPhoto') : t('detail.photo', { n: i + 1 })}
+                  onClick={() => {
+                    if (moreTile) {
+                      setPhoto(3)
+                      setLightbox(true)
+                    } else {
+                      setPhoto(i)
+                    }
+                  }}
+                  aria-label={moreTile ? t('card.allPhotos', { n: l.images.length - 3 }) : t('detail.photo', { n: i + 1 })}
                   aria-pressed={!moreTile && photo === i}
                   className={`relative aspect-[16/10] overflow-hidden rounded-module transition-all duration-300 lg:aspect-auto lg:h-full ${
                     !moreTile && photo === i
@@ -708,8 +726,11 @@ export default function ListingDetailClient({
                 >
                   <Image src={src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
                   {moreTile && (
-                    <span className="absolute inset-0 grid place-items-center bg-sv-navy/60 text-[16px] font-black text-white">
-                      +{l.images.length - 3}
+                    <span className="absolute inset-0 grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
+                      <span className="flex flex-col items-center gap-1">
+                        <Camera className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                        <span className="text-[13px] font-black tracking-wide">{t('card.allPhotos', { n: l.images.length - 3 })}</span>
+                      </span>
                     </span>
                   )}
                 </button>
@@ -1012,10 +1033,10 @@ export default function ListingDetailClient({
             {parseCoords(l.coords.lat, l.coords.lng) && (
               <div className="mt-8">
                 <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.location')}</h2>
-                {metro && (
+                {metroLine && (
                   <p className="mt-2 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue">
                     <TrainFront className="h-4 w-4 shrink-0" aria-hidden />
-                    {t('detail.nearMetro')}: {metro.name} · {formatMetroDist(metro)}
+                    {t('detail.nearMetro')}: {metroLine}
                   </p>
                 )}
                 <div className="relative mt-4 overflow-hidden rounded-card shadow-card">

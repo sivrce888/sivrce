@@ -212,7 +212,7 @@ function MessageThread({ roomId }: { roomId: string }) {
   if (!loaded) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-sv-blue" />
+        <span className="sv-spinner" aria-hidden />
       </div>
     )
   }
@@ -393,7 +393,7 @@ export default function ChatWidget() {
               <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
                 {loading && rooms.length === 0 && (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-sv-blue" />
+                    <span className="sv-spinner" aria-hidden />
                   </div>
                 )}
                 {!loading && rooms.length === 0 && (
