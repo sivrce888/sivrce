@@ -18,6 +18,17 @@ export function isInquiryStatus(value: string): value is InquiryStatus {
   return (INQUIRY_STATUSES as readonly string[]).includes(value)
 }
 
+/** Roles that own Inquiry rows and may change status. Buyer/tenant cannot. */
+export function canWorkLeads(role: string): boolean {
+  return (
+    role === "agent" ||
+    role === "agency" ||
+    role === "seller" ||
+    role === "developer" ||
+    role === "admin"
+  )
+}
+
 /** Own listings + inquiries addressed to this email. Empty ids still match email. */
 export function inquiryWhere(listingIds: string[], email: string): Prisma.InquiryWhereInput {
   return {
@@ -39,12 +50,13 @@ export function leadWaText(buyerName: string, listingTitle?: string): string {
   return `გამარჯობა ${name}, სივრცე.ge-დან გიპასუხებთ${about}.`
 }
 
-/** Agency may edit teammate listings; agents only own; admin always. */
+/** Agency may edit teammate listings; agents only own; admin always. Catalog rows may have null owner. */
 export function listingManageRule(
   user: { id: string; role: string },
-  listingOwnerId: string,
+  listingOwnerId: string | null,
   teammate: boolean,
 ): boolean {
-  if (listingOwnerId === user.id || user.role === "admin") return true
+  if (user.role === "admin") return true
+  if (listingOwnerId && listingOwnerId === user.id) return true
   return user.role === "agency" && teammate
 }

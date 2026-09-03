@@ -328,7 +328,7 @@ export default function MapEmbed({
     if (!containerRef.current || mapRef.current || !themeReady || !near || !coordsOk) return
     let cancelled = false
     let ro: ResizeObserver | null = null
-    let watchdog: ReturnType<typeof setTimeout> | undefined
+    let watchdog: number | undefined
     const container = containerRef.current
     const styleKey = mapStyleUrl(isDark, terrain)
 

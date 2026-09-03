@@ -37,7 +37,7 @@ export async function POST() {
   } catch (e) {
     console.error("[admin/sync-search] failed:", (e as Error).message)
     return Response.json(
-      { ok: false, error: "db_error", detail: (e as Error).message },
+      { ok: false, error: "db_error" },
       { status: 500 },
     )
   }

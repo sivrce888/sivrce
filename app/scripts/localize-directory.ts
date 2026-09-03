@@ -295,7 +295,8 @@ async function enrichProjects(): Promise<number> {
 async function mirrorAll(heroesOnly: boolean): Promise<{ logos: number; projects: number; map: number }> {
   const [devs, projects, maps] = await Promise.all([
     db.developerProfile.findMany({
-      where: { deletedAt: null, logoUrl: { contains: "googleapis.com" } },
+      // any remote logo (korter googleapis, myhome/ss static hosts) — mirror all
+      where: { deletedAt: null, logoUrl: { contains: "http" } },
       select: { slug: true, logoUrl: true },
     }),
     db.projectDirectory.findMany({

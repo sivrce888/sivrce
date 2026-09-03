@@ -154,7 +154,7 @@ export default async function AdminToursPage({
                       {t.listing.title}
                     </Link>
                   </td>
-                  <td className={`${td} whitespace-nowrap`}>{t.agent?.name ?? "მფლობელი"}</td>
+                  <td className={`${td} whitespace-nowrap`}>{t.agent?.name ?? "—"}</td>
                   <td className={`${td} whitespace-nowrap`}>
                     <span className="block">{fmtDate(t.tourDate)}</span>
                     <span className="mt-0.5 block text-[12px] text-sv-ink/45">{t.tourTime}</span>

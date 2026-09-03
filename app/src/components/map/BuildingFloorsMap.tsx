@@ -91,7 +91,7 @@ export default function BuildingFloorsMap({
     if (!containerRef.current || mapRef.current || !themeReady) return
     let cancelled = false
     let ro: ResizeObserver | null = null
-    let watchdog: ReturnType<typeof setTimeout> | undefined
+    let watchdog: number | undefined
     const initialStyle = mapStyleUrl(isDark)
     styleUrlRef.current = initialStyle
     const container = containerRef.current

@@ -10,7 +10,7 @@ export { listingManageRule }
 
 export async function canManageListing(
   user: { id: string; role: string },
-  listingOwnerId: string,
+  listingOwnerId: string | null,
 ): Promise<boolean> {
   if (listingManageRule(user, listingOwnerId, false)) return true
   if (user.role !== "agency") return false

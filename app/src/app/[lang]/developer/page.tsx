@@ -9,6 +9,7 @@ import { developerNav } from "@/components/developer-dashboard/nav"
 import { db } from "@/lib/db"
 import { PROJECT_STATUS_KA, isProjectStatus } from "@/lib/developer-project"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { inquiryWhere } from "@/lib/pro-leads"
 
 export const dynamic = "force-dynamic"
 
@@ -61,13 +62,7 @@ export default async function DeveloperOverviewPage() {
 
   const listingIds = listings.map((l) => l.id)
   const leadsCount = await safeQuery(
-    () =>
-      db.inquiry.count({
-        where: {
-          deletedAt: null,
-          OR: [{ listingId: { in: listingIds } }, { agentEmail: user.email }],
-        },
-      }),
+    () => db.inquiry.count({ where: inquiryWhere(listingIds, user.email) }),
     0,
   )
 

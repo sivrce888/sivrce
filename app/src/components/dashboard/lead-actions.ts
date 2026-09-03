@@ -6,11 +6,11 @@ import { redirect } from "next/navigation"
 import { getAgencyContext } from "@/components/agency-dashboard/data"
 import { db } from "@/lib/db"
 import { dashboardPathFor, requireUser, safeQuery } from "@/lib/guards"
-import { inquiryWhere, isInquiryStatus } from "@/lib/pro-leads"
+import { canWorkLeads, inquiryWhere, isInquiryStatus, listingOwnerWhere } from "@/lib/pro-leads"
 
 export async function setProLeadStatus(formData: FormData): Promise<void> {
-  const user = await requireUser("/agent/leads")
-  if (user.role !== "agent" && user.role !== "agency" && user.role !== "admin") {
+  const user = await requireUser("/account")
+  if (!canWorkLeads(user.role)) {
     redirect(dashboardPathFor(user.role))
   }
 
@@ -24,7 +24,7 @@ export async function setProLeadStatus(formData: FormData): Promise<void> {
     () =>
       db.listing
         .findMany({
-          where: { ownerId: { in: ownerIds }, deletedAt: null },
+          where: listingOwnerWhere(ownerIds),
           select: { id: true },
         })
         .then((rows) => rows.map((r) => r.id)),
@@ -48,4 +48,9 @@ export async function setProLeadStatus(formData: FormData): Promise<void> {
   revalidatePath("/agency")
   revalidatePath("/agency/leads")
   revalidatePath("/agency/analytics")
+  revalidatePath("/seller")
+  revalidatePath("/seller/leads")
+  revalidatePath("/developer")
+  revalidatePath("/developer/leads")
+  revalidatePath("/developer/analytics")
 }

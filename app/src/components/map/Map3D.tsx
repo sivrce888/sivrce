@@ -1275,7 +1275,7 @@ function Map3DInner({
 
     let cancelled = false
     let ro: ResizeObserver | null = null
-    let watchdog: ReturnType<typeof setTimeout> | undefined
+    let watchdog: number | undefined
     const initialStyle = mapStyleUrl(darkRef.current, terrainRef.current, styleUrls)
     styleUrlRef.current = initialStyle
     const container = containerRef.current

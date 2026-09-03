@@ -4,6 +4,7 @@
 import assert from "node:assert/strict"
 import {
   INQUIRY_STATUSES,
+  canWorkLeads,
   inquiryWhere,
   isInquiryStatus,
   leadWaText,
@@ -31,5 +32,10 @@ assert.equal(listingManageRule({ id: "a", role: "agent" }, "b", true), false)
 assert.equal(listingManageRule({ id: "ag", role: "agency" }, "b", true), true)
 assert.equal(listingManageRule({ id: "ag", role: "agency" }, "b", false), false)
 assert.equal(listingManageRule({ id: "x", role: "admin" }, "b", false), true)
+assert.equal(listingManageRule({ id: "a", role: "agent" }, null, false), false)
+assert.equal(listingManageRule({ id: "x", role: "admin" }, null, false), true)
+assert.equal(canWorkLeads("seller"), true)
+assert.equal(canWorkLeads("developer"), true)
+assert.equal(canWorkLeads("buyer"), false)
 
 console.log("pro-leads.check: ok")

@@ -2,9 +2,11 @@ import type { Metadata } from "next"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
+import LeadInbox from "@/components/dashboard/LeadInbox"
 import { sellerNav } from "@/components/seller-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
 import { isRentFocus, panelTitle } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
 
@@ -15,37 +17,27 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  new: "ახალი",
-  contacted: "დაკავშირებული",
-  qualified: "კვალიფიცირებული",
-  closed: "დახურული",
-}
-
 export default async function SellerLeadsPage() {
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
   const seeker = isRentFocus(persona) ? "დამქირავებელი" : "მყიდველი"
 
   // ponytail: sellers share Inquiry model (no seller CRM); ceiling = CrmLead when seller CRM ships
-  const listingIds = await safeQuery(
+  const listingRows = await safeQuery(
     () =>
-      db.listing
-        .findMany({
-          where: { ownerId: user.id, deletedAt: null },
-          select: { id: true },
-        })
-        .then((rows) => rows.map((r) => r.id)),
+      db.listing.findMany({
+        where: listingOwnerWhere([user.id]),
+        select: { id: true, title: true },
+      }),
     [],
   )
+  const listingIds = listingRows.map((l) => l.id)
+  const titles = Object.fromEntries(listingRows.map((l) => [l.id, l.title]))
 
   const leads = await safeQuery(
     () =>
       db.inquiry.findMany({
-        where: {
-          deletedAt: null,
-          OR: [{ listingId: { in: listingIds } }, { agentEmail: user.email }],
-        },
+        where: inquiryWhere(listingIds, user.email),
         orderBy: { createdAt: "desc" },
         take: 50,
       }),
@@ -71,44 +63,7 @@ export default async function SellerLeadsPage() {
           actionLabel="განცხადების დამატება"
         />
       ) : (
-        <div className="overflow-x-auto rounded-card border border-sv-ink/6 bg-sv-surface shadow-card">
-          <table className="w-full text-left text-[13px]">
-            <thead className="border-b border-sv-ink/6 bg-sv-cloud/60">
-              <tr>
-                <th className="px-5 py-3 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/50">
-                  სახელი
-                </th>
-                <th className="px-5 py-3 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/50">
-                  კონტაქტი
-                </th>
-                <th className="px-5 py-3 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/50">
-                  სტატუსი
-                </th>
-                <th className="px-5 py-3 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/50">
-                  თარიღი
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-sv-ink/5">
-              {leads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-sv-cloud/40">
-                  <td className="px-5 py-3.5 font-bold text-sv-ink">{lead.buyerName}</td>
-                  <td className="px-5 py-3.5 font-medium text-sv-ink/60">
-                    {lead.buyerPhone ?? lead.buyerEmail}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className="rounded-full bg-sv-blue/10 px-2.5 py-1 text-[11.5px] font-bold text-sv-blue">
-                      {STATUS_LABEL[lead.status] ?? lead.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-sv-ink/50">
-                    {new Date(lead.createdAt).toLocaleDateString("ka-GE")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <LeadInbox leads={leads} titles={titles} />
       )}
     </DashboardShell>
   )

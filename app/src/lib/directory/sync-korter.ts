@@ -1,12 +1,10 @@
 /**
- * RETIRED offline archive — do not run against production.
- *
- * Historical one-shot import that seeded Postgres. Runtime media is owned on
- * cdn.sivrce.ge via `npm run directory:localize` / `directory:mirror`.
- * Re-importing from aggregators is forbidden (cron returns 410).
- *
- * Kept only so `extractState` stays available for the one-shot localize enrich
- * of leftover sourceUrl rows. Delete this file once sourceUrl is fully null.
+ * Offline one-shot directory sync — owner-approved re-runs only
+ * (2026-09-01 initial seed; 2026-09-03 coverage sweep, 708 korter devs).
+ * Runtime cron stays retired (api/cron/sync-korter returns 410) — sivrce
+ * must never depend on aggregators at runtime. After any re-run, finish
+ * with `npm run directory:localize` so media is mirrored to cdn.sivrce.ge.
+ * Companion gap importers: scripts/import-myhome-gap.ts, scripts/import-ssgap.ts.
  */
 
 import type { PrismaClient } from "@/generated/prisma/client"

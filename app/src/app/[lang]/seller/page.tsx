@@ -9,6 +9,7 @@ import { sellerNav } from "@/components/seller-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { phoneRevealsOf } from "@/lib/inquiries/phone"
+import { inquiryWhere } from "@/lib/pro-leads"
 import {
   addListingHref,
   isRentFocus,
@@ -45,6 +46,7 @@ export default async function SellerOverviewPage() {
   )
 
   const listingIds = listings.map((r) => r.id)
+  const leadWhere = inquiryWhere(listingIds, user.email)
   const totalViews = listings.reduce((sum, l) => sum + l.views, 0)
   const totalReveals = listings.reduce((sum, l) => sum + phoneRevealsOf(l.extendedFields), 0)
   const activeSale = listings.filter((l) => l.status === "active" && l.dealType === "buy").length
@@ -60,25 +62,13 @@ export default async function SellerOverviewPage() {
     safeQuery(
       () =>
         db.inquiry.findMany({
-          where: {
-            deletedAt: null,
-            OR: [{ listingId: { in: listingIds } }, { agentEmail: user.email }],
-          },
+          where: leadWhere,
           orderBy: { createdAt: "desc" },
           take: 5,
         }),
       [],
     ),
-    safeQuery(
-      () =>
-        db.inquiry.count({
-          where: {
-            deletedAt: null,
-            OR: [{ listingId: { in: listingIds } }, { agentEmail: user.email }],
-          },
-        }),
-      0,
-    ),
+    safeQuery(() => db.inquiry.count({ where: leadWhere }), 0),
   ])
 
   const seeker = rent ? "დამქირავებელი" : "მყიდველი"

@@ -2,10 +2,11 @@ import type { Metadata } from "next"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
-import TourCard, { tourListingInclude } from "@/components/dashboard/TourCard"
+import TourCard, { tourListingInclude, type TourWithListing } from "@/components/dashboard/TourCard"
 import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import type { Prisma } from "@/generated/prisma/client"
 
 export const dynamic = "force-dynamic"
 
@@ -26,42 +27,45 @@ export default async function AgentToursPage() {
   today.setHours(0, 0, 0, 0)
 
   const include = tourListingInclude
-  const mine = {
+  const none: TourWithListing[] = []
+  const mine: Prisma.PropertyTourWhereInput = {
     OR: [
       ...(profile ? [{ agentId: profile.id }] : []),
       { listing: { ownerId: user.id, deletedAt: null } },
     ],
-  } as const
+  }
 
   const [upcoming, past] = await Promise.all([
         safeQuery(
           () =>
             db.propertyTour.findMany({
               where: {
-                ...mine,
-                tourDate: { gte: today },
-                status: { in: ["pending", "confirmed"] },
+                AND: [mine, { tourDate: { gte: today }, status: { in: ["pending", "confirmed"] } }],
               },
               orderBy: [{ tourDate: "asc" }, { tourTime: "asc" }],
               include,
             }),
-          [],
+          none,
         ),
         safeQuery(
           () =>
             db.propertyTour.findMany({
               where: {
-                ...mine,
-                OR: [
-                  { tourDate: { lt: today } },
-                  { status: { in: ["cancelled_by_guest", "cancelled_by_agent", "completed", "no_show"] } },
+                AND: [
+                  mine,
+                  {
+                    OR: [
+                      { tourDate: { lt: today } },
+                      { status: { in: ["cancelled_by_guest", "cancelled_by_agent", "completed", "no_show"] } },
+                    ],
+                  },
                 ],
               },
               orderBy: [{ tourDate: "desc" }, { tourTime: "desc" }],
               take: 20,
               include,
             }),
-          [],
+          none,
         ),
       ])
 

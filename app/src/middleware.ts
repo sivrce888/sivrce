@@ -27,6 +27,7 @@ const LOCALE_PREFIXES = ["en", "ru", "he", "ar", "tr", "uk", "hy", "az"]
 
 const PROTECTED_PREFIXES = [
   "/admin",
+  "/api/admin",
   "/seller",
   "/agent",
   "/agency",
