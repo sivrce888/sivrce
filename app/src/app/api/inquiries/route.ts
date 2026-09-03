@@ -123,8 +123,23 @@ export async function POST(req: Request) {
   const service =
     targetType === "service" ? await getServiceBySlug(targetId).catch(() => null) : null
   const isCareers = targetId === "careers"
+  // Profile leads resolve to the owner so the row matches their /leads inbox
+  // (agentEmail) and the notification email reaches them directly.
+  const profile = PROFILE_TARGETS.has(targetType)
+    ? await resolveProfileTarget(targetType, targetId)
+    : null
+  let ownerEmail: string | null = null
+  if (profile?.ownerId) {
+    const owner = await db.user
+      .findUnique({ where: { id: profile.ownerId }, select: { email: true } })
+      .catch(() => null)
+    ownerEmail = owner?.email ?? null
+  }
   const agentName =
-    listing?.agent.name ?? service?.name.ka ?? (isCareers ? "კარიერა" : "Sivrce")
+    profile?.name ??
+    listing?.agent.name ??
+    service?.name.ka ??
+    (isCareers ? "კარიერა" : "Sivrce")
   // Full phone from vault — listing card phone may be masked for scrapers.
   const agentPhone =
     targetType === "listing"
@@ -137,7 +152,7 @@ export async function POST(req: Request) {
   const buyerEmail = email || session?.user?.email || "unknown@sivrce.ge"
   // Careers form prefixes "[კარიერა · ქალაქი]" — lift city into the column.
   const cityFromCareers = isCareers ? message.match(/\[კარიერა · ([^\]]+)\]/)?.[1]?.trim() : undefined
-  const city = listing?.city ?? service?.city ?? cityFromCareers ?? ""
+  const city = listing?.city ?? profile?.city ?? service?.city ?? cityFromCareers ?? ""
 
   try {
     await db.inquiry.create({
@@ -145,7 +160,9 @@ export async function POST(req: Request) {
         id: crypto.randomUUID(),
         listingId,
         agentName,
-        agentEmail: targetType === "general" ? notifyEmail : null,
+        // Profile leads carry the owner email → their /leads inbox; listings
+        // keep matching by listingId only; general → site contact.
+        agentEmail: targetType === "general" ? notifyEmail : ownerEmail,
         agentPhone,
         buyerName: name,
         buyerEmail,
@@ -168,13 +185,17 @@ export async function POST(req: Request) {
   // Fire-and-forget: notify the agent (never block the API response).
   // ponytail: no `await` — email delivery failures are logged, not surfaced.
   sendInquiryNotification({
-    agentEmail: notifyEmail,
+    agentEmail: ownerEmail ?? notifyEmail,
     agentName,
     buyerName: name,
     buyerPhone: phone ?? null,
     buyerEmail: email || session?.user?.email || null,
     message,
-    listingTitle: listing?.title ?? service?.name.ka ?? (isCareers ? `კარიერა · ${city || "—"}` : undefined),
+    listingTitle:
+      listing?.title ??
+      service?.name.ka ??
+      profile?.name ??
+      (isCareers ? `კარიერა · ${city || "—"}` : undefined),
     subject: isCareers ? `კარიერა · ${name}` : undefined,
   })
 

@@ -106,7 +106,7 @@ export default async function AgentPage({ params }: PageProps) {
           name={agent.name}
           city={agent.city}
           verified={agent.verified}
-          phone=""
+          phone={agent.phone}
           subtitle={agent.agency}
           stats={[
             { key: 'yearsActive', value: agent.yearsActive },
