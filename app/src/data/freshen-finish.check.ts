@@ -29,4 +29,4 @@ const leaks = PROJECTS.filter((p) => {
 })
 console.assert(leaks.length === 0, `no stale active projects, leaked: ${leaks.map((p) => p.slug).join(', ')}`)
 
-console.log(`freshen-finish: ${PROJECTS.length} projects clean, 4 unit cases ✓`)
+console.log(`freshen-finish: ${PROJECTS.length} projects clean, 7 unit cases ✓`)

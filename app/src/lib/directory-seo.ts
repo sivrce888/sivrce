@@ -9,7 +9,7 @@
 
 import { ruPlural, type Lang } from '@/lib/i18n/core'
 import { CITIES } from '@/lib/seo-pages'
-import type { Developer, Project } from '@/data/professionals'
+import { isDelivered, type Developer, type Project } from '@/data/professionals'
 
 export type DirLoc = 'ka' | 'en' | 'ru'
 
@@ -439,8 +439,8 @@ export const PROJECT_DETAIL: Record<
   ka: {
     titleOf: (p) =>
       isDelivered(p)
-        ? `${p.name} — ჩაბარებული ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან | sivrce`
-        : `${p.name} — მშენებარე ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან | sivrce`,
+        ? `${p.name} — ჩაბარებული ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან`
+        : `${p.name} — მშენებარე ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან`,
     crumbHome: 'მთავარი',
     crumbProjects: 'პროექტები',
     building3d: 'კორპუსი 3D-ში',
@@ -458,8 +458,8 @@ export const PROJECT_DETAIL: Record<
   en: {
     titleOf: (p) =>
       isDelivered(p)
-        ? `${p.name} — completed development in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m² | sivrce`
-        : `${p.name} — new-build apartments in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m² | sivrce`,
+        ? `${p.name} — completed development in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m²`
+        : `${p.name} — new-build apartments in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m²`,
     crumbHome: 'Home',
     crumbProjects: 'Projects',
     building3d: 'Building in 3D',
@@ -477,8 +477,8 @@ export const PROJECT_DETAIL: Record<
   ru: {
     titleOf: (p) =>
       isDelivered(p)
-        ? `${p.name} — квартиры в сданном доме в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м² | sivrce`
-        : `${p.name} — квартиры в новостройке в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м² | sivrce`,
+        ? `${p.name} — квартиры в сданном доме в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м²`
+        : `${p.name} — квартиры в новостройке в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м²`,
     crumbHome: 'Главная',
     crumbProjects: 'Новостройки',
     building3d: 'Корпус в 3D',
