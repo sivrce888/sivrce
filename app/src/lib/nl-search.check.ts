@@ -77,6 +77,20 @@ const eventKa = parseNlQuery('ივენთის სახლი ბადა
 assert.ok(eventKa.features?.includes('add.f.partiesAllowed'))
 assert.equal(eventKa.dealType, 'daily')
 
+// Hero rotating placeholder examples must parse to structured filters.
+const exKaRooms = parseNlQuery('2 ოთახიანი ბინა ვაკეში')
+assert.equal(exKaRooms.rooms, 2)
+assert.equal(exKaRooms.district, 'ვაკე')
+const exKaPrice = parseNlQuery('ბინა თბილისში $50k-მდე')
+assert.equal(exKaPrice.propertyType, 'apartment')
+assert.equal(exKaPrice.maxPrice, 50000)
+const exKaRent = parseNlQuery('გასაქირავებელი ბინა პარკინგით')
+assert.equal(exKaRent.dealType, 'rent')
+assert.ok(exKaRent.features?.includes('add.f.parking'))
+const exEn = parseNlQuery('2-bedroom apartment in Tbilisi')
+assert.equal(exEn.bedrooms, 2)
+assert.equal(exEn.city, 'თბილისი')
+
 assert.equal(parseNlQuery('გირავდება ბინა ვაკე').dealType, 'pledge')
 assert.equal(nlToSearchPatch(parseNlQuery('გირავდება ბინა ვაკე')).deal, 'pledge')
 assert.equal(parseNlQuery('pledge apartment Vake').dealType, 'pledge')

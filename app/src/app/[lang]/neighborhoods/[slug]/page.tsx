@@ -4,7 +4,8 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import NeighborhoodDetail from '@/components/neighborhoods/NeighborhoodDetail'
 import { NEIGHBORHOODS, getNeighborhood } from '@/data/neighborhoods'
-import { getListingsInDistricts } from '@/lib/listings-db'
+import { getListingsInDistricts, USD_GEL } from '@/lib/listings-db'
+import { getNeighborhoodMarketStats } from '@/lib/market-stats'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
@@ -54,7 +55,10 @@ export default async function NeighborhoodPage({ params }: PageProps) {
   const n = getNeighborhood(slug)
   if (!n) notFound()
 
-  const listings = await getListingsInDistricts(n.districts, 8)
+  const [listings, market] = await Promise.all([
+    getListingsInDistricts(n.districts, 8),
+    getNeighborhoodMarketStats(n.cityKey, n.districts, USD_GEL),
+  ])
 
   // aggregateRating intentionally omitted — ratings are runtime data (Review model)
   const placeLd = {
@@ -94,7 +98,7 @@ export default async function NeighborhoodPage({ params }: PageProps) {
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main">
-        <NeighborhoodDetail n={n} listings={listings} />
+        <NeighborhoodDetail n={n} listings={listings} market={market} />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(placeLd) }} />

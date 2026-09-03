@@ -58,9 +58,21 @@ import {
   POI_LABELS,
   type PoiCategory,
 } from '@/lib/map/pois'
+import { getDistrictPeerPerM2 } from '@/lib/listings-db'
+import { priceScaleOf } from '@/lib/price-scale'
+import { medianOf } from '@/lib/market-stats-core'
+import { buildingScoreOf, type BuildingFactorKey } from '@/lib/building-score'
 import { faqPageLd } from '@/lib/directory-seo'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+
+const FACTOR_LABEL: Record<BuildingFactorKey, string> = {
+  value: 'ღირებულება',
+  liquidity: 'ლიკვიდურობა',
+  trust: 'ნდობა',
+  quality: 'ხარისხი',
+  location: 'მდებარეობა',
+}
 
 export const revalidate = 3600
 export const maxDuration = 15
@@ -146,6 +158,26 @@ export default async function BuildingPage({ params }: PageProps) {
   const mapsApple = `https://maps.apple.com/?daddr=${building.coords.lat},${building.coords.lng}&q=${encodeURIComponent(building.name)}`
   const mapsGoogle = `https://www.google.com/maps/dir/?api=1&destination=${building.coords.lat},${building.coords.lng}`
 
+  // Building price intelligence — live sale sample vs district band.
+  const saleListings = listings.filter((l) => l.dealType === 'sale')
+  const salePerM2 = saleListings.map((l) => l.perM2USD).filter((p) => p > 0)
+  const buildingAvgPerM2 = salePerM2.length
+    ? Math.round(salePerM2.reduce((a, b) => a + b, 0) / salePerM2.length)
+    : null
+  const buildingMedianPrice = medianOf(saleListings.map((l) => l.priceUSD))
+  const peers = await getDistrictPeerPerM2(building.city, building.district, 'sale')
+  const buildingScale = buildingAvgPerM2 != null ? priceScaleOf(buildingAvgPerM2, peers) : null
+  const score = buildingScoreOf({
+    avgPerM2USD: buildingAvgPerM2,
+    districtPct: buildingScale?.pct ?? null,
+    saleCount: counts.sale,
+    verifiedShare: listings.length
+      ? listings.filter((l) => l.verified).length / listings.length
+      : null,
+    rating: aggregate ? aggregate.average : (building.rating ?? null),
+    metroWalkMin: metro ? metro.walkMin : null,
+  })
+
   const cluster = findBuildingBySlug(slug, clusterListingsToBuildings(listings))
   const floorCount = cluster ? buildingFloorCount(cluster) : building.floors
   const floorsInfo = cluster ? buildingFloors(cluster) : []
@@ -163,6 +195,14 @@ export default async function BuildingPage({ params }: PageProps) {
       q: `სად არის ${building.name}?`,
       a: `მისამართი: ${building.address}. ${place}. კოდი: ${building.code}.${metro ? ` უახლოესი მეტრო: ${metro.name} (${formatMetroDist(metro)}).` : ''}`,
     },
+    ...(buildingAvgPerM2 != null
+      ? [
+          {
+            q: `რა ღირს მ² ${building.name}-ში?`,
+            a: `აქტიური განცხადებების მიხედვით საშუალო ფასი $${buildingAvgPerM2.toLocaleString('en-US')}/მ²-ა (${salePerM2.length} განცხადება).${buildingScale ? ` რაიონთან შედარებით: ${buildingScale.labelKa.toLowerCase()}.` : ''}`,
+          },
+        ]
+      : []),
     ...(dev
       ? [
           {
@@ -202,6 +242,11 @@ export default async function BuildingPage({ params }: PageProps) {
     numberOfAvailableAccommodationUnits: listings.length || undefined,
     numberOfAccommodationUnits: building.units,
     ...(building.yearBuilt && { yearBuilt: building.yearBuilt }),
+    ...(buildingAvgPerM2 != null && {
+      additionalProperty: [
+        { '@type': 'PropertyValue' as const, name: 'averagePricePerSqmUSD', value: buildingAvgPerM2 },
+      ],
+    }),
     ...(aggregate && {
       aggregateRating: {
         '@type': 'AggregateRating',
@@ -305,6 +350,97 @@ export default async function BuildingPage({ params }: PageProps) {
                 { label: 'გირავდება', value: String(counts.pledge) },
               ]}
             />
+
+            {score && buildingAvgPerM2 != null && (
+              <div className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/55">
+                    კორპუსის ინტელექტი
+                  </h2>
+                  <span className="text-[11px] font-bold text-sv-ink/40">
+                    {score.confidence === 'high'
+                      ? 'მაღალი ნდობა'
+                      : score.confidence === 'medium'
+                        ? 'საშუალო ნდობა'
+                        : 'დაბალი ნდობა'}{' '}
+                    · {salePerM2.length} განცხადება
+                  </span>
+                </div>
+                <div className="mt-5 flex flex-wrap items-center gap-x-10 gap-y-6">
+                  <div className="flex items-center gap-3">
+                    <svg viewBox="0 0 36 36" className="h-20 w-20 -rotate-90" aria-hidden>
+                      <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--sv-blue)" strokeOpacity="0.12" strokeWidth="3" />
+                      <circle
+                        cx="18" cy="18" r="15.5" fill="none"
+                        stroke={score.score >= 70 ? 'var(--sv-success)' : score.score >= 50 ? 'var(--sv-blue)' : 'var(--sv-orange)'}
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeDasharray={`${score.score} 100`}
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-[26px] font-black leading-none tracking-[-0.02em] text-sv-ink">
+                        {score.score}
+                        <span className="text-[14px] font-bold text-sv-ink/40">/100</span>
+                      </p>
+                      <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-sv-ink/45">
+                        Building Score
+                      </p>
+                    </div>
+                  </div>
+
+                  <dl className="flex flex-wrap gap-x-8 gap-y-3">
+                    <div>
+                      <dd className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">
+                        ${buildingAvgPerM2.toLocaleString('en-US')}/მ²
+                      </dd>
+                      <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
+                        საშუალო ფასი
+                      </dt>
+                    </div>
+                    {buildingMedianPrice != null && (
+                      <div>
+                        <dd className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">
+                          ${buildingMedianPrice.toLocaleString('en-US')}
+                        </dd>
+                        <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
+                          მედიანური ფასი
+                        </dt>
+                      </div>
+                    )}
+                    {buildingScale && (
+                      <div>
+                        <dd
+                          className={`text-[20px] font-black ${
+                            buildingScale.band === 'low' || buildingScale.band === 'mediumLow'
+                              ? 'text-sv-blue-deep'
+                              : buildingScale.band === 'high' || buildingScale.band === 'aboveAverage'
+                                ? 'text-sv-orange-deep'
+                                : 'text-sv-ink'
+                          }`}
+                        >
+                          {buildingScale.labelKa}
+                        </dd>
+                        <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
+                          რაიონთან შედარებით
+                        </dt>
+                      </div>
+                    )}
+                  </dl>
+
+                  <ul className="flex flex-wrap gap-1.5">
+                    {score.factors.map((f) => (
+                      <li
+                        key={f.key}
+                        className="rounded-full bg-sv-ink/[0.05] px-2.5 py-1 text-[11px] font-bold text-sv-ink/60"
+                      >
+                        {FACTOR_LABEL[f.key]} {f.pct}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
             <p className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/55">
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {building.address}

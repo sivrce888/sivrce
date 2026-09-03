@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrainFront, Columns2, Copy,
+  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, Columns2, Copy,
   Play, Camera,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
@@ -36,7 +36,7 @@ import { mapHrefForListing } from '@/lib/map/map-href'
 import { blurProps, isCdnMedia } from '@/lib/media'
 import { listingVideoKind, youtubeId } from '@/lib/listing-video'
 import { listingPublicId } from '@/lib/listing-public-id'
-import { priceScaleOf, fairPriceOf } from '@/lib/price-scale'
+import { priceScaleOf, fairPriceOf, type PriceEventView } from '@/lib/price-scale'
 import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
 import { aiLabel } from '@/lib/ai-label'
 import type { TasPublicDoc } from '@/lib/map/tas-arch'
@@ -300,6 +300,17 @@ function ListingVideoPlayer({
   )
 }
 
+/** Short localized day for the price timeline — Intl over a date lib. */
+const fmtDay = (iso: string, lang: string) => {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10)
+  try {
+    return d.toLocaleDateString(lang, { day: 'numeric', month: 'short' })
+  } catch {
+    return iso.slice(0, 10)
+  }
+}
+
 /* ————— Page ————— */
 export default function ListingDetailClient({
   listing: l,
@@ -308,6 +319,8 @@ export default function ListingDetailClient({
   ownerId = null,
   ownerTier = 'standard',
   railAd = null,
+  priceEvents = null,
+  postedDays = 0,
 }: {
   listing: Listing
   similar: Listing[]
@@ -316,6 +329,10 @@ export default function ListingDetailClient({
   ownerId?: string | null
   ownerTier?: string
   railAd?: PublicAd | null
+  /** Price timeline from DB; rendered when more than the initial "listed". */
+  priceEvents?: PriceEventView[] | null
+  /** Whole days since posting — computed on the server (pure render). */
+  postedDays?: number
 }) {
   const { data: session } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -760,7 +777,15 @@ export default function ListingDetailClient({
                     </span>
                   ) : null}
                   <span className="flex items-center gap-1 text-[12px] font-bold text-sv-ink/45">
-                    <Calendar className="h-3.5 w-3.5" /> {l.postedAt}
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span title={l.postedAt}>
+                      {postedDays <= 0 ? t('detail.postedToday') : t('detail.postedAgo', { n: postedDays })}
+                    </span>
+                    {postedDays >= 21 ? (
+                      <span className="rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-bold text-sv-orange-deep">
+                        {t('detail.staleWarn')}
+                      </span>
+                    ) : null}
                   </span>
                   <button
                     type="button"
@@ -911,6 +936,56 @@ export default function ListingDetailClient({
                 <p className="mt-1 text-[12px] font-semibold text-sv-ink/40">
                   {t('detail.fairPriceNote', { n: fairPrice.sample })}
                 </p>
+              </div>
+            ) : null}
+
+            {priceEvents && priceEvents.length > 1 ? (
+              <div className="mt-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/45">
+                  {t('detail.priceHistory')}
+                </div>
+                <ul className="mt-1 divide-y divide-sv-ink/[0.04]">
+                  {priceEvents.map((ev, i) => (
+                    <li
+                      key={`${ev.recordedAt}-${i}`}
+                      className="flex items-center gap-2.5 py-2 text-[13px] font-semibold"
+                    >
+                      {ev.type === 'price_drop' ? (
+                        <TrendingDown className="h-4 w-4 shrink-0 text-sv-success" />
+                      ) : ev.type === 'price_increase' ? (
+                        <TrendingUp className="h-4 w-4 shrink-0 text-sv-orange-deep" />
+                      ) : (
+                        <Calendar className="h-4 w-4 shrink-0 text-sv-ink/35" />
+                      )}
+                      <span className="text-sv-ink/70">
+                        {ev.type === 'price_drop' ? t('detail.evDrop')
+                          : ev.type === 'price_increase' ? t('detail.evRaise')
+                            : ev.type === 'sold' ? t('detail.evSold')
+                              : t('detail.evListed')}
+                      </span>
+                      <span className="ml-auto tabular-nums tracking-tight text-sv-ink">
+                        {currency === 'GEL'
+                          ? formatGEL(Math.round(ev.priceUSD * (liveRate || USD_GEL)))
+                          : formatUSD(ev.priceUSD)}
+                      </span>
+                      {ev.deltaPct !== null ? (
+                        <span
+                          className={`w-11 shrink-0 text-right tabular-nums ${
+                            ev.type === 'price_increase' ? 'text-sv-orange-deep' : 'text-sv-success'
+                          }`}
+                        >
+                          {ev.type === 'price_increase' ? '+' : '−'}{ev.deltaPct}%
+                        </span>
+                      ) : null}
+                      <span
+                        className="w-14 shrink-0 text-right text-[12px] font-bold tabular-nums text-sv-ink/40"
+                        suppressHydrationWarning
+                      >
+                        {fmtDay(ev.recordedAt, lang)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : null}
 

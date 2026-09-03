@@ -147,7 +147,14 @@ export function middleware(req: NextRequest) {
   // Admin host: map / → /ka/admin, /users → /ka/admin/users (auth stays as-is).
   // ?cmsPreview=1 is the visual CMS iframe — serve the real public page.
   if (isAdminHost(host)) {
-    if (pathname.startsWith("/auth") || pathname.startsWith("/api")) {
+    if (pathname.startsWith("/auth")) {
+      return NextResponse.next()
+    }
+    // Same /api/admin cookie gate as the apex host; other /api paths pass through.
+    if (pathname.startsWith("/api")) {
+      if (pathname.startsWith("/api/admin") && !hasSession(req)) {
+        return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 })
+      }
       return NextResponse.next()
     }
     if (req.nextUrl.searchParams.get("cmsPreview") === "1") {

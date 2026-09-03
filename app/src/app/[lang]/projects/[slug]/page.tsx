@@ -11,7 +11,7 @@ import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { FaqSection } from '@/components/seo/FaqSection'
-import { PROJECTS } from '@/data/professionals'
+import { PROJECTS, isDelivered } from '@/data/professionals'
 import {
   getLiveProject,
   getLiveDeveloper,
@@ -161,7 +161,7 @@ export default async function ProjectPage({ params }: PageProps) {
     // ponytail: numberOfAvailableAccommodationUnits = "currently for sale" — only
     // true for projects under construction. Sold-out/completed buildings would
     // mislead Google's schema (policy risk). Use numberOfAccommodationUnits (total built) for those.
-    ...(project.done >= 100 || project.finish.startsWith('გადაცემულია')
+    ...(isDelivered(project)
       ? { numberOfAccommodationUnits: project.flats }
       : { numberOfAvailableAccommodationUnits: project.flats }),
     address: {
@@ -184,7 +184,7 @@ export default async function ProjectPage({ params }: PageProps) {
         lowPrice,
         unitText: 'SQM',
         availability:
-          project.done >= 100
+          isDelivered(project)
             ? 'https://schema.org/SoldOut'
             : 'https://schema.org/InStock',
         url: `https://sivrce.ge/projects/${project.slug}`,

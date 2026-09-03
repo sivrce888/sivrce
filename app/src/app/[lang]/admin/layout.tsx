@@ -4,6 +4,7 @@ import Link from "next/link"
 
 import { signOutToHome } from "@/app/auth/actions"
 import { AdminNav } from "@/components/admin/shell/AdminNav"
+import { CommandPalette, CommandPaletteTrigger } from "@/components/admin/shell/CommandPalette"
 import { requireAdmin } from "@/lib/admin/guard"
 
 export const metadata: Metadata = {
@@ -74,18 +75,22 @@ export default async function AdminLayout({
           <p className="text-[15px] font-extrabold text-sv-ink">
             სივრცე <span className="text-sv-ink/35">· Admin</span>
           </p>
-          <Link
-            href="/"
-            className="flex items-center gap-1 text-[12.5px] font-bold text-sv-blue"
-          >
-            View site <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex items-center gap-1">
+            <CommandPaletteTrigger variant="icon" />
+            <Link
+              href="/"
+              className="flex items-center gap-1 text-[12.5px] font-bold text-sv-blue"
+            >
+              View site <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
         <AdminNav orientation="top" />
       </div>
 
       <div className="lg:pl-[264px]">
         <header className="sticky top-0 z-30 hidden items-center justify-end gap-3 border-b border-sv-ink/6 bg-sv-cloud/85 px-8 py-3 backdrop-blur lg:flex">
+          <CommandPaletteTrigger />
           <Link
             href="/"
             className="flex items-center gap-1.5 rounded-full border border-sv-ink/10 bg-white px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition-colors hover:border-sv-blue hover:text-sv-blue"
@@ -97,6 +102,7 @@ export default async function AdminLayout({
           {children}
         </main>
       </div>
+      <CommandPalette />
     </div>
   )
 }

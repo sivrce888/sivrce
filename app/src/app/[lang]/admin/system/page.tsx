@@ -1,4 +1,5 @@
 import { ScrollText, Settings2 } from "lucide-react"
+import Link from "next/link"
 
 import { deleteConfig } from "@/app/[lang]/admin/system/actions"
 import { BroadcastForm } from "@/components/admin/system/BroadcastForm"
@@ -9,8 +10,10 @@ import { SystemTabs } from "@/components/admin/system/SystemTabs"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { DataTable, THeadRow, TRow, td, th } from "@/components/admin/ui/DataTable"
 import { EmptyState } from "@/components/admin/ui/EmptyState"
+import { FilterSelect } from "@/components/admin/ui/FilterSelect"
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { Pagination } from "@/components/admin/ui/Pagination"
+import { SearchForm } from "@/components/admin/ui/SearchForm"
 import { fmtDateTime, timeAgo } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
 import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
@@ -136,23 +139,133 @@ function BroadcastTab() {
   )
 }
 
+/** Audit target types that map to an admin detail surface; everything else stays plain text. */
+function targetHref(targetType: string, targetId: string): string | undefined {
+  if (targetType === "listing") return `/admin/listings/${targetId}`
+  if (targetType === "user") return `/admin/users/${targetId}`
+  if (targetType === "map_building") return `/admin/buildings/${targetId}`
+  if (targetType === "project" || targetType === "projects") {
+    return `/admin/professionals?q=${encodeURIComponent(targetId)}`
+  }
+  return undefined
+}
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
 async function AuditTab({ sp }: { sp: SearchParams }) {
   const page = parsePage(sp.page)
-  const [rows, total] = await Promise.all([
+  const q = param(sp.q)
+  const type = param(sp.type)
+  const ns = param(sp.ns)
+  const from = DATE_RE.test(param(sp.from)) ? param(sp.from) : ""
+  const to = DATE_RE.test(param(sp.to)) ? param(sp.to) : ""
+
+  const where = {
+    AND: [
+      q
+        ? {
+            OR: [
+              { action: { contains: q, mode: "insensitive" as const } },
+              { targetId: { contains: q } },
+              { actorName: { contains: q, mode: "insensitive" as const } },
+            ],
+          }
+        : {},
+      type ? { targetType: type } : {},
+      ns ? { action: { startsWith: `${ns}.` } } : {},
+      from ? { createdAt: { gte: new Date(`${from}T00:00:00`) } } : {},
+      to ? { createdAt: { lte: new Date(`${to}T23:59:59.999`) } } : {},
+    ],
+  }
+
+  const [rows, total, typeRows, actionRows] = await Promise.all([
     db.adminAuditLog.findMany({
+      where,
       orderBy: { createdAt: "desc" },
       take: ADMIN_PAGE_SIZE,
       skip: (page - 1) * ADMIN_PAGE_SIZE,
     }),
-    db.adminAuditLog.count(),
+    db.adminAuditLog.count({ where }),
+    db.adminAuditLog.findMany({
+      distinct: ["targetType"],
+      select: { targetType: true },
+      orderBy: { targetType: "asc" },
+    }),
+    db.adminAuditLog.findMany({
+      distinct: ["action"],
+      select: { action: true },
+      orderBy: { action: "asc" },
+    }),
   ])
+  // Top-level action namespaces (listing., moderation., …) for the prefix filter.
+  const namespaces = [...new Set(actionRows.map((r) => r.action.split(".")[0]!))].sort()
+  const filtered = Boolean(q || type || ns || from || to)
+
   return (
     <div>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <SearchForm
+          action="/admin/system"
+          params={sp}
+          placeholder="Search action, target ID, actor…"
+        />
+        <FilterSelect
+          name="type"
+          label="Target"
+          value={type}
+          options={typeRows.map((r) => ({ value: r.targetType, label: r.targetType }))}
+        />
+        <FilterSelect
+          name="ns"
+          label="Namespace"
+          value={ns}
+          options={namespaces.map((n) => ({ value: n, label: n }))}
+        />
+        <form action="/admin/system" method="get" className="flex items-center gap-2">
+          <input type="hidden" name="tab" value="audit" />
+          {q ? <input type="hidden" name="q" value={q} /> : null}
+          {type ? <input type="hidden" name="type" value={type} /> : null}
+          {ns ? <input type="hidden" name="ns" value={ns} /> : null}
+          <input
+            type="date"
+            name="from"
+            defaultValue={from}
+            aria-label="From date"
+            className="h-10 rounded-[var(--radius-control)] border border-sv-ink/10 bg-white px-2.5 text-[13px] font-semibold text-sv-ink shadow-[var(--shadow-card)] outline-none focus:border-sv-blue"
+          />
+          <span className="text-[12.5px] font-semibold text-sv-ink/35">–</span>
+          <input
+            type="date"
+            name="to"
+            defaultValue={to}
+            aria-label="To date"
+            className="h-10 rounded-[var(--radius-control)] border border-sv-ink/10 bg-white px-2.5 text-[13px] font-semibold text-sv-ink shadow-[var(--shadow-card)] outline-none focus:border-sv-blue"
+          />
+          <button
+            type="submit"
+            className="h-10 rounded-[var(--radius-control)] bg-sv-navy px-4 text-[13px] font-bold text-white transition-colors hover:bg-sv-navy-soft"
+          >
+            Apply
+          </button>
+        </form>
+        {filtered ? (
+          <Link
+            href="/admin/system?tab=audit"
+            className="text-[12.5px] font-bold text-sv-blue hover:underline"
+          >
+            Clear
+          </Link>
+        ) : null}
+      </div>
       {rows.length === 0 ? (
         <EmptyState
           icon={ScrollText}
-          title="No audit entries"
-          hint="Admin actions will be recorded here."
+          title={filtered ? "No entries match these filters" : "No audit entries"}
+          hint={
+            filtered
+              ? "Widen the date range or clear a filter."
+              : "Admin actions will be recorded here."
+          }
         />
       ) : (
         <DataTable>
@@ -165,10 +278,11 @@ async function AuditTab({ sp }: { sp: SearchParams }) {
           </THeadRow>
           <tbody>
             {rows.map((r) => {
-              const details = JSON.stringify(r.details)
+              const details = prettyJson(r.details)
+              const href = targetHref(r.targetType, r.targetId)
               return (
                 <TRow key={r.id}>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/55`} title={fmtDateTime(r.createdAt)}>
                     {timeAgo(r.createdAt)}
                   </td>
                   <td className={td}>
@@ -177,7 +291,16 @@ async function AuditTab({ sp }: { sp: SearchParams }) {
                   </td>
                   <td className={`${td} font-mono text-[12.5px] whitespace-nowrap`}>{r.action}</td>
                   <td className={td}>
-                    <span className="block">{r.targetType}</span>
+                    {href ? (
+                      <Link
+                        href={href}
+                        className="block font-semibold text-sv-blue hover:underline"
+                      >
+                        {r.targetType}
+                      </Link>
+                    ) : (
+                      <span className="block">{r.targetType}</span>
+                    )}
                     <span
                       className="block max-w-[140px] truncate font-mono text-[12px] text-sv-ink/45"
                       title={r.targetId}
@@ -185,11 +308,24 @@ async function AuditTab({ sp }: { sp: SearchParams }) {
                       {r.targetId}
                     </span>
                   </td>
-                  <td
-                    className={`${td} max-w-[320px] truncate font-mono text-[12px] text-sv-ink/45`}
-                    title={details}
-                  >
-                    {details.length > 120 ? `${details.slice(0, 120)}…` : details}
+                  <td className={`${td} max-w-[320px]`}>
+                    <details>
+                      <summary
+                        className="cursor-pointer list-none truncate font-mono text-[12px] text-sv-ink/45 [&::-webkit-details-marker]:hidden"
+                        title={details}
+                      >
+                        {details === "{}"
+                          ? "—"
+                          : details.length > 120
+                            ? `${details.slice(0, 120)}…`
+                            : details}
+                      </summary>
+                      {details !== "{}" ? (
+                        <pre className="mt-1 max-h-[220px] max-w-[320px] overflow-auto rounded-[8px] bg-sv-cloud p-2 font-mono text-[11.5px] whitespace-pre-wrap text-sv-ink/60">
+                          {details}
+                        </pre>
+                      ) : null}
+                    </details>
                   </td>
                 </TRow>
               )

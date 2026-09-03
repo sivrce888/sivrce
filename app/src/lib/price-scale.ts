@@ -67,6 +67,53 @@ function percentile(sorted: number[], p: number): number {
   return lo === hi ? a : a + (b - a) * (i - lo)
 }
 
+/** Whole days since an ISO date, clamped at 0. Clock read stays out of render. */
+export function daysSince(iso: string, now: number = Date.now()): number {
+  const t = Date.parse(`${iso}T00:00:00Z`)
+  return Number.isFinite(t) ? Math.max(0, Math.floor((now - t) / 86_400_000)) : 0
+}
+
+// ponytail: per-listing price timeline views. MarketSnapshot overlay when
+// inventory is dense enough for a real valuation model.
+
+export type PriceEventType = "listed" | "price_drop" | "price_increase" | "sold"
+
+export interface PriceEventRow {
+  eventType: string
+  price: number
+  previousPrice: number | null
+  currency: string
+  recordedAt: Date | string
+}
+
+export interface PriceEventView {
+  type: PriceEventType
+  /** USD-normalized price at the event. */
+  priceUSD: number
+  /** |Δ|% vs previousPrice; null on the first event. */
+  deltaPct: number | null
+  recordedAt: string
+}
+
+/** Normalize DB price events for the timeline: GEL→USD, drop/raise %. */
+export function priceEventViews(rows: PriceEventRow[], usdGel: number): PriceEventView[] {
+  const rate = usdGel > 0 ? usdGel : 2.7
+  const types: readonly PriceEventType[] = ["listed", "price_drop", "price_increase", "sold"]
+  return rows.map((r) => {
+    const priceUSD = r.currency === "USD" ? r.price : Math.round(r.price / rate)
+    const prev = r.previousPrice
+    const deltaPct =
+      prev && prev > 0 && prev !== r.price ? Math.round((Math.abs(r.price - prev) / prev) * 100) : null
+    return {
+      type: types.includes(r.eventType as PriceEventType) ? (r.eventType as PriceEventType) : "listed",
+      priceUSD,
+      deltaPct,
+      recordedAt:
+        r.recordedAt instanceof Date ? r.recordedAt.toISOString() : new Date(r.recordedAt).toISOString(),
+    }
+  })
+}
+
 /** Asking vs p25–p75 of peer $/m² × area. Null when the sample is too thin to show. */
 export function fairPriceOf(
   askingUsd: number,

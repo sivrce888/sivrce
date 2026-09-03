@@ -11,11 +11,12 @@
   ],
   "scripts": {
     "dev": "node scripts/copy-maplibre-worker.mjs && next dev",
-    "prebuild": "node scripts/copy-maplibre-worker.mjs && node ../scripts/check-repo-weight.mjs --ci && npx --yes tsx src/lib/cdn-cache.check.ts && npx --yes tsx src/lib/device-budget.check.ts && npx --yes tsx src/lib/map/map-geo.check.ts && npx --yes tsx src/lib/map/maplibre-worker.check.ts && npx --yes tsx src/lib/listings-home-rail.check.ts && npx --yes tsx src/lib/llms-txt.check.ts && (node scripts/og-derivatives.mjs || echo 'og-derivatives skipped')",
+    "prebuild": "node scripts/copy-maplibre-worker.mjs && node ../scripts/check-repo-weight.mjs --ci && npx --yes tsx src/lib/cdn-cache.check.ts && npx --yes tsx src/lib/device-budget.check.ts && npx --yes tsx src/lib/admin/admin-guard.check.ts && npx --yes tsx src/lib/map/map-geo.check.ts && npx --yes tsx src/lib/map/maplibre-worker.check.ts && npx --yes tsx src/lib/listings-home-rail.check.ts && npx --yes tsx src/lib/llms-txt.check.ts && (node scripts/og-derivatives.mjs || echo 'og-derivatives skipped')",
     "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "NODE_OPTIONS=--max-old-space-size=768 next start",
     "lint": "eslint",
     "check:map": "npx --yes tsx src/lib/map/buildings.check.ts",
+    "check:admin": "npx --yes tsx src/lib/admin/admin-guard.check.ts",
     "check:pois": "npx --yes tsx src/lib/map/pois.check.ts",
     "check:attribution": "npx --yes tsx src/lib/map/attribution.check.ts",
     "check:geocode": "npx --yes tsx src/lib/map/geocode.check.ts",

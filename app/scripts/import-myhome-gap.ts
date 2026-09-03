@@ -101,6 +101,8 @@ async function main() {
     const sqmFrom = Math.min(...prices.map((x) => Number(x.square_price_from ?? 0)).filter((x) => x > 0), Number.MAX_SAFE_INTEGER)
     const gallery = (p.images ?? []).map((i) => i.large).filter((x) => x.startsWith("http")).slice(0, 16)
     const slug = slugify(p.slug || p.display_name)
+    // Re-run guard: row may already exist under a different slug — pkey id wins.
+    if (await db.projectDirectory.findUnique({ where: { id: `myhome_${p.id}` }, select: { id: true } })) continue
     const data = {
       name: p.display_name.slice(0, 180),
       developer: devName.slice(0, 180),

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import LocalizedLink from '@/components/LocalizedLink'
 import { useRouter } from 'next/navigation'
@@ -108,6 +108,9 @@ const dropFloat = `absolute left-0 top-full z-[90] mt-2 hidden w-[min(calc(100vw
 const numInput =
   'h-10 w-[104px] rounded-full bg-sv-ink/[0.045] px-3.5 text-[13px] font-bold text-sv-ink outline-none placeholder:text-sv-ink/35 focus:bg-sv-ink/[0.07] focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:bg-white/[0.07] dark:text-white dark:placeholder:text-white/35'
 
+/** Rotating natural-language examples — each parses via lib/nl-search in ka/en. */
+const EXAMPLE_KEYS = ['search.ex1', 'search.ex2', 'search.ex3'] as const
+
 /** Hero search — deal + type + place + size + price + query. Rest lives on /search. */
 export default function HeroSearch() {
   const [tab, setTab] = useState(0)
@@ -125,6 +128,7 @@ export default function HeroSearch() {
   const [loc, setLoc] = useState<LocationValue>({ city: '', district: '', street: '' })
   const [locOpen, setLocOpen] = useState(false)
   const [propType, setPropType] = useState<PropType | undefined>(undefined)
+  const [exIdx, setExIdx] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const menusRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -167,7 +171,7 @@ export default function HeroSearch() {
     go(path)
   }
 
-  const withDeal = (extra?: Record<string, string | undefined>) => {
+  const filtersForSearch = (extra?: Record<string, string | undefined>): Record<string, string | undefined> => {
     const min = boundNum(minP)
     const max = boundNum(maxP)
     const areaMin = boundNum(amin)
@@ -178,7 +182,7 @@ export default function HeroSearch() {
         : isDaily
           ? { beds: String(rooms), bmax: roomsExact ? String(rooms) : undefined }
           : { rooms: String(rooms), rmax: roomsExact ? String(rooms) : undefined }
-    const f: Record<string, string | undefined> = {
+    return {
       deal,
       type: propType,
       city: loc.city || undefined,
@@ -193,9 +197,49 @@ export default function HeroSearch() {
       ...(isDaily && from && to && from >= todayIso && from < to ? { from, to } : {}),
       ...extra,
     }
+  }
+
+  const withDeal = (extra?: Record<string, string | undefined>) => {
+    const f = filtersForSearch(extra)
     const href = searchHref(f)
     persistAndGo(href, new URLSearchParams(href.split('?')[1] ?? ''))
   }
+
+  // Live result count for the CTA — the exact filters a submit would search with
+  // (NL keyword is parsed first, mirroring submitSearch). Debounced, abortable,
+  // edge-cached by /api/search (s-maxage=60).
+  const countQuery = useMemo(() => {
+    if (isProjects) return null
+    const raw = keyword.trim()
+    if (isExactLookupQuery(raw)) return null
+    const f = filtersForSearch()
+    const parsed = raw ? parseNlQuery(raw) : null
+    if (parsed && nlHasStructure(parsed)) Object.assign(f, nlToSearchPatch(parsed))
+    else if (raw) f.q = raw
+    const p = new URLSearchParams()
+    for (const [k, v] of Object.entries(f)) if (v) p.set(k, v)
+    return p
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute on any filter state change
+  }, [tab, propType, loc, minP, maxP, amin, amax, rooms, roomsExact, currency, keyword, from, to, isProjects, isDaily])
+
+  const [hitCount, setHitCount] = useState<{ key: string; n: number } | null>(null)
+  useEffect(() => {
+    if (!countQuery) return
+    const key = countQuery.toString()
+    const ac = new AbortController()
+    const id = setTimeout(() => {
+      // A db_error fallback carries totalHits: 0 — ignore it, keep the last count.
+      fetch(`/api/search?${key}&pageSize=1`, { signal: ac.signal })
+        .then((r) => r.json() as Promise<{ ok?: boolean; totalHits?: number; error?: string }>)
+        .then((j) => { if (j.ok && !j.error) setHitCount({ key, n: j.totalHits ?? 0 }) })
+        .catch(() => { /* keep last known count */ })
+    }, 450)
+    return () => {
+      clearTimeout(id)
+      ac.abort()
+    }
+  }, [countQuery])
+  const hits = hitCount && countQuery && hitCount.key === countQuery.toString() ? hitCount.n : null
 
   const submitSearch = async () => {
     if (isProjects) {
@@ -252,7 +296,14 @@ export default function HeroSearch() {
     setRoomsExact(exact)
   }
 
-  const keywordPh = t('search.keywordPlaceholder')
+  // Rotate natural-language examples while the box is untouched (typing pauses it).
+  useEffect(() => {
+    if (keyword) return
+    const id = setInterval(() => setExIdx((i) => (i + 1) % EXAMPLE_KEYS.length), 4500)
+    return () => clearInterval(id)
+  }, [keyword])
+
+  const keywordPh = keyword ? t('search.keywordPlaceholder') : t(EXAMPLE_KEYS[exIdx])
   const sizeBody = (
     <>
       {showRooms && (
@@ -467,7 +518,7 @@ export default function HeroSearch() {
             onPick={applySuggestion}
             onSubmit={() => void submitSearch()}
             placeholder={keywordPh}
-            ariaLabel={keywordPh}
+            ariaLabel={t('search.keywordPlaceholder')}
             inputRef={inputRef}
             className="min-w-0 flex-1"
           />
@@ -503,6 +554,17 @@ export default function HeroSearch() {
           >
             <Search className="h-[18px] w-[18px]" />
             {t('nav.search')}
+            {hits !== null && (
+              <motion.span
+                initial={{ opacity: 0, y: 3 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                aria-live="polite"
+                className="tabular-nums text-white/85"
+              >
+                <span aria-hidden className="px-0.5">·</span> {new Intl.NumberFormat(lang).format(hits)}
+              </motion.span>
+            )}
           </button>
         </div>
       </form>

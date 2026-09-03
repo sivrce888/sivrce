@@ -378,6 +378,22 @@ export async function PATCH(
     }
   }
 
+  // ponytail: sold outcome feeds price history + future sold-count stats.
+  if (data.status === ListingStatus.sold && beforeStatus !== ListingStatus.sold) {
+    const soldPrice = typeof data.price === "number" ? data.price : beforePrice
+    void db.listingPriceEvent
+      .create({
+        data: {
+          listingId: id,
+          eventType: "sold",
+          price: soldPrice,
+          previousPrice: null,
+          currency: owned.currency,
+        },
+      })
+      .catch((e) => console.error("[listings] sold event:", (e as Error).message))
+  }
+
   if (data.status && data.status !== beforeStatus) {
     if (beforeStatus === "active" && data.status !== "active") await unattributeListing(id)
     else if (beforeStatus !== "active" && data.status === "active") await attributeListing(id)

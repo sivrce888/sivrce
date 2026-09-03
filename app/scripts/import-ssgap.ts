@@ -133,6 +133,8 @@ async function main() {
       gallery: fullImg.startsWith("http") ? [fullImg] : [],
     }
     const slug = slugify(p.projectUrl || p.projectName)
+    // Re-run guard: row may already exist under a different slug — pkey id wins.
+    if (await db.projectDirectory.findUnique({ where: { id: `ss_${p.projectId}` }, select: { id: true } })) continue
     try {
       await db.projectDirectory.create({ data: { id: `ss_${p.projectId}`, slug, units: 0, ...data } })
       newProjects++

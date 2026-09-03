@@ -9,7 +9,7 @@
  */
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
-import { DEVELOPERS, PROJECTS, getDeveloper, type Developer, type Project } from '@/data/professionals'
+import { DEVELOPERS, PROJECTS, freshenFinish, getDeveloper, type Developer, type Project } from '@/data/professionals'
 
 export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
 
@@ -199,7 +199,7 @@ export function applyProjectRow(
   const nextImg = !isPlaceholderImg(r.image)
     ? r.image
     : base.img
-  return {
+  return freshenFinish({
     ...base,
     name: r.name || base.name,
     developerSlug,
@@ -220,7 +220,7 @@ export function applyProjectRow(
       : {}),
     done: r.status === 'completed' ? 100 : base.done,
     coords,
-  }
+  })
 }
 
 export function rowToProject(
@@ -230,7 +230,7 @@ export function rowToProject(
   const hasGeo = isValidCoords(r.lat, r.lng)
   const body = (r.body || '').trim()
   const fallback = `${r.name} — ${r.city}. პროექტი და მისამართი სივრცეზე.`
-  return {
+  return freshenFinish({
     slug: r.slug,
     name: r.name,
     developerSlug: nameToSlug.get(norm(r.developer)) ?? '',
@@ -251,7 +251,7 @@ export function rowToProject(
     },
     // ponytail: NaN coords keep card on /projects but drop from map ghosts.
     coords: hasGeo ? { lat: r.lat!, lng: r.lng! } : { lat: Number.NaN, lng: Number.NaN },
-  }
+  })
 }
 
 /** Pure merge used by projectsLive + self-check. */

@@ -84,6 +84,42 @@ export interface Project {
   cadastral?: string
 }
 
+/** Max year in a finish string — multi-phase rows ('Block C 2025 Q3 / Block A → 2027 Q2') point at the LAST phase. */
+export function finishMaxYear(finish: string): number | null {
+  const ys = finish.match(/20\d{2}/g)?.map(Number)
+  return ys && ys.length > 0 ? Math.max(...ys) : null
+}
+
+const CURRENT_YEAR = new Date().getFullYear()
+// ponytail: year baked per module load; revalidate 3600 means at most a day of
+// lag across New Year — parse dates per request only if that ever matters.
+
+/**
+ * Stale-deadline guard (owner rule 2026-09): a finish year that has fully
+ * passed means the project was handed over — never render '40% · due 2024'
+ * in 2026. Applied at every Project construction site (static catalog tail,
+ * DB row overlays in directory-live) so display can stay dumb.
+ */
+export function freshenFinish<T extends { done: number; finish: string }>(p: T): T {
+  if (p.finish.startsWith('გადაცემულია')) return p
+  const y = finishMaxYear(p.finish)
+  if (y === null || y >= CURRENT_YEAR) return p
+  return { ...p, done: 100, finish: `გადაცემულია (${y})` }
+}
+
+/**
+ * True "handed over" signal: explicitly delivered, or 100% built with no
+ * future phase in the finish text. Guards against hybrid source rows like
+ * 'მზადაა მკვიდრებისთვის · 2027 Q4' (done block, later phase pending) that
+ * must never wear the delivered badge.
+ */
+export function isDelivered(p: { done: number; finish: string }): boolean {
+  if (p.finish.startsWith('გადაცემულია')) return true
+  if (p.done < 100) return false
+  const y = finishMaxYear(p.finish)
+  return y === null || y <= CURRENT_YEAR
+}
+
 /**
  * Deterministic human-readable code per project: {DEV}-{NN}.
  * Reads like a developer's own SKU (M2-01, ARC-03, BLX-07) — short enough for
@@ -4729,7 +4765,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_BATUMI,
   ...NEW_PROJECTS_REGIONS,
   ...NEW_PROJECTS_2026_08,
-]
+].map(freshenFinish)
 
 export function getDeveloper(slug: string): Developer | undefined {
   return DEVELOPERS.find((d) => d.slug === slug)

@@ -41,7 +41,7 @@ export default async function AdminDashboardPage() {
         description="Platform health at a glance — every number is live."
       />
 
-      {/* KPI row */}
+      {/* KPI row — every card drills down; sparklines show the last 14 days of flow. */}
       <section
         aria-label="Key metrics"
         className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6"
@@ -49,14 +49,21 @@ export default async function AdminDashboardPage() {
         <StatCard
           label="Active listings"
           value={fmtNum(m.activeListings)}
+          hint={`+${fmtNum(m.newListingsThisWeek)} this week`}
           icon={Building2}
           tone="blue"
+          spark={m.listingTrend.slice(-14).map((p) => p.count)}
+          href="/admin/listings"
         />
         <StatCard
           label="Total users"
           value={fmtNum(m.totalUsers)}
           hint={`+${fmtNum(m.newUsersThisWeek)} this week`}
           icon={Users}
+          delta={m.userDelta7d}
+          deltaTitle="Last 7 days vs the 7 before that"
+          spark={m.userTrend.slice(-14).map((p) => p.count)}
+          href="/admin/users"
         />
         <StatCard
           label="Moderation queue"
@@ -64,12 +71,14 @@ export default async function AdminDashboardPage() {
           hint="Pending review"
           icon={ShieldCheck}
           tone={m.pendingModeration > 0 ? "orange" : "ink"}
+          href="/admin/moderation"
         />
         <StatCard
           label="Open complaints"
           value={fmtNum(m.openComplaints)}
           icon={Flag}
           tone={m.openComplaints > 0 ? "danger" : "ink"}
+          href="/admin/moderation"
         />
         <StatCard
           label="Revenue (month)"
@@ -77,12 +86,16 @@ export default async function AdminDashboardPage() {
           hint={revenueHint}
           icon={CreditCard}
           tone="success"
+          delta={m.revenueDeltaPct}
+          deltaTitle="Vs the same span of last month (GEL)"
+          href="/admin/payments"
         />
         <StatCard
           label="Live auctions"
           value={fmtNum(m.liveAuctions)}
           icon={Gavel}
           tone={m.liveAuctions > 0 ? "blue" : "ink"}
+          href="/admin/auctions"
         />
       </section>
 

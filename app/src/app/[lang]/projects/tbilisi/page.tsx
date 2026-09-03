@@ -4,6 +4,7 @@ import { projectsLive } from '@/lib/directory-live'
 import { dirLoc, PROJECT_HUBS } from '@/lib/directory-seo'
 import { isValidLang } from '@/lib/i18n/core'
 import { ProjectHub, projectHubMetadata } from '@/components/seo/ProjectHub'
+import { SUB_HUBS } from '../subhubs'
 
 export const revalidate = 3600
 
@@ -23,6 +24,6 @@ export default async function ProjectsTbilisiPage({ params }: PageProps) {
   const { lang: raw } = await params
   if (!isValidLang(raw)) notFound()
   const loc = dirLoc(raw)
-  const projects = (await projectsLive()).filter((p) => p.city === 'თბილისი')
-  return <ProjectHub loc={loc} c={PROJECT_HUBS.tbilisi[loc]} projects={projects} />
+  const projects = (await projectsLive()).filter(SUB_HUBS.tbilisi.filter)
+  return <ProjectHub loc={loc} c={PROJECT_HUBS.tbilisi[loc]} projects={projects} basePath={SUB_HUBS.tbilisi.path} />
 }

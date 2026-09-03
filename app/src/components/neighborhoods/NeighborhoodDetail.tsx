@@ -10,15 +10,19 @@ import ListingCard from '@/components/ListingCard'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { Reveal } from '@/components/Reveal'
 import { useI18n } from '@/lib/i18n/context'
+import type { DistrictStats } from '@/lib/market-stats'
 import ScoreBars from './ScoreBars'
 import { useNb } from './i18n'
 
 export default function NeighborhoodDetail({
   n,
   listings,
+  market = null,
 }: {
   n: Neighborhood
   listings: Listing[]
+  /** Live district stats — falls back to the static guide price when thin. */
+  market?: { stats: DistrictStats | null; mom: number | null } | null
 }) {
   const { lang } = useI18n()
   const s = useNb()
@@ -70,17 +74,37 @@ export default function NeighborhoodDetail({
       <section className="border-b border-sv-ink/[0.06] bg-sv-surface">
         <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-4 px-5 py-8 sm:grid-cols-3 md:px-10">
           {[
-            { Icon: Wallet, label: s.avgPrice, value: `$${n.avgPriceM2USD.toLocaleString('en-US')}${s.perM2}` },
-            { Icon: Gauge, label: s.scoreLabel, value: `${score}/10` },
-            { Icon: Building2, label: s.listingsHere, value: String(listings.length) },
-          ].map(({ Icon, label, value }) => (
+            {
+              Icon: Wallet,
+              label: s.avgPrice,
+              value: market?.stats
+                ? `$${market.stats.avgPerM2USD.toLocaleString('en-US')}${s.perM2}`
+                : `$${n.avgPriceM2USD.toLocaleString('en-US')}${s.perM2}`,
+              mom: market?.mom ?? null,
+            },
+            { Icon: Gauge, label: s.scoreLabel, value: `${score}/10`, mom: null },
+            { Icon: Building2, label: s.listingsHere, value: String(listings.length), mom: null },
+          ].map(({ Icon, label, value, mom }) => (
             <div key={label} className="flex items-center gap-4 rounded-module bg-sv-cloud p-5">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue">
                 <Icon className="h-5 w-5" aria-hidden />
               </span>
               <div>
                 <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/45">{label}</p>
-                <p className="text-[18px] font-black text-sv-ink">{value}</p>
+                <p className="text-[18px] font-black text-sv-ink">
+                  {value}
+                  {typeof mom === 'number' && (
+                    <span
+                      title={s.vsPrevMonth}
+                      className={`ml-2 align-middle text-[12px] font-black ${
+                        mom > 0 ? 'text-sv-success' : 'text-sv-orange-deep'
+                      }`}
+                    >
+                      {mom > 0 ? '+' : '−'}
+                      {Math.abs(mom)}%
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
           ))}

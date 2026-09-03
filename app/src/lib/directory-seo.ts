@@ -88,6 +88,9 @@ export const MICRO: Record<
     priceFromM2: string
     website: string
     listingsIn: (city: string) => string
+    prev: string
+    next: string
+    page: (n: number) => string
   }
 > = {
   ka: {
@@ -99,6 +102,9 @@ export const MICRO: Record<
     priceFromM2: 'ფასი /მ²-დან',
     website: 'ვებგვერდი',
     listingsIn: (city) => `განცხადებები ქ. ${city.endsWith('ი') ? city.slice(0, -1) : city}ში`,
+    prev: 'წინა გვერდი',
+    next: 'შემდეგი გვერდი',
+    page: (n) => `გვერდი ${n}`,
   },
   en: {
     builtPct: (n) => `${n}% built`,
@@ -109,6 +115,9 @@ export const MICRO: Record<
     priceFromM2: 'Price from /m²',
     website: 'Website',
     listingsIn: (city) => `Listings in ${cityName(city, 'en')}`,
+    prev: 'Previous page',
+    next: 'Next page',
+    page: (n) => `Page ${n}`,
   },
   ru: {
     builtPct: (n) => `построено ${n}%`,
@@ -119,6 +128,9 @@ export const MICRO: Record<
     priceFromM2: 'Цена от /м²',
     website: 'Сайт',
     listingsIn: (city) => `Объявления в ${cityName(city, 'ru')}`,
+    prev: 'Предыдущая страница',
+    next: 'Следующая страница',
+    page: (n) => `Страница ${n}`,
   },
 }
 
@@ -426,7 +438,9 @@ export const PROJECT_DETAIL: Record<
 > = {
   ka: {
     titleOf: (p) =>
-      `${p.name} — მშენებარე ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან | sivrce`,
+      isDelivered(p)
+        ? `${p.name} — ჩაბარებული ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან | sivrce`
+        : `${p.name} — მშენებარე ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან | sivrce`,
     crumbHome: 'მთავარი',
     crumbProjects: 'პროექტები',
     building3d: 'კორპუსი 3D-ში',
@@ -443,7 +457,9 @@ export const PROJECT_DETAIL: Record<
   },
   en: {
     titleOf: (p) =>
-      `${p.name} — new-build apartments in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m² | sivrce`,
+      isDelivered(p)
+        ? `${p.name} — completed development in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m² | sivrce`
+        : `${p.name} — new-build apartments in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m² | sivrce`,
     crumbHome: 'Home',
     crumbProjects: 'Projects',
     building3d: 'Building in 3D',
@@ -460,7 +476,9 @@ export const PROJECT_DETAIL: Record<
   },
   ru: {
     titleOf: (p) =>
-      `${p.name} — квартиры в новостройке в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м² | sivrce`,
+      isDelivered(p)
+        ? `${p.name} — квартиры в сданном доме в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м² | sivrce`
+        : `${p.name} — квартиры в новостройке в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м² | sivrce`,
     crumbHome: 'Главная',
     crumbProjects: 'Новостройки',
     building3d: 'Корпус в 3D',

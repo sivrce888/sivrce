@@ -27,6 +27,7 @@ import {
   type PromoExtFields,
 } from "@/lib/promo-pricing"
 import { aiLabel } from "@/lib/ai-label"
+import { priceEventViews, type PriceEventView } from "@/lib/price-scale"
 import { MAP_CENTER } from "@/lib/map/map-geo"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
@@ -485,7 +486,26 @@ export async function getDistrictPeerPerM2(
   }, [])
 }
 
-/** Active listings for a public seller profile (`/u/[id]`). */
+/** Price timeline for the listing detail page (newest first, capped). */
+export async function getListingPriceEvents(listingId: string): Promise<PriceEventView[]> {
+  return safeQuery(async () => {
+    const rows = await db.listingPriceEvent.findMany({
+      where: { listingId },
+      orderBy: { recordedAt: "desc" },
+      take: 12,
+    })
+    return priceEventViews(
+      rows.map((r) => ({
+        eventType: r.eventType as string,
+        price: r.price,
+        previousPrice: r.previousPrice,
+        currency: r.currency as string,
+        recordedAt: r.recordedAt,
+      })),
+      USD_GEL,
+    )
+  }, [])
+}
 export async function getListingsByOwner(ownerId: string | string[]): Promise<Listing[]> {
   const ids = (Array.isArray(ownerId) ? ownerId : [ownerId]).filter(Boolean)
   if (!ids.length) return []

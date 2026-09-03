@@ -35,10 +35,15 @@ export interface DashboardMetrics {
   activeListings: number
   totalUsers: number
   newUsersThisWeek: number
+  newListingsThisWeek: number
   pendingModeration: number
   openComplaints: number
   gelRevenueTetri: number
   stripeRevenueCents: number
+  /** Revenue vs the same elapsed span of the previous month, %; null when no baseline. */
+  revenueDeltaPct: number | null
+  /** Users gained in the last 7 days vs the 7 before that, %; null when no baseline. */
+  userDelta7d: number | null
   monthStart: Date
   liveAuctions: number
   listingTrend: TrendPoint[]
@@ -78,6 +83,14 @@ function prettyLabel(raw: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
+/** Last-7-days vs the 7 before that, in %; null when the baseline week is empty. */
+function last7Delta(series: TrendPoint[]): number | null {
+  const last = series.slice(-7).reduce((s, p) => s + p.count, 0)
+  const prev = series.slice(-14, -7).reduce((s, p) => s + p.count, 0)
+  if (prev === 0) return null
+  return Math.round(((last - prev) / prev) * 1000) / 10
+}
+
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const now = new Date()
   const trendFrom = new Date(
@@ -85,6 +98,11 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   )
   const weekAgo = new Date(now.getTime() - 7 * DAY_MS)
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  // Same elapsed span of the previous month, so "revenue so far" compares like for like.
+  const prevMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1))
+  const prevMonthElapsedEnd = new Date(
+    prevMonthStart.getTime() + (now.getTime() - monthStart.getTime()),
+  )
   const vipHorizon = new Date(now.getTime() + 7 * DAY_MS)
   const staleBefore = new Date(now.getTime() - 48 * HOUR_MS)
 
@@ -95,6 +113,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     pendingModeration,
     openComplaints,
     gelRevenue,
+    prevGelRevenue,
     stripeRevenue,
     liveAuctions,
     listingTrendRows,
@@ -123,6 +142,20 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         OR: [
           { paidAt: { gte: monthStart } },
           { paidAt: null, createdAt: { gte: monthStart } },
+        ],
+      },
+    }),
+    db.georgianPaymentOrder.aggregate({
+      _sum: { amountTetri: true },
+      where: {
+        status: "paid",
+        deletedAt: null,
+        OR: [
+          { paidAt: { gte: prevMonthStart, lt: prevMonthElapsedEnd } },
+          {
+            paidAt: null,
+            createdAt: { gte: prevMonthStart, lt: prevMonthElapsedEnd },
+          },
         ],
       },
     }),
@@ -203,18 +236,27 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     }),
   ])
 
+  const listingTrendList = fillSeries(listingTrendRows, trendFrom)
+  const userTrendList = fillSeries(userTrendRows, trendFrom)
+  const prevGel = prevGelRevenue._sum.amountTetri ?? 0
+  const curGel = gelRevenue._sum.amountTetri ?? 0
+
   return {
     activeListings,
     totalUsers,
     newUsersThisWeek,
+    newListingsThisWeek: listingTrendList.slice(-7).reduce((s, p) => s + p.count, 0),
     pendingModeration,
     openComplaints,
-    gelRevenueTetri: gelRevenue._sum.amountTetri ?? 0,
+    gelRevenueTetri: curGel,
     stripeRevenueCents: stripeRevenue._sum.amountCents ?? 0,
+    // GEL-only baseline — Stripe (USD) is shown as a hint, never mixed into the ratio.
+    revenueDeltaPct: prevGel === 0 ? null : Math.round(((curGel - prevGel) / prevGel) * 1000) / 10,
+    userDelta7d: last7Delta(userTrendList),
     monthStart,
     liveAuctions,
-    listingTrend: fillSeries(listingTrendRows, trendFrom),
-    userTrend: fillSeries(userTrendRows, trendFrom),
+    listingTrend: listingTrendList,
+    userTrend: userTrendList,
     unresolvedFraud,
     vipExpiringSoon,
     staleInquiries,

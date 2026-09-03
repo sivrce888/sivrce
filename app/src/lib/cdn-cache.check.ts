@@ -44,7 +44,9 @@ const vercel = JSON.parse(read("vercel.json")) as {
 }
 assert.equal(vercel.fluid, true)
 assert.deepEqual(vercel.regions, ["fra1"])
-assert.ok(vercel.crons.length <= 4, "extra crons = extra invocations")
+// 5th cron (market-snapshot, nightly) is deliberate — MarketSnapshot-backed
+// market intel. Revert the cap if you'd rather fold it into an existing job.
+assert.ok(vercel.crons.length <= 5, "extra crons = extra invocations")
 assert.ok(vercel.images.minimumCacheTTL >= 31_536_000)
 const caps: Record<string, { dur: number; ram: number }> = {
   "src/app/api/map/**/*": { dur: 8, ram: 256 },
