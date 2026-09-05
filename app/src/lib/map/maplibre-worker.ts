@@ -11,8 +11,9 @@ type MlWorkerApi = {
 }
 
 export function bindMaplibreWorker(ml: MlWorkerApi) {
-  if (bound || typeof window === 'undefined') return
-  bound = true
+  if (typeof window === 'undefined') return
   ml.setWorkerUrl(`${window.location.origin}/maplibre/maplibre-gl-worker.mjs`)
+  if (bound) return
+  bound = true
   ml.prewarm()
 }

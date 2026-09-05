@@ -15,7 +15,11 @@ import {
   GEORGIA_MASK_SOURCE,
 } from '@/lib/map/map-geo'
 import { EMPTY_FLOORS } from './floors'
-import { loadCleanStyle } from '@/lib/map/mapChrome'
+import {
+  building3dLayer,
+  loadCleanStyle,
+  OSM_BUILDING_3D_ID,
+} from '@/lib/map/mapChrome'
 import { mapProxyOrigin } from '@/lib/map/map-proxy'
 
 // Defaults are first-party proxy paths — browser never sees openfreemap.org.
@@ -110,7 +114,8 @@ export async function overlayHybridLabels(
             }
           : l,
       )
-    if (!labels.length) return sat
+    const bldg3d = (ofm.layers ?? []).find((l) => l.id === OSM_BUILDING_3D_ID)
+    if (!labels.length && !bldg3d) return sat
     const layers = sat.layers ?? []
     const maskAt = layers.findIndex((l) => l.id === GEORGIA_MASK_LAYER)
     const before = maskAt >= 0 ? layers.slice(0, maskAt) : layers
@@ -119,7 +124,7 @@ export async function overlayHybridLabels(
       ...sat,
       glyphs: ofm.glyphs,
       sources: { ...sat.sources, sivrce },
-      layers: [...before, ...labels, ...after],
+      layers: [...before, ...(bldg3d ? [bldg3d] : []), ...labels, ...after],
     }
   } catch {
     // ponytail: OFM 5s timeout → photo-only. Vector-first; Esri rasters stay unused.
@@ -195,12 +200,48 @@ function tryLayout(map: MlMap, layer: string, prop: string, value: unknown) {
   }
 }
 
-/** OSM/OFM 3D buildings compete with our massing (m² Highlight twins looked like one slab). */
+/** Hide unknown extrusions. City `building-3d` stays — listings paint on top. */
 export function muteBasemapExtrusions(map: MlMap, keep: ReadonlySet<string>) {
   for (const layer of map.getStyle()?.layers ?? []) {
     if (layer.type !== 'fill-extrusion') continue
-    if (keep.has(layer.id)) continue
+    if (keep.has(layer.id) || layer.id === OSM_BUILDING_3D_ID) continue
     tryLayout(map, layer.id, 'visibility', 'none')
+  }
+}
+
+/** 3D on: city extrusions from z13 (boot 14.2). 2D on: footprints only. */
+export function setBasemapBuildings3d(map: MlMap, on: boolean) {
+  if (!map.getLayer(OSM_BUILDING_3D_ID) && map.getSource('sivrce')) {
+    const before = ['sivrce-buildings-fill', 'sivrce-buildings-3d'].find((id) =>
+      map.getLayer(id),
+    )
+    const spec = building3dLayer('sivrce')
+    if (before) map.addLayer(spec, before)
+    else map.addLayer(spec)
+  }
+  tryLayout(map, OSM_BUILDING_3D_ID, 'visibility', on ? 'visible' : 'none')
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-height', [
+    'case',
+    ['>', ['to-number', ['get', 'render_height']], 0],
+    ['get', 'render_height'],
+    10,
+  ])
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-base', [
+    'coalesce',
+    ['get', 'render_min_height'],
+    0,
+  ])
+  try {
+    map.setLayerZoomRange(OSM_BUILDING_3D_ID, on ? 13 : 14, 24)
+  } catch {
+    /* layer may be missing */
+  }
+  if (map.getLayer('building')) {
+    try {
+      map.setLayerZoomRange('building', 0, on ? 13 : 24)
+    } catch {
+      /* style variant may omit zoom range */
+    }
   }
 }
 
@@ -253,8 +294,9 @@ function applyLightPaints(map: MlMap) {
   trySet(map, 'building', 'fill-color', '#E8E8E8')
   trySet(map, 'building', 'fill-opacity', 1)
   trySet(map, 'building', 'fill-outline-color', '#D0D0D0')
-  trySet(map, 'building-3d', 'fill-extrusion-color', '#DEDEDE')
-  trySet(map, 'building-3d', 'fill-extrusion-opacity', 0.5)
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#DEDEDE')
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.82)
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
 
   // Local streets — white + gray casing
   for (const id of [
@@ -418,6 +460,9 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'building', 'fill-color', '#3A5080')
   trySet(map, 'building', 'fill-opacity', 0.92)
   trySet(map, 'building', 'fill-outline-color', '#5A6F9A')
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#3A5080')
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.86)
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
 
   trySet(map, 'highway_path', 'line-color', '#2A3A5C')
   trySet(map, 'highway_minor', 'line-color', '#4A5F8C')
@@ -484,6 +529,9 @@ function applyCleanPaints(map: MlMap) {
   trySet(map, 'building', 'fill-color', '#E4E7EC')
   trySet(map, 'building', 'fill-opacity', 0.55)
   trySet(map, 'building', 'fill-outline-color', '#D0D4DC')
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#E4E7EC')
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.8)
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
 
   trySet(map, 'highway_path', 'line-color', '#D5D8DE')
   trySet(map, 'highway_minor', 'line-color', '#FFFFFF')
@@ -532,6 +580,9 @@ export function applyBrandPaints(
       trySet(map, id, 'text-halo-color', BRAND.colors.navy)
       trySet(map, id, 'text-halo-width', 2.2)
     }
+    trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#E8E8E8')
+    trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.72)
+    trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
     return
   }
   if (theme === 'dark') {

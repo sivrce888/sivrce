@@ -11,7 +11,7 @@ import { useTheme } from 'next-themes'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
-import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
+import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, setBasemapBuildings3d, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
 import { parseCoords } from '@/lib/map/map-geo'
 import { ringLabelPoint } from '@/lib/map/ring-label'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
@@ -367,8 +367,8 @@ export default function MapEmbed({
           container,
           style,
           center: [lng, lat],
-          zoom,
           ...mapBootCamera(interactive),
+          zoom,
           maxPitch: 60,
           minZoom: MAP_MIN_ZOOM,
           maxBounds: GEORGIA_MAX_BOUNDS,
@@ -430,6 +430,7 @@ export default function MapEmbed({
           if (watchdog) clearTimeout(watchdog)
           bindMissingImages(map)
           applyBrandPaints(map, isDark ? 'dark' : 'light', terrain)
+          setBasemapBuildings3d(map, interactive)
           tightenAttribution(map)
           map.resize()
           setStatus('ready')
@@ -481,6 +482,7 @@ export default function MapEmbed({
         styleKeyRef.current = next
         map.once('style.load', () => {
           applyBrandPaints(map, isDark ? 'dark' : 'light', terrain)
+          setBasemapBuildings3d(map, interactive)
           tightenAttribution(map)
           if (highlightRef.current) {
             const fp = footprintRef.current

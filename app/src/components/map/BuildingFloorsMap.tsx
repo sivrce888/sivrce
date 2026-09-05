@@ -25,6 +25,7 @@ import {
   FLOORS_SOURCE_ID,
   loadMapBasemap,
   mapStyleUrl,
+  setBasemapBuildings3d,
   STYLE_SATELLITE,
 } from '@/lib/map/floorLayers'
 import {
@@ -190,6 +191,7 @@ export default function BuildingFloorsMap({
 
       const mountOverlays = (dark: boolean) => {
         applyBrandPaints(map, dark ? 'dark' : 'light')
+        setBasemapBuildings3d(map, true)
         ensureFloorLayers(map, 15)
         tightenAttribution(map)
         ;(map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource).setData(geoRef.current)
@@ -254,6 +256,7 @@ export default function BuildingFloorsMap({
         if (cancelled) return
         map.once('style.load', () => {
           applyBrandPaints(map, isDark ? 'dark' : 'light')
+          setBasemapBuildings3d(map, true)
           ensureFloorLayers(map, 15)
           tightenAttribution(map)
           ;(map.getSource(FLOORS_SOURCE_ID) as GeoJSONSource).setData(geoRef.current)

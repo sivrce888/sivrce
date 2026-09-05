@@ -3,7 +3,11 @@
  * Compact attribution is the MapLibre/Google-accepted ODbL pattern.
  */
 
-import type { Map as MlMap, StyleSpecification } from 'maplibre-gl'
+import type {
+  FillExtrusionLayerSpecification,
+  Map as MlMap,
+  StyleSpecification,
+} from 'maplibre-gl'
 import {
   MAP_PROXY_PREFIX,
   OFM_ORIGIN,
@@ -18,6 +22,63 @@ export const MAP_CREDIT_PLAIN = 'Sivrce Maps'
 export const MAP_CREDIT_LEGAL = '© OpenMapTiles · © OpenStreetMap · NAPR parcels'
 
 const PLANET_PATH = '/planet'
+
+/** OSM city massing — Liberty ships this; dark/positron/satellite do not. */
+export const OSM_BUILDING_3D_ID = 'building-3d'
+
+export function building3dLayer(source: string): FillExtrusionLayerSpecification {
+  return {
+    id: OSM_BUILDING_3D_ID,
+    type: 'fill-extrusion',
+    source,
+    'source-layer': 'building',
+    minzoom: 13,
+    filter: ['!=', ['get', 'hide_3d'], true],
+    paint: {
+      'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+      // ponytail: untagged OSM footprints still read as 10 m boxes; real height wins.
+      'fill-extrusion-height': [
+        'case',
+        ['>', ['to-number', ['get', 'render_height']], 0],
+        ['get', 'render_height'],
+        10,
+      ],
+      'fill-extrusion-color': '#DEDEDE',
+      'fill-extrusion-opacity': 0.82,
+      'fill-extrusion-vertical-gradient': true,
+    },
+  }
+}
+
+function layerSourceLayer(layer: StyleSpecification['layers'][number]): string {
+  return layer && typeof layer === 'object' && 'source-layer' in layer
+    ? String((layer as { 'source-layer'?: string })['source-layer'] ?? '')
+    : ''
+}
+
+/** Dark/positron are 2D-only from OFM — inject city extrusions after `building`. */
+export function withBuilding3d(style: StyleSpecification): StyleSpecification {
+  const layers = style.layers ?? []
+  if (
+    layers.some(
+      (l) => l?.type === 'fill-extrusion' && layerSourceLayer(l) === 'building',
+    )
+  ) {
+    return style
+  }
+  const source = style.sources?.sivrce
+    ? 'sivrce'
+    : style.sources?.openmaptiles
+      ? 'openmaptiles'
+      : null
+  if (!source) return style
+  const layer = building3dLayer(source)
+  const idx = layers.findIndex((l) => l?.id === 'building')
+  const next = [...layers]
+  if (idx >= 0) next.splice(idx + 1, 0, layer)
+  else next.push(layer)
+  return { ...style, layers: next }
+}
 
 function rewriteDeep(value: unknown): unknown {
   if (typeof value === 'string') return toMapProxyUrl(value)
@@ -168,7 +229,7 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
       return layer
     })
 
-  const out = { ...style, sources: nextSources, layers }
+  const out = withBuilding3d({ ...style, sources: nextSources, layers })
   styleCache.set(styleUrl, out)
   return structuredClone(out)
 }

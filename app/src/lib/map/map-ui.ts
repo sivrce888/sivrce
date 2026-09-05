@@ -25,10 +25,13 @@ export function parseTerrain(v: unknown): MapTerrain {
 }
 
 /** Boot / reset camera — 3D is pitched; 2D is north-up. */
+export const MAP_2D_ZOOM = 13.2
+export const MAP_3D_ZOOM = 14.2
+
 export function mapBootCamera(view3d: boolean) {
   return view3d
-    ? { pitch: 58, bearing: -18 }
-    : { pitch: 0, bearing: 0 }
+    ? { pitch: 58, bearing: -18, zoom: MAP_3D_ZOOM }
+    : { pitch: 0, bearing: 0, zoom: MAP_2D_ZOOM }
 }
 
 export function parseMapUiJson(raw: unknown): MapUiSave {

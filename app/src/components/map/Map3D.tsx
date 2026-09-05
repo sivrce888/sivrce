@@ -71,6 +71,7 @@ import {
   loadMapBasemap,
   mapStyleUrl,
   muteBasemapExtrusions,
+  setBasemapBuildings3d,
   STYLE_SATELLITE,
   type MapTerrain,
 } from '@/lib/map/floorLayers'
@@ -1338,7 +1339,7 @@ function Map3DInner({
         container,
         style,
         center: [boot.lng, boot.lat],
-        zoom: 13.2,
+        zoom: bootCam.zoom,
         pitch: bootCam.pitch,
         bearing: bootCam.bearing,
         maxPitch: 70,
@@ -1589,6 +1590,7 @@ function Map3DInner({
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
           await ensureLayers(map, { poly: polyFcRef.current, pts: ptsFcRef.current }, zooms)
           muteBasemapExtrusions(map, KEEP_EXTRUDE)
+          setBasemapBuildings3d(map, view3dRef.current)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
@@ -1728,6 +1730,7 @@ function Map3DInner({
             }
           }
           muteBasemapExtrusions(map, KEEP_EXTRUDE)
+          setBasemapBuildings3d(map, view3dRef.current)
           // Re-apply 2D/3D fill after style remount
           if (!view3dRef.current && map.getLayer(EXTRUDE_ID)) {
             map.setLayoutProperty(EXTRUDE_ID, 'visibility', 'none')
@@ -2038,9 +2041,11 @@ function Map3DInner({
     map.easeTo({
       pitch: cam.pitch,
       bearing: cam.bearing,
+      ...(mode3d && map.getZoom() < cam.zoom ? { zoom: cam.zoom } : {}),
       duration: 550,
     })
     muteBasemapExtrusions(map, KEEP_EXTRUDE)
+    setBasemapBuildings3d(map, mode3d)
     if (map.getLayer(EXTRUDE_ID)) {
       map.setLayoutProperty(EXTRUDE_ID, 'visibility', mode3d ? 'visible' : 'none')
     }
@@ -2067,7 +2072,7 @@ function Map3DInner({
     const cam = mapBootCamera(view3dRef.current)
     mapRef.current?.easeTo({
       center: [centerDefault.lng, centerDefault.lat],
-      zoom: 13.2,
+      zoom: cam.zoom,
       pitch: cam.pitch,
       bearing: cam.bearing,
       duration: 800,

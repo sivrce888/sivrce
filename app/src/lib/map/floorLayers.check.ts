@@ -9,6 +9,7 @@ import {
   mapStyleUrl,
   muteBasemapExtrusions,
   overlayHybridLabels,
+  setBasemapBuildings3d,
   STYLE_CLEAN,
   STYLE_DARK,
   STYLE_LIGHT,
@@ -61,6 +62,7 @@ async function main() {
       getStyle: () => ({
         layers: [
           { id: 'building-3d', type: 'fill-extrusion' },
+          { id: 'other-3d', type: 'fill-extrusion' },
           { id: 'sivrce-buildings-3d', type: 'fill-extrusion' },
           { id: 'road', type: 'line' },
         ],
@@ -72,7 +74,32 @@ async function main() {
     } as unknown as MlMap,
     new Set(['sivrce-buildings-3d']),
   )
-  assert.deepEqual(hidden, ['building-3d'])
+  assert.deepEqual(hidden, ['other-3d'])
+
+  assert.ok(
+    loaded.layers?.some((l) => l.id === 'building-3d'),
+    'hybrid grafts OSM 3D buildings',
+  )
+
+  const vis: Record<string, string> = {}
+  let zoomRange: [number, number] | null = null
+  setBasemapBuildings3d(
+    {
+      getLayer: (id: string) => (id === 'building-3d' || id === 'building' ? { id } : undefined),
+      getSource: (id: string) => (id === 'sivrce' ? {} : undefined),
+      addLayer: () => undefined,
+      setLayoutProperty: (id: string, _p: string, v: unknown) => {
+        vis[id] = String(v)
+      },
+      setPaintProperty: () => undefined,
+      setLayerZoomRange: (_id: string, min: number, max: number) => {
+        zoomRange = [min, max]
+      },
+    } as unknown as MlMap,
+    true,
+  )
+  assert.equal(vis['building-3d'], 'visible')
+  assert.deepEqual(zoomRange, [0, 13])
 
   console.log('floorLayers.check: ok')
 }
