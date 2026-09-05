@@ -39,7 +39,7 @@ assert.deepEqual(parseMapUiRaw(raw), { terrain: 'streets', view3d: true })
 assert.deepEqual(parseMapUiRaw('%7B'), {})
 assert.deepEqual(parseMapUiRaw(null), {})
 
-assert.deepEqual(mapBootCamera(true), { pitch: 58, bearing: -18, zoom: 14.2 })
-assert.deepEqual(mapBootCamera(false), { pitch: 0, bearing: 0, zoom: 13.2 })
+assert.deepEqual(mapBootCamera(true), { pitch: 58, bearing: -18, zoom: 12.8 })
+assert.deepEqual(mapBootCamera(false), { pitch: 0, bearing: 0, zoom: 12.8 })
 
 console.log('map-ui.check: ok')

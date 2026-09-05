@@ -3,9 +3,10 @@ import { withBotId } from "botid/next/config";
 
 const isDev = process.env.NODE_ENV === "development";
 
-/* ponytail: Capacitor origins — capacitor:// for iOS, http://localhost for Android WebView */
+/* ponytail: Capacitor origins — capacitor:// for iOS, http://localhost for Android WebView.
+   No 192.168.* wildcard — invalid CSP syntax (silently ignored); LAN browses are same-origin. */
 const capacitorOrigins = isDev
-  ? " capacitor://localhost http://localhost:* http://192.168.*.*:* ws://localhost:*"
+  ? " capacitor://localhost http://localhost:* ws://localhost:*"
   : " capacitor://localhost"
 
 // Map: basemap is same-origin /api/map (OFM proxied). Optional MapTiler override.
@@ -38,8 +39,7 @@ const csp = [
   "form-action 'self'",
   "frame-ancestors 'self'",
   "frame-src 'self' https://www.googletagmanager.com https://www.youtube-nocookie.com",
-  "publickey-credentials-get 'self'",
-  "publickey-credentials-create 'self'",
+  // ponytail: publickey-credentials-* are Permissions-Policy features, not CSP directives
   // ponytail: upgrade-insecure-requests on http://localhost forces map workers onto https://localhost → tiles never load
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");

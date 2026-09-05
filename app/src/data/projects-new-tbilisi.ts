@@ -749,7 +749,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     finish: '2026 Q4',
     flats: 364,
     rating: 4.6,
-    coords: { lat: 41.72735134, lng: 44.76030397 },
+    coords: { lat: 41.72737673, lng: 44.76061168 },
     floors: 35,
     description: {
       ka: 'Sakeni — Biograpi Living-ის 35-სართულიანი ახალი პროექტი საბურთალოზე, ვაჟა-ფშაველას გამზ. 25-ში: 364 ბინა, $72M ინვესტიცია, ფასი $2 940/მ²-დან.',

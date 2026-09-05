@@ -24,9 +24,11 @@ export function parseTerrain(v: unknown): MapTerrain {
   return v === 'clean' || v === 'satellite' || v === 'streets' ? v : 'streets'
 }
 
-/** Boot / reset camera — 3D is pitched; 2D is north-up. */
-export const MAP_2D_ZOOM = 13.2
-export const MAP_3D_ZOOM = 14.2
+/** Boot / reset camera — 3D is pitched; 2D is north-up.
+ *  Both sit inside the price-pill band (11.2–15.2): first paint shows a lived-in
+ *  map (pills + clusters), never the empty detail-zoom dead band. */
+export const MAP_2D_ZOOM = 12.8
+export const MAP_3D_ZOOM = 12.8
 
 export function mapBootCamera(view3d: boolean) {
   return view3d

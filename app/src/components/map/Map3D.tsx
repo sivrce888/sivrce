@@ -170,13 +170,31 @@ const CLUSTER_COUNT_ID = 'sivrce-buildings-cluster-count'
 const DETAIL_ZOOM = 13.5
 /** Bottom POI rail height — camera padding so chips don’t eat the map. */
 const POI_RAIL_PAD = 56
+/** Search + filter chrome height — keep price pills clear of the top bars. */
+const TOP_CHROME_PAD = 104
 
 /** Hide MapLibre extrusion while floor-stack is open for that building. */
 function massingHideFilter(hideId: string | null): FilterSpecification | null {
   if (!hideId) return null
   return ['!=', ['get', 'id'], hideId] as FilterSpecification
 }
+
+/**
+ * Price-pill filter, shared by ensureLayers + the floor-stack sync effect.
+ * ponytail: ghost progress % floods mid-zoom — progress lives on the panel/massing.
+ */
+function pricePillFilter(hideId: string | null): FilterSpecification {
+  const base: FilterSpecification[] = [
+    ['!', ['has', 'point_count']],
+    ['!=', ['get', 'priceLabel'], ''],
+    ['any', ['!=', ['get', 'status'], 'construction'], ['>', ['get', 'total'], 0]],
+  ]
+  if (hideId) base.push(['!=', ['get', 'id'], hideId])
+  return ['all', ...base] as FilterSpecification
+}
 const PRICE_MIN_ZOOM = 11.2
+/** Pills ride into street zoom (Zillow pattern); flyTo focus at 15.5+ stays clean. */
+const PRICE_MAX_ZOOM = 15.2
 const CLUSTER_MAX_ZOOM = 13
 /** Filter recasts — MapLibre paint ms. Radius stays instant so zoom doesn’t lag. */
 const MAP_FADE = { duration: 320 } as const
@@ -361,18 +379,13 @@ async function ensureLayers(
   })
 
   // Mid-zoom Airbnb capsules — stretchable white pill + ink price; hide when clustered / footprints.
-  const priceFilter: FilterSpecification = [
-    'all',
-    ['!', ['has', 'point_count']],
-    ['!=', ['get', 'priceLabel'], ''],
-  ]
   map.addLayer({
     id: PRICE_ID,
     type: 'symbol',
     source: PTS_SOURCE_ID,
     minzoom: zooms.priceMinZoom,
-    maxzoom: zooms.detailZoom,
-    filter: priceFilter,
+    maxzoom: PRICE_MAX_ZOOM,
+    filter: pricePillFilter(null),
     layout: {
       'icon-image': PRICE_PILL_IDLE,
       'icon-text-fit': 'both',
@@ -422,8 +435,8 @@ async function ensureLayers(
     type: 'symbol',
     source: PTS_SOURCE_ID,
     minzoom: zooms.priceMinZoom,
-    maxzoom: zooms.detailZoom,
-    filter: priceFilter,
+    maxzoom: PRICE_MAX_ZOOM,
+    filter: pricePillFilter(null),
     layout: {
       'icon-image': PRICE_PILL_ACTIVE,
       'icon-text-fit': 'both',
@@ -752,6 +765,8 @@ function Map3DInner({
   const allRef = useRef<MapBuildingCluster[]>([])
   const selectRef = useRef<(b: MapBuildingCluster | null) => void>(() => {})
   const deepLinked = useRef(false)
+  /** Padding easeTo yields to a programmatic fly until this timestamp. */
+  const flyLockRef = useRef(0)
 
   const centerDefault = platform?.center ?? MAP_CENTER
   const minZoom = platform?.minZoom ?? MAP_MIN_ZOOM
@@ -1042,13 +1057,8 @@ function Map3DInner({
   useEffect(() => { ptsFcRef.current = ptsFc }, [ptsFc])
   useEffect(() => { selectedRef.current = selected }, [selected])
   useEffect(() => { dealRef.current = dealFilter }, [dealFilter])
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- panel listings follow deal/kind slice
-    setSelected((cur) => {
-      if (!cur) return cur
-      return visible.find((b) => b.id === cur.id) ?? null
-    })
-  }, [visible])
+  // ponytail: no auto-deselect when filters hide the selection — deep links
+  // (?building=) must survive 0-listing buildings; panel follows the deal tab.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- panel tab follows map deal chip
     setTab(dealFilter === 'all' ? 'all' : dealFilter)
@@ -1170,10 +1180,6 @@ function Map3DInner({
     }
     const ric = window.requestIdleCallback?.(pushPolygons, { timeout: 400 })
     const tid = ric == null ? window.setTimeout(pushPolygons, 0) : 0
-    if (selected && !visible.some((b) => b.id === selected.id)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- deselect when filters hide it
-      selectBuilding(null)
-    }
     return () => {
       cancelled = true
       if (ric != null) window.cancelIdleCallback?.(ric)
@@ -1221,20 +1227,7 @@ function Map3DInner({
       )
     }
     if (map.getLayer(PRICE_ID) || map.getLayer(PRICE_ACTIVE_ID)) {
-      const priceHide = (
-        hideId
-          ? [
-              'all',
-              ['!', ['has', 'point_count']],
-              ['!=', ['get', 'priceLabel'], ''],
-              ['!=', ['get', 'id'], hideId],
-            ]
-          : [
-              'all',
-              ['!', ['has', 'point_count']],
-              ['!=', ['get', 'priceLabel'], ''],
-            ]
-      ) as FilterSpecification
+      const priceHide = pricePillFilter(hideId)
       if (map.getLayer(PRICE_ID)) map.setFilter(PRICE_ID, priceHide)
       if (map.getLayer(PRICE_ACTIVE_ID)) map.setFilter(PRICE_ACTIVE_ID, priceHide)
     }
@@ -1264,10 +1257,13 @@ function Map3DInner({
     if (!ready || deepLinked.current) return
     const slug = searchParams.get('building')
     const listingId = searchParams.get('listing')
-    const lat = Number(searchParams.get('lat'))
-    const lng = Number(searchParams.get('lng'))
+    // ponytail: Number(null) is 0 — absent ?lat/?lng must not deep-link to (0,0)
+    // (camera clamps to the maxBounds corner → empty gray map).
+    const lat = searchParams.get('lat') == null ? NaN : Number(searchParams.get('lat'))
+    const lng = searchParams.get('lng') == null ? NaN : Number(searchParams.get('lng'))
     const zoomQ = Number(searchParams.get('zoom'))
-    const pitchQ = Number(searchParams.get('pitch'))
+    // ponytail: Number(null) is 0 — an absent ?pitch must not pin the camera flat.
+    const pitchQ = searchParams.get('pitch') == null ? NaN : Number(searchParams.get('pitch'))
     const floorQ = Number(searchParams.get('floor'))
     const dealQ = searchParams.get('deal')
     const dealOk: DealType | null =
@@ -1289,6 +1285,7 @@ function Map3DInner({
     if (flyLat == null || flyLng == null) return
 
     deepLinked.current = true
+    flyLockRef.current = Date.now() + 1200
     if (b) {
       // ponytail: skip selectBuilding — it resets tab/floor before listing deep-link applies.
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deep-link from URL param
@@ -1856,6 +1853,9 @@ function Map3DInner({
       userDotRef.current = null
       mapRef.current?.remove()
       mapRef.current = null
+      // StrictMode remounts the map — the one-shot deep-link guard is per-map-lifetime,
+      // else the second map boots at the saved-place camera and ignores ?lat/?zoom.
+      deepLinked.current = false
     }
     // Mount-once builder: closes over boot-time config (zooms/floorStacksOn/
     // styleUrls); theme/style changes are handled by the remount + style-swap
@@ -1969,10 +1969,12 @@ function Map3DInner({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
+    // Deep-link fly owns the camera — a padding re-flow here would cancel it mid-flight.
+    if (Date.now() < flyLockRef.current) return
     const desktop = window.matchMedia('(min-width: 768px)').matches
     map.easeTo({
       padding: {
-        top: 0,
+        top: TOP_CHROME_PAD,
         left: 0,
         right: selected && desktop ? 400 : 0,
         bottom:
@@ -2577,3 +2579,4 @@ export default function Map3D({
     </div>
   )
 }
+

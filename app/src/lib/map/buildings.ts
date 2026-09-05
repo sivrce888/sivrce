@@ -708,12 +708,13 @@ export function filterBuildings(
 
     const listings = deal === 'all' ? kindListings : kindListings.filter((l) => l.dealType === deal)
     if (listings.length === 0) {
-      // Empty shells only on the construction chip/status — default "all" is live ads.
+      // Empty shells on the construction chip — and on default all/all, so the
+      // boot view carries the full development inventory (Korter-density map).
       if (
         b.status === 'construction' &&
         b.listings.length === 0 &&
-        (deal === 'all' || deal === 'sale') &&
-        (kind === 'construction' || wantStatus === 'construction')
+        ((deal === 'all' && kind === 'all') ||
+          ((deal === 'all' || deal === 'sale') && kind === 'construction'))
       ) {
         out.push(b)
       }

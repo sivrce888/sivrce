@@ -463,6 +463,18 @@ assert.equal(filterBuildings(ghosts, 'sale', 'all').length, 0)
 assert.ok(filterBuildings(ghosts, 'all', 'construction').every((b) => b.status === 'construction'))
 assert.equal(filterBuildings(ghosts, 'all', 'active').length, 0)
 assert.equal(filterBuildings(ghosts, 'all', 'completed').length, 0)
+// Default all/all carries the development inventory — boot view is never empty.
+assert.ok(
+  filterBuildings(ghosts, 'all', 'all').every((b) => b.status === 'construction'),
+  'default view shows construction shells',
+)
+assert.equal(
+  filterBuildings([...buildings, ...ghosts], 'all', 'all', 'apartment').filter(
+    (b) => b.listings.length === 0,
+  ).length,
+  0,
+  'kind=apartment still hides empty shells',
+)
 
 assert.equal(parseMapKind('apartment'), 'apartment')
 assert.equal(parseMapKind('nope'), 'all')
@@ -487,7 +499,14 @@ assert.ok(rentApt.some((b) => b.listings.length > 0))
 assert.ok(rentApt.every((b) => b.listings.every((l) => l.dealType === 'rent' && l.propType === 'apartment')))
 assert.ok(filterBuildings(ghosts, 'sale', 'all', 'construction').every((b) => b.status === 'construction'))
 assert.equal(filterBuildings(ghosts, 'daily', 'all', 'construction').length, 0)
-assert.ok(filterBuildings(clusterListingsToBuildings(fixtures), 'all', 'all').every((b) => b.listings.length > 0))
+// Default all/all: every listing building + construction shells (inventory);
+// active catalog shells stay on /buildings, not the default map.
+assert.ok(
+  filterBuildings(clusterListingsToBuildings(fixtures), 'all', 'all').every(
+    (b) => b.listings.length > 0 || b.status === 'construction',
+  ),
+  'default view = listings + construction shells',
+)
 assert.equal(parseMapDeal('rent'), 'rent')
 assert.equal(parseMapDeal('nope'), 'all')
 assert.equal(mapFiltersToSearchHref('all', 'all'), '/search')

@@ -596,12 +596,12 @@ export function applyBrandPaints(
   applyLightPaints(map)
 }
 
-/** Silence OFM sprite gaps (e.g. wood-pattern) — empty 1×1, no visual change. */
+/** Silence OFM sprite gaps (e.g. wood-pattern) — empty 1×1, no visual change.
+ *  MapLibre 6: styleimagemissing can no longer resolve; the resolver hook can. */
 export function bindMissingImages(map: MlMap) {
-  map.on('styleimagemissing', (e) => {
-    if (map.hasImage(e.id)) return
-    const data = new Uint8Array([0, 0, 0, 0])
-    map.addImage(e.id, { width: 1, height: 1, data })
+  map.setMissingStyleImageResolver((id) => {
+    if (map.hasImage(id)) return
+    map.addImage(id, { width: 1, height: 1, data: new Uint8Array([0, 0, 0, 0]) })
   })
 }
 
