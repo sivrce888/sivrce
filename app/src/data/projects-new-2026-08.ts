@@ -565,7 +565,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 317,
     floors: 16,
     rating: 4.5,
-    cadastral: '01.72.14.202.015',
+    cadastral: '01.72.14.066.742',
     // TAS ARCHITECTURE_LR — 234b is west of Archi Rivertown (alley 217)
     coords: { lat: 41.82131411, lng: 44.77225493 },
     description: {
@@ -650,7 +650,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 290,
     floors: 11,
     rating: 4.6,
-    cadastral: '01.18.09.002.052',
+    cadastral: '01.18.06.019.110',
     // ponytail: Nominatim hits Gldani Guramishvili; pin next to Coordinate (same Ortachala cluster)
     coords: { lat: 41.67594842, lng: 44.82605784 },
     description: {
@@ -713,7 +713,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 24,
     floors: 5,
     rating: 4.3,
-    cadastral: '05.34.25.093',
+    cadastral: '05.34.25.099',
     // ponytail: Tbilisi St 1 not in OSM; pin next to Green Cape Botanico
     coords: { lat: 41.6912, lng: 41.7048 },
     description: {
@@ -879,7 +879,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 70,
     floors: 9,
     rating: 4.3,
-    cadastral: '01.12.02.025.027',
+    cadastral: '01.12.02.005.007',
     coords: { lat: 41.78176383, lng: 44.81407518 },
     description: {
       ka: 'Parkside Temka — 9-სართულიანი კორპუსი ზღვისუბანში, თემქაზე, თბილისის ზღვის მხარეს. მწვანე კარკასი $1 100/მ²-დან, ჩაბარება 2026 Q3.',
@@ -942,7 +942,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 102,
     floors: 11,
     rating: 4.4,
-    cadastral: '01.17.14.001.301',
+    cadastral: '01.17.14.003.512',
     coords: { lat: 41.6736225, lng: 44.8514627 },
     description: {
       ka: 'Isani Bilderz — 11-სართულიანი კორპუსი შოთა ნადირაშვილის ქუჩაზე, ისანის ბულვართან. 102 ბინა მწვანე კარკასით $990/მ²-დან, 39 მიწისქვეშა პარკინგი. ჩაბარება 2027 Q4. საკადასტრო 01.17.14.001.301.',
@@ -1110,7 +1110,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 90,
     floors: 6,
     rating: 4.7,
-    cadastral: '01.18.01.003.152',
+    cadastral: '01.18.01.002.083',
     // Nominatim: ნადიკვრის III ქუჩა, კრწანისი
     coords: { lat: 41.68097943, lng: 44.81852136 },
     description: {
@@ -1153,7 +1153,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 104,
     floors: 8,
     rating: 4.5,
-    cadastral: '01.14.16.022.008',
+    cadastral: '01.14.02.019.027',
     // Nominatim Nutsubidze Plateau; pin refined via NAPR/TAS when up
     coords: { lat: 41.7289107, lng: 44.7240194 },
     description: {
@@ -1196,7 +1196,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 338,
     floors: 19,
     rating: 4.5,
-    cadastral: '01.11.04.026.156',
+    cadastral: '01.12.01.004.137',
     coords: { lat: 41.77218024, lng: 44.79268431 },
     description: {
       ka: 'Entrada Sarajishvili — 19-სართულიანი კორპუსი გურამიშვილის გამზ. 76-ში (Leader + Liga 2014). 338 ბინა მწვანე კარკასით $1 240/მ²-დან, ჩაბარება 2028 Q2. საკადასტრო 01.11.04.026.156.',
@@ -1301,7 +1301,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 350,
     floors: 7,
     rating: 4.5,
-    cadastral: '28.24.26.038',
+    cadastral: '282422602',
     coords: { lat: 41.8512722, lng: 42.32448 },
     description: {
       ka: 'Orbi Bakhmaro — 7-სართულიანი სასტუმრო-აპარტამენტები ბახმაროში (350 ერთეული). სპა, აუზი, პარკი. $1 500/მ²-დან, ჩაბარება 2026 Q4. საკადასტრო 28.24.26.038.',
@@ -1343,7 +1343,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 77,
     floors: 12,
     rating: 4.5,
-    cadastral: '01.11.13.002.244',
+    cadastral: '01.72.13.364.625',
     // street centroid; TAS snap when outline hits
     coords: { lat: 41.7895, lng: 44.8335 },
     description: {
@@ -1386,7 +1386,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 45,
     floors: 7,
     rating: 4.5,
-    cadastral: '01.12.12.024.199',
+    cadastral: '01.00.187',
     coords: { lat: 41.7499266, lng: 44.7868497 },
     description: {
       ka: 'Roof Chkondideli — 7-სართულიანი კორპუსი ჭყონდიდელის ქ. 34დ-ში. 45 ბინა თეთრი კარკასით $1 250/მ²-დან, ჩაბარება 2028 Q3. საკადასტრო 01.12.12.024.199.',
@@ -1407,7 +1407,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 100,
     floors: 12,
     rating: 4.4,
-    cadastral: '01.18.12.007.141',
+    cadastral: '01.18.12.003.022',
     coords: { lat: 41.65693719, lng: 44.89782048 },
     description: {
       ka: 'Roof Ponichala — 12-სართულიანი კორპუსი რუსთავის გზატკეცილი 18–22-ში. თეთრი კარკასი $950/მ²-დან, ჩაბარება 2028 Q2. საკადასტრო 01.18.12.007.141.',

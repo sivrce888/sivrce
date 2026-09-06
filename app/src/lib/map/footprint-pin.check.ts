@@ -40,15 +40,16 @@ assert.ok(Math.abs(sq.lat - 41.725) < 2e-5, `square lat center (${sq.lat})`)
 assert.ok(Math.abs(sq.lng - 44.8) < 2e-5, `square lng center (${sq.lng})`)
 
 // next-downtown (Batumi): catalog coords are a street geocode ~60m off the real
-// complex; the hand-drawn bldg-* ring is a 2-storey neighbour (osmId 0). The
-// verified dev-* OSM ring (way 323193015) must win and the pin must move inside.
+// complex. The verified dev-* ring must win and the pin must move inside; the
+// pin sits in official NAPR lot 05.21.48.012 (maps.gov.ge, 2026-09-06 audit).
 const at = { lat: 41.64779326, lng: 41.64314032 }
 const pin = footprintPin({ slug: 'next-downtown' }, at)
 assert.ok(pin, 'next-downtown footprint pin resolves')
 assert.ok(pin!.ring.length >= 5, 'ring present')
-assert.equal(pin!.ring[0]![0], 41.643539, 'verified OSM ring wins over hand-drawn neighbour')
+assert.equal(pin!.ring[0]![0], 41.64318859577179, 'verified ring wins over hand-drawn neighbour')
 assert.ok(ringContains(pin!.ring, pin!.lng, pin!.lat), 'pin inside its own ring')
-assert.ok(haversineM(at.lat, at.lng, pin!.lat, pin!.lng) > 30, 'pin moved off the street geocode')
+// Catalog coords were snapped onto the verified ring (≤25 m policy) — pin must stay glued.
+assert.ok(haversineM(at.lat, at.lng, pin!.lat, pin!.lng) < 30, 'pin glued to snapped catalog pin')
 assert.equal(footprintPin({ slug: 'no-such-building' }, at), null, 'unknown slug → null')
 
 console.log('footprint-pin: ok')

@@ -605,7 +605,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 160,
     rating: 4.7,
     // OSM Bochorma / Avlabari — legal lot when CadRepGeo up
-    cadastral: '01.17.13.045.217',
+    cadastral: '01.17.01.135.008',
     coords: { lat: 41.68700989, lng: 44.82500938 },
     floors: 23,
     description: {
@@ -933,7 +933,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.5,
-    coords: { lat: 41.6918966, lng: 44.8708845 },
+    coords: { lat: 41.68511187, lng: 44.88391936 },
     description: {
       ka: 'White Square Varketili 5 — White Square-ის ახალი პროექტი ვარკეთილის III მასივში, სამგორის რაიონში. მშენებარე ბინები თბილისის ზღვის მახლობლად.',
       en: 'White Square Varketili 5 is White Square’s new project in Varketili’s 3rd massif, Samgori district — new-build apartments near the Tbilisi Sea.',
