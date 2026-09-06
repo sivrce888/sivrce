@@ -67,3 +67,6 @@ supabase/.temp/
 __pycache__/
 *.sst
 
+
+# stale next build dump (repo-lightweight-lock)
+app/.next-stale-backup/
