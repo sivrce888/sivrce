@@ -933,7 +933,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 200,
     floors: 17,
     rating: 4.5,
-    coords: { lat: 41.68511187, lng: 44.88391936 },
+    coords: { lat: 41.68524691, lng: 44.88388461 },
     description: {
       ka: 'White Square Varketili 5 — White Square-ის ახალი პროექტი ვარკეთილის III მასივში, სამგორის რაიონში. მშენებარე ბინები თბილისის ზღვის მახლობლად.',
       en: 'White Square Varketili 5 is White Square’s new project in Varketili’s 3rd massif, Samgori district — new-build apartments near the Tbilisi Sea.',

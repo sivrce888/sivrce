@@ -8,6 +8,10 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { PROJECTS } from '../src/data/professionals'
 import { fetchNaprParcelAt, fetchNaprParcelByCode, type NaprParcel } from '../src/lib/map/napr-parcel'
 import { haversineM } from '../src/lib/map/buildings'
+import { ringBboxHalfM } from '../src/lib/map/footprint-circle'
+
+/** Identify sometimes returns the surrounding tract (hill/forest), not the lot. */
+const TRACT_HALF_M = 300
 
 const WRITE = process.argv.includes('--write')
 const OUT = new URL('../src/data/napr-pin-overrides.json', import.meta.url)
@@ -67,6 +71,11 @@ async function main() {
         if (!atPin) {
           noParcel++
           console.log(`${p.slug} — no parcel at pin`)
+          return
+        }
+        if (ringBboxHalfM(atPin.ring) > TRACT_HALF_M) {
+          noParcel++
+          console.log(`${p.slug} — tract ${Math.round(ringBboxHalfM(atPin.ring) * 2)}m, not a lot — skip`)
           return
         }
         if (pinInRing(p.coords.lat, p.coords.lng, atPin.ring)) {

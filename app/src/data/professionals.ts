@@ -2311,7 +2311,6 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q4',
     flats: 800,
     rating: 4.6,
-    cadastral: '01.10.10.025.106',
     coords: { lat: 41.7517996, lng: 44.7705609 },
     floors: 11,
     description: {
