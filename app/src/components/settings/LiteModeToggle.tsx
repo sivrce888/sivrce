@@ -1,20 +1,26 @@
 "use client"
 
 import { Gauge } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 const KEY = "sv-lite"
+const LITE_EVT = "sv-lite-change"
+
+const subscribe = (cb: () => void) => {
+  window.addEventListener(LITE_EVT, cb)
+  return () => window.removeEventListener(LITE_EVT, cb)
+}
+const getSnapshot = () => {
+  try {
+    return localStorage.getItem(KEY) === "1"
+  } catch {
+    return document.documentElement.hasAttribute("data-lite")
+  }
+}
+const getServerSnapshot = () => false
 
 export function LiteModeToggle() {
-  const [on, setOn] = useState(false)
-
-  useEffect(() => {
-    try {
-      setOn(localStorage.getItem(KEY) === "1")
-    } catch {
-      setOn(document.documentElement.hasAttribute("data-lite"))
-    }
-  }, [])
+  const on = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   const toggle = () => {
     const next = !on
@@ -24,7 +30,7 @@ export function LiteModeToggle() {
     } catch {
       // ponytail: private mode — toggle attr only for this session
       document.documentElement.toggleAttribute("data-lite", next)
-      setOn(next)
+      window.dispatchEvent(new Event(LITE_EVT))
       return
     }
     location.reload()

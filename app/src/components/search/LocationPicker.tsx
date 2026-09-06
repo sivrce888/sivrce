@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Search, MapPin, ChevronLeft, Route, Check, TrainFront, Globe, LocateFixed, History } from 'lucide-react'
@@ -24,6 +24,8 @@ export { locationLabel }
 
 const POPULAR = GEO_CITIES.slice(0, 10)
 const ease = [0.21, 0.65, 0.2, 1] as const
+
+const noopSubscribe = () => () => {}
 
 type Pane = 'districts' | 'streets'
 
@@ -57,24 +59,32 @@ export default function LocationPicker({
   const [pane, setPane] = useState<Pane>('districts')
   const [remote, setRemote] = useState<Suggestion[]>([])
   const [streets, setStreets] = useState<Suggestion[]>([])
-  const [mounted, setMounted] = useState(false)
+  // Portal mount gate — false through SSR+hydration, true after.
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false)
   const [nearby, setNearby] = useState<'idle' | 'locating' | 'denied' | 'miss'>('idle')
   const [recent, setRecent] = useState<LocationValue[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { setMounted(true) }, [])
+  // Re-seed local state once per open, during render (react.dev "adjusting state
+  // when a prop changes"). Parent `value`/`onClose` identity must not wipe
+  // in-progress picks mid-session.
+  const [prevOpen, setPrevOpen] = useState(open)
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    if (open) {
+      setCity(value.city)
+      setPicked(splitDistricts(value.district))
+      setStreet(value.street)
+      setMetro(Boolean(value.metro))
+      setQ('')
+      setPane('districts')
+      setNearby('idle')
+      setRecent(readLocRecent())
+    }
+  }
 
   useEffect(() => {
     if (!open) return
-    // ponytail: sync once per open. Parent `value`/`onClose` identity must not wipe in-progress picks.
-    setCity(value.city)
-    setPicked(splitDistricts(value.district))
-    setStreet(value.street)
-    setMetro(Boolean(value.metro))
-    setQ('')
-    setPane('districts')
-    setNearby('idle')
-    setRecent(readLocRecent())
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const tFocus = window.setTimeout(() => {

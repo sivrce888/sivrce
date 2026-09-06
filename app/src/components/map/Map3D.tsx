@@ -776,7 +776,7 @@ function Map3DInner({
   /** Admin OSM / map knobs from SystemConfig. */
   platform?: MapPlatformConfig
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const tRef = useRef(t)
   useEffect(() => {
     tRef.current = t
@@ -819,6 +819,9 @@ function Map3DInner({
   )
 
   const [liveListings, setLiveListings] = useState<Listing[] | undefined>(listings)
+  // ponytail: stale-empty SSR cache boots at 0 until /api/map-data lands —
+  // show waiting dots, never a fake zero (Apple Maps never shows a lying counter).
+  const [listingsSettled, setListingsSettled] = useState(() => (listings?.length ?? 0) > 0)
   const [liveDbBuildings, setLiveDbBuildings] = useState(dbBuildings)
   // Official massing arrives off the boot bundle — pins wait for it (see baseBuildings).
   const [fpsReady, setFpsReady] = useState(false)
@@ -872,6 +875,10 @@ function Map3DInner({
     ).bearing,
   )
   const [fullscreen, setFullscreen] = useState(false)
+  // ponytail: iPhone Safari has no element fullscreen — hide the control, never ship a dead button.
+  const [fsSupported] = useState(
+    () => typeof document !== 'undefined' && document.fullscreenEnabled,
+  )
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ipSuggest, setIpSuggest] = useState<MapCity | null>(null)
@@ -970,7 +977,7 @@ function Map3DInner({
 
   const toggleFullscreen = () => {
     const el = shellRef.current
-    if (!el) return
+    if (!el || !fsSupported) return
     if (document.fullscreenElement) void document.exitFullscreen()
     else void el.requestFullscreen()
   }
@@ -1022,8 +1029,9 @@ function Map3DInner({
     fetch('/api/map-data', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { listings?: Listing[]; buildings?: MapBuildingCluster[] } | null) => {
-        if (cancelled || !data?.listings?.length) return
-        setLiveListings(data.listings)
+        // Settle on any good response — a legitimately empty DB must show 0, not "…".
+        if (cancelled || !data) return
+        if (data.listings) setLiveListings(data.listings)
         if (data.buildings) setLiveDbBuildings(data.buildings)
         setListingsSettled(true)
       })
@@ -1097,9 +1105,6 @@ function Map3DInner({
     for (const b of visible) n += b.listings.length
     return n
   }, [visible])
-  // ponytail: stale-empty SSR cache boots at 0 until /api/map-data lands —
-  // show waiting dots, never a fake zero (Apple Maps never shows a lying counter).
-  const [listingsSettled, setListingsSettled] = useState(() => (listings?.length ?? 0) > 0)
   const pinsLoaded = listingsSettled && fpsReady
   useEffect(() => { visibleRef.current = visible }, [visible])
   useEffect(() => { polyFcRef.current = polyFc }, [polyFc])
@@ -1577,13 +1582,15 @@ function Map3DInner({
         if (hasGuide) {
           const price = document.createElement('div')
           price.className = 'sivrce-nbh-pop-price'
-          price.textContent = `~$${Number(p.avgPriceM2USD).toLocaleString('en-US')}/m²`
+          price.textContent = tRef.current('add.perM2', {
+            v: `$${Number(p.avgPriceM2USD).toLocaleString('en-US')}`,
+          })
           root.appendChild(price)
-          root.appendChild(scoreRow('ტრანსპორტი', Number(p.transport)))
-          root.appendChild(scoreRow('სკოლები', Number(p.schools)))
-          root.appendChild(scoreRow('მწვანე', Number(p.green)))
-          root.appendChild(scoreRow('უსაფრთხოება', Number(p.safety)))
-          root.appendChild(scoreRow('ღამის ცხოვრება', Number(p.nightlife)))
+          root.appendChild(scoreRow(tRef.current('map.score.transport'), Number(p.transport)))
+          root.appendChild(scoreRow(tRef.current('map.score.schools'), Number(p.schools)))
+          root.appendChild(scoreRow(tRef.current('map.score.green'), Number(p.green)))
+          root.appendChild(scoreRow(tRef.current('map.score.safety'), Number(p.safety)))
+          root.appendChild(scoreRow(tRef.current('map.score.nightlife'), Number(p.nightlife)))
         }
         nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
       }
@@ -1627,9 +1634,9 @@ function Map3DInner({
         sub.textContent = ghost
           ? `${tRef.current('map.status.construction')}${p.priceLabel ? ` · ${p.priceLabel}` : ''}`
           : p.priceLabel
-            ? `${p.priceLabel}${count > 0 ? ` · ${count} განცხადება` : ''}`
+            ? `${p.priceLabel}${count > 0 ? ` · ${tRef.current('search.mapInArea', { n: count })}` : ''}`
             : count > 0
-              ? `${count} განცხადება`
+              ? tRef.current('search.mapInArea', { n: count })
               : ''
         if (sub.textContent) root.appendChild(sub)
         pinPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
@@ -1696,8 +1703,6 @@ function Map3DInner({
           await ensureLayers(map, { poly: polyFcRef.current, pts: ptsFcRef.current }, zooms)
           // Style remount resets paint — restore selection focus if a panel is open.
           applyFocusPaint(map, selectedRef.current?.id ?? null)
-          muteBasemapExtrusions(map, KEEP_EXTRUDE)
-          setBasemapBuildings3d(map, view3dRef.current)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
@@ -2055,7 +2060,7 @@ function Map3DInner({
         const res = await fetch('/api/geo')
         if (!res.ok || cancelled) return
         const data = (await res.json()) as
-          | { ok: true; slug: string; ka: string; lat: number; lng: number }
+          | { ok: true; slug: string; ka: string; en: string; lat: number; lng: number }
           | { ok: false }
         if (!data.ok || cancelled) return
         const here = nearestMapCity(
@@ -2064,7 +2069,13 @@ function Map3DInner({
         )
         if (here?.slug === data.slug) return
         if (readIpDismiss() === data.slug) return
-        setIpSuggest({ slug: data.slug, ka: data.ka, lat: data.lat, lng: data.lng })
+        setIpSuggest({
+          slug: data.slug,
+          ka: data.ka,
+          en: data.en,
+          lat: data.lat,
+          lng: data.lng,
+        })
       } catch {
         /* offline / local — keep quiet */
       }
@@ -2170,7 +2181,12 @@ function Map3DInner({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target
-      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return
+      if (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        (el instanceof HTMLElement && el.isContentEditable)
+      )
+        return
       if (e.key === 'Escape') {
         if (filtersOpen) setFiltersOpen(false)
         else if (layersOpen) setLayersOpen(false)
@@ -2416,7 +2432,7 @@ function Map3DInner({
                 role="status"
               >
                 <p className="text-[12px] font-extrabold tracking-tight">
-                  {t('map.ipHere', { city: ipSuggest.ka })}
+                  {t('map.ipHere', { city: lang === 'ka' ? ipSuggest.ka : ipSuggest.en })}
                 </p>
                 <button
                   type="button"
@@ -2662,19 +2678,21 @@ function Map3DInner({
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={2} />
           </button>
 
-          <button
-            type="button"
-            aria-label={fullscreen ? t('map.fullscreenOff') : t('map.fullscreenOn')}
-            aria-pressed={fullscreen}
-            onClick={toggleFullscreen}
-            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
-          >
-            {fullscreen ? (
-              <Minimize2 className="h-4 w-4" strokeWidth={2} />
-            ) : (
-              <Maximize2 className="h-4 w-4" strokeWidth={2} />
-            )}
-          </button>
+          {fsSupported && (
+            <button
+              type="button"
+              aria-label={fullscreen ? t('map.fullscreenOff') : t('map.fullscreenOn')}
+              aria-pressed={fullscreen}
+              onClick={toggleFullscreen}
+              className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
+            >
+              {fullscreen ? (
+                <Minimize2 className="h-4 w-4" strokeWidth={2} />
+              ) : (
+                <Maximize2 className="h-4 w-4" strokeWidth={2} />
+              )}
+            </button>
+          )}
         </div>
 
         {/* ponytail: one row, no title card — Apple Maps / 2GIS amenity chips. */}

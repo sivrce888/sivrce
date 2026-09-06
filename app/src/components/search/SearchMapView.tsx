@@ -201,7 +201,15 @@ export default function SearchMapView({
   const visible = listings
   const groups = useMemo(() => groupListingsByPin(visible), [visible])
   const groupsRef = useRef(groups)
-  groupsRef.current = groups
+  useEffect(() => { groupsRef.current = groups }, [groups])
+
+  // Drop a selection whose pin vanished from the new grouping (render-time
+  // adjustment — react.dev "adjusting state when a prop changes").
+  const [prevGroups, setPrevGroups] = useState(groups)
+  if (prevGroups !== groups) {
+    setPrevGroups(groups)
+    if (activeKey && !groups.some((g) => g.key === activeKey)) setActiveKey(null)
+  }
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current || !themeReady) return
@@ -401,10 +409,6 @@ export default function SearchMapView({
   useEffect(() => {
     for (const id of elsRef.current.keys()) paintPin(id)
   }, [paintPin, groups, ready])
-
-  useEffect(() => {
-    if (activeKey && !groups.some((g) => g.key === activeKey)) setActiveKey(null)
-  }, [groups, activeKey])
 
   useEffect(() => {
     if (!activeKey) return
