@@ -23,6 +23,7 @@ import { getListingsForProjectSlug } from '@/lib/listings-db'
 import { getMapListings } from '@/lib/map/db-buildings'
 import {
   clusterListingsToBuildings,
+  ensureFootprints,
   footprintPin,
   mergeMapBuildings,
   projectsToConstructionBuildings,
@@ -128,6 +129,7 @@ export default async function ProjectPage({ params }: PageProps) {
   ])
 
   // 3D floor stack: live address/coords so the corpus sits on the exact pin.
+  await ensureFootprints()
   const cluster = applyLiveProjectPins(
     mergeMapBuildings(
       clusterListingsToBuildings(mapListings),

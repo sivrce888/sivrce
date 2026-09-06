@@ -15,7 +15,7 @@ import {
 import { getLiveDeveloper, projectsLiveByDeveloper } from '@/lib/directory-live'
 import { getListingsForDeveloper } from '@/lib/listings-db'
 import { cityCenter, parseCoords } from '@/lib/map/geocode'
-import { footprintPin } from '@/lib/map/buildings'
+import { ensureFootprints, footprintPin } from '@/lib/map/buildings'
 import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { jsonLd, ogImage } from '@/lib/utils'
@@ -122,6 +122,7 @@ export default async function DeveloperPage({ params }: PageProps) {
     null
   const mapPin = geoProject?.coords ?? cityCenter(dev.city)
   const mapLabel = geoProject?.location ?? dev.city
+  await ensureFootprints()
   // Exact-building pin — committed OSM footprint beats street-level geocode drift.
   const fpPin = geoProject ? footprintPin({ slug: geoProject.slug }, mapPin) : null
   const shownPin = fpPin ?? mapPin

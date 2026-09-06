@@ -37,6 +37,7 @@ import { getDeveloper, type Developer } from '@/data/professionals'
 import {
   clusterListingsToBuildings,
   dealLabelKa,
+  ensureFootprints,
   findBuildingBySlug,
   footprintPin,
 } from '@/lib/map/buildings'
@@ -148,6 +149,7 @@ export default async function BuildingPage({ params }: PageProps) {
   const { slug } = await params
   const { building, developer: dbDeveloper } = await resolveBuilding(slug)
   if (!building) notFound()
+  await ensureFootprints()
   // Exact-building pin — committed OSM footprint beats street-level geocode drift.
   const fpPin = footprintPin({ slug }, building.coords)
 

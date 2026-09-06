@@ -1851,8 +1851,15 @@ function Map3DInner({
         booted = true
         if (watchdog) clearTimeout(watchdog)
         map.resize()
-        mountOverlays()
         setReady(true)
+        // The 1600ms watchdog can beat the style — addSource/addImage then
+        // throw "Style is not done loading" and silently kill every pin layer.
+        // Mount brand paints only once the style can accept them.
+        const mount = () => {
+          if (!cancelled) mountOverlays()
+        }
+        if (map.isStyleLoaded()) mount()
+        else map.once('style.load', mount)
       }
       // ponytail: mask geojson used to block `load` forever; style.load is sync on inline JSON so we miss it. Watchdog + load.
       map.on('load', reveal)
