@@ -10,6 +10,7 @@ import { jsonLd } from '@/lib/utils'
 import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { MICRO, PROJECTS_HUB, dirLoc } from '@/lib/directory-seo'
+import { toCard } from '../../card'
 import { PER_PAGE, Pager, ProjectsGrid } from '../../ProjectsGrid'
 
 export const revalidate = 3600
@@ -77,10 +78,10 @@ export default async function ProjectsPageN({ params }: PageProps) {
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <PageHero tone="light" kicker="ახალი პროექტები" title={c.h1} subtitle={c.sub} />
+        <PageHero tone="light" kicker="მშენებარე ბინები" title={c.h1} subtitle={c.sub} />
         <AdSlot slot="projects" lang={raw} />
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
-          <ProjectsGrid projects={pageProjects} loc={loc} />
+          <ProjectsGrid projects={pageProjects.map((p) => toCard(p, loc))} loc={loc} />
           <Pager page={pg} totalPages={totalPages} loc={loc} />
         </section>
         <CTA />

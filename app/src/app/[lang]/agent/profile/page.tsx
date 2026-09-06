@@ -7,6 +7,8 @@ import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
 import StatCard from "@/components/dashboard/StatCard"
 import { RequestVerification } from "@/components/dashboard/RequestVerification"
+import OwnerReviews from "@/components/reviews/OwnerReviews"
+import UserAvatar from "@/components/UserAvatar"
 import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
@@ -139,12 +141,7 @@ export default async function AgentProfilePage() {
       {profile ? (
         <section className="mt-6 rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <div className="flex flex-wrap items-center gap-4">
-            <span
-              className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-black text-white"
-              style={{ backgroundColor: profile.color }}
-            >
-              {profile.avatarText}
-            </span>
+            <UserAvatar name={profile.name} label={profile.avatarText} size={64} shape="module" />
             <div className="min-w-0">
               <p className="flex items-center gap-1.5 text-[18px] font-black text-sv-ink">
                 {profile.name}
@@ -163,6 +160,8 @@ export default async function AgentProfilePage() {
           </div>
         </section>
       ) : null}
+
+      <OwnerReviews className="mt-6" />
     </DashboardShell>
   )
 }

@@ -12,6 +12,7 @@ import { FaqSection } from '@/components/seo/FaqSection'
 import { roleSignupHref } from '@/lib/auth-roles'
 import { PER_PAGE, Pager } from '../projects/ProjectsGrid'
 import { rankedDevelopers } from './ranked'
+import { altNameList } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -69,6 +70,12 @@ export default async function DevelopersPage({ params }: PageProps) {
       ...(d.logoUrl
         ? { image: d.logoUrl.startsWith('http') ? d.logoUrl : `https://sivrce.ge${d.logoUrl}` }
         : {}),
+      item: {
+        '@type': 'Organization',
+        name: d.name.en,
+        alternateName: altNameList(d.name.en, [d.name.ka, d.name.ru]),
+        url: `https://sivrce.ge/developers/${d.slug}`,
+      },
     })),
   }
 

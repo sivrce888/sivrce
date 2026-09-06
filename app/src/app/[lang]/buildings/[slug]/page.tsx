@@ -24,7 +24,7 @@ import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
-import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import HScroll from '@/components/HScroll'
 import MapEmbed from '@/components/MapEmbed'
@@ -711,7 +711,7 @@ export default async function BuildingPage({ params }: PageProps) {
         <FaqSection title="ხშირი კითხვები" items={faqs} className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10" />
 
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
-          <ReviewsSection targetType="building" targetId={building.slug} />
+          <ReviewsSectionServer targetType="building" targetId={building.slug} />
         </section>
 
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">

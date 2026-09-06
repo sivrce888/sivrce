@@ -6,9 +6,10 @@ import { auth } from "@/auth"
 import { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { syncProfileRating } from "@/lib/reviews/aggregate"
+import { listReviews, parseSort, toDto } from "@/lib/reviews/list"
 import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
-import type { Review } from "@/generated/prisma/client"
+import { parseReviewFields } from "@/lib/reviews/validate"
 
 export const dynamic = "force-dynamic"
 
@@ -23,30 +24,40 @@ const TARGET_TYPES = new Set([
   "building",
   "service",
 ])
-const SORTS = new Set(["newest", "highest", "lowest", "helpful"])
-const PAGE_SIZE = 10
-
-/** Public wire shape per the fixed API contract. */
-function toDto(r: Review) {
-  return {
-    id: r.id,
-    targetType: r.targetType,
-    targetId: r.targetId,
-    authorName: r.authorName,
-    rating: r.rating,
-    ...(r.title != null ? { title: r.title } : {}),
-    body: r.body,
-    verified: r.verified,
-    helpfulCount: r.helpfulCount,
-    ...(r.ownerReply != null ? { ownerReply: r.ownerReply } : {}),
-    createdAt: r.createdAt.toISOString(),
-  }
-}
-
-const PUBLISHED = { status: "published", deletedAt: null } as const
-
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams
+
+  // about=1 — published reviews about targets owned by the caller (dashboard).
+  if (sp.get("about") === "1") {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+    }
+    try {
+      const me = session.user.id
+      const [agents, agencies, developers, listings] = await Promise.all([
+        db.agentProfile.findMany({ where: { ownerId: me, deletedAt: null }, select: { slug: true } }),
+        db.agencyProfile.findMany({ where: { ownerId: me, deletedAt: null }, select: { slug: true } }),
+        db.developerProfile.findMany({ where: { ownerId: me, deletedAt: null }, select: { slug: true } }),
+        db.listing.findMany({ where: { ownerId: me, deletedAt: null }, select: { id: true }, take: 50 }),
+      ])
+      const or = [
+        ...agents.map((a) => ({ targetType: "agent", targetId: a.slug })),
+        ...agencies.map((a) => ({ targetType: "agency", targetId: a.slug })),
+        ...developers.map((d) => ({ targetType: "developer", targetId: d.slug })),
+        ...listings.map((l) => ({ targetType: "listing", targetId: l.id })),
+      ]
+      if (or.length === 0) return NextResponse.json({ reviews: [] })
+      const reviews = await db.review.findMany({
+        where: { OR: or, status: "published", deletedAt: null },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      })
+      return NextResponse.json({ reviews: reviews.map(toDto) })
+    } catch {
+      return NextResponse.json({ error: "db_unavailable" }, { status: 500 })
+    }
+  }
 
   // mine=1 — the caller's own reviews, newest first (session required).
   if (sp.get("mine") === "1") {
@@ -54,7 +65,22 @@ export async function GET(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 })
     }
+    const mineType = sp.get("targetType")
+    const mineTarget = sp.get("targetId")
     try {
+      if (mineType && mineTarget) {
+        // The caller's own review for one target — powers form prefill/edit.
+        const mine = await db.review.findFirst({
+          where: {
+            authorId: session.user.id,
+            targetType: TARGET_TYPES.has(mineType) ? mineType : "-",
+            targetId: mineTarget.slice(0, 120),
+            deletedAt: null,
+          },
+          orderBy: { createdAt: "desc" },
+        })
+        return NextResponse.json({ review: mine ? toDto(mine) : null })
+      }
       // ponytail: hard cap instead of pagination; revisit if a user can
       // realistically exceed 100 reviews.
       const reviews = await db.review.findMany({
@@ -73,58 +99,12 @@ export async function GET(req: NextRequest) {
   if (!TARGET_TYPES.has(targetType) || !targetId) {
     return NextResponse.json({ error: "invalid_target" }, { status: 400 })
   }
-  const sortParam = sp.get("sort") ?? "newest"
-  const sort = SORTS.has(sortParam) ? sortParam : "newest"
+  const sort = parseSort(sp.get("sort"))
   const page = Math.max(1, Number.parseInt(sp.get("page") ?? "1", 10) || 1)
 
-  const where = { targetType, targetId, ...PUBLISHED }
-  const orderBy =
-    sort === "highest"
-      ? [{ rating: "desc" as const }, { createdAt: "desc" as const }]
-      : sort === "lowest"
-        ? [{ rating: "asc" as const }, { createdAt: "desc" as const }]
-        : sort === "helpful"
-          ? [{ helpfulCount: "desc" as const }, { createdAt: "desc" as const }]
-          : [{ createdAt: "desc" as const }]
-
-  try {
-    const [agg, dist, rows] = await Promise.all([
-      db.review.aggregate({
-        where,
-        _avg: { rating: true },
-        _count: { _all: true },
-      }),
-      db.review.groupBy({ by: ["rating"], where, _count: { _all: true } }),
-      db.review.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
-      }),
-    ])
-    const count = agg._count?._all ?? 0
-    const average = agg._avg?.rating
-    const distribution: Record<string, number> = {
-      "1": 0,
-      "2": 0,
-      "3": 0,
-      "4": 0,
-      "5": 0,
-    }
-    for (const row of dist) {
-      distribution[String(row.rating)] = row._count?._all ?? 0
-    }
-    return NextResponse.json({
-      average: average == null ? null : Math.round(average * 10) / 10,
-      count,
-      distribution,
-      reviews: rows.map(toDto),
-      page,
-      pages: Math.ceil(count / PAGE_SIZE),
-    })
-  } catch {
-    return NextResponse.json({ error: "db_unavailable" }, { status: 500 })
-  }
+  const list = await listReviews(targetType, targetId, page, sort)
+  if (!list) return NextResponse.json({ error: "db_unavailable" }, { status: 500 })
+  return NextResponse.json(list)
 }
 
 type CreateData = {
@@ -153,20 +133,8 @@ function parseCreate(
   const targetId = typeof p.targetId === "string" ? p.targetId.trim() : ""
   if (!targetId || targetId.length > 120) return { ok: false, error: "invalid_target_id" }
 
-  const rating = typeof p.rating === "number" ? p.rating : NaN
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    return { ok: false, error: "invalid_rating" }
-  }
-
-  const body = typeof p.body === "string" ? p.body.trim() : ""
-  if (body.length < 10 || body.length > 2000) {
-    return { ok: false, error: "invalid_body" }
-  }
-
-  const title = typeof p.title === "string" ? p.title.trim() : undefined
-  if (title !== undefined && title.length > 200) {
-    return { ok: false, error: "invalid_title" }
-  }
+  const fields = parseReviewFields(p)
+  if (!fields.ok) return fields
 
   const authorName =
     typeof p.authorName === "string" ? p.authorName.trim() : undefined
@@ -182,8 +150,7 @@ function parseCreate(
     return { ok: false, error: "invalid_locale" }
   }
 
-  const data: CreateData = { targetType, targetId, rating, body }
-  if (title) data.title = title
+  const data: CreateData = { targetType, targetId, ...fields.data }
   if (authorName) data.authorName = authorName
   if (locale) data.locale = locale
   return { ok: true, data }

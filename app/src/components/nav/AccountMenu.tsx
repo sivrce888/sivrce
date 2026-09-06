@@ -12,49 +12,17 @@ import {
 
 import { signOutToHome } from "@/app/auth/actions"
 import LocalizedLink from "@/components/LocalizedLink"
+import UserAvatar from "@/components/UserAvatar"
 import { isPhoneEmail } from "@/lib/auth-phone"
+import { useI18n } from "@/lib/i18n/context"
 
 const MENU = [
-  { href: "/account", label: "ანგარიში", icon: User },
-  { href: "/settings", label: "პარამეტრები", icon: Settings },
-  { href: "/dashboard", label: "ჩემი პანელი", icon: LayoutDashboard },
-  { href: "/favorites", label: "ფავორიტები", icon: Heart },
-  { href: "/compare", label: "შედარება", icon: ArrowLeftRight },
+  { href: "/account", label: "account.panel", icon: User },
+  { href: "/settings", label: "account.settings", icon: Settings },
+  { href: "/dashboard", label: "account.dashboard", icon: LayoutDashboard },
+  { href: "/favorites", label: "nav.favorites", icon: Heart },
+  { href: "/compare", label: "account.compare", icon: ArrowLeftRight },
 ] as const
-
-function Avatar({
-  name,
-  image,
-  size = 32,
-}: {
-  name: string | null | undefined
-  image: string | null | undefined
-  size?: number
-}) {
-  if (image) {
-    return (
-      // Remote OAuth avatar — next/image remotePatterns not configured
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={image}
-        alt=""
-        width={size}
-        height={size}
-        className="rounded-full object-cover"
-        referrerPolicy="no-referrer"
-      />
-    )
-  }
-  const letter = (name?.trim()?.[0] ?? "S").toUpperCase()
-  return (
-    <span
-      className="grid place-items-center rounded-full bg-sv-blue font-black text-white"
-      style={{ width: size, height: size, fontSize: size * 0.38 }}
-    >
-      {letter}
-    </span>
-  )
-}
 
 export function AccountMenu({
   light = false,
@@ -66,6 +34,7 @@ export function AccountMenu({
   onNavigate?: () => void
 }) {
   const { data: session, status } = useSession()
+  const { t } = useI18n()
   const user = session?.user
   const signedIn = status === "authenticated" && Boolean(user?.id)
   const emailLine =
@@ -84,14 +53,14 @@ export function AccountMenu({
           className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-sv-ink/[0.06] px-4 py-3.5 text-[15px] font-extrabold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
         >
           <User className="h-4 w-4" aria-hidden />
-          შესვლა
+          {t("nav.login")}
         </LocalizedLink>
       )
     }
     return (
       <LocalizedLink
         href="/dashboard"
-        aria-label="შესვლა"
+        aria-label={t("nav.login")}
         className={`grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${chrome}`}
       >
         <User className="h-4 w-4" />
@@ -111,7 +80,7 @@ export function AccountMenu({
               className="flex items-center gap-3 px-4 py-2.5 text-[13.5px] font-bold text-sv-ink/80 transition hover:bg-sv-cloud hover:text-sv-ink"
             >
               <Icon className="h-4 w-4 text-sv-blue" aria-hidden />
-              {item.label}
+              {t(item.label)}
             </LocalizedLink>
           </li>
         )
@@ -126,17 +95,17 @@ export function AccountMenu({
         className="flex w-full items-center gap-3 rounded-control px-2 py-2.5 text-left text-[13.5px] font-bold text-sv-ink/70 transition hover:bg-sv-cloud hover:text-sv-ink"
       >
         <LogOut className="h-4 w-4" aria-hidden />
-        გასვლა
+        {t("account.signOut")}
       </button>
     </form>
   )
 
   const identity = (
     <div className="flex items-center gap-3 border-b border-sv-ink/8 px-4 py-3">
-      <Avatar name={user?.name} image={user?.image} size={40} />
+      <UserAvatar name={user?.name} image={user?.image} gradient={user?.avatarStyle} size={40} />
       <div className="min-w-0">
         <p className="truncate text-[14px] font-extrabold text-sv-ink">
-          {user?.name ?? "ანგარიში"}
+          {user?.name ?? t("account.panel")}
         </p>
         {emailLine ? (
           <p className="truncate text-[12px] font-semibold text-sv-ink/45">{emailLine}</p>
@@ -158,10 +127,10 @@ export function AccountMenu({
   return (
     <details className="relative">
       <summary
-        aria-label="ანგარიში"
+        aria-label={t("account.panel")}
         className={`flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden ${chrome}`}
       >
-        <Avatar name={user?.name} image={user?.image} size={28} />
+        <UserAvatar name={user?.name} image={user?.image} gradient={user?.avatarStyle} size={28} />
       </summary>
       <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-card border border-sv-ink/8 bg-sv-surface shadow-card">
         {identity}

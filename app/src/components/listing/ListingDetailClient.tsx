@@ -14,6 +14,7 @@ import {
   Play, Camera,
 } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
+import UserAvatar from '@/components/UserAvatar'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -383,6 +384,7 @@ export default function ListingDetailClient({
   useEffect(() => {
     if (!l.video) return
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- URL is the shareable source of truth (?play=1 deep link)
       if (new URLSearchParams(window.location.search).get('play') === '1') setVideoOpen(true)
     } catch { /* ignore */ }
   }, [l.id, l.video])
@@ -479,7 +481,7 @@ export default function ListingDetailClient({
           setSiteBoost({
             hasFootprint: Array.isArray(d.ring) && d.ring.length >= 4,
             hasPermit: docs.length > 0 || (Array.isArray(d.tasShapes) && d.tasShapes.length > 0),
-            tasDocs: docs.slice(0, 5),
+            tasDocs: docs.slice(0, 1),
           })
         },
       )
@@ -587,6 +589,19 @@ export default function ListingDetailClient({
               l.highlighted ? 'ring-2 ring-sv-blue/35' : ''
             }`}
           >
+            {l.images.length === 0 ? (
+              // No photos (or media host dead): branded fallback keeps the
+              // card composition intact instead of an empty void.
+              <div
+                className="grid aspect-[16/10] w-full place-items-center bg-gradient-to-br from-sv-navy via-sv-navy-soft to-sv-navy lg:aspect-auto lg:h-full"
+                aria-hidden
+              >
+                <div className="flex flex-col items-center gap-3 text-white/85">
+                  <Camera className="h-9 w-9" strokeWidth={1.5} />
+                  <span className="text-[14px] font-extrabold tracking-wide">{t('detail.noPhotos')}</span>
+                </div>
+              </div>
+            ) : (
             <button
               className="relative block aspect-[16/10] w-full cursor-zoom-in lg:aspect-auto lg:h-full lg:min-h-[min(52vh,520px)]"
               onClick={() => {
@@ -629,6 +644,7 @@ export default function ListingDetailClient({
                 />
               </motion.div>
             </button>
+            )}
             {l.video ? (
               <button
                 type="button"
@@ -1026,7 +1042,18 @@ export default function ListingDetailClient({
                     <ul className="mt-2 space-y-1">
                       {scoreWhy.ids.map((id) => (
                         <li key={id} className="text-[14px] font-semibold text-sv-ink/60">
-                          {t(scoreReasonKey(id))}
+                          {id === 'permit' && siteBoost.tasDocs[0] ? (
+                            <a
+                              href={siteBoost.tasDocs[0].publicUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sv-blue transition-colors hover:text-sv-blue-deep hover:underline"
+                            >
+                              {t(scoreReasonKey(id))}
+                            </a>
+                          ) : (
+                            t(scoreReasonKey(id))
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -1038,35 +1065,6 @@ export default function ListingDetailClient({
                 </div>
               </div>
             </div>
-
-            {/* TAS Architecture Service — public permits near pin */}
-            {siteBoost.tasDocs.length > 0 && (
-              <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
-                <div className="text-[12px] font-black uppercase tracking-wider text-sv-ink/45">
-                  {t('detail.tasPermits')}
-                </div>
-                <ul className="mt-3 space-y-2">
-                  {siteBoost.tasDocs.map((d) => (
-                    <li key={d.documentId} className="flex flex-wrap items-baseline justify-between gap-2">
-                      <span className="text-[14px] font-bold text-sv-ink">
-                        {d.documentNo}
-                        {d.address ? (
-                          <span className="ml-2 font-semibold text-sv-ink/50">{d.address}</span>
-                        ) : null}
-                      </span>
-                      <a
-                        href={d.publicUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[13px] font-black text-sv-blue hover:underline"
-                      >
-                        {t('detail.tasOpen')}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             {/* Specs — extended (beds/baths/project/…) after the key strip */}
             {specs.filter((s) => !keySpecs.some((k) => k.label === s.label)).length > 0 && (
@@ -1230,20 +1228,13 @@ export default function ListingDetailClient({
                 {l.agent.profileHref ? (
                   <LocalizedLink
                     href={l.agent.profileHref}
-                    className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-module bg-gradient-to-br from-sv-blue to-sv-violet text-[18px] font-black text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                    className="shrink-0 transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
                     aria-label={l.agent.name}
                   >
-                    {l.agent.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- OAuth avatars / arbitrary hosts
-                      <img src={l.agent.image} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      l.agent.name.charAt(0)
-                    )}
+                    <UserAvatar name={l.agent.name} image={l.agent.image} size={56} shape="module" />
                   </LocalizedLink>
                 ) : (
-                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-module bg-gradient-to-br from-sv-blue to-sv-violet text-[18px] font-black text-white">
-                    {l.agent.name.charAt(0)}
-                  </div>
+                  <UserAvatar name={l.agent.name} image={l.agent.image} size={56} shape="module" />
                 )}
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-1.5 text-[16px] font-black text-sv-ink">

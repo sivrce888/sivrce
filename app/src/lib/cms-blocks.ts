@@ -69,7 +69,7 @@ export const CMS_BLOCKS = {
   'home.ai.titleAccent': 'ყიდვამდე',
   'home.ai.sub':
     'AI ადარებს მდებარეობას, სართულს, ხედს, რემონტს და ბაზრის დინამიკას — და გეუბნება, რამდენად კარგი გარიგებაა.',
-  'home.projects.kicker': 'ახალი პროექტები',
+  'home.projects.kicker': 'მშენებარე ბინები',
   'home.projects.title': 'მშენებარე ბინები',
   'home.projects.sub': 'არქი, m², ORBI, Axis — ყველა დეველოპერი, ყველა პროექტი. 3D რუკა.',
   'home.services.title': 'ყველაფერი უძრავი ქონებისთვის',
@@ -171,7 +171,7 @@ export const CMS_BLOCKS = {
   'home.categories.dailyRent': 'ბინები დღიურად',
   'home.categories.partyHouses': 'სახლები წვეულებისთვის',
   'home.categories.hotels': 'სასტუმროები',
-  'home.categories.newProjects': 'ახალი პროექტები',
+  'home.categories.newProjects': 'მშენებარე ბინები',
   'home.categories.explore': 'ნახე',
 
   // ——— Audience paths ———

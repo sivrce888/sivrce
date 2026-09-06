@@ -10,6 +10,7 @@ import { EntityCard } from '@/components/entities/EntityCard'
 import { AGENT_PROFILES, type LocalName } from '@/data/professionals'
 import { getAgentListingCountsByKaName } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import { altNameList } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { roleSignupHref } from '@/lib/auth-roles'
@@ -133,6 +134,12 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
       position: i + 1,
       name: name.en,
       url: `https://sivrce.ge/agents/${slug}`,
+      item: {
+        '@type': 'RealEstateAgent',
+        name: name.en,
+        alternateName: altNameList(name.en, [name.ka, name.ru]),
+        url: `https://sivrce.ge/agents/${slug}`,
+      },
     })),
   }
 

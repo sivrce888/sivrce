@@ -6,7 +6,7 @@ import ListingCard from '@/components/ListingCard'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { EntityHeader } from '@/components/entities/EntityHeader'
 import { LeadForm } from '@/components/lead/LeadForm'
-import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { altName } from '@/lib/bilingual'
 import { cityCenter } from '@/lib/map/geocode'
@@ -202,7 +202,7 @@ export default async function AgencyPage({ params }: PageProps) {
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           <div className="mx-auto grid max-w-4xl gap-10 lg:grid-cols-2">
             <LeadForm targetType="agency" targetId={agency.slug} recipientName={agency.name} />
-            <ReviewsSection targetType="agency" targetId={agency.slug} />
+            <ReviewsSectionServer targetType="agency" targetId={agency.slug} />
           </div>
         </section>
       </main>

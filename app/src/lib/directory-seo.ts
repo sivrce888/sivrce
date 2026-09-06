@@ -88,9 +88,11 @@ export const MICRO: Record<
     priceFromM2: string
     website: string
     listingsIn: (city: string) => string
+    listingsShort: string
     prev: string
     next: string
     page: (n: number) => string
+    emptyProjects: string
   }
 > = {
   ka: {
@@ -102,9 +104,11 @@ export const MICRO: Record<
     priceFromM2: 'ფასი /მ²-დან',
     website: 'ვებგვერდი',
     listingsIn: (city) => `განცხადებები ქ. ${city.endsWith('ი') ? city.slice(0, -1) : city}ში`,
+    listingsShort: 'განცხადებები',
     prev: 'წინა გვერდი',
     next: 'შემდეგი გვერდი',
     page: (n) => `გვერდი ${n}`,
+    emptyProjects: 'პროექტები ჯერ არ არის ხელმისაწვდომი — სცადე მოგვიანებით',
   },
   en: {
     builtPct: (n) => `${n}% built`,
@@ -115,9 +119,11 @@ export const MICRO: Record<
     priceFromM2: 'Price from /m²',
     website: 'Website',
     listingsIn: (city) => `Listings in ${cityName(city, 'en')}`,
+    listingsShort: 'Listings',
     prev: 'Previous page',
     next: 'Next page',
     page: (n) => `Page ${n}`,
+    emptyProjects: 'No projects available yet — check back soon',
   },
   ru: {
     builtPct: (n) => `построено ${n}%`,
@@ -128,9 +134,11 @@ export const MICRO: Record<
     priceFromM2: 'Цена от /м²',
     website: 'Сайт',
     listingsIn: (city) => `Объявления в ${cityName(city, 'ru')}`,
+    listingsShort: 'Объявления',
     prev: 'Предыдущая страница',
     next: 'Следующая страница',
     page: (n) => `Страница ${n}`,
+    emptyProjects: 'Проекты пока недоступны — загляните позже',
   },
 }
 
@@ -380,6 +388,9 @@ export const DEV_DETAIL: Record<
     location: string
     projects: string
     faqTitle: string
+    faqChip: string
+    contact: string
+    navLabel: string
   }
 > = {
   ka: {
@@ -392,6 +403,9 @@ export const DEV_DETAIL: Record<
     location: 'მდებარეობა',
     projects: 'პროექტები',
     faqTitle: 'ხშირად დასმული კითხვები',
+    faqChip: 'კითხვები',
+    contact: 'კონტაქტი',
+    navLabel: 'გვერდის სექციები',
   },
   en: {
     titleSuffix: '— projects, prices & reviews',
@@ -403,6 +417,9 @@ export const DEV_DETAIL: Record<
     location: 'Location',
     projects: 'Projects',
     faqTitle: 'Frequently asked questions',
+    faqChip: 'FAQ',
+    contact: 'Contact',
+    navLabel: 'Page sections',
   },
   ru: {
     titleSuffix: '— проекты, цены и отзывы',
@@ -414,6 +431,9 @@ export const DEV_DETAIL: Record<
     location: 'Расположение',
     projects: 'Проекты',
     faqTitle: 'Частые вопросы',
+    faqChip: 'Вопросы',
+    contact: 'Контакт',
+    navLabel: 'Разделы страницы',
   },
 }
 
@@ -431,16 +451,24 @@ export const PROJECT_DETAIL: Record<
     aboutProject: string
     otherProjects: (devName: string) => string
     faqTitle: string
+    faqChip: string
+    navLabel: string
+    details: string
+    floorsRow: string
+    cadastral: string
+    contact: string
     renderAlt: (i: number) => string
     floorsCaption: (floors: number, flats: number, done: number) => string
     statsBuilt: string
   }
 > = {
   ka: {
-    titleOf: (p) =>
-      isDelivered(p)
-        ? `${p.name} — ჩაბარებული ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან`
-        : `${p.name} — მშენებარე ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან`,
+    titleOf: (p) => {
+      const n = p.nameKa ?? p.name
+      return isDelivered(p)
+        ? `${n} — ჩაბარებული ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან`
+        : `${n} — მშენებარე ბინები ${cityIn(p.city, 'ka')}, ფასი ${p.priceFromM2}/მ²-დან`
+    },
     crumbHome: 'მთავარი',
     crumbProjects: 'პროექტები',
     building3d: 'კორპუსი 3D-ში',
@@ -450,6 +478,12 @@ export const PROJECT_DETAIL: Record<
     aboutProject: 'პროექტის შესახებ',
     otherProjects: (devName) => `სხვა პროექტები — ${devName}`,
     faqTitle: 'ხშირად დასმული კითხვები',
+    faqChip: 'კითხვები',
+    navLabel: 'გვერდის სექციები',
+    details: 'მახასიათებლები',
+    floorsRow: 'სართულიანობა',
+    cadastral: 'კადასტრული კოდი',
+    contact: 'კონტაქტი',
     renderAlt: (i) => `რენდერი ${i}`,
     floorsCaption: (floors, flats, done) =>
       `${floorsLabel(floors, 'ka')} · ${unitsLabel(flats, 'ka')} · აშენებულია ${done}% · მიატრიე მაუსი სართულს`,
@@ -469,6 +503,12 @@ export const PROJECT_DETAIL: Record<
     aboutProject: 'About the project',
     otherProjects: (devName) => `More projects — ${devName}`,
     faqTitle: 'Frequently asked questions',
+    faqChip: 'FAQ',
+    navLabel: 'Page sections',
+    details: 'Details',
+    floorsRow: 'Floors',
+    cadastral: 'Cadastre code',
+    contact: 'Contact',
     renderAlt: (i) => `render ${i}`,
     floorsCaption: (floors, flats, done) =>
       `${floorsLabel(floors, 'en')} · ${unitsLabel(flats, 'en')} · ${done}% built · hover a floor`,
@@ -488,6 +528,12 @@ export const PROJECT_DETAIL: Record<
     aboutProject: 'О проекте',
     otherProjects: (devName) => `Другие проекты — ${devName}`,
     faqTitle: 'Частые вопросы',
+    faqChip: 'Вопросы',
+    navLabel: 'Разделы страницы',
+    details: 'Характеристики',
+    floorsRow: 'Этажность',
+    cadastral: 'Кадастровый код',
+    contact: 'Контакт',
     renderAlt: (i) => `рендер ${i}`,
     floorsCaption: (floors, flats, done) =>
       `${floorsLabel(floors, 'ru')} · ${unitsLabel(flats, 'ru')} · построено ${done}% · наведите курсор на этаж`,
@@ -599,36 +645,38 @@ export function devFaqs(loc: DirLoc, dev: Developer, projects: Project[]): FaqIt
 /** Project detail FAQ — rendered visibly AND shipped as FAQPage JSON-LD. */
 export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): FaqItem[] {
   const finish = finishLabel(loc, p.finish)
+  // ka questions must carry the Georgian form users search for.
+  const name = loc === 'ka' && p.nameKa ? p.nameKa : p.name
   if (loc === 'ka') {
     return [
       {
-        q: `რა ღირს კვადრატული მეტრი ${p.name}-ში?`,
+        q: `რა ღირს კვადრატული მეტრი ${name}-ში?`,
         a: p.priceFromM2
-          ? `${p.name}-ში ფასი იწყება ${p.priceFromM2}/მ²-დან. მდებარეობა: ${p.location}. ახალი პროექტების ფასები 2026 წელს მერყეობს სართულის, ხედისა და კარკასის ტიპის მიხედვით.`
-          : `${p.name} — ${p.location}. ფასები ხელმისაწვდომია სივრცეზე.`,
+          ? `${name}-ში ფასი იწყება ${p.priceFromM2}/მ²-დან. მდებარეობა: ${p.location}. ახალი პროექტების ფასები 2026 წელს მერყეობს სართულის, ხედისა და კარკასის ტიპის მიხედვით.`
+          : `${name} — ${p.location}. ფასები ხელმისაწვდომია სივრცეზე.`,
       },
       {
-        q: `როდის ჩაბარდება ${p.name}?`,
+        q: `როდის ჩაბარდება ${name}?`,
         a: `ჩაბარების ვადა: ${finish}. მშენებლობის პროგრესი: ${p.done}%. სულ ${unitsLabel(p.flats, loc)}${p.floors ? `, სართულიანობა ${p.floors}-მდე` : ''}.`,
       },
       {
-        q: `რომელი კარკასით იყიდება ბინები ${p.name}-ში?`,
-        a: `საქართველოში ახალი პროექტები ძირითადად სამი კარკასით იყიდება: შავი (მხოლოდ კონსტრუქცია), თეთრი (მზა რემონტისთვის — მუყაო, ელექტრო-სანტექნიკა, იატაკი) და მწვანე (თითქმის სრული რემონტი). ${p.name}-ში ბინების ზუსტი მდგომარეობა დაადასტურეთ დეველოპერის გაყიდვების ოფისში.`,
+        q: `რომელი კარკასით იყიდება ბინები ${name}-ში?`,
+        a: `საქართველოში ახალი პროექტები ძირითადად სამი კარკასით იყიდება: შავი (მხოლოდ კონსტრუქცია), თეთრი (მზა რემონტისთვის — მუყაო, ელექტრო-სანტექნიკა, იატაკი) და მწვანე (თითქმის სრული რემონტი). ${name}-ში ბინების ზუსტი მდგომარეობა დაადასტურეთ დეველოპერის გაყიდვების ოფისში.`,
       },
       {
-        q: `როგორ შევიძინო ბინა ${p.name}-ში შიდა განვადებით ან იპოთეკით?`,
-        a: `${p.name}-ში ბინის შეძენა შესაძლებელია დეველოპერის შიდა განვადებით (პირველადი შენატანი ჩვეულებრივ 10–30%, გადახდა ჩაბარებამდე) ან საბანკო იპოთეკით. დეტალები დაადასტურეთ დეველოპერთან ან დაგვიკავშირდით sivrce-ზე.`,
+        q: `როგორ შევიძინო ბინა ${name}-ში შიდა განვადებით ან იპოთეკით?`,
+        a: `${name}-ში ბინის შეძენა შესაძლებელია დეველოპერის შიდა განვადებით (პირველადი შენატანი ჩვეულებრივ 10–30%, გადახდა ჩაბარებამდე) ან საბანკო იპოთეკით. დეტალები დაადასტურეთ დეველოპერთან ან დაგვიკავშირდით sivrce-ზე.`,
       },
       ...(dev
         ? [
             {
-              q: `ვინ აშენებს ${p.name}-ს?`,
+              q: `ვინ აშენებს ${name}-ს?`,
               a: `დეველოპერი: ${pickLoc(dev.name, loc)}. სრული პროფილი, სხვა პროექტები და მიმოხილვები: sivrce.ge/developers/${dev.slug}.`,
             },
           ]
         : []),
       {
-        q: `ღირს თუ არა ${p.name}-ში ბინის ყიდვა ინვესტიციისთვის?`,
+        q: `ღირს თუ არა ${name}-ში ბინის ყიდვა ინვესტიციისთვის?`,
         a: `მშენებლობის ეტაპზე ყიდვა ჩვეულებრივ იაფია, ვიდრე დასრულებული ბინა — ფასი იზრდება ჩაბარებასთან. ${cityIn(p.city, loc)} გაქირავების შემოსავალი და ROI დამოკიდებულია უბანსა და კარკასის ტიპზე; შეადარეთ მსგავსი პროექტები sivrce-ზე.`,
       },
     ]

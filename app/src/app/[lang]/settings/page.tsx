@@ -12,6 +12,7 @@ import {
 
 import { toggleListingAlerts } from "@/app/[lang]/settings/actions"
 import { PasskeysCard } from "@/components/auth/PasskeysCard"
+import AvatarStudio from "@/components/settings/AvatarStudio"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import { PushToggle } from "@/components/push/PushToggle"
 import { AccountForms } from "@/components/settings/AccountForms"
@@ -91,6 +92,8 @@ export default async function SettingsPage({
             email: true,
             phone: true,
             passwordHash: true,
+            image: true,
+            avatarStyle: true,
           },
         }),
       null,
@@ -109,6 +112,12 @@ export default async function SettingsPage({
       <h1 className="mb-6 text-[22px] font-black tracking-tight text-sv-ink">პარამეტრები</h1>
 
       <div className="grid gap-5">
+        <AvatarStudio
+          name={me?.name ?? user.name ?? ""}
+          image={me?.image ?? null}
+          style={me?.avatarStyle ?? null}
+        />
+
         <AccountForms
           name={me?.name ?? user.name ?? ""}
           email={isPhoneEmail(user.email) ? "" : user.email}

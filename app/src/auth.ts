@@ -153,22 +153,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id!
         token.role = (user.role as UserRole) ?? "buyer"
         if (user.name) token.name = user.name
+        if (user.image) token.picture = user.image
         return token
       }
       const id = String(token.id ?? token.sub ?? "")
       if (!id) return token
       token.id = id
-      // Fresh role after onboarding/settings (PK lookup — same as DB sessions).
+      // Fresh role/name/image/avatarStyle after onboarding/settings (PK lookup — same as DB sessions).
       // ponytail: never 500 /api/auth/session when Postgres is down — chrome polls this on every page.
       try {
         if (!(await dbAvailable())) return token
         const row = await db.user.findUnique({
           where: { id },
-          select: { role: true, name: true },
+          select: { role: true, name: true, image: true, avatarStyle: true },
         })
         if (row) {
           token.role = row.role
           if (row.name) token.name = row.name
+          if (row.image) token.picture = row.image
+          token.avatarStyle = row.avatarStyle
         }
       } catch { /* keep last-known role */ }
       return token
@@ -178,6 +181,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = String(token.id ?? token.sub)
         session.user.role = (token.role as UserRole) ?? "buyer"
         if (typeof token.name === "string") session.user.name = token.name
+        if (typeof token.picture === "string") session.user.image = token.picture
+        if (typeof token.avatarStyle === "number" || token.avatarStyle === null) {
+          session.user.avatarStyle = token.avatarStyle
+        }
       }
       return session
     },

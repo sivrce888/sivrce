@@ -30,6 +30,11 @@ export interface ReviewsSectionProps {
   targetType: ReviewTargetType
   targetId: string
   className?: string
+  /**
+   * Server-baked page 1 (newest) — skips the mount fetch so review text is
+   * in the HTML for crawlers/AI. The client refetches on any page/sort change.
+   */
+  initialData?: ReviewsResponse
 }
 
 const SORTS: ReviewSort[] = ['newest', 'highest', 'lowest', 'helpful']
@@ -37,15 +42,12 @@ const SORTS: ReviewSort[] = ['newest', 'highest', 'lowest', 'helpful']
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
 
-export function ReviewsSection({ targetType, targetId, className }: ReviewsSectionProps) {
+export function ReviewsSection({ targetType, targetId, className, initialData }: ReviewsSectionProps) {
   const { lang } = useI18n()
   const s = getReviewStrings(lang)
-  const [data, setData] = useState<ReviewsResponse | null>(null)
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState<ReviewSort>('newest')
   const [reloadKey, setReloadKey] = useState(0)
-  const [loadedKey, setLoadedKey] = useState<string | null>(null)
-  const [errorKey, setErrorKey] = useState<string | null>(null)
 
   // Reset paging/sorting when the target changes — state adjusted during render
   // (react.dev: "You Might Not Need an Effect"); no setState in effect bodies.
@@ -59,6 +61,9 @@ export function ReviewsSection({ targetType, targetId, className }: ReviewsSecti
 
   // busy/error are derived from which request the current data answers.
   const reqKey = `${targetKey}:${page}:${sort}:${reloadKey}`
+  const [data, setData] = useState<ReviewsResponse | null>(initialData ?? null)
+  const [loadedKey, setLoadedKey] = useState<string | null>(initialData ? reqKey : null)
+  const [errorKey, setErrorKey] = useState<string | null>(null)
   const busy = loadedKey !== reqKey && errorKey !== reqKey
 
   useEffect(() => {
@@ -92,6 +97,9 @@ export function ReviewsSection({ targetType, targetId, className }: ReviewsSecti
     })
     setErrorKey((k) => (k === reqKey ? null : k))
   }, [reqKey])
+
+  // Author deleted their review — refetch reconciles list + aggregates.
+  const onDeleted = useCallback(() => setReloadKey((k) => k + 1), [])
 
   return (
     <section aria-label={s.sectionTitle} className={cn('w-full', className)}>
@@ -181,6 +189,7 @@ export function ReviewsSection({ targetType, targetId, className }: ReviewsSecti
               strings={s}
               locale={lang}
               onSubmitted={onSubmitted}
+              onDeleted={onDeleted}
             />
           </div>
 

@@ -384,7 +384,8 @@ export default function HeroSearch() {
             className={`relative w-full rounded-full px-2.5 py-2 text-center text-[12.5px] font-extrabold leading-snug transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:focus-visible:ring-offset-sv-navy sm:w-auto sm:px-4 sm:py-2.5 sm:text-[14px] lg:px-5 ${
               item.id === 'projects' ? 'col-span-2 sm:col-auto' : ''
             } ${
-              tab === i ? 'text-sv-ink' : 'text-sv-ink/55 hover:text-sv-ink dark:text-white/75 dark:hover:text-white'
+              // white active pill → fixed navy text; sv-ink flips near-white in .dark
+              tab === i ? 'text-sv-navy' : 'text-sv-ink/55 hover:text-sv-ink dark:text-white/75 dark:hover:text-white'
             }`}
           >
             {tab === i && (

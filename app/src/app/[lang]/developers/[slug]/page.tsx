@@ -5,9 +5,10 @@ import { notFound } from 'next/navigation'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
+import { AnchorNav } from '@/components/AnchorNav'
 import { EntityHeader } from '@/components/entities/EntityHeader'
 import { LeadForm } from '@/components/lead/LeadForm'
-import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import {
   DEVELOPERS,
@@ -18,6 +19,7 @@ import { cityCenter, parseCoords } from '@/lib/map/geocode'
 import { ensureFootprints, footprintPin } from '@/lib/map/buildings'
 import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import { altName, altNameList } from '@/lib/bilingual'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -58,10 +60,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? projects.reduce((a, b) => (b.done > a.done ? b : a))
     : null
   const name = pickLoc(d.name, loc)
-  const description = (pickLoc(d.description, loc) || c.descFallback(name, d.city))
-    .replace(/\s+/g, ' ')
-    .slice(0, 155)
-  const title = `${name} ${c.titleSuffix} | sivrce`
+  const alt = altName(name)
+  const body = (pickLoc(d.description, loc) || c.descFallback(name, d.city)).replace(/\s+/g, ' ')
+  // Both scripts up front — Georgian users search 'ორბი გრუპი', others 'ORBI Group'.
+  const description = ((alt && !body.includes(alt) ? `${name} (${alt}). ` : '') + body).slice(0, 155)
+  // root layout template appends '| sivrce' — don't double it
+  const title = `${name} ${c.titleSuffix}`
   // ponytail: flagship project photo beats tiny logo for OG (rich results + CTR).
   const og = flagship ? ogImage(flagship.img) : d.logoUrl || undefined
   return {
@@ -131,7 +135,7 @@ export default async function DeveloperPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name,
-    alternateName: [dev.name.ka, dev.name.en, dev.name.ru].filter((n) => n && n !== name),
+    alternateName: altNameList(name, [dev.name.ka, dev.name.en, dev.name.ru]),
     url: `https://sivrce.ge/developers/${dev.slug}`,
     ...(dev.phone ? { telephone: dev.phone } : {}),
     ...(dev.logoUrl ? { logo: absImg(dev.logoUrl) } : {}),
@@ -201,6 +205,15 @@ export default async function DeveloperPage({ params }: PageProps) {
   // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
   const faqs = devFaqs(loc, dev, projects)
 
+  const anchors = [
+    { id: 'about', label: c.about },
+    { id: 'location', label: c.location },
+    ...(projects.length > 0 ? [{ id: 'projects', label: c.projects }] : []),
+    ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
+    { id: 'faq', label: c.faqChip },
+    { id: 'contact', label: c.contact },
+  ]
+
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -222,7 +235,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
             <nav
               aria-label="breadcrumb"
-              className="absolute left-5 top-[4.75rem] text-[12px] font-semibold text-white/70 md:left-10"
+              className="absolute left-5 top-24 text-[12px] font-semibold text-white/70 md:left-10"
             >
               <Link href="/developers" className="hover:text-white">
                 {c.crumbDevs}
@@ -246,11 +259,14 @@ export default async function DeveloperPage({ params }: PageProps) {
             { key: 'yearsActive', value: dev.yearsActive },
             { key: 'projectsDone', value: projects.length || dev.projectsDone },
             { key: 'unitsDelivered', value: dev.unitsDelivered.toLocaleString('en-US') },
-            { key: 'activeListings', value: listings.length },
+            // Zero listings reads as "inactive" — drop the stat instead.
+            ...(listings.length > 0 ? [{ key: 'activeListings' as const, value: listings.length }] : []),
           ]}
         />
 
-        <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+        <AnchorNav items={anchors} label={c.navLabel} />
+
+        <section id="about" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
             {c.about}
           </h2>
@@ -272,7 +288,7 @@ export default async function DeveloperPage({ params }: PageProps) {
           )}
         </section>
 
-        <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+        <section id="location" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
             {c.location}
           </h2>
@@ -294,7 +310,7 @@ export default async function DeveloperPage({ params }: PageProps) {
         </section>
 
         {projects.length > 0 && (
-          <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+          <section id="projects" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {c.projects}
             </h2>
@@ -335,7 +351,7 @@ export default async function DeveloperPage({ params }: PageProps) {
         )}
 
         {listings.length > 0 && (
-          <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+          <section id="listings" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {micro.listingsIn(dev.city)}
             </h2>
@@ -347,15 +363,20 @@ export default async function DeveloperPage({ params }: PageProps) {
           </section>
         )}
 
-        <FaqSection
-          title={c.faqTitle}
-          items={faqs}
-          className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10"
-        />
+        <div id="faq" className="scroll-mt-[7.5rem]">
+          <FaqSection
+            title={c.faqTitle}
+            items={faqs}
+            className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10"
+          />
+        </div>
 
-        <section className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2">
+        <section
+          id="contact"
+          className="mx-auto grid max-w-[1440px] scroll-mt-[7.5rem] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2"
+        >
           <LeadForm targetType="developer" targetId={dev.slug} recipientName={name} />
-          <ReviewsSection targetType="developer" targetId={dev.slug} />
+          <ReviewsSectionServer targetType="developer" targetId={dev.slug} />
         </section>
       </main>
       <Footer />

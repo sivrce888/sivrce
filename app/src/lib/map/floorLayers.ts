@@ -173,6 +173,19 @@ export const FLOORS_LABEL_ID = 'sivrce-floors-label'
 
 type MapTheme = 'light' | 'dark'
 
+/** Districts are owned by the sivrce NBH layer (Georgian, 65 უბანი + ბათუმი/ქუთაისი).
+ *  OFM's Latin suburb labels double-tag the same blocks (CHUGURETI + ჩუღურეთი). */
+const OFM_SUBURB_LABEL_IDS = [
+  'place_suburb',
+  'place_neighbourhood',
+  'label_other',
+  'place_other',
+] as const
+
+function hideOfmSuburbLabels(map: MlMap) {
+  for (const id of OFM_SUBURB_LABEL_IDS) tryLayout(map, id, 'visibility', 'none')
+}
+
 function trySet(map: MlMap, layer: string, prop: string, value: unknown) {
   if (!map.getLayer(layer)) return
   try {
@@ -436,6 +449,7 @@ function applyLightPaints(map: MlMap) {
     trySet(map, id, 'text-opacity', 0.55)
     trySet(map, id, 'icon-opacity', 0.6)
   }
+  hideOfmSuburbLabels(map)
 }
 
 /** Google Maps night — high contrast on navy; buildings/roads/labels must read. */
@@ -464,13 +478,15 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.86)
   trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
 
+  // Roads — Google-night ramp. Muted blue-gray fabric keeps brand blue for
+  // pins; motorway yellow stays the only wayfinding accent (never glow blue).
   trySet(map, 'highway_path', 'line-color', '#2A3A5C')
-  trySet(map, 'highway_minor', 'line-color', '#4A5F8C')
-  trySet(map, 'highway_major_subtle', 'line-color', '#5A6F9A')
+  trySet(map, 'highway_minor', 'line-color', '#3D4E75')
+  trySet(map, 'highway_major_subtle', 'line-color', '#46587F')
   trySet(map, 'highway_motorway_subtle', 'line-color', '#6B5A28')
   trySet(map, 'highway_major_casing', 'line-color', '#152048')
   trySet(map, 'highway_motorway_casing', 'line-color', '#3D3210')
-  trySet(map, 'highway_major_inner', 'line-color', BRAND.colors.blueLight)
+  trySet(map, 'highway_major_inner', 'line-color', '#66799E')
   trySet(map, 'highway_motorway_inner', 'line-color', '#F9C32C')
 
   for (const id of ['highway_minor', 'highway_path']) {
@@ -481,7 +497,7 @@ function applyDarkPaints(map: MlMap) {
   }
   trySet(map, 'highway_major_inner', 'line-width', [
     'interpolate', ['linear'], ['zoom'],
-    10, 1.6, 14, 4, 17, 12,
+    10, 1.2, 14, 2.6, 17, 9,
   ])
   trySet(map, 'highway_motorway_inner', 'line-width', [
     'interpolate', ['linear'], ['zoom'],
@@ -517,6 +533,7 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'boundary_state', 'line-color', '#3A4A70')
   trySet(map, 'boundary_country_z0-4', 'line-color', '#4A5A80')
   trySet(map, 'boundary_country_z5-', 'line-color', '#4A5A80')
+  hideOfmSuburbLabels(map)
 }
 
 /** Positron / clean — calm gray so listing hues pop (Apple Maps “muted”). */
@@ -561,6 +578,7 @@ function applyCleanPaints(map: MlMap) {
     trySet(map, id, 'text-halo-color', '#FFFFFF')
     trySet(map, id, 'text-halo-width', 1.1)
   }
+  hideOfmSuburbLabels(map)
 }
 
 export function applyBrandPaints(

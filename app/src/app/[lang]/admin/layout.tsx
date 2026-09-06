@@ -5,6 +5,7 @@ import Link from "next/link"
 import { signOutToHome } from "@/app/auth/actions"
 import { AdminNav } from "@/components/admin/shell/AdminNav"
 import { CommandPalette, CommandPaletteTrigger } from "@/components/admin/shell/CommandPalette"
+import UserAvatar from "@/components/UserAvatar"
 import { requireAdmin } from "@/lib/admin/guard"
 
 export const metadata: Metadata = {
@@ -22,12 +23,6 @@ export default async function AdminLayout({
   // Trust boundary for the whole /admin tree — redirects when not an admin.
   const session = await requireAdmin()
   const name = session.user.name ?? session.user.email ?? "Admin"
-  const initials = name
-    .split(/\s+/)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
 
   return (
     <div className="min-h-screen bg-sv-cloud text-sv-ink">
@@ -49,9 +44,7 @@ export default async function AdminLayout({
         </div>
         <div className="border-t border-white/8 p-4">
           <div className="flex items-center gap-3 px-2">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-[12px] font-extrabold text-white">
-              {initials}
-            </div>
+            <UserAvatar name={name} image={session.user.image} size={36} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-bold text-white">{name}</p>
               <p className="text-[11px] font-semibold text-white/35">Administrator</p>

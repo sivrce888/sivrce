@@ -34,13 +34,13 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
   },
   {
     slug: 'chargali-residence',
-    name: { ka: 'Chargali Residence', en: 'Chargali Residence', ru: 'Chargali Residence' },
+    name: { ka: 'ჩარგლის რეზიდენსი', en: 'Chargali Residence', ru: 'Chargali Residence' },
     city: 'თბილისი',
     yearsActive: 1,
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Chargali Residence — ახალი თბილისური დეველოპერი (2025), პირველი პროექტით თემქაზე, ჩარღლის ქუჩაზე.',
+      ka: 'ჩარგლის რეზიდენსი (Chargali Residence) — ახალი თბილისური დეველოპერი (2025), პირველი პროექტით თემქაზე, ჩარგლის ქუჩაზე.',
       en: 'Chargali Residence is a new Tbilisi developer (2025) with a first project on Chargali St in Temka.',
       ru: 'Chargali Residence — новый тбилисский девелопер (2025), первый проект на ул. Чаргали в Темке.',
     },
@@ -1027,9 +1027,10 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
   {
     slug: 'chargali-residence',
     name: 'Chargali Residence',
+    nameKa: 'ჩარგლის რეზიდენსი',
     developerSlug: 'chargali-residence',
     img: '/images/projects/chargali-residence.webp',
-    location: 'ჩარღლის ქ. 79ლ/1, თემქა, თბილისი',
+    location: 'ჩარგლის ქ. 79ლ/1, თემქა, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,100',
     done: 15,
@@ -1039,7 +1040,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     rating: 4.3,
     coords: { lat: 41.742, lng: 44.762 },
     description: {
-      ka: 'Chargali Residence — ახალი პროექტი თემქაზე, ჩარღლის ქ. 79ლ/1-ში. მშენებარე ბინები $1 100/მ²-დან, ჩაბარება 2028 Q4.',
+      ka: 'ჩარგლის რეზიდენსი (Chargali Residence) — ახალი პროექტი თემქაზე, ჩარგლის ქ. 79ლ/1-ში. მშენებარე ბინები $1 100/მ²-დან, ჩაბარება 2028 Q4.',
       en: 'Chargali Residence is a new project in Temka at 79l/1 Chargali St — new-build apartments from $1,100/m², delivery Q4 2028.',
       ru: 'Chargali Residence — новый проект в Темке, ул. Чаргали 79л/1. Строящиеся квартиры от $1 100/м², сдача Q4 2028.',
     },

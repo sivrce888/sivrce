@@ -6,26 +6,26 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Building2, CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react'
-import { getDeveloper, isDelivered, type Project } from '@/data/professionals'
-import { MICRO, finishLabel, pickLoc, unitsLabel, type DirLoc } from '@/lib/directory-seo'
+import { MICRO, finishLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo'
+import type { ProjectCard } from './card'
 
 /** Cards per hub page — 18 rows × 2 cols desktop. Caps ISR payload weight. */
 export const PER_PAGE = 36
 
-export function ProjectsGrid({ projects, loc }: { projects: Project[]; loc: DirLoc }) {
+export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: DirLoc }) {
   const micro = MICRO[loc]
   if (projects.length === 0) {
     return (
       <div className="mt-6 rounded-card border border-dashed border-sv-ink/15 px-6 py-12 text-center text-[14px] font-semibold text-sv-ink/65">
-        პროექტები ჯერ არ არის ხელმისაწვდომი — სცადე მოგვიანებით
+        {micro.emptyProjects}
       </div>
     )
   }
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
       {projects.map((p, i) => {
-        const dev = getDeveloper(p.developerSlug)
-        const delivered = isDelivered(p)
+        const dev = p.devName
+        const delivered = p.delivered
         return (
           <Link
             key={p.slug}
@@ -50,7 +50,7 @@ export function ProjectsGrid({ projects, loc }: { projects: Project[]; loc: DirL
                       {p.name}
                     </h2>
                     {dev && (
-                      <p className="text-[13px] font-bold text-white/80">{pickLoc(dev.name, loc)}</p>
+                      <p className="text-[13px] font-bold text-white/80">{dev}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-ink">

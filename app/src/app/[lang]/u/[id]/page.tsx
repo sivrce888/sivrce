@@ -7,7 +7,7 @@ import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
-import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { db } from '@/lib/db'
 import { getListingsByOwner } from '@/lib/listings-db'
 import { SELLER_ROLE_LABEL, type SellerRole } from '@/lib/profiles/roles'
@@ -249,7 +249,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                 targetId={profileSlug}
                 recipientName={displayName}
               />
-              <ReviewsSection
+              <ReviewsSectionServer
                 targetType={role === 'developer' ? 'developer' : role === 'agency' ? 'agency' : 'agent'}
                 targetId={profileSlug}
               />

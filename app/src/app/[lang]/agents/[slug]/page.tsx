@@ -5,12 +5,13 @@ import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import { EntityHeader } from '@/components/entities/EntityHeader'
 import { LeadForm } from '@/components/lead/LeadForm'
-import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { AGENT_PROFILES, getAgentProfile } from '@/data/professionals'
 import { cityCenter } from '@/lib/map/geocode'
 import MapEmbed from '@/components/MapEmbed'
 import { getListingsForAgentProfile } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import { altNameList } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 import { db } from '@/lib/db'
@@ -80,7 +81,7 @@ export default async function AgentPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'RealEstateAgent',
     name: agent.name.en,
-    alternateName: agent.name.ka,
+    alternateName: altNameList(agent.name.en, [agent.name.ka, agent.name.ru]),
     url: `https://sivrce.ge/agents/${agent.slug}`,
     worksFor: { '@type': 'Organization', name: agent.agency },
     address: {
@@ -159,7 +160,7 @@ export default async function AgentPage({ params }: PageProps) {
 
         <section className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2">
           <LeadForm targetType="agent" targetId={agent.slug} recipientName={agent.name.ka} />
-          <ReviewsSection targetType="agent" targetId={agent.slug} />
+          <ReviewsSectionServer targetType="agent" targetId={agent.slug} />
         </section>
       </main>
       <Footer />

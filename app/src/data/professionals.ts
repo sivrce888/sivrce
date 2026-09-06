@@ -61,6 +61,8 @@ export interface AgentProfile {
 export interface Project {
   slug: string
   name: string
+  /** Georgian form when users transliterate the brand (ჩარგლის რეზიდენსი) — ka title/H1/JSON-LD. */
+  nameKa?: string
   developerSlug: string
   img: string
   /** Extra renders / progress photos (local CDN). */

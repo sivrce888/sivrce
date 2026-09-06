@@ -8,11 +8,12 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, LayoutGrid, Rows3, Search,
-  ChevronDown, MapPin, RotateCcw, SearchX, Home, SlidersHorizontal, Layers,
+  ChevronDown, MapPin, RotateCcw, Home, SlidersHorizontal, Layers,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import LocalizedLink from '@/components/LocalizedLink'
+import { LogoMark } from '@/components/Logo'
 import ListingCard from '@/components/ListingCard'
 import { AdCreative } from '@/components/ads/AdCreative'
 import type { PublicAd } from '@/lib/ads'
@@ -1352,7 +1353,7 @@ export default function SearchClient({
         ) : results.length === 0 ? (
           <div className="flex flex-col items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-20 text-center shadow-card">
             <span className="grid h-16 w-16 place-items-center rounded-module bg-sv-blue/10">
-              <SearchX className="h-7 w-7 text-sv-blue" />
+              <LogoMark size={28} />
             </span>
             <h2 className="mt-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">
               {t(isExactLookupQuery(q) ? 'search.lookupMiss' : 'search.emptyTitle')}

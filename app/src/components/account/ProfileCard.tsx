@@ -5,6 +5,7 @@ import { KeyRound, LogIn, LogOut, Settings, User } from 'lucide-react'
 import SectionHeader from './SectionHeader'
 import { useAccountStrings } from './i18n'
 import { signOutToHome } from '@/app/auth/actions'
+import UserAvatar from '@/components/UserAvatar'
 import { isPhoneEmail } from '@/lib/auth-phone'
 
 export interface AccountUser {
@@ -18,7 +19,6 @@ export default function ProfileCard({ user }: { user: AccountUser | null }) {
   const tt = useAccountStrings()
   const emailLine = user?.email && !isPhoneEmail(user.email) ? user.email : null
   const phoneLine = user?.phone?.trim() || null
-  const letter = (user?.name?.trim()?.[0] ?? 'S').toUpperCase()
 
   return (
     <section aria-label={tt('profile')} className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
@@ -26,15 +26,7 @@ export default function ProfileCard({ user }: { user: AccountUser | null }) {
       {user ? (
         <div>
           <div className="flex items-center gap-4">
-            {user.image ? (
-              // Remote OAuth avatar — next/image remotePatterns not configured
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.image} alt="" className="h-14 w-14 rounded-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-[18px] font-black text-white">
-                {letter}
-              </span>
-            )}
+            <UserAvatar name={user.name} image={user.image} size={56} />
             <div className="min-w-0">
               <p className="truncate text-[17px] font-black text-sv-ink">{user.name ?? '—'}</p>
               {emailLine ? (

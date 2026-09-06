@@ -1027,7 +1027,7 @@ function buildingProps(b: MapBuildingCluster, deal: MapDealFilter = 'all') {
     label: b.label,
     code: b.code ?? '',
     // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
-    color: colorWithAlpha(hue, ghost ? 0.78 : 0.95),
+    color: colorWithAlpha(hue, ghost ? 0.6 : 0.95),
     // Selection-focus dim — context massing recedes, selected campus stays lit.
     colorDim: colorWithAlpha(hue, ghost ? 0.22 : 0.3),
     hue,
@@ -1088,7 +1088,7 @@ export function buildingsToGeoJSON(
                 // Keep cluster id so map click → same panel for every tower.
                 id: b.id,
                 height,
-                color: colorWithAlpha(pinHue(b, deal), ghost ? 0.78 : 0.95),
+                color: colorWithAlpha(pinHue(b, deal), ghost ? 0.6 : 0.95),
                 // One label per campus — duplicate "m² Highlight" / M2-05 looked fused.
                 label: i === 0 ? b.label : '',
                 code: i === 0 ? (b.code ?? '') : '',

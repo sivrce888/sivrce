@@ -391,7 +391,8 @@ function projectToBuilding(p: Project): BuildingCatalogEntry {
   return {
     slug: p.slug,
     code: projectCode(p),
-    name: p.name,
+    // ka-first like STREET_LANDMARKS; Latin brand stays in nameEn / JSON-LD alternateName.
+    name: p.nameKa ?? p.name,
     nameEn: p.name,
     address: p.location,
     city: p.city,

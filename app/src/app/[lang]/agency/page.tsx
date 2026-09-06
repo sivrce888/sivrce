@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+
+import OwnerReviews from "@/components/reviews/OwnerReviews"
 import LocalizedLink from "@/components/LocalizedLink"
 import { Building2, CalendarDays, Eye, Plus, Users } from "lucide-react"
 
@@ -10,6 +12,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell"
 import DashboardQuickLinks from "@/components/dashboard/DashboardQuickLinks"
 import EmptyState from "@/components/dashboard/EmptyState"
 import StatCard from "@/components/dashboard/StatCard"
+import UserAvatar from "@/components/UserAvatar"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { INQUIRY_STATUS_KA, INQUIRY_STATUSES, inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
@@ -167,12 +170,7 @@ export default async function AgencyOverviewPage() {
           <ul className="mt-4 flex flex-col gap-3">
             {team.slice(0, 4).map((agent) => (
               <li key={agent.id} className="flex items-center gap-3">
-                <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[12px] font-black text-white"
-                  style={{ backgroundColor: agent.color || "var(--sv-blue)" }}
-                >
-                  {agent.avatarText}
-                </span>
+                <UserAvatar name={agent.name} label={agent.avatarText} size={40} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13.5px] font-bold text-sv-ink">{agent.name}</p>
                   <p className="text-[11.5px] font-medium text-sv-ink/50">
@@ -190,6 +188,8 @@ export default async function AgencyOverviewPage() {
           გუნდის ნახვა →
         </LocalizedLink>
       </section>
+
+      <OwnerReviews className="mt-6" />
     </DashboardShell>
   )
 }

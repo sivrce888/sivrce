@@ -8,6 +8,7 @@ import {
   parseAccountPhone,
   parseDisplayName,
 } from "@/lib/account-profile"
+import { isValidAvatarStyle } from "@/lib/avatar"
 import { isPhoneEmail, phoneEmail } from "@/lib/auth-phone"
 import { BRAND } from "@/lib/brand"
 import { db } from "@/lib/db"
@@ -173,6 +174,31 @@ export async function updateProfile(
   revalidatePath("/account")
   revalidatePath("/", "layout")
   return { ok: "პროფილი შენახულია" }
+}
+
+type AvatarSaveResult = { ok: boolean }
+
+/** Pin (or auto) the monogram gradient for the signed-in user. */
+export async function saveAvatarStyle(style: number | null): Promise<AvatarSaveResult> {
+  const user = await requireUser("/settings")
+  if (style !== null && !isValidAvatarStyle(style)) return { ok: false }
+
+  await db.user.update({ where: { id: user.id }, data: { avatarStyle: style } })
+  revalidatePath("/settings")
+  return { ok: true }
+}
+
+/** Set (uploaded via /api/upload) or clear the profile photo. */
+export async function saveAvatarImage(url: string | null): Promise<AvatarSaveResult> {
+  const user = await requireUser("/settings")
+  // Same-origin path (R2-unconfigured dev) or https URL only — never data:/javascript:.
+  if (url !== null && !url.startsWith("/") && !/^https:\/\/\S{1,2040}$/.test(url)) {
+    return { ok: false }
+  }
+
+  await db.user.update({ where: { id: user.id }, data: { image: url } })
+  revalidatePath("/settings")
+  return { ok: true }
 }
 
 export async function changePassword(

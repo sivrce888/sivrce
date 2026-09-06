@@ -35,6 +35,14 @@ export interface ReviewStrings {
   errorBody: (min: number) => string
   errorAlready: string
   errorGeneric: string
+  update: string
+  deleteReview: string
+  replyCta: string
+  replyPlaceholder: string
+  replySave: string
+  replySaving: string
+  replyError: string
+  aboutYou: string
   prevPage: string
   nextPage: string
   pageOf: (page: number, pages: number) => string
@@ -78,6 +86,14 @@ const ka: ReviewStrings = {
   errorBody: (min) => `ტექსტი უნდა შეიცავდეს მინიმუმ ${min} სიმბოლოს`,
   errorAlready: 'ამ გვერდზე უკვე დაგიტოვებია შეფასება',
   errorGeneric: 'გაგზავნა ვერ მოხერხდა — სცადე თავიდან',
+  update: 'განახლება',
+  deleteReview: 'შეფასების წაშლა',
+  replyCta: 'პასუხი',
+  replyPlaceholder: 'დაწერე პასუხი ამ შეფასებას…',
+  replySave: 'პასუხის გაგზავნა',
+  replySaving: 'იგზავნება…',
+  replyError: 'პასუხი ვერ შეინახა — სცადე თავიდან',
+  aboutYou: 'შეფასებები შენზე',
   prevPage: 'წინა',
   nextPage: 'შემდეგი',
   pageOf: (page, pages) => `გვერდი ${page} / ${pages}`,
@@ -121,6 +137,14 @@ const en: ReviewStrings = {
   errorBody: (min) => `Review must be at least ${min} characters`,
   errorAlready: 'You have already reviewed this',
   errorGeneric: 'Could not submit — please try again',
+  update: 'Update review',
+  deleteReview: 'Delete review',
+  replyCta: 'Reply',
+  replyPlaceholder: 'Write a reply to this review…',
+  replySave: 'Send reply',
+  replySaving: 'Sending…',
+  replyError: 'Could not save the reply — please try again',
+  aboutYou: 'Reviews about you',
   prevPage: 'Previous',
   nextPage: 'Next',
   pageOf: (page, pages) => `Page ${page} of ${pages}`,
@@ -164,6 +188,14 @@ const ru: ReviewStrings = {
   errorBody: (min) => `Отзыв должен содержать минимум ${min} символов`,
   errorAlready: 'Вы уже оставили отзыв об этом',
   errorGeneric: 'Не удалось отправить — попробуйте ещё раз',
+  update: 'Обновить отзыв',
+  deleteReview: 'Удалить отзыв',
+  replyCta: 'Ответить',
+  replyPlaceholder: 'Напишите ответ на этот отзыв…',
+  replySave: 'Отправить ответ',
+  replySaving: 'Отправка…',
+  replyError: 'Не удалось сохранить ответ — попробуйте ещё раз',
+  aboutYou: 'Отзывы о вас',
   prevPage: 'Назад',
   nextPage: 'Вперёд',
   pageOf: (page, pages) => `Страница ${page} из ${pages}`,

@@ -2,14 +2,17 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { MapPin, CalendarCheck, Building2, BadgeCheck, Star } from 'lucide-react'
+import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import HScroll from '@/components/HScroll'
+import { AnchorNav } from '@/components/AnchorNav'
+import { StickyLeadBar } from '@/components/lead/StickyLeadBar'
+import { telHref, waHref } from '@/lib/inquiries/phone'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
-import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { PROJECTS, isDelivered } from '@/data/professionals'
 import {
@@ -33,6 +36,7 @@ import { buildingFloors, floorsToGeoJSON } from '@/lib/map/floors'
 import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
 import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import { altName, altNameList } from '@/lib/bilingual'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -42,6 +46,7 @@ import {
   dirLoc,
   faqPageLd,
   finishLabel,
+  floorsLabel,
   pickLoc,
   projectFaqs,
   unitsLabel,
@@ -79,27 +84,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const loc = dirLoc(lang)
   const p = await getLiveProject(slug)
   if (!p) return {}
-  const description = (pickLoc(p.description, loc) || `${p.name}, ${p.location}`)
-    .replace(/\s+/g, ' ')
-    .slice(0, 155)
+  const alt = (lang === 'ka' && p.nameKa) || altName(p.name) || ''
+  const body = (pickLoc(p.description, loc) || `${p.name}, ${p.location}`).replace(/\s+/g, ' ')
+  // Both scripts up front — Google/AI bold whichever the query used.
+  const description = ((alt && !body.includes(alt) ? `${p.name} (${alt}). ` : '') + body).slice(0, 155)
   const title = PROJECT_DETAIL[loc].titleOf(p)
+  // Georgian transliteration wins on ka (users search "ჩარგლის რეზიდენსი", not the Latin brand).
+  const displayName = lang === 'ka' && p.nameKa ? p.nameKa : p.name
   const og = ogImage(p.img)
   return {
     title,
     description,
     alternates: { canonical: `/projects/${p.slug}`, languages: langAlternates(`/projects/${p.slug}`) },
     openGraph: {
-      title: `${p.name}`,
+      title: displayName,
       description,
       type: 'website',
       url: `https://sivrce.ge/projects/${p.slug}`,
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
-      images: [{ url: og, alt: p.name }],
+      images: [{ url: og, alt: displayName }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${p.name}`,
+      title: displayName,
       description,
       images: [og],
     },
@@ -115,6 +123,8 @@ export default async function ProjectPage({ params }: PageProps) {
 
   const [project, liveProjects] = await Promise.all([getLiveProject(slug), projectsLive()])
   if (!project) notFound()
+  // Georgian transliteration wins on ka — matches how users actually search.
+  const displayName = lang === 'ka' && project.nameKa ? project.nameKa : project.name
 
   const [dev, listings, aggregate, siblingProjects, mapListings] = await Promise.all([
     project.developerSlug ? getLiveDeveloper(project.developerSlug) : Promise.resolve(null),
@@ -152,10 +162,17 @@ export default async function ProjectPage({ params }: PageProps) {
   const aboutText =
     pickLoc(project.description, loc) || project.description.ka || project.description.en
 
+  // alternateName: curated ka name or derived translit — the other-script form
+  // for entity matching in Google/AI (users search 'არჩი უნივერსი' AND 'Archi Universe').
+  const altNames = [
+    ...new Set([project.name, project.nameKa ? null : altName(project.name)]),
+  ].filter((n): n is string => !!n && n !== displayName)
+
   const projectLd = {
     '@context': 'https://schema.org',
     '@type': 'ApartmentComplex',
-    name: project.name,
+    name: displayName,
+    ...(altNames.length > 0 && { alternateName: altNames }),
     description: aboutText,
     url: `https://sivrce.ge/projects/${project.slug}`,
     image: images.map((url, i) => ({
@@ -199,6 +216,7 @@ export default async function ProjectPage({ params }: PageProps) {
       provider: {
         '@type': 'Organization',
         name: pickLoc(dev.name, loc),
+        alternateName: altNameList(pickLoc(dev.name, loc), [dev.name.ka, dev.name.en, dev.name.ru]),
         url: `https://sivrce.ge/developers/${dev.slug}`,
         ...(dev.website ? { sameAs: [dev.website] } : {}),
       },
@@ -221,7 +239,7 @@ export default async function ProjectPage({ params }: PageProps) {
       {
         '@type': 'ListItem',
         position: 3,
-        name: project.name,
+        name: displayName,
         item: `https://sivrce.ge/projects/${project.slug}`,
       },
     ],
@@ -229,6 +247,30 @@ export default async function ProjectPage({ params }: PageProps) {
 
   // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
   const faqs = projectFaqs(loc, project, dev)
+
+  // Structured facts (crawlable dl) — only rows the data actually supports.
+  const detailRows: { label: string; value: string }[] = [
+    { label: micro.priceFromM2, value: project.priceFromM2 },
+    { label: c.statsBuilt, value: `${project.done}%` },
+    { label: micro.handover, value: finishLabel(loc, project.finish) },
+    { label: micro.flats, value: unitsLabel(project.flats, loc) },
+    ...(project.floors ? [{ label: c.floorsRow, value: floorsLabel(project.floors, loc) }] : []),
+    ...(project.cadastral ? [{ label: c.cadastral, value: project.cadastral }] : []),
+    { label: c.location, value: `${project.location}, ${project.city}` },
+  ]
+
+  const anchors = [
+    ...(floorsFc || hasGeo
+      ? [{ id: 'location', label: floorsFc && cluster ? c.building3d : c.location }]
+      : []),
+    { id: 'details', label: c.details },
+    ...((project.gallery?.length ?? 0) > 0 ? [{ id: 'gallery', label: c.gallery }] : []),
+    ...(project.passportUrl ? [{ id: 'plans', label: c.floorPlan }] : []),
+    ...(aboutText ? [{ id: 'about', label: c.aboutProject }] : []),
+    ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
+    { id: 'faq', label: c.faqChip },
+    { id: 'contact', label: c.contact },
+  ]
 
   return (
     <div className="min-h-screen bg-sv-cloud">
@@ -254,13 +296,18 @@ export default async function ProjectPage({ params }: PageProps) {
               <span aria-hidden className="mx-1.5">
                 /
               </span>
-              <span className="text-white/85">{project.name}</span>
+              <span className="text-white/85">{displayName}</span>
             </nav>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h1 className="text-[28px] font-black text-white [text-shadow:0_2px_12px_rgba(5,11,38,0.6)] md:text-[40px]">
-                  {project.name}
+                  {displayName}
                 </h1>
+                {(displayName !== project.name || altNames.length > 0) && (
+                  <p className="text-[13px] font-bold text-white/60">
+                    {displayName !== project.name ? project.name : altNames[0]}
+                  </p>
+                )}
                 {dev && (
                   <Link
                     href={`/developers/${dev.slug}`}
@@ -271,10 +318,12 @@ export default async function ProjectPage({ params }: PageProps) {
                   </Link>
                 )}
               </div>
-              <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
-                <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
-                {project.rating}
-              </div>
+              {project.rating > 0 && (
+                <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
+                  <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
+                  {project.rating}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -282,19 +331,44 @@ export default async function ProjectPage({ params }: PageProps) {
         {/* Stats */}
         <section className="border-b border-sv-ink/[0.06] bg-sv-cloud">
           <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
-            <StatsRow
-              items={[
-                { label: micro.priceFromM2, value: project.priceFromM2 },
-                { label: c.statsBuilt, value: `${project.done}%` },
-                { label: micro.handover, value: finishLabel(loc, project.finish) },
-                { label: micro.flats, value: String(project.flats) },
-              ]}
-            />
-            <div className="mt-6 h-1.5 max-w-xl overflow-hidden rounded-full bg-sv-ink/[0.07]">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
-                style={{ width: `${project.done}%` }}
-              />
+            <div className="flex flex-wrap items-start justify-between gap-6">
+              <div className="min-w-0 flex-1">
+                <StatsRow
+                  items={[
+                    { label: micro.priceFromM2, value: project.priceFromM2 },
+                    { label: c.statsBuilt, value: `${project.done}%` },
+                    { label: micro.handover, value: finishLabel(loc, project.finish) },
+                    { label: micro.flats, value: String(project.flats) },
+                  ]}
+                />
+                <div className="mt-6 h-1.5 max-w-xl overflow-hidden rounded-full bg-sv-ink/[0.07]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
+                    style={{ width: `${project.done}%` }}
+                  />
+                </div>
+              </div>
+              {dev?.phone && (
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <a
+                    href={telHref(dev.phone)}
+                    aria-label={`${pickLoc(dev.name, loc)} — ${dev.phone}`}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-control bg-sv-blue px-5 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                  >
+                    <Phone className="h-4 w-4" aria-hidden />
+                    {dev.phone}
+                  </a>
+                  <a
+                    href={waHref(dev.phone)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`WhatsApp: ${pickLoc(dev.name, loc)}`}
+                    className="inline-flex min-h-11 items-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-5 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                  >
+                    WhatsApp
+                  </a>
+                </div>
+              )}
             </div>
             <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/55">
               <span className="flex items-center gap-1.5">
@@ -311,8 +385,25 @@ export default async function ProjectPage({ params }: PageProps) {
           </div>
         </section>
 
+        <AnchorNav items={anchors} label={c.navLabel} />
+
+        {/* Facts */}
+        <section id="details" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
+          <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+            {c.details}
+          </h2>
+          <dl className="mt-6 grid gap-px overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-ink/[0.06] shadow-card sm:grid-cols-2 lg:grid-cols-3">
+            {detailRows.map((r) => (
+              <div key={r.label} className="bg-sv-surface px-5 py-4">
+                <dt className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/45">{r.label}</dt>
+                <dd className="mt-1 text-[15px] font-black text-sv-ink">{r.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
         {floorsFc && cluster ? (
-          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+          <section id="location" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {c.building3d}
             </h2>
@@ -331,7 +422,7 @@ export default async function ProjectPage({ params }: PageProps) {
             </p>
           </section>
         ) : hasGeo ? (
-          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+          <section id="location" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {c.location}
             </h2>
@@ -355,7 +446,7 @@ export default async function ProjectPage({ params }: PageProps) {
         ) : null}
 
         {(project.gallery?.length ?? 0) > 0 && (
-          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+          <section id="gallery" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {c.gallery}
             </h2>
@@ -379,7 +470,7 @@ export default async function ProjectPage({ params }: PageProps) {
         )}
 
         {project.passportUrl && (
-          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+          <section id="plans" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {c.floorPlan}
             </h2>
@@ -396,7 +487,7 @@ export default async function ProjectPage({ params }: PageProps) {
         )}
 
         {aboutText && (
-          <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
+          <section id="about" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {c.aboutProject}
             </h2>
@@ -442,7 +533,7 @@ export default async function ProjectPage({ params }: PageProps) {
         )}
 
         {listings.length > 0 && (
-          <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+          <section id="listings" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {micro.listingsIn(project.city)}
             </h2>
@@ -454,16 +545,24 @@ export default async function ProjectPage({ params }: PageProps) {
           </section>
         )}
 
-        <FaqSection
-          title={c.faqTitle}
-          items={faqs}
-          className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10"
-        />
+        <div id="faq" className="scroll-mt-[7.5rem]">
+          <FaqSection
+            title={c.faqTitle}
+            items={faqs}
+            className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10"
+          />
+        </div>
 
-        <section className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2">
+        <section
+          id="contact"
+          className="mx-auto grid max-w-[1440px] scroll-mt-[7.5rem] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2"
+        >
           <LeadForm targetType="project" targetId={project.slug} recipientName={project.name} />
-          <ReviewsSection targetType="project" targetId={project.slug} />
+          <ReviewsSectionServer targetType="project" targetId={project.slug} />
         </section>
+        {dev?.phone && (
+          <StickyLeadBar targetType="project" targetId={project.slug} phone={dev.phone} recipientName={project.name} />
+        )}
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { avatarInitials } from "@/lib/avatar"
 import { BRAND } from "@/lib/brand"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
@@ -13,13 +14,6 @@ function slugify(input: string): string {
     .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 100)
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return "AG"
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
-  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase()
 }
 
 /** Update (or create) the signed-in agent's public profile. */
@@ -52,7 +46,7 @@ export async function saveAgentProfile(formData: FormData): Promise<void> {
       data: {
         name,
         agency,
-        avatarText: avatarText || existing.avatarText || initials(name),
+        avatarText: avatarText || existing.avatarText || avatarInitials(name),
         languages,
         specialties,
       },
@@ -73,7 +67,7 @@ export async function saveAgentProfile(formData: FormData): Promise<void> {
         slug,
         name,
         agency,
-        avatarText: avatarText || initials(name),
+        avatarText: avatarText || avatarInitials(name),
         languages,
         specialties,
         color: BRAND.colors.blue,

@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/admin/ui/EmptyState"
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { StatCard } from "@/components/admin/ui/StatCard"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
+import UserAvatar from "@/components/UserAvatar"
 import { UserRole } from "@/generated/prisma/enums"
 import { fmtDate, fmtDateTime, fmtMoney, fmtNum } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
@@ -32,6 +33,7 @@ export default async function AdminUserDetailPage({
       id: true,
       name: true,
       email: true,
+      image: true,
       phone: true,
       role: true,
       trustScore: true,
@@ -66,12 +68,6 @@ export default async function AdminUserDetailPage({
   ])
 
   const displayName = user.name ?? user.email
-  const initials = displayName
-    .split(/\s+/)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
 
   return (
     <>
@@ -80,9 +76,7 @@ export default async function AdminUserDetailPage({
       {/* Profile header */}
       <div className="mb-5 rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-6 shadow-[var(--shadow-card)]">
         <div className="flex flex-wrap items-center gap-5">
-          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-sv-navy text-[20px] font-extrabold text-white">
-            {initials}
-          </div>
+          <UserAvatar name={displayName} image={user.image} size={64} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2.5">
               <p className="text-[18px] font-extrabold text-sv-ink">{displayName}</p>

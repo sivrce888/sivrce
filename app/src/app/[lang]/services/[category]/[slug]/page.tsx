@@ -5,7 +5,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import { LeadForm } from '@/components/lead/LeadForm'
-import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import LocalizedLink from '@/components/LocalizedLink'
 import { isValidLang } from '@/lib/i18n/core'
 import { langAlternates } from '@/lib/i18n/server'
@@ -194,7 +194,7 @@ export default async function ServiceProviderPage({ params }: PageProps) {
         )}
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
-          <ReviewsSection targetType="service" targetId={p.slug} />
+          <ReviewsSectionServer targetType="service" targetId={p.slug} />
         </section>
       </main>
       <Footer />

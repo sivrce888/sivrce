@@ -576,7 +576,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         </div>
       )}
 
-      <h3 className="mt-2.5 line-clamp-2 min-h-[2.8em] text-[15px] font-extrabold leading-[1.4] text-sv-ink transition-colors group-hover:text-sv-blue">
+      <h3 className="mt-2.5 min-h-[2.8em] text-[15px] font-extrabold leading-[1.4] text-sv-ink transition-colors group-hover:text-sv-blue">
         <LocalizedLink
           href={href}
           aria-label={l.title}

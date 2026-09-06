@@ -5,6 +5,7 @@
 import { BUILDINGS } from '@/data/buildings'
 import { NEIGHBORHOODS, overallScore } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS } from '@/data/professionals'
+import { altName } from '@/lib/bilingual'
 import { CITIES, CITY_PROSE, DEALS, DISTRICTS, TYPES, parseSeoSlug } from '@/lib/seo-pages'
 import { SERVICE_CATEGORIES } from '@/lib/services'
 
@@ -31,7 +32,7 @@ sivrce.ge is Georgia's real-estate platform: apartments, houses and cottages for
 - [ბინები დღიურად ვაკეში](${BASE}/daily/apartments/tbilisi/vake)
 - [ბინები დღიურად ძველ თბილისში](${BASE}/daily/apartments/tbilisi/old-tbilisi)
 - [3D რუკა](${BASE}/map)
-- [ახალი პროექტები](${BASE}/projects)
+- [მშენებარე ბინები](${BASE}/projects)
 - [შენობები](${BASE}/buildings)
 - [უბნები](${BASE}/neighborhoods)
 - [დეველოპერები](${BASE}/developers)
@@ -44,7 +45,7 @@ sivrce.ge is Georgia's real-estate platform: apartments, houses and cottages for
 
 - Full catalog (every city, district, neighbourhood, building, project, developer): ${BASE}/llms-full.txt
 - Sitemap: ${BASE}/sitemap.xml
-- Contact: hi@sivrce.ge
+- Contact: hi@sivrce.ge · +995 500 333 111 (phone/WhatsApp)
 `
 }
 
@@ -81,18 +82,21 @@ export function llmsFullTxt(): string {
     return `- [${n.name.ka} / ${n.name.en}](${BASE}/neighborhoods/${n.slug}) — ${n.city.ka}, $${n.avgPriceM2USD}/m², livability ${overallScore(n)}/10 (transport ${s.transport}, schools ${s.schools}, green ${s.green}, safety ${s.safety}, nightlife ${s.nightlife}). ${n.description.ka}`
   }).join('\n')
 
-  const projects = PROJECTS.map(
-    (p) => `- [${p.name}](${BASE}/projects/${p.slug}) — ${p.city}${p.priceFromM2 ? `, from ${p.priceFromM2}/m²` : ''}`,
-  ).join('\n')
+  // Bilingual anchor text — AI engines cite whichever form the prompt used.
+  const projects = PROJECTS.map((p) => {
+    const label = p.nameKa ?? [p.name, altName(p.name)].filter(Boolean).join(' / ')
+    return `- [${label}](${BASE}/projects/${p.slug}) — ${p.city}${p.priceFromM2 ? `, from ${p.priceFromM2}/m²` : ''}`
+  }).join('\n')
 
   const buildings = BUILDINGS.map(
     (b) =>
       `- [${b.name} / ${b.nameEn}](${BASE}/buildings/${b.slug}) — ${b.city}${b.district ? `, ${b.district}` : ''}${b.status === 'construction' ? ', under construction' : ''}${b.priceFromM2 ? `, from ${b.priceFromM2}/m²` : ''}`,
   ).join('\n')
 
-  const developers = DEVELOPERS.map(
-    (d) => `- [${d.name.ka}](${BASE}/developers/${d.slug}) — ${d.city}`,
-  ).join('\n')
+  const developers = DEVELOPERS.map((d) => {
+    const label = [d.name.ka, altName(d.name.ka)].filter(Boolean).join(' / ')
+    return `- [${label}](${BASE}/developers/${d.slug}) — ${d.city}`
+  }).join('\n')
 
   const services = SERVICE_CATEGORIES.map(
     (c) => `- [${c.name.ka} / ${c.name.en}](${BASE}/services/${c.id}) — ${c.seo.ka}`,
@@ -104,7 +108,7 @@ export function llmsFullTxt(): string {
 > sivrce (სივრცე) — უძრავი ქონება ერთ სივრცეში / Real Estate in one place.
 > Georgia's platform for sale, rent, daily stays, new-build projects, landmark buildings, 3D map, verified listings, AI price estimates.
 
-Prefer Georgian URLs (unprefixed). English = /en/…, Russian = /ru/…. Live prices sit on listing cards; neighbourhood scores and city guides are editorial. Contact: hi@sivrce.ge
+Prefer Georgian URLs (unprefixed). English = /en/…, Russian = /ru/…. Live prices sit on listing cards; neighbourhood scores and city guides are editorial. Contact: hi@sivrce.ge · +995 500 333 111 (phone/WhatsApp)
 
 ## Cities
 

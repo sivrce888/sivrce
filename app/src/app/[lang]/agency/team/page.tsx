@@ -6,6 +6,7 @@ import { getAgencyContext } from "@/components/agency-dashboard/data"
 import { AGENCY_NAV } from "@/components/agency-dashboard/nav"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
+import UserAvatar from "@/components/UserAvatar"
 import { requireRole } from "@/lib/guards"
 
 export const dynamic = "force-dynamic"
@@ -43,12 +44,7 @@ export default async function AgencyTeamPage() {
               className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card"
             >
               <div className="flex items-center gap-3">
-                <span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[13px] font-black text-white"
-                  style={{ backgroundColor: agent.color || "var(--sv-blue)" }}
-                >
-                  {agent.avatarText}
-                </span>
+                <UserAvatar name={agent.name} label={agent.avatarText} size={48} />
                 <div className="min-w-0">
                   <p className="flex items-center gap-1.5 truncate text-[14.5px] font-extrabold text-sv-ink">
                     {agent.name}

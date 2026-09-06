@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { BadgeCheck, ThumbsUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import UserAvatar from '@/components/UserAvatar'
 import { RatingStars } from './RatingStars'
 import type { ReviewStrings } from './i18n'
 import type { ReviewItem, ReviewOwnerReply } from './types'
@@ -53,12 +54,7 @@ export function ReviewCard({ review: r, strings: s, locale, className }: ReviewC
   return (
     <article className={cn('rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card md:p-6', className)}>
       <header className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-sv-orange/10 text-[16px] font-black text-sv-orange"
-        >
-          {r.authorName.trim().charAt(0).toUpperCase() || '?'}
-        </span>
+        <UserAvatar name={r.authorName} size={44} />
         <div className="min-w-0">
           <p className="flex flex-wrap items-center gap-1.5 text-[15px] font-extrabold text-sv-ink">
             <span className="truncate">{r.authorName}</span>

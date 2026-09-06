@@ -17,6 +17,8 @@ model User {
   phone         String?   @unique @db.VarChar(30)
   phoneVerifiedAt DateTime? @map("phone_verified_at") @db.Timestamptz(6)
   image         String?   @db.Text
+  /// Chosen monogram gradient (index into lib/avatar PAIRS); null = auto from name.
+  avatarStyle   Int?      @map("avatar_style")
   /// Null for OAuth-only accounts. Set on email signup / password reset.
   passwordHash  String?   @map("password_hash") @db.VarChar(200)
   role          UserRole  @default(buyer)
@@ -777,7 +779,6 @@ model ServiceProvider {
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  reviews ServiceProviderReview[]
 
   @@index([category, city, isActive], map: "service_provider_category_city_idx")
   @@index([slug], map: "service_provider_slug_idx")
@@ -785,20 +786,6 @@ model ServiceProvider {
   @@map("service_providers")
 }
 
-model ServiceProviderReview {
-  id        String   @id @default(uuid()) @db.Uuid
-  providerId String  @map("provider_id") @db.Uuid
-  authorId  String   @map("author_id") @db.VarChar(120)
-  rating    Int
-  comment   String   @db.Text
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  provider ServiceProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-
-  @@index([providerId, createdAt(sort: Desc)], map: "service_provider_review_provider_idx")
-  @@map("service_provider_reviews")
-}
 
 model SavedListing {
   id        String    @id @default(uuid()) @db.Uuid

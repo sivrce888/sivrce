@@ -542,7 +542,8 @@ async function ensureLayers(
           'case',
           ['!=', ['get', 'code'], ''],
           ['get', 'code'],
-          ['to-string', ['get', 'total']],
+          // A bare "0" on a listing-less massing is noise — show nothing.
+          ['case', ['>', ['get', 'total'], 0], ['to-string', ['get', 'total']], ''],
         ],
       ],
       'text-size': 12,
@@ -597,12 +598,14 @@ async function ensureLayers(
     type: 'symbol',
     source: NBH_SOURCE_ID,
     minzoom: 9,
-    maxzoom: 15,
+    // Owns districts through street zoom — OFM suburb labels are hidden so
+    // blocks never double-tag (CHUGURETI DISTRICT + ჩუღურეთი).
+    maxzoom: 17,
     layout: {
       'text-field': ['get', 'name'],
       'text-size': [
         'interpolate', ['linear'], ['zoom'],
-        9, 10, 11, 11, 12, 12, 14, 14,
+        9, 10, 11, 11, 12, 12, 14, 14, 16, 16,
       ],
       'text-font': ['Noto Sans Bold'],
       'text-anchor': 'center',
@@ -1791,7 +1794,13 @@ function Map3DInner({
                 2.25,
                 dark ? 2 : 1.5,
               ])
-              map.setPaintProperty(DOT_ID, 'circle-opacity', 1)
+              // Preserve visited-dim across style remounts (never a flat 1).
+              map.setPaintProperty(DOT_ID, 'circle-opacity', [
+                'case',
+                ['boolean', ['feature-state', 'seen'], false],
+                0.55,
+                1,
+              ])
             } catch {
               /* paint may differ */
             }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -20,10 +20,12 @@ export interface ReviewFormProps {
   /** BCP-47 locale tag sent as `locale` in the POST body. */
   locale: string
   onSubmitted?: (review: ReviewItem) => void
+  /** Fired after the author deletes their own review — the section refetches. */
+  onDeleted?: () => void
   className?: string
 }
 
-export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitted, className }: ReviewFormProps) {
+export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitted, onDeleted, className }: ReviewFormProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const baseId = useId()
@@ -33,6 +35,8 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [mine, setMine] = useState<ReviewItem | null>(null)
 
   // Prefill the name once the session resolves; never overwrite what the user
   // typed. State adjusted during render — no setState in effect bodies.
@@ -43,7 +47,45 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
     setName((prev) => (prev ? prev : sessionName))
   }
 
+  // Switching targets resets edit state; the mine-fetch refetches per target.
+  const targetKey = `${targetType}:${targetId}`
+  const [prevKey, setPrevKey] = useState(targetKey)
+  const [mineLoadedFor, setMineLoadedFor] = useState<string | null>(null)
+  if (prevKey !== targetKey) {
+    setPrevKey(targetKey)
+    setMineLoadedFor(null)
+    setMine(null)
+  }
+
+  useEffect(() => {
+    if (status !== 'authenticated' || mineLoadedFor === targetKey) return
+    let cancelled = false
+    const params = new URLSearchParams({ mine: '1', targetType, targetId })
+    fetch(`/api/reviews?${params}`, { credentials: 'same-origin' })
+      .then(async (res) => (res.ok ? ((await res.json()) as { review: unknown }) : null))
+      .then((d) => {
+        if (cancelled) return
+        setMineLoadedFor(targetKey)
+        const r = d && typeof d === 'object' && 'review' in d ? d.review : null
+        if (r && typeof r === 'object' && 'id' in r) {
+          const v = r as ReviewItem
+          setMine(v)
+          // Prefill only untouched fields — never clobber what the user typed.
+          setRating((p) => p || v.rating)
+          setTitle((p) => p || v.title || '')
+          setBody((p) => p || v.body)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setMineLoadedFor(targetKey)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [status, targetType, targetId, targetKey, mineLoadedFor])
+
   const bodyLen = body.trim().length
+  const editing = !!mine
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -64,8 +106,9 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
       const n = name.trim()
       if (n) payload.authorName = n
 
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
+      const url = editing && mine ? `/api/reviews/${encodeURIComponent(mine.id)}` : '/api/reviews'
+      const res = await fetch(url, {
+        method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
@@ -76,27 +119,19 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
         return
       }
 
-      // ponytail: POST response shape isn't pinned — accept {review} or bare review,
-      // else fall back to a local optimistic copy; next fetch reconciles.
-      const fromApi =
-        data && typeof data === 'object'
-          ? 'review' in data
-            ? ((data as { review: ReviewItem }).review ?? null)
-            : (data as ReviewItem)
-          : null
-      const created: ReviewItem =
-        fromApi && typeof fromApi.id === 'string'
-          ? fromApi
-          : {
-              id: `optimistic-${Date.now()}`,
-              authorName: n || s.anonymous,
-              rating,
-              body: body.trim(),
-              verified: false,
-              helpfulCount: 0,
-              createdAt: new Date().toISOString(),
-              ...(t ? { title: t } : {}),
-            }
+      const updated: ReviewItem = editing && mine
+        ? { ...mine, rating, body: body.trim(), ...(t ? { title: t } : {}) }
+        : {
+            id: `optimistic-${Date.now()}`,
+            authorName: n || s.anonymous,
+            rating,
+            body: body.trim(),
+            verified: false,
+            helpfulCount: 0,
+            createdAt: new Date().toISOString(),
+            ...(t ? { title: t } : {}),
+          }
+      const created = updated
 
       onSubmitted?.(created)
       setRating(0)
@@ -106,6 +141,26 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
       setError(s.errorGeneric)
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function remove() {
+    if (!mine || deleting) return
+    if (!window.confirm(s.deleteReview)) return
+    setDeleting(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/reviews/${encodeURIComponent(mine.id)}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(String(res.status))
+      setMine(null)
+      setRating(0)
+      setTitle('')
+      setBody('')
+      onDeleted?.()
+    } catch {
+      setError(s.errorGeneric)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -219,8 +274,19 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
         disabled={submitting}
         className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none disabled:hover:translate-y-0"
       >
-        {submitting ? s.submitting : s.submit}
+        {submitting ? s.submitting : editing ? s.update : s.submit}
       </button>
+
+      {editing && (
+        <button
+          type="button"
+          onClick={remove}
+          disabled={deleting}
+          className="mt-2 w-full rounded-control py-2 text-[13px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+        >
+          {s.deleteReview}
+        </button>
+      )}
     </form>
   )
 }

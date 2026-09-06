@@ -13,6 +13,7 @@ import {
   type DirectoryHubCopy,
 } from '@/lib/directory-seo'
 import { PER_PAGE, Pager, ProjectsGrid } from '@/app/[lang]/projects/ProjectsGrid'
+import { toCard } from '@/app/[lang]/projects/card'
 
 /**
  * Shared new-build hub page — identical card/prose/FAQ pattern to
@@ -85,7 +86,7 @@ export function ProjectHub({
           <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
             {c.sub}
           </p>
-          <ProjectsGrid projects={pageProjects} loc={loc} />
+          <ProjectsGrid projects={pageProjects.map((p) => toCard(p, loc))} loc={loc} />
           <Pager page={page} totalPages={totalPages} loc={loc} basePath={basePath} />
         </section>
 
