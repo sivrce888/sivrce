@@ -70,3 +70,6 @@ __pycache__/
 
 # stale next build dump (repo-lightweight-lock)
 app/.next-stale-backup/
+
+# root-level screenshots (shots live nowhere in-repo)
+/our-map*.png
