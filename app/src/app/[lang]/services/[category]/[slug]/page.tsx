@@ -10,7 +10,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { isValidLang } from '@/lib/i18n/core'
 import { langAlternates } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
-import { telHref } from '@/lib/inquiries/phone'
+import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
 import { getListingsByOwner } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import {
@@ -73,7 +73,8 @@ export default async function ServiceProviderPage({ params }: PageProps) {
     name: p.name.en,
     alternateName: p.name.ka,
     url: `https://sivrce.ge/services/${p.category}/${p.slug}`,
-    telephone: p.phone.replace(/\s+/g, ''),
+    // ponytail: user contact routes to the switchboard, never the provider's direct line
+    telephone: CONTACT_PHONE.replace(/\s+/g, ''),
     address: {
       '@type': 'PostalAddress',
       addressLocality: p.city,
@@ -127,15 +128,21 @@ export default async function ServiceProviderPage({ params }: PageProps) {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {p.phone && (
-                <a
-                  href={telHref(p.phone)}
-                  className="inline-flex items-center gap-2 rounded-full bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-white shadow-glow-orange"
-                >
-                  <Phone className="h-4 w-4" />
-                  დარეკვა
-                </a>
-              )}
+              <a
+                href={telHref(CONTACT_PHONE)}
+                className="inline-flex items-center gap-2 rounded-full bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-white shadow-glow-orange"
+              >
+                <Phone className="h-4 w-4" />
+                დარეკვა
+              </a>
+              <a
+                href={waHref(CONTACT_PHONE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-5 py-3 text-[14px] font-extrabold text-sv-blue hover:bg-sv-blue/10"
+              >
+                WhatsApp
+              </a>
               {p.website && (
                 <a
                   href={p.website}

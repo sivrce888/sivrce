@@ -38,7 +38,7 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
       ru: 'Crystal Group — грузинский девелопер, строит Crystal Loft и Crystal Resort (ул. Триалети) в Бакуриани, а также Crystal Park Hotel.',
     },
     verified: false,
-    phone: '+995 32 211 10 99',
+    phone: '+995 500 333 111',
     website: 'https://crystal-group.ge',
   },
   {
@@ -206,7 +206,7 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
       ru: 'Tbilisi Hills — девелопер гольф-курорта в Крцаниси: поле входит в Top-100 континентальной Европы; квартиры, виллы и участки.',
     },
     verified: false,
-    phone: '+995 551 452 222',
+    phone: '+995 500 333 111',
     website: 'https://tbilisihills.com',
   },
   {
@@ -222,7 +222,7 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
       ru: 'Artex Group — батумский девелопер, строит Artex (1-й пер. Ангиса, 35б) и Gate by Artex (ул. Анцухелидзе, 110) в районе Аэропорта.',
     },
     verified: false,
-    phone: '+995 592 400 000',
+    phone: '+995 500 333 111',
     website: 'https://artex.ge',
   },
   {

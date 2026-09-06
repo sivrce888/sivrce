@@ -28,7 +28,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'OMNIA Georgia — девелоперская компания в Тбилиси, строящая современные многофункциональные жилые комплексы с зеленой рекреацией, детским садом, торговым центром и спортивной инфраструктурой.',
     },
     verified: true,
-    phone: '+995 511 73 73 77',
+    phone: '+995 500 333 111',
     logoUrl: '/images/developers/omnia-georgia.svg',
     website: 'https://www.omnia.ge',
   },
@@ -45,7 +45,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Chargali Residence — новый тбилисский девелопер (2025), первый проект на ул. Чаргали в Темке.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'inn-development',
@@ -60,7 +60,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Inn Development — тбилисский девелопер, строит Gldani Inn: четыре жилых и один коммерческий блок в центре Глдани.',
     },
     verified: false,
-    phone: '+995 598 440 099',
+    phone: '+995 500 333 111',
     website: 'https://www.inndevelopment.ge/en',
   },
   {
@@ -76,7 +76,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Lider Development — тбилисский девелопер (с 2018): Passage Gldani, Corner Gldani, Entrada Sarajishvili, Lisi City View.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
     website: 'https://liderdevelopment.com/',
   },
   {
@@ -92,7 +92,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'G&G Group — тбилисская строительная компания, строит два 14-этажных корпуса на ул. Илиа Сухишвили в Варкетили.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'vr-holding',
@@ -107,7 +107,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'VR Holding — тбилисский девелопер, автор Krtsanisi Resort Residence (шесть корпусов в Крцаниси).',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'moedani',
@@ -122,7 +122,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Moedani — новый тбилисский проект в районе Самгори: участок 1,3 га, четыре блока, отель и 5 100 м² общественного пространства.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'gtb-development',
@@ -137,7 +137,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'GTB Development — тбилисская строительно-девелоперская компания; сданные объекты с 2014 года (Бакрадзе 15, Чкеидзе 12, Ташкентский тупик 10, Крцаниси II пер. 11). Сейчас строит GTB Didi Digomi.',
     },
     verified: false,
-    phone: '+995 577 14 15 93',
+    phone: '+995 500 333 111',
     website: 'https://gtbdevelopment.com/en/',
   },
   {
@@ -153,7 +153,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'IG Development Georgia — девелопер Cityzen: новый район у Центрального парка на Сабуртало с 42-этажной башней Cityzen Tower от Zaha Hadid Architects.',
     },
     verified: false,
-    phone: '+995 322 50 70 70',
+    phone: '+995 500 333 111',
     website: 'https://project.cityzen.ge',
   },
   // ── Coverage batch 2026-07 (korter active projects) ────────────────────
@@ -170,7 +170,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Alliance City — тбилисский девелопер, строит Alliance City Samgori на Московском проспекте. Не связан с батумской Alliance Group.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'simetria-group',
@@ -185,7 +185,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Simetria — тбилисский девелопер, автор Simetria Park (Окрокана) и Simetria Jikia (ул. Анны Политковской).',
     },
     verified: false,
-    phone: '+995 32 2 240 230',
+    phone: '+995 500 333 111',
     website: 'https://simetria.ge',
   },
   {
@@ -201,7 +201,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Devart Group — тбилисский девелопер, строит Green Gardens на ул. Самурзакано 39 в Чугурети.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'quadrum-global',
@@ -216,7 +216,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Quadrum Global — девелопер Tbilisi Gardens: 30-этажная башня на ул. Михеила Асатиани 6, Сабуртало.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'ktw-development',
@@ -231,7 +231,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'KTW Development — тбилисский девелопер, автор Mtatsminda Panorama на ул. Тариэли 13-17.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'structura-development',
@@ -246,7 +246,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Structura Development — тбилисский девелопер, строит Vake Tower на пр. Ильи Чавчавадзе 5а.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'eco-invest',
@@ -261,7 +261,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Eco Invest — тбилисский девелопер, автор Tbilisi Boulevard на ул. Уцноб Гмирта 7, Надзаладеви.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'gradburg-development',
@@ -276,7 +276,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Gradburg Development — тбилисский девелопер, строит Millennium Residence в Исани на пр. Бери Габриэла Салоси 14.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'urbanique-group',
@@ -291,7 +291,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Urbanique — тбилисский девелопер, автор Urbanique Mziuri на ул. Симона Чиковани 26, Сабуртало.',
     },
     verified: false,
-    phone: '+995 32 231 88 88',
+    phone: '+995 500 333 111',
     website: 'https://urbanique.ge',
   },
   {
@@ -307,7 +307,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Kolkhi — тбилисский девелопер, автор Horizon Nutsubidze на ул. Александра Бандзеладзе 12.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'trio-group',
@@ -322,7 +322,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Trio Group — тбилисский девелопер, строит Lisi Trio (15 этажей) на ул. Элгуджи Амашукели 5 в стороне Лиси.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'besik-sabashvili',
@@ -337,7 +337,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
       ru: 'Бесик Сабашвили — тбилисский девелопер, автор Lisi Kvarteti в Квемо Лиси.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
 ]
 

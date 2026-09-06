@@ -1007,6 +1007,8 @@ function buildingProps(b: MapBuildingCluster, deal: MapDealFilter = 'all') {
     code: b.code ?? '',
     // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
     color: colorWithAlpha(hue, ghost ? 0.78 : 0.95),
+    // Selection-focus dim — context massing recedes, selected campus stays lit.
+    colorDim: colorWithAlpha(hue, ghost ? 0.22 : 0.3),
     hue,
     height: b.heightM,
     total: b.listings.length,

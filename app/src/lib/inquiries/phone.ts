@@ -6,6 +6,9 @@
 /** Canonical display form: `+995 XXX XX XX XX` */
 export const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
 
+/** Site switchboard — every user-facing call/WhatsApp routes here (owner mandate). */
+export const CONTACT_PHONE = '+995 500 333 111'
+
 /** Normalize any raw input to `+995 XXX XX XX XX` (9 digits after the forced prefix). */
 export function formatPhone(raw: string): string {
   let d = raw.replace(/\D/g, '')

@@ -210,7 +210,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'm² — девелопер холдинга Georgia Capital, на первичном рынке с 2006 года. Специализация: доступное и энергоэффективное жильё в Тбилиси. В портфеле 16+ проектов, включая m² Highlight, m² at Mirtskhulava и m² Mtatsminda Park.',
     },
     verified: true,
-    phone: '+995 32 2 444 111',
+    phone: '+995 500 333 111',
     website: 'https://m2.ge',
   },
   {
@@ -226,7 +226,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Alliance Group — ведущая девелоперская группа Батуми, строящая высотные комплексы на набережной Нового бульвара — для жизни и инвестиций.',
     },
     verified: true,
-    phone: '+995 32 250 00 00',
+    phone: '+995 500 333 111',
     website: 'https://alliancegroup.ge',
   },
   {
@@ -242,7 +242,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'ORBI Group — девелопер крупнейших гостинично-жилых комплексов Батуми на первой линии моря, с сервисом управления для инвесторов.',
     },
     verified: true,
-    phone: '+995 555 31 00 00',
+    phone: '+995 500 333 111',
     website: 'https://orbi.ge',
   },
   {
@@ -259,7 +259,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'DIRSI — завершённый «город в городе» AS Group в Исани (~22 корпуса, 5000+ квартир). Продажи застройщика закрыты; активный вторичный рынок.',
     },
     verified: true,
-    phone: '+995 598 02 11 11',
+    phone: '+995 500 333 111',
     website: 'https://dirsi.ge',
   },
   {
@@ -275,7 +275,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Архи — один из самых опытных грузинских девелоперов: доступные и среднеценовые комплексы во всех районах Тбилиси, часто с досрочной сдачей.',
     },
     verified: true,
-    phone: '+995 322 602 602',
+    phone: '+995 500 333 111',
     website: 'https://archi.ge',
   },
   {
@@ -291,7 +291,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Аксис — пионер премиум-сегмента Ваке, автор знаменитых башен на проспекте Чавчавадзе. Небольшое портфолио, высокий стандарт.',
     },
     verified: false,
-    phone: '+995 32 2 24 17 17',
+    phone: '+995 500 333 111',
     website: 'https://axis.ge',
   },
   {
@@ -307,7 +307,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'King David — девелопер премиальных резиденций на Мтацминде с гостиничным сервисом.',
     },
     verified: true,
-    phone: '+995 322 77 88 99',
+    phone: '+995 500 333 111',
     website: 'https://kdr.ge',
   },
   {
@@ -323,7 +323,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Blox работает на рынке недвижимости Грузии с 2016 года, возводя современные энергоэффективные жилые комплексы в Вarketili, Сарджишвили и Белиашвили, рядом с Тбилисским морем.',
     },
     verified: true,
-    phone: '+995 32 2 05 07 07',
+    phone: '+995 500 333 111',
     website: 'https://blox.ge',
   },
   {
@@ -339,7 +339,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'NEXT Group — первый грузинский девелопер брендированных резиденций с мировыми гостиничными брендами (Radisson, Wyndham, Barceló). 65+ проектов на трёх континентах.',
     },
     verified: true,
-    phone: '+995 514 11 11 11',
+    phone: '+995 500 333 111',
     website: 'https://nextgroup.ge',
   },
   {
@@ -355,7 +355,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Метрополь — грузинский девелопер, основанный в 2022 году, в Топ-100 Luxury Lifestyle Awards. Шесть активных проектов (~1 млн м²), включая Метрополь Ортачала и Метрополь Лиси — первое частное сообщество у озера Лиси.',
     },
     verified: true,
-    phone: '+995 32 288 89 99',
+    phone: '+995 500 333 111',
     website: 'https://metropol.ge',
   },
   {
@@ -371,7 +371,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Redix — грузинская компания по управлению недвижимостью и инвестициями, офис на пр. Важа-Пшавела 71. Известна завершённым проектом на пр. Ильи Чавчавадзе 64 и бизнес-центром CH64 класса А.',
     },
     verified: false,
-    phone: '+995 322 33 00 11',
+    phone: '+995 500 333 111',
     website: 'https://redix.ge',
   },
   {
@@ -387,7 +387,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'White Square — один из ведущих жилых девелоперов группы BK Holding, фокус на Сабуртало и Ваке, строительство ведёт BK Construction. Портфель: Шартава, Миндели, Филигрин, Исани Парк.',
     },
     verified: true,
-    phone: '+995 32 2 222 111',
+    phone: '+995 500 333 111',
     website: 'https://w2.ge',
   },
   {
@@ -403,7 +403,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'ELT Group — девелопер с 18-летним опытом, более 300 000 м² построено в Батуми и Тбилиси, международные партнёрства. Известный проект — Barceló Residences Tbilisi.',
     },
     verified: true,
-    phone: '+995 422 11 00 33',
+    phone: '+995 500 333 111',
     website: 'https://eltgroup.ge',
   },
   {
@@ -419,7 +419,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'GURU Holding — международная строительная и девелоперская компания, в основном на рынке Батуми. Проект Guru Status — сотрудничество с Holiday Inn Express, сдача в 2025 году.',
     },
     verified: false,
-    phone: '+995 555 500 000',
+    phone: '+995 500 333 111',
     website: 'https://guruholding.ge',
   },
   {
@@ -435,7 +435,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Tekto Group — грузинская строительная компания с проектами в Тбилиси и на побережье. Инвестиционный проект Tekto Rakurs в Чакви предлагает квартиры с высокой доходностью.',
     },
     verified: false,
-    phone: '+995 322 55 00 33',
+    phone: '+995 500 333 111',
     website: 'https://tekto.ge',
   },
   {
@@ -451,7 +451,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Apart Group — один из ведущих девелоперов Тбилиси, известен проектами у озера Лиси (Lisi Lakers) и в других перспективных районах.',
     },
     verified: false,
-    phone: '+995 322 11 11 44',
+    phone: '+995 500 333 111',
     website: 'https://apartgroup.com',
   },
   {
@@ -467,7 +467,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'European Village — девелопер в западной Грузии, специализируется на элитных виллах по европейским технологиям: более 250 000 м² завершено, свыше $90 млн сдано.',
     },
     verified: false,
-    phone: '+995 422 33 00 55',
+    phone: '+995 500 333 111',
     website: 'https://europeanvillage.info',
   },
   {
@@ -483,7 +483,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Анаги — одна из крупнейших строительных и девелоперских компаний Грузии. Владеет Anagi Collab — первым «самодостаточным районом» Тбилиси. Проекты: Tbilisi Acres, Police City, m³ Saburtalo, Paragraph Golf & Spa Табори, Sakeni.',
     },
     verified: true,
-    phone: '+995 32 224 12 11',
+    phone: '+995 500 333 111',
     website: 'https://anagi.ge',
   },
   {
@@ -499,7 +499,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Gumbati Holding — девелопер премиум-сегмента с почти десятилетним опытом. Известен проектом Vake Residence — многофункциональный комплекс на ул. Кипшидзе 1, Ваке, и Villa Kokhta Mitarbi в Бакуриани.',
     },
     verified: true,
-    phone: '+995 551 50 18 84',
+    phone: '+995 500 333 111',
     website: 'https://gumbati.ge',
   },
   {
@@ -515,7 +515,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'X2 Development работает в центральных районах Тбилиси. Проекты: Kazbegi Residence (Ваке, от $92 990), RiverFront Residence, Tsereteli Deluxe, Shartava Fusion и курорт Bakuriani 4Rest.',
     },
     verified: true,
-    phone: '+995 322 042 042',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'biograpi',
@@ -530,7 +530,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Biograpi (Biograpi Living) — быстрорастущий девелопер, основанный в 2022 году. Проекты: Hisni (36 этажей, пр. Кетеван Цамеули 69, Исани), Bare by Biograpi и Sakeni. Полное постпроектное обслуживание.',
     },
     verified: true,
-    phone: '+995 322 50 05 05',
+    phone: '+995 500 333 111',
     website: 'https://biograpi.ge',
   },
   {
@@ -546,7 +546,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Console — премиальный девелопер с 2013 года, более 128 000 м² построено. Проекты: Lisi Townhouse (фазы 3,4,5), Console Samgori, Console Rise и Console Gldani — в Тбилиси и Батуми.',
     },
     verified: true,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'grg-development',
@@ -561,7 +561,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'GRG Development управляет крупными инфраструктурными проектами по всей Грузии. Известен проектом Orientiri Lisi — у озера Лиси, эксклюзивное управление GREA, сдача весной 2026 года.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'lisi-development',
@@ -576,7 +576,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Lisi Development с 2010 года создаёт современные экологичные жилые пространства у озера Лиси: зелёная архитектура и низкая плотность (всего 20% застройки).',
     },
     verified: true,
-    phone: '+995 322 00 27 27',
+    phone: '+995 500 333 111',
     website: 'https://lisi.ge',
   },
   {
@@ -592,7 +592,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Horizon Group специализируется в Батуми на 5-звёздочных премиальных международных гостиничных комплексах и жилом квартале на первой линии Чёрного моря, инвестиционная ориентация.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
     website: 'https://horizonsbatumi.com',
   },
   {
@@ -608,7 +608,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Solana Development — премиальный девелопер Батуми с 2014 года. Пляжные квартиры от $47 000, доходность до 12% годовых и рост капитала +40% к 2027 году.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'one-development',
@@ -623,7 +623,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'ONE Development создаёт жилую недвижимость с сильным инвестиционным потенциалом в перспективных урбанистических локациях Батуми. Проекты: ONE Batumi, Sport City.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
     website: 'https://onedev.ge',
   },
   {
@@ -639,7 +639,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Redco — девелоперская компания Батуми. Известна проектом Batumi Tower — 91 премиальная резиденция на побережье Чёрного моря.',
     },
     verified: false,
-    phone: '+995 577 247 247',
+    phone: '+995 500 333 111',
     website: 'https://redco.ge',
   },
   // ponytail: identity questionable per 2026-07 verification — agency/IT-school, reclassify when directory supports types
@@ -656,7 +656,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Gulfstream Group — девелопер Батуми, предлагает каталог квартир с видом на море в новых зданиях, ориентация на инвесторов.',
     },
     verified: false,
-    phone: '+995 574 14 07 60',
+    phone: '+995 500 333 111',
     website: 'https://gulfstream.ge',
   },
   {
@@ -672,7 +672,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Symbol — девелопер Батуми, известен современными жилыми и апарт-отельными комплексами, фокус на приморские локации и инвестиционные продукты.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'like-house',
@@ -687,7 +687,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Like House — девелопер Батуми, в портфеле 10 жилых комплексов и апарт-отелей на территории Батуми.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'milestone-development',
@@ -702,7 +702,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Milestone Development — мастер-девелопер и управляющая компания с фокусом на архитектурное мастерство и долгосрочную ценность. Флагман Project: Tsavkisi — первое в Грузии «сообщество с дизайн-кодом» рядом с Тбилиси.',
     },
     verified: true,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   // ponytail: identity questionable per 2026-07 verification — agency/IT-school, reclassify when directory supports types
   {
@@ -718,7 +718,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Mziuri Development — грузино-британская инвестиционная компания, развивает три крупных жилых и инвестиционных проекта в Аджарии. Проекты: Mziuri Residence (Тбилиси), Mziuri Gardens, Mziuri Wellness (Crowne Plaza 5*).',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'build-group',
@@ -733,7 +733,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Build Group — девелопер Тбилиси, известен жилыми проектами на пр. Кетеван Цамеули (№74) и в других центральных районах города.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'altergeo',
@@ -748,7 +748,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Altergeo (Building Company Altergeo) — девелопер Тбилиси, известен проектом Makhata Tower в Чугурети, от $37 920 (~$1 100/м²), сдача в 2026 Q4.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'as-group-investment',
@@ -763,7 +763,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'AS Group Investment — крупный региональный инвестор с 2003 года, более 40 завершённых проектов в нескольких странах. В Грузии инвестировано более $200 млн. Дочерние бренды: Park Bulvari, Red House; также финансирует Dirsi.',
     },
     verified: true,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'royal-group',
@@ -778,7 +778,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Royal Group — девелопер Тбилиси, стиль и индивидуальность в каждой детали. Портфель: Didube Tower (33 этажа), Guramishvili Residence, Sky Villas, Bohema Residency, Varketili Residence, Pear of Ureki.',
     },
     verified: false,
-    phone: '+995 591 91 12 01',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'gbg-development',
@@ -793,7 +793,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'GBG Development — девелопер Тбилиси с 2011 года, 7 завершённых проектов в разных районах города. Самый яркий — жилой комплекс на ул. Николадзе №5.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'apex-development',
@@ -808,7 +808,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Apex Development — строительная компания Тбилиси с 2012 года, 0% внутренняя рассрочка. Текущие проекты: Nutsubidze, Isani, Holbrooke, Apex Towers (Cityzen, Сабуртало).',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'davide',
@@ -823,7 +823,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Davide — девелопер Тбилиси с 2013 года. Завершённые: Victor; недавно — Davide Abashvili в Верхнем плато Вarketili.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'dona-group',
@@ -838,7 +838,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'DONA Group — активный жилой девелопер Тбилиси. Сеть комплексов Dona Palace в районах: Санзона, Сабуртало, Дидубе, Элизбар Миндели, Ортачала.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'tetra-development',
@@ -853,7 +853,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Tetra Development — девелопер Тбилиси. Известен проектом TETRA Residential Complex на ул. Георгия Саакадзе 63, Надзаладеви, от $770/м², просторные квартиры от 145 м².',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'vinci-development',
@@ -868,7 +868,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Vinci Development — девелопер Тбилиси с фокусом на премиальные локации Сабуртало у озера Лиси. Текущий проект в VIII тупике Цацхвеби.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'forms-construction',
@@ -883,7 +883,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Forms Construction — строительная компания Тбилиси с активными проектами на Сабуртало, в том числе в тупиках Цацхвеби у озера Лиси.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'new-group',
@@ -898,7 +898,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'New Group — девелопер Тбилиси с активными проектами в нескольких районах: New Group Vazisubani в Исани и New Group Kavtaradze 19 в Ваке.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'stellar-property',
@@ -913,7 +913,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Stellar Property — девелопер Тбилиси, известен проектом Stellar Vera в районе Мтацминда, II тупик Гурама Рчеулишвили — бутиковый комплекс в центре города.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'seven-group',
@@ -928,7 +928,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Seven Group — строительная компания Тбилиси с активным жилым проектом на улице Цацхвеби, рядом с озером Лиси.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'eco-lisi',
@@ -943,7 +943,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Eco Lisi — девелопер Тбилиси, фирменный проект которого расположен у озера Лиси — на пересечении улиц Л. Квачадзе и М. Эристави — с экологической концепцией.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'grande-group',
@@ -958,7 +958,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Grande Group — девелопер Тбилиси, известен проектом Krtsanisi Grande в Крцанисском тупике — одном из самых зелёных и престижных районов города.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'premium-house',
@@ -973,7 +973,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Премиум Хаус — девелопер Тбилиси, текущий проект Premium House Gagarin на ул. Очамчире 7а. Комплексы бизнес-класса из качественных материалов.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   // ——— 2026-07-18 official-source additions (korter.ge + official company sites) ———
   // ponytail: founding years, phones, addresses and prices are sourced; yearsActive,
@@ -992,7 +992,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Maqro Development — девелоперское направление Maqro Group, на рынке с 2013 года. Флагман — Maqro City Tbilisi в Исани: 4 000 квартир в 17–19 корпусах на ул. Ное Рамишвили 30.',
     },
     verified: true,
-    phone: '+995 32 2 00 10 10',
+    phone: '+995 500 333 111',
     website: 'https://maqro.ge',
   },
   {
@@ -1008,7 +1008,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Domus — тбилисский девелопер, работает с 2006 года, сдано 10 проектов. Известен Domus Park Vake; строит в Ваке (Domus Trees, Domus Nea) и в Авлабари — премиальные локации, концепция низкой плотности.',
     },
     verified: true,
-    phone: '+995 32 223 25 23',
+    phone: '+995 500 333 111',
     website: 'https://domusi.com',
   },
   {
@@ -1025,7 +1025,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Hualing Group — масштабный проект китайского инвестора у Тбилисского моря (~420 га). Флагман: Hualing Tbilisi Sea New City — 39 корпусов, сдан; только вторичный рынок.',
     },
     verified: true,
-    phone: '+995 32 2 47 00 00',
+    phone: '+995 500 333 111',
     website: 'https://hualing.ge',
   },
   {
@@ -1041,7 +1041,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Biota / Olimp Georgia — девелопер зелёной зоны Сабуртало. Флагман: Biota Park на ул. Анны Политковской 20.',
     },
     verified: true,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'monolith-group',
@@ -1056,7 +1056,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Monolith — девелопер, работающий с 2013 года, известен масштабными проектами: Monolith Dighomi City в Дигоми и Monolith Ethno City в Крцаниси.',
     },
     verified: true,
-    phone: '+995 595 99 77 00',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'index-wealth-management',
@@ -1071,7 +1071,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Index I Wealth Management — девелоперская и инвестиционная компания, основана в 2017 году. В портфеле 8 текущих проектов Тбилиси — Dighomi by Index уже сдан, River Park и Niabi завершаются в 2026.',
     },
     verified: true,
-    phone: '+995 32 2 880 888',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'ambassadori-group',
@@ -1086,7 +1086,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Ambassadori Group — премиальная гостинично-девелоперская группа, работает с 2004 года. Строит Ambassadori Island — первый в истории Чёрного моря искусственный архипелаг площадью 84 га по проекту ARUP и SHoP Architects.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'silk-development',
@@ -1101,7 +1101,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Silk Development — девелоперская компания Silk Road Group, работает с 2005 года, сдано 10 крупных проектов. Строит Silk Towers в Старом городе Батуми и Green Cape Botanico на Зелёном мысе.',
     },
     verified: true,
-    phone: '+995 32 225 02 50',
+    phone: '+995 500 333 111',
     website: 'https://silkdevelopment.com',
   },
   {
@@ -1117,7 +1117,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'York Towers — девелопер York Holding Group, к 2021 году сдавший ~20 проектов в Тбилиси и Батуми. Сейчас строит York Vista Garden в Табахмеле.',
     },
     verified: true,
-    phone: '+995 555 05 11 11',
+    phone: '+995 500 333 111',
     website: 'https://yorktowers.com',
   },
   {
@@ -1133,7 +1133,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Pontus Development — дочерняя компания Pontus Capital (группа работает в Грузии с 2011 года), официальный партнёр Rotana. Строит Pontus Rotana Resort & Spa в Гонио — в 50 метрах от моря.',
     },
     verified: true,
-    phone: '+995 557 51 11 11',
+    phone: '+995 500 333 111',
     website: 'https://pontus.ge',
   },
   {
@@ -1149,7 +1149,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Mardi Holding — батумский девелопер, работает с 2010 года. Текущие проекты: Mardi Hills в Кахабери, Mardi Aquapark (Mercure) в Махинджаури и Mardi City Center в центре Батуми.',
     },
     verified: true,
-    phone: '+995 574 20 20 20',
+    phone: '+995 500 333 111',
     website: 'https://mardi.ge',
   },
   {
@@ -1165,7 +1165,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Real Palace — девелопер, работает с 2011 года; сданы Black Sea Towers, Mega Palace и Real Palace. Строит Real Palace Blue и Green в Батуми и Alto в Тбилиси на Сабуртало.',
     },
     verified: true,
-    phone: '+995 514 65 47 47',
+    phone: '+995 500 333 111',
   },
   // ——— 2026-07-18 wave 2 (korter.ge + official sites) ——— same editorial
   // convention as wave 1: sourced founding years/phones/prices; estimates marked.
@@ -1184,7 +1184,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Nexus Group — тбилисский девелопер, строит в Чугурети (Nexus Javakhishvili), Исани и у Лиси. Текущие проекты — $1 500–2 800/м².',
     },
     verified: true,
-    phone: '+995 588 88 88 97',
+    phone: '+995 500 333 111',
     website: 'https://ng.ge',
   },
   {
@@ -1200,7 +1200,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'DS Group — батумский девелопер, работает с 2012 года; сданы DS Old Batumi, Old Street и другие. Строит UNIQ Residence на ул. Грибоедова 69.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'tower-group',
@@ -1215,7 +1215,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Tower Group — батумский девелопер (tg.ge). Флагман — Panorama в Тамари на первой линии; также строит Piaza Residence в центре и Mziani Valley в Бакуриани.',
     },
     verified: true,
-    phone: '+995 422 22 22 22',
+    phone: '+995 500 333 111',
     website: 'https://towergroup.ge',
   },
   {
@@ -1231,7 +1231,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Pala Group — тбилисский девелопер, работает с 2017 года; сданы Tower Gelovani, Pala Jikia и Samgori Residence. Строит Pala Varketili.',
     },
     verified: true,
-    phone: '+995 551 81 00 02',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'citron-group',
@@ -1246,7 +1246,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Citron Group — батумский девелопер; сданы Citron Orange (2023) и Citron Residence Chakvi (2020). Флагман — 16-этажный Citron Residence в районе аэропорта.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'arcon',
@@ -1261,7 +1261,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Arcon — девелопер, работает с 2010 года в Тбилиси и Батуми; сданы Arcon Gldani и Arcon Batumi Residence. Строит Elegance в Крцаниси.',
     },
     verified: true,
-    phone: '+995 522 22 32 23',
+    phone: '+995 500 333 111',
     website: 'https://arcon.ge',
   },
   {
@@ -1277,7 +1277,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Tempo — новый батумский девелопер (2023), строит Queen’s Residence и Serenade в районе аэропорта на ул. Адлия.',
     },
     verified: false,
-    phone: '+995 557 30 55 55',
+    phone: '+995 500 333 111',
     website: 'https://tempoholding.ge',
   },
   {
@@ -1293,7 +1293,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Kolos — батумский девелопер, работает с 2015 года; сдан Kolos в Махинджаури (2025), строится Kolos Resort.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'ande-group',
@@ -1308,7 +1308,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Ande Group — батумский девелопер; сдан Ande Tower 2 (2024). Строит Ande Metropolis в районе аэропорта на ул. Згвиспирис.',
     },
     verified: true,
-    phone: '+995 551 50 18 84',
+    phone: '+995 500 333 111',
     website: 'https://andegroup.ge',
   },
   {
@@ -1324,7 +1324,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Reside Development — батумский девелопер (reside.ge); сданы Dream Side Chakvi и DEST // Corner. Строит DEST // Asatiani в Батуми и Breeze Chakvi в Чакви.',
     },
     verified: true,
-    phone: '+995 593 90 5555',
+    phone: '+995 500 333 111',
     website: 'https://reside.ge',
   },
   {
@@ -1340,7 +1340,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Livin — тбилисский девелопер, работает с 2015 года (livin.ge). Текущие проекты: Dadiani 263 в Надзаладеви и Art Hall.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'ltd-megobroba',
@@ -1355,7 +1355,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Мегоброба — тбилисский девелопер; в 2025 году сданы Megobroba Jikia и M Tower Ortachala. Строит Megobroba Saakadze на Сабуртало и Megobroba Sanapiroze в Дидубе.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'marshall-development',
@@ -1370,7 +1370,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Marshall Development — тбилисский девелопер, работает с 2018 года; в 2025 году сданы Marshall Vera и Marshall Didi Dighomi.',
     },
     verified: true,
-    phone: '+995 511 25 11 11',
+    phone: '+995 500 333 111',
   },
   // ——— 2026-07-18 wave 3 (official sites + kalaki.ge / korter.ge) ———
   // High-SEO gaps not yet curated; logos/coords/renders overlay from korter sync.
@@ -1387,7 +1387,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Ocean Capital — премиальный девелопер в Ваке (ocean.ge). Текущие: Ocean Vake Residences (Палиашвили 67), Plaza (102), Park (Мосашвили 26), Sky Residences (Чавчавадзе 33).',
     },
     verified: true,
-    phone: '+995 322 22 77 11',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'eagle-hills-georgia',
@@ -1402,7 +1402,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Eagle Hills — международный девелопер из Абу-Даби (Mohamed Alabbar / Emaar). В Грузии: Tbilisi Waterfront в Крцаниси на Куре (~$6,5 млрд по двум мастерпланам) и Gonio Yachts & Marina на Чёрном море.',
     },
     verified: true,
-    phone: '+971 2 497 9999',
+    phone: '+995 500 333 111',
     website: 'https://eaglehillsgeorgia.com',
   },
   {
@@ -1418,7 +1418,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Mira Developments — создатель первого branded community в Грузии. Mira Verde в Tbilisi Hills: Trussardi Residences и другие брендированные апартаменты/виллы, сдача Q3 2029 (mira-verde.com).',
     },
     verified: true,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'idea-development',
@@ -1433,7 +1433,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Idea Development — девелопер Тбилиси (ideadevelopment.ge). Флагман Idea Panorama на ул. Гиорги Данелия, Ваке–Сабуртало: Panorama I (2025) и Panorama II (2027). Офисы: Анжапаридзе 8 / Данелия 57.',
     },
     verified: true,
-    phone: '+995 599 511 911',
+    phone: '+995 500 333 111',
   },
   // ——— 2026-07-19 wave 4 (verified korter.ge / official sites) ———
   {
@@ -1449,7 +1449,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Alpha Home — грузинский девелопер с 2017 г. Активные: Alpha Home Gldani (Шешелидзе 18), Didi Digomi; также Шекветили, Исани, Багеби.',
     },
     verified: true,
-    phone: '+995 32 245 17 17',
+    phone: '+995 500 333 111',
     website: 'https://alphahome.ge',
   },
   {
@@ -1465,7 +1465,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Next Door — девелопер в Тбилиси и Гори. Флагман Next Door Gelovani (Иасамни 4, Сабуртало): 24 этажа, сдача Q3 2027.',
     },
     verified: true,
-    phone: '+995 32 205 44 77',
+    phone: '+995 500 333 111',
     website: 'https://nextdoor.ge',
   },
   // ——— 2026-07-19 wave 5 (verified korter.ge) ———
@@ -1482,7 +1482,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Loft Development — девелопер Тбилиси с 2014 г. Активные: City Center Gldani (Марата Нозадзе 33), Crown Gldani.',
     },
     verified: true,
-    phone: '+995 511 11 48 99',
+    phone: '+995 500 333 111',
     website: 'https://theloftge.com',
   },
   {
@@ -1498,7 +1498,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Apollo G.S. — премиальный девелопер с 2007 г. Флагман Kings Garden на ул. Мирза Шафи.',
     },
     verified: true,
-    phone: '+995 551 00 03 01',
+    phone: '+995 500 333 111',
     website: 'https://kingsgarden.ge',
   },
   {
@@ -1514,7 +1514,7 @@ export const DEVELOPERS: Developer[] = [
       ru: 'Grada — девелопер Тбилиси с 2016 г. Активные: Grada Saburtalo (Геловани 4), Grada Park (Теймураз I, 14).',
     },
     verified: true,
-    phone: '+995 32 2 407 407',
+    phone: '+995 500 333 111',
     website: 'https://grada.ge',
   },
   ...NEW_DEVELOPERS_TBILISI,
@@ -1539,7 +1539,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
       ru: 'Нино специализируется на премиальных квартирах в Ваке и Мтацминде: 9 лет опыта, полное юридическое сопровождение и переговоры в интересах клиента.',
     },
     verified: true,
-    phone: '+995 555 12 34 56',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'giorgi-mamulashvili',
@@ -1555,7 +1555,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
       ru: 'Гиоргий — эксперт по жилой недвижимости Сабуртало и Ваке, более 380 закрытых сделок. Помогает инвесторам выбирать доходные квартиры.',
     },
     verified: true,
-    phone: '+995 577 98 76 54',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'ana-kvaratskhelia',
@@ -1571,7 +1571,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
       ru: 'Ана работает с первичным рынком и сегментом частных домов: точный анализ цен и прозрачный процесс с первого звонка.',
     },
     verified: true,
-    phone: '+995 593 45 67 89',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'davit-japaridze',
@@ -1587,7 +1587,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
       ru: 'Давид 10 лет на рынке Тбилиси — от квартир в Исани-Самгори и Глдани до коммерческих площадей. Практичные советы без лишних обещаний.',
     },
     verified: false,
-    phone: '+995 568 23 45 67',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'mariam-lomidze',
@@ -1603,7 +1603,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
       ru: 'Мариам — специалист по инвестиционным квартирам в Батуми: вид на море, комплексы гостиничного типа. Полная дистанционная поддержка иностранных инвесторов.',
     },
     verified: true,
-    phone: '+995 551 87 65 43',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'luka-gelashvili',
@@ -1619,7 +1619,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
       ru: 'Лука специализируется на покупке и аренде в новостройках — от белого/зелёного каркаса до квартир под ключ.',
     },
     verified: true,
-    phone: '+995 579 11 22 33',
+    phone: '+995 500 333 111',
   },
 ]
 
@@ -4735,7 +4735,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     coords: { lat: 41.747130, lng: 44.769784 },
     floors: 18,
     description: {
-      ka: `გრადა საბურთალო — მშენებარე 18-სართულიანი კომპლექსი მარშალ გელოვანის გამზ. 4-ში (ვაკე-საბურთალო). ჩაბარება მარტი 2029. 1 მ²-ის ფასი 4,440 ₾-დან (173,487 ₾-დან 1-ოთახიანი 39.1 მ²). ბინები 39.1 — 98.6 მ². რეკრეაციული ზონა, დაკეტილი ეზო 24/7 დაცვით და კამერებით, WiFi & Charger ზონა, ელექტრო მანქანების დამტენი, მიწისქვეშა 4-დონიანი ავტოსადგომი. ☎️ 032 2 407 407 | Viber/WhatsApp: 596 508 508 | www.grada.ge`,
+      ka: `გრადა საბურთალო — მშენებარე 18-სართულიანი კომპლექსი მარშალ გელოვანის გამზ. 4-ში (ვაკე-საბურთალო). ჩაბარება მარტი 2029. 1 მ²-ის ფასი 4,440 ₾-დან (173,487 ₾-დან 1-ოთახიანი 39.1 მ²). ბინები 39.1 — 98.6 მ². რეკრეაციული ზონა, დაკეტილი ეზო 24/7 დაცვით და კამერებით, WiFi & Charger ზონა, ელექტრო მანქანების დამტენი, მიწისქვეშა 4-დონიანი ავტოსადგომი. ☎️ 500 333 111 | Viber/WhatsApp: 500 333 111 | www.grada.ge`,
       en: `Grada Saburtalo — 18-storey complex at 4 Marshal Gelovani Ave. Delivery March 2029. From 4,440 GEL/m² (from 173,487 GEL for 39.1 m²). Units 39.1–98.6 m². Recreational zone, 24/7 security, WiFi & charger zone, EV charger, 4-level underground parking. www.grada.ge`,
       ru: `Grada Saburtalo — пр. Геловани 4, 18 этажей. Сдача в марте 2029. От 4,440 GEL/м² (от 173,487 GEL за 39.1 м²). Квартиры 39.1–98.6 м². 4-уровневый подземный паркинг.`,
     },

@@ -2,7 +2,13 @@
  * Self-check for phone mask / normalize — run: npx tsx src/lib/inquiries/phone.check.ts
  */
 import assert from 'node:assert/strict'
-import { formatPhone, maskPhone, normalizePhone, phoneRevealsOf, telHref, waHref } from './phone'
+import { CONTACT_PHONE, formatPhone, maskPhone, normalizePhone, phoneRevealsOf, telHref, waHref } from './phone'
+
+// Switchboard must stay dialable through the canonical formatter — display keeps
+// the owner's `500 333 111` grouping.
+assert.equal(normalizePhone(CONTACT_PHONE)?.replace(/\D/g, ''), CONTACT_PHONE.replace(/\D/g, ''))
+assert.equal(telHref(CONTACT_PHONE), 'tel:+995500333111')
+assert.equal(waHref(CONTACT_PHONE), 'https://wa.me/995500333111')
 
 assert.equal(maskPhone('+995 555 12 34 56'), '555 *** ***')
 assert.equal(maskPhone('555123456'), '555 *** ***')

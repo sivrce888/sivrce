@@ -1052,6 +1052,20 @@ html[data-lite] [data-reveal] {
   color: rgba(255, 255, 255, 0.78);
 }
 
+/* Pin hover preview — compact card, never intercepts the pointer. */
+.sivrce-pin-pop .maplibregl-popup-content {
+  padding: 8px 12px;
+  border-radius: 12px;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(10, 16, 48, 0.16);
+}
+.dark .sivrce-pin-pop .maplibregl-popup-content {
+  box-shadow: 0 6px 20px rgba(2, 6, 26, 0.6);
+}
+.sivrce-pin-pop .maplibregl-popup-tip {
+  display: none;
+}
+
 /* Map chrome — quiet ⓘ; legal credit in DOM, hidden until expand */
 .maplibregl-ctrl-logo {
   display: none !important;

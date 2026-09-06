@@ -31,7 +31,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Keystone Development — тбилисский девелопер с 2021 года. Строит Coordinate на ул. Вахтанга Горгасали 73а в Ортачале.',
     },
     verified: true,
-    phone: '+995 596 20 74 74',
+    phone: '+995 500 333 111',
     website: 'https://coordinate.ge',
   },
   {
@@ -47,7 +47,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Parkwood — тбилисский девелопер, строит Parkwood 2 в Багеби, пр. Ильи Чавчавадзе 82/1.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'plaza-development',
@@ -62,7 +62,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Freedom Plaza — премиальный жилой проект в старом Тбилиси, ул. Александра Пушкина 17, у площади Свободы.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'dighomi-gardens',
@@ -77,7 +77,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Dighomi Gardens — жилой комплекс на аллее Давида Агмашенебели 234б в Диди Дигоми: два корпуса, бассейн и закрытый двор.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'saburtalo-residence',
@@ -92,7 +92,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Saburtalo Residence — 11-этажный дом в зелёном каркасе на ул. Зураба и Теймураза Залдастанишвили 10, Сабуртало.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'solum',
@@ -107,7 +107,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Solum — тбилисский девелопер в Поничала. Блок A сдан в IV кв. 2025; блоки B и C — I кв. 2027.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'roof-development',
@@ -122,7 +122,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Roof Development — тбилисский девелопер. Активные: Roof Vazisubani, Roof Ponichala и Roof Isani.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'gwg-development',
@@ -137,7 +137,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'GWG Development — тбилисский девелопер. Строит GWG Krtsanisi в Ортачала–Крцаниси (четыре 11-этажных блока) и GWG Batumi.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'harmonica',
@@ -152,7 +152,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Harmonica — 5-этажный комплекс на 24 квартиры на Зелёном мысе, ул. Тбилиси 1. Сдача в 2028.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'dreamland',
@@ -167,7 +167,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Dreamland — курортный девелопер в Чакви. Строит Dreamland Oasis на ул. Батуми 16, в приморской полосе.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'bagrationi-residence',
@@ -182,7 +182,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Bagrationi Residence — строящийся комплекс в Батуми, ул. Петра Багратиони 131, район Джавахишвили.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'gb-georgia',
@@ -197,7 +197,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Generations Builders GB Georgia — тбилисский девелопер. Активный: Tower Ketevani, пр. Св. Кетеван 62, Исани.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'mega-construction',
@@ -212,7 +212,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'MEGA Construction — девелопер MEGA Holding. Строит Mega Gldani на ул. Керчь 28.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'astoria-group',
@@ -227,7 +227,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Astoria Group — тбилисский девелопер. Строит Astoria на пл. Бери Габриэл Салоси 1, Исани.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'z-group',
@@ -242,7 +242,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Z-Group — тбилисский девелопер. Строит Zygma в 1-м переулке Зураба Анджапаридзе 2.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'arx-development',
@@ -257,7 +257,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'ARX Development — тбилисский девелопер. Строит Parkside Temka в Згвисубани, Темка.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'legi-construction',
@@ -272,7 +272,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Legi Construction — тбилисский девелопер с 2018. Активный: Parkside Varketili, ул. Николая Ландия 3.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'bilderz',
@@ -287,7 +287,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Bilderz (Baobab Invest) — тбилисский девелопер с 2018. Активный: Isani Bilderz на ул. Шота Надирашвили.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'bala-construction',
@@ -302,7 +302,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Bala Construction — батумский девелопер с 2023. Строит Vertikal на ул. Тадзрис 12, район Химшиашвили.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'smart-development',
@@ -317,7 +317,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Smart Development — батумский девелопер. Строит SUMMER 365 на ул. Коте Абхази 43, Новый бульвар / Адлия.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'olympus',
@@ -332,7 +332,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Olympus — батумский девелопер. Строит Olympus Residence на ул. Шерифа Химшиашвили 53, две 40-этажные башни у моря.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'sunrise-development',
@@ -347,7 +347,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Sunrise Development — грузино-американский девелопер. Строит Sunrise Palace на ул. Петра Багратиони 135, Батуми.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'zenar-development',
@@ -362,7 +362,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Zenar Development — девелопер Кутаиси. Строит Zenari на ул. Отара Чечелашвили 8. Сдача II кв. 2028.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'panorama-park-kutaisi',
@@ -377,7 +377,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Panorama Park — 6-этажный комплекс в Кутаиси, ул. Севериана Исиани 14. Сдача IV кв. 2026.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'batumi-concept',
@@ -392,7 +392,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Batumi Concept — 8-этажный бутик-дом в старом Батуми, ул. Важа-Пшавела 27–29. 40 квартир, сдача IV кв. 2026.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'terrametric-development',
@@ -407,7 +407,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Terrametric Development — тбилисский девелопер с 2023 года. Строит Terrametric Krtsanisi на 3-й ул. Надиквари 34.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
     website: 'https://korter.ge/en/terrametric-development',
   },
   {
@@ -423,7 +423,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Ratevani — малоэтажный комплекс в Санзоне, ул. Ратевани 28. Три блока сданы; блок D — IV кв. 2026.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'pillar-group',
@@ -438,7 +438,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Pillar Group — тбилисский девелопер (с 2019): Pillar Park в Дигоми, Pillar Park Samgori, Pillar Varketili.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'dasan-residence',
@@ -453,7 +453,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Dasan Residence — премиальный малоэтажный проект в Ваке, ул. Тициана Табидзе 37: два 4-этажных корпуса.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'terracon',
@@ -468,7 +468,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Terracon — тбилисский девелопер. Строит Terracon Kheivani на ул. Тринадцати ассирийских отцов 124.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
   {
     slug: 'kokhta-ubani',
@@ -483,7 +483,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
       ru: 'Кохта Убани — тбилисский девелопер (с 2007): Kokhta Ubani Tsatskhvebi, Angia Bochorishvili, Kokhta Nucubidze.',
     },
     verified: false,
-    phone: '—',
+    phone: '+995 500 333 111',
   },
 ]
 

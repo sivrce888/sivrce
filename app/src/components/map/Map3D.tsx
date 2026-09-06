@@ -192,6 +192,25 @@ function pricePillFilter(hideId: string | null): FilterSpecification {
   if (hideId) base.push(['!=', ['get', 'id'], hideId])
   return ['all', ...base] as FilterSpecification
 }
+
+/** Massing paint — idle. Alpha lives in `color` (MapLibre 5 constant opacity). */
+const MASSING_COLOR_IDLE: ExpressionSpecification = [
+  'get',
+  'color',
+] as ExpressionSpecification
+
+/** Selection focus — the chosen campus stays lit, context recedes to `colorDim`. */
+function massingColorFocus(id: string): ExpressionSpecification {
+  return [
+    'case',
+    // Property id — every tower of a multi-tower campus shares it.
+    ['==', ['get', 'id'], id],
+    ['get', 'hue'],
+    ['boolean', ['feature-state', 'hover'], false],
+    ['get', 'color'],
+    ['get', 'colorDim'],
+  ] as unknown as ExpressionSpecification
+}
 const PRICE_MIN_ZOOM = 11.2
 /** Pills ride into street zoom (Zillow pattern); flyTo focus at 15.5+ stays clean. */
 const PRICE_MAX_ZOOM = 15.2
@@ -481,7 +500,7 @@ async function ensureLayers(
     source: SOURCE_ID,
     minzoom: zooms.detailZoom,
     paint: {
-      'fill-color': ['get', 'color'],
+      'fill-color': MASSING_COLOR_IDLE,
       'fill-opacity': 0.22,
       'fill-color-transition': MAP_FADE,
       'fill-opacity-transition': MAP_FADE,
@@ -495,7 +514,7 @@ async function ensureLayers(
     minzoom: zooms.detailZoom,
     paint: {
       // ponytail: MapLibre 5 — fill-extrusion-opacity is constant-only; alpha lives in `color`.
-      'fill-extrusion-color': ['get', 'color'],
+      'fill-extrusion-color': MASSING_COLOR_IDLE,
       'fill-extrusion-height': ['get', 'height'],
       'fill-extrusion-base': 0,
       'fill-extrusion-opacity': 1,
@@ -975,6 +994,7 @@ function Map3DInner({
       const added = data.listings.filter((l) => !prevIds.has(l.id)).length
       setLiveListings(data.listings)
       setLiveDbBuildings(data.buildings)
+      setPinsLoaded(true)
       flashRefreshNote(
         added > 0 ? tRef.current('map.refreshAdded', { n: added }) : tRef.current('map.refreshed'),
       )
@@ -996,6 +1016,7 @@ function Map3DInner({
         if (cancelled || !data?.listings?.length) return
         setLiveListings(data.listings)
         if (data.buildings) setLiveDbBuildings(data.buildings)
+        setPinsLoaded(true)
       })
       .catch(() => {})
     return () => {
@@ -1052,6 +1073,9 @@ function Map3DInner({
     for (const b of visible) n += b.listings.length
     return n
   }, [visible])
+  // ponytail: stale-empty SSR cache boots at 0 until /api/map-data lands —
+  // show waiting dots, never a fake zero (Apple Maps never shows a lying counter).
+  const [pinsLoaded, setPinsLoaded] = useState(() => (listings?.length ?? 0) > 0)
   useEffect(() => { visibleRef.current = visible }, [visible])
   useEffect(() => { polyFcRef.current = polyFc }, [polyFc])
   useEffect(() => { ptsFcRef.current = ptsFc }, [ptsFc])
@@ -1103,6 +1127,22 @@ function Map3DInner({
   const toggleFloor = useCallback((n: number) => setFloorFilter((cur) => (cur === n ? null : n)), [setFloorFilter])
   useEffect(() => { floorRef.current = toggleFloor }, [toggleFloor])
 
+  /** Selection focus — one setPaintProperty per layer, no GeoJSON rewrite. */
+  const applyFocusPaint = useCallback((map: MlMap, id: string | null) => {
+    const expr = id ? massingColorFocus(id) : MASSING_COLOR_IDLE
+    for (const [layer, prop] of [
+      [EXTRUDE_ID, 'fill-extrusion-color'],
+      [FILL_ID, 'fill-color'],
+    ] as const) {
+      if (!map.getLayer(layer)) continue
+      try {
+        map.setPaintProperty(layer, prop, expr)
+      } catch {
+        /* layer remount */
+      }
+    }
+  }, [])
+
   // Selected / seen pins — feature-state (no GeoJSON rewrite).
   useEffect(() => {
     const map = mapRef.current
@@ -1123,7 +1163,8 @@ function Map3DInner({
       } catch { /* source may remount */ }
     }
     selFsRef.current = next
-  }, [selected, ready])
+    applyFocusPaint(map, next)
+  }, [selected, ready, applyFocusPaint])
 
   // Vague pin (district-only) → reverse Nominatim for street + house №. No map server.
   useEffect(() => {
@@ -1529,6 +1570,48 @@ function Map3DInner({
         map.getCanvas().style.cursor = ''
       }
 
+      // Hover preview card on dots + price pills — imperative popup, no React state.
+      const pinPopup = new maplibregl.Popup({
+        className: 'sivrce-nbh-pop sivrce-pin-pop',
+        closeButton: false,
+        closeOnClick: false,
+        offset: 14,
+        maxWidth: '220px',
+      })
+      let pinPopId: string | null = null
+      const hidePinPop = () => {
+        pinPopId = null
+        pinPopup.remove()
+      }
+      const showPinPop = (e: MapLayerMouseEvent) => {
+        const f = e.features?.[0]
+        if (!f) return
+        const p = f.properties ?? {}
+        const id = String(p.id ?? '')
+        if (pinPopId === id && pinPopup.getElement()) return
+        pinPopId = id
+        const root = document.createElement('div')
+        const title = document.createElement('div')
+        title.className = 'sivrce-nbh-pop-title'
+        title.textContent = String(p.label || p.code || id)
+        root.appendChild(title)
+        const count = Number(p.total) || 0
+        const ghost = p.status === 'construction' && count === 0
+        const sub = document.createElement('div')
+        sub.className = 'sivrce-nbh-pop-city'
+        sub.textContent = ghost
+          ? `${tRef.current('map.status.construction')}${p.priceLabel ? ` · ${p.priceLabel}` : ''}`
+          : p.priceLabel
+            ? `${p.priceLabel}${count > 0 ? ` · ${count} განცხადება` : ''}`
+            : count > 0
+              ? `${count} განცხადება`
+              : ''
+        if (sub.textContent) root.appendChild(sub)
+        pinPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
+      }
+      // Hide on camera move — Apple behavior, never drag a stale card.
+      map.on('movestart', hidePinPop)
+
       const poiPopup = new maplibregl.Popup({
         className: 'sivrce-nbh-pop',
         closeButton: true,
@@ -1586,6 +1669,8 @@ function Map3DInner({
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
           await ensureLayers(map, { poly: polyFcRef.current, pts: ptsFcRef.current }, zooms)
+          // Style remount resets paint — restore selection focus if a panel is open.
+          applyFocusPaint(map, selectedRef.current?.id ?? null)
           muteBasemapExtrusions(map, KEEP_EXTRUDE)
           setBasemapBuildings3d(map, view3dRef.current)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
@@ -1760,18 +1845,42 @@ function Map3DInner({
         console.error('[Map3D]', e.error ?? e)
       })
 
+      let hoveredMassing: string | null = null
       map.on('mouseenter', EXTRUDE_ID, () => {
         map.getCanvas().style.cursor = 'pointer'
       })
+      map.on('mousemove', EXTRUDE_ID, (e: MapLayerMouseEvent) => {
+        // feature id — per tower; hover lifts it back out of the dimmed context
+        const id = e.features?.[0]?.id as string | undefined
+        if (!id || hoveredMassing === id) return
+        if (hoveredMassing) {
+          try {
+            map.setFeatureState({ source: SOURCE_ID, id: hoveredMassing }, { hover: false })
+          } catch { /* remount */ }
+        }
+        hoveredMassing = id
+        try {
+          map.setFeatureState({ source: SOURCE_ID, id }, { hover: true })
+        } catch { /* remount */ }
+      })
       map.on('mouseleave', EXTRUDE_ID, () => {
         map.getCanvas().style.cursor = ''
+        if (hoveredMassing) {
+          try {
+            map.setFeatureState({ source: SOURCE_ID, id: hoveredMassing }, { hover: false })
+          } catch { /* remount */ }
+          hoveredMassing = null
+        }
       })
       map.on('mouseenter', DOT_ID, () => {
         map.getCanvas().style.cursor = 'pointer'
       })
       map.on('mousemove', DOT_ID, (e: MapLayerMouseEvent) => {
         const id = e.features?.[0]?.properties?.id as string | undefined
-        if (!id || hoverFsRef.current === id) return
+        if (!id || hoverFsRef.current === id) {
+          showPinPop(e)
+          return
+        }
         if (hoverFsRef.current) {
           try {
             map.setFeatureState(
@@ -1784,9 +1893,45 @@ function Map3DInner({
         try {
           map.setFeatureState({ source: PTS_SOURCE_ID, id }, { hover: true })
         } catch { /* remount */ }
+        showPinPop(e)
       })
       map.on('mouseleave', DOT_ID, () => {
         map.getCanvas().style.cursor = ''
+        hidePinPop()
+        if (hoverFsRef.current) {
+          try {
+            map.setFeatureState(
+              { source: PTS_SOURCE_ID, id: hoverFsRef.current },
+              { hover: false },
+            )
+          } catch { /* remount */ }
+          hoverFsRef.current = null
+        }
+      })
+      // Pills sit above the dot band — same hover contract, otherwise the
+      // active-pill swap never fires at price zooms.
+      map.on('mousemove', PRICE_ID, (e: MapLayerMouseEvent) => {
+        const id = e.features?.[0]?.properties?.id as string | undefined
+        if (id && hoverFsRef.current !== id) {
+          if (hoverFsRef.current) {
+            try {
+              map.setFeatureState(
+                { source: PTS_SOURCE_ID, id: hoverFsRef.current },
+                { hover: false },
+              )
+            } catch { /* remount */ }
+          }
+          hoverFsRef.current = id
+          try {
+            map.setFeatureState({ source: PTS_SOURCE_ID, id }, { hover: true })
+          } catch { /* remount */ }
+        }
+        map.getCanvas().style.cursor = 'pointer'
+        showPinPop(e)
+      })
+      map.on('mouseleave', PRICE_ID, () => {
+        map.getCanvas().style.cursor = ''
+        hidePinPop()
         if (hoverFsRef.current) {
           try {
             map.setFeatureState(
@@ -2156,7 +2301,7 @@ function Map3DInner({
               <div className="flex shrink-0 items-center gap-1.5 px-1">
                 <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
                 <p className="whitespace-nowrap text-[12px] font-extrabold tabular-nums tracking-tight">
-                  {matchListings}
+                  {pinsLoaded ? matchListings : '…'}
                 </p>
               </div>
               <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
@@ -2206,7 +2351,7 @@ function Map3DInner({
             )}
             <div className="flex items-center gap-2 md:hidden">
               <p className={`min-w-0 flex-1 truncate rounded-tile border px-3 py-2.5 text-[12px] font-extrabold tabular-nums ${chip}`}>
-                {matchListings}
+                {pinsLoaded ? matchListings : '…'}
               </p>
               <button
                 type="button"
@@ -2530,7 +2675,12 @@ function Map3DInner({
       </div>
 
       {selected && (
-        <div className="absolute inset-x-0 bottom-0 z-30 max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0">
+        <motion.div
+          initial={{ y: 36, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: 'spring', bounce: 0.12, duration: 0.5 }}
+          className="absolute inset-x-0 bottom-0 z-30 max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
+        >
           <BuildingPanel
             building={selected}
             tab={tab}
@@ -2540,7 +2690,7 @@ function Map3DInner({
             onFloorClear={() => setFloorFilter(null)}
             onClose={() => selectBuilding(null)}
           />
-        </div>
+        </motion.div>
       )}
     </div>
   )

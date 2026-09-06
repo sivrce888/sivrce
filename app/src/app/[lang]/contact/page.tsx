@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, MessageCircle, Phone, MapPin } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ContactForm from '@/components/contact/ContactForm'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { getConfig } from '@/lib/config'
-import { telHref } from '@/lib/inquiries/phone'
+import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
@@ -40,18 +40,18 @@ export async function generateMetadata({
 }
 
 export default async function ContactPage() {
-  const [email, phone] = await Promise.all([
+  const [email, configuredPhone] = await Promise.all([
     getConfig('site.contactEmail'),
     getConfig('site.contactPhone'),
   ])
 
-  // ponytail: hide the registry dummy until a real switchboard is saved in admin
-  const phoneLive = phone && phone !== '+995 32 2 00 00 00'
+  // Switchboard by default — admin config can still override the dummy registry number.
+  const phone =
+    !configuredPhone || configuredPhone === '+995 32 2 00 00 00' ? CONTACT_PHONE : configuredPhone
   const channels = [
     { icon: Mail, label: 'ელ. ფოსტა', value: email, href: `mailto:${email}` },
-    ...(phoneLive
-      ? [{ icon: Phone, label: 'ტელეფონი', value: phone, href: telHref(phone) }]
-      : []),
+    { icon: Phone, label: 'ტელეფონი', value: phone, href: telHref(phone) },
+    { icon: MessageCircle, label: 'WhatsApp', value: phone, href: waHref(CONTACT_PHONE) },
     { icon: MapPin, label: 'მისამართი', value: 'თბილისი, საქართველო', href: null },
   ]
 
@@ -67,7 +67,7 @@ export default async function ContactPage() {
       name: 'sivrce',
       url: 'https://sivrce.ge',
       email,
-      ...(phoneLive ? { telephone: phone } : {}),
+      telephone: phone,
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'თბილისი',

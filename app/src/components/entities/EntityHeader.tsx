@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { BadgeCheck, MapPin, Phone } from 'lucide-react'
+import { CONTACT_PHONE, waHref } from '@/lib/inquiries/phone'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import type { LocalName } from '@/data/professionals'
 import { StatsRow, type StatItem } from './StatsRow'
@@ -88,14 +89,25 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
         <div className="flex flex-col gap-5 md:items-end">
           <StatsRow items={items} />
           {phone ? (
-            <a
-              href={telHref}
-              aria-label={`${d.call}: ${displayName}, ${phone}`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-6 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-            >
-              <Phone className="h-4 w-4" aria-hidden />
-              {phone}
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={telHref}
+                aria-label={`${d.call}: ${displayName}, ${phone}`}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-6 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+              >
+                <Phone className="h-4 w-4" aria-hidden />
+                {phone}
+              </a>
+              <a
+                href={waHref(CONTACT_PHONE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`WhatsApp: ${displayName}`}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-6 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:bg-sv-blue/10"
+              >
+                WhatsApp
+              </a>
+            </div>
           ) : null}
         </div>
       </div>
