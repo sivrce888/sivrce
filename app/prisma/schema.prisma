@@ -1219,6 +1219,7 @@ model Review {
   helpfulVotes         ReviewHelpfulVote[]
 
   @@index([targetType, targetId], map: "reviews_target_idx")
+  @@unique([targetType, targetId, authorId], map: "reviews_target_author_key")
   @@map("reviews")
 }
 

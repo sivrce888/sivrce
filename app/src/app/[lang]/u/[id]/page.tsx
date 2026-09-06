@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
+import UserAvatar from '@/components/UserAvatar'
 import { BadgeCheck, MapPin } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -13,6 +13,7 @@ import { getListingsByOwner } from '@/lib/listings-db'
 import { SELLER_ROLE_LABEL, type SellerRole } from '@/lib/profiles/roles'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import { langAlternates } from '@/lib/i18n/server'
+import { altName } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
 
 export const revalidate = 300
@@ -168,17 +169,11 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
       stats.push({ label: 'ჩაბარებული ბინა', value: String(developerProfile.completedCount) })
     if (listings.length > 0) stats.push({ label: 'აქტიური განცხადება', value: String(listings.length) })
   }
-  const initials = displayName
-    .split(/\s+/)
-    .map((w) => w[0] ?? '')
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
   const personLd = {
     '@context': 'https://schema.org',
     '@type': role === 'developer' ? 'Organization' : 'RealEstateAgent',
     name: displayName,
+    ...(altName(displayName) && { alternateName: altName(displayName) }),
     url: `https://sivrce.ge/u/${user.id}`,
     ...(user.image ? { image: user.image } : {}),
     ...(summary ? { description: summary } : {}),
@@ -192,19 +187,13 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
         <header className="border-b border-sv-ink/[0.06] bg-sv-surface">
           <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:px-10 md:py-14">
             <div className="flex min-w-0 items-start gap-5">
-              {user.image ? (
-                <span className="relative h-20 w-20 shrink-0 overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface md:h-24 md:w-24">
-                  <Image src={user.image} alt="" fill sizes="96px" className="object-cover" />
-                </span>
-              ) : (
-                <span
-                  aria-hidden
-                  className="grid h-20 w-20 shrink-0 place-items-center rounded-card text-[28px] font-black md:h-24 md:w-24"
-                  style={{ color: brand.hue, backgroundColor: brand.chip }}
-                >
-                  {initials}
-                </span>
-              )}
+              <UserAvatar
+                name={displayName}
+                image={user.image}
+                size={96}
+                shape="card"
+                className={user.image ? 'border border-sv-ink/[0.06] bg-sv-surface' : ''}
+              />
               <div className="min-w-0">
                 <span
                   className="mb-2 inline-block rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
@@ -260,12 +249,10 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                 targetId={profileSlug}
                 recipientName={displayName}
               />
-              {role !== 'agency' ? (
-                <ReviewsSection
-                  targetType={role === 'developer' ? 'developer' : 'agent'}
-                  targetId={profileSlug}
-                />
-              ) : null}
+              <ReviewsSection
+                targetType={role === 'developer' ? 'developer' : role === 'agency' ? 'agency' : 'agent'}
+                targetId={profileSlug}
+              />
             </div>
           </section>
         ) : null}

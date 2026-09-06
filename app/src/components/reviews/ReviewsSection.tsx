@@ -20,6 +20,7 @@ export type ReviewTargetType =
   | 'project'
   | 'developer'
   | 'agent'
+  | 'agency'
   | 'neighborhood'
   | 'account'
   | 'building'
@@ -31,7 +32,7 @@ export interface ReviewsSectionProps {
   className?: string
 }
 
-const SORTS: ReviewSort[] = ['newest', 'highest', 'helpful']
+const SORTS: ReviewSort[] = ['newest', 'highest', 'lowest', 'helpful']
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2'
@@ -213,6 +214,7 @@ export function ReviewsSection({ targetType, targetId, className }: ReviewsSecti
                     >
                       <option value="newest">{s.sortNewest}</option>
                       <option value="highest">{s.sortHighest}</option>
+                      <option value="lowest">{s.sortLowest}</option>
                       <option value="helpful">{s.sortHelpful}</option>
                     </select>
                   </label>

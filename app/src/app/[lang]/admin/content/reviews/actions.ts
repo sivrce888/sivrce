@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { reqString } from "@/lib/admin/validate"
+import { syncProfileRating } from "@/lib/reviews/aggregate"
 import { db } from "@/lib/db"
 
 export async function toggleReviewVerified(fd: FormData): Promise<void> {
@@ -34,9 +35,12 @@ export async function deleteReview(fd: FormData): Promise<void> {
     select: { targetType: true, targetId: true, authorName: true },
   })
   if (!before) throw new Error("Review not found")
-  await db.review.update({
-    where: { id },
-    data: { deletedAt: new Date() },
+  await db.$transaction(async (tx) => {
+    await tx.review.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    })
+    await syncProfileRating(before.targetType, before.targetId, tx)
   })
   await logAdminAction(session, "content.review.soft_delete", "Review", id, {
     before,

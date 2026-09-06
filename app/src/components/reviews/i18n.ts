@@ -11,6 +11,7 @@ export interface ReviewStrings {
   sortLabel: string
   sortNewest: string
   sortHighest: string
+  sortLowest: string
   sortHelpful: string
   verified: string
   helpful: string
@@ -32,6 +33,7 @@ export interface ReviewStrings {
   anonymous: string
   errorRating: string
   errorBody: (min: number) => string
+  errorAlready: string
   errorGeneric: string
   prevPage: string
   nextPage: string
@@ -51,6 +53,7 @@ const ka: ReviewStrings = {
   sortLabel: 'დალაგება',
   sortNewest: 'უახლესი',
   sortHighest: 'უმაღლესი შეფასება',
+  sortLowest: 'უმდაბლესი შეფასება',
   sortHelpful: 'ყველაზე სასარგებლო',
   verified: 'ვერიფიცირებული',
   helpful: 'სასარგებლო',
@@ -73,6 +76,7 @@ const ka: ReviewStrings = {
   anonymous: 'ანონიმი',
   errorRating: 'აირჩიე ვარსკვლავების რაოდენობა',
   errorBody: (min) => `ტექსტი უნდა შეიცავდეს მინიმუმ ${min} სიმბოლოს`,
+  errorAlready: 'ამ გვერდზე უკვე დაგიტოვებია შეფასება',
   errorGeneric: 'გაგზავნა ვერ მოხერხდა — სცადე თავიდან',
   prevPage: 'წინა',
   nextPage: 'შემდეგი',
@@ -92,6 +96,7 @@ const en: ReviewStrings = {
   sortLabel: 'Sort by',
   sortNewest: 'Newest',
   sortHighest: 'Highest rated',
+  sortLowest: 'Lowest rated',
   sortHelpful: 'Most helpful',
   verified: 'Verified',
   helpful: 'Helpful',
@@ -114,6 +119,7 @@ const en: ReviewStrings = {
   anonymous: 'Anonymous',
   errorRating: 'Please select a star rating',
   errorBody: (min) => `Review must be at least ${min} characters`,
+  errorAlready: 'You have already reviewed this',
   errorGeneric: 'Could not submit — please try again',
   prevPage: 'Previous',
   nextPage: 'Next',
@@ -133,6 +139,7 @@ const ru: ReviewStrings = {
   sortLabel: 'Сортировка',
   sortNewest: 'Сначала новые',
   sortHighest: 'Сначала с высокой оценкой',
+  sortLowest: 'Сначала с низкой оценкой',
   sortHelpful: 'Самые полезные',
   verified: 'Проверен',
   helpful: 'Полезно',
@@ -155,6 +162,7 @@ const ru: ReviewStrings = {
   anonymous: 'Аноним',
   errorRating: 'Пожалуйста, выберите оценку',
   errorBody: (min) => `Отзыв должен содержать минимум ${min} символов`,
+  errorAlready: 'Вы уже оставили отзыв об этом',
   errorGeneric: 'Не удалось отправить — попробуйте ещё раз',
   prevPage: 'Назад',
   nextPage: 'Вперёд',

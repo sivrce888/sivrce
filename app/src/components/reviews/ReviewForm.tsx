@@ -70,7 +70,11 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
         body: JSON.stringify(payload),
       })
       const data: unknown = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(String(res.status))
+      if (!res.ok) {
+        // 409 = unique [targetType, targetId, authorId] — one review per target.
+        setError(res.status === 409 ? s.errorAlready : s.errorGeneric)
+        return
+      }
 
       // ponytail: POST response shape isn't pinned — accept {review} or bare review,
       // else fall back to a local optimistic copy; next fetch reconciles.

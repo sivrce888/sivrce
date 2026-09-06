@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
+import { syncProfileRating } from "@/lib/reviews/aggregate"
 import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import type { Review } from "@/generated/prisma/client"
@@ -15,18 +17,21 @@ const TARGET_TYPES = new Set([
   "project",
   "developer",
   "agent",
+  "agency",
   "neighborhood",
   "account",
   "building",
   "service",
 ])
-const SORTS = new Set(["newest", "highest", "helpful"])
+const SORTS = new Set(["newest", "highest", "lowest", "helpful"])
 const PAGE_SIZE = 10
 
 /** Public wire shape per the fixed API contract. */
 function toDto(r: Review) {
   return {
     id: r.id,
+    targetType: r.targetType,
+    targetId: r.targetId,
     authorName: r.authorName,
     rating: r.rating,
     ...(r.title != null ? { title: r.title } : {}),
@@ -76,9 +81,11 @@ export async function GET(req: NextRequest) {
   const orderBy =
     sort === "highest"
       ? [{ rating: "desc" as const }, { createdAt: "desc" as const }]
-      : sort === "helpful"
-        ? [{ helpfulCount: "desc" as const }, { createdAt: "desc" as const }]
-        : [{ createdAt: "desc" as const }]
+      : sort === "lowest"
+        ? [{ rating: "asc" as const }, { createdAt: "desc" as const }]
+        : sort === "helpful"
+          ? [{ helpfulCount: "desc" as const }, { createdAt: "desc" as const }]
+          : [{ createdAt: "desc" as const }]
 
   try {
     const [agg, dist, rows] = await Promise.all([
@@ -219,22 +226,30 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const created = await db.review.create({
-      data: {
-        id: randomUUID(),
-        targetType: parsed.data.targetType,
-        targetId: parsed.data.targetId,
-        rating: parsed.data.rating,
-        title: parsed.data.title ?? null,
-        body: parsed.data.body,
-        authorName,
-        authorId: session?.user?.id ?? null,
-        locale: parsed.data.locale ?? "ka",
-        status: "published",
-      },
+    const created = await db.$transaction(async (tx) => {
+      const row = await tx.review.create({
+        data: {
+          id: randomUUID(),
+          targetType: parsed.data.targetType,
+          targetId: parsed.data.targetId,
+          rating: parsed.data.rating,
+          title: parsed.data.title ?? null,
+          body: parsed.data.body,
+          authorName,
+          authorId: session?.user?.id ?? null,
+          locale: parsed.data.locale ?? "ka",
+          status: "published",
+        },
+      })
+      await syncProfileRating(parsed.data.targetType, parsed.data.targetId, tx)
+      return row
     })
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 })
-  } catch {
+  } catch (err) {
+    // Unique [targetType, targetId, authorId] — one review per author per target.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return NextResponse.json({ error: "already_reviewed" }, { status: 409 })
+    }
     return NextResponse.json({ error: "db_unavailable" }, { status: 500 })
   }
 }

@@ -1,6 +1,6 @@
 /** API contract shapes for /api/reviews (see parallel-worker brief). */
 
-export type ReviewSort = 'newest' | 'highest' | 'helpful'
+export type ReviewSort = 'newest' | 'highest' | 'lowest' | 'helpful'
 
 export interface ReviewOwnerReply {
   body: string

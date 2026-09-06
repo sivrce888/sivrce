@@ -6,6 +6,9 @@ import ListingCard from '@/components/ListingCard'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { EntityHeader } from '@/components/entities/EntityHeader'
 import { LeadForm } from '@/components/lead/LeadForm'
+import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import { altName } from '@/lib/bilingual'
 import { cityCenter } from '@/lib/map/geocode'
 import MapEmbed from '@/components/MapEmbed'
 import { getListingsByOwner } from '@/lib/listings-db'
@@ -32,9 +35,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     null,
   )
   if (!agency) return {}
-  const description =
-    agency.summary.replace(/\s+/g, ' ').slice(0, 155) ||
+  const alt = altName(agency.name)
+  const body =
+    agency.summary.replace(/\s+/g, ' ') ||
     `${agency.name} — უძრავი ქონების სააგენტო ${agency.city}-ში · სივრცე.ge`
+  const description = ((alt && !body.includes(alt) ? `${agency.name} (${alt}). ` : '') + body).slice(
+    0,
+    155,
+  )
   return {
     title: `${agency.name} — სააგენტო`,
     description,
@@ -69,11 +77,17 @@ export default async function AgencyPage({ params }: PageProps) {
       }),
     [],
   )
-
   const ownerIds = [
     ...new Set([agency.ownerId, ...team.map((t) => t.ownerId)].filter((x): x is string => !!x)),
   ]
-  const listings = await getListingsByOwner(ownerIds).catch(() => [])
+  const [aggregate, listings] = await Promise.all([
+    getReviewAggregate('agency', agency.slug),
+    getListingsByOwner(ownerIds).catch(() => []),
+  ])
+  // Live per-agent review scores for the visible slice (same pattern as /agents).
+  const teamCards = await Promise.all(
+    team.map(async (t) => ({ ...t, aggregate: await getReviewAggregate('agent', t.slug) })),
+  )
   const mapPin = cityCenter(agency.city)
 
   const stats: { key: EntitiesKey; value: string | number }[] = [
@@ -90,12 +104,20 @@ export default async function AgencyPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'RealEstateAgent',
     name: agency.name,
+    ...(altName(agency.name) && { alternateName: altName(agency.name) }),
     url: `https://sivrce.ge/agencies/${agency.slug}`,
     address: {
       '@type': 'PostalAddress',
       addressLocality: agency.city,
       addressCountry: 'GE',
     },
+    ...(aggregate && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: aggregate.average,
+        reviewCount: aggregate.count,
+      },
+    }),
   }
 
   return (
@@ -147,7 +169,7 @@ export default async function AgencyPage({ params }: PageProps) {
               გუნდის აგენტები
             </h2>
             <div className="mt-6 sv-card-grid-3">
-              {team.map((t) => (
+              {teamCards.map((t) => (
                 <EntityCard
                   key={t.slug}
                   kind="agent"
@@ -157,7 +179,7 @@ export default async function AgencyPage({ params }: PageProps) {
                   subtitle={agency.name}
                   listingsCount={t.listingsCount}
                   verified={t.verified}
-                  aggregate={null}
+                  aggregate={t.aggregate}
                 />
               ))}
             </div>
@@ -178,8 +200,9 @@ export default async function AgencyPage({ params }: PageProps) {
         )}
 
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
-          <div className="mx-auto max-w-xl">
+          <div className="mx-auto grid max-w-4xl gap-10 lg:grid-cols-2">
             <LeadForm targetType="agency" targetId={agency.slug} recipientName={agency.name} />
+            <ReviewsSection targetType="agency" targetId={agency.slug} />
           </div>
         </section>
       </main>

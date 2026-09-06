@@ -44,8 +44,11 @@ const TARGET_KEYS: Record<string, AccountStringKey> = {
   project: 'targetProject',
   developer: 'targetDeveloper',
   agent: 'targetAgent',
+  agency: 'targetAgency',
   neighborhood: 'targetNeighborhood',
   account: 'targetAccount',
+  building: 'targetBuilding',
+  service: 'targetService',
 }
 
 function Stars({ rating }: { rating: number }) {
