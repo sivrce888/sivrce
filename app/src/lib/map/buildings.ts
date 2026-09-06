@@ -18,7 +18,6 @@ import { getDeveloper, projectCode, type Project } from '@/data/professionals'
 import type { MapDealFilter, MapKindFilter, MapStatusFilter } from '@/lib/map/map-href'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
-import footprintData from '@/data/building-footprints.json'
 import { naprOverrideFor } from '@/lib/map/napr-overrides'
 import { circleRing } from '@/lib/map/footprint-circle'
 import { ringLabelPoint } from '@/lib/map/ring-label'
@@ -70,7 +69,29 @@ type FootprintEntry =
   | { parts: FootprintPart[]; osmId?: number; ring?: undefined; height?: undefined }
   | null
 
-const FOOTPRINTS = footprintData.footprints as unknown as Record<string, FootprintEntry>
+/** Official massing is a 1.2 MB dataset — dynamic import keeps it out of the boot
+ *  bundle. `ensureFootprints()` resolves even on failure: pins fall back to
+ *  catalog coords, massing/rings simply don't render. */
+let FOOTPRINTS: Record<string, FootprintEntry> = {}
+let footprintsOnce: Promise<void> | null = null
+
+export function ensureFootprints(): Promise<void> {
+  footprintsOnce ??= import('@/data/building-footprints.json')
+    .then(
+      (m) => {
+        FOOTPRINTS = (m.default as unknown as { footprints: Record<string, FootprintEntry> })
+          .footprints
+      },
+    )
+    .catch((err) => {
+      console.error('[buildings] footprints unavailable, using catalog coords', err)
+    })
+  return footprintsOnce
+}
+
+// ponytail: prefetch at chunk eval so the fetch overlaps maplibre init + hydration;
+// consumers still await explicitly. Server consumers (SSG pages) await before use.
+if (typeof window !== 'undefined') void ensureFootprints()
 
 /** DB pins are `bldg-{slug}`; construction ghosts are `dev-{slug}`. Try both. */
 function footprintEntry(b: {

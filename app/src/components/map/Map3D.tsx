@@ -37,6 +37,7 @@ import {
   buildingsToGeoJSON,
   buildingsToPointsGeoJSON,
   clusterListingsToBuildings,
+  ensureFootprints,
   filterBuildings,
   findBuildingBySlug,
   findBuildingForListing,
@@ -238,6 +239,9 @@ const POI_SOURCE_ID = 'sivrce-pois'
 const POI_ICON_ID = 'sivrce-pois-icon'
 const POI_LABEL_LAYER_ID = 'sivrce-pois-label'
 const POI_DATA = poisToGeoJSON()
+/** Stable identity for the no-listings case (see sourceListings). */
+const EMPTY_LISTINGS: Listing[] = []
+const EMPTY_BUILDINGS: MapBuildingCluster[] = []
 
 async function ensureLayers(
   map: MlMap,
@@ -813,6 +817,8 @@ function Map3DInner({
 
   const [liveListings, setLiveListings] = useState<Listing[] | undefined>(listings)
   const [liveDbBuildings, setLiveDbBuildings] = useState(dbBuildings)
+  // Official massing arrives off the boot bundle — pins wait for it (see baseBuildings).
+  const [fpsReady, setFpsReady] = useState(false)
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
   const [dealFilter, setDealFilter] = useState<MapDealFilter>(() => {
@@ -994,7 +1000,7 @@ function Map3DInner({
       const added = data.listings.filter((l) => !prevIds.has(l.id)).length
       setLiveListings(data.listings)
       setLiveDbBuildings(data.buildings)
-      setPinsLoaded(true)
+      setListingsSettled(true)
       flashRefreshNote(
         added > 0 ? tRef.current('map.refreshAdded', { n: added }) : tRef.current('map.refreshed'),
       )
@@ -1016,7 +1022,7 @@ function Map3DInner({
         if (cancelled || !data?.listings?.length) return
         setLiveListings(data.listings)
         if (data.buildings) setLiveDbBuildings(data.buildings)
-        setPinsLoaded(true)
+        setListingsSettled(true)
       })
       .catch(() => {})
     return () => {
@@ -1024,20 +1030,35 @@ function Map3DInner({
     }
   }, [listings])
 
+  // Official massing (footprints) loads off the boot bundle; pins wait for it and
+  // land in one frame. Fetch starts at chunk eval — this usually just joins it.
+  useEffect(() => {
+    let on = true
+    ensureFootprints().then(() => {
+      if (on) setFpsReady(true)
+    })
+    return () => {
+      on = false
+    }
+  }, [])
+
   // Live DB listings when present (incl. empty).
-  const sourceListings = liveListings ?? []
+  // ponytail: module-level empty — `?? []` minted a new identity per render,
+  // rebuilding allBuildings (and re-running the selected-sync effect) forever.
+  const sourceListings = liveListings ?? EMPTY_LISTINGS
   const dbProjectSlugs = useMemo(() => {
     const s = new Set<string>()
     for (const b of liveDbBuildings ?? []) if (b.projectSlug) s.add(b.projectSlug)
     return s
   }, [liveDbBuildings])
   const baseBuildings = useMemo(() => {
+    if (!fpsReady) return EMPTY_BUILDINGS
     const forGhosts = projects.filter((p) => !dbProjectSlugs.has(p.slug))
     return mergeMapBuildings(
       clusterListingsToBuildings(sourceListings),
       projectsToConstructionBuildings(forGhosts),
     )
-  }, [sourceListings, projects, dbProjectSlugs])
+  }, [sourceListings, projects, dbProjectSlugs, fpsReady])
   const allBuildings = useMemo(
     () =>
       applyLiveProjectPins(mergeDbBuildings(baseBuildings, liveDbBuildings), projects),
@@ -1075,7 +1096,8 @@ function Map3DInner({
   }, [visible])
   // ponytail: stale-empty SSR cache boots at 0 until /api/map-data lands —
   // show waiting dots, never a fake zero (Apple Maps never shows a lying counter).
-  const [pinsLoaded, setPinsLoaded] = useState(() => (listings?.length ?? 0) > 0)
+  const [listingsSettled, setListingsSettled] = useState(() => (listings?.length ?? 0) > 0)
+  const pinsLoaded = listingsSettled && fpsReady
   useEffect(() => { visibleRef.current = visible }, [visible])
   useEffect(() => { polyFcRef.current = polyFc }, [polyFc])
   useEffect(() => { ptsFcRef.current = ptsFc }, [ptsFc])
