@@ -16,6 +16,7 @@ import { getServerT, langAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from 
 import { getDict } from "@/lib/i18n/dicts";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
+import { CONTACT_PHONE } from "@/lib/inquiries/phone";
 import { LITE_BOOT } from "@/lib/device-budget";
 import { GoogleTags } from "@/components/GoogleTags";
 import { GTM_ID } from "@/lib/analytics";
@@ -208,6 +209,7 @@ const siteLd = {
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer support",
+        telephone: CONTACT_PHONE.replace(/\s+/g, ""),
         email: "hi@sivrce.ge",
         url: `${SITE_URL}/contact`,
         availableLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],

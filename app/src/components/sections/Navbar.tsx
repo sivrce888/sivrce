@@ -4,12 +4,13 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { Heart, Menu, X, Plus, Search } from 'lucide-react'
+import { Heart, Menu, X, Plus, Search, Phone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { AccountMenu } from '@/components/nav/AccountMenu'
+import { CONTACT_PHONE, telHref } from '@/lib/inquiries/phone'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
@@ -260,6 +261,18 @@ export default function Navbar() {
               </span>
               <ThemeToggle light />
             </div>
+            <a
+              href={telHref(CONTACT_PHONE)}
+              className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+            >
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+                {t('footer.co.contact')}
+              </span>
+              <span className="flex items-center gap-2 text-[15px] font-extrabold text-sv-ink">
+                <Phone className="h-[18px] w-[18px] text-sv-blue" aria-hidden />
+                <span className="tabular-nums">{CONTACT_PHONE}</span>
+              </span>
+            </a>
             <Link
               href={localizedHref("/favorites", lang)}
               onClick={() => setOpen(false)}

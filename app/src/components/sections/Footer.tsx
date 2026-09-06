@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { Mail, MapPin } from 'lucide-react'
+import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import HScroll from '@/components/HScroll'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
+import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
 import { footerKeywordCols, type SeoLoc } from '@/lib/seo-pages'
 
 /** Exact-query keyword columns — computed once from the static catalog. */
@@ -72,6 +73,12 @@ export default function Footer() {
               {t('footer.tagline')}
             </p>
             <div className="mt-6 space-y-1 text-[14px] font-semibold text-white/60">
+              <a href={telHref(CONTACT_PHONE)} className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
+                <Phone className="h-4 w-4 text-sv-blue-light" /> <span className="tabular-nums">{CONTACT_PHONE}</span>
+              </a>
+              <a href={waHref(CONTACT_PHONE)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
+                <MessageCircle className="h-4 w-4 text-sv-blue-light" /> WhatsApp
+              </a>
               <a href="mailto:hi@sivrce.ge" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
                 <Mail className="h-4 w-4 text-sv-blue-light" /> hi@sivrce.ge
               </a>
