@@ -8,7 +8,7 @@ import {
   parseAccountPhone,
   parseDisplayName,
 } from "@/lib/account-profile"
-import { isValidAvatarStyle } from "@/lib/avatar"
+import { isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
 import { isPhoneEmail, phoneEmail } from "@/lib/auth-phone"
 import { BRAND } from "@/lib/brand"
 import { db } from "@/lib/db"
@@ -184,6 +184,16 @@ export async function saveAvatarStyle(style: number | null): Promise<AvatarSaveR
   if (style !== null && !isValidAvatarStyle(style)) return { ok: false }
 
   await db.user.update({ where: { id: user.id }, data: { avatarStyle: style } })
+  revalidatePath("/settings")
+  return { ok: true }
+}
+
+/** Pin (or clear, back to initials) the monogram glyph for the signed-in user. */
+export async function saveAvatarIcon(icon: string | null): Promise<AvatarSaveResult> {
+  const user = await requireUser("/settings")
+  if (icon !== null && !isValidAvatarIcon(icon)) return { ok: false }
+
+  await db.user.update({ where: { id: user.id }, data: { avatarIcon: icon } })
   revalidatePath("/settings")
   return { ok: true }
 }

@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation"
 import { ImagePlus, Trash2 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
-import { saveAvatarImage, saveAvatarStyle } from "@/app/[lang]/settings/actions"
+import { saveAvatarIcon, saveAvatarImage, saveAvatarStyle } from "@/app/[lang]/settings/actions"
 import UserAvatar from "@/components/UserAvatar"
-import { avatarInitials, avatarVisual, GRADIENTS } from "@/lib/avatar"
+import { avatarInitials, avatarVisual, GRADIENTS, ICONS } from "@/lib/avatar"
+import type { AvatarIcon } from "@/lib/avatar"
+import type { LucideIcon } from "lucide-react"
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
 const MAX_SIZE = 10 * 1024 * 1024 // mirrors /api/upload
@@ -16,6 +18,20 @@ const ERR_TYPE = "მხოლოდ JPG, PNG, WebP ან AVIF ფაილი"
 const ERR_SIZE = "ფაილი ძალიან დიდია — მაქსიმუმ 10 მბ"
 const ERR_UPLOAD = "ატვირთვა ვერ მოხერხდა — სცადე ხელახლა"
 const ERR_SAVE = "შენახვა ვერ მოხერხდა — სცადე ხელახლა"
+
+/** Georgian names for the glyph swatches (aria + title only). */
+const ICON_LABELS: Record<AvatarIcon, string> = {
+  house: "სახლი",
+  building: "შენობა",
+  key: "გასაღები",
+  star: "ვარსკვლავი",
+  heart: "გული",
+  sun: "მზე",
+  mountain: "მთა",
+  trees: "ბუნება",
+  sofa: "დივანი",
+  paw: "ცხოველი",
+}
 
 function Swatch({
   checked,
@@ -48,21 +64,24 @@ function Swatch({
 }
 
 /**
- * Profile photo + monogram gradient picker (settings). Gradient taps apply
+ * Profile photo + monogram gradient/glyph picker (settings). Taps apply
  * instantly (optimistic, revert on failure); photos go through /api/upload.
  */
 export default function AvatarStudio({
   name,
   image,
   style: style0,
+  icon: icon0,
 }: {
   name: string
   image: string | null
   style: number | null
+  icon: string | null
 }) {
   const { update } = useSession()
   const router = useRouter()
   const [style, setStyle] = useState<number | null>(style0)
+  const [icon, setIcon] = useState<string | null>(icon0)
   const [preview, setPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -85,6 +104,21 @@ export default function AvatarStudio({
       const r = await saveAvatarStyle(next)
       if (!r.ok) {
         setStyle(style0)
+        setErr(ERR_SAVE)
+        return
+      }
+      await update()
+    })
+  }
+
+  function pickIcon(next: string | null) {
+    if (next === icon || busy) return
+    setIcon(next)
+    setErr(null)
+    startTransition(async () => {
+      const r = await saveAvatarIcon(next)
+      if (!r.ok) {
+        setIcon(icon0)
         setErr(ERR_SAVE)
         return
       }
@@ -168,7 +202,7 @@ export default function AvatarStudio({
       </div>
 
       <div className="mt-5 flex items-center gap-5">
-        <UserAvatar name={name} image={shown} gradient={style} size={96} />
+        <UserAvatar name={name} image={shown} gradient={style} icon={icon} size={96} />
         <div className="flex flex-col items-start gap-2">
           <button
             type="button"
@@ -227,6 +261,39 @@ export default function AvatarStudio({
                 className="h-full w-full"
                 style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
               />
+            </Swatch>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-sv-ink/6 pt-5">
+        <p className="text-[13px] font-extrabold text-sv-ink">სიმბოლო</p>
+        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/50">
+          ავტო — შენი ინიციალებია; არჩეული სიმბოლო იმუშავებს ყველა გვერდზე.
+        </p>
+        <div role="radiogroup" aria-label="ავატარის სიმბოლო" className="mt-3 flex flex-wrap gap-2.5">
+          <Swatch checked={icon === null} label="ავტო — ინიციალები" onClick={() => pickIcon(null)}>
+            <span
+              aria-hidden
+              className="grid h-full w-full place-items-center text-[11px] font-black text-white"
+              style={{ background: `linear-gradient(${auto.angle}deg, ${auto.from}, ${auto.to})` }}
+            >
+              {avatarInitials(name)}
+            </span>
+          </Swatch>
+          {(Object.entries(ICONS) as [AvatarIcon, LucideIcon][]).map(([key, Glyph]) => (
+            <Swatch
+              key={key}
+              checked={icon === key}
+              label={`სიმბოლო — ${ICON_LABELS[key]}`}
+              onClick={() => pickIcon(key)}
+            >
+              <span
+                aria-hidden
+                className="grid h-full w-full place-items-center bg-sv-ink/[0.05] text-sv-ink/70"
+              >
+                <Glyph size={15} />
+              </span>
             </Swatch>
           ))}
         </div>

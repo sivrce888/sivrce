@@ -10,21 +10,23 @@ datasource db {
 // --- NextAuth / Auth.js (composite keys aligned with @auth/prisma-adapter expectations)
 
 model User {
-  id            String    @id @default(cuid()) @db.VarChar(120)
-  name          String?   @db.VarChar(160)
-  email         String    @unique @db.VarChar(240)
-  emailVerified DateTime? @map("email_verified") @db.Timestamptz(6)
-  phone         String?   @unique @db.VarChar(30)
+  id              String    @id @default(cuid()) @db.VarChar(120)
+  name            String?   @db.VarChar(160)
+  email           String    @unique @db.VarChar(240)
+  emailVerified   DateTime? @map("email_verified") @db.Timestamptz(6)
+  phone           String?   @unique @db.VarChar(30)
   phoneVerifiedAt DateTime? @map("phone_verified_at") @db.Timestamptz(6)
-  image         String?   @db.Text
+  image           String?   @db.Text
   /// Chosen monogram gradient (index into lib/avatar PAIRS); null = auto from name.
-  avatarStyle   Int?      @map("avatar_style")
+  avatarStyle     Int?      @map("avatar_style")
+  /// Chosen monogram glyph (key into lib/avatar ICONS); null = initials.
+  avatarIcon      String?   @map("avatar_icon") @db.VarChar(24)
   /// Null for OAuth-only accounts. Set on email signup / password reset.
-  passwordHash  String?   @map("password_hash") @db.VarChar(200)
-  role          UserRole  @default(buyer)
-  trustScore    Int       @default(70) @map("trust_score")
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  passwordHash    String?   @map("password_hash") @db.VarChar(200)
+  role            UserRole  @default(buyer)
+  trustScore      Int       @default(70) @map("trust_score")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   accounts             Account[]
   sessions             Session[]
@@ -253,22 +255,22 @@ model ListingNearestPoi {
 // ── Map AI Zones ──────────────────────────────────────────────────────────
 
 model MapAiZone {
-  id                  String   @id @default(cuid()) @db.VarChar(120)
-  name                String   @db.VarChar(200)
-  district            String   @db.VarChar(120)
-  city                String   @db.VarChar(120) @default("Tbilisi")
-  polygon             Unsupported("geometry(Polygon, 4326)")
-  investmentScore     Int      @default(0) @map("investment_score")
-  rentalDemandScore   Int      @default(0) @map("rental_demand_score")
-  appreciationForecast Int     @default(0) @map("appreciation_forecast")
-  riskScore           Int      @default(0) @map("risk_score")
-  livabilityScore     Int      @default(0) @map("livability_score")
-  listingCount        Int      @default(0) @map("listing_count")
-  avgPricePerSqm      Int      @default(0) @map("avg_price_per_sqm")
-  confidence          Int      @default(0)
-  reasonCodes         String?  @db.Text @map("reason_codes")
-  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String                                 @id @default(cuid()) @db.VarChar(120)
+  name                 String                                 @db.VarChar(200)
+  district             String                                 @db.VarChar(120)
+  city                 String                                 @default("Tbilisi") @db.VarChar(120)
+  polygon              Unsupported("geometry(Polygon, 4326)")
+  investmentScore      Int                                    @default(0) @map("investment_score")
+  rentalDemandScore    Int                                    @default(0) @map("rental_demand_score")
+  appreciationForecast Int                                    @default(0) @map("appreciation_forecast")
+  riskScore            Int                                    @default(0) @map("risk_score")
+  livabilityScore      Int                                    @default(0) @map("livability_score")
+  listingCount         Int                                    @default(0) @map("listing_count")
+  avgPricePerSqm       Int                                    @default(0) @map("avg_price_per_sqm")
+  confidence           Int                                    @default(0)
+  reasonCodes          String?                                @map("reason_codes") @db.Text
+  createdAt            DateTime                               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([district])
   @@index([investmentScore])
@@ -572,22 +574,22 @@ model ListingBoostHistory {
 }
 
 model DailyRentalSettings {
-  id                String   @id @default(uuid()) @db.Uuid
-  listingId         String   @unique @map("listing_id") @db.VarChar(120)
-  enabled           Boolean  @default(true)
-  minNights         Int      @default(1) @map("min_nights")
-  maxNights         Int      @default(30) @map("max_nights")
-  instantBook       Boolean  @default(false) @map("instant_book")
-  checkInHour       Int      @default(15) @map("check_in_hour")
-  checkOutHour      Int      @default(11) @map("check_out_hour")
-  cleaningFeeTetri  Int      @default(0) @map("cleaning_fee_tetri")
-  securityDepositTetri Int   @default(0) @map("security_deposit_tetri")
-  weekendPriceTetri Int?     @map("weekend_price_tetri")
-  weeklyDiscountPct Int      @default(0) @map("weekly_discount_pct")
-  monthlyDiscountPct Int     @default(0) @map("monthly_discount_pct")
-  guestCapacity     Int      @default(2) @map("guest_capacity")
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String   @id @default(uuid()) @db.Uuid
+  listingId            String   @unique @map("listing_id") @db.VarChar(120)
+  enabled              Boolean  @default(true)
+  minNights            Int      @default(1) @map("min_nights")
+  maxNights            Int      @default(30) @map("max_nights")
+  instantBook          Boolean  @default(false) @map("instant_book")
+  checkInHour          Int      @default(15) @map("check_in_hour")
+  checkOutHour         Int      @default(11) @map("check_out_hour")
+  cleaningFeeTetri     Int      @default(0) @map("cleaning_fee_tetri")
+  securityDepositTetri Int      @default(0) @map("security_deposit_tetri")
+  weekendPriceTetri    Int?     @map("weekend_price_tetri")
+  weeklyDiscountPct    Int      @default(0) @map("weekly_discount_pct")
+  monthlyDiscountPct   Int      @default(0) @map("monthly_discount_pct")
+  guestCapacity        Int      @default(2) @map("guest_capacity")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
@@ -606,31 +608,31 @@ enum BookingStatus {
 }
 
 model DailyRentalBooking {
-  id              String        @id @default(uuid()) @db.Uuid
-  listingId       String        @map("listing_id") @db.VarChar(120)
-  guestId         String        @map("guest_id") @db.VarChar(120)
-  checkIn         DateTime      @map("check_in") @db.Timestamptz(6)
-  checkOut        DateTime      @map("check_out") @db.Timestamptz(6)
-  nights          Int
-  guestCount      Int           @map("guest_count")
-  nightlyPriceTetri Int         @map("nightly_price_tetri")
-  cleaningFeeTetri Int         @map("cleaning_fee_tetri")
-  securityDepositTetri Int     @map("security_deposit_tetri")
-  discountTetri   Int           @default(0) @map("discount_tetri")
-  totalTetri      Int           @map("total_tetri")
-  currency        String        @default("GEL") @db.VarChar(3)
-  status          BookingStatus @default(pending)
-  guestName       String        @map("guest_name") @db.VarChar(160)
-  guestPhone      String        @map("guest_phone") @db.VarChar(30)
-  guestEmail      String?       @map("guest_email") @db.VarChar(240)
-  guestNotes      String?       @map("guest_notes") @db.Text
-  hostNotes       String?       @map("host_notes") @db.Text
-  paymentOrderId  String?       @map("payment_order_id") @db.VarChar(36)
-  paidAt          DateTime?     @map("paid_at") @db.Timestamptz(6)
-  cancelledAt     DateTime?     @map("cancelled_at") @db.Timestamptz(6)
-  cancelReason    String?       @map("cancel_reason") @db.VarChar(200)
-  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                   String        @id @default(uuid()) @db.Uuid
+  listingId            String        @map("listing_id") @db.VarChar(120)
+  guestId              String        @map("guest_id") @db.VarChar(120)
+  checkIn              DateTime      @map("check_in") @db.Timestamptz(6)
+  checkOut             DateTime      @map("check_out") @db.Timestamptz(6)
+  nights               Int
+  guestCount           Int           @map("guest_count")
+  nightlyPriceTetri    Int           @map("nightly_price_tetri")
+  cleaningFeeTetri     Int           @map("cleaning_fee_tetri")
+  securityDepositTetri Int           @map("security_deposit_tetri")
+  discountTetri        Int           @default(0) @map("discount_tetri")
+  totalTetri           Int           @map("total_tetri")
+  currency             String        @default("GEL") @db.VarChar(3)
+  status               BookingStatus @default(pending)
+  guestName            String        @map("guest_name") @db.VarChar(160)
+  guestPhone           String        @map("guest_phone") @db.VarChar(30)
+  guestEmail           String?       @map("guest_email") @db.VarChar(240)
+  guestNotes           String?       @map("guest_notes") @db.Text
+  hostNotes            String?       @map("host_notes") @db.Text
+  paymentOrderId       String?       @map("payment_order_id") @db.VarChar(36)
+  paidAt               DateTime?     @map("paid_at") @db.Timestamptz(6)
+  cancelledAt          DateTime?     @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason         String?       @map("cancel_reason") @db.VarChar(200)
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
@@ -686,25 +688,25 @@ enum CrmTaskStatus {
 }
 
 model CrmLead {
-  id          String        @id @default(uuid()) @db.Uuid
-  agentId     String        @map("agent_id") @db.VarChar(120)
-  name        String        @db.VarChar(160)
-  phone       String        @db.VarChar(30)
-  email       String?       @db.VarChar(240)
-  source      String        @default("inquiry") @db.VarChar(40)
-  status      CrmLeadStatus @default(new)
-  budgetMin   Int?          @map("budget_min")
-  budgetMax   Int?          @map("budget_max")
-  currency    String        @default("GEL") @db.VarChar(3)
-  dealType    String?       @map("deal_type") @db.VarChar(20)
-  district    String?       @db.VarChar(120)
-  notes       String?       @db.Text
-  lastContact DateTime?     @map("last_contact") @db.Timestamptz(6)
-  nextFollowUp DateTime?    @map("next_follow_up") @db.Timestamptz(6)
-  closedAt    DateTime?     @map("closed_at") @db.Timestamptz(6)
-  closedReason String?      @map("closed_reason") @db.VarChar(200)
-  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id           String        @id @default(uuid()) @db.Uuid
+  agentId      String        @map("agent_id") @db.VarChar(120)
+  name         String        @db.VarChar(160)
+  phone        String        @db.VarChar(30)
+  email        String?       @db.VarChar(240)
+  source       String        @default("inquiry") @db.VarChar(40)
+  status       CrmLeadStatus @default(new)
+  budgetMin    Int?          @map("budget_min")
+  budgetMax    Int?          @map("budget_max")
+  currency     String        @default("GEL") @db.VarChar(3)
+  dealType     String?       @map("deal_type") @db.VarChar(20)
+  district     String?       @db.VarChar(120)
+  notes        String?       @db.Text
+  lastContact  DateTime?     @map("last_contact") @db.Timestamptz(6)
+  nextFollowUp DateTime?     @map("next_follow_up") @db.Timestamptz(6)
+  closedAt     DateTime?     @map("closed_at") @db.Timestamptz(6)
+  closedReason String?       @map("closed_reason") @db.VarChar(200)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   activities CrmActivity[]
   tasks      CrmTask[]
@@ -729,17 +731,17 @@ model CrmActivity {
 }
 
 model CrmTask {
-  id          String        @id @default(uuid()) @db.Uuid
-  agentId     String        @map("agent_id") @db.VarChar(120)
-  leadId      String?       @map("lead_id") @db.Uuid
-  title       String        @db.VarChar(200)
-  description String?       @db.Text
-  dueDate     DateTime      @map("due_date") @db.Timestamptz(6)
+  id          String          @id @default(uuid()) @db.Uuid
+  agentId     String          @map("agent_id") @db.VarChar(120)
+  leadId      String?         @map("lead_id") @db.Uuid
+  title       String          @db.VarChar(200)
+  description String?         @db.Text
+  dueDate     DateTime        @map("due_date") @db.Timestamptz(6)
   priority    CrmTaskPriority @default(medium)
-  status      CrmTaskStatus @default(todo)
-  completedAt DateTime?     @map("completed_at") @db.Timestamptz(6)
-  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  status      CrmTaskStatus   @default(todo)
+  completedAt DateTime?       @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   lead CrmLead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
@@ -749,43 +751,41 @@ model CrmTask {
 }
 
 model ServiceProvider {
-  id            String   @id @default(uuid()) @db.Uuid
-  ownerId       String   @map("owner_id") @db.VarChar(120)
-  name          String   @db.VarChar(160)
-  slug          String   @unique @db.VarChar(180)
-  category      String   @db.VarChar(40)
-  subcategory   String?  @db.VarChar(60)
-  description   String   @db.Text
-  logoUrl       String?  @map("logo_url") @db.Text
-  phone         String   @db.VarChar(30)
-  email         String?  @db.VarChar(240)
-  website       String?  @db.VarChar(240)
-  city          String   @db.VarChar(100)
-  district      String?  @db.VarChar(120)
-  address       String?  @db.VarChar(240)
+  id            String    @id @default(uuid()) @db.Uuid
+  ownerId       String    @map("owner_id") @db.VarChar(120)
+  name          String    @db.VarChar(160)
+  slug          String    @unique @db.VarChar(180)
+  category      String    @db.VarChar(40)
+  subcategory   String?   @db.VarChar(60)
+  description   String    @db.Text
+  logoUrl       String?   @map("logo_url") @db.Text
+  phone         String    @db.VarChar(30)
+  email         String?   @db.VarChar(240)
+  website       String?   @db.VarChar(240)
+  city          String    @db.VarChar(100)
+  district      String?   @db.VarChar(120)
+  address       String?   @db.VarChar(240)
   lat           Float?
   lng           Float?
-  priceRangeMin Int?     @map("price_range_min")
-  priceRangeMax Int?     @map("price_range_max")
-  currency      String   @default("GEL") @db.VarChar(3)
-  verified      Boolean  @default(false)
-  rating        Float    @default(0)
-  reviewCount   Int      @default(0) @map("review_count")
-  portfolioUrls String[] @default([]) @map("portfolio_urls")
-  features      String[] @default([])
+  priceRangeMin Int?      @map("price_range_min")
+  priceRangeMax Int?      @map("price_range_max")
+  currency      String    @default("GEL") @db.VarChar(3)
+  verified      Boolean   @default(false)
+  rating        Float     @default(0)
+  reviewCount   Int       @default(0) @map("review_count")
+  portfolioUrls String[]  @default([]) @map("portfolio_urls")
+  features      String[]  @default([])
   hours         Json?
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
-
 
   @@index([category, city, isActive], map: "service_provider_category_city_idx")
   @@index([slug], map: "service_provider_slug_idx")
   @@index([deletedAt], map: "service_provider_deleted_at_idx")
   @@map("service_providers")
 }
-
 
 model SavedListing {
   id        String    @id @default(uuid()) @db.Uuid
@@ -806,24 +806,26 @@ model SavedListing {
 }
 
 model DeveloperProfile {
-  id                  String      @id @db.VarChar(120)
-  ownerId             String?     @map("owner_id") @db.VarChar(120)
-  slug                String      @unique @db.VarChar(120)
-  name                String      @db.VarChar(160)
-  logoText            String      @map("logo_text") @db.VarChar(40)
-  /** Official site hostname / URL from korter or owner edit. */
-  website             String?     @db.VarChar(200)
-  logoUrl             String?     @map("logo_url") @db.VarChar(320)
-  projectsCount       Int         @default(0) @map("projects_count")
-  completedCount      Int         @default(0) @map("completed_count")
-  headquarters        String      @db.VarChar(160)
-  rating              Float       @default(0)
-  color               String      @db.VarChar(80)
-  description         String      @db.Text
-  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt           DateTime?   @map("deleted_at") @db.Timestamptz(6)
-  complaintsAsSubject Complaint[] @relation("ComplaintSubjectDeveloper")
+  id                  String        @id @db.VarChar(120)
+  ownerId             String?       @map("owner_id") @db.VarChar(120)
+  slug                String        @unique @db.VarChar(120)
+  name                String        @db.VarChar(160)
+  logoText            String        @map("logo_text") @db.VarChar(40)
+  /**
+   * Official site hostname / URL from korter or owner edit.
+   */
+  website             String?       @db.VarChar(200)
+  logoUrl             String?       @map("logo_url") @db.VarChar(320)
+  projectsCount       Int           @default(0) @map("projects_count")
+  completedCount      Int           @default(0) @map("completed_count")
+  headquarters        String        @db.VarChar(160)
+  rating              Float         @default(0)
+  color               String        @db.VarChar(80)
+  description         String        @db.Text
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  complaintsAsSubject Complaint[]   @relation("ComplaintSubjectDeveloper")
   importJobs          ImportJob[]
   buildings3D         Building3D[]
   mapBuildings        MapBuilding[]
@@ -834,23 +836,23 @@ model DeveloperProfile {
 }
 
 model AgentProfile {
-  id            String    @id @db.VarChar(120)
-  ownerId       String?   @map("owner_id") @db.VarChar(120)
-  slug          String    @unique @db.VarChar(120)
-  name          String    @db.VarChar(160)
-  agency        String    @db.VarChar(160)
-  listingsCount Int       @default(0) @map("listings_count")
-  rating        Float     @default(0)
-  reviewsCount  Int       @default(0) @map("reviews_count")
-  avatarText    String    @map("avatar_text") @db.VarChar(24)
-  verified      Boolean   @default(false)
-  languages     String[]  @default([])
-  specialties   String[]  @default([])
-  color         String    @db.VarChar(80)
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
-  propertyTours PropertyTour[]
+  id                 String             @id @db.VarChar(120)
+  ownerId            String?            @map("owner_id") @db.VarChar(120)
+  slug               String             @unique @db.VarChar(120)
+  name               String             @db.VarChar(160)
+  agency             String             @db.VarChar(160)
+  listingsCount      Int                @default(0) @map("listings_count")
+  rating             Float              @default(0)
+  reviewsCount       Int                @default(0) @map("reviews_count")
+  avatarText         String             @map("avatar_text") @db.VarChar(24)
+  verified           Boolean            @default(false)
+  languages          String[]           @default([])
+  specialties        String[]           @default([])
+  color              String             @db.VarChar(80)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  propertyTours      PropertyTour[]
   tourAvailabilities TourAvailability[]
   tourDateOverrides  TourDateOverride[]
 
@@ -867,11 +869,15 @@ model ProjectDirectory {
   developer           String      @db.VarChar(180)
   city                String      @db.VarChar(100)
   district            String      @db.VarChar(120)
-  /** Street address from korter / official listing (map pin text). */
+  /**
+   * Street address from korter / official listing (map pin text).
+   */
   address             String?     @db.VarChar(240)
   lat                 Float?
   lng                 Float?
-  /** Source page on korter.ge (or official) for admin audit. */
+  /**
+   * Source page on korter.ge (or official) for admin audit.
+   */
   sourceUrl           String?     @map("source_url") @db.VarChar(320)
   status              String      @db.VarChar(40)
   readyBy             String      @map("ready_by") @db.VarChar(80)
@@ -879,11 +885,17 @@ model ProjectDirectory {
   pricePerSqmFrom     Int         @default(0) @map("price_per_sqm_from")
   units               Int         @default(1)
   image               String      @db.VarChar(320)
-  /** Local CDN gallery (renders / progress / aero) — mirrored off korter. */
+  /**
+   * Local CDN gallery (renders / progress / aero) — mirrored off korter.
+   */
   gallery             String[]    @default([])
-  /** Project description body (plain text, from official listing). */
+  /**
+   * Project description body (plain text, from official listing).
+   */
   body                String?     @db.Text
-  /** Floor-plan / passport image URL (local CDN after mirror). */
+  /**
+   * Floor-plan / passport image URL (local CDN after mirror).
+   */
   passportUrl         String?     @map("passport_url") @db.VarChar(320)
   features            String[]    @default([])
   createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -1109,26 +1121,26 @@ model ForumReplyVote {
 }
 
 model Inquiry {
-  id                  String    @id @db.VarChar(120)
-  listingId           String    @map("listing_id") @db.VarChar(120)
-  agentName           String    @map("agent_name") @db.VarChar(160)
-  agentEmail          String?   @map("agent_email") @db.VarChar(240)
-  agentPhone          String?   @map("agent_phone") @db.VarChar(40)
-  buyerName           String    @map("buyer_name") @db.VarChar(160)
-  buyerEmail          String    @map("buyer_email") @db.VarChar(240)
-  buyerPhone          String?   @map("buyer_phone") @db.VarChar(40)
-  message             String    @db.Text
-  deal                String    @default("buy") @db.VarChar(20)
-  city                String    @default("") @db.VarChar(100)
-  district            String    @default("") @db.VarChar(120)
-  status              String    @default("new") @db.VarChar(30)
-  qualityScore        Int       @default(0) @map("quality_score")
-  isForSale           Boolean   @default(false) @map("is_for_sale")
-  price               Int       @default(0)
+  id                   String    @id @db.VarChar(120)
+  listingId            String    @map("listing_id") @db.VarChar(120)
+  agentName            String    @map("agent_name") @db.VarChar(160)
+  agentEmail           String?   @map("agent_email") @db.VarChar(240)
+  agentPhone           String?   @map("agent_phone") @db.VarChar(40)
+  buyerName            String    @map("buyer_name") @db.VarChar(160)
+  buyerEmail           String    @map("buyer_email") @db.VarChar(240)
+  buyerPhone           String?   @map("buyer_phone") @db.VarChar(40)
+  message              String    @db.Text
+  deal                 String    @default("buy") @db.VarChar(20)
+  city                 String    @default("") @db.VarChar(100)
+  district             String    @default("") @db.VarChar(120)
+  status               String    @default("new") @db.VarChar(30)
+  qualityScore         Int       @default(0) @map("quality_score")
+  isForSale            Boolean   @default(false) @map("is_for_sale")
+  price                Int       @default(0)
   exclusivityExpiresAt DateTime? @map("exclusivity_expires_at") @db.Timestamptz(6)
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt           DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   purchases LeadPurchase[]
 
@@ -1140,13 +1152,13 @@ model Inquiry {
 }
 
 model LeadPurchase {
-  id            String    @id @default(cuid()) @db.VarChar(120)
-  inquiryId     String    @map("inquiry_id") @db.VarChar(120)
-  buyerId       String    @map("buyer_id") @db.VarChar(120)
-  price         Int
-  currency      String    @default("GEL") @db.VarChar(3)
-  purchasedAt   DateTime  @default(now()) @map("purchased_at") @db.Timestamptz(6)
-  expiresAt     DateTime? @map("expires_at") @db.Timestamptz(6)
+  id          String    @id @default(cuid()) @db.VarChar(120)
+  inquiryId   String    @map("inquiry_id") @db.VarChar(120)
+  buyerId     String    @map("buyer_id") @db.VarChar(120)
+  price       Int
+  currency    String    @default("GEL") @db.VarChar(3)
+  purchasedAt DateTime  @default(now()) @map("purchased_at") @db.Timestamptz(6)
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
 
   inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
 
@@ -1205,8 +1217,8 @@ model Review {
   moderationQueueItems ModerationQueue[]   @relation("ModerationQueueReview")
   helpfulVotes         ReviewHelpfulVote[]
 
-  @@index([targetType, targetId], map: "reviews_target_idx")
   @@unique([targetType, targetId, authorId], map: "reviews_target_author_key")
+  @@index([targetType, targetId], map: "reviews_target_idx")
   @@map("reviews")
 }
 
@@ -1272,7 +1284,7 @@ model StripeCustomer {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscriptions Subscription[]
 
   @@map("stripe_customers")
@@ -1314,7 +1326,9 @@ model GeorgianPaymentOrder {
   userId            String?          @map("user_id") @db.VarChar(120)
   listingId         String?          @map("listing_id") @db.VarChar(120)
   tier              String           @db.VarChar(30)
-  /** Paid window in days (VIP packages + turbo use this on finalize). */
+  /**
+   * Paid window in days (VIP packages + turbo use this on finalize).
+   */
   durationDays      Int              @default(30) @map("duration_days")
   amountTetri       Int              @map("amount_tetri")
   currency          String           @default("GEL") @db.VarChar(3)
@@ -1812,32 +1826,32 @@ model SuspiciousActivityLog {
 }
 
 model MapBuilding {
-  id              String      @id @default(uuid()) @db.Uuid
-  slug            String      @unique @db.VarChar(140)
-  code            String?     @db.VarChar(20)
-  title           String      @db.VarChar(180)
-  titleEn         String?     @map("title_en") @db.VarChar(180)
-  description     String?     @db.Text
-  address         String?     @db.VarChar(240)
-  city            String?     @db.VarChar(100)
-  district        String?     @db.VarChar(120)
-  buildingNumber  String?     @map("building_number") @db.VarChar(12)
-  polygonCoords   Json?       @map("polygon_coords")
-  lat             Float
-  lng             Float
-  height          Float       @default(0)
-  floors          Int         @default(0)
-  yearBuilt       Int?        @map("year_built")
-  img             String?     @db.VarChar(260)
-  status          String      @default("active") @db.VarChar(30)
-  popular         Boolean     @default(false)
-  projectSlug     String?     @map("project_slug") @db.VarChar(140)
-  developerId     String?     @map("developer_id") @db.VarChar(120)
-  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id             String   @id @default(uuid()) @db.Uuid
+  slug           String   @unique @db.VarChar(140)
+  code           String?  @db.VarChar(20)
+  title          String   @db.VarChar(180)
+  titleEn        String?  @map("title_en") @db.VarChar(180)
+  description    String?  @db.Text
+  address        String?  @db.VarChar(240)
+  city           String?  @db.VarChar(100)
+  district       String?  @db.VarChar(120)
+  buildingNumber String?  @map("building_number") @db.VarChar(12)
+  polygonCoords  Json?    @map("polygon_coords")
+  lat            Float
+  lng            Float
+  height         Float    @default(0)
+  floors         Int      @default(0)
+  yearBuilt      Int?     @map("year_built")
+  img            String?  @db.VarChar(260)
+  status         String   @default("active") @db.VarChar(30)
+  popular        Boolean  @default(false)
+  projectSlug    String?  @map("project_slug") @db.VarChar(140)
+  developerId    String?  @map("developer_id") @db.VarChar(120)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  building3D    Building3D?
-  developer     DeveloperProfile? @relation(fields: [developerId], references: [id], onDelete: SetNull)
+  building3D Building3D?
+  developer  DeveloperProfile? @relation(fields: [developerId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt(sort: Desc)], map: "map_buildings_status_created_idx")
   @@index([popular, status], map: "map_buildings_popular_idx")
@@ -1861,32 +1875,32 @@ model SystemConfig {
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   updatedById String?  @map("updated_by_id") @db.VarChar(120)
 
-  updatedBy   User?    @relation("SystemConfigUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedBy User? @relation("SystemConfigUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@map("system_config")
 }
 
 /// Site display ads — admin-owned creatives for homepage, search, listing rail, etc.
 model AdBanner {
-  id         String    @id @default(cuid()) @db.VarChar(120)
-  slot       String    @db.VarChar(40)
-  format     String    @default("billboard") @db.VarChar(20)
-  status     String    @default("draft") @db.VarChar(20)
-  title      String    @db.VarChar(180)
-  subtitle   String?   @db.VarChar(280)
-  ctaLabel   String?   @map("cta_label") @db.VarChar(80)
-  href       String    @db.VarChar(500)
-  imageUrl   String?   @map("image_url") @db.Text
-  advertiser String?   @db.VarChar(120)
-  audiences  String[]  @default(["all"])
-  langs      String[]  @default(["all"])
-  weight     Int       @default(10)
-  startsAt   DateTime? @map("starts_at") @db.Timestamptz(6)
-  endsAt     DateTime? @map("ends_at") @db.Timestamptz(6)
-  clicks     Int       @default(0)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  createdById String?  @map("created_by_id") @db.VarChar(120)
+  id          String    @id @default(cuid()) @db.VarChar(120)
+  slot        String    @db.VarChar(40)
+  format      String    @default("billboard") @db.VarChar(20)
+  status      String    @default("draft") @db.VarChar(20)
+  title       String    @db.VarChar(180)
+  subtitle    String?   @db.VarChar(280)
+  ctaLabel    String?   @map("cta_label") @db.VarChar(80)
+  href        String    @db.VarChar(500)
+  imageUrl    String?   @map("image_url") @db.Text
+  advertiser  String?   @db.VarChar(120)
+  audiences   String[]  @default(["all"])
+  langs       String[]  @default(["all"])
+  weight      Int       @default(10)
+  startsAt    DateTime? @map("starts_at") @db.Timestamptz(6)
+  endsAt      DateTime? @map("ends_at") @db.Timestamptz(6)
+  clicks      Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdById String?   @map("created_by_id") @db.VarChar(120)
 
   @@index([slot, status], map: "ad_banners_slot_status_idx")
   @@index([status, startsAt, endsAt], map: "ad_banners_live_window_idx")
@@ -1923,52 +1937,52 @@ enum BuildingMaterial {
 
 /// Extended 3D building data for CesiumJS visualization
 model Building3D {
-  id                String           @id @default(uuid()) @db.Uuid
-  mapBuildingId     String           @unique @map("map_building_id") @db.Uuid
-  
+  id            String @id @default(uuid()) @db.Uuid
+  mapBuildingId String @unique @map("map_building_id") @db.Uuid
+
   // 3D Geometry
-  footprintGeoJson  Json             @map("footprint_geojson")
-  heightMeters      Float            @map("height_meters")
-  floorCount        Int              @map("floor_count")
-  floorHeight       Float            @default(3.0) @map("floor_height")
-  undergroundFloors Int              @default(0) @map("underground_floors")
-  
+  footprintGeoJson  Json  @map("footprint_geojson")
+  heightMeters      Float @map("height_meters")
+  floorCount        Int   @map("floor_count")
+  floorHeight       Float @default(3.0) @map("floor_height")
+  undergroundFloors Int   @default(0) @map("underground_floors")
+
   // 3D Model
-  modelUrl3D        String?          @map("model_url_3d") @db.Text
-  modelFormat       String?          @map("model_format") @db.VarChar(20)
-  
+  modelUrl3D  String? @map("model_url_3d") @db.Text
+  modelFormat String? @map("model_format") @db.VarChar(20)
+
   // Visual Properties
-  material          BuildingMaterial @default(concrete)
-  yearBuilt         Int?             @map("year_built")
-  yearRenovated     Int?             @map("year_renovated")
-  architect         String?          @db.VarChar(200)
-  developerId       String?          @map("developer_id") @db.VarChar(120)
-  
+  material      BuildingMaterial @default(concrete)
+  yearBuilt     Int?             @map("year_built")
+  yearRenovated Int?             @map("year_renovated")
+  architect     String?          @db.VarChar(200)
+  developerId   String?          @map("developer_id") @db.VarChar(120)
+
   // Status
-  status            Building3DStatus @default(active)
-  constructionProgress Float?        @map("construction_progress")
-  readyBy           DateTime?        @map("ready_by") @db.Timestamptz(6)
-  
+  status               Building3DStatus @default(active)
+  constructionProgress Float?           @map("construction_progress")
+  readyBy              DateTime?        @map("ready_by") @db.Timestamptz(6)
+
   // Metadata
-  parkingSpaces     Int?             @map("parking_spaces")
-  elevatorCount     Int?             @map("elevator_count")
-  hasUndergroundParking Boolean      @default(false) @map("has_underground_parking")
-  hasRooftopAccess  Boolean          @default(false) @map("has_rooftop_access")
-  
+  parkingSpaces         Int?    @map("parking_spaces")
+  elevatorCount         Int?    @map("elevator_count")
+  hasUndergroundParking Boolean @default(false) @map("has_underground_parking")
+  hasRooftopAccess      Boolean @default(false) @map("has_rooftop_access")
+
   // Cesium Position
-  cesiumPosition    Json?            @map("cesium_position")
-  boundingBox       Json?            @map("bounding_box")
-  
-  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  updatedById       String?          @map("updated_by_id") @db.VarChar(120)
-  
-  mapBuilding       MapBuilding      @relation(fields: [mapBuildingId], references: [id], onDelete: Cascade)
-  floors            BuildingFloor[]
-  listingLocations  ListingLocation[]
-  developer         DeveloperProfile?       @relation(fields: [developerId], references: [id], onDelete: SetNull)
-  updatedBy         User?            @relation("Building3DUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
-  
+  cesiumPosition Json? @map("cesium_position")
+  boundingBox    Json? @map("bounding_box")
+
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedById String?  @map("updated_by_id") @db.VarChar(120)
+
+  mapBuilding      MapBuilding       @relation(fields: [mapBuildingId], references: [id], onDelete: Cascade)
+  floors           BuildingFloor[]
+  listingLocations ListingLocation[]
+  developer        DeveloperProfile? @relation(fields: [developerId], references: [id], onDelete: SetNull)
+  updatedBy        User?             @relation("Building3DUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
   @@index([status, yearBuilt], map: "building_3d_status_year_idx")
   @@index([developerId], map: "building_3d_developer_idx")
   @@index([readyBy], map: "building_3d_ready_idx")
@@ -1977,42 +1991,42 @@ model Building3D {
 
 /// Individual floor data within a 3D building
 model BuildingFloor {
-  id              String    @id @default(uuid()) @db.Uuid
-  building3DId    String    @map("building_3d_id") @db.Uuid
-  floorNumber     Int       @map("floor_number")
-  displayLabel    String?   @map("display_label") @db.VarChar(20)
-  
+  id           String  @id @default(uuid()) @db.Uuid
+  building3DId String  @map("building_3d_id") @db.Uuid
+  floorNumber  Int     @map("floor_number")
+  displayLabel String? @map("display_label") @db.VarChar(20)
+
   // Floor geometry
-  footprintGeoJson Json?    @map("footprint_geojson")
-  areaSqm         Float?    @map("area_sqm")
-  heightMeters    Float     @default(3.0) @map("height_meters")
-  
+  footprintGeoJson Json?  @map("footprint_geojson")
+  areaSqm          Float? @map("area_sqm")
+  heightMeters     Float  @default(3.0) @map("height_meters")
+
   // Floor properties
-  totalUnits      Int       @default(0) @map("total_units")
-  availableUnits  Int       @default(0) @map("available_units")
-  
+  totalUnits     Int @default(0) @map("total_units")
+  availableUnits Int @default(0) @map("available_units")
+
   // Deal type breakdown
-  forSaleCount     Int      @default(0) @map("for_sale_count")
-  forRentCount     Int      @default(0) @map("for_rent_count")
-  forDailyCount    Int      @default(0) @map("for_daily_count")
-  forPledgeCount   Int      @default(0) @map("for_pledge_count")
-  
+  forSaleCount   Int @default(0) @map("for_sale_count")
+  forRentCount   Int @default(0) @map("for_rent_count")
+  forDailyCount  Int @default(0) @map("for_daily_count")
+  forPledgeCount Int @default(0) @map("for_pledge_count")
+
   // Pricing analytics
-  pricePerSqmMin  Float?    @map("price_per_sqm_min")
-  pricePerSqmMax  Float?    @map("price_per_sqm_max")
-  pricePerSqmAvg  Float?    @map("price_per_sqm_avg")
-  
+  pricePerSqmMin Float? @map("price_per_sqm_min")
+  pricePerSqmMax Float? @map("price_per_sqm_max")
+  pricePerSqmAvg Float? @map("price_per_sqm_avg")
+
   // Visual
-  color           String?   @db.VarChar(7)
-  opacity         Float     @default(1.0)
-  isHighlighted   Boolean   @default(false) @map("is_highlighted")
-  
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  
-  building3D      Building3D @relation(fields: [building3DId], references: [id], onDelete: Cascade)
+  color         String? @db.VarChar(7)
+  opacity       Float   @default(1.0)
+  isHighlighted Boolean @default(false) @map("is_highlighted")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  building3D       Building3D        @relation(fields: [building3DId], references: [id], onDelete: Cascade)
   listingLocations ListingLocation[]
-  
+
   @@unique([building3DId, floorNumber], map: "building_floor_unique_idx")
   @@index([building3DId, floorNumber], map: "building_floor_building_num_idx")
   @@map("building_floors")
@@ -2020,59 +2034,58 @@ model BuildingFloor {
 
 /// Precise 3D location of a listing within a building
 model ListingLocation {
-  id            String    @id @default(uuid()) @db.Uuid
-  listingId     String    @unique @map("listing_id") @db.VarChar(120)
-  
+  id        String @id @default(uuid()) @db.Uuid
+  listingId String @unique @map("listing_id") @db.VarChar(120)
+
   // Building association
-  building3DId  String?   @map("building_3d_id") @db.Uuid
+  building3DId    String? @map("building_3d_id") @db.Uuid
   buildingFloorId String? @map("building_floor_id") @db.Uuid
-  floorNumber   Int?      @map("floor_number")
-  
+  floorNumber     Int?    @map("floor_number")
+
   // 3D Coordinates (lat, lng, altitude)
-  latitude      Float
-  longitude     Float
-  altitude      Float     @default(0)
-  
+  latitude  Float
+  longitude Float
+  altitude  Float @default(0)
+
   // Position within floor (normalized 0-1)
-  posX          Float?    @map("pos_x")
-  posY          Float?    @map("pos_y")
-  
+  posX Float? @map("pos_x")
+  posY Float? @map("pos_y")
+
   // Cesium entity position
-  cesiumCartesian Json?   @map("cesium_cartesian")
-  
+  cesiumCartesian Json? @map("cesium_cartesian")
+
   // Visual marker
-  markerColor   String?   @map("marker_color") @db.VarChar(7)
-  markerSize    Float     @default(1.0) @map("marker_size")
-  
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  
-  building3D    Building3D?  @relation(fields: [building3DId], references: [id], onDelete: SetNull)
+  markerColor String? @map("marker_color") @db.VarChar(7)
+  markerSize  Float   @default(1.0) @map("marker_size")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  building3D    Building3D?    @relation(fields: [building3DId], references: [id], onDelete: SetNull)
   buildingFloor BuildingFloor? @relation(fields: [buildingFloorId], references: [id], onDelete: SetNull)
-  listing       Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  
+  listing       Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
   @@index([building3DId, floorNumber], map: "listing_loc_building_floor_idx")
   @@index([latitude, longitude], map: "listing_loc_lat_lng_idx")
   @@map("listing_locations")
 }
 
-
 /// Editorial blog posts for marketing and SEO content.
 model BlogPost {
-  id        String   @id @default(cuid()) @db.VarChar(120)
-  slug      String   @unique @db.VarChar(240)
-  status    BlogPostStatus @default(draft)
-  locale    String   @default("ka") @db.VarChar(8)
-  category  String?  @db.VarChar(80)
-  tags      String[] @default([])
-  featuredImage String? @map("featured_image") @db.Text
-  authorId  String?  @map("author_id") @db.VarChar(120)
-  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  viewCount Int      @default(0) @map("view_count")
+  id            String         @id @default(cuid()) @db.VarChar(120)
+  slug          String         @unique @db.VarChar(240)
+  status        BlogPostStatus @default(draft)
+  locale        String         @default("ka") @db.VarChar(8)
+  category      String?        @db.VarChar(80)
+  tags          String[]       @default([])
+  featuredImage String?        @map("featured_image") @db.Text
+  authorId      String?        @map("author_id") @db.VarChar(120)
+  publishedAt   DateTime?      @map("published_at") @db.Timestamptz(6)
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  viewCount     Int            @default(0) @map("view_count")
 
-  titleKa String @map("title_ka") @db.VarChar(300)
+  titleKa String  @map("title_ka") @db.VarChar(300)
   titleEn String? @map("title_en") @db.VarChar(300)
   titleRu String? @map("title_ru") @db.VarChar(300)
 
@@ -2080,7 +2093,7 @@ model BlogPost {
   excerptEn String? @map("excerpt_en") @db.Text
   excerptRu String? @map("excerpt_ru") @db.Text
 
-  bodyKa String @map("body_ka") @db.Text
+  bodyKa String  @map("body_ka") @db.Text
   bodyEn String? @map("body_en") @db.Text
   bodyRu String? @map("body_ru") @db.Text
 
@@ -2111,18 +2124,18 @@ enum BlogPostStatus {
 
 /// Media assets uploaded to the CMS media library.
 model MediaAsset {
-  id          String   @id @default(cuid()) @db.VarChar(120)
-  filename    String   @db.VarChar(240)
-  url         String   @db.Text
-  mimeType    String   @map("mime_type") @db.VarChar(80)
-  sizeBytes   Int      @map("size_bytes")
-  width       Int?
-  height      Int?
-  altText     String?  @map("alt_text") @db.VarChar(500)
-  tags        String[] @default([])
-  uploadedById String? @map("uploaded_by_id") @db.VarChar(120)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id           String   @id @default(cuid()) @db.VarChar(120)
+  filename     String   @db.VarChar(240)
+  url          String   @db.Text
+  mimeType     String   @map("mime_type") @db.VarChar(80)
+  sizeBytes    Int      @map("size_bytes")
+  width        Int?
+  height       Int?
+  altText      String?  @map("alt_text") @db.VarChar(500)
+  tags         String[] @default([])
+  uploadedById String?  @map("uploaded_by_id") @db.VarChar(120)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([mimeType], map: "media_assets_mime_type_idx")
   @@index([createdAt], map: "media_assets_created_at_idx")
@@ -2132,15 +2145,15 @@ model MediaAsset {
 
 /// In-app notifications for users (bookings, inquiries, subscriptions, system alerts).
 model Notification {
-  id          String    @id @default(cuid()) @db.VarChar(120)
-  userId      String    @map("user_id") @db.VarChar(120)
-  kind        String    @db.VarChar(40)
-  title       String    @db.VarChar(240)
-  body        String?   @db.Text
-  actionUrl   String?   @map("action_url") @db.Text
-  readAt      DateTime? @map("read_at") @db.Timestamptz(6)
-  metadata    Json      @default("{}")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id        String    @id @default(cuid()) @db.VarChar(120)
+  userId    String    @map("user_id") @db.VarChar(120)
+  kind      String    @db.VarChar(40)
+  title     String    @db.VarChar(240)
+  body      String?   @db.Text
+  actionUrl String?   @map("action_url") @db.Text
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  metadata  Json      @default("{}")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([userId, readAt, createdAt(sort: Desc)], map: "notifications_user_read_created_idx")
   @@index([kind, createdAt], map: "notifications_kind_created_idx")
@@ -2153,18 +2166,18 @@ model Notification {
 // ═══════════════════════════════════════════════════════════════
 
 model City {
-  id          String   @id @default(cuid()) @db.VarChar(120)
-  slug        String   @unique @db.VarChar(120)
-  name        String   @db.VarChar(120)
-  nameKa      String   @map("name_ka") @db.VarChar(120)
-  region      String   @db.VarChar(120)
-  lat         Float    @default(0)
-  lng         Float    @default(0)
-  image       String?  @db.Text
-  order       Int      @default(0)
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(cuid()) @db.VarChar(120)
+  slug      String   @unique @db.VarChar(120)
+  name      String   @db.VarChar(120)
+  nameKa    String   @map("name_ka") @db.VarChar(120)
+  region    String   @db.VarChar(120)
+  lat       Float    @default(0)
+  lng       Float    @default(0)
+  image     String?  @db.Text
+  order     Int      @default(0)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   neighborhoods Neighborhood[]
 
@@ -2173,41 +2186,41 @@ model City {
 }
 
 model Neighborhood {
-  id                String   @id @default(cuid()) @db.VarChar(120)
-  slug              String   @unique @db.VarChar(120)
-  name              String   @db.VarChar(120)
-  nameKa            String   @map("name_ka") @db.VarChar(120)
-  cityId            String   @map("city_id") @db.VarChar(120)
-  description       String   @db.Text
-  descriptionKa     String   @map("description_ka") @db.Text
-  highlights        String[] @default([])
-  highlightsKa      String[] @default([]) @map("highlights_ka")
-  priceRangeBuy     String   @map("price_range_buy") @db.VarChar(120)
-  priceRangeRent    String   @map("price_range_rent") @db.VarChar(120)
-  avgPricePerSqm    Int      @map("avg_price_per_sqm")
-  currency          String   @default("GEL") @db.VarChar(8)
-  walkScore         Int      @default(0) @map("walk_score")
-  transitScore      Int      @default(0) @map("transit_score")
-  safetyScore       Int      @default(0) @map("safety_score")
-  schoolsNearby     Int      @default(0) @map("schools_nearby")
-  amenities         String[] @default([])
-  amenitiesKa       String[] @default([]) @map("amenities_ka")
-  bestFor           String[] @default([]) @map("best_for")
-  bestForKa         String[] @default([]) @map("best_for_ka")
-  investmentNote    String   @map("investment_note") @db.Text
-  investmentNoteKa  String   @map("investment_note_ka") @db.Text
-  lat               Float    @default(0)
-  lng               Float    @default(0)
-  image             String   @db.Text
-  imageAttribution  String?  @map("image_attribution") @db.Text
-  listingsCount     Int      @default(0) @map("listings_count")
-  trend             String   @default("stable") @db.VarChar(12)
-  trendPercent      String   @default("0%") @map("trend_percent") @db.VarChar(12)
-  isActive          Boolean  @default(true) @map("is_active")
-  featured          Boolean  @default(false)
-  order             Int      @default(0)
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id               String   @id @default(cuid()) @db.VarChar(120)
+  slug             String   @unique @db.VarChar(120)
+  name             String   @db.VarChar(120)
+  nameKa           String   @map("name_ka") @db.VarChar(120)
+  cityId           String   @map("city_id") @db.VarChar(120)
+  description      String   @db.Text
+  descriptionKa    String   @map("description_ka") @db.Text
+  highlights       String[] @default([])
+  highlightsKa     String[] @default([]) @map("highlights_ka")
+  priceRangeBuy    String   @map("price_range_buy") @db.VarChar(120)
+  priceRangeRent   String   @map("price_range_rent") @db.VarChar(120)
+  avgPricePerSqm   Int      @map("avg_price_per_sqm")
+  currency         String   @default("GEL") @db.VarChar(8)
+  walkScore        Int      @default(0) @map("walk_score")
+  transitScore     Int      @default(0) @map("transit_score")
+  safetyScore      Int      @default(0) @map("safety_score")
+  schoolsNearby    Int      @default(0) @map("schools_nearby")
+  amenities        String[] @default([])
+  amenitiesKa      String[] @default([]) @map("amenities_ka")
+  bestFor          String[] @default([]) @map("best_for")
+  bestForKa        String[] @default([]) @map("best_for_ka")
+  investmentNote   String   @map("investment_note") @db.Text
+  investmentNoteKa String   @map("investment_note_ka") @db.Text
+  lat              Float    @default(0)
+  lng              Float    @default(0)
+  image            String   @db.Text
+  imageAttribution String?  @map("image_attribution") @db.Text
+  listingsCount    Int      @default(0) @map("listings_count")
+  trend            String   @default("stable") @db.VarChar(12)
+  trendPercent     String   @default("0%") @map("trend_percent") @db.VarChar(12)
+  isActive         Boolean  @default(true) @map("is_active")
+  featured         Boolean  @default(false)
+  order            Int      @default(0)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   city City @relation(fields: [cityId], references: [id], onDelete: Cascade)
 
@@ -2232,12 +2245,12 @@ enum ChatMessageKind {
 }
 
 model ChatRoom {
-  id          String   @id @default(cuid()) @db.VarChar(120)
-  listingId   String?  @map("listing_id") @db.VarChar(120)
-  title       String   @db.VarChar(240)
-  status      String   @default("active") @db.VarChar(20)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(cuid()) @db.VarChar(120)
+  listingId String?  @map("listing_id") @db.VarChar(120)
+  title     String   @db.VarChar(240)
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   listing      Listing?          @relation(fields: [listingId], references: [id], onDelete: SetNull)
   participants ChatParticipant[]
@@ -2310,8 +2323,8 @@ model PropertyTour {
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  listing Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  user    User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  listing Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user    User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   agent   AgentProfile? @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@index([listingId, tourDate], map: "property_tours_listing_date_idx")
@@ -2341,13 +2354,13 @@ model TourAvailability {
 }
 
 model TourDateOverride {
-  id        String    @id @default(cuid()) @db.VarChar(120)
-  agentId   String    @map("agent_id") @db.VarChar(120)
-  date      DateTime  @db.Date
-  isBlocked Boolean   @default(true) @map("is_blocked")
-  reason    String?   @db.VarChar(200)
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(cuid()) @db.VarChar(120)
+  agentId   String   @map("agent_id") @db.VarChar(120)
+  date      DateTime @db.Date
+  isBlocked Boolean  @default(true) @map("is_blocked")
+  reason    String?  @db.VarChar(200)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   agent AgentProfile @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
@@ -2368,14 +2381,14 @@ enum BehaviorKind {
 }
 
 model UserBehavior {
-  id          String       @id @default(cuid()) @db.VarChar(120)
-  userId      String       @map("user_id") @db.VarChar(120)
-  listingId   String?      @map("listing_id") @db.VarChar(120)
-  kind        BehaviorKind
-  weight      Float        @default(1.0)
-  searchParams Json?       @map("search_params")
-  sessionId   String?      @map("session_id") @db.VarChar(120)
-  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  id           String       @id @default(cuid()) @db.VarChar(120)
+  userId       String       @map("user_id") @db.VarChar(120)
+  listingId    String?      @map("listing_id") @db.VarChar(120)
+  kind         BehaviorKind
+  weight       Float        @default(1.0)
+  searchParams Json?        @map("search_params")
+  sessionId    String?      @map("session_id") @db.VarChar(120)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
@@ -2388,12 +2401,12 @@ model UserBehavior {
 }
 
 model ListingEmbedding {
-  id          String   @id @default(cuid()) @db.VarChar(120)
-  listingId   String   @unique @map("listing_id") @db.VarChar(120)
+  id          String                      @id @default(cuid()) @db.VarChar(120)
+  listingId   String                      @unique @map("listing_id") @db.VarChar(120)
   embedding   Unsupported("vector(1536)")
-  model       String   @db.VarChar(80)
-  contentHash String   @map("content_hash") @db.VarChar(64)
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  model       String                      @db.VarChar(80)
+  contentHash String                      @map("content_hash") @db.VarChar(64)
+  updatedAt   DateTime                    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
@@ -2402,12 +2415,12 @@ model ListingEmbedding {
 }
 
 model UserEmbedding {
-  id            String   @id @default(cuid()) @db.VarChar(120)
-  userId        String   @unique @map("user_id") @db.VarChar(120)
+  id            String                      @id @default(cuid()) @db.VarChar(120)
+  userId        String                      @unique @map("user_id") @db.VarChar(120)
   embedding     Unsupported("vector(1536)")
-  model         String   @db.VarChar(80)
-  behaviorCount Int      @default(0) @map("behavior_count")
-  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  model         String                      @db.VarChar(80)
+  behaviorCount Int                         @default(0) @map("behavior_count")
+  updatedAt     DateTime                    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -2449,18 +2462,18 @@ model ListingAlertSubscription {
 /// Mass OSM building corpus (Tbilisi / Batumi / GE). Not MapBuilding (curated).
 /// Write-through from /api/site + tiled Overpass ingest.
 model OsmBuilding {
-  osmId     BigInt                               @id @map("osm_id")
-  osmType   String                               @default("way") @map("osm_type") @db.VarChar(10)
-  city      String                               @db.VarChar(40)
+  osmId     BigInt                                 @id @map("osm_id")
+  osmType   String                                 @default("way") @map("osm_type") @db.VarChar(10)
+  city      String                                 @db.VarChar(40)
   lat       Float
   lng       Float
   levels    Int?
-  heightM   Float?                               @map("height_m")
-  name      String?                              @db.VarChar(240)
-  building  String?                              @db.VarChar(40)
+  heightM   Float?                                 @map("height_m")
+  name      String?                                @db.VarChar(240)
+  building  String?                                @db.VarChar(40)
   ring      Json
   location  Unsupported("geography(Point, 4326)")?
-  updatedAt DateTime                             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedAt DateTime                               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([city], map: "osm_buildings_city_idx")
   @@map("osm_buildings")

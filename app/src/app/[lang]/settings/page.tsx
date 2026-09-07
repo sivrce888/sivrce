@@ -94,6 +94,7 @@ export default async function SettingsPage({
             passwordHash: true,
             image: true,
             avatarStyle: true,
+            avatarIcon: true,
           },
         }),
       null,
@@ -116,6 +117,7 @@ export default async function SettingsPage({
           name={me?.name ?? user.name ?? ""}
           image={me?.image ?? null}
           style={me?.avatarStyle ?? null}
+          icon={me?.avatarIcon ?? null}
         />
 
         <AccountForms

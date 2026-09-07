@@ -1,3 +1,6 @@
+import { Building2, Heart, House, KeyRound, Mountain, PawPrint, Sofa, Star, Sun, Trees } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+
 import { BRAND } from "./brand"
 
 /**
@@ -27,6 +30,28 @@ const ANGLES = [110, 125, 140, 155, 170]
 
 /** Swatch palette for the settings picker — same source as the render path. */
 export const GRADIENTS: ReadonlyArray<readonly [string, string]> = PAIRS
+
+/** Curated glyphs a user can pin over their gradient (settings → avatar).
+ * Tree-shaken lucide set — closed allowlist, never render arbitrary names. */
+export const ICONS = {
+  house: House,
+  building: Building2,
+  key: KeyRound,
+  star: Star,
+  heart: Heart,
+  sun: Sun,
+  mountain: Mountain,
+  trees: Trees,
+  sofa: Sofa,
+  paw: PawPrint,
+} as const satisfies Record<string, LucideIcon>
+
+export type AvatarIcon = keyof typeof ICONS
+
+/** Trust-boundary bounds check for a user-chosen glyph key. */
+export function isValidAvatarIcon(icon: string | null | undefined): icon is AvatarIcon {
+  return typeof icon === "string" && icon in ICONS
+}
 
 /** Trust-boundary bounds check for a user-chosen style index. */
 export function isValidAvatarStyle(style: number | null | undefined): style is number {

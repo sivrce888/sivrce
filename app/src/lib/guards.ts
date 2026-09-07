@@ -10,6 +10,7 @@ export interface SessionUser {
   name: string | null
   role: UserRole
   avatarStyle: number | null
+  avatarIcon: string | null
 }
 
 /** Current signed-in user, or null. Never throws. */
@@ -23,6 +24,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     name: u.name ?? null,
     role: u.role ?? "buyer",
     avatarStyle: u.avatarStyle ?? null,
+    avatarIcon: u.avatarIcon ?? null,
   }
 }
 

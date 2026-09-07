@@ -159,7 +159,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (await dbAvailable()) {
             const row = await db.user.findUnique({
               where: { id: user.id! },
-              select: { role: true, name: true, image: true, avatarStyle: true },
+              select: { role: true, name: true, image: true, avatarStyle: true, avatarIcon: true },
             })
             if (row) {
               role = row.role
@@ -167,6 +167,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               if (row.image) token.picture = row.image
               else delete token.picture
               token.avatarStyle = row.avatarStyle
+              token.avatarIcon = row.avatarIcon
             }
           }
         } catch {
@@ -186,7 +187,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!(await dbAvailable())) return token
         const row = await db.user.findUnique({
           where: { id },
-          select: { role: true, name: true, image: true, avatarStyle: true },
+          select: { role: true, name: true, image: true, avatarStyle: true, avatarIcon: true },
         })
         if (row) {
           token.role = row.role
@@ -196,6 +197,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (row.image) token.picture = row.image
           else delete token.picture
           token.avatarStyle = row.avatarStyle
+          token.avatarIcon = row.avatarIcon
         }
       } catch { /* keep last-known role */ }
       return token
@@ -208,6 +210,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (typeof token.picture === "string") session.user.image = token.picture
         if (typeof token.avatarStyle === "number" || token.avatarStyle === null) {
           session.user.avatarStyle = token.avatarStyle
+        }
+        if (typeof token.avatarIcon === "string" || token.avatarIcon === null) {
+          session.user.avatarIcon = token.avatarIcon
         }
       }
       return session

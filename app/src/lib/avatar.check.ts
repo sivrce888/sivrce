@@ -5,7 +5,7 @@
 import assert from "node:assert/strict"
 
 import { BRAND } from "./brand"
-import { avatarInitials, avatarVisual, GRADIENTS, isValidAvatarStyle } from "./avatar"
+import { avatarInitials, avatarVisual, GRADIENTS, ICONS, isValidAvatarIcon, isValidAvatarStyle } from "./avatar"
 
 const BRAND_HEX = new Set(
   Object.values(BRAND.colors).map((v) => v.toLowerCase()),
@@ -47,6 +47,17 @@ for (let i = 0; i < GRADIENTS.length; i++) {
 assert.ok(isValidAvatarStyle(0) && isValidAvatarStyle(9))
 assert.ok(!isValidAvatarStyle(10) && !isValidAvatarStyle(-1) && !isValidAvatarStyle(1.5))
 assert.ok(!isValidAvatarStyle(null) && !isValidAvatarStyle(undefined))
+
+// Icon allowlist: closed set of curated glyphs, junk never passes the boundary
+const iconKeys = Object.keys(ICONS)
+assert.equal(iconKeys.length, 10, `expected 10 glyphs, got ${iconKeys.length}`)
+// lucide exports forwardRef objects ({$$typeof, render}); older versions, functions
+assert.ok(iconKeys.every((k) => ["object", "function"].includes(typeof ICONS[k as keyof typeof ICONS])))
+assert.ok(isValidAvatarIcon("house") && isValidAvatarIcon("paw"))
+assert.ok(!isValidAvatarIcon("House")) // case-sensitive keys
+assert.ok(!isValidAvatarIcon("logo") && !isValidAvatarIcon("") )
+assert.ok(!isValidAvatarIcon(null) && !isValidAvatarIcon(undefined))
+for (const k of iconKeys) assert.ok(isValidAvatarIcon(k), `own key rejected: ${k}`)
 const autoV = avatarVisual("ნიკა გელაშვილი")
 assert.ok(
   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].some((i) => {

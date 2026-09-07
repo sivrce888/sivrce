@@ -102,7 +102,7 @@ export function AccountMenu({
 
   const identity = (
     <div className="flex items-center gap-3 border-b border-sv-ink/8 px-4 py-3">
-      <UserAvatar name={user?.name} image={user?.image} gradient={user?.avatarStyle} size={40} />
+      <UserAvatar name={user?.name} image={user?.image} gradient={user?.avatarStyle} icon={user?.avatarIcon} size={40} />
       <div className="min-w-0">
         <p className="truncate text-[14px] font-extrabold text-sv-ink">
           {user?.name ?? t("account.panel")}
@@ -130,7 +130,7 @@ export function AccountMenu({
         aria-label={t("account.panel")}
         className={`flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden ${chrome}`}
       >
-        <UserAvatar name={user?.name} image={user?.image} gradient={user?.avatarStyle} size={28} />
+        <UserAvatar name={user?.name} image={user?.image} gradient={user?.avatarStyle} icon={user?.avatarIcon} size={28} />
       </summary>
       <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-card border border-sv-ink/8 bg-sv-surface shadow-card">
         {identity}

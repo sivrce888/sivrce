@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
-import { avatarInitials, avatarVisual, isValidAvatarStyle } from "@/lib/avatar"
+import { avatarInitials, avatarVisual, ICONS, isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
 
 const SHAPE = {
   full: "rounded-full",
@@ -13,13 +13,15 @@ const SHAPE = {
 /**
  * User photo, or an Apple-style monogram: a brand-palette gradient
  * derived from the name, or the gradient the user picked in settings.
- * A pinned gradient also rings a photo, Contacts-style.
+ * A pinned gradient also rings a photo, Contacts-style. A pinned glyph
+ * (icon) replaces the initials on the monogram.
  */
 export default function UserAvatar({
   name,
   image,
   label,
   gradient = null,
+  icon = null,
   size = 40,
   shape = "full",
   className = "",
@@ -30,12 +32,15 @@ export default function UserAvatar({
   label?: string | null
   /** User-chosen gradient index (settings); null = auto from name. */
   gradient?: number | null
+  /** User-chosen glyph key (settings); null = initials. */
+  icon?: string | null
   size?: number
   shape?: keyof typeof SHAPE
   className?: string
 }) {
   const pinned = isValidAvatarStyle(gradient)
   const { from, to, angle } = avatarVisual(name ?? "", gradient)
+  const Glyph = isValidAvatarIcon(icon) ? ICONS[icon] : null
 
   // Dead remote URLs (OAuth avatar rotated away, scraped host gone) fall back
   // to the monogram instead of the browser's broken-image icon.
@@ -104,7 +109,11 @@ export default function UserAvatar({
         textShadow: '0 1px 2px rgba(5,11,38,.22)',
       }}
     >
-      {label?.trim() || avatarInitials(name)}
+      {Glyph ? (
+        <Glyph size={Math.round(size * 0.5)} aria-hidden />
+      ) : (
+        label?.trim() || avatarInitials(name)
+      )}
     </span>
   )
 }

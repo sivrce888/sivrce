@@ -96,7 +96,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
   const user = await db.user
     .findUnique({
       where: { id },
-      select: { id: true, name: true, image: true, avatarStyle: true, role: true, trustScore: true },
+      select: { id: true, name: true, image: true, avatarStyle: true, avatarIcon: true, role: true, trustScore: true },
     })
     .catch(() => null)
 
@@ -193,6 +193,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                 name={displayName}
                 image={user.image}
                 gradient={user.avatarStyle}
+                icon={user.avatarIcon}
                 size={96}
                 shape="card"
                 className={user.image ? 'border border-sv-ink/[0.06] bg-sv-surface' : ''}
