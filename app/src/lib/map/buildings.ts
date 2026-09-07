@@ -942,6 +942,18 @@ function clusterFootprintOpts(b: MapBuildingCluster, fp: FootprintEntry | undefi
   }
 }
 
+/** True when the cluster extrudes a real/curated ring — live tile rescue is skipped. */
+export function hasResolvedFootprint(b: MapBuildingCluster): boolean {
+  if (cylinderPartsFor(b)) return true
+  const fp = footprintEntry(b)
+  const opts = clusterFootprintOpts(b, fp)
+  if (fp?.parts?.length) {
+    return fp.parts.some((p) => footprintRingUsable(p.ring, b.lat, b.lng, opts))
+  }
+  const ring = footprintPrimaryRing(fp ?? undefined) ?? b.ring
+  return !!ring && footprintRingUsable(ring, b.lat, b.lng, opts)
+}
+
 /** Real OSM ring for a cluster, else synthetic slab (construction) / square (active). */
 export function clusterGeometry(b: MapBuildingCluster): GeoJSON.Polygon {
   const fp = footprintEntry(b)

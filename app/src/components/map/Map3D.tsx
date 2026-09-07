@@ -42,11 +42,13 @@ import {
   findBuildingBySlug,
   findBuildingForListing,
   findNearestBuilding,
+  hasResolvedFootprint,
   mergeMapBuildings,
   mergeDbBuildings,
   neighborhoodsToGeoJSON,
   projectsToConstructionBuildings,
   applyLiveProjectPins,
+  ringLabelPoint,
   type MapBuildingCluster,
   type MapDealFilter,
   type MapKindFilter,
@@ -97,6 +99,11 @@ import {
   type PoiCategory,
 } from '@/lib/map/pois'
 import { loadPoiImages, poiIconDataUrl } from '@/lib/map/poi-icons'
+import {
+  applyLiveFixes,
+  liveFixes,
+  resolveBasemapRing,
+} from '@/lib/map/live-footprint'
 import {
   mapChromeOptions,
   tightenAttribution,
@@ -1035,7 +1042,11 @@ function Map3DInner({
         if (data.buildings) setLiveDbBuildings(data.buildings)
         setListingsSettled(true)
       })
-      .catch(() => {})
+      .catch(() => {
+        // ponytail: settle on failure too — deep links must fly even when
+        // map-data is down (catalog clusters still render).
+        if (!cancelled) setListingsSettled(true)
+      })
     return () => {
       cancelled = true
     }
@@ -1196,6 +1207,49 @@ function Map3DInner({
     applyFocusPaint(map, next)
   }, [selected, ready, applyFocusPaint])
 
+  // Full-building mark — clusters without a curated ring (listing/DB long tail)
+  // rescue the real OSM footprint from the basemap tiles already in RAM, so the
+  // massing, label and pin sit exactly on the walls instead of a synthetic square.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !selected) return
+    if (hasResolvedFootprint(selected) || liveFixes.has(selected.id)) return
+    if (buildingShowsFloorStack(selected, floorStacksOn)) return
+    let cancelled = false
+    const b = selected
+    const run = () => {
+      const m = mapRef.current
+      if (cancelled || !m || liveFixes.has(b.id)) return
+      // Listing pins first (they sit on real walls), cluster average last —
+      // a mis-geocoded sibling must not drag the mark mid-street.
+      const ring = resolveBasemapRing(m, [
+        ...b.listings.map((l) => l.coords),
+        { lat: b.lat, lng: b.lng },
+      ])
+      if (!ring || ring.length < 5) return
+      const p = ringLabelPoint(ring)
+      liveFixes.set(b.id, { ring, lat: p.lat, lng: p.lng })
+      const pts = m.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
+      pts?.setData(applyLiveFixes(ptsFcRef.current, liveFixes))
+      // setData resets feature-state — re-light the selected pill here.
+      try {
+        m.setFeatureState({ source: PTS_SOURCE_ID, id: b.id }, { selected: true, seen: true })
+      } catch { /* source may remount */ }
+      const src = m.getSource(SOURCE_ID) as GeoJSONSource | undefined
+      src?.setData(applyLiveFixes(polyFcRef.current, liveFixes))
+      // Pin, panel coords and price pill snap onto the real walls.
+      setSelected((cur) => (cur && cur.id === b.id ? { ...cur, lat: p.lat, lng: p.lng } : cur))
+    }
+    // idle covers flyTo tile loads; the timeout covers an already-settled map.
+    map.on('idle', run)
+    const tid = window.setTimeout(run, 1200)
+    return () => {
+      cancelled = true
+      map.off('idle', run)
+      window.clearTimeout(tid)
+    }
+  }, [selected, ready, floorStacksOn])
+
   // Vague pin (district-only) → reverse Nominatim for street + house №. No map server.
   useEffect(() => {
     if (!selected) return
@@ -1234,13 +1288,13 @@ function Map3DInner({
     // Pins/clusters answer the tap first; polygon massing is detail-zoom only
     // and settles off the interaction's critical path (MAP_FADE hides the beat).
     const pts = map.getSource(PTS_SOURCE_ID) as GeoJSONSource | undefined
-    pts?.setData(ptsFc)
+    pts?.setData(applyLiveFixes(ptsFc, liveFixes))
     let cancelled = false
     // ponytail: geometric MapLibre massing only (no photo-wrap sync).
     const pushPolygons = () => {
       if (cancelled || !mapRef.current) return
       const src = mapRef.current.getSource(SOURCE_ID) as GeoJSONSource | undefined
-      src?.setData(polyFc)
+      src?.setData(applyLiveFixes(polyFc, liveFixes))
       const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
       const hideId = showFloors && selected ? selected.id : null
       const hide = massingHideFilter(hideId)
@@ -1325,7 +1379,9 @@ function Map3DInner({
   }, [ready, searchParams])
 
   useEffect(() => {
-    if (!ready || deepLinked.current) return
+    // pinsLoaded gate — one-shot deep links must see the FULL cluster set
+    // (catalog + listing clusters), else ?lat/?lng snaps to a landmark 100 m off.
+    if (!ready || !pinsLoaded || deepLinked.current) return
     const slug = searchParams.get('building')
     const listingId = searchParams.get('listing')
     // ponytail: Number(null) is 0 — absent ?lat/?lng must not deep-link to (0,0)
@@ -1373,7 +1429,7 @@ function Map3DInner({
       duration: 900,
       essential: true,
     })
-  }, [ready, searchParams, allBuildings, minZoom])
+  }, [ready, pinsLoaded, searchParams, allBuildings, minZoom])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current || !themeReady) return
