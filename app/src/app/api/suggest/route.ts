@@ -13,7 +13,6 @@ import { suggestMatch } from "@/lib/suggest-match"
  */
 
 export const maxDuration = 5
-export const preferredRegion = "fra1"
 
 interface Suggestion {
   kind: "city" | "district" | "street"

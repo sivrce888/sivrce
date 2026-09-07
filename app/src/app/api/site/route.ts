@@ -13,7 +13,6 @@ import { lookupSite } from '@/lib/map/site-lookup'
 import { isSameOrigin } from '@/lib/security/origin'
 
 export const maxDuration = 30
-export const preferredRegion = 'fra1'
 
 export async function GET(req: NextRequest) {
   if (!isSameOrigin(req) && process.env.NODE_ENV === 'production') {

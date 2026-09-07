@@ -8,7 +8,6 @@ import { dbAvailable } from "@/lib/db"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 8
-export const preferredRegion = "fra1"
 
 export async function GET(req: Request) {
   const db = await dbAvailable()

@@ -57,7 +57,6 @@ export default async function ProjectsPage({ params }: PageProps) {
   const projects = await projectsLive()
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
   const pageSlice = projects.slice(0, PER_PAGE)
-  const pageProjects = pageSlice.map((p) => toCard(p, loc))
   // Nested item = Google carousel spec; alternateName carries the other script.
   const listLd = {
     '@context': 'https://schema.org',

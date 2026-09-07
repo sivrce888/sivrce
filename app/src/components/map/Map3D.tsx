@@ -1373,7 +1373,7 @@ function Map3DInner({
       duration: 900,
       essential: true,
     })
-  }, [ready, searchParams, allBuildings])
+  }, [ready, searchParams, allBuildings, minZoom])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current || !themeReady) return

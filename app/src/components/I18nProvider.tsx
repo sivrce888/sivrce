@@ -126,7 +126,7 @@ export default function I18nProvider({
   useEffect(() => {
     document.documentElement.lang = lang
     document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr'
-    // Locale URLs are middleware rewrites — point canonical at the visible prefixed URL.
+    // Locale URLs are proxy rewrites — point canonical at the visible prefixed URL.
     const seg = window.location.pathname.split('/')[1] as Lang
     if (LANGS.includes(seg) && seg !== 'ka') {
       document

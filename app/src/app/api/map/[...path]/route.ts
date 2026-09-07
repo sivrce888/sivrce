@@ -10,7 +10,6 @@ import { mapProxyPathOk, OFM_ORIGIN, scrubMapJson } from '@/lib/map/map-proxy'
 export const runtime = 'nodejs'
 export const revalidate = 86400
 export const maxDuration = 8
-export const preferredRegion = 'fra1'
 
 type Ctx = { params: Promise<{ path: string[] }> }
 

@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server"
  * + multi-host routing (admin / api / cdn / app / analytics / images).
  *
  * Route-based i18n: every public page lives under app/[lang]. ka is the
- * canonical default and stays URL-unprefixed — this middleware INTERNALLY
+ * canonical default and stays URL-unprefixed — this proxy INTERNALLY
  * rewrites "/" → "/ka" and "/x" → "/ka/x" for non-locale first segments
  * (api/auth/_next/file-like excluded by the passthrough below and the
  * matcher). Prefixed locales ("/en/search") resolve natively; an explicit
@@ -13,7 +13,7 @@ import { NextResponse, type NextRequest } from "next/server"
  * validates the locale and 404s invalid prefixes.
  *
  * The authoritative role check still happens server-side in `requireAdmin()`
- * / `requireRole()` — those query the DB-backed session. Edge middleware
+ * / `requireRole()` — those query the DB-backed session. The edge proxy
  * can't reach Prisma, so here we only verify session-cookie presence.
  *
  * ponytail: cookie-presence only (JWT sessions). Role checks stay in
@@ -99,7 +99,7 @@ function pass(req: NextRequest, res: NextResponse): NextResponse {
   return res
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const host = hostName(req)
   const seg = pathname.split("/")[1] ?? ""

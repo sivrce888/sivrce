@@ -503,7 +503,7 @@ export default function MapEmbed({
     return () => {
       cancelled = true
     }
-  }, [isDark, status, lat, lng, terrain])
+  }, [isDark, status, lat, lng, terrain, interactive])
 
   // Camera + pin (footprint paint is separate — draw mode must not fly every vertex).
   useEffect(() => {

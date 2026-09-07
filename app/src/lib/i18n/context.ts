@@ -4,7 +4,7 @@
  * SIVRCE — i18n context, hook and translation core.
  * Kept component-free so this module stays fast-refresh clean; the provider
  * component lives in @/components/I18nProvider. Locale data + pure helpers
- * live in ./core (isomorphic — server components and middleware import that).
+ * live in ./core (isomorphic — server components and the edge proxy import that).
  */
 
 import { createContext, useContext } from 'react'

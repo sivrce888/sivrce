@@ -8,7 +8,6 @@ import { NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 export const revalidate = 86400
 export const maxDuration = 8
-export const preferredRegion = 'fra1'
 
 const UPSTREAM: Record<string, string> = {
   img: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile',

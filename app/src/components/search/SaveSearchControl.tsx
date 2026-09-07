@@ -84,7 +84,8 @@ export default function SaveSearchControl() {
     const result = await saveServerSearch({ name: label, query, lang })
     if (result === 'unauthorized') {
       const here = `${window.location.pathname}${window.location.search}`
-      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(here)}`
+      // /auth/signin lives outside [lang] and is proxy-exempt — keep it unprefixed.
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(here)}`)
       return
     }
     save({ label, query })

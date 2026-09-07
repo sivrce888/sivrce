@@ -17,7 +17,6 @@ import {
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const maxDuration = 8
-export const preferredRegion = "fra1"
 
 export async function GET(req: NextRequest) {
   if (!(await getConfig("map.geocodeEnabled"))) {

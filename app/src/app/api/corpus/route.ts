@@ -9,7 +9,6 @@ import { fetchCorpusInBbox } from '@/lib/map/osm-corpus'
 import { isSameOrigin } from '@/lib/security/origin'
 
 export const maxDuration = 8
-export const preferredRegion = 'fra1'
 
 export async function GET(req: NextRequest) {
   if (!isSameOrigin(req) && process.env.NODE_ENV === 'production') {

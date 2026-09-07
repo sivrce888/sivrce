@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import {
   Building, Building2, Home, Briefcase, Map, Tag, KeyRound, CalendarClock,
@@ -124,6 +124,7 @@ function listingsManageHref(role?: string): string {
 
 export default function AddListingClient() {
   const { t, lang } = useI18n()
+  const router = useRouter()
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')?.trim() || null
@@ -323,7 +324,8 @@ export default function AddListingClient() {
       try {
         const r = await fetch(`/api/listings/${encodeURIComponent(editId)}?edit=1`)
         if (r.status === 401) {
-          window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(`/add-listing?edit=${editId}`)}`
+          // /auth/signin lives outside [lang] and is proxy-exempt — keep it unprefixed.
+          router.push(`/auth/signin?callbackUrl=${encodeURIComponent(`/add-listing?edit=${editId}`)}`)
           return
         }
         if (!r.ok) throw new Error('load')
@@ -434,7 +436,7 @@ export default function AddListingClient() {
       }
     })()
     return () => { cancelled = true }
-  }, [editId])
+  }, [editId, lang, router])
 
   // Seed contact name from session once (after draft restore). Skip phone — not on session JWT.
   /* eslint-disable react-hooks/set-state-in-effect -- seed name once from async session */
@@ -1024,7 +1026,7 @@ export default function AddListingClient() {
         body: JSON.stringify(payload),
       })
       if (res.status === 401) {
-        window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent(editId ? `/add-listing?edit=${editId}` : '/add-listing')}`
+        router.push(`/auth/signin?callbackUrl=${encodeURIComponent(editId ? `/add-listing?edit=${editId}` : '/add-listing')}`)
         return
       }
       if (!res.ok) throw new Error('publish')

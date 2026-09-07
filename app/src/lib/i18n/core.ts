@@ -1,7 +1,7 @@
 /**
  * SIVRCE — isomorphic i18n core (no 'use client', no React).
- * Safe to import from server components, middleware and client code.
- * Dictionary-free on purpose: middleware/edge stays lean and client bundles
+ * Safe to import from server components, the edge proxy and client code.
+ * Dictionary-free on purpose: the edge proxy stays lean and client bundles
  * receive their locale via <I18nProvider> props (see ./dicts, server-only).
  * The React context/hook lives in ./context; a server-bound t() in ./server.
  */
@@ -68,7 +68,7 @@ export function localizedHref(path: string, lang: Lang): string {
 
 // ponytail: localizedHref is wired into the chrome that owns cross-locale
 // navigation (Navbar, Footer, LangSwitcher, Logo). Deeper call sites (cards,
-// breadcrumbs, in-body links) still emit unprefixed hrefs — middleware serves
+// breadcrumbs, in-body links) still emit unprefixed hrefs — the proxy serves
 // them in ka and the URL-pinned provider keeps UX correct; sweeping the long
 // tail is a follow-up wave.
 

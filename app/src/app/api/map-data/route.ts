@@ -8,7 +8,6 @@ import { cdnJson } from '@/lib/cdn-cache'
 import { loadMapDataFresh } from '@/lib/map/db-buildings'
 
 export const maxDuration = 10
-export const preferredRegion = 'fra1'
 
 export async function GET() {
   try {

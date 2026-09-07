@@ -17,7 +17,6 @@ import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 import { streetHrefForListing } from "@/lib/street-href"
 
 export const maxDuration = 15
-export const preferredRegion = "fra1"
 
 // buildDbWhere + parseSearchParams live in @/lib/search-filters — shared with
 // the saved-search alert matcher so alerts evaluate the exact search semantics.

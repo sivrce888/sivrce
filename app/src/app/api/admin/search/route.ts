@@ -3,7 +3,7 @@ import { globalAdminSearch } from "@/lib/admin/search"
 
 /**
  * GET /api/admin/search?q=… — grouped entity search behind the command palette.
- * Admin-only (middleware cookie gate + in-handler guard).
+ * Admin-only (proxy cookie gate + in-handler guard).
  */
 
 export async function GET(req: Request) {

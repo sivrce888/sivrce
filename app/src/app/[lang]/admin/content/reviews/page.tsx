@@ -17,7 +17,7 @@ import type { Prisma } from "@/generated/prisma/client"
 import { REVIEW_TARGET_TYPES } from "@/lib/admin/content"
 import { fmtDate, fmtNum } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
-import { shortRef, userLabel } from "@/lib/admin/moderation"
+import { shortRef } from "@/lib/admin/moderation"
 import {
   ADMIN_PAGE_SIZE,
   hrefWithParams,
