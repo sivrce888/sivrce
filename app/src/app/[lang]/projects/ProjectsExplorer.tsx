@@ -14,8 +14,9 @@
  * Pure logic lives in card.ts (self-checked by card.check.ts) — this file is
  * presentation only.
  */
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Search } from 'lucide-react'
+import HScroll from '@/components/HScroll'
 import {
   EMPTY_Q,
   HANDOVER_BUCKETS,
@@ -152,13 +153,20 @@ export function ProjectsExplorer({
   // Live corpus can exceed 1k rows — filtered mode renders progressively to
   // keep the DOM (and low-end devices) under the glitch lock.
   const [visibleCount, setVisibleCount] = useState(PER_PAGE)
+  const rowRef = useRef<HTMLDivElement>(null)
 
   // URL → state after hydration (never during render, so SSR HTML stays stable);
-  // popstate makes the back button walk filter history.
+  // popstate makes the back button walk filter history. Restored filters may sit
+  // beyond the row's right edge — nudge the first active chip into view.
   useEffect(() => {
     const apply = () => {
       setQ(parseQ(new URLSearchParams(window.location.search)))
       setVisibleCount(PER_PAGE)
+      requestAnimationFrame(() => {
+        rowRef.current
+          ?.querySelector('[aria-pressed="true"]')
+          ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      })
     }
     apply()
     window.addEventListener('popstate', apply)
@@ -209,8 +217,10 @@ export function ProjectsExplorer({
         )}
       </div>
 
-      <div className="-mx-5 mt-3 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:px-0">
-        <div className="flex w-max items-center gap-2 pb-1">
+      {/* HScroll rail: arrows + edge fade + drag + keyboard — filters past the
+          right edge stay discoverable (was: bare hidden-scrollbar overflow). */}
+      <HScroll size="sm" step={420} aria-label={t.aria} className="scroll-px-12 -mx-5 mt-3 gap-2 px-5 pb-1 md:mx-0 md:px-0 [&_input]:cursor-text">
+        <div ref={rowRef} className="contents">
           <div className="relative shrink-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" aria-hidden />
             <input
@@ -303,7 +313,7 @@ export function ProjectsExplorer({
             ))}
           </select>
         </div>
-      </div>
+      </HScroll>
 
       {visible.length === 0 ? (
         <div className="mt-6 rounded-card border border-dashed border-sv-ink/15 px-6 py-12 text-center">
