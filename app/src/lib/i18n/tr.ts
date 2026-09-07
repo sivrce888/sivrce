@@ -363,7 +363,7 @@ export const tr: Dict = {
   'footer.colServices': 'Hizmetler',
   'footer.sv.projects': 'Yeni projeler',
   'footer.sv.agents': 'Danışmanlar ve acenteler',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'Ajanslar',
   'footer.sv.developers': 'Geliştiriciler',
   'footer.sv.renovation': 'Tadilat hesaplayıcı',
   'footer.sv.mortgage': 'Konut kredisi',
@@ -736,7 +736,7 @@ export const tr: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastro haritası',
-  'cadastre.meta.title': 'Kadastro haritası — parseli kadastro koduyla bul | sivrce',
+  'cadastre.meta.title': 'Kadastro haritası — parseli kadastro koduyla bul',
   'cadastre.meta.description': 'Gürcistan’daki kadastro parsellerini kodla veya haritaya dokunarak bulun — resmî NAPR sınırları, alan ve ilanlar sivrce.ge’de.',
   'cadastre.h1': 'Kadastro haritası',
   'cadastre.sub': 'Parseli kadastro koduyla bulun ya da haritaya dokunun — sınırlar Kamu Sicili Dairesi’nden (NAPR) gelir.',

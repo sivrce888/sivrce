@@ -128,14 +128,14 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
       >
         <LocalizedLink
           href="/account"
-          aria-label="უკან ანგარიშზე"
+          aria-label="უკან, ჩემს სივრცეში"
           className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border transition focus-visible:outline-2 focus-visible:outline-sv-blue/50 focus-visible:-outline-offset-2 ${hair} ${muted}`}
         >
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />
         </LocalizedLink>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-[15px] font-black tracking-tight">
-            ჩემი ქონება კადასტრის რუკაზე
+            ჩემი ქონება საკადასტრო რუკაზე
           </h1>
           <p className={`truncate text-[12px] font-medium ${muted}`}>
             {name ? `${name} · ` : ''}
@@ -158,10 +158,10 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
         <div className="grid flex-1 place-items-center px-4">
           <div className={`max-w-sm rounded-tile border p-8 text-center ${hair} ${chip}`}>
             <MapPinned className="mx-auto h-8 w-8 text-sv-blue" strokeWidth={1.75} aria-hidden />
-            <h2 className="mt-4 text-[17px] font-black tracking-tight">ნაკვეთები ჯერ არ არის</h2>
+            <h2 className="mt-4 text-[17px] font-black tracking-tight">საკადასტრო ნაკვეთები ჯერ არ არის</h2>
             <p className={`mt-2 text-[13px] font-medium leading-relaxed ${muted}`}>
-              განცხადებას კადასტრის კოდი არ აქვს — დაამატე კოდი, და ქონება რუკაზე ოფიციალური
-              საზღვრებით გამოჩნდება.
+              განცხადებებს საკადასტრო კოდი არ აქვთ — დაამატეთ კოდი და თქვენი ქონება რუკაზე
+              ოფიციალური საზღვრებით გამოჩნდება.
             </p>
             <LocalizedLink
               href="/add-listing"
@@ -234,13 +234,13 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
                             ) : (
                               <>
                                 <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-                                მხოლოდ წერტილი · {pin.cadastral}
+                                მხოლოდ მდებარეობა · {pin.cadastral}
                               </>
                             )
                           ) : (
                             <>
                               <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-                              კადასტრის კოდი არ აქვს
+                              საკადასტრო კოდი არ აქვს
                             </>
                           )}
                         </span>

@@ -86,7 +86,7 @@ export default async function SellerOverviewPage() {
           className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
-          {rent ? "დაამატე ქირა" : "დაამატე განცხადება"}
+          {rent ? "დაამატე გასაქირავებელი" : "დაამატე განცხადება"}
         </LocalizedLink>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">

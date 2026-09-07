@@ -75,7 +75,7 @@ export const CMS_BLOCKS = {
   'home.services.title': 'ყველაფერი უძრავი ქონებისთვის',
   'home.services.sub': 'ძიებიდან გარიგებამდე — ყველაფერი ერთ პლატფორმაზე',
   'home.services.mortgage.title': 'იპოთეკური კალკულატორი',
-  'home.services.mortgage.text': 'ყოველთვიური გადასახადი TBC, საქართველოს ბანკის, Liberty და ტერაბანკის პირობებით.',
+  'home.services.mortgage.text': 'ყოველთვიური გადახდა TBC, საქართველოს ბანკის, Liberty და ტერაბანკის პირობებით.',
   'home.services.renovation.title': 'რემონტის ბიუჯეტი',
   'home.services.renovation.text': 'შავი / თეთრი / მწვანე კარკასი და გასაღების ჩაბარება — ორიენტირი მ²-ზე.',
   'home.services.map.title': 'რუკაზე ძებნა',

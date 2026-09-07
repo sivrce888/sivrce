@@ -32,7 +32,7 @@ sivrce.ge is Georgia's real-estate platform: apartments, houses and cottages for
 - [ბინები დღიურად ვაკეში](${BASE}/daily/apartments/tbilisi/vake)
 - [ბინები დღიურად ძველ თბილისში](${BASE}/daily/apartments/tbilisi/old-tbilisi)
 - [3D რუკა](${BASE}/map)
-- [კადასტრის რუკა](${BASE}/cadastre): cadastral parcel lookup by NAPR code or map tap — official boundaries
+- [საკადასტრო რუკა](${BASE}/cadastre): cadastral parcel lookup by NAPR code or map tap — official boundaries
 - [მშენებარე ბინები](${BASE}/projects)
 - [შენობები](${BASE}/buildings)
 - [უბნები](${BASE}/neighborhoods)

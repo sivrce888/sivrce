@@ -363,7 +363,7 @@ export const uk: Dict = {
   'footer.colServices': 'Сервіси',
   'footer.sv.projects': 'Нові проєкти',
   'footer.sv.agents': 'Агенти та агентства',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'Агенції',
   'footer.sv.developers': 'Забудовники',
   'footer.sv.renovation': 'Калькулятор ремонту',
   'footer.sv.mortgage': 'Іпотека',
@@ -737,7 +737,7 @@ export const uk: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастрова карта',
-  'cadastre.meta.title': 'Кадастрова карта — пошук ділянки за кадастровим кодом | sivrce',
+  'cadastre.meta.title': 'Кадастрова карта — пошук ділянки за кадастровим кодом',
   'cadastre.meta.description': 'Шукайте кадастрові ділянки в Грузії за кодом або дотиком на карті — офіційні межі NAPR, площа та оголошення на sivrce.ge.',
   'cadastre.h1': 'Кадастрова карта',
   'cadastre.sub': 'Знайдіть ділянку за кадастровим кодом або торкніться карти — межі з Національного агентства публічного реєстру (NAPR).',

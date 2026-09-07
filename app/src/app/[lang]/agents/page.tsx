@@ -57,6 +57,36 @@ export async function generateMetadata({
 export default async function AgentsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
+  const t =
+    lang === 'ka'
+      ? {
+          kicker: 'დირექტორია',
+          title: 'აგენტები და სააგენტოები',
+          subtitle:
+            'დალაგებული აქტიური განცხადებების რაოდენობით — ვერიფიცირებული სპეციალისტები გამოცდილებითა და მიმოხილვებით',
+          cta: 'გახდი აგენტი სივრცეზე',
+          topAgencies: 'ტოპ სააგენტოები',
+          agentsSuffix: 'აგენტი',
+        }
+      : lang === 'ru'
+        ? {
+            kicker: 'Каталог',
+            title: 'Агенты и агентства',
+            subtitle:
+              'Рейтинг по числу активных объявлений — проверенные специалисты с опытом и отзывами',
+            cta: 'Стань агентом на Sivrce',
+            topAgencies: 'Топ агентств',
+            agentsSuffix: 'агентов',
+          }
+        : {
+            kicker: 'Directory',
+            title: 'Agents & Agencies',
+            subtitle:
+              'Ranked by active listings — verified professionals with experience and reviews',
+            cta: 'Become an agent on Sivrce',
+            topAgencies: 'Top agencies',
+            agentsSuffix: 'agents',
+          }
   const counts = await getAgentListingCountsByKaName()
   // DB-signed-up agents join the index; curated static profiles win on overlap.
   // ponytail: cap 60 DB cards — pagination when signups outgrow one page.
@@ -149,15 +179,15 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
       <main id="main">
         <PageHero
           tone="light"
-          kicker="დირექტორია"
-          title="აგენტები და სააგენტოები"
-          subtitle="დალაგებული აქტიური განცხადებების რაოდენობით — ვერიფიცირებული სპეციალისტები გამოცდილებითა და მიმოხილვებით"
+          kicker={t.kicker}
+          title={t.title}
+          subtitle={t.subtitle}
         >
           <LocalizedLink
             href={roleSignupHref("agent")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
-            გახდი აგენტი სივრცეზე
+            {t.cta}
             <ArrowRight className="h-4 w-4" />
           </LocalizedLink>
         </PageHero>
@@ -167,7 +197,7 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
             <div className="mt-2">
               <div className="mb-3 flex items-center gap-2 text-[13px] font-black uppercase tracking-wider text-sv-blue">
                 <Building2 className="h-3.5 w-3.5" />
-                ტოპ სააგენტოები
+                {t.topAgencies}
               </div>
               <ul className="flex flex-wrap gap-2.5">
                 {topAgencies.map((ag, i) => (
@@ -181,7 +211,7 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
                       </span>
                       <span>{ag.name}</span>
                       <span className="font-bold text-sv-ink/45">
-                        {ag.listings} · {ag.agents} აგენტი
+                        {ag.listings} · {ag.agents} {t.agentsSuffix}
                       </span>
                     </LocalizedLink>
                   </li>

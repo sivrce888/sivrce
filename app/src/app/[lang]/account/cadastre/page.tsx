@@ -7,7 +7,7 @@ import MyCadastreView, { type MyListingPin } from './MyCadastreView'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'ჩემი ქონება კადასტრის რუკაზე',
+  title: 'ჩემი ქონება საკადასტრო რუკაზე',
   robots: { index: false, follow: false },
 }
 

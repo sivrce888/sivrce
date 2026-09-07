@@ -41,7 +41,7 @@ export async function createServiceListing(
   let website = String(fd.get('website') ?? '').trim()
   if (website) {
     if (!/^https:\/\//i.test(website) || website.length > 240) {
-      return { error: 'ვებსაიტი უნდა იწყებოდეს https://-ით.' }
+      return { error: 'ვებგვერდი უნდა იწყებოდეს https://-ით.' }
     }
   } else {
     website = ''

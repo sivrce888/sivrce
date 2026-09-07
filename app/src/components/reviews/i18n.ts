@@ -75,7 +75,7 @@ const ka: ReviewStrings = {
   optionalTag: 'არასავალდებულო',
   namePlaceholder: 'შენი სახელი',
   titleLabel: 'სათაური',
-  titlePlaceholder: 'შეაჯამე ერთი სიტყვით',
+  titlePlaceholder: 'შეაჯამე რამდენიმე სიტყვით',
   bodyLabel: 'შეფასების ტექსტი',
   bodyPlaceholder: 'გაგვიზიარე შენი გამოცდილება…',
   minChars: (n, min) =>

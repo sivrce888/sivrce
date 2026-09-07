@@ -363,7 +363,7 @@ export const hy: Dict = {
   'footer.colServices': 'Ծառայություններ',
   'footer.sv.projects': 'Նոր նախագծեր',
   'footer.sv.agents': 'Գործակալներ և գործակալություններ',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'Գործակալություններ',
   'footer.sv.developers': 'Կառուցապատողներ',
   'footer.sv.renovation': 'Վերանորոգման հաշվիչ',
   'footer.sv.mortgage': 'Հիպոթեք',
@@ -737,7 +737,7 @@ export const hy: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'Կադաստրի քարտեզ',
-  'cadastre.meta.title': 'Կադաստրի քարտեզ — հողատարածքի որոնում կոդով | sivrce',
+  'cadastre.meta.title': 'Կադաստրի քարտեզ — հողատարածքի որոնում կոդով',
   'cadastre.meta.description': 'Որոնեք կադաստրի հողատարածքներ Վրաստանում կոդով կամ քարտեզի հպումով — NAPR-ի պաշտոնական սահմաններ, մակերես և հայտարարություններ sivrce.ge-ում։',
   'cadastre.h1': 'Կադաստրի քարտեզ',
   'cadastre.sub': 'Գտեք հողատարածքը կադաստրի կոդով կամ հպեք քարտեզին — սահմանները Հանրային ռեեստրի գործակալությունից (NAPR)։',

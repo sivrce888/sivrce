@@ -363,7 +363,7 @@ export const en: Dict = {
   'footer.colServices': 'Services',
   'footer.sv.projects': 'New developments',
   'footer.sv.agents': 'Agents and agencies',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'Agencies',
   'footer.sv.developers': 'Developers',
   'footer.sv.renovation': 'Renovation calculator',
   'footer.sv.mortgage': 'Mortgage',
@@ -736,7 +736,7 @@ export const en: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'Cadastre map',
-  'cadastre.meta.title': 'Cadastre Map — Find Parcels by Cadastral Code | sivrce',
+  'cadastre.meta.title': 'Cadastre Map — Find Parcels by Cadastral Code',
   'cadastre.meta.description': 'Search cadastral parcels in Georgia by code or by tapping the map — official NAPR boundaries, area and matching listings on sivrce.ge.',
   'cadastre.h1': 'Cadastre map',
   'cadastre.sub': 'Find a parcel by cadastral code or tap the map — boundaries come straight from the National Agency of Public Registry (NAPR).',

@@ -104,7 +104,7 @@ export function AddServiceForm() {
         </div>
         <div>
           <label htmlFor="sv-web" className={label}>
-            ვებსაიტი
+            ვებგვერდი
           </label>
           <input id="sv-web" name="website" type="url" maxLength={240} placeholder="https://" className={input} />
         </div>

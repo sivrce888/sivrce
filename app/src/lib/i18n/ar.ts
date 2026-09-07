@@ -363,7 +363,7 @@ export const ar: Dict = {
   'footer.colServices': 'الخدمات',
   'footer.sv.projects': 'مشاريع جديدة',
   'footer.sv.agents': 'الوكلاء والوكالات',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'وكالات',
   'footer.sv.developers': 'المطورون',
   'footer.sv.renovation': 'حاسبة التجديد',
   'footer.sv.mortgage': 'الرهن العقاري',
@@ -736,7 +736,7 @@ export const ar: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'خريطة الكاداستر',
-  'cadastre.meta.title': 'خريطة الكاداستر — ابحث عن القطعة بالكود | sivrce',
+  'cadastre.meta.title': 'خريطة الكاداستر — ابحث عن القطعة بالكود',
   'cadastre.meta.description': 'ابحث عن قطع الكاداستر في جورجيا بالكود أو باللمس على الخريطة — حدود رسمية من NAPR والمساحة والإعلانات على sivrce.ge.',
   'cadastre.h1': 'خريطة الكاداستر',
   'cadastre.sub': 'اعثر على القطعة بكود الكاداستر أو المس الخريطة — الحدود من الوكالة الوطنية للسجل العام (NAPR).',

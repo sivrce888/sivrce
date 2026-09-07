@@ -151,7 +151,7 @@ export default async function ServiceProviderPage({ params }: PageProps) {
                   className="inline-flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-5 py-3 text-[14px] font-extrabold text-sv-ink"
                 >
                   <Globe className="h-4 w-4" />
-                  ვებსაიტი
+                  ვებგვერდი
                 </a>
               )}
             </div>

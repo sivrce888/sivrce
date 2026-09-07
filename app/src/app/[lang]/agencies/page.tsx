@@ -98,15 +98,25 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
       <main id="main">
         <PageHero
           tone="light"
-          kicker="დირექტორია"
-          title="სააგენტოები"
-          subtitle="გუნდის ზომითა და აქტიური განცხადებებით — ვერიფიცირებული სააგენტოები სანდოობის სიგნალებით"
+          kicker={lang === 'ka' ? 'დირექტორია' : lang === 'ru' ? 'Каталог' : 'Directory'}
+          title={lang === 'ka' ? 'სააგენტოები' : lang === 'ru' ? 'Агентства' : 'Agencies'}
+          subtitle={
+            lang === 'ka'
+              ? 'გუნდის ზომითა და აქტიური განცხადებებით — ვერიფიცირებული სააგენტოები სანდოობის სიგნალებით'
+              : lang === 'ru'
+                ? 'По размеру команды и активным объявлениям — проверенные агентства с сигналами надёжности'
+                : 'Ranked by team size and active listings — verified agencies with trust signals'
+          }
         >
           <LocalizedLink
             href={roleSignupHref('agency')}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
-            დაარეგისტრირე შენი სააგენტო
+            {lang === 'ka'
+              ? 'დაარეგისტრირე შენი სააგენტო'
+              : lang === 'ru'
+                ? 'Зарегистрируй своё агентство'
+                : 'Register your agency'}
             <ArrowRight className="h-4 w-4" />
           </LocalizedLink>
         </PageHero>
@@ -114,7 +124,11 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           {rows.length === 0 ? (
             <p className="mt-10 text-[15px] font-semibold text-sv-ink/55">
-              კატალოგი ივსება — შენი სააგენტო შეიძლება იყოს პირველი.
+              {lang === 'ka'
+                ? 'კატალოგი ივსება — შენი სააგენტო შეიძლება იყოს პირველი.'
+                : lang === 'ru'
+                  ? 'Каталог наполняется — твоё агентство может быть первым.'
+                  : 'The directory is filling up — your agency could be first.'}
             </p>
           ) : (
             <div className="mt-10 sv-card-grid-3">

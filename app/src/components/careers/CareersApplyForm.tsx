@@ -32,7 +32,7 @@ export default function CareersApplyForm() {
       return
     }
     if (cv.size > MAX_CV_BYTES) {
-      setError('CV max 5 MB.')
+      setError('CV — მაქს. 5 მბ.')
       return
     }
 
@@ -47,7 +47,7 @@ export default function CareersApplyForm() {
           code === 429
             ? 'ცოტა დაიცადე და თავიდან სცადე.'
             : code === 400
-              ? 'PDF, DOC ან DOCX — max 5 MB.'
+              ? 'PDF, DOC ან DOCX — მაქს. 5 მბ.'
               : 'CV ვერ აიტვირთა. თავიდან სცადე.',
         )
         setSending(false)
@@ -213,7 +213,7 @@ export default function CareersApplyForm() {
             >
               <FileUp className="h-6 w-6 text-sv-blue" />
               <span className="text-[14px] font-bold text-sv-ink">აირჩიე ფაილი</span>
-              <span className="text-[12px] font-medium text-sv-ink/45">PDF, DOC, DOCX · max 5 MB</span>
+              <span className="text-[12px] font-medium text-sv-ink/45">PDF, DOC, DOCX · მაქს. 5 მბ</span>
               <input
                 id="careers-cv"
                 name="cv"
@@ -231,7 +231,7 @@ export default function CareersApplyForm() {
                     return
                   }
                   if (f.size > MAX_CV_BYTES) {
-                    setError('CV max 5 MB.')
+                    setError('CV — მაქს. 5 მბ.')
                     return
                   }
                   setError(null)

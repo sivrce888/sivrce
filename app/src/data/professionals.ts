@@ -623,7 +623,7 @@ export const DEVELOPERS: Developer[] = [
     projectsDone: 4,
     unitsDelivered: 700,
     description: {
-      ka: 'ONE Development — ქმნის საცხოვრებელ უძრავ ქონებას ძლიერი ინვესტიციური პოტენციალით ბათუმის პერსპექტიულ ურბანულ ლოკაციებში. პროექტები: ONE Batumi, Sport City.',
+      ka: 'ONE Development — ქმნის საცხოვრებელ უძრავ ქონებას ძლიერი ინვესტიციური პოტენციალით ბათუმის პერსპექტიულ ურბანულ მდებარეობებში. პროექტები: ONE Batumi, Sport City.',
       en: 'ONE Development creates residential real estate with strong investment potential in Batumi’s prime urban locations. Projects: ONE Batumi, Sport City.',
       ru: 'ONE Development создаёт жилую недвижимость с сильным инвестиционным потенциалом в перспективных урбанистических локациях Батуми. Проекты: ONE Batumi, Sport City.',
     },
@@ -672,7 +672,7 @@ export const DEVELOPERS: Developer[] = [
     projectsDone: 4,
     unitsDelivered: 650,
     description: {
-      ka: 'Symbol — ბათუმის დეველოპერი, ცნობილი თანამედროვე საცხოვრებელი და აპარტ-სასტუმრო კომპლექსებით, ფოკუსით ზღვისპირა ლოკაციებსა და საინვესტიციო პროდუქტებზე.',
+      ka: 'Symbol — ბათუმის დეველოპერი, ცნობილი თანამედროვე საცხოვრებელი და აპარტ-სასტუმრო კომპლექსებით, ფოკუსით ზღვისპირა მდებარეობებსა და საინვესტიციო პროდუქტებზე.',
       en: 'Symbol is a Batumi developer known for contemporary residential and apart-hotel complexes, focused on seaside locations and investment products.',
       ru: 'Symbol — девелопер Батуми, известен современными жилыми и апарт-отельными комплексами, фокус на приморские локации и инвестиционные продукты.',
     },
@@ -868,7 +868,7 @@ export const DEVELOPERS: Developer[] = [
     projectsDone: 3,
     unitsDelivered: 260,
     description: {
-      ka: 'Vinci Development — თბილისის დეველოპერი, ფოკუსით ლისის ტბის მიმდებარე საბურთალოს პრემიუმ ლოკაციებზე. მიმდინარე პროექტი ცაცხვების VIII შესახვევში.',
+      ka: 'Vinci Development — თბილისის დეველოპერი, ფოკუსით ლისის ტბის მიმდებარე საბურთალოს პრემიუმ მდებარეობებზე. მიმდინარე პროექტი ცაცხვების VIII შესახვევში.',
       en: 'Vinci Development is a Tbilisi developer focused on premium locations in Saburtalo near Lisi Lake. Current project in Tsatskhvebi VIII Lane.',
       ru: 'Vinci Development — девелопер Тбилиси с фокусом на премиальные локации Сабуртало у озера Лиси. Текущий проект в VIII тупике Цацхвеби.',
     },
@@ -1008,7 +1008,7 @@ export const DEVELOPERS: Developer[] = [
     projectsDone: 13,
     unitsDelivered: 1400,
     description: {
-      ka: 'დომუსი — 2006 წლიდან მომუშავე თბილისის დეველოპერი 10 ჩაბარებული პროექტით. ცნობილი: Domus Park Vake; აშენებს ვაკეში (Domus Trees, Domus Nea) და ავლაბარში — პრემიუმ ლოკაციები, დაბალი სიმჭიდროვის კონცეფციით.',
+      ka: 'დომუსი — 2006 წლიდან მომუშავე თბილისის დეველოპერი 10 ჩაბარებული პროექტით. ცნობილი: Domus Park Vake; აშენებს ვაკეში (Domus Trees, Domus Nea) და ავლაბარში — პრემიუმ მდებარეობები, დაბალი სიმჭიდროვის კონცეფციით.',
       en: 'Domus is a Tbilisi developer active since 2006 with 10 completed projects. Known for Domus Park Vake; currently building in Vake (Domus Trees, Domus Nea) and Avlabari — premium locations with low-density concepts.',
       ru: 'Domus — тбилисский девелопер, работает с 2006 года, сдано 10 проектов. Известен Domus Park Vake; строит в Ваке (Domus Trees, Domus Nea) и в Авлабари — премиальные локации, концепция низкой плотности.',
     },
@@ -2621,7 +2621,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     coords: { lat: 41.63537481, lng: 41.61455343 },
     floors: 18,
     description: {
-      ka: 'ONE Batumi — ONE Development-ის საცხოვრებელი კომპლექსი ბათუმის ცენტრში, ინვესტიციური პოტენციალით ქალაქის პერსპექტიულ ლოკაციაში.',
+      ka: 'ONE Batumi — ONE Development-ის საცხოვრებელი კომპლექსი ბათუმის ცენტრში, ინვესტიციური პოტენციალით ქალაქის პერსპექტიულ მდებარეობაში.',
       en: 'ONE Batumi is a ONE Development residential complex in central Batumi, with investment potential in a high-potential city location.',
       ru: 'ONE Batumi — жилой комплекс ONE Development в центре Батуми, с инвестиционным потенциалом в перспективной локации города.',
     },
@@ -2963,7 +2963,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     coords: { lat: 41.68758969, lng: 44.83101886 },
     floors: 16,
     description: {
-      ka: 'Ketevan Dedofli 74 — Build Group-ის საცხოვრებელი კომპლექსი ქეთევან დედოფლის გამზ. 74-ში, ისანში. ხელმისაწვდომი ფასები და გამართული ლოკაცია.',
+      ka: 'Ketevan Dedofli 74 — Build Group-ის საცხოვრებელი კომპლექსი ქეთევან დედოფლის გამზ. 74-ში, ისანში. ხელმისაწვდომი ფასები და გამართული მდებარეობა.',
       en: 'Ketevan Dedofli 74 is a Build Group residential complex at 74 Ketevan Tsamebuli Ave, Isani — affordable prices and a well-located site.',
       ru: 'Ketevan Dedofli 74 — жилой комплекс Build Group на пр. Кетеван Цамеули 74, Исани: доступные цены и удачная локация.',
     },
@@ -3344,7 +3344,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     coords: { lat: 41.71033001, lng: 44.78254795 },
     floors: 14,
     description: {
-      ka: 'GBG Nikoladze 5 — GBG Development-ის ყველაზე თვალსაჩინო საცხოვრებელი კომპლექსი ნიკოლაძის ქ. №5-ზე, ვაკეში. თანამედროვე არქიტექტურა, ვაკის ცენტრალურ ლოკაციაში.',
+      ka: 'GBG Nikoladze 5 — GBG Development-ის ყველაზე თვალსაჩინო საცხოვრებელი კომპლექსი ნიკოლაძის ქ. №5-ზე, ვაკეში. თანამედროვე არქიტექტურა, ვაკის ცენტრალურ მდებარეობაში.',
       en: 'GBG Nikoladze 5 is GBG Development’s most striking residential complex at 5 Nikoladze St, Vake. Contemporary architecture in central Vake.',
       ru: 'GBG Nikoladze 5 — самый яркий жилой комплекс GBG Development на ул. Николадзе №5, Ваке. Современная архитектура в центре Ваке.',
     },
@@ -3444,7 +3444,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     coords: { lat: 41.64867313, lng: 41.62371844 },
     floors: 41,
     description: {
-      ka: 'Alliance Privilege — ბათუმის პირველი 5-ვარსკვლავიანი მრავალფუნქციური კომპლექსი, Marriott სასტუმროს ჩართვით. ინვესტიციის მოცულობა ~$140 მლნ, საპლაჟე ლოკაცია ზღვისა და ქალაქის ხედებით.',
+      ka: 'Alliance Privilege — ბათუმის პირველი 5-ვარსკვლავიანი მრავალფუნქციური კომპლექსი, Marriott სასტუმროს ჩართვით. ინვესტიციის მოცულობა ~$140 მლნ, საპლაჟე მდებარეობა ზღვისა და ქალაქის ხედებით.',
       en: 'Alliance Privilege is Batumi’s first 5-star multifunctional complex, featuring a Marriott hotel. Investment volume ~$140M, beachfront location with sea and city views.',
       ru: 'Alliance Privilege — первый в Батуми 5-звёздочный многофункциональный комплекс с участием отеля Marriott. Объём инвестиций ~$140 млн, пляжная локация с видами на море и город.',
     },
@@ -4491,7 +4491,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     rating: 4.8,
     coords: { lat: 41.71050221, lng: 44.75451556 },
     description: {
-      ka: 'Ocean Vake Park — უშუალოდ ვაკის პარკთან, მოსაშვილის 26-ში. პრემიუმ ლოკაცია მწვანე ზონასთან.',
+      ka: 'Ocean Vake Park — უშუალოდ ვაკის პარკთან, მოსაშვილის 26-ში. პრემიუმ მდებარეობა მწვანე ზონასთან.',
       en: 'Ocean Vake Park is directly at Vake Park, at 26 Mosashvili St — a premium address beside the city’s largest heritage green zone.',
       ru: 'Ocean Vake Park — прямо у парка Ваке, ул. Мосашвили 26. Премиальная локация у крупнейшей зелёной зоны города.',
     },

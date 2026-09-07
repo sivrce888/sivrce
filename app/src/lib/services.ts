@@ -590,7 +590,7 @@ export const SERVICE_PROVIDERS: readonly ServicePublic[] = [
     yearsActive: 4,
     rating: 4.6,
     reviewCount: 91,
-    features: ['Airbnb', 'თეთრეული', 'სტოკი'],
+    features: ['Airbnb', 'თეთრეული', 'სათავსო'],
     priceRangeMin: 40,
     priceRangeMax: 90,
     currency: 'GEL',
@@ -656,5 +656,6 @@ export function providerBySlug(slug: string): ServicePublic | undefined {
 }
 
 export function formatGel(n: number): string {
-  return `${n.toLocaleString('ka-GE')} ₾`
+  // en-US grouping — ka-GE formats differently on Node vs browser ICU and breaks hydration
+  return `${n.toLocaleString('en-US')} ₾`
 }

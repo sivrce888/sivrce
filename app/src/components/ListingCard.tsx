@@ -90,7 +90,7 @@ function ExclusiveChip({
         className="invisible absolute left-0 top-[calc(100%+8px)] z-40 w-[min(18rem,calc(100vw-2rem))] rounded-module bg-sv-surface p-3.5 text-left opacity-0 shadow-card ring-1 ring-sv-ink/[0.08] transition duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:ring-white/10"
       >
         <span className="block text-[13px] font-black text-sv-blue">{label}</span>
-        <span className="mt-1 block text-[12px] font-semibold leading-snug text-sv-ink/55">{hint}</span>
+        <span className="mt-1 block text-[12px] font-semibold leading-snug text-sv-ink/60">{hint}</span>
       </span>
     </span>
   )
@@ -529,7 +529,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {/* Price first — scannable like ss.ge / myhome with locked nominal currency */}
       <div className="flex min-w-0 items-baseline gap-2 text-[clamp(1.125rem,0.9rem+2.2cqi,1.375rem)] font-black tabular-nums tracking-[-0.03em] text-sv-ink dark:text-sv-blue">
         <span>{displayPrice}</span>
-        <span className="text-[13px] font-semibold text-sv-ink/45 dark:text-sv-blue-light/70">{displaySecondaryPrice}</span>
+        <span className="text-[13px] font-semibold text-sv-ink/60 dark:text-sv-blue-light/70">{displaySecondaryPrice}</span>
         {l.dealType === 'pledge' && (
           <span
             className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-white"
@@ -549,7 +549,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       </div>
       {/* ponytail: reserved slot so rent/daily cards match sale height */}
       <p
-        className={`mt-0.5 min-h-[1.25rem] text-[13px] font-bold tabular-nums text-sv-ink/45 ${showPerM2 ? '' : 'invisible'}`}
+        className={`mt-0.5 min-h-[1.25rem] text-[13px] font-bold tabular-nums text-sv-ink/60 ${showPerM2 ? '' : 'invisible'}`}
         aria-hidden={!showPerM2}
       >
         {showPerM2 ? formatPerM2(l, currency) : '\u00a0'}
@@ -592,7 +592,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         </LocalizedLink>
       </h3>
 
-      <p className="relative z-10 mt-1.5 flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-sv-ink/50">
+      <p className="relative z-10 mt-1.5 flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-sv-ink/60">
         <MapPin className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-hidden />
         {streetHref ? (
           <LocalizedLink
@@ -614,7 +614,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       >
         <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
         <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro?.name ?? '\u00a0'}</span>
-        <span className="shrink-0 font-semibold text-sv-blue/75">
+        <span className="shrink-0 font-semibold text-sv-blue">
           · {metro ? formatMetroDist(metro) : '\u00a0'}
         </span>
       </p>
@@ -642,7 +642,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             {l.baths}
           </span>
           <span
-            className={`flex min-w-0 items-center gap-1 text-sv-ink/55 ${
+            className={`flex min-w-0 items-center gap-1 text-sv-ink/60 ${
               !l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) ? '' : 'invisible'
             }`}
             aria-hidden={l.projectCatalog || (l.floor <= 0 && l.totalFloors <= 0)}
@@ -658,7 +658,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           <span className="shrink-0 text-[13px] font-black tabular-nums tracking-tight text-sv-ink">
             {displayScore || '—'}
           </span>
-          <span className="min-w-0 flex-1 text-[12px] font-semibold leading-snug text-sv-ink/50">
+          <span className="min-w-0 flex-1 text-[12px] font-semibold leading-snug text-sv-ink/60">
             {displayLabel || t('detail.aiScore')}
           </span>
           {l.verified ? (
@@ -671,12 +671,12 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           )}
         </div>
 
-        <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/40">
+        <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/60">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" aria-hidden />
             {postedAgoLabel(days, lang)}
           </span>
-          <span className="min-w-0 truncate font-mono text-[10px] font-black tabular-nums text-sv-ink/28">
+          <span className="min-w-0 truncate font-mono text-[10px] font-black tabular-nums text-sv-ink/60">
             ID {publicId}
           </span>
         </div>

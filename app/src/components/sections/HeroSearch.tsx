@@ -436,7 +436,7 @@ export default function HeroSearch() {
           <button
             type="button"
             onClick={() => { setMenu(null); setLocOpen(true) }}
-            aria-label={t('loc.title')}
+            aria-label={`${t('loc.where')}: ${locationLabel(loc, t('search.allGeorgia'))}`}
             className={`${fieldBtn} lg:w-[216px] lg:max-w-[216px] lg:shrink-0`}
           >
             <MapPin className={`h-4 w-4 shrink-0 ${loc.city ? 'text-sv-blue' : 'text-sv-ink/35 dark:text-white/40'}`} />
@@ -463,7 +463,7 @@ export default function HeroSearch() {
                       type="button"
                       aria-haspopup="dialog"
                       aria-expanded={menu === 'size'}
-                      aria-label={sizeText ? `${sizeCaption}: ${sizeText}` : sizeCaption}
+                      aria-label={`${sizeCaption}: ${sizeText ?? t('search.any')}`}
                       onClick={() => setMenu((m) => (m === 'size' ? null : 'size'))}
                       className={`${fieldBtn} lg:w-[128px] lg:max-w-[128px]`}
                     >
@@ -486,7 +486,7 @@ export default function HeroSearch() {
                       type="button"
                       aria-haspopup="dialog"
                       aria-expanded={menu === 'price'}
-                      aria-label={priceText ? `${t('search.price')}: ${priceText}` : t('search.price')}
+                      aria-label={`${t('search.price')}: ${priceText ?? t('search.any')}`}
                       onClick={() => setMenu((m) => (m === 'price' ? null : 'price'))}
                       className={`${fieldBtn} lg:w-[128px] lg:max-w-[128px]`}
                     >
@@ -569,7 +569,7 @@ export default function HeroSearch() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
                 aria-live="polite"
-                className="tabular-nums text-white/85"
+                className="tabular-nums text-white"
               >
                 <span aria-hidden className="px-0.5">·</span> {new Intl.NumberFormat(lang).format(hits)}
               </motion.span>

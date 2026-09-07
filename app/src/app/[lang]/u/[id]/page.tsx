@@ -235,7 +235,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
           </h2>
           {listings.length === 0 ? (
             <p className="mt-6 text-[15px] font-semibold text-sv-ink/55">
-              ამ მომენტში აქტიური განცხადება არ არის.
+              ამჟამად აქტიური განცხადება არ არის.
             </p>
           ) : (
             <div className="mt-6 sv-card-grid-3">

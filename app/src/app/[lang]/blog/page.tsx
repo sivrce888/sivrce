@@ -69,6 +69,36 @@ const blogLd = {
 export default async function BlogIndex({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
+  const t =
+    lang === 'ka'
+      ? {
+          locale: 'ka-GE',
+          kicker: 'ბლოგი',
+          title: 'უძრავი ქონების ბლოგი',
+          subtitle: 'ანალიტიკა, გზამკვლევები და რჩევები საქართველოს ბაზრისთვის — თბილისი, ბათუმი, ქუთაისი.',
+          minRead: 'წთ კითხვა',
+          minShort: 'წთ',
+          read: 'წაიკითხეთ',
+        }
+      : lang === 'ru'
+        ? {
+            locale: 'ru-RU',
+            kicker: 'Блог',
+            title: 'Блог о недвижимости',
+            subtitle: 'Аналитика, гиды и советы для рынка Грузии — Тбилиси, Батуми, Кутаиси.',
+            minRead: 'мин чтения',
+            minShort: 'мин',
+            read: 'Читать',
+          }
+        : {
+            locale: 'en-US',
+            kicker: 'Blog',
+            title: 'Real Estate Blog',
+            subtitle: 'Analytics, guides and advice for the Georgian market — Tbilisi, Batumi, Kutaisi.',
+            minRead: 'min read',
+            minShort: 'min',
+            read: 'Read',
+          }
   const sorted = [...BLOG_POSTS].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
   const [featured, ...rest] = sorted
 
@@ -78,9 +108,9 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
       <main id="main">
         <PageHero
           tone="light"
-          kicker="ბლოგი"
-          title="უძრავი ქონების ბლოგი"
-          subtitle="ანალიტიკა, გზამკვლევები და რჩევები საქართველოს ბაზრისთვის — თბილისი, ბათუმი, ქუთაისი."
+          kicker={t.kicker}
+          title={t.title}
+          subtitle={t.subtitle}
         />
         <AdSlot slot="blog" lang={lang} />
         <div className="mx-auto max-w-[1200px] px-5 pb-20 md:px-10">
@@ -113,11 +143,11 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
               {featured.excerpt}
             </p>
             <div className="mt-5 flex items-center gap-4 text-[13px] font-bold text-sv-ink/45">
-              <span>{new Date(featured.publishedAt).toLocaleDateString('ka-GE', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-              <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" aria-hidden /> {featured.readingMinutes} წთ კითხვა</span>
+              <span>{new Date(featured.publishedAt).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" aria-hidden /> {featured.readingMinutes} {t.minRead}</span>
             </div>
             <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-extrabold text-sv-blue transition-transform duration-300 group-hover:translate-x-1">
-              წაიკითხეთ <ArrowRight className="h-4 w-4" aria-hidden />
+              {t.read} <ArrowRight className="h-4 w-4" aria-hidden />
             </span>
           </div>
         </LocalizedLink>
@@ -153,8 +183,8 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
                   {p.excerpt}
                 </p>
                 <div className="mt-4 flex items-center gap-3 text-[12px] font-bold text-sv-ink/45">
-                  <span>{new Date(p.publishedAt).toLocaleDateString('ka-GE', { day: 'numeric', month: 'short' })}</span>
-                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" aria-hidden /> {p.readingMinutes} წთ</span>
+                  <span>{new Date(p.publishedAt).toLocaleDateString(t.locale, { day: 'numeric', month: 'short' })}</span>
+                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" aria-hidden /> {p.readingMinutes} {t.minShort}</span>
                 </div>
               </div>
             </LocalizedLink>

@@ -363,7 +363,7 @@ export const ru: Dict = {
   'footer.colServices': 'Сервисы',
   'footer.sv.projects': 'Новостройки',
   'footer.sv.agents': 'Агенты и агентства',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'Агентства',
   'footer.sv.developers': 'Застройщики',
   'footer.sv.renovation': 'Калькулятор ремонта',
   'footer.sv.mortgage': 'Ипотека',
@@ -736,7 +736,7 @@ export const ru: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастровая карта',
-  'cadastre.meta.title': 'Кадастровая карта — поиск участка по кадастровому коду | sivrce',
+  'cadastre.meta.title': 'Кадастровая карта — поиск участка по кадастровому коду',
   'cadastre.meta.description': 'Ищите кадастровые участки в Грузии по коду или касанию на карте — официальные границы NAPR, площадь и объявления на sivrce.ge.',
   'cadastre.h1': 'Кадастровая карта',
   'cadastre.sub': 'Найдите участок по кадастровому коду или коснитесь карты — границы из Национального агентства публичного реестра (NAPR).',

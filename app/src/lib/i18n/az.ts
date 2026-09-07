@@ -363,7 +363,7 @@ export const az: Dict = {
   'footer.colServices': 'Xidmətlər',
   'footer.sv.projects': 'Yeni layihələr',
   'footer.sv.agents': 'Agentlər və agentliklər',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'Agentliklər',
   'footer.sv.developers': 'Tikinti şirkətləri',
   'footer.sv.renovation': 'Təmir kalkulyatoru',
   'footer.sv.mortgage': 'İpoteka',
@@ -737,7 +737,7 @@ export const az: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastr xəritəsi',
-  'cadastre.meta.title': 'Kadastr xəritəsi — torpaq sahəsini kodla tap | sivrce',
+  'cadastre.meta.title': 'Kadastr xəritəsi — torpaq sahəsini kodla tap',
   'cadastre.meta.description': 'Gürcüstandakı kadastr sahələrini kodla və ya xəritəyə toxunaraq tapın — rəsmi NAPR sərhədləri, sahə və elanlar sivrce.ge-də.',
   'cadastre.h1': 'Kadastr xəritəsi',
   'cadastre.sub': 'Sahəni kadastr kodu ilə tapın və ya xəritəyə toxunun — sərhədlər Dövlət Reyestri Agentliyindən (NAPR).',

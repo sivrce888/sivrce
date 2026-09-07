@@ -17,7 +17,6 @@ export default function NeighborhoodCard({ n, count }: { n: Neighborhood; count:
   return (
     <LocalizedLink
       href={`/neighborhoods/${n.slug}`}
-      aria-label={`${pick(n.name, lang)} — ${s.viewGuide}`}
       className="group block rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
     >
       <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">
@@ -51,7 +50,7 @@ export default function NeighborhoodCard({ n, count }: { n: Neighborhood; count:
         </div>
         <div className="flex items-center justify-between gap-3 p-5">
           <div>
-            <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/45">{s.avgPrice}</p>
+            <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/60">{s.avgPrice}</p>
             <p className="text-[17px] font-black text-sv-blue">
               ${n.avgPriceM2USD.toLocaleString('en-US')}
               <span className="text-[12px] font-bold text-sv-ink/60">{s.perM2}</span>

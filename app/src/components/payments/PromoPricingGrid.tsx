@@ -54,7 +54,7 @@ const CARDS: TierCard[] = [
     recommended: true,
     badge: { style: BRAND.vipTiers["VIP+"].style, icon: Flame, label: "VIP+" },
     features: [
-      "ყველაფერი VIP-დან",
+      "VIP-ის ყველა უპირატესობა",
       "სიაში VIP-ებზე წინ",
       "VIP+ კარუსელი მთავარ გვერდზე",
       "3× მეტი ნახვა საშუალოდ",
@@ -65,7 +65,7 @@ const CARDS: TierCard[] = [
     name: "SUPER VIP",
     badge: { style: BRAND.vipTiers["SUPER VIP"].style, icon: Crown, label: "SUPER VIP" },
     features: [
-      "ყველაფერი VIP+-დან",
+      "VIP+-ის ყველა უპირატესობა",
       "ტოპი ყველა განცხადებაზე",
       "SUPER VIP სლაიდერი მთავარზე",
       "5× მეტი ნახვა საშუალოდ",

@@ -363,7 +363,7 @@ export const he: Dict = {
   'footer.colServices': 'שירותים',
   'footer.sv.projects': 'פרויקטים חדשים',
   'footer.sv.agents': 'סוכנים וסוכנויות',
-  'footer.sv.agencies': '',
+  'footer.sv.agencies': 'סוכנויות',
   'footer.sv.developers': 'יזמים',
   'footer.sv.renovation': 'מחשבון שיפוץ',
   'footer.sv.mortgage': 'משכנתה',
@@ -736,7 +736,7 @@ export const he: Dict = {
 
   // ——— Cadastre ———
   'nav.cadastre': 'מפה קדסטרית',
-  'cadastre.meta.title': 'מפה קדסטרית — חיפוש חלקה לפי קוד | sivrce',
+  'cadastre.meta.title': 'מפה קדסטרית — חיפוש חלקה לפי קוד',
   'cadastre.meta.description': 'חפשו חלקות קדסטר בגאורגיה לפי קוד או בנגיעה במפה — גבולות רשמיים של NAPR, שטח ומודעות ב-sivrce.ge.',
   'cadastre.h1': 'מפה קדסטרית',
   'cadastre.sub': 'מצאו חלקה לפי קוד קדסטר או געו במפה — הגבולות מגיעים מסוכנות הרישום הציבורי (NAPR).',
