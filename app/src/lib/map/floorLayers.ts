@@ -244,10 +244,10 @@ export function setBasemapBuildings3d(map: MlMap, on: boolean) {
     ['get', 'render_min_height'],
     0,
   ])
-  try {
+  // getLayer guard first: after a style timeout+reload maplibre *fires* an
+  // ErrorEvent (uncaught console noise) instead of throwing for missing layers.
+  if (map.getLayer(OSM_BUILDING_3D_ID)) {
     map.setLayerZoomRange(OSM_BUILDING_3D_ID, on ? 13 : 14, 24)
-  } catch {
-    /* layer may be missing */
   }
   if (map.getLayer('building')) {
     try {

@@ -23,7 +23,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'Real Estate',
     'home.hero.titleAccent': 'in Georgia',
     'home.hero.subtitle':
-      'Daily apartments in Tbilisi — for sale and for rent.',
+      'Apartments, houses and cottages across Georgia — buy, rent or book daily, from independent listings.',
     'home.hero.trust1': 'Verified listings',
     'home.hero.trust2': 'Secure transactions',
     'home.hero.trust3': 'AI price valuation',
@@ -183,7 +183,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'Недвижимость',
     'home.hero.titleAccent': 'в Грузии',
     'home.hero.subtitle':
-      'Квартиры посуточно в Тбилиси — продажа и аренда.',
+      'Квартиры, дома и коттеджи по всей Грузии — покупка, аренда и посуточная сдача от независимых объявлений.',
     'home.hero.trust1': 'Проверенные объявления',
     'home.hero.trust2': 'Безопасные сделки',
     'home.hero.trust3': 'ИИ-оценка цены',
@@ -343,7 +343,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'Emlak',
     'home.hero.titleAccent': 'Gürcistan’da',
     'home.hero.subtitle':
-      'Tiflis’te günlük kiralık daireler — satılık ve kiralık.',
+      'Gürcistan genelinde daireler, evler ve yazlıklar — bağımsız ilanlarla satılık, kiralık veya günlük.',
     'home.hero.trust1': 'Doğrulanmış ilanlar',
     'home.hero.trust2': 'Güvenli işlemler',
     'home.hero.trust3': 'Yapay zekâ fiyat değerlemesi',
@@ -503,7 +503,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'Нерухомість',
     'home.hero.titleAccent': 'у Грузії',
     'home.hero.subtitle':
-      'Квартири подобово в Тбілісі — продаж і оренда.',
+      'Квартири, будинки та котеджі по всій Грузії — купівля, оренда та подобово від незалежних оголошень.',
     'home.hero.trust1': 'Перевірені оголошення',
     'home.hero.trust2': 'Безпечні угоди',
     'home.hero.trust3': 'ШІ-оцінка ціни',
@@ -663,7 +663,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'נדל״ן',
     'home.hero.titleAccent': 'בגאורגיה',
     'home.hero.subtitle':
-      'דירות להשכרה יומית בטביליסי — למכירה ולהשכרה.',
+      'דירות, בתים וצימרים בכל גאורגיה — למכירה, להשכרה או ליום, ממודעות עצמאיות.',
     'home.hero.trust1': 'מודעות מאומתות',
     'home.hero.trust2': 'עסקאות מאובטחות',
     'home.hero.trust3': 'הערכת מחיר בינה מלאכותית',
@@ -823,7 +823,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'عقارات',
     'home.hero.titleAccent': 'في جورجيا',
     'home.hero.subtitle':
-      'شقق يومية في تبليسي — للبيع وللإيجار.',
+      'شقق ومنازل وشاليهات في جميع أنحاء جورجيا — للبيع أو الإيجار أو يوميًا، من إعلانات مستقلة.',
     'home.hero.trust1': 'إعلانات موثّقة',
     'home.hero.trust2': 'معاملات آمنة',
     'home.hero.trust3': 'تقييم الأسعار بالذكاء الاصطناعي',
@@ -983,7 +983,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'Անշարժ գույք',
     'home.hero.titleAccent': 'Վրաստանում',
     'home.hero.subtitle':
-      'Օրավարձով բնակարաններ Թբիլիսիում — վաճառք և վարձակալություն.',
+      'Բնակարաններ, տներ և ամառանոցներ ամբողջ Վրաստանում — վաճառք, վարձակալություն կամ օրավարձով՝ անկախ հայտարարություններով։',
     'home.hero.trust1': 'Ստուգված հայտարարություններ',
     'home.hero.trust2': 'Անվտանգ գործարքներ',
     'home.hero.trust3': 'AI գնահատում',
@@ -1143,7 +1143,7 @@ export const BLOCK_I18N: Record<Exclude<Lang, 'ka'>, BlockDict> = {
     'home.hero.titleA': 'Daşınmaz əmlak',
     'home.hero.titleAccent': 'Gürcüstanda',
     'home.hero.subtitle':
-      'Tbilisidə günlük mənzillər — satış və kirayə.',
+      'Gürcüstanın hər yerində mənzillər, evlər və villalar — müstəqil elanlarla satılıq, kirayə və ya gündəlik.',
     'home.hero.trust1': 'Təsdiqlənmiş elanlar',
     'home.hero.trust2': 'Təhlükəsiz əməliyyatlar',
     'home.hero.trust3': 'AI qiymət qiymətləndirməsi',

@@ -462,7 +462,7 @@ export default function HeroSearch() {
                       <span className="min-w-0 flex-1">
                         <span className={fieldCap}>{sizeCaption}</span>
                         <span className={`${fieldVal} ${sizeText ? '' : 'text-sv-ink/38 dark:text-white/45'}`}>
-                          {sizeText ?? sizeCaption}
+                          {sizeText ?? t('search.any')}
                         </span>
                       </span>
                       <ChevronDown className={`h-3.5 w-3.5 shrink-0 opacity-40 transition-transform ${menu === 'size' ? 'rotate-180' : ''}`} aria-hidden />
@@ -485,7 +485,7 @@ export default function HeroSearch() {
                       <span className="min-w-0 flex-1">
                         <span className={fieldCap}>{t('search.price')}</span>
                         <span className={`${fieldVal} ${priceText ? '' : 'text-sv-ink/38 dark:text-white/45'}`}>
-                          {priceText ?? t('search.price')}
+                          {priceText ?? t('search.any')}
                         </span>
                       </span>
                       <ChevronDown className={`h-3.5 w-3.5 shrink-0 opacity-40 transition-transform ${menu === 'price' ? 'rotate-180' : ''}`} aria-hidden />
