@@ -204,9 +204,9 @@ export const ar: Dict = {
   'sort.m2desc': 'سعر/م²: من الأعلى للأقل',
 
   // ——— Listing detail chrome ———
-  'detail.notFoundTitle': 'الإعلان غير موجود',
+  'detail.notFoundTitle': 'الصفحة غير موجودة',
   'detail.notFoundText':
-    'ربما حُذف الإعلان أو أن الرابط غير صحيح. تصفح العروض النشطة في صفحة البحث.',
+    'قد تكون هذه الصفحة حُذفت أو أن الرابط غير صحيح. تصفح الإعلانات النشطة في صفحة البحث.',
   'detail.backToSearch': 'العودة إلى البحث',
   'detail.breadcrumb': 'مسار التنقل',
   'detail.home': 'الرئيسية',

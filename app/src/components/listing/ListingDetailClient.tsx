@@ -47,7 +47,7 @@ import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
 import type { ListingShareInput } from '@/lib/listing-share'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
-  formatFloor, USD_GEL, type Listing, type PropType,
+  formatFloor, USD_GEL, postedAgoLabel, type Listing, type PropType,
 } from '@/data/listings'
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
@@ -798,7 +798,7 @@ export default function ListingDetailClient({
                   <span className="flex items-center gap-1 text-[12px] font-bold text-sv-ink/45">
                     <Calendar className="h-3.5 w-3.5" />
                     <span title={l.postedAt}>
-                      {postedDays <= 0 ? t('detail.postedToday') : t('detail.postedAgo', { n: postedDays })}
+                      {postedDays <= 0 ? t('detail.postedToday') : postedAgoLabel(postedDays, lang)}
                     </span>
                     {postedDays >= 21 ? (
                       <span className="rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-bold text-sv-orange-deep">

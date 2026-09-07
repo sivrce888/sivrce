@@ -38,6 +38,24 @@ assert.deepEqual(
   { deal: 'გირავდება', where: 'საბურთალოზე' },
 )
 
+/* ——— street box holding a bare settlement name — in-X, never *ნიჩბისზე ——— */
+assert.equal(
+  seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', propType: 'land', street: 'ნიჩბისი', city: 'მცხეთის მუნიციპალიტეტი' }).where,
+  'ნიჩბისში',
+)
+assert.equal(
+  seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'ბაკურიანი', city: 'ბაკურიანი' }).where,
+  'ბაკურიანში', // curated city, no city duplication
+)
+assert.equal(
+  seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'საბურთალო', city: 'თბილისი' }).where,
+  'საბურთალოზე', // curated -ზე class survives the bare-name route
+)
+assert.equal(
+  seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'დიდი დიღომი', city: 'თბილისი' }).where,
+  'დიდ დიღომში', // multi-word curated (syncope) still hits
+)
+
 /* ——— title parts: en/ru use curated seo-pages phrases ——— */
 assert.deepEqual(
   seoTitleParts({ lang: 'en', deal: 'sale', dealLabel: 'For sale', district: 'ვაკე', city: 'თბილისი' }),

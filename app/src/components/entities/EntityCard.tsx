@@ -110,7 +110,7 @@ export function EntityCard({
         <div className="mt-auto flex items-center justify-between border-t border-sv-ink/[0.06] pt-4">
           {listingsCount > 0 ? (
             <span className="text-[13px] font-bold text-sv-ink/55">
-              {listingsCount} {d.listingsShort}
+              {listingsCount} {listingsCount === 1 ? d.listingsShortOne : d.listingsShort}
             </span>
           ) : null}
           {aggregate ? (

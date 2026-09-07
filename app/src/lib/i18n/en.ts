@@ -204,9 +204,9 @@ export const en: Dict = {
   'sort.m2desc': 'Price/m²: high to low',
 
   // ——— Listing detail chrome ———
-  'detail.notFoundTitle': 'Listing not found',
+  'detail.notFoundTitle': 'Page not found',
   'detail.notFoundText':
-    'The listing may have been removed or the link is incorrect. Browse active offers on the search page.',
+    'This page may have been removed or the link is incorrect. Browse active listings on the search page.',
   'detail.backToSearch': 'Back to search',
   'detail.breadcrumb': 'Breadcrumb',
   'detail.home': 'Home',

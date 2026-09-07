@@ -204,9 +204,9 @@ export const tr: Dict = {
   'sort.m2desc': 'm² fiyatı: azalan',
 
   // ——— Listing detail chrome ———
-  'detail.notFoundTitle': 'İlan bulunamadı',
+  'detail.notFoundTitle': 'Sayfa bulunamadı',
   'detail.notFoundText':
-    'İlan kaldırılmış veya bağlantı hatalı olabilir. Arama sayfasındaki aktif ilanlara göz atın.',
+    'Bu sayfa kaldırılmış veya bağlantı yanlış olabilir. Aktif ilanları arama sayfasında inceleyin.',
   'detail.backToSearch': 'Aramaya dön',
   'detail.breadcrumb': 'İçerik haritası',
   'detail.home': 'Ana sayfa',

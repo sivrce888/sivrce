@@ -204,9 +204,9 @@ export const hy: Dict = {
   'sort.m2desc': 'մ² գին՝ նվազ',
 
   // ——— Listing detail chrome ———
-  'detail.notFoundTitle': 'Հայտարարությունը չի գտնվել',
+  'detail.notFoundTitle': 'Էջը չի գտնվել',
   'detail.notFoundText':
-    'Հնարավոր է, հայտարարությունը հեռացված է կամ հղումը սխալ է։ Դիտեք ակտիվ առաջարկները որոնման էջում։',
+    'Հնարավոր է էջը հեռացված է կամ հղումը սխալ է: Ակտիվ հայտարարությունները տեսեք որոնման էջում:',
   'detail.backToSearch': 'Վերադառնալ որոնման',
   'detail.breadcrumb': 'Նավարկության շղթա',
   'detail.home': 'Գլխավոր',

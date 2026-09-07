@@ -107,7 +107,15 @@ export function seoTitleParts(o: {
   let where: string
   if (o.lang === 'ka') {
     const loc = locIn(place)
-    where = o.street?.trim() ? `${locOn(o.street)} ${loc}`.trim() : loc
+    const st = o.street?.trim() ?? ''
+    // The street box also receives bare settlement names (cadastre villages,
+    // ski towns: ნიჩბისი, ბაკურიანი). Those keep their "in X" locative —
+    // only street-worded or genitive-marked values ("ჭავჭავაძის გამზირი")
+    // take the street -ზე. ponytail: bare nominative person-name streets
+    // (autocomplete always carries გამზირი/ქუჩა) would mis-hit -ში.
+    if (!st) where = loc
+    else if (STREET_WORDS.test(st) || /[აეიოუ]ს$/.test(st)) where = `${locOn(st)} ${loc}`.trim()
+    else where = locIn(st)
   } else if (o.lang === 'en' || o.lang === 'ru') {
     const name = o.lang === 'en' ? enName : ruName
     const d = o.district ? name(o.district) : ''

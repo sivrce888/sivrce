@@ -204,9 +204,9 @@ export const he: Dict = {
   'sort.m2desc': 'מחיר/מ²: גבוה לנמוך',
 
   // ——— Listing detail chrome ———
-  'detail.notFoundTitle': 'המודעה לא נמצאה',
+  'detail.notFoundTitle': 'הדף לא נמצא',
   'detail.notFoundText':
-    'ייתכן שהמודעה הוסרה או שהקישור שגוי. עיינו בהצעות הפעילות בדף החיפוש.',
+    'ייתכן שהדף הוסר או שהקישור שגוי. עיינו במודעות הפעילות בעמוד החיפוש.',
   'detail.backToSearch': 'חזרה לחיפוש',
   'detail.breadcrumb': 'שביל ניווט',
   'detail.home': 'בית',
