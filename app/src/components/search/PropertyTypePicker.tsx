@@ -71,7 +71,7 @@ export default function PropertyTypePicker({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        aria-label={`${t('search.propType')}: ${selected ? t(selected.shortKey) : t('search.allTypes')}`}
+        aria-label={`${t('search.propType')} ${selected ? t(selected.shortKey) : t('search.allTypes')}`}
         onClick={() => {
           setOpen((o) => {
             const next = !o

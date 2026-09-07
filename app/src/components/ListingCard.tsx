@@ -665,7 +665,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-label={t('detail.scoreVerified')} />
           ) : null}
           {l.isNew && (
-            <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-sv-orange">
+            <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-sv-ink">
               {t('card.new')}
             </span>
           )}
