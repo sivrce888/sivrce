@@ -117,7 +117,7 @@ export default async function AgentAnalyticsPage() {
         {totalLeads === 0 ? (
           <div className="mt-4">
             <EmptyState
-              title="ჯერ არ არის საკმარისი მონაცემი"
+              title="ჯერ არ არის საკმარისი მონაცემები"
               body="როცა მყიდველები დაგიკავშირდებიან, აქ გამოჩნდება ლიდების განაწილება სტატუსების მიხედვით."
               actionHref="/add-listing"
               actionLabel="განცხადების დამატება"

@@ -26,7 +26,7 @@ export default function ImportCompetitorPanel() {
   async function onImport() {
     const list = parseUrls(urls)
     if (!list.length) {
-      setErr('ჩასვი ss.ge, myhome.ge ან korter.ge ლინკი')
+      setErr('ჩასვი ss.ge, myhome.ge ან korter.ge ბმული')
       return
     }
     setBusy(true)

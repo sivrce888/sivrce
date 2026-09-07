@@ -97,7 +97,7 @@ export default async function AgencyAnalyticsPage() {
           {totalLeads === 0 ? (
             <div className="mt-4">
               <EmptyState
-                title="ჯერ არ არის საკმარისი მონაცემი"
+                title="ჯერ არ არის საკმარისი მონაცემები"
                 body="როცა მყიდველები დაგიკავშირდებიან, აქ გამოჩნდება განაწილება."
               />
             </div>
