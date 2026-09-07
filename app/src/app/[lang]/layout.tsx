@@ -324,9 +324,10 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
     >
       <link rel="preconnect" href="https://cdn.sivrce.ge" crossOrigin="anonymous" />
       <body className="min-h-full">
-        <Script id="lite-boot" strategy="beforeInteractive">
-          {LITE_BOOT}
-        </Script>
+        {/* Inline (not next/script): pre-hydration boot on full loads; React 19
+            errors on next/script's client-rendered <script> when this root
+            layout mounts via client-side navigation. */}
+        <script id="lite-boot" dangerouslySetInnerHTML={{ __html: LITE_BOOT }} />
         {/* Fonts: next/font display=optional + preload:false — no manual preload
             (was fighting FCP; optional already prevents late-swap LCP). */}
         {/* Google Tag Manager (noscript) */}

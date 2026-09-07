@@ -69,7 +69,7 @@ lock("src/components/Reveal.tsx", ["data-reveal"], ["reducedMotion=\"never\""])
 lock("src/components/I18nProvider.tsx", ['reducedMotion="user"'], ['reducedMotion="never"'])
 lock("src/app/[lang]/layout.tsx", [
   "LITE_BOOT",
-  "beforeInteractive",
+  'id="lite-boot"',
   "suppressHydrationWarning",
   'viewportFit: "cover"',
   "/icons/favicon-32.png",
@@ -77,14 +77,12 @@ lock("src/app/[lang]/layout.tsx", [
   "BRAND.colors.navy",
 ], ["maximumScale"])
 lock("src/app/auth/layout.tsx", [
-  "LITE_BOOT",
-  "beforeInteractive",
   "suppressHydrationWarning",
   'viewportFit: "cover"',
   "/icons/favicon-32.png",
   "/apple-icon.png",
   "BRAND.colors.navy",
-], ["maximumScale"])
+], ["LITE_BOOT", "maximumScale"])
 lock("src/lib/map/maplibre-worker.ts", ["/maplibre/maplibre-gl-worker.mjs", "setWorkerUrl", "prewarm"], ["setWorkerCount"])
 lock("src/components/map/Map3D.tsx", ["...mapRuntimeOptions()", "isLiteDevice()", "bindMaplibreWorker("], ["setWorkerCount"])
 lock("src/components/map/BuildingFloorsMap.tsx", ["...mapRuntimeOptions()", "bindMaplibreWorker("], ["setWorkerCount"])

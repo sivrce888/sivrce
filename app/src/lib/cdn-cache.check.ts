@@ -116,7 +116,7 @@ lock("src/lib/posthog.ts", [
 
 lock("src/lib/device-budget.ts", ["maxTileCacheSize", "data-lite", "deviceMemory"])
 lock("src/components/GoogleTags.tsx", ["isLiteDevice", "lazyOnload"])
-lock("src/app/[lang]/layout.tsx", ["LITE_BOOT", "beforeInteractive", "slogan: BRAND.tagline.ka", "cdn.sivrce.ge"])
+lock("src/app/[lang]/layout.tsx", ["LITE_BOOT", 'id="lite-boot"', "slogan: BRAND.tagline.ka", "cdn.sivrce.ge"])
 lock("src/components/ThemeProvider.tsx", ["session={null}", "refetchInterval={0}"], ["refetchOnWindowFocus={true}"])
 lock("src/lib/brand.ts", ["Real Estate in one place", "უძრავი ქონება ერთ სივრცეში"])
 lock("src/app/globals.css", ["html[data-lite] [data-reveal]"])

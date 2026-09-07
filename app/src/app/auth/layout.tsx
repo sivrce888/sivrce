@@ -4,11 +4,9 @@ import I18nProvider from "@/components/I18nProvider";
 import PostHogProvider from "@/components/PostHogProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
-import Script from "next/script";
 import { GoogleTags } from "@/components/GoogleTags";
 import { GTM_ID } from "@/lib/analytics";
 import { BRAND } from "@/lib/brand";
-import { LITE_BOOT } from "@/lib/device-budget";
 // globals.css: app/layout.tsx (root). Importing only here used to work; keep
 // root as the single CSS entry so [lang] pages never lose the stylesheet.
 
@@ -71,9 +69,9 @@ export default function AuthLayout({
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <Script id="lite-boot" strategy="beforeInteractive">
-          {LITE_BOOT}
-        </Script>
+        {/* No lite-boot here: auth has no data-reveal/heavy content to gate,
+            and isLiteDevice() covers JS-side checks. A React-rendered script
+            can't execute on client-mounted navigations anyway (React 19). */}
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
