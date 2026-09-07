@@ -97,7 +97,7 @@ export default function Footer() {
                     <Link
                       href={localizedHref(l.href, lang)}
                       data-cms-key={l.key}
-                      className="text-[14px] font-semibold text-white/65 transition-colors hover:text-white"
+                      className="text-[14px] font-semibold text-white/65 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
                     >
                       {t(l.key)}
                     </Link>
@@ -123,7 +123,7 @@ export default function Footer() {
                     <li key={l.href}>
                       <Link
                         href={localizedHref(l.href, lang)}
-                        className="block text-[13px] font-semibold leading-snug text-white/55 transition-colors hover:text-white"
+                        className="block rounded-sm text-[13px] font-semibold leading-snug text-white/55 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
                       >
                         {l.label[loc]}
                       </Link>
@@ -165,9 +165,9 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
             <div id="top-ge-counter-container" data-site-id="118924" className="shrink-0" />
-            <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="transition-colors hover:text-white">{t('footer.terms')}</Link>
-            <Link href={localizedHref("/privacy", lang)} data-cms-key="footer.privacy" className="transition-colors hover:text-white">{t('footer.privacy')}</Link>
-            <Link href={localizedHref("/privacy#cookies", lang)} data-cms-key="footer.cookies" className="transition-colors hover:text-white">{t('footer.cookies')}</Link>
+            <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.terms')}</Link>
+            <Link href={localizedHref("/privacy", lang)} data-cms-key="footer.privacy" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.privacy')}</Link>
+            <Link href={localizedHref("/privacy#cookies", lang)} data-cms-key="footer.cookies" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.cookies')}</Link>
           </div>
         </div>
       </div>

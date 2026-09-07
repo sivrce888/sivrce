@@ -524,7 +524,7 @@ export default function HeroSearch() {
             className="min-w-0 flex-1"
           />
           {isDaily && (
-            <div className="flex min-w-0 items-center gap-1 rounded-full bg-sv-ink/[0.05] px-3 py-2 lg:w-[220px] lg:shrink-0 dark:bg-white/[0.07]">
+            <div className="flex min-w-0 items-center gap-1 rounded-full bg-sv-ink/[0.05] px-3 py-2 transition focus-within:bg-sv-ink/[0.07] focus-within:ring-2 focus-within:ring-sv-blue/30 lg:w-[220px] lg:shrink-0 dark:bg-white/[0.07] dark:focus-within:bg-white/[0.12]">
               <input
                 type="date"
                 value={from}

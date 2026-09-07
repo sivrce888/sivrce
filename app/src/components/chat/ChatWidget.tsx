@@ -252,7 +252,7 @@ function MessageThread({ roomId }: { roomId: string }) {
         <button
           type="submit"
           disabled={!input.trim() || sending}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition-all hover:bg-sv-blue-deep disabled:opacity-40"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition hover:bg-sv-blue-deep disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
         >
           {sending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -318,7 +318,7 @@ export default function ChatWidget() {
           else triggerOpen()
         }}
         aria-label={open ? "დახურვა" : "ჩატი"}
-        className="fixed bottom-6 right-6 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange active:scale-95"
+        className="fixed bottom-6 right-6 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95"
       >
         <AnimatePresence mode="wait">
           {open ? (

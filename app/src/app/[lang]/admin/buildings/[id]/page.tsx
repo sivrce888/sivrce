@@ -47,6 +47,7 @@ export default async function EditBuildingPage({
             <Link
               href={`/map?building=${building.slug}`}
               target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[13px] font-extrabold text-sv-ink/70 transition hover:border-sv-blue/40 hover:text-sv-blue"
             >
               <ExternalLink className="h-3.5 w-3.5" /> View on map
