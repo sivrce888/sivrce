@@ -7,7 +7,14 @@
 
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
-import { getChatMessages, isChatParticipant, markRead, sendMessage } from "@/lib/chat"
+import {
+  CHAT_MESSAGE_MAX,
+  getChatMessages,
+  getPeerLastReadAt,
+  isChatParticipant,
+  markRead,
+  sendMessage,
+} from "@/lib/chat"
 
 interface RouteParams {
   params: Promise<{ roomId: string }>
@@ -28,8 +35,11 @@ export async function GET(req: Request, { params }: RouteParams) {
   const cursor = searchParams.get("cursor") ?? undefined
 
   try {
-    const result = await getChatMessages(roomId, cursor)
-    return NextResponse.json(result)
+    const [result, peerReadAt] = await Promise.all([
+      getChatMessages(roomId, cursor),
+      cursor ? Promise.resolve(null) : getPeerLastReadAt(roomId, session.user.id),
+    ])
+    return NextResponse.json({ ...result, peerReadAt })
   } catch (error) {
     console.error("[api/chat/roomId] GET failed:", (error as Error).message)
     return NextResponse.json({ error: "server_error" }, { status: 500 })
@@ -54,19 +64,25 @@ export async function POST(req: Request, { params }: RouteParams) {
   if (!body.text || body.text.trim().length === 0) {
     return NextResponse.json({ error: "empty_message" }, { status: 400 })
   }
+  if (body.text.trim().length > CHAT_MESSAGE_MAX) {
+    return NextResponse.json({ error: "too_long" }, { status: 400 })
+  }
+  // ponytail: metadata carries only client hints (e.g. clientId) — cap it
+  const metadata =
+    body.metadata && JSON.stringify(body.metadata).length <= 1000 ? body.metadata : {}
 
   try {
-    const message = await sendMessage(
-      roomId,
-      session.user.id,
-      body.text.trim(),
-      body.kind ?? "text",
-      body.metadata ?? {},
-    )
+    const message = await sendMessage(roomId, session.user.id, body.text.trim(), body.kind ?? "text", metadata)
     return NextResponse.json({ message }, { status: 201 })
   } catch (error) {
     if ((error as Error).message === "not_participant") {
       return NextResponse.json({ error: "forbidden" }, { status: 403 })
+    }
+    if ((error as Error).message === "too_long") {
+      return NextResponse.json({ error: "too_long" }, { status: 400 })
+    }
+    if ((error as Error).message === "rate_limited") {
+      return NextResponse.json({ error: "rate_limited" }, { status: 429 })
     }
     console.error("[api/chat/roomId] POST failed:", (error as Error).message)
     return NextResponse.json({ error: "server_error" }, { status: 500 })

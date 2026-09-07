@@ -1,21 +1,25 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useSession } from 'next-auth/react'
 import MobileDock from '@/components/MobileDock'
+import ChatProvider from '@/components/chat/ChatProvider'
 
 const CompareTray = dynamic(() => import('@/components/compare/CompareTray'), { ssr: false })
+const ChatWidget = dynamic(() => import('@/components/chat/ChatWidget'), { ssr: false })
 
 /**
- * Client shell for app-wide trays.
- * ponytail: ChatWidget parked — Message CTA uses LeadForm. Re-enable when
- * realtime chat is a product decision (auth + owner reply loop), not a bubble.
+ * Client shell for app-wide trays. Chat ships only for signed-in users —
+ * guests keep the LeadForm conversion loop.
  */
 export default function ChatShell({ children }: { children: React.ReactNode }) {
+  const { status } = useSession()
   return (
-    <>
+    <ChatProvider>
       {children}
       <MobileDock />
       <CompareTray />
-    </>
+      {status === 'authenticated' && <ChatWidget />}
+    </ChatProvider>
   )
 }

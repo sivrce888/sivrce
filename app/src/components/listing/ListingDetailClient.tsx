@@ -26,6 +26,7 @@ import HScroll from '@/components/HScroll'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { LEAD_FORM_ID, LeadForm } from '@/components/lead/LeadForm'
+import { useChat } from '@/components/chat/ChatProvider'
 import { TourBooking } from '@/components/listing/TourBooking'
 import { SELLER_ROLE_LABEL } from '@/lib/profiles/roles'
 import RevealPhone from '@/components/listing/RevealPhone'
@@ -341,7 +342,13 @@ export default function ListingDetailClient({
   const ttCompare = useCompareStrings()
   const { t, lang } = useI18n()
   const { currency, setCurrency, rate: liveRate } = useCurrency()
-  // ponytail: same scroll+focus as StickyLeadBar — chat stays parked.
+  const { openChat } = useChat()
+  // Signed-in users get the live chat; guests fall back to the lead form.
+  const messageOwner = () => {
+    if (session?.user?.id) openChat(l.id)
+    else scrollToLead()
+  }
+  // ponytail: same scroll+focus as StickyLeadBar — kept for the guest flow.
   const scrollToLead = () => {
     const form = document.getElementById(LEAD_FORM_ID)
     if (!form) return
@@ -1281,7 +1288,7 @@ export default function ListingDetailClient({
               <div className="mt-3 grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
-                  onClick={scrollToLead}
+                  onClick={messageOwner}
                   className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
@@ -1460,7 +1467,7 @@ export default function ListingDetailClient({
           />
           <button
             type="button"
-            onClick={scrollToLead}
+            onClick={messageOwner}
             aria-label={t('detail.message')}
             className="flex h-12 min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-2 text-[13px] font-extrabold text-sv-blue transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
           >

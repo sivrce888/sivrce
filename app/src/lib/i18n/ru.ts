@@ -713,4 +713,24 @@ export const ru: Dict = {
   'search.mapEmptyArea': 'В этой области ничего нет',
   'add.contactHint': 'Укажите имя и мобильный номер, по которому с вами можно связаться.',
 
+  // ——— Chat ———
+  'chat.open': 'Чат',
+  'chat.close': 'Закрыть',
+  'chat.back': 'Назад',
+  'chat.title': 'Сообщения',
+  'chat.empty': 'Пока нет чатов — найдите недвижимость и напишите владельцу.',
+  'chat.emptyThread': 'Здесь пока пусто. Отправьте первое сообщение.',
+  'chat.placeholder': 'Сообщение…',
+  'chat.send': 'Отправить',
+  'chat.retry': 'Повторить отправку',
+  'chat.typing': 'печатает…',
+  'chat.loadOlder': 'Ранние сообщения',
+  'chat.today': 'Сегодня',
+  'chat.yesterday': 'Вчера',
+  'chat.timeNow': 'сейчас',
+  'chat.timeMin': 'м',
+  'chat.timeHour': 'ч',
+  'chat.timeDay': 'д',
+  'chat.log': 'Список сообщений',
+
 }

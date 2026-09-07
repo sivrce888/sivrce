@@ -1,11 +1,16 @@
 /**
  * SSE endpoint for real-time chat messages.
- * ponytail: Simple polling-based SSE — polls DB every 2s for new messages.
+ * ponytail: polling-based SSE — 2 s indexed delta reads + peer read/typing state.
  * Upgrade path: Redis pub/sub when message volume warrants it.
  */
 
 import { auth } from "@/auth"
-import { getChatMessages, unreadCount } from "@/lib/chat"
+import {
+  getChatMessages,
+  getChatMessagesAfter,
+  getPeerLastReadAt,
+  isPeerTyping,
+} from "@/lib/chat"
 
 interface RouteParams {
   params: Promise<{ roomId: string }>
@@ -21,11 +26,13 @@ export async function GET(req: Request, { params }: RouteParams) {
   }
 
   const { roomId } = await params
+  const me = session.user.id
 
   // Rooms are private — participants only, membership is set at room creation.
   const { db } = await import("@/lib/db")
   const participant = await db.chatParticipant.findUnique({
-    where: { roomId_userId: { roomId, userId: session.user.id } },
+    where: { roomId_userId: { roomId, userId: me } },
+    select: { userId: true },
   })
   if (!participant) {
     return new Response("forbidden", { status: 403 })
@@ -35,10 +42,14 @@ export async function GET(req: Request, { params }: RouteParams) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      let lastMessageId: string | null = null
+      let cursorId: string | null = null
+      let cursorAt: Date | null = null
+      let peerReadAt: string | null = null
+      let peerTyping = false
       let heartbeat: ReturnType<typeof setInterval> | null = null
       let poll: ReturnType<typeof setInterval> | null = null
       let aborted = false
+      let polling = false
 
       const send = (event: string, data: unknown) => {
         if (aborted) return
@@ -49,44 +60,57 @@ export async function GET(req: Request, { params }: RouteParams) {
         }
       }
 
+      const pollTick = async () => {
+        if (polling) return
+        polling = true
+        try {
+          if (cursorAt) {
+            const fresh = await getChatMessagesAfter(roomId, cursorId!, cursorAt)
+            if (fresh.length > 0) {
+              const last = fresh[fresh.length - 1]!
+              cursorId = last.id
+              cursorAt = last.createdAt
+              send("message", { messages: fresh })
+            }
+          }
+
+          const read = await getPeerLastReadAt(roomId, me)
+          if (read !== peerReadAt) {
+            peerReadAt = read
+            send("read", { readAt: read })
+          }
+
+          const typing = await isPeerTyping(roomId, me)
+          if (typing !== peerTyping) {
+            peerTyping = typing
+            send("typing", { typing })
+          }
+        } catch (error) {
+          console.error("[api/chat/stream] poll error:", (error as Error).message)
+          // ponytail: keep polling even on transient errors
+        } finally {
+          polling = false
+        }
+      }
+
       heartbeat = setInterval(() => {
         send("heartbeat", { ts: Date.now() })
       }, HEARTBEAT_INTERVAL_MS)
 
-      poll = setInterval(async () => {
-        try {
-          // Fetch latest messages since last known ID
-          const { messages } = await getChatMessages(roomId)
-          const newMessages = lastMessageId
-            ? messages.filter((m) => {
-                // Simple ID-based comparison since CUIDs are time-sortable
-                return m.id > (lastMessageId ?? "")
-              })
-            : messages
+      poll = setInterval(pollTick, POLL_INTERVAL_MS)
 
-          if (newMessages.length > 0) {
-            lastMessageId = newMessages[newMessages.length - 1]!.id
-            send("message", { messages: newMessages })
-          }
-
-          // Also send updated unread count
-          const count = await unreadCount(roomId, session.user!.id)
-          send("unread", { roomId, count })
-        } catch (error) {
-          console.error("[api/chat/stream] poll error:", (error as Error).message)
-          // ponytail: keep polling even on transient errors
-        }
-      }, POLL_INTERVAL_MS)
-
-      // Initial seed
+      // Initial seed — client merges by id, so overlap with its own fetch is safe
       try {
         const { messages } = await getChatMessages(roomId)
-        if (messages.length > 0) {
-          lastMessageId = messages[messages.length - 1]!.id
+        const last = messages[messages.length - 1]
+        if (last) {
+          cursorId = last.id
+          cursorAt = last.createdAt
         }
-        send("seed", { messages })
+        peerReadAt = await getPeerLastReadAt(roomId, me)
+        send("seed", { messages, readAt: peerReadAt })
       } catch {
-        send("seed", { messages: [] })
+        send("seed", { messages: [], readAt: null })
       }
 
       // Cleanup on abort

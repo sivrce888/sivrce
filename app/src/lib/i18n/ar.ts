@@ -713,4 +713,24 @@ export const ar: Dict = {
   'search.mapEmptyArea': 'لا نتائج في هذه المنطقة',
   'add.contactHint': 'أخبرنا باسمك ورقم الجوال الذي يمكن التواصل عبره.',
 
+  // ——— Chat ———
+  'chat.open': 'دردشة',
+  'chat.close': 'إغلاق',
+  'chat.back': 'رجوع',
+  'chat.title': 'الرسائل',
+  'chat.empty': 'لا توجد محادثات بعد — ابحث عن عقار واكتب إلى المالك.',
+  'chat.emptyThread': 'لا شيء هنا بعد. أرسل الرسالة الأولى.',
+  'chat.placeholder': 'رسالة…',
+  'chat.send': 'إرسال',
+  'chat.retry': 'إعادة الإرسال',
+  'chat.typing': 'يكتب…',
+  'chat.loadOlder': 'رسائل أقدم',
+  'chat.today': 'اليوم',
+  'chat.yesterday': 'أمس',
+  'chat.timeNow': 'الآن',
+  'chat.timeMin': 'د',
+  'chat.timeHour': 'س',
+  'chat.timeDay': 'ي',
+  'chat.log': 'قائمة الرسائل',
+
 }

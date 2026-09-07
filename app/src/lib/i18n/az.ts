@@ -714,4 +714,24 @@ export const az: Dict = {
   'search.mapEmptyArea': 'Bu ərazidə elan yoxdur',
   'add.contactHint': 'Adınızı və alıcıların sizə çata biləcəyi mobil nömrəni qeyd edin.',
 
+  // ——— Chat ———
+  'chat.open': 'Söhbət',
+  'chat.close': 'Bağla',
+  'chat.back': 'Geri',
+  'chat.title': 'Mesajlar',
+  'chat.empty': 'Hələ söhbət yoxdur — bir elan tapın və sahibinə yazın.',
+  'chat.emptyThread': 'Burada hələ heç nə yoxdur. İlk mesajı göndərin.',
+  'chat.placeholder': 'Mesaj…',
+  'chat.send': 'Göndər',
+  'chat.retry': 'Yenidən göndər',
+  'chat.typing': 'yazır…',
+  'chat.loadOlder': 'Daha köhnə mesajlar',
+  'chat.today': 'Bu gün',
+  'chat.yesterday': 'Dünən',
+  'chat.timeNow': 'indi',
+  'chat.timeMin': 'dəq',
+  'chat.timeHour': 'sa',
+  'chat.timeDay': 'gün',
+  'chat.log': 'Mesaj siyahısı',
+
 }

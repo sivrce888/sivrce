@@ -713,4 +713,24 @@ export const en: Dict = {
   'search.mapEmptyArea': 'No listings in this area',
   'add.contactHint': 'Tell us your name and the mobile number buyers can use to reach you.',
 
+  // ——— Chat ———
+  'chat.open': 'Chat',
+  'chat.close': 'Close',
+  'chat.back': 'Back',
+  'chat.title': 'Messages',
+  'chat.empty': 'No chats yet — find a property and message the owner.',
+  'chat.emptyThread': 'Nothing here yet. Send the first message.',
+  'chat.placeholder': 'Message…',
+  'chat.send': 'Send',
+  'chat.retry': 'Resend',
+  'chat.typing': 'typing…',
+  'chat.loadOlder': 'Earlier messages',
+  'chat.today': 'Today',
+  'chat.yesterday': 'Yesterday',
+  'chat.timeNow': 'now',
+  'chat.timeMin': 'm',
+  'chat.timeHour': 'h',
+  'chat.timeDay': 'd',
+  'chat.log': 'Message list',
+
 }

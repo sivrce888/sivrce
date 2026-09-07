@@ -722,6 +722,26 @@ export const ka = {
   'search.mapClearArea': 'ყველა',
   'search.mapEmptyArea': 'ამ არეალში შედეგი არ არის',
 
+  // ——— Chat ———
+  'chat.open': 'ჩატი',
+  'chat.close': 'დახურვა',
+  'chat.back': 'უკან',
+  'chat.title': 'შეტყობინებები',
+  'chat.empty': 'ჯერ ჩატები არ გაქვთ — იპოვეთ უძრავი ქონება და დაწერეთ მფლობელს.',
+  'chat.emptyThread': 'აქ ჯერ არაფერია. გაუგზავნეთ პირველი მესიჯი.',
+  'chat.placeholder': 'შეტყობინება…',
+  'chat.send': 'გაგზავნა',
+  'chat.retry': 'ხელახლა გაგზავნა',
+  'chat.typing': 'ბეჭდავს…',
+  'chat.loadOlder': 'წინა შეტყობინებები',
+  'chat.today': 'დღეს',
+  'chat.yesterday': 'გუშინ',
+  'chat.timeNow': 'ახლა',
+  'chat.timeMin': 'წთ',
+  'chat.timeHour': 'სთ',
+  'chat.timeDay': 'დღე',
+  'chat.log': 'შეტყობინებების სია',
+
 } as const
 
 export type DictKey = keyof typeof ka

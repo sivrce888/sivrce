@@ -6,7 +6,7 @@
 
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
-import { getUserChats, getOrCreateChatRoom } from "@/lib/chat"
+import { getChatUnread, getOrCreateChatRoom, getUserChats } from "@/lib/chat"
 
 export async function GET() {
   const session = await auth()
@@ -15,8 +15,11 @@ export async function GET() {
   }
 
   try {
-    const rooms = await getUserChats(session.user.id)
-    return NextResponse.json({ rooms })
+    const [rooms, unread] = await Promise.all([
+      getUserChats(session.user.id),
+      getChatUnread(session.user.id),
+    ])
+    return NextResponse.json({ rooms, unread })
   } catch (error) {
     console.error("[api/chat] GET failed:", (error as Error).message)
     return NextResponse.json({ error: "server_error" }, { status: 500 })

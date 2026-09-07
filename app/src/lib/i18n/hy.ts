@@ -714,4 +714,24 @@ export const hy: Dict = {
   'search.mapEmptyArea': 'Այս տարածքում հայտարարություններ չկան',
   'add.contactHint': 'Նշեք ձեր անունը և բջջային համարը, որով գնորդները կարող են կապվել ձեզ հետ։',
 
+  // ——— Chat ———
+  'chat.open': 'Չատ',
+  'chat.close': 'Փակել',
+  'chat.back': 'Հետ',
+  'chat.title': 'Հաղորդագրություններ',
+  'chat.empty': 'Դեռ չատեր չկան — գտեք անշարժ գույք և գրեք սեփականատիրոջը։',
+  'chat.emptyThread': 'Այստեղ դեռ ոչինչ չկա։ Ուղարկեք առաջին հաղորդագրությունը։',
+  'chat.placeholder': 'Հաղորդագրություն…',
+  'chat.send': 'Ուղարկել',
+  'chat.retry': 'Կրկին ուղարկել',
+  'chat.typing': 'գրում է…',
+  'chat.loadOlder': 'Ավելի հին հաղորդագրություններ',
+  'chat.today': 'Այսօր',
+  'chat.yesterday': 'Երեկ',
+  'chat.timeNow': 'հիմա',
+  'chat.timeMin': 'ր',
+  'chat.timeHour': 'ժ',
+  'chat.timeDay': 'օր',
+  'chat.log': 'Հաղորդագրությունների ցանկ',
+
 }

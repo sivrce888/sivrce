@@ -27,6 +27,10 @@ model User {
   passwordHash    String?   @map("password_hash") @db.VarChar(200)
   role            UserRole  @default(buyer)
   trustScore      Int       @default(70) @map("trust_score")
+  /// Last authenticated request (throttled 5-min heartbeat) — powers "active users" stats.
+  lastSeenAt      DateTime? @map("last_seen_at") @db.Timestamptz(6)
+  /// First-touch acquisition source: utm_source / ref / referrer host / "direct".
+  signupSource    String?   @map("signup_source") @db.VarChar(80)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -67,6 +71,7 @@ model User {
   embedding                 UserEmbedding?
   propertyTours             PropertyTour[]
 
+  @@index([lastSeenAt])
   @@map("users")
 }
 
@@ -2257,10 +2262,25 @@ model ChatRoom {
   listing      Listing?          @relation(fields: [listingId], references: [id], onDelete: SetNull)
   participants ChatParticipant[]
   messages     ChatMessage[]
+  typing       ChatTyping[]
 
   @@index([listingId, status], map: "chat_rooms_listing_status_idx")
   @@index([status, updatedAt(sort: Desc)], map: "chat_rooms_status_updated_idx")
   @@map("chat_rooms")
+}
+
+/// Ephemeral typing heartbeats — upserted every ~3 s while the user types,
+/// reads as "typing" for 5 s after the last touch. No history kept.
+model ChatTyping {
+  roomId    String   @map("room_id") @db.VarChar(120)
+  userId    String   @map("user_id") @db.VarChar(120)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId], map: "chat_typing_pkey")
+  @@index([updatedAt], map: "chat_typing_updated_idx")
+  @@map("chat_typing")
 }
 
 model ChatParticipant {

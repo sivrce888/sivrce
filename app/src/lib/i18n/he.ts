@@ -713,4 +713,24 @@ export const he: Dict = {
   'search.mapEmptyArea': 'אין מודעות באזור זה',
   'add.contactHint': 'ספרו לנו את שמכם ומספר הנייד שבו קונים יוכלו להשיג אתכם.',
 
+  // ——— Chat ———
+  'chat.open': 'צ׳אט',
+  'chat.close': 'סגירה',
+  'chat.back': 'חזרה',
+  'chat.title': 'הודעות',
+  'chat.empty': 'אין עדיין צ׳אטים — מצאו נכס וכתבו לבעלים.',
+  'chat.emptyThread': 'אין כאן עדיין כלום. שלחו את ההודעה הראשונה.',
+  'chat.placeholder': 'הודעה…',
+  'chat.send': 'שליחה',
+  'chat.retry': 'שליחה מחדש',
+  'chat.typing': 'מקליד…',
+  'chat.loadOlder': 'הודעות קודמות',
+  'chat.today': 'היום',
+  'chat.yesterday': 'אתמול',
+  'chat.timeNow': 'עכשיו',
+  'chat.timeMin': 'דק׳',
+  'chat.timeHour': 'שע׳',
+  'chat.timeDay': 'יום',
+  'chat.log': 'רשימת הודעות',
+
 }

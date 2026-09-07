@@ -714,4 +714,24 @@ export const uk: Dict = {
   'search.mapEmptyArea': 'У цій області немає оголошень',
   'add.contactHint': 'Вкажіть ім’я та мобільний номер, за яким покупці зможуть зв’язатися з вами.',
 
+  // ——— Chat ———
+  'chat.open': 'Чат',
+  'chat.close': 'Закрити',
+  'chat.back': 'Назад',
+  'chat.title': 'Повідомлення',
+  'chat.empty': 'Ще немає чатів — знайдіть нерухомість і напишіть власнику.',
+  'chat.emptyThread': 'Тут поки порожньо. Надішліть перше повідомлення.',
+  'chat.placeholder': 'Повідомлення…',
+  'chat.send': 'Надіслати',
+  'chat.retry': 'Надіслати ще раз',
+  'chat.typing': 'пише…',
+  'chat.loadOlder': 'Попередні повідомлення',
+  'chat.today': 'Сьогодні',
+  'chat.yesterday': 'Вчора',
+  'chat.timeNow': 'зараз',
+  'chat.timeMin': 'хв',
+  'chat.timeHour': 'год',
+  'chat.timeDay': 'дн',
+  'chat.log': 'Список повідомлень',
+
 }

@@ -713,4 +713,24 @@ export const tr: Dict = {
   'search.mapEmptyArea': 'Bu alanda ilan yok',
   'add.contactHint': 'Adınızı ve alıcıların size ulaşabileceği cep numarasını belirtin.',
 
+  // ——— Chat ———
+  'chat.open': 'Sohbet',
+  'chat.close': 'Kapat',
+  'chat.back': 'Geri',
+  'chat.title': 'Mesajlar',
+  'chat.empty': 'Henüz sohbet yok — bir ilan bulun ve sahibine yazın.',
+  'chat.emptyThread': 'Burada henüz bir şey yok. İlk mesajı gönderin.',
+  'chat.placeholder': 'Mesaj…',
+  'chat.send': 'Gönder',
+  'chat.retry': 'Yeniden gönder',
+  'chat.typing': 'yazıyor…',
+  'chat.loadOlder': 'Daha eski mesajlar',
+  'chat.today': 'Bugün',
+  'chat.yesterday': 'Dün',
+  'chat.timeNow': 'şimdi',
+  'chat.timeMin': 'dk',
+  'chat.timeHour': 'sa',
+  'chat.timeDay': 'g',
+  'chat.log': 'Mesaj listesi',
+
 }
