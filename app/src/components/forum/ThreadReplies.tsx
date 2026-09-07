@@ -45,7 +45,8 @@ function ReplyCard({
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> ვერიფიცირებული
           </span>
         )}
-        <span className="text-sv-ink/35">
+        {/* suppressHydrationWarning: Node SSR vs browser ICU disagree on ka month names */}
+        <span className="text-sv-ink/35" suppressHydrationWarning>
           {new Date(reply.createdAt).toLocaleDateString('ka-GE', {
             day: 'numeric',
             month: 'short',

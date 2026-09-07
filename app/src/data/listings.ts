@@ -1191,11 +1191,12 @@ export function filterListings(f: ListingFilters): Listing[] {
 /* ————— Formatting ————— */
 
 export function formatUSD(n: number): string {
-  return `$${n.toLocaleString('en-US')}`
+  // whole dollars — fractional prices ($868.519/mo) never belong in a listing UI
+  return `$${Math.round(n).toLocaleString('en-US')}`
 }
 
 export function formatGEL(n: number): string {
-  return `${n.toLocaleString('en-US')} ₾`
+  return `${Math.round(n).toLocaleString('en-US')} ₾`
 }
 
 /** Card price — appends /თვე for monthly rent, /დღე for daily rent */

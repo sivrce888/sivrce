@@ -468,14 +468,17 @@ export default async function BuildingPage({ params }: PageProps) {
 
         <section className="border-b border-sv-ink/[0.06] bg-sv-cloud">
           <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
-            <StatsRow
-              items={[
-                { label: t.sale, value: String(counts.sale) },
-                { label: t.rent, value: String(counts.rent) },
-                { label: t.daily, value: String(counts.daily) },
-                { label: t.pledge, value: String(counts.pledge) },
-              ]}
-            />
+            {/* honest zero: hide the deal-type stats when none exist — dead "0 0 0 0" reads broken */}
+            {counts.sale + counts.rent + counts.daily + counts.pledge > 0 && (
+              <StatsRow
+                items={[
+                  { label: t.sale, value: String(counts.sale) },
+                  { label: t.rent, value: String(counts.rent) },
+                  { label: t.daily, value: String(counts.daily) },
+                  { label: t.pledge, value: String(counts.pledge) },
+                ].filter((s) => Number(s.value) > 0)}
+              />
+            )}
 
             {score && buildingAvgPerM2 != null && (
               <div className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card sm:p-6">

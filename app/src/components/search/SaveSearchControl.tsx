@@ -131,7 +131,8 @@ export default function SaveSearchControl() {
                       className="min-h-[44px] min-w-0 flex-1 rounded-module px-3 py-1.5 text-left transition-colors hover:bg-sv-ink/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30"
                     >
                       <span className="block truncate text-[13px] font-extrabold text-sv-ink">{s.label}</span>
-                      <span className="block text-[11px] font-semibold text-sv-ink/40">
+                      {/* suppressHydrationWarning: SSR vs browser ICU date drift */}
+                      <span suppressHydrationWarning className="block text-[11px] font-semibold text-sv-ink/40">
                         {new Date(s.createdAt).toLocaleDateString(lang)}
                       </span>
                     </button>

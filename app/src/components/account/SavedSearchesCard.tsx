@@ -12,10 +12,12 @@ import {
 } from '@/lib/saved-searches'
 import SectionHeader from './SectionHeader'
 import { useAccountStrings } from './i18n'
+import { useI18n } from '@/lib/i18n/context'
 
 export default function SavedSearchesCard() {
   const { searches, remove } = useSavedSearches()
   const tt = useAccountStrings()
+  const { lang } = useI18n()
   // null = guest/error → localStorage list; array = server-backed (alerts live).
   const [server, setServer] = useState<ServerSavedSearch[] | null>(null)
 
@@ -66,8 +68,9 @@ export default function SavedSearchesCard() {
                   className="flex min-h-[44px] min-w-0 flex-1 flex-col justify-center rounded-module px-2 transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30"
                 >
                   <span className="truncate text-[14px] font-bold text-sv-ink hover:text-sv-blue">{s.name}</span>
-                  <span className="text-[11px] font-semibold text-sv-ink/40">
-                    {new Date(s.createdAt).toLocaleDateString()}
+                  {/* suppressHydrationWarning: SSR vs browser ICU date drift */}
+                  <span suppressHydrationWarning className="text-[11px] font-semibold text-sv-ink/40">
+                    {new Date(s.createdAt).toLocaleDateString(lang)}
                   </span>
                 </LocalizedLink>
                 <button

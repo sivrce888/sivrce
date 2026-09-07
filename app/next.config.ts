@@ -28,7 +28,7 @@ const csp = [
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
   `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://cdn.sivrce.ge https://images.sivrce.ge https://i.ytimg.com${capacitorOrigins}${mapOrigins}${mediaOrigins}${analyticsOrigins}`,
+  `img-src 'self' data: blob: https://cdn.sivrce.ge https://images.sivrce.ge https://i.ytimg.com https://lh3.googleusercontent.com${capacitorOrigins}${mapOrigins}${mediaOrigins}${analyticsOrigins}`,
   "font-src 'self' data:",
   `connect-src 'self'${capacitorOrigins} https://sivrce.ge https://*.sivrce.ge${mapOrigins}${analyticsOrigins}${featureApiOrigins}`,
   "worker-src 'self' blob:",

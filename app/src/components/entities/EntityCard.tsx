@@ -63,9 +63,9 @@ export function EntityCard({
     <Link
       href={href}
       aria-label={`${pick(name, lang)} — ${d.viewProfile}`}
-      className="group block rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+      className="group flex flex-col rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
     >
-      <div className="flex items-center gap-4">
+      <div className="mb-4 flex items-center gap-4">
         {kind === 'developer' ? (
           <DeveloperLogo
             slug={slug}
@@ -105,20 +105,25 @@ export function EntityCard({
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-sv-ink/[0.06] pt-4">
-        <span className="text-[13px] font-bold text-sv-ink/55">
-          {listingsCount} {d.listingsShort}
-        </span>
-        {aggregate ? (
-          <span className="flex items-center gap-1 text-[14px] font-black text-sv-ink">
-            <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
-            {aggregate.average.toFixed(1)}
-            <span className="text-[12px] font-bold text-sv-ink/50">
-              ({aggregate.count} {d.reviewsCount})
+      {/* honest zero: no dead "0 listings" row — footer only when there's something to say */}
+      {listingsCount > 0 || aggregate ? (
+        <div className="mt-auto flex items-center justify-between border-t border-sv-ink/[0.06] pt-4">
+          {listingsCount > 0 ? (
+            <span className="text-[13px] font-bold text-sv-ink/55">
+              {listingsCount} {d.listingsShort}
             </span>
-          </span>
-        ) : null}
-      </div>
+          ) : null}
+          {aggregate ? (
+            <span className={`flex items-center gap-1 text-[14px] font-black text-sv-ink ${listingsCount === 0 ? 'ml-auto' : ''}`}>
+              <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
+              {aggregate.average.toFixed(1)}
+              <span className="text-[12px] font-bold text-sv-ink/50">
+                ({aggregate.count} {d.reviewsCount})
+              </span>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </Link>
   )
 }

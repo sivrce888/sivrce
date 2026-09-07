@@ -165,7 +165,7 @@ export default function MyReviews({ signedIn }: { signedIn: boolean }) {
                       )
                     ) : null}
                     <Stars rating={r.rating} />
-                    <time className="ml-auto text-[12px] font-semibold text-sv-ink/40" dateTime={r.createdAt}>
+                    <time suppressHydrationWarning className="ml-auto text-[12px] font-semibold text-sv-ink/40" dateTime={r.createdAt}>
                       {new Date(r.createdAt).toLocaleDateString(lang)}
                     </time>
                   </div>
