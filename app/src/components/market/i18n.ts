@@ -45,7 +45,7 @@ const ka: Record<MarketKey, string> = {
   newListings: 'ახალი ამ თვეს',
   vsPrevMonth: 'წინა თვესთან შედარებით',
   districtsTitle: 'ფასები უბნების მიხედვით',
-  districtsSub: 'დალაგებულია განცხადებების რაოდენობით — აირჩიე უბან და ნახე ლაივ განცხადებები',
+  districtsSub: 'დალაგებულია განცხადებების რაოდენობით — აირჩიე უბან და ნახე აქტიური განცხადებები',
   listingsShort: 'განცხადება',
   methodologyTitle: 'როგორ ვითვლით',
   methodology:

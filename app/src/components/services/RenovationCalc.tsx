@@ -13,6 +13,12 @@ import { useI18n } from '@/lib/i18n/context'
 
 export function RenovationCalc() {
   const { lang } = useI18n()
+  const t =
+    lang === 'ka'
+      ? { area: 'ფართი', unit: 'მ²', pack: 'პაკეტი', perUnit: '/ მ²', city: 'ქალაქი', orient: 'ორიენტირი', note: 'საბაზრო ორიენტირი 2026, მასალებისა და ბრიგადის გარეშე ცალკე. ზუსტი შეთავაზება — კომპანიისგან ქვემოთ.' }
+      : lang === 'ru'
+        ? { area: 'Площадь', unit: 'м²', pack: 'Пакет', perUnit: '/ м²', city: 'Город', orient: 'Ориентир', note: 'Рыночный ориентир 2026, материалы и бригада — отдельно. Точное предложение — от компаний ниже.' }
+        : { area: 'Area', unit: 'm²', pack: 'Package', perUnit: '/ m²', city: 'City', orient: 'Indicative', note: 'Market guide for 2026, excluding materials and crew. Exact quote — from the companies below.' }
   const [m2, setM2] = useState(65)
   const [pack, setPack] = useState<RenoPackageId>('white')
   const [city, setCity] = useState('თბილისი')
@@ -26,9 +32,9 @@ export function RenovationCalc() {
           <div>
             <div className="mb-2 flex items-center justify-between">
               <label htmlFor="reno-m2" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
-                ფართი
+                {t.area}
               </label>
-              <span className="text-[14px] font-black text-sv-ink">{m2} მ²</span>
+              <span className="text-[14px] font-black text-sv-ink">{m2} {t.unit}</span>
             </div>
             <input
               id="reno-m2"
@@ -44,7 +50,7 @@ export function RenovationCalc() {
 
           <div>
             <p className="mb-3 text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
-              პაკეტი
+              {t.pack}
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {RENO_PACKAGES.map((p) => {
@@ -65,7 +71,7 @@ export function RenovationCalc() {
                       {pickLocText(p.name, lang)}
                     </span>
                     <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/50">
-                      {formatGel(p.gelPerM2)} / მ² · {pickLocText(p.hint, lang)}
+                      {formatGel(p.gelPerM2)} {t.perUnit} · {pickLocText(p.hint, lang)}
                     </span>
                   </button>
                 )
@@ -75,7 +81,7 @@ export function RenovationCalc() {
 
           <div>
             <label htmlFor="reno-city" className="mb-2 block text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
-              ქალაქი
+              {t.city}
             </label>
             <select
               id="reno-city"
@@ -94,16 +100,16 @@ export function RenovationCalc() {
 
         <div className="flex flex-col justify-center rounded-module bg-sv-navy p-7 text-white">
           <p className="text-[12px] font-black uppercase tracking-[0.16em] text-sv-blue-light">
-            ორიენტირი
+            {t.orient}
           </p>
           <p className="mt-3 text-[36px] font-black tracking-[-0.04em] md:text-[44px]">
             {formatGel(total)}
           </p>
           <p className="mt-2 text-[14px] font-semibold text-white/60">
-            {m2} მ² · {formatGel(pkg.gelPerM2)} / მ² · {city}
+            {m2} {t.unit} · {formatGel(pkg.gelPerM2)} {t.perUnit} · {city}
           </p>
           <p className="mt-6 text-[12px] font-medium leading-relaxed text-white/45">
-            საბაზრო ორიენტირი 2026, მასალებისა და ბრიგადის გარეშე ცალკე. ზუსტი შეთავაზება — კომპანიისგან ქვემოთ.
+            {t.note}
           </p>
         </div>
       </div>
