@@ -9,6 +9,7 @@ export interface SessionUser {
   email: string
   name: string | null
   role: UserRole
+  avatarStyle: number | null
 }
 
 /** Current signed-in user, or null. Never throws. */
@@ -16,7 +17,13 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const session = await auth()
   const u = session?.user
   if (!u?.id || !u.email) return null
-  return { id: u.id, email: u.email, name: u.name ?? null, role: u.role ?? "buyer" }
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.name ?? null,
+    role: u.role ?? "buyer",
+    avatarStyle: u.avatarStyle ?? null,
+  }
 }
 
 /** Signed-in user or redirect to /auth/signin. */

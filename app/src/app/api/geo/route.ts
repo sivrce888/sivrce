@@ -14,6 +14,7 @@ export const preferredRegion = 'fra1'
 type GeoBody = {
   slug: string
   ka: string
+  en: string
   lat: number
   lng: number
   source: 'ip'
@@ -73,6 +74,7 @@ export async function GET(req: Request) {
     ok: true,
     slug: city.slug,
     ka: city.ka,
+    en: city.en,
     lat: city.lat,
     lng: city.lng,
     source: 'ip',

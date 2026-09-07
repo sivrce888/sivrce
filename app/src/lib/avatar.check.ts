@@ -5,7 +5,7 @@
 import assert from "node:assert/strict"
 
 import { BRAND } from "./brand"
-import { avatarInitials, avatarVisual } from "./avatar"
+import { avatarInitials, avatarVisual, GRADIENTS, isValidAvatarStyle } from "./avatar"
 
 const BRAND_HEX = new Set(
   Object.values(BRAND.colors).map((v) => v.toLowerCase()),
@@ -34,6 +34,27 @@ const combos = new Set(
     }),
 )
 assert.ok(combos.size >= 10, `too few distinct combos: ${combos.size}`)
+
+// Chosen style: deterministic, on-brand, distinct per index; invalid falls back to auto
+assert.equal(GRADIENTS.length, 10)
+for (let i = 0; i < GRADIENTS.length; i++) {
+  const v = avatarVisual("ნიკა გელაშვილი", i)
+  assert.deepEqual(avatarVisual("სხვა სახელი", i), v, `style ${i} not deterministic`)
+  assert.equal(v.from, GRADIENTS[i][0])
+  assert.equal(v.to, GRADIENTS[i][1])
+  assert.ok(v.angle >= 90 && v.angle <= 180, `style ${i} angle out of family: ${v.angle}`)
+}
+assert.ok(isValidAvatarStyle(0) && isValidAvatarStyle(9))
+assert.ok(!isValidAvatarStyle(10) && !isValidAvatarStyle(-1) && !isValidAvatarStyle(1.5))
+assert.ok(!isValidAvatarStyle(null) && !isValidAvatarStyle(undefined))
+const autoV = avatarVisual("ნიკა გელაშვილი")
+assert.ok(
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].some((i) => {
+    const v = avatarVisual("ნიკა გელაშვილი", i)
+    return v.from !== autoV.from || v.to !== autoV.to || v.angle !== autoV.angle
+  }),
+  "pinned styles never diverge from auto",
+)
 
 // Initials: up to 2 leading letters, uppercase (Georian → Mtavruli all-caps), "S" fallback
 assert.equal(avatarInitials("ნიკა გელაშვილი"), "ᲜᲒ")

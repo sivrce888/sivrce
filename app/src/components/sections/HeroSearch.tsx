@@ -429,7 +429,7 @@ export default function HeroSearch() {
             type="button"
             onClick={() => { setMenu(null); setLocOpen(true) }}
             aria-label={t('loc.title')}
-            className={`${fieldBtn} lg:w-[168px] lg:max-w-[168px] lg:shrink-0`}
+            className={`${fieldBtn} lg:w-[216px] lg:max-w-[216px] lg:shrink-0`}
           >
             <MapPin className={`h-4 w-4 shrink-0 ${loc.city ? 'text-sv-blue' : 'text-sv-ink/35 dark:text-white/40'}`} />
             <span className="min-w-0 flex-1">

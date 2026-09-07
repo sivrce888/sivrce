@@ -42,11 +42,11 @@ async function main() {
     const y = (finishMaxYear(r.readyBy as string) as number | null) ?? year
     const yearStale = (finishMaxYear(r.readyBy as string) ?? 9999) < year
     const why = !yearStale && (r.features ?? []).includes("status:ready") ? " (korteri: ready)" : ""
-    const line = `${r.name} | ${r.readyBy || "—"}${why} → გადაცემულია (${y})`
+    const line = `${r.name} | ${r.readyBy || "—"}${why} → ჩაბარებული (${y})`
     if (apply) {
       await db.projectDirectory.update({
         where: { id: r.id },
-        data: { status: "completed", readyBy: `გადაცემულია (${y})` },
+        data: { status: "completed", readyBy: `ჩაბარებული (${y})` },
       })
       console.log(`✓ ${line}`)
     } else {

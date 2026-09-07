@@ -156,6 +156,8 @@ export function canonicalizeDistrict(raw: string | null | undefined, city?: stri
   let s = raw.trim()
   if (!s) return ''
   s = s.replace(CITY_SUFFIX, '').trim()
+  // Placeholder dashes ('—' rows from directory imports) carry no district.
+  if (/^[—–-]+$/.test(s)) return ''
 
   const key = normKey(s)
   if (ALIAS[key]) return ALIAS[key]

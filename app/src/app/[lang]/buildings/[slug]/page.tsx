@@ -65,26 +65,117 @@ import {
   type PoiCategory,
 } from '@/lib/map/pois'
 import { getDistrictPeerPerM2 } from '@/lib/listings-db'
+import { dirLoc, type DirLoc } from '@/lib/directory-seo'
+import { DISTRICTS } from '@/lib/seo-pages'
 import { priceScaleOf } from '@/lib/price-scale'
 import { medianOf } from '@/lib/market-stats-core'
 import { buildingScoreOf, type BuildingFactorKey } from '@/lib/building-score'
 import { faqPageLd } from '@/lib/directory-seo'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
-const FACTOR_LABEL: Record<BuildingFactorKey, string> = {
-  value: 'ღირებულება',
-  liquidity: 'ლიკვიდურობა',
-  trust: 'ნდობა',
-  quality: 'ხარისხი',
-  location: 'მდებარეობა',
+const FACTOR_LABEL: Record<DirLoc, Record<BuildingFactorKey, string>> = {
+  ka: {
+    value: 'ღირებულება',
+    liquidity: 'ლიკვიდურობა',
+    trust: 'ნდობა',
+    quality: 'ხარისხი',
+    location: 'მდებარეობა',
+  },
+  en: {
+    value: 'Value',
+    liquidity: 'Liquidity',
+    trust: 'Trust',
+    quality: 'Quality',
+    location: 'Location',
+  },
+  ru: {
+    value: 'Ценность',
+    liquidity: 'Ликвидность',
+    trust: 'Доверие',
+    quality: 'Качество',
+    location: 'Локация',
+  },
+}
+
+const T: Record<DirLoc, {
+  ready: string; construction: string; buildings: string
+  sale: string; rent: string; daily: string; pledge: string
+  listingsIn: (n: number) => string; listings: (n: number) => string
+  intel: string; trustHigh: string; trustMedium: string; trustLow: string
+  avgPrice: string; medianPrice: string; vsDistrict: string
+  floorsAbbr: string; unitsAbbr: string; handover: string; perM2From: string
+  viewMap: string; project: string; about: string
+  spec: { code: string; district: string; ubani: string; floors: string; units: string; year: string; corpus: string }
+  around: string; location: string; photos: string; plan: string
+  listingsHere: string; noListings: string; related: string
+  faqTitle: string
+  band: Record<string, string>
+}> = {
+  ka: {
+    ready: 'ჩაბარებული', construction: 'მშენებარე', buildings: 'შენობები',
+    sale: 'იყიდება', rent: 'ქირავდება', daily: 'დღიურად', pledge: 'გირავდება',
+    listingsIn: (n) => `${n} განცხადება`, listings: (n) => `${n} განცხადება`,
+    intel: 'კორპუსის ინტელექტი', trustHigh: 'მაღალი ნდობა', trustMedium: 'საშუალო ნდობა', trustLow: 'დაბალი ნდობა',
+    avgPrice: 'საშუალო ფასი', medianPrice: 'მედიანური ფასი', vsDistrict: 'რაიონთან შედარებით',
+    floorsAbbr: 'სართ.', unitsAbbr: 'ბინა', handover: 'ჩაბარება', perM2From: '/მ²-დან',
+    viewMap: 'რუკაზე ნახვა', project: 'პროექტი', about: 'შენობის შესახებ',
+    spec: { code: 'კოდი', district: 'რაიონი', ubani: 'უბანი', floors: 'სართული', units: 'ბინა', year: 'წელი', corpus: 'კორპუსის №' },
+    around: 'ირგვლივ', location: 'მისამართი და მიმართულება', photos: 'ფოტოები', plan: 'გეგმა',
+    listingsHere: 'განცხადებები ამ შენობაში', noListings: 'ამ მისამართზე განცხადება არ გვაქვს.',
+    related: 'იგივე რაიონში', faqTitle: 'ხშირი კითხვები',
+    band: {},
+  },
+  en: {
+    ready: 'Completed', construction: 'Under construction', buildings: 'Buildings',
+    sale: 'for sale', rent: 'for rent', daily: 'daily', pledge: 'pledge',
+    listingsIn: (n) => `${n} listings`, listings: (n) => `${n} listings`,
+    intel: 'Building intelligence', trustHigh: 'High confidence', trustMedium: 'Medium confidence', trustLow: 'Low confidence',
+    avgPrice: 'Average price', medianPrice: 'Median price', vsDistrict: 'vs district',
+    floorsAbbr: 'fl.', unitsAbbr: 'units', handover: 'Handover', perM2From: '/m² from',
+    viewMap: 'View on map', project: 'Project', about: 'About the building',
+    spec: { code: 'Code', district: 'District', ubani: 'Neighborhood', floors: 'Floors', units: 'Units', year: 'Year', corpus: 'Building №' },
+    around: 'Around the building', location: 'Location & directions', photos: 'Photos', plan: 'Floor plan',
+    listingsHere: 'Listings in this building', noListings: 'No listings at this address yet.',
+    related: 'In the same district', faqTitle: 'Frequently asked questions',
+    band: {
+      low: 'Low price', mediumLow: 'Below average', average: 'Average price',
+      aboveAverage: 'Above average', high: 'High price',
+    },
+  },
+  ru: {
+    ready: 'Сдан', construction: 'Строится', buildings: 'Корпуса',
+    sale: 'продажа', rent: 'аренда', daily: 'посуточно', pledge: 'залог',
+    listingsIn: (n) => `${n} объявлений`, listings: (n) => `${n} объявлений`,
+    intel: 'Аналитика корпуса', trustHigh: 'Высокая точность', trustMedium: 'Средняя точность', trustLow: 'Низкая точность',
+    avgPrice: 'Средняя цена', medianPrice: 'Медианная цена', vsDistrict: 'по району',
+    floorsAbbr: 'эт.', unitsAbbr: 'кв.', handover: 'Сдача', perM2From: '/м² от',
+    viewMap: 'Открыть карту', project: 'Проект', about: 'О корпусе',
+    spec: { code: 'Код', district: 'Район', ubani: 'Квартал', floors: 'Этажи', units: 'Квартиры', year: 'Год', corpus: 'Корпус №' },
+    around: 'Рядом', location: 'Адрес и маршрут', photos: 'Фото', plan: 'Планировка',
+    listingsHere: 'Объявления в этом корпусе', noListings: 'По этому адресу объявлений пока нет.',
+    related: 'В том же районе', faqTitle: 'Частые вопросы',
+    band: {
+      low: 'Низкая цена', mediumLow: 'Ниже среднего', average: 'Средняя цена',
+      aboveAverage: 'Выше среднего', high: 'Высокая цена',
+    },
+  },
+}
+
+/** District/ubani names are KA data keys — locale name when one exists. */
+function geoName(ka: string, loc: DirLoc): string {
+  if (loc === 'ka') return ka
+  const d = DISTRICTS.find((x) => x.ka === ka)
+  if (d) return loc === 'ru' ? d.ru : d.en
+  return ka
 }
 
 export const revalidate = 3600
 export const maxDuration = 15
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ lang: string; slug: string }>
 }
 
 const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
@@ -122,31 +213,36 @@ async function resolveBuilding(slug: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const loc = dirLoc(isValidLang(rawLang) ? rawLang : 'ka')
+  const t = T[loc]
   const { building: b } = await resolveBuilding(slug)
   if (!b) return {}
   const live = (await getBuildingDealCountsBySlug())[slug]
   const counts = live ?? buildingDealCounts(slug)
-  const place = [b.ubani, b.district, b.city].filter(Boolean).join(', ')
-  const description = `${b.description.ka} ${place}. ${counts.sale} გაყიდვა, ${counts.rent} ქირა.`.slice(0, 160)
+  const bName = loc === 'ka' ? b.name : b.nameEn
+  const place = [b.ubani, b.district, b.city].filter((n): n is string => Boolean(n)).map((n) => geoName(n, loc)).join(', ')
+  const description = `${b.description[loc]} ${place}. ${counts.sale} ${t.sale}, ${counts.rent} ${t.rent}.`.slice(0, 160)
   return {
-    title: `${b.name} (${b.code}) — ${b.district}, ${b.city}`,
+    title: `${bName} (${b.code}) — ${geoName(b.district, loc)}, ${b.city}`,
     description,
     alternates: { canonical: `/buildings/${b.slug}`, languages: langAlternates(`/buildings/${b.slug}`) },
     openGraph: {
-      title: `${b.name}`,
+      title: bName,
       description,
       type: 'website',
       url: `https://sivrce.ge/buildings/${b.slug}`,
       siteName: 'sivrce',
-      locale: 'ka_GE',
-      images: [{ url: ogImage(b.img), alt: b.name }],
+      locale: loc === 'ka' ? 'ka_GE' : loc === 'ru' ? 'ru_RU' : 'en_US',
+      images: [{ url: ogImage(b.img), alt: bName }],
     },
   }
 }
 
 export default async function BuildingPage({ params }: PageProps) {
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const loc = dirLoc(isValidLang(rawLang) ? rawLang : 'ka')
+  const t = T[loc]
   const { building, developer: dbDeveloper } = await resolveBuilding(slug)
   if (!building) notFound()
   await ensureFootprints()
@@ -163,7 +259,7 @@ export default async function BuildingPage({ params }: PageProps) {
   const metro = nearestMetro(building.coords.lat, building.coords.lng)
   const related = relatedBuildings(slug)
   const gallery = (building.gallery ?? []).filter((src) => src !== building.img)
-  const place = [building.ubani, building.district, building.city].filter(Boolean).join(' · ')
+  const place = [building.ubani, building.district, building.city].filter((n): n is string => Boolean(n)).map((n) => geoName(n, loc)).join(' · ')
   const mapsApple = `https://maps.apple.com/?daddr=${building.coords.lat},${building.coords.lng}&q=${encodeURIComponent(building.name)}`
   const mapsGoogle = `https://www.google.com/maps/dir/?api=1&destination=${building.coords.lat},${building.coords.lng}`
 
@@ -195,36 +291,57 @@ export default async function BuildingPage({ params }: PageProps) {
       ? floorsToGeoJSON(cluster)
       : null
 
+  const bName = loc === 'ka' ? building.name : building.nameEn
   const faqs = [
     {
-      q: `რამდენი განცხადებაა ${building.name}-ში?`,
-      a: `ამჟამად ${listings.length} განცხადება: ${counts.sale} გაყიდვა, ${counts.rent} ქირა, ${counts.daily} დღიური, ${counts.pledge} გირავნობა.`,
+      q: loc === 'ka' ? `რამდენი განცხადებაა ${building.name}-ში?` : loc === 'ru' ? `Сколько объявлений в ${bName}?` : `How many listings are in ${bName}?`,
+      a: loc === 'ka'
+        ? `ამჟამად ${listings.length} განცხადება: ${counts.sale} გაყიდვა, ${counts.rent} ქირა, ${counts.daily} დღიური, ${counts.pledge} გირავნობა.`
+        : loc === 'ru'
+          ? `Сейчас ${listings.length} объявлений: ${counts.sale} продажа, ${counts.rent} аренда, ${counts.daily} посуточно, ${counts.pledge} залог.`
+          : `Currently ${listings.length} listings: ${counts.sale} for sale, ${counts.rent} for rent, ${counts.daily} daily, ${counts.pledge} pledge.`,
     },
     {
-      q: `სად არის ${building.name}?`,
-      a: `მისამართი: ${building.address}. ${place}. კოდი: ${building.code}.${metro ? ` უახლოესი მეტრო: ${metro.name} (${formatMetroDist(metro)}).` : ''}`,
+      q: loc === 'ka' ? `სად არის ${building.name}?` : loc === 'ru' ? `Где находится ${bName}?` : `Where is ${bName}?`,
+      a: loc === 'ka'
+        ? `მისამართი: ${building.address}. ${place}. კოდი: ${building.code}.${metro ? ` უახლოესი მეტრო: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
+        : loc === 'ru'
+          ? `Адрес: ${building.address}. ${place}. Код: ${building.code}.${metro ? ` Ближайшее метро: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
+          : `Address: ${building.address}. ${place}. Code: ${building.code}.${metro ? ` Nearest metro: ${metro.name} (${formatMetroDist(metro)}).` : ''}`,
     },
     ...(buildingAvgPerM2 != null
       ? [
           {
-            q: `რა ღირს მ² ${building.name}-ში?`,
-            a: `აქტიური განცხადებების მიხედვით საშუალო ფასი $${buildingAvgPerM2.toLocaleString('en-US')}/მ²-ა (${salePerM2.length} განცხადება).${buildingScale ? ` რაიონთან შედარებით: ${buildingScale.labelKa.toLowerCase()}.` : ''}`,
+            q: loc === 'ka' ? `რა ღირს მ² ${building.name}-ში?` : loc === 'ru' ? `Сколько стоит м² в ${bName}?` : `What does m² cost in ${bName}?`,
+            a: loc === 'ka'
+              ? `აქტიური განცხადებების მიხედვით საშუალო ფასი $${buildingAvgPerM2.toLocaleString('en-US')}/მ²-ა (${salePerM2.length} განცხადება).${buildingScale ? ` რაიონთან შედარებით: ${buildingScale.labelKa.toLowerCase()}.` : ''}`
+              : loc === 'ru'
+                ? `Средняя цена по активным объявлениям — $${buildingAvgPerM2.toLocaleString('en-US')}/м² (${salePerM2.length} объявлений).${buildingScale ? ` По району: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`
+                : `Average active-listing price is $${buildingAvgPerM2.toLocaleString('en-US')}/m² (${salePerM2.length} listings).${buildingScale ? ` vs district: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`,
           },
         ]
       : []),
     ...(dev
       ? [
           {
-            q: 'ვინ არის დეველოპერი?',
-            a: `დეველოპერი: ${dev.name.ka}.`,
+            q: loc === 'ka' ? 'ვინ არის დეველოპერი?' : loc === 'ru' ? 'Кто застройщик?' : 'Who is the developer?',
+            a: loc === 'ka' ? `დეველოპერი: ${dev.name[loc]}.` : loc === 'ru' ? `Застройщик: ${dev.name.ru}.` : `Developer: ${dev.name.en}.`,
           },
         ]
       : []),
     {
-      q: 'როგორ მივიდე?',
+      q: loc === 'ka' ? 'როგორ მივიდე?' : loc === 'ru' ? 'Как добраться?' : 'How do I get there?',
       a: metro
-        ? `ფეხით ${metro.walkMin} წთ მეტრო ${metro.name}-დან. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
-        : `მისამართი: ${building.address}. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`,
+        ? loc === 'ka'
+          ? `ფეხით ${metro.walkMin} წთ მეტრო ${metro.name}-დან. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
+          : loc === 'ru'
+            ? `${metro.walkMin} мин пешком от метро ${metro.name}. Маршрут — Apple Maps или Google Maps.`
+            : `${metro.walkMin} min walk from ${metro.name} metro. Open Apple Maps or Google Maps for directions.`
+        : loc === 'ka'
+          ? `მისამართი: ${building.address}. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
+          : loc === 'ru'
+            ? `Адрес: ${building.address}. Маршрут — Apple Maps или Google Maps.`
+            : `Address: ${building.address}. Open Apple Maps or Google Maps for directions.`,
     },
   ]
 
@@ -233,7 +350,7 @@ export default async function BuildingPage({ params }: PageProps) {
     '@type': 'ApartmentComplex',
     name: building.name,
     alternateName: [building.nameEn, building.code],
-    description: building.description.ka,
+    description: building.description[loc],
     url: `https://sivrce.ge/buildings/${building.slug}`,
     image: `https://sivrce.ge${building.img}`,
     address: {
@@ -276,14 +393,14 @@ export default async function BuildingPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'შენობები', item: 'https://sivrce.ge/buildings' },
+      { '@type': 'ListItem', position: 1, name: t.buildings, item: 'https://sivrce.ge/buildings' },
       {
         '@type': 'ListItem',
         position: 2,
-        name: building.district,
+        name: geoName(building.district, loc),
         item: `https://sivrce.ge/buildings`,
       },
-      { '@type': 'ListItem', position: 3, name: building.name, item: `https://sivrce.ge/buildings/${building.slug}` },
+      { '@type': 'ListItem', position: 3, name: bName, item: `https://sivrce.ge/buildings/${building.slug}` },
     ],
   }
 
@@ -305,14 +422,14 @@ export default async function BuildingPage({ params }: PageProps) {
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
             <nav className="mb-3 flex flex-wrap items-center gap-2 text-[12px] font-bold text-white/60">
               <Link href="/buildings" className="hover:text-white">
-                შენობები
+                {t.buildings}
               </Link>
               <span aria-hidden>/</span>
-              <span>{building.district}</span>
+              <span>{geoName(building.district, loc)}</span>
               {building.ubani && (
                 <>
                   <span aria-hidden>/</span>
-                  <span>{building.ubani}</span>
+                  <span>{geoName(building.ubani, loc)}</span>
                 </>
               )}
             </nav>
@@ -320,7 +437,7 @@ export default async function BuildingPage({ params }: PageProps) {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h1 className="text-[28px] font-black text-white [text-shadow:0_2px_12px_rgba(5,11,38,0.6)] md:text-[40px]">
-                  {building.name}
+                  {bName}
                 </h1>
                 {dev && (
                   <Link
@@ -328,7 +445,7 @@ export default async function BuildingPage({ params }: PageProps) {
                     className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-bold text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <BadgeCheck className="h-4 w-4 text-sv-success" aria-hidden />
-                    {dev.name.ka}
+                    {dev.name[loc]}
                   </Link>
                 )}
               </div>
@@ -338,7 +455,7 @@ export default async function BuildingPage({ params }: PageProps) {
                     building.status === 'ready' ? 'bg-sv-blue' : 'bg-sv-orange'
                   }`}
                 >
-                  {building.status === 'ready' ? 'ჩაბარებული' : 'მშენებარე'}
+                  {building.status === 'ready' ? t.ready : t.construction}
                 </span>
                 <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
                   <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
@@ -353,10 +470,10 @@ export default async function BuildingPage({ params }: PageProps) {
           <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
             <StatsRow
               items={[
-                { label: 'იყიდება', value: String(counts.sale) },
-                { label: 'ქირავდება', value: String(counts.rent) },
-                { label: 'დღიურად', value: String(counts.daily) },
-                { label: 'გირავდება', value: String(counts.pledge) },
+                { label: t.sale, value: String(counts.sale) },
+                { label: t.rent, value: String(counts.rent) },
+                { label: t.daily, value: String(counts.daily) },
+                { label: t.pledge, value: String(counts.pledge) },
               ]}
             />
 
@@ -364,15 +481,15 @@ export default async function BuildingPage({ params }: PageProps) {
               <div className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/55">
-                    კორპუსის ინტელექტი
+                    {t.intel}
                   </h2>
                   <span className="text-[11px] font-bold text-sv-ink/40">
                     {score.confidence === 'high'
-                      ? 'მაღალი ნდობა'
+                      ? t.trustHigh
                       : score.confidence === 'medium'
-                        ? 'საშუალო ნდობა'
-                        : 'დაბალი ნდობა'}{' '}
-                    · {salePerM2.length} განცხადება
+                        ? t.trustMedium
+                        : t.trustLow}{' '}
+                    · {t.listings(salePerM2.length)}
                   </span>
                 </div>
                 <div className="mt-5 flex flex-wrap items-center gap-x-10 gap-y-6">
@@ -404,7 +521,7 @@ export default async function BuildingPage({ params }: PageProps) {
                         ${buildingAvgPerM2.toLocaleString('en-US')}/მ²
                       </dd>
                       <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
-                        საშუალო ფასი
+                        {t.avgPrice}
                       </dt>
                     </div>
                     {buildingMedianPrice != null && (
@@ -413,7 +530,7 @@ export default async function BuildingPage({ params }: PageProps) {
                           ${buildingMedianPrice.toLocaleString('en-US')}
                         </dd>
                         <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
-                          მედიანური ფასი
+                          {t.medianPrice}
                         </dt>
                       </div>
                     )}
@@ -428,10 +545,10 @@ export default async function BuildingPage({ params }: PageProps) {
                                 : 'text-sv-ink'
                           }`}
                         >
-                          {buildingScale.labelKa}
+                          {(t.band[buildingScale.band] ?? buildingScale.labelKa)}
                         </dd>
                         <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
-                          რაიონთან შედარებით
+                          {t.vsDistrict}
                         </dt>
                       </div>
                     )}
@@ -443,7 +560,7 @@ export default async function BuildingPage({ params }: PageProps) {
                         key={f.key}
                         className="rounded-full bg-sv-ink/[0.05] px-2.5 py-1 text-[11px] font-bold text-sv-ink/60"
                       >
-                        {FACTOR_LABEL[f.key]} {f.pct}
+                        {FACTOR_LABEL[loc][f.key]} {f.pct}
                       </li>
                     ))}
                   </ul>
@@ -459,8 +576,8 @@ export default async function BuildingPage({ params }: PageProps) {
                 {building.coords.lat.toFixed(5)}, {building.coords.lng.toFixed(5)}
               </span>
               <span className="flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {building.floors} სართ.
-                {building.units ? ` · ${building.units} ბინა` : ''}
+                <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {building.floors} {t.floorsAbbr}
+                {building.units ? ` · ${building.units} ${t.unitsAbbr}` : ''}
               </span>
               {building.yearBuilt && (
                 <span className="flex items-center gap-1.5">
@@ -469,11 +586,11 @@ export default async function BuildingPage({ params }: PageProps) {
               )}
               {building.finish && building.status === 'construction' && (
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4 text-sv-ink/35" aria-hidden /> ჩაბარება {building.finish}
+                  <Calendar className="h-4 w-4 text-sv-ink/35" aria-hidden /> {t.handover} {building.finish}
                 </span>
               )}
               {building.priceFromM2 && (
-                <span className="font-black text-sv-ink">{building.priceFromM2}/მ²-დან</span>
+                <span className="font-black text-sv-ink">{building.priceFromM2}{t.perM2From}</span>
               )}
             </p>
             {metro && (
@@ -487,7 +604,7 @@ export default async function BuildingPage({ params }: PageProps) {
                 href={`/map?building=${building.slug}`}
                 className="inline-flex min-h-11 items-center rounded-full bg-sv-blue px-5 py-2.5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition hover:bg-sv-blue-deep"
               >
-                რუკაზე ნახვა
+                {t.viewMap}
               </Link>
               <a
                 href={mapsApple}
@@ -510,7 +627,7 @@ export default async function BuildingPage({ params }: PageProps) {
                   href={`/projects/${building.projectSlug}`}
                   className="inline-flex min-h-11 items-center rounded-full bg-sv-cloud px-5 py-2.5 text-[13px] font-extrabold text-sv-ink transition hover:bg-sv-ink/5"
                 >
-                  პროექტი
+                  {t.project}
                 </Link>
               )}
             </div>
@@ -519,21 +636,21 @@ export default async function BuildingPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            შენობის შესახებ
+            {t.about}
           </h2>
           <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] font-semibold leading-relaxed text-sv-ink/70">
-            {building.description.ka}
+            {building.description[loc]}
           </p>
           <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ['კოდი', building.code],
-              ['რაიონი', building.district],
-              ...(building.ubani ? [['უბანი', building.ubani] as const] : []),
-              ['სართული', String(building.floors)],
-              ...(building.units ? [['ბინა', String(building.units)] as const] : []),
-              ...(building.yearBuilt ? [['წელი', String(building.yearBuilt)] as const] : []),
+              [t.spec.code, building.code],
+              [t.spec.district, geoName(building.district, loc)],
+              ...(building.ubani ? [[t.spec.ubani, geoName(building.ubani, loc)] as const] : []),
+              [t.spec.floors, String(building.floors)],
+              ...(building.units ? [[t.spec.units, String(building.units)] as const] : []),
+              ...(building.yearBuilt ? [[t.spec.year, String(building.yearBuilt)] as const] : []),
               ...(building.buildingNumber !== '—'
-                ? [['კორპუსის №', building.buildingNumber] as const]
+                ? [[t.spec.corpus, building.buildingNumber] as const]
                 : []),
             ].map(([k, v]) => (
               <div key={k} className="rounded-module border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 shadow-card">
@@ -547,7 +664,7 @@ export default async function BuildingPage({ params }: PageProps) {
         {amenities.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              ირგვლივ
+              {t.around}
             </h2>
             <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {amenities.map((a) => {
@@ -574,7 +691,7 @@ export default async function BuildingPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            მისამართი და მიმართულება
+            {t.location}
           </h2>
           <div className="relative mt-6 overflow-hidden rounded-card">
             <MapEmbed
@@ -597,9 +714,9 @@ export default async function BuildingPage({ params }: PageProps) {
         {gallery.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              ფოტოები
+              {t.photos}
             </h2>
-            <HScroll aria-label="ფოტოები" step={300} className="mt-6 gap-3 pb-1">
+            <HScroll aria-label={t.photos} step={300} className="mt-6 gap-3 pb-1">
               {gallery.map((src, i) => (
                 <div
                   key={src}
@@ -607,7 +724,7 @@ export default async function BuildingPage({ params }: PageProps) {
                 >
                   <Image
                     src={src}
-                    alt={`${building.name} — ფოტო ${i + 2}`}
+                    alt={`${bName} — ${t.photos} ${i + 2}`}
                     fill
                     sizes="288px"
                     className="object-cover"
@@ -621,12 +738,12 @@ export default async function BuildingPage({ params }: PageProps) {
         {building.passportUrl && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              გეგმა
+              {t.plan}
             </h2>
             <div className="relative mt-6 aspect-[4/3] max-w-3xl overflow-hidden rounded-card bg-sv-cloud">
               <Image
                 src={building.passportUrl}
-                alt={`${building.name} — გეგმა`}
+                alt={`${bName} — ${t.plan}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 768px"
                 className="object-contain"
@@ -637,11 +754,11 @@ export default async function BuildingPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            განცხადებები ამ შენობაში
+            {t.listingsHere}
           </h2>
           {listings.length === 0 ? (
             <p className="mt-6 rounded-module bg-sv-cloud px-5 py-10 text-center text-[14px] font-semibold text-sv-ink/50">
-              ამ მისამართზე განცხადება არ გვაქვს.
+              {t.noListings}
             </p>
           ) : (
             (() => {
@@ -681,7 +798,7 @@ export default async function BuildingPage({ params }: PageProps) {
         {related.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              იგივე რაიონში
+              {t.related}
             </h2>
             <div className="mt-6 sv-card-grid-3">
               {related.map((b) => (
@@ -699,7 +816,7 @@ export default async function BuildingPage({ params }: PageProps) {
                     </p>
                     <h3 className="mt-0.5 text-[16px] font-black text-sv-ink">{b.name}</h3>
                     <p className="mt-1 text-[12px] font-semibold text-sv-ink/50">
-                      {b.floors} სართ.{b.units ? ` · ${b.units} ბინა` : ''}
+                      {b.floors} {t.floorsAbbr}{b.units ? ` · ${b.units} ${t.unitsAbbr}` : ''}
                     </p>
                   </div>
                 </Link>
@@ -708,7 +825,7 @@ export default async function BuildingPage({ params }: PageProps) {
           </section>
         )}
 
-        <FaqSection title="ხშირი კითხვები" items={faqs} className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10" />
+        <FaqSection title={t.faqTitle} items={faqs} className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10" />
 
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           <ReviewsSectionServer targetType="building" targetId={building.slug} />

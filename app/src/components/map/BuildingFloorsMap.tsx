@@ -8,6 +8,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useTheme } from 'next-themes'
+import { useI18n } from '@/lib/i18n/context'
 import * as maplibregl from 'maplibre-gl'
 import {
   type Map as MlMap,
@@ -68,6 +69,7 @@ export default function BuildingFloorsMap({
   const floorsRef = useRef(floors)
   const styleUrlRef = useRef<string | null>(null)
   const { resolvedTheme } = useTheme()
+  const { t } = useI18n()
   const isDark = resolvedTheme === 'dark'
   const themeReady = resolvedTheme != null
 
@@ -278,7 +280,7 @@ export default function BuildingFloorsMap({
   }, [isDark, themeReady])
 
   return (
-    <div className="absolute inset-0" role="img" aria-label={`${label} — სართულების 3D ხედი`}>
+    <div className="absolute inset-0" role="img" aria-label={`${label} — ${t('map.floors3d')}`}>
       {/* ponytail: MapLibre forces position:relative — absolute on the map node collapses to h=0. */}
       <div ref={containerRef} className="h-full w-full" />
     </div>

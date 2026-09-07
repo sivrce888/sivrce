@@ -10,6 +10,7 @@ import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
+import { dirLoc, type DirLoc } from '@/lib/directory-seo'
 
 export const revalidate = 3600
 
@@ -39,7 +40,35 @@ export async function generateMetadata({
   })
 }
 
-export default async function ContactPage() {
+const T: Record<DirLoc, {
+  kicker: string; title: string; subtitle: string
+  email: string; phone: string; address: string; addressValue: string
+  ldName: string
+}> = {
+  ka: {
+    kicker: 'კონტაქტი', title: 'დაგვიკავშირდი',
+    subtitle: 'კითხვა, შეთავაზება თუ პარტნიორობა — ჩვენი გუნდი გიპასუხებთ 24 საათის განმავლობაში.',
+    email: 'ელ. ფოსტა', phone: 'ტელეფონი', address: 'მისამართი', addressValue: 'თბილისი, საქართველო',
+    ldName: 'კონტაქტი — sivrce',
+  },
+  en: {
+    kicker: 'Contact', title: 'Get in touch',
+    subtitle: 'A question, an offer or a partnership — our team replies within 24 hours.',
+    email: 'Email', phone: 'Phone', address: 'Address', addressValue: 'Tbilisi, Georgia',
+    ldName: 'Contact — sivrce',
+  },
+  ru: {
+    kicker: 'Контакты', title: 'Свяжитесь с нами',
+    subtitle: 'Вопрос, предложение или партнёрство — наша команда ответит в течение 24 часов.',
+    email: 'Эл. почта', phone: 'Телефон', address: 'Адрес', addressValue: 'Тбилиси, Грузия',
+    ldName: 'Контакты — sivrce',
+  },
+}
+
+export default async function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const loc = dirLoc(isValidLang(raw) ? raw : 'ka')
+  const t = T[loc]
   const [email, configuredPhone] = await Promise.all([
     getConfig('site.contactEmail'),
     getConfig('site.contactPhone'),
@@ -49,18 +78,18 @@ export default async function ContactPage() {
   const phone =
     !configuredPhone || configuredPhone === '+995 32 2 00 00 00' ? CONTACT_PHONE : configuredPhone
   const channels = [
-    { icon: Mail, label: 'ელ. ფოსტა', value: email, href: `mailto:${email}` },
-    { icon: Phone, label: 'ტელეფონი', value: phone, href: telHref(phone) },
+    { icon: Mail, label: t.email, value: email, href: `mailto:${email}` },
+    { icon: Phone, label: t.phone, value: phone, href: telHref(phone) },
     { icon: MessageCircle, label: 'WhatsApp', value: phone, href: waHref(CONTACT_PHONE) },
-    { icon: MapPin, label: 'მისამართი', value: 'თბილისი, საქართველო', href: null },
+    { icon: MapPin, label: t.address, value: t.addressValue, href: null },
   ]
 
   const contactLd = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    name: 'კონტაქტი — sivrce',
+    name: t.ldName,
     url: 'https://sivrce.ge/contact',
-    inLanguage: 'ka',
+    inLanguage: loc,
     isPartOf: { '@id': 'https://sivrce.ge/#website' },
     about: {
       '@type': 'Organization',
@@ -82,9 +111,9 @@ export default async function ContactPage() {
       <Navbar />
       <main id="main">
         <PageHero
-          kicker="კონტაქტი"
-          title="დაგვიკავშირდი"
-          subtitle="კითხვა, შეთავაზება თუ პარტნიორობა — ჩვენი გუნდი გიპასუხებთ 24 საათის განმავლობაში."
+          kicker={t.kicker}
+          title={t.title}
+          subtitle={t.subtitle}
         />
         <section className="mx-auto max-w-6xl px-6 py-14 md:py-20">
           <div className="grid gap-6 md:grid-cols-3">

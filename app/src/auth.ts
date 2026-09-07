@@ -170,7 +170,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (row) {
           token.role = row.role
           if (row.name) token.name = row.name
+          // Clearing the photo must clear the token too, or the removed
+          // avatar lingers in the session until re-login.
           if (row.image) token.picture = row.image
+          else delete token.picture
           token.avatarStyle = row.avatarStyle
         }
       } catch { /* keep last-known role */ }

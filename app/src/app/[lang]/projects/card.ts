@@ -7,6 +7,7 @@
  * here is React-free so the self-check can run it under tsx.
  */
 import { finishMaxYear, getDeveloper, isDelivered, type Project } from '@/data/professionals'
+import { canonicalizeDistrict } from '@/lib/district-canon'
 import { pickLoc, type DirLoc } from '@/lib/directory-seo'
 
 export interface ProjectCard {
@@ -15,6 +16,8 @@ export interface ProjectCard {
   img: string
   location: string
   city: string
+  /** Canonical ka district ('' when unknown — never invent). */
+  district: string
   developerSlug: string
   /** Resolved display name — '' for DB-only developers without a catalog profile. */
   devName: string
@@ -37,6 +40,7 @@ export function toCard(p: Project, loc: DirLoc): ProjectCard {
     img: p.img,
     location: p.location,
     city: p.city,
+    district: p.district ?? canonicalizeDistrict(p.location, p.city),
     developerSlug: p.developerSlug,
     devName: dev ? pickLoc(dev.name, loc) : '',
     priceFromM2: p.priceFromM2,
@@ -70,11 +74,13 @@ export const HANDOVER_BUCKETS = [
   { key: 'late', min: NOW_YEAR + 2, max: Infinity, label: `${NOW_YEAR + 2}+` },
 ] as const
 
-export type Sort = 'rec' | 'price' | 'handover'
-export const SORTS: Sort[] = ['rec', 'price', 'handover']
+export type Sort = 'rec' | 'price' | 'price-desc' | 'handover'
+export const SORTS: Sort[] = ['rec', 'price', 'price-desc', 'handover']
 
 export interface Q {
+  q: string
   city: string
+  district: string
   status: '' | 'build' | 'done'
   price: string
   handover: string
@@ -82,7 +88,7 @@ export interface Q {
   sort: Sort
 }
 
-export const EMPTY_Q: Q = { city: '', status: '', price: '', handover: '', dev: '', sort: 'rec' }
+export const EMPTY_Q: Q = { q: '', city: '', district: '', status: '', price: '', handover: '', dev: '', sort: 'rec' }
 
 /** City chip value for "everything outside the top cities". */
 export const OTHER_CITY = '__other'
@@ -98,7 +104,9 @@ export function parseQ(sp: URLSearchParams): Q {
   const status = sp.get('status')
   const sort = sp.get('sort') as Sort
   return {
+    q: sp.get('q')?.slice(0, 60) ?? '',
     city: sp.get('city')?.slice(0, 60) ?? '',
+    district: sp.get('district')?.slice(0, 60) ?? '',
     status: status === 'build' || status === 'done' ? status : '',
     price: PRICE_BUCKETS.some((b) => b.key === sp.get('price')) ? sp.get('price')! : '',
     handover: HANDOVER_BUCKETS.some((b) => b.key === sp.get('handover')) ? sp.get('handover')! : '',
@@ -109,7 +117,9 @@ export function parseQ(sp: URLSearchParams): Q {
 
 export function qToSearch(q: Q): string {
   const sp = new URLSearchParams()
+  if (q.q) sp.set('q', q.q)
   if (q.city) sp.set('city', q.city)
+  if (q.district) sp.set('district', q.district)
   if (q.status) sp.set('status', q.status)
   if (q.price) sp.set('price', q.price)
   if (q.handover) sp.set('handover', q.handover)
@@ -120,13 +130,21 @@ export function qToSearch(q: Q): string {
 }
 
 export function isQActive(q: Q): boolean {
-  return !!(q.city || q.status || q.price || q.handover || q.dev) || q.sort !== 'rec'
+  return !!(q.q || q.city || q.district || q.status || q.price || q.handover || q.dev) || q.sort !== 'rec'
+}
+
+/** Case-insensitive substring over name + location + district + developer (Korter-style quick search). */
+function searchHit(p: ProjectCard, q: string): boolean {
+  const n = q.toLowerCase()
+  return `${p.name}\n${p.location}\n${p.district}\n${p.devName}\n${p.developerSlug}`.toLowerCase().includes(n)
 }
 
 export function matchesCard(p: ProjectCard, q: Q, topCities: ReadonlySet<string>): boolean {
+  if (q.q && !searchHit(p, q.q)) return false
   if (q.status === 'build' && p.delivered) return false
   if (q.status === 'done' && !p.delivered) return false
   if (q.city && (q.city === OTHER_CITY ? topCities.has(p.city) : p.city !== q.city)) return false
+  if (q.district && p.district !== q.district) return false
   if (q.dev && p.developerSlug !== q.dev) return false
   if (q.price) {
     const b = PRICE_BUCKETS.find((b) => b.key === q.price)
@@ -146,6 +164,7 @@ export function sortCards(items: ProjectCard[], sort: Sort): ProjectCard[] {
   if (sort === 'rec') return items
   const s = [...items]
   if (sort === 'price') s.sort((a, b) => (priceM2(a) || Infinity) - (priceM2(b) || Infinity))
+  else if (sort === 'price-desc') s.sort((a, b) => priceM2(b) - priceM2(a))
   else s.sort((a, b) => (a.delivered ? Infinity : a.year ?? Infinity) - (b.delivered ? Infinity : b.year ?? Infinity))
   return s
 }
@@ -170,6 +189,20 @@ export interface DevFacet {
   slug: string
   label: string
   count: number
+}
+
+/** Canonical districts with counts — '' (unknown) and 1-off junk labels excluded, curated cap. */
+export function facetDistricts(items: ProjectCard[], keep = 40): { value: string; count: number }[] {
+  const by = new Map<string, number>()
+  for (const p of items) {
+    if (!p.district) continue
+    by.set(p.district, (by.get(p.district) ?? 0) + 1)
+  }
+  return [...by.entries()]
+    .map(([value, count]) => ({ value, count }))
+    .filter((d) => d.count >= 2)
+    .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
+    .slice(0, keep)
 }
 
 export function facetDevs(items: ProjectCard[]): DevFacet[] {

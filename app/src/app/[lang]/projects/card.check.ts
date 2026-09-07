@@ -10,6 +10,7 @@ import {
   OTHER_CITY,
   facetCities,
   facetCounts,
+  facetDistricts,
   facetDevs,
   isQActive,
   matchesCard,
@@ -24,8 +25,9 @@ const card = (over: Partial<ProjectCard>): ProjectCard => ({
   slug: 'x',
   name: 'X',
   img: '/images/x.webp',
-  location: 'თბილისი',
+  location: 'საბურთალო, თბილისი',
   city: 'თბილისი',
+  district: 'საბურთალო',
   developerSlug: 'dev-a',
   devName: 'Dev A',
   priceFromM2: '$1,500',
@@ -39,9 +41,17 @@ const card = (over: Partial<ProjectCard>): ProjectCard => ({
 })
 
 const tbilisi = card({})
-const batumi = card({ slug: 'b', city: 'ბათუმი', priceFromM2: '$2,500', year: 2028, finish: '2028 Q1' })
-const doneRow = card({ slug: 'd', done: 100, delivered: true, finish: 'გადაცემულია (2024)', year: 2024 })
-const noPrice = card({ slug: 'n', priceFromM2: '' })
+const batumi = card({
+  slug: 'b',
+  city: 'ბათუმი',
+  location: 'აჯარის გმირთა მოედანი, ბათუმი',
+  district: 'ახალი ბულვარი',
+  priceFromM2: '$2,500',
+  year: 2028,
+  finish: '2028 Q1',
+})
+const doneRow = card({ slug: 'd', done: 100, delivered: true, finish: 'ჩაბარებული (2024)', year: 2024 })
+const noPrice = card({ slug: 'n', priceFromM2: '', district: '' })
 const gudauri = card({ slug: 'g', city: 'გუდაური' })
 const rows = [tbilisi, batumi, doneRow, noPrice, gudauri]
 
@@ -93,14 +103,48 @@ assert.equal(f.city.get('თბილისი'), 3)
 assert.equal(f.handover.get('mid'), 3) // tbilisi, noPrice, gudauri — all 2027
 assert.equal(f.handover.get('late'), 1) // batumi 2028
 
-// sort: price asc with unpriced last; handover with delivered last
+// sort: price asc with unpriced last; price desc; handover with delivered last
 const priced = sortCards([noPrice, batumi, tbilisi], 'price')
 assert.deepEqual(priced.map((p) => p.slug), ['x', 'b', 'n'])
+const pricedDesc = sortCards([noPrice, batumi, tbilisi], 'price-desc')
+assert.deepEqual(pricedDesc.map((p) => p.slug), ['b', 'x', 'n'])
 const handed = sortCards([doneRow, batumi, tbilisi], 'handover')
 assert.deepEqual(handed.map((p) => p.slug), ['x', 'b', 'd'])
 
+// search: name/location/district/developer substring, case-insensitive
+assert.ok(matchesCard(tbilisi, { ...EMPTY_Q, q: 'საბურთალო' }, new Set()))
+assert.ok(matchesCard(tbilisi, { ...EMPTY_Q, q: 'dev a' }, new Set()))
+assert.ok(!matchesCard(batumi, { ...EMPTY_Q, q: 'საბურთალო' }, new Set()))
+assert.ok(!matchesCard(batumi, { ...EMPTY_Q, q: 'zzz' }, new Set()))
+
+// district facet: canon values, 1-off labels dropped (count ≥ 2), unknown ('') excluded
+const dFacet = facetDistricts([
+  tbilisi,
+  tbilisi,
+  card({ slug: 'g2', district: 'გლდანი' }),
+  card({ slug: 'g3', district: 'გლდანი' }),
+  card({ slug: 'v', district: 'ვაკე' }), // 1-off → dropped
+  noPrice,
+])
+assert.deepEqual(dFacet, [
+  { value: 'გლდანი', count: 2 },
+  { value: 'საბურთალო', count: 2 },
+])
+assert.ok(matchesCard(tbilisi, { ...EMPTY_Q, district: 'საბურთალო' }, new Set()))
+assert.ok(!matchesCard(tbilisi, { ...EMPTY_Q, district: 'გლდანი' }, new Set()))
+assert.ok(matchesCard(tbilisi, { ...EMPTY_Q, district: '' }, new Set()))
+
 // URL round-trip: parse(qToSearch(q)) === q; junk params degrade to defaults
-const q: typeof EMPTY_Q = { city: 'ბათუმი', status: 'build', price: '1000-1500', handover: 'mid', dev: 'dev-a', sort: 'price' }
+const q: typeof EMPTY_Q = {
+  q: 'archi',
+  city: 'ბათუმი',
+  district: 'საბურთალო',
+  status: 'build',
+  price: '1000-1500',
+  handover: 'mid',
+  dev: 'dev-a',
+  sort: 'price',
+}
 assert.deepEqual(parseQ(new URLSearchParams(qToSearch(q))), q)
 assert.deepEqual(parseQ(new URLSearchParams(qToSearch(EMPTY_Q))), EMPTY_Q)
 assert.deepEqual(
@@ -109,5 +153,7 @@ assert.deepEqual(
 )
 assert.ok(!isQActive(EMPTY_Q))
 assert.ok(isQActive({ ...EMPTY_Q, sort: 'price' }))
+assert.ok(isQActive({ ...EMPTY_Q, q: 'a' }))
+assert.ok(isQActive({ ...EMPTY_Q, district: 'ვაკე' }))
 
 console.log('projects card.check ✓')

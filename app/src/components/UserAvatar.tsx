@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { avatarInitials, avatarVisual, isValidAvatarStyle } from "@/lib/avatar"
 
@@ -40,10 +40,18 @@ export default function UserAvatar({
   // Dead remote URLs (OAuth avatar rotated away, scraped host gone) fall back
   // to the monogram instead of the browser's broken-image icon.
   const [broken, setBroken] = useState(false)
+  // onError misses images that failed before hydration attached handlers —
+  // re-check load state once on mount.
+  const imgRef = useRef<HTMLImageElement>(null)
+  useEffect(() => {
+    const el = imgRef.current
+    if (el && el.complete && el.naturalWidth === 0) setBroken(true)
+  }, [image])
   if (image && !broken) {
     const img = (
       // eslint-disable-next-line @next/next/no-img-element
       <img
+        ref={imgRef}
         src={image}
         alt=""
         width={pinned ? size - 4 : size}
@@ -70,7 +78,9 @@ export default function UserAvatar({
       )
     }
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
+        ref={imgRef}
         src={image}
         alt=""
         width={size}

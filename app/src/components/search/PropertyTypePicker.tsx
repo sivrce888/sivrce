@@ -81,7 +81,7 @@ export default function PropertyTypePicker({
         }}
         className={
           hero
-            ? `flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white lg:w-[156px] lg:max-w-[156px]`
+            ? `flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white lg:w-[176px] lg:max-w-[176px]`
             : `flex h-10 w-full items-center gap-2 rounded-full bg-sv-ink/[0.045] px-3.5 text-left text-[13px] font-bold outline-none transition-colors hover:bg-sv-ink/[0.08] focus-visible:ring-2 focus-visible:ring-sv-blue/30 ${
                 selected ? 'text-sv-ink' : 'text-sv-ink/55'
               }`

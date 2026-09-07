@@ -41,6 +41,7 @@ export interface ReviewStrings {
   replyPlaceholder: string
   replySave: string
   replySaving: string
+  replySaved: string
   replyError: string
   aboutYou: string
   prevPage: string
@@ -92,6 +93,7 @@ const ka: ReviewStrings = {
   replyPlaceholder: 'დაწერე პასუხი ამ შეფასებას…',
   replySave: 'პასუხის გაგზავნა',
   replySaving: 'იგზავნება…',
+  replySaved: 'შენახულია ✓',
   replyError: 'პასუხი ვერ შეინახა — სცადე თავიდან',
   aboutYou: 'შეფასებები შენზე',
   prevPage: 'წინა',
@@ -99,7 +101,7 @@ const ka: ReviewStrings = {
   pageOf: (page, pages) => `გვერდი ${page} / ${pages}`,
   loadError: 'შეფასებების ჩატვირთვა ვერ მოხერხდა',
   retry: 'თავიდან ცდა',
-  starsReadOnly: (v) => `შეფასება: ${v} 5-დან`,
+  starsReadOnly: (v) => `შეფასება: 5-დან ${v}`,
   starOption: (n) => `${n} ვარსკვლავი`,
   distributionRow: (stars, count) => `${stars} ვარსკვლავი: ${count}`,
   signInToReview: 'შედი ანგარიშში შეფასების დასატოვებლად',
@@ -143,6 +145,7 @@ const en: ReviewStrings = {
   replyPlaceholder: 'Write a reply to this review…',
   replySave: 'Send reply',
   replySaving: 'Sending…',
+  replySaved: 'Saved ✓',
   replyError: 'Could not save the reply — please try again',
   aboutYou: 'Reviews about you',
   prevPage: 'Previous',
@@ -194,6 +197,7 @@ const ru: ReviewStrings = {
   replyPlaceholder: 'Напишите ответ на этот отзыв…',
   replySave: 'Отправить ответ',
   replySaving: 'Отправка…',
+  replySaved: 'Сохранено ✓',
   replyError: 'Не удалось сохранить ответ — попробуйте ещё раз',
   aboutYou: 'Отзывы о вас',
   prevPage: 'Назад',

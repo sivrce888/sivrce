@@ -15,6 +15,7 @@
  * presentation only.
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Search } from 'lucide-react'
 import {
   EMPTY_Q,
   HANDOVER_BUCKETS,
@@ -22,6 +23,7 @@ import {
   PRICE_BUCKETS,
   facetCities,
   facetCounts,
+  facetDistricts,
   facetDevs,
   isQActive,
   matchesCard,
@@ -37,9 +39,13 @@ import { cityName, type DirLoc } from '@/lib/directory-seo'
 
 type Labels = {
   aria: string
+  searchAria: string
+  searchPh: string
   statusBuild: string
   statusDone: string
   other: string
+  allDistricts: string
+  districtAria: string
   allDev: string
   devAria: string
   sortAria: string
@@ -61,13 +67,17 @@ const ruResults = (n: number) => {
 const L: Record<DirLoc, Labels> = {
   ka: {
     aria: 'პროექტების ფილტრები',
+    searchAria: 'ძიება',
+    searchPh: 'პროექტი, უბანი, დეველოპერი…',
     statusBuild: 'მშენებარე',
-    statusDone: 'გადაცემული',
+    statusDone: 'ჩაბარებული',
     other: 'სხვა',
+    allDistricts: 'ყველა უბანი',
+    districtAria: 'უბანი',
     allDev: 'ყველა დეველოპერი',
     devAria: 'დეველოპერი',
     sortAria: 'დალაგება',
-    sorts: { rec: 'რეკომენდებული', price: 'ფასი: ზრდადი', handover: 'ჩაბარება: მალე' },
+    sorts: { rec: 'რეკომენდებული', price: 'ფასი: ზრდადი', 'price-desc': 'ფასი: კლებადი', handover: 'ჩაბარება: მალე' },
     results: (n) => `${n} პროექტი`,
     more: 'ნახე მეტი',
     clear: 'გასუფთავება',
@@ -75,13 +85,17 @@ const L: Record<DirLoc, Labels> = {
   },
   en: {
     aria: 'Project filters',
+    searchAria: 'Search',
+    searchPh: 'Project, district, developer…',
     statusBuild: 'Under construction',
     statusDone: 'Delivered',
     other: 'Other',
+    allDistricts: 'All districts',
+    districtAria: 'District',
     allDev: 'All developers',
     devAria: 'Developer',
     sortAria: 'Sort',
-    sorts: { rec: 'Recommended', price: 'Price: low to high', handover: 'Handover: soonest' },
+    sorts: { rec: 'Recommended', price: 'Price: low to high', 'price-desc': 'Price: high to low', handover: 'Handover: soonest' },
     results: (n) => `${n} ${n === 1 ? 'project' : 'projects'}`,
     more: 'Show more',
     clear: 'Clear all',
@@ -89,13 +103,17 @@ const L: Record<DirLoc, Labels> = {
   },
   ru: {
     aria: 'Фильтры проектов',
+    searchAria: 'Поиск',
+    searchPh: 'Проект, район, застройщик…',
     statusBuild: 'Строятся',
     statusDone: 'Сданы',
     other: 'Другие',
+    allDistricts: 'Все районы',
+    districtAria: 'Район',
     allDev: 'Все застройщики',
     devAria: 'Застройщик',
     sortAria: 'Сортировка',
-    sorts: { rec: 'Рекомендованные', price: 'Цена: по возрастанию', handover: 'Сдача: скорее' },
+    sorts: { rec: 'Рекомендованные', price: 'Цена: по возрастанию', 'price-desc': 'Цена: по убыванию', handover: 'Сдача: скорее' },
     results: ruResults,
     more: 'Показать ещё',
     clear: 'Сбросить',
@@ -147,11 +165,15 @@ export function ProjectsExplorer({
     return () => window.removeEventListener('popstate', apply)
   }, [])
 
-  const update = (patch: Partial<Q>) => {
+  // Search typing uses replaceState (no history spam per keystroke); discrete
+  // chip/select changes push, so the back button walks meaningful steps.
+  const update = (patch: Partial<Q>, replace = false) => {
     const next = { ...q, ...patch }
     setQ(next)
     setVisibleCount(PER_PAGE)
-    window.history.pushState(null, '', `${window.location.pathname}${qToSearch(next)}`)
+    const url = `${window.location.pathname}${qToSearch(next)}`
+    if (replace) window.history.replaceState(null, '', url)
+    else window.history.pushState(null, '', url)
   }
 
   const cities = useMemo(() => facetCities(projects), [projects])
@@ -159,6 +181,7 @@ export function ProjectsExplorer({
     () => new Set(cities.filter((c) => c.value !== OTHER_CITY).map((c) => c.value)),
     [cities],
   )
+  const districts = useMemo(() => facetDistricts(projects), [projects])
   const devs = useMemo(() => facetDevs(projects), [projects])
   const counts = useMemo(() => facetCounts(projects), [projects])
   const otherCityCount = cities.find((c) => c.value === OTHER_CITY)?.count
@@ -188,6 +211,18 @@ export function ProjectsExplorer({
 
       <div className="-mx-5 mt-3 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:px-0">
         <div className="flex w-max items-center gap-2 pb-1">
+          <div className="relative shrink-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" aria-hidden />
+            <input
+              type="search"
+              value={q.q}
+              onChange={(e) => update({ q: e.target.value }, true)}
+              placeholder={t.searchPh}
+              aria-label={t.searchAria}
+              className="h-10 w-56 rounded-control border border-sv-ink/10 bg-sv-surface pl-9 pr-3 text-[13px] font-semibold text-sv-ink placeholder:font-medium placeholder:text-sv-ink/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+            />
+          </div>
+
           <Chip on={q.status === 'build'} onClick={() => update({ status: q.status === 'build' ? '' : 'build' })}>
             {t.statusBuild}
             <span className={chipCount(q.status === 'build')}>{counts.build}</span>
@@ -206,6 +241,20 @@ export function ProjectsExplorer({
               </Chip>
             )
           })}
+
+          <select
+            aria-label={t.districtAria}
+            value={q.district}
+            onChange={(e) => update({ district: e.target.value })}
+            className={selectCls}
+          >
+            <option value="">{t.allDistricts}</option>
+            {districts.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.value} ({d.count})
+              </option>
+            ))}
+          </select>
 
           {PRICE_BUCKETS.map((b) => {
             const on = q.price === b.key

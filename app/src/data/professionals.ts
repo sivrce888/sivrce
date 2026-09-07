@@ -72,6 +72,8 @@ export interface Project {
   location: string
   /** ka city name — matches Listing.city */
   city: string
+  /** Canonical ka district (district-canon) — filters + card display */
+  district?: string
   priceFromM2: string
   done: number
   finish: string
@@ -103,10 +105,11 @@ const CURRENT_YEAR = new Date().getFullYear()
  * DB row overlays in directory-live) so display can stay dumb.
  */
 export function freshenFinish<T extends { done: number; finish: string }>(p: T): T {
-  if (p.finish.startsWith('გადაცემულია')) return p
+  // Legacy DB rows still carry the old 'გადაცემულია' mark (import-ssgap pre-2026-09).
+  if (p.finish.startsWith('ჩაბარებული') || p.finish.startsWith('გადაცემულია')) return p
   const y = finishMaxYear(p.finish)
   if (y === null || y >= CURRENT_YEAR) return p
-  return { ...p, done: 100, finish: `გადაცემულია (${y})` }
+  return { ...p, done: 100, finish: `ჩაბარებული (${y})` }
 }
 
 /**
@@ -116,7 +119,7 @@ export function freshenFinish<T extends { done: number; finish: string }>(p: T):
  * must never wear the delivered badge.
  */
 export function isDelivered(p: { done: number; finish: string }): boolean {
-  if (p.finish.startsWith('გადაცემულია')) return true
+  if (p.finish.startsWith('ჩაბარებული') || p.finish.startsWith('გადაცემულია')) return true
   if (p.done < 100) return false
   const y = finishMaxYear(p.finish)
   return y === null || y <= CURRENT_YEAR
@@ -2269,7 +2272,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     city: 'თბილისი',
     priceFromM2: '$2,400',
     done: 100,
-    finish: 'გადაცემულია (2019)',
+    finish: 'ჩაბარებული (2019)',
     flats: 120,
     rating: 4.7,
     coords: { lat: 41.7112, lng: 44.7789 },
@@ -2994,7 +2997,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     city: 'თბილისი',
     priceFromM2: '$1,900',
     done: 100,
-    finish: 'გადაცემულია',
+    finish: 'ჩაბარებული',
     flats: 180,
     rating: 4.6,
     coords: { lat: 41.67285334, lng: 44.85147281 },
@@ -3215,7 +3218,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     city: 'თბილისი',
     priceFromM2: '$2,200',
     done: 100,
-    finish: 'გადაცემულია',
+    finish: 'ჩაბარებული',
     flats: 160,
     rating: 4.7,
     coords: { lat: 41.72267912, lng: 44.75729764 },
@@ -3295,7 +3298,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     city: 'თბილისი',
     priceFromM2: '$1,000',
     done: 100,
-    finish: 'გადაცემულია',
+    finish: 'ჩაბარებული',
     flats: 280,
     rating: 4.4,
     coords: { lat: 41.7278474, lng: 44.7885005 },
@@ -3315,7 +3318,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     city: 'თბილისი',
     priceFromM2: '$2,000',
     done: 100,
-    finish: 'გადაცემულია',
+    finish: 'ჩაბარებული',
     flats: 120,
     rating: 4.6,
     coords: { lat: 41.70735138, lng: 44.72016995 },
@@ -3515,7 +3518,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     city: 'თბილისი',
     priceFromM2: '$1,050',
     done: 100,
-    finish: 'გადაცემულია',
+    finish: 'ჩაბარებული',
     flats: 160,
     rating: 4.4,
     coords: { lat: 41.69294783, lng: 44.88344621 },
@@ -4648,7 +4651,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     city: 'თბილისი',
     priceFromM2: '$1,100',
     done: 100,
-    finish: 'გადაცემულია 2024 Q3',
+    finish: 'ჩაბარებული 2024 Q3',
     flats: 65,
     rating: 4.6,
     coords: { lat: 41.75778743, lng: 44.76667517 },

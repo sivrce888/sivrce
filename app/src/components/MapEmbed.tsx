@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
+import { useI18n } from '@/lib/i18n/context'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
@@ -295,6 +296,7 @@ export default function MapEmbed({
   terrain = 'streets',
 }: MapEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const { t } = useI18n()
   const mapRef = useRef<MlMap | null>(null)
   const markerRef = useRef<MlMarker | null>(null)
   const mlRef = useRef<MaplibreNS | null>(null)
@@ -577,14 +579,14 @@ export default function MapEmbed({
         <div className="absolute inset-0 grid place-items-center bg-sv-cloud/95 px-4 text-center dark:bg-sv-navy/95">
           <div>
             <p className="text-[13px] font-bold text-sv-ink/60 dark:text-white/60">
-              რუკა ვერ ჩაიტვირთა
+              {t('map.error')}
             </p>
             <button
               type="button"
               onClick={onRetry}
               className="mt-3 rounded-full bg-sv-blue px-4 py-2 text-[12px] font-extrabold text-white transition hover:bg-sv-blue-deep"
             >
-              თავიდან ცდა
+              {t('error.retry')}
             </button>
           </div>
         </div>

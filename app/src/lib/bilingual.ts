@@ -29,11 +29,13 @@ const LATIN_TO_KA: Record<string, string> = {
   u: 'უ', v: 'ვ', z: 'ზ',
 }
 
-/** Latin → Georgian digraphs, longest-match first (singles handled inline). */
+/** Latin → Georgian digraphs, longest-match first (singles handled inline).
+ *  'gh' → 'ღ' serves Georgian romanizations ('Dighomi') — English gh-loans
+ *  ('Highlight') go through WORD_DICT instead. */
 const LATIN_DIGRAPHS: Array<[string, string]> = [
-  ['sh', 'შ'], ['ch', 'ჩ'], ['kh', 'ხ'], ['gh', 'გ'], ['zh', 'ჟ'],
+  ['sh', 'შ'], ['ch', 'ჩ'], ['kh', 'ხ'], ['gh', 'ღ'], ['zh', 'ჟ'],
   ['ts', 'ც'], ['dz', 'ძ'], ['ck', 'კ'], ['ph', 'ფ'],
-  ['wh', 'ვა'], ['ea', 'ი'], ['iew', 'იუ'], ['ew', 'იუ'], ['igh', 'აი'],
+  ['wh', 'ვა'], ['ea', 'ი'], ['iew', 'იუ'], ['ew', 'იუ'],
   ['ow', 'აუ'], ['ay', 'აი'], ['ey', 'ეი'], ['oy', 'ოი'], ['uy', 'უი'],
   ['qu', 'კვ'], ['ee', 'ი'],
 ]

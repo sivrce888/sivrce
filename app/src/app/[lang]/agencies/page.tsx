@@ -9,6 +9,7 @@ import { isValidLang } from '@/lib/i18n/core'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
+import { altName } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { roleSignupHref } from '@/lib/auth-roles'
@@ -82,6 +83,12 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
       position: i + 1,
       name: a.name,
       url: `https://sivrce.ge/agencies/${a.slug}`,
+      item: {
+        '@type': 'RealEstateAgent',
+        name: a.name,
+        ...(altName(a.name) && { alternateName: altName(a.name) }),
+        url: `https://sivrce.ge/agencies/${a.slug}`,
+      },
     })),
   }
 

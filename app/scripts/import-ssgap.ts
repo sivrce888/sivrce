@@ -108,7 +108,7 @@ async function main() {
       if (p.isFinished && existed.status !== "completed") {
         await db.projectDirectory.update({
           where: { id },
-          data: { status: "completed", ...(devYear ? { readyBy: `გადაცემულია (${devYear})` } : {}) },
+          data: { status: "completed", ...(devYear ? { readyBy: `ჩაბარებული (${devYear})` } : {}) },
         })
         refreshes++
       } else if (!p.isFinished && devYear && devYear >= year && existed.status === "completed") {

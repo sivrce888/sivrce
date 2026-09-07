@@ -9,6 +9,7 @@
  */
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
+import { canonicalizeDistrict } from '@/lib/district-canon'
 import { DEVELOPERS, PROJECTS, freshenFinish, getDeveloper, type Developer, type Project } from '@/data/professionals'
 
 export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
@@ -191,6 +192,7 @@ export function applyProjectRow(
   // ponytail: curated street pins beat korter district centroids; upgrade → confidence score.
   const coords = resolveProjectCoords(base, r)
   const location = resolveProjectLocation(base, r)
+  const district = canonicalizeDistrict(r.district, r.city)
   const developerSlug =
     base.developerSlug || nameToSlug.get(norm(r.developer)) || ''
   const body = (r.body || '').trim()
@@ -219,6 +221,7 @@ export function applyProjectRow(
       ? { description: { ka: body, en: body, ru: body } }
       : {}),
     done: r.status === 'completed' ? 100 : base.done,
+    ...(district ? { district } : {}),
     coords,
   })
 }
@@ -229,6 +232,7 @@ export function rowToProject(
 ): Project {
   const hasGeo = isValidCoords(r.lat, r.lng)
   const body = (r.body || '').trim()
+  const district = canonicalizeDistrict(r.district, r.city)
   const fallback = `${r.name} — ${r.city}. პროექტი და მისამართი სივრცეზე.`
   return freshenFinish({
     slug: r.slug,
@@ -239,6 +243,8 @@ export function rowToProject(
     ...(r.passportUrl ? { passportUrl: r.passportUrl } : {}),
     location: (r.address || '').trim() || r.district,
     city: r.city,
+    ...(district ? { district } : {}),
+    ...(canonicalizeDistrict(r.district, r.city) ? { district: canonicalizeDistrict(r.district, r.city) } : {}),
     priceFromM2: r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : '',
     done: r.status === 'completed' ? 100 : 35,
     finish: r.readyBy,

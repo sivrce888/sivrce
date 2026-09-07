@@ -64,14 +64,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           : null
   const name = extra && 'name' in extra ? extra.name : user.name
   const title = `${name ?? 'sivrce'} — ${SELLER_ROLE_LABEL[role].ka}`
-  const description =
+  const base =
     extra && 'summary' in extra && extra.summary
-      ? extra.summary.replace(/\s+/g, ' ').slice(0, 155)
+      ? extra.summary.replace(/\s+/g, ' ')
       : extra && 'description' in extra && extra.description
-        ? extra.description.replace(/\s+/g, ' ').slice(0, 155)
+        ? extra.description.replace(/\s+/g, ' ')
         : extra && 'agency' in extra
           ? `${extra.name} · ${extra.agency} · სივრცე.ge`
           : `უძრავი ქონება ერთ სივრცეში — ${SELLER_ROLE_LABEL[role].ka}`
+  const alt = name ? altName(name) : ''
+  const description = ((alt && !base.includes(alt) ? `${name} (${alt}). ` : '') + base).slice(0, 155)
   return {
     title,
     description,
@@ -94,7 +96,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
   const user = await db.user
     .findUnique({
       where: { id },
-      select: { id: true, name: true, image: true, role: true, trustScore: true },
+      select: { id: true, name: true, image: true, avatarStyle: true, role: true, trustScore: true },
     })
     .catch(() => null)
 
@@ -190,6 +192,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
               <UserAvatar
                 name={displayName}
                 image={user.image}
+                gradient={user.avatarStyle}
                 size={96}
                 shape="card"
                 className={user.image ? 'border border-sv-ink/[0.06] bg-sv-surface' : ''}

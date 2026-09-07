@@ -6,6 +6,8 @@ import { MapPin, Building2, Star, Search, TrainFront } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import type { BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND } from '@/lib/category-brand'
+import { cityName, MICRO, type DirLoc } from '@/lib/directory-seo'
+import { DISTRICTS } from '@/lib/seo-pages'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 
 type Counts = { sale: number; rent: number; daily: number; pledge: number }
@@ -14,11 +16,60 @@ type Props = {
   buildings: BuildingCatalogEntry[]
   countsBySlug: Record<string, Counts>
   developerNames: Record<string, string>
+  loc: DirLoc
 }
 
 const empty: Counts = { sale: 0, rent: 0, daily: 0, pledge: 0 }
 
-export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Props) {
+const L: Record<DirLoc, {
+  search: string; allCity: string; allDistrict: string; allUbani: string; all: string
+  ready: string; construction: string; cityAria: string; districtAria: string
+  ubaniAria: string; statusAria: string; nBuildings: (n: number) => string
+  none: string; forSale: string; rent: string; daily: string; pledge: string
+  listings: (n: number) => string; floorsAbbr: string; unitsAbbr: string
+}> = {
+  ka: {
+    search: 'ძებნა სახელით, უბნით, მისამართით ან დეველოპერით',
+    allCity: 'ყველა ქალაქი', allDistrict: 'ყველა რაიონი', allUbani: 'ყველა უბანი', all: 'ყველა',
+    ready: 'ჩაბარებული', construction: 'მშენებარე',
+    cityAria: 'ქალაქი', districtAria: 'რაიონი', ubaniAria: 'უბანი', statusAria: 'სტატუსი',
+    nBuildings: (n) => `${n} შენობა`,
+    none: '{t.none}',
+    forSale: 'იყიდება', rent: 'ქირა', daily: 'დღე', pledge: 'გირავნ.',
+    listings: (n) => `${n} განცხადება`, floorsAbbr: 'სართ.', unitsAbbr: 'ბინა',
+  },
+  en: {
+    search: 'Search by name, neighborhood, address or developer',
+    allCity: 'All cities', allDistrict: 'All districts', allUbani: 'All neighborhoods', all: 'All',
+    ready: 'Completed', construction: 'Under construction',
+    cityAria: 'City', districtAria: 'District', ubaniAria: 'Neighborhood', statusAria: 'Status',
+    nBuildings: (n) => `${n} buildings`,
+    none: 'Nothing found — change a filter or the search term',
+    forSale: 'for sale', rent: 'rent', daily: 'daily', pledge: 'pledge',
+    listings: (n) => `${n} listings`, floorsAbbr: 'fl.', unitsAbbr: 'units',
+  },
+  ru: {
+    search: 'Поиск по названию, кварталу, адресу или застройщику',
+    allCity: 'Все города', allDistrict: 'Все районы', allUbani: 'Все кварталы', all: 'Все',
+    ready: 'Сдан', construction: 'Строится',
+    cityAria: 'Город', districtAria: 'Район', ubaniAria: 'Квартал', statusAria: 'Статус',
+    nBuildings: (n) => `${n} корпусов`,
+    none: 'Ничего не найдено — измените фильтр или запрос',
+    forSale: 'продажа', rent: 'аренда', daily: 'посуточно', pledge: 'залог',
+    listings: (n) => `${n} объявлений`, floorsAbbr: 'эт.', unitsAbbr: 'кв.',
+  },
+}
+
+/** District/ubani names are KA data keys — show the locale name when one exists. */
+function geoName(ka: string, loc: DirLoc): string {
+  if (loc === 'ka') return ka
+  const d = DISTRICTS.find((x) => x.ka === ka)
+  if (d) return loc === 'ru' ? d.ru : d.en
+  return ka
+}
+
+export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc }: Props) {
+  const t = L[loc]
   const [q, setQ] = useState('')
   const [city, setCity] = useState<'all' | 'თბილისი' | 'ბათუმი'>('თბილისი')
   const [district, setDistrict] = useState<string>('all')
@@ -82,12 +133,12 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="ძებნა სახელით, უბნით, მისამართით ან დეველოპერით"
+            placeholder={t.search}
             className="h-12 w-full rounded-control border border-sv-ink/[0.08] bg-sv-cloud pl-10 pr-4 text-[15px] font-semibold text-sv-ink outline-none transition focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
           />
         </label>
 
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="ქალაქი">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.cityAria}>
           {cities.map((c) => (
             <button
               key={c}
@@ -105,12 +156,12 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
                   : 'bg-sv-cloud text-sv-ink/60 hover:bg-sv-ink/[0.06]'
               }`}
             >
-              {c === 'all' ? 'ყველა ქალაქი' : c}
+              {c === 'all' ? t.allCity : cityName(c, loc)}
             </button>
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="რაიონი">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.districtAria}>
           {districts.map((d) => (
             <button
               key={d}
@@ -127,13 +178,13 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
                   : 'bg-sv-cloud text-sv-ink/55 hover:bg-sv-ink/[0.06]'
               }`}
             >
-              {d === 'all' ? 'ყველა რაიონი' : d}
+              {d === 'all' ? t.allDistrict : geoName(d, loc)}
             </button>
           ))}
         </div>
 
         {ubanis.length > 2 && (
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="უბანი">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.ubaniAria}>
             {ubanis.map((u) => (
               <button
                 key={u}
@@ -147,19 +198,19 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
                     : 'bg-sv-cloud text-sv-ink/55 hover:bg-sv-ink/[0.06]'
                 }`}
               >
-                {u === 'all' ? 'ყველა უბანი' : u}
+                {u === 'all' ? t.allUbani : geoName(u, loc)}
               </button>
             ))}
           </div>
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="სტატუსი">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.statusAria}>
             {(
               [
-                ['all', 'ყველა'],
-                ['ready', 'ჩაბარებული'],
-                ['construction', 'მშენებარე'],
+                ['all', t.all],
+                ['ready', t.ready],
+                ['construction', t.construction],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -178,13 +229,13 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
               </button>
             ))}
           </div>
-          <p className="text-[13px] font-bold text-sv-ink/45">{filtered.length} შენობა</p>
+          <p className="text-[13px] font-bold text-sv-ink/45">{t.nBuildings(filtered.length)}</p>
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <p className="rounded-module border border-dashed border-sv-ink/15 bg-sv-surface px-6 py-16 text-center text-[15px] font-semibold text-sv-ink/50">
-          ვერ მოიძებნა — შეცვალე ფილტრი ან ძებნის სიტყვა
+          {t.none}
         </p>
       ) : (
         <div className="sv-card-grid-3">
@@ -193,7 +244,10 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
             const counts = countsBySlug[b.slug] ?? empty
             const total = counts.sale + counts.rent + counts.daily + counts.pledge
             const metro = nearestMetro(b.coords.lat, b.coords.lng)
-            const place = [b.district, b.ubani].filter(Boolean).join(' · ')
+            const place = [b.district, b.ubani]
+              .filter((n): n is string => Boolean(n))
+              .map((n) => geoName(n, loc))
+              .join(' · ')
             return (
               <LocalizedLink
                 key={b.slug}
@@ -217,7 +271,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
                         b.status === 'ready' ? 'bg-sv-blue' : 'bg-sv-orange'
                       }`}
                     >
-                      {b.status === 'ready' ? 'ჩაბარებული' : 'მშენებარე'}
+                      {b.status === 'ready' ? t.ready : t.construction}
                     </span>
                     <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-2">
                       <div className="min-w-0">
@@ -225,7 +279,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
                           {place}
                         </p>
                         <h2 className="truncate text-[20px] font-black text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">
-                          {b.name}
+                          {loc === 'ka' ? b.name : b.nameEn}
                         </h2>
                         {devName && (
                           <p className="text-[12px] font-bold text-white/80">{devName}</p>
@@ -249,19 +303,19 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames }: Pr
                       </p>
                     )}
                     <p className="line-clamp-2 text-[13px] font-medium leading-snug text-sv-ink/50">
-                      {b.description.ka}
+                      {b.description[loc]}
                     </p>
                     <div className="flex flex-wrap gap-2 text-[11px] font-extrabold">
-                      <span style={{ color: DEAL_BRAND.sale }}>{counts.sale} იყიდება</span>
-                      <span style={{ color: DEAL_BRAND.rent }}>{counts.rent} ქირა</span>
-                      <span style={{ color: DEAL_BRAND.daily }}>{counts.daily} დღე</span>
-                      <span style={{ color: DEAL_BRAND.pledge }}>{counts.pledge} გირავნ.</span>
+                      <span style={{ color: DEAL_BRAND.sale }}>{counts.sale} {t.forSale}</span>
+                      <span style={{ color: DEAL_BRAND.rent }}>{counts.rent} {t.rent}</span>
+                      <span style={{ color: DEAL_BRAND.daily }}>{counts.daily} {t.daily}</span>
+                      <span style={{ color: DEAL_BRAND.pledge }}>{counts.pledge} {t.pledge}</span>
                     </div>
                     <p className="inline-flex flex-wrap items-center gap-1.5 text-[12px] font-bold text-sv-ink/45">
                       <Building2 className="h-3.5 w-3.5" />
-                      {total} განცხადება · {b.floors} სართ.
-                      {b.units ? ` · ${b.units} ბინა` : ''}
-                      {b.priceFromM2 ? ` · ${b.priceFromM2}/მ²` : ''}
+                      {t.listings(total)} · {b.floors} {t.floorsAbbr}
+                      {b.units ? ` · ${b.units} ${t.unitsAbbr}` : ''}
+                      {b.priceFromM2 ? ` · ${b.priceFromM2}${MICRO[loc].perM2}` : ''}
                     </p>
                   </div>
                 </article>

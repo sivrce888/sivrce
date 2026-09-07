@@ -33,6 +33,7 @@ function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
     typeof r.ownerReply === 'string' ? r.ownerReply : (r.ownerReply?.body ?? ''),
   )
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [error, setError] = useState(false)
 
   async function send() {
@@ -46,8 +47,10 @@ function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
         body: JSON.stringify({ body: value.trim() }),
       })
       if (!res.ok) throw new Error(String(res.status))
+      setSaved(true)
     } catch {
       setError(true)
+      setSaved(false)
     } finally {
       setSaving(false)
     }
@@ -94,8 +97,10 @@ function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
           </p>
         )}
         <div className="mt-2 flex items-center justify-end gap-3">
-          {r.ownerReply && !error && (
-            <span className="text-[12px] font-semibold text-sv-ink/40">{s.replyCta}</span>
+          {saved && !error && (
+            <span role="status" className="text-[12px] font-semibold text-sv-ink/40">
+              {s.replySaved}
+            </span>
           )}
           <button
             type="button"

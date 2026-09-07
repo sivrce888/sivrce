@@ -8,24 +8,26 @@ import { FREEDOM_SQUARE, MAP_CENTER } from '@/lib/map/map-geo'
 export type MapCity = {
   slug: string
   ka: string
+  /** Latin name — non-ka UI picks this for chips/popups. */
+  en: string
   lat: number
   lng: number
 }
 
 /** Centers for map fly-to / IP snap. Inventory cities first. */
 export const MAP_CITIES: readonly MapCity[] = [
-  { slug: 'tbilisi', ka: 'თბილისი', lat: FREEDOM_SQUARE.lat, lng: FREEDOM_SQUARE.lng },
-  { slug: 'batumi', ka: 'ბათუმი', lat: 41.6417, lng: 41.6391 },
-  { slug: 'kutaisi', ka: 'ქუთაისი', lat: 42.2679, lng: 42.6946 },
-  { slug: 'rustavi', ka: 'რუსთავი', lat: 41.5495, lng: 44.9931 },
-  { slug: 'poti', ka: 'ფოთი', lat: 42.1494, lng: 41.6656 },
-  { slug: 'zugdidi', ka: 'ზუგდიდი', lat: 42.5088, lng: 41.8709 },
-  { slug: 'telavi', ka: 'თელავი', lat: 41.9198, lng: 45.4736 },
-  { slug: 'gori', ka: 'გორი', lat: 41.9842, lng: 44.1163 },
-  { slug: 'mtskheta', ka: 'მცხეთა', lat: 41.8434, lng: 44.7144 },
-  { slug: 'bakuriani', ka: 'ბაკურიანი', lat: 41.7497, lng: 43.5325 },
-  { slug: 'borjomi', ka: 'ბორჯომი', lat: 41.8389, lng: 43.3858 },
-  { slug: 'gudauri', ka: 'გუდაური', lat: 42.4764, lng: 44.4769 },
+  { slug: 'tbilisi', ka: 'თბილისი', en: 'Tbilisi', lat: FREEDOM_SQUARE.lat, lng: FREEDOM_SQUARE.lng },
+  { slug: 'batumi', ka: 'ბათუმი', en: 'Batumi', lat: 41.6417, lng: 41.6391 },
+  { slug: 'kutaisi', ka: 'ქუთაისი', en: 'Kutaisi', lat: 42.2679, lng: 42.6946 },
+  { slug: 'rustavi', ka: 'რუსთავი', en: 'Rustavi', lat: 41.5495, lng: 44.9931 },
+  { slug: 'poti', ka: 'ფოთი', en: 'Poti', lat: 42.1494, lng: 41.6656 },
+  { slug: 'zugdidi', ka: 'ზუგდიდი', en: 'Zugdidi', lat: 42.5088, lng: 41.8709 },
+  { slug: 'telavi', ka: 'თელავი', en: 'Telavi', lat: 41.9198, lng: 45.4736 },
+  { slug: 'gori', ka: 'გორი', en: 'Gori', lat: 41.9842, lng: 44.1163 },
+  { slug: 'mtskheta', ka: 'მცხეთა', en: 'Mtskheta', lat: 41.8434, lng: 44.7144 },
+  { slug: 'bakuriani', ka: 'ბაკურიანი', en: 'Bakuriani', lat: 41.7497, lng: 43.5325 },
+  { slug: 'borjomi', ka: 'ბორჯომი', en: 'Borjomi', lat: 41.8389, lng: 43.3858 },
+  { slug: 'gudauri', ka: 'გუდაური', en: 'Gudauri', lat: 42.4764, lng: 44.4769 },
 ] as const
 
 const PLACE_KEY = 'sivrce.map.place'

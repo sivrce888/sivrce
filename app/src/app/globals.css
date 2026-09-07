@@ -265,10 +265,12 @@
 }
 
 /* Frosted nav/menu glass: light milk → smoked navy in dark mode.
-   0.92 keeps a hint of frost while guaranteeing text separation over
+   0.92 + blur keeps a hint of frost while guaranteeing text separation over
    the animated dark hero. */
 .dark .glass-light {
   background: rgba(8, 13, 38, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .dark .glass-hero {
