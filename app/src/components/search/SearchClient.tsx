@@ -35,7 +35,7 @@ import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR
 import { dealLabelKey as dealKeyFor, featuresFor, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapSearchHit } from '@/lib/map-search-hit'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
-import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
+import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import { isSearchTier, SEARCH_TIERS } from '@/lib/listings-home-rail'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
@@ -348,6 +348,15 @@ export default function SearchClient({
         setDrafts((d) => ({ ...d, q: '' }))
         patchParams(nlToSearchPatch(parsed))
         return
+      }
+      // Regex couldn't structure it — let Gemini try (instant no-op without a key).
+      if (raw) {
+        const ai = await aiParseQuery(raw)
+        if (ai) {
+          setDrafts((d) => ({ ...d, q: '' }))
+          patchParams(nlToSearchPatch(ai))
+          return
+        }
       }
       flushDrafts()
     })()

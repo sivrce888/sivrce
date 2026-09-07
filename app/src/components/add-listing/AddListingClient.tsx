@@ -221,6 +221,7 @@ export default function AddListingClient() {
   const [sivrceExclusive, setSivrceExclusive] = useState(false)
   const [description, setDescription] = useState('')
   const [aiUsed, setAiUsed] = useState(false)
+  const [aiBusy, setAiBusy] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [phoneCode, setPhoneCode] = useState('')
@@ -974,18 +975,48 @@ export default function AddListingClient() {
     else if (from > cover && to <= cover) setCover(cover + 1)
   }
 
-  const aiWrite = () => {
-    if (!propType || !city) return
-    const text = t('add.aiDesc', {
-      city, district: district || '—', deal: dealLabel,
-      rooms: beds > 0 ? t('add.aiDesc.beds', { n: beds }) : rooms > 0 ? t('add.aiDesc.rooms', { n: rooms }) : '',
-      type: propLabel.toLowerCase(), area: areaN,
-      floor: floor && totalFloors ? t('add.aiDesc.floor', { f: floor, t: totalFloors }) : '',
-      condition: condition ? t(condition) : '—',
-      features: features.length ? t('add.aiDesc.features', { list: features.map((f) => t(f)).join(', ') }) : '',
-    })
-    setDescription(text)
-    setAiUsed(true)
+  const aiWrite = async () => {
+    if (!propType || !city || aiBusy) return
+    // Offline template — also the fallback when Gemini is unavailable/slow.
+    const template = () => {
+      const text = t('add.aiDesc', {
+        city, district: district || '—', deal: dealLabel,
+        rooms: beds > 0 ? t('add.aiDesc.beds', { n: beds }) : rooms > 0 ? t('add.aiDesc.rooms', { n: rooms }) : '',
+        type: propLabel.toLowerCase(), area: areaN,
+        floor: floor && totalFloors ? t('add.aiDesc.floor', { f: floor, t: totalFloors }) : '',
+        condition: condition ? t(condition) : '—',
+        features: features.length ? t('add.aiDesc.features', { list: features.map((f) => t(f)).join(', ') }) : '',
+      })
+      setDescription(text)
+      setAiUsed(true)
+    }
+    setAiBusy(true)
+    try {
+      const res = await fetch('/api/ai/describe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          title: name,
+          propType: t(PROP_TYPES.find((p) => p.key === propType)!.labelKey),
+          dealType: dealLabel,
+          city, district, address: street,
+          rooms: beds > 0 ? beds : rooms,
+          area: areaN,
+          floor: floor ? Number(floor) : undefined,
+          totalFloors: totalFloors ? Number(totalFloors) : undefined,
+          features: features.map((f) => t(f)),
+        }),
+        signal: AbortSignal.timeout(12000),
+      })
+      const json = (await res.json()) as { ok?: boolean; description?: string }
+      if (json.ok && json.description) {
+        setDescription(json.description)
+        setAiUsed(true)
+        return
+      }
+    } catch { /* offline / timeout / rate limit → template */ }
+    finally { setAiBusy(false) }
+    template()
   }
 
   const jumpTo = (i: number) => {
@@ -2243,8 +2274,8 @@ export default function AddListingClient() {
                         <label className={label}>{t('add.description')}</label>
                         <button
                           onClick={aiWrite}
-                          disabled={!propType || !city}
-                          className="mb-2 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[12px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-blue-sm disabled:opacity-40 disabled:hover:translate-y-0"
+                          disabled={aiBusy || !propType || !city}
+                          className={`mb-2 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[12px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-blue-sm disabled:opacity-40 disabled:hover:translate-y-0 ${aiBusy ? 'animate-pulse' : ''}`}
                         >
                           <SparkMark className="h-3.5 w-3.5" mono /> {t('add.aiWrite')}
                         </button>

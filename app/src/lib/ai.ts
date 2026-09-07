@@ -3,7 +3,7 @@
  * All functions degrade gracefully: if GOOGLE_GENERATIVE_AI_API_KEY is
  * missing, they return null/fallback — never throw.
  *
- * ponytail: single-model (gemini-3-flash-preview), no streaming, no retry.
+ * ponytail: single-model (gemini-3.6-flash, free-tier eligible), no streaming, no retry.
  * Upgrade path: add model router, fallback chain, or prompt caching.
  */
 
@@ -20,8 +20,8 @@ function hasAi(): boolean {
 }
 
 function model() {
-  // Gemini 3 Flash — fast, cheap, good enough for real estate tasks.
-  return google("gemini-3-flash-preview")
+  // Gemini 3.6 Flash — current stable flash line, free tier, cheapest flash ($0.75/$3.75 per 1M paid).
+  return google("gemini-3.6-flash")
 }
 
 // ---------------------------------------------------------------------------

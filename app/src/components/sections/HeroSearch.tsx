@@ -28,7 +28,7 @@ import {
 } from './hero-search-mode'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import { searchHref, suggestionToFilters } from '@/lib/search-location'
-import { nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
+import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 
 type QuickKey =
   | 'home.search.quick.dailyTbilisi'
@@ -268,6 +268,14 @@ export default function HeroSearch() {
     if (parsed && nlHasStructure(parsed)) {
       withDeal(nlToSearchPatch(parsed))
       return
+    }
+    // Regex couldn't structure it — let Gemini try (instant no-op without a key).
+    if (raw) {
+      const ai = await aiParseQuery(raw)
+      if (ai) {
+        withDeal(nlToSearchPatch(ai))
+        return
+      }
     }
     withDeal({ q: raw || loc.street || undefined })
   }

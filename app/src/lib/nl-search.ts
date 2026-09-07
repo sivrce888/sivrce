@@ -192,3 +192,25 @@ export function mergeNl(base: NlFilters, over: NlFilters): NlFilters {
     features: features.length ? features : undefined,
   }
 }
+
+/**
+ * Client helper: ask /api/ai/search to structure a query the regex parser
+ * couldn't. Returns null on any failure (offline, no key, rate limit, slow) —
+ * callers keep their regex/keyword path. 6s cap: never block navigation.
+ * ponytail: fire-and-forget quality; upgrade to streaming merge if queries grow.
+ */
+export async function aiParseQuery(query: string): Promise<NlFilters | null> {
+  try {
+    const r = await fetch('/api/ai/search', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query }),
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!r.ok) return null
+    const j = (await r.json()) as { ok?: boolean; source?: string; filters?: NlFilters }
+    return j.ok && j.source === 'ai' && j.filters ? j.filters : null
+  } catch {
+    return null
+  }
+}
