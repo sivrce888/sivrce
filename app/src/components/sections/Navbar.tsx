@@ -63,9 +63,11 @@ export default function Navbar() {
   }, [])
 
   // Desktop: deal types + services at every width; 3D map + projects join at
-  // ≥1280 (xl). 1024–1279 fits exactly 4 ka labels (328px vs 351px available,
-  // measured) — a 5th collides with the logo/right cluster in every language.
-  // Rest → hamburger + footer. Keep 6 as the hard cap above xl.
+  // ≥1280 (xl). Budgeted against the TIGHTEST state — inner-page glass pill
+  // with the search icon — not the roomier homepage hero: 1024 fits 4 ka
+  // labels and 1280 fits all 6 only while the add-listing CTA is icon-only
+  // (its label returns at ≥1366). Rest → hamburger + footer. Keep 6 as the
+  // hard cap.
   const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean; xlOnly?: boolean }[] = [
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
@@ -93,7 +95,7 @@ export default function Navbar() {
   return (
     <header data-cms-section="nav" className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
       <div
-        className={`mx-auto flex min-h-[clamp(3.75rem,3.4rem+1vw,4.25rem)] min-w-0 w-full max-w-[1440px] items-center gap-2 px-5 py-1.5 transition-all duration-500 sm:gap-3 md:px-10 ${
+        className={`mx-auto flex min-h-[clamp(3.75rem,3.4rem+1vw,4.25rem)] min-w-0 w-full max-w-[1440px] items-center gap-2 px-5 py-1.5 transition-[margin-top,max-width,border-radius,background-color,box-shadow] duration-500 sm:gap-3 md:px-10 ${
           light
             ? 'mt-3 max-w-[1240px] rounded-tile glass-light shadow-card md:mt-4'
             : 'bg-transparent'
@@ -173,10 +175,11 @@ export default function Navbar() {
           <Link
             href={localizedHref("/add-listing", lang)}
             data-cms-key="nav.addListing"
+            aria-label={t('nav.addListing')}
             className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
           >
             <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
-            {t('nav.addListing')}
+            <span className="hidden min-[1366px]:inline">{t('nav.addListing')}</span>
           </Link>
         </div>
 
