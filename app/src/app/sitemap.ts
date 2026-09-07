@@ -70,6 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 1, localized: true },
     // /search is meta-noindex — never list it here (conflicting signals).
     { path: '/map', lastModified: DEPLOY_DATE, changeFrequency: 'hourly', priority: 0.95 },
+    { path: '/cadastre', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.8 },
     { path: '/buildings', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.9 },
     { path: '/blog', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 },
     { path: '/forum', lastModified: DEPLOY_DATE, changeFrequency: 'daily', priority: 0.7 },

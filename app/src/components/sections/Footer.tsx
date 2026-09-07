@@ -33,6 +33,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
     links: [
       { key: 'nav.services', href: '/services' },
       { key: 'nav.map', href: '/map' },
+      { key: 'nav.cadastre', href: '/cadastre' },
       { key: 'nav.buildings', href: '/buildings' },
       { key: 'footer.sv.projects', href: '/projects' },
       { key: 'footer.sv.agents', href: '/agents' },
