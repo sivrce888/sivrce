@@ -21,8 +21,9 @@ export async function GET(req: NextRequest) {
 
   const sp = req.nextUrl.searchParams
   const code = sp.get('code')?.trim() ?? ''
-  const lat = Number(sp.get('lat'))
-  const lng = Number(sp.get('lng'))
+  // ponytail: Number(null)===0 — missing lat/lng must not enter lookup as (0,0).
+  const lat = sp.get('lat') === null ? NaN : Number(sp.get('lat'))
+  const lng = sp.get('lng') === null ? NaN : Number(sp.get('lng'))
 
   const site = await lookupSite({
     code: code || null,

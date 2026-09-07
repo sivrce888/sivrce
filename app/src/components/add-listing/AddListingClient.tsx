@@ -15,6 +15,7 @@ import {
   MapPin, Ruler, Layers, Check, Construction,
   ImagePlus, X, Phone, User, MessageCircle,
   CircleCheckBig, Plus, Video, BadgeCheck, Trees, Hotel, Crown, Play, Loader2,
+  TriangleAlert,
 } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { SparkMark } from '@/components/SparkMark'
@@ -45,7 +46,7 @@ import { VIDEO_ACCEPT,
   youtubePoster,
 } from '@/lib/listing-video'
 import { cityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
-import { naprUniqDigits } from '@/lib/map/napr-parcel'
+import { naprUniqDigits, ringAreaM2 } from '@/lib/map/napr-parcel'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 
 type Deal = DealType
@@ -173,8 +174,17 @@ export default function AddListingClient() {
   const [suggestHi, setSuggestHi] = useState(-1)
   // ponytail: mute one geocode cycle after reverse-fill so pin↔address don't fight
   const muteGeocode = useRef(false)
+  /** Latest location fields for async NAPR soft-fill (no stale closures, no dep churn). */
+  const locRef = useRef({ street: '', houseNo: '', city: '', district: '' })
+  /** NAPR lot pin owns the map until the code is cleared (city auto-fill must not recenter). */
+  const naprPinRef = useRef(false)
   const [cadastral, setCadastral] = useState('')
   const [cadastralPublic, setCadastralPublic] = useState(false)
+  /** NAPR verify state for the typed cadastral code. */
+  const [napr, setNapr] = useState<{ state: 'idle' | 'checking' | 'ok' | 'miss'; m2: number | null }>({
+    state: 'idle',
+    m2: null,
+  })
   /** TAS public permits from /api/site when cadastral / pin known. */
   const [tasDocs, setTasDocs] = useState<{ documentNo: string; publicUrl: string; address?: string }[]>([])
   const [area, setArea] = useState('')
@@ -515,14 +525,13 @@ export default function AddListingClient() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // City → map center until street geocode lands.
-  /* eslint-disable react-hooks/set-state-in-effect -- city change re-centers the pin until geocode lands */
   useEffect(() => {
     if (!city || street.trim().length >= 2) return
+    if (naprPinRef.current) return
     setCoords(cityCenter(city))
     setFootprint(null)
     setPinReady(false)
   }, [city, street])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Address → pin + OSM building ring. House № → building-level zoom.
   useEffect(() => {
@@ -566,12 +575,21 @@ export default function AddListingClient() {
     }
   }, [street, houseNo, district, city])
 
-  // Cadastral → site lookup (OSM building ring preferred, NAPR parcel fallback).
+  // Cadastral → NAPR verify: fly the map to the official lot, soft-fill blanks, TAS docs.
+  useEffect(() => {
+    locRef.current = { street, houseNo, city, district }
+  })
+
   useEffect(() => {
     const digits = naprUniqDigits(cadastral)
-    if (!digits) return
+    if (!digits) {
+      naprPinRef.current = false
+      return
+    }
     const ac = new AbortController()
+    // ponytail: 800ms — 9–15 digit codes land whole; no premature map flights mid-typing
     const t = setTimeout(() => {
+      setNapr({ state: 'checking', m2: null })
       fetch(`/api/site?code=${encodeURIComponent(digits)}`, { signal: ac.signal })
         .then((r) => (r.ok ? r.json() : null))
         .then(
@@ -584,25 +602,48 @@ export default function AddListingClient() {
               tasDocs?: { documentNo: string; publicUrl: string; address?: string }[]
             } | null,
           ) => {
-            if (!d?.ok) return
+            if (ac.signal.aborted) return
+            if (!d?.ok) {
+              setNapr({ state: 'miss', m2: null })
+              return
+            }
             if (Array.isArray(d.tasDocs)) setTasDocs(d.tasDocs.slice(0, 5))
-            if (!Array.isArray(d.ring) || d.ring.length < 4) return
-            setFootprint(d.ring)
-            // ponytail: wrong NAPR parcel must not override Digomi quarter street pin
-            if (street.trim().length >= 2) return
+            const ring = Array.isArray(d.ring) && d.ring.length >= 4 ? d.ring : null
+            setNapr({ state: 'ok', m2: ring ? ringAreaM2(ring) : null })
+            if (!ring) return
+            setFootprint(ring)
+            // Official lot owns the map view — typed street text is never overwritten.
             if (typeof d.lat === 'number' && typeof d.lng === 'number') {
+              naprPinRef.current = true
               setCoords({ lat: d.lat, lng: d.lng })
               setPinReady(true)
+              // Soft-fill blank address fields from the lot (one muted text-geocode skip).
+              fetch(`/api/geocode?lat=${d.lat}&lng=${d.lng}`, { signal: ac.signal })
+                .then((gr) => (gr.ok ? gr.json() : null))
+                .then((g: (GeocodeHit & { ok?: boolean }) | null) => {
+                  if (!g?.ok || ac.signal.aborted) return
+                  const loc = locRef.current
+                  let filled = false
+                  if (g.street && !loc.street.trim()) { setStreet(g.street); filled = true }
+                  if (g.houseNo && !loc.houseNo.trim()) { setHouseNo(g.houseNo); filled = true }
+                  if (g.city && !loc.city && CITIES.includes(g.city)) { setCity(g.city); filled = true }
+                  if (g.district && !loc.district.trim()) {
+                    setDistrict(canonicalizeDistrict(g.district, g.city) || g.district)
+                    filled = true
+                  }
+                  if (filled) muteGeocode.current = true
+                })
+                .catch(() => {})
             }
           },
         )
         .catch(() => {})
-    }, 450)
+    }, 800)
     return () => {
       clearTimeout(t)
       ac.abort()
     }
-  }, [cadastral, street])
+  }, [cadastral])
 
   // Street autocomplete — local ka/en catalog (/api/suggest), same as search.
   // Runs on district alone (draft may restore city:''); district NOT sent — any
@@ -729,7 +770,9 @@ export default function AddListingClient() {
       .catch(() => {})
   }
 
-  const mapZoom = houseNo.trim() ? 18 : street.trim() ? 16 : 13
+  /** View state for the typed code: invalid/empty code always shows the idle note. */
+  const naprView = naprUniqDigits(cadastral) ? napr : { state: 'idle' as const, m2: null }
+  const mapZoom = houseNo.trim() ? 18 : street.trim() ? 16 : naprView.state === 'ok' ? 17 : 13
 
   /* ————— AI price estimate (demo model) ————— */
   const estimate = useMemo(() => {
@@ -1568,9 +1611,26 @@ export default function AddListingClient() {
                         value={cadastral}
                         onChange={(e) => setCadastral(e.target.value)}
                       />
-                      <p className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/40">
-                        <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" /> {t('add.cadastralNote')}
-                      </p>
+                      {naprView.state === 'checking' ? (
+                        <p role="status" className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/40">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-sv-blue" /> {t('add.cadastralChecking')}
+                        </p>
+                      ) : naprView.state === 'ok' ? (
+                        <p role="status" className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px] font-bold text-emerald-600">
+                          <BadgeCheck className="h-3.5 w-3.5" /> {t('add.cadastralFound')}
+                          {naprView.m2 != null && (
+                            <span className="tabular-nums text-sv-ink/40">· ~{naprView.m2.toLocaleString('en-US')} m²</span>
+                          )}
+                        </p>
+                      ) : naprView.state === 'miss' ? (
+                        <p role="status" className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-amber-600">
+                          <TriangleAlert className="h-3.5 w-3.5" /> {t('add.cadastralMiss')}
+                        </p>
+                      ) : (
+                        <p className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/40">
+                          <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" /> {t('add.cadastralNote')}
+                        </p>
+                      )}
                       {cadastral.trim() && (
                         <button
                           type="button"
@@ -2001,7 +2061,7 @@ export default function AddListingClient() {
                     <div className="grid gap-6">
                     <div>
                       <label className={label}>{t('add.price')} *</label>
-                      <div className="mb-3 flex flex-wrap gap-2">
+                      <div className="mb-3 flex flex-wrap items-center gap-2">
                         {([
                           ['total', 'add.priceTotal'],
                           ['m2', 'add.pricePerM2'],
@@ -2017,19 +2077,22 @@ export default function AddListingClient() {
                             {t(key)}
                           </button>
                         ))}
-                        <span className="mx-1 hidden h-8 w-px bg-sv-ink/10 sm:block" />
-                        {(['GEL', 'USD'] as const).map((c) => (
-                          <button
-                            key={c}
-                            type="button"
-                            onClick={() => setPriceCur(c)}
-                            className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
-                              priceCur === c ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/60'
-                            }`}
-                          >
-                            {c === 'GEL' ? '₾' : '$'}
-                          </button>
-                        ))}
+                        {/* Currency pair wraps as one unit — no orphaned chip on 375px. */}
+                        <span className="flex items-center gap-2">
+                          <span className="mx-1 hidden h-8 w-px bg-sv-ink/10 sm:block" />
+                          {(['GEL', 'USD'] as const).map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => setPriceCur(c)}
+                              className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
+                                priceCur === c ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/60'
+                              }`}
+                            >
+                              {c === 'GEL' ? '₾' : '$'}
+                            </button>
+                          ))}
+                        </span>
                       </div>
                       <div className="grid gap-5 sm:grid-cols-2">
                         <div>

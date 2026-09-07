@@ -52,8 +52,9 @@ export async function GET(req: NextRequest) {
     return cdnJson({ ok: true, source: 'tas', docNo, docs, count: docs.length })
   }
 
-  const lat = Number(sp.get('lat'))
-  const lng = Number(sp.get('lng'))
+  // ponytail: Number(null)===0 — missing lat/lng must not enter lookup as (0,0).
+  const lat = sp.get('lat') === null ? NaN : Number(sp.get('lat'))
+  const lng = sp.get('lng') === null ? NaN : Number(sp.get('lng'))
   if (Number.isFinite(lat) && Number.isFinite(lng)) {
     const shapes = await fetchTasShapesAt(lat, lng)
     return cdnJson({ ok: true, source: 'tas', lat, lng, shapes, count: shapes.length })

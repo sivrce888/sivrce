@@ -10,6 +10,7 @@ import {
   naprUniqDigits,
   pickMapsParcelFromPayload,
   pickNaprParcelFromResults,
+  ringAreaM2,
   wktPolygonToRing,
 } from './napr-parcel'
 
@@ -92,5 +93,10 @@ const big = pickNaprParcelFromResults([
 assert.ok(big)
 assert.equal(big!.uniqCode, '011010025115')
 assert.ok(big!.lat > 41.74 && big!.lat < 41.741)
+
+// ringAreaM2: 0.001°×0.001° at lat 41.74 ≈ 9246 m² (83.05 m × 111.32 m).
+const sqM2 = ringAreaM2(outer!)
+assert.ok(sqM2 !== null && Math.abs(sqM2 - 9246) < 40, `sqM2=${sqM2}`)
+assert.equal(ringAreaM2([[44.77, 41.74], [44.771, 41.74], [44.771, 41.741]]), null)
 
 console.log('napr-parcel.check: ok')

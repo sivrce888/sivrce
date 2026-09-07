@@ -107,6 +107,26 @@ export function wktPolygonToRing(wkt: string): [number, number][] | null {
   return ring.length >= 5 ? ring : null
 }
 
+/**
+ * Approximate lot area m² — shoelace in degrees, equirectangular scale at ring lat.
+ * Display chip only; NAPR SHAPE.AREA stays authoritative for parity decisions.
+ */
+export function ringAreaM2(ring: [number, number][]): number | null {
+  if (ring.length < 4) return null
+  let latSum = 0
+  let twice = 0
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i]
+    const b = ring[(i + 1) % ring.length]
+    if (!a || !b) return null
+    twice += a[0] * b[1] - b[0] * a[1]
+    latSum += a[1]
+  }
+  const k = 111_320 * Math.cos((latSum / ring.length) * (Math.PI / 180))
+  const m2 = (Math.abs(twice) / 2) * k * 111_320
+  return Number.isFinite(m2) && m2 > 0 ? Math.round(m2) : null
+}
+
 function parcelFromMapsHit(hit: MapsHit | undefined): NaprParcel | null {
   const uniq = String(hit?.name ?? '').trim()
   const ring = hit?.shape ? wktPolygonToRing(hit.shape) : null

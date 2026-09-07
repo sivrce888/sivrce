@@ -39,8 +39,9 @@ export async function GET(req: NextRequest) {
     return cdnJson({ ok: true, source: parcel.source ?? 'maps.gov.ge', ...parcel })
   }
 
-  const lat = Number(sp.get('lat'))
-  const lng = Number(sp.get('lng'))
+  // ponytail: Number(null)===0 — missing lat/lng must not enter lookup as (0,0).
+  const lat = sp.get('lat') === null ? NaN : Number(sp.get('lat'))
+  const lng = sp.get('lng') === null ? NaN : Number(sp.get('lng'))
   if (Number.isFinite(lat) && Number.isFinite(lng)) {
     const parcel = await fetchNaprParcelAt(lat, lng)
     if (!parcel) {
