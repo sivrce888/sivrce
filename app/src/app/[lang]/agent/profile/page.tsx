@@ -141,7 +141,7 @@ export default async function AgentProfilePage() {
       {profile ? (
         <section className="mt-6 rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <div className="flex flex-wrap items-center gap-4">
-            <UserAvatar name={profile.name} label={profile.avatarText} gradient={user.avatarStyle} icon={user.avatarIcon} size={64} shape="module" />
+            <UserAvatar name={profile.name} label={profile.avatarText} gradient={user.avatarStyle} color={user.avatarColor} icon={user.avatarIcon} size={64} shape="module" />
             <div className="min-w-0">
               <p className="flex items-center gap-1.5 text-[18px] font-black text-sv-ink">
                 {profile.name}

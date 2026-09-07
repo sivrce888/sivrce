@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
-import { avatarInitials, avatarVisual, ICONS, isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
+import { avatarInitials, avatarVisual, ICONS, isValidAvatarColor, isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
 
 const SHAPE = {
   full: "rounded-full",
@@ -21,6 +21,7 @@ export default function UserAvatar({
   image,
   label,
   gradient = null,
+  color = null,
   icon = null,
   size = 40,
   shape = "full",
@@ -32,14 +33,16 @@ export default function UserAvatar({
   label?: string | null
   /** User-chosen gradient index (settings); null = auto from name. */
   gradient?: number | null
+  /** User-picked gradient color "#rrggbb" (settings); wins over `gradient`. */
+  color?: string | null
   /** User-chosen glyph key (settings); null = initials. */
   icon?: string | null
   size?: number
   shape?: keyof typeof SHAPE
   className?: string
 }) {
-  const pinned = isValidAvatarStyle(gradient)
-  const { from, to, angle } = avatarVisual(name ?? "", gradient)
+  const pinned = isValidAvatarStyle(gradient) || isValidAvatarColor(color)
+  const { from, to, angle } = avatarVisual(name ?? "", gradient, color)
   const Glyph = isValidAvatarIcon(icon) ? ICONS[icon] : null
 
   // Dead remote URLs (OAuth avatar rotated away, scraped host gone) fall back

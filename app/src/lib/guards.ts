@@ -10,6 +10,7 @@ export interface SessionUser {
   name: string | null
   role: UserRole
   avatarStyle: number | null
+  avatarColor: string | null
   avatarIcon: string | null
 }
 
@@ -24,6 +25,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     name: u.name ?? null,
     role: u.role ?? "buyer",
     avatarStyle: u.avatarStyle ?? null,
+    avatarColor: u.avatarColor ?? null,
     avatarIcon: u.avatarIcon ?? null,
   }
 }

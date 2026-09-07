@@ -94,6 +94,7 @@ export default async function SettingsPage({
             passwordHash: true,
             image: true,
             avatarStyle: true,
+            avatarColor: true,
             avatarIcon: true,
           },
         }),
@@ -117,6 +118,7 @@ export default async function SettingsPage({
           name={me?.name ?? user.name ?? ""}
           image={me?.image ?? null}
           style={me?.avatarStyle ?? null}
+          color={me?.avatarColor ?? null}
           icon={me?.avatarIcon ?? null}
         />
 

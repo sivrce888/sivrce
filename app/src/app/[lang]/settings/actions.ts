@@ -8,7 +8,7 @@ import {
   parseAccountPhone,
   parseDisplayName,
 } from "@/lib/account-profile"
-import { isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
+import { isValidAvatarColor, isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
 import { isPhoneEmail, phoneEmail } from "@/lib/auth-phone"
 import { BRAND } from "@/lib/brand"
 import { db } from "@/lib/db"
@@ -178,12 +178,29 @@ export async function updateProfile(
 
 type AvatarSaveResult = { ok: boolean }
 
-/** Pin (or auto) the monogram gradient for the signed-in user. */
+/** Pin (or auto) the monogram gradient for the signed-in user. Presets and the
+ * custom color are mutually exclusive — picking one clears the other. */
 export async function saveAvatarStyle(style: number | null): Promise<AvatarSaveResult> {
   const user = await requireUser("/settings")
   if (style !== null && !isValidAvatarStyle(style)) return { ok: false }
 
-  await db.user.update({ where: { id: user.id }, data: { avatarStyle: style } })
+  await db.user.update({
+    where: { id: user.id },
+    data: { avatarStyle: style, avatarColor: null },
+  })
+  revalidatePath("/settings")
+  return { ok: true }
+}
+
+/** Pin (or clear) the user-picked gradient color "#rrggbb". */
+export async function saveAvatarColor(color: string | null): Promise<AvatarSaveResult> {
+  const user = await requireUser("/settings")
+  if (color !== null && !isValidAvatarColor(color)) return { ok: false }
+
+  await db.user.update({
+    where: { id: user.id },
+    data: { avatarColor: color === null ? null : color.toLowerCase(), avatarStyle: null },
+  })
   revalidatePath("/settings")
   return { ok: true }
 }

@@ -19,6 +19,8 @@ model User {
   image           String?   @db.Text
   /// Chosen monogram gradient (index into lib/avatar PAIRS); null = auto from name.
   avatarStyle     Int?      @map("avatar_style")
+  /// User-picked monogram gradient "#rrggbb" (lib/avatar customVisual); mutually exclusive with avatarStyle.
+  avatarColor     String?   @map("avatar_color") @db.VarChar(7)
   /// Chosen monogram glyph (key into lib/avatar ICONS); null = initials.
   avatarIcon      String?   @map("avatar_icon") @db.VarChar(24)
   /// Null for OAuth-only accounts. Set on email signup / password reset.

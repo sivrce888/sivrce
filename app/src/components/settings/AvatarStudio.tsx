@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { ImagePlus, Trash2 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
-import { saveAvatarIcon, saveAvatarImage, saveAvatarStyle } from "@/app/[lang]/settings/actions"
+import { saveAvatarColor, saveAvatarIcon, saveAvatarImage, saveAvatarStyle } from "@/app/[lang]/settings/actions"
 import UserAvatar from "@/components/UserAvatar"
 import { avatarInitials, avatarVisual, GRADIENTS, ICONS } from "@/lib/avatar"
 import type { AvatarIcon } from "@/lib/avatar"
@@ -71,22 +71,26 @@ export default function AvatarStudio({
   name,
   image,
   style: style0,
+  color: color0,
   icon: icon0,
 }: {
   name: string
   image: string | null
   style: number | null
+  color?: string | null
   icon: string | null
 }) {
   const { update } = useSession()
   const router = useRouter()
   const [style, setStyle] = useState<number | null>(style0)
+  const [color, setColor] = useState<string | null>(color0 ?? null)
   const [icon, setIcon] = useState<string | null>(icon0)
   const [preview, setPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const fileRef = useRef<HTMLInputElement>(null)
+  const colorRef = useRef<HTMLInputElement>(null)
 
   // Local object URLs are ours to revoke.
   useEffect(
@@ -99,10 +103,29 @@ export default function AvatarStudio({
   function pickStyle(next: number | null) {
     if (next === style || busy) return
     setStyle(next)
+    setColor(null)
     setErr(null)
     startTransition(async () => {
       const r = await saveAvatarStyle(next)
       if (!r.ok) {
+        setStyle(style0)
+        setColor(color0 ?? null)
+        setErr(ERR_SAVE)
+        return
+      }
+      await update()
+    })
+  }
+
+  function pickColor(next: string | null) {
+    if (next === color || busy) return
+    setColor(next)
+    setStyle(null)
+    setErr(null)
+    startTransition(async () => {
+      const r = await saveAvatarColor(next)
+      if (!r.ok) {
+        setColor(color0 ?? null)
         setStyle(style0)
         setErr(ERR_SAVE)
         return
@@ -202,7 +225,7 @@ export default function AvatarStudio({
       </div>
 
       <div className="mt-5 flex items-center gap-5">
-        <UserAvatar name={name} image={shown} gradient={style} icon={icon} size={96} />
+        <UserAvatar name={name} image={shown} gradient={style} color={color} icon={icon} size={96} />
         <div className="flex flex-col items-start gap-2">
           <button
             type="button"
@@ -237,10 +260,10 @@ export default function AvatarStudio({
       <div className="mt-6 border-t border-sv-ink/6 pt-5">
         <p className="text-[13px] font-extrabold text-sv-ink">გრადიენტი</p>
         <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/50">
-          ავტო — შენს სახელზე გამოთვლილი; არჩევანი ყველა გვერდზე ერთნაირად ჩანს.
+          ავტო — შენს სახელზე გამოთვლილი; ბოლო ბეჭედი — შენივე ფერი, ყველა გვერდზე ერთნაირად.
         </p>
         <div role="radiogroup" aria-label="ავატარის გრადიენტი" className="mt-3 flex flex-wrap gap-2.5">
-          <Swatch checked={style === null} label="ავტო" onClick={() => pickStyle(null)}>
+          <Swatch checked={style === null && color === null} label="ავტო" onClick={() => pickStyle(null)}>
             <span
               aria-hidden
               className="grid h-full w-full place-items-center text-[11px] font-black text-white"
@@ -256,14 +279,42 @@ export default function AvatarStudio({
               label={`გრადიენტი ${i + 1}`}
               onClick={() => pickStyle(i)}
             >
+              {/* block: h/w don't apply to inline spans — bare h-full collapses to 0×0 */}
               <span
                 aria-hidden
-                className="h-full w-full"
+                className="block h-full w-full"
                 style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
               />
             </Swatch>
           ))}
+          <Swatch
+            checked={color !== null}
+            label="შენი ფერი"
+            onClick={() => colorRef.current?.click()}
+          >
+            <span
+              aria-hidden
+              className="block h-full w-full"
+              style={
+                color
+                  ? { background: color }
+                  : {
+                      background:
+                        "conic-gradient(from 220deg, #FFB25E, #FF6A2D, #FF4D6D, #7A5CFF, #2E6BFF, #8FB4FF, #FFB25E)",
+                    }
+              }
+            />
+          </Swatch>
         </div>
+        {/* Native color well — platform picker, no custom UI to maintain. */}
+        <input
+          ref={colorRef}
+          type="color"
+          value={color ?? "#2e6bff"}
+          onChange={(e) => pickColor(e.target.value)}
+          className="sr-only"
+          aria-label="შენი ფერის არჩევა"
+        />
       </div>
 
       <div className="mt-6 border-t border-sv-ink/6 pt-5">

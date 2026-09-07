@@ -35,6 +35,7 @@ export default async function AdminUserDetailPage({
       email: true,
       image: true,
       avatarStyle: true,
+      avatarColor: true,
       avatarIcon: true,
       phone: true,
       role: true,
@@ -78,7 +79,7 @@ export default async function AdminUserDetailPage({
       {/* Profile header */}
       <div className="mb-5 rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-6 shadow-[var(--shadow-card)]">
         <div className="flex flex-wrap items-center gap-5">
-          <UserAvatar name={displayName} image={user.image} gradient={user.avatarStyle} icon={user.avatarIcon} size={64} />
+          <UserAvatar name={displayName} image={user.image} gradient={user.avatarStyle} color={user.avatarColor} icon={user.avatarIcon} size={64} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2.5">
               <p className="text-[18px] font-extrabold text-sv-ink">{displayName}</p>

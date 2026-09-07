@@ -58,6 +58,47 @@ export function isValidAvatarStyle(style: number | null | undefined): style is n
   return typeof style === "number" && Number.isInteger(style) && style >= 0 && style < PAIRS.length
 }
 
+const HEX6 = /^#[0-9a-f]{6}$/i
+
+/** Trust-boundary bounds check for a user-picked custom gradient ("#rrggbb"). */
+export function isValidAvatarColor(color: string | null | undefined): color is string {
+  return typeof color === "string" && HEX6.test(color)
+}
+
+/** sRGB "#rrggbb" → [hue 0-359, sat %, light %]. */
+export function hexToHsl(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16)
+  const r = ((n >> 16) & 255) / 255
+  const g = ((n >> 8) & 255) / 255
+  const b = (n & 255) / 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const l = (max + min) / 2
+  if (max === min) return [0, 0, Math.round(l * 100)]
+  const d = max - min
+  const s = d / (1 - Math.abs(2 * l - 1))
+  let h = max === r ? (g - b) / d : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+  h = Math.round(h * 60)
+  return [h < 0 ? h + 360 : h, Math.round(s * 100), Math.round(l * 100)]
+}
+
+/**
+ * User-picked hex → tint→pick two-stop gradient. Hue is the user's; saturation
+ * and lightness clamp into the legibility band the brand presets render in
+ * (white monogram stays readable). Neutrals stay neutral. User content, not
+ * platform chrome — BRAND.md hex lock governs the site's own UI, not avatars.
+ */
+export function customVisual(color: string): { from: string; to: string; angle: number } {
+  const [h, s0, l0] = hexToHsl(color)
+  const s = s0 < 8 ? s0 : Math.min(Math.max(s0, 45), 88)
+  const l = Math.min(Math.max(l0, 34), 76)
+  return {
+    from: `hsl(${h} ${s}% ${Math.min(l + 24, 86)}%)`,
+    to: `hsl(${h} ${s}% ${l}%)`,
+    angle: 135,
+  }
+}
+
 /** FNV-1a 32-bit + splitmix32 finalizer — stable across Node/browser,
  * no deps; the avalanche stops look-alike names from clustering. */
 function hash32(s: string): number {
@@ -76,15 +117,18 @@ function hash32(s: string): number {
 
 /** 10 pairs × 5 angles = 50 distinct, always-on-brand visuals per name.
  * A user-chosen `style` (settings → avatar) pins the pair and picks a stable
- * angle from the same family; null/undefined keeps the name-derived default. */
+ * angle from the same family; a user-picked `color` (settings → avatar) wins
+ * over both; null/undefined keeps the name-derived default. */
 export function avatarVisual(
   name: string,
   style?: number | null,
+  color?: string | null,
 ): {
   from: string
   to: string
   angle: number
 } {
+  if (isValidAvatarColor(color)) return customVisual(color)
   if (isValidAvatarStyle(style)) {
     const [from, to] = PAIRS[style]
     return { from, to, angle: ANGLES[style % ANGLES.length] }
