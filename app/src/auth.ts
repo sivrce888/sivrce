@@ -151,9 +151,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id!
-        token.role = (user.role as UserRole) ?? "buyer"
-        if (user.name) token.name = user.name
-        if (user.image) token.picture = user.image
+        // Promote before stamping the JWT — else first login keeps stale buyer role
+        // until the next session poll (admin bounce → /).
+        if (user.email) await ensureAdminRole(user.id!, user.email)
+        let role = (user.role as UserRole) ?? "buyer"
+        try {
+          if (await dbAvailable()) {
+            const row = await db.user.findUnique({
+              where: { id: user.id! },
+              select: { role: true, name: true, image: true, avatarStyle: true },
+            })
+            if (row) {
+              role = row.role
+              if (row.name) token.name = row.name
+              if (row.image) token.picture = row.image
+              else delete token.picture
+              token.avatarStyle = row.avatarStyle
+            }
+          }
+        } catch {
+          /* adapter role */
+        }
+        token.role = role
+        if (user.name && !token.name) token.name = user.name
+        if (user.image && !token.picture) token.picture = user.image
         return token
       }
       const id = String(token.id ?? token.sub ?? "")

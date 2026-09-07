@@ -174,7 +174,14 @@ export async function registerWithEmail(
       data: { email, name, passwordHash, role: "buyer" },
     })
     sendWelcomeEmail({ to: email, name })
-    if (process.env.ADMIN_EMAILS?.toLowerCase().includes(email)) {
+    // Exact email match — never substring (e.g. "a@x.com" inside "ba@x.com").
+    const admins = new Set(
+      (process.env.ADMIN_EMAILS ?? "")
+        .split(",")
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+    )
+    if (admins.has(email)) {
       await db.user.update({ where: { id: created.id }, data: { role: "admin" } })
     }
   }
