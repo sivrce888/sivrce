@@ -101,9 +101,12 @@ export async function listReviews(
   }
 }
 
+/** Cache tag purged by review mutation routes so server-baked pages stay fresh. */
+export const REVIEW_LIST_TAG = "review-list"
+
 /** Cached read for server-rendered pages; the API stays uncached for freshness. */
 export const listReviewsCached = unstable_cache(
   listReviews,
-  ["review-list"],
-  { revalidate: 300 },
+  [REVIEW_LIST_TAG],
+  { tags: [REVIEW_LIST_TAG], revalidate: 300 },
 )

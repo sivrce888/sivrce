@@ -80,10 +80,12 @@ export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: 
                 <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/70">
                   <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(p.flats, loc)}
                 </span>
-                <span className="ml-auto text-[16px] font-black text-sv-blue">
-                  {p.priceFromM2}
-                  <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
-                </span>
+                {p.priceFromM2 && (
+                  <span className="ml-auto text-[16px] font-black text-sv-blue">
+                    {p.priceFromM2}
+                    <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
+                  </span>
+                )}
               </div>
               {!delivered && (
                 <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">

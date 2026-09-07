@@ -1155,3 +1155,13 @@ html[data-cms-preview] [data-cms-section="ad_after_projects"]:empty {
   border: 1px dashed color-mix(in srgb, var(--color-sv-blue) 40%, transparent);
   border-radius: var(--radius-tile);
 }
+
+/* iOS Safari auto-zooms the page when a focused field is <16px. Unlayered so it
+   beats Tailwind utilities; max(16px, 1em) lifts small sizes, keeps larger ones. */
+@media (pointer: coarse) {
+  input:not([type='button']):not([type='submit']):not([type='reset']):not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}

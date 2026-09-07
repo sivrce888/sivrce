@@ -85,8 +85,10 @@ export async function POST(req: NextRequest) {
       district,
       tags: parseTags(p.tags),
     })
-    revalidatePath("/forum")
-    revalidatePath(`/forum/${thread.slug}`)
+    // Route-pattern form purges every locale (/ka/forum, /en/forum, …); the
+    // unprefixed form only invalidated the ka entry, so en/ru ISR stayed stale.
+    revalidatePath("/[lang]/forum", "page")
+    revalidatePath("/[lang]/forum/[slug]", "page")
     return NextResponse.json({ ok: true, slug: thread.slug, thread }, { status: 201 })
   } catch {
     return NextResponse.json({ error: "db_unavailable" }, { status: 500 })

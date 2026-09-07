@@ -1,8 +1,10 @@
+import { revalidateTag } from "next/cache"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { syncProfileRating } from "@/lib/reviews/aggregate"
+import { REVIEW_LIST_TAG } from "@/lib/reviews/list"
 import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { parseReviewFields } from "@/lib/reviews/validate"
@@ -60,6 +62,7 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
       await syncProfileRating(row.targetType, row.targetId, tx)
       return row
     })
+    revalidateTag(REVIEW_LIST_TAG, { expire: 0 })
     return NextResponse.json({ ok: true, rating: updated.rating })
   } catch {
     return NextResponse.json({ error: "db_unavailable" }, { status: 500 })
@@ -91,6 +94,7 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
       await tx.review.update({ where: { id }, data: { deletedAt: new Date() } })
       await syncProfileRating(review.targetType, review.targetId, tx)
     })
+    revalidateTag(REVIEW_LIST_TAG, { expire: 0 })
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: "db_unavailable" }, { status: 500 })

@@ -61,7 +61,11 @@ export default function FavoritesClient() {
       if (on) {
         next.delete(id)
         setServerIds(next)
-        await fetch(`/api/price-watches?listingId=${encodeURIComponent(id)}`, { method: 'DELETE' })
+        const res = await fetch(`/api/price-watches?listingId=${encodeURIComponent(id)}`, { method: 'DELETE' })
+        if (!res.ok) {
+          next.add(id)
+          setServerIds(new Set(next))
+        }
       } else {
         next.add(id)
         setServerIds(next)

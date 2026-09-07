@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Bookmark, Check, Trash2 } from 'lucide-react'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
-import { useSavedSearches, saveServerSearch } from '@/lib/saved-searches'
+import { useSavedSearches, removeServerSearch, saveServerSearch } from '@/lib/saved-searches'
 import { useSearchStrings } from './i18n'
 
 /* Deal/type labels reuse the shared dict keys already used by SearchClient */
@@ -137,7 +137,12 @@ export default function SaveSearchControl() {
                       </span>
                     </button>
                     <button
-                      onClick={() => remove(s.id)}
+                      onClick={() => {
+                        remove(s.id)
+                        // Server copy drives email alerts — must go too.
+                        // Logged-out callers just get a harmless 401.
+                        void removeServerSearch(s.id)
+                      }}
                       aria-label={`${tt('remove')}: ${s.label}`}
                       className="grid h-11 w-11 shrink-0 place-items-center rounded-module text-sv-ink/35 transition-colors hover:bg-sv-orange/10 hover:text-sv-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30"
                     >

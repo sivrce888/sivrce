@@ -63,8 +63,9 @@ export async function POST(req: NextRequest) {
       body,
       parentId,
     })
-    revalidatePath("/forum")
-    revalidatePath(`/forum/${slug}`)
+    // Route-pattern form purges every locale; unprefixed only hit ka (see threads).
+    revalidatePath("/[lang]/forum", "page")
+    revalidatePath("/[lang]/forum/[slug]", "page")
     return NextResponse.json({ ok: true, reply }, { status: 201 })
   } catch (err) {
     const msg = err instanceof Error ? err.message : ""

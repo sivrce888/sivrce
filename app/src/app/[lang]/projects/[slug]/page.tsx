@@ -250,7 +250,7 @@ export default async function ProjectPage({ params }: PageProps) {
 
   // Structured facts (crawlable dl) — only rows the data actually supports.
   const detailRows: { label: string; value: string }[] = [
-    { label: micro.priceFromM2, value: project.priceFromM2 },
+    ...(project.priceFromM2 ? [{ label: micro.priceFromM2, value: project.priceFromM2 }] : []),
     { label: c.statsBuilt, value: `${project.done}%` },
     { label: micro.handover, value: finishLabel(loc, project.finish) },
     { label: micro.flats, value: unitsLabel(project.flats, loc) },
@@ -335,7 +335,9 @@ export default async function ProjectPage({ params }: PageProps) {
               <div className="min-w-0 flex-1">
                 <StatsRow
                   items={[
-                    { label: micro.priceFromM2, value: project.priceFromM2 },
+                    ...(project.priceFromM2
+                      ? [{ label: micro.priceFromM2, value: project.priceFromM2 }]
+                      : []),
                     { label: c.statsBuilt, value: `${project.done}%` },
                     { label: micro.handover, value: finishLabel(loc, project.finish) },
                     { label: micro.flats, value: String(project.flats) },
@@ -521,10 +523,12 @@ export default async function ProjectPage({ params }: PageProps) {
                   </div>
                   <div className="p-3">
                     <h3 className="text-[14px] font-black text-sv-ink">{p.name}</h3>
-                    <p className="mt-1 text-[12px] font-bold text-sv-ink/55">
-                      {p.priceFromM2}
-                      {micro.perM2}
-                    </p>
+                    {p.priceFromM2 && (
+                      <p className="mt-1 text-[12px] font-bold text-sv-ink/55">
+                        {p.priceFromM2}
+                        {micro.perM2}
+                      </p>
+                    )}
                   </div>
                 </Link>
               ))}

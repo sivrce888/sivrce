@@ -1,7 +1,9 @@
+import { revalidateTag } from "next/cache"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { REVIEW_LIST_TAG } from "@/lib/reviews/list"
 import { getTargetOwnerId } from "@/lib/reviews/owner"
 import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       where: { id },
       data: { ownerReply: body.trim(), ownerReplyAt: new Date() },
     })
+    revalidateTag(REVIEW_LIST_TAG, { expire: 0 })
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: "db_unavailable" }, { status: 500 })

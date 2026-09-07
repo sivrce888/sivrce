@@ -93,10 +93,12 @@ export default function Projects({
                   <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
                     <Building2 className="h-4 w-4 text-sv-ink/35" /> {b('home.projects.flats', { n: p.flats })}
                   </span>
-                  <span className="ml-auto text-[16px] font-black text-sv-blue-deep">
-                    {p.priceFromM2}
-                    <span className="text-[12px] font-bold text-sv-ink/60">{b('home.perM2')}</span>
-                  </span>
+                  {p.priceFromM2 && (
+                    <span className="ml-auto text-[16px] font-black text-sv-blue-deep">
+                      {p.priceFromM2}
+                      <span className="text-[12px] font-bold text-sv-ink/60">{b('home.perM2')}</span>
+                    </span>
+                  )}
                 </div>
                 <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
                   <motion.div

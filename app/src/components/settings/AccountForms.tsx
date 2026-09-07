@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { KeyRound, LogOut, Trash2, User } from "lucide-react"
 
 import { signOutToHome } from "@/app/auth/actions"
@@ -44,6 +45,7 @@ export function AccountForms({
   isPhoneAccount: boolean
 }) {
   const router = useRouter()
+  const { update } = useSession()
   const [profile, saveProfile, savingProfile] = useActionState<AccountActionState, FormData>(
     updateProfile,
     undefined,
@@ -58,8 +60,9 @@ export function AccountForms({
   )
 
   useEffect(() => {
+    if (profile?.ok) void update()
     if (profile?.ok || pw?.ok) router.refresh()
-  }, [profile, pw, router])
+  }, [profile, pw, router, update])
 
   return (
     <>

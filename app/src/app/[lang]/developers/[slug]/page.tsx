@@ -339,10 +339,12 @@ export default async function DeveloperPage({ params }: PageProps) {
                     <p className="mt-1 text-[13px] font-bold text-sv-ink/55">
                       {p.location} · {micro.handover} {finishLabel(loc, p.finish)}
                     </p>
-                    <p className="mt-2 text-[15px] font-black text-sv-blue">
-                      {p.priceFromM2}
-                      <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
-                    </p>
+                    {p.priceFromM2 && (
+                      <p className="mt-2 text-[15px] font-black text-sv-blue">
+                        {p.priceFromM2}
+                        <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
+                      </p>
+                    )}
                   </div>
                 </Link>
               ))}

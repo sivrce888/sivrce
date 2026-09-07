@@ -229,6 +229,14 @@ export default function MyListingsManager({
   const { lang } = useI18n()
   const { format, rate } = useCurrency()
   const [items, setItems] = useState(initial)
+  // Reset-on-props: patch()/remove() merge locally for instant feedback, then
+  // router.refresh() delivers full server truth (auto-expiry, badges) which
+  // useState alone would drop.
+  const [seeded, setSeeded] = useState(initial)
+  if (initial !== seeded) {
+    setSeeded(initial)
+    setItems(initial)
+  }
   const [tab, setTab] = useState<StatusTab>("active")
   const [dealTab, setDealTab] = useState<DealTab>(() =>
     focusRent && initial.some((l) => isRentDeal(l.dealType)) ? "rent" : "all",

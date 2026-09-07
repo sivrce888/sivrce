@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto"
 
+import { revalidateTag } from "next/cache"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { syncProfileRating } from "@/lib/reviews/aggregate"
-import { listReviews, parseSort, toDto } from "@/lib/reviews/list"
+import { REVIEW_LIST_TAG, listReviews, parseSort, toDto } from "@/lib/reviews/list"
 import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { parseReviewFields } from "@/lib/reviews/validate"
@@ -211,6 +212,7 @@ export async function POST(req: NextRequest) {
       await syncProfileRating(parsed.data.targetType, parsed.data.targetId, tx)
       return row
     })
+    revalidateTag(REVIEW_LIST_TAG, { expire: 0 })
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 })
   } catch (err) {
     // Unique [targetType, targetId, authorId] — one review per author per target.

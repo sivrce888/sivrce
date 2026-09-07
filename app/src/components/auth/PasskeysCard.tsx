@@ -23,6 +23,13 @@ function labelFor(k: PasskeyRow): string {
 export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
   const router = useRouter()
   const [list, setList] = useState(keys)
+  // Reset-on-props: server actions + router.refresh() deliver new `keys`, which
+  // useState alone would drop — the added passkey would only show after reload.
+  const [seeded, setSeeded] = useState(keys)
+  if (keys !== seeded) {
+    setSeeded(keys)
+    setList(keys)
+  }
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
