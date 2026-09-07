@@ -9,7 +9,16 @@ import { useI18n } from '@/lib/i18n/context'
 import { useNb } from './i18n'
 
 /** Index card: hero image, livability score badge, avg price per m². */
-export default function NeighborhoodCard({ n, count }: { n: Neighborhood; count: number }) {
+export default function NeighborhoodCard({
+  n,
+  count,
+  liveAvg,
+}: {
+  n: Neighborhood
+  count: number
+  /** live avg $/m² — falls back to the static guide price */
+  liveAvg?: number
+}) {
   const { lang } = useI18n()
   const s = useNb()
   const score = overallScore(n)
@@ -52,7 +61,7 @@ export default function NeighborhoodCard({ n, count }: { n: Neighborhood; count:
           <div>
             <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/60">{s.avgPrice}</p>
             <p className="text-[17px] font-black text-sv-blue">
-              ${n.avgPriceM2USD.toLocaleString('en-US')}
+              ${(liveAvg ?? n.avgPriceM2USD).toLocaleString('en-US')}
               <span className="text-[12px] font-bold text-sv-ink/60">{s.perM2}</span>
             </p>
           </div>

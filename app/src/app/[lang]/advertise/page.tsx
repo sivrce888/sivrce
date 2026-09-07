@@ -29,7 +29,7 @@ type Copy = {
 
 const COPY: Record<string, Copy> = {
   ka: {
-    metaTitle: 'განათავსე განცხადება — sivrce',
+    metaTitle: 'განათავსე განცხადება',
     metaDescription: `უფასო განთავსება მესაკუთრეებისთვის, სააგენტოებისა და დეველოპერებისთვის. VIP დღეში ${formatGel(100)}-დან.`,
     hero: {
       kicker: 'განთავსება',
@@ -102,7 +102,7 @@ const COPY: Record<string, Copy> = {
     },
   },
   en: {
-    metaTitle: 'Post a Listing — sivrce',
+    metaTitle: 'Post a Listing',
     metaDescription: `Free listings for owners, agencies and developers. VIP from ${formatGel(100)} per day.`,
     hero: {
       kicker: 'Advertising',
@@ -175,7 +175,7 @@ const COPY: Record<string, Copy> = {
     },
   },
   ru: {
-    metaTitle: 'Разместите объявление — sivrce',
+    metaTitle: 'Разместите объявление',
     metaDescription: `Бесплатные объявления для владельцев, агентств и застройщиков. VIP от ${formatGel(100)} в день.`,
     hero: {
       kicker: 'Реклама',

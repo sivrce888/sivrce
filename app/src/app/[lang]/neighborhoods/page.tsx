@@ -6,7 +6,8 @@ import NeighborhoodsIndex from '@/components/neighborhoods/NeighborhoodsIndex'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { isValidLang } from '@/lib/i18n/core'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
-import { getDistrictListingCounts } from '@/lib/listings-db'
+import { getDistrictListingCounts, USD_GEL } from '@/lib/listings-db'
+import { getNeighborhoodMarketStats } from '@/lib/market-stats'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 
@@ -54,6 +55,15 @@ export default async function NeighborhoodsPage({
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const counts = await getDistrictListingCounts()
+  // Same live source as the detail page so index and detail never contradict.
+  const markets = await Promise.all(
+    NEIGHBORHOODS.map((n) => getNeighborhoodMarketStats(n.cityKey, n.districts, USD_GEL)),
+  )
+  const liveAvg: Record<string, number> = {}
+  NEIGHBORHOODS.forEach((n, i) => {
+    const v = markets[i].stats?.avgPerM2USD
+    if (v) liveAvg[n.slug] = v
+  })
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -72,7 +82,7 @@ export default async function NeighborhoodsPage({
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <NeighborhoodsIndex counts={counts} />
+        <NeighborhoodsIndex counts={counts} liveAvg={liveAvg} />
         <AdSlot slot="neighborhoods" lang={lang} />
         <CTA />
       </main>

@@ -9,8 +9,11 @@ import { useNb } from './i18n'
 /** /neighborhoods index — counts from DB (passed in), never mock inventory. */
 export default function NeighborhoodsIndex({
   counts,
+  liveAvg = {},
 }: {
   counts: Record<string, number>
+  /** live avg $/m² by slug — same source as the detail page */
+  liveAvg?: Record<string, number>
 }) {
   const s = useNb()
   return (
@@ -23,7 +26,7 @@ export default function NeighborhoodsIndex({
               const count = n.districts.reduce((sum, d) => sum + (counts[d] ?? 0), 0)
               return (
                 <Reveal key={n.slug} delay={(i % 3) * 0.1}>
-                  <NeighborhoodCard n={n} count={count} />
+                  <NeighborhoodCard n={n} count={count} liveAvg={liveAvg[n.slug]} />
                 </Reveal>
               )
             })}

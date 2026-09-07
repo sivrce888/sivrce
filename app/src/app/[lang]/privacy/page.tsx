@@ -120,19 +120,19 @@ const SECTIONS: Record<string, Section[]> = {
 
 const META: Record<string, { title: string; description: string; kicker: string; subtitle: string }> = {
   ka: {
-    title: 'კონფიდენციალურობის პოლიტიკა — sivrce',
+    title: 'კონფიდენციალურობის პოლიტიკა',
     description: 'როგორ იცავს sivrce შენს პირად მონაცემებს — მონაცემთა შეგროვება, გამოყენება, ქუქიები და შენი უფლებები.',
     kicker: 'იურიდიული',
     subtitle: 'ბოლო განახლება: 2026 წელი',
   },
   en: {
-    title: 'Privacy Policy — sivrce',
+    title: 'Privacy Policy',
     description: 'How sivrce protects your personal data — collection, usage, cookies and your rights.',
     kicker: 'Legal',
     subtitle: 'Last updated: 2026',
   },
   ru: {
-    title: 'Политика конфиденциальности — sivrce',
+    title: 'Политика конфиденциальности',
     description: 'Как sivrce защищает ваши персональные данные — сбор, использование, cookies и ваши права.',
     kicker: 'Право',
     subtitle: 'Обновлено: 2026 год',
@@ -167,7 +167,7 @@ export default async function PrivacyPage({
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <PageHero tone="light" kicker={m.kicker} title={m.title.replace(' — sivrce', '')} subtitle={m.subtitle} />
+        <PageHero tone="light" kicker={m.kicker} title={m.title} subtitle={m.subtitle} />
         <article className="mx-auto max-w-3xl px-6 pb-20 pt-4 md:pb-28">
           <div className="space-y-10">
             {sections.map((s, i) => (

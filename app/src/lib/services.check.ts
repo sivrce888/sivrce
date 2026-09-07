@@ -48,6 +48,8 @@ assert.equal(pickLocText({ ka: 'ა', en: 'a', ru: 'а' }, 'en'), 'a')
 assert.equal(pickLocText({ ka: 'ა', en: 'a', ru: 'а' }, 'he'), 'a')
 assert.ok(formatGel(1000).includes('1'))
 assert.ok(formatGel(1000).includes('₾'))
+// en-US grouping — must be identical on Node and in the browser (hydration)
+assert.equal(formatGel(35750), '35,750 ₾')
 
 assert.equal(serviceSlug('  Atelier  Frame  '), 'atelier-frame')
 assert.equal(serviceSlug('კვ. ფასი'), 'კვ-ფასი')
