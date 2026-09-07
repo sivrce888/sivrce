@@ -35,9 +35,11 @@ const LIVE_PROBE_LAYER_SPEC = {
 /**
  * Append the invisible query handle to the style BEFORE map creation — tile
  * buckets are built per layer at load time, so a layer added later queries
- * empty. Idempotent; safe on every style acquisition.
+ * empty. Skipped when the basemap is photo-only (no `sivrce` vector source —
+ * a dangling layer ref kills the whole style); live rescue is simply off.
  */
 export function withLiveProbe(style: StyleSpecification): StyleSpecification {
+  if (!style.sources?.sivrce) return style
   if (style.layers?.some((l) => l.id === LIVE_PROBE_LAYER_ID)) return style
   style.layers = [...(style.layers ?? []), LIVE_PROBE_LAYER_SPEC]
   return style
