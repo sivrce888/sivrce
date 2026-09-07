@@ -605,8 +605,10 @@ export default function AddListingClient() {
   }, [cadastral, street])
 
   // Street autocomplete — local ka/en catalog (/api/suggest), same as search.
+  // Runs on district alone (draft may restore city:''); district NOT sent — any
+  // typed street must match citywide (Beliashvili ≠ Saburtalo location pick).
   useEffect(() => {
-    if (!city || street.trim().length < 2) {
+    if ((!city && !district) || street.trim().length < 2) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reset suggestions when input drops below min length
       setSuggests([])
       setSuggestHi(-1)
@@ -632,7 +634,7 @@ export default function AddListingClient() {
       clearTimeout(t)
       ac.abort()
     }
-  }, [street, city])
+  }, [street, city, district])
 
   const applyLocation = (v: LocationValue) => {
     setCity(v.city)

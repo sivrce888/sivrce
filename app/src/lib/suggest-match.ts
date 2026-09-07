@@ -49,6 +49,30 @@ export function foldQuarterQuery(s: string): string {
   return out
 }
 
+/**
+ * ka↔latin phonetic skeleton: confusable romanization systems collapse to one
+ * form (ღ/gh→g, ფ/f/ph→p, ყ/q→k, ც/ც/ts/c→c…), so "beliashvilis" hits
+ * "ბელიაშვილის", "kutaisi" hits "ქუთაისი" and en-less regional streets match latin.
+ */
+const KA_SKEL: Record<string, string> = {
+  ა: 'a', ბ: 'b', გ: 'g', დ: 'd', ე: 'e', ვ: 'v', ზ: 'z', თ: 't', ი: 'i', კ: 'k',
+  ლ: 'l', მ: 'm', ნ: 'n', ო: 'o', პ: 'p', ჟ: 'z', რ: 'r', ს: 's', ტ: 't', უ: 'u',
+  ფ: 'p', ქ: 'k', ღ: 'g', ყ: 'k', შ: 's', ჩ: 'c', ც: 'c', ძ: 'z', წ: 'c', ჭ: 'c',
+  ხ: 'k', ჯ: 'j', ჰ: 'h',
+}
+const LAT_SKEL: Record<string, string> = {
+  gh: 'g', kh: 'k', sh: 's', ch: 'c', zh: 'z', ts: 'c', dz: 'z', ph: 'p',
+}
+
+export function foldTranslit(s: string): string {
+  const dig = norm(s).replace(/gh|kh|sh|ch|zh|ts|dz|ph/g, (m) => LAT_SKEL[m]!)
+  return [...dig].map((c) => KA_SKEL[c] ?? (c === 'f' ? 'p' : c === 'q' ? 'k' : c)).join('')
+}
+
+/** Latin query tokens drop the Georgian genitive tail: "beliashvilis"→"beliashvili". */
+const stemLatin = (w: string) => (/^[a-z0-9'-]{4,}$/.test(w) ? w.replace(/(?:is|s)$/, '') : w)
+const stemTokens = (s: string) => s.split(/\s+/).map(stemLatin).join(' ')
+
 /** prefix = starts-with (string or any word); null = no match. */
 export function suggestMatch(
   hay: (string | undefined)[],
@@ -56,17 +80,43 @@ export function suggestMatch(
 ): { prefix: boolean } | null {
   const needle = foldQuarterQuery(q)
   if (!needle) return null
-  for (const h of hay) {
-    if (!h) continue
-    const n = foldQuarterQuery(h)
-    // "beli" → Beliashvili (word start), not only full-string start
-    if (n.startsWith(needle) || n.split(/[\s,-]+/).some((w) => w.startsWith(needle))) {
-      return { prefix: true }
+  // ponytail: O(catalog) fold per call — precompute skeletons in the route if p95 ever matters
+  // Query variants: genitive-tail stem ("beliashvilis"), phonetic fold
+  // ("nutsubidze"→"nucubize"), and folded+nominative-vowel stripped ("nucubiz").
+  const devowel = (s: string) => s.replace(/(?:e|i)(?=[\s,]|$)/g, '')
+  const needles = [
+    ...new Set([
+      needle,
+      stemTokens(needle),
+      foldTranslit(needle),
+      devowel(foldTranslit(needle)),
+      foldTranslit(stemTokens(needle)),
+      devowel(foldTranslit(stemTokens(needle))),
+    ]),
+  ].filter(Boolean)
+  // Hay variants: raw, ka genitive stripped (ნუცუბიძის→ნუცუბიძ — latin users type
+  // the nominative), and both phonetically folded. Raw stays first: no regression.
+  const gStem = (s: string) => s.replace(/ის(?=[\s,]|$)|ს(?=[\s,]|$)/gu, '')
+  const hitPrefix = (s: string, nd: string) =>
+    s.startsWith(nd) || s.split(/[\s,-]+/).some((w) => w.startsWith(nd))
+  const hs = hay
+    .filter((h): h is string => !!h)
+    .map((h) => {
+      const n = foldQuarterQuery(h)
+      const n2 = gStem(n)
+      return [n, foldTranslit(n), n2, foldTranslit(n2)] as const
+    })
+  for (const [a, b, c, d] of hs) {
+    for (const nd of needles) {
+      if (hitPrefix(a, nd) || hitPrefix(b, nd) || hitPrefix(c, nd) || hitPrefix(d, nd)) {
+        return { prefix: true }
+      }
     }
   }
-  for (const h of hay) {
-    if (!h) continue
-    if (foldQuarterQuery(h).includes(needle)) return { prefix: false }
+  for (const [a, b, c, d] of hs) {
+    if (needles.some((nd) => a.includes(nd) || b.includes(nd) || c.includes(nd) || d.includes(nd))) {
+      return { prefix: false }
+    }
   }
   return null
 }

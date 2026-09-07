@@ -9,7 +9,9 @@ import { suggestMatch } from "@/lib/suggest-match"
  * GET /api/suggest?q= — autocomplete for the search keyword box.
  * Matches cities, districts, streets and micro-quarters across ka/en/ru.
  * Static in-memory data, substring match; ranked: prefix first.
- * ponytail: no fuzzy matching — Meilisearch handles typos in search.
+ * Matching is cross-script: ka↔latin skeleton fold + genitive stems in
+ * suggest-match — "beliashvilis"/"kutaisi" hit Georgian-only catalog rows.
+ * ponytail: no typo-fuzzy — Meilisearch handles typos in search.
  */
 
 export const maxDuration = 5
