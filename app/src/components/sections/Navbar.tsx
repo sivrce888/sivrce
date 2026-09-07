@@ -62,15 +62,18 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Desktop: deal types + 3D map + projects. Rest → hamburger + footer.
-  // ponytail: 5 desktop links; 6th Georgian label overflows the pill — demote buildings/blog.
-  const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean }[] = [
+  // Desktop: deal types + services at every width; 3D map + projects join at
+  // ≥1280 (xl). 1024–1279 fits exactly 4 ka labels (328px vs 351px available,
+  // measured) — a 5th collides with the logo/right cluster in every language.
+  // Rest → hamburger + footer. Keep 6 as the hard cap above xl.
+  const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean; xlOnly?: boolean }[] = [
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
     { key: 'map.pledge', to: '/pledge', mobileOnly: true },
-    { key: 'nav.map', to: '/map' },
-    { key: 'nav.projects', to: '/projects' },
+    { key: 'nav.map', to: '/map', xlOnly: true },
+    { key: 'nav.projects', to: '/projects', xlOnly: true },
+    { key: 'nav.services', to: '/services' },
     { key: 'nav.buildings', to: '/buildings', mobileOnly: true },
     { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
@@ -79,7 +82,6 @@ export default function Navbar() {
     { key: 'nav.agencies', to: '/agencies', mobileOnly: true },
     { key: 'nav.developers', to: '/developers', mobileOnly: true },
     { key: 'nav.advertise', to: '/advertise', mobileOnly: true },
-    { key: 'nav.services', to: '/services', mobileOnly: true },
     { key: 'nav.search', to: '/search', mobileOnly: true },
   ]
 
@@ -109,7 +111,7 @@ export default function Navbar() {
             const active = isActive(l.to)
             const cls = `whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-2.5 ${
               l.mobileOnly ? 'hidden' : ''
-            } ${
+            } ${l.xlOnly ? 'hidden xl:inline' : ''} ${
               light
                 ? active
                   ? 'bg-sv-ink/5 text-sv-ink'
