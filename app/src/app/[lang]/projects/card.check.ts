@@ -110,6 +110,11 @@ const pricedDesc = sortCards([noPrice, batumi, tbilisi], 'price-desc')
 assert.deepEqual(pricedDesc.map((p) => p.slug), ['b', 'x', 'n'])
 const handed = sortCards([doneRow, batumi, tbilisi], 'handover')
 assert.deepEqual(handed.map((p) => p.slug), ['x', 'b', 'd'])
+// rating desc — ties keep server order (stable sort); progress desc
+const rated = sortCards([card({ slug: 'lo', rating: 4.2 }), tbilisi, card({ slug: 'hi', rating: 4.9 })], 'rating')
+assert.deepEqual(rated.map((p) => p.slug), ['hi', 'x', 'lo'])
+const progressed = sortCards([card({ slug: 'early', done: 10 }), doneRow, card({ slug: 'adv', done: 90 })], 'progress')
+assert.deepEqual(progressed.map((p) => p.slug), ['d', 'adv', 'early'])
 
 // search: name/location/district/developer substring, case-insensitive
 assert.ok(matchesCard(tbilisi, { ...EMPTY_Q, q: 'საბურთალო' }, new Set()))
@@ -146,6 +151,8 @@ const q: typeof EMPTY_Q = {
   sort: 'price',
 }
 assert.deepEqual(parseQ(new URLSearchParams(qToSearch(q))), q)
+assert.equal(parseQ(new URLSearchParams('sort=progress')).sort, 'progress')
+assert.equal(parseQ(new URLSearchParams('sort=rating')).sort, 'rating')
 assert.deepEqual(parseQ(new URLSearchParams(qToSearch(EMPTY_Q))), EMPTY_Q)
 assert.deepEqual(
   parseQ(new URLSearchParams('status=hax&price=free&sort=steal&city=' + 'x'.repeat(500))),

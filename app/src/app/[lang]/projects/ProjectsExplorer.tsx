@@ -15,7 +15,7 @@
  * presentation only.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Search } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 import HScroll from '@/components/HScroll'
 import {
   EMPTY_Q,
@@ -78,7 +78,7 @@ const L: Record<DirLoc, Labels> = {
     allDev: 'ყველა დეველოპერი',
     devAria: 'დეველოპერი',
     sortAria: 'დალაგება',
-    sorts: { rec: 'რეკომენდებული', price: 'ფასი: ზრდადი', 'price-desc': 'ფასი: კლებადი', handover: 'ჩაბარება: მალე' },
+    sorts: { rec: 'რეკომენდებული', price: 'ფასი: ზრდადი', 'price-desc': 'ფასი: კლებადი', handover: 'ჩაბარება: მალე', rating: 'რეიტინგი: მაღალი', progress: 'მშენებლობა: დაწინაურებული' },
     results: (n) => `${n} პროექტი`,
     more: 'ნახე მეტი',
     clear: 'გასუფთავება',
@@ -96,7 +96,7 @@ const L: Record<DirLoc, Labels> = {
     allDev: 'All developers',
     devAria: 'Developer',
     sortAria: 'Sort',
-    sorts: { rec: 'Recommended', price: 'Price: low to high', 'price-desc': 'Price: high to low', handover: 'Handover: soonest' },
+    sorts: { rec: 'Recommended', price: 'Price: low to high', 'price-desc': 'Price: high to low', handover: 'Handover: soonest', rating: 'Rating: high to low', progress: 'Construction: most advanced' },
     results: (n) => `${n} ${n === 1 ? 'project' : 'projects'}`,
     more: 'Show more',
     clear: 'Clear all',
@@ -114,7 +114,7 @@ const L: Record<DirLoc, Labels> = {
     allDev: 'Все застройщики',
     devAria: 'Застройщик',
     sortAria: 'Сортировка',
-    sorts: { rec: 'Рекомендованные', price: 'Цена: по возрастанию', 'price-desc': 'Цена: по убыванию', handover: 'Сдача: скорее' },
+    sorts: { rec: 'Рекомендованные', price: 'Цена: по возрастанию', 'price-desc': 'Цена: по убыванию', handover: 'Сдача: скорее', rating: 'Рейтинг: по убыванию', progress: 'Готовность: по убыванию' },
     results: ruResults,
     more: 'Показать ещё',
     clear: 'Сбросить',
@@ -202,19 +202,39 @@ export function ProjectsExplorer({
 
   return (
     <div aria-label={t.aria}>
-      <div className="flex items-center justify-between gap-4">
-        <p aria-live="polite" className="text-[13px] font-bold text-sv-ink/60">
+      <div className="flex items-center justify-between gap-3">
+        <p aria-live="polite" className="min-w-0 truncate text-[13px] font-bold text-sv-ink/60">
           {t.results(filtered ? filtered.length : projects.length)}
         </p>
-        {filtered && (
-          <button
-            type="button"
-            onClick={() => update(EMPTY_Q)}
-            className="text-[13px] font-black text-sv-blue transition-opacity hover:opacity-70"
-          >
-            {t.clear}
-          </button>
-        )}
+        <div className="flex shrink-0 items-center gap-3">
+          {filtered && (
+            <button
+              type="button"
+              onClick={() => update(EMPTY_Q)}
+              className="text-[13px] font-black text-sv-blue transition-opacity hover:opacity-70"
+            >
+              {t.clear}
+            </button>
+          )}
+          <label className="flex min-w-0 items-center gap-2">
+            <span className="hidden text-[13px] font-bold text-sv-ink/60 sm:block">{t.sortAria}</span>
+            <div className="relative min-w-0">
+              <select
+                aria-label={t.sortAria}
+                value={q.sort}
+                onChange={(e) => update({ sort: e.target.value as Sort })}
+                className={`${selectCls} max-w-[11rem] appearance-none pr-8 sm:max-w-none`}
+              >
+                {(Object.keys(t.sorts) as Sort[]).map((s) => (
+                  <option key={s} value={s}>
+                    {t.sorts[s]}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" aria-hidden />
+            </div>
+          </label>
+        </div>
       </div>
 
       {/* HScroll rail: arrows + edge fade + drag + keyboard — filters past the
@@ -296,19 +316,6 @@ export function ProjectsExplorer({
             {devs.map((d) => (
               <option key={d.slug} value={d.slug}>
                 {d.label} ({d.count})
-              </option>
-            ))}
-          </select>
-
-          <select
-            aria-label={t.sortAria}
-            value={q.sort}
-            onChange={(e) => update({ sort: e.target.value as Sort })}
-            className={selectCls}
-          >
-            {(Object.keys(t.sorts) as Sort[]).map((s) => (
-              <option key={s} value={s}>
-                {t.sorts[s]}
               </option>
             ))}
           </select>

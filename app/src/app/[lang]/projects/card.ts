@@ -74,8 +74,8 @@ export const HANDOVER_BUCKETS = [
   { key: 'late', min: NOW_YEAR + 2, max: Infinity, label: `${NOW_YEAR + 2}+` },
 ] as const
 
-export type Sort = 'rec' | 'price' | 'price-desc' | 'handover'
-export const SORTS: Sort[] = ['rec', 'price', 'price-desc', 'handover']
+export type Sort = 'rec' | 'price' | 'price-desc' | 'handover' | 'rating' | 'progress'
+export const SORTS: Sort[] = ['rec', 'price', 'price-desc', 'handover', 'rating', 'progress']
 
 export interface Q {
   q: string
@@ -165,6 +165,8 @@ export function sortCards(items: ProjectCard[], sort: Sort): ProjectCard[] {
   const s = [...items]
   if (sort === 'price') s.sort((a, b) => (priceM2(a) || Infinity) - (priceM2(b) || Infinity))
   else if (sort === 'price-desc') s.sort((a, b) => priceM2(b) - priceM2(a))
+  else if (sort === 'rating') s.sort((a, b) => b.rating - a.rating)
+  else if (sort === 'progress') s.sort((a, b) => b.done - a.done)
   else s.sort((a, b) => (a.delivered ? Infinity : a.year ?? Infinity) - (b.delivered ? Infinity : b.year ?? Infinity))
   return s
 }
