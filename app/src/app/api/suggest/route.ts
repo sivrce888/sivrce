@@ -3,7 +3,7 @@ import { geoStreets, geoStreetsOf, type GeoStreet } from "@/data/georgia-locatio
 import { TBILISI_QUARTERS } from "@/data/tbilisi-quarters"
 import { districtKaForStreet, STREETS as TBILISI_STREETS } from "@/data/tbilisi-streets"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"
-import { suggestMatch } from "@/lib/suggest-match"
+import { suggestMatch, suggestFuzzy } from "@/lib/suggest-match"
 
 /**
  * GET /api/suggest?q= — autocomplete for the search keyword box.
@@ -128,6 +128,23 @@ export async function GET(req: Request) {
     }
   }
 
-  const suggestions = [...prefix, ...partial].slice(0, 10)
-  return Response.json({ ok: true, suggestions }, { headers: CACHE })
+  // Typo rescue — nothing matched, one char is off: fuzzy streets/quarters so the
+  // dropdown never dead-ends (runs only here, ≤1 edit in suggestFuzzy).
+  if (prefix.length === 0 && partial.length === 0 && q.length >= 4) {
+    for (const qtr of TBILISI_QUARTERS) {
+      if (cityFilter && qtr.city !== cityFilter) continue
+      if (wanted && qtr.district && !wanted.has(qtr.district)) continue
+      if (suggestFuzzy([qtr.ka, qtr.en, ...qtr.aliases], q)) {
+        push({ kind: "street", ka: qtr.ka, en: qtr.en, city: qtr.city, district: qtr.district }, false)
+      }
+    }
+    for (const s of STREETS) {
+      if (cityFilter && s.city !== cityFilter) continue
+      if (suggestFuzzy([s.ka, s.en, s.ru], q)) {
+        push({ kind: "street", ka: s.ka, en: s.en, city: s.city, district: districtKaForStreet(s.ka) }, false)
+      }
+    }
+  }
+
+  return Response.json({ ok: true, suggestions: [...prefix, ...partial].slice(0, 10) }, { headers: CACHE })
 }

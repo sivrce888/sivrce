@@ -2,7 +2,7 @@
  * Runnable check: npx tsx src/lib/suggest-match.check.ts
  */
 import assert from "node:assert/strict"
-import { foldQuarterQuery, foldTranslit, suggestMatch } from "./suggest-match"
+import { foldQuarterQuery, foldTranslit, suggestMatch, suggestFuzzy } from "./suggest-match"
 import { romanizeQuarter, quarterSearchQuery } from "@/data/tbilisi-quarters"
 
 const beli = ["აკაკი ბელიაშვილის ქუჩა", "Akaki Beliashvili Street"]
@@ -47,5 +47,20 @@ assert.equal(foldQuarterQuery("მეორე"), foldQuarterQuery("ii"))
 assert.ok(suggestMatch(gldani5, "გლდანი 5"))
 assert.ok(suggestMatch(vark3, "კვარტალი X"))
 assert.equal(quarterSearchQuery("ვარკეთილის მე-3 მასივი, მე-2 კვარტალი"), "მესამე მასივი, მე-2 კვარტალი")
+
+// Rescue tier: exact+substring find nothing, one mistyped char must still hit.
+const tier12 = (hay: readonly string[], q: string) => !!suggestMatch(hay, q)
+const pshavela = ["ვაჟა-ფშაველას გამზირი", "Vazha-Pshavela Avenue"]
+for (const [hay, typo] of [
+  [beli, "ბელიყაშვილის"], // ყ inserted mid-word
+  [beli, "bekiashvili"], // l→k latin
+  [chav, "chavchavadzisq"], // trailing fat-finger
+  [pshavela, "ვაჟაფშაველას"], // dash not typed
+] as const) {
+  assert.equal(tier12(hay, typo), false, `tier1/2 should miss typo: ${typo}`)
+  assert.ok(suggestFuzzy(hay, typo), `rescue should hit typo: ${typo}`)
+}
+assert.ok(!suggestFuzzy(beli, "xyzabc"))
+assert.ok(!suggestFuzzy(beli, "bel")) // <4 chars — no fuzz noise
 
 console.log("suggest-match.check: ok")

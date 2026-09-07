@@ -73,18 +73,13 @@ export function foldTranslit(s: string): string {
 const stemLatin = (w: string) => (/^[a-z0-9'-]{4,}$/.test(w) ? w.replace(/(?:is|s)$/, '') : w)
 const stemTokens = (s: string) => s.split(/\s+/).map(stemLatin).join(' ')
 
-/** prefix = starts-with (string or any word); null = no match. */
-export function suggestMatch(
-  hay: (string | undefined)[],
-  q: string,
-): { prefix: boolean } | null {
-  const needle = foldQuarterQuery(q)
-  if (!needle) return null
-  // ponytail: O(catalog) fold per call — precompute skeletons in the route if p95 ever matters
-  // Query variants: genitive-tail stem ("beliashvilis"), phonetic fold
-  // ("nutsubidze"→"nucubize"), and folded+nominative-vowel stripped ("nucubiz").
-  const devowel = (s: string) => s.replace(/(?:e|i)(?=[\s,]|$)/g, '')
-  const needles = [
+/** ka genitive stripped (ნუცუბიძის→ნუცუბიძ — latin users type the nominative). */
+const gStem = (s: string) => s.replace(/ის(?=[\s,]|$)|ს(?=[\s,]|$)/gu, '')
+
+/** Same needle list for exact and fuzzy tiers — one source of truth. */
+const devowel = (s: string) => s.replace(/(?:e|i)(?=[\s,]|$)/g, '')
+const queryVariants = (needle: string): string[] =>
+  [
     ...new Set([
       needle,
       stemTokens(needle),
@@ -94,9 +89,60 @@ export function suggestMatch(
       devowel(foldTranslit(stemTokens(needle))),
     ]),
   ].filter(Boolean)
-  // Hay variants: raw, ka genitive stripped (ნუცუბიძის→ნუცუბიძ — latin users type
-  // the nominative), and both phonetically folded. Raw stays first: no regression.
-  const gStem = (s: string) => s.replace(/ის(?=[\s,]|$)|ს(?=[\s,]|$)/gu, '')
+
+/** needle ≤1 edit from a word-start prefix of w (typo rescue); early-exits past 1. */
+function dist1Prefix(w: string, n: string): boolean {
+  if (w.length < n.length - 1) return false
+  let prev = Array.from({ length: w.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= n.length; i++) {
+    const cur = [i]
+    let rowMin = i
+    for (let j = 1; j <= w.length; j++) {
+      const d = Math.min(prev[j]! + 1, cur[j - 1]! + 1, prev[j - 1]! + (n[i - 1] === w[j - 1] ? 0 : 1))
+      cur.push(d)
+      if (d < rowMin) rowMin = d
+    }
+    if (rowMin > 1) return false
+    prev = cur
+  }
+  for (let j = Math.max(n.length - 1, 0); j <= w.length; j++) if (prev[j]! <= 1) return true
+  return false
+}
+
+/**
+ * Rescue tier — runs only when prefix/substring found nothing: one mistyped
+ * char ("ბელიყაშვილის", "beliashvilisq") still surfaces the street.
+ * ponytail: ≤1 edit, ≥4 chars — deeper fuzz needs a real index, not heuristics.
+ */
+export function suggestFuzzy(hay: readonly (string | undefined)[], q: string): boolean {
+  const n0 = foldQuarterQuery(q)
+  if (n0.length < 4) return false
+  const needles = queryVariants(n0)
+  const wordsOf = (s: string) => {
+    const f = foldQuarterQuery(s)
+    // dash-less pseudo-word: "ვაჟაფშაველას" (no dash typed) must still hit
+    return [...new Set([
+      ...foldTranslit(f).split(/[\s,-]+/),
+      ...foldTranslit(gStem(f)).split(/[\s,-]+/),
+      foldTranslit(f.replace(/-/g, '')),
+    ])]
+  }
+  return hay.some((h) => h && wordsOf(h).some((w) => w && needles.some((n) => dist1Prefix(w, n))))
+}
+
+/** prefix = starts-with (string or any word); null = no match. */
+export function suggestMatch(
+  hay: readonly (string | undefined)[],
+  q: string,
+): { prefix: boolean } | null {
+  const needle = foldQuarterQuery(q)
+  if (!needle) return null
+  // ponytail: O(catalog) fold per call — precompute skeletons in the route if p95 ever matters
+  // Query variants: genitive-tail stem ("beliashvilis"), phonetic fold
+  // ("nutsubidze"→"nucubize"), and folded+nominative-vowel stripped ("nucubiz").
+  const needles = queryVariants(needle)
+  // Hay variants: raw, ka genitive stripped, and both phonetically folded.
+  // Raw stays first: no regression.
   const hitPrefix = (s: string, nd: string) =>
     s.startsWith(nd) || s.split(/[\s,-]+/).some((w) => w.startsWith(nd))
   const hs = hay

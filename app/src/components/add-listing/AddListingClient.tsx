@@ -5,7 +5,7 @@
  * Sticky chips jump to sections; publish scrolls to the first gap.
  */
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -96,8 +96,8 @@ const ease = [0.21, 0.65, 0.2, 1] as const
 const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
 const DRAFT_KEY = 'sivrce.add-listing.v1'
 
-/** Local street suggest row (ka primary, en subtitle). */
-type StreetSug = { ka: string; en?: string; district?: string }
+/** Local street suggest row (ka primary, district/city/en subtitle). */
+type StreetSug = { ka: string; en?: string; district?: string; city?: string }
 
 /** Normalize to `+995 XXX XX XX XX` while typing (9 digits after the forced prefix) */
 const formatPhone = (raw: string): string => {
@@ -172,6 +172,7 @@ export default function AddListingClient() {
   const [suggests, setSuggests] = useState<StreetSug[]>([])
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [suggestHi, setSuggestHi] = useState(-1)
+  const streetListId = useId()
   // ponytail: mute one geocode cycle after reverse-fill so pin↔address don't fight
   const muteGeocode = useRef(false)
   /** Latest location fields for async NAPR soft-fill (no stale closures, no dep churn). */
@@ -660,12 +661,13 @@ export default function AddListingClient() {
       const params = new URLSearchParams({ q: street.trim(), city })
       fetch(`/api/suggest?${params}`, { signal: ac.signal })
         .then((r) => (r.ok ? r.json() : null))
-        .then((d: { ok?: boolean; suggestions?: { kind: string; ka: string; en?: string; district?: string }[] } | null) => {
-          if (!d?.ok || !Array.isArray(d.suggestions)) return
+        .then((d: { ok?: boolean; suggestions?: { kind: string; ka: string; en?: string; district?: string; city?: string }[] } | null) => {
+          // late response from a superseded query must never paint the list
+          if (ac.signal.aborted || !d?.ok || !Array.isArray(d.suggestions)) return
           setSuggests(
             d.suggestions
               .filter((s) => s.kind === 'street')
-              .map((s) => ({ ka: s.ka, en: s.en, district: s.district })),
+              .map((s) => ({ ka: s.ka, en: s.en, district: s.district, city: s.city })),
           )
           setSuggestHi(-1)
         })
@@ -694,11 +696,12 @@ export default function AddListingClient() {
     setDistrict(canonicalizeDistrict(raw, c) || raw)
   }
 
-  /** Pick catalog street → fill name + soft-fill ubani when catalog-pinned. */
+  /** Pick catalog street → fill name + city (nationwide pick) + soft-fill ubani. */
   const applyStreetSug = (s: StreetSug) => {
     setStreet(s.ka)
+    if (s.city && s.city !== city) setCity(s.city)
     // Catalog street → ubani; corrects wrong manual picks (ჭავჭავაძე ≠ საბურთალო).
-    if (s.district) setDistrictCanon(s.district)
+    if (s.district) setDistrictCanon(s.district, s.city || city)
     setSuggestOpen(false)
     setSuggests([])
     setSuggestHi(-1)
@@ -1089,7 +1092,7 @@ export default function AddListingClient() {
 
   /* ————— shared field styles ————— */
   const input =
-    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3.5 text-[15px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition-all focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10'
+    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3.5 text-[16px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition-all focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10 sm:text-[15px]'
   const label = 'mb-2 block text-[13px] font-extrabold text-sv-ink/70'
   const err = (bad: boolean) => (touched && bad ? 'border-sv-orange ring-4 ring-sv-orange/10' : '')
 
@@ -1564,33 +1567,39 @@ export default function AddListingClient() {
                         }}
                         role="combobox"
                         aria-expanded={suggestOpen && suggests.length > 0}
-                        aria-controls="street-suggest-list"
+                        aria-controls={streetListId}
+                        aria-activedescendant={suggestOpen && suggestHi >= 0 ? `${streetListId}-${suggestHi}` : undefined}
                         aria-autocomplete="list"
                         autoComplete="off"
                       />
                       {suggestOpen && suggests.length > 0 && (
                         <ul
-                          id="street-suggest-list"
+                          id={streetListId}
                           role="listbox"
-                          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-module border border-sv-ink/10 bg-sv-surface py-1 shadow-card"
+                          aria-label={t('add.street')}
+                          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-module border border-sv-ink/10 bg-sv-surface p-1 shadow-card"
                         >
                           {suggests.map((s, i) => (
-                            <li key={s.ka}>
+                            <li
+                              key={`${s.city ?? ''}:${s.ka}:${i}`}
+                              id={`${streetListId}-${i}`}
+                              role="option"
+                              aria-selected={suggestHi === i}
+                              ref={(el) => { if (el && suggestHi === i) el.scrollIntoView({ block: 'nearest' }) }}
+                            >
                               <button
                                 type="button"
-                                role="option"
-                                aria-selected={suggestHi === i}
-                                className={`flex w-full flex-col gap-0.5 px-3.5 py-2.5 text-left transition ${
-                                  suggestHi === i ? 'bg-sv-blue/8' : 'hover:bg-sv-blue/8'
+                                className={`flex w-full flex-col gap-0.5 rounded-control px-3 py-2 text-left transition-colors ${
+                                  suggestHi === i ? 'bg-sv-ink/[0.05]' : 'hover:bg-sv-ink/[0.05]'
                                 }`}
                                 onMouseDown={(e) => e.preventDefault()}
                                 onMouseEnter={() => setSuggestHi(i)}
                                 onClick={() => applyStreetSug(s)}
                               >
-                                <span className="text-[13px] font-extrabold text-sv-ink">{s.ka}</span>
-                                {(s.district || s.en) && (
-                                  <span className="text-[11px] font-bold text-sv-ink/45">
-                                    {[s.district, s.en].filter(Boolean).join(' · ')}
+                                <span className="truncate text-[13px] font-extrabold text-sv-ink">{s.ka}</span>
+                                {(s.district || (s.city && !city) || s.en) && (
+                                  <span className="truncate text-[11px] font-bold text-sv-ink/45">
+                                    {[s.district, city ? '' : s.city, s.en].filter(Boolean).join(' · ')}
                                   </span>
                                 )}
                               </button>
