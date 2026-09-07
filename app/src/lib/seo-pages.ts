@@ -497,6 +497,17 @@ export function footerKeywordCols(): FooterCol[] {
     ['rent', 'apartments-1', 'tbilisi'],
     ['rent', 'apartments-2', 'tbilisi'],
   ])
+  // 6th column (korter "პოპულარული" pattern): hot long-tail queries the five
+  // query columns above don't cover — pledge deal, house/commercial/land × geo,
+  // Batumi/Kutaisi sale. Nulls drop, so it self-throttles with inventory.
+  push('popular', { ka: 'პოპულარული ძებნები', en: 'Popular searches', ru: 'Популярные запросы' }, [
+    ['pledge', 'apartments'],
+    ['rent', 'houses', 'tbilisi'], ['sale', 'houses', 'tbilisi'], ['sale', 'houses', 'batumi'],
+    ['rent', 'commercial', 'tbilisi'], ['sale', 'commercial', 'tbilisi'],
+    ['sale', 'land', 'tbilisi'],
+    ['sale', 'apartments', 'batumi'], ['sale', 'apartments', 'kutaisi'],
+    ['rent', 'apartments-3', 'tbilisi'],
+  ])
   // ponytail: nominative geo names — heading carries the query; Footer cities = one HScroll strip.
   pushGeo('cities', { ka: 'ქალაქები', en: 'Cities', ru: 'Города' }, CITIES.map((c) => [c.slug]))
 
@@ -819,6 +830,7 @@ export function h1Of(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
     if (def.dealSlug === 'sale' || def.dealSlug === 'rent' || def.dealSlug === 'lease')
       return `${copy!.ruNoun} ${subjectGenOf(def)} в ${place}`
     if (def.dealSlug === 'daily') return `${subjectOf(def, 'ru')} посуточно в ${place}`
+    if (def.dealSlug === 'pledge') return `${subjectOf(def, 'ru')} под залог в ${place}`
     return `${subjectOf(def, 'ru')} в ${place}: продажа и аренда`
   }
   const dealKa = copy?.ka ?? 'იყიდება და ქირავდება'
