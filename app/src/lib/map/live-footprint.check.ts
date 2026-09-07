@@ -47,25 +47,16 @@ type FakeOpts = {
 
 function fakeMap(features: GeoJSON.Feature[] | null, opts: FakeOpts = {}): MlMap {
   let queries = 0
-  let probeLayerPresent = false
   return {
     getSource: (id: string) => (id === 'sivrce' ? {} : null),
-    addLayer: () => {
-      probeLayerPresent = true
-    },
-    removeLayer: () => {
-      probeLayerPresent = false
-    },
+    getLayer: (id: string) => (id === 'sivrce-live-probe' ? {} : null),
     project: () => ({ x: 100, y: 100 }),
     queryRenderedFeatures: () => {
       const f = opts.hits ? opts.hits[queries] ?? null : features
       queries++
       return f ?? []
     },
-    get __probePresent() {
-      return probeLayerPresent
-    },
-  } as unknown as MlMap & { __probePresent: boolean }
+  } as unknown as MlMap
 }
 
 function main() {
@@ -90,8 +81,6 @@ function main() {
   const hit = resolveBasemapRing(map, [{ lat: 41.77075, lng: 44.77883 }])
   assert.ok(hit, 'probe hit resolves the ring')
   assert.equal(hit![0]![0], osmRing[0]![0])
-  const asAny = map as unknown as { __probePresent: boolean }
-  assert.equal(asAny.__probePresent, false, 'probe layer is always dropped')
 
   // Miss on the listing pin, hit on the cluster average — candidate order honored.
   const map2 = fakeMap(null, { hits: [[], [feat]] })

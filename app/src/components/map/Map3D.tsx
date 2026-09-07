@@ -103,6 +103,7 @@ import {
   applyLiveFixes,
   liveFixes,
   resolveBasemapRing,
+  withLiveProbe,
 } from '@/lib/map/live-footprint'
 import {
   mapChromeOptions,
@@ -1444,11 +1445,11 @@ function Map3DInner({
     ;(async () => {
       let style
       try {
-        style = await loadMapBasemap(initialStyle)
+        style = withLiveProbe(await loadMapBasemap(initialStyle))
       } catch (err) {
         console.error('[Map3D] style', err)
         try {
-          style = await loadMapBasemap(STYLE_SATELLITE)
+          style = withLiveProbe(await loadMapBasemap(STYLE_SATELLITE))
         } catch {
           if (!cancelled) setError(tRef.current('map.error'))
           return
@@ -2267,7 +2268,7 @@ function Map3DInner({
     let cancelled = false
     ;(async () => {
       try {
-        const style = await loadMapBasemap(next)
+        const style = withLiveProbe(await loadMapBasemap(next))
         if (cancelled || gen !== styleGenRef.current) return
         map.once('style.load', () => {
           if (gen !== styleGenRef.current) return
