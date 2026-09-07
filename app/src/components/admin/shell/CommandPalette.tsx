@@ -6,6 +6,7 @@ import {
   CreditCard,
   Layers,
   LayoutDashboard,
+  LineChart,
   MapPinned,
   Search,
   Settings2,
@@ -38,6 +39,7 @@ type PaletteItem = {
 /** Static "go to" commands — the palette's zero-query state. */
 const COMMANDS: PaletteItem[] = [
   { key: "cmd-dash", title: "Dashboard", href: "/admin", icon: LayoutDashboard, hint: "G D" },
+  { key: "cmd-stats", title: "Statistics", href: "/admin/stats", icon: LineChart },
   { key: "cmd-listings", title: "Listings", href: "/admin/listings", icon: Building2, hint: "G L" },
   { key: "cmd-users", title: "Users", href: "/admin/users", icon: Users, hint: "G U" },
   { key: "cmd-moderation", title: "Moderation", href: "/admin/moderation", icon: ShieldCheck, hint: "G M" },

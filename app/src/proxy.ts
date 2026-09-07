@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 
+import { normalizeSource, REF_COOKIE, REF_COOKIE_MAX_AGE } from "@/lib/attribution"
+
 /**
  * Edge-level defense in depth for protected routes + locale routing
  * + multi-host routing (admin / api / cdn / app / analytics / images).
@@ -91,7 +93,33 @@ function isRedirectHost(host: string): boolean {
   return host === "app.sivrce.ge" || host === "analytics.sivrce.ge"
 }
 
+/** First-touch acquisition source: campaign param > ref param > external Referer > direct. */
+function refFrom(req: NextRequest): string {
+  const q = req.nextUrl.searchParams
+  const campaign = q.get("utm_source") ?? q.get("ref")
+  if (campaign) return normalizeSource(campaign)
+  try {
+    const host = new URL(req.headers.get("referer") ?? "").hostname
+    // Own traffic (internal nav, admin host) is not an acquisition source.
+    if (host && !host.endsWith("sivrce.ge") && host !== "localhost") {
+      return normalizeSource(host)
+    }
+  } catch {
+    /* no/invalid referer */
+  }
+  return "direct"
+}
+
 function pass(req: NextRequest, res: NextResponse): NextResponse {
+  // Stamp once per 30-day window — true first touch, never overwritten.
+  if (!req.cookies.get(REF_COOKIE)?.value) {
+    res.cookies.set(REF_COOKIE, refFrom(req), {
+      maxAge: REF_COOKIE_MAX_AGE,
+      sameSite: "lax",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+    })
+  }
   if (req.nextUrl.searchParams.get("cmsPreview") === "1") {
     res.headers.set("x-cms-preview", "1")
     res.headers.set("X-Robots-Tag", "noindex, nofollow")

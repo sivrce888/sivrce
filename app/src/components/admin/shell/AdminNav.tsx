@@ -12,6 +12,7 @@ import {
   KanbanSquare,
   Layers,
   LayoutDashboard,
+  LineChart,
   MapPinned,
   Megaphone,
   MessagesSquare,
@@ -44,7 +45,10 @@ interface NavSection {
 export const ADMIN_SECTIONS: NavSection[] = [
   {
     label: "Overview",
-    items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true }],
+    items: [
+      { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+      { href: "/admin/stats", label: "Statistics", icon: LineChart },
+    ],
   },
   {
     label: "Operations",

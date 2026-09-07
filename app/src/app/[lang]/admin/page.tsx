@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Star,
+  UserPlus,
   Users,
 } from "lucide-react"
 import Link from "next/link"
@@ -44,8 +45,24 @@ export default async function AdminDashboardPage() {
       {/* KPI row — every card drills down; sparklines show the last 14 days of flow. */}
       <section
         aria-label="Key metrics"
-        className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6"
+        className="grid grid-cols-2 gap-3 md:grid-cols-4"
       >
+        <StatCard
+          label="Active today"
+          value={fmtNum(m.activeUsersToday)}
+          hint={`${fmtNum(m.activeUsers7d)} this week`}
+          icon={Activity}
+          tone="blue"
+          href="/admin/stats"
+        />
+        <StatCard
+          label="Users today"
+          value={fmtNum(m.newUsersToday)}
+          hint={`+${fmtNum(m.newUsersThisWeek)} this week`}
+          icon={UserPlus}
+          tone="success"
+          href="/admin/stats"
+        />
         <StatCard
           label="Active listings"
           value={fmtNum(m.activeListings)}

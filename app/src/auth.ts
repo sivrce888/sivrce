@@ -1,10 +1,12 @@
 import { PrismaAdapter } from "@auth/prisma-adapter"
+import { cookies } from "next/headers"
 import NextAuth, { type NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 
 import { finishLogin } from "@/lib/auth-passkey"
 import { isPhoneEmail } from "@/lib/auth-phone"
+import { normalizeSource, REF_COOKIE } from "@/lib/attribution"
 import type { UserRole } from "@/generated/prisma/client"
 import { findOrCreatePhoneUser, verifyPhoneOtp } from "@/lib/auth-phone-otp"
 import { db, dbAvailable } from "@/lib/db"
@@ -109,6 +111,33 @@ function adminEmails(): Set<string> {
   )
 }
 
+/** Activity heartbeat — writes at most once per 5 min per user (atomic WHERE). */
+const HEARTBEAT_MS = 5 * 60_000
+
+function stampLastSeen(userId: string) {
+  return db.user.updateMany({
+    where: {
+      id: userId,
+      OR: [{ lastSeenAt: null }, { lastSeenAt: { lt: new Date(Date.now() - HEARTBEAT_MS) } }],
+    },
+    data: { lastSeenAt: new Date() },
+  })
+}
+
+/** First-touch attribution — set exactly once, on sign-in, from the proxy cookie. */
+async function stampSignupSource(userId: string) {
+  try {
+    const raw = (await cookies()).get(REF_COOKIE)?.value
+    const source = normalizeSource(raw)
+    await db.user.updateMany({
+      where: { id: userId, signupSource: null },
+      data: { signupSource: source },
+    })
+  } catch {
+    /* no cookie context — leave null, it stamps on a later sign-in */
+  }
+}
+
 async function ensureAdminRole(userId: string, email: string | null | undefined) {
   if (!email || !adminEmails().has(email.toLowerCase())) return
   await db.user.updateMany({
@@ -157,6 +186,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         let role = (user.role as UserRole) ?? "buyer"
         try {
           if (await dbAvailable()) {
+            await Promise.all([stampLastSeen(user.id!), stampSignupSource(user.id!)])
             const row = await db.user.findUnique({
               where: { id: user.id! },
               select: { role: true, name: true, image: true, avatarStyle: true, avatarColor: true, avatarIcon: true },
@@ -186,10 +216,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // ponytail: never 500 /api/auth/session when Postgres is down — chrome polls this on every page.
       try {
         if (!(await dbAvailable())) return token
-        const row = await db.user.findUnique({
-          where: { id },
-          select: { role: true, name: true, image: true, avatarStyle: true, avatarColor: true, avatarIcon: true },
-        })
+        const [row] = await Promise.all([
+          db.user.findUnique({
+            where: { id },
+            select: { role: true, name: true, image: true, avatarStyle: true, avatarColor: true, avatarIcon: true },
+          }),
+          stampLastSeen(id),
+        ])
         if (row) {
           token.role = row.role
           if (row.name) token.name = row.name

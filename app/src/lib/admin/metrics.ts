@@ -57,6 +57,12 @@ export interface DashboardMetrics {
   dealTypes: DistributionItem[]
   propertyTypes: DistributionItem[]
   cities: DistributionItem[]
+  /** Distinct users with an authenticated request since UTC midnight. */
+  activeUsersToday: number
+  activeUsers7d: number
+  newUsersToday: number
+  /** First-touch acquisition sources, most common first. */
+  signupSources: DistributionItem[]
 }
 
 const DAY_MS = 86_400_000
@@ -93,6 +99,7 @@ function last7Delta(series: TrendPoint[]): number | null {
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const now = new Date()
+  const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
   const trendFrom = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (TREND_DAYS - 1)),
   )
@@ -128,6 +135,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     dealTypeRows,
     propertyTypeRows,
     cityRows,
+    activeUsersToday,
+    activeUsers7d,
+    newUsersToday,
+    signupSourceRows,
   ] = await Promise.all([
     db.listing.count({ where: { status: "active", deletedAt: null } }),
     db.user.count(),
@@ -234,6 +245,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       orderBy: { _count: { city: "desc" } },
       take: 8,
     }),
+    db.user.count({ where: { lastSeenAt: { gte: todayStart } } }),
+    db.user.count({ where: { lastSeenAt: { gte: weekAgo } } }),
+    db.user.count({ where: { createdAt: { gte: todayStart } } }),
+    db.user.groupBy({ by: ["signupSource"], _count: { _all: true } }),
   ])
 
   const listingTrendList = fillSeries(listingTrendRows, trendFrom)
@@ -270,5 +285,219 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       .map((r) => ({ label: prettyLabel(r.propertyType), count: r._count._all }))
       .sort((a, b) => b.count - a.count),
     cities: cityRows.map((r) => ({ label: r.city, count: r._count.city })),
+    activeUsersToday,
+    activeUsers7d,
+    newUsersToday,
+    signupSources: signupSourceRows
+      .map((r) => ({ label: r.signupSource ?? "unknown", count: r._count._all }))
+      .sort((a, b) => b.count - a.count),
+  }
+}
+
+// ── Full statistics page (/admin/stats) ───────────────────────────────────
+
+export interface EngagementRow {
+  label: string
+  today: number
+  d7: number
+  total: number
+}
+
+export interface PlatformStats {
+  totalUsers: number
+  activeToday: number
+  active7d: number
+  active30d: number
+  newToday: number
+  new7d: number
+  verifiedEmails: number
+  verifiedPhones: number
+  avgTrust: number
+  roles: DistributionItem[]
+  providers: DistributionItem[]
+  signupSources: DistributionItem[]
+  engagement: EngagementRow[]
+  listingStatuses: DistributionItem[]
+  listingTiers: DistributionItem[]
+  auctionStatuses: DistributionItem[]
+  subscriptionTiers: DistributionItem[]
+  subscriptionStatuses: DistributionItem[]
+  gelTodayTetri: number
+  gelMonthTetri: number
+  gelOrdersToday: number
+  usdTodayCents: number
+  usdMonthCents: number
+  failedPayments: number
+  leadSales: number
+  leadRevenueTetri: number
+  inquiryTrend: TrendPoint[]
+}
+
+/** today / last-7-days / all-time counts for one event stream. */
+function spanCounts(
+  fn: (since?: Date) => Promise<number>,
+  today: Date,
+  week: Date,
+): Promise<[number, number, number]> {
+  return Promise.all([fn(today), fn(week), fn(undefined)]) as Promise<[number, number, number]>
+}
+
+export async function getPlatformStats(): Promise<PlatformStats> {
+  const now = new Date()
+  const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+  const trendFrom = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (TREND_DAYS - 1)),
+  )
+  const weekAgo = new Date(now.getTime() - 7 * DAY_MS)
+  const d30 = new Date(now.getTime() - 30 * DAY_MS)
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+
+  const paidGelWhere = (since: Date) => ({
+    status: "paid",
+    deletedAt: null,
+    OR: [{ paidAt: { gte: since } }, { paidAt: null, createdAt: { gte: since } }],
+  })
+
+  const noDelete = { deletedAt: null }
+  const engagementDefs: { label: string; count: (since?: Date) => Promise<number> }[] = [
+    {
+      label: "Listings published",
+      count: (s) => db.listing.count({ where: { ...noDelete, ...(s && { createdAt: { gte: s } }) } }),
+    },
+    {
+      label: "Inquiries sent",
+      count: (s) => db.inquiry.count({ where: { ...noDelete, ...(s && { createdAt: { gte: s } }) } }),
+    },
+    {
+      label: "Chat messages",
+      count: (s) => db.chatMessage.count({ where: s ? { createdAt: { gte: s } } : {} }),
+    },
+    {
+      label: "Auction bids",
+      count: (s) => db.bid.count({ where: s ? { placedAt: { gte: s } } : {} }),
+    },
+    {
+      label: "Tours booked",
+      count: (s) => db.propertyTour.count({ where: s ? { createdAt: { gte: s } } : {} }),
+    },
+    {
+      label: "Listings saved",
+      count: (s) => db.savedListing.count({ where: { ...noDelete, ...(s && { createdAt: { gte: s } }) } }),
+    },
+    {
+      label: "Reviews posted",
+      count: (s) => db.review.count({ where: { ...noDelete, ...(s && { createdAt: { gte: s } }) } }),
+    },
+    {
+      label: "Forum replies",
+      count: (s) => db.forumReply.count({ where: { ...noDelete, ...(s && { createdAt: { gte: s } }) } }),
+    },
+    {
+      label: "Searches saved",
+      count: (s) => db.savedSearch.count({ where: { ...noDelete, ...(s && { createdAt: { gte: s } }) } }),
+    },
+  ]
+
+  const [
+    totalUsers,
+    activeToday,
+    active7d,
+    active30d,
+    newToday,
+    new7d,
+    verifiedEmails,
+    verifiedPhones,
+    avgTrustAgg,
+    roleRows,
+    providerRows,
+    sourceRows,
+    engagementRows,
+    listingStatusRows,
+    listingTierRows,
+    auctionStatusRows,
+    subTierRows,
+    subStatusRows,
+    gelTodayAgg,
+    gelMonthAgg,
+    gelTodayCount,
+    usdTodayAgg,
+    usdMonthAgg,
+    failedGeorgian,
+    failedStripe,
+    leadAgg,
+    inquiryTrendRows,
+  ] = await Promise.all([
+    db.user.count(),
+    db.user.count({ where: { lastSeenAt: { gte: todayStart } } }),
+    db.user.count({ where: { lastSeenAt: { gte: weekAgo } } }),
+    db.user.count({ where: { lastSeenAt: { gte: d30 } } }),
+    db.user.count({ where: { createdAt: { gte: todayStart } } }),
+    db.user.count({ where: { createdAt: { gte: weekAgo } } }),
+    db.user.count({ where: { emailVerified: { not: null } } }),
+    db.user.count({ where: { phoneVerifiedAt: { not: null } } }),
+    db.user.aggregate({ _avg: { trustScore: true } }),
+    db.user.groupBy({ by: ["role"], _count: { _all: true } }),
+    db.account.groupBy({ by: ["provider"], _count: { _all: true } }),
+    db.user.groupBy({ by: ["signupSource"], _count: { _all: true } }),
+    Promise.all(engagementDefs.map((d) => spanCounts(d.count, todayStart, weekAgo))),
+    db.listing.groupBy({ by: ["status"], where: { deletedAt: null }, _count: { _all: true } }),
+    db.listing.groupBy({ by: ["tier"], where: { deletedAt: null }, _count: { _all: true } }),
+    db.auction.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.subscription.groupBy({ by: ["tier"], where: { status: "active" }, _count: { _all: true } }),
+    db.subscription.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.georgianPaymentOrder.aggregate({ _sum: { amountTetri: true }, where: paidGelWhere(todayStart) }),
+    db.georgianPaymentOrder.aggregate({ _sum: { amountTetri: true }, where: paidGelWhere(monthStart) }),
+    db.georgianPaymentOrder.count({ where: paidGelWhere(todayStart) }),
+    db.stripeOrder.aggregate({ _sum: { amountCents: true }, where: { status: "paid", createdAt: { gte: todayStart } } }),
+    db.stripeOrder.aggregate({ _sum: { amountCents: true }, where: { status: "paid", createdAt: { gte: monthStart } } }),
+    db.georgianPaymentOrder.count({ where: { status: "failed", deletedAt: null } }),
+    db.stripeOrder.count({ where: { status: "failed" } }),
+    db.leadPurchase.aggregate({ _count: { _all: true }, _sum: { price: true }, where: { currency: "GEL" } }),
+    db.$queryRaw<{ day: Date; count: number }[]>(Prisma.sql`
+      SELECT date_trunc('day', "created_at") AS day, COUNT(*)::int AS count
+      FROM "inquiries"
+      WHERE "deleted_at" IS NULL AND "created_at" >= ${trendFrom}
+      GROUP BY 1
+      ORDER BY 1
+    `),
+  ])
+
+  const engagement: EngagementRow[] = engagementDefs.map((d, i) => ({
+    label: d.label,
+    today: engagementRows[i][0],
+    d7: engagementRows[i][1],
+    total: engagementRows[i][2],
+  }))
+  const byCount = (rows: { label: string; count: number }[]) =>
+    rows.sort((a, b) => b.count - a.count)
+
+  return {
+    totalUsers,
+    activeToday,
+    active7d,
+    active30d,
+    newToday,
+    new7d,
+    verifiedEmails,
+    verifiedPhones,
+    avgTrust: Math.round(avgTrustAgg._avg.trustScore ?? 0),
+    roles: byCount(roleRows.map((r) => ({ label: prettyLabel(r.role), count: r._count._all }))),
+    providers: byCount(providerRows.map((r) => ({ label: prettyLabel(r.provider), count: r._count._all }))),
+    signupSources: byCount(sourceRows.map((r) => ({ label: r.signupSource ?? "unknown", count: r._count._all }))),
+    engagement,
+    listingStatuses: byCount(listingStatusRows.map((r) => ({ label: prettyLabel(r.status), count: r._count._all }))),
+    listingTiers: byCount(listingTierRows.map((r) => ({ label: prettyLabel(r.tier), count: r._count._all }))),
+    auctionStatuses: byCount(auctionStatusRows.map((r) => ({ label: prettyLabel(r.status), count: r._count._all }))),
+    subscriptionTiers: byCount(subTierRows.map((r) => ({ label: prettyLabel(r.tier), count: r._count._all }))),
+    subscriptionStatuses: byCount(subStatusRows.map((r) => ({ label: prettyLabel(r.status), count: r._count._all }))),
+    gelTodayTetri: gelTodayAgg._sum.amountTetri ?? 0,
+    gelMonthTetri: gelMonthAgg._sum.amountTetri ?? 0,
+    gelOrdersToday: gelTodayCount,
+    usdTodayCents: usdTodayAgg._sum.amountCents ?? 0,
+    usdMonthCents: usdMonthAgg._sum.amountCents ?? 0,
+    failedPayments: failedGeorgian + failedStripe,
+    leadSales: leadAgg._count._all,
+    leadRevenueTetri: (leadAgg._sum.price ?? 0) * 100,
+    inquiryTrend: fillSeries(inquiryTrendRows, trendFrom),
   }
 }
