@@ -8,6 +8,17 @@
  */
 import { initBotId } from 'botid/client/core'
 
+// Sentry errors-only, idle-deferred off the load critical path — same trade
+// as the tap-gated PostHog init. No DSN → the SDK chunk is never fetched.
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  const kick = () => void import("../sentry.client.init")
+  if (typeof requestIdleCallback === "function") {
+    requestIdleCallback(kick, { timeout: 5000 })
+  } else {
+    setTimeout(kick, 3000)
+  }
+}
+
 initBotId({
   protect: [
     { path: '/api/listings/*/phone', method: 'POST' },

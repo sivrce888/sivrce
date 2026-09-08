@@ -136,12 +136,12 @@ lock("src/app/llms-full.txt/route.ts", ["llmsFullTxt", "text/plain"])
 lock("src/app/.well-known/security.txt/route.ts", ["mailto:hi@sivrce.ge", "Expires:"])
 
 for (const sentry of [
-  "sentry.client.config.ts",
+  "sentry.client.init.ts",
   "sentry.server.config.ts",
   "sentry.edge.config.ts",
 ]) {
   lock(sentry, ['process.env.NODE_ENV === "production" ? 0 : 1.0'])
 }
-lock("sentry.client.config.ts", ["replaysSessionSampleRate: 0", "maxBreadcrumbs: 20", "profilesSampleRate: 0"])
+lock("sentry.client.init.ts", ["replaysSessionSampleRate: 0", "maxBreadcrumbs: 20", "profilesSampleRate: 0"])
 
 console.log(`cost-lock: ${build.length} hubs vs ${all.length} sitemap ✓`)

@@ -1,6 +1,8 @@
 /**
- * Sentry client-side config — errors only, minimal bill.
+ * Sentry client init — errors only, minimal bill.
  * ponytail: traces 0 in prod. Session replay off; error replay 1%.
+ * Loaded idle-deferred from src/instrumentation-client.ts (never on the
+ * critical path); pre-idle errors still surface in the console.
  */
 
 import * as Sentry from "@sentry/nextjs"

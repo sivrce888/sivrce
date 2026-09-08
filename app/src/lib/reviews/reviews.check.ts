@@ -42,6 +42,18 @@ async function main() {
   assert.equal(parseReviewFields({ rating: 4, body: "great work here", title: "x".repeat(201) }).ok, false)
   assert.equal(parseReviewFields("junk").ok, false)
 
+  // Rate limiter: default budget + per-endpoint overrides (payments checkout).
+  const { rateLimitOk } = await import("./rate-limit")
+  assert.equal(rateLimitOk("t:default"), true)
+  for (let i = 1; i < 10; i++) assert.equal(rateLimitOk("t:default"), true)
+  assert.equal(rateLimitOk("t:default"), false)
+  assert.equal(rateLimitOk("t:over", { max: 2 }), true)
+  assert.equal(rateLimitOk("t:over", { max: 2 }), true)
+  assert.equal(rateLimitOk("t:over", { max: 2 }), false)
+  assert.equal(rateLimitOk("t:window", { windowMs: 50 }), true)
+  await new Promise((r) => setTimeout(r, 60))
+  assert.equal(rateLimitOk("t:window", { windowMs: 50 }), true) // window reset
+
   console.log("reviews.check: all assertions passed")
 }
 

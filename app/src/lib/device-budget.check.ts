@@ -66,7 +66,10 @@ lock("src/components/sections/Footer.tsx", ["sv-link-grid", "minmax(0,1.3fr)"], 
 lock("src/components/sections/HeroBackground.tsx", ["sv-skyline-front"], ["min-w-[900px]"])
 lock("src/components/HScroll.tsx", ["min-w-0 max-w-full"])
 lock("src/components/Reveal.tsx", ["data-reveal"], ["reducedMotion=\"never\""])
-lock("src/components/I18nProvider.tsx", ['reducedMotion="user"'], ['reducedMotion="never"'])
+// framer-motion fully out of I18nProvider — the CSS reduce-motion block
+// (globals.css) zeroes every transition/animation app-wide.
+lock("src/components/I18nProvider.tsx", [], ["framer-motion"])
+lock("src/app/globals.css", ["@media (prefers-reduced-motion: reduce)"], [])
 lock("src/app/[lang]/layout.tsx", [
   "LITE_BOOT",
   'id="lite-boot"',
@@ -105,7 +108,11 @@ lock("src/components/listing/ListingDetailClient.tsx", [
 lock("src/components/GoogleTags.tsx", ["isLiteDevice", "lazyOnload", "requestIdleCallback"], ["afterInteractive"])
 lock("src/components/chat/ChatShell.tsx", ["next/dynamic"])
 lock("src/lib/db.ts", ["max: 1"], ["max: 10"])
-lock("sentry.client.config.ts", ["replaysSessionSampleRate: 0"], ["replaysSessionSampleRate: 1"])
+lock("src/instrumentation-client.ts", ["requestIdleCallback"], ["@sentry/nextjs"])
+// Server/edge SDK loads via dynamic import only — static import bloats every
+// serverless cold start even with no DSN.
+lock("src/instrumentation.ts", ["NEXT_PUBLIC_SENTRY_DSN", "await import"], ["import * as Sentry from"])
+lock("sentry.client.init.ts", ["replaysSessionSampleRate: 0"], ["replaysSessionSampleRate: 1"])
 
 // ponytail: RAM ceiling — every function >1024 MB or an unpinned API route fails the build
 const vercel = JSON.parse(read("vercel.json")) as { functions: Record<string, { memory?: number }> }

@@ -12,11 +12,19 @@ type Bucket = { count: number; resetAt: number }
 
 const buckets = new Map<string, Bucket>()
 
+/** Overrides for endpoints with a tighter budget than the review default. */
+export interface RateLimitOpts {
+  windowMs?: number
+  max?: number
+}
+
 /** Returns true while the key is under the write budget for the window. */
-export function rateLimitOk(key: string, now = Date.now()): boolean {
+export function rateLimitOk(key: string, opts: RateLimitOpts = {}, now = Date.now()): boolean {
+  const windowMs = opts.windowMs ?? WINDOW_MS
+  const max = opts.max ?? MAX_WRITES
   const bucket = buckets.get(key)
   if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS })
+    buckets.set(key, { count: 1, resetAt: now + windowMs })
     // Bound memory: sweep expired buckets once the map grows large.
     if (buckets.size > 5000) {
       for (const [k, b] of buckets) {
@@ -25,7 +33,7 @@ export function rateLimitOk(key: string, now = Date.now()): boolean {
     }
     return true
   }
-  if (bucket.count >= MAX_WRITES) return false
+  if (bucket.count >= max) return false
   bucket.count += 1
   return true
 }

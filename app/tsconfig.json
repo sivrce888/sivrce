@@ -46,7 +46,11 @@
     ".next-metro-verify/types/**/*.ts",
     ".next-metro-verify/dev/types/**/*.ts",
     ".next-sun/types/**/*.ts",
-    ".next-sun/dev/types/**/*.ts"
+    ".next-sun/dev/types/**/*.ts",
+    ".next-perf/types/**/*.ts",
+    ".next-perf/dev/types/**/*.ts",
+    ".next-start/types/**/*.ts",
+    ".next-start/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
