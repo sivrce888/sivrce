@@ -1385,7 +1385,7 @@ export default function ListingDetailClient({
               ) : null}
 
               {l.verified ? (
-              <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-sv-ink/35">
+              <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-sv-ink/60">
                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
                 {t('detail.verifiedBy')}
               </p>

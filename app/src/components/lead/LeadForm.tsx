@@ -245,7 +245,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
                 ) : (
                   <span />
                 )}
-                <span id={`${uid}-message-count`} className="text-[11px] font-bold text-sv-ink/35">
+                <span id={`${uid}-message-count`} className="text-[11px] font-bold text-sv-ink/60">
                   {message.length}/1000
                 </span>
               </div>
