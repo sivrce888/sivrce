@@ -47,18 +47,17 @@ function titleOfStation(station: MetroStation, count: number): string {
 
 function descriptionOfStation(station: MetroStation, district: District | undefined, listings: Listing[]): string {
   const place = district ? `, ${district.loc}` : ''
+  // ≤160 chars — Lighthouse/Google meta-description budget.
   if (listings.length === 0) {
     return (
-      `ბინები ${station.near}${place}, თბილისში: იყიდება და ქირავდება, ფასები და ახალი პროექტები. ` +
-      `მოძებნეთ ბინა ${station.near} sivrce-ის ვერიფიცირებული განცხადებებით — AI ფასის შეფასებით და პირდაპირი კონტაქტით მესაკუთრესთან.`
+      `ბინები ${station.near}${place} — იყიდება და ქირავდება. რეალური ფასები, AI შეფასება ` +
+      `და პირდაპირი კონტაქტი მესაკუთრესთან sivrce-ზე.`
     )
   }
   const s = statsOf(listings)
-  const perM2 = s.avgPerM2 ? ` საშუალო ფასი ${formatUSD(s.avgPerM2)}/მ².` : ''
   return (
-    `იყიდება და ქირავდება ბინები ${station.near}${place}, თბილისში — ${s.count} ვერიფიცირებული განცხადება ` +
-    `sivrce-ზე, სადგურიდან 15 წუთიან ფეხით მანძილზე.${perM2} ფასები ${formatUSD(s.minPrice)}-დან ` +
-    `${formatUSD(s.maxPrice)}-მდე. AI ფასის შეფასება, 3D რუკა, პირდაპირი კონტაქტი მესაკუთრესთან.`
+    `${s.count} განცხადება ${station.near}${place} — ფასები ${formatUSD(s.minPrice)}-დან. ` +
+    `AI ფასის შეფასება და პირდაპირი კონტაქტი მესაკუთრესთან sivrce-ზე.`
   )
 }
 
