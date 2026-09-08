@@ -68,6 +68,10 @@ const MapEmbed = dynamic(() => import('@/components/MapEmbed'), {
   ssr: false,
   loading: () => <div className="aspect-video bg-sv-navy-soft" aria-hidden />,
 })
+const SunPath = dynamic(() => import('@/components/listing/SunPath'), {
+  ssr: false,
+  loading: () => <div className="mt-8 h-[420px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+})
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
 /** Same locked pairing as the building page's around grid. */
@@ -1215,6 +1219,12 @@ export default function ListingDetailClient({
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Sun & daylight — solar arc for the listing coords (client-computed;
+                ISR-cached server times would go stale within the cache window) */}
+            {parseCoords(l.coords.lat, l.coords.lng) && (
+              <SunPath lat={l.coords.lat} lng={l.coords.lng} />
             )}
 
             {/* Mortgage calculator */}
