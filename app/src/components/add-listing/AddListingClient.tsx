@@ -1336,7 +1336,7 @@ export default function AddListingClient() {
                       <>
                         <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/60">{t('add.dealType')}</h3>
                         <div
-                          className="mt-3 flex flex-wrap rounded-full bg-sv-cloud p-1 ring-1 ring-sv-ink/[0.06]"
+                          className="mt-3 grid grid-cols-2 gap-1 rounded-module bg-sv-cloud p-1 ring-1 ring-sv-ink/[0.06] sm:flex sm:rounded-full"
                           role="radiogroup"
                           aria-label={t('add.dealType')}
                         >
@@ -1365,7 +1365,7 @@ export default function AddListingClient() {
                     {propType && deal && earlyStatus && (
                       <>
                         <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/60">{t('add.status')} *</h3>
-                        <div className={`mt-3 grid gap-3 ${statusOpts.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                        <div className={`mt-3 grid gap-3 ${statusOpts.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
                           {statusOpts.map((s) => {
                             const active = status === s
                             const Icon = STATUS_ICON[s] ?? Building
