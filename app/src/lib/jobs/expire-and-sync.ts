@@ -17,8 +17,10 @@ import {
   activeStoryUntil,
   activeUrgentUntil,
   effectiveTierKey,
+  tierKeyToBadge,
   tierRankOf,
 } from "@/lib/promo-pricing"
+import { sendPushToUser } from "@/lib/push"
 import { deleteListing, syncAllListings, type ListingDocument } from "@/lib/search"
 
 const BATCH = 200
@@ -54,13 +56,13 @@ export async function expirePromosJob(): Promise<{ downgraded: number }> {
       tier: { not: ListingTier.standard },
       tierExpiresAt: { lt: now },
     },
-    select: { id: true },
+    select: { id: true, ownerId: true, title: true, tier: true },
     take: BATCH,
   })
 
-  for (const { id } of rows) {
+  for (const row of rows) {
     await db.listing.update({
-      where: { id },
+      where: { id: row.id },
       data: {
         tier: ListingTier.standard,
         tierExpiresAt: null,
@@ -68,9 +70,45 @@ export async function expirePromosJob(): Promise<{ downgraded: number }> {
         tierPaymentOrderId: null,
       },
     })
-    await reindexListingById(id).catch(() => {})
+    await reindexListingById(row.id).catch(() => {})
+    await notifyPromoExpired(row).catch((e) => {
+      console.warn("[expire-promos] nudge failed:", (e as Error).message)
+    })
   }
   return { downgraded: rows.length }
+}
+
+/**
+ * Renewal nudge when a paid tier lapses: in-app notification + web push.
+ * Best-effort — the downgrade above is already committed, so a failed nudge
+ * can never re-fire (the row no longer matches `tier != standard`).
+ */
+async function notifyPromoExpired(row: {
+  id: string
+  ownerId: string | null
+  title: string
+  tier: string
+}): Promise<void> {
+  if (!row.ownerId) return
+  const badge = tierKeyToBadge(row.tier) ?? "VIP"
+  const title = `${badge} ვადა ამოიწურა`
+  const body = `„${row.title}“ დაბრუნდა უფასო რეჟიმში — განაახლე ${badge} ტოპ პოზიციისთვის.`
+  const actionUrl = "/my-listings"
+  await db.notification.create({
+    data: {
+      userId: row.ownerId,
+      kind: "promo_expired",
+      title,
+      body,
+      actionUrl,
+      metadata: { listingId: row.id, tier: row.tier },
+    },
+  })
+  // Awaited: on the cron serverless a floating promise dies when the
+  // function returns — the push would be silently dropped.
+  await sendPushToUser(row.ownerId, { title, body, url: actionUrl }).catch((e) => {
+    console.warn("[expire-promos] push failed:", (e as Error).message)
+  })
 }
 
 /** Full Meili reindex — shared by admin + cron. */
