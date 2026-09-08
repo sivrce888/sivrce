@@ -99,7 +99,7 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>ფასი-დან (₾)</span>
+          <span className={label}>ფასიდან (₾)</span>
           <input
             name="priceFrom"
             type="number"
@@ -110,7 +110,7 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>ფასი მ²-დან (₾)</span>
+          <span className={label}>მ² ფასიდან (₾)</span>
           <input
             name="pricePerSqmFrom"
             type="number"

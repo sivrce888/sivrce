@@ -434,7 +434,7 @@ export default function AddListingClient() {
         setExchangeable(L.exchangeable)
         setExclusive(L.exclusive)
         setSivrceExclusive(L.sivrceExclusive)
-        setDescription(L.description)
+        setDescription(L.description ?? '')
         setName(L.name)
         setPhone(L.phone)
         setPhoneVerified(L.phoneVerified)

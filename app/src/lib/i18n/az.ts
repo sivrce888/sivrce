@@ -35,7 +35,7 @@ export const az: Dict = {
   'nav.blog': 'Bloq',
   'nav.forum': 'Forum',
   'nav.agents': 'Agentlər',
-  'nav.agencies': '',
+  'nav.agencies': 'Agentliklər',
   'nav.developers': 'Tikinti şirkətləri',
   'nav.advertise': 'Elan yerləşdir',
 

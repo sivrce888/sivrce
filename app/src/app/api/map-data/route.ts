@@ -20,7 +20,7 @@ export async function GET() {
       at: Date.now(),
     }, 30)
   } catch (err) {
-    console.error('[map-data]', err)
+    console.error('[map-data]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'map refresh failed' }, { status: 500 })
   }
 }

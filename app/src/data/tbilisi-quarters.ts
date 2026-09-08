@@ -431,7 +431,7 @@ export const TBILISI_QUARTERS: TbilisiQuarter[] = [
   q('ქაქუცა ჩოლოყაშვილის I კვარტალი', 'Kakutsa Choloqashvili 1st Block', 'ორთაჭალა', 41.6760772, 44.8433295, ['ქაქუცა ჩოლოყაშვილ I', 'Kakutsa Choloqashvili 1st Block']),
   q('ქაქუცა ჩოლოყაშვილის II კვარტალი', 'Kakutsa Choloqashvili 2nd Block', 'ორთაჭალა', 41.6754462, 44.8495898, ['ქაქუცა ჩოლოყაშვილ II', 'Kakutsa Choloqashvili 2nd Block']),
   q('შავსოფელი', 'Shavsopeli', 'ორთაჭალა', 41.6859783, 44.8251253, ['Shavsopeli']),
-  q('ცოტნე დადიანის II მიკრო/რაიონი', 'ცოტნე დადიანის II მიკრო/რაიონი', 'დიდუბე', 41.7362201, 44.7965195, ['ცოტნე დადიან II']),
+  q('ცოტნე დადიანის II მიკრო/რაიონი', 'Tsotne Dadiani 2nd Micro District', 'დიდუბე', 41.7362201, 44.7965195, ['ცოტნე დადიან II']),
   q('ჰუალინგის დასახლება', 'Hualing Dasakhleba', 'ვარკეთილი', 41.7131372, 44.8786407, ['Hualing Dasakhleba']),
 
 ]

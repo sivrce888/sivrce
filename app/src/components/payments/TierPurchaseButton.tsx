@@ -73,7 +73,7 @@ const ADDONS: Array<{
   {
     key: "turbo_7",
     label: "Turbo · 7 დღე",
-    description: "SUPER VIP + ფერი + სასწრაფოდ + bump",
+    description: "SUPER VIP + ფერი + სასწრაფოდ + აწევა",
     priceTetri: ADDON_TETRI.turbo_7,
     icon: Rocket,
   },
@@ -101,7 +101,7 @@ const ADDONS: Array<{
   {
     key: "refresh_once",
     label: "განახლება",
-    description: "აწიე სიაში ახალივით",
+    description: "განცხადება კვლავ ზემოთ ამოიწევს",
     priceTetri: ADDON_TETRI.refresh_once,
     icon: RotateCw,
   },
@@ -115,7 +115,7 @@ const ADDONS: Array<{
   {
     key: "facebook",
     label: "Facebook · 3 დღე",
-    description: "სოციალური გავრცელება · ops რიგი",
+    description: "სოციალური გავრცელება · რიგით გამოქვეყნდება",
     priceTetri: ADDON_TETRI.facebook,
     icon: Share2,
   },
@@ -306,7 +306,7 @@ export default function TierPurchaseButton({
                         </div>
                         <div className="truncate text-[11px] font-medium text-sv-ink/60">
                           {renew
-                            ? `დაემატება +${days} დღე მიმდინარე ვადას`
+                            ? `მიმდინარე ვადას დაემატება +${days} დღე`
                             : tier.description}
                         </div>
                       </div>
@@ -328,7 +328,7 @@ export default function TierPurchaseButton({
           ) : (
             <div className="mt-2 rounded-control bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-2 text-[11px] font-black text-white">
               <Crown className="mr-1 inline h-3.5 w-3.5" />
-              მაქსიმალური ტირი აქტიურია
+              მაქსიმალური პაკეტი აქტიურია
             </div>
           )}
 

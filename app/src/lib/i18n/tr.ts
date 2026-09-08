@@ -35,7 +35,7 @@ export const tr: Dict = {
   'nav.blog': 'Blog',
   'nav.forum': 'Forum',
   'nav.agents': 'Danışmanlar',
-  'nav.agencies': '',
+  'nav.agencies': 'Emlak Ofisleri',
   'nav.developers': 'Geliştiriciler',
   'nav.advertise': 'İlan ver',
 

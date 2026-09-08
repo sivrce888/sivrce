@@ -6,7 +6,7 @@ import Footer from '@/components/sections/Footer'
 import { GEO_MUNICIPALITIES, GEO_REGIONS } from '@/data/georgia-locations'
 import { villagesOf } from '@/data/georgia-villages'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.ge'
 const PATH = '/locations'
@@ -34,7 +34,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
-  alternates: { canonical: PATH, languages: langAlternates(PATH) },
+  alternates: kaOnlyAlternates(PATH),
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,

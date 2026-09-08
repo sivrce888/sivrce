@@ -42,7 +42,7 @@ export async function RequestVerification({
           ) : pending ? (
             <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/60">
               <Clock size={13} className="text-sv-blue" aria-hidden />
-              მოთხოვნა განხილვაშია — შედეგი მოვა ელ-ფოსტაზე.
+              მოთხოვნა განხილვაშია — შედეგი მოვა ელფოსტაზე.
             </p>
           ) : (
             <>

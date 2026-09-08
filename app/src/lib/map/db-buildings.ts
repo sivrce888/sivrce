@@ -42,7 +42,6 @@ function dealToMap(d: string): DealType {
 function rowToMapListing(row: {
   id: string
   title: string
-  description: string
   dealType: string
   propertyType: string
   price: number
@@ -84,6 +83,8 @@ function rowToMapListing(row: {
   const tierKey = effectiveTierKey(row.tier, row.tierExpiresAt)
   return {
     id: row.id,
+    // ponytail: map rows skip the body copy (2500-row cap) — cards never render it
+    description: "",
     streetHref: streetHrefForListing(row.address, row.district, row.city),
     img: row.images[0] ?? "/images/p1.webp",
     images: row.images,
@@ -120,7 +121,6 @@ function rowToMapListing(row: {
     isSivrceExclusive: (row.extendedFields as { sivrceExclusive?: boolean } | null)?.sivrceExclusive === true,
     ai: { score: row.trustScore, label: "" },
     features: row.features,
-    description: row.description,
     coords: { lat: row.lat, lng: row.lng },
     buildingSlug,
     postedAt: row.createdAt.toISOString().slice(0, 10),
@@ -147,7 +147,6 @@ async function fetchMapListings(): Promise<Listing[]> {
       select: {
         id: true,
         title: true,
-        description: true,
         dealType: true,
         propertyType: true,
         price: true,

@@ -40,7 +40,7 @@ export default async function SignInPage({
   return (
     <AuthShell
       title="შესვლა"
-      subtitle="Passkey — ერთი შეხება. ან ნომერი, კოდი მოვა SMS-ით."
+      subtitle="Passkey — ერთი შეხება. ან შედი ნომრით — კოდი მოვა SMS-ით."
       footer={
         <p className="text-[13px] font-medium text-white/50">
           ახალი ხარ?{" "}

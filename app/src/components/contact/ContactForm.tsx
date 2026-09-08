@@ -21,7 +21,7 @@ export default function ContactForm() {
           შეტყობინება გაგზავნილია
         </h2>
         <p className="mt-2 text-[15px] font-medium text-sv-ink/60">
-          გმადლობთ! ჩვენი გუნდა გიპასუხებთ 24 საათის განმავლობაში.
+          გმადლობთ! ჩვენი გუნდი გიპასუხებთ 24 საათის განმავლობაში.
         </p>
         <button
           type="button"

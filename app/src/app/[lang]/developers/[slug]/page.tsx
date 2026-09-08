@@ -22,7 +22,7 @@ import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { altName, altNameList } from '@/lib/bilingual'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { OG_LOCALE, pageAlternates } from "@/lib/i18n/server"
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import {
   DEV_DETAIL,
@@ -72,10 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: {
-      canonical: `/developers/${d.slug}`,
-      languages: langAlternates(`/developers/${d.slug}`),
-    },
+    alternates: pageAlternates(`/developers/${d.slug}`, lang),
     openGraph: {
       title: `${name}`,
       description,
@@ -265,6 +262,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             // Zero listings reads as "inactive" — drop the stat instead.
             ...(listings.length > 0 ? [{ key: 'activeListings' as const, value: listings.length }] : []),
           ]}
+          messageUserId={dev.ownerId}
         />
 
         <AnchorNav items={anchors} label={c.navLabel} />

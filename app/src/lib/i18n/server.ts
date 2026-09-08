@@ -20,6 +20,29 @@ export function langAlternates(path = '/'): Record<string, string> {
   return map
 }
 
+/**
+ * The canonical URL of `path` as served at `lang` — ka unprefixed, others
+ * /{lang}-prefixed. Self-canonical per locale: a cross-locale canonical would
+ * contradict the hreflang cluster and drop every non-ka URL from the index.
+ */
+export function langCanonical(path: string, lang: Lang): string {
+  return lang === DEFAULT_LANG ? path : `/${lang}${path === '/' ? '' : path}`
+}
+
+/** Standard alternates block: self-canonical for this locale + full hreflang set. */
+export function pageAlternates(path: string, lang: Lang) {
+  return { canonical: langCanonical(path, lang), languages: langAlternates(path) }
+}
+
+/**
+ * Alternates for ka-only content (blog/forum posts, neighborhood guides):
+ * every locale URL carries the same Georgian copy, so they all point at the
+ * ka URL and declare only the language that actually exists.
+ */
+export function kaOnlyAlternates(path: string) {
+  return { canonical: path, languages: { ka: path, 'x-default': path } }
+}
+
 /** OpenGraph locale per lang. */export const OG_LOCALE: Record<Lang, string> = {
   ka: 'ka_GE',
   en: 'en_US',
@@ -168,6 +191,6 @@ export function pageMeta(
   return {
     title: c.title,
     description: c.description,
-    alternates: { canonical: path, languages: langAlternates(path) },
+    alternates: pageAlternates(path, lang),
   }
 }

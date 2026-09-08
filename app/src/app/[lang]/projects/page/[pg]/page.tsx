@@ -7,7 +7,7 @@ import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { projectsLive } from '@/lib/directory-live'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { MICRO, PROJECTS_HUB, dirLoc } from '@/lib/directory-seo'
 import { toCard } from '../../card'
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description: c.description,
-    alternates: { canonical: pg ? path : '/projects', languages: langAlternates(path) },
+    alternates: pageAlternates(pg ? path : '/projects', lang),
     openGraph: {
       title,
       description: c.description,

@@ -101,7 +101,7 @@ const ka: ReviewStrings = {
   pageOf: (page, pages) => `გვერდი ${page} / ${pages}`,
   loadError: 'შეფასებების ჩატვირთვა ვერ მოხერხდა',
   retry: 'თავიდან ცდა',
-  starsReadOnly: (v) => `შეფასება: 5-დან ${v}`,
+  starsReadOnly: (v) => `შეფასება: 5-დან ${v}-მდე`,
   starOption: (n) => `${n} ვარსკვლავი`,
   distributionRow: (stars, count) => `${stars} ვარსკვლავი: ${count}`,
   signInToReview: 'შედი ანგარიშში შეფასების დასატოვებლად',

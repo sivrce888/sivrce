@@ -52,8 +52,9 @@ import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
 import type { ListingShareInput } from '@/lib/listing-share'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
-  formatFloor, USD_GEL, postedAgoLabel, type Listing, type PropType,
-} from '@/data/listings'
+  formatFloor, USD_GEL, postedAgoLabel,
+} from '@/lib/listing-format'
+import type { Listing, PropType } from '@/data/listings'
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'

@@ -8,11 +8,12 @@ import { LeadForm } from '@/components/lead/LeadForm'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import LocalizedLink from '@/components/LocalizedLink'
 import { isValidLang } from '@/lib/i18n/core'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageAlternates } from "@/lib/i18n/server"
 import { jsonLd } from '@/lib/utils'
 import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
 import { getListingsByOwner } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import MessageUserButton from '@/components/chat/MessageUserButton'
 import {
   isServiceCategoryId,
   pickLocText,
@@ -42,10 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${name} — ${p.city}`,
     description,
-    alternates: {
-      canonical: `/services/${p.category}/${p.slug}`,
-      languages: langAlternates(`/services/${p.category}/${p.slug}`),
-    },
+    alternates: pageAlternates(`/services/${p.category}/${p.slug}`, lang),
     openGraph: {
       title: `${name}`,
       description,
@@ -177,7 +175,14 @@ export default async function ServiceProviderPage({ params }: PageProps) {
               </ul>
             )}
           </div>
-          <LeadForm targetType="service" targetId={p.slug} recipientName={name} />
+          <div>
+            {p.ownerId && (
+              <div className="mb-4">
+                <MessageUserButton userId={p.ownerId} />
+              </div>
+            )}
+            <LeadForm targetType="service" targetId={p.slug} recipientName={name} />
+          </div>
         </section>
 
         {listings.length > 0 && (

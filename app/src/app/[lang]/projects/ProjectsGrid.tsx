@@ -6,7 +6,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Building2, CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react'
-import { MICRO, finishLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo'
+import { MICRO, finishLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo-lite'
 import type { ProjectCard } from './card'
 
 /** Cards per hub page — 18 rows × 2 cols desktop. Caps ISR payload weight. */

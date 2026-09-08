@@ -33,8 +33,24 @@ export interface ReviewList {
 const SORTS = new Set(["newest", "highest", "lowest", "helpful"])
 export const PAGE_SIZE = 10
 
+/** Exactly what toDto reads — a full Review or the REVIEW_SELECT projection both fit. */
+export type ReviewLike = Pick<
+  Review,
+  | "id"
+  | "targetType"
+  | "targetId"
+  | "authorName"
+  | "rating"
+  | "title"
+  | "body"
+  | "verified"
+  | "helpfulCount"
+  | "ownerReply"
+  | "createdAt"
+>
+
 /** Public wire shape per the fixed API contract. */
-export function toDto(r: Review): ReviewDto {
+export function toDto(r: ReviewLike): ReviewDto {
   return {
     id: r.id,
     targetType: r.targetType,

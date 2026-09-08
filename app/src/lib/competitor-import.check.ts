@@ -13,6 +13,12 @@ async function main() {
   assert.equal(detectCompetitorSource('https://ss.ge/ka/x-31099402'), 'ss.ge')
   assert.equal(detectCompetitorSource('https://www.myhome.ge/ka/pr/25529861/'), 'myhome.ge')
   assert.equal(detectCompetitorSource('https://korter.ge/qiravdeba-binebi-tbilisshi/869577'), 'korter.ge')
+  // hostname-exact: lookalike hosts must NOT pass (SSRF guard)
+  assert.equal(detectCompetitorSource('https://ss.ge.evil.com/x'), null, 'lookalike host rejected')
+  assert.equal(detectCompetitorSource('https://evil.com/?x=ss.ge'), null, 'query trick rejected')
+  assert.equal(detectCompetitorSource('https://myhome.ge.evil.com/pr/1'), null, 'suffix host rejected')
+  assert.equal(detectCompetitorSource('https://home.ss.ge/ka/x-1'), 'ss.ge', 'real subdomain still passes')
+  assert.equal(detectCompetitorSource('not a url'), null, 'garbage rejected')
   assert.equal(extractCompetitorId('https://korter.ge/binebis-yidva-gayidva-tbilisi/archi-kikvidze-garden/843242'), '843242')
   assert.equal(extractCompetitorId('https://ss.ge/ka/udzravi-qoneba/iyideba-2-otaxiani-bina-saburtaloze-31099402'), '31099402')
 

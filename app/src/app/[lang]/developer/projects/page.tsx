@@ -151,7 +151,7 @@ export default async function DeveloperProjectsPage({
                 <th className="px-5 py-3.5">უბანი</th>
                 <th className="px-5 py-3.5">სტატუსი</th>
                 <th className="px-5 py-3.5">ჩაბარება</th>
-                <th className="px-5 py-3.5">ფასი-დან</th>
+                <th className="px-5 py-3.5">ფასიდან</th>
                 <th className="px-5 py-3.5">ბინები</th>
                 <th className="px-5 py-3.5 text-right"> </th>
               </tr>

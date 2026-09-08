@@ -8,11 +8,11 @@ import Footer from '@/components/sections/Footer'
 import SeoFilterableListings from '@/components/seo/SeoFilterableListings'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { cityCoords } from '@/lib/weather'
-import { formatUSD } from '@/data/listings'
+import { formatUSD } from '@/lib/listing-format'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
 import { getNeighborhood, pick as pickNb } from '@/data/neighborhoods'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageAlternates } from '@/lib/i18n/server'
 import { listingPath } from '@/lib/listing-slug'
 import {
   dealLabel,
@@ -103,10 +103,7 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = lo
   return {
     title,
     description,
-    alternates: {
-      canonical: url,
-      languages: langAlternates(def.path),
-    },
+    alternates: pageAlternates(def.path, loc),
     openGraph: {
       title,
       description,

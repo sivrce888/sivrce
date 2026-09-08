@@ -272,7 +272,7 @@ export async function deleteAccount(
     return { error: "ადმინ ანგარიშის წაშლა აქ შეუძლებელია" }
   }
   if (!isDeleteConfirm(String(formData.get("confirm") ?? ""))) {
-    return { error: 'დასადასტურებლად ჩაწერე „წაშლა"' }
+    return { error: 'დასადასტურებლად ჩაწერე „წაშლა“' }
   }
 
   const row = await db.user.findUnique({

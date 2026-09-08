@@ -80,7 +80,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
           subtitle: 'ანალიტიკა, გზამკვლევები და რჩევები საქართველოს ბაზრისთვის — თბილისი, ბათუმი, ქუთაისი.',
           minRead: 'წთ კითხვა',
           minShort: 'წთ',
-          read: 'წაიკითხეთ',
+          read: 'წაიკითხე',
         }
       : lang === 'ru'
         ? {

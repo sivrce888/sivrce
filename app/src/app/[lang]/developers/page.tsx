@@ -14,7 +14,7 @@ import { PER_PAGE, Pager } from '../projects/ProjectsGrid'
 import { rankedDevelopers } from './ranked'
 import { altNameList } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { DEVELOPERS_HUB, dirLoc, faqPageLd } from '@/lib/directory-seo'
 
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: c.title,
     description: c.description,
-    alternates: { canonical: '/developers', languages: langAlternates('/developers') },
+    alternates: pageAlternates('/developers', lang),
     openGraph: {
       title: c.ogTitle,
       description: c.description,

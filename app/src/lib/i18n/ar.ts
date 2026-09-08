@@ -35,7 +35,7 @@ export const ar: Dict = {
   'nav.blog': 'المدونة',
   'nav.forum': 'المنتدى',
   'nav.agents': 'الوكلاء',
-  'nav.agencies': '',
+  'nav.agencies': 'وكالات',
   'nav.developers': 'المطوّرون',
   'nav.advertise': 'أعلن معنا',
 

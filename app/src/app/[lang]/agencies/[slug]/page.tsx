@@ -13,7 +13,7 @@ import { cityCenter } from '@/lib/map/geocode'
 import MapEmbed from '@/components/MapEmbed'
 import { getListingsByOwner } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 import type { EntitiesKey } from '@/components/entities/i18n'
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${agency.name} — სააგენტო`,
     description,
-    alternates: { canonical: `/agencies/${slug}`, languages: langAlternates(`/agencies/${slug}`) },
+    alternates: kaOnlyAlternates(`/agencies/${slug}`),
     openGraph: {
       title: `${agency.name} — სააგენტო`,
       description,
@@ -132,6 +132,7 @@ export default async function AgencyPage({ params }: PageProps) {
           phone=""
           subtitle={agency.districts.slice(0, 3).join(' · ')}
           stats={stats}
+          messageUserId={agency.ownerId}
         />
 
         {agency.summary ? (

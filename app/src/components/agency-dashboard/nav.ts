@@ -3,7 +3,7 @@ import type { CrmLeadStatus, ListingStatus } from "@/generated/prisma/client"
 
 /** Shared sidebar nav for every /agency page. */
 export const AGENCY_NAV: DashboardNavItem[] = [
-  { href: "/agency", label: "მთავარი" },
+  { href: "/agency", label: "მიმოხილვა" },
   { href: "/agency/listings", label: "განცხადებები" },
   { href: "/agency/leads", label: "ლიდები" },
   { href: "/agency/tours", label: "ვიზიტები" },
@@ -26,9 +26,9 @@ export const LEAD_STATUS_ORDER: CrmLeadStatus[] = [
 
 export const LEAD_STATUS_LABELS: Record<CrmLeadStatus, string> = {
   new: "ახალი",
-  contacted: "კონტაქტი",
+  contacted: "დაკავშირებული",
   viewing_scheduled: "ვიზიტი დაგეგმილი",
-  offer_made: "შეთავაზება",
+  offer_made: "შეთავაზება გაკეთდა",
   negotiating: "მოლაპარაკება",
   closed_won: "მოგებული",
   closed_lost: "წაგებული",

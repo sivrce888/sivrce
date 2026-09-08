@@ -138,7 +138,7 @@ export default async function AgentOverviewPage() {
           </div>
           {recentLeads.length === 0 ? (
             <EmptyState
-              title="ლიდები ჯერ არ გყავს"
+              title="ლიდები ჯერ არ გაქვს"
               body="მყიდველის მოთხოვნა აქ გამოჩნდება, როგორც კი განცხადებაზე დაგიკავშირდება."
             />
           ) : (
@@ -190,7 +190,7 @@ export default async function AgentOverviewPage() {
         {nextTours.length === 0 ? (
           <EmptyState
             title="დაგეგმილი ვიზიტები არ არის"
-            body="როცა მყიდველი განცხადების ნახვას დაჯავშნის, ვიზიტი აქ გამოჩნდება."
+            body="როცა მყიდველი განცხადების ნახვას დაჯავშნავს, ვიზიტი აქ გამოჩნდება."
           />
         ) : (
           <ul className="divide-y divide-sv-ink/6">

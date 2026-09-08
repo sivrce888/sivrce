@@ -14,6 +14,21 @@ import { parseReviewFields } from "@/lib/reviews/validate"
 
 export const dynamic = "force-dynamic"
 
+/** Only the columns toDto reads — skip moderation/authorId bookkeeping. */
+const REVIEW_SELECT = {
+  id: true,
+  targetType: true,
+  targetId: true,
+  authorName: true,
+  rating: true,
+  title: true,
+  body: true,
+  verified: true,
+  helpfulCount: true,
+  ownerReply: true,
+  createdAt: true,
+} satisfies Prisma.ReviewSelect
+
 const TARGET_TYPES = new Set([
   "listing",
   "project",
@@ -53,6 +68,7 @@ export async function GET(req: NextRequest) {
         where: { OR: or, status: "published", deletedAt: null },
         orderBy: { createdAt: "desc" },
         take: 30,
+        select: REVIEW_SELECT,
       })
       return NextResponse.json({ reviews: reviews.map(toDto) })
     } catch {
@@ -79,6 +95,7 @@ export async function GET(req: NextRequest) {
             deletedAt: null,
           },
           orderBy: { createdAt: "desc" },
+          select: REVIEW_SELECT,
         })
         return NextResponse.json({ review: mine ? toDto(mine) : null })
       }
@@ -88,6 +105,7 @@ export async function GET(req: NextRequest) {
         where: { authorId: session.user.id, deletedAt: null },
         orderBy: { createdAt: "desc" },
         take: 100,
+        select: REVIEW_SELECT,
       })
       return NextResponse.json({ reviews: reviews.map(toDto) })
     } catch {

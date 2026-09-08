@@ -212,6 +212,7 @@ export async function GET() {
     where: { buyerEmail: session.user.email, deletedAt: null },
     orderBy: { createdAt: "desc" },
     take: 50,
+    select: { id: true, listingId: true, agentName: true, message: true, status: true, createdAt: true },
   })
 
   // Titles from live listings only.

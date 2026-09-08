@@ -68,7 +68,6 @@ export async function getOrCreateChatRoom(listingId: string, userId: string) {
 /** Participant role reserved for the sivrce support team. */
 export const SUPPORT_ROLE = "support"
 const SUPPORT_TITLE = "Sivrce Support"
-const MAX_SUPPORT_SEATS = 10
 
 /**
  * Find or create the user's direct line to the sivrce team: a listing-less
@@ -89,10 +88,10 @@ export async function getOrCreateSupportRoom(userId: string) {
   })
   if (existing) return existing
 
+  // Every admin gets a seat — a silently dropped admin is a dropped answer.
   const admins = await db.user.findMany({
     where: { role: "admin" },
     select: { id: true },
-    take: MAX_SUPPORT_SEATS,
   })
 
   return db.chatRoom.create({

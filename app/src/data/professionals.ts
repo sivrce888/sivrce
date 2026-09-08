@@ -42,6 +42,8 @@ export interface Developer {
   logoUrl?: string
   /** Official site — synced from korter; used in JSON-LD sameAs. */
   website?: string
+  /** Owning User.id (DB sync) — enables the in-chat Message button. */
+  ownerId?: string | null
 }
 
 export interface AgentProfile {
@@ -2701,7 +2703,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     coords: { lat: 41.62726306, lng: 41.603221 },
     floors: 29,
     description: {
-      ka: 'Monogram (Symbol) — 29-სართულიანი პრემიუმ კომპლექსი ანგისას 81/83-ზე, ახალ ბულვართან (~200 მ ზღვამდე). ასევე ცნობილია როგორც Park Tower. ჩაბარება 2027 Q4.',
+      ka: 'Monogram (Symbol) — 29-სართულიანი პრემიუმ კომპლექსი ანგისის 81/83-ზე, ახალ ბულვართან (~200 მ ზღვამდე). ასევე ცნობილია როგორც Park Tower. ჩაბარება 2027 Q4.',
       en: 'Monogram by Symbol is a 29-storey premium tower at Angisa 81/83, New Boulevard (~200 m to the sea). Also called Park Tower. Completion Q4 2027.',
       ru: 'Monogram (Symbol) — 29-этажный премиум-комплекс на Ангиса 81/83, Новый бульвар (~200 м до моря). Также Park Tower. Сдача Q4 2027.',
     },
@@ -4260,7 +4262,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     name: 'Elegance',
     developerSlug: 'arcon',
     img: '/images/projects/arcon-elegance.webp',
-    location: 'კრწანისი, ვახტანგ გორგასლის ქ. 12',
+    location: 'კრწანისი, ვახტანგ გორგასალის ქ. 12',
     city: 'თბილისი',
     priceFromM2: '$2,030',
     done: 65,
@@ -4270,7 +4272,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     rating: 4.5,
     coords: { lat: 41.67953049, lng: 44.82492945 },
     description: {
-      ka: 'Elegance — არკონის ბუტიკ-კომპლექსი კრწანისში, გორგასლის ქ. 12-ში. ბინები $2 030/მ²-დან, ჩაბარება 2026-ის ბოლოს.',
+      ka: 'Elegance — არკონის ბუტიკ-კომპლექსი კრწანისში, გორგასალის ქ. 12-ში. ბინები $2 030/მ²-დან, ჩაბარება 2026-ის ბოლოს.',
       en: 'Elegance is Arcon’s boutique complex in Krtsanisi at 12 Gorgasali St. From $2,030/m², completion end of 2026.',
       ru: 'Elegance — бутиковый комплекс Arcon в Крцаниси на ул. Горгасали 12. От $2 030/м², сдача в конце 2026.',
     },

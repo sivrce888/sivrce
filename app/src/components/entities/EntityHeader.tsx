@@ -5,6 +5,7 @@ import { BadgeCheck, MapPin, Phone } from 'lucide-react'
 import { CONTACT_PHONE, waHref } from '@/lib/inquiries/phone'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import type { LocalName } from '@/data/professionals'
+import MessageUserButton from '@/components/chat/MessageUserButton'
 import { StatsRow, type StatItem } from './StatsRow'
 import { useEntities, pick, localizeCity, type EntitiesKey } from './i18n'
 import { DeveloperLogo } from './DeveloperLogo'
@@ -23,9 +24,11 @@ export interface EntityHeaderProps {
   /** Official developer logo URL (korter GCS) */
   logoUrl?: string
   slug?: string
+  /** Owner's User.id — shows the in-chat "Message" button when set */
+  messageUserId?: string | null
 }
 
-export function EntityHeader({ kind, name, city, verified, phone, stats, subtitle, logoUrl, slug }: EntityHeaderProps) {
+export function EntityHeader({ kind, name, city, verified, phone, stats, subtitle, logoUrl, slug, messageUserId }: EntityHeaderProps) {
   const { lang, d } = useEntities()
   const brand = SERVICE_BRAND[kind === 'developer' ? 'developers' : 'agents']
   const displayName = pick(name, lang)
@@ -89,8 +92,7 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
         <div className="flex flex-col gap-5 md:items-end">
           <StatsRow items={items} />
           {phone ? (
-            <div className="flex flex-wrap gap-2">
-              <a
+            <div className="flex flex-wrap gap-2">              <a
                 href={telHref}
                 aria-label={`${d.call}: ${displayName}, ${phone}`}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-6 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
@@ -109,6 +111,7 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
               </a>
             </div>
           ) : null}
+          {messageUserId ? <MessageUserButton userId={messageUserId} /> : null}
         </div>
       </div>
     </header>

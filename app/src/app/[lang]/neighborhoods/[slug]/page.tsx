@@ -8,7 +8,7 @@ import { getListingsInDistricts, USD_GEL } from '@/lib/listings-db'
 import { getNeighborhoodMarketStats } from '@/lib/market-stats'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 export const revalidate = 3600
 
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: `/neighborhoods/${n.slug}`, languages: langAlternates(`/neighborhoods/${n.slug}`) },
+    alternates: kaOnlyAlternates(`/neighborhoods/${n.slug}`),
     openGraph: {
       title: `${title}`,
       description,

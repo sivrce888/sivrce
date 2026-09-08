@@ -66,7 +66,7 @@ export default async function OnboardingPage({
             href={dashboardPathFor(user.role)}
             className="text-[13px] font-bold text-sv-blue-light transition hover:underline"
           >
-            გამოტოვება — მყიდველად დავრჩები
+            გამოტოვე — მყიდველად დარჩები
           </Link>
         </div>
       }

@@ -7,7 +7,7 @@ import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { Reveal } from '@/components/Reveal'
 import PromoPricingGrid from '@/components/payments/PromoPricingGrid'
-import { langAlternates } from '@/lib/i18n/server'
+import {pageAlternates,  } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 import { roleSignupHref } from '@/lib/auth-roles'
 import { formatGel, MONTHLY_RE_TETRI, ADDON_TETRI } from '@/lib/promo-pricing'
@@ -48,7 +48,7 @@ const COPY: Record<string, Copy> = {
     pro: {
       badge: 'სააგენტო · აგენტი · დეველოპერი',
       title: 'პროფესიონალური ანგარიში — 3 ნაბიჯი',
-      text: 'Footer-ის „აგენტები / დეველოპერები“ აქ მოდის. როლი რეგისტრაციის შემდეგ ირჩევა — ცალკე განაცხადი არ გჭირდება.',
+      text: 'აგენტები, სააგენტოები და დეველოპერები — ერთი რეგისტრაცია. როლი რეგისტრაციის შემდეგ ირჩევა — ცალკე განაცხადი არ გჭირდება.',
       cta: 'რეგისტრაცია',
       ctaListing: 'განცხადების დამატება',
       steps: [
@@ -62,26 +62,26 @@ const COPY: Record<string, Copy> = {
       title: 'ბუსტები გამოქვეყნების შემდეგ',
       text: 'VIP-ის გარდა — სთორი, სასწრაფოდ, ფერი, Turbo. ყიდულობ შენი განცხადებიდან.',
       items: [
-        { icon: Zap, title: 'Turbo', text: 'SUPER VIP + ფერი + სასწრაფოდ', price: formatGel(ADDON_TETRI.turbo_7) + ' / 7დ' },
-        { icon: CircleDot, title: 'სთორი', text: 'მთავარი გვერდის სთორი · 24სთ', price: formatGel(ADDON_TETRI.story) },
-        { icon: Zap, title: 'სასწრაფოდ', text: 'ნარინჯისფერი ნიშანი · 24სთ', price: formatGel(ADDON_TETRI.sticker_urgent) },
-        { icon: TrendingUp, title: 'ფასი დაწეულია', text: 'სიგნალი მყიდველისთვის · 7დ', price: formatGel(ADDON_TETRI.sticker_price_drop) },
-        { icon: Palette, title: 'ფერი', text: 'ლურჯი ჩარჩო ძიებაში · 7დ', price: formatGel(ADDON_TETRI.color) },
+        { icon: Zap, title: 'Turbo', text: 'SUPER VIP + ფერი + სასწრაფოდ', price: formatGel(ADDON_TETRI.turbo_7) + ' / 7 დღე' },
+        { icon: CircleDot, title: 'სთორი', text: 'მთავარი გვერდის სთორი · 24 სთ', price: formatGel(ADDON_TETRI.story) },
+        { icon: Zap, title: 'სასწრაფოდ', text: 'ნარინჯისფერი ნიშანი · 24 სთ', price: formatGel(ADDON_TETRI.sticker_urgent) },
+        { icon: TrendingUp, title: 'ფასი დაწეულია', text: 'სიგნალი მყიდველისთვის · 7 დღე', price: formatGel(ADDON_TETRI.sticker_price_drop) },
+        { icon: Palette, title: 'ფერი', text: 'ლურჯი ჩარჩო ძიებაში · 7 დღე', price: formatGel(ADDON_TETRI.color) },
         { icon: RefreshCw, title: 'განახლება', text: 'სიის თავში აყვანა', price: formatGel(ADDON_TETRI.refresh_once) },
       ],
     },
     brand: {
       kicker: 'ბრენდის განთავსება',
       title: 'ბანერები მთელ სივრცეზე',
-      text: 'დეველოპერი, ბანკი, დაზღვევა, სააგენტო — ერთი კამპანია, აუდიტორიით (მყიდველი / გამყიდველი / აგენტი) და ენით. ადმინი აკონტროლებს ყოველ სლოტს.',
+      text: 'დეველოპერი, ბანკი, დაზღვევა, სააგენტო — ერთი კამპანია, აუდიტორიით (მყიდველი / გამყიდველი / აგენტი) და ენით. ყველა ადგილს ვმართავთ ცენტრალიზებულად.',
       cta: 'დაგვიკავშირდი ბანერისთვის',
       packs: [
-        { title: 'მთავარი გვერდი', text: 'Billboard ჰეროს ქვემოთ — დეველოპერი, ბანკი, ბრენდი' },
-        { title: 'ძიება', text: 'Native ბარათი შედეგებში + ზედა ზოლი' },
-        { title: 'განცხადება', text: 'Sidebar ქვემოთ აგენტის ბარათისა' },
+        { title: 'მთავარი გვერდი', text: 'ბანერი ჰეროს ქვემოთ — დეველოპერი, ბანკი, ბრენდი' },
+        { title: 'ძიება', text: 'სარეკლამო ბარათი შედეგებში + ზედა ზოლი' },
+        { title: 'განცხადება', text: 'აგენტის ბარათი გვერდით ზოლში' },
         { title: 'დირექტორიები', text: 'აგენტები, დეველოპერები, პროექტები, უბნები' },
         { title: 'იპოთეკა', text: 'კალკულატორზე — ბანკის პროდუქტი' },
-        { title: 'ბლოგი', text: 'სარედაქციო აუდიტორია, მაღალი intent' },
+        { title: 'ბლოგი', text: 'სარედაქციო აუდიტორია, შეძენის მაღალი განზრახვა' },
       ],
     },
     stats: [
@@ -93,7 +93,7 @@ const COPY: Record<string, Copy> = {
       heading: 'კითხვები განთავსების შესახებ',
       items: [
         { q: 'რატომ არის sivrce ხელმისაწვდომი?', a: 'VIP+ დღეში 2.50₾-დან, VIP უძრავზე 1₾/დღე, SUPER VIP — ტოპ პოზიცია. უფასო განთავსება ყველასთვის.' },
-        { q: 'რომელი პაკეტი ავირჩიო?', a: 'უმეტესობისთვის VIP+ საკმარისია: კარუსელი + სიაში VIP-ზე წინ. SUPER VIP — როცა გინდა ტოპი ყველას თავზე და მთავარი სლაიდერი.' },
+        { q: 'რომელი პაკეტი ავირჩიო?', a: 'უმეტესობისთვის VIP+ საკმარისია: კარუსელი + სიაში VIP-ზე წინ. SUPER VIP — როცა გინდა ტოპ პოზიცია ყველას თავზე და გამოჩენა მთავარ სლაიდერში.' },
         { q: 'როგორ ხდება გადახდა?', a: 'ონლაინ ბარათით ან ბალანსიდან. სტატუსი აქტიურდება გადახდისთანავე არჩეული დღეების განმავლობაში.' },
         { q: 'რა მოხდება ვადის გასვლის შემდეგ?', a: 'განცხადება არ იშლება — ბრუნდება უფასო რეჟიმში და რჩება ხილვადი ვადის ამოწურვამდე.' },
         { q: 'სააგენტო ან დეველოპერი ვარ — სად დავიწყო?', a: 'დარეგისტრირდი → აირჩიე როლი → შეავსე პროფილი. გამოჩნდები /agents ან /developers დირექტორიაში.' },
@@ -261,7 +261,7 @@ export async function generateMetadata({
   return {
     title: c.metaTitle,
     description: c.metaDescription,
-    alternates: { canonical: '/advertise', languages: langAlternates('/advertise') },
+    alternates: pageAlternates('/advertise', lang),
   }
 }
 

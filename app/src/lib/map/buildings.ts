@@ -18,7 +18,7 @@ import { getDeveloper, projectCode, type Project } from '@/data/professionals'
 import type { MapDealFilter, MapKindFilter, MapStatusFilter } from '@/lib/map/map-href'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
-import { naprOverrideFor } from '@/lib/map/napr-overrides'
+import { ensureNaprOverrides, naprOverrideFor } from '@/lib/map/napr-overrides'
 import { circleRing } from '@/lib/map/footprint-circle'
 import { ringLabelPoint } from '@/lib/map/ring-label'
 export { ringLabelPoint }
@@ -76,22 +76,25 @@ let FOOTPRINTS: Record<string, FootprintEntry> = {}
 let footprintsOnce: Promise<void> | null = null
 
 export function ensureFootprints(): Promise<void> {
-  footprintsOnce ??= import('@/data/building-footprints.json')
-    .then(
-      (m) => {
-        FOOTPRINTS = (m.default as unknown as { footprints: Record<string, FootprintEntry> })
-          .footprints
-      },
-    )
-    .catch((err) => {
-      console.error('[buildings] footprints unavailable, using catalog coords', err)
-    })
+  if (!footprintsOnce) {
+    // NAPR/TAS pin overrides ride the same lazy wave — naprOverrideFor call
+    // sites all run after this resolves (Map3D gates pins on fpsReady).
+    footprintsOnce = Promise.all([
+      import('@/data/building-footprints.json').then(
+        (m) => {
+          FOOTPRINTS = (m.default as unknown as { footprints: Record<string, FootprintEntry> })
+            .footprints
+        },
+      ),
+      ensureNaprOverrides(),
+    ])
+      .then(() => undefined)
+      .catch((err) => {
+        console.error('[buildings] footprints unavailable, using catalog coords', err)
+      })
+  }
   return footprintsOnce
 }
-
-// ponytail: prefetch at chunk eval so the fetch overlaps maplibre init + hydration;
-// consumers still await explicitly. Server consumers (SSG pages) await before use.
-if (typeof window !== 'undefined') void ensureFootprints()
 
 /** DB pins are `bldg-{slug}`; construction ghosts are `dev-{slug}`. Try both. */
 function footprintEntry(b: {

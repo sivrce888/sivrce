@@ -45,9 +45,9 @@ export function listingOwnerWhere(ownerIds: string[]): Prisma.ListingWhereInput 
 }
 
 export function leadWaText(buyerName: string, listingTitle?: string): string {
-  const name = buyerName.trim() || "თქვენ"
+  const name = buyerName.trim()
   const about = listingTitle?.trim() ? ` — ${listingTitle.trim()}` : ""
-  return `გამარჯობა ${name}, sivrce.ge-დან გიპასუხებთ${about}.`
+  return `გამარჯობა${name ? ` ${name}` : ""}, sivrce.ge-დან გიპასუხებთ${about}.`
 }
 
 /** Agency may edit teammate listings; agents only own; admin always. Catalog rows may have null owner. */

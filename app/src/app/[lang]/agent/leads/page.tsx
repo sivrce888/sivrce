@@ -88,7 +88,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
           body={
             activeTab.key === "all"
               ? "ახალი მოთხოვნები აქ გამოჩნდება მაშინვე, როცა მომხმარებელი დაგიკავშირდება."
-              : "ამ სტატუსით ლიდი ჯერ არ გყავს."
+              : "ამ სტატუსით ლიდი ჯერ არ არის."
           }
         />
       ) : (

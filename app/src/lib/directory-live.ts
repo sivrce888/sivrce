@@ -328,6 +328,7 @@ export function applyDeveloperRow(d: Developer, r: DevRow): Developer {
     ...d,
     ...(r.logoUrl ? { logoUrl: r.logoUrl } : {}),
     ...(r.website ? { website: r.website } : {}),
+    ...(r.ownerId ? { ownerId: r.ownerId } : {}),
     ...(owned
       ? {
           name: { ka: r.name, en: r.name, ru: r.name },
@@ -359,6 +360,7 @@ export function rowToDeveloper(r: DevRow): Developer {
     phone: '',
     ...(r.logoUrl ? { logoUrl: r.logoUrl } : {}),
     ...(r.website ? { website: r.website } : {}),
+    ...(r.ownerId ? { ownerId: r.ownerId } : {}),
   }
 }
 

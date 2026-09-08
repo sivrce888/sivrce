@@ -6,8 +6,7 @@ import { MapPin, Building2, Star, Search, TrainFront } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import type { BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND } from '@/lib/category-brand'
-import { cityName, MICRO, type DirLoc } from '@/lib/directory-seo'
-import { DISTRICTS } from '@/lib/seo-pages'
+import { cityName, MICRO, DISTRICTS, type DirLoc } from '@/lib/directory-seo-lite'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 
 type Counts = { sale: number; rent: number; daily: number; pledge: number }
@@ -35,7 +34,7 @@ const L: Record<DirLoc, {
     cityAria: 'ქალაქი', districtAria: 'რაიონი', ubaniAria: 'უბანი', statusAria: 'სტატუსი',
     nBuildings: (n) => `${n} შენობა`,
     none: '{t.none}',
-    forSale: 'იყიდება', rent: 'ქირა', daily: 'დღე', pledge: 'გირავნ.',
+    forSale: 'იყიდება', rent: 'ქირა', daily: 'დღიურად', pledge: 'გირავნობა',
     listings: (n) => `${n} განცხადება`, floorsAbbr: 'სართ.', unitsAbbr: 'ბინა',
   },
   en: {

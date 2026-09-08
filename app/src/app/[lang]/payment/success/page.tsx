@@ -8,7 +8,7 @@ import { isValidLang } from "@/lib/i18n/core"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "გადახდა",
+  title: "გადახდა შესრულდა",
   robots: { index: false },
 }
 

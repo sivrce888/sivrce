@@ -61,6 +61,7 @@ export async function GET() {
     where: { userId: session.user.id, deletedAt: null },
     orderBy: { createdAt: "desc" },
     take: MAX_PER_USER,
+    select: { id: true, name: true, params: true, alertEnabled: true, createdAt: true },
   })
   return NextResponse.json({
     ok: true,

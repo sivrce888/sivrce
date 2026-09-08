@@ -43,7 +43,7 @@ export default async function AccountPage() {
         <p className="mt-1 text-[13.5px] font-medium text-sv-ink/60">
           {rent
             ? "შენახული ქირები, ვიზიტები და შეტყობინებები — ერთ ადგილას."
-            : "ფავორიტები, შედარება, ვიზიტები — ყველაფერი რაც ძიებას სჭირდება."}
+            : "ფავორიტები, შედარება, ვიზიტები — ყველაფერი, რაც ძიებას სჭირდება."}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <LocalizedLink

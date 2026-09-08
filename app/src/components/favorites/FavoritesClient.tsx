@@ -103,7 +103,7 @@ export default function FavoritesClient() {
           ფავორიტები ჯერ ცარიელია
         </h2>
         <p className="mx-auto mt-3 max-w-md text-[15px] font-medium text-sv-ink/60">
-          დააჭირე გულის ხატულას ნებისმიერ განცხადებაზე და ის აქ შეინახება — შენს მოწყობილობაზე.
+          დააჭირე ნებისმიერი განცხადების გულის ხატულას — ის აქ შეინახება, შენს მოწყობილობაზე.
         </p>
         <LocalizedLink
           href="/search"
@@ -122,7 +122,7 @@ export default function FavoritesClient() {
         შენახული განცხადება: <span className="font-black text-sv-ink">{items.length}</span>
         {session?.user ? (
           <span className="ml-2 text-[13px] font-medium text-sv-ink/60">
-            · ზარის ნიშანი = ფასის ელფოსტა (პარამეტრებში ჩართული ალერტები)
+            · ზარის ნიშანი = ფასის შეტყობინება ელფოსტაზე (ალერტები პარამეტრებში)
           </span>
         ) : null}
       </p>

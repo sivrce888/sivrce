@@ -9,7 +9,7 @@ import { DISTRICTS } from '@/lib/seo-pages'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { cityCoords } from '@/lib/weather'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.ge'
 const PATH = '/tbilisi/kuchebi'
@@ -23,7 +23,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
-  alternates: { canonical: PATH, languages: langAlternates(PATH) },
+  alternates: kaOnlyAlternates(PATH),
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,

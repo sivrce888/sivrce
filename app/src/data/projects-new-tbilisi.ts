@@ -802,7 +802,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     name: 'Daira by Biograpi',
     developerSlug: 'biograpi',
     img: '/images/projects/biograpi-daira.webp',
-    location: 'ვახტანგ გორგასლის ქ. 73/1, კრწანისი, თბილისი',
+    location: 'ვახტანგ გორგასალის ქ. 73/1, კრწანისი, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,920',
     done: 15,
@@ -812,7 +812,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     rating: 4.6,
     coords: { lat: 41.67550186, lng: 44.82785848 },
     description: {
-      ka: 'Daira by Biograpi — Biograpi Living-ის ახალი პროექტი კრწანისში, გორგასლის ქ. 73/1-ში. მშენებარე ბინები $1 920/მ²-დან, ჩაბარება 2029 Q1.',
+      ka: 'Daira by Biograpi — Biograpi Living-ის ახალი პროექტი კრწანისში, გორგასალის ქ. 73/1-ში. მშენებარე ბინები $1 920/მ²-დან, ჩაბარება 2029 Q1.',
       en: 'Daira by Biograpi is Biograpi Living’s new project in Krtsanisi at 73/1 Vakhtang Gorgasali St — from $1,920/m², delivery Q1 2029.',
       ru: 'Daira by Biograpi — новый проект Biograpi Living в Крцаниси, ул. Вахтанга Горгасали 73/1. От $1 920/м², сдача Q1 2029.',
     },
@@ -1647,7 +1647,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     coords: { lat: 41.74994976, lng: 44.69692116 },
     floors: 4,
     description: {
-      ka: 'Lisi Kvarteti — ბესიკ საბაშვილის ახალი პროექტი ქვემო ლისიში, ლისის ტბის მახლობლად. მშენებარე ბინები $2 400/მ²-დან, ჩაბარება 2026 Q4.',
+      ka: 'Lisi Kvarteti — ბესიკ საბაშვილის ახალი პროექტი ქვემო ლისში, ლისის ტბის მახლობლად. მშენებარე ბინები $2 400/მ²-დან, ჩაბარება 2026 Q4.',
       en: 'Lisi Kvarteti is Besik Sabashvili’s new project in Kvemo Lisi near Lisi lake — new-build apartments from $2,400/m², delivery Q4 2026.',
       ru: 'Lisi Kvarteti — новый проект Бесика Сабашвили в Квемо Лиси у Лисского озера. Строящиеся квартиры от $2 400/м², сдача Q4 2026.',
     },

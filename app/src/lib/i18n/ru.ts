@@ -35,7 +35,7 @@ export const ru: Dict = {
   'nav.blog': 'Блог',
   'nav.forum': 'Форум',
   'nav.agents': 'Агенты',
-  'nav.agencies': '',
+  'nav.agencies': 'Агентства',
   'nav.developers': 'Застройщики',
   'nav.advertise': 'Размещение',
 

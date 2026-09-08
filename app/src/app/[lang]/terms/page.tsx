@@ -3,14 +3,14 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'წესები და პირობები — sivrce',
   description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
-  alternates: { canonical: '/terms', languages: langAlternates('/terms') },
+  alternates: kaOnlyAlternates('/terms'),
 }
 
 const SECTIONS = [

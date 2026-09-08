@@ -8,7 +8,7 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { ServiceCard } from '@/components/services/ServiceCard'
 import { RenovationCalc } from '@/components/services/RenovationCalc'
 import { isValidLang } from '@/lib/i18n/core'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageAlternates } from "@/lib/i18n/server"
 import { jsonLd } from '@/lib/utils'
 import {
   isServiceCategoryId,
@@ -38,10 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${name} — ${lang === 'ru' ? 'сервисы недвижимости' : lang === 'ka' ? 'უძრავი ქონების სერვისები' : 'real-estate services'}`,
     description: seo,
-    alternates: {
-      canonical: `/services/${category}`,
-      languages: langAlternates(`/services/${category}`),
-    },
+    alternates: pageAlternates(`/services/${category}`, lang),
     openGraph: {
       title: `${name}`,
       description: seo,

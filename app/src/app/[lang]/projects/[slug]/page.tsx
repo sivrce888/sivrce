@@ -39,7 +39,7 @@ import MapEmbed from '@/components/MapEmbed'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { altName, altNameList } from '@/lib/bilingual'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import {
   MICRO,
@@ -96,7 +96,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: `/projects/${p.slug}`, languages: langAlternates(`/projects/${p.slug}`) },
+    alternates: pageAlternates(`/projects/${p.slug}`, lang),
     openGraph: {
       title: displayName,
       description,

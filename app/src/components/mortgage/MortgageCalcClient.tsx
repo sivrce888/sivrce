@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { monthlyPayment } from '@/lib/finance'
-import { formatUSD } from '@/data/listings'
+import { formatUSD } from '@/lib/listing-format'
 import type { DirLoc } from '@/lib/directory-seo'
 
 const L: Record<DirLoc, {

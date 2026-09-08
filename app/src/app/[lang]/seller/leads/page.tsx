@@ -57,7 +57,7 @@ export default async function SellerLeadsPage() {
 
       {leads.length === 0 ? (
         <EmptyState
-          title="ლიდები ჯერ არ გყავს"
+          title="ლიდები ჯერ არ გაქვს"
           body={`ახალი მოთხოვნები აქ გამოჩნდება, როცა ${seeker} დაინტერესდება შენი განცხადებით.`}
           actionHref="/add-listing"
           actionLabel="განცხადების დამატება"

@@ -11,7 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SWRegister } from "@/app/sw-register";
 import { BRAND } from "@/lib/brand";
 import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
-import { getServerT, langAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from "@/lib/i18n/server";
+import { getServerT, pageAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from "@/lib/i18n/server";
 import { getDict } from "@/lib/i18n/dicts";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
@@ -63,7 +63,6 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
   const cms = await getCmsOverrides(lang);
   const siteTitle = cms["seo.site.title"] ?? SITE_META[lang].title;
   const siteDescription = cms["seo.site.description"] ?? SITE_META[lang].description;
-  const root = lang === "ka" ? "/" : `/${lang}`;
   return {
     metadataBase: new URL(SITE_URL),
     title: {
@@ -78,8 +77,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     publisher: SITE_NAME,
     category: "Real Estate",
     alternates: {
-      canonical: root,
-      languages: langAlternates("/"),
+      ...pageAlternates("/", lang),
       types: {
         "text/plain": `${SITE_URL}/llms.txt`,
         "application/rss+xml": `${SITE_URL}/rss.xml`,
@@ -175,7 +173,7 @@ const siteLd = {
       inLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],
       publisher: { "@id": `${SITE_URL}/#organization` },
       description:
-        "სივრცე — უძრავი ქონება ერთ სივრცეში. ბინები, სახლები და აგარაკები საქართველოში — იყიდება, ქირავდება, ქირავდება დღიურად. 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება.",
+        "სივრცე — უძრავი ქონება ერთ სივრცეში. ბინები, სახლები და აგარაკები საქართველოში — იყიდება, ქირავდება, დღიურად ქირავდება. 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება.",
       potentialAction: {
         "@type": "SearchAction",
         target: {

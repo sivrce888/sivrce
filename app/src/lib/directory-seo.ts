@@ -7,140 +7,37 @@
  * Keyword corpus: research/directory-research-2026-07-19.md (agents 1 + 8).
  */
 
-import { ruPlural, type Lang } from '@/lib/i18n/core'
-import { CITIES } from '@/lib/seo-pages'
+import { ruPlural } from '@/lib/i18n/core'
 import { isDelivered, type Developer, type Project } from '@/data/professionals'
+import {
+  cityName,
+  cityIn,
+  finishLabel,
+  floorsLabel,
+  unitsLabel,
+  pickLoc,
+  type DirLoc,
+  type FaqItem,
+} from './directory-seo-lite'
 
-export type DirLoc = 'ka' | 'en' | 'ru'
+// Client-safe helpers live in directory-seo-lite; re-exported so server
+// consumers keep one import path.
+export {
+  dirLoc,
+  pickLoc,
+  cityName,
+  cityIn,
+  finishLabel,
+  unitsLabel,
+  floorsLabel,
+  faqPageLd,
+  MICRO,
+  type DirLoc,
+  type FaqItem,
+} from './directory-seo-lite'
 
-/** ka/ru have real directory copy; every other locale reads English. */
-export function dirLoc(lang: Lang): DirLoc {
-  return lang === 'ka' || lang === 'ru' ? lang : 'en'
-}
+/* ————— Server-side directory corpus (developers / projects hub copy, FAQs) ————— */
 
-/** Server-side LocalText/LocalName picker (entities/i18n pick() is a client module). */
-export function pickLoc(text: { ka: string; en: string; ru: string }, loc: DirLoc): string {
-  return loc === 'ka' ? text.ka : loc === 'ru' ? text.ru : text.en
-}
-
-/** 'ჩაბარებული (2019)' → 'Completed (2019)' / 'Сдан (2019)'; quarters pass through. */
-export function finishLabel(loc: DirLoc, finish: string): string {
-  if (!finish.startsWith('ჩაბარებული') && !finish.startsWith('გადაცემულია')) return finish
-  const year = finish.match(/\((\d{4})\)/)?.[1]
-  const base = loc === 'ka' ? 'ჩაბარებული' : loc === 'ru' ? 'Сдан' : 'Completed'
-  return year ? `${base} (${year})` : base
-}
-
-/** City display name per locale (seo-pages CITIES corpus, fallback raw). */
-export function cityName(city: string, loc: DirLoc): string {
-  const c = CITIES.find((c) => c.ka === city)
-  return c ? (loc === 'ka' ? c.ka : loc === 'ru' ? c.ru : c.en) : city
-}
-
-/** ka locative ('თბილისში') / en 'in Tbilisi' / ru 'в Тбилиси'. */
-export function cityIn(city: string, loc: DirLoc): string {
-  const c = CITIES.find((c) => c.ka === city)
-  if (!c) return loc === 'ka' ? `${city}ში` : loc === 'ru' ? `в ${city}` : `in ${city}`
-  return loc === 'ka' ? c.loc : loc === 'ru' ? `в ${c.ru}` : `in ${c.en}`
-}
-
-/** '214 ბინა' / '214 flats' / '214 квартир'. */
-export function unitsLabel(n: number, loc: DirLoc): string {
-  if (loc === 'ka') return `${n} ბინა`
-  if (loc === 'ru') return `${n} ${ruPlural(n, 'квартира', 'квартиры', 'квартир')}`
-  return `${n} ${n === 1 ? 'flat' : 'flats'}`
-}
-
-/** '22 სართული' / '22 floors' / '22 этажа'. */
-export function floorsLabel(n: number, loc: DirLoc): string {
-  if (loc === 'ka') return `${n} სართული`
-  if (loc === 'ru') return `${n} ${ruPlural(n, 'этаж', 'этажа', 'этажей')}`
-  return `${n} ${n === 1 ? 'floor' : 'floors'}`
-}
-
-export interface FaqItem {
-  q: string
-  a: string
-}
-
-/** FAQPage JSON-LD matching a visible FaqSection one-to-one. */
-export function faqPageLd(items: FaqItem[]) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: items.map((f) => ({
-      '@type': 'Question',
-      name: f.q,
-      acceptedAnswer: { '@type': 'Answer', text: f.a },
-    })),
-  }
-}
-
-/** Shared micro-labels used on hub cards and detail stat rows. */
-export const MICRO: Record<
-  DirLoc,
-  {
-    builtPct: (n: number) => string
-    handover: string
-    flats: string
-    perM2: string
-    perM2From: string
-    priceFromM2: string
-    website: string
-    listingsIn: (city: string) => string
-    listingsShort: string
-    prev: string
-    next: string
-    page: (n: number) => string
-    emptyProjects: string
-  }
-> = {
-  ka: {
-    builtPct: (n) => `აშენებულია ${n}%`,
-    handover: 'ჩაბარება',
-    flats: 'ბინა',
-    perM2: '/მ²',
-    perM2From: '/მ²-დან',
-    priceFromM2: 'ფასი /მ²-დან',
-    website: 'ვებგვერდი',
-    listingsIn: (city) => `განცხადებები ქ. ${city.endsWith('ი') ? city.slice(0, -1) : city}ში`,
-    listingsShort: 'განცხადებები',
-    prev: 'წინა გვერდი',
-    next: 'შემდეგი გვერდი',
-    page: (n) => `გვერდი ${n}`,
-    emptyProjects: 'პროექტები ჯერ არ არის ხელმისაწვდომი — სცადე მოგვიანებით',
-  },
-  en: {
-    builtPct: (n) => `${n}% built`,
-    handover: 'Handover',
-    flats: 'Flats',
-    perM2: '/m²',
-    perM2From: '/m² from',
-    priceFromM2: 'Price from /m²',
-    website: 'Website',
-    listingsIn: (city) => `Listings in ${cityName(city, 'en')}`,
-    listingsShort: 'Listings',
-    prev: 'Previous page',
-    next: 'Next page',
-    page: (n) => `Page ${n}`,
-    emptyProjects: 'No projects available yet — check back soon',
-  },
-  ru: {
-    builtPct: (n) => `построено ${n}%`,
-    handover: 'Сдача',
-    flats: 'Квартиры',
-    perM2: '/м²',
-    perM2From: '/м² от',
-    priceFromM2: 'Цена от /м²',
-    website: 'Сайт',
-    listingsIn: (city) => `Объявления в ${cityName(city, 'ru')}`,
-    listingsShort: 'Объявления',
-    prev: 'Предыдущая страница',
-    next: 'Следующая страница',
-    page: (n) => `Страница ${n}`,
-    emptyProjects: 'Проекты пока недоступны — загляните позже',
-  },
-}
 
 export interface DirectoryHubCopy {
   title: string
@@ -293,7 +190,7 @@ export const PROJECTS_HUB: Record<DirLoc, DirectoryHubCopy> = {
         a: 'თეთრი კარკასი ბინის ის მდგომარეობაა, რომელიც მზადაა რემონტისთვის: დამუშავებული კედლები, ელექტრო-სანტექნიკის გაყვანილობა, იატაკის მოსამზადებელი ფენა და კარ-ფანჯარა. საქართველოში ახალი პროექტების უმეტესობა სწორედ თეთრი ან შავი კარკასით იყიდება.',
       },
       {
-        q: 'შეიძლება თუ არა იპოთეკით ყიდვა მშენებარე ბინაში?',
+        q: 'შეიძლება თუ არა მშენებარე ბინის იპოთეკით შესყიდვა?',
         a: 'დიახ — ქართული ბანკები გასცემენ იპოთეკას მშენებარე ბინებზე, თუმცა პირობები დამოკიდებულია დეველოპერის აკრედიტაციაზე. ალტერნატივაა შიდა განვადება: საწყისი შენატანი 10–30% და თვიური გადახდა ჩაბარებამდე.',
       },
       {
@@ -990,7 +887,7 @@ export const PROJECT_HUBS: Record<ProjectHubKey, Record<DirLoc, DirectoryHubCopy
       sub: 'ზღვის ხედითა და სანაპიროსთან ახლოს ახალი კორპუსები ბათუმში — ფასებით, ჩაბარების ვადებითა და მშენებლობის პროგრესით',
       proseTitle: 'ბინები ბათუმში ზღვასთან — ბაზრის მიმოხილვა 2026',
       prose: [
-        'ბათუმში ზღვასთან ბინა ყველაზე მოთხოვნადი ფორმატია: პირველი ხაზისა და ბულვარის ახალი კორპუსები სტაბილურად იქირავება ტურისტულ სეზონში. აქ შეგროვებულია პროექტები ზღვის ხედით ან სანაპიროსთან უშუალო სიახლოვით — მახინჯაურიდან ახალი ბულვარამდე.',
+        'ბათუმში ზღვასთან ბინა ყველაზე მოთხოვნადი ფორმატია: პირველი ხაზისა და ბულვარის ახალი კორპუსები სტაბილურად ქირავდება ტურისტულ სეზონში. აქ შეგროვებულია პროექტები ზღვის ხედით ან სანაპიროსთან უშუალო სიახლოვით — მახინჯაურიდან ახალი ბულვარამდე.',
         'ზღვის ხედით ბინა მეორე ხაზზეც მაღალ სართულზე ხელმისაწვდომია — ფასი ხედის, სართულისა და ხაზის მიხედვით მერყეობს დაახლოებით $1,500–3,500/მ² შუალედში. შეადარეთ პროექტები და აირჩიეთ ბინა ბათუმში ზღვასთან საცხოვრებლად ან გასაქირავებლად.',
       ],
       faqTitle: 'ხშირად დასმული კითხვები',
@@ -1204,7 +1101,7 @@ export const PROJECT_HUBS: Record<ProjectHubKey, Record<DirLoc, DirectoryHubCopy
           a: 'ზოგი დეველოპერი ჩაბარებულ მარაგზეც ინარჩუნებს განვადებას, მაგრამ უფრო ხშირია სრული გადახდა ან იპოთეკა. პირობები თითოეული პროექტისთვის დაადასტურეთ გაყიდვების ოფისში.',
         },
         {
-          q: 'როგორ შევამოწმო ჩაბარებული კორპუსის ხარისხს?',
+          q: 'როგორ შევამოწმო ჩაბარებული კორპუსის ხარისხი?',
           a: 'უპირატესობა სწორედ ისაა, რომ ყველაფერი თვალსაჩინოა: შეათვალიერეთ საერთო სივრცეები, ლიფტები, ეზო და ბინის კარკასი ადგილზე; დეველოპერის ჩაბარებული ისტორია და მიმოხილვები ნახეთ sivrce-ზე.',
         },
       ],

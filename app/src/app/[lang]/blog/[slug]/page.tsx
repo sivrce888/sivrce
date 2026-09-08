@@ -8,7 +8,7 @@ import { BLOG_POSTS, relatedPosts } from '@/data/blog'
 import { getBlogPost } from '@/lib/blog-live'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { cardOf } from '@/lib/media'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: post.title,
     description: post.excerpt,
-    alternates: { canonical: `/blog/${post.slug}`, languages: langAlternates(`/blog/${post.slug}`) },
+    alternates: kaOnlyAlternates(`/blog/${post.slug}`),
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       authors: [post.author],
       images: [{ url: ogImage(post.cover), width: 1200, height: 630, alt: post.title }],
     },
-    twitter: { card: 'summary_large_image', title: post.title, description: post.excerpt, images: [post.cover] },
+    twitter: { card: 'summary_large_image', title: post.title, description: post.excerpt, images: [ogImage(post.cover)] },
   }
 }
 
@@ -202,6 +202,20 @@ export default async function BlogPostPage({ params }: PageProps) {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(post)) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
+              { '@type': 'ListItem', position: 2, name: 'ბლოგი', item: 'https://sivrce.ge/blog' },
+              { '@type': 'ListItem', position: 3, name: post.title, item: `https://sivrce.ge/blog/${post.slug}` },
+            ],
+          }),
+        }}
+      />
     </div>
   )
 }

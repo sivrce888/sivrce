@@ -406,7 +406,7 @@ export const SERVICE_PROVIDERS: readonly ServicePublic[] = [
   },
   {
     slug: 'reestri-law',
-    name: { ka: 'რეესტრი ლო', en: 'Reestri Law', ru: 'Reestri Law' },
+    name: { ka: 'Reestri Law', en: 'Reestri Law', ru: 'Reestri Law' },
     category: 'legal',
     city: 'თბილისი',
     district: null,
@@ -454,7 +454,7 @@ export const SERVICE_PROVIDERS: readonly ServicePublic[] = [
   },
   {
     slug: 'sqm-value',
-    name: { ka: 'კვ. ფასი', en: 'sqm value', ru: 'sqm value' },
+    name: { ka: 'sqm value', en: 'sqm value', ru: 'sqm value' },
     category: 'appraisal',
     city: 'თბილისი',
     district: null,
@@ -470,7 +470,7 @@ export const SERVICE_PROVIDERS: readonly ServicePublic[] = [
     yearsActive: 12,
     rating: 4.7,
     reviewCount: 53,
-    features: ['ბანკი', 'რეესტრი', '48სთ'],
+    features: ['ბანკი', 'რეესტრი', '48 სთ'],
     priceRangeMin: 180,
     priceRangeMax: 350,
     currency: 'GEL',

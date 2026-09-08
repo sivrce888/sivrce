@@ -4,12 +4,12 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { AddServiceForm } from '@/components/services/AddServiceForm'
 import { requireUser } from '@/lib/guards'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'დაამატე სერვისი',
   description: 'განათავსე უძრავ ქონებასთან დაკავშირებული სერვისი: რემონტი, იურიდიული, ფოტო, შეფასება, მართვა.',
-  alternates: { canonical: '/add-service', languages: langAlternates('/add-service') },
+  alternates: kaOnlyAlternates('/add-service'),
   robots: { index: false, follow: true },
 }
 

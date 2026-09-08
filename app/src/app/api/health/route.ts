@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto"
+
 /**
  * GET /api/health — process + Postgres + auth wiring.
  * Public: booleans only. Detail with Authorization: Bearer CRON_SECRET.
@@ -18,8 +20,12 @@ export async function GET(req: Request) {
     google: Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET),
   }
   const secret = process.env.CRON_SECRET
+  const given = req.headers.get("authorization") ?? ""
+  const expected = `Bearer ${secret}`
   const authed =
-    Boolean(secret) && req.headers.get("authorization") === `Bearer ${secret}`
+    Boolean(secret) &&
+    given.length === expected.length &&
+    timingSafeEqual(Buffer.from(given), Buffer.from(expected))
   if (authed) {
     const url = process.env.DATABASE_URL ?? ""
     const host = (() => {

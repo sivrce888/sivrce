@@ -163,7 +163,7 @@ export default async function AgencyOverviewPage() {
         {team.length === 0 ? (
           <p className="mt-4 text-[13px] font-medium text-sv-ink/60">
             {profile
-              ? `პროფილში მითითებულია გუნდის ზომა: ${profile.teamSize}. აგენტი გუნდში გამოჩნდება, როცა მისი სააგენტოს სახელი ემთხვევა.`
+              ? `პროფილში მითითებულია გუნდის ზომა: ${profile.teamSize}. აგენტი გუნდში გამოჩნდება, როცა მისი სააგენტო ემთხვევა ამ სააგენტოს სახელს.`
               : "აგენტები ჯერ არ არის დამატებული."}
           </p>
         ) : (

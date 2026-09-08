@@ -9,7 +9,7 @@ import { FaqSection } from '@/components/seo/FaqSection'
 import { projectsLive } from '@/lib/directory-live'
 import { altName } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { PROJECTS_HUB, dirLoc, faqPageLd } from '@/lib/directory-seo'
 import { toCard } from './card'
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: c.title,
     description: c.description,
-    alternates: { canonical: '/projects', languages: langAlternates('/projects') },
+    alternates: pageAlternates('/projects', lang),
     openGraph: {
       title: c.ogTitle,
       description: c.description,

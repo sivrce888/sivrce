@@ -20,7 +20,7 @@ import { getListingsNearMetro } from '@/lib/listings-db'
 import { DISTRICTS, parseSeoSlug, statsOf, type District, type Faq } from '@/lib/seo-pages'
 import { jsonLd } from '@/lib/utils'
 import { listingPath } from '@/lib/listing-slug'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.ge'
 
@@ -184,7 +184,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: path, languages: langAlternates(path) },
+    alternates: kaOnlyAlternates(path),
     openGraph: {
       title,
       description,

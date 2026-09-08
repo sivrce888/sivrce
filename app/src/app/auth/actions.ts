@@ -101,7 +101,7 @@ export async function signInWithPasskey(
     callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
       ? callbackUrl
       : "/dashboard"
-  if (!cred) return { error: "Passkey ვერ წაიკითხა" }
+  if (!cred) return { error: "Passkey-ის წაკითხვა ვერ მოხერხდა" }
   try {
     await signIn("passkey", { cred, redirectTo: target })
   } catch (err) {
@@ -232,7 +232,7 @@ export async function requestPasswordReset(
   if (!email.includes("@")) return { error: "შეიყვანე სწორი ელფოსტა" }
 
   // Always show success — don't leak whether the email exists.
-  const okMsg = "თუ ანგარიში არსებობს, აღდგენის ბმული გაიგზავნა ელფოსტაზე"
+  const okMsg = "თუ ასეთი ანგარიში არსებობს, აღდგენის ბმული გამოგიგზავნებათ ელფოსტაზე"
 
   const user = await db.user.findUnique({ where: { email } })
   if (!user) return { ok: okMsg }

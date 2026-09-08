@@ -6,7 +6,7 @@ import { getMarketOverview } from '@/lib/market-stats'
 import { USD_GEL } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { langAlternates } from '@/lib/i18n/server'
+import {pageAlternates,  } from '@/lib/i18n/server'
 
 export const revalidate = 3600
 
@@ -56,7 +56,7 @@ export async function generateMetadata({
   return {
     title: m.title,
     description: m.description,
-    alternates: { canonical: '/market', languages: langAlternates('/market') },
+    alternates: pageAlternates('/market', lang),
     openGraph: {
       title: `${m.title} | sivrce`,
       description: m.description,

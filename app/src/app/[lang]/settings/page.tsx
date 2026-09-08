@@ -143,7 +143,7 @@ export default async function SettingsPage({
               <div>
                 <h2 className="text-[15px] font-extrabold text-sv-ink">პროფილის ტიპი</h2>
                 <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-                  ნაგულისხმევი მყიდველია. გამქირავებელი და გამყიდველი ერთ ანგარიშზეა — განცხადების ტიპი განასხვავებს.
+                  ნაგულისხმევი მყიდველია. გამქირავებელი და გამყიდველი ერთ ანგარიშზეა — მათ განცხადების ტიპი განასხვავებს.
                 </p>
               </div>
             </div>

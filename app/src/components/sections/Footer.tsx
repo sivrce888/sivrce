@@ -6,10 +6,12 @@ import { Logo } from '@/components/Logo'
 import HScroll from '@/components/HScroll'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
 import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
-import { footerKeywordCols, type SeoLoc } from '@/lib/seo-pages'
+import type { SeoLoc } from '@/lib/seo-pages'
+import { FOOTER_COLS } from '@/lib/footer-cols.gen'
 
-/** Exact-query keyword columns — computed once from the static catalog. */
-const KEYWORD_COLS = footerKeywordCols()
+/** Exact-query keyword columns — build-time snapshot (scripts/gen-footer-cols.ts)
+ *  so this client component never imports the seo-pages → data/listings graph. */
+const KEYWORD_COLS = FOOTER_COLS
 const CITY_COL = KEYWORD_COLS.find((c) => c.id === 'cities')
 const GRID_COLS = KEYWORD_COLS.filter((c) => c.id !== 'cities')
 

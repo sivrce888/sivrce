@@ -33,7 +33,7 @@ export function NewThreadForm({ className }: { className?: string }) {
   if (status === 'unauthenticated') {
     return (
       <div className={cn('rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card', className)}>
-        <p className="text-[14px] font-semibold text-sv-ink/60">თემის გასახსნელად შედით ანგარიშში.</p>
+        <p className="text-[14px] font-semibold text-sv-ink/60">თემის გასახსნელად შედი ანგარიშში.</p>
         <Link
           href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
           className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-white shadow-glow-orange"

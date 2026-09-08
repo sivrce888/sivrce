@@ -84,20 +84,20 @@ export function AddServiceForm() {
             minLength={40}
             maxLength={2000}
             rows={5}
-            placeholder="რას აკეთებთ, რომელი უბნები, რა პაკეტები."
+            placeholder="რას აკეთებ, რომელი უბნები, რა პაკეტები?"
             className={`${input} resize-none`}
           />
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="sv-min" className={label}>
-              ფასი დან (₾)
+              ფასიდან (₾)
             </label>
             <input id="sv-min" name="priceMin" type="number" min={0} max={999999} className={input} />
           </div>
           <div>
             <label htmlFor="sv-max" className={label}>
-              ფასი მდე (₾)
+              ფასიმდე (₾)
             </label>
             <input id="sv-max" name="priceMax" type="number" min={0} max={999999} className={input} />
           </div>
@@ -117,7 +117,7 @@ export function AddServiceForm() {
           გამოქვეყნება
         </button>
         <p className="text-[12px] font-semibold text-sv-ink/60">
-          განცხადება ქონებაზე — ცალკე, უფასოდ,{' '}
+          განცხადება უძრავ ქონებაზე — ცალკე, უფასოდ,{' '}
           <LocalizedLink href="/add-listing" className="font-extrabold text-sv-blue">
             დაამატე განცხადება
           </LocalizedLink>

@@ -1,6 +1,10 @@
 /**
  * Official pin overrides — TAS permit (building) wins over NAPR lot.
  * Written by scripts/snap-official-footprints.ts / snap-napr-pins.ts.
+ *
+ * ~1.2 MB of JSON: dynamic import (same pattern as building-footprints.json),
+ * chained into ensureFootprints() — every consumer of naprOverrideFor already
+ * awaits that, so pins never ship this in the JS chunk.
  */
 export type NaprPinOverride = {
   lat: number
@@ -16,15 +20,25 @@ type FileShape = {
   overrides?: Record<string, NaprPinOverride>
 }
 
-import naprRaw from '@/data/napr-pin-overrides.json'
-import tasRaw from '@/data/tas-pin-overrides.json'
+export let NAPR_PIN_OVERRIDES: Record<string, NaprPinOverride> = {}
 
-const naprData = naprRaw as unknown as FileShape
-const tasData = tasRaw as unknown as FileShape
+let overridesOnce: Promise<void> | null = null
 
-export const NAPR_PIN_OVERRIDES: Record<string, NaprPinOverride> = {
-  ...(naprData.overrides ?? {}),
-  ...(tasData.overrides ?? {}),
+export function ensureNaprOverrides(): Promise<void> {
+  overridesOnce ??= Promise.all([
+    import('@/data/napr-pin-overrides.json'),
+    import('@/data/tas-pin-overrides.json'),
+  ])
+    .then(([napr, tas]) => {
+      NAPR_PIN_OVERRIDES = {
+        ...((napr.default as unknown as FileShape).overrides ?? {}),
+        ...((tas.default as unknown as FileShape).overrides ?? {}),
+      }
+    })
+    .catch((err) => {
+      console.error('[map] pin overrides unavailable, using catalog coords', err)
+    })
+  return overridesOnce
 }
 
 export function naprOverrideFor(slug: string): NaprPinOverride | null {

@@ -97,7 +97,7 @@ export default async function AgentToursPage() {
             {upcoming.length === 0 ? (
               <EmptyState
                 title="დაგეგმილი ვიზიტები არ არის"
-                body="როცა მყიდველი განცხადების ნახვას დაჯავშნის, ვიზიტი აქ გამოჩნდება."
+                body="როცა მყიდველი განცხადების ნახვას დაჯავშნავს, ვიზიტი აქ გამოჩნდება."
               />
             ) : (
               <ul className="space-y-3">

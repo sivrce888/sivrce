@@ -19,13 +19,10 @@ export const SEO_LOCS: SeoLoc[] = ['ka', 'en', 'ru']
 /** URL prefix per locale (ka is canonical, unprefixed). */
 export const locPrefix = (loc: SeoLoc) => (loc === 'ka' ? '' : `/${loc}`)
 
-export interface GeoLoc {
-  slug: string
-  ka: string // nominative: თბილისი
-  loc: string // locative for H1: თბილისში
-  en: string
-  ru: string
-}
+// Geo registry lives in the client-safe leaf module (client components import it
+// without pulling this file's data/listings graph).
+export { CITIES, DISTRICTS, type GeoLoc, type District } from './directory-seo-lite'
+import { CITIES, DISTRICTS, type GeoLoc, type District } from './directory-seo-lite'
 
 export const DEALS: Record<
   string,
@@ -60,71 +57,6 @@ export function roomLabel(n: number, loc: SeoLoc = 'ka'): string {
   if (loc === 'ru') return n === 4 ? '4+ комн.' : `${n}-комн.`
   return n === 4 ? '4+ ოთახიანი' : `${n}-ოთახიანი`
 }
-
-export const CITIES: GeoLoc[] = [
-  { slug: 'tbilisi', ka: 'თბილისი', loc: 'თბილისში', en: 'Tbilisi', ru: 'Тбилиси' },
-  { slug: 'batumi', ka: 'ბათუმი', loc: 'ბათუმში', en: 'Batumi', ru: 'Батуми' },
-  { slug: 'kutaisi', ka: 'ქუთაისი', loc: 'ქუთაისში', en: 'Kutaisi', ru: 'Кутаиси' },
-  // ponytail: registered but inventory-light cities. Programmatic deal×type
-  // pages self-throttle (≥1 listing rule) so they stay dark until listings
-  // arrive; the city-info fallback below gives each a unique page today.
-  { slug: 'rustavi', ka: 'რუსთავი', loc: 'რუსთავში', en: 'Rustavi', ru: 'Рустави' },
-  { slug: 'poti', ka: 'ფოთი', loc: 'ფოთში', en: 'Poti', ru: 'Поти' },
-  { slug: 'zugdidi', ka: 'ზუგდიდი', loc: 'ზუგდიდში', en: 'Zugdidi', ru: 'Зугдиди' },
-  { slug: 'telavi', ka: 'თელავი', loc: 'თელავში', en: 'Telavi', ru: 'Телави' },
-  { slug: 'gori', ka: 'გორი', loc: 'გორში', en: 'Gori', ru: 'Гори' },
-  { slug: 'mtskheta', ka: 'მცხეთა', loc: 'მცხეთაში', en: 'Mtskheta', ru: 'Мцхета' },
-  // Resort cities (myhome/ss popular row). Full municipality list lives in georgia-locations.json.
-  { slug: 'bakuriani', ka: 'ბაკურიანი', loc: 'ბაკურიანში', en: 'Bakuriani', ru: 'Бакуриани' },
-  { slug: 'kobuleti', ka: 'ქობულეთი', loc: 'ქობულეთში', en: 'Kobuleti', ru: 'Кобулети' },
-  { slug: 'borjomi', ka: 'ბორჯომი', loc: 'ბორჯომში', en: 'Borjomi', ru: 'Боржоми' },
-  { slug: 'gudauri', ka: 'გუდაური', loc: 'გუდაურში', en: 'Gudauri', ru: 'Гудаури' },
-  { slug: 'mestia', ka: 'მესტია', loc: 'მესტიაში', en: 'Mestia', ru: 'Местиа' },
-  { slug: 'sighnaghi', ka: 'სიღნაღი', loc: 'სიღნაღში', en: 'Sighnaghi', ru: 'Сигнахи' },
-  { slug: 'tskaltubo', ka: 'წყალტუბო', loc: 'წყალტუბოში', en: 'Tskaltubo', ru: 'Цхалтубо' },
-  { slug: 'kazbegi', ka: 'ყაზბეგი', loc: 'ყაზბეგში', en: 'Kazbegi', ru: 'Казбеги' },
-]
-
-export type District = GeoLoc & { citySlug: string }
-
-export const DISTRICTS: District[] = [
-  { slug: 'vake', ka: 'ვაკე', loc: 'ვაკეში', en: 'Vake', ru: 'Ваке', citySlug: 'tbilisi' },
-  { slug: 'saburtalo', ka: 'საბურთალო', loc: 'საბურთალოზე', en: 'Saburtalo', ru: 'Сабуртало', citySlug: 'tbilisi' },
-  { slug: 'mtatsminda', ka: 'მთაწმინდა', loc: 'მთაწმინდაზე', en: 'Mtatsminda', ru: 'Мтацминда', citySlug: 'tbilisi' },
-  { slug: 'didi-dighomi', ka: 'დიდი დიღომი', loc: 'დიდ დიღომში', en: 'Didi Dighomi', ru: 'Диди Дигоми', citySlug: 'tbilisi' },
-  { slug: 'ortachala', ka: 'ორთაჭალა', loc: 'ორთაჭალაში', en: 'Ortachala', ru: 'Ортачала', citySlug: 'tbilisi' },
-  { slug: 'isani', ka: 'ისანი', loc: 'ისანში', en: 'Isani', ru: 'Исани', citySlug: 'tbilisi' },
-  { slug: 'gldani', ka: 'გლდანი', loc: 'გლდანში', en: 'Gldani', ru: 'Глдани', citySlug: 'tbilisi' },
-  { slug: 'krtsanisi', ka: 'კრწანისი', loc: 'კრწანისში', en: 'Krtsanisi', ru: 'Крцаниси', citySlug: 'tbilisi' },
-  { slug: 'avlabari', ka: 'ავლაბარი', loc: 'ავლაბარში', en: 'Avlabari', ru: 'Авлабари', citySlug: 'tbilisi' },
-  { slug: 'tskneti', ka: 'წყნეთი', loc: 'წყნეთში', en: 'Tskneti', ru: 'Цкнети', citySlug: 'tbilisi' },
-  { slug: 'tskhvarichamia', ka: 'ცხვარიჭამია', loc: 'ცხვარიჭამიაში', en: 'Tskhvarichamia', ru: 'Цхваричамия', citySlug: 'tbilisi' },
-  // ponytail: no inventory here today — pages self-throttle (≥1 listing rule) and go
-  // live free the moment real listings land (ss.ge ranks with exactly these districts).
-  { slug: 'old-tbilisi', ka: 'ძველი თბილისი', loc: 'ძველ თბილისში', en: 'Old Tbilisi', ru: 'Старый Тбилиси', citySlug: 'tbilisi' },
-  { slug: 'varketili', ka: 'ვარკეთილი', loc: 'ვარკეთილში', en: 'Varketili', ru: 'Варкетили', citySlug: 'tbilisi' },
-  { slug: 'chughureti', ka: 'ჩუღურეთი', loc: 'ჩუღურეთში', en: 'Chughureti', ru: 'Чугурети', citySlug: 'tbilisi' },
-  { slug: 'nadzaladevi', ka: 'ნაძალადევი', loc: 'ნაძალადევში', en: 'Nadzaladevi', ru: 'Надзаладеви', citySlug: 'tbilisi' },
-  // Leaf ubani competitors rank on (full picker list: georgia-locations.json).
-  { slug: 'didube', ka: 'დიდუბე', loc: 'დიდუბეში', en: 'Didube', ru: 'Дидубе', citySlug: 'tbilisi' },
-  { slug: 'vera', ka: 'ვერა', loc: 'ვერაში', en: 'Vera', ru: 'Вера', citySlug: 'tbilisi' },
-  { slug: 'digomis-masivi', ka: 'დიღმის მასივი', loc: 'დიღმის მასივში', en: 'Dighomi Massive', ru: 'Дигомский массив', citySlug: 'tbilisi' },
-  { slug: 'baghebi', ka: 'ბაგები', loc: 'ბაგებში', en: 'Baghebi', ru: 'Багеби', citySlug: 'tbilisi' },
-  { slug: 'nutsubidze', ka: 'ნუცუბიძის ფერდობი', loc: 'ნუცუბიძის ფერდობზე', en: 'Nutsubidze Plateau', ru: 'Плато Нуцубидзе', citySlug: 'tbilisi' },
-  { slug: 'vashlijvari', ka: 'ვაშლიჯვარი', loc: 'ვაშლიჯვარში', en: 'Vashlijvari', ru: 'Вашлиджвари', citySlug: 'tbilisi' },
-  { slug: 'samgori', ka: 'სამგორი', loc: 'სამგორში', en: 'Samgori', ru: 'Самгори', citySlug: 'tbilisi' },
-  { slug: 'temka', ka: 'თემქა', loc: 'თემქაში', en: 'Temka', ru: 'Темка', citySlug: 'tbilisi' },
-  { slug: 'mukhiani', ka: 'მუხიანი', loc: 'მუხიანში', en: 'Mukhiani', ru: 'Мухиани', citySlug: 'tbilisi' },
-  { slug: 'vazisubani', ka: 'ვაზისუბანი', loc: 'ვაზისუბანში', en: 'Vazisubani', ru: 'Вазисубани', citySlug: 'tbilisi' },
-  { slug: 'akhali-bulvari', ka: 'ახალი ბულვარი', loc: 'ახალ ბულვარზე', en: 'New Boulevard', ru: 'Новый бульвар', citySlug: 'batumi' },
-  { slug: 'dzveli-batumi', ka: 'ძველი ბათუმი', loc: 'ძველ ბათუმში', en: 'Old Batumi', ru: 'Старый Батуми', citySlug: 'batumi' },
-  { slug: 'makhinjauri', ka: 'მახინჯაური', loc: 'მახინჯაურში', en: 'Makhinjauri', ru: 'Махинджаури', citySlug: 'batumi' },
-  { slug: 'rustavelis-ubani', ka: 'რუსთაველის უბანი', loc: 'რუსთაველის უბანში', en: 'Rustaveli District', ru: 'Район Руставели', citySlug: 'batumi' },
-  { slug: 'airport-ubani', ka: 'აეროპორტის უბანი', loc: 'აეროპორტის უბანში', en: 'Airport District', ru: 'Район аэропорта', citySlug: 'batumi' },
-  { slug: 'kutaisi-centri', ka: 'ცენტრი', loc: 'ცენტრში', en: 'Center', ru: 'Центр', citySlug: 'kutaisi' },
-  { slug: 'avtokarkhana', ka: 'ავტოქარხანა', loc: 'ავტოქარხანის უბანში', en: 'Avtokarkhana', ru: 'Автокархана', citySlug: 'kutaisi' },
-  { slug: 'nikea', ka: 'ნიკეა', loc: 'ნიკეაში', en: 'Nikea', ru: 'Никеа', citySlug: 'kutaisi' },
-]
 
 const cityBySlug = (s: string) => CITIES.find((c) => c.slug === s)
 const districtBySlug = (s: string) => DISTRICTS.find((d) => d.slug === s)
@@ -618,7 +550,7 @@ export const CITY_PROSE: Record<string, CityProse> = {
     lede: 'ბაკურიანი — საქართველოს მთავარი სათხილამურო კურორტი ბორჯომის ხეობის თავზე, დაახლოებით 1 700 მეტრზე. ზამთარში ტრასები და სასტუმროები ივსება, ზაფხულში კი იგივე ბინები ქირავდება ოჯახურ დასვენებაზე — ორსეზონიანი ბაზარი, რომელიც სხვა მთის დასახლებებს არ აქვთ.',
     body: [
       'უძრავი ქონება აქ ძირითადად კერძო სახლები, კოტეჯები და მცირე აპარტ-სასტუმროებია. ბინის ყიდვა ბაკურიანში ხშირად ნიშნავს დღიურ ქირას ზამთრის სეზონზე და საკუთარ დასვენებას დანარჩენ წელს. ფასი დამოკიდებულია ტრასებთან სიახლოვეზე და გათბობის ტიპზე — გაზი და ცენტრალური გათბობა აქ პრემიუმია.',
-      'თბილისიდან დაახლოებით 3 საათი ავტომობილით, ბორჯომიდან — 30 წუთი. რკინიგზა ბორჯომამდე მიდის; ზამთარში გზა საბურავებს და ზოგჯერ ჯაჭვებს ითხოვს. ახლოსაა ბაკურიანის დიდრონი, კოკის ტრასები და ბორჯომ-ხარაგაულის ეროვნული პარკი.',
+      'თბილისიდან დაახლოებით 3 საათი ავტომობილით, ბორჯომიდან — 30 წუთი. რკინიგზა ბორჯომამდე მიდის; ზამთარში გზა საბურავებს და ზოგჯერ ჯაჭვებს ითხოვს. ახლოსაა ბაკურიანის დიდრონი, კოხტას ტრასები და ბორჯომ-ხარაგაულის ეროვნული პარკი.',
       'ყიდვამდე შეამოწმეთ ზამთრის წვდომა, სახურავის დატვირთვა თოვლზე და ქირის ისტორია. sivrce-ზე ბაკურიანის განცხადებები იგივე ვერიფიკაციას გადიან, რაც თბილისის ბინები — მესაკუთრეს პირდაპირ უკავშირდებით.',
     ],
     coords: { lat: 41.751, lng: 43.5292 },
@@ -644,7 +576,7 @@ export const CITY_PROSE: Record<string, CityProse> = {
     lede: 'ბორჯომი — მინერალური წყლისა და ეროვნული პარკის ქალაქი თბილისსა და ბაკურიანს შორის. აქ ყიდულობენ არა ცათამბჯენს, არამედ სახლს ტყესთან, პანსიონატს ან ბინას პარკის შესასვლელთან.',
     body: [
       'ბაზარი მცირეა და ნელი. საბჭოთა პანსიონატების კონვერსია, კერძო სახლები ბაღით და ცენტრის ძველი ბინები. ფასი თბილისზე დაბალია, მაგრამ „ხედი პარკზე“ პრემიუმს ჰქმნის. ზამთარში ტურისტები ბაკურიანისკენ მიდიან; ბორჯომი მთელი წლის სასეირნო კურორტია.',
-      'თბილისიდან დაახლოებით 2.5 საათი, რკინიგზა პირდაპირ შედის. ბაკურიანი 30 წუთია. ახლოსაა ლიკანი, ბაკურიანის ვიწროლიანდაგიანი და ბორჯომ-ხარაგაულის ბილიკები.',
+      'თბილისიდან დაახლოებით 2.5 საათი, რკინიგზა პირდაპირ შედის. ბაკურიანი 30 წუთია. ახლოსაა ლიკანი, ბაკურიანის ვიწროლიანდაგიანი რკინიგზა და ბორჯომ-ხარაგაულის ბილიკები.',
       'ყიდვამდე ნახეთ ტენიანობა (ხეობა), გათბობა და ტყის საზღვარი — ზოგი ნაკვეთი პარკის ბუფერშია. sivrce-ზე ბორჯომის ობიექტები რუკაზე ჩანს თბილისის განცხადებებთან ერთად.',
     ],
     coords: { lat: 41.8375, lng: 43.3944 },
@@ -654,7 +586,7 @@ export const CITY_PROSE: Record<string, CityProse> = {
     ],
   },
   gudauri: {
-    lede: 'გუდაური — საქართველოს უმაღლესი სათხილამურო კურორტი სამხრეთ ოსეთის გზაზე, დაახლოებით 2 200 მეტრზე. აქ ბინა ნიშნავს სეზონურ ქირას, არა მუდმივ საცხოვრებელს: ზამთარი სავსეა, მაისი–ოქტომბერი — თითქმის ცარიელი.',
+    lede: 'გუდაური — საქართველოს უმაღლესი სათხილამურო კურორტი სამხედრო გზაზე, დაახლოებით 2 200 მეტრზე. აქ ბინა ნიშნავს სეზონურ ქირას, არა მუდმივ საცხოვრებელს: ზამთარი სავსეა, მაისი–ოქტომბერი — თითქმის ცარიელი.',
     body: [
       'ინვენტარი: აპარტ-სასტუმროები, ახალი კორპუსები ტრასის ხედით და კერძო შალეები. კვადრატის ფასი თბილისის პრემიუმ უბნებს უახლოვდება, რადგან მიწა მწირია და სეზონური ქირა მაღალია. გათბობა, წყალი და ზამთრის წვდომა აქ უფრო მნიშვნელოვანია, ვიდრე სამზარეულოს ზომა.',
       'თბილისიდან 2–2.5 საათი ჯვრის უღელტეხილით. ზამთარში გზა იხურება ქარბუქზე — ეს პირდაპირ აისახება ქირის გაუქმებაზე. ახლოსაა ყაზბეგი/სტეფანწმინდა, რაც ზაფხულის ჰაიკინგის ნაკადს მცირედ ამატებს.',
@@ -669,14 +601,14 @@ export const CITY_PROSE: Record<string, CityProse> = {
   mestia: {
     lede: 'მესტია — ზემო სვანეთის ცენტრი, იუნესკოს კოშკებითა და უშგულის გზით. უძრავი ქონება აქ არის გესთჰაუსი, ხის სახლი და იშვიათი ახალი კორპუსი — არა თბილისური ბინა.',
     body: [
-      'ყიდულობენ ტურისტულ ქირაზე (ჰაიკი, თხილამურები ჰაცვალში, უშგული) ან სვანური ფესვის დასაბრუნებლად. ფასები გაიზარდა გზის გაუმჯობესების შემდეგ, მაგრამ კვადრატი მაინც იაფია კურორტ გუდაურზე. ზამთარი გრძელია; გათბობა და წყალი გადამწყვეტია.',
-      'ზუგდიდიდან დაახლოებით 3–4 საათი მთის გზით, თბილისიდან — სრული დღე. აეროდრომი მესტიაში სეზონურად მუშაობს. ახლოსაა უშგული, ლატალი, ჰაცვალი.',
+      'ყიდულობენ ტურისტულ ქირაზე (ჰაიკი, თხილამურები ჰაწვალში, უშგული) ან სვანური ფესვის დასაბრუნებლად. ფასები გაიზარდა გზის გაუმჯობესების შემდეგ, მაგრამ კვადრატი მაინც იაფია კურორტ გუდაურზე. ზამთარი გრძელია; გათბობა და წყალი გადამწყვეტია.',
+      'ზუგდიდიდან დაახლოებით 3–4 საათი მთის გზით, თბილისიდან — სრული დღე. აეროდრომი მესტიაში სეზონურად მუშაობს. ახლოსაა უშგული, ლატალი, ჰაწვალი.',
       'ყიდვისას გადაამოწმეთ საკადასტრო და მემკვიდრეობითი საკითხები — სვანეთში მიწა ხშირად ოჯახურია. sivrce-ზე მესტიის ობიექტები რუკაზე ცალკე ქალაქად ჩანს.',
     ],
     coords: { lat: 43.0456, lng: 42.7278 },
     faqs: [
       { q: 'შეიძლება თუ არა გესთჰაუსის ყიდვა მესტიაში უცხოელმა?', a: 'საქართველოში უცხოელს შეუძლია ბინისა და სახლის ყიდვა; სასოფლო-სამეურნეო მიწაზე შეზღუდვებია. მესტიაში ხშირია სახლი ეზოთი — იურისტი გადაამოწმოს კატეგორია ყიდვამდე.' },
-      { q: 'როდის არის სეზონი მესტიაში?', a: 'ზაფხული (უშგული, ჰაიკი) და ზამთარი (ჰაცვალი). ოქტომბერ–ნოემბერი და აპრილი უფრო ცარიელია. ქირის კალკულაცია ამ ორ პიკზე ააგეთ.' },
+      { q: 'როდის არის სეზონი მესტიაში?', a: 'ზაფხული (უშგული, ჰაიკი) და ზამთარი (ჰაწვალი). ოქტომბერ–ნოემბერი და აპრილი უფრო ცარიელია. ქირის კალკულაცია ამ ორ პიკზე ააგეთ.' },
     ],
   },
   sighnaghi: {
@@ -851,7 +783,12 @@ export function descriptionOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
   // National category hubs: curated lede ranks better than the stats template.
   if (loc === 'ka' && def.kind === 'deal-type') {
     const hub = hubProseOf(def.dealSlug, def.typeSlug)
-    if (hub) return hub.lede.length > 160 ? `${hub.lede.slice(0, 157)}…` : hub.lede
+    if (hub && hub.lede.length > 160) {
+      const cut = hub.lede.slice(0, 157)
+      const sp = cut.lastIndexOf(' ')
+      return `${sp > 0 ? cut.slice(0, sp) : cut}…`
+    }
+    if (hub) return hub.lede
   }
   const s = statsOf(def.listings)
   if (s.count === 0) {
@@ -928,7 +865,7 @@ export function introOf(def: SeoPageDef, loc: SeoLoc = 'ka'): string {
       ? def.city.loc
       : 'მთელ საქართველოში'
   const perM2 = s.avgPerM2
-    ? `საშუალო კვადრატულის ფასი ${formatUSD(s.avgPerM2)}/მ²-ს შეადგენს, ხოლო დიაპაზონი ${formatUSD(s.minPrice)}-დან ${formatUSD(s.maxPrice)}-მდე იცვლება.`
+    ? `საშუალო ფასი კვადრატულ მეტრზე ${formatUSD(s.avgPerM2)}/მ²-ს შეადგენს, ხოლო დიაპაზონი ${formatUSD(s.minPrice)}-დან ${formatUSD(s.maxPrice)}-მდე იცვლება.`
     : `ფასები ${formatUSD(s.minPrice)}-დან იწყება.`
   return (
     `${where} ამჟამად ${s.count} აქტიური განცხადებაა: ${subjectOf(def).toLowerCase()} ${dealKa}. ` +

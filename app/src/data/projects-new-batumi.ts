@@ -171,7 +171,7 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Homex — Lagoon Resort-ის (ადლიის ქ. 58ე, ბათუმი) და Homex Village-ის (ქობულეთი) დეველოპერი.',
+      ka: 'Homex — Lagoon Resort-ის (ადლიას ქ. 58ე, ბათუმი) და Homex Village-ის (ქობულეთი) დეველოპერი.',
       en: 'Homex is the developer of Lagoon Resort (58e Adlia St, Batumi) and Homex Village (Kobuleti).',
       ru: 'Homex — девелопер Lagoon Resort (ул. Адлия, 58е, Батуми) и Homex Village (Кобулети).',
     },
@@ -273,7 +273,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     rating: 4.5,
     coords: { lat: 41.63446791, lng: 41.60814114 },
     description: {
-      ka: 'Orbi Plaza — ORBI Group-ის ჩაბარებული პროექტი ბათუმში, ქობალაძის ქ. 4-ში, ზღვიდან სიერული მანძილით. ბინები ინვესტიციისა და საცხოვრებლად.',
+      ka: 'Orbi Plaza — ORBI Group-ის ჩაბარებული პროექტი ბათუმში, ქობალაძის ქ. 4-ში, ზღვიდან ნაბიჯის მანძილით. ბინები ინვესტიციისა და საცხოვრებლად.',
       en: 'Orbi Plaza is ORBI Group’s completed project in Batumi at 4 Kobaladze St, walking distance from the sea — units for living and investment.',
       ru: 'Orbi Plaza — сданный проект ORBI Group в Батуми на ул. Кобаладзе, 4, в пешей доступности от моря. Квартиры для жизни и инвестиций.',
     },
@@ -435,7 +435,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     coords: { lat: 41.65173565, lng: 41.639752 },
     floors: 7,
     description: {
-      ka: 'Orbi Old Batumi — ORBI-ის ჩაბარებული კომპლექსი ძველი ბათუმის უბანში, მელაშვილის ქ. 12-ში, პიაწასთან ახლოს.',
+      ka: 'Orbi Old Batumi — ORBI-ის ჩაბარებული კომპლექსი ძველი ბათუმის უბანში, მელაშვილის ქ. 12-ში, პიაცასთან ახლოს.',
       en: 'Orbi Old Batumi is ORBI’s completed complex in the Old Batumi district at 12 Melashvili St, near Piazza square.',
       ru: 'Orbi Old Batumi — сданный комплекс ORBI в районе старого Батуми на ул. Мелашвили, 12, рядом с площадью Пьяцца.',
     },
@@ -556,7 +556,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     coords: { lat: 41.64467389, lng: 41.63058118 },
     floors: 14,
     description: {
-      ka: 'Midtown — Gumbati-ს 14-სართულიანი კომპლექსი ბათუმის ცენტრში (გორგასლის ქ. 99), პლაჟიდან 500 მეტრში; ბინები 53,1–144,3 მ². მშენებლობა დასრულების ფაზაშია.',
+      ka: 'Midtown — Gumbati-ს 14-სართულიანი კომპლექსი ბათუმის ცენტრში (გორგასალის ქ. 99), პლაჟიდან 500 მეტრში; ბინები 53,1–144,3 მ². მშენებლობა დასრულების ფაზაშია.',
       en: 'Midtown is Gumbati’s 14-storey complex in central Batumi (99 Gorgasali St), 500 m from the beach — units 53.1–144.3 m², nearing completion.',
       ru: 'Midtown — 14-этажный комплекс Gumbati в центре Батуми (ул. Горгасали, 99), в 500 м от пляжа: квартиры 53,1-144,3 м², стройка на финальной стадии.',
     },
@@ -658,7 +658,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     coords: { lat: 41.61545396, lng: 41.60018468 },
     floors: 9,
     description: {
-      ka: 'Lagoon Resort — სამი 9-სართულიანი ბლოკი ადლიის ქ. 58ე-ში, ბათუმის აეროპორტის უბნის ზღვისპირა ზონაში; ჩაბარება 2027 წელი.',
+      ka: 'Lagoon Resort — სამი 9-სართულიანი ბლოკი ადლიას ქ. 58ე-ში, ბათუმის აეროპორტის უბნის ზღვისპირა ზონაში; ჩაბარება 2027 წელი.',
       en: 'Lagoon Resort is three 9-storey blocks at 58e Adlia St in Batumi’s Airport-district seaside zone — delivery 2027.',
       ru: 'Lagoon Resort — три 9-этажных блока на ул. Адлия, 58е в приморской зоне района Аэропорта Батуми; сдача в 2027 году.',
     },
@@ -871,7 +871,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     name: 'Riverside New Boulevard',
     developerSlug: 'reside-development',
     img: '/images/np1.webp',
-    location: 'ანგისას ქ. 95, ბათუმი',
+    location: 'ანგისის ქ. 95, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: '$1,200',
     done: 58,
@@ -1004,7 +1004,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     coords: { lat: 41.5479029, lng: 41.5643746 },
     // ponytail: street-level geocode — house number 93a not in OSM (Gonio–Kvariati hwy)
     description: {
-      ka: 'Next Gardens — Next Group-ის საკურორტო კომპლექსი გონიოში (ანდრია პირველწოდებულის გზატკეცილი 93ა), მწვანე ფარდულში ზღვისპირა ზოლში. ჩაბარება 2027-ის ბოლო, ფასი $1 900/მ²-დან.',
+      ka: 'Next Gardens — Next Group-ის საკურორტო კომპლექსი გონიოში (ანდრია პირველწოდებულის გზატკეცილი 93ა), მწვანე ზონაში ზღვისპირა ზოლში. ჩაბარება 2027-ის ბოლო, ფასი $1 900/მ²-დან.',
       en: 'Next Gardens is Next Group’s resort complex in Gonio (93a Pirveltsodebuli Hwy), in the green coastal strip. Delivery Q4 2027, from $1,900/m².',
       ru: 'Next Gardens — курортный комплекс Next Group в Гонио (шоссе Андрии Первозванного, 93а), в зелёной приморской полосе. Сдача — IV кв. 2027, от $1 900/м².',
     },
@@ -1105,7 +1105,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     rating: 4.5,
     coords: { lat: 41.60959619, lng: 41.60747302 },
     description: {
-      ka: 'Gate by Artex — Artex Group-ის მშენებარე კომპლექსი ანწუხელიძის ქ. 110-ში, აეროპორტის რაიონში, ზღვისპირა ზოლიდან ახლოს. ფასი $1 250/მ²-დან.',
+      ka: 'Gate by Artex — Artex Group-ის მშენებარე კომპლექსი ანწუხელიძის ქ. 110-ში, აეროპორტის რაიონში, ზღვისპირა ზოლთან ახლოს. ფასი $1 250/მ²-დან.',
       en: 'Gate by Artex is Artex Group’s under-construction complex at 110 Antsukhelidze St in the Airport district, close to the seaside strip. From $1,250/m².',
       ru: 'Gate by Artex — строящийся комплекс Artex Group на ул. Анцухелидзе, 110 в районе Аэропорта, недалеко от набережной. От $1 250/м².',
     },

@@ -36,7 +36,7 @@ import {
 } from './card'
 import { PER_PAGE, ProjectsGrid } from './ProjectsGrid'
 import type { ProjectCard } from './card'
-import { cityName, type DirLoc } from '@/lib/directory-seo'
+import { cityName, type DirLoc } from '@/lib/directory-seo-lite'
 
 type Labels = {
   aria: string

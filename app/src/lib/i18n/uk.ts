@@ -35,7 +35,7 @@ export const uk: Dict = {
   'nav.blog': 'Блог',
   'nav.forum': 'Форум',
   'nav.agents': 'Агенти',
-  'nav.agencies': '',
+  'nav.agencies': 'Агенції',
   'nav.developers': 'Забудовники',
   'nav.advertise': 'Розміщення',
 

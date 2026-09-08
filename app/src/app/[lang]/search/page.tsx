@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import SearchClient from '@/components/search/SearchClient'
 import { pickAds } from '@/lib/ads-db'
 import { isValidLang } from '@/lib/i18n/core'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 export const revalidate = 300
 
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: 'ძიება — ბინები, სახლები, კომერციული',
   description:
     'მოძებნე ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები მთელ საქართველოში — ვერიფიცირებული განცხადებები AI ფასის შეფასებით.',
-  alternates: { canonical: '/search', languages: langAlternates('/search') },
+  alternates: kaOnlyAlternates('/search'),
   robots: { index: false, follow: true },
 }
 

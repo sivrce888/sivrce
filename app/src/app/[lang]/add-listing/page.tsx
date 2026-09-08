@@ -4,7 +4,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import AddListingClient from '@/components/add-listing/AddListingClient'
 import { isValidLang } from '@/lib/i18n/core'
-import { getServerT, langAlternates } from '@/lib/i18n/server'
+import { getServerT,pageAlternates,  } from '@/lib/i18n/server'
 
 export const revalidate = 86400
 
@@ -19,7 +19,7 @@ export async function generateMetadata({
   return {
     title: t('add.title'),
     description: t('add.subtitle'),
-    alternates: { canonical: '/add-listing', languages: langAlternates('/add-listing') },
+    alternates: pageAlternates('/add-listing', lang),
     robots: { index: false, follow: true },
   }
 }

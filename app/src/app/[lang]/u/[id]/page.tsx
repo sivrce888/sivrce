@@ -13,14 +13,15 @@ import { db } from '@/lib/db'
 import { getListingsByOwner } from '@/lib/listings-db'
 import { SELLER_ROLE_LABEL, type SellerRole } from '@/lib/profiles/roles'
 import { SERVICE_BRAND } from '@/lib/category-brand'
-import { langAlternates } from '@/lib/i18n/server'
+import { pageAlternates } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 import { altName } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
 
 export const revalidate = 300
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; lang: string }>
 }
 
 function roleOf(role: string): SellerRole {
@@ -43,7 +44,8 @@ function brandFor(role: SellerRole) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params
+  const { id, lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
   const user = await db.user
     .findUnique({ where: { id }, select: { name: true, role: true } })
     .catch(() => null)
@@ -64,7 +66,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
               .catch(() => null)
           : null
   const name = extra && 'name' in extra ? extra.name : user.name
-  const title = `${name ?? 'sivrce'} — ${SELLER_ROLE_LABEL[role].ka}`
+  // Metadata must read in the URL's language — ka labels on /en/u/… read as spam in the SERP.
+  const roleLabel = SELLER_ROLE_LABEL[role][lang === 'ka' ? 'ka' : 'en']
+  const title = `${name ?? 'sivrce'} — ${roleLabel}`
   const base =
     extra && 'summary' in extra && extra.summary
       ? extra.summary.replace(/\s+/g, ' ')
@@ -72,14 +76,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         ? extra.description.replace(/\s+/g, ' ')
         : extra && 'agency' in extra
           ? `${extra.name} · ${extra.agency} · sivrce.ge`
-          : `უძრავი ქონება ერთ სივრცეში — ${SELLER_ROLE_LABEL[role].ka}`
+          : lang === 'ka'
+            ? `უძრავი ქონება ერთ სივრცეში — ${roleLabel}`
+            : `Real estate on sivrce.ge — ${roleLabel}`
   const alt = name ? altName(name) : ''
   const description = ((alt && !base.includes(alt) ? `${name} (${alt}). ` : '') + base).slice(0, 155)
   return {
     title,
     description,
     robots: { index: true, follow: true },
-    alternates: { canonical: `/u/${id}`, languages: langAlternates(`/u/${id}`) },
+    alternates: pageAlternates(`/u/${id}`, lang),
     openGraph: {
       title: `${title}`,
       description,
@@ -224,7 +230,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                     {summary}
                   </p>
                 ) : null}
-                <MessageUserButton userId={id} />
+                <MessageUserButton userId={id} className="mt-4" />
               </div>
             </div>
             {stats.length > 0 ? <StatsRow items={stats} className="md:ml-auto md:self-center" /> : null}

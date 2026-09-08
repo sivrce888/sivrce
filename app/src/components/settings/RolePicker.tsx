@@ -188,7 +188,7 @@ export function RolePicker({
         <p className="rounded-module border border-sv-orange/20 bg-sv-orange/[0.06] px-4 py-3 text-[13px] font-semibold text-sv-ink/70">
           <Home size={14} className="mr-1.5 inline -translate-y-px text-sv-orange" aria-hidden />
           შენ გამოგზავნენ როგორც{" "}
-          <span className="font-extrabold text-sv-ink">{PERSONA_LABEL_KA[intent].title}-ს</span>.
+          <span className="font-extrabold text-sv-ink">{PERSONA_LABEL_KA[intent].title}</span>.
           აირჩიე ქვემოთ ან გამოტოვე — ნაგულისხმევი მყიდველია.
         </p>
       ) : null}

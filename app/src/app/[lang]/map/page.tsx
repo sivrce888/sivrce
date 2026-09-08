@@ -8,7 +8,7 @@ import { MAP_CENTER } from '@/lib/map/map-geo'
 import { getMapPlatformConfig } from '@/lib/map/platform-config'
 import { slimProjectsForMap } from '@/lib/map/slim-projects'
 import { isValidLang } from '@/lib/i18n/core'
-import { getServerT, langAlternates } from '@/lib/i18n/server'
+import { getServerT,pageAlternates,  } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import { Map3DLazy } from './Map3DLazy'
 import MapListLink from './MapListLink'
@@ -30,7 +30,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: '/map', languages: langAlternates('/map') },
+    alternates: pageAlternates('/map', lang),
     openGraph: {
       title,
       description,

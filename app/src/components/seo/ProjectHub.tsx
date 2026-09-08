@@ -5,7 +5,7 @@ import Footer from '@/components/sections/Footer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import type { Project } from '@/data/professionals'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import type { Lang } from '@/lib/i18n/core'
 import {
   faqPageLd,
@@ -27,7 +27,7 @@ export function projectHubMetadata(path: string, lang: Lang, c: DirectoryHubCopy
   return {
     title: c.title,
     description: c.description,
-    alternates: { canonical: path, languages: langAlternates(path) },
+    alternates: pageAlternates(path, lang),
     openGraph: {
       title: c.ogTitle,
       description: c.description,

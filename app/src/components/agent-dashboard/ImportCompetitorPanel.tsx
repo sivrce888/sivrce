@@ -96,7 +96,7 @@ export default function ImportCompetitorPanel() {
           className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep disabled:opacity-60"
         >
           {busy ? <Loader2 size={15} className="animate-spin" /> : null}
-          {busy ? 'იტვირთება…' : 'ჩამოტვირთვა'}
+          {busy ? 'იტვირთება…' : 'იმპორტი'}
         </button>
         {best ? (
           <button
@@ -119,7 +119,7 @@ export default function ImportCompetitorPanel() {
 
       {best ? (
         <pre className="mt-4 max-h-56 overflow-auto whitespace-pre-wrap rounded-module border border-sv-ink/6 bg-sv-cloud/80 p-3 text-[11.5px] font-medium leading-relaxed text-sv-ink/80">
-          {count > 1 ? `★ საუკეთესო ${count}-დან\n` : ''}
+          {count > 1 ? `★ ${count}-დან საუკეთესო\n` : ''}
           {formatImportedListing(best)}
         </pre>
       ) : null}

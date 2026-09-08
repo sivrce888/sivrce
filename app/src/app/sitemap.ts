@@ -220,7 +220,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const poster = absMedia(l.img)
     const video = listingVideoObject(l.video, {
       name: l.title,
-      description: l.description,
+      description: l.description ?? "",
       poster,
       uploadDate: `${l.postedAt}T00:00:00Z`,
     })

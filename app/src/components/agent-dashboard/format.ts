@@ -46,7 +46,7 @@ export const leadStatusLabel: Record<string, string> = {
   negotiating: "მოლაპარაკება",
   closed_won: "მოგებული",
   closed_lost: "წაგებული",
-  disqualified: "არაკვალიფიციური",
+  disqualified: "დისკვალიფიცირებული",
 }
 export const leadStatusTone: Record<string, BadgeTone> = {
   new: "blue",

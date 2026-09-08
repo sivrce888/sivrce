@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { projectsLive } from '@/lib/directory-live'
 import { MICRO, PROJECT_HUBS, dirLoc } from '@/lib/directory-seo'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { ProjectHub } from '@/components/seo/ProjectHub'
 import { SUB_HUBS } from '../../../subhubs'
 
@@ -24,6 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const entry = SUB_HUBS[hub]
   const pg = parsePg(rawPg)
   if (!entry || !pg || !isValidLang(raw)) return {}
+  const lang: Lang = raw
   const loc = dirLoc(raw)
   const c = PROJECT_HUBS[entry.hub][loc]
   const path = `${entry.path}/page/${pg}`
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description: c.description,
-    alternates: { canonical: path, languages: langAlternates(path) },
+    alternates: pageAlternates(path, lang),
     openGraph: {
       title,
       description: c.description,

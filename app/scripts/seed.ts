@@ -83,7 +83,7 @@ async function main() {
         id: l.id,
         slug: l.id,
         title: l.title,
-        description: l.description,
+        description: l.description ?? "",
         dealType: mapDealType(l.dealType),
         propertyType: mapPropType(l.propType),
         price: l.priceGEL,

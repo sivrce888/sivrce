@@ -73,7 +73,7 @@ import { cardOf } from '@/lib/media'
 import { buildingScoreOf, type BuildingFactorKey } from '@/lib/building-score'
 import { faqPageLd } from '@/lib/directory-seo'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import {pageAlternates,  } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 
 const FACTOR_LABEL: Record<DirLoc, Record<BuildingFactorKey, string>> = {
@@ -215,7 +215,8 @@ async function resolveBuilding(slug: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang: rawLang, slug } = await params
-  const loc = dirLoc(isValidLang(rawLang) ? rawLang : 'ka')
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const loc = dirLoc(lang)
   const t = T[loc]
   const { building: b } = await resolveBuilding(slug)
   if (!b) return {}
@@ -227,7 +228,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${bName} (${b.code}) — ${geoName(b.district, loc)}, ${b.city}`,
     description,
-    alternates: { canonical: `/buildings/${b.slug}`, languages: langAlternates(`/buildings/${b.slug}`) },
+    alternates: pageAlternates(`/buildings/${b.slug}`, lang),
     openGraph: {
       title: bName,
       description,
@@ -242,7 +243,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BuildingPage({ params }: PageProps) {
   const { lang: rawLang, slug } = await params
-  const loc = dirLoc(isValidLang(rawLang) ? rawLang : 'ka')
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const loc = dirLoc(lang)
   const t = T[loc]
   const { building, developer: dbDeveloper } = await resolveBuilding(slug)
   if (!building) notFound()
@@ -297,7 +299,7 @@ export default async function BuildingPage({ params }: PageProps) {
     {
       q: loc === 'ka' ? `რამდენი განცხადებაა ${building.name}-ში?` : loc === 'ru' ? `Сколько объявлений в ${bName}?` : `How many listings are in ${bName}?`,
       a: loc === 'ka'
-        ? `ამჟამად ${listings.length} განცხადება: ${counts.sale} გაყიდვა, ${counts.rent} ქირა, ${counts.daily} დღიური, ${counts.pledge} გირავნობა.`
+        ? `ამჟამად ${listings.length} განცხადება: ${counts.sale} იყიდება, ${counts.rent} ქირავდება, ${counts.daily} დღიურად, ${counts.pledge} გირავდება.`
         : loc === 'ru'
           ? `Сейчас ${listings.length} объявлений: ${counts.sale} продажа, ${counts.rent} аренда, ${counts.daily} посуточно, ${counts.pledge} залог.`
           : `Currently ${listings.length} listings: ${counts.sale} for sale, ${counts.rent} for rent, ${counts.daily} daily, ${counts.pledge} pledge.`,
@@ -315,7 +317,7 @@ export default async function BuildingPage({ params }: PageProps) {
           {
             q: loc === 'ka' ? `რა ღირს მ² ${building.name}-ში?` : loc === 'ru' ? `Сколько стоит м² в ${bName}?` : `What does m² cost in ${bName}?`,
             a: loc === 'ka'
-              ? `აქტიური განცხადებების მიხედვით საშუალო ფასი $${buildingAvgPerM2.toLocaleString('en-US')}/მ²-ა (${salePerM2.length} განცხადება).${buildingScale ? ` რაიონთან შედარებით: ${buildingScale.labelKa.toLowerCase()}.` : ''}`
+              ? `აქტიური განცხადებების მიხედვით საშუალო ფასი — $${buildingAvgPerM2.toLocaleString('en-US')} მ²-ზე (${salePerM2.length} განცხადება).${buildingScale ? ` რაიონთან შედარებით: ${buildingScale.labelKa.toLowerCase()}.` : ''}`
               : loc === 'ru'
                 ? `Средняя цена по активным объявлениям — $${buildingAvgPerM2.toLocaleString('en-US')}/м² (${salePerM2.length} объявлений).${buildingScale ? ` По району: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`
                 : `Average active-listing price is $${buildingAvgPerM2.toLocaleString('en-US')}/m² (${salePerM2.length} listings).${buildingScale ? ` vs district: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`,
@@ -334,7 +336,7 @@ export default async function BuildingPage({ params }: PageProps) {
       q: loc === 'ka' ? 'როგორ მივიდე?' : loc === 'ru' ? 'Как добраться?' : 'How do I get there?',
       a: metro
         ? loc === 'ka'
-          ? `ფეხით ${metro.walkMin} წთ მეტრო ${metro.name}-დან. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
+          ? `მეტრო ${metro.name}-დან ფეხით ${metro.walkMin} წთ. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
           : loc === 'ru'
             ? `${metro.walkMin} мин пешком от метро ${metro.name}. Маршрут — Apple Maps или Google Maps.`
             : `${metro.walkMin} min walk from ${metro.name} metro. Open Apple Maps or Google Maps for directions.`

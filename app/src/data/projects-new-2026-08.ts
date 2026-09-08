@@ -26,7 +26,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Keystone Development — თბილისური დეველოპერი 2021-დან. აშენებს Coordinate-ს ორთაჭალაში, ვ. გორგასლის 73ა-ში, საქართველოს ბანკთან პარტნიორობით.',
+      ka: 'Keystone Development — თბილისური დეველოპერი 2021-დან. აშენებს Coordinate-ს ორთაჭალაში, ვ. გორგასალის 73ა-ში, საქართველოს ბანკთან პარტნიორობით.',
       en: 'Keystone Development is a Tbilisi developer (since 2021) building Coordinate at 73a Vakhtang Gorgasali St in Ortachala, in partnership with Bank of Georgia.',
       ru: 'Keystone Development — тбилисский девелопер с 2021 года. Строит Coordinate на ул. Вахтанга Горгасали 73а в Ортачале.',
     },
@@ -297,7 +297,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Bala Construction — ბათუმური დეველოპერი 2023-დან. აშენებს Vertikal-ს ტაძარის ქ. 12-ში, ხიმშიაშვილის უბანში.',
+      ka: 'Bala Construction — ბათუმის დეველოპერი 2023-დან. აშენებს Vertikal-ს ტაძარის ქ. 12-ში, ხიმშიაშვილის უბანში.',
       en: 'Bala Construction is a Batumi developer (since 2023) building Vertikal at 12 Tadzris St in the Khimshiashvili district.',
       ru: 'Bala Construction — батумский девелопер с 2023. Строит Vertikal на ул. Тадзрис 12, район Химшиашвили.',
     },
@@ -312,7 +312,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Smart Development — ბათუმური დეველოპერი. აშენებს SUMMER 365-ს კოტე აფხაზის ქ. 43-ში, ახალ ბულვარზე / ადლიაში.',
+      ka: 'Smart Development — ბათუმის დეველოპერი. აშენებს SUMMER 365-ს კოტე აფხაზის ქ. 43-ში, ახალ ბულვარზე / ადლიაში.',
       en: 'Smart Development is a Batumi developer building SUMMER 365 at 43 Kote Abkhazi St on the New Boulevard / Adlia.',
       ru: 'Smart Development — батумский девелопер. Строит SUMMER 365 на ул. Коте Абхази 43, Новый бульвар / Адлия.',
     },
@@ -327,7 +327,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Olympus — ბათუმური დეველოპერი. აშენებს Olympus Residence-ს შერიფ ხიმშიაშვილის ქ. 53-ში, ორი 40-სართულიანი კოშკი ზღვის პირას.',
+      ka: 'Olympus — ბათუმის დეველოპერი. აშენებს Olympus Residence-ს შერიფ ხიმშიაშვილის ქ. 53-ში, ორი 40-სართულიანი კოშკი ზღვის პირას.',
       en: 'Olympus is a Batumi developer building Olympus Residence at 53 Sherif Khimshiashvili St — two 40-storey beach towers.',
       ru: 'Olympus — батумский девелопер. Строит Olympus Residence на ул. Шерифа Химшиашвили 53, две 40-этажные башни у моря.',
     },
@@ -402,7 +402,7 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
     projectsDone: 0,
     unitsDelivered: 0,
     description: {
-      ka: 'Terrametric Development — თბილისური დეველოპერი (2023-დან). აშენებს Terrametric Krtsanisi-ს ნადიკვრის III ქ. 34-ში.',
+      ka: 'Terrametric Development — თბილისური დეველოპერი (2023-დან). აშენებს Terrametric Krtsanisi-ს ნადიკვარის III ქ. 34-ში.',
       en: 'Terrametric Development is a Tbilisi developer (since 2023) building Terrametric Krtsanisi at 34 Nadikvari 3rd St.',
       ru: 'Terrametric Development — тбилисский девелопер с 2023 года. Строит Terrametric Krtsanisi на 3-й ул. Надиквари 34.',
     },
@@ -493,7 +493,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     name: 'Coordinate by Keystone',
     developerSlug: 'keystone-development',
     img: '/images/projects/coordinate-by-keystone.webp',
-    location: 'ვახტანგ გორგასლის ქ. 73ა, ორთაჭალა, თბილისი',
+    location: 'ვახტანგ გორგასალის ქ. 73ა, ორთაჭალა, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,846',
     done: 15,
@@ -505,7 +505,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     // official coordinate.ge: 41°40'30.9"N 44°49'37.4"E
     coords: { lat: 41.67512462, lng: 44.82731718 },
     description: {
-      ka: 'Coordinate — Keystone-ის მულტიფუნქციური კომპლექსი ორთაჭალაში, გორგასლის 73ა: 4 ბლოკი (14–31 სართული), 11 000 მ² პარკი, ფუდ ჰოლი, პადელი. მწვანე კარკასი, $1 846/მ²-დან, ჩაბარება 2028 Q4. საკადასტრო 01.18.06.019.139.',
+      ka: 'Coordinate — Keystone-ის მულტიფუნქციური კომპლექსი ორთაჭალაში, გორგასალის 73ა: 4 ბლოკი (14–31 სართული), 11 000 მ² პარკი, ფუდ ჰოლი, პადელი. მწვანე კარკასი, $1 846/მ²-დან, ჩაბარება 2028 Q4. საკადასტრო 01.18.06.019.139.',
       en: 'Coordinate is Keystone’s mixed-use complex at 73a Gorgasali St, Ortachala: four blocks (14–31 floors), 11,000 m² park, food hall, padel. Green frame from $1,846/m², handover Q4 2028. Cadastre 01.18.06.019.139.',
       ru: 'Coordinate — многофункциональный комплекс Keystone на ул. Горгасали 73а: 4 блока 14–31 этаж, парк 11 000 м². Зелёный каркас от $1 846/м², сдача IV кв. 2028.',
     },
@@ -1102,7 +1102,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     name: 'Terrametric Krtsanisi',
     developerSlug: 'terrametric-development',
     img: '/images/projects/terrametric-krtsanisi.webp',
-    location: 'ნადიკვრის III ქ. 34, კრწანისი, თბილისი',
+    location: 'ნადიკვარის III ქ. 34, კრწანისი, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,580',
     done: 55,
@@ -1111,10 +1111,10 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 6,
     rating: 4.7,
     cadastral: '01.18.01.002.083',
-    // Nominatim: ნადიკვრის III ქუჩა, კრწანისი
+    // Nominatim: ნადიკვარის III ქუჩა, კრწანისი
     coords: { lat: 41.68097943, lng: 44.81852136 },
     description: {
-      ka: 'Terrametric Krtsanisi — სამი დაბალსართულიანი კორპუსი (5–6 სართული) ნადიკვრის III ქ. 34-ში. მწვანე კარკასი +, აუზი, $1 580/მ²-დან. A/B — 2026 Q4; C — 2027 Q4. საკადასტრო 01.18.01.003.152.',
+      ka: 'Terrametric Krtsanisi — სამი დაბალსართულიანი კორპუსი (5–6 სართული) ნადიკვარის III ქ. 34-ში. მწვანე კარკასი +, აუზი, $1 580/მ²-დან. A/B — 2026 Q4; C — 2027 Q4. საკადასტრო 01.18.01.003.152.',
       en: 'Terrametric Krtsanisi is three mid-rise blocks (5–6 floors) at 34 Nadikvari 3rd St. Green frame +, pool, from $1,580/m². A/B Q4 2026; C Q4 2027. Cadastre 01.18.01.003.152.',
       ru: 'Terrametric Krtsanisi — три корпуса 5–6 этажей на 3-й ул. Надиквари 34. Зелёный каркас +, бассейн, от $1 580/м². A/B — IV кв. 2026; C — IV кв. 2027.',
     },

@@ -112,7 +112,7 @@ export default async function SellerOverviewPage() {
         <StatCard
           label={rent ? "გაქირავებული" : "დახურული"}
           value={rent ? closedRent : closedSale + closedRent}
-          hint={rent ? undefined : `ქირა ${closedRent}`}
+          hint={rent ? undefined : `მათ შორის ქირა: ${closedRent}`}
           icon={<TrendingUp size={18} />}
         />
       </div>
@@ -135,7 +135,7 @@ export default async function SellerOverviewPage() {
           </div>
           {recentLeads.length === 0 ? (
             <EmptyState
-              title="ლიდები ჯერ არ გყავს"
+              title="ლიდები ჯერ არ გაქვს"
               body={`${seeker}ს მოთხოვნა აქ გამოჩნდება, როგორც კი დაგიკავშირდება.`}
             />
           ) : (

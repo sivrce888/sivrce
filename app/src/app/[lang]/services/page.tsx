@@ -20,7 +20,7 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { Reveal } from '@/components/Reveal'
 import { ServiceCard } from '@/components/services/ServiceCard'
 import { isValidLang } from '@/lib/i18n/core'
-import { langAlternates } from '@/lib/i18n/server'
+import {pageAlternates,  } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import {
   pickLocText,
@@ -82,7 +82,7 @@ export async function generateMetadata({
   return {
     title: c.title,
     description: c.description,
-    alternates: { canonical: '/services', languages: langAlternates('/services') },
+    alternates: pageAlternates('/services', lang),
     openGraph: { title: c.title, description: c.description, type: 'website' },
   }
 }

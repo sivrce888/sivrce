@@ -34,7 +34,7 @@ export const STREETS: TbilisiStreet[] = [
   { slug: 'mikheil-tamarashvilis-gamziri', ka: 'მიხეილ თამარაშვილის გამზირი', en: 'Mikheil Tamarashvili Avenue', district: 'saburtalo' },
   { slug: 'rustavis-gzatketsili', ka: 'რუსთავის გზატკეცილი', en: 'Rustavi Highway', district: 'krtsanisi' },
   { slug: 'vazha-pshavelas-gamziri', ka: 'ვაჟა-ფშაველას გამზირი', en: 'Vazha-Pshavela Avenue', district: 'saburtalo' },
-  { slug: 'vakhtang-gorgaslis-kucha', ka: 'ვახტანგ გორგასლის ქუჩა', en: 'Vakhtang Gorgasali Street', district: 'ortachala' },
+  { slug: 'vakhtang-gorgaslis-kucha', ka: 'ვახტანგ გორგასალის ქუჩა', en: 'Vakhtang Gorgasali Street', district: 'ortachala' },
   { slug: 'tsotne-dadianis-kucha', ka: 'ცოტნე დადიანის ქუჩა', en: 'Tsotne Dadiani Street', district: 'nadzaladevi' },
   { slug: 'merab-kostavas-kucha', ka: 'მერაბ კოსტავას ქუჩა', en: 'Merab Kostava Street', district: 'vera' },
   { slug: 'marshal-iozep-pilsudskis-gamziri', ka: 'მარშალ იოზეფ პილსუდსკის გამზირი', en: 'Marshal Joseph Pilsudski Avenue', district: 'vazisubani' },

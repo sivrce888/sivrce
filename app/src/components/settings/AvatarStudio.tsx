@@ -219,7 +219,7 @@ export default function AvatarStudio({
         <div className="min-w-0">
           <h2 className="text-[15px] font-extrabold text-sv-ink">ავატარი</h2>
           <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-            ატვირთე ფოტო ან აირჩიე გრადიენტი — ასე გჩვენებ შენს პროფილზე.
+            ატვირთე ფოტო ან აირჩიე გრადიენტი — ასე გამოჩნდები შენს პროფილზე.
           </p>
         </div>
       </div>

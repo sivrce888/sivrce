@@ -1,3 +1,4 @@
+import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { db, dbAvailable } from "@/lib/db"
 
@@ -8,6 +9,7 @@ export async function POST(
   if (!isSameOrigin(req)) {
     return new Response(null, { status: 204 })
   }
+  if (!rateLimitOk(`adclick:${clientIp(req.headers)}`)) return new Response(null, { status: 204 })
   const { id } = await params
   if (!id || id.length > 120) return new Response(null, { status: 204 })
   try {

@@ -31,7 +31,7 @@ export default function RootNotFound() {
             გვერდი ვერ მოიძებნა
           </h1>
           <p style={{ marginTop: 12, color: "rgba(10,16,48,0.5)", fontWeight: 600 }}>
-            Page not found — ბმული არასწორია ან გვერდი წაშლილია.
+            ასეთი გვერდი არ არსებობს — ბმული არასწორია ან გვერდი წაშლილია.
           </p>
           <Link
             href="/"

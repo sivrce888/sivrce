@@ -13,7 +13,7 @@ import { getListingsForAgentProfile } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { altNameList } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: `${a.name.ka} — ${a.agency}`,
       description,
-      alternates: { canonical: `/agents/${a.slug}`, languages: langAlternates(`/agents/${a.slug}`) },
+      alternates: kaOnlyAlternates(`/agents/${a.slug}`),
       openGraph: {
         title: `${a.name.ka} — ${a.agency}`,
         description,
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!dbAgent) return {}
   return {
     title: `${dbAgent.name} — ${dbAgent.agency}`,
-    alternates: { canonical: `/agents/${slug}`, languages: langAlternates(`/agents/${slug}`) },
+    alternates: kaOnlyAlternates(`/agents/${slug}`),
   }
 }
 

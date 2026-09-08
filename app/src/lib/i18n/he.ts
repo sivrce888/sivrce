@@ -35,7 +35,7 @@ export const he: Dict = {
   'nav.blog': 'בלוג',
   'nav.forum': 'פורום',
   'nav.agents': 'סוכנים',
-  'nav.agencies': '',
+  'nav.agencies': 'סוכנויות',
   'nav.developers': 'יזמים',
   'nav.advertise': 'פרסום',
 

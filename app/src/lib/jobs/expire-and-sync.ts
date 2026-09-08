@@ -26,6 +26,12 @@ import { deleteListing, syncAllListings, type ListingDocument } from "@/lib/sear
 const BATCH = 200
 
 export async function expireListingsJob(): Promise<{ expired: number }> {
+  // Chat typing heartbeats are TTL-filtered on read (5s) — this daily sweep
+  // only reclaims the dead rows. Generous margin so a live beat is never cut.
+  await db.chatTyping
+    .deleteMany({ where: { updatedAt: { lt: new Date(Date.now() - 3_600_000) } } })
+    .catch(() => {})
+
   const cutoff = new Date(Date.now() - LISTING_LIFETIME_MS)
   const rows = await db.listing.findMany({
     where: {

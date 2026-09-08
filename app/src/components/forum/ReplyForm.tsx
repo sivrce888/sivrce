@@ -50,7 +50,7 @@ export function ReplyForm({
           href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
           className="font-extrabold text-sv-blue hover:underline"
         >
-          შეხვიდეთ ანგარიშში
+          შეხვიდე ანგარიშში
         </Link>
         .
       </p>

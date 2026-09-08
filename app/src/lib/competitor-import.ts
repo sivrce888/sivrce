@@ -85,7 +85,7 @@ const SS_BOOL_FEATURES: [keyof SsApp, string][] = [
   ['viewOnStreet', 'ქუჩისკენი'],
   ['securityAlarm', 'სიგნალიზაცია'],
   ['ironDoor', 'რკინის კარი'],
-  ['isPetFriendly', 'შინაური'],
+  ['isPetFriendly', 'შინაური ცხოველები'],
 ]
 
 type SsApp = Record<string, unknown> & {
@@ -146,11 +146,20 @@ type MyStatement = Record<string, unknown> & {
 }
 
 export function detectCompetitorSource(url: string): CompetitorSource | null {
-  const u = url.toLowerCase()
-  if (/ss\.ge|home\.ss\.ge/.test(u)) return 'ss.ge'
-  if (/myhome\.ge|livo\.ge/.test(u)) return 'myhome.ge'
-  if (/korter\.ge/.test(u)) return 'korter.ge'
-  return null
+  // Hostname-exact match — a substring test would let `https://ss.ge.evil.com`
+  // pass and turn the importer into a server-side fetch proxy (SSRF).
+  try {
+    const u = new URL(url.includes('://') ? url : `https://${url}`)
+    const host = u.hostname.toLowerCase().replace(/^www\./, '')
+    if (host === 'ss.ge' || host.endsWith('.ss.ge')) return 'ss.ge'
+    if (host === 'myhome.ge' || host === 'livo.ge' || host.endsWith('.myhome.ge') || host.endsWith('.livo.ge')) {
+      return 'myhome.ge'
+    }
+    if (host === 'korter.ge' || host.endsWith('.korter.ge')) return 'korter.ge'
+    return null
+  } catch {
+    return null
+  }
 }
 
 export function extractCompetitorId(url: string): string | null {

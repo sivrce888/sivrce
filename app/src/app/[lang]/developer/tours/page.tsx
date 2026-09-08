@@ -66,7 +66,7 @@ export default async function DeveloperToursPage() {
           {upcoming.length === 0 ? (
             <EmptyState
               title="დაგეგმილი ვიზიტები არ არის"
-              body="როცა მყიდველი შენი ბინის ნახვას დაჯავშნის, ვიზიტი აქ გამოჩნდება."
+              body="როცა მყიდველი შენი ბინის ნახვას დაჯავშნავს, ვიზიტი აქ გამოჩნდება."
             />
           ) : (
             <ul className="space-y-3">

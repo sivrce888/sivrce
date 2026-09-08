@@ -35,7 +35,7 @@ export const en: Dict = {
   'nav.blog': 'Blog',
   'nav.forum': 'Forum',
   'nav.agents': 'Agents',
-  'nav.agencies': '',
+  'nav.agencies': 'Agencies',
   'nav.developers': 'Developers',
   'nav.advertise': 'List with us',
 

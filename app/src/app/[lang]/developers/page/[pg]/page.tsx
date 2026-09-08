@@ -10,7 +10,7 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { EntityCard } from '@/components/entities/EntityCard'
 import { roleSignupHref } from '@/lib/auth-roles'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { DEVELOPERS_HUB, dirLoc, MICRO } from '@/lib/directory-seo'
 import { PER_PAGE, Pager } from '../../../projects/ProjectsGrid'
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description: c.description,
-    alternates: { canonical: pg ? path : '/developers', languages: langAlternates(path) },
+    alternates: pageAlternates(pg ? path : '/developers', lang),
     openGraph: {
       title,
       description: c.description,

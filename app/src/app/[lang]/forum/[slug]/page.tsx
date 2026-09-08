@@ -8,7 +8,7 @@ import { ThreadReplies } from '@/components/forum/ThreadReplies'
 import { FORUM_THREADS } from '@/data/forum'
 import { getForumThread, listForumThreads, relatedForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
-import { langAlternates } from '@/lib/i18n/server'
+import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 export const revalidate = 60
 
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${thread.title} | sivrce ფორუმი`,
     description: thread.excerpt,
-    alternates: { canonical: `/forum/${thread.slug}`, languages: langAlternates(`/forum/${thread.slug}`) },
+    alternates: kaOnlyAlternates(`/forum/${thread.slug}`),
     openGraph: {
       title: thread.title,
       description: thread.excerpt,
@@ -200,6 +200,20 @@ export default async function ForumThreadPage({ params }: PageProps) {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(threadLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
+              { '@type': 'ListItem', position: 2, name: 'ფორუმი', item: 'https://sivrce.ge/forum' },
+              { '@type': 'ListItem', position: 3, name: thread.title, item: `https://sivrce.ge/forum/${thread.slug}` },
+            ],
+          }),
+        }}
+      />
     </div>
   )
 }

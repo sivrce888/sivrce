@@ -154,7 +154,7 @@ export function BuildingMapPicker({
         ) : null}
         {ring ? (
           <button type="button" className={btnCls} onClick={clearFootprint}>
-            footprint წაშლა
+            კონტურის წაშლა
           </button>
         ) : null}
       </div>
@@ -171,8 +171,8 @@ export function BuildingMapPicker({
       />
       <p className="text-[11px] font-bold text-sv-ink/60">
         {pickMode === 'draw'
-          ? 'დააკლიკე კუთხეებს → დახურვა. მშენებარე კორპუსი რომ არ არის OSM-ში.'
-          : 'დააკლიკე OSM შენობას — პინი ცენტრში + footprint ავტომატურად.'}
+          ? 'დააკლიკე კუთხეებს → დახურვა. გამოიყენე, თუ მშენებარე კორპუსი OSM-ში არ არის.'
+          : 'დააკლიკე OSM შენობას — პინი ცენტრში + კონტური ავტომატურად.'}
       </p>
 
       <div>

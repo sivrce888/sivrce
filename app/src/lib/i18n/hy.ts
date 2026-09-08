@@ -35,7 +35,7 @@ export const hy: Dict = {
   'nav.blog': 'Բլոգ',
   'nav.forum': 'Ֆորում',
   'nav.agents': 'Գործակալներ',
-  'nav.agencies': '',
+  'nav.agencies': 'Գործակալություններ',
   'nav.developers': 'Կառուցապատողներ',
   'nav.advertise': 'Տեղադրում',
 

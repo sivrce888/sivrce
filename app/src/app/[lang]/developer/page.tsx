@@ -81,7 +81,7 @@ export default async function DeveloperOverviewPage() {
           className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 bg-sv-surface px-5 py-2.5 text-[13px] font-bold text-sv-ink transition hover:border-sv-blue hover:text-sv-blue"
         >
           <Plus size={15} strokeWidth={2.5} />
-          პროექტი
+          დაამატე პროექტი
         </LocalizedLink>
         <LocalizedLink
           href="/add-listing?deal=sale&propType=apartment"

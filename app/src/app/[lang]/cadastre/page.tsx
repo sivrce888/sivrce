@@ -4,7 +4,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import LocalizedLink from '@/components/LocalizedLink'
 import { isValidLang } from '@/lib/i18n/core'
-import { getServerT, langAlternates } from '@/lib/i18n/server'
+import { getServerT,pageAlternates,  } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import CadastreExplorer from './CadastreExplorer'
 
@@ -25,7 +25,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: '/cadastre', languages: langAlternates('/cadastre') },
+    alternates: pageAlternates('/cadastre', lang),
     openGraph: {
       title,
       description,

@@ -72,7 +72,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
     name: { ka: 'ძველი თბილისი', en: 'Old Tbilisi', ru: 'Старый Тбилиси' },
     city: TBILISI, cityKey: 'თბილისი', districts: ['ავლაბარი'], type: 'Neighborhood',
     description: {
-      ka: 'ისტორიული ბირთვი — გამოქვაბული ეზოები, აბანოთუბანი, მთაწმინდის ხედები. ტურისტული მაგნიტი; იდეალური დღიური ქირის ინვესტიციისთვის.',
+      ka: 'ისტორიული ბირთვი — გამოკვეთილი აივნები, აბანოთუბანი, მთაწმინდის ხედები. ტურისტული მაგნიტი; იდეალური დღიური ქირის ინვესტიციისთვის.',
       en: 'The historic core — carved balconies, Abanotubani baths, Narikala views. A tourist magnet; ideal for short-term rental investment.',
       ru: 'Историческое ядро — резные балконы, серные бани Абанотубани, виды на Нарикалу. Магнит для туристов; идеален для посуточной аренды.',
     },

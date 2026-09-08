@@ -20,7 +20,7 @@ import { listingVideoObject } from '@/lib/listing-video'
 import { jsonLd, ogImages } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { pickAd } from '@/lib/ads-db'
-import { getServerT, langAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { getServerT, langCanonical, pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { featureLabel, isFeatureKey } from '@/lib/features'
 
@@ -68,8 +68,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const lang: Lang = raw && isValidLang(raw) ? raw : 'ka'
   const t = getServerT(lang)
   const price =
-    l.dealType === 'rent' && !isLandLease(l.dealType, l.propType) ? `${formatUSD(l.priceUSD)}/თვე`
-      : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}/დღე`
+    l.dealType === 'rent' && !isLandLease(l.dealType, l.propType) ? `${formatUSD(l.priceUSD)}${t('detail.perMonth')}`
+      : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}${t('detail.perDay')}`
         : formatUSD(l.priceUSD)
   const keyword = listingKeyword(l)
   const exclusiveLead = [
@@ -81,8 +81,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${exclusiveLead ? `${exclusiveLead} · ` : ''}${keyword} — ${price}`
   /* CTR lead: exclusive + keyword sentence + hard stats before the free text */
   const stats = [
-    l.area > 0 && `${l.area} მ²`,
-    l.floor > 0 && `${l.floor}/${l.totalFloors} სართული`,
+    l.area > 0 && `${l.area} ${lang === 'ka' ? 'მ²' : 'm²'}`,
+    l.floor > 0 && `${l.floor}/${l.totalFloors} ${t('spec.floor')}`,
   ].filter(Boolean).join(', ')
   const description = metaDescription(`${exclusiveLead ? `${exclusiveLead}. ` : ''}${keyword}. ${stats && `${stats}. `}${price}. ${l.description}`)
   // Local photos have a build-time JPEG derivative (scripts/og-derivatives.mjs);
@@ -101,7 +101,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: path, languages: langAlternates(path) },
+    alternates: pageAlternates(path, lang),
     openGraph: {
       title,
       description,
@@ -205,7 +205,7 @@ export default async function ListingPage({ params }: PageProps) {
     '@type': 'RealEstateListing',
     name: listing.title,
     description: listing.description,
-    url: `https://sivrce.ge${canonical}`,
+    url: `https://sivrce.ge${langCanonical(canonical, lang)}`,
     sku: String(listingPublicId(listing)),
     image: listing.images.map((src) => (src.startsWith('http') ? src : `https://sivrce.ge${src}`)),
     datePosted: listing.postedAt,
@@ -287,7 +287,7 @@ export default async function ListingPage({ params }: PageProps) {
     '@type': 'BreadcrumbList',
     // Middle crumb points at the indexable programmatic hub, not noindex /search.
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 1, name: t('detail.home'), item: 'https://sivrce.ge' },
       ...(hubPath && hubAnchor
         ? [{ '@type': 'ListItem', position: 2, name: hubAnchor, item: `https://sivrce.ge${hubPath}` }]
         : []),
@@ -295,7 +295,7 @@ export default async function ListingPage({ params }: PageProps) {
         '@type': 'ListItem',
         position: hubPath ? 3 : 2,
         name: listing.title,
-        item: `https://sivrce.ge${canonical}`,
+        item: `https://sivrce.ge${langCanonical(canonical, lang)}`,
       },
     ],
   }
