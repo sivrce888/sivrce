@@ -147,6 +147,16 @@ export function conditionLabel(f: string, t: (key: DictKey) => string): string {
   return isConditionKey(f) ? t(f) : f
 }
 
+const BUILDING_STATUS_KEY_SET = new Set<string>(BUILDING_STATUS_KEYS)
+
+export function isBuildingStatusKey(f: string): f is (typeof BUILDING_STATUS_KEYS)[number] {
+  return BUILDING_STATUS_KEY_SET.has(f)
+}
+
+export function buildingStatusLabel(f: string, t: (key: DictKey) => string): string {
+  return isBuildingStatusKey(f) ? t(f) : f
+}
+
 /** Daily: lifestyle signals first (priority order), then the rest. */
 export function orderFeaturesForDisplay(features: readonly string[], dealType?: string): string[] {
   if (dealType !== 'daily') return [...features]

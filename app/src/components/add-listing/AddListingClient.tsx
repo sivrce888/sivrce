@@ -1293,7 +1293,7 @@ export default function AddListingClient() {
           </ol>
         </nav>
 
-        <div className="grid items-start gap-8 lg:grid-cols-[1fr_400px]">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div id="add-form" className="grid gap-6">
                 <section id="add-sec-0" data-sec="0" className={secCls(0)}>
                     <header className="mb-6">
@@ -1336,7 +1336,7 @@ export default function AddListingClient() {
                       <>
                         <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/60">{t('add.dealType')}</h3>
                         <div
-                          className="mt-3 flex rounded-full bg-sv-cloud p-1 ring-1 ring-sv-ink/[0.06]"
+                          className="mt-3 flex flex-wrap rounded-full bg-sv-cloud p-1 ring-1 ring-sv-ink/[0.06]"
                           role="radiogroup"
                           aria-label={t('add.dealType')}
                         >

@@ -214,7 +214,7 @@ export default function Navbar() {
         id="mobile-menu"
         inert={!open}
         data-open={open || undefined}
-        className="sv-mobile-menu mx-4 mt-2 max-h-[min(80dvh,calc(100dvh-5.5rem-env(safe-area-inset-top,0px)))] overflow-y-auto overscroll-contain rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
+        className="sv-mobile-menu absolute inset-x-4 top-[calc(100%+0.5rem)] max-h-[min(80dvh,calc(100dvh-5.5rem-env(safe-area-inset-top,0px)))] overflow-y-auto overscroll-contain rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
       >
             {NAV_LINKS.map((l) => {
               const active = isActive(l.to)

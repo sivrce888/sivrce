@@ -64,7 +64,7 @@ import { useListingsByIds } from '@/lib/use-listings-by-ids'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useCompareStrings } from '@/components/compare/i18n'
 import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
-import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, groupedFeatures, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
+import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, groupedFeatures, orderFeaturesForDisplay, projectLabel, conditionLabel, buildingStatusLabel } from '@/lib/features'
 import type { LandInsights } from '@/lib/land'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
@@ -606,7 +606,9 @@ export default function ListingDetailClient({
     { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
     { icon: Bath, label: t('spec.baths'), value: l.baths > 0 ? String(l.baths) : '—' },
     { icon: Ruler, label: t('spec.area'), value: `${l.area} მ²` },
+    ...(l.yardArea ? [{ icon: Ruler, label: t('add.yard'), value: `${l.yardArea} მ²` }] : []),
     ...(l.kitchenArea ? [{ icon: Ruler, label: t('add.kitchenArea'), value: `${l.kitchenArea} მ²` }] : []),
+    ...(l.buildingStatus ? [{ icon: Building2, label: t('add.status'), value: buildingStatusLabel(l.buildingStatus, t) }] : []),
     { icon: Building2, label: t('spec.floor'), value: formatFloor(l) },
     ...(l.floorType ? [{ icon: Layers, label: t('add.floorType'), value: floorTypeLabel(l.floorType, t) }] : []),
     ...(l.project ? [{ icon: Building2, label: t('detail.project'), value: projectLabel(l.project, t) }] : []),

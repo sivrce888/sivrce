@@ -135,7 +135,9 @@ export interface Listing {
   project?: string | null
   floorType?: string | null
   kitchenArea?: number | null
+  yardArea?: number | null
   condition?: string | null
+  buildingStatus?: string | null
   projectCatalog?: boolean
   projectSlug?: string | null
   coords: { lat: number; lng: number }
@@ -158,7 +160,9 @@ function rowToListing(row: Record<string, unknown>): Listing {
     project?: string
     floorType?: string
     kitchenArea?: number
+    yardArea?: number
     condition?: string
+    buildingStatus?: string
     projectCatalog?: boolean
     projectSlug?: string
     exclusive?: boolean
@@ -247,7 +251,9 @@ function rowToListing(row: Record<string, unknown>): Listing {
     project: ext?.project ?? null,
     floorType: ext?.floorType ?? null,
     kitchenArea: ext?.kitchenArea ?? null,
+    yardArea: ext?.yardArea ?? null,
     condition: ext?.condition ?? null,
+    buildingStatus: ext?.buildingStatus ?? null,
     projectCatalog,
     projectSlug,
     coords: { lat: (r.lat as number) ?? MAP_CENTER.lat, lng: (r.lng as number) ?? MAP_CENTER.lng },

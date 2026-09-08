@@ -82,8 +82,12 @@ export interface Listing {
   floorType?: string | null
   /** Kitchen m² (extendedFields.kitchenArea) */
   kitchenArea?: number | null
+  /** Yard m² (extendedFields.yardArea) — house/villa/hotel key-spec */
+  yardArea?: number | null
   /** Frame / reno vocabulary key (extendedFields.condition) — ss.ge key-spec */
   condition?: string | null
+  /** New / old / under-construction key (extendedFields.buildingStatus) */
+  buildingStatus?: string | null
   coords: { lat: number; lng: number }
   /** Building / door number — used by map clustering (falls back to address parse). */
   buildingNumber?: string
