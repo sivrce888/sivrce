@@ -77,7 +77,10 @@ interface ChatContextValue {
 
 const ChatContext = createContext<ChatContextValue | null>(null)
 
-const POLL_MS = 15_000
+// Panel-open wants a live badge; closed, 45s is plenty and keeps old phones
+// asleep. Same poll either way — only the interval changes.
+const POLL_MS_OPEN = 15_000
+const POLL_MS_CLOSED = 45_000
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -94,7 +97,6 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   const [unread, setUnread] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [pendingTarget, setPendingTarget] = useState<ChatTarget | null>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   /** Dedupes the target→room effect across open/close cycles. */
   const lastTargetRef = useRef<string | null>(null)
 
@@ -103,8 +105,16 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/chat")
       if (!res.ok) return
       const data = await res.json()
-      setRooms(data.rooms ?? [])
-      setUnread(data.unread ?? {})
+      // Identical-payload bail: the poll must not re-render every useChat()
+      // consumer (incl. heavy listing pages) when nothing changed.
+      setRooms((prev) => {
+        const next = data.rooms ?? []
+        return JSON.stringify(prev) === JSON.stringify(next) ? prev : next
+      })
+      setUnread((prev) => {
+        const next = data.unread ?? {}
+        return JSON.stringify(prev) === JSON.stringify(next) ? prev : next
+      })
     } catch {
       // ponytail: badge/list catch up on the next tick — no error surface
     } finally {
@@ -120,13 +130,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       if (!document.hidden) refreshRooms()
     }
     tick()
-    pollRef.current = setInterval(tick, POLL_MS)
+    const id = setInterval(tick, open ? POLL_MS_OPEN : POLL_MS_CLOSED)
     document.addEventListener("visibilitychange", tick)
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current)
+      clearInterval(id)
       document.removeEventListener("visibilitychange", tick)
     }
-  }, [authed, refreshRooms])
+  }, [authed, open, refreshRooms])
 
   // Reset when signed out (async so the lint-blessed batch lands off-render)
   useEffect(() => {
@@ -237,28 +247,43 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     })()
   }, [open, pendingTarget, refreshRooms])
 
-  return (
-    <ChatContext.Provider
-      value={{
-        open,
-        openChat,
-        openChatWithUser,
-        openSupportChat,
-        closeChat,
-        activeRoomId,
-        setActiveRoom: setActiveRoomId,
-        rooms,
-        loading,
-        unread,
-        totalUnread,
-        refreshRooms,
-        pendingTarget,
-        meId,
-      }}
-    >
-      {children}
-    </ChatContext.Provider>
+  // Stable context identity: consumers (listing pages, launcher, panel) only
+  // re-render when actual chat state changes, not on every provider render.
+  const value = useMemo(
+    () => ({
+      open,
+      openChat,
+      openChatWithUser,
+      openSupportChat,
+      closeChat,
+      activeRoomId,
+      setActiveRoom: setActiveRoomId,
+      rooms,
+      loading,
+      unread,
+      totalUnread,
+      refreshRooms,
+      pendingTarget,
+      meId,
+    }),
+    [
+      open,
+      openChat,
+      openChatWithUser,
+      openSupportChat,
+      closeChat,
+      activeRoomId,
+      rooms,
+      loading,
+      unread,
+      totalUnread,
+      refreshRooms,
+      pendingTarget,
+      meId,
+    ],
   )
+
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
 }
 
 // ---------------------------------------------------------------------------

@@ -8,7 +8,6 @@
  */
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useI18n } from '@/lib/i18n/context'
@@ -22,7 +21,6 @@ const TRAVEL = W - THUMB - PAD * 2
 export function ThemeToggle({ light = false }: { light?: boolean }) {
   const { resolvedTheme, setTheme } = useTheme()
   const { t } = useI18n()
-  const reduceMotion = useReducedMotion()
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
     const id = requestAnimationFrame(() => setMounted(true))
@@ -64,52 +62,39 @@ export function ThemeToggle({ light = false }: { light?: boolean }) {
         }`}
       />
       {/* Stars — fade in with the dark track */}
-      <AnimatePresence>
-        {isDark && (
-          <motion.span
-            aria-hidden
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.3, delay: 0.08 }}
-            className="absolute left-[9px] top-1/2 -translate-y-1/2"
-          >
-            <span className="absolute h-[3px] w-[3px] rounded-full bg-white/80" />
-            <span className="absolute left-[7px] top-[5px] h-[2px] w-[2px] rounded-full bg-white/50" />
-            <span className="absolute left-[3px] top-[-6px] h-[2px] w-[2px] rounded-full bg-white/60" />
-          </motion.span>
-        )}
-      </AnimatePresence>
-      {/* Thumb */}
-      <motion.span
+      <span
         aria-hidden
-        initial={false}
-        animate={{ x: isDark ? TRAVEL : 0 }}
-        transition={
-          reduceMotion
-            ? { duration: 0 }
-            : { type: 'spring', stiffness: 550, damping: 32, mass: 0.7 }
-        }
-        className="absolute z-10 grid place-items-center rounded-full bg-white shadow-[0_2px_6px_rgba(5,11,38,0.25),0_0_0_0.5px_rgba(5,11,38,0.06)] transition-transform duration-200 group-active:scale-95"
-        style={{ left: PAD, width: THUMB, height: THUMB }}
+        className={`absolute left-[9px] top-1/2 -translate-y-1/2 transition-opacity delay-[80ms] duration-300 ${
+          isDark ? 'opacity-100' : 'opacity-0'
+        }`}
       >
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            key={isDark ? 'moon' : 'sun'}
-            initial={reduceMotion ? false : { opacity: 0, rotate: -90, scale: 0.5 }}
-            animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0, rotate: 90, scale: 0.5 }}
-            transition={{ duration: 0.22, ease: [0.21, 0.65, 0.2, 1] }}
-            className="grid place-items-center"
-          >
-            {isDark ? (
-              <Moon className="h-[13px] w-[13px] text-sv-blue-deep" fill="currentColor" strokeWidth={0} />
-            ) : (
-              <Sun className="h-[14px] w-[14px] text-sv-orange" fill="currentColor" strokeWidth={0} />
-            )}
-          </motion.span>
-        </AnimatePresence>
-      </motion.span>
+        <span className="absolute h-[3px] w-[3px] rounded-full bg-white/80" />
+        <span className="absolute left-[7px] top-[5px] h-[2px] w-[2px] rounded-full bg-white/50" />
+        <span className="absolute left-[3px] top-[-6px] h-[2px] w-[2px] rounded-full bg-white/60" />
+      </span>
+      {/* Thumb — CSS spring (slight overshoot) instead of framer */}
+      <span
+        aria-hidden
+        className="sv-toggle-thumb absolute z-10 grid place-items-center rounded-full bg-white shadow-[0_2px_6px_rgba(5,11,38,0.25),0_0_0_0.5px_rgba(5,11,38,0.06)] group-active:scale-95"
+        style={{ left: PAD, width: THUMB, height: THUMB, transform: `translateX(${isDark ? TRAVEL : 0}px)` }}
+      >
+        <span aria-hidden className="relative grid place-items-center">
+          <Moon
+            className={`sv-toggle-icon col-start-1 row-start-1 h-[13px] w-[13px] text-sv-blue-deep ${
+              isDark ? 'sv-icon-in' : 'sv-icon-in-late'
+            }`}
+            fill="currentColor"
+            strokeWidth={0}
+          />
+          <Sun
+            className={`sv-toggle-icon col-start-1 row-start-1 h-[14px] w-[14px] text-sv-orange ${
+              isDark ? 'sv-icon-in-late' : 'sv-icon-in'
+            }`}
+            fill="currentColor"
+            strokeWidth={0}
+          />
+        </span>
+      </span>
     </button>
   )
 }

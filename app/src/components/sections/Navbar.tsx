@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Heart, Menu, X, Plus, Search, Phone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
@@ -24,7 +23,6 @@ export default function Navbar() {
   // Locale-agnostic path for chrome state (hero transparency, hash links) —
   // also strips the internal /ka rewrite target so SSR and hydration agree.
   const bare = stripLangPrefix(pathname)
-  const reduceMotion = useReducedMotion()
   const menuBtnRef = useRef<HTMLButtonElement>(null)
 
   // Escape closes the mobile menu and returns focus to the menu button
@@ -210,16 +208,14 @@ export default function Navbar() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            id="mobile-menu"
-            initial={reduceMotion ? false : { opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
-            transition={{ duration: 0.25 }}
-            className="mx-4 mt-2 max-h-[min(80dvh,calc(100dvh-5.5rem-env(safe-area-inset-top,0px)))] overflow-y-auto overscroll-contain rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
-          >
+      {/* Always mounted so aria-controls resolves; .sv-mobile-menu CSS does
+          the in/out and `inert` keeps closed links out of the tab order. */}
+      <div
+        id="mobile-menu"
+        inert={!open}
+        data-open={open || undefined}
+        className="sv-mobile-menu mx-4 mt-2 max-h-[min(80dvh,calc(100dvh-5.5rem-env(safe-area-inset-top,0px)))] overflow-y-auto overscroll-contain rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
+      >
             {NAV_LINKS.map((l) => {
               const active = isActive(l.to)
               const cls = `block rounded-control px-4 py-3 text-[16px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
@@ -303,9 +299,7 @@ export default function Navbar() {
             >
               <Plus className="h-4 w-4" /> {t('nav.addListingFull')}
             </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </header>
   )
 }

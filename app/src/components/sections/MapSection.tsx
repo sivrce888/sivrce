@@ -1,9 +1,9 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { MousePointerClick, Building2, BarChart3, Layers, ArrowRight, MapPin } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { Reveal } from '@/components/Reveal'
+import { Reveal, useInViewOnce } from '@/components/Reveal'
 import { STATUS_BRAND } from '@/lib/category-brand'
 import { BRAND } from '@/lib/brand'
 import { useI18n } from '@/lib/i18n/context'
@@ -72,6 +72,7 @@ function MapPreviewCard({ badge }: { badge: string }) {
 
 export default function MapSection() {
   const { b } = useI18n()
+  const chip = useInViewOnce<HTMLDivElement>()
   return (
     <section className="relative overflow-hidden bg-sv-navy py-20 md:py-28">
       <div className="absolute inset-0 bg-grid-dark" />
@@ -121,22 +122,18 @@ export default function MapSection() {
           </div>
 
           <Reveal delay={0.2} className="relative">
-            <motion.div
-              whileHover={{ scale: 1.015 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-              className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue"
-            >
+            <div className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue transition-transform duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] hover:scale-[1.015]">
               <LocalizedLink href="/map" className="block">
                 <MapPreviewCard badge={b('home.map.openBadge')} />
               </LocalizedLink>
               <div className="pointer-events-none absolute inset-0 rounded-card ring-1 ring-inset ring-white/10" />
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.6, duration: 0.7, ease: [0.21, 0.65, 0.2, 1] }}
+            <div
+              ref={chip.ref}
+              data-reveal
+              data-in={chip.inView || undefined}
+              style={{ '--reveal-delay': '0.6s' } as CSSProperties}
               className="absolute bottom-3 left-3 rounded-tile glass p-4 shadow-soft md:-bottom-6 md:-left-8"
             >
               <div className="flex items-center gap-3">
@@ -152,7 +149,7 @@ export default function MapSection() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </Reveal>
         </div>
       </div>

@@ -1,16 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useInView } from 'framer-motion'
+import { useEffect, useState } from 'react'
 import { Building2, Users, Award, TrendingUp } from 'lucide-react'
-import { Reveal } from '@/components/Reveal'
+import { Reveal, useInViewOnce } from '@/components/Reveal'
 import { useI18n } from '@/lib/i18n/context'
 import type { CmsBlockKey } from '@/lib/cms-blocks'
 import type { HomeStats } from '@/lib/home-stats'
 
 function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const { ref, inView } = useInViewOnce<HTMLSpanElement>('-60px')
   const [val, setVal] = useState(0)
 
   useEffect(() => {

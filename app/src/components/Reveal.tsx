@@ -1,29 +1,51 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+
+/**
+ * Fires once when the element scrolls into view (with a margin, like
+ * framer's viewport margin). Powers [data-reveal] CSS animations — zero
+ * animation library on the critical path.
+ */
+export function useInViewOnce<T extends Element>(margin = '-80px') {
+  const ref = useRef<T>(null)
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || inView) return
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setInView(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: margin },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [inView, margin])
+  return { ref, inView }
+}
 
 interface RevealProps {
   children: ReactNode
   delay?: number
   y?: number
   className?: string
-  once?: boolean
 }
 
-export function Reveal({ children, delay = 0, y = 28, className, once = true }: RevealProps) {
-  // ponytail: MotionConfig reducedMotion="user" zeros duration; CSS [data-reveal]
-  // forces opacity/transform so reduce-motion never leaves content invisible.
+export function Reveal({ children, delay = 0, y = 28, className }: RevealProps) {
+  const { ref, inView } = useInViewOnce<HTMLDivElement>()
   return (
-    <motion.div
+    <div
+      ref={ref}
       data-reveal
+      data-in={inView || undefined}
       className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once, margin: '-80px' }}
-      transition={{ duration: 0.7, delay, ease: [0.21, 0.65, 0.2, 1] }}
+      style={{ '--reveal-y': `${y}px`, '--reveal-delay': `${delay}s` } as CSSProperties}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }

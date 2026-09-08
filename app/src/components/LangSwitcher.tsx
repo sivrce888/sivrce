@@ -8,7 +8,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Check, ChevronDown } from 'lucide-react'
 import { Flag, type FlagCode } from '@/components/Flag'
 import { useI18n, LANGS } from '@/lib/i18n/context'
@@ -53,7 +52,6 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
   const { lang, setLang, t } = useI18n()
   const router = useRouter()
   const pathname = usePathname()
-  const reduceMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -101,21 +99,14 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
         />
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="menu"
-            aria-label={t('nav.language')}
-            initial={reduceMotion ? false : { opacity: 0, y: -6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.96 }}
-            transition={
-              reduceMotion
-                ? { duration: 0 }
-                : { type: 'spring', stiffness: 500, damping: 34, mass: 0.7 }
-            }
-            className="glass-light absolute end-0 top-full z-50 mt-2 w-44 origin-top-right rounded-2xl p-1.5 shadow-card"
-          >
+      {/* Always mounted; .sv-pop does the in/out, inert gates the tab order. */}
+      <div
+        role="menu"
+        aria-label={t('nav.language')}
+        inert={!open}
+        data-open={open || undefined}
+        className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 w-44 origin-top-right rounded-2xl p-1.5 shadow-card"
+      >
             {LANGS.map((code) => {
               const active = lang === code
               return (
@@ -135,9 +126,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
                 </button>
               )
             })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </div>
   )
 }

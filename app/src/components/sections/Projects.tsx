@@ -1,12 +1,27 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import type { CSSProperties } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Sparkles, Star } from 'lucide-react'
-import { Reveal } from '@/components/Reveal'
+import { Reveal, useInViewOnce } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
 import { getDeveloper, type Project } from '@/data/professionals'
+
+/** Construction bar grows when scrolled into view (CSS transition, no lib). */
+function ProjectProgress({ done }: { done: number }) {
+  const { ref, inView } = useInViewOnce<HTMLDivElement>()
+  return (
+    <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
+      <div
+        ref={ref}
+        data-in={inView || undefined}
+        className="sv-progress h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
+        style={{ '--done': `${done}%` } as CSSProperties}
+      />
+    </div>
+  )
+}
 
 export default function Projects({
   items,
@@ -100,15 +115,7 @@ export default function Projects({
                     </span>
                   )}
                 </div>
-                <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${p.done}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, ease: [0.21, 0.65, 0.2, 1] }}
-                    className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
-                  />
-                </div>
+                <ProjectProgress done={p.done} />
               </article>
             </LocalizedLink>
           )

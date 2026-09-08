@@ -1,8 +1,8 @@
 'use client'
 
-import { useId, useRef, useState, type ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import { useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
+import { useInViewOnce } from '@/components/Reveal'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   Waves, Bath as BathTub, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
@@ -214,6 +214,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { photos, multi, more, total } = cardGalleryTeaser(l.images, l.img, l.photoCount)
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
   const [photo, setPhoto] = useState(0)
+  const reveal = useInViewOnce<HTMLElement>('-40px')
   const frame = photos.length ? Math.min(photo, photos.length - 1) : 0
   const imgRef = useRef<HTMLDivElement>(null)
   const touchRef = useRef<{ x: number; y: number } | null>(null)
@@ -694,11 +695,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         : 'h-full min-w-0 w-full'
 
   return (
-    <motion.article
-      initial={animate ? { opacity: 0, y: 28 } : false}
-      whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.7, delay: (i % 3) * 0.08, ease: [0.21, 0.65, 0.2, 1] }}
+    <article
+      data-reveal={animate ? '' : undefined}
+      data-in={!animate || reveal.inView || undefined}
+      style={
+        animate
+          ? ({ '--reveal-y': '28px', '--reveal-delay': `${(i % 3) * 0.08}s` } as CSSProperties)
+          : undefined
+      }
       onTouchStart={onImgTouchStart}
       onTouchMove={onImgTouchMove}
       onTouchEnd={onImgTouchEnd}
@@ -710,6 +714,6 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     >
       {imageBlock}
       {bodyBlock}
-    </motion.article>
+    </article>
   )
 }
