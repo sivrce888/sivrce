@@ -1,32 +1,14 @@
-import dynamic from 'next/dynamic'
 import { BadgeCheck, ShieldCheck, Zap } from 'lucide-react'
 import HeroBackground from './HeroBackground'
+import HeroSearchDeferred from './HeroSearchDeferred'
 import { getBlocksForLang } from '@/lib/cms'
 import { parseSeoSlug } from '@/lib/seo-pages'
 import { QUICK, type HeroQuickChip } from '@/lib/hero-quick'
 import type { Lang } from '@/lib/i18n/core'
 
 /* Static hero shell — server component. LCP text (h1/subtitle) paints from the
-   RSC payload. HeroSearch is a dynamic island so framer-motion stays off the
-   FCP critical path. Visual atmosphere + entrances restored for brand presence. */
-
-const HeroSearch = dynamic(() => import('./HeroSearch'), {
-  // ponytail: glass shell matching the island — chips reserved so hydrate doesn't CLS
-  loading: () => (
-    <div className="mx-auto mt-11 w-full max-w-[1100px]" aria-hidden>
-      <div className="mx-auto h-12 w-[min(100%,420px)] rounded-full glass-hero" />
-      <div className="mt-2.5 h-14 w-full rounded-full glass-hero" />
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-        <span className="h-9 w-16 rounded-full glass-hero" />
-        <span className="h-9 w-[72px] rounded-full glass-hero" />
-        <span className="h-9 w-24 rounded-full glass-hero" />
-        <span className="h-9 w-20 rounded-full glass-hero" />
-        <span className="h-9 w-28 rounded-full glass-hero" />
-        <span className="h-9 w-[76px] rounded-full glass-hero" />
-      </div>
-    </div>
-  ),
-})
+   RSC payload. HeroSearch mounts deferred (idle/first interaction) so its
+   framer-motion chunk stays off the load critical path. */
 
 const TRUST = [
   { icon: BadgeCheck, key: 'home.hero.trust1' },
@@ -83,7 +65,7 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
           </p>
         </div>
 
-        <HeroSearch quick={aliveQuickChips()} />
+        <HeroSearchDeferred quick={aliveQuickChips()} />
 
         <div
           className="sv-hero-in mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"
