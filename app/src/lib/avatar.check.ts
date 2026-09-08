@@ -11,6 +11,7 @@ import {
   customVisual,
   GRADIENTS,
   hexToHsl,
+  isPlaceholderImage,
   ICONS,
   isValidAvatarColor,
   isValidAvatarIcon,
@@ -125,5 +126,13 @@ assert.equal(avatarInitials("გიორგი"), "Გ")
 assert.equal(avatarInitials(""), "S")
 assert.equal(avatarInitials(null), "S")
 assert.equal(avatarInitials(undefined), "S")
+
+// Google "no photo" placeholders never count as a real photo (monogram wins)
+assert.ok(isPlaceholderImage("https://lh3.googleusercontent.com/a/default-user=s96-c"))
+assert.ok(isPlaceholderImage("https://lh3.googleusercontent.com/-x/AAAAAAAAAAI/AAAAAAAAAAA/abc/photo.jpg"))
+assert.ok(isPlaceholderImage("https://ssl.gstatic.com/accounts/ui/avatar_2x.png"))
+assert.ok(!isPlaceholderImage("https://lh3.googleusercontent.com/a/ACg8ocK3s=s96-c"))
+assert.ok(!isPlaceholderImage("/uploads/avatar.jpg"))
+assert.ok(!isPlaceholderImage(null) && !isPlaceholderImage(undefined))
 
 console.log("avatar.check: ok")

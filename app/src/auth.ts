@@ -223,17 +223,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
           stampLastSeen(id),
         ])
-        if (row) {
-          token.role = row.role
-          if (row.name) token.name = row.name
-          // Clearing the photo must clear the token too, or the removed
-          // avatar lingers in the session until re-login.
-          if (row.image) token.picture = row.image
-          else delete token.picture
-          token.avatarStyle = row.avatarStyle
-          token.avatarColor = row.avatarColor
-          token.avatarIcon = row.avatarIcon
-        }
+        // DB reachable but the row is gone (deleted account) — null invalidates
+        // the session cookie. Otherwise the ghost session P2025s every save
+        // (avatar, settings) and 500s the page.
+        if (!row) return null
+        token.role = row.role
+        if (row.name) token.name = row.name
+        // Clearing the photo must clear the token too, or the removed
+        // avatar lingers in the session until re-login.
+        if (row.image) token.picture = row.image
+        else delete token.picture
+        token.avatarStyle = row.avatarStyle
+        token.avatarColor = row.avatarColor
+        token.avatarIcon = row.avatarIcon
       } catch { /* keep last-known role */ }
       return token
     },

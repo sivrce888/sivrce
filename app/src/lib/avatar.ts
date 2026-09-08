@@ -60,6 +60,17 @@ export function isValidAvatarStyle(style: number | null | undefined): style is n
 
 const HEX6 = /^#[0-9a-f]{6}$/i
 
+/** Google "no photo" placeholders — letter tile, legacy default, blue silhouette.
+ * They masquerade as a real photo and bury the user's chosen monogram. */
+export function isPlaceholderImage(url: string | null | undefined): boolean {
+  return (
+    typeof url === "string" &&
+    (/\/a\/default-user/.test(url) ||
+      /AAAAAAAAAAI\/AAAAAAAAAAA/.test(url) ||
+      /\/accounts\/ui\/avatar_2x\.png/.test(url))
+  )
+}
+
 /** Trust-boundary bounds check for a user-picked custom gradient ("#rrggbb"). */
 export function isValidAvatarColor(color: string | null | undefined): color is string {
   return typeof color === "string" && HEX6.test(color)

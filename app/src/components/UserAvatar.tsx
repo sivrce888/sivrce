@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
-import { avatarInitials, avatarVisual, ICONS, isValidAvatarColor, isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
+import { avatarInitials, avatarVisual, ICONS, isPlaceholderImage, isValidAvatarColor, isValidAvatarIcon, isValidAvatarStyle } from "@/lib/avatar"
 
 const SHAPE = {
   full: "rounded-full",
@@ -55,7 +55,7 @@ export default function UserAvatar({
     const el = imgRef.current
     if (el && el.complete && el.naturalWidth === 0) setBroken(true)
   }, [image])
-  if (image && !broken) {
+  if (image && !broken && !isPlaceholderImage(image)) {
     const img = (
       // eslint-disable-next-line @next/next/no-img-element
       <img

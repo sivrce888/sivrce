@@ -44,7 +44,7 @@ export default async function AdminLayout({
         </div>
         <div className="border-t border-white/8 p-4">
           <div className="flex items-center gap-3 px-2">
-            <UserAvatar name={name} image={session.user.image} size={36} />
+            <UserAvatar name={name} image={session.user.image} gradient={session.user.avatarStyle} color={session.user.avatarColor} icon={session.user.avatarIcon} size={36} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-bold text-white">{name}</p>
               <p className="text-[11px] font-semibold text-white/35">Administrator</p>

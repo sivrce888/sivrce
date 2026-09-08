@@ -178,16 +178,25 @@ export async function updateProfile(
 
 type AvatarSaveResult = { ok: boolean }
 
+/** Row deleted between session read and write (ghost-session race) must not
+ * 500 the page — it reads to the picker as a plain save failure + revert. */
+async function updateUser(id: string, data: Record<string, unknown>): Promise<boolean> {
+  try {
+    await db.user.update({ where: { id }, data })
+    return true
+  } catch {
+    return false
+  }
+}
+
 /** Pin (or auto) the monogram gradient for the signed-in user. Presets and the
  * custom color are mutually exclusive — picking one clears the other. */
 export async function saveAvatarStyle(style: number | null): Promise<AvatarSaveResult> {
   const user = await requireUser("/settings")
   if (style !== null && !isValidAvatarStyle(style)) return { ok: false }
 
-  await db.user.update({
-    where: { id: user.id },
-    data: { avatarStyle: style, avatarColor: null },
-  })
+  const ok = await updateUser(user.id, { avatarStyle: style, avatarColor: null })
+  if (!ok) return { ok: false }
   revalidatePath("/settings")
   return { ok: true }
 }
@@ -197,10 +206,11 @@ export async function saveAvatarColor(color: string | null): Promise<AvatarSaveR
   const user = await requireUser("/settings")
   if (color !== null && !isValidAvatarColor(color)) return { ok: false }
 
-  await db.user.update({
-    where: { id: user.id },
-    data: { avatarColor: color === null ? null : color.toLowerCase(), avatarStyle: null },
+  const ok = await updateUser(user.id, {
+    avatarColor: color === null ? null : color.toLowerCase(),
+    avatarStyle: null,
   })
+  if (!ok) return { ok: false }
   revalidatePath("/settings")
   return { ok: true }
 }
@@ -210,7 +220,8 @@ export async function saveAvatarIcon(icon: string | null): Promise<AvatarSaveRes
   const user = await requireUser("/settings")
   if (icon !== null && !isValidAvatarIcon(icon)) return { ok: false }
 
-  await db.user.update({ where: { id: user.id }, data: { avatarIcon: icon } })
+  const ok = await updateUser(user.id, { avatarIcon: icon })
+  if (!ok) return { ok: false }
   revalidatePath("/settings")
   return { ok: true }
 }
@@ -223,7 +234,8 @@ export async function saveAvatarImage(url: string | null): Promise<AvatarSaveRes
     return { ok: false }
   }
 
-  await db.user.update({ where: { id: user.id }, data: { image: url } })
+  const ok = await updateUser(user.id, { image: url })
+  if (!ok) return { ok: false }
   revalidatePath("/settings")
   return { ok: true }
 }

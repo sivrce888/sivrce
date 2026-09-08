@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react"
 
 import { saveAvatarColor, saveAvatarIcon, saveAvatarImage, saveAvatarStyle } from "@/app/[lang]/settings/actions"
 import UserAvatar from "@/components/UserAvatar"
-import { avatarInitials, avatarVisual, GRADIENTS, ICONS } from "@/lib/avatar"
+import { avatarInitials, avatarVisual, GRADIENTS, ICONS, isPlaceholderImage } from "@/lib/avatar"
 import type { AvatarIcon } from "@/lib/avatar"
 import type { LucideIcon } from "lucide-react"
 
@@ -205,7 +205,7 @@ export default function AvatarStudio({
 
   const auto = avatarVisual(name)
   const shown = preview ?? image
-  const hasPhoto = Boolean(shown)
+  const hasPhoto = Boolean(shown) && !isPlaceholderImage(shown)
 
   return (
     <section
