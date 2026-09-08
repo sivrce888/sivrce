@@ -810,6 +810,28 @@ html:not(.dark) .sv-particle {
     );
 }
 
+/* ————— Whole-site ambient sun — BRAND §3.3 day sky, hero-matched corner —————
+   Fixed viewport light behind all content: body bg propagates to the canvas,
+   so z-index:-1 paints above the page bg and below every section — cards and
+   text stay AA-clean. Static = one paint, no animation cost; kept on data-lite. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 86% 9%, color-mix(in srgb, var(--sv-orange-light) 13%, transparent), transparent 32%),
+    radial-gradient(ellipse 95% 62% at 100% 0%, color-mix(in srgb, var(--sv-blue-light) 9%, transparent), transparent 58%);
+}
+
+/* Night: same corner light in the aurora palette (BRAND §3.3 dark ambience) */
+.dark body::before {
+  background:
+    radial-gradient(circle at 86% 9%, color-mix(in srgb, var(--sv-violet) 9%, transparent), transparent 32%),
+    radial-gradient(ellipse 95% 62% at 100% 0%, color-mix(in srgb, var(--sv-blue-light) 8%, transparent), transparent 58%);
+}
+
 /* Skyline recode — day haze vs night navy */
 .sv-hero-bg {
   --skyline-a: color-mix(in srgb, var(--sv-blue-light) 58%, var(--sv-cloud));
