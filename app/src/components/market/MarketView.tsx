@@ -1,12 +1,13 @@
 'use client'
 
 import LocalizedLink from '@/components/LocalizedLink'
-import { Reveal } from '@/components/Reveal'
+import { Reveal, CountUp } from '@/components/Reveal'
 import { Wallet, BarChart3, Building2, TrendingUp, ArrowUpRight, ChevronRight } from 'lucide-react'
 import type { MarketOverview } from '@/lib/market-stats'
 import { useMarket } from './i18n'
 
-const usd = (n: number) => `$${n.toLocaleString('en-US')}`
+const enUS = (n: number) => n.toLocaleString('en-US')
+const usd = (n: number) => `$${enUS(n)}`
 
 /** MoM chip — positive reads sv-blue on light surfaces (BRAND §3), negative orange-deep. */
 function Mom({ value, label }: { value: number | null; label: string }) {
@@ -37,10 +38,10 @@ export default function MarketView({
 
   const cards = total
     ? [
-        { Icon: Wallet, label: s.avgM2, value: `${usd(total.avgPerM2USD)}${s.perM2}`, mom: data.totalMom },
-        { Icon: BarChart3, label: s.median, value: total.medianPriceUSD ? usd(total.medianPriceUSD) : '—', mom: null },
-        { Icon: Building2, label: s.active, value: total.activeCount.toLocaleString('en-US'), mom: null },
-        { Icon: TrendingUp, label: s.newListings, value: total.newListings.toLocaleString('en-US'), mom: null },
+        { Icon: Wallet, label: s.avgM2, num: total.avgPerM2USD as number | null, fmt: usd, suffix: s.perM2, mom: data.totalMom },
+        { Icon: BarChart3, label: s.median, num: total.medianPriceUSD, fmt: usd, suffix: '', mom: null },
+        { Icon: Building2, label: s.active, num: total.activeCount, fmt: enUS, suffix: '', mom: null },
+        { Icon: TrendingUp, label: s.newListings, num: total.newListings, fmt: enUS, suffix: '', mom: null },
       ]
     : []
 
@@ -81,7 +82,7 @@ export default function MarketView({
           {/* headline numbers */}
           <section className="border-b border-sv-ink/[0.06] bg-sv-surface" aria-label={s.eyebrow}>
             <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-4 px-5 py-10 sm:grid-cols-2 md:grid-cols-4 md:px-10">
-              {cards.map(({ Icon, label, value, mom }, i) => (
+              {cards.map(({ Icon, label, num, fmt, suffix, mom }, i) => (
                 <Reveal key={label} delay={i * 0.04}>
                   <div className="flex h-full items-center gap-4 rounded-module bg-sv-cloud p-5">
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue-deep">
@@ -92,7 +93,8 @@ export default function MarketView({
                         {label}
                       </p>
                       <p className="whitespace-nowrap [overflow-wrap:normal] text-[20px] font-black tabular-nums tracking-tight text-sv-ink">
-                        {value}
+                        {num != null ? <CountUp value={num} format={fmt} /> : '—'}
+                        {suffix}
                         {mom !== null && (
                           <span className="ml-2">
                             <Mom value={mom} label={s.vsPrevMonth} />
