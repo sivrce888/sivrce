@@ -599,7 +599,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         {streetHref ? (
           <LocalizedLink
             href={streetHref}
-            className="truncate text-sv-blue hover:underline"
+            className="truncate text-sv-blue dark:text-sv-blue-light hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
             {place || l.address}
@@ -611,12 +611,12 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
 
       {/* Reserved metro row — cards without metro stay same height */}
       <p
-        className={`mt-1 flex min-h-[1.25rem] min-w-0 items-center gap-1.5 text-[12px] font-bold text-sv-blue ${metro ? '' : 'invisible'}`}
+        className={`mt-1 flex min-h-[1.25rem] min-w-0 items-center gap-1.5 text-[12px] font-bold text-sv-blue dark:text-sv-blue-light ${metro ? '' : 'invisible'}`}
         aria-hidden={!metro}
       >
         <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
         <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro?.name ?? '\u00a0'}</span>
-        <span className="shrink-0 font-semibold text-sv-blue">
+        <span className="shrink-0 font-semibold text-sv-blue dark:text-sv-blue-light">
           · {metro ? formatMetroDist(metro) : '\u00a0'}
         </span>
       </p>
