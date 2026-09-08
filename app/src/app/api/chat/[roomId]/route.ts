@@ -64,6 +64,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "bad_json" }, { status: 400 })
   }
 
+  const kind = body.kind === "image" || body.kind === "file" ? body.kind : "text"
   if (!body.text || body.text.trim().length === 0) {
     return NextResponse.json({ error: "empty_message" }, { status: 400 })
   }
@@ -75,7 +76,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     body.metadata && JSON.stringify(body.metadata).length <= 1000 ? body.metadata : {}
 
   try {
-    const message = await sendMessage(roomId, session.user.id, body.text.trim(), body.kind ?? "text", metadata)
+    const message = await sendMessage(roomId, session.user.id, body.text.trim(), kind, metadata)
     return NextResponse.json({ message }, { status: 201 })
   } catch (error) {
     if ((error as Error).message === "not_participant") {

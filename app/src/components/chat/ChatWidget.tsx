@@ -25,6 +25,8 @@ import {
   X,
 } from "lucide-react"
 import UserAvatar from "@/components/UserAvatar"
+import { usePathname, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { useI18n } from "@/lib/i18n/context"
 import { useChat, type ChatRoom } from "./ChatProvider"
 import FaqView from "./FaqView"
@@ -707,6 +709,12 @@ const SHEET_EASE = "ease-[cubic-bezier(0.32,0.72,0,1)]"
 
 export default function ChatWidget() {
   const { t, lang } = useI18n()
+  const router = useRouter()
+  const pathname = usePathname()
+  const { status } = useSession()
+  // Guests get the help assistant only — rooms/support need an account, so
+  // their "Message us" CTA routes to sign-in instead of the API.
+  const guest = status === "unauthenticated"
   const {
     open,
     openChat,
@@ -728,11 +736,15 @@ export default function ChatWidget() {
   const [view, setView] = useState<"rooms" | "faq">("rooms")
 
   const openSupport = useCallback(() => {
+    if (guest) {
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`)
+      return
+    }
     setView("rooms")
     const existing = rooms.find((r) => r.isSupport)
     if (existing) setActiveRoom(existing.id)
     else openSupportChat()
-  }, [rooms, setActiveRoom, openSupportChat])
+  }, [guest, router, pathname, rooms, setActiveRoom, openSupportChat])
 
   // Mount/close choreography — setState only in rAF/timeout callbacks so the
   // enter transition always has a painted closed frame to animate from.
@@ -846,7 +858,7 @@ export default function ChatWidget() {
         onClick={() => {
           if (open) close()
           else {
-            setView("rooms")
+            setView(guest ? "faq" : "rooms")
             openChat()
           }
         }}
@@ -894,7 +906,7 @@ export default function ChatWidget() {
         >
           {/* Header */}
           <div className="flex items-center gap-2.5 border-b border-sv-ink/[0.08] px-3 py-2.5">
-            {activeRoomId || view === "faq" ? (
+            {activeRoomId || (view === "faq" && !guest) ? (
               <button
                 onClick={() => {
                   if (activeRoomId) setActiveRoom(null)

@@ -6,6 +6,7 @@
 
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
+import { rateLimitOk } from "@/lib/reviews/rate-limit"
 import {
   getChatUnread,
   getOrCreateChatRoom,
@@ -38,6 +39,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
   }
   const me = session.user.id
+  // getOrCreate is idempotent, but cap room-open spam anyway
+  if (!rateLimitOk(`chatroom:${me}`, { max: 30 })) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 })
+  }
 
   let body: { listingId?: string; userId?: string; support?: boolean }
   try {
