@@ -771,6 +771,8 @@ export const hy: Dict = {
   'chat.timeHour': 'ժ',
   'chat.timeDay': 'օր',
   'chat.log': 'Հաղորդագրությունների ցանկ',
+  'chat.jumpLatest': 'Վերջիններին',
+  'chat.reconnecting': 'Կրկին միացում…',
   'chat.help': 'Օգնություն',
   'chat.faqGreeting': 'Բարև՛: Ես sivrce-ի օգնականն եմ — տվեք հարց կամ ընտրեք ստորև:',
   'chat.faqPlaceholder': 'Տվեք հարց…',

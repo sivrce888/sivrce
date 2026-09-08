@@ -770,6 +770,8 @@ export const he: Dict = {
   'chat.timeHour': 'שע׳',
   'chat.timeDay': 'יום',
   'chat.log': 'רשימת הודעות',
+  'chat.jumpLatest': 'להודעות האחרונות',
+  'chat.reconnecting': 'מתחבר מחדש…',
   'chat.help': 'עזרה',
   'chat.faqGreeting': 'שלום! אני העוזר של sivrce — שאלו שאלה או בחרו מלמטה.',
   'chat.faqPlaceholder': 'שאלו שאלה…',

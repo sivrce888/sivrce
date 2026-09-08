@@ -50,11 +50,15 @@ export async function GET(req: Request, { params }: RouteParams) {
       let poll: ReturnType<typeof setInterval> | null = null
       let aborted = false
       let polling = false
+      let firstFrame = true
 
       const send = (event: string, data: unknown) => {
         if (aborted) return
         try {
-          controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`))
+          // `retry` rides the first frame so EventSource reconnects on our terms
+          const retry = firstFrame ? "retry: 3000\n" : ""
+          firstFrame = false
+          controller.enqueue(encoder.encode(`${retry}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`))
         } catch {
           // stream closed
         }

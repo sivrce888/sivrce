@@ -770,6 +770,8 @@ export const tr: Dict = {
   'chat.timeHour': 'sa',
   'chat.timeDay': 'g',
   'chat.log': 'Mesaj listesi',
+  'chat.jumpLatest': 'Son mesajlara git',
+  'chat.reconnecting': 'Yeniden bağlanılıyor…',
   'chat.help': 'Yardım',
   'chat.faqGreeting': 'Merhaba! Ben sivrce asistanıyım — bir soru sorun ya da aşağıdan seçin.',
   'chat.faqPlaceholder': 'Soru sorun…',

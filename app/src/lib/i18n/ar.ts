@@ -770,6 +770,8 @@ export const ar: Dict = {
   'chat.timeHour': 'س',
   'chat.timeDay': 'ي',
   'chat.log': 'قائمة الرسائل',
+  'chat.jumpLatest': 'آخر الرسائل',
+  'chat.reconnecting': 'إعادة الاتصال…',
   'chat.help': 'المساعدة',
   'chat.faqGreeting': 'مرحباً! أنا مساعد sivrce — اطرح سؤالاً أو اختر من الأسفل.',
   'chat.faqPlaceholder': 'اطرح سؤالاً…',

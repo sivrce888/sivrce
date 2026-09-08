@@ -33,6 +33,9 @@ export async function GET(req: Request, { params }: RouteParams) {
 
   const { searchParams } = new URL(req.url)
   const cursor = searchParams.get("cursor") ?? undefined
+  if (cursor && Number.isNaN(Date.parse(cursor))) {
+    return NextResponse.json({ error: "bad_cursor" }, { status: 400 })
+  }
 
   try {
     const [result, peerReadAt] = await Promise.all([

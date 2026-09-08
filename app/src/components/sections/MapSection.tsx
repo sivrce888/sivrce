@@ -72,7 +72,7 @@ function MapPreviewCard({ badge }: { badge: string }) {
 
 export default function MapSection() {
   const { b } = useI18n()
-  const chip = useInViewOnce<HTMLDivElement>()
+  const { ref: chipRef, inView: chipInView } = useInViewOnce<HTMLDivElement>()
   return (
     <section className="relative overflow-hidden bg-sv-navy py-20 md:py-28">
       <div className="absolute inset-0 bg-grid-dark" />
@@ -130,9 +130,9 @@ export default function MapSection() {
             </div>
 
             <div
-              ref={chip.ref}
+              ref={chipRef}
               data-reveal
-              data-in={chip.inView || undefined}
+              data-in={chipInView || undefined}
               style={{ '--reveal-delay': '0.6s' } as CSSProperties}
               className="absolute bottom-3 left-3 rounded-tile glass p-4 shadow-soft md:-bottom-6 md:-left-8"
             >

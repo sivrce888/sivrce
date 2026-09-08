@@ -779,6 +779,8 @@ export const ka = {
   'chat.timeHour': 'სთ',
   'chat.timeDay': 'დღე',
   'chat.log': 'შეტყობინებების სია',
+  'chat.jumpLatest': 'ბოლოსკენ',
+  'chat.reconnecting': 'ხელახლა დაკავშირება…',
   'chat.help': 'დახმარება',
   'chat.faqGreeting': 'გამარჯობა! მე ვარ sivrce-ის ასისტენტი — დასვი კითხვა ან აირჩიე სიიდან.',
   'chat.faqPlaceholder': 'დასვი კითხვა…',

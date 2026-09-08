@@ -34,6 +34,8 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
   const [missCta, setMissCta] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
+  /** Entries from the cached transcript (or greeting) don't replay the entrance. */
+  const [animatedFrom] = useState(() => log.length)
 
   useEffect(() => {
     transcripts.set(loc, log)
@@ -79,16 +81,23 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
         role="log"
         aria-live="polite"
         aria-label={t("chat.help")}
-        className="flex-1 overflow-y-auto px-4 py-2"
+        className="flex-1 overflow-y-auto overscroll-contain px-4 py-2"
       >
         {log.map((entry, i) => (
-          <div key={i} className={`mt-3 flex ${entry.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            key={i}
+            className={`mt-3 flex ${entry.role === "user" ? "justify-end" : "justify-start"} ${
+              i >= animatedFrom ? "sv-chat-msg-in" : ""
+            }`}
+          >
             <div
               className={`max-w-[82%] rounded-2xl px-3.5 py-2 text-[14px] font-medium leading-relaxed ${
                 entry.role === "user" ? "bg-sv-blue text-white" : "bg-sv-ink/[0.06] text-sv-ink"
               }`}
             >
-              <p className="whitespace-pre-wrap break-words">{entry.text}</p>
+              <p className="whitespace-pre-wrap break-words" dir="auto">
+                {entry.text}
+              </p>
             </div>
           </div>
         ))}
@@ -111,7 +120,7 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
       <div
         role="group"
         aria-label={t("chat.faqSuggestions")}
-        className="flex gap-2 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-2 overflow-x-auto overscroll-contain px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {faqSuggestions(loc, 6).map((qa) => (
           <button

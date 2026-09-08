@@ -771,6 +771,8 @@ export const az: Dict = {
   'chat.timeHour': 'sa',
   'chat.timeDay': 'gün',
   'chat.log': 'Mesaj siyahısı',
+  'chat.jumpLatest': 'Son mesajlara keç',
+  'chat.reconnecting': 'Yenidən qoşulur…',
   'chat.help': 'Kömək',
   'chat.faqGreeting': 'Salam! Mən sivrce assistentiyəm — sual verin və ya aşağıdan seçin.',
   'chat.faqPlaceholder': 'Sual verin…',

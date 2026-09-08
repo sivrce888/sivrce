@@ -60,7 +60,9 @@ export async function POST(req: Request) {
       : body.userId
         ? await getOrCreateDirectRoom(me, body.userId)
         : await getOrCreateSupportRoom(me)
-    return NextResponse.json({ room }, { status: 201 })
+    // Minimal payload — participant rows (peer ids, lastReadAt) never leave the server
+    const { id, listingId, title, listing, updatedAt } = room
+    return NextResponse.json({ room: { id, listingId, title, listing, updatedAt } }, { status: 201 })
   } catch (error) {
     const msg = (error as Error).message
     if (msg === "self_chat") {

@@ -771,6 +771,8 @@ export const uk: Dict = {
   'chat.timeHour': 'год',
   'chat.timeDay': 'дн',
   'chat.log': 'Список повідомлень',
+  'chat.jumpLatest': 'До останніх',
+  'chat.reconnecting': 'Перепідключення…',
   'chat.help': 'Допомога',
   'chat.faqGreeting': 'Вітаю! Я асистент sivrce — поставте запитання або виберіть нижче.',
   'chat.faqPlaceholder': 'Поставте запитання…',

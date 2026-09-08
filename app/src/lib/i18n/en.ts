@@ -770,6 +770,8 @@ export const en: Dict = {
   'chat.timeHour': 'h',
   'chat.timeDay': 'd',
   'chat.log': 'Message list',
+  'chat.jumpLatest': 'Jump to latest',
+  'chat.reconnecting': 'Reconnecting…',
   'chat.help': 'Help',
   'chat.faqGreeting': 'Hi! I’m the sivrce assistant — ask a question or pick one below.',
   'chat.faqPlaceholder': 'Ask a question…',

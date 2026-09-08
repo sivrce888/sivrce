@@ -770,6 +770,8 @@ export const ru: Dict = {
   'chat.timeHour': 'ч',
   'chat.timeDay': 'д',
   'chat.log': 'Список сообщений',
+  'chat.jumpLatest': 'К последним',
+  'chat.reconnecting': 'Переподключение…',
   'chat.help': 'Помощь',
   'chat.faqGreeting': 'Здравствуйте! Я ассистент sivrce — задайте вопрос или выберите ниже.',
   'chat.faqPlaceholder': 'Задайте вопрос…',

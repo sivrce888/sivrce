@@ -2,6 +2,7 @@
 
 import {
   Fragment,
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -12,12 +13,12 @@ import {
   type UIEvent,
 } from "react"
 import {
+  ArrowDown,
   Check,
   CheckCheck,
   ChevronLeft,
   HelpCircle,
   LifeBuoy,
-  Loader2,
   MessageCircle,
   RotateCcw,
   Send,
@@ -33,6 +34,7 @@ import {
   dayLabel,
   mergeMessages,
   sameGroup,
+  splitLinks,
   timeAgo,
   type ChatMessage,
 } from "./messages"
@@ -191,7 +193,8 @@ function TypingDots() {
   )
 }
 
-function MessageBubble({
+/** Memoized: a keystroke or typing heartbeat must not re-render the log. */
+const MessageBubble = memo(function MessageBubble({
   msg,
   own,
   firstOfGroup,
@@ -209,7 +212,7 @@ function MessageBubble({
   animate: boolean
   peerRead: boolean
   lang: string
-  onRetry?: () => void
+  onRetry?: (m: ChatMessage) => void
   retryLabel?: string
 }) {
   return (
@@ -221,7 +224,27 @@ function MessageBubble({
           msg.status === "failed" ? "ring-1 ring-sv-orange/60" : ""
         } ${msg.status === "pending" ? "opacity-70" : ""} ${animate ? "sv-chat-msg-in" : ""}`}
       >
-        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+        <p className="whitespace-pre-wrap break-words" dir="auto">
+          {splitLinks(msg.content).map((seg, i) =>
+            seg.href ? (
+              <a
+                key={i}
+                href={seg.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`underline underline-offset-2 transition-colors ${
+                  own
+                    ? "decoration-white/50 hover:decoration-white"
+                    : "decoration-sv-ink/40 hover:decoration-sv-ink/80"
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue`}
+              >
+                {seg.text}
+              </a>
+            ) : (
+              seg.text
+            ),
+          )}
+        </p>
         {lastOfGroup && (
           <div
             className={`mt-1 flex items-center justify-end gap-1 text-[10px] font-bold ${
@@ -231,7 +254,7 @@ function MessageBubble({
             {msg.status === "failed" && (
               <button
                 type="button"
-                onClick={onRetry}
+                onClick={() => onRetry?.(msg)}
                 title={retryLabel}
                 className="mr-1 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-sv-orange transition-colors hover:bg-sv-orange/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-orange"
               >
@@ -252,6 +275,77 @@ function MessageBubble({
       </div>
     </div>
   )
+})
+
+/** Owns the draft + typing heartbeat, so every keystroke re-renders only
+ * this bar — never the (memoized) message log above it. */
+function Composer({
+  roomId,
+  sendText,
+}: {
+  roomId: string
+  sendText: (text: string, clientId?: string) => Promise<void>
+}) {
+  const { t } = useI18n()
+  const [input, setInput] = useState("")
+  const typingSentAt = useRef(0)
+
+  // Sends are fire-and-forget: the optimistic bubble carries pending/failed
+  // state, so slow networks never freeze the composer.
+  const onSend = (e: FormEvent) => {
+    e.preventDefault()
+    const text = input.trim()
+    if (!text) return
+    setInput("")
+    void sendText(text)
+  }
+
+  const onInputKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault()
+      const text = input.trim()
+      if (text) {
+        setInput("")
+        void sendText(text)
+      }
+    }
+  }
+
+  const onInputChange = (value: string) => {
+    setInput(value)
+    // Typing heartbeat — at most one POST every 3 s while actively typing
+    const now = Date.now()
+    if (value && now - typingSentAt.current > 3000) {
+      typingSentAt.current = now
+      fetch(`/api/chat/${roomId}/typing`, { method: "POST", keepalive: true }).catch(() => {})
+    }
+  }
+
+  return (
+    <form
+      onSubmit={onSend}
+      className="flex items-end gap-2 border-t border-sv-ink/[0.08] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
+    >
+      <textarea
+        value={input}
+        onChange={(e) => onInputChange(e.target.value)}
+        onKeyDown={onInputKeyDown}
+        placeholder={t("chat.placeholder")}
+        maxLength={CHAT_MAX}
+        rows={1}
+        aria-label={t("chat.placeholder")}
+        className="max-h-28 min-w-0 flex-1 resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40"
+      />
+      <button
+        type="submit"
+        disabled={!input.trim()}
+        aria-label={t("chat.send")}
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 disabled:opacity-40"
+      >
+        <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
+      </button>
+    </form>
+  )
 }
 
 function MessageThread({ roomId }: { roomId: string }) {
@@ -267,8 +361,8 @@ function MessageThread({ roomId }: { roomId: string }) {
   })
   const [peerReadAt, setPeerReadAt] = useState<string | null>(null)
   const [peerTyping, setPeerTyping] = useState(false)
-  const [input, setInput] = useState("")
-  const [sending, setSending] = useState(false)
+  const [live, setLive] = useState(true)
+  const [atBottom, setAtBottom] = useState(true)
   const [loadingOlder, setLoadingOlder] = useState(false)
 
   const listRef = useRef<HTMLDivElement>(null)
@@ -279,7 +373,6 @@ function MessageThread({ roomId }: { roomId: string }) {
   const loadedRef = useRef(false)
   const markReadTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const typingClearTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const typingSentAt = useRef(0)
 
   const isOwn = useCallback((m: ChatMessage) => m.senderId === me, [me])
 
@@ -322,12 +415,32 @@ function MessageThread({ roomId }: { roomId: string }) {
       }
     })()
 
+    /** Refetch the newest page — heals gaps after mobile backgrounding or a drop. */
+    const catchUp = async () => {
+      try {
+        const res = await fetch(`/api/chat/${roomId}`)
+        if (!res.ok || !alive) return
+        const data = await res.json()
+        if (!alive) return
+        setMessages((prev) => mergeMessages(prev, data.messages ?? []))
+        setPeerReadAt(data.peerReadAt ?? null)
+        setPage({ hasMore: !!data.hasMore, nextCursor: data.nextCursor ?? null })
+      } catch {
+        // next visibility tick or SSE seed retries
+      }
+    }
+
     const es = new EventSource(`/api/chat/${roomId}/stream`)
 
+    es.onopen = () => setLive(true)
+    es.onerror = () => setLive(false)
+
+    // Seed = history as of connect time (initial open or reconnect). Old news:
+    // it never carries the entrance animation.
     es.addEventListener("seed", (e) => {
       try {
         const d = JSON.parse(e.data)
-        setMessages((prev) => mergeMessages(prev, decorate(d.messages ?? [])))
+        setMessages((prev) => mergeMessages(prev, d.messages ?? []))
         if (d.readAt) setPeerReadAt(d.readAt)
       } catch {
         // ignore malformed frames
@@ -340,7 +453,8 @@ function MessageThread({ roomId }: { roomId: string }) {
         const incoming = decorate(d.messages ?? [])
         const hasPeer = incoming.some((m) => m.senderId !== me)
         setMessages((prev) => mergeMessages(prev, incoming))
-        if (hasPeer && !document.hidden) queueMarkRead()
+        // Honest receipts: only read what was actually on screen
+        if (hasPeer && !document.hidden && nearBottomRef.current) queueMarkRead()
       } catch {
         // ignore malformed frames
       }
@@ -367,9 +481,12 @@ function MessageThread({ roomId }: { roomId: string }) {
       }
     })
 
-    // Catch up on read state when the user returns to the tab
+    // Catch up on messages + read state when the user returns to the tab
     const onVisible = () => {
-      if (!document.hidden) queueMarkRead()
+      if (!document.hidden) {
+        queueMarkRead()
+        void catchUp()
+      }
     }
     document.addEventListener("visibilitychange", onVisible)
 
@@ -404,7 +521,9 @@ function MessageThread({ roomId }: { roomId: string }) {
 
   const onScroll = (e: UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget
-    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120
+    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120
+    nearBottomRef.current = near
+    if (near !== atBottom) setAtBottom(near)
   }
 
   const loadOlder = async () => {
@@ -464,41 +583,14 @@ function MessageThread({ roomId }: { roomId: string }) {
     [roomId, me],
   )
 
-  const onSend = async (e: FormEvent) => {
-    e.preventDefault()
-    const text = input.trim()
-    if (!text || sending) return
-    setSending(true)
-    setInput("")
-    await sendText(text)
-    setSending(false)
-  }
-
-  const retry = (msg: ChatMessage) => {
-    setMessages((prev) => prev.filter((m) => m.id !== msg.id))
-    sendText(msg.content, msg.clientId)
-  }
-
-  const onInputKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault()
-      const text = input.trim()
-      if (text && !sending) {
-        setInput("")
-        sendText(text)
-      }
-    }
-  }
-
-  const onInputChange = (value: string) => {
-    setInput(value)
-    // Typing heartbeat — at most one POST every 3 s while actively typing
-    const now = Date.now()
-    if (value && now - typingSentAt.current > 3000) {
-      typingSentAt.current = now
-      fetch(`/api/chat/${roomId}/typing`, { method: "POST", keepalive: true }).catch(() => {})
-    }
-  }
+  /** Stable identity — memoized bubbles compare it without re-rendering. */
+  const retry = useCallback(
+    (msg: ChatMessage) => {
+      setMessages((prev) => prev.filter((m) => m.id !== msg.id))
+      void sendText(msg.content, msg.clientId)
+    },
+    [sendText],
+  )
 
   if (!loaded) {
     return (
@@ -510,98 +602,99 @@ function MessageThread({ roomId }: { roomId: string }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {/* Connection status — optimistic until the stream proves otherwise */}
+      {!live && (
+        <div
+          role="status"
+          className="flex items-center justify-center gap-2 bg-sv-ink/[0.04] py-1.5 text-[12px] font-bold text-sv-ink/60"
+        >
+          <span className="sv-spinner-sm" aria-hidden />
+          {t("chat.reconnecting")}
+        </div>
+      )}
+
       {/* Messages log */}
-      <div
-        ref={listRef}
-        onScroll={onScroll}
-        role="log"
-        aria-live="polite"
-        aria-label={t("chat.log")}
-        className="flex-1 overflow-y-auto px-4 py-2"
-      >
-        {page.hasMore && (
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={listRef}
+          onScroll={onScroll}
+          role="log"
+          aria-live="polite"
+          aria-label={t("chat.log")}
+          className="absolute inset-0 overflow-y-auto overscroll-contain px-4 py-2"
+        >
+          {page.hasMore && (
+            <button
+              type="button"
+              onClick={loadOlder}
+              className="mx-auto my-2 block rounded-full bg-sv-ink/[0.05] px-3 py-1.5 text-[12px] font-bold text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+            >
+              {loadingOlder ? t("chat.loadOlder") + "…" : t("chat.loadOlder")}
+            </button>
+          )}
+          {messages.length === 0 && (
+            <p className="px-4 py-10 text-center text-[13px] font-medium text-sv-ink/60">
+              {t("chat.emptyThread")}
+            </p>
+          )}
+          {messages.map((m, i) => {
+            const prev = messages[i - 1]
+            const own = isOwn(m)
+            const firstOfGroup = !prev || !sameGroup(prev, m) || isOwn(prev) !== own
+            const lastOfGroup = !messages[i + 1] || !sameGroup(m, messages[i + 1])
+            const showDay = !prev || dayKey(prev.createdAt) !== dayKey(m.createdAt)
+            const peerRead =
+              !!peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.createdAt).getTime()
+            return (
+              <Fragment key={m.id}>
+                {showDay && (
+                  <div className="flex justify-center py-2">
+                    <span className="rounded-full bg-sv-ink/[0.05] px-3 py-1 text-[11px] font-bold text-sv-ink/60">
+                      {dayLabel(m.createdAt, lang, t("chat.today"), t("chat.yesterday"))}
+                    </span>
+                  </div>
+                )}
+                <MessageBubble
+                  msg={m}
+                  own={own}
+                  firstOfGroup={firstOfGroup}
+                  lastOfGroup={lastOfGroup}
+                  animate={m.anim === true}
+                  peerRead={own && peerRead}
+                  lang={lang}
+                  onRetry={retry}
+                  retryLabel={t("chat.retry")}
+                />
+              </Fragment>
+            )
+          })}
+          {peerTyping && (
+            <div className="mt-1 flex justify-start">
+              <div className="rounded-2xl rounded-bl-md bg-sv-ink/[0.06] px-3.5 py-2.5" aria-label={t("chat.typing")}>
+                <TypingDots />
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+        {/* Jump to latest — appears once the reader scrolls away from the bottom */}
+        {!atBottom && (
           <button
             type="button"
-            onClick={loadOlder}
-            className="mx-auto my-2 block rounded-full bg-sv-ink/[0.05] px-3 py-1.5 text-[12px] font-bold text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+            onClick={() => {
+              scrollToBottom(true)
+              queueMarkRead()
+            }}
+            className="sv-chat-msg-in absolute bottom-3 end-4 z-10 inline-flex h-9 items-center gap-1.5 rounded-full bg-sv-surface px-3.5 text-[12.5px] font-bold text-sv-ink shadow-panel-dark ring-1 ring-sv-ink/10 transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
           >
-            {loadingOlder ? t("chat.loadOlder") + "…" : t("chat.loadOlder")}
+            {t("chat.jumpLatest")}
+            <ArrowDown className="h-3.5 w-3.5" aria-hidden />
           </button>
         )}
-        {messages.length === 0 && (
-          <p className="px-4 py-10 text-center text-[13px] font-medium text-sv-ink/60">
-            {t("chat.emptyThread")}
-          </p>
-        )}
-        {messages.map((m, i) => {
-          const prev = messages[i - 1]
-          const own = isOwn(m)
-          const firstOfGroup = !prev || !sameGroup(prev, m) || isOwn(prev) !== own
-          const lastOfGroup = !messages[i + 1] || !sameGroup(m, messages[i + 1])
-          const showDay = !prev || dayKey(prev.createdAt) !== dayKey(m.createdAt)
-          const peerRead =
-            !!peerReadAt && new Date(peerReadAt).getTime() >= new Date(m.createdAt).getTime()
-          return (
-            <Fragment key={m.id}>
-              {showDay && (
-                <div className="flex justify-center py-2">
-                  <span className="rounded-full bg-sv-ink/[0.05] px-3 py-1 text-[11px] font-bold text-sv-ink/60">
-                    {dayLabel(m.createdAt, lang, t("chat.today"), t("chat.yesterday"))}
-                  </span>
-                </div>
-              )}
-              <MessageBubble
-                msg={m}
-                own={own}
-                firstOfGroup={firstOfGroup}
-                lastOfGroup={lastOfGroup}
-                animate={m.anim === true}
-                peerRead={own && peerRead}
-                lang={lang}
-                onRetry={() => retry(m)}
-                retryLabel={t("chat.retry")}
-              />
-            </Fragment>
-          )
-        })}
-        {peerTyping && (
-          <div className="mt-1 flex justify-start">
-            <div className="rounded-2xl rounded-bl-md bg-sv-ink/[0.06] px-3.5 py-2.5" aria-label={t("chat.typing")}>
-              <TypingDots />
-            </div>
-          </div>
-        )}
-        <div ref={bottomRef} />
       </div>
 
-      {/* Composer */}
-      <form
-        onSubmit={onSend}
-        className="flex items-end gap-2 border-t border-sv-ink/[0.08] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
-      >
-        <textarea
-          value={input}
-          onChange={(e) => onInputChange(e.target.value)}
-          onKeyDown={onInputKeyDown}
-          placeholder={t("chat.placeholder")}
-          maxLength={CHAT_MAX}
-          rows={1}
-          aria-label={t("chat.placeholder")}
-          className="max-h-28 min-w-0 flex-1 resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || sending}
-          aria-label={t("chat.send")}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 disabled:opacity-40"
-        >
-          {sending ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-          ) : (
-            <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
-          )}
-        </button>
-      </form>
+      {/* Composer — owns the draft, so typing never re-renders the log */}
+      <Composer roomId={roomId} sendText={sendText} />
     </div>
   )
 }
@@ -680,6 +773,26 @@ export default function ChatWidget() {
     }
   }, [open])
 
+  // The mobile sheet covers the viewport → modal semantics + page scroll lock.
+  // Desktop keeps the panel as a floating (non-modal) window.
+  const [fullscreen, setFullscreen] = useState(false)
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 767.98px)")
+    const apply = () => setFullscreen(open && mql.matches)
+    apply()
+    mql.addEventListener("change", apply)
+    return () => mql.removeEventListener("change", apply)
+  }, [open])
+  useEffect(() => {
+    if (!fullscreen) return
+    const root = document.documentElement
+    const prev = root.style.overflow
+    root.style.overflow = "hidden"
+    return () => {
+      root.style.overflow = prev
+    }
+  }, [fullscreen])
+
   const activeRoom = rooms.find((r) => r.id === activeRoomId)
   const headerTitle = activeRoom
     ? activeRoom.isSupport
@@ -705,6 +818,23 @@ export default function ChatWidget() {
     if (e.key === "Escape") {
       e.stopPropagation()
       close()
+      return
+    }
+    // Fullscreen sheet is modal — keep Tab cycling inside it
+    if (e.key === "Tab" && fullscreen && panelRef.current) {
+      const items = panelRef.current.querySelectorAll<HTMLElement>(
+        'a[href],button:not(:disabled),textarea:not(:disabled),input:not(:disabled),select:not(:disabled),[tabindex]:not([tabindex="-1"])',
+      )
+      if (items.length === 0) return
+      const first = items[0]!
+      const last = items[items.length - 1]!
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
   }
 
@@ -722,6 +852,7 @@ export default function ChatWidget() {
         }}
         aria-label={open ? t("chat.close") : t("chat.open")}
         aria-expanded={open}
+        aria-controls="sv-chat-panel"
         className="fixed bottom-24 right-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none lg:bottom-6 lg:right-6"
       >
         <span
@@ -749,8 +880,10 @@ export default function ChatWidget() {
       {panelMounted && (
         <div
           ref={panelRef}
+          id="sv-chat-panel"
           role="dialog"
           aria-label={t("chat.title")}
+          aria-modal={fullscreen || undefined}
           tabIndex={-1}
           onKeyDown={onPanelKeyDown}
           className={`fixed z-50 flex flex-col overflow-hidden bg-sv-surface shadow-panel-dark outline-none
@@ -809,11 +942,11 @@ export default function ChatWidget() {
 
           {/* Content */}
           {activeRoomId ? (
-            <MessageThread roomId={activeRoomId} />
+            <MessageThread key={activeRoomId} roomId={activeRoomId} />
           ) : view === "faq" ? (
             <FaqView key={lang} onContactSupport={openSupport} />
           ) : (
-            <div className="flex-1 overflow-y-auto px-2.5 py-2.5">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-2.5 py-2.5">
               <QuickTiles
                 showSupport={!rooms.some((r) => r.isSupport)}
                 onFaq={() => setView("faq")}

@@ -8,6 +8,7 @@ import {
   dayKey,
   mergeMessages,
   sameGroup,
+  splitLinks,
   timeAgo,
   type ChatMessage,
 } from './messages'
@@ -63,5 +64,26 @@ assert.equal(timeAgo(new Date(Date.now() - 30_000).toISOString()).unit, 'now')
 assert.deepEqual(timeAgo(new Date(Date.now() - 5 * 60_000).toISOString()), { n: 5, unit: 'min' })
 assert.equal(timeAgo(new Date(Date.now() - 3 * 3600_000).toISOString()).unit, 'hour')
 assert.equal(timeAgo(new Date(Date.now() - 2 * 86_400_000).toISOString()).unit, 'day')
+
+// ——— splitLinks: plain text, links, mixed runs ———
+assert.deepEqual(splitLinks('no links here'), [{ text: 'no links here' }])
+assert.deepEqual(splitLinks('see https://sivrce.ge/l/abc now'), [
+  { text: 'see ' },
+  { text: 'https://sivrce.ge/l/abc', href: 'https://sivrce.ge/l/abc' },
+  { text: ' now' },
+])
+assert.deepEqual(splitLinks('a http://x.io b https://y.io c'), [
+  { text: 'a ' },
+  { text: 'http://x.io', href: 'http://x.io' },
+  { text: ' b ' },
+  { text: 'https://y.io', href: 'https://y.io' },
+  { text: ' c' },
+])
+assert.deepEqual(
+  splitLinks('javascript:alert(1) ftp://x'),
+  [{ text: 'javascript:alert(1) ftp://x' }],
+  'only http(s) linkifies',
+)
+assert.deepEqual(splitLinks(''), [{ text: '' }])
 
 console.log('chat/messages.check.ts — all green')

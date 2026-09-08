@@ -80,6 +80,22 @@ export function dayLabel(
   return new Intl.DateTimeFormat(lang, { day: "numeric", month: "long" }).format(d)
 }
 
+const URL_RE = /https?:\/\/[^\s<>"']+/gi
+
+/** Split text into plain runs and http(s) links — bubbles render links live. */
+export function splitLinks(text: string): { text: string; href?: string }[] {
+  const out: { text: string; href?: string }[] = []
+  let i = 0
+  for (const m of text.matchAll(URL_RE)) {
+    const start = m.index ?? 0
+    if (start > i) out.push({ text: text.slice(i, start) })
+    out.push({ text: m[0], href: m[0] })
+    i = start + m[0].length
+  }
+  if (i < text.length) out.push({ text: text.slice(i) })
+  return out.length > 0 ? out : [{ text }]
+}
+
 export type AgoUnit = "now" | "min" | "hour" | "day"
 
 /** Room-list relative time as raw units — the component maps them to t(). */
