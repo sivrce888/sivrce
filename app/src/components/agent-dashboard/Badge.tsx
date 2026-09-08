@@ -1,8 +1,8 @@
 import type { BadgeTone } from "./format"
 
 const tones: Record<BadgeTone, string> = {
-  green: "bg-sv-blue/10 text-sv-blue",
-  blue: "bg-sv-blue/10 text-sv-blue",
+  green: "bg-sv-blue/10 text-sv-blue-deep",
+  blue: "bg-sv-blue/10 text-sv-blue-deep",
   orange: "bg-sv-orange/10 text-sv-orange",
   red: "bg-sv-orange/10 text-sv-orange",
   neutral: "bg-sv-ink/6 text-sv-ink/60",

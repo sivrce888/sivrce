@@ -21,7 +21,7 @@ export default function ScoreBars({ scores }: { scores: LivabilityScores }) {
         const value = scores[key]
         return (
           <li key={key} className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue-deep">
               <Icon className="h-5 w-5" aria-hidden />
             </span>
             <div className="min-w-0 flex-1">

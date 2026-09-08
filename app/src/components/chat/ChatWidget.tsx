@@ -727,7 +727,7 @@ export default function ChatWidget() {
                 </div>
               ) : rooms.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                     <MessageCircle className="h-5 w-5" aria-hidden />
                   </span>
                   <p className="text-[13px] font-medium leading-relaxed text-sv-ink/60">

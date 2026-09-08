@@ -56,7 +56,7 @@ export default function NeighborhoodDetail({
                 className="flex items-center gap-2.5 rounded-card bg-white/95 px-5 py-3 shadow-card"
                 aria-label={`${s.scoreLabel} ${score}/10`}
               >
-                <span className="grid h-11 w-11 place-items-center rounded-control bg-sv-blue/10 text-[18px] font-black text-sv-blue">
+                <span className="grid h-11 w-11 place-items-center rounded-control bg-sv-blue/10 text-[18px] font-black text-sv-blue-deep">
                   {score}
                 </span>
                 <span className="text-[13px] font-bold leading-tight text-sv-ink/60">
@@ -86,7 +86,7 @@ export default function NeighborhoodDetail({
             { Icon: Building2, label: s.listingsHere, value: String(listings.length), mom: null },
           ].map(({ Icon, label, value, mom }) => (
             <div key={label} className="flex items-center gap-4 rounded-module bg-sv-cloud p-5">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue-deep">
                 <Icon className="h-5 w-5" aria-hidden />
               </span>
               <div>

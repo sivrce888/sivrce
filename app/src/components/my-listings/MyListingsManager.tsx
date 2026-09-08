@@ -789,7 +789,7 @@ function IconBtn({
       className={`grid h-9 w-9 place-items-center rounded-control ring-1 transition disabled:opacity-40 ${
         danger
           ? "bg-sv-cloud text-sv-ink/60 ring-sv-ink/8 hover:bg-sv-orange/10 hover:text-sv-orange"
-          : "bg-sv-cloud text-sv-ink/60 ring-sv-ink/8 hover:bg-sv-blue/10 hover:text-sv-blue"
+          : "bg-sv-cloud text-sv-ink/60 ring-sv-ink/8 hover:bg-sv-blue/10 hover:text-sv-blue-deep"
       }`}
     >
       {children}

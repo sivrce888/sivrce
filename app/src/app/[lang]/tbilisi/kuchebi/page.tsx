@@ -113,7 +113,7 @@ export default function StreetsDirectoryPage() {
 
         {/* Header */}
         <header className="mb-10">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {STREETS.length} ქუჩა
           </span>
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">

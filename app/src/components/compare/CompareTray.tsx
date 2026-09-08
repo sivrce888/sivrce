@@ -27,7 +27,7 @@ export default function CompareTray() {
         <div className="flex items-center gap-2 text-[13px] font-black text-sv-ink">
           <Columns2 className="h-4 w-4 text-sv-blue" aria-hidden />
           {tt("trayTitle")}
-          <span className="rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] text-sv-blue">
+          <span className="rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] text-sv-blue-deep">
             {count}/{max}
           </span>
         </div>

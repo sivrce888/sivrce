@@ -1268,7 +1268,7 @@ export default function SearchClient({
                 onClick={c.clear}
                 aria-label={t('search.removeFilter', { label: c.label })}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition-colors ${
-                  c.hue ? '' : 'bg-sv-blue/10 text-sv-blue hover:bg-sv-blue/15'
+                  c.hue ? '' : 'bg-sv-blue/10 text-sv-blue-deep hover:bg-sv-blue/15'
                 }`}
                 style={c.hue ? { backgroundColor: `${c.hue}1A`, color: c.hue } : undefined}
               >

@@ -131,7 +131,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
           <div className="flex flex-col justify-center p-6 md:p-10">
             <div className="mb-3 flex flex-wrap gap-2">
               {featured.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-sv-blue">
+                <span key={tag} className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-sv-blue-deep">
                   {tag}
                 </span>
               ))}
@@ -171,7 +171,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
               <div className="flex flex-1 flex-col p-5">
                 <div className="mb-2 flex flex-wrap gap-1.5">
                   {p.tags.slice(0, 2).map((tag) => (
-                    <span key={tag} className="rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-sv-blue">
+                    <span key={tag} className="rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-sv-blue-deep">
                       {tag}
                     </span>
                   ))}

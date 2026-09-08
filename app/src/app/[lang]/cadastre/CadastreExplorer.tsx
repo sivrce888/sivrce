@@ -141,6 +141,8 @@ export default function CadastreExplorer() {
             type="submit"
             disabled={status === 'loading'}
             aria-busy={status === 'loading'}
+            // label doubles as accessible name — CTA text is hidden on mobile
+            aria-label={t('cadastre.searchCta')}
             className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-pill bg-sv-blue px-4 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition hover:bg-sv-blue-deep disabled:opacity-60"
           >
             {status === 'loading' ? (

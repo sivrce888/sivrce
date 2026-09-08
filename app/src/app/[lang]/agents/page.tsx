@@ -206,7 +206,7 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
                       href="/agencies"
                       className="inline-flex items-center gap-2 rounded-control border border-sv-ink/[0.07] bg-sv-surface px-3.5 py-2 text-[13px] font-extrabold text-sv-ink transition-all hover:-translate-y-0.5 hover:border-sv-blue/30 hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
                     >
-                      <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[10px] font-black text-sv-blue">
+                      <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[10px] font-black text-sv-blue-deep">
                         {i + 1}
                       </span>
                       <span>{ag.name}</span>

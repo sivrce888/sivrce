@@ -59,7 +59,7 @@ export function ReviewCard({ review: r, strings: s, locale, className }: ReviewC
           <p className="flex flex-wrap items-center gap-1.5 text-[15px] font-extrabold text-sv-ink">
             <span className="truncate">{r.authorName}</span>
             {r.verified && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-extrabold text-sv-blue">
+              <span className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-extrabold text-sv-blue-deep">
                 <BadgeCheck aria-hidden className="h-3.5 w-3.5" />
                 {s.verified}
               </span>

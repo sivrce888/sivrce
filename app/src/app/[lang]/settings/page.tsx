@@ -137,7 +137,7 @@ export default async function SettingsPage({
         {user.role !== "admin" ? (
           <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
             <div className="mb-4 flex items-start gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+              <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
                 <UserCog size={18} aria-hidden />
               </span>
               <div>
@@ -158,7 +158,7 @@ export default async function SettingsPage({
 
         <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
               <LayoutDashboard size={18} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
@@ -227,7 +227,7 @@ export default async function SettingsPage({
 
         <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
               <BellRing size={18} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
@@ -249,7 +249,7 @@ export default async function SettingsPage({
 
         <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <div className="mb-4 flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+            <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
               <Bell size={18} aria-hidden />
             </span>
             <h2 className="text-[15px] font-extrabold text-sv-ink">ბოლო შეტყობინებები</h2>

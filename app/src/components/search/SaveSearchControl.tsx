@@ -113,7 +113,7 @@ export default function SaveSearchControl() {
           <button
             onClick={() => void onSave()}
             disabled={isSaved}
-            className="flex h-11 w-full items-center gap-2 rounded-module px-3 text-[13px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 disabled:text-sv-ink/60 disabled:hover:bg-transparent"
+            className="flex h-11 w-full items-center gap-2 rounded-module px-3 text-[13px] font-extrabold text-sv-blue-deep transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 disabled:text-sv-ink/60 disabled:hover:bg-transparent"
           >
             {isSaved ? <Check className="h-4 w-4" aria-hidden="true" /> : <Bookmark className="h-4 w-4" aria-hidden="true" />}
             {isSaved ? tt('savedAlready') : tt('saveCurrent')}

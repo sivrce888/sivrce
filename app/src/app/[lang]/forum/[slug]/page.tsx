@@ -122,7 +122,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
 
         <article>
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue">
+            <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep">
               {thread.category}
             </span>
             <span className="text-[12px] font-semibold text-sv-ink/60">{thread.district}</span>

@@ -263,7 +263,7 @@ export function Studio({
                         type="button"
                         onClick={() => setSelected(item.id)}
                         className={`min-w-0 flex-1 rounded-[12px] px-2 py-2 text-left text-[13px] font-bold ${
-                          selected === item.id ? "bg-sv-blue/10 text-sv-blue" : "text-sv-ink/70 hover:bg-sv-ink/5"
+                          selected === item.id ? "bg-sv-blue/10 text-sv-blue-deep" : "text-sv-ink/70 hover:bg-sv-ink/5"
                         }`}
                       >
                         {s.label}
@@ -355,7 +355,7 @@ function SectionBtn({
       type="button"
       onClick={() => onPick(s.id)}
       className={`mb-0.5 w-full rounded-[12px] px-3 py-2 text-left text-[13px] font-bold ${
-        active ? "bg-sv-blue/10 text-sv-blue" : "text-sv-ink/70 hover:bg-sv-ink/5"
+        active ? "bg-sv-blue/10 text-sv-blue-deep" : "text-sv-ink/70 hover:bg-sv-ink/5"
       }`}
     >
       {s.label}

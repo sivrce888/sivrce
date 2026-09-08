@@ -26,7 +26,7 @@ export const metadata = { title: "Listings" }
 
 const TIER_CLS: Record<string, string> = {
   standard: "bg-sv-ink/6 text-sv-ink/60",
-  vip: "bg-sv-blue/10 text-sv-blue",
+  vip: "bg-sv-blue/10 text-sv-blue-deep",
   super_vip: "bg-violet-50 text-violet-700",
   diamond: "bg-amber-50 text-amber-700",
 }

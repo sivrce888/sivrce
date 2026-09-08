@@ -99,7 +99,7 @@ export default async function ForumIndex() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue">
+                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep">
                         {t.category}
                       </span>
                       {t.badge ? <span className="text-[11px] font-bold text-sv-orange">{t.badge}</span> : null}

@@ -213,7 +213,7 @@ export default function AvatarStudio({
       className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card"
     >
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+        <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
           <ImagePlus size={18} aria-hidden />
         </span>
         <div className="min-w-0">

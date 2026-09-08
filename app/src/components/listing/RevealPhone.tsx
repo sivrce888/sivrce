@@ -68,11 +68,8 @@ export default function RevealPhone({
   if (phone) {
     if (variant === 'call') {
       return (
-        <a
-          href={telHref(phone)}
-          className={`${shell} ${className}`}
-          aria-label={t('detail.call')}
-        >
+        // no aria-label — the visible number IS the accessible name (Label-in-Name)
+        <a href={telHref(phone)} className={`${shell} ${className}`}>
           <Phone className="h-4 w-4 shrink-0" />
           <span className="truncate tabular-nums tracking-wide">{phone}</span>
         </a>
@@ -80,7 +77,7 @@ export default function RevealPhone({
     }
     return (
       <div className={`grid grid-cols-2 gap-2 ${className}`}>
-        <a href={telHref(phone)} className={shell} aria-label={t('detail.call')}>
+        <a href={telHref(phone)} className={shell}>
           <Phone className="h-4 w-4 shrink-0" />
           <span className="truncate tabular-nums tracking-wide">{phone}</span>
         </a>
@@ -88,7 +85,7 @@ export default function RevealPhone({
           href={waHref(phone)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-12 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
+          className="flex h-12 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue-deep transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
           aria-label={t('detail.whatsapp')}
         >
           <MessageCircle className="h-4 w-4 shrink-0" />
@@ -108,11 +105,11 @@ export default function RevealPhone({
         : `${maskedHint}  ${t('detail.showPhone')}`
 
   return (
+    // no aria-label — visible label (masked hint + CTA) is the accessible name
     <button
       type="button"
       onClick={reveal}
       disabled={loading}
-      aria-label={t('detail.showPhone')}
       className={`${shell} disabled:opacity-70 ${className}`}
     >
       {loading ? (

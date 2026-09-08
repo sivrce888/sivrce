@@ -54,7 +54,7 @@ function LeadCard({
             {[lead.district, lead.city].filter(Boolean).join(" · ")}
           </p>
         </div>
-        <span className="rounded-full bg-sv-blue/10 px-2.5 py-1 text-[11px] font-bold text-sv-blue">
+        <span className="rounded-full bg-sv-blue/10 px-2.5 py-1 text-[11px] font-bold text-sv-blue-deep">
           {statusKa(lead.status)}
         </span>
       </div>

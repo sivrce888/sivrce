@@ -2210,6 +2210,8 @@ function Map3DInner({
           userDotRef.current = new maplibregl.Marker({ element: d, anchor: 'center' })
             .setLngLat([lng, lat])
             .addTo(map)
+          // maplibre force-adds tabindex=0 — a focusable element inside aria-hidden
+          d.setAttribute('tabindex', '-1')
         }
       },
       () => setLocating(false),
@@ -2658,7 +2660,7 @@ function Map3DInner({
               onClick={() => {
                 if (view3d) toggleView3d()
               }}
-              className={`h-10 flex-1 text-[10px] font-extrabold tracking-wide transition ${
+              className={`min-h-10 w-full text-[10px] font-extrabold tracking-wide transition ${
                 !view3d ? segOn : railHover
               }`}
             >
@@ -2671,7 +2673,7 @@ function Map3DInner({
               onClick={() => {
                 if (!view3d) toggleView3d()
               }}
-              className={`h-10 flex-1 border-t text-[10px] font-extrabold tracking-wide transition ${hair} ${
+              className={`min-h-10 w-full border-t text-[10px] font-extrabold tracking-wide transition ${hair} ${
                 view3d ? segOn : railHover
               }`}
             >

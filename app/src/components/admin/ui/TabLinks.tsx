@@ -23,7 +23,7 @@ export function TabLinks({
           {typeof t.count === "number" ? (
             <span
               className={`rounded-full px-1.5 py-0.5 text-[11px] leading-none font-extrabold ${
-                t.active ? "bg-sv-blue/10 text-sv-blue" : "bg-sv-ink/6 text-sv-ink/60"
+                t.active ? "bg-sv-blue/10 text-sv-blue-deep" : "bg-sv-ink/6 text-sv-ink/60"
               }`}
             >
               {t.count}

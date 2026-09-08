@@ -71,7 +71,7 @@ export default function ImportCompetitorPanel() {
   return (
     <section className="mb-6 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
       <div className="mb-3 flex items-center gap-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-module bg-sv-blue/10 text-sv-blue">
+        <span className="flex h-9 w-9 items-center justify-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
           <Link2 size={18} strokeWidth={2.25} />
         </span>
         <div>

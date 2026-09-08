@@ -383,9 +383,12 @@ export default function MapEmbed({
         })
         mapRef.current = map
 
-        const marker = new maplibregl.Marker({ element: makePin(pinHue), anchor: 'bottom' })
+        const pin = makePin(pinHue)
+        const marker = new maplibregl.Marker({ element: pin, anchor: 'bottom' })
           .setLngLat([lng, lat])
           .addTo(map)
+        // maplibre force-adds tabindex=0 — a focusable element inside aria-hidden
+        pin.setAttribute('tabindex', '-1')
         if (q) {
           marker.setPopup(
             new maplibregl.Popup({ offset: 14, closeButton: false }).setText(q),

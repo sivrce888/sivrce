@@ -103,7 +103,7 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`WhatsApp: ${displayName}`}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-6 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:bg-sv-blue/10"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-6 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10"
               >
                 WhatsApp
               </a>

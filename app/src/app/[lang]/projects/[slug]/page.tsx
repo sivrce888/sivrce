@@ -368,7 +368,7 @@ export default async function ProjectPage({ params }: PageProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`WhatsApp: ${pickLoc(dev.name, loc)}`}
-                    className="inline-flex min-h-11 items-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-5 text-[15px] font-extrabold text-sv-blue transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-5 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
                   >
                     WhatsApp
                   </a>
@@ -512,7 +512,7 @@ export default async function ProjectPage({ params }: PageProps) {
                 <Link
                   key={p.slug}
                   href={`/projects/${p.slug}`}
-                  aria-label={p.name}
+                  // no aria-label: visible text (name+price) IS the accessible name
                   className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden">

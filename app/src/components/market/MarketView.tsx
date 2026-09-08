@@ -84,7 +84,7 @@ export default function MarketView({
               {cards.map(({ Icon, label, value, mom }, i) => (
                 <Reveal key={label} delay={i * 0.04}>
                   <div className="flex h-full items-center gap-4 rounded-module bg-sv-cloud p-5">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-sv-blue-deep">
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
                     <div className="min-w-0">
@@ -159,7 +159,7 @@ export default function MarketView({
         <section className="bg-sv-cloud py-20 md:py-28">
           <div className="mx-auto max-w-[560px] px-5 text-center">
             <Reveal>
-              <span className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+              <span className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
                 <BarChart3 className="h-7 w-7" aria-hidden />
               </span>
               <h2 className="text-balance text-[24px] font-black tracking-[-0.02em] text-sv-ink">

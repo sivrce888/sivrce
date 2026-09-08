@@ -60,7 +60,7 @@ export default function DashboardNav({
             aria-current={active ? "page" : undefined}
             className={`rounded-control px-4 py-2.5 text-[13.5px] font-bold transition ${
               active
-                ? "bg-sv-blue/10 text-sv-blue shadow-soft"
+                ? "bg-sv-blue/10 text-sv-blue-deep shadow-soft"
                 : "text-sv-ink/65 hover:bg-sv-surface hover:text-sv-ink hover:shadow-soft"
             }`}
           >

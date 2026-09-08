@@ -30,7 +30,7 @@ export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: 
           <Link
             key={p.slug}
             href={`/projects/${p.slug}`}
-            aria-label={p.name}
+            // no aria-label: visible text (name+dev+status) IS the accessible name
             className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue rounded-card"
           >
             <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">

@@ -306,13 +306,13 @@ export default function CadastreMap({
         >
           <Minus className="h-4 w-4" strokeWidth={2.25} />
         </button>
-        <div className={`flex border-t ${hair}`} role="group" aria-label={t('map.terrain')}>
+        <div className={`flex flex-col border-t ${hair}`} role="group" aria-label={t('map.terrain')}>
           <button
             type="button"
             aria-label={t('map.terrain.streets')}
             aria-pressed={terrain === 'streets'}
             onClick={() => void pickTerrain('streets')}
-            className={`grid h-10 flex-1 place-items-center transition ${railHover} ${
+            className={`grid min-h-10 w-full place-items-center transition ${railHover} ${
               terrain === 'streets' ? segOn : ''
             }`}
           >
@@ -323,7 +323,7 @@ export default function CadastreMap({
             aria-label={t('map.terrain.satellite')}
             aria-pressed={terrain === 'satellite'}
             onClick={() => void pickTerrain('satellite')}
-            className={`grid h-10 flex-1 place-items-center border-l transition ${hair} ${railHover} ${
+            className={`grid min-h-10 w-full place-items-center border-t transition ${hair} ${railHover} ${
               terrain === 'satellite' ? segOn : ''
             }`}
           >

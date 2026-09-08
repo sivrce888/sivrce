@@ -332,7 +332,7 @@ export function CommandPalette() {
                 <span
                   className={`grid h-8 w-8 shrink-0 place-items-center rounded-[9px] border transition-colors ${
                     isActive
-                      ? "border-sv-blue/25 bg-sv-blue/10 text-sv-blue"
+                      ? "border-sv-blue/25 bg-sv-blue/10 text-sv-blue-deep"
                       : "border-sv-ink/6 bg-sv-cloud text-sv-ink/60"
                   }`}
                 >

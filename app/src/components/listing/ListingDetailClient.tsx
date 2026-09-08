@@ -713,7 +713,7 @@ export default function ListingDetailClient({
                 <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                   <span />
                   <div
-                    className="pointer-events-auto flex w-40 gap-[3px] sm:w-48"
+                    className="pointer-events-auto flex w-40 gap-[3px] overflow-x-auto scrollbar-hide sm:w-48"
                     role="group"
                     aria-label={t('detail.photoViewer')}
                   >
@@ -724,7 +724,7 @@ export default function ListingDetailClient({
                         aria-current={photo === idx ? 'true' : undefined}
                         aria-label={t('detail.photo', { n: idx + 1 })}
                         onClick={() => setPhoto(idx)}
-                        className="-my-2 flex h-6 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        className="-my-2 flex h-6 min-w-6 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                       >
                         <span
                           aria-hidden
@@ -817,12 +817,12 @@ export default function ListingDetailClient({
                 <div className="flex flex-wrap items-center gap-2.5">
                   <ExclusiveBadges exclusive={l.isExclusive} sivrceExclusive={l.isSivrceExclusive} size="md" compact={false} />
                   {l.isNew && (
-                    <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sv-blue">
+                    <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sv-blue-deep">
                       {t('card.new')}
                     </span>
                   )}
                   {l.verified ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sv-blue">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sv-blue-deep">
                       <BadgeCheck className="h-3 w-3" aria-hidden />
                       {t('detail.scoreVerified')}
                     </span>
@@ -845,8 +845,9 @@ export default function ListingDetailClient({
                         .then(() => toast.success(t('detail.idCopied')))
                         .catch(() => toast.error(t('detail.showPhoneDenied')))
                     }}
-                    aria-label={t('detail.copyId')}
-                    className="inline-flex items-center gap-1 rounded-full bg-sv-ink/[0.05] px-2.5 py-1 font-mono text-[11px] font-black tabular-nums text-sv-ink/60 transition hover:bg-sv-blue/10 hover:text-sv-blue"
+                    // name contains the visible "ID <publicId>" text (Label-in-Name)
+                    aria-label={`ID ${publicId} — ${t('detail.copyId')}`}
+                    className="inline-flex items-center gap-1 rounded-full bg-sv-ink/[0.05] px-2.5 py-1 font-mono text-[11px] font-black tabular-nums text-sv-ink/60 transition hover:bg-sv-blue/10 hover:text-sv-blue-deep"
                   >
                     ID {publicId}
                     <Copy className="h-3 w-3" aria-hidden />
@@ -1293,7 +1294,7 @@ export default function ListingDetailClient({
                   </div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
                     {l.agent.role ? (
-                      <span className="rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-extrabold text-sv-blue">
+                      <span className="rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-extrabold text-sv-blue-deep">
                         {lang === 'ka'
                           ? SELLER_ROLE_LABEL[l.agent.role].ka
                           : SELLER_ROLE_LABEL[l.agent.role].en}
@@ -1321,14 +1322,14 @@ export default function ListingDetailClient({
                 <button
                   type="button"
                   onClick={messageOwner}
-                  className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
+                  className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue-deep transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t('detail.message')}</span>
                 </button>
                 <button
                   onClick={() => toggle(l.id)}
-                  aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
+                  // visible label IS the accessible name; state via aria-pressed
                   aria-pressed={fav}
                   className={`flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-3 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
                     fav
@@ -1348,8 +1349,8 @@ export default function ListingDetailClient({
                 aria-pressed={compared}
                 className={`mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
                   compared
-                    ? 'border-sv-blue/30 bg-sv-blue/10 text-sv-blue'
-                    : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/60 hover:border-sv-blue/20 hover:text-sv-blue'
+                    ? 'border-sv-blue/30 bg-sv-blue/10 text-sv-blue-deep'
+                    : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/60 hover:border-sv-blue/20 hover:text-sv-blue-deep'
                 }`}
               >
                 <Columns2 className="h-4 w-4 shrink-0" />

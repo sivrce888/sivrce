@@ -237,7 +237,7 @@ export default async function StreetPage({ params }: PageProps) {
 
         {/* Header */}
         <header className="mb-8">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> AI შეფასებით
           </span>
           {coords && (

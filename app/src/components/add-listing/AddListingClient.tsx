@@ -1280,7 +1280,7 @@ export default function AddListingClient() {
                       current
                         ? 'bg-sv-orange text-white shadow-glow-orange'
                         : done
-                          ? 'bg-sv-blue/10 text-sv-blue'
+                          ? 'bg-sv-blue/10 text-sv-blue-deep'
                           : 'bg-sv-ink/[0.05] text-sv-ink/60 hover:text-sv-ink'
                     }`}
                   >
@@ -1406,7 +1406,7 @@ export default function AddListingClient() {
                         onDrop={(e) => { e.preventDefault(); addPhotos(e.dataTransfer.files) }}
                         className="flex min-h-[220px] w-full flex-col items-center justify-center gap-3 rounded-tile border border-dashed border-sv-ink/15 bg-sv-cloud/80 px-6 py-14 text-center transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04]"
                       >
-                        <span className="grid h-14 w-14 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+                        <span className="grid h-14 w-14 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                           <ImagePlus className="h-6 w-6" />
                         </span>
                         <span className="text-[15px] font-extrabold text-sv-ink">{t('add.photosDrop')}</span>
@@ -1505,7 +1505,7 @@ export default function AddListingClient() {
                           onDrop={(e) => { e.preventDefault(); void pickVideo(e.dataTransfer.files) }}
                           className="flex min-h-[140px] w-full flex-col items-center justify-center gap-2 rounded-tile border border-dashed border-sv-ink/15 bg-sv-cloud/80 px-6 py-8 text-center transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04]"
                         >
-                          <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+                          <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                             <Video className="h-5 w-5" />
                           </span>
                           <span className="text-[15px] font-extrabold text-sv-ink">{t('add.videoDrop')}</span>
@@ -2461,7 +2461,7 @@ export default function AddListingClient() {
                 <ListingCard l={preview} layout="wide" animate={false} />
               ) : (
                 <div className="flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-card border border-dashed border-sv-ink/15 bg-sv-surface px-6 text-center shadow-card">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                     <ImagePlus className="h-5 w-5" />
                   </span>
                   <p className="text-[14px] font-extrabold text-sv-ink">{t('add.photosRequired')}</p>

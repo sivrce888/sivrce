@@ -143,7 +143,7 @@ export default async function AdminCrmLeadPage({
                 <li key={a.id} className="relative">
                   <span className="absolute top-1.5 -left-[26.5px] h-2.5 w-2.5 rounded-full bg-sv-blue ring-4 ring-sv-blue/10" />
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    <span className="inline-flex rounded-full bg-sv-blue/10 px-2.5 py-1 text-[12px] font-bold whitespace-nowrap text-sv-blue">
+                    <span className="inline-flex rounded-full bg-sv-blue/10 px-2.5 py-1 text-[12px] font-bold whitespace-nowrap text-sv-blue-deep">
                       {ACTIVITY_TYPE_LABELS[a.type as ActivityType] ?? a.type}
                     </span>
                     <span className="text-[12px] whitespace-nowrap text-sv-ink/60">

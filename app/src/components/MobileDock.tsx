@@ -56,7 +56,7 @@ export default function MobileDock() {
               href={item.href}
               aria-current={item.match ? 'page' : undefined}
               className={`flex h-full min-h-[44px] min-w-0 flex-col items-center justify-center gap-0.5 touch-manipulation ${
-                item.match ? 'text-sv-blue' : 'text-sv-ink/60 dark:text-white/45'
+                item.match ? 'text-sv-blue-deep dark:text-sv-blue-light' : 'text-sv-ink/60 dark:text-white/60'
               }`}
             >
               {item.icon === 'home' ? (

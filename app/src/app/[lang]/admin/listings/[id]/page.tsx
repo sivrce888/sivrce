@@ -36,7 +36,7 @@ function Def({ label, children }: { label: string; children: ReactNode }) {
 }
 
 const EVENT_CLS: Record<string, string> = {
-  listed: "bg-sv-blue/10 text-sv-blue",
+  listed: "bg-sv-blue/10 text-sv-blue-deep",
   price_drop: "bg-emerald-50 text-emerald-700",
   price_increase: "bg-rose-50 text-rose-700",
   sold: "bg-violet-50 text-violet-700",

@@ -283,7 +283,7 @@ export default async function DeveloperPage({ params }: PageProps) {
                 href={dev.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sv-blue hover:underline"
+                className="text-sv-blue-deep hover:underline"
               >
                 {dev.website.replace(/^https?:\/\//, '')}
               </a>
@@ -322,7 +322,7 @@ export default async function DeveloperPage({ params }: PageProps) {
                 <Link
                   key={p.slug}
                   href={`/projects/${p.slug}`}
-                  aria-label={p.name}
+                  // no aria-label: visible text IS the accessible name (Label-in-Name)
                   className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden">
@@ -343,7 +343,7 @@ export default async function DeveloperPage({ params }: PageProps) {
                       {p.location} · {micro.handover} {finishLabel(loc, p.finish)}
                     </p>
                     {p.priceFromM2 && (
-                      <p className="mt-2 text-[15px] font-black text-sv-blue">
+                      <p className="mt-2 text-[15px] font-black text-sv-blue-deep">
                         {p.priceFromM2}
                         <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
                       </p>

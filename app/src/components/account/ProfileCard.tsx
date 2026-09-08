@@ -22,7 +22,7 @@ export default function ProfileCard({ user }: { user: AccountUser | null }) {
 
   return (
     <section aria-label={tt('profile')} className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
-      <SectionHeader icon={User} title={tt('profile')} chipClass="bg-sv-blue/10 text-sv-blue" />
+      <SectionHeader icon={User} title={tt('profile')} chipClass="bg-sv-blue/10 text-sv-blue-deep" />
       {user ? (
         <div>
           <div className="flex items-center gap-4">

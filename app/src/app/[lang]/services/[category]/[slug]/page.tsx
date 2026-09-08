@@ -139,7 +139,7 @@ export default async function ServiceProviderPage({ params }: PageProps) {
                 href={waHref(CONTACT_PHONE)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-5 py-3 text-[14px] font-extrabold text-sv-blue hover:bg-sv-blue/10"
+                className="inline-flex items-center gap-2 rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-5 py-3 text-[14px] font-extrabold text-sv-blue-deep hover:bg-sv-blue/10"
               >
                 WhatsApp
               </a>

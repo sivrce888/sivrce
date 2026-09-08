@@ -600,7 +600,7 @@ export default async function BuildingPage({ params }: PageProps) {
               )}
             </p>
             {metro && (
-              <p className="mt-3 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue">
+              <p className="mt-3 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue-deep">
                 <TrainFront className="h-4 w-4 shrink-0" aria-hidden />
                 {metro.name} · {formatMetroDist(metro)}
               </p>

@@ -124,7 +124,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           <header className="mb-8">
             <div className="mb-4 flex flex-wrap gap-2">
               {post.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-sv-blue">
+                <span key={tag} className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-sv-blue-deep">
                   {tag}
                 </span>
               ))}
@@ -195,7 +195,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </section>
         )}
 
-        <LocalizedLink href="/blog" className="mt-12 inline-flex items-center gap-1.5 text-[14px] font-extrabold text-sv-blue">
+        <LocalizedLink href="/blog" className="mt-12 inline-flex items-center gap-1.5 text-[14px] font-extrabold text-sv-blue-deep">
           <ArrowLeft className="h-4 w-4" aria-hidden /> ყველა სტატია
         </LocalizedLink>
       </main>

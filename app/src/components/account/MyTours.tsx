@@ -40,7 +40,7 @@ const STATUS_CLASS: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700',
   confirmed: 'bg-emerald-50 text-emerald-700',
   cancelled: 'bg-sv-ink/[0.06] text-sv-ink/60',
-  completed: 'bg-sv-blue/10 text-sv-blue',
+  completed: 'bg-sv-blue/10 text-sv-blue-deep',
 }
 
 /** Buyer's booked tours (GET /api/tours). Anon visitors get null — ProfileCard owns the sign-in CTA. */
@@ -98,7 +98,7 @@ export default function MyTours() {
         icon={CalendarCheck}
         title={s('myTours')}
         count={state.status === 'ready' ? state.tours.length : undefined}
-        chipClass="bg-sv-blue/10 text-sv-blue"
+        chipClass="bg-sv-blue/10 text-sv-blue-deep"
       />
       {state.status === 'loading' && <p className="text-[14px] font-semibold text-sv-ink/60">{s('loading')}</p>}
       {state.status === 'error' && (

@@ -107,8 +107,8 @@ function PersonaSubmitButton({
             active
               ? pro
                 ? "bg-sv-orange/15 text-sv-orange"
-                : "bg-sv-blue/15 text-sv-blue"
-              : "bg-sv-blue/10 text-sv-blue group-hover:bg-sv-blue/15"
+                : "bg-sv-blue/15 text-sv-blue-deep"
+              : "bg-sv-blue/10 text-sv-blue-deep group-hover:bg-sv-blue/15"
           }`}
         >
           {pending ? (

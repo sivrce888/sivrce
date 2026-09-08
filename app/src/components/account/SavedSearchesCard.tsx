@@ -52,7 +52,7 @@ export default function SavedSearchesCard() {
         icon={Search}
         title={tt('savedSearches')}
         count={server ? server.length : searches.length}
-        chipClass="bg-sv-blue/10 text-sv-blue"
+        chipClass="bg-sv-blue/10 text-sv-blue-deep"
       />
       {server ? (
         server.length === 0 ? (
@@ -80,7 +80,7 @@ export default function SavedSearchesCard() {
                   title={s.alertEnabled ? tt('alertsPause') : tt('alertsResume')}
                   className={`grid h-11 w-11 shrink-0 place-items-center rounded-module transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 ${
                     s.alertEnabled
-                      ? 'text-sv-blue hover:bg-sv-blue/10'
+                      ? 'text-sv-blue-deep hover:bg-sv-blue/10'
                       : 'text-sv-ink/35 hover:bg-sv-ink/[0.06]'
                   }`}
                 >

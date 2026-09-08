@@ -613,7 +613,7 @@ export default function LocationPicker({
               <button
                 type="button"
                 onClick={() => { setCity(''); setPicked([]); setStreet(''); setQ(''); setMetro(false) }}
-                className="h-11 rounded-control px-3 text-[13px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10"
+                className="h-11 rounded-control px-3 text-[13px] font-extrabold text-sv-blue-deep transition-colors hover:bg-sv-blue/10"
               >
                 {t('search.clear')}
               </button>
@@ -702,7 +702,7 @@ function Chip({ children, onClear }: { children: string; onClear: () => void }) 
     <button
       type="button"
       onClick={onClear}
-      className="inline-flex max-w-[220px] items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-[12px] font-bold text-sv-blue hover:bg-sv-blue/15"
+      className="inline-flex max-w-[220px] items-center gap-1 rounded-full bg-sv-blue/10 px-2.5 py-0.5 text-[12px] font-bold text-sv-blue-deep hover:bg-sv-blue/15"
     >
       <span className="truncate">{children}</span>
       <X className="h-3 w-3 shrink-0" />
