@@ -1216,7 +1216,7 @@ export default function SearchClient({
       {/* Filter bar: full controls on desktop (sticky), compact sheet trigger on mobile */}
       <div className={embed
         ? 'z-30 mb-5 rounded-card border border-sv-ink/[0.06] bg-sv-surface/95 p-3 shadow-card backdrop-blur-md md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'
-        : 'z-40 overflow-visible border-b border-sv-ink/[0.06] glass-light md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'}>
+        : 'z-40 overflow-visible border-b border-sv-ink/[0.06] bg-sv-cloud md:sticky md:top-[calc(88px+env(safe-area-inset-top,0px))]'}>
         <div className={embed ? '' : 'mx-auto max-w-[1440px] px-4 py-3 md:px-10'}>
           <div className="flex items-center gap-2 md:hidden">
             {keywordBox('md', 'min-w-0 flex-1')}

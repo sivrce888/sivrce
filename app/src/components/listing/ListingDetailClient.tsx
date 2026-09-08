@@ -507,6 +507,19 @@ export default function ListingDetailClient({
   })
   const priceMain = priceDetailObj.primary
   const priceAlt = priceDetailObj.secondary
+  const dealPriceLabel = isLease
+    ? t('add.deal.lease')
+    : isRent
+      ? t('detail.monthlyRent')
+      : isDailyDeal
+        ? t('nav.daily')
+        : isPledge
+          ? t('map.pledge')
+          : t('detail.fullPrice')
+  const perM2Label =
+    currency === 'USD'
+      ? `$${l.perM2USD.toLocaleString('en-US')}`
+      : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`
   const publicId = listingPublicId(l)
   const streetHref = l.streetHref ?? null
   const priceScale = useMemo(() => {
@@ -953,7 +966,7 @@ export default function ListingDetailClient({
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div>
                 <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
-                  {isLease ? t('add.deal.lease') : isRent ? t('detail.monthlyRent') : isDailyDeal ? t('nav.daily') : isPledge ? t('map.pledge') : t('detail.fullPrice')}
+                  {dealPriceLabel}
                 </div>
                 <div className="mt-1 text-[32px] font-black tracking-tight text-sv-ink dark:text-sv-blue md:text-[36px]">
                   {priceMain}
@@ -966,9 +979,7 @@ export default function ListingDetailClient({
                   </div>
                 ) : null}
                 <div className="mt-0.5 text-[14px] font-bold text-sv-ink/60 dark:text-sv-blue-light/70">
-                  {priceAlt} · {currency === 'USD'
-                    ? `$${l.perM2USD.toLocaleString('en-US')}`
-                    : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`}/მ²
+                  {priceAlt} · {perM2Label}/მ²
                 </div>
               </div>
               {/* Currency toggle */}
@@ -1318,9 +1329,26 @@ export default function ListingDetailClient({
             )}
           </div>
 
-          {/* Right: agent card (sticky) */}
-          <aside className="lg:sticky lg:top-[92px] lg:self-start">
-            <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
+          {/* Right rail: flows; only the contact card pins — price + CTA stay
+              visible while the long left column scrolls (booking-card pattern) */}
+          <aside className="lg:self-start">
+            <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card lg:sticky lg:top-[calc(92px+env(safe-area-inset-top,0px))]">
+              {/* Pinned price header — booking-card pattern */}
+              <div className="mb-5 border-b border-sv-ink/[0.06] pb-4">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
+                  {dealPriceLabel}
+                </div>
+                <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-[24px] font-black tracking-tight text-sv-ink dark:text-sv-blue">
+                  <span>{priceMain}</span>
+                  {periodKey && (
+                    <span className="text-[14px] font-extrabold text-sv-ink/60">{t(periodKey)}</span>
+                  )}
+                </div>
+                <div className="text-[12px] font-bold text-sv-ink/60 dark:text-sv-blue-light/70">
+                  {priceAlt}
+                  {isSale && l.perM2USD > 0 ? ` · ${perM2Label}/მ²` : ''}
+                </div>
+              </div>
               <div className="flex items-center gap-4">
                 {l.agent.profileHref ? (
                   <LocalizedLink

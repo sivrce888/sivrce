@@ -57,9 +57,8 @@ research/node_modules/
 logo-refs/
 logo/concepts/
 
-# root scratch assets
-/Screenshot *.png
-/v-*.png
+# root scratch assets + screenshots (shots live nowhere in-repo)
+/*.png
 /*.docx
 
 # MapLibre ESM worker copies (node scripts/copy-maplibre-worker.mjs)
@@ -79,6 +78,3 @@ app/.next-debug/
 # audit workspace + alt prod build dir (repo-lightweight-lock)
 /.audit/
 app/.next-prod/
-
-# root-level screenshots (shots live nowhere in-repo)
-/our-map*.png
