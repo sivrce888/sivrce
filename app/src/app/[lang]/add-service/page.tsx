@@ -4,13 +4,34 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { AddServiceForm } from '@/components/services/AddServiceForm'
 import { requireUser } from '@/lib/guards'
-import {kaOnlyAlternates,  } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
+import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
 
-export const metadata: Metadata = {
-  title: 'დაამატე სერვისი',
-  description: 'განათავსე უძრავ ქონებასთან დაკავშირებული სერვისი: რემონტი, იურიდიული, ფოტო, შეფასება, მართვა.',
-  alternates: kaOnlyAlternates('/add-service'),
-  robots: { index: false, follow: true },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/add-service', lang, {
+      ka: {
+        title: 'დაამატე სერვისი',
+        description: 'განათავსე უძრავ ქონებასთან დაკავშირებული სერვისი: რემონტი, იურიდიული, ფოტო, შეფასება, მართვა.',
+      },
+      en: {
+        title: 'Add a service',
+        description: 'List a real-estate service: renovation, legal, photography, valuation, property management.',
+      },
+      ru: {
+        title: 'Добавить сервис',
+        description: 'Разместите услугу в недвижимости: ремонт, юристы, фото, оценка, управление.',
+      },
+    }),
+    alternates: kaOnlyAlternates('/add-service'),
+    robots: { index: false, follow: true },
+  }
 }
 
 export default async function AddServicePage() {

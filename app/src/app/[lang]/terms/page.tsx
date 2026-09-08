@@ -3,14 +3,35 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
-import {kaOnlyAlternates,  } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
+import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'წესები და პირობები — sivrce',
-  description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
-  alternates: kaOnlyAlternates('/terms'),
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/terms', lang, {
+      ka: {
+        title: 'წესები და პირობები',
+        description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
+      },
+      en: {
+        title: 'Terms & Conditions',
+        description: 'sivrce.ge terms of use — posting listings, verification, VIP services and liability.',
+      },
+      ru: {
+        title: 'Правила и условия',
+        description: 'Условия использования sivrce.ge — размещение объявлений, верификация, VIP-сервисы и ответственность.',
+      },
+    }),
+    alternates: kaOnlyAlternates('/terms'),
+  }
 }
 
 const SECTIONS = [

@@ -1,14 +1,25 @@
 import type { Metadata } from 'next'
 import { db } from '@/lib/db'
+import { isValidLang } from '@/lib/i18n/core'
 import { requireUser, safeQuery } from '@/lib/guards'
 import { cadastralFromExtended } from '@/lib/map/cadastre'
 import MyCadastreView, { type MyListingPin } from './MyCadastreView'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'ჩემი ქონება საკადასტრო რუკაზე',
-  robots: { index: false, follow: false },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  const titles: Record<string, string> = {
+    ka: 'ჩემი ქონება საკადასტრო რუკაზე',
+    en: 'My property on the cadastre map',
+    ru: 'Моя недвижимость на кадастровой карте',
+  }
+  return { title: titles[lang] ?? titles.en, robots: { index: false, follow: false } }
 }
 
 export default async function AccountCadastrePage() {

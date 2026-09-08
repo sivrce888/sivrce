@@ -3,16 +3,38 @@ import { Suspense } from 'react'
 import SearchClient from '@/components/search/SearchClient'
 import { pickAds } from '@/lib/ads-db'
 import { isValidLang } from '@/lib/i18n/core'
-import {kaOnlyAlternates,  } from '@/lib/i18n/server'
+import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
 
 export const revalidate = 300
 
-export const metadata: Metadata = {
-  title: 'ძიება — ბინები, სახლები, კომერციული',
-  description:
-    'მოძებნე ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები მთელ საქართველოში — ვერიფიცირებული განცხადებები AI ფასის შეფასებით.',
-  alternates: kaOnlyAlternates('/search'),
-  robots: { index: false, follow: true },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : 'ka'
+  return {
+    ...pageMeta('/search', lang, {
+      ka: {
+        title: 'ძიება',
+        description:
+          'მოძებნე ბინები, სახლები, აგარაკები, მიწა და კომერციული ფართები მთელ საქართველოში — ვერიფიცირებული განცხადებები AI ფასის შეფასებით.',
+      },
+      en: {
+        title: 'Search',
+        description:
+          'Search apartments, houses, cottages, land and commercial spaces across Georgia — verified listings with AI price estimates.',
+      },
+      ru: {
+        title: 'Поиск',
+        description:
+          'Поиск квартир, домов, коттеджей, земли и коммерческих площадей по всей Грузии — проверенные объявления с ИИ-оценкой цены.',
+      },
+    }),
+    alternates: kaOnlyAlternates('/search'),
+    robots: { index: false, follow: true },
+  }
 }
 
 function SearchFallback() {
