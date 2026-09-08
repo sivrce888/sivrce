@@ -121,6 +121,8 @@ export interface SearchResults {
 
 export interface ListingDocument {
   id: string
+  /** Public 8-digit listing number — listingPath() needs it for canonical URLs. */
+  publicId: number
   title: string
   description: string
   city: string

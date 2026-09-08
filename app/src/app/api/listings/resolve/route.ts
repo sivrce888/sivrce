@@ -26,7 +26,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: true, many: true, count: hit.count })
       }
       const listing = await getDbListing(hit.id)
-      const path = listing ? listingPath(listing) : `/listing/${hit.id}`
+      const path = listing ? listingPath(listing) : `/listing/${hit.publicId}`
       return NextResponse.json({ ok: true, id: hit.id, publicId: hit.publicId, path, count: 1 })
     }
   } catch {

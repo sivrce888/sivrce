@@ -1,20 +1,23 @@
 /**
- * SIVRCE — competitor-style listing URL slugs.
+ * SIVRCE — competitor-style listing URLs.
  * ss.ge ranks on `/ka/udzravi-qoneba/iyideba-3-otaxiani-bina-gldanshi-35127949`;
  * myhome on `/udzravi-qoneba/25505302/iyideba-2-otaxiani-bina-ortachalashi/`.
- * Ours: `/listing/{id}/{transliterated-keyword}` — id stays the lookup key
- * (unique, stable), the slug carries the exact Georgian query in Latin.
- * Canonical + 301 live in app/[lang]/listing/[id]/[[...slug]]/page.tsx.
+ * Ours: `/listing/{publicId}/{transliterated-keyword}` — MyHome-style 8-digit
+ * public number as the stable lookup key, slug carries the exact Georgian
+ * query in Latin. Canonical + 301 live in
+ * app/[lang]/listing/[id]/[[...slug]]/page.tsx (uuid links redirect there too).
  */
 
 import { ka, type DictKey } from '@/lib/i18n/ka'
 import { dealLabelKey } from '@/lib/add-listing-fields'
 import { cap1, fillTpl, seoTitleParts } from '@/lib/seo-title'
+import { PUBLIC_ID_BASE } from '@/lib/listing-public-id'
 import type { DealType, PropType } from '@/data/listings'
 
 /** Minimum shape the slug needs — both data/listings and listings-db Listing satisfy it. */
 export interface SlugListing {
   id: string
+  publicId?: number | null
   dealType: DealType
   propType: PropType
   rooms: number
@@ -69,7 +72,11 @@ export function listingSlug(l: SlugListing): string {
   return transliterateKa(listingKeyword(l))
 }
 
-/** Canonical public path. Locale prefix is added by LocalizedLink / callers. */
+/** Canonical public path. Locale prefix is added by LocalizedLink / callers.
+ * ponytail: public number when known, else the resolvable uuid — a uuid URL
+ * 308s to the canonical server-side, so rendered links never dead-end (Meili
+ * docs only gain publicId after the nightly sync-search). */
 export function listingPath(l: SlugListing): string {
-  return `/listing/${l.id}/${listingSlug(l)}`
+  const key = l.publicId != null && l.publicId >= PUBLIC_ID_BASE ? l.publicId : l.id
+  return `/listing/${key}/${listingSlug(l)}`
 }

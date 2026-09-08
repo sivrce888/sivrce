@@ -18,7 +18,14 @@ const l = LISTINGS.find((x) => x.propType === 'apartment' && x.beds > 0)!
 const slug = listingSlug(l)
 assert.match(slug, /^[a-z0-9-]+$/, `slug not url-safe: ${slug}`)
 assert.ok(slug.includes('sadzinebliani-bina'), `keyword missing: ${slug}`)
-assert.equal(listingPath(l), `/listing/${l.id}/${slug}`)
+// canonical path: keyword slug + public-number id when known, uuid fallback resolves too
+assert.ok(listingPath(l).endsWith(`/${slug}`), `keyword missing: ${listingPath(l)}`)
+assert.match(
+  listingPath({ ...l, publicId: 10000046 }),
+  /^\/listing\/\d{7,9}\//,
+  `public id not used: ${listingPath(l)}`,
+)
+assert.match(listingPath(l), /^\/listing\/[a-z0-9-]+\//, `unresolvable key: ${listingPath(l)}`)
 assert.ok(listingKeyword({ ...l, dealType: 'buy' as never }).length > 0, 'db dialect must not crash slug')
 
 // every listing in the catalog produces a non-empty, url-safe slug

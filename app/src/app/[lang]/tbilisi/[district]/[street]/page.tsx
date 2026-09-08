@@ -18,6 +18,7 @@ import {
 import { getListingsOnStreet } from '@/lib/listings-db'
 import { DISTRICTS, parseSeoSlug, statsOf, type District, type Faq } from '@/lib/seo-pages'
 import { jsonLd } from '@/lib/utils'
+import { listingPath } from '@/lib/listing-slug'
 import { langAlternates } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.ge'
@@ -162,7 +163,7 @@ function streetLd(
               itemListElement: listings.slice(0, 30).map((l, i) => ({
                 '@type': 'ListItem',
                 position: i + 1,
-                url: `${BASE}/listing/${l.id}`,
+                url: `${BASE}${listingPath(l)}`,
                 name: l.title,
               })),
             },

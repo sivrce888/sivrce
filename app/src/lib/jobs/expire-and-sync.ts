@@ -84,6 +84,7 @@ export async function syncSearchIndexJob(): Promise<{
     where: { deletedAt: null, status: "active" },
     select: {
       id: true,
+      publicId: true,
       title: true,
       description: true,
       city: true,

@@ -32,6 +32,7 @@ async function main() {
   const id = `check-${Date.now()}`
   const doc: ListingDocument = {
     id,
+    publicId: 10000001,
     title: "სატესტო ბინა ვაკეში",
     description: "check document",
     city: "თბილისი",

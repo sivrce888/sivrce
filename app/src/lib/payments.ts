@@ -799,6 +799,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
     where: { id: listingId },
     select: {
       id: true,
+      publicId: true,
       title: true,
       description: true,
       city: true,
@@ -840,6 +841,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
   const tierKey = effectiveTierKey(listing.tier, listing.tierExpiresAt)
   const doc: ListingDocument = {
     id: listing.id,
+    publicId: listing.publicId,
     streetHref: streetHrefForListing(listing.address, listing.district, listing.city),
     title: listing.title,
     description: listing.description,

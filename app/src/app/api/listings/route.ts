@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       petsAllowed: p.features.includes("add.f.petsAllowed"),
       sellerType: session.user.role === "agency" || session.user.role === "agent" ? "agency" : "owner",
     },
-    select: { id: true },
+    select: { id: true, publicId: true },
   })
 
   void attributeListing(listing.id).catch(() => {})
@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
 
   void indexListing({
     id: listing.id,
+    publicId: listing.publicId,
     title: p.title,
     description: p.description,
     city: p.city,

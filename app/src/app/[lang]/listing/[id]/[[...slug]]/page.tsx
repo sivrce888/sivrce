@@ -33,7 +33,7 @@ export async function generateStaticParams() {
   // Live ids only — no mock inventory in the static set.
   try {
     const rows = await getAllListings(80)
-    return rows.map((l) => ({ lang: 'ka', id: l.id, slug: [listingSlug(l)] }))
+    return rows.map((l) => ({ lang: 'ka', id: String(listingPublicId(l)), slug: [listingSlug(l)] }))
   } catch {
     return []
   }
@@ -134,10 +134,16 @@ export default async function ListingPage({ params }: PageProps) {
   const listing = await getListing(id)
   if (!listing) notFound()
 
-  // Competitor-style canonical: /listing/{id}/{keyword-slug}. Bare /listing/id
-  // (old links, shares) and wrong/garbage slugs 301 to it — juice consolidates.
+  // Competitor-style canonical: /listing/{publicId}/{keyword-slug}. getListing
+  // accepts both the uuid and the public number, so legacy uuid links and
+  // bare /listing/id and wrong/garbage slugs all 301 to it — juice consolidates.
   const canonical = listingPath(listing)
-  if (slug?.join('/') !== listingSlug(listing)) permanentRedirect(canonical)
+  if (
+    id !== String(listingPublicId(listing)) ||
+    slug?.join('/') !== listingSlug(listing)
+  ) {
+    permanentRedirect(canonical)
+  }
 
   const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents] = await Promise.all([
     getSimilarListings(listing, 8).catch(() => []),
