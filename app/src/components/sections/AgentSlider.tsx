@@ -80,9 +80,11 @@ export default function AgentSlider({
               </div>
 
               <div className="mt-4 flex items-center justify-between border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-ink/75">
-                <span className="text-sv-ink/60">
-                  {b('home.agents.active', { n: a.listingsCount })}
-                </span>
+                {a.listingsCount > 0 ? (
+                  <span className="text-sv-ink/60">{b('home.agents.active', { n: a.listingsCount })}</span>
+                ) : (
+                  <span />
+                )}
                 <span className="text-sv-blue-deep dark:text-sv-blue-light group-hover:underline">{b('home.agents.profile')} →</span>
               </div>
             </LocalizedLink>

@@ -30,6 +30,9 @@ export default function RecentlyViewed({
   const ids = useRecentIds().slice(0, limit)
   const { items, loading } = useListingsByIds(ids)
 
+  // ids are empty until the storage event fires on mount — bail before the
+  // skeleton so first-time visitors never see it flash (homepage drop-in).
+  if (hideWhenEmpty && ids.length === 0) return null
   if (!loading && items.length === 0 && hideWhenEmpty) return null
 
   return (
