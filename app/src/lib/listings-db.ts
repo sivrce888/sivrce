@@ -434,6 +434,39 @@ export async function getListingsOnStreet(streetKa: string, districtKa: string):
   }, [])
 }
 
+/**
+ * Active listings within walking radius of a point (Tbilisi metro station pages).
+ * Bounding-box WHERE keeps the scan index-friendly; haversine trims the corners.
+ */
+export async function getListingsNearMetro(lat: number, lng: number, radiusM = 1200): Promise<Listing[]> {
+  const dLat = radiusM / 111_320
+  const dLng = radiusM / (111_320 * Math.cos((lat * Math.PI) / 180))
+  const rad = Math.PI / 180
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: {
+        deletedAt: null,
+        status: "active",
+        city: "თბილისი",
+        lat: { gte: lat - dLat, lte: lat + dLat },
+        lng: { gte: lng - dLng, lte: lng + dLng },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    })
+    const R = 6_371_000
+    const near = rows.filter((r) => {
+      const aLat = (r.lat - lat) * rad
+      const aLng = (r.lng - lng) * rad
+      const h =
+        Math.sin(aLat / 2) ** 2 +
+        Math.cos(lat * rad) * Math.cos(r.lat * rad) * Math.sin(aLng / 2) ** 2
+      return 2 * R * Math.asin(Math.sqrt(h)) <= radiusM
+    })
+    return near.slice(0, 48).map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+}
+
 /** Similar listings: same district+deal first, then same type+deal in city. */
 export async function getSimilarListings(
   listing: Pick<Listing, "id" | "dealType" | "propType" | "city" | "district">,

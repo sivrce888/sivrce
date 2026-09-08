@@ -288,6 +288,7 @@ export default async function StreetPage({ params }: PageProps) {
             href={`/search?city=${encodeURIComponent('თბილისი')}&district=${encodeURIComponent(district.ka)}`}
           />
           <Chip label="თბილისის ქუჩები" href="/tbilisi/kuchebi" />
+          <Chip label="ბინები მეტროსთან" href="/metro" />
         </div>
 
         {/* Listings */}

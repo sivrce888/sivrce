@@ -4,6 +4,7 @@ import { getAllListings } from '@/lib/listings-db'
 import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { STREETS } from '@/data/tbilisi-streets'
+import { METRO_STATIONS } from '@/data/tbilisi-metro'
 import { BLOG_POSTS } from '@/data/blog'
 import { FORUM_THREADS } from '@/data/forum'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
@@ -188,6 +189,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!s.district) continue
     entries.push({
       path: `/tbilisi/${s.district}/${s.slug}`,
+      lastModified: DEPLOY_DATE,
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    })
+  }
+
+  // Metro-level SEO: all-stations hub + 22 ka-only station pages.
+  entries.push({ path: '/metro', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 })
+  for (const m of METRO_STATIONS) {
+    entries.push({
+      path: `/metro/${m.slug}`,
       lastModified: DEPLOY_DATE,
       changeFrequency: 'weekly',
       priority: 0.6,
