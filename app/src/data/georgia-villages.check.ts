@@ -24,6 +24,19 @@ if (GEO_CITIES.includes('სტეფანწმინდა')) throw new Error
 if (!villagesOf('ყაზბეგის მუნიციპალიტეტი').includes('გერგეტი')) throw new Error('გერგეტი missing')
 // Baghdati polygon was skipped for months (garbage name:ka) — its OSM top-up must stay.
 if (villagesOf('ბაღდათის მუნიციპალიტეტი').length < 25) throw new Error('ბაღდათი top-up lost')
+// place=town re-sync silently dropped these (EXTRA_VILLAGES canon in sync-villages.py) —
+// a source flake must never delete real settlements again.
+const VILLAGE_CANON: Record<string, string[]> = {
+  'ამბროლაურის მუნიციპალიტეტი': ['გოგოლათი'],
+  'კასპის მუნიციპალიტეტი': ['ზადიაანთკარი'],
+  'ქარელის მუნიციპალიტეტი': ['ლოშკინეთი'],
+  'ხარაგაულის მუნიციპალიტეტი': ['უბისი'],
+  'ხონის მუნიციპალიტეტი': ['ნამაშევი', 'ჩაის მეურნეობა'],
+}
+for (const [m, names] of Object.entries(VILLAGE_CANON)) {
+  const list = villagesOf(m)
+  for (const n of names) if (!list.includes(n)) throw new Error(`canon village lost: ${n} (${m})`)
+}
 
 // No village shadows a city name; no empty or whitespace entries; per-muni dedupe.
 const cities = new Set(GEO_CITIES)

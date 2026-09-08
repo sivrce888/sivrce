@@ -55,6 +55,14 @@ MUNI_SKIP = {'ყორნისის რაიონი', 'ქუთაის�
 EXTRA_VILLAGES = {
   'ყაზბეგის მუნიციპალიტეტი': ['გერგეტი'],
   'თელავის მუნიციპალიტეტი': ['ქისისხევი', 'ყივჭყანი'],
+  # Survivors of the place=town re-sync — real villages the fresh Overpass
+  # pass dropped (polygon flips / source flake). Hand-verified against the
+  # 75cc789 gazetteer; ვაჭევი/გოლისი-type moves were relocations, not losses.
+  'ამბროლაურის მუნიციპალიტეტი': ['გოგოლათი'],
+  'კასპის მუნიციპალიტეტი': ['ზადიაანთკარი'],
+  'ქარელის მუნიციპალიტეტი': ['ლოშკინეთი'],
+  'ხარაგაულის მუნიციპალიტეტი': ['უბისი'],
+  'ხონის მუნიციპალიტეტი': ['ნამაშევი', 'ჩაის მეურნეობა'],
 }
 
 # Town names that alias a catalog city — never village rows (სტეფანწმინდა = ყაზბეგი).
