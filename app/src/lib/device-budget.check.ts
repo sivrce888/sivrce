@@ -107,6 +107,16 @@ lock("src/components/chat/ChatShell.tsx", ["next/dynamic"])
 lock("src/lib/db.ts", ["max: 1"], ["max: 10"])
 lock("sentry.client.config.ts", ["replaysSessionSampleRate: 0"], ["replaysSessionSampleRate: 1"])
 
+// ponytail: RAM ceiling — every function >1024 MB or an unpinned API route fails the build
+const vercel = JSON.parse(read("vercel.json")) as { functions: Record<string, { memory?: number }> }
+for (const [glob, fn] of Object.entries(vercel.functions)) {
+  assert.ok(fn.memory !== undefined, `${glob} has no memory pin`)
+  assert.ok(fn.memory <= 1024, `${glob} memory ${fn.memory} exceeds 1024 MB cap`)
+}
+assert.equal(vercel.functions["src/app/api/**/*"].memory, 256, "api catch-all must pin 256 MB (Vercel default is 1024)")
+const heap = /max-old-space-size=(\d+)/.exec(JSON.parse(read("package.json")).scripts.start)
+assert.ok(heap && Number(heap[1]) <= 768, "next start heap must stay ≤768 MB")
+
 for (const f of [
   "src/app/favicon.ico",
   "src/app/icon.png",

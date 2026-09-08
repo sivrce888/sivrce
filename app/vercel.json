@@ -11,6 +11,7 @@
     { "path": "/api/cron/sync-nearest-poi", "schedule": "30 4 * * *" }
   ],
   "functions": {
+    "src/app/api/**/*": { "memory": 256 },
     "src/app/api/map/**/*": { "maxDuration": 8, "memory": 256 },
     "src/app/api/sat/**/*": { "maxDuration": 8, "memory": 256 },
     "src/app/api/napr/**/*": { "maxDuration": 8, "memory": 256 },

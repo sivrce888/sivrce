@@ -23,8 +23,8 @@ Ponytail level: **`lite`** (not full/ultra unless owner says otherwise).
 
 | Source | Lock |
 | --- | --- |
-| `app/vercel.json` | Per-route `memory` + `maxDuration` — do not bump without owner approval |
-| Default API routes | 256 MB / short timeout unless listed |
+| `app/vercel.json` | Catch-all `src/app/api/**/*` pinned **256 MB**; per-route `memory`/`maxDuration` overrides — most-specific glob wins |
+| Default API routes | **Enforced** 256 MB via catch-all; >1024 MB or unpinned route fails `device-budget.check.ts` |
 | Hot paths | search/map-data/ai/cron: 1024 MB max — already ceiling |
 | DB pool | `src/lib/db.ts` `max: 1` — one connection per lambda |
 | Runtime | Fluid Compute (Node), **not** `runtime = 'edge'` unless required |
