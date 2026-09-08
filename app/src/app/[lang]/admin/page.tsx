@@ -4,6 +4,7 @@ import {
   CreditCard,
   Flag,
   Gavel,
+  HeartPulse,
   Hourglass,
   Inbox,
   ShieldAlert,
@@ -25,10 +26,12 @@ import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { fmtDate, fmtMoney, fmtNum, fmtTetri, timeAgo } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
 import { getDashboardMetrics } from "@/lib/admin/metrics"
+import { getJobHealth } from "@/lib/admin/system"
 
 export default async function AdminDashboardPage() {
   await requireAdmin()
-  const m = await getDashboardMetrics()
+  const [m, jobHealth] = await Promise.all([getDashboardMetrics(), getJobHealth()])
+  const jobAttention = jobHealth.failed48h + jobHealth.overdue
 
   const revenueHint =
     m.stripeRevenueCents > 0
@@ -165,6 +168,13 @@ export default async function AdminDashboardPage() {
                 count: m.failedPayments,
                 href: "/admin/payments",
                 icon: CreditCard,
+              },
+              {
+                label: "Cron job failures",
+                hint: "Failed (48h) or missed daily runs",
+                count: jobAttention,
+                href: "/admin/system?tab=health",
+                icon: HeartPulse,
               },
             ]}
           />

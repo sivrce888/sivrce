@@ -1,6 +1,7 @@
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 
 const TABS = [
+  { tab: "health", href: "/admin/system?tab=health", label: "Health" },
   { tab: "settings", href: "/admin/system", label: "Settings" },
   { tab: "config", href: "/admin/system?tab=config", label: "Raw config" },
   { tab: "broadcast", href: "/admin/system?tab=broadcast", label: "Broadcast" },

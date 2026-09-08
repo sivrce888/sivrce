@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { assertCronAuth } from "@/lib/cron/auth"
 import { writeMonthlySnapshots } from "@/lib/market-stats"
+import { withJobRun } from "@/lib/jobs/run"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
   const denied = assertCronAuth(req)
   if (denied) return denied
   try {
-    const result = await writeMonthlySnapshots()
+    const result = await withJobRun("market-snapshot", writeMonthlySnapshots, (r) => r.written)
     return NextResponse.json({ ok: true, ...result })
   } catch (e) {
     console.error("[cron/market-snapshot]", (e as Error).message)

@@ -1,4 +1,4 @@
-import { ScrollText, Settings2 } from "lucide-react"
+import { Activity, ScrollText, Settings2 } from "lucide-react"
 import Link from "next/link"
 
 import { deleteConfig } from "@/app/[lang]/admin/system/actions"
@@ -17,13 +17,14 @@ import { SearchForm } from "@/components/admin/ui/SearchForm"
 import { fmtDateTime, timeAgo } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
 import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
-import { prettyJson } from "@/lib/admin/system"
+import { getJobHealth, prettyJson } from "@/lib/admin/system"
+import type { JobHealthRow } from "@/lib/admin/job-cadence"
 import { configFormModel, getAllConfig } from "@/lib/config"
 import { db } from "@/lib/db"
 
 export const metadata = { title: "System" }
 
-const TABS = ["settings", "config", "broadcast", "audit"] as const
+const TABS = ["health", "settings", "config", "broadcast", "audit"] as const
 type SystemTab = (typeof TABS)[number]
 
 function isTab(v: string): v is SystemTab {
@@ -47,11 +48,119 @@ export default async function AdminSystemPage({
         description="Platform settings, broadcasts and audit trail"
       />
       <SystemTabs active={tab} />
+      {tab === "health" ? <HealthTab /> : null}
       {tab === "settings" ? <SettingsTab /> : null}
       {tab === "config" ? <ConfigTab /> : null}
       {tab === "broadcast" ? <BroadcastTab /> : null}
       {tab === "audit" ? <AuditTab sp={sp} /> : null}
     </>
+  )
+}
+
+function fmtMs(ms: number | null): string {
+  if (ms === null) return "—"
+  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
+}
+
+function HealthPill({ row }: { row: JobHealthRow }) {
+  if (!row.tracked || row.ok === null) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-sv-ink/6 px-2.5 py-1 text-[12px] font-bold text-sv-ink/60">
+        <span className="h-1.5 w-1.5 rounded-full bg-sv-ink/30" />
+        No runs yet
+      </span>
+    )
+  }
+  if (row.stale) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[12px] font-bold text-amber-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        Overdue
+      </span>
+    )
+  }
+  return row.ok ? (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-bold text-emerald-700">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+      OK
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[12px] font-bold text-rose-700">
+      <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+      Failed
+    </span>
+  )
+}
+
+/** Cron job runs — failures and missed daily schedules surface here. */
+async function HealthTab() {
+  const health = await getJobHealth()
+  const anyTrouble = health.failed48h > 0 || health.overdue > 0
+
+  return (
+    <div>
+      <p className="mb-4 max-w-[560px] text-[13px] text-sv-ink/60">
+        Nightly cron jobs. A job that failed in the last 48h or missed its daily
+        schedule (26h) shows here — the dashboard flags the same conditions.
+      </p>
+      {anyTrouble ? (
+        <div
+          role="status"
+          className="mb-4 rounded-[var(--radius-control)] border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] font-semibold text-amber-800"
+        >
+          {health.overdue > 0 ? `${health.overdue} job(s) overdue · ` : ""}
+          {health.failed48h > 0 ? `${health.failed48h} failure(s) in the last 48h` : ""}
+        </div>
+      ) : null}
+      {health.jobs.some((j) => j.tracked) ? (
+        <DataTable>
+          <THeadRow>
+            <th className={th}>Job</th>
+            <th className={th}>Last run</th>
+            <th className={th}>Status</th>
+            <th className={th}>Items</th>
+            <th className={th}>Duration</th>
+            <th className={th}>Error</th>
+          </THeadRow>
+          <tbody>
+            {health.jobs.map((row) => (
+              <TRow key={row.job}>
+                <td className={`${td} font-mono text-[12.5px] whitespace-nowrap`}>{row.job}</td>
+                <td
+                  className={`${td} whitespace-nowrap text-sv-ink/60`}
+                  title={row.lastRanAt ? fmtDateTime(row.lastRanAt) : undefined}
+                >
+                  {row.lastRanAt ? timeAgo(row.lastRanAt) : "—"}
+                </td>
+                <td className={td}>
+                  <HealthPill row={row} />
+                </td>
+                <td className={`${td} tabular-nums`}>{row.tracked ? row.count ?? 0 : "—"}</td>
+                <td className={`${td} tabular-nums text-sv-ink/60`}>{fmtMs(row.ms)}</td>
+                <td className={`${td} max-w-[320px]`}>
+                  {row.error ? (
+                    <span
+                      className="block truncate font-mono text-[12px] text-rose-600"
+                      title={row.error}
+                    >
+                      {row.error}
+                    </span>
+                  ) : (
+                    <span className="text-sv-ink/30">—</span>
+                  )}
+                </td>
+              </TRow>
+            ))}
+          </tbody>
+        </DataTable>
+      ) : (
+        <EmptyState
+          icon={Activity}
+          title="No job runs recorded yet"
+          hint="Rows appear after the next nightly cron window (02:15–04:30 UTC)."
+        />
+      )}
+    </div>
   )
 }
 

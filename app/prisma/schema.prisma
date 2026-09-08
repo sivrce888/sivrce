@@ -2481,6 +2481,22 @@ model ListingAlertSubscription {
   @@map("listing_alert_subscriptions")
 }
 
+/// One row per cron job execution — admin System → Health tab surfaces
+/// failures and missed runs; jobs stay silent otherwise.
+model JobRun {
+  id    String   @id @default(cuid()) @db.VarChar(120)
+  job   String   @db.VarChar(60)
+  ok    Boolean
+  count Int      @default(0)
+  ms    Int?
+  error String?  @db.VarChar(500)
+  ranAt DateTime @default(now()) @map("ran_at") @db.Timestamptz(6)
+
+  @@index([job, ranAt], map: "job_runs_job_ran_idx")
+  @@index([ok, ranAt], map: "job_runs_ok_ran_idx")
+  @@map("job_runs")
+}
+
 /// Mass OSM building corpus (Tbilisi / Batumi / GE). Not MapBuilding (curated).
 /// Write-through from /api/site + tiled Overpass ingest.
 model OsmBuilding {
