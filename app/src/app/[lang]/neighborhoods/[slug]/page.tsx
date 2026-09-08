@@ -6,6 +6,7 @@ import NeighborhoodDetail from '@/components/neighborhoods/NeighborhoodDetail'
 import { NEIGHBORHOODS, getNeighborhood } from '@/data/neighborhoods'
 import { getListingsInDistricts, USD_GEL } from '@/lib/listings-db'
 import { getNeighborhoodMarketStats } from '@/lib/market-stats'
+import { WeatherBadge } from '@/components/WeatherBadge'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
@@ -98,7 +99,19 @@ export default async function NeighborhoodPage({ params }: PageProps) {
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main">
-        <NeighborhoodDetail n={n} listings={listings} market={market} />
+        <NeighborhoodDetail
+          n={n}
+          listings={listings}
+          market={market}
+          weather={
+            <WeatherBadge
+              coords={n.coords}
+              label={n.name.ka}
+              className="text-white/80"
+              iconClassName="h-4 w-4"
+            />
+          }
+        />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(placeLd) }} />

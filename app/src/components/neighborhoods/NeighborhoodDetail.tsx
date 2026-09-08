@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import LocalizedLink from '@/components/LocalizedLink'
 import { MapPin, Building2, Gauge, Wallet, ArrowRight, ArrowUpRight, TrendingUp } from 'lucide-react'
@@ -18,11 +19,14 @@ export default function NeighborhoodDetail({
   n,
   listings,
   market = null,
+  weather = null,
 }: {
   n: Neighborhood
   listings: Listing[]
   /** Live district stats — falls back to the static guide price when thin. */
   market?: { stats: DistrictStats | null; mom: number | null } | null
+  /** Server-rendered <WeatherBadge> slot — fetched on the server, shown in the hero. */
+  weather?: ReactNode
 }) {
   const { lang } = useI18n()
   const s = useNb()
@@ -47,6 +51,14 @@ export default function NeighborhoodDetail({
           <Reveal>
             <p className="mb-3 flex items-center gap-1.5 text-[14px] font-bold text-white/75">
               <MapPin className="h-4 w-4" /> {city}, {s.georgia}
+              {weather && (
+                <>
+                  <span className="ml-1 text-white/30" aria-hidden="true">
+                    ·
+                  </span>
+                  {weather}
+                </>
+              )}
             </p>
             <div className="flex flex-wrap items-end justify-between gap-5">
               <h1 className="text-balance text-[38px] font-black tracking-[-0.02em] text-white md:text-[56px]">

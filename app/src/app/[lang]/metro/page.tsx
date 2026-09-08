@@ -6,6 +6,8 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { METRO_LINES, METRO_STATIONS, metroByLine } from '@/data/tbilisi-metro'
 import { DISTRICTS } from '@/lib/seo-pages'
+import { WeatherBadge } from '@/components/WeatherBadge'
+import { cityCoords } from '@/lib/weather'
 import { jsonLd } from '@/lib/utils'
 import { langAlternates } from '@/lib/i18n/server'
 
@@ -98,6 +100,7 @@ export default function MetroIndexPage() {
           <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {METRO_STATIONS.length} სადგური · 2 ხაზი
           </span>
+          <WeatherBadge coords={cityCoords('tbilisi')} label="თბილისი" className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card" />
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             ბინები მეტროსთან — თბილისის ყველა სადგური
           </h1>

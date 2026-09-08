@@ -7,6 +7,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import SeoFilterableListings from '@/components/seo/SeoFilterableListings'
 import { WeatherBadge } from '@/components/WeatherBadge'
+import { cityCoords } from '@/lib/weather'
 import { formatUSD } from '@/data/listings'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
 import { getNeighborhood, pick as pickNb } from '@/data/neighborhoods'
@@ -246,9 +247,13 @@ export default function SeoLanding({
   // National deal×type hubs (myhome/ss pattern): curated ka long-form SEO.
   const hubProse = loc === 'ka' && def.kind === 'deal-type' ? hubProseOf(def.dealSlug, def.typeSlug) : null
 
-  // Tbilisi district extras: live weather badge + street-level link mesh (ka only).
+  // District extras: street-level link mesh (ka only).
   const tbilisiDistrict = def.district?.citySlug === 'tbilisi' ? def.district : undefined
-  const distCoords = tbilisiDistrict ? DISTRICT_COORDS[tbilisiDistrict.slug] : undefined
+  // Weather: the most precise place wins — district center, else its city, else the page's city.
+  const weatherCoords = def.district
+    ? (DISTRICT_COORDS[def.district.slug] ?? cityCoords(def.district.citySlug))
+    : cityCoords(def.city?.slug)
+  const weatherPlace = def.district?.ka ?? def.city?.ka
   const districtStreets =
     loc === 'ka' && tbilisiDistrict ? streetsOfDistrict(tbilisiDistrict.slug).slice(0, 24) : []
   const guideSlug = guideSlugOf(def)
@@ -281,10 +286,11 @@ export default function SeoLanding({
           <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {ui.badge}
           </span>
-          {tbilisiDistrict && distCoords && (
+          {weatherCoords && weatherPlace && (
             <WeatherBadge
-              coords={distCoords}
-              label={tbilisiDistrict.ka}
+              coords={weatherCoords}
+              label={weatherPlace}
+              lang={loc}
               className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
             />
           )}

@@ -1,10 +1,9 @@
-'use client'
-
 /**
- * SIVRCE — Weather badge for listing cards and district/street SEO pages.
- * Shows current temperature + condition icon. Pass `city` (Georgian name) or
- * raw `coords` (district center); `label` overrides the place in the tooltip.
- * Uses Open-Meteo free API via useWeather / useWeatherCoords hooks.
+ * SIVRCE — weather badge (async server component). Current temp + condition
+ * rendered straight into SSR HTML — no client JS, no pop-in. Renders nothing
+ * while weather is unavailable (API failure, unknown city).
+ * Pass `coords` (exact point) or `citySlug` (city center); `label` names the
+ * place in the tooltip. Styling is caller-owned via `className`.
  */
 
 import {
@@ -20,7 +19,8 @@ import {
   Thermometer,
   type LucideIcon,
 } from 'lucide-react'
-import { useWeather, useWeatherCoords, weatherIcon, type WeatherIconName } from '@/lib/weather'
+import type { Lang } from '@/lib/i18n/core'
+import { cityCoords, getWeather, weatherIcon, type WeatherIconName } from '@/lib/weather'
 
 const ICONS: Record<WeatherIconName, LucideIcon> = {
   sun: Sun,
@@ -35,23 +35,24 @@ const ICONS: Record<WeatherIconName, LucideIcon> = {
   thermometer: Thermometer,
 }
 
-export function WeatherBadge({
-  city,
+export async function WeatherBadge({
   coords,
+  citySlug,
   label,
+  lang = 'ka',
   className = '',
+  iconClassName = 'h-3.5 w-3.5',
 }: {
-  city?: string
   coords?: { lat: number; lng: number }
+  citySlug?: string
   label?: string
+  lang?: Lang
   className?: string
+  iconClassName?: string
 }) {
-  // Both hooks run (rules of hooks); the unused one is a cache-less no-op.
-  const byCity = useWeather(city ?? '')
-  const byCoords = useWeatherCoords(coords?.lat, coords?.lng)
-  const w = city ? byCity : byCoords
-
-  // Nothing to show while loading or if city/coords unsupported
+  const at = coords ?? cityCoords(citySlug)
+  if (!at) return null
+  const w = await getWeather(at, lang)
   if (!w) return null
 
   const Icon = ICONS[weatherIcon(w.code)]
@@ -59,10 +60,11 @@ export function WeatherBadge({
   return (
     <span
       className={`inline-flex items-center gap-1 text-[11px] font-bold tracking-wide ${className}`}
-      title={`${w.label}, ${w.temp}°C — ${label ?? city ?? ''}`}
+      title={`${w.label}, ${w.temp}°C — ${label ?? citySlug ?? ''}`}
     >
-      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" strokeWidth={2} />
-      <span>{w.temp}°C</span>
+      <Icon className={iconClassName} aria-hidden="true" strokeWidth={2} />
+      <span>{w.temp}°</span>
+      <span className="sr-only">{w.label}</span>
     </span>
   )
 }

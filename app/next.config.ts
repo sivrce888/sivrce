@@ -20,8 +20,9 @@ const mediaOrigins = ""
 const analyticsOrigins =
   " https://www.googletagmanager.com https://*.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://counter.top.ge https://*.sentry.io https://*.posthog.com https://*.i.posthog.com"
 
-// First-party feature APIs: Open-Meteo (weather badges) + open.er-api (FX rates)
-const featureApiOrigins = " https://api.open-meteo.com https://open.er-api.com"
+// First-party feature APIs: open.er-api (FX rates). Weather moved server-side
+// (lib/weather.ts) — Open-Meteo no longer needs a browser connect-src entry.
+const featureApiOrigins = " https://open.er-api.com"
 
 const csp = [
   "default-src 'self'",
