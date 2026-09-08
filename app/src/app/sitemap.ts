@@ -197,6 +197,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Metro-level SEO: all-stations hub + 22 ka-only station pages.
   entries.push({ path: '/metro', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 })
+  entries.push({ path: '/locations', lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.7 })
   for (const m of METRO_STATIONS) {
     entries.push({
       path: `/metro/${m.slug}`,

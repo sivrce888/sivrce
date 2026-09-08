@@ -1,5 +1,6 @@
 import { CITIES, districtsOf } from "@/data/listings"
 import { geoStreets, geoStreetsOf, type GeoStreet } from "@/data/georgia-streets"
+import { villagesOf, allVillages } from "@/data/georgia-villages"
 import { TBILISI_QUARTERS } from "@/data/tbilisi-quarters"
 import { districtKaForStreet, STREETS as TBILISI_STREETS } from "@/data/tbilisi-streets"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"
@@ -31,6 +32,9 @@ interface Suggestion {
 const DISTRICTS: { ka: string; city: string }[] = CITIES.flatMap((city) =>
   districtsOf(city).map((d) => ({ ka: d, city })),
 )
+
+/** Villages by municipality — picked as district of the muni (search model: city → district). */
+const VILLAGES = allVillages()
 
 const STREETS: GeoStreet[] = []
 {
@@ -76,6 +80,13 @@ function browseStreets(city: string, districtCsv: string): Suggestion[] {
     .map((ka) => ({ kind: "street" as const, ka, city }))
 }
 
+function browseVillages(city: string): Suggestion[] {
+  return villagesOf(city)
+    .slice()
+    .sort((a, b) => a.localeCompare(b, "ka"))
+    .map((ka) => ({ kind: "district" as const, ka, city }))
+}
+
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams
   const q = (sp.get("q") ?? "").trim().toLowerCase()
@@ -85,7 +96,7 @@ export async function GET(req: Request) {
   if (q.length < 2) {
     if (sp.get("browse") === "1" && cityFilter) {
       return Response.json(
-        { ok: true, suggestions: browseStreets(cityFilter, districtFilter) },
+        { ok: true, suggestions: [...browseStreets(cityFilter, districtFilter), ...browseVillages(cityFilter)] },
         { headers: CACHE },
       )
     }
@@ -110,6 +121,11 @@ export async function GET(req: Request) {
     if (cityFilter && d.city !== cityFilter) continue
     const m = suggestMatch([d.ka], q)
     if (m) push({ kind: "district", ka: d.ka, city: d.city }, m.prefix)
+  }
+  for (const v of VILLAGES) {
+    if (cityFilter && v.muni !== cityFilter) continue
+    const m = suggestMatch([v.ka], q)
+    if (m) push({ kind: "district", ka: v.ka, city: v.muni }, m.prefix)
   }
   // Quarters before streets — "მეორე კვარტალი" must beat random street substrings.
   for (const qtr of TBILISI_QUARTERS) {
@@ -142,6 +158,12 @@ export async function GET(req: Request) {
       if (cityFilter && s.city !== cityFilter) continue
       if (suggestFuzzy([s.ka, s.en, s.ru], q)) {
         push({ kind: "street", ka: s.ka, en: s.en, city: s.city, district: districtKaForStreet(s.ka) }, false)
+      }
+    }
+    for (const v of VILLAGES) {
+      if (cityFilter && v.muni !== cityFilter) continue
+      if (suggestFuzzy([v.ka], q)) {
+        push({ kind: "district", ka: v.ka, city: v.muni }, false)
       }
     }
   }

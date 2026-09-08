@@ -99,3 +99,25 @@ print('ok', {
   'kutaisi_streets': len(street_catalog['ქუთაისი']),
   'rustavi_streets': len(street_catalog['რუსთავი']),
 })
+
+# Regions canon: every city + municipality in exactly one region (containers exempt).
+regions = geo.get('regions') or {}
+assert set(regions) == {
+  'თბილისი', 'აჭარა', 'გურია', 'იმერეთი', 'კახეთი', 'მცხეთა-მთიანეთი',
+  'რაჭა-ლეჩხუმი და ქვემო სვანეთი', 'სამეგრელო-ზემო სვანეთი', 'სამცხე-ჯავახეთი',
+  'ქვემო ქართლი', 'შიდა ქართლი', 'აფხაზეთი',
+}, set(regions)
+region_cities = [c for r in regions.values() for c in r['cities']]
+region_munis = [m for r in regions.values() for m in r['munis']]
+assert len(region_cities) == len(set(region_cities)) == len(geo['cities'])
+assert set(region_cities) == set(geo['cities'])
+containers = {'აფხაზეთის ავტონომიური რესპუბლიკა', 'ქუთაისის მუნიციპალიტეტი'}
+assert len(region_munis) == len(set(region_munis)) == len(geo['municipalities']) - len(containers)
+assert set(region_munis) | containers == set(geo['municipalities'])
+
+# Villages catalog exists and covers zemo nichbisi (Mtskheta muni).
+villages = json.loads((ROOT / 'app/src/data/georgia-villages.json').read_text())['villages']
+assert 'ზემო ნიჩბისი' in villages['მცხეთის მუნიციპალიტეტი']
+assert len(villages['სენაკის რაიონი']) >= 50  # TNET alone had 6 — SS/OSM top-up required
+assert all(v for v in villages.values())
+print('regions/villages ok:', len(villages), 'munis with villages,', sum(len(v) for v in villages.values()), 'villages')

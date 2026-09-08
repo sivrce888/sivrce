@@ -77,7 +77,7 @@ export default function LocationPicker({
       setStreet(value.street)
       setMetro(Boolean(value.metro))
       setQ('')
-      setPane('districts')
+      setPane(value.city && districtsOf(value.city).length > 0 ? 'districts' : 'streets')
       setNearby('idle')
       setRecent(readLocRecent())
     }
@@ -128,7 +128,7 @@ export default function LocationPicker({
         if (ac.signal.aborted) return
         const list = json.ok ? (json.suggestions ?? []) : []
         if (qn.length >= 2) setRemote(list)
-        else setStreets(list.filter((s) => s.kind === 'street'))
+        else setStreets(list.filter((s) => s.kind === 'street' || s.kind === 'district'))
       } catch {
         /* aborted or offline */
       }
@@ -139,6 +139,10 @@ export default function LocationPicker({
   const districts = useMemo(() => (city ? districtsOf(city) : []), [city])
   const raions = useMemo(() => (city ? geoRaionsOf(city) : {}), [city])
   const pickerCols = useMemo(() => (city ? geoPickerColumns(city) : []), [city])
+  // Municipalities have no street catalog — their second pane lists villages.
+  const isMuni = useMemo(() => Boolean(city && GEO_MUNICIPALITIES.includes(city)), [city])
+  // Cities without district data go straight to the streets/villages list.
+  const effPane: Pane = districts.length > 0 ? pane : 'streets'
   const leftover = useMemo(() => {
     const inPicker = new Set(pickerCols.flatMap((col) => col.flatMap((g) => g.items)))
     if (inPicker.size === 0) return districts
@@ -167,6 +171,18 @@ export default function LocationPicker({
     () => (city ? [] : remote.filter((s) => s.kind === 'district').slice(0, 8)),
     [remote, city],
   )
+  // In-muni typing filters the villages list locally (browse already loaded it).
+  const villageHits = useMemo(() => {
+    if (!qn || !isMuni) return []
+    const seen = new Set<string>()
+    const out: Suggestion[] = []
+    for (const s of [...streets, ...remote]) {
+      if (s.kind !== 'district' || !s.ka.toLowerCase().includes(qn) || seen.has(s.ka)) continue
+      seen.add(s.ka)
+      out.push(s)
+    }
+    return out.slice(0, 80)
+  }, [qn, isMuni, streets, remote])
 
   const muniGroups = useMemo(() => {
     const map = new Map<string, string[]>()
@@ -190,7 +206,8 @@ export default function LocationPicker({
     setPicked([])
     setStreet('')
     setQ('')
-    setPane('districts')
+    // Cities land on district browsing; municipalities (villages) on the list pane.
+    setPane(districtsOf(c).length > 0 ? 'districts' : 'streets')
   }
 
   const toggleDistrict = (name: string) => {
@@ -355,7 +372,7 @@ export default function LocationPicker({
               </label>
             </div>
 
-            {city && !qn ? (
+            {(city && districts.length > 0) && !qn ? (
               <div className="flex gap-1 border-b border-sv-ink/[0.06] px-5">
                 {(['districts', 'streets'] as const).map((p) => (
                   <button
@@ -366,7 +383,7 @@ export default function LocationPicker({
                       pane === p ? 'text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'
                     }`}
                   >
-                    {p === 'districts' ? t('loc.districts') : t('loc.streets')}
+                    {effPane === 'districts' ? t('loc.districts') : isMuni ? t('loc.villages') : t('loc.streets')}
                     {pane === p && (
                       <motion.span
                         layoutId="loc-tab"
@@ -412,7 +429,17 @@ export default function LocationPicker({
               ) : null}
 
               <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 py-4">
-                {qn ? (
+                {qn && isMuni ? (
+                  <StreetList
+                    items={villageHits}
+                    street={street}
+                    pickedSet={pickedSet}
+                    onPick={pickStreet}
+                    onDistrict={toggleDistrict}
+                    hint={t('loc.streetHint')}
+                    empty={t('search.emptyTitle')}
+                  />
+                ) : qn ? (
                   <SearchResults
                     city={city}
                     cityHits={cityHits}
@@ -528,13 +555,16 @@ export default function LocationPicker({
                       </div>
                     </section>
                   </>
-                ) : pane === 'streets' ? (
+                ) : effPane === 'streets' ? (
                   <StreetList
                     items={streets}
                     street={street}
+                    pickedSet={pickedSet}
                     onPick={pickStreet}
+                    onDistrict={toggleDistrict}
                     hint={t('loc.streetHint')}
                     empty={t('search.emptyTitle')}
+                    emptyVillages={isMuni ? t('loc.villageHint') : undefined}
                   />
                 ) : (
                   <section>
@@ -842,29 +872,36 @@ function SearchResults({
 function StreetList({
   items,
   street,
+  pickedSet,
   onPick,
+  onDistrict,
   hint,
   empty,
+  emptyVillages,
 }: {
   items: Suggestion[]
   street: string
+  pickedSet: Set<string>
   onPick: (s: Suggestion) => void
+  onDistrict: (d: string) => void
   hint: string
   empty: string
+  /** Shown when a municipality browse returns no villages yet. */
+  emptyVillages?: string
 }) {
   if (items.length === 0) {
-    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/60">{hint || empty}</p>
+    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/60">{emptyVillages || hint || empty}</p>
   }
   return (
     <ul className="space-y-0.5">
       {items.map((s) => (
-        <li key={`${s.city}:${s.ka}`}>
+        <li key={`${s.kind}:${s.city}:${s.ka}`}>
           <button
             type="button"
-            onClick={() => onPick(s)}
+            onClick={() => (s.kind === 'district' ? onDistrict(s.ka) : onPick(s))}
             className="flex w-full items-center gap-2.5 rounded-control px-2 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
           >
-            <Tick on={street === s.ka} />
+            {s.kind === 'district' ? <Tick on={pickedSet.has(s.ka)} /> : <Tick on={street === s.ka} />}
             <span className="min-w-0">
               <span className="block truncate">{s.ka}</span>
               {s.district ? (

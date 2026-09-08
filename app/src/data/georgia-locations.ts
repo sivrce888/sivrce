@@ -20,6 +20,8 @@ type Catalog = {
   cities: string[]
   municipalities: string[]
   districts: Record<string, GeoDistricts>
+  /** Official region → cities + municipalities (Geostat). Every name exactly once. */
+  regions: Record<string, { cities: string[]; munis: string[] }>
 }
 
 const GEO = data as Catalog
@@ -27,6 +29,10 @@ const GEO = data as Catalog
 /** Popular + settlement cities (picker). Municipalities are separate. */
 export const GEO_CITIES: string[] = GEO.cities
 export const GEO_MUNICIPALITIES: string[] = GEO.municipalities
+
+/** Official regions (აჭარა, იმერეთი, …) in display order. */
+export const GEO_REGIONS = GEO.regions
+export type GeoRegion = (typeof GEO_REGIONS)[string]
 
 /** All city-level picks: cities first, then municipalities. */
 export const GEO_ALL_PLACES: string[] = [...GEO.cities, ...GEO.municipalities]
