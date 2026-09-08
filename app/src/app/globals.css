@@ -218,7 +218,10 @@
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Focus outline — sv-blue-light (#8fb4ff), not neutral gray: gray at
+     outline-ring/50 sits near 1.7:1 on navy (invisible focus). Blue-light
+     clears 3:1 non-text on every dark surface (BRAND.md §3.3 palette). */
+  --ring: #8fb4ff;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -280,6 +283,34 @@
 .dark ::selection {
   background: rgba(46, 107, 255, 0.35);
   color: #e9edff;
+}
+
+/* Dark AA floor for faint text tiers (BRAND.md §3.3). Alpha math caps contrast:
+   ink/35 over #060B21 tops out at ~2.7:1 no matter how bright the ink hex goes.
+   Meta text written as text-sv-ink/{30–45} or text-white/{30–45} (addresses,
+   captions, footer headers) renders at the 50% tier in dark — ≥4.5:1 on every
+   dark surface. Text utilities only: bg-/border-/ring- keep their alphas.
+   Unlayered so it beats @layer utilities (same mechanism as .max-w-[1440px]). */
+.dark .text-sv-ink\/30,
+.dark .text-sv-ink\/35,
+.dark .text-sv-ink\/38,
+.dark .text-sv-ink\/40,
+.dark .text-sv-ink\/45 {
+  color: color-mix(in oklab, var(--color-sv-ink) 50%, transparent);
+}
+.dark .text-white\/30,
+.dark .text-white\/35,
+.dark .text-white\/40,
+.dark .text-white\/45 {
+  color: color-mix(in srgb, #ffffff 50%, transparent);
+}
+/* Same floor for hand-patched dark: variants — compiled class carries the
+   dark: prefix, so the group above can't match it. */
+.dark .dark\:text-white\/30,
+.dark .dark\:text-white\/35,
+.dark .dark\:text-white\/40,
+.dark .dark\:text-white\/45 {
+  color: color-mix(in srgb, #ffffff 50%, transparent);
 }
 
 @layer base {

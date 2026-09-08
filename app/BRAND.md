@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.17) · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Orange fills = white fg 2026-08-31 · Hero day/night 2026-08-31
+# სივრცე — Brand Lock (v1.18) · dark AA floor + focus ring 2026-09-08 · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Orange fills = white fg 2026-08-31 · Hero day/night 2026-08-31
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -198,6 +198,14 @@ Brand hues (blue/orange/violet/category) stay fixed. Only foundations flip in `.
 Navy (`#050B26`) stays fixed — night hero, CTA, map, footer.
 Light hero is a **day sky** (sun + `sv-cloud` / `sv-blue-light` / `sv-orange-light` horizon kiss, locked tokens only) — owner 2026-08-31. Dark hero keeps the night sky (moon, stars, aurora).
 Glass light → smoked navy `rgba(8,13,38,0.92)` in dark.
+
+**Dark AA floor (locked 2026-09-08):** alpha math caps faint tiers below WCAG AA on
+dark surfaces (ink@35 tops out ≈2.7:1 over #060B21), so inside `.dark` the text
+tiers `text-sv-ink/{30,35,38,40,45}` and `text-white/{30,35,40,45}` render at the
+**50% tier** (globals.css, unlayered overrides; ≥4.5:1 on every dark surface).
+Text utilities only — `bg-`/`border-`/`ring-` keep their alphas. Decorative
+separator marks (`/25` and below) are exempt. Focus ring `--ring` in `.dark` =
+`sv-blue-light` `#8FB4FF` (neutral gray sat below 3:1 non-text on navy).
 
 ### 3.4 Status hues (locked — owner-approved 2026-07-18, reverted from orange same day)
 
