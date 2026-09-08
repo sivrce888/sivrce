@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const alt = altName(agency.name)
   const body =
     agency.summary.replace(/\s+/g, ' ') ||
-    `${agency.name} — უძრავი ქონების სააგენტო ${agency.city}-ში · სივრცე.ge`
+    `${agency.name} — უძრავი ქონების სააგენტო ${agency.city}-ში · sivrce.ge`
   const description = ((alt && !body.includes(alt) ? `${agency.name} (${alt}). ` : '') + body).slice(
     0,
     155,

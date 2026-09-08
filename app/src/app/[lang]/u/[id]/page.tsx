@@ -7,6 +7,7 @@ import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { LeadForm } from '@/components/lead/LeadForm'
+import MessageUserButton from '@/components/chat/MessageUserButton'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { db } from '@/lib/db'
 import { getListingsByOwner } from '@/lib/listings-db'
@@ -70,7 +71,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : extra && 'description' in extra && extra.description
         ? extra.description.replace(/\s+/g, ' ')
         : extra && 'agency' in extra
-          ? `${extra.name} · ${extra.agency} · სივრცე.ge`
+          ? `${extra.name} · ${extra.agency} · sivrce.ge`
           : `უძრავი ქონება ერთ სივრცეში — ${SELLER_ROLE_LABEL[role].ka}`
   const alt = name ? altName(name) : ''
   const description = ((alt && !base.includes(alt) ? `${name} (${alt}). ` : '') + base).slice(0, 155)
@@ -223,6 +224,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                     {summary}
                   </p>
                 ) : null}
+                <MessageUserButton userId={id} />
               </div>
             </div>
             {stats.length > 0 ? <StatsRow items={stats} className="md:ml-auto md:self-center" /> : null}

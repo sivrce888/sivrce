@@ -770,6 +770,15 @@ export const ru: Dict = {
   'chat.timeHour': 'ч',
   'chat.timeDay': 'д',
   'chat.log': 'Список сообщений',
+  'chat.help': 'Помощь',
+  'chat.faqGreeting': 'Здравствуйте! Я ассистент sivrce — задайте вопрос или выберите ниже.',
+  'chat.faqPlaceholder': 'Задайте вопрос…',
+  'chat.faqMiss': 'Не нашёл ответа — переформулируйте или напишите нам напрямую.',
+  'chat.faqSuggestions': 'Частые вопросы',
+  'chat.contactSupport': 'Написать нам',
+  'chat.supportName': 'sivrce — Поддержка',
+  'chat.supportSub': 'Отвечает команда sivrce',
+  'chat.message': 'Написать',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастровая карта',

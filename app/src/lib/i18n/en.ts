@@ -770,6 +770,15 @@ export const en: Dict = {
   'chat.timeHour': 'h',
   'chat.timeDay': 'd',
   'chat.log': 'Message list',
+  'chat.help': 'Help',
+  'chat.faqGreeting': 'Hi! I’m the sivrce assistant — ask a question or pick one below.',
+  'chat.faqPlaceholder': 'Ask a question…',
+  'chat.faqMiss': 'I couldn’t find an answer — try rephrasing, or write to us directly.',
+  'chat.faqSuggestions': 'Common questions',
+  'chat.contactSupport': 'Message us',
+  'chat.supportName': 'sivrce Support',
+  'chat.supportSub': 'Answered by the sivrce team',
+  'chat.message': 'Message',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Cadastre map',

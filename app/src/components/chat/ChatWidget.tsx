@@ -15,6 +15,8 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
+  HelpCircle,
+  LifeBuoy,
   Loader2,
   MessageCircle,
   RotateCcw,
@@ -24,6 +26,7 @@ import {
 import UserAvatar from "@/components/UserAvatar"
 import { useI18n } from "@/lib/i18n/context"
 import { useChat, type ChatRoom } from "./ChatProvider"
+import FaqView from "./FaqView"
 import {
   clockLabel,
   dayKey,
@@ -73,7 +76,9 @@ function RoomListItem({
   onClick: () => void
 }) {
   const { t } = useI18n()
-  const name = room.counterpart?.name || room.listing?.title || room.title
+  const name = room.isSupport
+    ? t("chat.supportName")
+    : room.counterpart?.name || room.listing?.title || room.title
   const lastMsg = room.lastMessage
   return (
     <button
@@ -84,14 +89,20 @@ function RoomListItem({
           : "hover:bg-sv-ink/[0.04]"
       }`}
     >
-      <UserAvatar
-        name={room.counterpart?.name}
-        image={room.counterpart?.image}
-        gradient={room.counterpart?.avatarStyle}
-        color={room.counterpart?.avatarColor}
-        icon={room.counterpart?.avatarIcon}
-        size={40}
-      />
+      {room.isSupport ? (
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+          <LifeBuoy className="h-4.5 w-4.5" aria-hidden />
+        </span>
+      ) : (
+        <UserAvatar
+          name={room.counterpart?.name}
+          image={room.counterpart?.image}
+          gradient={room.counterpart?.avatarStyle}
+          color={room.counterpart?.avatarColor}
+          icon={room.counterpart?.avatarIcon}
+          size={40}
+        />
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-[14px] font-extrabold text-sv-ink">{name}</span>
@@ -118,6 +129,47 @@ function RoomListItem({
         )}
       </div>
     </button>
+  )
+}
+
+/** Pinned quick actions above the room list — help assistant + support line. */
+function QuickTiles({
+  showSupport,
+  onFaq,
+  onSupport,
+}: {
+  showSupport: boolean
+  onFaq: () => void
+  onSupport: () => void
+}) {
+  const { t } = useI18n()
+  return (
+    <div className={`grid gap-2 px-1 pb-2.5 ${showSupport ? "grid-cols-2" : "grid-cols-1"}`}>
+      <button
+        type="button"
+        onClick={onFaq}
+        className="flex items-center gap-2.5 rounded-control bg-sv-ink/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-sv-ink/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+      >
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+          <HelpCircle className="h-4 w-4" aria-hidden />
+        </span>
+        <span className="truncate text-[13px] font-extrabold text-sv-ink">{t("chat.help")}</span>
+      </button>
+      {showSupport && (
+        <button
+          type="button"
+          onClick={onSupport}
+          className="flex items-center gap-2.5 rounded-control bg-sv-ink/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-sv-ink/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+        >
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+            <LifeBuoy className="h-4 w-4" aria-hidden />
+          </span>
+          <span className="truncate text-[13px] font-extrabold text-sv-ink">
+            {t("chat.contactSupport")}
+          </span>
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -561,7 +613,7 @@ function MessageThread({ roomId }: { roomId: string }) {
 const SHEET_EASE = "ease-[cubic-bezier(0.32,0.72,0,1)]"
 
 export default function ChatWidget() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const {
     open,
     openChat,
@@ -572,11 +624,22 @@ export default function ChatWidget() {
     loading,
     unread,
     totalUnread,
+    openSupportChat,
   } = useChat()
 
   const launcherRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
+
+  /** Room list vs help assistant (pre-room view). */
+  const [view, setView] = useState<"rooms" | "faq">("rooms")
+
+  const openSupport = useCallback(() => {
+    setView("rooms")
+    const existing = rooms.find((r) => r.isSupport)
+    if (existing) setActiveRoom(existing.id)
+    else openSupportChat()
+  }, [rooms, setActiveRoom, openSupportChat])
 
   // Mount/close choreography — setState only in rAF/timeout callbacks so the
   // enter transition always has a painted closed frame to animate from.
@@ -619,18 +682,29 @@ export default function ChatWidget() {
 
   const activeRoom = rooms.find((r) => r.id === activeRoomId)
   const headerTitle = activeRoom
-    ? activeRoom.counterpart?.name || activeRoom.listing?.title || activeRoom.title
-    : t("chat.title")
+    ? activeRoom.isSupport
+      ? t("chat.supportName")
+      : activeRoom.counterpart?.name || activeRoom.listing?.title || activeRoom.title
+    : view === "faq"
+      ? t("chat.help")
+      : t("chat.title")
   const headerSub = activeRoom
-    ? activeRoom.counterpart?.name && activeRoom.listing?.title
-      ? activeRoom.listing.title
-      : null
+    ? activeRoom.isSupport
+      ? t("chat.supportSub")
+      : activeRoom.counterpart?.name && activeRoom.listing?.title
+        ? activeRoom.listing.title
+        : null
     : null
+
+  const close = () => {
+    closeChat()
+    setView("rooms")
+  }
 
   const onPanelKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.stopPropagation()
-      closeChat()
+      close()
     }
   }
 
@@ -639,7 +713,13 @@ export default function ChatWidget() {
       {/* Launcher */}
       <button
         ref={launcherRef}
-        onClick={() => (open ? closeChat() : openChat())}
+        onClick={() => {
+          if (open) close()
+          else {
+            setView("rooms")
+            openChat()
+          }
+        }}
         aria-label={open ? t("chat.close") : t("chat.open")}
         aria-expanded={open}
         className="fixed bottom-24 right-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none lg:bottom-6 lg:right-6"
@@ -681,16 +761,23 @@ export default function ChatWidget() {
         >
           {/* Header */}
           <div className="flex items-center gap-2.5 border-b border-sv-ink/[0.08] px-3 py-2.5">
-            {activeRoomId ? (
+            {activeRoomId || view === "faq" ? (
               <button
-                onClick={() => setActiveRoom(null)}
+                onClick={() => {
+                  if (activeRoomId) setActiveRoom(null)
+                  else setView("rooms")
+                }}
                 aria-label={t("chat.back")}
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
               >
                 <ChevronLeft className="h-4.5 w-4.5 rtl:rotate-180" aria-hidden />
               </button>
             ) : null}
-            {activeRoom && (
+            {activeRoom?.isSupport ? (
+              <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+                <LifeBuoy className="h-4 w-4" aria-hidden />
+              </span>
+            ) : activeRoom ? (
               <UserAvatar
                 name={activeRoom.counterpart?.name}
                 image={activeRoom.counterpart?.image}
@@ -700,7 +787,11 @@ export default function ChatWidget() {
                 size={34}
                 className="shrink-0"
               />
-            )}
+            ) : view === "faq" ? (
+              <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+                <HelpCircle className="h-4 w-4" aria-hidden />
+              </span>
+            ) : null}
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-[15px] font-black text-sv-ink">{headerTitle}</h2>
               {headerSub && (
@@ -708,7 +799,7 @@ export default function ChatWidget() {
               )}
             </div>
             <button
-              onClick={closeChat}
+              onClick={close}
               aria-label={t("chat.close")}
               className="grid h-9 w-9 shrink-0 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
             >
@@ -719,14 +810,21 @@ export default function ChatWidget() {
           {/* Content */}
           {activeRoomId ? (
             <MessageThread roomId={activeRoomId} />
+          ) : view === "faq" ? (
+            <FaqView key={lang} onContactSupport={openSupport} />
           ) : (
-            <div className="flex-1 space-y-1 overflow-y-auto px-2.5 py-2.5">
+            <div className="flex-1 overflow-y-auto px-2.5 py-2.5">
+              <QuickTiles
+                showSupport={!rooms.some((r) => r.isSupport)}
+                onFaq={() => setView("faq")}
+                onSupport={openSupport}
+              />
               {loading && rooms.length === 0 ? (
                 <div className="flex items-center justify-center py-12">
                   <span className="sv-spinner" aria-hidden />
                 </div>
               ) : rooms.length === 0 ? (
-                <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+                <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
                   <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                     <MessageCircle className="h-5 w-5" aria-hidden />
                   </span>
@@ -735,15 +833,17 @@ export default function ChatWidget() {
                   </p>
                 </div>
               ) : (
-                rooms.map((room) => (
-                  <RoomListItem
-                    key={room.id}
-                    room={room}
-                    active={room.id === activeRoomId}
-                    unreadCount={unread[room.id] ?? 0}
-                    onClick={() => setActiveRoom(room.id)}
-                  />
-                ))
+                <div className="space-y-1">
+                  {rooms.map((room) => (
+                    <RoomListItem
+                      key={room.id}
+                      room={room}
+                      active={room.id === activeRoomId}
+                      unreadCount={unread[room.id] ?? 0}
+                      onClick={() => setActiveRoom(room.id)}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           )}

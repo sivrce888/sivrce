@@ -20,6 +20,11 @@ export async function isChatParticipant(roomId: string, userId: string): Promise
   return p !== null
 }
 
+const ROOM_INCLUDE = {
+  participants: true,
+  listing: { select: { title: true, id: true } },
+} as const
+
 /** Find existing or create a new chat room for a listing. */
 export async function getOrCreateChatRoom(listingId: string, userId: string) {
   // Look for an existing room where this user is already a participant
@@ -29,10 +34,7 @@ export async function getOrCreateChatRoom(listingId: string, userId: string) {
       participants: { some: { userId } },
       status: "active",
     },
-    include: {
-      participants: true,
-      listing: { select: { title: true, id: true } },
-    },
+    include: ROOM_INCLUDE,
   })
 
   if (existing) return existing
@@ -59,10 +61,93 @@ export async function getOrCreateChatRoom(listingId: string, userId: string) {
         ],
       },
     },
-    include: {
-      participants: true,
-      listing: { select: { title: true, id: true } },
+    include: ROOM_INCLUDE,
+  })
+}
+
+/** Participant role reserved for the sivrce support team. */
+export const SUPPORT_ROLE = "support"
+const SUPPORT_TITLE = "Sivrce Support"
+const MAX_SUPPORT_SEATS = 10
+
+/**
+ * Find or create the user's direct line to the sivrce team: a listing-less
+ * room where every active admin joins as a "support" participant, so any of
+ * them can answer from the regular chat surface (and /admin/chats sees it).
+ */
+export async function getOrCreateSupportRoom(userId: string) {
+  const existing = await db.chatRoom.findFirst({
+    where: {
+      status: "active",
+      listingId: null,
+      AND: [
+        { participants: { some: { userId } } },
+        { participants: { some: { role: SUPPORT_ROLE } } },
+      ],
     },
+    include: ROOM_INCLUDE,
+  })
+  if (existing) return existing
+
+  const admins = await db.user.findMany({
+    where: { role: "admin" },
+    select: { id: true },
+    take: MAX_SUPPORT_SEATS,
+  })
+
+  return db.chatRoom.create({
+    data: {
+      title: SUPPORT_TITLE,
+      participants: {
+        create: [
+          { userId, role: "member" },
+          ...admins
+            .filter((a) => a.id !== userId)
+            .map((a) => ({ userId: a.id, role: SUPPORT_ROLE })),
+        ],
+      },
+    },
+    include: ROOM_INCLUDE,
+  })
+}
+
+/** Find or create a private user-to-user room (no listing attached). */
+export async function getOrCreateDirectRoom(userId: string, peerId: string) {
+  if (userId === peerId) throw new Error("self_chat")
+
+  const peer = await db.user.findUnique({
+    where: { id: peerId },
+    select: { name: true },
+  })
+  if (!peer) throw new Error("peer_not_found")
+
+  // The role:"support" guard keeps a direct room with an admin from colliding
+  // with their support room.
+  const existing = await db.chatRoom.findFirst({
+    where: {
+      status: "active",
+      listingId: null,
+      AND: [
+        { participants: { some: { userId } } },
+        { participants: { some: { userId: peerId } } },
+        { participants: { none: { role: SUPPORT_ROLE } } },
+      ],
+    },
+    include: ROOM_INCLUDE,
+  })
+  if (existing) return existing
+
+  return db.chatRoom.create({
+    data: {
+      title: peer.name ?? "Chat",
+      participants: {
+        create: [
+          { userId, role: "member" },
+          { userId: peerId, role: "member" },
+        ],
+      },
+    },
+    include: ROOM_INCLUDE,
   })
 }
 
@@ -84,6 +169,8 @@ export interface ChatRoomSummary {
   updatedAt: string
   listing: { id: string; title: string } | null
   counterpart: ChatCounterpart | null
+  /** True for the listing-less sivrce support line. */
+  isSupport: boolean
   lastMessage: {
     content: string
     createdAt: string
@@ -101,7 +188,7 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
     },
     include: {
       listing: { select: { title: true, id: true } },
-      participants: { select: { userId: true } },
+      participants: { select: { userId: true, role: true } },
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -142,6 +229,7 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
     updatedAt: r.updatedAt.toISOString(),
     listing: r.listing,
     counterpart: byId.get(r.participants.find((p) => p.userId !== userId)?.userId ?? "") ?? null,
+    isSupport: r.participants.some((p) => p.userId !== userId && p.role === SUPPORT_ROLE),
     lastMessage: r.messages[0]
       ? {
           content: r.messages[0].content,

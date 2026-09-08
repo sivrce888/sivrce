@@ -770,6 +770,15 @@ export const he: Dict = {
   'chat.timeHour': 'שע׳',
   'chat.timeDay': 'יום',
   'chat.log': 'רשימת הודעות',
+  'chat.help': 'עזרה',
+  'chat.faqGreeting': 'שלום! אני העוזר של sivrce — שאלו שאלה או בחרו מלמטה.',
+  'chat.faqPlaceholder': 'שאלו שאלה…',
+  'chat.faqMiss': 'לא מצאתי תשובה — נסו ניסוח אחר או כתבו לנו ישירות.',
+  'chat.faqSuggestions': 'שאלות נפוצות',
+  'chat.contactSupport': 'כתבו לנו',
+  'chat.supportName': 'sivrce — תמיכה',
+  'chat.supportSub': 'עונה צוות sivrce',
+  'chat.message': 'הודעה',
 
   // ——— Cadastre ———
   'nav.cadastre': 'מפה קדסטרית',

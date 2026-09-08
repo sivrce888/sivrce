@@ -771,6 +771,15 @@ export const az: Dict = {
   'chat.timeHour': 'sa',
   'chat.timeDay': 'gün',
   'chat.log': 'Mesaj siyahısı',
+  'chat.help': 'Kömək',
+  'chat.faqGreeting': 'Salam! Mən sivrce assistentiyəm — sual verin və ya aşağıdan seçin.',
+  'chat.faqPlaceholder': 'Sual verin…',
+  'chat.faqMiss': 'Cavabı tapa bilmədim — fərqli yazın və ya birbaşa bizə yazın.',
+  'chat.faqSuggestions': 'Tez-tez verilən suallar',
+  'chat.contactSupport': 'Bizə yazın',
+  'chat.supportName': 'sivrce Dəstək',
+  'chat.supportSub': 'Cavablandırır sivrce komandası',
+  'chat.message': 'Yaz',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastr xəritəsi',

@@ -770,6 +770,15 @@ export const ar: Dict = {
   'chat.timeHour': 'س',
   'chat.timeDay': 'ي',
   'chat.log': 'قائمة الرسائل',
+  'chat.help': 'المساعدة',
+  'chat.faqGreeting': 'مرحباً! أنا مساعد sivrce — اطرح سؤالاً أو اختر من الأسفل.',
+  'chat.faqPlaceholder': 'اطرح سؤالاً…',
+  'chat.faqMiss': 'لم أجد إجابة — جرّب صياغة أخرى أو راسلنا مباشرة.',
+  'chat.faqSuggestions': 'أسئلة شائعة',
+  'chat.contactSupport': 'راسلنا',
+  'chat.supportName': 'دعم sivrce',
+  'chat.supportSub': 'يرد عليها فريق sivrce',
+  'chat.message': 'مراسلة',
 
   // ——— Cadastre ———
   'nav.cadastre': 'خريطة الكاداستر',

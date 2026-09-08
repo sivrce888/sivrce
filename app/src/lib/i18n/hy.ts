@@ -771,6 +771,15 @@ export const hy: Dict = {
   'chat.timeHour': 'ժ',
   'chat.timeDay': 'օր',
   'chat.log': 'Հաղորդագրությունների ցանկ',
+  'chat.help': 'Օգնություն',
+  'chat.faqGreeting': 'Բարև՛: Ես sivrce-ի օգնականն եմ — տվեք հարց կամ ընտրեք ստորև:',
+  'chat.faqPlaceholder': 'Տվեք հարց…',
+  'chat.faqMiss': 'Պատասխան չգտա — փորձեք այլ կերպ ձևակերպել կամ ուղղակի գրեք մեզ:',
+  'chat.faqSuggestions': 'Հաճախ տրվող հարցեր',
+  'chat.contactSupport': 'Գրեք մեզ',
+  'chat.supportName': 'sivrce — Աջակցություն',
+  'chat.supportSub': 'Պատասխանում է sivrce-ի թիմը',
+  'chat.message': 'Գրել',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Կադաստրի քարտեզ',

@@ -771,6 +771,15 @@ export const uk: Dict = {
   'chat.timeHour': 'год',
   'chat.timeDay': 'дн',
   'chat.log': 'Список повідомлень',
+  'chat.help': 'Допомога',
+  'chat.faqGreeting': 'Вітаю! Я асистент sivrce — поставте запитання або виберіть нижче.',
+  'chat.faqPlaceholder': 'Поставте запитання…',
+  'chat.faqMiss': 'Не знайшов відповіді — перефразуйте або напишіть нам напряму.',
+  'chat.faqSuggestions': 'Часті запитання',
+  'chat.contactSupport': 'Напишіть нам',
+  'chat.supportName': 'sivrce — Підтримка',
+  'chat.supportSub': 'Відповідає команда sivrce',
+  'chat.message': 'Написати',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастрова карта',

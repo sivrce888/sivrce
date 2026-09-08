@@ -770,6 +770,15 @@ export const tr: Dict = {
   'chat.timeHour': 'sa',
   'chat.timeDay': 'g',
   'chat.log': 'Mesaj listesi',
+  'chat.help': 'Yardım',
+  'chat.faqGreeting': 'Merhaba! Ben sivrce asistanıyım — bir soru sorun ya da aşağıdan seçin.',
+  'chat.faqPlaceholder': 'Soru sorun…',
+  'chat.faqMiss': 'Cevabı bulamadım — farklı ifade edin ya da doğrudan bize yazın.',
+  'chat.faqSuggestions': 'Sık sorulanlar',
+  'chat.contactSupport': 'Bize yazın',
+  'chat.supportName': 'sivrce Destek',
+  'chat.supportSub': 'sivrce ekibi yanıtlar',
+  'chat.message': 'Mesaj gönder',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastro haritası',

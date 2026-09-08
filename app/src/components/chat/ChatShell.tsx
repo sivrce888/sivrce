@@ -11,6 +11,8 @@ const ChatWidget = dynamic(() => import('@/components/chat/ChatWidget'), { ssr: 
 /**
  * Client shell for app-wide trays. Chat ships only for signed-in users —
  * guests keep the LeadForm conversion loop.
+ * ponytail: guests could get the FAQ-only assistant view (FaqView is
+ * auth-free) — flip when funnel data justifies touching the lead loop.
  */
 export default function ChatShell({ children }: { children: React.ReactNode }) {
   const { status } = useSession()
