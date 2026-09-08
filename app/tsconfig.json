@@ -40,7 +40,11 @@
     ".next-debug/types/**/*.ts",
     ".next-debug/dev/types/**/*.ts",
     ".next-prod/types/**/*.ts",
-    ".next-prod/dev/types/**/*.ts"
+    ".next-prod/dev/types/**/*.ts",
+    ".next-run/types/**/*.ts",
+    ".next-run/dev/types/**/*.ts",
+    ".next-metro-verify/types/**/*.ts",
+    ".next-metro-verify/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

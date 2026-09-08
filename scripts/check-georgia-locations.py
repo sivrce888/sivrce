@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 geo = json.loads((ROOT / 'app/src/data/georgia-locations.json').read_text())
+street_catalog = json.loads((ROOT / 'app/src/data/georgia-streets.json').read_text())['streets']
 osm = json.loads((ROOT / 'app/src/data/tbilisi-streets.json').read_text())
 
 OFFICIAL_RAIONS = [
@@ -67,10 +68,10 @@ assert picker[0]['title'] == 'ვაკე-საბურთალო'
 
 assert 'მახინჯაური' in geo['districts']['ბათუმი']['flat']
 assert 'ავტოქარხანა' in geo['districts']['ქუთაისი']['flat']
-assert len(geo['streets']['ბათუმი']) >= 150
-assert len(geo['streets']['ქუთაისი']) >= 150
-assert len(geo['streets']['რუსთავი']) >= 80
-assert len(geo['streets']['ზუგდიდი']) >= 200
+assert len(street_catalog['ბათუმი']) >= 150
+assert len(street_catalog['ქუთაისი']) >= 150
+assert len(street_catalog['რუსთავი']) >= 80
+assert len(street_catalog['ზუგდიდი']) >= 200
 assert len(osm) >= 3500
 
 # SS თბილისის შემოგარენი leaves must be searchable
@@ -78,8 +79,8 @@ for surr in ['ტაბახმელა', 'ოქროყანა', 'წყ�
   assert surr in flat_like, surr
 
 # Street labels: no leading space, no locative leftovers from TNET SEO
-for city, streets in geo['streets'].items():
-  for s in streets:
+for city, names in street_catalog.items():
+  for s in names:
     assert s == s.strip(), (city, s)
     assert not s.endswith('ქუჩაზე'), (city, s)
 
@@ -93,8 +94,8 @@ print('ok', {
   'tbilisi_ubani': sum(len(v) for v in tb['raions'].values()),
   'tbilisi_catalog': len(flat_like),
   'tbilisi_streets_osm': len(osm),
-  'street_cities': len(geo['streets']),
-  'batumi_streets': len(geo['streets']['ბათუმი']),
-  'kutaisi_streets': len(geo['streets']['ქუთაისი']),
-  'rustavi_streets': len(geo['streets']['რუსთავი']),
+  'street_cities': len(street_catalog),
+  'batumi_streets': len(street_catalog['ბათუმი']),
+  'kutaisi_streets': len(street_catalog['ქუთაისი']),
+  'rustavi_streets': len(street_catalog['რუსთავი']),
 })

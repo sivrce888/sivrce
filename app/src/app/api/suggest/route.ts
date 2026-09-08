@@ -1,5 +1,5 @@
 import { CITIES, districtsOf } from "@/data/listings"
-import { geoStreets, geoStreetsOf, type GeoStreet } from "@/data/georgia-locations"
+import { geoStreets, geoStreetsOf, type GeoStreet } from "@/data/georgia-streets"
 import { TBILISI_QUARTERS } from "@/data/tbilisi-quarters"
 import { districtKaForStreet, STREETS as TBILISI_STREETS } from "@/data/tbilisi-streets"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"

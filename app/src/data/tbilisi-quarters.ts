@@ -3,7 +3,7 @@
  * Digomi: Roman კვარტალი. Massiv micros: მიკრო რაიონი. Vazisubani: მიკრორაიონი.
  * Plus full OSM city_block dump (Nutsubidze, Vazha-Pshavela, Vashlijvari, Lilo, …).
  */
-import type { GeoStreet } from './georgia-locations'
+import type { GeoStreet } from './georgia-streets'
 
 export type TbilisiQuarter = GeoStreet & {
   aliases: string[]

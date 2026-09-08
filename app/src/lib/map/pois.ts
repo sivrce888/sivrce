@@ -5,6 +5,7 @@
 
 import type { FilterSpecification } from 'maplibre-gl'
 import raw from '@/data/tbilisi-pois.json'
+import gridRaw from '@/data/tbilisi-metro-grid.json'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import {
   METRO_MAX_CATCHMENT_M,
@@ -122,11 +123,44 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): num
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)))
 }
 
-/** Nearest Tbilisi metro; null if far / no stations. */
+const METRO_GRID = gridRaw as {
+  lat0: number
+  lng0: number
+  step: number
+  nLat: number
+  nLng: number
+  stations: string[]
+  cells: number[]
+}
+
+/** Chip shows walking-nearest up to this — road km run ~2x straight km in pockets. */
+const METRO_ROAD_MAX_M = 5000
+
+/** Precomputed walking distance to nearest metro for this cell, or null.
+ * ponytail: ~400 m cells from scripts/fetch-metro-grid.mjs (Valhalla pedestrian);
+ * rerun that script when OSM paths change. Straight-line haversine covers misses. */
+function gridWalkMetro(lat: number, lng: number): { name: string; meters: number } | null {
+  const g = METRO_GRID
+  const c = Math.round((lng - g.lng0) / g.step)
+  const r = Math.round((lat - g.lat0) / g.step)
+  if (c < 0 || r < 0 || c >= g.nLng || r >= g.nLat) return null
+  const v = g.cells[r * g.nLng + c]
+  if (v < 0) return null
+  return { name: g.stations[Math.floor(v / 100000)], meters: v % 100000 }
+}
+
+/** Nearest metro by walking route where grid covers, else straight-line; null if far. */
 export function nearestMetro(lat: number, lng: number): NearMetro | null {
-  if (!Number.isFinite(lat) || !Number.isFinite(lng) || METRO_STATIONS.length === 0) {
-    return null
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+  const g = gridWalkMetro(lat, lng)
+  if (g && g.meters <= METRO_ROAD_MAX_M) {
+    return {
+      name: g.name,
+      meters: g.meters,
+      walkMin: Math.max(1, Math.round(g.meters / 80)),
+    }
   }
+  if (METRO_STATIONS.length === 0) return null
   let best: MapPoi | null = null
   let bestM = Infinity
   for (const s of METRO_STATIONS) {
@@ -163,9 +197,8 @@ export type NearAmenity = {
   walkMin: number
 }
 
-/** Catchments for building-page “როგორ მივიდე” — metro reuses map max. */
+/** Catchments for building-page “როგორ მივიდე” — metro uses the walking grid instead. */
 const AMENITY_MAX_M: Partial<Record<PoiCategory, number>> = {
-  metro: METRO_MAX_SHOW_M,
   school: 1500,
   park: 1200,
   hospital: 2500,
@@ -180,6 +213,7 @@ export function nearestAmenities(lat: number, lng: number): NearAmenity[] {
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || MAP_POIS.length === 0) return []
   const best = new Map<PoiCategory, NearAmenity>()
   for (const p of MAP_POIS) {
+    if (p.category === 'metro') continue // metro goes through the walking grid
     const max = AMENITY_MAX_M[p.category]
     if (max == null) continue
     const m = haversineM(lat, lng, p.lat, p.lng)
@@ -193,6 +227,10 @@ export function nearestAmenities(lat: number, lng: number): NearAmenity[] {
       meters,
       walkMin: Math.max(1, Math.round(meters / 80)),
     })
+  }
+  const metro = nearestMetro(lat, lng)
+  if (metro) {
+    best.set('metro', { category: 'metro', name: metro.name, meters: metro.meters, walkMin: metro.walkMin })
   }
   return [...best.values()].sort((a, b) => a.meters - b.meters)
 }

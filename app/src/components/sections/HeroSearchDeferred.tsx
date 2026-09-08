@@ -46,5 +46,12 @@ export default function HeroSearchDeferred({ quick }: { quick: HeroQuickChip[] }
       window.removeEventListener('keydown', go, { capture: true })
     }
   }, [])
-  return Search ? <Search quick={quick} /> : <Skeleton />
+  /* min-h reserves the real island's height per breakpoint (measured 320→1920)
+     so the idle mount can't shift the hero — CLS stays 0 while the search
+     island hydrates off the critical path. Re-measure if HeroSearch grows. */
+  return (
+    <div className="min-h-[642px] sm:min-h-[491px] md:min-h-[447px] lg:min-h-[231px] xl:min-h-[182px]">
+      {Search ? <Search quick={quick} /> : <Skeleton />}
+    </div>
+  )
 }

@@ -1,7 +1,8 @@
 /**
  * Georgia location catalog for filters + autocomplete.
- * Tbilisi raions: official 10 (matsne 2014). Cities/streets: myhome + ss + OSM.
+ * Tbilisi raions: official 10 (matsne 2014). Cities: myhome + ss + OSM.
  * Refresh: `python3 scripts/sync-competitor-locations.py`
+ * Streets live in georgia-streets.ts — server-only consumers (see suggest).
  */
 import data from './georgia-locations.json'
 
@@ -19,7 +20,6 @@ type Catalog = {
   cities: string[]
   municipalities: string[]
   districts: Record<string, GeoDistricts>
-  streets: Record<string, string[]>
 }
 
 const GEO = data as Catalog
@@ -67,22 +67,6 @@ export function geoPickerColumns(city: string): GeoPickerGroup[][] {
     ]
   }
   return groups.map((g) => [g])
-}
-
-export type GeoStreet = { ka: string; en?: string; ru?: string; city: string }
-
-/** City street names from the competitor catalog (not Tbilisi OSM). */
-export function geoStreetsOf(city: string): string[] {
-  return GEO.streets[city] ?? []
-}
-
-/** Competitor city streets for /api/suggest. OSM Tbilisi stays in tbilisi-streets.ts (server-only). */
-export function geoStreets(): GeoStreet[] {
-  const out: GeoStreet[] = []
-  for (const [city, names] of Object.entries(GEO.streets)) {
-    for (const ka of names) out.push({ ka, city })
-  }
-  return out
 }
 
 export const GEO_SOURCE = GEO.source

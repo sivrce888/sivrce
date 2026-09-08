@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'research/competitor-locations'
 GEO_PATH = ROOT / 'app/src/data/georgia-locations.json'
+STREETS_PATH = ROOT / 'app/src/data/georgia-streets.json'
 HDR = {
   'Accept': 'application/json',
   'Origin': 'https://www.myhome.ge',
@@ -264,11 +265,19 @@ def main() -> None:
   )
   geo['cities'] = cities_ordered
   geo['municipalities'] = munis_ordered
-  # Keep OSM Tbilisi streets separate; competitor streets for other cities (+ Tbilisi dump in research)
-  geo['streets'] = {k: streets[k] for k in sorted(streets, key=lambda x: x.casefold()) if k != 'თბილისი'}
-  # Also keep major-city streets that were there; Tbilisi stays in tbilisi-streets.json (OSM)
+  # Streets ship in their own file so client bundles (pickers, search UI)
+  # never pay for them; /api/suggest is the only consumer.
+  # Tbilisi stays in tbilisi-streets.json (OSM).
+  streets_out = {k: streets[k] for k in sorted(streets, key=lambda x: x.casefold()) if k != 'თბილისი'}
+  prev_streets = json.loads(STREETS_PATH.read_text(encoding='utf-8')) if STREETS_PATH.exists() else {}
+  STREETS_PATH.write_text(
+    json.dumps({'source': geo['source'], 'streets': streets_out}, ensure_ascii=False, indent=2) + '\n',
+    encoding='utf-8',
+  )
 
   GEO_PATH.write_text(json.dumps(geo, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+  assert 'streets' not in geo, 'streets must live in georgia-streets.json, not the client catalog'
+  assert streets_out or prev_streets, 'street sync produced no data'
 
   # Compact summary dump for humans
   summary = {

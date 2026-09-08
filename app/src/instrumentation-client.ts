@@ -1,6 +1,22 @@
 /**
  * Runs before hydration (Next instrumentation-client).
  *
+ * BotID client — protects phone reveal + lead form + CV upload from scrapers.
+ * MUST live in src/: with a src dir, Next ignores a root-level
+ * instrumentation-client.ts (that shadowing is what broke the reveal 2026-07→09).
+ * @see https://vercel.com/docs/botid/get-started
+ */
+import { initBotId } from 'botid/client/core'
+
+initBotId({
+  protect: [
+    { path: '/api/listings/*/phone', method: 'POST' },
+    { path: '/api/inquiries', method: 'POST' },
+    { path: '/api/careers/cv', method: 'POST' },
+  ],
+})
+
+/**
  * React 19.2 logs a dev-only error whenever it client-creates any executable
  * <script> — e.g. next-themes' pre-hydration theme script and our layouts'
  * lite-boot during soft navigations across root layouts. Those scripts are

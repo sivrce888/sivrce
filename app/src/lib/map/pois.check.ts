@@ -50,11 +50,19 @@ const rustaveli = METRO_STATIONS.find((s) => s.name.includes('რუსთავ
 assert.ok(rustaveli, 'rustaveli station')
 const near = nearestMetro(rustaveli!.lat + 0.0003, rustaveli!.lng)
 assert.ok(near, 'nearest metro near rustaveli')
-assert.ok(near!.meters < 100, `expected <100m got ${near!.meters}`)
+// walking-grid cell granularity ~±250 m, so standing at a station reads as ~200 m
+assert.ok(near!.meters < 500, `expected <500m got ${near!.meters}`)
 assert.ok(near!.walkMin >= 1)
 assert.ok(formatMetroDist(near!).includes('m'))
 assert.ok(metroMeters(rustaveli!.lat, rustaveli!.lng) <= METRO_NEAR_M)
 assert.equal(nearestMetro(41.61, 41.62), null) // Batumi — no Tbilisi metro
+
+// Dighomi Massive: ღრმაღელე is 1.1 km straight but ~4.4 km on foot — walking-nearest is დიდუბე
+const dighomi = nearestMetro(41.770753, 44.778825)
+assert.equal(dighomi?.name, 'დიდუბე', `dighomi metro ${dighomi?.name}`)
+assert.ok(dighomi!.meters > 2200 && dighomi!.meters < 3400, `dighomi meters ${dighomi!.meters}`)
+// north of the massive the Mindeli bridge flips walking-nearest to სარაჯიშვილი
+assert.equal(nearestMetro(41.788, 44.77)?.name, 'სარაჯიშვილი')
 
 const axisNear = nearestAmenities(41.71174204, 44.75668685)
 assert.ok(axisNear.length >= 2, `axis amenities ${axisNear.length}`)
