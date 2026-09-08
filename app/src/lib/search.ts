@@ -218,6 +218,7 @@ async function ensureIndex(): Promise<boolean> {
       "propertyType",
       "city",
       "district",
+      "address",
       "price",
       "priceUSD",
       "area",
@@ -314,11 +315,9 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.city) parts.push(`city = ${esc(filters.city)}`)
   if (filters.district) {
     const vals = districtSearchValues(filters.district, filters.city)
-    parts.push(
-      vals.length === 1
-        ? `district = ${esc(vals[0]!)}`
-        : `district IN [${vals.map(esc).join(", ")}]`,
-    )
+    // address: importer parks the village there with district = muni (buildDbWhere).
+    const inList = vals.map(esc).join(", ")
+    parts.push(`(district IN [${inList}] OR address IN [${inList}])`)
   }
   // Price bounds arrive in filters.currency (default USD) — filter the
   // normalized priceUSD so GEL and USD listings compare fairly.

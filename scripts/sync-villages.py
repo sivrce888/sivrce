@@ -50,6 +50,16 @@ MUNI_MAP = {
 # De-facto duplicates / containers — never village parents.
 MUNI_SKIP = {'ყორნისის რაიონი', 'ქუთაისის მუნიციპალიტეტი', 'აფხაზეთის ავტონომიური რესპუბლიკა', 'უცხოეთი'}
 
+# Verified famous settlements all three sources miss (OSM tags them oddly,
+# TNET/SS omit them). Keep to hand-checked names only — no bulk import.
+EXTRA_VILLAGES = {
+  'ყაზბეგის მუნიციპალიტეტი': ['გერგეტი'],
+  'თელავის მუნიციპალიტეტი': ['ქისისხევი', 'ყივჭყანი'],
+}
+
+# Town names that alias a catalog city — never village rows (სტეფანწმინდა = ყაზბეგი).
+CITY_ALIAS = {'სტეფანწმინდა'}
+
 # New self-governed communities + occupied-territory munis the picker must list.
 NEW_MUNIS = [
   'გაგრის მუნიციპალიტეტი', 'გუდაუთის მუნიციპალიტეტი', 'სოხუმის მუნიციპალიტეტი',
@@ -61,16 +71,31 @@ HDR = {'User-Agent': 'Mozilla/5.0 (compatible; sivrce-village-sync/1.0)'}
 GE_BBOX = '(41.05,39.95,43.62,46.75)'
 
 
-def get_json(url: str, out: Path, timeout: int = 400) -> None:
-  req = urllib.request.Request(url, headers=HDR)
+def get_json(url: str, out: Path, timeout: int = 400, data: bytes | None = None) -> None:
+  req = urllib.request.Request(url, headers=HDR, data=data)
   with urllib.request.urlopen(req, timeout=timeout) as r:
     out.write_bytes(r.read())
 
 
-def fetch_cache(path: Path, url: str) -> None:
-  if not path.exists():
-    print(f'fetch {path.name} …')
-    get_json(url, path)
+def fetch_overpass(path: Path, query: str) -> None:
+  if path.exists():
+    return
+  print(f'fetch {path.name} …')
+  body = urllib.parse.urlencode({'data': query}).encode()
+  # Overpass 406s "Mozilla/5.0 (compatible; …)" UAs — send an honest agent string.
+  headers = {'User-Agent': 'sivrce-location-sync/1.1 (+https://sivrce.ge)',
+             'Content-Type': 'application/x-www-form-urlencoded'}
+  last: Exception | None = None
+  for host in ('overpass-api.de', 'overpass.kumi.systems', 'overpass.private.coffee'):
+    try:
+      req = urllib.request.Request(f'https://{host}/api/interpreter', data=body, headers=headers)
+      with urllib.request.urlopen(req, timeout=420) as r:
+        path.write_bytes(r.read())
+      return
+    except Exception as e:  # noqa: BLE001 — try next mirror
+      print(f'  {host} failed: {e}')
+      last = e
+  raise last  # type: ignore[misc]
 
 
 def clean(name: str) -> str:
@@ -134,11 +159,17 @@ def muni_polygons() -> dict[str, tuple[list[float], list[list[tuple[float, float
   data = json.loads(OSM_M.read_text())
   out: dict[str, tuple[list[float], list[list[tuple[float, float]]]]] = {}
   for rel in data['elements']:
-    name = MUNI_MAP.get(rel['tags'].get('name') or '') or rel['tags'].get('name:ka') or rel['tags'].get('name') or ''
-    if name in MUNI_SKIP:
+    t = rel['tags']
+    # Some relations carry garbage name:ka (ბაღდათი: 'ბაღდადი;მაიაკოვსკი') with the
+    # real ka name in name — trust whichever candidate actually looks like a muni.
+    name = ''
+    for cand in (t.get('name:ka') or '', t.get('name') or ''):
+      if cand in MUNI_MAP or 'მუნიციპალიტეტი' in cand or 'რაიონი' in cand:
+        name = MUNI_MAP.get(cand, cand)
+        break
+    if not name:
       continue
-    name = MUNI_MAP.get(name, name)
-    if 'მუნიციპალიტეტი' not in name and 'რაიონი' not in name:
+    if name in MUNI_SKIP:
       continue
     rings: list[list[tuple[float, float]]] = []
     outer: list[list[tuple[float, float]]] = []
@@ -207,10 +238,8 @@ def main() -> None:
   geo = json.loads((ROOT / 'app/src/data/georgia-locations.json').read_text())
   catalog_munis = set(geo['municipalities']) | set(NEW_MUNIS)
 
-  fetch_cache(OSM_V, 'https://overpass-api.de/api/interpreter?data=' +
-              urllib.parse.quote(f'[out:json][timeout:350];node["place"~"^(village|hamlet)"]{GE_BBOX};out tags;'))
-  fetch_cache(OSM_M, 'https://overpass-api.de/api/interpreter?data=' +
-              urllib.parse.quote(f'[out:json][timeout:400];rel["boundary"="administrative"]["admin_level"="6"]{GE_BBOX};out geom;'))
+  fetch_overpass(OSM_V, f'[out:json][timeout:350];node["place"~"^(village|hamlet|town)"]{GE_BBOX};out;')
+  fetch_overpass(OSM_M, f'[out:json][timeout:400];rel["boundary"="administrative"]["admin_level"="6"]{GE_BBOX};out geom;')
 
   tnet = load_tnet(catalog_munis)
   ss = load_ss(catalog_munis)
@@ -219,9 +248,9 @@ def main() -> None:
   # City names are never villages under their own muni (ხობი town ≠ სოფ. ხობი).
   cities = set(geo['cities'])
   villages: dict[str, list[str]] = {}
-  for m in sorted(catalog_munis):
-    names = tnet.get(m, set()) | ss.get(m, set()) | osm.get(m, set())
-    names = {n for n in names if n and n not in cities}
+  for m in sorted(catalog_munis - MUNI_SKIP):
+    names = tnet.get(m, set()) | ss.get(m, set()) | osm.get(m, set()) | set(EXTRA_VILLAGES.get(m, ()))
+    names = {n for n in names if n and n not in cities and n not in CITY_ALIAS}
     if names:
       villages[m] = sorted(names, key=lambda x: x.casefold())
 

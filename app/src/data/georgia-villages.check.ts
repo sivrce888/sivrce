@@ -15,6 +15,16 @@ for (const m of villageMunis) {
 const mtskheta = villagesOf('მცხეთის მუნიციპალიტეტი')
 if (!mtskheta.includes('ზემო ნიჩბისი')) throw new Error('ზემო ნიჩბისი missing from მცხეთის მუნიციპალიტეტი')
 
+// Canon towns + EXTRAS canon (sources miss these; hand-verified).
+// სტეფანწმინდა deliberately NOT a city — it aliases ყაზბეგი (route.check guards resolution).
+for (const c of ['ქედა', 'ჩოხატაური', 'ხულო', 'პასანაური']) {
+  if (!GEO_CITIES.includes(c)) throw new Error(`canon town missing from cities: ${c}`)
+}
+if (GEO_CITIES.includes('სტეფანწმინდა')) throw new Error('სტეფანწმინდა listed as city — duplicates ყაზბეგი')
+if (!villagesOf('ყაზბეგის მუნიციპალიტეტი').includes('გერგეტი')) throw new Error('გერგეტი missing')
+// Baghdati polygon was skipped for months (garbage name:ka) — its OSM top-up must stay.
+if (villagesOf('ბაღდათის მუნიციპალიტეტი').length < 25) throw new Error('ბაღდათი top-up lost')
+
 // No village shadows a city name; no empty or whitespace entries; per-muni dedupe.
 const cities = new Set(GEO_CITIES)
 for (const v of allVillages()) {

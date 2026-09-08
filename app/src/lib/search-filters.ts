@@ -137,7 +137,14 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.city) where.city = filters.city
   if (filters.district) {
     const vals = districtSearchValues(filters.district, filters.city)
-    where.district = vals.length === 1 ? vals[0]! : { in: vals }
+    // Importer parks the village in address while district mirrors the city —
+    // a locality pick must match both fields.
+    and.push({
+      OR: [
+        { district: vals.length === 1 ? vals[0]! : { in: vals } },
+        { address: { in: vals } },
+      ],
+    })
   }
   // Price bounds arrive in filters.currency (default USD): match listings
   // priced in that currency directly, plus converted bounds on the other.
