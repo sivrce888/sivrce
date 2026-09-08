@@ -5,6 +5,7 @@
  */
 export interface HeroQuickChip {
   labelKey:
+    | 'home.search.quick.nearMetro'
     | 'home.search.quick.dailyTbilisi'
     | 'home.search.quick.vake'
     | 'home.search.quick.saburtalo'
@@ -20,6 +21,16 @@ export interface HeroQuickChip {
 }
 
 export const QUICK: HeroQuickChip[] = [
+  // ponytail: metro chip → utilitarian /search (shortest path to listings);
+  // link the /metro hub from a content surface if the orphan ever hurts rankings.
+  {
+    labelKey: 'home.search.quick.nearMetro',
+    sale: '/search?deal=sale&metro=1',
+    rent: '/search?deal=rent&metro=1',
+    pledge: '/search?deal=pledge&metro=1',
+    daily: '/search?deal=daily&metro=1',
+    projects: '/projects/tbilisi',
+  },
   {
     labelKey: 'home.search.quick.dailyTbilisi',
     sale: '/daily/apartments/tbilisi',

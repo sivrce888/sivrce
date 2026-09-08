@@ -192,6 +192,7 @@ export const CMS_BLOCKS = {
 
   // ——— Hero quick chips ———
   'home.search.popular': 'პოპულარული:',
+  'home.search.quick.nearMetro': 'მეტროსთან',
   'home.search.quick.dailyTbilisi': 'ბინები დღიურად თბილისში',
   'home.search.quick.vake': 'ვაკეში',
   'home.search.quick.saburtalo': 'საბურთალოზე',

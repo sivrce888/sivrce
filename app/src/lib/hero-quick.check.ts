@@ -11,11 +11,13 @@ const resolves = (path: string) => !!parseSeoSlug(path.split('/').filter(Boolean
 let fails = 0
 for (const chip of QUICK) {
   for (const k of ['sale', 'rent', 'daily'] as const) {
-    const segs = chip[k].split('/').filter(Boolean)
-    if (resolves(chip[k])) continue
+    const href = chip[k]
+    const segs = href.split('/').filter(Boolean)
+    // /search?… is an inventory-independent utility route — query params can't 404.
+    if (href.startsWith('/search?') || resolves(href)) continue
     const parent = '/' + segs.slice(0, -1).join('/')
     if (resolves(parent)) continue
-    console.error(`hero-quick: ${chip.labelKey}.${k} is dead and has no resolvable parent → ${chip[k]}`)
+    console.error(`hero-quick: ${chip.labelKey}.${k} is dead and has no resolvable parent → ${href}`)
     fails++
   }
 }
