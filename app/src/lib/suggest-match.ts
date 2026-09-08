@@ -130,28 +130,32 @@ export function suggestFuzzy(hay: readonly (string | undefined)[], q: string): b
   return hay.some((h) => h && wordsOf(h).some((w) => w && needles.some((n) => dist1Prefix(w, n))))
 }
 
-/** prefix = starts-with (string or any word); null = no match. */
-export function suggestMatch(
-  hay: readonly (string | undefined)[],
-  q: string,
-): { prefix: boolean } | null {
-  const needle = foldQuarterQuery(q)
-  if (!needle) return null
-  // ponytail: O(catalog) fold per call — precompute skeletons in the route if p95 ever matters
-  // Query variants: genitive-tail stem ("beliashvilis"), phonetic fold
-  // ("nutsubidze"→"nucubize"), and folded+nominative-vowel stripped ("nucubiz").
-  const needles = queryVariants(needle)
-  // Hay variants: raw, ka genitive stripped, and both phonetically folded.
-  // Raw stays first: no regression.
-  const hitPrefix = (s: string, nd: string) =>
-    s.startsWith(nd) || s.split(/[\s,-]+/).some((w) => w.startsWith(nd))
-  const hs = hay
+/**
+ * Haystack-side folds — precompute once per catalog row (module init), so the
+ * per-request cost is plain string matching over ready skeletons instead of
+ * ~25 regex passes × translit per row per keystroke.
+ */
+export type CompiledHay = readonly (readonly [string, string, string, string])[]
+
+export function compileHay(hay: readonly (string | undefined)[]): CompiledHay {
+  return hay
     .filter((h): h is string => !!h)
     .map((h) => {
       const n = foldQuarterQuery(h)
       const n2 = gStem(n)
       return [n, foldTranslit(n), n2, foldTranslit(n2)] as const
     })
+}
+
+/** prefix = starts-with (string or any word); null = no match. */
+export function matchCompiled(hs: CompiledHay, q: string): { prefix: boolean } | null {
+  const needle = foldQuarterQuery(q)
+  if (!needle) return null
+  // Query variants: genitive-tail stem ("beliashvilis"), phonetic fold
+  // ("nutsubidze"→"nucubize"), and folded+nominative-vowel stripped ("nucubiz").
+  const needles = queryVariants(needle)
+  const hitPrefix = (s: string, nd: string) =>
+    s.startsWith(nd) || s.split(/[\s,-]+/).some((w) => w.startsWith(nd))
   for (const [a, b, c, d] of hs) {
     for (const nd of needles) {
       if (hitPrefix(a, nd) || hitPrefix(b, nd) || hitPrefix(c, nd) || hitPrefix(d, nd)) {
@@ -165,4 +169,9 @@ export function suggestMatch(
     }
   }
   return null
+}
+
+/** prefix = starts-with (string or any word); null = no match. */
+export function suggestMatch(hay: readonly (string | undefined)[], q: string) {
+  return matchCompiled(compileHay(hay), q)
 }
