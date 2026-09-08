@@ -62,6 +62,7 @@ import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { useCompareStrings } from '@/components/compare/i18n'
 import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
 import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, groupedFeatures, orderFeaturesForDisplay, projectLabel, conditionLabel } from '@/lib/features'
+import type { LandInsights } from '@/lib/land'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 const MapEmbed = dynamic(() => import('@/components/MapEmbed'), {
@@ -71,6 +72,10 @@ const MapEmbed = dynamic(() => import('@/components/MapEmbed'), {
 const SunPath = dynamic(() => import('@/components/listing/SunPath'), {
   ssr: false,
   loading: () => <div className="mt-8 h-[420px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+})
+const LandProfile = dynamic(() => import('@/components/listing/LandProfile'), {
+  ssr: false,
+  loading: () => <div className="mt-8 h-[290px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
 })
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
@@ -343,6 +348,7 @@ export default function ListingDetailClient({
   railAd = null,
   priceEvents = null,
   postedDays = 0,
+  land = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -355,6 +361,8 @@ export default function ListingDetailClient({
   priceEvents?: PriceEventView[] | null
   /** Whole days since posting — computed on the server (pure render). */
   postedDays?: number
+  /** Open-Meteo terrain + climate readout — land listings only (lib/land.ts). */
+  land?: LandInsights | null
 }) {
   const { data: session } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -1220,6 +1228,9 @@ export default function ListingDetailClient({
                 </div>
               </div>
             )}
+
+            {/* Land profile — Open-Meteo terrain + climate for plot listings */}
+            {land && l.propType === 'land' && <LandProfile data={land} />}
 
             {/* Sun & daylight — solar arc for the listing coords (client-computed;
                 ISR-cached server times would go stale within the cache window) */}

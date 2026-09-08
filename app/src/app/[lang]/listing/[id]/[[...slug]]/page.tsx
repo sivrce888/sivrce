@@ -14,6 +14,7 @@ import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
 import { listingHubAnchor, listingHubPath } from '@/lib/seo-pages'
 import { isLandLease } from '@/lib/add-listing-fields'
+import { getLandInsights } from '@/lib/land'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingVideoObject } from '@/lib/listing-video'
 import { jsonLd, ogImages } from '@/lib/utils'
@@ -145,13 +146,15 @@ export default async function ListingPage({ params }: PageProps) {
     permanentRedirect(canonical)
   }
 
-  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents] = await Promise.all([
+  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents, land] = await Promise.all([
     getSimilarListings(listing, 8).catch(() => []),
     getDistrictPeerPerM2(listing.city, listing.district, listing.dealType).catch(() => []),
     getReviewAggregate('listing', listing.id).catch(() => null),
     getListingOwnerMeta(listing.id),
     pickAd('listing_rail', { audience: 'guest', lang }),
     getListingPriceEvents(listing.id),
+    // Terrain + climate readout — land listings only, never blocks other cards.
+    listing.propType === 'land' ? getLandInsights(listing.coords).catch(() => null) : null,
   ])
   const ownerTier = ownerMeta?.tier ?? 'standard'
   // Whole days since posting — feeds the freshness line (60s ISR stays honest).
@@ -300,6 +303,7 @@ export default async function ListingPage({ params }: PageProps) {
         railAd={railAd}
         priceEvents={priceEvents}
         postedDays={postedDays}
+        land={land}
       />
       <script
         type="application/ld+json"
