@@ -377,7 +377,9 @@ export default function MyListingsManager({
         setError(
           data.error === "refresh_cooldown"
             ? "განახლება ხელმისაწვდომია 1 საათში"
-            : (data.error ?? "შეცდომა"),
+            : data.error === "rate_limited"
+              ? "ძალიან ბევრი მცდელობა — სცადე 10 წუთში"
+              : (data.error ?? "შეცდომა"),
         )
         return
       }
