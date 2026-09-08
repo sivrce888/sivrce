@@ -168,6 +168,20 @@ export function matchCompiled(hs: CompiledHay, q: string): { prefix: boolean } |
       return { prefix: false }
     }
   }
+  // Multi-token queries ("bina vake", "ბინა ვაკეში") — the full phrase never
+  // matches a place-name catalog. Per-token OR rescues the location token;
+  // reverse startsWith ("vakeshi"/"ვაკეში") matches the inflected form.
+  const tokens = needle.split(/[\s,]+/).filter((t) => t.length >= 3)
+  if (tokens.length > 1) {
+    const tokenVariants = tokens.map((tk) => ({ tk, nds: queryVariants(tk) }))
+    for (const [a, b, c, d] of hs) {
+      const hit = tokenVariants.some(({ tk, nds }) =>
+        (tk.startsWith(a) && a.length >= 3) ||
+        nds.some((nd) => a.includes(nd) || b.includes(nd) || c.includes(nd) || d.includes(nd))
+      )
+      if (hit) return { prefix: false }
+    }
+  }
   return null
 }
 

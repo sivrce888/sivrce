@@ -63,4 +63,10 @@ for (const [hay, typo] of [
 assert.ok(!suggestFuzzy(beli, "xyzabc"))
 assert.ok(!suggestFuzzy(beli, "bel")) // <4 chars — no fuzz noise
 
+// Multi-token queries — location token rescues when the full phrase misses.
+assert.ok(suggestMatch(["ვაკე"], "bina vake"), "latin generic + district")
+assert.ok(suggestMatch(["ვაკე"], "ბინა ვაკეში"), "ka inflected locative token")
+assert.ok(suggestMatch(chav, "bina chavchavadzis"), "generic + street token")
+assert.equal(suggestMatch(["ვაკე"], "bina saburtaloshi"), null, "wrong district stays null")
+
 console.log("suggest-match.check: ok")
