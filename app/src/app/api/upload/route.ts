@@ -1,9 +1,10 @@
 /**
  * File upload endpoint: accepts image files, normalizes them with sharp and
- * stores three objects in R2:
+ * stores four objects in R2:
  *   <key>            — master: EXIF-rotated, ≤2560px, WebP q82
  *   <key>.card.webp  — 800px grid/card, WebP q78 (see src/lib/media.ts cardOf)
  *   <key>.lqip.webp  — 16px blur placeholder (see src/lib/media.ts lqipOf)
+ *   <key>.og.jpg     — 1200×630 share card, JPEG q82 (see src/lib/media.ts ogOf)
  *
  * Auth-gated (requires session), rate-limited, same-origin only.
  * Allowed types: jpg, png, webp, avif. Max 10 MB.
@@ -130,11 +131,19 @@ export async function POST(req: Request) {
       .resize({ width: 16 })
       .webp({ quality: 30 })
       .toBuffer()
+    // attention crop: centers on skin tones / high-detail region — landscape
+    // share card for crawlers that skip WebP (see src/lib/media.ts ogOf).
+    const og = await base
+      .clone()
+      .resize({ width: 1200, height: 630, fit: "cover", position: sharp.strategy.attention })
+      .jpeg({ quality: 82 })
+      .toBuffer()
 
     const result = await uploadFile({ key, body: master, contentType: "image/webp" })
     await Promise.all([
       uploadFile({ key: key.replace(/\.webp$/, ".card.webp"), body: card, contentType: "image/webp" }),
       uploadFile({ key: key.replace(/\.webp$/, ".lqip.webp"), body: lqip, contentType: "image/webp" }),
+      uploadFile({ key: key.replace(/\.webp$/, ".og.jpg"), body: og, contentType: "image/jpeg" }),
     ])
     return Response.json({ ok: true, url: result.url, key }, { status: 201 })
   } catch (err) {

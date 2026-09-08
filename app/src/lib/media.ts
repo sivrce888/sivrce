@@ -1,12 +1,14 @@
 /**
  * Listing photo URL conventions.
  *
- * /api/upload stores, for every accepted photo, three R2 objects:
+ * /api/upload stores, for every accepted photo, four R2 objects:
  *   uploads/YYYY/MM/<uuid>.webp        — master (EXIF-rotated, ≤2560px, q82)
  *   uploads/YYYY/MM/<uuid>.card.webp   — 800px grid/card (q78)
  *   uploads/YYYY/MM/<uuid>.lqip.webp   — 16px blur placeholder
+ *   uploads/YYYY/MM/<uuid>.og.jpg      — 1200×630 share card (WhatsApp/Viber/FB
+ *                                        crawlers don't render WebP OG tags)
  *
- * lqipOf()/cardOf() derive sibling URLs from the master, so no DB column.
+ * lqipOf()/cardOf()/ogOf() derive sibling URLs from the master, so no DB column.
  * Static/demo images (Unsplash, local /images/*) have no twins.
  */
 
@@ -34,6 +36,11 @@ export function lqipOf(url: string): string | undefined {
 /** 800px card twin — grid/search. Undefined for non-pipeline URLs. */
 export function cardOf(url: string): string | undefined {
   return hasLqip(url) ? url.replace(/\.webp$/, ".card.webp") : undefined
+}
+
+/** 1200×630 JPEG share twin — og:image. Undefined for non-pipeline URLs. */
+export function ogOf(url: string): string | undefined {
+  return hasLqip(url) ? url.replace(/\.webp$/, ".og.jpg") : undefined
 }
 
 /** next/image blur props for a listing photo — spread onto <Image>. */

@@ -16,7 +16,7 @@ import { listingHubAnchor, listingHubPath } from '@/lib/seo-pages'
 import { isLandLease } from '@/lib/add-listing-fields'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingVideoObject } from '@/lib/listing-video'
-import { jsonLd, ogImage } from '@/lib/utils'
+import { jsonLd, ogImages } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { pickAd } from '@/lib/ads-db'
 import { getServerT, langAlternates, OG_LOCALE } from '@/lib/i18n/server'
@@ -84,11 +84,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     l.floor > 0 && `${l.floor}/${l.totalFloors} სართული`,
   ].filter(Boolean).join(', ')
   const description = metaDescription(`${exclusiveLead ? `${exclusiveLead}. ` : ''}${keyword}. ${stats && `${stats}. `}${price}. ${l.description}`)
-  // Local photos have a build-time JPEG derivative (scripts/og-derivatives.mjs)
-  // because WhatsApp/Viber/FB crawlers don't render WebP OG tags. Uploaded
-  // (https) photos are served as-is; brand card is the last resort.
+  // Local photos have a build-time JPEG derivative (scripts/og-derivatives.mjs);
+  // uploaded photos a runtime .og.jpg twin (src/lib/media.ts ogOf), with the
+  // original kept as fallback og:image for uploads made before the twin —
+  // WhatsApp/Viber/FB crawlers don't render WebP OG tags.
   const firstImg = l.images[0] ?? ''
-  const og = firstImg ? ogImage(firstImg) : '/images/og-brand.png'
+  const ogList = firstImg ? ogImages(firstImg) : ['/images/og-brand.png']
   const path = listingPath(l)
   const videoLd = listingVideoObject(l.video, {
     name: keyword,
@@ -107,7 +108,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: `https://sivrce.ge${path}`,
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
-      images: [{ url: og, width: 1200, height: 630, alt: title }],
+      images: ogList.map((url, i) => (
+        i === 0 ? { url, width: 1200, height: 630, alt: title } : { url, alt: title }
+      )),
       ...(videoLd && {
         videos: [{
           url: videoLd.contentUrl ?? videoLd.embedUrl ?? l.video!,
@@ -120,7 +123,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title,
       description,
-      images: [og],
+      images: ogList,
     },
   }
 }

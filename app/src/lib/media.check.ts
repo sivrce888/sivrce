@@ -40,3 +40,28 @@ for (const url of [
 }
 
 console.log("media.check: OK")
+
+// og.jpg share twin — pipeline masters only (see src/lib/media.ts ogOf).
+import { ogOf } from "./media"
+import { ogImage, ogImages } from "./utils"
+
+assert.equal(
+  ogOf(master),
+  "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.og.jpg",
+)
+assert.equal(ogOf("/images/p2.webp"), undefined)
+assert.equal(
+  ogImage(master),
+  "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.og.jpg",
+)
+assert.equal(ogImage("/images/hero.webp"), "/images/og/hero.jpg")
+assert.deepEqual(
+  ogImages(master),
+  [
+    "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.og.jpg",
+    master,
+  ],
+)
+assert.deepEqual(ogImages("/images/hero.webp"), ["/images/og/hero.jpg"])
+
+console.log("media.check (og twin): OK")
