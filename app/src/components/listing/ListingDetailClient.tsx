@@ -28,6 +28,8 @@ import type { PublicAd } from '@/lib/ads'
 import HScroll from '@/components/HScroll'
 import { Reveal } from '@/components/Reveal'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { RatingStars } from '@/components/reviews/RatingStars'
+import { getReviewStrings } from '@/components/reviews/i18n'
 import { LEAD_FORM_ID, LeadForm } from '@/components/lead/LeadForm'
 import { useChat } from '@/components/chat/ChatProvider'
 import { TourBooking } from '@/components/listing/TourBooking'
@@ -349,6 +351,7 @@ export default function ListingDetailClient({
   priceEvents = null,
   postedDays = 0,
   land = null,
+  profileRating = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -363,12 +366,15 @@ export default function ListingDetailClient({
   postedDays?: number
   /** Open-Meteo terrain + climate readout — land listings only (lib/land.ts). */
   land?: LandInsights | null
+  /** Agent/developer profile review aggregate — null for owner cards. */
+  profileRating?: { average: number; count: number } | null
 }) {
   const { data: session } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const ttCompare = useCompareStrings()
+  const rs = getReviewStrings(lang)
   const { t, lang } = useI18n()
   const { currency, setCurrency, rate: liveRate } = useCurrency()
   const { openChat } = useChat()
@@ -1387,6 +1393,16 @@ export default function ListingDetailClient({
                     ) : null}
                     {l.agent.agency ? <span className="truncate">{l.agent.agency}</span> : null}
                   </div>
+                  {profileRating && l.agent.profileHref ? (
+                    <LocalizedLink
+                      href={l.agent.profileHref}
+                      className="mt-1.5 flex w-fit items-center gap-1.5 rounded-sm text-[12px] font-bold text-sv-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                    >
+                      <RatingStars value={profileRating.average} size="sm" label={rs.starsReadOnly(profileRating.average)} />
+                      <span className="tabular-nums">{profileRating.average.toFixed(1)}</span>
+                      <span className="font-semibold text-sv-ink/60">{rs.reviewsCount(profileRating.count)}</span>
+                    </LocalizedLink>
+                  ) : null}
                 </div>
               </div>
 

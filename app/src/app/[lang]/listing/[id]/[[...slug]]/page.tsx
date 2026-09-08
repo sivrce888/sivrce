@@ -146,7 +146,14 @@ export default async function ListingPage({ params }: PageProps) {
     permanentRedirect(canonical)
   }
 
-  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents, land] = await Promise.all([
+  // Profile rating for the contact card — agent/developer profiles only;
+  // owner (/u/…) listings have no review target.
+  const profileHref = listing.agent.profileHref ?? ''
+  const ratingType = profileHref.startsWith('/agents/')
+    ? 'agent'
+    : profileHref.startsWith('/developers/') ? 'developer' : null
+
+  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents, land, profileRating] = await Promise.all([
     getSimilarListings(listing, 8).catch(() => []),
     getDistrictPeerPerM2(listing.city, listing.district, listing.dealType).catch(() => []),
     getReviewAggregate('listing', listing.id).catch(() => null),
@@ -155,6 +162,7 @@ export default async function ListingPage({ params }: PageProps) {
     getListingPriceEvents(listing.id),
     // Terrain + climate readout — land listings only, never blocks other cards.
     listing.propType === 'land' ? getLandInsights(listing.coords).catch(() => null) : null,
+    ratingType ? getReviewAggregate(ratingType, profileHref.split('/')[2]!).catch(() => null) : null,
   ])
   const ownerTier = ownerMeta?.tier ?? 'standard'
   // Whole days since posting — feeds the freshness line (60s ISR stays honest).
@@ -304,6 +312,7 @@ export default async function ListingPage({ params }: PageProps) {
         priceEvents={priceEvents}
         postedDays={postedDays}
         land={land}
+        profileRating={profileRating}
       />
       <script
         type="application/ld+json"
