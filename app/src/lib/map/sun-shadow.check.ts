@@ -8,7 +8,16 @@
  * west; night and near-horizon suns cast nothing; extreme reach is capped.
  */
 import assert from 'node:assert/strict'
-import { convexHullLngLat, shadowFeature, shadowPolygon, NOMINAL_HEIGHT_M } from './sun-shadow'
+import {
+  convexHullLngLat,
+  shadowFeature,
+  shadowPolygon,
+  sunLight,
+  sunSky,
+  mixHex,
+  MAP_DEFAULT_LIGHT,
+  NOMINAL_HEIGHT_M,
+} from './sun-shadow'
 
 const TBILISI = { lat: 41.7151, lng: 44.8271 }
 const M_LAT = 1 / 110_540
@@ -61,4 +70,24 @@ for (const c of [[0, 0], [10, 0], [10, 10], [0, 10]] as [number, number][])
   assert.ok(hull.some((p) => p[0] === c[0] && p[1] === c[1]), `corner ${c} kept`)
 
 assert.equal(NOMINAL_HEIGHT_M, 24)
-console.log(`sun-shadow: noon ΔN ${growN.toFixed(1)}m · morning W ${growW.toFixed(0)}m · cap ${capReach.toFixed(0)}m ✓`)
+
+// Sun light drives the map's fill-extrusion light: polar = zenith angle,
+// warm + faint at dawn, white + steep at noon, faint cool cast at twilight.
+const noonLight = sunLight(45, 180)
+assert.deepEqual(noonLight.position, [1.5, 180, 45], 'polar = 90 − altitude, azimuth passthrough')
+assert.equal(noonLight.color, '#ffffff', 'high sun is white')
+assert.equal(noonLight.intensity, 0.7, 'noon intensity')
+const dawnLight = sunLight(5, 90)
+assert.deepEqual(dawnLight.position, [1.5, 90, 85], 'dawn light hugs the horizon in the east')
+assert.equal(dawnLight.color, mixHex('#ffb562', '#ffffff', 0.2), 'dawn light is warm')
+assert.ok(dawnLight.intensity > 0.3 && dawnLight.intensity < 0.4, 'dawn intensity mid-low')
+assert.equal(sunLight(95, 0).position[2], 2, 'zenith clamped')
+const nightLight = sunLight(-5, 270)
+assert.equal(nightLight.intensity, 0.12, 'twilight stays faint')
+assert.equal(nightLight.position[2], 92, 'twilight light never comes from below')
+assert.equal(sunSky(0)['horizon-color'], '#ffc089', 'dawn horizon warm')
+assert.equal(sunSky(25)['horizon-color'], '#ddebf7', 'high-sun horizon pale')
+assert.equal(mixHex('#000000', '#ffffff', 0.5), '#808080', 'hex lerp midpoint')
+assert.deepEqual(MAP_DEFAULT_LIGHT.position, [1.15, 210, 30], 'restore = style-spec default')
+
+console.log(`sun-shadow: noon ΔN ${growN.toFixed(1)}m · morning W ${growW.toFixed(0)}m · cap ${capReach.toFixed(0)}m · light ✓`)

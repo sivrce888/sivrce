@@ -1,5 +1,5 @@
 /**
- * Building shadow geometry for the detail map sun scrubber.
+ * Building shadow geometry + sun lighting for the detail map sun scrubber.
  * Parallel projection of the footprint ring along the anti-solar azimuth,
  * scaled by the building's real tile height; the rendered shape is the convex
  * hull of footprint ∪ projected footprint so the shadow never detaches.
@@ -12,7 +12,7 @@ import { sunPosition } from '@/lib/sun'
 const RAD = Math.PI / 180
 
 /** Sun below this altitude renders no shadow — the sliver would lie anyway. */
-const MIN_ALTITUDE = 2
+export const MIN_ALTITUDE = 2
 
 /** Hard cap on shadow reach so a 3° sun doesn't project the building to horizon. */
 const MAX_REACH_M = 150
@@ -95,4 +95,63 @@ export function shadowFeature(
   const { altitude, azimuth } = sunPosition(lat, lng, date)
   const polygon = shadowPolygon(ring, heightM, azimuth, altitude)
   return polygon ? { polygon, altitude, azimuth } : null
+}
+
+/**
+ * Fill-extrusion light + sky for the sun scrubber — pure, no maplibre import.
+ * `position` is the style-spec [radial, azimuthal°N-cw, polar°] triple with
+ * polar = zenith angle (0° overhead), so the map light IS the sun.
+ */
+export type SunLight = {
+  position: [number, number, number]
+  color: string
+  intensity: number
+}
+
+export type SunSky = {
+  'sky-color': string
+  'horizon-color': string
+}
+
+/** Style-spec default light — what we restore when the scrubber turns off. */
+export const MAP_DEFAULT_LIGHT: SunLight = {
+  position: [1.15, 210, 30],
+  color: '#ffffff',
+  intensity: 0.5,
+}
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
+
+/** Channel-wise hex lerp — two known-good colors, no color lib. */
+export function mixHex(a: string, b: string, t: number): string {
+  const pa = a.match(/\w\w/g)!.map((h) => parseInt(h, 16))
+  const pb = b.match(/\w\w/g)!.map((h) => parseInt(h, 16))
+  const out = pa.map((v, i) => Math.round(v + ((pb[i] ?? v) - v) * t))
+  return `#${out.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+}
+
+const WARM = '#ffb562'
+const DAYLIGHT = '#ffffff'
+
+/** Sky brightens with the sun; the horizon band keeps the dawn/dusk warmth. */
+export function sunSky(altitudeDeg: number): SunSky {
+  const day = clamp01(altitudeDeg / 25)
+  return {
+    'sky-color': mixHex('#5e93cf', '#87c0f2', day),
+    'horizon-color': mixHex('#ffc089', '#ddebf7', day),
+  }
+}
+
+/** Map light pinned to the real sun — warm + low at dawn/dusk, white + steep at noon. */
+export function sunLight(altitudeDeg: number, azimuthDeg: number): SunLight {
+  if (altitudeDeg < MIN_ALTITUDE) {
+    // Twilight: keep a faint cool cast so extrusions never go fully flat.
+    return { position: [1.5, azimuthDeg, 92], color: '#93a7db', intensity: 0.12 }
+  }
+  const day = clamp01(altitudeDeg / 25)
+  return {
+    position: [1.5, azimuthDeg, Math.min(88, Math.max(2, 90 - altitudeDeg))],
+    color: mixHex(WARM, DAYLIGHT, day),
+    intensity: 0.3 + 0.4 * day,
+  }
 }

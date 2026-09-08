@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
-import type { Map as MlMap, Marker as MlMarker, MapMouseEvent } from 'maplibre-gl'
+import type { Map as MlMap, Marker as MlMarker, MapMouseEvent, SkySpecification } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, setBasemapBuildings3d, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
@@ -20,8 +20,16 @@ import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { mapBootCamera } from '@/lib/map/map-ui'
 import { mapRuntimeOptions } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
-import { formatSunTime, tbilisiInstant, tbilisiMinutesOfDay } from '@/lib/sun'
-import { shadowFeature, NOMINAL_HEIGHT_M, type LngLatRing } from '@/lib/map/sun-shadow'
+import { formatSunTime, sunPosition, tbilisiInstant, tbilisiMinutesOfDay } from '@/lib/sun'
+import {
+  shadowPolygon,
+  sunLight,
+  sunSky,
+  MAP_DEFAULT_LIGHT,
+  MIN_ALTITUDE,
+  NOMINAL_HEIGHT_M,
+  type LngLatRing,
+} from '@/lib/map/sun-shadow'
 import {
   closeRing,
   geometryRing,
@@ -258,20 +266,46 @@ function ensureSunLayers(map: MlMap) {
   }
 }
 
-/** Cast (or clear) the highlighted building's shadow for `at`. */
-function paintSun(map: MlMap, src: SunSource | null, at: Date, lat: number, lng: number) {
+/**
+ * Sun scrubber repaint — exact shadow polygon + fill-extrusion light + sky,
+ * all driven by the same solar position. `on=false` restores style defaults.
+ * ponytail: light/sky are style-property writes (GPU uniforms) — cheap enough
+ * to re-apply on every slider tick, no animation loop needed.
+ */
+function paintSun(
+  map: MlMap,
+  on: boolean,
+  src: SunSource | null,
+  at: Date,
+  lat: number,
+  lng: number,
+) {
   if (!map.isStyleLoaded()) return
   ensureSunLayers(map)
   const source = map.getSource(SUN_SRC) as
     | { setData: (d: GeoJSON.FeatureCollection | GeoJSON.Feature) => void }
     | undefined
   if (!source) return
-  const hit = src ? shadowFeature(src.ring, src.heightM, lat, lng, at) : null
+  const { altitude, azimuth } = sunPosition(lat, lng, at)
+  const polygon = on && src ? shadowPolygon(src.ring, src.heightM, azimuth, altitude) : null
   source.setData(
-    hit
-      ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [hit.polygon] } }
+    polygon
+      ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [polygon] } }
       : EMPTY_FC,
   )
+  try {
+    if (on) {
+      map.setLight(sunLight(altitude, azimuth))
+      map.setSky(sunSky(altitude))
+    } else {
+      map.setLight(MAP_DEFAULT_LIGHT)
+      // Runtime clears the sun sky on undefined (branch `!skyOptions && sky`);
+      // the Map-class overload just types the arg as required.
+      map.setSky(undefined as unknown as SkySpecification)
+    }
+  } catch {
+    /* style swap mid-paint */
+  }
 }
 
 function paintPick(
@@ -383,8 +417,7 @@ export default function MapEmbed({
   const sunDateRef = useRef<Date>(tbilisiInstant(sunMin))
   const sunDate = useMemo(() => tbilisiInstant(sunMin), [sunMin])
   const sunUp = useMemo(
-    () =>
-      sunSrc != null && shadowFeature(sunSrc.ring, sunSrc.heightM, lat, lng, sunDate) != null,
+    () => sunSrc != null && sunPosition(lat, lng, sunDate).altitude >= MIN_ALTITUDE,
     [sunSrc, lat, lng, sunDate],
   )
 
@@ -506,7 +539,7 @@ export default function MapEmbed({
               ? paintFootprint(map, fp, lat, lng, pinHueRef.current)
               : paintPick(map, lat, lng, pinHueRef.current, markerRef.current)
           captureSun(src)
-          if (sunOnRef.current) paintSun(map, src, sunDateRef.current, lat, lng)
+          if (sunOnRef.current) paintSun(map, true, src, sunDateRef.current, lat, lng)
         }
 
         let booted = false
@@ -579,7 +612,7 @@ export default function MapEmbed({
             }
             // setStyle wiped the custom layers — repaint the open shadow too.
             if (sunOnRef.current) {
-              paintSun(map, sunRingRef.current, sunDateRef.current, lat, lng)
+              paintSun(map, true, sunRingRef.current, sunDateRef.current, lat, lng)
             }
           }
         })
@@ -624,11 +657,11 @@ export default function MapEmbed({
     }
   }, [lat, lng, coordsOk, status, highlight, pinHue, footprint, captureSun])
 
-  // Slider/toggle changes → recast the shadow (or clear it when off).
+  // Slider/toggle changes → recast shadow + sun light (or restore defaults when off).
   useEffect(() => {
     const map = mapRef.current
     if (!map || !coordsOk || status !== 'ready' || !highlight) return
-    paintSun(map, sunOn ? sunSrc : null, sunDate, lat, lng)
+    paintSun(map, sunOn, sunSrc, sunDate, lat, lng)
   }, [sunOn, sunDate, sunSrc, lat, lng, coordsOk, status, highlight])
 
   useEffect(() => {
