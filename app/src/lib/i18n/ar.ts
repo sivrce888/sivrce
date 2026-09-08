@@ -283,7 +283,6 @@ export const ar: Dict = {
   'detail.features': 'المميزات',
   'detail.description': 'الوصف',
   'detail.location': 'الموقع',
-  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'الخريطة',
   'detail.map3dSoon': 'افتح الخريطة ثلاثية الأبعاد',
   'detail.mortgage': 'حاسبة الرهن العقاري',

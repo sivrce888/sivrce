@@ -283,7 +283,6 @@ export const ka = {
   'detail.features': 'მახასიათებლები',
   'detail.description': 'აღწერა',
   'detail.location': 'მდებარეობა',
-  'detail.nearMetro': 'უახლოესი მეტრო',
   'detail.map': 'რუკა',
   'detail.map3dSoon': 'გახსენი 3D რუკა',
   'detail.mortgage': 'იპოთეკის კალკულატორი',

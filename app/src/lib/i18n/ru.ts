@@ -283,7 +283,6 @@ export const ru: Dict = {
   'detail.features': 'Особенности',
   'detail.description': 'Описание',
   'detail.location': 'Расположение',
-  'detail.nearMetro': 'Ближайшее метро',
   'detail.map': 'Карта',
   'detail.map3dSoon': 'Открыть 3D карту',
   'detail.mortgage': 'Ипотечный калькулятор',

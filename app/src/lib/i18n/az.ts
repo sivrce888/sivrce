@@ -283,7 +283,6 @@ export const az: Dict = {
   'detail.features': 'Xüsusiyyətlər',
   'detail.description': 'Təsvir',
   'detail.location': 'Yer',
-  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Xəritə',
   'detail.map3dSoon': '3D xəritəni aç',
   'detail.mortgage': 'İpoteka kalkulyatoru',

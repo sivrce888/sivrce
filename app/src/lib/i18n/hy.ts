@@ -283,7 +283,6 @@ export const hy: Dict = {
   'detail.features': 'Առանձնահատկություններ',
   'detail.description': 'Նկարագրություն',
   'detail.location': 'Տեղադրություն',
-  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Քարտեզ',
   'detail.map3dSoon': 'Բացել 3D քարտեզը',
   'detail.mortgage': 'Հիպոթեքի հաշվիչ',

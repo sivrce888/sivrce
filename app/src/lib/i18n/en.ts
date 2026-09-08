@@ -283,7 +283,6 @@ export const en: Dict = {
   'detail.features': 'Features',
   'detail.description': 'Description',
   'detail.location': 'Location',
-  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Map',
   'detail.map3dSoon': 'Open 3D map',
   'detail.mortgage': 'Mortgage calculator',

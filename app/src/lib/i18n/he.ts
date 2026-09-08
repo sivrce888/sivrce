@@ -283,7 +283,6 @@ export const he: Dict = {
   'detail.features': 'מאפיינים',
   'detail.description': 'תיאור',
   'detail.location': 'מיקום',
-  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'מפה',
   'detail.map3dSoon': 'פתח מפת תלת-ממד',
   'detail.mortgage': 'מחשבון משכנתה',

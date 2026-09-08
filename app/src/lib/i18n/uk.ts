@@ -283,7 +283,6 @@ export const uk: Dict = {
   'detail.features': 'Особливості',
   'detail.description': 'Опис',
   'detail.location': 'Розташування',
-  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Мапа',
   'detail.map3dSoon': 'Відкрити 3D-мапу',
   'detail.mortgage': 'Іпотечний калькулятор',

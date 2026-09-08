@@ -283,7 +283,6 @@ export const tr: Dict = {
   'detail.features': 'Özellikler',
   'detail.description': 'Açıklama',
   'detail.location': 'Konum',
-  'detail.nearMetro': 'Nearest metro',
   'detail.map': 'Harita',
   'detail.map3dSoon': '3B haritayı aç',
   'detail.mortgage': 'Konut kredisi hesaplayıcı',

@@ -11,8 +11,11 @@ import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, Columns2, Copy,
-  Play, Camera,
+  Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Dumbbell, Pill,
+  type LucideIcon,
 } from 'lucide-react'
+// ponytail: type-only via import() syntax — device-budget lock keeps pois dynamic-only
+type PoiCategory = import('@/lib/map/pois').PoiCategory
 import { SparkMark } from '@/components/SparkMark'
 import UserAvatar from '@/components/UserAvatar'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
@@ -66,6 +69,20 @@ const MapEmbed = dynamic(() => import('@/components/MapEmbed'), {
   loading: () => <div className="aspect-video bg-sv-navy-soft" aria-hidden />,
 })
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
+
+/** Same locked pairing as the building page's around grid. */
+const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
+  metro: TrainFront,
+  school: GraduationCap,
+  university: Landmark,
+  park: Trees,
+  hospital: Hospital,
+  shop: ShoppingBag,
+  gym: Dumbbell,
+  pharmacy: Pill,
+}
+
+type NearChip = { category: PoiCategory; name: string; dist: string; color: string }
 
 function FeatureGroups({ features, dealType }: { features: string[]; dealType: string }) {
   const { t } = useI18n()
@@ -431,13 +448,19 @@ export default function ListingDetailClient({
   }, [l.id])
 
   const recentIds = useRecentIds()
-  const [metroLine, setMetroLine] = useState<string | null>(null)
+  const [nearChips, setNearChips] = useState<NearChip[]>([])
   useEffect(() => {
     let cancelled = false
-    void import('@/lib/map/pois').then(({ nearestMetro, formatMetroDist }) => {
+    void import('@/lib/map/pois').then(({ nearestAmenities, formatMetroDist, POI_COLORS }) => {
       if (cancelled) return
-      const n = nearestMetro(l.coords.lat, l.coords.lng)
-      setMetroLine(n ? `${n.name} · ${formatMetroDist(n)}` : null)
+      setNearChips(
+        nearestAmenities(l.coords.lat, l.coords.lng).slice(0, 6).map((a) => ({
+          category: a.category,
+          name: a.name,
+          dist: formatMetroDist(a),
+          color: POI_COLORS[a.category],
+        })),
+      )
     })
     return () => {
       cancelled = true
@@ -1142,11 +1165,24 @@ export default function ListingDetailClient({
             {parseCoords(l.coords.lat, l.coords.lng) && (
               <div className="mt-8">
                 <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.location')}</h2>
-                {metroLine && (
-                  <p className="mt-2 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue">
-                    <TrainFront className="h-4 w-4 shrink-0" aria-hidden />
-                    {t('detail.nearMetro')}: {metroLine}
-                  </p>
+                {nearChips.length > 0 && (
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {nearChips.map((c) => {
+                      const Icon = AMENITY_ICON[c.category]
+                      return (
+                        <li
+                          key={c.category}
+                          title={`${t(`map.poi.${c.category}`)}: ${c.name}`}
+                          aria-label={`${t(`map.poi.${c.category}`)}: ${c.name}, ${c.dist}`}
+                          className="flex min-w-0 max-w-full items-center gap-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface py-1.5 pl-2.5 pr-3.5 shadow-card"
+                        >
+                          <Icon className="h-4 w-4 shrink-0" style={{ color: c.color }} aria-hidden />
+                          <span className="truncate text-[13px] font-extrabold text-sv-ink">{c.name}</span>
+                          <span className="shrink-0 text-[12px] font-bold text-sv-ink/60">{c.dist}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
                 )}
                 <div className="relative mt-4 overflow-hidden rounded-card shadow-card">
                   <MapEmbed
