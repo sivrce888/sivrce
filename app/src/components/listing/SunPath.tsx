@@ -143,14 +143,16 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
               strokeWidth="2.5"
               strokeLinecap="round"
             />
-            {/* horizon dots: sunrise · noon · sunset */}
+            {/* horizon dots: sunrise · noon · sunset — explicit initial: motion's
+                first client render otherwise writes cx/cy="undefined" */}
             <circle cx="0" cy={HORIZON} r="2.5" className="fill-sv-orange/50" />
             <circle cx={W} cy={HORIZON} r="2.5" className="fill-sv-orange/50" />
             <motion.circle
-              initial={false}
+              initial={{ cy: paths.apexY }}
               animate={{ cy: paths.apexY }}
               transition={{ duration: 0.6, ease }}
               cx={W / 2}
+              cy={paths.apexY}
               r="2.5"
               className="fill-sv-orange/50"
             />
@@ -159,14 +161,20 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
         {marker && (
           <>
             <motion.circle
+              initial={{ cx: marker.x, cy: marker.y }}
               animate={{ cx: marker.x, cy: marker.y }}
               transition={{ duration: 0.6, ease }}
+              cx={marker.x}
+              cy={marker.y}
               r="11"
               className="fill-sv-orange/25"
             />
             <motion.circle
+              initial={{ cx: marker.x, cy: marker.y }}
               animate={{ cx: marker.x, cy: marker.y }}
               transition={{ duration: 0.6, ease }}
+              cx={marker.x}
+              cy={marker.y}
               r="4.5"
               className="fill-sv-orange"
             />

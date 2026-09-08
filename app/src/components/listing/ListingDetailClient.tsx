@@ -918,7 +918,7 @@ export default function ListingDetailClient({
                 >
                   <Heart
                     className={`h-5 w-5 transition-all ${
-                      fav ? 'fill-sv-orange text-sv-orange' : 'group-hover:fill-sv-orange/20 group-hover:text-sv-orange'
+                      fav ? 'fill-sv-orange text-sv-orange sv-heart-pop' : 'group-hover:fill-sv-orange/20 group-hover:text-sv-orange'
                     }`}
                   />
                 </button>

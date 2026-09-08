@@ -443,7 +443,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             fav ? 'bg-sv-surface text-sv-orange' : 'hover:text-sv-orange'
           }`}
         >
-          <Heart className={`h-3.5 w-3.5 ${fav ? 'fill-current' : ''}`} />
+          <Heart className={`h-3.5 w-3.5 ${fav ? 'fill-current sv-heart-pop' : ''}`} />
         </button>
       </div>
 

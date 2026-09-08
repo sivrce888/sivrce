@@ -93,3 +93,37 @@ export function formatSunTime(date: Date, lang: string): string {
     return new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tbilisi' }).format(date)
   }
 }
+
+/**
+ * Minutes-of-day on the Tbilisi wall clock right now — the sun scrubber's
+ * slider lives in listing-local time so a diaspora viewer scrubs the same
+ * daylight the listing has.
+ * ponytail: Georgia is UTC+4 year-round (DST abolished 2004) — instant built
+ * as UTC−4 of the Tbilisi wall date; revisit only if DST ever returns.
+ */
+export function tbilisiMinutesOfDay(now: Date = new Date()): number {
+  const [h, m] = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Tbilisi',
+  })
+    .format(now)
+    .split(':')
+    .map(Number)
+  return (h ?? 0) * 60 + (m ?? 0)
+}
+
+/** Absolute instant at `minutes` past Tbilisi midnight on today's Tbilisi date. */
+export function tbilisiInstant(minutes: number, now: Date = new Date()): Date {
+  const [m, d, y] = new Intl.DateTimeFormat('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+    timeZone: 'Asia/Tbilisi',
+  })
+    .format(now)
+    .split('/')
+    .map(Number)
+  return new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1, Math.floor(minutes / 60) - 4, minutes % 60))
+}

@@ -6,8 +6,9 @@
  * highlight: orange pin + OSM building ring (or square fallback).
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
+import { Sun } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
@@ -19,6 +20,8 @@ import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { mapBootCamera } from '@/lib/map/map-ui'
 import { mapRuntimeOptions } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
+import { formatSunTime, tbilisiInstant, tbilisiMinutesOfDay } from '@/lib/sun'
+import { shadowFeature, NOMINAL_HEIGHT_M, type LngLatRing } from '@/lib/map/sun-shadow'
 import {
   closeRing,
   geometryRing,
@@ -56,6 +59,15 @@ const PICK_FILL = 'sivrce-pick-fill'
 const PICK_HALO = 'sivrce-pick-halo'
 const PICK_LINE = 'sivrce-pick-line'
 const OSM_BLDG_LAYERS = ['building', 'building-3d'] as const
+const SUN_SRC = 'sivrce-sun-shadow'
+const SUN_FILL = 'sivrce-sun-shadow-fill'
+/** Slider window covers every Georgian sunrise/sunset (≈05:27–20:40 extreme). */
+const SUN_MIN_MINUTES = 300
+const SUN_MAX_MINUTES = 1320
+const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/** Ring + tile height of the highlighted building — sun scrubber geometry. */
+type SunSource = { ring: LngLatRing; heightM: number }
 
 type MaplibreNS = typeof import('maplibre-gl')
 type Status = 'idle' | 'loading' | 'ready' | 'error'
@@ -135,17 +147,18 @@ function queryBuildingNear(
   map: MlMap,
   lngLat: { lat: number; lng: number },
   point?: { x: number; y: number },
-): GeoJSON.Geometry | null {
+): { geometry: GeoJSON.Geometry | null; heightM: number | null } {
   const layers = osmLayersOn(map)
-  if (!layers.length) return null
+  if (!layers.length) return { geometry: null, heightM: null }
   const pt = point ?? map.project([lngLat.lng, lngLat.lat])
   const atPoint = map.queryRenderedFeatures([pt.x, pt.y], { layers })
-  const direct = pickNearestBuildingGeometry(
-    atPoint.map((f) => f.geometry),
-    lngLat.lat,
-    lngLat.lng,
-  )
-  if (direct) return direct
+  const direct = pickNearestBuildingGeometry(atPoint.map((f) => f.geometry), lngLat.lat, lngLat.lng)
+  if (direct) {
+    return {
+      geometry: direct,
+      heightM: tileHeight(atPoint.find((f) => f.geometry === direct)),
+    }
+  }
   const r = Math.min(96, Math.max(16, metersToPx(map, OSM_PICK_RADIUS_M, lngLat.lat)))
   const nearby = map.queryRenderedFeatures(
     [
@@ -154,11 +167,14 @@ function queryBuildingNear(
     ],
     { layers },
   )
-  return pickNearestBuildingGeometry(
-    nearby.map((f) => f.geometry),
-    lngLat.lat,
-    lngLat.lng,
-  )
+  const near = pickNearestBuildingGeometry(nearby.map((f) => f.geometry), lngLat.lat, lngLat.lng)
+  return { geometry: near, heightM: near ? tileHeight(nearby.find((f) => f.geometry === near)) : null }
+}
+
+/** render_height from the style's 3D building source; null when the tile omits it. */
+function tileHeight(feature: { properties?: Record<string, unknown> } | undefined): number | null {
+  const h = Number(feature?.properties?.render_height)
+  return Number.isFinite(h) && h > 0 ? h : null
 }
 
 function ensurePickLayers(map: MlMap, hue: string) {
@@ -224,21 +240,56 @@ function paintFeature(map: MlMap, feature: GeoJSON.Feature, hue: string) {
   }
 }
 
+/** Shadow fill sits under the highlight ring; both under nothing else custom. */
+function ensureSunLayers(map: MlMap) {
+  if (!map.getSource(SUN_SRC)) {
+    map.addSource(SUN_SRC, { type: 'geojson', data: EMPTY_FC })
+  }
+  if (!map.getLayer(SUN_FILL)) {
+    map.addLayer(
+      {
+        id: SUN_FILL,
+        type: 'fill',
+        source: SUN_SRC,
+        paint: { 'fill-color': '#0b1233', 'fill-opacity': 0.3 },
+      },
+      map.getLayer(PICK_FILL) ? PICK_FILL : undefined,
+    )
+  }
+}
+
+/** Cast (or clear) the highlighted building's shadow for `at`. */
+function paintSun(map: MlMap, src: SunSource | null, at: Date, lat: number, lng: number) {
+  if (!map.isStyleLoaded()) return
+  ensureSunLayers(map)
+  const source = map.getSource(SUN_SRC) as
+    | { setData: (d: GeoJSON.FeatureCollection | GeoJSON.Feature) => void }
+    | undefined
+  if (!source) return
+  const hit = src ? shadowFeature(src.ring, src.heightM, lat, lng, at) : null
+  source.setData(
+    hit
+      ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [hit.polygon] } }
+      : EMPTY_FC,
+  )
+}
+
 function paintPick(
   map: MlMap,
   lat: number,
   lng: number,
   hue: string,
   marker?: MlMarker | null,
-) {
-  const osm = queryBuildingNear(map, { lat, lng })
-  paintFeature(map, pickHighlightPolygon(lat, lng, osm), hue)
+): SunSource | null {
+  const { geometry, heightM } = queryBuildingNear(map, { lat, lng })
+  paintFeature(map, pickHighlightPolygon(lat, lng, geometry), hue)
   // Pin glued to the exact building being highlighted — pin & ring never disagree.
-  const ring = geometryRing(osm)
+  const ring = geometryRing(geometry)
   if (ring && marker) {
     const p = ringLabelPoint(ring)
     marker.setLngLat([p.lng, p.lat])
   }
+  return ring ? { ring, heightM: heightM ?? NOMINAL_HEIGHT_M } : null
 }
 
 /** Controlled footprint — closed polygon or open draw polyline. */
@@ -248,10 +299,9 @@ function paintFootprint(
   lat: number,
   lng: number,
   hue: string,
-) {
+): SunSource | null {
   if (ring.length === 0) {
-    paintPick(map, lat, lng, hue)
-    return
+    return paintPick(map, lat, lng, hue)
   }
   const closed = closeRing(ring)
   const isPoly =
@@ -268,7 +318,9 @@ function paintFootprint(
       },
       hue,
     )
-    return
+    // Saved footprints have no tile property — ask the OSM building at the pin.
+    const heightM = queryBuildingNear(map, { lat, lng }).heightM
+    return { ring: closed, heightM: heightM ?? NOMINAL_HEIGHT_M }
   }
   paintFeature(
     map,
@@ -279,6 +331,7 @@ function paintFootprint(
     },
     hue,
   )
+  return null
 }
 
 export default function MapEmbed({
@@ -311,6 +364,30 @@ export default function MapEmbed({
   const themeReady = resolvedTheme != null
   const pinHue = highlight ? BRAND.colors.orange : BRAND.colors.blue
 
+  // Sun scrubber — geometry captured by the highlight paint, time picked here.
+  // ponytail: slider pinned to Tbilisi wall time, matching the SunPath card;
+  // "today" frozen at first paint like SunPath (a reopened map re-freezes).
+  // ref feeds map-internal repaints, state feeds render — both set together.
+  const sunRingRef = useRef<SunSource | null>(null)
+  const [sunSrc, setSunSrc] = useState<SunSource | null>(null)
+  const captureSun = useCallback((src: SunSource | null) => {
+    sunRingRef.current = src
+    setSunSrc(src)
+  }, [])
+  const [sunOn, setSunOn] = useState(false)
+  const [sunMin, setSunMin] = useState(() =>
+    Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, tbilisiMinutesOfDay())),
+  )
+  const sunOnRef = useRef(sunOn)
+  const sunMinRef = useRef(sunMin)
+  const sunDateRef = useRef<Date>(tbilisiInstant(sunMin))
+  const sunDate = useMemo(() => tbilisiInstant(sunMin), [sunMin])
+  const sunUp = useMemo(
+    () =>
+      sunSrc != null && shadowFeature(sunSrc.ring, sunSrc.heightM, lat, lng, sunDate) != null,
+    [sunSrc, lat, lng, sunDate],
+  )
+
   // Latest-values mirror for map callbacks — refs must not be written in render.
   useEffect(() => {
     onPickRef.current = onPick
@@ -318,6 +395,9 @@ export default function MapEmbed({
     pickModeRef.current = pickMode
     footprintRef.current = footprint
     pinHueRef.current = pinHue
+    sunOnRef.current = sunOn
+    sunMinRef.current = sunMin
+    sunDateRef.current = tbilisiInstant(sunMin)
   })
   const coordsOk = parseCoords(lat, lng) != null
   // ponytail: skip MapLibre until near viewport
@@ -404,15 +484,15 @@ export default function MapEmbed({
               onPickRef.current(e.lngLat.lat, e.lngLat.lng, null)
               return
             }
-            const osm = queryBuildingNear(
+            const { geometry } = queryBuildingNear(
               map,
               { lat: e.lngLat.lat, lng: e.lngLat.lng },
               e.point,
             )
-            const ring = geometryRing(osm)
+            const ring = geometryRing(geometry)
             const snapped = snapPick(
               { lat: e.lngLat.lat, lng: e.lngLat.lng },
-              osm,
+              geometry,
             )
             onPickRef.current(snapped.lat, snapped.lng, ring)
           })
@@ -421,11 +501,12 @@ export default function MapEmbed({
         const paintHighlight = () => {
           if (!highlightRef.current) return
           const fp = footprintRef.current
-          if (fp && fp.length > 0) {
-            paintFootprint(map, fp, lat, lng, pinHueRef.current)
-          } else {
-            paintPick(map, lat, lng, pinHueRef.current, markerRef.current)
-          }
+          const src =
+            fp && fp.length > 0
+              ? paintFootprint(map, fp, lat, lng, pinHueRef.current)
+              : paintPick(map, lat, lng, pinHueRef.current, markerRef.current)
+          captureSun(src)
+          if (sunOnRef.current) paintSun(map, src, sunDateRef.current, lat, lng)
         }
 
         let booted = false
@@ -496,6 +577,10 @@ export default function MapEmbed({
             } else {
               paintPick(map, lat, lng, pinHueRef.current, markerRef.current)
             }
+            // setStyle wiped the custom layers — repaint the open shadow too.
+            if (sunOnRef.current) {
+              paintSun(map, sunRingRef.current, sunDateRef.current, lat, lng)
+            }
           }
         })
         map.setStyle(style)
@@ -525,11 +610,11 @@ export default function MapEmbed({
     const map = mapRef.current
     if (!map || !coordsOk || status !== 'ready' || !highlight) return
     const paint = () => {
-      if (footprint && footprint.length > 0) {
-        paintFootprint(map, footprint, lat, lng, pinHue)
-      } else {
-        paintPick(map, lat, lng, pinHue, markerRef.current)
-      }
+      const src =
+        footprint && footprint.length > 0
+          ? paintFootprint(map, footprint, lat, lng, pinHue)
+          : paintPick(map, lat, lng, pinHue, markerRef.current)
+      captureSun(src)
     }
     const onMove = () => paint()
     map.once('moveend', onMove)
@@ -537,7 +622,14 @@ export default function MapEmbed({
     return () => {
       map.off('moveend', onMove)
     }
-  }, [lat, lng, coordsOk, status, highlight, pinHue, footprint])
+  }, [lat, lng, coordsOk, status, highlight, pinHue, footprint, captureSun])
+
+  // Slider/toggle changes → recast the shadow (or clear it when off).
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !coordsOk || status !== 'ready' || !highlight) return
+    paintSun(map, sunOn ? sunSrc : null, sunDate, lat, lng)
+  }, [sunOn, sunDate, sunSrc, lat, lng, coordsOk, status, highlight])
 
   useEffect(() => {
     const ml = mlRef.current
@@ -558,9 +650,10 @@ export default function MapEmbed({
     markerRef.current = null
     mlRef.current = null
     styleKeyRef.current = null
+    captureSun(null)
     setStatus('idle')
     setRetry((n) => n + 1)
-  }, [])
+  }, [captureSun])
 
   return (
     <div
@@ -592,6 +685,53 @@ export default function MapEmbed({
               {t('error.retry')}
             </button>
           </div>
+        </div>
+      )}
+      {highlight && interactive && !onPick && sunSrc && status === 'ready' && (
+        <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-2">
+          <button
+            type="button"
+            aria-label={t('map.sun')}
+            aria-pressed={sunOn}
+            title={t('map.sun')}
+            onClick={() => setSunOn((v) => !v)}
+            className={`grid h-9 w-9 place-items-center rounded-full border shadow-card backdrop-blur transition ${
+              sunOn
+                ? 'border-transparent bg-sv-orange text-white'
+                : 'border-sv-ink/10 bg-white/95 text-sv-ink hover:bg-white dark:border-white/10 dark:bg-sv-navy/90 dark:text-white'
+            }`}
+          >
+            <Sun className="h-[18px] w-[18px]" aria-hidden strokeWidth={2.2} />
+          </button>
+          {sunOn && (
+            <div className="w-44 rounded-module border border-sv-ink/10 bg-white/95 p-3 shadow-card backdrop-blur dark:border-white/10 dark:bg-sv-navy/90">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[13px] font-black tabular-nums tracking-tight text-sv-ink dark:text-white">
+                  {formatSunTime(sunDate, 'ka')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSunMin(Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, tbilisiMinutesOfDay())))}
+                  className="rounded-full px-2 py-0.5 text-[11px] font-extrabold text-sv-ink/60 transition hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  {t('map.sunNow')}
+                </button>
+              </div>
+              <input
+                type="range"
+                min={SUN_MIN_MINUTES}
+                max={SUN_MAX_MINUTES}
+                step={10}
+                value={sunMin}
+                onChange={(e) => setSunMin(Number(e.target.value))}
+                aria-label={t('map.sun')}
+                className="mt-2 w-full accent-sv-orange"
+              />
+              <p className="mt-1 text-[10px] font-bold leading-tight text-sv-ink/60 dark:text-white/60">
+                {sunUp ? t('map.sunNote') : t('map.sunDown')}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

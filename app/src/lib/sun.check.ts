@@ -7,7 +7,7 @@
  * winter solstice ≈ 08:40→17:40 local (~9h, noon altitude ≈25°).
  */
 import assert from 'node:assert/strict'
-import { dayLengthMinutes, formatSunTime, sunPosition, sunTimes } from './sun'
+import { dayLengthMinutes, formatSunTime, sunPosition, sunTimes, tbilisiInstant, tbilisiMinutesOfDay } from './sun'
 
 const TBILISI = { lat: 41.7151, lng: 44.8271 }
 
@@ -49,5 +49,12 @@ assert.ok(riseAz > 45 && riseAz < 75, `summer sunrise azimuth ≈NE, got ${riseA
 const pole = sunTimes(89.9, 0, new Date('2026-06-21T12:00:00Z'))
 assert.equal(pole.sunrise, null, 'polar day → null sunrise')
 assert.equal(dayLengthMinutes({ ...summer, sunrise: null, sunset: null }), 0)
+
+// Tbilisi wall-clock helpers: 00:00 UTC = 04:00 Tbilisi (UTC+4, no DST).
+assert.equal(tbilisiMinutesOfDay(new Date('2026-06-21T00:00:00Z')), 4 * 60)
+const at900 = tbilisiInstant(9 * 60, new Date('2026-06-21T12:00:00Z'))
+assert.ok(/^09:00/.test(formatSunTime(at900, 'en')), `tbilisiInstant round-trip, got ${formatSunTime(at900, 'en')}`)
+const atLate = tbilisiInstant(23 * 60 + 40, at900)
+assert.ok(/^23:40/.test(formatSunTime(atLate, 'en-GB')), `late minutes same wall day, got ${formatSunTime(atLate, 'en-GB')}`)
 
 console.log(`sun: Tbilisi ${riseS}→${setS} (${Math.round(lenS / 6) / 10}h) · winter ${riseW}→${setW} ✓`)
