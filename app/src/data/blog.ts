@@ -351,3 +351,37 @@ export function relatedPosts(post: BlogPost, count = 3): BlogPost[] {
   const rest = others.filter((p) => !byTag.includes(p))
   return [...byTag, ...rest].slice(0, count)
 }
+
+/** DB row subset the public read path needs (admin CMS blog posts). */
+export type DbBlogPostRow = Pick<
+  import('@/generated/prisma/client').BlogPost,
+  | 'slug'
+  | 'titleKa'
+  | 'titleEn'
+  | 'excerptKa'
+  | 'excerptEn'
+  | 'bodyKa'
+  | 'tags'
+  | 'featuredImage'
+  | 'publishedAt'
+  | 'createdAt'
+  | 'updatedAt'
+>
+
+/** DB (admin CMS) row → public BlogPost. ka-first with graceful fallbacks. */
+export function dbPostToBlogPost(p: DbBlogPostRow, authorName: string | null): BlogPost {
+  return {
+    slug: p.slug,
+    title: p.titleKa,
+    excerpt: p.excerptKa ?? p.bodyKa.trim().slice(0, 160),
+    body: p.bodyKa,
+    enTitle: p.titleEn ?? '',
+    enExcerpt: p.excerptEn ?? '',
+    tags: p.tags,
+    cover: p.featuredImage || '/images/og-brand.png',
+    author: authorName || 'sivrce რედაქცია',
+    publishedAt: (p.publishedAt ?? p.createdAt).toISOString().slice(0, 10),
+    updatedAt: p.updatedAt.toISOString().slice(0, 10),
+    readingMinutes: Math.max(1, Math.round(p.bodyKa.trim().split(/\s+/).length / 200)),
+  }
+}

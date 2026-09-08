@@ -31,6 +31,7 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { CmsSection } from '@/components/cms/CmsPreviewBridge'
 import { getHomeLayout } from '@/lib/cms'
 import type { HomeFlowId } from '@/lib/cms-studio'
+import { listBlogPosts } from '@/lib/blog-live'
 import type { Lang } from '@/lib/i18n/core'
 import { cardPhotoPayload } from '@/lib/card-gallery-teaser'
 
@@ -42,7 +43,7 @@ function railCard(l: StoryListing): StoryListing {
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
 async function HomeBelowFold({ lang }: { lang: Lang }) {
-  const [superVip, vipPlus, stories, videos, projects, stats, developers, agentCounts, districtCounts] = await Promise.all([
+  const [superVip, vipPlus, stories, videos, projects, stats, developers, agentCounts, districtCounts, blogPosts] = await Promise.all([
     getHomeTierListings('diamond', 8).catch(() => []),
     getHomeTierListings('super_vip', 8).catch(() => []),
     getStoryListings(12).catch(() => [] as StoryListing[]),
@@ -52,6 +53,7 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
     developersLive().catch(() => []),
     getAgentListingCountsByKaName().catch(() => ({}) as Record<string, number>),
     getDistrictListingCounts().catch(() => ({}) as Record<string, number>),
+    listBlogPosts(),
   ])
   // Under-construction first; real CDN heroes over stock npN/pN. Rail shows 8 — rest via /projects.
   const building = projects.filter((p) => p.done < 100)
@@ -111,7 +113,7 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
     services: <Services lang={lang} />,
     stats: <Stats live={stats} />,
     forum: <ForumTeaser />,
-    blog: <BlogNewsSection />,
+    blog: <BlogNewsSection articles={blogPosts.slice(0, 4)} />,
     cta: <CTA lang={lang} />,
   }
 

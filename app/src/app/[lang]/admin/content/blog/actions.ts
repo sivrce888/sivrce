@@ -25,6 +25,15 @@ function isUniqueViolation(e: unknown): boolean {
   )
 }
 
+/** Public surfaces that render blog posts (blog-live read path). */
+function revalidateBlogPublic(): void {
+  revalidatePath("/[lang]/blog", "page")
+  revalidatePath("/[lang]/blog/[slug]", "page")
+  revalidatePath("/[lang]", "page")
+  revalidatePath("/rss.xml", "page")
+  revalidatePath("/sitemap.xml", "page")
+}
+
 function parseTags(raw: string | null): string[] {
   return (raw ?? "")
     .split(",")
@@ -90,6 +99,7 @@ export async function saveBlogPost(
     })
     revalidatePath("/admin/content/blog")
     revalidatePath(`/admin/content/blog/${id}`)
+    revalidateBlogPublic()
     return { error: null }
   }
 
@@ -114,6 +124,7 @@ export async function saveBlogPost(
     after: { slug: data.slug, status: data.status, titleKa: data.titleKa },
   })
   revalidatePath("/admin/content/blog")
+  revalidateBlogPublic()
   redirect(`/admin/content/blog/${createdId}`)
 }
 
@@ -138,6 +149,7 @@ export async function publishBlogPost(fd: FormData): Promise<void> {
   })
   revalidatePath("/admin/content/blog")
   revalidatePath(`/admin/content/blog/${id}`)
+  revalidateBlogPublic()
 }
 
 export async function unpublishBlogPost(fd: FormData): Promise<void> {
@@ -158,4 +170,5 @@ export async function unpublishBlogPost(fd: FormData): Promise<void> {
   })
   revalidatePath("/admin/content/blog")
   revalidatePath(`/admin/content/blog/${id}`)
+  revalidateBlogPublic()
 }

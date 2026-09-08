@@ -3,7 +3,7 @@
 import LocalizedLink from '@/components/LocalizedLink'
 import { BookOpen, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
-import { BLOG_POSTS } from '@/data/blog'
+import type { BlogPost } from '@/data/blog'
 import { useI18n } from '@/lib/i18n/context'
 
 /** Deterministic date — month names come from the home.blog.months block
@@ -14,11 +14,7 @@ function formatBlockDate(iso: string, months: string[]): string {
   return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
-const ARTICLES = [...BLOG_POSTS]
-  .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-  .slice(0, 4)
-
-export default function BlogNewsSection() {
+export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) {
   const { b } = useI18n()
   const months = b('home.blog.months').split(',')
   return (
@@ -46,7 +42,7 @@ export default function BlogNewsSection() {
         </Reveal>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {ARTICLES.map((art, i) => (
+          {articles.map((art, i) => (
             <Reveal key={art.slug} delay={i * 0.08} className="h-full">
               <LocalizedLink href={`/blog/${art.slug}`} className="block h-full">
                 <article className="group flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.08] bg-gradient-to-b from-sv-cloud to-sv-surface p-4 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">

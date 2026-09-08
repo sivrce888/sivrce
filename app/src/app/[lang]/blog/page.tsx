@@ -6,7 +6,7 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { isValidLang } from '@/lib/i18n/core'
-import { BLOG_POSTS } from '@/data/blog'
+import { listBlogPosts } from '@/lib/blog-live'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 
@@ -49,21 +49,23 @@ export async function generateMetadata({
   }
 }
 
-const blogLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Blog',
-  name: 'sivrce ბლოგი',
-  description: 'უძრავი ქონების გზამკვლევები საქართველოში',
-  url: 'https://sivrce.ge/blog',
-  inLanguage: 'ka',
-  blogPost: BLOG_POSTS.map((p) => ({
-    '@type': 'BlogPosting',
-    headline: p.title,
-    url: `https://sivrce.ge/blog/${p.slug}`,
-    datePublished: `${p.publishedAt}T00:00:00+04:00`,
-    dateModified: `${p.updatedAt ?? p.publishedAt}T00:00:00+04:00`,
-    author: { '@type': 'Organization', name: p.author },
-  })),
+function blogLd(posts: { title: string; slug: string; publishedAt: string; updatedAt?: string; author: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'sivrce ბლოგი',
+    description: 'უძრავი ქონების გზამკვლევები საქართველოში',
+    url: 'https://sivrce.ge/blog',
+    inLanguage: 'ka',
+    blogPost: posts.map((p) => ({
+      '@type': 'BlogPosting',
+      headline: p.title,
+      url: `https://sivrce.ge/blog/${p.slug}`,
+      datePublished: `${p.publishedAt}T00:00:00+04:00`,
+      dateModified: `${p.updatedAt ?? p.publishedAt}T00:00:00+04:00`,
+      author: { '@type': 'Organization', name: p.author },
+    })),
+  }
 }
 
 export default async function BlogIndex({ params }: { params: Promise<{ lang: string }> }) {
@@ -99,7 +101,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
             minShort: 'min',
             read: 'Read',
           }
-  const sorted = [...BLOG_POSTS].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+  const sorted = await listBlogPosts()
   const [featured, ...rest] = sorted
 
   return (
@@ -193,7 +195,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
         </div>
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(blogLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(blogLd(sorted)) }} />
     </div>
   )
 }

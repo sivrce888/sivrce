@@ -5,7 +5,7 @@ import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { STREETS } from '@/data/tbilisi-streets'
 import { METRO_STATIONS } from '@/data/tbilisi-metro'
-import { BLOG_POSTS } from '@/data/blog'
+import { listBlogPosts } from '@/lib/blog-live'
 import { FORUM_THREADS } from '@/data/forum'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
@@ -137,7 +137,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({ path: `/projects/tbilisi/${d.slug}`, lastModified: DEPLOY_DATE, changeFrequency: 'weekly', priority: 0.75 })
   }
 
-  for (const p of BLOG_POSTS) {
+  // DB-published posts first (static seed included by the lib as fallback).
+  for (const p of await listBlogPosts()) {
     entries.push({
       path: `/blog/${p.slug}`,
       lastModified: new Date(`${p.updatedAt ?? p.publishedAt}T00:00:00`),

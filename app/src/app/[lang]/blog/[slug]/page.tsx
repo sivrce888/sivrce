@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation'
 import { ChevronRight, Clock, ArrowLeft, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { BLOG_POSTS, getPost, relatedPosts } from '@/data/blog'
+import { BLOG_POSTS, relatedPosts } from '@/data/blog'
+import { getBlogPost } from '@/lib/blog-live'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { cardOf } from '@/lib/media'
 import { langAlternates } from '@/lib/i18n/server'
@@ -23,7 +24,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const post = getPost(slug)
+  const post = await getBlogPost(slug)
   if (!post) return {}
   return {
     title: post.title,
@@ -45,15 +46,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-function postLd(slug: string) {
-  const post = getPost(slug)!
+function postLd(post: NonNullable<Awaited<ReturnType<typeof getBlogPost>>>) {
+  const cover = post.cover.startsWith('http') ? post.cover : `https://sivrce.ge${post.cover}`
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
-    alternativeHeadline: post.enTitle,
+    ...(post.enTitle ? { alternativeHeadline: post.enTitle } : {}),
     description: post.excerpt,
-    image: `https://sivrce.ge${post.cover}`,
+    image: cover,
     inLanguage: 'ka',
     datePublished: `${post.publishedAt}T00:00:00+04:00`,
     dateModified: `${post.updatedAt ?? post.publishedAt}T00:00:00+04:00`,
@@ -97,7 +98,7 @@ function renderBody(body: string) {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params
-  const post = getPost(slug)
+  const post = await getBlogPost(slug)
   if (!post) notFound()
 
   const related = relatedPosts(post)
@@ -200,7 +201,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         </LocalizedLink>
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(slug)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(post)) }} />
     </div>
   )
 }

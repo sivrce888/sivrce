@@ -1,12 +1,13 @@
-import { BLOG_POSTS } from '@/data/blog'
+import { listBlogPosts } from '@/lib/blog-live'
 
 export const revalidate = 86400
 
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
-export function GET() {
-  const items = BLOG_POSTS.map((p) => {
+export async function GET() {
+  const posts = await listBlogPosts()
+  const items = posts.map((p) => {
     const url = `https://sivrce.ge/blog/${p.slug}`
     const date = new Date(`${p.updatedAt ?? p.publishedAt}T00:00:00Z`).toUTCString()
     return `    <item>
