@@ -374,8 +374,8 @@ export default function ListingDetailClient({
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const ttCompare = useCompareStrings()
-  const rs = getReviewStrings(lang)
   const { t, lang } = useI18n()
+  const rs = getReviewStrings(lang)
   const { currency, setCurrency, rate: liveRate } = useCurrency()
   const { openChat } = useChat()
   // Signed-in users get the live chat; guests fall back to the lead form.
