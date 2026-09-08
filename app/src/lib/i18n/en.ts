@@ -140,6 +140,7 @@ export const en: Dict = {
   'map.error': 'The map failed to load. Try refreshing.',
   'map.sun': 'Sun shadow on the map',
   'map.sunNow': 'Now',
+  'map.sunPlay': 'Animate the sun across the day',
   'map.sunDown': 'Sun is down',
   'map.sunNote': 'This building’s shadow only',
   'map.controls': 'Map controls',

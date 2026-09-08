@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { Sun } from 'lucide-react'
+import { Pause, Play, Sun } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent, SkySpecification } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
@@ -72,6 +72,8 @@ const SUN_FILL = 'sivrce-sun-shadow-fill'
 /** Slider window covers every Georgian sunrise/sunset (≈05:27–20:40 extreme). */
 const SUN_MIN_MINUTES = 300
 const SUN_MAX_MINUTES = 1320
+/** Playback speed, minutes-of-day per second — full window in ~8.5s. */
+const SUN_PLAY_RATE = 120
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 /** Ring + tile height of the highlighted building — sun scrubber geometry. */
@@ -383,7 +385,7 @@ export default function MapEmbed({
   terrain = 'streets',
 }: MapEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const mapRef = useRef<MlMap | null>(null)
   const markerRef = useRef<MlMarker | null>(null)
   const mlRef = useRef<MaplibreNS | null>(null)
@@ -412,6 +414,34 @@ export default function MapEmbed({
   const [sunMin, setSunMin] = useState(() =>
     Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, tbilisiMinutesOfDay())),
   )
+  // Day playback — rAF pauses itself on hidden tabs; reduced-motion users scrub by hand.
+  const [sunPlaying, setSunPlaying] = useState(false)
+  const [reducedMotion] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
+  useEffect(() => {
+    if (!sunPlaying) return
+    // ponytail: effect re-runs per frame via [sunMin] — the rAF handle it
+    // schedules is cancelled by its own cleanup, so ticks never double.
+    let cur = sunMin
+    let last = performance.now()
+    let raf = 0
+    const tick = (now: number) => {
+      cur += ((now - last) * SUN_PLAY_RATE) / 1000
+      last = now
+      if (cur >= SUN_MAX_MINUTES) {
+        setSunMin(SUN_MAX_MINUTES)
+        setSunPlaying(false)
+        return
+      }
+      setSunMin(cur)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [sunPlaying, sunMin])
   const sunOnRef = useRef(sunOn)
   const sunMinRef = useRef(sunMin)
   const sunDateRef = useRef<Date>(tbilisiInstant(sunMin))
@@ -727,7 +757,10 @@ export default function MapEmbed({
             aria-label={t('map.sun')}
             aria-pressed={sunOn}
             title={t('map.sun')}
-            onClick={() => setSunOn((v) => !v)}
+            onClick={() => {
+              setSunPlaying(false)
+              setSunOn((v) => !v)
+            }}
             className={`grid h-9 w-9 place-items-center rounded-full border shadow-card backdrop-blur transition ${
               sunOn
                 ? 'border-transparent bg-sv-orange text-white'
@@ -740,15 +773,39 @@ export default function MapEmbed({
             <div className="w-44 rounded-module border border-sv-ink/10 bg-white/95 p-3 shadow-card backdrop-blur dark:border-white/10 dark:bg-sv-navy/90">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[13px] font-black tabular-nums tracking-tight text-sv-ink dark:text-white">
-                  {formatSunTime(sunDate, 'ka')}
+                  {formatSunTime(sunDate, lang)}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setSunMin(Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, tbilisiMinutesOfDay())))}
-                  className="rounded-full px-2 py-0.5 text-[11px] font-extrabold text-sv-ink/60 transition hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
-                >
-                  {t('map.sunNow')}
-                </button>
+                <div className="flex items-center gap-0.5">
+                  {!reducedMotion && (
+                    <button
+                      type="button"
+                      aria-label={t('map.sunPlay')}
+                      aria-pressed={sunPlaying}
+                      title={t('map.sunPlay')}
+                      onClick={() => {
+                        if (!sunPlaying && sunMin >= SUN_MAX_MINUTES) setSunMin(SUN_MIN_MINUTES)
+                        setSunPlaying((v) => !v)
+                      }}
+                      className="grid h-6 w-6 place-items-center rounded-full text-sv-ink/60 transition hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      {sunPlaying ? (
+                        <Pause className="h-3.5 w-3.5" aria-hidden strokeWidth={2.4} />
+                      ) : (
+                        <Play className="h-3.5 w-3.5" aria-hidden strokeWidth={2.4} />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSunPlaying(false)
+                      setSunMin(Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, tbilisiMinutesOfDay())))
+                    }}
+                    className="rounded-full px-2 py-0.5 text-[11px] font-extrabold text-sv-ink/60 transition hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+                  >
+                    {t('map.sunNow')}
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
@@ -756,8 +813,12 @@ export default function MapEmbed({
                 max={SUN_MAX_MINUTES}
                 step={10}
                 value={sunMin}
-                onChange={(e) => setSunMin(Number(e.target.value))}
+                onChange={(e) => {
+                  setSunPlaying(false)
+                  setSunMin(Number(e.target.value))
+                }}
                 aria-label={t('map.sun')}
+                aria-valuetext={formatSunTime(sunDate, lang)}
                 className="mt-2 w-full accent-sv-orange"
               />
               <p className="mt-1 text-[10px] font-bold leading-tight text-sv-ink/60 dark:text-white/60">

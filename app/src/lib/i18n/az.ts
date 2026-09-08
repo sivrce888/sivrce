@@ -140,6 +140,7 @@ export const az: Dict = {
   'map.error': 'Xəritə yüklənmədi. Yeniləyin.',
   'map.sun': 'Xəritədə günəş kölgəsi',
   'map.sunNow': 'İndi',
+  'map.sunPlay': 'Günəşi gün boyu oynat',
   'map.sunDown': 'Günəş batdı',
   'map.sunNote': 'Yalnız bu binanın kölgəsi',
   'map.controls': 'Xəritə idarəetməsi',

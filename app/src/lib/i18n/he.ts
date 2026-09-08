@@ -140,6 +140,7 @@ export const he: Dict = {
   'map.error': 'טעינת המפה נכשלה. נסו לרענן.',
   'map.sun': 'צל השמש במפה',
   'map.sunNow': 'עכשיו',
+  'map.sunPlay': 'הנפשת השמש לאורך היום',
   'map.sunDown': 'השמש שקעה',
   'map.sunNote': 'הצל של הבניין הזה בלבד',
   'map.controls': 'בקרי מפה',

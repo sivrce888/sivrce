@@ -140,6 +140,7 @@ export const ar: Dict = {
   'map.error': 'تعذر تحميل الخريطة. حاول التحديث.',
   'map.sun': 'ظل الشمس على الخريطة',
   'map.sunNow': 'الآن',
+  'map.sunPlay': 'تحريك الشمس طوال اليوم',
   'map.sunDown': 'الشمس غاربة',
   'map.sunNote': 'ظل هذا المبنى فقط',
   'map.controls': 'عناصر الخريطة',

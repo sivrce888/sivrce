@@ -140,6 +140,7 @@ export const tr: Dict = {
   'map.error': 'Harita yüklenemedi. Yenileyin.',
   'map.sun': 'Haritada güneş gölgesi',
   'map.sunNow': 'Şimdi',
+  'map.sunPlay': 'Güneşi gün boyunca oynat',
   'map.sunDown': 'Güneş battı',
   'map.sunNote': 'Sadece bu binanın gölgesi',
   'map.controls': 'Harita kontrolleri',
