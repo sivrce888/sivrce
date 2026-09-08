@@ -2,6 +2,8 @@ import dynamic from 'next/dynamic'
 import { BadgeCheck, ShieldCheck, Zap } from 'lucide-react'
 import HeroBackground from './HeroBackground'
 import { getBlocksForLang } from '@/lib/cms'
+import { parseSeoSlug } from '@/lib/seo-pages'
+import { QUICK, type HeroQuickChip } from '@/lib/hero-quick'
 import type { Lang } from '@/lib/i18n/core'
 
 /* Static hero shell — server component. LCP text (h1/subtitle) paints from the
@@ -31,6 +33,21 @@ const TRUST = [
   { icon: ShieldCheck, key: 'home.hero.trust2' },
   { icon: Zap, key: 'home.hero.trust3' },
 ] as const
+
+/** A seo landing lives only while inventory does — demote dead district chips to city level. */
+function aliveQuickChips(): HeroQuickChip[] {
+  const resolves = (p: string) => !!parseSeoSlug(p.split('/').filter(Boolean))
+  return QUICK.map((chip) => {
+    const out = { ...chip }
+    for (const k of ['sale', 'rent', 'daily'] as const) {
+      if (!resolves(out[k])) {
+        const up = '/' + out[k].split('/').filter(Boolean).slice(0, -1).join('/')
+        if (resolves(up)) out[k] = up
+      }
+    }
+    return out
+  })
+}
 
 export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
   const b = await getBlocksForLang(lang)
@@ -66,7 +83,7 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
           </p>
         </div>
 
-        <HeroSearch />
+        <HeroSearch quick={aliveQuickChips()} />
 
         <div
           className="sv-hero-in mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"

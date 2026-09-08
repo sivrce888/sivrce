@@ -395,7 +395,7 @@ export default function MyListingsManager({
         <h2 className="min-w-0 text-[18px] font-extrabold tracking-[-0.02em] text-sv-ink sm:text-[20px]">
           ჩემი განცხადებები
           {items.length > 0 ? (
-            <span className="ml-2 text-[13px] font-bold text-sv-ink/40">{items.length}</span>
+            <span className="ml-2 text-[13px] font-bold text-sv-ink/60">{items.length}</span>
           ) : null}
         </h2>
         <LocalizedLink
@@ -459,7 +459,7 @@ export default function MyListingsManager({
                   className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${
                     active
                       ? "bg-sv-blue text-white"
-                      : "bg-sv-cloud text-sv-ink/55 hover:text-sv-ink"
+                      : "bg-sv-cloud text-sv-ink/60 hover:text-sv-ink"
                   }`}
                 >
                   {d.label}
@@ -479,7 +479,7 @@ export default function MyListingsManager({
                   className={`shrink-0 border-b-2 px-3.5 py-2.5 text-[13px] font-bold whitespace-nowrap transition ${
                     active
                       ? "border-sv-blue text-sv-blue"
-                      : "border-transparent text-sv-ink/45 hover:text-sv-ink/70"
+                      : "border-transparent text-sv-ink/60 hover:text-sv-ink/70"
                   }`}
                 >
                   {t.label}
@@ -496,7 +496,7 @@ export default function MyListingsManager({
           ) : null}
 
           {filtered.length === 0 ? (
-            <p className="rounded-card bg-sv-cloud px-5 py-10 text-center text-[14px] font-semibold text-sv-ink/45">
+            <p className="rounded-card bg-sv-cloud px-5 py-10 text-center text-[14px] font-semibold text-sv-ink/60">
               ამ ფილტრში განცხადება არ არის
             </p>
           ) : (
@@ -649,7 +649,7 @@ function ListingManageCard({
           </div>
 
           <div className="mt-auto">
-            <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold text-sv-ink/40">
+            <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold text-sv-ink/60">
               <span>{dateTimeFmt.format(new Date(l.createdAt))}</span>
               <span>ვადა {dateTimeFmt.format(expires)}</span>
             </div>
@@ -761,7 +761,7 @@ function Stat({
     <div className="rounded-control bg-sv-cloud/80 px-2.5 py-2 text-center ring-1 ring-sv-ink/[0.04]">
       <Icon size={13} className={tone === "orange" ? "mx-auto text-sv-orange" : "mx-auto text-sv-blue"} />
       <p className="mt-1 text-[13px] font-extrabold tabular-nums text-sv-ink">{value}</p>
-      <p className="text-[10px] font-bold text-sv-ink/40">{label}</p>
+      <p className="text-[10px] font-bold text-sv-ink/60">{label}</p>
     </div>
   )
 }
@@ -788,8 +788,8 @@ function IconBtn({
       onClick={onClick}
       className={`grid h-9 w-9 place-items-center rounded-control ring-1 transition disabled:opacity-40 ${
         danger
-          ? "bg-sv-cloud text-sv-ink/55 ring-sv-ink/8 hover:bg-sv-orange/10 hover:text-sv-orange"
-          : "bg-sv-cloud text-sv-ink/55 ring-sv-ink/8 hover:bg-sv-blue/10 hover:text-sv-blue"
+          ? "bg-sv-cloud text-sv-ink/60 ring-sv-ink/8 hover:bg-sv-orange/10 hover:text-sv-orange"
+          : "bg-sv-cloud text-sv-ink/60 ring-sv-ink/8 hover:bg-sv-blue/10 hover:text-sv-blue"
       }`}
     >
       {children}

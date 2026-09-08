@@ -27,12 +27,12 @@ export default function AdminError({
       <h1 className="mt-5 text-[20px] font-extrabold tracking-tight text-sv-ink">
         This screen failed to load
       </h1>
-      <p className="mt-2 max-w-[420px] text-[13.5px] text-sv-ink/55">
+      <p className="mt-2 max-w-[420px] text-[13.5px] text-sv-ink/60">
         The data behind this page could not be fetched. Nothing was changed —
         retry, and if it keeps failing, check system health.
       </p>
       {error.digest ? (
-        <p className="mt-2 font-mono text-[12px] text-sv-ink/40">
+        <p className="mt-2 font-mono text-[12px] text-sv-ink/60">
           Reference: {error.digest}
         </p>
       ) : null}

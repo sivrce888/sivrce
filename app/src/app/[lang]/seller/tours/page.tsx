@@ -66,7 +66,7 @@ export default async function SellerToursPage() {
 
       <div className="space-y-8">
         <section>
-          <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/50">
+          <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/60">
             მომავალი ({upcoming.length})
           </h2>
           {upcoming.length === 0 ? (
@@ -85,7 +85,7 @@ export default async function SellerToursPage() {
 
         {past.length > 0 ? (
           <section>
-            <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/50">
+            <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/60">
               გასული ({past.length})
             </h2>
             <ul className="space-y-3">

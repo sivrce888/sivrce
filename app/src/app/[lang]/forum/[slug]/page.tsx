@@ -107,7 +107,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
       <Navbar />
       <main id="main" className="sv-pt-nav mx-auto max-w-[860px] px-5 pb-20 md:px-10">
         <nav aria-label="ბრედკრამბი" className="mb-6">
-          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
+          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
             <li className="flex items-center gap-1.5">
               <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
@@ -125,9 +125,9 @@ export default async function ForumThreadPage({ params }: PageProps) {
             <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue">
               {thread.category}
             </span>
-            <span className="text-[12px] font-semibold text-sv-ink/45">{thread.district}</span>
+            <span className="text-[12px] font-semibold text-sv-ink/60">{thread.district}</span>
             {thread.tags.map((tag) => (
-              <span key={tag} className="rounded-full bg-sv-ink/[0.04] px-2.5 py-0.5 text-[11px] font-bold text-sv-ink/50">
+              <span key={tag} className="rounded-full bg-sv-ink/[0.04] px-2.5 py-0.5 text-[11px] font-bold text-sv-ink/60">
                 {tag}
               </span>
             ))}
@@ -137,7 +137,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
             {thread.title}
           </h1>
 
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px] font-bold text-sv-ink/50">
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-[13px] font-bold text-sv-ink/60">
             <span>{thread.authorName}</span>
             <span>
               {new Date(thread.createdAt).toLocaleDateString('ka-GE', {

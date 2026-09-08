@@ -170,22 +170,22 @@ export default async function AdminVerificationPage({
                     <span className="block font-bold text-sv-ink">
                       {subjectNames.get(`${r.subjectType}:${r.subjectId}`) ?? shortRef(r.subjectId)}
                     </span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45 capitalize">
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60 capitalize">
                       {r.subjectType}
                     </span>
                   </td>
                   <td className={`${td} whitespace-nowrap`}>
                     <span className="block">{r.verificationType.replaceAll("_", " ")}</span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                       {fmtNum(r.documentUrls.length)} document{r.documentUrls.length === 1 ? "" : "s"}
                     </span>
                   </td>
                   <td className={`${td} font-mono text-[12.5px] whitespace-nowrap`}>
                     {r.personalId ?? r.businessNumber ?? "—"}
                   </td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     <span className="block">{fmtDate(r.createdAt)}</span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                       {timeAgo(r.createdAt)}
                     </span>
                   </td>
@@ -193,14 +193,14 @@ export default async function AdminVerificationPage({
                     <StatusPill status={r.status} />
                     {r.rejectionReason ? (
                       <span
-                        className="mt-1 block max-w-[220px] truncate text-[12px] text-sv-ink/45"
+                        className="mt-1 block max-w-[220px] truncate text-[12px] text-sv-ink/60"
                         title={r.rejectionReason}
                       >
                         {r.rejectionReason}
                       </span>
                     ) : null}
                   </td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     {r.reviewedAt ? fmtDate(r.reviewedAt) : "—"}
                   </td>
                   <td className={td}>

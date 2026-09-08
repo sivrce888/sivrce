@@ -33,7 +33,7 @@ export function Pagination({
       aria-label="Pagination"
       className="mt-4 flex items-center justify-between gap-3"
     >
-      <p className="text-[12.5px] text-sv-ink/50">
+      <p className="text-[12.5px] text-sv-ink/60">
         Page {page} of {pages} · {total} total
       </p>
       <div className="flex items-center gap-1">

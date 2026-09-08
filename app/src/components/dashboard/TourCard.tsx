@@ -27,7 +27,7 @@ export default function TourCard({ tour }: { tour: TourWithListing }) {
           >
             {tour.listing.title}
           </Link>
-          <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/50">
+          <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">
             {tour.listing.city} · {tour.listing.district}
           </p>
         </div>
@@ -36,7 +36,7 @@ export default function TourCard({ tour }: { tour: TourWithListing }) {
           tone={tourStatusTone[tour.status] ?? "neutral"}
         />
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-sv-ink/6 pt-3 text-[12.5px] font-medium text-sv-ink/55">
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-sv-ink/6 pt-3 text-[12.5px] font-medium text-sv-ink/60">
         <span className="font-bold text-sv-ink/75">
           {fmtDate(tour.tourDate)} · {tour.tourTime}
         </span>
@@ -59,7 +59,7 @@ export default function TourCard({ tour }: { tour: TourWithListing }) {
         </a>
       </div>
       {tour.guestNotes ? (
-        <p className="mt-2 text-[12px] font-medium text-sv-ink/45">„{tour.guestNotes}“</p>
+        <p className="mt-2 text-[12px] font-medium text-sv-ink/60">„{tour.guestNotes}“</p>
       ) : null}
     </li>
   )

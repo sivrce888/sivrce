@@ -127,13 +127,13 @@ export default async function AdminBuildingsPage({
                     <span className="block truncate font-bold text-sv-ink transition-colors hover:text-sv-blue">
                       {b.title}
                     </span>
-                    <span className="mt-0.5 block truncate text-[12px] text-sv-ink/45">
+                    <span className="mt-0.5 block truncate text-[12px] text-sv-ink/60">
                       {b.address ?? "—"}
                     </span>
                   </Link>
                 </td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{b.code ?? "—"}</td>
-                <td className={`${td} whitespace-nowrap tabular-nums text-sv-ink/55`}>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{b.code ?? "—"}</td>
+                <td className={`${td} whitespace-nowrap tabular-nums text-sv-ink/60`}>
                   {b.lat.toFixed(4)}, {b.lng.toFixed(4)}
                 </td>
                 <td className={`${td} whitespace-nowrap`}>{b.developer?.name ?? "—"}</td>
@@ -148,7 +148,7 @@ export default async function AdminBuildingsPage({
                     <span className="text-sv-ink/30">—</span>
                   )}
                 </td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(b.updatedAt)}</td>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{fmtDate(b.updatedAt)}</td>
               </TRow>
             ))}
           </tbody>

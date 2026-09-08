@@ -9,7 +9,7 @@ import {
 
 const field =
   "h-11 rounded-control border border-sv-ink/12 bg-sv-cloud/40 px-4 text-[14px] font-semibold text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
-const label = "text-[12px] font-bold text-sv-ink/55"
+const label = "text-[12px] font-bold text-sv-ink/60"
 
 export type ProjectFormRow = {
   id: string
@@ -43,7 +43,7 @@ export default function ProjectForm({
         </h2>
         <LocalizedLink
           href="/developer/projects"
-          className="text-[12.5px] font-bold text-sv-ink/50 hover:text-sv-blue"
+          className="text-[12.5px] font-bold text-sv-ink/60 hover:text-sv-blue"
         >
           გაუქმება
         </LocalizedLink>

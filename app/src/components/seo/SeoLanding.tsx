@@ -260,7 +260,7 @@ export default function SeoLanding({
       <main id="main" className="sv-pt-nav mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
         {/* Breadcrumbs */}
         <nav aria-label={ui.crumbAria} className="mb-6">
-          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
+          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
             {crumbs.map((c, i) => (
               <li key={c.href} className="flex items-center gap-1.5">
                 {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />}
@@ -306,7 +306,7 @@ export default function SeoLanding({
 
           {/* Live stats — skip the hollow "0 listings" chip Apple would never ship */}
           {!isCityInfo && stats.count > 0 && (
-            <dl className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               {[
                 { icon: LayoutGrid, label: ui.listings, value: String(stats.count) },
                 ...(stats.avgPerM2
@@ -322,30 +322,34 @@ export default function SeoLanding({
                     <s.icon className="h-4 w-4 text-sv-blue" aria-hidden />
                   </span>
                   <div>
-                    <dd className="text-[16px] font-black text-sv-ink">{s.value}</dd>
-                    <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">{s.label}</dt>
+                    <span className="block text-[16px] font-black text-sv-ink">{s.value}</span>
+                    <span className="block text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">{s.label}</span>
                   </div>
                 </div>
               ))}
-            </dl>
+            </div>
           )}
         </header>
 
         {/* Listings — full /search filters, locked to this hub. Hidden on city-info. */}
         {!isCityInfo && (
-          <SeoFilterableListings
-            initialListings={def.listings}
-            gridAriaLabel={ui.gridAria}
-            lock={{
-              deal: def.dealSlug ? DEALS[def.dealSlug]?.deal : undefined,
-              type: def.typeSlug ? TYPES[def.typeSlug]?.type : undefined,
-              city: def.city?.ka,
-              citySlug: def.city?.slug,
-              district: def.district?.ka,
-              districtSlug: def.district?.slug,
-              rooms: def.rooms,
-            }}
-          />
+          <>
+            {/* sr-only h2: cards use h3 titles — keeps heading order h1→h2→h3 */}
+            <h2 className="sr-only">{ui.gridAria}</h2>
+            <SeoFilterableListings
+              initialListings={def.listings}
+              gridAriaLabel={ui.gridAria}
+              lock={{
+                deal: def.dealSlug ? DEALS[def.dealSlug]?.deal : undefined,
+                type: def.typeSlug ? TYPES[def.typeSlug]?.type : undefined,
+                city: def.city?.ka,
+                citySlug: def.city?.slug,
+                district: def.district?.ka,
+                districtSlug: def.district?.slug,
+                rooms: def.rooms,
+              }}
+            />
+          </>
         )}
 
         {/* Related landings — crawlable mesh, below the working filters */}

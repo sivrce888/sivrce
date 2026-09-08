@@ -93,7 +93,7 @@ export function NewThreadForm({ className }: { className?: string }) {
   }
 
   const inputCls =
-    'mt-1.5 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-4 text-[15px] font-medium text-sv-ink placeholder:text-sv-ink/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
+    'mt-1.5 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-4 text-[15px] font-medium text-sv-ink placeholder:text-sv-ink/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
 
   return (
     <form
@@ -102,7 +102,7 @@ export function NewThreadForm({ className }: { className?: string }) {
       className={cn('rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card md:p-6', className)}
     >
       <h2 className="text-[18px] font-black tracking-[-0.01em] text-sv-ink">ახალი თემა</h2>
-      <p className="mt-1 text-[13px] font-semibold text-sv-ink/50">კითხვა ან გამოცდილება — უძრავი ქონების თემაზე.</p>
+      <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">კითხვა ან გამოცდილება — უძრავი ქონების თემაზე.</p>
 
       <div className="mt-4">
         <label htmlFor={`${baseId}-title`} className="text-[13px] font-bold text-sv-ink/70">

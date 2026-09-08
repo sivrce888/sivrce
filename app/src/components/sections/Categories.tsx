@@ -129,7 +129,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
                 </span>
                 <span className="line-clamp-2 min-h-[2.8em] text-[14px] font-extrabold leading-[1.3] text-sv-ink">{labels[i]}</span>
                 <span className="mt-auto text-[12px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
-                <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/40" />
+                <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/60" />
               </LocalizedLink>
             </Reveal>
           ))}

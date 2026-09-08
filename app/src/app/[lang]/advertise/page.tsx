@@ -363,7 +363,7 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
             <h2 className="mt-2 text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
               {c.addons.title}
             </h2>
-            <p className="mt-2 max-w-xl text-[14px] font-medium text-sv-ink/55">
+            <p className="mt-2 max-w-xl text-[14px] font-medium text-sv-ink/60">
               {c.addons.text}
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -380,7 +380,7 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
                       <span className="text-[15px] font-extrabold text-sv-ink">{a.title}</span>
                       <span className="shrink-0 text-[13px] font-black text-sv-blue">{a.price}</span>
                     </span>
-                    <span className="mt-0.5 block text-[13px] font-medium text-sv-ink/55">{a.text}</span>
+                    <span className="mt-0.5 block text-[13px] font-medium text-sv-ink/60">{a.text}</span>
                   </span>
                 </div>
               ))}

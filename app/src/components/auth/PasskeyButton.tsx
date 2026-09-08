@@ -95,7 +95,7 @@ export function PasskeyButton({ callbackUrl }: { callbackUrl: string }) {
         tabIndex={-1}
         aria-hidden
       />
-      <p className="text-center text-[12px] font-medium text-sv-ink/40">
+      <p className="text-center text-[12px] font-medium text-sv-ink/60">
         Face ID, Touch ID ან Windows Hello
       </p>
     </div>

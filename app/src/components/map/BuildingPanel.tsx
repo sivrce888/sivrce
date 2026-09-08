@@ -101,9 +101,9 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                 {building.label}
               </h2>
               {building.code && (
-                <p className="mt-0.5 text-[11px] font-bold text-sv-ink/55">{building.code}</p>
+                <p className="mt-0.5 text-[11px] font-bold text-sv-ink/60">{building.code}</p>
               )}
-              <p className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-sv-ink/50">
+              <p className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-sv-ink/60">
                 <MapPin className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">{building.address}</span>
               </p>
@@ -115,7 +115,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                   </span>
                 </p>
               )}
-              <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] font-bold text-sv-ink/55">
+              <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] font-bold text-sv-ink/60">
                 {building.buildingNumber && building.buildingNumber !== '—' && (
                   <span>#{building.buildingNumber}</span>
                 )}
@@ -130,14 +130,14 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
             type="button"
             onClick={onClose}
             aria-label={t('map.close')}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-control text-sv-ink/40 transition hover:bg-sv-cloud hover:text-sv-ink"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-control text-sv-ink/60 transition hover:bg-sv-cloud hover:text-sv-ink"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {(building.developerName || building.rating != null) && (
-          <div className="flex flex-wrap items-center gap-3 px-5 pb-5 text-[12px] font-bold text-sv-ink/55">
+          <div className="flex flex-wrap items-center gap-3 px-5 pb-5 text-[12px] font-bold text-sv-ink/60">
             {building.developerName && (
               <span className="inline-flex items-center gap-1">
                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
@@ -197,7 +197,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
               />
             </div>
             {building.finish && (
-              <p className="mt-2 text-[11px] font-semibold text-sv-ink/45">
+              <p className="mt-2 text-[11px] font-semibold text-sv-ink/60">
                 {t('map.handover', { d: building.finish })}
               </p>
             )}
@@ -231,7 +231,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                   <div className="text-[18px] font-black" style={{ color }}>
                     {n}
                   </div>
-                  <div className="truncate text-[10px] font-bold text-sv-ink/45">
+                  <div className="truncate text-[10px] font-bold text-sv-ink/60">
                     {t(DEAL_KEYS[key])}
                   </div>
                 </button>
@@ -253,7 +253,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                     className={`min-h-11 shrink-0 rounded-full px-3.5 py-2 text-[12px] font-extrabold transition ${
                       active
                         ? 'text-white shadow-glow-blue-sm'
-                        : 'bg-sv-cloud text-sv-ink/55 hover:text-sv-ink disabled:opacity-35'
+                        : 'bg-sv-cloud text-sv-ink/60 hover:text-sv-ink disabled:opacity-35'
                     }`}
                     style={active ? { background: tb.color ?? DEAL_BRAND.sale } : undefined}
                   >
@@ -280,7 +280,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
       {!isConstruction && (
         <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
           {list.length === 0 ? (
-            <li className="rounded-module bg-sv-cloud px-4 py-8 text-center text-[14px] font-semibold text-sv-ink/45">
+            <li className="rounded-module bg-sv-cloud px-4 py-8 text-center text-[14px] font-semibold text-sv-ink/60">
               {t('search.mapEmptyArea')}
             </li>
           ) : (
@@ -331,9 +331,9 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                       <div className="mt-1 text-[15px] font-black tracking-tight text-sv-ink">
                         {format(l.priceGEL)}
                         {suffix}
-                        <span className="text-[11px] font-bold text-sv-ink/40">{perM2}</span>
+                        <span className="text-[11px] font-bold text-sv-ink/60">{perM2}</span>
                       </div>
-                      <div className="truncate text-[11px] font-semibold text-sv-ink/40">
+                      <div className="truncate text-[11px] font-semibold text-sv-ink/60">
                         {l.address}
                         {bn ? ` · #${bn}` : ''}
                       </div>

@@ -73,7 +73,7 @@ export default function Listings({ items, rail }: { items: Listing[]; rail: List
           </div>
           <LocalizedLink
             href={r.href}
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {b(r.viewAll)}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

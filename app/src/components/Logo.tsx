@@ -13,7 +13,9 @@ export function LogoMark({ size = 36 }: { size?: number }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font
     <img
-      src={`/logo/mark.png?${LOGO_V}`}
+      src={`/logo/mark-144.png?${LOGO_V}`}
+      srcSet={`/logo/mark-144.png?${LOGO_V} 144w, /logo/mark.png?${LOGO_V} ${MARK_W}w`}
+      sizes={`${w}px`}
       alt=""
       width={w}
       height={size}
@@ -54,7 +56,9 @@ export function Logo({
         <>
           {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font */}
           <img
-            src={`/logo/lockup-ink.png?${LOGO_V}`}
+            src={`/logo/lockup-ink-144.png?${LOGO_V}`}
+            srcSet={`/logo/lockup-ink-144.png?${LOGO_V} 144w, /logo/lockup-ink.png?${LOGO_V} ${LOCK_W}w`}
+            sizes={`${lockW}px`}
             alt=""
             width={lockW}
             height={mark}
@@ -64,7 +68,9 @@ export function Logo({
           />
           {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font */}
           <img
-            src={`/logo/lockup-white.png?${LOGO_V}`}
+            src={`/logo/lockup-white-144.png?${LOGO_V}`}
+            srcSet={`/logo/lockup-white-144.png?${LOGO_V} 144w, /logo/lockup-white.png?${LOGO_V} ${LOCK_W}w`}
+            sizes={`${lockW}px`}
             alt=""
             width={lockW}
             height={mark}
@@ -76,7 +82,9 @@ export function Logo({
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font
         <img
-          src={`${light ? '/logo/lockup-white.png' : '/logo/lockup-ink.png'}?${LOGO_V}`}
+          src={`${light ? '/logo/lockup-white-144.png' : '/logo/lockup-ink-144.png'}?${LOGO_V}`}
+          srcSet={`${light ? '/logo/lockup-white-144.png' : '/logo/lockup-ink-144.png'}?${LOGO_V} 144w, ${light ? '/logo/lockup-white.png' : '/logo/lockup-ink.png'}?${LOGO_V} ${LOCK_W}w`}
+          sizes={`${lockW}px`}
           alt=""
           width={lockW}
           height={mark}

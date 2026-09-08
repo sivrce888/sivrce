@@ -74,7 +74,7 @@ export default async function BlogEditorPage({
       <div className="mb-4">
         <Link
           href="/admin/content/blog"
-          className="inline-flex h-9 items-center gap-1.5 text-[13px] font-bold text-sv-ink/50 transition-colors hover:text-sv-ink"
+          className="inline-flex h-9 items-center gap-1.5 text-[13px] font-bold text-sv-ink/60 transition-colors hover:text-sv-ink"
         >
           <ArrowLeft className="h-4 w-4" /> All posts
         </Link>

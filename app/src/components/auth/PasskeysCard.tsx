@@ -83,7 +83,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-[15px] font-extrabold text-sv-ink">Passkey</h2>
-          <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+          <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
             Face ID, Touch ID ან Windows Hello — შესვლა პაროლის გარეშე.
           </p>
         </div>
@@ -105,7 +105,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
               <Fingerprint className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
               <div className="min-w-0 flex-1">
                 <p className="text-[13.5px] font-extrabold text-sv-ink">{labelFor(k)}</p>
-                <p className="font-mono text-[11.5px] font-medium tracking-wide text-sv-ink/40">
+                <p className="font-mono text-[11.5px] font-medium tracking-wide text-sv-ink/60">
                   ••••{k.credentialID.slice(-4)}
                 </p>
               </div>
@@ -121,7 +121,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
           ))}
         </ul>
       ) : (
-        <p className="mt-4 text-[13px] font-medium text-sv-ink/50">
+        <p className="mt-4 text-[13px] font-medium text-sv-ink/60">
           ჯერ არცერთი არ გაქვს. დაამატე ერთხელ — შემდეგ შესვლა ერთი შეხებით.
         </p>
       )}

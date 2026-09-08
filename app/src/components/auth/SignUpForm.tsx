@@ -38,7 +38,7 @@ export function SignUpForm({
         ) : null}
 
         <details className="group">
-          <summary className="cursor-pointer list-none text-center text-[12.5px] font-bold text-sv-ink/40 transition hover:text-sv-ink/65 [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none text-center text-[12.5px] font-bold text-sv-ink/60 transition hover:text-sv-ink/65 [&::-webkit-details-marker]:hidden">
             ელფოსტით რეგისტრაცია
           </summary>
           <div className="mt-4 space-y-3.5">
@@ -95,7 +95,7 @@ export function SignUpForm({
         </details>
       </PhoneAuthForm>
 
-      <p className="text-[12px] font-medium leading-relaxed text-sv-ink/45">
+      <p className="text-[12px] font-medium leading-relaxed text-sv-ink/60">
         ანგარიში იწყება როგორც მყიდველი. განცხადების დამატებისას ავტომატურად გახდები
         გამყიდველი. აგენტი / სააგენტო / დეველოპერი — რეგისტრაციის შემდეგ აირჩევ ან
         პარამეტრებში.

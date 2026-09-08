@@ -6,6 +6,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { BLOG_POSTS, getPost, relatedPosts } from '@/data/blog'
 import { jsonLd, ogImage } from '@/lib/utils'
+import { cardOf } from '@/lib/media'
 import { langAlternates } from '@/lib/i18n/server'
 
 interface PageProps {
@@ -106,7 +107,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       <Navbar />
       <main id="main" className="sv-pt-nav mx-auto max-w-[760px] px-5 pb-20">
         <nav aria-label="ბრედკრამბი" className="mb-8">
-          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
+          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
             <li className="flex items-center gap-1.5">
               <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
@@ -134,15 +135,24 @@ export default async function BlogPostPage({ params }: PageProps) {
             <p className="mt-4 text-[17px] font-semibold leading-relaxed text-sv-ink/60">
               {post.excerpt}
             </p>
-            <div className="mt-6 flex items-center gap-4 border-y border-sv-ink/[0.06] py-4 text-[13px] font-bold text-sv-ink/50">
+            <div className="mt-6 flex items-center gap-4 border-y border-sv-ink/[0.06] py-4 text-[13px] font-bold text-sv-ink/60">
               <span>{post.author}</span>
               <span>{new Date(post.publishedAt).toLocaleDateString('ka-GE', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
               <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" aria-hidden /> {post.readingMinutes} წთ კითხვა</span>
             </div>
           </header>
 
+          {/* ponytail: 16px LQIP/card twins exist for pipeline covers — srcset keeps
+              phones off the 2560px master; static covers have no twins, src only. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.cover} alt={post.title} className="mb-10 aspect-[16/9] w-full rounded-tile object-cover shadow-card" />
+          <img
+            src={post.cover}
+            srcSet={cardOf(post.cover) ? `${cardOf(post.cover)} 800w, ${post.cover} 2560w` : undefined}
+            sizes="(max-width:1024px) 100vw, 820px"
+            alt={post.title}
+            fetchPriority="high"
+            className="mb-10 aspect-[16/9] w-full rounded-tile object-cover shadow-card"
+          />
 
           <div>{renderBody(post.body)}</div>
 

@@ -31,7 +31,7 @@ export function RenderUploadForm({
     <div className="grid gap-5 lg:grid-cols-2">
       <section className="rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-5 shadow-[var(--shadow-card)]">
         <h2 className="mb-1 text-[15px] font-extrabold text-sv-ink">Upload render</h2>
-        <p className="mb-4 text-[12.5px] text-sv-ink/45">
+        <p className="mb-4 text-[12.5px] text-sv-ink/60">
           WebP/JPEG/PNG → R2 CDN → live directory image. Max 10 MB.
         </p>
         <form action={upAction} className="space-y-3">
@@ -82,7 +82,7 @@ export function RenderUploadForm({
 
       <section className="rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-5 shadow-[var(--shadow-card)]">
         <h2 className="mb-1 text-[15px] font-extrabold text-sv-ink">Set render URL</h2>
-        <p className="mb-4 text-[12.5px] text-sv-ink/45">
+        <p className="mb-4 text-[12.5px] text-sv-ink/60">
           Point at an existing <code className="font-mono text-[11px]">/images/projects/…</code> or
           CDN URL without re-upload.
         </p>

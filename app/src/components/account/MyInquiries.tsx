@@ -70,17 +70,17 @@ export default function MyInquiries() {
         count={state.status === 'ready' ? state.inquiries.length : undefined}
         chipClass="bg-sv-orange/10 text-sv-orange"
       />
-      {state.status === 'loading' && <p className="text-[14px] font-semibold text-sv-ink/45">{s('loading')}</p>}
+      {state.status === 'loading' && <p className="text-[14px] font-semibold text-sv-ink/60">{s('loading')}</p>}
       {state.status === 'error' && (
         <div className="flex items-center gap-3">
-          <p className="text-[14px] font-semibold text-sv-ink/45">{s('inquiriesError')}</p>
+          <p className="text-[14px] font-semibold text-sv-ink/60">{s('inquiriesError')}</p>
           <button onClick={retry} className="text-[13px] font-extrabold text-sv-blue hover:underline">
             {s('retry')}
           </button>
         </div>
       )}
       {state.status === 'ready' && state.inquiries.length === 0 && (
-        <p className="text-[14px] font-semibold text-sv-ink/45">{s('noInquiries')}</p>
+        <p className="text-[14px] font-semibold text-sv-ink/60">{s('noInquiries')}</p>
       )}
       {state.status === 'ready' && state.inquiries.length > 0 && (
         <ul className="divide-y divide-sv-ink/[0.06]">
@@ -90,7 +90,7 @@ export default function MyInquiries() {
               <p className="truncate text-[14px] font-extrabold text-sv-ink">
                 {inq.listingTitle ?? s('inquiryGeneral')}
               </p>
-              <p className="mt-0.5 text-[12px] font-semibold text-sv-ink/50">
+              <p className="mt-0.5 text-[12px] font-semibold text-sv-ink/60">
                 {fmt.format(new Date(inq.createdAt))} · {inq.agentName}
               </p>
               <p className="mt-1 line-clamp-2 text-[13px] font-medium leading-snug text-sv-ink/60">

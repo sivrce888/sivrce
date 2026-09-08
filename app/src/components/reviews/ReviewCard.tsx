@@ -66,7 +66,7 @@ export function ReviewCard({ review: r, strings: s, locale, className }: ReviewC
             )}
           </p>
           {dateText && (
-            <time dateTime={r.createdAt} className="mt-0.5 block text-[13px] font-semibold text-sv-ink/50">
+            <time dateTime={r.createdAt} className="mt-0.5 block text-[13px] font-semibold text-sv-ink/60">
               {dateText}
             </time>
           )}
@@ -95,13 +95,13 @@ export function ReviewCard({ review: r, strings: s, locale, className }: ReviewC
         >
           <ThumbsUp aria-hidden className="h-4 w-4" />
           {s.helpful}
-          <span className="text-sv-ink/45">({helpfulCount})</span>
+          <span className="text-sv-ink/60">({helpfulCount})</span>
         </button>
       </div>
 
       {reply && (
         <div className="mt-4 rounded-module border-s-2 border-sv-orange bg-sv-cloud p-4">
-          <p className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/55">{s.ownerResponse}</p>
+          <p className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">{s.ownerResponse}</p>
           <p className="mt-1.5 whitespace-pre-line text-[14px] font-medium leading-relaxed text-sv-ink/75">{reply.body}</p>
         </div>
       )}

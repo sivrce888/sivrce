@@ -84,7 +84,7 @@ export default async function ForumIndex() {
 
         <ul className="space-y-4">
           {sorted.length === 0 && (
-            <li className="rounded-tile border border-dashed border-sv-ink/15 bg-sv-surface px-6 py-10 text-center text-[14px] font-semibold text-sv-ink/50">
+            <li className="rounded-tile border border-dashed border-sv-ink/15 bg-sv-surface px-6 py-10 text-center text-[14px] font-semibold text-sv-ink/60">
               ჯერ სადისკუსიო თემები არ არის — დაწერე პირველი!
             </li>
           )}
@@ -103,7 +103,7 @@ export default async function ForumIndex() {
                         {t.category}
                       </span>
                       {t.badge ? <span className="text-[11px] font-bold text-sv-orange">{t.badge}</span> : null}
-                      <span className="text-[12px] font-semibold text-sv-ink/40">{t.district}</span>
+                      <span className="text-[12px] font-semibold text-sv-ink/60">{t.district}</span>
                     </div>
                     <h2 className="text-[17px] font-black leading-snug tracking-[-0.01em] text-sv-ink transition-colors group-hover:text-sv-blue md:text-[19px]">
                       {t.title}
@@ -112,7 +112,7 @@ export default async function ForumIndex() {
                       {t.excerpt}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-5 text-[12px] font-bold text-sv-ink/50 sm:flex-col sm:items-end sm:gap-2">
+                  <div className="flex shrink-0 items-center gap-5 text-[12px] font-bold text-sv-ink/60 sm:flex-col sm:items-end sm:gap-2">
                     <span className="inline-flex items-center gap-1.5">
                       <MessageSquare className="h-3.5 w-3.5" aria-hidden />
                       {replyCount} პასუხი

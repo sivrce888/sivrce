@@ -28,7 +28,7 @@ const panel =
   "rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-5 shadow-[var(--shadow-card)]"
 const inputCls =
   "mt-1 h-10 w-full rounded-[var(--radius-control)] border border-sv-ink/10 bg-white px-3 text-[13.5px] text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/25"
-const labelCls = "block text-[12px] font-bold text-sv-ink/50"
+const labelCls = "block text-[12px] font-bold text-sv-ink/60"
 const submitCls =
   "inline-flex h-10 items-center justify-center rounded-[var(--radius-control)] bg-sv-navy px-4 text-[13px] font-bold text-white transition-colors hover:bg-sv-navy-soft"
 
@@ -49,7 +49,7 @@ export default async function AdminInquiryDetailPage({
     <>
       <Link
         href="/admin/inquiries"
-        className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/50 transition-colors hover:text-sv-blue"
+        className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60 transition-colors hover:text-sv-blue"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to inquiries
       </Link>
@@ -88,7 +88,7 @@ export default async function AdminInquiryDetailPage({
         <div className="flex flex-col gap-5 lg:col-span-2">
           <section className={panel}>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+              <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
                 Message
               </h2>
               <div className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export default async function AdminInquiryDetailPage({
             <p className="mt-3 text-[14.5px] leading-relaxed whitespace-pre-wrap text-sv-ink/85">
               {inquiry.message}
             </p>
-            <p className="mt-4 border-t border-sv-ink/6 pt-3 text-[12.5px] text-sv-ink/45">
+            <p className="mt-4 border-t border-sv-ink/6 pt-3 text-[12.5px] text-sv-ink/60">
               Quality score <span className="font-bold tabular-nums text-sv-ink/70">{inquiry.qualityScore}</span>
             </p>
           </section>
@@ -109,12 +109,12 @@ export default async function AdminInquiryDetailPage({
           <section className={panel}>
             <div className="flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-sv-ink/35" />
-              <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+              <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
                 Lead purchases ({inquiry.purchases.length})
               </h2>
             </div>
             {inquiry.purchases.length === 0 ? (
-              <p className="mt-3 text-[13px] text-sv-ink/45">
+              <p className="mt-3 text-[13px] text-sv-ink/60">
                 No agent has purchased this lead yet.
               </p>
             ) : (
@@ -151,7 +151,7 @@ export default async function AdminInquiryDetailPage({
         {/* Sidebar */}
         <div className="flex flex-col gap-5">
           <section className={panel}>
-            <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+            <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
               Status
             </h2>
             <form action={setStatus} className="mt-3 flex flex-col gap-3">
@@ -191,7 +191,7 @@ export default async function AdminInquiryDetailPage({
           <section className={panel}>
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-sv-ink/35" />
-              <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+              <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
                 {listingBacked ? "Listing reference" : "Source"}
               </h2>
             </div>
@@ -203,7 +203,7 @@ export default async function AdminInquiryDetailPage({
                 {inquiryBucketLabel(inquiry.listingId)}
               </p>
             ) : null}
-            <p className="mt-1 font-mono text-[12px] break-all text-sv-ink/50">
+            <p className="mt-1 font-mono text-[12px] break-all text-sv-ink/60">
               {listingBacked ? `listing:${inquiry.listingId}` : `bucket:${inquiry.listingId}`}
             </p>
             {listingBacked ? (
@@ -216,22 +216,22 @@ export default async function AdminInquiryDetailPage({
             ) : null}
             <dl className="mt-3 space-y-1.5 border-t border-sv-ink/6 pt-3 text-[13px]">
               <div className="flex justify-between gap-3">
-                <dt className="text-sv-ink/45">Price</dt>
+                <dt className="text-sv-ink/60">Price</dt>
                 <dd className="font-bold tabular-nums text-sv-ink/75">{fmtMoney(inquiry.price)}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-sv-ink/45">City</dt>
+                <dt className="text-sv-ink/60">City</dt>
                 <dd className="font-semibold text-sv-ink/75">{inquiry.city || "—"}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-sv-ink/45">District</dt>
+                <dt className="text-sv-ink/60">District</dt>
                 <dd className="font-semibold text-sv-ink/75">{inquiry.district || "—"}</dd>
               </div>
             </dl>
           </section>
 
           <section className={panel}>
-            <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+            <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
               Lead marketplace
             </h2>
             <form action={toggleForSale} className="mt-3 flex flex-col gap-3">
@@ -262,7 +262,7 @@ export default async function AdminInquiryDetailPage({
               </button>
             </form>
             {inquiry.exclusivityExpiresAt ? (
-              <p className="mt-3 text-[12.5px] text-sv-ink/45">
+              <p className="mt-3 text-[12.5px] text-sv-ink/60">
                 Exclusivity expires {fmtDateTime(inquiry.exclusivityExpiresAt)}
               </p>
             ) : null}

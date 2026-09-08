@@ -89,7 +89,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={t('nav.language')}
+        aria-label={`${t('nav.language')} ${LANG_CODE[lang]}`}
         className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[12px] font-extrabold uppercase leading-none transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
           light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-sv-ink/70 hover:bg-sv-ink/5 dark:text-white/85 dark:hover:bg-white/10'
         }`}

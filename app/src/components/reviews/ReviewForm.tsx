@@ -179,7 +179,7 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
   }
 
   const inputCls =
-    'mt-1.5 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-4 text-[15px] font-medium text-sv-ink placeholder:text-sv-ink/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
+    'mt-1.5 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-4 text-[15px] font-medium text-sv-ink placeholder:text-sv-ink/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
 
   return (
     <form
@@ -207,7 +207,7 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
       <div className="mt-3">
         <label htmlFor={`${baseId}-name`} className="text-[13px] font-bold text-sv-ink/70">
           {s.nameLabel}
-          {session && <span className="ms-1.5 font-semibold text-sv-ink/45">· {s.optionalTag}</span>}
+          {session && <span className="ms-1.5 font-semibold text-sv-ink/60">· {s.optionalTag}</span>}
         </label>
         <input
           id={`${baseId}-name`}
@@ -224,7 +224,7 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
       <div className="mt-3">
         <label htmlFor={`${baseId}-title`} className="text-[13px] font-bold text-sv-ink/70">
           {s.titleLabel}
-          <span className="ms-1.5 font-semibold text-sv-ink/45">· {s.optionalTag}</span>
+          <span className="ms-1.5 font-semibold text-sv-ink/60">· {s.optionalTag}</span>
         </label>
         <input
           id={`${baseId}-title`}
@@ -253,7 +253,7 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
         />
         <p
           id={`${baseId}-hint`}
-          className={cn('mt-1 text-[12px] font-semibold', bodyLen >= MIN_BODY ? 'text-sv-ink/40' : 'text-sv-orange')}
+          className={cn('mt-1 text-[12px] font-semibold', bodyLen >= MIN_BODY ? 'text-sv-ink/60' : 'text-sv-orange')}
         >
           {s.minChars(bodyLen, MIN_BODY)}
         </p>

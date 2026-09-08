@@ -29,78 +29,11 @@ import {
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import { searchHref, suggestionToFilters } from '@/lib/search-location'
 import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
-
-type QuickKey =
-  | 'home.search.quick.dailyTbilisi'
-  | 'home.search.quick.vake'
-  | 'home.search.quick.saburtalo'
-  | 'home.search.quick.mtatsminda'
-  | 'home.search.quick.batumi'
-  | 'home.search.quick.oldTbilisi'
-  | 'home.search.quick.digomi'
-
-const QUICK: { labelKey: QuickKey; sale: string; rent: string; pledge: string; daily: string; projects: string }[] = [
-  {
-    labelKey: 'home.search.quick.dailyTbilisi',
-    sale: '/daily/apartments/tbilisi',
-    rent: '/daily/apartments/tbilisi',
-    pledge: '/search?deal=pledge&city=თბილისი',
-    daily: '/daily/apartments/tbilisi',
-    projects: '/projects/tbilisi',
-  },
-  {
-    labelKey: 'home.search.quick.vake',
-    sale: '/sale/apartments/tbilisi/vake',
-    rent: '/rent/apartments/tbilisi/vake',
-    pledge: '/search?deal=pledge&city=თბილისი&district=ვაკე',
-    daily: '/daily/apartments/tbilisi/vake',
-    projects: '/projects/tbilisi/vake',
-  },
-  {
-    labelKey: 'home.search.quick.saburtalo',
-    sale: '/sale/apartments/tbilisi/saburtalo',
-    rent: '/rent/apartments/tbilisi/saburtalo',
-    pledge: '/search?deal=pledge&city=თბილისი&district=საბურთალო',
-    daily: '/daily/apartments/tbilisi/saburtalo',
-    projects: '/projects/tbilisi/saburtalo',
-  },
-  {
-    labelKey: 'home.search.quick.mtatsminda',
-    sale: '/sale/apartments/tbilisi/mtatsminda',
-    rent: '/rent/apartments/tbilisi/mtatsminda',
-    pledge: '/search?deal=pledge&city=თბილისი&district=მთაწმინდა',
-    daily: '/daily/apartments/tbilisi/mtatsminda',
-    projects: '/projects/tbilisi',
-  },
-  {
-    labelKey: 'home.search.quick.batumi',
-    sale: '/sale/apartments/batumi',
-    rent: '/rent/apartments/batumi',
-    pledge: '/search?deal=pledge&city=ბათუმი',
-    daily: '/daily/apartments/batumi',
-    projects: '/projects/batumi',
-  },
-  {
-    labelKey: 'home.search.quick.oldTbilisi',
-    sale: '/sale/apartments/tbilisi/old-tbilisi',
-    rent: '/rent/apartments/tbilisi/old-tbilisi',
-    pledge: '/search?deal=pledge&city=თბილისი&district=ძველი თბილისი',
-    daily: '/daily/apartments/tbilisi/old-tbilisi',
-    projects: '/projects/tbilisi',
-  },
-  {
-    labelKey: 'home.search.quick.digomi',
-    sale: '/sale/apartments/tbilisi/didi-dighomi',
-    rent: '/rent/apartments/tbilisi/didi-dighomi',
-    pledge: '/search?deal=pledge&city=თბილისი&district=დიდი დიღომი',
-    daily: '/daily/apartments/tbilisi/didi-dighomi',
-    projects: '/projects/tbilisi/didi-dighomi',
-  },
-]
+import { QUICK, type HeroQuickChip } from '@/lib/hero-quick'
 
 const fieldBtn =
   'flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white'
-const fieldCap = 'block truncate text-[10px] font-extrabold uppercase tracking-[0.06em] text-sv-ink/40 dark:text-white/40'
+const fieldCap = 'block truncate text-[10px] font-extrabold uppercase tracking-[0.06em] text-sv-ink/60 dark:text-white/40'
 const fieldVal = 'block truncate text-[14px] font-extrabold tracking-[-0.01em]'
 const dropChrome =
   'rounded-module border border-sv-ink/10 bg-sv-surface p-3 shadow-card-hover dark:border-white/10 dark:bg-sv-navy dark:shadow-panel-dark'
@@ -112,7 +45,7 @@ const numInput =
 const EXAMPLE_KEYS = ['search.ex1', 'search.ex2', 'search.ex3'] as const
 
 /** Hero search — deal + type + place + size + price + query. Rest lives on /search. */
-export default function HeroSearch() {
+export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] }) {
   const [tab, setTab] = useState(0)
   const [keyword, setKeyword] = useState('')
   const [from, setFrom] = useState('')
@@ -316,7 +249,7 @@ export default function HeroSearch() {
     <>
       {showRooms && (
         <div className="mb-2.5">
-          <span className="mb-1.5 block text-[12px] font-semibold text-sv-ink/45 dark:text-white/45">{sizeCaption}</span>
+          <span className="mb-1.5 block text-[12px] font-semibold text-sv-ink/60 dark:text-white/45">{sizeCaption}</span>
           <div className="flex gap-1">
             {ROOM_CHIPS.map((r) => {
               const on = rooms === r.n && roomsExact === r.exact
@@ -339,7 +272,7 @@ export default function HeroSearch() {
           </div>
         </div>
       )}
-      <span className="mb-1.5 block text-[12px] font-semibold text-sv-ink/45 dark:text-white/45">{t('search.area')}</span>
+      <span className="mb-1.5 block text-[12px] font-semibold text-sv-ink/60 dark:text-white/45">{t('search.area')}</span>
       <div className="flex items-center gap-1.5">
         <input type="number" min={0} inputMode="numeric" placeholder={t('search.min')} value={amin} onChange={(e) => setAmin(e.target.value)} aria-label={t('search.minArea')} className={numInput} />
         <span className="text-sv-ink/30 dark:text-white/30">—</span>
@@ -363,7 +296,7 @@ export default function HeroSearch() {
             className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${
               currency === c
                 ? 'bg-sv-surface text-sv-blue shadow-soft dark:bg-white/15 dark:text-sv-blue-light'
-                : 'text-sv-ink/55 hover:text-sv-ink dark:text-white/55 dark:hover:text-white'
+                : 'text-sv-ink/60 hover:text-sv-ink dark:text-white/55 dark:hover:text-white'
             }`}
           >
             {c === 'USD' ? '$' : '₾'}
@@ -393,7 +326,7 @@ export default function HeroSearch() {
               item.id === 'projects' ? 'col-span-2 sm:col-auto' : ''
             } ${
               // white active pill → fixed navy text; sv-ink flips near-white in .dark
-              tab === i ? 'text-sv-navy' : 'text-sv-ink/55 hover:text-sv-ink dark:text-white/75 dark:hover:text-white'
+              tab === i ? 'text-sv-navy' : 'text-sv-ink/60 hover:text-sv-ink dark:text-white/75 dark:hover:text-white'
             }`}
           >
             {tab === i && (
@@ -588,7 +521,7 @@ export default function HeroSearch() {
             {recent.label}
           </button>
         )}
-        <span className="sv-hero-in text-[13px] font-bold text-sv-ink/50 dark:text-white/70" style={{ animationDelay: '0.24s' }}>
+        <span className="sv-hero-in text-[13px] font-bold text-sv-ink/60 dark:text-white/70" style={{ animationDelay: '0.24s' }}>
           {b('home.search.popular')}
         </span>
         {isDaily && (
@@ -601,7 +534,7 @@ export default function HeroSearch() {
             {t('col.party')}
           </LocalizedLink>
         )}
-        {QUICK.map((chip, i) => (
+        {quick.map((chip, i) => (
           <LocalizedLink
             key={chip.labelKey}
             href={quickHref(chip, tab, propType)}

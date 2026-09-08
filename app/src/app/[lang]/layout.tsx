@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Noto_Sans_Georgian } from "next/font/google";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 import CurrencyProvider from "@/components/CurrencyProvider";
 import I18nProvider from "@/components/I18nProvider";
 import { CmsPreviewBridge } from "@/components/cms/CmsPreviewBridge";
@@ -363,7 +362,6 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
           <Toaster position="top-center" />
         </ThemeProvider>
         <SWRegister />
-        <Script src="https://counter.top.ge/counter.js" strategy="lazyOnload" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}

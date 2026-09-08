@@ -68,7 +68,7 @@ export default async function AgencyProfilePage() {
           {profile ? "პროფილის რედაქტირება" : "პროფილის შექმნა"}
         </h2>
         {profile ? (
-          <p className="mt-1 flex items-center gap-1 text-[12.5px] font-medium text-sv-ink/55">
+          <p className="mt-1 flex items-center gap-1 text-[12.5px] font-medium text-sv-ink/60">
             <MapPin size={13} aria-hidden />
             {profile.city}
           </p>
@@ -76,7 +76,7 @@ export default async function AgencyProfilePage() {
 
         <form action={saveAgencyProfile} className="mt-5 grid gap-4">
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">სააგენტოს სახელი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">სააგენტოს სახელი</span>
             <input
               name="name"
               required
@@ -86,7 +86,7 @@ export default async function AgencyProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">ქალაქი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">ქალაქი</span>
             <input
               name="city"
               required
@@ -97,7 +97,7 @@ export default async function AgencyProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">ლოგოს ტექსტი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">ლოგოს ტექსტი</span>
             <input
               name="logoText"
               maxLength={40}
@@ -107,7 +107,7 @@ export default async function AgencyProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">აღწერა</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">აღწერა</span>
             <textarea
               name="summary"
               required

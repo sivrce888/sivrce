@@ -70,7 +70,7 @@ export function RenovationCalc() {
                     <span className="block text-[14px] font-extrabold text-sv-ink">
                       {pickLocText(p.name, lang)}
                     </span>
-                    <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/50">
+                    <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/60">
                       {formatGel(p.gelPerM2)} {t.perUnit} · {pickLocText(p.hint, lang)}
                     </span>
                   </button>

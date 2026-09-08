@@ -62,7 +62,7 @@ export default function CompareTray() {
           <button
             type="button"
             onClick={clear}
-            className="rounded-full px-3 py-2 text-[12px] font-bold text-sv-ink/55 hover:text-sv-ink"
+            className="rounded-full px-3 py-2 text-[12px] font-bold text-sv-ink/60 hover:text-sv-ink"
           >
             {tt("clear")}
           </button>

@@ -68,7 +68,7 @@ function isTypingTarget(t: EventTarget | null): boolean {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[5px] border border-sv-ink/10 bg-sv-cloud px-1 font-sans text-[10.5px] font-bold text-sv-ink/45">
+    <kbd className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[5px] border border-sv-ink/10 bg-sv-cloud px-1 font-sans text-[10.5px] font-bold text-sv-ink/60">
       {children}
     </kbd>
   )
@@ -86,7 +86,7 @@ export function CommandPaletteTrigger({ variant = "chip" }: { variant?: "chip" |
         type="button"
         aria-label="Search (Command palette)"
         onClick={openCommandPalette}
-        className="grid h-9 w-9 place-items-center rounded-full text-sv-ink/45 transition-colors hover:bg-sv-ink/5 hover:text-sv-ink"
+        className="grid h-9 w-9 place-items-center rounded-full text-sv-ink/60 transition-colors hover:bg-sv-ink/5 hover:text-sv-ink"
       >
         <Search className="h-4 w-4" />
       </button>
@@ -97,7 +97,7 @@ export function CommandPaletteTrigger({ variant = "chip" }: { variant?: "chip" |
       type="button"
       onClick={openCommandPalette}
       aria-label="Search everything (Command palette)"
-      className="flex h-9 items-center gap-2 rounded-full border border-sv-ink/10 bg-white pr-2 pl-3.5 text-[12.5px] font-bold text-sv-ink/45 transition-colors hover:border-sv-blue/40 hover:text-sv-ink"
+      className="flex h-9 items-center gap-2 rounded-full border border-sv-ink/10 bg-white pr-2 pl-3.5 text-[12.5px] font-bold text-sv-ink/60 transition-colors hover:border-sv-blue/40 hover:text-sv-ink"
     >
       <Search className="h-3.5 w-3.5" />
       Search
@@ -333,7 +333,7 @@ export function CommandPalette() {
                   className={`grid h-8 w-8 shrink-0 place-items-center rounded-[9px] border transition-colors ${
                     isActive
                       ? "border-sv-blue/25 bg-sv-blue/10 text-sv-blue"
-                      : "border-sv-ink/6 bg-sv-cloud text-sv-ink/40"
+                      : "border-sv-ink/6 bg-sv-cloud text-sv-ink/60"
                   }`}
                 >
                   <item.icon className="h-4 w-4" />
@@ -343,7 +343,7 @@ export function CommandPalette() {
                     {item.title}
                   </span>
                   {item.sub ? (
-                    <span className="block truncate text-[12px] font-medium text-sv-ink/45">
+                    <span className="block truncate text-[12px] font-medium text-sv-ink/60">
                       {item.sub}
                     </span>
                   ) : null}
@@ -361,7 +361,7 @@ export function CommandPalette() {
             )
           })}
           {loading ? (
-            <li role="presentation" className="px-2.5 py-3 text-[12.5px] font-semibold text-sv-ink/40">
+            <li role="presentation" className="px-2.5 py-3 text-[12.5px] font-semibold text-sv-ink/60">
               Searching…
             </li>
           ) : null}
@@ -370,7 +370,7 @@ export function CommandPalette() {
               <span className="block text-[13.5px] font-bold text-sv-ink">
                 No results for “{query.trim()}”
               </span>
-              <span className="mt-0.5 block text-[12px] font-medium text-sv-ink/45">
+              <span className="mt-0.5 block text-[12px] font-medium text-sv-ink/60">
                 Try a listing number, title, email, phone, project or building name.
               </span>
             </li>
@@ -378,15 +378,15 @@ export function CommandPalette() {
         </ul>
 
         <div className="flex items-center gap-4 border-t border-sv-ink/6 bg-sv-cloud/60 px-4 py-2.5">
-          <span className="flex items-center gap-1.5 text-[11px] font-bold text-sv-ink/40">
+          <span className="flex items-center gap-1.5 text-[11px] font-bold text-sv-ink/60">
             <Kbd>↑</Kbd>
             <Kbd>↓</Kbd>
             Navigate
           </span>
-          <span className="flex items-center gap-1.5 text-[11px] font-bold text-sv-ink/40">
+          <span className="flex items-center gap-1.5 text-[11px] font-bold text-sv-ink/60">
             <Kbd>↵</Kbd> Open
           </span>
-          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-sv-ink/40">
+          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-sv-ink/60">
             <Kbd>G</Kbd>then
             <Kbd>L</Kbd>
             jump

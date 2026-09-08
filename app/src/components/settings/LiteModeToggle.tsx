@@ -44,7 +44,7 @@ export function LiteModeToggle() {
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-[15px] font-extrabold text-sv-ink">მსუბუქი რეჟიმი</h2>
-          <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+          <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
             ნაკლები RAM — გამორთავს ანიმაციებს და ამცირებს რუკის ბუფერს. 4 GB-ზე ნაკლებ მოწყობილობაზე ავტომატურად ჩართულია.
           </p>
           <button

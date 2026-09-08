@@ -64,7 +64,7 @@ const rowBtnGhost =
   "inline-flex h-9 items-center justify-center rounded-[var(--radius-control)] border border-sv-ink/12 bg-white px-3.5 text-[12.5px] font-bold whitespace-nowrap text-sv-ink/75 transition-colors hover:border-sv-ink/25 hover:text-sv-ink"
 const formInputCls =
   "mt-1 h-10 w-full rounded-[var(--radius-control)] border border-sv-ink/10 bg-white px-3 text-[13.5px] text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/25"
-const formLabelCls = "block text-[12px] font-bold text-sv-ink/50"
+const formLabelCls = "block text-[12px] font-bold text-sv-ink/60"
 const formSubmitCls =
   "inline-flex h-10 items-center justify-center rounded-[var(--radius-control)] bg-sv-navy px-4 text-[13px] font-bold whitespace-nowrap text-white transition-colors hover:bg-sv-navy-soft"
 
@@ -72,7 +72,7 @@ function SectionHeading({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="mb-3">
       <h2 className="text-[15px] font-extrabold text-sv-ink">{title}</h2>
-      {hint ? <p className="mt-0.5 text-[12.5px] text-sv-ink/50">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 text-[12.5px] text-sv-ink/60">{hint}</p> : null}
     </div>
   )
 }
@@ -166,12 +166,12 @@ async function QueueTab({ page, sp }: { page: number; sp: SearchParams }) {
                       {href ? (
                         <Link
                           href={href}
-                          className="mt-0.5 block font-mono text-[12px] text-sv-ink/45 transition-colors hover:text-sv-blue"
+                          className="mt-0.5 block font-mono text-[12px] text-sv-ink/60 transition-colors hover:text-sv-blue"
                         >
                           {shortRef(r.subjectId)}
                         </Link>
                       ) : (
-                        <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
+                        <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/60">
                           {shortRef(r.subjectId)}
                         </span>
                       )}
@@ -189,7 +189,7 @@ async function QueueTab({ page, sp }: { page: number; sp: SearchParams }) {
                       <StatusPill status={r.status} />
                     </td>
                     <td className={`${td} whitespace-nowrap`}>{userLabel(r.assignedTo)}</td>
-                    <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                    <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                       {fmtDate(r.createdAt)}
                     </td>
                     <td className={td}>
@@ -314,12 +314,12 @@ async function ComplaintsTab({ page, sp }: { page: number; sp: SearchParams }) {
                       {href ? (
                         <Link
                           href={href}
-                          className="mt-0.5 block font-mono text-[12px] text-sv-ink/45 transition-colors hover:text-sv-blue"
+                          className="mt-0.5 block font-mono text-[12px] text-sv-ink/60 transition-colors hover:text-sv-blue"
                         >
                           {shortRef(r.subjectId)}
                         </Link>
                       ) : (
-                        <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
+                        <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/60">
                           {shortRef(r.subjectId)}
                         </span>
                       )}
@@ -346,7 +346,7 @@ async function ComplaintsTab({ page, sp }: { page: number; sp: SearchParams }) {
                       <StatusPill status={r.status} />
                     </td>
                     <td className={`${td} whitespace-nowrap`}>{userLabel(r.assignedTo)}</td>
-                    <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                    <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                       {fmtDate(r.createdAt)}
                     </td>
                     <td className={td}>
@@ -454,14 +454,14 @@ async function FraudTab({ page, sp }: { page: number; sp: SearchParams }) {
                       <span className="font-bold text-sv-ink">
                         {s.subjectKind.replaceAll("_", " ")}
                       </span>
-                      <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
+                      <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/60">
                         {shortRef(s.subjectId)}
                       </span>
                     </td>
                     <td className={`${td} text-right tabular-nums`}>
                       {fmtDecimal(s.confidence, 3)}
                     </td>
-                    <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                    <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                       {fmtDate(s.detectedAt)}
                     </td>
                     <td className={td}>
@@ -525,7 +525,7 @@ async function FraudTab({ page, sp }: { page: number; sp: SearchParams }) {
                   <td className={`${td} font-mono text-[12.5px] whitespace-nowrap`}>
                     {a.deviceFingerprint ? shortRef(a.deviceFingerprint) : "—"}
                   </td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     {timeAgo(a.occurredAt)}
                   </td>
                 </TRow>
@@ -584,7 +584,7 @@ function BlocklistPanel({
         </button>
       </form>
       {values.length === 0 ? (
-        <p className="text-[12.5px] text-sv-ink/40">No entries.</p>
+        <p className="text-[12.5px] text-sv-ink/60">No entries.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
@@ -607,7 +607,7 @@ function BlocklistPanel({
                     <span className="block max-w-[140px] truncate">{v.reason ?? "—"}</span>
                   </td>
                   <td className={`${td} whitespace-nowrap`}>{v.blockedBy}</td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     {fmtDate(v.blockedAt)}
                   </td>
                   <td className={td}>
@@ -698,7 +698,7 @@ async function BansTab({ page, sp }: { page: number; sp: SearchParams }) {
                       </span>
                     </td>
                     <td className={`${td} whitespace-nowrap`}>{userLabel(b.bannedBy)}</td>
-                    <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                    <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                       {fmtDate(b.bannedAt)}
                     </td>
                     <td className={td}>
@@ -795,7 +795,7 @@ async function DuplicatesTab({ page, sp }: { page: number; sp: SearchParams }) {
                   <td className={`${td} text-right tabular-nums`}>
                     {fmtDecimal(c.confidence, 3)}
                   </td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     {fmtDate(c.createdAt)}
                   </td>
                 </TRow>

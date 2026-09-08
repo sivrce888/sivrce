@@ -18,7 +18,7 @@ function Delta({ pct, title }: { pct: number; title?: string }) {
     <span
       title={title}
       className={`inline-flex shrink-0 items-center gap-0.5 text-[12px] font-bold tabular-nums ${
-        flat ? "text-sv-ink/40" : pct > 0 ? "text-emerald-600" : "text-rose-600"
+        flat ? "text-sv-ink/60" : pct > 0 ? "text-emerald-600" : "text-rose-600"
       }`}
     >
       {Icon ? <Icon className="h-3.5 w-3.5" /> : "·"}
@@ -88,7 +88,7 @@ export function StatCard({
   const inner = (
     <>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+        <p className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
           {label}
         </p>
         {Icon ? <Icon className={`h-4.5 w-4.5 ${TONES[tone]}`} /> : null}
@@ -105,7 +105,7 @@ export function StatCard({
       </div>
       {hint || typeof delta === "number" ? (
         <div className="mt-2 flex items-center justify-between gap-2">
-          {hint ? <p className="truncate text-[12.5px] text-sv-ink/50">{hint}</p> : <span />}
+          {hint ? <p className="truncate text-[12.5px] text-sv-ink/60">{hint}</p> : <span />}
           {typeof delta === "number" ? <Delta pct={delta} title={deltaTitle} /> : null}
         </div>
       ) : null}

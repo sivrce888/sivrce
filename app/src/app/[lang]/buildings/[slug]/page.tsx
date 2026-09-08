@@ -69,6 +69,7 @@ import { dirLoc, type DirLoc } from '@/lib/directory-seo'
 import { DISTRICTS } from '@/lib/seo-pages'
 import { priceScaleOf } from '@/lib/price-scale'
 import { medianOf } from '@/lib/market-stats-core'
+import { cardOf } from '@/lib/media'
 import { buildingScoreOf, type BuildingFactorKey } from '@/lib/building-score'
 import { faqPageLd } from '@/lib/directory-seo'
 import { jsonLd, ogImage } from '@/lib/utils'
@@ -409,13 +410,15 @@ export default async function BuildingPage({ params }: PageProps) {
       <Navbar />
       <main id="main">
         <div className="relative aspect-[16/9] max-h-[480px] w-full overflow-hidden md:aspect-[21/9]">
-          <Image
+          {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={building.img}
-            alt={building.name}
-            fill
-            priority
+            srcSet={cardOf(building.img) ? `${cardOf(building.img)} 800w, ${building.img} 2560w` : undefined}
             sizes="100vw"
-            className="object-cover"
+            alt={building.name}
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
@@ -483,10 +486,10 @@ export default async function BuildingPage({ params }: PageProps) {
             {score && buildingAvgPerM2 != null && (
               <div className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/55">
+                  <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/60">
                     {t.intel}
                   </h2>
-                  <span className="text-[11px] font-bold text-sv-ink/40">
+                  <span className="text-[11px] font-bold text-sv-ink/60">
                     {score.confidence === 'high'
                       ? t.trustHigh
                       : score.confidence === 'medium'
@@ -510,9 +513,9 @@ export default async function BuildingPage({ params }: PageProps) {
                     <div>
                       <p className="text-[26px] font-black leading-none tracking-[-0.02em] text-sv-ink">
                         {score.score}
-                        <span className="text-[14px] font-bold text-sv-ink/40">/100</span>
+                        <span className="text-[14px] font-bold text-sv-ink/60">/100</span>
                       </p>
-                      <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-sv-ink/45">
+                      <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-sv-ink/60">
                         Building Score
                       </p>
                     </div>
@@ -523,7 +526,7 @@ export default async function BuildingPage({ params }: PageProps) {
                       <dd className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">
                         ${buildingAvgPerM2.toLocaleString('en-US')}/მ²
                       </dd>
-                      <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
+                      <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
                         {t.avgPrice}
                       </dt>
                     </div>
@@ -532,7 +535,7 @@ export default async function BuildingPage({ params }: PageProps) {
                         <dd className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">
                           ${buildingMedianPrice.toLocaleString('en-US')}
                         </dd>
-                        <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
+                        <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
                           {t.medianPrice}
                         </dt>
                       </div>
@@ -550,7 +553,7 @@ export default async function BuildingPage({ params }: PageProps) {
                         >
                           {(t.band[buildingScale.band] ?? buildingScale.labelKa)}
                         </dd>
-                        <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
+                        <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
                           {t.vsDistrict}
                         </dt>
                       </div>
@@ -570,7 +573,7 @@ export default async function BuildingPage({ params }: PageProps) {
                 </div>
               </div>
             )}
-            <p className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/55">
+            <p className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/60">
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {building.address}
               </span>
@@ -657,7 +660,7 @@ export default async function BuildingPage({ params }: PageProps) {
                 : []),
             ].map(([k, v]) => (
               <div key={k} className="rounded-module border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 shadow-card">
-                <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/40">{k}</dt>
+                <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">{k}</dt>
                 <dd className="mt-1 text-[15px] font-extrabold text-sv-ink">{v}</dd>
               </div>
             ))}
@@ -679,11 +682,11 @@ export default async function BuildingPage({ params }: PageProps) {
                   >
                     <Icon className="mt-0.5 h-5 w-5 shrink-0" style={{ color: POI_COLORS[a.category] }} aria-hidden />
                     <div className="min-w-0">
-                      <p className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/40">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
                         {POI_LABELS[a.category]}
                       </p>
                       <p className="truncate text-[14px] font-extrabold text-sv-ink">{a.name}</p>
-                      <p className="text-[12px] font-bold text-sv-ink/45">{formatMetroDist(a)}</p>
+                      <p className="text-[12px] font-bold text-sv-ink/60">{formatMetroDist(a)}</p>
                     </div>
                   </li>
                 )
@@ -708,7 +711,7 @@ export default async function BuildingPage({ params }: PageProps) {
               className="border-0 shadow-none"
             />
           </div>
-          <p className="mt-3 text-[13px] font-semibold text-sv-ink/50">
+          <p className="mt-3 text-[13px] font-semibold text-sv-ink/60">
             {building.address} · {(fpPin?.lat ?? building.coords.lat).toFixed(5)},{' '}
             {(fpPin?.lng ?? building.coords.lng).toFixed(5)}
           </p>
@@ -760,7 +763,7 @@ export default async function BuildingPage({ params }: PageProps) {
             {t.listingsHere}
           </h2>
           {listings.length === 0 ? (
-            <p className="mt-6 rounded-module bg-sv-cloud px-5 py-10 text-center text-[14px] font-semibold text-sv-ink/50">
+            <p className="mt-6 rounded-module bg-sv-cloud px-5 py-10 text-center text-[14px] font-semibold text-sv-ink/60">
               {t.noListings}
             </p>
           ) : (
@@ -814,11 +817,11 @@ export default async function BuildingPage({ params }: PageProps) {
                     <Image src={b.img} alt={b.name} fill sizes="400px" className="object-cover" />
                   </div>
                   <div className="p-4">
-                    <p className="text-[11px] font-bold text-sv-ink/40">
+                    <p className="text-[11px] font-bold text-sv-ink/60">
                       {[b.district, b.ubani].filter(Boolean).join(' · ')}
                     </p>
                     <h3 className="mt-0.5 text-[16px] font-black text-sv-ink">{b.name}</h3>
-                    <p className="mt-1 text-[12px] font-semibold text-sv-ink/50">
+                    <p className="mt-1 text-[12px] font-semibold text-sv-ink/60">
                       {b.floors} {t.floorsAbbr}{b.units ? ` · ${b.units} ${t.unitsAbbr}` : ''}
                     </p>
                   </div>

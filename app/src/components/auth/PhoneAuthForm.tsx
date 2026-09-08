@@ -90,7 +90,7 @@ export function PhoneAuthForm({
             {error}
           </p>
         ) : (
-          <p className="text-center text-[13px] font-medium leading-relaxed text-sv-ink/55">
+          <p className="text-center text-[13px] font-medium leading-relaxed text-sv-ink/60">
             კოდი გაიგზავნა{" "}
             <span className="font-extrabold tabular-nums text-sv-ink">{sentTo}</span>
           </p>
@@ -100,7 +100,7 @@ export function PhoneAuthForm({
           <input type="hidden" name="callbackUrl" value={callbackUrl} />
           <input type="hidden" name="phone" value={sentTo} />
           <label className="block">
-            <span className="mb-1.5 block text-center text-[12.5px] font-bold tracking-tight text-sv-ink/55">
+            <span className="mb-1.5 block text-center text-[12.5px] font-bold tracking-tight text-sv-ink/60">
               SMS კოდი
             </span>
             <input
@@ -141,7 +141,7 @@ export function PhoneAuthForm({
               setCode("")
               setCooldown(0)
             }}
-            className="text-sv-ink/45 transition hover:text-sv-ink/70"
+            className="text-sv-ink/60 transition hover:text-sv-ink/70"
           >
             სხვა ნომერი
           </button>
@@ -170,12 +170,12 @@ export function PhoneAuthForm({
 
       <form action={sendAction} className="space-y-3.5">
         <label className="block">
-          <span className="mb-1.5 block text-[12.5px] font-bold tracking-tight text-sv-ink/55">
+          <span className="mb-1.5 block text-[12.5px] font-bold tracking-tight text-sv-ink/60">
             მობილურის ნომერი
           </span>
           <span className="relative flex items-center rounded-control border border-sv-ink/10 bg-sv-cloud/80 transition focus-within:border-sv-blue focus-within:bg-sv-surface focus-within:ring-2 focus-within:ring-sv-blue/20">
             <Phone className="ml-3.5 h-4 w-4 shrink-0 text-sv-ink/35" aria-hidden />
-            <span className="ml-2.5 shrink-0 text-[13.5px] font-extrabold tabular-nums text-sv-ink/50">
+            <span className="ml-2.5 shrink-0 text-[13.5px] font-extrabold tabular-nums text-sv-ink/60">
               +995
             </span>
             <span className="mx-2.5 h-5 w-px bg-sv-ink/10" aria-hidden />
@@ -201,7 +201,7 @@ export function PhoneAuthForm({
         >
           {sending ? "იგზავნება…" : "კოდის მიღება"}
         </button>
-        <p className="text-center text-[12px] font-medium leading-relaxed text-sv-ink/40">
+        <p className="text-center text-[12px] font-medium leading-relaxed text-sv-ink/60">
           ერთი ნომერი — შესვლა და რეგისტრაცია. პაროლი არ გჭირდება.
         </p>
       </form>

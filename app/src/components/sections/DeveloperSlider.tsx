@@ -33,7 +33,7 @@ export default function DeveloperSlider({
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep dark:text-sv-blue-light">
               <Building2 className="h-3.5 w-3.5" /> {b('home.devs.kicker')}
             </span>
             <h2 className="sv-h2 text-sv-ink">
@@ -45,7 +45,7 @@ export default function DeveloperSlider({
           </div>
           <LocalizedLink
             href="/developers"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {b('home.devs.viewAll')} ({total})
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -71,7 +71,7 @@ export default function DeveloperSlider({
                   <div className="flex items-center gap-1.5">
                     <span
                       aria-hidden
-                      className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-sv-blue/10 text-[10px] font-black text-sv-blue-deep"
+                      className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-sv-blue/10 text-[10px] font-black text-sv-blue-deep dark:text-sv-blue-light"
                     >
                       {i + 1}
                     </span>
@@ -90,7 +90,7 @@ export default function DeveloperSlider({
 
               <div className="mt-4 flex items-center justify-between border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-ink/75">
                 <span className="text-sv-ink/60">{b('home.devs.active', { n: dev.listingsCount })}</span>
-                <span className="text-sv-blue-deep group-hover:underline">{b('home.devs.projectsCta')} →</span>
+                <span className="text-sv-blue-deep dark:text-sv-blue-light group-hover:underline">{b('home.devs.projectsCta')} →</span>
               </div>
             </LocalizedLink>
           ))}

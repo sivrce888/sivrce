@@ -33,7 +33,7 @@ export default function PriceScale({
       aria-label="ღირებულების შკალა"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/55">
+        <h2 className="text-[13px] font-black uppercase tracking-wider text-sv-ink/60">
           ღირებულების შკალა
         </h2>
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${BAND_CHIP[scale.band]}`}>
@@ -63,7 +63,7 @@ export default function PriceScale({
         </div>
       </div>
 
-      <div className="mt-4 flex justify-between gap-1 text-[10px] font-bold text-sv-ink/40">
+      <div className="mt-4 flex justify-between gap-1 text-[10px] font-bold text-sv-ink/60">
         {TICKS.map((t) => (
           <span key={t.at} className="max-w-[4.5rem] text-center leading-tight">
             {t.label}

@@ -43,7 +43,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Def({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="text-[11px] font-bold tracking-[0.08em] text-sv-ink/40 uppercase">{label}</dt>
+      <dt className="text-[11px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">{label}</dt>
       <dd className="mt-0.5 text-[13.5px] font-semibold break-words text-sv-ink/85">{children}</dd>
     </div>
   )
@@ -84,7 +84,7 @@ export default async function AdminCrmLeadPage({
       <Section title="Lead">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <StatusPill status={lead.status} />
-          <span className="rounded-full bg-sv-cloud px-2.5 py-1 text-[12px] font-semibold text-sv-ink/55">
+          <span className="rounded-full bg-sv-cloud px-2.5 py-1 text-[12px] font-semibold text-sv-ink/60">
             {lead.source}
           </span>
         </div>
@@ -146,7 +146,7 @@ export default async function AdminCrmLeadPage({
                     <span className="inline-flex rounded-full bg-sv-blue/10 px-2.5 py-1 text-[12px] font-bold whitespace-nowrap text-sv-blue">
                       {ACTIVITY_TYPE_LABELS[a.type as ActivityType] ?? a.type}
                     </span>
-                    <span className="text-[12px] whitespace-nowrap text-sv-ink/45">
+                    <span className="text-[12px] whitespace-nowrap text-sv-ink/60">
                       {timeAgo(a.createdAt)}
                     </span>
                   </div>
@@ -193,7 +193,7 @@ export default async function AdminCrmLeadPage({
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-[13.5px] font-bold break-words text-sv-ink">{t.title}</p>
-                    <p className="mt-0.5 text-[12px] text-sv-ink/45">
+                    <p className="mt-0.5 text-[12px] text-sv-ink/60">
                       Due {fmtDate(t.dueDate)} · {TASK_PRIORITY_LABELS[t.priority]}
                       {t.completedAt ? ` · Done ${fmtDate(t.completedAt)}` : ""}
                     </p>

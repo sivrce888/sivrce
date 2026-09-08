@@ -82,7 +82,7 @@ export default async function DeveloperProjectsPage({
       {editing && confirmDelete ? (
         <section className="mb-6 rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <p className="text-[16px] font-extrabold text-sv-ink">წავშალოთ „{editing.name}“?</p>
-          <p className="mt-1 text-[13px] font-medium text-sv-ink/50">
+          <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
             პროექტი გაქრება დირექტორიიდან. განცხადებები დარჩება.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
@@ -127,7 +127,7 @@ export default async function DeveloperProjectsPage({
           />
           <LocalizedLink
             href={`/developer/projects?edit=${encodeURIComponent(editing.id)}&confirmDelete=1`}
-            className="inline-block text-[12.5px] font-bold text-sv-ink/40 hover:text-sv-orange"
+            className="inline-block text-[12.5px] font-bold text-sv-ink/60 hover:text-sv-orange"
           >
             პროექტის წაშლა
           </LocalizedLink>
@@ -145,7 +145,7 @@ export default async function DeveloperProjectsPage({
         <div className="overflow-x-auto rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">
           <table className="w-full min-w-[720px] text-left text-[13px]">
             <thead>
-              <tr className="border-b border-sv-ink/8 text-[11px] font-bold uppercase tracking-wide text-sv-ink/45">
+              <tr className="border-b border-sv-ink/8 text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
                 <th className="px-5 py-3.5">პროექტი</th>
                 <th className="px-5 py-3.5">ქალაქი</th>
                 <th className="px-5 py-3.5">უბანი</th>
@@ -185,7 +185,7 @@ export default async function DeveloperProjectsPage({
                       </LocalizedLink>
                       <LocalizedLink
                         href={`/developer/projects?edit=${encodeURIComponent(p.id)}`}
-                        className="inline-flex items-center gap-1 text-[12px] font-bold text-sv-ink/55 hover:text-sv-blue"
+                        className="inline-flex items-center gap-1 text-[12px] font-bold text-sv-ink/60 hover:text-sv-blue"
                       >
                         <Pencil size={12} aria-hidden />
                         რედაქტირება

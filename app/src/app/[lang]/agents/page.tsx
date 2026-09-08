@@ -210,7 +210,7 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
                         {i + 1}
                       </span>
                       <span>{ag.name}</span>
-                      <span className="font-bold text-sv-ink/45">
+                      <span className="font-bold text-sv-ink/60">
                         {ag.listings} · {ag.agents} {t.agentsSuffix}
                       </span>
                     </LocalizedLink>

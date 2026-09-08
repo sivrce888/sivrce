@@ -39,7 +39,7 @@ export default function DashboardShell({
           <div className="min-w-0">
             <p className="truncate text-[14px] font-extrabold text-sv-ink">{title}</p>
             {subtitle ? (
-              <p className="truncate text-[11px] font-medium text-sv-ink/50">{subtitle}</p>
+              <p className="truncate text-[11px] font-medium text-sv-ink/60">{subtitle}</p>
             ) : null}
           </div>
           <div className="ml-auto flex items-center gap-3">

@@ -194,13 +194,13 @@ export default function CareersApplyForm() {
             <div className="flex items-center gap-3 rounded-control bg-sv-cloud px-4 py-3 ring-1 ring-sv-ink/5">
               <FileUp className="h-5 w-5 shrink-0 text-sv-blue" />
               <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-sv-ink">{cv.name}</span>
-              <span className="shrink-0 text-[12px] font-medium text-sv-ink/45">
+              <span className="shrink-0 text-[12px] font-medium text-sv-ink/60">
                 {(cv.size / 1024).toFixed(0)} KB
               </span>
               <button
                 type="button"
                 onClick={() => setCv(null)}
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-control text-sv-ink/50 transition hover:bg-sv-surface hover:text-sv-ink"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-control text-sv-ink/60 transition hover:bg-sv-surface hover:text-sv-ink"
                 aria-label="წაშლა"
               >
                 <X className="h-4 w-4" />
@@ -213,7 +213,7 @@ export default function CareersApplyForm() {
             >
               <FileUp className="h-6 w-6 text-sv-blue" />
               <span className="text-[14px] font-bold text-sv-ink">აირჩიე ფაილი</span>
-              <span className="text-[12px] font-medium text-sv-ink/45">PDF, DOC, DOCX · მაქს. 5 მბ</span>
+              <span className="text-[12px] font-medium text-sv-ink/60">PDF, DOC, DOCX · მაქს. 5 მბ</span>
               <input
                 id="careers-cv"
                 name="cv"

@@ -136,7 +136,7 @@ function CompactCard({ l }: { l: Listing }) {
           {format(l.priceGEL)}{suffix}
         </span>
         <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{l.title}</span>
-        <span className="block text-[12px] font-semibold text-sv-ink/40">{l.area} მ² · {l.city}</span>
+        <span className="block text-[12px] font-semibold text-sv-ink/60">{l.area} მ² · {l.city}</span>
       </span>
     </Link>
   )
@@ -581,7 +581,7 @@ export default function SearchClient({
     'h-10 w-full appearance-none rounded-full border-0 bg-sv-ink/[0.045] pl-3.5 pr-8 text-[13px] font-bold text-sv-ink outline-none transition-colors focus:bg-sv-ink/[0.07] focus-visible:ring-2 focus-visible:ring-sv-blue/30 cursor-pointer'
   const inputClass =
     'h-10 w-full rounded-full border-0 bg-sv-ink/[0.045] px-3.5 text-[13px] font-bold text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:bg-sv-ink/[0.07] focus-visible:ring-2 focus-visible:ring-sv-blue/30'
-  const labelClass = 'mb-1.5 block text-[12px] font-semibold tracking-[-0.01em] text-sv-ink/45'
+  const labelClass = 'mb-1.5 block text-[12px] font-semibold tracking-[-0.01em] text-sv-ink/60'
   const numChip = (active: boolean) =>
     `h-10 min-w-10 rounded-full px-3 text-[13px] font-bold transition-colors ${
       active
@@ -654,7 +654,7 @@ export default function SearchClient({
       <input type="number" min={0} placeholder={t('search.max')} value={drafts.max} onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.maxPrice')} />
       <div className="ml-0.5 flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.currency')}>
         {(['USD', 'GEL'] as const).map((c) => (
-          <button key={c} type="button" onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })} aria-pressed={cur === c} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/55 hover:text-sv-ink'}`}>
+          <button key={c} type="button" onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })} aria-pressed={cur === c} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'}`}>
             {c === 'USD' ? '$' : '₾'}
           </button>
         ))}
@@ -762,7 +762,7 @@ export default function SearchClient({
                   <span className="relative z-10 truncate">
                     {label}
                     {count !== undefined && (
-                      <span className={`ml-1 text-[10px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>{count}</span>
+                      <span className={`ml-1 text-[10px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/60'}`}>{count}</span>
                     )}
                   </span>
                 </button>
@@ -876,7 +876,7 @@ export default function SearchClient({
                   <span className="relative z-10">
                     {label}
                     {count !== undefined && (
-                      <span className={`ml-1 text-[10px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/40'}`}>{count}</span>
+                      <span className={`ml-1 text-[10px] font-bold ${active ? 'text-white/80' : 'text-sv-ink/60'}`}>{count}</span>
                     )}
                   </span>
                 </button>
@@ -1295,7 +1295,7 @@ export default function SearchClient({
                   <option key={so.value} value={so.value}>{t(so.key)}</option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" />
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/60" />
             </div>
             <div className="flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.view')}>
               <button

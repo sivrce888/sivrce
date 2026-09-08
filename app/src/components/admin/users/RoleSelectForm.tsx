@@ -26,7 +26,7 @@ export function RoleSelectForm({
       className="flex flex-wrap items-end gap-2"
     >
       <input type="hidden" name="id" value={userId} />
-      <label className="text-[12.5px] font-semibold text-sv-ink/50">
+      <label className="text-[12.5px] font-semibold text-sv-ink/60">
         Role
         <select
           name="role"

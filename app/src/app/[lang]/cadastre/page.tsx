@@ -104,7 +104,7 @@ export default async function CadastrePage({
       <Navbar />
       <main id="main">
         <section className="mx-auto w-full max-w-6xl px-4 pt-10 pb-6 md:pt-14">
-          <nav aria-label="Breadcrumb" className="mb-3 text-[12px] font-bold text-sv-ink/45">
+          <nav aria-label="Breadcrumb" className="mb-3 text-[12px] font-bold text-sv-ink/60">
             <LocalizedLink href="/" className="transition hover:text-sv-ink">
               sivrce
             </LocalizedLink>

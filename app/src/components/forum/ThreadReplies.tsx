@@ -38,7 +38,7 @@ function ReplyCard({
         nested && 'ms-4 border-sv-blue/15 bg-sv-cloud/40 sm:ms-8',
       )}
     >
-      <div className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-sv-ink/55">
+      <div className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-sv-ink/60">
         <span className="text-sv-ink">{reply.authorName}</span>
         {reply.verified && (
           <span className="inline-flex items-center gap-1 text-sv-blue">
@@ -92,7 +92,7 @@ export function ThreadReplies({ slug, replies }: { slug: string; replies: ForumR
     <div className="mt-5 space-y-4">
       <ul className="space-y-4">
         {tops.length === 0 && (
-          <li className="rounded-tile border border-dashed border-sv-ink/15 px-6 py-8 text-center text-[14px] font-semibold text-sv-ink/50">
+          <li className="rounded-tile border border-dashed border-sv-ink/15 px-6 py-8 text-center text-[14px] font-semibold text-sv-ink/60">
             ჯერ პასუხები არ არის — გახდი პირველი ვისაც უპასუხებს
           </li>
         )}

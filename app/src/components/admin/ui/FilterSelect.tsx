@@ -20,7 +20,7 @@ export function FilterSelect({
   const [pending, startTransition] = useTransition()
 
   return (
-    <label className="flex items-center gap-2 text-[12.5px] font-semibold text-sv-ink/50">
+    <label className="flex items-center gap-2 text-[12.5px] font-semibold text-sv-ink/60">
       {label}
       <select
         name={name}

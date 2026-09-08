@@ -83,7 +83,7 @@ function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
               {ad.title}
             </span>
             {ad.subtitle ? (
-              <span className="text-[14px] font-medium text-sv-ink/55">{ad.subtitle}</span>
+              <span className="text-[14px] font-medium text-sv-ink/60">{ad.subtitle}</span>
             ) : null}
             <span className="pt-1">
               <Cta label={cta} />
@@ -106,7 +106,7 @@ function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
               {ad.title}
             </span>
             {ad.subtitle ? (
-              <span className="line-clamp-2 text-[13px] font-medium text-sv-ink/55">{ad.subtitle}</span>
+              <span className="line-clamp-2 text-[13px] font-medium text-sv-ink/60">{ad.subtitle}</span>
             ) : null}
             <span className="mt-auto pt-2">
               <Cta label={cta} />
@@ -127,7 +127,7 @@ function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
             <Sponsored lang={lang} />
             <span className="text-[16px] font-black tracking-[-0.02em] text-sv-ink">{ad.title}</span>
             {ad.subtitle ? (
-              <span className="text-[13px] font-medium leading-relaxed text-sv-ink/55">{ad.subtitle}</span>
+              <span className="text-[13px] font-medium leading-relaxed text-sv-ink/60">{ad.subtitle}</span>
             ) : null}
             <span className="pt-1">
               <Cta label={cta} />

@@ -116,7 +116,7 @@ export default async function AdminUsersPage({
                   >
                     {u.name ?? "—"}
                   </Link>
-                  <span className="text-[12.5px] text-sv-ink/45">{u.email}</span>
+                  <span className="text-[12.5px] text-sv-ink/60">{u.email}</span>
                 </td>
                 <td className={td}>
                   <StatusPill status={u.role} />

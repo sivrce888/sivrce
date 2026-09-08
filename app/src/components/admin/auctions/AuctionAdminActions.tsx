@@ -6,7 +6,7 @@ import {
   resumeAuction,
 } from "@/app/[lang]/admin/auctions/actions"
 
-const labelCls = "block text-[12px] font-bold tracking-[0.06em] text-sv-ink/50 uppercase"
+const labelCls = "block text-[12px] font-bold tracking-[0.06em] text-sv-ink/60 uppercase"
 const inputCls =
   "mt-1.5 h-10 w-full rounded-[var(--radius-control)] border border-sv-ink/10 bg-white px-3 text-[13.5px] text-sv-ink normal-case outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/25"
 const btnBase =

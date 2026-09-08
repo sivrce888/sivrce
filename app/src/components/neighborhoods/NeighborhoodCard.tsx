@@ -42,7 +42,7 @@ export default function NeighborhoodCard({
             className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[13px] font-black text-sv-ink"
             aria-label={`${s.scoreLabel} ${score}/10`}
           >
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[11px] text-sv-blue">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[11px] text-sv-blue dark:text-sv-blue-light">
               {score}
             </span>
             /10
@@ -60,12 +60,12 @@ export default function NeighborhoodCard({
         <div className="flex items-center justify-between gap-3 p-5">
           <div>
             <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/60">{s.avgPrice}</p>
-            <p className="text-[17px] font-black text-sv-blue">
+            <p className="text-[17px] font-black text-sv-blue dark:text-sv-blue-light">
               ${(liveAvg ?? n.avgPriceM2USD).toLocaleString('en-US')}
               <span className="text-[12px] font-bold text-sv-ink/60">{s.perM2}</span>
             </p>
           </div>
-          <span className="flex min-h-[44px] items-center gap-2 text-[14px] font-extrabold text-sv-blue transition-colors duration-200 group-hover:text-sv-blue-deep">
+          <span className="flex min-h-[44px] items-center gap-2 text-[14px] font-extrabold text-sv-blue dark:text-sv-blue-light transition-colors duration-200 group-hover:text-sv-blue-deep dark:group-hover:text-sv-blue-light">
             {s.viewGuide}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </span>

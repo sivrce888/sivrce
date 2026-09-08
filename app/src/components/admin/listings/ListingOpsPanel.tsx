@@ -38,7 +38,7 @@ export function ListingOpsPanel({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[13px] font-bold text-sv-ink/80">Verified badge</p>
-            <p className="mt-0.5 text-[12px] text-sv-ink/45">
+            <p className="mt-0.5 text-[12px] text-sv-ink/60">
               Currently {listing.verified ? "verified" : "not verified"}
             </p>
           </div>
@@ -64,7 +64,7 @@ export function ListingOpsPanel({
           </select>
           <label className={labelCls} htmlFor="ops-tier-days">
             Expires in (days){" "}
-            <span className="font-normal text-sv-ink/40">— blank means no expiry</span>
+            <span className="font-normal text-sv-ink/60">— blank means no expiry</span>
           </label>
           <input
             id="ops-tier-days"
@@ -74,7 +74,7 @@ export function ListingOpsPanel({
             max={3650}
             className={inputCls}
           />
-          <p className="text-[12px] text-sv-ink/45">
+          <p className="text-[12px] text-sv-ink/60">
             Current expiry: {listing.tierExpiresAt ? fmtDateTime(listing.tierExpiresAt) : "none"}
           </p>
           <button type="submit" className={submitCls}>
@@ -103,7 +103,7 @@ export function ListingOpsPanel({
           <input type="hidden" name="id" value={id} />
           <label className={labelCls} htmlFor="ops-trust-delta">
             Trust score{" "}
-            <span className="font-normal text-sv-ink/40">
+            <span className="font-normal text-sv-ink/60">
               — currently {listing.trustScore}/100, adjust by ±
             </span>
           </label>
@@ -136,7 +136,7 @@ export function ListingOpsPanel({
             </div>
           ) : (
             <div className="flex items-center justify-between gap-3">
-              <p className="text-[12.5px] text-sv-ink/45">
+              <p className="text-[12.5px] text-sv-ink/60">
                 Soft-delete hides the listing publicly; it can be restored.
               </p>
               <ConfirmButton

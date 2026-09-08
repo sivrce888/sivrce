@@ -7,7 +7,7 @@ import { BuildingMapPicker } from "./BuildingMapPicker"
 
 export const inputCls =
   "w-full rounded-[12px] border border-sv-ink/10 bg-white px-3.5 py-2.5 text-[14px] font-semibold text-sv-ink placeholder:text-sv-ink/30 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
-export const labelCls = "mb-1.5 block text-[12px] font-extrabold text-sv-ink/55"
+export const labelCls = "mb-1.5 block text-[12px] font-extrabold text-sv-ink/60"
 
 function Field({
   label,
@@ -158,7 +158,7 @@ export function BuildingForm({
         >
           {building ? "Save changes" : "Add building to map"}
         </button>
-        <Link href="/admin/buildings" className="text-[13px] font-bold text-sv-ink/50 hover:text-sv-ink">
+        <Link href="/admin/buildings" className="text-[13px] font-bold text-sv-ink/60 hover:text-sv-ink">
           Cancel
         </Link>
       </div>

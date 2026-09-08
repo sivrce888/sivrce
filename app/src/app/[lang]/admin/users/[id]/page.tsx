@@ -85,14 +85,14 @@ export default async function AdminUserDetailPage({
               <p className="text-[18px] font-extrabold text-sv-ink">{displayName}</p>
               <StatusPill status={user.role} />
             </div>
-            <p className="mt-1 text-[13.5px] text-sv-ink/55">
+            <p className="mt-1 text-[13.5px] text-sv-ink/60">
               {user.email}
               {user.emailVerified ? " · verified" : ""}
               {"  ·  "}
               {user.phone ?? "no phone"}
               {user.phoneVerifiedAt ? " · verified" : ""}
             </p>
-            <p className="mt-1 text-[12.5px] text-sv-ink/40">
+            <p className="mt-1 text-[12.5px] text-sv-ink/60">
               Trust score <span className="font-bold text-sv-ink/70">{user.trustScore}/100</span>
               {" · "}Joined {fmtDate(user.createdAt)}
               {" · "}Updated {fmtDateTime(user.updatedAt)}
@@ -111,7 +111,7 @@ export default async function AdminUserDetailPage({
 
       {/* Admin actions */}
       <div className="mb-5 rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-5 shadow-[var(--shadow-card)]">
-        <p className="mb-3 text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+        <p className="mb-3 text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
           Admin actions
         </p>
         <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
@@ -123,7 +123,7 @@ export default async function AdminUserDetailPage({
           />
           <form action={setUserTrustScore} className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="id" value={user.id} />
-            <label className="text-[12.5px] font-semibold text-sv-ink/50">
+            <label className="text-[12.5px] font-semibold text-sv-ink/60">
               Trust score (0–100)
               <input
                 type="number"
@@ -148,9 +148,9 @@ export default async function AdminUserDetailPage({
 
       {/* Listings */}
       <div className="mb-3 flex items-center gap-2">
-        <Building2 className="h-4 w-4 text-sv-ink/40" />
+        <Building2 className="h-4 w-4 text-sv-ink/60" />
         <h2 className="text-[15px] font-extrabold text-sv-ink">
-          Listings <span className="text-sv-ink/40">· {fmtNum(listingsTotal)}</span>
+          Listings <span className="text-sv-ink/60">· {fmtNum(listingsTotal)}</span>
         </h2>
       </div>
       {listings.length === 0 ? (
@@ -170,7 +170,7 @@ export default async function AdminUserDetailPage({
           <tbody>
             {listings.map((l) => (
               <TRow key={l.id} href={`/listing/${l.slug}`}>
-                <td className={`${td} font-mono text-[12px] text-sv-ink/45`}>
+                <td className={`${td} font-mono text-[12px] text-sv-ink/60`}>
                   {l.id.slice(0, 8)}
                 </td>
                 <td className={td}>
@@ -193,7 +193,7 @@ export default async function AdminUserDetailPage({
         </DataTable>
       )}
       {listingsTotal > listings.length ? (
-        <p className="mt-3 text-[12.5px] text-sv-ink/45">
+        <p className="mt-3 text-[12.5px] text-sv-ink/60">
           Showing latest {listings.length} of {fmtNum(listingsTotal)} listings.
         </p>
       ) : null}

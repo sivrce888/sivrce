@@ -249,19 +249,19 @@ export default function Navbar() {
               )
             })}
             <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
-              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
                 {t('nav.currency')}
               </span>
               <CurrencySwitcher light />
             </div>
             <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
-              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
                 {t('nav.language')}
               </span>
               <LangSwitcher light />
             </div>
             <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
-              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
                 {t('nav.theme')}
               </span>
               <ThemeToggle light />
@@ -270,7 +270,7 @@ export default function Navbar() {
               href={telHref(CONTACT_PHONE)}
               className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
             >
-              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
                 {t('footer.co.contact')}
               </span>
               <span className="flex items-center gap-2 text-[15px] font-extrabold text-sv-ink">
@@ -283,7 +283,7 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
               className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
             >
-              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/45">
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
                 {t('nav.favorites')}
               </span>
               <span className="relative grid h-10 w-10 place-items-center text-sv-ink/70">

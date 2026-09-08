@@ -52,7 +52,7 @@ export default async function AgencyTeamPage() {
                       <BadgeCheck size={15} className="shrink-0 text-sv-blue" aria-label="ვერიფიცირებული" />
                     ) : null}
                   </p>
-                  <p className="text-[12px] font-semibold text-sv-ink/50">
+                  <p className="text-[12px] font-semibold text-sv-ink/60">
                     <Star size={12} className="mr-0.5 inline -translate-y-px text-sv-blue" aria-hidden />
                     {agent.rating.toFixed(1)} · {agent.reviewsCount} შეფასება
                   </p>
@@ -60,14 +60,14 @@ export default async function AgencyTeamPage() {
               </div>
               <p className="mt-3 text-[13px] font-black tabular-nums text-sv-ink">
                 {agent.listingsCount}{" "}
-                <span className="text-[11.5px] font-bold text-sv-ink/45">განცხადება</span>
+                <span className="text-[11.5px] font-bold text-sv-ink/60">განცხადება</span>
               </p>
               {agent.languages.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {agent.languages.map((lang) => (
                     <span
                       key={lang}
-                      className="rounded-full bg-sv-cloud px-2.5 py-0.5 text-[10.5px] font-bold uppercase text-sv-ink/55"
+                      className="rounded-full bg-sv-cloud px-2.5 py-0.5 text-[10.5px] font-bold uppercase text-sv-ink/60"
                     >
                       {lang}
                     </span>
@@ -75,7 +75,7 @@ export default async function AgencyTeamPage() {
                 </div>
               ) : null}
               {agent.specialties.length > 0 ? (
-                <p className="mt-2 truncate text-[11.5px] font-medium text-sv-ink/45">
+                <p className="mt-2 truncate text-[11.5px] font-medium text-sv-ink/60">
                   {agent.specialties.join(" · ")}
                 </p>
               ) : null}

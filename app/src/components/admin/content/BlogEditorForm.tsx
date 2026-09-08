@@ -139,7 +139,7 @@ export function BlogEditorForm({
       </section>
 
       <section className={panelCls}>
-        <h2 className="mb-4 text-[13px] font-extrabold tracking-[0.08em] text-sv-ink/45 uppercase">
+        <h2 className="mb-4 text-[13px] font-extrabold tracking-[0.08em] text-sv-ink/60 uppercase">
           Titles
         </h2>
         <div className="grid gap-4">
@@ -156,7 +156,7 @@ export function BlogEditorForm({
       </section>
 
       <section className={panelCls}>
-        <h2 className="mb-4 text-[13px] font-extrabold tracking-[0.08em] text-sv-ink/45 uppercase">
+        <h2 className="mb-4 text-[13px] font-extrabold tracking-[0.08em] text-sv-ink/60 uppercase">
           Excerpts
         </h2>
         <div className="grid gap-4">
@@ -173,7 +173,7 @@ export function BlogEditorForm({
       </section>
 
       <section className={panelCls}>
-        <h2 className="mb-4 text-[13px] font-extrabold tracking-[0.08em] text-sv-ink/45 uppercase">
+        <h2 className="mb-4 text-[13px] font-extrabold tracking-[0.08em] text-sv-ink/60 uppercase">
           Body
         </h2>
         <div className="grid gap-4">

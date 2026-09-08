@@ -50,7 +50,7 @@ function LeadCard({
               {title}
             </LocalizedLink>
           ) : null}
-          <p className="mt-1 text-[12px] font-medium text-sv-ink/45">
+          <p className="mt-1 text-[12px] font-medium text-sv-ink/60">
             {[lead.district, lead.city].filter(Boolean).join(" · ")}
           </p>
         </div>
@@ -97,7 +97,7 @@ function LeadCard({
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-sv-ink/6 pt-3">
-        <p className="text-[11.5px] font-semibold text-sv-ink/40">{dateFmt.format(lead.createdAt)}</p>
+        <p className="text-[11.5px] font-semibold text-sv-ink/60">{dateFmt.format(lead.createdAt)}</p>
         <form action={setProLeadStatus} className="flex items-center gap-2">
           <input type="hidden" name="id" value={lead.id} />
           <select
@@ -144,7 +144,7 @@ export default function LeadInbox({
               className="w-[min(100%,20rem)] shrink-0 rounded-card border border-sv-ink/[0.06] bg-sv-cloud/50 p-3"
             >
               <header className="flex items-center justify-between px-1 pb-2">
-                <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/55">
+                <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
                   {INQUIRY_STATUS_KA[status]}
                 </h2>
                 <span className="rounded-full bg-sv-ink/6 px-2 py-0.5 text-[11px] font-black tabular-nums text-sv-ink/60">

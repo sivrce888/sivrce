@@ -116,7 +116,7 @@ export function AddServiceForm() {
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
           გამოქვეყნება
         </button>
-        <p className="text-[12px] font-semibold text-sv-ink/45">
+        <p className="text-[12px] font-semibold text-sv-ink/60">
           განცხადება ქონებაზე — ცალკე, უფასოდ,{' '}
           <LocalizedLink href="/add-listing" className="font-extrabold text-sv-blue">
             დაამატე განცხადება

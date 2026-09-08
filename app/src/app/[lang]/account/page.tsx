@@ -40,7 +40,7 @@ export default async function AccountPage() {
     >
       <div className="mb-6">
         <h1 className="text-[22px] font-black tracking-[-0.03em] text-sv-ink">{hello}</h1>
-        <p className="mt-1 text-[13.5px] font-medium text-sv-ink/50">
+        <p className="mt-1 text-[13.5px] font-medium text-sv-ink/60">
           {rent
             ? "შენახული ქირები, ვიზიტები და შეტყობინებები — ერთ ადგილას."
             : "ფავორიტები, შედარება, ვიზიტები — ყველაფერი რაც ძიებას სჭირდება."}

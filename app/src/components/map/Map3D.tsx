@@ -2361,7 +2361,7 @@ function Map3DInner({
   const chip = isDark
     ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
     : 'border-sv-ink/[0.06] bg-sv-surface/92 text-sv-ink shadow-soft backdrop-blur-xl'
-  const chipMuted = isDark ? 'text-white/45 hover:text-white' : 'text-sv-ink/40 hover:text-sv-ink'
+  const chipMuted = isDark ? 'text-white/45 hover:text-white' : 'text-sv-ink/60 hover:text-sv-ink'
   const shellBg = isDark ? 'bg-sv-navy' : 'bg-sv-cloud'
   const hair = isDark ? 'border-white/10' : 'border-sv-ink/[0.06]'
   // Apple-quiet press — never paint zoom/theme as “selected” blue
@@ -2388,7 +2388,7 @@ function Map3DInner({
           >
             <div className="flex flex-col items-center gap-3">
               <span className={`sv-spinner ${isDark ? 'sv-spinner-light' : ''}`} aria-hidden />
-              <p className={`text-[14px] font-bold ${isDark ? 'text-white/70' : 'text-sv-ink/55'}`}>
+              <p className={`text-[14px] font-bold ${isDark ? 'text-white/70' : 'text-sv-ink/60'}`}>
                 {t('map.loading')}
               </p>
             </div>
@@ -2451,7 +2451,7 @@ function Map3DInner({
               </button>
             </div>
             {visible.length === 0 && ready && (
-              <p className={`px-1 text-[11px] font-bold ${isDark ? 'text-white/55' : 'text-sv-ink/45'}`}>
+              <p className={`px-1 text-[11px] font-bold ${isDark ? 'text-white/55' : 'text-sv-ink/60'}`}>
                 {t('search.emptyTitle')}
               </p>
             )}
@@ -2650,7 +2650,7 @@ function Map3DInner({
             <Minus className="h-4 w-4" strokeWidth={2.25} />
           </button>
 
-          <div className={`flex ${railSep}`} role="group" aria-label={t('map.view')}>
+          <div className={`flex flex-col ${railSep}`} role="group" aria-label={t('map.view')}>
             <button
               type="button"
               aria-label="2D"
@@ -2671,7 +2671,7 @@ function Map3DInner({
               onClick={() => {
                 if (!view3d) toggleView3d()
               }}
-              className={`h-10 flex-1 border-l text-[10px] font-extrabold tracking-wide transition ${hair} ${
+              className={`h-10 flex-1 border-t text-[10px] font-extrabold tracking-wide transition ${hair} ${
                 view3d ? segOn : railHover
               }`}
             >

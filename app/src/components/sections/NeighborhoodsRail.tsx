@@ -36,7 +36,7 @@ export default function NeighborhoodsRail({
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep dark:text-sv-blue-light">
               <MapPin className="h-3.5 w-3.5" /> {b('home.nb.kicker')}
             </span>
             <h2 className="sv-h2 text-sv-ink">
@@ -48,7 +48,7 @@ export default function NeighborhoodsRail({
           </div>
           <LocalizedLink
             href="/neighborhoods"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:text-sv-blue"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors duration-200 hover:text-sv-blue"
           >
             {b('home.nb.viewAll')}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

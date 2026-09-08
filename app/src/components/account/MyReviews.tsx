@@ -113,7 +113,7 @@ export default function MyReviews({ signedIn }: { signedIn: boolean }) {
 
       {state.status === 'anon' && (
         <div className="flex flex-wrap items-center gap-4">
-          <p className="text-[14px] font-semibold text-sv-ink/50">{tt('reviewsSignIn')}</p>
+          <p className="text-[14px] font-semibold text-sv-ink/60">{tt('reviewsSignIn')}</p>
           <Link
             href="/auth/signin?callbackUrl=/account"
             className="flex h-11 items-center gap-2 rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-white shadow-glow-orange transition-all hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
@@ -126,7 +126,7 @@ export default function MyReviews({ signedIn }: { signedIn: boolean }) {
 
       {state.status === 'error' && (
         <div className="flex flex-wrap items-center gap-4">
-          <p className="text-[14px] font-semibold text-sv-ink/50">{tt('reviewsError')}</p>
+          <p className="text-[14px] font-semibold text-sv-ink/60">{tt('reviewsError')}</p>
           <button
             onClick={() => {
               setState({ status: 'loading' })
@@ -141,7 +141,7 @@ export default function MyReviews({ signedIn }: { signedIn: boolean }) {
 
       {state.status === 'ready' &&
         (state.reviews.length === 0 ? (
-          <p className="text-[14px] font-semibold text-sv-ink/50">{tt('noReviews')}</p>
+          <p className="text-[14px] font-semibold text-sv-ink/60">{tt('noReviews')}</p>
         ) : (
           <ul className="divide-y divide-sv-ink/[0.06]">
             {state.reviews.map((r) => {
@@ -165,7 +165,7 @@ export default function MyReviews({ signedIn }: { signedIn: boolean }) {
                       )
                     ) : null}
                     <Stars rating={r.rating} />
-                    <time suppressHydrationWarning className="ml-auto text-[12px] font-semibold text-sv-ink/40" dateTime={r.createdAt}>
+                    <time suppressHydrationWarning className="ml-auto text-[12px] font-semibold text-sv-ink/60" dateTime={r.createdAt}>
                       {new Date(r.createdAt).toLocaleDateString(lang)}
                     </time>
                   </div>

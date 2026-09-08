@@ -113,7 +113,7 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
     ? 'border-white/10 bg-sv-navy/95 text-white shadow-soft backdrop-blur-xl'
     : 'border-sv-ink/[0.06] bg-sv-surface text-sv-ink shadow-soft'
   const hair = isDark ? 'border-white/10' : 'border-sv-ink/[0.06]'
-  const muted = isDark ? 'text-white/50' : 'text-sv-ink/50'
+  const muted = isDark ? 'text-white/50' : 'text-sv-ink/60'
 
   const counts = useMemo(() => {
     const c: Partial<Record<CadastreStatus, number>> = {}

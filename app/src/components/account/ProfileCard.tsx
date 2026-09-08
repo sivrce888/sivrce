@@ -30,10 +30,10 @@ export default function ProfileCard({ user }: { user: AccountUser | null }) {
             <div className="min-w-0">
               <p className="truncate text-[17px] font-black text-sv-ink">{user.name ?? '—'}</p>
               {emailLine ? (
-                <p className="truncate text-[14px] font-semibold text-sv-ink/55">{emailLine}</p>
+                <p className="truncate text-[14px] font-semibold text-sv-ink/60">{emailLine}</p>
               ) : null}
               {phoneLine ? (
-                <p className="truncate text-[13px] font-semibold text-sv-ink/45">{phoneLine}</p>
+                <p className="truncate text-[13px] font-semibold text-sv-ink/60">{phoneLine}</p>
               ) : null}
             </div>
           </div>
@@ -73,7 +73,7 @@ export default function ProfileCard({ user }: { user: AccountUser | null }) {
             <LogIn className="h-4 w-4" aria-hidden="true" />
             {tt('signIn')}
           </Link>
-          <p className="text-[13px] font-semibold text-sv-ink/50">{tt('signInHint')}</p>
+          <p className="text-[13px] font-semibold text-sv-ink/60">{tt('signInHint')}</p>
         </div>
       )}
     </section>

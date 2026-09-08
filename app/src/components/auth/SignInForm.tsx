@@ -47,7 +47,7 @@ export function SignInForm({
         ) : null}
 
         <details className="group">
-          <summary className="cursor-pointer list-none text-center text-[12.5px] font-bold text-sv-ink/40 transition hover:text-sv-ink/65 [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none text-center text-[12.5px] font-bold text-sv-ink/60 transition hover:text-sv-ink/65 [&::-webkit-details-marker]:hidden">
             ელფოსტით შესვლა
           </summary>
           <div className="mt-4 space-y-3.5">

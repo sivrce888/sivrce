@@ -39,7 +39,7 @@ const STATUS_KEY: Record<MyTour['status'], AccountStringKey> = {
 const STATUS_CLASS: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700',
   confirmed: 'bg-emerald-50 text-emerald-700',
-  cancelled: 'bg-sv-ink/[0.06] text-sv-ink/55',
+  cancelled: 'bg-sv-ink/[0.06] text-sv-ink/60',
   completed: 'bg-sv-blue/10 text-sv-blue',
 }
 
@@ -100,17 +100,17 @@ export default function MyTours() {
         count={state.status === 'ready' ? state.tours.length : undefined}
         chipClass="bg-sv-blue/10 text-sv-blue"
       />
-      {state.status === 'loading' && <p className="text-[14px] font-semibold text-sv-ink/45">{s('loading')}</p>}
+      {state.status === 'loading' && <p className="text-[14px] font-semibold text-sv-ink/60">{s('loading')}</p>}
       {state.status === 'error' && (
         <div className="flex items-center gap-3">
-          <p className="text-[14px] font-semibold text-sv-ink/45">{s('toursError')}</p>
+          <p className="text-[14px] font-semibold text-sv-ink/60">{s('toursError')}</p>
           <button onClick={retry} className="text-[13px] font-extrabold text-sv-blue hover:underline">
             {s('retry')}
           </button>
         </div>
       )}
       {state.status === 'ready' && state.tours.length === 0 && (
-        <p className="text-[14px] font-semibold text-sv-ink/45">{s('noTours')}</p>
+        <p className="text-[14px] font-semibold text-sv-ink/60">{s('noTours')}</p>
       )}
       {state.status === 'ready' && state.tours.length > 0 && (
         <ul className="divide-y divide-sv-ink/[0.06]">
@@ -122,7 +122,7 @@ export default function MyTours() {
                 <div className="min-w-0">
                   {/* ponytail: plain text, no link — public /listing/[id] is static-catalog until plan #2. */}
                   <p className="truncate text-[14px] font-extrabold text-sv-ink">{tour.listing?.title ?? '—'}</p>
-                  <p className="mt-0.5 text-[12px] font-semibold text-sv-ink/50">
+                  <p className="mt-0.5 text-[12px] font-semibold text-sv-ink/60">
                     {fmt.format(new Date(tour.tourDate))} · {tour.tourTime}
                     {tour.agent?.name ? ` · ${tour.agent.name}` : ''}
                   </p>
@@ -132,7 +132,7 @@ export default function MyTours() {
                     <button
                       onClick={() => cancel(tour.id)}
                       disabled={cancellingId === tour.id}
-                      className="rounded-full border border-sv-ink/10 px-2.5 py-1 text-[11px] font-black text-sv-ink/55 transition hover:bg-sv-ink/[0.04] disabled:opacity-50"
+                      className="rounded-full border border-sv-ink/10 px-2.5 py-1 text-[11px] font-black text-sv-ink/60 transition hover:bg-sv-ink/[0.04] disabled:opacity-50"
                     >
                       {s('cancelTour')}
                     </button>

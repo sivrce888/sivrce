@@ -142,7 +142,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
             <p className="mt-3 text-[15px] font-medium leading-relaxed text-sv-ink/65">
               {featured.excerpt}
             </p>
-            <div className="mt-5 flex items-center gap-4 text-[13px] font-bold text-sv-ink/45">
+            <div className="mt-5 flex items-center gap-4 text-[13px] font-bold text-sv-ink/60">
               <span>{new Date(featured.publishedAt).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
               <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" aria-hidden /> {featured.readingMinutes} {t.minRead}</span>
             </div>
@@ -182,7 +182,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
                 <p className="mt-2 line-clamp-3 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">
                   {p.excerpt}
                 </p>
-                <div className="mt-4 flex items-center gap-3 text-[12px] font-bold text-sv-ink/45">
+                <div className="mt-4 flex items-center gap-3 text-[12px] font-bold text-sv-ink/60">
                   <span>{new Date(p.publishedAt).toLocaleDateString(t.locale, { day: 'numeric', month: 'short' })}</span>
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" aria-hidden /> {p.readingMinutes} {t.minShort}</span>
                 </div>

@@ -68,7 +68,7 @@ export default async function AgentProfilePage() {
           {profile ? "პროფილის რედაქტირება" : "პროფილის შექმნა"}
         </h2>
         {profile ? (
-          <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/55">
+          <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/60">
             <BadgeCheck size={13} className="text-sv-blue" aria-hidden />
             {profile.agency}
             {profile.verified ? " · ვერიფიცირებული" : ""}
@@ -77,7 +77,7 @@ export default async function AgentProfilePage() {
 
         <form action={saveAgentProfile} className="mt-5 grid gap-4">
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">სახელი და გვარი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">სახელი და გვარი</span>
             <input
               name="name"
               required
@@ -87,7 +87,7 @@ export default async function AgentProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">სააგენტო</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">სააგენტო</span>
             <input
               name="agency"
               required
@@ -98,7 +98,7 @@ export default async function AgentProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">ავატარის ტექსტი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">ავატარის ტექსტი</span>
             <input
               name="avatarText"
               maxLength={24}
@@ -108,7 +108,7 @@ export default async function AgentProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">ენები</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">ენები</span>
             <input
               name="languages"
               defaultValue={profile?.languages.join(", ") ?? ""}
@@ -117,7 +117,7 @@ export default async function AgentProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">სპეციალიზაცია</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">სპეციალიზაცია</span>
             <input
               name="specialties"
               defaultValue={profile?.specialties.join(", ") ?? ""}
@@ -149,7 +149,7 @@ export default async function AgentProfilePage() {
                   <BadgeCheck size={18} className="text-sv-blue" aria-label="ვერიფიცირებული" />
                 ) : null}
               </p>
-              <p className="text-[13px] font-semibold text-sv-ink/55">{profile.agency}</p>
+              <p className="text-[13px] font-semibold text-sv-ink/60">{profile.agency}</p>
               {profile.rating > 0 ? (
                 <p className="mt-1 inline-flex items-center gap-1 text-[12.5px] font-bold text-sv-ink/70">
                   <Star size={13} className="fill-sv-orange text-sv-orange" />

@@ -124,7 +124,7 @@ export default async function AdminRentalsPage({
                 <TRow key={b.id}>
                   <td className={`${td} whitespace-nowrap`}>
                     <span className="block font-bold text-sv-ink">{b.guestName}</span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">{b.guestPhone}</span>
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">{b.guestPhone}</span>
                   </td>
                   <td className={`${td} max-w-[220px]`}>
                     <Link
@@ -138,7 +138,7 @@ export default async function AdminRentalsPage({
                     <span className="block">
                       {fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}
                     </span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                       {fmtNum(b.nights)} night{b.nights === 1 ? "" : "s"}
                     </span>
                   </td>
@@ -147,14 +147,14 @@ export default async function AdminRentalsPage({
                     <span className="block font-bold text-sv-ink tabular-nums">
                       {fmtTetri(b.totalTetri, b.currency)}
                     </span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                       {b.paidAt ? "Paid" : "Unpaid"}
                     </span>
                   </td>
                   <td className={td}>
                     <StatusPill status={b.status} />
                   </td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     {timeAgo(b.createdAt)}
                   </td>
                   <td className={td}>

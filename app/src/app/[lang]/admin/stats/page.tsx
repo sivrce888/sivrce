@@ -96,14 +96,14 @@ export default async function AdminStatsPage() {
       <section aria-label="Engagement" className="grid gap-4 lg:grid-cols-2">
         <Panel title="Engagement" hint="Event counts by window (UTC)">
           {s.engagement.every((r) => r.total === 0) ? (
-            <p className="py-8 text-center text-[13px] text-sv-ink/40">
+            <p className="py-8 text-center text-[13px] text-sv-ink/60">
               No activity yet — events will appear as the platform is used.
             </p>
           ) : (
             <table className="w-full text-[13px]">
               <caption className="sr-only">Engagement events by time window</caption>
               <thead>
-                <tr className="border-b border-sv-ink/8 text-left text-[11px] font-bold tracking-[0.08em] text-sv-ink/40 uppercase">
+                <tr className="border-b border-sv-ink/8 text-left text-[11px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
                   <th scope="col" className="py-2 font-bold">
                     Event
                   </th>
@@ -177,7 +177,7 @@ export default async function AdminStatsPage() {
               ],
             ].map(([label, value]) => (
               <div key={label} className="flex items-center justify-between gap-3 py-2.5">
-                <dt className="font-semibold text-sv-ink/55">{label}</dt>
+                <dt className="font-semibold text-sv-ink/60">{label}</dt>
                 <dd className="font-bold tabular-nums text-sv-ink">{value}</dd>
               </div>
             ))}

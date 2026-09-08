@@ -90,7 +90,7 @@ export default function NeighborhoodDetail({
                 <Icon className="h-5 w-5" aria-hidden />
               </span>
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/45">{label}</p>
+                <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/60">{label}</p>
                 <p className="text-[18px] font-black text-sv-ink">
                   {value}
                   {typeof mom === 'number' && (

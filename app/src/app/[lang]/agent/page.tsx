@@ -147,7 +147,7 @@ export default async function AgentOverviewPage() {
                 <li key={lead.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13.5px] font-bold text-sv-ink">{lead.buyerName}</p>
-                    <p className="truncate text-[12px] font-medium text-sv-ink/50">
+                    <p className="truncate text-[12px] font-medium text-sv-ink/60">
                       {lead.buyerPhone ?? lead.buyerEmail} · {fmtDate(lead.createdAt)}
                     </p>
                   </div>
@@ -203,7 +203,7 @@ export default async function AgentOverviewPage() {
                   >
                     {tour.listing.title}
                   </LocalizedLink>
-                  <p className="truncate text-[12px] font-medium text-sv-ink/50">
+                  <p className="truncate text-[12px] font-medium text-sv-ink/60">
                     {fmtDate(tour.tourDate)} · {tour.tourTime} · {tour.guestName}
                   </p>
                 </div>

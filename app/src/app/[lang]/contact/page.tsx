@@ -123,7 +123,7 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
                   <div className="grid h-12 w-12 place-items-center rounded-module bg-sv-blue/10">
                     <c.icon className="h-6 w-6 text-sv-blue" />
                   </div>
-                  <div className="mt-4 text-sm font-semibold text-sv-ink/50">{c.label}</div>
+                  <div className="mt-4 text-sm font-semibold text-sv-ink/60">{c.label}</div>
                   <div className="mt-1 text-[17px] font-black tracking-[-0.02em] text-sv-ink">{c.value}</div>
                 </>
               )

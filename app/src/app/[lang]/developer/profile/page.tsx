@@ -70,7 +70,7 @@ export default async function DeveloperProfilePage() {
           {profile ? "პროფილის რედაქტირება" : "პროფილის შექმნა"}
         </h2>
         {profile ? (
-          <p className="mt-1 flex items-center gap-1 text-[12.5px] font-medium text-sv-ink/55">
+          <p className="mt-1 flex items-center gap-1 text-[12.5px] font-medium text-sv-ink/60">
             <MapPin size={13} aria-hidden />
             {profile.headquarters}
           </p>
@@ -78,7 +78,7 @@ export default async function DeveloperProfilePage() {
 
         <form action={saveDeveloperProfile} className="mt-5 grid gap-4">
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">კომპანიის სახელი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">კომპანიის სახელი</span>
             <input
               name="name"
               required
@@ -88,7 +88,7 @@ export default async function DeveloperProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">შტაბ-ბინა</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">შტაბ-ბინა</span>
             <input
               name="headquarters"
               required
@@ -99,7 +99,7 @@ export default async function DeveloperProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">ლოგოს ტექსტი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">ლოგოს ტექსტი</span>
             <input
               name="logoText"
               maxLength={40}
@@ -109,7 +109,7 @@ export default async function DeveloperProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">ვებგვერდი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">ვებგვერდი</span>
             <input
               name="website"
               type="url"
@@ -120,7 +120,7 @@ export default async function DeveloperProfilePage() {
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/55">აღწერა</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">აღწერა</span>
             <textarea
               name="description"
               required

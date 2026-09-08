@@ -22,7 +22,7 @@ export default function NotFound() {
           <h1 className="mt-6 text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[38px]">
             {t('detail.notFoundTitle')}
           </h1>
-          <p className="mt-3 max-w-[420px] text-[15px] font-semibold leading-relaxed text-sv-ink/50">
+          <p className="mt-3 max-w-[420px] text-[15px] font-semibold leading-relaxed text-sv-ink/60">
             {t('detail.notFoundText')}
           </p>
           <LocalizedLink

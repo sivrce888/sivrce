@@ -15,7 +15,7 @@ import {
 
 const inputCls =
   'w-full rounded-[12px] border border-sv-ink/10 bg-white px-3.5 py-2.5 text-[14px] font-semibold text-sv-ink placeholder:text-sv-ink/30 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20'
-const labelCls = 'mb-1.5 block text-[12px] font-extrabold text-sv-ink/55'
+const labelCls = 'mb-1.5 block text-[12px] font-extrabold text-sv-ink/60'
 const btnCls =
   'rounded-full border border-sv-ink/12 px-3.5 py-1.5 text-[12px] font-extrabold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue disabled:opacity-40'
 const btnActive =
@@ -169,7 +169,7 @@ export function BuildingMapPicker({
         footprint={footprint}
         onPick={onPick}
       />
-      <p className="text-[11px] font-bold text-sv-ink/40">
+      <p className="text-[11px] font-bold text-sv-ink/60">
         {pickMode === 'draw'
           ? 'დააკლიკე კუთხეებს → დახურვა. მშენებარე კორპუსი რომ არ არის OSM-ში.'
           : 'დააკლიკე OSM შენობას — პინი ცენტრში + footprint ავტომატურად.'}

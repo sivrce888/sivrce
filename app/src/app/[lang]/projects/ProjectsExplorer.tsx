@@ -126,7 +126,7 @@ const chipBase =
   'shrink-0 whitespace-nowrap rounded-control border px-3.5 py-2 text-[13px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
 const chipOff = `${chipBase} border-sv-ink/10 bg-sv-surface text-sv-ink/70 hover:border-sv-ink/30`
 const chipOn = `${chipBase} border-sv-ink bg-sv-ink text-white`
-const chipCount = (on: boolean) => `ml-1.5 text-[11px] font-extrabold ${on ? 'text-white/60' : 'text-sv-ink/40'}`
+const chipCount = (on: boolean) => `ml-1.5 text-[11px] font-extrabold ${on ? 'text-white/60' : 'text-sv-ink/60'}`
 const selectCls =
   'h-10 shrink-0 rounded-control border border-sv-ink/10 bg-sv-surface px-3 text-[13px] font-bold text-sv-ink/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
 
@@ -231,7 +231,7 @@ export function ProjectsExplorer({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/40" aria-hidden />
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/60" aria-hidden />
             </div>
           </label>
         </div>
@@ -249,7 +249,7 @@ export function ProjectsExplorer({
               onChange={(e) => update({ q: e.target.value }, true)}
               placeholder={t.searchPh}
               aria-label={t.searchAria}
-              className="h-10 w-56 rounded-control border border-sv-ink/10 bg-sv-surface pl-9 pr-3 text-[13px] font-semibold text-sv-ink placeholder:font-medium placeholder:text-sv-ink/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+              className="h-10 w-56 rounded-control border border-sv-ink/10 bg-sv-surface pl-9 pr-3 text-[13px] font-semibold text-sv-ink placeholder:font-medium placeholder:text-sv-ink/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
             />
           </div>
 

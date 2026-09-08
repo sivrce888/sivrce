@@ -25,7 +25,7 @@ export function Panel({
             {title}
           </h2>
           {hint ? (
-            <p className="mt-0.5 text-[11.5px] font-semibold text-sv-ink/40">{hint}</p>
+            <p className="mt-0.5 text-[11.5px] font-semibold text-sv-ink/60">{hint}</p>
           ) : null}
         </div>
         {href ? (

@@ -18,7 +18,7 @@ export function EmptyState({
       ) : null}
       <p className="text-[15px] font-bold text-sv-ink/70">{title}</p>
       {hint ? (
-        <p className="mt-1 max-w-[420px] text-[13px] text-sv-ink/45">{hint}</p>
+        <p className="mt-1 max-w-[420px] text-[13px] text-sv-ink/60">{hint}</p>
       ) : null}
     </div>
   )

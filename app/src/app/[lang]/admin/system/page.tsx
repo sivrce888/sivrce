@@ -59,7 +59,7 @@ async function SettingsTab() {
   const sections = configFormModel(await getAllConfig())
   return (
     <div className="max-w-[760px]">
-      <p className="mb-4 max-w-[560px] text-[13px] text-sv-ink/55">
+      <p className="mb-4 max-w-[560px] text-[13px] text-sv-ink/60">
         Live platform settings — these values are read across the site and apply on save.
         Leave a field blank to revert it to the default.
       </p>
@@ -76,7 +76,7 @@ async function ConfigTab() {
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-[520px] text-[13px] text-sv-ink/55">
+        <p className="max-w-[520px] text-[13px] text-sv-ink/60">
           Advanced: raw JSON keys. Prefer the Settings tab for supported values.
         </p>
         <SyncSearchButton />
@@ -98,9 +98,9 @@ async function ConfigTab() {
                 <div>
                   <p className="font-mono text-[13.5px] font-bold text-sv-ink">{row.id}</p>
                   {row.description ? (
-                    <p className="mt-0.5 text-[12.5px] text-sv-ink/50">{row.description}</p>
+                    <p className="mt-0.5 text-[12.5px] text-sv-ink/60">{row.description}</p>
                   ) : null}
-                  <p className="mt-1 text-[12px] text-sv-ink/40">
+                  <p className="mt-1 text-[12px] text-sv-ink/60">
                     Updated {fmtDateTime(row.updatedAt)}
                     {row.updatedBy ? ` by ${row.updatedBy.name ?? row.updatedBy.email}` : ""}
                   </p>
@@ -129,7 +129,7 @@ async function ConfigTab() {
 function BroadcastTab() {
   return (
     <div className="max-w-[640px]">
-      <p className="mb-4 text-[13px] text-sv-ink/55">
+      <p className="mb-4 text-[13px] text-sv-ink/60">
         Pushes an in-app notification to every user account. Use sparingly — there is no undo.
       </p>
       <section className="rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-5 shadow-[var(--shadow-card)]">
@@ -282,12 +282,12 @@ async function AuditTab({ sp }: { sp: SearchParams }) {
               const href = targetHref(r.targetType, r.targetId)
               return (
                 <TRow key={r.id}>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`} title={fmtDateTime(r.createdAt)}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`} title={fmtDateTime(r.createdAt)}>
                     {timeAgo(r.createdAt)}
                   </td>
                   <td className={td}>
                     <span className="block font-semibold text-sv-ink">{r.actorName}</span>
-                    <span className="block text-[12px] text-sv-ink/45">{r.actorRole}</span>
+                    <span className="block text-[12px] text-sv-ink/60">{r.actorRole}</span>
                   </td>
                   <td className={`${td} font-mono text-[12.5px] whitespace-nowrap`}>{r.action}</td>
                   <td className={td}>
@@ -302,7 +302,7 @@ async function AuditTab({ sp }: { sp: SearchParams }) {
                       <span className="block">{r.targetType}</span>
                     )}
                     <span
-                      className="block max-w-[140px] truncate font-mono text-[12px] text-sv-ink/45"
+                      className="block max-w-[140px] truncate font-mono text-[12px] text-sv-ink/60"
                       title={r.targetId}
                     >
                       {r.targetId}
@@ -311,7 +311,7 @@ async function AuditTab({ sp }: { sp: SearchParams }) {
                   <td className={`${td} max-w-[320px]`}>
                     <details>
                       <summary
-                        className="cursor-pointer list-none truncate font-mono text-[12px] text-sv-ink/45 [&::-webkit-details-marker]:hidden"
+                        className="cursor-pointer list-none truncate font-mono text-[12px] text-sv-ink/60 [&::-webkit-details-marker]:hidden"
                         title={details}
                       >
                         {details === "{}"

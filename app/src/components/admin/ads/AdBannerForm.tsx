@@ -77,7 +77,7 @@ function Field({
         {label}
       </label>
       {children}
-      {hint ? <p className="mt-1 text-[12px] font-medium text-sv-ink/40">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-[12px] font-medium text-sv-ink/60">{hint}</p> : null}
     </div>
   )
 }
@@ -145,7 +145,7 @@ export function AdBannerForm({ defaults }: { defaults: AdBannerDefaults }) {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[12px] font-medium text-sv-ink/40">
+            <p className="mt-1 text-[12px] font-medium text-sv-ink/60">
               {SLOT_META[slot as keyof typeof SLOT_META]?.hint}
             </p>
           </Field>
@@ -333,7 +333,7 @@ export function AdBannerForm({ defaults }: { defaults: AdBannerDefaults }) {
         >
           {pending ? "Saving…" : defaults.id ? "Save banner" : "Create banner"}
         </button>
-        <Link href="/admin/ads" className="text-[13px] font-bold text-sv-ink/45 hover:text-sv-ink">
+        <Link href="/admin/ads" className="text-[13px] font-bold text-sv-ink/60 hover:text-sv-ink">
           Cancel
         </Link>
       </div>

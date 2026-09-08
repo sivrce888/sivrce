@@ -101,7 +101,7 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
           {providers.length === 0 ? (
-            <p className="text-[15px] font-semibold text-sv-ink/55">
+            <p className="text-[15px] font-semibold text-sv-ink/60">
               {lang === 'ru'
                 ? 'В этой категории пока нет компаний. '
                 : lang === 'ka'

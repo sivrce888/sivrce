@@ -82,7 +82,7 @@ export default function PropertyTypePicker({
           hero
             ? `flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white lg:w-[176px] lg:max-w-[176px]`
             : `flex h-10 w-full items-center gap-2 rounded-full bg-sv-ink/[0.045] px-3.5 text-left text-[13px] font-bold outline-none transition-colors hover:bg-sv-ink/[0.08] focus-visible:ring-2 focus-visible:ring-sv-blue/30 ${
-                selected ? 'text-sv-ink' : 'text-sv-ink/55'
+                selected ? 'text-sv-ink' : 'text-sv-ink/60'
               }`
         }
       >
@@ -94,7 +94,7 @@ export default function PropertyTypePicker({
         <span className="min-w-0 flex-1">
           {hero ? (
             <>
-              <span className="block text-[10px] font-extrabold uppercase tracking-[0.06em] text-sv-ink/40 dark:text-white/40">
+              <span className="block text-[10px] font-extrabold uppercase tracking-[0.06em] text-sv-ink/60 dark:text-white/40">
                 {t('search.propType')}
               </span>
               <span className="block truncate text-[14px] font-extrabold tracking-[-0.01em]">
@@ -123,7 +123,7 @@ export default function PropertyTypePicker({
                 !value ? 'bg-sv-blue/[0.08]' : 'hover:bg-sv-ink/[0.04] dark:hover:bg-white/[0.06]'
               }`}
             >
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-control bg-sv-cloud text-sv-ink/50 dark:bg-white/10 dark:text-white/60">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-control bg-sv-cloud text-sv-ink/60 dark:bg-white/10 dark:text-white/60">
                 <Layers className="h-4 w-4" aria-hidden />
               </span>
               <span className="min-w-0 flex-1 text-[13px] font-extrabold text-sv-ink dark:text-white">{t('search.allTypes')}</span>
@@ -152,7 +152,7 @@ export default function PropertyTypePicker({
                   <span className="min-w-0 flex-1 truncate text-[13px] font-extrabold text-sv-ink dark:text-white">
                     {t(p.key)}
                     {n !== undefined && (
-                      <span className="ml-1.5 font-semibold text-sv-ink/40 dark:text-white/40">{n}</span>
+                      <span className="ml-1.5 font-semibold text-sv-ink/60 dark:text-white/40">{n}</span>
                     )}
                   </span>
                   {active && <Check className="h-4 w-4 shrink-0 text-sv-blue" strokeWidth={2.5} aria-hidden />}

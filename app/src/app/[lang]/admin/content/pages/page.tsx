@@ -46,7 +46,7 @@ export default async function AdminPagesContentPage({
         description="Edit any text on the site — pick a language and a section, type, save. Blank reverts to the default."
       />
       <ContentTabs active="/admin/content/pages" />
-      <div className="mb-1 flex items-center gap-2 text-[12px] font-bold tracking-wide text-sv-ink/40 uppercase">
+      <div className="mb-1 flex items-center gap-2 text-[12px] font-bold tracking-wide text-sv-ink/60 uppercase">
         <Languages className="h-3.5 w-3.5" /> Language
       </div>
       <TabLinks

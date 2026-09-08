@@ -127,7 +127,7 @@ lock("src/components/sections/Listings.tsx", [
   "homeRailSearchHref('diamond')",
   "homeRailSearchHref('super_vip')",
 ])
-lock("src/components/ListingCard.tsx", ['loading="lazy"', 'fetchPriority="low"', "cardOf"], ["from 'next/image'"])
+lock("src/components/ListingCard.tsx", ["cardOf(src)", "eager ? 'eager' : 'lazy'", "eager ? 'high' : 'low'"], ["from 'next/image'"])
 lock("src/lib/media.ts", ["cardOf", ".card.webp"])
 lock("src/app/[lang]/blog/page.tsx", ["export const revalidate = 86400"], ["force-dynamic"])
 lock("src/data/georgia-locations.ts", ["georgia-locations.json"], ["tbilisi-streets.json"])

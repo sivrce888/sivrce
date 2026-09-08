@@ -221,7 +221,7 @@ export default function SearchSuggest({
                         <span className={`min-w-0 flex-1 truncate text-[13px] font-bold ${auto ? 'text-sv-ink dark:text-white' : dark ? 'text-white' : 'text-sv-ink'}`}>
                           {s.ka}
                           {(s.city || s.district || s.en) && (
-                            <span className={`ml-1.5 font-semibold ${auto ? 'text-sv-ink/40 dark:text-white/40' : dark ? 'text-white/40' : 'text-sv-ink/40'}`}>
+                            <span className={`ml-1.5 font-semibold ${auto ? 'text-sv-ink/60 dark:text-white/40' : dark ? 'text-white/40' : 'text-sv-ink/60'}`}>
                               {[s.district, s.city, s.en].filter(Boolean).join(' · ')}
                             </span>
                           )}

@@ -261,7 +261,7 @@ export default function TierPurchaseButton({
 
           {available.length > 0 ? (
             <>
-              <p className="mt-2 text-[11px] font-bold uppercase tracking-wide text-sv-ink/40">
+              <p className="mt-2 text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
                 VIP · ხანგრძლივობა
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -273,7 +273,7 @@ export default function TierPurchaseButton({
                     className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold transition ${
                       days === d
                         ? "bg-sv-blue text-white"
-                        : "bg-sv-cloud text-sv-ink/55 hover:text-sv-blue"
+                        : "bg-sv-cloud text-sv-ink/60 hover:text-sv-blue"
                     }`}
                   >
                     {d}დ
@@ -304,7 +304,7 @@ export default function TierPurchaseButton({
                         <div className="text-[13px] font-extrabold text-sv-ink">
                           {renew ? `${tier.label} · გაგრძელება` : tier.label}
                         </div>
-                        <div className="truncate text-[11px] font-medium text-sv-ink/45">
+                        <div className="truncate text-[11px] font-medium text-sv-ink/60">
                           {renew
                             ? `დაემატება +${days} დღე მიმდინარე ვადას`
                             : tier.description}
@@ -332,7 +332,7 @@ export default function TierPurchaseButton({
             </div>
           )}
 
-          <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-sv-ink/40">
+          <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
             დამატებითი
           </p>
           <div className="mt-2 space-y-2">
@@ -353,7 +353,7 @@ export default function TierPurchaseButton({
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="text-[12.5px] font-extrabold text-sv-ink">{a.label}</div>
-                  <div className="truncate text-[10.5px] font-medium text-sv-ink/45">
+                  <div className="truncate text-[10.5px] font-medium text-sv-ink/60">
                     {a.description}
                   </div>
                 </div>
@@ -371,7 +371,7 @@ export default function TierPurchaseButton({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="mt-3 w-full rounded-control py-2 text-[12px] font-bold text-sv-ink/45 transition-colors hover:bg-sv-ink/[0.04]"
+            className="mt-3 w-full rounded-control py-2 text-[12px] font-bold text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.04]"
           >
             დახურვა
           </button>

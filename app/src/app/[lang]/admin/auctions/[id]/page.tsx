@@ -22,7 +22,7 @@ function Field({
 }) {
   return (
     <div>
-      <dt className="text-[11px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+      <dt className="text-[11px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
         {label}
       </dt>
       <dd className={`mt-1 text-[14px] font-semibold text-sv-ink ${mono ? "tabular-nums" : ""}`}>
@@ -49,7 +49,7 @@ export default async function AdminAuctionDetailPage({
     <div>
       <Link
         href="/admin/auctions"
-        className="mb-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/50 hover:text-sv-ink"
+        className="mb-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60 hover:text-sv-ink"
       >
         <ArrowLeft className="h-4 w-4" /> All auctions
       </Link>
@@ -128,7 +128,7 @@ export default async function AdminAuctionDetailPage({
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-[15px] font-extrabold text-sv-ink">
               <HandCoins className="h-4 w-4 text-sv-blue" /> Bid history
-              <span className="text-[12px] font-bold text-sv-ink/40">
+              <span className="text-[12px] font-bold text-sv-ink/60">
                 {a.bids.length === 100 ? "latest 100" : fmtNum(a.bids.length)}
               </span>
             </h2>

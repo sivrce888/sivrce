@@ -78,7 +78,7 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
                 <BadgeCheck className="h-6 w-6 text-sv-success" aria-label={d.verified} />
               )}
             </h1>
-            <p className="mt-1.5 flex items-center gap-1.5 text-[14px] font-bold text-sv-ink/55">
+            <p className="mt-1.5 flex items-center gap-1.5 text-[14px] font-bold text-sv-ink/60">
               <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden />
               {localizeCity(city, lang)}
               {subtitle ? ` · ${subtitle}` : ''}

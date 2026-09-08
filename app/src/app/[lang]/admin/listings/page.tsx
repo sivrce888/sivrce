@@ -109,7 +109,7 @@ export default async function AdminListingsPage({
                     <span className="block truncate font-bold text-sv-ink transition-colors hover:text-sv-blue">
                       {l.title}
                     </span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                       {l.city} · {l.district}
                     </span>
                   </Link>
@@ -136,7 +136,7 @@ export default async function AdminListingsPage({
                   )}
                 </td>
                 <td className={`${td} text-right tabular-nums`}>{fmtNum(l.views)}</td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(l.createdAt)}</td>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{fmtDate(l.createdAt)}</td>
               </TRow>
             ))}
           </tbody>

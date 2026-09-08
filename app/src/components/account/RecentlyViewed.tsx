@@ -43,7 +43,7 @@ export default function RecentlyViewed({
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
-          <p className="text-[14px] font-semibold text-sv-ink/50">{tt('noRecent')}</p>
+          <p className="text-[14px] font-semibold text-sv-ink/60">{tt('noRecent')}</p>
           <LocalizedLink
             href="/search"
             className="inline-flex h-11 items-center rounded-full px-1 text-[14px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30"

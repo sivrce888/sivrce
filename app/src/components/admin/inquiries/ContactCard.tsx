@@ -14,7 +14,7 @@ export function ContactCard({
 }) {
   return (
     <section className="rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-5 shadow-[var(--shadow-card)]">
-      <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/45 uppercase">
+      <h2 className="text-[12px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">
         {title}
       </h2>
       <p className="mt-2 text-[15px] font-bold break-words text-sv-ink">{name}</p>
@@ -37,7 +37,7 @@ export function ContactCard({
             {phone}
           </a>
         ) : null}
-        {!email && !phone ? <p className="text-sv-ink/40">No contact details</p> : null}
+        {!email && !phone ? <p className="text-sv-ink/60">No contact details</p> : null}
       </div>
     </section>
   )

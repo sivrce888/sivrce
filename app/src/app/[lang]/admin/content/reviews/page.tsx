@@ -159,7 +159,7 @@ async function ReviewsTab({
               <TRow key={r.id}>
                 <td className={`${td} whitespace-nowrap`}>
                   <span className="block font-bold text-sv-ink">{r.authorName}</span>
-                  <span className="mt-0.5 block text-[12px] text-sv-ink/45 uppercase">
+                  <span className="mt-0.5 block text-[12px] text-sv-ink/60 uppercase">
                     {r.locale}
                   </span>
                 </td>
@@ -167,7 +167,7 @@ async function ReviewsTab({
                   <span className="font-bold text-sv-ink">
                     {r.targetType.replaceAll("_", " ")}
                   </span>
-                  <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/45">
+                  <span className="mt-0.5 block font-mono text-[12px] text-sv-ink/60">
                     {shortRef(r.targetId)}
                   </span>
                 </td>
@@ -196,7 +196,7 @@ async function ReviewsTab({
                   )}
                 </td>
                 <td className={`${td} text-right tabular-nums`}>{fmtNum(r.helpfulCount)}</td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                   {fmtDate(r.createdAt)}
                 </td>
                 <td className={td}>

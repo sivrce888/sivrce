@@ -119,7 +119,7 @@ export default async function AgencyOverviewPage() {
         <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
           <h2 className="text-[15px] font-extrabold text-sv-ink">ლიდების ძარღვი</h2>
           {totalLeads === 0 ? (
-            <p className="mt-4 text-[13px] font-medium text-sv-ink/50">
+            <p className="mt-4 text-[13px] font-medium text-sv-ink/60">
               ლიდები ჯერ არ არის — ახალი მოთხოვნები აქ გამოჩნდება.
             </p>
           ) : (
@@ -161,7 +161,7 @@ export default async function AgencyOverviewPage() {
       <section className="mt-6 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
         <h2 className="text-[15px] font-extrabold text-sv-ink">გუნდი</h2>
         {team.length === 0 ? (
-          <p className="mt-4 text-[13px] font-medium text-sv-ink/50">
+          <p className="mt-4 text-[13px] font-medium text-sv-ink/60">
             {profile
               ? `პროფილში მითითებულია გუნდის ზომა: ${profile.teamSize}. აგენტი გუნდში გამოჩნდება, როცა მისი სააგენტოს სახელი ემთხვევა.`
               : "აგენტები ჯერ არ არის დამატებული."}
@@ -173,7 +173,7 @@ export default async function AgencyOverviewPage() {
                 <UserAvatar name={agent.name} label={agent.avatarText} size={40} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13.5px] font-bold text-sv-ink">{agent.name}</p>
-                  <p className="text-[11.5px] font-medium text-sv-ink/50">
+                  <p className="text-[11.5px] font-medium text-sv-ink/60">
                     {agent.listingsCount} განცხადება · {agent.rating.toFixed(1)}
                   </p>
                 </div>

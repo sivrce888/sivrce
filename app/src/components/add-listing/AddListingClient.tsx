@@ -1151,7 +1151,7 @@ export default function AddListingClient() {
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.6, ease }}
-            className="mx-auto mt-4 max-w-[440px] text-[16px] font-semibold leading-relaxed text-sv-ink/55"
+            className="mx-auto mt-4 max-w-[440px] text-[16px] font-semibold leading-relaxed text-sv-ink/60"
           >
             {wasEdit ? t('add.savedText') : t('add.successText')}
           </motion.p>
@@ -1193,7 +1193,7 @@ export default function AddListingClient() {
               className="mt-10 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-left shadow-card"
             >
               <p className="text-[15px] font-black text-sv-ink">{t('add.boostNow')}</p>
-              <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">{t('add.boostHint')}</p>
+              <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">{t('add.boostHint')}</p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <TierPurchaseButton listingId={publishedId} currentTier="standard" defaultOpen />
                 <LocalizedLink
@@ -1213,7 +1213,7 @@ export default function AddListingClient() {
   if (editLoading) {
     return (
       <section className="grid min-h-[50vh] place-items-center bg-sv-cloud py-16">
-        <p className="text-[15px] font-bold text-sv-ink/50">{t('add.loading')}</p>
+        <p className="text-[15px] font-bold text-sv-ink/60">{t('add.loading')}</p>
       </section>
     )
   }
@@ -1246,11 +1246,11 @@ export default function AddListingClient() {
           <h1 className="truncate text-[22px] font-black tracking-[-0.035em] text-sv-ink md:text-[28px]">
             {editId ? t('add.editTitle') : t('add.title')}
           </h1>
-          <p className="mt-1.5 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">
+          <p className="mt-1.5 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/60">
             {editId ? t('add.editSubtitle') : t('add.subtitle')}
           </p>
           <div className="mt-3 flex items-center gap-2 lg:hidden">
-            <span className="text-[11px] font-extrabold text-sv-ink/40">{t('add.strength')}</span>
+            <span className="text-[11px] font-extrabold text-sv-ink/60">{t('add.strength')}</span>
             <div className="h-1 flex-1 overflow-hidden rounded-full bg-sv-ink/[0.06]">
               <motion.div
                 className={`h-full rounded-full ${strengthBar}`}
@@ -1281,7 +1281,7 @@ export default function AddListingClient() {
                         ? 'bg-sv-orange text-white shadow-glow-orange'
                         : done
                           ? 'bg-sv-blue/10 text-sv-blue'
-                          : 'bg-sv-ink/[0.05] text-sv-ink/45 hover:text-sv-ink'
+                          : 'bg-sv-ink/[0.05] text-sv-ink/60 hover:text-sv-ink'
                     }`}
                   >
                     {done ? <Check className="h-3 w-3" strokeWidth={3} /> : <span className="tabular-nums opacity-70">{i + 1}</span>}
@@ -1298,9 +1298,9 @@ export default function AddListingClient() {
                 <section id="add-sec-0" data-sec="0" className={secCls(0)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.type')}</h2>
-                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.type')}</p>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.type')}</p>
                     </header>
-                    <h3 className="text-[13px] font-semibold text-sv-ink/45">{t('add.propType')}</h3>
+                    <h3 className="text-[13px] font-semibold text-sv-ink/60">{t('add.propType')}</h3>
                     <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {PROP_TYPES.map((p) => {
                         const active = propType === p.key
@@ -1334,7 +1334,7 @@ export default function AddListingClient() {
 
                     {propType && (
                       <>
-                        <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/45">{t('add.dealType')}</h3>
+                        <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/60">{t('add.dealType')}</h3>
                         <div
                           className="mt-3 flex rounded-full bg-sv-cloud p-1 ring-1 ring-sv-ink/[0.06]"
                           role="radiogroup"
@@ -1350,7 +1350,7 @@ export default function AddListingClient() {
                                 aria-checked={active}
                                 onClick={() => pickDeal(d.key)}
                                 className={`flex min-h-[44px] min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-[12px] font-extrabold transition-all sm:text-[13px] ${
-                                  active ? 'bg-sv-surface text-sv-ink shadow-card' : 'text-sv-ink/45 hover:text-sv-ink'
+                                  active ? 'bg-sv-surface text-sv-ink shadow-card' : 'text-sv-ink/60 hover:text-sv-ink'
                                 }`}
                               >
                                 <d.icon className="h-3.5 w-3.5 shrink-0" style={{ color: active ? d.hue : undefined }} />
@@ -1364,7 +1364,7 @@ export default function AddListingClient() {
 
                     {propType && deal && earlyStatus && (
                       <>
-                        <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/45">{t('add.status')} *</h3>
+                        <h3 className="mt-8 text-[13px] font-semibold text-sv-ink/60">{t('add.status')} *</h3>
                         <div className={`mt-3 grid gap-3 ${statusOpts.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                           {statusOpts.map((s) => {
                             const active = status === s
@@ -1396,7 +1396,7 @@ export default function AddListingClient() {
                 <section id="add-sec-1" data-sec="1" className={secCls(1)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.photos')}</h2>
-                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.photos')}</p>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.photos')}</p>
                     </header>
                     {photos.length === 0 ? (
                       <button
@@ -1410,8 +1410,8 @@ export default function AddListingClient() {
                           <ImagePlus className="h-6 w-6" />
                         </span>
                         <span className="text-[15px] font-extrabold text-sv-ink">{t('add.photosDrop')}</span>
-                        <span className="text-[13px] font-semibold text-sv-ink/40">{t('add.photosCount', { n: photos.length })}</span>
-                        <span className="max-w-[28em] text-[12px] font-semibold leading-relaxed text-sv-ink/40">{t('add.photosTip')}</span>
+                        <span className="text-[13px] font-semibold text-sv-ink/60">{t('add.photosCount', { n: photos.length })}</span>
+                        <span className="max-w-[28em] text-[12px] font-semibold leading-relaxed text-sv-ink/60">{t('add.photosTip')}</span>
                       </button>
                     ) : (
                       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
@@ -1456,7 +1456,7 @@ export default function AddListingClient() {
                             onClick={() => fileRef.current?.click()}
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => { e.preventDefault(); addPhotos(e.dataTransfer.files) }}
-                            className="flex aspect-[4/3] flex-col items-center justify-center gap-1.5 rounded-module border border-dashed border-sv-ink/15 bg-sv-cloud/80 text-sv-ink/45 transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04] hover:text-sv-blue"
+                            className="flex aspect-[4/3] flex-col items-center justify-center gap-1.5 rounded-module border border-dashed border-sv-ink/15 bg-sv-cloud/80 text-sv-ink/60 transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04] hover:text-sv-blue"
                           >
                             <Plus className="h-5 w-5" />
                             <span className="text-[11px] font-extrabold">{t('add.photosAdd')}</span>
@@ -1472,7 +1472,7 @@ export default function AddListingClient() {
 
                     <div id="add-video" className="mt-8 scroll-mt-28">
                       <label className={label}>{t('add.videoUpload')}</label>
-                      <p className="mb-3 text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.videoTip')}</p>
+                      <p className="mb-3 text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.videoTip')}</p>
                       {isNativeVideoUrl(video) || videoBusy ? (
                         <div className="relative overflow-hidden rounded-module bg-sv-navy-soft">
                           {isNativeVideoUrl(video) ? (
@@ -1509,7 +1509,7 @@ export default function AddListingClient() {
                             <Video className="h-5 w-5" />
                           </span>
                           <span className="text-[15px] font-extrabold text-sv-ink">{t('add.videoDrop')}</span>
-                          <span className="max-w-[32em] text-[12px] font-semibold leading-relaxed text-sv-ink/40">{t('add.videoHint')}</span>
+                          <span className="max-w-[32em] text-[12px] font-semibold leading-relaxed text-sv-ink/60">{t('add.videoHint')}</span>
                         </button>
                       )}
                       <input ref={videoRef} type="file" accept={VIDEO_ACCEPT} hidden onChange={(e) => void pickVideo(e.target.files)} />
@@ -1555,7 +1555,7 @@ export default function AddListingClient() {
                 <section id="add-sec-2" data-sec="2" className={secCls(2)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.location')}</h2>
-                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.location')}</p>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.location')}</p>
                     </header>
                     <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
@@ -1629,7 +1629,7 @@ export default function AddListingClient() {
                               >
                                 <span className="truncate text-[13px] font-extrabold text-sv-ink">{s.ka}</span>
                                 {(s.district || (s.city && !city) || s.en) && (
-                                  <span className="truncate text-[11px] font-bold text-sv-ink/45">
+                                  <span className="truncate text-[11px] font-bold text-sv-ink/60">
                                     {[s.district, city ? '' : s.city, s.en].filter(Boolean).join(' · ')}
                                   </span>
                                 )}
@@ -1652,14 +1652,14 @@ export default function AddListingClient() {
                         onChange={(e) => setCadastral(e.target.value)}
                       />
                       {naprView.state === 'checking' ? (
-                        <p role="status" className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/40">
+                        <p role="status" className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/60">
                           <Loader2 className="h-3.5 w-3.5 animate-spin text-sv-blue" /> {t('add.cadastralChecking')}
                         </p>
                       ) : naprView.state === 'ok' ? (
                         <p role="status" className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px] font-bold text-emerald-600">
                           <BadgeCheck className="h-3.5 w-3.5" /> {t('add.cadastralFound')}
                           {naprView.m2 != null && (
-                            <span className="tabular-nums text-sv-ink/40">· ~{naprView.m2.toLocaleString('en-US')} m²</span>
+                            <span className="tabular-nums text-sv-ink/60">· ~{naprView.m2.toLocaleString('en-US')} m²</span>
                           )}
                         </p>
                       ) : naprView.state === 'miss' ? (
@@ -1667,7 +1667,7 @@ export default function AddListingClient() {
                           <TriangleAlert className="h-3.5 w-3.5" /> {t('add.cadastralMiss')}
                         </p>
                       ) : (
-                        <p className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/40">
+                        <p className="mt-2 flex items-center gap-1.5 text-[12px] font-bold text-sv-ink/60">
                           <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" /> {t('add.cadastralNote')}
                         </p>
                       )}
@@ -1697,7 +1697,7 @@ export default function AddListingClient() {
                               Sivrce Maps
                             </span>
                           </label>
-                          <span className="text-[11px] font-bold tabular-nums text-sv-ink/40">
+                          <span className="text-[11px] font-bold tabular-nums text-sv-ink/60">
                             {geocoding
                               ? t('add.mapLocating')
                               : pinReady
@@ -1717,12 +1717,12 @@ export default function AddListingClient() {
                           footprint={footprint}
                           onPick={onMapPick}
                         />
-                        <p className="mt-2 text-[11px] font-bold text-sv-ink/40">
+                        <p className="mt-2 text-[11px] font-bold text-sv-ink/60">
                           {t('add.mapPickHint')}
                         </p>
                         {tasDocs.length > 0 && (
                           <ul className="mt-3 space-y-1.5 rounded-control border border-sv-ink/[0.06] bg-sv-cloud/60 px-3 py-2.5">
-                            <li className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">
+                            <li className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
                               {t('detail.tasPermits')}
                             </li>
                             {tasDocs.map((d) => (
@@ -1749,7 +1749,7 @@ export default function AddListingClient() {
                 <section id="add-sec-3" data-sec="3" className={secCls(3)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.details')}</h2>
-                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.details')}</p>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.details')}</p>
                     </header>
                     {formFields ? (
                   <div className="grid gap-6">
@@ -1852,7 +1852,7 @@ export default function AddListingClient() {
                     {formFields.project && projectOpts.length > 0 && (
                       <div>
                         <label className={label}>{t('add.project')}</label>
-                        <p className="mb-2 text-[12px] font-semibold text-sv-ink/45">{t('add.projectHint')}</p>
+                        <p className="mb-2 text-[12px] font-semibold text-sv-ink/60">{t('add.projectHint')}</p>
                         <div className="flex flex-wrap gap-2">
                           {projectOpts.map((p) => (
                             <button
@@ -1913,7 +1913,7 @@ export default function AddListingClient() {
                                 type="button"
                                 onClick={() => setAreaUnit(u)}
                                 className={`rounded-full px-3 py-1.5 text-[12px] font-extrabold ${
-                                  areaUnit === u ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/55'
+                                  areaUnit === u ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/60'
                                 }`}
                               >
                                 {t(u === 'ha' ? 'add.areaUnit.ha' : 'add.areaUnit.m2')}
@@ -2034,11 +2034,11 @@ export default function AddListingClient() {
 
                     <div>
                       <label className={label}>{t('add.features')}</label>
-                      <p className="mb-3 text-[12px] font-semibold text-sv-ink/45">{t('add.featuresHint')}</p>
+                      <p className="mb-3 text-[12px] font-semibold text-sv-ink/60">{t('add.featuresHint')}</p>
                       <div className="grid gap-5">
                         {groupedFeatures(featureOpts).map((g) => (
                           <div key={g.key}>
-                            <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-sv-ink/40">{t(g.key)}</p>
+                            <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-sv-ink/60">{t(g.key)}</p>
                             <div className="flex flex-wrap gap-2">
                               {g.items.map((f) => {
                                 const on = features.includes(f)
@@ -2083,12 +2083,12 @@ export default function AddListingClient() {
                       </span>
                       <span>
                         <span className={`block text-[14px] font-extrabold ${onlineView ? 'text-white' : 'text-sv-ink'}`}>{t('add.onlineView')}</span>
-                        <span className={`mt-1 block text-[12px] font-semibold leading-relaxed ${onlineView ? 'text-white/75' : 'text-sv-ink/50'}`}>{t('add.onlineViewHint')}</span>
+                        <span className={`mt-1 block text-[12px] font-semibold leading-relaxed ${onlineView ? 'text-white/75' : 'text-sv-ink/60'}`}>{t('add.onlineViewHint')}</span>
                       </span>
                     </button>
                   </div>
                     ) : (
-                      <p className="rounded-module bg-sv-cloud px-4 py-6 text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.type')}</p>
+                      <p className="rounded-module bg-sv-cloud px-4 py-6 text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.type')}</p>
                     )}
                 </section>
 
@@ -2096,7 +2096,7 @@ export default function AddListingClient() {
                 <section id="add-sec-4" data-sec="4" className={secCls(4)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.price')}</h2>
-                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.price')}</p>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.price')}</p>
                     </header>
                     <div className="grid gap-6">
                     <div>
@@ -2145,7 +2145,7 @@ export default function AddListingClient() {
                             onChange={(e) => setPrice(e.target.value.replace(/[^\d]/g, ''))}
                           />
                           {priceEntered > 0 && (
-                            <p className="mt-2 text-[13px] font-bold text-sv-ink/45">
+                            <p className="mt-2 text-[13px] font-bold text-sv-ink/60">
                               {priceCur === 'GEL'
                                 ? `${priceEntered} ₾ (≈ $${Math.round(priceEntered / USD_GEL)})`
                                 : `$${priceEntered} (≈ ${Math.round(priceEntered * USD_GEL)} ₾)`}
@@ -2202,7 +2202,7 @@ export default function AddListingClient() {
                           </span>
                           <span className="min-w-0">
                             <span className="block text-[14px] font-extrabold">{t('badge.exclusive')}</span>
-                            <span className={`mt-0.5 block text-[11px] font-bold leading-snug ${exclusive ? 'text-white/75' : 'text-sv-ink/40'}`}>{t('badge.exclusiveHint')}</span>
+                            <span className={`mt-0.5 block text-[11px] font-bold leading-snug ${exclusive ? 'text-white/75' : 'text-sv-ink/60'}`}>{t('badge.exclusiveHint')}</span>
                           </span>
                         </button>
                         <button
@@ -2217,7 +2217,7 @@ export default function AddListingClient() {
                           </span>
                           <span className="min-w-0">
                             <span className="block text-[14px] font-extrabold">{t('badge.sivrceExclusive')}</span>
-                            <span className={`mt-0.5 block text-[11px] font-bold leading-snug ${sivrceExclusive ? 'text-white/75' : 'text-sv-ink/40'}`}>{t('badge.sivrceExclusiveHint')}</span>
+                            <span className={`mt-0.5 block text-[11px] font-bold leading-snug ${sivrceExclusive ? 'text-white/75' : 'text-sv-ink/60'}`}>{t('badge.sivrceExclusiveHint')}</span>
                           </span>
                         </button>
                       </div>
@@ -2231,12 +2231,12 @@ export default function AddListingClient() {
                         </span>
                         <div>
                           <div className="text-[14px] font-black text-sv-ink">{t('add.aiEstimate')}</div>
-                          {estimate && <div className="text-[12px] font-bold text-sv-ink/45">{t('add.aiEstimateBody')}</div>}
+                          {estimate && <div className="text-[12px] font-bold text-sv-ink/60">{t('add.aiEstimateBody')}</div>}
                         </div>
                       </div>
                       {estimate ? (
                         <div className="mt-5">
-                          <div className="text-[12px] font-black uppercase tracking-wider text-sv-ink/45">{t('add.aiRange')}</div>
+                          <div className="text-[12px] font-black uppercase tracking-wider text-sv-ink/60">{t('add.aiRange')}</div>
                           <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
                             <span className="text-[26px] font-black tracking-tight text-sv-ink">{formatUSD(estimate.low)} — {formatUSD(estimate.high)}</span>
                             {verdict && (
@@ -2264,7 +2264,7 @@ export default function AddListingClient() {
                           </button>
                         </div>
                       ) : (
-                        <p className="mt-4 text-[13px] font-semibold text-sv-ink/50">{t('add.aiNoData')}</p>
+                        <p className="mt-4 text-[13px] font-semibold text-sv-ink/60">{t('add.aiNoData')}</p>
                       )}
                     </div>
 
@@ -2287,7 +2287,7 @@ export default function AddListingClient() {
                         maxLength={3000}
                         onChange={(e) => setDescription(e.target.value)}
                       />
-                      <div className="mt-2 flex items-center justify-between text-[12px] font-bold text-sv-ink/40">
+                      <div className="mt-2 flex items-center justify-between text-[12px] font-bold text-sv-ink/60">
                         <span className="flex items-center gap-1.5">
                           {aiUsed && <><SparkMark className="h-3.5 w-3.5" /> {t('add.aiWritten')}</>}
                         </span>
@@ -2300,10 +2300,10 @@ export default function AddListingClient() {
                 <section id="add-sec-5" data-sec="5" className={secCls(5)}>
                     <header className="mb-6">
                       <h2 className="text-[17px] font-black tracking-[-0.03em] text-sv-ink">{t('add.step.contact')}</h2>
-                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/45">{t('add.tip.contact')}</p>
+                      <p className="mt-1 max-w-[42em] text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.contact')}</p>
                     </header>
                     <div className="grid gap-6">
-                    <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/50">{t('add.contactHint')}</p>
+                    <p className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.contactHint')}</p>
                     <div className="grid gap-5 sm:grid-cols-2">
                       <div>
                         <label className={label}>{t('add.name')} *</label>
@@ -2422,7 +2422,7 @@ export default function AddListingClient() {
                 </section>
 
             <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] bg-sv-surface/92 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-card backdrop-blur-xl md:px-10">
-              <span className="flex min-w-0 items-center gap-2 text-[12px] font-bold text-sv-ink/40">
+              <span className="flex min-w-0 items-center gap-2 text-[12px] font-bold text-sv-ink/60">
                 {draftSavedAt > 0 && <><Check className="h-3.5 w-3.5 shrink-0 text-sv-blue" /> <span className="truncate">{t('add.draftSaved')}</span></>}
                 <span className="hidden tabular-nums sm:inline">
                   {sectionOk.filter(Boolean).length}/{SECTIONS.length}
@@ -2454,7 +2454,7 @@ export default function AddListingClient() {
           <div className="sticky top-[calc(7.75rem+env(safe-area-inset-top,0px))] hidden lg:block">
             <div className="mb-3">
               <div className="text-[14px] font-black text-sv-ink">{t('add.preview')}</div>
-              <div className="text-[12px] font-bold text-sv-ink/40">{t('add.previewHint')}</div>
+              <div className="text-[12px] font-bold text-sv-ink/60">{t('add.previewHint')}</div>
             </div>
             <div className="pointer-events-none [&>article]:w-full [&>article]:max-w-none">
               {preview ? (
@@ -2465,7 +2465,7 @@ export default function AddListingClient() {
                     <ImagePlus className="h-5 w-5" />
                   </span>
                   <p className="text-[14px] font-extrabold text-sv-ink">{t('add.photosRequired')}</p>
-                  <p className="text-[12px] font-semibold text-sv-ink/45">{t('add.previewEmpty')}</p>
+                  <p className="text-[12px] font-semibold text-sv-ink/60">{t('add.previewEmpty')}</p>
                 </div>
               )}
             </div>
@@ -2483,7 +2483,7 @@ export default function AddListingClient() {
                   transition={{ duration: 0.6, ease }}
                 />
               </div>
-              <p className="mt-2.5 text-[12px] font-bold text-sv-ink/45">{strengthLabel}</p>
+              <p className="mt-2.5 text-[12px] font-bold text-sv-ink/60">{strengthLabel}</p>
             </div>
           </div>
         </div>

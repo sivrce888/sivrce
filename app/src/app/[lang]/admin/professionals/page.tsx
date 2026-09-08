@@ -209,21 +209,21 @@ async function AgentsTab({ page, q, state, sp }: TabProps) {
             <TRow key={a.id}>
               <td className={td}>
                 <span className="block font-bold text-sv-ink">{a.name}</span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45">{a.agency}</span>
+                <span className="mt-0.5 block text-[12px] text-sv-ink/60">{a.agency}</span>
               </td>
               <td className={`${td} text-right tabular-nums`}>{fmtNum(a.listingsCount)}</td>
               <td className={`${td} whitespace-nowrap`}>
                 <span className="block font-bold text-sv-ink tabular-nums">
                   ★ {a.rating.toFixed(1)}
                 </span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45 tabular-nums">
+                <span className="mt-0.5 block text-[12px] text-sv-ink/60 tabular-nums">
                   {fmtNum(a.reviewsCount)} reviews
                 </span>
               </td>
               <td className={td}>
                 <VerifiedMark verified={a.verified} />
               </td>
-              <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(a.createdAt)}</td>
+              <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{fmtDate(a.createdAt)}</td>
               <td className={td}>
                 <RowActions kind="agents" id={a.id} deleted={!!a.deletedAt} verified={a.verified} />
               </td>
@@ -282,20 +282,20 @@ async function AgenciesTab({ page, q, state, sp }: TabProps) {
             <TRow key={a.id}>
               <td className={td}>
                 <span className="block font-bold text-sv-ink">{a.name}</span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45">{a.city}</span>
+                <span className="mt-0.5 block text-[12px] text-sv-ink/60">{a.city}</span>
               </td>
               <td className={`${td} whitespace-nowrap`}>
                 <span className="block font-bold text-sv-ink tabular-nums">
                   ★ {a.rating.toFixed(1)}
                 </span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45 tabular-nums">
+                <span className="mt-0.5 block text-[12px] text-sv-ink/60 tabular-nums">
                   {fmtNum(a.reviewsCount)} reviews
                 </span>
               </td>
               <td className={td}>
                 <VerifiedMark verified={a.verified} />
               </td>
-              <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(a.createdAt)}</td>
+              <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{fmtDate(a.createdAt)}</td>
               <td className={td}>
                 <RowActions
                   kind="agencies"
@@ -361,7 +361,7 @@ async function DevelopersTab({ page, q, state, sp }: TabProps) {
             <TRow key={d.id}>
               <td className={td}>
                 <span className="block font-bold text-sv-ink">{d.name}</span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45">{d.headquarters}</span>
+                <span className="mt-0.5 block text-[12px] text-sv-ink/60">{d.headquarters}</span>
               </td>
               <td className={td}>
                 {d.website ? (
@@ -382,7 +382,7 @@ async function DevelopersTab({ page, q, state, sp }: TabProps) {
               <td className={`${td} whitespace-nowrap font-bold text-sv-ink tabular-nums`}>
                 ★ {d.rating.toFixed(1)}
               </td>
-              <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(d.createdAt)}</td>
+              <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{fmtDate(d.createdAt)}</td>
               <td className={td}>
                 <RowActions kind="developers" id={d.id} deleted={!!d.deletedAt} />
               </td>
@@ -461,7 +461,7 @@ async function ProjectsTab({ page, q, state, status = "", sp }: TabProps) {
                 <span className="block max-w-[220px] truncate font-bold text-sv-ink">
                   {p.name}
                 </span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45">{p.developer}</span>
+                <span className="mt-0.5 block text-[12px] text-sv-ink/60">{p.developer}</span>
                 {p.sourceUrl ? (
                   <a
                     href={p.sourceUrl}
@@ -477,7 +477,7 @@ async function ProjectsTab({ page, q, state, status = "", sp }: TabProps) {
                 <span className="block max-w-[200px] truncate text-[13px] text-sv-ink">
                   {p.address || p.district || "—"}
                 </span>
-                <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                   {[p.district, p.city].filter(Boolean).join(" · ")}
                 </span>
               </td>
@@ -499,7 +499,7 @@ async function ProjectsTab({ page, q, state, status = "", sp }: TabProps) {
               <td className={`${td} text-right whitespace-nowrap tabular-nums`}>
                 {p.pricePerSqmFrom > 0 ? fmtMoney(p.pricePerSqmFrom) : "—"}
               </td>
-              <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+              <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                 {p.readyBy || "—"}
               </td>
               <td className={td}>

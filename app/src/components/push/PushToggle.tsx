@@ -111,10 +111,10 @@ export function PushToggle({ labels }: { labels: PushToggleLabels }) {
   }
 
   if (status === 'unsupported') {
-    return <p className="mt-4 text-[12.5px] font-medium text-sv-ink/45">{labels.unsupported}</p>
+    return <p className="mt-4 text-[12.5px] font-medium text-sv-ink/60">{labels.unsupported}</p>
   }
   if (status === 'denied') {
-    return <p className="mt-4 text-[12.5px] font-medium text-sv-ink/45">{labels.denied}</p>
+    return <p className="mt-4 text-[12.5px] font-medium text-sv-ink/60">{labels.denied}</p>
   }
 
   const isOn = status === 'on'

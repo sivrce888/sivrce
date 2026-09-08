@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { cardOf } from '@/lib/media'
 import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -278,13 +279,15 @@ export default async function ProjectPage({ params }: PageProps) {
       <main id="main">
         {/* Hero */}
         <div className="relative aspect-[16/9] max-h-[520px] w-full overflow-hidden md:aspect-[21/9]">
-          <Image
+          {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={project.img}
-            alt={project.name}
-            fill
-            priority
+            srcSet={cardOf(project.img) ? `${cardOf(project.img)} 800w, ${project.img} 2560w` : undefined}
             sizes="100vw"
-            className="object-cover"
+            alt={project.name}
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
@@ -372,7 +375,7 @@ export default async function ProjectPage({ params }: PageProps) {
                 </div>
               )}
             </div>
-            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/55">
+            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/60">
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {project.location}
               </span>
@@ -397,7 +400,7 @@ export default async function ProjectPage({ params }: PageProps) {
           <dl className="mt-6 grid gap-px overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-ink/[0.06] shadow-card sm:grid-cols-2 lg:grid-cols-3">
             {detailRows.map((r) => (
               <div key={r.label} className="bg-sv-surface px-5 py-4">
-                <dt className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/45">{r.label}</dt>
+                <dt className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/60">{r.label}</dt>
                 <dd className="mt-1 text-[15px] font-black text-sv-ink">{r.value}</dd>
               </div>
             ))}
@@ -419,7 +422,7 @@ export default async function ProjectPage({ params }: PageProps) {
                 label={project.name}
               />
             </div>
-            <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+            <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">
               {c.floorsCaption(floorsInfo.length, project.flats, project.done)}
             </p>
           </section>
@@ -440,7 +443,7 @@ export default async function ProjectPage({ params }: PageProps) {
                 className="border-0 shadow-none"
               />
             </div>
-            <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+            <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">
               {project.location} · {(fpPin?.lat ?? project.coords.lat).toFixed(5)},{' '}
               {(fpPin?.lng ?? project.coords.lng).toFixed(5)}
             </p>
@@ -524,7 +527,7 @@ export default async function ProjectPage({ params }: PageProps) {
                   <div className="p-3">
                     <h3 className="text-[14px] font-black text-sv-ink">{p.name}</h3>
                     {p.priceFromM2 && (
-                      <p className="mt-1 text-[12px] font-bold text-sv-ink/55">
+                      <p className="mt-1 text-[12px] font-bold text-sv-ink/60">
                         {p.priceFromM2}
                         {micro.perM2}
                       </p>

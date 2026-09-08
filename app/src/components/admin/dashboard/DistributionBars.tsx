@@ -11,7 +11,7 @@ export function DistributionBars({
 }) {
   if (items.length === 0) {
     return (
-      <p className="py-8 text-center text-[13px] text-sv-ink/40">{emptyHint}</p>
+      <p className="py-8 text-center text-[13px] text-sv-ink/60">{emptyHint}</p>
     )
   }
   const max = Math.max(1, ...items.map((i) => i.count))

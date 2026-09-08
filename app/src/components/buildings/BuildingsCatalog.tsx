@@ -175,7 +175,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
               className={`rounded-full px-3.5 py-1.5 text-[12px] font-bold transition ${
                 district === d
                   ? 'bg-sv-blue text-white'
-                  : 'bg-sv-cloud text-sv-ink/55 hover:bg-sv-ink/[0.06]'
+                  : 'bg-sv-cloud text-sv-ink/60 hover:bg-sv-ink/[0.06]'
               }`}
             >
               {d === 'all' ? t.allDistrict : geoName(d, loc)}
@@ -195,7 +195,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                 className={`rounded-full px-3.5 py-1.5 text-[12px] font-bold transition ${
                   ubani === u
                     ? 'bg-sv-navy text-white'
-                    : 'bg-sv-cloud text-sv-ink/55 hover:bg-sv-ink/[0.06]'
+                    : 'bg-sv-cloud text-sv-ink/60 hover:bg-sv-ink/[0.06]'
                 }`}
               >
                 {u === 'all' ? t.allUbani : geoName(u, loc)}
@@ -222,19 +222,19 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                 className={`rounded-full px-3.5 py-1.5 text-[12px] font-bold transition ${
                   status === id
                     ? 'bg-sv-orange text-white'
-                    : 'bg-sv-cloud text-sv-ink/55 hover:bg-sv-ink/[0.06]'
+                    : 'bg-sv-cloud text-sv-ink/60 hover:bg-sv-ink/[0.06]'
                 }`}
               >
                 {label}
               </button>
             ))}
           </div>
-          <p className="text-[13px] font-bold text-sv-ink/45">{t.nBuildings(filtered.length)}</p>
+          <p className="text-[13px] font-bold text-sv-ink/60">{t.nBuildings(filtered.length)}</p>
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="rounded-module border border-dashed border-sv-ink/15 bg-sv-surface px-6 py-16 text-center text-[15px] font-semibold text-sv-ink/50">
+        <p className="rounded-module border border-dashed border-sv-ink/15 bg-sv-surface px-6 py-16 text-center text-[15px] font-semibold text-sv-ink/60">
           {t.none}
         </p>
       ) : (
@@ -292,7 +292,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                     </div>
                   </div>
                   <div className="space-y-3 p-4">
-                    <p className="flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/55">
+                    <p className="flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/60">
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">{b.address}</span>
                     </p>
@@ -302,7 +302,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                         {metro.name} · {formatMetroDist(metro)}
                       </p>
                     )}
-                    <p className="line-clamp-2 text-[13px] font-medium leading-snug text-sv-ink/50">
+                    <p className="line-clamp-2 text-[13px] font-medium leading-snug text-sv-ink/60">
                       {b.description[loc]}
                     </p>
                     <div className="flex flex-wrap gap-2 text-[11px] font-extrabold">
@@ -311,7 +311,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                       <span style={{ color: DEAL_BRAND.daily }}>{counts.daily} {t.daily}</span>
                       <span style={{ color: DEAL_BRAND.pledge }}>{counts.pledge} {t.pledge}</span>
                     </div>
-                    <p className="inline-flex flex-wrap items-center gap-1.5 text-[12px] font-bold text-sv-ink/45">
+                    <p className="inline-flex flex-wrap items-center gap-1.5 text-[12px] font-bold text-sv-ink/60">
                       <Building2 className="h-3.5 w-3.5" />
                       {t.listings(total)} · {b.floors} {t.floorsAbbr}
                       {b.units ? ` · ${b.units} ${t.unitsAbbr}` : ''}

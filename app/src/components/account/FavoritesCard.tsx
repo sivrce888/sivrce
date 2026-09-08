@@ -15,7 +15,7 @@ export default function FavoritesCard() {
       <SectionHeader icon={Heart} title={tt('favorites')} count={count} chipClass="bg-sv-orange/10 text-sv-orange" />
       <p className="text-[32px] font-black tracking-[-0.02em] text-sv-ink">
         {count}
-        <span className="ml-2 text-[13px] font-bold text-sv-ink/45">{tt('savedListings')}</span>
+        <span className="ml-2 text-[13px] font-bold text-sv-ink/60">{tt('savedListings')}</span>
       </p>
       <LocalizedLink
         href="/favorites"

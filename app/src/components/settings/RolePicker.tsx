@@ -124,7 +124,7 @@ function PersonaSubmitButton({
               <Check size={15} className="shrink-0 text-current" aria-hidden />
             ) : null}
           </span>
-          <span className="mt-0.5 block text-[12px] font-medium leading-snug text-sv-ink/50">
+          <span className="mt-0.5 block text-[12px] font-medium leading-snug text-sv-ink/60">
             {blurb}
           </span>
         </span>
@@ -146,7 +146,7 @@ export function ConfirmRole({ role }: { role: SelfServeRole }) {
           <Icon size={28} aria-hidden />
         </span>
         <p className="mt-4 text-[17px] font-extrabold tracking-[-0.02em] text-sv-ink">{title}</p>
-        <p className="mt-1 max-w-[16rem] text-[13px] font-medium leading-relaxed text-sv-ink/50">
+        <p className="mt-1 max-w-[16rem] text-[13px] font-medium leading-relaxed text-sv-ink/60">
           {blurb}
         </p>
       </div>
@@ -194,7 +194,7 @@ export function RolePicker({
       ) : null}
 
       <div>
-        <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
+        <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/60">
           ვეძებ
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -205,7 +205,7 @@ export function RolePicker({
       </div>
 
       <div>
-        <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
+        <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/60">
           ვაქვეყნებ
         </p>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -216,7 +216,7 @@ export function RolePicker({
       </div>
 
       <div>
-        <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/40">
+        <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-sv-ink/60">
           პროფესიონალი ვარ
         </p>
         <div className="grid gap-2 sm:grid-cols-3">

@@ -158,19 +158,19 @@ export default function CadastreExplorer() {
           </p>
         )}
         {status === 'notfound' && (
-          <p role="alert" className="flex items-center gap-1.5 px-2 pb-1 pt-1.5 text-[12px] font-bold text-sv-ink/55">
+          <p role="alert" className="flex items-center gap-1.5 px-2 pb-1 pt-1.5 text-[12px] font-bold text-sv-ink/60">
             <TriangleAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {t('cadastre.notFound')}
           </p>
         )}
         {status === 'error' && (
-          <p role="alert" className="flex items-center gap-1.5 px-2 pb-1 pt-1.5 text-[12px] font-bold text-sv-ink/55">
+          <p role="alert" className="flex items-center gap-1.5 px-2 pb-1 pt-1.5 text-[12px] font-bold text-sv-ink/60">
             <TriangleAlert className="h-3.5 w-3.5 shrink-0" aria-hidden />
             {t('cadastre.error')}
           </p>
         )}
         {status === 'idle' && (
-          <p className="hidden px-2 pb-1 pt-1.5 text-[12px] font-medium text-sv-ink/45 sm:block">
+          <p className="hidden px-2 pb-1 pt-1.5 text-[12px] font-medium text-sv-ink/60 sm:block">
             {t('cadastre.hint')}
           </p>
         )}
@@ -187,21 +187,21 @@ export default function CadastreExplorer() {
             <p className="min-w-0 flex-1 truncate text-[15px] font-black tracking-tight text-sv-ink">
               {parcel.code}
             </p>
-            <span className="rounded-pill bg-sv-cloud px-2 py-0.5 text-[11px] font-extrabold text-sv-ink/55">
+            <span className="rounded-pill bg-sv-cloud px-2 py-0.5 text-[11px] font-extrabold text-sv-ink/60">
               {t('cadastre.code')}
             </span>
           </div>
           <dl className="mt-3 flex gap-4 text-[13px]">
             {area && (
               <div>
-                <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/40">
+                <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
                   {t('cadastre.area')}
                 </dt>
                 <dd className="mt-0.5 font-extrabold tabular-nums text-sv-ink">{area}</dd>
               </div>
             )}
             <div className="min-w-0">
-              <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/40">GPS</dt>
+              <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">GPS</dt>
               <dd className="mt-0.5 truncate font-extrabold tabular-nums text-sv-ink">
                 {parcel.lat.toFixed(5)}, {parcel.lng.toFixed(5)}
               </dd>

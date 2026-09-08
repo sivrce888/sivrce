@@ -291,7 +291,7 @@ export default function LocationPicker({
                     <button
                       type="button"
                       onClick={() => pickCity('')}
-                      className="grid h-8 w-8 place-items-center rounded-control text-sv-ink/45 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+                      className="grid h-8 w-8 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
                       aria-label={t('loc.cities')}
                     >
                       <ChevronLeft className="h-5 w-5" />
@@ -336,7 +336,7 @@ export default function LocationPicker({
                 type="button"
                 onClick={onClose}
                 aria-label={t('loc.close')}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-control text-sv-ink/45 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -363,7 +363,7 @@ export default function LocationPicker({
                     type="button"
                     onClick={() => setPane(p)}
                     className={`relative h-11 px-3 text-[13px] font-extrabold transition-colors ${
-                      pane === p ? 'text-sv-blue' : 'text-sv-ink/45 hover:text-sv-ink'
+                      pane === p ? 'text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'
                     }`}
                   >
                     {p === 'districts' ? t('loc.districts') : t('loc.streets')}
@@ -461,7 +461,7 @@ export default function LocationPicker({
                     </div>
                     {recent.length > 0 ? (
                       <section className="mb-7">
-                        <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+                        <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">
                           {t('loc.recents')}
                         </h3>
                         <ul className="space-y-0.5">
@@ -481,7 +481,7 @@ export default function LocationPicker({
                       </section>
                     ) : null}
                     <section className="mb-7">
-                      <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+                      <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">
                         {t('loc.popular')}
                       </h3>
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -501,13 +501,13 @@ export default function LocationPicker({
                       </div>
                     </section>
                     <section>
-                      <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+                      <h3 className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">
                         {t('loc.muni')}
                       </h3>
                       <div className="columns-2 gap-6 sm:columns-3">
                         {muniGroups.map(([letter, list]) => (
                           <div key={letter} className="mb-4 break-inside-avoid">
-                            <div className="mb-1 rounded-md bg-sv-cloud px-2 py-1 text-[12px] font-extrabold text-sv-ink/50">
+                            <div className="mb-1 rounded-md bg-sv-cloud px-2 py-1 text-[12px] font-extrabold text-sv-ink/60">
                               {letter}
                             </div>
                             <ul>
@@ -666,7 +666,7 @@ function DestCard({
     >
       <span
         className={`grid h-9 w-9 place-items-center rounded-control ${
-          selected ? 'bg-sv-blue text-white' : 'bg-sv-surface text-sv-ink/45'
+          selected ? 'bg-sv-blue text-white' : 'bg-sv-surface text-sv-ink/60'
         }`}
       >
         {busy ? (
@@ -677,7 +677,7 @@ function DestCard({
       </span>
       <span className="min-w-0">
         <span className="block text-[14px] font-extrabold tracking-tight text-sv-ink">{title}</span>
-        <span className={`mt-0.5 block text-[12px] font-semibold ${hintWarn ? 'text-sv-orange' : 'text-sv-ink/40'}`}>
+        <span className={`mt-0.5 block text-[12px] font-semibold ${hintWarn ? 'text-sv-orange' : 'text-sv-ink/60'}`}>
           {hint}
         </span>
       </span>
@@ -744,13 +744,13 @@ function SearchResults({
   streetsLabel: string
 }) {
   if (cityHits.length === 0 && distHits.length === 0 && remoteDistHits.length === 0 && streetHits.length === 0) {
-    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/45">{empty}</p>
+    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/60">{empty}</p>
   }
   return (
     <div className="space-y-4">
       {cityHits.length > 0 && (
         <section>
-          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">{citiesLabel}</h3>
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">{citiesLabel}</h3>
           <ul className="space-y-0.5">
             {cityHits.map((c) => (
               <li key={c}>
@@ -769,7 +769,7 @@ function SearchResults({
       )}
       {distHits.length > 0 && (
         <section>
-          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">
             {distLabel}{city ? ` · ${city}` : ''}
           </h3>
           <ul className="space-y-0.5">
@@ -790,7 +790,7 @@ function SearchResults({
       )}
       {remoteDistHits.length > 0 && (
         <section>
-          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">{distLabel}</h3>
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">{distLabel}</h3>
           <ul className="space-y-0.5">
             {remoteDistHits.map((s) => (
               <li key={`${s.city}:${s.ka}`}>
@@ -802,7 +802,7 @@ function SearchResults({
                   <MapPin className="h-4 w-4 text-sv-blue" />
                   <span className="min-w-0">
                     <span className="block truncate">{s.ka}</span>
-                    {s.city ? <span className="block text-[12px] font-semibold text-sv-ink/40">{s.city}</span> : null}
+                    {s.city ? <span className="block text-[12px] font-semibold text-sv-ink/60">{s.city}</span> : null}
                   </span>
                 </button>
               </li>
@@ -812,7 +812,7 @@ function SearchResults({
       )}
       {streetHits.length > 0 && (
         <section>
-          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/40">{streetsLabel}</h3>
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">{streetsLabel}</h3>
           <ul className="space-y-0.5">
             {streetHits.map((s) => (
               <li key={`${s.city}:${s.ka}`}>
@@ -824,7 +824,7 @@ function SearchResults({
                   <Route className="h-4 w-4 shrink-0 text-sv-blue" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate">{s.ka}</span>
-                    <span className="block truncate text-[12px] font-semibold text-sv-ink/40">
+                    <span className="block truncate text-[12px] font-semibold text-sv-ink/60">
                       {[s.district, s.city].filter(Boolean).join(' · ')}
                     </span>
                   </span>
@@ -853,7 +853,7 @@ function StreetList({
   empty: string
 }) {
   if (items.length === 0) {
-    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/45">{hint || empty}</p>
+    return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/60">{hint || empty}</p>
   }
   return (
     <ul className="space-y-0.5">
@@ -868,7 +868,7 @@ function StreetList({
             <span className="min-w-0">
               <span className="block truncate">{s.ka}</span>
               {s.district ? (
-                <span className="block truncate text-[12px] font-semibold text-sv-ink/40">{s.district}</span>
+                <span className="block truncate text-[12px] font-semibold text-sv-ink/60">{s.district}</span>
               ) : null}
             </span>
           </button>

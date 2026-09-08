@@ -93,7 +93,7 @@ export default function StreetsDirectoryPage() {
       <main id="main" className="sv-pt-nav mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
         {/* Breadcrumbs */}
         <nav aria-label="ბრედკრამბი" className="mb-6">
-          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/50">
+          <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
             {crumbs.map((c, i) => (
               <li key={c.href} className="flex items-center gap-1.5">
                 {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />}
@@ -145,10 +145,10 @@ export default function StreetsDirectoryPage() {
                         >
                           {s.ka}
                         </Link>
-                        <span className="shrink-0 text-[11px] font-bold text-sv-ink/40">{districtKa(s.district)}</span>
+                        <span className="shrink-0 text-[11px] font-bold text-sv-ink/60">{districtKa(s.district)}</span>
                       </>
                     ) : (
-                      <span className="text-[14px] font-medium text-sv-ink/45">{s.ka}</span>
+                      <span className="text-[14px] font-medium text-sv-ink/60">{s.ka}</span>
                     )}
                   </li>
                 ))}

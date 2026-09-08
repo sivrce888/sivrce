@@ -88,7 +88,7 @@ export default function MarketView({
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[12px] font-bold uppercase tracking-wider text-sv-ink/45">
+                      <p className="truncate text-[12px] font-bold uppercase tracking-wider text-sv-ink/60">
                         {label}
                       </p>
                       <p className="whitespace-nowrap [overflow-wrap:normal] text-[20px] font-black tabular-nums tracking-tight text-sv-ink">
@@ -131,14 +131,14 @@ export default function MarketView({
                             <span className="block truncate text-[16px] font-extrabold text-sv-ink md:text-[17px]">
                               {d.district}
                             </span>
-                            <span className="text-[12px] font-semibold text-sv-ink/45">
+                            <span className="text-[12px] font-semibold text-sv-ink/60">
                               {d.stats.activeCount.toLocaleString('en-US')} {s.listingsShort}
                             </span>
                           </span>
                           <span className="shrink-0 text-right">
                             <span className="block whitespace-nowrap [overflow-wrap:normal] text-[15px] font-black tabular-nums tracking-tight text-sv-ink md:text-[19px]">
                               {usd(d.stats.avgPerM2USD)}
-                              <span className="text-[12px] font-bold text-sv-ink/40">{s.perM2}</span>
+                              <span className="text-[12px] font-bold text-sv-ink/60">{s.perM2}</span>
                             </span>
                             <Mom value={d.mom} label={s.vsPrevMonth} />
                           </span>

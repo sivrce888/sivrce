@@ -75,7 +75,7 @@ export function PagesEditor({
             key={row.key}
             className="rounded-[var(--radius-tile)] border border-sv-ink/6 bg-white p-4 shadow-[var(--shadow-card)]"
           >
-            <p className="mb-1.5 font-mono text-[12px] font-bold text-sv-ink/45">{row.key}</p>
+            <p className="mb-1.5 font-mono text-[12px] font-bold text-sv-ink/60">{row.key}</p>
             <textarea
               name={`v.${row.key}`}
               defaultValue={row.value}
@@ -85,13 +85,13 @@ export function PagesEditor({
               aria-label={row.key}
               className={textareaCls}
             />
-            <p className="mt-1 text-[11.5px] leading-snug text-sv-ink/40">
+            <p className="mt-1 text-[11.5px] leading-snug text-sv-ink/60">
               Default: {row.defaultText}
             </p>
           </div>
         ))}
         {visible.length === 0 ? (
-          <p className="py-10 text-center text-[13px] text-sv-ink/45">No texts match “{q}”.</p>
+          <p className="py-10 text-center text-[13px] text-sv-ink/60">No texts match “{q}”.</p>
         ) : null}
       </div>
     </form>

@@ -142,7 +142,7 @@ export default async function SettingsPage({
               </span>
               <div>
                 <h2 className="text-[15px] font-extrabold text-sv-ink">პროფილის ტიპი</h2>
-                <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+                <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
                   ნაგულისხმევი მყიდველია. გამქირავებელი და გამყიდველი ერთ ანგარიშზეა — განცხადების ტიპი განასხვავებს.
                 </p>
               </div>
@@ -163,7 +163,7 @@ export default async function SettingsPage({
             </span>
             <div className="min-w-0 flex-1">
               <h2 className="text-[15px] font-extrabold text-sv-ink">შენი სივრცე</h2>
-              <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+              <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
                 ფავორიტები, შედარება, განცხადებები — ერთ ადგილას.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -205,7 +205,7 @@ export default async function SettingsPage({
             </span>
             <div className="min-w-0 flex-1">
               <h2 className="text-[15px] font-extrabold text-sv-ink">ელფოსტის შეტყობინებები</h2>
-              <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+              <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
                 ჩართე და მიიღე ახალი განცხადებები ელფოსტაზე.
               </p>
               <form action={toggleListingAlerts} className="mt-4">
@@ -232,7 +232,7 @@ export default async function SettingsPage({
             </span>
             <div className="min-w-0 flex-1">
               <h2 className="text-[15px] font-extrabold text-sv-ink">{t("settings.push.title")}</h2>
-              <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+              <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
                 {t("settings.push.desc")}
               </p>
               <PushToggle
@@ -255,7 +255,7 @@ export default async function SettingsPage({
             <h2 className="text-[15px] font-extrabold text-sv-ink">ბოლო შეტყობინებები</h2>
           </div>
           {notifications.length === 0 ? (
-            <p className="text-[13px] font-medium text-sv-ink/50">
+            <p className="text-[13px] font-medium text-sv-ink/60">
               ჯერ ცარიელია. ახალი მოთხოვნები და განახლებები აქ გამოჩნდება.
             </p>
           ) : (
@@ -264,7 +264,7 @@ export default async function SettingsPage({
                 <li key={n.id} className="py-3">
                   <p className="text-[13.5px] font-bold text-sv-ink">{n.title}</p>
                   {n.body ? (
-                    <p className="mt-0.5 line-clamp-2 text-[12.5px] font-medium text-sv-ink/55">
+                    <p className="mt-0.5 line-clamp-2 text-[12.5px] font-medium text-sv-ink/60">
                       {n.body}
                     </p>
                   ) : null}

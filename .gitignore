@@ -73,5 +73,9 @@ app/.next-stale-backup/
 app/.next-verify/
 app/.next-debug/
 
+# audit workspace + alt prod build dir (repo-lightweight-lock)
+/.audit/
+app/.next-prod/
+
 # root-level screenshots (shots live nowhere in-repo)
 /our-map*.png

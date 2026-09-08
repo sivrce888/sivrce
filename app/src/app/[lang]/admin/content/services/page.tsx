@@ -142,7 +142,7 @@ export default async function ServicesListPage({
                   <td className={td}>
                     <div className="max-w-[220px]">
                       <span className="block truncate font-bold text-sv-ink">{p.name}</span>
-                      <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                      <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                         {[p.city, p.district].filter(Boolean).join(" · ")}
                       </span>
                     </div>
@@ -150,7 +150,7 @@ export default async function ServicesListPage({
                   <td className={`${td} whitespace-nowrap`}>
                     <span className="block">{humanize(p.category)}</span>
                     {p.subcategory ? (
-                      <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                      <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                         {humanize(p.subcategory)}
                       </span>
                     ) : null}
@@ -163,7 +163,7 @@ export default async function ServicesListPage({
                     <span className="block font-bold text-sv-ink tabular-nums">
                       ★ {p.rating.toFixed(1)}
                     </span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45 tabular-nums">
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60 tabular-nums">
                       {fmtNum(p.reviewCount)} reviews
                     </span>
                   </td>
@@ -177,7 +177,7 @@ export default async function ServicesListPage({
                   <td className={td}>
                     <StatusPill status={live ? "active" : "suspended"} />
                   </td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     {fmtDate(p.createdAt)}
                   </td>
                   <td className={td}>

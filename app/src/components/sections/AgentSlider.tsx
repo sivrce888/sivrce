@@ -31,7 +31,7 @@ export default function AgentSlider({
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep dark:text-sv-blue-light">
               <UserRound className="h-3.5 w-3.5" /> {b('home.agents.kicker')}
             </span>
             <h2 className="sv-h2 text-sv-ink">
@@ -43,7 +43,7 @@ export default function AgentSlider({
           </div>
           <LocalizedLink
             href="/agents"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {b('home.agents.viewAll')} ({total})
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -60,7 +60,7 @@ export default function AgentSlider({
               <div className="flex items-center gap-3.5">
                 <span
                   aria-hidden
-                  className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-[14px] font-black text-sv-blue-deep"
+                  className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-[14px] font-black text-sv-blue-deep dark:text-sv-blue-light"
                 >
                   {i + 1}
                 </span>
@@ -83,7 +83,7 @@ export default function AgentSlider({
                 <span className="text-sv-ink/60">
                   {b('home.agents.active', { n: a.listingsCount })}
                 </span>
-                <span className="text-sv-blue-deep group-hover:underline">{b('home.agents.profile')} →</span>
+                <span className="text-sv-blue-deep dark:text-sv-blue-light group-hover:underline">{b('home.agents.profile')} →</span>
               </div>
             </LocalizedLink>
           ))}

@@ -82,11 +82,11 @@ export function ListingMediaGrid({
                 </span>
                 <StatusPill status={m.processingStatus} />
               </div>
-              <p className="truncate text-[11.5px] text-sv-ink/40" title={m.storagePath}>
+              <p className="truncate text-[11.5px] text-sv-ink/60" title={m.storagePath}>
                 {m.storagePath}
               </p>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11.5px] text-sv-ink/40">
+                <span className="text-[11.5px] text-sv-ink/60">
                   {m.sizeBytes === null ? "—" : `${fmtCompact(Number(m.sizeBytes))}B`}
                 </span>
                 <ConfirmButton

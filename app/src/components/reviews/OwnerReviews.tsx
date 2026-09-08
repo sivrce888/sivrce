@@ -26,7 +26,7 @@ function isReview(x: unknown): x is ReviewItem {
 }
 
 const inputCls =
-  'mt-2 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 py-2 text-[14px] font-medium text-sv-ink placeholder:text-sv-ink/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
+  'mt-2 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 py-2 text-[14px] font-medium text-sv-ink placeholder:text-sv-ink/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
 
 function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
   const [value, setValue] = useState(
@@ -68,7 +68,7 @@ function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
         <div className="min-w-0">
           <p className="truncate text-[14px] font-extrabold text-sv-ink">{r.authorName}</p>
           {dateText && (
-            <time dateTime={r.createdAt} className="text-[12px] font-semibold text-sv-ink/50">
+            <time dateTime={r.createdAt} className="text-[12px] font-semibold text-sv-ink/60">
               {dateText}
             </time>
           )}
@@ -78,7 +78,7 @@ function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
       <p className="mt-2.5 whitespace-pre-line text-[14px] font-medium leading-relaxed text-sv-ink/70">{r.body}</p>
 
       <div className="mt-3 border-t border-sv-ink/[0.06] pt-3">
-        <label className="flex items-center gap-1.5 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/55">
+        <label className="flex items-center gap-1.5 text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
           <MessageSquare aria-hidden className="h-3.5 w-3.5" />
           {s.ownerResponse}
         </label>
@@ -98,7 +98,7 @@ function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
         )}
         <div className="mt-2 flex items-center justify-end gap-3">
           {saved && !error && (
-            <span role="status" className="text-[12px] font-semibold text-sv-ink/40">
+            <span role="status" className="text-[12px] font-semibold text-sv-ink/60">
               {s.replySaved}
             </span>
           )}
@@ -160,7 +160,7 @@ export default function OwnerReviews({ className }: { className?: string }) {
     return (
       <section aria-label={s.aboutYou} className={cn('rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card', className)}>
         <h2 className="text-[18px] font-extrabold text-sv-ink">{s.aboutYou}</h2>
-        <p className="mt-2 text-[14px] font-semibold text-sv-ink/55">{s.loadError}</p>
+        <p className="mt-2 text-[14px] font-semibold text-sv-ink/60">{s.loadError}</p>
       </section>
     )
   }

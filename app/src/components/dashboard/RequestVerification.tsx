@@ -35,18 +35,18 @@ export async function RequestVerification({
             ვერიფიკაცია
           </h2>
           {verified ? (
-            <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/55">
+            <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/60">
               <BadgeCheck size={13} className="text-sv-blue" aria-hidden />
               პროფილი ვერიფიცირებულია — საჯარო გვერდზე სანდოობის ნიშანი ჩნდება.
             </p>
           ) : pending ? (
-            <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/55">
+            <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/60">
               <Clock size={13} className="text-sv-blue" aria-hidden />
               მოთხოვნა განხილვაშია — შედეგი მოვა ელ-ფოსტაზე.
             </p>
           ) : (
             <>
-              <p className="mt-1 text-[12.5px] font-medium text-sv-ink/55">
+              <p className="mt-1 text-[12.5px] font-medium text-sv-ink/60">
                 გაიარე ვერიფიკაცია — ვერიფიცირებული პროფილები ძიებაში და დირექტორიაში მაღლა
                 ჩანს და მეტ ლიდს იღებს.
               </p>

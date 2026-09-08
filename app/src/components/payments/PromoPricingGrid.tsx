@@ -79,7 +79,7 @@ export default function PromoPricingGrid() {
   return (
     <div>
       <div className="mb-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-        <label htmlFor="promo-days" className="text-[13px] font-bold text-sv-ink/55">
+        <label htmlFor="promo-days" className="text-[13px] font-bold text-sv-ink/60">
           აირჩიეთ დღეების რაოდენობა
         </label>
         <select
@@ -98,7 +98,7 @@ export default function PromoPricingGrid() {
           })}
         </select>
       </div>
-      <p className="mb-8 text-center text-[12px] font-semibold text-sv-ink/45">
+      <p className="mb-8 text-center text-[12px] font-semibold text-sv-ink/60">
         დღიური ტარიფები = რეალური გადახდა. სთორი / სასწრაფოდ = 24სთ. გამოქვეყნების შემდეგ აირჩიე
         ბუსტი იმავე ხანგრძლივობით.
       </p>
@@ -142,13 +142,13 @@ export default function PromoPricingGrid() {
                       {paid && rate != null && total != null ? formatGel(total) : "0₾"}
                     </span>
                     {paid && (
-                      <span className={`text-sm font-semibold ${highlight ? "text-white/60" : "text-sv-ink/50"}`}>
+                      <span className={`text-sm font-semibold ${highlight ? "text-white/60" : "text-sv-ink/60"}`}>
                         / {days} დღე
                       </span>
                     )}
                   </div>
                   {paid && rate != null && (
-                    <p className={`mt-1 text-[13px] font-semibold ${highlight ? "text-white/55" : "text-sv-ink/45"}`}>
+                    <p className={`mt-1 text-[13px] font-semibold ${highlight ? "text-white/55" : "text-sv-ink/60"}`}>
                       {formatGel(rate)}/დღე
                       {save ? (
                         <span className={highlight ? " text-sv-success" : " text-sv-blue"}> · დაზოგე {save}%</span>
@@ -201,7 +201,7 @@ export default function PromoPricingGrid() {
         })}
       </div>
 
-      <p className="mx-auto mt-8 max-w-2xl text-center text-[12px] font-medium text-sv-ink/40">
+      <p className="mx-auto mt-8 max-w-2xl text-center text-[12px] font-medium text-sv-ink/60">
         ტარიფები უძრავი ქონებისთვის. Turbo {formatGel(ADDON_TETRI.turbo_7)} /{" "}
         {formatGel(ADDON_TETRI.turbo_14)} / {formatGel(ADDON_TETRI.turbo_30)} · სასწრაფოდ{" "}
         {formatGel(ADDON_TETRI.sticker_urgent)} · ფასი↓ {formatGel(ADDON_TETRI.sticker_price_drop)} ·

@@ -95,16 +95,16 @@ function MapPinCard({
           <span className="block text-[17px] font-black tracking-tight text-sv-ink">
             {price.primary}
             {suffix ? (
-              <span className="ml-1 text-[12px] font-bold text-sv-ink/45">{suffix}</span>
+              <span className="ml-1 text-[12px] font-bold text-sv-ink/60">{suffix}</span>
             ) : null}
           </span>
-          <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/45">{price.secondary}</span>
+          <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/60">{price.secondary}</span>
           <span className="mt-1 block truncate text-[13px] font-semibold text-sv-ink/60">
             {stay.n > 0
               ? `${stayLine(l, t)} · ${l.area} მ² · ${l.district}`
               : `${l.area} მ² · ${l.district}`}
           </span>
-          <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/40">{l.title}</span>
+          <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">{l.title}</span>
         </span>
       </LocalizedLink>
       <button
@@ -490,7 +490,7 @@ export default function SearchMapView({
           )}
         </div>
         {visible.length === 0 ? (
-          <p className="px-4 py-10 text-center text-[13px] font-semibold text-sv-ink/45">
+          <p className="px-4 py-10 text-center text-[13px] font-semibold text-sv-ink/60">
             {t('search.mapEmptyArea')}
           </p>
         ) : (
@@ -535,15 +535,15 @@ export default function SearchMapView({
                       rate,
                     }).primary}
                     {suffix ? (
-                      <span className="ml-1 text-[12px] font-bold text-sv-ink/45">{suffix}</span>
+                      <span className="ml-1 text-[12px] font-bold text-sv-ink/60">{suffix}</span>
                     ) : null}
                   </span>
-                  <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/55">
+                  <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">
                     {stay.n > 0
                       ? `${stayLine(l, t)} · ${l.area} მ² · ${l.district}`
                       : `${l.area} მ² · ${l.district}`}
                   </span>
-                  <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/40">
+                  <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">
                     {l.title}
                   </span>
                 </span>

@@ -16,7 +16,7 @@ export function AuthInput({ label, error, type = "text", id, className, ...rest 
 
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[12.5px] font-bold tracking-tight text-sv-ink/55">
+      <span className="mb-1.5 block text-[12.5px] font-bold tracking-tight text-sv-ink/60">
         {label}
       </span>
       <span className="relative block">
@@ -33,7 +33,7 @@ export function AuthInput({ label, error, type = "text", id, className, ...rest 
             type="button"
             tabIndex={-1}
             onClick={() => setShow((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sv-ink/40 transition hover:text-sv-ink/70"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sv-ink/60 transition hover:text-sv-ink/70"
             aria-label={show ? "დამალვა" : "ჩვენება"}
           >
             {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

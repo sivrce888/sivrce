@@ -139,12 +139,12 @@ export default async function AdminChatsPage({
                         {r.listing ? (
                           <Link
                             href={`/admin/listings/${r.listing.id}`}
-                            className="mt-0.5 block truncate text-[12px] text-sv-ink/45 transition-colors hover:text-sv-blue"
+                            className="mt-0.5 block truncate text-[12px] text-sv-ink/60 transition-colors hover:text-sv-blue"
                           >
                             {r.listing.title}
                           </Link>
                         ) : (
-                          <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                          <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                             No listing attached
                           </span>
                         )}
@@ -154,7 +154,7 @@ export default async function AdminChatsPage({
                       <div className="max-w-[240px]">
                         <span className="block truncate">{names.slice(0, 2).join(", ")}</span>
                         {names.length > 2 ? (
-                          <span className="mt-0.5 block text-[12px] text-sv-ink/45">
+                          <span className="mt-0.5 block text-[12px] text-sv-ink/60">
                             +{names.length - 2} more
                           </span>
                         ) : null}
@@ -164,10 +164,10 @@ export default async function AdminChatsPage({
                     <td className={td}>
                       <StatusPill status={r.status} />
                     </td>
-                    <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                    <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                       {timeAgo(r.updatedAt)}
                     </td>
-                    <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                    <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                       {fmtDate(r.createdAt)}
                     </td>
                   </TRow>

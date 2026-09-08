@@ -25,7 +25,7 @@ export function ServiceCard({ p, lang }: { p: ServicePublic; lang: string }) {
               <BadgeCheck className="h-4 w-4 shrink-0 text-sv-success" aria-label="ვერიფიცირებული" />
             )}
           </h3>
-          <p className="mt-0.5 flex items-center gap-1 text-[13px] font-bold text-sv-ink/55">
+          <p className="mt-0.5 flex items-center gap-1 text-[13px] font-bold text-sv-ink/60">
             <MapPin className="h-3.5 w-3.5 text-sv-ink/35" aria-hidden />
             {p.city}
             {p.district ? ` · ${p.district}` : ''}
@@ -43,7 +43,7 @@ export function ServiceCard({ p, lang }: { p: ServicePublic; lang: string }) {
         {pickLocText(p.description, lang)}
       </p>
       <div className="mt-4 flex items-center justify-between border-t border-sv-ink/[0.06] pt-4">
-        <span className="text-[13px] font-bold text-sv-ink/55">
+        <span className="text-[13px] font-bold text-sv-ink/60">
           {p.yearsActive > 0 ? `${p.yearsActive} წელი` : 'ახალი'}
         </span>
         {price && (

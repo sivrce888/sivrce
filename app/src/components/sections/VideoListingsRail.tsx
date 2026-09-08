@@ -30,7 +30,7 @@ export default function VideoListingsRail({ items }: { items: Listing[] }) {
             </h2>
             <LocalizedLink
               href="/add-listing#add-video"
-              className="shrink-0 text-[12px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
+              className="shrink-0 text-[12px] font-extrabold text-sv-blue dark:text-sv-blue-light transition-colors hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
             >
               {b('home.stories.videoHow')}
             </LocalizedLink>

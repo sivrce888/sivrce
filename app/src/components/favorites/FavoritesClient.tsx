@@ -121,7 +121,7 @@ export default function FavoritesClient() {
       <p className="mb-6 text-[15px] font-semibold text-sv-ink/60">
         შენახული განცხადება: <span className="font-black text-sv-ink">{items.length}</span>
         {session?.user ? (
-          <span className="ml-2 text-[13px] font-medium text-sv-ink/45">
+          <span className="ml-2 text-[13px] font-medium text-sv-ink/60">
             · ზარის ნიშანი = ფასის ელფოსტა (პარამეტრებში ჩართული ალერტები)
           </span>
         ) : null}

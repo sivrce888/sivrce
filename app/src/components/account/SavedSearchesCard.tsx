@@ -56,7 +56,7 @@ export default function SavedSearchesCard() {
       />
       {server ? (
         server.length === 0 ? (
-          <p className="text-[14px] font-semibold text-sv-ink/50">
+          <p className="text-[14px] font-semibold text-sv-ink/60">
             {tt('noSavedSearches')} — {tt('saveSearchHint')}
           </p>
         ) : (
@@ -69,7 +69,7 @@ export default function SavedSearchesCard() {
                 >
                   <span className="truncate text-[14px] font-bold text-sv-ink hover:text-sv-blue">{s.name}</span>
                   {/* suppressHydrationWarning: SSR vs browser ICU date drift */}
-                  <span suppressHydrationWarning className="text-[11px] font-semibold text-sv-ink/40">
+                  <span suppressHydrationWarning className="text-[11px] font-semibold text-sv-ink/60">
                     {new Date(s.createdAt).toLocaleDateString(lang)}
                   </span>
                 </LocalizedLink>
@@ -99,7 +99,7 @@ export default function SavedSearchesCard() {
         )
       ) : searches.length === 0 ? (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <p className="text-[14px] font-semibold text-sv-ink/50">
+          <p className="text-[14px] font-semibold text-sv-ink/60">
             {tt('noSavedSearches')} — {tt('saveSearchHint')}
           </p>
           <LocalizedLink

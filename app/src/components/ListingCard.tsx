@@ -325,6 +325,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {photoMountIdx(frame, photos.length).map((idx) => {
         const src = photos[idx]
         const card = cardOf(src)
+        // First row paints the LCP on grid pages — eager + high; the rest lazy.
+        const eager = i < 4
         return (
           // ponytail: native lazy img — next/image was emitting <link rel=preload> for below-fold cards
           // eslint-disable-next-line @next/next/no-img-element
@@ -335,9 +337,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             width={800}
             height={600}
             draggable={false}
-            loading="lazy"
+            loading={eager ? 'eager' : 'lazy'}
             decoding="async"
-            fetchPriority="low"
+            fetchPriority={eager ? 'high' : 'low'}
             aria-hidden={idx !== frame}
             onError={card ? (e) => { if (e.currentTarget.src !== src) e.currentTarget.src = src } : undefined}
             className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0 ${
@@ -624,7 +626,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         {/* ponytail: 4 reserved slots — conditional hide made rails look 2-vs-3 jagged */}
         <div className="sv-card-specs min-h-[1.5rem] gap-x-2 gap-y-1.5 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold leading-snug text-sv-ink/70">
           <span className={`flex min-w-0 items-center gap-1 ${l.area > 0 ? '' : 'invisible'}`} aria-hidden={l.area <= 0}>
-            <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
             <span>
               {l.projectCatalog ? t('card.areaFrom', { n: l.area }) : `${l.area} ${t('add.areaUnit.m2')}`}
             </span>
@@ -634,11 +636,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             aria-hidden={stay.n <= 0}
             title={stay.kind === 'beds' && stay.rooms > 0 ? stayText : undefined}
           >
-            <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
             <span>{stayText}</span>
           </span>
           <span className={`flex min-w-0 items-center gap-1 ${l.baths > 0 ? '' : 'invisible'}`} aria-hidden={l.baths <= 0}>
-            <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
             {l.baths}
           </span>
           <span
@@ -647,7 +649,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             }`}
             aria-hidden={l.projectCatalog || (l.floor <= 0 && l.totalFloors <= 0)}
           >
-            <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-hidden />
+            <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
             <span>{formatFloor(l)}</span>
           </span>
         </div>

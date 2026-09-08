@@ -29,7 +29,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Def({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="text-[11px] font-bold tracking-[0.08em] text-sv-ink/40 uppercase">{label}</dt>
+      <dt className="text-[11px] font-bold tracking-[0.08em] text-sv-ink/60 uppercase">{label}</dt>
       <dd className="mt-0.5 text-[13.5px] font-semibold break-words text-sv-ink/85">{children}</dd>
     </div>
   )
@@ -157,7 +157,7 @@ export default async function AdminListingDetailPage({
 
           <Section title="Features">
             {listing.features.length === 0 ? (
-              <p className="text-[13px] text-sv-ink/45">No features recorded.</p>
+              <p className="text-[13px] text-sv-ink/60">No features recorded.</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {listing.features.map((f) => (
@@ -204,16 +204,16 @@ export default async function AdminListingDetailPage({
                         {fmtMoney(e.price, e.currency)}
                       </span>
                       {e.previousPrice !== null ? (
-                        <span className="text-[12.5px] text-sv-ink/45 tabular-nums">
+                        <span className="text-[12.5px] text-sv-ink/60 tabular-nums">
                           was {fmtMoney(e.previousPrice, e.currency)}
                         </span>
                       ) : null}
                       {e.pricePerSqm !== null ? (
-                        <span className="text-[12.5px] text-sv-ink/45 tabular-nums">
+                        <span className="text-[12.5px] text-sv-ink/60 tabular-nums">
                           {fmtMoney(e.pricePerSqm, e.currency)}/m²
                         </span>
                       ) : null}
-                      <span className="ml-auto text-[12px] whitespace-nowrap text-sv-ink/45">
+                      <span className="ml-auto text-[12px] whitespace-nowrap text-sv-ink/60">
                         {fmtDateTime(e.recordedAt)}
                       </span>
                     </div>
@@ -251,12 +251,12 @@ export default async function AdminListingDetailPage({
                         {fmtTetri(b.amountTetri, b.currency)}
                       </td>
                       <td className={`${td} text-right tabular-nums`}>{fmtNum(b.durationDays)}</td>
-                      <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(b.startedAt)}</td>
-                      <td className={`${td} whitespace-nowrap text-sv-ink/55`}>{fmtDate(b.expiresAt)}</td>
+                      <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{fmtDate(b.startedAt)}</td>
+                      <td className={`${td} whitespace-nowrap text-sv-ink/60`}>{fmtDate(b.expiresAt)}</td>
                       <td className={td}>{b.provider ?? "—"}</td>
                       <td className={td}>
                         {b.endedAt ? (
-                          <span className="text-[12.5px] text-sv-ink/55">
+                          <span className="text-[12.5px] text-sv-ink/60">
                             Ended{b.endedReason ? `: ${b.endedReason.replaceAll("_", " ")}` : ""}
                           </span>
                         ) : (

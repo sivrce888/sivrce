@@ -123,7 +123,7 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
         <AdSlot slot="agencies" lang={lang} />
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           {rows.length === 0 ? (
-            <p className="mt-10 text-[15px] font-semibold text-sv-ink/55">
+            <p className="mt-10 text-[15px] font-semibold text-sv-ink/60">
               {lang === 'ka'
                 ? 'კატალოგი ივსება — შენი სააგენტო შეიძლება იყოს პირველი.'
                 : lang === 'ru'

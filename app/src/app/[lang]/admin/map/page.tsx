@@ -86,7 +86,7 @@ async function SettingsTab() {
   const sections = configFormModel(await getAllConfig(), ["map"])
   return (
     <div className="max-w-[860px]">
-      <p className="mb-4 max-w-[640px] text-[13px] text-sv-ink/55">
+      <p className="mb-4 max-w-[640px] text-[13px] text-sv-ink/60">
         OpenFreeMap / OSM vector styles are proxied same-origin (
         <code className="font-mono text-[12px]">{MAP_PROXY_PREFIX}</code>
         ). Style paths must stay under <code className="font-mono text-[12px]">/api/map/styles/…</code>{" "}
@@ -128,7 +128,7 @@ async function RendersTab({ focusSlug }: { focusSlug?: string }) {
                 <TRow key={r.slug}>
                   <td className={`${td} font-mono text-[12.5px]`}>{r.slug}</td>
                   <td className={td}>{r.status}</td>
-                  <td className={`${td} max-w-[240px] truncate text-sv-ink/50`}>
+                  <td className={`${td} max-w-[240px] truncate text-sv-ink/60`}>
                     {r.sourceUrl ?? r.source ?? "—"}
                   </td>
                   <td className={td}>
@@ -176,7 +176,7 @@ async function DiagnosticsTab() {
 
   return (
     <div className="max-w-[720px]">
-      <p className="mb-4 text-[13px] text-sv-ink/55">
+      <p className="mb-4 text-[13px] text-sv-ink/60">
         Read-only snapshot of live map platform config. Browser never talks to OpenFreeMap
         directly — tiles go through the same-origin proxy.
       </p>
@@ -188,7 +188,7 @@ async function DiagnosticsTab() {
         <dl className="space-y-2.5">
           {rows.map((r) => (
             <div key={r.label} className="grid gap-0.5 sm:grid-cols-[220px_1fr]">
-              <dt className="text-[12.5px] font-bold text-sv-ink/55">{r.label}</dt>
+              <dt className="text-[12.5px] font-bold text-sv-ink/60">{r.label}</dt>
               <dd className="break-all font-mono text-[12.5px] text-sv-ink">{r.value}</dd>
             </div>
           ))}

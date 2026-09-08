@@ -137,13 +137,13 @@ async function ThreadsTab({ page, q, state, sp }: TabProps) {
                 <td className={td}>
                   <div className="max-w-[340px]">
                     <span className="block truncate font-bold text-sv-ink">{t.title}</span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">{t.district}</span>
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">{t.district}</span>
                     {t.tags.length > 0 ? (
                       <span className="mt-1.5 flex flex-wrap gap-1">
                         {t.tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full bg-sv-ink/6 px-2 py-0.5 text-[11px] font-bold text-sv-ink/55"
+                            className="rounded-full bg-sv-ink/6 px-2 py-0.5 text-[11px] font-bold text-sv-ink/60"
                           >
                             {tag}
                           </span>
@@ -156,10 +156,10 @@ async function ThreadsTab({ page, q, state, sp }: TabProps) {
                 <td className={`${td} text-right tabular-nums`}>
                   {fmtNum(t.verifiedResponses)}
                 </td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                   {timeAgo(t.lastActivityAt)}
                 </td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                   {fmtDate(t.createdAt)}
                 </td>
                 <td className={td}>
@@ -280,7 +280,7 @@ async function RepliesTab({ page, q, state, sp }: TabProps) {
                     <span className="text-sv-ink/30">—</span>
                   )}
                 </td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                   {fmtDate(r.createdAt)}
                 </td>
                 <td className={td}>

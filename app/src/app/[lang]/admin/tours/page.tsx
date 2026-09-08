@@ -144,7 +144,7 @@ export default async function AdminToursPage({
                 <TRow key={t.id}>
                   <td className={`${td} whitespace-nowrap`}>
                     <span className="block font-bold text-sv-ink">{t.guestName}</span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">{t.guestPhone}</span>
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">{t.guestPhone}</span>
                   </td>
                   <td className={`${td} max-w-[240px]`}>
                     <Link
@@ -157,12 +157,12 @@ export default async function AdminToursPage({
                   <td className={`${td} whitespace-nowrap`}>{t.agent?.name ?? "—"}</td>
                   <td className={`${td} whitespace-nowrap`}>
                     <span className="block">{fmtDate(t.tourDate)}</span>
-                    <span className="mt-0.5 block text-[12px] text-sv-ink/45">{t.tourTime}</span>
+                    <span className="mt-0.5 block text-[12px] text-sv-ink/60">{t.tourTime}</span>
                   </td>
                   <td className={td}>
                     <StatusPill status={t.status} />
                   </td>
-                  <td className={`${td} whitespace-nowrap text-sv-ink/55`}>
+                  <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                     {timeAgo(t.createdAt)}
                   </td>
                   <td className={td}>

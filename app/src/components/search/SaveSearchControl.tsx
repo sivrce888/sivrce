@@ -113,7 +113,7 @@ export default function SaveSearchControl() {
           <button
             onClick={() => void onSave()}
             disabled={isSaved}
-            className="flex h-11 w-full items-center gap-2 rounded-module px-3 text-[13px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 disabled:text-sv-ink/40 disabled:hover:bg-transparent"
+            className="flex h-11 w-full items-center gap-2 rounded-module px-3 text-[13px] font-extrabold text-sv-blue transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 disabled:text-sv-ink/60 disabled:hover:bg-transparent"
           >
             {isSaved ? <Check className="h-4 w-4" aria-hidden="true" /> : <Bookmark className="h-4 w-4" aria-hidden="true" />}
             {isSaved ? tt('savedAlready') : tt('saveCurrent')}
@@ -121,7 +121,7 @@ export default function SaveSearchControl() {
 
           <div className="mt-1 border-t border-sv-ink/[0.06] pt-1">
             {searches.length === 0 ? (
-              <p className="px-3 py-4 text-center text-[13px] font-semibold text-sv-ink/45">{tt('empty')}</p>
+              <p className="px-3 py-4 text-center text-[13px] font-semibold text-sv-ink/60">{tt('empty')}</p>
             ) : (
               <ul className="max-h-[300px] overflow-y-auto">
                 {searches.map((s) => (
@@ -132,7 +132,7 @@ export default function SaveSearchControl() {
                     >
                       <span className="block truncate text-[13px] font-extrabold text-sv-ink">{s.label}</span>
                       {/* suppressHydrationWarning: SSR vs browser ICU date drift */}
-                      <span suppressHydrationWarning className="block text-[11px] font-semibold text-sv-ink/40">
+                      <span suppressHydrationWarning className="block text-[11px] font-semibold text-sv-ink/60">
                         {new Date(s.createdAt).toLocaleDateString(lang)}
                       </span>
                     </button>

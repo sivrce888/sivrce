@@ -98,10 +98,10 @@ export default async function AdminCrmPage({
                 className="w-[240px] min-w-[240px] rounded-[var(--radius-tile)] bg-sv-cloud/60 p-2"
               >
                 <header className="flex items-center justify-between px-2 pt-1.5 pb-2.5">
-                  <h2 className="text-[11.5px] font-extrabold tracking-[0.08em] text-sv-ink/50 uppercase">
+                  <h2 className="text-[11.5px] font-extrabold tracking-[0.08em] text-sv-ink/60 uppercase">
                     {LEAD_STATUS_LABELS[status]}
                   </h2>
-                  <span className="rounded-full bg-sv-ink/6 px-1.5 py-0.5 text-[11px] leading-none font-extrabold text-sv-ink/45">
+                  <span className="rounded-full bg-sv-ink/6 px-1.5 py-0.5 text-[11px] leading-none font-extrabold text-sv-ink/60">
                     {leads.length}
                   </span>
                 </header>
@@ -125,15 +125,15 @@ export default async function AdminCrmPage({
                         <p className="mt-1 text-sv-ink/60">{lead.phone}</p>
                         <p className="mt-0.5 text-sv-ink/60 tabular-nums">{budget(lead)}</p>
                         {lead.district ? (
-                          <p className="mt-0.5 text-sv-ink/45">{lead.district}</p>
+                          <p className="mt-0.5 text-sv-ink/60">{lead.district}</p>
                         ) : null}
                         <div className="mt-2 flex items-center justify-between gap-2">
                           <span
-                            className={`text-[12px] ${overdue ? "font-bold text-rose-600" : "text-sv-ink/45"}`}
+                            className={`text-[12px] ${overdue ? "font-bold text-rose-600" : "text-sv-ink/60"}`}
                           >
                             {fmtDate(lead.nextFollowUp)}
                           </span>
-                          <span className="rounded-full bg-sv-cloud px-2 py-0.5 text-[11px] font-semibold text-sv-ink/55">
+                          <span className="rounded-full bg-sv-cloud px-2 py-0.5 text-[11px] font-semibold text-sv-ink/60">
                             {lead.source}
                           </span>
                         </div>

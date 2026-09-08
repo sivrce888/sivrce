@@ -218,7 +218,7 @@ export default function AvatarStudio({
         </span>
         <div className="min-w-0">
           <h2 className="text-[15px] font-extrabold text-sv-ink">ავატარი</h2>
-          <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+          <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
             ატვირთე ფოტო ან აირჩიე გრადიენტი — ასე გჩვენებ შენს პროფილზე.
           </p>
         </div>
@@ -259,7 +259,7 @@ export default function AvatarStudio({
 
       <div className="mt-6 border-t border-sv-ink/6 pt-5">
         <p className="text-[13px] font-extrabold text-sv-ink">გრადიენტი</p>
-        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/50">
+        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">
           ავტო — შენს სახელზე გამოთვლილი; ბოლო ბეჭედი — შენივე ფერი, ყველა გვერდზე ერთნაირად.
         </p>
         <div role="radiogroup" aria-label="ავატარის გრადიენტი" className="mt-3 flex flex-wrap gap-2.5">
@@ -319,7 +319,7 @@ export default function AvatarStudio({
 
       <div className="mt-6 border-t border-sv-ink/6 pt-5">
         <p className="text-[13px] font-extrabold text-sv-ink">სიმბოლო</p>
-        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/50">
+        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">
           ავტო — შენი ინიციალებია; არჩეული სიმბოლო იმუშავებს ყველა გვერდზე.
         </p>
         <div role="radiogroup" aria-label="ავატარის სიმბოლო" className="mt-3 flex flex-wrap gap-2.5">

@@ -112,7 +112,7 @@ export function StickyLeadBar({ targetType, targetId, phone, recipientName, clas
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={s.close}
-                className="grid min-h-[44px] min-w-[44px] place-items-center rounded-full text-sv-ink/50 transition-colors hover:bg-sv-cloud hover:text-sv-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                className="grid min-h-[44px] min-w-[44px] place-items-center rounded-full text-sv-ink/60 transition-colors hover:bg-sv-cloud hover:text-sv-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
               >
                 <X className="h-5 w-5" aria-hidden />
               </button>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 
 export const th =
-  "px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.08em] text-sv-ink/45 whitespace-nowrap"
+  "px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.08em] text-sv-ink/60 whitespace-nowrap"
 export const td = "px-4 py-3.5 text-[13.5px] text-sv-ink/80 align-middle"
 
 /** Card-wrapped, horizontally scrollable table. */

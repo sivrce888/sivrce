@@ -23,7 +23,7 @@ export default function Projects({
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep dark:text-sv-blue-light">
               <Sparkles className="h-3.5 w-3.5" /> {b('home.projects.kicker')}
             </span>
             {/* ponytail: 28/36 vs site 30/40 — section H2 was shouting over cards; keep SEO title intact */}
@@ -36,7 +36,7 @@ export default function Projects({
           </div>
           <LocalizedLink
             href="/projects"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors duration-200 hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {/* SEO: keyword hub /projects — count stays projects (catalog unit). */}
             {b('home.projects.viewAll')} ({total})
@@ -94,7 +94,7 @@ export default function Projects({
                     <Building2 className="h-4 w-4 text-sv-ink/35" /> {b('home.projects.flats', { n: p.flats })}
                   </span>
                   {p.priceFromM2 && (
-                    <span className="ml-auto text-[16px] font-black text-sv-blue-deep">
+                    <span className="ml-auto text-[16px] font-black text-sv-blue-deep dark:text-sv-blue-light">
                       {p.priceFromM2}
                       <span className="text-[12px] font-bold text-sv-ink/60">{b('home.perM2')}</span>
                     </span>

@@ -122,7 +122,7 @@ export default async function BlogListPage({
                     <span className="block truncate font-bold text-sv-ink">
                       {p.titleKa}
                     </span>
-                    <span className="mt-0.5 block truncate font-mono text-[11.5px] text-sv-ink/40">
+                    <span className="mt-0.5 block truncate font-mono text-[11.5px] text-sv-ink/60">
                       /{p.slug}
                     </span>
                   </Link>

@@ -125,7 +125,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
       ) : (
         <>
           <h3 className="text-[20px] font-extrabold text-sv-ink">{s.formTitle}</h3>
-          <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">
+          <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">
             {recipientName ? s.formSubtitleTo(recipientName) : s.formSubtitle}
           </p>
 

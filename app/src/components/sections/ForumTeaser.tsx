@@ -17,7 +17,7 @@ export default function ForumTeaser() {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep dark:text-sv-blue-light">
               <MessageSquare className="h-3.5 w-3.5" /> {b('home.forum.kicker')}
             </span>
             <h2 className="sv-h2 text-sv-ink">
@@ -29,7 +29,7 @@ export default function ForumTeaser() {
           </div>
           <LocalizedLink
             href="/forum"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {b('home.forum.viewAll')}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -43,7 +43,7 @@ export default function ForumTeaser() {
                 <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep">
+                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep dark:text-sv-blue-light">
                         {t.category}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sv-ink">
@@ -57,11 +57,11 @@ export default function ForumTeaser() {
 
                   <div className="mt-6 flex items-center justify-between border-t border-sv-ink/[0.06] pt-4 text-[12px] font-bold text-sv-ink/60">
                     <span className="flex items-center gap-1.5">
-                      <MessageSquare className="h-3.5 w-3.5 text-sv-ink/40" />
+                      <MessageSquare className="h-3.5 w-3.5 text-sv-ink/60" />
                       {b('home.forum.replies', { n: t.replies.length })}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Eye className="h-3.5 w-3.5 text-sv-ink/40" />
+                      <Eye className="h-3.5 w-3.5 text-sv-ink/60" />
                       {b('home.forum.views', { n: t.viewsLabel })}
                     </span>
                   </div>

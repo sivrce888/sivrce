@@ -97,7 +97,7 @@ export function EntityCard({
             )}
           </h3>
           {sub ? (
-            <p className="mt-0.5 flex items-center gap-1 text-[13px] font-bold text-sv-ink/55">
+            <p className="mt-0.5 flex items-center gap-1 text-[13px] font-bold text-sv-ink/60">
               <MapPin className="h-3.5 w-3.5 text-sv-ink/35" aria-hidden />
               {sub}
             </p>
@@ -109,7 +109,7 @@ export function EntityCard({
       {listingsCount > 0 || aggregate ? (
         <div className="mt-auto flex items-center justify-between border-t border-sv-ink/[0.06] pt-4">
           {listingsCount > 0 ? (
-            <span className="text-[13px] font-bold text-sv-ink/55">
+            <span className="text-[13px] font-bold text-sv-ink/60">
               {listingsCount} {listingsCount === 1 ? d.listingsShortOne : d.listingsShort}
             </span>
           ) : null}
@@ -117,7 +117,7 @@ export function EntityCard({
             <span className={`flex items-center gap-1 text-[14px] font-black text-sv-ink ${listingsCount === 0 ? 'ml-auto' : ''}`}>
               <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
               {aggregate.average.toFixed(1)}
-              <span className="text-[12px] font-bold text-sv-ink/50">
+              <span className="text-[12px] font-bold text-sv-ink/60">
                 ({aggregate.count} {d.reviewsCount})
               </span>
             </span>

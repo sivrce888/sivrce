@@ -105,7 +105,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="mb-1 font-black text-lg text-sv-ink">{t("detail.tourTitle")}</h3>
-            <p className="mb-4 text-sm text-sv-ink/50">{listingTitle}</p>
+            <p className="mb-4 text-sm text-sv-ink/60">{listingTitle}</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -133,7 +133,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                   </select>
                 </div>
                 {noSlots && (
-                  <p className="mt-1 text-xs font-semibold text-sv-ink/45">{t("tour.noSlots")}</p>
+                  <p className="mt-1 text-xs font-semibold text-sv-ink/60">{t("tour.noSlots")}</p>
                 )}
               </div>
               <div>

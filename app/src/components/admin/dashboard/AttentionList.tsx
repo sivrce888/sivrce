@@ -35,7 +35,7 @@ export function AttentionList({ items }: { items: AttentionItem[] }) {
                 <span className="block truncate text-[13.5px] font-bold text-sv-ink/85">
                   {item.label}
                 </span>
-                <span className="block truncate text-[12px] text-sv-ink/45">
+                <span className="block truncate text-[12px] text-sv-ink/60">
                   {item.hint}
                 </span>
               </span>

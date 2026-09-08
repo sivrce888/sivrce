@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { cardOf } from '@/lib/media'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
@@ -220,13 +221,15 @@ export default async function DeveloperPage({ params }: PageProps) {
       <main id="main" className={flagship ? undefined : 'pt-[68px]'}>
         {flagship && (
           <div className="relative h-[240px] overflow-hidden md:h-[360px]">
-            <Image
+            {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={flagship.img}
-              alt={`${name} — ${flagship.name}`}
-              fill
-              priority
+              srcSet={cardOf(flagship.img) ? `${cardOf(flagship.img)} 800w, ${flagship.img} 2560w` : undefined}
               sizes="100vw"
-              className="object-cover"
+              alt={`${name} — ${flagship.name}`}
+              fetchPriority="high"
+              className="absolute inset-0 h-full w-full object-cover"
             />
             <div
               aria-hidden
@@ -274,7 +277,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             {pickLoc(dev.description, loc) || dev.description.ka}
           </p>
           {dev.website && (
-            <p className="mt-3 text-[13px] font-bold text-sv-ink/55">
+            <p className="mt-3 text-[13px] font-bold text-sv-ink/60">
               {micro.website}:{' '}
               <a
                 href={dev.website}
@@ -304,7 +307,7 @@ export default async function DeveloperPage({ params }: PageProps) {
               className="border-0 shadow-none rounded-none"
             />
           </div>
-          <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+          <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">
             {mapLabel} · {shownPin.lat.toFixed(5)}, {shownPin.lng.toFixed(5)}
           </p>
         </section>
@@ -336,7 +339,7 @@ export default async function DeveloperPage({ params }: PageProps) {
                   </div>
                   <div className="p-4">
                     <h3 className="text-[16px] font-black text-sv-ink">{p.name}</h3>
-                    <p className="mt-1 text-[13px] font-bold text-sv-ink/55">
+                    <p className="mt-1 text-[13px] font-bold text-sv-ink/60">
                       {p.location} · {micro.handover} {finishLabel(loc, p.finish)}
                     </p>
                     {p.priceFromM2 && (

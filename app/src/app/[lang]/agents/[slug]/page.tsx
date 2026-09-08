@@ -140,7 +140,7 @@ export default async function AgentPage({ params }: PageProps) {
               className="border-0 shadow-none rounded-none"
             />
           </div>
-          <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+          <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">
             {agent.city} · {agent.agency}
           </p>
         </section>

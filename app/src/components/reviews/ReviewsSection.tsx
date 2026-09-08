@@ -106,7 +106,7 @@ export function ReviewsSection({ targetType, targetId, className, initialData }:
       <h2 className="text-[26px] font-black tracking-[-0.02em] text-sv-ink md:text-[32px]">
         {s.sectionTitle}
         {data && data.count > 0 && (
-          <span className="ms-3 align-middle text-[15px] font-bold text-sv-ink/45">{s.reviewsCount(data.count)}</span>
+          <span className="ms-3 align-middle text-[15px] font-bold text-sv-ink/60">{s.reviewsCount(data.count)}</span>
         )}
       </h2>
 
@@ -156,7 +156,7 @@ export function ReviewsSection({ targetType, targetId, className, initialData }:
                   </span>
                   <div className="pb-1">
                     <RatingStars value={data.average} label={s.starsReadOnly(Number(data.average.toFixed(1)))} />
-                    <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">{s.reviewsCount(data.count)}</p>
+                    <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">{s.reviewsCount(data.count)}</p>
                   </div>
                 </div>
                 <ul className="mt-5 space-y-1.5">
@@ -175,7 +175,7 @@ export function ReviewsSection({ targetType, targetId, className, initialData }:
                             style={{ width: `${pct}%` }}
                           />
                         </span>
-                        <span className="w-8 text-end text-[12px] font-semibold tabular-nums text-sv-ink/50">{c}</span>
+                        <span className="w-8 text-end text-[12px] font-semibold tabular-nums text-sv-ink/60">{c}</span>
                       </li>
                     )
                   })}
@@ -200,7 +200,7 @@ export function ReviewsSection({ targetType, targetId, className, initialData }:
                   <Star aria-hidden className="h-6 w-6 fill-current" />
                 </span>
                 <p className="mt-4 text-[18px] font-extrabold text-sv-ink">{s.emptyTitle}</p>
-                <p className="mt-1.5 max-w-[320px] text-[14px] font-medium leading-relaxed text-sv-ink/55">{s.emptySub}</p>
+                <p className="mt-1.5 max-w-[320px] text-[14px] font-medium leading-relaxed text-sv-ink/60">{s.emptySub}</p>
               </div>
             ) : (
               <>

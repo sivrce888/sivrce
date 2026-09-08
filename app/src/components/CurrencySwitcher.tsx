@@ -39,8 +39,8 @@ export function CurrencySwitcher({ light = false }: { light?: boolean }) {
                   ? 'bg-sv-surface text-sv-ink'
                   : 'bg-sv-surface text-sv-ink dark:bg-white/20 dark:text-white'
                 : light
-                  ? 'text-sv-ink/50 hover:text-sv-ink'
-                  : 'text-sv-ink/50 hover:text-sv-ink dark:text-white/60 dark:hover:text-white'
+                  ? 'text-sv-ink/60 hover:text-sv-ink'
+                  : 'text-sv-ink/60 hover:text-sv-ink dark:text-white/60 dark:hover:text-white'
             }`}
           >
             {o.symbol}

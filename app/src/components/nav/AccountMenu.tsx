@@ -108,7 +108,7 @@ export function AccountMenu({
           {user?.name ?? t("account.panel")}
         </p>
         {emailLine ? (
-          <p className="truncate text-[12px] font-semibold text-sv-ink/45">{emailLine}</p>
+          <p className="truncate text-[12px] font-semibold text-sv-ink/60">{emailLine}</p>
         ) : null}
       </div>
     </div>

@@ -91,7 +91,7 @@ export function SettingsForm({
                   {f.label}
                 </span>
                 <FieldControl f={f} />
-                <span className="mt-1 block text-[11.5px] leading-snug text-sv-ink/40">
+                <span className="mt-1 block text-[11.5px] leading-snug text-sv-ink/60">
                   {f.hint} Default: {f.defaultLabel} — blank resets to default.
                 </span>
               </label>

@@ -153,14 +153,14 @@ export default async function DeveloperOverviewPage() {
                       {isProjectStatus(p.status) ? PROJECT_STATUS_KA[p.status] : p.status}
                     </span>
                   </div>
-                  <p className="mt-1 text-[12.5px] font-medium text-sv-ink/55">
+                  <p className="mt-1 text-[12.5px] font-medium text-sv-ink/60">
                     {p.city} · {p.district}
                   </p>
                   <div className="mt-3 flex items-baseline justify-between gap-2 text-[12.5px] font-semibold text-sv-ink/70">
                     <span>
                       {p.priceFrom > 0 ? `${fmt.format(p.priceFrom)} ₾-დან` : "ფასი მოთხოვნით"}
                     </span>
-                    <span className="text-sv-ink/45">{p.units} ბინა</span>
+                    <span className="text-sv-ink/60">{p.units} ბინა</span>
                   </div>
                 </LocalizedLink>
               ))}

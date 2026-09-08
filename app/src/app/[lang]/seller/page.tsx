@@ -117,7 +117,7 @@ export default async function SellerOverviewPage() {
         />
       </div>
       {totalReveals > 0 ? (
-        <p className="mt-3 text-[12px] font-semibold text-sv-ink/45">
+        <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">
           ნომრის ნახვა: {totalReveals}
         </p>
       ) : null}
@@ -144,7 +144,7 @@ export default async function SellerOverviewPage() {
                 <li key={lead.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13.5px] font-bold text-sv-ink">{lead.buyerName}</p>
-                    <p className="truncate text-[12px] font-medium text-sv-ink/50">
+                    <p className="truncate text-[12px] font-medium text-sv-ink/60">
                       {lead.buyerPhone ?? lead.buyerEmail} ·{" "}
                       {new Date(lead.createdAt).toLocaleDateString("ka-GE")}
                     </p>

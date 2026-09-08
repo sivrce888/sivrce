@@ -76,7 +76,7 @@ export default function ImportCompetitorPanel() {
         </span>
         <div>
           <h2 className="text-[15px] font-extrabold text-sv-ink">სხვა საიტიდან</h2>
-          <p className="text-[12px] font-medium text-sv-ink/50">ss.ge · myhome.ge · livo.ge · korter.ge — ფოტოების გარეშე</p>
+          <p className="text-[12px] font-medium text-sv-ink/60">ss.ge · myhome.ge · livo.ge · korter.ge — ფოტოების გარეშე</p>
         </div>
       </div>
 

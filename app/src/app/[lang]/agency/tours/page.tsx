@@ -62,7 +62,7 @@ export default async function AgencyToursPage() {
       <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">ვიზიტები</h1>
       <div className="space-y-8">
         <section>
-          <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/50">
+          <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/60">
             მომავალი ({upcoming.length})
           </h2>
           {upcoming.length === 0 ? (
@@ -80,7 +80,7 @@ export default async function AgencyToursPage() {
         </section>
         {past.length > 0 ? (
           <section>
-            <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/50">
+            <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/60">
               გასული ({past.length})
             </h2>
             <ul className="space-y-3">

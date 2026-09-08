@@ -94,7 +94,7 @@ export default function CompareClient() {
         <button
           type="button"
           onClick={clear}
-          className="rounded-full px-4 py-2 text-[13px] font-bold text-sv-ink/55 ring-1 ring-sv-ink/10 hover:text-sv-ink"
+          className="rounded-full px-4 py-2 text-[13px] font-bold text-sv-ink/60 ring-1 ring-sv-ink/10 hover:text-sv-ink"
         >
           {tt("clear")}
         </button>
@@ -104,7 +104,7 @@ export default function CompareClient() {
         <table className="w-full min-w-[640px] border-collapse text-left text-[13px]">
           <thead>
             <tr className="border-b border-sv-ink/[0.06]">
-              <th className="sticky left-0 z-[1] bg-sv-surface p-4 font-black text-sv-ink/45">
+              <th className="sticky left-0 z-[1] bg-sv-surface p-4 font-black text-sv-ink/60">
                 {tt("col")}
               </th>
               {items.map((l) => (
@@ -140,7 +140,7 @@ export default function CompareClient() {
           <tbody>
             {rows.map((row) => (
               <tr key={row.key} className="border-b border-sv-ink/[0.04]">
-                <th className="sticky left-0 bg-sv-surface p-4 font-bold text-sv-ink/50">
+                <th className="sticky left-0 bg-sv-surface p-4 font-bold text-sv-ink/60">
                   {row.label}
                 </th>
                 {items.map((l) => (

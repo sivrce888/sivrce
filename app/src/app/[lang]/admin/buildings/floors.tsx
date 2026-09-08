@@ -27,7 +27,7 @@ export function FloorInventory({
         <h2 className="flex items-center gap-2 text-[16px] font-extrabold text-sv-ink">
           <Layers className="h-4.5 w-4.5 text-sv-blue" /> Floor inventory
         </h2>
-        <p className="mt-1 text-[13px] text-sv-ink/55">
+        <p className="mt-1 text-[13px] text-sv-ink/60">
           No floor inventory yet. Enable it to edit per-floor availability — the map&apos;s floor
           stacks then show real sellable stock instead of listing-derived counts.
         </p>
@@ -67,7 +67,7 @@ export function FloorInventory({
           <h2 className="flex items-center gap-2 text-[16px] font-extrabold text-sv-ink">
             <Layers className="h-4.5 w-4.5 text-sv-blue" /> Floor inventory
           </h2>
-          <p className="mt-1 text-[13px] text-sv-ink/55">
+          <p className="mt-1 text-[13px] text-sv-ink/60">
             {floors.length} floors · {totalUnits} units · {availableUnits} available — live on the
             map&apos;s floor stacks
           </p>

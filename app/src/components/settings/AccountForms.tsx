@@ -76,7 +76,7 @@ export function AccountForms({
           </span>
           <div className="min-w-0">
             <h2 className="text-[15px] font-extrabold text-sv-ink">პირადი მონაცემები</h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
               სახელი და ტელეფონი — ასე დაგიკავშირდებიან.
             </p>
           </div>
@@ -103,7 +103,7 @@ export function AccountForms({
             placeholder="+995 555 12 34 56"
           />
           {!isPhoneAccount ? (
-            <p className="text-[12.5px] font-semibold text-sv-ink/45">
+            <p className="text-[12.5px] font-semibold text-sv-ink/60">
               ელფოსტა · {email}
             </p>
           ) : null}
@@ -130,7 +130,7 @@ export function AccountForms({
             <h2 className="text-[15px] font-extrabold text-sv-ink">
               {hasPassword ? "პაროლის შეცვლა" : "პაროლის დაყენება"}
             </h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
               {hasPassword
                 ? "მინიმუმ 8 სიმბოლო. ახლანდელი პაროლი სავალდებულოა."
                 : "დაამატე პაროლი ელფოსტით შესვლისთვის."}
@@ -183,7 +183,7 @@ export function AccountForms({
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="text-[15px] font-extrabold text-sv-ink">სესია</h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
               გამოხვიდე ამ მოწყობილობიდან. ფავორიტები ამ ბრაუზერში რჩება.
             </p>
             <form action={signOutToHome} className="mt-4">
@@ -208,7 +208,7 @@ export function AccountForms({
           </span>
           <div className="min-w-0">
             <h2 className="text-[15px] font-extrabold text-sv-ink">ანგარიშის წაშლა</h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/55">
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
               განცხადებები მოიხსნება. ეს მოქმედება შეუქცევადია.
             </p>
           </div>

@@ -96,13 +96,13 @@ function RoomListItem({
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-[14px] font-extrabold text-sv-ink">{name}</span>
           {lastMsg && (
-            <span className="shrink-0 text-[11px] font-bold text-sv-ink/40">
+            <span className="shrink-0 text-[11px] font-bold text-sv-ink/60">
               {agoLabel(lastMsg.createdAt, t)}
             </span>
           )}
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2">
-          <span className="truncate text-[13px] font-medium text-sv-ink/50">
+          <span className="truncate text-[13px] font-medium text-sv-ink/60">
             {lastMsg ? previewText(lastMsg.content) : "—"}
           </span>
           {unreadCount > 0 && (
@@ -471,13 +471,13 @@ function MessageThread({ roomId }: { roomId: string }) {
           <button
             type="button"
             onClick={loadOlder}
-            className="mx-auto my-2 block rounded-full bg-sv-ink/[0.05] px-3 py-1.5 text-[12px] font-bold text-sv-ink/50 transition-colors hover:bg-sv-ink/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+            className="mx-auto my-2 block rounded-full bg-sv-ink/[0.05] px-3 py-1.5 text-[12px] font-bold text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.09] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
           >
             {loadingOlder ? t("chat.loadOlder") + "…" : t("chat.loadOlder")}
           </button>
         )}
         {messages.length === 0 && (
-          <p className="px-4 py-10 text-center text-[13px] font-medium text-sv-ink/40">
+          <p className="px-4 py-10 text-center text-[13px] font-medium text-sv-ink/60">
             {t("chat.emptyThread")}
           </p>
         )}
@@ -493,7 +493,7 @@ function MessageThread({ roomId }: { roomId: string }) {
             <Fragment key={m.id}>
               {showDay && (
                 <div className="flex justify-center py-2">
-                  <span className="rounded-full bg-sv-ink/[0.05] px-3 py-1 text-[11px] font-bold text-sv-ink/45">
+                  <span className="rounded-full bg-sv-ink/[0.05] px-3 py-1 text-[11px] font-bold text-sv-ink/60">
                     {dayLabel(m.createdAt, lang, t("chat.today"), t("chat.yesterday"))}
                   </span>
                 </div>
@@ -704,7 +704,7 @@ export default function ChatWidget() {
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-[15px] font-black text-sv-ink">{headerTitle}</h2>
               {headerSub && (
-                <p className="truncate text-[11.5px] font-semibold text-sv-ink/40">{headerSub}</p>
+                <p className="truncate text-[11.5px] font-semibold text-sv-ink/60">{headerSub}</p>
               )}
             </div>
             <button
@@ -730,7 +730,7 @@ export default function ChatWidget() {
                   <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
                     <MessageCircle className="h-5 w-5" aria-hidden />
                   </span>
-                  <p className="text-[13px] font-medium leading-relaxed text-sv-ink/45">
+                  <p className="text-[13px] font-medium leading-relaxed text-sv-ink/60">
                     {t("chat.empty")}
                   </p>
                 </div>

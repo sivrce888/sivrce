@@ -41,7 +41,7 @@ export function ReplyForm({
     return (
       <p
         className={cn(
-          'rounded-control border border-sv-ink/[0.06] bg-sv-cloud px-4 py-3 text-[13px] font-semibold text-sv-ink/55',
+          'rounded-control border border-sv-ink/[0.06] bg-sv-cloud px-4 py-3 text-[13px] font-semibold text-sv-ink/60',
           className,
         )}
       >
@@ -100,7 +100,7 @@ export function ReplyForm({
   }
 
   const inputCls =
-    'mt-1.5 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-4 text-[15px] font-medium text-sv-ink placeholder:text-sv-ink/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
+    'mt-1.5 h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-4 text-[15px] font-medium text-sv-ink placeholder:text-sv-ink/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue'
 
   return (
     <form
@@ -163,7 +163,7 @@ export function ReplyForm({
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-[44px] rounded-full px-4 text-[13px] font-bold text-sv-ink/55 hover:text-sv-ink"
+            className="min-h-[44px] rounded-full px-4 text-[13px] font-bold text-sv-ink/60 hover:text-sv-ink"
           >
             გაუქმება
           </button>

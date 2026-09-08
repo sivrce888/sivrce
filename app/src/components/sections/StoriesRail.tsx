@@ -19,7 +19,7 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
     >
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal>
-          <p className="mb-3 text-[11px] font-black uppercase tracking-[0.14em] text-sv-ink/40">
+          <p className="mb-3 text-[11px] font-black uppercase tracking-[0.14em] text-sv-ink/60">
             {b('home.stories.kicker')}
           </p>
           <HScroll aria-label={b('home.stories.kicker')} step={200} size="sm" className="gap-3.5 pb-1 pt-0.5">
@@ -47,7 +47,7 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
                 <span className="line-clamp-1 w-full text-center text-[11px] font-extrabold tracking-[-0.01em] text-sv-ink">
                   {l.district || l.city}
                 </span>
-                <span className="line-clamp-1 w-full text-center text-[10px] font-bold text-sv-ink/45">
+                <span className="line-clamp-1 w-full text-center text-[10px] font-bold text-sv-ink/60">
                   {formatStoryPrice(l.priceGEL)}
                 </span>
               </LocalizedLink>

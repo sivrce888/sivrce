@@ -204,7 +204,7 @@ export function Studio({
                 aria-pressed={on}
                 onClick={() => setDevice(d.id)}
                 className={`grid h-8 w-8 place-items-center rounded-full transition-colors ${
-                  on ? "bg-sv-navy text-white" : "text-sv-ink/45 hover:text-sv-ink"
+                  on ? "bg-sv-navy text-white" : "text-sv-ink/60 hover:text-sv-ink"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -212,7 +212,7 @@ export function Studio({
             )
           })}
         </div>
-        <p className="hidden text-[12px] font-semibold text-sv-ink/40 lg:block" aria-live="polite">
+        <p className="hidden text-[12px] font-semibold text-sv-ink/60 lg:block" aria-live="polite">
           {pending ? "Saving…" : status}
         </p>
         <Link
@@ -288,7 +288,7 @@ export function Studio({
               ))}
             </>
           ) : (
-            <p className="px-2 py-3 text-[13px] font-bold text-sv-ink/55">
+            <p className="px-2 py-3 text-[13px] font-bold text-sv-ink/60">
               {page.label} — click a field on the right, or type in the inspector.
             </p>
           )}
@@ -312,11 +312,11 @@ export function Studio({
           <h2 className="text-[15px] font-extrabold tracking-tight text-sv-ink">
             {selectedSection?.label ?? "Content"}
           </h2>
-          <p className="mt-1 mb-4 text-[12.5px] text-sv-ink/45">
+          <p className="mt-1 mb-4 text-[12.5px] text-sv-ink/60">
             Blank reverts to the default. Publish is instant.
           </p>
           {inspectorRows.length === 0 ? (
-            <p className="text-[13px] text-sv-ink/45">
+            <p className="text-[13px] text-sv-ink/60">
               {selected === "ad_mid" || selected === "ad_after_projects"
                 ? "Banner slot — hide or reorder here. Creatives live in Banners."
                 : "No editable texts on this block."}
@@ -380,7 +380,7 @@ function Field({
   }, [focused])
   return (
     <label className={`block rounded-[var(--radius-tile)] border p-3 ${focused ? "border-sv-blue" : "border-sv-ink/8"}`}>
-      <span className="mb-1.5 block font-mono text-[11px] font-bold text-sv-ink/40">{row.key}</span>
+      <span className="mb-1.5 block font-mono text-[11px] font-bold text-sv-ink/60">{row.key}</span>
       <textarea
         ref={ref}
         defaultValue={row.value}

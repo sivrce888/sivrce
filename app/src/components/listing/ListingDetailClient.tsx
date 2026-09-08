@@ -35,7 +35,7 @@ import { parseCoords } from '@/lib/map/map-geo'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { isLandLease, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapHrefForListing } from '@/lib/map/map-href'
-import { blurProps, isCdnMedia } from '@/lib/media'
+import { blurProps, cardOf, isCdnMedia } from '@/lib/media'
 import { listingVideoKind, youtubeId } from '@/lib/listing-video'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { priceScaleOf, fairPriceOf, type PriceEventView } from '@/lib/price-scale'
@@ -104,7 +104,7 @@ function FeatureGroups({ features, dealType }: { features: string[]; dealType: s
     <div className="mt-4 grid gap-5">
       {groups.map((g) => (
         <div key={g.key}>
-          <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-sv-ink/40">{t(g.key)}</p>
+          <p className="mb-2 text-[11px] font-black uppercase tracking-wider text-sv-ink/60">{t(g.key)}</p>
           <div className="flex flex-wrap gap-2">{g.items.map(chip)}</div>
         </div>
       ))}
@@ -364,6 +364,18 @@ export default function ListingDetailClient({
   const swipeGuard = useRef(false)
   const gradId = useId()
 
+  // Hero photo sources: 800px card twin for phones, ≤2560px master beyond —
+  // pipeline URLs only (cardOf is undefined for static/demo images).
+  const heroSrc = useMemo(() => {
+    const src = l.images[photo] ?? ''
+    const card = cardOf(src)
+    return {
+      master: src,
+      card,
+      set: card ? `${card} 800w, ${src} 2560w` : undefined,
+    }
+  }, [l.images, photo])
+
   // Mortgage state
   const [downPct, setDownPct] = useState(20)
   const [years, setYears] = useState(15)
@@ -474,26 +486,37 @@ export default function ListingDetailClient({
   useEffect(() => {
     if (!Number.isFinite(l.coords.lat) || !Number.isFinite(l.coords.lng)) return
     const ac = new AbortController()
-    fetch(`/api/site?lat=${l.coords.lat}&lng=${l.coords.lng}`, { signal: ac.signal })
-      .then((r) => (r.ok ? r.json() : null))
-      .then(
-        (d: {
-          ok?: boolean
-          ring?: unknown
-          tasDocs?: TasPublicDoc[]
-          tasShapes?: unknown[]
-        } | null) => {
-          if (!d?.ok) return
-          const docs = Array.isArray(d.tasDocs) ? d.tasDocs : []
-          setSiteBoost({
-            hasFootprint: Array.isArray(d.ring) && d.ring.length >= 4,
-            hasPermit: docs.length > 0 || (Array.isArray(d.tasShapes) && d.tasShapes.length > 0),
-            tasDocs: docs.slice(0, 1),
-          })
-        },
-      )
-      .catch(() => {})
-    return () => ac.abort()
+    // ponytail: site context is ~236KB and below the fold — idle-fetch keeps it
+    // off the load critical path; upgrade to on-demand when the panel opens.
+    const run = () => {
+      fetch(`/api/site?lat=${l.coords.lat}&lng=${l.coords.lng}`, { signal: ac.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then(
+          (d: {
+            ok?: boolean
+            ring?: unknown
+            tasDocs?: TasPublicDoc[]
+            tasShapes?: unknown[]
+          } | null) => {
+            if (!d?.ok) return
+            const docs = Array.isArray(d.tasDocs) ? d.tasDocs : []
+            setSiteBoost({
+              hasFootprint: Array.isArray(d.ring) && d.ring.length >= 4,
+              hasPermit: docs.length > 0 || (Array.isArray(d.tasShapes) && d.tasShapes.length > 0),
+              tasDocs: docs.slice(0, 1),
+            })
+          },
+        )
+        .catch(() => {})
+    }
+    const idle: number = window.requestIdleCallback
+      ? window.requestIdleCallback(run, { timeout: 4000 })
+      : window.setTimeout(run, 1200)
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idle)
+      window.clearTimeout(idle)
+      ac.abort()
+    }
   }, [l.coords.lat, l.coords.lng])
 
   const scored = useMemo(
@@ -571,7 +594,7 @@ export default function ListingDetailClient({
 
       <main id="main" className="mx-auto max-w-[1440px] px-5 pb-28 pt-[calc(92px+env(safe-area-inset-top,0px))] md:px-10 lg:pb-20">
         {/* Breadcrumb */}
-        <nav className="mb-5 flex items-center gap-2 text-[13px] font-bold text-sv-ink/45" aria-label={t('detail.breadcrumb')}>
+        <nav className="mb-5 flex items-center gap-2 text-[13px] font-bold text-sv-ink/60" aria-label={t('detail.breadcrumb')}>
           <LocalizedLink href="/" className="py-1.5 transition-colors hover:text-sv-blue">{t('detail.home')}</LocalizedLink>
           <span>/</span>
           <LocalizedLink href="/search" className="py-1.5 transition-colors hover:text-sv-blue">{t('search.title')}</LocalizedLink>
@@ -625,7 +648,8 @@ export default function ListingDetailClient({
             >
               <motion.div
                 key={photo}
-                initial={{ opacity: 0 }}
+                // LCP: first photo paints from SSR — fade only on swipe changes
+                initial={photo === 0 ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.35 }}
                 drag={l.images.length > 1 ? 'x' : false}
@@ -638,16 +662,24 @@ export default function ListingDetailClient({
                 }}
                 className="absolute inset-0 touch-pan-y"
               >
-                <Image
-                  src={l.images[photo]}
-                  alt={`${l.title} — ფოტო ${photo + 1}`}
-                  fill
+                {/* ponytail: native img + manual srcset — next/image is globally
+                    unoptimized (R2 ships card/master twins) and would ship the
+                    2560px master (~1MB) as the mobile LCP; card twin is 800px. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={heroSrc.master}
+                  srcSet={heroSrc.set}
                   sizes="(max-width:1024px) 100vw, 850px"
-                  priority
-                  unoptimized={isCdnMedia(l.images[photo])}
+                  alt={`${l.title} — ფოტო ${photo + 1}`}
+                  width={2560}
+                  height={1600}
                   draggable={false}
-                  className="object-cover"
-                  {...blurProps(l.images[photo])}
+                  decoding="async"
+                  fetchPriority="high"
+                  onError={(e) => {
+                    if (heroSrc.card && e.currentTarget.src !== heroSrc.master) e.currentTarget.src = heroSrc.master
+                  }}
+                  className="h-full w-full object-cover"
                 />
               </motion.div>
             </button>
@@ -692,7 +724,7 @@ export default function ListingDetailClient({
                         aria-current={photo === idx ? 'true' : undefined}
                         aria-label={t('detail.photo', { n: idx + 1 })}
                         onClick={() => setPhoto(idx)}
-                        className="-my-2 flex h-4 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        className="-my-2 flex h-6 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                       >
                         <span
                           aria-hidden
@@ -795,7 +827,7 @@ export default function ListingDetailClient({
                       {t('detail.scoreVerified')}
                     </span>
                   ) : null}
-                  <span className="flex items-center gap-1 text-[12px] font-bold text-sv-ink/45">
+                  <span className="flex items-center gap-1 text-[12px] font-bold text-sv-ink/60">
                     <Calendar className="h-3.5 w-3.5" />
                     <span title={l.postedAt}>
                       {postedDays <= 0 ? t('detail.postedToday') : postedAgoLabel(postedDays, lang)}
@@ -814,7 +846,7 @@ export default function ListingDetailClient({
                         .catch(() => toast.error(t('detail.showPhoneDenied')))
                     }}
                     aria-label={t('detail.copyId')}
-                    className="inline-flex items-center gap-1 rounded-full bg-sv-ink/[0.05] px-2.5 py-1 font-mono text-[11px] font-black tabular-nums text-sv-ink/55 transition hover:bg-sv-blue/10 hover:text-sv-blue"
+                    className="inline-flex items-center gap-1 rounded-full bg-sv-ink/[0.05] px-2.5 py-1 font-mono text-[11px] font-black tabular-nums text-sv-ink/60 transition hover:bg-sv-blue/10 hover:text-sv-blue"
                   >
                     ID {publicId}
                     <Copy className="h-3 w-3" aria-hidden />
@@ -831,7 +863,7 @@ export default function ListingDetailClient({
                     <MapPin className="h-4 w-4 shrink-0" /> {l.address}
                   </LocalizedLink>
                 ) : (
-                  <p className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-ink/50">
+                  <p className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-ink/60">
                     <MapPin className="h-4 w-4 shrink-0 text-sv-blue" /> {l.address}
                   </p>
                 )}
@@ -876,7 +908,7 @@ export default function ListingDetailClient({
                   <div className="mt-2 break-words text-[17px] font-black leading-tight tracking-tight text-sv-ink sm:text-[20px]">
                     {s.value}
                   </div>
-                  <div className="text-[12px] font-bold text-sv-ink/45">{s.label}</div>
+                  <div className="text-[12px] font-bold text-sv-ink/60">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -884,12 +916,12 @@ export default function ListingDetailClient({
             {/* Price block */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
                   {isLease ? t('add.deal.lease') : isRent ? t('detail.monthlyRent') : isDailyDeal ? t('nav.daily') : isPledge ? t('map.pledge') : t('detail.fullPrice')}
                 </div>
                 <div className="mt-1 text-[32px] font-black tracking-tight text-sv-ink dark:text-sv-blue md:text-[36px]">
                   {priceMain}
-                  {periodKey && <span className="text-[18px] font-extrabold text-sv-ink/45"> {t(periodKey)}</span>}
+                  {periodKey && <span className="text-[18px] font-extrabold text-sv-ink/60"> {t(periodKey)}</span>}
                 </div>
                 {l.stickerPriceDrop ? (
                   <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-sv-navy/90 px-2.5 py-1 text-[11px] font-black text-white">
@@ -897,7 +929,7 @@ export default function ListingDetailClient({
                     {t('sticker.priceDrop')}
                   </div>
                 ) : null}
-                <div className="mt-0.5 text-[14px] font-bold text-sv-ink/45 dark:text-sv-blue-light/70">
+                <div className="mt-0.5 text-[14px] font-bold text-sv-ink/60 dark:text-sv-blue-light/70">
                   {priceAlt} · {currency === 'USD'
                     ? `$${l.perM2USD.toLocaleString('en-US')}`
                     : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`}/მ²
@@ -937,7 +969,7 @@ export default function ListingDetailClient({
 
             {fairPrice ? (
               <div className="mt-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card">
-                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/45">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
                   {t('detail.fairPrice')}
                 </div>
                 <div className="mt-1 text-[18px] font-black tabular-nums tracking-tight text-sv-ink">
@@ -945,14 +977,14 @@ export default function ListingDetailClient({
                     ? `${formatGEL(Math.round(fairPrice.rangeMin * (liveRate || USD_GEL)))}–${formatGEL(Math.round(fairPrice.rangeMax * (liveRate || USD_GEL)))}`
                     : `${formatUSD(fairPrice.rangeMin)}–${formatUSD(fairPrice.rangeMax)}`}
                 </div>
-                <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">
+                <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">
                   {fairPrice.position === 'above'
                     ? t('detail.fairPriceAbove', { pct: fairPrice.deltaPct })
                     : fairPrice.position === 'below'
                       ? t('detail.fairPriceBelow', { pct: fairPrice.deltaPct })
                       : t('detail.fairPriceInRange')}
                 </p>
-                <p className="mt-1 text-[12px] font-semibold text-sv-ink/40">
+                <p className="mt-1 text-[12px] font-semibold text-sv-ink/60">
                   {t('detail.fairPriceNote', { n: fairPrice.sample })}
                 </p>
               </div>
@@ -960,7 +992,7 @@ export default function ListingDetailClient({
 
             {priceEvents && priceEvents.length > 1 ? (
               <div className="mt-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card">
-                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/45">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
                   {t('detail.priceHistory')}
                 </div>
                 <ul className="mt-1 divide-y divide-sv-ink/[0.04]">
@@ -997,7 +1029,7 @@ export default function ListingDetailClient({
                         </span>
                       ) : null}
                       <span
-                        className="w-14 shrink-0 text-right text-[12px] font-bold tabular-nums text-sv-ink/40"
+                        className="w-14 shrink-0 text-right text-[12px] font-bold tabular-nums text-sv-ink/60"
                         suppressHydrationWarning
                       >
                         {fmtDay(ev.recordedAt, lang)}
@@ -1037,12 +1069,12 @@ export default function ListingDetailClient({
                   </svg>
                   <div className="absolute text-center">
                     <div className="text-[24px] font-black leading-none text-sv-blue">{displayScore}</div>
-                    <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/40">/ 100</div>
+                    <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">/ 100</div>
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-[18px] font-black text-sv-ink">{displayLabel}</div>
-                  <p className="mt-1 text-[12px] font-bold uppercase tracking-wider text-sv-ink/40">
+                  <p className="mt-1 text-[12px] font-bold uppercase tracking-wider text-sv-ink/60">
                     {t('detail.scoreConfidence', { n: scoreWhy.confidence })}
                   </p>
                   {scoreWhy.ids.length > 0 ? (
@@ -1065,7 +1097,7 @@ export default function ListingDetailClient({
                       ))}
                     </ul>
                   ) : (
-                    <p className="mt-1.5 text-[14px] font-semibold leading-relaxed text-sv-ink/55">
+                    <p className="mt-1.5 text-[14px] font-semibold leading-relaxed text-sv-ink/60">
                       {t('detail.scoreWhy')}
                     </p>
                   )}
@@ -1085,7 +1117,7 @@ export default function ListingDetailClient({
                 >
                   <s.icon className="h-5 w-5 text-sv-blue" />
                   <div className="mt-2.5 text-[18px] font-black text-sv-ink">{s.value}</div>
-                  <div className="text-[12px] font-bold text-sv-ink/45">{s.label}</div>
+                  <div className="text-[12px] font-bold text-sv-ink/60">{s.label}</div>
                 </div>
               ))}
             </Reveal>
@@ -1157,7 +1189,7 @@ export default function ListingDetailClient({
                   </span>
                   <div>
                     <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.mortgage')}</h2>
-                    <p className="text-[12px] font-bold text-sv-ink/45">{t('detail.mortgageNote', { rate: USD_GEL })}</p>
+                    <p className="text-[12px] font-bold text-sv-ink/60">{t('detail.mortgageNote', { rate: USD_GEL })}</p>
                   </div>
                 </div>
 
@@ -1200,7 +1232,7 @@ export default function ListingDetailClient({
                         aria-label={t('detail.rateAria')}
                         className="h-11 w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3.5 pr-8 text-[14px] font-extrabold text-sv-ink outline-none transition-colors focus:border-sv-blue"
                       />
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-extrabold text-sv-ink/40">%</span>
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px] font-extrabold text-sv-ink/60">%</span>
                     </div>
                   </div>
                 </div>
@@ -1211,13 +1243,13 @@ export default function ListingDetailClient({
                     <div className="text-[11px] font-black uppercase tracking-wider text-sv-blue">{t('detail.monthlyPayment')}</div>
                     <div className="mt-1 text-[28px] font-black tracking-tight text-sv-ink">
                       {formatUSD(Math.round(monthlyUSD))}
-                      <span className="text-[15px] font-extrabold text-sv-ink/45"> {t('detail.perMonth')}</span>
+                      <span className="text-[15px] font-extrabold text-sv-ink/60"> {t('detail.perMonth')}</span>
                     </div>
-                    <div className="text-[13px] font-bold text-sv-ink/45">
+                    <div className="text-[13px] font-bold text-sv-ink/60">
                       {t('detail.approxPerMonth', { gel: formatGEL(Math.round(monthlyUSD * USD_GEL)) })}
                     </div>
                   </div>
-                  <div className="text-right text-[12px] font-bold leading-relaxed text-sv-ink/45">
+                  <div className="text-right text-[12px] font-bold leading-relaxed text-sv-ink/60">
                     {t('detail.loanAmount')}<br />
                     <span className="text-[15px] font-black text-sv-ink">
                       {formatUSD(Math.round(l.priceUSD * (1 - downPct / 100)))}
@@ -1259,7 +1291,7 @@ export default function ListingDetailClient({
                       <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-label={t('detail.verifiedAgent')} />
                     ) : null}
                   </div>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/45">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
                     {l.agent.role ? (
                       <span className="rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-extrabold text-sv-blue">
                         {lang === 'ka'
@@ -1279,7 +1311,7 @@ export default function ListingDetailClient({
                   maskedHint={l.agent.phone}
                   variant="button"
                 />
-                <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11.5px] font-semibold text-sv-ink/40">
+                <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11.5px] font-semibold text-sv-ink/60">
                   <BadgeCheck className="h-3 w-3 shrink-0 text-sv-blue" />
                   {t('detail.phoneHint')}
                 </p>
@@ -1317,7 +1349,7 @@ export default function ListingDetailClient({
                 className={`mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
                   compared
                     ? 'border-sv-blue/30 bg-sv-blue/10 text-sv-blue'
-                    : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/55 hover:border-sv-blue/20 hover:text-sv-blue'
+                    : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/60 hover:border-sv-blue/20 hover:text-sv-blue'
                 }`}
               >
                 <Columns2 className="h-4 w-4 shrink-0" />
@@ -1339,7 +1371,7 @@ export default function ListingDetailClient({
                 type="button"
                 onClick={() => setShareOpen(true)}
                 aria-label={t('detail.share')}
-                className="mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/55 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                className="mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/60 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
               >
                 <Share2 className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t('detail.share')}</span>
@@ -1362,7 +1394,7 @@ export default function ListingDetailClient({
             {/* Tour booking */}
             <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div className="mb-3 text-sm font-black text-sv-ink">{t('detail.tourTitle')}</div>
-              <p className="mb-4 text-[13px] font-semibold text-sv-ink/50">{t('detail.tourSubtitle')}</p>
+              <p className="mb-4 text-[13px] font-semibold text-sv-ink/60">{t('detail.tourSubtitle')}</p>
               <TourBooking listingId={l.id} listingTitle={l.title} />
             </div>
 
@@ -1377,7 +1409,7 @@ export default function ListingDetailClient({
             {/* Safety note */}
             <div className="mt-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
               <div className="text-[13px] font-black text-sv-ink">{t('detail.safetyTitle')}</div>
-              <p className="mt-1.5 text-[12px] font-semibold leading-relaxed text-sv-ink/50">
+              <p className="mt-1.5 text-[12px] font-semibold leading-relaxed text-sv-ink/60">
                 {t('detail.safetyText')}
               </p>
             </div>
@@ -1395,7 +1427,7 @@ export default function ListingDetailClient({
             <h2 className="text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
               {lt(lang, 'reviewsTitle')}
             </h2>
-            <p className="mt-1 text-[14px] font-semibold text-sv-ink/50">
+            <p className="mt-1 text-[14px] font-semibold text-sv-ink/60">
               {lt(lang, 'reviewsSub')}
             </p>
             <ReviewsSection targetType="listing" targetId={l.id} className="mt-6" />
@@ -1411,7 +1443,7 @@ export default function ListingDetailClient({
                   <h2 className="text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
                     {t('detail.similar')}
                   </h2>
-                  <p className="mt-1 text-[14px] font-semibold text-sv-ink/50">
+                  <p className="mt-1 text-[14px] font-semibold text-sv-ink/60">
                     {lt(lang, 'similarSub', { deal: t(isSale ? 'search.sale' : isLease ? 'add.deal.lease' : isRent ? 'search.rent' : isDailyDeal ? 'nav.daily' : 'map.pledge') })}
                   </p>
                 </div>

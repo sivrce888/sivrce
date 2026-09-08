@@ -109,7 +109,7 @@ export function AdminNav({ orientation }: { orientation: "side" | "top" }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold whitespace-nowrap transition-colors ${
-                active ? "bg-sv-navy text-white" : "text-sv-ink/55 hover:bg-sv-ink/5"
+                active ? "bg-sv-navy text-white" : "text-sv-ink/60 hover:bg-sv-ink/5"
               }`}
             >
               <item.icon className="h-4 w-4" />

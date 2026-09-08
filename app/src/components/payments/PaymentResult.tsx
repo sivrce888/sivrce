@@ -40,7 +40,7 @@ export default async function PaymentResult({ lang, orderId }: PaymentResultProp
 
   const Icon = state === "paid" ? CheckCircle2 : state === "pending" ? Clock : XCircle
   const iconClass =
-    state === "paid" ? "text-sv-blue" : state === "pending" ? "text-sv-ink/40" : "text-sv-orange"
+    state === "paid" ? "text-sv-blue" : state === "pending" ? "text-sv-ink/60" : "text-sv-orange"
   const titleKey =
     state === "paid" ? "pay.paid.title" : state === "pending" ? "pay.pending.title" : "pay.failed.title"
   const descKey =

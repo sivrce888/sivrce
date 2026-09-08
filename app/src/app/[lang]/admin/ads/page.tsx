@@ -89,7 +89,7 @@ export default async function AdminAdsPage({
                   <Link href={`/admin/ads/${b.id}`} className="font-bold text-sv-ink hover:text-sv-blue">
                     {b.title}
                   </Link>
-                  <p className="mt-0.5 text-[12px] font-medium text-sv-ink/40">
+                  <p className="mt-0.5 text-[12px] font-medium text-sv-ink/60">
                     {b.advertiser || b.format}
                   </p>
                 </td>

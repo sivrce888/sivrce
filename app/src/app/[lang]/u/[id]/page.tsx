@@ -212,7 +212,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
                     <BadgeCheck className="h-6 w-6 shrink-0 text-sv-blue" aria-label="ვერიფიცირებული" />
                   ) : null}
                 </h1>
-                <p className="mt-1.5 flex items-center gap-1.5 text-[14px] font-bold text-sv-ink/55">
+                <p className="mt-1.5 flex items-center gap-1.5 text-[14px] font-bold text-sv-ink/60">
                   <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden />
                   {city || 'საქართველო'}
                   {subtitle ? ` · ${subtitle}` : ''}
@@ -234,7 +234,7 @@ export default async function PublicUserProfilePage({ params }: PageProps) {
             განცხადებები
           </h2>
           {listings.length === 0 ? (
-            <p className="mt-6 text-[15px] font-semibold text-sv-ink/55">
+            <p className="mt-6 text-[15px] font-semibold text-sv-ink/60">
               ამჟამად აქტიური განცხადება არ არის.
             </p>
           ) : (

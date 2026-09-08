@@ -191,13 +191,13 @@ export default async function AdminDashboardPage() {
                       </span>{" "}
                       {row.action}
                     </span>
-                    <span className="block text-[11.5px] text-sv-ink/40">
+                    <span className="block text-[11.5px] text-sv-ink/60">
                       {row.targetType}
                     </span>
                   </span>
                   <time
                     dateTime={row.createdAt.toISOString()}
-                    className="shrink-0 text-[11.5px] tabular-nums text-sv-ink/40"
+                    className="shrink-0 text-[11.5px] tabular-nums text-sv-ink/60"
                   >
                     {timeAgo(row.createdAt)}
                   </time>
@@ -225,11 +225,11 @@ export default async function AdminDashboardPage() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] font-bold text-sv-ink/85">
                         {row.buyerName}
-                        <span className="ml-2 font-semibold text-sv-ink/45">
+                        <span className="ml-2 font-semibold text-sv-ink/60">
                           {fmtMoney(row.price)}
                         </span>
                       </span>
-                      <span className="block truncate text-[11.5px] text-sv-ink/40">
+                      <span className="block truncate text-[11.5px] text-sv-ink/60">
                         {row.city || "—"} · {timeAgo(row.createdAt)}
                       </span>
                     </span>

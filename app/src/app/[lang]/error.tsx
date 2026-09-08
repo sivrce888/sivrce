@@ -32,7 +32,7 @@ export default function Error({
           <h1 className="mt-6 text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[38px]">
             {t('error.title')}
           </h1>
-          <p className="mt-3 max-w-[420px] text-[15px] font-semibold leading-relaxed text-sv-ink/50">
+          <p className="mt-3 max-w-[420px] text-[15px] font-semibold leading-relaxed text-sv-ink/60">
             {t('error.text')}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

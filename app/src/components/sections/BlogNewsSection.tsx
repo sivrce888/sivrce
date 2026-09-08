@@ -26,7 +26,7 @@ export default function BlogNewsSection() {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep dark:text-sv-blue-light">
               <BookOpen className="h-3.5 w-3.5" /> {b('home.blog.kicker')}
             </span>
             <h2 className="sv-h2 text-sv-ink">
@@ -38,7 +38,7 @@ export default function BlogNewsSection() {
           </div>
           <LocalizedLink
             href="/blog"
-            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue-deep"
+            className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {b('home.blog.viewAll')}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -70,10 +70,10 @@ export default function BlogNewsSection() {
                     <div>
                       <div className="flex items-center justify-between text-[12px] font-bold text-sv-ink/60">
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5 text-sv-ink/40" />
+                          <Calendar className="h-3.5 w-3.5 text-sv-ink/60" />
                           {formatBlockDate(art.publishedAt, months)}
                         </span>
-                        <span className="flex items-center gap-1 text-sv-ink/45">
+                        <span className="flex items-center gap-1 text-sv-ink/60">
                           <Clock className="h-3 w-3" />
                           {b('home.blog.minutes', { n: art.readingMinutes })}
                         </span>
@@ -86,7 +86,7 @@ export default function BlogNewsSection() {
                       </p>
                     </div>
 
-                    <div className="mt-4 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-blue-deep group-hover:underline">
+                    <div className="mt-4 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light group-hover:underline">
                       {b('home.blog.readMore')} →
                     </div>
                   </div>

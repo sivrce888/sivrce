@@ -95,7 +95,7 @@ export default async function AdminInquiriesPage({
                 <td className={td}>
                   <Link href={`/admin/inquiries/${inq.id}`} className="block">
                     <p className="font-bold text-sv-ink">{inq.buyerName}</p>
-                    <p className="text-[12px] text-sv-ink/45">{inq.buyerEmail ?? "—"}</p>
+                    <p className="text-[12px] text-sv-ink/60">{inq.buyerEmail ?? "—"}</p>
                   </Link>
                 </td>
                 <td className={td}>
@@ -123,7 +123,7 @@ export default async function AdminInquiriesPage({
                 <td className={td}>
                   <StatusPill status={inq.status} />
                 </td>
-                <td className={`${td} whitespace-nowrap text-sv-ink/50`}>
+                <td className={`${td} whitespace-nowrap text-sv-ink/60`}>
                   {timeAgo(inq.createdAt)}
                 </td>
               </TRow>
