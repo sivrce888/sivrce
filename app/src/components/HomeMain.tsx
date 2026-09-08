@@ -34,6 +34,7 @@ import type { HomeFlowId } from '@/lib/cms-studio'
 import { listBlogPosts } from '@/lib/blog-live'
 import type { Lang } from '@/lib/i18n/core'
 import { cardPhotoPayload } from '@/lib/card-gallery-teaser'
+import RecentlyViewed from '@/components/account/RecentlyViewed'
 
 /** Drop description + extra gallery frames from the RSC payload (homepage HTML was ~500KB). */
 function railCard(l: StoryListing): StoryListing {
@@ -53,7 +54,7 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
     developersLive().catch(() => []),
     getAgentListingCountsByKaName().catch(() => ({}) as Record<string, number>),
     getDistrictListingCounts().catch(() => ({}) as Record<string, number>),
-    listBlogPosts(),
+    listBlogPosts().catch(() => []),
   ])
   // Under-construction first; real CDN heroes over stock npN/pN. Rail shows 8 — rest via /projects.
   const building = projects.filter((p) => p.done < 100)
@@ -119,6 +120,8 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
 
   return (
     <>
+      {/* Returning users get their rail first — renders null until storage hydrates */}
+      <RecentlyViewed className="mx-auto max-w-[1440px] px-5 pt-12 md:px-10 md:pt-16" />
       {layout.map((item) =>
         item.hidden ? null : (
           <CmsSection key={item.id} id={item.id}>
