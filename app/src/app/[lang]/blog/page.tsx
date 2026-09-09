@@ -127,6 +127,8 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
             <img
               src={featured.cover}
               alt={featured.title}
+              fetchPriority="high"
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
@@ -167,6 +169,8 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
                 <img
                   src={p.cover}
                   alt={p.title}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
