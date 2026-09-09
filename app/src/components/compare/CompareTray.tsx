@@ -7,6 +7,7 @@ import { useCompare } from "@/lib/compare"
 import { useListingsByIds } from "@/lib/use-listings-by-ids"
 import { blurProps } from "@/lib/media"
 import { useCompareStrings } from "./i18n"
+import { cardOf } from '@/lib/media'
 
 /** Floating tray when ≥1 listing is in the compare set. */
 export default function CompareTray() {
@@ -39,7 +40,7 @@ export default function CompareTray() {
               className="relative h-12 w-12 shrink-0 overflow-hidden rounded-control ring-1 ring-sv-ink/10"
             >
               <Image
-                src={l.img}
+                src={cardOf(l.img) ?? l.img}
                 alt=""
                 fill
                 sizes="48px"

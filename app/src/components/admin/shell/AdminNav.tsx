@@ -2,6 +2,7 @@
 
 import {
   BadgeCheck,
+  BarChart2,
   BedDouble,
   Building2,
   CalendarCheck,
@@ -77,6 +78,13 @@ export const ADMIN_SECTIONS: NavSection[] = [
     items: [
       { href: "/admin/auctions", label: "Auctions", icon: Gavel },
       { href: "/admin/payments", label: "Payments", icon: CreditCard },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { href: "/admin/analytics", label: "Analytics", icon: BarChart2 },
+      { href: "/admin/stats", label: "Statistics", icon: LineChart },
     ],
   },
   {

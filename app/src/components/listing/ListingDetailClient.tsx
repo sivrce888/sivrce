@@ -11,14 +11,14 @@ import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, Columns2, Copy,
-  Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Dumbbell, Pill,
+  Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Castle, Dumbbell, Pill,
   type LucideIcon,
 } from 'lucide-react'
 // ponytail: type-only via import() syntax — device-budget lock keeps pois dynamic-only
 type PoiCategory = import('@/lib/map/pois').PoiCategory
 import { SparkMark } from '@/components/SparkMark'
 import UserAvatar from '@/components/UserAvatar'
-import { PartyHouseIcon } from '@/components/PartyHouseIcon'
+import { FeatureGlyph } from '@/components/FeatureIcon'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { monthlyPayment } from '@/lib/finance'
@@ -40,8 +40,8 @@ import { parseCoords } from '@/lib/map/map-geo'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { isLandLease, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapHrefForListing } from '@/lib/map/map-href'
-import { blurProps, cardOf, isCdnMedia } from '@/lib/media'
-import { listingVideoKind, youtubeId } from '@/lib/listing-video'
+import { avifCardOf, blurProps, cardOf, isCdnMedia, lqipOf } from '@/lib/media'
+import { listingVideoKind, streamEmbedUrl, streamUid, youtubeId } from '@/lib/listing-video'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { priceScaleOf, fairPriceOf, type PriceEventView } from '@/lib/price-scale'
 import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
@@ -92,6 +92,7 @@ const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   shop: ShoppingBag,
   gym: Dumbbell,
   pharmacy: Pill,
+  landmark: Castle,
 }
 
 type NearChip = { category: PoiCategory; name: string; dist: string; color: string }
@@ -121,9 +122,9 @@ function FeatureGroups({ features, dealType }: { features: string[]; dealType: s
         style={party ? { borderColor: `${CATEGORY_BRAND.partyHouses.hue}40`, backgroundColor: CATEGORY_BRAND.partyHouses.chipVar, color: CATEGORY_BRAND.partyHouses.hue } : undefined}
       >
         {party ? (
-          <PartyHouseIcon className="h-3.5 w-3.5" />
+          <FeatureGlyph k={f} className="h-3.5 w-3.5" />
         ) : (
-          <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
+          <FeatureGlyph k={f} className="h-3.5 w-3.5 text-sv-blue" />
         )}
         {featureLabel(f, t)}
       </span>
@@ -255,7 +256,7 @@ function Lightbox({
                 i === index ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-90'
               }`}
             >
-              <Image src={src} alt="" fill sizes="84px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
+              <Image src={cardOf(src) ?? src} alt="" fill sizes="84px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
             </button>
           ))}
         </div>
@@ -270,16 +271,79 @@ function ListingVideoPlayer({
   const { t } = useI18n()
   const kind = listingVideoKind(url)
   const yt = youtubeId(url)
+  const st = streamUid(url)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const boxRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null
     closeRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      // ponytail: 2-focusable trap (close + player) — no lib, no sentinel divs.
+      if (e.key !== 'Tab' || !boxRef.current) return
+      const f = Array.from(
+        boxRef.current.querySelectorAll<HTMLElement>('button, iframe, video'),
+      ).filter((el) => el.tabIndex >= 0)
+      if (f.length === 0) return
+      const first = f[0]!
+      const last = f[f.length - 1]!
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
     window.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
+      prev?.focus?.()
+    }
+  }, [onClose])
+
+  // ponytail: system Back closes video (not page). Cleans ?play=1 deep link on X-close.
+  const pushed = useRef(false)
+  const popped = useRef(false)
+  const fromLink = useRef(false)
+  useEffect(() => {
+    try {
+      fromLink.current = new URLSearchParams(window.location.search).get('play') === '1'
+    } catch {
+      fromLink.current = false
+    }
+    const onPop = () => {
+      popped.current = true
+      onClose()
+    }
+    if (!fromLink.current) {
+      try {
+        window.history.pushState({ svVideo: 1 }, '')
+        pushed.current = true
+      } catch {
+        /* private mode — Back just leaves the page */
+      }
+    }
+    window.addEventListener('popstate', onPop)
+    return () => {
+      window.removeEventListener('popstate', onPop)
+      try {
+        if (pushed.current && !popped.current) window.history.back()
+        if (fromLink.current) {
+          const u = new URL(window.location.href)
+          u.searchParams.delete('play')
+          const q = u.searchParams.toString()
+          window.history.replaceState(null, '', q ? `${u.pathname}?${q}` : u.pathname)
+        }
+      } catch {
+        /* ignore */
+      }
     }
   }, [onClose])
 
@@ -304,6 +368,7 @@ function ListingVideoPlayer({
         <X className="h-5 w-5" />
       </button>
       <div
+        ref={boxRef}
         className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-card bg-sv-navy shadow-panel-dark"
         onClick={(e) => e.stopPropagation()}
       >
@@ -311,7 +376,17 @@ function ListingVideoPlayer({
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0`}
             title={t('detail.playVideo')}
-            allow="autoplay; encrypted-media; picture-in-picture"
+            loading="lazy"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 h-full w-full"
+          />
+        ) : kind === 'stream' && st ? (
+          <iframe
+            src={`${streamEmbedUrl(st)}?autoplay=true`}
+            title={t('detail.playVideo')}
+            loading="lazy"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
             className="absolute inset-0 h-full w-full"
           />
@@ -322,6 +397,7 @@ function ListingVideoPlayer({
             controls
             autoPlay
             playsInline
+            preload="metadata"
             className="absolute inset-0 h-full w-full object-contain"
           />
         ) : null}
@@ -405,9 +481,13 @@ export default function ListingDetailClient({
   const heroSrc = useMemo(() => {
     const src = l.images[photo] ?? ''
     const card = cardOf(src)
+    const avif = avifCardOf(src)
     return {
       master: src,
       card,
+      avif,
+      // ponytail: LQIP (~1KB) as button backdrop — hero never flashes white on slow CDN.
+      blur: lqipOf(src),
       set: card ? `${card} 800w, ${src} 2560w` : undefined,
     }
   }, [l.images, photo])
@@ -628,7 +708,8 @@ export default function ListingDetailClient({
       : l.rooms > 0
         ? []
         : [{ icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) }]),
-  ]
+    // ponytail: land has no floor/beds — "—" tiles are noise. Area (first) always stays.
+  ].filter((s, i) => i === 0 || s.value !== '—')
 
   const navPhoto = (dir: number) =>
     setPhoto((p) => (p + dir + l.images.length) % l.images.length)
@@ -650,19 +731,19 @@ export default function ListingDetailClient({
       <Navbar />
 
       <main id="main" className="mx-auto max-w-[1440px] px-5 pb-28 pt-[calc(92px+env(safe-area-inset-top,0px))] md:px-10 lg:pb-20">
-        {/* Breadcrumb */}
-        <nav className="mb-5 flex items-center gap-2 text-[13px] font-bold text-sv-ink/60" aria-label={t('detail.breadcrumb')}>
-          <LocalizedLink href="/" className="py-1.5 transition-colors hover:text-sv-blue">{t('detail.home')}</LocalizedLink>
-          <span>/</span>
-          <LocalizedLink href="/search" className="py-1.5 transition-colors hover:text-sv-blue">{t('search.title')}</LocalizedLink>
-          <span>/</span>
+        {/* Breadcrumb — single scrollable line, never wraps into a wall of crumbs */}
+        <nav className="mb-5 flex items-center gap-2 overflow-x-auto whitespace-nowrap text-[13px] font-bold text-sv-ink/60 scrollbar-hide" aria-label={t('detail.breadcrumb')}>
+          <LocalizedLink href="/" className="shrink-0 py-1.5 transition-colors hover:text-sv-blue">{t('detail.home')}</LocalizedLink>
+          <span aria-hidden className="shrink-0">/</span>
+          <LocalizedLink href="/search" className="shrink-0 py-1.5 transition-colors hover:text-sv-blue">{t('search.title')}</LocalizedLink>
+          <span aria-hidden className="shrink-0">/</span>
           <LocalizedLink
             href={`/search?district=${encodeURIComponent(l.district)}`}
-            className="py-1.5 transition-colors hover:text-sv-blue"
+            className="shrink-0 py-1.5 transition-colors hover:text-sv-blue"
           >
             {l.district}
           </LocalizedLink>
-          <span>/</span>
+          <span aria-hidden className="shrink-0">/</span>
           <span className="truncate py-1.5 text-sv-ink/70">{l.title}</span>
         </nav>
 
@@ -690,7 +771,8 @@ export default function ListingDetailClient({
               </div>
             ) : (
             <button
-              className="relative block aspect-[16/10] w-full cursor-zoom-in lg:aspect-auto lg:h-full lg:min-h-[min(52vh,520px)]"
+              className="relative block aspect-[16/10] w-full cursor-zoom-in bg-sv-cloud bg-cover bg-center lg:aspect-auto lg:h-full lg:min-h-[min(52vh,520px)]"
+              style={heroSrc.blur ? { backgroundImage: `url(${heroSrc.blur})` } : undefined}
               onClick={() => {
                 // A real swipe ends with pointer-up over the button — don't treat it as a zoom click.
                 if (swipeGuard.current) { swipeGuard.current = false; return }
@@ -722,22 +804,24 @@ export default function ListingDetailClient({
                 {/* ponytail: native img + manual srcset — next/image is globally
                     unoptimized (R2 ships card/master twins) and would ship the
                     2560px master (~1MB) as the mobile LCP; card twin is 800px. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={heroSrc.master}
-                  srcSet={heroSrc.set}
-                  sizes="(max-width:1024px) 100vw, 850px"
-                  alt={`${l.title} — ფოტო ${photo + 1}`}
-                  width={2560}
-                  height={1600}
-                  draggable={false}
-                  decoding="async"
-                  fetchPriority="high"
-                  onError={(e) => {
-                    if (heroSrc.card && e.currentTarget.src !== heroSrc.master) e.currentTarget.src = heroSrc.master
-                  }}
-                  className="h-full w-full object-cover"
-                />
+                <picture className="block h-full w-full">
+                  {heroSrc.avif ? <source type="image/avif" srcSet={heroSrc.avif} /> : null}
+                  <img
+                    src={heroSrc.card ?? heroSrc.master}
+                    srcSet={heroSrc.set}
+                    sizes="(max-width:1024px) 100vw, 850px"
+                    alt={`${l.title} — ფოტო ${photo + 1}`}
+                    width={2560}
+                    height={1600}
+                    draggable={false}
+                    decoding="async"
+                    fetchPriority="high"
+                    onError={(e) => {
+                      if (heroSrc.card && e.currentTarget.src !== heroSrc.master) e.currentTarget.src = heroSrc.master
+                    }}
+                    className="h-full w-full object-cover"
+                  />
+                </picture>
               </motion.div>
             </button>
             )}
@@ -849,7 +933,7 @@ export default function ListingDetailClient({
                       : 'opacity-75 hover:opacity-100'
                   }`}
                 >
-                  <Image src={src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
+                  <Image src={cardOf(src) ?? src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
                   {moreTile && (
                     <span className="absolute inset-0 grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
                       <span className="flex flex-col items-center gap-1">
@@ -890,7 +974,8 @@ export default function ListingDetailClient({
                       {postedDays <= 0 ? t('detail.postedToday') : postedAgoLabel(postedDays, lang)}
                     </span>
                     {postedDays >= 21 ? (
-                      <span className="rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-bold text-sv-orange-deep">
+                      // ponytail: navy pill (white ≈19:1) — orange-deep text on tint fails AA at 11px.
+                      <span className="rounded-full bg-sv-navy/90 px-2 py-0.5 text-[11px] font-bold text-white">
                         {t('detail.staleWarn')}
                       </span>
                     ) : null}
@@ -991,13 +1076,13 @@ export default function ListingDetailClient({
                   {priceAlt} · {perM2Label}/მ²
                 </div>
               </div>
-              {/* Currency toggle */}
-              <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="tablist" aria-label={t('detail.currency')}>
+              {/* Currency toggle — group + pressed (no tabpanel exists, so tablist/tab misleads AT) */}
+              <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('detail.currency')}>
                 {(['GEL', 'USD'] as const).map((c) => (
                   <button
                     key={c}
-                    role="tab"
-                    aria-selected={currency === c}
+                    type="button"
+                    aria-pressed={currency === c}
                     onClick={() => setCurrency(c)}
                     className={`relative rounded-lg px-5 py-2.5 text-[13px] font-extrabold transition-colors ${
                       currency === c ? 'text-white' : 'text-sv-ink/60 hover:text-sv-ink'
@@ -1058,7 +1143,8 @@ export default function ListingDetailClient({
                       className="flex items-center gap-2.5 py-2 text-[13px] font-semibold"
                     >
                       {ev.type === 'price_drop' ? (
-                        <TrendingDown className="h-4 w-4 shrink-0 text-sv-success" />
+                        // ponytail: brand-positive on light = sv-blue; sv-success lives on dark surfaces only.
+                        <TrendingDown className="h-4 w-4 shrink-0 text-sv-blue" />
                       ) : ev.type === 'price_increase' ? (
                         <TrendingUp className="h-4 w-4 shrink-0 text-sv-orange-deep" />
                       ) : (
@@ -1078,7 +1164,7 @@ export default function ListingDetailClient({
                       {ev.deltaPct !== null ? (
                         <span
                           className={`w-11 shrink-0 text-right tabular-nums ${
-                            ev.type === 'price_increase' ? 'text-sv-orange-deep' : 'text-sv-success'
+                            ev.type === 'price_increase' ? 'text-sv-orange-deep' : 'text-sv-blue'
                           }`}
                         >
                           {ev.type === 'price_increase' ? '+' : '−'}{ev.deltaPct}%
@@ -1162,10 +1248,10 @@ export default function ListingDetailClient({
             </div>
 
             {/* Specs — extended (beds/baths/project/…) after the key strip */}
-            {specs.filter((s) => !keySpecs.some((k) => k.label === s.label)).length > 0 && (
+            {specs.filter((s) => s.value !== '—' && !keySpecs.some((k) => k.label === s.label)).length > 0 && (
             <Reveal className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {specs
-                .filter((s) => !keySpecs.some((k) => k.label === s.label))
+                .filter((s) => s.value !== '—' && !keySpecs.some((k) => k.label === s.label))
                 .map((s) => (
                 <div
                   key={s.label}
@@ -1446,12 +1532,14 @@ export default function ListingDetailClient({
                 </button>
               </div>
 
+              {/* Secondary actions share one row — rail stays short, tour + lead rise above the fold */}
+              <div className="mt-2.5 grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => toggleCompare(l.id)}
                 disabled={!compared && compareFull}
                 aria-pressed={compared}
-                className={`mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
                   compared
                     ? 'border-sv-blue/30 bg-sv-blue/10 text-sv-blue-deep'
                     : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/60 hover:border-sv-blue/20 hover:text-sv-blue-deep'
@@ -1460,6 +1548,17 @@ export default function ListingDetailClient({
                 <Columns2 className="h-4 w-4 shrink-0" />
                 <span className="truncate">{compared ? ttCompare('remove') : ttCompare('add')}</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setShareOpen(true)}
+                aria-label={t('detail.share')}
+                className="flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/60 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+              >
+                <Share2 className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t('detail.share')}</span>
+              </button>
+              </div>
 
               {isOwner ? (
                 <button
@@ -1471,16 +1570,6 @@ export default function ListingDetailClient({
                   <span className="truncate">{t('detail.sendToClient')}</span>
                 </button>
               ) : null}
-
-              <button
-                type="button"
-                onClick={() => setShareOpen(true)}
-                aria-label={t('detail.share')}
-                className="mt-2.5 flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/60 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-              >
-                <Share2 className="h-4 w-4 shrink-0" />
-                <span className="truncate">{t('detail.share')}</span>
-              </button>
 
               {isOwner ? (
                 <div className="mt-3 flex justify-center">

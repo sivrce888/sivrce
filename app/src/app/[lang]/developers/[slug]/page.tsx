@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { cardOf } from '@/lib/media'
+import { avifCardOf, cardOf } from '@/lib/media'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
@@ -219,7 +219,9 @@ export default async function DeveloperPage({ params }: PageProps) {
         {flagship && (
           <div className="relative h-[240px] overflow-hidden md:h-[360px]">
             {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            { }
+            <picture className="contents">
+              <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(flagship.img)} />
             <img
               src={flagship.img}
               srcSet={cardOf(flagship.img) ? `${cardOf(flagship.img)} 800w, ${flagship.img} 2560w` : undefined}
@@ -228,6 +230,7 @@ export default async function DeveloperPage({ params }: PageProps) {
               fetchPriority="high"
               className="absolute inset-0 h-full w-full object-cover"
             />
+            </picture>
             <div
               aria-hidden
               className="absolute inset-0 bg-gradient-to-t from-sv-navy/55 via-sv-navy/10 to-transparent"

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { SparkMark } from '@/components/SparkMark'
-import { PartyHouseIcon } from '@/components/PartyHouseIcon'
+import { FeatureGlyph } from '@/components/FeatureIcon'
 import MapEmbed from '@/components/MapEmbed'
 import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
@@ -889,11 +889,59 @@ export default function AddListingClient() {
     if (cover >= i && cover > 0) setCover(cover - 1)
   }
 
+  const xhrPost = (url: string, fd: FormData) =>
+    new Promise<string>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', url)
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) setVideoPct(Math.round((e.loaded / e.total) * 100))
+      }
+      xhr.onload = () => {
+        if (xhr.status < 200 || xhr.status >= 300) reject(new Error('upload'))
+        else resolve(xhr.responseText)
+      }
+      xhr.onerror = () => reject(new Error('upload'))
+      xhr.send(fd)
+    })
+
+  const streamTicket = async (): Promise<{ uploadURL: string; uid: string; embedUrl: string } | null> => {
+    try {
+      const r = await fetch('/api/upload/video/stream-url', { method: 'POST', credentials: 'same-origin' })
+      if (!r.ok) return null
+      const j = (await r.json()) as { ok?: boolean; uploadURL?: string; uid?: string; embedUrl?: string }
+      return j.ok && j.uploadURL && j.uid && j.embedUrl
+        ? { uploadURL: j.uploadURL, uid: j.uid, embedUrl: j.embedUrl }
+        : null
+    } catch {
+      return null
+    }
+  }
+
+  const pollStreamReady = async (uid: string): Promise<boolean> => {
+    for (let i = 0; i < 30; i++) {
+      await new Promise((r) => setTimeout(r, 3000))
+      try {
+        const r = await fetch(`/api/upload/video/stream-status?uid=${encodeURIComponent(uid)}`, {
+          credentials: 'same-origin',
+        })
+        if (!r.ok) continue
+        const j = (await r.json()) as { ok?: boolean; ready?: boolean }
+        if (j.ready) return true
+        if (!j.ok) return false
+      } catch {
+        /* retry */
+      }
+    }
+    return false
+  }
+
   const pickVideo = async (files: FileList | null) => {
     const file = files?.[0]
     if (!file) return
     setVideoErr(null)
-    if (!mimeOfVideoFile(file)) {
+    // ponytail: any video/* may upload — Stream transcodes; R2 fallback needs a playable type.
+    const playable = !!mimeOfVideoFile(file)
+    if (!playable && !file.type.startsWith('video/')) {
       setVideoErr('add.videoBadType')
       return
     }
@@ -901,6 +949,7 @@ export default function AddListingClient() {
       setVideoErr('add.videoTooBig')
       return
     }
+    let short = false
     try {
       const dur = await new Promise<number>((resolve, reject) => {
         const url = URL.createObjectURL(file)
@@ -921,38 +970,41 @@ export default function AddListingClient() {
         setVideoErr('add.videoTooLong')
         return
       }
+      short = true
     } catch {
-      setVideoErr('add.videoBadType')
-      return
+      /* browser can't preview it — Stream judges; R2 fallback stays closed */
     }
     setVideoBusy(true)
     setVideoPct(0)
     try {
-      const url = await new Promise<string>((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-        xhr.open('POST', '/api/upload/video')
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) setVideoPct(Math.round((e.loaded / e.total) * 100))
-        }
-        xhr.onload = () => {
-          if (xhr.status < 200 || xhr.status >= 300) {
-            reject(new Error('upload'))
+      const s = await streamTicket()
+      if (s) {
+        try {
+          const fd = new FormData()
+          fd.append('file', file)
+          await xhrPost(s.uploadURL, fd)
+          setVideoPct(100)
+          if (await pollStreamReady(s.uid)) {
+            setVideo(s.embedUrl)
             return
           }
-          try {
-            const j = JSON.parse(xhr.responseText) as { url?: string }
-            if (j.url) resolve(j.url)
-            else reject(new Error('upload'))
-          } catch {
-            reject(new Error('upload'))
-          }
+        } catch {
+          /* fall through to R2 when the file is browser-playable */
         }
-        xhr.onerror = () => reject(new Error('upload'))
-        const fd = new FormData()
-        fd.append('file', file)
-        xhr.send(fd)
-      })
-      setVideo(url)
+        if (!short) {
+          setVideoErr('add.videoBadType')
+          return
+        }
+      } else if (!short) {
+        setVideoErr('add.videoBadType')
+        return
+      }
+      const fd = new FormData()
+      fd.append('file', file)
+      const text = await xhrPost('/api/upload/video', fd)
+      const j = JSON.parse(text) as { url?: string }
+      if (!j.url) throw new Error('upload')
+      setVideo(j.url)
     } catch {
       setVideoErr('add.videoBadType')
     } finally {
@@ -1476,7 +1528,7 @@ export default function AddListingClient() {
                       {isNativeVideoUrl(video) || videoBusy ? (
                         <div className="relative overflow-hidden rounded-module bg-sv-navy-soft">
                           {isNativeVideoUrl(video) ? (
-                            <video src={video} controls playsInline className="aspect-video w-full object-contain" />
+                            <video src={video} controls playsInline preload="metadata" className="aspect-video w-full object-contain" />
                           ) : (
                             <div className="flex aspect-video items-center justify-center">
                               <Loader2 className="h-8 w-8 animate-spin text-white/80" />
@@ -2051,14 +2103,11 @@ export default function AddListingClient() {
                                       on ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                     }`}
                                   >
-                                    {f === 'add.f.partiesAllowed' ? (
-                                      <PartyHouseIcon
-                                        className="h-3.5 w-3.5"
-                                        style={on ? undefined : { color: CATEGORY_BRAND.partyHouses.hue }}
-                                      />
-                                    ) : (
-                                      on && <Check className="h-3.5 w-3.5" />
-                                    )}
+                                    <FeatureGlyph
+                                      k={f}
+                                      className="h-3.5 w-3.5"
+                                      style={f === 'add.f.partiesAllowed' && !on ? { color: CATEGORY_BRAND.partyHouses.hue } : undefined}
+                                    />
                                     {t(f)}
                                   </button>
                                 )

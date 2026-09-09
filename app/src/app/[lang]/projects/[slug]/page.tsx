@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { cardOf } from '@/lib/media'
+import { avifCardOf, cardOf } from '@/lib/media'
 import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -280,7 +280,9 @@ export default async function ProjectPage({ params }: PageProps) {
         {/* Hero */}
         <div className="relative aspect-[16/9] max-h-[520px] w-full overflow-hidden md:aspect-[21/9]">
           {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
+          <picture className="contents">
+            <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(project.img)} />
           <img
             src={project.img}
             srcSet={cardOf(project.img) ? `${cardOf(project.img)} 800w, ${project.img} 2560w` : undefined}
@@ -289,6 +291,7 @@ export default async function ProjectPage({ params }: PageProps) {
             fetchPriority="high"
             className="absolute inset-0 h-full w-full object-cover"
           />
+          </picture>
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">

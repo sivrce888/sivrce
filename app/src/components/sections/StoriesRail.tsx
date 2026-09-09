@@ -1,6 +1,7 @@
 'use client'
 
 import LocalizedLink from '@/components/LocalizedLink'
+import { cardOf } from '@/lib/media'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
@@ -33,7 +34,7 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
                   <span className="block overflow-hidden rounded-full bg-sv-cloud p-[2.5px]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={l.img}
+                      src={cardOf(l.img) ?? l.img}
                       alt=""
                       width={72}
                       height={72}

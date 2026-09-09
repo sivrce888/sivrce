@@ -34,7 +34,7 @@ import type { Listing } from '@/data/listings'
 import { stayCount, stayLine } from '@/lib/listing-format'
 import { useCurrency, formatMapPin, formatListingPrice } from '@/lib/currency'
 import { rentPeriodKey } from '@/lib/add-listing-fields'
-import { blurProps } from '@/lib/media'
+import { blurProps, cardOf } from '@/lib/media'
 import { useFavorites } from '@/lib/favorites'
 
 export type MapBounds = { west: number; south: number; east: number; north: number }
@@ -78,7 +78,7 @@ function MapPinCard({
         <span className="relative block aspect-[4/3] bg-sv-ink/[0.06]">
           {photo && (
             <Image
-              src={photo}
+              src={cardOf(photo) ?? photo}
               alt=""
               fill
               sizes="360px"
@@ -516,7 +516,7 @@ export default function SearchMapView({
                 <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control bg-sv-ink/[0.06]">
                   {(l.img || l.images[0]) && (
                     <Image
-                      src={l.img || l.images[0]!}
+                      src={cardOf(l.img || l.images[0]!) ?? (l.img || l.images[0]!)}
                       alt=""
                       fill
                       sizes="80px"

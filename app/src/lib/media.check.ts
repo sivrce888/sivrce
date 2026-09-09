@@ -3,7 +3,7 @@
  * Run: npx tsx src/lib/media.check.ts
  */
 import assert from "node:assert/strict"
-import { blurProps, cardOf, hasLqip, isCdnMedia, lqipOf } from "./media"
+import { avifCardOf, blurProps, cardOf, hasLqip, isCdnMedia, lqipOf } from "./media"
 
 const master = "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.webp"
 
@@ -21,6 +21,10 @@ assert.equal(
   cardOf(master),
   "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.card.webp",
 )
+assert.equal(
+  avifCardOf(master),
+  "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.card.avif",
+)
 assert.deepEqual(blurProps(master), {
   placeholder: "blur",
   blurDataURL: "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.lqip.webp",
@@ -36,6 +40,7 @@ for (const url of [
   assert.equal(hasLqip(url), false, url)
   assert.equal(lqipOf(url), undefined, url)
   assert.equal(cardOf(url), undefined, url)
+  assert.equal(avifCardOf(url), undefined, url)
   assert.deepEqual(blurProps(url), { placeholder: "empty" }, url)
 }
 

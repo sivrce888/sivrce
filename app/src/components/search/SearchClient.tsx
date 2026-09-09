@@ -24,13 +24,14 @@ import LocationPicker, { locationLabel, type LocationValue } from '@/components/
 import PropertyTypePicker, { SEARCH_PROP_TYPES, isSearchPropType } from '@/components/search/PropertyTypePicker'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
-import { blurProps } from '@/lib/media'
+import { blurProps, cardOf } from '@/lib/media'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
 import { listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
+import { FeatureGlyph } from '@/components/FeatureIcon'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS, featureLabel } from '@/lib/features'
 import { dealLabelKey as dealKeyFor, featuresFor, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapSearchHit } from '@/lib/map-search-hit'
@@ -129,7 +130,7 @@ function CompactCard({ l }: { l: Listing }) {
     >
       <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control">
         {/* decorative — the title next to it carries the meaning */}
-        <Image src={l.img} alt="" fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" {...blurProps(l.img)} />
+        <Image src={cardOf(l.img) ?? l.img} alt="" fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" {...blurProps(l.img)} />
       </span>
       <span className="min-w-0">
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
@@ -1087,11 +1088,13 @@ export default function SearchClient({
                     aria-pressed={feat.includes(f)}
                     className={`${tagChip(feat.includes(f))} inline-flex items-center gap-1.5`}
                   >
-                    {f === 'add.f.partiesAllowed' && (
+                    {f === 'add.f.partiesAllowed' ? (
                       <PartyHouseIcon
                         className="h-3.5 w-3.5"
                         style={feat.includes(f) ? undefined : { color: CATEGORY_BRAND.partyHouses.hue }}
                       />
+                    ) : (
+                      <FeatureGlyph k={f} className="h-3.5 w-3.5 opacity-70" />
                     )}
                     {t(f)}
                   </button>

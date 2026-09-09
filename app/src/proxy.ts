@@ -117,6 +117,8 @@ function pass(req: NextRequest, res: NextResponse): NextResponse {
       maxAge: REF_COOKIE_MAX_AGE,
       sameSite: "lax",
       path: "/",
+      // ponytail: server-read only (proxy + auth) — HttpOnly blocks XSS exfil, zero client cost.
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     })
   }

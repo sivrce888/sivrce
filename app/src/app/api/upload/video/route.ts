@@ -87,7 +87,12 @@ export async function POST(req: Request) {
   const key = `${prefix}/${crypto.randomUUID()}.${extForVideoMime(mime)}`
 
   try {
-    const result = await uploadFile({ key, body: Buffer.from(buf), contentType: mime })
+    const result = await uploadFile({
+      key,
+      body: Buffer.from(buf),
+      contentType: mime,
+      cacheControl: "public, max-age=31536000, immutable",
+    })
     return Response.json({ ok: true, url: result.url, key }, { status: 201 })
   } catch (err) {
     const e = err as { message?: string }

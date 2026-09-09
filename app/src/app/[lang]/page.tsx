@@ -9,13 +9,15 @@ import { jsonLd } from '@/lib/utils'
 export const revalidate = 60
 
 // ponytail: ItemList of the freshest listings on the strongest page — schema
-// only, no extra render work. Swap for curated/featured rails if home grows one.
+// only, no extra render work. image + offers = carousel/rich-result eligible
+// + citable prices for AI engines. Swap for curated rails if home grows one.
 async function homeItemListLd() {
   let rows: Listing[] = LISTINGS.slice(0, 10)
   try {
     const live = await getAllListings(10)
     if (live.length > 0) rows = live
   } catch { /* DB unavailable at build — static URLs */ }
+  const abs = (src: string) => (src.startsWith('http') ? src : `https://sivrce.ge${src}`);
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -26,6 +28,8 @@ async function homeItemListLd() {
       position: i + 1,
       url: `https://sivrce.ge${listingPath(l)}`,
       name: l.title,
+      image: abs(l.img),
+      offers: { '@type': 'Offer', price: l.priceUSD, priceCurrency: 'USD' },
     })),
   }
 }

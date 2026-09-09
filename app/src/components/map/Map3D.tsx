@@ -101,10 +101,15 @@ import {
 import { loadPoiImages, poiIconDataUrl } from '@/lib/map/poi-icons'
 import {
   applyLiveFixes,
+  LIVE_PROBE_LAYER_ID,
   liveFixes,
   resolveBasemapRing,
   withLiveProbe,
 } from '@/lib/map/live-footprint'
+import {
+  geometryRing,
+  pickNearestBuildingGeometry,
+} from '@/lib/map/pick-building'
 import {
   mapChromeOptions,
   tightenAttribution,
@@ -148,6 +153,7 @@ import {
   Store,
   Dumbbell,
   Hospital,
+  Landmark,
   type LucideIcon,
 } from 'lucide-react'
 import { MetroMark } from '@/lib/map/poi-icons'
@@ -161,6 +167,7 @@ const POI_ICONS: Record<PoiCategory, LucideIcon | typeof MetroMark> = {
   shop: Store,
   gym: Dumbbell,
   hospital: Hospital,
+  landmark: Landmark,
 }
 
 const SOURCE_ID = 'sivrce-buildings'
@@ -1505,6 +1512,9 @@ function Map3DInner({
         if (id) pickById(id)
       }
 
+      // Guards late /api/site+geocode races when the user taps several buildings fast.
+      let osmSeq = 0
+
       const onMapClick = (e: MapMouseEvent) => {
         const liveLayers = [
           ...BUILDING_HIT_LAYERS,
@@ -1529,6 +1539,75 @@ function Map3DInner({
           return
         }
         selectRef.current(null)
+        // ponytail: every OSM building tappable — basemap tiles already in RAM,
+        // info on demand via /api/site+geocode. Ceiling: highlight paint + panel.
+        // Upgrade → sivrce-pick source highlight + BuildingPanel for OSM picks.
+        try {
+          const osmLayers = ['building', 'building-3d', LIVE_PROBE_LAYER_ID].filter(
+            (lid) => map.getLayer(lid),
+          )
+          if (osmLayers.length === 0) {
+            nbhPopup.remove()
+            return
+          }
+          const feats = map.queryRenderedFeatures(e.point, { layers: osmLayers })
+          const geom = pickNearestBuildingGeometry(
+            feats.map((f) => f.geometry),
+            e.lngLat.lat,
+            e.lngLat.lng,
+          )
+          if (!geometryRing(geom)) {
+            nbhPopup.remove()
+            return
+          }
+          const seq = ++osmSeq
+          const root = document.createElement('div')
+          root.className = 'sivrce-nbh-pop'
+          const title = document.createElement('div')
+          title.className = 'sivrce-nbh-pop-title'
+          title.textContent = tRef.current('map.loading')
+          root.appendChild(title)
+          const sub = document.createElement('div')
+          sub.className = 'sivrce-nbh-pop-city'
+          sub.textContent = `${e.lngLat.lat.toFixed(5)}, ${e.lngLat.lng.toFixed(5)}`
+          root.appendChild(sub)
+          nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
+          const row = (label: string, v: string) => {
+            const r = document.createElement('div')
+            r.className = 'sivrce-nbh-pop-row'
+            const a = document.createElement('span')
+            a.textContent = label
+            const b = document.createElement('span')
+            b.textContent = v
+            r.appendChild(a)
+            r.appendChild(b)
+            return r
+          }
+          fetch(`/api/geocode?lat=${e.lngLat.lat}&lng=${e.lngLat.lng}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              if (seq !== osmSeq || !d?.ok) return
+              const line = formatGeocodeAddress(d)
+              if (line) title.textContent = line
+            })
+            .catch(() => {})
+          fetch(`/api/site?lat=${e.lngLat.lat}&lng=${e.lngLat.lng}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              if (seq !== osmSeq || !d?.ok) return
+              const code = d.parcel?.uniqCode as string | undefined
+              if (code) root.appendChild(row('NAPR', code))
+              const area = Number(d.parcel?.area)
+              if (Number.isFinite(area) && area > 0) {
+                root.appendChild(row('m²', String(Math.round(area))))
+              }
+              const tasN = Array.isArray(d.tasDocs) ? d.tasDocs.length : 0
+              if (tasN > 0) root.appendChild(row('TAS', String(tasN)))
+            })
+            .catch(() => {})
+        } catch {
+          /* tile query never breaks the map */
+        }
       }
 
       const popup = new maplibregl.Popup({

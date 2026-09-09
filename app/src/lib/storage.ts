@@ -72,6 +72,8 @@ export interface UploadFileParams {
   key: string
   body: Buffer | Uint8Array | ReadableStream | Blob
   contentType: string
+  /** UUID keys are immutable — videos pass a year-long cache. */
+  cacheControl?: string
 }
 
 export interface UploadFileResult {
@@ -93,6 +95,7 @@ export async function uploadFile(params: UploadFileParams): Promise<UploadFileRe
       Key: params.key,
       Body: params.body as Buffer,
       ContentType: params.contentType,
+      ...(params.cacheControl ? { CacheControl: params.cacheControl } : {}),
     }),
   )
 

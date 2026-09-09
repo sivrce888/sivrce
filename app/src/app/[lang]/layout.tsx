@@ -320,6 +320,10 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
       <link rel="preconnect" href="https://cdn.sivrce.ge" crossOrigin="anonymous" />
+      <link rel="search" type="application/opensearchdescription+xml" title="sivrce" href="/opensearch.xml" />
+      {/* ponytail: dns-only (no handshake) — Stream/YouTube iframes resolve instantly on detail pages */}
+      <link rel="dns-prefetch" href="https://iframe.videodelivery.net" />
+      <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
       <body className="min-h-full">
         {/* Inline (not next/script): pre-hydration boot on full loads; React 19
             errors on next/script's client-rendered <script> when this root

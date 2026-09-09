@@ -1,6 +1,6 @@
 /**
  * SIVRCE — Landmark building catalog (map + SEO).
- * Street landmarks stay hand-curated; every Tbilisi project becomes a building.
+ * Street landmarks stay hand-curated; every project with coords becomes a building.
  * ponytail: derive from PROJECTS — one source for photo / coords / copy.
  */
 
@@ -435,13 +435,12 @@ function buildCatalog(): BuildingCatalogEntry[] {
 
   const fromProjects = PROJECTS.filter(
     (p) =>
-      p.city === 'თბილისი' &&
       Number.isFinite(p.coords.lat) &&
       Number.isFinite(p.coords.lng) &&
       !taken.has(p.slug),
   ).map(projectToBuilding)
 
-  // Street first (stable SV-* codes), then Tbilisi projects A→Z by name.
+  // Street first (stable SV-* codes), then projects A→Z by name.
   return [
     ...STREET_LANDMARKS.map(enrichPlace),
     ...fromProjects.sort((a, b) => a.name.localeCompare(b.name, 'ka')),

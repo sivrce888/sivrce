@@ -17,6 +17,7 @@ import type { MapBuildingCluster } from '@/lib/map/buildings'
 import { buildingFloorCount, listingFloor } from '@/lib/map/floors'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { listingPath } from '@/lib/listing-slug'
+import { cardOf } from '@/lib/media'
 
 const DEAL_KEYS: Record<DealType, DictKey> = {
   sale: 'search.sale',
@@ -66,7 +67,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
         {isConstruction && building.img ? (
           <div className="relative h-36 w-full overflow-hidden bg-sv-navy/5 sm:h-40">
             <Image
-              src={building.img}
+              src={cardOf(building.img) ?? building.img}
               alt=""
               fill
               className="object-cover"
@@ -80,7 +81,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
           <div className="flex gap-3">
             {building.img && !isConstruction ? (
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-module">
-                <Image src={building.img} alt="" fill className="object-cover" sizes="56px" />
+                <Image src={cardOf(building.img) ?? building.img} alt="" fill className="object-cover" sizes="56px" />
               </div>
             ) : isConstruction && !building.img ? (
               <span

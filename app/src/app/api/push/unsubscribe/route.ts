@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 
 /**
@@ -14,6 +15,9 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
+  }
+  if (!rateLimitOk(`pushunsub:${session.user.id}`, { max: 20 })) {
+    return Response.json({ ok: false, error: "rate_limited" }, { status: 429 })
   }
 
   let body: unknown

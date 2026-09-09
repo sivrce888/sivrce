@@ -14,6 +14,7 @@ import { blurProps } from "@/lib/media"
 import { useCompareStrings } from "./i18n"
 import { dealLabelKey, rentPeriodKey } from "@/lib/add-listing-fields"
 import type { PropType } from "@/data/listings"
+import { cardOf } from '@/lib/media'
 
 const PROP_KEY: Record<PropType, DictKey> = {
   apartment: "prop.apartment",
@@ -111,7 +112,7 @@ export default function CompareClient() {
                 <th key={l.id} className="min-w-[180px] p-4 align-top">
                   <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-module">
                     <Image
-                      src={l.img}
+                      src={cardOf(l.img) ?? l.img}
                       alt=""
                       fill
                       sizes="180px"

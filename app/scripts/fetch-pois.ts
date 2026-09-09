@@ -1,9 +1,11 @@
 /**
- * One-time geodata: OSM amenities for the map POI layer.
+ * Geodata: OSM amenities for the map POI layer (every developer/project/
+ * building page "nearby" + /map toggles).
  * Run: npx --yes tsx scripts/fetch-pois.ts
  * Source: OpenStreetMap via Overpass (ODbL — attribution in map footer).
- * ponytail: Tbilisi bbox; committed JSON, no runtime fetch.
- * Ceiling: Batumi/Kutaisi amenity boxes when map traffic outside Tbilisi warrants.
+ * ponytail: top-3 markets committed as JSON, no runtime fetch; base vector
+ * tiles cover the rest of the country. Ceiling: Rustavi/Poti boxes + bank/ATM
+ * layer when map traffic outside the big three warrants it.
  */
 
 import { writeFileSync } from 'node:fs'
@@ -14,8 +16,14 @@ const ENDPOINTS = [
   'https://overpass.kumi.systems/api/interpreter',
 ]
 
-/** Tbilisi metro area — main listing market. */
-const TBI = { s: 41.62, w: 44.65, n: 41.86, e: 45.08 }
+/** Top-3 listing markets — covers the bulk of inventory + map traffic. */
+const BOXES = {
+  tbilisi: { s: 41.62, w: 44.65, n: 41.86, e: 45.08 },
+  batumi: { s: 41.59, w: 41.57, n: 41.7, e: 41.74 },
+  kutaisi: { s: 42.22, w: 42.66, n: 42.3, e: 42.76 },
+} as const
+
+type BoxKey = keyof typeof BOXES
 
 export type PoiCategory =
   | 'metro'
@@ -26,6 +34,7 @@ export type PoiCategory =
   | 'shop'
   | 'gym'
   | 'hospital'
+  | 'landmark'
 
 type Poi = {
   id: string
@@ -33,6 +42,7 @@ type Poi = {
   name: string
   lat: number
   lng: number
+  city: BoxKey
   osmType: 'node' | 'way' | 'relation'
   osmId: number
 }
@@ -109,14 +119,40 @@ function classify(tags: Record<string, string> | undefined): PoiCategory | null 
   if (tags.amenity === 'school' || tags.amenity === 'kindergarten') return 'school'
   // named parks only — unnamed leisure=park floods (~thousands)
   if (tags.leisure === 'park' && nameOf(tags)) return 'park'
-  // ponytail: supermarket+mall only — convenience floods the map (~2k dots).
+  // ponytail: supermarket+mall+convenience only — bare shop=* floods the map.
   if (tags.shop === 'supermarket' || tags.shop === 'mall') return 'shop'
+  if (tags.shop === 'convenience' || tags.shop === 'department_store') {
+    return nameOf(tags) ? 'shop' : null
+  }
   if (tags.leisure === 'fitness_centre' || tags.amenity === 'gym') return 'gym'
   if (tags.amenity === 'hospital' || tags.amenity === 'clinic') return 'hospital'
+  // landmarks / highlights / important locations — named only, else noise.
+  // ponytail: artwork excluded — memorial plaques flood (~1k dots), not highlights.
+  if (
+    tags.tourism === 'attraction' ||
+    tags.tourism === 'museum' ||
+    tags.tourism === 'viewpoint' ||
+    tags.tourism === 'gallery'
+  ) {
+    return nameOf(tags) ? 'landmark' : null
+  }
+  if (tags.amenity === 'place_of_worship' || tags.amenity === 'theatre') {
+    return nameOf(tags) ? 'landmark' : null
+  }
+  // ponytail: memorial/plaque excluded — person-name plaques (~800 dots), not highlights.
+  if (
+    tags.historic &&
+    /^(castle|church|monastery|monument|ruins|archaeological_site|battlefield|fort|citywalls|city_gate|manor|heritage|wayside_shrine)$/.test(
+      tags.historic,
+    ) &&
+    nameOf(tags)
+  ) {
+    return 'landmark'
+  }
   return null
 }
 
-function toPoi(el: any): Poi | null {
+function toPoi(el: any, city: BoxKey): Poi | null {
   const c = elCoords(el)
   if (!c) return null
   const category = classify(el.tags)
@@ -130,6 +166,7 @@ function toPoi(el: any): Poi | null {
     name,
     lat: c.lat,
     lng: c.lng,
+    city,
     osmType,
     osmId: el.id,
   }
@@ -153,6 +190,8 @@ function fallbackName(cat: PoiCategory): string {
       return 'სპორტდარბაზი'
     case 'hospital':
       return 'კლინიკა'
+    case 'landmark':
+      return 'ღირსშესანიშნაობა'
     default: {
       const _exhaustive: never = cat
       return _exhaustive
@@ -161,9 +200,11 @@ function fallbackName(cat: PoiCategory): string {
 }
 
 async function main() {
-  const t = bb(TBI)
-  // one union — Overpass prefers a single round-trip
-  const query = `
+  const byId = new Map<string, Poi>()
+  for (const [city, box] of Object.entries(BOXES) as [BoxKey, (typeof BOXES)[BoxKey]][]) {
+    const t = bb(box)
+    // one union per city — Overpass prefers a single round-trip each
+    const query = `
 (
   // Tbilisi metro only — Georgia-wide subway tags pick up Abkhazia noise.
   node["railway"="station"]["station"="subway"](${t});
@@ -176,25 +217,31 @@ async function main() {
   nwr["leisure"="park"]["name"](${t});
   nwr["shop"="supermarket"](${t});
   nwr["shop"="mall"](${t});
+  nwr["shop"="convenience"](${t});
+  nwr["shop"="department_store"](${t});
   nwr["leisure"="fitness_centre"](${t});
   nwr["amenity"="gym"](${t});
   nwr["amenity"="hospital"](${t});
   nwr["amenity"="clinic"](${t});
+  nwr["tourism"~"^(attraction|museum|viewpoint|gallery)$"](${t});
+  nwr["amenity"="place_of_worship"](${t});
+  nwr["amenity"="theatre"](${t});
+  nwr["historic"~"^(castle|church|monastery|monument|ruins|archaeological_site|battlefield|fort|citywalls|city_gate|manor|heritage|wayside_shrine)$"](${t});
 );
 out center tags;`
 
-  console.log('fetching POIs from Overpass…')
-  const elements = await overpass(query)
-  console.log(`raw elements: ${elements.length}`)
+    console.log(`fetching ${city} POIs from Overpass…`)
+    const elements = await overpass(query)
+    console.log(`${city} raw elements: ${elements.length}`)
 
-  const byId = new Map<string, Poi>()
-  for (const el of elements) {
-    const p = toPoi(el)
-    if (!p) continue
-    // prefer named over fallback
-    const prev = byId.get(p.id)
-    if (!prev || (prev.name === fallbackName(prev.category) && p.name !== fallbackName(p.category))) {
-      byId.set(p.id, p)
+    for (const el of elements) {
+      const p = toPoi(el, city)
+      if (!p) continue
+      // prefer named over fallback
+      const prev = byId.get(p.id)
+      if (!prev || (prev.name === fallbackName(prev.category) && p.name !== fallbackName(p.category))) {
+        byId.set(p.id, p)
+      }
     }
   }
 
@@ -203,18 +250,25 @@ out center tags;`
   )
 
   const counts: Record<string, number> = {}
-  for (const p of pois) counts[p.category] = (counts[p.category] ?? 0) + 1
+  const byCity: Record<string, Record<string, number>> = {}
+  for (const p of pois) {
+    counts[p.category] = (counts[p.category] ?? 0) + 1
+    byCity[p.city] ??= {}
+    byCity[p.city]![p.category] = (byCity[p.city]![p.category] ?? 0) + 1
+  }
   console.log('counts:', counts)
+  console.log('byCity:', byCity)
 
-  const out = new URL('../src/data/tbilisi-pois.json', import.meta.url)
+  const out = new URL('../src/data/georgia-pois.json', import.meta.url)
   writeFileSync(
     out,
     JSON.stringify(
       {
         attribution: '© OpenStreetMap contributors (ODbL)',
         fetchedAt: new Date().toISOString().slice(0, 10),
-        bbox: { tbilisi: TBI },
+        bbox: BOXES,
         counts,
+        byCity,
         pois,
       },
       null,

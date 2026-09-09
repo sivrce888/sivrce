@@ -1,10 +1,10 @@
 /**
- * Map amenity POIs — static OSM export (scripts/fetch-pois.ts).
+ * Map amenity POIs — OSM export for Tbilisi + Batumi + Kutaisi (scripts/fetch-pois.ts).
  * ponytail: committed JSON; no runtime Overpass. Colors from locked CATEGORY_BRAND.
  */
 
 import type { FilterSpecification } from 'maplibre-gl'
-import raw from '@/data/tbilisi-pois.json'
+import raw from '@/data/georgia-pois.json'
 import gridRaw from '@/data/tbilisi-metro-grid.json'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 import {
@@ -23,6 +23,7 @@ export const POI_CATEGORIES = [
   'shop',
   'gym',
   'hospital',
+  'landmark',
 ] as const
 
 export type PoiCategory = (typeof POI_CATEGORIES)[number]
@@ -45,6 +46,7 @@ export const POI_DEFAULT_ON: readonly PoiCategory[] = ['metro']
 export const POI_MIN_ZOOM: Record<PoiCategory, number> = {
   metro: 11,
   university: 11.5,
+  landmark: 11.5,
   hospital: 12,
   shop: 12,
   park: 12,
@@ -63,6 +65,7 @@ export const POI_LABELS: Record<PoiCategory, string> = {
   shop: 'მარკეტი',
   gym: 'ჯიმი',
   hospital: 'კლინიკა',
+  landmark: 'ღირსშესანიშნაობა',
 }
 
 /**
@@ -90,6 +93,8 @@ export const POI_COLORS: Record<PoiCategory, string> = {
   shop: CATEGORY_BRAND.commercial.hue,
   gym: CATEGORY_BRAND.houses.hue,
   hospital: CATEGORY_BRAND.hotels.hue,
+  // highlights get primary blue — locked apartments hue, distinct from school sky.
+  landmark: CATEGORY_BRAND.apartments.hue,
 }
 
 const CAT_SET = new Set<string>(POI_CATEGORIES)
@@ -206,9 +211,10 @@ const AMENITY_MAX_M: Partial<Record<PoiCategory, number>> = {
   university: 2500,
   gym: 1200,
   pharmacy: 700,
+  landmark: 1500,
 }
 
-/** Nearest amenity per category within catchment. Empty far from Tbilisi POIs. */
+/** Nearest amenity per category within catchment. Empty outside POI cities. */
 export function nearestAmenities(lat: number, lng: number): NearAmenity[] {
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || MAP_POIS.length === 0) return []
   const best = new Map<PoiCategory, NearAmenity>()

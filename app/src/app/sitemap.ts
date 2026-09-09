@@ -25,6 +25,7 @@ export const revalidate = 3600
 // hreflang cluster: every page is now server-rendered in all 9 locales via
 // app/[lang]. ka is unprefixed (canonical); the other eight carry a prefix.
 const PREFIXED = ['en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az'] as const
+const HUB_LOCALES = ['en', 'ru'] as const
 
 type Entry = {
   path: string
@@ -33,8 +34,14 @@ type Entry = {
   lastModified?: Date
   changeFrequency: NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
   priority: number
-  /** ponytail: alternates emitted for every entry — all pages have SSR locales now. */
-  localized?: boolean
+  /** hreflang cluster this URL may claim — must mirror the page's own
+   * alternates or Google drops the contradicting locale URLs:
+   * - 'full' (default): truly localized via pageAlternates() — ka + 8 prefixes
+   * - 'hub': programmatic SEO landings — real ka/en/ru copy only; the other
+   *   six locales serve English copy canonicalized to /en (see seoMetadata)
+   * - 'ka': ka-only content via kaOnlyAlternates() (blog/forum posts, agent +
+   *   agency profiles, neighbourhood guides, street/metro pages, /terms) */
+  locale?: 'full' | 'hub' | 'ka'
   images?: string[]
   videos?: NonNullable<MetadataRoute.Sitemap[number]['videos']>
 }
@@ -43,10 +50,14 @@ function absMedia(src: string): string {
   return src.startsWith('http') ? src : `${BASE}${src.startsWith('/') ? src : `/${src}`}`
 }
 
-function toSitemapEntry({ path, lastModified, changeFrequency, priority, images, videos }: Entry): MetadataRoute.Sitemap[number] {
-  const languages: Record<string, string> = { ka: `${BASE}${path}` }
-  for (const l of PREFIXED) languages[l] = `${BASE}/${l}${path}`
-  languages['x-default'] = `${BASE}${path}`
+function toSitemapEntry({ path, lastModified, changeFrequency, priority, locale = 'full', images, videos }: Entry): MetadataRoute.Sitemap[number] {
+  // ponytail: one branch per cluster — mirrors lib/i18n/server helpers exactly.
+  const languages: Record<string, string> =
+    locale === 'ka'
+      ? { ka: `${BASE}${path}`, 'x-default': `${BASE}${path}` }
+      : locale === 'hub'
+        ? { ka: `${BASE}${path}`, 'x-default': `${BASE}${path}`, ...Object.fromEntries(HUB_LOCALES.map((l) => [l, `${BASE}/${l}${path}`])) }
+        : { ka: `${BASE}${path}`, ...Object.fromEntries(PREFIXED.map((l) => [l, `${BASE}/${l}${path}`])), 'x-default': `${BASE}${path}` }
   return {
     url: `${BASE}${path}`,
     ...(lastModified ? { lastModified } : {}),
@@ -67,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch { /* DB unavailable at build — keep static URLs */ }
 
   const entries: Entry[] = [
-    { path: '', changeFrequency: 'hourly', priority: 1, localized: true },
+    { path: '', changeFrequency: 'hourly', priority: 1 },
     // /search is meta-noindex — never list it here (conflicting signals).
     { path: '/map', changeFrequency: 'hourly', priority: 0.95 },
     { path: '/cadastre', changeFrequency: 'weekly', priority: 0.8 },
@@ -88,7 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/careers', changeFrequency: 'monthly', priority: 0.5 },
     { path: '/contact', changeFrequency: 'monthly', priority: 0.5 },
     { path: '/faq', changeFrequency: 'monthly', priority: 0.5 },
-    { path: '/terms', changeFrequency: 'yearly', priority: 0.2 },
+    { path: '/terms', changeFrequency: 'yearly', priority: 0.2, locale: 'ka' },
     { path: '/privacy', changeFrequency: 'yearly', priority: 0.2 },
     // ponytail: crawlable hubs + detail pages previously missing — sitemap
     // is the discovery path for ~140 indexed pages (agents, developers, projects).
@@ -100,7 +111,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   for (const a of AGENT_PROFILES) {
-    entries.push({ path: `/agents/${a.slug}`, changeFrequency: 'monthly', priority: 0.55 })
+    entries.push({ path: `/agents/${a.slug}`, changeFrequency: 'monthly', priority: 0.55, locale: 'ka' })
   }
   // Public agency profiles (DB) — fall back to hub-only on build-time DB outage.
   try {
@@ -109,7 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { slug: true },
     })
     for (const a of agencyRows) {
-      entries.push({ path: `/agencies/${a.slug}`, changeFrequency: 'weekly', priority: 0.55 })
+      entries.push({ path: `/agencies/${a.slug}`, changeFrequency: 'weekly', priority: 0.55, locale: 'ka' })
     }
   } catch { /* build-time DB outage */ }
   for (const c of SERVICE_CATEGORIES) {
@@ -143,6 +154,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(`${p.updatedAt ?? p.publishedAt}T00:00:00`),
       changeFrequency: 'monthly',
       priority: 0.6,
+      locale: 'ka',
     })
   }
 
@@ -153,6 +165,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(`${t.lastActivityAt}T00:00:00`),
       changeFrequency: 'weekly',
       priority: 0.55,
+      locale: 'ka',
     })
   }
 
@@ -174,6 +187,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/neighborhoods/${n.slug}`,
       changeFrequency: 'monthly',
       priority: 0.6,
+      locale: 'ka',
     })
   }
 
@@ -190,29 +204,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/${slug.join('/')}`,
       changeFrequency: 'daily',
       priority: Math.max(0.5, 0.9 - slug.length * 0.1),
-      localized: true,
+      locale: 'hub',
     })
   }
 
   // Street-level SEO: directory + ka-only street pages (no /en /ru twins).
-  entries.push({ path: '/tbilisi/kuchebi', changeFrequency: 'weekly', priority: 0.7 })
+  entries.push({ path: '/tbilisi/kuchebi', changeFrequency: 'weekly', priority: 0.7, locale: 'ka' })
   for (const s of STREETS) {
     if (!s.district) continue
     entries.push({
       path: `/tbilisi/${s.district}/${s.slug}`,
       changeFrequency: 'weekly',
       priority: 0.6,
+      locale: 'ka',
     })
   }
 
   // Metro-level SEO: all-stations hub + 22 ka-only station pages.
-  entries.push({ path: '/metro', changeFrequency: 'weekly', priority: 0.7 })
-  entries.push({ path: '/locations', changeFrequency: 'weekly', priority: 0.7 })
+  entries.push({ path: '/metro', changeFrequency: 'weekly', priority: 0.7, locale: 'ka' })
+  entries.push({ path: '/locations', changeFrequency: 'weekly', priority: 0.7, locale: 'ka' })
   for (const m of METRO_STATIONS) {
     entries.push({
       path: `/metro/${m.slug}`,
       changeFrequency: 'weekly',
       priority: 0.6,
+      locale: 'ka',
     })
   }
 

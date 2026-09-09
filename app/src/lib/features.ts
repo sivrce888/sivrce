@@ -154,7 +154,10 @@ export function isBuildingStatusKey(f: string): f is (typeof BUILDING_STATUS_KEY
 }
 
 export function buildingStatusLabel(f: string, t: (key: DictKey) => string): string {
-  return isBuildingStatusKey(f) ? t(f) : f
+  // ponytail: land/comm/hotel statuses live in the dicts but not in
+  // BUILDING_STATUS_KEYS (search-filter set). translate() echoes unknown keys,
+  // so t() unconditionally is identical for free text and correct for all statuses.
+  return t(f as DictKey)
 }
 
 /** Daily: lifestyle signals first (priority order), then the rest. */

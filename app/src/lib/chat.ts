@@ -365,6 +365,28 @@ export async function markRead(roomId: string, userId: string) {
   })
 }
 
+/**
+ * Leave a room: drop the caller's participant seat (zero-migration soft
+ * leave — history stays for the other side; reopening recreates the seat).
+ * Support seats are sticky: leaving the support line just hides it until the
+ * user contacts support again.
+ */
+export async function leaveChatRoom(roomId: string, userId: string): Promise<boolean> {
+  const res = await db.chatParticipant.deleteMany({ where: { roomId, userId } })
+  // Dropping my typing heartbeat too — no ghost "typing…" for the peer.
+  await db.chatTyping.deleteMany({ where: { roomId, userId } }).catch(() => {})
+  return res.count > 0
+}
+
+/** Peer seats + sender display name for the new-message push fan-out. */
+export async function getRoomPushPeers(roomId: string, senderId: string) {
+  const [peers, sender] = await Promise.all([
+    db.chatParticipant.findMany({ where: { roomId, userId: { not: senderId } }, select: { userId: true } }),
+    db.user.findUnique({ where: { id: senderId }, select: { name: true } }),
+  ])
+  return { peerIds: peers.map((p) => p.userId), senderName: sender?.name ?? "sivrce" }
+}
+
 /** The counterparty's newest read position — powers ✓✓ receipts. */
 export async function getPeerLastReadAt(roomId: string, userId: string): Promise<string | null> {
   const peers = await db.chatParticipant.findMany({

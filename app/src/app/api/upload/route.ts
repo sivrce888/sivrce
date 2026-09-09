@@ -1,8 +1,10 @@
 /**
  * File upload endpoint: accepts image files, normalizes them with sharp and
- * stores four objects in R2:
+ * stores five objects in R2:
  *   <key>            — master: EXIF-rotated, ≤2560px, WebP q82
  *   <key>.card.webp  — 800px grid/card, WebP q78 (see src/lib/media.ts cardOf)
+ *   <key>.card.avif  — 800px grid/card, AVIF q50 — ListingCard <picture> picks
+ *                      it first (~30% smaller); old photos fall back to WebP
  *   <key>.lqip.webp  — 16px blur placeholder (see src/lib/media.ts lqipOf)
  *   <key>.og.jpg     — 1200×630 share card, JPEG q82 (see src/lib/media.ts ogOf)
  *
@@ -126,6 +128,12 @@ export async function POST(req: Request) {
       .resize({ width: 800, withoutEnlargement: true })
       .webp({ quality: 78 })
       .toBuffer()
+    // ponytail: AVIF card only (grids = traffic). AVIF master when Safari<16 dies.
+    const cardAvif = await base
+      .clone()
+      .resize({ width: 800, withoutEnlargement: true })
+      .avif({ quality: 50 })
+      .toBuffer()
     const lqip = await base
       .clone()
       .resize({ width: 16 })
@@ -139,11 +147,14 @@ export async function POST(req: Request) {
       .jpeg({ quality: 82 })
       .toBuffer()
 
-    const result = await uploadFile({ key, body: master, contentType: "image/webp" })
+    // ponytail: uuid keys never change — year-long immutable lets R2/CDN skip revalidation.
+    const cc = "public, max-age=31536000, immutable"
+    const result = await uploadFile({ key, body: master, contentType: "image/webp", cacheControl: cc })
     await Promise.all([
-      uploadFile({ key: key.replace(/\.webp$/, ".card.webp"), body: card, contentType: "image/webp" }),
-      uploadFile({ key: key.replace(/\.webp$/, ".lqip.webp"), body: lqip, contentType: "image/webp" }),
-      uploadFile({ key: key.replace(/\.webp$/, ".og.jpg"), body: og, contentType: "image/jpeg" }),
+      uploadFile({ key: key.replace(/\.webp$/, ".card.webp"), body: card, contentType: "image/webp", cacheControl: cc }),
+      uploadFile({ key: key.replace(/\.webp$/, ".card.avif"), body: cardAvif, contentType: "image/avif", cacheControl: cc }),
+      uploadFile({ key: key.replace(/\.webp$/, ".lqip.webp"), body: lqip, contentType: "image/webp", cacheControl: cc }),
+      uploadFile({ key: key.replace(/\.webp$/, ".og.jpg"), body: og, contentType: "image/jpeg", cacheControl: cc }),
     ])
     return Response.json({ ok: true, url: result.url, key }, { status: 201 })
   } catch (err) {

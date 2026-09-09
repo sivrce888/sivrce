@@ -199,6 +199,19 @@
   --chip-construction: #eff3ff;
 }
 
+/* ponytail: pre-16.2 fallback — oklch declarations are dropped there, so pin
+   the two vars everything inherits to locked hex (BRAND.md §3.3 dark pair). */
+@supports not (color: oklch(1 0 0)) {
+  :root {
+    --background: #ffffff;
+    --foreground: #0a1030;
+  }
+  .dark {
+    --background: #060b21;
+    --foreground: #e9edff;
+  }
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -316,6 +329,15 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  /* ponytail: keyboard-focus floor for bare links/controls — component rings
+     win where present; dark uses blue-light per BRAND.md §3.3 (≥3:1 on navy). */
+  :where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--sv-blue);
+    outline-offset: 2px;
+  }
+  .dark :where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+    outline-color: var(--sv-blue-light);
   }
   html {
     scroll-behavior: smooth;
@@ -1108,6 +1130,10 @@ html[data-lite] .sv-progress {
   .sv-sky-in, .sv-nav-in,
   .sv-spinner, .sv-spinner-sm {
     animation: none !important;
+  }
+  /* ponytail: static ring still reads as "loading" without motion. */
+  .sv-spinner, .sv-spinner-sm {
+    opacity: 0.55;
   }
 }
 

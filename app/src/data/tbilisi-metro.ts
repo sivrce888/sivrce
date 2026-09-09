@@ -1,6 +1,6 @@
 /**
  * SIVRCE — Tbilisi Metro station catalog (programmatic SEO).
- * All 22 stations of both lines, coordinates from OSM (tbilisi-pois.json,
+ * All 22 stations of both lines, coordinates from OSM (georgia-pois.json,
  * category=metro; Sadguris Moedani's twin nodes averaged).
  *
  * `near` is the pre-inflected genitive + adessive phrase used in the exact

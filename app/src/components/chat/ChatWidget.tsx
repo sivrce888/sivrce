@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -17,10 +18,16 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
+  Copy,
+  ExternalLink,
+  Flag,
   HelpCircle,
   LifeBuoy,
+  LogOut,
   MessageCircle,
+  MoreHorizontal,
   RotateCcw,
+  Search,
   Send,
   X,
 } from "lucide-react"
@@ -206,6 +213,10 @@ const MessageBubble = memo(function MessageBubble({
   lang,
   onRetry,
   retryLabel,
+  menu,
+  reported,
+  onCopy,
+  onReport,
 }: {
   msg: ChatMessage
   own: boolean
@@ -216,11 +227,33 @@ const MessageBubble = memo(function MessageBubble({
   lang: string
   onRetry?: (m: ChatMessage) => void
   retryLabel?: string
+  /** Copy/report affordances — report only offered on peer messages. */
+  menu: { copy: string; copied: string; report: string; reported: string; actions: string }
+  reported: boolean
+  onCopy: (m: ChatMessage) => void
+  onReport: (m: ChatMessage) => void
 }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const onMenuKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") setMenuOpen(false)
+  }
+  const doCopy = () => {
+    setMenuOpen(false)
+    onCopy(msg)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1600)
+  }
+  const doReport = () => {
+    setMenuOpen(false)
+    onReport(msg)
+  }
   return (
-    <div className={`flex ${own ? "justify-end" : "justify-start"} ${firstOfGroup ? "mt-3" : "mt-0.5"}`}>
+    <div
+      className={`group flex ${own ? "justify-end" : "justify-start"} ${firstOfGroup ? "mt-3" : "mt-0.5"}`}
+    >
       <div
-        className={`max-w-[82%] rounded-2xl px-3.5 py-2 text-[14px] font-medium leading-relaxed ${
+        className={`relative max-w-[82%] rounded-2xl px-3.5 py-2 text-[14px] font-medium leading-relaxed ${
           own ? "bg-sv-blue text-white" : "bg-sv-ink/[0.06] text-sv-ink"
         } ${own && lastOfGroup ? "rounded-br-md" : ""} ${!own && firstOfGroup ? "rounded-bl-md" : ""} ${
           msg.status === "failed" ? "ring-1 ring-sv-orange/60" : ""
@@ -271,6 +304,57 @@ const MessageBubble = memo(function MessageBubble({
               ) : (
                 <Check className="h-3.5 w-3.5" aria-hidden />
               )
+            )}
+            {/* ⋯ — copy always, report on peer messages; hover/focus reveal,
+                tap-reveal on touch via menuOpen. */}
+            {msg.status !== "pending" && (
+              <span
+                className={`relative ${menuOpen ? "" : "opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"}`}
+                onKeyDown={onMenuKeyDown}
+              >
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-label={menu.actions}
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
+                  className={`grid h-5 w-5 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+                    own ? "hover:bg-white/20" : "hover:bg-sv-ink/10"
+                  }`}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" aria-hidden />
+                </button>
+                {menuOpen && (
+                  <span
+                    role="menu"
+                    className={`absolute bottom-6 z-20 w-36 overflow-hidden rounded-control bg-sv-surface py-1 shadow-panel-dark ring-1 ring-sv-ink/10 ${
+                      own ? "end-0" : "start-0"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={doCopy}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.05] focus-visible:outline-none focus-visible:bg-sv-ink/[0.05]"
+                    >
+                      <Copy className="h-3.5 w-3.5" aria-hidden />
+                      {copied ? menu.copied : menu.copy}
+                    </button>
+                    {!own && (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={reported}
+                        onClick={doReport}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.05] focus-visible:outline-none focus-visible:bg-sv-ink/[0.05] disabled:opacity-50"
+                      >
+                        <Flag className="h-3.5 w-3.5" aria-hidden />
+                        {reported ? menu.reported : menu.report}
+                      </button>
+                    )}
+                  </span>
+                )}
+              </span>
             )}
           </div>
         )}
@@ -594,6 +678,41 @@ function MessageThread({ roomId }: { roomId: string }) {
     [sendText],
   )
 
+  /** Copy/report affordances — reported ids disable the report item. */
+  const [reportedIds, setReportedIds] = useState<Set<string>>(new Set())
+  const copyMsg = useCallback((m: ChatMessage) => {
+    try {
+      void navigator.clipboard?.writeText(m.content)
+    } catch {
+      // ponytail: clipboard denied — the menu still closes, nothing lost
+    }
+  }, [])
+  const reportMsg = useCallback(
+    async (m: ChatMessage) => {
+      try {
+        const res = await fetch(`/api/chat/${roomId}/report`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId: m.id }),
+        })
+        if (res.ok) setReportedIds((prev) => new Set(prev).add(m.id))
+      } catch {
+        // ponytail: retry from the menu on next open
+      }
+    },
+    [roomId],
+  )
+  const menuLabels = useMemo(
+    () => ({
+      copy: t("chat.copy"),
+      copied: t("chat.copied"),
+      report: t("chat.report"),
+      reported: t("chat.reported"),
+      actions: t("chat.msgActions"),
+    }),
+    [t],
+  )
+
   if (!loaded) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -666,6 +785,10 @@ function MessageThread({ roomId }: { roomId: string }) {
                   lang={lang}
                   onRetry={retry}
                   retryLabel={t("chat.retry")}
+                  menu={menuLabels}
+                  reported={reportedIds.has(m.id)}
+                  onCopy={copyMsg}
+                  onReport={reportMsg}
                 />
               </Fragment>
             )
@@ -707,6 +830,83 @@ function MessageThread({ roomId }: { roomId: string }) {
 
 const SHEET_EASE = "ease-[cubic-bezier(0.32,0.72,0,1)]"
 
+/** Per-room ⋯ menu: jump to the listing, or leave (two-tap, no modal). */
+function RoomMenu({ room, onLeave }: { room: ChatRoom; onLeave: (id: string) => void }) {
+  const { t } = useI18n()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [armLeave, setArmLeave] = useState(false)
+  const armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => () => clearTimeout(armTimer.current), [])
+  // Fresh room → fresh menu state via key={room.id} at the call site (no
+  // armed Leave leaking across rooms, no set-state-in-effect).
+
+  const onMenuKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      setMenuOpen(false)
+      setArmLeave(false)
+    }
+  }
+  const tapLeave = () => {
+    if (!armLeave) {
+      setArmLeave(true)
+      clearTimeout(armTimer.current)
+      armTimer.current = setTimeout(() => setArmLeave(false), 3000)
+      return
+    }
+    clearTimeout(armTimer.current)
+    setMenuOpen(false)
+    setArmLeave(false)
+    void onLeave(room.id)
+  }
+
+  return (
+    <span className="relative shrink-0" onKeyDown={onMenuKeyDown}>
+      <button
+        type="button"
+        onClick={() => {
+          setMenuOpen((v) => !v)
+          setArmLeave(false)
+        }}
+        aria-label={t("chat.roomActions")}
+        aria-expanded={menuOpen}
+        aria-haspopup="menu"
+        className="grid h-9 w-9 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+      >
+        <MoreHorizontal className="h-4.5 w-4.5" aria-hidden />
+      </button>
+      {menuOpen && (
+        <span
+          role="menu"
+          className="absolute end-0 top-10 z-20 w-44 overflow-hidden rounded-control bg-sv-surface py-1 shadow-panel-dark ring-1 ring-sv-ink/10"
+        >
+          {room.listingId && (
+            <a
+              role="menuitem"
+              href={`/listing/${room.listingId}`}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.05] focus-visible:outline-none focus-visible:bg-sv-ink/[0.05]"
+            >
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+              {t("chat.viewListing")}
+            </a>
+          )}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={tapLeave}
+            className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-bold transition-colors hover:bg-sv-ink/[0.05] focus-visible:outline-none focus-visible:bg-sv-ink/[0.05] ${
+              armLeave ? "text-sv-orange" : "text-sv-ink"
+            }`}
+          >
+            <LogOut className="h-3.5 w-3.5" aria-hidden />
+            {armLeave ? t("chat.leaveConfirm") : t("chat.leave")}
+          </button>
+        </span>
+      )}
+    </span>
+  )
+}
+
 export default function ChatWidget() {
   const { t, lang } = useI18n()
   const router = useRouter()
@@ -726,6 +926,7 @@ export default function ChatWidget() {
     unread,
     totalUnread,
     openSupportChat,
+    leaveRoom,
   } = useChat()
 
   const launcherRef = useRef<HTMLButtonElement>(null)
@@ -734,6 +935,16 @@ export default function ChatWidget() {
 
   /** Room list vs help assistant (pre-room view). */
   const [view, setView] = useState<"rooms" | "faq">("rooms")
+  /** Room-list filter — rendered only once the list is long enough to need it. */
+  const [roomQuery, setRoomQuery] = useState("")
+  const visibleRooms =
+    roomQuery.trim().length === 0
+      ? rooms
+      : rooms.filter((r) => {
+          const q = roomQuery.trim().toLowerCase()
+          const hay = `${r.isSupport ? t("chat.supportName") : ""} ${r.counterpart?.name ?? ""} ${r.listing?.title ?? ""} ${r.title} ${r.lastMessage?.content ?? ""}`.toLowerCase()
+          return hay.includes(q)
+        })
 
   const openSupport = useCallback(() => {
     if (guest) {
@@ -943,6 +1154,7 @@ export default function ChatWidget() {
                 <p className="truncate text-[11.5px] font-semibold text-sv-ink/60">{headerSub}</p>
               )}
             </div>
+            {activeRoom && <RoomMenu key={activeRoom.id} room={activeRoom} onLeave={leaveRoom} />}
             <button
               onClick={close}
               aria-label={t("chat.close")}
@@ -964,6 +1176,22 @@ export default function ChatWidget() {
                 onFaq={() => setView("faq")}
                 onSupport={openSupport}
               />
+              {rooms.length > 4 && (
+                <div className="relative px-1 pb-2">
+                  <Search
+                    className="pointer-events-none absolute start-4 top-1/2 h-3.5 w-3.5 -translate-y-[calc(50%+4px)] text-sv-ink/35"
+                    aria-hidden
+                  />
+                  <input
+                    type="search"
+                    value={roomQuery}
+                    onChange={(e) => setRoomQuery(e.target.value)}
+                    placeholder={t("chat.search")}
+                    aria-label={t("chat.search")}
+                    className="w-full rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] py-2 pe-3 ps-8 text-[13.5px] font-medium text-sv-ink outline-none transition-colors placeholder:text-sv-ink/35 focus:border-sv-blue/40"
+                  />
+                </div>
+              )}
               {loading && rooms.length === 0 ? (
                 <div className="flex items-center justify-center py-12">
                   <span className="sv-spinner" aria-hidden />
@@ -977,9 +1205,13 @@ export default function ChatWidget() {
                     {t("chat.empty")}
                   </p>
                 </div>
+              ) : visibleRooms.length === 0 ? (
+                <p className="px-4 py-10 text-center text-[13px] font-medium text-sv-ink/60">
+                  {t("chat.noResults")}
+                </p>
               ) : (
                 <div className="space-y-1">
-                  {rooms.map((room) => (
+                  {visibleRooms.map((room) => (
                     <RoomListItem
                       key={room.id}
                       room={room}

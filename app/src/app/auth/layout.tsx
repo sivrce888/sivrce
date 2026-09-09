@@ -20,7 +20,8 @@ import { BRAND } from "@/lib/brand";
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
-  display: "swap",
+  // ponytail: optional like [lang]/layout — swap caused late-swap jank on auth LCP
+  display: "optional",
   preload: false,
 });
 

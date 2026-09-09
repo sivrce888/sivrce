@@ -29,6 +29,8 @@ assert.ok(MAP_POIS.some((p) => p.category === 'pharmacy'), 'pharmacy required')
 assert.ok(MAP_POIS.some((p) => p.category === 'school'), 'school required')
 assert.ok(MAP_POIS.some((p) => p.category === 'university'), 'university required')
 assert.ok(MAP_POIS.some((p) => p.category === 'park'), 'park required')
+assert.ok(MAP_POIS.some((p) => p.category === 'landmark'), 'landmark required')
+assert.ok(POI_CATEGORIES.includes('landmark'))
 assert.ok(POI_CATEGORIES.includes('university'))
 assert.ok(POI_MIN_ZOOM.pharmacy > POI_MIN_ZOOM.metro)
 assert.ok(POI_MIN_ZOOM.school > POI_MIN_ZOOM.university)
@@ -67,7 +69,14 @@ assert.equal(nearestMetro(41.788, 44.77)?.name, 'სარაჯიშვილ�
 const axisNear = nearestAmenities(41.71174204, 44.75668685)
 assert.ok(axisNear.length >= 2, `axis amenities ${axisNear.length}`)
 assert.ok(axisNear.every((a) => a.meters > 0 && a.walkMin >= 1))
-assert.equal(nearestAmenities(41.61, 41.62).length, 0) // Batumi — Tbilisi POIs out of catchment
+assert.equal(nearestAmenities(41.95, 43.3).length, 0) // rural Georgia — outside POI cities
+// Batumi + Kutaisi now have POIs — multi-city nearby works, not Tbilisi-only.
+const batumiNear = nearestAmenities(41.645471, 41.626121)
+assert.ok(batumiNear.some((a) => a.category === 'pharmacy'), `batumi amenities ${batumiNear.length}`)
+assert.ok(
+  MAP_POIS.some((p) => p.category === 'landmark' && p.lat < 41.7 && p.lng < 41.8),
+  'batumi landmark required',
+)
 
 const fc = poisToGeoJSON()
 assert.equal(fc.features.length, MAP_POIS.length)

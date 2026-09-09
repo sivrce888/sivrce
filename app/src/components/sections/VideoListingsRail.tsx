@@ -8,7 +8,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { listingPath } from '@/lib/listing-slug'
 import { useCurrency, formatListingPrice } from '@/lib/currency'
 import type { Listing } from '@/lib/listings-db'
-import { cardOf } from '@/lib/media'
+import { avifCardOf, cardOf } from '@/lib/media'
 
 /** Homepage portrait rail — listings with YouTube or uploaded video. */
 export default function VideoListingsRail({ items }: { items: Listing[] }) {
@@ -46,6 +46,7 @@ export default function VideoListingsRail({ items }: { items: Listing[] }) {
                 rate,
               }).primary
               const src = cardOf(l.img) ?? l.img
+              const avif = avifCardOf(l.img)
               return (
                 <LocalizedLink
                   key={l.id}
@@ -53,16 +54,19 @@ export default function VideoListingsRail({ items }: { items: Listing[] }) {
                   className="group relative w-[148px] shrink-0 overflow-hidden rounded-tile shadow-card transition-transform duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:scale-[1.03] hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
                 >
                   <span className="relative block aspect-[9/16] bg-sv-navy-soft">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={src}
-                      alt=""
-                      width={296}
-                      height={526}
-                      loading="lazy"
-                      decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
+                    { }
+                    <picture className="absolute inset-0">
+                      {avif ? <source srcSet={avif} type="image/avif" /> : null}
+                      <img
+                        src={src}
+                        alt=""
+                        width={296}
+                        height={526}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover"
+                      />
+                    </picture>
                     <span className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-sv-navy/80 to-transparent" />
                     <span
                       className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white shadow-glow-blue-sm backdrop-blur-sm transition-transform duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] group-hover:scale-110"

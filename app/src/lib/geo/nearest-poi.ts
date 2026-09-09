@@ -1,10 +1,10 @@
 /**
- * Seed `pois` from committed tbilisi-pois.json + recompute listing_nearest_poi.
- * Map JSON categories → PoiKind enum (university/gym → other; shop → supermarket).
+ * Seed `pois` from committed georgia-pois.json + recompute listing_nearest_poi.
+ * Map JSON categories → PoiKind enum (university/gym/landmark → other; shop → supermarket).
  */
 
 import type { PoiKind } from "@/generated/prisma/client"
-import raw from "@/data/tbilisi-pois.json"
+import raw from "@/data/georgia-pois.json"
 import { db } from "@/lib/db"
 import { METRO_MAX_CATCHMENT_M } from "@/lib/geo/nearest-poi-constants"
 import { poiUuid } from "@/lib/geo/nearest-poi-pure"
@@ -22,6 +22,7 @@ const CAT_TO_KIND: Record<string, PoiKind> = {
   shop: "supermarket",
   gym: "other",
   hospital: "hospital",
+  landmark: "other",
 }
 
 export async function seedPoisFromJson(): Promise<{ upserted: number }> {

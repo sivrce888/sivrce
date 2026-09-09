@@ -928,12 +928,18 @@ async function main() {
   assert.equal(axisFc.features[0]!.properties!.label, 'აქსის თაუერსი')
   assert.equal(axisFc.features[0]!.properties!.code, axis!.code)
   assert.match(String(axisFc.features[0]!.properties!.hue), /^#[0-9A-Fa-f]{6}$/)
+  // Catalog now holds every project — construction inventory rides catalog
+  // shells (status=construction, zero listings), not dev- ghosts.
   const onlyBuild = filterBuildings(
-    projectsToConstructionBuildings(PROJECTS),
+    BUILDINGS.map((b) => catalogToCluster(b, [])),
     'all',
     'construction',
   )
-  assert.ok(onlyBuild.length > 0, 'construction filter returns ghosts')
+  assert.ok(onlyBuild.length > 0, 'construction filter returns catalog shells')
+  assert.ok(
+    onlyBuild.every((b) => b.status === 'construction'),
+    'construction filter leaks ready buildings',
+  )
   assert.ok(onlyBuild.every((b) => b.status === 'construction'))
   assert.ok(onlyBuild.every((b) => b.label.length > 0 && !/^SV-TB-/.test(b.label)))
 

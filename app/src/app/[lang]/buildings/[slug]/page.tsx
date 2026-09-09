@@ -15,6 +15,7 @@ import {
   Hospital,
   ShoppingBag,
   Landmark,
+  Castle,
   Dumbbell,
   Pill,
   type LucideIcon,
@@ -69,7 +70,7 @@ import { dirLoc, type DirLoc } from '@/lib/directory-seo'
 import { DISTRICTS } from '@/lib/seo-pages'
 import { priceScaleOf } from '@/lib/price-scale'
 import { medianOf } from '@/lib/market-stats-core'
-import { cardOf } from '@/lib/media'
+import { avifCardOf, cardOf } from '@/lib/media'
 import { buildingScoreOf, type BuildingFactorKey } from '@/lib/building-score'
 import { faqPageLd } from '@/lib/directory-seo'
 import { jsonLd, ogImage } from '@/lib/utils'
@@ -188,6 +189,7 @@ const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   shop: ShoppingBag,
   gym: Dumbbell,
   pharmacy: Pill,
+  landmark: Castle,
 }
 
 /** Static catalog first; DB-curated buildings (admin) as fallback so map deep-links never 404. */
@@ -413,7 +415,9 @@ export default async function BuildingPage({ params }: PageProps) {
       <main id="main">
         <div className="relative aspect-[16/9] max-h-[480px] w-full overflow-hidden md:aspect-[21/9]">
           {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
+          <picture className="contents">
+            <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(building.img)} />
           <img
             src={building.img}
             srcSet={cardOf(building.img) ? `${cardOf(building.img)} 800w, ${building.img} 2560w` : undefined}
@@ -422,6 +426,7 @@ export default async function BuildingPage({ params }: PageProps) {
             fetchPriority="high"
             className="absolute inset-0 h-full w-full object-cover"
           />
+          </picture>
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">

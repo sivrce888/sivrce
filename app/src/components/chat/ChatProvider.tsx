@@ -69,6 +69,8 @@ interface ChatContextValue {
   totalUnread: number
   /** Refresh rooms + unread */
   refreshRooms: () => Promise<void>
+  /** Leave a room (drops it from the list; history stays for the peer) */
+  leaveRoom: (roomId: string) => Promise<void>
   /** Pending target (open the panel onto this room when it opens) */
   pendingTarget: ChatTarget | null
   /** Signed-in user's id — own vs peer message routing */
@@ -195,6 +197,23 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     lastTargetRef.current = null
   }, [])
 
+  const leaveRoom = useCallback(async (roomId: string) => {
+    try {
+      const res = await fetch(`/api/chat/${roomId}`, { method: "DELETE" })
+      if (!res.ok) return
+    } catch {
+      return // ponytail: offline leave retries on next tap
+    }
+    setRooms((prev) => prev.filter((r) => r.id !== roomId))
+    setUnread((prev) => {
+      if (!(roomId in prev)) return prev
+      const next = { ...prev }
+      delete next[roomId]
+      return next
+    })
+    setActiveRoomId((cur) => (cur === roomId ? null : cur))
+  }, [])
+
   // Panel opened with a target → get/create the room, jump into it. The
   // target is consumed once resolved so a later plain open lands on the list.
   useEffect(() => {
@@ -247,6 +266,30 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     })()
   }, [open, pendingTarget, refreshRooms])
 
+  // Push-notification deep link: /?chat=<roomId> opens straight into the
+  // room (read from window.location — zero Suspense risk vs useSearchParams).
+  // Runs once rooms land; the param is scrubbed so refresh stays clean.
+  const deepLinkDone = useRef(false)
+  useEffect(() => {
+    if (!authed || loading || deepLinkDone.current) return
+    let id: string | null = null
+    try {
+      id = new URLSearchParams(window.location.search).get("chat")
+    } catch {
+      id = null
+    }
+    if (!id) return
+    deepLinkDone.current = true
+    window.history.replaceState(null, "", window.location.pathname)
+    if (!rooms.some((r) => r.id === id)) return
+    // Async so the lint-blessed batch lands off-render (same as sign-out reset).
+    const t = setTimeout(() => {
+      setActiveRoomId(id)
+      setOpen(true)
+    }, 0)
+    return () => clearTimeout(t)
+  }, [authed, loading, rooms])
+
   // Stable context identity: consumers (listing pages, launcher, panel) only
   // re-render when actual chat state changes, not on every provider render.
   const value = useMemo(
@@ -263,6 +306,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       unread,
       totalUnread,
       refreshRooms,
+      leaveRoom,
       pendingTarget,
       meId,
     }),
@@ -278,6 +322,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       unread,
       totalUnread,
       refreshRooms,
+      leaveRoom,
       pendingTarget,
       meId,
     ],

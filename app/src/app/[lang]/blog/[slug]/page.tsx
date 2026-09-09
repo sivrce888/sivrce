@@ -7,7 +7,7 @@ import Footer from '@/components/sections/Footer'
 import { BLOG_POSTS, relatedPosts } from '@/data/blog'
 import { getBlogPost } from '@/lib/blog-live'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { cardOf } from '@/lib/media'
+import { avifCardOf, cardOf } from '@/lib/media'
 import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 interface PageProps {
@@ -145,7 +145,9 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           {/* ponytail: 16px LQIP/card twins exist for pipeline covers — srcset keeps
               phones off the 2560px master; static covers have no twins, src only. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
+          <picture className="contents">
+            <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(post.cover)} />
           <img
             src={post.cover}
             srcSet={cardOf(post.cover) ? `${cardOf(post.cover)} 800w, ${post.cover} 2560w` : undefined}
@@ -154,6 +156,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             fetchPriority="high"
             className="mb-10 aspect-[16/9] w-full rounded-tile object-cover shadow-card"
           />
+          </picture>
 
           <div>{renderBody(post.body)}</div>
 

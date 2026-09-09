@@ -29,17 +29,17 @@ const csp = [
   // Next inline bootstrap + JSON-LD require 'unsafe-inline' for scripts
   `script-src 'self' 'unsafe-inline' blob:${isDev ? " 'unsafe-eval'" : ""}${capacitorOrigins}${mapOrigins}${analyticsOrigins}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://cdn.sivrce.ge https://images.sivrce.ge https://i.ytimg.com https://lh3.googleusercontent.com${capacitorOrigins}${mapOrigins}${mediaOrigins}${analyticsOrigins}`,
+  `img-src 'self' data: blob: https://cdn.sivrce.ge https://images.sivrce.ge https://i.ytimg.com https://videodelivery.net https://lh3.googleusercontent.com${capacitorOrigins}${mapOrigins}${mediaOrigins}${analyticsOrigins}`,
   "font-src 'self' data:",
-  `connect-src 'self'${capacitorOrigins} https://sivrce.ge https://*.sivrce.ge${mapOrigins}${analyticsOrigins}${featureApiOrigins}`,
+  `connect-src 'self'${capacitorOrigins} https://sivrce.ge https://*.sivrce.ge https://*.videodelivery.net${mapOrigins}${analyticsOrigins}${featureApiOrigins}`,
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
-  "media-src 'self' blob: https://cdn.sivrce.ge https://images.sivrce.ge",
+  "media-src 'self' blob: https://cdn.sivrce.ge https://images.sivrce.ge https://videodelivery.net",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'self'",
-  "frame-src 'self' https://www.googletagmanager.com https://www.youtube-nocookie.com",
+  "frame-src 'self' https://www.googletagmanager.com https://www.youtube-nocookie.com https://iframe.videodelivery.net",
   // ponytail: publickey-credentials-* are Permissions-Policy features, not CSP directives
   // ponytail: upgrade-insecure-requests on http://localhost forces map workers onto https://localhost → tiles never load
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
@@ -53,7 +53,10 @@ const securityHeaders = [
   },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // ponytail: allow-popups keeps Google OAuth popups working; same-origin alone severs opener on auth return.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+  // ponytail: one byte-class header — per-origin process isolation, zero compat risk.
+  { key: "Origin-Agent-Cluster", value: "?1" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
@@ -62,6 +65,9 @@ const securityHeaders = [
   },
   { key: "X-DNS-Prefetch-Control", value: "on" },
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+  // ponytail: no CORP — the Capacitor app fetches /api/* cross-origin
+  // (capacitor://localhost, no ACAO layer); CORP same-origin would break it
+  // even with CORS allowed.
 ];
 
 const nextConfig: NextConfig = {

@@ -5,10 +5,8 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { useInViewOnce } from '@/components/Reveal'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
-  Waves, Bath as BathTub, Palmtree, KeyRound, PawPrint, MountainSnow, Laptop,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
   Layers, BadgeCheck, Play, Camera,
-  type LucideIcon,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine } from '@/lib/listing-format'
@@ -20,30 +18,20 @@ import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { useCompareStrings } from '@/components/compare/i18n'
 import { useI18n } from '@/lib/i18n/context'
-import { PartyHouseIcon } from '@/components/PartyHouseIcon'
+import { FeatureGlyph } from '@/components/FeatureIcon'
 import { BRAND } from '@/lib/brand'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { isLandLease, rentPeriodKey } from '@/lib/add-listing-fields'
-import { cardOf } from '@/lib/media'
+import { avifCardOf, cardOf } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
-import { DAILY_SIGNAL_KEYS, pickDailySignals } from '@/lib/features'
+import { pickDailySignals } from '@/lib/features'
 import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
 import { SparkMark } from '@/components/SparkMark'
 import { sivrceScore } from '@/lib/sivrce-score'
 import { aiLabel } from '@/lib/ai-label'
 
-/* Icon map for card overlays — mirrors Collections.tsx */
-const SIGNAL_ICON: Record<(typeof DAILY_SIGNAL_KEYS)[number], LucideIcon> = {
-  'add.f.pool': Waves,
-  'add.f.jacuzzi': BathTub,
-  'add.f.partiesAllowed': PartyHouseIcon,
-  'add.f.beachfront': Palmtree,
-  'add.f.selfCheckIn': KeyRound,
-  'add.f.petsAllowed': PawPrint,
-  'add.f.skiAccess': MountainSnow,
-  'add.f.workspace': Laptop,
-}
+/* Card lifestyle chips — central FEATURE_ICON (mirrors Collections.tsx) */
 
 /* VIP badge system — locked in BRAND.vipTiers, consumed here (BRAND.md §8) */
 export const BADGE_STYLE: Record<NonNullable<Listing['badge']>, string> = {
@@ -326,27 +314,35 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {photoMountIdx(frame, photos.length).map((idx) => {
         const src = photos[idx]
         const card = cardOf(src)
-        // First row paints the LCP on grid pages — eager + high; the rest lazy.
-        const eager = i < 4
+        const avif = avifCardOf(src)
+        // First card paints the LCP on grid pages — eager + high; the rest lazy.
+        // ponytail: 1 high-priority image only — 4×fetchPriority=high contended
+        // with text-LCP bandwidth on home.
+        const eager = i < 1
         return (
           // ponytail: native lazy img — next/image was emitting <link rel=preload> for below-fold cards
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          // AVIF first (~30% smaller); missing twin (old photos) falls back to WebP automatically.
+          <picture
             key={`${src}-${idx}`}
-            src={card ?? src}
-            alt={idx === frame ? l.title : ''}
-            width={800}
-            height={600}
-            draggable={false}
-            loading={eager ? 'eager' : 'lazy'}
-            decoding="async"
-            fetchPriority={eager ? 'high' : 'low'}
-            aria-hidden={idx !== frame}
-            onError={card ? (e) => { if (e.currentTarget.src !== src) e.currentTarget.src = src } : undefined}
-            className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0 ${
+            className={`absolute inset-0 ${
               idx === frame ? 'opacity-100' : 'pointer-events-none opacity-0'
-            } ${!multi && idx === frame ? 'group-hover:scale-[1.04]' : ''}`}
-          />
+            } ${!multi && idx === frame ? 'group-hover:scale-[1.04]' : ''} transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0`}
+          >
+            {avif ? <source srcSet={avif} type="image/avif" /> : null}
+            <img
+              src={card ?? src}
+              alt={idx === frame ? l.title : ''}
+              width={800}
+              height={600}
+              draggable={false}
+              loading={eager ? 'eager' : 'lazy'}
+              decoding="async"
+              fetchPriority={eager ? 'high' : 'low'}
+              aria-hidden={idx !== frame}
+              onError={card ? (e) => { if (e.currentTarget.src !== src) e.currentTarget.src = src } : undefined}
+              className="h-full w-full object-cover"
+            />
+          </picture>
         )
       })}
       {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
@@ -560,22 +556,19 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {/* Lifestyle under price — was photo overlay, covered dots/chevrons */}
       {lifestyle.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-1">
-          {lifestyle.map((key) => {
-            const Icon = SIGNAL_ICON[key]
-            return (
-              <span
-                key={key}
-                className="flex max-w-full items-center gap-1 rounded-full bg-sv-cloud px-2 py-0.5 text-[11px] font-extrabold leading-tight text-sv-ink/70"
-              >
-                <Icon
-                  className={`h-3 w-3 shrink-0 ${key === 'add.f.partiesAllowed' ? '' : 'text-sv-blue'}`}
-                  style={key === 'add.f.partiesAllowed' ? { color: CATEGORY_BRAND.partyHouses.hue } : undefined}
-                  aria-hidden
-                />
-                <span className="truncate">{t(key)}</span>
-              </span>
-            )
-          })}
+          {lifestyle.map((key) => (
+            <span
+              key={key}
+              className="flex max-w-full items-center gap-1 rounded-full bg-sv-cloud px-2 py-0.5 text-[11px] font-extrabold leading-tight text-sv-ink/70"
+            >
+              <FeatureGlyph
+                k={key}
+                className={`h-3 w-3 shrink-0 ${key === 'add.f.partiesAllowed' ? '' : 'text-sv-blue'}`}
+                style={key === 'add.f.partiesAllowed' ? { color: CATEGORY_BRAND.partyHouses.hue } : undefined}
+              />
+              <span className="truncate">{t(key)}</span>
+            </span>
+          ))}
         </div>
       )}
 

@@ -11,7 +11,9 @@ import {
   CHAT_MESSAGE_MAX,
   getChatMessages,
   getPeerLastReadAt,
+  getRoomPushPeers,
   isChatParticipant,
+  leaveChatRoom,
   markRead,
   sendMessage,
 } from "@/lib/chat"
@@ -77,6 +79,27 @@ export async function POST(req: Request, { params }: RouteParams) {
 
   try {
     const message = await sendMessage(roomId, session.user.id, body.text.trim(), kind, metadata)
+    // Push fan-out is fire-and-forget: a dead push service must never fail
+    // the send. VAPID-less dev machines no-op inside sendPushToUser.
+    const me = session.user.id
+    const preview = body.text.trim().slice(0, 120)
+    void (async () => {
+      try {
+        const { peerIds, senderName } = await getRoomPushPeers(roomId, me)
+        const { sendPushToUser } = await import("@/lib/push")
+        await Promise.all(
+          peerIds.map((peerId) =>
+            sendPushToUser(peerId, {
+              title: senderName,
+              body: preview,
+              url: `/?chat=${roomId}`,
+            }).catch(() => {}),
+          ),
+        )
+      } catch {
+        // ponytail: poll/SSE still delivers when the app is open
+      }
+    })()
     return NextResponse.json({ message }, { status: 201 })
   } catch (error) {
     if ((error as Error).message === "not_participant") {
@@ -100,12 +123,33 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   const { roomId } = await params
+  if (!(await isChatParticipant(roomId, session.user.id))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 })
+  }
 
   try {
     await markRead(roomId, session.user.id)
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("[api/chat/roomId] PATCH failed:", (error as Error).message)
+    return NextResponse.json({ error: "server_error" }, { status: 500 })
+  }
+}
+
+/** Leave a room — drops the caller's seat; history stays for the peer. */
+export async function DELETE(_req: Request, { params }: RouteParams) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  }
+
+  const { roomId } = await params
+  try {
+    const left = await leaveChatRoom(roomId, session.user.id)
+    if (!left) return NextResponse.json({ error: "forbidden" }, { status: 403 })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error("[api/chat/roomId] DELETE failed:", (error as Error).message)
     return NextResponse.json({ error: "server_error" }, { status: 500 })
   }
 }
