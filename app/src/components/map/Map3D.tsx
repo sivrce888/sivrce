@@ -128,7 +128,7 @@ import {
 import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
 import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 // ponytail: construction photo-wrap retired — MapLibre TAS massing only.
-// Restore: import { syncConstructionRenders } from '@/lib/map/construction-renders'
+// Restore from git history (bc43637) if a GLB/façade path returns.
 import {
   Layers,
   RotateCcw,
