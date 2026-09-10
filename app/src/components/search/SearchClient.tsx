@@ -148,12 +148,15 @@ export default function SearchClient({
   embed,
   lock,
   initialHits,
+  initialTotal,
 }: {
   ads?: { top: PublicAd | null; native: PublicAd | null }
   /** SEO landings: no chrome, lock from the slug, stay on this path. */
   embed?: boolean
   lock?: SearchLock
   initialHits?: Listing[]
+  /** Hub inventory size — correct result count before /api/search resolves. */
+  initialTotal?: number
 }) {
   const params = useSearchParams()
   const router = useRouter()
@@ -371,7 +374,8 @@ export default function SearchClient({
 
   // ——— API-driven search (page from the URL; prev/next navigation) —————————
   const [results, setResults] = useState<Listing[]>(initialHits ?? [])
-  const [totalResults, setTotalResults] = useState(initialHits?.length ?? 0)
+  // ponytail: hub passes full inventory size — no "24 results" flash pre-fetch.
+  const [totalResults, setTotalResults] = useState(initialTotal ?? initialHits?.length ?? 0)
   const [totalPages, setTotalPages] = useState(0)
   const [searchLoading, setSearchLoading] = useState(!initialHits?.length)
   // Facet counts from Meilisearch (null on the DB fallback → counts hidden).

@@ -28,7 +28,7 @@ export default function SeoFilterableListings({
 }: SeoFilterableListingsProps) {
   return (
     <Suspense fallback={<FallbackGrid listings={initialListings} aria={gridAriaLabel} />}>
-      <SearchClient embed lock={lock} initialHits={initialListings.slice(0, 24)} />
+      <SearchClient embed lock={lock} initialHits={initialListings.slice(0, 24)} initialTotal={initialListings.length} />
     </Suspense>
   )
 }
