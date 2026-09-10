@@ -11,6 +11,7 @@
 
 import { db } from "@/lib/db"
 import { safeQuery } from "@/lib/guards"
+import { CONTACT_PHONE } from "@/lib/inquiries/phone"
 import { unstable_cache } from "next/cache"
 import { CITIES, districtsOf } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
@@ -260,9 +261,16 @@ function rowToListing(row: Record<string, unknown>): Listing {
     postedAt: createdAt.toISOString().slice(0, 10),
     agent: {
       name: agentRaw.name ?? "სივრცე",
-      // Never ship full phone in SSR/JS — reveal via /api/listings/[id]/phone
+      // Never ship full phone in SSR/JS — reveal via /api/listings/[id]/phone.
+      // Mask fallback mirrors resolveListingPhone (masked agent.phone and
+      // numberless rows both resolve to the switchboard) so the masked prefix
+      // always matches the number a buyer reveals.
       phone: maskPhone(
-        (r.listingPhone as string | null) || agentRaw.phone || "+995 555 00 00 00",
+        (r.listingPhone as string | null) ||
+          (typeof agentRaw.phone === 'string' && !agentRaw.phone.includes('*')
+            ? agentRaw.phone
+            : null) ||
+          CONTACT_PHONE,
       ),
       agency: agentRaw.agency ?? "სივრცე პრემიუმ",
       role: agentRaw.role === "developer"
