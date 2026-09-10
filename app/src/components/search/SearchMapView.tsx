@@ -602,7 +602,7 @@ export default function SearchMapView({
         <div className="absolute right-3 top-3 z-10 flex flex-col gap-1.5">
           <LocalizedLink
             href={visible[0] ? mapHrefForListing(visible[0]) : '/map'}
-            className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-orange text-white shadow-glow-orange transition hover:brightness-110"
+            className="grid h-11 w-11 place-items-center rounded-tile border border-sv-ink/[0.08] bg-sv-orange text-sv-ink shadow-glow-orange transition hover:brightness-110"
             aria-label={t('nav.map')}
           >
             <Layers className="h-4 w-4" strokeWidth={2.5} />

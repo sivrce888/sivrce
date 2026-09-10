@@ -101,13 +101,13 @@ export default async function MapPage({
             fallback={
               <LocalizedLink
                 href="/search"
-                className="rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+                className="rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5"
               >
                 {t('search.list')}
               </LocalizedLink>
             }
           >
-            <MapListLink className="rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5">
+            <MapListLink className="rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5">
               {t('search.list')}
             </MapListLink>
           </Suspense>

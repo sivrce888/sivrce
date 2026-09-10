@@ -60,10 +60,10 @@ export default function RevealPhone({
 
   const shell =
     variant === 'call'
-      ? `flex h-12 min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-full bg-sv-orange px-3 text-[13px] font-extrabold text-white shadow-glow-orange transition-all ${ease} hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]`
+      ? `flex h-12 min-w-0 items-center justify-center gap-1.5 overflow-hidden rounded-full bg-sv-orange px-3 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition-all ${ease} hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]`
       : variant === 'inline'
         ? `flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-sv-blue to-sv-blue-deep px-4 text-[13.5px] font-extrabold text-white shadow-glow-blue-sm transition-all ${ease} hover:opacity-95 active:scale-[0.99]`
-        : `flex h-12 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange px-4 text-[14px] font-extrabold text-white shadow-glow-orange transition-all ${ease} hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]`
+        : `flex h-12 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange px-4 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition-all ${ease} hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]`
 
   if (phone) {
     if (variant === 'call') {

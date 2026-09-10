@@ -128,7 +128,7 @@ export default async function ServiceProviderPage({ params }: PageProps) {
             <div className="flex flex-wrap gap-2">
               <a
                 href={telHref(CONTACT_PHONE)}
-                className="inline-flex items-center gap-2 rounded-full bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-white shadow-glow-orange"
+                className="inline-flex items-center gap-2 rounded-full bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
               >
                 <Phone className="h-4 w-4" />
                 დარეკვა

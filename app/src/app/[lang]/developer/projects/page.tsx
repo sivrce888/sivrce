@@ -70,7 +70,7 @@ export default async function DeveloperProjectsPage({
         {showNew || editing ? null : (
           <LocalizedLink
             href="/developer/projects?new=1"
-            className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+            className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             <Plus size={15} strokeWidth={2.5} />
             დაამატე პროექტი
@@ -90,7 +90,7 @@ export default async function DeveloperProjectsPage({
               <input type="hidden" name="id" value={editing.id} />
               <button
                 type="submit"
-                className="rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange"
+                className="rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange"
               >
                 წაშლა
               </button>

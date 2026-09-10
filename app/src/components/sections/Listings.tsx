@@ -34,7 +34,7 @@ const RAIL: Record<
     scroll: 'home.listings.scrollLabel',
     href: homeRailSearchHref('diamond'),
     Icon: Crown,
-    kickerClass: 'bg-gradient-to-r from-sv-orange to-sv-orange-deep text-white shadow-glow-orange',
+    kickerClass: 'bg-gradient-to-r from-sv-orange to-sv-orange-deep text-sv-ink shadow-glow-orange',
     sectionClass: 'bg-sv-surface',
   },
   vipPlus: {

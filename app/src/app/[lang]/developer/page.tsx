@@ -85,7 +85,7 @@ export default async function DeveloperOverviewPage() {
         </LocalizedLink>
         <LocalizedLink
           href="/add-listing?deal=sale&propType=apartment"
-          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
           გასაყიდი ბინა
@@ -173,7 +173,7 @@ export default async function DeveloperOverviewPage() {
           <div className="flex flex-col gap-3">
             <LocalizedLink
               href="/developer/projects?new=1"
-              className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+              className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
             >
               + ახალი პროექტი
             </LocalizedLink>

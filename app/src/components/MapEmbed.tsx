@@ -763,7 +763,7 @@ export default function MapEmbed({
             }}
             className={`grid h-9 w-9 place-items-center rounded-full border shadow-card backdrop-blur transition ${
               sunOn
-                ? 'border-transparent bg-sv-orange text-white'
+                ? 'border-transparent bg-sv-orange text-sv-ink'
                 : 'border-sv-ink/10 bg-white/95 text-sv-ink hover:bg-white dark:border-white/10 dark:bg-sv-navy/90 dark:text-white'
             }`}
           >

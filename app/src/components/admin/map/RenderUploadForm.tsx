@@ -64,7 +64,7 @@ export function RenderUploadForm({
           <button
             type="submit"
             disabled={upPending}
-            className="inline-flex h-9 items-center rounded-[var(--radius-control)] bg-sv-orange px-4 text-[12.5px] font-bold text-white hover:opacity-90 disabled:opacity-50"
+            className="inline-flex h-9 items-center rounded-[var(--radius-control)] bg-sv-orange px-4 text-[12.5px] font-bold text-sv-ink hover:opacity-90 disabled:opacity-50"
           >
             {upPending ? "Uploading…" : "Upload & publish"}
           </button>

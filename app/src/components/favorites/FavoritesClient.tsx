@@ -107,7 +107,7 @@ export default function FavoritesClient() {
         </p>
         <LocalizedLink
           href="/search"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+          className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
         >
           <Search className="h-4 w-4" />
           განცხადებების ძიება

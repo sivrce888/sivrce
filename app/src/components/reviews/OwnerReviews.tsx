@@ -107,7 +107,7 @@ function ReplyRow({ review: r, s }: { review: ReviewItem; s: ReviewStrings }) {
             onClick={send}
             disabled={saving || value.trim().length < 2}
             className={cn(
-              'min-h-[40px] rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]',
+              'min-h-[40px] rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2',
               'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0',
             )}

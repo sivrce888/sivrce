@@ -168,7 +168,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </p>
             <LocalizedLink
               href="/search"
-              className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-white shadow-glow-orange transition-transform hover:-translate-y-0.5"
+              className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-sv-ink shadow-glow-orange transition-transform hover:-translate-y-0.5"
             >
               ძიება <ArrowRight className="h-4 w-4" aria-hidden />
             </LocalizedLink>

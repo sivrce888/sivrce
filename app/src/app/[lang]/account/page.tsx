@@ -48,7 +48,7 @@ export default async function AccountPage() {
         <div className="mt-4 flex flex-wrap gap-2">
           <LocalizedLink
             href={searchHref(rent ? "rent" : "sale")}
-            className="inline-flex h-11 items-center gap-1.5 rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-white shadow-glow-orange transition hover:opacity-95"
+            className="inline-flex h-11 items-center gap-1.5 rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             <Search size={15} strokeWidth={2.5} aria-hidden />
             {rent ? "ქირის ძიება" : "სახლის ძიება"}

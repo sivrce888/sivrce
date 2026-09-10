@@ -26,7 +26,7 @@ export default function ContactForm() {
         <button
           type="button"
           onClick={() => setSent(false)}
-          className="mt-6 rounded-full bg-sv-orange px-6 py-3 text-sm font-bold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+          className="mt-6 rounded-full bg-sv-orange px-6 py-3 text-sm font-bold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
         >
           ახალი შეტყობინება
         </button>
@@ -67,7 +67,7 @@ export default function ContactForm() {
         </div>
         <button
           type="submit"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-sv-orange px-6 py-3.5 text-sm font-bold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-sv-orange px-6 py-3.5 text-sm font-bold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
         >
           <Send className="h-4 w-4" />
           გაგზავნა

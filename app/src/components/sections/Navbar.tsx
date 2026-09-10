@@ -161,7 +161,7 @@ export default function Navbar() {
           >
             <Heart className="h-[18px] w-[18px]" />
             {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-sv-orange px-1 text-[10px] font-black text-white">
+              <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-sv-orange px-1 text-[10px] font-black text-sv-ink">
                 {count > 99 ? '99+' : count}
               </span>
             )}
@@ -174,7 +174,7 @@ export default function Navbar() {
             href={localizedHref("/add-listing", lang)}
             data-cms-key="nav.addListing"
             aria-label={t('nav.addListing')}
-            className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
+            className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
           >
             <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
             <span className="hidden min-[1366px]:inline">{t('nav.addListing')}</span>
@@ -285,7 +285,7 @@ export default function Navbar() {
               <span className="relative grid h-10 w-10 place-items-center text-sv-ink/70">
                 <Heart className="h-[18px] w-[18px]" />
                 {count > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-sv-orange px-1 text-[10px] font-black text-white">
+                  <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-sv-orange px-1 text-[10px] font-black text-sv-ink">
                     {count > 99 ? '99+' : count}
                   </span>
                 )}
@@ -295,7 +295,7 @@ export default function Navbar() {
             <Link
               href={localizedHref("/add-listing", lang)}
               onClick={() => setOpen(false)}
-              className="mt-2 flex items-center justify-center gap-2 rounded-full bg-sv-orange px-4 py-3.5 text-[15px] font-black text-white shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="mt-2 flex items-center justify-center gap-2 rounded-full bg-sv-orange px-4 py-3.5 text-[15px] font-black text-sv-ink shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               <Plus className="h-4 w-4" /> {t('nav.addListingFull')}
             </Link>

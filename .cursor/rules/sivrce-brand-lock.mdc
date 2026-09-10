@@ -20,11 +20,11 @@ fonts, radii, shadows, logo geometry, or category hues. Owner-approved lock.
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `sv-blue` | #2E6BFF | primary |
+| `sv-blue` | #2A5FEF | primary |
 | `sv-blue-light` | #8FB4FF | light |
 | `sv-blue-deep` | #1A3FC0 | blue hover |
 | `sv-violet` | #7A5CFF | gradients only |
-| `sv-orange` | #FF6A2D | CTAs / action ≤10% · fills use `text-white` |
+| `sv-orange` | #FF6A2D | CTAs / action ≤10% · fills use `text-sv-ink` AA |
 | `sv-orange-light` | #FFB25E | action gradient |
 | `sv-orange-deep` | #FF4D6D | VIP gradients |
 | `sv-navy` | #050B26 | hero / dark / footer |

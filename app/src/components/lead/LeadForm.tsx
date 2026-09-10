@@ -141,7 +141,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
               <button
                 type="button"
                 onClick={() => void submit()}
-                className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-extrabold text-white transition-all hover:shadow-glow-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
+                className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-extrabold text-sv-ink transition-all hover:shadow-glow-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                 {s.retry}
@@ -254,7 +254,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition-all hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
             >
               {status === 'sending' ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

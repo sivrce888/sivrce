@@ -97,7 +97,7 @@ export function ShareSheet({
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="flex h-12 items-center gap-3 rounded-control bg-sv-orange px-4 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:opacity-95"
+            className="flex h-12 items-center gap-3 rounded-control bg-sv-orange px-4 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             <MessageCircle className="h-5 w-5" />
             WhatsApp
@@ -171,7 +171,7 @@ export function SendToClientButton({
           lang,
         )
       }
-      className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-3 py-1.5 text-[11px] font-extrabold text-white shadow-glow-orange transition hover:opacity-95"
+      className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-3 py-1.5 text-[11px] font-extrabold text-sv-ink shadow-glow-orange transition hover:opacity-95"
     >
       <MessageCircle size={13} strokeWidth={2.4} />
       {t("detail.sendToClient")}

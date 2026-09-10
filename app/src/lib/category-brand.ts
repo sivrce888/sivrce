@@ -20,7 +20,7 @@ export type CategoryBrand = {
 }
 
 export const CATEGORY_BRAND = {
-  apartments:  { hue: '#2E6BFF', chip: '#EFF3FF', chipVar: 'var(--chip-apartments)' }, // ბინები — brand blue
+  apartments:  { hue: '#2a5fef', chip: '#EFF3FF', chipVar: 'var(--chip-apartments)' }, // ბინები — brand blue
   houses:      { hue: '#FF6A2D', chip: '#FFF3EF', chipVar: 'var(--chip-houses)' }, // სახლები — action orange
   cottages:    { hue: '#16A34A', chip: '#EDF8F1', chipVar: 'var(--chip-cottages)' }, // აგარაკები — garden green
   land:        { hue: '#D97706', chip: '#FCF4EB', chipVar: 'var(--chip-land)' }, // მიწის ნაკვეთები — earth amber
@@ -34,7 +34,7 @@ export const CATEGORY_BRAND = {
 } as const satisfies Record<string, CategoryBrand>
 
 export const SERVICE_BRAND = {
-  agents:     { hue: '#2E6BFF', chip: '#EFF3FF', chipVar: 'var(--chip-apartments)' }, // აგენტები და სააგენტოები — brand blue
+  agents:     { hue: '#2a5fef', chip: '#EFF3FF', chipVar: 'var(--chip-apartments)' }, // აგენტები და სააგენტოები — brand blue
   developers: { hue: '#7C3AED', chip: '#F5F0FE', chipVar: 'var(--chip-commercial)' }, // დეველოპერები — violet
   renovation: { hue: '#FF6A2D', chip: '#FFF3EF', chipVar: 'var(--chip-houses)' }, // რემონტი და კალკულატორი — orange
   mortgage:   { hue: '#16A34A', chip: '#EDF8F1', chipVar: 'var(--chip-cottages)' }, // იპოთეკა და ფინანსები — green

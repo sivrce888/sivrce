@@ -128,7 +128,7 @@ function RoomListItem({
             {lastMsg ? previewText(lastMsg.content) : "—"}
           </span>
           {unreadCount > 0 && (
-            <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-sv-orange px-1.5 text-[10px] font-black text-white">
+            <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-sv-orange px-1.5 text-[10px] font-black text-sv-ink">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -1093,7 +1093,7 @@ export default function ChatWidget() {
           <X className="h-5 w-5" aria-hidden />
         </span>
         {!open && totalUnread > 0 && (
-          <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-sv-orange px-1.5 text-[10px] font-black text-white ring-2 ring-sv-surface">
+          <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-sv-orange px-1.5 text-[10px] font-black text-sv-ink ring-2 ring-sv-surface">
             {totalUnread > 99 ? "99+" : totalUnread}
           </span>
         )}

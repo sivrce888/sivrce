@@ -224,7 +224,7 @@ export default async function CareersPage({ params }: { params: Promise<{ lang: 
         >
           <a
             href="#apply"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-black text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-black text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
             {c.hero.cta}
             <ArrowRight className="h-4 w-4" />

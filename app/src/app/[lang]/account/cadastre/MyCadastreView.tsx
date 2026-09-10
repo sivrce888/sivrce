@@ -165,7 +165,7 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
             </p>
             <LocalizedLink
               href="/add-listing"
-              className="mt-5 inline-flex h-11 items-center justify-center rounded-pill bg-sv-orange px-5 text-[13px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+              className="mt-5 inline-flex h-11 items-center justify-center rounded-pill bg-sv-orange px-5 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5"
             >
               განცხადების დამატება
             </LocalizedLink>

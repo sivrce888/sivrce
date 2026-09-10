@@ -83,7 +83,7 @@ export default async function SellerOverviewPage() {
       <div className="mb-5 flex justify-end">
         <LocalizedLink
           href={addHref}
-          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
           {rent ? "დაამატე გასაქირავებელი" : "დაამატე განცხადება"}
@@ -162,7 +162,7 @@ export default async function SellerOverviewPage() {
           <div className="flex flex-col gap-3">
             <LocalizedLink
               href={addHref}
-              className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+              className="rounded-full bg-sv-orange px-5 py-3.5 text-center text-[14px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
             >
               {rent ? "+ ქირის განცხადება" : "+ ახალი განცხადება"}
             </LocalizedLink>

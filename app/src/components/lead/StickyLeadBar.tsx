@@ -82,7 +82,7 @@ export function StickyLeadBar({ targetType, targetId, phone, recipientName, clas
               id="sticky-lead-message"
               type="button"
               onClick={onMessage}
-              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full bg-sv-orange text-[15px] font-extrabold text-white shadow-glow-orange transition-all hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
+              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full bg-sv-orange text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
             >
               <MessageCircle className="h-4.5 w-4.5" aria-hidden />
               {s.messageAction}

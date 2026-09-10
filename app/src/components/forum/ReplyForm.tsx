@@ -155,7 +155,7 @@ export function ReplyForm({
         <button
           type="submit"
           disabled={submitting}
-          className="flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 disabled:opacity-60"
+          className="flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 disabled:opacity-60"
         >
           {submitting ? 'იგზავნება…' : 'გაგზავნა'}
         </button>

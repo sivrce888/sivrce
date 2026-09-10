@@ -116,7 +116,7 @@ export default function MyReviews({ signedIn }: { signedIn: boolean }) {
           <p className="text-[14px] font-semibold text-sv-ink/60">{tt('reviewsSignIn')}</p>
           <Link
             href="/auth/signin?callbackUrl=/account"
-            className="flex h-11 items-center gap-2 rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-white shadow-glow-orange transition-all hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+            className="flex h-11 items-center gap-2 rounded-full bg-sv-orange px-5 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition-all hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
           >
             <LogIn className="h-4 w-4" aria-hidden="true" />
             {tt('signIn')}

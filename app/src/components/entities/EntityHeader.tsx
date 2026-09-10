@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { BadgeCheck, MapPin, Phone } from 'lucide-react'
-import { CONTACT_PHONE, waHref } from '@/lib/inquiries/phone'
+import { waHref } from '@/lib/inquiries/phone'
 import { SERVICE_BRAND } from '@/lib/category-brand'
 import type { LocalName } from '@/data/professionals'
 import MessageUserButton from '@/components/chat/MessageUserButton'
@@ -101,7 +101,7 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
                 {phone}
               </a>
               <a
-                href={waHref(CONTACT_PHONE)}
+                href={waHref(phone)}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`WhatsApp: ${displayName}`}

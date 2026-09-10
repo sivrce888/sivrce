@@ -57,12 +57,12 @@ function MapPreviewCard({ badge }: { badge: string }) {
         />
       </div>
       <div className="absolute left-1/2 top-[38%] z-[1] -translate-x-1/2 -translate-y-full">
-        <span className="grid h-11 w-11 place-items-center rounded-full bg-sv-orange text-white shadow-glow-orange">
+        <span className="grid h-11 w-11 place-items-center rounded-full bg-sv-orange text-sv-ink shadow-glow-orange">
           <MapPin className="h-5 w-5" strokeWidth={2.5} />
         </span>
       </div>
       <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent pb-8 pt-16">
-        <span className="rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-extrabold text-white shadow-glow-orange">
+        <span className="rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-extrabold text-sv-ink shadow-glow-orange">
           {badge}
         </span>
       </div>

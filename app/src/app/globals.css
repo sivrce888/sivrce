@@ -26,7 +26,7 @@
    Usage: bg-sv-blue · text-sv-ink/60 · from-sv-orange to-sv-orange-deep */
 @theme {
   /* Brand palette (BRAND.md §3) */
-  --color-sv-blue: #2e6bff;
+  --color-sv-blue: #2a5fef;
   --color-sv-blue-light: #8fb4ff;
   --color-sv-blue-deep: #1a3fc0;
   --color-sv-violet: #7a5cff;
@@ -45,7 +45,7 @@
   /* Locked category branding (BRAND.md §3.1) — every category/service owns
      its hue + chip. Mirrors src/lib/category-brand.ts. Never reuse across
      categories, never recolor. Usage: text-cat-houses · bg-cat-houses-chip */
-  --color-cat-apartments: #2e6bff;
+  --color-cat-apartments: #2a5fef;
   --color-cat-apartments-chip: #eff3ff;
   --color-cat-houses: #ff6a2d;
   --color-cat-houses-chip: #fff3ef;
@@ -170,7 +170,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 
   /* Raw brand hex — direct var() consumers (SVG strokes, inline styles) */
-  --sv-blue: #2e6bff;
+  --sv-blue: #2a5fef;
   --sv-blue-light: #8fb4ff;
   --sv-blue-deep: #1a3fc0;
   --sv-violet: #7a5cff;
@@ -267,7 +267,7 @@
 
   /* Category/service chips: locked pastel fills → translucent hue tints
      (same locked hues, dark-appropriate luminance) */
-  --chip-apartments: color-mix(in oklab, #2e6bff 18%, transparent);
+  --chip-apartments: color-mix(in oklab, #2a5fef 18%, transparent);
   --chip-houses: color-mix(in oklab, #ff6a2d 18%, transparent);
   --chip-cottages: color-mix(in oklab, #16a34a 20%, transparent);
   --chip-land: color-mix(in oklab, #d97706 20%, transparent);
@@ -615,7 +615,7 @@ html.dark {
 
 @layer utilities {
   .text-gradient-blue {
-    background: linear-gradient(120deg, #8fb4ff 0%, #2e6bff 55%, #7a5cff 100%);
+    background: linear-gradient(120deg, #8fb4ff 0%, #2a5fef 55%, #7a5cff 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -637,7 +637,7 @@ html.dark {
   appearance: none;
   height: 6px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #2e6bff, #7a5cff);
+  background: linear-gradient(90deg, #2a5fef, #7a5cff);
   outline: none;
   cursor: pointer;
 }
@@ -648,7 +648,7 @@ html.dark {
   height: 22px;
   border-radius: 999px;
   background: #ffffff;
-  border: 3px solid #2e6bff;
+  border: 3px solid #2a5fef;
   box-shadow: 0 4px 14px -2px rgba(46, 107, 255, 0.55);
   transition: transform 0.2s ease;
 }
@@ -660,12 +660,12 @@ html.dark {
   height: 22px;
   border-radius: 999px;
   background: #ffffff;
-  border: 3px solid #2e6bff;
+  border: 3px solid #2a5fef;
   box-shadow: 0 4px 14px -2px rgba(46, 107, 255, 0.55);
   transition: transform 0.2s ease;
 }
 .sv-range:focus-visible {
-  outline: 2px solid #2e6bff;
+  outline: 2px solid #2a5fef;
   outline-offset: 4px;
 }
 

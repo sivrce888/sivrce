@@ -86,7 +86,7 @@ export default async function DevelopersPage({ params }: PageProps) {
         <PageHero tone="light" kicker="დირექტორია" title={c.h1} subtitle={c.sub}>
           <LocalizedLink
             href={roleSignupHref("developer")}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
             გახდი დეველოპერი სივრცეზე
             <ArrowRight className="h-4 w-4" />

@@ -326,7 +326,7 @@ export default function TierPurchaseButton({
               </div>
             </>
           ) : (
-            <div className="mt-2 rounded-control bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-2 text-[11px] font-black text-white">
+            <div className="mt-2 rounded-control bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-2 text-[11px] font-black text-sv-ink">
               <Crown className="mr-1 inline h-3.5 w-3.5" />
               მაქსიმალური პაკეტი აქტიურია
             </div>

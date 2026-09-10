@@ -69,7 +69,7 @@ function LeadCard({
         {phone ? (
           <a
             href={telHref(phone)}
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             <Phone size={14} strokeWidth={2.4} />
             ზარი

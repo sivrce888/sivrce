@@ -1085,7 +1085,7 @@ export default function ListingDetailClient({
                     aria-pressed={currency === c}
                     onClick={() => setCurrency(c)}
                     className={`relative rounded-lg px-5 py-2.5 text-[13px] font-extrabold transition-colors ${
-                      currency === c ? 'text-white' : 'text-sv-ink/60 hover:text-sv-ink'
+                      currency === c ? 'bg-sv-blue text-white' : 'text-sv-ink/60 hover:text-sv-ink'
                     }`}
                   >
                     {currency === c && (
@@ -1325,7 +1325,7 @@ export default function ListingDetailClient({
                       </div>
                       <LocalizedLink
                         href={mapHrefForListing(l)}
-                        className="rounded-full bg-sv-orange px-3.5 py-1.5 text-[11px] font-extrabold text-white shadow-glow-orange transition hover:brightness-110"
+                        className="rounded-full bg-sv-orange px-3.5 py-1.5 text-[11px] font-extrabold text-sv-ink shadow-glow-orange transition hover:brightness-110"
                       >
                         {t('detail.map3dSoon')}
                       </LocalizedLink>
@@ -1564,7 +1564,7 @@ export default function ListingDetailClient({
                 <button
                   type="button"
                   onClick={() => openWhatsAppShare(shareInput, sharePath, lang)}
-                  className="mt-2.5 flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange text-[13px] font-extrabold text-white shadow-glow-orange transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:opacity-95"
+                  className="mt-2.5 flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:opacity-95"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t('detail.sendToClient')}</span>

@@ -1150,7 +1150,7 @@ export default function SearchClient({
       </div>
       <LocalizedLink
         href="/map"
-        className="inline-flex h-11 items-center gap-1.5 rounded-full bg-sv-orange px-3 text-[12px] font-extrabold text-white shadow-glow-orange transition hover:brightness-110"
+        className="inline-flex h-11 items-center gap-1.5 rounded-full bg-sv-orange px-3 text-[12px] font-extrabold text-sv-ink shadow-glow-orange transition hover:brightness-110"
       >
         <Layers className="h-3.5 w-3.5" aria-hidden />
         {t('nav.map')}
@@ -1231,7 +1231,7 @@ export default function SearchClient({
             >
               <SlidersHorizontal className="h-4 w-4" />
               {chips.length > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-sv-orange px-1 text-[9px] font-black text-white">
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-sv-orange px-1 text-[9px] font-black text-sv-ink">
                   {chips.length}
                 </span>
               )}

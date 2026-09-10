@@ -82,7 +82,7 @@ export default async function AgencyOverviewPage() {
       <div className="mb-5 flex justify-end">
         <LocalizedLink
           href="/add-listing"
-          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+          className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
           დაამატე განცხადება

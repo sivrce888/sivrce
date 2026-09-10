@@ -52,7 +52,7 @@ export default function CompareClient() {
         <h2 className="mt-6 text-2xl font-black tracking-[-0.02em] text-sv-ink">{tt("empty")}</h2>
         <LocalizedLink
           href="/search"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-white shadow-glow-orange"
+          className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-sv-ink shadow-glow-orange"
         >
           <Search className="h-4 w-4" />
           {tt("search")}

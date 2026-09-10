@@ -69,13 +69,13 @@ export default function MobileDock() {
                 <span className="relative">
                   <Heart className={`h-[22px] w-[22px] ${item.match ? 'fill-current' : ''}`} strokeWidth={item.match ? 2.4 : 2} />
                   {count > 0 && (
-                    <span className="absolute -right-2.5 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-sv-orange px-0.5 text-[9px] font-black text-white">
+                    <span className="absolute -right-2.5 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-sv-orange px-0.5 text-[9px] font-black text-sv-ink">
                       {count > 99 ? '99+' : count}
                     </span>
                   )}
                 </span>
               ) : (
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-sv-orange text-white shadow-glow-orange">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-sv-orange text-sv-ink shadow-glow-orange">
                   <Plus className="h-4 w-4" strokeWidth={2.6} />
                 </span>
               )}

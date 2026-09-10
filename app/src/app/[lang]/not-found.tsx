@@ -27,7 +27,7 @@ export default function NotFound() {
           </p>
           <LocalizedLink
             href="/search"
-            className="mt-8 flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
+            className="mt-8 flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             <ArrowLeft className="h-4 w-4" /> {t('detail.backToSearch')}
           </LocalizedLink>

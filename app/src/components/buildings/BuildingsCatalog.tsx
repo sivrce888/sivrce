@@ -220,7 +220,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                 onClick={() => setStatus(id)}
                 className={`rounded-full px-3.5 py-1.5 text-[12px] font-bold transition ${
                   status === id
-                    ? 'bg-sv-orange text-white'
+                    ? 'bg-sv-orange text-sv-ink'
                     : 'bg-sv-cloud text-sv-ink/60 hover:bg-sv-ink/[0.06]'
                 }`}
               >

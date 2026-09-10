@@ -157,7 +157,7 @@ export function ListingStickerStack({
         </span>
       ) : null}
       {urgent ? (
-        <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep font-black tracking-wide text-white shadow-glow-orange ${pad}`}>
+        <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep font-black tracking-wide text-sv-ink shadow-glow-orange ${pad}`}>
           <Zap className={icon} aria-hidden />
           {t('sticker.urgent')}
         </span>

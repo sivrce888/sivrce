@@ -36,7 +36,7 @@ export function NewThreadForm({ className }: { className?: string }) {
         <p className="text-[14px] font-semibold text-sv-ink/60">თემის გასახსნელად შედი ანგარიშში.</p>
         <Link
           href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
-          className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-white shadow-glow-orange"
+          className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
         >
           შესვლა
         </Link>
@@ -191,7 +191,7 @@ export function NewThreadForm({ className }: { className?: string }) {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? 'იგზავნება…' : 'თემის გახსნა'}
       </button>

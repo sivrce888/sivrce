@@ -300,7 +300,7 @@ export default function AvatarStudio({
                   ? { background: color }
                   : {
                       background:
-                        "conic-gradient(from 220deg, #FFB25E, #FF6A2D, #FF4D6D, #7A5CFF, #2E6BFF, #8FB4FF, #FFB25E)",
+                        "conic-gradient(from 220deg, #FFB25E, #FF6A2D, #FF4D6D, #7A5CFF, #2a5fef, #8FB4FF, #FFB25E)",
                     }
               }
             />
@@ -310,7 +310,7 @@ export default function AvatarStudio({
         <input
           ref={colorRef}
           type="color"
-          value={color ?? "#2e6bff"}
+          value={color ?? "#2a5fef"}
           onChange={(e) => pickColor(e.target.value)}
           className="sr-only"
           aria-label="შენი ფერის არჩევა"

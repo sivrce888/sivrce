@@ -215,7 +215,7 @@ export default async function SettingsPage({
                   className={`rounded-full px-5 py-2.5 text-[13px] font-bold transition ${
                     alertsOn
                       ? "border border-sv-ink/12 text-sv-ink/70 hover:border-sv-blue hover:text-sv-blue"
-                      : "bg-sv-orange text-white shadow-glow-orange hover:opacity-95"
+                      : "bg-sv-orange text-sv-ink shadow-glow-orange hover:opacity-95"
                   }`}
                 >
                   {alertsOn ? "გამორთვა" : "ჩართვა"}

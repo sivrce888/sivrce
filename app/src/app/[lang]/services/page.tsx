@@ -126,7 +126,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
         <PageHero tone="light" kicker={copy.kicker} title={copy.h1} subtitle={copy.sub}>
           <LocalizedLink
             href="/add-service"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
             {copy.add}
             <ArrowRight className="h-4 w-4" />

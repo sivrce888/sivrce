@@ -1213,7 +1213,7 @@ export default function AddListingClient() {
           >
             <Link
               href={realId ? `/listing/${publishedId}` : manageHref}
-              className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+              className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
             >
               {t('add.successViewListing')}
             </Link>
@@ -1330,7 +1330,7 @@ export default function AddListingClient() {
                     onClick={() => jumpTo(i)}
                     className={`flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold transition-colors ${
                       current
-                        ? 'bg-sv-orange text-white shadow-glow-orange'
+                        ? 'bg-sv-orange text-sv-ink shadow-glow-orange'
                         : done
                           ? 'bg-sv-blue/10 text-sv-blue-deep'
                           : 'bg-sv-ink/[0.05] text-sv-ink/60 hover:text-sv-ink'
@@ -1480,7 +1480,7 @@ export default function AddListingClient() {
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={p.url} alt={p.name} className="pointer-events-none h-full w-full object-cover" draggable={false} />
                             {i === cover ? (
-                              <span className="absolute left-1.5 top-1.5 rounded-full bg-sv-orange px-2 py-0.5 text-[10px] font-black text-white">
+                              <span className="absolute left-1.5 top-1.5 rounded-full bg-sv-orange px-2 py-0.5 text-[10px] font-black text-sv-ink">
                                 {t('add.photosCover')}
                               </span>
                             ) : (
@@ -2489,7 +2489,7 @@ export default function AddListingClient() {
                   type="button"
                   onClick={publish}
                   disabled={busy}
-                  className="min-h-[44px] rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
+                  className="min-h-[44px] rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
                 >
                   {busy
                     ? (editId ? t('add.saving') : t('add.publishing'))

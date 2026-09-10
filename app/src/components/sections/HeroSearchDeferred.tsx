@@ -50,7 +50,7 @@ export default function HeroSearchDeferred({ quick }: { quick: HeroQuickChip[] }
      so the idle mount can't shift the hero — CLS stays 0 while the search
      island hydrates off the critical path. Re-measure if HeroSearch grows. */
   return (
-    <div className="min-h-[642px] sm:min-h-[491px] md:min-h-[447px] lg:min-h-[231px] xl:min-h-[182px]">
+    <div className="min-h-[708px] sm:min-h-[584px] md:min-h-[491px] lg:min-h-[275px]">
       {Search ? <Search quick={quick} /> : <Skeleton />}
     </div>
   )

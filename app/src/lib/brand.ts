@@ -15,7 +15,7 @@ export const BRAND = {
 
   colors: {
     /** Primary — trust, technology, the brand itself */
-    blue: '#2E6BFF',
+    blue: '#2a5fef',
     blueLight: '#8FB4FF',
     blueDeep: '#1A3FC0',
     violet: '#7A5CFF', // only inside gradients, never standalone
@@ -37,9 +37,9 @@ export const BRAND = {
   },
 
   gradients: {
-    brand: 'linear-gradient(120deg, #8FB4FF 0%, #2E6BFF 55%, #7A5CFF 100%)',
+    brand: 'linear-gradient(120deg, #8FB4FF 0%, #2a5fef 55%, #7A5CFF 100%)',
     action: 'linear-gradient(120deg, #FFB25E 0%, #FF6A2D 60%, #FF4D6D 100%)',
-    vip: 'linear-gradient(90deg, #2E6BFF, #7A5CFF)',
+    vip: 'linear-gradient(90deg, #2a5fef, #7A5CFF)',
     superVip: 'linear-gradient(90deg, #FF6A2D, #FF4D6D)',
   },
 

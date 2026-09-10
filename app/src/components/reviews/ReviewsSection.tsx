@@ -136,7 +136,7 @@ export function ReviewsSection({ targetType, targetId, className, initialData }:
             type="button"
             onClick={() => setReloadKey((k) => k + 1)}
             className={cn(
-              'mt-4 min-h-[44px] rounded-full bg-sv-orange px-6 text-[14px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]',
+              'mt-4 min-h-[44px] rounded-full bg-sv-orange px-6 text-[14px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]',
               focusRing,
             )}
           >

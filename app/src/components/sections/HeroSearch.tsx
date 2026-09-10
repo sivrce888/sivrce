@@ -489,7 +489,7 @@ export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] 
           <button
             type="submit"
             onMouseEnter={() => router.prefetch(localizedHref('/search', lang))}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud active:scale-[0.98] dark:focus-visible:ring-offset-sv-navy lg:w-auto lg:shrink-0 lg:min-w-[112px]"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud active:scale-[0.98] dark:focus-visible:ring-offset-sv-navy lg:w-auto lg:shrink-0 lg:min-w-[112px]"
           >
             <Search className="h-[18px] w-[18px]" />
             {t('nav.search')}
@@ -499,7 +499,7 @@ export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] 
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
                 aria-live="polite"
-                className="tabular-nums text-white"
+                className="tabular-nums"
               >
                 <span aria-hidden className="px-0.5">·</span> {new Intl.NumberFormat(lang).format(hits)}
               </motion.span>

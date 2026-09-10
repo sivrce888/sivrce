@@ -29,7 +29,7 @@ export default async function AdminLayout({
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] flex-col bg-sv-navy lg:flex">
         <div className="flex items-center gap-3 px-6 pt-7 pb-6">
-          <div className="grid h-10 w-10 place-items-center rounded-[12px] bg-[linear-gradient(120deg,#8FB4FF_0%,#2E6BFF_55%,#7A5CFF_100%)] text-[16px] font-black text-white">
+          <div className="grid h-10 w-10 place-items-center rounded-[12px] bg-[linear-gradient(120deg,#8FB4FF_0%,#2a5fef_55%,#7A5CFF_100%)] text-[16px] font-black text-white">
             ს
           </div>
           <div>

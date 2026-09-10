@@ -122,7 +122,7 @@ export default function PromoPricingGrid() {
                 }`}
               >
                 {highlight && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-sv-orange px-4 py-1.5 text-xs font-bold text-white shadow-glow-orange">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-sv-orange px-4 py-1.5 text-xs font-bold text-sv-ink shadow-glow-orange">
                     რეკომენდებული
                   </span>
                 )}
@@ -188,7 +188,7 @@ export default function PromoPricingGrid() {
                   }}
                   className={`mt-8 inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-bold transition hover:-translate-y-0.5 ${
                     highlight
-                      ? "bg-sv-orange text-white shadow-glow-orange hover:shadow-glow-orange-lg"
+                      ? "bg-sv-orange text-sv-ink shadow-glow-orange hover:shadow-glow-orange-lg"
                       : "bg-sv-ink text-white shadow-glow-navy hover:bg-sv-navy"
                   }`}
                 >

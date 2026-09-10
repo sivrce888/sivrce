@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.18) · dark AA floor + focus ring 2026-09-08 · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Orange fills = white fg 2026-08-31 · Hero day/night 2026-08-31
+# სივრცე — Brand Lock (v1.19) · WCAG AA text pass 2026-09-11 · dark AA floor + focus ring 2026-09-08 · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Hero day/night 2026-08-31
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -20,11 +20,11 @@ stroke `#ffffff` and third-party brand marks (Google).
 
 | Token | Class examples | Value |
 | --- | --- | --- |
-| Blue (primary) | `bg-sv-blue` `text-sv-blue/60` `ring-sv-blue/15` | #2E6BFF |
+| Blue (primary) | `bg-sv-blue` `text-sv-blue/60` `ring-sv-blue/15` | #2A5FEF |
 | Blue light | `text-sv-blue-light` | #8FB4FF |
 | Blue deep | `hover:bg-sv-blue-deep` | #1A3FC0 |
 | Violet — gradients only | `to-sv-violet` | #7A5CFF |
-| Orange (action) | `bg-sv-orange` `text-white` (fills) · `text-sv-orange` (on light) | #FF6A2D |
+| Orange (action) | `bg-sv-orange` `text-sv-ink` (fills) · `text-sv-orange` (on light) | #FF6A2D |
 | Orange light | `to-sv-orange-light` | #FFB25E |
 | Orange deep — gradients only | `to-sv-orange-deep` | #FF4D6D |
 | Navy (dark bg) | `bg-sv-navy` | #050B26 |
@@ -91,7 +91,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 
 - `SparkMark` — two crescent blades (48-grid), exact 180° rotational symmetry
   about (24,24) — one family with the Spark Star
-- Blade A gradient: `#8FB4FF → #2E6BFF → #7A5CFF` · Blade B gradient:
+- Blade A gradient: `#8FB4FF → #2A5FEF → #7A5CFF` · Blade B gradient:
   `#7A5CFF → #FF4D6D → #FF6A2D` (orange tip echoes the space point)
 - Geometry lock: blade A `M24 3.2 Q21.4 21.4 3.2 24 Q25.2 25.2 24 3.2 Z`,
   blade B = exact 180° rotation. Masters: `logo/assets/sivrce-spark*.svg`
@@ -104,7 +104,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 
 | Role | Token | Hex | Usage |
 | --- | --- | --- | --- |
-| Primary | `sv-blue` | #2E6BFF | links, icons, AI features, active states |
+| Primary | `sv-blue` | #2A5FEF | links, icons, AI features, active states |
 | Accent | `sv-orange` | #FF6A2D | CTAs, VIP, highlights, favorites — **action only** |
 | Deep bg | `sv-navy` | #050B26 | night hero + dark sections + footer |
 | Text | `sv-ink` | #0A1030 | headlines/body on light |
@@ -115,7 +115,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 Rules:
 
 - Orange ≤ 10% of any viewport · white space is a feature
-- **Filled orange** (`bg-sv-orange`, badges, action CTAs) uses `text-white` — same system as filled blue. Never `text-sv-navy` / ink on orange. Owner-approved 2026-08-31.
+- **Filled orange** (`bg-sv-orange`, badges, action CTAs) uses `text-sv-ink` — WCAG AA 6.5:1 (owner mandate 100/100 a11y, 2026-09-11; supersedes white-fg rule of 2026-08-31). White text only on `sv-blue` / `sv-navy` / `sv-ink` fills. Orange gradients (`from-sv-orange`) also use `text-sv-ink` (5.8–6.5:1).
 - Dark sections always use dot-grid/aurora ambience, never flat color
 - **Overlays and image scrims are always navy-tinted** (`bg-sv-navy/55`, `from-sv-navy/70`) — never `bg-black/*`
 - Shadows are navy-tinted (`rgba(10,16,48,…)` / `rgba(5,11,38,…)` / `rgba(1,4,20,…)`) — never pure black
@@ -132,7 +132,7 @@ Never cycle tints, never recolor, never inline new hex values for these items.
 
 | Category (KA) | Key | Hue | Chip |
 | --- | --- | --- | --- |
-| ბინები | `apartments` | #2E6BFF | #EFF3FF |
+| ბინები | `apartments` | #2A5FEF | #EFF3FF |
 | სახლები | `houses` | #FF6A2D | #FFF3EF |
 | აგარაკები | `cottages` | #16A34A | #EDF8F1 |
 | მიწის ნაკვეთები | `land` | #D97706 | #FCF4EB |
@@ -157,11 +157,11 @@ Collections reusing locked category hues (services precedent, 2026-07-18):
 | ზღვისპირა | `newProjects` | #5B8BFF |
 | სათხილამურო კურორტები | `land` | #D97706 |
 | შინაური ცხოველით | `cottages` | #16A34A |
-| სამუშაო ადგილით | `apartments` | #2E6BFF |
+| სამუშაო ადგილით | `apartments` | #2A5FEF |
 
 | Service (KA) | Key | Hue | Chip |
 | --- | --- | --- | --- |
-| აგენტები და სააგენტოები | `agents` | #2E6BFF | #EFF3FF |
+| აგენტები და სააგენტოები | `agents` | #2A5FEF | #EFF3FF |
 | დეველოპერები | `developers` | #7C3AED | #F5F0FE |
 | რემონტი და კალკულატორი | `renovation` | #FF6A2D | #FFF3EF |
 | იპოთეკა და ფინანსები | `mortgage` | #16A34A | #EDF8F1 |
@@ -178,7 +178,7 @@ Source: `DEAL_BRAND` in `category-brand.ts`. Hero deal tabs + search deal chips.
 
 | Deal | Key | Hue | Maps to |
 | --- | --- | --- | --- |
-| იყიდება (sale) | `sale` | #2E6BFF | apartments |
+| იყიდება (sale) | `sale` | #2A5FEF | apartments |
 | ქირავდება (rent) | `rent` | #7C3AED | commercial |
 | დღიურად (daily) | `daily` | #E11D48 | dailyRent |
 | გირავდება (pledge) | `pledge` | #16A34A | mortgage service |
@@ -263,9 +263,9 @@ Rules:
 
 ## 9. Gradients (locked — `BRAND.gradients`)
 
-- Brand: `linear-gradient(120deg, #8FB4FF 0%, #2E6BFF 55%, #7A5CFF 100%)`
+- Brand: `linear-gradient(120deg, #8FB4FF 0%, #2A5FEF 55%, #7A5CFF 100%)`
 - Action: `linear-gradient(120deg, #FFB25E 0%, #FF6A2D 60%, #FF4D6D 100%)`
-- VIP+: `linear-gradient(90deg, #2E6BFF, #7A5CFF)`
+- VIP+: `linear-gradient(90deg, #2A5FEF, #7A5CFF)`
 - SUPER VIP: `linear-gradient(90deg, #FF6A2D, #FF4D6D)`
 
 ## 10. Sync checklist (before shipping UI)

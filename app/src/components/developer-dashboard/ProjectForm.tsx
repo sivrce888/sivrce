@@ -168,7 +168,7 @@ export default function ProjectForm({
         <div className="sm:col-span-2">
           <button
             type="submit"
-            className="inline-flex rounded-full bg-sv-orange px-6 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+            className="inline-flex rounded-full bg-sv-orange px-6 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             შენახვა
           </button>

@@ -16,7 +16,7 @@ function trackClick(id: string) {
 
 function Cta({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-orange transition group-hover:-translate-y-0.5">
+    <span className="inline-flex items-center rounded-full bg-sv-orange px-4 py-2 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition group-hover:-translate-y-0.5">
       {label}
     </span>
   )

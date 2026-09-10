@@ -254,7 +254,7 @@ export async function requestPasswordReset(
     html: `
       <h2>პაროლის აღდგენა</h2>
       <p>დააჭირე ბმულს ახალი პაროლის დასაყენებლად (მოქმედებს 1 საათი):</p>
-      <p><a href="${link}" style="color:#2E6BFF;font-weight:700">პაროლის შეცვლა →</a></p>
+      <p><a href="${link}" style="color:#2a5fef;font-weight:700">პაროლის შეცვლა →</a></p>
       <p style="color:#666;font-size:13px">თუ შენ არ მოითხოვე — უგულებელყავი ეს წერილი.</p>
     `,
   })

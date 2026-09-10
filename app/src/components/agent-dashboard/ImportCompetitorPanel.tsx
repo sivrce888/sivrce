@@ -102,7 +102,7 @@ export default function ImportCompetitorPanel() {
           <button
             type="button"
             onClick={onApply}
-            className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+            className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             ფორმაზე გადატანა
           </button>

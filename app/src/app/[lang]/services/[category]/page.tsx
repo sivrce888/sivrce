@@ -80,7 +80,7 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
         >
           <LocalizedLink
             href="/add-service"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-white shadow-glow-orange transition hover:-translate-y-0.5"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5"
           >
             {lang === 'ru' ? 'Добавить компанию' : lang === 'ka' ? 'დაამატე კომპანია' : 'Add your company'}
           </LocalizedLink>

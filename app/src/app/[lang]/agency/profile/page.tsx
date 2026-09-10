@@ -119,7 +119,7 @@ export default async function AgencyProfilePage() {
           </label>
           <button
             type="submit"
-            className="mt-1 inline-flex w-fit rounded-full bg-sv-orange px-6 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+            className="mt-1 inline-flex w-fit rounded-full bg-sv-orange px-6 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             შენახვა
           </button>

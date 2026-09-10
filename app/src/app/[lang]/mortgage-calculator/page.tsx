@@ -276,7 +276,7 @@ export default async function MortgageCalculatorPage({
           </p>
           <LocalizedLink
             href="/sale/apartments"
-            className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-extrabold text-white shadow-glow-orange transition-transform hover:-translate-y-0.5"
+            className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-transform hover:-translate-y-0.5"
           >
             {c.ctaButton}
           </LocalizedLink>

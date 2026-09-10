@@ -47,7 +47,7 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
             <LocalizedLink
               href="/add-listing"
               data-cms-key="block.home.cta.primary"
-              className="group flex flex-wrap items-center justify-center gap-2.5 rounded-full bg-sv-orange px-8 py-4 text-center text-[16px] font-black text-white shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
+              className="group flex flex-wrap items-center justify-center gap-2.5 rounded-full bg-sv-orange px-8 py-4 text-center text-[16px] font-black text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg active:scale-[0.98]"
             >
               <Plus className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" />
               {primary}

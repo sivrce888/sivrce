@@ -151,7 +151,7 @@ const BOOST_PILLS: Array<{
     kind: "tier",
     tier: "diamond",
     icon: Crown,
-    className: "bg-gradient-to-r from-sv-orange to-sv-orange-deep text-white shadow-glow-orange",
+    className: "bg-gradient-to-r from-sv-orange to-sv-orange-deep text-sv-ink shadow-glow-orange",
   },
   {
     key: "turbo_7",
@@ -167,7 +167,7 @@ const BOOST_PILLS: Array<{
     kind: "addon",
     addon: "story",
     icon: CircleDot,
-    className: "bg-gradient-to-r from-sv-orange to-sv-orange-deep text-white",
+    className: "bg-gradient-to-r from-sv-orange to-sv-orange-deep text-sv-ink",
   },
   {
     key: "sticker_urgent",
@@ -175,7 +175,7 @@ const BOOST_PILLS: Array<{
     kind: "addon",
     addon: "sticker_urgent",
     icon: Zap,
-    className: "bg-sv-orange text-white hover:bg-sv-orange-deep",
+    className: "bg-sv-orange text-sv-ink hover:bg-sv-orange-deep",
   },
   {
     key: "sticker_price_drop",
@@ -402,7 +402,7 @@ export default function MyListingsManager({
         </h2>
         <LocalizedLink
           href={addHref}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-white shadow-glow-orange transition hover:opacity-95"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
           დამატება
@@ -605,7 +605,7 @@ function ListingManageCard({
           {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary upload hosts */}
           <img src={l.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
           {badge ? (
-            <span className="absolute top-2 left-2 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-2 py-0.5 text-[10px] font-black tracking-wide text-white shadow-glow-orange">
+            <span className="absolute top-2 left-2 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep px-2 py-0.5 text-[10px] font-black tracking-wide text-sv-ink shadow-glow-orange">
               {badge}
             </span>
           ) : null}
@@ -678,7 +678,7 @@ function ListingManageCard({
               type="button"
               disabled={busy}
               onClick={onSend}
-              className="inline-flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1.5 text-[11px] font-extrabold text-white shadow-glow-orange transition hover:opacity-95 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1.5 text-[11px] font-extrabold text-sv-ink shadow-glow-orange transition hover:opacity-95 disabled:opacity-50"
             >
               <MessageCircle size={12} strokeWidth={2.4} />
               კლიენტს
