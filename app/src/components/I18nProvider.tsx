@@ -60,7 +60,7 @@ export default function I18nProvider({
   initialLang?: Lang
   /**
    * Dictionary for the pinned locale, fetched server-side by the [lang]
-   * layout. Omitted for ka (the static fallback chunk) — keeps all nine
+   * layout. Omitted for ka (the static fallback chunk) — keeps all ten
    * dictionaries out of the shared client bundle.
    */
   dict?: Record<DictKey, string>
@@ -72,7 +72,7 @@ export default function I18nProvider({
   overrides?: Record<string, string>
   /**
    * Resolved marketing blocks for the active locale (override → coded
-   * default → ka), server-fetched via getBlocksForLang. Keeps the 8-lang
+   * default → ka), server-fetched via getBlocksForLang. Keeps the 9-lang
    * block dicts server-side.
    */
   blocks?: Record<CmsBlockKey, string>

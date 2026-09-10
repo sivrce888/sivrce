@@ -44,6 +44,8 @@ function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
             <img
               src={ad.imageUrl}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="h-[min(52vw,420px)] w-full object-cover sm:h-[380px]"
             />
           ) : (
@@ -72,6 +74,8 @@ function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
             <img
               src={ad.imageUrl}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="h-40 w-full object-cover sm:h-auto sm:w-[240px] sm:shrink-0"
             />
           ) : (
@@ -96,7 +100,7 @@ function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
         <span className="flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition group-hover:-translate-y-1.5 group-hover:shadow-card-hover">
           {ad.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- advertiser CDN / R2
-            <img src={ad.imageUrl} alt="" className="aspect-[16/10] w-full object-cover" />
+            <img src={ad.imageUrl} alt="" loading="lazy" decoding="async" className="aspect-[16/10] w-full object-cover" />
           ) : (
             <span className="aspect-[16/10] bg-gradient-to-br from-sv-navy to-sv-blue" />
           )}
@@ -119,7 +123,7 @@ function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
         <span className="block overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition group-hover:shadow-card-hover">
           {ad.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- advertiser CDN / R2
-            <img src={ad.imageUrl} alt="" className="aspect-[16/9] w-full object-cover" />
+            <img src={ad.imageUrl} alt="" loading="lazy" decoding="async" className="aspect-[16/9] w-full object-cover" />
           ) : (
             <span className="block aspect-[16/9] bg-gradient-to-br from-sv-navy-soft to-sv-blue" />
           )}

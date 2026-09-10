@@ -2,7 +2,7 @@
 
 /**
  * SIVRCE — language switcher. Compact trigger shows only the active language
- * (flag + code); a spring-animated frosted menu lists all nine with endonym
+ * (flag + code); a spring-animated frosted menu lists all ten with endonym
  * names and a check on the current one. RTL-aware placement.
  */
 
@@ -23,6 +23,7 @@ const LANG_FLAG: Record<Lang, FlagCode> = {
   uk: 'ua',
   hy: 'am',
   az: 'az',
+  de: 'de',
 }
 /** Compact trigger label — ka→ge (country code reads clearer next to the flag). */
 const LANG_CODE: Record<Lang, string> = {
@@ -35,6 +36,7 @@ const LANG_CODE: Record<Lang, string> = {
   uk: 'uk',
   hy: 'hy',
   az: 'az',
+  de: 'de',
 }
 const LANG_NAME: Record<Lang, string> = {
   ka: 'ქართული',
@@ -46,6 +48,7 @@ const LANG_NAME: Record<Lang, string> = {
   uk: 'Українська',
   hy: 'Հայերեն',
   az: 'Azərbaycan',
+  de: 'Deutsch',
 }
 
 export function LangSwitcher({ light = false }: { light?: boolean }) {
@@ -59,7 +62,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
   const switchTo = (code: Lang) => {
     setLang(code)
     setOpen(false)
-    const rest = pathname.replace(/^\/(en|ru|he|ar|tr|uk|hy|az)(?=\/|$)/, '') || '/'
+    const rest = pathname.replace(/^\/(en|ru|he|ar|tr|uk|hy|az|de)(?=\/|$)/, '') || '/'
     router.push(code === 'ka' ? rest : `/${code}${rest === '/' ? '' : rest}`)
   }
 

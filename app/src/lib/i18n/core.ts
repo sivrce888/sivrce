@@ -9,9 +9,9 @@
 import type { DictKey } from './ka'
 
 export type { DictKey }
-export type Lang = 'ka' | 'en' | 'ru' | 'he' | 'ar' | 'tr' | 'uk' | 'hy' | 'az'
+export type Lang = 'ka' | 'en' | 'ru' | 'he' | 'ar' | 'tr' | 'uk' | 'hy' | 'az' | 'de'
 
-export const LANGS: readonly Lang[] = ['ka', 'en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az']
+export const LANGS: readonly Lang[] = ['ka', 'en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az', 'de']
 
 /** ka is the canonical default and stays URL-unprefixed. */
 export const DEFAULT_LANG: Lang = 'ka'
@@ -72,7 +72,7 @@ export function localizedHref(path: string, lang: Lang): string {
 // them in ka and the URL-pinned provider keeps UX correct; sweeping the long
 // tail is a follow-up wave.
 
-const LANG_PREFIX_RE = /^\/(ka|en|ru|he|ar|tr|uk|hy|az)(?=\/|$)/
+const LANG_PREFIX_RE = /^\/(ka|en|ru|he|ar|tr|uk|hy|az|de)(?=\/|$)/
 
 /**
  * Strip any locale prefix (incl. the internal /ka rewrite target) so pathname

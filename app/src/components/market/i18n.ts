@@ -86,7 +86,7 @@ const ru: Record<MarketKey, string> = {
 
 const DICTS: Record<string, Record<MarketKey, string>> = { ka, en, ru }
 
-/** Market strings for the active language (en fallback for he/ar/tr/uk/hy/az). */
+/** Market strings for the active language (en fallback for he/ar/tr/uk/hy/az/de). */
 export function useMarket(): Record<MarketKey, string> {
   const { lang } = useI18n()
   return DICTS[lang] ?? en

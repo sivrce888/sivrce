@@ -28,6 +28,7 @@ function cityPrefix(city?: string | null): string {
   if (c.includes('ბათუმ') || c.includes('batumi')) return 'BT'
   if (c.includes('ქუთაის') || c.includes('kutaisi')) return 'KU'
   if (c.includes('რუსთავ') || c.includes('rustavi')) return 'RU'
+  if (c.includes('ბერლინ') || c.includes('berlin')) return 'BE'
   return 'TB'
 }
 

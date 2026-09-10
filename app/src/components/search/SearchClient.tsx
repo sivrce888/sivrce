@@ -130,14 +130,14 @@ function CompactCard({ l }: { l: Listing }) {
     >
       <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control">
         {/* decorative — the title next to it carries the meaning */}
-        <Image src={cardOf(l.img) ?? l.img} alt="" fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" {...blurProps(l.img)} />
+        <Image src={cardOf(l.img) ?? l.img} alt={l.title} fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" {...blurProps(l.img)} />
       </span>
       <span className="min-w-0">
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
           {format(l.priceGEL)}{suffix}
         </span>
         <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{l.title}</span>
-        <span className="block text-[12px] font-semibold text-sv-ink/60">{l.area} მ² · {l.city}</span>
+        <span className="block text-[12px] font-semibold text-sv-ink/60">{l.area} {t('add.areaUnit.m2')} · {l.city}</span>
       </span>
     </Link>
   )
@@ -645,7 +645,7 @@ export default function SearchClient({
       {ROOM_CHIPS.map((r) => {
         const active = roomChipActive(r)
         return (
-          <button key={r.label} type="button" onClick={() => applyRoomChip(r, active)} aria-pressed={active} className={numChip(active)}>
+          <button key={r.label} type="button" onClick={() => applyRoomChip(r, active)} aria-pressed={active} aria-label={`${t('spec.rooms')} ${r.label}`} className={numChip(active)}>
             {r.label}
           </button>
         )
@@ -659,7 +659,7 @@ export default function SearchClient({
       <input type="number" min={0} placeholder={t('search.max')} value={drafts.max} onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.maxPrice')} />
       <div className="ml-0.5 flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.currency')}>
         {(['USD', 'GEL'] as const).map((c) => (
-          <button key={c} type="button" onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })} aria-pressed={cur === c} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'}`}>
+          <button key={c} type="button" onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })} aria-pressed={cur === c} aria-label={c === 'USD' ? 'US Dollar' : 'Georgian Lari'} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'}`}>
             {c === 'USD' ? '$' : '₾'}
           </button>
         ))}
@@ -826,7 +826,7 @@ export default function SearchClient({
             </button>
             {(chips.length > 0 || sort !== 'date') && (
               <button type="button" onClick={resetAll} className="flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-bold text-sv-orange transition-colors hover:bg-sv-orange/10">
-                <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden /> {t('search.clear')}
               </button>
             )}
           </div>
@@ -992,7 +992,7 @@ export default function SearchClient({
                 <span className={labelClass}>{t('search.bathrooms')}</span>
                 <div className="flex gap-1">
                   {COUNT_OPTIONS.map((n) => (
-                    <button key={n} type="button" onClick={() => patchParams({ baths: baths === n ? undefined : String(n) })} aria-pressed={baths === n} className={numChip(baths === n)}>
+                    <button key={n} type="button" onClick={() => patchParams({ baths: baths === n ? undefined : String(n) })} aria-pressed={baths === n} aria-label={`${n}+ ${t('search.bathrooms')}`} className={numChip(baths === n)}>
                       {n}+
                     </button>
                   ))}
@@ -1233,7 +1233,7 @@ export default function SearchClient({
               className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue-sm"
               aria-label={`${t('search.filters')}${chips.length > 0 ? ` (${chips.length})` : ''}`}
             >
-              <SlidersHorizontal className="h-4 w-4" />
+              <SlidersHorizontal className="h-4 w-4" aria-hidden />
               {chips.length > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-sv-orange px-1 text-[9px] font-black text-sv-ink">
                   {chips.length}
@@ -1311,7 +1311,7 @@ export default function SearchClient({
                 aria-pressed={view === 'grid'}
                 className={`grid h-10 w-10 place-items-center rounded-full transition-colors ${view === 'grid' ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/65 hover:text-sv-ink'}`}
               >
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-4 w-4" aria-hidden />
               </button>
               <button
                 onClick={() => setView('list')}
@@ -1319,7 +1319,7 @@ export default function SearchClient({
                 aria-pressed={view === 'list'}
                 className={`grid h-10 w-10 place-items-center rounded-full transition-colors ${view === 'list' ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/65 hover:text-sv-ink'}`}
               >
-                <Rows3 className="h-4 w-4" />
+                <Rows3 className="h-4 w-4" aria-hidden />
               </button>
             </div>
             <div className="hidden md:block">{viewToggle}</div>
@@ -1381,7 +1381,7 @@ export default function SearchClient({
               onClick={resetAll}
               className="mt-6 flex h-11 items-center gap-2 rounded-full bg-sv-blue px-6 text-[14px] font-extrabold text-white transition-all hover:bg-sv-blue-deep"
             >
-              <RotateCcw className="h-4 w-4" /> {t('search.resetFilters')}
+              <RotateCcw className="h-4 w-4" aria-hidden /> {t('search.resetFilters')}
             </button>
           </div>
         ) : (
@@ -1450,7 +1450,7 @@ export default function SearchClient({
                 aria-label={t('detail.close')}
                 className="grid h-11 w-11 place-items-center rounded-full text-sv-ink/70 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-3">{filtersBody(true)}</div>
@@ -1460,7 +1460,7 @@ export default function SearchClient({
                 onClick={resetAll}
                 className="flex h-11 items-center justify-center gap-1.5 rounded-full px-4 text-[13px] font-extrabold text-sv-orange transition-colors hover:bg-sv-orange/10"
               >
-                <RotateCcw className="h-3.5 w-3.5" /> {t('search.clear')}
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden /> {t('search.clear')}
               </button>
               <button
                 type="button"

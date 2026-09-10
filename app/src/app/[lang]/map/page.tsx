@@ -69,7 +69,10 @@ export default async function MapPage({
     inLanguage: lang,
     isPartOf: { '@id': `${SITE}/#website` },
     provider: { '@id': `${SITE}/#organization` },
-    areaServed: { '@type': 'Country', name: 'Georgia' },
+    areaServed: [
+      { '@type': 'Country', name: 'Georgia' },
+      { '@type': 'Country', name: 'Germany' },
+    ],
     geo: { '@type': 'GeoCoordinates', latitude: MAP_CENTER.lat, longitude: MAP_CENTER.lng },
   }
   return (

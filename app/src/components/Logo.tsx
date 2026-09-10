@@ -1,4 +1,5 @@
 import LocalizedLink from '@/components/LocalizedLink'
+import { useI18n } from '@/lib/i18n/context'
 
 /* Board 1:1 rasters (logo/board1x1 → public/logo). Wordmark font is baked in — not Manrope outlines. */
 const LOCK_W = 1279
@@ -40,6 +41,7 @@ export function Logo({
   href?: string
   size?: number
 }) {
+  const { t } = useI18n()
   const mark = size
   const lockW = Math.round((mark * LOCK_W) / LOCK_H)
   const imgClass =
@@ -48,7 +50,7 @@ export function Logo({
     <LocalizedLink
       href={href}
       className="group flex items-center overflow-visible"
-      aria-label="სივრცე — მთავარი"
+      aria-label={t('nav.logo')}
     >
       {compact ? (
         <LogoMark size={mark} />

@@ -14,6 +14,7 @@ import { NEW_DEVELOPERS_TBILISI, NEW_PROJECTS_TBILISI } from './projects-new-tbi
 import { NEW_DEVELOPERS_BATUMI_REGIONS, NEW_PROJECTS_BATUMI } from './projects-new-batumi'
 import { NEW_PROJECTS_REGIONS } from './projects-new-regions'
 import { NEW_DEVELOPERS_2026_08, NEW_PROJECTS_2026_08 } from './projects-new-2026-08'
+import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from './projects-new-berlin'
 
 export interface LocalName {
   ka: string
@@ -163,6 +164,18 @@ const DEV_PREFIX: Record<string, string> = {
   'terrametric-development': 'TRM', 'ratevani-development': 'RTV',
   'pillar-group': 'PLR', 'dasan-residence': 'DSN',
   terracon: 'TRC', 'kokhta-ubani': 'KOK',
+  howoge: 'HWG', degewo: 'DEG', gesobau: 'GSB', gewobag: 'GWB',
+  'buwog-berlin': 'BWG', 'groth-gruppe': 'GRT', 'bonava-berlin': 'BNV',
+  'pandion-berlin': 'PDN', trockland: 'TRK', 'primus-immobilien': 'PRM',
+  'wvm-berlin': 'WVM', 'goldbeck-berlin': 'GLD',
+  wbm: 'WBM', 'stadt-und-land': 'SUL', bauwert: 'BAU',
+  'diamona-harnisch': 'DHN', 'project-immobilien-berlin': 'PIB',
+  'hamburg-team': 'HTM', 'otto-wulff-berlin': 'OWB',
+  'liven-berlin': 'LVN', 'wohnquadrat-berlin': 'WQB',
+  'instone-real-estate': 'IST', 'tag-immobilien': 'TAG', 'patrizia-berlin': 'PTZ',
+  'dic-asset-berlin': 'DIC', 'grand-city-properties': 'GCP', 'corpus-sireo': 'CSR',
+  'union-investment-berlin': 'UIN', 'allianz-real-estate-berlin': 'ALZ',
+  'euroboden-berlin': 'EUR', 'quartier-eins-berlin': 'QEI',
 }
 const autoDevPrefix = (slug: string): string =>
   slug.split('-').filter((s) => s.length > 0).map((s) => s[0]!).join('').toUpperCase().slice(0, 3)
@@ -1442,7 +1455,6 @@ export const DEVELOPERS: Developer[] = [
     verified: true,
     phone: '+995 500 333 111',
   },
-  // ——— 2026-07-19 wave 4 (verified korter.ge / official sites) ———
   {
     slug: 'alpha-home',
     name: { ka: 'Alpha Home', en: 'Alpha Home', ru: 'Alpha Home' },
@@ -1527,6 +1539,7 @@ export const DEVELOPERS: Developer[] = [
   ...NEW_DEVELOPERS_TBILISI,
   ...NEW_DEVELOPERS_BATUMI_REGIONS,
   ...NEW_DEVELOPERS_2026_08,
+  ...NEW_DEVELOPERS_BERLIN,
 ]
 
 // ——— Agents / agencies ———
@@ -4771,6 +4784,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_BATUMI,
   ...NEW_PROJECTS_REGIONS,
   ...NEW_PROJECTS_2026_08,
+  ...NEW_PROJECTS_BERLIN,
 ].map(freshenFinish)
 
 export function getDeveloper(slug: string): Developer | undefined {

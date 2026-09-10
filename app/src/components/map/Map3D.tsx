@@ -32,7 +32,6 @@ import {
 import { CATEGORY_BRAND, DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import {
   MAP_CENTER,
-  GEORGIA_MAX_BOUNDS,
   MAP_MIN_ZOOM,
   buildingsToGeoJSON,
   buildingsToPointsGeoJSON,
@@ -126,6 +125,7 @@ import {
   type MapCity,
 } from '@/lib/map/user-place'
 import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
+import { mapMaxBoundsFor } from '@/lib/map/map-geo'
 import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 // ponytail: construction photo-wrap retired — MapLibre TAS massing only.
 // Restore from git history (bc43637) if a GLB/façade path returns.
@@ -1476,7 +1476,7 @@ function Map3DInner({
         bearing: bootCam.bearing,
         maxPitch: 70,
         minZoom,
-        maxBounds: GEORGIA_MAX_BOUNDS,
+        maxBounds: mapMaxBoundsFor(boot.lat, boot.lng),
         renderWorldCopies: false,
         fadeDuration: 0,
         ...mapRuntimeOptions(),

@@ -1,6 +1,6 @@
 /**
  * GET /api/site?code=01.10.10.025.115 — NAPR + OSM + TAS permits at parcel
- * GET /api/site?lat=&lng= — pin: parcel + OSM + TAS shapes
+ * GET /api/site?lat=&lng= — pin: parcel (NAPR in GE, ALKIS in Berlin) + OSM + TAS shapes
  *
  * ring = building preferred (corpus/OSM), else parcel (map paint).
  * tasShapes / tasDocs = Architecture Service (tas.ge) public data.
@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
 
   if (
     !site.parcel &&
+    !site.alkisParcel &&
     !site.building &&
     !site.tasShapes.length &&
     !site.tasDocs.length
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
     ring: site.ring,
     ringSource: site.ringSource,
     parcel: site.parcel,
+    alkisParcel: site.alkisParcel,
     building: site.building,
     tasShapes: site.tasShapes,
     tasDocs: site.tasDocs,

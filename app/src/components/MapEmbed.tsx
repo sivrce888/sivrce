@@ -2,7 +2,7 @@
 
 /**
  * SIVRCE — MapLibre pin embed (first-party tiles via /api/map).
- * Lazy MapLibre + theme setStyle + load/error/retry. Georgia coords only.
+ * Lazy MapLibre + theme setStyle + load/error/retry. Georgia + Berlin launch coords.
  * highlight: orange pin + OSM building ring (or square fallback).
  */
 
@@ -12,7 +12,7 @@ import { Pause, Play, Sun } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent, SkySpecification } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
-import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
+import { MAP_MIN_ZOOM, mapMaxBoundsFor } from '@/lib/map/map-geo'
 import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, setBasemapBuildings3d, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
 import { parseCoords } from '@/lib/map/map-geo'
 import { ringLabelPoint } from '@/lib/map/ring-label'
@@ -516,7 +516,8 @@ export default function MapEmbed({
           zoom,
           maxPitch: 60,
           minZoom: MAP_MIN_ZOOM,
-          maxBounds: GEORGIA_MAX_BOUNDS,
+          // ponytail: clamp follows pin market (GE/DE); ceiling = city box when DE inventory justifies it
+          maxBounds: mapMaxBoundsFor(lat, lng),
           renderWorldCopies: false,
           fadeDuration: 0,
           interactive,

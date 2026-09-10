@@ -8,7 +8,7 @@
 import type { OsmBuildingHit } from './osm-building-ring'
 import { ringCentroid } from './pick-building'
 
-export type CorpusCity = 'tbilisi' | 'batumi' | 'kutaisi' | 'rustavi' | 'other'
+export type CorpusCity = 'tbilisi' | 'batumi' | 'kutaisi' | 'rustavi' | 'berlin' | 'other'
 
 function asRing(raw: unknown): [number, number][] | null {
   if (!Array.isArray(raw) || raw.length < 5) return null
@@ -34,6 +34,7 @@ export function corpusCityAt(lat: number, lng: number): CorpusCity {
   if (lat >= 41.58 && lat <= 41.7 && lng >= 41.58 && lng <= 41.72) return 'batumi'
   if (lat >= 42.22 && lat <= 42.32 && lng >= 42.65 && lng <= 42.78) return 'kutaisi'
   if (lat >= 41.5 && lat <= 41.6 && lng >= 44.95 && lng <= 45.1) return 'rustavi'
+  if (lat >= 52.32 && lat <= 52.68 && lng >= 13.08 && lng <= 13.77) return 'berlin'
   return 'other'
 }
 

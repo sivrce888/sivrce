@@ -28,6 +28,23 @@ export const MAP_CITIES: readonly MapCity[] = [
   { slug: 'bakuriani', ka: 'ბაკურიანი', en: 'Bakuriani', lat: 41.7497, lng: 43.5325 },
   { slug: 'borjomi', ka: 'ბორჯომი', en: 'Borjomi', lat: 41.8389, lng: 43.3858 },
   { slug: 'gudauri', ka: 'გუდაური', en: 'Gudauri', lat: 42.4764, lng: 44.4769 },
+  // DE market (sivrce.de) — map fly-to / IP snap + geocode city match.
+  { slug: 'berlin', ka: 'ბერლინი', en: 'Berlin', lat: 52.52, lng: 13.405 },
+  { slug: 'hamburg', ka: 'ჰამბურგი', en: 'Hamburg', lat: 53.5511, lng: 9.9937 },
+  { slug: 'munich', ka: 'მიუნხენი', en: 'Munich', lat: 48.1351, lng: 11.582 },
+  { slug: 'cologne', ka: 'კელნი', en: 'Cologne', lat: 50.9375, lng: 6.9603 },
+  { slug: 'frankfurt', ka: 'ფრანკფურტი', en: 'Frankfurt', lat: 50.1109, lng: 8.6821 },
+  { slug: 'stuttgart', ka: 'შტუტგარტი', en: 'Stuttgart', lat: 48.7758, lng: 9.1829 },
+  { slug: 'duesseldorf', ka: 'დიუსელდორფი', en: 'Düsseldorf', lat: 51.2277, lng: 6.7735 },
+  { slug: 'leipzig', ka: 'ლაიფციგი', en: 'Leipzig', lat: 51.3397, lng: 12.3731 },
+  { slug: 'dortmund', ka: 'დორტმუნდი', en: 'Dortmund', lat: 51.5136, lng: 7.4653 },
+  { slug: 'essen', ka: 'ესენი', en: 'Essen', lat: 51.4556, lng: 7.0116 },
+  { slug: 'bremen', ka: 'ბრემენი', en: 'Bremen', lat: 53.0793, lng: 8.8017 },
+  { slug: 'dresden', ka: 'დრეზდენი', en: 'Dresden', lat: 51.0504, lng: 13.7373 },
+  { slug: 'hanover', ka: 'ჰანოვერი', en: 'Hanover', lat: 52.3759, lng: 9.732 },
+  { slug: 'nuremberg', ka: 'ნიურნბერგი', en: 'Nuremberg', lat: 49.4521, lng: 11.0767 },
+  { slug: 'duisburg', ka: 'დუისბურგი', en: 'Duisburg', lat: 51.4344, lng: 6.7623 },
+  { slug: 'bochum', ka: 'ბოხუმი', en: 'Bochum', lat: 51.4818, lng: 7.2162 },
 ] as const
 
 const PLACE_KEY = 'sivrce.map.place'

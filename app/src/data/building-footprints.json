@@ -1,6 +1,25 @@
 {
  "attribution": "© OpenStreetMap contributors (ODbL); TAS ARCHITECTURE_LR; NAPR CadRepGeo",
  "footprints": {
+  "bldg-quartier-lilienthal": null,
+  "bldg-wbm-mollstrasse": null,
+  "bldg-wbm-lange-strasse": null,
+  "bldg-wbm-rathausblock-sued": null,
+  "bldg-wbm-melchior-engeldamm": null,
+  "bldg-wbm-neue-jakobstrasse": null,
+  "bldg-arrive-kreuzberg": null,
+  "bldg-celeste-charlottenburg": null,
+  "bldg-neue-bockbrauerei": null,
+  "bldg-pandion-midtown-4": null,
+  "bldg-buwog-dahmeglanz": null,
+  "bldg-buwog-neumarien": null,
+  "bldg-malmoe28": null,
+  "bldg-hey-charlottenburg": null,
+  "bldg-eckert-carre": null,
+  "bldg-stadt-und-land-droepkeweg": null,
+  "bldg-wohnquadrat-harzer-118": null,
+  "bldg-bonava-fritz-kirsch-zeile": null,
+  "bldg-buwog-havellichter": null,
   "bldg-axis-towers": {
    "parts": [
     {

@@ -77,16 +77,16 @@ export default function Footer() {
             </p>
             <div className="mt-6 space-y-1 text-[14px] font-semibold text-white/60">
               <a href={telHref(CONTACT_PHONE)} className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
-                <Phone className="h-4 w-4 text-sv-blue-light" /> <span className="tabular-nums">{CONTACT_PHONE}</span>
+                <Phone className="h-4 w-4 text-sv-blue-light" aria-hidden /> <span className="tabular-nums">{CONTACT_PHONE}</span>
               </a>
               <a href={waHref(CONTACT_PHONE)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
-                <MessageCircle className="h-4 w-4 text-sv-blue-light" /> WhatsApp
+                <MessageCircle className="h-4 w-4 text-sv-blue-light" aria-hidden /> WhatsApp
               </a>
               <a href="mailto:hi@sivrce.ge" className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
-                <Mail className="h-4 w-4 text-sv-blue-light" /> hi@sivrce.ge
+                <Mail className="h-4 w-4 text-sv-blue-light" aria-hidden /> hi@sivrce.ge
               </a>
               <span className="flex items-center gap-2.5 py-1.5">
-                <MapPin className="h-4 w-4 text-sv-blue-light" /> {t('footer.location')}
+                <MapPin className="h-4 w-4 text-sv-blue-light" aria-hidden /> {t('footer.location')}
               </span>
             </div>
           </div>
@@ -114,7 +114,7 @@ export default function Footer() {
         {/* Exact-query keyword columns (ss.ge/myhome pattern) — anchors match
             each hub page's <h1>; only inventory-carrying pages are linked. */}
         <nav
-          aria-label={lang === 'ka' ? 'პოპულარული ძიებები' : lang === 'ru' ? 'Популярные запросы' : 'Popular searches'}
+          aria-label={t('footer.popularSearches')}
           className="mt-14 border-t border-white/[0.07] pt-10"
         >
           <div className="sv-link-grid">

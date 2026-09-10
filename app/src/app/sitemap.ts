@@ -22,9 +22,9 @@ const BASE = 'https://sivrce.ge'
 // Regenerate with fresh DB inventory hourly.
 export const revalidate = 3600
 
-// hreflang cluster: every page is now server-rendered in all 9 locales via
-// app/[lang]. ka is unprefixed (canonical); the other eight carry a prefix.
-const PREFIXED = ['en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az'] as const
+// hreflang cluster: every page is now server-rendered in all 10 locales via
+// app/[lang]. ka is unprefixed (canonical); the other nine carry a prefix.
+const PREFIXED = ['en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az', 'de'] as const
 const HUB_LOCALES = ['en', 'ru'] as const
 
 type Entry = {
@@ -36,9 +36,9 @@ type Entry = {
   priority: number
   /** hreflang cluster this URL may claim — must mirror the page's own
    * alternates or Google drops the contradicting locale URLs:
-   * - 'full' (default): truly localized via pageAlternates() — ka + 8 prefixes
+   * - 'full' (default): truly localized via pageAlternates() — ka + 9 prefixes
    * - 'hub': programmatic SEO landings — real ka/en/ru copy only; the other
-   *   six locales serve English copy canonicalized to /en (see seoMetadata)
+   *   seven locales serve English copy canonicalized to /en (see seoMetadata)
    * - 'ka': ka-only content via kaOnlyAlternates() (blog/forum posts, agent +
    *   agency profiles, neighbourhood guides, street/metro pages, /terms) */
   locale?: 'full' | 'hub' | 'ka'

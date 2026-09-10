@@ -18,5 +18,6 @@ assert.equal(ring!.length, 5)
 assert.equal(parseCorpusRing([[1]]), null)
 assert.equal(corpusCityAt(41.715, 44.78), 'tbilisi')
 assert.equal(corpusCityAt(41.64, 41.64), 'batumi')
+assert.equal(corpusCityAt(52.52, 13.405), 'berlin')
 
 console.log('osm-corpus.check: ok')

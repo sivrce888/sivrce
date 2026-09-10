@@ -85,12 +85,17 @@ export function dayLengthMinutes(day: SunDay): number {
   return Math.round((day.sunset.getTime() - day.sunrise.getTime()) / 60_000)
 }
 
+/** 8-point compass index (0=N, 2=E, 4=S, 6=W) for an azimuth in degrees. */
+export function compass8(azimuth: number): number {
+  return Math.round((((azimuth % 360) + 360) % 360) / 45) % 8
+}
+
 /** HH:mm in the site's single timezone (Georgia = Asia/Tbilisi). */
 export function formatSunTime(date: Date, lang: string): string {
   try {
-    return new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tbilisi' }).format(date)
+    return new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tbilisi' }).format(date)
   } catch {
-    return new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tbilisi' }).format(date)
+    return new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tbilisi' }).format(date)
   }
 }
 

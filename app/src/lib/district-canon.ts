@@ -105,6 +105,25 @@ const ALIAS: Record<string, string> = {
   'აეროპორტის გზატ': 'აეროპორტის დასახლება',
   'აფრიკის დას': 'აფრიკა',
   'ვაჟა ფშაველას კვარტლები': 'ვაჟა-ფშაველას კვარტლები',
+  // Berlin Bezirke / Ortsteile (sivrce.de) — EN slug/names → ka catalog
+  mitte: 'მიტე',
+  kreuzberg: 'კროიცბერგი',
+  'prenzlauer berg': 'პრენცლაუერ-ბერგი',
+  'prenzlauer-berg': 'პრენცლაუერ-ბერგი',
+  charlottenburg: 'შარლოტენბურგი',
+  'neukölln': 'ნოიკოლნი',
+  neukoelln: 'ნოიკოლნი',
+  friedrichshain: 'ფრიდრიხსჰაინი',
+  pankow: 'პანკოვი',
+  reinickendorf: 'რაინიკენდორფი',
+  spandau: 'შპანდაუ',
+  'steglitz-zehlendorf': 'შტეგლიც-ცელენდორფი',
+  'tempelhof-schöneberg': 'ტემპელჰოფ-შენებერგი',
+  'tempelhof-schoeneberg': 'ტემპელჰოფ-შენებერგი',
+  'treptow-köpenick': 'ტრეპტოვ-კეპენიკი',
+  'treptow-koepenick': 'ტრეპტოვ-კეპენიკი',
+  'marzahn-hellersdorf': 'მარცან-ჰელერსდორფი',
+  lichtenberg: 'ლიხტენბერგი',
   // Combined Soviet → pick primary raion for storage (search expands both)
   'ვაკე-საბურთალო': 'საბურთალო',
   'დიდუბე-ჩუღურეთი': 'დიდუბე',
@@ -120,7 +139,7 @@ const EXPAND: Record<string, string[]> = {
   'ისანი-სამგორი': ['ისანი', 'სამგორი'],
 }
 
-const CITY_SUFFIX = /,\s*(თბილისი|ბათუმი|ქუთაისი|რუსთავი|ტbilisi|batumi)\s*$/iu
+const CITY_SUFFIX = /,\s*(თბილისი|ბათუმი|ქუთაისი|რუსთავი|ბერლინი|ტbilisi|batumi|berlin)\s*$/iu
 
 function normKey(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ')

@@ -61,7 +61,6 @@ export function DeveloperLogo({
 
   return (
     <span
-      aria-hidden
       className={`relative grid shrink-0 place-items-center overflow-hidden rounded-module border border-sv-ink/[0.08] bg-sv-surface shadow-sm ${sizeClasses} ${className}`}
     >
       <Image

@@ -483,7 +483,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
   {
     slug: 'berlin',
     name: { ka: 'ბერლინი', en: 'Berlin', ru: 'Берлин' },
-    city: BERLIN, cityKey: 'ბერლინი', districts: ['მიტე', 'კროიცბერგი', 'პრენცლაუერ-ბერგი', 'შარლოტენბურგი', 'ნოიკოლნი', 'ფრიდრიხსჰაინი'], type: 'City',
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['მიტე', 'კროიცბერგი', 'პრენცლაუერ-ბერგი', 'შარლოტენბურგი', 'ნოიკოლნი', 'ფრიდრიხსჰაინი', 'პანკოვი', 'რაინიკენდორფი', 'შპანდაუ', 'შტეგლიც-ცელენდორფი', 'ტემპელჰოფ-შენებერგი', 'ტრეპტოვ-კეპენიკი', 'მარცან-ჰელერსდორფი', 'ლიხტენბერგი'], type: 'City',
     description: {
       ka: 'გერმანიის დედაქალაქი და sivrce-ის პირველი ქალაქი საქართველოს გარეთ — მიტეს მუზეუმებიდან კროიცბერგის ქუჩის კულტურამდე. ბაზარი ძვირია, მაგრამ ქირის მოთხოვნა ევროპაში ერთ-ერთი ყველაზე სტაბილურია.',
       en: 'Germany’s capital and sivrce’s first city outside Georgia — from Mitte’s museums to Kreuzberg’s street culture. Prices are high, but rental demand is among Europe’s most stable.',
@@ -563,6 +563,102 @@ export const NEIGHBORHOODS: Neighborhood[] = [
     },
     scores: { transport: 9, schools: 6, green: 7, safety: 7, nightlife: 9 },
     avgPriceM2USD: 5800, img: '/images/og-brand.png', coords: { lat: 52.515, lng: 13.45 },
+  },
+  {
+    slug: 'pankow',
+    name: { ka: 'პანკოვი', en: 'Pankow', ru: 'Панков' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['პანკოვი'], type: 'Neighborhood',
+    description: {
+      ka: 'ბერლინის ყველაზე დასახლებული ბეცირკი ჩრდილოეთით — პრენცლაუერ ბერგის მიღმა წყნარი ქუჩები, პარკები და ოჯახური Neubau. ფასი ცენტრზე დაბალია, S-Bahn ცენტრამდე 20 წუთია.',
+      en: 'Berlin’s most populous borough in the north — quiet streets, parks and family Neubau beyond Prenzlauer Berg. Below-centre prices, 20 minutes to the centre by S-Bahn.',
+      ru: 'Самый населённый округ Берлина на севере — тихие улицы, парки и семейные новостройки за Пренцлауэр-Бергом. Цены ниже центра, 20 минут до центра на S-Bahn.',
+    },
+    scores: { transport: 8, schools: 8, green: 8, safety: 9, nightlife: 4 },
+    avgPriceM2USD: 5200, img: '/images/og-brand.png', coords: { lat: 52.569, lng: 13.401 },
+  },
+  {
+    slug: 'reinickendorf',
+    name: { ka: 'რაინიკენდორფი', en: 'Reinickendorf', ru: 'Райниккендорф' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['რაინიკენდორფი'], type: 'Neighborhood',
+    description: {
+      ka: 'მწვანე ჩრდილო-დასავლეთი — ტეგელის ტბა, ტყე და ყოფილი აეროპორტის ახალი კვარტალი. მშვიდი ოჯახური უბანი ქალაქის ერთ-ერთი ხელმისაწვდომი კვადრატით.',
+      en: 'The green north-west — Lake Tegel, forest and the new quarter on the former airport. A quiet family borough with one of the city’s most affordable m².',
+      ru: 'Зелёный северо-запад — озеро Тегель, лес и новый квартал на месте бывшего аэропорта. Тихий семейный округ с одним из самых доступных м² в городе.',
+    },
+    scores: { transport: 7, schools: 7, green: 9, safety: 8, nightlife: 3 },
+    avgPriceM2USD: 4500, img: '/images/og-brand.png', coords: { lat: 52.587, lng: 13.353 },
+  },
+  {
+    slug: 'spandau',
+    name: { ka: 'შპანდაუ', en: 'Spandau', ru: 'Шпандау' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['შპანდაუ'], type: 'Neighborhood',
+    description: {
+      ka: 'ძველი ქალაქი ჰაფელის სანაპიროზე დასავლეთით — ციტადელი, წყლისპირა სახლები და ცალკე ქალაქის განცდა. ყველაზე იაფი შესვლა დასავლეთ ბერლინში, ცენტრამდე U-Bahn-ით 30 წუთი.',
+      en: 'The old town on the Havel in the west — citadel, waterfront houses and a town of its own. The cheapest entry in west Berlin, 30 minutes to the centre by U-Bahn.',
+      ru: 'Старый город на Хафеле на западе — цитадель, дома у воды и ощущение отдельного города. Самый дешёвый вход в западном Берлине, 30 минут до центра на U-Bahn.',
+    },
+    scores: { transport: 7, schools: 7, green: 8, safety: 8, nightlife: 3 },
+    avgPriceM2USD: 4200, img: '/images/og-brand.png', coords: { lat: 52.532, lng: 13.205 },
+  },
+  {
+    slug: 'steglitz-zehlendorf',
+    name: { ka: 'შტეგლიც-ცელენდორფი', en: 'Steglitz-Zehlendorf', ru: 'Штеглиц-Целендорф' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['შტეგლიც-ცელენდორფი'], type: 'Neighborhood',
+    description: {
+      ka: 'ვილების სამხრეთ-დასავლეთი — გრუნევალდი, ვანზეეს ტბა და თავისუფალი უნივერსიტეტი. ბერლინის ყველაზე მწვანე და ძვირი ბეცირკი სტაბილური პრემიუმ ფასით.',
+      en: 'The villa south-west — Grunewald forest, Lake Wannsee and the Free University. Berlin’s greenest and priciest borough with steady premium prices.',
+      ru: 'Вилловый юго-запад — лес Грюневальд, озеро Ванзее и Свободный университет. Самый зелёный и дорогой округ Берлина со стабильными премиальными ценами.',
+    },
+    scores: { transport: 8, schools: 9, green: 10, safety: 9, nightlife: 3 },
+    avgPriceM2USD: 5600, img: '/images/og-brand.png', coords: { lat: 52.441, lng: 13.256 },
+  },
+  {
+    slug: 'tempelhof-schoeneberg',
+    name: { ka: 'ტემპელჰოფ-შენებერგი', en: 'Tempelhof-Schöneberg', ru: 'Темпельхоф-Шёнеберг' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['ტემპელჰოფ-შენებერგი'], type: 'Neighborhood',
+    description: {
+      ka: 'ტემპელჰოფის ველის გარშემო — შენებერგის ალტბაუ, კუდამის სამხრეთი და ცენტრთან სიახლოვე. ბალანსი ფასსა და ლოკაციას შორის; ქირის მოთხოვნა მუდმივად მაღალია.',
+      en: 'Around Tempelhofer Feld — Schöneberg Altbau, south of Ku’damm and close to the centre. The balance of price and location; rental demand stays high.',
+      ru: 'Вокруг Темпельхофер-Фельд — старые дома Шёнеберга, юг Кудамма и близость к центру. Баланс цены и локации; спрос на аренду стабильно высок.',
+    },
+    scores: { transport: 9, schools: 7, green: 8, safety: 8, nightlife: 6 },
+    avgPriceM2USD: 5300, img: '/images/og-brand.png', coords: { lat: 52.461, lng: 13.379 },
+  },
+  {
+    slug: 'treptow-koepenick',
+    name: { ka: 'ტრეპტოვ-კეპენიკი', en: 'Treptow-Köpenick', ru: 'Трептов-Кёпеник' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['ტრეპტოვ-კეპენიკი'], type: 'Neighborhood',
+    description: {
+      ka: 'უდიდესი ბეცირკი სამხრეთ-აღმოსავლეთით — მიუგელზეეს ტბა, ტყეები და შპრეეს სანაპირო. ბუნებასთან უახლოესი ცხოვრება ბერლინში ზომიერი ფასით.',
+      en: 'The largest borough in the south-east — Lake Müggelsee, forests and the Spree banks. The closest-to-nature living in Berlin at a moderate price.',
+      ru: 'Крупнейший округ на юго-востоке — озеро Мюггельзее, леса и берега Шпрее. Самая близкая к природе жизнь в Берлине за умеренную цену.',
+    },
+    scores: { transport: 7, schools: 7, green: 10, safety: 8, nightlife: 4 },
+    avgPriceM2USD: 4600, img: '/images/og-brand.png', coords: { lat: 52.447, lng: 13.574 },
+  },
+  {
+    slug: 'marzahn-hellersdorf',
+    name: { ka: 'მარცან-ჰელერსდორფი', en: 'Marzahn-Hellersdorf', ru: 'Марцан-Хеллерсдорф' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['მარცან-ჰელერსდორფი'], type: 'Neighborhood',
+    description: {
+      ka: 'აღმოსავლეთის პანელური კვარტლები და მსოფლიოს ბაღები — ბერლინის ყველაზე ხელმისაწვდომი კვადრატი. რენოვაცია და U5 ხაზი ფასს ნელა, მაგრამ სტაბილურად წევს ზემოთ.',
+      en: 'The eastern prefab quarters and the Gardens of the World — Berlin’s most affordable m². Renovation and the U5 line push prices up slowly but steadily.',
+      ru: 'Восточные панельные кварталы и Сады мира — самый доступный м² в Берлине. Реновация и линия U5 медленно, но стабильно тянут цены вверх.',
+    },
+    scores: { transport: 7, schools: 6, green: 8, safety: 7, nightlife: 2 },
+    avgPriceM2USD: 3800, img: '/images/og-brand.png', coords: { lat: 52.536, lng: 13.605 },
+  },
+  {
+    slug: 'lichtenberg',
+    name: { ka: 'ლიხტენბერგი', en: 'Lichtenberg', ru: 'Лихтенберг' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['ლიხტენბერგი'], type: 'Neighborhood',
+    description: {
+      ka: 'ოჯახური აღმოსავლეთი — ტირპარკი, ვიქტორიას კვარტალი და ახალი საცხოვრებელი პროექტები. ცენტრთან ახლოს, ფასი კი ჯერ კიდევ აღმოსავლურია.',
+      en: 'The family east — Tierpark, Victoriastadt and new residential projects. Close to the centre while prices are still eastern.',
+      ru: 'Семейный восток — Тирпарк, Викторияштадт и новые жилые проекты. Близко к центру, а цены пока восточные.',
+    },
+    scores: { transport: 8, schools: 7, green: 7, safety: 7, nightlife: 4 },
+    avgPriceM2USD: 4400, img: '/images/og-brand.png', coords: { lat: 52.515, lng: 13.502 },
   },
 ]
 

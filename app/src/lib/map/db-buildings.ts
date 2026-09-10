@@ -141,8 +141,11 @@ async function fetchMapListings(): Promise<Listing[]> {
       where: {
         deletedAt: null,
         status: "active",
-        lat: { gte: 40.5, lte: 43.7 },
-        lng: { gte: 39.9, lte: 46.8 },
+        // Georgia box + Germany box (GEORGIA/GERMANY_MAX_BOUNDS) so Berlin pins count.
+        OR: [
+          { lat: { gte: 40.5, lte: 43.7 }, lng: { gte: 39.9, lte: 46.8 } },
+          { lat: { gte: 46.8, lte: 55.6 }, lng: { gte: 4.9, lte: 16 } },
+        ],
       },
       select: {
         id: true,

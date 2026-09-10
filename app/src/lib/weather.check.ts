@@ -15,7 +15,7 @@ for (const c of CITIES) {
 assert.equal(cityCoords('not-a-city'), undefined)
 assert.equal(cityCoords(undefined), undefined)
 
-// Full WMO space (0–99) yields a non-empty label in all 9 locales and a valid icon.
+// Full WMO space (0–99) yields a non-empty label in all 10 locales and a valid icon.
 const ICONS: readonly WeatherIconName[] = [
   'sun', 'cloud-sun', 'cloud', 'cloud-fog', 'cloud-drizzle',
   'cloud-rain', 'cloud-snow', 'snowflake', 'cloud-lightning', 'thermometer',

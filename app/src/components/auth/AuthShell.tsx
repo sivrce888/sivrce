@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
-import Link from "next/link"
 
+import LocalizedLink from "@/components/LocalizedLink"
 import { Logo } from "@/components/Logo"
 
 export function AuthShell({
@@ -50,16 +50,16 @@ export function AuthShell({
 
         <p className="mt-7 text-center text-[11.5px] font-medium leading-relaxed text-white/35">
           გაგრძელებით ეთანხმები{" "}
-          <Link href="/terms" className="underline decoration-white/25 underline-offset-2 hover:text-white/65">
+          <LocalizedLink href="/terms" className="underline decoration-white/25 underline-offset-2 hover:text-white/65">
             პირობებს
-          </Link>{" "}
+          </LocalizedLink>{" "}
           და{" "}
-          <Link
+          <LocalizedLink
             href="/privacy"
             className="underline decoration-white/25 underline-offset-2 hover:text-white/65"
           >
             კონფიდენციალურობას
-          </Link>
+          </LocalizedLink>
           .
         </p>
       </div>

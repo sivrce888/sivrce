@@ -7,7 +7,7 @@
  * winter solstice ≈ 08:40→17:40 local (~9h, noon altitude ≈25°).
  */
 import assert from 'node:assert/strict'
-import { dayLengthMinutes, formatSunTime, sunPosition, sunTimes, tbilisiInstant, tbilisiMinutesOfDay } from './sun'
+import { compass8, dayLengthMinutes, formatSunTime, sunPosition, sunTimes, tbilisiInstant, tbilisiMinutesOfDay } from './sun'
 
 const TBILISI = { lat: 41.7151, lng: 44.8271 }
 
@@ -49,6 +49,12 @@ assert.ok(riseAz > 45 && riseAz < 75, `summer sunrise azimuth ≈NE, got ${riseA
 const pole = sunTimes(89.9, 0, new Date('2026-06-21T12:00:00Z'))
 assert.equal(pole.sunrise, null, 'polar day → null sunrise')
 assert.equal(dayLengthMinutes({ ...summer, sunrise: null, sunset: null }), 0)
+
+// Compass bucketing: 247° → SW (5), boundaries round to the nearer point.
+assert.deepEqual(
+  [0, 22.4, 22.6, 90, 180, 247, 270, 350, -10].map(compass8),
+  [0, 0, 1, 2, 4, 5, 6, 0, 0],
+)
 
 // Tbilisi wall-clock helpers: 00:00 UTC = 04:00 Tbilisi (UTC+4, no DST).
 assert.equal(tbilisiMinutesOfDay(new Date('2026-06-21T00:00:00Z')), 4 * 60)

@@ -25,7 +25,7 @@ import { normalizeSource, REF_COOKIE, REF_COOKIE_MAX_AGE } from "@/lib/attributi
 const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"]
 
 // Every supported locale except the default (ka). Keep in sync with LANGS in src/lib/i18n/core.ts.
-const LOCALE_PREFIXES = ["en", "ru", "he", "ar", "tr", "uk", "hy", "az"]
+const LOCALE_PREFIXES = ["en", "ru", "he", "ar", "tr", "uk", "hy", "az", "de"]
 
 const PROTECTED_PREFIXES = [
   "/admin",
@@ -47,7 +47,7 @@ function isProtected(pathname: string): boolean {
   )
 }
 
-/** Strip one leading locale prefix (any of the 9) so checks run on the app path. */
+/** Strip one leading locale prefix (any of the 10) so checks run on the app path. */
 function stripLocale(pathname: string): string {
   const seg = pathname.split("/")[1] ?? ""
   if (seg === "ka" || LOCALE_PREFIXES.includes(seg)) {

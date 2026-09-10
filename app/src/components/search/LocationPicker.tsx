@@ -308,7 +308,7 @@ export default function LocationPicker({
                     <button
                       type="button"
                       onClick={() => pickCity('')}
-                      className="grid h-8 w-8 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
+                      className="grid h-11 w-11 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.05] hover:text-sv-ink"
                       aria-label={t('loc.cities')}
                     >
                       <ChevronLeft className="h-5 w-5" />

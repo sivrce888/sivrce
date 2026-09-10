@@ -148,7 +148,7 @@ export default function Navbar() {
                 light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-sv-ink/70 hover:bg-sv-ink/5 dark:text-white/85 dark:hover:bg-white/10'
               }`}
             >
-              <Search className="h-[18px] w-[18px]" />
+              <Search className="h-[18px] w-[18px]" aria-hidden />
             </Link>
           )}
           <Link
@@ -159,8 +159,8 @@ export default function Navbar() {
               light ? 'text-sv-ink/70 hover:bg-sv-ink/5' : 'text-sv-ink/70 hover:bg-sv-ink/5 dark:text-white/85 dark:hover:bg-white/10'
             }`}
           >
-            <Heart className="h-[18px] w-[18px]" />
-            {count > 0 && (
+                <Heart className="h-[18px] w-[18px]" aria-hidden />
+                {count > 0 && (
               <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-sv-orange px-1 text-[10px] font-black text-sv-ink">
                 {count > 99 ? '99+' : count}
               </span>
@@ -176,7 +176,7 @@ export default function Navbar() {
             aria-label={t('nav.addListing')}
             className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
           >
-            <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
+            <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" aria-hidden />
             <span className="hidden min-[1366px]:inline">{t('nav.addListing')}</span>
           </Link>
         </div>
@@ -190,7 +190,7 @@ export default function Navbar() {
                 light ? 'text-sv-ink/70' : 'text-sv-ink/70 dark:text-white/85'
               }`}
             >
-              <Search className="h-[18px] w-[18px]" />
+              <Search className="h-[18px] w-[18px]" aria-hidden />
             </Link>
           )}
           <button
@@ -203,7 +203,7 @@ export default function Navbar() {
             aria-expanded={open}
             aria-controls="mobile-menu"
           >
-            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {open ? <X className="h-6 w-6" aria-hidden /> : <Menu className="h-6 w-6" aria-hidden />}
           </button>
         </div>
       </div>
@@ -284,7 +284,7 @@ export default function Navbar() {
                 {t('nav.favorites')}
               </span>
               <span className="relative grid h-10 w-10 place-items-center text-sv-ink/70">
-                <Heart className="h-[18px] w-[18px]" />
+            <Heart className="h-[18px] w-[18px]" aria-hidden />
                 {count > 0 && (
                   <span className="absolute -right-0.5 -top-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-sv-orange px-1 text-[10px] font-black text-sv-ink">
                     {count > 99 ? '99+' : count}
@@ -298,7 +298,7 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
               className="mt-2 flex items-center justify-center gap-2 rounded-full bg-sv-orange px-4 py-3.5 text-[15px] font-black text-sv-ink shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
             >
-              <Plus className="h-4 w-4" /> {t('nav.addListingFull')}
+              <Plus className="h-4 w-4" aria-hidden /> {t('nav.addListingFull')}
             </Link>
       </nav>
     </header>

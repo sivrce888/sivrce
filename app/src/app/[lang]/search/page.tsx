@@ -37,9 +37,9 @@ export async function generateMetadata({
   }
 }
 
-function SearchFallback() {
+function SearchFallback({ lang }: { lang: string }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-sv-cloud" role="status" aria-label="იტვირთება">
+    <div className="grid min-h-screen place-items-center bg-sv-cloud" role="status" aria-label={lang === "ru" ? "Загрузка" : lang === "ka" ? "იტვირთება" : "Loading"}>
       <span className="sv-spinner" aria-hidden />
     </div>
   )
@@ -50,7 +50,7 @@ export default async function SearchPage({ params }: { params: Promise<{ lang: s
   const lang = isValidLang(raw) ? raw : 'ka'
   const ads = await pickAds(['search_top', 'search_native'], { audience: 'guest', lang })
   return (
-    <Suspense fallback={<SearchFallback />}>
+    <Suspense fallback={<SearchFallback lang={lang} />}>
       <SearchClient
         ads={{ top: ads.search_top ?? null, native: ads.search_native ?? null }}
       />

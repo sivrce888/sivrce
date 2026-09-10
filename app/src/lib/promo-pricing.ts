@@ -1,7 +1,14 @@
 /**
  * Sivrce promo tariffs — single source of truth.
  *
- * Competitor snapshot 2026-07-18:
+ * Competitor snapshot 2026-07-18, re-verified against live pages 2026-09-11
+ * (SS help tariffs unchanged; MyHome tnet pricerules: SV 9/8/7.40, VIP+ 4–4.35).
+ * SS-only products we don't mirror: site syndication 10₾/d (ambebi/bpn/ipn),
+ * pro photography packages, 50% SV discount days, turbo = SV+bump+urgent+color −20%.
+ * SS Premium (buyer membership, home.ss.ge/ka/membership): 1.99₾/1d · 9.99₾/7d ·
+ * 19.99₾/mo — price analytics, valuation, image search, dupes grouped, address
+ * history, ad-free, TOP filter. Sivrce gives analytics+valuation+watch free; no
+ * buyer paywall by design.
  * - SS.ge help (public): SUPER VIP RE 9/8/7/6 · VIP+ 3/2.5 · VIP 1 · FB 45/95/135
  * - MyHome.ge (account modal screenshots): SUPER VIP 9 · VIP+ 4 · VIP 2.50 ·
  *   refresh 0.25–0.30 · color 0.30 · FB 49
@@ -33,6 +40,9 @@ export const PRODUCT_TO_TIER = {
 export type TierKey = (typeof PRODUCT_TO_TIER)[PromoProduct]
 
 export type PromoBadge = "VIP" | "VIP+" | "SUPER VIP"
+
+/** Last date COMPETITOR rates were re-verified against live pages (drive-by: update when prices change). */
+export const COMPETITOR_CHECKED_AT = "2026-09-11"
 
 /** Verified competitor daily rates in tetri (RE unless noted). */
 export const COMPETITOR = {

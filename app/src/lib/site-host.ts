@@ -1,66 +1,194 @@
 /**
- * Multi-apex host → market map.
- * sivrce.ge = Georgia (canonical). sivrce.de = Germany soft launch (Berlin first).
- * sivrce.com already 308s at the Vercel edge to .ge — not handled here.
- *
- * ponytail: host table only. Full DE locale (`de`) + inventory come later;
- * .de defaults to `en` until a de dictionary exists.
+ * Host classification + safe origin helpers.
+ * Production canonicals are allowlisted — never taken from Host / XFH
+ * (host-header / open-redirect defense). Preview/dev never bounce to prod.
  */
 
-import type { Lang } from '@/lib/i18n/core'
+import { COM_ORIGIN, GE_ORIGIN, type MarketId, type PathCountryId } from '@/lib/markets'
 
-export type MarketId = 'ge' | 'de'
+export { COM_ORIGIN, GE_ORIGIN }
 
-export interface SiteHost {
-  market: MarketId
-  /** Canonical public origin for this host (no trailing slash). */
-  apex: string
-  /** Locale injected for unprefixed URLs on this host. */
-  defaultLang: Lang
-  /** Soft-launch city slug (SEO path segment). */
-  defaultCitySlug: string
-  /** First-paint path after `/` on this host (locale-prefixed when needed). */
-  homePath: string
-}
+export type HostKind =
+  | 'ge'
+  | 'com'
+  | 'de-cctld'
+  | 'ae-cctld'
+  | 'admin'
+  | 'cdn'
+  | 'api'
+  | 'legacy-redirect'
+  | 'preview'
+  | 'dev'
 
-const GE: SiteHost = {
-  market: 'ge',
-  apex: 'https://sivrce.ge',
-  defaultLang: 'ka',
-  defaultCitySlug: 'tbilisi',
-  homePath: '/',
-}
-
-const DE: SiteHost = {
-  market: 'de',
-  apex: 'https://sivrce.de',
-  defaultLang: 'en',
-  defaultCitySlug: 'berlin',
-  // Berlin-first: land on the city-info page (real prose, ISR). The
-  // /sale/apartments/berlin hub 404s until listings land — flip homePath then.
-  homePath: '/en/berlin',
-}
-
-/** Hosts that serve the DE market on this deployment. */
+const GE_HOSTS = new Set(['sivrce.ge', 'www.sivrce.ge'])
+const COM_HOSTS = new Set(['sivrce.com', 'www.sivrce.com'])
 const DE_HOSTS = new Set(['sivrce.de', 'www.sivrce.de'])
+const AE_HOSTS = new Set(['sivrce.ae', 'www.sivrce.ae'])
 
-/** First-party hosts — not treated as external acquisition referrers. */
-const OWN_SUFFIXES = ['.sivrce.ge', '.sivrce.de', '.sivrce.com'] as const
+const OWN_EXACT = new Set([
+  'sivrce.ge',
+  'www.sivrce.ge',
+  'sivrce.com',
+  'www.sivrce.com',
+  'sivrce.de',
+  'www.sivrce.de',
+  'sivrce.ae',
+  'www.sivrce.ae',
+  'localhost',
+])
 
-export function siteHostFor(hostname: string): SiteHost {
-  const host = hostname.toLowerCase()
-  if (DE_HOSTS.has(host)) return DE
-  return GE
+const OWN_SUFFIXES = ['.sivrce.ge', '.sivrce.de', '.sivrce.com', '.sivrce.ae'] as const
+
+export function normalizeHostname(raw: string): string {
+  return raw.split(',')[0]!.trim().split(':')[0]!.toLowerCase()
+}
+
+export function isDevHost(host: string): boolean {
+  return host === 'localhost' || host === '127.0.0.1' || host.endsWith('.localhost')
+}
+
+export function isPreviewHost(host: string, vercelEnv?: string): boolean {
+  if (vercelEnv === 'preview') return true
+  if (host.endsWith('.vercel.app')) return true
+  return false
+}
+
+export function isProdIndexable(vercelEnv?: string): boolean {
+  if (vercelEnv && vercelEnv !== 'production') return false
+  return true
+}
+
+export function hostKind(hostname: string, vercelEnv?: string): HostKind {
+  const h = normalizeHostname(hostname)
+  if (isDevHost(h)) return 'dev'
+  if (isPreviewHost(h, vercelEnv)) return 'preview'
+  if (h === 'admin.sivrce.ge' || h === 'admin.localhost') return 'admin'
+  if (h === 'cdn.sivrce.ge' || h === 'images.sivrce.ge') return 'cdn'
+  if (h === 'api.sivrce.ge' || h === 'api.localhost') return 'api'
+  if (h === 'app.sivrce.ge' || h === 'analytics.sivrce.ge') return 'legacy-redirect'
+  if (DE_HOSTS.has(h)) return 'de-cctld'
+  if (AE_HOSTS.has(h)) return 'ae-cctld'
+  if (COM_HOSTS.has(h)) return 'com'
+  if (GE_HOSTS.has(h)) return 'ge'
+  // Unknown prod-like host: treat as preview so we never bounce strangers to prod.
+  return 'preview'
 }
 
 export function isOwnHost(hostname: string): boolean {
-  const h = hostname.toLowerCase()
-  if (h === 'localhost' || h === 'sivrce.ge' || h === 'sivrce.de' || h === 'sivrce.com') {
-    return true
-  }
+  const h = normalizeHostname(hostname)
+  if (OWN_EXACT.has(h) || isDevHost(h)) return true
+  if (h.endsWith('.vercel.app')) return true
   return OWN_SUFFIXES.some((s) => h.endsWith(s))
 }
 
-export function isDeHost(hostname: string): boolean {
-  return DE_HOSTS.has(hostname.toLowerCase())
+export function isWwwHost(host: string): boolean {
+  return host.startsWith('www.')
 }
+
+export function apexOriginFor(kind: HostKind): string | null {
+  switch (kind) {
+    case 'ge':
+      return GE_ORIGIN
+    case 'com':
+    case 'de-cctld':
+    case 'ae-cctld':
+      return COM_ORIGIN
+    default:
+      return null
+  }
+}
+
+export function marketIdForKind(kind: HostKind, pathCountry: PathCountryId | null): MarketId {
+  if (pathCountry) return pathCountry
+  if (kind === 'com') return 'global'
+  if (kind === 'de-cctld') return 'de'
+  if (kind === 'ae-cctld') return 'ae'
+  return 'ge'
+}
+
+export function canonicalOrigin(market: MarketId): string {
+  return market === 'ge' ? GE_ORIGIN : COM_ORIGIN
+}
+
+/** Safe URL: origin is allowlisted, path must be a relative site path. */
+export function safeRedirectUrl(origin: string, pathname: string, search = ''): URL | null {
+  if (origin !== GE_ORIGIN && origin !== COM_ORIGIN) return null
+  const path = sanitizePath(pathname)
+  if (!path) return null
+  const u = new URL(origin)
+  u.pathname = path
+  u.search = search.startsWith('?') ? search : search ? `?${search}` : ''
+  return u
+}
+
+/**
+ * Reject protocol-relative, backslash, encoded-slash, NULs.
+ * Always returns a leading-slash path or null.
+ */
+export function sanitizePath(pathname: string): string | null {
+  if (!pathname) return '/'
+  let p = pathname
+  try {
+    p = decodeURIComponent(pathname)
+  } catch {
+    return null
+  }
+  if (!p.startsWith('/') || p.startsWith('//') || p.includes('\\') || p.includes('\0')) return null
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(p.slice(1))) return null
+  if (p.includes('://')) return null
+  // Collapse repeats; drop trailing slash except root (Next default).
+  p = p.replace(/\/{2,}/g, '/')
+  if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1)
+  return p || '/'
+}
+
+export function lowercasePath(pathname: string): string {
+  return pathname.replace(/[A-Z]/g, (c) => c.toLowerCase())
+}
+
+/* —— compat aliases used by existing checks —— */
+
+export type { MarketId }
+
+/** @deprecated use MARKETS + hostKind; kept for site-host.check + callers */
+export interface SiteHost {
+  market: 'ge' | 'de'
+  apex: string
+  defaultLang: 'ka' | 'en'
+  defaultCitySlug: string
+  homePath: string
+}
+
+export function siteHostFor(hostname: string): SiteHost {
+  const kind = hostKind(hostname)
+  if (kind === 'de-cctld') {
+    return {
+      market: 'de',
+      apex: COM_ORIGIN,
+      defaultLang: 'en',
+      defaultCitySlug: 'berlin',
+      homePath: '/de',
+    }
+  }
+  return {
+    market: 'ge',
+    apex: GE_ORIGIN,
+    defaultLang: 'ka',
+    defaultCitySlug: 'tbilisi',
+    homePath: '/',
+  }
+}
+
+export function isDeHost(hostname: string): boolean {
+  return DE_HOSTS.has(normalizeHostname(hostname))
+}
+
+export function isComHost(hostname: string): boolean {
+  return COM_HOSTS.has(normalizeHostname(hostname))
+}
+
+export function isAeHost(hostname: string): boolean {
+  return AE_HOSTS.has(normalizeHostname(hostname))
+}
+
+export const MARKET_HEADER = 'x-sivrce-market'

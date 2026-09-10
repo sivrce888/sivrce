@@ -13,8 +13,8 @@ import {
 } from '@/lib/seo-pages'
 
 /**
- * Programmatic SEO landings for all 9 locales (ka unprefixed, /en…/az prefixed).
- * ponytail: the seo-pages copy corpus exists only for ka/en/ru — the other six
+ * Programmatic SEO landings for all 10 locales (ka unprefixed, /en…/de prefixed).
+ * ponytail: the seo-pages copy corpus exists only for ka/en/ru — the other seven
  * locales render English copy under their own URL prefix (urlPrefix) with
  * correct hreflang. Upgrade path: translate lib/seo-pages corpus per locale.
  *

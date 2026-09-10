@@ -13,7 +13,7 @@ import { useTheme } from 'next-themes'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { ChevronLeft, ChevronRight, Heart, Layers, LocateFixed, Minus, Plus, Search, X } from 'lucide-react'
-import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
+import { mapMaxBoundsFor, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import {
   applyBrandPaints,
   bindMissingImages,
@@ -249,7 +249,7 @@ export default function SearchMapView({
           center: [boot.lng, boot.lat],
           zoom: 11,
           minZoom: MAP_MIN_ZOOM,
-          maxBounds: GEORGIA_MAX_BOUNDS,
+          maxBounds: mapMaxBoundsFor(boot.lat, boot.lng),
           renderWorldCopies: false,
           fadeDuration: 0,
           ...mapRuntimeOptions(),

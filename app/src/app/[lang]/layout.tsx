@@ -96,7 +96,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
           url: "/images/og-brand.png",
           width: 1200,
           height: 630,
-          alt: `sivrce — ${BRAND.tagline.ka}`,
+          alt: `sivrce — ${lang === "ka" ? BRAND.tagline.ka : BRAND.tagline.en}`,
         },
       ],
     },
@@ -170,7 +170,7 @@ const siteLd = {
       name: SITE_NAME,
       alternateName: "სივრცე",
       slogan: BRAND.tagline.ka,
-      inLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],
+      inLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az", "de"],
       publisher: { "@id": `${SITE_URL}/#organization` },
       description:
         "სივრცე — უძრავი ქონება ერთ სივრცეში. ბინები, სახლები და აგარაკები საქართველოში — იყიდება, ქირავდება, დღიურად ქირავდება. 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება.",
@@ -209,7 +209,7 @@ const siteLd = {
         telephone: CONTACT_PHONE.replace(/\s+/g, ""),
         email: "hi@sivrce.ge",
         url: `${SITE_URL}/contact`,
-        availableLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az"],
+        availableLanguage: ["ka", "en", "ru", "he", "ar", "tr", "uk", "hy", "az", "de"],
       },
       hasOfferCatalog: {
         "@type": "OfferCatalog",

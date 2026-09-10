@@ -74,7 +74,7 @@ const MapEmbed = dynamic(() => import('@/components/MapEmbed'), {
 })
 const SunPath = dynamic(() => import('@/components/listing/SunPath'), {
   ssr: false,
-  loading: () => <div className="mt-8 h-[420px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+  loading: () => <div className="mt-8 h-[520px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
 })
 const LandProfile = dynamic(() => import('@/components/listing/LandProfile'), {
   ssr: false,
@@ -685,9 +685,9 @@ export default function ListingDetailClient({
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
     { icon: DoorOpen, label: t('spec.rooms'), value: l.rooms > 0 ? String(l.rooms) : '—' },
     { icon: Bath, label: t('spec.baths'), value: l.baths > 0 ? String(l.baths) : '—' },
-    { icon: Ruler, label: t('spec.area'), value: `${l.area} მ²` },
-    ...(l.yardArea ? [{ icon: Ruler, label: t('add.yard'), value: `${l.yardArea} მ²` }] : []),
-    ...(l.kitchenArea ? [{ icon: Ruler, label: t('add.kitchenArea'), value: `${l.kitchenArea} მ²` }] : []),
+    { icon: Ruler, label: t('spec.area'), value: `${l.area} ${t('add.areaUnit.m2')}` },
+    ...(l.yardArea ? [{ icon: Ruler, label: t('add.yard'), value: `${l.yardArea} ${t('add.areaUnit.m2')}` }] : []),
+    ...(l.kitchenArea ? [{ icon: Ruler, label: t('add.kitchenArea'), value: `${l.kitchenArea} ${t('add.areaUnit.m2')}` }] : []),
     ...(l.buildingStatus ? [{ icon: Building2, label: t('add.status'), value: buildingStatusLabel(l.buildingStatus, t) }] : []),
     { icon: Building2, label: t('spec.floor'), value: formatFloor(l) },
     ...(l.floorType ? [{ icon: Layers, label: t('add.floorType'), value: floorTypeLabel(l.floorType, t) }] : []),
@@ -697,7 +697,7 @@ export default function ListingDetailClient({
 
   /* key strip — area / floor / bedrooms / total rooms */
   const keySpecs: { icon: typeof BedDouble; label: string; value: string }[] = [
-    { icon: Ruler, label: t('spec.area'), value: `${l.area} მ²` },
+    { icon: Ruler, label: t('spec.area'), value: `${l.area} ${t('add.areaUnit.m2')}` },
     { icon: Building2, label: t('spec.floor'), value: formatFloor(l) },
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
     ...(l.rooms > 0
@@ -810,7 +810,7 @@ export default function ListingDetailClient({
                     src={heroSrc.card ?? heroSrc.master}
                     srcSet={heroSrc.set}
                     sizes="(max-width:1024px) 100vw, 850px"
-                    alt={`${l.title} — ფოტო ${photo + 1}`}
+                    alt={`${l.title} — ${t('detail.photo', { n: String(photo + 1) })}`}
                     width={2560}
                     height={1600}
                     draggable={false}
@@ -933,7 +933,7 @@ export default function ListingDetailClient({
                       : 'opacity-75 hover:opacity-100'
                   }`}
                 >
-                  <Image src={cardOf(src) ?? src} alt={`${l.title} — ფოტო ${i + 1}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
+                  <Image src={cardOf(src) ?? src} alt={`${l.title} — ${t('detail.photo', { n: String(i + 1) })}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
                   {moreTile && (
                     <span className="absolute inset-0 grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
                       <span className="flex flex-col items-center gap-1">
@@ -1073,7 +1073,7 @@ export default function ListingDetailClient({
                   </div>
                 ) : null}
                 <div className="mt-0.5 text-[14px] font-bold text-sv-ink/60 dark:text-sv-blue-light/70">
-                  {priceAlt} · {perM2Label}/მ²
+                  {priceAlt} · {perM2Label}/{t('add.areaUnit.m2')}
                 </div>
               </div>
               {/* Currency toggle — group + pressed (no tabpanel exists, so tablist/tab misleads AT) */}
@@ -1185,7 +1185,7 @@ export default function ListingDetailClient({
             {/* Sivrce Score */}
             <div className="mt-6 overflow-hidden rounded-card border border-sv-blue/15 bg-sv-surface p-6 shadow-card">
               <div className="flex items-center gap-2">
-                <SparkMark className="h-4 w-4" />
+                <SparkMark className="h-4 w-4" aria-hidden />
                 <span className="text-[12px] font-black uppercase tracking-wider text-sv-blue">
                   {t('detail.aiScore')}
                 </span>
@@ -1257,7 +1257,7 @@ export default function ListingDetailClient({
                   key={s.label}
                   className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-4 shadow-card"
                 >
-                  <s.icon className="h-5 w-5 text-sv-blue" />
+                   <s.icon className="h-5 w-5 text-sv-blue" aria-hidden />
                   <div className="mt-2.5 text-[18px] font-black text-sv-ink">{s.value}</div>
                   <div className="text-[12px] font-bold text-sv-ink/60">{s.label}</div>
                 </div>
@@ -1349,7 +1349,7 @@ export default function ListingDetailClient({
               <div className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-8">
                 <div className="flex items-center gap-2.5">
                   <span className="grid h-10 w-10 place-items-center rounded-control bg-sv-blue/10">
-                    <Calculator className="h-5 w-5 text-sv-blue" />
+                    <Calculator className="h-5 w-5 text-sv-blue" aria-hidden />
                   </span>
                   <div>
                     <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.mortgage')}</h2>
@@ -1441,7 +1441,7 @@ export default function ListingDetailClient({
                 </div>
                 <div className="text-[12px] font-bold text-sv-ink/60 dark:text-sv-blue-light/70">
                   {priceAlt}
-                  {isSale && l.perM2USD > 0 ? ` · ${perM2Label}/მ²` : ''}
+                  {isSale && l.perM2USD > 0 ? ` · ${perM2Label}/${t('add.areaUnit.m2')}` : ''}
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -1503,7 +1503,7 @@ export default function ListingDetailClient({
                   variant="button"
                 />
                 <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11.5px] font-semibold text-sv-ink/60">
-                  <BadgeCheck className="h-3 w-3 shrink-0 text-sv-blue" />
+                   <BadgeCheck className="h-3 w-3 shrink-0 text-sv-blue" aria-hidden />
                   {t('detail.phoneHint')}
                 </p>
               </div>
@@ -1579,7 +1579,7 @@ export default function ListingDetailClient({
 
               {l.verified ? (
               <p className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold text-sv-ink/60">
-                <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" />
+                 <BadgeCheck className="h-3.5 w-3.5 text-sv-blue" aria-hidden />
                 {t('detail.verifiedBy')}
               </p>
               ) : null}

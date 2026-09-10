@@ -74,9 +74,11 @@ function priceNumber(priceFromM2: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
-/** ponytail: GEL if ₾/GEL marker, else USD — covers catalog + live merge. */
-function priceCurrency(priceFromM2: string): 'GEL' | 'USD' {
-  return /₾|GEL/i.test(priceFromM2) ? 'GEL' : 'USD'
+/** ponytail: GEL if ₾/GEL marker, EUR if €/EUR (Berlin), else USD — covers catalog + live merge. */
+function priceCurrency(priceFromM2: string): 'GEL' | 'EUR' | 'USD' {
+  if (/₾|GEL/i.test(priceFromM2)) return 'GEL'
+  if (/€|EUR/i.test(priceFromM2)) return 'EUR'
+  return 'USD'
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

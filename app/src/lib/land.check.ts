@@ -4,7 +4,7 @@
  *
  * Asserts slope/aspect math against hand-computed geometry (STEP 0.0006° ≈
  * 66.8 m N–S, shrunk by cos(lat) E–W), the Georgia coordinate guard, and that
- * every aspect resolves to a non-empty label in all 9 site locales.
+ * every aspect resolves to a non-empty label in all 10 site locales.
  */
 import assert from 'node:assert/strict'
 import { LANGS } from './i18n/core'
@@ -48,7 +48,7 @@ assert.ok(!inGeorgia(41, 44.8)) // lat just south of the border (Azerbaijan)
 assert.ok(!inGeorgia(44, 44.8271)) // lat way outside
 assert.ok(!inGeorgia(41.7, 47.5)) // lng east of the border
 
-// Every aspect — including flat — has a non-empty label in all 9 locales.
+// Every aspect — including flat — has a non-empty label in all 10 locales.
 const ASPECTS: Aspect[] = ['flat', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 for (const lang of LANGS) {
   // widened for template-literal keys below — a missing key reads as undefined

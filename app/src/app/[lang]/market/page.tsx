@@ -6,7 +6,7 @@ import { getMarketOverview } from '@/lib/market-stats'
 import { USD_GEL } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import {pageAlternates,  } from '@/lib/i18n/server'
+import {pageAlternates, OG_LOCALE,  } from '@/lib/i18n/server'
 
 export const revalidate = 3600
 
@@ -26,6 +26,11 @@ const META: Record<string, { title: string; description: string }> = {
     description:
       'Average prices per m² by district, medians and demand — aggregated live from active listings, updated daily.',
   },
+  de: {
+    title: 'Immobilienpreise in Georgien — Marktanalyse',
+    description:
+      'Durchschnittspreise pro m² nach Stadtteil, Mediane und Nachfrage — live aus aktiven Inseraten, täglich aktualisiert.',
+  },
   ru: {
     title: 'Цены на недвижимость в Грузии — аналитика рынка',
     description:
@@ -43,6 +48,7 @@ const INTL_LOCALE: Record<Lang, string> = {
   uk: 'uk-UA',
   hy: 'hy-AM',
   az: 'az',
+  de: 'de-DE',
 }
 
 export async function generateMetadata({
@@ -63,7 +69,7 @@ export async function generateMetadata({
       type: 'website',
       url: `https://sivrce.ge/market`,
       siteName: 'sivrce',
-      locale: lang === 'ka' ? 'ka_GE' : lang === 'en' ? 'en_US' : 'ru_RU',
+      locale: OG_LOCALE[lang],
     },
   }
 }

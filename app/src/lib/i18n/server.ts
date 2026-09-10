@@ -53,6 +53,7 @@ export function kaOnlyAlternates(path: string) {
   uk: 'uk_UA',
   hy: 'hy_AM',
   az: 'az_AZ',
+  de: 'de_DE',
 }
 
 /**
@@ -104,6 +105,11 @@ export const SITE_META: Record<Lang, { title: string; description: string }> = {
     title: 'Gürcüstanda daşınmaz əmlak — mənzillər, evlər, bağ evləri | sivrce',
     description:
       'Gürcüstanda mənzillər, evlər və bağ evləri — satış, kirayə və günlük. Tbilisi, Saburtalo, Batumi. 3D xəritə, təsdiq, AI qiymət.',
+  },
+  de: {
+    title: 'Immobilien in Georgien — Wohnungen, Häuser, Ferienhäuser | sivrce',
+    description:
+      'Wohnungen, Häuser und Ferienhäuser in Georgien — kaufen, mieten und zur Tagesmiete. Tiflis, Saburtalo, Batumi. 3D-Karte, Prüfung, KI-Preisschätzung.',
   },
 }
 
@@ -170,6 +176,17 @@ export const SITE_KEYWORDS: Record<Lang, string[]> = {
   uk: ['нерухомість грузія', 'квартири тбілісі подобово', 'sivrce'],
   hy: ['անշարժ գույք վրաստան', 'բնակարաններ թբիլիսի', 'sivrce'],
   az: ['gürcüstan daşınmaz əmlak', 'tbilisi günlük mənzil', 'sivrce'],
+  de: [
+    'immobilien georgien',
+    'wohnung kaufen tiflis',
+    'haus kaufen georgien',
+    'wohnung mieten tiflis',
+    'ferienwohnung tiflis',
+    'tagesmiete tiflis',
+    'neubau tiflis',
+    'immobilien batumi',
+    'sivrce',
+  ],
 }
 
 export interface PageCopy {

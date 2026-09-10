@@ -14,7 +14,7 @@ export default function NotFound() {
   return (
     <div className="font-geo min-h-screen bg-sv-cloud antialiased">
       <Navbar />
-      <main className="sv-pt-nav mx-auto flex min-h-[80vh] max-w-[1440px] flex-col items-center justify-center px-5 text-center">
+      <main id="main" className="sv-pt-nav mx-auto flex min-h-[80vh] max-w-[1440px] flex-col items-center justify-center px-5 text-center">
         <Reveal className="flex flex-col items-center">
           <span className="grid h-20 w-20 place-items-center rounded-module bg-sv-blue/10">
             <LogoMark size={36} />

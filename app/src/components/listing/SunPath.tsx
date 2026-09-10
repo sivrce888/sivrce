@@ -3,27 +3,52 @@
 import { useId, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Sun } from 'lucide-react'
-import { useI18n } from '@/lib/i18n/context'
-import { dayLengthMinutes, formatSunTime, sunPosition, sunTimes, type SunDay } from '@/lib/sun'
+import { useI18n, type DictKey } from '@/lib/i18n/context'
+import {
+  compass8, dayLengthMinutes, formatSunTime, sunPosition, sunTimes,
+  tbilisiInstant, tbilisiMinutesOfDay, type SunDay,
+} from '@/lib/sun'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 
 // Arc geometry (viewBox units) — fixed box keeps season toggling shift-free.
 const W = 320
-const H = 120
+const H = 178
 const HORIZON = 98
 const TOP = 16
 const SAMPLES = 64
 
+// Compass band under the arc: azimuth ruler E→S→W. Fixed 40–320° scale keeps
+// the winter (narrow) and summer (wide) tracks visually comparable.
+// ponytail: covers Georgia + most temperate latitudes; garbage coords render
+// no paths at all, so no clamping story is needed beyond azX itself.
+const BY = 148 // ruler line y
+const AZ_MIN = 40
+const AZ_MAX = 320
+const azX = (az: number) =>
+  10 + ((Math.min(AZ_MAX, Math.max(AZ_MIN, az)) - AZ_MIN) / (AZ_MAX - AZ_MIN)) * (W - 20)
+
 type Season = 'winter' | 'today' | 'summer'
 const SEASONS: readonly Season[] = ['winter', 'today', 'summer']
+
+const DIR_KEYS = [
+  'detail.sunDirN', 'detail.sunDirNE', 'detail.sunDirE', 'detail.sunDirSE',
+  'detail.sunDirS', 'detail.sunDirSW', 'detail.sunDirW', 'detail.sunDirNW',
+] as const satisfies readonly DictKey[]
 
 type PositionedDay = SunDay & { lat: number; lng: number }
 
 /** Polyline of the sun between sunrise and sunset, y scaled to that day's max altitude. */
 // ponytail: 64 straight segments read as a smooth arc at card size; a B-spline
 // would only bloat the bundle. Upgrade path: catmull-rom if the box ever grows.
-function arcPaths(day: PositionedDay): { line: string; fill: string; apexY: number } | null {
+function arcPaths(day: PositionedDay): {
+  line: string
+  fill: string
+  apexY: number
+  /** compass-band track endpoints (x of sunrise/sunset azimuth) */
+  bandX1: number
+  bandX2: number
+} | null {
   if (!day.sunrise || !day.sunset) return null
   const span = day.sunset.getTime() - day.sunrise.getTime()
   const scale = (HORIZON - TOP) / Math.max(day.noonAltitude, 1)
@@ -35,14 +60,20 @@ function arcPaths(day: PositionedDay): { line: string; fill: string; apexY: numb
     pts.push(`${i === 0 ? 'M' : 'L'}${(t * W).toFixed(1)} ${y(altitude).toFixed(1)}`)
   }
   const line = pts.join(' ')
-  return { line, fill: `${line} L${W} ${HORIZON} L0 ${HORIZON} Z`, apexY: y(day.noonAltitude) }
+  return {
+    line,
+    fill: `${line} L${W} ${HORIZON} L0 ${HORIZON} Z`,
+    apexY: y(day.noonAltitude),
+    bandX1: azX(sunPosition(day.lat, day.lng, day.sunrise).azimuth),
+    bandX2: azX(sunPosition(day.lat, day.lng, day.sunset).azimuth),
+  }
 }
 
-/** Sun marker for the live day — null before sunrise / after sunset. */
-function nowMarker(day: PositionedDay, now: Date): { x: number; y: number } | null {
-  if (!day.sunrise || !day.sunset || now < day.sunrise || now > day.sunset) return null
-  const t = (now.getTime() - day.sunrise.getTime()) / (day.sunset.getTime() - day.sunrise.getTime())
-  const { altitude } = sunPosition(day.lat, day.lng, now)
+/** Sun marker at an instant — null before sunrise / after sunset. */
+function markerAt(day: PositionedDay, when: Date): { x: number; y: number } | null {
+  if (!day.sunrise || !day.sunset || when < day.sunrise || when > day.sunset) return null
+  const t = (when.getTime() - day.sunrise.getTime()) / (day.sunset.getTime() - day.sunrise.getTime())
+  const { altitude } = sunPosition(day.lat, day.lng, when)
   return {
     x: t * W,
     y: HORIZON - Math.max(altitude, 0) * ((HORIZON - TOP) / Math.max(day.noonAltitude, 1)),
@@ -68,12 +99,38 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
 
   const day = days[season]
   const paths = useMemo(() => arcPaths(day), [day])
-  const marker = season === 'today' ? nowMarker(day, now) : null
   const len = dayLengthMinutes(day)
+
+  // Scrubber — Tbilisi wall-clock minutes, same convention as the map's shadow
+  // scrubber. Defaults to "now" on today, solar noon on the solstice tabs.
+  const riseMin = day.sunrise ? tbilisiMinutesOfDay(day.sunrise) : 0
+  const setMin = day.sunset ? tbilisiMinutesOfDay(day.sunset) : 0
+  const [scrubMin, setScrubMin] = useState(() =>
+    Math.min(setMin, Math.max(riseMin, tbilisiMinutesOfDay(now))),
+  )
+  const pickSeason = (s: Season) => {
+    setSeason(s)
+    const d = days[s]
+    const r = d.sunrise ? tbilisiMinutesOfDay(d.sunrise) : 0
+    const e = d.sunset ? tbilisiMinutesOfDay(d.sunset) : 0
+    setScrubMin(s === 'today'
+      ? Math.min(e, Math.max(r, tbilisiMinutesOfDay(now)))
+      : tbilisiMinutesOfDay(d.noon))
+  }
+
+  // Anchor to the selected day (solstice noon), not `now` — the scrub instant
+  // must ride the same calendar date the arc was computed for.
+  const when = useMemo(() => tbilisiInstant(scrubMin, day.noon), [scrubMin, day.noon])
+  const pos = useMemo(() => sunPosition(lat, lng, when), [lat, lng, when])
+  const marker = paths ? markerAt(day, when) : null
+  const timeTxt = formatSunTime(when, 'ka')
+  const dirTxt = t(DIR_KEYS[compass8(pos.azimuth)])
+  const altDeg = Math.max(0, Math.round(pos.altitude))
+  const up = pos.altitude > 0
 
   const stats: [string, string][] = [
     [t('detail.sunRise'), day.sunrise ? formatSunTime(day.sunrise, 'ka') : '—'],
-    [t('detail.sunNoon'), formatSunTime(day.noon, 'ka')],
+    [t('detail.sunNoon'), `${formatSunTime(day.noon, 'ka')} · ${Math.round(day.noonAltitude)}°`],
     [t('detail.sunSet'), day.sunset ? formatSunTime(day.sunset, 'ka') : '—'],
     [t('detail.sunDayLen'), len > 0 ? t('detail.sunLenVal', { h: Math.floor(len / 60), m: len % 60 }) : '—'],
   ]
@@ -90,13 +147,14 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
             <p className="text-[12px] font-bold text-sv-ink/60">{t('detail.sunNote')}</p>
           </div>
         </div>
-        <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="tablist" aria-label={t('detail.sunTitle')}>
+        {/* season toggle — group + pressed (no tabpanel exists, so tablist/tab misleads AT) */}
+        <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('detail.sunTitle')}>
           {SEASONS.map((s) => (
             <button
               key={s}
-              role="tab"
-              aria-selected={season === s}
-              onClick={() => setSeason(s)}
+              type="button"
+              aria-pressed={season === s}
+              onClick={() => pickSeason(s)}
               className={`relative rounded-lg px-3.5 py-1.5 text-[12px] font-extrabold transition-colors ${
                 season === s ? 'text-white' : 'text-sv-ink/60 hover:text-sv-ink'
               }`}
@@ -124,7 +182,7 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
           </linearGradient>
         </defs>
         {/* ground */}
-        <rect x="0" y={HORIZON} width={W} height={H - HORIZON} className="fill-sv-ink/[0.04]" />
+        <rect x="0" y={HORIZON} width={W} height={14} className="fill-sv-ink/[0.04]" />
         <line x1="0" y1={HORIZON} x2={W} y2={HORIZON} className="stroke-sv-ink/15" strokeWidth="1" />
         {paths && (
           <>
@@ -145,7 +203,7 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
             />
             {/* horizon dots: sunrise · noon · sunset — explicit initial: motion's
                 first client render otherwise writes cx/cy="undefined" */}
-            <circle cx="0" cy={HORIZON} r="2.5" className="fill-sv-orange/50" />
+            <circle cx={0} cy={HORIZON} r="2.5" className="fill-sv-orange/50" />
             <circle cx={W} cy={HORIZON} r="2.5" className="fill-sv-orange/50" />
             <motion.circle
               initial={{ cy: paths.apexY }}
@@ -156,31 +214,90 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
               r="2.5"
               className="fill-sv-orange/50"
             />
+
+            {/* compass band — where the sun sits in the E→S→W plane */}
+            <line x1={8} y1={BY} x2={W - 8} y2={BY} className="stroke-sv-ink/10" strokeWidth="1" />
+            {([90, 180, 270] as const).map((az) => (
+              <g key={az}>
+                <line x1={azX(az)} y1={BY - 4} x2={azX(az)} y2={BY + 4} className="stroke-sv-ink/20" strokeWidth="1" />
+                <text x={azX(az)} y={BY + 17} textAnchor="middle" className="fill-sv-ink/50 text-[10px] font-black">
+                  {t(az === 90 ? 'detail.sunBE' : az === 180 ? 'detail.sunBS' : 'detail.sunBW')}
+                </text>
+              </g>
+            ))}
+            <motion.line
+              initial={{ x1: paths.bandX1, x2: paths.bandX2 }}
+              animate={{ x1: paths.bandX1, x2: paths.bandX2 }}
+              transition={{ duration: 0.6, ease }}
+              y1={BY}
+              y2={BY}
+              className="stroke-sv-orange"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <motion.circle
+              initial={{ cx: paths.bandX1 }}
+              animate={{ cx: paths.bandX1 }}
+              transition={{ duration: 0.6, ease }}
+              cy={BY}
+              r="2.5"
+              className="fill-sv-orange/50"
+            />
+            <motion.circle
+              initial={{ cx: paths.bandX2 }}
+              animate={{ cx: paths.bandX2 }}
+              transition={{ duration: 0.6, ease }}
+              cy={BY}
+              r="2.5"
+              className="fill-sv-orange/50"
+            />
           </>
         )}
+        {/* scrub markers — plain attributes: the range input drives these, no spring lag */}
         {marker && (
           <>
-            <motion.circle
-              initial={{ cx: marker.x, cy: marker.y }}
-              animate={{ cx: marker.x, cy: marker.y }}
-              transition={{ duration: 0.6, ease }}
-              cx={marker.x}
-              cy={marker.y}
-              r="11"
-              className="fill-sv-orange/25"
-            />
-            <motion.circle
-              initial={{ cx: marker.x, cy: marker.y }}
-              animate={{ cx: marker.x, cy: marker.y }}
-              transition={{ duration: 0.6, ease }}
-              cx={marker.x}
-              cy={marker.y}
-              r="4.5"
-              className="fill-sv-orange"
-            />
+            <circle cx={marker.x} cy={marker.y} r="11" className="fill-sv-orange/25" />
+            <circle cx={marker.x} cy={marker.y} r="4.5" className="fill-sv-orange" />
+            <circle cx={azX(pos.azimuth)} cy={BY} r="11" className="fill-sv-orange/25" />
+            <circle cx={azX(pos.azimuth)} cy={BY} r="4.5" className="fill-sv-orange" />
           </>
         )}
       </svg>
+
+      {/* native range = free touch, keyboard and AT semantics for the scrubber */}
+      {paths && riseMin < setMin && (
+        <>
+          <input
+            type="range"
+            min={riseMin}
+            max={setMin}
+            step={5}
+            value={scrubMin}
+            onChange={(e) => setScrubMin(Number(e.target.value))}
+            aria-label={t('detail.sunScrubAria')}
+            aria-valuetext={`${timeTxt} · ${altDeg}° · ${dirTxt}`}
+            className="sv-range mt-4 w-full"
+          />
+          {up ? (
+            <div className="mt-4 grid grid-cols-3 gap-x-4">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">{t('detail.sunTime')}</div>
+                <div className="mt-0.5 text-[16px] font-black tabular-nums tracking-tight text-sv-ink">{timeTxt}</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">{t('detail.sunElev')}</div>
+                <div className="mt-0.5 text-[16px] font-black tabular-nums tracking-tight text-sv-ink">{altDeg}°</div>
+              </div>
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">{t('detail.sunDirL')}</div>
+                <div className="mt-0.5 break-words text-[15px] font-black leading-snug tracking-tight text-sv-ink">{dirTxt}</div>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-4 text-center text-[14px] font-extrabold text-sv-ink/60">{t('detail.sunNight')}</p>
+          )}
+        </>
+      )}
 
       <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         {stats.map(([label, value]) => (

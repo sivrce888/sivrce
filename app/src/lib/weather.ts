@@ -38,6 +38,21 @@ export const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   kazbegi: { lat: 42.6575, lng: 44.6411 },
   // DE soft launch — sivrce.de Berlin-first hub.
   berlin: { lat: 52.52, lng: 13.405 },
+  hamburg: { lat: 53.5511, lng: 9.9937 },
+  munich: { lat: 48.1351, lng: 11.582 },
+  cologne: { lat: 50.9375, lng: 6.9603 },
+  frankfurt: { lat: 50.1109, lng: 8.6821 },
+  stuttgart: { lat: 48.7758, lng: 9.1829 },
+  duesseldorf: { lat: 51.2277, lng: 6.7735 },
+  leipzig: { lat: 51.3397, lng: 12.3731 },
+  dortmund: { lat: 51.5136, lng: 7.4653 },
+  essen: { lat: 51.4556, lng: 7.0116 },
+  bremen: { lat: 53.0793, lng: 8.8017 },
+  dresden: { lat: 51.0504, lng: 13.7373 },
+  hanover: { lat: 52.3759, lng: 9.732 },
+  nuremberg: { lat: 49.4521, lng: 11.0767 },
+  duisburg: { lat: 51.4344, lng: 6.7623 },
+  bochum: { lat: 51.4818, lng: 7.2162 },
 }
 
 export function cityCoords(slug?: string): { lat: number; lng: number } | undefined {
@@ -109,14 +124,14 @@ export function weatherIcon(code: number): WeatherIconName {
 }
 
 /* Condition labels per locale — the badge shows icon + temp; this feeds the
-   tooltip and screen readers. All 9 site locales, ka first. */
+   tooltip and screen readers. All 10 site locales, ka first. */
 const WMO_LABELS: Record<WeatherGroup, Record<Lang, string>> = {
-  clear: { ka: 'ნათელი', en: 'Clear', ru: 'Ясно', he: 'מתבהר', ar: 'صافٍ', tr: 'Açık', uk: 'Ясно', hy: 'Պարզ', az: 'Açıq' },
-  cloudy: { ka: 'ღრუბლიანი', en: 'Cloudy', ru: 'Облачно', he: 'מעונן', ar: 'غائم', tr: 'Bulutlu', uk: 'Хмарно', hy: 'Ամպամած', az: 'Buludlu' },
-  fog: { ka: 'ნისლიანი', en: 'Fog', ru: 'Туман', he: 'ערפל', ar: 'ضباب', tr: 'Puslu', uk: 'Туман', hy: 'Մառախուղ', az: 'Dumanlı' },
-  rain: { ka: 'წვიმა', en: 'Rain', ru: 'Дождь', he: 'גשם', ar: 'مطر', tr: 'Yağmurlu', uk: 'Дощ', hy: 'Անձրև', az: 'Yağışlı' },
-  snow: { ka: 'თოვლი', en: 'Snow', ru: 'Снег', he: 'שלג', ar: 'ثلج', tr: 'Karlı', uk: 'Сніг', hy: 'Ձյուն', az: 'Qarlı' },
-  storm: { ka: 'ჭექა-ქუხილი', en: 'Thunderstorm', ru: 'Гроза', he: 'סערה', ar: 'عاصفة رعدية', tr: 'Gök gürültülü', uk: 'Гроза', hy: 'Որոտ', az: 'Tufan' },
+  clear: { ka: 'ნათელი', en: 'Clear', ru: 'Ясно', he: 'מתבהר', ar: 'صافٍ', tr: 'Açık', uk: 'Ясно', hy: 'Պարզ', az: 'Açıq', de: 'Klar' },
+  cloudy: { ka: 'ღრუბლიანი', en: 'Cloudy', ru: 'Облачно', he: 'מעונן', ar: 'غائم', tr: 'Bulutlu', uk: 'Хмарно', hy: 'Ամպամած', az: 'Buludlu', de: 'Bewölkt' },
+  fog: { ka: 'ნისლიანი', en: 'Fog', ru: 'Туман', he: 'ערפל', ar: 'ضباب', tr: 'Puslu', uk: 'Туман', hy: 'Մառախուղ', az: 'Dumanlı', de: 'Nebel' },
+  rain: { ka: 'წვიმა', en: 'Rain', ru: 'Дождь', he: 'גשם', ar: 'مطر', tr: 'Yağmurlu', uk: 'Дощ', hy: 'Անձրև', az: 'Yağışlı', de: 'Regen' },
+  snow: { ka: 'თოვლი', en: 'Snow', ru: 'Снег', he: 'שלג', ar: 'ثلج', tr: 'Karlı', uk: 'Сніг', hy: 'Ձյուն', az: 'Qarlı', de: 'Schnee' },
+  storm: { ka: 'ჭექა-ქუხილი', en: 'Thunderstorm', ru: 'Гроза', he: 'סערה', ar: 'عاصفة رعدية', tr: 'Gök gürültülü', uk: 'Гроза', hy: 'Որոտ', az: 'Tufan', de: 'Gewitter' },
 }
 
 export function wmoLabel(code: number, lang: Lang = 'ka'): string {

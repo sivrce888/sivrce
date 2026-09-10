@@ -1,10 +1,18 @@
 /**
- * Address → coords for Georgia listings.
+ * Address → coords for Georgia + Germany listings.
  * ponytail: Nominatim (OSM) server-side only; 1 rps ToS. Upgrade → self-hosted Photon.
  */
 
 import { MAP_CITIES, type MapCity } from '@/lib/map/user-place'
-import { MAP_CENTER, GEORGIA_MAX_BOUNDS, inGeorgia, parseCoords } from '@/lib/map/map-geo'
+import {
+  MAP_CENTER,
+  GEORGIA_MAX_BOUNDS,
+  GERMANY_MAX_BOUNDS,
+  inGeorgia,
+  inGermany,
+  inServiceArea,
+  parseCoords,
+} from '@/lib/map/map-geo'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geometryRing } from '@/lib/map/pick-building'
 import {
@@ -53,9 +61,14 @@ type NominatimRow = {
   }
 }
 
-const [[W, S], [E, N]] = GEORGIA_MAX_BOUNDS
+// Combined viewbox (both markets) for the bounded Nominatim search;
+// countrycodes does the real filtering, the box is only a bias.
+const [[W, S], [E, N]] = [
+  [Math.min(GEORGIA_MAX_BOUNDS[0][0], GERMANY_MAX_BOUNDS[0][0]), Math.min(GEORGIA_MAX_BOUNDS[0][1], GERMANY_MAX_BOUNDS[0][1])],
+  [Math.max(GEORGIA_MAX_BOUNDS[1][0], GERMANY_MAX_BOUNDS[1][0]), Math.max(GEORGIA_MAX_BOUNDS[1][1], GERMANY_MAX_BOUNDS[1][1])],
+] as [[number, number], [number, number]]
 
-export { inGeorgia, parseCoords }
+export { inGeorgia, inGermany, inServiceArea, parseCoords }
 
 export function cityCenter(city: string): { lat: number; lng: number } {
   const needle = city.trim().toLowerCase()
@@ -73,6 +86,14 @@ export function matchCityKa(name?: string | null): string | undefined {
     (c) => c.ka.toLowerCase() === n || c.slug === n || n.includes(c.slug),
   )
   return hit?.ka
+}
+
+/** Sivrce ka city / slug → Nominatim country + EN city (DE market needs Latin). */
+function nominatimMarket(city?: string): { country: string; city: string } {
+  const n = city?.trim().toLowerCase() ?? ''
+  const hit = n ? MAP_CITIES.find((c) => c.ka.toLowerCase() === n || c.slug === n) : null
+  if (hit && inGermany(hit.lat, hit.lng)) return { country: 'Germany', city: hit.en }
+  return { country: 'Georgia', city: city || 'Tbilisi' }
 }
 
 /** Prefer catalog ubani (quarter) over rayon neighbourhood; canonicalize EN/combined. */
@@ -131,7 +152,7 @@ function buildingRing(row: NominatimRow): [number, number][] | undefined {
 function hitFromRow(row: NominatimRow, fallbackLabel: string): GeocodeHit | null {
   const lat = Number(row.lat)
   const lng = Number(row.lon)
-  if (!inGeorgia(lat, lng)) return null
+  if (!inServiceArea(lat, lng)) return null
   const a = row.address
   const ring = buildingRing(row)
   return {
@@ -187,7 +208,7 @@ async function nominatimSearch(
   url.searchParams.set('format', 'json')
   url.searchParams.set('addressdetails', '1')
   url.searchParams.set('polygon_geojson', '1')
-  url.searchParams.set('countrycodes', 'ge')
+  url.searchParams.set('countrycodes', 'ge,de')
   url.searchParams.set('viewbox', `${W},${N},${E},${S}`)
   url.searchParams.set('bounded', '1')
 
@@ -208,7 +229,7 @@ async function nominatimSearch(
 }
 
 /**
- * Geocode a free-text address in Georgia via Nominatim.
+ * Geocode a free-text address in Georgia or Germany via Nominatim.
  * Returns null on miss / network / ToS soft-fail.
  */
 export async function geocodeAddress(
@@ -234,7 +255,8 @@ export async function suggestAddresses(
   if (q.length < 2 || q.length > 120) return []
 
   const { street, houseNo } = splitStreetHouse(q)
-  const needle = [street && `${street}${houseNo ? ` ${houseNo}` : ''}`, city, 'Georgia']
+  const mkt = nominatimMarket(city)
+  const needle = [street && `${street}${houseNo ? ` ${houseNo}` : ''}`, city || mkt.city, mkt.country]
     .filter(Boolean)
     .join(', ')
 
@@ -327,11 +349,12 @@ export async function geocodeListingAddress(
 
   if (street) {
     const streetLine = houseNo ? `${houseNo} ${street}` : street
+    const mkt = nominatimMarket(city)
     const structured = await nominatimSearch(
       {
         street: streetLine,
-        city: city || 'Tbilisi',
-        country: 'Georgia',
+        city: mkt.city,
+        country: mkt.country,
         limit: '8',
       },
       signal,
@@ -354,7 +377,8 @@ export async function geocodeListingAddress(
     }
   }
 
-  const q = [street && `${street} ${houseNo}`.trim(), district, city, 'Georgia']
+  const mkt = nominatimMarket(city)
+  const q = [street && `${street} ${houseNo}`.trim(), district, city || mkt.city, mkt.country]
     .filter(Boolean)
     .join(', ')
   const free = await geocodeAddress(q, signal)
@@ -381,7 +405,7 @@ export async function reverseGeocode(
   lng: number,
   signal?: AbortSignal,
 ): Promise<GeocodeHit | null> {
-  if (!inGeorgia(lat, lng)) return null
+  if (!inServiceArea(lat, lng)) return null
 
   const url = new URL('https://nominatim.openstreetmap.org/reverse')
   url.searchParams.set('lat', String(lat))

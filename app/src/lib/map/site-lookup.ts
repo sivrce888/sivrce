@@ -10,6 +10,8 @@ import {
   fetchCorpusBuildingNear,
   upsertCorpusBuilding,
 } from './osm-corpus'
+import { fetchAlkisParcelAt, type AlkisParcel } from './berlin-gov'
+import { inGermany } from './map-geo'
 import { fetchNaprParcelAt, fetchNaprParcelByCode, type NaprParcel } from './napr-parcel'
 import { fetchOsmBuilding, type OsmBuildingHit } from './osm-building-ring'
 import {
@@ -24,10 +26,12 @@ export type SiteLookup = {
   lat: number
   lng: number
   parcel: NaprParcel | null
+  /** Berlin legal lot (ALKIS Flurstück) — NAPR equivalent for DE pins. */
+  alkisParcel: AlkisParcel | null
   building: OsmBuildingHit | null
   /** Best contour for map paint: building → TAS permit → cadastral lot. */
   ring: [number, number][] | null
-  ringSource: 'osm' | 'tas' | 'napr' | 'corpus' | null
+  ringSource: 'osm' | 'tas' | 'napr' | 'corpus' | 'alkis' | null
   /** TAS Architecture Service permit polygons near pin (Tbilisi). */
   tasShapes: TasArchShape[]
   /** TAS public permits when cadastral known. */
@@ -54,19 +58,31 @@ export async function lookupSite(opts: {
 
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
 
+  // NAPR/TAS are Georgia-only; Berlin pins use ALKIS instead.
+  const de = inGermany(lat!, lng!)
+
   // ponytail: don't block OSM/TAS if maps.gov.ge is slow (ceiling ~6s).
-  const parcelWait = parcel
-    ? Promise.resolve(parcel)
-    : Promise.race([
-        fetchNaprParcelAt(lat!, lng!),
+  const parcelWait =
+    parcel || de
+      ? Promise.resolve(parcel)
+      : Promise.race([
+          fetchNaprParcelAt(lat!, lng!),
+          new Promise<null>((r) => setTimeout(() => r(null), 6_000)),
+        ])
+
+  const alkisWait = de
+    ? Promise.race([
+        fetchAlkisParcelAt(lat!, lng!),
         new Promise<null>((r) => setTimeout(() => r(null), 6_000)),
       ])
+    : Promise.resolve(null)
 
-  const [parcelPin, corpus, tasShapes, tasDocsEarly] = await Promise.all([
+  const [parcelPin, alkisParcel, corpus, tasShapes, tasDocsEarly] = await Promise.all([
     parcelWait,
+    alkisWait,
     fetchCorpusBuildingNear(lat!, lng!),
-    fetchTasShapesAt(lat!, lng!),
-    code ? fetchTasDocsByCadastral(code) : Promise.resolve([] as TasPublicDoc[]),
+    de ? Promise.resolve([]) : fetchTasShapesAt(lat!, lng!),
+    code && !de ? fetchTasDocsByCadastral(code) : Promise.resolve([] as TasPublicDoc[]),
   ])
 
   parcel = parcel ?? parcelPin
@@ -88,11 +104,12 @@ export async function lookupSite(opts: {
     tasDocs = await fetchTasDocsByCadastral(parcelCode)
   }
 
-  if (!building && !parcel && !tasShapes.length && !tasDocs.length) {
+  if (!building && !parcel && !alkisParcel && !tasShapes.length && !tasDocs.length) {
     return {
       lat: lat!,
       lng: lng!,
       parcel: null,
+      alkisParcel: null,
       building: null,
       ring: null,
       ringSource: null,
@@ -102,15 +119,16 @@ export async function lookupSite(opts: {
   }
 
   const tasBest = pickTasShapesForPin(tasShapes, lat!, lng!)[0]
-  const ring = building?.ring ?? tasBest?.ring ?? parcel?.ring ?? null
+  const ring = building?.ring ?? tasBest?.ring ?? parcel?.ring ?? alkisParcel?.ring ?? null
   if (!ringSource) {
-    ringSource = building ? 'osm' : tasBest ? 'tas' : parcel ? 'napr' : null
+    ringSource = building ? 'osm' : tasBest ? 'tas' : parcel ? 'napr' : alkisParcel ? 'alkis' : null
   }
 
   return {
     lat: lat!,
     lng: lng!,
     parcel,
+    alkisParcel,
     building,
     ring,
     ringSource,

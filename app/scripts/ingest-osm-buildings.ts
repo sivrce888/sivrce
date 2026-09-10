@@ -36,6 +36,7 @@ const CITIES: Record<string, Bbox> = {
   poti: { south: 42.13, west: 41.64, north: 42.18, east: 41.7 },
   zugdidi: { south: 42.48, west: 41.84, north: 42.53, east: 41.9 },
   telavi: { south: 41.9, west: 45.45, north: 41.94, east: 45.5 },
+  berlin: { south: 52.33, west: 13.08, north: 52.68, east: 13.77 },
 }
 
 const TILE = 0.025 // ~2.5 km

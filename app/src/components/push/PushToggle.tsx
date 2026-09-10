@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 /**
  * Push notification opt-in/out for the settings page.
- * Labels come from the server (getServerT) so all 9 locales stay in the dicts.
+ * Labels come from the server (getServerT) so all 10 locales stay in the dicts.
  */
 
 type Status = 'loading' | 'unsupported' | 'denied' | 'off' | 'on'

@@ -95,7 +95,7 @@ const ru: Record<NbKey, string> = {
 
 const DICTS: Record<string, Record<NbKey, string>> = { ka, en, ru }
 
-/** Neighborhoods strings for the active language (en fallback for he/ar/tr/uk/hy/az). */
+/** Neighborhoods strings for the active language (en fallback for he/ar/tr/uk/hy/az/de). */
 export function useNb(): Record<NbKey, string> {
   const { lang } = useI18n()
   return DICTS[lang] ?? en

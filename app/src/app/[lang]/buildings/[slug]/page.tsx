@@ -430,7 +430,7 @@ export default async function BuildingPage({ params }: PageProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
-            <nav className="mb-3 flex flex-wrap items-center gap-2 text-[12px] font-bold text-white/60">
+            <nav aria-label={loc === 'ka' ? 'ბრედკრამბი' : loc === 'ru' ? 'Хлебные крошки' : 'Breadcrumb'} className="mb-3 flex flex-wrap items-center gap-2 text-[12px] font-bold text-white/60">
               <Link href="/buildings" className="hover:text-white">
                 {t.buildings}
               </Link>

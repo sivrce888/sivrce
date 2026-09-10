@@ -209,7 +209,7 @@ export const CMS_BLOCKS = {
   'home.cta.secondary': 'დაიწყე ძიება',
   'home.cta.proofA': 'აქტიური განცხადებები',
   'home.cta.proofB': 'მშენებარე ბინები',
-  'home.cta.proofC': '9 ენა · 3D რუკა · AI ქულა',
+  'home.cta.proofC': '10 ენა · 3D რუკა · AI ქულა',
 } as const
 
 export type CmsBlockKey = keyof typeof CMS_BLOCKS

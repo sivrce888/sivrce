@@ -77,8 +77,24 @@ export const CITIES: GeoLoc[] = [
   { slug: 'sighnaghi', ka: 'სიღნაღი', loc: 'სიღნაღში', en: 'Sighnaghi', ru: 'Сигнахи' },
   { slug: 'tskaltubo', ka: 'წყალტუბო', loc: 'წყალტუბოში', en: 'Tskaltubo', ru: 'Цхалтубо' },
   { slug: 'kazbegi', ka: 'ყაზბეგი', loc: 'ყაზბეგში', en: 'Kazbegi', ru: 'Казбеги' },
-  // DE soft launch (sivrce.de) — Berlin first. Inventory-light: pages self-throttle.
+  // DE market (sivrce.de) — top 16 metros by population. Inventory-light:
+  // pages self-throttle (≥1 listing rule); Berlin has city-info prose today.
   { slug: 'berlin', ka: 'ბერლინი', loc: 'ბერლინში', en: 'Berlin', ru: 'Берлин' },
+  { slug: 'hamburg', ka: 'ჰამბურგი', loc: 'ჰამბურგში', en: 'Hamburg', ru: 'Гамбург' },
+  { slug: 'munich', ka: 'მიუნხენი', loc: 'მიუნხენში', en: 'Munich', ru: 'Мюнхен' },
+  { slug: 'cologne', ka: 'კელნი', loc: 'კელნში', en: 'Cologne', ru: 'Кёльн' },
+  { slug: 'frankfurt', ka: 'ფრანკფურტი', loc: 'ფრანკფურტში', en: 'Frankfurt', ru: 'Франкфурт' },
+  { slug: 'stuttgart', ka: 'შტუტგარტი', loc: 'შტუტგარტში', en: 'Stuttgart', ru: 'Штутгарт' },
+  { slug: 'duesseldorf', ka: 'დიუსელდორფი', loc: 'დიუსელდორფში', en: 'Düsseldorf', ru: 'Дюссельдорф' },
+  { slug: 'leipzig', ka: 'ლაიფციგი', loc: 'ლაიფციგში', en: 'Leipzig', ru: 'Лейпциг' },
+  { slug: 'dortmund', ka: 'დორტმუნდი', loc: 'დორტმუნდში', en: 'Dortmund', ru: 'Дортмунд' },
+  { slug: 'essen', ka: 'ესენი', loc: 'ესენში', en: 'Essen', ru: 'Эссен' },
+  { slug: 'bremen', ka: 'ბრემენი', loc: 'ბრემენში', en: 'Bremen', ru: 'Бремен' },
+  { slug: 'dresden', ka: 'დრეზდენი', loc: 'დრეზდენში', en: 'Dresden', ru: 'Дрезден' },
+  { slug: 'hanover', ka: 'ჰანოვერი', loc: 'ჰანოვერში', en: 'Hanover', ru: 'Ганновер' },
+  { slug: 'nuremberg', ka: 'ნიურნბერგი', loc: 'ნიურნბერგში', en: 'Nuremberg', ru: 'Нюрнберг' },
+  { slug: 'duisburg', ka: 'დუისბურგი', loc: 'დუისბურგში', en: 'Duisburg', ru: 'Дуйсбург' },
+  { slug: 'bochum', ka: 'ბოხუმი', loc: 'ბოხუმში', en: 'Bochum', ru: 'Бохум' },
 ]
 
 export type District = GeoLoc & { citySlug: string }
@@ -120,13 +136,22 @@ export const DISTRICTS: District[] = [
   { slug: 'kutaisi-centri', ka: 'ცენტრი', loc: 'ცენტრში', en: 'Center', ru: 'Центр', citySlug: 'kutaisi' },
   { slug: 'avtokarkhana', ka: 'ავტოქარხანა', loc: 'ავტოქარხანის უბანში', en: 'Avtokarkhana', ru: 'Автокархана', citySlug: 'kutaisi' },
   { slug: 'nikea', ka: 'ნიკეა', loc: 'ნიკეაში', en: 'Nikea', ru: 'Никеа', citySlug: 'kutaisi' },
-  // Berlin (sivrce.de) — core Bezirk hubs; more districts when DE inventory lands.
+  // Berlin (sivrce.de) — 12 Bezirke + popular Ortsteile; district pages go
+  // live with DE inventory (≥1 listing rule), guides live in neighborhoods.ts.
   { slug: 'mitte', ka: 'მიტე', loc: 'მიტეში', en: 'Mitte', ru: 'Митте', citySlug: 'berlin' },
   { slug: 'kreuzberg', ka: 'კროიცბერგი', loc: 'კროიცბერგში', en: 'Kreuzberg', ru: 'Кройцберг', citySlug: 'berlin' },
   { slug: 'prenzlauer-berg', ka: 'პრენცლაუერ-ბერგი', loc: 'პრენცლაუერ-ბერგში', en: 'Prenzlauer Berg', ru: 'Пренцлауэр-Берг', citySlug: 'berlin' },
   { slug: 'charlottenburg', ka: 'შარლოტენბურგი', loc: 'შარლოტენბურგში', en: 'Charlottenburg', ru: 'Шарлоттенбург', citySlug: 'berlin' },
   { slug: 'neukoelln', ka: 'ნოიკოლნი', loc: 'ნოიკოლნში', en: 'Neukölln', ru: 'Нойкёльн', citySlug: 'berlin' },
   { slug: 'friedrichshain', ka: 'ფრიდრიხსჰაინი', loc: 'ფრიდრიხსჰაინში', en: 'Friedrichshain', ru: 'Фридрихсхайн', citySlug: 'berlin' },
+  { slug: 'pankow', ka: 'პანკოვი', loc: 'პანკოვში', en: 'Pankow', ru: 'Панков', citySlug: 'berlin' },
+  { slug: 'reinickendorf', ka: 'რაინიკენდორფი', loc: 'რაინიკენდორფში', en: 'Reinickendorf', ru: 'Райниккендорф', citySlug: 'berlin' },
+  { slug: 'spandau', ka: 'შპანდაუ', loc: 'შპანდაუში', en: 'Spandau', ru: 'Шпандау', citySlug: 'berlin' },
+  { slug: 'steglitz-zehlendorf', ka: 'შტეგლიც-ცელენდორფი', loc: 'შტეგლიც-ცელენდორფში', en: 'Steglitz-Zehlendorf', ru: 'Штеглиц-Целендорф', citySlug: 'berlin' },
+  { slug: 'tempelhof-schoeneberg', ka: 'ტემპელჰოფ-შენებერგი', loc: 'ტემპელჰოფ-შენებერგში', en: 'Tempelhof-Schöneberg', ru: 'Темпельхоф-Шёнеберг', citySlug: 'berlin' },
+  { slug: 'treptow-koepenick', ka: 'ტრეპტოვ-კეპენიკი', loc: 'ტრეპტოვ-კეპენიკში', en: 'Treptow-Köpenick', ru: 'Трептов-Кёпеник', citySlug: 'berlin' },
+  { slug: 'marzahn-hellersdorf', ka: 'მარცან-ჰელერსდორფი', loc: 'მარცან-ჰელერსდორფში', en: 'Marzahn-Hellersdorf', ru: 'Марцан-Хеллерсдорф', citySlug: 'berlin' },
+  { slug: 'lichtenberg', ka: 'ლიხტენბერგი', loc: 'ლიხტენბერგში', en: 'Lichtenberg', ru: 'Лихтенберг', citySlug: 'berlin' },
 ]
 
 /** City display name per locale (CITIES registry, fallback raw). */

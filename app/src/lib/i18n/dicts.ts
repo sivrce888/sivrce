@@ -16,9 +16,10 @@ import { tr } from "./tr"
 import { uk } from "./uk"
 import { hy } from "./hy"
 import { az } from "./az"
+import { de } from "./de"
 import { translateRaw, type Lang } from "./core"
 
-const DICTS: Record<Lang, Record<DictKey, string>> = { ka, en, ru, he, ar, tr, uk, hy, az }
+const DICTS: Record<Lang, Record<DictKey, string>> = { ka, en, ru, he, ar, tr, uk, hy, az, de }
 
 export function getDict(lang: Lang): Record<DictKey, string> {
   return DICTS[lang]
