@@ -53,6 +53,12 @@ export interface GeoLoc {
   loc: string // locative for H1: თბილისში
   en: string
   ru: string
+  /** Default ge. DE/AE cities are not Georgia sitemap URLs. */
+  market?: 'ge' | 'de' | 'ae'
+}
+
+export function cityMarket(c: GeoLoc): 'ge' | 'de' | 'ae' {
+  return c.market ?? 'ge'
 }
 
 export const CITIES: GeoLoc[] = [
@@ -79,22 +85,22 @@ export const CITIES: GeoLoc[] = [
   { slug: 'kazbegi', ka: 'ყაზბეგი', loc: 'ყაზბეგში', en: 'Kazbegi', ru: 'Казбеги' },
   // DE market (sivrce.de) — top 16 metros by population. Inventory-light:
   // pages self-throttle (≥1 listing rule); Berlin has city-info prose today.
-  { slug: 'berlin', ka: 'ბერლინი', loc: 'ბერლინში', en: 'Berlin', ru: 'Берлин' },
-  { slug: 'hamburg', ka: 'ჰამბურგი', loc: 'ჰამბურგში', en: 'Hamburg', ru: 'Гамбург' },
-  { slug: 'munich', ka: 'მიუნხენი', loc: 'მიუნხენში', en: 'Munich', ru: 'Мюнхен' },
-  { slug: 'cologne', ka: 'კელნი', loc: 'კელნში', en: 'Cologne', ru: 'Кёльн' },
-  { slug: 'frankfurt', ka: 'ფრანკფურტი', loc: 'ფრანკფურტში', en: 'Frankfurt', ru: 'Франкфурт' },
-  { slug: 'stuttgart', ka: 'შტუტგარტი', loc: 'შტუტგარტში', en: 'Stuttgart', ru: 'Штутгарт' },
-  { slug: 'duesseldorf', ka: 'დიუსელდორფი', loc: 'დიუსელდორფში', en: 'Düsseldorf', ru: 'Дюссельдорф' },
-  { slug: 'leipzig', ka: 'ლაიფციგი', loc: 'ლაიფციგში', en: 'Leipzig', ru: 'Лейпциг' },
-  { slug: 'dortmund', ka: 'დორტმუნდი', loc: 'დორტმუნდში', en: 'Dortmund', ru: 'Дортмунд' },
-  { slug: 'essen', ka: 'ესენი', loc: 'ესენში', en: 'Essen', ru: 'Эссен' },
-  { slug: 'bremen', ka: 'ბრემენი', loc: 'ბრემენში', en: 'Bremen', ru: 'Бремен' },
-  { slug: 'dresden', ka: 'დრეზდენი', loc: 'დრეზდენში', en: 'Dresden', ru: 'Дрезден' },
-  { slug: 'hanover', ka: 'ჰანოვერი', loc: 'ჰანოვერში', en: 'Hanover', ru: 'Ганновер' },
-  { slug: 'nuremberg', ka: 'ნიურნბერგი', loc: 'ნიურნბერგში', en: 'Nuremberg', ru: 'Нюрнберг' },
-  { slug: 'duisburg', ka: 'დუისბურგი', loc: 'დუისბურგში', en: 'Duisburg', ru: 'Дуйсбург' },
-  { slug: 'bochum', ka: 'ბოხუმი', loc: 'ბოხუმში', en: 'Bochum', ru: 'Бохум' },
+  { slug: 'berlin', ka: 'ბერლინი', loc: 'ბერლინში', en: 'Berlin', ru: 'Берлин', market: 'de' },
+  { slug: 'hamburg', ka: 'ჰამბურგი', loc: 'ჰამბურგში', en: 'Hamburg', ru: 'Гамбург', market: 'de' },
+  { slug: 'munich', ka: 'მიუნხენი', loc: 'მიუნხენში', en: 'Munich', ru: 'Мюнхен', market: 'de' },
+  { slug: 'cologne', ka: 'კელნი', loc: 'კელნში', en: 'Cologne', ru: 'Кёльн', market: 'de' },
+  { slug: 'frankfurt', ka: 'ფრანკფურტი', loc: 'ფრანკფურტში', en: 'Frankfurt', ru: 'Франкфурт', market: 'de' },
+  { slug: 'stuttgart', ka: 'შტუტგარტი', loc: 'შტუტგარტში', en: 'Stuttgart', ru: 'Штутгарт', market: 'de' },
+  { slug: 'duesseldorf', ka: 'დიუსელდორფი', loc: 'დიუსელდორფში', en: 'Düsseldorf', ru: 'Дюссельдорф', market: 'de' },
+  { slug: 'leipzig', ka: 'ლაიფციგი', loc: 'ლაიფციგში', en: 'Leipzig', ru: 'Лейпциг', market: 'de' },
+  { slug: 'dortmund', ka: 'დორტმუნდი', loc: 'დორტმუნდში', en: 'Dortmund', ru: 'Дортмунд', market: 'de' },
+  { slug: 'essen', ka: 'ესენი', loc: 'ესენში', en: 'Essen', ru: 'Эссен', market: 'de' },
+  { slug: 'bremen', ka: 'ბრემენი', loc: 'ბრემენში', en: 'Bremen', ru: 'Бремен', market: 'de' },
+  { slug: 'dresden', ka: 'დრეზდენი', loc: 'დრეზდენში', en: 'Dresden', ru: 'Дрезден', market: 'de' },
+  { slug: 'hanover', ka: 'ჰანოვერი', loc: 'ჰანოვერში', en: 'Hanover', ru: 'Ганновер', market: 'de' },
+  { slug: 'nuremberg', ka: 'ნიურნბერგი', loc: 'ნიურნბერგში', en: 'Nuremberg', ru: 'Нюрнберг', market: 'de' },
+  { slug: 'duisburg', ka: 'დუისბურგი', loc: 'დუისბურგში', en: 'Duisburg', ru: 'Дуйсбург', market: 'de' },
+  { slug: 'bochum', ka: 'ბოხუმი', loc: 'ბოხუმში', en: 'Bochum', ru: 'Бохум', market: 'de' },
 ]
 
 export type District = GeoLoc & { citySlug: string }

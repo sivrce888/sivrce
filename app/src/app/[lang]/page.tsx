@@ -1,9 +1,18 @@
+import type { Metadata } from 'next'
 import HomeMain from '@/components/HomeMain'
+import GlobalHome, { metadata as globalMeta } from '@/components/GlobalHome'
 import { LISTINGS, type Listing } from '@/data/listings'
 import { getAllListings } from '@/lib/listings-db'
 import { listingPath } from '@/lib/listing-slug'
 import { isValidLang } from '@/lib/i18n/core'
 import { jsonLd } from '@/lib/utils'
+import { requestMarket } from '@/lib/request-market'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const market = await requestMarket()
+  if (market === 'global') return globalMeta
+  return {}
+}
 
 // Paid SUPER VIP / VIP+ rails — 60s ISR so a just-purchased slot lands on home.
 export const revalidate = 60
@@ -35,6 +44,8 @@ async function homeItemListLd() {
 }
 
 export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+  const market = await requestMarket()
+  if (market === 'global') return <GlobalHome />
   const { lang: raw } = await params
   const itemListLd = await homeItemListLd()
   return (

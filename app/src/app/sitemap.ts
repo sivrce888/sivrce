@@ -16,6 +16,8 @@ import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
 import { listingVideoObject } from '@/lib/listing-video'
 import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
+import { COM_ORIGIN, COUNTRY_IDS } from '@/lib/markets'
+import { countrySitemapPaths } from '@/lib/country-copy'
 
 const BASE = 'https://sivrce.ge'
 
@@ -260,5 +262,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
-  return entries.map(toSitemapEntry)
+  return [...entries.map(toSitemapEntry), ...countrySitemap()]
+}
+
+function countrySitemap(): MetadataRoute.Sitemap {
+  const out: MetadataRoute.Sitemap = [
+    {
+      url: `${COM_ORIGIN}/`,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          en: `${COM_ORIGIN}/`,
+          ka: `${BASE}/`,
+          'x-default': `${COM_ORIGIN}/`,
+        },
+      },
+    },
+  ]
+  for (const cc of COUNTRY_IDS) {
+    for (const path of countrySitemapPaths(cc)) {
+      const url = `${COM_ORIGIN}${path}`
+      const languages: Record<string, string> = { en: url, 'x-default': url }
+      if (cc === 'ae') languages.ar = `${COM_ORIGIN}/ar${path}`
+      out.push({ url, changeFrequency: 'weekly', priority: path.split('/').length <= 2 ? 0.85 : 0.7, alternates: { languages } })
+    }
+  }
+  return out
 }

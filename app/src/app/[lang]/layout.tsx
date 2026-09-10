@@ -13,6 +13,8 @@ import { BRAND } from "@/lib/brand";
 import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
 import { getServerT, pageAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from "@/lib/i18n/server";
 import { getDict } from "@/lib/i18n/dicts";
+import { requestMarket } from "@/lib/request-market";
+import { COM_ORIGIN } from "@/lib/markets";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
 import { CONTACT_PHONE } from "@/lib/inquiries/phone";
@@ -59,12 +61,14 @@ interface LangLayoutProps {
 export async function generateMetadata({ params }: LangLayoutProps): Promise<Metadata> {
   const { lang: raw } = await params;
   const lang: Lang = isValidLang(raw) ? raw : "ka";
+  const market = await requestMarket();
+  const origin = market === "ge" ? SITE_URL : COM_ORIGIN;
   // CMS overrides win over coded meta (/admin/content/pages → SEO meta).
   const cms = await getCmsOverrides(lang);
   const siteTitle = cms["seo.site.title"] ?? SITE_META[lang].title;
   const siteDescription = cms["seo.site.description"] ?? SITE_META[lang].description;
   return {
-    metadataBase: new URL(SITE_URL),
+    metadataBase: new URL(origin),
     title: {
       default: siteTitle,
       template: `%s | sivrce`,
@@ -77,10 +81,10 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     publisher: SITE_NAME,
     category: "Real Estate",
     alternates: {
-      ...pageAlternates("/", lang),
+      ...(market === "ge" ? pageAlternates("/", lang) : {}),
       types: {
-        "text/plain": `${SITE_URL}/llms.txt`,
-        "application/rss+xml": `${SITE_URL}/rss.xml`,
+        "text/plain": `${origin}/llms.txt`,
+        "application/rss+xml": `${origin}/rss.xml`,
       },
     },
     openGraph: {
@@ -306,6 +310,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
   // Invalid locale prefix ("/xx/search") → 404 via the root not-found page.
   if (!isValidLang(raw)) notFound();
   const lang = raw;
+  const market = await requestMarket();
   // CMS text overrides for this locale (cached; empty when nothing is overridden).
   const cmsOverrides = await getCmsOverrides(lang);
   // Resolved marketing blocks (override → coded default → ka) — one small map, per lang.
@@ -364,10 +369,12 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
           <Toaster position="top-center" />
         </ThemeProvider>
         <SWRegister />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}
-        />
+        {market === "ge" ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: jsonLd(siteLd) }}
+          />
+        ) : null}
       </body>
     </html>
   );

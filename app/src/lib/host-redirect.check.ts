@@ -45,9 +45,6 @@ if (wwwCom.type === 'redirect') assert.equal(wwwCom.origin, COM_ORIGIN)
 const wwwGe = decideHost({ host: 'www.sivrce.ge', pathname: '/sale', vercelEnv: 'production' })
 assert.deepEqual(wwwGe, { type: 'redirect', origin: GE_ORIGIN, pathname: '/sale' })
 
-const geDe = decideHost({ host: 'sivrce.ge', pathname: '/de', vercelEnv: 'production' })
-assert.deepEqual(geDe, { type: 'redirect', origin: COM_ORIGIN, pathname: '/de' })
-
 const geBerlin = decideHost({ host: 'sivrce.ge', pathname: '/berlin', vercelEnv: 'production' })
 assert.deepEqual(geBerlin, { type: 'redirect', origin: COM_ORIGIN, pathname: '/de/berlin' })
 
@@ -57,17 +54,26 @@ assert.deepEqual(comSale, { type: 'redirect', origin: GE_ORIGIN, pathname: '/sal
 const comHome = decideHost({ host: 'sivrce.com', pathname: '/', vercelEnv: 'production' })
 assert.deepEqual(comHome, { type: 'rewrite', pathname: '/en', market: 'global' })
 
+const comMap = decideHost({ host: 'sivrce.com', pathname: '/map', vercelEnv: 'production' })
+assert.deepEqual(comMap, { type: 'rewrite', pathname: '/en/map', market: 'global' })
+
+const comEnMap = decideHost({ host: 'sivrce.com', pathname: '/en/map', vercelEnv: 'production' })
+assert.deepEqual(comEnMap, { type: 'rewrite', pathname: '/en/map', market: 'global' })
+
 const comDe = decideHost({ host: 'sivrce.com', pathname: '/de/berlin', vercelEnv: 'production' })
 assert.deepEqual(comDe, { type: 'rewrite', pathname: '/en/de/berlin', market: 'de' })
 
-const previewDe = decideHost({ host: 'sivrce-git-foo.vercel.app', pathname: '/de' })
-assert.deepEqual(previewDe, { type: 'rewrite', pathname: '/en/de', market: 'de' })
+const previewDe = decideHost({ host: 'sivrce-git-foo.vercel.app', pathname: '/en/de' })
+assert.deepEqual(previewDe, { type: 'pass', market: 'de' })
 
-const localDe = decideHost({ host: 'localhost', pathname: '/de/berlin' })
-assert.deepEqual(localDe, { type: 'rewrite', pathname: '/en/de/berlin', market: 'de' })
+const localDe = decideHost({ host: 'localhost', pathname: '/en/de/berlin' })
+assert.deepEqual(localDe, { type: 'pass', market: 'de' })
+
+const localGerman = decideHost({ host: 'localhost', pathname: '/de' })
+assert.deepEqual(localGerman, { type: 'pass', market: 'ge' })
 
 const previewNoBounce = decideHost({ host: 'sivrce-git-foo.vercel.app', pathname: '/de', vercelEnv: 'preview' })
-assert.equal(previewNoBounce.type, 'rewrite')
+assert.deepEqual(previewNoBounce, { type: 'pass', market: 'ge' })
 
 const caseNorm = decideHost({ host: 'localhost', pathname: '/DE/Berlin' })
 assert.deepEqual(caseNorm, { type: 'redirect', origin: 'same', pathname: '/de/berlin' })
@@ -90,5 +96,27 @@ assert.ok((COUNTRY_IDS as readonly string[]).includes('de'))
 
 const loopDe = decideHost({ host: 'sivrce.com', pathname: '/de', vercelEnv: 'production' })
 assert.equal(loopDe.type, 'rewrite')
+
+const comEnDe = decideHost({ host: 'sivrce.com', pathname: '/en/de', vercelEnv: 'production' })
+assert.deepEqual(comEnDe, { type: 'redirect', origin: 'same', pathname: '/de' })
+
+const localAe = decideHost({ host: 'localhost', pathname: '/ae/dubai' })
+assert.deepEqual(localAe, { type: 'rewrite', pathname: '/en/ae/dubai', market: 'ae' })
+
+const wwwAe = decideHost({ host: 'www.sivrce.ae', pathname: '/', vercelEnv: 'production' })
+assert.deepEqual(wwwAe, { type: 'redirect', origin: COM_ORIGIN, pathname: '/ae' })
+
+// Unlaunched country codes on .com fall through to Georgia (no thin pages).
+const comFr = decideHost({ host: 'sivrce.com', pathname: '/fr/paris', vercelEnv: 'production' })
+assert.deepEqual(comFr, { type: 'redirect', origin: GE_ORIGIN, pathname: '/fr/paris' })
+
+const geUkLang = decideHost({ host: 'sivrce.ge', pathname: '/uk', vercelEnv: 'production' })
+assert.deepEqual(geUkLang, { type: 'pass', market: 'ge' })
+const geTrLang = decideHost({ host: 'sivrce.ge', pathname: '/tr', vercelEnv: 'production' })
+assert.deepEqual(geTrLang, { type: 'pass', market: 'ge' })
+
+assert.ok(isCountryPath('/ae/dubai'))
+assert.ok(!isCountryPath('/en/madrid'))
+assert.ok(safeRedirectUrl(COM_ORIGIN, '/de', '?utm=1')?.search.includes('utm=1'))
 
 console.log('host-redirect.check: ok')

@@ -1,7 +1,8 @@
 /**
  * Country / market registry — language, currency, units and URL prefix
- * are independent. Add a row to launch FR/ES/IT/UK/US/CA/TR; do not
- * invent a URL prefix that collides with LANGS in i18n/core.ts.
+ * are independent. Add a row + copy + `app/[lang]/<cc>/[[...slug]]` to launch
+ * FR/ES/IT/UK/US/CA/TR. Do not pick a prefix that collides with LANGS unless
+ * you host-disambiguate like `de` (sivrce.ge/de = German locale).
  *
  * ponytail: table only. Listing FX (EUR/AED) stays off the GEL/USD
  * converter until DE/AE inventory exists — upgrade: extend Currency.
@@ -16,7 +17,7 @@ export type MarketCurrency = 'GEL' | 'USD' | 'EUR' | 'AED'
 export const COM_ORIGIN = 'https://sivrce.com'
 export const GE_ORIGIN = 'https://sivrce.ge'
 
-/** ISO-3166 path prefixes on sivrce.com. Must stay out of LANGS. */
+/** Live ISO-3166 path prefixes on sivrce.com. Must stay out of LANGS except `de`. */
 export const COUNTRY_IDS = ['de', 'ae'] as const
 export type PathCountryId = (typeof COUNTRY_IDS)[number]
 
@@ -44,7 +45,6 @@ export interface Market {
   canonicalOrigin: string
   defaultCitySlug: string
   citySlugs: readonly string[]
-  /** Intents with unique copy (no faceted explosion). */
   intents: readonly ('buy' | 'rent')[]
 }
 
@@ -118,6 +118,14 @@ export const GLOBAL_MARKET: Pick<Market, 'id' | 'currency' | 'locale' | 'default
 
 export function isPathCountry(seg: string): seg is PathCountryId {
   return (COUNTRY_IDS as readonly string[]).includes(seg)
+}
+
+/** Reverse lookup: city slugs are globally unique across live markets. */
+export function findCountryByCity(slug: string): PathCountryId | null {
+  for (const id of COUNTRY_IDS) {
+    if (MARKETS[id].citySlugs.includes(slug)) return id
+  }
+  return null
 }
 
 export function countryCitySet(id: PathCountryId): Set<string> {

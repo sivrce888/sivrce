@@ -6,7 +6,7 @@
 
 import type { ReactNode } from 'react'
 
-export type FlagCode = 'ge' | 'gb' | 'ru' | 'ua' | 'am' | 'az' | 'il' | 'sa' | 'tr' | 'de'
+export type FlagCode = 'ge' | 'gb' | 'ru' | 'ua' | 'am' | 'az' | 'il' | 'sa' | 'tr' | 'de' | 'ae'
 
 const FLAG_ART: Record<FlagCode, ReactNode> = {
   /* Georgia — white field, large red cross, four small crosses */
@@ -119,6 +119,15 @@ const FLAG_ART: Record<FlagCode, ReactNode> = {
       <rect x="0" y="3" width="24" height="6" fill="#151515" />
       <rect x="0" y="9" width="24" height="6" fill="#dd0000" />
       <rect x="0" y="15" width="24" height="6" fill="#ffce00" />
+    </>
+  ),
+  /* UAE — red hoist, green / white / black bands */
+  ae: (
+    <>
+      <rect x="0" y="3" width="24" height="6" fill="#00732f" />
+      <rect x="0" y="9" width="24" height="6" fill="#ffffff" />
+      <rect x="0" y="15" width="24" height="6" fill="#000000" />
+      <rect x="0" y="3" width="7" height="18" fill="#ff0000" />
     </>
   ),
 }

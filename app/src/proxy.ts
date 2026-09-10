@@ -1,22 +1,26 @@
 import { NextResponse, type NextRequest } from "next/server"
 
 import { normalizeSource, REF_COOKIE, REF_COOKIE_MAX_AGE } from "@/lib/attribution"
+import { decideHost } from "@/lib/host-redirect"
+import {
+  GEO_COOKIE,
+  GEO_COOKIE_MAX_AGE,
+  geoHomePath,
+  isGeoLaunch,
+  marketFromIso,
+  type GeoLaunchId,
+} from "@/lib/geo-market"
+import { GE_ORIGIN, MARKET_HEADER, hostKind, isOwnHost, safeRedirectUrl } from "@/lib/site-host"
 
 /**
  * Edge-level defense in depth for protected routes + locale routing
- * + multi-host routing (admin / api / cdn / app / analytics / images).
+ * + multi-host routing (admin / api / cdn / app / analytics / images)
+ * + country paths on sivrce.com (/de, /ae; add a MARKETS row to launch more).
  *
  * Route-based i18n: every public page lives under app/[lang]. ka is the
  * canonical default and stays URL-unprefixed — this proxy INTERNALLY
- * rewrites "/" → "/ka" and "/x" → "/ka/x" for non-locale first segments
- * (api/auth/_next/file-like excluded by the passthrough below and the
- * matcher). Prefixed locales ("/en/search") resolve natively; an explicit
- * "/ka/…" URL 308s to its unprefixed canonical form. The [lang] layout
- * validates the locale and 404s invalid prefixes.
- *
- * The authoritative role check still happens server-side in `requireAdmin()`
- * / `requireRole()` — those query the DB-backed session. The edge proxy
- * can't reach Prisma, so here we only verify session-cookie presence.
+ * rewrites "/" → "/ka" and "/x" → "/ka/x" for non-locale first segments.
+ * Host disambiguation: sivrce.ge/de = German locale; sivrce.com/de = Germany.
  *
  * ponytail: cookie-presence only (JWT sessions). Role checks stay in
  * requireAdmin/requireRole against the DB-backed user row.
@@ -39,7 +43,7 @@ const PROTECTED_PREFIXES = [
   "/auth/onboarding",
 ]
 
-const APEX = "https://sivrce.ge"
+const APEX = GE_ORIGIN
 
 function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
@@ -69,7 +73,6 @@ function signinRedirect(req: NextRequest, callbackUrl: string): NextResponse {
 }
 
 function hostName(req: NextRequest): string {
-  // Prefer x-forwarded-host (Vercel / Cloudflare) then Host.
   const raw =
     req.headers.get("x-forwarded-host") ||
     req.headers.get("host") ||
@@ -93,15 +96,26 @@ function isRedirectHost(host: string): boolean {
   return host === "app.sivrce.ge" || host === "analytics.sivrce.ge"
 }
 
-/** First-touch acquisition source: campaign param > ref param > external Referer > direct. */
+function isRootPassthrough(pathname: string): boolean {
+  return (
+    pathname === "/api" ||
+    pathname.startsWith("/api/") ||
+    pathname === "/auth" ||
+    pathname.startsWith("/auth/") ||
+    pathname === "/llms.txt" ||
+    pathname === "/llms-full.txt" ||
+    pathname === "/a8f3c91e2b7d4e6a9c1f0d5b8e4a7c2d.txt" ||
+    pathname.startsWith("/.well-known/")
+  )
+}
+
 function refFrom(req: NextRequest): string {
   const q = req.nextUrl.searchParams
   const campaign = q.get("utm_source") ?? q.get("ref")
   if (campaign) return normalizeSource(campaign)
   try {
     const host = new URL(req.headers.get("referer") ?? "").hostname
-    // Own traffic (internal nav, admin host) is not an acquisition source.
-    if (host && !host.endsWith("sivrce.ge") && host !== "localhost") {
+    if (host && !isOwnHost(host)) {
       return normalizeSource(host)
     }
   } catch {
@@ -110,36 +124,83 @@ function refFrom(req: NextRequest): string {
   return "direct"
 }
 
-function pass(req: NextRequest, res: NextResponse): NextResponse {
-  // Stamp once per 30-day window — true first touch, never overwritten.
+function isPreviewReq(host: string): boolean {
+  const kind = hostKind(host, process.env.VERCEL_ENV)
+  return kind === "preview" || process.env.VERCEL_ENV === "preview"
+}
+
+function pass(req: NextRequest, res: NextResponse, preview = false): NextResponse {
   if (!req.cookies.get(REF_COOKIE)?.value) {
     res.cookies.set(REF_COOKIE, refFrom(req), {
       maxAge: REF_COOKIE_MAX_AGE,
       sameSite: "lax",
       path: "/",
-      // ponytail: server-read only (proxy + auth) — HttpOnly blocks XSS exfil, zero client cost.
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     })
   }
-  if (req.nextUrl.searchParams.get("cmsPreview") === "1") {
+  if (req.nextUrl.searchParams.get("cmsPreview") === "1" || preview) {
     res.headers.set("x-cms-preview", "1")
     res.headers.set("X-Robots-Tag", "noindex, nofollow")
   }
   return res
 }
 
+function stampMarket(req: NextRequest, market: string): Headers {
+  const headers = new Headers(req.headers)
+  headers.set(MARKET_HEADER, market)
+  return headers
+}
+
+function geoCookieOpts(): { maxAge: number; path: string; sameSite: "lax"; secure: boolean } {
+  return {
+    maxAge: GEO_COOKIE_MAX_AGE,
+    path: "/",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  }
+}
+
+function rememberGeo(req: NextRequest, res: NextResponse, market: string): NextResponse {
+  if (!isGeoLaunch(market) && market !== "global") return res
+  if (req.cookies.get(GEO_COOKIE)?.value === market) return res
+  res.cookies.set(GEO_COOKIE, market, geoCookieOpts())
+  return res
+}
+
+/** First-visit .com / → launched country. Cookie wins; ?worldwide=1 pins the hub. */
+function comHubMarket(req: NextRequest): "global" | GeoLaunchId {
+  if (req.nextUrl.searchParams.get("worldwide") === "1") return "global"
+  const cook = req.cookies.get(GEO_COOKIE)?.value
+  if (cook === "global") return "global"
+  if (isGeoLaunch(cook)) return cook
+  const iso = marketFromIso(req.headers.get("x-vercel-ip-country"))
+  return isGeoLaunch(iso) ? iso : "global"
+}
+
+function isComHomePath(pathname: string): boolean {
+  return pathname === "/" || pathname === "/en"
+}
+
+function isMapPath(pathname: string): boolean {
+  return (
+    pathname === "/map" ||
+    pathname.startsWith("/map/") ||
+    pathname === "/en/map" ||
+    pathname.startsWith("/en/map/")
+  )
+}
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const host = hostName(req)
   const seg = pathname.split("/")[1] ?? ""
+  const preview = isPreviewReq(host)
 
-  // app / analytics → apex (single product surface).
   if (isRedirectHost(host)) {
     return NextResponse.redirect(new URL(pathname + req.nextUrl.search, APEX), 308)
   }
 
-  // CDN / images: static assets only; everything else → apex.
   if (isCdnHost(host)) {
     const staticOk =
       pathname.startsWith("/images/") ||
@@ -163,7 +224,6 @@ export function proxy(req: NextRequest) {
     return res
   }
 
-  // api.sivrce.ge → /api/* (same deployment).
   if (isApiHost(host)) {
     if (pathname === "/api" || pathname.startsWith("/api/")) {
       return NextResponse.next()
@@ -174,13 +234,10 @@ export function proxy(req: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  // Admin host: map / → /ka/admin, /users → /ka/admin/users (auth stays as-is).
-  // ?cmsPreview=1 is the visual CMS iframe — serve the real public page.
   if (isAdminHost(host)) {
     if (pathname.startsWith("/auth")) {
       return NextResponse.next()
     }
-    // Same /api/admin cookie gate as the apex host; other /api paths pass through.
     if (pathname.startsWith("/api")) {
       if (pathname.startsWith("/api/admin") && !hasSession(req)) {
         return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 })
@@ -189,11 +246,11 @@ export function proxy(req: NextRequest) {
     }
     if (req.nextUrl.searchParams.get("cmsPreview") === "1") {
       if (LOCALE_PREFIXES.includes(seg) || seg === "ka") {
-        return pass(req, NextResponse.next())
+        return pass(req, NextResponse.next(), preview)
       }
       const pub = req.nextUrl.clone()
       pub.pathname = `/ka${pathname === "/" ? "" : pathname}`
-      return pass(req, NextResponse.rewrite(pub))
+      return pass(req, NextResponse.rewrite(pub), preview)
     }
     const bare = stripLocale(pathname)
     const adminPath = bare === "/" ? "/admin" : bare.startsWith("/admin") ? bare : `/admin${bare}`
@@ -208,14 +265,66 @@ export function proxy(req: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  // Canonical ka is unprefixed: an explicit /ka/… URL redirects to its clean form.
+  let market = "ge"
+  if (!isRootPassthrough(pathname)) {
+    const decision = decideHost({
+      host,
+      pathname,
+      vercelEnv: process.env.VERCEL_ENV,
+    })
+    if (decision.type === "redirect") {
+      if (decision.origin === "same") {
+        const url = req.nextUrl.clone()
+        url.pathname = decision.pathname
+        return NextResponse.redirect(url, 308)
+      }
+      const dest = safeRedirectUrl(decision.origin, decision.pathname, req.nextUrl.search)
+      if (!dest) {
+        return NextResponse.redirect(new URL("/", APEX), 308)
+      }
+      return NextResponse.redirect(dest, 308)
+    }
+    if (decision.type === "rewrite") {
+      let nextMarket = decision.market
+      if (nextMarket === "global" && isComHomePath(pathname)) {
+        const hub = comHubMarket(req)
+        if (hub !== "global") {
+          const dest = req.nextUrl.clone()
+          dest.pathname = geoHomePath(hub)
+          dest.searchParams.delete("worldwide")
+          return rememberGeo(req, NextResponse.redirect(dest, 302), hub)
+        }
+        if (req.nextUrl.searchParams.has("worldwide")) {
+          const dest = req.nextUrl.clone()
+          dest.searchParams.delete("worldwide")
+          return rememberGeo(req, NextResponse.redirect(dest, 302), "global")
+        }
+      }
+      if (nextMarket === "global" && isMapPath(pathname)) {
+        const cook = req.cookies.get(GEO_COOKIE)?.value
+        if (isGeoLaunch(cook)) nextMarket = cook
+      }
+      const url = req.nextUrl.clone()
+      url.pathname = decision.pathname
+      return rememberGeo(
+        req,
+        pass(
+          req,
+          NextResponse.rewrite(url, { request: { headers: stampMarket(req, nextMarket) } }),
+          preview,
+        ),
+        nextMarket,
+      )
+    }
+    market = decision.market
+  }
+
   if (seg === "ka") {
     const url = req.nextUrl.clone()
     url.pathname = pathname.slice(3) || "/"
     return NextResponse.redirect(url, 308)
   }
 
-  // Everything below works on the locale-stripped app path (as before).
   const bare = stripLocale(pathname)
 
   if (isProtected(bare) && !hasSession(req)) {
@@ -223,35 +332,29 @@ export function proxy(req: NextRequest) {
     return signinRedirect(req, cb)
   }
 
-  // Prefixed locales resolve through the app/[lang] segment natively.
   if (LOCALE_PREFIXES.includes(seg)) {
-    return pass(req, NextResponse.next())
+    const headers = stampMarket(req, market)
+    return rememberGeo(req, pass(req, NextResponse.next({ request: { headers } }), preview), market)
   }
 
-  // Route handlers + auth flows stay at the root, unprefixed.
-  if (
-    pathname === "/api" ||
-    pathname.startsWith("/api/") ||
-    pathname === "/auth" ||
-    pathname.startsWith("/auth/") ||
-    pathname === "/llms.txt" ||
-    pathname === "/llms-full.txt" ||
-    pathname === "/a8f3c91e2b7d4e6a9c1f0d5b8e4a7c2d.txt" ||
-    pathname.startsWith("/.well-known/")
-  ) {
+  if (isRootPassthrough(pathname)) {
     return NextResponse.next()
   }
 
-  // ka-injection: unprefixed app URLs serve the ka segment internally;
-  // the external URL stays clean and canonical.
   const url = req.nextUrl.clone()
   url.pathname = `/ka${pathname === "/" ? "" : pathname}`
-  return pass(req, NextResponse.rewrite(url))
+  return rememberGeo(
+    req,
+    pass(
+      req,
+      NextResponse.rewrite(url, { request: { headers: stampMarket(req, market) } }),
+      preview,
+    ),
+    market,
+  )
 }
 
 export const config = {
-  // MUST include `/` — the catch-all group alone skips the apex path, which
-  // broke admin.sivrce.ge → /admin. Skip only Next internals + file-like paths.
   matcher: [
     "/",
     "/((?!_next/static|_next/image|.*\\..*).*)",

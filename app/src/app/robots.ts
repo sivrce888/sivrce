@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { COM_ORIGIN, GE_ORIGIN } from '@/lib/markets'
 
 const DISALLOW = [
   '/api/',
@@ -7,8 +8,6 @@ const DISALLOW = [
   '/settings',
   '/dashboard',
   '/seller',
-  // Trailing slash required: bare '/agent' prefix-matches the public /agents
-  // directory and would deindex ~140 sitemap pages. Same for /agency → /agencies.
   '/agent/',
   '/agency/',
   '/developer/',
@@ -20,8 +19,10 @@ const DISALLOW = [
 ]
 
 export default function robots(): MetadataRoute.Robots {
+  if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') {
+    return { rules: { userAgent: '*', disallow: '/' } }
+  }
   return {
-    // Named AI crawlers honor their own UA; mirror * so they keep /llms.txt.
     rules: [
       {
         userAgent: '*',
@@ -59,7 +60,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: DISALLOW,
       },
     ],
-    sitemap: 'https://sivrce.ge/sitemap.xml',
-    host: 'https://sivrce.ge',
+    sitemap: [`${GE_ORIGIN}/sitemap.xml`, `${COM_ORIGIN}/sitemap.xml`],
+    host: GE_ORIGIN,
   }
 }

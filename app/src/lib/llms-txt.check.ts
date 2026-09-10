@@ -22,7 +22,8 @@ assert.ok(!/myhome|ss\.ge/i.test(short), 'llms.txt must not name competitors')
 
 const full = llmsFullTxt()
 assert.ok(full.startsWith('# sivrce'), 'llms-full.txt needs an H1')
-assert.ok(full.length > 8000, 'llms-full.txt too thin for a catalog')
+assert.ok(full.includes('https://sivrce.com/de'), 'llms-full missing Germany hub')
+assert.ok(full.includes('https://sivrce.com/ae'), 'llms-full missing UAE')
 assert.ok(!/myhome|ss\.ge/i.test(full), 'llms-full must not name competitors')
 
 const inventory = new Set(['tbilisi', 'batumi', 'kutaisi'])

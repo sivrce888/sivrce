@@ -7,7 +7,7 @@
  * Preview/dev never bounce to production.
  */
 
-import { MARKETS, canonicalIntent, isPathCountry, type PathCountryId } from '@/lib/markets'
+import { MARKETS, canonicalIntent, findCountryByCity, isPathCountry, type PathCountryId } from '@/lib/markets'
 import {
   COM_ORIGIN,
   GE_ORIGIN,
@@ -27,11 +27,8 @@ export type HostDecision =
 
 const LOCALE_SET = new Set<string>([DEFAULT_LANG, ...PREFIXED_LANGS])
 
-function isDeCity(slug: string): boolean {
-  return MARKETS.de.citySlugs.includes(slug)
-}
-function isAeCity(slug: string): boolean {
-  return MARKETS.ae.citySlugs.includes(slug)
+function isMarketCity(cc: PathCountryId, slug: string): boolean {
+  return MARKETS[cc].citySlugs.includes(slug)
 }
 
 export function mapCctldPath(cc: PathCountryId, pathname: string): string {
@@ -46,10 +43,10 @@ export function mapCctldPath(cc: PathCountryId, pathname: string): string {
     if (rest[0] && isPathCountry(rest[0])) return prefix
     return rest.length ? `${prefix}/${rest.join('/')}` : prefix
   }
-  if ((cc === 'de' ? isDeCity(first) : isAeCity(first))) return `${prefix}/${segs.join('/')}`
+  if (isMarketCity(cc, first)) return `${prefix}/${segs.join('/')}`
   const intent = canonicalIntent(first)
   if (intent) {
-    const city = segs[1] && (cc === 'de' ? isDeCity(segs[1]) : isAeCity(segs[1]))
+    const city = segs[1] && isMarketCity(cc, segs[1])
       ? segs[1]
       : MARKETS[cc].defaultCitySlug
     return `${prefix}/${city}/${intent}`
@@ -95,35 +92,43 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
   const restSegs = rest.split('/').filter(Boolean)
   const restFirst = restSegs[0] ?? ''
 
-  // /en/de/… → canonical country URL (en is the default country language).
+  // /en/de/… is the internal rewrite target. On sivrce.com the public URL
+  // is /de/… (308). Locally keep /en/de so it does not collide with German /de.
   if (lang === 'en' && isPathCountry(restFirst)) {
-    return { type: 'redirect', origin: 'same', pathname: rest }
+    if (!local && kind === 'com') {
+      return { type: 'redirect', origin: 'same', pathname: rest }
+    }
+    return { type: 'pass', market: restFirst as PathCountryId }
   }
 
-  // Production .ge: keep /de as German locale. Move DE/AE city leftovers to .com.
+  // Production .ge: locale prefixes (incl. /de, /tr, /uk) stay. Bare country
+  // paths and leftover country-city slugs move to .com.
   if (!local && kind === 'ge') {
-    if (isDeCity(restFirst)) {
+    const cityCountry = findCountryByCity(restFirst)
+    if (cityCountry) {
       const tail = restSegs.join('/')
-      return { type: 'redirect', origin: COM_ORIGIN, pathname: `/de/${tail}` }
+      return { type: 'redirect', origin: COM_ORIGIN, pathname: `${MARKETS[cityCountry].pathPrefix}/${tail}` }
     }
-    if (isAeCity(restFirst)) {
-      const tail = restSegs.join('/')
-      return { type: 'redirect', origin: COM_ORIGIN, pathname: `/ae/${tail}` }
-    }
-    if (restFirst === 'ae') {
+    if (!lang && isPathCountry(restFirst) && !LOCALE_SET.has(restFirst)) {
       return { type: 'redirect', origin: COM_ORIGIN, pathname: rest }
     }
     return { type: 'pass', market: 'ge' }
   }
 
-  // Production .com: global hub + country paths. Everything else → .ge.
+  // Production .com: global hub + country paths + map. Everything else → .ge.
   if (!local && kind === 'com') {
     if (path === '/' || path === '/en') {
       return { type: 'rewrite', pathname: '/en', market: 'global' }
     }
-    if (isPathCountry(path.split('/').filter(Boolean)[0] ?? '')) {
-      const cc = path.split('/').filter(Boolean)[0] as PathCountryId
-      return { type: 'rewrite', pathname: `/en${path}`, market: cc }
+    const segs = path.split('/').filter(Boolean)
+    const first = segs[0] ?? ''
+    const mapSeg = first === 'en' ? segs[1] : first
+    if (mapSeg === 'map') {
+      const mapped = first === 'en' ? path : `/en${path}`
+      return { type: 'rewrite', pathname: mapped, market: 'global' }
+    }
+    if (isPathCountry(first)) {
+      return { type: 'rewrite', pathname: `/en${path}`, market: first as PathCountryId }
     }
     if (lang === 'ar' && restFirst === 'ae') {
       return { type: 'pass', market: 'ae' }
@@ -131,9 +136,10 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
     return { type: 'redirect', origin: GE_ORIGIN, pathname: path }
   }
 
-  // Dev/preview: country pages live at /en/de and /ae (ae is not a lang).
-  if (restFirst === 'ae' && !lang) {
-    return { type: 'rewrite', pathname: `/en${path}`, market: 'ae' }
+  // Dev/preview: country pages live at /en/<cc>, plus bare /<cc> for codes
+  // that are not locale prefixes (ae, fr, es, it, us, ca — but not de/tr/uk).
+  if (!lang && isPathCountry(restFirst) && !LOCALE_SET.has(restFirst)) {
+    return { type: 'rewrite', pathname: `/en${path}`, market: restFirst as PathCountryId }
   }
   if (lang === 'ar' && restFirst === 'ae') {
     return { type: 'pass', market: 'ae' }

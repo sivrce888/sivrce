@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Heart, Menu, X, Plus, Search, Phone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
+import { MarketSwitcher } from '@/components/MarketSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { AccountMenu } from '@/components/nav/AccountMenu'
@@ -168,6 +169,7 @@ export default function Navbar() {
           </Link>
           <ThemeToggle light={light} />
           <CurrencySwitcher light={light} />
+          <MarketSwitcher light={light} />
           <LangSwitcher light={light} />
           <AccountMenu light={light} />
           <Link
@@ -250,6 +252,12 @@ export default function Navbar() {
                 {t('nav.currency')}
               </span>
               <CurrencySwitcher light />
+            </div>
+            <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
+              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
+                Market
+              </span>
+              <MarketSwitcher light />
             </div>
             <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
               <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">

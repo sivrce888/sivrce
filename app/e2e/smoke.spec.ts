@@ -66,6 +66,42 @@ test.describe("Public pages", () => {
     expect(res?.status()).toBe(200)
   })
 
+  test("Germany country hub loads", async ({ page }) => {
+    const res = await page.goto(`${BASE}/en/de`)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator("h1").first()).toBeVisible()
+  })
+
+  test("UAE country hub loads", async ({ page }) => {
+    const res = await page.goto(`${BASE}/en/ae`)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator("h1").first()).toBeVisible()
+  })
+
+  test("Berlin country page loads", async ({ page }) => {
+    const res = await page.goto(`${BASE}/en/de/berlin`)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator("h1").first()).toBeVisible()
+  })
+
+  test("Berlin buy page loads", async ({ page }) => {
+    const res = await page.goto(`${BASE}/en/de/berlin/buy`)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator("h1").first()).toBeVisible()
+  })
+
+  test("Arabic UAE hub loads", async ({ page }) => {
+    const res = await page.goto(`${BASE}/ar/ae`)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator("h1").first()).toBeVisible()
+  })
+
+  test("Germany hub canonical points at sivrce.com", async ({ page }) => {
+    await page.goto(`${BASE}/en/de`)
+    const canonical = page.locator('link[rel="canonical"]')
+    await expect(canonical).toHaveAttribute("href", /https:\/\/sivrce\.com\/de\/?$/)
+  })
+
   test("auth signin page loads", async ({ page }) => {
     const res = await page.goto(`${BASE}/auth/signin`)
     expect(res?.status()).toBe(200)
@@ -78,11 +114,15 @@ test.describe("SEO", () => {
     expect(res?.status()).toBe(200)
     const text = await page.content()
     expect(text).toContain("<urlset")
+    expect(text).toContain("sivrce.com/de")
   })
 
   test("robots.txt exists", async ({ page }) => {
     const res = await page.goto(`${BASE}/robots.txt`)
     expect(res?.status()).toBe(200)
+    const text = await page.content()
+    expect(text).toContain("sitemap.xml")
+    expect(text).toContain("sivrce.com/sitemap.xml")
   })
 
   test("manifest.json exists", async ({ page }) => {

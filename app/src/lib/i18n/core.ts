@@ -7,6 +7,7 @@
  */
 
 import type { DictKey } from './ka'
+import { COUNTRY_PREFIX_RE } from '@/lib/markets'
 
 export type { DictKey }
 export type Lang = 'ka' | 'en' | 'ru' | 'he' | 'ar' | 'tr' | 'uk' | 'hy' | 'az' | 'de'
@@ -64,8 +65,8 @@ export function translateRaw(
 /** Locale-aware internal href: ka stays unprefixed, others get /{lang}. */
 export function localizedHref(path: string, lang: Lang): string {
   // Country paths on sivrce.com (/de, /ae) are not locale prefixes.
-  if (/^\/(ae)(?=\/|$)/.test(path)) return path
-  if (path.startsWith('/en/de') || path.startsWith('/en/ae')) return path
+  if (COUNTRY_PREFIX_RE.test(path)) return path
+  if (path.startsWith('/en/') && COUNTRY_PREFIX_RE.test(path.slice(3))) return path
   return lang === DEFAULT_LANG ? path : `/${lang}${path === '/' ? '' : path}`
 }
 
