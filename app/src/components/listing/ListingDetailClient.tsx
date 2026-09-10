@@ -1631,7 +1631,7 @@ export default function ListingDetailClient({
         {/* ————— Similar ————— */}
         {similar.length > 0 && (
           <Reveal className="mt-16">
-            <section>
+            <section style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 400px' }}>
               <div className="mb-6 flex items-end justify-between">
                 <div>
                   <h2 className="text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
@@ -1666,7 +1666,7 @@ export default function ListingDetailClient({
         {/* ————— Recently viewed ————— */}
         {recent.length > 0 && (
           <Reveal className="mt-16">
-            <section aria-label={t('recent.title')}>
+            <section aria-label={t('recent.title')} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 400px' }}>
               <h2 className="mb-6 text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
                 {t('recent.title')}
               </h2>

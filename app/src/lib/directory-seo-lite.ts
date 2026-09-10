@@ -77,6 +77,8 @@ export const CITIES: GeoLoc[] = [
   { slug: 'sighnaghi', ka: 'სიღნაღი', loc: 'სიღნაღში', en: 'Sighnaghi', ru: 'Сигнахи' },
   { slug: 'tskaltubo', ka: 'წყალტუბო', loc: 'წყალტუბოში', en: 'Tskaltubo', ru: 'Цхалтубо' },
   { slug: 'kazbegi', ka: 'ყაზბეგი', loc: 'ყაზბეგში', en: 'Kazbegi', ru: 'Казбеги' },
+  // DE soft launch (sivrce.de) — Berlin first. Inventory-light: pages self-throttle.
+  { slug: 'berlin', ka: 'ბერლინი', loc: 'ბერლინში', en: 'Berlin', ru: 'Берлин' },
 ]
 
 export type District = GeoLoc & { citySlug: string }
@@ -118,6 +120,13 @@ export const DISTRICTS: District[] = [
   { slug: 'kutaisi-centri', ka: 'ცენტრი', loc: 'ცენტრში', en: 'Center', ru: 'Центр', citySlug: 'kutaisi' },
   { slug: 'avtokarkhana', ka: 'ავტოქარხანა', loc: 'ავტოქარხანის უბანში', en: 'Avtokarkhana', ru: 'Автокархана', citySlug: 'kutaisi' },
   { slug: 'nikea', ka: 'ნიკეა', loc: 'ნიკეაში', en: 'Nikea', ru: 'Никеа', citySlug: 'kutaisi' },
+  // Berlin (sivrce.de) — core Bezirk hubs; more districts when DE inventory lands.
+  { slug: 'mitte', ka: 'მიტე', loc: 'მიტეში', en: 'Mitte', ru: 'Митте', citySlug: 'berlin' },
+  { slug: 'kreuzberg', ka: 'კროიცბერგი', loc: 'კროიცბერგში', en: 'Kreuzberg', ru: 'Кройцберг', citySlug: 'berlin' },
+  { slug: 'prenzlauer-berg', ka: 'პრენცლაუერ-ბერგი', loc: 'პრენცლაუერ-ბერგში', en: 'Prenzlauer Berg', ru: 'Пренцлауэр-Берг', citySlug: 'berlin' },
+  { slug: 'charlottenburg', ka: 'შარლოტენბურგი', loc: 'შარლოტენბურგში', en: 'Charlottenburg', ru: 'Шарлоттенбург', citySlug: 'berlin' },
+  { slug: 'neukoelln', ka: 'ნოიკოლნი', loc: 'ნოიკოლნში', en: 'Neukölln', ru: 'Нойкёльн', citySlug: 'berlin' },
+  { slug: 'friedrichshain', ka: 'ფრიდრიხსჰაინი', loc: 'ფრიდრიხსჰაინში', en: 'Friedrichshain', ru: 'Фридрихсхайн', citySlug: 'berlin' },
 ]
 
 /** City display name per locale (CITIES registry, fallback raw). */

@@ -210,10 +210,11 @@ export default function Navbar() {
 
       {/* Always mounted so aria-controls resolves; .sv-mobile-menu CSS does
           the in/out and `inert` keeps closed links out of the tab order. */}
-      <div
+      <nav
         id="mobile-menu"
         inert={!open}
         data-open={open || undefined}
+        aria-label={t('nav.main')}
         className="sv-mobile-menu absolute inset-x-4 top-[calc(100%+0.5rem)] max-h-[min(80dvh,calc(100dvh-5.5rem-env(safe-area-inset-top,0px)))] overflow-y-auto overscroll-contain rounded-tile glass-light p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] shadow-card lg:hidden"
       >
             {NAV_LINKS.map((l) => {
@@ -299,7 +300,7 @@ export default function Navbar() {
             >
               <Plus className="h-4 w-4" /> {t('nav.addListingFull')}
             </Link>
-      </div>
+      </nav>
     </header>
   )
 }

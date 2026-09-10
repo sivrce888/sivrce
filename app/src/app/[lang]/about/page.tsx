@@ -7,9 +7,11 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
+import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
-import { isValidLang } from '@/lib/i18n/core'
+import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { dirLoc, type DirLoc } from '@/lib/directory-seo'
+import { CONTACT_PHONE } from '@/lib/inquiries/phone'
 
 export const revalidate = 86400
 
@@ -159,11 +161,47 @@ const TAIL: Record<DirLoc, { why: string; jobs: string; jobsSub: string; vacanci
 
 export default async function AboutPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
-  const loc = dirLoc(isValidLang(raw) ? raw : 'ka')
+  const lang: Lang = isValidLang(raw) ? raw : 'ka'
+  const loc = dirLoc(lang)
   const hero = HERO[loc]
   const tail = TAIL[loc]
+
+  const orgLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'sivrce',
+    alternateName: 'სივრცე',
+    url: 'https://sivrce.ge',
+    logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/icon.png', width: 512, height: 512 },
+    description: lang === 'ka'
+      ? 'სივრცე — უძრავი ქონება საქართველოში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, დღიურად ქირავდება.'
+      : lang === 'ru'
+        ? 'sivrce — недвижимость в Грузии. Квартиры, дома и коттеджи — продажа, аренда, посуточная аренда.'
+        : 'sivrce — real estate in Georgia. Apartments, houses and cottages — for sale, for rent, daily rental.',
+    foundingDate: '2025',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      telephone: CONTACT_PHONE.replace(/\s+/g, ''),
+      email: 'hi@sivrce.ge',
+      availableLanguage: ['ka', 'en', 'ru'],
+    },
+    sameAs: [
+      'https://sivrce.ge',
+    ],
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'თბილისი',
+      addressCountry: 'GE',
+    },
+    areaServed: [
+      { '@type': 'Country', name: 'Georgia' },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(orgLd) }} />
       <Navbar />
       <main id="main">
         <PageHero

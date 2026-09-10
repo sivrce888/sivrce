@@ -60,7 +60,7 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
             <span data-cms-key="block.home.hero.titleAccent" className="text-gradient-blue text-gradient-shimmer">{titleAccent}</span>
           </h1>
 
-          <p data-cms-key="block.home.hero.subtitle" className="speakable-lead mt-4 w-full max-w-[min(56rem,100%)] text-pretty text-center text-[length:var(--sv-type-lead)] font-medium leading-[1.4] tracking-[-0.012em] text-sv-ink/60 dark:text-white/75 sm:mt-5">
+          <p data-cms-key="block.home.hero.subtitle" className="speakable-lead mt-4 w-full max-w-[min(56rem,100%)] text-pretty text-center text-[length:var(--sv-type-lead)] font-medium leading-[1.4] tracking-[-0.012em] text-sv-ink/60 dark:text-white/75 sm:mt-5" role="doc-subtitle">
             {subtitle}
           </p>
         </div>
