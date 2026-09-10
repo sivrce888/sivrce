@@ -27,7 +27,8 @@ export interface SendEmailParams {
 export async function sendEmail(params: SendEmailParams): Promise<{ ok: boolean }> {
   const resend = client()
   if (!resend) {
-    console.log("[email] RESEND_API_KEY not set — logged instead of sent:", {
+    // Error level: a prod deploy without RESEND_API_KEY silently drops leads.
+    console.error("[email] RESEND_API_KEY not set — logged instead of sent:", {
       to: params.to,
       subject: params.subject,
     })

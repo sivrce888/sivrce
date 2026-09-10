@@ -63,6 +63,9 @@ export function translateRaw(
 
 /** Locale-aware internal href: ka stays unprefixed, others get /{lang}. */
 export function localizedHref(path: string, lang: Lang): string {
+  // Country paths on sivrce.com (/de, /ae) are not locale prefixes.
+  if (/^\/(ae)(?=\/|$)/.test(path)) return path
+  if (path.startsWith('/en/de') || path.startsWith('/en/ae')) return path
   return lang === DEFAULT_LANG ? path : `/${lang}${path === '/' ? '' : path}`
 }
 

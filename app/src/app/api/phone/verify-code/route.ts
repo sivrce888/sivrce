@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { normalizePhone } from "@/lib/auth-phone"
+import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { checkVerifySms } from "@/lib/sms/twilio-verify"
 
@@ -25,6 +26,13 @@ export async function POST(req: Request) {
     body = (await req.json()) as { phone?: string; code?: string; listingId?: string }
   } catch {
     return NextResponse.json({ ok: false, error: "bad_json" }, { status: 400 })
+  }
+  // Each guess stamps a trust badge if it lands — tighter budget than send-code.
+  if (
+    !rateLimitOk(`otp-verify-ip:${clientIp(req.headers)}`, { max: 5 }) ||
+    !rateLimitOk(`otp-verify-phone:${body.phone ?? ""}`, { max: 5 })
+  ) {
+    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 })
   }
 
   const result = await checkVerifySms(body.phone ?? "", body.code ?? "")

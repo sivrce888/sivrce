@@ -105,7 +105,8 @@ function publicBaseUrl(): string {
   return (
     process.env.PAYMENTS_PUBLIC_URL ??
     process.env.AUTH_URL ??
-    "http://localhost:3000"
+    // Prod origin — never hand banks a localhost callback if env vars are missing.
+    "https://sivrce.ge"
   ).replace(/\/$/, "")
 }
 

@@ -30,6 +30,7 @@ const LANG_LABEL: Record<Lang | "all", string> = {
   uk: "Українська",
   hy: "Հայերեն",
   az: "Azərbaycan",
+  de: "Deutsch",
 }
 
 const AUDIENCE_LABEL: Record<(typeof AD_AUDIENCES)[number], string> = {
@@ -96,18 +97,23 @@ export function AdBannerForm({ defaults }: { defaults: AdBannerDefaults }) {
   })
   const [imageUrl, setImageUrl] = useState(defaults.imageUrl)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [slot, setSlot] = useState(defaults.slot)
   const [format, setFormat] = useState(defaults.format)
 
   async function onFile(file: File | undefined) {
     if (!file) return
     setUploading(true)
+    setUploadError(null)
     try {
       const fd = new FormData()
       fd.append("file", file)
       const r = await fetch("/api/upload", { method: "POST", body: fd })
       const j = (await r.json()) as { ok?: boolean; url?: string }
       if (j.ok && j.url) setImageUrl(j.url)
+      else setUploadError(j.ok ? "no_url" : `upload_failed (${r.status})`)
+    } catch {
+      setUploadError("upload_failed (network)")
     } finally {
       setUploading(false)
     }
@@ -244,6 +250,9 @@ export function AdBannerForm({ defaults }: { defaults: AdBannerDefaults }) {
               className="text-[13px] font-semibold text-sv-ink/60 file:mr-3 file:h-10 file:rounded-full file:border-0 file:bg-sv-blue file:px-4 file:text-[13px] file:font-bold file:text-white"
             />
             {uploading ? <span className="text-[13px] font-bold text-sv-blue">Uploading…</span> : null}
+            {uploadError ? (
+              <span className="text-[13px] font-bold text-rose-700">{uploadError}</span>
+            ) : null}
           </div>
           <input
             className={`${inputCls} mt-3`}
