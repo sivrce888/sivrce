@@ -33,9 +33,6 @@ async function upsertCluster(
       confidence: CONFIDENCE[method],
       representativeListingId: rep.id,
       memberCount: group.length,
-      members: {
-        create: group.map((l) => ({ listingId: l.id, similarityScore: CONFIDENCE[method] })),
-      },
     },
     update: {
       detectionMethod: method,
@@ -44,16 +41,18 @@ async function upsertCluster(
       memberCount: group.length,
     },
   })
-  await db.duplicateClusterMember
-    .createMany({
-      data: group.map((l) => ({
-        clusterId: cluster.id,
-        listingId: l.id,
-        similarityScore: CONFIDENCE[method],
-      })),
-      skipDuplicates: true,
-    })
-    .catch(() => {})
+  // Prune members that left the cluster (delisted/edited/repriced out), add missing.
+  await db.duplicateClusterMember.deleteMany({
+    where: { clusterId: cluster.id, listingId: { notIn: group.map((l) => l.id) } },
+  })
+  await db.duplicateClusterMember.createMany({
+    data: group.map((l) => ({
+      clusterId: cluster.id,
+      listingId: l.id,
+      similarityScore: CONFIDENCE[method],
+    })),
+    skipDuplicates: true,
+  })
   return cluster.id
 }
 

@@ -40,6 +40,9 @@ export interface Neighborhood {
 const TBILISI: LText = { ka: 'თბილისი', en: 'Tbilisi', ru: 'Тбилиси' }
 const BATUMI: LText = { ka: 'ბათუმი', en: 'Batumi', ru: 'Батуми' }
 const KUTAISI: LText = { ka: 'ქუთაისი', en: 'Kutaisi', ru: 'Кутаиси' }
+const BERLIN: LText = { ka: 'ბერლინი', en: 'Berlin', ru: 'Берлин' }
+// ponytail: DE soft-launch guides reuse the brand OG image until real Bezirk
+// photos land with DE inventory. Upgrade path: /images/neighborhoods/berlin-*.webp.
 
 export const NEIGHBORHOODS: Neighborhood[] = [
   {
@@ -476,6 +479,90 @@ export const NEIGHBORHOODS: Neighborhood[] = [
     },
     scores: { transport: 5, schools: 7, green: 6, safety: 7, nightlife: 2 },
     avgPriceM2USD: 550, img: '/images/neighborhoods/kutaisi.webp', coords: { lat: 42.256, lng: 42.689 },
+  },
+  {
+    slug: 'berlin',
+    name: { ka: 'ბერლინი', en: 'Berlin', ru: 'Берлин' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['მიტე', 'კროიცბერგი', 'პრენცლაუერ-ბერგი', 'შარლოტენბურგი', 'ნოიკოლნი', 'ფრიდრიხსჰაინი'], type: 'City',
+    description: {
+      ka: 'გერმანიის დედაქალაქი და sivrce-ის პირველი ქალაქი საქართველოს გარეთ — მიტეს მუზეუმებიდან კროიცბერგის ქუჩის კულტურამდე. ბაზარი ძვირია, მაგრამ ქირის მოთხოვნა ევროპაში ერთ-ერთი ყველაზე სტაბილურია.',
+      en: 'Germany’s capital and sivrce’s first city outside Georgia — from Mitte’s museums to Kreuzberg’s street culture. Prices are high, but rental demand is among Europe’s most stable.',
+      ru: 'Столица Германии и первый город sivrce за пределами Грузии — от музеев Митте до уличной культуры Кройцберга. Цены высокие, но спрос на аренду один из самых стабильных в Европе.',
+    },
+    scores: { transport: 10, schools: 8, green: 8, safety: 8, nightlife: 10 },
+    avgPriceM2USD: 5500, img: '/images/og-brand.png', coords: { lat: 52.52, lng: 13.405 },
+  },
+  {
+    slug: 'mitte',
+    name: { ka: 'მიტე', en: 'Mitte', ru: 'Митте' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['მიტე'], type: 'Neighborhood',
+    description: {
+      ka: 'ბერლინის ისტორიული ცენტრი — მუზეუმების კუნძული, ბრანდენბურგის კარიბჭე და მთავრობის კვარტალი. კვადრატი ქალაქში ყველაზე ძვირია; ყიდულობენ პრესტიჟისთვის და უსაფრთხო გრძელვადიანი ქირისთვის.',
+      en: 'Berlin’s historic centre — Museum Island, the Brandenburg Gate and the government quarter. The city’s priciest m²; people buy for prestige and safe long-term lets.',
+      ru: 'Исторический центр Берлина — Музейный остров, Бранденбургские ворота и правительственный квартал. Самый дорогой м² в городе; покупают ради престижа и надёжной долгосрочной аренды.',
+    },
+    scores: { transport: 10, schools: 7, green: 6, safety: 9, nightlife: 8 },
+    avgPriceM2USD: 7500, img: '/images/og-brand.png', coords: { lat: 52.52, lng: 13.4 },
+  },
+  {
+    slug: 'kreuzberg',
+    name: { ka: 'კროიცბერგი', en: 'Kreuzberg', ru: 'Кройцберг' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['კროიცბერგი'], type: 'Neighborhood',
+    description: {
+      ka: 'ალტერნატიული ბერლინის გული — ქუჩის ხელოვნება, ბაზრები და ღამის ცხოვრება. ძველი ფონდის ბინები მაღალი ჭერით; ქირის მოთხოვნა მუდმივია ახალგაზრდებისა და ექსპატების მხრიდან.',
+      en: 'The heart of alternative Berlin — street art, markets and nightlife. Altbau flats with high ceilings; rental demand from young people and expats never stops.',
+      ru: 'Сердце альтернативного Берлина — стрит-арт, рынки и ночная жизнь. Старые квартиры с высокими потолками; спрос на аренду со стороны молодёжи и экспатов не иссякает.',
+    },
+    scores: { transport: 9, schools: 6, green: 6, safety: 7, nightlife: 10 },
+    avgPriceM2USD: 6000, img: '/images/og-brand.png', coords: { lat: 52.499, lng: 13.43 },
+  },
+  {
+    slug: 'prenzlauer-berg',
+    name: { ka: 'პრენცლაუერ-ბერგი', en: 'Prenzlauer Berg', ru: 'Пренцлауэр-Берг' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['პრენცლაუერ-ბერგი'], type: 'Neighborhood',
+    description: {
+      ka: 'ოჯახური ბერლინი — რესტავრირებული ალტბაუ, კაფეები და მაუერ-პარკი. ფასი მიტესს უახლოვდება, მაგრამ ეზოები წყნარია; ოჯახები აქ ათწლეულებით რჩებიან.',
+      en: 'Family Berlin — restored Altbau, cafés and Mauerpark. Prices approach Mitte’s, but the courtyards are quiet; families stay for decades.',
+      ru: 'Семейный Берлин — отреставрированные старые дома, кафе и Мауэрпарк. Цены близки к Митте, но дворы тихие; семьи остаются на десятилетия.',
+    },
+    scores: { transport: 9, schools: 9, green: 8, safety: 9, nightlife: 6 },
+    avgPriceM2USD: 6500, img: '/images/og-brand.png', coords: { lat: 52.54, lng: 13.42 },
+  },
+  {
+    slug: 'charlottenburg',
+    name: { ka: 'შარლოტენბურგი', en: 'Charlottenburg', ru: 'Шарлоттенбург' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['შარლოტენბურგი'], type: 'Neighborhood',
+    description: {
+      ka: 'დასავლეთის ელეგანტური უბანი — კუდამი, შარლოტენბურგის სასახლე და ძველი ფულის ბერლინი. ფართო ბინები სტუკოთი; კონსერვატიული მყიდველის არჩევანი სტაბილური ფასით.',
+      en: 'The elegant west — Ku’damm, Charlottenburg Palace and old-money Berlin. Spacious stucco flats; the conservative buyer’s pick with steady prices.',
+      ru: 'Элегантный запад — Кудамм, дворец Шарлоттенбург и Берлин старых денег. Просторные квартиры с лепниной; выбор консервативного покупателя со стабильными ценами.',
+    },
+    scores: { transport: 9, schools: 8, green: 7, safety: 9, nightlife: 5 },
+    avgPriceM2USD: 6200, img: '/images/og-brand.png', coords: { lat: 52.51, lng: 13.3 },
+  },
+  {
+    slug: 'neukoelln',
+    name: { ka: 'ნოიკოლნი', en: 'Neukölln', ru: 'Нойкёльн' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['ნოიკოლნი'], type: 'Neighborhood',
+    description: {
+      ka: 'ბერლინის ყველაზე სწრაფად ცვალებადი უბანი — იაფი შესვლა, ახალი გალერეები და ტემპელჰოფის ველი. ფასი ცენტრზე დაბალია, ზრდის დინამიკა კი ქალაქში ერთ-ერთი უმაღლესი.',
+      en: 'Berlin’s fastest-changing district — cheap entry, new galleries and Tempelhofer Feld. Prices sit below the centre while growth runs among the city’s highest.',
+      ru: 'Самый быстро меняющийся район Берлина — дешёвый вход, новые галереи и Темпельхофер-Фельд. Цены ниже центра, а динамика роста одна из самых высоких в городе.',
+    },
+    scores: { transport: 8, schools: 6, green: 8, safety: 6, nightlife: 9 },
+    avgPriceM2USD: 5000, img: '/images/og-brand.png', coords: { lat: 52.48, lng: 13.44 },
+  },
+  {
+    slug: 'friedrichshain',
+    name: { ka: 'ფრიდრიხსჰაინი', en: 'Friedrichshain', ru: 'Фридрихсхайн' },
+    city: BERLIN, cityKey: 'ბერლინი', districts: ['ფრიდრიხსჰაინი'], type: 'Neighborhood',
+    description: {
+      ka: 'შპრეეს აღმოსავლეთი სანაპირო — ისთ-საიდ გალერეა, მედიაშპრეეს ოფისები და ახალგაზრდული ქირა. კვირის ყოველ დღეს ცოცხალი უბანი; ინვესტორისთვის ქირის შევსება პროგნოზირებადია.',
+      en: 'The Spree’s east bank — East Side Gallery, Mediaspree offices and young renters. Lively every day of the week; occupancy is predictable for investors.',
+      ru: 'Восточный берег Шпрее — Ист-Сайд Гэлери, офисы Медиашпрее и молодые арендаторы. Оживлённый каждый день недели; заполняемость предсказуема для инвесторов.',
+    },
+    scores: { transport: 9, schools: 6, green: 7, safety: 7, nightlife: 9 },
+    avgPriceM2USD: 5800, img: '/images/og-brand.png', coords: { lat: 52.515, lng: 13.45 },
   },
 ]
 

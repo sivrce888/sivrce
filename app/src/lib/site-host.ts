@@ -36,8 +36,9 @@ const DE: SiteHost = {
   apex: 'https://sivrce.de',
   defaultLang: 'en',
   defaultCitySlug: 'berlin',
-  // Berlin-first: land on the city sale hub (ISR; empty until listings land).
-  homePath: '/en/sale/apartments/berlin',
+  // Berlin-first: land on the city-info page (real prose, ISR). The
+  // /sale/apartments/berlin hub 404s until listings land — flip homePath then.
+  homePath: '/en/berlin',
 }
 
 /** Hosts that serve the DE market on this deployment. */

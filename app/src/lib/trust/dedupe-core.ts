@@ -89,25 +89,26 @@ export function priceOutliers(
   listings: DupeListing[],
   usdGel: number,
 ): Map<string, PriceOutlier> {
-  const groups = new Map<string, number[]>()
+  const groups = new Map<string, { values: number[]; items: DupeListing[] }>()
   for (const l of listings) {
     const per = perSqmUsd(l, usdGel)
-    if (per <= 0) continue
+    if (per <= 0) continue // zero/draft prices are not "outliers"
     const key = `${l.dealType}|${l.propertyType}|${l.city}`
-    const arr = groups.get(key)
-    if (arr) arr.push(per)
-    else groups.set(key, [per])
+    const g = groups.get(key)
+    if (g) {
+      g.values.push(per)
+      g.items.push(l)
+    } else {
+      groups.set(key, { values: [per], items: [l] })
+    }
   }
   const out = new Map<string, PriceOutlier>()
-  for (const [key, values] of groups) {
+  for (const { values, items } of groups.values()) {
     if (values.length < 8) continue
     const sorted = [...values].sort((a, b) => a - b)
     const median = sorted[Math.floor(sorted.length / 2)]
-    for (const l of listings) {
-      if (`${l.dealType}|${l.propertyType}|${l.city}` !== key) continue
-      const per = perSqmUsd(l, usdGel)
-      if (per <= 0) continue // zero/draft prices are not "outliers"
-      const ratio = per / median
+    for (const l of items) {
+      const ratio = perSqmUsd(l, usdGel) / median
       if (ratio > 4 || ratio < 0.25) out.set(l.id, { median, ratio })
     }
   }

@@ -46,7 +46,14 @@ assert.equal(ledes.length, new Set(ledes).size, 'CITY_PROSE ledes must be unique
 // Every SEO district has a neighbourhood guide (slug aliases: chughureti → chugureti).
 const nbhSlugs = new Set(NEIGHBORHOODS.map((n) => n.slug))
 const nbhAlias: Record<string, string> = { chughureti: 'chugureti' }
+// Soft-launch cities (only a city-info page, no listings) emit no district
+// pages yet — guide requirement arms itself when inventory lands.
+const isSoftLaunch = (citySlug: string) => {
+  const def = parseSeoSlug([citySlug])
+  return !def || def.kind === 'city-info'
+}
 for (const d of DISTRICTS) {
+  if (isSoftLaunch(d.citySlug)) continue
   const slug = nbhAlias[d.slug] ?? d.slug
   assert.ok(nbhSlugs.has(slug), `district ${d.slug} missing neighborhood guide (${slug})`)
   assert.ok(full.includes(`/neighborhoods/${slug}`), `llms-full missing neighbourhood ${slug}`)

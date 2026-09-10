@@ -30,7 +30,7 @@ export default function Projects({
   items: Project[]
   total: number
 }) {
-  const { b } = useI18n()
+  const { b, lang } = useI18n()
   if (items.length === 0) return null
 
   return (
@@ -62,7 +62,7 @@ export default function Projects({
       <HScroll aria-label={b('home.projects.homesWord')} step={560} className="gap-6 pb-2 pt-2">
         {items.map((p) => {
           const dev = getDeveloper(p.developerSlug)
-          const devName = dev?.name.ka ?? p.developerSlug
+          const devName = (lang === 'en' ? dev?.name.en : lang === 'ru' ? dev?.name.ru : dev?.name.ka) ?? p.developerSlug
           return (
             <LocalizedLink
               key={p.slug}

@@ -615,6 +615,14 @@ export const FOOTER_COLS: FooterCol[] = [
           "en": "Kazbegi",
           "ru": "Казбеги"
         }
+      },
+      {
+        "href": "/berlin",
+        "label": {
+          "ka": "ბერლინი",
+          "en": "Berlin",
+          "ru": "Берлин"
+        }
       }
     ]
   }

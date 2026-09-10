@@ -36,6 +36,8 @@ export const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   sighnaghi: { lat: 41.6103, lng: 45.9219 },
   tskaltubo: { lat: 42.3267, lng: 42.5975 },
   kazbegi: { lat: 42.6575, lng: 44.6411 },
+  // DE soft launch — sivrce.de Berlin-first hub.
+  berlin: { lat: 52.52, lng: 13.405 },
 }
 
 export function cityCoords(slug?: string): { lat: number; lng: number } | undefined {

@@ -6,7 +6,6 @@ import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
 import type { CmsBlockKey } from '@/lib/cms-blocks'
 import { db } from '@/lib/db'
-import { projectsLive } from '@/lib/directory-live'
 import type { Lang } from '@/lib/i18n/core'
 
 /** Daily listings tagged as houses for parties — events, birthdays. */
@@ -72,7 +71,7 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
       db.listing.count({
         where: { deletedAt: null, status: 'active', dealType: 'daily', features: { has: 'add.f.partiesAllowed' } },
       }),
-      projectsLive().then((ps) => ps.length).catch(() => 0),
+      db.projectDirectory.count().catch(() => 0),
     ])
     for (const row of byProp) {
       const n = row._count._all

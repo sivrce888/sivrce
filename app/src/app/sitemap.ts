@@ -195,7 +195,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({
       path: `/buildings/${b.slug}`,
       changeFrequency: 'daily',
-      priority: 0.85,
+      priority: 0.7,
     })
   }
 
