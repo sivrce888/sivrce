@@ -37,7 +37,8 @@ export async function GET(req: Request, ctx: Ctx) {
   }
   try {
     const buf = await mvtForTile(layer, xyz.z, xyz.x, xyz.y)
-    return new NextResponse(buf, { status: 200, headers: mvtCacheHeaders(3600) })
+    // Buffer<ArrayBufferLike> fails DOM BodyInit typing; Uint8Array copy is a valid BodyInit.
+    return new NextResponse(new Uint8Array(buf), { status: 200, headers: mvtCacheHeaders(3600) })
   } catch (err) {
     console.error('[tiles]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'tile_failed' }, { status: 500 })

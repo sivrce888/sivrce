@@ -105,7 +105,7 @@ for (const d of NEW_DEVELOPERS_GERMANY) {
   assert.ok(devSlugs.includes(d.slug), `wired: ${d.slug}`)
   assert.ok(d.website?.startsWith('https://'), `official site: ${d.slug}`)
   assert.equal(d.verified, false, `unverified until review: ${d.slug}`)
-  assert.ok(!/^\+49 30 000000$/.test(d.phone), `no placeholder phone: ${d.slug}`)
+  assert.ok(!/^\+49 30 000000$/.test(d.phone ?? ''), `no placeholder phone: ${d.slug}`)
   assert.ok(d.unitsDelivered > 0 && d.description.en.length > 40, `substance: ${d.slug}`)
 }
 

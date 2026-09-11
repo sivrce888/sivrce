@@ -3,8 +3,18 @@
  * Run: npx tsx src/data/projects-new-germany.check.ts
  */
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
 import { DEVELOPERS, PROJECTS } from './professionals'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from './projects-new-germany'
+
+// Renders wired by withDERenders must exist on disk — a catalog regen without
+// scripts/gen-project-renders.ts would otherwise 404 every DE gallery.
+for (const p of PROJECTS) {
+  for (const src of p.gallery ?? []) {
+    assert.ok(fs.existsSync(path.join(process.cwd(), 'public', src)), `render file: ${src}`)
+  }
+}
 
 const DE_CITIES = ['ბერლინი', 'ჰამბურგი', 'მიუნხენი', 'ფრანკფურტი', 'ლაიფციგი', 'დიუსელდორფი', 'ბრემენი', 'ბოხუმი', 'ქელნი', 'გელზენკირხენი']
 const devSlugs = DEVELOPERS.map((d) => d.slug)
@@ -15,7 +25,7 @@ for (const d of NEW_DEVELOPERS_GERMANY) {
   assert.ok(d.description.ka.length > 40 && d.description.en.length > 40, `dev copy: ${d.slug}`)
   assert.ok(d.website?.startsWith('https://'), `official site: ${d.slug}`)
   // Never a placeholder phone — unpublished is '' (UI hides it).
-  assert.ok(!d.phone.includes('000000'), `fake phone: ${d.slug}`)
+  assert.ok(!d.phone?.includes('000000'), `fake phone: ${d.slug}`)
 }
 
 for (const p of NEW_PROJECTS_GERMANY) {

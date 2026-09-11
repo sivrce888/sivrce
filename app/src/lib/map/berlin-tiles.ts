@@ -161,6 +161,9 @@ export type BerlinPick =
       status: string | null
       weKat: string | null
       height: number | null
+      floors: number | null
+      areaM2: number | null
+      heightSource: string | null
       source: 'alkis' | 'step'
     }
   | null
@@ -172,21 +175,26 @@ export function pickBerlinFeature(
 ): BerlinPick {
   const layers = BERLIN_TILE_LAYER_IDS.filter((id) => map.getLayer(id))
   if (!layers.length) return null
-  const hits = map.queryRenderedFeatures(point, { layers: [...layers] })
+  const hits = map.queryRenderedFeatures([point.x, point.y], { layers: [...layers] })
   const f = hits[0]
   if (!f?.properties) return null
   const p = f.properties
   const kind = String(p.kind ?? '')
   const source = kind.startsWith('alkis') ? 'alkis' : 'step'
-  const heightRaw = p.height
-  const heightNum = typeof heightRaw === 'number' ? heightRaw : heightRaw != null ? Number(heightRaw) : NaN
+  const numOrNull = (v: unknown): number | null => {
+    const n = typeof v === 'number' ? v : v != null ? Number(v) : NaN
+    return Number.isFinite(n) && n > 0 ? n : null
+  }
   return {
     kind,
     id: String(p.id ?? ''),
     name: p.name != null ? String(p.name) : null,
     status: p.status != null ? String(p.status) : null,
     weKat: p.we_kat != null ? String(p.we_kat) : null,
-    height: Number.isFinite(heightNum) ? heightNum : null,
+    height: numOrNull(p.height),
+    floors: numOrNull(p.floors),
+    areaM2: numOrNull(p.area_m2),
+    heightSource: p.height_source != null && String(p.height_source) ? String(p.height_source) : null,
     source,
   }
 }
