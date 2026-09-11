@@ -13,7 +13,7 @@ import { useTheme } from 'next-themes'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { ChevronLeft, ChevronRight, Heart, Layers, LocateFixed, Minus, Plus, Search, X } from 'lucide-react'
-import { mapMaxBoundsFor, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
+import { MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import {
   applyBrandPaints,
   bindMissingImages,
@@ -53,7 +53,7 @@ function MapPinCard({
   onClose: () => void
 }) {
   const { t } = useI18n()
-  const { currency, rate } = useCurrency()
+  const { currency, rate, eurRate } = useCurrency()
   const { has, toggle } = useFavorites()
   const stay = stayCount(l)
   const suffixKey = rentPeriodKey(l.dealType, l.propType)
@@ -67,6 +67,7 @@ function MapPinCard({
     currencyOriginal: l.currencyOriginal,
     currencyPreference: currency,
     rate,
+    eurRate,
   })
   const multi = total > 1
   return (
@@ -194,7 +195,7 @@ export default function SearchMapView({
   const [showSearchArea, setShowSearchArea] = useState(false)
   const [locating, setLocating] = useState(false)
   const { t } = useI18n()
-  const { format, currency, rate } = useCurrency()
+  const { format, currency, rate, eurRate } = useCurrency()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const themeReady = resolvedTheme != null
@@ -249,7 +250,6 @@ export default function SearchMapView({
           center: [boot.lng, boot.lat],
           zoom: 11,
           minZoom: MAP_MIN_ZOOM,
-          maxBounds: mapMaxBoundsFor(boot.lat, boot.lng),
           renderWorldCopies: false,
           fadeDuration: 0,
           ...mapRuntimeOptions(),
@@ -348,7 +348,7 @@ export default function SearchMapView({
         'pointer-events-none block whitespace-nowrap rounded-full border border-sv-ink/[0.08] bg-sv-surface px-2.5 py-1 text-[12px] font-black tracking-tight text-sv-ink'
       inner.style.transition =
         'transform 180ms cubic-bezier(0.21, 0.65, 0.2, 1), background-color 180ms cubic-bezier(0.21, 0.65, 0.2, 1), color 180ms cubic-bezier(0.21, 0.65, 0.2, 1)'
-      inner.textContent = formatMapPin(minGel, currency, rate) || format(minGel)
+      inner.textContent = formatMapPin(minGel, currency, rate, eurRate) || format(minGel)
       el.appendChild(inner)
       if (items.length > 1) {
         const nEl = document.createElement('span')
@@ -405,7 +405,7 @@ export default function SearchMapView({
         setShowSearchArea(false)
       })
     }
-  }, [ready, groups, format, currency, rate, areaActive])
+  }, [ready, groups, format, currency, rate, eurRate, areaActive])
 
   useEffect(() => {
     for (const id of elsRef.current.keys()) paintPin(id)
@@ -534,6 +534,7 @@ export default function SearchMapView({
                       currencyOriginal: l.currencyOriginal,
                       currencyPreference: currency,
                       rate,
+                      eurRate,
                     }).primary}
                     {suffix ? (
                       <span className="ml-1 text-[12px] font-bold text-sv-ink/60">{suffix}</span>

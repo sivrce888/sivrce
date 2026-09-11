@@ -6,7 +6,7 @@
 
 import type { ReactNode } from 'react'
 
-export type FlagCode = 'ge' | 'gb' | 'ru' | 'ua' | 'am' | 'az' | 'il' | 'sa' | 'tr' | 'de' | 'ae'
+export type FlagCode = 'ge' | 'gb' | 'ru' | 'ua' | 'am' | 'az' | 'il' | 'sa' | 'tr' | 'de' | 'ae' | 'fr' | 'es' | 'it' | 'us' | 'ca'
 
 const FLAG_ART: Record<FlagCode, ReactNode> = {
   /* Georgia — white field, large red cross, four small crosses */
@@ -128,6 +128,49 @@ const FLAG_ART: Record<FlagCode, ReactNode> = {
       <rect x="0" y="9" width="24" height="6" fill="#ffffff" />
       <rect x="0" y="15" width="24" height="6" fill="#000000" />
       <rect x="0" y="3" width="7" height="18" fill="#ff0000" />
+    </>
+  ),
+  /* France — blue / white / red */
+  fr: (
+    <>
+      <rect x="0" y="3" width="8" height="18" fill="#002395" />
+      <rect x="8" y="3" width="8" height="18" fill="#ffffff" />
+      <rect x="16" y="3" width="8" height="18" fill="#ed2939" />
+    </>
+  ),
+  /* Spain — red / yellow / red */
+  es: (
+    <>
+      <rect x="0" y="3" width="24" height="4.5" fill="#aa151b" />
+      <rect x="0" y="7.5" width="24" height="9" fill="#f1bf00" />
+      <rect x="0" y="16.5" width="24" height="4.5" fill="#aa151b" />
+    </>
+  ),
+  /* Italy — green / white / red */
+  it: (
+    <>
+      <rect x="0" y="3" width="8" height="18" fill="#009246" />
+      <rect x="8" y="3" width="8" height="18" fill="#ffffff" />
+      <rect x="16" y="3" width="8" height="18" fill="#ce2b37" />
+    </>
+  ),
+  /* United States — simplified canton + stripes */
+  us: (
+    <>
+      <rect x="0" y="3" width="24" height="18" fill="#bf0a30" />
+      <rect x="0" y="5.25" width="24" height="2.25" fill="#ffffff" />
+      <rect x="0" y="9.75" width="24" height="2.25" fill="#ffffff" />
+      <rect x="0" y="14.25" width="24" height="2.25" fill="#ffffff" />
+      <rect x="0" y="3" width="11" height="10.5" fill="#002868" />
+    </>
+  ),
+  /* Canada — red / white / red */
+  ca: (
+    <>
+      <rect x="0" y="3" width="6" height="18" fill="#ff0000" />
+      <rect x="6" y="3" width="12" height="18" fill="#ffffff" />
+      <rect x="18" y="3" width="6" height="18" fill="#ff0000" />
+      <path d="M12 7.2 L13.1 10.2 L16.4 10.2 L13.7 12.1 L14.8 15.1 L12 13.2 L9.2 15.1 L10.3 12.1 L7.6 10.2 L10.9 10.2 Z" fill="#ff0000" />
     </>
   ),
 }

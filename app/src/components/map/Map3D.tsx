@@ -118,14 +118,17 @@ import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
 import {
   initialMapCenter,
   nearestMapCity,
+  cityBySlug,
   readIpDismiss,
+  readSavedPlace,
+  slugsForMarket,
   writeIpDismiss,
   writeSavedPlace,
   MAP_CITIES,
   type MapCity,
 } from '@/lib/map/user-place'
+import type { MarketId } from '@/lib/markets'
 import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
-import { mapMaxBoundsFor } from '@/lib/map/map-geo'
 import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 // ponytail: construction photo-wrap retired — MapLibre TAS massing only.
 // Restore from git history (bc43637) if a GLB/façade path returns.
@@ -781,6 +784,8 @@ function Map3DInner({
   projects = [],
   initialUi,
   platform,
+  bootCenter,
+  market = 'ge',
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
@@ -790,6 +795,8 @@ function Map3DInner({
   initialUi?: MapUiSave
   /** Admin OSM / map knobs from SystemConfig. */
   platform?: MapPlatformConfig
+  bootCenter?: { lat: number; lng: number }
+  market?: MarketId
 }) {
   const { t, lang } = useI18n()
   const tRef = useRef(t)
@@ -809,8 +816,9 @@ function Map3DInner({
   /** Padding easeTo yields to a programmatic fly until this timestamp. */
   const flyLockRef = useRef(0)
 
-  const centerDefault = platform?.center ?? MAP_CENTER
-  const minZoom = platform?.minZoom ?? MAP_MIN_ZOOM
+  const centerDefault = bootCenter ?? platform?.center ?? MAP_CENTER
+  const allowSlugs = slugsForMarket(market)
+  const minZoom = MAP_MIN_ZOOM
   const floorStacksOn = platform?.floorStacksEnabled ?? false
   const styleUrls = platform
     ? {
@@ -1392,8 +1400,7 @@ function Map3DInner({
     if (!ready || !pinsLoaded || deepLinked.current) return
     const slug = searchParams.get('building')
     const listingId = searchParams.get('listing')
-    // ponytail: Number(null) is 0 — absent ?lat/?lng must not deep-link to (0,0)
-    // (camera clamps to the maxBounds corner → empty gray map).
+    // ponytail: Number(null) is 0 — absent ?lat/?lng must not deep-link to (0,0).
     const lat = searchParams.get('lat') == null ? NaN : Number(searchParams.get('lat'))
     const lng = searchParams.get('lng') == null ? NaN : Number(searchParams.get('lng'))
     const zoomQ = Number(searchParams.get('zoom'))
@@ -1465,7 +1472,7 @@ function Map3DInner({
       if (cancelled || mapRef.current) return
 
       const bootCam = mapBootCamera(view3dRef.current)
-      const boot = initialMapCenter()
+      const boot = initialMapCenter(centerDefault, allowSlugs)
       bindMaplibreWorker(maplibregl)
       const map = new maplibregl.Map({
         container,
@@ -1476,7 +1483,6 @@ function Map3DInner({
         bearing: bootCam.bearing,
         maxPitch: 70,
         minZoom,
-        maxBounds: mapMaxBoundsFor(boot.lat, boot.lng),
         renderWorldCopies: false,
         fadeDuration: 0,
         ...mapRuntimeOptions(),
@@ -2187,7 +2193,7 @@ function Map3DInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional mount-once closures
   }, [themeReady])
 
-  // Soft IP city chip — never auto-fly; skip deep-links and dismissed / same city.
+  // IP city: first visit auto-flies; later visits get a chip if the camera is elsewhere.
   useEffect(() => {
     if (!ready || deepLinked.current) return
     let cancelled = false
@@ -2199,19 +2205,31 @@ function Map3DInner({
           | { ok: true; slug: string; ka: string; en: string; lat: number; lng: number }
           | { ok: false }
         if (!data.ok || cancelled) return
+        if (allowSlugs && !allowSlugs.has(data.slug)) return
+        if (!readSavedPlace()) {
+          writeSavedPlace({ slug: data.slug, lat: data.lat, lng: data.lng })
+          const map = mapRef.current
+          if (!map) return
+          const cam = mapBootCamera(view3dRef.current)
+          map.easeTo({
+            center: [data.lng, data.lat],
+            zoom: 13.2,
+            pitch: cam.pitch,
+            bearing: view3dRef.current ? map.getBearing() : 0,
+            duration: 900,
+            essential: true,
+          })
+          return
+        }
         const here = nearestMapCity(
-          mapRef.current?.getCenter().lat ?? MAP_CENTER.lat,
-          mapRef.current?.getCenter().lng ?? MAP_CENTER.lng,
+          mapRef.current?.getCenter().lat ?? centerDefault.lat,
+          mapRef.current?.getCenter().lng ?? centerDefault.lng,
         )
         if (here?.slug === data.slug) return
         if (readIpDismiss() === data.slug) return
-        setIpSuggest({
-          slug: data.slug,
-          ka: data.ka,
-          en: data.en,
-          lat: data.lat,
-          lng: data.lng,
-        })
+        const city = cityBySlug(data.slug)
+        if (!city) return
+        setIpSuggest(city)
       } catch {
         /* offline / local — keep quiet */
       }
@@ -2219,6 +2237,8 @@ function Map3DInner({
     return () => {
       cancelled = true
     }
+    // ponytail: one-shot after map ready; allowSlugs is boot-time market.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready])
 
   const flyToPlace = useCallback((lat: number, lng: number, zoom = 13.2) => {
@@ -2238,7 +2258,9 @@ function Map3DInner({
   const flyToQuery = useCallback(async (q: string, s?: Suggestion) => {
     const needle = (s?.ka ?? q).trim()
     if (!needle) return
-    const known = MAP_CITIES.find((c) => c.ka === needle)
+    const known = MAP_CITIES.find(
+      (c) => c.ka === needle || c.en === needle || c.slug === needle.toLowerCase(),
+    )
     if (known) {
       flyToPlace(known.lat, known.lng, 12)
       return
@@ -2276,7 +2298,7 @@ function Map3DInner({
         const map = mapRef.current
         if (!map) return
         const city = nearestMapCity(lat, lng, 120)
-        if (city) writeSavedPlace({ slug: city.slug, lat: city.lat, lng: city.lng })
+        writeSavedPlace({ slug: city?.slug ?? 'here', lat, lng })
         flyToPlace(lat, lng, 15.2)
         setIpSuggest(null)
         if (userDotRef.current) {
@@ -2896,12 +2918,16 @@ export default function Map3D({
   projects,
   initialUi,
   platform,
+  bootCenter,
+  market,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
   projects?: Project[]
   initialUi?: MapUiSave
   platform?: MapPlatformConfig
+  bootCenter?: { lat: number; lng: number }
+  market?: MarketId
 }) {
   return (
     <div className="h-full">
@@ -2918,6 +2944,8 @@ export default function Map3D({
           projects={projects}
           initialUi={initialUi}
           platform={platform}
+          bootCenter={bootCenter}
+          market={market}
         />
       </Suspense>
     </div>

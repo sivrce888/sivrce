@@ -21,8 +21,8 @@ export const locPrefix = (loc: SeoLoc) => (loc === 'ka' ? '' : `/${loc}`)
 
 // Geo registry lives in the client-safe leaf module (client components import it
 // without pulling this file's data/listings graph).
-export { CITIES, DISTRICTS, type GeoLoc, type District } from './directory-seo-lite'
-import { CITIES, DISTRICTS, type GeoLoc, type District } from './directory-seo-lite'
+export { CITIES, DISTRICTS, type GeoLoc, type District, cityMarket } from './directory-seo-lite'
+import { CITIES, DISTRICTS, type GeoLoc, type District, cityMarket } from './directory-seo-lite'
 
 export const DEALS: Record<
   string,
@@ -314,6 +314,7 @@ export function generateAllSeoParams(): string[][] {
     }
   }
   for (const city of CITIES) {
+    if (cityMarket(city) !== 'ge') continue
     push([city.slug])
     for (const dist of DISTRICTS.filter((x) => x.citySlug === city.slug)) push([city.slug, dist.slug])
   }
@@ -441,7 +442,7 @@ export function footerKeywordCols(): FooterCol[] {
     ['rent', 'apartments-3', 'tbilisi'],
   ])
   // ponytail: nominative geo names — heading carries the query; Footer cities = one HScroll strip.
-  pushGeo('cities', { ka: 'ქალაქები', en: 'Cities', ru: 'Города' }, CITIES.map((c) => [c.slug]))
+  pushGeo('cities', { ka: 'ქალაქები', en: 'Cities', ru: 'Города' }, CITIES.filter((c) => cityMarket(c) === 'ge').map((c) => [c.slug]))
 
   footerCache = cols
   return cols
@@ -1320,6 +1321,7 @@ export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string 
     }
   } else if (def.kind === 'city-info') {
     for (const c of CITIES) {
+      if (cityMarket(c) !== cityMarket(def.city!)) continue
       if (has([c.slug])) geo.push({ label: name(c), href: `${p}/${c.slug}`, active: c.slug === def.city?.slug })
     }
   }

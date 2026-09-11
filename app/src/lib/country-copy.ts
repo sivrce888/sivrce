@@ -3,6 +3,9 @@
  * Arabic exists only where we wrote real AE copy (no phantom locales).
  */
 
+import { MARKETS, type PathCountryId } from '@/lib/markets'
+import { EXTRA_CITIES, EXTRA_HUBS, EXTRA_NAMES } from '@/lib/countries/hubs-extra'
+
 export type CountryCopy = {
   title: string
   description: string
@@ -42,9 +45,10 @@ function city(
   }
 }
 
-export const COUNTRY_NAMES: Record<'de' | 'ae', string> = {
+export const COUNTRY_NAMES: Record<PathCountryId, string> = {
   de: 'Germany',
   ae: 'United Arab Emirates',
+  ...EXTRA_NAMES,
 }
 
 export const DE_HUB: CountryCopy = {
@@ -95,7 +99,11 @@ export const AE_HUB: CountryCopy = {
   ],
 }
 
-export const COUNTRY_HUBS = { de: DE_HUB, ae: AE_HUB } as const
+export const COUNTRY_HUBS: Record<PathCountryId, CountryCopy> = {
+  de: DE_HUB,
+  ae: AE_HUB,
+  ...EXTRA_HUBS,
+}
 
 export const AE_HUB_AR: CountryCopy = {
   title: 'عقارات الإمارات — دبي وأبوظبي | sivrce',
@@ -461,17 +469,19 @@ export const AE_CITIES_AR: Record<string, CountryCopy> = {
 export function cityPack(country: string, slug: string): CityPack | null {
   if (country === 'de') return DE_CITIES[slug] ?? null
   if (country === 'ae') return AE_CITIES[slug] ?? null
+  if (country in EXTRA_CITIES) return EXTRA_CITIES[country as keyof typeof EXTRA_CITIES][slug] ?? null
   return null
 }
 
 export function countrySitemapPaths(country: string): string[] {
-  const prefix = country === 'de' ? '/de' : country === 'ae' ? '/ae' : ''
+  if (!country || !(country in MARKETS) || country === 'ge') return []
+  const prefix = MARKETS[country as PathCountryId].pathPrefix
   if (!prefix) return []
   const out = [prefix]
-  const table = country === 'de' ? DE_CITIES : AE_CITIES
-  for (const slug of Object.keys(table)) {
+  for (const slug of MARKETS[country as PathCountryId].citySlugs) {
+    const pack = cityPack(country, slug)
+    if (!pack) continue
     out.push(`${prefix}/${slug}`)
-    const pack = table[slug]!
     if (pack.buy) out.push(`${prefix}/${slug}/buy`)
     if (pack.rent) out.push(`${prefix}/${slug}/rent`)
   }

@@ -7,6 +7,8 @@ import { parseCoords, cityCenter } from './geocode'
 import { pickHighlightPolygon, snapPick } from './pick-building'
 
 assert.ok(parseCoords(41.7151, 44.8271))
+assert.ok(parseCoords(52.52, 13.405))
+assert.ok(parseCoords(48.8566, 2.3522))
 assert.equal(parseCoords(0, 0), null)
 assert.equal(parseCoords(Number.NaN, 44), null)
 

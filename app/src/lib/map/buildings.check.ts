@@ -944,7 +944,7 @@ async function main() {
   assert.ok(onlyBuild.every((b) => b.label.length > 0 && !/^SV-TB-/.test(b.label)))
 
   assert.equal(GEORGIA_MASK_MAXZOOM, 8)
-  assert.equal(MAP_MIN_ZOOM, 7)
+  assert.equal(MAP_MIN_ZOOM, 1)
   assert.equal(GEORGIA_HALO_KM, 50)
   assert.ok(GEORGIA_MAX_BOUNDS[0][0] < GEORGIA_MAX_BOUNDS[1][0])
   assert.ok(GEORGIA_MAX_BOUNDS[0][1] < GEORGIA_MAX_BOUNDS[1][1])

@@ -2,7 +2,7 @@
  * Developer project form parse — used by /developer/projects actions.
  * ponytail: ProjectDirectory already exists; no new model.
  */
-import { inServiceArea } from '@/lib/map/map-geo'
+import { parseCoords } from '@/lib/map/map-geo'
 
 export const PROJECT_STATUSES = ["construction", "completed", "planned", "draft"] as const
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number]
@@ -56,9 +56,9 @@ function asCoord(raw: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-/** Soft Georgia box + Germany launch box — single source in map-geo. */
+/** Valid listing pin (WGS84; 0,0 is unset). */
 export function coordsInGeorgia(lat: number, lng: number): boolean {
-  return inServiceArea(lat, lng)
+  return parseCoords(lat, lng) != null
 }
 
 export function isOwnedCover(url: string): boolean {

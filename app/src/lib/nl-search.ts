@@ -77,20 +77,24 @@ for (const city of ['თბილისი', 'ბათუმი', 'ქუთა
 }
 
 const FEATURE_RX: [RegExp, string][] = [
-  [/parking|პარკინგ|ავტოსადგომ/i, 'add.f.parking'],
+  [/parking|პარკინგ|ავტოსადგომ|parkplatz|stellplatz/i, 'add.f.parking'],
   [/garage|გარაჟ|ავტოფარეხ/i, 'add.f.garage'],
-  [/bright|ნათელ|ბუნებრივი სინათლ/i, 'add.f.bright'],
-  [/elevator|lift|ლიფტ/i, 'add.f.elevator'],
+  [/bright|ნათელ|ბუნებრივი სინათლ|hell|lichtdurchflutet/i, 'add.f.bright'],
+  [/elevator|lift|ლიფტ|aufzug/i, 'add.f.elevator'],
   [/loggia|ლოჯ|лоджи/i, 'add.f.loggia'],
-  [/balcony|აივან|балкон/i, 'add.f.balcony'],
-  [/furnish|ავეჯ/i, 'add.f.furniture'],
+  [/balcony|აივან|балкон|balkon/i, 'add.f.balcony'],
+  [/furnish|ავეჯ|möbliert|moebliert/i, 'add.f.furniture'],
   [/წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b/i, 'add.f.partiesAllowed'],
 ]
 
 function parseMoney(raw: string): number | undefined {
-  const s = raw.replace(/[$,₾\s]/g, '').replace(/,/g, '')
+  const s = raw.replace(/[$,₾€\s]/g, '').replace(/,/g, '')
   if (!s) return undefined
-  const m = s.match(/^(\d+(?:\.\d+)?)([kKmM])?$/)
+  // German thousand-dots: 200.000 → 200000 (strict 3-digit groups only,
+  // so a decimal like 2.5 still parses as a decimal below).
+  const deThousands = s.match(/^(\d{1,3}(?:\.\d{3})+)([kKmM])?$/)
+  const t = deThousands ? `${deThousands[1]!.replace(/\./g, '')}${deThousands[2] ?? ''}` : s
+  const m = t.match(/^(\d+(?:\.\d+)?)([kKmM])?$/)
   if (!m) {
     const n = Number(s)
     return Number.isFinite(n) && n > 0 ? n : undefined
@@ -132,36 +136,38 @@ export function parseNlQuery(query: string): NlFilters {
   const q = raw.toLowerCase()
   const out: NlFilters = {}
 
-  if (/იყიდება|შეძენა|გაყიდვა|\bbuy\b|\bsale\b|\bsell\b/i.test(q)) out.dealType = 'sale'
-  else if (/დღიურად|\bdaily\b|\bovernight\b/i.test(q)) out.dealType = 'daily'
+  if (/იყიდება|შეძენა|გაყიდვა|\bbuy\b|\bsale\b|\bsell\b|kauf|verkauf/i.test(q)) out.dealType = 'sale'
+  else if (/დღიურად|\bdaily\b|\bovernight\b|tagesmiete|ferienwohnung(en)?|übernacht/i.test(q)) out.dealType = 'daily'
   else if (/გირავდ|გირავნ|\bpledge\b|\bcollateral\b|\bзалог/i.test(q)) out.dealType = 'pledge'
   else if (/გაიცემა\s*იჯარ|იჯარით|\bijara\b/i.test(q)) out.dealType = 'rent'
-  else if (/ქირავდება|გაქირავება|\brent\b|\blease\b|ქირა/i.test(q)) out.dealType = 'rent'
+  else if (/ქირავდება|გაქირავება|\brent\b|\blease\b|ქირა|miet|pacht/i.test(q)) out.dealType = 'rent'
 
-  const party = /წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b/i.test(q)
+  const party = /წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b|partyhaus|geburtstag|feier/i.test(q)
   if (party && !out.dealType) out.dealType = 'daily'
 
-  if (/ბინა|\bapartment\b|\bflat\b|\bstudio\b/i.test(q) && !party) out.propertyType = 'apartment'
-  else if (/აგარაკ|\bcottage\b|\bdacha\b/i.test(q)) out.propertyType = 'villa'
+  if (/ბინა|\bapartment\b|\bflat\b|\bstudio\b|(?<!ferien)wohnung/i.test(q) && !party) out.propertyType = 'apartment'
+  else if (/აგარაკ|\bcottage\b|\bdacha\b|ferienhaus|ferienwohnung(en)?/i.test(q)) out.propertyType = 'villa'
   else if (/სასტუმრო|\bhotel\b/i.test(q)) out.propertyType = 'hotel'
-  else if (!party && /სახლი|\bhouse\b|\bvilla\b|ვილა/i.test(q)) out.propertyType = 'house'
-  else if (/კომერც|\bcommercial\b|\bshop\b|მაღაზია|\boffice\b|ოფისი/i.test(q)) out.propertyType = 'commercial'
-  else if (/მიწა|\bland\b|\bplot\b|ნაკვეთი/i.test(q)) out.propertyType = 'land'
+  else if (!party && /სახლი|\bhouse\b|\bvilla\b|ვილა|haus/i.test(q)) out.propertyType = 'house'
+  else if (/კომერც|\bcommercial\b|\bshop\b|მაღაზია|\boffice\b|ოფისი|gewerbe|büro|buero|laden|geschäft/i.test(q)) out.propertyType = 'commercial'
+  else if (/მიწა|\bland\b|\bplot\b|ნაკვეთი|grundstück|grundstueck|grundst/i.test(q)) out.propertyType = 'land'
 
   if (out.dealType === 'rent' && /გაიცემა\s*იჯარ|იჯარით|\bijara\b/i.test(q) && !out.propertyType) {
     out.propertyType = 'land'
   }
 
-  const bedMatch = q.match(/(\d+)\s*[-]?\s*(საძინებელ|საძინებლიან|\bbedrooms?\b|\bbeds?\b)/i)
+  const bedMatch = q.match(/(\d+)\s*[-]?\s*(საძინებელ|საძინებლიან|\bbedrooms?\b|\bbeds?\b|schlafzimmer)/i)
   if (bedMatch) out.bedrooms = Number(bedMatch[1])
-  const roomMatch = q.match(/(\d+)\s*[-]?\s*(ოთახიანი|ოთახი|\brooms?\b)/i)
+  const roomMatch = q.match(/(\d+)\s*[-]?\s*(ოთახიანი|ოთახი|\brooms?\b|(?<!schlaf)zimmer)/i)
   if (roomMatch) out.rooms = Number(roomMatch[1])
 
-  const under = q.match(/(?:under|below|ქვემოთ|მდე|up to)\s*\$?\s*₾?\s*([\d.,]+)\s*([kKmM])?/i)
+  const under = q.match(/(?:under|below|unter|bis\s*zu|ქვემოთ|მდე|up to)\s*[$₾€]?\s*([\d.,]+)\s*([kKmM])?/i)
   const kPrice = q.match(/\$\s*([\d.,]+)\s*([kKmM])/)
+  const eurPrice = q.match(/€\s*([\d.,]+)\s*([kKmM])?/)
+  const eurTrailing = q.match(/([\d.,]+)\s*€/)
   const gelPrice = q.match(/₾\s*([\d.,]+)\s*([kKmM])?/)
   const bareK = q.match(/\b(\d+(?:[.,]\d+)?)\s*([kK])\b/)
-  const moneySrc = under ?? gelPrice ?? kPrice ?? (under ? null : bareK)
+  const moneySrc = under ?? eurPrice ?? gelPrice ?? kPrice ?? eurTrailing ?? (under ? null : bareK)
   if (moneySrc) {
     const n = parseMoney(`${moneySrc[1]}${moneySrc[2] ?? ''}`)
     if (n) out.maxPrice = n
@@ -180,7 +186,7 @@ export function parseNlQuery(query: string): NlFilters {
     if (rx.test(q)) features.push(key)
   }
   if (features.length) out.features = features
-  if (/pet[- ]?friendly|ცხოველ|pets?\s+allow/i.test(q)) out.pets = true
+  if (/pet[- ]?friendly|ცხოველ|pets?\s+allow|haustier/i.test(q)) out.pets = true
 
   if (!nlHasStructure(out)) out.keywords = raw
   return out

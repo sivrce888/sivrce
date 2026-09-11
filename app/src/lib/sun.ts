@@ -1,8 +1,8 @@
 /**
  * Sun model — low-precision NOAA/astral solar math, zero dependencies.
  * Accuracy ≈1 minute for sunrise/sunset, well inside what a listing card needs.
- * Georgia has a single timezone (Asia/Tbilisi) — formatSunTime pins to it so a
- * cached ISR page and a live client agree on the rendered HH:mm.
+ * Display TZ follows the listing: Georgia → Asia/Tbilisi, Germany → Europe/Berlin,
+ * else solar Etc/GMT (no DST). ISR + client share the same IANA zone.
  */
 
 const RAD = Math.PI / 180
@@ -37,8 +37,8 @@ export type SunDay = {
 
 /**
  * Sunrise/sunset for one calendar day at a coordinate.
- * `sunrise`/`sunset` are null only on polar day/night — impossible in Georgia,
- * but a listing with garbage coords (0,0 defaults) must not crash the UI.
+ * `sunrise`/`sunset` are null only on polar day/night — a listing with garbage
+ * coords (0,0 defaults) must not crash the UI.
  */
 export function sunTimes(lat: number, lng: number, date: Date): SunDay {
   const lw = RAD * -lng
@@ -90,45 +90,106 @@ export function compass8(azimuth: number): number {
   return Math.round((((azimuth % 360) + 360) % 360) / 45) % 8
 }
 
-/** HH:mm in the site's single timezone (Georgia = Asia/Tbilisi). */
-export function formatSunTime(date: Date, lang: string): string {
+/** IANA zone for sun wall-clock. Catalog markets first; solar GMT elsewhere (no DST). */
+export function timeZoneFor(lat: number, lng: number): string {
+  if (lat >= 40.35 && lat <= 44.25 && lng >= 38.7 && lng <= 47.8) return 'Asia/Tbilisi'
+  if (lat >= 46.8 && lat <= 55.6 && lng >= 4.9 && lng <= 16.0) return 'Europe/Berlin'
+  const h = Math.max(-12, Math.min(14, Math.round(lng / 15)))
+  if (h === 0) return 'UTC'
+  return h > 0 ? `Etc/GMT-${h}` : `Etc/GMT+${-h}`
+}
+
+/** HH:mm in `timeZone` (default Tbilisi so existing checks stay pinned). */
+export function formatSunTime(date: Date, lang: string, timeZone = 'Asia/Tbilisi'): string {
   try {
-    return new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tbilisi' }).format(date)
+    return new Intl.DateTimeFormat(lang, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone,
+    }).format(date)
   } catch {
-    return new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tbilisi' }).format(date)
+    return new Intl.DateTimeFormat('en', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone,
+    }).format(date)
   }
 }
 
-/**
- * Minutes-of-day on the Tbilisi wall clock right now — the sun scrubber's
- * slider lives in listing-local time so a diaspora viewer scrubs the same
- * daylight the listing has.
- * ponytail: Georgia is UTC+4 year-round (DST abolished 2004) — instant built
- * as UTC−4 of the Tbilisi wall date; revisit only if DST ever returns.
- */
-export function tbilisiMinutesOfDay(now: Date = new Date()): number {
+/** Minutes-of-day on `timeZone`'s wall clock. */
+export function wallMinutesOfDay(now: Date = new Date(), timeZone = 'Asia/Tbilisi'): number {
   const [h, m] = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-    timeZone: 'Asia/Tbilisi',
+    timeZone,
   })
     .format(now)
     .split(':')
     .map(Number)
-  return (h ?? 0) * 60 + (m ?? 0)
+  return ((h ?? 0) % 24) * 60 + (m ?? 0)
+}
+
+/** Offset of `timeZone` vs UTC at `date`, milliseconds (DST-aware). */
+function tzOffsetMs(date: Date, timeZone: string): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+      .formatToParts(date)
+      .filter((p) => p.type !== 'literal')
+      .map((p) => [p.type, p.value]),
+  )
+  const hour = Number(parts.hour) % 24
+  const asUTC = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    hour,
+    Number(parts.minute),
+    Number(parts.second),
+  )
+  return asUTC - date.getTime()
+}
+
+/** Absolute instant at `minutes` past `timeZone` midnight on `now`'s wall date. */
+export function wallInstant(minutes: number, now: Date = new Date(), timeZone = 'Asia/Tbilisi'): Date {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+      .formatToParts(now)
+      .filter((p) => p.type !== 'literal')
+      .map((p) => [p.type, p.value]),
+  )
+  const guess = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Math.floor(minutes / 60),
+    minutes % 60,
+  )
+  return new Date(guess - tzOffsetMs(new Date(guess), timeZone))
+}
+
+/** Minutes-of-day on the Tbilisi wall clock. */
+export function tbilisiMinutesOfDay(now: Date = new Date()): number {
+  return wallMinutesOfDay(now, 'Asia/Tbilisi')
 }
 
 /** Absolute instant at `minutes` past Tbilisi midnight on today's Tbilisi date. */
 export function tbilisiInstant(minutes: number, now: Date = new Date()): Date {
-  const [m, d, y] = new Intl.DateTimeFormat('en-US', {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-    timeZone: 'Asia/Tbilisi',
-  })
-    .format(now)
-    .split('/')
-    .map(Number)
-  return new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1, Math.floor(minutes / 60) - 4, minutes % 60))
+  return wallInstant(minutes, now, 'Asia/Tbilisi')
 }

@@ -15,6 +15,8 @@ import { NEW_DEVELOPERS_BATUMI_REGIONS, NEW_PROJECTS_BATUMI } from './projects-n
 import { NEW_PROJECTS_REGIONS } from './projects-new-regions'
 import { NEW_DEVELOPERS_2026_08, NEW_PROJECTS_2026_08 } from './projects-new-2026-08'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from './projects-new-berlin'
+import { NEW_DEVELOPERS_GERMANY } from './projects-new-germany'
+import { EXTRA_DEVELOPERS_GERMANY, EXTRA_PROJECTS_GERMANY } from './projects-germany-extra'
 
 export interface LocalName {
   ka: string
@@ -176,6 +178,15 @@ const DEV_PREFIX: Record<string, string> = {
   'dic-asset-berlin': 'DIC', 'grand-city-properties': 'GCP', 'corpus-sireo': 'CSR',
   'union-investment-berlin': 'UIN', 'allianz-real-estate-berlin': 'ALZ',
   'euroboden-berlin': 'EUR', 'quartier-eins-berlin': 'QEI',
+  'ziegert-immobilien': 'ZIE', 'vivawest-berlin': 'VWB',
+  'hoppenhoff-foerster': 'HOF', 'spreeblick-berlin': 'SPL',
+  'groth-gruppe-berlin': 'GGB', 'wohnquadrat-berlin-2': 'WQ2',
+  'trockland-berlin': 'TLC',
+  'kreuzberg-entwicklung': 'KEG', 'neukolln-entwicklung': 'NEG',
+  vonovia: 'VON', 'deutsche-wohnen': 'DWO', 'leg-immobilien': 'LEG',
+  vivawest: 'VIV', 'saga-hamburg': 'SAG', 'muenchner-wohnen': 'MWO',
+  'abg-frankfurt': 'ABG', 'gag-koeln': 'GAG', 'gewoba-bremen': 'GBR',
+  'nhw-wiesbaden': 'NHW',
 }
 const autoDevPrefix = (slug: string): string =>
   slug.split('-').filter((s) => s.length > 0).map((s) => s[0]!).join('').toUpperCase().slice(0, 3)
@@ -1540,6 +1551,8 @@ export const DEVELOPERS: Developer[] = [
   ...NEW_DEVELOPERS_BATUMI_REGIONS,
   ...NEW_DEVELOPERS_2026_08,
   ...NEW_DEVELOPERS_BERLIN,
+  ...NEW_DEVELOPERS_GERMANY,
+  ...EXTRA_DEVELOPERS_GERMANY,
 ]
 
 // ——— Agents / agencies ———
@@ -4785,6 +4798,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_REGIONS,
   ...NEW_PROJECTS_2026_08,
   ...NEW_PROJECTS_BERLIN,
+  ...EXTRA_PROJECTS_GERMANY,
 ].map(freshenFinish)
 
 export function getDeveloper(slug: string): Developer | undefined {

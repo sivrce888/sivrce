@@ -42,7 +42,7 @@ export const hy: Dict = {
 
   // ——— Search page chrome ———
   'search.title': 'Որոնում',
-  'search.allGeorgia': 'Ամբողջ Վրաստանը',
+  'search.allGeorgia': 'Ամբողջ աշխարհ',
   'search.dealType': 'Գործարքի տեսակ',
   'search.all': 'Բոլորը',
   'search.sale': 'Վաճառք',

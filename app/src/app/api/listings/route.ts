@@ -14,7 +14,7 @@ import type { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { recomputeNearestPois } from "@/lib/geo/nearest-poi"
 import { attributeListing } from "@/lib/map/attribution"
-import { cityCenter, geocodeListingAddress, parseCoords } from "@/lib/map/geocode"
+import { resolveListingCoords } from "@/lib/map/geocode"
 import { metroMeters } from "@/lib/map/pois"
 import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { parsePublishBody, persistRoomCounts } from "@/lib/listings-publish"
@@ -52,15 +52,14 @@ export async function POST(req: NextRequest) {
   const counts = persistRoomCounts(p.rooms, p.beds)
   const district = canonicalizeDistrict(p.district, p.city) || p.district
 
-  // Coords: client pin → geocode address → city center. Always Georgia-bounded.
-  let coords = parseCoords(p.lat, p.lng)
+  // Coords: client pin → geocode address → catalog / city-name geocode.
+  const coords = await resolveListingCoords(p.lat, p.lng, {
+    street: p.address,
+    district,
+    city: p.city,
+  })
   if (!coords) {
-    const hit = await geocodeListingAddress({
-      street: p.address,
-      district,
-      city: p.city,
-    })
-    coords = hit ? { lat: hit.lat, lng: hit.lng } : cityCenter(p.city)
+    return NextResponse.json({ ok: false, error: "need_location" }, { status: 400 })
   }
   const { lat, lng } = coords
 

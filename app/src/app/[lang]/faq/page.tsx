@@ -8,7 +8,7 @@ import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 import { dirLoc, type DirLoc } from '@/lib/directory-seo'
-import { FAQ_SECTIONS } from '@/lib/faq'
+import { FAQ_SECTIONS, type FaqLoc } from '@/lib/faq'
 
 export const revalidate = 86400
 
@@ -35,10 +35,15 @@ export async function generateMetadata({
       description:
         'Посуточные квартиры в Тбилиси и Сабуртало, покупка-продажа и аренда — ответы на sivrce. Верификация, VIP, ИИ-поиск.',
     },
+    de: {
+      title: 'Immobilien in Georgien — FAQ für deutsche Käufer',
+      description:
+        'Kaufen als Deutscher in Tiflis und Batumi, Visum, Nebenkosten in Berlin — Antworten auf sivrce. Prüfung, VIP, KI-Suche.',
+    },
   })
 }
 
-function faqLdFor(loc: DirLoc) {
+function faqLdFor(loc: DirLoc | 'de') {
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -70,21 +75,32 @@ const HERO: Record<DirLoc, { kicker: string; title: string; subtitle: string }> 
     title: 'Частые вопросы',
     subtitle: 'Посуточные квартиры в Тбилиси и Сабуртало, покупка и продажа, аренда — на одной странице.',
   },
-}
+} as const
+
+const HERO_DE = {
+  kicker: 'Hilfe',
+  title: 'Häufige Fragen',
+  subtitle: 'Kaufen in Tiflis und Batumi, Visum, Nebenkosten in Berlin — auf einer Seite.',
+} as const
 
 export default async function FaqPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
-  const loc = dirLoc(isValidLang(raw) ? raw : 'ka')
-  const hero = HERO[loc]
+  const lang = isValidLang(raw) ? raw : 'ka'
+  const loc = dirLoc(lang)
+  // ponytail: DirLoc stays ka/en/ru (directory hubs share it) — German gets its
+  // native FAQ dataset + hero here without widening the shared corpus type.
+  const isDe = lang === 'de'
+  const hero = isDe ? HERO_DE : HERO[loc]
+  const sections: (typeof FAQ_SECTIONS)[FaqLoc] = isDe ? FAQ_SECTIONS.de : FAQ_SECTIONS[loc]
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLdFor(loc)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLdFor(isDe ? 'de' : loc)) }} />
       <Navbar />
       <main id="main">
         <PageHero tone="light" kicker={hero.kicker} title={hero.title} subtitle={hero.subtitle} />
         <section className="mx-auto max-w-4xl px-6 pb-20 pt-8 md:pb-28">
           <div className="space-y-14">
-            {FAQ_SECTIONS[loc].map((section, si) => (
+            {sections.map((section, si) => (
               <Reveal key={section.title} delay={si * 0.05}>
                 <section>
                   <h2 className="text-2xl font-black tracking-[-0.02em] text-sv-ink text-balance">

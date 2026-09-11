@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict'
 import {
   cityCenter,
+  knownCityCenter,
   formatGeocodeAddress,
   inGeorgia,
   matchCityKa,
@@ -25,6 +26,7 @@ assert.equal(inGeorgia(0, 0), false)
 assert.equal(inGeorgia(48.8566, 2.3522), false)
 
 assert.deepEqual(parseCoords(41.7, 44.8), { lat: 41.7, lng: 44.8 })
+assert.deepEqual(parseCoords(48.8566, 2.3522), { lat: 48.8566, lng: 2.3522 })
 assert.equal(parseCoords(99, 44.8), null)
 assert.equal(parseCoords('41', 44), null)
 
@@ -32,10 +34,13 @@ const tb = cityCenter('თბილისი')
 // Freedom Square — add-listing / city pin default
 assert.ok(Math.abs(tb.lat - 41.69365) < 0.01)
 assert.ok(Math.abs(tb.lng - 44.80115) < 0.01)
+assert.deepEqual(knownCityCenter('Berlin'), { lat: 52.52, lng: 13.405 })
+assert.equal(knownCityCenter('Paris'), null)
 
 assert.equal(matchCityKa('Tbilisi'), 'თბილისი')
 assert.equal(matchCityKa('თბილისი'), 'თბილისი')
 assert.equal(matchCityKa('batumi'), 'ბათუმი')
+assert.equal(matchCityKa('Berlin'), 'ბერლინი')
 
 assert.deepEqual(splitStreetHouse('ილია ჭავჭავაძის გამზირი 47'), {
   street: 'ილია ჭავჭავაძის გამზირი',

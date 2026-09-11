@@ -30,6 +30,7 @@ import { isExactLookupQuery } from '@/lib/listing-public-id'
 import { searchHref, suggestionToFilters } from '@/lib/search-location'
 import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { QUICK, type HeroQuickChip } from '@/lib/hero-quick'
+import { GEO_CITIES } from '@/data/georgia-locations'
 
 const fieldBtn =
   'flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white'
@@ -83,6 +84,25 @@ export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] 
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate recent from localStorage (SSR-safe)
     setRecent(readRecent())
   }, [router, lang])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/geo')
+        if (!res.ok || cancelled) return
+        const data = (await res.json()) as { ok: true; ka: string } | { ok: false }
+        if (!data.ok || cancelled) return
+        if (!GEO_CITIES.includes(data.ka)) return
+        setLoc((prev) => (prev.city ? prev : { ...prev, city: data.ka }))
+      } catch {
+        /* offline — location stays empty */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!menu) return

@@ -10,6 +10,7 @@ import { useCurrency, type Currency } from '@/lib/currency'
 
 const OPTIONS: { value: Currency; symbol: string; label: string }[] = [
   { value: 'USD', symbol: '$', label: 'US Dollar' },
+  { value: 'EUR', symbol: '€', label: 'Euro' },
   { value: 'GEL', symbol: '₾', label: 'Georgian Lari' },
 ]
 

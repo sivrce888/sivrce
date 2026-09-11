@@ -14,7 +14,7 @@ for (const key of Object.keys(CONFIG_REGISTRY) as (keyof ConfigValues)[]) {
 
 const platform = mapPlatformFromConfig(defaults)
 assert.equal(platform.defaultTerrain, "streets")
-assert.equal(platform.minZoom, 7)
+assert.equal(platform.minZoom, 1)
 assert.equal(platform.center.lat, 41.7151)
 assert.equal(platform.floorStacksEnabled, FLOOR_STACKS_ENV)
 assert.match(platform.styleUrlLight, /^\/api\/map\/styles\//)
@@ -23,7 +23,8 @@ assert.equal(CONFIG_REGISTRY["map.styleUrlLight"].parse("https://evil.example/x"
 assert.equal(CONFIG_REGISTRY["map.styleUrlLight"].parse("/api/map/styles/liberty"), "/api/map/styles/liberty")
 assert.equal(CONFIG_REGISTRY["map.floorStacksEnabled"].parse("true"), true)
 assert.equal(CONFIG_REGISTRY["map.defaultTerrain"].parse("satellite"), "satellite")
-assert.equal(CONFIG_REGISTRY["map.centerLat"].parse(50), null)
+assert.ok(CONFIG_REGISTRY["map.centerLat"].parse(50) !== null)
 assert.ok(CONFIG_REGISTRY["map.centerLat"].parse(41.7) !== null)
+assert.equal(CONFIG_REGISTRY["map.centerLat"].parse(99), null)
 
 console.log("platform-config.check: ok")

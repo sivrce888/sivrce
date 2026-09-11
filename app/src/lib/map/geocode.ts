@@ -1,13 +1,11 @@
 /**
- * Address → coords for Georgia + Germany listings.
+ * Address → coords worldwide.
  * ponytail: Nominatim (OSM) server-side only; 1 rps ToS. Upgrade → self-hosted Photon.
  */
 
 import { MAP_CITIES, type MapCity } from '@/lib/map/user-place'
 import {
   MAP_CENTER,
-  GEORGIA_MAX_BOUNDS,
-  GERMANY_MAX_BOUNDS,
   inGeorgia,
   inGermany,
   inServiceArea,
@@ -61,21 +59,20 @@ type NominatimRow = {
   }
 }
 
-// Combined viewbox (both markets) for the bounded Nominatim search;
-// countrycodes does the real filtering, the box is only a bias.
-const [[W, S], [E, N]] = [
-  [Math.min(GEORGIA_MAX_BOUNDS[0][0], GERMANY_MAX_BOUNDS[0][0]), Math.min(GEORGIA_MAX_BOUNDS[0][1], GERMANY_MAX_BOUNDS[0][1])],
-  [Math.max(GEORGIA_MAX_BOUNDS[1][0], GERMANY_MAX_BOUNDS[1][0]), Math.max(GEORGIA_MAX_BOUNDS[1][1], GERMANY_MAX_BOUNDS[1][1])],
-] as [[number, number], [number, number]]
-
 export { inGeorgia, inGermany, inServiceArea, parseCoords }
 
 export function cityCenter(city: string): { lat: number; lng: number } {
+  return knownCityCenter(city) ?? MAP_CENTER
+}
+
+/** Catalog pin only — unknown city must not snap to Tbilisi. */
+export function knownCityCenter(city: string): { lat: number; lng: number } | null {
   const needle = city.trim().toLowerCase()
-  const hit =
-    MAP_CITIES.find((c) => c.ka.toLowerCase() === needle || c.slug === needle) ??
-    null
-  return hit ? { lat: hit.lat, lng: hit.lng } : MAP_CENTER
+  if (!needle) return null
+  const hit = MAP_CITIES.find(
+    (c) => c.ka.toLowerCase() === needle || c.slug === needle || c.en.toLowerCase() === needle,
+  )
+  return hit ? { lat: hit.lat, lng: hit.lng } : null
 }
 
 /** Nominatim city (ka/en/slug) → Sivrce ka city label. */
@@ -83,17 +80,26 @@ export function matchCityKa(name?: string | null): string | undefined {
   if (!name) return undefined
   const n = name.trim().toLowerCase()
   const hit = MAP_CITIES.find(
-    (c) => c.ka.toLowerCase() === n || c.slug === n || n.includes(c.slug),
+    (c) =>
+      c.ka.toLowerCase() === n || c.slug === n || c.en.toLowerCase() === n || n.includes(c.slug),
   )
   return hit?.ka
 }
 
-/** Sivrce ka city / slug → Nominatim country + EN city (DE market needs Latin). */
-function nominatimMarket(city?: string): { country: string; city: string } {
+/** Known catalog city → Nominatim country + Latin name; unknown city is free text. */
+function nominatimMarket(city?: string): { country?: string; city?: string } {
   const n = city?.trim().toLowerCase() ?? ''
   const hit = n ? MAP_CITIES.find((c) => c.ka.toLowerCase() === n || c.slug === n) : null
-  if (hit && inGermany(hit.lat, hit.lng)) return { country: 'Germany', city: hit.en }
-  return { country: 'Georgia', city: city || 'Tbilisi' }
+  if (hit) {
+    const country = inGermany(hit.lat, hit.lng)
+      ? 'Germany'
+      : inGeorgia(hit.lat, hit.lng)
+        ? 'Georgia'
+        : undefined
+    return { country, city: hit.en }
+  }
+  const raw = city?.trim()
+  return raw ? { city: raw } : {}
 }
 
 /** Prefer catalog ubani (quarter) over rayon neighbourhood; canonicalize EN/combined. */
@@ -159,7 +165,7 @@ function hitFromRow(row: NominatimRow, fallbackLabel: string): GeocodeHit | null
     lat,
     lng,
     label: row.display_name ?? fallbackLabel,
-    city: matchCityKa(a?.city ?? a?.town ?? a?.village ?? a?.municipality),
+    city: matchCityKa(a?.city ?? a?.town ?? a?.village ?? a?.municipality) ?? a?.city ?? a?.town ?? a?.village ?? a?.municipality,
     district: normalizeDistrict(a),
     street: a?.road ?? a?.pedestrian,
     houseNo: a?.house_number,
@@ -208,9 +214,6 @@ async function nominatimSearch(
   url.searchParams.set('format', 'json')
   url.searchParams.set('addressdetails', '1')
   url.searchParams.set('polygon_geojson', '1')
-  url.searchParams.set('countrycodes', 'ge,de')
-  url.searchParams.set('viewbox', `${W},${N},${E},${S}`)
-  url.searchParams.set('bounded', '1')
 
   // ponytail: no-store — empty 200s were poison-cached 24h → add-listing 404 in 5ms
   // Referer+From: Next may strip User-Agent; Nominatim still accepts these.
@@ -229,7 +232,7 @@ async function nominatimSearch(
 }
 
 /**
- * Geocode a free-text address in Georgia or Germany via Nominatim.
+ * Geocode a free-text address worldwide via Nominatim.
  * Returns null on miss / network / ToS soft-fail.
  */
 export async function geocodeAddress(
@@ -245,7 +248,7 @@ export async function geocodeAddress(
   return row ? hitFromRow(row, q) : null
 }
 
-/** Autocomplete — up to 5 ranked Georgia hits. */
+/** Autocomplete — up to 5 ranked hits. */
 export async function suggestAddresses(
   query: string,
   city?: string,
@@ -353,8 +356,8 @@ export async function geocodeListingAddress(
     const structured = await nominatimSearch(
       {
         street: streetLine,
-        city: mkt.city,
-        country: mkt.country,
+        ...(mkt.city ? { city: mkt.city } : {}),
+        ...(mkt.country ? { country: mkt.country } : {}),
         limit: '8',
       },
       signal,
@@ -388,6 +391,25 @@ export async function geocodeListingAddress(
     ...free,
     district: catDistrict || free.district || district || undefined,
   }
+}
+
+/** Pin → address geocode → catalog city → city-name geocode. Never Tbilisi-default a foreign city. */
+export async function resolveListingCoords(
+  lat: unknown,
+  lng: unknown,
+  parts: { street?: string; houseNo?: string; district?: string; city?: string },
+  signal?: AbortSignal,
+): Promise<{ lat: number; lng: number } | null> {
+  const pin = parseCoords(lat, lng)
+  if (pin) return pin
+  const hit = await geocodeListingAddress(parts, signal)
+  if (hit) return { lat: hit.lat, lng: hit.lng }
+  const known = knownCityCenter(parts.city ?? '')
+  if (known) return known
+  const city = parts.city?.trim()
+  if (!city) return null
+  const named = await geocodeAddress(city, signal)
+  return named ? { lat: named.lat, lng: named.lng } : null
 }
 
 /** UI line from a geocode hit — street + house № first. */

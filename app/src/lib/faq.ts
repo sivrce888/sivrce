@@ -5,7 +5,7 @@
  * `check:faq` alike.
  */
 
-export type FaqLoc = 'ka' | 'en' | 'ru'
+export type FaqLoc = 'ka' | 'en' | 'ru' | 'de'
 
 export interface FaqQA {
   q: string
@@ -276,11 +276,60 @@ export const FAQ_SECTIONS: Record<FaqLoc, FaqSection[]> = {
       ],
     },
   ],
+  de: [
+    {
+      title: 'Immobilien in Georgien für Deutsche',
+      items: [
+        {
+          q: 'Können Deutsche in Georgien Immobilien kaufen?',
+          a: 'Ja — Wohnungen, Häuser, Gewerbeflächen und nicht-landwirtschaftliche Grundstücke dürfen Ausländer wie Georgier kaufen. Ausgenommen ist Agrarland (Agrarlandgesetz). Sie brauchen nur einen Reisepass; der Kaufvertrag ist schriftlich und wird im öffentlichen Register eingetragen — das Eigentum entsteht erst mit der Eintragung (1–4 Tage, Public Service Hall oder Notar). Ohne Georgischkenntnisse ist ein Dolmetscher Pflicht. Bei Dorfhäusern unbedingt die Bodenkategorie im Registerauszug prüfen: Der Hof ist oft als Agrarland eingetragen.',
+        },
+        {
+          q: 'Brauche ich als Deutscher ein Visum für Georgien?',
+          a: 'Nein — deutsche Staatsbürger reisen visumfrei ein (Reisepass oder Personalausweis genügt) und dürfen bis zu einem Jahr bleiben. Stand 2026.',
+        },
+        {
+          q: 'Kann ich aus Deutschland heraus kaufen?',
+          a: 'Ja, per Vollmacht — viele Käufer schließen aus der Ferne ab. Gezahlt wird per Banküberweisung oder Treuhandkonto (Escrow); der neue Registerauszug bestätigt Ihr Eigentum. Für die Objektauswahl nutzen Sie geprüfte Inserate, 3D-Karte und KI-Preischeck auf sivrce.',
+        },
+        {
+          q: 'Gibt es eine Aufenthaltserlaubnis durch Immobilienkauf?',
+          a: 'Ja, ab etwa 100.000 $ Immobilienwert ist eine Aufenthaltserlaubnis möglich — dafür ist ein geprüftes Wertgutachten nötig. Voraussetzungen ändern sich; klären Sie Details vor dem Kauf mit Anwalt oder Behörde. Stand 2026.',
+        },
+      ],
+    },
+    {
+      title: 'In Berlin kaufen (sivrce.de)',
+      items: [
+        {
+          q: 'Was kostet der Kauf in Berlin neben dem Kaufpreis?',
+          a: 'In Berlin fallen 6 % Grunderwerbsteuer an (zuständig: Finanzamt Spandau) — dazu Notar- und Grundbuchkosten. Ins Grundbuch werden Sie erst eingetragen, wenn die Steuer gezahlt ist (Unbedenklichkeitsbescheinigung). Rechnen Sie grob mit rund 10 % Nebenkosten auf den Kaufpreis; die genaue Summe nennt Ihr Notar.',
+        },
+        {
+          q: 'Dürfen Ausländer in Berlin eine Wohnung kaufen?',
+          a: 'Ja — in Deutschland gibt es keine Beschränkung für ausländische Käufer. Der Kauf wird von einem unabhängigen Notar beurkundet, das Eigentum ins Grundbuch eingetragen.',
+        },
+      ],
+    },
+    {
+      title: 'Sivrce nutzen',
+      items: [
+        {
+          q: 'Wie kontaktiere ich Eigentümer oder Makler?',
+          a: 'Inserat öffnen und anrufen, per WhatsApp schreiben oder einen Besichtigungstermin buchen. Jeder Makler ist verifiziert; der Chat auf der Plattform dokumentiert die Absprachen. Zahlen Sie niemals vor der Besichtigung.',
+        },
+        {
+          q: 'Was kostet das Inserieren?',
+          a: 'Ein Standardinserat ist kostenlos und in 3 Minuten online. Mehr Sichtbarkeit bringen VIP, VIP+ und SUPER VIP — direkt in der Inseratsverwaltung buchbar.',
+        },
+      ],
+    },
+  ]
 }
 
-/** Non-ka/ru UI languages read the English dataset (same rule as dirLoc). */
+/** ka/ru/de read their native dataset; every other UI language reads English (same rule as dirLoc). */
 export function faqLoc(lang: string): FaqLoc {
-  return lang === 'ka' ? 'ka' : lang === 'ru' ? 'ru' : 'en'
+  return lang === 'ka' ? 'ka' : lang === 'ru' ? 'ru' : lang === 'de' ? 'de' : 'en'
 }
 
 // ---------------------------------------------------------------------------
@@ -294,6 +343,7 @@ const STOPWORDS = new Set([
   'რა', 'როგორ', 'სად', 'არის', 'არ', 'რომელი', 'რატომ', 'შემიძლია', 'შეიძლება', 'თუ', 'და', 'ან', 'კი', 'რას', 'რომ',
   'the', 'a', 'an', 'how', 'what', 'where', 'which', 'why', 'is', 'are', 'can', 'do', 'does', 'i', 'to', 'on', 'in', 'for', 'of', 'it', 'my', 'me',
   'как', 'что', 'где', 'это', 'какой', 'какая', 'почему', 'можно', 'ли', 'и', 'или', 'в', 'на', 'для', 'я', 'мне', 'меня', 'не', 'за', 'до',
+  'der', 'die', 'das', 'und', 'oder', 'für', 'mit', 'von', 'zu', 'zum', 'zur', 'im', 'in', 'den', 'dem', 'des', 'ist', 'sind', 'wie', 'was', 'wo', 'kann', 'ich', 'mir', 'mich', 'eine', 'einer', 'einen', 'einem', 'eines', 'auf', 'auch', 'nicht', 'bei', 'als', 'ein', 'eine',
 ])
 
 function tokens(text: string): string[] {

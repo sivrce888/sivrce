@@ -42,7 +42,7 @@ export const tr: Dict = {
 
   // ——— Search page chrome ———
   'search.title': 'Arama',
-  'search.allGeorgia': 'Tüm Gürcistan',
+  'search.allGeorgia': 'Tüm dünya',
   'search.dealType': 'İşlem türü',
   'search.all': 'Tümü',
   'search.sale': 'Satılık',

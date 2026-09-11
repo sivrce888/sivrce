@@ -2,7 +2,7 @@
 
 /**
  * SIVRCE — MapLibre pin embed (first-party tiles via /api/map).
- * Lazy MapLibre + theme setStyle + load/error/retry. Georgia + Berlin launch coords.
+ * Lazy MapLibre + theme setStyle + load/error/retry. Worldwide pins.
  * highlight: orange pin + OSM building ring (or square fallback).
  */
 
@@ -12,15 +12,14 @@ import { Pause, Play, Sun } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import type { Map as MlMap, Marker as MlMarker, MapMouseEvent, SkySpecification } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
-import { MAP_MIN_ZOOM, mapMaxBoundsFor } from '@/lib/map/map-geo'
+import { MAP_MIN_ZOOM, parseCoords } from '@/lib/map/map-geo'
 import { loadMapBasemap, overlayHybridLabels, mapStyleUrl, applyBrandPaints, bindMissingImages, setBasemapBuildings3d, STYLE_SATELLITE, type MapTerrain } from '@/lib/map/floorLayers'
-import { parseCoords } from '@/lib/map/map-geo'
 import { ringLabelPoint } from '@/lib/map/ring-label'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { mapBootCamera } from '@/lib/map/map-ui'
 import { mapRuntimeOptions } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
-import { formatSunTime, sunPosition, tbilisiInstant, tbilisiMinutesOfDay } from '@/lib/sun'
+import { formatSunTime, sunPosition, timeZoneFor, wallInstant, wallMinutesOfDay } from '@/lib/sun'
 import {
   shadowPolygon,
   sunLight,
@@ -399,9 +398,10 @@ export default function MapEmbed({
   const isDark = resolvedTheme === 'dark'
   const themeReady = resolvedTheme != null
   const pinHue = highlight ? BRAND.colors.orange : BRAND.colors.blue
+  const tz = timeZoneFor(lat, lng)
 
   // Sun scrubber — geometry captured by the highlight paint, time picked here.
-  // ponytail: slider pinned to Tbilisi wall time, matching the SunPath card;
+  // ponytail: slider pinned to listing-local wall time, matching the SunPath card;
   // "today" frozen at first paint like SunPath (a reopened map re-freezes).
   // ref feeds map-internal repaints, state feeds render — both set together.
   const sunRingRef = useRef<SunSource | null>(null)
@@ -412,7 +412,7 @@ export default function MapEmbed({
   }, [])
   const [sunOn, setSunOn] = useState(false)
   const [sunMin, setSunMin] = useState(() =>
-    Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, tbilisiMinutesOfDay())),
+    Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, wallMinutesOfDay(new Date(), tz))),
   )
   // Day playback — rAF pauses itself on hidden tabs; reduced-motion users scrub by hand.
   const [sunPlaying, setSunPlaying] = useState(false)
@@ -444,8 +444,8 @@ export default function MapEmbed({
   }, [sunPlaying, sunMin])
   const sunOnRef = useRef(sunOn)
   const sunMinRef = useRef(sunMin)
-  const sunDateRef = useRef<Date>(tbilisiInstant(sunMin))
-  const sunDate = useMemo(() => tbilisiInstant(sunMin), [sunMin])
+  const sunDateRef = useRef<Date>(wallInstant(sunMin, new Date(), tz))
+  const sunDate = useMemo(() => wallInstant(sunMin, new Date(), tz), [sunMin, tz])
   const sunUp = useMemo(
     () => sunSrc != null && sunPosition(lat, lng, sunDate).altitude >= MIN_ALTITUDE,
     [sunSrc, lat, lng, sunDate],
@@ -460,7 +460,7 @@ export default function MapEmbed({
     pinHueRef.current = pinHue
     sunOnRef.current = sunOn
     sunMinRef.current = sunMin
-    sunDateRef.current = tbilisiInstant(sunMin)
+    sunDateRef.current = wallInstant(sunMin, new Date(), tz)
   })
   const coordsOk = parseCoords(lat, lng) != null
   // ponytail: skip MapLibre until near viewport
@@ -516,8 +516,6 @@ export default function MapEmbed({
           zoom,
           maxPitch: 60,
           minZoom: MAP_MIN_ZOOM,
-          // ponytail: clamp follows pin market (GE/DE); ceiling = city box when DE inventory justifies it
-          maxBounds: mapMaxBoundsFor(lat, lng),
           renderWorldCopies: false,
           fadeDuration: 0,
           interactive,
@@ -774,7 +772,7 @@ export default function MapEmbed({
             <div className="w-44 rounded-module border border-sv-ink/10 bg-white/95 p-3 shadow-card backdrop-blur dark:border-white/10 dark:bg-sv-navy/90">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[13px] font-black tabular-nums tracking-tight text-sv-ink dark:text-white">
-                  {formatSunTime(sunDate, lang)}
+                  {formatSunTime(sunDate, lang, tz)}
                 </span>
                 <div className="flex items-center gap-0.5">
                   {!reducedMotion && (
@@ -800,7 +798,7 @@ export default function MapEmbed({
                     type="button"
                     onClick={() => {
                       setSunPlaying(false)
-                      setSunMin(Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, tbilisiMinutesOfDay())))
+                      setSunMin(Math.min(SUN_MAX_MINUTES, Math.max(SUN_MIN_MINUTES, wallMinutesOfDay(new Date(), tz))))
                     }}
                     className="rounded-full px-2 py-0.5 text-[11px] font-extrabold text-sv-ink/60 transition hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
                   >
@@ -819,7 +817,7 @@ export default function MapEmbed({
                   setSunMin(Number(e.target.value))
                 }}
                 aria-label={t('map.sun')}
-                aria-valuetext={formatSunTime(sunDate, lang)}
+                aria-valuetext={formatSunTime(sunDate, lang, tz)}
                 className="mt-2 w-full accent-sv-orange"
               />
               <p className="mt-1 text-[10px] font-bold leading-tight text-sv-ink/60 dark:text-white/60">

@@ -42,7 +42,7 @@ export const he: Dict = {
 
   // ——— Search page chrome ———
   'search.title': 'חיפוש',
-  'search.allGeorgia': 'כל גאורגיה',
+  'search.allGeorgia': 'כל העולם',
   'search.dealType': 'סוג עסקה',
   'search.all': 'הכל',
   'search.sale': 'למכירה',

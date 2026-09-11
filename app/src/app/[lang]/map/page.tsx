@@ -4,12 +4,13 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { projectsLive } from '@/lib/directory-live'
-import { MAP_CENTER } from '@/lib/map/map-geo'
 import { getMapPlatformConfig } from '@/lib/map/platform-config'
 import { slimProjectsForMap } from '@/lib/map/slim-projects'
 import { isValidLang } from '@/lib/i18n/core'
 import { getServerT,pageAlternates,  } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
+import { requestMarket } from '@/lib/request-market'
+import { marketCenter } from '@/lib/geo-market'
 import { Map3DLazy } from './Map3DLazy'
 import MapListLink from './MapListLink'
 
@@ -55,6 +56,8 @@ export default async function MapPage({
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const t = getServerT(lang)
+  const market = await requestMarket()
+  const boot = marketCenter(market)
   // Geometry-only project projection — full Project objects are ~11MB of RSC
   // payload Map3D never renders. Listings/buildings stream from /api/map-data
   // on mount (Map3D's empty-props fetch), platform config is bytes.
@@ -69,11 +72,8 @@ export default async function MapPage({
     inLanguage: lang,
     isPartOf: { '@id': `${SITE}/#website` },
     provider: { '@id': `${SITE}/#organization` },
-    areaServed: [
-      { '@type': 'Country', name: 'Georgia' },
-      { '@type': 'Country', name: 'Germany' },
-    ],
-    geo: { '@type': 'GeoCoordinates', latitude: MAP_CENTER.lat, longitude: MAP_CENTER.lng },
+    areaServed: { '@type': 'Place', name: 'Worldwide' },
+    geo: { '@type': 'GeoCoordinates', latitude: boot.lat, longitude: boot.lng },
   }
   return (
     <div className="flex h-dvh flex-col bg-sv-navy">
@@ -120,6 +120,8 @@ export default async function MapPage({
         <Map3DLazy
           projects={slimProjects}
           platform={platform}
+          bootCenter={{ lat: boot.lat, lng: boot.lng }}
+          market={market}
         />
       </div>
     </div>

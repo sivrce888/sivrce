@@ -1,3 +1,5 @@
+'use client'
+
 import LocalizedLink from '@/components/LocalizedLink'
 import { useI18n } from '@/lib/i18n/context'
 

@@ -1,5 +1,7 @@
 import 'server-only'
 
+import { parseCoords } from '@/lib/map/map-geo'
+
 /**
  * SIVRCE — land profile for plot listings via Open-Meteo (free, no API key,
  * the same provider weather.ts already trusts). One elevation call samples the
@@ -27,7 +29,7 @@ export interface LandInsights {
 
 export type Aspect = 'flat' | 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW'
 
-/** Georgia bounding box — junk/default coords must never hit the APIs. */
+/** Georgia bounding box — regional helper (Tbilisi vs foreign). */
 const GEO = { latMin: 41.02, latMax: 43.62, lngMin: 39.95, lngMax: 46.75 }
 
 export function inGeorgia(lat: number, lng: number): boolean {
@@ -77,7 +79,7 @@ function climateWindow(): { start: string; end: string } {
  */
 export async function getLandInsights(coords: { lat: number; lng: number }): Promise<LandInsights | null> {
   const { lat, lng } = coords
-  if (!inGeorgia(lat, lng)) return null
+  if (!parseCoords(lat, lng)) return null
   // 3dp centre ≈ 110 m — the cache key for a plot and its ISR re-renders.
   // Neighbours stay 4dp (≈11 m grid) so sampled offsets match STEP exactly;
   // rounding them to 3dp would collapse a direction onto the centre point.

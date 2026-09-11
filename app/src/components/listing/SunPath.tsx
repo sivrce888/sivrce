@@ -6,7 +6,7 @@ import { Sun } from 'lucide-react'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import {
   compass8, dayLengthMinutes, formatSunTime, sunPosition, sunTimes,
-  tbilisiInstant, tbilisiMinutesOfDay, type SunDay,
+  timeZoneFor, wallInstant, wallMinutesOfDay, type SunDay,
 } from '@/lib/sun'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
@@ -81,12 +81,13 @@ function markerAt(day: PositionedDay, when: Date): { x: number; y: number } | nu
 }
 
 export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [season, setSeason] = useState<Season>('today')
   const gradId = useId()
   // ponytail: "today"/"now" frozen at mount — a listing view outlives midnight
   // only in edge cases; recompute per navigation is enough (no timer needed).
   const [now] = useState(() => new Date())
+  const tz = timeZoneFor(lat, lng)
 
   const days = useMemo<Record<Season, PositionedDay>>(() => {
     const year = now.getFullYear()
@@ -101,37 +102,36 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
   const paths = useMemo(() => arcPaths(day), [day])
   const len = dayLengthMinutes(day)
 
-  // Scrubber — Tbilisi wall-clock minutes, same convention as the map's shadow
-  // scrubber. Defaults to "now" on today, solar noon on the solstice tabs.
-  const riseMin = day.sunrise ? tbilisiMinutesOfDay(day.sunrise) : 0
-  const setMin = day.sunset ? tbilisiMinutesOfDay(day.sunset) : 0
+  // Scrubber — listing-local wall-clock minutes (same as the map shadow scrubber).
+  const riseMin = day.sunrise ? wallMinutesOfDay(day.sunrise, tz) : 0
+  const setMin = day.sunset ? wallMinutesOfDay(day.sunset, tz) : 0
   const [scrubMin, setScrubMin] = useState(() =>
-    Math.min(setMin, Math.max(riseMin, tbilisiMinutesOfDay(now))),
+    Math.min(setMin, Math.max(riseMin, wallMinutesOfDay(now, tz))),
   )
   const pickSeason = (s: Season) => {
     setSeason(s)
     const d = days[s]
-    const r = d.sunrise ? tbilisiMinutesOfDay(d.sunrise) : 0
-    const e = d.sunset ? tbilisiMinutesOfDay(d.sunset) : 0
+    const r = d.sunrise ? wallMinutesOfDay(d.sunrise, tz) : 0
+    const e = d.sunset ? wallMinutesOfDay(d.sunset, tz) : 0
     setScrubMin(s === 'today'
-      ? Math.min(e, Math.max(r, tbilisiMinutesOfDay(now)))
-      : tbilisiMinutesOfDay(d.noon))
+      ? Math.min(e, Math.max(r, wallMinutesOfDay(now, tz)))
+      : wallMinutesOfDay(d.noon, tz))
   }
 
   // Anchor to the selected day (solstice noon), not `now` — the scrub instant
   // must ride the same calendar date the arc was computed for.
-  const when = useMemo(() => tbilisiInstant(scrubMin, day.noon), [scrubMin, day.noon])
+  const when = useMemo(() => wallInstant(scrubMin, day.noon, tz), [scrubMin, day.noon, tz])
   const pos = useMemo(() => sunPosition(lat, lng, when), [lat, lng, when])
   const marker = paths ? markerAt(day, when) : null
-  const timeTxt = formatSunTime(when, 'ka')
+  const timeTxt = formatSunTime(when, lang, tz)
   const dirTxt = t(DIR_KEYS[compass8(pos.azimuth)])
   const altDeg = Math.max(0, Math.round(pos.altitude))
   const up = pos.altitude > 0
 
   const stats: [string, string][] = [
-    [t('detail.sunRise'), day.sunrise ? formatSunTime(day.sunrise, 'ka') : '—'],
-    [t('detail.sunNoon'), `${formatSunTime(day.noon, 'ka')} · ${Math.round(day.noonAltitude)}°`],
-    [t('detail.sunSet'), day.sunset ? formatSunTime(day.sunset, 'ka') : '—'],
+    [t('detail.sunRise'), day.sunrise ? formatSunTime(day.sunrise, lang, tz) : '—'],
+    [t('detail.sunNoon'), `${formatSunTime(day.noon, lang, tz)} · ${Math.round(day.noonAltitude)}°`],
+    [t('detail.sunSet'), day.sunset ? formatSunTime(day.sunset, lang, tz) : '—'],
     [t('detail.sunDayLen'), len > 0 ? t('detail.sunLenVal', { h: Math.floor(len / 60), m: len % 60 }) : '—'],
   ]
 

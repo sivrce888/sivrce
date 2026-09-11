@@ -1,0 +1,58 @@
+# Germany data layer — source inventory, coverage, pipeline
+
+Berlin-first, then national. No completeness claims: every number below is
+measured (`GET /api/intel/coverage`, admin → Data Intelligence).
+
+## Source inventory (all official/open, dl-de-zero-2.0 unless noted)
+
+| slug | publisher | facts | use |
+|---|---|---|---|
+| `de-alkis` | SenStadtWo (GDI WFS) | address, coords, permits | legal lots + footprints |
+| `de-berlin-opendata` | Land Berlin | address, coords, permits, status | dataset index |
+| `de-boris` | Gutachterausschuss | price context | land values since 1964 |
+| `de-bplaene` | SenStadtWo (FIS-Broker) | permits, status | binding zoning |
+| `de-mietspiegel` | SenStadtWo | rents | regulated benchmarks |
+| `de-statistik-bb` | AfS Berlin-Brandenburg | prices, completions | supply pipeline |
+| `de-destatis` | Destatis | prices, completions | national supply |
+| `de-handelsregister` | Justizportal | company identity | registration |
+| `official-developer` | each developer | price, availability, specs, media | per-entity, robots.txt enforced |
+| `global-osm` | OSM (ODbL) | coords, address | buildings/POIs/geocoding |
+
+Registry lives in `src/lib/intel/core.ts` (`SOURCE_REGISTRY`); DB mirror in
+`data_sources` via `scripts/ingest-de-intel.ts`. Reliability differs per fact
+(`sourceReliability`): permits → government beats marketing; asking price →
+official developer beats listings.
+
+## Geography
+
+`src/lib/countries/de.ts`: 12 Berlin Bezirke, Ortsteil→Bezirk map, 16 cities
+(mirrors `MARKETS.de`), Grunderwerbsteuer per state (verify yearly),
+buyer acquisition-cost helper.
+
+## Seeded catalog (static → DB-mirrored)
+
+- `src/data/projects-new-berlin.ts`: ~28 Berlin developers, ~40 street-verified projects.
+- `src/data/projects-new-germany.ts`: 10 national developers (listed + municipal),
+  official sites only, `verified:false` until editorial review, no phone placeholders.
+- Buildings: OSM ingest already covers the Berlin bbox (`ingest:buildings`);
+  ALKIS footprints via `lib/map/berlin-gov.ts`.
+
+## Pipeline
+
+discover → fetch (SSRF-guarded, `isFetchableUrl`) → parse → normalize
+(`normalizeName`: ka + de folds, legal suffixes) → resolve (`matchEntities`:
+resemblance alone never merges) → extract → validate → score → provenance
+(`IntelFact` + `IntelEvidence`) → version (`IntelChange`, immutable) →
+index → publish with `verified … conflicting` labels.
+
+## Refresh cadence
+
+price/availability 24h · status 72h · permits/completion 168h ·
+company/address 720h · coordinates 2160h. Stale facts queue `stale_data`
+review via `refreshTick`.
+
+## Coverage (measured, never claimed)
+
+`coverageScoreOf`: developer / project / active-project / geographic /
+source-health / freshness / verified-ratio. Berlin is the deepest dataset;
+national cities start as guides + developer seeds until verified inventory lands.

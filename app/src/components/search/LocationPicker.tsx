@@ -157,8 +157,11 @@ export default function LocationPicker({
   const qn = q.trim().toLowerCase()
   const cityHits = useMemo(() => {
     if (!qn) return []
-    return [...GEO_CITIES, ...GEO_MUNICIPALITIES].filter((c) => c.toLowerCase().includes(qn)).slice(0, 12)
-  }, [qn])
+    const hits = [...GEO_CITIES, ...GEO_MUNICIPALITIES].filter((c) => c.toLowerCase().includes(qn)).slice(0, 12)
+    const typed = q.trim()
+    if (typed && !hits.some((c) => c.toLowerCase() === qn)) hits.push(typed)
+    return hits
+  }, [qn, q])
   const distHits = useMemo(() => {
     if (!qn || !city) return []
     return districts.filter((d) => d.toLowerCase().includes(qn)).slice(0, 24)

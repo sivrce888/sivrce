@@ -41,7 +41,7 @@ export const ka = {
 
   // ——— Search page chrome ———
   'search.title': 'ძიება',
-  'search.allGeorgia': 'მთელი საქართველო',
+  'search.allGeorgia': 'მთელი მსოფლიო',
   'search.dealType': 'გარიგების ტიპი',
   'search.all': 'ყველა',
   'search.sale': 'იყიდება',

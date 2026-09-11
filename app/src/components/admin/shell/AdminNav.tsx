@@ -7,6 +7,7 @@ import {
   Building2,
   CalendarCheck,
   CreditCard,
+  Database,
   FileCheck,
   Gavel,
   Inbox,
@@ -85,6 +86,14 @@ export const ADMIN_SECTIONS: NavSection[] = [
     items: [
       { href: "/admin/analytics", label: "Analytics", icon: BarChart2 },
       { href: "/admin/stats", label: "Statistics", icon: LineChart },
+    ],
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { href: "/admin/intelligence", label: "Data Platform", icon: Database, exact: true },
+      { href: "/admin/intelligence/sources", label: "Sources", icon: Layers },
+      { href: "/admin/intelligence/quality", label: "Quality", icon: ShieldCheck },
     ],
   },
   {

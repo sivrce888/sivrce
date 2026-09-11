@@ -17,6 +17,8 @@ function assert(cond: unknown, msg: string): asserts cond {
 assert(slugifyProject("  Axis Towers  ") === "axis-towers", "slug")
 assert(isProjectStatus("construction") && !isProjectStatus("live"), "status")
 assert(coordsInGeorgia(41.7, 44.8) && !coordsInGeorgia(0, 0), "geo")
+assert(coordsInGeorgia(48.8566, 2.3522), "paris")
+assert(coordsInGeorgia(52.52, 13.405), "berlin")
 assert(isOwnedCover("/images/np1.webp") && !isOwnedCover("https://evil.test/x.webp"), "cover")
 
 const bad = parseProjectFields({

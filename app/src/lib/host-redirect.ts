@@ -7,7 +7,16 @@
  * Preview/dev never bounce to production.
  */
 
-import { MARKETS, canonicalIntent, findCountryByCity, isPathCountry, type PathCountryId } from '@/lib/markets'
+import {
+  COUNTRY_ALIAS,
+  MARKETS,
+  canonicalIntent,
+  findCountryByCity,
+  isComPageSeg,
+  isCountryAlias,
+  isPathCountry,
+  type PathCountryId,
+} from '@/lib/markets'
 import {
   COM_ORIGIN,
   GE_ORIGIN,
@@ -29,6 +38,14 @@ const LOCALE_SET = new Set<string>([DEFAULT_LANG, ...PREFIXED_LANGS])
 
 function isMarketCity(cc: PathCountryId, slug: string): boolean {
   return MARKETS[cc].citySlugs.includes(slug)
+}
+
+function swapPathSeg(pathname: string, from: string, to: string): string {
+  const segs = pathname.split('/').filter(Boolean)
+  const i = segs.findIndex((s) => s === from)
+  if (i < 0) return pathname
+  segs[i] = to
+  return `/${segs.join('/')}`
 }
 
 export function mapCctldPath(cc: PathCountryId, pathname: string): string {
@@ -115,31 +132,55 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
     return { type: 'pass', market: 'ge' }
   }
 
-  // Production .com: global hub + country paths + map. Everything else → .ge.
+  // Production .com: global hub + country paths + company pages + map.
+  // Georgia catalog (sale/search/listings/…) still 308s to sivrce.ge.
   if (!local && kind === 'com') {
     if (path === '/' || path === '/en') {
       return { type: 'rewrite', pathname: '/en', market: 'global' }
     }
     const segs = path.split('/').filter(Boolean)
     const first = segs[0] ?? ''
+    const aliasKey = isCountryAlias(first) ? first : lang && isCountryAlias(restFirst) ? restFirst : null
+    if (aliasKey) {
+      let dest = swapPathSeg(path, aliasKey, COUNTRY_ALIAS[aliasKey])
+      if (dest.startsWith('/en/')) {
+        const after = dest.slice(4).split('/')[0] ?? ''
+        if (isPathCountry(after)) dest = dest.slice(3)
+      }
+      return { type: 'redirect', origin: 'same', pathname: dest }
+    }
     const mapSeg = first === 'en' ? segs[1] : first
     if (mapSeg === 'map') {
       const mapped = first === 'en' ? path : `/en${path}`
       return { type: 'rewrite', pathname: mapped, market: 'global' }
     }
     if (isPathCountry(first)) {
-      return { type: 'rewrite', pathname: `/en${path}`, market: first as PathCountryId }
+      return { type: 'rewrite', pathname: `/en${path}`, market: first }
     }
     if (lang === 'ar' && restFirst === 'ae') {
       return { type: 'pass', market: 'ae' }
     }
+    const pageSeg = lang ? restFirst : first
+    if (isComPageSeg(pageSeg)) {
+      return { type: 'rewrite', pathname: lang ? path : `/en${path}`, market: 'global' }
+    }
     return { type: 'redirect', origin: GE_ORIGIN, pathname: path }
   }
 
+  // Dev/preview: /uae → /ae, /uk → /gb (same as prod, keep /en prefix locally).
+  const localAlias = isCountryAlias(path.split('/').filter(Boolean)[0] ?? '')
+    ? (path.split('/').filter(Boolean)[0] as 'uae' | 'uk')
+    : lang && isCountryAlias(restFirst)
+      ? restFirst
+      : null
+  if (localAlias) {
+    return { type: 'redirect', origin: 'same', pathname: swapPathSeg(path, localAlias, COUNTRY_ALIAS[localAlias]) }
+  }
+
   // Dev/preview: country pages live at /en/<cc>, plus bare /<cc> for codes
-  // that are not locale prefixes (ae, fr, es, it, us, ca — but not de/tr/uk).
+  // that are not locale prefixes (ae, fr, es, it, gb, us, ca — not de/tr).
   if (!lang && isPathCountry(restFirst) && !LOCALE_SET.has(restFirst)) {
-    return { type: 'rewrite', pathname: `/en${path}`, market: restFirst as PathCountryId }
+    return { type: 'rewrite', pathname: `/en${path}`, market: restFirst }
   }
   if (lang === 'ar' && restFirst === 'ae') {
     return { type: 'pass', market: 'ae' }

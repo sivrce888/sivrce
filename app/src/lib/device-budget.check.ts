@@ -98,7 +98,6 @@ lock("src/components/search/SearchMapView.tsx", [
   "bindMaplibreWorker(",
 ], ["from '@/lib/map/buildings'", "setWorkerCount"])
 lock("src/components/MapEmbed.tsx", ["from '@/lib/map/map-geo'", "bindMaplibreWorker("], ["from '@/lib/map/buildings'", "from '@/lib/map/geocode'", "setWorkerCount"])
-lock("src/lib/map/floorLayers.ts", ["from '@/lib/map/map-geo'"], ["from '@/lib/map/buildings'"])
 lock("src/components/listing/ListingDetailClient.tsx", [
   "from '@/lib/map/map-href'",
   "from '@/lib/map/map-geo'",

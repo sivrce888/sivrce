@@ -7,6 +7,7 @@ import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { Reveal } from '@/components/Reveal'
 import PromoPricingGrid from '@/components/payments/PromoPricingGrid'
+import PriceCompare from '@/components/payments/PriceCompare'
 import {pageAlternates,  } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 import { roleSignupHref } from '@/lib/auth-roles'
@@ -249,7 +250,7 @@ const COPY: Record<string, Copy> = {
   },
 }
 
-// ponytail: PromoPricingGrid below is still Georgian-only — localize it when EN/RU agent acquisition starts.
+// ponytail: grid/compare cover ka/en/ru; remaining langs (tr/az/hy/uk/he/ar) fall back to ka like the page copy.
 export async function generateMetadata({
   params,
 }: {
@@ -350,8 +351,10 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
         </section>
 
         <section className="mx-auto max-w-7xl px-6 pb-16">
-          <PromoPricingGrid />
+          <PromoPricingGrid lang={lang === 'en' || lang === 'ru' ? lang : 'ka'} />
         </section>
+
+        <PriceCompare lang={lang} />
 
         <AdSlot slot="advertise" lang={lang} />
 

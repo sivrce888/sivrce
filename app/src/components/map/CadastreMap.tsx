@@ -14,7 +14,7 @@ import type { GeoJSONSource, MapMouseEvent, Map as MlMap } from 'maplibre-gl'
 import { useI18n } from '@/lib/i18n/context'
 import { useTheme } from 'next-themes'
 import { BRAND } from '@/lib/brand'
-import { GEORGIA_MAX_BOUNDS, MAP_CENTER, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
+import { MAP_CENTER, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import { mapRuntimeOptions } from '@/lib/device-budget'
 import {
   applyBrandPaints,
@@ -177,7 +177,6 @@ export default function CadastreMap({
         center: [MAP_CENTER.lng, MAP_CENTER.lat],
         zoom: 11,
         minZoom: MAP_MIN_ZOOM,
-        maxBounds: GEORGIA_MAX_BOUNDS,
         renderWorldCopies: false,
         fadeDuration: 0,
         ...mapRuntimeOptions(),

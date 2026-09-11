@@ -82,6 +82,8 @@
     "ingest:buildings:all": "npx --yes tsx scripts/ingest-osm-buildings.ts --city=all",
     "ingest:alkis": "npx --yes tsx scripts/ingest-alkis-buildings.ts",
     "check:berlin-gov": "npx --yes tsx src/lib/map/berlin-gov.check.ts",
+    "check:de": "npx --yes tsx src/lib/countries/de.check.ts",
+    "ingest:de-intel": "npx --yes tsx scripts/ingest-de-intel.ts",
     "napr:snap": "npx --yes tsx scripts/snap-napr-pins.ts",
     "tas:snap": "npx --yes tsx scripts/snap-official-footprints.ts",
     "official:snap": "npx --yes tsx scripts/snap-official-footprints.ts",

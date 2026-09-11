@@ -453,7 +453,7 @@ export default function ListingDetailClient({
   const ttCompare = useCompareStrings()
   const { t, lang } = useI18n()
   const rs = getReviewStrings(lang)
-  const { currency, setCurrency, rate: liveRate } = useCurrency()
+  const { currency, setCurrency, rate: liveRate, eurRate } = useCurrency()
   const { openChat } = useChat()
   // Signed-in users get the live chat; guests fall back to the lead form.
   const messageOwner = () => {
@@ -591,6 +591,7 @@ export default function ListingDetailClient({
     currencyOriginal: l.currencyOriginal,
     currencyPreference: currency,
     rate: liveRate,
+    eurRate,
   })
   const priceMain = priceDetailObj.primary
   const priceAlt = priceDetailObj.secondary
@@ -606,7 +607,9 @@ export default function ListingDetailClient({
   const perM2Label =
     currency === 'USD'
       ? `$${l.perM2USD.toLocaleString('en-US')}`
-      : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`
+      : currency === 'EUR'
+        ? `€${Math.round(l.priceGEL / l.area / eurRate).toLocaleString('en-US')}`
+        : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`
   const publicId = listingPublicId(l)
   const streetHref = l.streetHref ?? null
   const priceScale = useMemo(() => {

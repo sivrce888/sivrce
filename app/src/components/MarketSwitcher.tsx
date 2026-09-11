@@ -3,27 +3,50 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Check, ChevronDown, Globe } from 'lucide-react'
-import { Flag } from '@/components/Flag'
-import { COM_ORIGIN, GE_ORIGIN } from '@/lib/markets'
+import { Flag, type FlagCode } from '@/components/Flag'
+import { COM_ORIGIN, COUNTRY_IDS, GE_ORIGIN, MARKETS, type PathCountryId } from '@/lib/markets'
 
-const MARKETS = [
-  { id: 'ge', label: 'Georgia', href: '/', prod: `${GE_ORIGIN}/`, flag: 'ge' as const },
-  { id: 'de', label: 'Germany', href: '/en/de', prod: `${COM_ORIGIN}/de`, flag: 'de' as const },
-  { id: 'ae', label: 'UAE', href: '/en/ae', prod: `${COM_ORIGIN}/ae`, flag: 'ae' as const },
-] as const
-
-function isProdHost() {
-  if (typeof window === 'undefined') return false
-  const h = window.location.hostname
-  return h === 'sivrce.ge' || h === 'sivrce.com' || h === 'www.sivrce.ge' || h === 'www.sivrce.com'
+const LABEL: Record<'ge' | PathCountryId, string> = {
+  ge: 'Georgia',
+  de: 'Germany',
+  ae: 'UAE',
+  fr: 'France',
+  es: 'Spain',
+  it: 'Italy',
+  gb: 'United Kingdom',
+  us: 'United States',
+  ca: 'Canada',
+  tr: 'Turkey',
 }
 
-function activeId(pathname: string): 'ge' | 'de' | 'ae' {
-  if (pathname === '/ae' || pathname.startsWith('/ae/') || pathname.includes('/ae/')) return 'ae'
-  if (pathname === '/en/ae' || pathname.startsWith('/en/ae')) return 'ae'
-  if (pathname === '/en/de' || pathname.startsWith('/en/de')) return 'de'
-  if (typeof window !== 'undefined' && window.location.hostname.endsWith('sivrce.com')) {
-    if (pathname === '/de' || pathname.startsWith('/de/')) return 'de'
+const ITEMS: { id: 'ge' | PathCountryId; label: string; href: string; prod: string; flag: FlagCode }[] = [
+  { id: 'ge', label: LABEL.ge, href: '/', prod: `${GE_ORIGIN}/`, flag: 'ge' },
+  ...COUNTRY_IDS.map((id) => ({
+    id,
+    label: LABEL[id],
+    href: `/en${MARKETS[id].pathPrefix}`,
+    prod: `${COM_ORIGIN}${MARKETS[id].pathPrefix}`,
+    flag: id as FlagCode,
+  })),
+]
+
+function isComHost() {
+  if (typeof window === 'undefined') return false
+  const h = window.location.hostname
+  return h === 'sivrce.com' || h === 'www.sivrce.com'
+}
+
+function activeId(pathname: string): 'ge' | PathCountryId {
+  for (const cc of COUNTRY_IDS) {
+    if (pathname === `/en/${cc}` || pathname.startsWith(`/en/${cc}/`)) return cc
+    if (pathname === `/ar/${cc}` || pathname.startsWith(`/ar/${cc}/`)) return cc
+  }
+  if (isComHost()) {
+    for (const cc of COUNTRY_IDS) {
+      if (pathname === `/${cc}` || pathname.startsWith(`/${cc}/`)) return cc
+    }
+    if (pathname === '/uae' || pathname.startsWith('/uae/')) return 'ae'
+    if (pathname === '/uk' || pathname.startsWith('/uk/')) return 'gb'
   }
   return 'ge'
 }
@@ -33,7 +56,12 @@ export function MarketSwitcher({ light = false }: { light?: boolean }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const active = activeId(pathname)
-  const prod = isProdHost()
+  const prod = typeof window !== 'undefined' && (
+    window.location.hostname === 'sivrce.ge' ||
+    window.location.hostname === 'sivrce.com' ||
+    window.location.hostname === 'www.sivrce.ge' ||
+    window.location.hostname === 'www.sivrce.com'
+  )
 
   useEffect(() => {
     if (!open) return
@@ -72,9 +100,9 @@ export function MarketSwitcher({ light = false }: { light?: boolean }) {
         aria-label="Market"
         inert={!open}
         data-open={open || undefined}
-        className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 w-44 origin-top-right rounded-2xl p-1.5 shadow-card"
+        className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-52 origin-top-right overflow-y-auto rounded-2xl p-1.5 shadow-card"
       >
-        {MARKETS.map((m) => {
+        {ITEMS.map((m) => {
           const href = prod ? m.prod : m.href
           const on = m.id === active
           return (

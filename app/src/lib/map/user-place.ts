@@ -4,7 +4,7 @@
  */
 
 import { FREEDOM_SQUARE, MAP_CENTER, parseCoords } from '@/lib/map/map-geo'
-import type { MarketId } from '@/lib/markets'
+import { MARKETS, type MarketId } from '@/lib/markets'
 
 export type MapCityCc = 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR'
 
@@ -124,20 +124,9 @@ const CITY_ALIASES: Record<string, string> = {
 }
 
 function isoForMarket(market: MarketId): MapCityCc | null {
-  switch (market) {
-    case 'ge':
-      return 'GE'
-    case 'de':
-      return 'DE'
-    case 'ae':
-      return 'AE'
-    case 'global':
-      return null
-    default: {
-      const _n: never = market
-      return _n
-    }
-  }
+  if (market === 'global') return null
+  if (market === 'ge') return 'GE'
+  return MARKETS[market].countryCode
 }
 
 /** Saved-place allowlist for a market. `global` = any slug. */

@@ -18,7 +18,7 @@ import {
   persistRoomCounts,
 } from "@/lib/listings-publish"
 import { attributeListing, unattributeListing } from "@/lib/map/attribution"
-import { cityCenter, geocodeListingAddress, parseCoords, splitStreetHouse } from "@/lib/map/geocode"
+import { resolveListingCoords, splitStreetHouse } from "@/lib/map/geocode"
 import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { reindexListingById } from "@/lib/payments"
 import { runPriceWatchAlerts } from "@/lib/price-watches"
@@ -219,14 +219,13 @@ export async function PATCH(
     const counts = persistRoomCounts(p.rooms, p.beds)
     const district = canonicalizeDistrict(p.district, p.city) || p.district
 
-    let coords = parseCoords(p.lat, p.lng)
+    const coords = await resolveListingCoords(p.lat, p.lng, {
+      street: p.address,
+      district,
+      city: p.city,
+    })
     if (!coords) {
-      const hit = await geocodeListingAddress({
-        street: p.address,
-        district,
-        city: p.city,
-      })
-      coords = hit ? { lat: hit.lat, lng: hit.lng } : cityCenter(p.city)
+      return NextResponse.json({ ok: false, error: "need_location" }, { status: 400 })
     }
     const { lat, lng } = coords
 

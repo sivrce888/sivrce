@@ -1,27 +1,44 @@
 /**
  * Country / market registry — language, currency, units and URL prefix
- * are independent. Add a row + copy + `app/[lang]/<cc>/[[...slug]]` to launch
- * FR/ES/IT/UK/US/CA/TR. Do not pick a prefix that collides with LANGS unless
- * you host-disambiguate like `de` (sivrce.ge/de = German locale).
+ * are independent. Path prefixes that collide with LANGS (`de`, `tr`) are
+ * host-disambiguated: sivrce.ge/de = German locale, sivrce.com/de = Germany.
  *
- * ponytail: table only. Listing FX (EUR/AED) stays off the GEL/USD
- * converter until DE/AE inventory exists — upgrade: extend Currency.
+ * Aliases (not in COUNTRY_IDS): /uae → /ae, /uk → /gb.
+ *
+ * ponytail: table only. Listing FX stays off the GEL/USD converter until
+ * that market has inventory — upgrade: extend Currency.
  */
 
 import type { Lang } from '@/lib/i18n/core'
 
-export type MarketId = 'ge' | 'de' | 'ae' | 'global'
-export type CountryId = 'ge' | 'de' | 'ae'
-export type MarketCurrency = 'GEL' | 'USD' | 'EUR' | 'AED'
+export type PathCountryId = (typeof COUNTRY_IDS)[number]
+export type MarketId = 'ge' | 'global' | PathCountryId
+export type CountryId = 'ge' | PathCountryId
+export type MarketCurrency = 'GEL' | 'USD' | 'EUR' | 'AED' | 'GBP' | 'CAD' | 'TRY'
 
 export const COM_ORIGIN = 'https://sivrce.com'
 export const GE_ORIGIN = 'https://sivrce.ge'
 
-/** Live ISO-3166 path prefixes on sivrce.com. Must stay out of LANGS except `de`. */
-export const COUNTRY_IDS = ['de', 'ae'] as const
-export type PathCountryId = (typeof COUNTRY_IDS)[number]
+/** Live ISO-3166 path prefixes on sivrce.com. */
+export const COUNTRY_IDS = ['de', 'ae', 'fr', 'es', 'it', 'gb', 'us', 'ca', 'tr'] as const
 
-export const COUNTRY_PREFIX_RE = /^\/(de|ae)(?=\/|$)/
+export const COUNTRY_PREFIX_RE = new RegExp(`^/(${COUNTRY_IDS.join('|')})(?=/|$)`)
+
+/** Human aliases → canonical ISO path. */
+export const COUNTRY_ALIAS = { uae: 'ae', uk: 'gb' } as const
+export type CountryAlias = keyof typeof COUNTRY_ALIAS
+
+/** Company pages that stay on sivrce.com (not Georgia catalog). */
+export const COM_PAGE_SEGS = [
+  'about',
+  'advertise',
+  'blog',
+  'careers',
+  'contact',
+  'faq',
+  'privacy',
+  'terms',
+] as const
 
 export function isCountryPath(path: string): boolean {
   return COUNTRY_PREFIX_RE.test(path)
@@ -32,20 +49,51 @@ export function countryFromPath(pathname: string): PathCountryId | null {
   return m ? (m[1] as PathCountryId) : null
 }
 
+export function isCountryAlias(seg: string): seg is CountryAlias {
+  return seg === 'uae' || seg === 'uk'
+}
+
+export function isComPageSeg(seg: string): boolean {
+  return (COM_PAGE_SEGS as readonly string[]).includes(seg)
+}
+
 export interface Market {
   id: MarketId
-  countryCode: 'GE' | 'DE' | 'AE' | null
+  countryCode: 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR' | null
   currency: MarketCurrency
   /** BCP 47 for dates/numbers — not the UI language. */
   locale: string
   defaultLang: Lang
   units: 'metric'
   /** Public path on the canonical origin. Empty = site root. */
-  pathPrefix: '' | '/de' | '/ae'
+  pathPrefix: string
   canonicalOrigin: string
   defaultCitySlug: string
   citySlugs: readonly string[]
   intents: readonly ('buy' | 'rent')[]
+}
+
+function pathMarket(
+  id: PathCountryId,
+  countryCode: Exclude<Market['countryCode'], 'GE' | null>,
+  currency: MarketCurrency,
+  locale: string,
+  defaultCitySlug: string,
+  citySlugs: readonly string[],
+): Market {
+  return {
+    id,
+    countryCode,
+    currency,
+    locale,
+    defaultLang: 'en',
+    units: 'metric',
+    pathPrefix: `/${id}`,
+    canonicalOrigin: COM_ORIGIN,
+    defaultCitySlug,
+    citySlugs,
+    intents: ['buy', 'rent'],
+  }
 }
 
 export const MARKETS: Record<CountryId, Market> = {
@@ -62,52 +110,38 @@ export const MARKETS: Record<CountryId, Market> = {
     citySlugs: [],
     intents: ['buy', 'rent'],
   },
-  de: {
-    id: 'de',
-    countryCode: 'DE',
-    currency: 'EUR',
-    locale: 'en-DE',
-    defaultLang: 'en',
-    units: 'metric',
-    pathPrefix: '/de',
-    canonicalOrigin: COM_ORIGIN,
-    defaultCitySlug: 'berlin',
-    citySlugs: [
-      'berlin',
-      'hamburg',
-      'munich',
-      'cologne',
-      'frankfurt',
-      'stuttgart',
-      'duesseldorf',
-      'leipzig',
-      'dortmund',
-      'essen',
-      'bremen',
-      'dresden',
-      'hanover',
-      'nuremberg',
-      'duisburg',
-      'bochum',
-    ],
-    intents: ['buy', 'rent'],
-  },
-  ae: {
-    id: 'ae',
-    countryCode: 'AE',
-    currency: 'AED',
-    locale: 'en-AE',
-    defaultLang: 'en',
-    units: 'metric',
-    pathPrefix: '/ae',
-    canonicalOrigin: COM_ORIGIN,
-    defaultCitySlug: 'dubai',
-    citySlugs: ['dubai', 'abu-dhabi'],
-    intents: ['buy', 'rent'],
-  },
+  de: pathMarket('de', 'DE', 'EUR', 'en-DE', 'berlin', [
+    'berlin',
+    'hamburg',
+    'munich',
+    'cologne',
+    'frankfurt',
+    'stuttgart',
+    'duesseldorf',
+    'leipzig',
+    'dortmund',
+    'essen',
+    'bremen',
+    'dresden',
+    'hanover',
+    'nuremberg',
+    'duisburg',
+    'bochum',
+  ]),
+  ae: pathMarket('ae', 'AE', 'AED', 'en-AE', 'dubai', ['dubai', 'abu-dhabi']),
+  fr: pathMarket('fr', 'FR', 'EUR', 'en-FR', 'paris', ['paris', 'lyon']),
+  es: pathMarket('es', 'ES', 'EUR', 'en-ES', 'madrid', ['madrid', 'barcelona']),
+  it: pathMarket('it', 'IT', 'EUR', 'en-IT', 'rome', ['rome', 'milan']),
+  gb: pathMarket('gb', 'GB', 'GBP', 'en-GB', 'london', ['london', 'manchester']),
+  us: pathMarket('us', 'US', 'USD', 'en-US', 'new-york', ['new-york', 'miami']),
+  ca: pathMarket('ca', 'CA', 'CAD', 'en-CA', 'toronto', ['toronto', 'vancouver']),
+  tr: pathMarket('tr', 'TR', 'TRY', 'en-TR', 'istanbul', ['istanbul', 'antalya']),
 }
 
-export const GLOBAL_MARKET: Pick<Market, 'id' | 'currency' | 'locale' | 'defaultLang' | 'canonicalOrigin' | 'pathPrefix'> = {
+export const GLOBAL_MARKET: Pick<
+  Market,
+  'id' | 'currency' | 'locale' | 'defaultLang' | 'canonicalOrigin' | 'pathPrefix'
+> = {
   id: 'global',
   currency: 'USD',
   locale: 'en',

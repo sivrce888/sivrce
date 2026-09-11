@@ -1,6 +1,7 @@
 /** Recent-search chip helpers for the homepage hero. */
 
 import { DEAL_BRAND } from '@/lib/category-brand'
+import type { Currency } from '@/lib/currency'
 import type { DictKey } from '@/lib/i18n/ka'
 import type { DealType, PropType } from '@/data/listings'
 
@@ -62,8 +63,8 @@ export const ROOM_CHIPS = [
   { label: '5+', n: 5, exact: false },
 ] as const
 
-export function moneyShort(n: number, cur: 'GEL' | 'USD'): string {
-  const s = cur === 'GEL' ? '₾' : '$'
+export function moneyShort(n: number, cur: Currency): string {
+  const s = cur === 'GEL' ? '₾' : cur === 'EUR' ? '€' : '$'
   if (n >= 1_000_000) return `${s}${n % 1_000_000 === 0 ? n / 1_000_000 : (n / 1_000_000).toFixed(1)}m`
   if (n >= 1000) return `${s}${Math.round(n / 1000)}k`
   return `${s}${n}`
@@ -74,7 +75,7 @@ export function boundNum(raw: string): number | undefined {
   return raw.trim() && Number.isFinite(n) && n > 0 ? n : undefined
 }
 
-export function priceLabel(min: string, max: string, cur: 'GEL' | 'USD'): string | null {
+export function priceLabel(min: string, max: string, cur: Currency): string | null {
   const a = boundNum(min)
   const b = boundNum(max)
   if (a && b) return `${moneyShort(a, cur)}–${moneyShort(b, cur)}`

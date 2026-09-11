@@ -7,7 +7,7 @@
  * winter solstice ≈ 08:40→17:40 local (~9h, noon altitude ≈25°).
  */
 import assert from 'node:assert/strict'
-import { compass8, dayLengthMinutes, formatSunTime, sunPosition, sunTimes, tbilisiInstant, tbilisiMinutesOfDay } from './sun'
+import { compass8, dayLengthMinutes, formatSunTime, sunPosition, sunTimes, tbilisiInstant, tbilisiMinutesOfDay, timeZoneFor } from './sun'
 
 const TBILISI = { lat: 41.7151, lng: 44.8271 }
 
@@ -62,5 +62,16 @@ const at900 = tbilisiInstant(9 * 60, new Date('2026-06-21T12:00:00Z'))
 assert.ok(/^09:00/.test(formatSunTime(at900, 'en')), `tbilisiInstant round-trip, got ${formatSunTime(at900, 'en')}`)
 const atLate = tbilisiInstant(23 * 60 + 40, at900)
 assert.ok(/^23:40/.test(formatSunTime(atLate, 'en-GB')), `late minutes same wall day, got ${formatSunTime(atLate, 'en-GB')}`)
+
+assert.equal(timeZoneFor(41.7151, 44.8271), 'Asia/Tbilisi')
+assert.equal(timeZoneFor(52.52, 13.405), 'Europe/Berlin')
+assert.equal(timeZoneFor(40.71, -74.01), 'Etc/GMT+5')
+
+const berlin = sunTimes(52.52, 13.405, new Date('2026-06-21T12:00:00Z'))
+assert.ok(berlin.sunrise)
+const deRise = formatSunTime(berlin.sunrise, 'en', 'Europe/Berlin')
+const geRise = formatSunTime(berlin.sunrise, 'en', 'Asia/Tbilisi')
+assert.notEqual(deRise, geRise, 'Berlin listing must not show Tbilisi HH:mm')
+assert.ok(/^0[45]:/.test(deRise), `Berlin June sunrise ~04:4x CEST, got ${deRise}`)
 
 console.log(`sun: Tbilisi ${riseS}→${setS} (${Math.round(lenS / 6) / 10}h) · winter ${riseW}→${setW} ✓`)

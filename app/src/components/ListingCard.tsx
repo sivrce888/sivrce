@@ -185,7 +185,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t, lang } = useI18n()
   const cs = useCompareStrings()
-  const { currency, rate } = useCurrency()
+  const { currency, rate, eurRate } = useCurrency()
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
@@ -216,6 +216,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     currencyOriginal: l.currencyOriginal,
     currencyPreference: currency,
     rate,
+    eurRate,
   })
   const suffixKey = rentPeriodKey(l.dealType, l.propType)
   const suffix = suffixKey ? t(suffixKey) : ''

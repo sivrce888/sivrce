@@ -5,8 +5,11 @@
  */
 
 import type { Listing } from '@/data/listings'
+import type { Currency } from '@/lib/currency'
 
 export const USD_GEL = 2.7
+/** Static EUR cross — mirrors USD_GEL; lib/currency.tsx holds the live rate. */
+export const EUR_GEL = 3.04
 
 export function formatUSD(n: number): string {
   // whole dollars — fractional prices ($868.519/mo) never belong in a listing UI
@@ -17,10 +20,14 @@ export function formatGEL(n: number): string {
   return `${Math.round(n).toLocaleString('en-US')} ₾`
 }
 
-export function formatPerM2(l: Listing, currency?: 'GEL' | 'USD'): string {
+export function formatPerM2(l: Listing, currency?: Currency): string {
   if (currency === 'GEL') {
     const gelPerM2 = Math.round(l.perM2USD * USD_GEL)
     return `${gelPerM2.toLocaleString('en-US')}₾/მ²`
+  }
+  if (currency === 'EUR') {
+    const eurPerM2 = Math.round((l.perM2USD * USD_GEL) / EUR_GEL)
+    return `€${eurPerM2.toLocaleString('en-US')}/მ²`
   }
   return `$${l.perM2USD.toLocaleString('en-US')}/მ²`
 }

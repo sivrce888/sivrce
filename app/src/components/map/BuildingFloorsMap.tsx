@@ -35,7 +35,7 @@ import {
 } from '@/lib/map/mapChrome'
 import { mapRuntimeOptions } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
-import { GEORGIA_MAX_BOUNDS, MAP_MIN_ZOOM } from '@/lib/map/map-geo'
+import { MAP_MIN_ZOOM } from '@/lib/map/map-geo'
 import { floorTooltipKa, type FloorInfo } from '@/lib/map/floors'
 
 interface BuildingFloorsMapProps {
@@ -124,7 +124,6 @@ export default function BuildingFloorsMap({
         bearing: -20,
         maxPitch: 70,
         minZoom: MAP_MIN_ZOOM,
-        maxBounds: GEORGIA_MAX_BOUNDS,
         renderWorldCopies: false,
         fadeDuration: 0,
         scrollZoom: false,

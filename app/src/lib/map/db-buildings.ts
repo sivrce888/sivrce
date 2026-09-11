@@ -137,15 +137,11 @@ async function fetchMapListings(): Promise<Listing[]> {
   try {
     if (!(await dbAvailable())) return []
     const rows = await db.listing.findMany({
-      // Cap is for mappable pins — drop 0,0 / out-of-Georgia so they don't eat the budget.
+      // Cap is for mappable pins — drop 0,0 unset sentinel.
       where: {
         deletedAt: null,
         status: "active",
-        // Georgia box + Germany box (GEORGIA/GERMANY_MAX_BOUNDS) so Berlin pins count.
-        OR: [
-          { lat: { gte: 40.5, lte: 43.7 }, lng: { gte: 39.9, lte: 46.8 } },
-          { lat: { gte: 46.8, lte: 55.6 }, lng: { gte: 4.9, lte: 16 } },
-        ],
+        NOT: { AND: [{ lat: 0 }, { lng: 0 }] },
       },
       select: {
         id: true,

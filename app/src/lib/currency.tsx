@@ -3,21 +3,23 @@
 /**
  * SIVRCE — Currency context, hook and formatter.
  * Pattern: identical to I18nProvider (useSyncExternalStore, localStorage, cross-tab sync).
- * Default: USD ($). Live USD→GEL rate fetched from open.er-api.com (free, no key).
- * Falls back to hardcoded 2.7.
+ * Default: USD ($). Live USD→GEL + EUR→GEL rates fetched from open.er-api.com (free, no key).
+ * Falls back to hardcoded constants.
  */
 
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
 
-export type Currency = 'GEL' | 'USD'
+export type Currency = 'GEL' | 'USD' | 'EUR'
 
 /** Hardcoded fallback when live API is unreachable */
 export const USD_GEL_FALLBACK = 2.7
+/** EUR→GEL cross fallback (≈3.03–3.05, Sept 2026) — live rate overwrites in seconds. */
+export const EUR_GEL_FALLBACK = 3.04
 
 const RATE_CACHE_KEY = 'sivrce:rate'
 const RATE_TTL = 6 * 60 * 60 * 1000 // 6 hours
 
-const CURRENCIES: readonly Currency[] = ['GEL', 'USD']
+const CURRENCIES: readonly Currency[] = ['GEL', 'USD', 'EUR']
 const STORAGE_KEY = 'sivrce:currency'
 const CURRENCY_EVENT = 'sivrce:currency-changed'
 
@@ -30,6 +32,8 @@ export interface CurrencyContextValue {
   convert: (gel: number) => number
   /** Current USD→GEL rate */
   rate: number
+  /** Current EUR→GEL rate */
+  eurRate: number
 }
 
 export const CurrencyContext = createContext<CurrencyContextValue | null>(null)
@@ -64,49 +68,58 @@ export function emitCurrencyChange() {
   window.dispatchEvent(new CustomEvent(CURRENCY_EVENT))
 }
 
-/** Read cached rate from localStorage, return null if expired or missing */
-function readCachedRate(): number | null {
+/** Read cached rates from localStorage, return null if expired or missing */
+function readCachedRates(): { usd: number; eur: number } | null {
   try {
     const raw = localStorage.getItem(RATE_CACHE_KEY)
     if (!raw) return null
-    const { rate, ts } = JSON.parse(raw)
-    if (typeof rate !== 'number' || rate <= 0) return null
+    const { rate, eurRate, usd, eur, ts } = JSON.parse(raw)
     if (Date.now() - ts > RATE_TTL) return null
-    return rate
+    // ponytail: pre-EUR cache rows carry only {rate} — eur falls back, never blocks.
+    const u = typeof usd === 'number' && usd > 0 ? usd : typeof rate === 'number' && rate > 0 ? rate : null
+    const e = typeof eur === 'number' && eur > 0 ? eur : typeof eurRate === 'number' && eurRate > 0 ? eurRate : null
+    if (u == null && e == null) return null
+    return { usd: u ?? USD_GEL_FALLBACK, eur: e ?? EUR_GEL_FALLBACK }
   } catch {
     return null
   }
 }
 
-function writeCachedRate(rate: number) {
-  try { localStorage.setItem(RATE_CACHE_KEY, JSON.stringify({ rate, ts: Date.now() })) } catch { /* noop */ }
+function writeCachedRates(usd: number, eur: number) {
+  try { localStorage.setItem(RATE_CACHE_KEY, JSON.stringify({ usd, eur, ts: Date.now() })) } catch { /* noop */ }
 }
 
 /**
- * Fetch live USD→GEL rate from open.er-api.com (free, no API key).
- * Cached in localStorage for 6 hours. Falls back to USD_GEL_FALLBACK.
+ * Fetch live USD→GEL + EUR→GEL rates from open.er-api.com (free, no API key).
+ * One response carries the whole table — EUR→GEL is the GEL/EUR cross.
+ * Cached in localStorage for 6 hours. Falls back to *_FALLBACK constants.
  * ponytail: global fetch + cache; per-account rate sources if multi-currency matters.
  */
-export function useLiveRate(): number {
+export function useLiveRates(): { usd: number; eur: number } {
   // ponytail: always init from fallback — reading localStorage in useState makes
   // the first client render differ from SSR HTML (hydration mismatch on every price).
-  const [rate, setRate] = useState(USD_GEL_FALLBACK)
+  const [rates, setRates] = useState({ usd: USD_GEL_FALLBACK, eur: EUR_GEL_FALLBACK })
 
   useEffect(() => {
     // Fresh cached value wins post-hydration — no fetch needed
-    const cached = readCachedRate()
+    const cached = readCachedRates()
     // ponytail: microtask defer — a synchronous setState in the effect body trips
     // react-hooks/set-state-in-effect (cascading render); visible timing unchanged.
-    if (cached) { queueMicrotask(() => setRate(cached)); return }
-    // Fetch live rate once, off the boot critical path (fallback rate shows until then)
+    if (cached) { queueMicrotask(() => setRates(cached)); return }
+    // Fetch live rates once, off the boot critical path (fallback rates show until then)
     const run = () =>
       fetch('https://open.er-api.com/v6/latest/USD')
         .then((r) => r.json())
         .then((d) => {
-          const live = d?.rates?.GEL
-          if (typeof live === 'number' && live > 0) {
-            setRate(live)
-            writeCachedRate(live)
+          const gel = d?.rates?.GEL
+          const eur = d?.rates?.EUR
+          if (typeof gel === 'number' && gel > 0) {
+            const next = {
+              usd: gel,
+              eur: typeof eur === 'number' && eur > 0 ? gel / eur : EUR_GEL_FALLBACK,
+            }
+            setRates(next)
+            writeCachedRates(next.usd, next.eur)
           }
         })
         .catch(() => {}) // silent fallback — next mount retries
@@ -119,7 +132,12 @@ export function useLiveRate(): number {
     return () => window.clearTimeout(id)
   }, [])
 
-  return rate
+  return rates
+}
+
+/** Compat: USD→GEL only. Prefer useLiveRates. */
+export function useLiveRate(): number {
+  return useLiveRates().usd
 }
 
 /**
@@ -129,29 +147,30 @@ export function useLiveRate(): number {
  */
 const group3 = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 
-export function formatMoney(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK): string {
-  const value = currency === 'USD' ? Math.round(gel / rate) : Math.round(gel)
+export function formatMoney(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK): string {
+  const value = currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : Math.round(gel)
   const formatted = group3(value)
-  return currency === 'USD' ? `$${formatted}` : `${formatted}₾`
+  return currency === 'USD' ? `$${formatted}` : currency === 'EUR' ? `€${formatted}` : `${formatted}₾`
 }
 
 /** Compact map pin — dense labels beat full formatMoney. */
-export function formatMapPin(gel: number, currency: Currency = 'GEL', rate: number = USD_GEL_FALLBACK): string {
-  const n = currency === 'USD' ? Math.round(gel / rate) : Math.round(gel)
+export function formatMapPin(gel: number, currency: Currency = 'GEL', rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK): string {
+  const n = currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : Math.round(gel)
+  const sym = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : null
   if (!Number.isFinite(n) || n <= 0) return ''
   if (n >= 1_000_000) {
     const m = n / 1_000_000
     const s = m >= 10 ? String(Math.round(m)) : String(Math.round(m * 10) / 10)
-    return currency === 'USD' ? `$${s}M` : `${s}მლნ₾`
+    return sym ? `${sym}${s}M` : `${s}მლნ₾`
   }
   if (n >= 10_000) {
-    return currency === 'USD' ? `$${Math.round(n / 1000)}k` : `${Math.round(n / 1000)}კ₾`
+    return sym ? `${sym}${Math.round(n / 1000)}k` : `${Math.round(n / 1000)}კ₾`
   }
-  return currency === 'USD' ? `$${n}` : `${n}₾`
+  return sym ? `${sym}${n}` : `${n}₾`
 }
 
-export function convertGel(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK): number {
-  return currency === 'USD' ? Math.round(gel / rate) : Math.round(gel)
+export function convertGel(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK): number {
+  return currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : Math.round(gel)
 }
 
 export interface FormattedListingPrice {
@@ -172,6 +191,7 @@ export function formatListingPrice({
   currencyOriginal,
   currencyPreference,
   rate = USD_GEL_FALLBACK,
+  eurRate = EUR_GEL_FALLBACK,
 }: {
   priceUSD: number
   priceGEL: number
@@ -179,10 +199,18 @@ export function formatListingPrice({
   currencyOriginal?: 'GEL' | 'USD' | null
   currencyPreference: Currency
   rate?: number
+  eurRate?: number
 }): FormattedListingPrice {
   const isOrigGel = currencyOriginal === 'GEL'
   const baseGel = isOrigGel ? (priceOriginal ?? priceGEL) : Math.round(priceUSD * rate)
   const baseUsd = !isOrigGel ? (priceOriginal ?? priceUSD) : Math.round(priceGEL / rate)
+
+  if (currencyPreference === 'EUR') {
+    const primaryValue = Math.round(baseGel / eurRate)
+    // Secondary shows the listing's native locked figure — never a double conversion.
+    const secondaryFormatted = isOrigGel ? `${group3(baseGel)}₾` : `$${group3(baseUsd)}`
+    return { primary: `€${group3(primaryValue)}`, secondary: `≈ ${secondaryFormatted}` }
+  }
 
   const primaryValue = currencyPreference === 'GEL' ? baseGel : baseUsd
   const secondaryValue = currencyPreference === 'GEL' ? baseUsd : baseGel
@@ -212,12 +240,14 @@ export function useCurrency(): CurrencyContextValue {
   if (!hydrated) {
     const currency = getServerCurrency()
     const rate = USD_GEL_FALLBACK
+    const eurRate = EUR_GEL_FALLBACK
     return {
       ...ctx,
       currency,
       rate,
-      format: (gel: number) => formatMoney(gel, currency, rate),
-      convert: (gel: number) => convertGel(gel, currency, rate),
+      eurRate,
+      format: (gel: number) => formatMoney(gel, currency, rate, eurRate),
+      convert: (gel: number) => convertGel(gel, currency, rate, eurRate),
     }
   }
   return ctx

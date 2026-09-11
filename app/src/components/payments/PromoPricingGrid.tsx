@@ -18,6 +18,16 @@ import {
   type PromoProduct,
 } from "@/lib/promo-pricing"
 
+type GridLang = "ka" | "en" | "ru"
+
+/** день / дня / дней */
+const ruDays = (d: number) =>
+  d % 10 === 1 && d % 100 !== 11
+    ? "день"
+    : d % 10 >= 2 && d % 10 <= 4 && (d % 100 < 12 || d % 100 > 14)
+      ? "дня"
+      : "дней"
+
 interface TierCard {
   product: PromoProduct | "free"
   name: string
@@ -26,61 +36,197 @@ interface TierCard {
   recommended?: boolean
 }
 
-const CARDS: TierCard[] = [
-  {
-    product: "free",
-    name: "უფასო",
-    features: [
-      "სტანდარტული განთავსება",
-      "აქტიურია 30 დღე",
-      "ძიების შედეგებში გამოჩენა",
-      "პირდაპირი შეტყობინებები",
-    ],
-  },
-  {
-    product: "vip",
-    name: "VIP",
-    badge: { style: BRAND.vipTiers.VIP.style, icon: Flame, label: "VIP" },
-    features: [
-      "სიაში სტანდარტულებზე წინ",
-      "VIP ნიშანი განცხადებაზე",
-      "კატეგორიის VIP ბლოკში",
-      "2× მეტი ნახვა საშუალოდ",
-    ],
-  },
-  {
-    product: "vip_plus",
-    name: "VIP+",
-    recommended: true,
-    badge: { style: BRAND.vipTiers["VIP+"].style, icon: Flame, label: "VIP+" },
-    features: [
-      "VIP-ის ყველა უპირატესობა",
-      "სიაში VIP-ებზე წინ",
-      "VIP+ კარუსელი მთავარ გვერდზე",
-      "3× მეტი ნახვა საშუალოდ",
-    ],
-  },
-  {
-    product: "super_vip",
-    name: "SUPER VIP",
-    badge: { style: BRAND.vipTiers["SUPER VIP"].style, icon: Crown, label: "SUPER VIP" },
-    features: [
-      "VIP+-ის ყველა უპირატესობა",
-      "ტოპი ყველა განცხადებაზე",
-      "SUPER VIP სლაიდერი მთავარზე",
-      "5× მეტი ნახვა საშუალოდ",
-    ],
-  },
-]
+const BADGES: Partial<Record<PromoProduct, TierCard["badge"]>> = {
+  vip: { style: BRAND.vipTiers.VIP.style, icon: Flame, label: "VIP" },
+  vip_plus: { style: BRAND.vipTiers["VIP+"].style, icon: Flame, label: "VIP+" },
+  super_vip: { style: BRAND.vipTiers["SUPER VIP"].style, icon: Crown, label: "SUPER VIP" },
+}
 
-export default function PromoPricingGrid() {
+type GridCopy = {
+  pickDays: string
+  dayOpt: (d: number, save: number) => string
+  per: (d: number) => string
+  perDay: string
+  save: (p: number) => string
+  recommended: string
+  ctaPaid: (name: string, d: number) => string
+  ctaFree: string
+  footnote: string
+  addonsHead: string
+  addonsTail: string
+  freeName: string
+  cards: Record<"vip" | "vip_plus" | "super_vip", { name?: string; features: string[] }>
+}
+
+const GRID: Record<GridLang, GridCopy> = {
+  ka: {
+    pickDays: "აირჩიეთ დღეების რაოდენობა",
+    dayOpt: (d, save) => `${d} დღე${save ? ` · −${save}% SUPER VIP` : ""}`,
+    per: (d) => `/ ${d} დღე`,
+    perDay: "/დღე",
+    save: (p) => ` · დაზოგე ${p}%`,
+    recommended: "რეკომენდებული",
+    ctaPaid: (n, d) => `განთავსება · ${d}დ ${n}`,
+    ctaFree: "უფასოდ განთავსება",
+    footnote:
+      "მითითებული ფასი საბოლოოა. სთორი და სასწრაფოდ 24 საათით მოქმედებს. გამოქვეყნების შემდეგ აირჩიე ბუსტი იმავე ხანგრძლივობით.",
+    addonsHead: "ტარიფები უძრავი ქონებისთვის. ",
+    addonsTail: " · სხვა რუბრიკები — უფრო იაფი.",
+    freeName: "უფასო",
+    cards: {
+      vip: {
+        features: [
+          "სიაში სტანდარტულებზე წინ",
+          "VIP ნიშანი განცხადებაზე",
+          "კატეგორიის VIP ბლოკში",
+          "2× მეტი ნახვა საშუალოდ",
+        ],
+      },
+      vip_plus: {
+        features: [
+          "VIP-ის ყველა უპირატესობა",
+          "სიაში VIP-ებზე წინ",
+          "VIP+ კარუსელი მთავარ გვერდზე",
+          "3× მეტი ნახვა საშუალოდ",
+        ],
+      },
+      super_vip: {
+        features: [
+          "VIP+-ის ყველა უპირატესობა",
+          "ტოპი ყველა განცხადებაზე",
+          "SUPER VIP სლაიდერი მთავარზე",
+          "5× მეტი ნახვა საშუალოდ",
+        ],
+      },
+    },
+  },
+  en: {
+    pickDays: "Choose duration",
+    dayOpt: (d, save) => `${d} ${d === 1 ? "day" : "days"}${save ? ` · −${save}% SUPER VIP` : ""}`,
+    per: (d) => `/ ${d} ${d === 1 ? "day" : "days"}`,
+    perDay: "/day",
+    save: (p) => ` · save ${p}%`,
+    recommended: "Recommended",
+    ctaPaid: (n, d) => `Post · ${d}d ${n}`,
+    ctaFree: "Post for free",
+    footnote:
+      "Prices shown are final. Story and Urgent last 24 hours. After publishing, pick the boost with the same duration.",
+    addonsHead: "Rates for residential property. ",
+    addonsTail: " · Other categories — cheaper.",
+    freeName: "Free",
+    cards: {
+      vip: {
+        features: [
+          "Ahead of standard listings",
+          "VIP badge on your listing",
+          "Featured in the category VIP block",
+          "2× more views on average",
+        ],
+      },
+      vip_plus: {
+        features: [
+          "Everything in VIP",
+          "Ahead of VIP listings",
+          "VIP+ carousel on the homepage",
+          "3× more views on average",
+        ],
+      },
+      super_vip: {
+        features: [
+          "Everything in VIP+",
+          "Top position on every list",
+          "SUPER VIP slider on the homepage",
+          "5× more views on average",
+        ],
+      },
+    },
+  },
+  ru: {
+    pickDays: "Выберите длительность",
+    dayOpt: (d, save) => `${d} ${ruDays(d)}${save ? ` · −${save}% SUPER VIP` : ""}`,
+    per: (d) => `/ ${d} ${ruDays(d)}`,
+    perDay: "/день",
+    save: (p) => ` · экономия ${p}%`,
+    recommended: "Рекомендуем",
+    ctaPaid: (n, d) => `Разместить · ${d}д ${n}`,
+    ctaFree: "Разместить бесплатно",
+    footnote:
+      "Указанная цена итоговая. Стори и «Срочно» действуют 24 часа. После публикации выберите буст той же длительности.",
+    addonsHead: "Тарифы для недвижимости. ",
+    addonsTail: " · Другие рубрики — дешевле.",
+    freeName: "Бесплатно",
+    cards: {
+      vip: {
+        features: [
+          "Выше обычных объявлений",
+          "Значок VIP на объявлении",
+          "В VIP-блоке категории",
+          "В среднем 2× больше просмотров",
+        ],
+      },
+      vip_plus: {
+        features: [
+          "Все преимущества VIP",
+          "Выше VIP-объявлений",
+          "VIP+ карусель на главной",
+          "В среднем 3× больше просмотров",
+        ],
+      },
+      super_vip: {
+        features: [
+          "Все преимущества VIP+",
+          "Топ-позиция во всех списках",
+          "SUPER VIP слайдер на главной",
+          "В среднем 5× больше просмотров",
+        ],
+      },
+    },
+  },
+}
+
+const FREE_FEATURES: Record<GridLang, string[]> = {
+  ka: [
+    "სტანდარტული განთავსება",
+    "აქტიურია 30 დღე",
+    "ძიების შედეგებში გამოჩენა",
+    "პირდაპირი შეტყობინებები",
+  ],
+  en: [
+    "Standard placement",
+    "Active for 30 days",
+    "Appears in search results",
+    "Direct messages",
+  ],
+  ru: [
+    "Стандартное размещение",
+    "Активно 30 дней",
+    "Показ в результатах поиска",
+    "Прямые сообщения",
+  ],
+}
+
+export default function PromoPricingGrid({ lang = "ka" }: { lang?: GridLang }) {
+  const t = GRID[lang] ?? GRID.ka
   const [days, setDays] = useState<number>(DEFAULT_PROMO_DAYS)
+
+  const cards: TierCard[] = [
+    { product: "free", name: t.freeName, features: FREE_FEATURES[lang] ?? FREE_FEATURES.ka },
+    { product: "vip", name: "VIP", badge: BADGES.vip, features: t.cards.vip.features },
+    {
+      product: "vip_plus",
+      name: "VIP+",
+      recommended: true,
+      badge: BADGES.vip_plus,
+      features: t.cards.vip_plus.features,
+    },
+    { product: "super_vip", name: "SUPER VIP", badge: BADGES.super_vip, features: t.cards.super_vip.features },
+  ]
 
   return (
     <div>
       <div className="mb-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <label htmlFor="promo-days" className="text-[13px] font-bold text-sv-ink/60">
-          აირჩიეთ დღეების რაოდენობა
+          {t.pickDays}
         </label>
         <select
           id="promo-days"
@@ -92,19 +238,16 @@ export default function PromoPricingGrid() {
             const save = savingsPct("super_vip", "real_estate", d)
             return (
               <option key={d} value={d}>
-                {d} დღე{save ? ` · −${save}% SUPER VIP` : ""}
+                {t.dayOpt(d, save ?? 0)}
               </option>
             )
           })}
         </select>
       </div>
-      <p className="mb-8 text-center text-[12px] font-semibold text-sv-ink/60">
-        მითითებული ფასი საბოლოოა. სთორი და სასწრაფოდ 24 საათით მოქმედებს. გამოქვეყნების შემდეგ აირჩიე
-        ბუსტი იმავე ხანგრძლივობით.
-      </p>
+      <p className="mb-8 text-center text-[12px] font-semibold text-sv-ink/60">{t.footnote}</p>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {CARDS.map((tier, i) => {
+        {cards.map((tier, i) => {
           const product = tier.product
           const paid = product !== "free"
           const rate = product !== "free" ? dailyRateTetri(product, "real_estate", days) : 0
@@ -123,7 +266,7 @@ export default function PromoPricingGrid() {
               >
                 {highlight && (
                   <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-sv-orange px-4 py-1.5 text-xs font-bold text-sv-ink shadow-glow-orange">
-                    რეკომენდებული
+                    {t.recommended}
                   </span>
                 )}
                 {tier.badge && (
@@ -143,15 +286,15 @@ export default function PromoPricingGrid() {
                     </span>
                     {paid && (
                       <span className={`text-sm font-semibold ${highlight ? "text-white/60" : "text-sv-ink/60"}`}>
-                        / {days} დღე
+                        {t.per(days)}
                       </span>
                     )}
                   </div>
                   {paid && rate != null && (
                     <p className={`mt-1 text-[13px] font-semibold ${highlight ? "text-white/55" : "text-sv-ink/60"}`}>
-                      {formatGel(rate)}/დღე
+                      {formatGel(rate)}{t.perDay}
                       {save ? (
-                        <span className={highlight ? " text-sv-success" : " text-sv-blue"}> · დაზოგე {save}%</span>
+                        <span className={highlight ? " text-sv-success" : " text-sv-blue"}>{t.save(save)}</span>
                       ) : null}
                     </p>
                   )}
@@ -193,7 +336,7 @@ export default function PromoPricingGrid() {
                   }`}
                 >
                   {/* ponytail: publish free; days/tier intent → TierPurchaseButton after publish */}
-                  {paid ? `განთავსება · ${days}დ ${tier.name}` : "უფასოდ განთავსება"}
+                  {paid ? t.ctaPaid(tier.name, days) : t.ctaFree}
                 </LocalizedLink>
               </div>
             </Reveal>
@@ -202,12 +345,18 @@ export default function PromoPricingGrid() {
       </div>
 
       <p className="mx-auto mt-8 max-w-2xl text-center text-[12px] font-medium text-sv-ink/60">
-        ტარიფები უძრავი ქონებისთვის. Turbo {formatGel(ADDON_TETRI.turbo_7)} /{" "}
-        {formatGel(ADDON_TETRI.turbo_14)} / {formatGel(ADDON_TETRI.turbo_30)} · სასწრაფოდ{" "}
-        {formatGel(ADDON_TETRI.sticker_urgent)} · ფასი↓ {formatGel(ADDON_TETRI.sticker_price_drop)} ·
-        სთორი {formatGel(ADDON_TETRI.story)} · განახლება {formatGel(ADDON_TETRI.refresh_once)} · ფერი{" "}
-        {formatGel(ADDON_TETRI.color)} · Facebook {formatGel(ADDON_TETRI.facebook)}+. სხვა რუბრიკები —
-        უფრო იაფი.
+        {t.addonsHead}
+        Turbo {formatGel(ADDON_TETRI.turbo_7)} / {formatGel(ADDON_TETRI.turbo_14)} /{" "}
+        {formatGel(ADDON_TETRI.turbo_30)} · {lang === "ka" ? "სასწრაფოდ" : lang === "ru" ? "Срочно" : "Urgent"}{" "}
+        {formatGel(ADDON_TETRI.sticker_urgent)} ·{" "}
+        {lang === "ka" ? "ფასი↓" : lang === "ru" ? "Цена↓" : "Price↓"}{" "}
+        {formatGel(ADDON_TETRI.sticker_price_drop)} ·{" "}
+        {lang === "ka" ? "სთორი" : lang === "ru" ? "Стори" : "Story"}{" "}
+        {formatGel(ADDON_TETRI.story)} ·{" "}
+        {lang === "ka" ? "განახლება" : lang === "ru" ? "Обновление" : "Refresh"}{" "}
+        {formatGel(ADDON_TETRI.refresh_once)} ·{" "}
+        {lang === "ka" ? "ფერი" : lang === "ru" ? "Цвет" : "Color"} {formatGel(ADDON_TETRI.color)} · Facebook{" "}
+        {formatGel(ADDON_TETRI.facebook)}+{t.addonsTail}
       </p>
     </div>
   )

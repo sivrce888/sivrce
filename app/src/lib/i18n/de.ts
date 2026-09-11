@@ -44,7 +44,7 @@ export const de: Dict = {
 
   // ——— Search page chrome ———
   'search.title': 'Suche',
-  'search.allGeorgia': 'Ganz Georgien',
+  'search.allGeorgia': 'Überall',
   'search.dealType': 'Angebotsart',
   'search.all': 'Alle',
   'search.sale': 'Kaufen',

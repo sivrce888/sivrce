@@ -39,6 +39,7 @@ const LANG_LABEL: Record<Lang, string> = {
   uk: "Українська",
   hy: "Հայերեն",
   az: "Azərbaycan",
+  de: "Deutsch",
 }
 
 const DEVICES = [

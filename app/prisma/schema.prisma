@@ -2513,6 +2513,399 @@ model OsmBuilding {
   location  Unsupported("geography(Point, 4326)")?
   updatedAt DateTime                               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  @@index([city], map: "osm_buildings_city_idx")
-  @@map("osm_buildings")
+   @@index([city], map: "osm_buildings_city_idx")
+   @@map("osm_buildings")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIVRCE INTELLIGENCE LAYER — source-of-truth provenance foundation
+// Kind/type columns are TEXT validated app-side in lib/intel/core.ts
+// (no DB enums: country adapters add kinds without migrations).
+// ═══════════════════════════════════════════════════════════════
+
+/// Registered ingest sources (seeded from SOURCE_REGISTRY in core.ts).
+model IntelSource {
+  slug          String    @id @db.VarChar(120)
+  country       String    @default("*") @db.VarChar(4)
+  kind          String    @default("unknown") @db.VarChar(40)
+  name          String    @db.VarChar(200)
+  baseUrl       String?   @map("base_url") @db.Text
+  facts         String[]  @default([])
+  refreshHours  Int       @default(168) @map("refresh_hours")
+  access        String    @default("html") @db.VarChar(16)
+  isActive      Boolean   @default(true) @map("is_active")
+  lastCrawledAt DateTime? @map("last_crawled_at") @db.Timestamptz(6)
+  lastOkAt      DateTime? @map("last_ok_at") @db.Timestamptz(6)
+  lastError     String?   @map("last_error") @db.Text
+  failures      Int       @default(0)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("intel_sources")
+}
+
+/// One current value per (entity, fact) — never overwritten without history.
+model IntelFact {
+  id             String    @id @default(uuid()) @db.Uuid
+  entityKind     String    @map("entity_kind") @db.VarChar(40)
+  entityId       String    @map("entity_id") @db.VarChar(120)
+  factType       String    @map("fact_type") @db.VarChar(40)
+  value          String    @db.Text
+  confidence     Int       @default(0)
+  verification   String    @default("unverified") @db.VarChar(24)
+  freshness      String    @default("unknown") @db.VarChar(16)
+  alternatives   Json      @default("[]")
+  firstSeenAt    DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt     DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  lastVerifiedAt DateTime? @map("last_verified_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  evidence IntelEvidence[]
+
+  @@unique([entityKind, entityId, factType], map: "intel_facts_entity_fact_key")
+  @@index([verification, lastSeenAt(sort: Desc)], map: "intel_facts_verification_idx")
+  @@map("intel_facts")
+}
+
+/// Where a fact came from — every important fact stays traceable.
+model IntelEvidence {
+  id          String    @id @default(uuid()) @db.Uuid
+  factId      String    @map("fact_id") @db.Uuid
+  sourceSlug  String    @map("source_slug") @db.VarChar(120)
+  sourceKind  String    @default("unknown") @map("source_kind") @db.VarChar(40)
+  /// Asserted value at retrieval time — conflict resolution reads this, never snippets.
+  value       String    @default("") @db.Text
+  url         String?   @db.Text
+  retrievedAt DateTime  @default(now()) @map("retrieved_at") @db.Timestamptz(6)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  snippet     String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  fact IntelFact @relation(fields: [factId], references: [id], onDelete: Cascade)
+
+  @@index([factId, retrievedAt(sort: Desc)], map: "intel_evidence_fact_idx")
+  @@map("intel_evidence")
+}
+
+/// Immutable history — price/status/availability changes are never lost.
+model IntelChange {
+  id         BigInt   @id @default(autoincrement())
+  entityKind String   @map("entity_kind") @db.VarChar(40)
+  entityId   String   @map("entity_id") @db.VarChar(120)
+  factType   String   @map("fact_type") @db.VarChar(40)
+  oldValue   String?  @map("old_value") @db.Text
+  newValue   String?  @map("new_value") @db.Text
+  sourceSlug String?  @map("source_slug") @db.VarChar(120)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityKind, entityId, createdAt(sort: Desc)], map: "intel_changes_entity_created_idx")
+  @@map("intel_changes")
+}
+
+/// Admin review queues: needs_review · duplicate_candidate · conflict ·
+/// low_confidence · failed_source · stale_data · new_entity.
+model IntelReview {
+  id         String    @id @default(uuid()) @db.Uuid
+  reason     String    @db.VarChar(40)
+  entityKind String?   @map("entity_kind") @db.VarChar(40)
+  entityId   String?   @map("entity_id") @db.VarChar(120)
+  details    Json      @default("{}")
+  status     String    @default("open") @db.VarChar(16)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt(sort: Desc)], map: "intel_reviews_status_created_idx")
+  @@map("intel_reviews")
+}
+
+// ─── Intelligence Layer ───────────────────────────────────────────────────────
+
+enum DataSourceKind {
+  government
+  official_company
+  official_registry
+  public_listing
+  media
+  news
+  open_data
+  api
+  geospatial
+  user_generated
+  unknown
+}
+
+enum SourceReliability {
+  official_government
+  official_company
+  official_registry
+  established_institution
+  reputable_media
+  verified_company
+  public_listing
+  user_generated
+  unknown
+}
+
+enum FactConfidence {
+  verified
+  high_confidence
+  likely
+  unverified
+  outdated
+  conflicting
+}
+
+enum FreshnessState {
+  live
+  recent
+  aging
+  stale
+  unknown
+}
+
+enum EntityType {
+  developer
+  company
+  agency
+  agent
+  project
+  building
+  unit
+  listing
+  address
+  district
+  neighborhood
+  city
+  country
+}
+
+enum ProjectLifecycleStatus {
+  announced
+  pre_launch
+  planned
+  permitted
+  under_construction
+  near_completion
+  completed
+  suspended
+  cancelled
+  unknown
+}
+
+enum DataChangeKind {
+  created
+  updated
+  status_changed
+  price_changed
+  merged
+  split
+  deprecated
+}
+
+enum ReviewQueueKind {
+  needs_review
+  duplicate_candidate
+  conflict
+  low_confidence
+  failed_source
+  stale_data
+  new_entity
+}
+
+/// Registry of every data source the platform ingests from.
+model DataSource {
+  id              String            @id @default(cuid()) @db.VarChar(120)
+  slug            String            @unique @db.VarChar(120)
+  name            String            @db.VarChar(200)
+  kind            DataSourceKind
+  reliability     SourceReliability
+  country         String            @db.VarChar(40)
+  url             String?           @db.VarChar(500)
+  apiEndpoint     String?           @map("api_endpoint") @db.VarChar(500)
+  robotsTxtOk     Boolean           @default(true) @map("robots_txt_ok")
+  termsUrl        String?           @map("terms_url") @db.VarChar(500)
+  rateLimitMs     Int?              @map("rate_limit_ms")
+  refreshHours    Int?              @map("refresh_hours")
+  reliabilityNote String?           @map("reliability_note") @db.Text
+  isActive        Boolean           @default(true) @map("is_active")
+  lastFetchedAt   DateTime?         @map("last_fetched_at") @db.Timestamptz(6)
+  lastSuccessAt   DateTime?         @map("last_success_at") @db.Timestamptz(6)
+  lastErrorAt     DateTime?         @map("last_error_at") @db.Timestamptz(6)
+  lastError       String?           @map("last_error") @db.VarChar(500)
+  fetchCount      Int               @default(0) @map("fetch_count")
+  errorCount      Int               @default(0) @map("error_count")
+  recordCount     Int               @default(0) @map("record_count")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  records         DataSourceRecord[]
+  provenances     DataProvenance[]
+
+  @@index([country, isActive], map: "data_sources_country_active_idx")
+  @@index([kind, isActive], map: "data_sources_kind_active_idx")
+  @@map("data_sources")
+}
+
+/// Every individual record/fetch from a data source.
+model DataSourceRecord {
+  id           String   @id @default(cuid()) @db.VarChar(120)
+  sourceId     String   @map("source_id") @db.VarChar(120)
+  externalId   String?  @map("external_id") @db.VarChar(240)
+  url          String?  @db.VarChar(500)
+  fetchedAt    DateTime @map("fetched_at") @db.Timestamptz(6)
+  httpStatus   Int?     @map("http_status")
+  contentHash  String?  @map("content_hash") @db.VarChar(64)
+  recordSize   Int?     @map("record_size")
+  parsedOk     Boolean  @default(true) @map("parsed_ok")
+  error        String?  @db.VarChar(500)
+  rawRef       String?  @map("raw_ref") @db.VarChar(500) // R2/S3 path for raw content
+
+  source DataSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId, fetchedAt(sort: Desc)], map: "data_source_records_source_fetched_idx")
+  @@index([externalId], map: "data_source_records_external_id_idx")
+  @@map("data_source_records")
+}
+
+/// Provenance: traces every fact to its source(s).
+model DataProvenance {
+  id           String        @id @default(cuid()) @db.VarChar(120)
+  entityType   EntityType    @map("entity_type")
+  entityId     String        @map("entity_id") @db.VarChar(120)
+  factKey      String        @map("fact_key") @db.VarChar(120) // e.g. "status", "price", "address"
+  factValue    String        @map("fact_value") @db.Text
+  sourceId     String        @map("source_id") @db.VarChar(120)
+  sourceUrl    String?       @map("source_url") @db.VarChar(500)
+  fetchedAt    DateTime      @map("fetched_at") @db.Timestamptz(6)
+  publishedAt  DateTime?     @map("published_at") @db.Timestamptz(6)
+  confidence   FactConfidence @default(unverified)
+  isCurrent    Boolean       @default(true) @map("is_current")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  source DataSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId, factKey], map: "data_provenance_entity_fact_idx")
+  @@index([entityType, entityId, isCurrent], map: "data_provenance_entity_current_idx")
+  @@index([sourceId, fetchedAt(sort: Desc)], map: "data_provenance_source_fetched_idx")
+  @@map("data_provenance")
+}
+
+/// Relationships between entities (e.g. developer→project, project→building).
+model EntityRelationship {
+  id              String     @id @default(cuid()) @db.VarChar(120)
+  fromType        EntityType @map("from_type")
+  fromId          String     @map("from_id") @db.VarChar(120)
+  toType          EntityType @map("to_type")
+  toId            String     @map("to_id") @db.VarChar(120)
+  relation        String     @db.VarChar(60) // "owns", "located_in", "part_of", "manages"
+  confidence      FactConfidence @default(likely)
+  isCurrent       Boolean    @default(true) @map("is_current")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([fromType, fromId, toType, toId, relation], map: "entity_relationships_unique")
+  @@index([fromType, fromId], map: "entity_relationships_from_idx")
+  @@index([toType, toId], map: "entity_relationships_to_idx")
+  @@map("entity_relationships")
+}
+
+/// Immutable snapshots of entity state at a point in time.
+model DataSnapshot {
+  id           String     @id @default(cuid()) @db.VarChar(120)
+  entityType   EntityType @map("entity_type")
+  entityId     String     @map("entity_id") @db.VarChar(120)
+  data         Json       // full entity state at this moment
+  sourceId     String?    @map("source_id") @db.VarChar(120)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityType, entityId, createdAt(sort: Desc)], map: "data_snapshots_entity_created_idx")
+  @@map("data_snapshots")
+}
+
+/// Change log: tracks every meaningful change to an entity.
+model DataChange {
+  id           String        @id @default(cuid()) @db.VarChar(120)
+  entityType   EntityType    @map("entity_type")
+  entityId     String        @map("entity_id") @db.VarChar(120)
+  changeKind   DataChangeKind @map("change_kind")
+  field        String?       @map("field") @db.VarChar(120)
+  oldValue     String?       @map("old_value") @db.Text
+  newValue     String?       @map("new_value") @db.Text
+  sourceId     String?       @map("source_id") @db.VarChar(120)
+  snapshotId   String?       @map("snapshot_id") @db.VarChar(120)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityType, entityId, createdAt(sort: Desc)], map: "data_changes_entity_created_idx")
+  @@index([changeKind, createdAt(sort: Desc)], map: "data_changes_kind_created_idx")
+  @@map("data_changes")
+}
+
+/// Canonical entity aliases for resolution (aliases, name variants, translations).
+model EntityAlias {
+  id           String     @id @default(cuid()) @db.VarChar(120)
+  entityType   EntityType @map("entity_type")
+  entityId     String     @map("entity_id") @db.VarChar(120)
+  alias        String     @db.VarChar(240)
+  language     String     @default("ka") @db.VarChar(10)
+  isCanonical  Boolean    @default(false) @map("is_canonical")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([entityType, entityId, alias, language], map: "entity_aliases_unique")
+  @@index([entityType, alias], map: "entity_aliases_type_alias_idx")
+  @@index([entityType, entityId], map: "entity_aliases_type_entity_idx")
+  @@map("entity_aliases")
+}
+
+/// Review queue items for admin triage.
+model ReviewQueueItem {
+  id           String         @id @default(cuid()) @db.VarChar(120)
+  kind         ReviewQueueKind
+  entityType   EntityType     @map("entity_type")
+  entityId     String         @map("entity_id") @db.VarChar(120)
+  reason       String         @db.VarChar(500)
+  details      Json?
+  assignedTo   String?        @map("assigned_to") @db.VarChar(120)
+  resolvedAt   DateTime?      @map("resolved_at") @db.Timestamptz(6)
+  resolution   String?        @db.VarChar(500)
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([kind, resolvedAt], map: "review_queue_kind_resolved_idx")
+  @@index([entityType, entityId], map: "review_queue_entity_idx")
+  @@map("review_queue")
+}
+
+/// Data quality scores per entity.
+model DataQualityScore {
+  id           String     @id @default(cuid()) @db.VarChar(120)
+  entityType   EntityType @map("entity_type")
+  entityId     String     @map("entity_id") @db.VarChar(120)
+  completeness Int        @default(0) // 0-100
+  accuracy     Int        @default(0) // 0-100
+  freshness    Int        @default(0) // 0-100
+  sourceQuality Int       @default(0) @map("source_quality") // 0-100
+  crossSource  Int        @default(0) @map("cross_source") // 0-100
+  overall      Int        @default(0) // 0-100 weighted
+  calculatedAt DateTime   @default(now()) @map("calculated_at") @db.Timestamptz(6)
+
+  @@unique([entityType, entityId], map: "data_quality_scores_entity_unique")
+  @@index([overall], map: "data_quality_scores_overall_idx")
+  @@map("data_quality_scores")
+}
+
+/// Global data coverage metrics (computed periodically).
+model DataCoverageMetric {
+  id              String   @id @default(cuid()) @db.VarChar(120)
+  country         String   @db.VarChar(40)
+  developerCoverage Float @default(0) @map("developer_coverage") // 0-100
+  projectCoverage  Float  @default(0) @map("project_coverage")
+  activeProjectCoverage Float @default(0) @map("active_project_coverage")
+  geographicCoverage Float @default(0) @map("geographic_coverage")
+  sourceCoverage   Float  @default(0) @map("source_coverage")
+  freshnessScore   Float  @default(0) @map("freshness_score")
+  verifiedRatio    Float  @default(0) @map("verified_ratio")
+  overallScore     Float  @default(0) @map("overall_score")
+  calculatedAt     DateTime @default(now()) @map("calculated_at") @db.Timestamptz(6)
+
+  @@index([country, calculatedAt(sort: Desc)], map: "data_coverage_country_calc_idx")
+  @@map("data_coverage_metrics")
 }

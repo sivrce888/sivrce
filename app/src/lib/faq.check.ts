@@ -25,6 +25,7 @@ assert.deepEqual(
 // ——— faqLoc fallback ———
 assert.equal(faqLoc('ka'), 'ka')
 assert.equal(faqLoc('ru'), 'ru')
+assert.equal(faqLoc('de'), 'de')
 assert.equal(faqLoc('tr'), 'en')
 assert.equal(faqLoc('xx'), 'en')
 
@@ -49,6 +50,18 @@ assert.equal(faqMatch('', 'ka'), null)
 assert.equal(faqMatch('   ', 'en'), null)
 assert.equal(faqMatch('asdf qwerty zzz', 'ka'), null)
 assert.equal(faqMatch('და ან თუ', 'ka'), null, 'ka: stopwords only')
+
+// ——— German dataset: sections with content + live matcher hits ———
+assert.ok(FAQ_SECTIONS.de.length >= 3, 'de: sections')
+for (const s of FAQ_SECTIONS.de) {
+  assert.ok(s.title && s.items.length > 0, `de: section "${s.title}"`)
+  for (const item of s.items) assert.ok(item.q && item.a, 'de: QA content')
+}
+assert.ok(faqMatch('Können Deutsche in Georgien kaufen', 'de'), 'de: buy in Georgia')
+assert.ok(faqMatch('Grunderwerbsteuer Berlin wie hoch', 'de'), 'de: berlin tax')
+assert.ok(faqMatch('Visum Georgien Deutsche', 'de'), 'de: visa')
+assert.equal(faqMatch('und der die', 'de'), null, 'de: stopwords only')
+assert.equal(faqSuggestions('de', 4).length, 4)
 
 // ——— suggestions: count cap + round-robin across sections ———
 const chips = faqSuggestions('ka', 6)

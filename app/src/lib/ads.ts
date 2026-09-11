@@ -94,6 +94,7 @@ const SPONSORED: Record<Lang, string> = {
   uk: "Реклама",
   hy: "Գովազդ",
   az: "Reklam",
+  de: "Gesponsert",
 }
 
 export function sponsoredLabel(lang: Lang): string {

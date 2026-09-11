@@ -13,7 +13,7 @@ import { avifCardOf, cardOf } from '@/lib/media'
 /** Homepage portrait rail — listings with YouTube or uploaded video. */
 export default function VideoListingsRail({ items }: { items: Listing[] }) {
   const { b, t } = useI18n()
-  const { currency, rate } = useCurrency()
+  const { currency, rate, eurRate } = useCurrency()
   if (items.length === 0) return null
 
   return (
@@ -44,6 +44,7 @@ export default function VideoListingsRail({ items }: { items: Listing[] }) {
                 currencyOriginal: l.currencyOriginal,
                 currencyPreference: currency,
                 rate,
+                eurRate,
               }).primary
               const src = cardOf(l.img) ?? l.img
               const avif = avifCardOf(l.img)

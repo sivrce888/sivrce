@@ -46,6 +46,7 @@ const LOAD_DICT: Record<Exclude<Lang, 'ka'>, () => Promise<Record<DictKey, strin
   uk: () => import('@/lib/i18n/uk').then((m) => m.uk),
   hy: () => import('@/lib/i18n/hy').then((m) => m.hy),
   az: () => import('@/lib/i18n/az').then((m) => m.az),
+  de: () => import('@/lib/i18n/de').then((m) => m.de),
 }
 
 export default function I18nProvider({

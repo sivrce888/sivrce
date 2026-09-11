@@ -62,6 +62,15 @@ export function mapFiltersToSearchHref(deal: MapDealFilter, kind: MapKindFilter)
   return qs ? `/search?${qs}` : '/search'
 }
 
+/** Country hub / city → /map camera. */
+export function mapHrefForPlace(lat: number, lng: number, zoom = 12.8): string {
+  const q = new URLSearchParams()
+  q.set('lat', lat.toFixed(5))
+  q.set('lng', lng.toFixed(5))
+  q.set('zoom', String(zoom))
+  return `/map?${q}`
+}
+
 /** Listing page → /map so the 3D camera opens on this ad. */
 export function mapHrefForListing(l: {
   id: string
