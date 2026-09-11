@@ -351,7 +351,7 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
         </section>
 
         <section className="mx-auto max-w-7xl px-6 pb-16">
-          <PromoPricingGrid lang={lang === 'en' || lang === 'ru' ? lang : 'ka'} />
+          <PromoPricingGrid lang={lang} />
         </section>
 
         <PriceCompare lang={lang} />

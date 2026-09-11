@@ -26,14 +26,15 @@ import {
   tierCheckoutTetri,
   type CheckoutAddon,
 } from "@/lib/promo-pricing"
+import { getPaymentsStrings } from "@/components/payments/i18n"
+import type { Lang } from "@/lib/i18n/core"
 
 interface TierInfo {
-  key: string
+  key: "vip" | "super_vip" | "diamond"
   label: string
   priceTetri: number
   icon: typeof Crown
   gradient: string
-  description: string
 }
 
 const TIERS: TierInfo[] = [
@@ -43,7 +44,6 @@ const TIERS: TierInfo[] = [
     priceTetri: TIER_MONTHLY_TETRI.vip,
     icon: Flame,
     gradient: "from-sv-navy to-sv-navy-soft",
-    description: "სიაში სტანდარტულებზე წინ · VIP ნიშანი",
   },
   {
     key: "super_vip",
@@ -51,7 +51,6 @@ const TIERS: TierInfo[] = [
     priceTetri: TIER_MONTHLY_TETRI.super_vip,
     icon: Flame,
     gradient: "from-sv-blue to-sv-violet",
-    description: "VIP+ კარუსელი · სიაში VIP-ზე წინ",
   },
   {
     key: "diamond",
@@ -59,63 +58,49 @@ const TIERS: TierInfo[] = [
     priceTetri: TIER_MONTHLY_TETRI.diamond,
     icon: Crown,
     gradient: "from-sv-orange to-sv-orange-deep",
-    description: "ტოპი ყველას თავზე · მთავარი სლაიდერი",
   },
 ]
 
+// Quick menu shows the 7 sellers actually buy; long turbos + FB XL stay on the API + pricing page.
+type QuickAddon = Exclude<CheckoutAddon, "turbo_14" | "turbo_30" | "facebook_7d" | "facebook_7d_xl">
+
 const ADDONS: Array<{
-  key: CheckoutAddon
-  label: string
-  description: string
+  key: QuickAddon
   priceTetri: number
   icon: typeof Crown
 }> = [
   {
     key: "turbo_7",
-    label: "Turbo · 7 დღე",
-    description: "SUPER VIP + ფერი + სასწრაფოდ + აწევა",
     priceTetri: ADDON_TETRI.turbo_7,
     icon: Rocket,
   },
   {
     key: "story",
-    label: "სთორი · 1 დღე",
-    description: "მთავარი გვერდის Stories ზოლი · 3₾",
     priceTetri: ADDON_TETRI.story,
     icon: CircleDot,
   },
   {
     key: "sticker_urgent",
-    label: "სასწრაფოდ · 1 დღე",
-    description: "ნარინჯისფერი სტიკერი ბარათზე",
     priceTetri: ADDON_TETRI.sticker_urgent,
     icon: Zap,
   },
   {
     key: "sticker_price_drop",
-    label: "ფასი დაწეულია · 7 დღე",
-    description: "ფასის შემცირების ნიშანი",
     priceTetri: ADDON_TETRI.sticker_price_drop,
     icon: TrendingDown,
   },
   {
     key: "refresh_once",
-    label: "განახლება",
-    description: "განცხადება კვლავ ზემოთ ამოიწევს",
     priceTetri: ADDON_TETRI.refresh_once,
     icon: RotateCw,
   },
   {
     key: "color",
-    label: "ფერი · 7 დღე",
-    description: "გამორჩეული ჩარჩო ძიებაში",
     priceTetri: ADDON_TETRI.color,
     icon: Palette,
   },
   {
     key: "facebook",
-    label: "Facebook · 3 დღე",
-    description: "სოციალური გავრცელება · რიგით გამოქვეყნდება",
     priceTetri: ADDON_TETRI.facebook,
     icon: Share2,
   },
@@ -128,6 +113,7 @@ interface TierPurchaseButtonProps {
   className?: string
   /** Open menu on mount — publish-success screen. */
   defaultOpen?: boolean
+  lang?: Lang
 }
 
 export default function TierPurchaseButton({
@@ -135,7 +121,9 @@ export default function TierPurchaseButton({
   currentTier,
   className = "",
   defaultOpen = false,
+  lang = "ka",
 }: TierPurchaseButtonProps) {
+  const s = getPaymentsStrings(lang)
   const [open, setOpen] = useState(defaultOpen)
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -201,9 +189,9 @@ export default function TierPurchaseButton({
       const data = await res.json()
       if (!res.ok) {
         if (data.error === "refresh_cooldown") {
-          setError("განახლება ხელმისაწვდომია 1 საათში")
+          setError(s.errCooldown)
         } else {
-          setError(data.error ?? "შეცდომა")
+          setError(data.error ?? s.errGeneric)
         }
         return
       }
@@ -211,7 +199,7 @@ export default function TierPurchaseButton({
         window.location.assign(data.order.redirectUrl)
       }
     } catch {
-      setError("ქსელის შეცდომა")
+      setError(s.errNetwork)
     } finally {
       setLoading(null)
     }
@@ -239,7 +227,7 @@ export default function TierPurchaseButton({
         className="flex items-center gap-1.5 rounded-control bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-all hover:shadow-glow-blue active:scale-95"
       >
         <Rocket className="h-4 w-4" />
-        ბუსტი
+        {s.boost}
       </button>
 
       {open && (
@@ -251,7 +239,7 @@ export default function TierPurchaseButton({
             defaultOpen ? "left-0" : "right-0"
           }`}
         >
-          <h3 className="text-[14px] font-black text-sv-ink">აირჩიეთ პაკეტი</h3>
+          <h3 className="text-[14px] font-black text-sv-ink">{s.pick}</h3>
 
           {error && (
             <p className="mt-2 rounded-control bg-sv-orange/10 px-3 py-2 text-[12px] font-bold text-sv-orange">
@@ -262,7 +250,7 @@ export default function TierPurchaseButton({
           {available.length > 0 ? (
             <>
               <p className="mt-2 text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
-                VIP · ხანგრძლივობა
+                {s.tiersHead}
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {PROMO_DAY_OPTIONS.map((d) => (
@@ -276,7 +264,8 @@ export default function TierPurchaseButton({
                         : "bg-sv-cloud text-sv-ink/60 hover:text-sv-blue"
                     }`}
                   >
-                    {d}დ
+                    {d}
+                    {s.dUnit}
                   </button>
                 ))}
               </div>
@@ -302,12 +291,10 @@ export default function TierPurchaseButton({
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="text-[13px] font-extrabold text-sv-ink">
-                          {renew ? `${tier.label} · გაგრძელება` : tier.label}
+                          {renew ? `${tier.label} · ${s.renew}` : tier.label}
                         </div>
                         <div className="truncate text-[11px] font-medium text-sv-ink/60">
-                          {renew
-                            ? `მიმდინარე ვადას დაემატება +${days} დღე`
-                            : tier.description}
+                          {renew ? s.renewHint(days) : s.tierDesc[tier.key]}
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
@@ -328,12 +315,12 @@ export default function TierPurchaseButton({
           ) : (
             <div className="mt-2 rounded-control bg-gradient-to-r from-sv-orange to-sv-orange-deep px-3 py-2 text-[11px] font-black text-sv-ink">
               <Crown className="mr-1 inline h-3.5 w-3.5" />
-              მაქსიმალური პაკეტი აქტიურია
+              {s.maxActive}
             </div>
           )}
 
           <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
-            დამატებითი
+            {s.addonsHead}
           </p>
           <div className="mt-2 space-y-2">
             {ADDONS.map((a) => (
@@ -352,9 +339,9 @@ export default function TierPurchaseButton({
                   <a.icon className="h-3.5 w-3.5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12.5px] font-extrabold text-sv-ink">{a.label}</div>
+                  <div className="text-[12.5px] font-extrabold text-sv-ink">{s.addons[a.key].label}</div>
                   <div className="truncate text-[10.5px] font-medium text-sv-ink/60">
-                    {a.description}
+                    {s.addons[a.key].description}
                   </div>
                 </div>
                 <div className="shrink-0 text-[13px] font-black text-sv-ink">
@@ -373,7 +360,7 @@ export default function TierPurchaseButton({
             onClick={() => setOpen(false)}
             className="mt-3 w-full rounded-control py-2 text-[12px] font-bold text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.04]"
           >
-            დახურვა
+            {s.close}
           </button>
         </motion.div>
       )}

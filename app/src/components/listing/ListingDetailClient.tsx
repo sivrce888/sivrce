@@ -1576,7 +1576,7 @@ export default function ListingDetailClient({
 
               {isOwner ? (
                 <div className="mt-3 flex justify-center">
-                  <TierPurchaseButton listingId={l.id} currentTier={ownerTier} />
+                  <TierPurchaseButton listingId={l.id} currentTier={ownerTier} lang={lang} />
                 </div>
               ) : null}
 

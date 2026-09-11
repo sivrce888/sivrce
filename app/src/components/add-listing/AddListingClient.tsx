@@ -1273,7 +1273,7 @@ export default function AddListingClient() {
               <p className="text-[15px] font-black text-sv-ink">{t('add.boostNow')}</p>
               <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">{t('add.boostHint')}</p>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <TierPurchaseButton listingId={publishedId} currentTier="standard" defaultOpen />
+                <TierPurchaseButton listingId={publishedId} currentTier="standard" defaultOpen lang={lang} />
                 <LocalizedLink
                   href={manageHref}
                   className="text-[13px] font-bold text-sv-blue hover:text-sv-blue-deep"

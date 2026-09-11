@@ -17,6 +17,7 @@ import {
   totalTetri,
   type PromoProduct,
 } from "@/lib/promo-pricing"
+import type { Lang } from "@/lib/i18n/core"
 
 type GridLang = "ka" | "en" | "ru"
 
@@ -205,12 +206,14 @@ const FREE_FEATURES: Record<GridLang, string[]> = {
   ],
 }
 
-export default function PromoPricingGrid({ lang = "ka" }: { lang?: GridLang }) {
-  const t = GRID[lang] ?? GRID.ka
+export default function PromoPricingGrid({ lang = "ka" }: { lang?: Lang }) {
+  // ka/ru have native copy; every other locale (de, he, ar, tr, uk, hy, az) gets en — never ka.
+  const gridLang: GridLang = lang === "ka" || lang === "ru" ? lang : "en"
+  const t = GRID[gridLang]
   const [days, setDays] = useState<number>(DEFAULT_PROMO_DAYS)
 
   const cards: TierCard[] = [
-    { product: "free", name: t.freeName, features: FREE_FEATURES[lang] ?? FREE_FEATURES.ka },
+    { product: "free", name: t.freeName, features: FREE_FEATURES[gridLang] },
     { product: "vip", name: "VIP", badge: BADGES.vip, features: t.cards.vip.features },
     {
       product: "vip_plus",
