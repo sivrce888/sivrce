@@ -118,10 +118,13 @@ function CitiesBand({ country, current }: { country: PathCountryId; current?: st
 
 function CostAndRules({ country, city }: { country: PathCountryId; city?: string }) {
   const m = MARKET_COSTS[country]
-  const costs = buyerCosts(country, city)
+  // A hub prices the market's flagship city by name. Averaging a federal
+  // country into one "national rate" would invent a number nobody pays.
+  const costCity = city ?? MARKETS[country].defaultCitySlug
+  const costs = buyerCosts(country, costCity)
   if (!costs) return null
   const money = marketMoney(country)
-  const place = city ? (cityPack(country, city)?.name ?? COUNTRY_NAMES[country]) : COUNTRY_NAMES[country]
+  const place = cityPack(country, costCity)?.name ?? COUNTRY_NAMES[country]
   // TRY has no stable nominal anchor — show every line as a share of price.
   const cell = (n: number, pct: number) => (costs.percentOnly ? `${pct}%` : money(n))
   return (
@@ -131,11 +134,11 @@ function CostAndRules({ country, city }: { country: PathCountryId; city?: string
           <Reveal className="h-full">
             <div className="h-full rounded-card border border-sv-ink/[0.07] bg-sv-surface p-6 shadow-card md:p-8">
               <Kicker icon={Landmark}>What a purchase really costs</Kicker>
-              <h3 className="text-[22px] font-black tracking-tight text-sv-ink">
+              <h2 className="text-[22px] font-black tracking-tight text-sv-ink">
                 {costs.percentOnly
                   ? `Buyer costs in ${place}, as a share of price`
                   : `${money(costs.price)} home in ${place}`}
-              </h3>
+              </h2>
               <dl className="mt-5 space-y-2.5 text-[15px] font-bold">
                 {costs.lines.map((l) => (
                   <div key={l.label} className="flex justify-between gap-4 text-sv-ink/70">
@@ -158,7 +161,7 @@ function CostAndRules({ country, city }: { country: PathCountryId; city?: string
           <Reveal delay={0.04} className="h-full">
             <div className="h-full rounded-card bg-sv-navy p-6 shadow-glow-navy md:p-8">
               <Kicker icon={ShieldCheck}>Rentals run on rules</Kicker>
-              <h3 className="text-[22px] font-black tracking-tight text-white">{m.rentTitle}</h3>
+              <h2 className="text-[22px] font-black tracking-tight text-white">{m.rentTitle}</h2>
               <ul className="mt-5 space-y-4 text-[15px] font-medium leading-relaxed text-white/75">
                 {m.rentRules.map((r) => (
                   <li key={r.slice(0, 24)}>{r}</li>

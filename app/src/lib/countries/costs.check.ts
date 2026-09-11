@@ -130,5 +130,16 @@ assert.equal(cityRateRows('es', () => null).length, 0, 'no copy → no row')
 assert.ok(marketMoney('gb')(1000).includes('£'), 'gbp symbol')
 assert.ok(marketMoney('us')(1000).includes('$'), 'usd symbol')
 
+// A hub must never invent a national average: the country default mirrors the
+// flagship city's real rate, which is what MarketHome renders and names.
+for (const cc of COUNTRY_IDS) {
+  const flagship = MARKETS[cc].defaultCitySlug
+  assert.deepEqual(
+    MARKET_COSTS[cc].defaultCity,
+    MARKET_COSTS[cc].cities[flagship],
+    `default must mirror flagship city: ${cc}/${flagship}`,
+  )
+}
+
 const cities = COUNTRY_IDS.reduce((n, cc) => n + MARKETS[cc].citySlugs.length, 0)
 console.log(`costs.check: ${COUNTRY_IDS.length} markets / ${cities} cities priced ✓`)

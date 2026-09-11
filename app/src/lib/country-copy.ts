@@ -101,15 +101,15 @@ export const DE_HUB_DE: CountryCopy = {
 }
 
 export const AE_HUB: CountryCopy = {
-  title: 'UAE real estate — Dubai & Abu Dhabi | sivrce',
+  title: 'UAE real estate — Dubai, Abu Dhabi, Sharjah & RAK | sivrce',
   description:
-    'sivrce in the UAE: Dubai and Abu Dhabi guides for freehold buying and renting. RERA, service charges and off-plan escrow — listings as inventory lands.',
+    'sivrce in the UAE: four emirates, four rulebooks. Dubai freehold at a 4% DLD fee, Abu Dhabi and the north at 2%, Sharjah on a 100-year usufruct. RERA escrow and service charges explained.',
   h1: 'Real estate in the United Arab Emirates',
   lede:
-    'The UAE market is freehold for designated zones, bilingual (English/Arabic), and priced in dirhams. sivrce starts with Dubai and Abu Dhabi guides — not a duplicate of Georgia, and not a scraped classifieds dump.',
+    'The UAE is a federation of separate property regimes priced in dirhams: Dubai issues freehold in designated zones at a 4% Land Department fee, Abu Dhabi and the northern emirates charge 2%, and Sharjah grants a 100-year usufruct rather than a freehold deed. Four emirate guides, not one scraped classifieds dump.',
   body: [
-    'Dubai is the liquidity hub: off-plan towers, ready apartments in Marina, Downtown and JVC, and a rental market tied to visas and school calendars. Abu Dhabi is quieter, with more villa communities and a different transfer-fee schedule.',
-    'Buying off-plan should go through RERA-registered escrow. Ready property transfers at the Dubai Land Department or Abu Dhabi DLD equivalent. Service charges can rival a second mortgage — read the form before the yield spreadsheet.',
+    'Dubai is the liquidity hub: off-plan towers, ready apartments in Marina, Downtown and JVC, and a rental market tied to visas and school calendars. Abu Dhabi is quieter, with more villa communities and its own land authority. Sharjah is the commuter emirate on a different instrument, and Ras Al Khaimah is being repriced by the Al Marjan resort pipeline.',
+    'Buying off-plan should go through a RERA-registered escrow account. Ready property transfers at the emirate’s own land authority — Dubai’s DLD is not Abu Dhabi’s DMT and neither is Sharjah’s registration department. There is no annual property tax here, which is why the service charge, quoted per square foot and revised yearly, is the number that decides a yield.',
     'sivrce.ae redirects to sivrce.com/ae. Arabic lives at /ar/ae for readers who want it; English at /ae is the default canonical.',
   ],
   faqs: [
@@ -506,6 +506,32 @@ export const AE_CITIES: Record<string, CityPack> = {
     [
       { q: 'Is Abu Dhabi cheaper than Dubai?', a: 'Often for comparable villas; trophy Saadiyat and Corniche stock is not a bargain bin. Compare communities, not the emirate average.' },
       { q: 'Foreign freehold?', a: 'Yes in designated investment zones. Confirm the plot’s designation before you pay a reservation fee.' },
+    ],
+  ),
+  sharjah: city(
+    'Sharjah',
+    'Sharjah is the commuter emirate with its own land department and its own instrument: foreigners buy a 100-year usufruct in designated areas, not the freehold title Dubai issues.',
+    [
+      'That distinction is the whole page. A Sharjah usufruct is a long lease of ownership rights registered with the Sharjah Real Estate Registration Department — renewable, mortgageable and sellable, but not a Dubai-style freehold deed. Read which instrument the contract actually grants.',
+      'Aljada, Maryam Island and Tilal City are the master-planned developments driving foreign interest. Rents run well below Dubai for comparable size, which is why a large share of Dubai\u2019s workforce lives here and commutes — and why the E11 traffic is a genuine amenity question.',
+      'Sharjah is a dry emirate with its own decency regulations. That is a lifestyle variable for a tenant and therefore a leasing variable for a landlord.',
+    ],
+    [
+      { q: 'Is it freehold like Dubai?', a: 'Usually not. Non-GCC buyers typically receive a 100-year usufruct in designated zones rather than an absolute freehold deed. Confirm the instrument on the contract before you compare prices with Dubai.' },
+      { q: 'Cheaper than Dubai?', a: 'Materially, for comparable space. The trade is thinner resale liquidity, a smaller buyer pool and a commute if the job is in Dubai.' },
+    ],
+  ),
+  'ras-al-khaimah': city(
+    'Ras Al Khaimah',
+    'Ras Al Khaimah is the northern emirate being repriced by one project: the Wynn integrated resort on Al Marjan Island, the first licensed casino in the UAE.',
+    [
+      'Al Marjan Island land values and off-plan launch pricing moved sharply after the Wynn announcement, with the resort targeted to open in 2027. Underwrite that as a construction-and-opening schedule with execution risk, not as a completed amenity.',
+      'RAK offers genuine foreign freehold in designated areas at a 2% transfer fee against Dubai\u2019s 4%, and the emirate has its own municipality registration rather than the DLD. Al Hamra and Mina Al Arab are the established communities; the Hajar mountains and Jebel Jais are the non-beach draw.',
+      'Liquidity is the constraint. This is a thinner market than Dubai in both directions — fewer buyers on the way in, and fewer on the way out.',
+    ],
+    [
+      { q: 'Can foreigners own freehold here?', a: 'Yes, in designated investment areas, registered with RAK Municipality. Confirm the plot designation before you pay a reservation fee.' },
+      { q: 'Is the casino actually happening?', a: 'The licence and the Wynn Al Marjan project are real and under construction, targeted for 2027. Treat the opening date and the demand it implies as a forecast, not a delivered fact.' },
     ],
   ),
 }

@@ -107,7 +107,8 @@ const fr: CountryCosts = {
   citiesTitle: 'Six metros, one notarial machine',
   citiesSub:
     'The deed is national; the money is not. DMTO is voted département by département, and rent control only bites in the designated zones tendues. Each city guide carries its own number.',
-  defaultCity: { chip: '5.8%', chipTitle: 'Droits de mutation (DMTO)', region: 'France', pct: 5.8 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '5.8%', chipTitle: 'Droits de mutation — Paris (75)', region: 'Paris (75)', pct: 5.8 },
   cities: {
     paris: { chip: '5.8%', chipTitle: 'Droits de mutation — Paris (75)', region: 'Paris (75)', pct: 5.8 },
     lyon: { chip: '5.8%', chipTitle: 'Droits de mutation — Rhône (69)', region: 'Rhône (69)', pct: 5.8 },
@@ -149,7 +150,8 @@ const es: CountryCosts = {
   citiesTitle: 'Six metros, six tax regimes',
   citiesSub:
     'Spain devolves transfer tax to the comunidades autónomas. Madrid at 6% and Catalonia at 10% are the same purchase with a €12,000 difference on a €300,000 flat. Each city guide carries its own rate.',
-  defaultCity: { chip: '8%', chipTitle: 'ITP — regional average', region: 'España', pct: 8 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '6%', chipTitle: 'ITP — Comunidad de Madrid', region: 'Comunidad de Madrid', pct: 6 },
   cities: {
     madrid: { chip: '6%', chipTitle: 'ITP — Comunidad de Madrid', region: 'Comunidad de Madrid', pct: 6 },
     barcelona: { chip: '10%', chipTitle: 'ITP — Catalunya (tiered above €600k)', region: 'Catalunya', pct: 10 },
@@ -191,7 +193,8 @@ const it: CountryCosts = {
   citiesTitle: 'Six metros, one national deed',
   citiesSub:
     'Registration tax is national; the base, the IMU rate and the condominio are local. A Milan yield and a Naples yield do not survive the same spreadsheet.',
-  defaultCity: { chip: '9%', chipTitle: 'Imposta di registro — second home', region: 'Italia', pct: 9 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '9%', chipTitle: 'Imposta di registro — second home', region: 'Lazio', pct: 9 },
   cities: {
     rome: { chip: '9%', chipTitle: 'Imposta di registro — second home', region: 'Lazio', pct: 9 },
     milan: { chip: '9%', chipTitle: 'Imposta di registro — second home', region: 'Lombardia', pct: 9 },
@@ -268,7 +271,8 @@ const gb: CountryCosts = {
   citiesTitle: 'Six metros, two tax systems',
   citiesSub:
     'England and Northern Ireland pay SDLT; Scotland pays LBTT on its own bands and binds at missives, not exchange. Edinburgh and London are not the same transaction with different weather.',
-  defaultCity: sdlt('England'),
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: sdlt('Greater London'),
   cities: {
     london: sdlt('Greater London'),
     manchester: sdlt('Greater Manchester'),
@@ -310,7 +314,8 @@ const us: CountryCosts = {
   citiesTitle: 'Six metros, six closing customs',
   citiesSub:
     'The buyer-side transfer tax is the fastest way to see how local this market is: 1%+ in Manhattan, 0.75% in Chicago, zero in Austin and Seattle where the seller pays instead.',
-  defaultCity: { chip: 'Local', chipTitle: 'Transfer tax is set city by city', region: 'United States', pct: 0 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '1%+', chipTitle: 'NY mansion tax, buyer, on $1m and up', region: 'New York, NY', pct: 1 },
   cities: {
     'new-york': { chip: '1%+', chipTitle: 'NY mansion tax, buyer, on $1m and up', region: 'New York, NY', pct: 1 },
     miami: { chip: 'Seller pays', chipTitle: 'Florida documentary stamps are customarily the seller’s', region: 'Miami-Dade, FL', pct: 0 },
@@ -351,7 +356,8 @@ const ca: CountryCosts = {
   citiesTitle: 'Six metros, ten provincial rulebooks',
   citiesSub:
     'Canada devolves the transaction to the province. Toronto stacks a municipal tax on the Ontario one; Alberta charges neither. The same price closes very differently in Calgary and in the 416.',
-  defaultCity: { chip: 'Provincial', chipTitle: 'Land transfer tax is set province by province', region: 'Canada', pct: 1.5 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '≈4%', chipTitle: 'Ontario LTT + City of Toronto MLTT, effective at $900k', region: 'Ontario + City of Toronto', pct: 4 },
   cities: {
     toronto: { chip: '≈4%', chipTitle: 'Ontario LTT + City of Toronto MLTT, effective at $900k', region: 'Ontario + City of Toronto', pct: 4 },
     ottawa: { chip: '≈1.7%', chipTitle: 'Ontario land transfer tax, effective at $900k', region: 'Ontario', pct: 1.7 },
@@ -393,7 +399,8 @@ const tr: CountryCosts = {
   citiesTitle: 'Six metros, one tapu system',
   citiesSub:
     'The deed fee is national, the risk is not. Building code year, fault geometry and site (HOA) fees decide whether a cheap lira price is a bargain or a liability.',
-  defaultCity: { chip: '4%', chipTitle: 'Tapu harcı — national title deed fee', region: 'Türkiye', pct: 4 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '4%', chipTitle: 'Tapu harcı — national title deed fee', region: 'İstanbul', pct: 4 },
   cities: {
     istanbul: { chip: '4%', chipTitle: 'Tapu harcı — national title deed fee', region: 'İstanbul', pct: 4 },
     antalya: { chip: '4%', chipTitle: 'Tapu harcı — national title deed fee', region: 'Antalya', pct: 4 },
@@ -435,7 +442,8 @@ const ae: CountryCosts = {
   citiesTitle: 'Four emirates, four rulebooks',
   citiesSub:
     'Freehold is granted zone by zone and the transfer fee changes at the emirate border. Dubai’s DLD is not Abu Dhabi’s DMT, and a Sharjah title is a different instrument again.',
-  defaultCity: { chip: '2%', chipTitle: 'Transfer fee outside Dubai', region: 'United Arab Emirates', pct: 2 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '4%', chipTitle: 'Dubai Land Department transfer fee', region: 'Dubai', pct: 4 },
   cities: {
     dubai: { chip: '4%', chipTitle: 'Dubai Land Department transfer fee', region: 'Dubai', pct: 4 },
     'abu-dhabi': { chip: '2%', chipTitle: 'Abu Dhabi Department of Municipalities transfer fee', region: 'Abu Dhabi', pct: 2 },
@@ -471,7 +479,8 @@ const de: CountryCosts = {
   citiesTitle: '16 metros, each with its own transfer tax',
   citiesSub:
     'Grunderwerbsteuer is state law — the same apartment costs a different surcharge in Munich and Cologne. City guides carry the local number.',
-  defaultCity: { chip: '6.0%', chipTitle: 'Grunderwerbsteuer', region: 'Deutschland', pct: 6 },
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '6.0%', chipTitle: 'Grunderwerbsteuer — Berlin', region: 'Berlin', pct: 6 },
   cities: Object.fromEntries(
     DE_CITIES.map((c) => [
       c.slug,
