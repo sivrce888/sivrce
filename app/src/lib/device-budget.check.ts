@@ -87,7 +87,7 @@ lock("src/app/auth/layout.tsx", [
   "BRAND.colors.navy",
 ], ["LITE_BOOT", "maximumScale"])
 lock("src/lib/map/maplibre-worker.ts", ["/maplibre/maplibre-gl-worker.mjs", "setWorkerUrl", "prewarm"], ["setWorkerCount"])
-lock("src/components/map/Map3D.tsx", ["...mapRuntimeOptions()", "isLiteDevice()", "bindMaplibreWorker(", "bindBerlinGeoTiles("], ["setWorkerCount"])
+lock("src/components/map/Map3D.tsx", ["...mapRuntimeOptions()", "isLiteDevice()", "bindMaplibreWorker(", "bindBerlinGeoTiles(", "pickBerlinFeature("], ["setWorkerCount"])
 lock("src/components/map/BuildingFloorsMap.tsx", ["...mapRuntimeOptions()", "bindMaplibreWorker("], ["setWorkerCount"])
 lock("src/components/search/SearchMapView.tsx", [
   "...mapRuntimeOptions()",
@@ -97,6 +97,7 @@ lock("src/components/search/SearchMapView.tsx", [
   "from '@/lib/map/map-geo'",
   "bindMaplibreWorker(",
   "bindBerlinGeoTiles(",
+  "pickBerlinFeature(",
 ], ["from '@/lib/map/buildings'", "setWorkerCount"])
 lock("src/components/MapEmbed.tsx", ["from '@/lib/map/map-geo'", "bindMaplibreWorker("], ["from '@/lib/map/buildings'", "from '@/lib/map/geocode'", "setWorkerCount"])
 lock("src/components/listing/ListingDetailClient.tsx", [

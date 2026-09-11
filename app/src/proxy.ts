@@ -5,6 +5,9 @@ import { decideHost } from "@/lib/host-redirect"
 import {
   GEO_COOKIE,
   GEO_COOKIE_MAX_AGE,
+  geoHomePath,
+  geoLaunchTarget,
+  isCrawler,
   isGeoLaunch,
 } from "@/lib/geo-market"
 import { GE_ORIGIN, MARKET_HEADER, hostKind, isOwnHost, safeRedirectUrl } from "@/lib/site-host"
@@ -274,11 +277,30 @@ export function proxy(req: NextRequest) {
     }
     if (decision.type === "rewrite") {
       let nextMarket = decision.market
-      // sivrce.com/ is the international hub. Legacy ?worldwide=1 just cleans the query.
-      if (nextMarket === "global" && isComHomePath(pathname) && req.nextUrl.searchParams.has("worldwide")) {
-        const dest = req.nextUrl.clone()
-        dest.searchParams.delete("worldwide")
-        return rememberGeo(req, NextResponse.redirect(dest, 302), "global")
+      // sivrce.com/ : crawlers + worldwide keep the directory; humans 302 to market.
+      if (nextMarket === "global" && isComHomePath(pathname) && !preview) {
+        const worldwide = req.nextUrl.searchParams.has("worldwide")
+        const target = geoLaunchTarget({
+          cookie: req.cookies.get(GEO_COOKIE)?.value,
+          iso: req.headers.get("x-vercel-ip-country"),
+          worldwide,
+          crawler: isCrawler(req.headers.get("user-agent")),
+        })
+        if (worldwide) {
+          const dest = req.nextUrl.clone()
+          dest.searchParams.delete("worldwide")
+          return rememberGeo(req, NextResponse.redirect(dest, 302), "global")
+        }
+        if (target === "ge") {
+          const dest = safeRedirectUrl(GE_ORIGIN, "/", req.nextUrl.search)
+          if (!dest) return NextResponse.redirect(new URL("/", GE_ORIGIN), 302)
+          return NextResponse.redirect(dest, 302)
+        }
+        if (target !== "hub") {
+          const url = req.nextUrl.clone()
+          url.pathname = geoHomePath(target)
+          return rememberGeo(req, NextResponse.redirect(url, 302), target)
+        }
       }
       if (nextMarket === "global" && isMapPath(pathname)) {
         const cook = req.cookies.get(GEO_COOKIE)?.value

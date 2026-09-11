@@ -7,6 +7,8 @@ import {
   GEO_COOKIE,
   GEO_LAUNCH,
   geoHomePath,
+  geoLaunchTarget,
+  isCrawler,
   isGeoLaunch,
   marketCenter,
   marketFromIso,
@@ -33,5 +35,18 @@ assert.equal(marketCenter('ge').slug, 'tbilisi')
 assert.ok(Math.abs(marketCenter('de').lat - 52.52) < 0.01)
 assert.ok(marketCenter('ae').lng > 50)
 assert.deepEqual([...GEO_LAUNCH], [...COUNTRY_IDS])
+
+assert.equal(geoLaunchTarget({ crawler: true, iso: 'DE' }), 'hub')
+assert.equal(geoLaunchTarget({ worldwide: true, iso: 'DE' }), 'hub')
+assert.equal(geoLaunchTarget({ cookie: 'global', iso: 'DE' }), 'hub')
+assert.equal(geoLaunchTarget({ cookie: 'de' }), 'de')
+assert.equal(geoLaunchTarget({ cookie: 'ge' }), 'ge')
+assert.equal(geoLaunchTarget({ iso: 'DE' }), 'de')
+assert.equal(geoLaunchTarget({ iso: 'GE' }), 'ge')
+assert.equal(geoLaunchTarget({ iso: 'FR' }), 'fr')
+assert.equal(geoLaunchTarget({ iso: 'XX' }), 'hub')
+assert.equal(geoLaunchTarget({}), 'hub')
+assert.equal(isCrawler('Mozilla/5.0 (compatible; Googlebot/2.1)'), true)
+assert.equal(isCrawler('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)'), false)
 
 console.log('geo-market.check: ok')

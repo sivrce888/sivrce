@@ -810,6 +810,10 @@ export const tr: Dict = {
   'chat.viewListing': 'İlanı görüntüle',
   'chat.leave': 'Ayrıl',
   'chat.leaveConfirm': 'Ayrılmak için tekrar dokun',
+  'chat.suggestHint': 'Hızlı bir mesaj seç — ya da kendin yaz',
+  'chat.suggestInterest': 'Bu ilanla ilgileniyorum. Hâlâ müsait mi?',
+  'chat.suggestViewing': 'Ne zaman görüntülemeye gelebilirim?',
+  'chat.suggestAvailable': 'Lütfen detaylar için benimle iletişime geçin.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastro haritası',

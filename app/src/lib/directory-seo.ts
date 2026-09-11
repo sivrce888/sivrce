@@ -16,6 +16,7 @@ import {
   floorsLabel,
   unitsLabel,
   pickLoc,
+  hasPriceFrom,
   type DirLoc,
   type FaqItem,
 } from './directory-seo-lite'
@@ -31,6 +32,8 @@ export {
   unitsLabel,
   floorsLabel,
   faqPageLd,
+  hasPriceFrom,
+  priceFromLabel,
   MICRO,
   type DirLoc,
   type FaqItem,
@@ -387,10 +390,13 @@ export const PROJECT_DETAIL: Record<
     statsBuilt: 'აშენებულია',
   },
   en: {
-    titleOf: (p) =>
-      isDelivered(p)
-        ? `${p.name} — completed development in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m²`
-        : `${p.name} — new-build apartments in ${cityName(p.city, 'en')}, from ${p.priceFromM2}/m²`,
+    titleOf: (p) => {
+      const kind = isDelivered(p) ? 'completed development' : 'new-build apartments'
+      const city = cityName(p.city, 'en')
+      return hasPriceFrom(p.priceFromM2)
+        ? `${p.name} — ${kind} in ${city}, from ${p.priceFromM2}/m²`
+        : `${p.name} — ${kind} in ${city} (price on request)`
+    },
     crumbHome: 'Home',
     crumbProjects: 'Projects',
     building3d: 'Building in 3D',
@@ -412,10 +418,13 @@ export const PROJECT_DETAIL: Record<
     statsBuilt: 'Built',
   },
   ru: {
-    titleOf: (p) =>
-      isDelivered(p)
-        ? `${p.name} — квартиры в сданном доме в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м²`
-        : `${p.name} — квартиры в новостройке в ${cityName(p.city, 'ru')}, цены от ${p.priceFromM2}/м²`,
+    titleOf: (p) => {
+      const kind = isDelivered(p) ? 'квартиры в сданном доме' : 'квартиры в новостройке'
+      const city = cityName(p.city, 'ru')
+      return hasPriceFrom(p.priceFromM2)
+        ? `${p.name} — ${kind} в ${city}, цены от ${p.priceFromM2}/м²`
+        : `${p.name} — ${kind} в ${city} (цены по запросу)`
+    },
     crumbHome: 'Главная',
     crumbProjects: 'Новостройки',
     building3d: 'Корпус в 3D',
@@ -548,7 +557,7 @@ export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): Faq
     return [
       {
         q: `რა ღირს კვადრატული მეტრი ${name}-ში?`,
-        a: p.priceFromM2
+        a: hasPriceFrom(p.priceFromM2)
           ? `${name}-ში ფასი იწყება ${p.priceFromM2}/მ²-დან. მდებარეობა: ${p.location}. ახალი პროექტების ფასები 2026 წელს მერყეობს სართულის, ხედისა და კარკასის ტიპის მიხედვით.`
           : `${name} — ${p.location}. ფასები ხელმისაწვდომია სივრცეზე.`,
       },
@@ -582,7 +591,7 @@ export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): Faq
     return [
       {
         q: `Сколько стоит квадратный метр в ${p.name}?`,
-        a: p.priceFromM2
+        a: hasPriceFrom(p.priceFromM2)
           ? `Цены в ${p.name} начинаются от ${p.priceFromM2}/м². Расположение: ${p.location}. Цены на новостройки в 2026 году зависят от этажа, вида и типа каркаса.`
           : `${p.name} — ${p.location}. Цены доступны на Sivrce.`,
       },
@@ -615,7 +624,7 @@ export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): Faq
   return [
     {
       q: `How much is a square meter in ${p.name}?`,
-      a: p.priceFromM2
+      a: hasPriceFrom(p.priceFromM2)
         ? `Prices in ${p.name} start from ${p.priceFromM2}/m². Location: ${p.location}. New-build prices in 2026 vary by floor, view and frame condition.`
         : `${p.name} — ${p.location}. Prices are available on Sivrce.`,
     },

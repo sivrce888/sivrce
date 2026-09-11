@@ -455,9 +455,14 @@ export default function ListingDetailClient({
   const rs = getReviewStrings(lang)
   const { currency, setCurrency, rate: liveRate, eurRate } = useCurrency()
   const { openChat } = useChat()
-  // Signed-in users get the live chat; guests fall back to the lead form.
+  // Owner → inbox. Authed buyer + listing owner seat → live chat (first
+  // message writes an Inquiry). Guest / catalog row → lead form (phone).
   const messageOwner = () => {
-    if (session?.user?.id) openChat(l.id)
+    if (isOwner) {
+      openChat()
+      return
+    }
+    if (session?.user?.id && ownerId) openChat(l.id)
     else scrollToLead()
   }
   // ponytail: same scroll+focus as StickyLeadBar — kept for the guest flow.

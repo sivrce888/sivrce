@@ -812,6 +812,10 @@ export const de: Dict = {
   'chat.viewListing': 'Inserat ansehen',
   'chat.leave': 'Verlassen',
   'chat.leaveConfirm': 'Zum Verlassen erneut tippen',
+  'chat.suggestHint': 'Schnelle Nachricht wählen — oder selbst schreiben',
+  'chat.suggestInterest': 'Ich interessiere mich für dieses Inserat. Ist es noch frei?',
+  'chat.suggestViewing': 'Wann kann ich zur Besichtigung kommen?',
+  'chat.suggestAvailable': 'Bitte kontaktieren Sie mich mit weiteren Details.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Katasterkarte',

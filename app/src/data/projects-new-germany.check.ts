@@ -7,6 +7,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { DEVELOPERS, PROJECTS } from './professionals'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from './projects-new-germany'
+import { ON_REQUEST } from '../lib/directory-seo-lite'
+import { MARKETS } from '../lib/markets'
+import { DE_CITIES as DE_CITY_ROWS } from '../lib/countries/de'
 
 // Renders wired by withDERenders must exist on disk — a catalog regen without
 // scripts/gen-project-renders.ts would otherwise 404 every DE gallery.
@@ -16,16 +19,30 @@ for (const p of PROJECTS) {
   }
 }
 
-const DE_CITIES = ['ბერლინი', 'ჰამბურგი', 'მიუნხენი', 'ფრანკფურტი', 'ლაიფციგი', 'დიუსელდორფი', 'ბრემენი', 'ბოხუმი', 'ქელნი', 'გელზენკირხენი']
+// Launch-city ka names derive from the market registry (no hardcoded drift);
+// developers may sit in extra Ruhr metros (Gelsenkirchen) outside the 16.
+const LAUNCH_CITIES = DE_CITY_ROWS.filter((c) => MARKETS.de.citySlugs.includes(c.slug)).map((c) => c.ka)
+const DE_CITIES = [...LAUNCH_CITIES, 'გელზენკირხენი']
 const devSlugs = DEVELOPERS.map((d) => d.slug)
 
 for (const d of NEW_DEVELOPERS_GERMANY) {
   assert.ok(devSlugs.includes(d.slug), `wired dev: ${d.slug}`)
   assert.ok(DE_CITIES.includes(d.city), `de city: ${d.slug}`)
   assert.ok(d.description.ka.length > 40 && d.description.en.length > 40, `dev copy: ${d.slug}`)
+  assert.ok((d.description.de?.length ?? 0) > 40, `dev de copy: ${d.slug}`)
   assert.ok(d.website?.startsWith('https://'), `official site: ${d.slug}`)
   // Never a placeholder phone — unpublished is '' (UI hides it).
   assert.ok(!d.phone?.includes('000000'), `fake phone: ${d.slug}`)
+}
+
+// Unpublished price is exactly the shared marker — UI translates it per locale
+// (priceFromLabel); a stray '' or other placeholder would leak raw. Global:
+// every catalog (Tbilisi, Batumi, Berlin, …) obeys the same marker contract.
+for (const p of PROJECTS) {
+  assert.ok(
+    p.priceFromM2 === '' || /\d/.test(p.priceFromM2) || p.priceFromM2 === ON_REQUEST,
+    `priceFromM2 marker: ${p.slug}`,
+  )
 }
 
 for (const p of NEW_PROJECTS_GERMANY) {
@@ -38,6 +55,8 @@ for (const p of NEW_PROJECTS_GERMANY) {
   assert.ok(p.done >= 0 && p.done <= 100, `done: ${p.slug}`)
   assert.ok(p.flats > 0 && p.rating >= 4 && p.rating <= 5, `stats: ${p.slug}`)
   assert.ok(p.description.ka.length > 40 && p.description.en.length > 40, `copy: ${p.slug}`)
+  assert.ok((p.description.de?.length ?? 0) > 40, `de copy: ${p.slug}`)
+  assert.ok(p.sourceUrl?.startsWith('https://'), `sourceUrl: ${p.slug}`)
 }
 
 const slugs = PROJECTS.map((p) => p.slug)

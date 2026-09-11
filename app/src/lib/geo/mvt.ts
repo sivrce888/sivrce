@@ -12,6 +12,7 @@ export const TILE_LAYERS = {
   parcels: ['alkis_parcel'],
   step: ['step_potential', 'step_quartier', 'step_priority', 'step_gemeinwohl', 'step_konzept'],
   developments: ['step_potential', 'step_quartier'],
+  bplan: ['bplan_festgesetzt', 'bplan_verfahren'],
 } as const
 
 export type TileLayer = keyof typeof TILE_LAYERS
@@ -31,6 +32,8 @@ export function layerZoomOk(layer: TileLayer, z: number): boolean {
     case 'step':
       return z >= 9 && z <= 16
     case 'developments':
+      return z >= 10 && z <= 16
+    case 'bplan':
       return z >= 10 && z <= 16
     default: {
       const _exhaustive: never = layer
@@ -67,12 +70,18 @@ export async function mvtForTile(
         g.external_id AS id,
         g.name,
         g.kind,
-        COALESCE((g.props->>'height_m')::float8, 12)::float8 AS height,
-        COALESCE((g.props->>'floors')::float8, 0)::float8 AS floors,
-        COALESCE((g.props->>'area_m2')::float8, 0)::float8 AS area_m2,
+        NULLIF(g.props->>'height_m', '')::float8 AS height,
+        NULLIF(g.props->>'floors', '')::float8 AS floors,
+        NULLIF(g.props->>'area_m2', '')::float8 AS area_m2,
         COALESCE(g.props->>'we_kat', '') AS we_kat,
         COALESCE(g.props->>'status', g.props->>'leg_fertig', '') AS status,
         COALESCE(g.props->>'height_source', '') AS height_source,
+        COALESCE(g.props->>'funktion', '') AS funktion,
+        COALESCE(g.props->>'planart', '') AS planart,
+        COALESCE(g.props->>'inhalt', '') AS inhalt,
+        COALESCE(g.props->>'bezirk', '') AS bezirk,
+        COALESCE(g.props->>'festsg_am', '') AS festsg_am,
+        COALESCE(g.props->>'doc', '') AS doc,
         ST_AsMVTGeom(
           ST_Transform(g.geom, 3857),
           bounds.geom,

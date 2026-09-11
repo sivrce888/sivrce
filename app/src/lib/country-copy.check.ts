@@ -2,14 +2,16 @@
  * Runnable check: npx tsx src/lib/country-copy.check.ts
  */
 import assert from 'node:assert/strict'
-import { COUNTRY_IDS, MARKETS } from './markets'
+import { COUNTRY_IDS, MARKETS, parseCountryPath } from './markets'
 import {
   AE_CITIES,
   AE_HUB,
   AE_HUB_AR,
   COUNTRY_HUBS,
+  DE_BERLIN_BUY_DE,
   DE_CITIES,
   DE_HUB,
+  DE_HUB_DE,
   cityPack,
   countrySitemapPaths,
   heroPair,
@@ -64,7 +66,30 @@ assert.ok(!dePaths.includes('/de/berlin/sale'))
 assert.ok(countrySitemapPaths('ae').includes('/ae/dubai'))
 
 assert.deepEqual(heroPair('Real estate in Germany'), { lead: 'Real estate', place: 'in Germany' })
+assert.deepEqual(heroPair('Immobilien in Deutschland'), { lead: 'Immobilien', place: 'in Deutschland' })
+assert.deepEqual(heroPair('Kaufen in Berlin'), { lead: 'Kaufen', place: 'in Berlin' })
+assert.deepEqual(heroPair('Mieten in Berlin'), { lead: 'Mieten', place: 'in Berlin' })
+assert.ok(DE_HUB_DE.lede !== DE_HUB.lede)
+assert.ok(DE_HUB_DE.body.length >= 2)
+assert.ok(DE_BERLIN_BUY_DE.h1.includes('Kaufen'))
 assert.deepEqual(heroPair('Berlin real estate'), { lead: 'Berlin', place: 'real estate' })
 assert.deepEqual(heroPair('Buy in Dubai'), { lead: 'Buy', place: 'in Dubai' })
+assert.deepEqual(parseCountryPath('/de/berlin/buy'), { country: 'de', city: 'berlin', intent: 'buy' })
+assert.deepEqual(parseCountryPath('/en/de/berlin'), { country: 'de', city: 'berlin', intent: undefined })
+assert.deepEqual(parseCountryPath('/ae'), { country: 'ae', city: undefined, intent: undefined })
+assert.equal(parseCountryPath('/sale'), null)
+
+// intentHref never links a dead URL: intentCities must exactly match the
+// cities whose cityPack carries buy/rent copy (single source of truth).
+for (const cc of COUNTRY_IDS) {
+  const withIntent = MARKETS[cc].citySlugs.filter((s) => {
+    const pack = cityPack(cc, s)
+    return !!pack?.buy && !!pack?.rent
+  })
+  assert.deepEqual([...MARKETS[cc].intentCities].sort(), [...withIntent].sort(), `intentCities drift: ${cc}`)
+  for (const s of MARKETS[cc].intentCities) {
+    assert.ok(MARKETS[cc].citySlugs.includes(s), `intentCities ⊆ citySlugs: ${cc}/${s}`)
+  }
+}
 
 console.log(`country-copy.check: ${LAUNCHED.length} launched markets, ${ledes.length} unique pages ok`)

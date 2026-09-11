@@ -14,6 +14,9 @@ import { CONTACT_PHONE, telHref } from '@/lib/inquiries/phone'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
+import { MARKETS, intentHref, parseCountryPath } from '@/lib/markets'
+import { mapHrefForPlace } from '@/lib/map/map-href'
+import { cityBySlug } from '@/lib/map/user-place'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -24,6 +27,12 @@ export default function Navbar() {
   // Locale-agnostic path for chrome state (hero transparency, hash links) —
   // also strips the internal /ka rewrite target so SSR and hydration agree.
   const bare = stripLangPrefix(pathname)
+  const market = parseCountryPath(bare)
+  const prefix = market ? MARKETS[market.country].pathPrefix : ''
+  const citySlug = market?.city ?? (market ? MARKETS[market.country].defaultCitySlug : '')
+  const pin = citySlug ? cityBySlug(citySlug) : null
+  const mapTo = pin ? mapHrefForPlace(pin.lat, pin.lng) : '/map'
+  const isMarketHome = bare === '/' || !!market
   const menuBtnRef = useRef<HTMLButtonElement>(null)
 
   // Escape closes the mobile menu and returns focus to the menu button
@@ -49,10 +58,10 @@ export default function Navbar() {
   // On homepage top: transparent bar. Light theme = ink chrome over the day
   // sky; dark theme = white chrome over the night sky. Everywhere else (or
   // once scrolled) the glass pill uses ink tokens (they flip in .dark).
-  const light = scrolled || bare !== '/'
+  const light = scrolled || !isMarketHome
   // Field lives on home hero + /search + map. Nav gets an icon so inner pages
   // (and the home pill after scroll) still have one tap to search.
-  const searchEntry = !bare.startsWith('/search') && (bare !== '/' || scrolled)
+  const searchEntry = !bare.startsWith('/search') && (!isMarketHome || scrolled)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -67,7 +76,17 @@ export default function Navbar() {
   // labels and 1280 fits all 6 only while the add-listing CTA is icon-only
   // (its label returns at ≥1366). Rest → hamburger + footer. Keep 6 as the
   // hard cap.
-  const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean; xlOnly?: boolean }[] = [
+  const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean; xlOnly?: boolean }[] = market
+    ? [
+        { key: 'nav.buy', to: intentHref(market.country, citySlug, 'buy', lang) },
+        { key: 'nav.rent', to: intentHref(market.country, citySlug, 'rent', lang) },
+        { key: 'nav.map', to: mapTo, xlOnly: true },
+        ...(market.country === 'de'
+          ? [{ key: 'nav.projects' as const, to: `${prefix}#new-builds`, xlOnly: true }]
+          : []),
+        { key: 'nav.advertise', to: '/advertise', mobileOnly: true },
+      ]
+    : [
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
@@ -87,9 +106,11 @@ export default function Navbar() {
   ]
 
   const isActive = (to: string) => {
-    if (to.includes('#')) return false
-    return bare === to || bare.startsWith(`${to}/`)
+    const path = to.replace(/[?#].*$/, '')
+    if (!path || path === '/') return bare === '/'
+    return bare === path || bare.startsWith(`${path}/`)
   }
+  const navHref = (to: string) => (market ? to : localizedHref(to, lang))
 
   return (
     <header data-cms-section="nav" className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
@@ -101,7 +122,7 @@ export default function Navbar() {
         }`}
       >
         <div className="shrink-0">
-          <Logo adaptive href={localizedHref('/', lang)} />
+          <Logo adaptive href={market ? prefix : localizedHref('/', lang)} />
         </div>
 
         <nav
@@ -122,13 +143,13 @@ export default function Navbar() {
                   : 'text-sv-ink/80 hover:bg-sv-ink/5 hover:text-sv-ink dark:text-white/85 dark:hover:bg-white/10 dark:hover:text-white'
             }`
             return l.to.includes('#') ? (
-              <a key={l.key} href={localizedHref(l.to, lang)} data-cms-key={l.key} className={cls}>
+              <a key={l.key} href={navHref(l.to)} data-cms-key={l.key} className={cls}>
                 {t(l.key)}
               </a>
             ) : (
               <Link
                 key={l.key}
-                href={localizedHref(l.to, lang)}
+                href={navHref(l.to)}
                 data-cms-key={l.key}
                 aria-current={active ? 'page' : undefined}
                 className={cls}
@@ -142,7 +163,7 @@ export default function Navbar() {
         <div className="ml-auto hidden shrink-0 items-center gap-1 lg:flex">
           {searchEntry && (
             <Link
-              href={localizedHref('/search', lang)}
+              href={localizedHref(market ? mapTo : '/search', lang)}
               data-cms-key="nav.search"
               aria-label={t('nav.search')}
               className={`grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
@@ -186,7 +207,7 @@ export default function Navbar() {
         <div className="ml-auto flex shrink-0 items-center lg:hidden">
           {searchEntry && (
             <Link
-              href={localizedHref('/search', lang)}
+              href={localizedHref(market ? mapTo : '/search', lang)}
               aria-label={t('nav.search')}
               className={`grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                 light ? 'text-sv-ink/70' : 'text-sv-ink/70 dark:text-white/85'
@@ -227,7 +248,7 @@ export default function Navbar() {
               return l.to.includes('#') ? (
                 <a
                   key={l.key}
-                  href={localizedHref(l.to, lang)}
+                  href={navHref(l.to)}
                   data-cms-key={l.key}
                   onClick={() => setOpen(false)}
                   className={cls}
@@ -237,7 +258,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   key={l.key}
-                  href={localizedHref(l.to, lang)}
+                  href={navHref(l.to)}
                   data-cms-key={l.key}
                   onClick={() => setOpen(false)}
                   aria-current={active ? 'page' : undefined}

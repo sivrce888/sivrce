@@ -811,6 +811,10 @@ export const az: Dict = {
   'chat.viewListing': 'Elana bax',
   'chat.leave': 'Ayrıl',
   'chat.leaveConfirm': 'Ayrılmaq üçün yenidən toxun',
+  'chat.suggestHint': 'Sürətli mesaj seç — və ya özünü yaz',
+  'chat.suggestInterest': 'Bu elanla maraqlanıram. Hələ də mövcuddur?',
+  'chat.suggestViewing': 'Nə vaxt baxışa gələ bilərəm?',
+  'chat.suggestAvailable': 'Zəhmət olmasa detallar üçün mənimlə əlaqə saxlayın.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastr xəritəsi',

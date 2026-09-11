@@ -27,6 +27,8 @@ export interface LocalText {
   ka: string
   en: string
   ru: string
+  /** German DE-catalog copy (scripts/de-enrich.ts) — optional, falls back to en. */
+  de?: string
 }
 
 export interface Developer {
@@ -74,6 +76,8 @@ export interface Project {
   gallery?: string[]
   /** Floor-plan / passport image (local CDN). */
   passportUrl?: string
+  /** Official source page — provenance for street-verified DE rows. */
+  sourceUrl?: string
   location: string
   /** ka city name — matches Listing.city */
   city: string

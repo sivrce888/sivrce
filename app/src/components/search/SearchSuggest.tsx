@@ -16,12 +16,6 @@ export interface Suggestion {
   district?: string
 }
 
-const KIND_LABEL: Record<Suggestion['kind'], string> = {
-  city: 'ქალაქი',
-  district: 'უბანი',
-  street: 'ქუჩა',
-}
-
 const KIND_ORDER: Suggestion['kind'][] = ['city', 'district', 'street']
 
 const KIND_ICON = { city: Building2, district: MapPin, street: Route } as const
@@ -39,11 +33,13 @@ interface Props {
   city?: string
   /** Compact chrome (nav / map). Default is the large search box. */
   size?: 'md' | 'lg'
+  /** `de` hits Berlin/DE pools — never mixed with the Georgia catalog. */
+  mkt?: 'de'
 }
 
 export default function SearchSuggest({
   variant, value, onChange, onPick, onSubmit, placeholder, ariaLabel,
-  className = '', inputRef, city, size = 'lg',
+  className = '', inputRef, city, size = 'lg', mkt,
 }: Props) {
   const dark = variant === 'dark'
   const auto = variant === 'auto'
@@ -68,6 +64,7 @@ export default function SearchSuggest({
       try {
         const sp = new URLSearchParams({ q })
         if (city) sp.set('city', city)
+        if (mkt) sp.set('mkt', mkt)
         const res = await fetch(`/api/suggest?${sp}`, { signal: ctrl.signal })
         const json = (await res.json()) as { ok: boolean; suggestions?: Suggestion[] }
         if (ctrl.signal.aborted) return
@@ -80,7 +77,7 @@ export default function SearchSuggest({
       }
     }, 150)
     return () => window.clearTimeout(timer)
-  }, [value, city])
+  }, [value, city, mkt])
 
   const pick = (s: Suggestion) => {
     setOpen(false)
@@ -188,51 +185,55 @@ export default function SearchSuggest({
               : 'border border-sv-ink/10 bg-sv-surface shadow-card-hover'
           }`}
         >
-          {groups.map((g) => (
-            <li key={g.kind} role="presentation">
-              <div
-                className={`px-3 pb-1 pt-2 text-[10px] font-extrabold uppercase tracking-[0.08em] ${
-                  auto ? 'text-sv-ink/35 dark:text-white/35' : dark ? 'text-white/35' : 'text-sv-ink/35'
-                }`}
-              >
-                {KIND_LABEL[g.kind]}
-              </div>
-              <ul role="group" aria-label={KIND_LABEL[g.kind]}>
-                {g.rows.map(({ s, i }) => {
-                  const Icon = KIND_ICON[s.kind]
-                  return (
-                    <li
-                      id={`${listId}-${i}`}
-                      key={`${s.kind}:${s.city ?? ''}:${s.ka}`}
-                      role="option"
-                      aria-selected={hi === i}
-                    >
-                      <button
-                        type="button"
-                        onMouseDown={(e) => { e.preventDefault(); pick(s) }}
-                        onMouseEnter={() => setHi(i)}
-                        className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left transition-colors ${
-                          hi === i
-                            ? auto ? 'bg-sv-ink/[0.05] dark:bg-white/10' : dark ? 'bg-white/10' : 'bg-sv-ink/[0.05]'
-                            : ''
-                        }`}
+          {groups.map((g) => {
+            const label =
+              g.kind === 'city' ? t('search.city') : g.kind === 'district' ? t('search.district') : t('add.street')
+            return (
+              <li key={g.kind} role="presentation">
+                <div
+                  className={`px-3 pb-1 pt-2 text-[10px] font-extrabold uppercase tracking-[0.08em] ${
+                    auto ? 'text-sv-ink/35 dark:text-white/35' : dark ? 'text-white/35' : 'text-sv-ink/35'
+                  }`}
+                >
+                  {label}
+                </div>
+                <ul role="group" aria-label={label}>
+                  {g.rows.map(({ s, i }) => {
+                    const Icon = KIND_ICON[s.kind]
+                    return (
+                      <li
+                        id={`${listId}-${i}`}
+                        key={`${s.kind}:${s.city ?? ''}:${s.ka}`}
+                        role="option"
+                        aria-selected={hi === i}
                       >
-                        <Icon className={`h-4 w-4 shrink-0 ${auto ? 'text-sv-blue dark:text-sv-blue-light' : dark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
-                        <span className={`min-w-0 flex-1 truncate text-[13px] font-bold ${auto ? 'text-sv-ink dark:text-white' : dark ? 'text-white' : 'text-sv-ink'}`}>
-                          {s.ka}
-                          {(s.city || s.district || s.en) && (
-                            <span className={`ml-1.5 font-semibold ${auto ? 'text-sv-ink/60 dark:text-white/40' : dark ? 'text-white/40' : 'text-sv-ink/60'}`}>
-                              {[s.district, s.city, s.en].filter(Boolean).join(' · ')}
-                            </span>
-                          )}
-                        </span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-            </li>
-          ))}
+                        <button
+                          type="button"
+                          onMouseDown={(e) => { e.preventDefault(); pick(s) }}
+                          onMouseEnter={() => setHi(i)}
+                          className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left transition-colors ${
+                            hi === i
+                              ? auto ? 'bg-sv-ink/[0.05] dark:bg-white/10' : dark ? 'bg-white/10' : 'bg-sv-ink/[0.05]'
+                              : ''
+                          }`}
+                        >
+                          <Icon className={`h-4 w-4 shrink-0 ${auto ? 'text-sv-blue dark:text-sv-blue-light' : dark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
+                          <span className={`min-w-0 flex-1 truncate text-[13px] font-bold ${auto ? 'text-sv-ink dark:text-white' : dark ? 'text-white' : 'text-sv-ink'}`}>
+                            {s.ka}
+                            {(s.city || s.district || s.en) && (
+                              <span className={`ml-1.5 font-semibold ${auto ? 'text-sv-ink/60 dark:text-white/40' : dark ? 'text-white/40' : 'text-sv-ink/60'}`}>
+                                {[s.district, s.city, s.en].filter(Boolean).join(' · ')}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

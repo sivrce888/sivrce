@@ -98,6 +98,49 @@ export function splitLinks(text: string): { text: string; href?: string }[] {
 
 export type AgoUnit = "now" | "min" | "hour" | "day"
 
+/** LeadForm → chat composer continuity. sessionStorage, 2 kB cap. */
+export const CHAT_DRAFT_KEY = "sv-chat-draft"
+
+export function parseChatDraft(raw: string | null, listingId: string): string | null {
+  if (!raw || !listingId) return null
+  try {
+    const d = JSON.parse(raw) as { listingId?: unknown; text?: unknown }
+    if (d.listingId !== listingId || typeof d.text !== "string") return null
+    const t = d.text.trim()
+    return t ? t.slice(0, 2000) : null
+  } catch {
+    return null
+  }
+}
+
+export function stashChatDraft(listingId: string, text: string) {
+  const trimmed = text.trim().slice(0, 2000)
+  if (!listingId || !trimmed) return
+  try {
+    sessionStorage.setItem(CHAT_DRAFT_KEY, JSON.stringify({ listingId, text: trimmed }))
+  } catch {
+    // ponytail: private-mode / quota — composer stays empty, Inquiry already saved
+  }
+}
+
+export function peekChatDraft(listingId: string): string | null {
+  try {
+    return parseChatDraft(sessionStorage.getItem(CHAT_DRAFT_KEY), listingId)
+  } catch {
+    return null
+  }
+}
+
+export function clearChatDraft(listingId: string) {
+  try {
+    const raw = sessionStorage.getItem(CHAT_DRAFT_KEY)
+    const d = raw ? (JSON.parse(raw) as { listingId?: unknown }) : null
+    if (d?.listingId === listingId) sessionStorage.removeItem(CHAT_DRAFT_KEY)
+  } catch {
+    // ignore
+  }
+}
+
 /** Room-list relative time as raw units — the component maps them to t(). */
 export function timeAgo(iso: string, nowMs: number = Date.now()): { n: number; unit: AgoUnit } {
   const mins = Math.floor((nowMs - new Date(iso).getTime()) / 60_000)

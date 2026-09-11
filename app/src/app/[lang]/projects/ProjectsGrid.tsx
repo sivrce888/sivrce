@@ -6,7 +6,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Building2, CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react'
-import { MICRO, finishLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo-lite'
+import { MICRO, finishLabel, hasPriceFrom, priceFromLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo-lite'
 import type { ProjectCard } from './card'
 
 /** Cards per hub page — 18 rows × 2 cols desktop. Caps ISR payload weight. */
@@ -82,8 +82,10 @@ export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: 
                 </span>
                 {p.priceFromM2 && (
                   <span className="ml-auto text-[16px] font-black text-sv-blue">
-                    {p.priceFromM2}
-                    <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
+                    {priceFromLabel(p.priceFromM2, loc)}
+                    {hasPriceFrom(p.priceFromM2) && (
+                      <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
+                    )}
                   </span>
                 )}
               </div>

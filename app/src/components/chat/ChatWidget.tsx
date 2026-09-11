@@ -39,9 +39,11 @@ import { useChat, type ChatRoom } from "./ChatProvider"
 import FaqView from "./FaqView"
 import {
   clockLabel,
+  clearChatDraft,
   dayKey,
   dayLabel,
   mergeMessages,
+  peekChatDraft,
   sameGroup,
   splitLinks,
   timeAgo,
@@ -367,33 +369,39 @@ const MessageBubble = memo(function MessageBubble({
  * this bar — never the (memoized) message log above it. */
 function Composer({
   roomId,
+  listingId,
+  initialValue = "",
   sendText,
 }: {
   roomId: string
+  listingId?: string | null
+  initialValue?: string
   sendText: (text: string, clientId?: string) => Promise<void>
 }) {
   const { t } = useI18n()
-  const [input, setInput] = useState("")
+  const [input, setInput] = useState(initialValue)
   const typingSentAt = useRef(0)
 
   // Sends are fire-and-forget: the optimistic bubble carries pending/failed
   // state, so slow networks never freeze the composer.
+  const flush = (text: string) => {
+    setInput("")
+    if (listingId) clearChatDraft(listingId)
+    void sendText(text)
+  }
+
   const onSend = (e: FormEvent) => {
     e.preventDefault()
     const text = input.trim()
     if (!text) return
-    setInput("")
-    void sendText(text)
+    flush(text)
   }
 
   const onInputKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       const text = input.trim()
-      if (text) {
-        setInput("")
-        void sendText(text)
-      }
+      if (text) flush(text)
     }
   }
 
@@ -419,14 +427,17 @@ function Composer({
         placeholder={t("chat.placeholder")}
         maxLength={CHAT_MAX}
         rows={1}
+        enterKeyHint="send"
+        autoCapitalize="sentences"
+        autoComplete="off"
         aria-label={t("chat.placeholder")}
-        className="max-h-28 min-w-0 flex-1 resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40"
+        className="max-h-28 min-w-0 flex-1 resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40 touch-manipulation"
       />
       <button
         type="submit"
         disabled={!input.trim()}
         aria-label={t("chat.send")}
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 disabled:opacity-40"
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 disabled:opacity-40 touch-manipulation"
       >
         <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
       </button>
@@ -434,7 +445,17 @@ function Composer({
   )
 }
 
-function MessageThread({ roomId }: { roomId: string }) {
+function MessageThread({
+  roomId,
+  listingId,
+  listingTitle,
+  isSupport,
+}: {
+  roomId: string
+  listingId?: string | null
+  listingTitle?: string | null
+  isSupport?: boolean
+}) {
   const { meId } = useChat()
   const { t, lang } = useI18n()
   const me = meId ?? ""
@@ -633,6 +654,7 @@ function MessageThread({ roomId }: { roomId: string }) {
 
   const sendText = useCallback(
     async (text: string, clientId?: string) => {
+      if (listingId) clearChatDraft(listingId)
       const cid = clientId ?? (crypto.randomUUID?.() ?? `c${Date.now()}${Math.random()}`)
       const temp: UIMessage = {
         id: `tmp_${cid}`,
@@ -744,6 +766,18 @@ function MessageThread({ roomId }: { roomId: string }) {
           aria-label={t("chat.log")}
           className="absolute inset-0 overflow-y-auto overscroll-contain px-4 py-2"
         >
+          {listingId && listingTitle && (
+            <a
+              href={`/listing/${listingId}`}
+              aria-label={t("chat.viewListing")}
+              className="mb-2 mt-1 flex min-h-11 items-center gap-2 rounded-control bg-sv-ink/[0.04] px-3 py-2.5 text-left transition-colors hover:bg-sv-ink/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-hidden />
+              <span className="min-w-0 truncate text-[13px] font-extrabold text-sv-ink">
+                {listingTitle}
+              </span>
+            </a>
+          )}
           {page.hasMore && (
             <button
               type="button"
@@ -817,6 +851,30 @@ function MessageThread({ roomId }: { roomId: string }) {
           </button>
         )}
       </div>
+
+      {messages.length === 0 && !isSupport && listingId && (
+        <div className="border-t border-sv-ink/[0.06] px-3 pb-1 pt-2">
+          <p className="px-0.5 pb-2 text-[11.5px] font-bold text-sv-ink/45">{t("chat.suggestHint")}</p>
+          <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {(
+              [
+                "chat.suggestInterest",
+                "chat.suggestViewing",
+                "chat.suggestAvailable",
+              ] as const
+            ).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => void sendText(t(key))}
+                className="min-h-11 max-w-[85%] shrink-0 truncate rounded-full border border-sv-blue/20 bg-sv-blue/[0.06] px-3.5 py-2.5 text-[13px] font-bold text-sv-blue-deep transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue active:scale-[0.98]"
+              >
+                {t(key)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Composer — owns the draft, so typing never re-renders the log */}
       <Composer roomId={roomId} sendText={sendText} />
@@ -1076,7 +1134,7 @@ export default function ChatWidget() {
         aria-label={open ? t("chat.close") : t("chat.open")}
         aria-expanded={open}
         aria-controls="sv-chat-panel"
-        className="fixed bottom-24 right-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none lg:bottom-6 lg:right-6"
+        className="fixed bottom-24 end-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none lg:bottom-6 lg:end-6"
       >
         <span
           className={`absolute transition-all duration-200 ${
@@ -1111,7 +1169,7 @@ export default function ChatWidget() {
           onKeyDown={onPanelKeyDown}
           className={`fixed z-50 flex flex-col overflow-hidden bg-sv-surface shadow-panel-dark outline-none
             max-md:inset-x-0 max-md:top-0 max-md:bottom-0 max-md:h-[100dvh] max-md:w-full max-md:rounded-none max-md:pt-[env(safe-area-inset-top,0px)]
-            md:bottom-6 md:right-6 md:h-[560px] md:w-[380px] md:rounded-card md:border md:border-sv-ink/[0.08]
+            md:bottom-6 md:end-6 md:h-[560px] md:w-[380px] md:rounded-card md:border md:border-sv-ink/[0.08]
             transition-[opacity,transform] duration-[260ms] ${SHEET_EASE} motion-reduce:transition-none
             ${panelIn ? "translate-y-0 opacity-100 md:scale-100" : "max-md:translate-y-full md:translate-y-3 md:scale-[0.98] md:opacity-0"}`}
         >
@@ -1166,7 +1224,13 @@ export default function ChatWidget() {
 
           {/* Content */}
           {activeRoomId ? (
-            <MessageThread key={activeRoomId} roomId={activeRoomId} />
+            <MessageThread
+              key={activeRoomId}
+              roomId={activeRoomId}
+              listingId={activeRoom?.listingId}
+              listingTitle={activeRoom?.listing?.title}
+              isSupport={activeRoom?.isSupport}
+            />
           ) : view === "faq" ? (
             <FaqView key={lang} onContactSupport={openSupport} />
           ) : (

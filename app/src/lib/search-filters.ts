@@ -13,6 +13,9 @@ import { cadastralVariants, parseListingNumber, phoneSearchNeedles } from "@/lib
 import { isSearchTier } from "@/lib/listings-home-rail"
 import type { SearchFilters } from "@/lib/search"
 
+// ponytail: mirrors EUR_GEL in listing-format (client-safe duplicate; unify if rates move server-side).
+const EUR_GEL = 3.04
+
 const PROP_TYPES = ["apartment", "house", "villa", "commercial", "land", "hotel"] as const
 
 // ---------------------------------------------------------------------------
@@ -51,6 +54,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     return vals.length ? vals : undefined
   }
   const curParam = sp.get("cur")
+  const currency = curParam === "GEL" || curParam === "EUR" ? curParam : "USD"
 
   // Daily-rent dates: YYYY-MM-DD, from ≥ today, from < to. Inline validation
   // (no zod in this codebase — /api/listings precedent); invalid ranges are
@@ -65,6 +69,10 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
   const dailyDates = dFrom && dTo && dFrom >= today && dFrom < dTo ? { dailyFrom: dFrom, dailyTo: dTo } : {}
 
   const sellerParam = sp.get("seller")
+  // Market scope: default GE (sivrce.ge catalog), 'DE' for sivrce.com/de,
+  // 'all' for the worldwide hub. Old rows carry 'GE' via the column default.
+  const countryRaw = sp.get("country")
+  const country = countryRaw === "DE" || countryRaw === "GE" ? (countryRaw as "GE" | "DE") : countryRaw === "all" ? undefined : ("GE" as const)
 
   const west = num("west")
   const south = num("south")
@@ -86,6 +94,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     propertyType,
     city: str("city"),
     district: str("district", 500),
+    country,
     minPrice: num("minPrice") ?? num("min"),
     maxPrice: num("maxPrice") ?? num("max"),
     minArea: num("minArea") ?? num("amin"),
@@ -109,7 +118,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     sellerType: sellerParam === "owner" || sellerParam === "agency" ? sellerParam : undefined,
     ...dailyDates,
     bbox,
-    currency: curParam === "GEL" ? "GEL" : "USD",
+    currency,
     sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
     page: num("page") ?? 1,
     pageSize: num("pageSize") ?? 24,
@@ -126,6 +135,7 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
     deletedAt: null,
     status: "active",
   }
+  if (filters.country) where.country = filters.country
   const and: Prisma.ListingWhereInput[] = []
 
   if (filters.dealType) where.dealType = filters.dealType as Prisma.ListingWhereInput["dealType"]
@@ -146,23 +156,26 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
       ],
     })
   }
-  // Price bounds arrive in filters.currency (default USD): match listings
-  // priced in that currency directly, plus converted bounds on the other.
+  // Price bounds arrive in filters.currency (default USD). Convert into each
+  // stored listing currency so EUR queries don't silently match as USD.
   if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-    const cur = filters.currency === "GEL" ? "GEL" : "USD"
-    const other = cur === "USD" ? "GEL" : "USD"
-    const conv = (v: number) => (cur === "USD" ? v * USD_GEL : v / USD_GEL)
-    const same: Prisma.ListingWhereInput = { currency: cur }
-    const cross: Prisma.ListingWhereInput = { currency: other }
-    if (filters.minPrice !== undefined) {
-      same.price = { gte: filters.minPrice }
-      cross.price = { gte: Math.floor(conv(filters.minPrice)) }
+    const src = filters.currency === "GEL" || filters.currency === "EUR" ? filters.currency : "USD"
+    const toGel = (v: number) => (src === "GEL" ? v : src === "EUR" ? v * EUR_GEL : v * USD_GEL)
+    const toUsd = (v: number) => (src === "USD" ? v : src === "GEL" ? v / USD_GEL : (v * EUR_GEL) / USD_GEL)
+    const toEur = (v: number) => (src === "EUR" ? v : toGel(v) / EUR_GEL)
+    const priceOf = (to: (v: number) => number): Prisma.IntFilter => {
+      const p: Prisma.IntFilter = {}
+      if (filters.minPrice !== undefined) p.gte = Math.floor(to(filters.minPrice))
+      if (filters.maxPrice !== undefined) p.lte = Math.ceil(to(filters.maxPrice))
+      return p
     }
-    if (filters.maxPrice !== undefined) {
-      same.price = { ...(same.price as object ?? {}), lte: filters.maxPrice }
-      cross.price = { ...(cross.price as object ?? {}), lte: Math.ceil(conv(filters.maxPrice)) }
-    }
-    and.push({ OR: [same, cross] })
+    and.push({
+      OR: [
+        { currency: "GEL", price: priceOf(toGel) },
+        { currency: "USD", price: priceOf(toUsd) },
+        { currency: "EUR", price: priceOf(toEur) },
+      ],
+    })
   }
   if (filters.minArea !== undefined) where.area = { ...(where.area as object ?? {}), gte: filters.minArea }
   if (filters.maxArea !== undefined) where.area = { ...(where.area as object ?? {}), lte: filters.maxArea }

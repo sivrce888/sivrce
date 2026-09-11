@@ -6,7 +6,10 @@
  */
 
 import { useId, useRef, useState, type FormEvent } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, RotateCcw, Send } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, MessageCircle, RotateCcw, Send } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useChat } from '@/components/chat/ChatProvider'
 import { useI18n } from '@/lib/i18n/context'
 import { formatPhone, PHONE_RE } from '@/lib/inquiries/phone'
 import { cn } from '@/lib/utils'
@@ -29,6 +32,10 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
   const { lang } = useI18n()
   const s = leadStrings(lang)
   const uid = useId()
+  const pathname = usePathname()
+  const router = useRouter()
+  const { status: authStatus } = useSession()
+  const { openChat } = useChat()
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -86,6 +93,17 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
     }
   }
 
+  function continueInChat() {
+    if (targetType !== 'listing') return
+    if (authStatus === 'authenticated') {
+      openChat(targetId)
+      return
+    }
+    const qs = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+    qs.set('message', targetId)
+    router.push(`/auth/signin?callbackUrl=${encodeURIComponent(`${pathname}?${qs.toString()}`)}`)
+  }
+
   function reset() {
     setName('')
     setPhone('')
@@ -113,6 +131,16 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
           <h3 className="mt-4 text-[20px] font-extrabold text-sv-ink">{s.successTitle}</h3>
           <p className="mt-2 text-[14px] font-semibold leading-relaxed text-sv-ink/60">{s.successBody(recipientName)}</p>
           <p className="mt-1 text-[14px] font-semibold leading-relaxed text-sv-ink/60">{s.successNote}</p>
+          {targetType === 'listing' ? (
+            <button
+              type="button"
+              onClick={continueInChat}
+              className="mt-5 flex min-h-[44px] items-center gap-2 rounded-full bg-sv-blue px-5 text-[14px] font-extrabold text-white transition-all hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden />
+              {s.continueChat}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={reset}

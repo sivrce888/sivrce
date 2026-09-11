@@ -25,6 +25,7 @@ export interface LeadStrings {
   successTitle: string
   successBody: (name?: string) => string
   successNote: string
+  continueChat: string
   newMessage: string
   errorTitle: string
   errorGeneric: string
@@ -55,6 +56,7 @@ const ka: LeadStrings = {
   successTitle: 'მესიჯი გაიგზავნა!',
   successBody: (name) => (name ? `${name} დაგიკავშირდება უახლოეს დროს.` : 'დაგიკავშირდებიან უახლოეს დროს.'),
   successNote: 'შემდეგი ნაბიჯი: დაგირეკავენ მითითებულ ნომერზე — ნუ გამოტოვებ ზარს.',
+  continueChat: 'განაგრძე ჩატში',
   newMessage: 'ახალი მესიჯი',
   errorTitle: 'ვერ გაიგზავნა',
   errorGeneric: 'დაფიქსირდა შეცდომა. შეამოწმე კავშირი და სცადე თავიდან.',
@@ -85,6 +87,7 @@ const en: LeadStrings = {
   successTitle: 'Message sent!',
   successBody: (name) => (name ? `${name} will contact you shortly.` : 'You’ll be contacted shortly.'),
   successNote: 'Next step: expect a call on the number you provided — keep your phone close.',
+  continueChat: 'Continue in chat',
   newMessage: 'New message',
   errorTitle: 'Not sent',
   errorGeneric: 'Something went wrong. Check your connection and try again.',
@@ -115,6 +118,7 @@ const ru: LeadStrings = {
   successTitle: 'Сообщение отправлено!',
   successBody: (name) => (name ? `${name} свяжется с вами в ближайшее время.` : 'С вами свяжутся в ближайшее время.'),
   successNote: 'Следующий шаг: вам позвонят на указанный номер — держите телефон рядом.',
+  continueChat: 'Продолжить в чате',
   newMessage: 'Новое сообщение',
   errorTitle: 'Не отправлено',
   errorGeneric: 'Произошла ошибка. Проверьте соединение и попробуйте снова.',
@@ -145,6 +149,7 @@ const tr: LeadStrings = {
   successTitle: 'Mesaj gönderildi!',
   successBody: (name) => (name ? `${name} en kısa sürede seninle iletişime geçecek.` : 'En kısa sürede seninle iletişime geçilecek.'),
   successNote: 'Sıradaki adım: belirttiğin numaraya arama gelecek — telefonunu yakında tut.',
+  continueChat: 'Sohbete devam et',
   newMessage: 'Yeni mesaj',
   errorTitle: 'Gönderilemedi',
   errorGeneric: 'Bir şeyler ters gitti. Bağlantını kontrol et ve tekrar dene.',
@@ -175,6 +180,7 @@ const ar: LeadStrings = {
   successTitle: 'تم إرسال الرسالة!',
   successBody: (name) => (name ? `${name} سيتواصل معك قريبًا.` : 'سنتواصل معك قريبًا.'),
   successNote: 'الخطوة التالية: ستصلك مكالمة على الرقم الذي أدخلته — أبقِ هاتفك قريبًا.',
+  continueChat: 'المتابعة في الدردشة',
   newMessage: 'رسالة جديدة',
   errorTitle: 'لم يتم الإرسال',
   errorGeneric: 'حدث خطأ ما. تحقّق من اتصالك وحاول مجددًا.',
@@ -205,6 +211,7 @@ const de: LeadStrings = {
   successTitle: 'Nachricht gesendet!',
   successBody: (name) => (name ? `${name} meldet sich in Kürze bei dir.` : 'Man meldet sich in Kürze bei dir.'),
   successNote: 'Nächster Schritt: Du bekommst einen Anruf auf die angegebene Nummer — halte dein Handy bereit.',
+  continueChat: 'Im Chat weiter',
   newMessage: 'Neue Nachricht',
   errorTitle: 'Nicht gesendet',
   errorGeneric: 'Etwas ist schiefgelaufen. Prüfe deine Verbindung und versuch es erneut.',
@@ -235,6 +242,7 @@ const he: LeadStrings = {
   successTitle: 'ההודעה נשלחה!',
   successBody: (name) => (name ? `${name} יחזור אליך בקרוב.` : 'יחזרו אליך בקרוב.'),
   successNote: 'השלב הבא: יתקשרו אליך למספר שמסרת — שמור את הטלפון בקרבת מקום.',
+  continueChat: 'המשך בצ׳אט',
   newMessage: 'הודעה חדשה',
   errorTitle: 'לא נשלח',
   errorGeneric: 'משהו השתבש. בדוק את החיבור ונסה שוב.',
@@ -265,6 +273,7 @@ const hy: LeadStrings = {
   successTitle: 'Հաղորդագրությունն ուղարկվեց!',
   successBody: (name) => (name ? `${name} շուտով կկապվի քեզ հետ.` : 'Շուտով քեզ հետ կկապվեն.'),
   successNote: 'Հաջորդ քայլը՝ զանգ կգա նշած համարին — հեռախոսդ մոտ պահիր.',
+  continueChat: 'Շարունակել չատում',
   newMessage: 'Նոր հաղորդագրություն',
   errorTitle: 'Չհաջողվեց ուղարկել',
   errorGeneric: 'Ինչ-որ սխալ տեղի ունեցավ: Ստուգիր կապը և փորձիր նորից.',
@@ -295,6 +304,7 @@ const az: LeadStrings = {
   successTitle: 'Mesaj göndərildi!',
   successBody: (name) => (name ? `${name} tezliklə səninlə əlaqə saxlayacaq.` : 'Tezliklə səninlə əlaqə saxlayacaqlar.'),
   successNote: 'Növbəti addım: göstərdiyin nömrəyə zəng gələcək — telefonu yaxında saxla.',
+  continueChat: 'Söhbətə davam et',
   newMessage: 'Yeni mesaj',
   errorTitle: 'Göndərilmədi',
   errorGeneric: 'Nəsə xəta baş verdi. Əlaqəni yoxla və yenidən cəhd et.',
@@ -325,6 +335,7 @@ const uk: LeadStrings = {
   successTitle: 'Повідомлення надіслано!',
   successBody: (name) => (name ? `${name} зв’яжеться з вами найближчим часом.` : 'З вами зв’яжуться найближчим часом.'),
   successNote: 'Наступний крок: вам зателефонують на вказаний номер — тримайте телефон поруч.',
+  continueChat: 'Продовжити в чаті',
   newMessage: 'Нове повідомлення',
   errorTitle: 'Не надіслано',
   errorGeneric: 'Сталася помилка. Перевірте з’єднання і спробуйте ще раз.',

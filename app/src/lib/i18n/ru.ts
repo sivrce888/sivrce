@@ -810,6 +810,10 @@ export const ru: Dict = {
   'chat.viewListing': 'Смотреть объявление',
   'chat.leave': 'Покинуть',
   'chat.leaveConfirm': 'Нажмите ещё раз, чтобы выйти',
+  'chat.suggestHint': 'Выберите быстрое сообщение — или напишите своё',
+  'chat.suggestInterest': 'Меня интересует это объявление. Оно ещё доступно?',
+  'chat.suggestViewing': 'Когда можно приехать на просмотр?',
+  'chat.suggestAvailable': 'Пожалуйста, свяжитесь со мной по деталям.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастровая карта',

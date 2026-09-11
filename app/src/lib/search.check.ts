@@ -12,7 +12,7 @@ try {
   /* no env file — fallback-contract branch will run */
 }
 
-import { deleteListing, indexListing, searchListings, type ListingDocument } from "./search"
+import { deleteListing, indexListing, meiliCountryClause, searchListings, type ListingDocument } from "./search"
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) {
@@ -22,6 +22,9 @@ function assert(cond: unknown, msg: string): asserts cond {
 }
 
 async function main() {
+  assert(meiliCountryClause("GE") === '(country = "GE" OR country NOT EXISTS)', "GE meili clause must keep unindexed docs")
+  assert(meiliCountryClause("DE") === 'country = "DE"', "DE meili clause is exact")
+
   if (!process.env.MEILISEARCH_HOST) {
     const r = await searchListings({ q: "ვაკე" })
     assert(r === null, "searchListings must return null without MEILISEARCH_HOST")
@@ -38,6 +41,7 @@ async function main() {
     city: "თბილისი",
     district: "ვაკე",
     address: "ჭავჭავაძის 47",
+    country: "GE",
     dealType: "buy",
     propertyType: "apartment",
     price: 250000,

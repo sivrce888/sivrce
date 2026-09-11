@@ -48,4 +48,18 @@ assert.deepEqual(
 )
 assert.equal(parseSearchParams(new URLSearchParams('deal=daily&feat=add.f.partiesAllowed')).dealType, 'daily')
 
+const eur = parseSearchParams(new URLSearchParams('max=500000&cur=EUR'))
+assert.equal(eur.currency, 'EUR')
+assert.equal(eur.maxPrice, 500000)
+const eurWhere = buildDbWhere(eur)
+assert.ok(Array.isArray(eurWhere.AND) && eurWhere.AND.some((c) => Array.isArray(c.OR) && c.OR.length === 3))
+
+assert.equal(parseSearchParams(new URLSearchParams()).country, 'GE')
+assert.equal(parseSearchParams(new URLSearchParams('country=DE')).country, 'DE')
+assert.equal(parseSearchParams(new URLSearchParams('country=all')).country, undefined)
+assert.equal(parseSearchParams(new URLSearchParams('country=FR')).country, 'GE')
+assert.equal(buildDbWhere({}).country, undefined)
+assert.equal(buildDbWhere({ country: 'GE' }).country, 'GE')
+assert.equal(buildDbWhere({ country: 'DE' }).country, 'DE')
+
 console.log('search-filters.catalog: ok')

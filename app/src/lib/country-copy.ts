@@ -75,6 +75,31 @@ export const DE_HUB: CountryCopy = {
   ],
 }
 
+/** Native German hub — used when `lang=de`. Unique copy, not a translation of DE_HUB. */
+export const DE_HUB_DE: CountryCopy = {
+  title: 'Immobilien Deutschland — Berlin & Metropolen | sivrce',
+  description:
+    'sivrce in Deutschland: Berlin zuerst. Kauf und Miete mit Notar, Grundbuch und Grunderwerbsteuer. Inserate nur verifiziert.',
+  h1: 'Immobilien in Deutschland',
+  lede:
+    'sivrce startet in Deutschland mit Berlin — Stadtguides jetzt, verifizierte Inserate sobald Partner stehen. Kauf läuft über Notar und Grundbuch, nicht über ein Portal-Checkout.',
+  body: [
+    'Deutschland ist ein Mietermarkt. Kapitalanleger rechnen mit Leerstand und Mietspiegel, nicht mit Touristenauslastung. Berlin, Hamburg, München, Frankfurt und Köln sind die ersten Metropolen — jede Stadtseite ist ein eigenes Briefing, keine Doorway-Seite.',
+    'Ein Kauf ist kein Handschlag. Der Notar verliest den Vertrag, Grunderwerbsteuer (in Berlin 6 %) plus Notar- und Grundbuchkosten werden fällig. Ausländer dürfen Volleigentum erwerben. sivrce veröffentlicht nur, was sich so prüfen lässt wie in Georgien.',
+    'Solange das Inventar wächst: Stadtguides für Lage, Pendeln und den rechtlichen Weg. Die Karte zeigt amtliche Geometrie (ALKIS, B-Plan, StEP Wohnen 2040) — keine erfundenen Gebäude.',
+  ],
+  faqs: [
+    {
+      q: 'Darf ein Nicht-Resident eine Wohnung in Deutschland kaufen?',
+      a: 'Ja. Es gibt kein Staatsangehörigkeitsverbot. Sie brauchen einen Notar, ein Konto für die Abwicklung und Budget für Grunderwerbsteuer, Notar und Grundbuch — in Berlin typisch 8–12 % auf den Kaufpreis.',
+    },
+    {
+      q: 'Ist sivrce.de eine eigene Website?',
+      a: 'Nein. sivrce.de leitet dauerhaft auf sivrce.com/de um. Eine kanonische URL. Georgien bleibt auf sivrce.ge.',
+    },
+  ],
+}
+
 export const AE_HUB: CountryCopy = {
   title: 'UAE real estate — Dubai & Abu Dhabi | sivrce',
   description:
@@ -148,6 +173,58 @@ const berlinBuy: CountryCopy = {
       q: 'Are there extra taxes for foreigners?',
       a: 'No special foreigner tax. You pay the same transfer tax, notary and registration as a resident. Income from rent is taxable in Germany.',
     },
+  ],
+}
+
+export const DE_BERLIN_HUB_DE: CountryCopy = {
+  title: 'Immobilien Berlin — Bezirke, Kauf & Miete | sivrce',
+  description:
+    'Berlin: zwölf Bezirke, Notar, Grundbuch, 6 % Grunderwerbsteuer. sivrce zeigt amtliche Geometrie und verifizierte Neubauten — keine erfundenen Inserate.',
+  h1: 'Immobilien in Berlin',
+  lede:
+    'Berlin ist Mieterstadt und Hauptstadt. sivrce startet hier mit Bezirksguides und einem Kauf-/Miet-Briefing. Inserate folgen, sobald sie sich prüfen lassen.',
+  body: [
+    'Zwölf Bezirke (Mitte bis Treptow-Köpenick) plus Ortsteile wie Kreuzberg und Prenzlauer Berg. Preise und Mieten trennen sich scharf am S-Bahn-Ring.',
+    'Kauf ist notariell: Grundbuch, 6 % Grunderwerbsteuer, Notar und Eintragung obendrauf. sivrce veröffentlicht kein Berliner Inserat, das sich nicht belegen lässt.',
+    'Die 3D-Karte trägt ALKIS-Gebäude, Flurstücke, B-Pläne und StEP Wohnen 2040 — amtliche Quelle, mit Herkunft. Keine KI-Grundrisse.',
+  ],
+  faqs: [
+    { q: 'Dürfen Ausländer in Berlin kaufen?', a: 'Ja. Kein Staatsangehörigkeitsverbot. Notar, rund 8–12 % Nebenkosten, Eigentum entsteht mit der Grundbucheintragung — nicht mit dem Portal.' },
+    { q: 'Wann erscheinen Berliner Inserate auf sivrce?', a: 'Soft Launch mit Guides. Inserate kommen, sobald Makler und Eigentümer unter denselben Prüfregeln stehen wie in Georgien.' },
+  ],
+}
+
+export const DE_BERLIN_BUY_DE: CountryCopy = {
+  title: 'Wohnung kaufen in Berlin | sivrce',
+  description:
+    'Kauf in Berlin: Notar, Grundbuch, 6 % Grunderwerbsteuer, Nebenkosten. Keine erfundenen Angebote.',
+  h1: 'Kaufen in Berlin',
+  lede:
+    'In Berlin kauft man beim Notar, nicht im Checkout. Rechnen Sie mit 6 % Grunderwerbsteuer plus Notar und Grundbuch. Ausländer dürfen kaufen.',
+  body: [
+    'Der Notar verliest den Vertrag. Eigentum wechselt mit der Grundbucheintragung, nicht mit der Anzahlung. Wochen, nicht Stunden. Banken verlangen von Nicht-Residenten oft mehr Eigenkapital.',
+    'Mitte, Prenzlauer Berg und Charlottenburg sind teuer relativ zur Rendite. Neukölln, Lichtenberg und äußere Bezirke rechnen oft über Cashflow. sivrce erfindet keine Inserate — diese Seite bleibt ein Briefing, bis geprüftes Inventar da ist.',
+  ],
+  faqs: [
+    { q: 'Wie lange dauert ein Berliner Kauf?', a: 'Vom notariellen Kaufvertrag bis zur Grundbucheintragung oft 6–12 Wochen, länger bei Finanzierung oder Vorkaufsrecht.' },
+    { q: 'Gibt es eine Ausländersteuer?', a: 'Nein. Dieselbe Grunderwerbsteuer, dieselben Notar- und Grundbuchkosten. Mieteinnahmen sind in Deutschland steuerpflichtig.' },
+  ],
+}
+
+export const DE_BERLIN_RENT_DE: CountryCopy = {
+  title: 'Wohnung mieten in Berlin | sivrce',
+  description:
+    'Mieten in Berlin: Mietspiegel, Kaution, Kaltmiete und Warmmiete. Verifizierte Angebote, sobald sie vorliegen.',
+  h1: 'Mieten in Berlin',
+  lede:
+    'Berlin ist eine Mietstadt. Die meisten Haushalte mieten, die Kaution ist gedeckelt (in der Regel drei Kaltmieten), die Angebotsmiete gehört gegen den Mietspiegel gehalten.',
+  body: [
+    'Warmmiete enthält Heizung und Betriebskosten, Kaltmiete nicht. SCHUFA und Einkommensnachweis sind Standard. Unmöbliert ist der Normalfall — möbliert oft befristet.',
+    'Kurzzeit steht unter eigenen Regeln. Das georgische Tagesmiet-Produkt ist nicht das Berliner Modell. Wenn Mieten hier live gehen, zuerst als Langzeit.',
+  ],
+  faqs: [
+    { q: 'Wie hoch darf die Kaution in Berlin sein?', a: 'In der Regel bis zu drei Kaltmieten, getrennt angelegt (§551 BGB). Mehr ist keine Marktausnahme.' },
+    { q: 'Kann ich ohne SCHUFA mieten?', a: 'Manche Vermieter akzeptieren Alternativen (Arbeitgeber, höhere Kaution, Sperrkonto). Viele nicht. Zeit einplanen.' },
   ],
 }
 
@@ -498,6 +575,12 @@ export function heroPair(h1: string): { lead: string; place: string } {
   if (buy) return { lead: 'Buy', place: `in ${buy[1]}` }
   const rent = /^Rent in (.+)$/i.exec(h1)
   if (rent) return { lead: 'Rent', place: `in ${rent[1]}` }
+  const inDe = /^Immobilien in (.+)$/i.exec(h1)
+  if (inDe) return { lead: 'Immobilien', place: `in ${inDe[1]}` }
+  const kauf = /^Kaufen in (.+)$/i.exec(h1)
+  if (kauf) return { lead: 'Kaufen', place: `in ${kauf[1]}` }
+  const miet = /^Mieten in (.+)$/i.exec(h1)
+  if (miet) return { lead: 'Mieten', place: `in ${miet[1]}` }
   const ar = /^العقارات في (.+)$/.exec(h1)
   if (ar) return { lead: 'العقارات', place: `في ${ar[1]}` }
   return { lead: h1, place: '' }

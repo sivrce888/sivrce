@@ -6,6 +6,7 @@ import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Sparkles, Sta
 import { Reveal, useInViewOnce } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
+import { dirLoc, hasPriceFrom, priceFromLabel } from '@/lib/directory-seo-lite'
 import { getDeveloper, type Project } from '@/data/professionals'
 
 /** Construction bar grows when scrolled into view (CSS transition, no lib). */
@@ -110,8 +111,10 @@ export default function Projects({
                   </span>
                   {p.priceFromM2 && (
                     <span className="ml-auto text-[16px] font-black text-sv-blue-deep dark:text-sv-blue-light">
-                      {p.priceFromM2}
-                      <span className="text-[12px] font-bold text-sv-ink/60">{b('home.perM2')}</span>
+                      {priceFromLabel(p.priceFromM2, dirLoc(lang))}
+                      {hasPriceFrom(p.priceFromM2) && (
+                        <span className="text-[12px] font-bold text-sv-ink/60">{b('home.perM2')}</span>
+                      )}
                     </span>
                   )}
                 </div>

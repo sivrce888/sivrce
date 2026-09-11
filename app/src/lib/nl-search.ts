@@ -6,7 +6,6 @@
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geoDistrictsOf } from '@/data/georgia-locations'
 import { BERLIN_BEZIRKE, DE_CITIES, bezirkSlugOfOrtsteil } from '@/lib/countries/de'
-import { searchHref } from '@/lib/search-location'
 
 export type NlFilters = {
   dealType?: 'sale' | 'rent' | 'daily' | 'pledge'
@@ -368,7 +367,7 @@ export function routeCountryNl(p: {
   const raw = p.q.trim()
   if (p.country === 'de' && raw && isOfficialGeoQuery(raw)) {
     const pin = coordsForNlCity(parseNlQuery(raw).city) ?? { lat: p.lat, lng: p.lng }
-    return { go: 'map', href: `/map?lat=${pin.lat.toFixed(5)}&lng=${pin.lng.toFixed(5)}&zoom=12.8` }
+    return { go: 'map', href: `/map?lat=${pin.lat.toFixed(5)}&lng=${pin.lng.toFixed(5)}&zoom=12.8&country=DE` }
   }
   const parsed: NlFilters = raw ? parseNlQuery(raw) : {}
   if (!parsed.dealType) parsed.dealType = p.tab === 'rent' ? 'rent' : 'sale'
@@ -393,6 +392,7 @@ export function routeCountryNl(p: {
   if (parsed.propertyType === 'villa') q.set('kind', 'house')
   else if (parsed.propertyType) q.set('kind', parsed.propertyType)
   if (parsed.buildingStatus === 'add.status.construction') q.set('status', 'construction')
+  if (p.country === 'de') q.set('country', 'DE')
   return { go: 'map', href: `/map?${q}` }
 }
 

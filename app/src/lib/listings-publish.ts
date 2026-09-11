@@ -27,6 +27,8 @@ const PROP_TYPES: Set<ListingPropertyType> = new Set([
 ])
 
 export const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
+/** German E.161-style: +49 Vorwahl (2–5) Teilnehmer (3–9). */
+export const PHONE_RE_DE = /^\+49 \d{2,5} \d{3,9}$/
 
 const asStr = (v: unknown, max: number): string | null =>
   typeof v === "string" && v.trim().length > 0 && v.length <= max ? v.trim() : null
@@ -45,6 +47,8 @@ export type PublishParsed = {
   /** Wizard key: sale | rent | daily | pledge */
   deal: string
   propertyType: ListingPropertyType
+  /** Listing market — drives phone regex, currency and the country column. */
+  country: "GE" | "DE"
   city: string
   district: string
   address: string
@@ -70,6 +74,7 @@ export type ParseFail = { ok: false; error: string }
 export type ParseOk = { ok: true; data: PublishParsed }
 
 export function parsePublishBody(body: Record<string, unknown>): ParseOk | ParseFail {
+  const country = body.country === "DE" ? ("DE" as const) : ("GE" as const)
   const title = asStr(body.title, 180)
   const dealKey = typeof body.deal === "string" ? body.deal : ""
   const dealType = DEAL_TO_DB[dealKey]
@@ -81,7 +86,8 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
   const district = asStr(body.district, 120)
   const address = asStr(body.address, 240)
   const name = asStr(body.name, 160)
-  const phone = typeof body.phone === "string" && PHONE_RE.test(body.phone) ? body.phone : null
+  const phoneRe = country === "DE" ? PHONE_RE_DE : PHONE_RE
+  const phone = typeof body.phone === "string" && phoneRe.test(body.phone) ? body.phone : null
   const area = typeof body.area === "number" && body.area > 0 && body.area <= 100_000 ? body.area : null
   const price = asInt(body.price, 0, 1_000_000_000)
   const negotiable = body.negotiable === true
@@ -102,6 +108,8 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
   allow.add("add.f.onlineView")
   const features = asStrList(body.features, 50, 60).filter((f) => allow.has(f))
   const projectSlug = asStr(body.projectSlug, 140)
+  /** German Postleitzahl — 5 digits, DE market only. */
+  const plz = country === "DE" && typeof body.plz === "string" && /^\d{5}$/.test(body.plz) ? body.plz : null
 
   return {
     ok: true,
@@ -110,6 +118,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
       dealType,
       deal: dealKey,
       propertyType,
+      country,
       city,
       district,
       address,
@@ -130,6 +139,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
       lng: body.lng,
       extendedFields: {
         negotiable,
+        ...(plz ? { plz } : {}),
         exchangeable: body.exchangeable === true,
         condition: asStr(body.condition, 60),
         buildingStatus: asStr(body.buildingStatus, 60),
@@ -184,6 +194,7 @@ export function _checkParsePublishBody() {
     negotiable: false,
   })
   if (!good.ok) throw new Error(good.error)
+  if (good.data.country !== "GE") throw new Error("default GE")
   if (good.data.dealType !== "buy") throw new Error("deal map")
   if (DEAL_FROM_DB.buy !== "sale") throw new Error("reverse deal")
   if ("projectSlug" in good.data.extendedFields) throw new Error("no slug leak")
@@ -308,4 +319,31 @@ export function _checkParsePublishBody() {
   })
   if (!xss.ok) throw new Error(xss.error)
   if (xss.data.extendedFields.video != null) throw new Error("reject xss video")
+  // DE market: +49 phone, EUR currency allowed, PLZ kept; GE phone rejected.
+  const de = parsePublishBody({
+    title: "2-Zimmer Wohnung Kreuzberg",
+    deal: "sale",
+    propType: "apartment",
+    country: "DE",
+    city: "Berlin",
+    district: "Kreuzberg",
+    address: "Torstraße 12",
+    name: "Anna",
+    phone: "+49 30 1234567",
+    area: 62,
+    price: 329000,
+    images: ["https://cdn.example.com/a.webp"],
+    description: "ok",
+    negotiable: false,
+    plz: "10119",
+  })
+  if (!de.ok) throw new Error(de.error)
+  if (de.data.country !== "DE") throw new Error("de country")
+  if (de.data.extendedFields.plz !== "10119") throw new Error("de plz")
+  const deBadPhone = parsePublishBody({ title: "x", deal: "sale", propType: "apartment", country: "DE", city: "Berlin", district: "Mitte", address: "A 1", name: "A", phone: "+995 555 12 34 56", area: 50, price: 1, images: ["https://cdn.example.com/a.webp"], negotiable: false })
+  if (deBadPhone.ok) throw new Error("GE phone must fail on DE market")
+  const geBadPhone = parsePublishBody({ title: "x", deal: "sale", propType: "apartment", country: "GE", city: "თბილისი", district: "ვაკე", address: "ჭავჭავაძის 12", name: "გ", phone: "+49 30 1234567", area: 50, price: 1, images: ["https://cdn.example.com/a.webp"], negotiable: false })
+  if (geBadPhone.ok) throw new Error("DE phone must fail on GE market")
+  const badPlz = parsePublishBody({ title: "x", deal: "sale", propType: "apartment", country: "DE", city: "Berlin", district: "Mitte", address: "A 1", name: "A", phone: "+49 30 1234567", area: 50, price: 1, images: ["https://cdn.example.com/a.webp"], negotiable: false, plz: "AB123" })
+  if (!badPlz.ok || badPlz.data.extendedFields.plz) throw new Error("junk plz dropped")
 }

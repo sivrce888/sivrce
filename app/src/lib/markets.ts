@@ -70,6 +70,8 @@ export interface Market {
   canonicalOrigin: string
   defaultCitySlug: string
   citySlugs: readonly string[]
+  /** Cities that actually have buy/rent copy pages (cityPack extras). */
+  intentCities: readonly string[]
   intents: readonly ('buy' | 'rent')[]
 }
 
@@ -80,6 +82,8 @@ function pathMarket(
   locale: string,
   defaultCitySlug: string,
   citySlugs: readonly string[],
+  /** Cities with live buy/rent copy pages — others must not link intent URLs (404). */
+  intentCities: readonly string[] = [],
 ): Market {
   return {
     id,
@@ -92,8 +96,18 @@ function pathMarket(
     canonicalOrigin: COM_ORIGIN,
     defaultCitySlug,
     citySlugs,
+    intentCities,
     intents: ['buy', 'rent'],
   }
+}
+
+/** Intent page if the city has one, else the city hub — never a dead URL. German locale keeps the /de/de variant. */
+export function intentHref(country: PathCountryId, citySlug: string, intent: 'buy' | 'rent', lang: Lang = 'en'): string {
+  const m = MARKETS[country]
+  const city = m.citySlugs.includes(citySlug) ? citySlug : m.defaultCitySlug
+  if (!m.intentCities.includes(city)) return `${m.pathPrefix}/${city}`
+  const locale = country === 'de' && lang === 'de' ? '/de' : ''
+  return `${locale}${m.pathPrefix}/${city}/${intent}`
 }
 
 export const MARKETS: Record<CountryId, Market> = {
@@ -108,6 +122,7 @@ export const MARKETS: Record<CountryId, Market> = {
     canonicalOrigin: GE_ORIGIN,
     defaultCitySlug: 'tbilisi',
     citySlugs: [],
+    intentCities: [],
     intents: ['buy', 'rent'],
   },
   de: pathMarket('de', 'DE', 'EUR', 'en-DE', 'berlin', [
@@ -127,8 +142,8 @@ export const MARKETS: Record<CountryId, Market> = {
     'nuremberg',
     'duisburg',
     'bochum',
-  ]),
-  ae: pathMarket('ae', 'AE', 'AED', 'en-AE', 'dubai', ['dubai', 'abu-dhabi']),
+  ], ['berlin']),
+  ae: pathMarket('ae', 'AE', 'AED', 'en-AE', 'dubai', ['dubai', 'abu-dhabi'], ['dubai']),
   fr: pathMarket('fr', 'FR', 'EUR', 'en-FR', 'paris', ['paris', 'lyon']),
   es: pathMarket('es', 'ES', 'EUR', 'en-ES', 'madrid', ['madrid', 'barcelona']),
   it: pathMarket('it', 'IT', 'EUR', 'en-IT', 'rome', ['rome', 'milan']),
@@ -186,4 +201,21 @@ export function canonicalIntent(intent: string): 'buy' | 'rent' | null {
   if (intent === 'buy' || intent === 'sale') return 'buy'
   if (intent === 'rent') return 'rent'
   return null
+}
+
+/** Country market path after locale strip (`/de/berlin/buy`) or raw (`/en/de/berlin`). */
+export function parseCountryPath(pathname: string): {
+  country: PathCountryId
+  city?: string
+  intent?: 'buy' | 'rent'
+} | null {
+  const segs = pathname.split('/').filter(Boolean)
+  const start = segs[0] === 'en' || segs[0] === 'ar' ? 1 : 0
+  const cc = segs[start]
+  if (!cc || !isPathCountry(cc)) return null
+  const next = segs[start + 1]
+  const city = next && isCountryCity(cc, next) ? next : undefined
+  const intentRaw = city ? segs[start + 2] : undefined
+  const intent = intentRaw ? canonicalIntent(intentRaw) ?? undefined : undefined
+  return { country: cc, city, intent }
 }

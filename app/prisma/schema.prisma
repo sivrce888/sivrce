@@ -489,6 +489,8 @@ model Listing {
   city                          String                                 @db.VarChar(100)
   district                      String                                 @db.VarChar(120)
   address                       String                                 @db.VarChar(240)
+  /// ISO country of the listing market — 'GE' (sivrce.ge) | 'DE' (sivrce.com/de).
+  country                       String                                 @default("GE") @db.VarChar(8)
   lat                           Float
   lng                           Float
   location                      Unsupported("geography(Point, 4326)")?
@@ -553,6 +555,7 @@ model Listing {
   @@index([sellerType, deletedAt], map: "listings_seller_type_idx")
   @@index([trustScore(sort: Desc), deletedAt], map: "listings_trust_score_idx")
   @@index([status, deletedAt], map: "listings_status_deleted_at_idx")
+  @@index([country, deletedAt], map: "listings_country_idx")
   @@map("listings")
 }
 

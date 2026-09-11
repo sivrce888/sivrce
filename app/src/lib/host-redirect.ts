@@ -118,6 +118,13 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
     return { type: 'pass', market: restFirst as PathCountryId }
   }
 
+  // Locale == country code (/de/de/berlin, /tr/tr/…): the only non-en locale
+  // a country market publishes (German Germany, Turkish Türkiye). Keep the
+  // locale — path is already the internal [lang]/<cc>/… form on both hosts.
+  if (lang && lang === restFirst && isPathCountry(restFirst)) {
+    return { type: 'pass', market: restFirst as PathCountryId }
+  }
+
   // Production .ge: locale prefixes (incl. /de, /tr, /uk) stay. Bare country
   // paths and leftover country-city slugs move to .com.
   if (!local && kind === 'ge') {

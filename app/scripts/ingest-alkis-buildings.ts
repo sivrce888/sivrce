@@ -69,7 +69,7 @@ async function upsertMany(db: PrismaClient, hits: AlkisBuilding[]): Promise<numb
         building: (h.funktion ?? 'yes').slice(0, 40),
         levels: h.floors,
         heightM: h.heightM,
-        heightSource: h.heightSource ?? 'default_12',
+        heightSource: h.heightSource,
         ring: h.ring,
         geom: JSON.stringify({ type: 'Polygon', coordinates: [h.ring] }),
       })),
@@ -118,8 +118,8 @@ async function upsertMany(db: PrismaClient, hits: AlkisBuilding[]): Promise<numb
           jsonb_build_object(
             'funktion', x->>'building',
             'floors', NULLIF(x->>'levels', '')::int,
-            'height_m', COALESCE(NULLIF(x->>'heightM', '')::float8, 12),
-            'height_source', COALESCE(NULLIF(x->>'heightSource', ''), 'default_12')
+            'height_m', NULLIF(x->>'heightM', '')::float8,
+            'height_source', NULLIF(x->>'heightSource', '')
           ),
           ST_SetSRID(ST_GeomFromGeoJSON(x->>'geom'), 4326),
           (x->>'lat')::float8,

@@ -26,7 +26,7 @@ import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { groupListingsByPin, paintPricePinEl, pinMinPriceGEL } from '@/lib/map/price-pin'
 import { mapRuntimeOptions, isLiteDevice } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
-import { bindBerlinGeoTiles } from '@/lib/map/berlin-tiles'
+import { bindBerlinGeoTiles, pickBerlinFeature, type BerlinPick } from '@/lib/map/berlin-tiles'
 import { initialMapCenter } from '@/lib/map/user-place'
 import { useI18n } from '@/lib/i18n/context'
 import { listingPath } from '@/lib/listing-slug'
@@ -37,6 +37,7 @@ import { useCurrency, formatMapPin, formatListingPrice } from '@/lib/currency'
 import { rentPeriodKey } from '@/lib/add-listing-fields'
 import { blurProps, cardOf } from '@/lib/media'
 import { useFavorites } from '@/lib/favorites'
+import BerlinFeaturePanel from '@/components/map/BerlinFeaturePanel'
 
 export type MapBounds = { west: number; south: number; east: number; north: number }
 
@@ -191,6 +192,7 @@ export default function SearchMapView({
   const [retry, setRetry] = useState(0)
   const [hoverId, setHoverId] = useState<string | null>(null)
   const [activeKey, setActiveKey] = useState<string | null>(null)
+  const [berlinPick, setBerlinPick] = useState<BerlinPick>(null)
   const [cardIdx, setCardIdx] = useState(0)
   const [seen, setSeen] = useState<Set<string>>(() => new Set())
   const [showSearchArea, setShowSearchArea] = useState(false)
@@ -273,6 +275,7 @@ export default function SearchMapView({
         const node = e.originalEvent.target
         if (node instanceof Element && node.closest('[data-map-pin]')) return
         setActiveKey(null)
+        setBerlinPick(pickBerlinFeature(map, e.point))
       })
       const paint = () => {
         map.resize()
@@ -372,6 +375,7 @@ export default function SearchMapView({
       el.addEventListener('click', (e) => {
         e.stopPropagation()
         e.preventDefault()
+        setBerlinPick(null)
         setActiveKey(key)
         setCardIdx(0)
         setSeen((prev) => {
@@ -418,10 +422,11 @@ export default function SearchMapView({
   }, [paintPin, groups, ready])
 
   useEffect(() => {
-    if (!activeKey) return
+    if (!activeKey && !berlinPick) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setActiveKey(null)
+        setBerlinPick(null)
         return
       }
       const g = groupsRef.current.find((x) => x.key === activeKey)
@@ -434,7 +439,7 @@ export default function SearchMapView({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [activeKey])
+  }, [activeKey, berlinPick])
 
   const searchThisArea = () => {
     const map = mapRef.current
@@ -442,6 +447,7 @@ export default function SearchMapView({
     onSearchArea(readBounds(map))
     setShowSearchArea(false)
     setActiveKey(null)
+    setBerlinPick(null)
   }
 
   const clearArea = () => {
@@ -641,7 +647,7 @@ export default function SearchMapView({
           </button>
         </div>
 
-        {picked && pickedListing && (
+        {picked && pickedListing && !berlinPick && (
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-3 pb-[env(safe-area-inset-bottom)]">
             <div className="pointer-events-auto w-full max-w-[20rem] overflow-hidden">
               <MapPinCard
@@ -652,6 +658,11 @@ export default function SearchMapView({
                 onClose={() => setActiveKey(null)}
               />
             </div>
+          </div>
+        )}
+        {berlinPick && (
+          <div className="absolute inset-x-0 bottom-0 z-20 max-h-[46%] overflow-hidden rounded-t-card border-t border-sv-ink/8 bg-sv-surface [&>aside]:w-full [&>aside]:md:w-full md:max-h-[52%]">
+            <BerlinFeaturePanel feature={berlinPick} onClose={() => setBerlinPick(null)} />
           </div>
         )}
       </div>

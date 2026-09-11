@@ -13,9 +13,27 @@ export function dirLoc(lang: Lang): DirLoc {
   return lang === 'ka' || lang === 'ru' ? lang : 'en'
 }
 
-/** Server-side LocalText/LocalName picker (entities/i18n pick() is a client module). */
-export function pickLoc(text: { ka: string; en: string; ru: string }, loc: DirLoc): string {
-  return loc === 'ka' ? text.ka : loc === 'ru' ? text.ru : text.en
+/** Data-level 'price on request' marker the DE catalog stores in priceFromM2. */
+export const ON_REQUEST = 'მოთხოვნით'
+
+/** priceFromM2 for display: the on-request marker renders localized, real prices pass through. */
+export function priceFromLabel(v: string, loc: DirLoc): string {
+  if (v !== ON_REQUEST) return v
+  return loc === 'ru' ? 'По запросу' : loc === 'en' ? 'On request' : v
+}
+
+/** True when priceFromM2 carries a usable number — marker/empty mean no published price. */
+export function hasPriceFrom(v: string): boolean {
+  return v !== '' && v !== ON_REQUEST
+}
+
+/** Server-side LocalText/LocalName picker (entities/i18n pick() is a client module).
+ *  'de' is a data-level loc: German DE-catalog copy falls back to en (UI chrome stays en). */
+export function pickLoc(text: { ka: string; en: string; ru: string; de?: string }, loc: DirLoc | 'de'): string {
+  if (loc === 'ka') return text.ka
+  if (loc === 'ru') return text.ru
+  if (loc === 'de') return text.de ?? text.en
+  return text.en
 }
 
 /** 'ჩაბარებული (2019)' → 'Completed (2019)' / 'Сдан (2019)'; quarters pass through. */

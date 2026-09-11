@@ -10,7 +10,11 @@ import {
   alkisParcelsFromFC,
   BERLIN_BBOX,
   BERLIN_SOURCES,
+  BPLAN_LAYERS,
+  BPLAN_WFS,
+  bplanFeaturesFromFC,
   inBerlin,
+  officialBplanPdf,
   pickAlkisParcelFromFC,
   STEP_LAYERS,
   STEP_WFS,
@@ -122,6 +126,43 @@ assert.ok(BERLIN_SOURCES.some((s) => s.key === 'alkis-buildings' && s.wfs))
 assert.ok(BERLIN_SOURCES.some((s) => s.key === 'step-wohnen-2040' && s.wfs === STEP_WFS))
 assert.ok(STEP_LAYERS.potential.includes('h_step_wo_2040_wobau_fertig'))
 assert.ok(STEP_WFS.includes('step_wo_2040'))
+assert.ok(BERLIN_SOURCES.some((s) => s.key === 'bplaene' && s.wfs === BPLAN_WFS && s.typeName === BPLAN_LAYERS.festgesetzt))
+assert.equal(BPLAN_LAYERS.festgesetzt, 'bplan:b_bp_fs')
+assert.equal(BPLAN_LAYERS.verfahren, 'bplan:a_bp_iv')
+assert.ok(!Object.values(BPLAN_LAYERS).some((t) => t.includes('c_bp_ak')), 'repealed B-Plan layer must stay out')
+
+assert.equal(officialBplanPdf('https://mitte.gis-broker.de/bplaene/0100002b.pdf'), 'https://mitte.gis-broker.de/bplaene/0100002b.pdf')
+assert.equal(officialBplanPdf('https://fbinter.stadt-berlin.de/x.pdf'), 'https://fbinter.stadt-berlin.de/x.pdf')
+assert.equal(officialBplanPdf('javascript:alert(1)'), null)
+assert.equal(officialBplanPdf('https://evil.example/x.pdf'), null)
+assert.equal(officialBplanPdf('http://mitte.gis-broker.de/x.pdf'), null)
+
+const bpFc = {
+  features: [
+    {
+      id: 'bp.1',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[13.4, 52.52], [13.41, 52.52], [13.41, 52.53], [13.4, 52.53], [13.4, 52.52]]],
+      },
+      properties: {
+        gisid: 'g1',
+        planname: '1-2b',
+        planartname: 'Qualifizierter B-Plan',
+        bp_rechtsstand: 'In Kraft getreten',
+        bezirk: '01 - Mitte',
+        inhalt: 'Kerngebiet',
+        scan_www: 'https://mitte.gis-broker.de/bplaene/x.pdf',
+      },
+    },
+  ],
+} as const
+const bps = bplanFeaturesFromFC(bpFc as never, 'festgesetzt')
+assert.equal(bps.length, 1)
+assert.equal(bps[0]!.name, '1-2b')
+assert.equal(bps[0]!.props.status, 'In Kraft getreten')
+assert.equal(bps[0]!.props.doc, 'https://mitte.gis-broker.de/bplaene/x.pdf')
+assert.deepEqual(bplanFeaturesFromFC({ features: [] }, 'verfahren'), [])
 
 const stepFc = {
   features: [

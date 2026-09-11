@@ -103,6 +103,7 @@ console.assert(
 // registry + intel queries
 console.assert(sourcesFor("GE", "permit_status").some((s) => s.slug === "ge-napr"), "GE permits covered")
 console.assert(sourcesFor("DE", "permit_status").some((s) => s.slug === "de-alkis"), "DE permits covered")
+console.assert(sourcesFor("DE", "permit_status").some((s) => s.slug === "de-bplaene"), "DE B-Plan covered")
 console.assert(sourcesFor("DE", "company_identity").some((s) => s.slug === "de-handelsregister"), "DE identity covered")
 const iq = parseIntelQuery("Show me every active development in Tbilisi")
 console.assert(iq?.entity === "project" && iq?.city === "თბილისი" && iq?.status === "active", "active-tbilisi parses")

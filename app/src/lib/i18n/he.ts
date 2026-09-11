@@ -810,6 +810,10 @@ export const he: Dict = {
   'chat.viewListing': 'לצפייה במודעה',
   'chat.leave': 'עזוב',
   'chat.leaveConfirm': 'הקש שוב כדי לעזוב',
+  'chat.suggestHint': 'בחרו הודעה מהירה — או כתבו בעצמכם',
+  'chat.suggestInterest': 'אני מתעניין במודעה הזו. האם היא עדיין פנויה?',
+  'chat.suggestViewing': 'מתי אפשר להגיע לביקור?',
+  'chat.suggestAvailable': 'אנא צרו איתי קשר עם פרטים נוספים.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'מפה קדסטרית',

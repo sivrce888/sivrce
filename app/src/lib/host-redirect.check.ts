@@ -53,7 +53,7 @@ assert.deepEqual(comSale, { type: 'redirect', origin: GE_ORIGIN, pathname: '/sal
 
 const comHome = decideHost({ host: 'sivrce.com', pathname: '/', vercelEnv: 'production' })
 assert.deepEqual(comHome, { type: 'rewrite', pathname: '/en', market: 'global' })
-// Hub stays on sivrce.com/ — country paths are /de /ae, not a geo 302 of /.
+// decideHost keeps / as the hub rewrite; proxy 302s humans by IP/cookie.
 
 const comMap = decideHost({ host: 'sivrce.com', pathname: '/map', vercelEnv: 'production' })
 assert.deepEqual(comMap, { type: 'rewrite', pathname: '/en/map', market: 'global' })
@@ -130,6 +130,18 @@ const geUkLang = decideHost({ host: 'sivrce.ge', pathname: '/uk', vercelEnv: 'pr
 assert.deepEqual(geUkLang, { type: 'pass', market: 'ge' })
 const geTrLang = decideHost({ host: 'sivrce.ge', pathname: '/tr', vercelEnv: 'production' })
 assert.deepEqual(geTrLang, { type: 'pass', market: 'ge' })
+
+// Locale == country code: German Germany on .com stays /de/de/… (no /en force).
+const comDeDe = decideHost({ host: 'sivrce.com', pathname: '/de/de/berlin', vercelEnv: 'production' })
+assert.deepEqual(comDeDe, { type: 'pass', market: 'de' })
+const comDeDeHub = decideHost({ host: 'sivrce.com', pathname: '/de/de', vercelEnv: 'production' })
+assert.deepEqual(comDeDeHub, { type: 'pass', market: 'de' })
+// Same form on the GE host keeps serving (unchanged behavior, market label only).
+const geDeDe = decideHost({ host: 'sivrce.ge', pathname: '/de/de/berlin', vercelEnv: 'production' })
+assert.equal(geDeDe.type, 'pass')
+// English market URL untouched by the rule.
+const comDeBerlin = decideHost({ host: 'sivrce.com', pathname: '/de/berlin', vercelEnv: 'production' })
+assert.deepEqual(comDeBerlin, { type: 'rewrite', pathname: '/en/de/berlin', market: 'de' })
 
 assert.ok(isCountryPath('/ae/dubai'))
 assert.ok(isCountryPath('/fr/paris'))

@@ -11,7 +11,7 @@ import { BERLIN_BEZIRKE, DE_CITIES, buyerCostBreakdown, deCityBySlug } from '@/l
 import { cityPack, type CountryCopy } from '@/lib/country-copy'
 import type { Lang } from '@/lib/i18n/core'
 import { COM_ORIGIN, MARKETS } from '@/lib/markets'
-import { hasPriceFrom, priceFromLabel } from '@/lib/directory-seo-lite'
+import { hasPriceFrom, ON_REQUEST } from '@/lib/directory-seo-lite'
 
 /**
  * sivrce.com/de marketplace home — same section rhythm as sivrce.ge
@@ -21,8 +21,24 @@ import { hasPriceFrom, priceFromLabel } from '@/lib/directory-seo-lite'
  * and link into the local /projects detail pages with the full gallery.
  */
 
-const CITY_EN = new Map(DE_CITIES.map((c) => [c.ka, c.de]))
-const DISTRICT_EN = new Map(BERLIN_BEZIRKE.map((b) => [b.ka, b.de]))
+const CITY_EN = new Map([
+  ...DE_CITIES.map((c) => [c.ka, c.de] as const),
+  // Developers outside the 16 launch cities (e.g. Gelsenkirchen) — never leak ka script.
+  ['გელზენკირხენი', 'Gelsenkirchen'] as const,
+])
+// Catalog rows mix Bezirk-level and Ortsteil-level ka district labels —
+// map both so the card eyebrow always shows a Latin place name.
+const DISTRICT_EN = new Map([
+  ...BERLIN_BEZIRKE.map((b) => [b.ka, b.de] as const),
+  ['კროიცბერგი', 'Kreuzberg'],
+  ['პრენცლაუერ-ბერგი', 'Prenzlauer Berg'],
+  ['ფრიდრიხსფელდე', 'Friedrichsfelde'],
+  ['შონებერგი', 'Schöneberg'],
+  ['რაინიკენდორფი', 'Reinickendorf'],
+  ['ტემპელჰოფი', 'Tempelhof'],
+  ['ლიხტერფელდე', 'Lichterfelde'],
+  ['შარლოტენბურგი', 'Charlottenburg'],
+])
 
 function cityEn(p: Project): string {
   return CITY_EN.get(p.city) ?? 'Germany'
@@ -52,30 +68,31 @@ const DE_DEVELOPERS: Developer[] = (() => {
 
 const DEV_BY_SLUG = new Map(DE_DEVELOPERS.map((d) => [d.slug, d.name.en]))
 
-const UNITS_PIPELINE = DE_PROJECTS.filter((p) => p.done < 100).reduce((n, p) => n + (p.flats || 0), 0)
-const VERIFIED_DEVS = DE_DEVELOPERS.filter((d) => d.verified).length
-
 function projectsForCity(citySlug?: string): Project[] {
   const ka = citySlug ? deCityBySlug(citySlug)?.ka : null
   const scoped = ka ? DE_PROJECTS.filter((p) => p.city === ka) : DE_PROJECTS
-  return (scoped.length >= 3 ? scoped : DE_PROJECTS).slice(0, 12)
+  return scoped.slice(0, 12)
 }
 
 function developersForCity(citySlug?: string): Developer[] {
   const ka = citySlug ? deCityBySlug(citySlug)?.ka : null
   const scoped = ka ? DE_DEVELOPERS.filter((d) => d.city === ka) : DE_DEVELOPERS
-  return (scoped.length >= 3 ? scoped : DE_DEVELOPERS).slice(0, 12)
+  return scoped.slice(0, 12)
 }
 
 const nf = new Intl.NumberFormat('en-US')
-const priceLabel = (p: Project) => priceFromLabel(p.priceFromM2, 'en')
+const nfDe = new Intl.NumberFormat('de-DE')
+// ponytail: DirLoc stays ka/en/ru (Georgian product); DE market labels German inline.
+const priceLabel = (p: Project, de: boolean) =>
+  p.priceFromM2 === ON_REQUEST ? (de ? 'Auf Anfrage' : 'On request') : p.priceFromM2
 /** Catalog finish strings arrive in ka ('ჩაბარებული') or German ('In Planung'/'Im Bau') — show EN on /de. */
 const FINISH_EN = new Map([
   ['ჩაბარებული', 'Completed'],
   ['In Planung', 'In planning'],
   ['Im Bau', 'Under construction'],
 ])
-const finishLabel = (p: Project) => FINISH_EN.get(p.finish) ?? p.finish
+const finishLabel = (p: Project, de: boolean) =>
+  (de && p.finish === 'ჩაბარებული' ? 'Fertiggestellt' : FINISH_EN.get(p.finish) ?? p.finish)
 
 function Kicker({ icon: Icon, children }: { icon: typeof Building2; children: string }) {
   return (
@@ -95,18 +112,26 @@ function SectionHead({ kicker, icon, title, sub }: { kicker: string; icon: typeo
   )
 }
 
-function StatsBand({ de }: { de: boolean }) {
+function StatsBand({ citySlug, de }: { citySlug?: string; de: boolean }) {
+  // ponytail: stats only where the story is real — national hub + Berlin;
+  // thin cities show no band rather than Berlin numbers under their name.
+  if (citySlug && citySlug !== 'berlin') return null
+  const ka = citySlug ? deCityBySlug(citySlug)?.ka : null
+  const projects = ka ? DE_PROJECTS.filter((p) => p.city === ka) : DE_PROJECTS
+  const devs = ka ? DE_DEVELOPERS.filter((d) => d.city === ka) : DE_DEVELOPERS
+  const units = projects.filter((p) => p.done < 100).reduce((n, p) => n + (p.flats || 0), 0)
+  const fmt = de ? nfDe : nf
   const stats = de
     ? [
-        { icon: Building2, n: nf.format(DE_PROJECTS.length), label: 'straßenverifizierte Neubauten' },
-        { icon: Home, n: nf.format(UNITS_PIPELINE), label: 'Wohnungen in der Pipeline' },
-        { icon: ShieldCheck, n: nf.format(VERIFIED_DEVS), label: 'geprüfte Bauträger' },
+        { icon: Building2, n: fmt.format(projects.length), label: 'straßenverifizierte Neubauten' },
+        { icon: Home, n: fmt.format(units), label: 'Wohnungen in der Pipeline' },
+        { icon: ShieldCheck, n: fmt.format(devs.filter((d) => d.verified).length), label: 'geprüfte Bauträger' },
         { icon: MapPin, n: String(DE_CITIES.length), label: 'Stadtguides live' },
       ]
     : [
-        { icon: Building2, n: nf.format(DE_PROJECTS.length), label: 'street-verified new-builds' },
-        { icon: Home, n: nf.format(UNITS_PIPELINE), label: 'homes in the pipeline' },
-        { icon: ShieldCheck, n: nf.format(VERIFIED_DEVS), label: 'verified developers' },
+        { icon: Building2, n: fmt.format(projects.length), label: 'street-verified new-builds' },
+        { icon: Home, n: fmt.format(units), label: 'homes in the pipeline' },
+        { icon: ShieldCheck, n: fmt.format(devs.filter((d) => d.verified).length), label: 'verified developers' },
         { icon: MapPin, n: String(DE_CITIES.length), label: 'city guides live' },
       ]
   return (
@@ -128,13 +153,19 @@ function StatsBand({ de }: { de: boolean }) {
 
 function ProjectRail({ citySlug, de, lang }: { citySlug?: string; de: boolean; lang: Lang }) {
   const rail = projectsForCity(citySlug)
+  if (!rail.length) return null
+  const place = citySlug ? (deCityBySlug(citySlug)?.de ?? citySlug) : de ? 'Deutschland' : 'Germany'
   return (
     <section id="new-builds" className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <SectionHead
           icon={Building2}
           kicker={de ? 'Neubau' : 'New-builds'}
-          title={de ? 'Berliner Neubauten, bis zur Hausnummer' : 'Berlin new-builds, tracked to the address'}
+          title={
+            de
+              ? `Neubauten in ${place === 'Deutschland' ? 'Deutschland' : place}, bis zur Hausnummer`
+              : `New-builds in ${place}, tracked to the address`
+          }
           sub={
             de
               ? 'Jedes Projekt ist gegen die offizielle Bauträgerquelle geprüft — Hausnummer, Quartier, Einheiten, Fertigstellung. Preise in EUR/m², wo veröffentlicht.'
@@ -143,7 +174,11 @@ function ProjectRail({ citySlug, de, lang }: { citySlug?: string; de: boolean; l
         />
       </div>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <HScroll aria-label="German new-build projects" step={320} className="gap-5 pb-4">
+        <HScroll
+          aria-label={de ? `Neubau-Projekte in ${place}` : `New-build projects in ${place}`}
+          step={320}
+          className="gap-5 pb-4"
+        >
           {rail.map((p) => {
             // /de/projects/<slug> resolves on sivrce.com via the DE-market
             // catch-all (CountryPage delegates to the project detail route)
@@ -163,7 +198,7 @@ function ProjectRail({ citySlug, de, lang }: { citySlug?: string; de: boolean; l
                     <h3 className="mt-1 truncate text-[17px] font-black text-sv-ink">{p.name}</h3>
                   </div>
                   <span className="shrink-0 rounded-full bg-sv-ink/[0.06] px-3 py-1 text-[12px] font-extrabold text-sv-ink/70">
-                    {priceLabel(p)}
+                    {priceLabel(p, de)}
                     {hasPriceFrom(p.priceFromM2) ? <span className="text-sv-ink/45">/m²</span> : null}
                   </span>
                 </div>
@@ -172,9 +207,9 @@ function ProjectRail({ citySlug, de, lang }: { citySlug?: string; de: boolean; l
                   <div className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet" style={{ width: `${p.done}%` }} />
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[12px] font-extrabold text-sv-ink/65">
-                  <span>{p.flats ? `${nf.format(p.flats)} ${de ? 'WE' : 'units'} · ` : ''}{p.done}% {de ? 'fertig' : 'built'}</span>
+                  <span>{p.flats ? `${(de ? nfDe : nf).format(p.flats)} ${de ? 'WE' : 'units'} · ` : ''}{p.done}% {de ? 'fertig' : 'built'}</span>
                   <span className="inline-flex items-center gap-1 text-sv-ink/45">
-                    <CalendarCheck className="h-3.5 w-3.5" aria-hidden /> {finishLabel(p)}
+                    <CalendarCheck className="h-3.5 w-3.5" aria-hidden /> {finishLabel(p, de)}
                   </span>
                 </div>
                 {dev ? (
@@ -241,7 +276,7 @@ function BuyerCosts({ citySlug, de }: { citySlug?: string; de: boolean }) {
   const tax = city?.transferTaxPct ?? 6
   const ex = buyerCostBreakdown(500_000, slug)
   if (!ex) return null
-  const eur = (n: number) => `€${nf.format(n)}`
+  const eur = (n: number) => (de ? `${nfDe.format(n)} €` : `€${nf.format(n)}`)
   const taxLabel = de
     ? `Grunderwerbsteuer (${tax.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %)`
     : `Transfer tax (Grunderwerbsteuer ${tax.toLocaleString('en-US', { minimumFractionDigits: 1 })}%)`
@@ -317,6 +352,7 @@ function BuyerCosts({ citySlug, de }: { citySlug?: string; de: boolean }) {
 
 function DeveloperRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
   const rail = developersForCity(citySlug)
+  if (!rail.length) return null
   return (
     <section className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
@@ -332,7 +368,7 @@ function DeveloperRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
         />
       </div>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <HScroll aria-label="German developers" step={320} className="gap-5 pb-4">
+        <HScroll aria-label={de ? 'Deutsche Bauträger' : 'German developers'} step={320} className="gap-5 pb-4">
           {rail.map((d) => {
             const initials = d.name.en
               .split(/\s+/)
@@ -356,12 +392,12 @@ function DeveloperRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
                       {d.verified && <ShieldCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-label="Verified" />}
                     </div>
                     <p className="truncate text-[12px] font-bold text-sv-ink/60">
-                      {CITY_EN.get(d.city) ?? d.city} · {d.yearsActive} {de ? 'J.' : 'yrs'} · {nf.format(d.unitsDelivered)} {de ? 'WE übergeben' : 'units delivered'}
+                      {CITY_EN.get(d.city) ?? d.city} · {d.yearsActive} {de ? 'J.' : 'yrs'} · {(de ? nfDe : nf).format(d.unitsDelivered)} {de ? 'WE übergeben' : 'units delivered'}
                     </p>
                   </div>
                 </div>
                 <p className="mt-4 line-clamp-3 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-semibold leading-snug text-sv-ink/60">
-                  {d.description.en}
+                  {(de ? d.description.de : undefined) ?? d.description.en}
                 </p>
                 {d.website ? (
                   <span className="mt-3 inline-flex items-center gap-1 text-[13px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light">
@@ -403,7 +439,7 @@ export default function DeMarketHome({
   return (
     <main id="main">
       <CountryHero country="de" copy={copy} city={city} intent={intent} cities={cities} lang={lang} />
-      <StatsBand de={de} />
+      <StatsBand citySlug={city} de={de} />
       <ProjectRail citySlug={city} de={de} lang={lang} />
       <CitiesBand de={de} />
       <BuyerCosts citySlug={city} de={de} />

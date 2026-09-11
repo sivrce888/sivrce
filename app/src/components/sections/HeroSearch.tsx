@@ -145,7 +145,7 @@ export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] 
       amin: areaMin ? String(areaMin) : undefined,
       amax: areaMax ? String(areaMax) : undefined,
       ...roomPatch,
-      cur: currency === 'GEL' && (min || max) ? 'GEL' : undefined,
+      cur: (currency === 'GEL' || currency === 'EUR') && (min || max) ? currency : undefined,
       ...(loc.metro ? { metro: '1' } : {}),
       ...(isDaily && from && to && from >= todayIso && from < to ? { from, to } : {}),
       ...extra,

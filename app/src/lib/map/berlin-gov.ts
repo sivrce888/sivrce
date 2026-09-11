@@ -1,14 +1,16 @@
 /**
  * Berlin public data + government services (sivrce.de).
- * ALKIS parcels/buildings via GDI Berlin WFS; everything else is a verified
- * registry entry (no guessed endpoints — WFS slugs below were read from live
- * GetCapabilities 2026-09; BORIS/B-Pläne stay portal links until their WFS
- * slugs are confirmed the same way).
+ * ALKIS parcels/buildings + B-Pläne via GDI Berlin WFS; everything else is a
+ * verified registry entry (no guessed endpoints — WFS slugs below were read
+ * from live GetCapabilities 2026-09; BORIS stays portal until confirmed).
  * License: Datenlizenz Deutschland – Zero – 2.0 (dl-de-zero-2.0).
  * ponytail: point/bbox WFS only; upgrade → Geofabrik PBF dump for full-city mass ingest.
  */
 
+import { officialBplanPdf } from './berlin-pdf'
 import { closeRing, geometryRing, ringCentroid } from './pick-building'
+
+export { officialBplanPdf }
 
 const UA = 'sivrce-maps/1.0 (sivrce888@gmail.com)'
 
@@ -50,6 +52,22 @@ export const STEP_LAYERS = {
 } as const
 
 export type StepLayerKey = keyof typeof STEP_LAYERS
+
+/** Verified 2026-09: gdi.berlin.de/services/wfs/bplan GetCapabilities. */
+export const BPLAN_WFS =
+  (typeof process !== 'undefined' && process.env.BERLIN_WFS_BPLAN?.replace(/\/$/, '')) ||
+  'https://gdi.berlin.de/services/wfs/bplan'
+
+/**
+ * Live FeatureType Names. Skip `bplan:c_bp_ak` (außer Kraft) — repealed plans
+ * would look like current zoning.
+ */
+export const BPLAN_LAYERS = {
+  festgesetzt: 'bplan:b_bp_fs',
+  verfahren: 'bplan:a_bp_iv',
+} as const
+
+export type BplanLayerKey = keyof typeof BPLAN_LAYERS
 
 export type AlkisParcel = {
   /** Flurstückskennzeichen (fsko) — legal lot id, NAPR UNIQ_CODE equivalent. */
@@ -301,6 +319,81 @@ export async function fetchStepLayer(layer: StepLayerKey): Promise<StepFeature[]
   return stepFeaturesFromFC(await stepWfsGetFeature(STEP_LAYERS[layer]), layer)
 }
 
+export type BplanFeature = {
+  id: string
+  name: string | null
+  layer: BplanLayerKey
+  geometry: GeoJSON.Geometry
+  props: Record<string, unknown>
+}
+
+/** Pure: B-Plan WFS GeoJSON → typed features (official fields only). */
+export function bplanFeaturesFromFC(
+  fc: WfsFC | null | undefined,
+  layer: BplanLayerKey,
+): BplanFeature[] {
+  const feats = fc?.features
+  if (!Array.isArray(feats)) return []
+  const out: BplanFeature[] = []
+  for (const f of feats) {
+    const g = f.geometry
+    if (!g || (g.type !== 'Polygon' && g.type !== 'MultiPolygon')) continue
+    const p = f.properties ?? {}
+    const gisid = str(p.gisid) ?? str(p.planid) ?? (f.id != null ? String(f.id) : null)
+    if (!gisid) continue
+    const pdf = officialBplanPdf(p.scan_www)
+    out.push({
+      id: gisid,
+      name: str(p.planname) ?? str(p.planid),
+      layer,
+      geometry: g,
+      props: {
+        gisid,
+        planid: str(p.planid),
+        planart: str(p.planartname),
+        status: str(p.bp_rechtsstand),
+        bezirk: str(p.bezirk),
+        inhalt: str(p.inhalt),
+        festsg_am: str(p.festsg_am),
+        doc: pdf,
+      },
+    })
+  }
+  return out
+}
+
+async function bplanWfsGetFeature(typeName: string, count = 4000): Promise<WfsFC | null> {
+  const url =
+    `${BPLAN_WFS}?service=WFS&version=2.0.0&request=GetFeature` +
+    `&typeNames=${encodeURIComponent(typeName)}&srsName=EPSG:4326` +
+    `&outputFormat=application/json&count=${count}`
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': UA, Accept: 'application/json' },
+      signal: AbortSignal.timeout(45_000),
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    return (await res.json()) as WfsFC
+  } catch {
+    return null
+  }
+}
+
+/** Full B-Plan layer (festgesetzt ~2.8k, im Verfahren ~1.2k — verified 2026-09). */
+export async function fetchBplanLayer(layer: BplanLayerKey): Promise<BplanFeature[]> {
+  return bplanFeaturesFromFC(await bplanWfsGetFeature(BPLAN_LAYERS[layer]), layer)
+}
+
+/** B-Plan polygons in a bbox (sample seed). */
+export async function fetchBplanInBbox(
+  layer: BplanLayerKey,
+  bbox: { west: number; south: number; east: number; north: number },
+  count = 200,
+): Promise<BplanFeature[]> {
+  return bplanFeaturesFromFC(await wfsGetFeature('bplan', BPLAN_LAYERS[layer], bbox, count), layer)
+}
+
 /**
  * Every Berlin public-data / government source sivrce.de reads.
  * `wfs` = live GetFeature path; `portal` = human/official entry point.
@@ -366,11 +459,13 @@ export const BERLIN_SOURCES: BerlinSource[] = [
   },
   {
     key: 'bplaene',
-    name: 'Bebauungspläne (FIS-Broker)',
+    name: 'Bebauungspläne (GDI WFS)',
     publisher: 'Senatsverwaltung für Stadtentwicklung, Bauen und Wohnen',
     license: 'dl-de-zero-2.0',
-    portal: 'https://fbinter.stadt-berlin.de/',
-    use: 'Binding zoning per lot — portal until WFS typeName verified live.',
+    wfs: BPLAN_WFS,
+    typeName: BPLAN_LAYERS.festgesetzt,
+    portal: 'https://daten.berlin.de/',
+    use: 'Binding + in-procedure zoning polygons (verified typeNames 2026-09). Repealed layer skipped.',
   },
   {
     key: 'osm',

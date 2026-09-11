@@ -3,6 +3,9 @@ import { geoStreets, geoStreetsOf } from "@/data/georgia-streets"
 import { villagesOf, allVillages } from "@/data/georgia-villages"
 import { TBILISI_QUARTERS } from "@/data/tbilisi-quarters"
 import { STREETS as TBILISI_STREETS } from "@/data/tbilisi-streets"
+import { BERLIN_ORTSTEILE } from "@/data/berlin-ortsteile"
+import { BERLIN_STREETS } from "@/data/berlin-streets"
+import { BERLIN_BEZIRKE, DE_CITIES } from "@/lib/countries/de"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"
 import { compileHay, matchCompiled, suggestFuzzy, type CompiledHay } from "@/lib/suggest-match"
 
@@ -93,6 +96,40 @@ const CACHE = {
   "Vercel-CDN-Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
 }
 
+/* ————— DE market rows (mkt=de) —————
+ * Label slot is `ka` (display field) but carries the German name — the
+ * Suggestion shape is market-agnostic. `en` holds the parent Bezirk. */
+const BERLIN = "Berlin"
+
+const DE_CITY_ROWS: Row[] = DE_CITIES.map((c) =>
+  mk({ kind: "city", ka: c.de, en: c.de === "München" ? "Munich" : undefined, city: c.de }, [c.de, c.slug]),
+)
+
+const DE_ORTSTEIL_ROWS: Row[] = BERLIN_ORTSTEILE.map((o) => {
+  const bezirkDe = BERLIN_BEZIRKE.find((b) => b.slug === o.bezirk)?.de
+  return mk({ kind: "district", ka: o.de, en: bezirkDe, city: BERLIN }, [o.de])
+})
+const DE_STREET_ROWS: Row[] = BERLIN_STREETS.map((s) => mk({ kind: "street", ka: s, city: BERLIN }, [s]))
+
+function deSuggest(q: string, cityFilter?: string): Suggestion[] {
+  const ql = q.toLowerCase()
+  const prefix: Row[] = []
+  const partial: Row[] = []
+  const pools: Row[][] = cityFilter
+    ? cityFilter === BERLIN
+      ? [DE_ORTSTEIL_ROWS, DE_STREET_ROWS]
+      : []
+    : [DE_CITY_ROWS, DE_ORTSTEIL_ROWS, DE_STREET_ROWS]
+  for (const pool of pools) {
+    for (const r of pool) {
+      const hay = r.raw.find((h) => h && h.toLowerCase().includes(ql))
+      if (hay) (hay.toLowerCase().startsWith(ql) ? prefix : partial).push(r)
+    }
+  }
+  const out = (r: Row): Suggestion => ({ kind: r.kind, ka: r.ka, en: r.en, city: r.city, district: r.district })
+  return [...prefix, ...partial].slice(0, 10).map(out)
+}
+
 function browseStreets(city: string, districtCsv: string): Suggestion[] {
   const wanted = districtCsv ? new Set(districtSearchValues(districtCsv, city)) : null
   if (city === "თბილისი") {
@@ -120,6 +157,21 @@ export async function GET(req: Request) {
   const q = (sp.get("q") ?? "").trim().toLowerCase()
   const cityFilter = (sp.get("city") ?? "").trim() || undefined
   const districtFilter = (sp.get("district") ?? "").trim()
+
+  // DE market — German names, separate pools; never mixed with the GE catalog.
+  if (sp.get("mkt") === "de") {
+    if (q.length < 2) {
+      if (sp.get("browse") === "1" && cityFilter === BERLIN) {
+        const out = (s: string): Suggestion => ({ kind: "street", ka: s, city: BERLIN })
+        return Response.json(
+          { ok: true, suggestions: BERLIN_STREETS.slice(0, 80).map(out) },
+          { headers: CACHE },
+        )
+      }
+      return Response.json({ ok: true, suggestions: [] }, { headers: CACHE })
+    }
+    return Response.json({ ok: true, suggestions: deSuggest(q, cityFilter) }, { headers: CACHE })
+  }
 
   if (q.length < 2) {
     if (sp.get("browse") === "1" && cityFilter) {

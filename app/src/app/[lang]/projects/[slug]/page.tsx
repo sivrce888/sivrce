@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { avifCardOf, cardOf } from '@/lib/media'
-import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone } from 'lucide-react'
+import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone, Landmark, ArrowUpRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
@@ -40,6 +40,7 @@ import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { altName, altNameList } from '@/lib/bilingual'
 import { jsonLd, ogImage } from '@/lib/utils'
 import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
+import { DE_CITIES } from '@/lib/countries/de'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import {
   MICRO,
@@ -48,7 +49,9 @@ import {
   faqPageLd,
   finishLabel,
   floorsLabel,
+  hasPriceFrom,
   pickLoc,
+  priceFromLabel,
   projectFaqs,
   unitsLabel,
 } from '@/lib/directory-seo'
@@ -61,11 +64,11 @@ export function generateStaticParams() {
 }
 
 interface PageProps {
-  params: Promise<{ lang: string; slug: string }>
+  params: Promise<{ lang: string; slug: string; market?: 'de' }>
 }
 
-function absImg(src: string) {
-  return src.startsWith('http') ? src : `https://sivrce.ge${src}`
+function absImg(src: string, com = false) {
+  return src.startsWith('http') ? src : com ? `https://sivrce.com${src}` : `https://sivrce.ge${src}`
 }
 
 /** "$2,100" | "₾4,224" → 2100 / 4224 — AggregateOffer lowPrice. */
@@ -82,19 +85,44 @@ function priceCurrency(priceFromM2: string): 'GEL' | 'EUR' | 'USD' {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { lang: raw, slug } = await params
+  const { lang: raw, slug, market } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
   const loc = dirLoc(lang)
   const p = await getLiveProject(slug)
   if (!p) return {}
   const alt = (lang === 'ka' && p.nameKa) || altName(p.name) || ''
-  const body = (pickLoc(p.description, loc) || `${p.name}, ${p.location}`).replace(/\s+/g, ' ')
+  const body = (pickLoc(p.description, lang === 'de' ? 'de' : loc) || `${p.name}, ${p.location}`).replace(/\s+/g, ' ')
   // Both scripts up front — Google/AI bold whichever the query used.
   const description = ((alt && !body.includes(alt) ? `${p.name} (${alt}). ` : '') + body).slice(0, 155)
   const title = PROJECT_DETAIL[loc].titleOf(p)
   // Georgian transliteration wins on ka (users search "ჩარგლის რეზიდენსი", not the Latin brand).
   const displayName = lang === 'ka' && p.nameKa ? p.nameKa : p.name
   const og = ogImage(p.img)
+  // DE-market delegation (sivrce.com/de/projects/*): canonical/OG stay on the
+  // market host — a sivrce.ge canonical would 308 and drop the URL from index.
+  if (market === 'de') {
+    const url = `https://sivrce.com/de/projects/${p.slug}`
+    return {
+      title,
+      description,
+      alternates: { canonical: url },
+      openGraph: {
+        title: displayName,
+        description,
+        type: 'website',
+        url,
+        siteName: 'sivrce',
+        locale: OG_LOCALE[lang],
+        images: [{ url: og, alt: displayName }],
+      },
+      twitter: {
+        card: 'summary_large_image' as const,
+        title: displayName,
+        description,
+        images: [og],
+      },
+    }
+  }
   return {
     title,
     description,
@@ -118,8 +146,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProjectPage({ params }: PageProps) {
-  const { lang, slug } = await params
+  const { lang, slug, market } = await params
   if (!isValidLang(lang)) notFound()
+  const de = market === 'de'
   const loc = dirLoc(lang)
   const c = PROJECT_DETAIL[loc]
   const micro = MICRO[loc]
@@ -154,8 +183,8 @@ export default async function ProjectPage({ params }: PageProps) {
   const floorsInfo = cluster ? buildingFloors(cluster) : []
   const isGhost = !!cluster && cluster.status === 'construction' && cluster.listings.length === 0
 
-  const heroAbs = absImg(project.img)
-  const galleryAbs = (project.gallery ?? []).map(absImg)
+  const heroAbs = absImg(project.img, de)
+  const galleryAbs = (project.gallery ?? []).map((g) => absImg(g, de))
   const images = [heroAbs, ...galleryAbs.filter((u) => u !== heroAbs)]
   const lowPrice = priceNumber(project.priceFromM2)
   const currency = priceCurrency(project.priceFromM2)
@@ -163,7 +192,7 @@ export default async function ProjectPage({ params }: PageProps) {
   // Exact-building pin — committed OSM footprint beats street-level geocode drift.
   const fpPin = hasGeo ? footprintPin({ slug: project.slug }, project.coords) : null
   const aboutText =
-    pickLoc(project.description, loc) || project.description.ka || project.description.en
+    pickLoc(project.description, lang === 'de' ? 'de' : loc) || project.description.ka || project.description.en
 
   // alternateName: curated ka name or derived translit — the other-script form
   // for entity matching in Google/AI (users search 'არჩი უნივერსი' AND 'Archi Universe').
@@ -171,13 +200,19 @@ export default async function ProjectPage({ params }: PageProps) {
     ...new Set([project.name, project.nameKa ? null : altName(project.name)]),
   ].filter((n): n is string => !!n && n !== displayName)
 
+  // Market-scoped entity URLs: the DE copy lives on sivrce.com/de, catalog ka
+  // city names map to their Latin form for the .com audience.
+  const ldOrigin = de ? 'https://sivrce.com' : 'https://sivrce.ge'
+  const ldPath = de ? `/de/projects/${project.slug}` : `/projects/${project.slug}`
+  const deCity = DE_CITIES.find((c) => c.ka === project.city)
+
   const projectLd = {
     '@context': 'https://schema.org',
     '@type': 'ApartmentComplex',
     name: displayName,
     ...(altNames.length > 0 && { alternateName: altNames }),
     description: aboutText,
-    url: `https://sivrce.ge/projects/${project.slug}`,
+    url: `${ldOrigin}${ldPath}`,
     image: images.map((url, i) => ({
       '@type': 'ImageObject',
       url,
@@ -192,8 +227,8 @@ export default async function ProjectPage({ params }: PageProps) {
     address: {
       '@type': 'PostalAddress',
       streetAddress: project.location,
-      addressLocality: project.city,
-      addressCountry: 'GE',
+      addressLocality: deCity && de ? deCity.de : project.city,
+      addressCountry: de ? 'DE' : 'GE',
     },
     ...(hasGeo && {
       geo: {
@@ -212,7 +247,7 @@ export default async function ProjectPage({ params }: PageProps) {
           isDelivered(project)
             ? 'https://schema.org/SoldOut'
             : 'https://schema.org/InStock',
-        url: `https://sivrce.ge/projects/${project.slug}`,
+        url: `${ldOrigin}${ldPath}`,
       },
     }),
     ...(dev && {
@@ -237,13 +272,13 @@ export default async function ProjectPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: c.crumbHome, item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: c.crumbProjects, item: 'https://sivrce.ge/projects' },
+      { '@type': 'ListItem', position: 1, name: c.crumbHome, item: de ? 'https://sivrce.com/de' : 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: c.crumbProjects, item: de ? 'https://sivrce.com/de#new-builds' : 'https://sivrce.ge/projects' },
       {
         '@type': 'ListItem',
         position: 3,
         name: displayName,
-        item: `https://sivrce.ge/projects/${project.slug}`,
+        item: `${ldOrigin}${ldPath}`,
       },
     ],
   }
@@ -253,13 +288,15 @@ export default async function ProjectPage({ params }: PageProps) {
 
   // Structured facts (crawlable dl) — only rows the data actually supports.
   const detailRows: { label: string; value: string }[] = [
-    ...(project.priceFromM2 ? [{ label: micro.priceFromM2, value: project.priceFromM2 }] : []),
+    ...(project.priceFromM2
+      ? [{ label: micro.priceFromM2, value: priceFromLabel(project.priceFromM2, loc) }]
+      : []),
     { label: c.statsBuilt, value: `${project.done}%` },
     { label: micro.handover, value: finishLabel(loc, project.finish) },
     { label: micro.flats, value: unitsLabel(project.flats, loc) },
     ...(project.floors ? [{ label: c.floorsRow, value: floorsLabel(project.floors, loc) }] : []),
     ...(project.cadastral ? [{ label: c.cadastral, value: project.cadastral }] : []),
-    { label: c.location, value: `${project.location}, ${project.city}` },
+    { label: c.location, value: `${project.location}, ${de && deCity ? deCity.de : project.city}` },
   ]
 
   const anchors = [
@@ -325,6 +362,18 @@ export default async function ProjectPage({ params }: PageProps) {
                     {pickLoc(dev.name, loc)}
                   </Link>
                 )}
+                {project.sourceUrl && (
+                  <a
+                    href={project.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    <Landmark className="h-4 w-4 text-white/50" aria-hidden />
+                    {lang === 'de' ? 'Offizielle Quelle' : 'Official source'}
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+                  </a>
+                )}
               </div>
               {project.rating > 0 && (
                 <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
@@ -344,7 +393,12 @@ export default async function ProjectPage({ params }: PageProps) {
                 <StatsRow
                   items={[
                     ...(project.priceFromM2
-                      ? [{ label: micro.priceFromM2, value: project.priceFromM2 }]
+                      ? [
+                          {
+                            label: micro.priceFromM2,
+                            value: priceFromLabel(project.priceFromM2, loc),
+                          },
+                        ]
                       : []),
                     { label: c.statsBuilt, value: `${project.done}%` },
                     { label: micro.handover, value: finishLabel(loc, project.finish) },
@@ -464,13 +518,13 @@ export default async function ProjectPage({ params }: PageProps) {
               {project.gallery!.map((src, i) => (
                 <div
                   key={src}
-                  className="relative h-40 w-56 shrink-0 overflow-hidden rounded-module bg-sv-cloud md:h-52 md:w-72"
+                  className="relative aspect-video w-64 shrink-0 overflow-hidden rounded-module bg-sv-cloud md:w-80"
                 >
                   <Image
                     src={src}
                     alt={`${project.name} — ${c.renderAlt(i + 1)}`}
                     fill
-                    sizes="288px"
+                    sizes="320px"
                     className="object-cover"
                   />
                 </div>
@@ -533,8 +587,8 @@ export default async function ProjectPage({ params }: PageProps) {
                     <h3 className="text-[14px] font-black text-sv-ink">{p.name}</h3>
                     {p.priceFromM2 && (
                       <p className="mt-1 text-[12px] font-bold text-sv-ink/60">
-                        {p.priceFromM2}
-                        {micro.perM2}
+                        {priceFromLabel(p.priceFromM2, loc)}
+                        {hasPriceFrom(p.priceFromM2) && micro.perM2}
                       </p>
                     )}
                   </div>

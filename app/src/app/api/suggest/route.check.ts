@@ -30,7 +30,24 @@ async function main() {
     throw new Error('canonical city ყაზბეგი missing from suggest')
   }
 
-  console.log('suggest route ok: aliases resolve, no duplicate city rows')
+  async function deSuggest(q: string, city?: string): Promise<Sug[]> {
+    const sp = new URLSearchParams({ q, mkt: 'de' })
+    if (city) sp.set('city', city)
+    const res = await GET(new Request(`https://sivrce.com/api/suggest?${sp}`))
+    return ((await res.json()) as { suggestions: Sug[] }).suggestions
+  }
+  const kreuzberg = await deSuggest('Kreuzberg')
+  if (!kreuzberg.some((s) => s.kind === 'district' && s.ka === 'Kreuzberg')) {
+    throw new Error('mkt=de Kreuzberg missing')
+  }
+  const geLeak = await suggest('Kreuzberg')
+  if (geLeak.some((s) => s.ka === 'Kreuzberg')) {
+    throw new Error('DE name leaked into GE suggest')
+  }
+  const berlinOnly = await deSuggest('Tor', 'Berlin')
+  if (berlinOnly.length === 0) throw new Error('Berlin street prefix empty')
+
+  console.log('suggest route ok: aliases resolve, no duplicate city rows, DE market isolated')
 }
 
 main().catch((e) => {

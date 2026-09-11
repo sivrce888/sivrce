@@ -811,6 +811,10 @@ export const uk: Dict = {
   'chat.viewListing': 'Переглянути оголошення',
   'chat.leave': 'Покинути',
   'chat.leaveConfirm': 'Натисніть ще раз, щоб вийти',
+  'chat.suggestHint': 'Оберіть швидке повідомлення — або напишіть своє',
+  'chat.suggestInterest': 'Мене цікавить це оголошення. Воно ще доступне?',
+  'chat.suggestViewing': 'Коли можна приїхати на перегляд?',
+  'chat.suggestAvailable': 'Будь ласка, зв’яжіться зі мною щодо деталей.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастрова карта',

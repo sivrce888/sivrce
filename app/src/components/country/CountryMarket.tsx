@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import CountryHero from '@/components/country/CountryHero'
@@ -97,7 +97,7 @@ export async function countryMetadata(
   const lang: Lang = isValidLang(raw) ? raw : 'en'
   const projectSlug = deProjectSlug(country, slug)
   if (projectSlug) {
-    return projectPageMetadata({ params: Promise.resolve({ lang, slug: projectSlug }) })
+    return projectPageMetadata({ params: Promise.resolve({ lang, slug: projectSlug, market: 'de' }) })
   }
   if (slug?.[1] === 'sale') {
     return {}
@@ -105,11 +105,15 @@ export async function countryMetadata(
   const found = copyFor(country, slug, lang)
   if (!found) return {}
   const path = publicPath(country, slug)
-  const url = `${COM_ORIGIN}${path}`
+  // German copy exists for the DE hub + Berlin — those paths publish a /de/de
+  // variant (self-canonical per locale, reciprocal hreflang).
+  const hasDeCopy = country === 'de' && (!slug?.length || slug[0] === 'berlin')
+  const url = lang === 'de' && hasDeCopy ? `${COM_ORIGIN}/de${path}` : `${COM_ORIGIN}${path}`
   const market = MARKETS[country]
   const languages: Record<string, string> = {
     en: `${COM_ORIGIN}${path}`,
     'x-default': `${COM_ORIGIN}${path}`,
+    ...(hasDeCopy ? { de: `${COM_ORIGIN}/de${path}` } : {}),
   }
   if (country === 'ae') {
     languages.ar = `${COM_ORIGIN}/ar${path}`
@@ -146,9 +150,14 @@ export default async function CountryPage({
 }) {
   const { lang: raw, slug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
+  // German copy exists for hub + Berlin only — other cities and project pages
+  // have no /de/de variant; send them to the English URL (not a soft-404).
+  if (country === 'de' && lang === 'de' && slug?.length && slug[0] !== 'berlin') {
+    redirect(`${MARKETS.de.pathPrefix}/${slug.join('/')}`)
+  }
   const projectSlug = deProjectSlug(country, slug)
   if (projectSlug) {
-    return <ProjectPage params={Promise.resolve({ lang, slug: projectSlug })} />
+    return <ProjectPage params={Promise.resolve({ lang, slug: projectSlug, market: 'de' })} />
   }
   if (slug?.[1] === 'sale' && slug[0]) {
     permanentRedirect(`/en${MARKETS[country].pathPrefix}/${slug[0]}/buy`)
@@ -183,7 +192,7 @@ export default async function CountryPage({
         url,
         name: found.copy.h1,
         description: found.copy.description,
-        inLanguage: lang === 'ar' ? 'ar' : 'en',
+        inLanguage: lang === 'ar' ? 'ar' : lang === 'de' ? 'de' : 'en',
         isPartOf: { '@id': `${COM_ORIGIN}/#website` },
         about: {
           '@type': 'Place',

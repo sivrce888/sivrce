@@ -235,7 +235,11 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         })
-        if (!res.ok) return
+        if (!res.ok) {
+          setPendingTarget(null)
+          lastTargetRef.current = null
+          return
+        }
         const data = await res.json()
         setPendingTarget(null)
         if (data.room?.id) {
@@ -266,29 +270,48 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     })()
   }, [open, pendingTarget, refreshRooms])
 
-  // Push-notification deep link: /?chat=<roomId> opens straight into the
-  // room (read from window.location — zero Suspense risk vs useSearchParams).
-  // Runs once rooms land; the param is scrubbed so refresh stays clean.
+  // Deep links: /?chat=<roomId> (push) and /?message=<listingId> (lead-form
+  // continue / post-signin). Scrubbed so refresh stays clean. window.location
+  // — zero Suspense risk vs useSearchParams.
   const deepLinkDone = useRef(false)
   useEffect(() => {
-    if (!authed || loading || deepLinkDone.current) return
-    let id: string | null = null
+    if (!authed || deepLinkDone.current) return
+    let roomId: string | null = null
+    let listingId: string | null = null
     try {
-      id = new URLSearchParams(window.location.search).get("chat")
+      const q = new URLSearchParams(window.location.search)
+      roomId = q.get("chat")
+      listingId = q.get("message")
     } catch {
-      id = null
+      roomId = null
+      listingId = null
     }
-    if (!id) return
-    deepLinkDone.current = true
-    window.history.replaceState(null, "", window.location.pathname)
-    if (!rooms.some((r) => r.id === id)) return
-    // Async so the lint-blessed batch lands off-render (same as sign-out reset).
+    if (!roomId && !listingId) return
+    // Push deep-link needs the rooms list; listing continue does not.
+    if (roomId && !listingId && loading) return
+
+    // Consume inside the timeout so a dep-change cleanup can retry (param
+    // stays on the URL until then).
     const t = setTimeout(() => {
-      setActiveRoomId(id)
-      setOpen(true)
+      if (deepLinkDone.current) return
+      deepLinkDone.current = true
+      try {
+        const url = new URL(window.location.href)
+        url.searchParams.delete("chat")
+        url.searchParams.delete("message")
+        const qs = url.searchParams.toString()
+        window.history.replaceState(null, "", url.pathname + (qs ? `?${qs}` : "") + url.hash)
+      } catch {
+        window.history.replaceState(null, "", window.location.pathname)
+      }
+      if (listingId) openTarget({ kind: "listing", id: listingId })
+      else if (roomId && rooms.some((r) => r.id === roomId)) {
+        setActiveRoomId(roomId)
+        setOpen(true)
+      }
     }, 0)
     return () => clearTimeout(t)
-  }, [authed, loading, rooms])
+  }, [authed, loading, rooms, openTarget])
 
   // Stable context identity: consumers (listing pages, launcher, panel) only
   // re-render when actual chat state changes, not on every provider render.

@@ -819,6 +819,10 @@ export const ka = {
   'chat.viewListing': 'განცხადების ნახვა',
   'chat.leave': 'დატოვება',
   'chat.leaveConfirm': 'დასადასტურებლად კიდევ დააჭირე',
+  'chat.suggestHint': 'აირჩიე სწრაფი მესიჯი — ან დაწერე შენი',
+  'chat.suggestInterest': 'მაინტერესებს ეს განცხადება. ჯერ კიდევ ხელმისაწვდომია?',
+  'chat.suggestViewing': 'როდის შემიძლია ნახვაზე მოსვლა?',
+  'chat.suggestAvailable': 'გთხოვთ დამიკავშირდეთ დეტალებზე.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'საკადასტრო რუკა',

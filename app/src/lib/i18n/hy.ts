@@ -811,6 +811,10 @@ export const hy: Dict = {
   'chat.viewListing': 'Դիտել հայտարարությունը',
   'chat.leave': 'Լքել',
   'chat.leaveConfirm': 'Լքելու համար սեղմեք կրկին',
+  'chat.suggestHint': 'Ընտրիր արագ հաղորդագրություն — կամ գրիր քոնը',
+  'chat.suggestInterest': 'Հետաքրքրված եմ այս հայտարարությամբ. դեռ հասանելի՞ է:',
+  'chat.suggestViewing': 'Ե՞րբ կարող եմ գալ դիտման:',
+  'chat.suggestAvailable': 'Խնդրում եմ կապվեք ինձ հետ մանրամասների համար:',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Կադաստրի քարտեզ',

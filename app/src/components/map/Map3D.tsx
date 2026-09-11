@@ -1160,7 +1160,7 @@ function Map3DInner({
     if (b) setBerlinPick(null)
     setTab(dealFilter === 'all' ? 'all' : dealFilter)
     setFloorFilter(null)
-  }, [dealFilter, setSelected, setTab, setFloorFilter])
+  }, [dealFilter, setSelected, setBerlinPick, setTab, setFloorFilter])
 
   const patchFilterUrl = useCallback(
     (deal: MapDealFilter, kind: MapKindFilter) => {
@@ -1559,7 +1559,7 @@ function Map3DInner({
         setBerlinPick(null)
         if (market === 'de' || BERLIN_TILE_LAYER_IDS.some((id) => map.getLayer(id))) {
           const hit = pickBerlinFeature(map, e.point)
-          if (hit?.source === 'step') {
+          if (hit) {
             setBerlinPick(hit)
             return
           }

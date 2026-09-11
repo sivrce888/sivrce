@@ -810,6 +810,10 @@ export const en: Dict = {
   'chat.viewListing': 'View listing',
   'chat.leave': 'Leave',
   'chat.leaveConfirm': 'Tap again to leave',
+  'chat.suggestHint': 'Pick a quick message — or write your own',
+  'chat.suggestInterest': 'I’m interested in this listing. Is it still available?',
+  'chat.suggestViewing': 'When can I come for a viewing?',
+  'chat.suggestAvailable': 'Please contact me with more details.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Cadastre map',

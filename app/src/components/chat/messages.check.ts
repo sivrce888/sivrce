@@ -7,6 +7,7 @@ import {
   clockLabel,
   dayKey,
   mergeMessages,
+  parseChatDraft,
   sameGroup,
   splitLinks,
   timeAgo,
@@ -85,5 +86,16 @@ assert.deepEqual(
   'only http(s) linkifies',
 )
 assert.deepEqual(splitLinks(''), [{ text: '' }])
+
+// ——— parseChatDraft: listing-scoped, capped, junk-safe ———
+assert.equal(parseChatDraft(null, 'l1'), null)
+assert.equal(parseChatDraft('{', 'l1'), null)
+assert.equal(parseChatDraft(JSON.stringify({ listingId: 'l2', text: 'hi there friend' }), 'l1'), null)
+assert.equal(parseChatDraft(JSON.stringify({ listingId: 'l1', text: '   ' }), 'l1'), null)
+assert.equal(
+  parseChatDraft(JSON.stringify({ listingId: 'l1', text: '  hello owner  ' }), 'l1'),
+  'hello owner',
+)
+assert.equal(parseChatDraft(JSON.stringify({ listingId: 'l1', text: 'x'.repeat(2500) }), 'l1')?.length, 2000)
 
 console.log('chat/messages.check.ts — all green')

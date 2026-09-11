@@ -73,8 +73,11 @@ export async function POST(req: Request) {
     if (msg === "self_chat") {
       return NextResponse.json({ error: "self_chat" }, { status: 400 })
     }
-    if (msg === "peer_not_found") {
-      return NextResponse.json({ error: "peer_not_found" }, { status: 404 })
+    if (msg === "no_owner") {
+      return NextResponse.json({ error: "no_owner" }, { status: 409 })
+    }
+    if (msg === "listing_not_found" || msg === "peer_not_found") {
+      return NextResponse.json({ error: msg }, { status: 404 })
     }
     console.error("[api/chat] POST failed:", msg)
     return NextResponse.json({ error: "server_error" }, { status: 500 })

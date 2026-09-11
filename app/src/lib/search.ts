@@ -12,6 +12,7 @@
 
 import { Meilisearch, type SearchParams } from "meilisearch"
 import { USD_GEL } from "@/data/listings"
+import { EUR_GEL } from "@/lib/listing-format"
 import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 import { districtSearchValues } from "@/lib/district-canon"
 import { METRO_NEAR_M } from "@/lib/map/pois"
@@ -54,6 +55,8 @@ export interface SearchFilters {
   propertyType?: "apartment" | "house" | "villa" | "commercial" | "land" | "hotel"
   city?: string
   district?: string
+  /** Listing market — 'GE' | 'DE'. Absent = no country constraint. */
+  country?: "GE" | "DE"
   minPrice?: number
   maxPrice?: number
   minArea?: number
@@ -87,8 +90,8 @@ export interface SearchFilters {
   bbox?: { west: number; south: number; east: number; north: number }
   /** Pre-resolved id set from PostGIS bbox (set by /api/search). */
   idsIn?: string[]
-  /** Price-filter currency; bounds are converted via USD_GEL. Default USD. */
-  currency?: "USD" | "GEL"
+  /** Price-filter currency; bounds convert via USD_GEL / EUR_GEL. Default USD. */
+  currency?: "USD" | "GEL" | "EUR"
   /** Paid listing tier (diamond SUPER VIP · super_vip VIP+ · vip VIP). */
   tier?: "diamond" | "super_vip" | "vip"
   sort?: "date" | "price-asc" | "price-desc" | "area" | "ai" | "m2asc" | "m2desc"
@@ -128,6 +131,8 @@ export interface ListingDocument {
   city: string
   district: string
   address: string
+  /** Listing market — 'GE' (sivrce.ge) | 'DE' (sivrce.com/de). */
+  country?: string
   /** Street SEO hub link, precomputed server-side (street-href.ts) so the
    *  street catalog never reaches the client bundle. */
   streetHref?: string | null
@@ -216,6 +221,7 @@ async function ensureIndex(): Promise<boolean> {
     await index.updateFilterableAttributes([
       "dealType",
       "propertyType",
+      "country",
       "city",
       "district",
       "address",
@@ -303,6 +309,12 @@ async function lazyInit(): Promise<Meilisearch | null> {
 // searchListings
 // ---------------------------------------------------------------------------
 
+/** Unindexed docs have no country field — treat missing as GE. */
+export function meiliCountryClause(country: "GE" | "DE"): string {
+  if (country === "GE") return '(country = "GE" OR country NOT EXISTS)'
+  return 'country = "DE"'
+}
+
 function buildMeiliFilter(filters: SearchFilters): string {
   const parts: string[] = []
 
@@ -312,6 +324,9 @@ function buildMeiliFilter(filters: SearchFilters): string {
 
   if (filters.dealType) parts.push(`dealType = ${esc(filters.dealType)}`)
   if (filters.propertyType) parts.push(`propertyType = ${esc(filters.propertyType)}`)
+  // Live Meili docs predate the country field. Missing = GE so sivrce.ge
+  // search does not empty-out until the next full reindex.
+  if (filters.country) parts.push(meiliCountryClause(filters.country))
   if (filters.city) parts.push(`city = ${esc(filters.city)}`)
   if (filters.district) {
     const vals = districtSearchValues(filters.district, filters.city)
@@ -321,7 +336,11 @@ function buildMeiliFilter(filters: SearchFilters): string {
   }
   // Price bounds arrive in filters.currency (default USD) — filter the
   // normalized priceUSD so GEL and USD listings compare fairly.
-  const toUSD = (v: number) => (filters.currency === "GEL" ? v / USD_GEL : v)
+  const toUSD = (v: number) => {
+    if (filters.currency === "GEL") return v / USD_GEL
+    if (filters.currency === "EUR") return (v * EUR_GEL) / USD_GEL
+    return v
+  }
   if (filters.minPrice !== undefined) parts.push(`priceUSD >= ${Math.floor(toUSD(filters.minPrice))}`)
   if (filters.maxPrice !== undefined) parts.push(`priceUSD <= ${Math.ceil(toUSD(filters.maxPrice))}`)
   if (filters.minArea !== undefined) parts.push(`area >= ${filters.minArea}`)

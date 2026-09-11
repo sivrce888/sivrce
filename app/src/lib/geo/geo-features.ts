@@ -13,6 +13,8 @@ export type GeoKind =
   | 'step_priority'
   | 'step_gemeinwohl'
   | 'step_konzept'
+  | 'bplan_festgesetzt'
+  | 'bplan_verfahren'
 
 export type GeoUpsert = {
   kind: GeoKind

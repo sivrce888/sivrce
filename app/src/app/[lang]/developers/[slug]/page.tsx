@@ -31,7 +31,9 @@ import {
   dirLoc,
   faqPageLd,
   finishLabel,
+  hasPriceFrom,
   pickLoc,
+  priceFromLabel,
 } from '@/lib/directory-seo'
 
 export const revalidate = 3600
@@ -345,8 +347,10 @@ export default async function DeveloperPage({ params }: PageProps) {
                     </p>
                     {p.priceFromM2 && (
                       <p className="mt-2 text-[15px] font-black text-sv-blue-deep">
-                        {p.priceFromM2}
-                        <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
+                        {priceFromLabel(p.priceFromM2, loc)}
+                        {hasPriceFrom(p.priceFromM2) && (
+                          <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
+                        )}
                       </p>
                     )}
                   </div>

@@ -4,8 +4,9 @@ import { cityBySlug } from '@/lib/map/user-place'
 
 /**
  * IP → launched market + map camera.
- * sivrce.com/ is always the international hub — no geo-bounce of /.
- * Cookie aims /map at the last opened country path.
+ * Humans hitting sivrce.com/ 302 to their country (or sivrce.ge).
+ * Crawlers + ?worldwide=1 + cookie=global keep the directory hub.
+ * Cookie also aims /map at the last opened country path.
  */
 
 export const GEO_COOKIE = 'sv-geo-market'
@@ -31,6 +32,37 @@ export function marketFromIso(iso: string | null | undefined): MarketId | null {
 
 export function geoHomePath(id: GeoLaunchId): string {
   return MARKETS[id].pathPrefix
+}
+
+export type GeoLaunchTarget = 'hub' | 'ge' | GeoLaunchId
+
+/** Bot / AI crawlers must see the worldwide directory, not a geo 302. */
+export function isCrawler(ua: string | null | undefined): boolean {
+  if (!ua) return false
+  return /googlebot|bingbot|yandex|baiduspider|facebookexternalhit|twitterbot|linkedinbot|slurp|duckduckbot|applebot|semrush|ahrefsbot|mj12bot|dotbot|bytespider|gptbot|claudebot|anthropic|ccbot|petalbot|ia_archiver/i.test(
+    ua,
+  )
+}
+
+/**
+ * Where sivrce.com/ should send this request.
+ * Cookie wins (sticky + worldwide opt-out), then IP ISO, else hub.
+ */
+export function geoLaunchTarget(input: {
+  cookie?: string | null
+  iso?: string | null
+  worldwide?: boolean
+  crawler?: boolean
+}): GeoLaunchTarget {
+  if (input.worldwide || input.crawler) return 'hub'
+  const cook = input.cookie?.trim() || null
+  if (cook === 'global') return 'hub'
+  if (cook === 'ge') return 'ge'
+  if (isGeoLaunch(cook)) return cook
+  const m = marketFromIso(input.iso)
+  if (m === 'ge') return 'ge'
+  if (m && isGeoLaunch(m)) return m
+  return 'hub'
 }
 
 export function marketCenter(market: MarketId): { lat: number; lng: number; slug: string } {

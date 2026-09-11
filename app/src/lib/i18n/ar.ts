@@ -810,6 +810,10 @@ export const ar: Dict = {
   'chat.viewListing': 'عرض الإعلان',
   'chat.leave': 'مغادرة',
   'chat.leaveConfirm': 'انقر مجددًا للمغادرة',
+  'chat.suggestHint': 'اختر رسالة سريعة — أو اكتب رسالتك',
+  'chat.suggestInterest': 'أنا مهتم بهذا الإعلان. هل ما زال متاحًا؟',
+  'chat.suggestViewing': 'متى يمكنني القدوم للمعاينة؟',
+  'chat.suggestAvailable': 'يرجى التواصل معي لمزيد من التفاصيل.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'خريطة الكاداستر',

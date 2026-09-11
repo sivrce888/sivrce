@@ -6,6 +6,9 @@
 
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
+import { inquiryDealOf, shouldRecordChatLead } from "@/lib/chat-lead"
+import { getConfig } from "@/lib/config"
+import { sendInquiryNotification } from "@/lib/email"
 
 // ---------------------------------------------------------------------------
 // Chat rooms
@@ -44,20 +47,18 @@ export async function getOrCreateChatRoom(listingId: string, userId: string) {
     where: { id: listingId },
     select: { title: true, ownerId: true },
   })
-
-  const title = listing?.title ?? `Chat ${listingId.slice(0, 8)}`
+  if (!listing) throw new Error("listing_not_found")
+  if (!listing.ownerId) throw new Error("no_owner")
+  if (listing.ownerId === userId) throw new Error("self_chat")
 
   return db.chatRoom.create({
     data: {
       listingId,
-      title,
+      title: listing.title,
       participants: {
         create: [
           { userId, role: "member" },
-          // The listing owner is the other side of the conversation.
-          ...(listing?.ownerId && listing.ownerId !== userId
-            ? [{ userId: listing.ownerId, role: "owner" }]
-            : []),
+          { userId: listing.ownerId, role: "owner" },
         ],
       },
     },
@@ -354,7 +355,122 @@ export async function sendMessage(
     }),
   ])
 
+  // First buyer message on a listing room → Inquiry. Never fail the send.
+  void recordChatLead(roomId, senderId, message.id, text).catch(() => {})
+
   return message
+}
+
+const CHAT_LEAD_DEDUP_MS = 7 * 86_400_000
+
+/**
+ * One Inquiry per buyer×listing per week. Fire-and-forget from sendMessage —
+ * LeadInbox + email already exist; chat is the conversation, this is the lead.
+ */
+async function recordChatLead(
+  roomId: string,
+  senderId: string,
+  messageId: string,
+  text: string,
+) {
+  const room = await db.chatRoom.findUnique({
+    where: { id: roomId },
+    select: {
+      listingId: true,
+      participants: { select: { userId: true, role: true } },
+    },
+  })
+  const listingId = room?.listingId
+  const ownerId = room?.participants.find((p) => p.role === "owner")?.userId
+  const prior = await db.chatMessage.findFirst({
+    where: { roomId, senderId, NOT: { id: messageId } },
+    select: { id: true },
+  })
+  if (
+    !shouldRecordChatLead({
+      listingId,
+      ownerId,
+      senderId,
+      isFirstFromSender: !prior,
+    })
+  ) {
+    return
+  }
+
+  const [sender, listing, owner] = await Promise.all([
+    db.user.findUnique({
+      where: { id: senderId },
+      select: { name: true, email: true, phone: true },
+    }),
+    db.listing.findUnique({
+      where: { id: listingId! },
+      select: {
+        title: true,
+        dealType: true,
+        city: true,
+        district: true,
+        price: true,
+        listingPhone: true,
+        agent: true,
+      },
+    }),
+    db.user.findUnique({
+      where: { id: ownerId! },
+      select: { email: true, name: true },
+    }),
+  ])
+  if (!sender?.email || !listing) return
+
+  const since = new Date(Date.now() - CHAT_LEAD_DEDUP_MS)
+  const dup = await db.inquiry.findFirst({
+    where: {
+      listingId: listingId!,
+      buyerEmail: sender.email,
+      createdAt: { gt: since },
+      deletedAt: null,
+    },
+    select: { id: true },
+  })
+  if (dup) return
+
+  const agent = listing.agent as { name?: unknown; phone?: unknown } | null
+  const agentName =
+    (typeof agent?.name === "string" && agent.name) || owner?.name || "sivrce"
+  const agentPhone =
+    listing.listingPhone ||
+    (typeof agent?.phone === "string" && !agent.phone.includes("*") ? agent.phone : null)
+  const buyerName = sender.name?.trim() || sender.email.split("@")[0] || "sivrce"
+  const siteEmail = await getConfig("site.contactEmail")
+  const notifyEmail = owner?.email || siteEmail
+
+  await db.inquiry.create({
+    data: {
+      id: crypto.randomUUID(),
+      listingId: listingId!,
+      agentName,
+      agentEmail: owner?.email ?? null,
+      agentPhone,
+      buyerName,
+      buyerEmail: sender.email,
+      buyerPhone: sender.phone,
+      message: text,
+      deal: inquiryDealOf(listing.dealType),
+      city: listing.city,
+      district: listing.district,
+      price: listing.price,
+    },
+  })
+
+  sendInquiryNotification({
+    agentEmail: notifyEmail,
+    agentName,
+    buyerName,
+    buyerPhone: sender.phone,
+    buyerEmail: sender.email,
+    message: text,
+    listingTitle: listing.title,
+    subject: `ახალი მოთხოვნა (ჩატი) — ${buyerName}`,
+  })
 }
 
 /** Mark all messages in a room as read for a given user. */

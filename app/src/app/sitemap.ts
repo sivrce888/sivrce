@@ -18,6 +18,7 @@ import { listingVideoObject } from '@/lib/listing-video'
 import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
 import { COM_ORIGIN, COUNTRY_IDS } from '@/lib/markets'
 import { countrySitemapPaths } from '@/lib/country-copy'
+import { DE_CITIES } from '@/lib/countries/de'
 
 const BASE = 'https://sivrce.ge'
 
@@ -293,7 +294,17 @@ function countrySitemap(): MetadataRoute.Sitemap {
       const url = `${COM_ORIGIN}${path}`
       const languages: Record<string, string> = { en: url, 'x-default': url }
       if (cc === 'ae') languages.ar = `${COM_ORIGIN}/ar${path}`
+      // German DE variant exists for the hub + Berlin (reciprocal hreflang).
+      if (cc === 'de' && (path === '/de' || path.startsWith('/de/berlin'))) {
+        languages.de = `${COM_ORIGIN}/de${path}`
+      }
       out.push({ url, changeFrequency: 'weekly', priority: path.split('/').length <= 2 ? 0.85 : 0.7, alternates: { languages } })
+    }
+  }
+  // DE flagship content: hand-curated project detail pages under /de/projects.
+  for (const p of PROJECTS) {
+    if (DE_CITIES.some((c) => c.ka === p.city)) {
+      out.push({ url: `${COM_ORIGIN}/de/projects/${p.slug}`, changeFrequency: 'weekly', priority: 0.7 })
     }
   }
   return out

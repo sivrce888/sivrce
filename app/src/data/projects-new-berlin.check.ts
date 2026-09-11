@@ -25,12 +25,15 @@ for (const p of NEW_PROJECTS_BERLIN) {
   assert.ok(p.done >= 0 && p.done <= 100, `done: ${p.slug}`)
   assert.ok(p.flats > 0 && p.rating >= 4 && p.rating <= 5, `stats: ${p.slug}`)
   assert.ok(p.description.ka.length > 40 && p.description.en.length > 40, `copy: ${p.slug}`)
+  assert.ok((p.description.de?.length ?? 0) > 40, `de copy: ${p.slug}`)
+  assert.ok(p.sourceUrl?.startsWith('https://'), `sourceUrl: ${p.slug}`)
 }
 
 for (const d of NEW_DEVELOPERS_BERLIN) {
   assert.ok(devSlugs.includes(d.slug), `wired dev: ${d.slug}`)
   assert.equal(d.city, 'ბერლინი', `dev city: ${d.slug}`)
   assert.ok(d.description.ka.length > 40 && d.description.en.length > 40, `dev copy: ${d.slug}`)
+  assert.ok((d.description.de?.length ?? 0) > 40, `dev de copy: ${d.slug}`)
 }
 
 const berlinProjects = PROJECTS.filter((p) => p.city === 'ბერლინი')

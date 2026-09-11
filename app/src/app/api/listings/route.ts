@@ -15,6 +15,8 @@ import { db } from "@/lib/db"
 import { recomputeNearestPois } from "@/lib/geo/nearest-poi"
 import { attributeListing } from "@/lib/map/attribution"
 import { resolveListingCoords } from "@/lib/map/geocode"
+import { USD_GEL } from "@/data/listings"
+import { EUR_GEL } from "@/lib/listing-format"
 import { metroMeters } from "@/lib/map/pois"
 import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { parsePublishBody, persistRoomCounts } from "@/lib/listings-publish"
@@ -80,7 +82,7 @@ export async function POST(req: NextRequest) {
       dealType: p.dealType,
       propertyType: p.propertyType,
       price: p.price,
-      currency: "USD",
+      currency: p.country === "DE" ? "EUR" : "USD",
       pricePerSqm: p.price ? Math.round(p.price / p.area) : null,
       rooms: counts.rooms,
       bedrooms: counts.bedrooms,
@@ -91,6 +93,7 @@ export async function POST(req: NextRequest) {
       city: p.city,
       district,
       address: p.address,
+      country: p.country,
       lat,
       lng,
       images: p.images,
@@ -124,8 +127,10 @@ export async function POST(req: NextRequest) {
     dealType: p.dealType,
     propertyType: p.propertyType,
     price: p.price,
-    currency: "USD",
-    priceUSD: p.price,
+    currency: p.country === "DE" ? "EUR" : "USD",
+    // EUR listing → USD-normalized price for cross-currency Meili filtering.
+    priceUSD: p.country === "DE" ? Math.round((p.price * EUR_GEL) / USD_GEL) : p.price,
+    country: p.country,
     pricePerSqm: p.price ? Math.round(p.price / p.area) : undefined,
     verified: false,
     hasImages: p.images.length > 0,

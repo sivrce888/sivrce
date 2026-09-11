@@ -178,6 +178,7 @@ const r1 = routeCountryNl({
 })
 assert.equal(r1.go, 'map')
 assert.ok(r1.href.includes('deal=sale'))
+assert.ok(r1.href.includes('country=DE'))
 assert.ok(r1.href.includes(`lat=${berlin.center.lat.toFixed(5)}`))
 
 const r2 = routeCountryNl({
@@ -197,6 +198,7 @@ const r3 = routeCountryNl({
   lng: berlin.center.lng,
 })
 assert.equal(r3.go, 'map')
+assert.ok(r3.href.includes('country=DE'))
 
 // North-star queries — structured filters, never a keyword dump.
 const ns1 = parseNlQuery('2 bedroom apartment in Tbilisi under $150,000 near metro with balcony')

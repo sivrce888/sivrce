@@ -11,7 +11,7 @@ measured (`GET /api/intel/coverage`, admin → Data Intelligence).
 | `de-step-wohnen-2040` | SenStadtWo (GDI WFS) | status, coords, potentials | StEP Wohnen 2040 (verified typeNames) |
 | `de-berlin-opendata` | Land Berlin | address, coords, permits, status | dataset index |
 | `de-boris` | Gutachterausschuss | price context | land values since 1964 |
-| `de-bplaene` | SenStadtWo (FIS-Broker) | permits, status | binding zoning |
+| `de-bplaene` | SenStadtWo (GDI WFS) | permits, status | binding + in-procedure B-Pläne |
 | `de-mietspiegel` | SenStadtWo | rents | regulated benchmarks |
 | `de-statistik-bb` | AfS Berlin-Brandenburg | prices, completions | supply pipeline |
 | `de-destatis` | Destatis | prices, completions | national supply |
@@ -54,17 +54,18 @@ columns). Browser never receives Germany-wide GeoJSON.
 | layer | zoom | source |
 |---|---|---|
 | `step` | 9–16 | StEP Wohnen 2040 WFS (verified typeNames) |
+| `bplan` | 10–16 | Bebauungspläne festgesetzt + im Verfahren |
 | `buildings` | 14–18 | ALKIS Gebäude → `alkis_building` |
 | `parcels` | 16–19 | ALKIS Flurstücke |
 | `developments` | 10–16 | subset of StEP potentials + quartiers |
 
 Tiles: `GET /api/tiles/{layer}/{z}/{x}/{y}` via `ST_AsMVT`.
 Seed: `npm run ingest:berlin-sample` · full ALKIS: `ingest:alkis -- --geo` ·
-StEP only: `ingest:step`.
+StEP only: `ingest:step` · B-Pläne: `ingest:bplan`.
 
-**Constraint (not 100 yet):** LoD2 CityGML roofs not bulk-ingested — height uses
-official ALKIS `hoh` or `aog×3` (Geschosse). B-Plan WFS typeName not yet
-live-verified — portal only.
+**LoD2 roofs (separate track):** CityGML bulk download, not WFS — extrusion uses
+official ALKIS `hoh` or `aog×3`; unknown height stays null (map coalesces 12 m
+visually, never shown as fact). Repealed B-Pläne (`bplan:c_bp_ak`) not ingested.
 
 ## Refresh cadence
 
