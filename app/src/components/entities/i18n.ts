@@ -2,8 +2,9 @@
 
 /**
  * Co-located i18n for entity pages (developers / agents / projects).
- * Shared dicts in src/lib/i18n are untouched; ka/en/ru defined here,
- * all other languages fall back to en.
+ * Shared dicts in src/lib/i18n are untouched; all 10 locales defined here.
+ * pick() and the city map still fall back to en — the underlying data only
+ * has ka/en/ru.
  */
 
 import { useI18n } from '@/lib/i18n/context'

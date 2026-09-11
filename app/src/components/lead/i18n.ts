@@ -1,6 +1,7 @@
 /**
  * Lead-capture strings, co-located per workspace i18n rule (shared dicts are
- * off-limits). ka/en/ru are complete; the remaining six langs fall back to en.
+ * off-limits). All 10 locales (ka/en/ru/tr/ar/de/he/hy/az/uk) are complete;
+ * any unknown lang still falls back to en.
  * Select with `useI18n().lang` from `@/lib/i18n/context`.
  */
 

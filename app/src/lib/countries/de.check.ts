@@ -8,8 +8,14 @@ import {
   BERLIN_BEZIRKE,
   bezirkKaLabel,
   bezirkSlugOfOrtsteil,
+  buyerCostBreakdown,
   DE_CITIES,
+  DE_EFFICIENCY_TIERS,
+  DE_ENERGY_CLASSES,
+  DE_MAKLER_BUYER_PCT,
+  DE_RENTAL_RULES,
   deCityBySlug,
+  GRUNDERWERBSTEUER_BY_STATE,
 } from './de'
 import { MARKETS } from '@/lib/markets'
 import { foldGerman, normalizeName, parseIntelQuery, sourcesFor } from '@/lib/intel/core'
@@ -42,6 +48,39 @@ assert.equal(deCityBySlug('munich')?.transferTaxPct, 3.5, 'bavaria tax')
 assert.equal(acquisitionCostEstimate(100_000, 'berlin'), 108_000, 'acquisition math')
 assert.equal(acquisitionCostEstimate(-5, 'berlin'), null, 'negative → null')
 assert.equal(acquisitionCostEstimate(100_000, 'atlantis'), null, 'unknown city → null')
+
+// Kaufnebenkosten breakdown: Berlin 500k with Makler = 8% + 3.57%
+const full = buyerCostBreakdown(500_000, 'berlin')
+assert.equal(full?.transferTax, 30_000, 'berlin tax 6%')
+assert.equal(full?.notary, 7_500, 'notary 1.5%')
+assert.equal(full?.register, 2_500, 'register 0.5%')
+assert.equal(full?.makler, 17_850, 'makler 3.57%')
+assert.equal(full?.total, 557_850, 'berlin total with makler')
+assert.equal(full?.totalPct, 11.6, 'berlin surcharge pct')
+const bare = buyerCostBreakdown(500_000, 'berlin', { withMakler: false })
+assert.equal(bare?.makler, 0, 'provisionsfrei → no makler')
+assert.equal(bare?.total, 540_000, 'berlin total without makler')
+assert.equal(bare?.totalPct, 8, 'berlin surcharge w/o makler')
+assert.equal(buyerCostBreakdown(200_000, 'munich')?.transferTax, 7_000, 'bavaria 3.5%')
+assert.equal(buyerCostBreakdown(-5, 'berlin'), null, 'negative → null')
+assert.equal(buyerCostBreakdown(100_000, 'atlantis'), null, 'unknown city → null')
+assert.equal(DE_MAKLER_BUYER_PCT, 3.57, 'makler split rate')
+
+// All 16 Bundesländer covered; launch metros mirror their state rate
+assert.equal(Object.keys(GRUNDERWERBSTEUER_BY_STATE).length, 16, '16 states')
+assert.equal(GRUNDERWERBSTEUER_BY_STATE.Berlin, 6.0, 'state berlin')
+assert.equal(GRUNDERWERBSTEUER_BY_STATE.Bayern, 3.5, 'state bavaria')
+for (const c of DE_CITIES) {
+  assert.equal(c.transferTaxPct, GRUNDERWERBSTEUER_BY_STATE[c.state], `city mirrors state: ${c.slug}`)
+}
+
+// Rental + energy anchors Germans check first
+assert.equal(DE_RENTAL_RULES.maxDepositColdRents, 3, 'kaution cap')
+assert.equal(DE_RENTAL_RULES.rentBrakePctAboveComparative, 10, 'rent brake')
+assert.equal(DE_ENERGY_CLASSES.length, 9, 'A+..H classes')
+assert.equal(DE_ENERGY_CLASSES[0], 'A+', 'best class')
+assert.equal(DE_ENERGY_CLASSES[8], 'H', 'worst class')
+assert.ok(DE_EFFICIENCY_TIERS.includes('EH 40'), 'kfw tier')
 
 // German normalization: umlauts fold, legal suffixes drop
 assert.equal(foldGerman('müller straße'), 'muller strasse', 'fold')

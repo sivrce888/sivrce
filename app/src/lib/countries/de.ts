@@ -115,3 +115,96 @@ export function acquisitionCostEstimate(priceEur: number, citySlug: string): num
   if (!city || !Number.isFinite(priceEur) || priceEur <= 0) return null
   return Math.round(priceEur * (1 + (city.transferTaxPct + 2) / 100))
 }
+
+/**
+ * Grunderwerbsteuer by Bundesland, % (public state law, stable for years —
+ * re-check yearly, not per request; Stand 2026). DE_CITIES.transferTaxPct
+ * mirrors these values for the 16 launch metros.
+ */
+export const GRUNDERWERBSTEUER_BY_STATE: Record<string, number> = {
+  'Baden-Württemberg': 5.0,
+  Bayern: 3.5,
+  Berlin: 6.0,
+  Brandenburg: 6.5,
+  Bremen: 5.0,
+  Hamburg: 5.5,
+  Hessen: 6.0,
+  'Mecklenburg-Vorpommern': 6.5,
+  Niedersachsen: 5.0,
+  'Nordrhein-Westfalen': 6.5,
+  'Rheinland-Pfalz': 5.0,
+  Saarland: 6.5,
+  Sachsen: 5.5,
+  'Sachsen-Anhalt': 5.0,
+  'Schleswig-Holstein': 6.5,
+  Thüringen: 6.5,
+}
+
+/**
+ * Kaufnebenkosten model (public fee schedules + market convention).
+ * Notary ≈ 1.5 % and Grundbuch ≈ 0.5 % scale with price (GNotKG); the buyer
+ * Makler share is 3.57 % incl. MwSt where commission is split 50/50
+ * (Maklergesetz since Dec 2020) and 0 on provisionsfrei deals.
+ * ponytail: constants + one pure function — no calculator UI until a
+ * country page actually renders it.
+ */
+export const DE_NOTARY_PCT = 1.5
+export const DE_REGISTER_PCT = 0.5
+export const DE_MAKLER_BUYER_PCT = 3.57
+
+export interface BuyerCostBreakdown {
+  price: number
+  transferTax: number
+  notary: number
+  register: number
+  makler: number
+  total: number
+  /** Total surcharge over price, % (one decimal). */
+  totalPct: number
+}
+
+export function buyerCostBreakdown(
+  priceEur: number,
+  citySlug: string,
+  opts?: { withMakler?: boolean },
+): BuyerCostBreakdown | null {
+  const city = deCityBySlug(citySlug)
+  if (!city || !Number.isFinite(priceEur) || priceEur <= 0) return null
+  const withMakler = opts?.withMakler ?? true
+  const transferTax = Math.round((priceEur * city.transferTaxPct) / 100)
+  const notary = Math.round((priceEur * DE_NOTARY_PCT) / 100)
+  const register = Math.round((priceEur * DE_REGISTER_PCT) / 100)
+  const makler = withMakler ? Math.round((priceEur * DE_MAKLER_BUYER_PCT) / 100) : 0
+  const total = priceEur + transferTax + notary + register + makler
+  return {
+    price: priceEur,
+    transferTax,
+    notary,
+    register,
+    makler,
+    total,
+    totalPct: Math.round((total / priceEur - 1) * 1000) / 10,
+  }
+}
+
+/**
+ * Rental-law anchors Germans check first (§551 / §558 BGB, Mietpreisbremse;
+ * Stand 2026). Qualitative rules only — medians come from the city
+ * Mietspiegel, never from a hardcoded table.
+ */
+export const DE_RENTAL_RULES = {
+  /** Kaution cap in monthly Kaltmieten; payable in 3 instalments, segregated account. */
+  maxDepositColdRents: 3,
+  /** Mietpreisbremse cap above ortsübliche Vergleichsmiete on re-lets (Berlin). */
+  rentBrakePctAboveComparative: 10,
+  /** Neubau first occupied after this date is exempt from the rent brake. */
+  newBuildExemptAfter: '2014-10-01',
+  /** Warmmiete = Kaltmiete + heating + Betriebskosten; compare like with like. */
+  compareBasis: 'kaltmiete',
+} as const
+
+/** Energieausweis efficiency classes (GEG scale, Bedarf or Verbrauch). */
+export const DE_ENERGY_CLASSES = ['A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as const
+
+/** KfW-relevant Effizienzhaus tiers buyers meet in Neubau listings (QNG = Nachhaltigkeitssiegel). */
+export const DE_EFFICIENCY_TIERS = ['EH 40', 'EH 55', 'QNG-Plus', 'QNG-Premium'] as const

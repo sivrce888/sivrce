@@ -293,8 +293,16 @@ export const FAQ_SECTIONS: Record<FaqLoc, FaqSection[]> = {
           a: 'Ja, per Vollmacht — viele Käufer schließen aus der Ferne ab. Gezahlt wird per Banküberweisung oder Treuhandkonto (Escrow); der neue Registerauszug bestätigt Ihr Eigentum. Für die Objektauswahl nutzen Sie geprüfte Inserate, 3D-Karte und KI-Preischeck auf sivrce.',
         },
         {
+          q: 'Welche Kaufnebenkosten fallen in Georgien an?',
+          a: 'Deutlich weniger als in Deutschland: Notar und Registereintrag kosten zusammen meist 150–300 $, die Übertragungsgebühr beträgt 1 % auf die ersten 100.000 Lari und 2 % darüber. Makler nehmen 1–3 %, die jährliche Grundsteuer ist niedrig. Auf sivrce stehen die Preise in $ — das erleichtert den Vergleich. Die genaue Summe nennt Ihr Notar. Stand 2026.',
+        },
+        {
           q: 'Gibt es eine Aufenthaltserlaubnis durch Immobilienkauf?',
           a: 'Ja, ab etwa 100.000 $ Immobilienwert ist eine Aufenthaltserlaubnis möglich — dafür ist ein geprüftes Wertgutachten nötig. Voraussetzungen ändern sich; klären Sie Details vor dem Kauf mit Anwalt oder Behörde. Stand 2026.',
+        },
+        {
+          q: 'Worauf muss ich beim Dorfhaus mit Grundstück achten?',
+          a: 'Vor jeder Anzahlung den Registerauszug prüfen: Welche Bodenkategorie hat das Grundstück? Wohn- und Hofgebäude sind unproblematisch, der umliegende Hof ist aber häufig als Agrarland eingetragen — das dürfen Ausländer nicht direkt kaufen. Lösung: nur die als Nicht-Agrarland eingetragene Fläche kaufen oder eine georgische Gesellschaft gründen. Geprüfte sivrce-Inserate weisen die Kataster-Nr. aus.',
         },
       ],
     },
@@ -306,8 +314,49 @@ export const FAQ_SECTIONS: Record<FaqLoc, FaqSection[]> = {
           a: 'In Berlin fallen 6 % Grunderwerbsteuer an (zuständig: Finanzamt Spandau) — dazu Notar- und Grundbuchkosten. Ins Grundbuch werden Sie erst eingetragen, wenn die Steuer gezahlt ist (Unbedenklichkeitsbescheinigung). Rechnen Sie grob mit rund 10 % Nebenkosten auf den Kaufpreis; die genaue Summe nennt Ihr Notar.',
         },
         {
+          q: 'Wie hoch sind die Kaufnebenkosten mit und ohne Makler?',
+          a: 'Ohne Makler liegen die Nebenkosten in Berlin bei rund 8 %: 6 % Grunderwerbsteuer plus etwa 2 % für Notar und Grundbuch. Mit Makler kommen rund 3,57 % Käuferprovision dazu (seit 2020 teilen sich Käufer und Verkäufer die Provision) — insgesamt also rund 11–12 %. Zum Vergleich: In Bayern sind es nur 3,5 % Steuer, in Hamburg 5,5 %. Stand 2026.',
+        },
+        {
           q: 'Dürfen Ausländer in Berlin eine Wohnung kaufen?',
           a: 'Ja — in Deutschland gibt es keine Beschränkung für ausländische Käufer. Der Kauf wird von einem unabhängigen Notar beurkundet, das Eigentum ins Grundbuch eingetragen.',
+        },
+        {
+          q: 'Wie läuft der Kauf in Berlin Schritt für Schritt ab?',
+          a: 'Angebot annehmen, Notartermin (der Notar verliest den Vertrag vollständig), Auflassungsvormerkung zu Ihrem Schutz, Zahlung nach Fälligkeitsmitteilung, Grunderwerbsteuer zahlen, Unbedenklichkeitsbescheinigung abwarten, Umschreibung im Grundbuch — vom Notartermin bis zum Grundbucheintrag dauert es oft 6–12 Wochen, mit Bankfinanzierung länger. Erst der Grundbucheintrag macht Sie zum Eigentümer.',
+        },
+        {
+          q: 'Was ist der Energieausweis und worauf muss ich achten?',
+          a: 'Beim Kauf muss Ihnen der Energieausweis spätestens bei der Besichtigung vorliegen — Pflicht. Es gibt Bedarfs- und Verbrauchsausweis mit den Klassen A+ bis H. Eine schlechte Klasse bedeutet hohe Heizkosten und drohende Sanierungspflichten (Heizung, Dämmung); Banken und KfW bepreisen das mit. Vergleichen Sie immer Kennwert und Ausweisart, nicht nur die Farbe.',
+        },
+        {
+          q: 'Was bedeuten WEG, Hausgeld und Erhaltungsrücklage?',
+          a: 'Eigentumswohnungen gehören einer Wohnungseigentümergemeinschaft (WEG): Sie zahlen monatliches Hausgeld (Betriebskosten plus Rücklage) und stimmen über Sanierungen mit ab. Vor dem Kauf Teilungserklärung, Wirtschaftsplan und die letzten Versammlungsprotokolle lesen — eine leere Erhaltungsrücklage bei marodem Dach wird Ihre Sonderumlage. Fragen Sie gezielt nach geplanten Maßnahmen.',
+        },
+        {
+          q: 'Wie finanziere ich als Deutscher — und was ist KfW?',
+          a: 'Üblich sind 10–20 % Eigenkapital plus Nebenkosten aus Eigenmitteln; Banken prüfen Einkommen, SCHUFA und Objektwert. Die KfW fördert energieeffiziente Käufe und Sanierungen über zinsgünstige Kredite und Zuschüsse — ob Ihr Objekt die Effizienzhaus-Stufe (z. B. EH 40/55, QNG-Siegel) erfüllt, entscheidet über die Förderung. Konditionen ändern sich laufend: KfW und mindestens zwei Hausbanken vergleichen. Stand 2026.',
+        },
+      ],
+    },
+    {
+      title: 'In Berlin mieten',
+      items: [
+        {
+          q: 'Was ist der Unterschied zwischen Kaltmiete und Warmmiete?',
+          a: 'Die Kaltmiete ist die reine Raummiete, die Warmmiete enthält Heizung und Betriebskosten. Vergleichen Sie immer dieselbe Größe — eine günstige Kaltmiete mit 200 € Nebenkosten ist teurer als gedacht. Fragen Sie nach der letzten Betriebskostenabrechnung: Hohe Nachzahlungen verraten schlecht gedämmte Häuser.',
+        },
+        {
+          q: 'Wie hoch darf die Kaution in Berlin sein?',
+          a: 'Maximal drei Monatskaltmieten — mehr ist unzulässig, egal was im Vertrag steht. Sie dürfen in drei Monatsraten zahlen, und der Vermieter muss das Geld getrennt von seinem Vermögen anlegen. Lassen Sie sich das Kautionskonto schriftlich bestätigen.',
+        },
+        {
+          q: 'Was sind Mietspiegel und Mietpreisbremse?',
+          a: 'Der (qualifizierte) Mietspiegel zeigt die ortsübliche Vergleichsmiete je Lage und Baujahr — prüfen Sie jedes Angebot dagegen. Bei Wiedervermietung gilt in Berlin die Mietpreisbremse: maximal 10 % über Vergleichsmiete. Ausnahmen: Neubau (erstmals nach Oktober 2014 bezugsfertig) und umfassend modernisierte Erstvermietung. Liegt die Miete deutlich darüber, können Sie nach Einzug rügen und zu viel Gezahltes zurückfordern.',
+        },
+        {
+          q: 'Brauche ich eine SCHUFA für eine Berliner Wohnung?',
+          a: 'Praktisch ja — fast alle Vermieter verlangen SCHUFA-Auskunft plus Einkommensnachweise (meist drei Monatsgehälter) und Mietschuldenfreiheitsbescheinigung vom Vorvermieter. Ohne SCHUFA helfen Arbeitsvertrag, Bürgschaft oder höheres Einkommen, aber planen Sie deutlich mehr Zeit ein. Besichtigungstermine mit vollständiger Mappe bekommen den Zuschlag.',
         },
       ],
     },
@@ -321,6 +370,14 @@ export const FAQ_SECTIONS: Record<FaqLoc, FaqSection[]> = {
         {
           q: 'Was kostet das Inserieren?',
           a: 'Ein Standardinserat ist kostenlos und in 3 Minuten online. Mehr Sichtbarkeit bringen VIP, VIP+ und SUPER VIP — direkt in der Inseratsverwaltung buchbar.',
+        },
+        {
+          q: 'Was bedeutet der KI-Preischeck auf sivrce?',
+          a: 'Die KI vergleicht den Angebotspreis mit echten Vergleichsobjekten — Lage, Fläche, Zustand, Etage — und zeigt eine Punktzahl von 0 bis 100. Eine hohe Punktzahl heißt fairer oder unterdurchschnittlicher Marktpreis; nutzen Sie das als Verhandlungsargument, nicht als Gutachten.',
+        },
+        {
+          q: 'Was zeigt die 3D-Karte?',
+          a: 'Jedes Gebäude anwählbar: Lage, Umkreis, Sonnenverlauf und Schatten über den Tag. In Georgien zusätzlich die offizielle Katastergrenze (NAPR) per Kataster-Nr. — so sehen Sie vor der Reise, was Sie wirklich kaufen.',
         },
       ],
     },

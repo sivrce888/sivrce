@@ -2,7 +2,7 @@ import { useI18n } from '@/lib/i18n/context'
 
 /**
  * Co-located strings for the save-search control (shared dicts are locked).
- * ka/en/ru covered; other langs fall back to en.
+ * All 10 langs covered; falls back to en.
  */
 const STRINGS = {
   ka: {
@@ -41,13 +41,96 @@ const STRINGS = {
     loadingMore: 'Загрузка…',
     recentlyViewed: 'Недавно просмотренные',
   },
+  tr: {
+    saveSearch: 'Aramayı kaydet',
+    savedSearches: 'Kaydedilen aramalar',
+    saveCurrent: 'Mevcut aramayı kaydet',
+    savedAlready: 'Kaydedildi',
+    empty: 'Henüz kaydedilmiş bir şey yok',
+    remove: 'Sil',
+    allListings: 'Tüm ilanlar',
+    showMore: 'Daha fazla göster',
+    loadingMore: 'Yükleniyor…',
+    recentlyViewed: 'Son görüntülenenler',
+  },
+  ar: {
+    saveSearch: 'حفظ البحث',
+    savedSearches: 'عمليات البحث المحفوظة',
+    saveCurrent: 'حفظ البحث الحالي',
+    savedAlready: 'تم الحفظ',
+    empty: 'لا يوجد شيء محفوظ بعد',
+    remove: 'حذف',
+    allListings: 'جميع الإعلانات',
+    showMore: 'عرض المزيد',
+    loadingMore: 'جارٍ التحميل…',
+    recentlyViewed: 'شوهدت مؤخرًا',
+  },
+  de: {
+    saveSearch: 'Suche speichern',
+    savedSearches: 'Gespeicherte Suchen',
+    saveCurrent: 'Aktuelle Suche speichern',
+    savedAlready: 'Gespeichert',
+    empty: 'Noch nichts gespeichert',
+    remove: 'Löschen',
+    allListings: 'Alle Inserate',
+    showMore: 'Mehr anzeigen',
+    loadingMore: 'Wird geladen…',
+    recentlyViewed: 'Zuletzt angesehen',
+  },
+  he: {
+    saveSearch: 'שמירת החיפוש',
+    savedSearches: 'חיפושים שמורים',
+    saveCurrent: 'שמירת החיפוש הנוכחי',
+    savedAlready: 'נשמר',
+    empty: 'עדיין לא נשמר כלום',
+    remove: 'מחיקה',
+    allListings: 'כל המודעות',
+    showMore: 'הצג עוד',
+    loadingMore: 'טוען…',
+    recentlyViewed: 'נצפו לאחרונה',
+  },
+  hy: {
+    saveSearch: 'Պահել որոնումը',
+    savedSearches: 'Պահպանված որոնումներ',
+    saveCurrent: 'Պահել ընթացիկ որոնումը',
+    savedAlready: 'Պահված է',
+    empty: 'Դեռ ոչինչ պահպանված չէ',
+    remove: 'Հեռացնել',
+    allListings: 'Բոլոր հայտարարությունները',
+    showMore: 'Ցուցադրել ավելին',
+    loadingMore: 'Բեռնվում է…',
+    recentlyViewed: 'Վերջերս դիտված',
+  },
+  az: {
+    saveSearch: 'Axtarışı saxla',
+    savedSearches: 'Yadda saxlanmış axtarışlar',
+    saveCurrent: 'Cari axtarışı saxla',
+    savedAlready: 'Saxlanıldı',
+    empty: 'Hələ heç nə saxlanmayıb',
+    remove: 'Sil',
+    allListings: 'Bütün elanlar',
+    showMore: 'Daha çox göstər',
+    loadingMore: 'Yüklənir…',
+    recentlyViewed: 'Son baxılanlar',
+  },
+  uk: {
+    saveSearch: 'Зберегти пошук',
+    savedSearches: 'Збережені пошуки',
+    saveCurrent: 'Зберегти поточний пошук',
+    savedAlready: 'Збережено',
+    empty: 'Поки нічого не збережено',
+    remove: 'Видалити',
+    allListings: 'Усі оголошення',
+    showMore: 'Показати ще',
+    loadingMore: 'Завантаження…',
+    recentlyViewed: 'Нещодавно переглянуті',
+  },
 } as const
 
 export type SearchStringKey = keyof (typeof STRINGS)['en']
 
 export function useSearchStrings(): (key: SearchStringKey) => string {
   const { lang } = useI18n()
-  const dict: Record<SearchStringKey, string> =
-    lang === 'ka' || lang === 'ru' ? STRINGS[lang] : STRINGS.en
+  const dict: Record<SearchStringKey, string> = STRINGS[lang] ?? STRINGS.en
   return (key) => dict[key]
 }
