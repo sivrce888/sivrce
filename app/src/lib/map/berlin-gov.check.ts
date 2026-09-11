@@ -6,6 +6,8 @@
 import assert from 'node:assert/strict'
 import {
   alkisBuildingsFromFC,
+  alkisHeightM,
+  alkisParcelsFromFC,
   BERLIN_BBOX,
   BERLIN_SOURCES,
   inBerlin,
@@ -90,9 +92,24 @@ const blds = alkisBuildingsFromFC(bld as never)
 assert.equal(blds.length, 1)
 assert.equal(blds[0]!.name, 'Test Haus')
 assert.equal(blds[0]!.funktion, 'Wohngebäude')
+assert.equal(blds[0]!.floors, null)
+assert.equal(blds[0]!.heightM, null)
+
+const h1 = alkisHeightM({ aog: 5, hoh: null })
+assert.equal(h1.floors, 5)
+assert.equal(h1.heightM, 15)
+assert.equal(h1.heightSource, 'aog_x3')
+const h2 = alkisHeightM({ aog: 5, hoh: 18.5 })
+assert.equal(h2.heightM, 18.5)
+assert.equal(h2.heightSource, 'hoh')
+
+const parcels = alkisParcelsFromFC(fc as never)
+assert.equal(parcels.length, 2)
+assert.equal(parcels[0]!.kennzeichen, '060123-004-00123/045')
 
 assert.equal(pickAlkisParcelFromFC(null), null)
 assert.deepEqual(alkisBuildingsFromFC({ features: [] }), [])
+assert.deepEqual(alkisParcelsFromFC({ features: [] }), [])
 
 const keys = BERLIN_SOURCES.map((s) => s.key)
 assert.equal(new Set(keys).size, keys.length, 'duplicate source key')

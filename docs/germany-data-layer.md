@@ -62,9 +62,9 @@ Tiles: `GET /api/tiles/{layer}/{z}/{x}/{y}` via `ST_AsMVT`.
 Seed: `npm run ingest:berlin-sample` · full ALKIS: `ingest:alkis -- --geo` ·
 StEP only: `ingest:step`.
 
-**Constraint (not 100 yet):** LoD2 CityGML heights not bulk-ingested — extrusion
-uses placeholder `height_m=12` until CityGML pipeline. B-Plan WFS typeName not
-yet live-verified — portal only.
+**Constraint (not 100 yet):** LoD2 CityGML roofs not bulk-ingested — height uses
+official ALKIS `hoh` or `aog×3` (Geschosse). B-Plan WFS typeName not yet
+live-verified — portal only.
 
 ## Refresh cadence
 

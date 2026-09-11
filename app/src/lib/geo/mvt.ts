@@ -68,8 +68,11 @@ export async function mvtForTile(
         g.name,
         g.kind,
         COALESCE((g.props->>'height_m')::float8, 12)::float8 AS height,
+        COALESCE((g.props->>'floors')::float8, 0)::float8 AS floors,
+        COALESCE((g.props->>'area_m2')::float8, 0)::float8 AS area_m2,
         COALESCE(g.props->>'we_kat', '') AS we_kat,
         COALESCE(g.props->>'status', g.props->>'leg_fertig', '') AS status,
+        COALESCE(g.props->>'height_source', '') AS height_source,
         ST_AsMVTGeom(
           ST_Transform(g.geom, 3857),
           bounds.geom,

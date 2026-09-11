@@ -68,6 +68,28 @@ export type AlkisBuilding = {
   lng: number
   name: string | null
   funktion: string | null
+  /** Official Geschosse oberirdisch (aog) when present. */
+  floors: number | null
+  /**
+   * Height meters: official `hoh` wins; else aog×3.0 (standard storey).
+   * Never invent LoD2 roofs here.
+   */
+  heightM: number | null
+  /** Where heightM came from — for provenance UI. */
+  heightSource: 'hoh' | 'aog_x3' | null
+}
+
+/** Pure: ALKIS props → height. hoh official; else floors×3. */
+export function alkisHeightM(p: Record<string, unknown>): {
+  floors: number | null
+  heightM: number | null
+  heightSource: 'hoh' | 'aog_x3' | null
+} {
+  const floors = num(p.aog)
+  const hoh = num(p.hoh)
+  if (hoh != null) return { floors, heightM: hoh, heightSource: 'hoh' }
+  if (floors != null) return { floors, heightM: floors * 3, heightSource: 'aog_x3' }
+  return { floors: null, heightM: null, heightSource: null }
 }
 
 type WfsFC = { features?: Array<{ id?: string | number; geometry?: GeoJSON.Geometry | null; properties?: Record<string, unknown> | null }> }
@@ -107,6 +129,35 @@ export function pickAlkisParcelFromFC(fc: WfsFC | null | undefined): AlkisParcel
   return best
 }
 
+/** Pure: WFS GeoJSON → all parcels (ingest / MVT seed). */
+export function alkisParcelsFromFC(fc: WfsFC | null | undefined): AlkisParcel[] {
+  const feats = fc?.features
+  if (!Array.isArray(feats)) return []
+  const out: AlkisParcel[] = []
+  const seen = new Set<string>()
+  for (const f of feats) {
+    const ring = geometryRing(f.geometry)
+    if (!ring) continue
+    const p = f.properties ?? {}
+    const kennzeichen =
+      str(p.fsko) ?? ([str(p.zae), str(p.nen)].every(Boolean) ? `${p.zae}/${p.nen}` : null)
+    if (!kennzeichen || seen.has(kennzeichen)) continue
+    const closed = closeRing(ring)
+    if (closed.length < 5) continue
+    const c = ringCentroid(closed)
+    seen.add(kennzeichen)
+    out.push({
+      kennzeichen,
+      areaM2: num(p.afl),
+      ring: closed,
+      lat: c.lat,
+      lng: c.lng,
+      source: 'alkis',
+    })
+  }
+  return out
+}
+
 /** Pure: WFS GeoJSON → building footprints (largest polygon per feature). */
 export function alkisBuildingsFromFC(fc: WfsFC | null | undefined): AlkisBuilding[] {
   const feats = fc?.features
@@ -119,13 +170,17 @@ export function alkisBuildingsFromFC(fc: WfsFC | null | undefined): AlkisBuildin
     if (closed.length < 5) continue
     const p = f.properties ?? {}
     const c = ringCentroid(closed)
+    const h = alkisHeightM(p)
     out.push({
       id: str(p.uuid) ?? str(p.gml_id) ?? (f.id != null ? String(f.id) : null),
       ring: closed,
       lat: c.lat,
       lng: c.lng,
-      name: str(p.nam) ?? str(p.name),
-      funktion: str(p.bezbwf) ?? str(p.bezart) ?? str(p.funktion),
+      name: str(p.nam) ?? str(p.name) ?? str(p.hnr),
+      funktion: str(p.bezbat) ?? str(p.bezbwf) ?? str(p.bezart) ?? str(p.funktion),
+      floors: h.floors,
+      heightM: h.heightM,
+      heightSource: h.heightSource,
     })
   }
   return out
@@ -174,6 +229,14 @@ export async function fetchAlkisBuildingsInBbox(
   count = 500,
 ): Promise<AlkisBuilding[]> {
   return alkisBuildingsFromFC(await wfsGetFeature(BUILDING_SVC, BUILDING_TYPE, bbox, count))
+}
+
+/** ALKIS parcels in a bbox → geo_features / MVT seed. */
+export async function fetchAlkisParcelsInBbox(
+  bbox: { west: number; south: number; east: number; north: number },
+  count = 500,
+): Promise<AlkisParcel[]> {
+  return alkisParcelsFromFC(await wfsGetFeature(PARCEL_SVC, PARCEL_TYPE, bbox, count))
 }
 
 export type StepFeature = {
