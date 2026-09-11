@@ -987,10 +987,16 @@ export function formatListingPrice(l: Listing): string {
   return formatUSD(l.priceUSD)
 }
 
-export function formatPerM2(l: Listing, currency?: 'GEL' | 'USD'): string {
+import type { Currency } from '@/lib/currency'
+
+export function formatPerM2(l: Listing, currency?: Currency): string {
   if (currency === 'GEL') {
     const gelPerM2 = Math.round(l.perM2USD * USD_GEL)
     return `${gelPerM2.toLocaleString('en-US')}₾/მ²`
+  }
+  if (currency === 'EUR') {
+    const eurPerM2 = Math.round((l.perM2USD * USD_GEL) / 3.04)
+    return `€${eurPerM2.toLocaleString('en-US')}/მ²`
   }
   return `$${l.perM2USD.toLocaleString('en-US')}/მ²`
 }

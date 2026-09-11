@@ -1643,7 +1643,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
   },
 ]
 
-// ——— New-build projects ———
+// New-build projects
 
 export const PROJECTS: Project[] = [
   {

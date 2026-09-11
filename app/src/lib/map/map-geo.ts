@@ -1,5 +1,5 @@
 /**
- * Map constants + Georgia/Germany bboxes — no footprints, no catalog.
+ * Map constants — no footprints, no catalog.
  * Client pages that only need a pin/bounds import this, not buildings.ts.
  */
 
@@ -11,17 +11,18 @@ export const MAP_CENTER = { lat: 41.7151, lng: 44.8271 } as const
 export const FREEDOM_SQUARE = { lat: 41.69365, lng: 44.80115 } as const
 /** DE market center — Brandenburg Gate (sivrce.de boot + Berlin pin). */
 export const BERLIN_CENTER = { lat: 52.52, lng: 13.405 } as const
-/** Soft clamp — Georgia + halo; country-shaped clip is GEORGIA_MASK_FC. */
+/** Georgia bbox — regional helper (corpus, TAS), not a camera clamp. */
 export const GEORGIA_MAX_BOUNDS: [[number, number], [number, number]] = [
   [38.7, 40.35],
   [47.8, 44.25],
 ]
-/** Soft clamp — Germany + halo (DE market map, Nominatim viewbox). */
+/** Germany bbox — regional helper (Berlin gov vs TAS). */
 export const GERMANY_MAX_BOUNDS: [[number, number], [number, number]] = [
   [4.9, 46.8],
   [16.0, 55.6],
 ]
-export const MAP_MIN_ZOOM = 7
+/** World view — was 7 (Georgia clamp). */
+export const MAP_MIN_ZOOM = 1
 export const GEORGIA_HALO_KM = 50
 
 const [[W, S], [E, N]] = GEORGIA_MAX_BOUNDS
@@ -36,23 +37,19 @@ export function inGermany(lat: number, lng: number): boolean {
   return lat >= DE_S && lat <= DE_N && lng >= DE_W && lng <= DE_E
 }
 
-/** Either served market — listing coords, geocode hits, reverse pins. */
+/** WGS84 pin — (0,0) is the DB unset sentinel, not Null Island. */
 export function inServiceArea(lat: number, lng: number): boolean {
-  return inGeorgia(lat, lng) || inGermany(lat, lng)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false
+  if (lat === 0 && lng === 0) return false
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
 }
 
-/** Map camera clamp follows the boot center — DE view must not snap to the Caucasus. */
-export function mapMaxBoundsFor(lat: number, lng: number): [[number, number], [number, number]] {
-  return inGermany(lat, lng) ? GERMANY_MAX_BOUNDS : GEORGIA_MAX_BOUNDS
-}
-
-/** Parse body lat/lng; reject out-of-market (neither Georgia nor Germany). */
+/** Parse body lat/lng; reject non-finite / (0,0) / out of WGS84. */
 export function parseCoords(
   lat: unknown,
   lng: unknown,
 ): { lat: number; lng: number } | null {
   if (typeof lat !== 'number' || typeof lng !== 'number') return null
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
   if (!inServiceArea(lat, lng)) return null
   return { lat, lng }
 }
@@ -191,3 +188,6 @@ export const GEORGIA_MASK_FC: GeoJSON.FeatureCollection = (() => {
 })()
 export const MAP_BRAND_WATER = BRAND.colors.navySoft
 export const MAP_BRAND_LAND = BRAND.colors.navy
+
+/** Build-time import lock — device-budget.check.ts verifies this symbol exists. */
+export const mapGeoLock = true

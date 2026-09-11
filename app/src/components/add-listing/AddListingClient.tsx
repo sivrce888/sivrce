@@ -31,7 +31,7 @@ import {
 } from '@/lib/add-listing-fields'
 import { groupedFeatures } from '@/lib/features'
 import {
-  CITIES, districtsOf, LISTINGS, USD_GEL, formatUSD,
+  districtsOf, LISTINGS, USD_GEL, formatUSD,
   type DealType, type Listing, type PropType,
 } from '@/data/listings'
 import ListingCard from '@/components/ListingCard'
@@ -45,7 +45,7 @@ import { VIDEO_ACCEPT,
   youtubeId,
   youtubePoster,
 } from '@/lib/listing-video'
-import { cityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
+import { knownCityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
 import { naprUniqDigits, ringAreaM2 } from '@/lib/map/napr-parcel'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 
@@ -155,7 +155,7 @@ export default function AddListingClient() {
   const [propType, setPropType] = useState<PropType | null>(
     PROP_Q.has(propParam) ? (propParam as PropType) : null,
   )
-  const [city, setCity] = useState(() => (CITIES.includes(cityParam) ? cityParam : ''))
+  const [city, setCity] = useState(() => cityParam)
   const [district, setDistrict] = useState(districtParam)
   const [locOpen, setLocOpen] = useState(false)
   const [street, setStreet] = useState('')
@@ -526,13 +526,34 @@ export default function AddListingClient() {
   }, [deal, propType, city])
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // City → map center until street geocode lands.
+  // City → map center until street geocode lands. Unknown city geocodes (no Tbilisi snap).
   useEffect(() => {
     if (!city || street.trim().length >= 2) return
     if (naprPinRef.current) return
-    setCoords(cityCenter(city))
-    setFootprint(null)
-    setPinReady(false)
+    const known = knownCityCenter(city)
+    if (known) {
+      setTimeout(() => {
+        setCoords(known)
+        setFootprint(null)
+        setPinReady(false)
+      })
+      return
+    }
+    const ac = new AbortController()
+    fetch(`/api/geocode?q=${encodeURIComponent(city)}`, { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { ok?: boolean; lat?: number; lng?: number } | null) => {
+        if (d?.ok && typeof d.lat === 'number' && typeof d.lng === 'number') {
+          const lat = d.lat
+          const lng = d.lng
+          setTimeout(() => {
+            setCoords({ lat, lng })
+            setPinReady(true)
+          })
+        }
+      })
+      .catch(() => {})
+    return () => ac.abort()
   }, [city, street])
 
   // Address → pin + OSM building ring. House № → building-level zoom.
@@ -555,7 +576,9 @@ export default function AddListingClient() {
         .then((r) => (r.ok ? r.json() : null))
         .then((d: GeocodeHit & { ok?: boolean } | null) => {
           if (d?.ok && typeof d.lat === 'number' && typeof d.lng === 'number') {
-            setCoords({ lat: d.lat, lng: d.lng })
+            const lat = d.lat
+            const lng = d.lng
+            setCoords({ lat, lng })
             setPinReady(true)
             setFootprint(
               Array.isArray(d.ring) && d.ring.length >= 4 ? (d.ring as [number, number][]) : null,
@@ -616,8 +639,10 @@ export default function AddListingClient() {
             setFootprint(ring)
             // Official lot owns the map view — typed street text is never overwritten.
             if (typeof d.lat === 'number' && typeof d.lng === 'number') {
+              const lat = d.lat
+              const lng = d.lng
               naprPinRef.current = true
-              setCoords({ lat: d.lat, lng: d.lng })
+              setCoords({ lat, lng })
               setPinReady(true)
               // Soft-fill blank address fields from the lot (one muted text-geocode skip).
               fetch(`/api/geocode?lat=${d.lat}&lng=${d.lng}`, { signal: ac.signal })
@@ -628,7 +653,7 @@ export default function AddListingClient() {
                   let filled = false
                   if (g.street && !loc.street.trim()) { setStreet(g.street); filled = true }
                   if (g.houseNo && !loc.houseNo.trim()) { setHouseNo(g.houseNo); filled = true }
-                  if (g.city && !loc.city && CITIES.includes(g.city)) { setCity(g.city); filled = true }
+                  if (g.city && !loc.city) { setCity(g.city); filled = true }
                   if (g.district && !loc.district.trim()) {
                     setDistrict(canonicalizeDistrict(g.district, g.city) || g.district)
                     filled = true
@@ -768,7 +793,7 @@ export default function AddListingClient() {
         muteGeocode.current = true
         if (d.street) setStreet(d.street)
         if (d.houseNo) setHouseNo(d.houseNo)
-        if (d.city && CITIES.includes(d.city)) setCity(d.city)
+        if (d.city) setCity(d.city)
         if (d.district) setDistrictCanon(d.district, d.city)
       })
       .catch(() => {})

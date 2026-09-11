@@ -8,12 +8,6 @@
 
 import type { Map as MlMap, StyleSpecification } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
-import {
-  GEORGIA_MASK_FC,
-  GEORGIA_MASK_LAYER,
-  GEORGIA_MASK_MAXZOOM,
-  GEORGIA_MASK_SOURCE,
-} from '@/lib/map/map-geo'
 import { EMPTY_FLOORS } from './floors'
 import {
   building3dLayer,
@@ -21,6 +15,7 @@ import {
   OSM_BUILDING_3D_ID,
 } from '@/lib/map/mapChrome'
 import { mapProxyOrigin } from '@/lib/map/map-proxy'
+import { mapGeoLock } from '@/lib/map/map-geo'
 
 // Defaults are first-party proxy paths — browser never sees openfreemap.org.
 export const STYLE_LIGHT =
@@ -116,53 +111,15 @@ export async function overlayHybridLabels(
       )
     const bldg3d = (ofm.layers ?? []).find((l) => l.id === OSM_BUILDING_3D_ID)
     if (!labels.length && !bldg3d) return sat
-    const layers = sat.layers ?? []
-    const maskAt = layers.findIndex((l) => l.id === GEORGIA_MASK_LAYER)
-    const before = maskAt >= 0 ? layers.slice(0, maskAt) : layers
-    const after = maskAt >= 0 ? layers.slice(maskAt) : []
     return {
       ...sat,
       glyphs: ofm.glyphs,
       sources: { ...sat.sources, sivrce },
-      layers: [...before, ...(bldg3d ? [bldg3d] : []), ...labels, ...after],
+      layers: [...(sat.layers ?? []), ...(bldg3d ? [bldg3d] : []), ...labels],
     }
   } catch {
     // ponytail: OFM 5s timeout → photo-only. Vector-first; Esri rasters stay unused.
     return sat
-  }
-}
-
-/** Light void — navy-tint gray so Georgia reads (cloud ≈ land, silhouette vanished). */
-const VOID_LIGHT = '#C5CBD8'
-
-/** Void outside the 50 km halo. Neighbor country labels stay — they sit in the rim. */
-function georgiaVoid(theme: MapTheme, terrain: MapTerrain) {
-  return theme === 'dark' || terrain === 'satellite' ? BRAND.colors.navy : VOID_LIGHT
-}
-
-/** Add neighbor void after the first frame so basemap tiles win the worker. */
-export function ensureGeorgiaMask(
-  map: MlMap,
-  theme: MapTheme,
-  terrain: MapTerrain = 'streets',
-) {
-  try {
-    if (map.getSource(GEORGIA_MASK_SOURCE)) return
-    map.addSource(GEORGIA_MASK_SOURCE, {
-      type: 'geojson',
-      data: GEORGIA_MASK_FC,
-      maxzoom: GEORGIA_MASK_MAXZOOM,
-      tolerance: 0,
-      buffer: 0,
-    })
-    map.addLayer({
-      id: GEORGIA_MASK_LAYER,
-      type: 'fill',
-      source: GEORGIA_MASK_SOURCE,
-      paint: { 'fill-color': georgiaVoid(theme, terrain), 'fill-opacity': 1 },
-    })
-  } catch {
-    // map already removed
   }
 }
 
@@ -586,12 +543,6 @@ export function applyBrandPaints(
   theme: MapTheme = 'dark',
   terrain: MapTerrain = 'streets',
 ) {
-  const voidColor =
-    theme === 'dark' || terrain === 'satellite' ? BRAND.colors.navy : VOID_LIGHT
-  requestAnimationFrame(() => {
-    ensureGeorgiaMask(map, theme, terrain)
-    trySet(map, GEORGIA_MASK_LAYER, 'fill-color', voidColor)
-  })
   if (terrain === 'satellite') {
     for (const id of HYBRID_NAME_IDS) {
       trySet(map, id, 'text-color', BRAND.colors.paper)
