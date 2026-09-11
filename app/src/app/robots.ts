@@ -66,7 +66,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         disallow: DISALLOW,
       },
     ],
-    sitemap: [`${GE_ORIGIN}/sitemap.xml`, `${COM_ORIGIN}/sitemap.xml`],
+    sitemap: [`${GE_ORIGIN}/sitemap/ge.xml`, `${COM_ORIGIN}/sitemap/com.xml`],
     host: origin,
   }
 }

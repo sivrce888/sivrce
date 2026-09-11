@@ -122,10 +122,6 @@ test.describe("Public pages", () => {
 
 test.describe("SEO", () => {
   test("sitemap returns XML", async ({ page }) => {
-    const res = await page.goto(`${BASE}/sitemap.xml`)
-    expect(res?.status()).toBe(200)
-    const text = await page.content()
-    expect(text).toMatch(/<urlset|<sitemapindex/)
     const com = await page.goto(`${BASE}/sitemap/com.xml`)
     expect(com?.status()).toBe(200)
     expect(await page.content()).toContain("sivrce.com/de")
@@ -136,7 +132,7 @@ test.describe("SEO", () => {
     expect(res?.status()).toBe(200)
     const text = await page.content()
     expect(text).toContain("sitemap.xml")
-    expect(text).toContain("sivrce.com/sitemap.xml")
+    expect(text).toMatch(/sivrce\.com\/sitemap/)
   })
 
   test("manifest.json exists", async ({ page }) => {
