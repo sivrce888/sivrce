@@ -15,8 +15,7 @@ import { NEW_DEVELOPERS_BATUMI_REGIONS, NEW_PROJECTS_BATUMI } from './projects-n
 import { NEW_PROJECTS_REGIONS } from './projects-new-regions'
 import { NEW_DEVELOPERS_2026_08, NEW_PROJECTS_2026_08 } from './projects-new-2026-08'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from './projects-new-berlin'
-import { NEW_DEVELOPERS_GERMANY } from './projects-new-germany'
-import { EXTRA_DEVELOPERS_GERMANY, EXTRA_PROJECTS_GERMANY } from './projects-germany-extra'
+import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from './projects-new-germany'
 
 export interface LocalName {
   ka: string
@@ -1552,7 +1551,6 @@ export const DEVELOPERS: Developer[] = [
   ...NEW_DEVELOPERS_2026_08,
   ...NEW_DEVELOPERS_BERLIN,
   ...NEW_DEVELOPERS_GERMANY,
-  ...EXTRA_DEVELOPERS_GERMANY,
 ]
 
 // ——— Agents / agencies ———
@@ -4798,7 +4796,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_REGIONS,
   ...NEW_PROJECTS_2026_08,
   ...NEW_PROJECTS_BERLIN,
-  ...EXTRA_PROJECTS_GERMANY,
+  ...NEW_PROJECTS_GERMANY,
 ].map(freshenFinish)
 
 export function getDeveloper(slug: string): Developer | undefined {
