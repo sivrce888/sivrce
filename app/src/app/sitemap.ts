@@ -11,7 +11,6 @@ import { ListingStatus } from '@/generated/prisma/enums'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
-import { LEGAL_SLUGS } from '@/lib/legal/docs'
 import { db } from '@/lib/db'
 import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
@@ -113,12 +112,6 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/faq', changeFrequency: 'monthly', priority: 0.5 },
     { path: '/terms', changeFrequency: 'yearly', priority: 0.2, locale: 'ka' },
     { path: '/privacy', changeFrequency: 'yearly', priority: 0.2 },
-    { path: '/legal', changeFrequency: 'monthly', priority: 0.3 },
-    ...LEGAL_SLUGS.map((doc) => ({
-      path: `/legal/${doc}`,
-      changeFrequency: 'yearly' as const,
-      priority: 0.3,
-    })),
     // ponytail: crawlable hubs + detail pages previously missing — sitemap
     // is the discovery path for ~140 indexed pages (agents, developers, projects).
     { path: '/mortgage-calculator', changeFrequency: 'monthly', priority: 0.7 },
