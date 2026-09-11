@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
@@ -446,7 +446,7 @@ export default function ListingDetailClient({
   /** Agent/developer profile review aggregate — null for owner cards. */
   profileRating?: { average: number; count: number } | null
 }) {
-  const { data: session } = useSession()
+  const { data: session, status: authStatus } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
@@ -455,9 +455,24 @@ export default function ListingDetailClient({
   const rs = getReviewStrings(lang)
   const { currency, setCurrency, rate: liveRate, eurRate } = useCurrency()
   const { openChat } = useChat()
+  const pendingMessage = useRef(false)
+  // ponytail: same scroll+focus as StickyLeadBar — kept for the guest flow.
+  const scrollToLead = useCallback(() => {
+    const form = document.getElementById(LEAD_FORM_ID)
+    if (!form) return
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    window.setTimeout(() => {
+      form.querySelector<HTMLElement>('input:not([tabindex="-1"])')?.focus({ preventScroll: true })
+    }, 500)
+  }, [])
   // Owner → inbox. Authed buyer + listing owner seat → live chat (first
   // message writes an Inquiry). Guest / catalog row → lead form (phone).
+  // Session still loading: queue the tap so authed buyers aren't dumped on the form.
   const messageOwner = () => {
+    if (authStatus === 'loading') {
+      pendingMessage.current = true
+      return
+    }
     if (isOwner) {
       openChat()
       return
@@ -465,15 +480,13 @@ export default function ListingDetailClient({
     if (session?.user?.id && ownerId) openChat(l.id)
     else scrollToLead()
   }
-  // ponytail: same scroll+focus as StickyLeadBar — kept for the guest flow.
-  const scrollToLead = () => {
-    const form = document.getElementById(LEAD_FORM_ID)
-    if (!form) return
-    form.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    window.setTimeout(() => {
-      form.querySelector<HTMLElement>('input:not([tabindex="-1"])')?.focus({ preventScroll: true })
-    }, 500)
-  }
+  useEffect(() => {
+    if (authStatus === 'loading' || !pendingMessage.current) return
+    pendingMessage.current = false
+    if (isOwner) openChat()
+    else if (session?.user?.id && ownerId) openChat(l.id)
+    else scrollToLead()
+  }, [authStatus, isOwner, session?.user?.id, ownerId, l.id, openChat, scrollToLead])
   const [photo, setPhoto] = useState(0)
   const [lightbox, setLightbox] = useState(false)
   const [videoOpen, setVideoOpen] = useState(false)

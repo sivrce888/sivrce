@@ -238,6 +238,21 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         if (!res.ok) {
           setPendingTarget(null)
           lastTargetRef.current = null
+          // Catalog rows / deleted listings: chat cannot seat an owner.
+          // Recover onto the phone form already on the page.
+          if (target.kind === "listing" && (res.status === 409 || res.status === 404)) {
+            setOpen(false)
+            window.setTimeout(() => {
+              const form = document.getElementById("lead-form")
+              if (!form) return
+              form.scrollIntoView({ behavior: "smooth", block: "center" })
+              window.setTimeout(() => {
+                form
+                  .querySelector<HTMLElement>('input:not([tabindex="-1"])')
+                  ?.focus({ preventScroll: true })
+              }, 500)
+            }, 280)
+          }
           return
         }
         const data = await res.json()

@@ -29,7 +29,7 @@ export default function MessageUserButton({
     <button
       type="button"
       onClick={() => openChatWithUser(userId)}
-      className={`inline-flex items-center gap-2 rounded-control bg-sv-blue px-4 py-2.5 text-[13.5px] font-bold text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] ${className}`}
+      className={`inline-flex min-h-11 items-center gap-2 rounded-control bg-sv-blue px-4 py-2.5 text-[13.5px] font-bold text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] touch-manipulation ${className}`}
     >
       <MessageCircle className="h-4 w-4" aria-hidden />
       {t("chat.message")}

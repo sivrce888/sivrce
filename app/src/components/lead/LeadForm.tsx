@@ -10,6 +10,7 @@ import { AlertCircle, CheckCircle2, Loader2, MessageCircle, RotateCcw, Send } fr
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useChat } from '@/components/chat/ChatProvider'
+import { stashChatDraft } from '@/components/chat/messages'
 import { useI18n } from '@/lib/i18n/context'
 import { formatPhone, PHONE_RE } from '@/lib/inquiries/phone'
 import { cn } from '@/lib/utils'
@@ -95,6 +96,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
 
   function continueInChat() {
     if (targetType !== 'listing') return
+    stashChatDraft(targetId, message)
     if (authStatus === 'authenticated') {
       openChat(targetId)
       return
