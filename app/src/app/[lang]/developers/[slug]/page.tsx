@@ -26,9 +26,12 @@ import { altName, altNameList } from '@/lib/bilingual'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { OG_LOCALE, pageAlternates } from "@/lib/i18n/server"
 import { isValidLang, type Lang } from '@/lib/i18n/core'
+import { DE_CITIES } from '@/lib/countries/de'
 import {
   DEV_DETAIL,
+  DEV_DETAIL_DE,
   MICRO,
+  MICRO_DE,
   devFaqs,
   dirLoc,
   faqPageLd,
@@ -56,17 +59,22 @@ function absImg(src: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang: raw, slug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
+  const isDe = lang === 'de'
   const loc = dirLoc(lang)
-  const c = DEV_DETAIL[loc]
+  const chromeLoc = isDe ? 'de' : loc
+  const c = isDe ? DEV_DETAIL_DE : DEV_DETAIL[loc]
   const d = await getLiveDeveloper(slug)
   if (!d) return {}
+  const deCity = DE_CITIES.find((x) => x.ka === d.city)
   const projects = await projectsLiveByDeveloper(slug)
   const flagship = projects.length
     ? projects.reduce((a, b) => (b.done > a.done ? b : a))
     : null
   const name = pickLoc(d.name, loc)
   const alt = altName(name)
-  const body = (pickLoc(d.description, loc) || c.descFallback(name, d.city)).replace(/\s+/g, ' ')
+  const body = (
+    pickLoc(d.description, chromeLoc) || c.descFallback(name, isDe ? (deCity?.de ?? d.city) : d.city)
+  ).replace(/\s+/g, ' ')
   // Both scripts up front — Georgian users search 'ორბი გრუპი', others 'ORBI Group'.
   const description = ((alt && !body.includes(alt) ? `${name} (${alt}). ` : '') + body).slice(0, 155)
   // root layout template appends '| sivrce' — don't double it
@@ -98,11 +106,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DeveloperPage({ params }: PageProps) {
   const { lang, slug } = await params
   if (!isValidLang(lang)) notFound()
+  const isDe = lang === 'de'
   const loc = dirLoc(lang)
-  const c = DEV_DETAIL[loc]
-  const micro = MICRO[loc]
+  const chromeLoc = isDe ? 'de' : loc
+  const c = isDe ? DEV_DETAIL_DE : DEV_DETAIL[loc]
+  const micro = isDe ? MICRO_DE : MICRO[loc]
   const dev = await getLiveDeveloper(slug)
   if (!dev) notFound()
+  const deCity = DE_CITIES.find((x) => x.ka === dev.city)
   const name = pickLoc(dev.name, loc)
 
   const [aggregate, projects] = await Promise.all([
@@ -209,7 +220,7 @@ export default async function DeveloperPage({ params }: PageProps) {
 
   // Every render across the portfolio — hero + gallery art, deduped, capped.
   const allPhotos = collectPhotos(projects.flatMap((p) => [p.img, p.gallery ?? []]))
-  const areaLabels = placeLabels(loc)
+  const areaLabels = placeLabels(chromeLoc)
 
   const anchors = [
     { id: 'about', label: c.about },
@@ -285,7 +296,7 @@ export default async function DeveloperPage({ params }: PageProps) {
             {c.about}
           </h2>
           <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
-            {pickLoc(dev.description, loc) || dev.description.ka}
+            {pickLoc(dev.description, chromeLoc) || dev.description.ka}
           </p>
           {dev.website && (
             <p className="mt-3 text-[13px] font-bold text-sv-ink/60">
@@ -362,11 +373,11 @@ export default async function DeveloperPage({ params }: PageProps) {
                   <div className="p-4">
                     <h3 className="text-[16px] font-black text-sv-ink">{p.name}</h3>
                     <p className="mt-1 text-[13px] font-bold text-sv-ink/60">
-                      {p.location} · {micro.handover} {finishLabel(loc, p.finish)}
+                      {p.location} · {micro.handover} {finishLabel(chromeLoc, p.finish)}
                     </p>
                     {p.priceFromM2 && (
                       <p className="mt-2 text-[15px] font-black text-sv-blue-deep">
-                        {priceFromLabel(p.priceFromM2, loc)}
+                        {priceFromLabel(p.priceFromM2, chromeLoc)}
                         {hasPriceFrom(p.priceFromM2) && (
                           <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
                         )}
@@ -382,7 +393,7 @@ export default async function DeveloperPage({ params }: PageProps) {
         {listings.length > 0 && (
           <section id="listings" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              {micro.listingsIn(dev.city)}
+              {micro.listingsIn(isDe ? (deCity?.de ?? dev.city) : dev.city)}
             </h2>
             <div className="mt-6 sv-card-grid-3">
               {listings.map((l, i) => (

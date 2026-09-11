@@ -338,6 +338,26 @@ export const DEV_DETAIL: Record<
   },
 }
 
+/**
+ * German chrome for developer pages — same isDe precedent as PROJECT_DETAIL_DE.
+ * descFallback takes the already German-resolved city name (DE_CITIES), not
+ * the ka catalog key — callers on the DE market resolve that themselves.
+ */
+export const DEV_DETAIL_DE: (typeof DEV_DETAIL)['en'] = {
+  titleSuffix: '— Projekte, Preise & Bewertungen',
+  descFallback: (name, city) =>
+    `${name} — Bauträger in ${city}. Projekte, Preise und Bewertungen auf Sivrce.`,
+  crumbHome: 'Start',
+  crumbDevs: 'Bauträger',
+  about: 'Über uns',
+  location: 'Lage',
+  projects: 'Projekte',
+  faqTitle: 'Häufig gestellte Fragen',
+  faqChip: 'FAQ',
+  contact: 'Kontakt',
+  navLabel: 'Seitenabschnitte',
+}
+
 /** Project detail page chrome. */
 export const PROJECT_DETAIL: Record<
   DirLoc,
