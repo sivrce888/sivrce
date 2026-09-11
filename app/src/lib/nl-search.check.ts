@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict'
-import { mergeNl, nlHasStructure, nlToSearchPatch, parseNlQuery } from './nl-search'
+import { DE_CITIES } from './countries/de'
+import {
+  countryNlNeedsGeocode,
+  isOfficialGeoQuery,
+  mergeNl,
+  nlHasStructure,
+  nlToSearchPatch,
+  parseNlQuery,
+  routeCountryNl,
+} from './nl-search'
 
 const a = parseNlQuery('2 bedroom Vake apartment under 250k with parking')
 assert.equal(a.district, 'ვაკე')
@@ -130,5 +139,99 @@ assert.ok(deFurn.features?.includes('add.f.furniture'))
 assert.equal(parseNlQuery('Einfamilienhaus verkaufen').propertyType, 'house')
 assert.equal(parseNlQuery('Wohnung bis zu €150k').maxPrice, 150000)
 assert.equal(nlHasStructure(deBuy), true)
+
+const deBerlin = parseNlQuery('2 Zimmer Wohnung in Berlin unter 500.000 € mit Balkon und U-Bahn unter 10 Minuten')
+assert.equal(deBerlin.rooms, 2)
+assert.equal(deBerlin.propertyType, 'apartment')
+assert.equal(deBerlin.city, 'ბერლინი')
+assert.equal(deBerlin.maxPrice, 500000)
+assert.equal(deBerlin.currency, 'EUR')
+assert.ok(deBerlin.features?.includes('add.f.balcony'))
+assert.notEqual(deBerlin.maxPrice, 10, 'U-Bahn unter 10 Minuten must not become a price')
+
+const deMitte = parseNlQuery('Neubau in Berlin Mitte bis 4.500 €/m²')
+assert.equal(deMitte.city, 'ბერლინი')
+assert.equal(deMitte.district, 'Mitte')
+assert.equal(deMitte.buildingStatus, 'add.status.new')
+assert.equal(deMitte.maxPrice, undefined, '€/m² is not a purchase cap')
+
+const deAltbau = parseNlQuery('Altbau Wohnung Prenzlauer Berg')
+assert.equal(deAltbau.district, 'Pankow')
+assert.equal(deAltbau.buildingStatus, 'add.status.old')
+
+assert.equal(parseNlQuery('Köln').city, DE_CITIES.find((c) => c.slug === 'cologne')?.ka)
+assert.equal(nlToSearchPatch(deBerlin).cur, 'EUR')
+assert.equal(nlToSearchPatch(deMitte).bstat, 'add.status.new')
+
+assert.equal(isOfficialGeoQuery('Bebauungsplan Mitte'), true)
+assert.equal(countryNlNeedsGeocode('Alexanderplatz'), true)
+assert.equal(countryNlNeedsGeocode('2 Zimmer Berlin'), false)
+
+const berlin = DE_CITIES.find((c) => c.slug === 'berlin')!
+const r1 = routeCountryNl({
+  q: '2 Zimmer Wohnung in Berlin unter 500.000 € mit Balkon',
+  tab: 'buy',
+  country: 'de',
+  cityKa: berlin.ka,
+  lat: berlin.center.lat,
+  lng: berlin.center.lng,
+})
+assert.equal(r1.go, 'map')
+assert.ok(r1.href.includes('deal=sale'))
+assert.ok(r1.href.includes(`lat=${berlin.center.lat.toFixed(5)}`))
+
+const r2 = routeCountryNl({
+  q: 'Neubau in Berlin Mitte',
+  tab: 'buy',
+  country: 'de',
+  lat: berlin.center.lat,
+  lng: berlin.center.lng,
+})
+assert.equal(r2.go, 'projects')
+
+const r3 = routeCountryNl({
+  q: 'B-Plan festgesetzt',
+  tab: 'buy',
+  country: 'de',
+  lat: berlin.center.lat,
+  lng: berlin.center.lng,
+})
+assert.equal(r3.go, 'map')
+
+// North-star queries — structured filters, never a keyword dump.
+const ns1 = parseNlQuery('2 bedroom apartment in Tbilisi under $150,000 near metro with balcony')
+assert.equal(ns1.bedrooms, 2)
+assert.equal(ns1.propertyType, 'apartment')
+assert.equal(ns1.city, 'თბილისი')
+assert.equal(ns1.maxPrice, 150000)
+assert.equal(ns1.nearMetro, true)
+assert.ok(ns1.features?.includes('add.f.balcony'))
+assert.equal(nlToSearchPatch(ns1).metro, '1')
+assert.equal(nlToSearchPatch(ns1).max, '150000')
+assert.equal(nlToSearchPatch(ns1).q, undefined)
+
+const ns2 = parseNlQuery('new development in Berlin under €5,000/m²')
+assert.equal(ns2.city, 'ბერლინი')
+assert.equal(ns2.buildingStatus, 'add.status.new')
+assert.equal(ns2.maxPrice, undefined, '€/m² is not a purchase cap')
+assert.equal(ns2.currency, 'EUR')
+assert.equal(ns2.nearMetro, undefined)
+const rNs2 = routeCountryNl({
+  q: 'new development in Berlin under €5,000/m²',
+  tab: 'buy',
+  country: 'de',
+  lat: berlin.center.lat,
+  lng: berlin.center.lng,
+})
+assert.equal(rNs2.go, 'projects')
+
+const ns3 = parseNlQuery('investment property with high rental yield')
+assert.equal(ns3.keywords, 'investment property with high rental yield')
+assert.equal(nlHasStructure(ns3), false, 'no yield index — keep as Meili keywords, never fake a cap-rate filter')
+
+const kaMetro = parseNlQuery('ბინა თბილისი მეტროსთან')
+assert.equal(kaMetro.nearMetro, true)
+assert.equal(parseNlQuery('Wohnung Berlin nahe U-Bahn').nearMetro, undefined)
+assert.equal(parseNlQuery('Neubauwohnung Berlin').buildingStatus, 'add.status.new')
 
 console.log('ok: nl-search')

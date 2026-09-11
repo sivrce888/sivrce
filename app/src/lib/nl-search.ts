@@ -5,6 +5,8 @@
 
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geoDistrictsOf } from '@/data/georgia-locations'
+import { BERLIN_BEZIRKE, DE_CITIES, bezirkSlugOfOrtsteil } from '@/lib/countries/de'
+import { searchHref } from '@/lib/search-location'
 
 export type NlFilters = {
   dealType?: 'sale' | 'rent' | 'daily' | 'pledge'
@@ -19,6 +21,12 @@ export type NlFilters = {
   maxArea?: number
   features?: string[]
   pets?: boolean
+  /** Tbilisi metro catchment (`metro=1`). Never set for DE cities — index is GE-only. */
+  nearMetro?: boolean
+  /** Stored vocabulary keys (`add.status.*` / `add.cond.*`). */
+  buildingStatus?: string
+  condition?: string
+  currency?: 'USD' | 'GEL' | 'EUR'
   keywords?: string
 }
 
@@ -31,45 +39,67 @@ const CITIES: [string, string][] = [
   ['kutaisi', 'ქუთაისი'],
   ['რუსთავი', 'რუსთავი'],
   ['rustavi', 'რუსთავი'],
-  // DE market (sivrce.de) — ka + latin/di local names.
-  ['ბერლინი', 'ბერლინი'],
-  ['berlin', 'ბერლინი'],
-  ['ჰამბურგი', 'ჰამბურგი'],
-  ['hamburg', 'ჰამბურგი'],
-  ['მიუნხენი', 'მიუნხენი'],
-  ['munich', 'მიუნხენი'],
-  ['münchen', 'მიუნხენი'],
-  ['კელნი', 'კელნი'],
-  ['cologne', 'კელნი'],
-  ['köln', 'კელნი'],
-  ['ფრანკფურტი', 'ფრანკფურტი'],
-  ['frankfurt', 'ფრანკფურტი'],
-  ['შტუტგარტი', 'შტუტგარტი'],
-  ['stuttgart', 'შტუტგარტი'],
-  ['დიუსელდორფი', 'დიუსელდორფი'],
-  ['düsseldorf', 'დიუსელდორფი'],
-  ['duesseldorf', 'დიუსელდორფი'],
-  ['ლაიფციგი', 'ლაიფციგი'],
-  ['leipzig', 'ლაიფციგი'],
-  ['დორტმუნდი', 'დორტმუნდი'],
-  ['dortmund', 'დორტმუნდი'],
-  ['ესენი', 'ესენი'],
-  ['essen', 'ესენი'],
-  ['ბრემენი', 'ბრემენი'],
-  ['bremen', 'ბრემენი'],
-  ['დრეზდენი', 'დრეზდენი'],
-  ['dresden', 'დრეზდენი'],
-  ['ჰანოვერი', 'ჰანოვერი'],
-  ['hanover', 'ჰანოვერი'],
-  ['hannover', 'ჰანოვერი'],
-  ['ნიურნბერგი', 'ნიურნბერგი'],
-  ['nuremberg', 'ნიურნბერგი'],
-  ['nürnberg', 'ნიურნბერგი'],
-  ['დუისბურგი', 'დუისბურგი'],
-  ['duisburg', 'დუისბურგი'],
-  ['ბოხუმი', 'ბოხუმი'],
-  ['bochum', 'ბოხუმი'],
+  ['tiflis', 'თბილისი'],
+  ['kutaissi', 'ქუთაისი'],
 ]
+
+for (const c of DE_CITIES) {
+  CITIES.push([c.ka, c.ka], [c.de.toLowerCase(), c.ka], [c.slug, c.ka])
+}
+for (const [alias, slug] of [
+  ['muenchen', 'munich'],
+  ['münchen', 'munich'],
+  ['koeln', 'cologne'],
+  ['köln', 'cologne'],
+  ['düsseldorf', 'duesseldorf'],
+  ['nürnberg', 'nuremberg'],
+  ['nuernberg', 'nuremberg'],
+  ['hannover', 'hanover'],
+] as const) {
+  const ka = DE_CITIES.find((c) => c.slug === slug)?.ka
+  if (ka) CITIES.push([alias, ka])
+}
+
+function foldDe(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/ä/g, 'a')
+    .replace(/ö/g, 'o')
+    .replace(/ü/g, 'u')
+    .replace(/ß/g, 'ss')
+}
+
+/** Official German names, longest first so "Prenzlauer Berg" wins over "Berg". */
+const BERLIN_PLACES = [
+  ...BERLIN_BEZIRKE.map((b) => b.de),
+  'Prenzlauer Berg',
+  'Friedrichshain',
+  'Kreuzberg',
+  'Charlottenburg',
+  'Wilmersdorf',
+  'Schöneberg',
+  'Neukölln',
+  'Köpenick',
+  'Wedding',
+  'Moabit',
+  'Lichterfelde',
+  'Karlshorst',
+  'Haselhorst',
+  'Buckow',
+  'Grünau',
+].sort((a, b) => b.length - a.length)
+
+function findBerlinPlace(q: string): { district: string; city: string } | undefined {
+  const folded = ` ${foldDe(q)} `
+  for (const name of BERLIN_PLACES) {
+    const key = foldDe(name)
+    if (!folded.includes(` ${key} `) && !folded.includes(` ${key},`)) continue
+    const slug = bezirkSlugOfOrtsteil(name)
+    const bez = slug ? BERLIN_BEZIRKE.find((b) => b.slug === slug) : undefined
+    return { district: bez?.de ?? name, city: 'ბერლინი' }
+  }
+  return undefined
+}
 
 const CITY_OF = new Map<string, string>()
 for (const city of ['თბილისი', 'ბათუმი', 'ქუთაისი', 'რუსთავი']) {
@@ -107,9 +137,9 @@ function parseMoney(raw: string): number | undefined {
 }
 
 function findCity(q: string): string | undefined {
-  const lower = q.toLowerCase()
+  const lower = foldDe(q)
   for (const [key, city] of CITIES) {
-    if (lower.includes(key.toLowerCase()) || q.includes(key)) return city
+    if (lower.includes(foldDe(key)) || q.includes(key)) return city
   }
   return undefined
 }
@@ -136,11 +166,11 @@ export function parseNlQuery(query: string): NlFilters {
   const q = raw.toLowerCase()
   const out: NlFilters = {}
 
-  if (/იყიდება|შეძენა|გაყიდვა|\bbuy\b|\bsale\b|\bsell\b|kauf|verkauf/i.test(q)) out.dealType = 'sale'
+  if (/იყიდება|შეძენა|გაყიდვა|\bbuy\b|\bsale\b|\bsell\b|\bkauf\b|kaufpreis|verkauf|\bkaufen\b/i.test(q)) out.dealType = 'sale'
   else if (/დღიურად|\bdaily\b|\bovernight\b|tagesmiete|ferienwohnung(en)?|übernacht/i.test(q)) out.dealType = 'daily'
   else if (/გირავდ|გირავნ|\bpledge\b|\bcollateral\b|\bзалог/i.test(q)) out.dealType = 'pledge'
   else if (/გაიცემა\s*იჯარ|იჯარით|\bijara\b/i.test(q)) out.dealType = 'rent'
-  else if (/ქირავდება|გაქირავება|\brent\b|\blease\b|ქირა|miet|pacht/i.test(q)) out.dealType = 'rent'
+  else if (/ქირავდება|გაქირავება|\brent\b|\blease\b|ქირა|kaltmiete|warmmiete|\bmiete\b|\bmieten\b|pacht/i.test(q)) out.dealType = 'rent'
 
   const party = /წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b|partyhaus|geburtstag|feier/i.test(q)
   if (party && !out.dealType) out.dealType = 'daily'
@@ -161,24 +191,54 @@ export function parseNlQuery(query: string): NlFilters {
   const roomMatch = q.match(/(\d+)\s*[-]?\s*(ოთახიანი|ოთახი|\brooms?\b|(?<!schlaf)zimmer)/i)
   if (roomMatch) out.rooms = Number(roomMatch[1])
 
+  // €/m² is a unit price — never treat it as a purchase cap (trust).
+  const isPpm2 = /€?\s*\/\s*m[²2]|pro\s*m[²2]|quadratmeterpreis/i.test(q)
+  const moneyTailBad = /minuten|\bmin\b|\bstunden\b|km\b|meter\b/i
   const under = q.match(/(?:under|below|unter|bis\s*zu|ქვემოთ|მდე|up to)\s*[$₾€]?\s*([\d.,]+)\s*([kKmM])?/i)
+  const over = q.match(/(?:ab|from|über|ueber|starting at|min(?:imum)?)\s*[$₾€]?\s*([\d.,]+)\s*([kKmM])?/i)
   const kPrice = q.match(/\$\s*([\d.,]+)\s*([kKmM])/)
   const eurPrice = q.match(/€\s*([\d.,]+)\s*([kKmM])?/)
   const eurTrailing = q.match(/([\d.,]+)\s*€/)
   const gelPrice = q.match(/₾\s*([\d.,]+)\s*([kKmM])?/)
   const bareK = q.match(/\b(\d+(?:[.,]\d+)?)\s*([kK])\b/)
-  const moneySrc = under ?? eurPrice ?? gelPrice ?? kPrice ?? eurTrailing ?? (under ? null : bareK)
+  const moneyOk = (m: RegExpMatchArray | null) => {
+    if (!m || isPpm2) return false
+    const after = q.slice((m.index ?? 0) + m[0].length, (m.index ?? 0) + m[0].length + 12)
+    return !moneyTailBad.test(after)
+  }
+  const moneySrc = [under, eurPrice, gelPrice, kPrice, eurTrailing, bareK].find(moneyOk) ?? null
   if (moneySrc) {
     const n = parseMoney(`${moneySrc[1]}${moneySrc[2] ?? ''}`)
     if (n) out.maxPrice = n
   }
+  if (over && moneyOk(over) && !isPpm2) {
+    const n = parseMoney(`${over[1]}${over[2] ?? ''}`)
+    if (n && n !== out.maxPrice) out.minPrice = n
+  }
+  if (/€|eur\b/.test(q)) out.currency = 'EUR'
+  else if (/₾|gel\b/.test(q)) out.currency = 'GEL'
+  else if (/\$|usd\b/.test(q)) out.currency = 'USD'
+
+  if (
+    /neubau|erstbezug|new[\s-]?developments?|new[\s-]?builds?|off[\s-]?plan|ახალაშენებულ/i.test(q)
+  )
+    out.buildingStatus = 'add.status.new'
+  else if (/\bim bau\b|rohbau/i.test(q)) out.buildingStatus = 'add.status.construction'
+  else if (/\baltbau\b|denkmalschutz/i.test(q)) {
+    out.buildingStatus = 'add.status.old'
+    out.condition = 'add.cond.oldReno'
+  }
 
   const city = findCity(q)
   const district = findDistrict(raw)
+  const berlin = findBerlinPlace(raw)
   if (city) out.city = city
   if (district) {
     out.district = district
     if (!out.city) out.city = CITY_OF.get(district)
+  } else if (berlin) {
+    out.district = berlin.district
+    if (!out.city) out.city = berlin.city
   }
 
   const features: string[] = []
@@ -187,6 +247,13 @@ export function parseNlQuery(query: string): NlFilters {
   }
   if (features.length) out.features = features
   if (/pet[- ]?friendly|ცხოველ|pets?\s+allow|haustier/i.test(q)) out.pets = true
+  // Tbilisi metroM index only. U-Bahn/S-Bahn must not silently filter GE stations.
+  if (
+    /(?:near|close\s+to)\s+(?:the\s+)?metro|მეტრო|метро|metro\s+nearby/i.test(q) &&
+    !DE_CITIES.some((c) => c.ka === out.city)
+  ) {
+    out.nearMetro = true
+  }
 
   if (!nlHasStructure(out)) out.keywords = raw
   return out
@@ -205,7 +272,10 @@ export function nlHasStructure(f: NlFilters): boolean {
       f.minArea ||
       f.maxArea ||
       f.pets ||
-      f.features?.length,
+      f.nearMetro ||
+      f.features?.length ||
+      f.buildingStatus ||
+      f.condition,
   )
 }
 
@@ -224,6 +294,10 @@ export function nlToSearchPatch(f: NlFilters): Record<string, string | undefined
   if (f.maxArea) patch.amax = String(f.maxArea)
   if (f.features?.length) patch.feat = f.features.join(',')
   if (f.pets) patch.pets = '1'
+  if (f.nearMetro) patch.metro = '1'
+  if (f.buildingStatus) patch.bstat = f.buildingStatus
+  if (f.condition) patch.cond = f.condition
+  if (f.currency && f.currency !== 'USD') patch.cur = f.currency
   if (f.keywords) patch.q = f.keywords
   return patch
 }
@@ -235,6 +309,91 @@ export function mergeNl(base: NlFilters, over: NlFilters): NlFilters {
     ...Object.fromEntries(Object.entries(over).filter(([, v]) => v != null && v !== '')),
     features: features.length ? features : undefined,
   }
+}
+
+/** Official Berlin planning/cadastre language → map, not empty /search. */
+export function isOfficialGeoQuery(q: string): boolean {
+  return /\bb-?pl[aä]ne?\b|bebauungsplan|alkis|\bflurst|step\s*wohnen|bodenrichtwert|\bmietspiegel\b|\bbaurecht\b/i.test(
+    q,
+  )
+}
+
+export function nlHasListingConstraints(f: NlFilters): boolean {
+  return Boolean(
+    f.rooms ||
+      f.bedrooms ||
+      f.maxPrice ||
+      f.minPrice ||
+      f.propertyType ||
+      f.district ||
+      f.features?.length ||
+      f.buildingStatus ||
+      f.condition ||
+      f.pets ||
+      f.nearMetro,
+  )
+}
+
+export function coordsForNlCity(ka: string | undefined): { lat: number; lng: number } | null {
+  if (!ka) return null
+  const c = DE_CITIES.find((x) => x.ka === ka)
+  return c ? c.center : null
+}
+
+export function countryNlNeedsGeocode(q: string): boolean {
+  const raw = q.trim()
+  if (raw.length < 3) return false
+  if (isOfficialGeoQuery(raw)) return false
+  const p = parseNlQuery(raw)
+  return !p.city && !nlHasListingConstraints(p)
+}
+
+export type CountryNlRoute = { go: 'projects' | 'map'; href: string }
+
+/**
+ * Country-hub submit: Neubau/geo/constrained NL → map or projects.
+ * No /search on sivrce.com — it is the Georgia catalog and would 308
+ * cross-host; the map carries deal/kind/status + city pin instead
+ * (rooms/price constraints have no map params yet).
+ */
+export function routeCountryNl(p: {
+  q: string
+  tab: 'buy' | 'rent' | 'projects'
+  country: string
+  cityKa?: string
+  lat: number
+  lng: number
+}): CountryNlRoute {
+  if (p.tab === 'projects') return { go: 'projects', href: '#new-builds' }
+  const raw = p.q.trim()
+  if (p.country === 'de' && raw && isOfficialGeoQuery(raw)) {
+    const pin = coordsForNlCity(parseNlQuery(raw).city) ?? { lat: p.lat, lng: p.lng }
+    return { go: 'map', href: `/map?lat=${pin.lat.toFixed(5)}&lng=${pin.lng.toFixed(5)}&zoom=12.8` }
+  }
+  const parsed: NlFilters = raw ? parseNlQuery(raw) : {}
+  if (!parsed.dealType) parsed.dealType = p.tab === 'rent' ? 'rent' : 'sale'
+  if (!parsed.city && p.cityKa) parsed.city = p.cityKa
+
+  const projectish =
+    p.country === 'de' &&
+    /neubau|bauprojekt|bautr[aä]ger|wohnungsunternehmen|projektentwickler|new[\s-]?developments?|new[\s-]?builds?|off[\s-]?plan/i.test(
+      raw,
+    ) &&
+    parsed.rooms == null &&
+    parsed.maxPrice == null &&
+    parsed.minPrice == null
+  if (projectish) return { go: 'projects', href: '#new-builds' }
+
+  const pin = coordsForNlCity(parsed.city) ?? { lat: p.lat, lng: p.lng }
+  const q = new URLSearchParams()
+  q.set('lat', pin.lat.toFixed(5))
+  q.set('lng', pin.lng.toFixed(5))
+  q.set('zoom', '12.8')
+  if (parsed.dealType) q.set('deal', parsed.dealType)
+  if (parsed.propertyType === 'villa') q.set('kind', 'house')
+  else if (parsed.propertyType) q.set('kind', parsed.propertyType)
+  if (parsed.buildingStatus === 'add.status.construction') q.set('status', 'construction')
+  return { go: 'map', href: `/map?${q}` }
 }
 
 /**
