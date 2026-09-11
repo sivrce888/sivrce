@@ -688,7 +688,7 @@ function MessageThread({
         )
       }
     },
-    [roomId, me],
+    [roomId, me, listingId],
   )
 
   /** Stable identity — memoized bubbles compare it without re-rendering. */
@@ -852,9 +852,9 @@ function MessageThread({
         )}
       </div>
 
-      {messages.length === 0 && !isSupport && listingId && (
+      {messages.length === 0 && !isSupport && listingId && !peekChatDraft(listingId) && (
         <div className="border-t border-sv-ink/[0.06] px-3 pb-1 pt-2">
-          <p className="px-0.5 pb-2 text-[11.5px] font-bold text-sv-ink/45">{t("chat.suggestHint")}</p>
+          <p className="px-0.5 pb-2 text-[11.5px] font-bold text-sv-ink/60">{t("chat.suggestHint")}</p>
           <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {(
               [
@@ -867,7 +867,7 @@ function MessageThread({
                 key={key}
                 type="button"
                 onClick={() => void sendText(t(key))}
-                className="min-h-11 max-w-[85%] shrink-0 truncate rounded-full border border-sv-blue/20 bg-sv-blue/[0.06] px-3.5 py-2.5 text-[13px] font-bold text-sv-blue-deep transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue active:scale-[0.98]"
+                className="min-h-11 max-w-[85%] shrink-0 truncate rounded-full border border-sv-blue/20 bg-sv-blue/[0.06] px-3.5 py-2.5 text-[13px] font-bold text-sv-blue-deep transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue active:scale-[0.98] touch-manipulation"
               >
                 {t(key)}
               </button>
@@ -877,7 +877,12 @@ function MessageThread({
       )}
 
       {/* Composer — owns the draft, so typing never re-renders the log */}
-      <Composer roomId={roomId} sendText={sendText} />
+      <Composer
+        roomId={roomId}
+        listingId={listingId}
+        initialValue={listingId ? (peekChatDraft(listingId) ?? "") : ""}
+        sendText={sendText}
+      />
     </div>
   )
 }
@@ -1074,6 +1079,30 @@ export default function ChatWidget() {
     }
   }, [fullscreen])
 
+  // iOS keyboard eats layout viewport; pin the sheet to visualViewport so
+  // the composer stays above it. No visualViewport → 100dvh still holds.
+  useEffect(() => {
+    if (!fullscreen || !panelMounted) return
+    const vv = window.visualViewport
+    const el = panelRef.current
+    if (!vv || !el) return
+    const apply = () => {
+      el.style.height = `${Math.round(vv.height)}px`
+      el.style.top = `${Math.round(vv.offsetTop)}px`
+      el.style.bottom = "auto"
+    }
+    apply()
+    vv.addEventListener("resize", apply)
+    vv.addEventListener("scroll", apply)
+    return () => {
+      vv.removeEventListener("resize", apply)
+      vv.removeEventListener("scroll", apply)
+      el.style.height = ""
+      el.style.top = ""
+      el.style.bottom = ""
+    }
+  }, [fullscreen, panelMounted])
+
   const activeRoom = rooms.find((r) => r.id === activeRoomId)
   const headerTitle = activeRoom
     ? activeRoom.isSupport
@@ -1134,7 +1163,9 @@ export default function ChatWidget() {
         aria-label={open ? t("chat.close") : t("chat.open")}
         aria-expanded={open}
         aria-controls="sv-chat-panel"
-        className="fixed bottom-24 end-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none lg:bottom-6 lg:end-6"
+        className={`fixed bottom-24 end-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none touch-manipulation lg:bottom-6 lg:end-6 ${
+          open ? "pointer-events-none invisible" : ""
+        }`}
       >
         <span
           className={`absolute transition-all duration-200 ${
