@@ -286,7 +286,7 @@ export const NEW_DEVELOPERS_GERMANY: Developer[] = [
     },
     verified: false,
     phone: '',
-    website: 'https://www.lwb-leipzig.de',
+    website: 'https://lwb.de',
   },
   {
     slug: 'isaria',

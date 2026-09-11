@@ -3,24 +3,34 @@ import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { PageHero } from '@/components/PageHero'
+import CountryHero from '@/components/country/CountryHero'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
-import { isValidLang, localizedHref, type Lang } from '@/lib/i18n/core'
+import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { COM_ORIGIN, canonicalIntent, MARKETS, type PathCountryId } from '@/lib/markets'
 import {
   AE_CITIES_AR,
   AE_HUB_AR,
   COUNTRY_HUBS,
   COUNTRY_NAMES,
+  DE_BERLIN_BUY_DE,
+  DE_BERLIN_HUB_DE,
+  DE_BERLIN_RENT_DE,
+  DE_HUB_DE,
   cityPack,
-  heroPair,
   type CountryCopy,
 } from '@/lib/country-copy'
-import { marketCenter } from '@/lib/geo-market'
-import { mapHrefForPlace } from '@/lib/map/map-href'
-import { cityBySlug } from '@/lib/map/user-place'
 import DeMarketHome from '@/components/country/DeMarketHome'
+import ProjectPage, { generateMetadata as projectPageMetadata } from '@/app/[lang]/projects/[slug]/page'
+import { DE_CITIES } from '@/lib/countries/de'
+import { getProject } from '@/data/professionals'
+
+/** True when the slug targets a German-catalog project detail page. */
+function deProjectSlug(country: PathCountryId, slug: string[] | undefined): string | null {
+  if (country !== 'de' || slug?.[0] !== 'projects' || !slug?.[1]) return null
+  const p = getProject(slug[1])
+  return p && DE_CITIES.some((c) => c.ka === p.city) ? slug[1] : null
+}
 
 export const revalidate = 86400
 
@@ -39,11 +49,19 @@ function copyFor(
 ): { copy: CountryCopy; kind: 'hub' | 'city' | 'intent'; city?: string; intent?: 'buy' | 'rent' } | null {
   if (!slug?.length) {
     if (country === 'ae' && lang === 'ar') return { copy: AE_HUB_AR, kind: 'hub' }
+    if (country === 'de' && lang === 'de') return { copy: DE_HUB_DE, kind: 'hub' }
     const hub = COUNTRY_HUBS[country]
     return hub ? { copy: hub, kind: 'hub' } : null
   }
   const [citySlug, intentRaw] = slug
   if (!citySlug || slug.length > 2) return null
+  if (country === 'de' && lang === 'de' && citySlug === 'berlin') {
+    const intent = intentRaw ? canonicalIntent(intentRaw) : undefined
+    if (!intentRaw) return { copy: DE_BERLIN_HUB_DE, kind: 'city', city: 'berlin' }
+    if (intent === 'buy') return { copy: DE_BERLIN_BUY_DE, kind: 'intent', city: 'berlin', intent }
+    if (intent === 'rent') return { copy: DE_BERLIN_RENT_DE, kind: 'intent', city: 'berlin', intent }
+    return null
+  }
   const pack = cityPack(country, citySlug)
   if (!pack) return null
   if (!intentRaw) {
@@ -77,6 +95,10 @@ export async function countryMetadata(
 ): Promise<Metadata> {
   const { lang: raw, slug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
+  const projectSlug = deProjectSlug(country, slug)
+  if (projectSlug) {
+    return projectPageMetadata({ params: Promise.resolve({ lang, slug: projectSlug }) })
+  }
   if (slug?.[1] === 'sale') {
     return {}
   }
@@ -98,7 +120,7 @@ export async function countryMetadata(
     alternates: { canonical: url, languages },
     openGraph: {
       type: 'website',
-      locale: lang === 'ar' ? 'ar_AE' : `en_${market.countryCode ?? 'US'}`,
+      locale: lang === 'ar' ? 'ar_AE' : lang === 'de' ? 'de_DE' : `en_${market.countryCode ?? 'US'}`,
       url,
       siteName: 'sivrce',
       title: found.copy.title,
@@ -124,23 +146,15 @@ export default async function CountryPage({
 }) {
   const { lang: raw, slug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
+  const projectSlug = deProjectSlug(country, slug)
+  if (projectSlug) {
+    return <ProjectPage params={Promise.resolve({ lang, slug: projectSlug })} />
+  }
   if (slug?.[1] === 'sale' && slug[0]) {
     permanentRedirect(`/en${MARKETS[country].pathPrefix}/${slug[0]}/buy`)
   }
   const found = copyFor(country, slug, lang)
   if (!found) notFound()
-
-  // Germany runs the full marketplace home (rails, EUR, transfer-tax rules).
-  // Other markets keep the thin hub until they carry inventory.
-  if (country === 'de' && found.kind === 'hub') {
-    return (
-      <>
-        <Navbar />
-        <DeMarketHome copy={found.copy} />
-        <Footer />
-      </>
-    )
-  }
 
   const path = publicPath(country, slug)
   const url = `${COM_ORIGIN}${path}`
@@ -200,69 +214,36 @@ export default async function CountryPage({
   }
 
   const cities = MARKETS[country].citySlugs.filter((s) => cityPack(country, s))
+  const cityChips = cities.flatMap((s) => {
+    const p = cityPack(country, s)
+    return p ? [{ slug: s, name: p.name }] : []
+  })
   const pack = found.city ? cityPack(country, found.city) : null
-  const pair = heroPair(found.copy.h1)
-  const pin = found.city ? cityBySlug(found.city) : null
-  const cam = pin ?? marketCenter(country)
-  const mapHref = localizedHref(mapHrefForPlace(cam.lat, cam.lng), lang)
+  const ldScript = <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
+
+  if (country === 'de') {
+    return (
+      <div className="min-h-screen bg-sv-cloud">
+        <Navbar />
+        <DeMarketHome copy={found.copy} city={found.city} intent={found.intent} lang={lang} />
+        <Footer />
+        {ldScript}
+      </div>
+    )
+  }
 
   return (
-    <>
+    <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <PageHero
-          kicker="sivrce"
-          title={
-            pair.place ? (
-              <>
-                <span className="block">{pair.lead}</span>
-                <span className="text-gradient-blue">{pair.place}</span>
-              </>
-            ) : (
-              found.copy.h1
-            )
-          }
-          subtitle={found.copy.lede}
-        >
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href={mapHref}
-              className="rounded-full bg-sv-orange px-5 py-2.5 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
-            >
-              3D map
-            </Link>
-            {pack?.buy && (
-              <Link
-                href={`/en${market.pathPrefix}/${found.city}/buy`}
-                className="rounded-full bg-white/10 px-5 py-2.5 text-[14px] font-extrabold text-white ring-1 ring-white/15"
-              >
-                Buy
-              </Link>
-            )}
-            {pack?.rent && (
-              <Link
-                href={`/en${market.pathPrefix}/${found.city}/rent`}
-                className="rounded-full bg-white/10 px-5 py-2.5 text-[14px] font-extrabold text-white ring-1 ring-white/15"
-              >
-                Rent
-              </Link>
-            )}
-            {found.kind === 'hub' &&
-              cities.slice(0, 6).map((s) => {
-                const p = cityPack(country, s)
-                if (!p) return null
-                return (
-                  <Link
-                    key={s}
-                    href={`/en${market.pathPrefix}/${s}`}
-                    className="rounded-full bg-white/10 px-4 py-2.5 text-[13px] font-extrabold text-white/90 ring-1 ring-white/12"
-                  >
-                    {p.name}
-                  </Link>
-                )
-              })}
-          </div>
-        </PageHero>
+        <CountryHero
+          country={country}
+          copy={found.copy}
+          city={found.city}
+          intent={found.intent}
+          cities={cityChips}
+          lang={lang}
+        />
         <div className="sv-container py-12">
           <nav aria-label="Breadcrumb" className="mb-8 text-[13px] font-semibold text-sv-ink/50">
             {crumbs.map((c, i) => (
@@ -283,7 +264,7 @@ export default async function CountryPage({
             <div className="mt-10 flex flex-wrap gap-3">
               {pack.buy && (
                 <Link
-                  href={`/en${market.pathPrefix}/${found.city}/buy`}
+                  href={`${market.pathPrefix}/${found.city}/buy`}
                   className="rounded-full bg-sv-blue px-5 py-2.5 text-[14px] font-extrabold text-white"
                 >
                   Buy in {pack.name}
@@ -291,7 +272,7 @@ export default async function CountryPage({
               )}
               {pack.rent && (
                 <Link
-                  href={`/en${market.pathPrefix}/${found.city}/rent`}
+                  href={`${market.pathPrefix}/${found.city}/rent`}
                   className="rounded-full border border-sv-ink/10 px-5 py-2.5 text-[14px] font-extrabold text-sv-ink"
                 >
                   Rent in {pack.name}
@@ -307,7 +288,7 @@ export default async function CountryPage({
                 return (
                   <li key={s}>
                     <Link
-                      href={`/en${market.pathPrefix}/${s}`}
+                      href={`${market.pathPrefix}/${s}`}
                       className="block rounded-[22px] border border-sv-ink/8 bg-sv-surface px-5 py-4 font-extrabold text-sv-ink hover:border-sv-blue/30"
                     >
                       {p.name}
@@ -343,7 +324,7 @@ export default async function CountryPage({
         </div>
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
-    </>
+      {ldScript}
+    </div>
   )
 }

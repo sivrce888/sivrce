@@ -1,25 +1,24 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowUpRight, Building2, CalendarCheck, Home, Landmark, MapPin, ShieldCheck } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
-import { PageHero } from '@/components/PageHero'
+import CountryHero from '@/components/country/CountryHero'
 import type { Developer, Project } from '@/data/professionals'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '@/data/projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from '@/data/projects-new-germany'
-import { BERLIN_BEZIRKE, DE_CITIES, buyerCostBreakdown } from '@/lib/countries/de'
-import type { CountryCopy } from '@/lib/country-copy'
-import { COM_ORIGIN } from '@/lib/markets'
-import { heroPair } from '@/lib/country-copy'
-import { mapHrefForPlace } from '@/lib/map/map-href'
-import { cityBySlug } from '@/lib/map/user-place'
+import { BERLIN_BEZIRKE, DE_CITIES, buyerCostBreakdown, deCityBySlug } from '@/lib/countries/de'
+import { cityPack, type CountryCopy } from '@/lib/country-copy'
+import type { Lang } from '@/lib/i18n/core'
+import { COM_ORIGIN, MARKETS } from '@/lib/markets'
+import { hasPriceFrom, priceFromLabel } from '@/lib/directory-seo-lite'
 
 /**
  * sivrce.com/de marketplace home — same section rhythm as sivrce.ge
  * (hero → stats → new-builds → cities → market rules → developers → FAQ),
  * German data: EUR, Grunderwerbsteuer, street-verified Berlin pipeline.
- * ponytail: typography cards — local project renders land with the photo
- * pipeline; swap card top for <Image> then. Cards link to the official
- * developer/project source (verified) until local detail pages exist.
+ * Project cards carry first-party generated renders (gen-project-renders.ts)
+ * and link into the local /projects detail pages with the full gallery.
  */
 
 const CITY_EN = new Map(DE_CITIES.map((c) => [c.ka, c.de]))
@@ -51,17 +50,32 @@ const DE_DEVELOPERS: Developer[] = (() => {
   return out.sort((a, b) => Number(b.verified) - Number(a.verified) || b.unitsDelivered - a.unitsDelivered)
 })()
 
-const DEV_SITE = new Map(DE_DEVELOPERS.map((d) => [d.slug, d.website ?? '']))
 const DEV_BY_SLUG = new Map(DE_DEVELOPERS.map((d) => [d.slug, d.name.en]))
 
-const RAIL_PROJECTS = DE_PROJECTS.slice(0, 12)
-const RAIL_DEVELOPERS = DE_DEVELOPERS.slice(0, 12)
 const UNITS_PIPELINE = DE_PROJECTS.filter((p) => p.done < 100).reduce((n, p) => n + (p.flats || 0), 0)
 const VERIFIED_DEVS = DE_DEVELOPERS.filter((d) => d.verified).length
-const BERLIN_PIN = cityBySlug('berlin') ?? { lat: 52.52, lng: 13.405 }
+
+function projectsForCity(citySlug?: string): Project[] {
+  const ka = citySlug ? deCityBySlug(citySlug)?.ka : null
+  const scoped = ka ? DE_PROJECTS.filter((p) => p.city === ka) : DE_PROJECTS
+  return (scoped.length >= 3 ? scoped : DE_PROJECTS).slice(0, 12)
+}
+
+function developersForCity(citySlug?: string): Developer[] {
+  const ka = citySlug ? deCityBySlug(citySlug)?.ka : null
+  const scoped = ka ? DE_DEVELOPERS.filter((d) => d.city === ka) : DE_DEVELOPERS
+  return (scoped.length >= 3 ? scoped : DE_DEVELOPERS).slice(0, 12)
+}
 
 const nf = new Intl.NumberFormat('en-US')
-const priceLabel = (p: Project) => (p.priceFromM2 === 'მოთხოვნით' ? 'On request' : p.priceFromM2)
+const priceLabel = (p: Project) => priceFromLabel(p.priceFromM2, 'en')
+/** Catalog finish strings arrive in ka ('ჩაბარებული') or German ('In Planung'/'Im Bau') — show EN on /de. */
+const FINISH_EN = new Map([
+  ['ჩაბარებული', 'Completed'],
+  ['In Planung', 'In planning'],
+  ['Im Bau', 'Under construction'],
+])
+const finishLabel = (p: Project) => FINISH_EN.get(p.finish) ?? p.finish
 
 function Kicker({ icon: Icon, children }: { icon: typeof Building2; children: string }) {
   return (
@@ -81,13 +95,20 @@ function SectionHead({ kicker, icon, title, sub }: { kicker: string; icon: typeo
   )
 }
 
-function StatsBand() {
-  const stats = [
-    { icon: Building2, n: nf.format(DE_PROJECTS.length), label: 'street-verified new-builds' },
-    { icon: Home, n: nf.format(UNITS_PIPELINE), label: 'homes in the pipeline' },
-    { icon: ShieldCheck, n: nf.format(VERIFIED_DEVS), label: 'verified developers' },
-    { icon: MapPin, n: String(DE_CITIES.length), label: 'city guides live' },
-  ]
+function StatsBand({ de }: { de: boolean }) {
+  const stats = de
+    ? [
+        { icon: Building2, n: nf.format(DE_PROJECTS.length), label: 'straßenverifizierte Neubauten' },
+        { icon: Home, n: nf.format(UNITS_PIPELINE), label: 'Wohnungen in der Pipeline' },
+        { icon: ShieldCheck, n: nf.format(VERIFIED_DEVS), label: 'geprüfte Bauträger' },
+        { icon: MapPin, n: String(DE_CITIES.length), label: 'Stadtguides live' },
+      ]
+    : [
+        { icon: Building2, n: nf.format(DE_PROJECTS.length), label: 'street-verified new-builds' },
+        { icon: Home, n: nf.format(UNITS_PIPELINE), label: 'homes in the pipeline' },
+        { icon: ShieldCheck, n: nf.format(VERIFIED_DEVS), label: 'verified developers' },
+        { icon: MapPin, n: String(DE_CITIES.length), label: 'city guides live' },
+      ]
   return (
     <section className="bg-sv-cloud py-16 md:py-20">
       <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-4 px-5 md:grid-cols-4 md:px-10">
@@ -105,24 +126,35 @@ function StatsBand() {
   )
 }
 
-function ProjectRail() {
+function ProjectRail({ citySlug, de, lang }: { citySlug?: string; de: boolean; lang: Lang }) {
+  const rail = projectsForCity(citySlug)
   return (
     <section id="new-builds" className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <SectionHead
           icon={Building2}
-          kicker="New-builds"
-          title="Berlin new-builds, tracked to the address"
-          sub="Every project is street-verified against official developer sources — house number, quarter, units, completion. Prices in EUR per m² where published."
+          kicker={de ? 'Neubau' : 'New-builds'}
+          title={de ? 'Berliner Neubauten, bis zur Hausnummer' : 'Berlin new-builds, tracked to the address'}
+          sub={
+            de
+              ? 'Jedes Projekt ist gegen die offizielle Bauträgerquelle geprüft — Hausnummer, Quartier, Einheiten, Fertigstellung. Preise in EUR/m², wo veröffentlicht.'
+              : 'Every project is street-verified against official developer sources — house number, quarter, units, completion. Prices in EUR per m² where published.'
+          }
         />
       </div>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <HScroll aria-label="German new-build projects" step={320} className="gap-5 pb-4">
-          {RAIL_PROJECTS.map((p) => {
-            const href = DEV_SITE.get(p.developerSlug) ?? ''
+          {rail.map((p) => {
+            // /de/projects/<slug> resolves on sivrce.com via the DE-market
+            // catch-all (CountryPage delegates to the project detail route)
+            // and on sivrce.ge via the locale rewrite.
+            const href = `/de/projects/${p.slug}`
             const dev = DEV_BY_SLUG.get(p.developerSlug) ?? ''
             const body = (
               <>
+                <div className="relative -mx-5 -mt-5 mb-4 h-[170px] overflow-hidden rounded-tile rounded-b-none border-b border-sv-ink/[0.06]">
+                  <Image src={p.img} alt={`${p.name} — ${dev || 'Neubau'} render`} fill sizes="300px" className="object-cover" />
+                </div>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-[11px] font-black uppercase tracking-wider text-sv-blue">
@@ -132,7 +164,7 @@ function ProjectRail() {
                   </div>
                   <span className="shrink-0 rounded-full bg-sv-ink/[0.06] px-3 py-1 text-[12px] font-extrabold text-sv-ink/70">
                     {priceLabel(p)}
-                    {p.priceFromM2 !== 'მოთხოვნით' ? <span className="text-sv-ink/45">/m²</span> : null}
+                    {hasPriceFrom(p.priceFromM2) ? <span className="text-sv-ink/45">/m²</span> : null}
                   </span>
                 </div>
                 <p className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug text-sv-ink/55">{p.location}</p>
@@ -140,25 +172,24 @@ function ProjectRail() {
                   <div className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet" style={{ width: `${p.done}%` }} />
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[12px] font-extrabold text-sv-ink/65">
-                  <span>{p.flats ? `${nf.format(p.flats)} units · ` : ''}{p.done}% built</span>
+                  <span>{p.flats ? `${nf.format(p.flats)} ${de ? 'WE' : 'units'} · ` : ''}{p.done}% {de ? 'fertig' : 'built'}</span>
                   <span className="inline-flex items-center gap-1 text-sv-ink/45">
-                    <CalendarCheck className="h-3.5 w-3.5" aria-hidden /> {p.finish}
+                    <CalendarCheck className="h-3.5 w-3.5" aria-hidden /> {finishLabel(p)}
                   </span>
                 </div>
                 {dev ? (
                   <p className="mt-3 border-t border-sv-ink/[0.06] pt-3 text-[12px] font-bold text-sv-ink/50">
-                    Developer: <span className="text-sv-ink/75">{dev}</span>
-                    {href ? <span className="text-sv-blue-deep dark:text-sv-blue-light"> · official source ↗</span> : null}
+                    {de ? 'Bauträger' : 'Developer'}: <span className="text-sv-ink/75">{dev}</span>
                   </p>
                 ) : null}
               </>
             )
             const cls =
               'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
-            return href ? (
-              <a key={p.slug} href={href} target="_blank" rel="noopener noreferrer" className={cls}>{body}</a>
-            ) : (
-              <div key={p.slug} className={cls}>{body}</div>
+            return (
+              <Link key={p.slug} href={href} className={cls}>
+                {body}
+              </Link>
             )
           })}
         </HScroll>
@@ -167,15 +198,19 @@ function ProjectRail() {
   )
 }
 
-function CitiesBand() {
+function CitiesBand({ de }: { de: boolean }) {
   return (
     <section className="bg-sv-cloud py-16 md:py-20">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <SectionHead
           icon={MapPin}
-          kicker="Cities"
-          title="16 metros, each with its own transfer tax"
-          sub="Grunderwerbsteuer is state law — the same apartment costs a different surcharge in Munich and Cologne. City guides carry the local number."
+          kicker={de ? 'Städte' : 'Cities'}
+          title={de ? '16 Metropolen, jede mit eigener Grunderwerbsteuer' : '16 metros, each with its own transfer tax'}
+          sub={
+            de
+              ? 'Grunderwerbsteuer ist Landesrecht — dieselbe Wohnung kostet in München und Köln unterschiedlich viel Nebenkosten. Der Stadtguide trägt die lokale Zahl.'
+              : 'Grunderwerbsteuer is state law — the same apartment costs a different surcharge in Munich and Cologne. City guides carry the local number.'
+          }
         />
         <Reveal>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -199,52 +234,78 @@ function CitiesBand() {
   )
 }
 
-function BuyerCosts() {
-  const ex = buyerCostBreakdown(500_000, 'berlin')
+function BuyerCosts({ citySlug, de }: { citySlug?: string; de: boolean }) {
+  const slug = citySlug && deCityBySlug(citySlug) ? citySlug : 'berlin'
+  const city = deCityBySlug(slug)
+  const place = city?.de ?? 'Berlin'
+  const tax = city?.transferTaxPct ?? 6
+  const ex = buyerCostBreakdown(500_000, slug)
   if (!ex) return null
   const eur = (n: number) => `€${nf.format(n)}`
+  const taxLabel = de
+    ? `Grunderwerbsteuer (${tax.toLocaleString('de-DE', { minimumFractionDigits: 1 })} %)`
+    : `Transfer tax (Grunderwerbsteuer ${tax.toLocaleString('en-US', { minimumFractionDigits: 1 })}%)`
   return (
     <section className="bg-sv-cloud pb-16 md:pb-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <div className="grid gap-6 lg:grid-cols-2">
           <Reveal className="h-full">
             <div className="h-full rounded-card border border-sv-ink/[0.07] bg-sv-surface p-6 shadow-card md:p-8">
-              <Kicker icon={Landmark}>What a purchase really costs</Kicker>
-              <h3 className="text-[22px] font-black tracking-tight text-sv-ink">€500,000 apartment in Berlin</h3>
+              <Kicker icon={Landmark}>{de ? 'Was ein Kauf wirklich kostet' : 'What a purchase really costs'}</Kicker>
+              <h3 className="text-[22px] font-black tracking-tight text-sv-ink">
+                {de ? `Wohnung 500.000 € in ${place}` : `€500,000 apartment in ${place}`}
+              </h3>
               <dl className="mt-5 space-y-2.5 text-[15px] font-bold">
                 <div className="flex justify-between text-sv-ink/70">
-                  <dt>Transfer tax (Grunderwerbsteuer 6.0%)</dt><dd>{eur(ex.transferTax)}</dd>
+                  <dt>{taxLabel}</dt><dd>{eur(ex.transferTax)}</dd>
                 </div>
                 <div className="flex justify-between text-sv-ink/70">
-                  <dt>Notary (≈1.5%)</dt><dd>{eur(ex.notary)}</dd>
+                  <dt>{de ? 'Notar (≈1,5 %)' : 'Notary (≈1.5%)'}</dt><dd>{eur(ex.notary)}</dd>
                 </div>
                 <div className="flex justify-between text-sv-ink/70">
-                  <dt>Land register (Grundbuch ≈0.5%)</dt><dd>{eur(ex.register)}</dd>
+                  <dt>{de ? 'Grundbuch (≈0,5 %)' : 'Land register (Grundbuch ≈0.5%)'}</dt><dd>{eur(ex.register)}</dd>
                 </div>
                 <div className="flex justify-between text-sv-ink/70">
-                  <dt>Buyer agent share (3.57% incl. VAT)</dt><dd>{eur(ex.makler)}</dd>
+                  <dt>{de ? 'Käufer-Makleranteil (3,57 % inkl. MwSt.)' : 'Buyer agent share (3.57% incl. VAT)'}</dt><dd>{eur(ex.makler)}</dd>
                 </div>
                 <div className="mt-3 flex justify-between border-t border-sv-ink/[0.08] pt-3 text-[17px] font-black text-sv-ink">
-                  <dt>Cash needed at notary</dt><dd>{eur(ex.total)}</dd>
+                  <dt>{de ? 'Liquidität beim Notar' : 'Cash needed at notary'}</dt><dd>{eur(ex.total)}</dd>
                 </div>
               </dl>
               <p className="mt-4 text-[13px] font-semibold leading-relaxed text-sv-ink/55">
-                ≈ +{ex.totalPct}% over the price. Provisionsfrei (no-agent) listings drop the Makler line.
-                The notary reads the contract aloud before signature — German law, not a formality.
+                {de
+                  ? `≈ +${ex.totalPct} % auf den Kaufpreis. Provisionsfreie Inserate streichen die Maklerzeile. Der Notar verliest den Vertrag vor der Unterschrift — Gesetz, keine Formsache.`
+                  : `≈ +${ex.totalPct}% over the price. Provisionsfrei (no-agent) listings drop the Makler line. The notary reads the contract aloud before signature — German law, not a formality.`}
               </p>
             </div>
           </Reveal>
           <Reveal delay={0.04} className="h-full">
             <div className="h-full rounded-card bg-sv-navy p-6 shadow-glow-navy md:p-8">
-              <Kicker icon={ShieldCheck}>Rentals run on rules</Kicker>
-              <h3 className="text-[22px] font-black tracking-tight text-white">The rent side, in three lines</h3>
+              <Kicker icon={ShieldCheck}>{de ? 'Miete läuft nach Regeln' : 'Rentals run on rules'}</Kicker>
+              <h3 className="text-[22px] font-black tracking-tight text-white">
+                {de ? 'Die Mietseite, in drei Sätzen' : 'The rent side, in three lines'}
+              </h3>
               <ul className="mt-5 space-y-4 text-[15px] font-medium leading-relaxed text-white/75">
-                <li>Deposits cap at three months’ cold rent (§551 BGB) and must sit on a separate savings account.</li>
-                <li>Mietpreisbremse caps new leases above local comparative rent in tight areas; Berlin’s Mietspiegel sets the benchmark.</li>
-                <li>Modernization may be passed on at 8% of cost per year (§559 BGB) — check the Anpassung history before you underwrite.</li>
+                <li>
+                  {de
+                    ? 'Kaution höchstens drei Kaltmieten (§551 BGB), getrennt angelegt.'
+                    : 'Deposits cap at three months’ cold rent (§551 BGB) and must sit on a separate savings account.'}
+                </li>
+                <li>
+                  {de
+                    ? 'Mietpreisbremse begrenzt Neuverträge über der ortsüblichen Vergleichsmiete; der Berliner Mietspiegel ist die Referenz.'
+                    : 'Mietpreisbremse caps new leases above local comparative rent in tight areas; Berlin’s Mietspiegel sets the benchmark.'}
+                </li>
+                <li>
+                  {de
+                    ? 'Modernisierung darf mit 8 % der Kosten pro Jahr umgelegt werden (§559 BGB) — Anpassungen prüfen, bevor Sie unterschreiben.'
+                    : 'Modernization may be passed on at 8% of cost per year (§559 BGB) — check the Anpassung history before you underwrite.'}
+                </li>
               </ul>
               <p className="mt-6 text-[13px] font-bold text-white/50">
-                Qualitative anchors only — live numbers come from the official city Mietspiegel, never a hardcoded table.
+                {de
+                  ? 'Qualitative Anker — lebende Zahlen kommen aus dem amtlichen Mietspiegel, nie aus einer hartkodierten Tabelle.'
+                  : 'Qualitative anchors only — live numbers come from the official city Mietspiegel, never a hardcoded table.'}
               </p>
             </div>
           </Reveal>
@@ -254,20 +315,25 @@ function BuyerCosts() {
   )
 }
 
-function DeveloperRail() {
+function DeveloperRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
+  const rail = developersForCity(citySlug)
   return (
     <section className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <SectionHead
           icon={ShieldCheck}
-          kicker="Developers"
-          title="The builders behind the pipeline"
-          sub="Municipal landlords, premium Bauträger and boutique owner-run developers — tracked from Handelsregister to handover."
+          kicker={de ? 'Bauträger' : 'Developers'}
+          title={de ? 'Wer die Pipeline baut' : 'The builders behind the pipeline'}
+          sub={
+            de
+              ? 'Kommunale Wohnungsunternehmen, Premium-Bauträger, inhabergeführte Boutiquen — vom Handelsregister bis zur Übergabe.'
+              : 'Municipal landlords, premium Bauträger and boutique owner-run developers — tracked from Handelsregister to handover.'
+          }
         />
       </div>
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <HScroll aria-label="German developers" step={320} className="gap-5 pb-4">
-          {RAIL_DEVELOPERS.map((d) => {
+          {rail.map((d) => {
             const initials = d.name.en
               .split(/\s+/)
               .filter(Boolean)
@@ -290,7 +356,7 @@ function DeveloperRail() {
                       {d.verified && <ShieldCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-label="Verified" />}
                     </div>
                     <p className="truncate text-[12px] font-bold text-sv-ink/60">
-                      {CITY_EN.get(d.city) ?? d.city} · {d.yearsActive} yrs · {nf.format(d.unitsDelivered)} units delivered
+                      {CITY_EN.get(d.city) ?? d.city} · {d.yearsActive} {de ? 'J.' : 'yrs'} · {nf.format(d.unitsDelivered)} {de ? 'WE übergeben' : 'units delivered'}
                     </p>
                   </div>
                 </div>
@@ -299,7 +365,7 @@ function DeveloperRail() {
                 </p>
                 {d.website ? (
                   <span className="mt-3 inline-flex items-center gap-1 text-[13px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light">
-                    Official site <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+                    {de ? 'Offizielle Seite' : 'Official site'} <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
                   </span>
                 ) : null}
               </>
@@ -318,56 +384,30 @@ function DeveloperRail() {
   )
 }
 
-export default function DeMarketHome({ copy }: { copy: CountryCopy }) {
-  const pair = heroPair(copy.h1)
+export default function DeMarketHome({
+  copy,
+  city,
+  intent,
+  lang = 'en',
+}: {
+  copy: CountryCopy
+  city?: string
+  intent?: 'buy' | 'rent'
+  lang?: Lang
+}) {
+  const de = lang === 'de'
+  const cities = MARKETS.de.citySlugs.flatMap((s) => {
+    const p = cityPack('de', s)
+    return p ? [{ slug: s, name: p.name }] : []
+  })
   return (
     <main id="main">
-      <PageHero
-        kicker="sivrce · Germany"
-        title={
-          pair.place ? (
-            <>
-              <span className="block">{pair.lead}</span>
-              <span className="text-gradient-blue">{pair.place}</span>
-            </>
-          ) : (
-            copy.h1
-          )
-        }
-        subtitle={copy.lede}
-      >
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/de/berlin/buy"
-            className="rounded-full bg-sv-orange px-5 py-2.5 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
-          >
-            Kaufen in Berlin
-          </Link>
-          <Link
-            href="/de/berlin/rent"
-            className="rounded-full bg-white/10 px-5 py-2.5 text-[14px] font-extrabold text-white ring-1 ring-white/15"
-          >
-            Mieten in Berlin
-          </Link>
-          <Link
-            href={mapHrefForPlace(BERLIN_PIN.lat, BERLIN_PIN.lng, 11)}
-            className="rounded-full bg-white/10 px-5 py-2.5 text-[14px] font-extrabold text-white/90 ring-1 ring-white/12"
-          >
-            Karte · StEP & ALKIS
-          </Link>
-          <a
-            href="#new-builds"
-            className="rounded-full bg-white/10 px-5 py-2.5 text-[14px] font-extrabold text-white/90 ring-1 ring-white/12"
-          >
-            {nf.format(DE_PROJECTS.length)} Neubauten
-          </a>
-        </div>
-      </PageHero>
-      <StatsBand />
-      <ProjectRail />
-      <CitiesBand />
-      <BuyerCosts />
-      <DeveloperRail />
+      <CountryHero country="de" copy={copy} city={city} intent={intent} cities={cities} lang={lang} />
+      <StatsBand de={de} />
+      <ProjectRail citySlug={city} de={de} lang={lang} />
+      <CitiesBand de={de} />
+      <BuyerCosts citySlug={city} de={de} />
+      <DeveloperRail citySlug={city} de={de} />
       <section className="bg-sv-cloud pb-16 md:pb-24">
         <div className="mx-auto max-w-3xl px-5 md:px-10">
           <Reveal>
@@ -391,13 +431,15 @@ export default function DeMarketHome({ copy }: { copy: CountryCopy }) {
             </section>
           )}
           <p className="mt-14 text-[13px] font-semibold text-sv-ink/45">
-            All markets:{' '}
+            {de ? 'Alle Märkte: ' : 'All markets: '}
             <a href={`${COM_ORIGIN}/?worldwide=1`} className="text-sv-blue">sivrce.com</a>
             {' · '}
-            Georgia marketplace:{' '}
+            {de ? 'Marktplatz Georgien: ' : 'Georgia marketplace: '}
             <a href="https://sivrce.ge/" className="text-sv-blue">sivrce.ge</a>
             {' · '}
-            Prices and availability are published only when a verified listing exists. Market currency: EUR.
+            {de
+              ? 'Preise und Verfügbarkeit nur bei geprüftem Inserat. Marktwährung: EUR.'
+              : 'Prices and availability are published only when a verified listing exists. Market currency: EUR.'}
           </p>
         </div>
       </section>
