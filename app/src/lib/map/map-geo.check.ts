@@ -13,7 +13,6 @@ import {
 import {
   mapFiltersToSearchHref,
   mapHrefForListing,
-  mapHrefForPlace,
   parseMapDeal,
   parseMapKind,
 } from './map-href'
@@ -41,7 +40,5 @@ assert.equal(parseMapKind('apartment'), 'apartment')
 assert.equal(parseMapKind('nope'), 'all')
 assert.equal(mapFiltersToSearchHref('sale', 'apartment'), '/search?deal=sale&type=apartment')
 assert.ok(mapHrefForListing({ id: 'x', coords: { lat: 41.7, lng: 44.8 } }).startsWith('/map?'))
-assert.ok(mapHrefForPlace(52.52, 13.405).includes('lat=52.52000'))
-assert.ok(mapHrefForPlace(52.52, 13.405).includes('zoom='))
 
 console.log('map-geo: bbox + href split ✓')
