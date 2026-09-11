@@ -35,6 +35,22 @@ const BUILDING_TYPE =
   (typeof process !== 'undefined' && process.env.BERLIN_WFS_BUILDING_TYPE) ||
   'alkis_gebaeude:gebaeude'
 
+/** Verified 2026-09: daten.berlin.de → gdi.berlin.de/services/wfs/step_wo_2040 GetCapabilities. */
+export const STEP_WFS =
+  (typeof process !== 'undefined' && process.env.BERLIN_WFS_STEP?.replace(/\/$/, '')) ||
+  'https://gdi.berlin.de/services/wfs/step_wo_2040'
+
+/** Verified FeatureType Names from live GetCapabilities (never invent). */
+export const STEP_LAYERS = {
+  potential: 'step_wo_2040:h_step_wo_2040_wobau_fertig',
+  gemeinwohl: 'step_wo_2040:i_step_wo_2040_wobau_gemeinw',
+  quartier: 'step_wo_2040:j_step_wo_2040_neustadtquar',
+  priority: 'step_wo_2040:g_step_wo_2040_vorkulinnentw',
+  konzept: 'step_wo_2040:k_step_wo_2040_innentwkonz',
+} as const
+
+export type StepLayerKey = keyof typeof STEP_LAYERS
+
 export type AlkisParcel = {
   /** Flurstückskennzeichen (fsko) — legal lot id, NAPR UNIQ_CODE equivalent. */
   kennzeichen: string
@@ -160,6 +176,68 @@ export async function fetchAlkisBuildingsInBbox(
   return alkisBuildingsFromFC(await wfsGetFeature(BUILDING_SVC, BUILDING_TYPE, bbox, count))
 }
 
+export type StepFeature = {
+  id: string
+  name: string | null
+  layer: StepLayerKey
+  geometry: GeoJSON.Geometry
+  props: Record<string, unknown>
+}
+
+/** Pure: StEP WFS GeoJSON → typed features (official fields only). */
+export function stepFeaturesFromFC(
+  fc: WfsFC | null | undefined,
+  layer: StepLayerKey,
+): StepFeature[] {
+  const feats = fc?.features
+  if (!Array.isArray(feats)) return []
+  const out: StepFeature[] = []
+  for (const f of feats) {
+    const g = f.geometry
+    if (!g || (g.type !== 'Point' && g.type !== 'Polygon' && g.type !== 'MultiPolygon')) continue
+    const p = f.properties ?? {}
+    const gisid = str(p.gisid) ?? (f.id != null ? String(f.id) : null)
+    if (!gisid) continue
+    out.push({
+      id: gisid,
+      name: str(p.bez) ?? str(p.name),
+      layer,
+      geometry: g,
+      props: {
+        gisid,
+        we_kat: str(p.we_kat),
+        leg_fertig: str(p.leg_fertig),
+        kat: str(p.kat),
+        status: str(p.leg_fertig) ?? str(p.kat),
+      },
+    })
+  }
+  return out
+}
+
+async function stepWfsGetFeature(typeName: string, count = 2000): Promise<WfsFC | null> {
+  const url =
+    `${STEP_WFS}?service=WFS&version=2.0.0&request=GetFeature` +
+    `&typeNames=${encodeURIComponent(typeName)}&srsName=EPSG:4326` +
+    `&outputFormat=application/json&count=${count}`
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': UA, Accept: 'application/json' },
+      signal: AbortSignal.timeout(30_000),
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    return (await res.json()) as WfsFC
+  } catch {
+    return null
+  }
+}
+
+/** Full StEP Wohnen 2040 layer pull (small official sets — hits verified ≤1055). */
+export async function fetchStepLayer(layer: StepLayerKey): Promise<StepFeature[]> {
+  return stepFeaturesFromFC(await stepWfsGetFeature(STEP_LAYERS[layer]), layer)
+}
+
 /**
  * Every Berlin public-data / government source sivrce.de reads.
  * `wfs` = live GetFeature path; `portal` = human/official entry point.
@@ -195,7 +273,17 @@ export const BERLIN_SOURCES: BerlinSource[] = [
     wfs: `${WFS_BASE}/${BUILDING_SVC}`,
     typeName: BUILDING_TYPE,
     portal: 'https://daten.berlin.de/datensaetze/alkis-berlin-gebaude-wfs-728b368a',
-    use: 'Authoritative footprints — seeds osm_buildings city=berlin.',
+    use: 'Authoritative footprints — geo_features + osm_buildings city=berlin.',
+  },
+  {
+    key: 'step-wohnen-2040',
+    name: 'StEP Wohnen 2040 (WFS)',
+    publisher: 'Senatsverwaltung für Stadtentwicklung, Bauen und Wohnen',
+    license: 'dl-de-zero-2.0',
+    wfs: STEP_WFS,
+    typeName: STEP_LAYERS.potential,
+    portal: 'https://daten.berlin.de/datensaetze/stadtentwicklungsplan-step-wohnen-2040-wfs-6e11830a',
+    use: 'Official housing-development potentials + Neue Stadtquartiere (verified typeNames).',
   },
   {
     key: 'lod2',
@@ -203,7 +291,7 @@ export const BERLIN_SOURCES: BerlinSource[] = [
     publisher: 'Senatsverwaltung für Stadtentwicklung, Bauen und Wohnen',
     license: 'dl-de-zero-2.0',
     portal: 'https://daten.berlin.de/datensaetze/3d-gebaudemodelle-im-level-of-detail-2-lod-2-3c7c49af',
-    use: 'Roof shapes + ridge heights for 3D massing (CityGML download).',
+    use: 'Roof shapes + ridge heights for 3D massing (CityGML download — bulk, not WFS).',
   },
   {
     key: 'boris',
@@ -219,7 +307,7 @@ export const BERLIN_SOURCES: BerlinSource[] = [
     publisher: 'Senatsverwaltung für Stadtentwicklung, Bauen und Wohnen',
     license: 'dl-de-zero-2.0',
     portal: 'https://fbinter.stadt-berlin.de/',
-    use: 'Binding zoning per lot — what may be built (development pipeline).',
+    use: 'Binding zoning per lot — portal until WFS typeName verified live.',
   },
   {
     key: 'osm',

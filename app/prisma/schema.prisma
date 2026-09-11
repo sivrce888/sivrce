@@ -2518,6 +2518,34 @@ model OsmBuilding {
    @@map("osm_buildings")
 }
 
+/// Canonical DE/Berlin spatial features (ALKIS, StEP, …) for MVT tiles.
+/// Geometry is PostGIS-only — never ship Germany-wide GeoJSON to the client.
+model GeoFeature {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind        String    @db.VarChar(40)
+  city        String    @default("berlin") @db.VarChar(40)
+  country     String    @default("DE") @db.VarChar(4)
+  sourceSlug  String    @map("source_slug") @db.VarChar(120)
+  externalId  String    @map("external_id") @db.VarChar(240)
+  name        String?   @db.VarChar(240)
+  props       Json      @default("{}")
+  geom        Unsupported("geometry(Geometry, 4326)")
+  lat         Float
+  lng         Float
+  license     String    @default("dl-de-zero-2.0") @db.VarChar(80)
+  sourceUrl   String?   @map("source_url") @db.Text
+  retrievedAt DateTime  @map("retrieved_at") @db.Timestamptz(6)
+  validFrom   DateTime? @map("valid_from") @db.Timestamptz(6)
+  validTo     DateTime? @map("valid_to") @db.Timestamptz(6)
+  confidence  Int       @default(100) @db.SmallInt
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([sourceSlug, externalId], map: "geo_features_source_external_key")
+  @@index([kind, city], map: "geo_features_kind_city_idx")
+  @@map("geo_features")
+}
+
 // ═══════════════════════════════════════════════════════════════
 // SIVRCE INTELLIGENCE LAYER — source-of-truth provenance foundation
 // Kind/type columns are TEXT validated app-side in lib/intel/core.ts

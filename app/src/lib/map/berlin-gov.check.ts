@@ -10,6 +10,9 @@ import {
   BERLIN_SOURCES,
   inBerlin,
   pickAlkisParcelFromFC,
+  STEP_LAYERS,
+  STEP_WFS,
+  stepFeaturesFromFC,
 } from './berlin-gov'
 
 assert.ok(inBerlin(52.52, 13.405))
@@ -99,5 +102,22 @@ for (const s of BERLIN_SOURCES) {
 }
 assert.ok(BERLIN_SOURCES.some((s) => s.key === 'alkis-parcels' && s.wfs))
 assert.ok(BERLIN_SOURCES.some((s) => s.key === 'alkis-buildings' && s.wfs))
+assert.ok(BERLIN_SOURCES.some((s) => s.key === 'step-wohnen-2040' && s.wfs === STEP_WFS))
+assert.ok(STEP_LAYERS.potential.includes('h_step_wo_2040_wobau_fertig'))
+assert.ok(STEP_WFS.includes('step_wo_2040'))
+
+const stepFc = {
+  features: [
+    {
+      id: 'S1',
+      geometry: { type: 'Point', coordinates: [13.4, 52.52] },
+      properties: { gisid: 'S1', bez: 'Test Potential', we_kat: '200 - 499 Wohneinheiten', leg_fertig: 'Im Bau' },
+    },
+  ],
+} as const
+const step = stepFeaturesFromFC(stepFc as never, 'potential')
+assert.equal(step.length, 1)
+assert.equal(step[0]!.name, 'Test Potential')
+assert.equal(step[0]!.props.we_kat, '200 - 499 Wohneinheiten')
 
 console.log(`berlin-gov.check: ok (${BERLIN_SOURCES.length} sources)`)

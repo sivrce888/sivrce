@@ -20,6 +20,7 @@ import {
 import { marketCenter } from '@/lib/geo-market'
 import { mapHrefForPlace } from '@/lib/map/map-href'
 import { cityBySlug } from '@/lib/map/user-place'
+import DeMarketHome from '@/components/country/DeMarketHome'
 
 export const revalidate = 86400
 
@@ -128,6 +129,18 @@ export default async function CountryPage({
   }
   const found = copyFor(country, slug, lang)
   if (!found) notFound()
+
+  // Germany runs the full marketplace home (rails, EUR, transfer-tax rules).
+  // Other markets keep the thin hub until they carry inventory.
+  if (country === 'de' && found.kind === 'hub') {
+    return (
+      <>
+        <Navbar />
+        <DeMarketHome copy={found.copy} />
+        <Footer />
+      </>
+    )
+  }
 
   const path = publicPath(country, slug)
   const url = `${COM_ORIGIN}${path}`
@@ -319,7 +332,7 @@ export default async function CountryPage({
           )}
           <p className="mt-14 text-[13px] font-semibold text-sv-ink/45">
             All markets:{' '}
-            <a href="https://sivrce.com/" className="text-sv-blue">sivrce.com</a>
+            <a href={`${COM_ORIGIN}/?worldwide=1`} className="text-sv-blue">sivrce.com</a>
             {' · '}
             Georgia marketplace:{' '}
             <a href="https://sivrce.ge/" className="text-sv-blue">sivrce.ge</a>

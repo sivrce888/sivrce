@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import type { EntityType, FactConfidence } from "@/generated/prisma/enums";
 import type { EntityMatchCandidate, EntityMatchResult } from "./types";
+import { normalizeGermanAddress } from "./normalize-de";
+export { normalizeGermanAddress };
 
 function normalizeGeorgian(s: string): string {
   return s
@@ -34,6 +36,8 @@ function normalizeEnglish(s: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+
 
 function levenshtein(a: string, b: string): number {
   const m = a.length, n = b.length;
@@ -94,7 +98,17 @@ export function scoreCandidateMatch(
   const nameSimEn = similarity(input.name, candidate.name, "en");
   const nameSimGeo = similarity(input.name, candidate.name, "ge");
   const nameSimTranslit = similarity(input.name, candidate.name, "translit");
-  const nameSim = Math.max(nameSimEn, nameSimGeo, nameSimTranslit);
+  const nameSimDe =
+    input.country === "DE" || candidate.country === "DE"
+      ? (() => {
+          const a = normalizeGermanAddress(input.name);
+          const b = normalizeGermanAddress(candidate.name);
+          if (a === b) return 1;
+          const maxLen = Math.max(a.length, b.length);
+          return maxLen === 0 ? 1 : 1 - levenshtein(a, b) / maxLen;
+        })()
+      : 0;
+  const nameSim = Math.max(nameSimEn, nameSimGeo, nameSimTranslit, nameSimDe);
 
   if (nameSim >= 0.98) { score += 50; reasons.push("exact_name_match"); }
   else if (nameSim >= 0.9) { score += 40; reasons.push("fuzzy_name_match"); }

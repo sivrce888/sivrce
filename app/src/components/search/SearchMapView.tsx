@@ -24,8 +24,9 @@ import {
 } from '@/lib/map/floorLayers'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { groupListingsByPin, paintPricePinEl, pinMinPriceGEL } from '@/lib/map/price-pin'
-import { mapRuntimeOptions } from '@/lib/device-budget'
+import { mapRuntimeOptions, isLiteDevice } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
+import { bindBerlinGeoTiles } from '@/lib/map/berlin-tiles'
 import { initialMapCenter } from '@/lib/map/user-place'
 import { useI18n } from '@/lib/i18n/context'
 import { listingPath } from '@/lib/listing-slug'
@@ -277,6 +278,11 @@ export default function SearchMapView({
         map.resize()
         tightenAttribution(map)
         applyBrandPaints(map, dark ? 'dark' : 'light', terrain)
+        try {
+          bindBerlinGeoTiles(map, { lite: isLiteDevice() })
+        } catch {
+          /* official tiles optional */
+        }
       }
       let booted = false
       const reveal = () => {

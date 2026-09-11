@@ -7,7 +7,8 @@ measured (`GET /api/intel/coverage`, admin → Data Intelligence).
 
 | slug | publisher | facts | use |
 |---|---|---|---|
-| `de-alkis` | SenStadtWo (GDI WFS) | address, coords, permits | legal lots + footprints |
+| `de-alkis` | SenStadtWo (GDI WFS) | address, coords, permits | legal lots + footprints → `geo_features` |
+| `de-step-wohnen-2040` | SenStadtWo (GDI WFS) | status, coords, potentials | StEP Wohnen 2040 (verified typeNames) |
 | `de-berlin-opendata` | Land Berlin | address, coords, permits, status | dataset index |
 | `de-boris` | Gutachterausschuss | price context | land values since 1964 |
 | `de-bplaene` | SenStadtWo (FIS-Broker) | permits, status | binding zoning |
@@ -44,6 +45,26 @@ discover → fetch (SSRF-guarded, `isFetchableUrl`) → parse → normalize
 resemblance alone never merges) → extract → validate → score → provenance
 (`IntelFact` + `IntelEvidence`) → version (`IntelChange`, immutable) →
 index → publish with `verified … conflicting` labels.
+
+## Spatial (PostGIS + MVT)
+
+Canonical geometries land in `geo_features` (GIST, validity trigger, provenance
+columns). Browser never receives Germany-wide GeoJSON.
+
+| layer | zoom | source |
+|---|---|---|
+| `step` | 9–16 | StEP Wohnen 2040 WFS (verified typeNames) |
+| `buildings` | 14–18 | ALKIS Gebäude → `alkis_building` |
+| `parcels` | 16–19 | ALKIS Flurstücke |
+| `developments` | 10–16 | subset of StEP potentials + quartiers |
+
+Tiles: `GET /api/tiles/{layer}/{z}/{x}/{y}` via `ST_AsMVT`.
+Seed: `npm run ingest:berlin-sample` · full ALKIS: `ingest:alkis -- --geo` ·
+StEP only: `ingest:step`.
+
+**Constraint (not 100 yet):** LoD2 CityGML heights not bulk-ingested — extrusion
+uses placeholder `height_m=12` until CityGML pipeline. B-Plan WFS typeName not
+yet live-verified — portal only.
 
 ## Refresh cadence
 

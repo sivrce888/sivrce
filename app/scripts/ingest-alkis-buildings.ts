@@ -1,6 +1,7 @@
 /**
  * ALKIS Gebäude (Berlin cadastre) → osm_buildings city='berlin'.
- * Run: npx --yes tsx scripts/ingest-alkis-buildings.ts [--from-tile=N]
+ * Optional: `--geo` also upserts geo_features for MVT tiles.
+ * Run: npx --yes tsx scripts/ingest-alkis-buildings.ts [--from-tile=N] [--geo]
  *
  * Source: GDI Berlin WFS alkis_gebaeude (dl-de-zero-2.0). OSM Overpass
  * (--city=berlin in ingest-osm-buildings.ts) stays the live/write-through
@@ -14,7 +15,7 @@ import { resolve } from 'node:path'
 import { PrismaClient } from '../src/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
-import { alkisBuildingsFromFC, BERLIN_BBOX, type AlkisBuilding } from '../src/lib/map/berlin-gov'
+import { BERLIN_BBOX, type AlkisBuilding } from '../src/lib/map/berlin-gov'
 
 config({ path: resolve(process.cwd(), '.env.local') })
 config({ path: resolve(process.cwd(), '.env') })
@@ -23,6 +24,7 @@ const TILE = 0.0125
 const COUNT = 1000
 const PAUSE_MS = 300
 const BATCH = 250
+const WRITE_GEO = process.argv.includes('--geo')
 
 /** Stable negative id: real OSM ids are positive — never collides. */
 export function alkisSyntheticId(b: AlkisBuilding): string {
@@ -66,6 +68,7 @@ async function upsertMany(db: PrismaClient, hits: AlkisBuilding[]): Promise<numb
         name: h.name,
         building: (h.funktion ?? 'yes').slice(0, 40),
         ring: h.ring,
+        geom: JSON.stringify({ type: 'Polygon', coordinates: [h.ring] }),
       })),
     )
     try {
@@ -94,6 +97,38 @@ async function upsertMany(db: PrismaClient, hits: AlkisBuilding[]): Promise<numb
           ring = EXCLUDED.ring,
           updated_at = NOW()
       `
+      if (WRITE_GEO) {
+        await db.$executeRaw`
+        INSERT INTO geo_features (
+          kind, city, country, source_slug, external_id, name, props,
+          geom, lat, lng, license, source_url, retrieved_at, confidence
+        )
+        SELECT
+          'alkis_building',
+          'berlin',
+          'DE',
+          'de-alkis',
+          x->>'osmId',
+          NULLIF(x->>'name', ''),
+          jsonb_build_object('funktion', x->>'building', 'height_m', 12),
+          ST_SetSRID(ST_GeomFromGeoJSON(x->>'geom'), 4326),
+          (x->>'lat')::float8,
+          (x->>'lng')::float8,
+          'dl-de-zero-2.0',
+          'https://gdi.berlin.de/services/wfs/alkis_gebaeude',
+          NOW(),
+          100
+        FROM jsonb_array_elements(${payload}::jsonb) AS t(x)
+        ON CONFLICT (source_slug, external_id) DO UPDATE SET
+          kind = EXCLUDED.kind,
+          name = EXCLUDED.name,
+          props = EXCLUDED.props,
+          geom = EXCLUDED.geom,
+          source_url = EXCLUDED.source_url,
+          retrieved_at = EXCLUDED.retrieved_at,
+          updated_at = NOW()
+      `
+      }
       n += chunk.length
     } catch (e) {
       console.warn(`  batch fail @${i}:`, e instanceof Error ? e.message : e)

@@ -56,6 +56,7 @@ import {
 } from '@/lib/map/buildings'
 import type { MapPlatformConfig } from '@/lib/map/platform-config'
 import BuildingPanel from '@/components/map/BuildingPanel'
+import BerlinFeaturePanel from '@/components/map/BerlinFeaturePanel'
 import {
   EMPTY_FLOORS,
   buildingShowsFloorStack,
@@ -115,6 +116,12 @@ import {
 } from '@/lib/map/mapChrome'
 import { isLiteDevice, mapRuntimeOptions } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
+import {
+  BERLIN_TILE_LAYER_IDS,
+  bindBerlinGeoTiles,
+  pickBerlinFeature,
+  type BerlinPick,
+} from '@/lib/map/berlin-tiles'
 import {
   initialMapCenter,
   nearestMapCity,
@@ -849,6 +856,8 @@ function Map3DInner({
   // Official massing arrives off the boot bundle — pins wait for it (see baseBuildings).
   const [fpsReady, setFpsReady] = useState(false)
   const [selected, setSelected] = useState<MapBuildingCluster | null>(null)
+  const [berlinPick, setBerlinPick] = useState<BerlinPick>(null)
+  const berlinPickRef = useRef<BerlinPick>(null)
   const [tab, setTab] = useState<DealType | 'all'>('all')
   const [dealFilter, setDealFilter] = useState<MapDealFilter>(() => {
     const q = searchParams.get('deal')
@@ -1137,6 +1146,7 @@ function Map3DInner({
   useEffect(() => { polyFcRef.current = polyFc }, [polyFc])
   useEffect(() => { ptsFcRef.current = ptsFc }, [ptsFc])
   useEffect(() => { selectedRef.current = selected }, [selected])
+  useEffect(() => { berlinPickRef.current = berlinPick }, [berlinPick])
   useEffect(() => { dealRef.current = dealFilter }, [dealFilter])
   // ponytail: no auto-deselect when filters hide the selection — deep links
   // (?building=) must survive 0-listing buildings; panel follows the deal tab.
@@ -1147,6 +1157,7 @@ function Map3DInner({
 
   const selectBuilding = useCallback((b: MapBuildingCluster | null) => {
     setSelected(b)
+    if (b) setBerlinPick(null)
     setTab(dealFilter === 'all' ? 'all' : dealFilter)
     setFloorFilter(null)
   }, [dealFilter, setSelected, setTab, setFloorFilter])
@@ -1545,6 +1556,14 @@ function Map3DInner({
           return
         }
         selectRef.current(null)
+        setBerlinPick(null)
+        if (market === 'de' || BERLIN_TILE_LAYER_IDS.some((id) => map.getLayer(id))) {
+          const hit = pickBerlinFeature(map, e.point)
+          if (hit?.source === 'step') {
+            setBerlinPick(hit)
+            return
+          }
+        }
         // ponytail: every OSM building tappable — basemap tiles already in RAM,
         // info on demand via /api/site+geocode. Ceiling: highlight paint + panel.
         // Upgrade → sivrce-pick source highlight + BuildingPanel for OSM picks.
@@ -1601,9 +1620,11 @@ function Map3DInner({
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
               if (seq !== osmSeq || !d?.ok) return
+              const alkis = d.alkisParcel?.kennzeichen as string | undefined
               const code = d.parcel?.uniqCode as string | undefined
-              if (code) root.appendChild(row('NAPR', code))
-              const area = Number(d.parcel?.area)
+              if (alkis) root.appendChild(row('ALKIS', alkis))
+              else if (code) root.appendChild(row('NAPR', code))
+              const area = Number(d.alkisParcel?.areaM2 ?? d.parcel?.area)
               if (Number.isFinite(area) && area > 0) {
                 root.appendChild(row('m²', String(Math.round(area))))
               }
@@ -1843,6 +1864,14 @@ function Map3DInner({
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
           await ensureLayers(map, { poly: polyFcRef.current, pts: ptsFcRef.current }, zooms)
+          try {
+            bindBerlinGeoTiles(map, {
+              lite: isLiteDevice(),
+              beforeId: map.getLayer(FILL_ID) ? FILL_ID : EXTRUDE_ID,
+            })
+          } catch (err) {
+            console.error('[Map3D] berlin tiles', err)
+          }
           // Style remount resets paint — restore selection focus if a panel is open.
           applyFocusPaint(map, selectedRef.current?.id ?? null)
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
@@ -2906,6 +2935,17 @@ function Map3DInner({
             onFloorClear={() => setFloorFilter(null)}
             onClose={() => selectBuilding(null)}
           />
+        </motion.div>
+      )}
+
+      {!selected && berlinPick && (
+        <motion.div
+          initial={{ y: 36, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: 'spring', bounce: 0.12, duration: 0.5 }}
+          className="absolute inset-x-0 bottom-0 z-30 max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
+        >
+          <BerlinFeaturePanel feature={berlinPick} onClose={() => setBerlinPick(null)} />
         </motion.div>
       )}
     </div>
