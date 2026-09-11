@@ -3,15 +3,27 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { avifCardOf, cardOf } from '@/lib/media'
-import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone, Landmark, ArrowUpRight } from 'lucide-react'
+import {
+  MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone, Landmark, ArrowUpRight,
+  TrainFront, GraduationCap, Trees, Hospital, ShoppingBag, Dumbbell, Pill, Castle,
+  type LucideIcon,
+} from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import HScroll from '@/components/HScroll'
 import { AnchorNav } from '@/components/AnchorNav'
 import { StickyLeadBar } from '@/components/lead/StickyLeadBar'
+import { WeatherBadge } from '@/components/WeatherBadge'
+import { nearestAmenities, formatMetroDist, POI_COLORS, type PoiCategory } from '@/lib/map/pois'
+import { NEIGHBORHOODS, pick as pickNeighborhood } from '@/data/neighborhoods'
+import { PlaceContext } from '@/components/entities/PlaceContext'
+import { placeLabels } from '@/lib/place-context'
 import { telHref, waHref } from '@/lib/inquiries/phone'
 import { StatsRow } from '@/components/entities/StatsRow'
+import { SourcesSection } from '@/components/entities/SourcesSection'
+import { getEntityProfile } from '@/lib/intel/store'
+import { sourcesHeading, toPublicFacts } from '@/lib/intel/public-facts'
 import { LeadForm } from '@/components/lead/LeadForm'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
@@ -158,7 +170,7 @@ export default async function ProjectPage({ params }: PageProps) {
   // Georgian transliteration wins on ka — matches how users actually search.
   const displayName = lang === 'ka' && project.nameKa ? project.nameKa : project.name
 
-  const [dev, listings, aggregate, siblingProjects, mapListings] = await Promise.all([
+  const [dev, listings, aggregate, siblingProjects, mapListings, intel] = await Promise.all([
     project.developerSlug ? getLiveDeveloper(project.developerSlug) : Promise.resolve(null),
     getListingsForProjectSlug(slug, 6),
     getReviewAggregate('project', slug),
@@ -168,7 +180,11 @@ export default async function ProjectPage({ params }: PageProps) {
         )
       : Promise.resolve([]),
     getMapListings().catch(() => []),
+    // Provenance is additive: a dossier miss must never 500 the project page.
+    getEntityProfile('project', slug).catch(() => null),
   ])
+  const factRows = intel ? toPublicFacts(intel.facts, lang) : []
+  const sourcesCopy = sourcesHeading(lang)
 
   // 3D floor stack: live address/coords so the corpus sits on the exact pin.
   await ensureFootprints()
@@ -303,11 +319,13 @@ export default async function ProjectPage({ params }: PageProps) {
     ...(floorsFc || hasGeo
       ? [{ id: 'location', label: floorsFc && cluster ? c.building3d : c.location }]
       : []),
+    ...(floorsFc || hasGeo ? [{ id: 'area', label: placeLabels(loc).area }] : []),
     { id: 'details', label: c.details },
     ...((project.gallery?.length ?? 0) > 0 ? [{ id: 'gallery', label: c.gallery }] : []),
     ...(project.passportUrl ? [{ id: 'plans', label: c.floorPlan }] : []),
     ...(aboutText ? [{ id: 'about', label: c.aboutProject }] : []),
     ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
+    ...(factRows.length > 0 ? [{ id: 'sources', label: sourcesCopy.title }] : []),
     { id: 'faq', label: c.faqChip },
     { id: 'contact', label: c.contact },
   ]
@@ -509,6 +527,18 @@ export default async function ProjectPage({ params }: PageProps) {
           </section>
         ) : null}
 
+        {(floorsFc || hasGeo) && (
+          <PlaceContext
+            loc={loc}
+            lang={lang}
+            cityKa={project.city}
+            district={project.district}
+            location={project.location}
+            coords={hasGeo ? project.coords : null}
+            photoAlt={displayName}
+          />
+        )}
+
         {(project.gallery?.length ?? 0) > 0 && (
           <section id="gallery" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
@@ -610,6 +640,15 @@ export default async function ProjectPage({ params }: PageProps) {
             </div>
           </section>
         )}
+
+        <SourcesSection
+          title={sourcesCopy.title}
+          note={sourcesCopy.note}
+          rows={factRows}
+          altLabel={lang === 'de' ? 'Auch gemeldet:' : 'Also reported:'}
+          className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10"
+          id="sources"
+        />
 
         <div id="faq" className="scroll-mt-[7.5rem]">
           <FaqSection

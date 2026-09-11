@@ -8,6 +8,8 @@ import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import { AnchorNav } from '@/components/AnchorNav'
 import { EntityHeader } from '@/components/entities/EntityHeader'
+import { PlaceContext } from '@/components/entities/PlaceContext'
+import { collectPhotos, placeLabels } from '@/lib/place-context'
 import { LeadForm } from '@/components/lead/LeadForm'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
@@ -205,9 +207,15 @@ export default async function DeveloperPage({ params }: PageProps) {
   // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
   const faqs = devFaqs(loc, dev, projects)
 
+  // Every render across the portfolio — hero + gallery art, deduped, capped.
+  const allPhotos = collectPhotos(projects.flatMap((p) => [p.img, p.gallery ?? []]))
+  const areaLabels = placeLabels(loc)
+
   const anchors = [
     { id: 'about', label: c.about },
     { id: 'location', label: c.location },
+    { id: 'area', label: areaLabels.area },
+    ...(allPhotos.length > 0 ? [{ id: 'photos', label: areaLabels.photos }] : []),
     ...(projects.length > 0 ? [{ id: 'projects', label: c.projects }] : []),
     ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
     { id: 'faq', label: c.faqChip },
@@ -314,6 +322,17 @@ export default async function DeveloperPage({ params }: PageProps) {
             {mapLabel} · {shownPin.lat.toFixed(5)}, {shownPin.lng.toFixed(5)}
           </p>
         </section>
+
+        <PlaceContext
+          loc={loc}
+          lang={lang}
+          cityKa={dev.city}
+          district={geoProject?.district}
+          location={mapLabel}
+          coords={shownPin}
+          photos={allPhotos}
+          photoAlt={name}
+        />
 
         {projects.length > 0 && (
           <section id="projects" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
