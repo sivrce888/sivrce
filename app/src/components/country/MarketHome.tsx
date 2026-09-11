@@ -212,13 +212,24 @@ export default function MarketHome({
       <CitiesBand country={country} current={city} />
       <section className="bg-sv-cloud pb-16 md:pb-24">
         <div className="mx-auto max-w-3xl px-5 md:px-10">
+          {/* Crumbs carry absolute URLs for the JSON-LD graph; the visible nav
+              stays same-origin so a click is a client navigation, not a reload
+              onto sivrce.com from a preview deploy. */}
           <nav aria-label="Breadcrumb" className="mb-8 text-[13px] font-semibold text-sv-ink/50">
-            {crumbs.map((c, i) => (
-              <span key={c.href}>
-                {i > 0 ? <span className="px-2" aria-hidden>/</span> : null}
-                <a href={c.href} className="hover:text-sv-blue">{c.name}</a>
-              </span>
-            ))}
+            <ol className="inline">
+              {crumbs.map((c, i) => (
+                <li key={c.href} className="inline">
+                  {i > 0 ? <span className="px-2" aria-hidden>/</span> : null}
+                  <Link
+                    href={c.href.replace(COM_ORIGIN, '') || '/'}
+                    aria-current={i === crumbs.length - 1 ? 'page' : undefined}
+                    className="hover:text-sv-blue"
+                  >
+                    {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ol>
           </nav>
           <Reveal>
             <article className="speakable-lead space-y-5 text-[16px] font-medium leading-relaxed text-sv-ink/80">
