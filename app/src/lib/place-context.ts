@@ -36,6 +36,26 @@ const CC_COUNTRY: Record<string, { ka: string; en: string; ru: string }> = {
   US: { ka: 'აშშ', en: 'United States', ru: 'США' },
   CA: { ka: 'კანადა', en: 'Canada', ru: 'Канада' },
   TR: { ka: 'თურქეთი', en: 'Türkiye', ru: 'Турция' },
+  // ponytail: names only — no market copy/inventory implied. Hand-written hub
+  // copy arrives per launched market (countries/hubs-extra.ts); until then
+  // pages stay data-driven (metros, map, live counts), never thin doorway text.
+  JP: { ka: 'იაპონია', en: 'Japan', ru: 'Япония' },
+  IN: { ka: 'ინდოეთი', en: 'India', ru: 'Индия' },
+  CN: { ka: 'ჩინეთი', en: 'China', ru: 'Китай' },
+  BR: { ka: 'ბრაზილია', en: 'Brazil', ru: 'Бразилия' },
+  EG: { ka: 'ეგვიპტე', en: 'Egypt', ru: 'Египет' },
+  MX: { ka: 'მექსიკა', en: 'Mexico', ru: 'Мексика' },
+  PK: { ka: 'პაკისტანი', en: 'Pakistan', ru: 'Пакистан' },
+  AR: { ka: 'არგენტინა', en: 'Argentina', ru: 'Аргентина' },
+  NG: { ka: 'ნიგერია', en: 'Nigeria', ru: 'Нигерия' },
+  PH: { ka: 'ფილიპინები', en: 'Philippines', ru: 'Филиппины' },
+  RU: { ka: 'რუსეთი', en: 'Russia', ru: 'Россия' },
+  TH: { ka: 'ტაილანდი', en: 'Thailand', ru: 'Таиланд' },
+  ID: { ka: 'ინდონეზია', en: 'Indonesia', ru: 'Индонезия' },
+  KR: { ka: 'სამხრეთ კორეა', en: 'South Korea', ru: 'Южная Корея' },
+  PE: { ka: 'პერუ', en: 'Peru', ru: 'Перу' },
+  CO: { ka: 'კოლუმბია', en: 'Colombia', ru: 'Колумбия' },
+  IR: { ka: 'ირანი', en: 'Iran', ru: 'Иран' },
 }
 
 export function countryOf(cc: string): { ka: string; en: string; ru: string } {

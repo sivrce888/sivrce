@@ -86,6 +86,7 @@ import {
   mapBootCamera,
   type MapUiSave,
 } from '@/lib/map/map-ui'
+import { applyMapLanguage } from '@/lib/map/map-language'
 import {
   POI_CATEGORIES,
   POI_COLORS,
@@ -810,6 +811,10 @@ function Map3DInner({
   useEffect(() => {
     tRef.current = t
   })
+  const langRef = useRef(lang)
+  useEffect(() => {
+    langRef.current = lang
+  })
   const searchParams = useSearchParams()
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -978,6 +983,17 @@ function Map3DInner({
     if (!map) return
     applyPoiLabelTheme(map, isDark)
   }, [isDark])
+
+  // ponytail: basemap labels follow UI lang (local → English fallback); cheap layout-prop swap.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    try {
+      applyMapLanguage(map, lang)
+    } catch {
+      /* style mid-remount */
+    }
+  }, [lang, ready])
 
   const togglePoi = useCallback((id: PoiCategory) => {
     setPoiOn((prev) =>
@@ -1863,6 +1879,11 @@ function Map3DInner({
       const mountOverlays = () => {
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
+          try {
+            applyMapLanguage(map, langRef.current)
+          } catch {
+            /* labels keep OFM default */
+          }
           await ensureLayers(map, { poly: polyFcRef.current, pts: ptsFcRef.current }, zooms)
           try {
             bindBerlinGeoTiles(map, {

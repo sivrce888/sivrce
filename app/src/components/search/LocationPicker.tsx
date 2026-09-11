@@ -409,8 +409,9 @@ export default function LocationPicker({
                     <button
                       type="button"
                       onClick={applyNationwide}
-                      className="flex w-full items-center border-l-2 border-transparent px-3 py-2.5 text-left text-[13px] font-bold text-sv-ink/70 transition-colors hover:bg-sv-surface hover:text-sv-ink"
+                      className="flex w-full items-center gap-2 border-l-2 border-transparent px-3 py-2.5 text-left text-[13px] font-bold text-sv-ink/70 transition-colors hover:bg-sv-surface hover:text-sv-ink"
                     >
+                      <Globe className="h-3.5 w-3.5 shrink-0 text-sv-ink/35" aria-hidden />
                       {t('search.allGeorgia')}
                     </button>
                   ) : null}
@@ -419,12 +420,17 @@ export default function LocationPicker({
                       key={c}
                       type="button"
                       onClick={() => pickCity(c)}
-                      className={`flex w-full items-center border-l-2 px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
+                      aria-current={city === c ? 'true' : undefined}
+                      className={`flex w-full items-center gap-2 border-l-2 px-3 py-2.5 text-left text-[13px] font-bold transition-colors ${
                         city === c
                           ? 'border-sv-blue bg-sv-surface text-sv-blue'
                           : 'border-transparent text-sv-ink/70 hover:bg-sv-surface hover:text-sv-ink'
                       }`}
                     >
+                      <MapPin
+                        className={`h-3.5 w-3.5 shrink-0 ${city === c ? 'text-sv-blue' : 'text-sv-ink/35'}`}
+                        aria-hidden
+                      />
                       {c}
                     </button>
                   ))}

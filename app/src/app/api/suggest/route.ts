@@ -6,6 +6,8 @@ import { STREETS as TBILISI_STREETS } from "@/data/tbilisi-streets"
 import { BERLIN_ORTSTEILE } from "@/data/berlin-ortsteile"
 import { BERLIN_STREETS } from "@/data/berlin-streets"
 import { BERLIN_BEZIRKE, DE_CITIES } from "@/lib/countries/de"
+import { MAP_CITIES } from "@/lib/map/user-place"
+import { COUNTRY_IDS, MARKETS } from "@/lib/markets"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"
 import { compileHay, matchCompiled, suggestFuzzy, type CompiledHay } from "@/lib/suggest-match"
 
@@ -54,6 +56,22 @@ const mk = (r: Omit<Row, "hay" | "raw">, raw: (string | undefined)[]): Row => ({
 
 const CITY_ROWS: Row[] = CITIES.map((ka) =>
   mk({ kind: "city", ka, city: ka }, [ka, ...(CITY_ALIASES[ka] ?? [])]),
+)
+/* ————— World rows (map fly-to + global suggest) —————
+ * ponytail: cities + countries only (~70 rows). Neighbourhoods/streets/
+ * addresses stay live via /api/geocode (Nominatim) — never bundled. */
+const COUNTRY_NAMES: Record<string, string> = {
+  de: "Germany", ae: "United Arab Emirates", fr: "France", es: "Spain",
+  it: "Italy", gb: "United Kingdom", us: "United States", ca: "Canada", tr: "Türkiye",
+}
+const WORLD_CITY_ROWS: Row[] = MAP_CITIES.filter((c) => c.cc !== "GE").map((c) =>
+  mk({ kind: "city", ka: c.ka, en: c.en, city: c.ka }, [c.ka, c.en, c.slug]),
+)
+const COUNTRY_ROWS: Row[] = COUNTRY_IDS.map((id) =>
+  mk(
+    { kind: "city", ka: COUNTRY_NAMES[id] ?? id.toUpperCase(), en: `/${id}`, city: MARKETS[id].defaultCitySlug },
+    [COUNTRY_NAMES[id] ?? id, id],
+  ),
 )
 const DISTRICT_ROWS: Row[] = DISTRICTS.map((d) => mk({ kind: "district", ka: d.ka, city: d.city }, [d.ka]))
 const VILLAGE_ROWS: Row[] = VILLAGES.map((v) => mk({ kind: "district", ka: v.ka, city: v.muni }, [v.ka]))
@@ -193,6 +211,15 @@ export async function GET(req: Request) {
 
   if (!cityFilter) {
     for (const r of CITY_ROWS) {
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+    // World cities + countries — global map fly-to; no DE-district leak (cities only).
+    for (const r of WORLD_CITY_ROWS) {
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+    for (const r of COUNTRY_ROWS) {
       const m = matchCompiled(r.hay, q)
       if (m) push(r, m.prefix)
     }

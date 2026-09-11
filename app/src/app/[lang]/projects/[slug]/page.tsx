@@ -3,20 +3,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { avifCardOf, cardOf } from '@/lib/media'
-import {
-  MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone, Landmark, ArrowUpRight,
-  TrainFront, GraduationCap, Trees, Hospital, ShoppingBag, Dumbbell, Pill, Castle,
-  type LucideIcon,
-} from 'lucide-react'
+import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone, Landmark, ArrowUpRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import HScroll from '@/components/HScroll'
 import { AnchorNav } from '@/components/AnchorNav'
 import { StickyLeadBar } from '@/components/lead/StickyLeadBar'
-import { WeatherBadge } from '@/components/WeatherBadge'
-import { nearestAmenities, formatMetroDist, POI_COLORS, type PoiCategory } from '@/lib/map/pois'
-import { NEIGHBORHOODS, pick as pickNeighborhood } from '@/data/neighborhoods'
 import { PlaceContext } from '@/components/entities/PlaceContext'
 import { placeLabels } from '@/lib/place-context'
 import { telHref, waHref } from '@/lib/inquiries/phone'

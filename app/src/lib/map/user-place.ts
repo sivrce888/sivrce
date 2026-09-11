@@ -6,7 +6,10 @@
 import { FREEDOM_SQUARE, MAP_CENTER, parseCoords } from '@/lib/map/map-geo'
 import { MARKETS, type MarketId } from '@/lib/markets'
 
-export type MapCityCc = 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR'
+export type MapCityCc =
+  | 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR'
+  | 'JP' | 'IN' | 'CN' | 'BR' | 'EG' | 'MX' | 'PK' | 'AR' | 'NG' | 'PH'
+  | 'RU' | 'TH' | 'ID' | 'KR' | 'PE' | 'CO' | 'IR'
 
 export type MapCity = {
   slug: string
@@ -75,6 +78,32 @@ export const MAP_CITIES: readonly MapCity[] = [
   city('vancouver', 'ვანკუვერი', 'Vancouver', 49.2827, -123.1207, 'CA'),
   city('istanbul', 'სტამბოლი', 'Istanbul', 41.0082, 28.9784, 'TR'),
   city('antalya', 'ანტალია', 'Antalya', 36.8969, 30.7133, 'TR'),
+  // ponytail: top-30 world metros by pop — one line each, no neighbourhood bundle.
+  // Neighbourhoods/streets/addresses stay live (OFM tiles + Nominatim), never bundled.
+  city('tokyo', 'ტოკიო', 'Tokyo', 35.6762, 139.6503, 'JP'),
+  city('delhi', 'დელი', 'Delhi', 28.6139, 77.209, 'IN'),
+  city('shanghai', 'შანხაი', 'Shanghai', 31.2304, 121.4737, 'CN'),
+  city('sao-paulo', 'სან-პაულუ', 'São Paulo', -23.5558, -46.6396, 'BR'),
+  city('cairo', 'კაირო', 'Cairo', 30.0444, 31.2357, 'EG'),
+  city('mexico-city', 'მეხიკო', 'Mexico City', 19.4326, -99.1332, 'MX'),
+  city('beijing', 'პეკინი', 'Beijing', 39.9042, 116.4074, 'CN'),
+  city('mumbai', 'მუმბაი', 'Mumbai', 19.076, 72.8777, 'IN'),
+  city('osaka', 'ოსაკა', 'Osaka', 34.6937, 135.5023, 'JP'),
+  city('karachi', 'კარაჩი', 'Karachi', 24.8607, 67.0011, 'PK'),
+  city('buenos-aires', 'ბუენოს-აირესი', 'Buenos Aires', -34.6037, -58.3816, 'AR'),
+  city('kolkata', 'კოლკატა', 'Kolkata', 22.5726, 88.3639, 'IN'),
+  city('lagos', 'ლაგოსი', 'Lagos', 6.5244, 3.3792, 'NG'),
+  city('manila', 'მანილა', 'Manila', 14.5995, 120.9842, 'PH'),
+  city('rio-de-janeiro', 'რიო-დე-ჟანეირო', 'Rio de Janeiro', -22.9068, -43.1729, 'BR'),
+  city('guangzhou', 'გუანჯოუ', 'Guangzhou', 23.1291, 113.2644, 'CN'),
+  city('moscow', 'მოსკოვი', 'Moscow', 55.7558, 37.6173, 'RU'),
+  city('bangkok', 'ბანგკოკი', 'Bangkok', 13.7563, 100.5018, 'TH'),
+  city('jakarta', 'ჯაკარტა', 'Jakarta', -6.2088, 106.8456, 'ID'),
+  city('seoul', 'სეული', 'Seoul', 37.5665, 126.978, 'KR'),
+  city('lima', 'ლიმა', 'Lima', -12.0464, -77.0428, 'PE'),
+  city('bogota', 'ბოგოტა', 'Bogotá', 4.711, -74.0721, 'CO'),
+  city('tehran', 'თეირანი', 'Tehran', 35.6892, 51.389, 'IR'),
+  city('chennai', 'ჩენაი', 'Chennai', 13.0827, 80.2707, 'IN'),
 ]
 
 const PLACE_KEY = 'sivrce.map.place'
@@ -124,6 +153,11 @@ const CITY_ALIASES: Record<string, string> = {
   'new york': 'new-york',
   'abu dhabi': 'abu-dhabi',
   abu_dhabi: 'abu-dhabi',
+  'sao paulo': 'sao-paulo',
+  'rio': 'rio-de-janeiro',
+  'rio de janeiro': 'rio-de-janeiro',
+  'mexico city': 'mexico-city',
+  'buenos aires': 'buenos-aires',
 }
 
 function isoForMarket(market: MarketId): MapCityCc | null {

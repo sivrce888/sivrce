@@ -65,10 +65,32 @@ export default function SearchSuggest({
         const sp = new URLSearchParams({ q })
         if (city) sp.set('city', city)
         if (mkt) sp.set('mkt', mkt)
+        // ponytail: catalog + live Nominatim (neighbourhoods/streets/addresses
+        // worldwide, no bundle). Live only for global (unscoped) search, capped at 5.
+        const live = q.length >= 3 && !city && !mkt
+          ? fetch(`/api/geocode?suggest=1&q=${encodeURIComponent(q)}${city ? `&city=${encodeURIComponent(city)}` : ''}`, { signal: ctrl.signal })
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null)
+          : null
         const res = await fetch(`/api/suggest?${sp}`, { signal: ctrl.signal })
         const json = (await res.json()) as { ok: boolean; suggestions?: Suggestion[] }
         if (ctrl.signal.aborted) return
         const next = json.ok ? (json.suggestions ?? []) : []
+        const seen = new Set(next.map((s) => `${s.kind}:${s.city ?? ''}:${s.ka}`.toLowerCase()))
+        if (live) {
+          const jd = (await live) as {
+            ok?: boolean
+            hits?: { street?: string; houseNo?: string; district?: string; city?: string; label: string }[]
+          } | null
+          for (const h of jd?.ok ? (jd.hits ?? []).slice(0, 5) : []) {
+            const ka = [h.street, h.houseNo].filter(Boolean).join(' ').trim() || h.label
+            const key = `street:${h.city ?? ''}:${ka}`.toLowerCase()
+            if (!ka || seen.has(key)) continue
+            seen.add(key)
+            next.push({ kind: 'street', ka, city: h.city, district: h.district })
+            if (next.length >= 10) break
+          }
+        }
         setItems(next)
         setHi(-1)
         setOpen(next.length > 0)
