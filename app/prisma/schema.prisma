@@ -175,6 +175,7 @@ enum ListingTier {
 enum ListingCurrency {
   USD
   GEL
+  EUR
 
   @@map("listing_currency")
 }

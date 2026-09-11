@@ -1,5 +1,7 @@
 import { searchListings, type SearchFilters } from "@/lib/search"
 import { USD_GEL } from "@/data/listings"
+// ponytail: mirrors EUR_GEL_FALLBACK in lib/currency.tsx ('use client', can't import here); unify when rates move server-side
+const EUR_GEL = 3.04
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 import { buildDbWhere, parseSearchParams } from "@/lib/search-filters"
@@ -40,12 +42,16 @@ function buildDbOrderBy(filters: SearchFilters): Prisma.ListingOrderByWithRelati
 }
 
 function priceUsd(l: { price: number; currency: string }): number {
-  return l.currency === "GEL" ? l.price / USD_GEL : l.price
+  if (l.currency === "GEL") return l.price / USD_GEL
+  if (l.currency === "EUR") return (l.price * EUR_GEL) / USD_GEL
+  return l.price
 }
 
 function m2Usd(l: { pricePerSqm: number | null; currency: string }): number {
   const m2 = l.pricePerSqm ?? 0
-  return l.currency === "GEL" ? m2 / USD_GEL : m2
+  if (l.currency === "GEL") return m2 / USD_GEL
+  if (l.currency === "EUR") return (m2 * EUR_GEL) / USD_GEL
+  return m2
 }
 
 function sortHits<T extends {

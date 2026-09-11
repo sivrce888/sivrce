@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Columns2, Search, X } from "lucide-react"
 import LocalizedLink from "@/components/LocalizedLink"
-import { formatFloor, formatPerM2 } from "@/data/listings"
+import { formatFloor, formatPerM2 } from "@/data/listings";
+import { areaSym } from "@/lib/listing-format";
 import { listingPath } from "@/lib/listing-slug"
 import { useCompare } from "@/lib/compare"
 import { useCurrency } from "@/lib/currency"
@@ -28,7 +29,7 @@ const PROP_KEY: Record<PropType, DictKey> = {
 export default function CompareClient() {
   const { ids, toggle, clear, count } = useCompare()
   const tt = useCompareStrings()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { format, currency } = useCurrency()
   const [mounted, setMounted] = useState(false)
 
@@ -73,13 +74,13 @@ export default function CompareClient() {
     {
       key: "perM2",
       label: tt("perM2"),
-      cell: (l) => (l.dealType === "sale" ? formatPerM2(l, currency) : "—"),
+      cell: (l) => (l.dealType === "sale" ? formatPerM2(l, currency, lang) : "—"),
     },
-    { key: "area", label: tt("area"), cell: (l) => `${l.area} მ²` },
+    { key: "area", label: tt("area"), cell: (l) => `${l.area} ${areaSym(lang)}` },
     { key: "beds", label: tt("beds"), cell: (l) => (l.beds > 0 ? String(l.beds) : "—") },
     { key: "rooms", label: tt("rooms"), cell: (l) => (l.rooms > 0 ? String(l.rooms) : "—") },
     { key: "baths", label: tt("baths"), cell: (l) => (l.baths > 0 ? String(l.baths) : "—") },
-    { key: "floor", label: tt("floor"), cell: (l) => formatFloor(l) },
+    { key: "floor", label: tt("floor"), cell: (l) => formatFloor(l, lang) },
     { key: "district", label: tt("district"), cell: (l) => `${l.district}, ${l.city}` },
     { key: "type", label: tt("type"), cell: (l) => t(PROP_KEY[l.propType]) },
     { key: "deal", label: tt("deal"), cell: (l) => t(dealLabelKey(l.dealType, l.propType)) },

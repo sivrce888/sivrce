@@ -154,17 +154,17 @@ export function formatMoney(gel: number, currency: Currency, rate: number = USD_
 }
 
 /** Compact map pin — dense labels beat full formatMoney. */
-export function formatMapPin(gel: number, currency: Currency = 'GEL', rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK): string {
+export function formatMapPin(gel: number, currency: Currency = 'GEL', rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK, lang = 'ka'): string {
   const n = currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : Math.round(gel)
   const sym = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : null
   if (!Number.isFinite(n) || n <= 0) return ''
   if (n >= 1_000_000) {
     const m = n / 1_000_000
     const s = m >= 10 ? String(Math.round(m)) : String(Math.round(m * 10) / 10)
-    return sym ? `${sym}${s}M` : `${s}მლნ₾`
+    return sym ? `${sym}${s}M` : `${s}${lang === 'ka' ? 'მლნ₾' : 'M₾'}`
   }
   if (n >= 10_000) {
-    return sym ? `${sym}${Math.round(n / 1000)}k` : `${Math.round(n / 1000)}კ₾`
+    return sym ? `${sym}${Math.round(n / 1000)}k` : `${Math.round(n / 1000)}${lang === 'ka' ? 'კ₾' : 'k₾'}`
   }
   return sym ? `${sym}${n}` : `${n}₾`
 }

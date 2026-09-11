@@ -8,7 +8,7 @@ import Footer from '@/components/sections/Footer'
 import SeoFilterableListings from '@/components/seo/SeoFilterableListings'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { cityCoords } from '@/lib/weather'
-import { formatUSD } from '@/lib/listing-format'
+import { formatUSD, areaSym } from '@/lib/listing-format'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
 import { getNeighborhood, pick as pickNb } from '@/data/neighborhoods'
 import { jsonLd } from '@/lib/utils'
@@ -313,7 +313,7 @@ export default function SeoLanding({
               {[
                 { icon: LayoutGrid, label: ui.listings, value: String(stats.count) },
                 ...(stats.avgPerM2
-                  ? [{ icon: TrendingUp, label: ui.avg, value: `${formatUSD(stats.avgPerM2)}/მ²` }]
+                  ? [{ icon: TrendingUp, label: ui.avg, value: `${formatUSD(stats.avgPerM2)}/${areaSym(loc)}` }]
                   : []),
                 { icon: MapPin, label: ui.from, value: formatUSD(stats.minPrice) },
               ].map((s) => (

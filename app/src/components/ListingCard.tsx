@@ -552,7 +552,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
         className={`mt-0.5 min-h-[1.25rem] text-[13px] font-bold tabular-nums text-sv-ink/60 ${showPerM2 ? '' : 'invisible'}`}
         aria-hidden={!showPerM2}
       >
-        {showPerM2 ? formatPerM2(l, currency) : '\u00a0'}
+        {showPerM2 ? formatPerM2(l, currency, lang) : '\u00a0'}
       </p>
       {/* Lifestyle under price — was photo overlay, covered dots/chevrons */}
       {lifestyle.length > 0 && (
@@ -645,7 +645,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
             aria-hidden={l.projectCatalog || (l.floor <= 0 && l.totalFloors <= 0)}
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
-            <span>{formatFloor(l)}</span>
+            <span>{formatFloor(l, lang)}</span>
           </span>
         </div>
 

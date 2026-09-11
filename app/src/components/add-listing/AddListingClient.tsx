@@ -34,6 +34,7 @@ import {
   districtsOf, LISTINGS, USD_GEL, formatUSD,
   type DealType, type Listing, type PropType,
 } from '@/data/listings'
+import { areaSym } from '@/lib/listing-format'
 import ListingCard from '@/components/ListingCard'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import { FREEDOM_SQUARE } from '@/lib/map/map-geo'
@@ -2227,8 +2228,8 @@ export default function AddListingClient() {
                                 <>
                                   {' · '}
                                   {priceMode === 'total'
-                                    ? `≈ $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) / areaN)} / მ²`
-                                    : `სრული: $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) * areaN)}`}
+                                    ? `≈ $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) / areaN)} / ${areaSym(lang)}`
+                                    : `${lang === 'ka' ? 'სრული' : 'Total'}: $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) * areaN)}`}
                                 </>
                               )}
                             </p>

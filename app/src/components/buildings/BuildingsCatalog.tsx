@@ -20,7 +20,7 @@ type Props = {
 
 const empty: Counts = { sale: 0, rent: 0, daily: 0, pledge: 0 }
 
-const L: Record<DirLoc, {
+const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
   search: string; allCity: string; allDistrict: string; allUbani: string; all: string
   ready: string; construction: string; cityAria: string; districtAria: string
   ubaniAria: string; statusAria: string; nBuildings: (n: number) => string
@@ -57,6 +57,76 @@ const L: Record<DirLoc, {
     forSale: 'продажа', rent: 'аренда', daily: 'посуточно', pledge: 'залог',
     listings: (n) => `${n} объявлений`, floorsAbbr: 'эт.', unitsAbbr: 'кв.',
   },
+  tr: {
+    search: 'İsim, mahalle, adres veya müteahhit ile arayın',
+    allCity: 'Tüm şehirler', allDistrict: 'Tüm ilçeler', allUbani: 'Tüm mahalleler', all: 'Tümü',
+    ready: 'Teslim edildi', construction: 'İnşaat halinde',
+    cityAria: 'Şehir', districtAria: 'İlçe', ubaniAria: 'Mahalle', statusAria: 'Durum',
+    nBuildings: (n) => `${n} bina`,
+    none: 'Sonuç bulunamadı — filtreyi veya arama terimini değiştirin',
+    forSale: 'satılık', rent: 'kiralık', daily: 'günlük', pledge: 'ipotekli',
+    listings: (n) => `${n} ilan`, floorsAbbr: 'kat.', unitsAbbr: 'daire',
+  },
+  ar: {
+    search: 'ابحث بالاسم أو الحي أو العنوان أو المطوّر',
+    allCity: 'كل المدن', allDistrict: 'كل المناطق', allUbani: 'كل الأحياء', all: 'الكل',
+    ready: 'جاهز', construction: 'قيد الإنشاء',
+    cityAria: 'المدينة', districtAria: 'المنطقة', ubaniAria: 'الحي', statusAria: 'الحالة',
+    nBuildings: (n) => `${n} مبنى`,
+    none: 'لا توجد نتائج — غيّر عامل التصفية أو كلمة البحث',
+    forSale: 'للبيع', rent: 'إيجار', daily: 'يومي', pledge: 'مرهون',
+    listings: (n) => `${n} إعلان`, floorsAbbr: 'طوابق', unitsAbbr: 'وحدات',
+  },
+  de: {
+    search: 'Nach Name, Viertel, Adresse oder Bauträger suchen',
+    allCity: 'Alle Städte', allDistrict: 'Alle Bezirke', allUbani: 'Alle Viertel', all: 'Alle',
+    ready: 'Fertiggestellt', construction: 'Im Bau',
+    cityAria: 'Stadt', districtAria: 'Bezirk', ubaniAria: 'Viertel', statusAria: 'Status',
+    nBuildings: (n) => `${n} Gebäude`,
+    none: 'Nichts gefunden — Filter oder Suchbegriff ändern',
+    forSale: 'Kauf', rent: 'Miete', daily: 'täglich', pledge: 'Pfand',
+    listings: (n) => `${n} Inserate`, floorsAbbr: 'Et.', unitsAbbr: 'WE',
+  },
+  he: {
+    search: 'חיפוש לפי שם, שכונה, כתובת או יזם',
+    allCity: 'כל הערים', allDistrict: 'כל הרובעים', allUbani: 'כל השכונות', all: 'הכל',
+    ready: 'נמסר', construction: 'בבנייה',
+    cityAria: 'עיר', districtAria: 'רובע', ubaniAria: 'שכונה', statusAria: 'סטטוס',
+    nBuildings: (n) => `${n} בניינים`,
+    none: 'לא נמצאו תוצאות — שנו מסנן או טקסט חיפוש',
+    forSale: 'למכירה', rent: 'להשכרה', daily: 'יומי', pledge: 'ממושכן',
+    listings: (n) => `${n} מודעות`, floorsAbbr: 'קומות', unitsAbbr: 'דירות',
+  },
+  hy: {
+    search: 'Որոնում անվամբ, թաղամասով, հասցեով կամ դեվելոպերով',
+    allCity: 'Բոլոր քաղաքները', allDistrict: 'Բոլոր թաղամասերը', allUbani: 'Բոլոր թաղերը', all: 'Բոլորը',
+    ready: 'Հանձնված', construction: 'Կառուցվում է',
+    cityAria: 'Քաղաք', districtAria: 'Թաղամաս', ubaniAria: 'Թաղ', statusAria: 'Կարգավիճակ',
+    nBuildings: (n) => `${n} շենք`,
+    none: 'Ոչինչ չի գտնվել — փոխեք ֆիլտրը կամ հարցումը',
+    forSale: 'վաճառք', rent: 'վարձակալություն', daily: 'օրեկան', pledge: 'գրավ',
+    listings: (n) => `${n} հայտարարություն`, floorsAbbr: 'հարկ.', unitsAbbr: 'բն.',
+  },
+  az: {
+    search: 'Ad, məhəllə, ünvan və ya tikinti şirkəti ilə axtarış',
+    allCity: 'Bütün şəhərlər', allDistrict: 'Bütün rayonlar', allUbani: 'Bütün məhəllələr', all: 'Bütün',
+    ready: 'Təhvil verilib', construction: 'Tikilir',
+    cityAria: 'Şəhər', districtAria: 'Rayon', ubaniAria: 'Məhəllə', statusAria: 'Status',
+    nBuildings: (n) => `${n} bina`,
+    none: 'Heç nə tapılmadı — filtri və ya sorğunu dəyişdirin',
+    forSale: 'satılıq', rent: 'kirayə', daily: 'günlük', pledge: 'girova',
+    listings: (n) => `${n} elan`, floorsAbbr: 'mərt.', unitsAbbr: 'mənzil',
+  },
+  uk: {
+    search: 'Пошук за назвою, кварталом, адресою або забудовником',
+    allCity: 'Усі міста', allDistrict: 'Усі райони', allUbani: 'Усі квартали', all: 'Усі',
+    ready: 'Зданий', construction: 'Будується',
+    cityAria: 'Місто', districtAria: 'Район', ubaniAria: 'Квартал', statusAria: 'Статус',
+    nBuildings: (n) => `${n} корпусів`,
+    none: 'Нічого не знайдено — змініть фільтр або запит',
+    forSale: 'продаж', rent: 'оренда', daily: 'подобово', pledge: 'застава',
+    listings: (n) => `${n} оголошень`, floorsAbbr: 'пов.', unitsAbbr: 'кв.',
+  },
 }
 
 /** District/ubani names are KA data keys — show the locale name when one exists. */
@@ -68,7 +138,7 @@ function geoName(ka: string, loc: DirLoc): string {
 }
 
 export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc }: Props) {
-  const t = L[loc]
+  const t = L[loc] ?? L.en
   const [q, setQ] = useState('')
   const [city, setCity] = useState<'all' | 'თბილისი' | 'ბათუმი'>('თბილისი')
   const [district, setDistrict] = useState<string>('all')

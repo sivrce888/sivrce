@@ -8,7 +8,6 @@ import { GEO_ALL_PLACES, geoDistrictsOf } from './georgia-locations'
 import { maskPhone } from '@/lib/inquiries/phone'
 import { resolveStaticAgentProfile } from '@/lib/profiles/roles'
 import { parseListingNumber, PUBLIC_ID_BASE } from '@/lib/listing-public-id'
-import { formatUSD } from '@/lib/listing-format'
 
 export type DealType = 'sale' | 'rent' | 'daily' | 'pledge'
 export type PropType = 'apartment' | 'house' | 'villa' | 'commercial' | 'land' | 'hotel'
@@ -1195,13 +1194,7 @@ export function filterListings(f: ListingFilters): Listing[] {
 }
 
 /* ————— Formatting ————— */
-
-/** Card price — appends /თვე for monthly rent, /დღე for daily rent */
-export function formatListingPrice(l: Listing): string {
-  if (l.dealType === 'rent' && l.propType !== 'land') return `${formatUSD(l.priceUSD)}/თვე`
-  if (l.dealType === 'daily') return `${formatUSD(l.priceUSD)}/დღე`
-  return formatUSD(l.priceUSD)
-}
+// ponytail: ka-only formatListingPrice deleted — dead since currency.tsx formatListingPrice took over.
 
 /* ————— Distinct locations for filter selects ————— */
 // ponytail: catalog (competitors) ∪ live listing values. Add DB-only cities when inventory lands.

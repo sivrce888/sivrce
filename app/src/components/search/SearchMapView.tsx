@@ -31,7 +31,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { listingPath } from '@/lib/listing-slug'
 import { mapHrefForListing } from '@/lib/map/map-href'
 import type { Listing } from '@/data/listings'
-import { stayCount, stayLine } from '@/lib/listing-format'
+import { stayCount, stayLine, areaSym } from '@/lib/listing-format'
 import { useCurrency, formatMapPin, formatListingPrice } from '@/lib/currency'
 import { rentPeriodKey } from '@/lib/add-listing-fields'
 import { blurProps, cardOf } from '@/lib/media'
@@ -52,7 +52,7 @@ function MapPinCard({
   onIndex: (i: number) => void
   onClose: () => void
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { currency, rate, eurRate } = useCurrency()
   const { has, toggle } = useFavorites()
   const stay = stayCount(l)
@@ -103,8 +103,8 @@ function MapPinCard({
           <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/60">{price.secondary}</span>
           <span className="mt-1 block truncate text-[13px] font-semibold text-sv-ink/60">
             {stay.n > 0
-              ? `${stayLine(l, t)} · ${l.area} მ² · ${l.district}`
-              : `${l.area} მ² · ${l.district}`}
+              ? `${stayLine(l, t)} · ${l.area} ${areaSym(lang)} · ${l.district}`
+              : `${l.area} ${areaSym(lang)} · ${l.district}`}
           </span>
           <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">{l.title}</span>
         </span>
@@ -194,7 +194,7 @@ export default function SearchMapView({
   const [seen, setSeen] = useState<Set<string>>(() => new Set())
   const [showSearchArea, setShowSearchArea] = useState(false)
   const [locating, setLocating] = useState(false)
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { format, currency, rate, eurRate } = useCurrency()
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
@@ -348,7 +348,7 @@ export default function SearchMapView({
         'pointer-events-none block whitespace-nowrap rounded-full border border-sv-ink/[0.08] bg-sv-surface px-2.5 py-1 text-[12px] font-black tracking-tight text-sv-ink'
       inner.style.transition =
         'transform 180ms cubic-bezier(0.21, 0.65, 0.2, 1), background-color 180ms cubic-bezier(0.21, 0.65, 0.2, 1), color 180ms cubic-bezier(0.21, 0.65, 0.2, 1)'
-      inner.textContent = formatMapPin(minGel, currency, rate, eurRate) || format(minGel)
+      inner.textContent = formatMapPin(minGel, currency, rate, eurRate, lang) || format(minGel)
       el.appendChild(inner)
       if (items.length > 1) {
         const nEl = document.createElement('span')
@@ -405,7 +405,7 @@ export default function SearchMapView({
         setShowSearchArea(false)
       })
     }
-  }, [ready, groups, format, currency, rate, eurRate, areaActive])
+  }, [ready, groups, format, currency, rate, eurRate, areaActive, lang])
 
   useEffect(() => {
     for (const id of elsRef.current.keys()) paintPin(id)
@@ -542,8 +542,8 @@ export default function SearchMapView({
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">
                     {stay.n > 0
-                      ? `${stayLine(l, t)} · ${l.area} მ² · ${l.district}`
-                      : `${l.area} მ² · ${l.district}`}
+                      ? `${stayLine(l, t)} · ${l.area} ${areaSym(lang)} · ${l.district}`
+                      : `${l.area} ${areaSym(lang)} · ${l.district}`}
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">
                     {l.title}

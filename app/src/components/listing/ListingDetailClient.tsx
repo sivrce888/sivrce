@@ -52,7 +52,7 @@ import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
 import type { ListingShareInput } from '@/lib/listing-share'
 import { lt } from './i18n'
 import { formatUSD, formatGEL, formatViews,
-  formatFloor, USD_GEL, postedAgoLabel,
+  formatFloor, USD_GEL, postedAgoLabel, areaSym,
 } from '@/lib/listing-format'
 import type { Listing, PropType } from '@/data/listings'
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
@@ -889,7 +889,7 @@ export default function ListingDetailClient({
               )}
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
-                  <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(views) })}
+                  <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(views, lang) })}
                 </span>
                 {l.images.length > 1 ? (
                   <div className="pointer-events-auto flex gap-2">
@@ -1107,7 +1107,7 @@ export default function ListingDetailClient({
             {isSale && l.perM2USD > 0 ? (
               <PriceScale
                 scale={priceScale}
-                priceLabel={`$${l.perM2USD.toLocaleString('en-US')}/მ²`}
+                priceLabel={`$${l.perM2USD.toLocaleString('en-US')}/${areaSym(lang)}`}
               />
             ) : null}
 

@@ -10,7 +10,7 @@ import type { Listing } from '@/lib/listings-db'
 
 /** Homepage Stories strip — paid storyUntil listings. */
 export default function StoriesRail({ items }: { items: Listing[] }) {
-  const { b } = useI18n()
+  const { b, lang } = useI18n()
   if (items.length === 0) return null
 
   return (
@@ -49,7 +49,7 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
                   {l.district || l.city}
                 </span>
                 <span className="line-clamp-1 w-full text-center text-[10px] font-bold text-sv-ink/60">
-                  {formatStoryPrice(l.priceGEL)}
+                  {formatStoryPrice(l.priceGEL, lang)}
                 </span>
               </LocalizedLink>
             ))}
@@ -60,8 +60,9 @@ export default function StoriesRail({ items }: { items: Listing[] }) {
   )
 }
 
-function formatStoryPrice(gel: number): string {
-  if (gel >= 1_000_000) return `${(gel / 1_000_000).toFixed(1).replace(/\.0$/, '')}მ₾`
-  if (gel >= 1000) return `${Math.round(gel / 1000)}ათ.₾`
+function formatStoryPrice(gel: number, lang: string): string {
+  const ka = lang === 'ka'
+  if (gel >= 1_000_000) return `${(gel / 1_000_000).toFixed(1).replace(/\.0$/, '')}${ka ? 'მ' : 'M'}₾`
+  if (gel >= 1000) return `${Math.round(gel / 1000)}${ka ? 'ათ.' : 'k'}₾`
   return `${gel}₾`
 }

@@ -6,10 +6,18 @@
 
 import type { Listing } from '@/data/listings'
 import type { Currency } from '@/lib/currency'
+import type { Lang } from '@/lib/i18n/core'
 
 export const USD_GEL = 2.7
 /** Static EUR cross — mirrors USD_GEL; lib/currency.tsx holds the live rate. */
 export const EUR_GEL = 3.04
+
+/** Area-unit symbol per UI language; m² is the international default. */
+const M2_SYM: Partial<Record<Lang, string>> = { ka: 'მ²', ru: 'м²', uk: 'м²', ar: 'م²', he: 'מ״ר' }
+
+export function areaSym(lang: Lang): string {
+  return M2_SYM[lang] ?? 'm²'
+}
 
 export function formatUSD(n: number): string {
   // whole dollars — fractional prices ($868.519/mo) never belong in a listing UI
@@ -20,21 +28,22 @@ export function formatGEL(n: number): string {
   return `${Math.round(n).toLocaleString('en-US')} ₾`
 }
 
-export function formatPerM2(l: Listing, currency?: Currency): string {
+export function formatPerM2(l: Listing, currency?: Currency, lang: Lang = 'ka'): string {
+  const m2 = areaSym(lang)
   if (currency === 'GEL') {
     const gelPerM2 = Math.round(l.perM2USD * USD_GEL)
-    return `${gelPerM2.toLocaleString('en-US')}₾/მ²`
+    return `${gelPerM2.toLocaleString('en-US')}₾/${m2}`
   }
   if (currency === 'EUR') {
     const eurPerM2 = Math.round((l.perM2USD * USD_GEL) / EUR_GEL)
-    return `€${eurPerM2.toLocaleString('en-US')}/მ²`
+    return `€${eurPerM2.toLocaleString('en-US')}/${m2}`
   }
-  return `$${l.perM2USD.toLocaleString('en-US')}/მ²`
+  return `$${l.perM2USD.toLocaleString('en-US')}/${m2}`
 }
 
-/** 3200 → "3.2კ" */
-export function formatViews(v: number): string {
-  if (v >= 1000) return `${(v / 1000).toFixed(1)}კ`
+/** 3200 → "3.2კ" (ka) / "3.2k" elsewhere */
+export function formatViews(v: number, lang: Lang = 'ka'): string {
+  if (v >= 1000) return `${(v / 1000).toFixed(1)}${lang === 'ka' ? 'კ' : 'k'}`
   return String(v)
 }
 
@@ -60,8 +69,9 @@ export function stayLine(
   return `${s.n} ${t(s.labelKey)}`
 }
 
-export function formatFloor(l: Listing): string {
-  if (l.propType === 'house') return l.totalFloors > 0 ? `${l.totalFloors} სართ.` : '—'
+export function formatFloor(l: Listing, lang: Lang = 'ka'): string {
+  if (l.propType === 'house')
+    return l.totalFloors > 0 ? (lang === 'ka' ? `${l.totalFloors} სართ.` : String(l.totalFloors)) : '—'
   if (l.propType === 'land') return '—'
   if (l.floor <= 0 && l.totalFloors <= 0) return '—'
   if (l.floor <= 0) return l.totalFloors > 0 ? `—/${l.totalFloors}` : '—'
