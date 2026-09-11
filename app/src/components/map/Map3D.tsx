@@ -135,7 +135,7 @@ import {
   MAP_CITIES,
   type MapCity,
 } from '@/lib/map/user-place'
-import type { MarketId } from '@/lib/markets'
+import { countryIsoForMarket, type MarketId } from '@/lib/markets'
 import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
 import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 // ponytail: construction photo-wrap retired — MapLibre TAS massing only.
@@ -830,6 +830,12 @@ function Map3DInner({
 
   const centerDefault = bootCenter ?? platform?.center ?? MAP_CENTER
   const allowSlugs = slugsForMarket(market)
+  // Explicit ?country= (from a country-hub search) wins over the ambient market default.
+  // `global` market (and no override) leaves this unset — worldwide, unfiltered.
+  const mapDataUrl = useMemo(() => {
+    const country = searchParams.get('country') || countryIsoForMarket(market)
+    return country ? `/api/map-data?country=${encodeURIComponent(country)}` : '/api/map-data'
+  }, [searchParams, market])
   const minZoom = MAP_MIN_ZOOM
   const floorStacksOn = platform?.floorStacksEnabled ?? false
   const styleUrls = platform
@@ -1048,7 +1054,7 @@ function Map3DInner({
     if (refreshing) return
     setRefreshing(true)
     try {
-      const res = await fetch('/api/map-data', { cache: 'no-store' })
+      const res = await fetch(mapDataUrl, { cache: 'no-store' })
       if (!res.ok) throw new Error(`map-data ${res.status}`)
       const data = (await res.json()) as {
         listings: Listing[]
@@ -1068,13 +1074,13 @@ function Map3DInner({
     } finally {
       setRefreshing(false)
     }
-  }, [refreshing, liveListings, flashRefreshNote])
+  }, [refreshing, liveListings, flashRefreshNote, mapDataUrl])
 
   // ponytail: SSR getMapListings can be a stale empty cache; live /api/map-data fills pins.
   useEffect(() => {
     if ((listings?.length ?? 0) > 0) return
     let cancelled = false
-    fetch('/api/map-data', { cache: 'no-store' })
+    fetch(mapDataUrl, { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { listings?: Listing[]; buildings?: MapBuildingCluster[] } | null) => {
         // Settle on any good response — a legitimately empty DB must show 0, not "…".
@@ -1091,7 +1097,7 @@ function Map3DInner({
     return () => {
       cancelled = true
     }
-  }, [listings])
+  }, [listings, mapDataUrl])
 
   // Official massing (footprints) loads off the boot bundle; pins wait for it and
   // land in one frame. Fetch starts at chunk eval — this usually just joins it.

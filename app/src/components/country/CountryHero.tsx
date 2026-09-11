@@ -40,7 +40,7 @@ export default function CountryHero({
   const market = MARKETS[country]
   const pin = city ? cityBySlug(city) : null
   const cam = pin ?? marketCenter(country)
-  const mapHref = mapHrefForPlace(cam.lat, cam.lng)
+  const mapHref = mapHrefForPlace(cam.lat, cam.lng, 12.8, market.countryCode)
   const trust = country === 'de' && lang === 'de' ? TRUST_DE : (TRUST[country] ?? TRUST_DEFAULT)
   const countryLabel = country === 'de' && lang === 'de' ? 'Deutschland' : COUNTRY_NAMES[country]
   const icons = [BadgeCheck, ShieldCheck, Landmark] as const

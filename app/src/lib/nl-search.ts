@@ -6,6 +6,12 @@
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geoDistrictsOf } from '@/data/georgia-locations'
 import { BERLIN_BEZIRKE, DE_CITIES, bezirkSlugOfOrtsteil } from '@/lib/countries/de'
+import { MARKETS, isPathCountry } from '@/lib/markets'
+
+/** ISO market code for the /map `country` filter, or null for Georgia (unscoped). */
+function mapCountryIso(country: string): string | null {
+  return isPathCountry(country) ? MARKETS[country].countryCode : null
+}
 
 export type NlFilters = {
   dealType?: 'sale' | 'rent' | 'daily' | 'pledge'
@@ -395,7 +401,8 @@ export function routeCountryNl(p: {
   if (parsed.propertyType === 'villa') q.set('kind', 'house')
   else if (parsed.propertyType) q.set('kind', parsed.propertyType)
   if (parsed.buildingStatus === 'add.status.construction') q.set('status', 'construction')
-  if (p.country === 'de') q.set('country', 'DE')
+  const iso = mapCountryIso(p.country)
+  if (iso) q.set('country', iso)
   return { go: 'map', href: `/map?${q}` }
 }
 

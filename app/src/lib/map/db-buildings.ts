@@ -133,7 +133,7 @@ function rowToMapListing(row: {
   }
 }
 
-async function fetchMapListings(): Promise<Listing[]> {
+async function fetchMapListings(country?: string): Promise<Listing[]> {
   try {
     if (!(await dbAvailable())) return []
     const rows = await db.listing.findMany({
@@ -142,6 +142,7 @@ async function fetchMapListings(): Promise<Listing[]> {
         deletedAt: null,
         status: "active",
         NOT: { AND: [{ lat: 0 }, { lng: 0 }] },
+        ...(country ? { country } : {}),
       },
       select: {
         id: true,
@@ -216,12 +217,12 @@ export async function getMapListings(): Promise<Listing[]> {
   return fetchMapListings()
 }
 
-/** Uncached snapshot for map refresh button — bypasses unstable_cache. */
-export async function loadMapDataFresh(): Promise<{
+/** Uncached snapshot for map refresh button — bypasses unstable_cache. `country` unset = worldwide. */
+export async function loadMapDataFresh(country?: string): Promise<{
   listings: Listing[]
   buildings: MapBuildingCluster[]
 }> {
-  const [listings, rows] = await Promise.all([fetchMapListings(), fetchRows()])
+  const [listings, rows] = await Promise.all([fetchMapListings(country), fetchRows()])
   return { listings, buildings: rows.map(rowToCluster) }
 }
 

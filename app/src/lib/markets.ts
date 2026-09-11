@@ -192,6 +192,12 @@ export function isPathCountry(seg: string): seg is PathCountryId {
   return (COUNTRY_IDS as readonly string[]).includes(seg)
 }
 
+/** ISO market scope for data fetches. `global` = worldwide, no filter — everything else is explicit. */
+export function countryIsoForMarket(market: MarketId): string | undefined {
+  if (market === 'global') return undefined
+  return MARKETS[market].countryCode ?? undefined
+}
+
 /** Reverse lookup: city slugs are globally unique across live markets. */
 export function findCountryByCity(slug: string): PathCountryId | null {
   for (const id of COUNTRY_IDS) {

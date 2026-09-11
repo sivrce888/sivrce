@@ -62,12 +62,17 @@ export function mapFiltersToSearchHref(deal: MapDealFilter, kind: MapKindFilter)
   return qs ? `/search?${qs}` : '/search'
 }
 
-/** Country hub / city → /map camera. */
-export function mapHrefForPlace(lat: number, lng: number, zoom = 12.8): string {
+/**
+ * Country hub / city → /map camera.
+ * `country` (ISO, e.g. 'DE') keeps the map scoped to that market instead of
+ * silently falling back to Georgia listings — unset only means "all".
+ */
+export function mapHrefForPlace(lat: number, lng: number, zoom = 12.8, country?: string | null): string {
   const q = new URLSearchParams()
   q.set('lat', lat.toFixed(5))
   q.set('lng', lng.toFixed(5))
   q.set('zoom', String(zoom))
+  if (country) q.set('country', country)
   return `/map?${q}`
 }
 

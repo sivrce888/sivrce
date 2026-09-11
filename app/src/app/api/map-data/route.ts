@@ -9,9 +9,10 @@ import { loadMapDataFresh } from '@/lib/map/db-buildings'
 
 export const maxDuration = 10
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const data = await loadMapDataFresh()
+    const country = new URL(req.url).searchParams.get('country') || undefined
+    const data = await loadMapDataFresh(country)
     return cdnJson({
       listings: data.listings,
       buildings: data.buildings,
