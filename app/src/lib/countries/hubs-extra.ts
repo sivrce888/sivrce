@@ -27,7 +27,13 @@ function hub(
   return { title, description, h1, lede, body, faqs }
 }
 
-function city(name: string, lede: string, body: string[], faqs: CountryCopy['faqs']): CityPack {
+function city(
+  name: string,
+  lede: string,
+  body: string[],
+  faqs: CountryCopy['faqs'],
+  extra?: { buy: CountryCopy; rent: CountryCopy },
+): CityPack {
   return {
     name,
     hub: {
@@ -38,7 +44,25 @@ function city(name: string, lede: string, body: string[], faqs: CountryCopy['faq
       body,
       faqs,
     },
+    ...extra,
   }
+}
+
+/**
+ * Buy/rent split for a market's flagship city. Only these seven carry one:
+ * the hero's For sale / For rent tabs link here, and MARKETS.intentCities
+ * must list exactly the cities that have both (enforced by country-copy.check).
+ */
+function intent(
+  kind: 'Buy' | 'Rent',
+  name: string,
+  title: string,
+  description: string,
+  lede: string,
+  body: string[],
+  faqs: CountryCopy['faqs'],
+): CountryCopy {
+  return { title, description, h1: `${kind} in ${name}`, lede, body, faqs }
 }
 
 export const EXTRA_NAMES = {
@@ -229,6 +253,244 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
   ),
 }
 
+const PARIS_BUY = intent(
+  'Buy',
+  'Paris',
+  'Buy an apartment in Paris | sivrce',
+  'Buying in Paris: the compromis, the acte authentique, ~7% frais de notaire, the ten-day cooling-off and the copropriété file that decides the real price.',
+  'Buying in Paris is two contracts and a notaire, not a checkout. Sign the compromis, take the ten statutory days, then complete at the acte authentique weeks later. Budget roughly 7% on top — most of it departmental tax.',
+  [
+    'The compromis fixes the deal and the price; the acte transfers title. Between them sit the diagnostics, the pre-emption right of the commune where it applies, and the bank’s offer period if you finance. Weeks, not days.',
+    'The copropriété file is where a Paris purchase is won or lost. The état daté, the last three assemblée générale minutes and the fund balance tell you which works have been voted and who pays for them — the answer is the new owner.',
+    'Non-residents buy on the same terms with no extra foreigner tax, but French banks ask for more equity and a settlement account. Paris applied the 2025 DMTO uplift, so confirm the rate on your own acte.',
+  ],
+  [
+    { q: 'How long does a Paris purchase take?', a: 'Typically two to three months from compromis to acte, longer with a mortgage offer or a communal pre-emption right. The ten-day cooling-off is the buyer’s, and it is not negotiable away.' },
+    { q: 'Is the deposit at risk?', a: 'The dépôt de garantie, usually 5–10%, is held by the notaire. You recover it if a suspensive condition fails — a refused mortgage, for instance — and lose it if you simply change your mind after the cooling-off.' },
+  ],
+)
+
+const PARIS_RENT = intent(
+  'Rent',
+  'Paris',
+  'Rent an apartment in Paris | sivrce',
+  'Renting in Paris: encadrement des loyers, the dossier and the garant, unfurnished three-year leases against furnished one-year, and the DPE that decides what can be let at all.',
+  'Paris caps rents. Every lease has a reference rent per square metre for its quartier and room count, and anything above it needs a justified complément de loyer or the tenant can have it struck out — retroactively.',
+  [
+    'Unfurnished is a three-year lease with a one-month deposit; furnished is one year, or nine months for a student, with two months. The tenant can leave on one month’s notice in a zone tendue, which Paris is. Underwrite the turnover.',
+    'The dossier decides who gets the flat: proof of income around three times the rent, and a French garant or a Visale guarantee. Landlords cannot legally demand documents outside the statutory list.',
+    'The DPE is now a letting test, not a label. Class G has been barred from new lettings since 2025 and F follows in 2028, which turns an unrenovated top-floor chambre into a capex decision.',
+  ],
+  [
+    { q: 'Can the landlord charge above the reference rent?', a: 'Only with a complément de loyer justified by an exceptional feature, stated in the lease. Without that justification a tenant can demand a reduction and recover the overpayment.' },
+    { q: 'What deposit is legal?', a: 'One month’s rent excluding charges for unfurnished, two months for furnished. Anything more is not a market exception.' },
+  ],
+)
+
+const MADRID_BUY = intent(
+  'Buy',
+  'Madrid',
+  'Buy a home in Madrid | sivrce',
+  'Buying in Madrid: 6% ITP on resale, IVA plus AJD on new-build, NIE, nota simple and the notario. Spain’s cheapest big-city transfer tax.',
+  'Madrid charges 6% ITP on a resale — the lowest headline rate of Spain’s major cities, four points under Catalonia. A new-build from a developer pays IVA plus AJD instead. Get the NIE and the nota simple before anything else.',
+  [
+    'The nota simple from the Registro is the first document, not the brochure. Charges, mortgages and embargoes travel with the property rather than the seller, so a clean-looking flat can arrive with someone else’s debt attached.',
+    'Between the arras (deposit contract) and the escritura at the notario sit the bank valuation, the community certificate confirming no arrears, and the IBI receipt. The notario reads and files; the gestoría handles the tax and registration.',
+    'Golden-visa-by-property closed in 2025. Buy the asset on its own numbers — comunidad fees, IBI and the energy certificate — not on a residency slide.',
+  ],
+  [
+    { q: 'What do the costs add up to?', a: 'About 7.8% on top of a resale price in Madrid: 6% ITP plus notario, registro and gestoría. On a €300,000 flat that is roughly €23,400.' },
+    { q: 'Do I need to be resident?', a: 'No. You need an NIE, a Spanish settlement account and a notario. There is no nationality restriction on ordinary residential property.' },
+  ],
+)
+
+const MADRID_RENT = intent(
+  'Rent',
+  'Madrid',
+  'Rent an apartment in Madrid | sivrce',
+  'Renting in Madrid: five-year LAU terms, the one-month fianza lodged with the region, and a comunidad that Madrid has kept outside the national rent caps.',
+  'A Madrid lease runs five years by statute — seven if the landlord is a company — with the tenant holding the renewal right. The fianza is one month and must be lodged with the regional housing body, not kept in the landlord’s account.',
+  [
+    'The Comunidad de Madrid has not declared zonas tensionadas, so the national rent caps that bind in Catalonia do not apply here. That is a political position rather than a permanent feature of the law — it can change.',
+    'Beyond the fianza a landlord may ask for a limited additional guarantee, commonly up to two further months. Demands well beyond that are not standard practice dressed up as market conditions.',
+    'Comunidad charges are normally the owner’s and IBI always is. Check which of the two the advertised rent is quietly assuming.',
+  ],
+  [
+    { q: 'Can the landlord end the lease at five years?', a: 'The tenant holds the renewal right for the statutory term. A landlord can recover the property early only on stated grounds, such as documented need for their own household.' },
+    { q: 'Is short-term letting an option?', a: 'It is a municipal licence question with an increasingly restrictive answer. Assume no licence until you hold one.' },
+  ],
+)
+
+const ROME_BUY = intent(
+  'Buy',
+  'Rome',
+  'Buy an apartment in Rome | sivrce',
+  'Buying in Rome: the notaio, registration tax on the cadastral rendita under prezzo-valore, prima casa relief, and the condominio arrears that follow the flat.',
+  'A Rome purchase completes in front of a notaio who reads the deed aloud and files the transcription. On a private resale you can elect prezzo-valore, which charges registration tax on the cadastral value rather than the price you actually pay.',
+  [
+    'That election is why the headline 9% overstates the real bill — the rendita base is usually well below market. Prima casa relief cuts it to 2%, but only if you move your residenza to the comune within eighteen months.',
+    'Condominio arrears transfer with the flat. Ask for the administrator’s statement, the last balance and any voted works before you sign the proposta, because a facade job decided last spring is now your facade job.',
+    'You need a codice fiscale before the notaio will close, and again afterwards for the utilities and the IMU filing. Historic-centre buildings carry Soprintendenza constraints that cap what a renovation can legally deliver.',
+  ],
+  [
+    { q: 'What is the real tax bill?', a: 'Registration tax is 9% of the cadastral value on a second home under prezzo-valore, or 2% with prima casa relief. Add the notaio at roughly 1.5% and agency at 3% plus IVA.' },
+    { q: 'Can a foreigner buy?', a: 'Yes for ordinary residential property. You need a codice fiscale and full KYC at the notaio; there is no nationality bar and no extra foreigner tax.' },
+  ],
+)
+
+const ROME_RENT = intent(
+  'Rent',
+  'Rome',
+  'Rent an apartment in Rome | sivrce',
+  'Renting in Rome: the 4+4 contract, canone concordato, cedolare secca, compulsory registration with the Agenzia delle Entrate, and a possession calendar that runs on court time.',
+  'The default Rome lease is 4+4: four years, renewed for four more unless the landlord has a statutory reason not to. The alternative is the canone concordato 3+2, which caps the rent against a local agreement and pays back in tax relief.',
+  [
+    'Every lease must be registered with the Agenzia delle Entrate. An unregistered contract is void against the tenant, which means the landlord loses the terms and keeps the obligations.',
+    'Cedolare secca lets a landlord swap progressive IRPEF for a flat substitute tax, at the cost of freezing ISTAT indexation for the term. On a long lease in an inflationary year that trade is not obviously good.',
+    'Possession runs through the court calendar, not the contract. Any Rome yield model that assumes a fast recovery of the property is a marketing document.',
+  ],
+  [
+    { q: '4+4 or canone concordato?', a: 'The 4+4 lets you set a market rent over a long horizon. The 3+2 concordato caps the rent to a locally agreed band and returns it through reduced registration tax and IMU. Run both.' },
+    { q: 'What deposit is normal?', a: 'Up to three months’ rent, and it legally accrues interest to the tenant. Registration is the landlord’s duty, not a favour.' },
+  ],
+)
+
+const LONDON_BUY = intent(
+  'Buy',
+  'London',
+  'Buy a property in London | sivrce',
+  'Buying in London: SDLT slice bands plus a 2% non-resident surcharge, leasehold term and service charge, the exchange that finally makes it binding, and the EWS1 file.',
+  'An offer in London binds nobody. Until exchange of contracts either side can walk, which is why gazumping is legal and why the survey and the searches happen before the celebration, not after.',
+  [
+    'SDLT is charged in slices: nothing to £125,000, then 2%, 5%, 10% and 12%. A non-resident buyer adds 2% on the whole price, and an additional dwelling adds a further 5%. On £500,000 the standard bill is £15,000 before either surcharge.',
+    'Most London flats are leasehold. The remaining term, the ground rent and the service charge decide the price as much as the postcode does, and below roughly eighty years an extension starts costing real money that grows every year you wait.',
+    'Since 2017 cladding and the EWS1 form have repriced whole buildings, and lenders treat the building safety pack as underwriting. Ask for it before the offer, not during the mortgage application.',
+  ],
+  [
+    { q: 'How much stamp duty will I actually pay?', a: 'On £500,000 as an overseas buyer of an additional dwelling: £15,000 standard, plus £10,000 non-resident surcharge, plus £25,000 additional-dwelling surcharge. The surcharges apply to the whole price, not a slice.' },
+    { q: 'Do I need a solicitor or a notary?', a: 'A solicitor or licensed conveyancer. England has no continental notaire; the Land Registry entry, not a deed reading, is what completes the transfer.' },
+  ],
+)
+
+const LONDON_RENT = intent(
+  'Rent',
+  'London',
+  'Rent a flat in London | sivrce',
+  'Renting in London: the five-week deposit cap and its protection scheme, the Renters’ Rights Act ending section 21, right-to-rent checks and the EPC floor.',
+  'A London deposit is capped at five weeks’ rent and must sit in a government-approved protection scheme within thirty days. An unprotected deposit costs the landlord up to three times the sum, and blocks possession.',
+  [
+    'The Renters’ Rights Act ends assured shorthold fixed terms and section 21 no-fault eviction. Possession now runs through stated statutory grounds, which changes how a buy-to-let underwrites an exit — model that, not a 2019 landlord blog.',
+    'The Tenant Fees Act bars almost every charge beyond rent, deposit and a capped change-of-tenancy fee. A landlord must also run a right-to-rent immigration check, and cannot let a property below EPC band E.',
+    'Service charge is where a leasehold yield goes to die. Read three years of accounts and the cladding file before you treat the gross figure as income.',
+  ],
+  [
+    { q: 'How much deposit can be taken?', a: 'Five weeks’ rent where annual rent is under £50,000, six weeks above it, protected in an approved scheme within thirty days.' },
+    { q: 'Can a landlord still evict without a reason?', a: 'No. Section 21 no-fault eviction is being removed; possession requires a stated statutory ground and, in most cases, a court.' },
+  ],
+)
+
+const NEW_YORK_BUY = intent(
+  'Buy',
+  'New York',
+  'Buy an apartment in New York | sivrce',
+  'Buying in New York: condo against co-op, the buyer-side mansion tax from $1m, mortgage recording tax, and an attorney-driven closing that has no notary in it.',
+  'The first decision in New York is not the neighbourhood, it is condo or co-op. A co-op board can reject you without giving a reason and can cap your financing; a condo is the predictable route for a foreign buyer, and it prices accordingly.',
+  [
+    'The mansion tax is the buyer’s and starts at 1% of the whole price at $1m, stepping up from there. If you finance, mortgage recording tax adds roughly another two points. On a sponsor sale the buyer often absorbs the transfer tax as well.',
+    'Closings run through attorneys and a title company, not a notaire. Title insurance, not a public register’s guarantee, is what protects you — and it is bought once, at closing.',
+    'No Social Security number is required to take title. FIRPTA withholding hits foreign sellers, not buyers, so it is an exit problem to plan for rather than an entry barrier.',
+  ],
+  [
+    { q: 'Co-op or condo as a foreign buyer?', a: 'Condo, in most cases. Co-op boards commonly require US-based income, liquidity held domestically and a personal interview, and can decline without explanation.' },
+    { q: 'What are the buyer’s closing costs?', a: 'Roughly 2–4% depending on financing: title insurance, attorney, recording, mansion tax above $1m and mortgage recording tax if you borrow.' },
+  ],
+)
+
+const NEW_YORK_RENT = intent(
+  'Rent',
+  'New York',
+  'Rent an apartment in New York | sivrce',
+  'Renting in New York: rent stabilization, the one-month security cap, the 40x income convention, and the FARE Act that moved the broker fee to whoever hired the broker.',
+  'New York caps security at one month’s rent and bars the old practice of stacking last month plus a deposit. Landlords conventionally want provable annual income around forty times the monthly rent, or a guarantor who clears a higher bar.',
+  [
+    'Rent stabilization covers a large share of the older housing stock and governs both the increase and the renewal right. Whether a specific unit is stabilized is a question with a documented answer — ask for the rent history rather than accepting a listing’s word.',
+    'The FARE Act moved the broker fee to the party who hired the broker, ending the long-standing practice of charging a tenant for the landlord’s agent. Budget the first month and the one-month security, and query anything beyond that.',
+    'Short-term letting under thirty days without the permanent occupant present is unlawful in most of the housing stock and is enforced through a registration regime. It is not a grey area.',
+  ],
+  [
+    { q: 'How much cash do I need up front?', a: 'Typically first month plus a one-month security. The security cap is statutory, and a broker fee is now the responsibility of whoever engaged the broker.' },
+    { q: 'How do I know if a unit is rent-stabilized?', a: 'Request the rent history from the state housing agency. Status follows the unit and its history, not the landlord’s description of it.' },
+  ],
+)
+
+const TORONTO_BUY = intent(
+  'Buy',
+  'Toronto',
+  'Buy a home in Toronto | sivrce',
+  'Buying in Toronto: two land transfer taxes, the non-resident speculation tax, the status certificate and reserve fund, and FINTRAC source-of-funds checks.',
+  'Toronto is the only Canadian city that charges land transfer tax twice — once for Ontario and once for the city. Both are banded, both are payable in cash at closing, and together they land near 4% at the million-dollar mark.',
+  [
+    'Ontario applies a non-resident speculation tax on top for foreign buyers. First-time buyer rebates exist at both the provincial and municipal level; an investor qualifies for neither. Budget the statute in force on your closing date.',
+    'In a condo the status certificate is the deal: the reserve fund study, the current balance, any special assessment and any litigation. A special assessment voted the month after closing is still yours.',
+    'Pre-construction assignments are a separate contract file with occupancy fees, an interim closing and a builder’s right to amend. They are not simply a cheaper resale.',
+  ],
+  [
+    { q: 'How much are the two land transfer taxes?', a: 'Provincial plus the City of Toronto’s municipal levy. On a $900,000 purchase inside the city they come to roughly 4% combined — the single largest closing line.' },
+    { q: 'Can a non-resident buy?', a: 'Check the federal prohibition in force and Ontario’s speculation tax before you commit. The rules have changed more than once and this page will not pretend a frozen answer.' },
+  ],
+)
+
+const TORONTO_RENT = intent(
+  'Rent',
+  'Toronto',
+  'Rent an apartment in Toronto | sivrce',
+  'Renting in Toronto: the annual Ontario rent increase guideline, the post-2018 exemption that undoes it, last month’s rent as the only lawful deposit, and the Landlord and Tenant Board queue.',
+  'Ontario publishes an annual rent increase guideline, and it binds most older units. Units first occupied after 15 November 2018 are exempt from it, which means two identical apartments in the same neighbourhood can follow completely different rules.',
+  [
+    'The only deposit a landlord may lawfully collect is last month’s rent, which must be applied to the final month and accrues interest. A damage deposit is not lawful in Ontario, whatever the listing calls it.',
+    'A landlord can recover a unit for their own or a close family member’s use, but that route carries compensation and a good-faith requirement, and bad-faith use of it is penalised.',
+    'The Landlord and Tenant Board queue is long enough to be an underwriting assumption rather than a footnote. Price the time, not just the rent.',
+  ],
+  [
+    { q: 'Is my unit covered by the rent guideline?', a: 'Only if it was first occupied as a residential unit on or before 15 November 2018. Newer units are exempt, and the increase is whatever the lease and the market allow.' },
+    { q: 'Can I be asked for a damage deposit?', a: 'No. Last month’s rent is the only permitted deposit, plus a key deposit limited to the replacement cost.' },
+  ],
+)
+
+const ISTANBUL_BUY = intent(
+  'Buy',
+  'Istanbul',
+  'Buy an apartment in Istanbul | sivrce',
+  'Buying in Istanbul: the tapu, the 4% deed fee, building code year against the 1999, 2007 and 2018 revisions, DASK, military-zone clearance and district foreign-ownership quotas.',
+  'The sale happens at the land registry and the tapu is the title. Nothing before the tapu appointment transfers anything — a reservation form, a payment plan and a developer’s brochure are not ownership.',
+  [
+    'The deed fee is 4% of the declared value, legally 2% from each side and in practice usually carried by the buyer. Declaring below the real price to shave it is tax fraud, and it caps the cost base you will one day be taxed against on sale.',
+    'Building code year is the first question in this city, not the last. Ask where the building sits against the 1999, 2007 and 2018 revisions, whether it has been through kentsel dönüşüm, and what its DASK policy actually covers. DASK is a legal minimum, not full cover.',
+    'Some parcels still require military-zone clearance before a foreigner can complete, and each district has a foreign-ownership quota that can block a transfer outright. Both are checks to run before money moves, not after.',
+  ],
+  [
+    { q: 'What does completion cost?', a: 'About 6% on top of the price: the 4% deed fee, registry service fees, sworn translator and notarised power of attorney, plus agency at 2% with KDV where an agent is engaged.' },
+    { q: 'Does buying give me citizenship?', a: 'Thresholds are set by government circular and move. Treat a developer’s “passport included” slide as marketing until the official gazette agrees.' },
+  ],
+)
+
+const ISTANBUL_RENT = intent(
+  'Rent',
+  'Istanbul',
+  'Rent an apartment in Istanbul | sivrce',
+  'Renting in Istanbul: one-year leases that renew automatically, CPI-linked increase caps, a three-month deposit ceiling, and eviction that runs through a court.',
+  'An Istanbul residential lease runs one year and renews automatically. The landlord cannot simply decline to renew — ending a tenancy requires a statutory ground, and in practice a court.',
+  [
+    'Annual increases are tied to the twelve-month average consumer price index. In a high-inflation year that is a real constraint on the landlord and a real exposure for the tenant, and it makes a lira yield a moving number rather than a fixed one.',
+    'The deposit is capped at three months’ rent under the Turkish Code of Obligations. Rent paid in cash without a bank record is a dispute waiting to happen; transfers with a reference are the norm for good reason.',
+    'European-side, Asian-side and Bosphorus-front lettings are three different tenant markets. Aidat — the building service charge — sits outside the quoted rent and rises with inflation like everything else.',
+  ],
+  [
+    { q: 'How much can the rent rise at renewal?', a: 'Increases are bound to the twelve-month average CPI. A demand above that is challengeable, and the renewal itself is the tenant’s right.' },
+    { q: 'What deposit is lawful?', a: 'Up to three months’ rent. Anything beyond that is not a market exception, whatever the agent says.' },
+  ],
+)
+
 export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityPack>> = {
   fr: {
     paris: city(
@@ -243,6 +505,7 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
         { q: 'Can foreigners buy in Paris?', a: 'Yes. Expect a notaire, roughly 7% acquisition costs on an existing flat, and a French settlement path. No extra foreigner tax.' },
         { q: 'Does rent control really bite?', a: 'Inside Paris, yes. Reference rents apply to most new and renewed leases and a tenant can demand a reduction retroactively. Underwrite the grid, not short-let math.' },
       ],
+      { buy: PARIS_BUY, rent: PARIS_RENT },
     ),
     lyon: city(
       'Lyon',
@@ -321,6 +584,7 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
         { q: 'Golden visa?', a: 'The property-for-residency route closed in 2025. Buy the asset, not a visa slide.' },
         { q: 'Short-term rent?', a: 'A municipal licence question with an increasingly restrictive answer. Check the current Madrid rules before you underwrite occupancy.' },
       ],
+      { buy: MADRID_BUY, rent: MADRID_RENT },
     ),
     barcelona: city(
       'Barcelona',
@@ -401,6 +665,7 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
         { q: 'Need a codice fiscale?', a: 'Yes, before the notaio appointment, and again for the utilities and the IMU filing.' },
         { q: 'Prima casa relief?', a: 'For buyers who move their residenza to the comune within eighteen months. A holiday buyer pays the ordinary 9%.' },
       ],
+      { buy: ROME_BUY, rent: ROME_RENT },
     ),
     milan: city(
       'Milan',
@@ -481,6 +746,7 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
         { q: 'Freehold or leasehold?', a: 'Most flats are leasehold. A short lease is a discount with a future bill attached — price the extension, not the asking price.' },
         { q: 'Overseas buyer extra tax?', a: 'A 2% non-resident SDLT surcharge on top of the standard bands, plus 5% more if it is an additional dwelling. Budget it before the offer.' },
       ],
+      { buy: LONDON_BUY, rent: LONDON_RENT },
     ),
     manchester: city(
       'Manchester',
@@ -561,6 +827,7 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
         { q: 'Can foreigners buy a co-op?', a: 'Sometimes. The board decides and need not explain. Condos are the more reliable route for a non-resident buyer.' },
         { q: 'FIRPTA?', a: 'Withholding on foreign sellers, not buyers. As a buyer you still need a clean title policy and a real attorney.' },
       ],
+      { buy: NEW_YORK_BUY, rent: NEW_YORK_RENT },
     ),
     miami: city(
       'Miami',
@@ -641,6 +908,7 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
         { q: 'Two land-transfer taxes?', a: 'Yes — provincial plus the City of Toronto’s own, for property inside the city. Budget both; together they are the largest single closing line.' },
         { q: 'Non-resident allowed?', a: 'Check the federal prohibition in force and Ontario’s speculation tax before you book a viewing trip.' },
       ],
+      { buy: TORONTO_BUY, rent: TORONTO_RENT },
     ),
     vancouver: city(
       'Vancouver',
@@ -721,6 +989,7 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
         { q: 'USD or TRY?', a: 'Asks wander between both. The tapu and the taxes are Turkish. Underwrite the currency you will actually settle and receive rent in.' },
         { q: 'Citizenship via this flat?', a: 'Thresholds move by circular. Treat a developer’s “passport included” slide as marketing until the official gazette agrees.' },
       ],
+      { buy: ISTANBUL_BUY, rent: ISTANBUL_RENT },
     ),
     antalya: city(
       'Antalya',

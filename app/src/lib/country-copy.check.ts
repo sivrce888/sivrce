@@ -58,6 +58,22 @@ for (const cc of LAUNCHED) {
 }
 assert.equal(ledes.length, new Set(ledes).size, 'country ledes must be unique')
 
+// Intent pages must be real copy, not a renamed city hub.
+const intentLedes: string[] = []
+for (const cc of COUNTRY_IDS) {
+  for (const slug of MARKETS[cc].intentCities) {
+    const pack = cityPack(cc, slug)!
+    for (const [kind, copy] of [['buy', pack.buy!], ['rent', pack.rent!]] as const) {
+      assert.ok(copy.lede.length > 80, `thin ${cc}/${slug}/${kind} lede`)
+      assert.ok(copy.body.length >= 2, `thin ${cc}/${slug}/${kind} body`)
+      assert.ok(copy.faqs.length >= 2, `${cc}/${slug}/${kind} faqs`)
+      assert.notEqual(copy.lede, pack.hub.lede, `${cc}/${slug}/${kind} reuses the hub lede`)
+      intentLedes.push(copy.lede)
+    }
+  }
+}
+assert.equal(intentLedes.length, new Set(intentLedes).size, 'intent ledes must be unique')
+
 const dePaths = countrySitemapPaths('de')
 assert.ok(dePaths.includes('/de'))
 assert.ok(dePaths.includes('/de/berlin'))

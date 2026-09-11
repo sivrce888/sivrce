@@ -174,7 +174,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'bordeaux',
     'nice',
     'toulouse',
-  ]),
+  ], ['paris']),
   es: pathMarket('es', 'ES', 'EUR', 'en-ES', 'madrid', [
     'madrid',
     'barcelona',
@@ -182,7 +182,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'malaga',
     'seville',
     'alicante',
-  ]),
+  ], ['madrid']),
   it: pathMarket('it', 'IT', 'EUR', 'en-IT', 'rome', [
     'rome',
     'milan',
@@ -190,7 +190,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'turin',
     'naples',
     'bologna',
-  ]),
+  ], ['rome']),
   gb: pathMarket('gb', 'GB', 'GBP', 'en-GB', 'london', [
     'london',
     'manchester',
@@ -198,7 +198,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'edinburgh',
     'glasgow',
     'leeds',
-  ]),
+  ], ['london']),
   us: pathMarket('us', 'US', 'USD', 'en-US', 'new-york', [
     'new-york',
     'miami',
@@ -206,7 +206,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'chicago',
     'austin',
     'seattle',
-  ]),
+  ], ['new-york']),
   ca: pathMarket('ca', 'CA', 'CAD', 'en-CA', 'toronto', [
     'toronto',
     'vancouver',
@@ -214,7 +214,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'calgary',
     'ottawa',
     'edmonton',
-  ]),
+  ], ['toronto']),
   tr: pathMarket('tr', 'TR', 'TRY', 'en-TR', 'istanbul', [
     'istanbul',
     'antalya',
@@ -222,7 +222,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'izmir',
     'bodrum',
     'bursa',
-  ]),
+  ], ['istanbul']),
 }
 
 export const GLOBAL_MARKET: Pick<
