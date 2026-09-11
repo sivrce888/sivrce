@@ -73,6 +73,11 @@ export const EXTRA_NAMES = {
   us: 'United States',
   ca: 'Canada',
   tr: 'Turkey',
+  gr: 'Greece',
+  cy: 'Cyprus',
+  nl: 'Netherlands',
+  pt: 'Portugal',
+  ch: 'Switzerland',
 } as const
 
 export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
@@ -248,6 +253,131 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
       {
         q: 'How exposed is the building to earthquake risk?',
         a: 'Ask for the construction year against the 1999, 2007 and 2018 code revisions, the DASK policy, and any urban-transformation (kentsel dönüşüm) status. A cheap older carcass is not a bargain.',
+      },
+    ],
+  ),
+  gr: hub(
+    'Greece real estate — Athens & Thessaloniki | sivrce',
+    'Buying in Greece: notary, 3.09% transfer tax, Ktimatologio title and the three-year lease. Athens and Thessaloniki guides.',
+    'Real estate in Greece',
+    'A Greek purchase closes at the notary with a 3.09% transfer tax on the assessed value — not a portal checkout. sivrce opens with Athens and Thessaloniki: two metros, one national deed, and a Golden Visa that repriced by zone in 2024.',
+    [
+      'The sale deed is signed before a symvolaiográfos, and title is only safe once the Ktimatologio cadastre shows your name. Objective (tax-assessed) values often sit below the agreed price, which is why the 3.09% applies to a number you did not negotiate.',
+      'New-build from a developer may carry 24% VAT instead of transfer tax under repeatedly extended suspension schemes — confirm which regime your unit falls in. Lawyers are optional in Greek law and standard practice for foreign buyers, at around 1%.',
+      'Golden Visa thresholds rose in September 2024 and now run €250,000 to €800,000 by municipality. sivrce.com/gr is the canonical Greece URL. Listings publish only when we can verify them to the same standard as Georgia.',
+    ],
+    [
+      {
+        q: 'Can a non-resident buy in Greece?',
+        a: 'Yes. There is no nationality ban on ordinary residential property. You need a Greek tax number (AFM), a settlement account and a notary; most foreign buyers add a lawyer.',
+      },
+      {
+        q: 'Transfer tax or VAT?',
+        a: 'Resale pays 3.09% transfer tax on the assessed value. New-build may attract 24% VAT instead, depending on the permit date and the current suspension — ask which regime applies before you compare prices.',
+      },
+      {
+        q: 'Why is the path /gr not /greece?',
+        a: 'ISO-3166 country codes keep one URL per market. Greece is sivrce.com/gr.',
+      },
+    ],
+  ),
+  cy: hub(
+    'Cyprus real estate — Nicosia & Limassol | sivrce',
+    'Buying in Cyprus: District Lands Office, halved transfer fees on resale, title-deed diligence and the non-EU permit. Nicosia and Limassol guides.',
+    'Real estate in Cyprus',
+    'Cyprus sells at the District Lands Office, where resale transfer fees are permanently halved and VAT-charged new builds pay zero. sivrce opens with Nicosia and Limassol — an inland capital and a coastal second-home market that share a fee scale and almost nothing else.',
+    [
+      'The statute reads 3/5/8% on the Lands Office assessed value, but a resale pays half of that and a new build that attracted VAT pays nothing. Stamp duty was abolished in January 2026. Fees fall due when the title transfers — which, on a new build, can be years after you move in.',
+      'The title deed is the whole transaction in Cyprus. Developments have a long history of selling before separate titles exist, so the diligence is the title: a separate title in hand, or the contract deposited at the Lands Office within six months for Specific Performance protection. Never pay in full without one of the two.',
+      'Non-EU buyers need Council of Ministers permission — routinely granted for one residential unit, but a step with its own timeline. EU buyers do not. sivrce.com/cy is the canonical Cyprus URL, and listings publish only when verified like Georgia.',
+    ],
+    [
+      {
+        q: 'Do I pay transfer fees on a new build?',
+        a: 'No, where VAT was charged — the exemption is total. Resales pay the 3/5/8% scale halved. Confirm which side of that line your unit sits on before you budget.',
+      },
+      {
+        q: 'Can a non-EU citizen buy in Cyprus?',
+        a: 'Yes, normally one residential unit with Council of Ministers permission, which is routinely granted but takes time. Start the application with your advocate; do not treat the sale contract as the permission.',
+      },
+      {
+        q: 'Why is the path /cy?',
+        a: 'ISO-3166 country codes keep one URL per market. Cyprus is sivrce.com/cy.',
+      },
+    ],
+  ),
+  nl: hub(
+    'Netherlands real estate — Amsterdam & Rotterdam | sivrce',
+    'Buying in the Netherlands: notaris, 2% transfer tax for residents (10.4% investors), Kadaster and the WWS points system. Amsterdam and Rotterdam guides.',
+    'Real estate in the Netherlands',
+    'Every Dutch sale closes at the notaris and lands in the Kadaster — but the transfer tax is two markets in one: 2% for qualifying residents, 10.4% for investors. sivrce opens with Amsterdam and Rotterdam under the same statute at very different prices.',
+    [
+      'The notaris drafts the deed, holds the funds and registers the title; without that registration you do not own the flat. Qualifying residents — including first-home buyers under 35, who may pay 0% up to an indexed ceiling — close near 3% all-in. Investors close above 11%.',
+      'The seller pays the makelaar; a buyer’s agent (aankoopmakelaar) is optional and paid by the buyer when engaged. Bidding above asking with conditions waived is common in Amsterdam and a risk decision, not a custom you must follow.',
+      'Rent is a points system as much as a market: WWS points decide whether a home is regulated with a legal maximum or liberalized. Open-ended contracts are the default since July 2024. sivrce.com/nl is the canonical Netherlands URL.',
+    ],
+    [
+      {
+        q: 'Can a non-resident buy in the Netherlands?',
+        a: 'Yes. There is no nationality restriction on residential property. Expect the 10.4% investor transfer tax unless you will genuinely occupy, plus Dutch-bank KYC that is slow on purpose.',
+      },
+      {
+        q: 'What does the WWS points system change?',
+        a: 'Whether the rent has a legal ceiling. Below the liberalization threshold the maximum rent follows the points score — the advert’s number is challengeable at the Huurcommissie.',
+      },
+      {
+        q: 'Why is the path /nl?',
+        a: 'ISO-3166 country codes keep one URL per market. The Netherlands is sivrce.com/nl.',
+      },
+    ],
+  ),
+  pt: hub(
+    'Portugal real estate — Lisbon & Porto | sivrce',
+    'Buying in Portugal: escritura, sliced IMT plus 0.8% stamp duty, NIF and the AL licence freeze. Lisbon and Porto guides.',
+    'Real estate in Portugal',
+    'Portugal taxes the purchase in slices — IMT on the higher of price and VPT, plus 0.8% stamp duty — and closes it at the escritura. sivrce opens with Lisbon and Porto: the same IMT code, different licence maps and different buyers.',
+    [
+      'The schedule most foreign buyers fall in is Table III, the investment table taxed from the first euro; a primary-residence buyer uses a gentler table exempt to €106,346 in 2026, and first-home buyers under 35 are exempt to €330,539. Above roughly €634k a 6% flat rate replaces the slices.',
+      'You need a NIF before the deed and a fiscal representative if you are non-EU. Charges travel with the property, so the land-registry certificate (certidão) comes before the deposit — the Portuguese cousin of the Spanish nota simple.',
+      'Alojamento Local is commune politics: Lisbon and Porto froze new licences in containment zones, and the freeze is the model for any short-let arithmetic. sivrce.com/pt is the canonical Portugal URL.',
+    ],
+    [
+      {
+        q: 'Is there still a Golden Visa for buying a house?',
+        a: 'Not for residential purchases — that route was removed in 2023. Fund and other routes continue; the flat must stand on its own yield.',
+      },
+      {
+        q: 'IMT or stamp duty — which hurts more?',
+        a: 'IMT, by an order of magnitude: on a €350,000 investment purchase it is about €15,300 against €2,800 of stamp duty. Both fall on the buyer before the deed.',
+      },
+      {
+        q: 'Why is the path /pt?',
+        a: 'ISO-3166 country codes keep one URL per market. Portugal is sivrce.com/pt.',
+      },
+    ],
+  ),
+  ch: hub(
+    'Switzerland real estate — Zurich & Geneva | sivrce',
+    'Buying in Switzerland: Lex Koller permits, cantonal notary, no Zurich transfer tax (~3% Geneva) and reference-rate rents. Zurich and Geneva guides.',
+    'Real estate in Switzerland',
+    'Switzerland is the tightest foreign-buyer regime on this site: Lex Koller permits, cantonal notaries and 26 rulebooks behind one franc. sivrce opens with Zurich and Geneva — the same currency, different cantons, different transactions.',
+    [
+      'Buyers without Swiss residence or establishment need cantonal authorization inside federal quotas, and some cantons add their own restrictions on top. EU/EFTA residents buying a main home are largely outside the permit; holiday flats and pure investments are inside it.',
+      'Closing costs are cantonal: Zurich levies no transfer tax at all — registry fees only — while Geneva charges around 3% in cantonal and communal duties. Notary scales are cantonal too. One national average would be a number nobody pays.',
+      'Rents track the federal reference mortgage rate, deposits cap at three months in a blocked account, and Geneva and Vaud require the official form for the initial rent and every increase. Lex Weber caps second homes at 20% per commune. sivrce.com/ch is the canonical Switzerland URL.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Switzerland?',
+        a: 'Sometimes, with permission. A main home for a resident is straightforward; a holiday flat or an investment by a non-resident needs Lex Koller authorization inside quota — start with the canton, not the listing.',
+      },
+      {
+        q: 'Why is Zurich cheaper to close than Geneva?',
+        a: 'Zurich abolished its transfer tax; Geneva charges about 3%. Same franc, different canton, different cash at the notary.',
+      },
+      {
+        q: 'Why is the path /ch?',
+        a: 'ISO-3166 (Confoederatio Helvetica). Switzerland is sivrce.com/ch.',
       },
     ],
   ),
@@ -488,6 +618,176 @@ const ISTANBUL_RENT = intent(
   [
     { q: 'How much can the rent rise at renewal?', a: 'Increases are bound to the twelve-month average CPI. A demand above that is challengeable, and the renewal itself is the tenant’s right.' },
     { q: 'What deposit is lawful?', a: 'Up to three months’ rent. Anything beyond that is not a market exception, whatever the agent says.' },
+  ],
+)
+
+const ATHENS_BUY = intent(
+  'Buy',
+  'Athens',
+  'Buy an apartment in Athens | sivrce',
+  'Buying in Athens: the notary, the AFM, 3.09% transfer tax on assessed value, the Ktimatologio entry and the Golden Visa tier of the municipality.',
+  'Buying in Athens is a notary, an AFM tax number, a 3.09% transfer tax on the assessed value and a Ktimatologio entry — plus a Golden Visa tier that depends on the municipality. Weeks, not days.',
+  [
+    'Sign a pre-agreement with a deposit, then complete at the sale deed before the symvolaiográfos. Between them: the lawyer’s title search back twenty-plus years, the engineer’s legality certificate, the ENFIA clearance proving no property tax is owed, and the settlement path.',
+    'Objective values lag the market, so the 3.09% often bites less than the headline suggests — but the engineer’s certificate can kill a deal the tax office would happily take. Unpermitted semi-outdoor conversions must be legalized before transfer, not after.',
+    'Most of the Athens basin sits in the €800,000 Golden Visa tier. If residency is part of the thesis, the municipality boundary is the first line of diligence, and the notary will want the funds visibly wired from abroad.',
+  ],
+  [
+    { q: 'How long does an Athens purchase take?', a: 'Six to ten weeks cash on a clean file, longer with a Greek mortgage — which non-residents get slowly and rarely. The title search and the engineer’s certificate set the pace.' },
+    { q: 'Is the pre-agreement deposit at risk?', a: 'Commonly 10%, forfeit if the buyer walks without contractual cause. Title and legality suspensive clauses must be written in, not assumed.' },
+  ],
+)
+
+const ATHENS_RENT = intent(
+  'Rent',
+  'Athens',
+  'Rent an apartment in Athens | sivrce',
+  'Renting in Athens: the three-year minimum lease, two-month deposits, and the AMA short-let registry that decides what the centre can earn.',
+  'Athens rents on three-year minimum leases, two-month deposits and a short-let registry that removed thousands of central flats from the long-let book — then partially returned them under restriction.',
+  [
+    'The three-year minimum applies whether the contract says so or not; a one-year lease extends by law. Deposits cap at two months, and rent is typically paid monthly in advance with annual adjustment by agreement rather than statute.',
+    'Central districts operate under short-let restrictions with AMA registration enforced through the platforms. A flat priced on nightly income without a registration number is a fine waiting for an owner.',
+    'Student demand around the universities and professional demand in Marousi and the northern suburbs underwrite the long-let book. Underwrite the tenant, not the monuments.',
+  ],
+  [
+    { q: 'Can the landlord end the lease early?', a: 'Only on statutory grounds with notice and compensation mechanics — a fixed term is a commitment in both directions.' },
+    { q: 'What deposit is legal?', a: 'Two months’ rent. More is not a market exception.' },
+  ],
+)
+
+const NICOSIA_BUY = intent(
+  'Buy',
+  'Nicosia',
+  'Buy property in Nicosia | sivrce',
+  'Buying in Nicosia: the advocate, the Lands Office search, halved transfer fees on resale and Specific Performance within six months.',
+  'Buying in Nicosia is an advocate, a District Lands Office search, and a transfer fee that is halved on resale and zero on VAT-charged new build. The boring end of Cyprus is the safe end.',
+  [
+    'Reserve with a deposit, sign the sale contract, and deposit it at the District Lands Office within six months — that stamp is your Specific Performance shield against the seller mortgaging or reselling underneath you. Searches must confirm the seller holds what they are selling and that no memo or charge sits on it.',
+    'Non-EU buyers file for Council of Ministers permission, routinely granted for one unit. Funds should arrive identifiably from abroad; the advocate’s source-of-funds file is not optional.',
+    'Apartments in Strovolos and Engomi are the professional book; suburban houses are the family book. Neither needs a sea view to justify itself, which is precisely the point.',
+  ],
+  [
+    { q: 'New build or resale?', a: 'New build with VAT pays no transfer fees but arrives with the title-deed wait; resale pays the halved scale with title usually in hand. Price the wait.' },
+    { q: 'How long does it take?', a: 'Six to twelve weeks for a clean resale with permission in hand; longer where the permit or the title needs work.' },
+  ],
+)
+
+const NICOSIA_RENT = intent(
+  'Rent',
+  'Nicosia',
+  'Rent property in Nicosia | sivrce',
+  'Renting in Nicosia: year-round demand, one to two months’ deposit, statutory tenancies that continue after expiry, and rent control on older stock.',
+  'Nicosia rents year-round to people who work there — one to two months’ deposit, statutory tenancies that continue after expiry, and rent control that still bites pre-2000 stock in controlled areas.',
+  [
+    'A tenancy that expires does not end by itself: the statutory tenancy continues on the same terms unless a court orders possession. That cuts both ways — security for the tenant, patience for the landlord.',
+    'Controlled tenancies in older buildings follow the statutory increase order, not the market. Check the building’s age and controlled status before you underwrite growth.',
+    'Student demand around the universities fills small units each autumn with metronomic reliability. It is the closest thing Cyprus has to a guaranteed book.',
+  ],
+  [
+    { q: 'What deposit is standard?', a: 'One to two months. More is not standard.' },
+    { q: 'Can rent rise freely?', a: 'On uncontrolled stock, by agreement at renewal. On controlled stock, by the order — which has often meant a freeze.' },
+  ],
+)
+
+const AMSTERDAM_BUY = intent(
+  'Buy',
+  'Amsterdam',
+  'Buy an apartment in Amsterdam | sivrce',
+  'Buying in Amsterdam: the notaris, 2% transfer tax for residents, bidding with conditions, and the erfpacht file that decides the real price.',
+  'Buying in Amsterdam is a notaris, 2% transfer tax for residents, a bidding process with conditions to waive or keep, and an erfpacht file that decides the real price. Preparation beats speed.',
+  [
+    'View, bid in writing with your conditions — financing clause, structural survey, transfer date — sign the koopakte, then complete at the notaris weeks later when the Kadaster registers you. Waiving the financing clause wins bids and loses deposits: the standard 10% bank guarantee is forfeit if you cannot close.',
+    'The VvE minutes and multi-year maintenance plan tell you whether the pretty facade hides a five-figure roof assessment. Active associations with funded reserves are worth paying for; dormant ones are a bill with a building attached.',
+    'Under-35 first-home buyers may pay 0% transfer tax up to the year’s indexed ceiling. Investors pay 10.4% and should not run their math on the resident rate.',
+  ],
+  [
+    { q: 'How fast must I bid?', a: 'Fast to view, slow to waive. A bouwkundige keuring costs hundreds and has saved buyers tens of thousands; keep the clause unless you can afford the building twice.' },
+    { q: 'Financing as a foreigner?', a: 'Dutch banks lend to non-residents reluctantly and at lower loan-to-value. Cash or a home-country facility closes more deals.' },
+  ],
+)
+
+const AMSTERDAM_RENT = intent(
+  'Rent',
+  'Amsterdam',
+  'Rent an apartment in Amsterdam | sivrce',
+  'Renting in Amsterdam: the WWS points system, the Huurcommissie, open-ended contracts by default and a licensed short-stay niche.',
+  'Amsterdam rents under the points system: below the liberalization threshold the rent has a legal maximum, the Huurcommissie enforces it, and the advert’s number is an opening position.',
+  [
+    'Ask for the points calculation before you sign. Anything above the maximum for a regulated home is recoverable, and the challenge window is longer than most tenants think.',
+    'Since July 2024 new contracts are open-ended by default. Temporary two-year contracts mostly ended with the reform; anything labelled temporary now needs a statutory ground.',
+    'Furnished short-stay is a licensed niche with night caps and registration. A landlord offering rolling short cycles is describing a violation, not a product.',
+  ],
+  [
+    { q: 'What deposit is legal?', a: 'Two months’ rent maximum.' },
+    { q: 'Can the rent rise?', a: 'Annually within the statutory maximum percentage the government sets each year — above it only with Huurcommissie-proof justification.' },
+  ],
+)
+
+const LISBON_BUY = intent(
+  'Buy',
+  'Lisbon',
+  'Buy an apartment in Lisbon | sivrce',
+  'Buying in Lisbon: the NIF, the CPCV with sinal, the escritura, IMT on the higher of price and VPT, and 0.8% stamp duty.',
+  'Buying in Lisbon is a NIF, a CPCV promissory contract with a sinal deposit, then the escritura — with IMT on the higher of price and VPT and 0.8% stamp duty before the notary will close.',
+  [
+    'The CPCV locks price, parties and forfeits — commonly 10–20% sinal, doubled back if the seller walks. Between CPCV and escritura: the registry certificate, the caderneta predial, the utilisation licence and the energy certificate. No licence, no deed.',
+    'IMT on a €350,000 investment purchase is about €15,300 plus €2,800 of stamp duty — both payable before completion, both on the buyer. A primary-residence buyer pays materially less; confirm which table you sit in.',
+    'Lease-risk check: sitting tenants under old contracts still surface in historic stock. The registry certificate shows charges; only the tenancy file shows the tenant.',
+  ],
+  [
+    { q: 'How long does it take?', a: 'Six to ten weeks from CPCV to escritura on a clean file; longer where licences or VPT disputes need work.' },
+    { q: 'Is the sinal at risk?', a: 'Forfeit to the seller if the buyer walks without cause, doubled back if the seller walks. Suspensive clauses must be written, not assumed.' },
+  ],
+)
+
+const LISBON_RENT = intent(
+  'Rent',
+  'Lisbon',
+  'Rent an apartment in Lisbon | sivrce',
+  'Renting in Lisbon: NRAU renewal rights, the three-month move-in ceiling, and the AL freeze that pushed stock back into long-let.',
+  'Lisbon rents under NRAU with tenant renewal rights, a three-month total move-in cost ceiling, and a short-let freeze that pushed stock back into the long-let book — at higher rents.',
+  [
+    'Caução plus advance rent is capped at three months total. Contracts state their term and renewal; ending one early as a landlord needs a statutory ground, formal notice and often compensation.',
+    'The AL freeze in containment zones returned units to long-let but did not return 2019 rents. University and tech-worker demand underwrites studios and one-bedrooms; families compete for two and three bedrooms in Alvalade and Benfica.',
+    'Condomínio arrears follow the unit. Ask the building manager for the debt position before you sign — the discount for skipping this step is always negative.',
+  ],
+  [
+    { q: 'Can the landlord refuse renewal?', a: 'Only on the statutory grounds with the statutory notice — opposition to renewal is a compensated procedure, not a letter.' },
+    { q: 'What is due on move-in?', a: 'Caução plus advance rent, three months total ceiling.' },
+  ],
+)
+
+const ZURICH_BUY = intent(
+  'Buy',
+  'Zurich',
+  'Buy an apartment in Zurich | sivrce',
+  'Buying in Zurich: the notarized deed, Grundbuch registration, no transfer tax, and the renewal-fund file that decides the real price.',
+  'Buying in Zurich is a reservation, a notarized purchase contract and registration in the Grundbuch — with no transfer tax, cantonal notary scales, and a renewal-fund file that decides the real price.',
+  [
+    'The public deed before the cantonal notary is constitutive — without it there is no sale. Between reservation and deed: the register extract showing charges and easements, the renewal fund balance, the house rules and the last owners’ meeting minutes.',
+    'Closing costs run around 1% all-in for notary and registry on a typical purchase — the lowest friction of any market on this site, which is exactly why the entry price is the highest.',
+    'Mortgages are the Swiss specialty: 20% equity standard, affordability stress-tested at imputed rates near 5%, and amortization rules that reward advice before the reservation deposit.',
+  ],
+  [
+    { q: 'How fast does it close?', a: 'Four to eight weeks from reservation to registration on a clean file. The notary’s diary, not the bank, is usually the constraint.' },
+    { q: 'New-build risk?', a: 'Developer contracts with stage payments tied to construction progress; the developer’s solvency and the land charge securing your payments are the file.' },
+  ],
+)
+
+const ZURICH_RENT = intent(
+  'Rent',
+  'Zurich',
+  'Rent an apartment in Zurich | sivrce',
+  'Renting in Zurich: reference-rate rules, three-month blocked deposits, fierce competition and a 30-day window to challenge the initial rent.',
+  'Zurich rents under reference-rate rules, three-month blocked deposits and fierce competition — the application dossier decides who gets the flat, and the initial rent can be challenged where the official form applies.',
+  [
+    'Apply with the full dossier: employment contract, salary proof, debt-register extract and references. Landlords choose from dozens; completeness is the strategy.',
+    'Notice runs three months to the customary local moving dates in many contracts — read the termination clause before you sign, because it also governs your exit.',
+    'Where the canton mandates the official initial-rent form, an excessive starting rent is challengeable within 30 days. In the city of Zurich that form has applied since 2023 — use the window or lose it.',
+  ],
+  [
+    { q: 'Where does the deposit go?', a: 'Up to three months in a blocked account in your name — never to the landlord’s private account.' },
+    { q: 'Can the rent rise?', a: 'Only on the statutory grounds: reference-rate increases, inflation pass-through and value-adding improvements. Each is challengeable.' },
   ],
 )
 
@@ -1054,6 +1354,141 @@ export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityP
       [
         { q: 'Is it an Istanbul commuter market?', a: 'Partially, via the ferry. Treat it as a spillover, not a substitute — the local industrial employment base is what actually sets the rent.' },
         { q: 'Does Uludağ affect the market?', a: 'It creates a small seasonal ski-let niche on the mountain that has little to do with the city’s residential stock. Keep the two models separate.' },
+      ],
+    ),
+  },
+  gr: {
+    athens: city(
+      'Athens',
+      'Athens is a capital, a port economy and a tourism machine on one cadastre — Kolonaki, Koukaki and Glyfada are three different assets, and the Golden Visa repriced each of them in 2024.',
+      [
+        'The centre trades on scarcity and footfall: Plaka and Koukaki live off the Acropolis overflow, Exarchia and Kypseli off students and professionals. The southern suburbs — Glyfada, Voula, Ellinikon — are the coast market, repriced by the Ellinikon regeneration and the €800,000 Golden Visa tier that now covers much of Attica.',
+        'Earthquake code is a real diligence line in Attica, and post-1985 construction with an electronic building identity is a different file from an older flat without one. Short-let is restricted in central municipal districts — the AMA registry, not the listing photos, decides the model.',
+      ],
+      [
+        { q: 'Golden Visa in Athens?', a: 'Most of the Athens basin now sits in the €800,000 tier since September 2024 — the €250,000 entry survives only in designated areas. Check the municipality, not the marketing.' },
+        { q: 'New or old stock?', a: 'New-build may carry VAT instead of transfer tax; older stock pays 3.09% on assessed value but needs the seismic and legality file checked. They are different trades.' },
+      ],
+      { buy: ATHENS_BUY, rent: ATHENS_RENT },
+    ),
+    thessaloniki: city(
+      'Thessaloniki',
+      'Thessaloniki is Greece’s second city and northern capital — Ladadika, Kalamaria and the waterfront are a different market from Athens at roughly half the ticket, driven by students, the port and Balkan weekend demand.',
+      [
+        'Aristotle University puts tens of thousands of students into the rental book, which makes small central units the most liquid asset in the city. Kalamaria and the eastern districts carry the family premium; the western districts are volume stock at the city’s lowest per-square-metre.',
+        'The metro — opened at the end of 2024 after decades of delay — repriced stations along its single line, with extensions still moving. The same 3.09% transfer tax and the same notarial machine as Athens apply; the market around them does not.',
+      ],
+      [
+        { q: 'Cheaper than Athens?', a: 'Substantially per square metre, with thinner foreign-buyer liquidity on exit.' },
+        { q: 'Does the metro change the model?', a: 'Really along the opened line, speculatively on the extensions. Buy the station that exists.' },
+      ],
+    ),
+  },
+  cy: {
+    nicosia: city(
+      'Nicosia',
+      'Nicosia is Europe’s last divided capital and Cyprus’s year-round market — Strovolos, Engomi and the old town inside the walls are three books, none of them seasonal.',
+      [
+        'Demand is domestic and institutional: government, university and professional tenants who rent twelve months a year. That makes Nicosia the island’s most boring market in the best sense — no season, no site-fee compounds, no holiday-let arithmetic.',
+        'The buffer zone is geography, not a price input, for most transactions — but check the title’s history near it the way you would check any boundary. New-build inside the municipality sells with VAT and zero transfer fees; resale pays the halved scale.',
+      ],
+      [
+        { q: 'Better yield than Limassol?', a: 'Often on paper, because entry is lower and occupancy is annual. Compare net of the management the coast requires.' },
+        { q: 'Title risk?', a: 'Lower than on rushed coastal schemes, but the rule is the same: a separate title, or a contract deposited at the Lands Office within six months.' },
+      ],
+      { buy: NICOSIA_BUY, rent: NICOSIA_RENT },
+    ),
+    limassol: city(
+      'Limassol',
+      'Limassol is the island’s coastal money — the marina, the seafront tower cluster and the eastern tourist strip are a second-home market that happens to have a business district attached.',
+      [
+        'High-rise seafront stock trades on views and new-build premiums with VAT and zero transfer fees; the old town and the inland suburbs trade on Cypriot family demand with the halved resale scale. They share a coastline and little else about yield.',
+        'Site and management fees on tower stock are the carry that decides whether a sea view pays. The marina berth is a separate asset with a separate queue — do not let it hide inside the flat’s price.',
+      ],
+      [
+        { q: 'Is the tower stock overbuilt?', a: 'It is the most supply-sensitive segment on the island. Resale competes with the developer’s next phase, which sets the ceiling more firmly than any index.' },
+        { q: 'Year-round rent?', a: 'In the business districts, yes. On the tourist strip, model owner use plus a managed season, not a twelve-month tenancy.' },
+      ],
+    ),
+  },
+  nl: {
+    amsterdam: city(
+      'Amsterdam',
+      'Amsterdam is a canal belt, a ring of post-war stock and an IJ waterfront that became a district — priced like a capital, regulated like a social project, and short of land in every direction.',
+      [
+        'Grachtengordel and Jordaan are monument-constrained trophies where the VvE minutes matter more than the listing text; Noord, Nieuw-West and Zuidoost are the volume book where erfpacht ground-lease terms move the price as much as the bricks.',
+        'Erfpacht is the Amsterdam-specific diligence: prepaid decades versus indexed canon changes the bid by real money. Conversion and buy-out schemes have shifted more than once; read the current canon, not an old explainer.',
+      ],
+      [
+        { q: 'Erfpacht or eigen grond?', a: 'Owned land trades at a premium for a reason. Erfpacht with long prepaid terms is fine; an indexed canon with a reset coming is a repricing event.' },
+        { q: 'New-build premium?', a: 'Large, and concentrated in Noord and the IJ banks. It rents well and resells into a thinner buyer pool.' },
+      ],
+      { buy: AMSTERDAM_BUY, rent: AMSTERDAM_RENT },
+    ),
+    rotterdam: city(
+      'Rotterdam',
+      'Rotterdam is Europe’s largest port wearing a housing market — Kop van Zuid, Katendrecht and the pre-war north price off jobs and the Erasmus student base, at a persistent discount to Amsterdam.',
+      [
+        'The post-war reconstruction city is an architectural experiment that keeps paying off: the Markthal and the Kop van Zuid waterfront turned former docklands into the city’s premium. The north — Hillegersberg, Kralingen — is the established family book.',
+        'The same 2%/10.4% transfer tax and the same notaris-to-Kadaster machine as Amsterdam apply, with shorter bidding wars and fewer waived clauses. Sellers here still expect a financing condition; keep it.',
+      ],
+      [
+        { q: 'Commutable to Amsterdam?', a: 'Forty minutes by intercity, and priced like it. Buy Rotterdam for the port economy first; the train is a bonus, not a thesis.' },
+        { q: 'Erfpacht here too?', a: 'Far less than Amsterdam. One less file to read, not zero files.' },
+      ],
+    ),
+  },
+  pt: {
+    lisbon: city(
+      'Lisbon',
+      'Lisbon is seven hills of tiled facades, miradouros and a riverfront that repriced twice — Alfama, Príncipe Real and Parque das Nações are three assets under one IMT code.',
+      [
+        'The historic centre trades scarcity: pombaline cages and tiled facades with renovation constraints and small footprints. Avenidas Novas and Alvalade are the professional long-let book; the Expo east is the new-build book with condomínio fees to match.',
+        'Short-let containment zones froze new Alojamento Local licences across the historic city — any yield model needs the registration in hand. The 1755 pombaline cage is genuine seismic engineering; the pre-1755 and cheap 1960s–80s stock is a different file.',
+      ],
+      [
+        { q: 'Still a Golden Visa city?', a: 'Not via residential purchase — that route closed in 2023. The flat must stand on its own yield.' },
+        { q: 'Alfama premium?', a: 'Durable for views and scarcity, illiquid for exit. A trophy with a tourist queue, not a rental machine.' },
+      ],
+      { buy: LISBON_BUY, rent: LISBON_RENT },
+    ),
+    porto: city(
+      'Porto',
+      'Porto is granite, port lodges and a river gorge — Ribeira, Foz and Boavista are a different market from Lisbon at lower tickets, with the university and the Gaia cellars as demand anchors.',
+      [
+        'The UNESCO riverside trades views and scarcity in small, steep, often renovation-heavy stock; Foz is the seaside family premium; Boavista and the university belt are the year-round rental book. Gaia across the river is administratively separate and priced like it.',
+        'Porto froze new AL licences in its own containment zones — later and narrower than Lisbon, but the same diligence applies. The same national IMT slices and stamp duty as the capital; lower prices, lower absolute closing costs.',
+      ],
+      [
+        { q: 'Cheaper than Lisbon?', a: 'Meaningfully per square metre, with a smaller foreign-buyer exit pool.' },
+        { q: 'Same short-let freeze?', a: 'Same mechanism, different map. Read Porto’s current containment zones, not Lisbon’s.' },
+      ],
+    ),
+  },
+  ch: {
+    zurich: city(
+      'Zurich',
+      'Zurich is a banking capital that prices housing like a vault — Seefeld, Enge and Wiedikon are three books, and the cheapest part of closing is the transfer tax, because there is none.',
+      [
+        'Owner-occupier stock is scarce by policy and culture: most of Zurich rents, and large apartments convert slowly. Seefeld and the lake shore are the trophy book; Wiedikon, Aussersihl and Oerlikon are the professional book where bidding decides the price.',
+        'Stockwerkeigentum dominates new supply, with renewal-fund health as the core diligence — the Swiss cousin of the service-charge file. Minergie certification moves both price and rentability.',
+      ],
+      [
+        { q: 'Foreign buyer with a B permit?', a: 'An EU/EFTA resident buying a main home is largely outside Lex Koller. A holiday flat or a purchase without residence is inside it — permit first.' },
+        { q: 'Why no transfer tax?', a: 'The canton abolished it; only notary and Grundbuch fees apply. Cantonal policy, not a national rule.' },
+      ],
+      { buy: ZURICH_BUY, rent: ZURICH_RENT },
+    ),
+    geneva: city(
+      'Geneva',
+      'Geneva is a diplomatic capital on a lake with a French border for a suburb — Champel, Eaux-Vives and Les Pâquis are three books, and half the workforce crosses that border daily.',
+      [
+        'International organizations and private banking create a tenant base that pays on time and leaves on rotation — premium furnished stock near the lake turns over with the diplomatic calendar. Around 3% droits de mutation make Geneva the dearest Swiss canton to close in.',
+        'The official form for the initial rent is mandatory in Geneva: every lease states the previous rent, and an excessive increase is challengeable. LDTR rules restrict converting rental stock — check the building’s status before any pied-à-terre arithmetic.',
+      ],
+      [
+        { q: 'Live in France instead?', a: 'Half of Geneva does, economically. Cross-border commuting is a tax and currency model of its own — price the franc salary against euro costs, not just the rent gap.' },
+        { q: 'Same Lex Koller?', a: 'Federal law, cantonal practice. Geneva administers its own authorization queue with its own timelines.' },
       ],
     ),
   },

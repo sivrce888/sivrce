@@ -12,7 +12,7 @@ import GeoGate from '@/components/country/GeoGate'
 export const metadata: Metadata = {
   title: 'sivrce — real estate, globally',
   description:
-    'sivrce is the global real-estate company. Georgia’s live marketplace is sivrce.ge. Country markets use ISO paths on sivrce.com — /de, /ae, /fr, /es, /it, /gb, /us, /ca, /tr. /uae redirects to /ae; /uk redirects to /gb.',
+    'sivrce is the global real-estate company. Georgia’s live marketplace is sivrce.ge. Country markets use ISO paths on sivrce.com — /de, /ae, /fr, /es, /it, /gb, /us, /ca, /tr, /gr, /cy, /nl, /pt, /ch. /uae redirects to /ae; /uk redirects to /gb.',
   alternates: {
     canonical: `${COM_ORIGIN}/`,
     languages: {

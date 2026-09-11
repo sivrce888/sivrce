@@ -76,7 +76,7 @@ sivrce.ge is Georgia's real-estate platform: apartments, houses and cottages for
 - [იპოთეკის კალკულატორი](${BASE}/mortgage-calculator)
 - [Germany](https://sivrce.com/de): Berlin-first guides; sivrce.de → sivrce.com/de
 - [UAE](https://sivrce.com/ae): Dubai & Abu Dhabi; sivrce.ae → sivrce.com/ae; /uae → /ae
-- [France](https://sivrce.com/fr) · [Spain](https://sivrce.com/es) · [Italy](https://sivrce.com/it) · [UK](https://sivrce.com/gb) · [US](https://sivrce.com/us) · [Canada](https://sivrce.com/ca) · [Turkey](https://sivrce.com/tr)
+- [France](https://sivrce.com/fr) · [Spain](https://sivrce.com/es) · [Italy](https://sivrce.com/it) · [UK](https://sivrce.com/gb) · [US](https://sivrce.com/us) · [Canada](https://sivrce.com/ca) · [Turkey](https://sivrce.com/tr) · [Greece](https://sivrce.com/gr) · [Cyprus](https://sivrce.com/cy) · [Netherlands](https://sivrce.com/nl) · [Portugal](https://sivrce.com/pt) · [Switzerland](https://sivrce.com/ch)
 - [Global](https://sivrce.com/): company hub, not a duplicate of sivrce.ge
 
 ## Optional

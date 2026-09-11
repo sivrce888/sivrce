@@ -18,7 +18,7 @@ import { listingVideoObject } from '@/lib/listing-video'
 import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
 import { COM_ORIGIN, COUNTRY_IDS } from '@/lib/markets'
 import { countrySitemapPaths } from '@/lib/country-copy'
-import { DE_CITIES } from '@/lib/countries/de'
+import { BERLIN_BEZIRKE, DE_CITIES } from '@/lib/countries/de'
 
 const BASE = 'https://sivrce.ge'
 
@@ -306,6 +306,16 @@ function countrySitemap(): MetadataRoute.Sitemap {
     if (DE_CITIES.some((c) => c.ka === p.city)) {
       out.push({ url: `${COM_ORIGIN}/de/projects/${p.slug}`, changeFrequency: 'weekly', priority: 0.7 })
     }
+  }
+  // Berlin Bezirk pages (12) — derived from the catalog, German variant included.
+  for (const b of BERLIN_BEZIRKE) {
+    const url = `${COM_ORIGIN}/de/berlin/${b.slug}`
+    out.push({
+      url,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      alternates: { languages: { en: url, 'x-default': url, de: `${COM_ORIGIN}/de/de/berlin/${b.slug}` } },
+    })
   }
   return out
 }

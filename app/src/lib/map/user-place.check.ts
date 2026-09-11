@@ -21,7 +21,9 @@ assert.equal(atTbilisi?.slug, 'tbilisi')
 
 assert.equal(nearestMapCity(52.52, 13.405)?.slug, 'berlin')
 assert.equal(nearestMapCity(48.8566, 2.3522)?.slug, 'paris')
-assert.equal(nearestMapCity(-41.3, 174.8), null)
+assert.equal(nearestMapCity(-41.2865, 174.7762)?.slug, 'wellington')
+assert.equal(nearestMapCity(1.3521, 103.8198)?.slug, 'singapore')
+assert.ok(MAP_CITIES.length >= 200)
 
 const paris = placeFromIp(48.8566, 2.3522, 'Paris')
 assert.equal(paris?.slug, 'paris')

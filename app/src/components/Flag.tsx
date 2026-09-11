@@ -6,7 +6,7 @@
 
 import type { ReactNode } from 'react'
 
-export type FlagCode = 'ge' | 'gb' | 'ru' | 'ua' | 'am' | 'az' | 'il' | 'sa' | 'tr' | 'de' | 'ae' | 'fr' | 'es' | 'it' | 'us' | 'ca'
+export type FlagCode = 'ge' | 'gb' | 'ru' | 'ua' | 'am' | 'az' | 'il' | 'sa' | 'tr' | 'de' | 'ae' | 'fr' | 'es' | 'it' | 'us' | 'ca' | 'gr' | 'cy' | 'nl' | 'pt' | 'ch'
 
 const FLAG_ART: Record<FlagCode, ReactNode> = {
   /* Georgia — white field, large red cross, four small crosses */
@@ -171,6 +171,51 @@ const FLAG_ART: Record<FlagCode, ReactNode> = {
       <rect x="6" y="3" width="12" height="18" fill="#ffffff" />
       <rect x="18" y="3" width="6" height="18" fill="#ff0000" />
       <path d="M12 7.2 L13.1 10.2 L16.4 10.2 L13.7 12.1 L14.8 15.1 L12 13.2 L9.2 15.1 L10.3 12.1 L7.6 10.2 L10.9 10.2 Z" fill="#ff0000" />
+    </>
+  ),
+  /* Greece — blue / white stripes, canton cross */
+  gr: (
+    <>
+      <rect x="0" y="3" width="24" height="18" fill="#ffffff" />
+      <rect x="0" y="4.8" width="24" height="2" fill="#0d5eaf" />
+      <rect x="0" y="8.8" width="24" height="2" fill="#0d5eaf" />
+      <rect x="0" y="12.8" width="24" height="2" fill="#0d5eaf" />
+      <rect x="0" y="16.8" width="24" height="2" fill="#0d5eaf" />
+      <rect x="0" y="3" width="9" height="10" fill="#0d5eaf" />
+      <rect x="3.5" y="3" width="2" height="10" fill="#ffffff" />
+      <rect x="0" y="6.5" width="9" height="2" fill="#ffffff" />
+    </>
+  ),
+  /* Cyprus — white field, copper silhouette */
+  cy: (
+    <>
+      <rect x="0" y="3" width="24" height="18" fill="#ffffff" />
+      <path d="M9 9.5 L13 8.5 L15.5 11 L14 14.5 L10.5 15.5 L8 13 Z" fill="#c87e2f" />
+    </>
+  ),
+  /* Netherlands — red / white / blue */
+  nl: (
+    <>
+      <rect x="0" y="3" width="24" height="6" fill="#ae1c28" />
+      <rect x="0" y="9" width="24" height="6" fill="#ffffff" />
+      <rect x="0" y="15" width="24" height="6" fill="#21468b" />
+    </>
+  ),
+  /* Portugal — green / red with shield dot */
+  pt: (
+    <>
+      <rect x="0" y="3" width="9.6" height="18" fill="#046a38" />
+      <rect x="9.6" y="3" width="14.4" height="18" fill="#da291c" />
+      <circle cx="9.6" cy="12" r="2.6" fill="#ffe900" />
+      <circle cx="9.6" cy="12" r="1.2" fill="#da291c" />
+    </>
+  ),
+  /* Switzerland — white cross on red */
+  ch: (
+    <>
+      <rect x="0" y="3" width="24" height="18" fill="#da291c" />
+      <rect x="10.6" y="7" width="2.8" height="10" fill="#ffffff" />
+      <rect x="7" y="10.6" width="10" height="2.8" fill="#ffffff" />
     </>
   ),
 }

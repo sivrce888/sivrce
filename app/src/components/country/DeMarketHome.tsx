@@ -1,17 +1,17 @@
 import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowUpRight, Building2, CalendarCheck, Home, Landmark, MapPin, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, Building2, Home, Landmark, MapPin, ShieldCheck } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import CountryHero from '@/components/country/CountryHero'
+import DeProjectCard from '@/components/country/DeProjectCard'
 import type { Developer, Project } from '@/data/professionals'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '@/data/projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from '@/data/projects-new-germany'
 import { BERLIN_BEZIRKE, DE_CITIES, buyerCostBreakdown, deCityBySlug } from '@/lib/countries/de'
+import { bezirkStats } from '@/lib/countries/de-berlin'
 import { cityPack, type CountryCopy } from '@/lib/country-copy'
 import type { Lang } from '@/lib/i18n/core'
 import { COM_ORIGIN, MARKETS } from '@/lib/markets'
-import { hasPriceFrom, ON_REQUEST } from '@/lib/directory-seo-lite'
 
 /**
  * sivrce.com/de marketplace home — same section rhythm as sivrce.ge
@@ -26,30 +26,6 @@ const CITY_EN = new Map([
   // Developers outside the 16 launch cities (e.g. Gelsenkirchen) — never leak ka script.
   ['გელზენკირხენი', 'Gelsenkirchen'] as const,
 ])
-// Catalog rows mix Bezirk-level and Ortsteil-level ka district labels —
-// map both so the card eyebrow always shows a Latin place name.
-const DISTRICT_EN = new Map([
-  ...BERLIN_BEZIRKE.map((b) => [b.ka, b.de] as const),
-  ['კროიცბერგი', 'Kreuzberg'],
-  ['პრენცლაუერ-ბერგი', 'Prenzlauer Berg'],
-  ['ფრიდრიხსფელდე', 'Friedrichsfelde'],
-  ['შონებერგი', 'Schöneberg'],
-  ['რაინიკენდორფი', 'Reinickendorf'],
-  ['ტემპელჰოფი', 'Tempelhof'],
-  ['ლიხტერფელდე', 'Lichterfelde'],
-  ['შარლოტენბურგი', 'Charlottenburg'],
-])
-
-function cityEn(p: Project): string {
-  return CITY_EN.get(p.city) ?? 'Germany'
-}
-
-function districtEn(p: Project): string {
-  const parts = p.location.split(',').map((s) => s.trim()).filter(Boolean)
-  const last = parts[parts.length - 1] ?? ''
-  if (parts.length >= 2 && !/\d/.test(last) && last !== cityEn(p)) return last
-  return (p.district && DISTRICT_EN.get(p.district)) || ''
-}
 
 const DE_PROJECTS: Project[] = [...NEW_PROJECTS_BERLIN, ...NEW_PROJECTS_GERMANY]
   .sort((a, b) => (a.done >= 100 ? 1 : 0) - (b.done >= 100 ? 1 : 0) || b.done - a.done)
@@ -82,17 +58,6 @@ function developersForCity(citySlug?: string): Developer[] {
 
 const nf = new Intl.NumberFormat('en-US')
 const nfDe = new Intl.NumberFormat('de-DE')
-// ponytail: DirLoc stays ka/en/ru (Georgian product); DE market labels German inline.
-const priceLabel = (p: Project, de: boolean) =>
-  p.priceFromM2 === ON_REQUEST ? (de ? 'Auf Anfrage' : 'On request') : p.priceFromM2
-/** Catalog finish strings arrive in ka ('ჩაბარებული') or German ('In Planung'/'Im Bau') — show EN on /de. */
-const FINISH_EN = new Map([
-  ['ჩაბარებული', 'Completed'],
-  ['In Planung', 'In planning'],
-  ['Im Bau', 'Under construction'],
-])
-const finishLabel = (p: Project, de: boolean) =>
-  (de && p.finish === 'ჩაბარებული' ? 'Fertiggestellt' : FINISH_EN.get(p.finish) ?? p.finish)
 
 function Kicker({ icon: Icon, children }: { icon: typeof Building2; children: string }) {
   return (
@@ -151,7 +116,7 @@ function StatsBand({ citySlug, de }: { citySlug?: string; de: boolean }) {
   )
 }
 
-function ProjectRail({ citySlug, de, lang }: { citySlug?: string; de: boolean; lang: Lang }) {
+function ProjectRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
   const rail = projectsForCity(citySlug)
   if (!rail.length) return null
   const place = citySlug ? (deCityBySlug(citySlug)?.de ?? citySlug) : de ? 'Deutschland' : 'Germany'
@@ -179,55 +144,46 @@ function ProjectRail({ citySlug, de, lang }: { citySlug?: string; de: boolean; l
           step={320}
           className="gap-5 pb-4"
         >
-          {rail.map((p) => {
-            // /de/projects/<slug> resolves on sivrce.com via the DE-market
-            // catch-all (CountryPage delegates to the project detail route)
-            // and on sivrce.ge via the locale rewrite.
-            const href = `/de/projects/${p.slug}`
-            const dev = DEV_BY_SLUG.get(p.developerSlug) ?? ''
-            const body = (
-              <>
-                <div className="relative -mx-5 -mt-5 mb-4 h-[170px] overflow-hidden rounded-tile rounded-b-none border-b border-sv-ink/[0.06]">
-                  <Image src={p.img} alt={`${p.name} — ${dev || 'Neubau'} render`} fill sizes="300px" className="object-cover" />
-                </div>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-[11px] font-black uppercase tracking-wider text-sv-blue">
-                      {districtEn(p) || cityEn(p)}
-                    </p>
-                    <h3 className="mt-1 truncate text-[17px] font-black text-sv-ink">{p.name}</h3>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-sv-ink/[0.06] px-3 py-1 text-[12px] font-extrabold text-sv-ink/70">
-                    {priceLabel(p, de)}
-                    {hasPriceFrom(p.priceFromM2) ? <span className="text-sv-ink/45">/m²</span> : null}
-                  </span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug text-sv-ink/55">{p.location}</p>
-                <div className="mx-0 mt-4 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
-                  <div className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet" style={{ width: `${p.done}%` }} />
-                </div>
-                <div className="mt-3 flex items-center justify-between text-[12px] font-extrabold text-sv-ink/65">
-                  <span>{p.flats ? `${(de ? nfDe : nf).format(p.flats)} ${de ? 'WE' : 'units'} · ` : ''}{p.done}% {de ? 'fertig' : 'built'}</span>
-                  <span className="inline-flex items-center gap-1 text-sv-ink/45">
-                    <CalendarCheck className="h-3.5 w-3.5" aria-hidden /> {finishLabel(p, de)}
-                  </span>
-                </div>
-                {dev ? (
-                  <p className="mt-3 border-t border-sv-ink/[0.06] pt-3 text-[12px] font-bold text-sv-ink/50">
-                    {de ? 'Bauträger' : 'Developer'}: <span className="text-sv-ink/75">{dev}</span>
-                  </p>
-                ) : null}
-              </>
-            )
-            const cls =
-              'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
-            return (
-              <Link key={p.slug} href={href} className={cls}>
-                {body}
-              </Link>
-            )
-          })}
+          {rail.map((p) => (
+            <DeProjectCard key={p.slug} p={p} dev={DEV_BY_SLUG.get(p.developerSlug)} de={de} />
+          ))}
         </HScroll>
+      </div>
+    </section>
+  )
+}
+
+function BezirkeBand({ de }: { de: boolean }) {
+  return (
+    <section className="bg-sv-cloud py-16 md:py-20">
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <SectionHead
+          icon={MapPin}
+          kicker={de ? 'Bezirke' : 'Boroughs'}
+          title={de ? 'Alle 12 Bezirke, jeder mit eigenem Neubau-Profil' : 'All 12 Bezirke, each with its own new-build profile'}
+          sub={
+            de
+              ? 'Projekte, Bauträger, Ortsteile und veröffentlichte €/m² — bezirksgenau aus dem straßenverifizierten Katalog berechnet.'
+              : 'Projects, developers, Ortsteile and published €/m² — computed per borough from the street-verified catalog.'
+          }
+        />
+        <Reveal>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {BERLIN_BEZIRKE.map((b) => (
+              <li key={b.slug}>
+                <Link
+                  href={`/de/berlin/${b.slug}`}
+                  className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                >
+                  <span className="text-[15px]">{b.de}</span>
+                  <span className="text-[12px] font-black text-sv-blue">
+                    {bezirkStats(b.slug).projects} {de ? 'Projekte' : 'projects'}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </div>
     </section>
   )
@@ -440,7 +396,8 @@ export default function DeMarketHome({
     <main id="main">
       <CountryHero country="de" copy={copy} city={city} intent={intent} cities={cities} lang={lang} />
       <StatsBand citySlug={city} de={de} />
-      <ProjectRail citySlug={city} de={de} lang={lang} />
+      {city === 'berlin' && <BezirkeBand de={de} />}
+      <ProjectRail citySlug={city} de={de} />
       <CitiesBand de={de} />
       <BuyerCosts citySlug={city} de={de} />
       <DeveloperRail citySlug={city} de={de} />

@@ -140,7 +140,8 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
   }
 
   // Production .com: global hub + country paths + company pages + map.
-  // Georgia catalog (sale/search/listings/…) still 308s to sivrce.ge.
+  // Georgian catalog lives at /ge (full mirror of sivrce.ge; canonicals stay
+  // on .ge via the market header → metadataBase).
   if (!local && kind === 'com') {
     if (path === '/' || path === '/en') {
       return { type: 'rewrite', pathname: '/en', market: 'global' }
@@ -155,6 +156,23 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
         if (isPathCountry(after)) dest = dest.slice(3)
       }
       return { type: 'redirect', origin: 'same', pathname: dest }
+    }
+    // /ge/<locale?>/path → app path, market ge. /ge/ka/… folds to /ge/….
+    if (first === 'ge') {
+      const tail = segs.slice(1)
+      const lo = tail[0] && LOCALE_SET.has(tail[0]) ? tail[0] : null
+      const body = lo ? tail.slice(1) : tail
+      if (lo === DEFAULT_LANG) {
+        return { type: 'redirect', origin: 'same', pathname: body.length ? `/ge/${body.join('/')}` : '/ge' }
+      }
+      const target = lo ?? DEFAULT_LANG
+      return { type: 'rewrite', pathname: `/${target}${body.length ? `/${body.join('/')}` : ''}`, market: 'ge' }
+    }
+    // /en/ge/x (internal-form leak) → public mirror form /ge/en/x.
+    if (lang && restFirst === 'ge') {
+      const tail = restSegs.slice(1)
+      const prefix = lang === DEFAULT_LANG ? '/ge' : `/ge/${lang}`
+      return { type: 'redirect', origin: 'same', pathname: tail.length ? `${prefix}/${tail.join('/')}` : prefix }
     }
     const mapSeg = first === 'en' ? segs[1] : first
     if (mapSeg === 'map') {
@@ -171,7 +189,11 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
     if (isComPageSeg(pageSeg)) {
       return { type: 'rewrite', pathname: lang ? path : `/en${path}`, market: 'global' }
     }
-    return { type: 'redirect', origin: GE_ORIGIN, pathname: path }
+    // Bare Georgian catalog path: keep the visitor on .com under /ge (308,
+    // canonical still consolidates to sivrce.ge — no cross-domain hop).
+    const restPath = rest === '/' ? '' : rest
+    const mirror = lang && lang !== DEFAULT_LANG ? `/ge/${lang}${restPath}` : `/ge${restPath}`
+    return { type: 'redirect', origin: 'same', pathname: mirror }
   }
 
   // Dev/preview: /uae → /ae, /uk → /gb (same as prod, keep /en prefix locally).

@@ -452,6 +452,229 @@ const ae: CountryCosts = {
   },
 }
 
+const gr: CountryCosts = {
+  sample: 250_000,
+  closer: 'Notary (symvolaiográfos)',
+  cashLabel: 'Cash needed at the notary',
+  taxLabel: 'Transfer tax (φόρος μεταβίβασης)',
+  extras: [
+    { label: 'Notary, Ktimatologio & fees (≈1.5%)', pct: 1.5 },
+    { label: 'Lawyer (≈1%)', pct: 1.0 },
+  ],
+  buyerAgentPct: 0,
+  note:
+    'Transfer tax is 3.09% on the tax-assessed (objective) value, which is often below the price you agree. New-build from a developer may carry 24% VAT instead of transfer tax under repeatedly extended suspension schemes — confirm which regime your unit falls in before you wire. Golden Visa thresholds rose in September 2024 and now run €250,000–€800,000 by municipality.',
+  rentTitle: 'The rent side, in three lines',
+  rentRules: [
+    'Residential leases run a three-year minimum — a shorter agreed term extends by law, not by negotiation.',
+    'Deposits cap at two months’ rent.',
+    'Short-let income needs an AMA registration number with AADE — unregistered listings face fines, and Athens has restricted new registrations in the centre.',
+  ],
+  rentNote:
+    'Qualitative anchors only. Live rents come from signed leases, never a hardcoded table.',
+  facts: [
+    { n: '3.09%', label: 'transfer tax on the assessed value' },
+    { n: 'Ktimatologio', label: 'the cadastre that must show your title' },
+    { n: '3 years', label: 'minimum residential lease term' },
+    { n: '€250k+', label: 'Golden Visa entry, by zone since 2024' },
+  ],
+  trust: ['Notary-verified path', 'Ktimatologio title checked', '3D map'],
+  citiesTitle: 'Two metros, one national deed',
+  citiesSub:
+    'Transfer tax is national; demand is not. Athens prices off the capital, tourism and the port economy; Thessaloniki off northern industry and students. Each city guide carries the same rate with a different market.',
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '3.09%', chipTitle: 'Transfer tax — national (φόρος μεταβίβασης)', region: 'Attica', pct: 3.09 },
+  cities: {
+    athens: { chip: '3.09%', chipTitle: 'Transfer tax — national (φόρος μεταβίβασης)', region: 'Attica', pct: 3.09 },
+    thessaloniki: { chip: '3.09%', chipTitle: 'Transfer tax — national (φόρος μεταβίβασης)', region: 'Central Macedonia', pct: 3.09 },
+  },
+}
+
+/** Cyprus resale-effective bands: gross 3/5/8% halved by the permanent 50% cut. */
+const CY_BANDS: Band[] = [
+  { upTo: 85_000, pct: 1.5 },
+  { upTo: 170_000, pct: 2.5 },
+  { upTo: null, pct: 4 },
+]
+
+const cyResale = (region: string): CityFact => ({
+  chip: '≈2.9%',
+  chipTitle: 'Transfer fees, resale-effective at €300k (50% cut applied)',
+  region,
+  pct: null,
+  bands: CY_BANDS,
+})
+
+const cy: CountryCosts = {
+  sample: 300_000,
+  closer: 'District Lands Office',
+  cashLabel: 'Cash needed at the Lands Office',
+  taxLabel: 'Transfer fees (Τέλη Μεταβίβασης)',
+  extras: [
+    { label: 'Advocate & disbursements (≈1%)', pct: 1.0 },
+  ],
+  buyerAgentPct: 0,
+  note:
+    'The statute reads 3/5/8% on the Lands Office assessed value — but resales carry a permanent 50% reduction, and new-builds that attracted VAT pay zero transfer fees. Stamp duty was abolished in January 2026. Title deeds on new builds can lag years behind handover: deposit the contract at the District Lands Office within six months for Specific Performance protection, and never pay in full without a separate title in sight.',
+  rentTitle: 'The rent side, in three lines',
+  rentRules: [
+    'Pre-2000 buildings in controlled areas fall under rent control — increases follow the statutory order, not the market.',
+    'Deposits run one to two months; a statutory tenancy continues after expiry unless a court orders otherwise.',
+    'Short-lets need registration with the Deputy Ministry of Tourism — the licence, not the photos, decides the model.',
+  ],
+  rentNote:
+    'Nicosia rents off the capital year-round; Limassol rents off the coast and the season. Do not blend them.',
+  facts: [
+    { n: '−50%', label: 'transfer-fee cut on resales, permanent' },
+    { n: '0%', label: 'transfer fees where VAT was charged' },
+    { n: 'Title deed', label: 'separate title or Specific Performance first' },
+    { n: 'Permit', label: 'Council of Ministers step for non-EU buyers' },
+  ],
+  trust: ['Lands Office path', 'Title deed checked', '3D map'],
+  citiesTitle: 'Two cities, one fee scale',
+  citiesSub:
+    'Transfer fees are national and assessed by the District Lands Office, not the contract. Nicosia is an inland capital market; Limassol is a coastal second-home market. Same scale, different buyers.',
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: cyResale('Nicosia district'),
+  cities: {
+    nicosia: cyResale('Nicosia district'),
+    limassol: cyResale('Limassol district'),
+  },
+}
+
+const nl: CountryCosts = {
+  sample: 450_000,
+  closer: 'Notaris (civil-law notary)',
+  cashLabel: 'Cash needed at the notaris',
+  taxLabel: 'Overdrachtsbelasting',
+  extras: [
+    { label: 'Notaris & Kadaster (≈1%)', pct: 1.0 },
+  ],
+  buyerAgentPct: 0,
+  note:
+    'Qualifying residents pay 2%; investors and second-home buyers pay 10.4% — the model prices the resident path, and an investor must add more than eight points to every line. First-home buyers under 35 may pay 0% up to a periodically indexed ceiling. A buyer’s agent (aankoopmakelaar) is optional and paid by the buyer when engaged.',
+  rentTitle: 'The rent side, in three lines',
+  rentRules: [
+    'Open-ended contracts are the default since July 2024 — the two-year starter contract is gone.',
+    'Deposits cap at two months’ rent.',
+    'The WWS points system decides regulated versus liberalized: below the threshold the rent has a legal maximum, whatever the advert says.',
+  ],
+  rentNote:
+    'Amsterdam applies the points cap far more often than Rotterdam does. Price the regime, not the postcode average.',
+  facts: [
+    { n: '2% / 10.4%', label: 'transfer tax: residents vs investors' },
+    { n: 'Notaris', label: 'closes every sale, no exceptions' },
+    { n: 'Kadaster', label: 'the register that records your title' },
+    { n: 'Indefinite', label: 'leases default to open-ended' },
+  ],
+  trust: ['Notaris-verified path', 'WWS points checked', '3D map'],
+  citiesTitle: 'Two cities, one notarial machine',
+  citiesSub:
+    'Transfer tax and tenancy law are national; scarcity is not. Amsterdam’s canal belt and Rotterdam’s port districts are different products at different prices under the same statute.',
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: '2%', chipTitle: 'Overdrachtsbelasting — qualifying residents', region: 'North Holland', pct: 2 },
+  cities: {
+    amsterdam: { chip: '2%', chipTitle: 'Overdrachtsbelasting — qualifying residents', region: 'North Holland', pct: 2 },
+    rotterdam: { chip: '2%', chipTitle: 'Overdrachtsbelasting — qualifying residents', region: 'South Holland', pct: 2 },
+  },
+}
+
+/**
+ * IMT Table III (mainland, investment/second home) as marginal slices — the
+ * official value×rate−deduction formula is arithmetically identical to slice
+ * math. Above ~€634k a 6% flat rate replaces the slices (see note).
+ */
+const PT_BANDS: Band[] = [
+  { upTo: 106_346, pct: 1 },
+  { upTo: 145_470, pct: 2 },
+  { upTo: 198_347, pct: 5 },
+  { upTo: 330_539, pct: 7 },
+  { upTo: null, pct: 8 },
+]
+
+const ptImt = (region: string): CityFact => ({
+  chip: 'IMT slices',
+  chipTitle: 'IMT Table III (investment) + 0.8% selo',
+  region,
+  pct: null,
+  bands: PT_BANDS,
+})
+
+const pt: CountryCosts = {
+  sample: 350_000,
+  closer: 'Notário (escritura)',
+  cashLabel: 'Cash needed at the escritura',
+  taxLabel: 'IMT transfer tax',
+  extras: [
+    { label: 'Imposto do Selo (0.8%)', pct: 0.8 },
+    { label: 'Escritura & registos (≈0.5%)', pct: 0.5 },
+  ],
+  buyerAgentPct: 0,
+  note:
+    'IMT is charged on the higher of the deed price and the VPT, and the model prices Table III — the investment/second-home schedule most foreign buyers fall in. A primary-residence buyer uses a gentler table (exempt to €106,346 in 2026), and first-home buyers under 35 are exempt to €330,539. Above ~€634k a 6% flat rate replaces the slices: confirm on the AT simulator, not on a blog post.',
+  rentTitle: 'The rent side, in three lines',
+  rentRules: [
+    'Urban leases (NRAU) run to the agreed term with tenant renewal rights — ending one early needs a statutory ground and formal notice.',
+    'Caução plus advance rent is capped at three months in total.',
+    'Alojamento Local needs municipal registration — Lisbon and Porto froze new licences in containment zones, and the freeze is the model.',
+  ],
+  rentNote:
+    'Tourist licensing is commune politics, not national law. Read the current containment map before you underwrite occupancy.',
+  facts: [
+    { n: 'IMT + 0.8%', label: 'sliced transfer tax plus stamp duty' },
+    { n: 'NIF', label: 'tax number required before the deed' },
+    { n: 'VPT', label: 'the tax value IMT is measured against' },
+    { n: 'AL freeze', label: 'new licences frozen in containment zones' },
+  ],
+  trust: ['Escritura-verified path', 'VPT & licence checked', '3D map'],
+  citiesTitle: 'Two cities, one IMT code',
+  citiesSub:
+    'IMT is national; the licence map is not. Lisbon and Porto share the same slices and the same stamp duty, but short-let containment and tenant demand are local stories.',
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: ptImt('Lisbon'),
+  cities: {
+    lisbon: ptImt('Lisbon'),
+    porto: ptImt('Porto'),
+  },
+}
+
+const ch: CountryCosts = {
+  sample: 1_000_000,
+  closer: 'Notar / notaire (cantonal)',
+  cashLabel: 'Cash needed at the notary',
+  taxLabel: 'Transfer tax (Handänderungssteuer)',
+  extras: [
+    { label: 'Notary & land-register (cantonal scale ≈0.5%)', pct: 0.5 },
+  ],
+  buyerAgentPct: 0,
+  note:
+    'Lex Koller makes Switzerland the tightest foreign-buyer regime on this site: buyers without residence or establishment need cantonal authorization inside federal quotas, and some cantons add their own restrictions. Zurich levies no transfer tax at all — registry fees only — while Geneva charges around 3%. Notary scales are cantonal: confirm the canton’s schedule before wiring.',
+  rentTitle: 'The rent side, in three lines',
+  rentRules: [
+    'Rent increases track the federal reference mortgage rate — a rate cut entitles tenants to a reduction claim.',
+    'Deposits cap at three months’ rent (art. 257e CO) and must sit in a blocked account in the tenant’s name.',
+    'Geneva and Vaud require the official form for the initial rent and every increase — no form, no increase.',
+  ],
+  rentNote:
+    'Tenants are organised and the law favours them. Underwrite the reference rate and the form, not the asking rent alone.',
+  facts: [
+    { n: 'Lex Koller', label: 'permit regime for non-resident buyers' },
+    { n: '0% / ~3%', label: 'transfer tax: Zurich vs Geneva' },
+    { n: 'Reference rate', label: 'the mortgage rate that moves rents' },
+    { n: '20%', label: 'Lex Weber cap on second homes per commune' },
+  ],
+  trust: ['Cantonal notary path', 'Lex Koller checked', '3D map'],
+  citiesTitle: 'Two cities, 26 cantonal rulebooks',
+  citiesSub:
+    'Transfer tax, notary scale and foreign-buyer practice are cantonal. Zurich and Geneva share a currency and almost nothing else about closing a purchase.',
+  // Fallback only — pages price the flagship city by name (see MarketHome).
+  defaultCity: { chip: 'None', chipTitle: 'Zurich levies no transfer tax — registry fees only', region: 'Canton of Zurich', pct: 0 },
+  cities: {
+    zurich: { chip: 'None', chipTitle: 'Zurich levies no transfer tax — registry fees only', region: 'Canton of Zurich', pct: 0 },
+    geneva: { chip: '3%', chipTitle: 'Droits de mutation — Geneva (≈3% cantonal + communal)', region: 'Canton of Geneva', pct: 3 },
+  },
+}
+
 /** Germany derives from the audited Grunderwerbsteuer table — never re-typed. */
 const de: CountryCosts = {
   sample: 500_000,
@@ -494,7 +717,7 @@ const de: CountryCosts = {
   ),
 }
 
-export const MARKET_COSTS: Record<PathCountryId, CountryCosts> = { de, ae, fr, es, it, gb, us, ca, tr }
+export const MARKET_COSTS: Record<PathCountryId, CountryCosts> = { de, ae, fr, es, it, gb, us, ca, tr, gr, cy, nl, pt, ch }
 
 /** Progressive slice tax — the UK model. Returns absolute currency. */
 export function bandedTax(price: number, bands: Band[]): number {

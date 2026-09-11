@@ -25,41 +25,36 @@ export function resolvePlaceCity(cityKa: string, coords?: PlaceCoords | null): M
   return cityByName(cityKa) ?? (validCoords(coords) ? nearestMapCity(coords.lat, coords.lng) : null)
 }
 
-const CC_COUNTRY: Record<string, { ka: string; en: string; ru: string; de?: string }> = {
-  GE: { ka: 'საქართველო', en: 'Georgia', ru: 'Грузия', de: 'Georgien' },
-  DE: { ka: 'გერმანია', en: 'Germany', ru: 'Германия', de: 'Deutschland' },
-  AE: { ka: 'არაბთა გაერთიანებული საამიროები', en: 'UAE', ru: 'ОАЭ', de: 'VAE' },
-  FR: { ka: 'საფრანგეთი', en: 'France', ru: 'Франция', de: 'Frankreich' },
-  ES: { ka: 'ესპანეთი', en: 'Spain', ru: 'Испания', de: 'Spanien' },
-  IT: { ka: 'იტალია', en: 'Italy', ru: 'Италия', de: 'Italien' },
-  GB: { ka: 'დიდი ბრიტანეთი', en: 'United Kingdom', ru: 'Великобритания', de: 'Vereinigtes Königreich' },
-  US: { ka: 'აშშ', en: 'United States', ru: 'США', de: 'USA' },
-  CA: { ka: 'კანადა', en: 'Canada', ru: 'Канада', de: 'Kanada' },
-  TR: { ka: 'თურქეთი', en: 'Türkiye', ru: 'Турция', de: 'Türkei' },
-  // ponytail: names only — no market copy/inventory implied. Hand-written hub
-  // copy arrives per launched market (countries/hubs-extra.ts); until then
-  // pages stay data-driven (metros, map, live counts), never thin doorway text.
-  JP: { ka: 'იაპონია', en: 'Japan', ru: 'Япония' },
-  IN: { ka: 'ინდოეთი', en: 'India', ru: 'Индия' },
-  CN: { ka: 'ჩინეთი', en: 'China', ru: 'Китай' },
-  BR: { ka: 'ბრაზილია', en: 'Brazil', ru: 'Бразилия' },
-  EG: { ka: 'ეგვიპტე', en: 'Egypt', ru: 'Египет' },
-  MX: { ka: 'მექსიკა', en: 'Mexico', ru: 'Мексика' },
-  PK: { ka: 'პაკისტანი', en: 'Pakistan', ru: 'Пакистан' },
-  AR: { ka: 'არგენტინა', en: 'Argentina', ru: 'Аргентина' },
-  NG: { ka: 'ნიგერია', en: 'Nigeria', ru: 'Нигерия' },
-  PH: { ka: 'ფილიპინები', en: 'Philippines', ru: 'Филиппины' },
-  RU: { ka: 'რუსეთი', en: 'Russia', ru: 'Россия' },
-  TH: { ka: 'ტაილანდი', en: 'Thailand', ru: 'Таиланд' },
-  ID: { ka: 'ინდონეზია', en: 'Indonesia', ru: 'Индонезия' },
-  KR: { ka: 'სამხრეთ კორეა', en: 'South Korea', ru: 'Южная Корея' },
-  PE: { ka: 'პერუ', en: 'Peru', ru: 'Перу' },
-  CO: { ka: 'კოლუმბია', en: 'Colombia', ru: 'Колумбия' },
-  IR: { ka: 'ირანი', en: 'Iran', ru: 'Иран' },
+/** Short overrides where Intl is awkward for RE chrome (UAE, US, UK, Türkiye). */
+const CC_SHORT: Record<string, Partial<{ ka: string; en: string; ru: string; de: string }>> = {
+  AE: { en: 'UAE', ka: 'არაბთა გაერთიანებული საამიროები', ru: 'ОАЭ', de: 'VAE' },
+  US: { en: 'United States', ka: 'აშშ', ru: 'США', de: 'USA' },
+  GB: { en: 'United Kingdom', ka: 'დიდი ბრიტანეთი', ru: 'Великобритания' },
+  TR: { en: 'Türkiye' },
+  XK: { en: 'Kosovo', ka: 'კოსოვო', ru: 'Косово', de: 'Kosovo' },
 }
 
+function regionName(lang: string, cc: string): string | undefined {
+  try {
+    return new Intl.DisplayNames([lang], { type: 'region' }).of(cc.toUpperCase()) ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Country label for any ISO alpha-2. Uses Intl so every MAP_CITIES cc resolves —
+ * no hand map to maintain. Hub copy still only for launched markets (hubs-extra).
+ */
 export function countryOf(cc: string): { ka: string; en: string; ru: string; de?: string } {
-  return CC_COUNTRY[cc] ?? { ka: cc, en: cc, ru: cc }
+  const code = cc.toUpperCase()
+  const o = CC_SHORT[code]
+  return {
+    ka: o?.ka ?? regionName('ka', code) ?? code,
+    en: o?.en ?? regionName('en', code) ?? code,
+    ru: o?.ru ?? regionName('ru', code) ?? code,
+    de: o?.de ?? regionName('de', code),
+  }
 }
 
 function haversineKm(a: PlaceCoords, b: PlaceCoords): number {

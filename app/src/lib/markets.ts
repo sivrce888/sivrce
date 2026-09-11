@@ -14,13 +14,13 @@ import type { Lang } from '@/lib/i18n/core'
 export type PathCountryId = (typeof COUNTRY_IDS)[number]
 export type MarketId = 'ge' | 'global' | PathCountryId
 export type CountryId = 'ge' | PathCountryId
-export type MarketCurrency = 'GEL' | 'USD' | 'EUR' | 'AED' | 'GBP' | 'CAD' | 'TRY'
+export type MarketCurrency = 'GEL' | 'USD' | 'EUR' | 'AED' | 'GBP' | 'CAD' | 'TRY' | 'CHF'
 
 export const COM_ORIGIN = 'https://sivrce.com'
 export const GE_ORIGIN = 'https://sivrce.ge'
 
 /** Live ISO-3166 path prefixes on sivrce.com. */
-export const COUNTRY_IDS = ['de', 'ae', 'fr', 'es', 'it', 'gb', 'us', 'ca', 'tr'] as const
+export const COUNTRY_IDS = ['de', 'ae', 'fr', 'es', 'it', 'gb', 'us', 'ca', 'tr', 'gr', 'cy', 'nl', 'pt', 'ch'] as const
 
 export const COUNTRY_PREFIX_RE = new RegExp(`^/(${COUNTRY_IDS.join('|')})(?=/|$)`)
 
@@ -59,7 +59,7 @@ export function isComPageSeg(seg: string): boolean {
 
 export interface Market {
   id: MarketId
-  countryCode: 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR' | null
+  countryCode: 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR' | 'GR' | 'CY' | 'NL' | 'PT' | 'CH' | null
   currency: MarketCurrency
   /** BCP 47 for dates/numbers — not the UI language. */
   locale: string
@@ -223,6 +223,11 @@ export const MARKETS: Record<CountryId, Market> = {
     'bodrum',
     'bursa',
   ], ['istanbul']),
+  gr: pathMarket('gr', 'GR', 'EUR', 'en-GR', 'athens', ['athens', 'thessaloniki'], ['athens']),
+  cy: pathMarket('cy', 'CY', 'EUR', 'en-CY', 'nicosia', ['nicosia', 'limassol'], ['nicosia']),
+  nl: pathMarket('nl', 'NL', 'EUR', 'en-NL', 'amsterdam', ['amsterdam', 'rotterdam'], ['amsterdam']),
+  pt: pathMarket('pt', 'PT', 'EUR', 'en-PT', 'lisbon', ['lisbon', 'porto'], ['lisbon']),
+  ch: pathMarket('ch', 'CH', 'CHF', 'en-CH', 'zurich', ['zurich', 'geneva'], ['zurich']),
 }
 
 export const GLOBAL_MARKET: Pick<

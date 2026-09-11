@@ -58,11 +58,12 @@ const CITY_ROWS: Row[] = CITIES.map((ka) =>
   mk({ kind: "city", ka, city: ka }, [ka, ...(CITY_ALIASES[ka] ?? [])]),
 )
 /* ————— World rows (map fly-to + global suggest) —————
- * ponytail: cities + countries only (~70 rows). Neighbourhoods/streets/
- * addresses stay live via /api/geocode (Nominatim) — never bundled. */
+ * ponytail: cities + launched countries only. Capitals/metros from MAP_CITIES
+ * (~200+). Neighbourhoods/streets/addresses stay live via /api/geocode. */
 const COUNTRY_NAMES: Record<string, string> = {
   de: "Germany", ae: "United Arab Emirates", fr: "France", es: "Spain",
   it: "Italy", gb: "United Kingdom", us: "United States", ca: "Canada", tr: "Türkiye",
+  gr: "Greece", cy: "Cyprus", nl: "Netherlands", pt: "Portugal", ch: "Switzerland",
 }
 const WORLD_CITY_ROWS: Row[] = MAP_CITIES.filter((c) => c.cc !== "GE").map((c) =>
   mk({ kind: "city", ka: c.ka, en: c.en, city: c.ka }, [c.ka, c.en, c.slug]),

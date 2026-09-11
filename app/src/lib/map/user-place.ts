@@ -1,15 +1,15 @@
 /**
  * Map place memory + city snap.
  * ponytail: city-level only (IP is coarse). Street GPS stays on the locate button.
+ * World capitals live in data/world-places.ts — inventory cities below win on slug clash.
  */
 
+import { WORLD_PLACES } from '@/data/world-places'
 import { FREEDOM_SQUARE, MAP_CENTER, parseCoords } from '@/lib/map/map-geo'
 import { MARKETS, type MarketId } from '@/lib/markets'
 
-export type MapCityCc =
-  | 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR'
-  | 'JP' | 'IN' | 'CN' | 'BR' | 'EG' | 'MX' | 'PK' | 'AR' | 'NG' | 'PH'
-  | 'RU' | 'TH' | 'ID' | 'KR' | 'PE' | 'CO' | 'IR'
+/** ISO-3166-1 alpha-2. */
+export type MapCityCc = string
 
 export type MapCity = {
   slug: string
@@ -32,8 +32,8 @@ function city(
   return { slug, ka, en, lat, lng, cc }
 }
 
-/** Centers for map fly-to / IP snap. Inventory cities first. */
-export const MAP_CITIES: readonly MapCity[] = [
+/** Inventory + launched-market cities (first). World places fill gaps. */
+const INVENTORY_CITIES: readonly MapCity[] = [
   city('tbilisi', 'თბილისი', 'Tbilisi', FREEDOM_SQUARE.lat, FREEDOM_SQUARE.lng, 'GE'),
   city('batumi', 'ბათუმი', 'Batumi', 41.6417, 41.6391, 'GE'),
   city('kutaisi', 'ქუთაისი', 'Kutaisi', 42.2679, 42.6946, 'GE'),
@@ -43,6 +43,12 @@ export const MAP_CITIES: readonly MapCity[] = [
   city('telavi', 'თელავი', 'Telavi', 41.9198, 45.4736, 'GE'),
   city('gori', 'გორი', 'Gori', 41.9842, 44.1163, 'GE'),
   city('mtskheta', 'მცხეთა', 'Mtskheta', 41.8434, 44.7144, 'GE'),
+  city('kobuleti', 'ქობულეთი', 'Kobuleti', 41.814, 41.7735, 'GE'),
+  city('chakvi', 'ჩაქვი', 'Chakvi', 41.7243, 41.7342, 'GE'),
+  city('shekvetili', 'შეკვეთილი', 'Shekvetili', 41.9345, 41.7675, 'GE'),
+  city('goderdzi', 'გოდერძი', 'Goderdzi', 41.6388, 42.489, 'GE'),
+  city('tianeti', 'თიანეთი', 'Tianeti', 41.9985, 44.932, 'GE'),
+  city('bakhmaro', 'ბახმარო', 'Bakhmaro', 41.8513, 42.3245, 'GE'),
   city('bakuriani', 'ბაკურიანი', 'Bakuriani', 41.7497, 43.5325, 'GE'),
   city('borjomi', 'ბორჯომი', 'Borjomi', 41.8389, 43.3858, 'GE'),
   city('gudauri', 'გუდაური', 'Gudauri', 42.4764, 44.4769, 'GE'),
@@ -78,8 +84,17 @@ export const MAP_CITIES: readonly MapCity[] = [
   city('vancouver', 'ვანკუვერი', 'Vancouver', 49.2827, -123.1207, 'CA'),
   city('istanbul', 'სტამბოლი', 'Istanbul', 41.0082, 28.9784, 'TR'),
   city('antalya', 'ანტალია', 'Antalya', 36.8969, 30.7133, 'TR'),
-  // ponytail: top-30 world metros by pop — one line each, no neighbourhood bundle.
-  // Neighbourhoods/streets/addresses stay live (OFM tiles + Nominatim), never bundled.
+  city('athens', 'ათენი', 'Athens', 37.9838, 23.7275, 'GR'),
+  city('thessaloniki', 'თესალონიკი', 'Thessaloniki', 40.6401, 22.9444, 'GR'),
+  city('nicosia', 'ნიქოზია', 'Nicosia', 35.1856, 33.3823, 'CY'),
+  city('limassol', 'ლიმასოლი', 'Limassol', 34.7071, 33.0226, 'CY'),
+  city('amsterdam', 'ამსტერდამი', 'Amsterdam', 52.3676, 4.9041, 'NL'),
+  city('rotterdam', 'როტერდამი', 'Rotterdam', 51.9244, 4.4777, 'NL'),
+  city('lisbon', 'ლისაბონი', 'Lisbon', 38.7223, -9.1393, 'PT'),
+  city('porto', 'პორტუ', 'Porto', 41.1579, -8.6291, 'PT'),
+  city('zurich', 'ციურიხი', 'Zurich', 47.3769, 8.5417, 'CH'),
+  city('geneva', 'ჟენევა', 'Geneva', 46.2044, 6.1432, 'CH'),
+  // Megacities kept in inventory order for stable checks (also in WORLD_PLACES; slug wins here).
   city('tokyo', 'ტოკიო', 'Tokyo', 35.6762, 139.6503, 'JP'),
   city('delhi', 'დელი', 'Delhi', 28.6139, 77.209, 'IN'),
   city('shanghai', 'შანხაი', 'Shanghai', 31.2304, 121.4737, 'CN'),
@@ -104,6 +119,14 @@ export const MAP_CITIES: readonly MapCity[] = [
   city('bogota', 'ბოგოტა', 'Bogotá', 4.711, -74.0721, 'CO'),
   city('tehran', 'თეირანი', 'Tehran', 35.6892, 51.389, 'IR'),
   city('chennai', 'ჩენაი', 'Chennai', 13.0827, 80.2707, 'IN'),
+]
+
+const seen = new Set(INVENTORY_CITIES.map((c) => c.slug))
+export const MAP_CITIES: readonly MapCity[] = [
+  ...INVENTORY_CITIES,
+  ...WORLD_PLACES.filter((w) => !seen.has(w.slug)).map((w) =>
+    city(w.slug, w.ka, w.en, w.lat, w.lng, w.cc),
+  ),
 ]
 
 const PLACE_KEY = 'sivrce.map.place'
@@ -154,10 +177,22 @@ const CITY_ALIASES: Record<string, string> = {
   'abu dhabi': 'abu-dhabi',
   abu_dhabi: 'abu-dhabi',
   'sao paulo': 'sao-paulo',
-  'rio': 'rio-de-janeiro',
+  rio: 'rio-de-janeiro',
   'rio de janeiro': 'rio-de-janeiro',
   'mexico city': 'mexico-city',
   'buenos aires': 'buenos-aires',
+  'hong kong': 'hong-kong',
+  'kuala lumpur': 'kuala-lumpur',
+  'los angeles': 'los-angeles',
+  'san francisco': 'san-francisco',
+  'cape town': 'cape-town',
+  'ho chi minh': 'ho-chi-minh-city',
+  'ho chi minh city': 'ho-chi-minh-city',
+  saigon: 'ho-chi-minh-city',
+  kiev: 'kyiv',
+  'tel aviv': 'tel-aviv',
+  'kuwait city': 'kuwait-city',
+  'panama city': 'panama-city',
 }
 
 function isoForMarket(market: MarketId): MapCityCc | null {

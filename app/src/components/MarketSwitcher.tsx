@@ -17,6 +17,11 @@ const LABEL: Record<'ge' | PathCountryId, string> = {
   us: 'United States',
   ca: 'Canada',
   tr: 'Turkey',
+  gr: 'Greece',
+  cy: 'Cyprus',
+  nl: 'Netherlands',
+  pt: 'Portugal',
+  ch: 'Switzerland',
 }
 
 const ITEMS: { id: 'ge' | PathCountryId; label: string; href: string; prod: string; flag: FlagCode }[] = [
