@@ -91,6 +91,14 @@ const T: Record<
     around: 'Рядом',
     guide: 'Гид по району',
   },
+  de: {
+    country: 'Land',
+    city: 'Stadt',
+    neighborhood: 'Stadtteil',
+    address: 'Adresse',
+    around: 'In der Nähe',
+    guide: 'Stadtteil-Guide',
+  },
 }
 
 export async function PlaceContext({
@@ -169,7 +177,16 @@ export async function PlaceContext({
         <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             city
-              ? ([t.country, loc === 'ka' ? countryOf(city.cc).ka : loc === 'ru' ? countryOf(city.cc).ru : countryOf(city.cc).en] as const)
+              ? ([
+                  t.country,
+                  loc === 'ka'
+                    ? countryOf(city.cc).ka
+                    : loc === 'ru'
+                      ? countryOf(city.cc).ru
+                      : loc === 'de'
+                        ? (countryOf(city.cc).de ?? countryOf(city.cc).en)
+                        : countryOf(city.cc).en,
+                ] as const)
               : null,
             ([t.city, loc === 'ka' ? (city?.ka ?? cityKa) : (city?.en ?? cityKa)] as const),
             nbh ? ([t.neighborhood, pick(nbh.name, lang)] as const) : district ? ([t.neighborhood, district] as const) : null,

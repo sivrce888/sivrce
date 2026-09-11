@@ -35,6 +35,7 @@ export {
   hasPriceFrom,
   priceFromLabel,
   MICRO,
+  MICRO_DE,
   type DirLoc,
   type FaqItem,
 } from './directory-seo-lite'
@@ -445,6 +446,40 @@ export const PROJECT_DETAIL: Record<
       `${floorsLabel(floors, 'ru')} · ${unitsLabel(flats, 'ru')} · построено ${done}% · наведите курсор на этаж`,
     statsBuilt: 'Построено',
   },
+}
+
+/**
+ * German chrome for /de project pages — kept out of PROJECT_DETAIL/DirLoc
+ * (ka/ru share that Record; widening it would force a 'de' branch onto every
+ * Georgia-only hub table). Mirrors the 'en' shape 1:1; titleOf reuses the
+ * project's own priceFromM2/finish, never invents facts.
+ */
+export const PROJECT_DETAIL_DE: (typeof PROJECT_DETAIL)['en'] = {
+  titleOf: (p) => {
+    const kind = isDelivered(p) ? 'fertiggestelltes Neubauprojekt' : 'Neubauwohnungen'
+    return hasPriceFrom(p.priceFromM2)
+      ? `${p.name} — ${kind}, ab ${p.priceFromM2}/m²`
+      : `${p.name} — ${kind} (Preis auf Anfrage)`
+  },
+  crumbHome: 'Start',
+  crumbProjects: 'Neubauprojekte',
+  building3d: 'Gebäude in 3D',
+  location: 'Lage',
+  gallery: 'Galerie',
+  floorPlan: 'Grundriss',
+  aboutProject: 'Über das Projekt',
+  otherProjects: (devName) => `Weitere Projekte — ${devName}`,
+  faqTitle: 'Häufig gestellte Fragen',
+  faqChip: 'FAQ',
+  navLabel: 'Seitenabschnitte',
+  details: 'Objektdaten',
+  floorsRow: 'Etagen',
+  cadastral: 'Flurstückskennzeichen',
+  contact: 'Kontakt',
+  renderAlt: (i) => `Rendering ${i}`,
+  floorsCaption: (floors, flats, done) =>
+    `${floorsLabel(floors, 'de')} · ${unitsLabel(flats, 'de')} · ${done}% gebaut · Etage antippen`,
+  statsBuilt: 'Baufortschritt',
 }
 
 /** Developer detail FAQ — rendered visibly AND shipped as FAQPage JSON-LD. */

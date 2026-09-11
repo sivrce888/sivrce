@@ -25,17 +25,17 @@ export function resolvePlaceCity(cityKa: string, coords?: PlaceCoords | null): M
   return cityByName(cityKa) ?? (validCoords(coords) ? nearestMapCity(coords.lat, coords.lng) : null)
 }
 
-const CC_COUNTRY: Record<string, { ka: string; en: string; ru: string }> = {
-  GE: { ka: 'საქართველო', en: 'Georgia', ru: 'Грузия' },
-  DE: { ka: 'გერმანია', en: 'Germany', ru: 'Германия' },
-  AE: { ka: 'არაბთა გაერთიანებული საამიროები', en: 'UAE', ru: 'ОАЭ' },
-  FR: { ka: 'საფრანგეთი', en: 'France', ru: 'Франция' },
-  ES: { ka: 'ესპანეთი', en: 'Spain', ru: 'Испания' },
-  IT: { ka: 'იტალია', en: 'Italy', ru: 'Италия' },
-  GB: { ka: 'დიდი ბრიტანეთი', en: 'United Kingdom', ru: 'Великобритания' },
-  US: { ka: 'აშშ', en: 'United States', ru: 'США' },
-  CA: { ka: 'კანადა', en: 'Canada', ru: 'Канада' },
-  TR: { ka: 'თურქეთი', en: 'Türkiye', ru: 'Турция' },
+const CC_COUNTRY: Record<string, { ka: string; en: string; ru: string; de?: string }> = {
+  GE: { ka: 'საქართველო', en: 'Georgia', ru: 'Грузия', de: 'Georgien' },
+  DE: { ka: 'გერმანია', en: 'Germany', ru: 'Германия', de: 'Deutschland' },
+  AE: { ka: 'არაბთა გაერთიანებული საამიროები', en: 'UAE', ru: 'ОАЭ', de: 'VAE' },
+  FR: { ka: 'საფრანგეთი', en: 'France', ru: 'Франция', de: 'Frankreich' },
+  ES: { ka: 'ესპანეთი', en: 'Spain', ru: 'Испания', de: 'Spanien' },
+  IT: { ka: 'იტალია', en: 'Italy', ru: 'Италия', de: 'Italien' },
+  GB: { ka: 'დიდი ბრიტანეთი', en: 'United Kingdom', ru: 'Великобритания', de: 'Vereinigtes Königreich' },
+  US: { ka: 'აშშ', en: 'United States', ru: 'США', de: 'USA' },
+  CA: { ka: 'კანადა', en: 'Canada', ru: 'Канада', de: 'Kanada' },
+  TR: { ka: 'თურქეთი', en: 'Türkiye', ru: 'Турция', de: 'Türkei' },
   // ponytail: names only — no market copy/inventory implied. Hand-written hub
   // copy arrives per launched market (countries/hubs-extra.ts); until then
   // pages stay data-driven (metros, map, live counts), never thin doorway text.
@@ -58,7 +58,7 @@ const CC_COUNTRY: Record<string, { ka: string; en: string; ru: string }> = {
   IR: { ka: 'ირანი', en: 'Iran', ru: 'Иран' },
 }
 
-export function countryOf(cc: string): { ka: string; en: string; ru: string } {
+export function countryOf(cc: string): { ka: string; en: string; ru: string; de?: string } {
   return CC_COUNTRY[cc] ?? { ka: cc, en: cc, ru: cc }
 }
 
@@ -107,11 +107,12 @@ export function matchNeighborhood(
   return cands.find((n) => n.type === 'City') ?? cands[0] ?? null
 }
 
-export type PlaceLoc = 'ka' | 'en' | 'ru'
+export type PlaceLoc = 'ka' | 'en' | 'ru' | 'de'
 
 /** Anchor + heading labels without touching the shared directory-seo dicts. */
 export function placeLabels(loc: PlaceLoc): { area: string; photos: string } {
   if (loc === 'ru') return { area: 'Район', photos: 'Все фото' }
+  if (loc === 'de') return { area: 'Umgebung', photos: 'Alle Fotos' }
   if (loc === 'en') return { area: 'Area', photos: 'All photos' }
   return { area: 'არეალი', photos: 'ყველა ფოტო' }
 }

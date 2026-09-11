@@ -17,9 +17,9 @@ export function dirLoc(lang: Lang): DirLoc {
 export const ON_REQUEST = 'მოთხოვნით'
 
 /** priceFromM2 for display: the on-request marker renders localized, real prices pass through. */
-export function priceFromLabel(v: string, loc: DirLoc): string {
+export function priceFromLabel(v: string, loc: DirLoc | 'de'): string {
   if (v !== ON_REQUEST) return v
-  return loc === 'ru' ? 'По запросу' : loc === 'en' ? 'On request' : v
+  return loc === 'ru' ? 'По запросу' : loc === 'de' ? 'Preis auf Anfrage' : loc === 'en' ? 'On request' : v
 }
 
 /** True when priceFromM2 carries a usable number — marker/empty mean no published price. */
@@ -36,11 +36,11 @@ export function pickLoc(text: { ka: string; en: string; ru: string; de?: string 
   return text.en
 }
 
-/** 'ჩაბარებული (2019)' → 'Completed (2019)' / 'Сдан (2019)'; quarters pass through. */
-export function finishLabel(loc: DirLoc, finish: string): string {
+/** 'ჩაბარებული (2019)' → 'Completed (2019)' / 'Сдан (2019)' / 'Fertiggestellt (2019)'; quarters pass through. */
+export function finishLabel(loc: DirLoc | 'de', finish: string): string {
   if (!finish.startsWith('ჩაბარებული') && !finish.startsWith('გადაცემულია')) return finish
   const year = finish.match(/\((\d{4})\)/)?.[1]
-  const base = loc === 'ka' ? 'ჩაბარებული' : loc === 'ru' ? 'Сдан' : 'Completed'
+  const base = loc === 'ka' ? 'ჩაბარებული' : loc === 'ru' ? 'Сдан' : loc === 'de' ? 'Fertiggestellt' : 'Completed'
   return year ? `${base} (${year})` : base
 }
 
@@ -51,17 +51,19 @@ export function cityIn(city: string, loc: DirLoc): string {
   return loc === 'ka' ? c.loc : loc === 'ru' ? `в ${c.ru}` : `in ${c.en}`
 }
 
-/** '214 ბინა' / '214 flats' / '214 квартир'. */
-export function unitsLabel(n: number, loc: DirLoc): string {
+/** '214 ბინა' / '214 flats' / '214 квартир' / '214 Wohnungen'. */
+export function unitsLabel(n: number, loc: DirLoc | 'de'): string {
   if (loc === 'ka') return `${n} ბინა`
   if (loc === 'ru') return `${n} ${ruPlural(n, 'квартира', 'квартиры', 'квартир')}`
+  if (loc === 'de') return `${n} ${n === 1 ? 'Wohnung' : 'Wohnungen'}`
   return `${n} ${n === 1 ? 'flat' : 'flats'}`
 }
 
-/** '22 სართული' / '22 floors' / '22 этажа'. */
-export function floorsLabel(n: number, loc: DirLoc): string {
+/** '22 სართული' / '22 floors' / '22 этажа' / '22 Etagen'. */
+export function floorsLabel(n: number, loc: DirLoc | 'de'): string {
   if (loc === 'ka') return `${n} სართული`
   if (loc === 'ru') return `${n} ${ruPlural(n, 'этаж', 'этажа', 'этажей')}`
+  if (loc === 'de') return `${n} ${n === 1 ? 'Etage' : 'Etagen'}`
   return `${n} ${n === 1 ? 'floor' : 'floors'}`
 }
 
@@ -266,4 +268,26 @@ export const MICRO: Record<
     page: (n) => `Страница ${n}`,
     emptyProjects: 'Проекты пока недоступны — загляните позже',
   },
+}
+
+/**
+ * German chrome for the DE market — kept out of MICRO/DirLoc (ka/ru share that
+ * Record; widening it would force a 'de' branch onto every Georgia-only hub).
+ * listingsIn takes the already German-resolved city name (DE_CITIES/BERLIN_BEZIRKE),
+ * not the ka catalog key — callers on sivrce.com/de resolve that themselves.
+ */
+export const MICRO_DE: (typeof MICRO)['en'] = {
+  builtPct: (n) => `${n}% gebaut`,
+  handover: 'Übergabe',
+  flats: 'Wohnungen',
+  perM2: '/m²',
+  perM2From: '/m² ab',
+  priceFromM2: 'Preis ab /m²',
+  website: 'Webseite',
+  listingsIn: (city) => `Angebote in ${city}`,
+  listingsShort: 'Angebote',
+  prev: 'Vorherige Seite',
+  next: 'Nächste Seite',
+  page: (n) => `Seite ${n}`,
+  emptyProjects: 'Noch keine Projekte verfügbar — schau später wieder vorbei',
 }

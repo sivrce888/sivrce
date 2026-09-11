@@ -49,7 +49,9 @@ import { DE_CITIES } from '@/lib/countries/de'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import {
   MICRO,
+  MICRO_DE,
   PROJECT_DETAIL,
+  PROJECT_DETAIL_DE,
   dirLoc,
   faqPageLd,
   finishLabel,
@@ -99,7 +101,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const body = (pickLoc(p.description, lang === 'de' ? 'de' : loc) || `${p.name}, ${p.location}`).replace(/\s+/g, ' ')
   // Both scripts up front — Google/AI bold whichever the query used.
   const description = ((alt && !body.includes(alt) ? `${p.name} (${alt}). ` : '') + body).slice(0, 155)
-  const title = PROJECT_DETAIL[loc].titleOf(p)
+  const title = (lang === 'de' ? PROJECT_DETAIL_DE : PROJECT_DETAIL[loc]).titleOf(p)
   // Georgian transliteration wins on ka (users search "ჩარგლის რეზიდენსი", not the Latin brand).
   const displayName = lang === 'ka' && p.nameKa ? p.nameKa : p.name
   const og = ogImage(p.img)
@@ -154,9 +156,11 @@ export default async function ProjectPage({ params }: PageProps) {
   const { lang, slug, market } = await params
   if (!isValidLang(lang)) notFound()
   const de = market === 'de'
+  const isDe = lang === 'de'
   const loc = dirLoc(lang)
-  const c = PROJECT_DETAIL[loc]
-  const micro = MICRO[loc]
+  const c = isDe ? PROJECT_DETAIL_DE : PROJECT_DETAIL[loc]
+  const micro = isDe ? MICRO_DE : MICRO[loc]
+  const chromeLoc = isDe ? 'de' : loc
 
   const [project, liveProjects] = await Promise.all([getLiveProject(slug), projectsLive()])
   if (!project) notFound()
@@ -201,7 +205,7 @@ export default async function ProjectPage({ params }: PageProps) {
   // Exact-building pin — committed OSM footprint beats street-level geocode drift.
   const fpPin = hasGeo ? footprintPin({ slug: project.slug }, project.coords) : null
   const aboutText =
-    pickLoc(project.description, lang === 'de' ? 'de' : loc) || project.description.ka || project.description.en
+    pickLoc(project.description, chromeLoc) || project.description.ka || project.description.en
 
   // alternateName: curated ka name or derived translit — the other-script form
   // for entity matching in Google/AI (users search 'არჩი უნივერსი' AND 'Archi Universe').
@@ -298,12 +302,12 @@ export default async function ProjectPage({ params }: PageProps) {
   // Structured facts (crawlable dl) — only rows the data actually supports.
   const detailRows: { label: string; value: string }[] = [
     ...(project.priceFromM2
-      ? [{ label: micro.priceFromM2, value: priceFromLabel(project.priceFromM2, loc) }]
+      ? [{ label: micro.priceFromM2, value: priceFromLabel(project.priceFromM2, chromeLoc) }]
       : []),
     { label: c.statsBuilt, value: `${project.done}%` },
-    { label: micro.handover, value: finishLabel(loc, project.finish) },
-    { label: micro.flats, value: unitsLabel(project.flats, loc) },
-    ...(project.floors ? [{ label: c.floorsRow, value: floorsLabel(project.floors, loc) }] : []),
+    { label: micro.handover, value: finishLabel(chromeLoc, project.finish) },
+    { label: micro.flats, value: unitsLabel(project.flats, chromeLoc) },
+    ...(project.floors ? [{ label: c.floorsRow, value: floorsLabel(project.floors, chromeLoc) }] : []),
     ...(project.cadastral ? [{ label: c.cadastral, value: project.cadastral }] : []),
     { label: c.location, value: `${project.location}, ${de && deCity ? deCity.de : project.city}` },
   ]
@@ -312,7 +316,7 @@ export default async function ProjectPage({ params }: PageProps) {
     ...(floorsFc || hasGeo
       ? [{ id: 'location', label: floorsFc && cluster ? c.building3d : c.location }]
       : []),
-    ...(floorsFc || hasGeo ? [{ id: 'area', label: placeLabels(loc).area }] : []),
+    ...(floorsFc || hasGeo ? [{ id: 'area', label: placeLabels(chromeLoc).area }] : []),
     { id: 'details', label: c.details },
     ...((project.gallery?.length ?? 0) > 0 ? [{ id: 'gallery', label: c.gallery }] : []),
     ...(project.passportUrl ? [{ id: 'plans', label: c.floorPlan }] : []),
@@ -381,7 +385,7 @@ export default async function ProjectPage({ params }: PageProps) {
                     className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <Landmark className="h-4 w-4 text-white/50" aria-hidden />
-                    {lang === 'de' ? 'Offizielle Quelle' : 'Official source'}
+                    {isDe ? 'Offizielle Quelle' : 'Official source'}
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
                   </a>
                 )}
@@ -407,12 +411,12 @@ export default async function ProjectPage({ params }: PageProps) {
                       ? [
                           {
                             label: micro.priceFromM2,
-                            value: priceFromLabel(project.priceFromM2, loc),
+                            value: priceFromLabel(project.priceFromM2, chromeLoc),
                           },
                         ]
                       : []),
                     { label: c.statsBuilt, value: `${project.done}%` },
-                    { label: micro.handover, value: finishLabel(loc, project.finish) },
+                    { label: micro.handover, value: finishLabel(chromeLoc, project.finish) },
                     { label: micro.flats, value: String(project.flats) },
                   ]}
                 />
@@ -451,10 +455,10 @@ export default async function ProjectPage({ params }: PageProps) {
               </span>
               <span className="flex items-center gap-1.5">
                 <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> {micro.handover}{' '}
-                {finishLabel(loc, project.finish)}
+                {finishLabel(chromeLoc, project.finish)}
               </span>
               <span className="flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(project.flats, loc)}
+                <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(project.flats, chromeLoc)}
               </span>
             </p>
           </div>
@@ -610,7 +614,7 @@ export default async function ProjectPage({ params }: PageProps) {
                     <h3 className="text-[14px] font-black text-sv-ink">{p.name}</h3>
                     {p.priceFromM2 && (
                       <p className="mt-1 text-[12px] font-bold text-sv-ink/60">
-                        {priceFromLabel(p.priceFromM2, loc)}
+                        {priceFromLabel(p.priceFromM2, chromeLoc)}
                         {hasPriceFrom(p.priceFromM2) && micro.perM2}
                       </p>
                     )}
@@ -624,7 +628,7 @@ export default async function ProjectPage({ params }: PageProps) {
         {listings.length > 0 && (
           <section id="listings" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              {micro.listingsIn(project.city)}
+              {micro.listingsIn(isDe ? (deCity?.de ?? project.city) : project.city)}
             </h2>
             <div className="mt-6 sv-card-grid-3">
               {listings.map((l, i) => (
@@ -638,7 +642,7 @@ export default async function ProjectPage({ params }: PageProps) {
           title={sourcesCopy.title}
           note={sourcesCopy.note}
           rows={factRows}
-          altLabel={lang === 'de' ? 'Auch gemeldet:' : 'Also reported:'}
+          altLabel={isDe ? 'Auch gemeldet:' : 'Also reported:'}
           className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10"
           id="sources"
         />
