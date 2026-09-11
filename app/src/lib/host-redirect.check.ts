@@ -107,9 +107,24 @@ assert.deepEqual(localAe, { type: 'rewrite', pathname: '/en/ae/dubai', market: '
 const wwwAe = decideHost({ host: 'www.sivrce.ae', pathname: '/', vercelEnv: 'production' })
 assert.deepEqual(wwwAe, { type: 'redirect', origin: COM_ORIGIN, pathname: '/ae' })
 
-// Unlaunched country codes on .com fall through to Georgia (no thin pages).
+// Unlaunched ISO codes are not a thing anymore — FR is a live .com path.
 const comFr = decideHost({ host: 'sivrce.com', pathname: '/fr/paris', vercelEnv: 'production' })
-assert.deepEqual(comFr, { type: 'redirect', origin: GE_ORIGIN, pathname: '/fr/paris' })
+assert.deepEqual(comFr, { type: 'rewrite', pathname: '/en/fr/paris', market: 'fr' })
+
+const comAbout = decideHost({ host: 'sivrce.com', pathname: '/about', vercelEnv: 'production' })
+assert.deepEqual(comAbout, { type: 'rewrite', pathname: '/en/about', market: 'global' })
+
+const comEnAbout = decideHost({ host: 'sivrce.com', pathname: '/en/about', vercelEnv: 'production' })
+assert.deepEqual(comEnAbout, { type: 'rewrite', pathname: '/en/about', market: 'global' })
+
+const comUae = decideHost({ host: 'sivrce.com', pathname: '/uae/dubai', vercelEnv: 'production' })
+assert.deepEqual(comUae, { type: 'redirect', origin: 'same', pathname: '/ae/dubai' })
+
+const comUk = decideHost({ host: 'sivrce.com', pathname: '/uk', vercelEnv: 'production' })
+assert.deepEqual(comUk, { type: 'redirect', origin: 'same', pathname: '/gb' })
+
+const localUae = decideHost({ host: 'localhost', pathname: '/uae' })
+assert.deepEqual(localUae, { type: 'redirect', origin: 'same', pathname: '/ae' })
 
 const geUkLang = decideHost({ host: 'sivrce.ge', pathname: '/uk', vercelEnv: 'production' })
 assert.deepEqual(geUkLang, { type: 'pass', market: 'ge' })
@@ -117,6 +132,8 @@ const geTrLang = decideHost({ host: 'sivrce.ge', pathname: '/tr', vercelEnv: 'pr
 assert.deepEqual(geTrLang, { type: 'pass', market: 'ge' })
 
 assert.ok(isCountryPath('/ae/dubai'))
+assert.ok(isCountryPath('/fr/paris'))
+assert.ok(isCountryPath('/gb'))
 assert.ok(!isCountryPath('/en/madrid'))
 assert.ok(safeRedirectUrl(COM_ORIGIN, '/de', '?utm=1')?.search.includes('utm=1'))
 

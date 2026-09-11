@@ -90,10 +90,22 @@ test.describe("Public pages", () => {
     await expect(page.locator("h1").first()).toBeVisible()
   })
 
-  test("Arabic UAE hub loads", async ({ page }) => {
-    const res = await page.goto(`${BASE}/ar/ae`)
+  test("France country hub loads", async ({ page }) => {
+    const res = await page.goto(`${BASE}/en/fr`)
     expect(res?.status()).toBe(200)
     await expect(page.locator("h1").first()).toBeVisible()
+  })
+
+  test("UK country hub loads at /gb", async ({ page }) => {
+    const res = await page.goto(`${BASE}/en/gb`)
+    expect(res?.status()).toBe(200)
+    await expect(page.locator("h1").first()).toBeVisible()
+  })
+
+  test("UAE alias /en/uae redirects to /en/ae", async ({ page }) => {
+    const res = await page.goto(`${BASE}/en/uae`)
+    expect(res?.status()).toBe(200)
+    expect(page.url()).toMatch(/\/en\/ae\/?$/)
   })
 
   test("Germany hub canonical points at sivrce.com", async ({ page }) => {

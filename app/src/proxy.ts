@@ -12,7 +12,8 @@ import { GE_ORIGIN, MARKET_HEADER, hostKind, isOwnHost, safeRedirectUrl } from "
 /**
  * Edge-level defense in depth for protected routes + locale routing
  * + multi-host routing (admin / api / cdn / app / analytics / images)
- * + country paths on sivrce.com (/de, /ae; add a MARKETS row to launch more).
+ * + country paths on sivrce.com (/de /ae /fr /es /it /gb /us /ca /tr;
+ *   /uae→/ae, /uk→/gb). Georgia catalog on .com still 308s to sivrce.ge.
  *
  * Route-based i18n: every public page lives under app/[lang]. ka is the
  * canonical default and stays URL-unprefixed — this proxy INTERNALLY

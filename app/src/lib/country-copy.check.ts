@@ -2,7 +2,7 @@
  * Runnable check: npx tsx src/lib/country-copy.check.ts
  */
 import assert from 'node:assert/strict'
-import { MARKETS } from './markets'
+import { COUNTRY_IDS, MARKETS } from './markets'
 import {
   AE_CITIES,
   AE_HUB,
@@ -35,8 +35,7 @@ for (const slug of MARKETS.ae.citySlugs) {
   assert.ok(AE_CITIES[slug], `missing AE copy for ${slug}`)
 }
 
-// Unique copy exists for launched hubs (DE/AE). Other market rows are URL-ready, copy later.
-const LAUNCHED = ['de', 'ae'] as const
+const LAUNCHED = COUNTRY_IDS
 const ledes: string[] = []
 for (const cc of LAUNCHED) {
   const hub = COUNTRY_HUBS[cc]

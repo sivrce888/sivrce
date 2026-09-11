@@ -28,6 +28,7 @@ assert.equal(placeFromIp(0, 0, 'Berlin')?.slug, 'berlin')
 assert.equal(placeFromIp(0, 0, 'Paris')?.slug, 'paris')
 
 assert.ok(slugsForMarket('de')?.has('berlin'))
+assert.ok(slugsForMarket('fr')?.has('paris'))
 assert.equal(slugsForMarket('de')?.has('tbilisi'), false)
 assert.equal(slugsForMarket('global'), undefined)
 

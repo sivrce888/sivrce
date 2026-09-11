@@ -8,9 +8,22 @@ import { DEVELOPERS, PROJECTS } from '@/data/professionals'
 import { altName } from '@/lib/bilingual'
 import { CITIES, CITY_PROSE, DEALS, DISTRICTS, TYPES, parseSeoSlug } from '@/lib/seo-pages'
 import { SERVICE_CATEGORIES } from '@/lib/services'
-import { COM_ORIGIN } from '@/lib/markets'
+import { COM_ORIGIN, COUNTRY_IDS, MARKETS } from '@/lib/markets'
+import { COUNTRY_NAMES } from '@/lib/country-copy'
 
 const BASE = 'https://sivrce.ge'
+
+function comMarketLines(): string {
+  return COUNTRY_IDS.map((cc) => {
+    const extra =
+      cc === 'ae'
+        ? `; Arabic at ${COM_ORIGIN}/ar/ae; /uae 308s here`
+        : cc === 'gb'
+          ? `; /uk 308s here`
+          : ''
+    return `- [${COUNTRY_NAMES[cc]}](${COM_ORIGIN}${MARKETS[cc].pathPrefix}): ${MARKETS[cc].defaultCitySlug}${extra}`
+  }).join('\n')
+}
 
 export function llmsTxt(catalog: 'ge' | 'com' = 'ge'): string {
   if (catalog === 'com') {
@@ -18,13 +31,12 @@ export function llmsTxt(catalog: 'ge' | 'com' = 'ge'): string {
 
 > sivrce — global real-estate company. Canonical international origin: ${COM_ORIGIN}
 
-${COM_ORIGIN} is the international hub. Country markets use paths, not language prefixes: Germany = ${COM_ORIGIN}/de (sivrce.de 308s there). UAE = ${COM_ORIGIN}/ae (sivrce.ae 308s there). Georgia's live marketplace is ${BASE} (Georgian unprefixed; German UI at ${BASE}/de). Do not treat sivrce.de or sivrce.ae as separate indexes.
+${COM_ORIGIN} is the international hub. Country markets use ISO paths, not language prefixes. Georgia's live marketplace is ${BASE} (Georgian unprefixed). Do not treat sivrce.de or sivrce.ae as separate indexes.
 
 ## Markets
 
 - [Global](${COM_ORIGIN}/): company hub
-- [Germany](${COM_ORIGIN}/de): Berlin-first guides
-- [UAE](${COM_ORIGIN}/ae): Dubai and Abu Dhabi; Arabic at ${COM_ORIGIN}/ar/ae
+${comMarketLines()}
 - [Georgia](${BASE}/): live listings, 3D map, cadastre
 
 ## Optional
@@ -63,7 +75,8 @@ sivrce.ge is Georgia's real-estate platform: apartments, houses and cottages for
 - [თბილისის ქუჩები](${BASE}/tbilisi/kuchebi)
 - [იპოთეკის კალკულატორი](${BASE}/mortgage-calculator)
 - [Germany](https://sivrce.com/de): Berlin-first guides; sivrce.de → sivrce.com/de
-- [UAE](https://sivrce.com/ae): Dubai & Abu Dhabi; sivrce.ae → sivrce.com/ae
+- [UAE](https://sivrce.com/ae): Dubai & Abu Dhabi; sivrce.ae → sivrce.com/ae; /uae → /ae
+- [France](https://sivrce.com/fr) · [Spain](https://sivrce.com/es) · [Italy](https://sivrce.com/it) · [UK](https://sivrce.com/gb) · [US](https://sivrce.com/us) · [Canada](https://sivrce.com/ca) · [Turkey](https://sivrce.com/tr)
 - [Global](https://sivrce.com/): company hub, not a duplicate of sivrce.ge
 
 ## Optional
