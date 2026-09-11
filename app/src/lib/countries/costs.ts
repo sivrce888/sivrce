@@ -51,6 +51,8 @@ export interface CountryCosts {
   sample: number | null
   /** Who closes the sale in this system. */
   closer: string
+  /** Total-row label, in the local idiom ("at the notaire", "at completion"). */
+  cashLabel: string
   /** Local legal name of the headline buyer tax. */
   taxLabel: string
   /** Buyer-side lines that do not vary by city, % of price. */
@@ -78,6 +80,7 @@ export interface CountryCosts {
 const fr: CountryCosts = {
   sample: 400_000,
   closer: 'Notaire',
+  cashLabel: 'Cash needed at the notaire',
   taxLabel: 'Droits de mutation (DMTO)',
   extras: [
     { label: 'Émoluments du notaire (≈0.8%)', pct: 0.8 },
@@ -118,6 +121,7 @@ const fr: CountryCosts = {
 const es: CountryCosts = {
   sample: 300_000,
   closer: 'Notario',
+  cashLabel: 'Cash needed at the notaría',
   taxLabel: 'ITP — resale transfer tax',
   extras: [
     { label: 'Notario (≈0.5%)', pct: 0.5 },
@@ -159,6 +163,7 @@ const es: CountryCosts = {
 const it: CountryCosts = {
   sample: 300_000,
   closer: 'Notaio',
+  cashLabel: 'Cash needed at the notaio',
   taxLabel: 'Imposta di registro (second home)',
   extras: [
     { label: 'Notaio (≈1.5%)', pct: 1.5 },
@@ -236,6 +241,7 @@ const lbtt = (region: string): CityFact => ({
 const gb: CountryCosts = {
   sample: 500_000,
   closer: 'Solicitor / conveyancer',
+  cashLabel: 'Cash needed at completion',
   taxLabel: 'Stamp duty (slice bands)',
   extras: [
     { label: 'Legal, searches & Land Registry (≈0.4%)', pct: 0.4 },
@@ -276,6 +282,7 @@ const gb: CountryCosts = {
 const us: CountryCosts = {
   sample: 750_000,
   closer: 'Title company or closing attorney',
+  cashLabel: 'Cash needed at closing',
   taxLabel: 'Local transfer tax, buyer share',
   extras: [
     { label: "Owner's title insurance (≈0.5%)", pct: 0.5 },
@@ -316,7 +323,8 @@ const us: CountryCosts = {
 
 const ca: CountryCosts = {
   sample: 900_000,
-  closer: 'Real estate lawyer, or notaire in Québec',
+  closer: 'Real estate lawyer (notaire in Québec)',
+  cashLabel: 'Cash needed at closing',
   taxLabel: 'Land transfer tax',
   extras: [
     { label: 'Lawyer, title insurance & disbursements (≈0.4%)', pct: 0.4 },
@@ -357,6 +365,7 @@ const ca: CountryCosts = {
 const tr: CountryCosts = {
   sample: null,
   closer: 'Tapu ve Kadastro (land registry)',
+  cashLabel: 'Total at the tapu office',
   taxLabel: 'Tapu harcı (title deed fee)',
   extras: [
     { label: 'Döner sermaye & registry service fee', pct: 0.15 },
@@ -398,6 +407,7 @@ const tr: CountryCosts = {
 const ae: CountryCosts = {
   sample: 1_500_000,
   closer: 'Land Department trustee office',
+  cashLabel: 'Cash needed at the trustee office',
   taxLabel: 'Land Department transfer fee',
   extras: [
     { label: 'Trustee office & title issuance', pct: 0.15 },
@@ -438,6 +448,7 @@ const ae: CountryCosts = {
 const de: CountryCosts = {
   sample: 500_000,
   closer: 'Notar',
+  cashLabel: 'Cash needed at the notary',
   taxLabel: 'Grunderwerbsteuer',
   extras: [
     { label: `Notar (≈${DE_NOTARY_PCT}%)`, pct: DE_NOTARY_PCT },

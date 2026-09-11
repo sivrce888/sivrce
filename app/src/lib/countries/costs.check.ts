@@ -26,6 +26,7 @@ for (const cc of COUNTRY_IDS) {
   const m = MARKET_COSTS[cc]
   assert.ok(m, `no cost model: ${cc}`)
   assert.ok(m.closer.length > 2, `closer: ${cc}`)
+  assert.ok(m.cashLabel.length > 8, `cashLabel: ${cc}`)
   assert.ok(m.taxLabel.length > 2, `taxLabel: ${cc}`)
   assert.ok(m.note.length > 80, `thin note: ${cc}`)
   assert.equal(m.rentRules.length, 3, `3 rent rules: ${cc}`)

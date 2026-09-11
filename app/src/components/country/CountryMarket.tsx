@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import CountryHero from '@/components/country/CountryHero'
-import { Reveal } from '@/components/Reveal'
+import MarketHome from '@/components/country/MarketHome'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { COM_ORIGIN, canonicalIntent, MARKETS, type PathCountryId } from '@/lib/markets'
@@ -119,7 +117,9 @@ export async function countryMetadata(
     languages.ar = `${COM_ORIGIN}/ar${path}`
   }
   return {
-    title: found.copy.title,
+    // Copy strings already carry the "| sivrce" suffix; `absolute` stops the
+    // layout template from appending a second one.
+    title: { absolute: found.copy.title },
     description: found.copy.description,
     alternates: { canonical: url, languages },
     openGraph: {
@@ -222,12 +222,6 @@ export default async function CountryPage({
     ],
   }
 
-  const cities = MARKETS[country].citySlugs.filter((s) => cityPack(country, s))
-  const cityChips = cities.flatMap((s) => {
-    const p = cityPack(country, s)
-    return p ? [{ slug: s, name: p.name }] : []
-  })
-  const pack = found.city ? cityPack(country, found.city) : null
   const ldScript = <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
 
   if (country === 'de') {
@@ -244,94 +238,14 @@ export default async function CountryPage({
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main id="main">
-        <CountryHero
-          country={country}
-          copy={found.copy}
-          city={found.city}
-          intent={found.intent}
-          cities={cityChips}
-          lang={lang}
-        />
-        <div className="sv-container py-12">
-          <nav aria-label="Breadcrumb" className="mb-8 text-[13px] font-semibold text-sv-ink/50">
-            {crumbs.map((c, i) => (
-              <span key={c.href}>
-                {i > 0 ? <span className="px-2">/</span> : null}
-                <a href={c.href} className="hover:text-sv-blue">{c.name}</a>
-              </span>
-            ))}
-          </nav>
-          <Reveal>
-            <article className="speakable-lead max-w-3xl space-y-5 text-[16px] font-medium leading-relaxed text-sv-ink/80">
-              {found.copy.body.map((p) => (
-                <p key={p.slice(0, 24)}>{p}</p>
-              ))}
-            </article>
-          </Reveal>
-          {pack && found.kind === 'city' && (pack.buy || pack.rent) && (
-            <div className="mt-10 flex flex-wrap gap-3">
-              {pack.buy && (
-                <Link
-                  href={`${market.pathPrefix}/${found.city}/buy`}
-                  className="rounded-full bg-sv-blue px-5 py-2.5 text-[14px] font-extrabold text-white"
-                >
-                  Buy in {pack.name}
-                </Link>
-              )}
-              {pack.rent && (
-                <Link
-                  href={`${market.pathPrefix}/${found.city}/rent`}
-                  className="rounded-full border border-sv-ink/10 px-5 py-2.5 text-[14px] font-extrabold text-sv-ink"
-                >
-                  Rent in {pack.name}
-                </Link>
-              )}
-            </div>
-          )}
-          {found.kind === 'hub' && (
-            <ul className="mt-12 grid gap-3 sm:grid-cols-2">
-              {cities.map((s) => {
-                const p = cityPack(country, s)
-                if (!p) return null
-                return (
-                  <li key={s}>
-                    <Link
-                      href={`${market.pathPrefix}/${s}`}
-                      className="block rounded-[22px] border border-sv-ink/8 bg-sv-surface px-5 py-4 font-extrabold text-sv-ink hover:border-sv-blue/30"
-                    >
-                      {p.name}
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-          {found.copy.faqs.length > 0 && (
-            <section className="mt-14 max-w-3xl">
-              <h2 className="text-[22px] font-black tracking-tight text-sv-ink">FAQ</h2>
-              <dl className="mt-6 space-y-6">
-                {found.copy.faqs.map((f) => (
-                  <div key={f.q}>
-                    <dt className="font-extrabold text-sv-ink">{f.q}</dt>
-                    <dd className="mt-2 text-[15px] font-medium text-sv-ink/75">{f.a}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          )}
-          <p className="mt-14 text-[13px] font-semibold text-sv-ink/45">
-            All markets:{' '}
-            <a href={`${COM_ORIGIN}/?worldwide=1`} className="text-sv-blue">sivrce.com</a>
-            {' · '}
-            Georgia marketplace:{' '}
-            <a href="https://sivrce.ge/" className="text-sv-blue">sivrce.ge</a>
-            {' · '}
-            Prices and availability are published only when a verified listing exists.
-            Market currency: {market.currency}.
-          </p>
-        </div>
-      </main>
+      <MarketHome
+        country={country}
+        copy={found.copy}
+        city={found.city}
+        intent={found.intent}
+        lang={lang}
+        crumbs={crumbs}
+      />
       <Footer />
       {ldScript}
     </div>

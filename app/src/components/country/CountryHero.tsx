@@ -2,24 +2,14 @@ import { BadgeCheck, Landmark, ShieldCheck } from 'lucide-react'
 import HeroBackground from '@/components/sections/HeroBackground'
 import CountrySearch, { type CountryCityChip } from '@/components/country/CountrySearch'
 import { MARKETS, type PathCountryId } from '@/lib/markets'
+import { marketTrust } from '@/lib/countries/costs'
 import { COUNTRY_NAMES, heroPair, type CountryCopy } from '@/lib/country-copy'
 import { mapHrefForPlace } from '@/lib/map/map-href'
 import { cityBySlug } from '@/lib/map/user-place'
 import { marketCenter } from '@/lib/geo-market'
 import type { Lang } from '@/lib/i18n/core'
 
-const TRUST: Record<string, [string, string, string]> = {
-  de: ['Street-verified new-builds', 'Notary & Grundbuch', '3D map'],
-  ae: ['Freehold zones', 'RERA escrow', '3D map'],
-}
-
 const TRUST_DE: [string, string, string] = ['Straßenverifizierte Neubauten', 'Notar & Grundbuch', '3D-Karte']
-
-const TRUST_DEFAULT: [string, string, string] = [
-  'City guides live',
-  'Verified listings as they land',
-  '3D map',
-]
 
 export default function CountryHero({
   country,
@@ -41,7 +31,9 @@ export default function CountryHero({
   const pin = city ? cityBySlug(city) : null
   const cam = pin ?? marketCenter(country)
   const mapHref = mapHrefForPlace(cam.lat, cam.lng, 12.8, market.countryCode)
-  const trust = country === 'de' && lang === 'de' ? TRUST_DE : (TRUST[country] ?? TRUST_DEFAULT)
+  // Trust row names what this market actually verifies — the notaire path in
+  // France, Land Registry in the UK, the tapu in Turkey. One source: costs.ts.
+  const trust = country === 'de' && lang === 'de' ? TRUST_DE : marketTrust(country)
   const countryLabel = country === 'de' && lang === 'de' ? 'Deutschland' : COUNTRY_NAMES[country]
   const icons = [BadgeCheck, ShieldCheck, Landmark] as const
 
