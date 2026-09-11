@@ -165,7 +165,9 @@ function lage(p: Project): Buffer {
   const lat = `${Math.abs(p.coords.lat).toFixed(4)}° ${p.coords.lat >= 0 ? 'N' : 'S'}`
   const lng = `${Math.abs(p.coords.lng).toFixed(4)}° ${p.coords.lng >= 0 ? 'E' : 'W'}`
   const parts = p.location.split(',').map((s) => s.trim())
-  const district = parts[parts.length - 1]
+  const city = cityOf(p).toLowerCase()
+  let district = (parts[parts.length - 1] ?? '').replace(/^\d{5}\s+/, '')
+  if (district.toLowerCase() === city && parts.length > 1) district = parts[parts.length - 2]
   const street = parts.slice(0, -1).join(', ')
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   ${DEFS}
