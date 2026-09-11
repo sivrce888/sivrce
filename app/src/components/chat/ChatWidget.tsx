@@ -743,6 +743,8 @@ function MessageThread({
     )
   }
 
+  const seed = listingId ? (peekChatDraft(listingId) ?? "") : ""
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Connection status — optimistic until the stream proves otherwise */}
@@ -852,7 +854,7 @@ function MessageThread({
         )}
       </div>
 
-      {messages.length === 0 && !isSupport && listingId && !peekChatDraft(listingId) && (
+      {messages.length === 0 && !isSupport && listingId && !seed && (
         <div className="border-t border-sv-ink/[0.06] px-3 pb-1 pt-2">
           <p className="px-0.5 pb-2 text-[11.5px] font-bold text-sv-ink/60">{t("chat.suggestHint")}</p>
           <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -880,7 +882,7 @@ function MessageThread({
       <Composer
         roomId={roomId}
         listingId={listingId}
-        initialValue={listingId ? (peekChatDraft(listingId) ?? "") : ""}
+        initialValue={seed}
         sendText={sendText}
       />
     </div>
