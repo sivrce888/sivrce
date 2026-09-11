@@ -20,11 +20,19 @@ assert.ok(short.includes('უძრავი ქონება'), 'llms.txt mis
 assert.ok(short.includes('/daily'), 'llms.txt missing daily hub')
 assert.ok(!/myhome|ss\.ge/i.test(short), 'llms.txt must not name competitors')
 
+const com = llmsTxt('com')
+assert.ok(com.includes('https://sivrce.com/de'), 'com llms.txt missing Germany')
+assert.ok(com.includes('https://sivrce.com/ae'), 'com llms.txt missing UAE')
+assert.ok(com.includes('https://sivrce.ge'), 'com llms.txt must point at Georgia catalog')
+assert.ok(!com.includes('https://sivrce.ge/sale'), 'com llms.txt must not dump Georgia sale hubs')
+assert.ok(!/myhome|ss\.ge/i.test(com), 'com llms.txt must not name competitors')
+
 const full = llmsFullTxt()
 assert.ok(full.startsWith('# sivrce'), 'llms-full.txt needs an H1')
 assert.ok(full.includes('https://sivrce.com/de'), 'llms-full missing Germany hub')
 assert.ok(full.includes('https://sivrce.com/ae'), 'llms-full missing UAE')
 assert.ok(!/myhome|ss\.ge/i.test(full), 'llms-full must not name competitors')
+assert.ok(llmsFullTxt('com').includes('https://sivrce.ge/llms-full.txt'), 'com llms-full must point at Georgia catalog')
 
 const inventory = new Set(['tbilisi', 'batumi', 'kutaisi'])
 for (const c of CITIES) {

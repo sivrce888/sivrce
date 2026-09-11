@@ -113,8 +113,10 @@ test.describe("SEO", () => {
     const res = await page.goto(`${BASE}/sitemap.xml`)
     expect(res?.status()).toBe(200)
     const text = await page.content()
-    expect(text).toContain("<urlset")
-    expect(text).toContain("sivrce.com/de")
+    expect(text).toMatch(/<urlset|<sitemapindex/)
+    const com = await page.goto(`${BASE}/sitemap/com.xml`)
+    expect(com?.status()).toBe(200)
+    expect(await page.content()).toContain("sivrce.com/de")
   })
 
   test("robots.txt exists", async ({ page }) => {

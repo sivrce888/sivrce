@@ -110,6 +110,20 @@ export function canonicalOrigin(market: MarketId): string {
   return market === 'ge' ? GE_ORIGIN : COM_ORIGIN
 }
 
+/** Production .com (and defensive ccTLDs) vs Georgia. Dev/preview → ge for catalog default. */
+export function publicOriginKind(kind: HostKind): 'ge' | 'com' {
+  return kind === 'com' || kind === 'de-cctld' || kind === 'ae-cctld' ? 'com' : 'ge'
+}
+
+/**
+ * Sitemap URL set for this host.
+ * Prod splits so each origin only lists itself. Dev/preview keep both so local e2e still sees /de.
+ */
+export function sitemapScope(kind: HostKind): 'ge' | 'com' | 'all' {
+  if (kind === 'dev' || kind === 'preview') return 'all'
+  return publicOriginKind(kind)
+}
+
 /** Safe URL: origin is allowlisted, path must be a relative site path. */
 export function safeRedirectUrl(origin: string, pathname: string, search = ''): URL | null {
   if (origin !== GE_ORIGIN && origin !== COM_ORIGIN) return null

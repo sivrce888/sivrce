@@ -71,8 +71,16 @@ function toSitemapEntry({ path, lastModified, changeFrequency, priority, locale 
   }
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // DB-first listing URLs; static mock is the build-time/outage fallback.
+export async function generateSitemaps() {
+  return [{ id: 'ge' }, { id: 'com' }]
+}
+
+export default async function sitemap({ id }: { id: string }): Promise<MetadataRoute.Sitemap> {
+  if (id === 'com') return countrySitemap()
+  return georgiaSitemap()
+}
+
+async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
   let listings: Listing[] = LISTINGS
   try {
     const rows = await getAllListings(5000)
@@ -262,7 +270,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
-  return [...entries.map(toSitemapEntry), ...countrySitemap()]
+  return entries.map(toSitemapEntry)
 }
 
 function countrySitemap(): MetadataRoute.Sitemap {
@@ -274,7 +282,6 @@ function countrySitemap(): MetadataRoute.Sitemap {
       alternates: {
         languages: {
           en: `${COM_ORIGIN}/`,
-          ka: `${BASE}/`,
           'x-default': `${COM_ORIGIN}/`,
         },
       },

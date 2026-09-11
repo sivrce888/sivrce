@@ -2,7 +2,7 @@
  * Runnable check: npx tsx src/lib/site-host.check.ts
  */
 import assert from 'node:assert/strict'
-import { isDeHost, isOwnHost, siteHostFor, hostKind, COM_ORIGIN } from './site-host'
+import { isDeHost, isOwnHost, siteHostFor, hostKind, COM_ORIGIN, publicOriginKind, sitemapScope } from './site-host'
 
 assert.equal(siteHostFor('sivrce.ge').market, 'ge')
 assert.equal(siteHostFor('sivrce.ge').defaultLang, 'ka')
@@ -17,5 +17,13 @@ assert.equal(isOwnHost('www.sivrce.de'), true)
 assert.equal(isOwnHost('ss.ge'), false)
 assert.equal(hostKind('sivrce.com'), 'com')
 assert.equal(hostKind('sivrce.ae'), 'ae-cctld')
+assert.equal(publicOriginKind('com'), 'com')
+assert.equal(publicOriginKind('de-cctld'), 'com')
+assert.equal(publicOriginKind('ge'), 'ge')
+assert.equal(publicOriginKind('dev'), 'ge')
+assert.equal(sitemapScope('com'), 'com')
+assert.equal(sitemapScope('ge'), 'ge')
+assert.equal(sitemapScope('dev'), 'all')
+assert.equal(sitemapScope('preview'), 'all')
 
 console.log('site-host.check: ok')

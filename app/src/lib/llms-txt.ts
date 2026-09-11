@@ -8,10 +8,32 @@ import { DEVELOPERS, PROJECTS } from '@/data/professionals'
 import { altName } from '@/lib/bilingual'
 import { CITIES, CITY_PROSE, DEALS, DISTRICTS, TYPES, parseSeoSlug } from '@/lib/seo-pages'
 import { SERVICE_CATEGORIES } from '@/lib/services'
+import { COM_ORIGIN } from '@/lib/markets'
 
 const BASE = 'https://sivrce.ge'
 
-export function llmsTxt(): string {
+export function llmsTxt(catalog: 'ge' | 'com' = 'ge'): string {
+  if (catalog === 'com') {
+    return `# sivrce
+
+> sivrce — global real-estate company. Canonical international origin: ${COM_ORIGIN}
+
+${COM_ORIGIN} is the international hub. Country markets use paths, not language prefixes: Germany = ${COM_ORIGIN}/de (sivrce.de 308s there). UAE = ${COM_ORIGIN}/ae (sivrce.ae 308s there). Georgia's live marketplace is ${BASE} (Georgian unprefixed; German UI at ${BASE}/de). Do not treat sivrce.de or sivrce.ae as separate indexes.
+
+## Markets
+
+- [Global](${COM_ORIGIN}/): company hub
+- [Germany](${COM_ORIGIN}/de): Berlin-first guides
+- [UAE](${COM_ORIGIN}/ae): Dubai and Abu Dhabi; Arabic at ${COM_ORIGIN}/ar/ae
+- [Georgia](${BASE}/): live listings, 3D map, cadastre
+
+## Optional
+
+- Georgia catalog: ${BASE}/llms.txt
+- Sitemap: ${COM_ORIGIN}/sitemap.xml
+- Contact: hi@sivrce.ge · +995 500 333 111 (phone/WhatsApp)
+`
+  }
   return `# sivrce
 
 > sivrce (სივრცე) — უძრავი ქონება საქართველოში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, გაიცემა იჯარით, გირავდება და ქირავდება დღიურად. თბილისი, საბურთალო, ბათუმი. 3D რუკა, ვერიფიკაცია, AI ფასის შეფასება. Canonical: ${BASE}
@@ -52,7 +74,13 @@ sivrce.ge is Georgia's real-estate platform: apartments, houses and cottages for
 `
 }
 
-export function llmsFullTxt(): string {
+export function llmsFullTxt(catalog: 'ge' | 'com' = 'ge'): string {
+  if (catalog === 'com') {
+    return `${llmsTxt('com')}
+
+Georgia full catalog: ${BASE}/llms-full.txt
+`
+  }
   const cities = CITIES.map((c) => {
     const prose = CITY_PROSE[c.slug]
     const url = c.market === 'de' ? `https://sivrce.com/de/${c.slug}` : `${BASE}/${c.slug}`

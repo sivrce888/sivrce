@@ -5,10 +5,7 @@ import { decideHost } from "@/lib/host-redirect"
 import {
   GEO_COOKIE,
   GEO_COOKIE_MAX_AGE,
-  geoHomePath,
   isGeoLaunch,
-  marketFromIso,
-  type GeoLaunchId,
 } from "@/lib/geo-market"
 import { GE_ORIGIN, MARKET_HEADER, hostKind, isOwnHost, safeRedirectUrl } from "@/lib/site-host"
 
@@ -168,16 +165,6 @@ function rememberGeo(req: NextRequest, res: NextResponse, market: string): NextR
   return res
 }
 
-/** First-visit .com / → launched country. Cookie wins; ?worldwide=1 pins the hub. */
-function comHubMarket(req: NextRequest): "global" | GeoLaunchId {
-  if (req.nextUrl.searchParams.get("worldwide") === "1") return "global"
-  const cook = req.cookies.get(GEO_COOKIE)?.value
-  if (cook === "global") return "global"
-  if (isGeoLaunch(cook)) return cook
-  const iso = marketFromIso(req.headers.get("x-vercel-ip-country"))
-  return isGeoLaunch(iso) ? iso : "global"
-}
-
 function isComHomePath(pathname: string): boolean {
   return pathname === "/" || pathname === "/en"
 }
@@ -286,19 +273,11 @@ export function proxy(req: NextRequest) {
     }
     if (decision.type === "rewrite") {
       let nextMarket = decision.market
-      if (nextMarket === "global" && isComHomePath(pathname)) {
-        const hub = comHubMarket(req)
-        if (hub !== "global") {
-          const dest = req.nextUrl.clone()
-          dest.pathname = geoHomePath(hub)
-          dest.searchParams.delete("worldwide")
-          return rememberGeo(req, NextResponse.redirect(dest, 302), hub)
-        }
-        if (req.nextUrl.searchParams.has("worldwide")) {
-          const dest = req.nextUrl.clone()
-          dest.searchParams.delete("worldwide")
-          return rememberGeo(req, NextResponse.redirect(dest, 302), "global")
-        }
+      // sivrce.com/ is the international hub. Legacy ?worldwide=1 just cleans the query.
+      if (nextMarket === "global" && isComHomePath(pathname) && req.nextUrl.searchParams.has("worldwide")) {
+        const dest = req.nextUrl.clone()
+        dest.searchParams.delete("worldwide")
+        return rememberGeo(req, NextResponse.redirect(dest, 302), "global")
       }
       if (nextMarket === "global" && isMapPath(pathname)) {
         const cook = req.cookies.get(GEO_COOKIE)?.value

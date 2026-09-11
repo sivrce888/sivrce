@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
+import { headers } from 'next/headers'
 import { COM_ORIGIN, GE_ORIGIN } from '@/lib/markets'
+import { hostKind, publicOriginKind } from '@/lib/site-host'
 
 const DISALLOW = [
   '/api/',
@@ -18,10 +20,14 @@ const DISALLOW = [
   '/compare',
 ]
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
   if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') {
     return { rules: { userAgent: '*', disallow: '/' } }
   }
+  const h = await headers()
+  const raw = h.get('x-forwarded-host') || h.get('host') || ''
+  const kind = hostKind(raw, process.env.VERCEL_ENV)
+  const origin = publicOriginKind(kind) === 'com' ? COM_ORIGIN : GE_ORIGIN
   return {
     rules: [
       {
@@ -61,6 +67,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: [`${GE_ORIGIN}/sitemap.xml`, `${COM_ORIGIN}/sitemap.xml`],
-    host: GE_ORIGIN,
+    host: origin,
   }
 }

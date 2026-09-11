@@ -53,6 +53,7 @@ assert.deepEqual(comSale, { type: 'redirect', origin: GE_ORIGIN, pathname: '/sal
 
 const comHome = decideHost({ host: 'sivrce.com', pathname: '/', vercelEnv: 'production' })
 assert.deepEqual(comHome, { type: 'rewrite', pathname: '/en', market: 'global' })
+// Hub stays on sivrce.com/ — country paths are /de /ae, not a geo 302 of /.
 
 const comMap = decideHost({ host: 'sivrce.com', pathname: '/map', vercelEnv: 'production' })
 assert.deepEqual(comMap, { type: 'rewrite', pathname: '/en/map', market: 'global' })

@@ -11,15 +11,12 @@ import { COUNTRY_NAMES } from '@/lib/country-copy'
 export const metadata: Metadata = {
   title: 'sivrce — real estate, globally',
   description:
-    'sivrce is the global real-estate platform. Georgia lives on sivrce.ge. Germany and the UAE use country paths on sivrce.com. sivrce.de and sivrce.ae permanently redirect.',
+    'sivrce is the global real-estate company. Georgia’s live marketplace is sivrce.ge. Country markets use ISO paths on sivrce.com — /de, /ae, /fr, /es, /it, /gb, /us, /ca, /tr. /uae redirects to /ae; /uk redirects to /gb.',
   alternates: {
     canonical: `${COM_ORIGIN}/`,
     languages: {
       'x-default': `${COM_ORIGIN}/`,
       en: `${COM_ORIGIN}/`,
-      ka: `${GE_ORIGIN}/`,
-      de: `${GE_ORIGIN}/de`,
-      ar: `${COM_ORIGIN}/ar/ae`,
     },
   },
   openGraph: {
@@ -29,13 +26,13 @@ export const metadata: Metadata = {
     siteName: 'sivrce',
     title: 'sivrce — real estate, globally',
     description:
-      'Georgia on sivrce.ge. Germany at sivrce.com/de. UAE at sivrce.com/ae. One company, country paths, no duplicate indexes.',
+      'Georgia on sivrce.ge. Country markets on sivrce.com with one canonical URL each. No cloned homepages.',
     images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: 'sivrce' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'sivrce — real estate, globally',
-    description: 'Georgia plus Germany and the UAE. Canonical country URLs, not cloned homepages.',
+    description: 'Georgia plus ISO country paths on sivrce.com. Canonical URLs, not duplicate indexes.',
     images: ['/images/og-brand.png'],
   },
 }
@@ -92,53 +89,47 @@ export default function GlobalHome() {
               <span className="text-gradient-blue">country by country</span>
             </>
           }
-          subtitle="Georgia is the live marketplace on sivrce.ge. Germany and the UAE use paths on sivrce.com so Google and answer engines see one canonical URL per market."
+          subtitle="Georgia is the live marketplace on sivrce.ge. Every other country is an ISO path on sivrce.com so Google and answer engines see one canonical URL per market."
         />
         <div className="sv-container py-14">
           <Reveal>
-            <ul className="grid gap-4 md:grid-cols-3">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <li>
                 <a
                   href={GE_ORIGIN}
                   className="block rounded-[26px] border border-sv-ink/8 bg-sv-surface p-6 shadow-card"
                 >
-                  <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-sv-blue">Georgia</p>
+                  <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-sv-blue">Georgia · GEL</p>
                   <h2 className="mt-2 text-[22px] font-black tracking-tight">sivrce.ge</h2>
                   <p className="mt-3 text-[15px] font-medium text-sv-ink/70">
-                    Live listings, 3D map, cadastre, new-builds. Georgian unprefixed, German at /de, English at /en.
+                    Live listings, 3D map, cadastre, new-builds. Georgian unprefixed, English at /en.
                   </p>
                 </a>
               </li>
-              <li>
-                <Link
-                  href="/en/de"
-                  className="block rounded-[26px] border border-sv-ink/8 bg-sv-surface p-6 shadow-card"
-                >
-                  <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-sv-blue">Germany · EUR</p>
-                  <h2 className="mt-2 text-[22px] font-black tracking-tight">sivrce.com/de</h2>
-                  <p className="mt-3 text-[15px] font-medium text-sv-ink/70">
-                    Berlin-first guides. sivrce.de redirects here. Listings when verified inventory lands.
-                  </p>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/en/ae"
-                  className="block rounded-[26px] border border-sv-ink/8 bg-sv-surface p-6 shadow-card"
-                >
-                  <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-sv-blue">UAE · AED</p>
-                  <h2 className="mt-2 text-[22px] font-black tracking-tight">sivrce.com/ae</h2>
-                  <p className="mt-3 text-[15px] font-medium text-sv-ink/70">
-                    Dubai and Abu Dhabi. sivrce.ae redirects here. Arabic at /ar/ae.
-                  </p>
-                </Link>
-              </li>
+              {COUNTRY_IDS.map((cc) => (
+                <li key={cc}>
+                  <Link
+                    href={`/en${MARKETS[cc].pathPrefix}`}
+                    className="block rounded-[26px] border border-sv-ink/8 bg-sv-surface p-6 shadow-card"
+                  >
+                    <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-sv-blue">
+                      {COUNTRY_NAMES[cc]} · {MARKETS[cc].currency}
+                    </p>
+                    <h2 className="mt-2 text-[22px] font-black tracking-tight">
+                      sivrce.com{MARKETS[cc].pathPrefix}
+                    </h2>
+                    <p className="mt-3 text-[15px] font-medium text-sv-ink/70">
+                      {cc === 'ae'
+                        ? 'Dubai and Abu Dhabi. /uae redirects here. Arabic at /ar/ae.'
+                        : cc === 'gb'
+                          ? 'London and Manchester. /uk redirects here so it never collides with Ukrainian locale.'
+                          : `City guides now, verified listings as inventory lands.`}
+                    </p>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </Reveal>
-          <p className="mt-10 max-w-2xl text-[14px] font-medium text-sv-ink/50">
-            Adding FR, ES, IT, UK, US, CA or TR is a new row in the market table plus unique copy — not a new app.
-            Currency {MARKETS.de.currency} / {MARKETS.ae.currency} / GEL are market settings, not language.
-          </p>
         </div>
       </main>
       <Footer />

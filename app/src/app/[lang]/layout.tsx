@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     description: siteDescription,
     keywords: SITE_KEYWORDS[lang],
     applicationName: SITE_NAME,
-    authors: [{ name: SITE_NAME, url: SITE_URL }],
+    authors: [{ name: SITE_NAME, url: origin }],
     creator: SITE_NAME,
     publisher: SITE_NAME,
     category: "Real Estate",

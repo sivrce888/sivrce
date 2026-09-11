@@ -7,15 +7,13 @@ import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, localizedHref, type Lang } from '@/lib/i18n/core'
-import { COM_ORIGIN } from '@/lib/markets'
-import { canonicalIntent, MARKETS, type PathCountryId } from '@/lib/markets'
+import { COM_ORIGIN, canonicalIntent, MARKETS, type PathCountryId } from '@/lib/markets'
 import {
   AE_CITIES_AR,
-  AE_HUB,
   AE_HUB_AR,
+  COUNTRY_HUBS,
   COUNTRY_NAMES,
   cityPack,
-  DE_HUB,
   heroPair,
   type CountryCopy,
 } from '@/lib/country-copy'
@@ -40,7 +38,7 @@ function copyFor(
 ): { copy: CountryCopy; kind: 'hub' | 'city' | 'intent'; city?: string; intent?: 'buy' | 'rent' } | null {
   if (!slug?.length) {
     if (country === 'ae' && lang === 'ar') return { copy: AE_HUB_AR, kind: 'hub' }
-    const hub = country === 'de' ? DE_HUB : country === 'ae' ? AE_HUB : null
+    const hub = COUNTRY_HUBS[country]
     return hub ? { copy: hub, kind: 'hub' } : null
   }
   const [citySlug, intentRaw] = slug
@@ -120,7 +118,7 @@ export default async function CountryPage({
   country,
   params,
 }: {
-  country: 'de' | 'ae'
+  country: PathCountryId
   params: Promise<{ lang: string; slug?: string[] }>
 }) {
   const { lang: raw, slug } = await params
@@ -321,7 +319,7 @@ export default async function CountryPage({
           )}
           <p className="mt-14 text-[13px] font-semibold text-sv-ink/45">
             All markets:{' '}
-            <a href="https://sivrce.com/?worldwide=1" className="text-sv-blue">sivrce.com</a>
+            <a href="https://sivrce.com/" className="text-sv-blue">sivrce.com</a>
             {' · '}
             Georgia marketplace:{' '}
             <a href="https://sivrce.ge/" className="text-sv-blue">sivrce.ge</a>
