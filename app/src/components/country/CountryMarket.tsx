@@ -4,6 +4,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import MarketHome from '@/components/country/MarketHome'
 import { jsonLd } from '@/lib/utils'
+import { cityBySlug } from '@/lib/map/user-place'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { COM_ORIGIN, canonicalIntent, MARKETS, type PathCountryId } from '@/lib/markets'
 import {
@@ -183,6 +184,8 @@ export default async function CountryPage({
     crumbs.push({ name: found.intent === 'buy' ? 'Buy' : 'Rent', href: url })
   }
 
+  const pin = found.city ? cityBySlug(found.city) : null
+
   const ld = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -198,6 +201,9 @@ export default async function CountryPage({
           '@type': 'Place',
           name: found.city ? (cityPack(country, found.city)?.name ?? found.city) : COUNTRY_NAMES[country],
           address: { '@type': 'PostalAddress', addressCountry: market.countryCode },
+          // City pages carry the catalog pin so the Place resolves to a point,
+          // not just a country code. Hubs stay unpinned on purpose.
+          ...(pin ? { geo: { '@type': 'GeoCoordinates', latitude: pin.lat, longitude: pin.lng } } : {}),
         },
       },
       {
