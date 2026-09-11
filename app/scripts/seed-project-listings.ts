@@ -48,7 +48,7 @@ const db = connectionString
   : null
 
 const phoneByDevName = new Map(
-  DEVELOPERS.filter((d) => d.phone && d.phone !== "—").map((d) => [d.name.ka, d.phone]),
+  DEVELOPERS.filter((d) => d.phone && d.phone !== "—" && d.phone !== "+49 30 000000").map((d) => [d.name.ka, d.phone]),
 )
 const slugByDevName = new Map(DEVELOPERS.map((d) => [d.name.ka, d.slug]))
 

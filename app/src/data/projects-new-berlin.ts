@@ -27,7 +27,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'WBM — муниципальная компания Берлина, ~35 000 арендных квартир в Митте, Фридрихсхайн-Кройцберге и Шпандау. До 2034: +10 000 квартир, €3,3 млрд.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.wbm.de',
   },
   {
@@ -43,7 +42,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'degewo — крупнейшая муниципальная компания Берлина (~75 000 квартир). Строит Neulichterfelde в Лихтерфельде (~2 500 квартир с WÖHR + BAUER и Groth).',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.degewo.de',
   },
   {
@@ -59,7 +57,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'HOWOGE — один из крупнейших муниципальных арендодателей Германии (~83 000 квартир). В 2025 сдано 1 182 квартиры; цель — 100 000, в основном новостройки.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.howoge.de',
   },
   {
@@ -75,7 +72,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Gewobag — одна из шести муниципальных компаний Берлина (~74 000 квартир). Landsberger Allee в Лихтенберге: крупнейший модульный проект Европы, 1 548 квартир, 2026/27.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.gewobag.de',
   },
   {
@@ -91,7 +87,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'STADT UND LAND — муниципальный девелопер (~53 300 квартир). Построил Buckower Felder в Нойкёльне (~900 квартир, 2026). Цель до 2034: 56 500.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.stadtundland.de',
   },
   {
@@ -107,7 +102,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'GESOBAU — муниципальный девелопер севера Берлина (~48 000 квартир, Панков/Райниккендорф). Со-девелопер Elisabeth-Aue с HOWOGE.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.gesobau.de',
   },
   {
@@ -123,7 +117,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'BUWOG (Vonovia) — частный девелопер, ~57 000 квартир в стройке и планах по Германии. В Берлине: 52° Nord в Грюнау (~1 000) и NEUMARIEN в Нойкёльне (~800).',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.buwog.de',
   },
   {
@@ -139,7 +132,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'PANDION — немецкий премиум-девелопер во Фридрихсхайне: PANDION MIDTOWN на Пуфендорфштрассе (4 очереди, у Фолькспарка).',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.pandion.de',
   },
   {
@@ -155,7 +147,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Primus Immobilien — берлинский девелопер с 1993 года (портфель ~€1,2 млрд). Арендный бренд arrive с Greystar (2 300+ квартир); на продажу: Céleste в Шарлоттенбурге.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.primusimmobilien.de',
   },
   {
@@ -171,7 +162,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Bauwert — берлинский девелопер, автор Neue Bockbrauerei в Бергманнкице (Кройцберг): ~220 квартир на бывшей пивоварне, сдача 2026.',
     },
     verified: true,
-    phone: '+49 30 000000',
   },
   {
     slug: 'diamona-harnisch',
@@ -186,7 +176,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Diamona & Harnisch — премиум-девелопер (Шарлоттенбург, Митте, Фридрихсхайн, Шёнеберг). Активно: Eckert Carré (205 квартир, 2029), Am Winterfeldt.',
     },
     verified: false,
-    phone: '+49 30 000000',
   },
   {
     slug: 'project-immobilien-berlin',
@@ -201,7 +190,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'PROJECT Immobilien — немецкий девелопер. В Берлине: MALMÖ28 в Пренцлауэр-Берге (84 квартиры, распроданы, EH 55).',
     },
     verified: false,
-    phone: '+49 30 000000',
   },
   {
     slug: 'hamburg-team',
@@ -216,7 +204,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'HAMBURG TEAM строит HEY Charlottenburg с OTTO WULFF (Кведлинбургер-штрассе 12, 337 квартир + кита, 2027).',
     },
     verified: true,
-    phone: '+49 30 000000',
   },
   {
     slug: 'otto-wulff-berlin',
@@ -231,7 +218,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'OTTO WULFF — гамбургская строительная группа (с 1932). В Берлине: HEY Charlottenburg с HAMBURG TEAM (2027).',
     },
     verified: true,
-    phone: '+49 30 000000',
   },
   {
     slug: 'groth-gruppe',
@@ -246,7 +232,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Groth Gruppe — берлинский девелопер, 14 лет формировавший Neulichterfelde; строит ~420 таунхаусов в квартале.',
     },
     verified: true,
-    phone: '+49 30 000000',
   },
   {
     slug: 'wvm-berlin',
@@ -261,7 +246,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'wvm Group Berlin — жилой девелопер (Берлин/Кёльн). Zwieseler Hof в Карлсхорсте: 321 квартира (147 на продажу + 174 аренда), сдача 2027.',
     },
     verified: true,
-    phone: '+49 30 000000',
   },
   {
     slug: 'liven-berlin',
@@ -276,7 +260,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Liven — молодой эко-девелопер Берлина: дерево-гибрид, фотовольтаика, общие сады. Wohngarten в Нойкёльне у Кройцберга.',
     },
     verified: false,
-    phone: '+49 30 000000',
   },
   {
     slug: 'bonava-berlin',
@@ -291,7 +274,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Bonava — публичный жилой девелопер; в Берлине строит Waldpanorama в Бухе (~450 квартир, геотермия) и Fritz-Kirsch-Zeile в Кёпенике, а Cecilien-Carré — под ключ для GESOBAU.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.bonava.de',
   },
   {
@@ -307,7 +289,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Wohnquadrat Berlin — семейный застройщик с 2016 года (5–10 проектов в год). Harzer Strasse 118 в Нойкёльне (12 квартир, класс A+, 2028).',
     },
     verified: false,
-    phone: '+49 30 000000',
     website: 'https://www.wohnquadrat.berlin',
   },
   {
@@ -323,7 +304,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Instone Real Estate — ведущий публичный частный девелопер Германии (CDAX). В Берлине: Berlia в Митте (~300 квартир), Кёпенхагенер-штрассе в Панкове, Topaz в Шпандау, Wolfsbergquartier (TBA). Фокус: премиум/переходный сегмент.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.instone.de',
   },
   {
@@ -339,7 +319,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'TAG Immobilien — SDAX-жилая компания (~90 000 квартир в Германии). В Берлине активно покупает портфели (Weitlingkiez и др.) и развивает проекты Neubau.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.tag-immobilien.de',
   },
   {
@@ -355,7 +334,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Patrizia — ведущий европейский инвестиционный менеджер (€55+ млрд AUM). В Берлине: Patriots Park (TBA), резиденции в Европесити, многочисленные коинвестиции фондов. Эквити + долг.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.patrizia.ag',
   },
   {
@@ -371,7 +349,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'DIC Asset AG — SDAX-коммерческий RE менеджер (~€12 млрд AUM). В Берлине: QUARTIER POTSDAMER PLATZ (ко-девелопмент), Stadthausquartier (Митте), Neustädter Allee (Панков). Девелопер + АМ.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.dic-asset.de',
   },
   {
@@ -387,7 +364,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Grand City Properties (группа Aroundtown) ~65 000 квартир в Германии, оппортунистическое развитие. Берлин: активная реновация + Neubau в Нойкёльне, Веддинге, Моабите, Лихтенберге.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.grandcityproperties.com',
   },
   {
@@ -403,7 +379,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'CORPUS SIREO — группа Deutsche Bank (AM + Project Developer). В Берлине: The Q (Митте, ко-девелопмент), QUARTIER 205 (Фридрихсхайн), резиденциальный пайплайн в Митте/Пренцлауэр-Берг/Нойкёльн.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.corpus-sireo.de',
   },
   {
@@ -419,7 +394,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Union Investment — крупнейший фонд Германии (€400+ млрд AUM). В Берлине: пайплайн UPL — премиальный Neubau в Европесити, Пренцлауэр-Берг, Кройцберг. Коинвестирует с девелоперами.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.union-investment.de',
   },
   {
@@ -435,7 +409,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Allianz Real Estate — глобальный инвестор/девелопер (€90+ млрд RE AUM). В Берлине: QUARTIER HEIDESTRASSE (Европасити, ко-девелопмент CA Immo), Q205 (Фридрихсхайн), множественные forward-funding сделки.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.allianzrealestate.com',
   },
   {
@@ -451,7 +424,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Euroboden — мюнхенский премиум-девелопер с офисом в Берлине. В Берлине: AM TACHELES (Митте, ~200 премиальных квартир, 2027), Кёпеникер-штрассе (Митте), Q207 (Фридрихсхайн). Ультра-премиум фокус.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.euroboden.de',
   },
   {
@@ -467,7 +439,6 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'QUARTIER EINS — берлинский проектный девелопер (фокус Митте/Пренцлауэр-Берг). QUARTIER HEIDESTRASSE (Европасити, ко-девелопмент CA Immo/Allianz), QUARTIER SCHÖNEBERG, пайплайн Пренцлауэр-Берг. Смешанные кварталы.',
     },
     verified: true,
-    phone: '+49 30 000000',
     website: 'https://www.quartier-eins.de',
   },
 ]

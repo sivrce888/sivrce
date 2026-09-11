@@ -15,8 +15,8 @@ export interface EntityHeaderProps {
   name: LocalName
   city: string
   verified: boolean
-  /** E.164-ish display phone; rendered as tel: link */
-  phone: string
+  /** E.164-ish display phone; rendered as tel: link. Absent = hidden. */
+  phone?: string
   /** numeric stats keyed to i18n labels */
   stats: { key: EntitiesKey; value: string | number }[]
   /** agency name (agents) or tagline context */
@@ -32,7 +32,7 @@ export function EntityHeader({ kind, name, city, verified, phone, stats, subtitl
   const { lang, d } = useEntities()
   const brand = SERVICE_BRAND[kind === 'developer' ? 'developers' : 'agents']
   const displayName = pick(name, lang)
-  const telHref = `tel:${phone.replace(/\s+/g, '')}`
+  const telHref = phone ? `tel:${phone.replace(/\s+/g, '')}` : ''
 
   const items: StatItem[] = stats.map((s) => ({ label: d[s.key], value: String(s.value) }))
 

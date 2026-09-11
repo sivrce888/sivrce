@@ -39,7 +39,8 @@ export interface Developer {
   unitsDelivered: number
   description: LocalText
   verified: boolean
-  phone: string
+  /** Absent when no verified number exists — never a placeholder. */
+  phone?: string
   /** Official logo from korter / owner — GCS URL when synced. */
   logoUrl?: string
   /** Official site — synced from korter; used in JSON-LD sameAs. */
@@ -185,7 +186,8 @@ const DEV_PREFIX: Record<string, string> = {
   vonovia: 'VON', 'deutsche-wohnen': 'DWO', 'leg-immobilien': 'LEG',
   vivawest: 'VIV', 'saga-hamburg': 'SAG', 'muenchner-wohnen': 'MWO',
   'abg-frankfurt': 'ABG', 'gag-koeln': 'GAG', 'gewoba-bremen': 'GBR',
-  'nhw-wiesbaden': 'NHW',
+  'nhw-wiesbaden': 'NHW', lwb: 'LWB', 'swsg-stuttgart': 'SWS',
+  'wid-dresden': 'WID', 'hanova-hannover': 'HAN', 'wbg-nuernberg': 'WBG',
 }
 const autoDevPrefix = (slug: string): string =>
   slug.split('-').filter((s) => s.length > 0).map((s) => s[0]!).join('').toUpperCase().slice(0, 3)

@@ -1,5 +1,6 @@
 /**
- * Germany intel seed — DataSources (DE registry) + developer_profiles (national).
+ * Germany intel seed — DataSources (DE registry) + developer_profiles (national
+ * + Berlin) + project_directories (Berlin launch batch) + provenance facts.
  * Run: npx --yes tsx scripts/ingest-de-intel.ts
  *
  * Idempotent: DataSources upsert by slug; developers create-if-missing only
@@ -20,6 +21,7 @@ import {
   SourceReliability,
 } from '../src/generated/prisma/enums'
 import { SOURCE_REGISTRY } from '../src/lib/intel/core'
+import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '../src/data/projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY } from '../src/data/projects-new-germany'
 
 config({ path: resolve(process.cwd(), '.env.local') })
@@ -64,7 +66,9 @@ async function main() {
 
   let created = 0
   let skipped = 0
-  for (const d of NEW_DEVELOPERS_GERMANY) {
+  const devSite = new Map<string, string>()
+  for (const d of [...NEW_DEVELOPERS_GERMANY, ...NEW_DEVELOPERS_BERLIN]) {
+    if (d.website) devSite.set(d.slug, d.website)
     const existing = await db.developerProfile.findUnique({ where: { slug: d.slug } })
     if (existing) {
       skipped++
@@ -88,7 +92,59 @@ async function main() {
     created++
   }
 
-  console.log(`ingest-de-intel: ${sources} DE sources upserted, ${created} developers created, ${skipped} already present ✓`)
+  // Berlin launch batch → project_directories (idempotent upsert by slug).
+  // Static catalog stays source of truth; DB rows power tiles + coverage + SEO.
+  // ponytail: street-grade coords from catalog, not survey pins — refined via
+  // ALKIS/OSM corpus join at read time, never overwritten here.
+  const eurM2 = (s: string): number => {
+    const d = s.replace(/[^\d]/g, '')
+    return d ? Number(d) : 0
+  }
+  let projects = 0
+  for (const p of NEW_PROJECTS_BERLIN) {
+    await db.projectDirectory.upsert({
+      where: { slug: p.slug },
+      create: {
+        id: p.slug,
+        slug: p.slug,
+        name: p.name,
+        developer: p.developerSlug,
+        city: p.city,
+        district: p.district ?? '',
+        address: p.location,
+        lat: p.coords.lat,
+        lng: p.coords.lng,
+        sourceUrl: devSite.get(p.developerSlug) ?? null,
+        status: p.done >= 100 ? 'completed' : 'active',
+        readyBy: p.finish,
+        priceFrom: 0,
+        pricePerSqmFrom: eurM2(p.priceFromM2),
+        units: p.flats,
+        image: p.img,
+        gallery: p.gallery ?? [],
+        body: p.description.en,
+        features: [],
+      },
+      update: {
+        name: p.name,
+        developer: p.developerSlug,
+        city: p.city,
+        district: p.district ?? '',
+        address: p.location,
+        lat: p.coords.lat,
+        lng: p.coords.lng,
+        status: p.done >= 100 ? 'completed' : 'active',
+        readyBy: p.finish,
+        pricePerSqmFrom: eurM2(p.priceFromM2),
+        units: p.flats,
+        image: p.img,
+        body: p.description.en,
+      },
+    })
+    projects++
+  }
+
+  console.log(`ingest-de-intel: ${sources} DE sources upserted, ${created} developers created, ${skipped} already present, ${projects} Berlin projects upserted ✓`)
 
   // Provenance facts (idempotent: skip when the current value is unchanged).
   // Single official-site source ⇒ "unverified" until a second source agrees.
@@ -113,6 +169,37 @@ async function main() {
     facts++
   }
   console.log(`ingest-de-intel: ${facts} provenance facts ingested ✓`)
+
+  // Project facts: one official-developer evidence row each. Single source ⇒
+  // "unverified" until a second source agrees (resolveConflict in core.ts).
+  let projectFacts = 0
+  for (const p of NEW_PROJECTS_BERLIN) {
+    const site = devSite.get(p.developerSlug) ?? null
+    const wanted: Array<{ fact: 'project_status' | 'address' | 'coordinates' | 'completion_date'; value: string }> = [
+      { fact: 'project_status', value: p.done >= 100 ? 'completed' : 'under_construction' },
+      { fact: 'address', value: p.location },
+      { fact: 'coordinates', value: `${p.coords.lat},${p.coords.lng}` },
+      { fact: 'completion_date', value: p.finish },
+    ]
+    for (const w of wanted) {
+      const current = await db.intelFact.findUnique({
+        where: { entityKind_entityId_factType: { entityKind: 'project', entityId: p.slug, factType: w.fact } },
+        select: { value: true },
+      })
+      if (current?.value === w.value) continue
+      await ingestFact({
+        entityKind: 'project',
+        entityId: p.slug,
+        fact: w.fact,
+        value: w.value,
+        sourceSlug: 'official-developer',
+        sourceKind: 'official_company',
+        url: site,
+      })
+      projectFacts++
+    }
+  }
+  console.log(`ingest-de-intel: ${projectFacts} Berlin project facts ingested ✓`)
 }
 
 main()
