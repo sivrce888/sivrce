@@ -57,7 +57,7 @@ export const DE_HUB: CountryCopy = {
     'sivrce in Germany: Berlin-first guides for buying and renting apartments. Notary, Grundbuch and transfer tax explained. Listings as inventory lands.',
   h1: 'Real estate in Germany',
   lede:
-    'sivrce is opening Germany with Berlin first — city guides now, verified listings as local partners join. Purchases go through a notary and the land register (Grundbuch). This is not a copy of the Georgian marketplace.',
+    'Search Germany the way you search Georgia: buy or rent, pick a city, open the 3D map. Berlin first — notary, Grundbuch and transfer tax sit under the search. Verified listings as partners join.',
   body: [
     'Germany is a renter-majority market. Yield investors underwrite vacancy and Mietspiegel rules, not tourist occupancy. Berlin, Hamburg, Munich, Frankfurt and Cologne are the first metros on sivrce; each city page is a unique briefing, not a thin doorway.',
     'A purchase is not a handshake. An independent notary reads the contract, Grunderwerbsteuer (around 6% in Berlin) is due, plus notary and land-register fees. Foreign buyers are not barred from freehold apartments. sivrce will only publish listings we can verify to the same standard as Georgia.',
@@ -82,7 +82,7 @@ export const DE_HUB_DE: CountryCopy = {
     'sivrce in Deutschland: Berlin zuerst. Kauf und Miete mit Notar, Grundbuch und Grunderwerbsteuer. Inserate nur verifiziert.',
   h1: 'Immobilien in Deutschland',
   lede:
-    'sivrce startet in Deutschland mit Berlin — Stadtguides jetzt, verifizierte Inserate sobald Partner stehen. Kauf läuft über Notar und Grundbuch, nicht über ein Portal-Checkout.',
+    'Deutschland durchsuchen wie Georgien: kaufen oder mieten, Stadt wählen, 3D-Karte öffnen. Berlin zuerst — Notar, Grundbuch und Grunderwerbsteuer stehen unter der Suche. Verifizierte Inserate sobald Partner stehen.',
   body: [
     'Deutschland ist ein Mietermarkt. Kapitalanleger rechnen mit Leerstand und Mietspiegel, nicht mit Touristenauslastung. Berlin, Hamburg, München, Frankfurt und Köln sind die ersten Metropolen — jede Stadtseite ist ein eigenes Briefing, keine Doorway-Seite.',
     'Ein Kauf ist kein Handschlag. Der Notar verliest den Vertrag, Grunderwerbsteuer (in Berlin 6 %) plus Notar- und Grundbuchkosten werden fällig. Ausländer dürfen Volleigentum erwerben. sivrce veröffentlicht nur, was sich so prüfen lässt wie in Georgien.',
@@ -159,7 +159,7 @@ const berlinBuy: CountryCopy = {
     'How buying in Berlin works: notary, Grundbuch, 6% transfer tax, and which Bezirke investors actually underwrite. sivrce listings as inventory lands.',
   h1: 'Buy in Berlin',
   lede:
-    'Buying in Berlin is a notarial process, not a portal checkout. Budget roughly 6% Grunderwerbsteuer plus notary and land-register fees on top of the price. Foreign buyers are allowed.',
+    'Search Berlin apartments for sale — type, Bezirk, then the 3D map. Notary, 6% Grunderwerbsteuer and Grundbuch sit below the search. Foreign buyers are allowed.',
   body: [
     'Contracts are read aloud by a notary. Ownership moves when the Grundbuch is updated, not when you wire the deposit. Allow weeks, not hours. Banks may want a higher down payment from non-residents.',
     'Mitte, Prenzlauer Berg and Charlottenburg are expensive relative to yield. Neukölln, Lichtenberg and outer Bezirke still price as cash-flow first. sivrce will not invent listings — this page stays a buying briefing until verified inventory is live.',
@@ -182,7 +182,7 @@ export const DE_BERLIN_HUB_DE: CountryCopy = {
     'Berlin: zwölf Bezirke, Notar, Grundbuch, 6 % Grunderwerbsteuer. sivrce zeigt amtliche Geometrie und verifizierte Neubauten — keine erfundenen Inserate.',
   h1: 'Immobilien in Berlin',
   lede:
-    'Berlin ist Mieterstadt und Hauptstadt. sivrce startet hier mit Bezirksguides und einem Kauf-/Miet-Briefing. Inserate folgen, sobald sie sich prüfen lassen.',
+    'Berlin durchsuchen: kaufen oder mieten oben, dann 3D-Karte und Bezirksguides. Inserate folgen, sobald sie sich prüfen lassen — Notar und Grundbuch bleiben das Kaufmodell.',
   body: [
     'Zwölf Bezirke (Mitte bis Treptow-Köpenick) plus Ortsteile wie Kreuzberg und Prenzlauer Berg. Preise und Mieten trennen sich scharf am S-Bahn-Ring.',
     'Kauf ist notariell: Grundbuch, 6 % Grunderwerbsteuer, Notar und Eintragung obendrauf. sivrce veröffentlicht kein Berliner Inserat, das sich nicht belegen lässt.',
@@ -200,7 +200,7 @@ export const DE_BERLIN_BUY_DE: CountryCopy = {
     'Kauf in Berlin: Notar, Grundbuch, 6 % Grunderwerbsteuer, Nebenkosten. Keine erfundenen Angebote.',
   h1: 'Kaufen in Berlin',
   lede:
-    'In Berlin kauft man beim Notar, nicht im Checkout. Rechnen Sie mit 6 % Grunderwerbsteuer plus Notar und Grundbuch. Ausländer dürfen kaufen.',
+    'Berlin durchsuchen wie Tbilisi: Typ, Bezirk, dann die 3D-Karte. Notar, 6 % Grunderwerbsteuer und Grundbuch stehen unter der Suche. Ausländer dürfen kaufen.',
   body: [
     'Der Notar verliest den Vertrag. Eigentum wechselt mit der Grundbucheintragung, nicht mit der Anzahlung. Wochen, nicht Stunden. Banken verlangen von Nicht-Residenten oft mehr Eigenkapital.',
     'Mitte, Prenzlauer Berg und Charlottenburg sind teuer relativ zur Rendite. Neukölln, Lichtenberg und äußere Bezirke rechnen oft über Cashflow. sivrce erfindet keine Inserate — diese Seite bleibt ein Briefing, bis geprüftes Inventar da ist.',
@@ -254,7 +254,7 @@ const berlinRent: CountryCopy = {
 export const DE_CITIES: Record<string, CityPack> = {
   berlin: city(
     'Berlin',
-    'Berlin is Germany’s largest city and a renter-majority capital. sivrce starts here with Bezirke guides and a buying/renting briefing — listings follow as verified inventory lands.',
+    'Berlin is Germany’s largest city and a renter-majority capital. Search buy or rent above, then the 3D map and Bezirke guides — listings follow as verified inventory lands.',
     [
       'Twelve Bezirke (Mitte to Treptow-Köpenick) plus well-known Ortsteile such as Kreuzberg and Prenzlauer Berg. Prices and rents split sharply between the S-Bahn ring and the outer east.',
       'A purchase is notarial: Grundbuch, ~6% transfer tax in Berlin, notary and registration on top. sivrce will not publish a Berlin listing we cannot verify.',

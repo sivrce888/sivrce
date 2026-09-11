@@ -51,9 +51,7 @@ export default function CountryHero({
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--sv-dock))] max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-[calc(9rem+env(safe-area-inset-top,0px))] md:px-10">
         <div className="flex flex-col items-center">
           <div className="mb-5 flex items-center gap-2.5 rounded-full glass-hero px-5 py-2 shadow-card">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sv-blue dark:bg-sv-success" />
-            </span>
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-sv-blue dark:bg-sv-success" />
             <span className="text-[13px] font-bold leading-snug tracking-wide text-sv-ink/80 dark:text-white/90 md:text-[14px]">
               {countryLabel} · {market.currency}
             </span>

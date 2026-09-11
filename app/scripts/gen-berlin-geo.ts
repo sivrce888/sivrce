@@ -2,7 +2,7 @@
  * One-shot generator for Berlin geo catalogs from OSM (Overpass):
  *   src/data/berlin-ortsteile.ts   — 97 OSM Ortsteil boundaries w/ Bezirk slug + center
  *   src/data/berlin-streets.ts     — deduped street names (autocomplete catalog)
- *   src/data/berlin-bezirke.json   — 12 Bezirk polygons, simplified (map outlines)
+ *   Bezirk polygons skipped: OSM admin_level=9 outers are split ways, not rings.
  *
  * Run: npm run gen:berlin-geo   (network required; outputs are committed)
  * Source: © OpenStreetMap contributors (ODbL) — same provenance as tbilisi-streets.ts.
@@ -93,42 +93,8 @@ export function slugifyDe(name: string): string {
     .replace(/^-|-$/g, '')
 }
 
-/** Douglas-Peucker, lon/lat space (~0.001° ≈ 70–110 m in Berlin). */
-function simplify(pts: [number, number][], eps = 0.00025): [number, number][] {
-  if (pts.length <= 3) return pts
-  const keep = new Uint8Array(pts.length)
-  keep[0] = keep[pts.length - 1] = 1
-  const stack: [number, number][] = [[0, pts.length - 1]]
-  while (stack.length) {
-    const [a, b] = stack.pop()!
-    let maxD = -1
-    let idx = -1
-    const [ax, ay] = pts[a]!
-    const [bx, by] = pts[b]!
-    const dx = bx - ax
-    const dy = by - ay
-    const len2 = dx * dx + dy * dy || 1e-12
-    for (let i = a + 1; i < b; i++) {
-      const [px, py] = pts[i]!
-      const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2))
-      const ex = ax + t * dx - px
-      const ey = ay + t * dy - py
-      const d = ex * ex + ey * ey
-      if (d > maxD) {
-        maxD = d
-        idx = i
-      }
-    }
-    if (maxD > eps * eps && idx > 0) {
-      keep[idx] = 1
-      stack.push([a, idx], [idx, b])
-    }
-  }
-  return pts.filter((_, i) => keep[i])
-}
-
 async function main() {
-  console.log('[1/3] Ortsteile + Bezirke (admin relations)…')
+  console.log('[1/2] Ortsteile + Bezirke (admin relations)…')
   const admin = await overpass(`[out:json][timeout:120];
 area(${BERLIN_AREA})->.a;
 relation["boundary"="administrative"]["admin_level"~"^(9|10)$"](area.a);
@@ -161,7 +127,7 @@ out tags center;`)
   const missingBezirk = ortRows.filter((r) => !r.bezirk)
   if (missingBezirk.length) throw new Error(`Ortsteile missing LOR bezirk ref: ${missingBezirk.map((r) => r.de).join(', ')}`)
 
-  console.log('[2/3] Streets…')
+  console.log('[2/2] Streets…')
   const ways = await overpass(`[out:json][timeout:180];
 area(${BERLIN_AREA})->.a;
 way["highway"~"^(primary|secondary|tertiary|residential|unclassified|living_street|pedestrian)$"]["name"](area.a);
@@ -170,35 +136,6 @@ out tags 30000;`)
     .filter((n) => n.length >= 2 && n.length <= 60 && !/^Way \d/.test(n))
     .sort((a, b) => a.localeCompare(b, 'de'))
   console.log(`  ${ways.length} ways → ${streetNames.length} unique street names`)
-
-  console.log('[3/3] Bezirk polygons…')
-  const polys = await overpass(`[out:json][timeout:180];
-area(${BERLIN_AREA})->.a;
-relation["boundary"="administrative"]["admin_level"="9"](area.a);
-out geom;`)
-  const features = polys
-    .map((e) => {
-      const name = e.tags?.['name']
-      if (!name || !(name in BEZIRK_SLUG)) return null
-      const rings = (e.members ?? [])
-        .filter((m) => m.role === 'outer' && Array.isArray(m.geometry))
-        .map((m) =>
-          simplify(
-            (m.geometry ?? []).map((g) => [g.lon, g.lat] as [number, number]),
-          ),
-        )
-        .filter((r) => r.length >= 6)
-      if (!rings.length) return null
-      // biggest ring first, drop micro-fragments (<5% of largest area) to keep the file lean
-      rings.sort((a, b) => b.length - a.length)
-      return {
-        type: 'Feature' as const,
-        properties: { slug: BEZIRK_SLUG[name]!, name },
-        geometry: { type: 'Polygon' as const, coordinates: [rings[0]!, ...rings.slice(1).filter((r) => r.length >= 10)] },
-      }
-    })
-    .filter((f): f is NonNullable<typeof f> => !!f)
-  if (features.length !== 12) throw new Error(`expected 12 polygon features, got ${features.length}`)
 
   const out = (p: string) => resolve(import.meta.dirname, '../src/data', p)
   const bezirkPatch = JSON.stringify(
@@ -227,11 +164,9 @@ export const BERLIN_ORTSTEILE: BerlinOrtsteil[] = RAW.map((r) => ({ ...r, bezirk
 export const BERLIN_STREETS: string[] = ${JSON.stringify(streetNames, null, 0)}
 `,
   )
-  writeFileSync(out('berlin-bezirke.json'), JSON.stringify({ type: 'FeatureCollection', features }))
   const kb = (p: string) => Math.round(require('node:fs').statSync(p).size / 1024)
-  console.log(`done: ortsteile=${ortRows.length} streets=${streetNames.length} polys=${features.length}`)
-  for (const f of ['berlin-ortsteile.ts', 'berlin-streets.ts', 'berlin-bezirke.json'])
-    console.log(`  ${f}: ${kb(out(f))} KB`)
+  console.log(`done: ortsteile=${ortRows.length} streets=${streetNames.length}`)
+  for (const f of ['berlin-ortsteile.ts', 'berlin-streets.ts']) console.log(`  ${f}: ${kb(out(f))} KB`)
 }
 
 // tsx script: run main, no server-side import surface.

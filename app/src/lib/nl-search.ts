@@ -362,6 +362,8 @@ export function routeCountryNl(p: {
   cityKa?: string
   lat: number
   lng: number
+  /** Hero type picker — wins over NL parse when set. */
+  kind?: NlFilters['propertyType']
 }): CountryNlRoute {
   if (p.tab === 'projects') return { go: 'projects', href: '#new-builds' }
   const raw = p.q.trim()
@@ -372,6 +374,7 @@ export function routeCountryNl(p: {
   const parsed: NlFilters = raw ? parseNlQuery(raw) : {}
   if (!parsed.dealType) parsed.dealType = p.tab === 'rent' ? 'rent' : 'sale'
   if (!parsed.city && p.cityKa) parsed.city = p.cityKa
+  if (p.kind) parsed.propertyType = p.kind
 
   const projectish =
     p.country === 'de' &&

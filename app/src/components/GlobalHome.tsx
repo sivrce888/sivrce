@@ -7,6 +7,7 @@ import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
 import { COM_ORIGIN, COUNTRY_IDS, GE_ORIGIN, MARKETS } from '@/lib/markets'
 import { COUNTRY_NAMES } from '@/lib/country-copy'
+import GeoGate from '@/components/country/GeoGate'
 
 export const metadata: Metadata = {
   title: 'sivrce — real estate, globally',
@@ -79,6 +80,7 @@ const ld = {
 export default function GlobalHome() {
   return (
     <>
+      <GeoGate />
       <Navbar />
       <main id="main">
         <PageHero

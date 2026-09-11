@@ -1,6 +1,6 @@
 import { COUNTRY_IDS, MARKETS, isPathCountry, type MarketId, type PathCountryId } from '@/lib/markets'
 import { FREEDOM_SQUARE } from '@/lib/map/map-geo'
-import { cityBySlug } from '@/lib/map/user-place'
+import { cityByName, cityBySlug } from '@/lib/map/user-place'
 
 /**
  * IP → launched market + map camera.
@@ -9,7 +9,8 @@ import { cityBySlug } from '@/lib/map/user-place'
  * Cookie also aims /map at the last opened country path.
  */
 
-export const GEO_COOKIE = 'sv-geo-market'
+/** v2: v1 (`sv-geo-market`) auto-stamped `global` on hub fallback and trapped humans. */
+export const GEO_COOKIE = 'sv-geo-v2'
 export const GEO_COOKIE_MAX_AGE = 60 * 60 * 24 * 180
 
 export const GEO_LAUNCH = COUNTRY_IDS
@@ -30,8 +31,23 @@ export function marketFromIso(iso: string | null | undefined): MarketId | null {
   return ISO_MARKET[iso.trim().toUpperCase()] ?? null
 }
 
-export function geoHomePath(id: GeoLaunchId): string {
-  return MARKETS[id].pathPrefix
+/** Country hub, or `/{cc}/{city}` when the IP city is a launched city in that market. */
+export function geoHomePath(id: GeoLaunchId, ipCity?: string | null): string {
+  const prefix = MARKETS[id].pathPrefix
+  if (!ipCity) return prefix
+  let name = ipCity.trim()
+  if (!name) return prefix
+  try {
+    name = decodeURIComponent(name)
+  } catch {
+    /* keep raw */
+  }
+  const hit = cityByName(name)
+  const m = MARKETS[id]
+  if (hit && hit.cc === m.countryCode && m.citySlugs.includes(hit.slug)) {
+    return `${prefix}/${hit.slug}`
+  }
+  return prefix
 }
 
 export type GeoLaunchTarget = 'hub' | 'ge' | GeoLaunchId

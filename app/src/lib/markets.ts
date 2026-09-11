@@ -101,13 +101,36 @@ function pathMarket(
   }
 }
 
+/** Locales that prefix country routes on preview (`/en/de`) and sivrce.com (`/de/de`). */
+const COUNTRY_LOCALE_PREFIXES = ['en', 'de', 'ar'] as const
+
+/** Country root for this request: `/en/de` on preview, `/de` on sivrce.com. */
+export function countryBasePath(country: PathCountryId, pathname: string): string {
+  const base = MARKETS[country].pathPrefix
+  for (const loc of COUNTRY_LOCALE_PREFIXES) {
+    const p = `/${loc}${base}`
+    if (pathname === p || pathname.startsWith(`${p}/`)) return p
+  }
+  return base
+}
+
 /** Intent page if the city has one, else the city hub — never a dead URL. German locale keeps the /de/de variant. */
-export function intentHref(country: PathCountryId, citySlug: string, intent: 'buy' | 'rent', lang: Lang = 'en'): string {
+export function intentHref(
+  country: PathCountryId,
+  citySlug: string,
+  intent: 'buy' | 'rent',
+  lang: Lang = 'en',
+  pathname?: string,
+): string {
   const m = MARKETS[country]
   const city = m.citySlugs.includes(citySlug) ? citySlug : m.defaultCitySlug
-  if (!m.intentCities.includes(city)) return `${m.pathPrefix}/${city}`
-  const locale = country === 'de' && lang === 'de' ? '/de' : ''
-  return `${locale}${m.pathPrefix}/${city}/${intent}`
+  const prefix = pathname
+    ? countryBasePath(country, pathname)
+    : country === 'de' && lang === 'de'
+      ? `/de${m.pathPrefix}`
+      : m.pathPrefix
+  if (!m.intentCities.includes(city)) return `${prefix}/${city}`
+  return `${prefix}/${city}/${intent}`
 }
 
 export const MARKETS: Record<CountryId, Market> = {

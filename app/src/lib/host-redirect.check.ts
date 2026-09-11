@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { decideHost, mapCctldPath } from './host-redirect'
 import { COM_ORIGIN, GE_ORIGIN } from './site-host'
 import { sanitizePath, hostKind, isOwnHost, siteHostFor, isDeHost, safeRedirectUrl } from './site-host'
-import { isCountryPath, COUNTRY_IDS } from './markets'
+import { isCountryPath, COUNTRY_IDS, countryBasePath, intentHref } from './markets'
 import { PREFIXED_LANGS } from './i18n/core'
 
 assert.equal(hostKind('sivrce.ge').toString() && siteHostFor('sivrce.ge').market, 'ge')
@@ -148,5 +148,14 @@ assert.ok(isCountryPath('/fr/paris'))
 assert.ok(isCountryPath('/gb'))
 assert.ok(!isCountryPath('/en/madrid'))
 assert.ok(safeRedirectUrl(COM_ORIGIN, '/de', '?utm=1')?.search.includes('utm=1'))
+
+assert.equal(countryBasePath('de', '/en/de'), '/en/de')
+assert.equal(countryBasePath('de', '/en/de/berlin'), '/en/de')
+assert.equal(countryBasePath('de', '/de/berlin'), '/de')
+assert.equal(countryBasePath('de', '/de/de/berlin'), '/de/de')
+assert.equal(intentHref('de', 'munich', 'buy', 'en', '/en/de'), '/en/de/munich')
+assert.equal(intentHref('de', 'berlin', 'buy', 'en', '/en/de'), '/en/de/berlin/buy')
+assert.equal(intentHref('de', 'munich', 'buy', 'en'), '/de/munich')
+assert.equal(intentHref('de', 'berlin', 'buy', 'en'), '/de/berlin/buy')
 
 console.log('host-redirect.check: ok')

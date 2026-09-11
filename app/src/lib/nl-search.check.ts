@@ -181,6 +181,18 @@ assert.ok(r1.href.includes('deal=sale'))
 assert.ok(r1.href.includes('country=DE'))
 assert.ok(r1.href.includes(`lat=${berlin.center.lat.toFixed(5)}`))
 
+const rKind = routeCountryNl({
+  q: '',
+  tab: 'buy',
+  country: 'de',
+  cityKa: berlin.ka,
+  lat: berlin.center.lat,
+  lng: berlin.center.lng,
+  kind: 'apartment',
+})
+assert.ok(rKind.href.includes('kind=apartment'))
+assert.ok(rKind.href.includes('deal=sale'))
+
 const r2 = routeCountryNl({
   q: 'Neubau in Berlin Mitte',
   tab: 'buy',

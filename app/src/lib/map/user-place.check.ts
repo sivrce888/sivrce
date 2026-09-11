@@ -10,6 +10,8 @@ assert.equal(cityBySlug('batumi')?.ka, 'ბათუმი')
 assert.equal(cityBySlug('dubai')?.cc, 'AE')
 assert.equal(cityByName('Berlin')?.slug, 'berlin')
 assert.equal(cityByName('tiflis')?.slug, 'tbilisi')
+assert.equal(cityByName('München')?.slug, 'munich')
+assert.equal(cityByName('Köln')?.slug, 'cologne')
 
 const nearBatumi = nearestMapCity(41.62, 41.63)
 assert.equal(nearBatumi?.slug, 'batumi')

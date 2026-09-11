@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { ChevronDown, MapPin, Search } from 'lucide-react'
 import { DEAL_BRAND } from '@/lib/category-brand'
-import { MARKETS, intentHref, type PathCountryId } from '@/lib/markets'
+import { MARKETS, countryBasePath, intentHref, type PathCountryId } from '@/lib/markets'
 import { COUNTRY_NAMES } from '@/lib/country-copy'
 import { cityBySlug } from '@/lib/map/user-place'
 import { useI18n } from '@/lib/i18n/context'
 import { DE_CITIES } from '@/lib/countries/de'
 import SearchSuggest from '@/components/search/SearchSuggest'
+import PropertyTypePicker from '@/components/search/PropertyTypePicker'
+import type { PropType } from '@/data/listings'
 
 const fieldBtn =
   'flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white'
@@ -37,11 +39,13 @@ export default function CountrySearch({
   showProjects?: boolean
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { t, lang } = useI18n()
   const [tab, setTab] = useState<Tab>(intent === 'rent' ? 'rent' : 'buy')
   const [picked, setPicked] = useState<string | null>(null)
   const citySlug = city ?? picked ?? MARKETS[country].defaultCitySlug
   const [q, setQ] = useState('')
+  const [propType, setPropType] = useState<PropType | undefined>(undefined)
 
   useEffect(() => {
     if (city) return
@@ -55,6 +59,8 @@ export default function CountrySearch({
         if (!data.ok || cancelled) return
         if (data.cc !== iso) return
         if (!cities.some((c) => c.slug === data.slug)) return
+        // IP city aims the picker. Do not hijack /{cc} hub URLs — proxy already
+        // city-routes sivrce.com/; country briefings must stay crawlable.
         setPicked(data.slug)
       } catch {
         /* offline — keep default city */
@@ -66,7 +72,7 @@ export default function CountrySearch({
   }, [country, cities, city])
 
   const cityName = cities.find((c) => c.slug === citySlug)?.name ?? citySlug
-  const prefix = MARKETS[country].pathPrefix
+  const prefix = countryBasePath(country, pathname)
   const tabs: { id: Tab; label: string; hue: string }[] = [
     { id: 'buy', label: t('search.sale'), hue: DEAL_BRAND.sale },
     { id: 'rent', label: t('search.rent'), hue: DEAL_BRAND.rent },
@@ -86,6 +92,7 @@ export default function CountrySearch({
       cityKa: deCity?.ka,
       lat: lat ?? 0,
       lng: lng ?? 0,
+      kind: propType,
     })
     if (routed.go === 'projects') {
       document.getElementById('new-builds')?.scrollIntoView({ behavior: 'smooth' })
@@ -116,7 +123,7 @@ export default function CountrySearch({
   }
 
   const chipHref = (slug: string) =>
-    tab === 'projects' ? `${prefix}/${slug}` : intentHref(country, slug, tab, lang)
+    tab === 'projects' ? `${prefix}/${slug}` : intentHref(country, slug, tab, lang, pathname)
 
   const chips = cities.filter((c) => c.slug !== citySlug).slice(0, 8)
 
@@ -159,6 +166,17 @@ export default function CountrySearch({
         className="relative z-[60] w-full min-w-0 overflow-visible rounded-tile bg-sv-surface/90 p-1.5 shadow-card ring-1 ring-white/80 backdrop-blur-2xl focus-within:ring-sv-blue/25 dark:bg-white/[0.10] dark:shadow-panel-dark dark:ring-white/14 lg:rounded-full lg:p-1.5"
       >
         <div className="flex flex-col gap-1.5 lg:flex-row lg:items-center">
+          {tab !== 'projects' && (
+            <>
+              <PropertyTypePicker
+                variant="hero"
+                value={propType}
+                onChange={setPropType}
+                className="shrink-0"
+              />
+              <span className="hidden h-7 w-px shrink-0 bg-sv-ink/10 dark:bg-white/15 lg:block" aria-hidden />
+            </>
+          )}
           <label className={`${fieldBtn} relative lg:w-[216px] lg:max-w-[216px] lg:shrink-0`}>
             <MapPin className={`h-4 w-4 shrink-0 ${citySlug ? 'text-sv-blue' : 'text-sv-ink/35 dark:text-white/40'}`} />
             <span className="min-w-0 flex-1">
@@ -168,7 +186,11 @@ export default function CountrySearch({
             <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-40" aria-hidden />
             <select
               value={citySlug}
-              onChange={(e) => setPicked(e.target.value)}
+              onChange={(e) => {
+                const slug = e.target.value
+                setPicked(slug)
+                if (slug !== citySlug) router.push(chipHref(slug))
+              }}
               aria-label={t('search.city')}
               className="absolute inset-0 cursor-pointer opacity-0"
             >

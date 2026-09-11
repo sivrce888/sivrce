@@ -979,7 +979,7 @@ export default function ChatWidget() {
   const { status } = useSession()
   // Guests get the help assistant only — rooms/support need an account, so
   // their "Message us" CTA routes to sign-in instead of the API.
-  const guest = status === "unauthenticated"
+  const guest = status !== "authenticated"
   const {
     open,
     openChat,

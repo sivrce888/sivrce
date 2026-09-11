@@ -162,8 +162,17 @@ function geoCookieOpts(): { maxAge: number; path: string; sameSite: "lax"; secur
   }
 }
 
-function rememberGeo(req: NextRequest, res: NextResponse, market: string): NextResponse {
-  if (!isGeoLaunch(market) && market !== "global") return res
+function rememberGeo(
+  req: NextRequest,
+  res: NextResponse,
+  market: string,
+  stickyGlobal = false,
+): NextResponse {
+  // ponytail: never sticky-hub on a missed IP — that trapped humans on the
+  // directory. `global` only from ?worldwide=1. Ceiling: travelers keep last
+  // country until they pick another; upgrade: TTL by ISO change.
+  if (market === "global" && !stickyGlobal) return res
+  if (!isGeoLaunch(market) && market !== "global" && market !== "ge") return res
   if (req.cookies.get(GEO_COOKIE)?.value === market) return res
   res.cookies.set(GEO_COOKIE, market, geoCookieOpts())
   return res
@@ -282,23 +291,26 @@ export function proxy(req: NextRequest) {
         const worldwide = req.nextUrl.searchParams.has("worldwide")
         const target = geoLaunchTarget({
           cookie: req.cookies.get(GEO_COOKIE)?.value,
-          iso: req.headers.get("x-vercel-ip-country"),
+          iso: req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry"),
           worldwide,
           crawler: isCrawler(req.headers.get("user-agent")),
         })
         if (worldwide) {
           const dest = req.nextUrl.clone()
           dest.searchParams.delete("worldwide")
-          return rememberGeo(req, NextResponse.redirect(dest, 302), "global")
+          return rememberGeo(req, NextResponse.redirect(dest, 302), "global", true)
         }
         if (target === "ge") {
           const dest = safeRedirectUrl(GE_ORIGIN, "/", req.nextUrl.search)
           if (!dest) return NextResponse.redirect(new URL("/", GE_ORIGIN), 302)
-          return NextResponse.redirect(dest, 302)
+          return rememberGeo(req, NextResponse.redirect(dest, 302), "ge")
         }
         if (target !== "hub") {
           const url = req.nextUrl.clone()
-          url.pathname = geoHomePath(target)
+          url.pathname = geoHomePath(
+            target,
+            req.headers.get("x-vercel-ip-city") || req.headers.get("cf-ipcity"),
+          )
           return rememberGeo(req, NextResponse.redirect(url, 302), target)
         }
       }
