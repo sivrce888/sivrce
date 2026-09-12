@@ -26,7 +26,12 @@ assert.deepEqual(emailOnly.OR?.[0], { agentEmail: "ag@sivrce.ge" })
 
 assert.deepEqual(listingOwnerWhere(["u1"]), { ownerId: { in: ["u1"] }, deletedAt: null })
 assert.equal(leadWaText("ნინო", "ვაკე, 3 ოთახი").includes("ნინო"), true)
-assert.equal(leadWaText("  ", "").includes("თქვენ"), true)
+// Blank buyer name — "გიპასუხებთ" already carries the polite "you" (-თ suffix),
+// so the greeting must stay well-formed with no placeholder and no double space.
+const anon = leadWaText("  ", "")
+assert.ok(anon.startsWith("გამარჯობა, "), `blank name greeting: ${anon}`)
+assert.ok(!anon.includes("  "), `double space in greeting: ${anon}`)
+assert.ok(!leadWaText("ნინო", "   ").includes(" — "), "blank title adds no dash")
 assert.equal(listingManageRule({ id: "a", role: "agent" }, "a", false), true)
 assert.equal(listingManageRule({ id: "a", role: "agent" }, "b", true), false)
 assert.equal(listingManageRule({ id: "ag", role: "agency" }, "b", true), true)

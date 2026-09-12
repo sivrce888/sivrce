@@ -35,7 +35,10 @@ const tb = cityCenter('თბილისი')
 assert.ok(Math.abs(tb.lat - 41.69365) < 0.01)
 assert.ok(Math.abs(tb.lng - 44.80115) < 0.01)
 assert.deepEqual(knownCityCenter('Berlin'), { lat: 52.52, lng: 13.405 })
-assert.equal(knownCityCenter('Paris'), null)
+// World hubs are cataloged now; a true unknown must still not snap to Tbilisi.
+assert.deepEqual(knownCityCenter('Paris'), { lat: 48.8566, lng: 2.3522 })
+assert.equal(knownCityCenter('Notacity'), null)
+assert.equal(knownCityCenter(''), null)
 
 assert.equal(matchCityKa('Tbilisi'), 'თბილისი')
 assert.equal(matchCityKa('თბილისი'), 'თბილისი')

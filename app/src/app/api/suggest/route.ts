@@ -9,7 +9,13 @@ import { BERLIN_BEZIRKE, DE_CITIES } from "@/lib/countries/de"
 import { MAP_CITIES_ALL as MAP_CITIES } from "@/lib/map/user-place.server"
 import { COUNTRY_IDS, MARKETS } from "@/lib/markets"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"
-import { compileHay, matchCompiled, suggestFuzzy, type CompiledHay } from "@/lib/suggest-match"
+import {
+  compileHay,
+  compileQuery,
+  matchPrepared,
+  suggestFuzzyPrepared,
+  type CompiledHay,
+} from "@/lib/suggest-match"
 import { DEVELOPERS, PROJECTS, getDeveloper } from "@/data/professionals"
 import { BUILDINGS } from "@/data/buildings"
 import { NEIGHBORHOODS } from "@/data/neighborhoods"
@@ -339,53 +345,56 @@ export async function GET(req: Request) {
     ? new Set(districtSearchValues(districtFilter, cityFilter))
     : null
 
+  // Query folds are loop-invariant — compile once per request, not once per row.
+  const cq = compileQuery(q)
+
   const prefix: Row[] = []
   const partial: Row[] = []
   const push = (r: Row, p: boolean) => (p ? prefix : partial).push(r)
 
   if (!cityFilter) {
     for (const r of CITY_ROWS) {
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of DEVELOPER_ROWS) {
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of PROJECT_ROWS) {
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of BUILDING_ROWS) {
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of WORLD_CITY_ROWS) {
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of COUNTRY_ROWS) {
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of WORLD_COUNTRY_ROWS) {
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
   } else {
     for (const r of DEVELOPER_ROWS) {
       if (r.city && r.city !== cityFilter) continue
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of PROJECT_ROWS) {
       if (r.city && r.city !== cityFilter) continue
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
     for (const r of BUILDING_ROWS) {
       if (r.city && r.city !== cityFilter) continue
-      const m = matchCompiled(r.hay, q)
+      const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
   }
@@ -393,66 +402,66 @@ export async function GET(req: Request) {
   // Metro = navigable entity (station page) — ranks with buildings, above keywords.
   for (const r of METRO_ROWS) {
     if (cityFilter && r.city && r.city !== cityFilter) continue
-    const m = matchCompiled(r.hay, q)
+    const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)
   }
   for (const r of DISTRICT_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
-    const m = matchCompiled(r.hay, q)
+    const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)
   }
   for (const r of NEIGHBORHOOD_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
-    const m = matchCompiled(r.hay, q)
+    const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)
   }
   for (const r of VILLAGE_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
-    const m = matchCompiled(r.hay, q)
+    const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)
   }
   for (const r of QUARTER_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
     if (wanted && r.district && !wanted.has(r.district)) continue
-    const m = matchCompiled(r.hay, q)
+    const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)
   }
   for (const r of STREET_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
     if (wanted && r.district && !wanted.has(r.district)) continue
-    const m = matchCompiled(r.hay, q)
+    const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)
   }
   for (const r of POI_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
-    const m = matchCompiled(r.hay, q)
+    const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)
   }
 
   // Typo rescue — nothing matched, one char is off: fuzzy rescue for entities.
   if (prefix.length === 0 && partial.length === 0 && q.length >= 4) {
     for (const r of DEVELOPER_ROWS) {
-      if (suggestFuzzy(r.raw, q)) push(r, false)
+      if (suggestFuzzyPrepared(r.raw, cq)) push(r, false)
     }
     for (const r of PROJECT_ROWS) {
-      if (suggestFuzzy(r.raw, q)) push(r, false)
+      if (suggestFuzzyPrepared(r.raw, cq)) push(r, false)
     }
     for (const r of BUILDING_ROWS) {
-      if (suggestFuzzy(r.raw, q)) push(r, false)
+      if (suggestFuzzyPrepared(r.raw, cq)) push(r, false)
     }
     for (const r of QUARTER_ROWS) {
       if (cityFilter && r.city !== cityFilter) continue
       if (wanted && r.district && !wanted.has(r.district)) continue
-      if (suggestFuzzy(r.raw, q)) push(r, false)
+      if (suggestFuzzyPrepared(r.raw, cq)) push(r, false)
     }
     for (const r of STREET_ROWS) {
       if (cityFilter && r.city !== cityFilter) continue
       if (wanted && r.district && !wanted.has(r.district)) continue
-      if (suggestFuzzy(r.raw, q)) push(r, false)
+      if (suggestFuzzyPrepared(r.raw, cq)) push(r, false)
     }
     for (const r of VILLAGE_ROWS) {
       if (cityFilter && r.city !== cityFilter) continue
-      if (suggestFuzzy(r.raw, q)) push(r, false)
+      if (suggestFuzzyPrepared(r.raw, cq)) push(r, false)
     }
   }
 

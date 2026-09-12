@@ -870,7 +870,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     slug: 'reside-riverside',
     name: 'Riverside New Boulevard',
     developerSlug: 'reside-development',
-    img: '/images/np1.webp',
+    img: '/images/projects/reside-riverside.webp',
     location: 'ანგისის ქ. 95, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: '$1,200',

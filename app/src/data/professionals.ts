@@ -263,8 +263,14 @@ const DEV_PREFIX: Record<string, string> = {
   'nhw-wiesbaden': 'NHW', lwb: 'LWB', 'swsg-stuttgart': 'SWS',
   'wid-dresden': 'WID', 'hanova-hannover': 'HAN', 'wbg-nuernberg': 'WBG',
 }
-const autoDevPrefix = (slug: string): string =>
-  slug.split('-').filter((s) => s.length > 0).map((s) => s[0]!).join('').toUpperCase().slice(0, 3)
+const autoDevPrefix = (slug: string): string => {
+  const parts = slug.split('-').filter((s) => s.length > 0)
+  let p = parts.map((s) => s[0]!).join('').toUpperCase()
+  if (p.length < 2) {
+    p = slug.replace(/[^a-z0-9]/gi, '').slice(0, 3).toUpperCase()
+  }
+  return p.slice(0, 3)
+}
 
 let _projectCodes: Map<string, string> | null = null
 function buildProjectCodes(): Map<string, string> {
@@ -2777,7 +2783,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     slug: 'gulfstream-seaview',
     name: 'Gulfstream Seaview',
     developerSlug: 'gulfstream-group',
-    img: '/images/np1.webp?v15k',
+    img: '/images/projects/gulfstream-seaview.webp',
     location: 'ზღვისპირა ხაზი, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: '$1,700',
@@ -3600,7 +3606,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     slug: 'royal-bohema-residence',
     name: 'Bohema Residence',
     developerSlug: 'royal-group',
-    img: '/images/np1.webp?v15k',
+    img: '/images/projects/royal-bohema-residence.webp',
     location: 'თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,300',

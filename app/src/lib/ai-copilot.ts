@@ -20,6 +20,8 @@ export interface PropertyCopilotContext {
   countryCode?: string
   districtMedianPerSqm: number
   estimatedMonthlyRentUSD?: number
+  /** Listing body copy — drives the scam-radar payment-phrase check (+35 risk). */
+  description?: string
   sellerPhoneVerified?: boolean
   photosCount: number
   hasCadastralCode?: boolean
@@ -111,6 +113,7 @@ export function answerPropertyQuestion(
       priceUSD: context.priceUSD,
       areaSqm: context.areaSqm,
       districtMedianPerSqm: context.districtMedianPerSqm,
+      description: context.description,
       sellerPhoneVerified: context.sellerPhoneVerified,
       photosCount: context.photosCount,
       hasCadastralCode: context.hasCadastralCode,

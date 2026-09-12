@@ -32,6 +32,7 @@ prisma/*.db
 
 # local junk — see .cursor/rules/repo-lightweight-lock.mdc
 app/visual-audit.mjs
+app/.audit*
 app/scripts/probe-*.mjs
 app/scripts/visual-*.mjs
 app/scripts/visual-*.cjs

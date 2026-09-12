@@ -1,4 +1,4 @@
-import { prioritizeAgentLeads, matchListingsForLead } from './agent-os'
+import { prioritizeAgentLeads, matchListingsForLead, calculateLeadDealProbability, calculateAgentPerformanceScore } from './agent-os'
 
 console.log('agent-os.check: start')
 
@@ -21,4 +21,11 @@ if (matched.length === 0 || matched[0].propertyId !== 'p1') {
   throw new Error('Property p1 should match Elena K.')
 }
 
+const prob = calculateLeadDealProbability(leads[0])
+if (prob.winProbabilityPct !== 75) throw new Error(`Expected 75% win probability for offer_made with budget, got ${prob.winProbabilityPct}`)
+
+const perf = calculateAgentPerformanceScore(20, 6, 0.8)
+if (perf.agentRankTier !== 'Elite Top Tier') throw new Error(`Expected Elite Top Tier, got ${perf.agentRankTier}`)
+
 console.log('agent-os.check: OK ✓')
+

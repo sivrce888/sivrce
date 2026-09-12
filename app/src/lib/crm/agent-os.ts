@@ -128,3 +128,89 @@ export function matchListingsForLead(
 
   return results.sort((a, b) => b.matchScore - a.matchScore)
 }
+
+export interface DealProbabilityScore {
+  winProbabilityPct: number // 0 to 100
+  dealStage: AgentLead['status']
+  keyFactors: string[]
+}
+
+export interface AgentPerformanceMetrics {
+  totalActiveLeads: number
+  conversionRatePct: number
+  avgResponseTimeHours: number
+  agentRankTier: 'Elite Top Tier' | 'High Performer' | 'Standard'
+}
+
+/** Calculates estimated deal closure probability based on lead engagement metrics */
+export function calculateLeadDealProbability(lead: AgentLead): DealProbabilityScore {
+  let winProbabilityPct = 20
+  const keyFactors: string[] = []
+
+  switch (lead.status) {
+    case 'closed_won':
+      winProbabilityPct = 100
+      keyFactors.push('Deal closed successfully')
+      break
+    case 'closed_lost':
+      winProbabilityPct = 0
+      keyFactors.push('Deal marked lost')
+      break
+    case 'negotiating':
+      winProbabilityPct = 85
+      keyFactors.push('Active negotiation underway')
+      break
+    case 'offer_made':
+      winProbabilityPct = 70
+      keyFactors.push('Formal offer submitted')
+      break
+    case 'viewing_scheduled':
+      winProbabilityPct = 45
+      keyFactors.push('Property viewing scheduled')
+      break
+    case 'contacted':
+      winProbabilityPct = 30
+      keyFactors.push('Initial client contact established')
+      break
+    case 'new':
+    default:
+      winProbabilityPct = 15
+      keyFactors.push('New lead — initial outreach pending')
+      break
+  }
+
+  if (lead.budgetUSD && lead.budgetUSD > 0) {
+    winProbabilityPct = Math.min(100, winProbabilityPct + 5)
+    keyFactors.push('Verified budget parameter')
+  }
+
+  return {
+    winProbabilityPct,
+    dealStage: lead.status,
+    keyFactors,
+  }
+}
+
+/** Evaluates overall agent CRM performance and tier classification */
+export function calculateAgentPerformanceScore(
+  totalLeads: number,
+  closedWonCount: number,
+  avgResponseHours: number
+): AgentPerformanceMetrics {
+  const conversionRatePct = totalLeads > 0 ? Math.round((closedWonCount / totalLeads) * 100) : 0
+
+  let agentRankTier: AgentPerformanceMetrics['agentRankTier'] = 'Standard'
+  if (conversionRatePct >= 25 && avgResponseHours <= 1.0) {
+    agentRankTier = 'Elite Top Tier'
+  } else if (conversionRatePct >= 15 && avgResponseHours <= 3.0) {
+    agentRankTier = 'High Performer'
+  }
+
+  return {
+    totalActiveLeads: totalLeads,
+    conversionRatePct,
+    avgResponseTimeHours: avgResponseHours,
+    agentRankTier,
+  }
+}
+

@@ -286,8 +286,8 @@ async function saveWebp(buf: Buffer, slug: string): Promise<boolean> {
     await mkdir(OUT_DIR, { recursive: true })
     await sharp(buf)
       .rotate()
-      .resize({ width: 1600, withoutEnlargement: true })
-      .webp({ quality: 82 })
+      .resize({ width: 960, withoutEnlargement: true })
+      .webp({ quality: 64, effort: 6 })
       .toFile(path.join(OUT_DIR, `${slug}.webp`))
     return true
   } catch {

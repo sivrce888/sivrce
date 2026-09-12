@@ -228,7 +228,7 @@ export default function CategoryBar({
               role="tab"
               aria-selected={active}
               onClick={() => onSelect(item)}
-              className={`group flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 ${
+              className={`group flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-primary ${
                 active
                   ? 'bg-sv-surface text-sv-ink shadow-card ring-2 dark:bg-sv-navy dark:text-white'
                   : 'bg-sv-cloud/80 text-sv-ink/70 hover:bg-sv-surface hover:text-sv-ink dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/[0.12] dark:hover:text-white'

@@ -39,7 +39,7 @@ function svg(name: string, location: string, finish: string): Buffer {
 async function main() {
   for (const p of NEW_PROJECTS_2026_08) {
     const out = path.join(DIR, path.basename(p.img))
-    await sharp(svg(p.name, p.location, p.finish)).webp({ quality: 86 }).toFile(out)
+    await sharp(svg(p.name, p.location, p.finish)).resize(960).webp({ quality: 72, effort: 6 }).toFile(out)
     console.log(' ', path.basename(out))
   }
 }

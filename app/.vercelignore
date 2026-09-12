@@ -15,5 +15,13 @@ BRAND.md
 .env.example
 *.log
 .DS_Store
-
+*.tsbuildinfo
+prisma/*.db
 scripts/*.log
+../research
+../logo
+../docs
+../scripts
+../.perf
+../shots
+../.playwright-mcp

@@ -24,6 +24,14 @@ export interface InventoryAnalytics {
   velocityStatus: 'High Velocity' | 'Balanced' | 'Low Velocity'
 }
 
+export interface TranchePricingOptimization {
+  currentPricePerSqmUSD: number
+  recommendedPricePerSqmUSD: number
+  priceAdjustmentPct: number
+  rationaleEn: string
+  rationaleKa: string
+}
+
 /** Calculates project sell-out velocity and inventory analytics */
 export function calculateDeveloperInventoryAnalytics(
   inventory: DeveloperProjectInventory,
@@ -52,3 +60,38 @@ export function calculateDeveloperInventoryAnalytics(
     velocityStatus,
   }
 }
+
+/** Recommends optimal tranche pricing adjustments based on sell-out velocity and demand milestones */
+export function calculateTranchePricingOptimization(
+  inventory: DeveloperProjectInventory,
+  analytics: InventoryAnalytics
+): TranchePricingOptimization {
+  let priceAdjustmentPct = 0
+  let rationaleEn = 'Maintain current pricing strategy'
+  let rationaleKa = 'სტანდარტული ფასწარმოქმნის სტრატეგიის შენარჩუნება'
+
+  if (analytics.velocityStatus === 'High Velocity' && analytics.sellOutRatePct >= 50) {
+    priceAdjustmentPct = 5.0
+    rationaleEn = 'High demand & >50% sell-out milestone reached: +5% price escalation recommended'
+    rationaleKa = 'მაღალი მოთხოვნა და >50% გაყიდვების ზღვარი: +5% ფასის ზრდის რეკომენდაცია'
+  } else if (analytics.velocityStatus === 'High Velocity' && analytics.sellOutRatePct >= 30) {
+    priceAdjustmentPct = 3.0
+    rationaleEn = 'High demand velocity: +3% tranche price adjustment recommended'
+    rationaleKa = 'მაღალი გაყიდვების ტემპი: +3% ტრანშის ფასის კორექტირება'
+  } else if (analytics.velocityStatus === 'Low Velocity' && analytics.sellOutRatePct < 25) {
+    priceAdjustmentPct = -2.5
+    rationaleEn = 'Slow launch trajectory: -2.5% promotional tranche price boost recommended'
+    rationaleKa = 'შენელებული სტარტი: -2.5% პრომო ფასდაკლების სტიმულირება'
+  }
+
+  const recommendedPricePerSqmUSD = Math.round(inventory.avgPricePerSqmUSD * (1 + priceAdjustmentPct / 100))
+
+  return {
+    currentPricePerSqmUSD: inventory.avgPricePerSqmUSD,
+    recommendedPricePerSqmUSD,
+    priceAdjustmentPct,
+    rationaleEn,
+    rationaleKa,
+  }
+}
+

@@ -109,25 +109,33 @@ function dist1Prefix(w: string, n: string): boolean {
   return false
 }
 
+/** Candidate words for a hay string — hoisted out of the per-row loop. */
+function fuzzyWords(s: string): string[] {
+  const f = foldQuarterQuery(s)
+  // dash-less pseudo-word: "ვაჟაფშაველას" (no dash typed) must still hit
+  return [...new Set([
+    ...foldTranslit(f).split(/[\s,-]+/),
+    ...foldTranslit(gStem(f)).split(/[\s,-]+/),
+    foldTranslit(f.replace(/-/g, '')),
+  ])]
+}
+
 /**
  * Rescue tier — runs only when prefix/substring found nothing: one mistyped
  * char ("ბელიყაშვილის", "beliashvilisq") still surfaces the street.
  * ponytail: ≤1 edit, ≥4 chars — deeper fuzz needs a real index, not heuristics.
  */
+export function suggestFuzzyPrepared(
+  hay: readonly (string | undefined)[],
+  cq: CompiledQuery | null,
+): boolean {
+  if (!cq || cq.needle.length < 4) return false
+  const needles = cq.needles
+  return hay.some((h) => h && fuzzyWords(h).some((w) => w && needles.some((n) => dist1Prefix(w, n))))
+}
+
 export function suggestFuzzy(hay: readonly (string | undefined)[], q: string): boolean {
-  const n0 = foldQuarterQuery(q)
-  if (n0.length < 4) return false
-  const needles = queryVariants(n0)
-  const wordsOf = (s: string) => {
-    const f = foldQuarterQuery(s)
-    // dash-less pseudo-word: "ვაჟაფშაველას" (no dash typed) must still hit
-    return [...new Set([
-      ...foldTranslit(f).split(/[\s,-]+/),
-      ...foldTranslit(gStem(f)).split(/[\s,-]+/),
-      foldTranslit(f.replace(/-/g, '')),
-    ])]
-  }
-  return hay.some((h) => h && wordsOf(h).some((w) => w && needles.some((n) => dist1Prefix(w, n))))
+  return suggestFuzzyPrepared(hay, compileQuery(q))
 }
 
 /**
@@ -147,13 +155,40 @@ export function compileHay(hay: readonly (string | undefined)[]): CompiledHay {
     })
 }
 
-/** prefix = starts-with (string or any word); null = no match. */
-export function matchCompiled(hs: CompiledHay, q: string): { prefix: boolean } | null {
+/**
+ * Query-side folds — the mirror of compileHay. `q` is loop-invariant across the
+ * ~22k catalog rows, so folding it once per request instead of once per row is
+ * the difference between ~10ms and ~250ms per keystroke.
+ */
+export type CompiledQuery = {
+  /** foldQuarterQuery(q) — kept for the fuzzy tier's length gate. */
+  readonly needle: string
+  readonly needles: string[]
+  /** Populated only for multi-token queries ("bina vake") — see matchPrepared. */
+  readonly tokenVariants: { readonly tk: string; readonly nds: string[] }[]
+}
+
+export function compileQuery(q: string): CompiledQuery | null {
   const needle = foldQuarterQuery(q)
   if (!needle) return null
-  // Query variants: genitive-tail stem ("beliashvilis"), phonetic fold
-  // ("nutsubidze"→"nucubize"), and folded+nominative-vowel stripped ("nucubiz").
-  const needles = queryVariants(needle)
+  const tokens = needle.split(/[\s,]+/).filter((t) => t.length >= 3)
+  return {
+    needle,
+    // Query variants: genitive-tail stem ("beliashvilis"), phonetic fold
+    // ("nutsubidze"→"nucubize"), and folded+nominative-vowel stripped ("nucubiz").
+    needles: queryVariants(needle),
+    tokenVariants:
+      tokens.length > 1 ? tokens.map((tk) => ({ tk, nds: queryVariants(tk) })) : [],
+  }
+}
+
+/** prefix = starts-with (string or any word); null = no match. */
+export function matchPrepared(
+  hs: CompiledHay,
+  cq: CompiledQuery | null,
+): { prefix: boolean } | null {
+  if (!cq) return null
+  const { needles, tokenVariants } = cq
   const hitPrefix = (s: string, nd: string) =>
     s.startsWith(nd) || s.split(/[\s,-]+/).some((w) => w.startsWith(nd))
   for (const [a, b, c, d] of hs) {
@@ -171,9 +206,7 @@ export function matchCompiled(hs: CompiledHay, q: string): { prefix: boolean } |
   // Multi-token queries ("bina vake", "ბინა ვაკეში") — the full phrase never
   // matches a place-name catalog. Per-token OR rescues the location token;
   // reverse startsWith ("vakeshi"/"ვაკეში") matches the inflected form.
-  const tokens = needle.split(/[\s,]+/).filter((t) => t.length >= 3)
-  if (tokens.length > 1) {
-    const tokenVariants = tokens.map((tk) => ({ tk, nds: queryVariants(tk) }))
+  if (tokenVariants.length) {
     for (const [a, b, c, d] of hs) {
       const hit = tokenVariants.some(({ tk, nds }) =>
         (tk.startsWith(a) && a.length >= 3) ||
@@ -183,6 +216,11 @@ export function matchCompiled(hs: CompiledHay, q: string): { prefix: boolean } |
     }
   }
   return null
+}
+
+/** prefix = starts-with (string or any word); null = no match. */
+export function matchCompiled(hs: CompiledHay, q: string): { prefix: boolean } | null {
+  return matchPrepared(hs, compileQuery(q))
 }
 
 /** prefix = starts-with (string or any word); null = no match. */

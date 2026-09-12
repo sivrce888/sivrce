@@ -13,7 +13,6 @@ import { COUNTRY_IDS, MARKETS } from '@/lib/markets'
 import { MAP_CITIES_ALL as MAP_CITIES } from '@/lib/map/user-place.server'
 import {
   countryInfo,
-  countryJsonLd,
   deepMarketFor,
   discoveryCountryCodes,
   discoveryMetroSlugs,
@@ -75,7 +74,6 @@ assert.equal(stats.countries + stats.discoveryCountries, stats.isoCountries, 'co
 for (const cc of discovery) {
   const row = globalCountry(cc)
   assert.ok(row && !row.deep && row.center === null && row.path === null, `discovery row: ${cc}`)
-  assert.equal(countryJsonLd(cc), null, `thin entity: ${cc}`)
 }
 assert.equal(globalCountry('de')?.defaultCitySlug, 'berlin')
 assert.ok((metrosForCountry('ae').length ?? 0) >= 2)
@@ -175,8 +173,6 @@ assert.ok(paths.includes('/de') && paths.includes('/de/berlin') && paths.include
 assert.ok(discoveryMetroSlugs().length > 0, 'no discovery metros')
 assert.ok(!paths.some((p) => p.includes('undefined')), 'sitemap has undefined')
 assert.ok(osFreshness().asOf.length >= 4 && osFreshness().cycles.length >= 5, 'freshness thin')
-const ld = countryJsonLd('DE'.toLowerCase())
-assert.ok(ld && (ld as { name: string }).name === 'Germany', 'json-ld germany')
 
 console.log(
   `global-os.check: ${stats.countries} countries (${stats.countryInfos} info rows), ${stats.metros} metros, ` +

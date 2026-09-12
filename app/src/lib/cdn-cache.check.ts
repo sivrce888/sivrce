@@ -38,6 +38,28 @@ assert.ok(has(nextCfg, "compress: true"))
 assert.ok(has(nextCfg, "staticGenerationMaxConcurrency: 3"))
 assert.ok(!/^\s*inlineCss:\s*true/m.test(nextCfg), "inlineCss blows FCP")
 
+// CDN edge-cache rule — semantic test (string locks missed the locale-prefix bug:
+// /en/admin matched the public cache). Extract the real source, run it as Next would.
+const cdnSrc = nextCfg.match(/"(\/\(\(\?![^"]*)"/)
+assert.ok(cdnSrc, "cdn cache header source missing")
+const cdnRe = new RegExp(`^${JSON.parse(`"${cdnSrc![1]}"`)}/?$`)
+const noCache = [
+  "/admin", "/en/admin", "/ka/admin", "/api/x", "/auth/signin", "/en/auth/x",
+  "/account", "/en/account", "/settings", "/en/settings", "/dashboard", "/ru/dashboard",
+  "/seller", "/en/seller", "/agent", "/en/agent", "/agency", "/en/agency",
+  "/developer", "/en/developer", "/add-listing", "/en/add-listing", "/add-service",
+  "/en/add-service", "/favorites", "/en/favorites", "/compare", "/en/compare",
+  "/search", "/en/search", "/map", "/en/map", "/payment/success", "/en/payment/failed",
+  "/de/payment/success", "/logo.png", "/en/x.pdf",
+]
+for (const p of noCache) assert.ok(!cdnRe.test(p), `cdn-cached private/file path ${p}`)
+const cache = [
+  "/", "/en", "/ka", "/de", "/en/", "/en/listing/vake-47/iyideba", "/en/countries",
+  "/en/projects", "/en/agents", "/en/developers", "/en/agencies", "/en/buildings/x",
+  "/en/blog", "/en/tbilisi/vake/mtskverishvili", "/en/market/ge", "/en/faq",
+]
+for (const p of cache) assert.ok(cdnRe.test(p), `public path not cdn-cached ${p}`)
+
 const vercel = JSON.parse(read("vercel.json")) as {
   fluid: boolean
   regions: string[]

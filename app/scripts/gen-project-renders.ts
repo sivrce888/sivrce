@@ -221,14 +221,14 @@ async function main() {
   for (const p of all) {
     const heroPath = path.join(DIR, path.basename(p.img))
     if (!fs.existsSync(heroPath)) {
-      await sharp(hero(p)).webp({ quality: 86 }).toFile(heroPath)
+      await sharp(hero(p)).resize(960).webp({ quality: 72, effort: 6 }).toFile(heroPath)
       heroes++
     }
     for (const g of galleryPaths(p)) {
       const out = path.join(DIR, path.basename(g))
       if (fs.existsSync(out)) continue
       const i = suffixes.findIndex((sfx) => path.basename(g).endsWith(`${sfx}.webp`))
-      await sharp(renderers[i](p)).webp({ quality: 80 }).toFile(out)
+      await sharp(renderers[i](p)).resize(720).webp({ quality: 64, effort: 6 }).toFile(out)
       cards++
     }
   }

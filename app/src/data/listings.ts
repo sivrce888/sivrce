@@ -73,6 +73,8 @@ export interface Listing {
   video?: string | null
   /** Listing-level verification (admin), not agent identity. */
   verified?: boolean
+  /** Official NAPR cadastral code attached — fraud-radar trust signal. */
+  hasCadastralCode?: boolean
   ai: { score: number; label: string }
   features: string[]
   /** Long text — detail views only; wire shapes (map pins, cards) omit it. */

@@ -2,6 +2,8 @@ import {
   getVerificationBadge,
   detectPriceAnomaly,
   calculateDuplicateSimilarity,
+  calculateSivrceTrustIndex,
+  calculateListingTruthScore,
 } from './truth-engine'
 
 console.log('truth-engine.check: start')
@@ -37,4 +39,35 @@ if (sim.similarityScore < 80) {
   throw new Error(`Expected high duplicate similarity (>80), got ${sim.similarityScore}`)
 }
 
+// 4. Sivrce Trust Index test
+const goldTrust = calculateSivrceTrustIndex({
+  isCadastreVerified: true,
+  cadastreCode: '01.10.15.002.014',
+  hasTitleDeed: true,
+  sellerType: 'DEVELOPER',
+  isExclusiveListing: true,
+})
+if (goldTrust.tier !== 'VERIFIED_GOLD' || goldTrust.score < 85) {
+  throw new Error(`Expected VERIFIED_GOLD status, got: ${JSON.stringify(goldTrust)}`)
+}
+
+const riskTrust = calculateSivrceTrustIndex({
+  priceAnomaly: fakeLow,
+  duplicateCount: 5,
+})
+if (riskTrust.tier !== 'HIGH_RISK' || riskTrust.score >= 40) {
+  throw new Error(`Expected HIGH_RISK status, got: ${JSON.stringify(riskTrust)}`)
+}
+
+// 5. Listing truth summary test
+const truthSummary = calculateListingTruthScore(true, true, '01.10.15.002.014', {
+  hasTitleDeed: true,
+  sellerType: 'DEVELOPER',
+})
+if (!truthSummary.isVerified || !truthSummary.isGold) {
+  throw new Error(`Expected verified gold truth summary, got: ${JSON.stringify(truthSummary)}`)
+}
+
 console.log('truth-engine.check: OK ✓')
+
+

@@ -1744,6 +1744,11 @@ function Map3DInner({
 
       bindMissingImages(map)
 
+      // ponytail: inline/sat styles fire style.load before the 1600ms watchdog —
+      // a once() registered in reveal would miss it and kill every pin layer.
+      let styleReady = map.isStyleLoaded()
+      if (!styleReady) map.once('style.load', () => { styleReady = true })
+
       const flyTo = (b: MapBuildingCluster) => {
         const three = view3dRef.current
         map.easeTo({
@@ -2298,7 +2303,7 @@ function Map3DInner({
         const mount = () => {
           if (!cancelled) mountOverlays()
         }
-        if (map.isStyleLoaded()) mount()
+        if (styleReady || map.isStyleLoaded()) mount()
         else map.once('style.load', mount)
       }
       // ponytail: mask geojson used to block `load` forever; style.load is sync on inline JSON so we miss it. Watchdog + load.
@@ -2796,7 +2801,7 @@ function Map3DInner({
           <div className="flex flex-col gap-2">
             <ChromeSearch
               variant={isDark ? 'dark' : 'light'}
-              className="w-full"
+              className={`w-full rounded-tile border p-1.5 ${chip}`}
               onPlace={(q, s) => void flyToQuery(q, s)}
             />
             <div className={`hidden items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide md:flex ${chip}`}>

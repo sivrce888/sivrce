@@ -134,6 +134,8 @@ export interface Listing {
   /** YouTube or CDN mp4/webm/mov — extendedFields.video */
   video?: string | null
   verified?: boolean
+  /** Official NAPR cadastral code attached (extendedFields.cadastral) — fraud-radar trust signal. */
+  hasCadastralCode?: boolean
   ai: { score: number; label: string }
   features: string[]
   description: string
@@ -173,6 +175,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     exclusive?: boolean
     sivrceExclusive?: boolean
     video?: string
+    cadastral?: string
   } | null) ?? null
   const projectCatalog = Boolean(ext?.projectCatalog)
   const projectSlug = ext?.projectSlug ?? null
@@ -248,6 +251,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     ),
     video: typeof ext?.video === "string" && ext.video ? ext.video : null,
     verified: Boolean(r.verified),
+    hasCadastralCode: Boolean(ext?.cadastral),
     ai: {
       score: aiScore,
       label: aiLabel(aiScore),

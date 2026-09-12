@@ -18,7 +18,6 @@
  * Developers span the GE corpus (data/professionals) + the world corpus
  * (data/world-developers); renders/photos are counted, not copied (R2).
  * ponytail: one file; per-country fan-out only when a market earns a deep hub.
- * ponytail: one file; per-country fan-out only when a market earns a deep hub.
  * Non-deep currencies fall back to USD/en for display only — never for pricing.
  */
 
@@ -31,12 +30,7 @@ import { WORLD_PLACES } from '@/data/world-places'
 import { countrySitemapPaths } from '@/lib/country-copy'
 import { COSTS_AS_OF } from '@/lib/countries/costs'
 import { normalizeName, refreshHoursFor, type FactType } from '@/lib/intel/core'
-import {
-  COUNTRY_IDS,
-  COM_ORIGIN,
-  MARKETS,
-  type PathCountryId,
-} from '@/lib/markets'
+import { COUNTRY_IDS, MARKETS, type PathCountryId } from '@/lib/markets'
 import {
   MAP_CITIES_ALL as MAP_CITIES,
   cityByName,
@@ -58,11 +52,17 @@ const hasCoords = (lat: unknown, lng: unknown): boolean =>
   Number.isFinite(lng) &&
   !(Math.abs(lat) < 0.01 && Math.abs(lng) < 0.01)
 
+/** Deep-market id by ISO-2 cc — indexed once, not rescanned per city. */
+const DEEP_BY_CC = new Map<string, PathCountryId>(
+  COUNTRY_IDS.flatMap((id) => {
+    const cc = MARKETS[id].countryCode
+    return cc ? [[cc.toUpperCase(), id] as const] : []
+  }),
+)
+
 /** Deep-market id for an ISO-2 cc, if that country earned a hub. */
 export function deepMarketFor(cc: string): PathCountryId | null {
-  const up = cc.toUpperCase()
-  const hit = COUNTRY_IDS.find((id) => MARKETS[id].countryCode === up)
-  return hit ?? null
+  return DEEP_BY_CC.get(cc.toUpperCase()) ?? null
 }
 
 export interface GlobalMetro extends MapCity {
@@ -74,22 +74,46 @@ export interface GlobalMetro extends MapCity {
   marketPath: string | null
 }
 
+// Memoized: pure over the static corpus (22k cities), rebuilt never at runtime.
+// Callers must treat the result as read-only.
+let METROS_CACHE: GlobalMetro[] | null = null
+let METROS_BY_SLUG = new Map<string, GlobalMetro>()
+let METROS_BY_CC = new Map<string, GlobalMetro[]>()
+
 export function globalMetros(): GlobalMetro[] {
-  return MAP_CITIES.map((c) => {
+  if (METROS_CACHE) return METROS_CACHE
+  const byCc = new Map<string, GlobalMetro[]>()
+  const bySlug = new Map<string, GlobalMetro>()
+  const rows = MAP_CITIES.map((c) => {
     const deep = deepMarketFor(c.cc)
-    const intent = deep ? MARKETS[deep].intentCities.includes(c.slug) : false
-    return {
+    const market = deep ? MARKETS[deep] : null
+    const row: GlobalMetro = {
       ...c,
       deep: !!deep,
-      intent,
-      marketPath: deep ? `${MARKETS[deep].pathPrefix}/${c.slug}` : null,
+      intent: market ? market.intentCities.includes(c.slug) : false,
+      marketPath: market ? `${market.pathPrefix}/${c.slug}` : null,
     }
+    const list = byCc.get(c.cc)
+    if (list) list.push(row)
+    else byCc.set(c.cc, [row])
+    bySlug.set(c.slug, row)
+    return row
   })
+  METROS_BY_CC = byCc
+  METROS_BY_SLUG = bySlug
+  METROS_CACHE = rows
+  return rows
+}
+
+/** O(1) metro lookup — replaces a 22k scan per city/metro page. */
+export function metroBySlug(slug: string): GlobalMetro | null {
+  globalMetros()
+  return METROS_BY_SLUG.get(slug) ?? null
 }
 
 export function metrosForCountry(cc: string): GlobalMetro[] {
-  const up = cc.toUpperCase()
-  return globalMetros().filter((m) => m.cc === up)
+  globalMetros()
+  return METROS_BY_CC.get(cc.toUpperCase()) ?? []
 }
 
 export interface GlobalCountry {
@@ -122,14 +146,13 @@ export function countryInfo(cc: string): WorldCountry | null {
   return COUNTRY_INFO.get(cc.toUpperCase()) ?? null
 }
 
+let COUNTRIES_CACHE: GlobalCountry[] | null = null
+let COUNTRY_BY_CC = new Map<string, GlobalCountry>()
+
 export function globalCountries(): GlobalCountry[] {
-  const metros = globalMetros()
-  const byCc = new Map<string, GlobalMetro[]>()
-  for (const m of metros) {
-    const list = byCc.get(m.cc) ?? []
-    list.push(m)
-    byCc.set(m.cc, list)
-  }
+  if (COUNTRIES_CACHE) return COUNTRIES_CACHE
+  globalMetros()
+  const byCc = METROS_BY_CC
   const rows: GlobalCountry[] = [...byCc.entries()].map(([cc, list]) => {
     const deep = deepMarketFor(cc)
     const market = deep ? MARKETS[deep] : null
@@ -168,12 +191,15 @@ export function globalCountries(): GlobalCountry[] {
       metros: [],
     })
   }
-  return rows.sort((a, b) => a.names.en.localeCompare(b.names.en))
+  rows.sort((a, b) => a.names.en.localeCompare(b.names.en))
+  COUNTRY_BY_CC = new Map(rows.map((c) => [c.cc, c]))
+  COUNTRIES_CACHE = rows
+  return rows
 }
 
 export function globalCountry(cc: string): GlobalCountry | null {
-  const up = cc.toUpperCase()
-  return globalCountries().find((c) => c.cc === up) ?? null
+  globalCountries()
+  return COUNTRY_BY_CC.get(cc.toUpperCase()) ?? null
 }
 
 /* ── Metros / transit info ── */
@@ -199,7 +225,7 @@ function worldMetroSystemsFor(slug: string) {
 const WORLD_METRO_PINS = WORLD_METROS.reduce((n, m) => n + m.stations.length, 0)
 
 export function metroSystemFor(slug: string): MetroSystem {
-  const metro = globalMetros().find((m) => m.slug === slug)
+  const metro = metroBySlug(slug)
   const city = metro?.en ?? slug
   if (slug === 'tbilisi') {
     return {
@@ -362,7 +388,12 @@ export interface CountryCoverage {
 }
 
 /** Corpus grouped by country: GE ka city name or world Latin city first, project pin snap as fallback. Unmapped rows reported, never forced. */
-export function globalCoverage(): {
+let COVERAGE_CACHE: ReturnType<typeof computeGlobalCoverage> | null = null
+export function globalCoverage(): ReturnType<typeof computeGlobalCoverage> {
+  return (COVERAGE_CACHE ??= computeGlobalCoverage())
+}
+
+function computeGlobalCoverage(): {
   rows: CountryCoverage[]
   unmappedDevelopers: number
   unmappedProjects: number
@@ -452,10 +483,8 @@ export function globalOsSitemapPaths(): string[] {
 
 /** ISO codes with zero committed pins — usable for name search + live geocode, never for sitemap/links. */
 export function discoveryCountryCodes(): string[] {
-  const pinned = new Set(globalMetros().map((m) => m.cc))
-  return [...new Set([...ISO_COUNTRY_CODES, ...pinned])]
-    .filter((cc) => !pinned.has(cc))
-    .sort()
+  globalMetros()
+  return ISO_COUNTRY_CODES.filter((cc) => !METROS_BY_CC.has(cc)).sort()
 }
 
 /** Metros without a route — usable for map snap + suggest, never for sitemap/links. */
@@ -475,25 +504,6 @@ export function osFreshness(): { asOf: string; cycles: { fact: FactType; hours: 
     'media',
   ]
   return { asOf: GLOBAL_OS_AS_OF, cycles: facts.map((fact) => ({ fact, hours: refreshHoursFor(fact) })) }
-}
-
-export function countryJsonLd(cc: string): Record<string, unknown> | null {
-  const c = globalCountry(cc)
-  if (!c?.path) return null
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Country',
-    name: c.names.en,
-    identifier: c.cc,
-    url: `${COM_ORIGIN}${c.path}`,
-    sameAs: [`${COM_ORIGIN}${c.path}`],
-    containsPlace: c.metros.map((m) => ({
-      '@type': 'City',
-      name: m.en,
-      geo: { '@type': 'GeoCoordinates', latitude: m.lat, longitude: m.lng },
-      ...(m.marketPath ? { url: `${COM_ORIGIN}${m.marketPath}` } : {}),
-    })),
-  }
 }
 
 export { nearestMapCity, cityByName }

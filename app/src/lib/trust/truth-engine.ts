@@ -173,3 +173,123 @@ export function calculateDuplicateSimilarity(
 
   return { similarityScore: Math.min(100, score), reasons }
 }
+
+export interface SivrceTrustScoreResult {
+  score: number // 0 to 100
+  tier: 'VERIFIED_GOLD' | 'TRUSTED' | 'STANDARD' | 'UNVERIFIED' | 'HIGH_RISK'
+  badgeLabelEn: string
+  badgeLabelKa: string
+  factors: { factor: string; scoreDelta: number }[]
+}
+
+/** Calculate unified Sivrce Trust Index (0-100) combining cadastre, provenance, and price sanity */
+export function calculateSivrceTrustIndex(input: {
+  isCadastreVerified?: boolean
+  cadastreCode?: string
+  hasTitleDeed?: boolean
+  priceAnomaly?: PriceAnomalyResult
+  duplicateCount?: number
+  isExclusiveListing?: boolean
+  sellerType?: 'DEVELOPER' | 'AGENCY' | 'OWNER' | 'UNKNOWN'
+}): SivrceTrustScoreResult {
+  let score = 50 // Base score for standard unverified listing
+  const factors: { factor: string; scoreDelta: number }[] = []
+
+  // Cadastre public registry check (+25 points)
+  if (input.isCadastreVerified || (input.cadastreCode && input.cadastreCode.length > 5)) {
+    score += 25
+    factors.push({ factor: 'Official Cadastre Public Registry Verified', scoreDelta: 25 })
+  }
+
+  // Title deed verification (+15 points)
+  if (input.hasTitleDeed) {
+    score += 15
+    factors.push({ factor: 'Ownership Document Verified', scoreDelta: 15 })
+  }
+
+  // Direct developer / verified agent (+10 points)
+  if (input.sellerType === 'DEVELOPER') {
+    score += 10
+    factors.push({ factor: 'Official Developer Listing', scoreDelta: 10 })
+  } else if (input.sellerType === 'AGENCY') {
+    score += 5
+    factors.push({ factor: 'Verified Partner Agency', scoreDelta: 5 })
+  }
+
+  // Exclusive listing (+5 points)
+  if (input.isExclusiveListing) {
+    score += 5
+    factors.push({ factor: 'Exclusive Single Source Listing', scoreDelta: 5 })
+  }
+
+  // Deductions: Price anomaly (-30 points)
+  if (input.priceAnomaly?.isAnomaly) {
+    score -= 30
+    factors.push({ factor: 'Price Anomaly Warning', scoreDelta: -30 })
+  }
+
+  // Deductions: Duplicate proliferation (-15 points)
+  if (input.duplicateCount && input.duplicateCount > 3) {
+    score -= 15
+    factors.push({ factor: `Proliferated Duplicates (${input.duplicateCount} copies)`, scoreDelta: -15 })
+  }
+
+  const finalScore = Math.max(0, Math.min(100, score))
+  let tier: SivrceTrustScoreResult['tier'] = 'STANDARD'
+  let badgeLabelEn = 'Standard Listing'
+  let badgeLabelKa = 'სტანდარტული განცხადება'
+
+  if (finalScore >= 85) {
+    tier = 'VERIFIED_GOLD'
+    badgeLabelEn = 'Verified Gold'
+    badgeLabelKa = 'დამოწმებული ოქროს სტატუსი'
+  } else if (finalScore >= 70) {
+    tier = 'TRUSTED'
+    badgeLabelEn = 'Trusted Listing'
+    badgeLabelKa = 'სანდო განცხადება'
+  } else if (finalScore < 40) {
+    tier = 'HIGH_RISK'
+    badgeLabelEn = 'High Risk Warning'
+    badgeLabelKa = 'მაღალი რისკის გაფრთხილება'
+  }
+
+  return {
+    score: finalScore,
+    tier,
+    badgeLabelEn,
+    badgeLabelKa,
+    factors,
+  }
+}
+
+export interface ListingTruthSummary {
+  score: number
+  isGold: boolean
+  isVerified: boolean
+  badge: VerificationBadge
+}
+
+/** Summarize real-time truth score for compact listing card display */
+export function calculateListingTruthScore(
+  isVerified?: boolean,
+  isCadastreVerified?: boolean,
+  cadastreCode?: string,
+  options?: { hasTitleDeed?: boolean; sellerType?: 'DEVELOPER' | 'AGENCY' | 'OWNER' | 'UNKNOWN' }
+): ListingTruthSummary {
+  const verified = Boolean(isVerified || isCadastreVerified || (cadastreCode && cadastreCode.length > 5))
+  const trust = calculateSivrceTrustIndex({
+    isCadastreVerified,
+    cadastreCode,
+    hasTitleDeed: options?.hasTitleDeed,
+    sellerType: options?.sellerType,
+  })
+
+  return {
+    score: trust.score,
+    isGold: trust.tier === 'VERIFIED_GOLD',
+    isVerified: verified,
+    badge: getVerificationBadge(verified ? 'FACT' : 'UNVERIFIED', verified),
+  }
+}
+
+

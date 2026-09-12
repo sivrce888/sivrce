@@ -41,4 +41,21 @@ if (trust.questionCategory !== 'trust_safety') {
   throw new Error('Trust question parsing failed')
 }
 
+// Regression: `description` must reach the scam radar. It was dropped at the
+// call site, so the +35 payment-phrase signal never fired in product.
+const scammy = answerPropertyQuestion('Is this property safe?', {
+  ...ctx,
+  description: 'Owner is abroad — wire transfer the deposit before viewing',
+})
+const clean = answerPropertyQuestion('Is this property safe?', {
+  ...ctx,
+  description: 'Bright 2BR in a quiet yard, viewings any weekday',
+})
+if (scammy.bodyEn === clean.bodyEn) {
+  throw new Error('description is not reaching evaluateListingFraudRisk')
+}
+if (!/risk|caution|suspicious|unverified/i.test(scammy.headlineEn + scammy.bodyEn)) {
+  throw new Error(`scam phrase did not raise the trust answer: ${scammy.headlineEn}`)
+}
+
 console.log('ai-copilot.check: OK ✓')

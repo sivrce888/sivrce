@@ -21,6 +21,10 @@ const eslintConfig = defineConfig([
     "public/**",
     // Generated Prisma client
     "src/generated/**",
+    // Gitignored local scratch — audit probes, visual scripts, temp dirs
+    ".audit*",
+    "visual-audit.mjs",
+    "tmp/**",
   ]),
 ]);
 

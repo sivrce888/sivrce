@@ -980,6 +980,7 @@ export default function ChatWidget() {
   // Guests get the help assistant only — rooms/support need an account, so
   // their "Message us" CTA routes to sign-in instead of the API.
   const guest = status !== "authenticated"
+  const onMapRoute = (pathname ?? "").split("/").includes("map")
   const {
     open,
     openChat,
@@ -1166,8 +1167,10 @@ export default function ChatWidget() {
         aria-expanded={open}
         aria-controls="sv-chat-panel"
         className={`fixed bottom-24 end-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none touch-manipulation lg:bottom-6 lg:end-6 ${
-          open ? "pointer-events-none invisible" : ""
-        }`}
+          // ponytail: /map's right control rail runs to the FAB on short phones —
+          // flip the launcher to the free left corner there (max-lg only).
+          onMapRoute ? "max-lg:end-auto max-lg:start-3" : ""
+        } ${open ? "pointer-events-none invisible" : ""}`}
       >
         <span
           className={`absolute transition-all duration-200 ${

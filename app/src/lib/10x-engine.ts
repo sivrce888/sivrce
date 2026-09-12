@@ -68,6 +68,19 @@ export function compareProperties(
     })
   }
 
+  // 4. Transit Proximity
+  if (a.distanceMetroM !== undefined && b.distanceMetroM !== undefined) {
+    dimensions.push({
+      metricEn: 'Metro Distance',
+      metricKa: 'მანძილი მეტრომდე',
+      valueA: `${a.distanceMetroM}m`,
+      valueB: `${b.distanceMetroM}m`,
+      winner: a.distanceMetroM < b.distanceMetroM ? 'A' : a.distanceMetroM > b.distanceMetroM ? 'B' : 'TIED',
+      explanationEn: a.distanceMetroM < b.distanceMetroM ? `${a.name} is ${b.distanceMetroM - a.distanceMetroM}m closer to metro` : `${b.name} is ${a.distanceMetroM - b.distanceMetroM}m closer to metro`,
+      explanationKa: a.distanceMetroM < b.distanceMetroM ? `${a.name} ${b.distanceMetroM - a.distanceMetroM}მ-ით ახლოსაა მეტროსთან` : `${b.name} ${a.distanceMetroM - b.distanceMetroM}მ-ით ახლოსაა მეტროსთან`,
+    })
+  }
+
   const scoreAWins = dimensions.filter((d) => d.winner === 'A').length
   const scoreBWins = dimensions.filter((d) => d.winner === 'B').length
   const overallWinner = scoreAWins > scoreBWins ? 'A' : scoreBWins > scoreAWins ? 'B' : 'TIED'
@@ -79,6 +92,55 @@ export function compareProperties(
     overallWinner,
     summaryEn: overallWinner === 'A' ? `${a.name} wins overall across ${scoreAWins} metrics` : overallWinner === 'B' ? `${b.name} wins overall across ${scoreBWins} metrics` : 'Both properties are evenly matched',
     summaryKa: overallWinner === 'A' ? `${a.name} იმარჯვებს ${scoreAWins} მეტრიკაში` : overallWinner === 'B' ? `${b.name} იმარჯვებს ${scoreBWins} მეტრიკაში` : 'ორივე ბინა თანაბარ პოზიციაზეა',
+  }
+}
+
+export interface MortgageEstimate {
+  propertyPriceUSD: number
+  loanAmountUSD: number
+  downPaymentUSD: number
+  monthlyPaymentUSD: number
+  totalInterestUSD: number
+  totalPaybackUSD: number
+}
+
+/** Mortgage monthly payment & total payback calculator */
+export function calculateMortgageEstimate(
+  priceUSD: number,
+  downPaymentPct = 20, // 20% default down payment
+  annualInterestRatePct = 8.5, // 8.5% average USD mortgage rate in Georgia/Emerging markets
+  loanTermYears = 20
+): MortgageEstimate {
+  const downPaymentUSD = Math.round(priceUSD * (downPaymentPct / 100))
+  const loanAmountUSD = Math.max(0, priceUSD - downPaymentUSD)
+
+  if (loanAmountUSD <= 0) {
+    return {
+      propertyPriceUSD: priceUSD,
+      loanAmountUSD: 0,
+      downPaymentUSD: priceUSD,
+      monthlyPaymentUSD: 0,
+      totalInterestUSD: 0,
+      totalPaybackUSD: priceUSD,
+    }
+  }
+
+  const monthlyRate = annualInterestRatePct / 100 / 12
+  const totalMonths = loanTermYears * 12
+
+  // Annuity formula: P * (r * (1+r)^n) / ((1+r)^n - 1)
+  const factor = Math.pow(1 + monthlyRate, totalMonths)
+  const monthlyPaymentUSD = Math.round(loanAmountUSD * ((monthlyRate * factor) / (factor - 1)))
+  const totalPaybackUSD = monthlyPaymentUSD * totalMonths
+  const totalInterestUSD = Math.round(totalPaybackUSD - loanAmountUSD)
+
+  return {
+    propertyPriceUSD: priceUSD,
+    loanAmountUSD,
+    downPaymentUSD,
+    monthlyPaymentUSD,
+    totalInterestUSD,
+    totalPaybackUSD,
   }
 }
 
@@ -169,3 +231,4 @@ export function calculate5YearRoiForecast(
     total5YearRoiPct,
   }
 }
+

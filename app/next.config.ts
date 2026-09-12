@@ -161,7 +161,7 @@ const nextConfig: NextConfig = {
       // Ceiling: 60s freshness + 1h SWR — cron purges land ≤60s late. Upgrade: PPR.
       {
         source:
-          "/((?!api|admin|auth|account|settings|dashboard|seller|agent/|agent$|agency/|agency$|developer/|developer$|add-listing|add-service|favorites|compare|search|map$|map/|.*\\..*).*)",
+          "/((?!(?:(?:ka|en|ru|he|ar|tr|uk|hy|az|de)/)?(?:api|admin|auth|account|settings|dashboard|seller|payment/|agent/|agent$|agency/|agency$|developer/|developer$|add-listing|add-service|favorites|compare|search|map$|map/)|.*\\..*).*)",
         headers: [
           {
             key: "Vercel-CDN-Cache-Control",
