@@ -118,7 +118,7 @@ const nextConfig: NextConfig = {
     // 9 workers × Prisma pools can exhaust pooler slots mid-build;
     // cap concurrency so SSG DB traffic stays under the connection ceiling.
     staticGenerationMaxConcurrency: 3,
-    cpus: 2,
+    cpus: 1,
     webpackMemoryOptimizations: true,
     // Tree-shake barrel imports (lucide already defaulted by Next).
     optimizePackageImports: ["framer-motion", "@base-ui/react", "lucide-react"],

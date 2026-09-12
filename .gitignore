@@ -20,6 +20,7 @@ out/
 !.cursor/rules/**
 app/.cursor/
 .zcode/
+.claude/
 
 # prisma
 prisma/*.db
