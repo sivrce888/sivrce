@@ -182,7 +182,7 @@ export default async function CountriesPage({ params }: PageProps) {
               {deep.map((d) => (
                 <li key={d.id}>
                   <Link
-                    href={d.market.pathPrefix}
+                    href={`${COM_ORIGIN}${d.market.pathPrefix}`}
                     className="flex h-full flex-col gap-1 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                   >
                     <span className="flex items-center gap-2 text-[15px] font-extrabold text-sv-ink">

@@ -31,7 +31,7 @@ function revalidateBlogPublic(): void {
   revalidatePath("/[lang]/blog/[slug]", "page")
   revalidatePath("/[lang]", "page")
   revalidatePath("/rss.xml", "page")
-  revalidatePath("/sitemap.xml", "page")
+  revalidatePath("/sitemap/ge.xml", "page")
 }
 
 function parseTags(raw: string | null): string[] {

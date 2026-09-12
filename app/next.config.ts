@@ -155,6 +155,20 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      // ponytail: public HTML is SSR-dynamic (host market via proxy header) so Next
+      // sends no-store; edge-caching it here cuts ~all Vercel invocations + cold TTFB.
+      // Browser still revalidates; Set-Cookie first visits bypass the CDN natively.
+      // Ceiling: 60s freshness + 1h SWR — cron purges land ≤60s late. Upgrade: PPR.
+      {
+        source:
+          "/((?!api|admin|auth|account|settings|dashboard|seller|agent/|agent$|agency/|agency$|developer/|developer$|add-listing|add-service|favorites|compare|search|map$|map/|.*\\..*).*)",
+        headers: [
+          {
+            key: "Vercel-CDN-Cache-Control",
+            value: "public, s-maxage=60, stale-while-revalidate=3600",
+          },
+        ],
+      },
       // Hashed Next assets — immutable in prod. Dev must not cache or HMR CSS goes stale
       // (turbopack keeps a stable globals hash → browser never refetches xl:* utilities).
       {

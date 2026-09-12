@@ -147,7 +147,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
 
   const cities = useMemo(() => {
     const set = new Set(buildings.map((b) => b.city))
-    return ['all' as const, ...[...set].sort((a, b) => a.localeCompare(b, 'ka'))]
+    return ['all' as const, ...[...set].sort()]
   }, [buildings])
 
   const districts = useMemo(() => {
@@ -155,7 +155,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
     const set = new Set(
       list.map((b) => b.district).filter((d) => d !== 'თბილისი' && d !== 'ბათუმი' && (city === 'all' || d !== city)),
     )
-    return ['all', ...[...set].sort((a, b) => a.localeCompare(b, 'ka'))]
+    return ['all', ...[...set].sort()]
   }, [buildings, city])
 
   const ubanis = useMemo(() => {
@@ -166,7 +166,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
         b.ubani,
     )
     const set = new Set(list.map((b) => b.ubani!))
-    return ['all', ...[...set].sort((a, b) => a.localeCompare(b, 'ka'))]
+    return ['all', ...[...set].sort()]
   }, [buildings, city, district])
 
   const filtered = useMemo(() => {

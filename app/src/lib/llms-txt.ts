@@ -47,7 +47,7 @@ ${comMarketLines()}
 ## Optional
 
 - Georgia catalog: ${BASE}/llms.txt
-- Sitemap: ${COM_ORIGIN}/sitemap.xml
+- Sitemap: ${COM_ORIGIN}/sitemap/com.xml
 - Contact: hi@sivrce.ge · +995 500 333 111 (phone/WhatsApp)
 `
   }
@@ -87,7 +87,7 @@ sivrce.ge is Georgia's real-estate platform: apartments, houses and cottages for
 ## Optional
 
 - Full catalog (every city, district, neighbourhood, building, project, developer): ${BASE}/llms-full.txt
-- Sitemap: ${BASE}/sitemap.xml
+- Sitemap: ${BASE}/sitemap/ge.xml
 - Contact: hi@sivrce.ge · +995 500 333 111 (phone/WhatsApp)
 `
 }

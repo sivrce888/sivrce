@@ -223,7 +223,7 @@ export function ProjectsExplorer({
                 aria-label={t.sortAria}
                 value={q.sort}
                 onChange={(e) => update({ sort: e.target.value as Sort })}
-                className={`${selectCls} max-w-[11rem] appearance-none pr-8 sm:max-w-none`}
+                className={`${selectCls} max-w-[12.5rem] appearance-none pr-8 sm:max-w-none`}
               >
                 {(Object.keys(t.sorts) as Sort[]).map((s) => (
                   <option key={s} value={s}>

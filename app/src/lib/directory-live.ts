@@ -15,6 +15,14 @@ import { haversineKm, type PlaceCoords } from '@/lib/place-context'
 
 export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
 
+/** First-party logo hosts only — CSP img-src blocks everything else (korter GCS etc.). */
+export function isOwnedLogo(url: string | null | undefined): url is string {
+  return (
+    typeof url === 'string' &&
+    (/^https:\/\/(cdn|images)\.sivrce\.ge\//.test(url) || url.startsWith('/images/'))
+  )
+}
+
 /** Seed/catalog stock art — not a real project render. */
 export function isPlaceholderImg(img: string | null | undefined): boolean {
   // ponytail: /images/projects/* are mirrored official renders; only np*/p* stock counts as placeholder.
@@ -327,7 +335,7 @@ export function applyDeveloperRow(d: Developer, r: DevRow): Developer {
   const owned = r.ownerId != null
   return {
     ...d,
-    ...(r.logoUrl ? { logoUrl: r.logoUrl } : {}),
+    ...(isOwnedLogo(r.logoUrl) ? { logoUrl: r.logoUrl } : {}),
     ...(r.website ? { website: r.website } : {}),
     ...(r.ownerId ? { ownerId: r.ownerId } : {}),
     ...(owned
@@ -359,7 +367,7 @@ export function rowToDeveloper(r: DevRow): Developer {
     },
     verified: false,
     phone: '',
-    ...(r.logoUrl ? { logoUrl: r.logoUrl } : {}),
+    ...(isOwnedLogo(r.logoUrl) ? { logoUrl: r.logoUrl } : {}),
     ...(r.website ? { website: r.website } : {}),
     ...(r.ownerId ? { ownerId: r.ownerId } : {}),
   }
@@ -383,27 +391,43 @@ export function mergeDevelopersLive(staticDevs: Developer[], rows: DevRow[]): De
   return merged
 }
 
-async function loadDevRows(): Promise<DevRow[]> {
-  return safeQuery(
+// ponytail: 60s TTL memo — every SSR page (home, /projects, /map, sitemap) pulls
+// these rows; warm invocations skip the DB round-trip. Empty (DB blip) never caches.
+// Ceiling: single-region memory; upgrade: unstable_cache + revalidateTag on admin save.
+function ttl60<T>(fn: () => Promise<T[]>): () => Promise<T[]> {
+  let hit: { at: number; val: Promise<T[]> } | null = null
+  return () => {
+    if (hit && Date.now() - hit.at < 60_000) return hit.val
+    const val = fn().then((rows) => {
+      if (rows.length === 0) hit = null
+      return rows
+    })
+    hit = { at: Date.now(), val }
+    return val
+  }
+}
+
+const loadDevRows = ttl60(() =>
+  safeQuery(
     () =>
       db.developerProfile.findMany({
         where: { deletedAt: null },
         select: DEV_SELECT,
       }),
     [],
-  )
-}
+  ),
+)
 
-async function loadProjectRows(): Promise<ProjectRow[]> {
-  return safeQuery(
+const loadProjectRows = ttl60(() =>
+  safeQuery(
     () =>
       db.projectDirectory.findMany({
         where: { deletedAt: null, status: { not: 'draft' } },
         select: PROJECT_SELECT,
       }),
     [],
-  )
-}
+  ),
+)
 
 export async function developersLive(): Promise<Developer[]> {
   return mergeDevelopersLive(DEVELOPERS, await loadDevRows())
