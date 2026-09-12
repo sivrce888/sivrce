@@ -5,6 +5,12 @@
 
 import { MARKETS, type PathCountryId } from '@/lib/markets'
 import { EXTRA_CITIES, EXTRA_HUBS, EXTRA_NAMES } from '@/lib/countries/hubs-extra'
+import {
+  buyerCostBreakdown,
+  grossYieldPct,
+  type DeCity,
+  DE_CITIES as DE_CITY_ROWS,
+} from '@/lib/countries/de'
 
 export type CountryCopy = {
   title: string
@@ -569,8 +575,47 @@ export const AE_CITIES_AR: Record<string, CountryCopy> = {
   },
 }
 
+/**
+ * Data-driven packs for the non-flagship Großstädte: every sentence is
+ * computed from DE_CITIES anchors (tax, €/m², yield, notary math) — real
+ * per-city numbers, no invented local colour. Hand-written packs above stay
+ * canonical; add a hand-written pack when a city earns buy/rent pages.
+ */
+function generatedDePack(c: DeCity): CityPack {
+  const pct = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 1 })
+  const buy = c.buyEurSqm.toLocaleString('en-US')
+  const rent = c.rentEurSqm.toLocaleString('en-US')
+  const y = grossYieldPct(c)
+  const ex = buyerCostBreakdown(500_000, c.slug)
+  const extras = ex
+    ? `€${(ex.transferTax + ex.notary + ex.register).toLocaleString('en-US')}`
+    : '≈8% of the price'
+  return city(
+    c.de,
+    `${c.de} sits in ${c.state} on sivrce's Germany map — existing-stock buy anchors near €${buy}/m², cold rents near €${rent}/m² (≈${pct(y)}% gross) and a ${pct(c.transferTaxPct)}% Grunderwerbsteuer set by state law.`,
+    [
+      `The local numbers first: buy level around €${buy}/m², cold rent around €${rent}/m² — roughly a ${pct(y)}% gross yield before costs. ${c.state} charges ${pct(c.transferTaxPct)}% Grunderwerbsteuer, so a €500,000 purchase adds about ${extras} in transfer tax, notary and Grundbuch before any agent fee.`,
+      'Listings are added as verified local agents join, under the same rules as the Georgia marketplace — this page is the orientation layer with real anchors, not scraped doorway text.',
+    ],
+    [
+      {
+        q: `Can foreigners buy in ${c.de}?`,
+        a: 'Yes — Germany imposes no nationality restriction. Every purchase runs through a notary and ends in the Grundbuch (land register); budget roughly 8–12% on top of the price.',
+      },
+      {
+        q: `What does a purchase cost in ${c.de}?`,
+        a: `${c.state} charges ${pct(c.transferTaxPct)}% Grunderwerbsteuer, plus ≈1.5% notary and ≈0.5% land register; where an agent is involved, the buyer share is 3.57% incl. VAT.`,
+      },
+    ],
+  )
+}
+
+const DE_GENERATED: Record<string, CityPack> = Object.fromEntries(
+  DE_CITY_ROWS.filter((c) => !DE_CITIES[c.slug]).map((c) => [c.slug, generatedDePack(c)]),
+)
+
 export function cityPack(country: string, slug: string): CityPack | null {
-  if (country === 'de') return DE_CITIES[slug] ?? null
+  if (country === 'de') return DE_CITIES[slug] ?? DE_GENERATED[slug] ?? null
   if (country === 'ae') return AE_CITIES[slug] ?? null
   if (country in EXTRA_CITIES) return EXTRA_CITIES[country as keyof typeof EXTRA_CITIES]?.[slug] ?? null
   return null

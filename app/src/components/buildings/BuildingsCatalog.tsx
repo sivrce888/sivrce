@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
-import { MapPin, Building2, Star, Search, TrainFront } from 'lucide-react'
+import { MapPin, Building2, Star, Search } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import type { BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND } from '@/lib/category-brand'
 import { cityName, MICRO, DISTRICTS, type DirLoc } from '@/lib/directory-seo-lite'
-import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
+import { MetroLine } from '@/components/MetroLine'
 
 type Counts = { sale: number; rent: number; daily: number; pledge: number }
 
@@ -312,7 +312,6 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
             const devName = b.developerSlug ? developerNames[b.developerSlug] : undefined
             const counts = countsBySlug[b.slug] ?? empty
             const total = counts.sale + counts.rent + counts.daily + counts.pledge
-            const metro = nearestMetro(b.coords.lat, b.coords.lng)
             const place = [b.district, b.ubani]
               .filter((n): n is string => Boolean(n))
               .map((n) => geoName(n, loc))
@@ -365,12 +364,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                       <MapPin className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">{b.address}</span>
                     </p>
-                    {metro && (
-                      <p className="flex items-center gap-1.5 text-[12px] font-extrabold text-sv-blue">
-                        <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                        {metro.name} · {formatMetroDist(metro)}
-                      </p>
-                    )}
+                    <MetroLine lat={b.coords.lat} lng={b.coords.lng} />
                     <p className="line-clamp-2 text-[13px] font-medium leading-snug text-sv-ink/60">
                       {b.description[loc]}
                     </p>

@@ -15,7 +15,8 @@ import { USD_GEL } from "@/data/listings"
 import { EUR_GEL } from "@/lib/listing-format"
 import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 import { districtSearchValues } from "@/lib/district-canon"
-import { METRO_NEAR_M } from "@/lib/map/pois"
+import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
+import { worldMetroChip } from "@/lib/countries/world-metro-all"
 
 // ---------------------------------------------------------------------------
 // Client singleton
@@ -55,8 +56,8 @@ export interface SearchFilters {
   propertyType?: "apartment" | "house" | "villa" | "commercial" | "land" | "hotel"
   city?: string
   district?: string
-  /** Listing market — 'GE' | 'DE'. Absent = no country constraint. */
-  country?: "GE" | "DE"
+  /** Listing market ISO (MARKET_COUNTRY_ISOS-validated). Absent = no country constraint. */
+  country?: string
   minPrice?: number
   maxPrice?: number
   minArea?: number
@@ -80,7 +81,7 @@ export interface SearchFilters {
   verifiedOnly?: boolean
   petsOnly?: boolean
   sellerType?: "owner" | "agency"
-  /** Within METRO_NEAR_M of a Tbilisi metro station (indexed as metroM). */
+  /** Within METRO_NEAR_M of a metro station (indexed as metroM, worldwide). */
   nearMetro?: boolean
   /** Daily-rent availability window (YYYY-MM-DD). DB-only — Meili can't express
    * booking overlap, so the route skips Meili when these are set. */
@@ -164,7 +165,7 @@ export interface ListingDocument {
   video?: string
   lat: number
   lng: number
-  /** Meters to nearest Tbilisi metro; 999999 when far / outside catchment. */
+  /** Meters to nearest metro (worldwide); 999999 when far / outside catchment. */
   metroM: number
   /** Developer directory promo rows — excluded from unit /search by default. */
   projectCatalog?: boolean
@@ -310,9 +311,9 @@ async function lazyInit(): Promise<Meilisearch | null> {
 // ---------------------------------------------------------------------------
 
 /** Unindexed docs have no country field — treat missing as GE. */
-export function meiliCountryClause(country: "GE" | "DE"): string {
+export function meiliCountryClause(country: string): string {
   if (country === "GE") return '(country = "GE" OR country NOT EXISTS)'
-  return 'country = "DE"'
+  return `country = ${JSON.stringify(country)}`
 }
 
 function buildMeiliFilter(filters: SearchFilters): string {
@@ -440,11 +441,19 @@ export async function searchListings(filters: SearchFilters): Promise<SearchResu
     }
 
     return {
-      hits: raw.hits.map((h) => ({
-        ...h,
-        dealType: uiDeal(h.dealType),
-        ...cardPhotoPayload(h.images ?? []),
-      })),
+      hits: raw.hits.map((h) => {
+        const lat = h.lat as number
+        const lng = h.lng as number
+        const gridMetro = nearestMetro(lat, lng)
+        return {
+          ...h,
+          dealType: uiDeal(h.dealType),
+          metroNear: gridMetro
+            ? { n: gridMetro.name, m: gridMetro.meters, w: gridMetro.walkMin }
+            : worldMetroChip(lat, lng),
+          ...cardPhotoPayload(h.images ?? []),
+        }
+      }),
       totalHits,
       page,
       pageSize,

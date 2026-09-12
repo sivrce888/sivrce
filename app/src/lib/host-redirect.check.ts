@@ -199,5 +199,22 @@ assert.deepEqual(localGeEn, { type: 'rewrite', pathname: '/en/sale', market: 'ge
 // Country paths on .ge still move to .com; /ge on .ge is not a country path.
 const geCountryPath = decideHost({ host: 'sivrce.ge', pathname: '/fr/paris', vercelEnv: 'production' })
 assert.deepEqual(geCountryPath, { type: 'redirect', origin: COM_ORIGIN, pathname: '/fr/paris' })
+// /search: worldwide on .com (global market), Georgian catalog on .ge.
+const comSearch = decideHost({ host: 'sivrce.com', pathname: '/search', vercelEnv: 'production' })
+assert.deepEqual(comSearch, { type: 'rewrite', pathname: '/en/search', market: 'global' })
+const comEnSearch = decideHost({ host: 'sivrce.com', pathname: '/en/search', vercelEnv: 'production' })
+assert.deepEqual(comEnSearch, { type: 'rewrite', pathname: '/en/search', market: 'global' })
+const geSearch = decideHost({ host: 'sivrce.ge', pathname: '/search', vercelEnv: 'production' })
+assert.deepEqual(geSearch, { type: 'pass', market: 'ge' })
+
+// Root-mounted paths under /ge must rewrite to the root mount, not /[lang] (was a 404).
+const comGeAuth = decideHost({ host: 'sivrce.com', pathname: '/ge/auth/signin', vercelEnv: 'production' })
+assert.deepEqual(comGeAuth, { type: 'rewrite', pathname: '/auth/signin', market: 'ge' })
+const comGeEnAuth = decideHost({ host: 'sivrce.com', pathname: '/ge/en/auth/signin', vercelEnv: 'production' })
+assert.deepEqual(comGeEnAuth, { type: 'rewrite', pathname: '/auth/signin', market: 'ge' })
+const comGeApi = decideHost({ host: 'sivrce.com', pathname: '/ge/api/health', vercelEnv: 'production' })
+assert.deepEqual(comGeApi, { type: 'rewrite', pathname: '/api/health', market: 'ge' })
+const localGeAuth = decideHost({ host: 'localhost', pathname: '/ge/auth/signin' })
+assert.deepEqual(localGeAuth, { type: 'rewrite', pathname: '/auth/signin', market: 'ge' })
 
 console.log('host-redirect.check: ok')

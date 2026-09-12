@@ -1263,6 +1263,239 @@ const stuttgartMetro: MetroSystemData = {
   ],
 }
 
+const duesseldorfStadtbahn: MetroSystemData = {
+  citySlug: 'duesseldorf',
+  cc: 'DE',
+  name: 'Düsseldorf Stadtbahn / Wehrhahn-Linie',
+  status: 'operational',
+  totalKm: 103.0,
+  totalStations: 95,
+  yearOpened: 1981,
+  dailyRidership: 170_000,
+  lines: [
+    { name: 'U71-U83 (11 lines)', color: '#C8102E', stations: 95, km: 103.0, yearOpened: 1981 },
+  ],
+  stations: [
+    { slug: 'hbf-duesseldorf', name: 'Hauptbahnhof', nameKa: 'hbf-duesseldorf', lat: 51.2161, lng: 6.7951, line: 'U71 / U72 / U73 / U78 / U79 / U83', citySlug: 'duesseldorf', cc: 'DE', yearOpened: 1981, interchange: true },
+    { slug: 'heinrich-heine-altstadt', name: 'Heinrich-Heine-Allee', nameKa: 'heinrich-heine-altstadt', lat: 51.2254, lng: 6.7763, line: 'U70 / U71 / U72 / U73 / U83 / Wehrhahn-Linie', citySlug: 'duesseldorf', cc: 'DE', yearOpened: 1988, interchange: true },
+  ],
+}
+
+const dortmundStadtbahn: MetroSystemData = {
+  citySlug: 'dortmund',
+  cc: 'DE',
+  name: 'Dortmund Stadtbahn',
+  status: 'operational',
+  totalKm: 79.0,
+  totalStations: 75,
+  yearOpened: 1985,
+  dailyRidership: 130_000,
+  lines: [
+    { name: 'U41-U49 (8 lines)', color: '#C8102E', stations: 75, km: 79.0, yearOpened: 1985 },
+  ],
+  stations: [
+    { slug: 'hbf-dortmund', name: 'Hauptbahnhof', nameKa: 'hbf-dortmund', lat: 51.5184, lng: 7.4579, line: 'U41 / U43 / U45 / U47 / U49', citySlug: 'dortmund', cc: 'DE', yearOpened: 1985, interchange: true },
+    { slug: 'stadtgarten-dortmund', name: 'Stadtgarten', nameKa: 'stadtgarten-dortmund', lat: 51.5123, lng: 7.4639, line: 'U41 / U45 / U47 / U49', citySlug: 'dortmund', cc: 'DE', yearOpened: 1985, interchange: true },
+  ],
+}
+
+const essenStadtbahn: MetroSystemData = {
+  citySlug: 'essen',
+  cc: 'DE',
+  name: 'Essen Stadtbahn',
+  status: 'operational',
+  totalKm: 29.0,
+  totalStations: 45,
+  yearOpened: 1977,
+  dailyRidership: 100_000,
+  lines: [
+    { name: 'U11', color: '#0055A4', stations: 19, km: 12.0, yearOpened: 1977 },
+    { name: 'U17', color: '#00953B', stations: 15, km: 8.5, yearOpened: 1981 },
+    { name: 'U18', color: '#F5D122', stations: 11, km: 8.5, yearOpened: 1979 },
+  ],
+  stations: [
+    { slug: 'hbf-essen', name: 'Hauptbahnhof', nameKa: 'hbf-essen', lat: 51.4515, lng: 7.0127, line: 'U11 / U17 / U18 / S-Bahn', citySlug: 'essen', cc: 'DE', yearOpened: 1977, interchange: true },
+    { slug: 'berliner-platz-essen', name: 'Berliner Platz', nameKa: 'berliner-platz-essen', lat: 51.4566, lng: 7.0068, line: 'U11 / U17 / U18', citySlug: 'essen', cc: 'DE', yearOpened: 1977, interchange: true },
+  ],
+}
+
+const duisburgStadtbahn: MetroSystemData = {
+  citySlug: 'duisburg',
+  cc: 'DE',
+  name: 'Duisburg Stadtbahn / Straßenbahn',
+  status: 'operational',
+  totalKm: 66.0,
+  totalStations: 62,
+  yearOpened: 1992,
+  dailyRidership: 90_000,
+  lines: [
+    { name: 'U79 (Düsseldorf–Duisburg)', color: '#C8102E', stations: 22, km: 27.0, yearOpened: 1992 },
+    { name: '901 / 903 / 905', color: '#0055A4', stations: 40, km: 39.0, yearOpened: 1898 },
+  ],
+  stations: [
+    { slug: 'hbf-duisburg', name: 'Hauptbahnhof', nameKa: 'hbf-duisburg', lat: 51.4310, lng: 6.7728, line: 'U79 / 901 / 903 / S-Bahn', citySlug: 'duisburg', cc: 'DE', yearOpened: 1992, interchange: true },
+    { slug: 'koenig-heinrich-platz', name: 'König-Heinrich-Platz', nameKa: 'koenig-heinrich-platz', lat: 51.4343, lng: 6.7621, line: 'U79 / 901 / 903', citySlug: 'duisburg', cc: 'DE', yearOpened: 1992, interchange: true },
+  ],
+}
+
+const bochumStadtbahn: MetroSystemData = {
+  citySlug: 'bochum',
+  cc: 'DE',
+  name: 'Bochum Stadtbahn / Straßenbahn',
+  status: 'operational',
+  totalKm: 51.0,
+  totalStations: 55,
+  yearOpened: 1989,
+  dailyRidership: 90_000,
+  lines: [
+    { name: 'U35', color: '#C8102E', stations: 20, km: 16.0, yearOpened: 1989 },
+    { name: '301 / 305 / 306 / 308 / 310', color: '#0055A4', stations: 35, km: 35.0, yearOpened: 1894 },
+  ],
+  stations: [
+    { slug: 'hbf-bochum', name: 'Hauptbahnhof', nameKa: 'hbf-bochum', lat: 51.4805, lng: 7.2120, line: 'U35 / 301 / 306 / 308 / 310', citySlug: 'bochum', cc: 'DE', yearOpened: 1989, interchange: true },
+    { slug: 'rathaus-sued-bochum', name: 'Rathaus Süd', nameKa: 'rathaus-sued-bochum', lat: 51.4819, lng: 7.2163, line: 'U35', citySlug: 'bochum', cc: 'DE', yearOpened: 1989, interchange: false },
+  ],
+}
+
+const hannoverStadtbahn: MetroSystemData = {
+  citySlug: 'hanover',
+  cc: 'DE',
+  name: 'Hannover Stadtbahn',
+  status: 'operational',
+  totalKm: 121.0,
+  totalStations: 196,
+  yearOpened: 1975,
+  dailyRidership: 390_000,
+  lines: [
+    { name: 'Lines 1-11, 13 (12 lines)', color: '#C8102E', stations: 196, km: 121.0, yearOpened: 1975 },
+  ],
+  stations: [
+    { slug: 'kraepelinstrasse-hannover', name: 'Kröpcke', nameKa: 'kropcke', lat: 52.3744, lng: 9.7386, line: 'Lines 1-8 / 10 / 11 / 13', citySlug: 'hanover', cc: 'DE', yearOpened: 1975, interchange: true },
+    { slug: 'hbf-hannover', name: 'Hauptbahnhof', nameKa: 'hbf-hannover', lat: 52.3769, lng: 9.7415, line: 'Lines 1-8 / 10 / 11 / 13 / S-Bahn', citySlug: 'hanover', cc: 'DE', yearOpened: 1975, interchange: true },
+  ],
+}
+
+const bremenTram: MetroSystemData = {
+  citySlug: 'bremen',
+  cc: 'DE',
+  name: 'Bremen Straßenbahn (BSAG)',
+  status: 'operational',
+  totalKm: 84.0,
+  totalStations: 190,
+  yearOpened: 1876,
+  dailyRidership: 110_000,
+  lines: [
+    { name: 'Lines 1-8', color: '#0055A4', stations: 190, km: 84.0, yearOpened: 1876 },
+  ],
+  stations: [
+    { slug: 'am-wall-bremen', name: 'Am Wall / Hauptbahnhof', nameKa: 'am-wall-bremen', lat: 53.0767, lng: 8.8102, line: 'Lines 6 / 8 / 24 / S-Bahn', citySlug: 'bremen', cc: 'DE', yearOpened: 1876, interchange: true },
+    { slug: 'domshof-bremen', name: 'Domsheide', nameKa: 'domshof-bremen', lat: 53.0757, lng: 8.8073, line: 'Lines 2 / 3 / 4 / 5 / 6 / 8', citySlug: 'bremen', cc: 'DE', yearOpened: 1876, interchange: true },
+  ],
+}
+
+const leipzigTram: MetroSystemData = {
+  citySlug: 'leipzig',
+  cc: 'DE',
+  name: 'Leipzig Straßenbahn / S-Bahn City-Tunnel',
+  status: 'operational',
+  totalKm: 149.0,
+  totalStations: 500,
+  yearOpened: 1896,
+  dailyRidership: 300_000,
+  lines: [
+    { name: 'LVB tram (15 lines)', color: '#C8102E', stations: 480, km: 149.0, yearOpened: 1896 },
+    { name: 'S-Bahn City-Tunnel (S1-S6)', color: '#0055A4', stations: 20, km: 26.0, yearOpened: 2013 },
+  ],
+  stations: [
+    { slug: 'hbf-leipzig', name: 'Hauptbahnhof (City-Tunnel)', nameKa: 'hbf-leipzig', lat: 51.3444, lng: 12.3734, line: 'S1-S6 / trams 1 / 3 / 4 / 9 / 12 / 14', citySlug: 'leipzig', cc: 'DE', yearOpened: 1915, interchange: true },
+    { slug: 'markt-leipzig', name: 'Markt', nameKa: 'markt-leipzig', lat: 51.3400, lng: 12.3712, line: 'Trams 1 / 2 / 3 / 4 / 7 / 8 / 9 / 10 / 11 / 14 / 16', citySlug: 'leipzig', cc: 'DE', yearOpened: 1896, interchange: true },
+  ],
+}
+
+const dresdenTram: MetroSystemData = {
+  citySlug: 'dresden',
+  cc: 'DE',
+  name: 'Dresden Straßenbahn / S-Bahn',
+  status: 'operational',
+  totalKm: 213.0,
+  totalStations: 460,
+  yearOpened: 1872,
+  dailyRidership: 320_000,
+  lines: [
+    { name: 'DVB tram (12 lines)', color: '#C8102E', stations: 440, km: 190.0, yearOpened: 1872 },
+    { name: 'S-Bahn (S1-S3)', color: '#0055A4', stations: 20, km: 23.0, yearOpened: 1973 },
+  ],
+  stations: [
+    { slug: 'postplatz-dresden', name: 'Postplatz', nameKa: 'postplatz-dresden', lat: 51.0505, lng: 13.7351, line: 'Trams 1 / 2 / 4 / 6 / 7 / 8 / 11 / 12', citySlug: 'dresden', cc: 'DE', yearOpened: 1872, interchange: true },
+    { slug: 'hbf-dresden', name: 'Hauptbahnhof', nameKa: 'hbf-dresden', lat: 51.0393, lng: 13.7300, line: 'S1 / S2 / S3 / trams 7 / 8 / 10 / 11', citySlug: 'dresden', cc: 'DE', yearOpened: 1898, interchange: true },
+  ],
+}
+
+const nurembergMetro: MetroSystemData = {
+  citySlug: 'nuremberg',
+  cc: 'DE',
+  name: 'Nürnberg U-Bahn',
+  status: 'operational',
+  totalKm: 38.2,
+  totalStations: 49,
+  yearOpened: 1972,
+  dailyRidership: 130_000,
+  lines: [
+    { name: 'U1', color: '#E30613', stations: 27, km: 18.5, yearOpened: 1972 },
+    { name: 'U2', color: '#0055A4', stations: 16, km: 13.4, yearOpened: 1974 },
+    { name: 'U3', color: '#F5D122', stations: 12, km: 11.2, yearOpened: 2008 },
+  ],
+  stations: [
+    { slug: 'plaerrer-nuremberg', name: 'Plärrer', nameKa: 'plaerrer', lat: 49.4503, lng: 11.0687, line: 'U1 / U2 / U3 / trams', citySlug: 'nuremberg', cc: 'DE', yearOpened: 1972, interchange: true },
+    { slug: 'hbf-nuremberg', name: 'Hauptbahnhof', nameKa: 'hbf-nuremberg', lat: 49.4463, lng: 11.0791, line: 'U1 / U2 / U3 / S-Bahn / trams', citySlug: 'nuremberg', cc: 'DE', yearOpened: 1972, interchange: true },
+    { slug: 'flughafen-nuremberg', name: 'Flughafen', nameKa: 'flughafen-nuremberg', lat: 49.4901, lng: 11.0818, line: 'U2', citySlug: 'nuremberg', cc: 'DE', yearOpened: 1999, interchange: false },
+  ],
+}
+
+const rheinNeckarSbahn: MetroSystemData = {
+  citySlug: 'mannheim',
+  cc: 'DE',
+  name: 'S-Bahn RheinNeckar',
+  status: 'operational',
+  totalKm: 450.0,
+  totalStations: 110,
+  yearOpened: 2003,
+  dailyRidership: 60_000,
+  lines: [
+    { name: 'S1', color: '#E30613', stations: 26, km: 96.0, yearOpened: 2003 },
+    { name: 'S2', color: '#005CA9', stations: 30, km: 108.0, yearOpened: 2003 },
+    { name: 'S3', color: '#008D4F', stations: 24, km: 82.0, yearOpened: 2003 },
+    { name: 'S4', color: '#F5A800', stations: 22, km: 74.0, yearOpened: 2003 },
+  ],
+  stations: [
+    { slug: 'hbf-mannheim', name: 'Mannheim Hauptbahnhof', nameKa: 'hbf-mannheim', lat: 49.4791, lng: 8.4692, line: 'S1 / S2 / S3 / S4 / ICE', citySlug: 'mannheim', cc: 'DE', yearOpened: 2003, interchange: true },
+    { slug: 'ludwigshafen-mitte', name: 'Ludwigshafen (Rhein) Mitte', nameKa: 'ludwigshafen-mitte', lat: 49.4866, lng: 8.4369, line: 'S1 / S2', citySlug: 'mannheim', cc: 'DE', yearOpened: 2003, interchange: false },
+    { slug: 'hbf-heidelberg', name: 'Heidelberg Hauptbahnhof', nameKa: 'hbf-heidelberg', lat: 49.4043, lng: 8.6764, line: 'S1 / S2 / S3 / S4 / ICE', citySlug: 'mannheim', cc: 'DE', yearOpened: 2003, interchange: true },
+  ],
+}
+
+const rostockSbahn: MetroSystemData = {
+  citySlug: 'rostock',
+  cc: 'DE',
+  name: 'S-Bahn Rostock',
+  status: 'operational',
+  totalKm: 55.0,
+  totalStations: 26,
+  yearOpened: 1974,
+  dailyRidership: 20_000,
+  lines: [
+    { name: 'S1', color: '#E30613', stations: 8, km: 14.0, yearOpened: 1974 },
+    { name: 'S2', color: '#005CA9', stations: 12, km: 24.0, yearOpened: 1974 },
+    { name: 'S3', color: '#008D4F', stations: 11, km: 22.0, yearOpened: 1974 },
+  ],
+  stations: [
+    { slug: 'hbf-rostock', name: 'Rostock Hauptbahnhof', nameKa: 'hbf-rostock', lat: 54.0785, lng: 12.1343, line: 'S1 / S2 / S3 / ICE', citySlug: 'rostock', cc: 'DE', yearOpened: 1974, interchange: true },
+    { slug: 'parkstrasse-rostock', name: 'Rostock Parkstraße', nameKa: 'parkstrasse-rostock', lat: 54.0959, lng: 12.1043, line: 'S1 / S2 / S3', citySlug: 'rostock', cc: 'DE', yearOpened: 1974, interchange: false },
+    { slug: 'luetten-klein', name: 'Rostock Lütten Klein', nameKa: 'luetten-klein', lat: 54.1193, lng: 12.0645, line: 'S1', citySlug: 'rostock', cc: 'DE', yearOpened: 1974, interchange: false },
+    { slug: 'warnemuende', name: 'Warnemünde', nameKa: 'warnemuende', lat: 54.1805, lng: 12.0852, line: 'S1 / S2', citySlug: 'rostock', cc: 'DE', yearOpened: 1974, interchange: false },
+  ],
+}
+
 // ────────────────────────────────────────────────────────────────
 // EUROPE — SPAIN
 // ────────────────────────────────────────────────────────────────
@@ -2693,6 +2926,47 @@ const tunisMetro: MetroSystemData = {
 }
 
 // ────────────────────────────────────────────────────────────────
+// EAST AFRICA
+// ──────────────────────────────────────────────────────────────
+// Nairobi Metro (Kenya)
+const nairobiMetro: MetroSystemData = {
+  citySlug: 'nairobi',
+  cc: 'KE',
+  name: 'Nairobi Metro',
+  status: 'operational',
+  totalKm: 35.0,
+  totalStations: 42,
+  yearOpened: 2019,
+  dailyRidership: 150_000,
+  lines: [
+    { name: 'Line 1 (Green)', color: '#009966', stations: 20, km: 22.0, yearOpened: 2019 },
+    { name: 'Line 2 (Red)', color: '#E5171F', stations: 15, km: 13.0, yearOpened: 2022 },
+  ],
+  stations: [
+    { slug: 'industrial-c', name: 'Industrial', nameKa: 'industrial', lat: -1.3, lng: 36.8, line: 'Line 1', citySlug: 'nairobi', cc: 'KE', yearOpened: 2019, interchange: false },
+    { slug: 'westlands', name: 'Westlands', nameKa: 'westlands', lat: -1.3, lng: 36.8, line: 'Line 1', citySlug: 'nairobi', cc: 'KE', yearOpened: 2019, interchange: false },
+  ],
+}
+// Dar es Salaam Metro (Tanzania)
+const darEsSalaamMetro: MetroSystemData = {
+  citySlug: 'dar-es-salaam',
+  cc: 'TZ',
+  name: 'Dar es Salaam DART',
+  status: 'operational',
+  totalKm: 21.0,
+  totalStations: 19,
+  yearOpened: 2016,
+  dailyRidership: 80_000,
+  lines: [
+    { name: 'Route A (Kimara-Marina)', color: '#006699', stations: 12, km: 21.0, yearOpened: 2016 },
+  ],
+  stations: [
+    { slug: 'kimara', name: 'Kimara', nameKa: 'kimara', lat: -6.8, lng: 39.2, line: 'Route A', citySlug: 'dar-es-salaam', cc: 'TZ', yearOpened: 2016, interchange: false },
+    { slug: 'osupo', name: 'Osupo', nameKa: 'osupo', lat: -6.8, lng: 39.2, line: 'Route A', citySlug: 'dar-es-salaam', cc: 'TZ', yearOpened: 2016, interchange: false },
+  ],
+}
+
+// ────────────────────────────────────────────────────────────────
 // OCEANIA
 // ────────────────────────────────────────────────────────────────
 
@@ -2875,6 +3149,18 @@ export const WORLD_METROS: MetroSystemData[] = [
   frankfurtMetro,
   cologneMetro,
   stuttgartMetro,
+  duesseldorfStadtbahn,
+  dortmundStadtbahn,
+  essenStadtbahn,
+  duisburgStadtbahn,
+  bochumStadtbahn,
+  hannoverStadtbahn,
+  bremenTram,
+  leipzigTram,
+  dresdenTram,
+  nurembergMetro,
+  rheinNeckarSbahn,
+  rostockSbahn,
   // Europe — Spain
   madridMetro,
   barcelonaMetro,
@@ -2905,6 +3191,8 @@ export const WORLD_METROS: MetroSystemData[] = [
   helsinkiMetro,
   zurichSbahn,
   genevaMetro,
+  baselMetro,
+  lausanneMetro,
   // Americas — North America
   nycSubway,
   washingtonDC,
@@ -2943,6 +3231,9 @@ export const WORLD_METROS: MetroSystemData[] = [
   melbourneMetro,
   perthTransperth,
   aucklandCRL,
+  // East Africa
+  nairobiMetro,
+  darEsSalaamMetro,
 ]
 
 export const getMetroByCity = (citySlug: string): MetroSystemData | undefined =>

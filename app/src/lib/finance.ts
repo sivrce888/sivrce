@@ -18,3 +18,15 @@ export function transferTaxGEL(assessedValueGEL: number): number {
   if (assessedValueGEL <= 100_000) return assessedValueGEL * 0.01
   return 1_000 + (assessedValueGEL - 100_000) * 0.02
 }
+
+/** Gross monthly rent heuristic: 0.5% of price, rounded to $50. */
+export function estimateMonthlyRent(priceUSD: number): number {
+  if (priceUSD <= 0) return 0
+  return Math.round((priceUSD * 0.005) / 50) * 50
+}
+
+/** Annual gross yield from monthly rent, one decimal. */
+export function grossYieldPct(priceUSD: number, monthlyRent: number): number {
+  if (priceUSD <= 0) return 0
+  return Math.round(((monthlyRent * 12) / priceUSD) * 1000) / 10
+}

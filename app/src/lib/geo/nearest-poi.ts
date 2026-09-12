@@ -8,6 +8,7 @@ import raw from "@/data/georgia-pois.json"
 import { db } from "@/lib/db"
 import { METRO_MAX_CATCHMENT_M } from "@/lib/geo/nearest-poi-constants"
 import { poiUuid } from "@/lib/geo/nearest-poi-pure"
+import { worldMetroSeedRows } from "@/lib/countries/world-metro-all"
 
 export { nearMetroWhere, METRO_NEAR_M, poiUuid } from "@/lib/geo/nearest-poi-pure"
 
@@ -125,4 +126,40 @@ export async function recomputeNearestPoisBatch(opts?: {
     links += await recomputeNearestPois(id)
   }
   return { listings: ids.length, links }
+}
+
+/**
+ * Seed all 18k world stations into pois (batched unnest — per-row awaits would
+ * blow the cron budget). Existing recomputeNearestPois then links world
+ * listings via true PostGIS geodesic distance; no query changes needed.
+ */
+export async function seedWorldMetroPois(): Promise<{ upserted: number }> {
+  const rows = worldMetroSeedRows()
+  const CHUNK = 500
+  let upserted = 0
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const c = rows.slice(i, i + CHUNK)
+    const n = await db.$executeRaw`
+      INSERT INTO pois (id, kind, name_ka, name_en, location, is_active, metadata, created_at, updated_at)
+      SELECT u.id::uuid, 'metro'::poi_kind, u.nm, u.nm,
+        ST_SetSRID(ST_MakePoint(u.lng, u.lat), 4326)::geography,
+        true, u.meta::jsonb, NOW(), NOW()
+      FROM unnest(
+        ${c.map((r) => r.id)}::text[],
+        ${c.map((r) => r.name)}::text[],
+        ${c.map((r) => r.lng)}::float8[],
+        ${c.map((r) => r.lat)}::float8[],
+        ${c.map((r) => r.meta)}::text[]
+      ) AS u(id, nm, lng, lat, meta)
+      ON CONFLICT (id) DO UPDATE SET
+        name_ka = EXCLUDED.name_ka,
+        name_en = EXCLUDED.name_en,
+        location = EXCLUDED.location,
+        is_active = true,
+        metadata = EXCLUDED.metadata,
+        updated_at = NOW()
+    `
+    upserted += Number(n)
+  }
+  return { upserted }
 }

@@ -7,7 +7,7 @@ import DeProjectCard from '@/components/country/DeProjectCard'
 import type { Developer, Project } from '@/data/professionals'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '@/data/projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from '@/data/projects-new-germany'
-import { BERLIN_BEZIRKE, DE_CITIES, buyerCostBreakdown, deCityBySlug } from '@/lib/countries/de'
+import { BERLIN_BEZIRKE, DE_CITIES, buyerCostBreakdown, deCityBySlug, grossYieldPct } from '@/lib/countries/de'
 import { bezirkStats } from '@/lib/countries/de-berlin'
 import { cityPack, type CountryCopy } from '@/lib/country-copy'
 import type { Lang } from '@/lib/i18n/core'
@@ -21,11 +21,7 @@ import { COM_ORIGIN, MARKETS } from '@/lib/markets'
  * and link into the local /projects detail pages with the full gallery.
  */
 
-const CITY_EN = new Map([
-  ...DE_CITIES.map((c) => [c.ka, c.de] as const),
-  // Developers outside the 16 launch cities (e.g. Gelsenkirchen) — never leak ka script.
-  ['გელზენკირხენი', 'Gelsenkirchen'] as const,
-])
+const CITY_EN = new Map(DE_CITIES.map((c) => [c.ka, c.de] as const))
 
 const DE_PROJECTS: Project[] = [...NEW_PROJECTS_BERLIN, ...NEW_PROJECTS_GERMANY]
   .sort((a, b) => (a.done >= 100 ? 1 : 0) - (b.done >= 100 ? 1 : 0) || b.done - a.done)
@@ -196,11 +192,15 @@ function CitiesBand({ de }: { de: boolean }) {
         <SectionHead
           icon={MapPin}
           kicker={de ? 'Städte' : 'Cities'}
-          title={de ? '16 Metropolen, jede mit eigener Grunderwerbsteuer' : '16 metros, each with its own transfer tax'}
+          title={
+            de
+              ? `${DE_CITIES.length} Städte, jede mit eigener Grunderwerbsteuer`
+              : `${DE_CITIES.length} cities, each with its own transfer tax`
+          }
           sub={
             de
-              ? 'Grunderwerbsteuer ist Landesrecht — dieselbe Wohnung kostet in München und Köln unterschiedlich viel Nebenkosten. Der Stadtguide trägt die lokale Zahl.'
-              : 'Grunderwerbsteuer is state law — the same apartment costs a different surcharge in Munich and Cologne. City guides carry the local number.'
+              ? 'Grunderwerbsteuer ist Landesrecht — dieselbe Wohnung kostet in München und Köln unterschiedlich viel Nebenkosten. Jede Stadt trägt Kauf- und Mietniveau (Bestandsmarken) und die lokale Steuer.'
+              : 'Grunderwerbsteuer is state law — the same apartment costs a different surcharge in Munich and Cologne. Every city carries buy and rent anchors plus its local rate.'
           }
         />
         <Reveal>
@@ -209,16 +209,40 @@ function CitiesBand({ de }: { de: boolean }) {
               <li key={c.slug}>
                 <Link
                   href={`/de/${c.slug}`}
-                  className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                  className="flex flex-col gap-1.5 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                 >
-                  <span className="text-[15px]">{c.de}</span>
-                  <span className="text-[12px] font-black text-sv-blue" title="Grunderwerbsteuer">
-                    {c.transferTaxPct.toLocaleString('en-US', { minimumFractionDigits: 1 })}%
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-[15px]">{c.de}</span>
+                    <span className="text-[12px] font-black text-sv-blue" title="Grunderwerbsteuer">
+                      {c.transferTaxPct.toLocaleString('en-US', { minimumFractionDigits: 1 })}%
+                    </span>
+                  </span>
+                  <span className="text-[12px] font-bold text-sv-ink/55">
+                    {de
+                      ? `Kauf ${nfDe.format(c.buyEurSqm)} €/m² · Miete ${c.rentEurSqm.toLocaleString('de-DE')} €/m² · ~${grossYieldPct(c).toLocaleString('de-DE')} %`
+                      : `Buy €${nf.format(c.buyEurSqm)}/m² · Rent €${c.rentEurSqm}/m² · ~${grossYieldPct(c)}%`}
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
+        </Reveal>
+        <Reveal delay={0.05}>
+          <Link
+            href="/de/metro"
+            className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-sv-blue/30 hover:shadow-card-hover"
+          >
+            <span className="inline-flex items-center gap-3 text-[14px] font-bold text-sv-ink/70">
+              <Landmark className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
+              {de
+                ? 'Wohnungen nahe U-Bahn & S-Bahn — alle Stationen mit Angeboten in Gehweite.'
+                : 'Homes near U-Bahn & S-Bahn — every Berlin station with a listings radar.'}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-black text-sv-blue">
+              {de ? 'Zur Stationsübersicht' : 'Station directory'}
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+            </span>
+          </Link>
         </Reveal>
       </div>
     </section>

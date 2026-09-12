@@ -206,3 +206,16 @@ export function isAeHost(hostname: string): boolean {
 }
 
 export const MARKET_HEADER = 'x-sivrce-market'
+
+/**
+ * Session-cookie domain for the host serving the request: sessions span each
+ * registrable domain + its subdomains (sivrce.ge ↔ admin.sivrce.ge,
+ * sivrce.com ↔ www.sivrce.com) but never across .ge ↔ .com — browsers can't
+ * share a cookie across those anyway. Host-only for dev/preview/unknown hosts.
+ */
+export function sessionCookieDomain(hostname: string): string | undefined {
+  const h = normalizeHostname(hostname)
+  if (h === 'sivrce.ge' || h.endsWith('.sivrce.ge')) return '.sivrce.ge'
+  if (h === 'sivrce.com' || h.endsWith('.sivrce.com')) return '.sivrce.com'
+  return undefined
+}

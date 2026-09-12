@@ -13,6 +13,7 @@ import {
   DE_EFFICIENCY_TIERS,
   DE_ENERGY_CLASSES,
   DE_MAKLER_BUYER_PCT,
+  grossYieldPct,
   DE_RENTAL_RULES,
   deCityBySlug,
   GRUNDERWERBSTEUER_BY_STATE,
@@ -21,6 +22,9 @@ import { MARKETS } from '@/lib/markets'
 import { foldGerman, normalizeName, parseIntelQuery, sourcesFor } from '@/lib/intel/core'
 import { DEVELOPERS } from '@/data/professionals'
 import { NEW_DEVELOPERS_GERMANY } from '@/data/projects-new-germany'
+import { getMetrosByCountry } from '@/data/world-metros'
+import { worldDevelopers } from '@/data/world-developers'
+import { WORLD_PROJECTS } from '@/data/world-projects'
 
 // 12 official Bezirke, unique slugs
 assert.equal(BERLIN_BEZIRKE.length, 12, 'bezirke count')
@@ -109,6 +113,42 @@ for (const d of NEW_DEVELOPERS_GERMANY) {
   assert.ok(d.unitsDelivered > 0 && d.description.en.length > 40, `substance: ${d.slug}`)
 }
 
+// National city coverage: every German Großstadt carries tax + price anchors,
+// ka labels stay unique (they are the internal city join key).
+assert.ok(DE_CITIES.length >= 75, `großstadt coverage: ${DE_CITIES.length}`)
+assert.equal(new Set(DE_CITIES.map((c) => c.ka)).size, DE_CITIES.length, 'ka labels unique')
+for (const c of DE_CITIES) {
+  assert.ok(c.buyEurSqm >= 1500 && c.buyEurSqm <= 12000, `buy anchor: ${c.slug}`)
+  assert.ok(c.rentEurSqm >= 5 && c.rentEurSqm <= 35, `rent anchor: ${c.slug}`)
+  const y = grossYieldPct(c)
+  assert.ok(y >= 2 && y <= 9, `yield sane: ${c.slug} = ${y}`)
+}
+assert.equal(grossYieldPct(DE_CITIES[0]!), 3.5, 'berlin yield math')
+// City slugs stay globally unique across markets (findCountryByCity depends on it).
+const cityOwners = new Map<string, string>()
+for (const id of Object.keys(MARKETS) as (keyof typeof MARKETS)[]) {
+  for (const s of MARKETS[id].citySlugs) {
+    const prev = cityOwners.get(s)
+    assert.ok(!prev || prev === id, `cross-market city dup: ${s} (${prev}/${id})`)
+    cityOwners.set(s, id)
+  }
+}
+// World layer: no phantom rail systems, every launched metro keeps data,
+// developer slugs unique, landmark projects keep substance.
+const deSlugs = new Set(DE_CITIES.map((c) => c.slug))
+const deMetroSystems = getMetrosByCountry('DE')
+assert.ok(deMetroSystems.length >= 16, `rail systems: ${deMetroSystems.length}`)
+for (const m of deMetroSystems) {
+  assert.ok(deSlugs.has(m.citySlug), `phantom rail city: ${m.citySlug}`)
+}
+const worldDevSlugs = worldDevelopers.filter((d) => d.cc === 'DE').map((d) => d.slug)
+assert.equal(new Set(worldDevSlugs).size, worldDevSlugs.length, 'world DE dev slugs unique')
+const deProjects = WORLD_PROJECTS.filter((p) => p.cc === 'DE')
+assert.ok(deProjects.length >= 12, `DE projects: ${deProjects.length}`)
+for (const p of deProjects) {
+  assert.ok(p.description.length > 40, `project substance: ${p.slug}`)
+}
+
 console.log(
-  `de-adapter: ${BERLIN_BEZIRKE.length} bezirke / ${DE_CITIES.length} cities / +${NEW_DEVELOPERS_GERMANY.length} national devs ✓`,
+  `de-adapter: ${BERLIN_BEZIRKE.length} bezirke / ${DE_CITIES.length} cities / +${NEW_DEVELOPERS_GERMANY.length} national devs / ${deMetroSystems.length} rail systems ✓`,
 )

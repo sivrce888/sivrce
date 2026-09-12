@@ -9,6 +9,7 @@ import { nearMetroFilter } from "@/lib/geo/nearest-poi-pure"
 import { USD_GEL } from "@/data/listings"
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS } from "@/lib/features"
 import { districtSearchValues } from "@/lib/district-canon"
+import { MARKET_COUNTRY_ISOS } from "@/lib/markets"
 import { cadastralVariants, parseListingNumber, phoneSearchNeedles } from "@/lib/listing-public-id"
 import { isSearchTier } from "@/lib/listings-home-rail"
 import type { SearchFilters } from "@/lib/search"
@@ -69,10 +70,17 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
   const dailyDates = dFrom && dTo && dFrom >= today && dFrom < dTo ? { dailyFrom: dFrom, dailyTo: dTo } : {}
 
   const sellerParam = sp.get("seller")
-  // Market scope: default GE (sivrce.ge catalog), 'DE' for sivrce.com/de,
-  // 'all' for the worldwide hub. Old rows carry 'GE' via the column default.
+  // Market scope: default GE (sivrce.ge catalog), 'all' for the worldwide hub,
+  // or any launched market ISO (MARKET_COUNTRY_ISOS) so /search can scope every
+  // country hub. Garbage falls back to the GE default — never a worldwide leak.
+  // Old rows carry 'GE' via the column default.
   const countryRaw = sp.get("country")
-  const country = countryRaw === "DE" || countryRaw === "GE" ? (countryRaw as "GE" | "DE") : countryRaw === "all" ? undefined : ("GE" as const)
+  const country =
+    !countryRaw || countryRaw === "all"
+      ? undefined
+      : MARKET_COUNTRY_ISOS.has(countryRaw)
+        ? countryRaw
+        : ("GE" as const)
 
   const west = num("west")
   const south = num("south")

@@ -2,7 +2,7 @@
  * Runnable check: npx tsx src/lib/site-host.check.ts
  */
 import assert from 'node:assert/strict'
-import { isDeHost, isOwnHost, siteHostFor, hostKind, COM_ORIGIN, publicOriginKind, sitemapScope } from './site-host'
+import { isDeHost, isOwnHost, siteHostFor, hostKind, COM_ORIGIN, publicOriginKind, sitemapScope, sessionCookieDomain } from './site-host'
 
 assert.equal(siteHostFor('sivrce.ge').market, 'ge')
 assert.equal(siteHostFor('sivrce.ge').defaultLang, 'ka')
@@ -25,5 +25,16 @@ assert.equal(sitemapScope('com'), 'com')
 assert.equal(sitemapScope('ge'), 'ge')
 assert.equal(sitemapScope('dev'), 'all')
 assert.equal(sitemapScope('preview'), 'all')
+
+// Session cookie domain — one platform, two registrable domains.
+assert.equal(sessionCookieDomain('sivrce.ge'), '.sivrce.ge')
+assert.equal(sessionCookieDomain('admin.sivrce.ge'), '.sivrce.ge')
+assert.equal(sessionCookieDomain('www.sivrce.ge'), '.sivrce.ge')
+assert.equal(sessionCookieDomain('sivrce.com'), '.sivrce.com')
+assert.equal(sessionCookieDomain('www.sivrce.com'), '.sivrce.com')
+assert.equal(sessionCookieDomain('SVRCE.com:443'), '.sivrce.com')
+assert.equal(sessionCookieDomain('localhost'), undefined)
+assert.equal(sessionCookieDomain('preview.vercel.app'), undefined)
+assert.equal(sessionCookieDomain('evil-sivrce.com.attacker.io'), undefined)
 
 console.log('site-host.check: ok')

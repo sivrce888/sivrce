@@ -359,6 +359,12 @@ export default async function CountryPage({
   if (slug?.[1] === 'sale' && slug[0]) {
     permanentRedirect(`/en${MARKETS[country].pathPrefix}/${slug[0]}/buy`)
   }
+  // One platform: /{cc}/search is the product search scoped to that market,
+  // not a marketing page. 302 — search itself is noindex.
+  if (slug?.[0] === 'search') {
+    const iso = MARKETS[country].countryCode
+    if (iso) redirect(`/search?country=${iso}`)
+  }
   const found = copyFor(country, slug, lang)
 
   // Generic page for countries without custom copy

@@ -10,6 +10,7 @@ import {
   getListingPriceEvents,
 } from '@/lib/listings-db'
 import { daysSince } from '@/lib/price-scale'
+import { scalePeers } from '@/lib/peer-rank'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
 import { listingHubAnchor, listingHubPath } from '@/lib/seo-pages'
@@ -305,7 +306,7 @@ export default async function ListingPage({ params }: PageProps) {
       <ListingDetailClient
         listing={listing}
         similar={similar}
-        peerPerM2={peerPerM2}
+        peerPerM2={scalePeers(similar, peerPerM2)}
         ownerId={ownerMeta?.ownerId ?? null}
         ownerTier={ownerTier}
         railAd={railAd}

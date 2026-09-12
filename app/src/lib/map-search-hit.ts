@@ -46,6 +46,8 @@ export function mapSearchHit(h: Record<string, unknown>): Listing {
     projectCatalog,
     projectSlug: (h.projectSlug as string) ?? null,
     coords: { lat: (h.lat as number) ?? 41.7, lng: (h.lng as number) ?? 44.8 },
+    metroNear: (h.metroNear as Listing['metroNear']) ?? null,
+    dupeCount: typeof h.dupeCount === 'number' && h.dupeCount > 1 ? h.dupeCount : undefined,
     postedAt,
     agent: (h.agent as Listing['agent']) ?? { name: 'Sivrce', phone: '', agency: '' },
     isNew: Date.now() - new Date(postedAt).getTime() < 72 * 3600_000,

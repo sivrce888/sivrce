@@ -34,6 +34,7 @@ export function rpIdFor(hostname: string): string {
   const host = hostname.toLowerCase()
   if (host === "localhost" || host.endsWith(".localhost")) return "localhost"
   if (host === "sivrce.ge" || host.endsWith(".sivrce.ge")) return "sivrce.ge"
+  if (host === "sivrce.com" || host.endsWith(".sivrce.com")) return "sivrce.com"
   return host
 }
 

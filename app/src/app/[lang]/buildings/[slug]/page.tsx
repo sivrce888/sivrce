@@ -10,6 +10,8 @@ import {
   Navigation,
   Calendar,
   TrainFront,
+  TramFront,
+  Bus,
   GraduationCap,
   Trees,
   Hospital,
@@ -182,6 +184,9 @@ interface PageProps {
 
 const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   metro: TrainFront,
+  bus: Bus,
+  tram: TramFront,
+  rail: TrainFront,
   school: GraduationCap,
   university: Landmark,
   park: Trees,

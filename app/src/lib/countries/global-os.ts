@@ -5,12 +5,14 @@
  * Derived, never duplicated: deep markets come from lib/markets + country-copy,
  * metros from lib/map/user-place (+ data/world-places), names from Intl via
  * place-context, costs-as-of from countries/costs, freshness from intel/core,
- * verified metro stations from data/tbilisi-metro. No fake rows, no invented
+ * committed metro systems from data/world-metros (Tbilisi pins stay in
+ * data/tbilisi-metro and win on overlap), country facts from
+ * data/world-countries (all 249 ISO + XK carry an info row).
  * prices, no committed images — renders/photos are counted, not copied.
  *
  * DB-free by design (static corpus only; live DB rows merge at runtime via
  * directory-live). Safe for prebuild checks and server components.
- * All 249 ISO countries resolve (data/world-countries.ts, codes only, names
+ * All 249 ISO countries resolve (data/world-countries.ts info rows, names
  * via Intl): pinned metros where committed, discovery-only rows elsewhere —
  * live Nominatim/OSM at runtime, never invented pins, never sitemap links.
  * Developers span the GE corpus (data/professionals) + the world corpus
@@ -22,8 +24,9 @@
 
 import { DEVELOPERS, PROJECTS } from '@/data/professionals'
 import { METRO_STATIONS } from '@/data/tbilisi-metro'
-import { worldDevelopers } from '@/data/world-developers'
-import { ISO_COUNTRY_CODES } from '@/data/world-countries'
+import { COUNTRIES, ISO_COUNTRY_CODES, type WorldCountry } from '@/data/world-countries'
+import { WORLD_METROS } from '@/data/world-metros'
+import { WORLD_NEIGHBORHOODS } from '@/data/world-neighborhoods'
 import { WORLD_PLACES } from '@/data/world-places'
 import { countrySitemapPaths } from '@/lib/country-copy'
 import { COSTS_AS_OF } from '@/lib/countries/costs'
@@ -39,6 +42,7 @@ import {
   cityByName,
   nearestMapCity,
 } from '@/lib/map/user-place.server'
+import { METRO_MAX_CATCHMENT_M, METRO_NEAR_M } from '@/lib/geo/nearest-poi-constants'
 import type { MapCity } from '@/lib/map/user-place'
 import { countryOf } from '@/lib/place-context'
 
@@ -92,6 +96,8 @@ export interface GlobalCountry {
   /** ISO-3166-1 alpha-2, uppercase. */
   cc: string
   names: { ka: string; en: string; ru: string; de?: string }
+  /** Rich facts (capital, population, RE note) — null only when no info row exists. */
+  info: WorldCountry | null
   currency: string
   locale: string
   deep: boolean
@@ -103,6 +109,17 @@ export interface GlobalCountry {
   /** Map anchor (deep default city, else first metro) — null = discovery-only, no invented pin. */
   center: { lat: number; lng: number } | null
   metros: GlobalMetro[]
+}
+
+/** Country facts by ISO cc — first row wins (WS/ID legacy dups are identical). */
+const COUNTRY_INFO = new Map<string, WorldCountry>()
+for (const row of COUNTRIES) {
+  if (!COUNTRY_INFO.has(row.cc)) COUNTRY_INFO.set(row.cc, row)
+}
+
+/** Rich facts for an ISO-2 cc (capital, population, RE note) — null when unknown. */
+export function countryInfo(cc: string): WorldCountry | null {
+  return COUNTRY_INFO.get(cc.toUpperCase()) ?? null
 }
 
 export function globalCountries(): GlobalCountry[] {
@@ -121,6 +138,7 @@ export function globalCountries(): GlobalCountry[] {
     return {
       cc,
       names: countryOf(cc),
+      info: COUNTRY_INFO.get(cc) ?? null,
       currency: market?.currency ?? 'USD',
       locale: market?.locale ?? 'en',
       deep: !!deep,
@@ -138,6 +156,7 @@ export function globalCountries(): GlobalCountry[] {
     rows.push({
       cc,
       names: countryOf(cc),
+      info: COUNTRY_INFO.get(cc) ?? null,
       currency: 'USD',
       locale: 'en',
       deep: false,
@@ -169,7 +188,16 @@ export interface MetroSystem {
   source: string
 }
 
-/** Only Tbilisi ships committed pins — every other city resolves live (no invented counts). */
+/** Committed rail systems for a metro slug (operator/OSM data, never invented). */
+function worldMetroSystemsFor(slug: string) {
+  return WORLD_METROS.filter(
+    (m) => m.citySlug === slug || m.stations.some((s) => s.citySlug === slug),
+  )
+}
+
+/** Committed station pins across world-metros (Tbilisi lives in tbilisi-metro). */
+const WORLD_METRO_PINS = WORLD_METROS.reduce((n, m) => n + m.stations.length, 0)
+
 export function metroSystemFor(slug: string): MetroSystem {
   const metro = globalMetros().find((m) => m.slug === slug)
   const city = metro?.en ?? slug
@@ -183,6 +211,17 @@ export function metroSystemFor(slug: string): MetroSystem {
       source: 'OSM georgia-pois + tbilisi-metro-grid (committed)',
     }
   }
+  const systems = worldMetroSystemsFor(slug)
+  if (systems.length > 0) {
+    return {
+      citySlug: slug,
+      city,
+      status: 'verified',
+      lines: systems.reduce((n, m) => n + m.lines.length, 0),
+      stations: systems.reduce((n, m) => n + m.stations.length, 0),
+      source: `${systems.map((m) => m.name).join(' + ')} (committed)`,
+    }
+  }
   return {
     citySlug: slug,
     city,
@@ -191,9 +230,71 @@ export function metroSystemFor(slug: string): MetroSystem {
   }
 }
 
-/** Committed station pins (Tbilisi only); [] everywhere else = live lookup, not "no metro". */
+/** Committed station pins (Tbilisi + 100+ world systems); [] = live lookup, not "no metro". */
 export function metroStationsFor(slug: string) {
-  return slug === 'tbilisi' ? METRO_STATIONS : []
+  if (slug === 'tbilisi') return METRO_STATIONS
+  return worldMetroSystemsFor(slug).flatMap((m) => m.stations)
+}
+
+export interface WorldNearMetro {
+  name: string
+  line: string
+  system: string
+  citySlug: string
+  cc: string
+  meters: number
+  walkMin: number
+  /** 'near' ≤800 m (~10 min) · 'walk' ≤2500 m catchment — same zones as Tbilisi. */
+  zone: 'near' | 'walk'
+}
+
+// ponytail: inline haversine — importing map/pois would drag 1.1 MB georgia-pois.json into this server layer.
+function haversineM(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const R = 6_371_000
+  const toR = Math.PI / 180
+  const dLat = (bLat - aLat) * toR
+  const dLng = (bLng - aLng) * toR
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * toR) * Math.cos(bLat * toR) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)))
+}
+
+/**
+ * Nearest committed world interchange pin within catchment.
+ * Tbilisi has no world pins (grid in map/pois wins) — callers try that first.
+ * Null = outside catchment, never "no metro": live OSM/Nominatim resolves the rest.
+ * ponytail: ~600-pin linear scan ≈ µs server-side; per-city index only if a profile says so.
+ */
+export function nearestWorldMetroStation(lat: number, lng: number): WorldNearMetro | null {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+  let best: WorldNearMetro | null = null
+  for (const m of WORLD_METROS) {
+    for (const s of m.stations) {
+      const meters = Math.round(haversineM(lat, lng, s.lat, s.lng))
+      if (meters > METRO_MAX_CATCHMENT_M) continue
+      if (best && best.meters <= meters) continue
+      best = {
+        name: s.name,
+        line: s.line,
+        system: m.name,
+        citySlug: s.citySlug,
+        cc: s.cc,
+        meters,
+        walkMin: Math.max(1, Math.round(meters / 80)),
+        zone: meters <= METRO_NEAR_M ? 'near' : 'walk',
+      }
+    }
+  }
+  return best
+}
+
+/* ── Neighborhoods ── */
+
+/** Premium districts committed for a country cc — prices public-market, never invented. */
+export function neighborhoodsForCountry(cc: string) {
+  const up = cc.toUpperCase()
+  return WORLD_NEIGHBORHOODS.filter((n) => n.cc === up)
 }
 
 /* ── Developers / projects / renders / photos ── */
@@ -215,7 +316,13 @@ export interface GlobalOsStats {
   renders: number
   galleries: number
   geoPinned: number
+  /** Committed rail systems (world-metros + Tbilisi) and their station pins. */
+  verifiedMetroSystems: number
   verifiedMetroStations: number
+  /** Premium districts with committed price anchors (world-neighborhoods). */
+  neighborhoods: number
+  /** ISO assignments carrying a rich info row (capital, population, RE note). */
+  countryInfos: number
   asOf: string
 }
 
@@ -239,7 +346,10 @@ export function globalOsStats(): GlobalOsStats {
     renders: PROJECTS.filter((p) => isRender(p.img)).length,
     galleries: PROJECTS.filter((p) => (p.gallery?.length ?? 0) > 0).length,
     geoPinned: PROJECTS.filter((p) => hasCoords(p.coords?.lat, p.coords?.lng)).length,
-    verifiedMetroStations: METRO_STATIONS.length,
+    verifiedMetroSystems: WORLD_METROS.length + 1, // +Tbilisi (tbilisi-metro)
+    verifiedMetroStations: METRO_STATIONS.length + WORLD_METRO_PINS,
+    neighborhoods: WORLD_NEIGHBORHOODS.length,
+    countryInfos: COUNTRY_INFO.size,
     asOf: GLOBAL_OS_AS_OF,
   }
 }

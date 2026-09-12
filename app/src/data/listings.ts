@@ -88,6 +88,11 @@ export interface Listing {
   /** New / old / under-construction key (extendedFields.buildingStatus) */
   buildingStatus?: string | null
   coords: { lat: number; lng: number }
+  /** Server-computed nearest metro {name, meters, walkMin} — worldwide; cards
+   * fall back to local Tbilisi compute when absent (static/local listings). */
+  metroNear?: { n: string; m: number; w: number } | null
+  /** Same-flat repost count (search collapse) — chip ×N when > 1. */
+  dupeCount?: number
   /** Building / door number — used by map clustering (falls back to address parse). */
   buildingNumber?: string
   /** Landmark catalog slug — `@/data/buildings` */

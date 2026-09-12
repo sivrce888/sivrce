@@ -245,7 +245,7 @@ assert.equal(nlHasStructure(ns3), false, 'no yield index — keep as Meili keywo
 
 const kaMetro = parseNlQuery('ბინა თბილისი მეტროსთან')
 assert.equal(kaMetro.nearMetro, true)
-assert.equal(parseNlQuery('Wohnung Berlin nahe U-Bahn').nearMetro, undefined)
+assert.equal(parseNlQuery('Wohnung Berlin nahe U-Bahn').nearMetro, true)
 assert.equal(parseNlQuery('Neubauwohnung Berlin').buildingStatus, 'add.status.new')
 
 console.log('ok: nl-search')

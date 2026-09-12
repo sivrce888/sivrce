@@ -38,6 +38,7 @@ import { mapSearchHit } from '@/lib/map-search-hit'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
+import { addSearchHistory } from '@/lib/search-history'
 import { isSearchTier, SEARCH_TIERS } from '@/lib/listings-home-rail'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
@@ -149,6 +150,7 @@ export default function SearchClient({
   lock,
   initialHits,
   initialTotal,
+  country: countryDefault,
 }: {
   ads?: { top: PublicAd | null; native: PublicAd | null }
   /** SEO landings: no chrome, lock from the slug, stay on this path. */
@@ -157,6 +159,10 @@ export default function SearchClient({
   initialHits?: Listing[]
   /** Hub inventory size — correct result count before /api/search resolves. */
   initialTotal?: number
+  /** Market scope sent to /api/search: 'all' = worldwide (global hub),
+   * 'GE' = Georgia catalog, or any market ISO (e.g. 'DE'). A ?country= URL
+   * param overrides; the API validates the final value. */
+  country?: string
 }) {
   const params = useSearchParams()
   const router = useRouter()
@@ -236,6 +242,13 @@ export default function SearchClient({
   const seller: 'owner' | 'agency' | undefined =
     sellerParam === 'owner' || sellerParam === 'agency' ? sellerParam : undefined
   const cur: 'USD' | 'GEL' = params.get('cur') === 'GEL' ? 'GEL' : 'USD'
+  // Market scope: URL param wins over the page's market default. Any uppercase
+  // ISO passes through ('all' too) — /api/search validates against the market set.
+  const countryParam = params.get('country')
+  const country =
+    countryParam && (countryParam === 'all' || /^[A-Z]{2}$/.test(countryParam))
+      ? countryParam
+      : countryDefault
   // Page lives in the URL — shareable and SSR-friendly. Filter changes reset it (see patchParams).
   const page = numParam('page', 1) ?? 1
   // Results mode lives in the URL too (?view=map) — shareable; default list.
@@ -401,6 +414,7 @@ export default function SearchClient({
         if (minArea !== undefined) sp.set('minArea', String(minArea))
         if (maxArea !== undefined) sp.set('maxArea', String(maxArea))
         if (q) sp.set('q', q)
+        if (country) sp.set('country', country)
         if (sort !== 'date') sp.set('sort', sort)
         if (beds !== undefined) sp.set('beds', String(beds))
         if (bedsMax !== undefined) sp.set('bmax', String(bedsMax))
@@ -454,6 +468,27 @@ export default function SearchClient({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- paramsKey is the single change signal
   }, [paramsKey])
+
+  // Track search history (ponytail: localStorage-only, no server roundtrip)
+  useEffect(() => {
+    if (searchLoading || totalResults === 0) return
+    const parts: string[] = []
+    if (deal) parts.push(deal)
+    if (type) parts.push(type)
+    if (city) parts.push(city)
+    if (district) parts.push(district)
+    if (rooms !== undefined) parts.push(`${rooms}R`)
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      parts.push(`$${minPrice ?? 0}–${maxPrice ?? '∞'}`)
+    }
+    const label = parts.join(' · ') || (lang === 'de' ? 'Alle Suchen' : 'All searches')
+    addSearchHistory({
+      query: q || '',
+      filters: paramsKey,
+      label,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only save once per search
+  }, [totalResults])
 
   // Page navigation — the page number itself lives in the URL.
   const goPage = (n: number) => {

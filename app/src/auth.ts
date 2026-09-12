@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import NextAuth, { type NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
@@ -12,6 +12,7 @@ import { findOrCreatePhoneUser, verifyPhoneOtp } from "@/lib/auth-phone-otp"
 import { db, dbAvailable } from "@/lib/db"
 import { sendWelcomeEmail } from "@/lib/email"
 import { verifyPassword } from "@/lib/password"
+import { sessionCookieDomain } from "@/lib/site-host"
 
 const providers: NextAuthConfig["providers"] = []
 
@@ -146,27 +147,42 @@ async function ensureAdminRole(userId: string, email: string | null | undefined)
   })
 }
 
-const crossSubdomainCookies: NextAuthConfig["cookies"] =
-  process.env.NODE_ENV === "production"
-    ? {
-        sessionToken: {
-          name: "__Secure-authjs.session-token",
-          options: {
-            httpOnly: true,
-            sameSite: "lax",
-            path: "/",
-            secure: true,
-            domain: ".sivrce.ge",
-          },
-        },
-      }
-    : undefined
+/**
+ * Same platform, two domains: the session cookie scopes to the registrable
+ * domain serving the request (.sivrce.ge keeps the admin cross-subdomain
+ * session; .sivrce.com gets its own). Dev/preview hosts stay host-only.
+ * Lazy config is the Auth.js-supported way to make cookies request-aware.
+ */
+async function crossSubdomainCookies(): Promise<NextAuthConfig["cookies"]> {
+  if (process.env.NODE_ENV !== "production") return undefined
+  let host = "sivrce.ge" // no request scope (cron) — the catalog origin
+  try {
+    const h = await headers()
+    host = h.get("x-forwarded-host")?.split(",")[0]?.trim() ?? h.get("host") ?? host
+  } catch {
+    /* keep default */
+  }
+  const domain = sessionCookieDomain(host)
+  if (!domain) return undefined
+  return {
+    sessionToken: {
+      name: "__Secure-authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+        domain,
+      },
+    },
+  }
+}
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth(async () => ({
   adapter: PrismaAdapter(db),
   providers,
   trustHost: true,
-  cookies: crossSubdomainCookies,
+  cookies: await crossSubdomainCookies(),
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
@@ -271,4 +287,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user.id) await ensureAdminRole(user.id, user.email)
     },
   },
-})
+}))

@@ -7,6 +7,7 @@ import { BookingStatus } from "@/generated/prisma/enums"
 import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { optString, reqEnum, reqString } from "@/lib/admin/validate"
+import { hasBookingOverlap } from "@/lib/bookings"
 import { db } from "@/lib/db"
 
 /**
@@ -41,7 +42,30 @@ export async function setDailyBookingStatus(fd: FormData) {
     data.cancelledAt = new Date()
     data.cancelReason = reason
   }
-  await db.dailyRentalBooking.update({ where: { id }, data })
+  // ponytail: confirm runs in a transaction — two admins confirming overlapping
+  // pendings at once is exactly the double-booking this guards. Ceiling: a
+  // Postgres exclusion constraint when confirm volume outgrows app-level checks.
+  await db.$transaction(async (tx) => {
+    const row = await tx.dailyRentalBooking.findUniqueOrThrow({
+      where: { id },
+      select: { status: true, listingId: true, checkIn: true, checkOut: true },
+    })
+    if (row.status !== before.status) {
+      throw new Error(`Booking changed while confirming (now "${row.status}") — reload and retry`)
+    }
+    if (status !== BookingStatus.confirmed) {
+      await tx.dailyRentalBooking.update({ where: { id }, data })
+      return
+    }
+    const clash = await hasBookingOverlap(tx, {
+      listingId: row.listingId,
+      checkIn: row.checkIn,
+      checkOut: row.checkOut,
+      excludeId: id,
+    })
+    if (clash) throw new Error("Overlapping confirmed booking exists for these dates")
+    await tx.dailyRentalBooking.update({ where: { id }, data })
+  })
   await logAdminAction(session, "rentals.booking.set_status", "daily_rental_booking", id, {
     before: { status: before.status },
     after: { status, reason },

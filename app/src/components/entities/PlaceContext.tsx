@@ -10,6 +10,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
+  Bus,
   Dumbbell,
   Globe,
   GraduationCap,
@@ -20,6 +21,7 @@ import {
   Pill,
   ShoppingBag,
   TrainFront,
+  TramFront,
   Trees,
   type LucideIcon,
 } from 'lucide-react'
@@ -32,6 +34,7 @@ import {
   POI_LABELS,
   type PoiCategory,
 } from '@/lib/map/pois'
+import { nearestAllMetroStation } from '@/lib/countries/world-metro-all'
 import { pick } from '@/data/neighborhoods'
 import type { Lang } from '@/lib/i18n/core'
 import {
@@ -46,6 +49,9 @@ import {
 
 const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   metro: TrainFront,
+  bus: Bus,
+  tram: TramFront,
+  rail: TrainFront,
   school: GraduationCap,
   university: Landmark,
   park: Trees,
@@ -126,7 +132,9 @@ export async function PlaceContext({
   const at = validCoords(coords) ? coords : null
   const city = resolvePlaceCity(cityKa, at)
   const nbh = matchNeighborhood(cityKa, district, at)
-  const metro = at ? nearestMetro(at.lat, at.lng) : null
+  // Tbilisi walking grid first (exact); all 18k+ world stations everywhere else.
+  const metro = at ? (nearestMetro(at.lat, at.lng) ?? nearestAllMetroStation(at.lat, at.lng)) : null
+  const metroLine = metro && 'line' in metro ? metro.line : null
   const amenities = at ? nearestAmenities(at.lat, at.lng).filter((a) => a.category !== 'metro') : []
   const mapsApple = at
     ? `https://maps.apple.com/?daddr=${at.lat},${at.lng}&q=${encodeURIComponent(location ?? cityKa)}`
@@ -214,7 +222,7 @@ export async function PlaceContext({
         {metro && (
           <p className="mt-4 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue-deep">
             <TrainFront className="h-4 w-4 shrink-0" aria-hidden />
-            {metro.name} · {formatMetroDist(metro)}
+            {metro.name}{metroLine ? ` · ${metroLine}` : ''} · {formatMetroDist(metro)}
           </p>
         )}
 

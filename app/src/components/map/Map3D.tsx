@@ -95,11 +95,21 @@ import {
   isPoiCategory,
   parsePoiPrefs,
   poiFilterSpec,
-  poisToGeoJSON,
   serializePoiPrefs,
   type PoiCategory,
-} from '@/lib/map/pois'
+} from '@/lib/map/poi-constants'
 import { loadPoiImages, poiIconDataUrl } from '@/lib/map/poi-icons'
+import {
+  TRANSIT_LITE_MAX,
+  TRANSIT_LITE_MIN_ZOOM,
+  TRANSIT_MAX,
+  TRANSIT_MIN_ZOOM,
+  liveCatsFor,
+  transitFetchUrl,
+  transitToGeoJSON,
+  type TransitStop,
+} from '@/lib/map/transit'
+import { inGermany } from '@/lib/map/map-geo'
 import {
   applyLiveFixes,
   LIVE_PROBE_LAYER_ID,
@@ -158,6 +168,9 @@ import {
   SlidersHorizontal,
   Compass,
   Pill,
+  Bus,
+  TramFront,
+  TrainFront,
   School,
   GraduationCap,
   Trees,
@@ -171,6 +184,9 @@ import { MetroMark } from '@/lib/map/poi-icons'
 
 const POI_ICONS: Record<PoiCategory, LucideIcon | typeof MetroMark> = {
   metro: MetroMark,
+  bus: Bus,
+  tram: TramFront,
+  rail: TrainFront,
   pharmacy: Pill,
   school: School,
   university: GraduationCap,
@@ -264,7 +280,14 @@ const RAION_LINE_ID = 'sivrce-raions-line'
 const POI_SOURCE_ID = 'sivrce-pois'
 const POI_ICON_ID = 'sivrce-pois-icon'
 const POI_LABEL_LAYER_ID = 'sivrce-pois-label'
-const POI_DATA = poisToGeoJSON()
+// ponytail: 1.1 MB POI JSON loads after first paint — source starts empty,
+// fills when the chunk arrives (same sprites, zero layout shift on the map).
+const POI_EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+/** Live transit/amenity overlay (Overpass via /api/transit) — same sprites as static POIs. */
+const TRANSIT_SOURCE_ID = 'sivrce-transit'
+const TRANSIT_ICON_ID = 'sivrce-transit-icon'
+const TRANSIT_LABEL_LAYER_ID = 'sivrce-transit-label'
+const TRANSIT_EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 /** Stable identity for the no-listings case (see sourceListings). */
 const EMPTY_LISTINGS: Listing[] = []
 const EMPTY_BUILDINGS: MapBuildingCluster[] = []
@@ -652,7 +675,14 @@ async function ensureLayers(
   })
 
   // ——— amenity POIs (OSM static) — Lucide sprites on badges ———
-  map.addSource(POI_SOURCE_ID, { type: 'geojson', data: POI_DATA })
+  map.addSource(POI_SOURCE_ID, { type: 'geojson', data: POI_EMPTY })
+  void import('@/lib/map/pois').then(
+    (m) => {
+      const src = map.getSource(POI_SOURCE_ID) as maplibregl.GeoJSONSource | undefined
+      src?.setData(m.poisToGeoJSON())
+    },
+    () => {},
+  )
   map.addLayer({
     id: POI_ICON_ID,
     type: 'symbol',
@@ -692,6 +722,52 @@ async function ensureLayers(
       'text-halo-width': 1.4,
     },
   })
+
+  // ——— live transit (bus/tram/rail + amenities outside Georgia) ———
+  // ponytail: empty GeoJSON at boot; one debounced bbox fetch fills it (see transit effect).
+  map.addSource(TRANSIT_SOURCE_ID, {
+    type: 'geojson',
+    data: TRANSIT_EMPTY,
+    attribution: '© OpenStreetMap contributors (ODbL)',
+  })
+  map.addLayer({
+    id: TRANSIT_ICON_ID,
+    type: 'symbol',
+    source: TRANSIT_SOURCE_ID,
+    minzoom: TRANSIT_MIN_ZOOM,
+    filter: poiFilterSpec([]),
+    layout: {
+      'icon-image': ['concat', 'sv-poi-', ['get', 'category']] as ExpressionSpecification,
+      'icon-size': [
+        'interpolate', ['linear'], ['zoom'],
+        11, 0.55, 14, 0.72, 16, 0.9,
+      ] as ExpressionSpecification,
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+    },
+  })
+  map.addLayer({
+    id: TRANSIT_LABEL_LAYER_ID,
+    type: 'symbol',
+    source: TRANSIT_SOURCE_ID,
+    minzoom: 14.5,
+    filter: poiFilterSpec([]),
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-size': 11,
+      'text-font': ['Noto Sans Bold'],
+      'text-offset': [0, 1.35],
+      'text-anchor': 'top',
+      'text-max-width': 10,
+      'text-padding': 2,
+      'text-optional': true,
+    },
+    paint: {
+      'text-color': BRAND.colors.ink,
+      'text-halo-color': '#FFFFFF',
+      'text-halo-width': 1.4,
+    },
+  })
 }
 
 function applyPoiLabelTheme(map: MlMap, dark: boolean) {
@@ -699,6 +775,10 @@ function applyPoiLabelTheme(map: MlMap, dark: boolean) {
   // Dark flips from brand lock: ink→#E9EDFF, halo navy-tint (not pure black).
   map.setPaintProperty(POI_LABEL_LAYER_ID, 'text-color', dark ? '#E9EDFF' : BRAND.colors.ink)
   map.setPaintProperty(POI_LABEL_LAYER_ID, 'text-halo-color', dark ? '#0A1440' : '#FFFFFF')
+  if (map.getLayer(TRANSIT_LABEL_LAYER_ID)) {
+    map.setPaintProperty(TRANSIT_LABEL_LAYER_ID, 'text-color', dark ? '#E9EDFF' : BRAND.colors.ink)
+    map.setPaintProperty(TRANSIT_LABEL_LAYER_ID, 'text-halo-color', dark ? '#0A1440' : '#FFFFFF')
+  }
 }
 
 const DEAL_FILTERS: { id: MapDealFilter; labelKey: DictKey; color: string }[] = [
@@ -887,7 +967,10 @@ function Map3DInner({
   )
   const [poiOn, setPoiOn] = useState<PoiCategory[]>(() => {
     const parsed = parsePoiPrefs(savedUi.pois)
-    return parsed ?? [...POI_DEFAULT_ON]
+    if (parsed) return parsed
+    // ponytail: DE boots with transit on — bus/tram/rail is the RE signal there, as metro is in Tbilisi.
+    if (inGermany(centerDefault.lat, centerDefault.lng)) return [...POI_DEFAULT_ON, 'bus', 'tram', 'rail']
+    return [...POI_DEFAULT_ON]
   })
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
   const [view3d, setView3d] = useState(() =>
@@ -976,6 +1059,8 @@ function Map3DInner({
       const filter = poiFilterSpec(visible)
       map.setFilter(POI_ICON_ID, filter)
       if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, filter)
+      if (map.getLayer(TRANSIT_ICON_ID)) map.setFilter(TRANSIT_ICON_ID, filter)
+      if (map.getLayer(TRANSIT_LABEL_LAYER_ID)) map.setFilter(TRANSIT_LABEL_LAYER_ID, filter)
     }
     apply()
     map.on('zoom', apply)
@@ -983,6 +1068,60 @@ function Map3DInner({
       map.off('zoom', apply)
     }
   }, [poiOn])
+
+  // ——— live transit: one debounced bbox fetch per viewport, lite-capped ———
+  // ponytail: moveend + 400 ms debounce, in-flight abort, stale pins kept on failure.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    let abort: AbortController | null = null
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const run = () => {
+      const src = map.getSource(TRANSIT_SOURCE_ID) as GeoJSONSource | undefined
+      if (!src) return
+      const c = map.getCenter()
+      const cats = liveCatsFor(c.lat, c.lng, poiOn)
+      const lite = isLiteDevice()
+      if (map.getZoom() < (lite ? TRANSIT_LITE_MIN_ZOOM : TRANSIT_MIN_ZOOM) || cats.length === 0) {
+        try {
+          src.setData(TRANSIT_EMPTY)
+        } catch {
+          /* style mid-remount */
+        }
+        return
+      }
+      const b = map.getBounds()
+      const url = transitFetchUrl({ w: b.getWest(), s: b.getSouth(), e: b.getEast(), n: b.getNorth() }, cats)
+      if (!url) return // viewport wider than the span cap — keep stale pins
+      abort?.abort()
+      abort = new AbortController()
+      const signal = abort.signal
+      fetch(url, { signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j: { stops?: TransitStop[] } | null) => {
+          if (!j || signal.aborted) return
+          try {
+            src.setData(transitToGeoJSON((j.stops ?? []).slice(0, lite ? TRANSIT_LITE_MAX : TRANSIT_MAX)))
+          } catch {
+            /* style mid-remount */
+          }
+        })
+        .catch(() => {
+          /* offline / upstream down — stale pins stay */
+        })
+    }
+    const debounced = () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(run, 400)
+    }
+    run()
+    map.on('moveend', debounced)
+    return () => {
+      map.off('moveend', debounced)
+      if (timer) clearTimeout(timer)
+      abort?.abort()
+    }
+  }, [ready, poiOn])
 
   useEffect(() => {
     const map = mapRef.current
@@ -1560,6 +1699,8 @@ function Map3DInner({
           CLUSTER_ID,
           POI_ICON_ID,
           POI_LABEL_LAYER_ID,
+          TRANSIT_ICON_ID,
+          TRANSIT_LABEL_LAYER_ID,
           NBH_LABEL_ID,
         ].filter((id) => map.getLayer(id))
         const hits = map.queryRenderedFeatures(e.point, { layers: liveLayers })
@@ -1904,6 +2045,8 @@ function Map3DInner({
           const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
           if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
           if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
+          if (map.getLayer(TRANSIT_ICON_ID)) map.setFilter(TRANSIT_ICON_ID, poiFilter)
+          if (map.getLayer(TRANSIT_LABEL_LAYER_ID)) map.setFilter(TRANSIT_LABEL_LAYER_ID, poiFilter)
           applyPoiLabelTheme(map, darkRef.current)
           tightenAttribution(map)
           const showFloors = Boolean(
@@ -2214,8 +2357,12 @@ function Map3DInner({
       map.on('mouseleave', NBH_LABEL_ID, onNeighborhoodLeave)
       map.on('click', POI_ICON_ID, onPoiClick)
       map.on('click', POI_LABEL_LAYER_ID, onPoiClick)
+      map.on('click', TRANSIT_ICON_ID, onPoiClick)
+      map.on('click', TRANSIT_LABEL_LAYER_ID, onPoiClick)
       map.on('mouseenter', POI_ICON_ID, onPoiEnter)
       map.on('mouseleave', POI_ICON_ID, onPoiLeave)
+      map.on('mouseenter', TRANSIT_ICON_ID, onPoiEnter)
+      map.on('mouseleave', TRANSIT_ICON_ID, onPoiLeave)
       map.on('rotate', () => {
         const b = map.getBearing()
         bearingRef.current = b

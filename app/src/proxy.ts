@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 import { normalizeSource, REF_COOKIE, REF_COOKIE_MAX_AGE } from "@/lib/attribution"
 import { decideHost } from "@/lib/host-redirect"
+import { LANG_COOKIE, autoLocalePath } from "@/lib/i18n/accept-language"
 import {
   GEO_COOKIE,
   GEO_COOKIE_MAX_AGE,
@@ -191,6 +192,24 @@ function isMapPath(pathname: string): boolean {
   )
 }
 
+/**
+ * Airbnb-pattern auto-locale for unprefixed URLs (302, never cached as canonical).
+ * Pure decision lives in i18n/accept-language (tested); this is the thin edge caller.
+ */
+function autoLocaleRedirect(req: NextRequest, pathname: string, market: string): string | null {
+  return autoLocalePath({
+    pathname,
+    market,
+    cookie: req.cookies.get(LANG_COOKIE)?.value,
+    acceptLanguage: req.headers.get("accept-language"),
+    crawler: isCrawler(req.headers.get("user-agent")),
+    internal:
+      req.headers.has("rsc") ||
+      req.headers.has("next-router-prefetch") ||
+      req.headers.has("next-router-state-tree"),
+  })
+}
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const host = hostName(req)
@@ -338,6 +357,13 @@ export function proxy(req: NextRequest) {
     const url = req.nextUrl.clone()
     url.pathname = pathname.slice(3) || "/"
     return NextResponse.redirect(url, 308)
+  }
+
+  const auto = autoLocaleRedirect(req, pathname, market)
+  if (auto) {
+    const url = req.nextUrl.clone()
+    url.pathname = auto
+    return rememberGeo(req, pass(req, NextResponse.redirect(url, 302), preview), market)
   }
 
   const bare = stripLocale(pathname)

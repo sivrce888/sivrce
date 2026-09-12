@@ -16,6 +16,7 @@ import { dashboardPathFor, requireUser } from "@/lib/guards"
 import { parsePersonaIntent, roleForPersona } from "@/lib/workspace"
 import { writePersonaCookie } from "@/lib/workspace-cookie"
 import { hashPassword, validatePassword } from "@/lib/password"
+import { hostKind, normalizeHostname, publicOriginKind } from "@/lib/site-host"
 
 function safeCallback(raw: FormDataEntryValue | null): string | undefined {
   const v = String(raw ?? "")
@@ -245,7 +246,14 @@ export async function requestPasswordReset(
     data: { identifier: email, token, expires },
   })
 
-  const base = (process.env.AUTH_URL || "https://sivrce.ge").replace(/\/$/, "")
+  // Same platform, two domains — reset on the domain the user asked from.
+  const h = await headers()
+  const host = normalizeHostname(h.get("x-forwarded-host") ?? h.get("host") ?? "")
+  const base = (
+    publicOriginKind(hostKind(host)) === "com"
+      ? "https://sivrce.com"
+      : process.env.AUTH_URL || "https://sivrce.ge"
+  ).replace(/\/$/, "")
   const link = `${base}/auth/reset?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
 
   await sendEmail({

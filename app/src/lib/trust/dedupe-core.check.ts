@@ -2,12 +2,17 @@
 import {
   areaBucket,
   type DupeListing,
+  clusterFuzzy,
+  fuzzyBlockKey,
+  type FuzzyRow,
   geoFactsSignature,
+  jaccard,
   perSqmUsd,
   phoneFactsSignature,
   phoneKey,
   pickRepresentative,
   priceOutliers,
+  textTokens,
 } from "./dedupe-core"
 
 const base: DupeListing = {
@@ -76,5 +81,50 @@ const dumped = [...market, dup(98, 20000)]
 console.assert(priceOutliers(dumped, 2.7).has("o98"), "⅕ median flagged")
 const thin = market.slice(0, 6).concat(dup(97, 500000))
 console.assert(priceOutliers(thin, 2.7).size === 0, "n<8 stays quiet")
+
+// textTokens: unicode split, stopwords + short tokens dropped
+const toks = textTokens("იყიდება 3-ოთახიანი ბინა, ვაკეში! და The Sale")
+console.assert(toks.has("ოთახიანი") && toks.has("ვაკეში"), "ka tokens kept")
+console.assert(!toks.has("და") && !toks.has("the"), "stopwords dropped")
+console.assert(textTokens("").size === 0 && textTokens(null).size === 0, "empty → ∅")
+console.assert(jaccard(new Set(["a", "b"]), new Set(["a", "b"])) === 1, "identical → 1")
+console.assert(jaccard(new Set(["a"]), new Set(["b"])) === 0, "disjoint → 0")
+console.assert(jaccard(new Set(), new Set(["b"])) === 0, "empty → 0")
+
+// fuzzyBlockKey: floor + area drift keeps the block; rooms/cell split it
+const fz = (over: Partial<FuzzyRow>): FuzzyRow => ({
+  id: "f1", dealType: "sale", propertyType: "apartment", city: "თბილისი",
+  district: "ვაკე", rooms: 3, area: 82, lat: 41.7001, lng: 44.7999,
+  title: "იყიდება 3 ოთახიანი ბინა ვაკეში", description: "ახალი რემონტით, ავეჯით",
+  ...over,
+})
+const drifted = fz({ id: "f2", area: 88, title: "ბინა ვაკეში, 3 ოთახი, რემონტით" })
+console.assert(fuzzyBlockKey(fz({})) === fuzzyBlockKey(drifted), "area drift keeps block")
+console.assert(fuzzyBlockKey(fz({ rooms: 2 })) !== fuzzyBlockKey(fz({})), "rooms split block")
+console.assert(fuzzyBlockKey(fz({ lat: 41.7021 })) !== fuzzyBlockKey(fz({})), "~200m splits block")
+
+// clusterFuzzy: reworded + repriced + drifted repost clusters…
+const reworded = fz({
+  id: "f2", area: 88, title: "ბინა ვაკეში 3 ოთახიანი რემონტით",
+  description: "იყიდება ავეჯით, ახალი რემონტი",
+})
+const groups = clusterFuzzy([fz({}), reworded])
+console.assert(groups.length === 1 && groups[0]!.length === 2, "reworded repost clusters")
+// …but area beyond ±15%, different rooms, or unrelated text stay out
+console.assert(clusterFuzzy([fz({}), fz({ id: "f3", area: 110 })]).length === 0, "area +34% splits")
+console.assert(
+  clusterFuzzy([fz({}), fz({ id: "f4", title: "საოფისე ფართი საბურთალოზე", description: "ქირავდება ოფისი" })]).length === 0,
+  "unrelated text splits",
+)
+// transitive merge: A~B, B~C with A≁C directly → one cluster of 3
+// (abstract tokens pin the Jaccard arithmetic: 3/7 either link, 1/9 the gap)
+const chainB = fz({ id: "fb", title: "alpha beta gamma", description: "zeta eta" })
+const chainA = fz({ id: "fa", title: "alpha beta gamma delta", description: "eps" })
+const chainC = fz({ id: "fc", title: "gamma zeta eta theta", description: "iota" })
+const chain = clusterFuzzy([chainA, chainB, chainC])
+console.assert(chain.length === 1 && chain[0]!.length === 3, "transitive triple merges")
+// pathological blocks skip instead of O(n²) blowup
+const mega = Array.from({ length: 65 }, (_, i) => fz({ id: `m${i}` }))
+console.assert(clusterFuzzy(mega).length === 0, ">64 block skipped")
 
 console.log("dedupe-core: ok")

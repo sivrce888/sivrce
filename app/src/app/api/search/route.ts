@@ -13,6 +13,8 @@ import {
   effectiveTierKey,
 } from "@/lib/promo-pricing"
 import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
+import { worldMetroChip, worldMetroMeters } from "@/lib/countries/world-metro-all"
+import { collapseHits, type CollapseHit } from "@/lib/trust/dedupe-collapse"
 import { listingIdsInBbox } from "@/lib/geo/postgis"
 import { isExactLookupQuery } from "@/lib/listing-public-id"
 import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
@@ -117,6 +119,28 @@ const LISTING_SELECT = {
   extendedFields: true,
 } satisfies Prisma.ListingSelect
 
+/**
+ * Fold same-flat reposts on this page into representative hits (one indexed
+ * query; no-op when the dedupe cron found nothing). Recents rail skips this —
+ * explicitly saved posts are never hidden.
+ */
+async function collapseSearchDupes<T extends CollapseHit>(hits: T[]): Promise<(T & { dupeCount?: number })[]> {
+  if (hits.length < 2) return hits
+  try {
+    const members = await db.duplicateClusterMember.findMany({
+      where: { listingId: { in: hits.map((h) => h.id) } },
+      include: { cluster: { select: { memberCount: true } } },
+    })
+    if (!members.length) return hits
+    const clusterOf = new Map(
+      members.map((m) => [m.listingId, { clusterId: m.clusterId, memberCount: m.cluster.memberCount }]),
+    )
+    return collapseHits(hits, clusterOf).hits
+  } catch {
+    return hits // ponytail: search never fails because dedupe did
+  }
+}
+
 async function dbSearch(filters: SearchFilters) {
   const page = Math.max(1, filters.page ?? 1)
   // Cap 100: the /search map view pulls the first 100 matches for pins.
@@ -137,13 +161,17 @@ async function dbSearch(filters: SearchFilters) {
     if (filters.nearMetro) {
       list = list.filter((l) => {
         const n = nearestMetro(l.lat, l.lng)
-        return n != null && n.meters <= METRO_NEAR_M
+        // Tbilisi grid is O(1); the 18k world scan runs only on its misses.
+        const meters = n ? n.meters : worldMetroMeters(l.lat, l.lng)
+        return meters <= METRO_NEAR_M
       })
     }
     list = sortHits(list, filters.sort)
     const slice = list.slice((page - 1) * pageSize, page * pageSize)
+    // Same-flat reposts (owner + agents) fold into one representative card.
+    const collapsed = await collapseSearchDupes(slice)
     return {
-      hits: slice.map(mapDbHit),
+      hits: collapsed.map(mapDbHit),
       totalHits: list.length,
       page,
       pageSize,
@@ -180,8 +208,15 @@ function mapDbHit(
     video?: string
   } | null
   const photos = cardPhotoPayload((l.images as string[]) ?? [])
+  const gridMetro = nearestMetro(l.lat, l.lng)
+  // Server chip: world metro on every card, zero client bytes (client keeps
+  // its Tbilisi-only compute as fallback for static/local listings).
+  const metroNear = gridMetro
+    ? { n: gridMetro.name, m: gridMetro.meters, w: gridMetro.walkMin }
+    : worldMetroChip(l.lat, l.lng)
   return {
     ...l,
+    metroNear,
     streetHref: streetHrefForListing(l.address, l.district, l.city),
     images: photos.images,
     photoCount: photos.photoCount,
@@ -258,6 +293,7 @@ export async function GET(req: Request) {
       ? null
       : await searchListings(filters)
   if (meiliResult && meiliResult.totalHits > 0) {
+    meiliResult.hits = await collapseSearchDupes(meiliResult.hits)
     return Response.json({ ok: true, ...meiliResult, source: "meilisearch" }, { headers: CACHE_HEADERS })
   }
 

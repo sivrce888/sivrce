@@ -6,7 +6,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { X, Building2, MapPin, HardHat, Navigation, Star, BadgeCheck, TrainFront } from 'lucide-react'
+import { X, Building2, MapPin, HardHat, Navigation, Star, BadgeCheck } from 'lucide-react'
 import type { DealType } from '@/data/listings'
 import { stayCount, stayLine } from '@/lib/listing-format'
 import { useCurrency } from '@/lib/currency'
@@ -15,7 +15,7 @@ import { DEAL_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 import { listingBuildingNumber } from '@/lib/map/buildings'
 import type { MapBuildingCluster } from '@/lib/map/buildings'
 import { buildingFloorCount, listingFloor } from '@/lib/map/floors'
-import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
+import { MetroLine } from '@/components/MetroLine'
 import { listingPath } from '@/lib/listing-slug'
 import { cardOf } from '@/lib/media'
 
@@ -53,7 +53,6 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
   const floorCount = floor != null ? buildingFloorCount(building) : 0
   const list =
     floor == null ? byTab : byTab.filter((l) => listingFloor(l.floor, floorCount) === floor)
-  const metro = nearestMetro(building.lat, building.lng)
 
   return (
     <aside
@@ -109,14 +108,12 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                 <MapPin className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">{building.address}</span>
               </p>
-              {metro && (
-                <p className="mt-1 flex items-center gap-1 text-[12px] font-bold text-sv-blue">
-                  <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  <span className="truncate">
-                    {metro.name} · {formatMetroDist(metro)}
-                  </span>
-                </p>
-              )}
+              <MetroLine
+                lat={building.lat}
+                lng={building.lng}
+                truncate
+                className="mt-1 flex items-center gap-1 text-[12px] font-bold text-sv-blue"
+              />
               <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] font-bold text-sv-ink/60">
                 {building.buildingNumber && building.buildingNumber !== '—' && (
                   <span>#{building.buildingNumber}</span>

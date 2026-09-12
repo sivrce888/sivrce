@@ -52,10 +52,23 @@ lock("src/app/globals.css", [
   ".sv-spinner",
   "-webkit-tap-highlight-color:",
 ], ["overflow-x: hidden"])
-lock("src/components/ListingCard.tsx", ["@container", "sv-card-specs", "w-[clamp(16.5rem,82%,23.75rem)]"], [
+lock("src/components/ListingCard.tsx", ["@container", "sv-card-specs", "w-[clamp(16.5rem,82%,23.75rem)]", "use-nearest-metro"], [
   "sm:w-[380px]",
   "grid-cols-4",
+  "from '@/lib/map/pois'",
 ])
+// 1.1 MB POI JSON never joins initial client bundles — dynamic import only.
+for (const f of [
+  "src/components/buildings/BuildingsCatalog.tsx",
+  "src/components/map/BuildingPanel.tsx",
+  "src/components/listing/WalkScore.tsx",
+  "src/components/map/Map3D.tsx",
+]) {
+  const t = read(f)
+  assert.ok(t.includes("import('@/lib/map/pois')") || !t.includes("map/pois"), `${f} must lazy-load pois`)
+  assert.ok(!t.includes("from '@/lib/map/pois'"), `${f} statically ships pois JSON`)
+  assert.ok(!t.includes("require('@/lib/map/pois')"), `${f} require() still bundles pois`)
+}
 lock("src/components/search/SearchClient.tsx", ["sv-card-grid"], [
   "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
 ])

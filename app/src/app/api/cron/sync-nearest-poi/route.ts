@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import { assertCronAuth } from "@/lib/cron/auth"
 import { db } from "@/lib/db"
-import { recomputeNearestPoisBatch, seedPoisFromJson } from "@/lib/geo/nearest-poi"
+import { recomputeNearestPoisBatch, seedPoisFromJson, seedWorldMetroPois } from "@/lib/geo/nearest-poi"
 import { withJobRun } from "@/lib/jobs/run"
 
 export const dynamic = "force-dynamic"
@@ -25,11 +25,19 @@ export async function GET(req: Request) {
         if (count === 0 || url.searchParams.get("seed") === "1") {
           seeded = (await seedPoisFromJson()).upserted
         }
+        // World stations ride along: PostGIS recompute below then links every
+        // listing on earth with true geodesic distance — no query changes.
+        const world =
+          await db.$queryRaw<{ n: number }[]>`SELECT COUNT(*)::int AS n FROM pois WHERE metadata->>'source' = 'osm-world'`
+        let worldSeeded = 0
+        if (world[0]?.n === 0 || url.searchParams.get("seed") === "1") {
+          worldSeeded = (await seedWorldMetroPois()).upserted
+        }
         const r = await recomputeNearestPoisBatch({
           forceAll: url.searchParams.get("all") === "1",
           limit: Math.min(500, Number(url.searchParams.get("limit") ?? 200) || 200),
         })
-        return { ...r, seeded, poiCount: count || seeded }
+        return { ...r, seeded, worldSeeded, poiCount: count || seeded }
       },
       (r) => r.links,
     )

@@ -72,6 +72,70 @@ const INVENTORY_CITIES: readonly MapCity[] = [
   city('nuremberg', 'ნიურნბერგი', 'Nuremberg', 49.4521, 11.0767, 'DE'),
   city('duisburg', 'დუისბურგი', 'Duisburg', 51.4344, 6.7623, 'DE'),
   city('bochum', 'ბოხუმი', 'Bochum', 51.4818, 7.2162, 'DE'),
+  city('wuppertal', 'ვუპერტალი', 'Wuppertal', 51.2562, 7.1508, 'DE'),
+  city('bielefeld', 'ბილეფელდი', 'Bielefeld', 52.0302, 8.5325, 'DE'),
+  city('bonn', 'ბონი', 'Bonn', 50.7374, 7.0982, 'DE'),
+  city('muenster', 'მიუნსტერი', 'Münster', 51.9624, 7.6257, 'DE'),
+  city('mannheim', 'მანჰაიმი', 'Mannheim', 49.4875, 8.466, 'DE'),
+  city('karlsruhe', 'კარლსრუე', 'Karlsruhe', 49.0069, 8.4037, 'DE'),
+  city('augsburg', 'აუგსბურგი', 'Augsburg', 48.3705, 10.8978, 'DE'),
+  city('wiesbaden', 'ვისბადენი', 'Wiesbaden', 50.0826, 8.24, 'DE'),
+  city('moenchengladbach', 'მონხენგლადბახი', 'Mönchengladbach', 51.1805, 6.4428, 'DE'),
+  city('chemnitz', 'ქემნიცი', 'Chemnitz', 50.8278, 12.9214, 'DE'),
+  city('halle', 'ჰალე', 'Halle', 51.4969, 11.9688, 'DE'),
+  city('krefeld', 'კრეფელდი', 'Krefeld', 51.3388, 6.5853, 'DE'),
+  city('freiburg', 'ფრაიბურგი', 'Freiburg', 47.999, 7.8421, 'DE'),
+  city('luebeck', 'ლიუბეკი', 'Lübeck', 53.8655, 10.6866, 'DE'),
+  city('erfurt', 'ერფურტი', 'Erfurt', 50.9787, 11.0328, 'DE'),
+  city('rostock', 'როსტოკი', 'Rostock', 54.0924, 12.0991, 'DE'),
+  city('mainz', 'მაინცი', 'Mainz', 49.9929, 8.2473, 'DE'),
+  city('kassel', 'კასელი', 'Kassel', 51.3127, 9.4797, 'DE'),
+  city('saarbruecken', 'საარბრიუკენი', 'Saarbrücken', 49.2354, 6.9814, 'DE'),
+  city('hagen', 'ჰაგენი', 'Hagen', 51.3671, 7.4633, 'DE'),
+  city('hamm', 'ჰამი', 'Hamm', 51.6739, 7.815, 'DE'),
+  city('herne', 'ჰერნე', 'Herne', 51.5369, 7.2, 'DE'),
+  city('muelheim', 'მიულჰაიმი', 'Mülheim', 51.4272, 6.8825, 'DE'),
+  city('solingen', 'ზოლინგენი', 'Solingen', 51.1652, 7.0671, 'DE'),
+  city('oberhausen', 'ობერჰაუზენი', 'Oberhausen', 51.4963, 6.8528, 'DE'),
+  city('osnabrueck', 'ოსნაბრიუკი', 'Osnabrück', 52.2799, 8.0472, 'DE'),
+  city('braunschweig', 'ბრაუნშვაიგი', 'Braunschweig', 52.2689, 10.5268, 'DE'),
+  city('kiel', 'კილი', 'Kiel', 54.3233, 10.1228, 'DE'),
+  city('aachen', 'აახენი', 'Aachen', 50.7753, 6.0839, 'DE'),
+  city('heidelberg', 'ჰაიდელბერგი', 'Heidelberg', 49.3988, 8.6724, 'DE'),
+  city('potsdam', 'პოტსდამი', 'Potsdam', 52.3906, 13.0645, 'DE'),
+  city('bergisch-gladbach', 'ბერგიშ-გლადბახი', 'Bergisch Gladbach', 50.9857, 7.133, 'DE'),
+  city('bottrop', 'ბოტროპი', 'Bottrop', 51.5239, 6.9285, 'DE'),
+  city('bremerhaven', 'ბრემერჰავენი', 'Bremerhaven', 53.5498, 8.5809, 'DE'),
+  city('cottbus', 'კოტბუსი', 'Cottbus', 51.759, 14.3329, 'DE'),
+  city('darmstadt', 'დარმშტადი', 'Darmstadt', 49.8728, 8.6512, 'DE'),
+  city('erlangen', 'ერლანგენი', 'Erlangen', 49.589, 11.0078, 'DE'),
+  city('fuerth', 'ფირტი', 'Fürth', 49.4774, 10.9886, 'DE'),
+  city('gelsenkirchen', 'გელსენქირქენი', 'Gelsenkirchen', 51.5177, 7.0857, 'DE'),
+  city('gera', 'გერა', 'Gera', 50.8795, 12.0794, 'DE'),
+  city('hildesheim', 'ჰილდეშაიმი', 'Hildesheim', 52.1506, 9.9511, 'DE'),
+  city('ingolstadt', 'ინგოლშტადი', 'Ingolstadt', 48.7665, 11.4258, 'DE'),
+  city('jena', 'იენა', 'Jena', 50.9271, 11.5892, 'DE'),
+  city('kaiserslautern', 'კაიზერსლაუტერნი', 'Kaiserslautern', 49.4401, 7.7692, 'DE'),
+  city('koblenz', 'კობლენცი', 'Koblenz', 50.3569, 7.589, 'DE'),
+  city('leverkusen', 'ლევერკუზენი', 'Leverkusen', 51.0334, 6.9844, 'DE'),
+  city('ludwigshafen', 'ლუდვიგშაფენი', 'Ludwigshafen', 49.4774, 8.4452, 'DE'),
+  city('magdeburg', 'მაგდებურგი', 'Magdeburg', 52.1205, 11.6276, 'DE'),
+  city('moers', 'მოერსი', 'Moers', 51.4532, 6.6323, 'DE'),
+  city('neuss', 'ნუსი', 'Neuss', 51.1981, 6.685, 'DE'),
+  city('offenbach', 'ოფენბახი', 'Offenbach', 50.1016, 8.7671, 'DE'),
+  city('oldenburg', 'ოლდენბურგი', 'Oldenburg', 53.1412, 8.2147, 'DE'),
+  city('paderborn', 'პადერბორნი', 'Paderborn', 51.7191, 8.7542, 'DE'),
+  city('pforzheim', 'პფორცჰაიმი', 'Pforzheim', 48.891, 8.7046, 'DE'),
+  city('recklinghausen', 'რეკლინგჰაუზენი', 'Recklinghausen', 51.6138, 7.1977, 'DE'),
+  city('regensburg', 'რეგენსბურგი', 'Regensburg', 49.0134, 12.1016, 'DE'),
+  city('remscheid', 'რემშაიდი', 'Remscheid', 51.1787, 7.1897, 'DE'),
+  city('reutlingen', 'რეიტლინგენი', 'Reutlingen', 48.4914, 9.2044, 'DE'),
+  city('salzgitter', 'სალცგიტერი', 'Salzgitter', 52.1506, 10.3369, 'DE'),
+  city('siegen', 'სიეგენი', 'Siegen', 50.8748, 8.0214, 'DE'),
+  city('trier', 'ტრიერი', 'Trier', 49.7542, 6.6419, 'DE'),
+  city('ulm', 'ულმი', 'Ulm', 48.3984, 9.9916, 'DE'),
+  city('wolfsburg', 'ვულფსბურგი', 'Wolfsburg', 52.4238, 10.7861, 'DE'),
+  city('wuerzburg', 'ვიურცბურგი', 'Würzburg', 49.7913, 9.9534, 'DE'),
   // ── UAE ──
   city('dubai', 'დუბაი', 'Dubai', 25.2048, 55.2708, 'AE'),
   city('abu-dhabi', 'აბუ-დაბი', 'Abu Dhabi', 24.4539, 54.3773, 'AE'),
@@ -473,6 +537,95 @@ const INVENTORY_CITIES: readonly MapCity[] = [
   city('majuro', 'მაჯურო', 'Majuro', 7.0897, 171.3803, 'MH'),
   // ── Cape Verde ──
   city('praia', 'პრაია', 'Praia', 14.933, -23.5133, 'CV'),
+  // ── Missing MARKETS cities (ponytail: fill gaps only) ──
+  // Australia
+  city('adelaide', 'ადელაიდა', 'Adelaide', -34.9285, 138.6007, 'AU'),
+  city('brisbane', 'ბრისბეინი', 'Brisbane', -27.4698, 153.0251, 'AU'),
+  city('melbourne', 'მელბურნი', 'Melbourne', -37.8136, 144.9631, 'AU'),
+  city('perth', 'პერთი', 'Perth', -31.9505, 115.8605, 'AU'),
+  city('sydney', 'სიდნეი', 'Sydney', -33.8688, 151.2093, 'AU'),
+  // Austria
+  city('graz', 'გრაცი', 'Graz', 47.0707, 15.4395, 'AT'),
+  city('innsbruck', 'ინსბრუკი', 'Innsbruck', 47.2692, 11.4041, 'AT'),
+  city('salzburg', 'ზალცბურგი', 'Salzburg', 47.8095, 13.055, 'AT'),
+  city('vienna', 'ვენა', 'Vienna', 48.2082, 16.3738, 'AT'),
+  // Belgium
+  city('antwerp', 'ანტვერპენი', 'Antwerp', 51.2194, 4.4025, 'BE'),
+  city('brussels', 'ბრიუსელი', 'Brussels', 50.8503, 4.3517, 'BE'),
+  city('ghent', 'გენტი', 'Ghent', 51.0543, 3.7174, 'BE'),
+  // Brazil
+  city('belo-horizonte', 'ბელუ-ორიზონტი', 'Belo Horizonte', -19.9167, -43.9345, 'BR'),
+  city('curitiba', 'კურიტიბა', 'Curitiba', -25.4284, -49.2733, 'BR'),
+  // Canada
+  city('edmonton', 'ედმონტონი', 'Edmonton', 53.5461, -113.4938, 'CA'),
+  // Chile
+  city('valparaiso', 'ვალპარაისო', 'Valparaíso', -33.0472, -71.6127, 'CL'),
+  city('vina-del-mar', 'ვინა-დელ-მარი', 'Viña del Mar', -33.0246, -71.5518, 'CL'),
+  city('concepcion', 'კონსეფსიონი', 'Concepción', -36.827, -73.0503, 'CL'),
+  // Colombia
+  city('barranquilla', 'ბარანკია', 'Barranquilla', 10.9639, -74.7964, 'CO'),
+  city('cartagena', 'კარტაგენა', 'Cartagena', 10.391, -75.5144, 'CO'),
+  // Denmark
+  city('copenhagen', 'კოპენჰაგენი', 'Copenhagen', 55.6761, 12.5683, 'DK'),
+  // Ecuador
+  city('cuenca', 'კუენკა', 'Cuenca', -2.9006, -79.0045, 'EC'),
+  // Egypt
+  city('giza', 'გიზა', 'Giza', 30.0131, 31.2089, 'EG'),
+  // Finland
+  city('helsinki', 'ჰელსინკი', 'Helsinki', 60.1699, 24.9384, 'FI'),
+  // Ireland
+  city('cork', 'კორკი', 'Cork', 51.8985, -8.4756, 'IE'),
+  city('galway', 'გოლუეი', 'Galway', 53.2707, -9.0568, 'IE'),
+  // Indonesia
+  city('medan', 'მედანი', 'Medan', 3.5952, 98.6722, 'ID'),
+  // Mexico
+  city('cancun', 'კანკუნი', 'Cancún', 21.1619, -86.8515, 'MX'),
+  // Morocco
+  city('rabat', 'რაბათი', 'Rabat', 34.0209, -6.8416, 'MA'),
+  // Netherlands
+  city('amsterdam', 'ამსტერდამი', 'Amsterdam', 52.3676, 4.9041, 'NL'),
+  // New Zealand
+  city('auckland', 'ოკლენდი', 'Auckland', -36.8509, 174.7645, 'NZ'),
+  city('christchurch', 'კრაისჩურჩი', 'Christchurch', -43.5321, 172.6362, 'NZ'),
+  city('wellington', 'ველინგტონი', 'Wellington', -41.2865, 174.7762, 'NZ'),
+  // Nigeria
+  city('kano', 'კანო', 'Kano', 12.0022, 8.592, 'NG'),
+  city('port-harcourt', 'პორტ-ჰარკაუტი', 'Port Harcourt', 4.8156, 7.0195, 'NG'),
+  // Norway
+  city('bergen', 'ბერგენი', 'Bergen', 60.3913, 5.3221, 'NO'),
+  city('oslo', 'ოსლო', 'Oslo', 59.9139, 10.7522, 'NO'),
+  // Pakistan
+  city('rawalpindi', 'რაუალპინდი', 'Rawalpindi', 33.6007, 73.0679, 'PK'),
+  // Peru
+  city('arequipa', 'არეკვიპა', 'Arequipa', -16.409, -71.5375, 'PE'),
+  city('cusco', 'კუსკო', 'Cusco', -13.532, -71.9675, 'PE'),
+  city('trujillo', 'ტრუჯიო', 'Trujillo', -8.1116, -79.0289, 'PE'),
+  // Saudi Arabia
+  city('dammam', 'დამამი', 'Dammam', 26.4207, 50.0888, 'SA'),
+  // South Africa
+  city('pretoria', 'პრეტორია', 'Pretoria', -25.7479, 28.2293, 'ZA'),
+  // Spain
+  city('alicante', 'ალიკანტე', 'Alicante', 38.3452, -0.481, 'ES'),
+  city('malaga', 'მალაგა', 'Málaga', 36.7213, -4.4214, 'ES'),
+  // Sweden
+  city('malmo', 'მალმე', 'Malmö', 55.605, 13.0038, 'SE'),
+  city('stockholm', 'სტოკჰოლმი', 'Stockholm', 59.3293, 18.0686, 'SE'),
+  // Turkey
+  city('bodrum', 'ბოდრუმი', 'Bodrum', 37.0344, 27.4305, 'TR'),
+  // UAE
+  city('sharjah', 'შარჯა', 'Sharjah', 25.3463, 55.4209, 'AE'),
+  city('ras-al-khaimah', 'რას-ელ-ხაიმა', 'Ras Al Khaimah', 25.7895, 55.9432, 'AE'),
+  // UK
+  city('edinburgh', 'ედინბურგი', 'Edinburgh', 55.9533, -3.1883, 'GB'),
+  // USA
+  city('austin', 'ოსტინი', 'Austin', 30.2672, -97.7431, 'US'),
+  // Remaining MARKETS gaps
+  city('davao', 'დავაო', 'Davao', 7.0731, 125.6128, 'PH'),
+  city('mandalay', 'მანდალეი', 'Mandalay', 21.9822, 96.0785, 'MM'),
+  city('mendoza', 'მენდოზა', 'Mendoza', -32.8895, -68.8458, 'AR'),
+  city('mombasa', 'მომბასა', 'Mombasa', -4.0435, 39.6682, 'KE'),
+  city('siem-reap', 'სიემ-რეაპი', 'Siem Reap', 13.3671, 103.8448, 'KH'),
+  city('sliema', 'სლიემა', 'Sliema', 35.9122, 14.5024, 'MT'),
 ]
 
 /** Inventory + world places, first occurrence wins on slug clash. */

@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
-  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, Columns2, Copy,
+  MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, TramFront, Bus, Columns2, Copy,
   Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Castle, Dumbbell, Pill,
   type LucideIcon,
 } from 'lucide-react'
@@ -21,7 +21,7 @@ import UserAvatar from '@/components/UserAvatar'
 import { FeatureGlyph } from '@/components/FeatureIcon'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { monthlyPayment } from '@/lib/finance'
+import { monthlyPayment, estimateMonthlyRent, grossYieldPct } from '@/lib/finance'
 import ListingCard, { BADGE_STYLE, ExclusiveBadges, ListingStickerStack } from '@/components/ListingCard'
 import { AdCreative } from '@/components/ads/AdCreative'
 import type { PublicAd } from '@/lib/ads'
@@ -33,6 +33,7 @@ import { getReviewStrings } from '@/components/reviews/i18n'
 import { LEAD_FORM_ID, LeadForm } from '@/components/lead/LeadForm'
 import { useChat } from '@/components/chat/ChatProvider'
 import { TourBooking } from '@/components/listing/TourBooking'
+import { StayBooker } from '@/components/listing/StayBooker'
 import { SELLER_ROLE_LABEL } from '@/lib/profiles/roles'
 import RevealPhone from '@/components/listing/RevealPhone'
 import PriceScale from '@/components/listing/PriceScale'
@@ -58,6 +59,8 @@ import type { Listing, PropType } from '@/data/listings'
 import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
+import { WalkScore } from '@/components/listing/WalkScore'
+import { estimateMonthlyRent, grossYieldPct } from '@/lib/finance'
 import { useCurrency, formatListingPrice } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useListingsByIds } from '@/lib/use-listings-by-ids'
@@ -85,6 +88,9 @@ const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 /** Same locked pairing as the building page's around grid. */
 const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   metro: TrainFront,
+  bus: Bus,
+  tram: TramFront,
+  rail: TrainFront,
   school: GraduationCap,
   university: Landmark,
   park: Trees,
@@ -1268,6 +1274,25 @@ export default function ListingDetailClient({
               </div>
             </div>
 
+            {/* Walk Score + Transit Score */}
+            {parseCoords(l.coords.lat, l.coords.lng) && (
+              <div className="mt-6">
+                <WalkScore lat={l.coords.lat} lng={l.coords.lng} lang={lang as 'en' | 'de' | 'ka'} />
+              </div>
+            )}
+
+            {/* Investment Calculator — sale listings only */}
+            {isSale && (
+              <div className="mt-6">
+                <InvestmentCalculator
+                  priceUSD={l.priceUSD}
+                  area={l.area}
+                  city={l.city}
+                  lang={lang as 'en' | 'de' | 'ka'}
+                />
+              </div>
+            )}
+
             {/* Specs — extended (beds/baths/project/…) after the key strip */}
             {specs.filter((s) => s.value !== '—' && !keySpecs.some((k) => k.label === s.label)).length > 0 && (
             <Reveal className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -1605,6 +1630,15 @@ export default function ListingDetailClient({
               </p>
               ) : null}
             </div>
+
+            {/* Stay booking — daily-rental listings only */}
+            {isDailyDeal ? (
+              <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
+                <div className="mb-3 text-sm font-black text-sv-ink">{lt(lang, 'stayTitle')}</div>
+                <p className="mb-4 text-[13px] font-semibold text-sv-ink/60">{lt(lang, 'staySubtitle')}</p>
+                <StayBooker listingId={l.id} />
+              </div>
+            ) : null}
 
             {/* Tour booking */}
             <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">

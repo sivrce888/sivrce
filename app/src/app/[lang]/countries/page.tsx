@@ -32,7 +32,7 @@ const COPY = {
   ka: {
     title: 'მსოფლიოს ყველა ქვეყანა — უძრავი ქონება ერთ სივრცეში | sivrce',
     description:
-      'SIVRCE Global OS: 249 ქვეყანა, ყველა მეტრო, დეველოპერები, პროექტები და მეტროს სადგურები — verified მონაცემები ერთ სივრცეში.',
+      'SIVRCE Global OS: 250 ქვეყანა, ყველა მეტრო, დეველოპერები, პროექტები და მეტროს სადგურები — verified მონაცემები ერთ სივრცეში.',
     kicker: 'SIVRCE Global OS',
     h1: 'მსოფლიოს ყველა ქვეყანა',
     lede: 'თითოეული ქვეყანა: მეტროები, დეველოპერები, პროექტები, რენდერები და მეტრო — ცოცხალი verified მონაცემებიდან.',
@@ -46,12 +46,15 @@ const COPY = {
     developers: 'დეველოპერი',
     projects: 'პროექტი',
     metros: 'მეტრო',
+    metroSystems: 'მეტროს სისტემა',
+    renders: 'რენდერი',
+    neighborhoods: 'პრემიუმ უბანი',
     countries: 'ქვეყანა',
   },
   en: {
     title: 'All countries — real estate in one place | sivrce',
     description:
-      'SIVRCE Global OS: 249 countries, every metro, developers, projects and metro stations — verified data in one place.',
+      'SIVRCE Global OS: 250 countries, every metro, developers, projects and metro stations — verified data in one place.',
     kicker: 'SIVRCE Global OS',
     h1: 'Every country, one OS',
     lede: 'Each country: metros, developers, projects, renders and transit — from live verified data.',
@@ -65,6 +68,9 @@ const COPY = {
     developers: 'developers',
     projects: 'projects',
     metros: 'metros',
+    metroSystems: 'metro systems',
+    renders: 'renders',
+    neighborhoods: 'premium districts',
     countries: 'countries',
   },
 } as const
@@ -116,8 +122,11 @@ export default async function CountriesPage({ params }: PageProps) {
   const facts = [
     { n: String(stats.isoCountries), label: t.countries },
     { n: String(stats.metros), label: t.metros },
+    { n: String(stats.verifiedMetroSystems), label: t.metroSystems },
     { n: String(stats.developers), label: t.developers },
     { n: String(stats.projects), label: t.projects },
+    { n: String(stats.renders), label: t.renders },
+    { n: String(stats.neighborhoods), label: t.neighborhoods },
   ]
   const ld = {
     '@context': 'https://schema.org',
@@ -149,7 +158,7 @@ export default async function CountriesPage({ params }: PageProps) {
             <p className="mt-3 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
               {t.lede}
             </p>
-            <dl className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <dl className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
               {facts.map((f) => (
                 <div
                   key={f.label}

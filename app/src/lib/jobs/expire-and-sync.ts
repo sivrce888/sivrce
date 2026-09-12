@@ -9,6 +9,7 @@ import { db } from "@/lib/db"
 import { LISTING_LIFETIME_MS } from "@/lib/listings/lifetime"
 import { unattributeListing } from "@/lib/map/attribution"
 import { metroMeters } from "@/lib/map/pois"
+import { worldMetroMeters } from "@/lib/countries/world-metro-all"
 import { streetHrefForListing } from "@/lib/street-href"
 import { reindexListingById } from "@/lib/payments"
 import {
@@ -202,7 +203,7 @@ export async function syncSearchIndexJob(): Promise<{
       images: (row.images as string[]) ?? [],
       floor: row.floor ?? undefined,
       totalFloors: row.totalFloors ?? undefined,
-      metroM: metroMeters(row.lat, row.lng),
+      metroM: Math.min(metroMeters(row.lat, row.lng), worldMetroMeters(row.lat, row.lng)),
       createdAt: row.createdAt.toISOString(),
       colorUntil: activeColorUntil(ext),
       urgentUntil: activeUrgentUntil(ext),

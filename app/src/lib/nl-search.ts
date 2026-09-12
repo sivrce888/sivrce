@@ -252,10 +252,9 @@ export function parseNlQuery(query: string): NlFilters {
   }
   if (features.length) out.features = features
   if (/pet[- ]?friendly|ცხოველ|pets?\s+allow|haustier/i.test(q)) out.pets = true
-  // Tbilisi metroM index only. U-Bahn/S-Bahn must not silently filter GE stations.
+  // metroM is indexed worldwide (Tbilisi grid + OSM planet) — near-metro works in every city.
   if (
-    /(?:near|close\s+to)\s+(?:the\s+)?metro|მეტრო|метро|metro\s+nearby/i.test(q) &&
-    !DE_CITIES.some((c) => c.ka === out.city)
+    /(?:near|close\s+to)\s+(?:the\s+)?metro|მეტრო|метро|metro\s+nearby|nahe\s+(?:der\s+)?U-Bahn|U-Bahn\s+nähe/i.test(q)
   ) {
     out.nearMetro = true
   }

@@ -26,6 +26,9 @@ export const I18nContext = createContext<I18nContextValue | null>(null)
 
 const STORAGE_KEY = 'sivrce:lang'
 const LANG_EVENT = 'sivrce:lang-changed'
+// Edge-readable mirror of the choice (see proxy autoLocalePath). localStorage
+// stays the client source of truth; the cookie only carries it to the edge.
+const LANG_COOKIE = 'sv-lang'
 
 /** Client-only: locale source of truth = URL prefix ("/en/…"), then localStorage. */
 export function readStoredLang(): Lang {
@@ -47,6 +50,13 @@ export function persistLang(lang: Lang) {
     localStorage.setItem(STORAGE_KEY, lang)
   } catch {
     /* storage unavailable (private mode) — ignore */
+  }
+  // ponytail: document.cookie, not a dep — one line keeps edge + SSR in sync.
+  try {
+    const secure = window.location.protocol === 'https:' ? '; secure' : ''
+    document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax${secure}`
+  } catch {
+    /* cookie blocked — edge falls back to header sniff */
   }
 }
 

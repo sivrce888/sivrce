@@ -19,10 +19,18 @@ import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 import { USD_GEL } from "@/data/listings"
 import { revalidateTag } from "next/cache"
+import { headers } from "next/headers"
+import {
+  COM_ORIGIN,
+  hostKind,
+  normalizeHostname,
+  publicOriginKind,
+} from "@/lib/site-host"
 import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
 import { deleteListing, indexListing, type ListingDocument } from "@/lib/search"
 import { streetHrefForListing } from "@/lib/street-href"
 import { metroMeters } from "@/lib/map/pois"
+import { worldMetroMeters } from "@/lib/countries/world-metro-all"
 import {
   activeColorUntil,
   activePriceDropUntil,
@@ -100,23 +108,35 @@ export interface PaymentProvider {
 
 const FETCH_TIMEOUT_MS = 15_000
 
-/** Public origin for bank callbacks + return redirects. */
-function publicBaseUrl(): string {
+/** Public origin for bank callbacks + return redirects — the domain the buyer
+ * started on (both prod domains are one platform), allowlisted via site-host.
+ * Falls back to the env chain when there is no request scope (cron). */
+async function publicBaseUrl(): Promise<string> {
+  let origin = ""
+  try {
+    const h = await headers()
+    const host = normalizeHostname(h.get("x-forwarded-host") ?? h.get("host") ?? "")
+    if (publicOriginKind(hostKind(host)) === "com") origin = COM_ORIGIN
+    else if (host === "localhost") origin = "http://localhost:3000"
+  } catch {
+    /* no request scope */
+  }
   return (
-    process.env.PAYMENTS_PUBLIC_URL ??
-    process.env.AUTH_URL ??
+    origin ||
+    process.env.PAYMENTS_PUBLIC_URL ||
+    process.env.AUTH_URL ||
     // Prod origin — never hand banks a localhost callback if env vars are missing.
     "https://sivrce.ge"
   ).replace(/\/$/, "")
 }
 
-function callbackUrl(): string {
-  return `${publicBaseUrl()}/api/payments/callback`
+async function callbackUrl(): Promise<string> {
+  return `${await publicBaseUrl()}/api/payments/callback`
 }
 
 /** Bank sends the user back here; this route re-verifies and 302s to a result page. */
-function returnUrl(orderId: string): string {
-  return `${publicBaseUrl()}/api/payments/return?order=${orderId}`
+async function returnUrl(orderId: string): Promise<string> {
+  return `${await publicBaseUrl()}/api/payments/return?order=${orderId}`
 }
 
 async function readJson<T>(res: Response, label: string): Promise<T> {
@@ -141,7 +161,7 @@ function createMockProvider(): PaymentProvider {
     async createOrder(input) {
       const id = `mock_${crypto.randomUUID()}`
       console.log("[payments:mock] createOrder", { id, ...input })
-      return { providerOrderId: id, redirectUrl: returnUrl(input.orderId) }
+      return { providerOrderId: id, redirectUrl: await returnUrl(input.orderId) }
     },
     async getOrderStatus(providerOrderId) {
       console.log("[payments:mock] getOrderStatus", providerOrderId)
@@ -223,8 +243,8 @@ function createTbcProvider(): PaymentProvider {
         method: "POST",
         body: JSON.stringify({
           amount: { currency: input.currency ?? "GEL", total: input.amountTetri / 100 },
-          returnurl: returnUrl(input.orderId),
-          callbackUrl: callbackUrl(),
+          returnurl: await returnUrl(input.orderId),
+          callbackUrl: await callbackUrl(),
           language: "KA",
           preAuthorization: false,
           merchantPaymentId: input.orderId,
@@ -350,12 +370,12 @@ function createBogProvider(): PaymentProvider {
   return {
     async createOrder(input) {
       const gel = input.amountTetri / 100
-      const back = returnUrl(input.orderId)
+      const back = await returnUrl(input.orderId)
       const res = await authed("/ecommerce/orders", {
         method: "POST",
         headers: { "Idempotency-Key": input.orderId },
         body: JSON.stringify({
-          callback_url: callbackUrl(),
+          callback_url: await callbackUrl(),
           external_order_id: input.orderId,
           capture: "automatic",
           purchase_units: {
@@ -875,7 +895,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
     video: ext?.video,
     lat: listing.lat,
     lng: listing.lng,
-    metroM: metroMeters(listing.lat, listing.lng),
+    metroM: Math.min(metroMeters(listing.lat, listing.lng), worldMetroMeters(listing.lat, listing.lng)),
     createdAt: listing.createdAt.toISOString(),
     status: listing.status,
     colorUntil: activeColorUntil(ext),

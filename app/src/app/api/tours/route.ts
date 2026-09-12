@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { getBookableSlots, getToursByUser, resolveListingAgentId } from "@/lib/tours"
+import { tourDateISO, tourSlotLockKey, tourSlotScope } from "@/lib/tour-slots"
 import { db } from "@/lib/db"
 import { checkRateLimit } from "@/lib/inquiries/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -69,9 +70,14 @@ export async function POST(req: NextRequest) {
 
     const session = await auth()
 
-    // ponytail: schema has no unique constraint on (agent, date, time) — enforce here in a
-    // transaction. Upgrade path: partial unique index via raw migration when schema thaws.
+    // Slot exclusivity: serialize same-slot creates on a transaction-scoped
+    // advisory lock (dies with commit/rollback — pool-safe). The clash
+    // re-check below stays as defense-in-depth for pre-lock rows.
+    // ponytail: lock, not a unique index — no migration while schema is frozen.
+    const scope = tourSlotScope(agentId, listingId)
+    const lock = tourSlotLockKey(scope, tourDateISO(parsedDate), tourTime)
     const tour = await db.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${lock.key1}, ${lock.key2})`
       const clash = await tx.propertyTour.findFirst({
         where: {
           tourDate: parsedDate,

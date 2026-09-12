@@ -36,6 +36,10 @@ export type HostDecision =
 
 const LOCALE_SET = new Set<string>([DEFAULT_LANG, ...PREFIXED_LANGS])
 
+/** Segments mounted at the root (never under /[lang]) — /ge/<seg>/… must
+ * rewrite to /<seg>/… instead of the locale path or it 404s. */
+const ROOT_MOUNTED = new Set(['auth', 'api', 'llms.txt', 'llms-full.txt', '.well-known'])
+
 function isMarketCity(cc: PathCountryId, slug: string): boolean {
   return MARKETS[cc].citySlugs.includes(slug)
 }
@@ -167,6 +171,9 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
       const tail = segs.slice(1)
       const lo = tail[0] && LOCALE_SET.has(tail[0]) ? tail[0] : null
       const body = lo ? tail.slice(1) : tail
+      if (body[0] && ROOT_MOUNTED.has(body[0])) {
+        return { type: 'rewrite', pathname: `/${body.join('/')}`, market: 'ge' }
+      }
       if (lo === DEFAULT_LANG) {
         return { type: 'redirect', origin: 'same', pathname: body.length ? `/ge/${body.join('/')}` : '/ge' }
       }
@@ -216,6 +223,9 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
     const tail = restSegs.slice(1)
     const lo = tail[0] && LOCALE_SET.has(tail[0]) ? tail[0] : null
     const body = lo ? tail.slice(1) : tail
+    if (body[0] && ROOT_MOUNTED.has(body[0])) {
+      return { type: 'rewrite', pathname: `/${body.join('/')}`, market: 'ge' }
+    }
     const target = lo ?? DEFAULT_LANG
     return { type: 'rewrite', pathname: `/${target}${body.length ? `/${body.join('/')}` : ''}`, market: 'ge' }
   }

@@ -43,7 +43,7 @@ export const COUNTRY_PREFIX_RE = new RegExp(`^/(${COUNTRY_IDS.join('|')})(?=/|$)
 export const COUNTRY_ALIAS = { uae: 'ae', uk: 'gb' } as const
 export type CountryAlias = keyof typeof COUNTRY_ALIAS
 
-/** Company pages that stay on sivrce.com (not Georgia catalog). */
+/** Company pages that stay on sivrce.com (not Georgia catalog). `search` = the worldwide /search. */
 export const COM_PAGE_SEGS = [
   'about',
   'advertise',
@@ -52,6 +52,7 @@ export const COM_PAGE_SEGS = [
   'contact',
   'faq',
   'privacy',
+  'search',
   'terms',
 ] as const
 
@@ -185,6 +186,72 @@ export const MARKETS: Record<CountryId, Market> = {
     'nuremberg',
     'duisburg',
     'bochum',
+    'wuppertal',
+    'bielefeld',
+    'bonn',
+    'muenster',
+    'mannheim',
+    'karlsruhe',
+    'augsburg',
+    'wiesbaden',
+    'moenchengladbach',
+    'gelsenkirchen',
+    'aachen',
+    'braunschweig',
+    'chemnitz',
+    'kiel',
+    'halle',
+    'magdeburg',
+    'freiburg',
+    'krefeld',
+    'mainz',
+    'luebeck',
+    'erfurt',
+    'oberhausen',
+    'rostock',
+    'kassel',
+    'potsdam',
+    'saarbruecken',
+    'hamm',
+    'ludwigshafen',
+    'oldenburg',
+    'osnabrueck',
+    'leverkusen',
+    'heidelberg',
+    'darmstadt',
+    'solingen',
+    'herne',
+    'regensburg',
+    'neuss',
+    'ingolstadt',
+    'wuerzburg',
+    'wolfsburg',
+    'ulm',
+    'paderborn',
+    'pforzheim',
+    'offenbach',
+    'bottrop',
+    'fuerth',
+    'recklinghausen',
+    'bremerhaven',
+    'reutlingen',
+    'remscheid',
+    'koblenz',
+    'bergisch-gladbach',
+    'erlangen',
+    'trier',
+    'salzgitter',
+    'jena',
+    'cottbus',
+    'hildesheim',
+    'moers',
+    'siegen',
+    'gera',
+    'kaiserslautern',
+    'goettingen',
+    'hagen',
+    'heilbronn',
+    'muelheim',
   ], ['berlin']),
   ae: pathMarket('ae', 'AE', 'AED', 'en-AE', 'dubai', ['dubai', 'abu-dhabi', 'sharjah', 'ras-al-khaimah'], ['dubai']),
   fr: pathMarket('fr', 'FR', 'EUR', 'en-FR', 'paris', [
@@ -344,6 +411,13 @@ export function countryIsoForMarket(market: MarketId): string | undefined {
   if (market === 'global') return undefined
   return MARKETS[market].countryCode ?? undefined
 }
+
+/** Every scorable listing-market ISO (GE + all path markets). Search accepts these. */
+export const MARKET_COUNTRY_ISOS: ReadonlySet<string> = new Set(
+  Object.values(MARKETS)
+    .map((m) => m.countryCode)
+    .filter((c): c is NonNullable<typeof c> => c != null),
+)
 
 /** Reverse lookup: city slugs are globally unique across live markets. */
 export function findCountryByCity(slug: string): PathCountryId | null {

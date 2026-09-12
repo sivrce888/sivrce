@@ -3,6 +3,7 @@ import { Manrope, Noto_Sans_Georgian } from "next/font/google";
 import { notFound } from "next/navigation";
 import CurrencyProvider from "@/components/CurrencyProvider";
 import I18nProvider from "@/components/I18nProvider";
+import LocaleSuggest from "@/components/LocaleSuggest";
 import { CmsPreviewBridge } from "@/components/cms/CmsPreviewBridge";
 import PostHogProvider from "@/components/PostHogProvider";
 import ChatShell from "@/components/chat/ChatShell";
@@ -363,6 +364,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
               <PostHogProvider>
                 <ChatShell>{children}</ChatShell>
                 <CmsPreviewBridge />
+                <LocaleSuggest />
               </PostHogProvider>
             </CurrencyProvider>
           </I18nProvider>

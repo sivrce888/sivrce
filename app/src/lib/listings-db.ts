@@ -33,6 +33,7 @@ import { MAP_CENTER } from "@/lib/map/map-geo"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
 import { streetHrefForListing } from "@/lib/street-href"
+import { rankPeers } from "@/lib/peer-rank"
 import type { SellerRole } from "@/lib/profiles/roles"
 import {
   cadastralVariants,
@@ -483,7 +484,10 @@ export async function getListingsNearMetro(lat: number, lng: number, radiusM = 1
 
 /** Similar listings: same district+deal first, then same type+deal in city. */
 export async function getSimilarListings(
-  listing: Pick<Listing, "id" | "dealType" | "propType" | "city" | "district">,
+  listing: Pick<
+    Listing,
+    "id" | "dealType" | "propType" | "city" | "district" | "address" | "area" | "rooms" | "beds" | "priceUSD" | "perM2USD" | "coords"
+  >,
   limit = 8,
 ): Promise<Listing[]> {
   return safeQuery(async () => {
@@ -495,7 +499,11 @@ export async function getSimilarListings(
       take: limit,
     })
     if (districtRows.length >= limit) {
-      return districtRows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+      // Newest-in-district in, best comps first out — zero extra queries.
+      return rankPeers(
+        listing,
+        districtRows.map((r) => rowToListing(r as unknown as Record<string, unknown>)),
+      ).slice(0, limit)
     }
     const seen = new Set(districtRows.map((r) => r.id))
     const typeRows = await db.listing.findMany({
@@ -510,9 +518,10 @@ export async function getSimilarListings(
       orderBy: { createdAt: "desc" },
       take: limit - districtRows.length,
     })
-    return [...districtRows, ...typeRows].map((r) =>
-      rowToListing(r as unknown as Record<string, unknown>),
-    )
+    return rankPeers(
+      listing,
+      [...districtRows, ...typeRows].map((r) => rowToListing(r as unknown as Record<string, unknown>)),
+    ).slice(0, limit)
   }, [])
 }
 

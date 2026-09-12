@@ -43,6 +43,11 @@ export function kaOnlyAlternates(path: string) {
   return { canonical: path, languages: { ka: path, 'x-default': path } }
 }
 
+/** Alternates for de-only content (Berlin metro, German market pages). */
+export function deOnlyAlternates(path: string) {
+  return { canonical: path, languages: { de: path, 'x-default': path } }
+}
+
 /** OpenGraph locale per lang. */export const OG_LOCALE: Record<Lang, string> = {
   ka: 'ka_GE',
   en: 'en_US',

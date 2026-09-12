@@ -6,7 +6,7 @@ import { useInViewOnce } from '@/components/Reveal'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
-  Layers, BadgeCheck, Play, Camera,
+  Layers, BadgeCheck, Play, Camera, Copy,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine } from '@/lib/listing-format'
@@ -26,7 +26,8 @@ import { avifCardOf, cardOf } from '@/lib/media'
 import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
 import { pickDailySignals } from '@/lib/features'
-import { formatMetroDist, nearestMetro } from '@/lib/map/pois'
+import { formatMetroDist } from '@/lib/map/metro-format'
+import { useNearestMetro } from '@/components/use-nearest-metro'
 import { SparkMark } from '@/components/SparkMark'
 import { sivrceScore } from '@/lib/sivrce-score'
 import { aiLabel } from '@/lib/ai-label'
@@ -189,7 +190,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const lifestyle = l.dealType === 'daily' ? pickDailySignals(l.features) : []
-  const metro = nearestMetro(l.coords.lat, l.coords.lng)
+  // Server chip wins worldwide (zero client bytes); static listings lazily load the grid.
+  const metro = useNearestMetro(l.metroNear, l.coords.lat, l.coords.lng)
   const scored = sivrceScore({
     verified: l.verified,
     photos: l.photoCount ?? (l.images?.length || (l.img ? 1 : 0)),
@@ -661,6 +663,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           {l.verified ? (
             <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-sv-blue" aria-label={t('detail.scoreVerified')} />
           ) : null}
+          {(l.dupeCount ?? 0) > 1 && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-black tabular-nums text-sv-blue-deep">
+              <Copy className="h-3 w-3" aria-hidden />×{l.dupeCount}
+            </span>
+          )}
           {l.isNew && (
             <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-sv-ink">
               {t('card.new')}

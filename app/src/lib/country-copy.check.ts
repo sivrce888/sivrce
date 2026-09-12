@@ -26,7 +26,7 @@ assert.ok(DE_CITIES.berlin?.buy && DE_CITIES.berlin.rent)
 assert.ok(AE_CITIES.dubai?.buy && AE_CITIES.dubai.rent)
 
 for (const slug of MARKETS.de.citySlugs) {
-  const pack = DE_CITIES[slug]
+  const pack = cityPack('de', slug)
   assert.ok(pack, `missing DE copy for ${slug}`)
   assert.ok(pack.hub.lede.length > 60, `thin DE lede ${slug}`)
   assert.ok(pack.hub.body.length >= 2, `thin DE body ${slug}`)

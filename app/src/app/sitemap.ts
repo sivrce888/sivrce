@@ -19,6 +19,7 @@ import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
 import { COM_ORIGIN, COUNTRY_IDS } from '@/lib/markets'
 import { countrySitemapPaths } from '@/lib/country-copy'
 import { BERLIN_BEZIRKE, DE_CITIES } from '@/lib/countries/de'
+import { BERLIN_S_STATIONS, BERLIN_U_STATIONS } from '@/data/germany-metro'
 
 const BASE = 'https://sivrce.ge'
 
@@ -317,6 +318,13 @@ function countrySitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
       alternates: { languages: { en: url, 'x-default': url, de: `${COM_ORIGIN}/de/de/berlin/${b.slug}` } },
     })
+  }
+  // German metro programmatic SEO: station index + all-systems page + 339
+  // Berlin U/S-Bahn station pages (de-only — no hreflang cluster).
+  out.push({ url: `${COM_ORIGIN}/de/metro`, changeFrequency: 'weekly', priority: 0.8 })
+  out.push({ url: `${COM_ORIGIN}/de/metro/germany`, changeFrequency: 'monthly', priority: 0.7 })
+  for (const s of [...BERLIN_U_STATIONS, ...BERLIN_S_STATIONS]) {
+    out.push({ url: `${COM_ORIGIN}/de/metro/${s.slug}`, changeFrequency: 'weekly', priority: 0.6 })
   }
   return out
 }
