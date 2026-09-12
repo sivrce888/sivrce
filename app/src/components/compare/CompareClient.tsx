@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
-import { Columns2, Search, X, ArrowUpDown } from "lucide-react"
+import { Columns2, Search, X, ArrowUpDown, Trophy } from "lucide-react"
 import LocalizedLink from "@/components/LocalizedLink"
 import { formatFloor, formatPerM2 } from "@/data/listings"
 import { areaSym } from "@/lib/listing-format"
@@ -15,6 +15,8 @@ import { blurProps } from "@/lib/media"
 import { useCompareStrings } from "./i18n"
 import { dealLabelKey, rentPeriodKey } from "@/lib/add-listing-fields"
 import { formatUSD } from "@/lib/listing-format"
+import { estimateMonthlyRent, grossYieldPct } from "@/lib/finance"
+import { compareProperties } from "@/lib/10x-engine"
 import type { PropType } from "@/data/listings"
 import { cardOf } from "@/lib/media"
 
@@ -60,6 +62,22 @@ export default function CompareClient() {
       score: findExtremes(items.map((l) => ({ id: l.id, val: l.ai.score }))),
     }
   }, [highlight, items])
+
+  // 10x verdict — head-to-head winner report when exactly 2 listings
+  const ka = lang === "ka"
+  const verdict = useMemo(() => {
+    if (items.length !== 2) return null
+    const toInput = (l: (typeof items)[0]) => ({
+      id: l.id,
+      name: l.title,
+      priceUSD: l.priceUSD,
+      areaSqm: l.area,
+      score: l.ai.score,
+      grossYieldPct: l.dealType === "sale" ? grossYieldPct(l.priceUSD, estimateMonthlyRent(l.priceUSD)) : undefined,
+      distanceMetroM: l.metroNear?.m,
+    })
+    return compareProperties(toInput(items[0]), toInput(items[1]))
+  }, [items])
 
   if (!mounted || (ids.length > 0 && loading)) {
     return <div className="h-64 animate-pulse rounded-card bg-sv-cloud ring-1 ring-sv-ink/5" />
@@ -180,6 +198,37 @@ export default function CompareClient() {
           })}
         </div>
       </div>
+
+      {/* 10x verdict — head-to-head winner */}
+      {verdict && (
+        <div className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
+          <h3 className="flex items-center gap-2 text-[14px] font-black text-sv-ink">
+            <Trophy className="h-4 w-4 text-sv-orange" aria-hidden />
+            {ka ? "ვერდიქტი" : "Verdict"}
+          </h3>
+          <p className="mt-2 text-[13px] font-bold text-sv-ink/70">
+            {ka ? verdict.summaryKa : verdict.summaryEn}
+          </p>
+          <div className="mt-4 space-y-2">
+            {verdict.dimensions.map((d) => {
+              const [a, b] = [items[0], items[1]]
+              return (
+                <div key={d.metricEn} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-[13px]">
+                  <span className={`truncate text-left font-extrabold ${d.winner === "A" ? "rounded-lg bg-emerald-500/10 px-2.5 py-1.5 text-emerald-700 dark:text-emerald-400" : "px-2.5 py-1.5 text-sv-ink/70"}`}>
+                    {d.valueA} <span className="font-bold text-sv-ink/40">· {a.title}</span>
+                  </span>
+                  <span className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
+                    {ka ? d.metricKa : d.metricEn}
+                  </span>
+                  <span className={`truncate text-right font-extrabold ${d.winner === "B" ? "rounded-lg bg-emerald-500/10 px-2.5 py-1.5 text-emerald-700 dark:text-emerald-400" : "px-2.5 py-1.5 text-sv-ink/70"}`}>
+                    <span className="font-bold text-sv-ink/40">{b.title} · </span> {d.valueB}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Comparison table */}
       <div className="overflow-x-auto rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">

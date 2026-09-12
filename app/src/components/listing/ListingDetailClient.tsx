@@ -46,6 +46,8 @@ import { listingVideoKind, streamEmbedUrl, streamUid, youtubeId } from '@/lib/li
 import { listingPublicId } from '@/lib/listing-public-id'
 import { priceScaleOf, fairPriceOf, type PriceEventView } from '@/lib/price-scale'
 import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
+// ponytail: type-only — AiAdvisor ships as its own lazy chunk
+import type { PropertyCopilotContext } from '@/lib/ai-copilot'
 import { aiLabel } from '@/lib/ai-label'
 import type { TasPublicDoc } from '@/lib/map/tas-arch'
 import { listingPath } from '@/lib/listing-slug'
@@ -83,6 +85,10 @@ const SunPath = dynamic(() => import('@/components/listing/SunPath'), {
 const LandProfile = dynamic(() => import('@/components/listing/LandProfile'), {
   ssr: false,
   loading: () => <div className="mt-8 h-[290px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+})
+const AiAdvisor = dynamic(() => import('@/components/listing/AiAdvisor'), {
+  ssr: false,
+  loading: () => <div className="mt-8 h-[300px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
 })
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
@@ -650,6 +656,23 @@ export default function ListingDetailClient({
     () => (isSale ? fairPriceOf(l.priceUSD, l.area, peerPerM2 ?? []) : null),
     [isSale, l.priceUSD, l.area, peerPerM2],
   )
+  const advisorCtx = useMemo<PropertyCopilotContext>(() => {
+    const peers = [...(peerPerM2 ?? [])].sort((a, b) => a - b)
+    return {
+      id: l.id,
+      title: l.title,
+      priceUSD: l.priceUSD,
+      areaSqm: l.area,
+      district: l.district,
+      city: l.city,
+      countryCode: l.country,
+      districtMedianPerSqm: peers.length ? peers[Math.floor(peers.length / 2)] : l.perM2USD,
+      estimatedMonthlyRentUSD: isSale ? rentEst : undefined,
+      sellerPhoneVerified: Boolean(l.verified || l.agent.verified),
+      photosCount: l.photoCount ?? l.images.length,
+      hasCadastralCode: l.hasCadastralCode,
+    }
+  }, [l, isSale, rentEst, peerPerM2])
 
   useEffect(() => {
     if (!Number.isFinite(l.coords.lat) || !Number.isFinite(l.coords.lng)) return
@@ -1517,6 +1540,9 @@ export default function ListingDetailClient({
                 </div>
               </div>
             )}
+
+            {/* AI Advisor — scam radar, instant Q&A, TCO/ROI (lazy chunk) */}
+            <AiAdvisor ctx={advisorCtx} isSale={isSale} />
           </div>
 
           {/* Right rail: flows; only the contact card pins — price + CTA stay
