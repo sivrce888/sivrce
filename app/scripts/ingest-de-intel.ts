@@ -108,13 +108,13 @@ async function main() {
         id: p.slug,
         slug: p.slug,
         name: p.name,
-        developer: p.developerSlug,
+        developer: p.developerSlug ?? '',
         city: p.city,
         district: p.district ?? '',
         address: p.location,
         lat: p.coords.lat,
         lng: p.coords.lng,
-        sourceUrl: devSite.get(p.developerSlug) ?? null,
+        sourceUrl: (p.developerSlug && devSite.get(p.developerSlug)) ?? null,
         status: p.done >= 100 ? 'completed' : 'active',
         readyBy: p.finish,
         priceFrom: 0,
@@ -174,7 +174,7 @@ async function main() {
   // "unverified" until a second source agrees (resolveConflict in core.ts).
   let projectFacts = 0
   for (const p of NEW_PROJECTS_BERLIN) {
-    const site = devSite.get(p.developerSlug) ?? null
+    const site = (p.developerSlug && devSite.get(p.developerSlug)) ?? null
     const wanted: Array<{ fact: 'project_status' | 'address' | 'coordinates' | 'completion_date'; value: string }> = [
       { fact: 'project_status', value: p.done >= 100 ? 'completed' : 'under_construction' },
       { fact: 'address', value: p.location },

@@ -269,7 +269,7 @@ export default async function BezirkPage({
               {devs.map((d) => (
                 <li key={d.slug}>
                   <Link
-                    href={`/en/developers/${d.slug}`}
+                    href={de ? `/de/developers/${d.slug}` : `/developers/${d.slug}`}
                     className="group flex h-full items-center gap-4 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                   >
                     <span

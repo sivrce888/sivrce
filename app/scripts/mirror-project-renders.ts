@@ -46,7 +46,7 @@ type ManifestEntry = {
 type Target = {
   slug: string
   name: string
-  dev: string
+  dev?: string
   city: string
   file: 'tbilisi' | 'batumi' | 'regions' | 'professionals'
 }
@@ -189,7 +189,7 @@ function tokenHit(need: string, have: Set<string>): boolean {
 
 /** distinctive tokens: slug tokens (name as fallback) minus dev alias minus stopwords */
 function distinctiveTokens(t: Target): string[] {
-  const devTokens = new Set(tokens(t.dev))
+  const devTokens = new Set(tokens(t.dev ?? ''))
   const pick = (raw: string[]): string[] => {
     const out: string[] = []
     for (const tok of raw) {
@@ -297,7 +297,7 @@ async function saveWebp(buf: Buffer, slug: string): Promise<boolean> {
 
 // ── strategies ─────────────────────────────────────────────────────────────
 async function tryOfficial(t: Target): Promise<string | null> {
-  const cfg = DEV_SITES[t.dev]
+  const cfg = DEV_SITES[t.dev ?? '']
   if (!cfg) return null
   const candidates = new Set<string>()
   for (const lp of cfg.listings) {
@@ -354,7 +354,7 @@ async function tryKorter(t: Target): Promise<string | null> {
   const slugVariants = new Set<string>([t.slug])
   const noPhase = t.slug.replace(/-\d+$/, '')
   if (noPhase !== t.slug) slugVariants.add(noPhase)
-  const devToks = tokens(t.dev)
+  const devToks = tokens(t.dev ?? '')
   const rest = tokens(t.slug).filter((tok) => !devToks.includes(tok) && tok !== 'at')
   if (rest.length > 0) {
     slugVariants.add(rest.join('-'))
@@ -368,9 +368,10 @@ async function tryKorter(t: Target): Promise<string | null> {
   }
   // korter developer listing match (relaxed: numeric tokens + ≥1 strong alpha
   // token required, og:title still verified inside checkPage)
-  const devVariants = new Set<string>([t.dev])
+  const devVariants = new Set<string>([t.dev ?? ''])
   if (devToks[0]) devVariants.add(devToks[0])
-  devVariants.add(t.dev.replace(/-(development|group|holding|ge)$/, ''))
+  const devBase = t.dev ?? ''
+  if (devBase) devVariants.add(devBase.replace(/-(development|group|holding|ge)$/, ''))
   const numeric = distinctiveTokens(t).filter((x) => /^\d+$/.test(x))
   for (const dv of devVariants) {
     if (!dv) continue

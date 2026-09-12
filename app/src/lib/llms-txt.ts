@@ -31,13 +31,13 @@ export function llmsTxt(catalog: 'ge' | 'com' = 'ge'): string {
 
 > sivrce — global real-estate company. Canonical international origin: ${COM_ORIGIN}
 
-${COM_ORIGIN} is the international hub. Country markets use ISO paths, not language prefixes. Georgia's live marketplace is ${BASE} (Georgian unprefixed). Do not treat sivrce.de or sivrce.ae as separate indexes.
+${COM_ORIGIN} is the international hub. Country markets use ISO paths, not language prefixes. Georgia's full catalog is mirrored at ${COM_ORIGIN}/ge (canonical origin: ${BASE}). Do not treat sivrce.de or sivrce.ae as separate indexes.
 
 ## Markets
 
 - [Global](${COM_ORIGIN}/): company hub
 ${comMarketLines()}
-- [Georgia](${BASE}/): live listings, 3D map, cadastre
+- [Georgia](${COM_ORIGIN}/ge): full sivrce.ge catalog — live listings, 3D map, cadastre (canonical: ${BASE})
 
 ## Optional
 

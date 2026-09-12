@@ -23,6 +23,7 @@ import DeMarketHome from '@/components/country/DeMarketHome'
 import ProjectPage, { generateMetadata as projectPageMetadata } from '@/app/[lang]/projects/[slug]/page'
 import { DE_CITIES } from '@/lib/countries/de'
 import { getProject } from '@/data/professionals'
+import { COUNTRIES, type WorldCountry } from '@/data/world-countries'
 
 /** True when the slug targets a German-catalog project detail page. */
 function deProjectSlug(country: PathCountryId, slug: string[] | undefined): string | null {
@@ -102,24 +103,51 @@ export async function countryMetadata(
     return {}
   }
   const found = copyFor(country, slug, lang)
-  if (!found) return {}
+  if (!found) {
+    // Generic metadata for countries without custom copy
+    const wc = COUNTRIES.find((c) => c.cc === MARKETS[country].countryCode)
+    if (!wc) return {}
+    const path = publicPath(country, slug)
+    const url = `${COM_ORIGIN}${path}`
+    const title = slug?.length
+      ? `${wc.en} real estate — ${slug[0].replace(/-/g, ' ')} | sivrce`
+      : `${wc.en} real estate | sivrce`
+    return {
+      title: { absolute: title },
+      description: wc.realEstateNote,
+      alternates: { canonical: url, languages: { en: url, 'x-default': url } },
+      openGraph: {
+        type: 'website',
+        locale: 'en_US',
+        url,
+        siteName: 'sivrce',
+        title,
+        description: wc.realEstateNote,
+        images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: title }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description: wc.realEstateNote,
+        images: ['/images/og-brand.png'],
+      },
+      robots: { index: true, follow: true },
+    }
+  }
   const path = publicPath(country, slug)
-  // German copy exists for the DE hub + Berlin — those paths publish a /de/de
-  // variant (self-canonical per locale, reciprocal hreflang).
-  const hasDeCopy = country === 'de' && (!slug?.length || slug[0] === 'berlin')
-  const url = lang === 'de' && hasDeCopy ? `${COM_ORIGIN}/de${path}` : `${COM_ORIGIN}${path}`
+  const url = `${COM_ORIGIN}${path}`
   const market = MARKETS[country]
   const languages: Record<string, string> = {
     en: `${COM_ORIGIN}${path}`,
     'x-default': `${COM_ORIGIN}${path}`,
-    ...(hasDeCopy ? { de: `${COM_ORIGIN}/de${path}` } : {}),
+  }
+  if (country === 'de' && (!slug?.length || slug[0] === 'berlin')) {
+    languages.de = `${COM_ORIGIN}/de${path}`
   }
   if (country === 'ae') {
     languages.ar = `${COM_ORIGIN}/ar${path}`
   }
   return {
-    // Copy strings already carry the "| sivrce" suffix; `absolute` stops the
-    // layout template from appending a second one.
     title: { absolute: found.copy.title },
     description: found.copy.description,
     alternates: { canonical: url, languages },
@@ -140,6 +168,174 @@ export async function countryMetadata(
     },
     robots: { index: true, follow: true },
   }
+}
+
+/** Find a world country by its 2-letter ISO code. */
+function worldCountry(cc: string): WorldCountry | undefined {
+  return COUNTRIES.find((c) => c.cc === cc)
+}
+
+/** Country hub page for countries without custom copy. */
+function GenericCountryPage({
+  country,
+  wc,
+  slug,
+}: {
+  country: PathCountryId
+  wc: WorldCountry
+  slug: string[] | undefined
+  lang: Lang
+}) {
+  const market = MARKETS[country]
+  const isHub = !slug?.length
+  const citySlug = slug?.[0]
+  const cityName = citySlug
+    ? citySlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    : null
+
+  const path = publicPath(country, slug)
+  const url = `${COM_ORIGIN}${path}`
+
+  const crumbs = [
+    { name: 'sivrce', href: 'https://sivrce.com/' },
+    { name: wc.en, href: `${COM_ORIGIN}${market.pathPrefix}` },
+  ]
+  if (cityName) {
+    crumbs.push({ name: cityName, href: url })
+  }
+
+  const h1 = cityName
+    ? `${cityName} real estate — ${wc.en}`
+    : `${wc.en} real estate`
+
+  const description = wc.realEstateNote
+
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${url}#webpage`,
+        url,
+        name: h1,
+        description,
+        inLanguage: 'en',
+        isPartOf: { '@id': `${COM_ORIGIN}/#website` },
+        about: {
+          '@type': 'Place',
+          name: cityName ?? wc.en,
+          address: { '@type': 'PostalAddress', addressCountry: market.countryCode },
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: crumbs.map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: c.name,
+          item: c.href,
+        })),
+      },
+    ],
+  }
+
+  const ldScript = <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
+
+  const displayCities = wc.cities.slice(0, 8)
+
+  return (
+    <div className="min-h-screen bg-sv-cloud">
+      <Navbar />
+      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <nav className="mb-8 text-sm text-sv-muted" aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-1">
+            {crumbs.map((c, i) => (
+              <li key={c.href} className="flex items-center">
+                {i > 0 && <span className="mx-2 text-sv-muted/50">/</span>}
+                {i === crumbs.length - 1 ? (
+                  <span className="text-sv-ink">{c.name}</span>
+                ) : (
+                  <a href={c.href} className="hover:underline">{c.name}</a>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        <h1 className="mb-6 text-3xl font-bold tracking-tight text-sv-ink sm:text-4xl">
+          {h1}
+        </h1>
+
+        <div className="mb-8 rounded-lg border border-sv-edge bg-white p-6 shadow-sm">
+          <p className="mb-4 text-sv-ink/80 leading-relaxed">{description}</p>
+          <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="font-medium text-sv-muted">Currency</dt>
+              <dd className="mt-1 text-sv-ink">{wc.currency} ({wc.currencySymbol})</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-sv-muted">Language</dt>
+              <dd className="mt-1 text-sv-ink">{wc.languages.join(', ')}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-sv-muted">Population</dt>
+              <dd className="mt-1 text-sv-ink">{wc.population.toLocaleString()}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-sv-muted">Capital</dt>
+              <dd className="mt-1 text-sv-ink">{wc.capital.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-sv-muted">Region</dt>
+              <dd className="mt-1 text-sv-ink">{wc.subregion}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-sv-muted">Drive side</dt>
+              <dd className="mt-1 text-sv-ink capitalize">{wc.driveSide}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {displayCities.length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-4 text-xl font-semibold text-sv-ink">
+              {isHub ? `Major cities in ${wc.en}` : `More cities in ${wc.en}`}
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {displayCities.map((city) => {
+                const cityPath = `${market.pathPrefix}/${city}`
+                return (
+                  <a
+                    key={city}
+                    href={`${COM_ORIGIN}${cityPath}`}
+                    className="group rounded-lg border border-sv-edge bg-white px-4 py-3 text-center transition hover:border-sv-accent hover:shadow-sm"
+                  >
+                    <span className="text-sm font-medium text-sv-ink group-hover:text-sv-accent">
+                      {city.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </span>
+                  </a>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        <section className="mb-8 rounded-lg border border-sv-edge bg-white p-6 shadow-sm">
+          <h2 className="mb-3 text-xl font-semibold text-sv-ink">
+            Real estate in {wc.en}
+          </h2>
+          <p className="text-sv-ink/80 leading-relaxed">
+            {wc.realEstateNote}
+          </p>
+          <p className="mt-4 text-sm text-sv-muted">
+            sivrce.com{market.pathPrefix} is the canonical {wc.en} URL.
+          </p>
+        </section>
+      </main>
+      <Footer />
+      {ldScript}
+    </div>
+  )
 }
 
 export default async function CountryPage({
@@ -164,7 +360,15 @@ export default async function CountryPage({
     permanentRedirect(`/en${MARKETS[country].pathPrefix}/${slug[0]}/buy`)
   }
   const found = copyFor(country, slug, lang)
-  if (!found) notFound()
+
+  // Generic page for countries without custom copy
+  if (!found) {
+    const cc = MARKETS[country].countryCode
+    if (!cc) notFound()
+    const wc = worldCountry(cc)
+    if (!wc) notFound()
+    return <GenericCountryPage country={country} wc={wc} slug={slug} lang={lang} />
+  }
 
   const path = publicPath(country, slug)
   const url = `${COM_ORIGIN}${path}`
@@ -201,8 +405,6 @@ export default async function CountryPage({
           '@type': 'Place',
           name: found.city ? (cityPack(country, found.city)?.name ?? found.city) : COUNTRY_NAMES[country],
           address: { '@type': 'PostalAddress', addressCountry: market.countryCode },
-          // City pages carry the catalog pin so the Place resolves to a point,
-          // not just a country code. Hubs stay unpinned on purpose.
           ...(pin ? { geo: { '@type': 'GeoCoordinates', latitude: pin.lat, longitude: pin.lng } } : {}),
         },
       },

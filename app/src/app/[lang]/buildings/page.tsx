@@ -144,7 +144,7 @@ export default async function BuildingsPage({ params }: { params: Promise<{ lang
       Object.keys(liveCounts).length > 0
         ? (liveCounts[b.slug] ?? { sale: 0, rent: 0, daily: 0, pledge: 0 })
         : buildingDealCounts(b.slug)
-    if (!developerNames[b.developerSlug]) {
+    if (b.developerSlug && !developerNames[b.developerSlug]) {
       const name = getDeveloper(b.developerSlug)?.name
       if (name) developerNames[b.developerSlug] = name[loc]
     }

@@ -78,6 +78,66 @@ export const EXTRA_NAMES = {
   nl: 'Netherlands',
   pt: 'Portugal',
   ch: 'Switzerland',
+  jp: 'Japan',
+  cn: 'China',
+  au: 'Australia',
+  br: 'Brazil',
+  mx: 'Mexico',
+  sg: 'Singapore',
+  hk: 'Hong Kong',
+  kr: 'South Korea',
+  in: 'India',
+  th: 'Thailand',
+  id: 'Indonesia',
+  ph: 'Philippines',
+  vn: 'Vietnam',
+  my: 'Malaysia',
+  sa: 'Saudi Arabia',
+  ng: 'Nigeria',
+  eg: 'Egypt',
+  za: 'South Africa',
+  ke: 'Kenya',
+  ma: 'Morocco',
+  pl: 'Poland',
+  cz: 'Czech Republic',
+  hu: 'Hungary',
+  ro: 'Romania',
+  bg: 'Bulgaria',
+  rs: 'Serbia',
+  hr: 'Croatia',
+  se: 'Sweden',
+  no: 'Norway',
+  dk: 'Denmark',
+  fi: 'Finland',
+  at: 'Austria',
+  be: 'Belgium',
+  ie: 'Ireland',
+  nz: 'New Zealand',
+  co: 'Colombia',
+  cl: 'Chile',
+  ar: 'Argentina',
+  pe: 'Peru',
+  ec: 'Ecuador',
+  pk: 'Pakistan',
+  bd: 'Bangladesh',
+  lk: 'Sri Lanka',
+  np: 'Nepal',
+  kh: 'Cambodia',
+  mm: 'Myanmar',
+  la: 'Laos',
+  uz: 'Uzbekistan',
+  kz: 'Kazakhstan',
+  am: 'Armenia',
+  az: 'Azerbaijan',
+  ua: 'Ukraine',
+  ee: 'Estonia',
+  lt: 'Lithuania',
+  lv: 'Latvia',
+  is: 'Iceland',
+  mt: 'Malta',
+  lu: 'Luxembourg',
+  sk: 'Slovakia',
+  si: 'Slovenia',
 } as const
 
 export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
@@ -85,7 +145,7 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
     'France real estate — Paris, Lyon & four more metros | sivrce',
     'Buying and renting in France: notaire, ~7% acquisition costs on an existing home, DPE lettings bans and encadrement des loyers. Six city guides.',
     'Real estate in France',
-    'A French purchase is a two-contract notarial process, not a portal checkout. Budget roughly 7% on top of the price for an existing home — most of it departmental tax, not the notaire’s fee. sivrce opens with six metros: Paris, Lyon, Marseille, Bordeaux, Nice and Toulouse.',
+    'A French purchase is a two-contract notarial process, not a portal checkout. Budget roughly 7% on top of the price for an existing home — most of it departmental tax, not the notaire\'s fee. sivrce opens with six metros: Paris, Lyon, Marseille, Bordeaux, Nice and Toulouse.',
     [
       'The compromis de vente locks the deal; the acte authentique at the notaire transfers title weeks later. Residential buyers get a ten-day statutory cooling-off under the loi SRU. Diagnostics — DPE, asbestos, lead, électricité — sit in the file before you wire a deposit.',
       'Paris, Lyon, Bordeaux, Lille, Montpellier and Marseille apply encadrement des loyers: a reference rent per square metre that a new lease can only exceed with a justified supplement. Separately, the DPE is now a rentability test — class G has been barred from new lettings since 2025 and F follows in 2028.',
@@ -97,8 +157,8 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
         a: 'Yes. You will need a French settlement path and a notaire. There is no nationality ban on ordinary residential freehold, and no extra foreigner transfer tax.',
       },
       {
-        q: 'Are the frais de notaire really the notaire’s fee?',
-        a: 'Mostly not. On an existing home roughly 5.8 points of the ~7% are droits de mutation collected for the département and commune; the notaire’s own émoluments are under 1%. New-build is nearer 2–3% because VAT is already inside the price.',
+        q: 'Are the frais de notaire really the notaire\'s fee?',
+        a: 'Mostly not. On an existing home roughly 5.8 points of the ~7% are droits de mutation collected for the département and commune; the notaire\'s own émoluments are under 1%. New-build is nearer 2–3% because VAT is already inside the price.',
       },
       {
         q: 'Why is the path /fr and not /france?',
@@ -123,7 +183,7 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
       },
       {
         q: 'How much does the región actually change the bill?',
-        a: 'On a €300,000 flat, Madrid’s 6% ITP is €18,000 and Catalonia’s 10% is €30,000 — the same purchase, €12,000 apart, before any other cost.',
+        a: 'On a €300,000 flat, Madrid\'s 6% ITP is €18,000 and Catalonia\'s 10% is €30,000 — the same purchase, €12,000 apart, before any other cost.',
       },
       {
         q: 'Is sivrce.com/es a copy of the Georgian site?',
@@ -164,7 +224,7 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
     [
       'Leasehold flats are a different product from freehold houses: ground rent, service charge and a term that shortens every year. Since 2017 the cladding and EWS1 files have repriced whole buildings — the building safety pack is not optional reading.',
       'In England an offer binds nobody until exchange, so gazumping is legal and the survey comes before the celebration. Non-resident buyers pay a 2% SDLT surcharge on top of the standard bands; an additional dwelling adds a further 5% on the whole price. Scotland has no non-resident surcharge but its ADS is 8%.',
-      'The Renters’ Rights Act ends assured shorthold fixed terms and section 21 no-fault eviction in England — possession now runs through stated statutory grounds. Underwrite that, not a 2019 landlord blog.',
+      'The Renters\' Rights Act ends assured shorthold fixed terms and section 21 no-fault eviction in England — possession now runs through stated statutory grounds. Underwrite that, not a 2019 landlord blog.',
     ],
     [
       {
@@ -198,7 +258,7 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
       },
       {
         q: 'Which costs actually hit the buyer?',
-        a: 'Title insurance, lender and escrow fees, recording and prepaids — roughly 1.5–2% — plus whatever transfer tax your city puts on the buyer side. The seller’s costs, including the brokerage fee, are a separate ledger.',
+        a: 'Title insurance, lender and escrow fees, recording and prepaids — roughly 1.5–2% — plus whatever transfer tax your city puts on the buyer side. The seller\'s costs, including the brokerage fee, are a separate ledger.',
       },
       {
         q: 'Is this Zillow for the whole country?',
@@ -208,7 +268,7 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
   ),
   ca: hub(
     'Canada real estate — Toronto, Vancouver, Montréal & more | sivrce',
-    'Buying in Canada: provincial land transfer tax, Toronto’s double levy, Alberta’s none, FINTRAC KYC and condo reserve funds. Six city guides.',
+    'Buying in Canada: provincial land transfer tax, Toronto\'s double levy, Alberta\'s none, FINTRAC KYC and condo reserve funds. Six city guides.',
     'Real estate in Canada',
     'Canada devolves the transaction to the province. Toronto stacks a municipal land transfer tax on the Ontario one; Alberta charges no transfer tax at all; Québec closes in front of a notaire under civil law. sivrce opens Toronto, Vancouver, Montréal, Calgary, Ottawa and Edmonton — six metros, not one maple-leaf doorway.',
     [
@@ -235,11 +295,11 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
     'Turkey real estate — Istanbul, Antalya, İzmir & more | sivrce',
     'Buying in Turkey: tapu title deed, 4% deed fee, DASK earthquake cover, military-zone checks and building code year. Six city guides.',
     'Real estate in Turkey',
-    'Title is the tapu, and the sale happens at the land registry — not at the reservation form. The deed fee is 4% of the declared value, legally split but in practice usually carried by the buyer. DASK earthquake cover is compulsory and the building’s code year is first-class due diligence. On sivrce.com, /tr is Turkey; on sivrce.ge, /tr is the Turkish-language Georgia UI. Same letters, different host.',
+    'Title is the tapu, and the sale happens at the land registry — not at the reservation form. The deed fee is 4% of the declared value, legally split but in practice usually carried by the buyer. DASK earthquake cover is compulsory and the building\'s code year is first-class due diligence. On sivrce.com, /tr is Turkey; on sivrce.ge, /tr is the Turkish-language Georgia UI. Same letters, different host.',
     [
       'Istanbul, Ankara, İzmir and Bursa are employment markets that price in lira and rent on twelve-month CPI-linked contracts. Antalya and Bodrum are second-home and residence-permit coasts with a seasonal book and site (HOA) fees that behave like a second mortgage. They do not share a spreadsheet.',
       'Some parcels still require a military-zone clearance before a foreigner can complete, and foreign-ownership quotas apply per district. Under-declaring the deed value to shave the 4% fee is tax fraud and it caps your future capital-gains base.',
-      'Citizenship-by-investment thresholds move by government circular. Treat a developer’s “passport included” slide as marketing until the official gazette agrees, and insist that off-plan sits on a notarised contract with a building permit trail.',
+      'Citizenship-by-investment thresholds move by government circular. Treat a developer\'s "passport included" slide as marketing until the official gazette agrees, and insist that off-plan sits on a notarised contract with a building permit trail.',
     ],
     [
       {
@@ -313,7 +373,7 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
     'Every Dutch sale closes at the notaris and lands in the Kadaster — but the transfer tax is two markets in one: 2% for qualifying residents, 10.4% for investors. sivrce opens with Amsterdam and Rotterdam under the same statute at very different prices.',
     [
       'The notaris drafts the deed, holds the funds and registers the title; without that registration you do not own the flat. Qualifying residents — including first-home buyers under 35, who may pay 0% up to an indexed ceiling — close near 3% all-in. Investors close above 11%.',
-      'The seller pays the makelaar; a buyer’s agent (aankoopmakelaar) is optional and paid by the buyer when engaged. Bidding above asking with conditions waived is common in Amsterdam and a risk decision, not a custom you must follow.',
+      'The seller pays the makelaar; a buyer\'s agent (aankoopmakelaar) is optional and paid by the buyer when engaged. Bidding above asking with conditions waived is common in Amsterdam and a risk decision, not a custom you must follow.',
       'Rent is a points system as much as a market: WWS points decide whether a home is regulated with a legal maximum or liberalized. Open-ended contracts are the default since July 2024. sivrce.com/nl is the canonical Netherlands URL.',
     ],
     [
@@ -323,7 +383,7 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
       },
       {
         q: 'What does the WWS points system change?',
-        a: 'Whether the rent has a legal ceiling. Below the liberalization threshold the maximum rent follows the points score — the advert’s number is challengeable at the Huurcommissie.',
+        a: 'Whether the rent has a legal ceiling. Below the liberalization threshold the maximum rent follows the points score — the advert\'s number is challengeable at the Huurcommissie.',
       },
       {
         q: 'Why is the path /nl?',
@@ -381,6 +441,1266 @@ export const EXTRA_HUBS: Record<keyof typeof EXTRA_NAMES, CountryCopy> = {
       },
     ],
   ),
+  jp: hub(
+    'Japan real estate — Tokyo, Osaka & more | sivrce',
+    'Buying in Japan: shoken koken tax, registration and license tax, 3% agent fee and the fixed-term lease system. Tokyo and Osaka guides.',
+    'Real estate in Japan',
+    'Japan uses a fixed-term building lease (shakuchi/shakka) alongside freehold, and a yen-denominated market that foreign buyers can enter without restriction. sivrce opens with Tokyo and Osaka — two metros, one legal system, very different yields.',
+    [
+      'Acquisition taxes are modest: 1–3% of assessed value for residential land and buildings, plus registration and license tax around 2%. Agent fees are legally capped at 3% plus consumption tax. The total closing cost is roughly 6–8%.',
+      'Japan has no foreign-buyer restrictions and no capital-gains tax for non-residents selling after five years of ownership. The yen\'s weakness against the dollar makes entry attractive, but the exit yield must still pencil in yen.',
+      'sivrce.com/jp is the canonical Japan URL. Listings publish only when we can verify them to the same standard as Georgia.',
+    ],
+    [
+      {
+        q: 'Can a non-resident buy in Japan?',
+        a: 'Yes, with no restrictions. You need a registered seal (hanko) or a notarised signature, a Japanese bank account for ongoing costs, and a path for inheritance planning.',
+      },
+      {
+        q: 'Is Tokyo property a good investment?',
+        a: 'Central Tokyo offers 3–5% gross yields on residential, lower than emerging markets but backed by stable demand and limited new supply. Currency risk is the variable to model.',
+      },
+    ],
+  ),
+  cn: hub(
+    'China real estate — Shanghai, Beijing & more | sivrce',
+    'Buying in China: hukou restrictions, 70-year land-use rights, deed tax and the pre-sale escrow. Shanghai, Beijing and Shenzhen guides.',
+    'Real estate in China',
+    'China\'s residential market runs on 70-year land-use rights issued by the state, not freehold title in the Western sense. sivrce opens with Shanghai, Beijing, Guangzhou and Shenzhen — four tier-1 cities, one legal framework, very different buyer profiles.',
+    [
+      'Foreign buyers face purchase limits: one residential unit per person, typically occupied for at least one year, and mostly restricted to cities where you have worked or studied for over a year. The rules vary by city and tighten without notice.',
+      'Deed tax is 1–3% depending on area and whether it is a first home. The developer\'s pre-sale licence and escrow arrangement are critical — pre-sale payments sit in a regulated account, not the developer\'s general funds.',
+      'sivrce.com/cn is the canonical China URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Shanghai?',
+        a: 'Yes, with restrictions: one unit, typically requiring one year of documented work or study in the city. The rules change by municipal notice.',
+      },
+      {
+        q: 'What is the 70-year land-use right?',
+        a: 'Residential land is granted by the state for 70 years. In practice renewals have been routine, but the legal framework is still evolving. The building sits on the right, not under freehold title.',
+      },
+    ],
+  ),
+  au: hub(
+    'Australia real estate — Sydney, Melbourne & more | sivrce',
+    'Buying in Australia: stamp duty by state, FIRB approval for foreigners, strata title and the auction system. Sydney and Melbourne guides.',
+    'Real estate in Australia',
+    'Australia devolves property transaction to the state. Sydney and Melbourne apply different stamp-duty scales, FIRB approval is required for foreign buyers, and strata title governs most apartments. sivrce opens with Sydney, Melbourne, Brisbane and Perth.',
+    [
+      'Foreign buyers need FIRB approval before signing a contract, pay a foreign-buyer surcharge on stamp duty (8% in NSW, 8% in Victoria), and face a vacancy fee if the property is left empty. The total premium over a local buyer is significant.',
+      'Stamp duty is the big closing cost: in NSW it scales from 1.25% to 7% above $3.5m; in Victoria the rate is lower but the full land tax is charged on investment properties. Budget the state where you close, not a national average.',
+      'sivrce.com/au is the canonical Australia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Australia?',
+        a: 'Yes, with FIRB approval and a foreign-buyer surcharge. New-build is generally easier to obtain than established property. Apply before you sign, not after.',
+      },
+      {
+        q: 'Is the auction system risky?',
+        a: 'At auction you are legally bound with no cooling-off period. Do your building and pest inspection before auction day, not after.',
+      },
+    ],
+  ),
+  br: hub(
+    'Brazil real estate — São Paulo, Rio & more | sivrce',
+    'Buying in Brazil: cartório deed, ITBI transfer tax, CPF and the condômino regime. São Paulo and Rio guides.',
+    'Real estate in Brazil',
+    'Brazil closes at the cartório (notary) and records the deed publicly. Transfer tax (ITBI) is typically 2–3%, and condominium charges (condômino) are a real yield variable. sivrce opens with São Paulo, Rio de Janeiro, Brasília and Curitiba.',
+    [
+      'Foreign buyers need a CPF (tax ID) and a Brazilian bank account. There are no nationality restrictions on urban residential property, though border areas and rural land require additional authorization.',
+      'ITBI varies by municipality: São Paulo charges 3%, Rio 2%. The notary fees are regulated and modest. The real cost differential is in the condominium regime and the building\'s reserve fund.',
+      'sivrce.com/br is the canonical Brazil URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in São Paulo?',
+        a: 'Yes, with a CPF and a Brazilian bank account. There are no nationality restrictions on urban residential property.',
+      },
+      {
+        q: 'What is ITBI?',
+        a: 'Imposto sobre Transmissão de Bens Imóveis — the municipal transfer tax, typically 2–3% of the declared value, payable at closing.',
+      },
+    ],
+  ),
+  mx: hub(
+    'Mexico real estate — Mexico City, Cancún & more | sivrce',
+    'Buying in Mexico: notario, 2–5% acquisition tax (ISAI), fideicomiso for coastal zones and the escrow system. Mexico City and Riviera Maya guides.',
+    'Real estate in Mexico',
+    'Mexico closes before a notario público and records the deed in the Registro Público de la Propiedad. Acquisition tax (ISAI) ranges from 2–5% by municipality, and a fideicomiso (bank trust) is required for coastal and border-zone properties. sivrce opens with Mexico City, Guadalajara, Monterrey, Cancún and Playa del Carmen.',
+    [
+      'Coastal and border-zone property requires a fideicomiso: a bank trust that gives the foreign buyer beneficial ownership for 50-year renewable terms. The trust fee is modest (roughly $500–1,000/year) but it is a permanent cost.',
+      'ISAI rates vary by municipality: Mexico City charges 2–3% on a sliding scale; Cancún and Riviera Maya municipalities apply 2.5%. The notario\'s fee is regulated and typically 1–2%.',
+      'sivrce.com/mx is the canonical Mexico URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Do I need a fideicomiso?',
+        a: 'Yes, if the property is in a coastal or border zone (the restricted zone). Inland property can be held directly, but many foreign buyers use a fideicomiso everywhere for simplicity.',
+      },
+      {
+        q: 'Can a foreigner own outright in Mexico?',
+        a: 'Inland, yes — direct ownership. In the restricted zone (100km from the coast, 50km from a border), a fideicomiso bank trust is required.',
+      },
+    ],
+  ),
+  sg: hub(
+    'Singapore real estate | sivrce',
+    'Buying in Singapore: ABSD, BSD, the Additional Buyer\'s Stamp Duty that repriced the market, and the 99-year leasehold norm.',
+    'Real estate in Singapore',
+    'Singapore is a city-state where property tax is an instrument of housing policy. ABSD (Additional Buyer\'s Stamp Duty) hits foreign buyers at 60%, BSD (Buyer\'s Stamp Duty) adds 1–6% in slices, and 99-year leasehold is the norm for most private housing. sivrce opens with Singapore — one city, one land authority.',
+    [
+      'Foreign buyers pay 60% ABSD on residential property as of April 2023 — the highest in the world and the single largest cost in any transaction. Singapore citizens pay 0% on their first property. The differential is the policy.',
+      'Most private housing is 99-year leasehold, with freehold commanding a significant premium. Lease decay is a real valuation factor: a 60-year remaining lease is not a 99-year lease at a discount.',
+      'sivrce.com/sg is the canonical Singapore URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Singapore?',
+        a: 'Yes, with 60% ABSD. Permanent residents pay 5%. The tax is the barrier, not the law.',
+      },
+      {
+        q: 'Is 99-year leasehold a problem?',
+        a: 'For the first 60 years, minimal impact. After that, lease decay affects financing, resale value and en-bloc potential. Budget the remaining term.',
+      },
+    ],
+  ),
+  hk: hub(
+    'Hong Kong real estate | sivrce',
+    'Buying in Hong Kong: BSD for non-permanent residents, stamp duty, and the super-premium Central market. One city, one market.',
+    'Real estate in Hong Kong',
+    'Hong Kong is among the world\'s most expensive property markets. Buyer\'s Stamp Duty (BSD) adds 15% for non-permanent residents, stamp duty scales up to 4.25%, and Central district commands some of the highest prices globally. sivrce opens with Hong Kong.',
+    [
+      'Non-permanent residents pay 15% BSD on top of the standard stamp duty — a deliberate cooling measure. The total acquisition cost for a foreign buyer can exceed 20% of the purchase price.',
+      'Most private housing is leasehold with 50–99 year terms, though some older buildings sit on freehold or perpetual Crown leases. The remaining term is a key valuation factor.',
+      'sivrce.com/hk is the canonical Hong Kong URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Hong Kong?',
+        a: 'Yes, with 15% BSD. There is no nationality restriction, just the tax.',
+      },
+      {
+        q: 'Is Central worth the premium?',
+        a: 'Central commands Hong Kong\'s highest prices and lowest yields. For investment, look at Kowloon New Town or the New Territories for better yield-to-price.',
+      },
+    ],
+  ),
+  kr: hub(
+    'South Korea real estate — Seoul & more | sivrce',
+    'Buying in South Korea: jeonse deposit system, acquisition tax, the housing price ceiling zones and the real-name registration. Seoul and Busan guides.',
+    'Real estate in South Korea',
+    'South Korea\'s jeonse system lets tenants lend a large deposit to a landlord in lieu of monthly rent — a unique capital structure. Acquisition tax ranges from 1–3%, and Seoul applies housing-price ceiling zones that cap valuations. sivrce opens with Seoul, Busan and Incheon.',
+    [
+      'Jeonse is a deposit, not rent: the tenant lends the landlord a lump sum (typically 50–80% of the property value) and gets it back at lease end. The landlord invests the capital; the tenant avoids monthly rent. If the landlord defaults, the tenant has priority claims.',
+      'Acquisition tax is 1–3% depending on property value and whether it is a first home. Seoul\'s housing-price ceiling zones (ghanji jeonggi) restrict mortgage lending and can cap resale prices.',
+      'sivrce.com/kr is the canonical South Korea URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'What is jeonse?',
+        a: 'A deposit-based lease: the tenant gives the landlord a lump sum (50–80% of property value) instead of paying monthly rent. The deposit is returned at lease end. The landlord uses the capital; the tenant avoids rent.',
+      },
+      {
+        q: 'Can a foreigner buy in Seoul?',
+        a: 'Yes, with real-name registration and a Korean bank account. There are no nationality restrictions on residential property.',
+      },
+    ],
+  ),
+  in: hub(
+    'India real estate — Mumbai, Delhi & more | sivrce',
+    'Buying in India: stamp duty, registration, RERA and the escrow requirement. Mumbai, Delhi, Bangalore and Chennai guides.',
+    'Real estate in India',
+    'India\'s property market is governed by state-level stamp duty (5–7%), RERA registration requirements, and an escrow system that holds buyer payments until construction milestones. sivrce opens with Mumbai, Delhi, Bangalore, Chennai, Kolkata and Hyderabad.',
+    [
+      'Stamp duty ranges from 5–7% depending on the state, plus a 1% registration fee. RERA (Real Estate Regulation and Development Act) requires developers to escrow 70% of project funds and deliver on time or face penalties.',
+      'Foreign buyers need RBI approval and face restrictions on most residential property. NRI/PIO buyers have easier access. The market is overwhelmingly domestic.',
+      'sivrce.com/in is the canonical India URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in India?',
+        a: 'Non-residents face significant restrictions. NRIs and PIOs can buy residential property freely. Other foreign nationals need RBI approval.',
+      },
+      {
+        q: 'What is RERA?',
+        a: 'The Real Estate Regulation and Development Act: mandatory project registration, escrow of 70% of buyer funds, and penalties for delays. It is the primary buyer-protection law.',
+      },
+    ],
+  ),
+  th: hub(
+    'Thailand real estate — Bangkok & more | sivrce',
+    'Buying in Thailand: condo freehold for foreigners, the 49% foreign quota, transfer fees and the leasehold structure. Bangkok and Phuket guides.',
+    'Real estate in Thailand',
+    'Thailand lets foreigners own condo freehold within a 49% foreign quota per building, but restricts land ownership to leasehold or Thai-company structures. sivrce opens with Bangkok, Chiang Mai, Phuket and Pattaya.',
+    [
+      'Foreign buyers can own condo units freehold — but only within the 49% foreign ownership quota per building. Land and houses require a 30-year lease or a Thai company structure, both with their own risks.',
+      'Transfer fees are 2% of appraised value, split between buyer and seller by convention. Specific Business Tax of 3.3% applies if sold within five years. Stamp duty is 0.5% if Specific Business Tax does not apply.',
+      'sivrce.com/th is the canonical Thailand URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner own a condo in Bangkok?',
+        a: 'Yes, freehold, within the 49% foreign quota per building. Foreign currency remittance must be documented.',
+      },
+      {
+        q: 'Can a foreigner own a house in Thailand?',
+        a: 'Not directly. Land requires a 30-year lease (renewable twice by law, though not guaranteed) or a Thai company structure with legal risks.',
+      },
+    ],
+  ),
+  id: hub(
+    'Indonesia real estate — Jakarta, Bali & more | sivrce',
+    'Buying in Indonesia: hak milik vs hak pakai, the 80% foreign ownership condo quota, and the leasehold norm. Jakarta and Bali guides.',
+    'Real estate in Indonesia',
+    'Indonesia restricts land ownership to Indonesian citizens (hak milik), but foreigners can hold hak pakai (right to use) for up to 80 years and own condo units within a 80% quota. sivrce opens with Jakarta, Surabaya, Bandung, Medan and Bali.',
+    [
+      'Hak pakai (right to use) is the primary vehicle for foreign buyers of landed property: up to 30 years, extendable to 80. Condo freehold is possible within the 80% foreign-ownership quota per building.',
+      'Transfer fees are typically 5–10% of the transaction value, split between buyer and seller. Notary fees are regulated. The process is slower than in most comparable markets.',
+      'sivrce.com/id is the canonical Indonesia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner own land in Bali?',
+        a: 'Not hak milik (freehold). You can hold hak pakai (right to use) for up to 80 years, or buy a condo within the foreign quota. Leasehold is also common.',
+      },
+      {
+        q: 'What is hak pakai?',
+        a: 'Right to use: a tenure type that lets foreigners hold landed property for 30 years, extendable to 80. It is not freehold, but it is the closest equivalent.',
+      },
+    ],
+  ),
+  ph: hub(
+    'Philippines real estate — Manila & more | sivrce',
+    'Buying in Philippines: condo foreign ownership (60/40 rule), the condotel structure and the Philippine condo title. Manila and Cebu guides.',
+    'Real estate in Philippines',
+    'Philippines lets foreigners own condo units within the 60% Filipino / 40% foreign ownership ratio, but restricts land ownership. Condotels and long-term leases are the alternative. sivrce opens with Manila, Cebu, Davao and Quezon City.',
+    [
+      'Condo ownership is straightforward for foreigners within the 60/40 ratio. The title is a Condominium Certificate of Title (CCT), not a land title. Land and houses require a Filipino co-owner or a 50-year lease.',
+      'Transfer taxes are modest: roughly 2–5% of the property value, split between buyer and seller. The Philippine RE market is active but bureaucratic, and documentation quality varies.',
+      'sivrce.com/ph is the canonical Philippines URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner own a condo in Manila?',
+        a: 'Yes, within the 60/40 foreign-ownership ratio. The Condominium Certificate of Title (CCT) is in the buyer\'s name.',
+      },
+      {
+        q: 'Can a foreigner own land?',
+        a: 'Not directly. Land requires a Filipino co-owner or a 50-year lease renewable for another 25 years.',
+      },
+    ],
+  ),
+  vn: hub(
+    'Vietnam real estate — Ho Chi Minh City & more | sivrce',
+    'Buying in Vietnam: 50-year leasehold condos for foreigners, the quota system and the emerging HCMC market. Ho Chi Minh City, Hanoi and Da Nang guides.',
+    'Real estate in Vietnam',
+    'Vietnam lets foreigners own condo units for 50 years (renewable once) within a 30% quota per building, but restricts land and houses. sivrce opens with Ho Chi Minh City, Hanoi, Da Nang and Nha Trang.',
+    [
+      'Foreign buyers can own condos for 50 years, renewable once, within the 30% foreign quota per building. Land and houses are restricted to Vietnamese citizens and Vietnamese-invested companies.',
+      'Transfer taxes are modest: 0.5% registration fee, 2% VAT on new-build, and 2% personal income tax on resale (exempt if held over 5 years). The market is fast-growing but bureaucratic.',
+      'sivrce.com/vn is the canonical Vietnam URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner own a condo in Ho Chi Minh City?',
+        a: 'Yes, for 50 years (renewable once), within the 30% foreign quota per building. Land and houses are restricted.',
+      },
+      {
+        q: 'How long does a purchase take?',
+        a: 'Typically 1–3 months for a condo, depending on the developer and the quota availability. Cash purchases are faster.',
+      },
+    ],
+  ),
+  my: hub(
+    'Malaysia real estate — Kuala Lumpur & more | sivrce',
+    'Buying in Malaysia: MM2H visa, Bumiputera quota, the foreigner minimum price and the strata title. Kuala Lumpur, Penang and Johor Bahru guides.',
+    'Real estate in Malaysia',
+    'Malaysia attracts foreign buyers via the MM2H visa programme, but restricts purchases above a minimum price threshold (typically RM1m) and reserves certain units for Bumiputera buyers. sivrce opens with Kuala Lumpur, George Town, Johor Bahru and Kota Kinabalu.',
+    [
+      'Foreigners can buy condos above RM1m (varies by state), but not landed property below that threshold. Bumiputera quota units cannot be sold to non-Bumiputera buyers without state consent.',
+      'Transfer taxes include stamp duty (1–4% on a sliding scale), legal fees (regulated), and RPGT (Real Property Gains Tax) on disposal. The MM2H visa programme is separate from property ownership.',
+      'sivrce.com/my is the canonical Malaysia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Kuala Lumpur?',
+        a: 'Yes, condos above RM1m. Landed property below that threshold is restricted to Malaysian citizens.',
+      },
+      {
+        q: 'What is MM2H?',
+        a: 'Malaysia My Second Home: a long-term visa programme that lets foreigners reside in Malaysia. It is separate from property ownership, which has its own rules.',
+      },
+    ],
+  ),
+  sa: hub(
+    'Saudi Arabia real estate — Riyadh & more | sivrce',
+    'Buying in Saudi Arabia: Vision 2030, NEOM, the freehold zones and the ejari registration. Riyadh and Jeddah guides.',
+    'Real estate in Saudi Arabia',
+    'Saudi Arabia is opening its real estate market under Vision 2030, with NEOM as the flagship mega-project. Foreign buyers can own freehold in designated zones. sivrce opens with Riyadh, Jeddah and Dammam.',
+    [
+      'Foreign buyers can own freehold property in designated areas: NEOM, The Line, parts of Riyadh and Jeddah. Ejari registration is required for rental agreements. The market is transforming rapidly under Vision 2030.',
+      'Transfer fees are typically 5% of the property value. No annual property tax, but zakat applies to Saudi-owned entities. The market is primarily domestic.',
+      'sivrce.com/sa is the canonical Saudi Arabia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Riyadh?',
+        a: 'Yes, in designated freehold zones. The market is opening but still primarily domestic.',
+      },
+      {
+        q: 'What is NEOM?',
+        a: 'A $500bn mega-project on the Red Sea coast: The Line (linear city), Oxagon (industrial), Trojena (mountain resort) and Sindalah (island). The flagship of Vision 2030.',
+      },
+    ],
+  ),
+  ng: hub(
+    'Nigeria real estate — Lagos & more | sivrce',
+    'Buying in Nigeria: the Land Use Act, certificate of occupancy and the Lagos property market. Lagos and Abuja guides.',
+    'Real estate in Nigeria',
+    'Nigeria\'s property market is governed by the Land Use Act of 1978, which vests all land in the state governor. Certificates of occupancy (C of O) are the primary title document. sivrce opens with Lagos and Abuja.',
+    [
+      'The Land Use Act means all land is vested in the state governor, and buyers hold a Right of Occupancy or Certificate of C of O. Foreign buyers can hold these but face restrictions in some states.',
+      'Transaction costs are high: legal fees (5–10%), agency fees (5–10%), stamp duty (1–3%), and registration fees (varies). The process is lengthy and documentation quality varies.',
+      'sivrce.com/ng is the canonical Nigeria URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Lagos?',
+        a: 'Yes, with a Certificate of Occupancy. The Land Use Act governs all land, and foreign ownership is subject to state consent.',
+      },
+      {
+        q: 'What is a C of O?',
+        a: 'Certificate of Occupancy: the primary land title document in Nigeria, issued by the state governor. It grants the right to use and develop the land for a specified purpose.',
+      },
+    ],
+  ),
+  eg: hub(
+    'Egypt real estate — Cairo & more | sivrce',
+    'Buying in Egypt: the New Administrative Capital, notarised contracts and the Egyptian property market. Cairo, Alexandria and Sharm El Sheikh guides.',
+    'Real estate in Egypt',
+    'Egypt\'s property market is dominated by the New Administrative Capital mega-project and a Cairo market that prices cheaply in USD. sivrce opens with Cairo, Alexandria, Giza and Sharm El Sheikh.',
+    [
+      'The New Administrative Capital is Egypt\'s flagship development: a new city 45km east of Cairo with government offices, financial district and residential compounds. Foreign buyers can purchase freehold in designated areas.',
+      'Transfer fees are typically 3–5% of the property value. Notarised contracts are standard. The market is active but documentation and enforcement vary.',
+      'sivrce.com/eg is the canonical Egypt URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Cairo?',
+        a: 'Yes, in designated areas. The New Administrative Capital and most major compounds welcome foreign buyers.',
+      },
+      {
+        q: 'What is the New Administrative Capital?',
+        a: 'A planned city 45km east of Cairo: government district, financial hub, residential compounds and the Iconic Tower. Egypt\'s largest infrastructure project.',
+      },
+    ],
+  ),
+  za: hub(
+    'South Africa real estate — Johannesburg, Cape Town & more | sivrce',
+    'Buying in South Africa: transfer duty, conveyancing and the Sectional Title Act. Johannesburg, Cape Town, Durban and Pretoria guides.',
+    'Real estate in South Africa',
+    'South Africa has Africa\'s most developed property market, with Sandton and Camps Bay at the ultra-premium end. Transfer duty is banded, conveyancing is attorney-led, and sectional title governs most apartments. sivrce opens with Johannesburg, Cape Town, Durban and Pretoria.',
+    [
+      'Transfer duty is banded: 0% up to R1.1m, then scaling to 13% above R2.2m. Conveyancing fees are regulated. Sectional title (apartments) has its own governance under the Sectional Title Act.',
+      'Foreign buyers face no restrictions but need a South African bank account for ongoing costs. Load-shedding (power cuts) is a real operational risk for buildings.',
+      'sivrce.com/za is the canonical South Africa URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Cape Town?',
+        a: 'Yes, with no restrictions. You need a South African bank account and a conveyancer (attorney).',
+      },
+      {
+        q: 'What is transfer duty?',
+        a: 'A government tax on property transfers, banded from 0% (under R1.1m) to 13% (above R2.2m). It is separate from conveyancing fees.',
+      },
+    ],
+  ),
+  ke: hub(
+    'Kenya real estate — Nairobi & more | sivrce',
+    'Buying in Kenya: the Land Control Act, title deed types and the Nairobi market. Nairobi and Mombasa guides.',
+    'Real estate in Kenya',
+    'Kenya\'s property market is governed by the Land Control Act and offers several title types. Nairobi\'s Karen and Runda are elite suburbs, while the tech hub drives demand. sivrce opens with Nairobi and Mombasa.',
+    [
+      'Foreign buyers can hold leasehold titles (up to 99 years) but not freehold on agricultural land. The Land Control Act requires consent for transactions involving agricultural land.',
+      'Stamp duty is 4% in Nairobi (2% in other areas), legal fees are regulated, and the process involves the Ministry of Lands. Documentation quality varies significantly.',
+      'sivrce.com/ke is the canonical Kenya URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Nairobi?',
+        a: 'Yes, leasehold titles up to 99 years. Freehold on agricultural land requires Land Control Board consent.',
+      },
+      {
+        q: 'What title type should I get?',
+        a: 'For residential property, a leasehold title is standard for foreigners. For commercial property, a conveyance with a long lease is common.',
+      },
+    ],
+  ),
+  ma: hub(
+    'Morocco real estate — Casablanca, Marrakech & more | sivrce',
+    'Buying in Morocco: the notaire, the 4–6% acquisition tax and the Ampm system. Casablanca, Marrakech, Rabat and Tangier guides.',
+    'Real estate in Morocco',
+    'Morocco closes before a notaire and charges 4–6% acquisition tax. Marrakech attracts luxury buyers; Casablanca is the business hub. sivrce opens with Casablanca, Marrakech, Rabat and Tangier.',
+    [
+      'Acquisition tax is 4–6% depending on the property value and whether it is new-build or resale. The notaire\'s fees are regulated. Foreign buyers face no restrictions on residential property.',
+      'Morocco\'s property market is active, with Marrakech popular with European buyers and Casablanca driving commercial demand. Documentation is improving but still varies.',
+      'sivrce.com/ma is the canonical Morocco URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Marrakech?',
+        a: 'Yes, with no restrictions. The notaire handles the transaction and the 4–6% acquisition tax applies.',
+      },
+      {
+        q: 'What is the Ampm system?',
+        a: 'The Moroccan land registry system: Ampm (Agence Nationale de la Conservation Foncière, du Cadastre et de la Cartographie) handles property registration.',
+      },
+    ],
+  ),
+  pl: hub(
+    'Poland real estate — Warsaw, Kraków & more | sivrce',
+    'Buying in Poland: PCC tax, the notarial deed and the KRS registration. Warsaw, Kraków, Wrocław and Gdańsk guides.',
+    'Real estate in Poland',
+    'Poland charges 2% PCC (civil transactions tax) on resale property or 23% VAT on new-build, and closes before a notary. sivrce opens with Warsaw, Kraków, Wrocław, Poznań and Gdańsk.',
+    [
+      'Resale property pays 2% PCC on the declared value; new-build from a developer pays 23% VAT (recoverable for businesses). The notarial deed is required and the buyer pays.',
+      'Foreign EU buyers can purchase without permission; non-EU buyers need Interior Ministry consent for agricultural land. The process is relatively fast and transparent.',
+      'sivrce.com/pl is the canonical Poland URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Warsaw?',
+        a: 'EU citizens: yes, freely. Non-EU citizens need consent for agricultural land but not for residential property.',
+      },
+      {
+        q: 'PCC or VAT?',
+        a: 'Resale: 2% PCC. New-build from a developer: 23% VAT (recoverable). Your notary or tax advisor will confirm which applies.',
+      },
+    ],
+  ),
+  cz: hub(
+    'Czech Republic real estate — Prague & more | sivrce',
+    'Buying in Czech Republic: 4% acquisition tax, the notarial deed and the cadastral office. Prague, Brno and Ostrava guides.',
+    'Real estate in Czech Republic',
+    'Czech Republic charges 4% acquisition tax (nabytí nemovitých věcí) and closes before a notary. Prague prices have doubled in a decade. sivrce opens with Prague, Brno and Ostrava.',
+    [
+      'The 4% acquisition tax is the main closing cost. Notarial fees are regulated and modest. EU buyers can purchase freely; non-EU buyers need Ministry of Justice consent for agricultural land.',
+      'Prague\'s Vinohrady and Hradčany are premium; Brno is more affordable and growing. The market is transparent and foreign-buyer friendly.',
+      'sivrce.com/cz is the canonical Czech Republic URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Prague?',
+        a: 'EU citizens: yes, freely. Non-EU citizens need consent for agricultural land but not for residential property.',
+      },
+      {
+        q: 'What is the 4% tax?',
+        a: 'Nabytí nemovitých věcí: a 4% acquisition tax on the higher of the declared price or the cadastral value, payable by the buyer.',
+      },
+    ],
+  ),
+  hu: hub(
+    'Hungary real estate — Budapest & more | sivrce',
+    'Buying in Hungary: 4% acquisition tax, the notarial deed and the Land Registry. Budapest, Debrecen and Szeged guides.',
+    'Real estate in Hungary',
+    'Hungary charges 4% acquisition tax (illeték) and closes before a notary. Budapest\'s District V and VII are premium. sivrce opens with Budapest, Debrecen, Szeged and Pécs.',
+    [
+      'The 4% illeték is the main closing cost. Notarial fees are regulated. EU buyers can purchase freely; non-EU buyers need government consent for agricultural land.',
+      'Budapest is undervalued vs Western Europe, with strong demand from digital nomads. The ruin bar district (District VII) is trendy; District V is premium.',
+      'sivrce.com/hu is the canonical Hungary URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Budapest?',
+        a: 'EU citizens: yes, freely. Non-EU citizens need government consent for agricultural land but not for residential property.',
+      },
+      {
+        q: 'What is the illeték?',
+        a: 'A 4% acquisition tax on the declared value, payable by the buyer at closing.',
+      },
+    ],
+  ),
+  ro: hub(
+    'Romania real estate — Bucharest & more | sivrce',
+    'Buying in Romania: the notarial deed, 1–3% transaction tax and the Land Registry. Bucharest, Cluj-Napoca and Timișoara guides.',
+    'Real estate in Romania',
+    'Romania charges 1–3% transaction tax (depending on value) and closes before a notary. Bucharest and Cluj-Napoca are booming. sivrce opens with Bucharest, Cluj-Napoca, Timișoara, Iași and Brașov.',
+    [
+      'Transaction tax is 1–3% on a sliding scale. Notarial fees are regulated. EU buyers can purchase freely; non-EU buyers can buy apartments but not agricultural land.',
+      'Bucharest CBD is booming; Cluj-Napoca is the IT hub. Yields of 6–7% are common in newer developments.',
+      'sivrce.com/ro is the canonical Romania URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Bucharest?',
+        a: 'EU citizens: yes, freely. Non-EU citizens can buy apartments but not agricultural land.',
+      },
+      {
+        q: 'What is the transaction tax?',
+        a: '1–3% on a sliding scale, payable by the buyer. Notarial fees are additional.',
+      },
+    ],
+  ),
+  bg: hub(
+    'Bulgaria real estate — Sofia & more | sivrce',
+    'Buying in Bulgaria: the notarial deed, 0.1–3% transfer tax and the Land Registry. Sofia, Plovdiv and Varna guides.',
+    'Real estate in Bulgaria',
+    'Bulgaria charges 0.1–3% transfer tax (varies by municipality) and closes before a notary. Sofia offers 8–10% yields. sivrce opens with Sofia, Plovdiv, Varna and Burgas.',
+    [
+      'Transfer tax is 0.1–3% depending on the municipality. Notarial fees are regulated. EU buyers can purchase freely; non-EU buyers need Council of Ministers consent for agricultural land.',
+      'Sofia yields 8–10% — among the highest in Europe. Lozenets is premium; the IT sector drives demand. Black Sea coast attracts holiday buyers.',
+      'sivrce.com/bg is the canonical Bulgaria URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Sofia?',
+        a: 'EU citizens: yes, freely. Non-EU citizens need consent for agricultural land but not for residential property.',
+      },
+      {
+        q: 'What yields can I expect?',
+        a: 'Sofia residential yields 8–10%, among the highest in Europe. Black Sea holiday properties have seasonal yields.',
+      },
+    ],
+  ),
+  rs: hub(
+    'Serbia real estate — Belgrade & more | sivrce',
+    'Buying in Serbia: the notarial deed, 2.5% transaction tax and the Land Registry. Belgrade, Novi Sad and Niš guides.',
+    'Real estate in Serbia',
+    'Serbia charges 2.5% transaction tax and closes before a notary. Belgrade Waterfront is transforming the market. sivrce opens with Belgrade, Novi Sad and Niš.',
+    [
+      'Transaction tax is 2.5% on the declared value. Notarial fees are regulated. Foreign buyers can purchase residential property freely.',
+      'Belgrade Waterfront is a major transformation; Dorcol and Vracar are trendy. The market is undervalued vs CEE peers.',
+      'sivrce.com/rs is the canonical Serbia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Belgrade?',
+        a: 'Yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What is Belgrade Waterfront?',
+        a: 'A major urban regeneration project along the Sava River: residential towers, commercial space and public amenities. Transforming the city center.',
+      },
+    ],
+  ),
+  hr: hub(
+    'Croatia real estate — Zagreb, Split & more | sivrce',
+    'Buying in Croatia: the notarial deed, 3% property transfer tax and the Land Registry. Zagreb, Split, Rijeka and Zadar guides.',
+    'Real estate in Croatia',
+    'Croatia charges 3% property transfer tax and closes before a notary. Coastal Croatia is booming post-EU entry. sivrce opens with Zagreb, Split, Rijeka and Zadar.',
+    [
+      'Property transfer tax is 3% on the declared value. Notarial fees are regulated. EU buyers can purchase freely; non-EU buyers need Ministry of Justice consent.',
+      'Coastal Croatia is booming: Dubrovnik and Split attract luxury buyers; Zadar is emerging. Zagreb is the administrative capital.',
+      'sivrce.com/hr is the canonical Croatia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Split?',
+        a: 'EU citizens: yes, freely. Non-EU citizens need Ministry of Justice consent.',
+      },
+      {
+        q: 'What is the transfer tax?',
+        a: '3% on the declared value, payable by the buyer.',
+      },
+    ],
+  ),
+  se: hub(
+    'Sweden real estate — Stockholm & more | sivrce',
+    'Buying in Sweden: the bostadsrätt system, stamp duty and the broker-led market. Stockholm, Gothenburg and Malmö guides.',
+    'Real estate in Sweden',
+    'Sweden uses the bostadsrätt (tenant-owner association) system for most apartments, with a queue-based market and broker-led transactions. sivrce opens with Stockholm, Gothenburg and Malmö.',
+    [
+      'The bostadsrätt is a share in a housing association, not a traditional condo. You buy the right to occupy a specific unit, and the association manages the building. Stamp duty is 1.25% for legal entities; individuals pay none.',
+      'Stockholm is expensive; a 10+ year housing queue is normal. Södermalm and Vasastan are popular. The system is unique globally.',
+      'sivrce.com/se is the canonical Sweden URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'What is a bostadsrätt?',
+        a: 'A tenant-owner share in a housing association: you buy the right to occupy a specific unit, not the land. The association manages the building and common areas.',
+      },
+      {
+        q: 'Can a foreigner buy in Stockholm?',
+        a: 'Yes, with no restrictions. The bostadsrätt system applies equally to all buyers.',
+      },
+    ],
+  ),
+  no: hub(
+    'Norway real estate — Oslo & more | sivrce',
+    'Buying in Norway: the document fee, the broker-led market and the oil-backed economy. Oslo, Bergen, Trondheim and Stavanger guides.',
+    'Real estate in Norway',
+    'Norway charges a document fee (2.5% of the mortgage amount) and closes with a boligkjøperforsikring (buyer protection insurance). Oslo is expensive. sivrce opens with Oslo, Bergen, Trondheim and Stavanger.',
+    [
+      'The document fee is 2.5% of the mortgage amount (not the purchase price), capped at a regulated maximum. Buyer protection insurance is standard. Oil-backed wealth supports the market.',
+      'Frogner and Majorstuen are Oslo premium areas. Bergen and Trondheim are more affordable. The sovereign fund provides stability.',
+      'sivrce.com/no is the canonical Norway URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'What is the document fee?',
+        a: '2.5% of the mortgage amount (not the purchase price), payable to the broker. It is a regulated cost, not negotiable.',
+      },
+      {
+        q: 'Can a foreigner buy in Oslo?',
+        a: 'Yes, with no restrictions. EU/EEA citizens have the same rights as Norwegian citizens.',
+      },
+    ],
+  ),
+  dk: hub(
+    'Denmark real estate — Copenhagen & more | sivrce',
+    'Buying in Denmark: the ejerlejlighed, the strong tenant protections and the Tinglysning system. Copenhagen, Aarhus and Odense guides.',
+    'Real estate in Denmark',
+    'Denmark uses the ejerlejlighed (owner-occupied apartment) system with strong tenant protections and a digital land registry (Tinglysning). sivrce opens with Copenhagen, Aarhus and Odense.',
+    [
+      'The ejerlejlighed is a traditional condo title. Closing costs include a broker fee (typically 1–2%), a lawyer fee and the Tinglysning registration. Tenant protections are among the strongest in Europe.',
+      'Copenhagen is expensive; Nyhavn and Amager are popular. The bike-friendly premium is real. Strong tenant protections affect rental yields.',
+      'sivrce.com/dk is the canonical Denmark URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'What is an ejerlejlighed?',
+        a: 'An owner-occupied apartment title: you own the unit and a share of the common areas. Similar to a condo but with stronger tenant protections.',
+      },
+      {
+        q: 'Can a foreigner buy in Copenhagen?',
+        a: 'Yes, with no restrictions for EU/EEA citizens. Non-EU citizens need permission for certain property types.',
+      },
+    ],
+  ),
+  fi: hub(
+    'Finland real estate — Helsinki & more | sivrce',
+    'Buying in Finland: the kiinteistö, the 4% transfer tax and the transparent market. Helsinki, Espoo and Tampere guides.',
+    'Real estate in Finland',
+    'Finland charges 4% transfer tax and closes with a notary. Helsinki is stable with moderate growth. sivrce opens with Helsinki, Espoo, Tampere and Vantaa.',
+    [
+      'Transfer tax is 4% on the purchase price, payable by the buyer. The market is transparent and stable. Helsinki\'s Töölö and Kamppi are premium.',
+      'Finland offers excellent public infrastructure and a stable Nordic market. Yields are moderate but reliable.',
+      'sivrce.com/fi is the canonical Finland URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Helsinki?',
+        a: 'Yes, with no restrictions for EU/EEA citizens. Non-EU citizens can buy but may face restrictions on certain land types.',
+      },
+      {
+        q: 'What is the transfer tax?',
+        a: '4% on the purchase price, payable by the buyer.',
+      },
+    ],
+  ),
+  at: hub(
+    'Austria real estate — Vienna & more | sivrce',
+    'Buying in Austria: the Grundbucheintrag, the 3.5% transfer tax and the strong social housing system. Vienna, Graz and Salzburg guides.',
+    'Real estate in Austria',
+    'Austria charges 3.5% transfer tax and closes with a Grundbucheintrag (land register entry). Vienna consistently ranks among the world\'s most livable cities. sivrce opens with Vienna, Graz, Linz and Salzburg.',
+    [
+      'Transfer tax is 3.5% on the assessed value. Notarial fees are regulated. Vienna\'s social housing system (Gemeindewohnung) affects the private market.',
+      'Vienna is stable with moderate growth. Wien Mitte and Innere Stadt are premium. Strong social housing keeps the market balanced.',
+      'sivrce.com/at is the canonical Austria URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Vienna?',
+        a: 'Yes, with no restrictions. EU/EEA citizens have the same rights as Austrian citizens.',
+      },
+      {
+        q: 'What is the transfer tax?',
+        a: '3.5% on the assessed value, payable by the buyer.',
+      },
+    ],
+  ),
+  be: hub(
+    'Belgium real estate — Brussels & more | sivrce',
+    'Buying in Belgium: the registration duty, the notarial deed and the EU capital. Brussels, Antwerp, Ghent and Bruges guides.',
+    'Real estate in Belgium',
+    'Belgium charges 12.5% registration duty on resale property (6% in some regions for first homes) and closes before a notary. Brussels is the EU capital. sivrce opens with Brussels, Antwerp, Ghent and Bruges.',
+    [
+      'Registration duty is 12.5% in Flanders and Wallonia (6% for first homes), and 12.5% in Brussels (3% for first homes). The notarial fee is regulated. EU institutions drive rental demand.',
+      'Brussels and Antwerp lead rental yields. Ixelles and Uccle are premium in Brussels; Het Zuid in Antwerp.',
+      'sivrce.com/be is the canonical Belgium URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Brussels?',
+        a: 'Yes, with no restrictions. EU citizens have the same rights as Belgian citizens.',
+      },
+      {
+        q: 'What is the registration duty?',
+        a: '12.5% on resale property (6% for first homes in some regions). It is the main closing cost.',
+      },
+    ],
+  ),
+  ie: hub(
+    'Ireland real estate — Dublin & more | sivrce',
+    'Buying in Ireland: the stamp duty, the solicitor-led process and the severely undersupplied market. Dublin, Cork and Galway guides.',
+    'Real estate in Ireland',
+    'Ireland charges 1–2% stamp duty and closes with a solicitor. Dublin is severely undersupplied. sivrce opens with Dublin, Cork, Galway and Limerick.',
+    [
+      'Stamp duty is 1% on the first €1m, 2% above that. Solicitor fees are regulated. Dublin is severely undersupplied, driving premium rents.',
+      'Tech MNC presence drives demand in Dublin 2 and 4. Cork and Galway are more affordable. The market is supply-constrained.',
+      'sivrce.com/ie is the canonical Ireland URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Dublin?',
+        a: 'Yes, with no restrictions. EU/EEA citizens have the same rights as Irish citizens.',
+      },
+      {
+        q: 'Why is Dublin so expensive?',
+        a: 'Severe undersupply, tech MNC presence (Google, Meta, Apple), and limited land for development. The market is supply-constrained.',
+      },
+    ],
+  ),
+  nz: hub(
+    'New Zealand real estate — Auckland & more | sivrce',
+    'Buying in New Zealand: the foreign-buyer ban, the LIM report and the auction system. Auckland, Wellington and Christchurch guides.',
+    'Real estate in New Zealand',
+    'New Zealand banned most foreign buyers in 2018, with exceptions for Australians and Singaporeans. The LIM report is essential due diligence. sivrce opens with Auckland, Wellington and Christchurch.',
+    [
+      'The Overseas Investment Amendment Act 2018 banned most non-resident foreign buyers from purchasing existing residential property. Australians and Singaporeans are exempt. New-build is generally allowed.',
+      'The LIM (Land Information Memorandum) report is the critical due-diligence document: flood risk, contaminated land, building consents, rates arrears. Do not buy without it.',
+      'sivrce.com/nz is the canonical New Zealand URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Auckland?',
+        a: 'Most non-residents: no. Australians and Singaporeans are exempt. New-build is generally allowed for others.',
+      },
+      {
+        q: 'What is a LIM report?',
+        a: 'Land Information Memorandum: a council report covering flood risk, contaminated land, building consents, rates arrears and everything else the council knows about the property.',
+      },
+    ],
+  ),
+  co: hub(
+    'Colombia real estate — Bogotá, Medellín & more | sivrce',
+    'Buying in Colombia: the notaría, the 1.5–3% acquisition tax and the emerging Medellín market. Bogotá, Medellín, Cali and Cartagena guides.',
+    'Real estate in Colombia',
+    'Colombia closes before a notaría and charges 1.5–3% acquisition tax (impuesto de registro). Medellín is a digital nomad hub. sivrce opens with Bogotá, Medellín, Cali, Barranquilla and Cartagena.',
+    [
+      'Acquisition tax is 1.5–3% of the registered value. Notarial fees are regulated. Foreign buyers face no restrictions on residential property.',
+      'Medellín is a digital nomad hub: Chapinero and Zona G trending. Bogotá REITs are emerging. Foreign buyer friendly.',
+      'sivrce.com/co is the canonical Colombia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Medellín?',
+        a: 'Yes, with no restrictions. The market is foreign-buyer friendly.',
+      },
+      {
+        q: 'What is the acquisition tax?',
+        a: '1.5–3% of the registered value, payable by the buyer.',
+      },
+    ],
+  ),
+  cl: hub(
+    'Chile real estate — Santiago & more | sivrce',
+    'Buying in Chile: the notaría, the 4% property tax and the well-established REIT market. Santiago, Valparaíso and Viña del Mar guides.',
+    'Real estate in Chile',
+    'Chile closes before a notaría and has a well-established REIT (FCI) market. Santiago and Viña del Mar are premium. sivrce opens with Santiago, Valparaíso, Viña del Mar and Concepción.',
+    [
+      'Property tax is 1–2% annually. Acquisition costs are modest: notarial fees (regulated), registration fees, and a 4% annual property tax. REITs (FCIs) are well established.',
+      'Santiago\'s Las Condes and Vitacura are premium. Viña del Mar is a coastal resort. The market is stable and transparent.',
+      'sivrce.com/cl is the canonical Chile URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Santiago?',
+        a: 'Yes, with no restrictions. The market is transparent and REITs are well established.',
+      },
+      {
+        q: 'What are FCIs?',
+        a: 'Fondos de Inversión en Inmobiliario: Chilean REITs that invest in commercial and residential property. They are well established and liquid.',
+      },
+    ],
+  ),
+  ar: hub(
+    'Argentina real estate — Buenos Aires & more | sivrce',
+    'Buying in Argentina: the escribano, the 1.5% stamp duty and the currency volatility. Buenos Aires, Córdoba and Rosario guides.',
+    'Real estate in Argentina',
+    'Argentina closes before an escribano and charges 1.5% stamp duty. Buenos Aires is affordable in USD but currency volatile. sivrce opens with Buenos Aires, Córdoba, Rosario and Mendoza.',
+    [
+      'Stamp duty is 1.5% of the transaction value. Escritura (deed) fees are regulated. Currency volatility is the main risk: prices are quoted in USD but transactions may involve parallel exchange rates.',
+      'Palermo and Recoleta are premium in Buenos Aires. The market is cheap in USD terms but carries currency risk.',
+      'sivrce.com/ar is the canonical Argentina URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Buenos Aires?',
+        a: 'Yes, with no restrictions. The market is open and prices are low in USD terms.',
+      },
+      {
+        q: 'What is the currency risk?',
+        a: 'Argentina has multiple exchange rates and capital controls. The official rate and the blue-chip swap rate can differ significantly. Factor this into your exit strategy.',
+      },
+    ],
+  ),
+  pe: hub(
+    'Peru real estate — Lima & more | sivrce',
+    'Buying in Peru: the notaría, the 3% municipal tax and the Miraflores premium. Lima, Arequipa, Cusco and Trujillo guides.',
+    'Real estate in Peru',
+    'Peru closes before a notaría and charges 3% municipal tax (impuesto municipal). Lima\'s Miraflores and Barranco are premium. sivrce opens with Lima, Arequipa, Cusco and Trujillo.',
+    [
+      'Municipal tax is 3% of the property value. Notarial fees are regulated. Foreign buyers face no restrictions on residential property.',
+      'Lima\'s Miraflores and Barranco are premium; Cusco tourism RE; the market is stable.',
+      'sivrce.com/pe is the canonical Peru URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Lima?',
+        a: 'Yes, with no restrictions. The market is open and stable.',
+      },
+      {
+        q: 'What is the municipal tax?',
+        a: 'Impuesto municipal: 3% of the property value, payable at closing.',
+      },
+    ],
+  ),
+  ec: hub(
+    'Ecuador real estate — Quito & more | sivrce',
+    'Buying in Ecuador: the notaría, the 1.5% transfer tax and the USD economy. Quito, Guayaquil and Cuenca guides.',
+    'Real estate in Ecuador',
+    'Ecuador uses the USD as its currency, charges 1.5% transfer tax and closes before a notaría. Cuenca is popular with retirees. sivrce opens with Quito, Guayaquil and Cuenca.',
+    [
+      'Transfer tax is 1.5% of the registered value. Notarial fees are regulated. The USD economy eliminates currency risk for US-based buyers.',
+      'Quito\'s historic center is UNESCO-listed; Cuenca is popular with retirees. The market is stable and affordable.',
+      'sivrce.com/ec is the canonical Ecuador URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Quito?',
+        a: 'Yes, with no restrictions. The USD economy eliminates currency risk.',
+      },
+      {
+        q: 'Why Cuenca?',
+        a: 'Cuenca is a UNESCO World Heritage city with a large expat community, moderate climate, and affordable living costs. Popular with North American retirees.',
+      },
+    ],
+  ),
+  pk: hub(
+    'Pakistan real estate — Karachi, Lahore & more | sivrce',
+    'Buying in Pakistan: the stamp duty, the CPEC corridor and the emerging market. Karachi, Lahore, Islamabad and Rawalpindi guides.',
+    'Real estate in Pakistan',
+    'Pakistan charges stamp duty and closes before a registrar. CPEC (China-Pakistan Economic Corridor) is driving infrastructure growth. sivrce opens with Karachi, Lahore, Islamabad and Rawalpindi.',
+    [
+      'Stamp duty is 1–3% depending on the province. Registration fees are modest. CPEC corridor drives infrastructure growth and property demand.',
+      'Karachi and Lahore are huge markets; Islamabad is the administrative capital. The market is active but documentation varies.',
+      'sivrce.com/pk is the canonical Pakistan URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Karachi?',
+        a: 'Yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What is CPEC?',
+        a: 'China-Pakistan Economic Corridor: a $62bn infrastructure project connecting Gwadar Port to China via roads, rail and energy projects. Driving development.',
+      },
+    ],
+  ),
+  bd: hub(
+    'Bangladesh real estate — Dhaka & more | sivrce',
+    'Buying in Bangladesh: the stamp duty, the registration process and the world\'s densest city. Dhaka and Chittagong guides.',
+    'Real estate in Bangladesh',
+    'Bangladesh charges stamp duty and closes before a sub-registrar. Dhaka is among the world\'s densest cities. sivrce opens with Dhaka and Chittagong.',
+    [
+      'Stamp duty is 3–5% depending on the property value. Registration fees are modest. The market is active but bureaucratic.',
+      'Dhaka is among the world\'s densest cities; garment sector drives worker housing demand. Chittagong is the port city.',
+      'sivrce.com/bd is the canonical Bangladesh URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Dhaka?',
+        a: 'Yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What is the stamp duty?',
+        a: '3–5% depending on the property value, payable at registration.',
+      },
+    ],
+  ),
+  lk: hub(
+    'Sri Lanka real estate — Colombo & more | sivrce',
+    'Buying in Sri Lanka: the stamp duty, the Port City project and the post-crisis recovery. Colombo, Kandy and Galle guides.',
+    'Real estate in Sri Lanka',
+    'Sri Lanka charges stamp duty and closes before a notary. Colombo Port City is a Chinese-funded project. sivrce opens with Colombo, Kandy and Galle.',
+    [
+      'Stamp duty is 4% on the property value. Registration fees are modest. Colombo Port City is a Chinese-funded free-trade zone.',
+      'The market is recovering post-crisis. Colombo is the commercial center; Kandy is the cultural capital.',
+      'sivrce.com/lk is the canonical Sri Lanka URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Colombo?',
+        a: 'Yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What is Port City?',
+        a: 'Colombo Port City: a Chinese-funded $1.4bn reclaimed land project adjacent to the Galle Face Green. Mixed-use development with its own legal framework.',
+      },
+    ],
+  ),
+  np: hub(
+    'Nepal real estate — Kathmandu & more | sivrce',
+    'Buying in Nepal: the stamp duty, the earthquake risk and the growing market. Kathmandu, Pokhara and Lalitpur guides.',
+    'Real estate in Nepal',
+    'Nepal charges stamp duty and closes before a sub-registrar. Kathmandu valley is growing rapidly with earthquake risk. sivrce opens with Kathmandu, Pokhara and Lalitpur.',
+    [
+      'Stamp duty is 4% on the property value. Registration fees are modest. Earthquake risk affects construction standards.',
+      'Kathmandu valley is growing rapidly; earthquake risk is real. Pokhara is a tourism hub.',
+      'sivrce.com/np is the canonical Nepal URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Kathmandu?',
+        a: 'Yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What is the earthquake risk?',
+        a: 'Nepal is in a seismic zone; the 2015 earthquake killed nearly 9,000 people. Building codes have been updated but enforcement varies.',
+      },
+    ],
+  ),
+  kh: hub(
+    'Cambodia real estate — Phnom Penh & more | sivrce',
+    'Buying in Cambodia: the hard title, the strata title and the Chinese investment cycle. Phnom Penh and Siem Reap guides.',
+    'Real estate in Cambodia',
+    'Cambodia offers hard title (freehold) and soft title (long-term lease) for property. Phnom Penh condo market boomed with Chinese investment. sivrce opens with Phnom Penh and Siem Reap.',
+    [
+      'Hard title is freehold and registered with the government. Soft title is a long-term transfer recognized locally but not registered. Condos can be foreign-owned within the 70/30 foreign quota.',
+      'Phnom Penh condo boom peaked with Chinese investment; Sihanoukville saw a surge then pullback. The market is volatile.',
+      'sivrce.com/kh is the canonical Cambodia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'What is the difference between hard and soft title?',
+        a: 'Hard title: freehold, registered with the government, legally recognized. Soft title: long-term transfer, recognized locally but not registered. Hard title is safer.',
+      },
+      {
+        q: 'Can a foreigner buy in Phnom Penh?',
+        a: 'Condos: yes, within the 70/30 foreign quota. Landed property: soft title only, or through a Cambodian company.',
+      },
+    ],
+  ),
+  mm: hub(
+    'Myanmar real estate — Yangon & more | sivrce',
+    'Buying in Myanmar: the market under military rule and the limited transparency. Yangon and Mandalay guides.',
+    'Real estate in Myanmar',
+    'Myanmar\'s market is disrupted by military rule with limited transparency. Yangon is the largest city. sivrce opens with Yangon and Mandalay.',
+    [
+      'The market is frozen under military rule since the 2021 coup. Foreign investment is extremely limited. Yangon has underdeveloped potential.',
+      'Transaction transparency is minimal. Legal protections for foreign buyers are weak.',
+      'sivrce.com/mm is the canonical Myanmar URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Yangon?',
+        a: 'In theory, condos within the foreign quota. In practice, the market is frozen under military rule.',
+      },
+      {
+        q: 'Can a foreigner own land in Myanmar?',
+        a: 'No. Land ownership is reserved for citizens; foreigners can at most hold long leases and quota condos.',
+      },
+    ],
+  ),
+  la: hub(
+    'Laos real estate — Vientiane & more | sivrce',
+    'Buying in Laos: the Land Law and the limited transparency. Vientiane and Luang Prabang guides.',
+    'Real estate in Laos',
+    'Laos has limited transparency and a Land Law that restricts foreign ownership. Vientiane is growing with Chinese rail link. sivrce opens with Vientiane and Luang Prabang.',
+    [
+      'Foreign ownership is restricted to leasehold (maximum 50 years). The market has limited transparency. Chinese investment is driving some development.',
+      'Vientiane is growing with the China-Laos railway connection. Luang Prabang is a tourism hub.',
+      'sivrce.com/la is the canonical Laos URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Vientiane?',
+        a: 'Leasehold only, maximum 50 years. Freehold is restricted to Lao citizens.',
+      },
+      {
+        q: 'Can foreigners own land in Laos?',
+        a: 'No. Land stays state-owned for non-citizens; buyers hold renewable long leases, with condos possible only in approved developments.',
+      },
+    ],
+  ),
+  uz: hub(
+    'Uzbekistan real estate — Tashkent & more | sivrce',
+    'Buying in Uzbekistan: the reforming economy and the Silk Road tourism. Tashkent, Samarkand and Bukhara guides.',
+    'Real estate in Uzbekistan',
+    'Uzbekistan is reforming its economy and modernizing Tashkent. Silk Road cities attract tourism. sivrce opens with Tashkent, Samarkand and Bukhara.',
+    [
+      'Foreign buyers can own apartments but not land. The economy is reforming under President Mirziyoyev. Tashkent is modernizing rapidly.',
+      'The market is emerging with growing transparency. Silk Road tourism drives demand in Samarkand and Bukhara.',
+      'sivrce.com/uz is the canonical Uzbekistan URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Tashkent?',
+        a: 'Apartments: yes. Land: restricted to leasehold.',
+      },
+      {
+        q: 'What can foreigners own in Uzbekistan?',
+        a: 'New-build apartments in Tashkent and regional centers, opened by the 2023 decree. Land remains leasehold.',
+      },
+    ],
+  ),
+  kz: hub(
+    'Kazakhstan real estate — Almaty, Astana & more | sivrce',
+    'Buying in Kazakhstan: the Land Code and the oil-backed economy. Almaty, Astana and Shymkent guides.',
+    'Real estate in Kazakhstan',
+    'Kazakhstan has a Land Code that governs property transactions. Almaty is the cultural center; Astana is the new capital. sivrce opens with Almaty, Astana and Shymkent.',
+    [
+      'Foreign buyers can own apartments but land is restricted to leasehold. The economy is oil-backed with a sovereign fund.',
+      'Astana is the new capital; Almaty is the cultural center. Oil wealth supports development.',
+      'sivrce.com/kz is the canonical Kazakhstan URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Almaty?',
+        a: 'Apartments: yes. Land: leasehold only.',
+      },
+      {
+        q: 'What can foreigners own in Kazakhstan?',
+        a: 'Residential property with a residence basis; agricultural land is closed to non-citizens. Almaty and Astana dominate deals.',
+      },
+    ],
+  ),
+  am: hub(
+    'Armenia real estate — Yerevan & more | sivrce',
+    'Buying in Armenia: the notarial deed and the emerging market. Yerevan and Gyumri guides.',
+    'Real estate in Armenia',
+    'Armenia closes before a notary and has a relatively transparent market. Yerevan is the capital and largest city. sivrce opens with Yerevan and Gyumri.',
+    [
+      'Foreign buyers can own residential property with no restrictions. The market is emerging with growing transparency.',
+      'Yerevan has a growing IT sector and a large diaspora investment. The market is affordable.',
+      'sivrce.com/am is the canonical Armenia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Yerevan?',
+        a: 'Yes, with no restrictions.',
+      },
+      {
+        q: 'What can foreigners own in Armenia?',
+        a: 'Apartments and houses freely; only agricultural land is off-limits. Registration is fast, cadastre-based.',
+      },
+    ],
+  ),
+  az: hub(
+    'Azerbaijan real estate — Baku & more | sivrce',
+    'Buying in Azerbaijan: the State Registry and the oil-backed economy. Baku, Ganja and Sumqayit guides.',
+    'Real estate in Azerbaijan',
+    'Azerbaijan has a State Registry for property transactions. Baku is the capital and oil hub. sivrce opens with Baku, Ganja and Sumqayit.',
+    [
+      'Foreign buyers can own apartments but land is restricted. The economy is oil-backed with significant infrastructure investment.',
+      'Baku is modernizing rapidly; the oil-backed economy drives development. The market is emerging.',
+      'sivrce.com/az is the canonical Azerbaijan URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Baku?',
+        a: 'Apartments: yes. Land: restricted to leasehold.',
+      },
+      {
+        q: 'What can foreigners own in Azerbaijan?',
+        a: 'Apartments yes; land ownership is barred without special state permission.',
+      },
+    ],
+  ),
+  ua: hub(
+    'Ukraine real estate — Kyiv & more | sivrce',
+    'Buying in Ukraine: the notarial deed and the war-disrupted market. Kyiv, Kharkiv, Odesa and Lviv guides.',
+    'Real estate in Ukraine',
+    'Ukraine\'s market is war-disrupted since 2022, but Lviv and western cities remain more stable. sivrce opens with Kyiv, Kharkiv, Odesa and Lviv.',
+    [
+      'The market is disrupted by the ongoing war. Kyiv and eastern cities face significant risk; Lviv and western cities are more stable.',
+      'Foreign buyers can own apartments but not agricultural land. The legal framework exists but enforcement is challenging.',
+      'sivrce.com/ua is the canonical Ukraine URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Kyiv?',
+        a: 'Apartments: technically yes, but the war makes this extremely risky. Lviv and western cities are more stable.',
+      },
+      {
+        q: 'What can foreigners own in Ukraine?',
+        a: 'Apartments and houses yes; agricultural land stays closed to non-citizens. Wartime deals carry extra due-diligence risk.',
+      },
+    ],
+  ),
+  ee: hub(
+    'Estonia real estate — Tallinn & more | sivrce',
+    'Buying in Estonia: the Land Register and the tech hub. Tallinn and Tartu guides.',
+    'Real estate in Estonia',
+    'Estonia has a transparent Land Register and a tech-hub economy. Tallinn is the capital and e-Residency centre. sivrce opens with Tallinn and Tartu.',
+    [
+      'The market is transparent with a digital Land Register. EU/EEA buyers have the same rights as Estonian citizens.',
+      'Tallinn tech boom drives demand; e-Residency programme boosts foreign interest. Kalamaja and Telliskivi are trendy.',
+      'sivrce.com/ee is the canonical Estonia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Tallinn?',
+        a: 'EU/EEA citizens: yes, freely. Non-EU citizens: yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What can foreigners own in Estonia?',
+        a: 'Apartments freely; a house with land needs a notarized application that is routinely approved.',
+      },
+    ],
+  ),
+  lt: hub(
+    'Lithuania real estate — Vilnius & more | sivrce',
+    'Buying in Lithuania: the Land Register and the emerging tech hub. Vilnius and Kaunas guides.',
+    'Real estate in Lithuania',
+    'Lithuania has a transparent Land Register and a growing tech sector. Vilnius is the capital and largest city. sivrce opens with Vilnius and Kaunas.',
+    [
+      'The market is transparent with a digital Land Register. EU/EEA buyers have full rights.',
+      'Vilnius is an emerging tech hub; affordable vs Baltic neighbours. Snipiskes is premium.',
+      'sivrce.com/lt is the canonical Lithuania URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Vilnius?',
+        a: 'EU/EEA citizens: yes, freely. Non-EU citizens: yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What can foreigners own in Lithuania?',
+        a: 'Apartments freely; non-EU buyers need government consent for land plots.',
+      },
+    ],
+  ),
+  lv: hub(
+    'Latvia real estate — Riga & more | sivrce',
+    'Buying in Latvia: the Land Register and the Art Nouveau capital. Riga and Daugavpils guides.',
+    'Real estate in Latvia',
+    'Latvia has a transparent Land Register and Art Nouveau architecture. Riga is the capital. sivrce opens with Riga and Daugavpils.',
+    [
+      'The market is transparent with a digital Land Register. EU/EEA buyers have full rights.',
+      'Riga\'s Art Nouveau district is premium; Vecriga is the historic center. EU funds drive infrastructure growth.',
+      'sivrce.com/lv is the canonical Latvia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Riga?',
+        a: 'EU/EEA citizens: yes, freely. Non-EU citizens: yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What can foreigners own in Latvia?',
+        a: 'Apartments freely; non-EU buyers need consent for land. Property no longer grants automatic residence.',
+      },
+    ],
+  ),
+  is: hub(
+    'Iceland real estate — Reykjavik & more | sivrce',
+    'Buying in Iceland: the FME approval and the volcanic risk. Reykjavik guides.',
+    'Real estate in Iceland',
+    'Iceland requires FME (Financial Supervisory Authority) approval for foreign buyers. Reykjavik is the capital. sivrce opens with Reykjavik.',
+    [
+      'Foreign buyers need FME approval, which is usually granted for residential property. Limited supply and volcanic activity affect the market.',
+      'Reykjavik has limited supply; volcanic activity affects insurance costs. The market is small and transparent.',
+      'sivrce.com/is is the canonical Iceland URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Reykjavik?',
+        a: 'Yes, with FME approval. Approval is usually granted for residential property.',
+      },
+      {
+        q: 'What can foreigners own in Iceland?',
+        a: 'Property with Ministry of Justice permission; EEA citizens get a lighter process than non-EEA buyers.',
+      },
+    ],
+  ),
+  mt: hub(
+    'Malta real estate — Valletta & more | sivrce',
+    'Buying in Malta: the notarial deed and the iGaming hub. Valletta, Sliema and St Julian\'s guides.',
+    'Real estate in Malta',
+    'Malta has a transparent property market driven by iGaming and crypto. Valletta is the capital. sivrce opens with Valletta, Sliema and St Julian\'s.',
+    [
+      'Foreign buyers need an AIP (Acquisition of Immovable Property) permit for most property, except in special areas. The process is straightforward.',
+      'iGaming and crypto drive demand; limited island supply. Sliema and St Julian\'s are premium.',
+      'sivrce.com/mt is the canonical Malta URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Valletta?',
+        a: 'Yes, with an AIP permit. The process is straightforward and usually takes a few weeks.',
+      },
+      {
+        q: 'What can foreigners own in Malta?',
+        a: 'Most property with an AIP permit and one-home minimum-price thresholds; higher minimums apply in south and Gozo zones.',
+      },
+    ],
+  ),
+  lu: hub(
+    'Luxembourg real estate — Luxembourg City & more | sivrce',
+    'Buying in Luxembourg: the notarial deed and the world\'s highest GDP per capita. Luxembourg City guides.',
+    'Real estate in Luxembourg',
+    'Luxembourg has a transparent market with extreme housing shortage. Luxembourg City is the capital. sivrce opens with Luxembourg City.',
+    [
+      'The market is transparent with regulated notarial fees. Extreme housing shortage drives prices. World\'s highest GDP per capita.',
+      'Luxembourg City is expensive; the financial sector and EU institutions drive demand. Limited supply.',
+      'sivrce.com/lu is the canonical Luxembourg URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Luxembourg City?',
+        a: 'Yes, with no restrictions for EU/EEA citizens. Non-EU citizens need authorization.',
+      },
+      {
+        q: 'What can foreigners own in Luxembourg?',
+        a: 'Apartments freely for EU/EEA citizens; non-EU buyers need authorization before the notarial deed.',
+      },
+    ],
+  ),
+  sk: hub(
+    'Slovakia real estate — Bratislava & more | sivrce',
+    'Buying in Slovakia: the Land Book and the Vienna spillover. Bratislava and Košice guides.',
+    'Real estate in Slovakia',
+    'Slovakia has a transparent Land Book and benefits from Vienna spillover. Bratislava is the capital. sivrce opens with Bratislava and Košice.',
+    [
+      'The market is transparent with a digital Land Book. EU/EEA buyers have full rights.',
+      'Bratislava benefits from Vienna spillover; automotive sector drives jobs. Kosice is the second city.',
+      'sivrce.com/sk is the canonical Slovakia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Bratislava?',
+        a: 'EU/EEA citizens: yes, freely. Non-EU citizens: yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What can foreigners own in Slovakia?',
+        a: 'Apartments freely; non-EU buyers need consent only for agricultural or forest land.',
+      },
+    ],
+  ),
+  si: hub(
+    'Slovenia real estate — Ljubljana & more | sivrce',
+    'Buying in Slovenia: the notarial deed and the green capital. Ljubljana and Maribor guides.',
+    'Real estate in Slovenia',
+    'Slovenia has a transparent market and Ljubljana is the green capital. sivrce opens with Ljubljana and Maribor.',
+    [
+      'The market is transparent with regulated notarial fees. EU/EEA buyers have full rights.',
+      'Ljubljana is green and compact; Maribor is the second city. EU fund flows drive development.',
+      'sivrce.com/si is the canonical Slovenia URL. Listings publish only when verified.',
+    ],
+    [
+      {
+        q: 'Can a foreigner buy in Ljubljana?',
+        a: 'EU/EEA citizens: yes, freely. Non-EU citizens: yes, with no restrictions on residential property.',
+      },
+      {
+        q: 'What can foreigners own in Slovenia?',
+        a: 'Apartments freely; non-EU buyers need reciprocity-based consent for houses and land.',
+      },
+    ],
+  ),
 }
 
 const PARIS_BUY = intent(
@@ -390,12 +1710,12 @@ const PARIS_BUY = intent(
   'Buying in Paris: the compromis, the acte authentique, ~7% frais de notaire, the ten-day cooling-off and the copropriété file that decides the real price.',
   'Buying in Paris is two contracts and a notaire, not a checkout. Sign the compromis, take the ten statutory days, then complete at the acte authentique weeks later. Budget roughly 7% on top — most of it departmental tax.',
   [
-    'The compromis fixes the deal and the price; the acte transfers title. Between them sit the diagnostics, the pre-emption right of the commune where it applies, and the bank’s offer period if you finance. Weeks, not days.',
+    'The compromis fixes the deal and the price; the acte transfers title. Between them sit the diagnostics, the pre-emption right of the commune where it applies, and the bank\'s offer period if you finance. Weeks, not days.',
     'The copropriété file is where a Paris purchase is won or lost. The état daté, the last three assemblée générale minutes and the fund balance tell you which works have been voted and who pays for them — the answer is the new owner.',
     'Non-residents buy on the same terms with no extra foreigner tax, but French banks ask for more equity and a settlement account. Paris applied the 2025 DMTO uplift, so confirm the rate on your own acte.',
   ],
   [
-    { q: 'How long does a Paris purchase take?', a: 'Typically two to three months from compromis to acte, longer with a mortgage offer or a communal pre-emption right. The ten-day cooling-off is the buyer’s, and it is not negotiable away.' },
+    { q: 'How long does a Paris purchase take?', a: 'Typically two to three months from compromis to acte, longer with a mortgage offer or a communal pre-emption right. The ten-day cooling-off is the buyer\'s, and it is not negotiable away.' },
     { q: 'Is the deposit at risk?', a: 'The dépôt de garantie, usually 5–10%, is held by the notaire. You recover it if a suspensive condition fails — a refused mortgage, for instance — and lose it if you simply change your mind after the cooling-off.' },
   ],
 )
@@ -407,13 +1727,13 @@ const PARIS_RENT = intent(
   'Renting in Paris: encadrement des loyers, the dossier and the garant, unfurnished three-year leases against furnished one-year, and the DPE that decides what can be let at all.',
   'Paris caps rents. Every lease has a reference rent per square metre for its quartier and room count, and anything above it needs a justified complément de loyer or the tenant can have it struck out — retroactively.',
   [
-    'Unfurnished is a three-year lease with a one-month deposit; furnished is one year, or nine months for a student, with two months. The tenant can leave on one month’s notice in a zone tendue, which Paris is. Underwrite the turnover.',
+    'Unfurnished is a three-year lease with a one-month deposit; furnished is one year, or nine months for a student, with two months. The tenant can leave on one month\'s notice in a zone tendue, which Paris is. Underwrite the turnover.',
     'The dossier decides who gets the flat: proof of income around three times the rent, and a French garant or a Visale guarantee. Landlords cannot legally demand documents outside the statutory list.',
     'The DPE is now a letting test, not a label. Class G has been barred from new lettings since 2025 and F follows in 2028, which turns an unrenovated top-floor chambre into a capex decision.',
   ],
   [
     { q: 'Can the landlord charge above the reference rent?', a: 'Only with a complément de loyer justified by an exceptional feature, stated in the lease. Without that justification a tenant can demand a reduction and recover the overpayment.' },
-    { q: 'What deposit is legal?', a: 'One month’s rent excluding charges for unfurnished, two months for furnished. Anything more is not a market exception.' },
+    { q: 'What deposit is legal?', a: 'One month\'s rent excluding charges for unfurnished, two months for furnished. Anything more is not a market exception.' },
   ],
 )
 
@@ -421,10 +1741,10 @@ const MADRID_BUY = intent(
   'Buy',
   'Madrid',
   'Buy a home in Madrid | sivrce',
-  'Buying in Madrid: 6% ITP on resale, IVA plus AJD on new-build, NIE, nota simple and the notario. Spain’s cheapest big-city transfer tax.',
-  'Madrid charges 6% ITP on a resale — the lowest headline rate of Spain’s major cities, four points under Catalonia. A new-build from a developer pays IVA plus AJD instead. Get the NIE and the nota simple before anything else.',
+  'Buying in Madrid: 6% ITP on resale, IVA plus AJD on new-build, NIE, nota simple and the notario. Spain\'s cheapest big-city transfer tax.',
+  'Madrid charges 6% ITP on a resale — the lowest headline rate of Spain\'s major cities, four points under Catalonia. A new-build from a developer pays IVA plus AJD instead. Get the NIE and the nota simple before anything else.',
   [
-    'The nota simple from the Registro is the first document, not the brochure. Charges, mortgages and embargoes travel with the property rather than the seller, so a clean-looking flat can arrive with someone else’s debt attached.',
+    'The nota simple from the Registro is the first document, not the brochure. Charges, mortgages and embargoes travel with the property rather than the seller, so a clean-looking flat can arrive with someone else\'s debt attached.',
     'Between the arras (deposit contract) and the escritura at the notario sit the bank valuation, the community certificate confirming no arrears, and the IBI receipt. The notario reads and files; the gestoría handles the tax and registration.',
     'Golden-visa-by-property closed in 2025. Buy the asset on its own numbers — comunidad fees, IBI and the energy certificate — not on a residency slide.',
   ],
@@ -439,11 +1759,11 @@ const MADRID_RENT = intent(
   'Madrid',
   'Rent an apartment in Madrid | sivrce',
   'Renting in Madrid: five-year LAU terms, the one-month fianza lodged with the region, and a comunidad that Madrid has kept outside the national rent caps.',
-  'A Madrid lease runs five years by statute — seven if the landlord is a company — with the tenant holding the renewal right. The fianza is one month and must be lodged with the regional housing body, not kept in the landlord’s account.',
+  'A Madrid lease runs five years by statute — seven if the landlord is a company — with the tenant holding the renewal right. The fianza is one month and must be lodged with the regional housing body, not kept in the landlord\'s account.',
   [
     'The Comunidad de Madrid has not declared zonas tensionadas, so the national rent caps that bind in Catalonia do not apply here. That is a political position rather than a permanent feature of the law — it can change.',
     'Beyond the fianza a landlord may ask for a limited additional guarantee, commonly up to two further months. Demands well beyond that are not standard practice dressed up as market conditions.',
-    'Comunidad charges are normally the owner’s and IBI always is. Check which of the two the advertised rent is quietly assuming.',
+    'Comunidad charges are normally the owner\'s and IBI always is. Check which of the two the advertised rent is quietly assuming.',
   ],
   [
     { q: 'Can the landlord end the lease at five years?', a: 'The tenant holds the renewal right for the statutory term. A landlord can recover the property early only on stated grounds, such as documented need for their own household.' },
@@ -459,7 +1779,7 @@ const ROME_BUY = intent(
   'A Rome purchase completes in front of a notaio who reads the deed aloud and files the transcription. On a private resale you can elect prezzo-valore, which charges registration tax on the cadastral value rather than the price you actually pay.',
   [
     'That election is why the headline 9% overstates the real bill — the rendita base is usually well below market. Prima casa relief cuts it to 2%, but only if you move your residenza to the comune within eighteen months.',
-    'Condominio arrears transfer with the flat. Ask for the administrator’s statement, the last balance and any voted works before you sign the proposta, because a facade job decided last spring is now your facade job.',
+    'Condominio arrears transfer with the flat. Ask for the administrator\'s statement, the last balance and any voted works before you sign the proposta, because a facade job decided last spring is now your facade job.',
     'You need a codice fiscale before the notaio will close, and again afterwards for the utilities and the IMU filing. Historic-centre buildings carry Soprintendenza constraints that cap what a renovation can legally deliver.',
   ],
   [
@@ -481,7 +1801,7 @@ const ROME_RENT = intent(
   ],
   [
     { q: '4+4 or canone concordato?', a: 'The 4+4 lets you set a market rent over a long horizon. The 3+2 concordato caps the rent to a locally agreed band and returns it through reduced registration tax and IMU. Run both.' },
-    { q: 'What deposit is normal?', a: 'Up to three months’ rent, and it legally accrues interest to the tenant. Registration is the landlord’s duty, not a favour.' },
+    { q: 'What deposit is normal?', a: 'Up to three months\' rent, and it legally accrues interest to the tenant. Registration is the landlord\'s duty, not a favour.' },
   ],
 )
 
@@ -506,15 +1826,15 @@ const LONDON_RENT = intent(
   'Rent',
   'London',
   'Rent a flat in London | sivrce',
-  'Renting in London: the five-week deposit cap and its protection scheme, the Renters’ Rights Act ending section 21, right-to-rent checks and the EPC floor.',
-  'A London deposit is capped at five weeks’ rent and must sit in a government-approved protection scheme within thirty days. An unprotected deposit costs the landlord up to three times the sum, and blocks possession.',
+  'Renting in London: the five-week deposit cap and its protection scheme, the Renters\' Rights Act ending section 21, right-to-rent checks and the EPC floor.',
+  'A London deposit is capped at five weeks\' rent and must sit in a government-approved protection scheme within thirty days. An unprotected deposit costs the landlord up to three times the sum, and blocks possession.',
   [
-    'The Renters’ Rights Act ends assured shorthold fixed terms and section 21 no-fault eviction. Possession now runs through stated statutory grounds, which changes how a buy-to-let underwrites an exit — model that, not a 2019 landlord blog.',
+    'The Renters\' Rights Act ends assured shorthold fixed terms and section 21 no-fault eviction. Possession now runs through stated statutory grounds, which changes how a buy-to-let underwrites an exit — model that, not a 2019 landlord blog.',
     'The Tenant Fees Act bars almost every charge beyond rent, deposit and a capped change-of-tenancy fee. A landlord must also run a right-to-rent immigration check, and cannot let a property below EPC band E.',
     'Service charge is where a leasehold yield goes to die. Read three years of accounts and the cladding file before you treat the gross figure as income.',
   ],
   [
-    { q: 'How much deposit can be taken?', a: 'Five weeks’ rent where annual rent is under £50,000, six weeks above it, protected in an approved scheme within thirty days.' },
+    { q: 'How much deposit can be taken?', a: 'Five weeks\' rent where annual rent is under £50,000, six weeks above it, protected in an approved scheme within thirty days.' },
     { q: 'Can a landlord still evict without a reason?', a: 'No. Section 21 no-fault eviction is being removed; possession requires a stated statutory ground and, in most cases, a court.' },
   ],
 )
@@ -526,13 +1846,13 @@ const NEW_YORK_BUY = intent(
   'Buying in New York: condo against co-op, the buyer-side mansion tax from $1m, mortgage recording tax, and an attorney-driven closing that has no notary in it.',
   'The first decision in New York is not the neighbourhood, it is condo or co-op. A co-op board can reject you without giving a reason and can cap your financing; a condo is the predictable route for a foreign buyer, and it prices accordingly.',
   [
-    'The mansion tax is the buyer’s and starts at 1% of the whole price at $1m, stepping up from there. If you finance, mortgage recording tax adds roughly another two points. On a sponsor sale the buyer often absorbs the transfer tax as well.',
-    'Closings run through attorneys and a title company, not a notaire. Title insurance, not a public register’s guarantee, is what protects you — and it is bought once, at closing.',
+    'The mansion tax is the buyer\'s and starts at 1% of the whole price at $1m, stepping up from there. If you finance, mortgage recording tax adds roughly another two points. On a sponsor sale the buyer often absorbs the transfer tax as well.',
+    'Closings run through attorneys and a title company, not a notaire. Title insurance, not a public register\'s guarantee, is what protects you — and it is bought once, at closing.',
     'No Social Security number is required to take title. FIRPTA withholding hits foreign sellers, not buyers, so it is an exit problem to plan for rather than an entry barrier.',
   ],
   [
     { q: 'Co-op or condo as a foreign buyer?', a: 'Condo, in most cases. Co-op boards commonly require US-based income, liquidity held domestically and a personal interview, and can decline without explanation.' },
-    { q: 'What are the buyer’s closing costs?', a: 'Roughly 2–4% depending on financing: title insurance, attorney, recording, mansion tax above $1m and mortgage recording tax if you borrow.' },
+    { q: 'What are the buyer\'s closing costs?', a: 'Roughly 2–4% depending on financing: title insurance, attorney, recording, mansion tax above $1m and mortgage recording tax if you borrow.' },
   ],
 )
 
@@ -541,15 +1861,15 @@ const NEW_YORK_RENT = intent(
   'New York',
   'Rent an apartment in New York | sivrce',
   'Renting in New York: rent stabilization, the one-month security cap, the 40x income convention, and the FARE Act that moved the broker fee to whoever hired the broker.',
-  'New York caps security at one month’s rent and bars the old practice of stacking last month plus a deposit. Landlords conventionally want provable annual income around forty times the monthly rent, or a guarantor who clears a higher bar.',
+  'New York caps security at one month\'s rent and bars the old practice of stacking last month plus a deposit. Landlords conventionally want provable annual income around forty times the monthly rent, or a guarantor who clears a higher bar.',
   [
-    'Rent stabilization covers a large share of the older housing stock and governs both the increase and the renewal right. Whether a specific unit is stabilized is a question with a documented answer — ask for the rent history rather than accepting a listing’s word.',
-    'The FARE Act moved the broker fee to the party who hired the broker, ending the long-standing practice of charging a tenant for the landlord’s agent. Budget the first month and the one-month security, and query anything beyond that.',
+    'Rent stabilization covers a large share of the older housing stock and governs both the increase and the renewal right. Whether a specific unit is stabilized is a question with a documented answer — ask for the rent history rather than accepting a listing\'s word.',
+    'The FARE Act moved the broker fee to the party who hired the broker, ending the long-standing practice of charging a tenant for the landlord\'s agent. Budget the first month and the one-month security, and query anything beyond that.',
     'Short-term letting under thirty days without the permanent occupant present is unlawful in most of the housing stock and is enforced through a registration regime. It is not a grey area.',
   ],
   [
     { q: 'How much cash do I need up front?', a: 'Typically first month plus a one-month security. The security cap is statutory, and a broker fee is now the responsibility of whoever engaged the broker.' },
-    { q: 'How do I know if a unit is rent-stabilized?', a: 'Request the rent history from the state housing agency. Status follows the unit and its history, not the landlord’s description of it.' },
+    { q: 'How do I know if a unit is rent-stabilized?', a: 'Request the rent history from the state housing agency. Status follows the unit and its history, not the landlord\'s description of it.' },
   ],
 )
 
@@ -562,11 +1882,11 @@ const TORONTO_BUY = intent(
   [
     'Ontario applies a non-resident speculation tax on top for foreign buyers. First-time buyer rebates exist at both the provincial and municipal level; an investor qualifies for neither. Budget the statute in force on your closing date.',
     'In a condo the status certificate is the deal: the reserve fund study, the current balance, any special assessment and any litigation. A special assessment voted the month after closing is still yours.',
-    'Pre-construction assignments are a separate contract file with occupancy fees, an interim closing and a builder’s right to amend. They are not simply a cheaper resale.',
+    'Pre-construction assignments are a separate contract file with occupancy fees, an interim closing and a builder\'s right to amend. They are not simply a cheaper resale.',
   ],
   [
-    { q: 'How much are the two land transfer taxes?', a: 'Provincial plus the City of Toronto’s municipal levy. On a $900,000 purchase inside the city they come to roughly 4% combined — the single largest closing line.' },
-    { q: 'Can a non-resident buy?', a: 'Check the federal prohibition in force and Ontario’s speculation tax before you commit. The rules have changed more than once and this page will not pretend a frozen answer.' },
+    { q: 'How much are the two land transfer taxes?', a: 'Provincial plus the City of Toronto\'s municipal levy. On a $900,000 purchase inside the city they come to roughly 4% combined — the single largest closing line.' },
+    { q: 'Can a non-resident buy?', a: 'Check the federal prohibition in force and Ontario\'s speculation tax before you commit. The rules have changed more than once and this page will not pretend a frozen answer.' },
   ],
 )
 
@@ -574,16 +1894,16 @@ const TORONTO_RENT = intent(
   'Rent',
   'Toronto',
   'Rent an apartment in Toronto | sivrce',
-  'Renting in Toronto: the annual Ontario rent increase guideline, the post-2018 exemption that undoes it, last month’s rent as the only lawful deposit, and the Landlord and Tenant Board queue.',
+  'Renting in Toronto: the annual Ontario rent increase guideline, the post-2018 exemption that undoes it, last month\'s rent as the only lawful deposit, and the Landlord and Tenant Board queue.',
   'Ontario publishes an annual rent increase guideline, and it binds most older units. Units first occupied after 15 November 2018 are exempt from it, which means two identical apartments in the same neighbourhood can follow completely different rules.',
   [
-    'The only deposit a landlord may lawfully collect is last month’s rent, which must be applied to the final month and accrues interest. A damage deposit is not lawful in Ontario, whatever the listing calls it.',
-    'A landlord can recover a unit for their own or a close family member’s use, but that route carries compensation and a good-faith requirement, and bad-faith use of it is penalised.',
+    'The only deposit a landlord may lawfully collect is last month\'s rent, which must be applied to the final month and accrues interest. A damage deposit is not lawful in Ontario, whatever the listing calls it.',
+    'A landlord can recover a unit for their own or a close family member\'s use, but that route carries compensation and a good-faith requirement, and bad-faith use of it is penalised.',
     'The Landlord and Tenant Board queue is long enough to be an underwriting assumption rather than a footnote. Price the time, not just the rent.',
   ],
   [
     { q: 'Is my unit covered by the rent guideline?', a: 'Only if it was first occupied as a residential unit on or before 15 November 2018. Newer units are exempt, and the increase is whatever the lease and the market allow.' },
-    { q: 'Can I be asked for a damage deposit?', a: 'No. Last month’s rent is the only permitted deposit, plus a key deposit limited to the replacement cost.' },
+    { q: 'Can I be asked for a damage deposit?', a: 'No. Last month\'s rent is the only permitted deposit, plus a key deposit limited to the replacement cost.' },
   ],
 )
 
@@ -592,7 +1912,7 @@ const ISTANBUL_BUY = intent(
   'Istanbul',
   'Buy an apartment in Istanbul | sivrce',
   'Buying in Istanbul: the tapu, the 4% deed fee, building code year against the 1999, 2007 and 2018 revisions, DASK, military-zone clearance and district foreign-ownership quotas.',
-  'The sale happens at the land registry and the tapu is the title. Nothing before the tapu appointment transfers anything — a reservation form, a payment plan and a developer’s brochure are not ownership.',
+  'The sale happens at the land registry and the tapu is the title. Nothing before the tapu appointment transfers anything — a reservation form, a payment plan and a developer\'s brochure are not ownership.',
   [
     'The deed fee is 4% of the declared value, legally 2% from each side and in practice usually carried by the buyer. Declaring below the real price to shave it is tax fraud, and it caps the cost base you will one day be taxed against on sale.',
     'Building code year is the first question in this city, not the last. Ask where the building sits against the 1999, 2007 and 2018 revisions, whether it has been through kentsel dönüşüm, and what its DASK policy actually covers. DASK is a legal minimum, not full cover.',
@@ -600,7 +1920,7 @@ const ISTANBUL_BUY = intent(
   ],
   [
     { q: 'What does completion cost?', a: 'About 6% on top of the price: the 4% deed fee, registry service fees, sworn translator and notarised power of attorney, plus agency at 2% with KDV where an agent is engaged.' },
-    { q: 'Does buying give me citizenship?', a: 'Thresholds are set by government circular and move. Treat a developer’s “passport included” slide as marketing until the official gazette agrees.' },
+    { q: 'Does buying give me citizenship?', a: 'Thresholds are set by government circular and move. Treat a developer\'s "passport included" slide as marketing until the official gazette agrees.' },
   ],
 )
 
@@ -612,12 +1932,12 @@ const ISTANBUL_RENT = intent(
   'An Istanbul residential lease runs one year and renews automatically. The landlord cannot simply decline to renew — ending a tenancy requires a statutory ground, and in practice a court.',
   [
     'Annual increases are tied to the twelve-month average consumer price index. In a high-inflation year that is a real constraint on the landlord and a real exposure for the tenant, and it makes a lira yield a moving number rather than a fixed one.',
-    'The deposit is capped at three months’ rent under the Turkish Code of Obligations. Rent paid in cash without a bank record is a dispute waiting to happen; transfers with a reference are the norm for good reason.',
+    'The deposit is capped at three months\' rent under the Turkish Code of Obligations. Rent paid in cash without a bank record is a dispute waiting to happen; transfers with a reference are the norm for good reason.',
     'European-side, Asian-side and Bosphorus-front lettings are three different tenant markets. Aidat — the building service charge — sits outside the quoted rent and rises with inflation like everything else.',
   ],
   [
-    { q: 'How much can the rent rise at renewal?', a: 'Increases are bound to the twelve-month average CPI. A demand above that is challengeable, and the renewal itself is the tenant’s right.' },
-    { q: 'What deposit is lawful?', a: 'Up to three months’ rent. Anything beyond that is not a market exception, whatever the agent says.' },
+    { q: 'How much can the rent rise at renewal?', a: 'Increases are bound to the twelve-month average CPI. A demand above that is challengeable, and the renewal itself is the tenant\'s right.' },
+    { q: 'What deposit is lawful?', a: 'Up to three months\' rent. Anything beyond that is not a market exception, whatever the agent says.' },
   ],
 )
 
@@ -791,7 +2111,7 @@ const ZURICH_RENT = intent(
   ],
 )
 
-export const EXTRA_CITIES: Record<keyof typeof EXTRA_NAMES, Record<string, CityPack>> = {
+export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<string, CityPack>>> = {
   fr: {
     paris: city(
       'Paris',

@@ -301,8 +301,9 @@ export function proxy(req: NextRequest) {
           return rememberGeo(req, NextResponse.redirect(dest, 302), "global", true)
         }
         if (target === "ge") {
-          const dest = safeRedirectUrl(GE_ORIGIN, "/", req.nextUrl.search)
-          if (!dest) return NextResponse.redirect(new URL("/", GE_ORIGIN), 302)
+          // Stay on .com under the /ge mirror — sivrce.ge stays canonical.
+          const dest = req.nextUrl.clone()
+          dest.pathname = "/ge"
           return rememberGeo(req, NextResponse.redirect(dest, 302), "ge")
         }
         if (target !== "hub") {

@@ -12,19 +12,21 @@ import {
   cityFact,
   cityRateRows,
   countryFacts,
+  marketCosts,
   marketMoney,
   marketTrust,
   MARKET_COSTS,
 } from './costs'
 import { buyerCostBreakdown, DE_CITIES, GRUNDERWERBSTEUER_BY_STATE } from './de'
-import { COUNTRY_IDS, MARKETS } from '@/lib/markets'
+import { COUNTRY_IDS, MARKETS, type PathCountryId } from '@/lib/markets'
 import { cityPack } from '@/lib/country-copy'
 
-// Every launched market is modelled, and every market city has an explicit
-// local rate — no silent fallback to the country default on a live page.
-for (const cc of COUNTRY_IDS) {
+const MODELLED = Object.keys(MARKET_COSTS) as PathCountryId[]
+
+// Every modelled market is complete, and every modelled market city has an
+// explicit local rate — no silent fallback to the country default on a live page.
+for (const cc of MODELLED) {
   const m = MARKET_COSTS[cc]
-  assert.ok(m, `no cost model: ${cc}`)
   assert.ok(m.closer.length > 2, `closer: ${cc}`)
   assert.ok(m.cashLabel.length > 8, `cashLabel: ${cc}`)
   assert.ok(m.taxLabel.length > 2, `taxLabel: ${cc}`)
@@ -43,6 +45,16 @@ for (const cc of COUNTRY_IDS) {
   // Germany computes its facts band from the live catalog; everyone else is static.
   if (cc !== 'de') assert.equal(countryFacts(cc).length, 4, `4 facts: ${cc}`)
   assert.deepEqual(marketTrust(cc), m.trust, `trust accessor: ${cc}`)
+}
+
+// Every launched market resolves through marketCosts (GENERIC fallback for
+// pending tables) and yields a percent-only buyer-costs answer — never a crash.
+for (const cc of COUNTRY_IDS) {
+  const m = marketCosts(cc)
+  assert.ok(m.trust.length === 3 && m.rentRules.length === 3, `fallback shape: ${cc}`)
+  // Germany computes its facts band from the live catalog — count varies.
+  if (cc !== 'de') assert.ok(countryFacts(cc).length === 4, `fallback facts: ${cc}`)
+  assert.ok(buyerCosts(cc, MARKETS[cc].defaultCitySlug), `buyerCosts: ${cc}`)
 }
 
 // Progressive slice tax (UK). Hand-computed against the published bands.
@@ -132,7 +144,7 @@ assert.ok(marketMoney('us')(1000).includes('$'), 'usd symbol')
 
 // A hub must never invent a national average: the country default mirrors the
 // flagship city's real rate, which is what MarketHome renders and names.
-for (const cc of COUNTRY_IDS) {
+for (const cc of MODELLED) {
   const flagship = MARKETS[cc].defaultCitySlug
   assert.deepEqual(
     MARKET_COSTS[cc].defaultCity,
@@ -142,4 +154,5 @@ for (const cc of COUNTRY_IDS) {
 }
 
 const cities = COUNTRY_IDS.reduce((n, cc) => n + MARKETS[cc].citySlugs.length, 0)
-console.log(`costs.check: ${COUNTRY_IDS.length} markets / ${cities} cities priced ✓`)
+const pending = COUNTRY_IDS.filter((cc) => !MARKET_COSTS[cc]).length
+console.log(`costs.check: ${MODELLED.length} modelled + ${pending} GENERIC-fallback markets / ${cities} cities ✓`)

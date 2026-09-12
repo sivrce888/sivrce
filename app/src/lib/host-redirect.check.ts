@@ -49,7 +49,7 @@ const geBerlin = decideHost({ host: 'sivrce.ge', pathname: '/berlin', vercelEnv:
 assert.deepEqual(geBerlin, { type: 'redirect', origin: COM_ORIGIN, pathname: '/de/berlin' })
 
 const comSale = decideHost({ host: 'sivrce.com', pathname: '/sale', vercelEnv: 'production' })
-assert.deepEqual(comSale, { type: 'redirect', origin: GE_ORIGIN, pathname: '/sale' })
+assert.deepEqual(comSale, { type: 'redirect', origin: 'same', pathname: '/ge/sale' })
 
 const comHome = decideHost({ host: 'sivrce.com', pathname: '/', vercelEnv: 'production' })
 assert.deepEqual(comHome, { type: 'rewrite', pathname: '/en', market: 'global' })
@@ -157,5 +157,47 @@ assert.equal(intentHref('de', 'munich', 'buy', 'en', '/en/de'), '/en/de/munich')
 assert.equal(intentHref('de', 'berlin', 'buy', 'en', '/en/de'), '/en/de/berlin/buy')
 assert.equal(intentHref('de', 'munich', 'buy', 'en'), '/de/munich')
 assert.equal(intentHref('de', 'berlin', 'buy', 'en'), '/de/berlin/buy')
+
+// /ge mirror on sivrce.com: full Georgian catalog, market ge (canonicals stay sivrce.ge).
+const comGeRoot = decideHost({ host: 'sivrce.com', pathname: '/ge', vercelEnv: 'production' })
+assert.deepEqual(comGeRoot, { type: 'rewrite', pathname: '/ka', market: 'ge' })
+const comGeSale = decideHost({ host: 'sivrce.com', pathname: '/ge/sale', vercelEnv: 'production' })
+assert.deepEqual(comGeSale, { type: 'rewrite', pathname: '/ka/sale', market: 'ge' })
+const comGeEnSale = decideHost({ host: 'sivrce.com', pathname: '/ge/en/sale', vercelEnv: 'production' })
+assert.deepEqual(comGeEnSale, { type: 'rewrite', pathname: '/en/sale', market: 'ge' })
+const comGeDeSale = decideHost({ host: 'sivrce.com', pathname: '/ge/de/sale', vercelEnv: 'production' })
+assert.deepEqual(comGeDeSale, { type: 'rewrite', pathname: '/de/sale', market: 'ge' })
+const comGeMap = decideHost({ host: 'sivrce.com', pathname: '/ge/map', vercelEnv: 'production' })
+assert.deepEqual(comGeMap, { type: 'rewrite', pathname: '/ka/map', market: 'ge' })
+const comGeListing = decideHost({ host: 'sivrce.com', pathname: '/ge/listing/123/x', vercelEnv: 'production' })
+assert.deepEqual(comGeListing, { type: 'rewrite', pathname: '/ka/listing/123/x', market: 'ge' })
+// /ge/ka/… folds to the unprefixed mirror form.
+const comGeKaSale = decideHost({ host: 'sivrce.com', pathname: '/ge/ka/sale', vercelEnv: 'production' })
+assert.deepEqual(comGeKaSale, { type: 'redirect', origin: 'same', pathname: '/ge/sale' })
+// Internal-form leak folds to the public mirror form.
+const comEnGeSale = decideHost({ host: 'sivrce.com', pathname: '/en/ge/sale', vercelEnv: 'production' })
+assert.deepEqual(comEnGeSale, { type: 'redirect', origin: 'same', pathname: '/ge/en/sale' })
+// Locale-prefixed Georgian paths stay on .com under /ge.
+const comEnSale = decideHost({ host: 'sivrce.com', pathname: '/en/sale', vercelEnv: 'production' })
+assert.deepEqual(comEnSale, { type: 'redirect', origin: 'same', pathname: '/ge/en/sale' })
+const comKaSale = decideHost({ host: 'sivrce.com', pathname: '/ka/sale', vercelEnv: 'production' })
+assert.deepEqual(comKaSale, { type: 'redirect', origin: 'same', pathname: '/ge/sale' })
+const comRuListing = decideHost({ host: 'sivrce.com', pathname: '/ru/listing/5', vercelEnv: 'production' })
+assert.deepEqual(comRuListing, { type: 'redirect', origin: 'same', pathname: '/ge/ru/listing/5' })
+// sivrce.ge folds /ge/… to the unprefixed canonical URL.
+const geMirrorSale = decideHost({ host: 'sivrce.ge', pathname: '/ge/sale', vercelEnv: 'production' })
+assert.deepEqual(geMirrorSale, { type: 'redirect', origin: 'same', pathname: '/sale' })
+const geMirrorEn = decideHost({ host: 'sivrce.ge', pathname: '/ge/en/sale', vercelEnv: 'production' })
+assert.deepEqual(geMirrorEn, { type: 'redirect', origin: 'same', pathname: '/en/sale' })
+const geMirrorRoot = decideHost({ host: 'sivrce.ge', pathname: '/ge', vercelEnv: 'production' })
+assert.deepEqual(geMirrorRoot, { type: 'redirect', origin: 'same', pathname: '/' })
+// Dev/preview mirror matches prod.
+const localGeSale = decideHost({ host: 'localhost', pathname: '/ge/sale' })
+assert.deepEqual(localGeSale, { type: 'rewrite', pathname: '/ka/sale', market: 'ge' })
+const localGeEn = decideHost({ host: 'localhost', pathname: '/ge/en/sale' })
+assert.deepEqual(localGeEn, { type: 'rewrite', pathname: '/en/sale', market: 'ge' })
+// Country paths on .ge still move to .com; /ge on .ge is not a country path.
+const geCountryPath = decideHost({ host: 'sivrce.ge', pathname: '/fr/paris', vercelEnv: 'production' })
+assert.deepEqual(geCountryPath, { type: 'redirect', origin: COM_ORIGIN, pathname: '/fr/paris' })
 
 console.log('host-redirect.check: ok')

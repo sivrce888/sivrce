@@ -69,7 +69,7 @@ for (const b of BERLIN_BEZIRKE) {
 import { NEW_DEVELOPERS_GERMANY } from '@/data/projects-new-germany'
 const devSlugs = new Set([...NEW_DEVELOPERS_BERLIN, ...NEW_DEVELOPERS_GERMANY].map((d) => d.slug))
 for (const p of NEW_PROJECTS_BERLIN) {
-  assert.ok(devSlugs.has(p.developerSlug), `project ${p.slug} references missing developer ${p.developerSlug}`)
+  assert.ok(devSlugs.has(p.developerSlug ?? ""), `project ${p.slug} references missing developer ${p.developerSlug}`)
 }
 
 console.log(

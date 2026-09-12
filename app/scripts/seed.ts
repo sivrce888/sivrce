@@ -142,7 +142,7 @@ async function main() {
   const devName = new Map(DEVELOPERS.map((d) => [d.slug, d.name.ka]))
   console.log(`Seeding ${PROJECTS.length} projects...`)
   for (const p of PROJECTS) {
-    const developer = devName.get(p.developerSlug)
+    const developer = devName.get(p.developerSlug ?? "")
     if (!developer) {
       console.warn(`  ! ${p.slug}: unknown developerSlug ${p.developerSlug}, skipped`)
       continue

@@ -3,7 +3,7 @@ import { Building2, Landmark, MapPin, ScrollText, ShieldCheck } from 'lucide-rea
 import { Reveal } from '@/components/Reveal'
 import CountryHero from '@/components/country/CountryHero'
 import { COUNTRY_NAMES, cityPack, type CountryCopy } from '@/lib/country-copy'
-import { MARKET_COSTS, buyerCosts, cityRateRows, marketMoney } from '@/lib/countries/costs'
+import { buyerCosts, cityRateRows, marketCosts, marketMoney } from '@/lib/countries/costs'
 import { COM_ORIGIN, MARKETS, type PathCountryId } from '@/lib/markets'
 import type { Lang } from '@/lib/i18n/core'
 
@@ -51,7 +51,7 @@ function SectionHead({
 const ICONS = [Landmark, ScrollText, ShieldCheck, MapPin] as const
 
 function FactsBand({ country }: { country: PathCountryId }) {
-  const facts = MARKET_COSTS[country].facts
+  const facts = marketCosts(country).facts
   if (!facts.length) return null
   return (
     <section className="bg-sv-cloud py-16 md:py-20">
@@ -74,7 +74,7 @@ function FactsBand({ country }: { country: PathCountryId }) {
 }
 
 function CitiesBand({ country, current }: { country: PathCountryId; current?: string }) {
-  const m = MARKET_COSTS[country]
+  const m = marketCosts(country)
   const rows = cityRateRows(country, (s) => cityPack(country, s)?.name ?? null)
   if (rows.length < 2) return null
   const prefix = MARKETS[country].pathPrefix
@@ -117,7 +117,7 @@ function CitiesBand({ country, current }: { country: PathCountryId; current?: st
 }
 
 function CostAndRules({ country, city }: { country: PathCountryId; city?: string }) {
-  const m = MARKET_COSTS[country]
+  const m = marketCosts(country)
   // A hub prices the market's flagship city by name. Averaging a federal
   // country into one "national rate" would invent a number nobody pays.
   const costCity = city ?? MARKETS[country].defaultCitySlug

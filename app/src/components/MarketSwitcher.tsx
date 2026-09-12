@@ -22,10 +22,70 @@ const LABEL: Record<'ge' | PathCountryId, string> = {
   nl: 'Netherlands',
   pt: 'Portugal',
   ch: 'Switzerland',
+  jp: 'Japan',
+  cn: 'China',
+  au: 'Australia',
+  br: 'Brazil',
+  mx: 'Mexico',
+  sg: 'Singapore',
+  hk: 'Hong Kong',
+  kr: 'South Korea',
+  in: 'India',
+  th: 'Thailand',
+  id: 'Indonesia',
+  ph: 'Philippines',
+  vn: 'Vietnam',
+  my: 'Malaysia',
+  sa: 'Saudi Arabia',
+  ng: 'Nigeria',
+  eg: 'Egypt',
+  za: 'South Africa',
+  ke: 'Kenya',
+  ma: 'Morocco',
+  pl: 'Poland',
+  cz: 'Czech Republic',
+  hu: 'Hungary',
+  ro: 'Romania',
+  bg: 'Bulgaria',
+  rs: 'Serbia',
+  hr: 'Croatia',
+  se: 'Sweden',
+  no: 'Norway',
+  dk: 'Denmark',
+  fi: 'Finland',
+  at: 'Austria',
+  be: 'Belgium',
+  ie: 'Ireland',
+  nz: 'New Zealand',
+  co: 'Colombia',
+  cl: 'Chile',
+  ar: 'Argentina',
+  pe: 'Peru',
+  ec: 'Ecuador',
+  pk: 'Pakistan',
+  bd: 'Bangladesh',
+  lk: 'Sri Lanka',
+  np: 'Nepal',
+  kh: 'Cambodia',
+  mm: 'Myanmar',
+  la: 'Laos',
+  uz: 'Uzbekistan',
+  kz: 'Kazakhstan',
+  am: 'Armenia',
+  az: 'Azerbaijan',
+  ua: 'Ukraine',
+  ee: 'Estonia',
+  lt: 'Lithuania',
+  lv: 'Latvia',
+  is: 'Iceland',
+  mt: 'Malta',
+  lu: 'Luxembourg',
+  sk: 'Slovakia',
+  si: 'Slovenia',
 }
 
 const ITEMS: { id: 'ge' | PathCountryId; label: string; href: string; prod: string; flag: FlagCode }[] = [
-  { id: 'ge', label: LABEL.ge, href: '/', prod: `${GE_ORIGIN}/`, flag: 'ge' },
+  { id: 'ge', label: LABEL.ge, href: '/ge', prod: '/ge', flag: 'ge' },
   ...COUNTRY_IDS.map((id) => ({
     id,
     label: LABEL[id],
@@ -34,6 +94,11 @@ const ITEMS: { id: 'ge' | PathCountryId; label: string; href: string; prod: stri
     flag: id as FlagCode,
   })),
 ]
+
+/** Georgia: /ge mirror on sivrce.com, root on sivrce.ge. */
+function prodGeHref(): string {
+  return isComHost() ? '/ge' : `${GE_ORIGIN}/`
+}
 
 function isComHost() {
   if (typeof window === 'undefined') return false
@@ -52,6 +117,7 @@ function activeId(pathname: string): 'ge' | PathCountryId {
     }
     if (pathname === '/uae' || pathname.startsWith('/uae/')) return 'ae'
     if (pathname === '/uk' || pathname.startsWith('/uk/')) return 'gb'
+    if (pathname === '/ge' || pathname.startsWith('/ge/')) return 'ge'
   }
   return 'ge'
 }
@@ -108,7 +174,7 @@ export function MarketSwitcher({ light = false }: { light?: boolean }) {
         className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-52 origin-top-right overflow-y-auto rounded-2xl p-1.5 shadow-card"
       >
         {ITEMS.map((m) => {
-          const href = prod ? m.prod : m.href
+          const href = !prod ? m.href : m.id === 'ge' ? prodGeHref() : m.prod
           const on = m.id === active
           return (
             <a

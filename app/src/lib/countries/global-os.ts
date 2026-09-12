@@ -10,12 +10,20 @@
  *
  * DB-free by design (static corpus only; live DB rows merge at runtime via
  * directory-live). Safe for prebuild checks and server components.
+ * All 249 ISO countries resolve (data/world-countries.ts, codes only, names
+ * via Intl): pinned metros where committed, discovery-only rows elsewhere —
+ * live Nominatim/OSM at runtime, never invented pins, never sitemap links.
+ * Developers span the GE corpus (data/professionals) + the world corpus
+ * (data/world-developers); renders/photos are counted, not copied (R2).
+ * ponytail: one file; per-country fan-out only when a market earns a deep hub.
  * ponytail: one file; per-country fan-out only when a market earns a deep hub.
  * Non-deep currencies fall back to USD/en for display only — never for pricing.
  */
 
 import { DEVELOPERS, PROJECTS } from '@/data/professionals'
 import { METRO_STATIONS } from '@/data/tbilisi-metro'
+import { worldDevelopers } from '@/data/world-developers'
+import { ISO_COUNTRY_CODES } from '@/data/world-countries'
 import { WORLD_PLACES } from '@/data/world-places'
 import { countrySitemapPaths } from '@/lib/country-copy'
 import { COSTS_AS_OF } from '@/lib/countries/costs'
@@ -27,11 +35,11 @@ import {
   type PathCountryId,
 } from '@/lib/markets'
 import {
-  MAP_CITIES,
+  MAP_CITIES_ALL as MAP_CITIES,
   cityByName,
   nearestMapCity,
-  type MapCity,
-} from '@/lib/map/user-place'
+} from '@/lib/map/user-place.server'
+import type { MapCity } from '@/lib/map/user-place'
 import { countryOf } from '@/lib/place-context'
 
 export const GLOBAL_OS_AS_OF = COSTS_AS_OF
@@ -92,8 +100,8 @@ export interface GlobalCountry {
   path: string | null
   defaultCitySlug: string | null
   cityCount: number
-  /** Map anchor (deep default city, else first metro) — not a survey pin. */
-  center: { lat: number; lng: number }
+  /** Map anchor (deep default city, else first metro) — null = discovery-only, no invented pin. */
+  center: { lat: number; lng: number } | null
   metros: GlobalMetro[]
 }
 
@@ -105,27 +113,43 @@ export function globalCountries(): GlobalCountry[] {
     list.push(m)
     byCc.set(m.cc, list)
   }
-  return [...byCc.entries()]
-    .map(([cc, list]) => {
-      const deep = deepMarketFor(cc)
-      const market = deep ? MARKETS[deep] : null
-      const anchor =
-        (deep && list.find((m) => m.slug === market!.defaultCitySlug)) ?? list[0]!
-      return {
-        cc,
-        names: countryOf(cc),
-        currency: market?.currency ?? 'USD',
-        locale: market?.locale ?? 'en',
-        deep: !!deep,
-        deepId: deep,
-        path: market?.pathPrefix ?? null,
-        defaultCitySlug: market?.defaultCitySlug ?? null,
-        cityCount: list.length,
-        center: { lat: anchor.lat, lng: anchor.lng },
-        metros: list,
-      } satisfies GlobalCountry
+  const rows: GlobalCountry[] = [...byCc.entries()].map(([cc, list]) => {
+    const deep = deepMarketFor(cc)
+    const market = deep ? MARKETS[deep] : null
+    const anchor =
+      (deep && list.find((m) => m.slug === market!.defaultCitySlug)) ?? list[0]!
+    return {
+      cc,
+      names: countryOf(cc),
+      currency: market?.currency ?? 'USD',
+      locale: market?.locale ?? 'en',
+      deep: !!deep,
+      deepId: deep,
+      path: market?.pathPrefix ?? null,
+      defaultCitySlug: market?.defaultCitySlug ?? null,
+      cityCount: list.length,
+      center: { lat: anchor.lat, lng: anchor.lng },
+      metros: list,
+    } satisfies GlobalCountry
+  })
+  // Discovery-only ISO rows: searchable by name, live-geocoded at runtime.
+  for (const cc of ISO_COUNTRY_CODES) {
+    if (byCc.has(cc)) continue
+    rows.push({
+      cc,
+      names: countryOf(cc),
+      currency: 'USD',
+      locale: 'en',
+      deep: false,
+      deepId: null,
+      path: null,
+      defaultCitySlug: null,
+      cityCount: 0,
+      center: null,
+      metros: [],
     })
-    .sort((a, b) => a.names.en.localeCompare(b.names.en))
+  }
+  return rows.sort((a, b) => a.names.en.localeCompare(b.names.en))
 }
 
 export function globalCountry(cc: string): GlobalCountry | null {
@@ -175,7 +199,12 @@ export function metroStationsFor(slug: string) {
 /* ── Developers / projects / renders / photos ── */
 
 export interface GlobalOsStats {
+  /** Countries with committed metro pins. */
   countries: number
+  /** All ISO assignments + pin-backed extras (XK) — the OS resolves every one. */
+  isoCountries: number
+  /** ISO rows without pins: name search + live geocode, no dead URLs. */
+  discoveryCountries: number
   metros: number
   deepMarkets: number
   deepCities: number
@@ -193,12 +222,17 @@ export interface GlobalOsStats {
 export function globalOsStats(): GlobalOsStats {
   const metros = globalMetros()
   const contactable = DEVELOPERS.filter((d) => d.phone || d.website || d.ownerId).length
+  const iso = new Set<string>([...ISO_COUNTRY_CODES, ...metros.map((m) => m.cc)])
+  const pinned = new Set(metros.map((m) => m.cc))
   return {
-    countries: new Set(metros.map((m) => m.cc)).size,
+    countries: pinned.size,
+    isoCountries: iso.size,
+    discoveryCountries: iso.size - pinned.size,
     metros: metros.length,
     deepMarkets: COUNTRY_IDS.length,
     deepCities: COUNTRY_IDS.reduce((n, id) => n + MARKETS[id].citySlugs.length, 0),
     worldPlaces: WORLD_PLACES.length,
+    // worldDevelopers are merged into DEVELOPERS (professionals.ts) — counted once.
     developers: DEVELOPERS.length,
     contactableDevelopers: contactable,
     projects: PROJECTS.length,
@@ -217,7 +251,7 @@ export interface CountryCoverage {
   renders: number
 }
 
-/** Corpus grouped by country: ka city name first, project pin snap as fallback. Unmapped rows reported, never forced. */
+/** Corpus grouped by country: GE ka city name or world Latin city first, project pin snap as fallback. Unmapped rows reported, never forced. */
 export function globalCoverage(): {
   rows: CountryCoverage[]
   unmappedDevelopers: number
@@ -237,6 +271,7 @@ export function globalCoverage(): {
       : null)
   let unmappedDevelopers = 0
   let unmappedProjects = 0
+  // worldDevelopers are merged into DEVELOPERS — one pass, no double count.
   for (const d of DEVELOPERS) {
     const cc = resolveCc(d.city)
     if (!cc) {
@@ -305,6 +340,14 @@ export function globalOsSitemapPaths(): string[] {
   return COUNTRY_IDS.flatMap((cc) => countrySitemapPaths(cc))
 }
 
+/** ISO codes with zero committed pins — usable for name search + live geocode, never for sitemap/links. */
+export function discoveryCountryCodes(): string[] {
+  const pinned = new Set(globalMetros().map((m) => m.cc))
+  return [...new Set([...ISO_COUNTRY_CODES, ...pinned])]
+    .filter((cc) => !pinned.has(cc))
+    .sort()
+}
+
 /** Metros without a route — usable for map snap + suggest, never for sitemap/links. */
 export function discoveryMetroSlugs(): string[] {
   return globalMetros()
@@ -326,13 +369,14 @@ export function osFreshness(): { asOf: string; cycles: { fact: FactType; hours: 
 
 export function countryJsonLd(cc: string): Record<string, unknown> | null {
   const c = globalCountry(cc)
-  if (!c) return null
+  if (!c?.path) return null
   return {
     '@context': 'https://schema.org',
     '@type': 'Country',
     name: c.names.en,
     identifier: c.cc,
-    ...(c.path ? { url: `${COM_ORIGIN}${c.path}`, sameAs: [`${COM_ORIGIN}${c.path}`] } : {}),
+    url: `${COM_ORIGIN}${c.path}`,
+    sameAs: [`${COM_ORIGIN}${c.path}`],
     containsPlace: c.metros.map((m) => ({
       '@type': 'City',
       name: m.en,

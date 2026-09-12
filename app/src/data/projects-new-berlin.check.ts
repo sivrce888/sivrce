@@ -14,7 +14,7 @@ assert.equal(new Set(devSlugs).size, devSlugs.length, 'duplicate developer slug'
 
 for (const p of NEW_PROJECTS_BERLIN) {
   assert.ok(slugs.includes(p.slug), `wired: ${p.slug}`)
-  assert.ok(devSlugs.includes(p.developerSlug), `dev missing: ${p.developerSlug} (${p.slug})`)
+  assert.ok(devSlugs.includes(p.developerSlug ?? ""), `dev missing: ${p.developerSlug} (${p.slug})`)
   assert.equal(p.city, 'ბერლინი', `city: ${p.slug}`)
   assert.ok(/\d/.test(p.location), `street number: ${p.slug}`)
   assert.ok(p.img.startsWith('/images/') && p.img.endsWith('.webp'), `img: ${p.slug}`)

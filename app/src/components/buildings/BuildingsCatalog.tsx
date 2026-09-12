@@ -177,7 +177,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
       if (ubani !== 'all' && b.ubani !== ubani) return false
       if (status !== 'all' && b.status !== status) return false
       if (!needle) return true
-      const dev = developerNames[b.developerSlug] ?? ''
+      const dev = (b.developerSlug ? developerNames[b.developerSlug] : undefined) ?? ''
       return (
         b.name.toLowerCase().includes(needle) ||
         b.nameEn.toLowerCase().includes(needle) ||
@@ -309,7 +309,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
       ) : (
         <div className="sv-card-grid-3">
           {filtered.map((b, i) => {
-            const devName = developerNames[b.developerSlug]
+            const devName = b.developerSlug ? developerNames[b.developerSlug] : undefined
             const counts = countsBySlug[b.slug] ?? empty
             const total = counts.sale + counts.rent + counts.daily + counts.pledge
             const metro = nearestMetro(b.coords.lat, b.coords.lng)

@@ -5,14 +5,14 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
-import { COM_ORIGIN, COUNTRY_IDS, GE_ORIGIN, MARKETS } from '@/lib/markets'
+import { COM_ORIGIN, COUNTRY_IDS, MARKETS } from '@/lib/markets'
 import { COUNTRY_NAMES } from '@/lib/country-copy'
 import GeoGate from '@/components/country/GeoGate'
 
 export const metadata: Metadata = {
   title: 'sivrce — real estate, globally',
   description:
-    'sivrce is the global real-estate company. Georgia’s live marketplace is sivrce.ge. Country markets use ISO paths on sivrce.com — /de, /ae, /fr, /es, /it, /gb, /us, /ca, /tr, /gr, /cy, /nl, /pt, /ch. /uae redirects to /ae; /uk redirects to /gb.',
+    'sivrce is the global real-estate platform. Georgia’s live marketplace is at sivrce.com/ge — the full sivrce.ge catalog. Every other country is an ISO path — /de, /ae, /fr, /es, /it, /gb, /us, /ca, /tr, /gr, /cy, /nl, /pt, /ch. /uae redirects to /ae; /uk redirects to /gb.',
   alternates: {
     canonical: `${COM_ORIGIN}/`,
     languages: {
@@ -65,7 +65,7 @@ const ld = {
       '@type': 'ItemList',
       name: 'sivrce markets',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Georgia', url: GE_ORIGIN },
+        { '@type': 'ListItem', position: 1, name: 'Georgia', url: `${COM_ORIGIN}/ge` },
         ...COUNTRY_IDS.map((cc, i) => ({
           '@type': 'ListItem' as const,
           position: i + 2,
@@ -91,22 +91,22 @@ export default function GlobalHome() {
               <span className="text-gradient-blue">country by country</span>
             </>
           }
-          subtitle="Georgia is the live marketplace on sivrce.ge. Every other country is an ISO path on sivrce.com so Google and answer engines see one canonical URL per market."
+          subtitle="Georgia is live at /ge — the full sivrce.ge catalog on sivrce.com. Every country is an ISO path so Google and answer engines see one canonical URL per market."
         />
         <div className="sv-container py-14">
           <Reveal>
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <li>
-                <a
-                  href={GE_ORIGIN}
+                <Link
+                  href="/ge"
                   className="block rounded-[26px] border border-sv-ink/8 bg-sv-surface p-6 shadow-card"
                 >
                   <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-sv-blue">Georgia · GEL</p>
-                  <h2 className="mt-2 text-[22px] font-black tracking-tight">sivrce.ge</h2>
+                  <h2 className="mt-2 text-[22px] font-black tracking-tight">sivrce.com/ge</h2>
                   <p className="mt-3 text-[15px] font-medium text-sv-ink/70">
-                    Live listings, 3D map, cadastre, new-builds. Georgian unprefixed, English at /en.
+                    Live listings, 3D map, cadastre, new-builds — the full sivrce.ge catalog. Georgian unprefixed, English at /ge/en.
                   </p>
-                </a>
+                </Link>
               </li>
               {COUNTRY_IDS.map((cc) => (
                 <li key={cc}>

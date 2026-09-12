@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { GE_ORIGIN } from '@/lib/markets'
 import {
   GEO_COOKIE,
   geoHomePath,
@@ -64,7 +63,7 @@ export default function GeoGate() {
         const host = window.location.hostname
         const com = host === 'sivrce.com' || host === 'www.sivrce.com'
         if (m === 'ge') {
-          if (com) window.location.replace(`${GE_ORIGIN}/`)
+          if (com) window.location.replace('/ge')
           else markMiss()
           return
         }

@@ -16,6 +16,71 @@ import { NEW_PROJECTS_REGIONS } from './projects-new-regions'
 import { NEW_DEVELOPERS_2026_08, NEW_PROJECTS_2026_08 } from './projects-new-2026-08'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from './projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from './projects-new-germany'
+import { WORLD_PROJECTS, type WorldProject } from './world-projects'
+import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
+import { ON_REQUEST } from '@/lib/directory-seo-lite'
+
+/**
+ * Convert WorldProject to Project format for professionals.ts integration.
+ * ponytail: minimal mapping, default values for missing fields.
+ */
+function worldProjectToProject(wp: WorldProject): Project {
+  const statusMap: Record<string, number> = {
+    'completed': 100,
+    'under-construction': 50,
+    'planned': 0,
+    'sold-out': 100,
+  }
+  const typeMap: Record<string, string> = {
+    'apartment': 'აპარტამენტი',
+    'villa': 'ვილა',
+    'townhouse': 'ტაუნჰაუსი',
+    'mixed-use': 'შერეული',
+    'commercial': 'კომერციული',
+    'hotel': 'სასტუმრო',
+    'infra': 'ინფრასტრუქტურა',
+  }
+  return {
+    slug: wp.slug,
+    name: wp.name,
+    developerSlug: wp.developer || undefined,
+    img: `/images/projects/${wp.slug}.webp`,
+    location: wp.district ? `${wp.district}, ${wp.city}` : wp.city,
+    city: wp.city,
+    priceFromM2: wp.pricePerSqm ? `$${wp.pricePerSqm.toLocaleString()}` : ON_REQUEST,
+    done: statusMap[wp.status] || 0,
+    finish: wp.yearCompleted ? `${wp.yearCompleted}` : 'TBD',
+    flats: wp.units || 0,
+    rating: 4.5,
+    coords: { lat: wp.lat, lng: wp.lng },
+    floors: wp.floors,
+    description: {
+      ka: wp.description,
+      en: wp.description,
+      ru: wp.description,
+    },
+  }
+}
+
+const WORLD_PROJECTS_MAPPED: Project[] = WORLD_PROJECTS.map(worldProjectToProject)
+
+/** worldDevelopers join the registry so worldProjects' developer links resolve. */
+function worldDeveloperToDeveloper(w: WorldDeveloperEntry): Developer {
+  return {
+    slug: w.slug,
+    name: { ka: w.nameLocal ?? w.name, en: w.name, ru: w.name },
+    city: w.city,
+    yearsActive: Math.max(1, new Date().getFullYear() - w.founded),
+    projectsDone: w.projectsCount,
+    // ponytail: units unknown for world rows — projectsCount is the honest floor.
+    unitsDelivered: w.projectsCount,
+    description: { ka: w.description, en: w.description, ru: w.description },
+    verified: w.verified,
+    website: w.website,
+  }
+}
+
+const WORLD_DEVELOPERS_MAPPED: Developer[] = worldDevelopers.map(worldDeveloperToDeveloper)
 
 export interface LocalName {
   ka: string
@@ -70,7 +135,8 @@ export interface Project {
   name: string
   /** Georgian form when users transliterate the brand (ჩარგლის რეზიდენსი) — ka title/H1/JSON-LD. */
   nameKa?: string
-  developerSlug: string
+  /** Absent for landmarks/masterplans with no attributable developer — never 'unknown'. */
+  developerSlug?: string
   img: string
   /** Extra renders / progress photos (local CDN). */
   gallery?: string[]
@@ -210,11 +276,14 @@ const autoDevPrefix = (slug: string): string =>
 
 let _projectCodes: Map<string, string> | null = null
 function buildProjectCodes(): Map<string, string> {
+  // Dev-less world landmarks key by their own slug — same code pipeline, no fake dev.
+  const codeKey = (p: Project) => p.developerSlug ?? p.slug
   const devCode = new Map<string, string>()
   const used = new Set<string>()
   for (const p of PROJECTS) {
-    if (devCode.has(p.developerSlug)) continue
-    const code = DEV_PREFIX[p.developerSlug] ?? autoDevPrefix(p.developerSlug)
+    const key = codeKey(p)
+    if (devCode.has(key)) continue
+    const code = DEV_PREFIX[p.developerSlug ?? ""] ?? autoDevPrefix(key)
     // ponytail: if a future dev collides, fall back to {CODE}2 etc. — never silently reuse.
     let unique = code
     let n = 2
@@ -222,16 +291,16 @@ function buildProjectCodes(): Map<string, string> {
       unique = code.slice(0, 2) + String(n)
       n++
     }
-    devCode.set(p.developerSlug, unique)
+    devCode.set(key, unique)
     used.add(unique)
   }
 
   const out = new Map<string, string>()
   const counters: Record<string, number> = {}
   for (const p of [...PROJECTS].sort((a, b) =>
-    a.developerSlug.localeCompare(b.developerSlug) || a.name.localeCompare(b.name),
+    codeKey(a).localeCompare(codeKey(b)) || a.name.localeCompare(b.name),
   )) {
-    const prefix = devCode.get(p.developerSlug)!
+    const prefix = devCode.get(codeKey(p))!
     const n = (counters[prefix] = (counters[prefix] ?? 0) + 1)
     out.set(p.slug, `${prefix}-${String(n).padStart(2, '0')}`)
   }
@@ -1569,7 +1638,8 @@ export const DEVELOPERS: Developer[] = [
   ...NEW_DEVELOPERS_2026_08,
   ...NEW_DEVELOPERS_BERLIN,
   ...NEW_DEVELOPERS_GERMANY,
-]
+  ...WORLD_DEVELOPERS_MAPPED,
+].filter((d, i, all) => all.findIndex((x) => x.slug === d.slug) === i)
 
 // ——— Agents / agencies ———
 
@@ -4815,11 +4885,14 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_2026_08,
   ...NEW_PROJECTS_BERLIN,
   ...NEW_PROJECTS_GERMANY,
+  ...WORLD_PROJECTS_MAPPED,
 ]
+  // ponytail: first-wins slug dedupe — WORLD_PROJECTS may re-list GE/DE base projects.
+  .filter((p, i, all) => all.findIndex((x) => x.slug === p.slug) === i)
   .map(freshenFinish)
   .map((p) => (DE_PROJECT_SLUGS.has(p.slug) ? withDERenders(p) : p))
 
-export function getDeveloper(slug: string): Developer | undefined {
+export function getDeveloper(slug?: string): Developer | undefined {
   return DEVELOPERS.find((d) => d.slug === slug)
 }
 
@@ -4831,7 +4904,7 @@ export function getProject(slug: string): Project | undefined {
   return PROJECTS.find((p) => p.slug === slug)
 }
 
-export function projectsByDeveloper(developerSlug: string): Project[] {
+export function projectsByDeveloper(developerSlug?: string): Project[] {
   return PROJECTS.filter((p) => p.developerSlug === developerSlug)
 }
 

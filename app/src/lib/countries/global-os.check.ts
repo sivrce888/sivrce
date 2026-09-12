@@ -5,12 +5,14 @@
 import assert from 'node:assert/strict'
 import { DEVELOPERS, PROJECTS } from '@/data/professionals'
 import { METRO_STATIONS } from '@/data/tbilisi-metro'
+import { worldDevelopers } from '@/data/world-developers'
 import { WORLD_PLACES } from '@/data/world-places'
 import { COUNTRY_IDS, MARKETS } from '@/lib/markets'
-import { MAP_CITIES } from '@/lib/map/user-place'
+import { MAP_CITIES_ALL as MAP_CITIES } from '@/lib/map/user-place.server'
 import {
   countryJsonLd,
   deepMarketFor,
+  discoveryCountryCodes,
   discoveryMetroSlugs,
   globalCountries,
   globalCountry,
@@ -42,15 +44,31 @@ for (const id of COUNTRY_IDS) {
   }
 }
 
-// Countries: one row per cc, deep hubs wired, centers finite.
+// Countries: one row per cc, deep hubs wired, centers finite (null = discovery-only, never invented).
 const countries = globalCountries()
 assert.equal(new Set(countries.map((c) => c.cc)).size, countries.length, 'dup country cc')
 assert.ok(countries.length >= COUNTRY_IDS.length, 'fewer countries than deep hubs')
 for (const c of countries) {
-  assert.ok(c.cityCount >= 1 && c.metros.length === c.cityCount, `city count: ${c.cc}`)
-  assert.ok(Number.isFinite(c.center.lat + c.center.lng), `center: ${c.cc}`)
+  assert.ok(c.cityCount >= 0 && c.metros.length === c.cityCount, `city count: ${c.cc}`)
+  assert.ok(
+    c.center === null || Number.isFinite(c.center.lat + c.center.lng),
+    `center: ${c.cc}`,
+  )
   assert.ok(c.names.en.length > 1, `name: ${c.cc}`)
   assert.equal(c.deep, deepMarketFor(c.cc) !== null, `deep drift: ${c.cc}`)
+  assert.equal(c.center === null, c.cityCount === 0, `center/city drift: ${c.cc}`)
+  assert.equal(c.path === null, !c.deep, `path/deep drift: ${c.cc}`)
+}
+// Full ISO coverage: every assignment resolves; discovery rows carry no pins/links.
+const stats = globalOsStats()
+const discovery = discoveryCountryCodes()
+assert.equal(stats.isoCountries, 250, `ISO coverage drift: ${stats.isoCountries}`)
+assert.equal(discovery.length, stats.discoveryCountries, 'discovery count drift')
+assert.equal(stats.countries + stats.discoveryCountries, stats.isoCountries, 'coverage leak')
+for (const cc of discovery) {
+  const row = globalCountry(cc)
+  assert.ok(row && !row.deep && row.center === null && row.path === null, `discovery row: ${cc}`)
+  assert.equal(countryJsonLd(cc), null, `thin entity: ${cc}`)
 }
 assert.equal(globalCountry('de')?.defaultCitySlug, 'berlin')
 assert.ok((metrosForCountry('ae').length ?? 0) >= 2)
@@ -64,8 +82,14 @@ assert.equal(metroSystemFor('tbilisi').status, 'verified')
 assert.equal(metroSystemFor('berlin').status, 'live-only')
 
 // Corpus floors mirror the directory gate so the OS never drifts below it.
-const stats = globalOsStats()
-assert.ok(DEVELOPERS.length >= 150 && stats.developers >= 150, 'developer corpus shrank')
+// worldDevelopers are merged into DEVELOPERS — one registry, counted once.
+assert.ok(DEVELOPERS.length >= 150 && stats.developers >= 300, 'developer corpus shrank')
+assert.equal(stats.developers, DEVELOPERS.length, 'developer stat drift')
+assert.ok(new Set(worldDevelopers.map((d) => d.slug)).size === worldDevelopers.length, 'dup world dev')
+assert.ok(
+  worldDevelopers.every((w) => DEVELOPERS.some((d) => d.slug === w.slug)),
+  'world developer not in registry',
+)
 assert.ok(PROJECTS.length >= 400 && stats.projects >= 400, 'project corpus shrank')
 assert.ok(stats.renders / stats.projects >= 0.95, 'renders shrank')
 assert.ok(stats.countries >= 60, `country coverage shrank to ${stats.countries}`)
@@ -82,6 +106,12 @@ assert.equal(
   DEVELOPERS.length,
   'coverage leaks developers',
 )
+// Every deep market carries at least one developer — no empty country page data.
+for (const id of COUNTRY_IDS) {
+  const cc = MARKETS[id].countryCode
+  const row = cov.rows.find((r) => r.cc === cc)
+  assert.ok(row && row.developers >= 1, `deep market without developers: ${id}`)
+}
 
 // Search, sitemap, freshness, JSON-LD.
 assert.ok(globalOsSearch('tbilisi')[0]?.slug === 'tbilisi', 'search tbilisi')

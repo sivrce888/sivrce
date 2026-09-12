@@ -6,9 +6,9 @@
 
 import type { ReactNode } from 'react'
 
-export type FlagCode = 'ge' | 'gb' | 'ru' | 'ua' | 'am' | 'az' | 'il' | 'sa' | 'tr' | 'de' | 'ae' | 'fr' | 'es' | 'it' | 'us' | 'ca' | 'gr' | 'cy' | 'nl' | 'pt' | 'ch'
+export type FlagCode = string
 
-const FLAG_ART: Record<FlagCode, ReactNode> = {
+const FLAG_ART: Record<string, ReactNode> = {
   /* Georgia — white field, large red cross, four small crosses */
   ge: (
     <>
@@ -220,7 +220,21 @@ const FLAG_ART: Record<FlagCode, ReactNode> = {
   ),
 }
 
+/** Fallback for country codes without dedicated SVG art: two-letter code in a circle. */
+function FallbackFlag({ code }: { code: string }) {
+  const label = code.toUpperCase().slice(0, 2)
+  return (
+    <>
+      <rect x="0" y="3" width="24" height="18" fill="#6b7280" />
+      <text x="12" y="14.5" textAnchor="middle" fontSize="8" fontWeight="700" fill="#ffffff" fontFamily="system-ui, sans-serif">
+        {label}
+      </text>
+    </>
+  )
+}
+
 export function Flag({ code, size = 16 }: { code: FlagCode; size?: number }) {
+  const art = FLAG_ART[code] ?? <FallbackFlag code={code} />
   return (
     <span
       aria-hidden
@@ -233,7 +247,7 @@ export function Flag({ code, size = 16 }: { code: FlagCode; size?: number }) {
             <circle cx="12" cy="12" r="12" />
           </clipPath>
         </defs>
-        <g clipPath={`url(#sv-flag-clip-${code})`}>{FLAG_ART[code]}</g>
+        <g clipPath={`url(#sv-flag-clip-${code})`}>{art}</g>
       </svg>
     </span>
   )

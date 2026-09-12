@@ -18,7 +18,7 @@ export interface ProjectCard {
   city: string
   /** Canonical ka district ('' when unknown — never invent). */
   district: string
-  developerSlug: string
+  developerSlug?: string
   /** Resolved display name — '' for DB-only developers without a catalog profile. */
   devName: string
   priceFromM2: string

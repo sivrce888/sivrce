@@ -572,7 +572,7 @@ export const AE_CITIES_AR: Record<string, CountryCopy> = {
 export function cityPack(country: string, slug: string): CityPack | null {
   if (country === 'de') return DE_CITIES[slug] ?? null
   if (country === 'ae') return AE_CITIES[slug] ?? null
-  if (country in EXTRA_CITIES) return EXTRA_CITIES[country as keyof typeof EXTRA_CITIES][slug] ?? null
+  if (country in EXTRA_CITIES) return EXTRA_CITIES[country as keyof typeof EXTRA_CITIES]?.[slug] ?? null
   return null
 }
 

@@ -14,13 +14,28 @@ import type { Lang } from '@/lib/i18n/core'
 export type PathCountryId = (typeof COUNTRY_IDS)[number]
 export type MarketId = 'ge' | 'global' | PathCountryId
 export type CountryId = 'ge' | PathCountryId
-export type MarketCurrency = 'GEL' | 'USD' | 'EUR' | 'AED' | 'GBP' | 'CAD' | 'TRY' | 'CHF'
+export type MarketCurrency =
+  | 'GEL' | 'USD' | 'EUR' | 'AED' | 'GBP' | 'CAD' | 'TRY' | 'CHF'
+  | 'JPY' | 'CNY' | 'AUD' | 'BRL' | 'MXN' | 'SGD' | 'HKD' | 'KRW'
+  | 'INR' | 'THB' | 'IDR' | 'PHP' | 'VND' | 'MYR' | 'SAR' | 'NGN'
+  | 'EGP' | 'ZAR' | 'KES' | 'MAD' | 'PLN' | 'CZK' | 'HUF' | 'RON'
+  | 'BGN' | 'RSD' | 'HRK' | 'SEK' | 'NOK' | 'DKK' | 'ISK' | 'MTL'
+  | 'LUF' | 'NZD' | 'COP' | 'CLP' | 'ARS' | 'PEN' | 'PKR' | 'BDT'
+  | 'LKR' | 'NPR' | 'KHR' | 'MMK' | 'LAK' | 'UZS' | 'KZT' | 'AMD'
+  | 'AZN' | 'UAH' | 'EEK' | 'LTL' | 'LVL' | 'SKK' | 'SIT'
 
 export const COM_ORIGIN = 'https://sivrce.com'
 export const GE_ORIGIN = 'https://sivrce.ge'
 
 /** Live ISO-3166 path prefixes on sivrce.com. */
-export const COUNTRY_IDS = ['de', 'ae', 'fr', 'es', 'it', 'gb', 'us', 'ca', 'tr', 'gr', 'cy', 'nl', 'pt', 'ch'] as const
+export const COUNTRY_IDS = [
+  'de', 'ae', 'fr', 'es', 'it', 'gb', 'us', 'ca', 'tr', 'gr', 'cy', 'nl', 'pt', 'ch',
+  'jp', 'cn', 'au', 'br', 'mx', 'sg', 'hk', 'kr', 'in', 'th', 'id', 'ph', 'vn', 'my',
+  'sa', 'ng', 'eg', 'za', 'ke', 'ma', 'pl', 'cz', 'hu', 'ro', 'bg', 'rs', 'hr', 'se',
+  'no', 'dk', 'fi', 'at', 'be', 'ie', 'nz', 'co', 'cl', 'ar', 'pe', 'ec', 'pk', 'bd',
+  'lk', 'np', 'kh', 'mm', 'la', 'uz', 'kz', 'am', 'az', 'ua', 'ee', 'lt', 'lv', 'is',
+  'mt', 'lu', 'sk', 'si',
+] as const
 
 export const COUNTRY_PREFIX_RE = new RegExp(`^/(${COUNTRY_IDS.join('|')})(?=/|$)`)
 
@@ -59,7 +74,12 @@ export function isComPageSeg(seg: string): boolean {
 
 export interface Market {
   id: MarketId
-  countryCode: 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR' | 'GR' | 'CY' | 'NL' | 'PT' | 'CH' | null
+  countryCode: 'GE' | 'DE' | 'AE' | 'FR' | 'ES' | 'IT' | 'GB' | 'US' | 'CA' | 'TR' | 'GR' | 'CY' | 'NL' | 'PT' | 'CH'
+    | 'JP' | 'CN' | 'AU' | 'BR' | 'MX' | 'SG' | 'HK' | 'KR' | 'IN' | 'TH' | 'ID' | 'PH' | 'VN' | 'MY'
+    | 'SA' | 'NG' | 'EG' | 'ZA' | 'KE' | 'MA' | 'PL' | 'CZ' | 'HU' | 'RO' | 'BG' | 'RS' | 'HR' | 'SE'
+    | 'NO' | 'DK' | 'FI' | 'AT' | 'BE' | 'IE' | 'NZ' | 'CO' | 'CL' | 'AR' | 'PE' | 'EC' | 'PK' | 'BD'
+    | 'LK' | 'NP' | 'KH' | 'MM' | 'LA' | 'UZ' | 'KZ' | 'AM' | 'AZ' | 'UA' | 'EE' | 'LT' | 'LV' | 'IS'
+    | 'MT' | 'LU' | 'SK' | 'SI' | null
   currency: MarketCurrency
   /** BCP 47 for dates/numbers — not the UI language. */
   locale: string
@@ -228,6 +248,79 @@ export const MARKETS: Record<CountryId, Market> = {
   nl: pathMarket('nl', 'NL', 'EUR', 'en-NL', 'amsterdam', ['amsterdam', 'rotterdam'], ['amsterdam']),
   pt: pathMarket('pt', 'PT', 'EUR', 'en-PT', 'lisbon', ['lisbon', 'porto'], ['lisbon']),
   ch: pathMarket('ch', 'CH', 'CHF', 'en-CH', 'zurich', ['zurich', 'geneva'], ['zurich']),
+  // Asia — East
+  jp: pathMarket('jp', 'JP', 'JPY', 'ja-JP', 'tokyo', ['tokyo', 'osaka', 'yokohama', 'nagoya', 'fukuoka', 'kyoto']),
+  cn: pathMarket('cn', 'CN', 'CNY', 'zh-CN', 'shanghai', ['shanghai', 'beijing', 'guangzhou', 'shenzhen', 'chengdu', 'hangzhou']),
+  kr: pathMarket('kr', 'KR', 'KRW', 'ko-KR', 'seoul', ['seoul', 'busan', 'incheon', 'daegu', 'daejeon']),
+  hk: pathMarket('hk', 'HK', 'HKD', 'en-HK', 'hong-kong', ['hong-kong']),
+  // Asia — Southeast
+  sg: pathMarket('sg', 'SG', 'SGD', 'en-SG', 'singapore', ['singapore']),
+  th: pathMarket('th', 'TH', 'THB', 'th-TH', 'bangkok', ['bangkok', 'chiang-mai', 'phuket', 'pattaya']),
+  id: pathMarket('id', 'ID', 'IDR', 'id-ID', 'jakarta', ['jakarta', 'surabaya', 'bandung', 'medan', 'bali']),
+  ph: pathMarket('ph', 'PH', 'PHP', 'en-PH', 'manila', ['manila', 'cebu', 'davao', 'quezon-city']),
+  vn: pathMarket('vn', 'VN', 'VND', 'vi-VN', 'ho-chi-minh-city', ['ho-chi-minh-city', 'hanoi', 'da-nang', 'nha-trang']),
+  my: pathMarket('my', 'MY', 'MYR', 'ms-MY', 'kuala-lumpur', ['kuala-lumpur', 'george-town', 'johor-bahru', 'kota-kinabalu']),
+  mm: pathMarket('mm', 'MM', 'MMK', 'my-MM', 'yangon', ['yangon', 'mandalay', 'naypyidaw']),
+  la: pathMarket('la', 'LA', 'LAK', 'lo-LA', 'vientiane', ['vientiane', 'luang-prabang']),
+  kh: pathMarket('kh', 'KH', 'KHR', 'km-KH', 'phnom-penh', ['phnom-penh', 'siem-reap']),
+  // Asia — South
+  in: pathMarket('in', 'IN', 'INR', 'en-IN', 'mumbai', ['mumbai', 'delhi', 'bangalore', 'chennai', 'kolkata', 'hyderabad']),
+  pk: pathMarket('pk', 'PK', 'PKR', 'en-PK', 'karachi', ['karachi', 'lahore', 'islamabad', 'rawalpindi']),
+  bd: pathMarket('bd', 'BD', 'BDT', 'en-BD', 'dhaka', ['dhaka', 'chittagong', 'sylhet']),
+  lk: pathMarket('lk', 'LK', 'LKR', 'si-LK', 'colombo', ['colombo', 'kandy', 'galle']),
+  np: pathMarket('np', 'NP', 'NPR', 'ne-NP', 'kathmandu', ['kathmandu', 'pokhara', 'lalitpur']),
+  // Asia — Central
+  uz: pathMarket('uz', 'UZ', 'UZS', 'uz-UZ', 'tashkent', ['tashkent', 'samarkand', 'bukhara']),
+  kz: pathMarket('kz', 'KZ', 'KZT', 'kk-KZ', 'almaty', ['almaty', 'astana', 'shymkent']),
+  am: pathMarket('am', 'AM', 'AMD', 'hy-AM', 'yerevan', ['yerevan', 'gyumri']),
+  az: pathMarket('az', 'AZ', 'AZN', 'az-AZ', 'baku', ['baku', 'ganja', 'sumqayit']),
+  // Asia — Middle East
+  sa: pathMarket('sa', 'SA', 'SAR', 'ar-SA', 'riyadh', ['riyadh', 'jeddah', 'dammam']),
+  // Oceania
+  au: pathMarket('au', 'AU', 'AUD', 'en-AU', 'sydney', ['sydney', 'melbourne', 'brisbane', 'perth', 'adelaide']),
+  nz: pathMarket('nz', 'NZ', 'NZD', 'en-NZ', 'auckland', ['auckland', 'wellington', 'christchurch']),
+  // Americas — South
+  br: pathMarket('br', 'BR', 'BRL', 'pt-BR', 'sao-paulo', ['sao-paulo', 'rio-de-janeiro', 'brasilia', 'curitiba', 'belo-horizonte']),
+  mx: pathMarket('mx', 'MX', 'MXN', 'es-MX', 'mexico-city', ['mexico-city', 'guadalajara', 'monterrey', 'cancun', 'playa-del-carmen']),
+  co: pathMarket('co', 'CO', 'COP', 'es-CO', 'bogota', ['bogota', 'medellin', 'cali', 'cartagena', 'barranquilla']),
+  cl: pathMarket('cl', 'CL', 'CLP', 'es-CL', 'santiago', ['santiago', 'valparaiso', 'vina-del-mar', 'concepcion']),
+  ar: pathMarket('ar', 'AR', 'ARS', 'es-AR', 'buenos-aires', ['buenos-aires', 'cordoba', 'rosario', 'mendoza']),
+  pe: pathMarket('pe', 'PE', 'PEN', 'es-PE', 'lima', ['lima', 'arequipa', 'cusco', 'trujillo']),
+  ec: pathMarket('ec', 'EC', 'USD', 'es-EC', 'quito', ['quito', 'guayaquil', 'cuenca']),
+  // Africa
+  ng: pathMarket('ng', 'NG', 'NGN', 'en-NG', 'lagos', ['lagos', 'abuja', 'kano', 'port-harcourt']),
+  eg: pathMarket('eg', 'EG', 'EGP', 'ar-EG', 'cairo', ['cairo', 'alexandria', 'giza', 'sharm-el-sheikh']),
+  za: pathMarket('za', 'ZA', 'ZAR', 'en-ZA', 'johannesburg', ['johannesburg', 'cape-town', 'durban', 'pretoria']),
+  ke: pathMarket('ke', 'KE', 'KES', 'en-KE', 'nairobi', ['nairobi', 'mombasa', 'kisumu']),
+  ma: pathMarket('ma', 'MA', 'MAD', 'ar-MA', 'casablanca', ['casablanca', 'marrakech', 'rabat', 'tangier']),
+  // Europe — Central & Eastern
+  pl: pathMarket('pl', 'PL', 'PLN', 'pl-PL', 'warsaw', ['warsaw', 'krakow', 'wroclaw', 'poznan', 'gdansk']),
+  cz: pathMarket('cz', 'CZ', 'CZK', 'cs-CZ', 'prague', ['prague', 'brno', 'ostrava', 'plzen']),
+  hu: pathMarket('hu', 'HU', 'HUF', 'hu-HU', 'budapest', ['budapest', 'debrecen', 'szeged', 'pecs']),
+  ro: pathMarket('ro', 'RO', 'RON', 'ro-RO', 'bucharest', ['bucharest', 'cluj-napoca', 'timisoara', 'iasi', 'brasov']),
+  bg: pathMarket('bg', 'BG', 'BGN', 'bg-BG', 'sofia', ['sofia', 'plovdiv', 'varna', 'burgas']),
+  rs: pathMarket('rs', 'RS', 'RSD', 'sr-RS', 'belgrade', ['belgrade', 'novi-sad', 'nis']),
+  hr: pathMarket('hr', 'HR', 'EUR', 'hr-HR', 'zagreb', ['zagreb', 'split', 'rijeka', 'zadar']),
+  ua: pathMarket('ua', 'UA', 'UAH', 'uk-UA', 'kyiv', ['kyiv', 'kharkiv', 'odesa', 'lviv', 'dnipro']),
+  // Europe — Nordic
+  se: pathMarket('se', 'SE', 'SEK', 'sv-SE', 'stockholm', ['stockholm', 'goteborg', 'malmo']),
+  no: pathMarket('no', 'NO', 'NOK', 'nb-NO', 'oslo', ['oslo', 'bergen', 'trondheim', 'stavanger']),
+  dk: pathMarket('dk', 'DK', 'DKK', 'da-DK', 'copenhagen', ['copenhagen', 'aarhus', 'odense']),
+  fi: pathMarket('fi', 'FI', 'EUR', 'fi-FI', 'helsinki', ['helsinki', 'espoo', 'tampere', 'vantaa']),
+  is: pathMarket('is', 'IS', 'ISK', 'is-IS', 'reykjavik', ['reykjavik']),
+  // Europe — Western
+  at: pathMarket('at', 'AT', 'EUR', 'de-AT', 'vienna', ['vienna', 'graz', 'salzburg', 'innsbruck']),
+  be: pathMarket('be', 'BE', 'EUR', 'nl-BE', 'brussels', ['brussels', 'antwerp', 'ghent', 'bruges']),
+  ie: pathMarket('ie', 'IE', 'EUR', 'en-IE', 'dublin', ['dublin', 'cork', 'galway', 'limerick']),
+  lu: pathMarket('lu', 'LU', 'EUR', 'lb-LU', 'luxembourg', ['luxembourg']),
+  // Europe — Baltics & Malta
+  ee: pathMarket('ee', 'EE', 'EUR', 'et-EE', 'tallinn', ['tallinn', 'tartu']),
+  lt: pathMarket('lt', 'LT', 'EUR', 'lt-LT', 'vilnius', ['vilnius', 'kaunas']),
+  lv: pathMarket('lv', 'LV', 'EUR', 'lv-LV', 'riga', ['riga', 'daugavpils']),
+  mt: pathMarket('mt', 'MT', 'EUR', 'mt-MT', 'valletta', ['valletta', 'sliema', 'st-julians']),
+  // Europe — Other
+  sk: pathMarket('sk', 'SK', 'EUR', 'sk-SK', 'bratislava', ['bratislava', 'kosice']),
+  si: pathMarket('si', 'SI', 'EUR', 'sl-SI', 'ljubljana', ['ljubljana', 'maribor']),
 }
 
 export const GLOBAL_MARKET: Pick<

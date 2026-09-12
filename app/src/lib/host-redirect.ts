@@ -126,8 +126,13 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
   }
 
   // Production .ge: locale prefixes (incl. /de, /tr, /uk) stay. Bare country
-  // paths and leftover country-city slugs move to .com.
+  // paths and leftover country-city slugs move to .com. /ge/… (the .com
+  // mirror form) folds to the unprefixed canonical URL.
   if (!local && kind === 'ge') {
+    if (restFirst === 'ge') {
+      const tail = restSegs.slice(1)
+      return { type: 'redirect', origin: 'same', pathname: tail.length ? `/${tail.join('/')}` : '/' }
+    }
     const cityCountry = findCountryByCity(restFirst)
     if (cityCountry) {
       const tail = restSegs.join('/')
@@ -204,6 +209,15 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
       : null
   if (localAlias) {
     return { type: 'redirect', origin: 'same', pathname: swapPathSeg(path, localAlias, COUNTRY_ALIAS[localAlias]) }
+  }
+
+  // Dev/preview: /ge mirror works like prod — strip to the app path (ka default).
+  if (!lang && restFirst === 'ge') {
+    const tail = restSegs.slice(1)
+    const lo = tail[0] && LOCALE_SET.has(tail[0]) ? tail[0] : null
+    const body = lo ? tail.slice(1) : tail
+    const target = lo ?? DEFAULT_LANG
+    return { type: 'rewrite', pathname: `/${target}${body.length ? `/${body.join('/')}` : ''}`, market: 'ge' }
   }
 
   // Dev/preview: country pages live at /en/<cc>, plus bare /<cc> for codes

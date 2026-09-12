@@ -33,6 +33,8 @@ prisma/*.db
 app/src/__linttmp/
 app/scripts/*.log
 *.log
+app/tmp/
+*.tsbuildinfo
 
 # perf / audit (never commit)
 .perf/

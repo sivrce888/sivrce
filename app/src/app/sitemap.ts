@@ -99,6 +99,7 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/forum', changeFrequency: 'daily', priority: 0.7 },
     { path: '/neighborhoods', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/market', changeFrequency: 'weekly', priority: 0.8 },
+    { path: '/countries', changeFrequency: 'weekly', priority: 0.8 },
     { path: '/projects', changeFrequency: 'daily', priority: 0.85 },
     // New-build sub-hubs (ka/en/ru corpus in directory-seo PROJECT_HUBS).
     { path: '/projects/tbilisi', changeFrequency: 'daily', priority: 0.8 },

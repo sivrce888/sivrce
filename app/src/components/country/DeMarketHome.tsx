@@ -145,7 +145,7 @@ function ProjectRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
           className="gap-5 pb-4"
         >
           {rail.map((p) => (
-            <DeProjectCard key={p.slug} p={p} dev={DEV_BY_SLUG.get(p.developerSlug)} de={de} />
+            <DeProjectCard key={p.slug} p={p} dev={DEV_BY_SLUG.get(p.developerSlug ?? "")} de={de} />
           ))}
         </HScroll>
       </div>

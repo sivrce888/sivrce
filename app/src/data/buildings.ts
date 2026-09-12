@@ -32,7 +32,7 @@ export type BuildingCatalogEntry = {
   img: string
   gallery?: string[]
   passportUrl?: string
-  developerSlug: string
+  developerSlug?: string
   yearBuilt?: number
   floors: number
   units?: number

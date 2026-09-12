@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { placeFromIp } from '@/lib/map/user-place'
+import { placeFromIp } from '@/lib/map/user-place.server'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

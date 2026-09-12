@@ -96,7 +96,7 @@ export async function ensureProjectMapPins(): Promise<number> {
       img: p.img ? clip(p.img, 260) : null,
       status: p.done >= 100 ? "completed" : "construction",
       projectSlug: p.slug,
-      developerId: devBySlug.get(p.developerSlug) ?? null,
+      developerId: (p.developerSlug ? devBySlug.get(p.developerSlug) : undefined) ?? null,
       floors: p.floors ?? 0,
       height: 45,
     })

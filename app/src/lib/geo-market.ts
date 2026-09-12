@@ -1,6 +1,6 @@
 import { COUNTRY_IDS, MARKETS, isPathCountry, type MarketId, type PathCountryId } from '@/lib/markets'
 import { FREEDOM_SQUARE } from '@/lib/map/map-geo'
-import { cityByName, cityBySlug } from '@/lib/map/user-place'
+import { cityByName, cityBySlug } from '@/lib/map/user-place.server'
 
 /**
  * IP → launched market + map camera.
