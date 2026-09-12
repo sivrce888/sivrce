@@ -286,7 +286,7 @@ export function proxy(req: NextRequest) {
     }
     if (decision.type === "rewrite") {
       let nextMarket = decision.market
-      // sivrce.com/ : crawlers + worldwide keep the directory; humans 302 to market.
+      // sivrce.com/ : crawlers + worldwide keep the product hub; humans 302 to market.
       if (nextMarket === "global" && isComHomePath(pathname) && !preview) {
         const worldwide = req.nextUrl.searchParams.has("worldwide")
         const target = geoLaunchTarget({

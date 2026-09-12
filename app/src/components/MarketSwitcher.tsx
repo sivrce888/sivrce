@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Check, ChevronDown, Globe } from 'lucide-react'
 import { Flag, type FlagCode } from '@/components/Flag'
-import { COM_ORIGIN, COUNTRY_IDS, GE_ORIGIN, MARKETS, type PathCountryId } from '@/lib/markets'
+import { COM_ORIGIN, COUNTRY_IDS, MARKETS, type PathCountryId } from '@/lib/markets'
 
 const LABEL: Record<'ge' | PathCountryId, string> = {
   ge: 'Georgia',
@@ -84,21 +84,14 @@ const LABEL: Record<'ge' | PathCountryId, string> = {
   si: 'Slovenia',
 }
 
-const ITEMS: { id: 'ge' | PathCountryId; label: string; href: string; prod: string; flag: FlagCode }[] = [
-  { id: 'ge', label: LABEL.ge, href: '/ge', prod: '/ge', flag: 'ge' },
+const ITEMS: { id: 'ge' | PathCountryId; label: string; flag: FlagCode }[] = [
+  { id: 'ge', label: LABEL.ge, flag: 'ge' },
   ...COUNTRY_IDS.map((id) => ({
     id,
     label: LABEL[id],
-    href: `/en${MARKETS[id].pathPrefix}`,
-    prod: `${COM_ORIGIN}${MARKETS[id].pathPrefix}`,
     flag: id as FlagCode,
   })),
 ]
-
-/** Georgia: /ge mirror on sivrce.com, root on sivrce.ge. */
-function prodGeHref(): string {
-  return isComHost() ? '/ge' : `${GE_ORIGIN}/`
-}
 
 function isComHost() {
   if (typeof window === 'undefined') return false
@@ -106,7 +99,26 @@ function isComHost() {
   return h === 'sivrce.com' || h === 'www.sivrce.com'
 }
 
-function activeId(pathname: string): 'ge' | PathCountryId {
+function isGeHost() {
+  if (typeof window === 'undefined') return false
+  const h = window.location.hostname
+  return h === 'sivrce.ge' || h === 'www.sivrce.ge'
+}
+
+/** Same product, host-aware hops — stay on .com when already there. */
+function marketHref(id: 'ge' | PathCountryId): string {
+  if (id === 'ge') {
+    if (isComHost()) return '/ge'
+    if (isGeHost()) return '/'
+    return '/ge'
+  }
+  const path = MARKETS[id].pathPrefix
+  if (isComHost()) return path
+  if (isGeHost()) return `${COM_ORIGIN}${path}`
+  return `/en${path}`
+}
+
+function activeId(pathname: string): 'ge' | 'global' | PathCountryId {
   for (const cc of COUNTRY_IDS) {
     if (pathname === `/en/${cc}` || pathname.startsWith(`/en/${cc}/`)) return cc
     if (pathname === `/ar/${cc}` || pathname.startsWith(`/ar/${cc}/`)) return cc
@@ -118,6 +130,7 @@ function activeId(pathname: string): 'ge' | PathCountryId {
     if (pathname === '/uae' || pathname.startsWith('/uae/')) return 'ae'
     if (pathname === '/uk' || pathname.startsWith('/uk/')) return 'gb'
     if (pathname === '/ge' || pathname.startsWith('/ge/')) return 'ge'
+    if (pathname === '/' || pathname === '/en') return 'global'
   }
   return 'ge'
 }
@@ -127,12 +140,6 @@ export function MarketSwitcher({ light = false }: { light?: boolean }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const active = activeId(pathname)
-  const prod = typeof window !== 'undefined' && (
-    window.location.hostname === 'sivrce.ge' ||
-    window.location.hostname === 'sivrce.com' ||
-    window.location.hostname === 'www.sivrce.ge' ||
-    window.location.hostname === 'www.sivrce.com'
-  )
 
   useEffect(() => {
     if (!open) return
@@ -163,7 +170,7 @@ export function MarketSwitcher({ light = false }: { light?: boolean }) {
         }`}
       >
         <Globe className="h-3.5 w-3.5" aria-hidden />
-        {active}
+        {active === 'global' ? 'world' : active}
         <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       <div
@@ -174,7 +181,7 @@ export function MarketSwitcher({ light = false }: { light?: boolean }) {
         className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-52 origin-top-right overflow-y-auto rounded-2xl p-1.5 shadow-card"
       >
         {ITEMS.map((m) => {
-          const href = !prod ? m.href : m.id === 'ge' ? prodGeHref() : m.prod
+          const href = marketHref(m.id)
           const on = m.id === active
           return (
             <a

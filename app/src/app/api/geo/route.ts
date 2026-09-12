@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { marketFromIso } from '@/lib/geo-market'
 import { placeFromIp } from '@/lib/map/user-place.server'
 
 export const dynamic = 'force-dynamic'
@@ -19,13 +20,16 @@ export async function GET(req: Request) {
   const lat = Number(header(req, 'x-vercel-ip-latitude'))
   const lng = Number(header(req, 'x-vercel-ip-longitude'))
   const cityName = header(req, 'x-vercel-ip-city')
+  const country = header(req, 'x-vercel-ip-country')
+  const market = marketFromIso(country)
 
   const city = placeFromIp(lat, lng, cityName)
   if (!city) {
-    return NextResponse.json({ ok: false as const, reason: 'unknown' }, { status: 200 })
+    return NextResponse.json(
+      { ok: false as const, reason: 'unknown', country, market },
+      { status: 200 },
+    )
   }
-
-  const country = header(req, 'x-vercel-ip-country')
 
   return NextResponse.json(
     {
@@ -37,6 +41,7 @@ export async function GET(req: Request) {
       lng: city.lng,
       cc: city.cc,
       country,
+      market,
       source: 'ip' as const,
     },
     {

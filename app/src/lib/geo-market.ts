@@ -4,8 +4,9 @@ import { cityByName, cityBySlug } from '@/lib/map/user-place.server'
 
 /**
  * IP → launched market + map camera.
- * Humans hitting sivrce.com/ 302 to their country (or sivrce.ge).
- * Crawlers + ?worldwide=1 + cookie=global keep the directory hub.
+ * Humans hitting sivrce.com/ 302 to their country product (or /ge).
+ * Crawlers + ?worldwide=1 + cookie=global keep the worldwide product hub
+ * (same HomeMain shell as sivrce.ge, English).
  * Cookie also aims /map at the last opened country path.
  */
 

@@ -53,13 +53,17 @@ export default function GeoGate() {
           slug?: string
           country?: string | null
           cc?: string
+          market?: string | null
         }
         if (cancelled) return
         if (!data.ok) {
           markMiss()
           return
         }
-        const m = marketFromIso(data.country || data.cc)
+        const m =
+          data.market === 'ge' || isGeoLaunch(data.market)
+            ? data.market
+            : marketFromIso(data.country || data.cc)
         const host = window.location.hostname
         const com = host === 'sivrce.com' || host === 'www.sivrce.com'
         if (m === 'ge') {
