@@ -1,4 +1,4 @@
-import { Database, AlertTriangle, CheckCircle2, Clock, GitBranch, Layers, TrendingUp } from "lucide-react"
+import { Database, AlertTriangle, Clock, GitBranch, Layers, TrendingUp } from "lucide-react"
 
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { StatCard } from "@/components/admin/ui/StatCard"

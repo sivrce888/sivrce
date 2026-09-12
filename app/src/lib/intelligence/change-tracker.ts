@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import type { EntityType, DataChangeKind, FactConfidence } from "@/generated/prisma/enums";
+import type { EntityType, DataChangeKind } from "@/generated/prisma/enums";
 
 export async function trackChange(opts: {
   entityType: EntityType;

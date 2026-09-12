@@ -182,8 +182,12 @@ const comEnSale = decideHost({ host: 'sivrce.com', pathname: '/en/sale', vercelE
 assert.deepEqual(comEnSale, { type: 'redirect', origin: 'same', pathname: '/ge/en/sale' })
 const comKaSale = decideHost({ host: 'sivrce.com', pathname: '/ka/sale', vercelEnv: 'production' })
 assert.deepEqual(comKaSale, { type: 'redirect', origin: 'same', pathname: '/ge/sale' })
+// Listing detail serves directly on .com (worldwide inventory, market global —
+// canonicals inside the page point each listing at its own origin).
 const comRuListing = decideHost({ host: 'sivrce.com', pathname: '/ru/listing/5', vercelEnv: 'production' })
-assert.deepEqual(comRuListing, { type: 'redirect', origin: 'same', pathname: '/ge/ru/listing/5' })
+assert.deepEqual(comRuListing, { type: 'rewrite', pathname: '/ru/listing/5', market: 'global' })
+const comBareListing = decideHost({ host: 'sivrce.com', pathname: '/listing/5', vercelEnv: 'production' })
+assert.deepEqual(comBareListing, { type: 'rewrite', pathname: '/en/listing/5', market: 'global' })
 // sivrce.ge folds /ge/… to the unprefixed canonical URL.
 const geMirrorSale = decideHost({ host: 'sivrce.ge', pathname: '/ge/sale', vercelEnv: 'production' })
 assert.deepEqual(geMirrorSale, { type: 'redirect', origin: 'same', pathname: '/sale' })

@@ -419,6 +419,20 @@ export function footerKeywordCols(): FooterCol[] {
     ['daily', 'apartments', 'tbilisi', 'vake'],
     ['daily', 'apartments', 'tbilisi', 'old-tbilisi'],
   ])
+  // Live GDS hotels hub — /hotels is sitemap'd but nothing crawl-linked it.
+  {
+    const dailyCol = cols.find((c) => c.id === 'daily')
+    if (dailyCol) {
+      dailyCol.links.push({
+        href: '/hotels',
+        label: {
+          ka: 'სასტუმროები ცოცხალი ფასებით',
+          en: 'Hotels with live rates',
+          ru: 'Отели с живыми ценами',
+        },
+      })
+    }
+  }
   const tbilisiDists = DISTRICTS.filter((d) => d.citySlug === 'tbilisi').map((d) => d.slug)
   pushGeo('sale-tbilisi', { ka: 'ბინები იყიდება თბილისში', en: 'Apartments for sale in Tbilisi', ru: 'Квартиры на продажу в Тбилиси' }, [
     ['sale', 'apartments', 'tbilisi'],

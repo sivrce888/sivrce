@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Minus, Plus, X } from "lucide-react"
 import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n/context"
 import { quoteStay } from "@/lib/bookings"
@@ -24,6 +24,7 @@ interface StaySettings {
   monthlyDiscountPct: number
   checkInHour: number
   checkOutHour: number
+  instant: boolean
 }
 
 interface Avail {
@@ -142,6 +143,9 @@ export function StayBooker({ listingId }: { listingId: string }) {
   const [notes, setNotes] = useState("")
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
+  const [instant, setInstant] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const [confirmed, setConfirmed] = useState<{ id: string; ref: string; cancelToken: string } | null>(null)
 
   const todayIso = localTodayIso()
   const nf = useMemo(
@@ -160,7 +164,9 @@ export function StayBooker({ listingId }: { listingId: string }) {
     fetch(`/api/bookings?listingId=${encodeURIComponent(listingId)}`)
       .then(async (r) => {
         if (!r.ok) throw new Error(String(r.status))
-        setAvail({ status: "ready", data: (await r.json()) as Avail })
+        const data = (await r.json()) as Avail
+        if (data.bookable) setInstant(Boolean(data.settings.instant))
+        setAvail({ status: "ready", data })
       })
       .catch(() => setAvail({ status: "error" }))
   }
@@ -170,6 +176,44 @@ export function StayBooker({ listingId }: { listingId: string }) {
     setDone(false)
     loadAvail() // fresh calendar on every open — bookings change between views
   }
+
+  const boxRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const prev = document.activeElement as HTMLElement | null
+    closeRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false)
+        return
+      }
+      // ponytail: modal trap without a lib — same 2-node pattern as listing video.
+      if (e.key !== "Tab" || !boxRef.current) return
+      const f = Array.from(
+        boxRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute("disabled") && el.tabIndex >= 0)
+      if (f.length === 0) return
+      const first = f[0]!
+      const last = f[f.length - 1]!
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    document.body.style.overflow = "hidden"
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      document.body.style.overflow = ""
+      prev?.focus?.()
+    }
+  }, [open])
 
   const data = avail.status === "ready" ? avail.data : null
   const occupied = useMemo(() => new Set(data?.bookable ? data.nights : []), [data])
@@ -206,6 +250,27 @@ export function StayBooker({ listingId }: { listingId: string }) {
     setCheckOut("")
     setGuests(1)
     setDone(false)
+    setConfirmed(null)
+  }
+
+  const cancelBooking = async () => {
+    if (!confirmed) return
+    setCancelling(true)
+    try {
+      const res = await fetch(`/api/bookings/${encodeURIComponent(confirmed.id)}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: confirmed.cancelToken }),
+      })
+      if (!res.ok) throw new Error(String(res.status))
+      toast.success(lt(lang, "stayCancelled"))
+      setOpen(false)
+      reset()
+    } catch {
+      toast.error(lt(lang, "stayCancelFail"))
+    } finally {
+      setCancelling(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -230,9 +295,16 @@ export function StayBooker({ listingId }: { listingId: string }) {
           guestNotes: notes || undefined,
         }),
       })
-      const err = (await res.json().catch(() => null)) as { error?: string } | null
-      const code = err?.error
+      const body = (await res.json().catch(() => null)) as {
+        error?: string
+        booking?: { id: string; ref: string; cancelToken: string }
+      } | null
+      const code = body?.error
       if (res.ok) {
+        const b = body?.booking
+        if (b?.id && b.ref && b.cancelToken) {
+          setConfirmed({ id: b.id, ref: b.ref, cancelToken: b.cancelToken })
+        }
         setDone(true)
         return
       }
@@ -272,43 +344,78 @@ export function StayBooker({ listingId }: { listingId: string }) {
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-sv-blue px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-glow-blue-sm"
       >
         <CalendarDays className="h-4 w-4" />
-        {lt(lang, "stayCta")}
+        {lt(lang, instant ? "stayInstantCta" : "stayCta")}
       </button>
 
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-sv-navy/60 p-4 backdrop-blur-sm"
           onClick={() => setOpen(false)}
+          role="presentation"
         >
           <div
-            className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-card bg-sv-surface p-6 shadow-panel-dark"
+            ref={boxRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="stay-booker-title"
+            className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-card bg-sv-surface p-6 shadow-panel-dark"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={t("detail.close")}
+              className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full text-sv-ink/50 transition-colors hover:bg-sv-ink/[0.06] hover:text-sv-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
             {done ? (
               <div className="py-6 text-center">
                 <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-sv-blue" aria-hidden />
-                <h3 className="font-black text-lg text-sv-ink">{lt(lang, "staySuccess")}</h3>
+                <h3 id="stay-booker-title" className="font-black text-lg text-sv-ink">
+                  {lt(lang, instant ? "stayInstantSuccess" : "staySuccess")}
+                </h3>
                 <p className="mx-auto mt-2 max-w-sm text-sm font-semibold leading-relaxed text-sv-ink/60">
-                  {lt(lang, "staySuccessSub", {
+                  {lt(lang, instant ? "stayInstantSuccessSub" : "staySuccessSub", {
                     dates: `${showDate(checkIn)} → ${showDate(checkOut)}`,
                     nights,
                     guests,
                   })}
                 </p>
-                <button
-                  onClick={() => {
-                    setOpen(false)
-                    reset()
-                  }}
-                  className="mt-5 rounded-control bg-sv-blue px-6 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-glow-blue-sm"
-                >
-                  {t("tour.cancel")}
-                </button>
+                {confirmed && (
+                  <p className="mt-2 text-xs font-black tracking-wide text-sv-ink/50">
+                    {lt(lang, "stayRefLabel", { ref: confirmed.ref })}
+                  </p>
+                )}
+                <div className="mt-5 flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => {
+                      setOpen(false)
+                      reset()
+                    }}
+                    className="rounded-control bg-sv-blue px-6 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-glow-blue-sm"
+                  >
+                    {t("tour.cancel")}
+                  </button>
+                  {confirmed && (
+                    <button
+                      type="button"
+                      onClick={cancelBooking}
+                      disabled={cancelling}
+                      className="rounded-control border border-sv-ink/10 px-4 py-2.5 text-sm font-semibold text-sv-ink/60 transition hover:bg-sv-cloud disabled:opacity-50"
+                    >
+                      {cancelling ? t("tour.sending") : lt(lang, "stayCancelCta")}
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <>
-                <h3 className="mb-1 font-black text-lg text-sv-ink">{lt(lang, "stayTitle")}</h3>
-                <p className="mb-4 text-sm text-sv-ink/60">{lt(lang, "staySubtitle")}</p>
+                <h3 id="stay-booker-title" className="mb-1 font-black text-lg text-sv-ink">{lt(lang, "stayTitle")}</h3>
+                <p className="mb-4 text-sm text-sv-ink/60">
+                  {lt(lang, instant ? "stayInstantSub" : "staySubtitle")}
+                </p>
 
                 {avail.status === "loading" && (
                   <p className="py-8 text-center text-sm font-semibold text-sv-ink/50">{lt(lang, "stayLoading")}</p>
@@ -447,7 +554,9 @@ export function StayBooker({ listingId }: { listingId: string }) {
                           <span>{lt(lang, "stayTotal")}</span>
                           <span>{gel(quote.totalTetri)}</span>
                         </div>
-                        <p className="pt-1 text-xs font-semibold text-sv-ink/50">{lt(lang, "stayNoCharge")}</p>
+                        <p className="pt-1 text-xs font-semibold text-sv-ink/50">
+                          {lt(lang, instant ? "stayInstantNoCharge" : "stayNoCharge")}
+                        </p>
                       </div>
                     )}
 
@@ -513,7 +622,7 @@ export function StayBooker({ listingId }: { listingId: string }) {
                         disabled={sending || !quote || tooShort}
                         className="flex-1 rounded-control bg-sv-blue px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-glow-blue-sm disabled:opacity-50"
                       >
-                        {sending ? t("tour.sending") : lt(lang, "stayRequest")}
+                        {sending ? t("tour.sending") : lt(lang, instant ? "stayInstantRequest" : "stayRequest")}
                       </button>
                     </div>
                   </form>

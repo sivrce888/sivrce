@@ -70,7 +70,7 @@ function MapPreviewCard({ badge }: { badge: string }) {
   )
 }
 
-export default function MapSection() {
+export default function MapSection({ href = '/map' }: { href?: string }) {
   const { b } = useI18n()
   const { ref: chipRef, inView: chipInView } = useInViewOnce<HTMLDivElement>()
   return (
@@ -112,7 +112,7 @@ export default function MapSection() {
 
             <Reveal delay={0.45}>
               <LocalizedLink
-                href="/map"
+                href={href}
                 className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-4 text-[15px] font-extrabold text-sv-navy transition-all duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-light hover:shadow-glow-blue"
               >
                 {b('home.map.openCta')}
@@ -123,7 +123,7 @@ export default function MapSection() {
 
           <Reveal delay={0.2} className="relative">
             <div className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue transition-transform duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] hover:scale-[1.015]">
-              <LocalizedLink href="/map" className="block">
+              <LocalizedLink href={href} className="block">
                 <MapPreviewCard badge={b('home.map.openBadge')} />
               </LocalizedLink>
               <div className="pointer-events-none absolute inset-0 rounded-card ring-1 ring-inset ring-white/10" />

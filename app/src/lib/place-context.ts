@@ -57,7 +57,7 @@ export function countryOf(cc: string): { ka: string; en: string; ru: string; de?
   }
 }
 
-function haversineKm(a: PlaceCoords, b: PlaceCoords): number {
+export function haversineKm(a: PlaceCoords, b: PlaceCoords): number {
   const R = 6371
   const dLat = ((b.lat - a.lat) * Math.PI) / 180
   const dLng = ((b.lng - a.lng) * Math.PI) / 180

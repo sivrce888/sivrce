@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import type { EntityType, FactConfidence } from "@/generated/prisma/enums";
+import type { EntityType } from "@/generated/prisma/enums";
 import type { EntityMatchCandidate, EntityMatchResult } from "./types";
 import { normalizeGermanAddress } from "./normalize-de";
 export { normalizeGermanAddress };
@@ -256,10 +256,10 @@ export async function findMatches(
 
 export function shouldMerge(a: EntityMatchResult, threshold: number = 70): boolean {
   // Never silently merge if uncertain - create candidate relationship instead
-  if (a.score < 70) return false;
+  if (a.score < threshold) return false;
   // Check if there are conflicting signals
   const hasWeakSignals = a.reasons.some(r => r.startsWith("weak_") || r.startsWith("partial_"));
-  if (hasWeakSignals && a.score < 85) return false;
+  if (hasWeakSignals && a.score < threshold + 15) return false;
   return true;
 }
 

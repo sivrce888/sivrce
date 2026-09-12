@@ -50,11 +50,20 @@ const RAIL: Record<
   },
 }
 
-export default function Listings({ items, rail }: { items: Listing[]; rail: ListingsRail }) {
+export default function Listings({
+  items,
+  rail,
+  href,
+}: {
+  items: Listing[]
+  rail: ListingsRail
+  href?: string
+}) {
   const { b } = useI18n()
   if (items.length === 0) return null
   const r = RAIL[rail]
   const Icon = r.Icon
+  const viewHref = href ?? r.href
 
   return (
     <section id={rail === 'superVip' ? 'super-vip' : 'vip-plus'} className={`relative overflow-hidden py-[clamp(3.5rem,2.4rem+4vw,7rem)] ${r.sectionClass}`}>
@@ -72,7 +81,7 @@ export default function Listings({ items, rail }: { items: Listing[]; rail: List
             </p>
           </div>
           <LocalizedLink
-            href={r.href}
+            href={viewHref}
             className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {b(r.viewAll)}

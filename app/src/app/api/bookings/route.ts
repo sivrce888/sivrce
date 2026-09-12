@@ -18,11 +18,10 @@ import { isSameOrigin } from "@/lib/security/origin"
 import {
   ACTIVE_BOOKING_STATUSES,
   expandBookingNights,
-  hasBookingOverlap,
-  quoteStay,
-  stayBookingLockKey,
   tbilisiTodayUtc,
 } from "@/lib/bookings"
+import { createStayBooking } from "@/lib/stay-create"
+import { createStayCancelToken, stayBookingRef } from "@/lib/stay-token"
 
 const DAY_MS = 86_400_000
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -98,6 +97,7 @@ export async function GET(req: NextRequest) {
         monthlyDiscountPct: settings?.monthlyDiscountPct ?? 0,
         checkInHour: settings?.checkInHour ?? 15,
         checkOutHour: settings?.checkOutHour ?? 11,
+        instant: settings?.instantBook ?? false,
       },
     })
   } catch (err) {
@@ -118,7 +118,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { listingId, checkIn: checkInRaw, checkOut: checkOutRaw } = body
-    const { guestName, guestPhone, guestEmail, guestNotes, guestCount } = body
+    // String-only + length-capped at the trust boundary: non-strings become ""
+    // (→ 400 below), oversized text is clipped before it reaches a row.
+    const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "")
+    const guestName = text(body.guestName, 120)
+    const guestPhone = text(body.guestPhone, 20)
+    const guestEmail = text(body.guestEmail, 200)
+    const guestNotes = text(body.guestNotes, 500)
+    const { guestCount } = body
 
     if (!listingId || !checkInRaw || !checkOutRaw || !guestName || !guestPhone) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -165,66 +172,50 @@ export async function POST(req: NextRequest) {
     if (settings && !settings.enabled) {
       return NextResponse.json({ error: "booking_disabled" }, { status: 409 })
     }
-    const minNights = settings?.minNights ?? 1
-    const maxNights = settings?.maxNights ?? 30
-    if (nights < minNights || nights > maxNights) {
-      return NextResponse.json({ error: "stay_length" }, { status: 409 })
-    }
-    const capacity = settings?.guestCapacity ?? 2
     const guests = guestCount == null ? 1 : Number(guestCount)
-    if (!Number.isInteger(guests) || guests < 1 || guests > capacity) {
-      return NextResponse.json({ error: "guest_count" }, { status: 400 })
-    }
-
-    const blocked = await db.dailyRentalBlockedDate.findFirst({
-      where: { listingId, date: { gte: checkIn, lt: checkOut } },
-      select: { id: true },
-    })
-    if (blocked) {
-      return NextResponse.json({ error: "date_unavailable" }, { status: 409 })
-    }
 
     const session = await auth()
-    const quote = quoteStay({
-      nights,
-      nightlyTetri: listing.price * 100,
-      cleaningFeeTetri: settings?.cleaningFeeTetri ?? 0,
-      securityDepositTetri: settings?.securityDepositTetri ?? 0,
-      weeklyDiscountPct: settings?.weeklyDiscountPct ?? 0,
-      monthlyDiscountPct: settings?.monthlyDiscountPct ?? 0,
-    })
-
-    const lock = stayBookingLockKey(listingId)
-    const booking = await db.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${lock.key1}, ${lock.key2})`
-      if (await hasBookingOverlap(tx, { listingId, checkIn, checkOut })) {
-        return null
-      }
-      return tx.dailyRentalBooking.create({
-        data: {
-          listingId,
-          guestId: session?.user?.id ?? guestPhone,
-          checkIn,
-          checkOut,
-          nights,
-          guestCount: guests,
-          nightlyPriceTetri: listing.price * 100,
+    const result = await db.$transaction((tx) =>
+      createStayBooking(tx, {
+        listingId,
+        checkIn,
+        checkOut,
+        nights,
+        guests,
+        guestId: session?.user?.id ?? guestPhone,
+        guestName,
+        guestPhone,
+        guestEmail: guestEmail ?? null,
+        guestNotes: guestNotes ?? null,
+        minNights: settings?.minNights ?? 1,
+        maxNights: settings?.maxNights ?? 30,
+        guestCapacity: settings?.guestCapacity ?? 2,
+        instant: settings?.instantBook ?? false,
+        pricing: {
+          nightlyTetri: listing.price * 100,
           cleaningFeeTetri: settings?.cleaningFeeTetri ?? 0,
           securityDepositTetri: settings?.securityDepositTetri ?? 0,
-          discountTetri: quote.discountTetri,
-          totalTetri: quote.totalTetri,
-          currency: "GEL",
-          guestName,
-          guestPhone,
-          guestEmail: guestEmail ?? null,
-          guestNotes: guestNotes ?? null,
+          weeklyDiscountPct: settings?.weeklyDiscountPct ?? 0,
+          monthlyDiscountPct: settings?.monthlyDiscountPct ?? 0,
         },
-      })
-    })
-    if (!booking) {
-      return NextResponse.json({ error: "date_unavailable" }, { status: 409 })
+      }),
+    )
+    if (!result.ok) {
+      return NextResponse.json({ error: result.code }, { status: result.code === "guest_count" ? 400 : 409 })
     }
-    return NextResponse.json({ booking }, { status: 201 })
+    return NextResponse.json(
+      {
+        booking: {
+          id: result.booking.id,
+          status: result.booking.status,
+          totalTetri: result.booking.totalTetri,
+          ref: stayBookingRef(result.booking.id),
+          // Ownership proof for the anonymous guest-cancel endpoint.
+          cancelToken: createStayCancelToken(result.booking.id),
+        },
+      },
+      { status: 201 },
+    )
   } catch (err) {
     console.error("Booking request error:", (err as Error).message)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

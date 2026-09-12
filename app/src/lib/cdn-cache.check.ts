@@ -29,6 +29,9 @@ assert.match(cdnJson({ ok: true }, 60).headers.get("Cache-Control") ?? "", /s-ma
 
 const nextCfg = read("next.config.ts")
 assert.ok(has(nextCfg, "productionBrowserSourceMaps: false"))
+assert.ok(has(nextCfg, "serverSourceMaps: false"))
+assert.ok(has(nextCfg, "serverMinification: true"))
+assert.ok(has(nextCfg, '"**/*.map"'))
 assert.ok(has(nextCfg, "unoptimized: true"))
 assert.ok(has(nextCfg, "expireTime: 86400"))
 assert.ok(has(nextCfg, "compress: true"))
@@ -121,8 +124,26 @@ lock("src/components/ThemeProvider.tsx", ["session={null}", "refetchInterval={0}
 lock("src/lib/brand.ts", ["Real Estate in one place", "უძრავი ქონება ერთ სივრცეში"])
 lock("src/app/globals.css", ["html[data-lite] [data-reveal]"])
 lock("next.config.ts", ["webpackMemoryOptimizations: true", "staleTimes"])
-lock("package.json", ["max-old-space-size=3072", "max-old-space-size=768"])
+lock("package.json", [
+  "max-old-space-size=3072",
+  "max-old-space-size=768",
+  "check-repo-weight.mjs --build",
+], [
+  '"@vercel/analytics"',
+  '"@vercel/speed-insights"',
+  '"@vercel/toolbar"',
+  '"@vercel/otel"',
+])
 lock(".npmrc", ["legacy-peer-deps=true"])
+lock(".vercelignore", ["ios", "android", "e2e", "playwright-report"])
+lock("../scripts/check-repo-weight.mjs", [
+  "MAX_TRACKED_BYTES = 96 * 1024 * 1024",
+  "MAX_TRACKED_FILES = 3500",
+  "MAX_DEPLOY_BYTES = 100 * 1024 * 1024",
+  "MAX_SERVER_BYTES = 80 * 1024 * 1024",
+  "MAX_STATIC_BYTES = 24 * 1024 * 1024",
+  "stripMaps",
+])
 lock("src/components/sections/Listings.tsx", [
   "homeRailSearchHref('diamond')",
   "homeRailSearchHref('super_vip')",

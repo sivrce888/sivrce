@@ -31,6 +31,16 @@ prisma/*.db
 .env*
 
 # local junk — see .cursor/rules/repo-lightweight-lock.mdc
+app/visual-audit.mjs
+app/scripts/probe-*.mjs
+app/scripts/visual-*.mjs
+app/scripts/visual-*.cjs
+app/scripts/audit-shots.mjs
+app/scripts/dark-shots.js
+app/scripts/dark-verify.js
+app/scripts/lcp-probe.cjs
+app/scripts/mobile-audit.mjs
+app/scripts/verify-mobile.mjs
 app/src/__linttmp/
 app/scripts/*.log
 *.log
@@ -66,6 +76,9 @@ logo/concepts/
 
 # MapLibre ESM worker copies (node scripts/copy-maplibre-worker.mjs)
 app/public/maplibre/
+
+# regeneratable OSM street dump (scripts/sync-tbilisi-streets-osm.py)
+scripts/tbilisi-streets-osm.json
 
 # tool / OS caches
 supabase/.temp/

@@ -1,10 +1,7 @@
-import { AlertTriangle, TrendingDown } from "lucide-react"
-
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { Panel } from "@/components/admin/dashboard/Panel"
 import { requireAdmin } from "@/lib/admin/guard"
 import { getLowQualityEntities } from "@/lib/intelligence/quality-score"
-import { fmtNum } from "@/lib/admin/format"
 
 export const metadata = { title: "Data Quality" }
 

@@ -11,6 +11,7 @@ import {
   TRANSIT_MAX,
   TRANSIT_MAX_SPAN,
   TRANSIT_MIN_ZOOM,
+  dedupeStatic,
   isTransitCat,
   liveCatsFor,
   parseOverpass,
@@ -107,5 +108,20 @@ assert.equal(url, '/api/transit?bbox=13.08123,52.32123,13.18123,52.42123&cats=bu
 assert.equal(transitFetchUrl({ w: 4, s: 46, e: 16, n: 56 }, ['bus']), null, 'wide span refused')
 assert.equal(transitFetchUrl({ w: 13.4, s: 52.5, e: 13.5, n: 52.6 }, []), null, 'empty cats refused')
 assert.ok(TRANSIT_MAX_SPAN === 0.5)
+
+// Shell dedupe: same-category ≤80 m dropped, others kept
+const shellPins = [
+  { lat: 52.5200, lng: 13.4050, category: 'metro' as const },
+  { lat: 48.8566, lng: 2.3522, category: 'landmark' as const },
+]
+const fetched = [
+  { id: 'osm:node/1', category: 'metro' as const, name: 'Same U-Bahn', lat: 52.5203, lng: 13.4052 },
+  { id: 'osm:node/2', category: 'metro' as const, name: 'Far U-Bahn', lat: 52.5300, lng: 13.4200 },
+  { id: 'osm:node/3', category: 'landmark' as const, name: 'Not Louvre', lat: 48.8584, lng: 2.2945 },
+]
+const keptStops = dedupeStatic(fetched, shellPins)
+assert.equal(keptStops.length, 2, 'near-dup dropped, far + other-cat kept')
+assert.ok(keptStops.every((s: { id: string }) => s.id !== 'osm:node/1'), 'colliding stop removed')
+assert.deepEqual(dedupeStatic(fetched, []), fetched, 'no shell → passthrough')
 
 console.log(`transit: ${stops.length} sample stops / ${LIVE_CATS.length} live cats ✓`)

@@ -34,6 +34,8 @@ import type { HomeFlowId } from '@/lib/cms-studio'
 import { listBlogPosts } from '@/lib/blog-live'
 import type { Lang } from '@/lib/i18n/core'
 import { cardPhotoPayload } from '@/lib/card-gallery-teaser'
+import { homeScopeFor, homeSearchHref, type HomeScope } from '@/lib/home-scope'
+import type { MarketId } from '@/lib/markets'
 
 /** Drop description + extra gallery frames from the RSC payload (homepage HTML was ~500KB). */
 function railCard(l: StoryListing): StoryListing {
@@ -41,20 +43,44 @@ function railCard(l: StoryListing): StoryListing {
   return { ...l, description: '', ...cardPhotoPayload(images) }
 }
 
+import { DEVELOPERS, PROJECTS, getDeveloper, type Developer, type Project } from '@/data/professionals'
+import { cityByName, nearestMapCity } from '@/lib/map/user-place'
+
+function countryProjects(country: string): Project[] {
+  // Worldwide hub shows the whole shipped catalog (GE + DE + …).
+  if (country === '*') return PROJECTS
+  return PROJECTS.filter((p) => {
+    const pin = cityByName(p.city)
+    const cc = pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null)
+    return cc === country
+  })
+}
+
+function countryDevelopers(country: string): Developer[] {
+  if (country === '*') return DEVELOPERS
+  return DEVELOPERS.filter((d) => {
+    const pin = cityByName(typeof d.city === 'string' ? d.city : (d.city as Record<string, string>)?.ka ?? '')
+    return pin?.cc === country
+  })
+}
+
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
-async function HomeBelowFold({ lang }: { lang: Lang }) {
-  const [superVip, vipPlus, stories, videos, projects, stats, developers, agentCounts, districtCounts, blogPosts] = await Promise.all([
-    getHomeTierListings('diamond', 8).catch(() => []),
-    getHomeTierListings('super_vip', 8).catch(() => []),
-    getStoryListings(12).catch(() => [] as StoryListing[]),
-    getVideoListings(16).catch(() => [] as StoryListing[]),
-    projectsLive().catch(() => []),
-    getHomeStats(),
-    developersLive().catch(() => []),
-    getAgentListingCountsByKaName().catch(() => ({}) as Record<string, number>),
-    getDistrictListingCounts().catch(() => ({}) as Record<string, number>),
-    listBlogPosts().catch(() => []),
-  ])
+async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | null }) {
+  const ge = scope?.country === 'GE'
+  const country = scope?.country ?? 'GE'
+  const [superVip, vipPlus, stories, videos, projects, stats, developers, agentCounts, districtCounts, blogPosts] =
+    await Promise.all([
+      scope ? getHomeTierListings('diamond', 8, scope).catch(() => []) : Promise.resolve([]),
+      scope ? getHomeTierListings('super_vip', 8, scope).catch(() => []) : Promise.resolve([]),
+      scope ? getStoryListings(12, scope).catch(() => [] as StoryListing[]) : Promise.resolve([] as StoryListing[]),
+      scope ? getVideoListings(16, scope).catch(() => [] as StoryListing[]) : Promise.resolve([] as StoryListing[]),
+      ge ? projectsLive().catch(() => []) : Promise.resolve(countryProjects(country)),
+      getHomeStats(scope?.country),
+      ge ? developersLive().catch(() => []) : Promise.resolve(countryDevelopers(country)),
+      ge ? getAgentListingCountsByKaName().catch(() => ({}) as Record<string, number>) : Promise.resolve({} as Record<string, number>),
+      ge ? getDistrictListingCounts('GE').catch(() => ({}) as Record<string, number>) : Promise.resolve({} as Record<string, number>),
+      listBlogPosts().catch(() => []),
+    ])
   // Under-construction first; real CDN heroes over stock npN/pN. Rail shows 8 — rest via /projects.
   const building = projects.filter((p) => p.done < 100)
   const pool = building.length >= 2 ? building : projects
@@ -93,23 +119,49 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
     .slice(0, 12)
 
   const layout = await getHomeLayout()
+  // '*' = worldwide: plain /map (the map has its own country picker), not a bogus ?country=*.
+  const mapHref = scope && scope.country !== '*' ? `/map?country=${scope.country}` : '/map'
   const nodes: Record<HomeFlowId, ReactNode> = {
-    stories: (
+    stories: scope ? (
       <>
         <StoriesRail items={stories.map(railCard)} />
         <VideoListingsRail items={videos.map(railCard)} />
       </>
-    ),
+    ) : null,
     categories: <Categories lang={lang} />,
-    listings: <Listings items={superVip.map(railCard)} rail="superVip" />,
-    vip_plus: <Listings items={vipPlus.map(railCard)} rail="vipPlus" />,
+    listings: (
+      <Listings
+        items={superVip.map(railCard)}
+        rail="superVip"
+        href={homeSearchHref({ tier: 'diamond' }, scope)}
+      />
+    ),
+    vip_plus: (
+      <Listings
+        items={vipPlus.map(railCard)}
+        rail="vipPlus"
+        href={homeSearchHref({ tier: 'super_vip' }, scope)}
+      />
+    ),
     ad_mid: <AdSlot slot="home_mid" lang={lang} />,
-    neighborhoods: <NeighborhoodsRail counts={districtCounts} />,
-    map: <MapSection />,
-    projects: <Projects items={homeProjects} total={projects.length} />,
+    neighborhoods: ge ? <NeighborhoodsRail counts={districtCounts} /> : null,
+    map: <MapSection href={mapHref} />,
+    projects: homeProjects.length > 0 ? (
+      // ponytail: dev names resolved server-side — a client getDeveloper() would drag the whole catalog into the bundle.
+      <Projects
+        items={homeProjects}
+        total={projects.length}
+        devNames={Object.fromEntries(
+          homeProjects.flatMap((p) => {
+            const d = getDeveloper(p.developerSlug)
+            return d ? [[p.slug, d.name] as const] : []
+          }),
+        )}
+      />
+    ) : null,
     ad_after_projects: <AdSlot slot="home_after_projects" lang={lang} />,
-    agents: <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} />,
-    developers: <DeveloperSlider developers={topDevelopers} total={developers.length} />,
+    agents: ge ? <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} /> : null,
+    developers: topDevelopers.length > 0 ? <DeveloperSlider developers={topDevelopers} total={developers.length} /> : null,
     services: <Services lang={lang} />,
     stats: <Stats live={stats} />,
     forum: <ForumTeaser />,
@@ -131,15 +183,24 @@ async function HomeBelowFold({ lang }: { lang: Lang }) {
 }
 
 /** Homepage section assembly — lang drives CMS block copy on server sections. */
-export default function HomeMain({ lang = 'ka' }: { lang?: Lang }) {
+export default function HomeMain({
+  lang = 'ka',
+  market = 'ge',
+}: {
+  lang?: Lang
+  market?: MarketId
+}) {
+  const scope = homeScopeFor(market)
+  // '*' is not an ISO — the hero search box searches the world on the hub.
+  const heroCountry = scope && scope.country !== '*' ? scope.country : undefined
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <Hero lang={lang} />
+        <Hero lang={lang} country={heroCountry} geChips={scope?.country === 'GE'} />
         <Suspense fallback={null}>
           <div className="sv-below-fold">
-            <HomeBelowFold lang={lang} />
+            <HomeBelowFold lang={lang} scope={scope} />
           </div>
         </Suspense>
       </main>

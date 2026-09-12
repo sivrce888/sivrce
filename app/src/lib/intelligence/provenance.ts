@@ -43,9 +43,6 @@ interface ProvenanceFactWithSource extends ProvenanceFact {
 }
 
 export async function recordFact(fact: ProvenanceFact) {
-  const relScore = reliabilityScore(fact.sourceId as unknown as SourceReliability);
-  const confRank = confidenceRank(fact.confidence);
-
   return db.dataProvenance.create({
     data: {
       entityType: fact.entityType,

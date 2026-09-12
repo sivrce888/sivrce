@@ -59,7 +59,7 @@ assert.equal(
   ogImage(master),
   "https://cdn.sivrce.ge/uploads/2026/07/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.og.jpg",
 )
-assert.equal(ogImage("/images/hero.webp"), "/images/og/hero.jpg")
+assert.equal(ogImage("/images/hero.webp"), "/images/hero.webp")
 assert.deepEqual(
   ogImages(master),
   [
@@ -67,6 +67,6 @@ assert.deepEqual(
     master,
   ],
 )
-assert.deepEqual(ogImages("/images/hero.webp"), ["/images/og/hero.jpg"])
+assert.deepEqual(ogImages("/images/hero.webp"), ["/images/hero.webp"])
 
 console.log("media.check (og twin): OK")

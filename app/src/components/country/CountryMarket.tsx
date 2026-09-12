@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import MarketHome from '@/components/country/MarketHome'
+import MarketListings from '@/components/country/MarketListings'
+import { WeatherBadge } from '@/components/WeatherBadge'
 import { jsonLd } from '@/lib/utils'
 import { cityBySlug } from '@/lib/map/user-place'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -15,15 +18,20 @@ import {
   DE_BERLIN_BUY_DE,
   DE_BERLIN_HUB_DE,
   DE_BERLIN_RENT_DE,
+  DE_HAMBURG_HUB_DE,
   DE_HUB_DE,
+  DE_MUNICH_HUB_DE,
   cityPack,
   type CountryCopy,
 } from '@/lib/country-copy'
 import DeMarketHome from '@/components/country/DeMarketHome'
+import HoodPage, { hoodMetadata } from '@/components/country/HoodPage'
+import { hoodBySlug, hoodsByCity } from '@/data/world-neighborhoods'
 import ProjectPage, { generateMetadata as projectPageMetadata } from '@/app/[lang]/projects/[slug]/page'
 import { DE_CITIES } from '@/lib/countries/de'
 import { getProject } from '@/data/professionals'
 import { COUNTRIES, type WorldCountry } from '@/data/world-countries'
+import type { WorldNeighborhood } from '@/data/world-neighborhoods'
 
 /** True when the slug targets a German-catalog project detail page. */
 function deProjectSlug(country: PathCountryId, slug: string[] | undefined): string | null {
@@ -34,12 +42,28 @@ function deProjectSlug(country: PathCountryId, slug: string[] | undefined): stri
 
 export const revalidate = 86400
 
+/** DE cities with a native German hub (no /buy /rent copy yet — mirrors the EN pack). */
+const DE_HUB_ONLY_DE_CITIES = new Set(['munich', 'hamburg'])
+
 type Slug = string[] | undefined
 
 function publicPath(country: PathCountryId, slug: Slug): string {
   const prefix = MARKETS[country].pathPrefix
   if (!slug?.length) return prefix
   return `${prefix}/${slug.join('/')}`
+}
+
+/** Resolve a depth-2 hood path `/{cc}/{city}/{hood}` — intent + DE Berlin bezirk slugs stay excluded. */
+function hoodFor(country: PathCountryId, slug: Slug): { citySlug: string; hood: WorldNeighborhood } | null {
+  if (slug?.length !== 2) return null
+  const [citySlug, hoodSlug] = slug
+  if (hoodSlug === 'buy' || hoodSlug === 'rent' || hoodSlug === 'sale') return null
+  if (country === 'de' && citySlug === 'berlin') return null // /de/berlin/[bezirk] route owns these
+  const cc = MARKETS[country].countryCode
+  const pack = cc ? cityPack(country, citySlug) : null
+  if (!cc || !pack) return null
+  const hood = hoodBySlug(cc, pack.name, hoodSlug)
+  return hood ? { citySlug, hood } : null
 }
 
 function copyFor(
@@ -61,6 +85,9 @@ function copyFor(
     if (intent === 'buy') return { copy: DE_BERLIN_BUY_DE, kind: 'intent', city: 'berlin', intent }
     if (intent === 'rent') return { copy: DE_BERLIN_RENT_DE, kind: 'intent', city: 'berlin', intent }
     return null
+  }
+  if (country === 'de' && lang === 'de' && !intentRaw && DE_HUB_ONLY_DE_CITIES.has(citySlug)) {
+    return { copy: citySlug === 'munich' ? DE_MUNICH_HUB_DE : DE_HAMBURG_HUB_DE, kind: 'city', city: citySlug }
   }
   const pack = cityPack(country, citySlug)
   if (!pack) return null
@@ -85,6 +112,8 @@ export function countryStaticParams(country: PathCountryId) {
     out.push({ slug: [c] })
     if (pack.buy) out.push({ slug: [c, 'buy'] })
     if (pack.rent) out.push({ slug: [c, 'rent'] })
+    // ponytail: hoods stay ISR-on-demand (dynamicParams) — prerendering 125+
+    // hood pages pushed SSG over the 3GB heap ceiling; sitemap still drives discovery.
   }
   return out
 }
@@ -102,6 +131,8 @@ export async function countryMetadata(
   if (slug?.[1] === 'sale') {
     return {}
   }
+  const hoodHit = hoodFor(country, slug)
+  if (hoodHit) return hoodMetadata(country, hoodHit.citySlug, hoodHit.hood)
   const found = copyFor(country, slug, lang)
   if (!found) {
     // Generic metadata for countries without custom copy
@@ -141,7 +172,10 @@ export async function countryMetadata(
     en: `${COM_ORIGIN}${path}`,
     'x-default': `${COM_ORIGIN}${path}`,
   }
-  if (country === 'de' && (!slug?.length || slug[0] === 'berlin')) {
+  if (
+    country === 'de' &&
+    (!slug?.length || slug[0] === 'berlin' || (slug.length === 1 && DE_HUB_ONLY_DE_CITIES.has(slug[0])))
+  ) {
     languages.de = `${COM_ORIGIN}/de${path}`
   }
   if (country === 'ae') {
@@ -242,11 +276,17 @@ function GenericCountryPage({
   const ldScript = <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
 
   const displayCities = wc.cities.slice(0, 8)
+  const cityLock =
+    citySlug && (market.citySlugs.includes(citySlug) || wc.cities.includes(citySlug))
+      ? citySlug
+      : undefined
+  const intent = slug?.[1] === 'buy' || slug?.[1] === 'rent' ? slug[1] : undefined
 
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
-      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+      <main>
+        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
         <nav className="mb-8 text-sm text-sv-muted" aria-label="Breadcrumb">
           <ol className="flex flex-wrap items-center gap-1">
             {crumbs.map((c, i) => (
@@ -265,6 +305,18 @@ function GenericCountryPage({
         <h1 className="mb-6 text-3xl font-bold tracking-tight text-sv-ink sm:text-4xl">
           {h1}
         </h1>
+
+        <div className="mb-4 flex items-center gap-3">
+          <Suspense fallback={null}>
+            {/* ponytail: renders null when the city isn't in the map corpus — no guards needed. */}
+            <WeatherBadge
+              citySlug={cityLock ?? market.defaultCitySlug}
+              label={cityName ?? wc.capital}
+              lang="en"
+              className="rounded-full border border-sv-ink/[0.06] bg-white px-3 py-1.5 text-sv-ink/60 shadow-sm"
+            />
+          </Suspense>
+        </div>
 
         <div className="mb-8 rounded-lg border border-sv-edge bg-white p-6 shadow-sm">
           <p className="mb-4 text-sv-ink/80 leading-relaxed">{description}</p>
@@ -295,7 +347,13 @@ function GenericCountryPage({
             </div>
           </dl>
         </div>
+        </div>
 
+        <Suspense fallback={null}>
+          <MarketListings country={country} city={cityLock} intent={intent} />
+        </Suspense>
+
+        <div className="mx-auto max-w-4xl px-4 pb-12 sm:px-6 lg:px-8">
         {displayCities.length > 0 && (
           <section className="mb-8">
             <h2 className="mb-4 text-xl font-semibold text-sv-ink">
@@ -331,6 +389,7 @@ function GenericCountryPage({
             sivrce.com{market.pathPrefix} is the canonical {wc.en} URL.
           </p>
         </section>
+        </div>
       </main>
       <Footer />
       {ldScript}
@@ -347,9 +406,17 @@ export default async function CountryPage({
 }) {
   const { lang: raw, slug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
-  // German copy exists for hub + Berlin only — other cities and project pages
-  // have no /de/de variant; send them to the English URL (not a soft-404).
-  if (country === 'de' && lang === 'de' && slug?.length && slug[0] !== 'berlin') {
+  // German copy exists for hub + Berlin (incl. buy/rent) and a Munich/Hamburg
+  // hub-only page — everything else (other cities, project pages, Munich/
+  // Hamburg buy or rent) has no /de/de variant; send it to the English URL
+  // instead of a language-mismatched soft-404.
+  if (
+    country === 'de' &&
+    lang === 'de' &&
+    slug?.length &&
+    slug[0] !== 'berlin' &&
+    !(slug.length === 1 && DE_HUB_ONLY_DE_CITIES.has(slug[0]))
+  ) {
     redirect(`${MARKETS.de.pathPrefix}/${slug.join('/')}`)
   }
   const projectSlug = deProjectSlug(country, slug)
@@ -365,6 +432,8 @@ export default async function CountryPage({
     const iso = MARKETS[country].countryCode
     if (iso) redirect(`/search?country=${iso}`)
   }
+  const hoodHit = hoodFor(country, slug)
+  if (hoodHit) return <HoodPage country={country} citySlug={hoodHit.citySlug} hood={hoodHit.hood} />
   const found = copyFor(country, slug, lang)
 
   // Generic page for countries without custom copy
@@ -373,6 +442,21 @@ export default async function CountryPage({
     if (!cc) notFound()
     const wc = worldCountry(cc)
     if (!wc) notFound()
+    // No soft-404s: a generic URL must name a real city (market set or world
+    // facts) and at most one known intent segment.
+    const citySlug = slug?.[0]
+    const cityOk =
+      !citySlug ||
+      MARKETS[country].citySlugs.includes(citySlug) ||
+      wc.cities.includes(citySlug)
+    const intent = slug?.[1]
+    const intentOk =
+      !intent ||
+      (slug?.length === 2 &&
+        !!citySlug &&
+        (intent === 'buy' || intent === 'rent') &&
+        MARKETS[country].intentCities.includes(citySlug))
+    if (!cityOk || !intentOk || (slug?.length ?? 0) > 2) notFound()
     return <GenericCountryPage country={country} wc={wc} slug={slug} lang={lang} />
   }
 

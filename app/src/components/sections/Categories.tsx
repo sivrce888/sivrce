@@ -1,5 +1,25 @@
 import LocalizedLink from '@/components/LocalizedLink'
-import { Building, Home, TreePalm, Map, Briefcase, CalendarClock, Hotel, Sparkles, ArrowUpRight, type LucideIcon } from 'lucide-react'
+import {
+  Building,
+  Home,
+  TreePalm,
+  Map,
+  Briefcase,
+  CalendarClock,
+  Hotel,
+  Sparkles,
+  ArrowUpRight,
+  KeyRound,
+  Waves,
+  Mountain,
+  PawPrint,
+  Laptop,
+  Crown,
+  Trees,
+  Bath,
+  Compass,
+  type LucideIcon,
+} from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
@@ -19,8 +39,17 @@ type CatKey =
   | 'commercial'
   | 'dailyRent'
   | 'partyHouses'
+  | 'selfCheckIn'
   | 'hotels'
   | 'newProjects'
+  | 'pools'
+  | 'jacuzzi'
+  | 'seaView'
+  | 'ski'
+  | 'petFriendly'
+  | 'workspace'
+  | 'penthouses'
+  | 'cabins'
 
 const CATS: {
   key: CatKey
@@ -36,6 +65,15 @@ const CATS: {
   { key: 'commercial', icon: Briefcase, labelKey: 'home.categories.commercial', brand: CATEGORY_BRAND.commercial, href: '/sale/commercial' },
   { key: 'dailyRent', icon: CalendarClock, labelKey: 'home.categories.dailyRent', brand: CATEGORY_BRAND.dailyRent, href: '/daily/apartments' },
   { key: 'partyHouses', icon: PartyHouseIcon, labelKey: 'home.categories.partyHouses', brand: CATEGORY_BRAND.partyHouses, href: PARTY_HOUSES_HREF },
+  { key: 'selfCheckIn', icon: KeyRound, labelKey: 'home.categories.selfCheckIn', brand: CATEGORY_BRAND.selfCheckIn, href: '/search?deal=daily&feat=add.f.selfCheckIn' },
+  { key: 'seaView', icon: Compass, labelKey: 'home.categories.seaView', brand: CATEGORY_BRAND.seaView, href: '/search?feat=add.f.seaView' },
+  { key: 'pools', icon: Waves, labelKey: 'home.categories.pools', brand: CATEGORY_BRAND.pools, href: '/search?feat=add.f.pool' },
+  { key: 'jacuzzi', icon: Bath, labelKey: 'home.categories.jacuzzi', brand: CATEGORY_BRAND.jacuzzi, href: '/search?feat=add.f.jacuzzi' },
+  { key: 'ski', icon: Mountain, labelKey: 'home.categories.ski', brand: CATEGORY_BRAND.ski, href: '/search?feat=add.f.skiAccess' },
+  { key: 'petFriendly', icon: PawPrint, labelKey: 'home.categories.petFriendly', brand: CATEGORY_BRAND.petFriendly, href: '/search?feat=add.f.petsAllowed' },
+  { key: 'workspace', icon: Laptop, labelKey: 'home.categories.workspace', brand: CATEGORY_BRAND.workspace, href: '/search?feat=add.f.workspace' },
+  { key: 'penthouses', icon: Crown, labelKey: 'home.categories.penthouses', brand: CATEGORY_BRAND.penthouses, href: '/search?feat=add.f.penthouse' },
+  { key: 'cabins', icon: Trees, labelKey: 'home.categories.cabins', brand: CATEGORY_BRAND.cabins, href: '/search?type=house&feat=add.f.wooden' },
   { key: 'hotels', icon: Hotel, labelKey: 'home.categories.hotels', brand: CATEGORY_BRAND.hotels, href: '/search?type=hotel' },
   { key: 'newProjects', icon: Sparkles, labelKey: 'home.categories.newProjects', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
 ]
@@ -55,11 +93,20 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
     commercial: 0,
     dailyRent: 0,
     partyHouses: 0,
+    selfCheckIn: 0,
     hotels: 0,
     newProjects: 0,
+    pools: 0,
+    jacuzzi: 0,
+    seaView: 0,
+    ski: 0,
+    petFriendly: 0,
+    workspace: 0,
+    penthouses: 0,
+    cabins: 0,
   }
   try {
-    const [byProp, daily, partyHouses, projects] = await Promise.all([
+    const [byProp, daily, partyHouses, selfCheckIn, pools, jacuzzi, seaView, ski, petFriendly, workspace, penthouses, cabins, projects] = await Promise.all([
       db.listing.groupBy({
         by: ['propertyType'],
         where: { deletedAt: null, status: 'active', dealType: 'buy' },
@@ -70,6 +117,33 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
       }),
       db.listing.count({
         where: { deletedAt: null, status: 'active', dealType: 'daily', features: { has: 'add.f.partiesAllowed' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', dealType: 'daily', features: { has: 'add.f.selfCheckIn' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', features: { has: 'add.f.pool' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', features: { has: 'add.f.jacuzzi' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', features: { has: 'add.f.seaView' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', features: { has: 'add.f.skiAccess' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', features: { has: 'add.f.petsAllowed' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', features: { has: 'add.f.workspace' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', features: { has: 'add.f.penthouse' } },
+      }),
+      db.listing.count({
+        where: { deletedAt: null, status: 'active', propertyType: 'house', features: { has: 'add.f.wooden' } },
       }),
       db.projectDirectory.count().catch(() => 0),
     ])
@@ -84,6 +158,15 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
     }
     empty.dailyRent = daily
     empty.partyHouses = partyHouses
+    empty.selfCheckIn = selfCheckIn
+    empty.pools = pools
+    empty.jacuzzi = jacuzzi
+    empty.seaView = seaView
+    empty.ski = ski
+    empty.petFriendly = petFriendly
+    empty.workspace = workspace
+    empty.penthouses = penthouses
+    empty.cabins = cabins
     empty.newProjects = projects
   } catch {
     /* DB down — show soft labels via formatCount(0) */
@@ -113,22 +196,22 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9">
           {CATS.map((c, i) => (
-            <Reveal key={c.key} delay={i * 0.05} className="h-full">
+            <Reveal key={c.key} delay={i * 0.03} className="h-full">
               <LocalizedLink
                 href={c.href}
-                className="group relative flex h-full flex-col items-center gap-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 text-center transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
+                className="group relative flex h-full flex-col items-center gap-2.5 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
               >
                 <span
-                  className="grid h-14 w-14 place-items-center rounded-module transition-transform duration-500 group-hover:scale-110"
+                  className="grid h-12 w-12 place-items-center rounded-module transition-transform duration-300 group-hover:scale-110"
                   style={{ backgroundColor: c.brand.chipVar, color: c.brand.hue }}
                 >
-                  <c.icon className="h-6 w-6" />
+                  <c.icon className="h-5.5 w-5.5" />
                 </span>
-                <span className="line-clamp-2 min-h-[2.8em] text-[14px] font-extrabold leading-[1.3] text-sv-ink">{labels[i]}</span>
-                <span className="mt-auto text-[12px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
-                <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/60" />
+                <span className="line-clamp-2 min-h-[2.6em] text-[13.5px] font-extrabold leading-[1.25] text-sv-ink">{labels[i]}</span>
+                <span className="mt-auto text-[11.5px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
+                <ArrowUpRight className="absolute right-3 top-3 h-3.5 w-3.5 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/60" />
               </LocalizedLink>
             </Reveal>
           ))}

@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, CheckCircle2, RefreshCw, XCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
 
 import { PageHeader } from "@/components/admin/ui/PageHeader"
 import { Panel } from "@/components/admin/dashboard/Panel"

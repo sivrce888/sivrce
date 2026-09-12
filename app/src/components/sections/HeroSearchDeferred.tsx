@@ -24,8 +24,14 @@ function Skeleton() {
   )
 }
 
-export default function HeroSearchDeferred({ quick }: { quick: HeroQuickChip[] }) {
-  const [Search, setSearch] = useState<null | ((p: { quick: HeroQuickChip[] }) => ReactNode)>(null)
+export default function HeroSearchDeferred({
+  quick,
+  country,
+}: {
+  quick: HeroQuickChip[]
+  country?: string
+}) {
+  const [Search, setSearch] = useState<null | ((p: { quick: HeroQuickChip[]; country?: string }) => ReactNode)>(null)
   useEffect(() => {
     let loaded = false
     const go = () => {
@@ -51,7 +57,7 @@ export default function HeroSearchDeferred({ quick }: { quick: HeroQuickChip[] }
      island hydrates off the critical path. Re-measure if HeroSearch grows. */
   return (
     <div className="min-h-[708px] sm:min-h-[584px] md:min-h-[491px] lg:min-h-[275px]">
-      {Search ? <Search quick={quick} /> : <Skeleton />}
+      {Search ? <Search quick={quick} country={country} /> : <Skeleton />}
     </div>
   )
 }

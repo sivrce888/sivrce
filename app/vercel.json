@@ -23,6 +23,7 @@
     "src/app/api/map-data/**/*": { "maxDuration": 10, "memory": 1024 },
     "src/app/api/search/**/*": { "maxDuration": 15, "memory": 1024 },
     "src/app/api/suggest/**/*": { "maxDuration": 5, "memory": 256 },
+    "src/app/api/hotels/*": { "maxDuration": 10, "memory": 256 },
     "src/app/api/ai/**/*": { "maxDuration": 15, "memory": 1024 },
     "src/app/api/geo/**/*": { "maxDuration": 3, "memory": 256 },
     "src/app/api/tiles/**/*": { "maxDuration": 8, "memory": 256 },

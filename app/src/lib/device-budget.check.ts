@@ -137,6 +137,8 @@ for (const [glob, fn] of Object.entries(vercel.functions)) {
 assert.equal(vercel.functions["src/app/api/**/*"].memory, 256, "api catch-all must pin 256 MB (Vercel default is 1024)")
 const heap = /max-old-space-size=(\d+)/.exec(JSON.parse(read("package.json")).scripts.start)
 assert.ok(heap && Number(heap[1]) <= 768, "next start heap must stay ≤768 MB")
+lock("package.json", ['"postbuild": "node ../scripts/check-repo-weight.mjs --build --verbose"'])
+lock("next.config.ts", ["serverSourceMaps: false", "serverMinification: true", '"**/*.map"'])
 
 for (const f of [
   "src/app/favicon.ico",

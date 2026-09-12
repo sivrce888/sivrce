@@ -60,7 +60,6 @@ import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { WalkScore } from '@/components/listing/WalkScore'
-import { estimateMonthlyRent, grossYieldPct } from '@/lib/finance'
 import { useCurrency, formatListingPrice } from '@/lib/currency'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useListingsByIds } from '@/lib/use-listings-by-ids'
@@ -69,6 +68,8 @@ import { useCompareStrings } from '@/components/compare/i18n'
 import TierPurchaseButton from '@/components/payments/TierPurchaseButton'
 import { DAILY_SIGNAL_KEYS, featureLabel, floorTypeLabel, groupedFeatures, orderFeaturesForDisplay, projectLabel, conditionLabel, buildingStatusLabel } from '@/lib/features'
 import type { LandInsights } from '@/lib/land'
+import type { NearbyProject } from '@/lib/directory-live'
+import { dirLoc, priceFromLabel } from '@/lib/directory-seo-lite'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 const MapEmbed = dynamic(() => import('@/components/MapEmbed'), {
@@ -101,7 +102,7 @@ const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   landmark: Castle,
 }
 
-type NearChip = { category: PoiCategory; name: string; dist: string; color: string }
+type NearChip = { category: PoiCategory; name: string; dist: string; color: string; meters: number }
 
 function FeatureGroups({ features, dealType }: { features: string[]; dealType: string }) {
   const { t } = useI18n()
@@ -435,6 +436,7 @@ export default function ListingDetailClient({
   postedDays = 0,
   land = null,
   profileRating = null,
+  nearbyProjects = [],
 }: {
   listing: Listing
   similar: Listing[]
@@ -451,6 +453,8 @@ export default function ListingDetailClient({
   land?: LandInsights | null
   /** Agent/developer profile review aggregate — null for owner cards. */
   profileRating?: { average: number; count: number } | null
+  /** Live developments within 5km, same city — server-computed (directory-live.ts). */
+  nearbyProjects?: NearbyProject[]
 }) {
   const { data: session, status: authStatus } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -571,7 +575,7 @@ export default function ListingDetailClient({
   }, [l.id])
 
   const recentIds = useRecentIds()
-  const [nearChips, setNearChips] = useState<NearChip[]>([])
+  const [nearChips, setNearChips] = useState<NearChip[] | null>(null)
   useEffect(() => {
     let cancelled = false
     void import('@/lib/map/pois').then(({ nearestAmenities, formatMetroDist, POI_COLORS }) => {
@@ -582,6 +586,7 @@ export default function ListingDetailClient({
           name: a.name,
           dist: formatMetroDist(a),
           color: POI_COLORS[a.category],
+          meters: a.meters,
         })),
       )
     })
@@ -599,6 +604,7 @@ export default function ListingDetailClient({
     if (l.dealType !== 'sale') return 0
     return monthlyPayment(l.priceUSD * (1 - downPct / 100), rate, years)
   }, [l, downPct, rate, years])
+  const rentEst = useMemo(() => estimateMonthlyRent(l.priceUSD), [l.priceUSD])
 
   const fav = has(l.id)
   const compared = inCompare(l.id)
@@ -1276,21 +1282,12 @@ export default function ListingDetailClient({
 
             {/* Walk Score + Transit Score */}
             {parseCoords(l.coords.lat, l.coords.lng) && (
-              <div className="mt-6">
-                <WalkScore lat={l.coords.lat} lng={l.coords.lng} lang={lang as 'en' | 'de' | 'ka'} />
-              </div>
-            )}
-
-            {/* Investment Calculator — sale listings only */}
-            {isSale && (
-              <div className="mt-6">
-                <InvestmentCalculator
-                  priceUSD={l.priceUSD}
-                  area={l.area}
-                  city={l.city}
-                  lang={lang as 'en' | 'de' | 'ka'}
-                />
-              </div>
+              <WalkScore
+                className="mt-6"
+                lat={l.coords.lat}
+                lng={l.coords.lng}
+                amenities={nearChips}
+              />
             )}
 
             {/* Specs — extended (beds/baths/project/…) after the key strip */}
@@ -1329,7 +1326,7 @@ export default function ListingDetailClient({
             {parseCoords(l.coords.lat, l.coords.lng) && (
               <div className="mt-8">
                 <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.location')}</h2>
-                {nearChips.length > 0 && (
+                {nearChips && nearChips.length > 0 && (
                   <ul className="mt-3 flex flex-wrap gap-2">
                     {nearChips.map((c) => {
                       const Icon = AMENITY_ICON[c.category]
@@ -1378,6 +1375,53 @@ export default function ListingDetailClient({
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Nearby developments — live projects within 5km, same city */}
+            {nearbyProjects.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">
+                  {t('detail.nearbyProjects')}
+                </h2>
+                <HScroll
+                  aria-label={t('detail.nearbyProjects')}
+                  step={260}
+                  className="-mx-5 mt-4 snap-x snap-mandatory gap-4 px-5 pb-1 md:-mx-10 md:px-10"
+                >
+                  {nearbyProjects.map((p) => (
+                    <LocalizedLink
+                      key={p.slug}
+                      href={`/projects/${p.slug}`}
+                      className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-card-hover"
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden bg-sv-cloud">
+                        <Image
+                          src={p.img}
+                          alt={p.name}
+                          fill
+                          sizes="220px"
+                          loading="lazy"
+                          decoding="async"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-sv-navy/70 px-2 py-1 text-[11px] font-extrabold text-white backdrop-blur">
+                          <Building2 className="h-3 w-3" aria-hidden />
+                          {p.distanceKm < 1
+                            ? `${Math.round(p.distanceKm * 1000)} m`
+                            : `${p.distanceKm.toFixed(1)} km`}{' '}
+                          {t('detail.distAway')}
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <p className="truncate text-[14px] font-extrabold text-sv-ink">{p.name}</p>
+                        <p className="mt-0.5 truncate text-[12px] font-bold text-sv-ink/60">
+                          {priceFromLabel(p.priceFromM2, lang === 'de' ? 'de' : dirLoc(lang))}
+                        </p>
+                      </div>
+                    </LocalizedLink>
+                  ))}
+                </HScroll>
               </div>
             )}
 
@@ -1457,6 +1501,11 @@ export default function ListingDetailClient({
                     </div>
                     <div className="text-[13px] font-bold text-sv-ink/60">
                       {t('detail.approxPerMonth', { gel: formatGEL(Math.round(monthlyUSD * USD_GEL)) })}
+                    </div>
+                    <div className="mt-1 text-[12px] font-bold text-sv-ink/50">
+                      {lt(lang, 'yieldEst', { pct: grossYieldPct(l.priceUSD, rentEst) })}
+                      {' · '}
+                      {lt(lang, 'yieldRent', { rent: formatUSD(rentEst) })}
                     </div>
                   </div>
                   <div className="text-right text-[12px] font-bold leading-relaxed text-sv-ink/60">

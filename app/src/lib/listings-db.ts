@@ -43,6 +43,7 @@ import {
   phoneSearchNeedles,
 } from "@/lib/listing-public-id"
 import { HOME_RAIL_BADGE, pickHomeRail, type HomeRailTier } from "@/lib/listings-home-rail"
+import { homeScopeWhere, type HomeScope } from "@/lib/home-scope"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily" | "pledge"
@@ -95,6 +96,8 @@ export interface Listing {
   id: string
   /** MyHome-style 8-digit public number — searchable. */
   publicId?: number
+  /** ISO country of the listing ('GE' default) — drives canonical origin + sitemap shard. */
+  country?: string
   /** Street SEO hub link — precomputed here so the street catalog stays server-side. */
   streetHref?: string | null
   img: string
@@ -192,6 +195,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
 
   return {
     id: r.id as string,
+    country: (r.country as string) || "GE",
     streetHref,
     publicId: listingPublicId({ id: r.id as string, publicId: r.publicId as number | null | undefined }),
     img: ((r.images as string[]) ?? [])[0] ?? "/images/p1.webp",
@@ -287,23 +291,23 @@ function rowToListing(row: Record<string, unknown>): Listing {
 
 /** Active listing counts keyed by district (neighborhoods index). */
 const readDistrictCounts = unstable_cache(
-  async (): Promise<Record<string, number>> =>
+  async (country: string): Promise<Record<string, number>> =>
     safeQuery(async () => {
       const rows = await db.listing.groupBy({
         by: ["district"],
-        where: { deletedAt: null, status: "active" },
+        where: { deletedAt: null, status: "active", country },
         _count: { _all: true },
       })
       const out: Record<string, number> = {}
       for (const r of rows) out[r.district] = r._count._all
       return out
     }, {}),
-  ["district-listing-counts"],
+  ["district-listing-counts-v2"],
   { revalidate: 300 },
 )
 
-export async function getDistrictListingCounts(): Promise<Record<string, number>> {
-  return readDistrictCounts()
+export async function getDistrictListingCounts(country = "GE"): Promise<Record<string, number>> {
+  return readDistrictCounts(country)
 }
 
 /** Active listings in any of the given districts (neighborhood detail rail). */
@@ -738,11 +742,94 @@ export async function getListingsForDeveloper(
   }, [])
 }
 
-/** Get active listings (homepage carousel, sitemap). */
-export async function getAllListings(limit = 50): Promise<Listing[]> {
+import { PROJECTS } from "@/data/professionals"
+import { cityByName, nearestMapCity } from "@/lib/map/user-place"
+
+/** Convert static project catalog entries to high-quality Listing objects when DB inventory is empty. */
+export function getProjectCatalogListings(scope?: HomeScope | null, limit = 8): Listing[] {
+  // '*' (worldwide hub) is not a country — the catalog fallback stays unfiltered.
+  const targetCountry = scope?.country === "*" ? undefined : scope?.country?.toUpperCase()
+  const cityNames = scope?.cityNames?.map((c) => c.toLowerCase())
+
+  const matches = PROJECTS.filter((p) => {
+    if (targetCountry) {
+      const pin = cityByName(p.city)
+      const cc = pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null)
+      if (cc !== targetCountry) return false
+    }
+    if (cityNames?.length) {
+      const pCity = p.city.toLowerCase()
+      const pDistrict = p.district?.toLowerCase()
+      const matchCity = cityNames.some((cn) => pCity.includes(cn) || (pDistrict && pDistrict.includes(cn)))
+      if (!matchCity) return false
+    }
+    return true
+  })
+
+  const pool = matches.length > 0 ? matches : targetCountry ? PROJECTS.filter((p) => {
+    const pin = cityByName(p.city)
+    return (pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null)) === targetCountry
+  }) : PROJECTS
+
+  return pool.slice(0, limit).map((p, i) => {
+    const rawM2 = typeof p.priceFromM2 === "number" ? p.priceFromM2 : parseInt(String(p.priceFromM2), 10) || 1600
+    const priceUSD = rawM2 * 55
+    const priceGEL = Math.round(priceUSD * USD_GEL)
+    const desc = typeof p.description === "string" ? p.description : p.description?.en || p.name
+    return {
+      id: `proj-${p.slug}`,
+      publicId: 90000000 + i,
+      streetHref: null,
+      img: p.img || "/images/p1.webp",
+      images: [p.img || "/images/p1.webp"],
+      priceUSD,
+      priceGEL,
+      priceOriginal: priceUSD,
+      currencyOriginal: "USD" as const,
+      perM2USD: rawM2,
+      title: `${p.name} — ${p.city}`,
+      address: p.location || `${p.district || p.city}`,
+      city: p.city,
+      district: p.district || p.city,
+      dealType: (scope?.deal ?? "sale") as DealType,
+      propType: "apartment" as PropType,
+      rooms: 2,
+      beds: 2,
+      baths: 1,
+      area: 55,
+      floor: 3,
+      totalFloors: 8,
+      views: 150 + i * 12,
+      badge: "diamond" as Badge,
+      verified: true,
+      ai: { score: 95, label: "სივრცე VERIFIED" },
+      features: ["ახალი მშენებლობა", "პროექტი"],
+      description: desc,
+      project: p.name,
+      projectCatalog: true,
+      projectSlug: p.slug,
+      coords: p.coords || { lat: MAP_CENTER.lat, lng: MAP_CENTER.lng },
+      postedAt: new Date().toISOString().slice(0, 10),
+      agent: {
+        name: p.developerSlug || "სივრცე",
+        phone: CONTACT_PHONE,
+        agency: "Developer",
+        role: "developer" as const,
+        verified: true,
+      },
+      isNew: true,
+    }
+  })
+}
+
+/**
+ * Get active listings (homepage carousel, sitemap). Optional market scope.
+ * ponytail: NOT-filter needs its own read — homeScopeWhere can't express it.
+ */
+export async function getWorldListings(limit = 3000): Promise<Listing[]> {
   return safeQuery(async () => {
     const rows = await db.listing.findMany({
-      where: { deletedAt: null, status: "active" },
+      where: { deletedAt: null, status: "active", country: { not: "GE" } },
       orderBy: { createdAt: "desc" },
       take: Math.min(limit, 5000),
     })
@@ -750,14 +837,34 @@ export async function getAllListings(limit = 50): Promise<Listing[]> {
   }, [])
 }
 
+export async function getAllListings(limit = 50, scope?: HomeScope | null): Promise<Listing[]> {
+  const live = await safeQuery(async () => {
+    const rows = await db.listing.findMany({
+      where: { deletedAt: null, status: "active", ...homeScopeWhere(scope) },
+      orderBy: { createdAt: "desc" },
+      take: Math.min(limit, 5000),
+    })
+    return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
+  }, [])
+  if (live.length > 0) return live
+  return getProjectCatalogListings(scope, limit)
+}
+
 /**
  * Homepage SUPER VIP / VIP+ rails — live paid ads with photos.
  * ponytail: id prefix filter; JSON path on extendedFields when catalog volume drops.
  */
 const readHomeTierListings = unstable_cache(
-  async (tier: HomeRailTier, limit: number): Promise<Listing[]> =>
+  async (tier: HomeRailTier, limit: number, country: string, cityKey: string, deal: string): Promise<Listing[]> =>
     safeQuery(async () => {
       const now = new Date()
+      const scope: HomeScope | null = country
+        ? {
+            country,
+            cityNames: cityKey ? cityKey.split("|") : undefined,
+            deal: deal === "buy" || deal === "rent" ? deal : undefined,
+          }
+        : null
       const rows = await db.listing.findMany({
         where: {
           deletedAt: null,
@@ -765,26 +872,46 @@ const readHomeTierListings = unstable_cache(
           tier,
           NOT: { id: { startsWith: "proj-" } },
           OR: [{ tierExpiresAt: null }, { tierExpiresAt: { gt: now } }],
+          ...homeScopeWhere(scope),
         },
         orderBy: [{ updatedAt: "desc" }],
         take: 40,
       })
       const mapped = rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
-      return pickHomeRail(mapped, HOME_RAIL_BADGE[tier], limit)
+      const rail = pickHomeRail(mapped, HOME_RAIL_BADGE[tier], limit)
+      if (rail.length > 0) return rail
+      return getProjectCatalogListings(scope, limit)
     }, []),
-  ["home-tier-listings-v2"],
+  ["home-tier-listings-v3"],
   { revalidate: 60 },
 )
 
-export async function getHomeTierListings(tier: HomeRailTier, limit = 8): Promise<Listing[]> {
-  return readHomeTierListings(tier, limit)
+export async function getHomeTierListings(
+  tier: HomeRailTier,
+  limit = 8,
+  scope?: HomeScope | null,
+): Promise<Listing[]> {
+  return readHomeTierListings(
+    tier,
+    limit,
+    scope?.country ?? "",
+    scope?.cityNames?.join("|") ?? "",
+    scope?.deal ?? "",
+  )
 }
 
 const readStoryListings = unstable_cache(
-  async (limit: number): Promise<Listing[]> =>
+  async (limit: number, country: string, cityKey: string, deal: string): Promise<Listing[]> =>
     safeQuery(async () => {
+      const scope: HomeScope | null = country
+        ? {
+            country,
+            cityNames: cityKey ? cityKey.split("|") : undefined,
+            deal: deal === "buy" || deal === "rent" ? deal : undefined,
+          }
+        : null
       const rows = await db.listing.findMany({
-        where: { deletedAt: null, status: "active" },
+        where: { deletedAt: null, status: "active", ...homeScopeWhere(scope) },
         orderBy: { updatedAt: "desc" },
         take: 200,
       })
@@ -796,23 +923,31 @@ const readStoryListings = unstable_cache(
       }
       return out
     }, []),
-  ["story-listings"],
+  ["story-listings-v2"],
   { revalidate: 300 },
 )
 
-export async function getStoryListings(limit = 24): Promise<Listing[]> {
-  return readStoryListings(limit)
+export async function getStoryListings(limit = 24, scope?: HomeScope | null): Promise<Listing[]> {
+  return readStoryListings(limit, scope?.country ?? "", scope?.cityNames?.join("|") ?? "", scope?.deal ?? "")
 }
 
 const readVideoListings = unstable_cache(
-  async (limit: number): Promise<Listing[]> =>
+  async (limit: number, country: string, cityKey: string, deal: string): Promise<Listing[]> =>
     safeQuery(async () => {
+      const scope: HomeScope | null = country
+        ? {
+            country,
+            cityNames: cityKey ? cityKey.split("|") : undefined,
+            deal: deal === "buy" || deal === "rent" ? deal : undefined,
+          }
+        : null
       const rows = await db.listing.findMany({
         where: {
           deletedAt: null,
           status: "active",
           NOT: { id: { startsWith: "proj-" } },
           extendedFields: { path: ["video"], string_starts_with: "http" },
+          ...homeScopeWhere(scope),
         },
         orderBy: { updatedAt: "desc" },
         take: Math.min(40, Math.max(1, limit)),
@@ -821,12 +956,12 @@ const readVideoListings = unstable_cache(
         .map((r) => rowToListing(r as unknown as Record<string, unknown>))
         .filter((l) => l.video)
     }, []),
-  ["video-listings"],
+  ["video-listings-v2"],
   { revalidate: 60 },
 )
 
-export async function getVideoListings(limit = 16): Promise<Listing[]> {
-  return readVideoListings(limit)
+export async function getVideoListings(limit = 16, scope?: HomeScope | null): Promise<Listing[]> {
+  return readVideoListings(limit, scope?.country ?? "", scope?.cityNames?.join("|") ?? "", scope?.deal ?? "")
 }
 
 /** Filtered search — mirrors data/listings.ts filterListings(). */
@@ -835,6 +970,7 @@ export async function filterListings(opts: {
   propType?: PropType
   city?: string
   district?: string
+  country?: string
   rooms?: string
   minPrice?: number
   maxPrice?: number
@@ -848,6 +984,7 @@ export async function filterListings(opts: {
     deletedAt: null,
     status: "active",
   }
+  if (opts.country) where.country = opts.country
 
   if (!opts.includeProjects) {
     // Same as buildDbWhere — NOT(path=true) drops missing-key rows on PG JSONB.

@@ -7,7 +7,7 @@ import { Reveal, useInViewOnce } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
 import { dirLoc, hasPriceFrom, priceFromLabel } from '@/lib/directory-seo-lite'
-import { getDeveloper, type Project } from '@/data/professionals'
+import { type LocalName, type Project } from '@/data/professionals'
 
 /** Construction bar grows when scrolled into view (CSS transition, no lib). */
 function ProjectProgress({ done }: { done: number }) {
@@ -27,9 +27,12 @@ function ProjectProgress({ done }: { done: number }) {
 export default function Projects({
   items,
   total,
+  devNames,
 }: {
   items: Project[]
   total: number
+  /** Server-resolved developer names by project slug — keeps the catalog out of the client bundle. */
+  devNames?: Record<string, LocalName>
 }) {
   const { b, lang } = useI18n()
   if (items.length === 0) return null
@@ -62,8 +65,8 @@ export default function Projects({
 
       <HScroll aria-label={b('home.projects.homesWord')} step={560} className="gap-6 pb-2 pt-2">
         {items.map((p) => {
-          const dev = getDeveloper(p.developerSlug)
-          const devName = (lang === 'en' ? dev?.name.en : lang === 'ru' ? dev?.name.ru : dev?.name.ka) ?? p.developerSlug
+          const dev = devNames?.[p.slug]
+          const devName = (lang === 'en' ? dev?.en : lang === 'ru' ? dev?.ru : dev?.ka) ?? p.developerSlug
           return (
             <LocalizedLink
               key={p.slug}

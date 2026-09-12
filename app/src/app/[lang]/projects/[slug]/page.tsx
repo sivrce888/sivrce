@@ -12,7 +12,7 @@ import { AnchorNav } from '@/components/AnchorNav'
 import { StickyLeadBar } from '@/components/lead/StickyLeadBar'
 import { PlaceContext } from '@/components/entities/PlaceContext'
 import { placeLabels } from '@/lib/place-context'
-import { telHref, waHref } from '@/lib/inquiries/phone'
+import { telHref, waHref, CONTACT_PHONE } from '@/lib/inquiries/phone'
 import { StatsRow } from '@/components/entities/StatsRow'
 import { SourcesSection } from '@/components/entities/SourcesSection'
 import { getEntityProfile } from '@/lib/intel/store'
@@ -427,27 +427,30 @@ export default async function ProjectPage({ params }: PageProps) {
                   />
                 </div>
               </div>
-              {dev?.phone && (
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <a
-                    href={telHref(dev.phone)}
-                    aria-label={`${pickLoc(dev.name, loc)} — ${dev.phone}`}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-control bg-sv-blue px-5 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-                  >
-                    <Phone className="h-4 w-4" aria-hidden />
-                    {dev.phone}
-                  </a>
-                  <a
-                    href={waHref(dev.phone)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`WhatsApp: ${pickLoc(dev.name, loc)}`}
-                    className="inline-flex min-h-11 items-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-5 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-                  >
-                    WhatsApp
-                  </a>
-                </div>
-              )}
+              {(() => {
+                const phoneNum = dev?.phone || CONTACT_PHONE
+                return (
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    <a
+                      href={telHref(phoneNum)}
+                      aria-label={`${displayName} — ${phoneNum}`}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-control bg-sv-blue px-5 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                    >
+                      <Phone className="h-4 w-4" aria-hidden />
+                      {phoneNum}
+                    </a>
+                    <a
+                      href={waHref(phoneNum)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`WhatsApp: ${displayName}`}
+                      className="inline-flex min-h-11 items-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-5 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                    >
+                      WhatsApp
+                    </a>
+                  </div>
+                )
+              })()}
             </div>
             <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/60">
               <span className="flex items-center gap-1.5">
@@ -662,9 +665,7 @@ export default async function ProjectPage({ params }: PageProps) {
           <LeadForm targetType="project" targetId={project.slug} recipientName={project.name} />
           <ReviewsSectionServer targetType="project" targetId={project.slug} />
         </section>
-        {dev?.phone && (
-          <StickyLeadBar targetType="project" targetId={project.slug} phone={dev.phone} recipientName={project.name} />
-        )}
+        <StickyLeadBar targetType="project" targetId={project.slug} phone={dev?.phone || CONTACT_PHONE} recipientName={project.name} />
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />

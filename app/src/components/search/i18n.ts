@@ -16,6 +16,8 @@ const STRINGS = {
     showMore: 'მეტის ჩვენება',
     loadingMore: 'იტვირთება…',
     recentlyViewed: 'ბოლოს ნანახი',
+    recentSearches: 'ბოლო ძიებები',
+    clearHistory: 'გასუფთავება',
   },
   en: {
     saveSearch: 'Save search',
@@ -28,6 +30,8 @@ const STRINGS = {
     showMore: 'Show more',
     loadingMore: 'Loading…',
     recentlyViewed: 'Recently viewed',
+    recentSearches: 'Recent searches',
+    clearHistory: 'Clear',
   },
   ru: {
     saveSearch: 'Сохранить поиск',
@@ -40,6 +44,8 @@ const STRINGS = {
     showMore: 'Показать ещё',
     loadingMore: 'Загрузка…',
     recentlyViewed: 'Недавно просмотренные',
+    recentSearches: 'Недавние поиски',
+    clearHistory: 'Очистить',
   },
   tr: {
     saveSearch: 'Aramayı kaydet',
@@ -52,6 +58,8 @@ const STRINGS = {
     showMore: 'Daha fazla göster',
     loadingMore: 'Yükleniyor…',
     recentlyViewed: 'Son görüntülenenler',
+    recentSearches: 'Son aramalar',
+    clearHistory: 'Temizle',
   },
   ar: {
     saveSearch: 'حفظ البحث',
@@ -64,6 +72,8 @@ const STRINGS = {
     showMore: 'عرض المزيد',
     loadingMore: 'جارٍ التحميل…',
     recentlyViewed: 'شوهدت مؤخرًا',
+    recentSearches: 'عمليات البحث الأخيرة',
+    clearHistory: 'مسح',
   },
   de: {
     saveSearch: 'Suche speichern',
@@ -76,6 +86,8 @@ const STRINGS = {
     showMore: 'Mehr anzeigen',
     loadingMore: 'Wird geladen…',
     recentlyViewed: 'Zuletzt angesehen',
+    recentSearches: 'Letzte Suchen',
+    clearHistory: 'Löschen',
   },
   he: {
     saveSearch: 'שמירת החיפוש',
@@ -88,6 +100,8 @@ const STRINGS = {
     showMore: 'הצג עוד',
     loadingMore: 'טוען…',
     recentlyViewed: 'נצפו לאחרונה',
+    recentSearches: 'חיפושים אחרונים',
+    clearHistory: 'ניקוי',
   },
   hy: {
     saveSearch: 'Պահել որոնումը',
@@ -100,6 +114,8 @@ const STRINGS = {
     showMore: 'Ցուցադրել ավելին',
     loadingMore: 'Բեռնվում է…',
     recentlyViewed: 'Վերջերս դիտված',
+    recentSearches: 'Վերջին որոնումներ',
+    clearHistory: 'Մաքրել',
   },
   az: {
     saveSearch: 'Axtarışı saxla',
@@ -112,6 +128,8 @@ const STRINGS = {
     showMore: 'Daha çox göstər',
     loadingMore: 'Yüklənir…',
     recentlyViewed: 'Son baxılanlar',
+    recentSearches: 'Son axtarışlar',
+    clearHistory: 'Təmizlə',
   },
   uk: {
     saveSearch: 'Зберегти пошук',
@@ -124,6 +142,8 @@ const STRINGS = {
     showMore: 'Показати ще',
     loadingMore: 'Завантаження…',
     recentlyViewed: 'Нещодавно переглянуті',
+    recentSearches: 'Останні пошуки',
+    clearHistory: 'Очистити',
   },
 } as const
 

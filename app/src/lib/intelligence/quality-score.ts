@@ -23,18 +23,6 @@ export async function calculateQualityScore(
     include: { source: { select: { reliability: true } } },
   });
 
-  const snapshots = await db.dataSnapshot.findMany({
-    where: { entityType, entityId },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
-
-  const changes = await db.dataChange.findMany({
-    where: { entityType, entityId },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
-
   const factKeys = new Set(provenances.map((p) => p.factKey));
   const importantFields = ["name", "status", "address", "lat", "lng", "price", "developer"];
   const filledCount = importantFields.filter((f) => factKeys.has(f)).length;

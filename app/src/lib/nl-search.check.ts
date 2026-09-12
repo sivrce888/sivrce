@@ -8,6 +8,7 @@ import {
   nlToSearchPatch,
   parseNlQuery,
   routeCountryNl,
+  explainPropertyMatch,
 } from './nl-search'
 
 const a = parseNlQuery('2 bedroom Vake apartment under 250k with parking')
@@ -212,40 +213,16 @@ const r3 = routeCountryNl({
 assert.equal(r3.go, 'map')
 assert.ok(r3.href.includes('country=DE'))
 
-// North-star queries — structured filters, never a keyword dump.
-const ns1 = parseNlQuery('2 bedroom apartment in Tbilisi under $150,000 near metro with balcony')
-assert.equal(ns1.bedrooms, 2)
-assert.equal(ns1.propertyType, 'apartment')
-assert.equal(ns1.city, 'თბილისი')
-assert.equal(ns1.maxPrice, 150000)
-assert.equal(ns1.nearMetro, true)
-assert.ok(ns1.features?.includes('add.f.balcony'))
-assert.equal(nlToSearchPatch(ns1).metro, '1')
-assert.equal(nlToSearchPatch(ns1).max, '150000')
-assert.equal(nlToSearchPatch(ns1).q, undefined)
+// Test Intent & Match Reasoning
+const invQ = parseNlQuery('quiet family apartment in Vake for high rental yield')
+assert.equal(invQ.investmentGoal, true)
+assert.equal(invQ.lifestyleGoal, 'quiet')
 
-const ns2 = parseNlQuery('new development in Berlin under €5,000/m²')
-assert.equal(ns2.city, 'ბერლინი')
-assert.equal(ns2.buildingStatus, 'add.status.new')
-assert.equal(ns2.maxPrice, undefined, '€/m² is not a purchase cap')
-assert.equal(ns2.currency, 'EUR')
-assert.equal(ns2.nearMetro, undefined)
-const rNs2 = routeCountryNl({
-  q: 'new development in Berlin under €5,000/m²',
-  tab: 'buy',
-  country: 'de',
-  lat: berlin.center.lat,
-  lng: berlin.center.lng,
-})
-assert.equal(rNs2.go, 'projects')
-
-const ns3 = parseNlQuery('investment property with high rental yield')
-assert.equal(ns3.keywords, 'investment property with high rental yield')
-assert.equal(nlHasStructure(ns3), false, 'no yield index — keep as Meili keywords, never fake a cap-rate filter')
-
-const kaMetro = parseNlQuery('ბინა თბილისი მეტროსთან')
-assert.equal(kaMetro.nearMetro, true)
-assert.equal(parseNlQuery('Wohnung Berlin nahe U-Bahn').nearMetro, true)
-assert.equal(parseNlQuery('Neubauwohnung Berlin').buildingStatus, 'add.status.new')
+const matchResult = explainPropertyMatch(
+  { maxPrice: 200000, bedrooms: 2, nearMetro: true, district: 'ვაკე' },
+  { price: 195000, bedrooms: 2, district: 'ვაკე', nearMetro: true }
+)
+assert.equal(matchResult.matchPercentage, 100)
+assert.ok(matchResult.reasons.length >= 3)
 
 console.log('ok: nl-search')

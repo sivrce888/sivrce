@@ -1,10 +1,13 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { Building2, Landmark, MapPin, ScrollText, ShieldCheck } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import CountryHero from '@/components/country/CountryHero'
+import MarketListings from '@/components/country/MarketListings'
 import { COUNTRY_NAMES, cityPack, type CountryCopy } from '@/lib/country-copy'
 import { buyerCosts, cityRateRows, marketCosts, marketMoney } from '@/lib/countries/costs'
 import { COM_ORIGIN, MARKETS, type PathCountryId } from '@/lib/markets'
+import { hoodsByCity } from '@/data/world-neighborhoods'
 import type { Lang } from '@/lib/i18n/core'
 
 /**
@@ -73,8 +76,50 @@ function FactsBand({ country }: { country: PathCountryId }) {
   )
 }
 
-function CitiesBand({ country, current }: { country: PathCountryId; current?: string }) {
-  const m = marketCosts(country)
+/** Premium districts with price anchors (world-neighborhoods). DE keeps its own bezirk/street rails. */
+function HoodsBand({ country, city, cityName }: { country: PathCountryId; city?: string; cityName: string }) {
+  const cc = MARKETS[country].countryCode
+  if (!city || !cityName || country === 'de' || !cc) return null
+  const hoods = hoodsByCity(cc, cityName)
+  if (hoods.length === 0) return null
+  const prefix = MARKETS[country].pathPrefix
+  return (
+    <section className="bg-sv-surface py-16 md:py-20">
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <SectionHead
+          icon={MapPin}
+          kicker="Neighborhoods"
+          title={`Areas in ${cityName}`}
+          sub="Premium districts with price anchors, walk and transit scores."
+        />
+        <Reveal>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {hoods.map((n) => (
+              <li key={n.slug}>
+                <Link
+                  href={`${prefix}/${city}/${n.slug}`}
+                  className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-cloud px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15px] font-extrabold text-sv-ink">{n.en}</span>
+                    <span className="block truncate text-[12px] font-bold text-sv-ink/45">{n.highlights[0]}</span>
+                  </span>
+                  {n.avgPricePerSqm ? (
+                    <span className="shrink-0 rounded-full bg-sv-blue/10 px-3 py-1 text-[12px] font-black text-sv-blue-deep dark:text-sv-blue-light">
+                      ~{n.currency} {n.avgPricePerSqm.toLocaleString('en-US')}/m²
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+function CitiesBand({ country, current }: { country: PathCountryId; current?: string }) {  const m = marketCosts(country)
   const rows = cityRateRows(country, (s) => cityPack(country, s)?.name ?? null)
   if (rows.length < 2) return null
   const prefix = MARKETS[country].pathPrefix
@@ -207,9 +252,13 @@ export default function MarketHome({
         cities={cities}
         lang={lang}
       />
+      <Suspense fallback={null}>
+        <MarketListings country={country} city={city} intent={intent} />
+      </Suspense>
       <FactsBand country={country} />
       <CostAndRules country={country} city={city} />
       <CitiesBand country={country} current={city} />
+      <HoodsBand country={country} city={city} cityName={pack?.name ?? ''} />
       <section className="bg-sv-cloud pb-16 md:pb-24">
         <div className="mx-auto max-w-3xl px-5 md:px-10">
           {/* Crumbs carry absolute URLs for the JSON-LD graph; the visible nav

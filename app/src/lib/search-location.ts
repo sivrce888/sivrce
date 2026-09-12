@@ -1,6 +1,6 @@
 /** Map an autocomplete pick → search URL filters. City/district survive a street pick. */
 
-export type SuggestKind = 'city' | 'district' | 'street'
+export type SuggestKind = 'city' | 'district' | 'street' | 'developer' | 'project' | 'building' | 'country' | 'poi' | 'metro'
 
 export type LocationValue = { city: string; district: string; street: string; metro?: boolean }
 
@@ -65,8 +65,10 @@ export function compactDistrictParam(selected: string[], _raions?: Record<string
 export type SuggestHit = {
   kind: SuggestKind
   ka: string
+  en?: string
   city?: string
   district?: string
+  slug?: string
 }
 
 /** Keys present in the patch; `undefined` means delete that param. */
@@ -79,6 +81,26 @@ export function suggestionToFilters(
       ...(s.city ? { city: s.city } : {}),
       district: s.ka,
       q: undefined,
+    }
+  }
+  if (s.kind === 'developer') {
+    return {
+      ...(s.city ? { city: s.city } : {}),
+      q: s.ka,
+    }
+  }
+  if (s.kind === 'project' || s.kind === 'building') {
+    return {
+      ...(s.city ? { city: s.city } : {}),
+      ...(s.district ? { district: s.district } : {}),
+      q: s.ka,
+    }
+  }
+  if (s.kind === 'country') {
+    return {
+      q: s.ka,
+      city: undefined,
+      district: undefined,
     }
   }
   return {
@@ -99,13 +121,13 @@ export function searchHref(f: Record<string, string | undefined>): string {
   return qs ? `/search?${qs}` : '/search'
 }
 
-/** Prefer city → district → street when the typed box equals a catalog label. */
+/** Prefer city → developer → project → building → district → country → street when the typed box equals a catalog label. */
 export function exactSuggestHit(items: SuggestHit[], q: string): SuggestHit | undefined {
   const needle = q.trim().toLowerCase()
   if (!needle) return undefined
-  const order: SuggestKind[] = ['city', 'district', 'street']
+  const order: SuggestKind[] = ['city', 'developer', 'project', 'building', 'district', 'country', 'street', 'poi', 'metro']
   for (const k of order) {
-    const hit = items.find((s) => s.kind === k && s.ka.toLowerCase() === needle)
+    const hit = items.find((s) => s.kind === k && (s.ka.toLowerCase() === needle || s.en?.toLowerCase() === needle))
     if (hit) return hit
   }
   return undefined

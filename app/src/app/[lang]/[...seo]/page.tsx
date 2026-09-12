@@ -46,6 +46,7 @@ const hydrateSeoListings = cache(async (seoPath: string) => {
     propType: def.typeSlug ? TYPES[def.typeSlug]?.type : undefined,
     city: def.city?.ka,
     district: def.district?.ka,
+    country: 'GE',
   }).catch(() => [])
   const listings = !def.rooms
     ? live

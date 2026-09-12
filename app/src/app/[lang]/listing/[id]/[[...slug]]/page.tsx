@@ -21,9 +21,28 @@ import { listingVideoObject } from '@/lib/listing-video'
 import { jsonLd, ogImages } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { pickAd } from '@/lib/ads-db'
-import { getServerT, langCanonical, pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { nearbyProjectsLive } from '@/lib/directory-live'
+import { getServerT, langAlternates, langCanonical, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { featureLabel, isFeatureKey } from '@/lib/features'
+import { listingCanonicalPath, listingOrigin } from '@/lib/markets'
+
+/**
+ * Listing alternates are absolute per listing origin — GE listings canonicalize
+ * on sivrce.ge (full 10-locale cluster) no matter which host serves the page;
+ * world listings canonicalize on sivrce.com/en.
+ */
+function listingAlternates(path: string, lang: Lang, country?: string) {
+  const origin = listingOrigin(country)
+  if (country && country !== 'GE') {
+    const url = `${origin}${listingCanonicalPath(path, country)}`
+    return { canonical: url, languages: { en: url, 'x-default': url } as Record<string, string> }
+  }
+  const languages = Object.fromEntries(
+    Object.entries(langAlternates(path)).map(([l, p]) => [l, `${origin}${p}`]),
+  )
+  return { canonical: `${origin}${langCanonical(path, lang)}`, languages }
+}
 
 // ponytail: 60s ISR. auth() on this page dynamized every listing view.
 export const revalidate = 60
@@ -93,6 +112,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const firstImg = l.images[0] ?? ''
   const ogList = firstImg ? ogImages(firstImg) : ['/images/og-brand.png']
   const path = listingPath(l)
+  const origin = listingOrigin(l.country)
+  const canonicalAbs = `${origin}${listingCanonicalPath(path, l.country)}`
   const videoLd = listingVideoObject(l.video, {
     name: keyword,
     description,
@@ -102,12 +123,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: pageAlternates(path, lang),
+    alternates: listingAlternates(path, lang, l.country),
     openGraph: {
       title,
       description,
       type: videoLd ? 'video.other' : 'website',
-      url: `https://sivrce.ge${path}`,
+      url: canonicalAbs,
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
       images: ogList.map((url, i) => (
@@ -140,6 +161,9 @@ export default async function ListingPage({ params }: PageProps) {
   // accepts both the uuid and the public number, so legacy uuid links and
   // bare /listing/id and wrong/garbage slugs all 301 to it — juice consolidates.
   const canonical = listingPath(listing)
+  const world = (listing.country ?? 'GE') !== 'GE'
+  const origin = listingOrigin(listing.country)
+  const absCanonical = `${origin}${listingCanonicalPath(canonical, listing.country)}`
   if (
     id !== String(listingPublicId(listing)) ||
     slug?.join('/') !== listingSlug(listing)
@@ -154,7 +178,7 @@ export default async function ListingPage({ params }: PageProps) {
     ? 'agent'
     : profileHref.startsWith('/developers/') ? 'developer' : null
 
-  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents, land, profileRating] = await Promise.all([
+  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents, land, profileRating, nearbyProjects] = await Promise.all([
     getSimilarListings(listing, 8).catch(() => []),
     getDistrictPeerPerM2(listing.city, listing.district, listing.dealType).catch(() => []),
     getReviewAggregate('listing', listing.id).catch(() => null),
@@ -164,6 +188,7 @@ export default async function ListingPage({ params }: PageProps) {
     // Terrain + climate readout — land listings only, never blocks other cards.
     listing.propType === 'land' ? getLandInsights(listing.coords).catch(() => null) : null,
     ratingType ? getReviewAggregate(ratingType, profileHref.split('/')[2]!).catch(() => null) : null,
+    nearbyProjectsLive(listing.coords, listing.city, 6, listing.projectSlug).catch(() => []),
   ])
   const ownerTier = ownerMeta?.tier ?? 'standard'
   // Whole days since posting — feeds the freshness line (60s ISR stays honest).
@@ -206,9 +231,9 @@ export default async function ListingPage({ params }: PageProps) {
     '@type': 'RealEstateListing',
     name: listing.title,
     description: listing.description,
-    url: `https://sivrce.ge${langCanonical(canonical, lang)}`,
+    url: absCanonical,
     sku: String(listingPublicId(listing)),
-    image: listing.images.map((src) => (src.startsWith('http') ? src : `https://sivrce.ge${src}`)),
+    image: listing.images.map((src) => (src.startsWith('http') ? src : `${origin}${src}`)),
     datePosted: listing.postedAt,
     numberOfBedrooms: listing.beds,
     numberOfBathroomsTotal: listing.baths,
@@ -218,7 +243,7 @@ export default async function ListingPage({ params }: PageProps) {
       streetAddress: listing.address,
       addressLocality: listing.city,
       addressRegion: listing.district,
-      addressCountry: 'GE',
+      addressCountry: listing.country ?? 'GE',
     },
     geo: {
       '@type': 'GeoCoordinates',
@@ -288,15 +313,15 @@ export default async function ListingPage({ params }: PageProps) {
     '@type': 'BreadcrumbList',
     // Middle crumb points at the indexable programmatic hub, not noindex /search.
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: t('detail.home'), item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 1, name: t('detail.home'), item: origin },
       ...(hubPath && hubAnchor
-        ? [{ '@type': 'ListItem', position: 2, name: hubAnchor, item: `https://sivrce.ge${hubPath}` }]
+        ? [{ '@type': 'ListItem', position: 2, name: hubAnchor, item: `${origin}${listingCanonicalPath(hubPath, listing.country)}` }]
         : []),
       {
         '@type': 'ListItem',
         position: hubPath ? 3 : 2,
         name: listing.title,
-        item: `https://sivrce.ge${langCanonical(canonical, lang)}`,
+        item: world ? absCanonical : `${origin}${langCanonical(canonical, lang)}`,
       },
     ],
   }
@@ -314,6 +339,7 @@ export default async function ListingPage({ params }: PageProps) {
         postedDays={postedDays}
         land={land}
         profileRating={profileRating}
+        nearbyProjects={nearbyProjects}
       />
       <script
         type="application/ld+json"

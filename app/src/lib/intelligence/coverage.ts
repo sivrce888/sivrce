@@ -7,10 +7,6 @@ export async function calculateCoverage(country: string) {
   const totalProjects = await db.projectDirectory.count({
     where: { deletedAt: null },
   });
-  const totalListings = await db.listing.count({
-    where: { status: "active" },
-  });
-
   const activeSources = await db.dataSource.count({
     where: { isActive: true, country },
   });

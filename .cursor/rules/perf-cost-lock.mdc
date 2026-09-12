@@ -3,10 +3,28 @@ description: RAM + Vercel cost + client perf lock — ponytail lite, no jank reg
 alwaysApply: true
 ---
 
-# Perf / cost lock (FROZEN 2026-09-02)
+# Perf / cost lock (FROZEN 2026-09-12)
 
 Owner mandate: **minimal RAM**, **minimal Vercel spend**, **fast on all devices**, **no freeze/jank**.
 Ponytail level: **`lite`** (not full/ultra unless owner says otherwise).
+
+## Size caps (do not commit / push / deploy over)
+
+Enforced by `scripts/check-repo-weight.mjs` (pre-commit, pre-push `--ci`, `prebuild --ci`, `postbuild --build`). Raise only with owner approval + date bump here + matching constants in the script.
+
+| Cap | Lock | Now |
+| --- | --- | --- |
+| Git tree | **96 MiB** / **3500** files | ~77 MiB / ~2800 |
+| Vercel deploy (`.next/server`+`static`, no maps/cache) | **100 MiB** | ~87 MiB after map strip |
+| `.next/server` (no maps) | **80 MiB** | ~71 MiB |
+| `.next/static` | **24 MiB** | ~16 MiB |
+| Per-file new blob | **512 KiB** (existing LARGE_OK prefixes) | — |
+| Function RAM | **256 MB** default / **1024 MB** ceiling | vercel.json |
+| Next start heap | **≤768 MB** | package.json `start` |
+| Crons | **≤6** | vercel.json |
+| SEO SSG hubs | **<80** | cdn-cache.check.ts |
+
+Why 100 MiB deploy: Vercel uncompressed function wall is 250 MiB; maps were 136 MiB of waste; 100 MiB keeps Fluid compute + upload + cold starts cheap. Over cap = build fail = no push to Vercel.
 
 ## Client RAM / speed
 
@@ -30,6 +48,10 @@ Ponytail level: **`lite`** (not full/ultra unless owner says otherwise).
 | Runtime | Fluid Compute (Node), **not** `runtime = 'edge'` unless required |
 | Region | `fra1` only unless multi-region approved |
 | Sentry | `replaysSessionSampleRate: 0` |
+| Source maps | `productionBrowserSourceMaps: false` + `experimental.serverSourceMaps: false`; **postbuild deletes `*.map`** (Turbopack ignores the flag today) |
+| Image opt | `images.unoptimized: true` — never Vercel Image Optimization bill |
+| Paid Vercel pkgs | Ban `@vercel/analytics` `@vercel/speed-insights` `@vercel/toolbar` `@vercel/otel` |
+| Upload | `app/.vercelignore` drops ios/android/e2e/docs — not in the Vercel tarball |
 
 ## Agent rules (ponytail lite)
 
@@ -39,5 +61,7 @@ Ponytail level: **`lite`** (not full/ultra unless owner says otherwise).
 4. **No polling** `performance.memory`; detect once via `LITE_BOOT` / `isLiteDevice()`.
 5. **No background work** on main thread — ResizeObserver/debounce for map resize only.
 6. Change `device-budget.ts`, `vercel.json`, or `db.ts` pool → update `device-budget.check.ts` in same PR.
+7. **Never raise** `MAX_DEPLOY_BYTES` / `MAX_TRACKED_BYTES` / function `memory` without owner + date bump. Over-cap build must fail, not warn.
+8. No `@vercel/analytics`, Speed Insights, Web Analytics, extra regions, extra crons, or Vercel Image Optimization.
 
 Change locks only with explicit owner approval + date bump here.

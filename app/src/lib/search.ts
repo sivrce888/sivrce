@@ -15,6 +15,7 @@ import { USD_GEL } from "@/data/listings"
 import { EUR_GEL } from "@/lib/listing-format"
 import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 import { districtSearchValues } from "@/lib/district-canon"
+import { cityCatalogName, citySearchValues } from "@/lib/home-scope"
 import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
 import { worldMetroChip } from "@/lib/countries/world-metro-all"
 
@@ -328,9 +329,14 @@ function buildMeiliFilter(filters: SearchFilters): string {
   // Live Meili docs predate the country field. Missing = GE so sivrce.ge
   // search does not empty-out until the next full reindex.
   if (filters.country) parts.push(meiliCountryClause(filters.country))
-  if (filters.city) parts.push(`city = ${esc(filters.city)}`)
+  if (filters.city) {
+    const names = citySearchValues(filters.city)
+    parts.push(
+      names.length === 1 ? `city = ${esc(names[0]!)}` : `city IN [${names.map(esc).join(", ")}]`,
+    )
+  }
   if (filters.district) {
-    const vals = districtSearchValues(filters.district, filters.city)
+    const vals = districtSearchValues(filters.district, cityCatalogName(filters.city))
     // address: importer parks the village there with district = muni (buildDbWhere).
     const inList = vals.map(esc).join(", ")
     parts.push(`(district IN [${inList}] OR address IN [${inList}])`)

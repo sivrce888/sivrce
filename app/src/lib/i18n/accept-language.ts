@@ -100,6 +100,18 @@ export function autoLocalePath(input: AutoLocaleInput): string | null {
   if (market !== 'ge') return null
   const seg = pathname.split('/')[1] ?? ''
   if (seg === DEFAULT_LANG || (PREFIXED_LANGS as readonly string[]).includes(seg)) return null
+  // Documents only — API/auth/well-known must stay unprefixed or every
+  // /en user 404s (cookie would rewrite /api/search → /en/api/search).
+  if (
+    pathname === '/api' ||
+    pathname.startsWith('/api/') ||
+    pathname === '/auth' ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/.well-known/') ||
+    pathname.endsWith('.txt')
+  ) {
+    return null
+  }
   if (crawler || internal) return null
   if (cookie && (PREFIXED_LANGS as readonly string[]).includes(cookie)) {
     return `/${cookie}${pathname === '/' ? '' : pathname}`

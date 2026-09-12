@@ -43,14 +43,18 @@ export const COUNTRY_PREFIX_RE = new RegExp(`^/(${COUNTRY_IDS.join('|')})(?=/|$)
 export const COUNTRY_ALIAS = { uae: 'ae', uk: 'gb' } as const
 export type CountryAlias = keyof typeof COUNTRY_ALIAS
 
-/** Company pages that stay on sivrce.com (not Georgia catalog). `search` = the worldwide /search. */
+/** Company pages that stay on sivrce.com (not Georgia catalog). `search` = the
+ * worldwide /search; `listing` = listing detail — inventory is worldwide, so
+ * world listings serve (and canonicalize) on sivrce.com/en. */
 export const COM_PAGE_SEGS = [
   'about',
   'advertise',
   'blog',
   'careers',
   'contact',
+  'countries',
   'faq',
+  'listing',
   'privacy',
   'search',
   'terms',
@@ -410,6 +414,16 @@ export function isPathCountry(seg: string): seg is PathCountryId {
 export function countryIsoForMarket(market: MarketId): string | undefined {
   if (market === 'global') return undefined
   return MARKETS[market].countryCode ?? undefined
+}
+
+/** Canonical web origin for a listing — GE listings on sivrce.ge, world listings on sivrce.com. */
+export function listingOrigin(country?: string): string {
+  return country && country !== 'GE' ? COM_ORIGIN : GE_ORIGIN
+}
+
+/** Public listing path on its canonical origin — world listings publish under /en. */
+export function listingCanonicalPath(path: string, country?: string): string {
+  return country && country !== 'GE' ? `/en${path}` : path
 }
 
 /** Every scorable listing-market ISO (GE + all path markets). Search accepts these. */

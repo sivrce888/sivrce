@@ -1,24 +1,45 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { Search, Building2, MapPin, Route, X } from 'lucide-react'
+import { Search, Building2, MapPin, Route, X, Briefcase, Hammer, Landmark, Globe, Store, TrainFront } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import { exactSuggestHit } from '@/lib/search-location'
 import { isExactLookupQuery, lookupKind } from '@/lib/listing-public-id'
 
-/** Keyword input with city / district / street autocomplete. Keyboard: ↑↓ Enter Esc. */
+/** Keyword input with city / district / street / developer / project / building autocomplete. Keyboard: ↑↓ Enter Esc. */
 
 export interface Suggestion {
-  kind: 'city' | 'district' | 'street'
+  kind: 'city' | 'district' | 'street' | 'developer' | 'project' | 'building' | 'country' | 'poi' | 'metro'
   ka: string
   en?: string
   city?: string
   district?: string
+  slug?: string
 }
 
-const KIND_ORDER: Suggestion['kind'][] = ['city', 'district', 'street']
+const KIND_ORDER: Suggestion['kind'][] = [
+  'city',
+  'developer',
+  'project',
+  'building',
+  'district',
+  'country',
+  'street',
+  'poi',
+  'metro',
+]
 
-const KIND_ICON = { city: Building2, district: MapPin, street: Route } as const
+const KIND_ICON = {
+  city: Building2,
+  developer: Briefcase,
+  project: Hammer,
+  building: Landmark,
+  district: MapPin,
+  country: Globe,
+  street: Route,
+  poi: Store,
+  metro: TrainFront,
+} as const
 
 interface Props {
   variant: 'dark' | 'light' | 'auto'
@@ -44,7 +65,7 @@ export default function SearchSuggest({
   const dark = variant === 'dark'
   const auto = variant === 'auto'
   const md = size === 'md'
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<Suggestion[]>([])
   const [hi, setHi] = useState(-1)
@@ -66,8 +87,9 @@ export default function SearchSuggest({
         if (city) sp.set('city', city)
         if (mkt) sp.set('mkt', mkt)
         // ponytail: catalog + live Nominatim (neighbourhoods/streets/addresses
-        // worldwide, no bundle). Live only for global (unscoped) search, capped at 5.
-        const live = q.length >= 3 && !city && !mkt
+        // worldwide, no bundle). Live for global and city-scoped search (the
+        // city narrows it server-side), capped at 5.
+        const live = q.length >= 3 && !mkt
           ? fetch(`/api/geocode?suggest=1&q=${encodeURIComponent(q)}${city ? `&city=${encodeURIComponent(city)}` : ''}`, { signal: ctrl.signal })
               .then((r) => (r.ok ? r.json() : null))
               .catch(() => null)
@@ -209,7 +231,23 @@ export default function SearchSuggest({
         >
           {groups.map((g) => {
             const label =
-              g.kind === 'city' ? t('search.city') : g.kind === 'district' ? t('search.district') : t('add.street')
+              g.kind === 'city'
+                ? t('search.city')
+                : g.kind === 'developer'
+                ? t('nav.developers')
+                : g.kind === 'project'
+                ? t('nav.projects')
+                : g.kind === 'building'
+                ? t('nav.buildings')
+                : g.kind === 'district'
+                ? t('search.district')
+                : g.kind === 'country'
+                ? (lang === 'ka' ? 'ქვეყანა' : 'Country')
+                : g.kind === 'poi'
+                ? (lang === 'ka' ? 'ობიექტები' : 'Places')
+                : g.kind === 'metro'
+                ? (lang === 'ka' ? 'მეტრო' : 'Metro')
+                : t('add.street')
             return (
               <li key={g.kind} role="presentation">
                 <div

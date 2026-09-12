@@ -1,4 +1,4 @@
-import type { IngestionSource, ParsedRecord, RawRecord } from "../ingestion-pipeline";
+import type { IngestionSource, ParsedRecord } from "../ingestion-pipeline";
 import type { EntityType, FactConfidence } from "@/generated/prisma/enums";
 
 export const GEORGIA_SOURCES: IngestionSource[] = [

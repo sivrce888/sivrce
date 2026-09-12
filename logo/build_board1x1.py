@@ -278,8 +278,7 @@ def main():
     for name in ("mark.png", "lockup-ink.png", "lockup-white.png",
                  "wordmark-ink.png", "wordmark-white.png"):
         save(Image.open(f"{OUT_KIT}/{name}"), f"{PUB_LOGO}/{name}")
-    save(resize_h(spark, 512), f"{PUB_LOGO}/mark-512.png")
-    save(resize_h(spark, 1024), f"{PUB_LOGO}/mark-1024.png")
+    # ponytail: skip mark-512/1024 — Logo.tsx only ships mark.png + mark-144.png
 
     # ---------- app icons / favicon (Google: ≥48px navy tile; multi-size ICO) ----------
     print("app icons:")

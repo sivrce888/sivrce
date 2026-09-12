@@ -22,6 +22,7 @@ import SaveSearchControl from '@/components/search/SaveSearchControl'
 import SearchSuggest, { resolveExactPlace } from '@/components/search/SearchSuggest'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import PropertyTypePicker, { SEARCH_PROP_TYPES, isSearchPropType } from '@/components/search/PropertyTypePicker'
+import CategoryBar, { type CategoryBarItem } from '@/components/search/CategoryBar'
 import { useSearchStrings } from '@/components/search/i18n'
 import { useRecentIds } from '@/lib/recent'
 import { blurProps, cardOf } from '@/lib/media'
@@ -38,7 +39,7 @@ import { mapSearchHit } from '@/lib/map-search-hit'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
-import { addSearchHistory } from '@/lib/search-history'
+import { addSearchHistory, clearSearchHistory, getSearchHistory, type SearchHistoryEntry } from '@/lib/search-history'
 import { isSearchTier, SEARCH_TIERS } from '@/lib/listings-home-rail'
 import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
@@ -469,6 +470,17 @@ export default function SearchClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- paramsKey is the single change signal
   }, [paramsKey])
 
+  const [history, setHistory] = useState<SearchHistoryEntry[]>([])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage read post-hydration; upgrade: useSyncExternalStore
+    setHistory(getSearchHistory())
+  }, [])
+
+  const applyHistory = (filters: string) => {
+    const base = embed ? window.location.pathname : localizedHref('/search', lang)
+    router.replace(filters ? `${base}?${filters}` : base, { scroll: false })
+  }
+
   // Track search history (ponytail: localStorage-only, no server roundtrip)
   useEffect(() => {
     if (searchLoading || totalResults === 0) return
@@ -481,12 +493,14 @@ export default function SearchClient({
     if (minPrice !== undefined || maxPrice !== undefined) {
       parts.push(`$${minPrice ?? 0}–${maxPrice ?? '∞'}`)
     }
-    const label = parts.join(' · ') || (lang === 'de' ? 'Alle Suchen' : 'All searches')
+    const label = parts.join(' · ') || s('allListings')
     addSearchHistory({
       query: q || '',
       filters: paramsKey,
       label,
     })
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- refresh after external localStorage write; upgrade: useSyncExternalStore
+    setHistory(getSearchHistory())
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only save once per search
   }, [totalResults])
 
@@ -727,7 +741,29 @@ export default function SearchClient({
       city={city}
       value={drafts.q}
       onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
-      onPick={(s) => patchParams(suggestionToFilters(s))}
+      onPick={(s) => {
+        if (s.kind === 'developer' && s.slug) {
+          router.push(`/developers/${s.slug}`)
+          return
+        }
+        if (s.kind === 'project' && s.slug) {
+          router.push(`/projects/${s.slug}`)
+          return
+        }
+        if (s.kind === 'building' && s.slug) {
+          router.push(`/buildings/${s.slug}`)
+          return
+        }
+        if (s.kind === 'country' && s.slug) {
+          router.push(`/${s.slug}`)
+          return
+        }
+        if (s.kind === 'metro' && s.slug) {
+          router.push(`/metro/${s.slug}`)
+          return
+        }
+        patchParams(suggestionToFilters(s))
+      }}
       onSubmit={submitKeyword}
       placeholder={t('search.keywordPlaceholder')}
       ariaLabel={t('search.keyword')}
@@ -1278,12 +1314,58 @@ export default function SearchClient({
             {viewToggle}
           </div>
           <div className="hidden md:block">{filtersBody(false)}</div>
+          <CategoryBar
+            currentType={type}
+            currentDeal={deal}
+            currentFeats={feat}
+            onSelect={(cat) => {
+              if (cat.id === 'all') {
+                patchParams({ type: undefined, feat: undefined })
+                return
+              }
+              patchParams({
+                type: cat.type ?? undefined,
+                deal: cat.deal ?? deal,
+                feat: cat.feat ?? undefined,
+              })
+            }}
+            className="mt-2 pt-1 border-t border-sv-ink/[0.05]"
+          />
         </div>
       </div>
 
       {/* Results */}
       <div className={embed ? 'pt-1' : 'mx-auto max-w-[1440px] px-5 py-5 md:px-10'}>
         {/* Recently viewed rail — return-visit retention */}
+        {!embed && history.length > 0 && !showSkeleton && (
+          <section aria-label={s('recentSearches')} className="mb-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h2 className="text-[14px] font-extrabold text-sv-ink">{s('recentSearches')}</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  clearSearchHistory()
+                  setHistory([])
+                }}
+                className="shrink-0 text-[12px] font-bold text-sv-ink/50 transition-colors hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+              >
+                {s('clearHistory')}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {history.slice(0, 6).map((h, i) => (
+                <button
+                  key={`${h.timestamp}-${i}`}
+                  type="button"
+                  onClick={() => applyHistory(h.filters)}
+                  className="max-w-full truncate rounded-full border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-extrabold text-sv-ink/70 shadow-card transition hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                >
+                  {h.query ? `${h.label ? `${h.label} · ` : ''}${h.query}` : h.label}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
         {!embed && recentItems.length > 0 && !showSkeleton && (
           <section aria-label={s('recentlyViewed')} className="mb-6">
             <h2 className="mb-2 text-[14px] font-extrabold text-sv-ink">{s('recentlyViewed')}</h2>

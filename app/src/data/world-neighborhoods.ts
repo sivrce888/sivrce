@@ -200,4 +200,55 @@ export const WORLD_NEIGHBORHOODS: readonly WorldNeighborhood[] = [
   { slug: 'vake', city: 'Tbilisi', cc: 'GE', en: 'Vake', ka: 'ვაკე', lat: 41.716, lng: 44.783, avgPricePerSqm: 1500, currency: 'USD', type: 'residential', highlights: ['Axis Towers', 'Vake Park', 'Premium district'], transitScore: 82, walkScore: 85 },
   { slug: 'mtatsminda', city: 'Tbilisi', cc: 'GE', en: 'Mtatsminda', ka: 'მთაწმინდა', lat: 41.702, lng: 44.794, avgPricePerSqm: 1800, currency: 'USD', type: 'luxury', highlights: ['Panoramic views', 'Funicular', 'Old Tbilisi'], transitScore: 75, walkScore: 80 },
   { slug: 'sololaki', city: 'Tbilisi', cc: 'GE', en: 'Sololaki', ka: 'სოლოლაკი', lat: 41.693, lng: 44.788, avgPricePerSqm: 1200, currency: 'USD', type: 'mixed', highlights: ['Historic quarter', 'Boutique hotels', 'Wine bars'], transitScore: 70, walkScore: 90 },
+  { slug: 'saburtalo', city: 'Tbilisi', cc: 'GE', en: 'Saburtalo', ka: 'საბურთალო', lat: 41.738, lng: 44.764, avgPricePerSqm: 1100, currency: 'USD', type: 'residential', highlights: ['Metro line 2', 'Student quarter', 'Saburtalo Park'], transitScore: 85, walkScore: 82 },
+  { slug: 'batumi-boulevard', city: 'Batumi', cc: 'GE', en: 'Batumi Boulevard', ka: 'ბათუმის-ბულვარი', lat: 41.637, lng: 41.64, avgPricePerSqm: 1300, currency: 'USD', type: 'luxury', highlights: ['Seaside promenade', 'Alphabetic Tower', 'Beachfront towers'], transitScore: 65, walkScore: 92 },
+  { slug: 'kutaisi-center', city: 'Kutaisi', cc: 'GE', en: 'Kutaisi Center', ka: 'ქუთაისის-ცენტრი', lat: 42.268, lng: 42.71, avgPricePerSqm: 600, currency: 'USD', type: 'residential', highlights: ['Colchis Fountain', 'White Bridge', 'Historic center'], transitScore: 60, walkScore: 88 },
+
+  // ═══════════════════════════════════════════════════════════
+  // TÜRKIYE
+  // ═══════════════════════════════════════════════════════════
+  // Istanbul
+  { slug: 'besiktas', city: 'Istanbul', cc: 'TR', en: 'Beşiktaş', ka: 'ბეშიქთაში', lat: 41.043, lng: 29.007, avgPricePerSqm: 3000, currency: 'USD', type: 'mixed', highlights: ['Bosphorus waterfront', 'Vodafone Park', 'Fish markets'], transitScore: 90, walkScore: 92 },
+  { slug: 'kadikoy', city: 'Istanbul', cc: 'TR', en: 'Kadıköy', ka: 'ქადიქოი', lat: 40.99, lng: 29.027, avgPricePerSqm: 2500, currency: 'USD', type: 'residential', highlights: ['Moda waterfront', 'Kadıköy market', 'Vibrant cafés'], transitScore: 88, walkScore: 94 },
+  { slug: 'nisantasi', city: 'Istanbul', cc: 'TR', en: 'Nişantaşı', ka: 'ნიშანთაში', lat: 41.048, lng: 28.994, avgPricePerSqm: 3500, currency: 'USD', type: 'luxury', highlights: ['Luxury shopping', 'Nişantaşı City\'s', 'Art Nouveau blocks'], transitScore: 85, walkScore: 93 },
+  { slug: 'beyoglu', city: 'Istanbul', cc: 'TR', en: 'Beyoğlu', ka: 'ბეიოღლუ', lat: 41.037, lng: 28.977, avgPricePerSqm: 2200, currency: 'USD', type: 'mixed', highlights: ['İstiklal Avenue', 'Galata Tower', 'Historic passages'], transitScore: 92, walkScore: 96 },
+  { slug: 'uskudar', city: 'Istanbul', cc: 'TR', en: 'Üsküdar', ka: 'უსქუდარი', lat: 41.027, lng: 29.015, avgPricePerSqm: 2000, currency: 'USD', type: 'residential', highlights: ['Maiden\'s Tower views', 'Marmaray hub', 'Ottoman mosques'], transitScore: 87, walkScore: 86 },
+  { slug: 'bakirkoy', city: 'Istanbul', cc: 'TR', en: 'Bakırköy', ka: 'ბაქირქოი', lat: 40.982, lng: 28.872, avgPricePerSqm: 1800, currency: 'USD', type: 'residential', highlights: ['Marmara seaside', 'Capacity Mall', 'Family districts'], transitScore: 84, walkScore: 85 },
+  // Antalya
+  { slug: 'konyaalti', city: 'Antalya', cc: 'TR', en: 'Konyaaltı', ka: 'კონიაალთი', lat: 36.862, lng: 30.639, avgPricePerSqm: 1800, currency: 'USD', type: 'residential', highlights: ['Konyaaltı Beach', 'Antalya Museum', 'Marina'], transitScore: 70, walkScore: 84 },
+  { slug: 'lara', city: 'Antalya', cc: 'TR', en: 'Lara', ka: 'ლარა', lat: 36.872, lng: 30.725, avgPricePerSqm: 1600, currency: 'USD', type: 'luxury', highlights: ['Lara Beach', 'Resort hotels', 'Blue Flag coast'], transitScore: 62, walkScore: 78 },
+  // Ankara
+  { slug: 'cankaya', city: 'Ankara', cc: 'TR', en: 'Çankaya', ka: 'ჩანკაია', lat: 39.908, lng: 32.854, avgPricePerSqm: 1200, currency: 'USD', type: 'residential', highlights: ['Embassy quarter', 'Bahçelievler', 'Atakule'], transitScore: 82, walkScore: 84 },
+
+  // ═══════════════════════════════════════════════════════════
+  // CYPRUS
+  // ═══════════════════════════════════════════════════════════
+  { slug: 'germasogeia', city: 'Limassol', cc: 'CY', en: 'Germasogeia', ka: 'გერმასოგეია', lat: 34.706, lng: 33.08, avgPricePerSqm: 5500, currency: 'EUR', type: 'luxury', highlights: ['Tourist area', 'Dasoudi beach', 'Limassol Marina proximity'], transitScore: 62, walkScore: 80 },
+  { slug: 'agios-tychonas', city: 'Limassol', cc: 'CY', en: 'Agios Tychonas', ka: 'აგიოს-ტიხონასი', lat: 34.694, lng: 33.043, avgPricePerSqm: 6000, currency: 'EUR', type: 'luxury', highlights: ['Amara area', 'Four Seasons beach', 'Ancient Amathus'], transitScore: 55, walkScore: 70 },
+  { slug: 'kato-paphos', city: 'Paphos', cc: 'CY', en: 'Kato Paphos', ka: 'ქატო-პაფოსი', lat: 34.752, lng: 32.41, avgPricePerSqm: 3500, currency: 'EUR', type: 'mixed', highlights: ['UNESCO mosaics', 'Paphos Harbour', 'Archaeological park'], transitScore: 58, walkScore: 86 },
+  { slug: 'nicosia-old-town', city: 'Nicosia', cc: 'CY', en: 'Nicosia Old Town', ka: 'ნიქოზიის-ძველი-ქალაქი', lat: 35.17, lng: 33.362, avgPricePerSqm: 2500, currency: 'EUR', type: 'mixed', highlights: ['Laiki Geitonia', 'Ledra Street', 'Venetian walls'], transitScore: 72, walkScore: 92 },
+  { slug: 'mackenzie', city: 'Larnaca', cc: 'CY', en: 'Mackenzie', ka: 'მაკკენზი', lat: 34.925, lng: 33.628, avgPricePerSqm: 3000, currency: 'EUR', type: 'residential', highlights: ['Beachfront strip', 'Larnaca Marina', 'Phinikoudes proximity'], transitScore: 65, walkScore: 88 },
+  { slug: 'protaras', city: 'Protaras', cc: 'CY', en: 'Protaras', ka: 'პროტარასი', lat: 34.986, lng: 34.004, avgPricePerSqm: 4500, currency: 'EUR', type: 'luxury', highlights: ['Fig Tree Bay', 'Blue Flag beaches', 'Holiday villas'], transitScore: 45, walkScore: 75 },
+
+  // ═══════════════════════════════════════════════════════════
+  // GREECE
+  // ═══════════════════════════════════════════════════════════
+  { slug: 'kolonaki', city: 'Athens', cc: 'GR', en: 'Kolonaki', ka: 'კოლონაკი', lat: 37.981, lng: 23.747, avgPricePerSqm: 6000, currency: 'EUR', type: 'luxury', highlights: ['Lycabettus slopes', 'Designer boutiques', 'Gallery scene'], transitScore: 88, walkScore: 95 },
+  { slug: 'glyfada', city: 'Athens', cc: 'GR', en: 'Glyfada', ka: 'გლიფადა', lat: 37.863, lng: 23.752, avgPricePerSqm: 4500, currency: 'EUR', type: 'residential', highlights: ['Athens Riviera', 'Golf course', 'Marina'], transitScore: 74, walkScore: 85 },
+  { slug: 'koukaki', city: 'Athens', cc: 'GR', en: 'Koukaki', ka: 'კუკაკი', lat: 37.965, lng: 23.722, avgPricePerSqm: 3200, currency: 'EUR', type: 'residential', highlights: ['Acropolis Museum next door', 'Fix district', 'Café scene'], transitScore: 90, walkScore: 93 },
+  { slug: 'plaka', city: 'Athens', cc: 'GR', en: 'Plaka', ka: 'პლაკა', lat: 37.975, lng: 23.73, avgPricePerSqm: 5000, currency: 'EUR', type: 'mixed', highlights: ['Under the Acropolis', 'Neoclassical lanes', 'Anafiotika'], transitScore: 92, walkScore: 97 },
+  { slug: 'ladadika', city: 'Thessaloniki', cc: 'GR', en: 'Ladadika', ka: 'ლადადიკა', lat: 40.638, lng: 22.938, avgPricePerSqm: 2500, currency: 'EUR', type: 'mixed', highlights: ['Restored market quarter', 'Aristotelous proximity', 'Waterfront'], transitScore: 86, walkScore: 95 },
 ]
+
+/* ── Resolvers ── */
+
+/** Hoods for a country code + city display name (WORLD_NEIGHBORHOODS.city, e.g. 'Istanbul'). */
+export function hoodsByCity(cc: string, cityName: string): readonly WorldNeighborhood[] {
+  const up = cc.toUpperCase()
+  return WORLD_NEIGHBORHOODS.filter((n) => n.cc === up && n.city === cityName)
+}
+
+/** One hood by cc + city name + slug — path resolution for /{cc}/{city}/{hood}. */
+export function hoodBySlug(cc: string, cityName: string, slug: string): WorldNeighborhood | null {
+  return hoodsByCity(cc, cityName).find((n) => n.slug === slug) ?? null
+}

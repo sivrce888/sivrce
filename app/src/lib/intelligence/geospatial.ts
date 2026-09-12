@@ -90,7 +90,7 @@ export async function calculateNearbyIntelligence(lat: number, lng: number) {
   };
 }
 
-export function normalizeAddress(address: string, language = "en"): string {
+export function normalizeAddress(address: string, _language = "en"): string {
   return address
     .replace(/\s+/g, " ")
     .replace(/[^\w\s\u10A0-\u10FF\u0400-\u04FF]/g, "")

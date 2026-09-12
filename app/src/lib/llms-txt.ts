@@ -39,6 +39,11 @@ ${COM_ORIGIN} is the international hub. Country markets use ISO paths, not langu
 ${comMarketLines()}
 - [Georgia](${COM_ORIGIN}/ge): full sivrce.ge catalog — live listings, 3D map, cadastre (canonical: ${BASE})
 
+## Search
+
+- Worldwide listings search: ${COM_ORIGIN}/search (every country; ?country=ISO scopes it)
+- Listing detail: ${COM_ORIGIN}/en/listing/{id}/{slug} — world listings are canonical here; GE listings are canonical on ${BASE}
+
 ## Optional
 
 - Georgia catalog: ${BASE}/llms.txt

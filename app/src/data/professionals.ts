@@ -16,6 +16,7 @@ import { NEW_PROJECTS_REGIONS } from './projects-new-regions'
 import { NEW_DEVELOPERS_2026_08, NEW_PROJECTS_2026_08 } from './projects-new-2026-08'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from './projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from './projects-new-germany'
+import { NEW_DEVELOPERS_UAE, NEW_PROJECTS_UAE } from './projects-new-uae'
 import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
@@ -30,15 +31,6 @@ function worldProjectToProject(wp: WorldProject): Project {
     'under-construction': 50,
     'planned': 0,
     'sold-out': 100,
-  }
-  const typeMap: Record<string, string> = {
-    'apartment': 'აპარტამენტი',
-    'villa': 'ვილა',
-    'townhouse': 'ტაუნჰაუსი',
-    'mixed-use': 'შერეული',
-    'commercial': 'კომერციული',
-    'hotel': 'სასტუმრო',
-    'infra': 'ინფრასტრუქტურა',
   }
   return {
     slug: wp.slug,
@@ -1638,6 +1630,7 @@ export const DEVELOPERS: Developer[] = [
   ...NEW_DEVELOPERS_2026_08,
   ...NEW_DEVELOPERS_BERLIN,
   ...NEW_DEVELOPERS_GERMANY,
+  ...NEW_DEVELOPERS_UAE,
   ...WORLD_DEVELOPERS_MAPPED,
 ].filter((d, i, all) => all.findIndex((x) => x.slug === d.slug) === i)
 
@@ -4885,6 +4878,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_2026_08,
   ...NEW_PROJECTS_BERLIN,
   ...NEW_PROJECTS_GERMANY,
+  ...NEW_PROJECTS_UAE,
   ...WORLD_PROJECTS_MAPPED,
 ]
   // ponytail: first-wins slug dedupe — WORLD_PROJECTS may re-list GE/DE base projects.

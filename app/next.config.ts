@@ -108,6 +108,7 @@ const nextConfig: NextConfig = {
       "./icons/**/*",
       "./mobile/**/*",
       "./scripts/**/*",
+      "**/*.map",
       "node_modules/@capacitor/**/*",
       "node_modules/@capacitor/assets/**/*",
       "node_modules/playwright/**/*",
@@ -115,9 +116,15 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    // Turbopack still emits server maps (~136 MB). Flag for webpack + future turbo.
+    // postbuild strips leftover *.map (check-repo-weight --build).
+    serverSourceMaps: false,
+    serverMinification: true,
     // 9 workers × Prisma pools can exhaust pooler slots mid-build;
     // cap concurrency so SSG DB traffic stays under the connection ceiling.
     staticGenerationMaxConcurrency: 3,
+    // 1 worker: 2 static-gen workers × 4GB heap jetsam-killed (SIGKILL at
+    // ~1500/2584 pages) on 16GB dev machines and risks the 8GB Vercel cap.
     cpus: 1,
     webpackMemoryOptimizations: true,
     // Tree-shake barrel imports (lucide already defaulted by Next).

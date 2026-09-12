@@ -70,5 +70,10 @@ assert(A({ pathname: '/', market: 'global', acceptLanguage: 'de' }) === null, 'c
 assert(A({ pathname: '/', market: 'de', acceptLanguage: 'de' }) === null, 'country markets untouched (de)')
 assert(A({ pathname: '/', market: 'ge', cookie: 'de', internal: true }) === null, 'RSC/prefetch untouched')
 assert(A({ pathname: '/', market: 'ge', cookie: 'xx' }) === null, 'unknown cookie = decided, no sniff')
+assert(A({ pathname: '/api/search', market: 'ge', cookie: 'en' }) === null, 'api never prefixed')
+assert(A({ pathname: '/api/bookings', market: 'ge', cookie: 'de' }) === null, 'bookings api never prefixed')
+assert(A({ pathname: '/auth/signin', market: 'ge', cookie: 'en' }) === null, 'auth never prefixed')
+assert(A({ pathname: '/.well-known/webauthn', market: 'ge', cookie: 'en' }) === null, 'well-known never prefixed')
+assert(A({ pathname: '/llms.txt', market: 'ge', cookie: 'de' }) === null, 'txt never prefixed')
 
 console.log('accept-language: ok')

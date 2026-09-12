@@ -85,7 +85,7 @@ Elevation: `shadow-card` `shadow-card-hover` `shadow-soft` `shadow-glow-orange` 
 - Never recolor, rotate, outline, or place on busy backgrounds without a dark
   scrim
 - Min clear space = 25% of mark on all sides
-- Legacy: v1–v5 SVG Aurora approximations → history only
+- Legacy: v1–v5 SVG Aurora approximations removed from repo (master = `logo/source/`)
 
 ### 2.1 Sivrce Spark — AI sub-brand mark (added v1.3, owner-approved 2026-07-17)
 
@@ -140,24 +140,21 @@ Never cycle tints, never recolor, never inline new hex values for these items.
 | დღიური ქირა | `dailyRent` | #E11D48 | #FDEDF1 |
 | სასტუმროები | `hotels` | #0891B2 | #ECF6F9 |
 | ახალი პროექტები | `newProjects` | #5B8BFF | #EFF3FF |
+| პენტჰაუსები | `penthouses` | #7C3AED | #F5F0FE |
+| ხის კოტეჯები | `cabins` | #B45309 | #FEF3C7 |
 
-Daily-rent collections (locked 2026-07-18, owner request):
+Daily-rent & Airbnb collections (locked 2026-07-18, owner request):
 
 | Collection (KA) | Key | Hue | Chip |
 | --- | --- | --- | --- |
 | სახლები წვეულებებისთვის | `partyHouses` | #C026D3 | #FAE8FD |
 | უკონტაქტო ჩექინი | `selfCheckIn` | #0D9488 | #E6F6F4 |
-
-Collections reusing locked category hues (services precedent, 2026-07-18):
-
-| Collection (KA) | Hue source | Hue |
-| --- | --- | --- |
-| აუზით | `hotels` | #0891B2 |
-| ჯაკუზით | `houses` | #FF6A2D |
-| ზღვისპირა | `newProjects` | #5B8BFF |
-| სათხილამურო კურორტები | `land` | #D97706 |
-| შინაური ცხოველით | `cottages` | #16A34A |
-| სამუშაო ადგილით | `apartments` | #2A5FEF |
+| აუზით | `pools` | #0891B2 | #ECF6F9 |
+| ჯაკუზით | `jacuzzi` | #FF6A2D | #FFF3EF |
+| ზღვისპირა | `seaView` | #5B8BFF | #EFF3FF |
+| სათხილამურო კურორტები | `ski` | #D97706 | #FCF4EB |
+| შინაური ცხოველებით | `petFriendly` | #16A34A | #EDF8F1 |
+| სამუშაო ადგილით | `workspace` | #2A5FEF | #EFF3FF |
 
 | Service (KA) | Key | Hue | Chip |
 | --- | --- | --- | --- |

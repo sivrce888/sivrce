@@ -27,6 +27,8 @@ export interface Listing {
   id: string
   /** MyHome-style 8-digit public number — searchable. */
   publicId?: number
+  /** ISO country of the listing ('GE' default) — drives canonical origin + sitemap shard. */
+  country?: string
   /** Street SEO hub link (/tbilisi/{district}/{street}) — precomputed server-side
    *  in rowToListing/mapDbHit so the street catalog never ships in client JS. */
   streetHref?: string | null

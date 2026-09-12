@@ -13,13 +13,13 @@ export function jsonLd(obj: unknown) {
 }
 
 /**
- * Social-share image: local photos get a build-time JPEG derivative
- * (scripts/og-derivatives.mjs), uploaded pipeline photos a runtime
- * .og.jpg twin (src/lib/media.ts ogOf) — WhatsApp/Viber/FB crawlers
- * skip WebP. External URLs and non-WebP files pass through unchanged.
+ * Social-share image: CDN uploads use a runtime .og.jpg twin (ogOf).
+ * Local /images/*.webp pass through — per-page JPEG derivatives under
+ * /images/og/ were dropped (repo weight). Prefer og-brand.png at call sites
+ * when a dedicated share asset is required.
  */
 export function ogImage(src: string): string {
-  return ogOf(src) ?? src.replace(/^\/images\/(.+)\.webp$/, "/images/og/$1.jpg")
+  return ogOf(src) ?? src
 }
 
 /**

@@ -10,9 +10,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import sharp from 'sharp'
+import { PROJECTS } from '../src/data/professionals'
+import type { Project } from '../src/data/professionals'
 import { NEW_PROJECTS_BERLIN } from '../src/data/projects-new-berlin'
 import { NEW_PROJECTS_GERMANY } from '../src/data/projects-new-germany'
-import type { Project } from '../src/data/professionals'
 
 const DIR = path.join(__dirname, '..', 'public', 'images', 'projects')
 const W = 1600
@@ -61,29 +62,42 @@ function frame(kicker: string): string {
 /** City from the postal segment ('Köpenicker Straße, 10179 Berlin, Mitte' → BERLIN). */
 function cityOf(p: Project): string {
   const m = p.location.match(/\d{5}\s+([^,]+)/)
-  return ((m?.[1] ?? p.location.split(',').pop() ?? 'DEUTSCHLAND').trim()).toUpperCase()
+  return ((m?.[1] ?? p.location.split(',').pop() ?? '').trim()).toUpperCase()
 }
 
-function finishLine(p: Project): string {
-  return p.done >= 100 ? `BEZUGSFERTIG · ${p.finish}` : `FERTIGSTELLUNG ${p.finish}`
+/** Card labels follow the market: de (postal rows), ka (Georgian cities), else en. */
+function labels(p: Project): { kicker: string; units: string; done: string; pending: string; start: string; loc: string; progress: string } {
+  if (/[\u10A0-\u10FF]/.test(p.city)) {
+    return { kicker: 'SIVRCE · ახალი აშენება', units: 'ბინა', done: 'მზადაა', pending: 'ჩაბარება', start: 'დაწყება', loc: 'მდებარეობა', progress: 'პროგრესი' }
+  }
+  if (/\d{5}\s/.test(p.location)) {
+    return { kicker: 'SIVRCE · NEUBAU', units: 'Einheiten', done: 'BEZUGSFERTIG', pending: 'FERTIGSTELLUNG', start: 'BAUBEGINN', loc: 'LAGE', progress: 'BAUFORTSCHRITT' }
+  }
+  return { kicker: 'SIVRCE · NEW BUILD', units: 'units', done: 'READY', pending: 'COMPLETION', start: 'START', loc: 'LOCATION', progress: 'PROGRESS' }
+}
+
+function finishLine(p: Project, L: ReturnType<typeof labels> = labels(p)): string {
+  return p.done >= 100 ? `${L.done} · ${p.finish}` : `${L.pending} ${p.finish}`
 }
 
 function hero(p: Project): Buffer {
+  const L = labels(p)
   const lines = wrap2(p.name, 34)
   const nameY = lines.length > 1 ? 380 : 420
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   ${DEFS}
-  ${frame(`SIVRCE · NEUBAU ${cityOf(p)}`)}
+  ${frame(`${L.kicker} · ${cityOf(p)}`)}
   ${lines.map((l, i) => `<text x="80" y="${nameY + i * 84}" font-family="system-ui, sans-serif" font-size="72" font-weight="800" fill="#FFFFFF">${esc(l)}</text>`).join('\n  ')}
   <text x="80" y="${nameY + (lines.length - 1) * 84 + 80}" font-family="system-ui, sans-serif" font-size="28" font-weight="600" fill="#8FB4FF">${esc(p.location)}</text>
-  <rect x="80" y="${H - 118}" width="${finishLine(p).length * 15 + 56}" height="52" rx="26" fill="#FF6A2D" fill-opacity="0.16"/>
-  <text x="106" y="${H - 84}" font-family="system-ui, sans-serif" font-size="24" font-weight="700" fill="#FF6A2D">${esc(finishLine(p))}</text>
+  <rect x="80" y="${H - 118}" width="${finishLine(p, L).length * 15 + 56}" height="52" rx="26" fill="#FF6A2D" fill-opacity="0.16"/>
+  <text x="106" y="${H - 84}" font-family="system-ui, sans-serif" font-size="24" font-weight="700" fill="#FF6A2D">${esc(finishLine(p, L))}</text>
 </svg>`
   return Buffer.from(svg)
 }
 
 /** Massing study: real floors × flats → silhouette + window grid + crane while under construction. */
 function massing(p: Project): Buffer {
+  const L = labels(p)
   const r = hash(p.slug)
   const floors = Math.max(3, p.floors ?? Math.round(Math.sqrt(p.flats) * 1.6))
   const bw = Math.min(720, 300 + p.flats * 1.1)
@@ -128,7 +142,7 @@ function massing(p: Project): Buffer {
   ${win}
   ${crane}
   <line x1="80" y1="810" x2="1520" y2="810" stroke="#8FB4FF" stroke-opacity="0.25" stroke-width="2"/>
-  <text x="80" y="862" font-family="system-ui, sans-serif" font-size="26" font-weight="700" fill="#FFFFFF">${p.flats} Einheiten${p.floors ? ` · ${floors} Etagen` : ''}</text>
+  <text x="80" y="862" font-family="system-ui, sans-serif" font-size="26" font-weight="700" fill="#FFFFFF">${p.flats} ${L.units}${p.floors ? ` · ${floors}` : ''}</text>
   <text x="1520" y="862" text-anchor="end" font-family="system-ui, sans-serif" font-size="24" font-weight="600" fill="#8FB4FF">${esc(p.location.split(',').slice(-2).join(',').trim())}</text>
 </svg>`
   return Buffer.from(svg)
@@ -136,17 +150,18 @@ function massing(p: Project): Buffer {
 
 /** Progress: real done% + finish quarter. */
 function timeline(p: Project): Buffer {
+  const L = labels(p)
   const track = 1160
   const fill = Math.round(track * Math.min(1, p.done / 100))
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   ${DEFS}
-  ${frame(`SIVRCE · BAUFORTSCHRITT · ${esc(p.name.toUpperCase().slice(0, 34))}`)}
+  ${frame(`SIVRCE · ${L.progress} · ${esc(p.name.toUpperCase().slice(0, 34))}`)}
   <text x="80" y="400" font-family="system-ui, sans-serif" font-size="260" font-weight="800" fill="#FFFFFF">${p.done}<tspan font-size="120" fill="#8FB4FF">%</tspan></text>
-  <text x="80" y="470" font-family="system-ui, sans-serif" font-size="28" font-weight="600" fill="#8FB4FF">${esc(finishLine(p))}</text>
+  <text x="80" y="470" font-family="system-ui, sans-serif" font-size="28" font-weight="600" fill="#8FB4FF">${esc(finishLine(p, L))}</text>
   <rect x="80" y="600" width="${track}" height="26" rx="13" fill="#8FB4FF" fill-opacity="0.15"/>
   <rect x="80" y="600" width="${fill}" height="26" rx="13" fill="#FF6A2D"/>
   <circle cx="${80 + fill}" cy="613" r="20" fill="#FF6A2D"/>
-  <text x="80" y="700" font-family="system-ui, sans-serif" font-size="24" font-weight="700" fill="#8FB4FF">BAUBEGINN</text>
+  <text x="80" y="700" font-family="system-ui, sans-serif" font-size="24" font-weight="700" fill="#8FB4FF">${esc(L.start)}</text>
   <text x="${80 + track}" y="700" text-anchor="end" font-family="system-ui, sans-serif" font-size="24" font-weight="700" fill="#FF6A2D">${esc(p.finish)}</text>
   <text x="1520" y="862" text-anchor="end" font-family="system-ui, sans-serif" font-size="22" font-weight="600" fill="#8FB4FF" fill-opacity="0.8">${esc(p.location)}</text>
 </svg>`
@@ -156,6 +171,7 @@ function timeline(p: Project): Buffer {
 /** Location: abstract city grid + pin, real street / district / coords. */
 function lage(p: Project): Buffer {
   const r = hash(p.slug + 'lage')
+  const L = labels(p)
   let blocks = ''
   for (let i = 0; i < 9; i++) {
     const bw2 = 60 + ((r >> i) % 110)
@@ -171,7 +187,7 @@ function lage(p: Project): Buffer {
   const street = parts.slice(0, -1).join(', ')
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   ${DEFS}
-  ${frame(`SIVRCE · LAGE · ${cityOf(p)}`)}
+  ${frame(`SIVRCE · ${L.loc} · ${cityOf(p)}`)}
   <g stroke="#2E6BFF" stroke-opacity="0.18" stroke-width="2">
     <line x1="0" y1="260" x2="${W}" y2="260"/><line x1="0" y1="440" x2="${W}" y2="440"/><line x1="0" y1="620" x2="${W}" y2="620"/>
     <line x1="400" y1="160" x2="400" y2="810"/><line x1="800" y1="160" x2="800" y2="810"/><line x1="1200" y1="160" x2="1200" y2="810"/>
@@ -191,9 +207,15 @@ function lage(p: Project): Buffer {
 const suffixes = ['-massing', '-timeline', '-lage'] as const
 const renderers = [massing, timeline, lage]
 
+// Gallery trio is owned by rows whose gallery references it (DE + UAE seeds);
+// other corpora keep their own first-party/owner-supplied art.
+function galleryPaths(p: Project): string[] {
+  return (p.gallery ?? []).filter((g) => suffixes.some((sfx) => g.endsWith(`${sfx}.webp`)))
+}
+
 async function main() {
   fs.mkdirSync(DIR, { recursive: true })
-  const all: Project[] = [...NEW_PROJECTS_BERLIN, ...NEW_PROJECTS_GERMANY]
+  const all: Project[] = PROJECTS
   let heroes = 0
   let cards = 0
   for (const p of all) {
@@ -202,8 +224,10 @@ async function main() {
       await sharp(hero(p)).webp({ quality: 86 }).toFile(heroPath)
       heroes++
     }
-    for (let i = 0; i < suffixes.length; i++) {
-      const out = path.join(DIR, `${p.slug}${suffixes[i]}.webp`)
+    for (const g of galleryPaths(p)) {
+      const out = path.join(DIR, path.basename(g))
+      if (fs.existsSync(out)) continue
+      const i = suffixes.findIndex((sfx) => path.basename(g).endsWith(`${sfx}.webp`))
       await sharp(renderers[i](p)).webp({ quality: 80 }).toFile(out)
       cards++
     }
@@ -213,7 +237,7 @@ async function main() {
     console.error('STILL MISSING:', missing.map((p) => p.img).join(', '))
     process.exit(1)
   }
-  console.log(`DE renders: +${heroes} heroes (were missing), ${cards} gallery cards, ${all.length} projects. OK`)
+  console.log(`renders: +${heroes} heroes (were missing), +${cards} gallery cards, ${all.length} projects. OK`)
 }
 
 main().catch((e) => {

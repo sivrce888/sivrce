@@ -359,7 +359,7 @@ export function proxy(req: NextRequest) {
     return NextResponse.redirect(url, 308)
   }
 
-  const auto = autoLocaleRedirect(req, pathname, market)
+  const auto = isRootPassthrough(pathname) ? null : autoLocaleRedirect(req, pathname, market)
   if (auto) {
     const url = req.nextUrl.clone()
     url.pathname = auto

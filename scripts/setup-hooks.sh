@@ -8,4 +8,4 @@ if [ -n "$VERCEL" ] || [ -n "$CI" ] || ! git -C "$root" rev-parse --git-dir >/de
 fi
 git -C "$root" config core.hooksPath .githooks
 chmod +x "$root/.githooks/"*
-echo "hooks: $root/.githooks (pre-commit + pre-push repo-weight)"
+echo "hooks: $root/.githooks (pre-commit + pre-push repo-weight + 96MiB/100MiB caps)"

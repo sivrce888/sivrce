@@ -65,6 +65,22 @@
   --color-cat-party-houses-chip: #fae8fd;
   --color-cat-self-check-in: #0d9488;
   --color-cat-self-check-in-chip: #e6f6f4;
+  --color-cat-pools: #0891b2;
+  --color-cat-pools-chip: #ecf6f9;
+  --color-cat-jacuzzi: #ff6a2d;
+  --color-cat-jacuzzi-chip: #fff3ef;
+  --color-cat-sea-view: #5b8bff;
+  --color-cat-sea-view-chip: #eff3ff;
+  --color-cat-ski: #d97706;
+  --color-cat-ski-chip: #fcf4eb;
+  --color-cat-pet-friendly: #16a34a;
+  --color-cat-pet-friendly-chip: #edf8f1;
+  --color-cat-workspace: #2a5fef;
+  --color-cat-workspace-chip: #eff3ff;
+  --color-cat-penthouses: #7c3aed;
+  --color-cat-penthouses-chip: #f5f0fe;
+  --color-cat-cabins: #b45309;
+  --color-cat-cabins-chip: #fef3c7;
   /* Status hues (BRAND.md §3.4) — mirrors newProjects sky */
   --color-status-construction: #5b8bff;
   --color-status-construction-chip: #eff3ff;
@@ -196,6 +212,14 @@
   --chip-new-projects: #eff3ff;
   --chip-party: #fae8fd;
   --chip-self-checkin: #e6f6f4;
+  --chip-pools: #ecf6f9;
+  --chip-jacuzzi: #fff3ef;
+  --chip-seaview: #eff3ff;
+  --chip-ski: #fcf4eb;
+  --chip-pets: #edf8f1;
+  --chip-workspace: #eff3ff;
+  --chip-penthouses: #f5f0fe;
+  --chip-cabins: #fef3c7;
   --chip-construction: #eff3ff;
 }
 
@@ -277,6 +301,14 @@
   --chip-new-projects: color-mix(in oklab, #5b8bff 18%, transparent);
   --chip-party: color-mix(in oklab, #c026d3 20%, transparent);
   --chip-self-checkin: color-mix(in oklab, #0d9488 20%, transparent);
+  --chip-pools: color-mix(in oklab, #0891b2 20%, transparent);
+  --chip-jacuzzi: color-mix(in oklab, #ff6a2d 18%, transparent);
+  --chip-seaview: color-mix(in oklab, #5b8bff 18%, transparent);
+  --chip-ski: color-mix(in oklab, #d97706 20%, transparent);
+  --chip-pets: color-mix(in oklab, #16a34a 20%, transparent);
+  --chip-workspace: color-mix(in oklab, #2a5fef 18%, transparent);
+  --chip-penthouses: color-mix(in oklab, #7c3aed 20%, transparent);
+  --chip-cabins: color-mix(in oklab, #b45309 20%, transparent);
   --chip-construction: color-mix(in oklab, #5b8bff 18%, transparent);
 }
 

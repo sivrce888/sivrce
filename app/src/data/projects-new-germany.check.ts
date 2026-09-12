@@ -46,7 +46,13 @@ for (const p of PROJECTS) {
 }
 
 for (const p of NEW_PROJECTS_GERMANY) {
-  assert.ok(devSlugs.includes(p.developerSlug ?? ""), `dev missing: ${p.developerSlug} (${p.slug})`)
+  // Landmark/masterplan rows without an attributable developer (Project docs)
+  // must carry provenance instead — never a dev-less, source-less row.
+  if (p.developerSlug === undefined) {
+    assert.ok(p.sourceUrl?.startsWith('https://'), `dev-less row needs sourceUrl: ${p.slug}`)
+  } else {
+    assert.ok(devSlugs.includes(p.developerSlug), `dev missing: ${p.developerSlug} (${p.slug})`)
+  }
   assert.ok(DE_CITIES.includes(p.city), `de city: ${p.slug}`)
   assert.ok(/\d/.test(p.location), `street/postal number: ${p.slug}`)
   assert.ok(p.img.startsWith('/images/') && p.img.endsWith('.webp'), `img: ${p.slug}`)

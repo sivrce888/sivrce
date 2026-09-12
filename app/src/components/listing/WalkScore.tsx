@@ -6,7 +6,7 @@
  * fetch. Hide until data lands — never show a fake 25.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Footprints, Bus, Bike } from 'lucide-react'
 import { inGeorgia } from '@/lib/map/map-geo'
 import {
@@ -59,18 +59,17 @@ function ScoreBar({ label, icon: Icon, score }: { label: string; icon: typeof Fo
 
 export function WalkScore({ lat, lng, amenities, className = '' }: WalkScoreProps) {
   const { lang } = useI18n()
-  const [live, setLive] = useState<AmenityHit[] | null>(null)
+  // Static skip/empty cases resolve in the initializer — no sync setState on mount.
+  const [live, setLive] = useState<AmenityHit[] | null>(() =>
+    amenities !== null &&
+    amenities.length === 0 &&
+    (inGeorgia(lat, lng) || !Number.isFinite(lat) || !Number.isFinite(lng))
+      ? []
+      : null,
+  )
 
   useEffect(() => {
-    if (amenities === null) return
-    if (amenities.length > 0) {
-      setLive(null)
-      return
-    }
-    if (inGeorgia(lat, lng) || !Number.isFinite(lat) || !Number.isFinite(lng)) {
-      setLive([])
-      return
-    }
+    if (amenities === null || amenities.length > 0 || live !== null) return
     let cancelled = false
     fetch(`/api/transit?bbox=${amenityBbox(lat, lng)}&cats=${LIVE_CATS}`)
       .then(async (r) => {
@@ -88,11 +87,11 @@ export function WalkScore({ lat, lng, amenities, className = '' }: WalkScoreProp
     return () => {
       cancelled = true
     }
-  }, [amenities, lat, lng])
+     
+  }, [amenities, lat, lng, live])
 
   const hits = amenities && amenities.length > 0 ? amenities : live
-  const scores = useMemo(() => scoreFromAmenities(hits ?? []), [hits])
-  const ready = hits !== null && hits !== undefined
+  const ready = hits !== null
 
   if (!ready) {
     return (
@@ -111,6 +110,7 @@ export function WalkScore({ lat, lng, amenities, className = '' }: WalkScoreProp
     )
   }
 
+  const scores = scoreFromAmenities(hits)
   if (!hasNeighborhoodSignal(scores)) return null
 
   return (

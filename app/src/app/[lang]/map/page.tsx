@@ -11,6 +11,8 @@ import { getServerT,pageAlternates,  } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import { requestMarket } from '@/lib/request-market'
 import { marketCenter } from '@/lib/geo-market'
+import { cityBySlug, nearestMapCity } from '@/lib/map/user-place.server'
+import { cityShellFor } from '@/lib/countries/world-city-osm'
 import { Map3DLazy } from './Map3DLazy'
 import MapListLink from './MapListLink'
 
@@ -50,14 +52,26 @@ export async function generateMetadata({
 
 export default async function MapPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const t = getServerT(lang)
   const market = await requestMarket()
-  const boot = marketCenter(market)
+  const sp = await searchParams
+  // ?city=<slug> deep-links any of the ~1100 shell cities (directory, country hubs).
+  const requested = typeof sp.city === 'string' && sp.city ? cityBySlug(sp.city) : null
+  const bootBase = marketCenter(market)
+  const boot = requested
+    ? { lat: requested.lat, lng: requested.lng, slug: requested.slug }
+    : bootBase
+  // Georgia boots its own deep committed layers (georgia-pois/NBH/metro grid) —
+  // a shell here would double-pin; everywhere else the shell is the instant city.
+  const shellCity = requested ?? nearestMapCity(boot.lat, boot.lng)
+  const cityShell = shellCity && shellCity.cc !== 'GE' ? cityShellFor(shellCity.slug) : null
   // Geometry-only project projection — full Project objects are ~11MB of RSC
   // payload Map3D never renders. Listings/buildings stream from /api/map-data
   // on mount (Map3D's empty-props fetch), platform config is bytes.
@@ -122,6 +136,7 @@ export default async function MapPage({
           platform={platform}
           bootCenter={{ lat: boot.lat, lng: boot.lng }}
           market={market}
+          cityShell={cityShell}
         />
       </div>
     </div>

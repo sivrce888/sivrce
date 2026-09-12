@@ -45,7 +45,7 @@ export const FLOOR_TYPE_KEYS = [
 export const FEATURE_KEYS = [
   'add.f.balcony', 'add.f.loggia', 'add.f.terrace', 'add.f.yard', 'add.f.storage', 'add.f.cellar',
   'add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.security', 'add.f.ironDoor',
-  'add.f.doubleGlazing', 'add.f.accessible',
+  'add.f.doubleGlazing', 'add.f.wooden', 'add.f.penthouse', 'add.f.accessible',
   'add.f.centralHeating', 'add.f.gas', 'add.f.hotWater', 'add.f.internet', 'add.f.cableTv',
   'add.f.furniture', 'add.f.appliances', 'add.f.ac', 'add.f.fireplace',
   'add.f.kitchen', 'add.f.washer', 'add.f.tv',
@@ -64,7 +64,7 @@ export type FeatureKey = (typeof FEATURE_KEYS)[number]
 /** Add-listing + detail grouping. `onlineView` stays out of the grid. */
 export const FEATURE_GROUPS = [
   { key: 'add.fg.space', items: ['add.f.balcony', 'add.f.loggia', 'add.f.terrace', 'add.f.yard', 'add.f.storage', 'add.f.cellar'] },
-  { key: 'add.fg.building', items: ['add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.security', 'add.f.ironDoor', 'add.f.doubleGlazing', 'add.f.accessible'] },
+  { key: 'add.fg.building', items: ['add.f.elevator', 'add.f.parking', 'add.f.garage', 'add.f.security', 'add.f.ironDoor', 'add.f.doubleGlazing', 'add.f.wooden', 'add.f.penthouse', 'add.f.accessible'] },
   { key: 'add.fg.utilities', items: ['add.f.centralHeating', 'add.f.gas', 'add.f.hotWater', 'add.f.internet', 'add.f.cableTv'] },
   { key: 'add.fg.comfort', items: ['add.f.furniture', 'add.f.appliances', 'add.f.ac', 'add.f.fireplace', 'add.f.kitchen', 'add.f.washer', 'add.f.tv'] },
   { key: 'add.fg.view', items: ['add.f.seaView', 'add.f.mountainView', 'add.f.yardView', 'add.f.streetView', 'add.f.beachfront', 'add.f.bright', 'add.f.quiet'] },

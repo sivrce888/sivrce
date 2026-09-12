@@ -1,6 +1,6 @@
 /**
- * Natural-language search → structured /search params.
- * ponytail: regex parse, no model. AI route may overlay when Gemini is up.
+ * Natural-language search → structured /search params & Super Search Intent Engine.
+ * ponytail: regex parse, no model required. AI route overlays when Gemini is active.
  */
 
 import { canonicalizeDistrict } from '@/lib/district-canon'
@@ -33,6 +33,10 @@ export type NlFilters = {
   condition?: string
   currency?: 'USD' | 'GEL' | 'EUR'
   keywords?: string
+  /** Investment intent flag */
+  investmentGoal?: boolean
+  /** Quiet / family / lifestyle intent flag */
+  lifestyleGoal?: 'family' | 'quiet' | 'central' | 'luxury'
 }
 
 const CITIES: [string, string][] = [
@@ -125,8 +129,6 @@ const FEATURE_RX: [RegExp, string][] = [
 function parseMoney(raw: string): number | undefined {
   const s = raw.replace(/[$,₾€\s]/g, '').replace(/,/g, '')
   if (!s) return undefined
-  // German thousand-dots: 200.000 → 200000 (strict 3-digit groups only,
-  // so a decimal like 2.5 still parses as a decimal below).
   const deThousands = s.match(/^(\d{1,3}(?:\.\d{3})+)([kKmM])?$/)
   const t = deThousands ? `${deThousands[1]!.replace(/\./g, '')}${deThousands[2] ?? ''}` : s
   const m = t.match(/^(\d+(?:\.\d+)?)([kKmM])?$/)
@@ -196,7 +198,6 @@ export function parseNlQuery(query: string): NlFilters {
   const roomMatch = q.match(/(\d+)\s*[-]?\s*(ოთახიანი|ოთახი|\brooms?\b|(?<!schlaf)zimmer)/i)
   if (roomMatch) out.rooms = Number(roomMatch[1])
 
-  // €/m² is a unit price — never treat it as a purchase cap (trust).
   const isPpm2 = /€?\s*\/\s*m[²2]|pro\s*m[²2]|quadratmeterpreis/i.test(q)
   const moneyTailBad = /minuten|\bmin\b|\bstunden\b|km\b|meter\b/i
   const under = q.match(/(?:under|below|unter|bis\s*zu|ქვემოთ|მდე|up to)\s*[$₾€]?\s*([\d.,]+)\s*([kKmM])?/i)
@@ -223,6 +224,17 @@ export function parseNlQuery(query: string): NlFilters {
   if (/€|eur\b/.test(q)) out.currency = 'EUR'
   else if (/₾|gel\b/.test(q)) out.currency = 'GEL'
   else if (/\$|usd\b/.test(q)) out.currency = 'USD'
+
+  // Investment intent detection
+  if (/invest|yield| ROI |рентабельн|ინვესტიც|მომგებიან/i.test(q)) {
+    out.investmentGoal = true
+  }
+
+  // Lifestyle intent detection
+  if (/quiet|ruhig|მშვიდ/i.test(q)) out.lifestyleGoal = 'quiet'
+  else if (/family|familie|ოჯახ/i.test(q)) out.lifestyleGoal = 'family'
+  else if (/luxury|luxus|ფუფუნ/i.test(q)) out.lifestyleGoal = 'luxury'
+  else if (/central|zentrum|ცენტრ/i.test(q)) out.lifestyleGoal = 'central'
 
   if (
     /neubau|erstbezug|new[\s-]?developments?|new[\s-]?builds?|off[\s-]?plan|ახალაშენებულ/i.test(q)
@@ -252,7 +264,6 @@ export function parseNlQuery(query: string): NlFilters {
   }
   if (features.length) out.features = features
   if (/pet[- ]?friendly|ცხოველ|pets?\s+allow|haustier/i.test(q)) out.pets = true
-  // metroM is indexed worldwide (Tbilisi grid + OSM planet) — near-metro works in every city.
   if (
     /(?:near|close\s+to)\s+(?:the\s+)?metro|მეტრო|метро|metro\s+nearby|nahe\s+(?:der\s+)?U-Bahn|U-Bahn\s+nähe/i.test(q)
   ) {
@@ -277,13 +288,14 @@ export function nlHasStructure(f: NlFilters): boolean {
       f.maxArea ||
       f.pets ||
       f.nearMetro ||
+      f.investmentGoal ||
+      f.lifestyleGoal ||
       f.features?.length ||
       f.buildingStatus ||
       f.condition,
   )
 }
 
-/** URL keys used by /search (parseSearchParams). */
 export function nlToSearchPatch(f: NlFilters): Record<string, string | undefined> {
   const patch: Record<string, string | undefined> = { q: undefined }
   if (f.dealType) patch.deal = f.dealType
@@ -315,7 +327,6 @@ export function mergeNl(base: NlFilters, over: NlFilters): NlFilters {
   }
 }
 
-/** Official Berlin planning/cadastre language → map, not empty /search. */
 export function isOfficialGeoQuery(q: string): boolean {
   return /\bb-?pl[aä]ne?\b|bebauungsplan|alkis|\bflurst|step\s*wohnen|bodenrichtwert|\bmietspiegel\b|\bbaurecht\b/i.test(
     q,
@@ -334,7 +345,9 @@ export function nlHasListingConstraints(f: NlFilters): boolean {
       f.buildingStatus ||
       f.condition ||
       f.pets ||
-      f.nearMetro,
+      f.nearMetro ||
+      f.investmentGoal ||
+      f.lifestyleGoal,
   )
 }
 
@@ -354,12 +367,6 @@ export function countryNlNeedsGeocode(q: string): boolean {
 
 export type CountryNlRoute = { go: 'projects' | 'map'; href: string }
 
-/**
- * Country-hub submit: Neubau/geo/constrained NL → map or projects.
- * No /search on sivrce.com — it is the Georgia catalog and would 308
- * cross-host; the map carries deal/kind/status + city pin instead
- * (rooms/price constraints have no map params yet).
- */
 export function routeCountryNl(p: {
   q: string
   tab: 'buy' | 'rent' | 'projects'
@@ -367,7 +374,6 @@ export function routeCountryNl(p: {
   cityKa?: string
   lat: number
   lng: number
-  /** Hero type picker — wins over NL parse when set. */
   kind?: NlFilters['propertyType']
 }): CountryNlRoute {
   if (p.tab === 'projects') return { go: 'projects', href: '#new-builds' }
@@ -405,12 +411,6 @@ export function routeCountryNl(p: {
   return { go: 'map', href: `/map?${q}` }
 }
 
-/**
- * Client helper: ask /api/ai/search to structure a query the regex parser
- * couldn't. Returns null on any failure (offline, no key, rate limit, slow) —
- * callers keep their regex/keyword path. 6s cap: never block navigation.
- * ponytail: fire-and-forget quality; upgrade to streaming merge if queries grow.
- */
 export async function aiParseQuery(query: string): Promise<NlFilters | null> {
   try {
     const r = await fetch('/api/ai/search', {
@@ -424,5 +424,67 @@ export async function aiParseQuery(query: string): Promise<NlFilters | null> {
     return j.ok && j.source === 'ai' && j.filters ? j.filters : null
   } catch {
     return null
+  }
+}
+
+/* ── Match Explanation & Tradeoff Reasoning ── */
+
+export interface PropertyMatchResult {
+  matchPercentage: number
+  reasons: string[]
+  tradeoffs: string[]
+}
+
+export function explainPropertyMatch(
+  query: NlFilters,
+  property: {
+    price: number
+    rooms?: number
+    bedrooms?: number
+    area?: number
+    district?: string
+    nearMetro?: boolean
+  }
+): PropertyMatchResult {
+  const reasons: string[] = []
+  const tradeoffs: string[] = []
+  let match = 100
+
+  if (query.maxPrice && property.price) {
+    if (property.price <= query.maxPrice) {
+      reasons.push(`Under budget ($${property.price.toLocaleString()} <= $${query.maxPrice.toLocaleString()})`)
+    } else {
+      const overPct = Math.round(((property.price - query.maxPrice) / query.maxPrice) * 100)
+      tradeoffs.push(`Slightly over target price (+${overPct}%)`)
+      match -= Math.min(25, overPct * 2)
+    }
+  }
+
+  if (query.bedrooms && property.bedrooms) {
+    if (property.bedrooms >= query.bedrooms) {
+      reasons.push(`Matches bedroom requirement (${property.bedrooms} BR)`)
+    } else {
+      tradeoffs.push(`Fewer bedrooms than requested (${property.bedrooms} vs ${query.bedrooms})`)
+      match -= 20
+    }
+  }
+
+  if (query.nearMetro) {
+    if (property.nearMetro) {
+      reasons.push('Located within short walking distance to metro station')
+    } else {
+      tradeoffs.push('Further from metro transport than ideal')
+      match -= 15
+    }
+  }
+
+  if (query.district && property.district && query.district === property.district) {
+    reasons.push(`Located in requested neighborhood (${property.district})`)
+  }
+
+  return {
+    matchPercentage: Math.max(20, Math.round(match)),
+    reasons,
+    tradeoffs,
   }
 }

@@ -11,6 +11,7 @@ import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { DEVELOPERS, PROJECTS, freshenFinish, getDeveloper, type Developer, type Project } from '@/data/professionals'
+import { haversineKm, type PlaceCoords } from '@/lib/place-context'
 
 export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
 
@@ -465,4 +466,28 @@ export async function getLiveProject(slug: string): Promise<Project | null> {
 export async function projectsLiveByDeveloper(developerSlug: string): Promise<Project[]> {
   const all = await projectsLive()
   return all.filter((p) => p.developerSlug === developerSlug)
+}
+
+export interface NearbyProject extends Project {
+  distanceKm: number
+}
+
+/**
+ * Nearest active developments to a pin — same city only, 5km radius, excludes
+ * the pin's own project. A <30m floor also drops the pin's own building when
+ * excludeSlug is unknown (listing not linked to a catalog project row).
+ */
+export async function nearbyProjectsLive(
+  coords: PlaceCoords,
+  city: string,
+  limit = 6,
+  excludeSlug?: string | null,
+): Promise<NearbyProject[]> {
+  const all = await projectsLive()
+  return all
+    .filter((p) => p.slug !== excludeSlug && p.city === city && isValidCoords(p.coords.lat, p.coords.lng))
+    .map((p) => ({ ...p, distanceKm: haversineKm(coords, p.coords) }))
+    .filter((p) => p.distanceKm > 0.03 && p.distanceKm <= 5)
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit)
 }

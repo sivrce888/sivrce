@@ -16,14 +16,34 @@ export interface SearchHistoryEntry {
   label: string
 }
 
+function isEntry(x: unknown): x is SearchHistoryEntry {
+  if (!x || typeof x !== 'object') return false
+  const o = x as Record<string, unknown>
+  return (
+    typeof o.query === 'string' &&
+    typeof o.filters === 'string' &&
+    typeof o.label === 'string' &&
+    typeof o.timestamp === 'number' &&
+    Number.isFinite(o.timestamp)
+  )
+}
+
+/** Trust-boundary parse — localStorage is attacker-writable. */
+export function parseSearchHistory(raw: string | null): SearchHistoryEntry[] {
+  if (!raw) return []
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(isEntry).slice(0, MAX_ENTRIES)
+  } catch {
+    return []
+  }
+}
+
 export function getSearchHistory(): SearchHistoryEntry[] {
   if (typeof window === 'undefined') return []
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed.slice(0, MAX_ENTRIES)
+    return parseSearchHistory(localStorage.getItem(STORAGE_KEY))
   } catch {
     return []
   }

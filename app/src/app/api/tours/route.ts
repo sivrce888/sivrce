@@ -31,7 +31,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { listingId, tourDate, tourTime, guestName, guestPhone, guestEmail, guestNotes } = body
+    const { listingId, tourDate, tourTime } = body
+    // String-only + length-capped at the trust boundary (same armor as /api/bookings).
+    const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "")
+    const guestName = text(body.guestName, 120)
+    const guestPhone = text(body.guestPhone, 20)
+    const guestEmail = text(body.guestEmail, 200)
+    const guestNotes = text(body.guestNotes, 500)
 
     // Validation
     if (!listingId || !tourDate || !tourTime || !guestName || !guestPhone) {

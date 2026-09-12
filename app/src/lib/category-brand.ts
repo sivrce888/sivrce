@@ -28,9 +28,17 @@ export const CATEGORY_BRAND = {
   dailyRent:   { hue: '#E11D48', chip: '#FDEDF1', chipVar: 'var(--chip-daily-rent)' }, // დღიური ქირა — rose
   hotels:      { hue: '#0891B2', chip: '#ECF6F9', chipVar: 'var(--chip-hotels)' }, // სასტუმროები — sea cyan
   newProjects: { hue: '#5B8BFF', chip: '#EFF3FF', chipVar: 'var(--chip-new-projects)' }, // ახალი პროექტები — sky blue
-  // Daily-rent collections (locked 2026-07-18, owner request)
+  // Daily-rent & Airbnb collections (locked 2026-07-18, owner request)
   partyHouses: { hue: '#C026D3', chip: '#FAE8FD', chipVar: 'var(--chip-party)' }, // სახლები წვეულებებისთვის — party fuchsia
   selfCheckIn: { hue: '#0D9488', chip: '#E6F6F4', chipVar: 'var(--chip-self-checkin)' }, // უკონტაქტო ჩექინი — key teal
+  pools:       { hue: '#0891B2', chip: '#ECF6F9', chipVar: 'var(--chip-pools)' }, // აუზით — pool cyan
+  jacuzzi:     { hue: '#FF6A2D', chip: '#FFF3EF', chipVar: 'var(--chip-jacuzzi)' }, // ჯაკუზით — jacuzzi orange
+  seaView:     { hue: '#5B8BFF', chip: '#EFF3FF', chipVar: 'var(--chip-seaview)' }, // ზღვისპირა — sea sky blue
+  ski:         { hue: '#D97706', chip: '#FCF4EB', chipVar: 'var(--chip-ski)' }, // სათხილამურო კურორტები — mountain amber
+  petFriendly: { hue: '#16A34A', chip: '#EDF8F1', chipVar: 'var(--chip-pets)' }, // შინაური ცხოველებით — garden green
+  workspace:   { hue: '#2a5fef', chip: '#EFF3FF', chipVar: 'var(--chip-workspace)' }, // სამუშაო ადგილით — brand blue
+  penthouses:  { hue: '#7C3AED', chip: '#F5F0FE', chipVar: 'var(--chip-penthouses)' }, // პენტჰაუსები — royal violet
+  cabins:      { hue: '#B45309', chip: '#FEF3C7', chipVar: 'var(--chip-cabins)' }, // ხის კოტეჯები — timber amber
 } as const satisfies Record<string, CategoryBrand>
 
 export const SERVICE_BRAND = {

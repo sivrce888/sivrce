@@ -15,7 +15,7 @@ radii, shadows, logo geometry, or category/deal hues.
 
 Sources: `app/BRAND.md` · `app/src/lib/brand.ts` ·
 `app/src/lib/category-brand.ts` · `app/src/app/globals.css` ·
-`logo/v4/` · Cursor rule `.cursor/rules/sivrce-brand-lock.mdc`.
+`logo/source/` · Cursor rule `.cursor/rules/sivrce-brand-lock.mdc`.
 
 Change brand only with explicit owner approval + version bump in BRAND.md.
 
@@ -40,17 +40,18 @@ explicitly requested. Bug fix = root cause, not symptom.
 
 Levels: `/ponytail lite|full|ultra`. Off only on "stop ponytail" / "normal mode".
 
-# Repo lightweight lock (FROZEN 2026-09-01)
+# Repo lightweight lock (FROZEN 2026-09-12)
 
 Never commit build caches, `.perf/` duplicates, `shots/`, research scrapes,
-logo refs, or files \>512 KB (except data/logo/public/mobile assets). Full ban
-list: `.cursor/rules/repo-lightweight-lock.mdc` · enforced by
-`scripts/check-repo-weight.mjs`.
+logo refs, or files \>512 KB (except data/logo/public/mobile assets). Git tree
+**≤96 MiB / 3500 files**. Vercel deploy **≤100 MiB** (`.next/server`+`static`,
+maps stripped). Full ban list: `.cursor/rules/repo-lightweight-lock.mdc` ·
+`.cursor/rules/perf-cost-lock.mdc` · enforced by `scripts/check-repo-weight.mjs`.
 
 Once per clone: `./scripts/setup-hooks.sh`
 
-Enforced on commit (pre-commit), push (pre-push), install (`prepare`), and CI
-(`prebuild` → `check-repo-weight --ci`).
+Enforced on commit (pre-commit), push (pre-push `--ci`), install (`prepare`),
+CI/Vercel (`prebuild --ci` + `postbuild --build`). Over cap = fail, no deploy.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

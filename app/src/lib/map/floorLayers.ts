@@ -15,7 +15,6 @@ import {
   OSM_BUILDING_3D_ID,
 } from '@/lib/map/mapChrome'
 import { mapProxyOrigin } from '@/lib/map/map-proxy'
-import { mapGeoLock } from '@/lib/map/map-geo'
 
 // Defaults are first-party proxy paths — browser never sees openfreemap.org.
 export const STYLE_LIGHT =

@@ -10,6 +10,7 @@ import { MarketSwitcher } from '@/components/MarketSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { AccountMenu } from '@/components/nav/AccountMenu'
+import { NavLocationBadge } from '@/components/nav/NavLocationBadge'
 import { CONTACT_PHONE, telHref } from '@/lib/inquiries/phone'
 import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
@@ -121,8 +122,9 @@ export default function Navbar() {
             : 'bg-transparent'
         }`}
       >
-        <div className="shrink-0">
+        <div className="shrink-0 flex items-center gap-2 sm:gap-2.5">
           <Logo adaptive href={market ? prefix : localizedHref('/', lang)} />
+          <NavLocationBadge light={light} />
         </div>
 
         <nav

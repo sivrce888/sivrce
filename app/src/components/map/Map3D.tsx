@@ -104,12 +104,14 @@ import {
   TRANSIT_LITE_MIN_ZOOM,
   TRANSIT_MAX,
   TRANSIT_MIN_ZOOM,
+  dedupeStatic,
   liveCatsFor,
   transitFetchUrl,
   transitToGeoJSON,
   type TransitStop,
 } from '@/lib/map/transit'
-import { inGermany } from '@/lib/map/map-geo'
+import { inGeorgia, inGermany } from '@/lib/map/map-geo'
+import type { CityShell } from '@/lib/map/city-shell'
 import {
   applyLiveFixes,
   LIVE_PROBE_LAYER_ID,
@@ -288,6 +290,50 @@ const TRANSIT_SOURCE_ID = 'sivrce-transit'
 const TRANSIT_ICON_ID = 'sivrce-transit-icon'
 const TRANSIT_LABEL_LAYER_ID = 'sivrce-transit-label'
 const TRANSIT_EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/**
+ * Committed boot-city pins (metro + landmarks from the RSC shell) ride the
+ * transit layers as a permanent static underlay — instant first paint, no
+ * Overpass wait, deduped against live results by category+80 m.
+ */
+function cityShellPinStops(shell: CityShell): TransitStop[] {
+  return shell.pins.map((p) => ({
+    id: `shell:${p.k}:${p.n}`,
+    category: p.k,
+    name: p.n,
+    lat: p.la,
+    lng: p.ln,
+  }))
+}
+
+function cityShellFeatureCollection(shell: CityShell | null): GeoJSON.FeatureCollection {
+  if (!shell || shell.pins.length === 0) return TRANSIT_EMPTY
+  const fc = transitToGeoJSON(cityShellPinStops(shell))
+  for (const f of fc.features) {
+    if (f.properties) f.properties.live = false
+  }
+  return fc
+}
+
+/** World hood labels join the Tbilisi district sheet (same quiet text layer). */
+function withCityShellHoods(
+  base: GeoJSON.FeatureCollection,
+  shell: CityShell | null,
+): GeoJSON.FeatureCollection {
+  if (!shell || shell.hoods.length === 0) return base
+  return {
+    ...base,
+    features: [
+      ...base.features,
+      ...shell.hoods.map((h, i) => ({
+        type: 'Feature' as const,
+        id: `wnbh-${shell.slug}-${i}`,
+        properties: { id: `wnbh-${shell.slug}-${i}`, name: h.n },
+        geometry: { type: 'Point' as const, coordinates: [h.ln, h.la] },
+      })),
+    ],
+  }
+}
 /** Stable identity for the no-listings case (see sourceListings). */
 const EMPTY_LISTINGS: Listing[] = []
 const EMPTY_BUILDINGS: MapBuildingCluster[] = []
@@ -300,6 +346,7 @@ async function ensureLayers(
     priceMinZoom: PRICE_MIN_ZOOM,
     clusterMaxZoom: CLUSTER_MAX_ZOOM,
   },
+  shell: CityShell | null = null,
 ) {
   if (map.getSource(SOURCE_ID)) return
 
@@ -641,7 +688,10 @@ async function ensureLayers(
   })
 
   // ——— district names always on (Google suburb read) ———
-  map.addSource(NBH_SOURCE_ID, { type: 'geojson', data: NBH_DATA })
+  map.addSource(NBH_SOURCE_ID, {
+    type: 'geojson',
+    data: withCityShellHoods(NBH_DATA, shell),
+  })
   map.addLayer({
     id: NBH_LABEL_ID,
     type: 'symbol',
@@ -724,10 +774,11 @@ async function ensureLayers(
   })
 
   // ——— live transit (bus/tram/rail + amenities outside Georgia) ———
-  // ponytail: empty GeoJSON at boot; one debounced bbox fetch fills it (see transit effect).
+  // ponytail: boot-city shell pins seed the source (instant paint); one
+  // debounced bbox fetch fills the rest (see transit effect).
   map.addSource(TRANSIT_SOURCE_ID, {
     type: 'geojson',
-    data: TRANSIT_EMPTY,
+    data: cityShellFeatureCollection(shell),
     attribution: '© OpenStreetMap contributors (ODbL)',
   })
   map.addLayer({
@@ -874,6 +925,7 @@ function Map3DInner({
   platform,
   bootCenter,
   market = 'ge',
+  cityShell = null,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
@@ -885,6 +937,8 @@ function Map3DInner({
   platform?: MapPlatformConfig
   bootCenter?: { lat: number; lng: number }
   market?: MarketId
+  /** Committed boot-city pins + hood labels (server-baked, ≤220 rows). */
+  cityShell?: CityShell | null
 }) {
   const { t, lang } = useI18n()
   const tRef = useRef(t)
@@ -907,6 +961,15 @@ function Map3DInner({
   const deepLinked = useRef(false)
   /** Padding easeTo yields to a programmatic fly until this timestamp. */
   const flyLockRef = useRef(0)
+  /** Shell pins live in refs — init + live-fetch effects read without re-init. */
+  const cityShellRef = useRef(cityShell)
+  const shellFcRef = useRef(cityShellFeatureCollection(cityShell))
+  const shellStopsRef = useRef<TransitStop[]>(cityShell ? cityShellPinStops(cityShell) : [])
+  useEffect(() => {
+    cityShellRef.current = cityShell
+    shellFcRef.current = cityShellFeatureCollection(cityShell)
+    shellStopsRef.current = cityShell ? cityShellPinStops(cityShell) : []
+  }, [cityShell])
 
   const centerDefault = bootCenter ?? platform?.center ?? MAP_CENTER
   const allowSlugs = slugsForMarket(market)
@@ -970,6 +1033,13 @@ function Map3DInner({
     if (parsed) return parsed
     // ponytail: DE boots with transit on — bus/tram/rail is the RE signal there, as metro is in Tbilisi.
     if (inGermany(centerDefault.lat, centerDefault.lng)) return [...POI_DEFAULT_ON, 'bus', 'tram', 'rail']
+    // World cities boot alive: transit + committed landmarks (no extra fetches —
+    // shell pins are baked; live overlay only adds what the viewport asks).
+    if (!inGeorgia(centerDefault.lat, centerDefault.lng)) {
+      const on: PoiCategory[] = ['metro', 'bus', 'tram', 'rail']
+      if (cityShell?.pins.some((p) => p.k === 'landmark')) on.push('landmark')
+      return on
+    }
     return [...POI_DEFAULT_ON]
   })
   const [floorFilter, setFloorFilter] = useState<number | null>(null)
@@ -1071,6 +1141,7 @@ function Map3DInner({
 
   // ——— live transit: one debounced bbox fetch per viewport, lite-capped ———
   // ponytail: moveend + 400 ms debounce, in-flight abort, stale pins kept on failure.
+  // Boot-city shell pins stay merged under the live result (deduped ≤80 m).
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -1084,7 +1155,7 @@ function Map3DInner({
       const lite = isLiteDevice()
       if (map.getZoom() < (lite ? TRANSIT_LITE_MIN_ZOOM : TRANSIT_MIN_ZOOM) || cats.length === 0) {
         try {
-          src.setData(TRANSIT_EMPTY)
+          src.setData(shellFcRef.current)
         } catch {
           /* style mid-remount */
         }
@@ -1101,7 +1172,16 @@ function Map3DInner({
         .then((j: { stops?: TransitStop[] } | null) => {
           if (!j || signal.aborted) return
           try {
-            src.setData(transitToGeoJSON((j.stops ?? []).slice(0, lite ? TRANSIT_LITE_MAX : TRANSIT_MAX)))
+            const stops = dedupeStatic(
+              (j.stops ?? []).slice(0, lite ? TRANSIT_LITE_MAX : TRANSIT_MAX),
+              shellStopsRef.current,
+            )
+            const live = transitToGeoJSON(stops)
+            const shell = shellFcRef.current
+            src.setData({
+              type: 'FeatureCollection',
+              features: [...shell.features, ...live.features],
+            })
           } catch {
             /* style mid-remount */
           }
@@ -2031,7 +2111,12 @@ function Map3DInner({
           } catch {
             /* labels keep OFM default */
           }
-          await ensureLayers(map, { poly: polyFcRef.current, pts: ptsFcRef.current }, zooms)
+          await ensureLayers(
+            map,
+            { poly: polyFcRef.current, pts: ptsFcRef.current },
+            zooms,
+            cityShellRef.current,
+          )
           try {
             bindBerlinGeoTiles(map, {
               lite: isLiteDevice(),
@@ -3134,6 +3219,7 @@ export default function Map3D({
   platform,
   bootCenter,
   market,
+  cityShell,
 }: {
   dbBuildings?: MapBuildingCluster[]
   listings?: Listing[]
@@ -3142,6 +3228,7 @@ export default function Map3D({
   platform?: MapPlatformConfig
   bootCenter?: { lat: number; lng: number }
   market?: MarketId
+  cityShell?: CityShell | null
 }) {
   return (
     <div className="h-full">
@@ -3160,6 +3247,7 @@ export default function Map3D({
           platform={platform}
           bootCenter={bootCenter}
           market={market}
+          cityShell={cityShell}
         />
       </Suspense>
     </div>

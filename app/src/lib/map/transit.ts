@@ -221,3 +221,28 @@ export function transitFetchUrl(bbox: TransitBbox, cats: readonly PoiCategory[])
   const r = (v: number) => Math.round(v * 1e5) / 1e5
   return `/api/transit?bbox=${r(bbox.w)},${r(bbox.s)},${r(bbox.e)},${r(bbox.n)}&cats=${live.join(',')}`
 }
+
+/**
+ * Drop fetched stops colliding with committed boot-city pins (same category
+ * ≤80 m) so live Overpass never double-pins a station the shell already has.
+ * ponytail: 400×220 haversine scan ≈ 1 ms per fetch; spatial index if profile says so.
+ */
+export function dedupeStatic(
+  stops: readonly TransitStop[],
+  staticPins: readonly { lat: number; lng: number; category: PoiCategory }[],
+): TransitStop[] {
+  if (staticPins.length === 0) return stops as TransitStop[]
+  const toR = Math.PI / 180
+  return stops.filter(
+    (s) =>
+      !staticPins.some((p) => {
+        if (p.category !== s.category) return false
+        const dLat = (p.lat - s.lat) * toR
+        const dLng = (p.lng - s.lng) * toR
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(s.lat * toR) * Math.cos(p.lat * toR) * Math.sin(dLng / 2) ** 2
+        return 2 * 6_371_000 * Math.asin(Math.min(1, Math.sqrt(a))) <= 80
+      }),
+  )
+}

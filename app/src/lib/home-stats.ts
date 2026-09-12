@@ -16,28 +16,34 @@ export type HomeStats = {
   cities: number
 }
 
-export async function getHomeStats(): Promise<HomeStats> {
-  return readHomeStats()
+export async function getHomeStats(country?: string): Promise<HomeStats> {
+  return readHomeStats(country ?? '')
 }
 
 const readHomeStats = unstable_cache(
-  async (): Promise<HomeStats> => {
+  async (country: string): Promise<HomeStats> => {
     const catalog: HomeStats = {
       listings: 0,
       professionals: AGENT_PROFILES.length + DEVELOPERS.length,
       projects: PROJECTS.length,
       cities: CITIES.length,
     }
+    const listingWhere = {
+      deletedAt: null,
+      status: 'active' as const,
+      // '*' = worldwide hub — count the unified inventory, not one country.
+      ...(country && country !== '*' ? { country } : {}),
+    }
 
     return safeQuery(async () => {
       const [listings, agents, agencies, projectRows, cityRows] = await Promise.all([
-        db.listing.count({ where: { deletedAt: null, status: 'active' } }),
+        db.listing.count({ where: listingWhere }),
         db.agentProfile.count({ where: { deletedAt: null } }),
         db.agencyProfile.count({ where: { deletedAt: null } }),
         projectsLive().then((p) => p.length),
         db.listing.groupBy({
           by: ['city'],
-          where: { deletedAt: null, status: 'active' },
+          where: listingWhere,
         }),
       ])
 
@@ -50,6 +56,6 @@ const readHomeStats = unstable_cache(
       }
     }, catalog)
   },
-  ['home-stats'],
+  ['home-stats-v2'],
   { revalidate: 300 },
 )

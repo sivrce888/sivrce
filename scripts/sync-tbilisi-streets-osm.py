@@ -2,10 +2,10 @@
 """
 Fetch OSM highway centers for Tbilisi, PIP against official 10 raions,
 nearest ubani label within that raion → district slug. Then regenerate
-tbilisi-streets-osm.json + app/src/data/tbilisi-streets.{json,ts}.
+local tbilisi-streets-osm.json (gitignored) + app/src/data/tbilisi-streets.ts.
 
 Run: python3 scripts/sync-tbilisi-streets-osm.py
-ponytail: committed snapshot, no runtime Overpass. Re-run when OSM drifts.
+ponytail: commit only the .ts snapshot; OSM dump stays local. Re-run when OSM drifts.
 """
 from __future__ import annotations
 

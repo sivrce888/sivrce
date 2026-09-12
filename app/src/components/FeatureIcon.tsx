@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import {
   Accessibility, AppWindow, Archive, ArrowUpDown, Bath, Baby, Blinds, Cable, CableCar,
-  Check, Cigarette, CookingPot, DoorClosed, Droplets, Dumbbell, Fence, Flame, FlameKindling,
+  Check, Cigarette, CookingPot, Crown, DoorClosed, Droplets, Dumbbell, Fence, Flame, FlameKindling,
   Heater, KeyRound, Laptop, MountainSnow, Package, PawPrint, PlugZap, Refrigerator,
   Sailboat, ShieldCheck, Snowflake, Sofa, SquareParking, Store, Sun, Tent,
   ThermometerSun, TreeDeciduous, Trees, Tv, Umbrella, UtensilsCrossed, Video, VolumeX,
@@ -32,6 +32,8 @@ export const FEATURE_ICON: Record<Exclude<FeatureKey, 'add.f.partiesAllowed'>, L
   'add.f.security': ShieldCheck,
   'add.f.ironDoor': DoorClosed,
   'add.f.doubleGlazing': AppWindow,
+  'add.f.wooden': Trees,
+  'add.f.penthouse': Crown,
   'add.f.accessible': Accessibility,
   'add.f.centralHeating': Heater,
   'add.f.gas': Flame,

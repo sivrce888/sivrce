@@ -170,8 +170,17 @@ export const CMS_BLOCKS = {
   'home.categories.commercial': 'კომერციული',
   'home.categories.dailyRent': 'ბინები დღიურად',
   'home.categories.partyHouses': 'სახლები წვეულებისთვის',
+  'home.categories.selfCheckIn': 'უკონტაქტო ჩექინი',
   'home.categories.hotels': 'სასტუმროები',
   'home.categories.newProjects': 'მშენებარე ბინები',
+  'home.categories.pools': 'აუზით',
+  'home.categories.jacuzzi': 'ჯაკუზით',
+  'home.categories.seaView': 'ზღვისპირა',
+  'home.categories.ski': 'სათხილამურო',
+  'home.categories.petFriendly': 'შინაური ცხოველებით',
+  'home.categories.workspace': 'სამუშაო ადგილით',
+  'home.categories.penthouses': 'პენტჰაუსები',
+  'home.categories.cabins': 'ხის კოტეჯები',
   'home.categories.explore': 'ნახე',
 
   // ——— Audience paths ———

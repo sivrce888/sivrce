@@ -1,8 +1,10 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { ArrowUpRight, Building2, Home, Landmark, MapPin, ShieldCheck } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import CountryHero from '@/components/country/CountryHero'
+import MarketListings from '@/components/country/MarketListings'
 import DeProjectCard from '@/components/country/DeProjectCard'
 import type { Developer, Project } from '@/data/professionals'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '@/data/projects-new-berlin'
@@ -419,6 +421,9 @@ export default function DeMarketHome({
   return (
     <main id="main">
       <CountryHero country="de" copy={copy} city={city} intent={intent} cities={cities} lang={lang} />
+      <Suspense fallback={null}>
+        <MarketListings country="de" city={city} intent={intent} />
+      </Suspense>
       <StatsBand citySlug={city} de={de} />
       {city === 'berlin' && <BezirkeBand de={de} />}
       <ProjectRail citySlug={city} de={de} />

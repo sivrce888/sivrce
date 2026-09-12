@@ -31,7 +31,15 @@ function aliveQuickChips(): HeroQuickChip[] {
   })
 }
 
-export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
+export default async function Hero({
+  lang = 'ka',
+  country,
+  geChips = true,
+}: {
+  lang?: Lang
+  country?: string
+  geChips?: boolean
+}) {
   const b = await getBlocksForLang(lang)
   const badge = b['home.hero.badge']
   const titleA = b['home.hero.titleA']
@@ -65,7 +73,7 @@ export default async function Hero({ lang = 'ka' }: { lang?: Lang }) {
           </p>
         </div>
 
-        <HeroSearchDeferred quick={aliveQuickChips()} />
+        <HeroSearchDeferred quick={geChips ? aliveQuickChips() : []} country={country} />
 
         <div
           className="sv-hero-in mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"

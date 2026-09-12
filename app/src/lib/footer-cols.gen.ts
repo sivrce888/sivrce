@@ -231,6 +231,14 @@ export const FOOTER_COLS: FooterCol[] = [
           "en": "Apartments for daily rent in Vake",
           "ru": "Квартиры посуточно в Ваке"
         }
+      },
+      {
+        "href": "/hotels",
+        "label": {
+          "ka": "სასტუმროები ცოცხალი ფასებით",
+          "en": "Hotels with live rates",
+          "ru": "Отели с живыми ценами"
+        }
       }
     ]
   },

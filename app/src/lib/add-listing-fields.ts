@@ -227,6 +227,8 @@ export function featuresFor(prop: PropType, deal: DealType, city?: string): read
   }
   return FEATURE_KEYS.filter((f) => {
     if (f === 'add.f.onlineView') return false
+    if (f === 'add.f.penthouse') return prop === 'apartment'
+    if (f === 'add.f.wooden') return prop === 'house' || prop === 'villa'
     if (DAILY_ONLY.has(f)) return deal === 'daily'
     if (RENT_OR_DAILY.has(f)) return deal === 'rent' || deal === 'daily'
     if (city) {

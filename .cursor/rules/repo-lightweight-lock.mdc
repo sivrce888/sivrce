@@ -3,7 +3,7 @@ description: Repo weight lock — no junk commits, no duplicate trees, no scrape
 alwaysApply: true
 ---
 
-# Repo lightweight lock (FROZEN 2026-09-01)
+# Repo lightweight lock (FROZEN 2026-09-12)
 
 Keep the repo lean. **Deletion over addition** for artifacts.
 
@@ -19,6 +19,8 @@ Keep the repo lean. **Deletion over addition** for artifacts.
 | Tool caches | `.playwright-mcp/`, `supabase/.temp/`, `.vercel/`, `__pycache__/` |
 | Root scratch PNGs | `Screenshot *.png`, `v-*.png`, `*.docx` |
 | Oversize new files | \>512 KB unless under `app/src/data/`, `logo/`, `app/public/`, or mobile `res/` assets |
+| Git tree | **>96 MiB** or **>3500** tracked files (pre-commit + pre-push + prebuild) |
+| Vercel output | **>100 MiB** `.next/server`+`static` after map strip (`postbuild --build`) |
 
 ## Agent rules
 
@@ -34,9 +36,9 @@ Keep the repo lean. **Deletion over addition** for artifacts.
 ./scripts/setup-hooks.sh
 ```
 
-- **pre-commit** — blocks banned staged paths and oversize new files
+- **pre-commit** — banned paths, oversize new files, **96 MiB / 3500-file tree cap**
 - **pre-push** — full tracked-tree scan (catches `--no-verify` commits)
-- **CI** — `prebuild` runs `check-repo-weight --ci` before every build
+- **CI / Vercel** — `prebuild` `--ci` then `postbuild --build` (100 MiB deploy cap; strips `*.map`)
 - **install** — `prepare` runs `./scripts/setup-hooks.sh` automatically
 
 ## Stay fast

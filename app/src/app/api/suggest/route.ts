@@ -10,21 +10,28 @@ import { MAP_CITIES_ALL as MAP_CITIES } from "@/lib/map/user-place.server"
 import { COUNTRY_IDS, MARKETS } from "@/lib/markets"
 import { canonicalizeDistrict, districtSearchValues } from "@/lib/district-canon"
 import { compileHay, matchCompiled, suggestFuzzy, type CompiledHay } from "@/lib/suggest-match"
+import { DEVELOPERS, PROJECTS, getDeveloper } from "@/data/professionals"
+import { BUILDINGS } from "@/data/buildings"
+import { NEIGHBORHOODS } from "@/data/neighborhoods"
+import { COUNTRIES as WORLD_COUNTRIES } from "@/data/world-countries"
+import POIS from "@/data/georgia-pois.json"
+import { METRO_STATIONS } from "@/data/tbilisi-metro"
+import { WORLD_METROS } from "@/data/world-metros"
 
 /**
  * GET /api/suggest?q= — autocomplete for the search keyword box.
- * Matches cities, districts, streets and micro-quarters across ka/en/ru.
+ * Matches cities, developers, projects, buildings, districts, countries, streets,
+ * micro-quarters, POIs (gyms/schools/shops/…) and metro stations across ka/en/ru.
  * Static in-memory data, substring match; ranked: prefix first.
  * Matching is cross-script: ka↔latin skeleton fold + genitive stems in
  * suggest-match — "beliashvilis"/"kutaisi" hit Georgian-only catalog rows.
- * Catalog haystacks and the street→ubani join are precomputed once at module
- * init — per-keystroke regex folding over ~11k rows blew the function budget.
+ * Catalog haystacks and entity joins are precomputed once at module init.
  */
 
 export const maxDuration = 5
 
-interface Suggestion {
-  kind: "city" | "district" | "street"
+export interface Suggestion {
+  kind: "city" | "district" | "street" | "developer" | "project" | "building" | "country" | "poi" | "metro"
   /** Georgian label shown in the dropdown and used as the search term */
   ka: string
   /** Latin subtitle (en) for recognition */
@@ -33,6 +40,8 @@ interface Suggestion {
   city?: string
   /** Soft-fill ubani when street/quarter is catalog-pinned */
   district?: string
+  /** Entity slug for direct navigation */
+  slug?: string
 }
 
 /** Catalog row with precompiled haystacks; payload doubles as a Suggestion. */
@@ -57,9 +66,113 @@ const mk = (r: Omit<Row, "hay" | "raw">, raw: (string | undefined)[]): Row => ({
 const CITY_ROWS: Row[] = CITIES.map((ka) =>
   mk({ kind: "city", ka, city: ka }, [ka, ...(CITY_ALIASES[ka] ?? [])]),
 )
-/* ————— World rows (map fly-to + global suggest) —————
- * ponytail: cities + launched countries only. Capitals/metros from MAP_CITIES
- * (~200+). Neighbourhoods/streets/addresses stay live via /api/geocode. */
+
+const DEVELOPER_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const d of DEVELOPERS) {
+    if (!d.slug || seen.has(d.slug)) continue
+    seen.add(d.slug)
+    const ka = d.name.ka || d.name.en || d.slug
+    const en = d.name.en || d.name.ka
+    DEVELOPER_ROWS.push(
+      mk(
+        { kind: "developer", ka, en, city: d.city, slug: d.slug },
+        [d.name.ka, d.name.en, d.slug, d.city]
+      )
+    )
+  }
+}
+
+const PROJECT_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const p of PROJECTS) {
+    if (!p.slug || seen.has(p.slug)) continue
+    seen.add(p.slug)
+    const dev = p.developerSlug ? getDeveloper(p.developerSlug) : undefined
+    const devName = dev ? (dev.name.ka || dev.name.en) : undefined
+    PROJECT_ROWS.push(
+      mk(
+        {
+          kind: "project",
+          ka: p.name,
+          en: devName ? `${devName} · ${p.city}` : p.city,
+          city: p.city,
+          district: p.district,
+          slug: p.slug,
+        },
+        [p.name, p.slug, p.city, p.district, devName]
+      )
+    )
+  }
+}
+
+const BUILDING_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const b of BUILDINGS) {
+    if (!b.slug || seen.has(b.slug)) continue
+    seen.add(b.slug)
+    BUILDING_ROWS.push(
+      mk(
+        {
+          kind: "building",
+          ka: b.name,
+          en: b.nameEn || b.address,
+          city: b.city,
+          district: b.district,
+          slug: b.slug,
+        },
+        [b.name, b.nameEn, b.address, b.code, b.slug]
+      )
+    )
+  }
+}
+
+const NEIGHBORHOOD_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const n of NEIGHBORHOODS) {
+    if (!n.slug || seen.has(n.slug)) continue
+    seen.add(n.slug)
+    NEIGHBORHOOD_ROWS.push(
+      mk(
+        {
+          kind: "district",
+          ka: n.name.ka,
+          en: n.name.en,
+          city: n.cityKey || n.city.ka,
+          slug: n.slug,
+        },
+        [n.name.ka, n.name.en, n.cityKey, n.city.ka]
+      )
+    )
+  }
+}
+
+const WORLD_COUNTRY_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const c of WORLD_COUNTRIES) {
+    if (!c.cc || seen.has(c.cc)) continue
+    seen.add(c.cc)
+    WORLD_COUNTRY_ROWS.push(
+      mk(
+        {
+          kind: "country",
+          ka: c.ka,
+          en: c.en,
+          city: c.capital,
+          slug: c.cc.toLowerCase(),
+        },
+        [c.ka, c.en, c.capital, c.cc]
+      )
+    )
+  }
+}
+
+/* ————— World rows (map fly-to + global suggest) ————— */
 const COUNTRY_NAMES: Record<string, string> = {
   de: "Germany", ae: "United Arab Emirates", fr: "France", es: "Spain",
   it: "Italy", gb: "United Kingdom", us: "United States", ca: "Canada", tr: "Türkiye",
@@ -70,7 +183,7 @@ const WORLD_CITY_ROWS: Row[] = MAP_CITIES.filter((c) => c.cc !== "GE").map((c) =
 )
 const COUNTRY_ROWS: Row[] = COUNTRY_IDS.map((id) =>
   mk(
-    { kind: "city", ka: COUNTRY_NAMES[id] ?? id.toUpperCase(), en: `/${id}`, city: MARKETS[id].defaultCitySlug },
+    { kind: "country", ka: COUNTRY_NAMES[id] ?? id.toUpperCase(), en: `/${id}`, city: MARKETS[id].defaultCitySlug, slug: id },
     [COUNTRY_NAMES[id] ?? id, id],
   ),
 )
@@ -83,8 +196,6 @@ const QUARTER_ROWS: Row[] = TBILISI_QUARTERS.map((q) =>
 const STREET_ROWS: Row[] = []
 {
   const seen = new Set<string>()
-  // OSM join already pins each Tbilisi street's ubani — canonicalize once here,
-  // never per request (districtKaForStreet's fuzzy scan is for free-text addresses).
   const source: Omit<Row, "hay" | "raw">[] = [
     ...TBILISI_STREETS.map((s) => ({
       kind: "street" as const,
@@ -109,15 +220,37 @@ const STREET_ROWS: Row[] = []
   }
 }
 
+// ponytail: POI/metro pools — names only, no coords; map pages own pins.
+const POI_CITY_KA: Record<string, string> = { tbilisi: "თბილისი", batumi: "ბათუმი", kutaisi: "ქუთაისი" }
+const POI_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const p of POIS.pois) {
+    const city = POI_CITY_KA[p.city]
+    if (!city || !p.name || seen.has(`${city}\0${p.name}`)) continue
+    seen.add(`${city}\0${p.name}`)
+    POI_ROWS.push(mk({ kind: "poi", ka: p.name, city }, [p.name]))
+  }
+}
+const WORLD_CITY_KA: Record<string, string> = Object.fromEntries(MAP_CITIES.map((c) => [c.slug, c.ka]))
+const METRO_ROWS: Row[] = [
+  ...METRO_STATIONS.map((s) =>
+    mk({ kind: "metro", ka: s.ka, en: s.en, city: "თბილისი", slug: s.slug }, [s.ka, s.en, s.near])
+  ),
+  ...WORLD_METROS.flatMap((sys) =>
+    sys.stations.map((s) =>
+      mk({ kind: "metro", ka: s.nameKa || s.name, en: s.name, city: WORLD_CITY_KA[sys.citySlug] }, [s.name, s.nameKa])
+    )
+  ),
+]
+
 // Static catalog — CDN cache; query string keys the variant.
 const CACHE = {
   "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
   "Vercel-CDN-Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
 }
 
-/* ————— DE market rows (mkt=de) —————
- * Label slot is `ka` (display field) but carries the German name — the
- * Suggestion shape is market-agnostic. `en` holds the parent Bezirk. */
+/* ————— DE market rows (mkt=de) ————— */
 const BERLIN = "Berlin"
 
 const DE_CITY_ROWS: Row[] = DE_CITIES.map((c) =>
@@ -145,7 +278,7 @@ function deSuggest(q: string, cityFilter?: string): Suggestion[] {
       if (hay) (hay.toLowerCase().startsWith(ql) ? prefix : partial).push(r)
     }
   }
-  const out = (r: Row): Suggestion => ({ kind: r.kind, ka: r.ka, en: r.en, city: r.city, district: r.district })
+  const out = (r: Row): Suggestion => ({ kind: r.kind, ka: r.ka, en: r.en, city: r.city, district: r.district, slug: r.slug })
   return [...prefix, ...partial].slice(0, 10).map(out)
 }
 
@@ -215,7 +348,18 @@ export async function GET(req: Request) {
       const m = matchCompiled(r.hay, q)
       if (m) push(r, m.prefix)
     }
-    // World cities + countries — global map fly-to; no DE-district leak (cities only).
+    for (const r of DEVELOPER_ROWS) {
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+    for (const r of PROJECT_ROWS) {
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+    for (const r of BUILDING_ROWS) {
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
     for (const r of WORLD_CITY_ROWS) {
       const m = matchCompiled(r.hay, q)
       if (m) push(r, m.prefix)
@@ -224,8 +368,40 @@ export async function GET(req: Request) {
       const m = matchCompiled(r.hay, q)
       if (m) push(r, m.prefix)
     }
+    for (const r of WORLD_COUNTRY_ROWS) {
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+  } else {
+    for (const r of DEVELOPER_ROWS) {
+      if (r.city && r.city !== cityFilter) continue
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+    for (const r of PROJECT_ROWS) {
+      if (r.city && r.city !== cityFilter) continue
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+    for (const r of BUILDING_ROWS) {
+      if (r.city && r.city !== cityFilter) continue
+      const m = matchCompiled(r.hay, q)
+      if (m) push(r, m.prefix)
+    }
+  }
+
+  // Metro = navigable entity (station page) — ranks with buildings, above keywords.
+  for (const r of METRO_ROWS) {
+    if (cityFilter && r.city && r.city !== cityFilter) continue
+    const m = matchCompiled(r.hay, q)
+    if (m) push(r, m.prefix)
   }
   for (const r of DISTRICT_ROWS) {
+    if (cityFilter && r.city !== cityFilter) continue
+    const m = matchCompiled(r.hay, q)
+    if (m) push(r, m.prefix)
+  }
+  for (const r of NEIGHBORHOOD_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
     const m = matchCompiled(r.hay, q)
     if (m) push(r, m.prefix)
@@ -235,7 +411,6 @@ export async function GET(req: Request) {
     const m = matchCompiled(r.hay, q)
     if (m) push(r, m.prefix)
   }
-  // Quarters before streets — "მეორე კვარტალი" must beat random street substrings.
   for (const r of QUARTER_ROWS) {
     if (cityFilter && r.city !== cityFilter) continue
     if (wanted && r.district && !wanted.has(r.district)) continue
@@ -248,10 +423,23 @@ export async function GET(req: Request) {
     const m = matchCompiled(r.hay, q)
     if (m) push(r, m.prefix)
   }
+  for (const r of POI_ROWS) {
+    if (cityFilter && r.city !== cityFilter) continue
+    const m = matchCompiled(r.hay, q)
+    if (m) push(r, m.prefix)
+  }
 
-  // Typo rescue — nothing matched, one char is off: fuzzy streets/quarters so the
-  // dropdown never dead-ends (runs only here, ≤1 edit in suggestFuzzy).
+  // Typo rescue — nothing matched, one char is off: fuzzy rescue for entities.
   if (prefix.length === 0 && partial.length === 0 && q.length >= 4) {
+    for (const r of DEVELOPER_ROWS) {
+      if (suggestFuzzy(r.raw, q)) push(r, false)
+    }
+    for (const r of PROJECT_ROWS) {
+      if (suggestFuzzy(r.raw, q)) push(r, false)
+    }
+    for (const r of BUILDING_ROWS) {
+      if (suggestFuzzy(r.raw, q)) push(r, false)
+    }
     for (const r of QUARTER_ROWS) {
       if (cityFilter && r.city !== cityFilter) continue
       if (wanted && r.district && !wanted.has(r.district)) continue
@@ -268,6 +456,13 @@ export async function GET(req: Request) {
     }
   }
 
-  const out = (r: Row): Suggestion => ({ kind: r.kind, ka: r.ka, en: r.en, city: r.city, district: r.district })
+  const out = (r: Row): Suggestion => ({
+    kind: r.kind,
+    ka: r.ka,
+    en: r.en,
+    city: r.city,
+    district: r.district,
+    slug: r.slug,
+  })
   return Response.json({ ok: true, suggestions: [...prefix, ...partial].slice(0, 10).map(out) }, { headers: CACHE })
 }

@@ -12,6 +12,7 @@ import { districtSearchValues } from "@/lib/district-canon"
 import { MARKET_COUNTRY_ISOS } from "@/lib/markets"
 import { cadastralVariants, parseListingNumber, phoneSearchNeedles } from "@/lib/listing-public-id"
 import { isSearchTier } from "@/lib/listings-home-rail"
+import { cityCatalogName, citySearchValues } from "@/lib/home-scope"
 import type { SearchFilters } from "@/lib/search"
 
 // ponytail: mirrors EUR_GEL in listing-format (client-safe duplicate; unify if rates move server-side).
@@ -70,17 +71,12 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
   const dailyDates = dFrom && dTo && dFrom >= today && dFrom < dTo ? { dailyFrom: dFrom, dailyTo: dTo } : {}
 
   const sellerParam = sp.get("seller")
-  // Market scope: default GE (sivrce.ge catalog), 'all' for the worldwide hub,
-  // or any launched market ISO (MARKET_COUNTRY_ISOS) so /search can scope every
-  // country hub. Garbage falls back to the GE default — never a worldwide leak.
-  // Old rows carry 'GE' via the column default.
+  // Market scope: absent/'all'/garbage = worldwide (explicit scope only —
+  // the product UI always sends the market's ISO). Any launched market ISO
+  // (MARKET_COUNTRY_ISOS) scopes /search to that country hub.
   const countryRaw = sp.get("country")
   const country =
-    !countryRaw || countryRaw === "all"
-      ? undefined
-      : MARKET_COUNTRY_ISOS.has(countryRaw)
-        ? countryRaw
-        : ("GE" as const)
+    countryRaw && MARKET_COUNTRY_ISOS.has(countryRaw) ? countryRaw : undefined
 
   const west = num("west")
   const south = num("south")
@@ -152,9 +148,12 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
     // Empty bbox → empty result (never match-all)
     where.id = { in: filters.idsIn.length > 0 ? filters.idsIn : ["__none__"] }
   }
-  if (filters.city) where.city = filters.city
+  if (filters.city) {
+    const names = citySearchValues(filters.city)
+    where.city = names.length === 1 ? names[0]! : { in: names }
+  }
   if (filters.district) {
-    const vals = districtSearchValues(filters.district, filters.city)
+    const vals = districtSearchValues(filters.district, cityCatalogName(filters.city))
     // Importer parks the village in address while district mirrors the city —
     // a locality pick must match both fields.
     and.push({

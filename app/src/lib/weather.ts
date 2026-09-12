@@ -1,5 +1,6 @@
 import 'server-only'
 import type { Lang } from '@/lib/i18n/core'
+import { cityBySlug } from '@/lib/map/user-place.server'
 
 /**
  * SIVRCE — server-side weather via Open-Meteo (free, no API key, no CORS).
@@ -56,7 +57,11 @@ export const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
 }
 
 export function cityCoords(slug?: string): { lat: number; lng: number } | undefined {
-  return slug ? CITY_COORDS[slug] : undefined
+  if (!slug) return undefined
+  if (CITY_COORDS[slug]) return CITY_COORDS[slug]
+  // ponytail: world cities resolve from the server map-city corpus — one source, no dup coords.
+  const c = cityBySlug(slug)
+  return c ? { lat: c.lat, lng: c.lng } : undefined
 }
 
 /* WMO → Lucide icon name (brand: no emoji in UI) */

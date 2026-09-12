@@ -1,5 +1,7 @@
 import fs from 'fs'
 import path from 'path'
+import sharp from 'sharp'
+import { DEVELOPERS } from '../src/data/professionals'
 
 const dir = path.join(process.cwd(), 'public', 'images', 'developers')
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
@@ -103,16 +105,82 @@ const devLogos: { slug: string; text: string; bg: string; color: string }[] = [
   { slug: 'eco-invest', text: 'ECO INVEST', bg: '#15803D', color: '#BBF7D0' },
   { slug: 'gradburg-development', text: 'GRADBURG', bg: '#312E81', color: '#A5B4FC' },
   { slug: 'urbanique-group', text: 'URBANIQUE', bg: '#1E293B', color: '#E2E8F0' },
-  { slug: 'kolkhi-group', text: 'KOLKHI', bg: '#0C4A6E', color: '#BAE6FD' }
+  { slug: 'kolkhi-group', text: 'KOLKHI', bg: '#0C4A6E', color: '#BAE6FD' },
+  // UAE seed (projects-new-uae.ts)
+  { slug: 'danube-properties', text: 'DANUBE', bg: '#7C2D12', color: '#FED7AA' },
+  { slug: 'deyaar', text: 'DEYAAR', bg: '#1E3A8A', color: '#BFDBFE' },
+  { slug: 'tiger-properties', text: 'TIGER', bg: '#713F12', color: '#FDE68A' },
+  { slug: 'nshama', text: 'NSHAMA', bg: '#065F46', color: '#A7F3D0' },
+  { slug: 'dubai-properties', text: 'DP DUBAI', bg: '#0F172A', color: '#FCD34D' },
+  { slug: 'wasl-properties', text: 'WASL', bg: '#155E75', color: '#A5F3FC' },
+  { slug: 'ithra-dubai', text: 'ITHRA', bg: '#312E81', color: '#C7D2FE' },
+  { slug: 'arada', text: 'ARADA', bg: '#134E4A', color: '#99F6E4' },
+  { slug: 'shurooq', text: 'SHUROOQ', bg: '#3F6212', color: '#D9F99D' },
+  { slug: 'reportage-properties', text: 'REPORTAGE', bg: '#1E293B', color: '#93C5FD' },
+  { slug: 'eagle-hills', text: 'EAGLE HILLS', bg: '#1E1B4B', color: '#FCD34D' },
+  { slug: 'bloom-holding', text: 'BLOOM', bg: '#14532D', color: '#BBF7D0' },
+  { slug: 'modon-properties', text: 'MODON', bg: '#7F1D1D', color: '#FECACA' },
+  { slug: 'q-properties', text: 'Q PROPERTIES', bg: '#0C4A6E', color: '#BAE6FD' },
+  { slug: 'seven-tides', text: 'SEVEN TIDES', bg: '#0F172A', color: '#7DD3FC' },
+  { slug: 'kleindienst-group', text: 'KLEINDIENST', bg: '#334155', color: '#E2E8F0' },
+  { slug: 'al-hamra', text: 'AL HAMRA', bg: '#4C0519', color: '#FECDD3' },
+  { slug: 'samana-developers', text: 'SAMANA', bg: '#701A75', color: '#F0ABFC' },
+  // Germany national top-up (projects-new-germany.ts)
+  { slug: 'bayerische-hausbau', text: 'BAY. HAUSBAU', bg: '#1E3A8A', color: '#DBEAFE' },
+  { slug: 'ca-immo', text: 'CA IMMO', bg: '#0F172A', color: '#FCA5A5' },
+  { slug: 'aroundtown', text: 'AROUNDTOWN', bg: '#292524', color: '#D6D3D1' },
+  { slug: 'bauwens', text: 'BAUWENS', bg: '#1C1917', color: '#FCD34D' },
+  { slug: 'ece', text: 'ECE', bg: '#0C4A6E', color: '#E0F2FE' },
+  { slug: 'bueschl', text: 'BÜSCHL', bg: '#365314', color: '#D9F99D' }
 ]
 
-for (const d of devLogos) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <rect width="200" height="200" rx="36" fill="${d.bg}"/>
-  <rect x="8" y="8" width="184" height="184" rx="28" fill="none" stroke="${d.color}" stroke-opacity="0.25" stroke-width="3"/>
-  <text x="100" y="112" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-weight="900" font-size="20" fill="${d.color}" text-anchor="middle" letter-spacing="1.5">${d.text}</text>
+function monogramSvg(text: string, bg: string, color: string, fontSize = 20): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" rx="36" fill="${bg}"/>
+  <rect x="8" y="8" width="184" height="184" rx="28" fill="none" stroke="${color}" stroke-opacity="0.25" stroke-width="3"/>
+  <text x="100" y="${100 + fontSize * 0.36}" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-weight="900" font-size="${fontSize}" fill="${color}" text-anchor="middle" letter-spacing="2">${text}</text>
 </svg>`
-  fs.writeFileSync(path.join(dir, `${d.slug}.svg`), svg)
 }
 
-console.log('Successfully generated', devLogos.length, 'developer SVG logo files')
+for (const d of devLogos) {
+  fs.writeFileSync(path.join(dir, `${d.slug}.svg`), monogramSvg(d.text, d.bg, d.color))
+}
+
+// Auto-monogram pass: every catalog developer without a logo on disk gets a
+// deterministic initials chip — the directory requests /images/developers/
+// {slug}.webp and 404s otherwise. Curated rows above keep their brand chips.
+const PALETTE: [string, string][] = [
+  ['#0F172A', '#38BDF8'], ['#1E1B4B', '#A5B4FC'], ['#064E3B', '#34D399'],
+  ['#701A75', '#F0ABFC'], ['#7C2D12', '#FDBA74'], ['#0C4A6E', '#7DD3FC'],
+  ['#14532D', '#86EFAC'], ['#4C0519', '#FDA4AF'], ['#312E81', '#C7D2FE'],
+  ['#713F12', '#FDE68A'], ['#134E4A', '#99F6E4'], ['#292524', '#D6D3D1'],
+]
+function slugHash(s: string): number {
+  let h = 5381
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0
+  return Math.abs(h)
+}
+function initials(name: string): string {
+  const words = name.replace(/[^\p{L}\p{N} ]/gu, ' ').split(/\s+/).filter(Boolean)
+  const src = words.length > 1 ? words : name.split(/(?=[A-Z])|\s+/).filter(Boolean)
+  return src.slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || 'S'
+}
+async function main() {
+  let auto = 0
+  for (const dev of DEVELOPERS) {
+    const webp = path.join(dir, `${dev.slug}.webp`)
+    const svg = path.join(dir, `${dev.slug}.svg`)
+    if (fs.existsSync(webp) || fs.existsSync(svg)) continue
+    const [bg, color] = PALETTE[slugHash(dev.slug) % PALETTE.length]!
+    await sharp(Buffer.from(monogramSvg(initials(dev.name.en), bg, color, 72)))
+      .webp({ quality: 90 })
+      .toFile(webp)
+    auto++
+  }
+  console.log('developer logos:', devLogos.length, 'curated SVG,', auto, 'auto monograms,', DEVELOPERS.length, 'catalog developers')
+}
+
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})

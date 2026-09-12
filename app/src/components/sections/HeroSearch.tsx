@@ -46,7 +46,7 @@ const numInput =
 const EXAMPLE_KEYS = ['search.ex1', 'search.ex2', 'search.ex3'] as const
 
 /** Hero search — deal + type + place + size + price + query. Rest lives on /search. */
-export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] }) {
+export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQuickChip[]; country?: string }) {
   const [tab, setTab] = useState(0)
   const [keyword, setKeyword] = useState('')
   const [from, setFrom] = useState('')
@@ -138,6 +138,7 @@ export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] 
     return {
       deal,
       type: propType,
+      country: country && country !== 'all' ? country : undefined,
       city: loc.city || undefined,
       district: loc.district || undefined,
       min: min ? String(min) : undefined,
@@ -173,7 +174,7 @@ export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] 
     for (const [k, v] of Object.entries(f)) if (v) p.set(k, v)
     return p
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute on any filter state change
-  }, [tab, propType, loc, minP, maxP, amin, amax, rooms, roomsExact, currency, keyword, from, to, isProjects, isDaily])
+  }, [tab, propType, loc, minP, maxP, amin, amax, rooms, roomsExact, currency, keyword, from, to, isProjects, isDaily, country])
 
   const [hitCount, setHitCount] = useState<{ key: string; n: number } | null>(null)
   useEffect(() => {
@@ -234,7 +235,27 @@ export default function HeroSearch({ quick = QUICK }: { quick?: HeroQuickChip[] 
   }
 
   const applySuggestion = (s: Suggestion) => {
-    setKeyword(s.kind === 'street' ? s.ka : '')
+    if (s.kind === 'developer' && s.slug) {
+      router.push(`/developers/${s.slug}`)
+      return
+    }
+    if (s.kind === 'project' && s.slug) {
+      router.push(`/projects/${s.slug}`)
+      return
+    }
+    if (s.kind === 'building' && s.slug) {
+      router.push(`/buildings/${s.slug}`)
+      return
+    }
+    if (s.kind === 'country' && s.slug) {
+      router.push(`/${s.slug}`)
+      return
+    }
+    if (s.kind === 'metro' && s.slug) {
+      router.push(`/metro/${s.slug}`)
+      return
+    }
+    setKeyword(s.kind === 'street' || s.kind === 'developer' || s.kind === 'project' || s.kind === 'building' || s.kind === 'poi' || s.kind === 'metro' ? s.ka : '')
     withDeal(suggestionToFilters(s))
   }
 

@@ -1,29 +1,6 @@
 import { db } from "@/lib/db";
-import type { ProjectLifecycleStatus, FactConfidence, SourceReliability, DataChangeKind } from "@/generated/prisma/enums";
-import type { ProvenanceFact } from "./types";
-import { RELIABILITY_RANK, CONFIDENCE_RANK, reliabilityScore, confidenceRank } from "./provenance";
-
-const RECENCY_THRESHOLDS = {
-  very_recent: 1,    // < 1 month
-  recent: 3,         // 1-3 months
-  moderate: 6,       // 3-6 months
-  old: 12,           // 6-12 months
-  stale: 24,         // 12-24 months
-  very_stale: 48,    // > 24 months
-};
-
-const STATUS_WEIGHTS: Record<ProjectLifecycleStatus, number> = {
-  announced: 1,
-  pre_launch: 2,
-  planned: 3,
-  permitted: 4,
-  under_construction: 5,
-  near_completion: 6,
-  completed: 7,
-  suspended: 0,
-  cancelled: 0,
-  unknown: 99,
-};
+import type { ProjectLifecycleStatus, FactConfidence } from "@/generated/prisma/enums";
+import { CONFIDENCE_RANK, confidenceRank } from "./provenance";
 
 interface ProjectStatusSignals {
   hasPermits: boolean;
@@ -122,41 +99,6 @@ export async function getProjectSignals(projectId: string): Promise<ProjectStatu
     statusFact,
     permitFact,
   };
-}
-
-function weightForStatus(status: ProjectLifecycleStatus, signals: ProjectStatusSignals): number {
-  // Base weight from status type
-  let base = STATUS_WEIGHTS[status] || 50;
-
-  // Adjust based on supporting signals
-  if (status === "under_construction") {
-    if (signals.hasActiveConstruction) base += 20;
-    if (signals.deliveryDateInFuture) base += 10;
-    if (signals.hasDeliveryDate) base += 5;
-    if (!signals.deliveryDateInFuture) base -= 10;
-  }
-
-  if (status === "completed") {
-    if (signals.hasCompletionDate) base += 30;
-    if (signals.activeListingCount > 0) base += 10;
-    if (signals.hasPriceData) base += 5;
-  }
-
-  if (status === "permitted") {
-    if (signals.hasPermits) base += 20;
-    if (signals.deliveryDateInFuture) base += 10;
-  }
-
-  if (status === "announced" || status === "pre_launch") {
-    if (signals.hasOfficialAnnouncement) base += 20;
-    if (signals.sourceCount < 3) base -= 10;
-  }
-
-  if (status === "suspended" || status === "cancelled") {
-    if (signals.hasSuspensionSignal || signals.hasCancellationSignal) base += 30;
-  }
-
-  return Math.max(0, Math.min(100, base));
 }
 
 export function inferProjectStatus(signals: ProjectStatusSignals): ProjectLifecycleStatus {

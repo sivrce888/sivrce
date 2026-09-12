@@ -4,6 +4,7 @@
  */
 
 import { MARKETS, type PathCountryId } from '@/lib/markets'
+import { hoodsByCity } from '@/data/world-neighborhoods'
 import { EXTRA_CITIES, EXTRA_HUBS, EXTRA_NAMES } from '@/lib/countries/hubs-extra'
 import {
   buyerCostBreakdown,
@@ -231,6 +232,44 @@ export const DE_BERLIN_RENT_DE: CountryCopy = {
   faqs: [
     { q: 'Wie hoch darf die Kaution in Berlin sein?', a: 'In der Regel bis zu drei Kaltmieten, getrennt angelegt (§551 BGB). Mehr ist keine Marktausnahme.' },
     { q: 'Kann ich ohne SCHUFA mieten?', a: 'Manche Vermieter akzeptieren Alternativen (Arbeitgeber, höhere Kaution, Sperrkonto). Viele nicht. Zeit einplanen.' },
+  ],
+}
+
+/** Native German hub — München. Hub-only: no /buy /rent copy exists yet (matches the EN pack). */
+export const DE_MUNICH_HUB_DE: CountryCopy = {
+  title: 'Immobilien München — Kauf & Miete | sivrce',
+  description:
+    'München: teuerster Wohnungsmarkt Deutschlands. Notar, Grundbuch, 3,5 % Grunderwerbsteuer (Bayern). sivrce zeigt verifizierte Neubauten — keine erfundenen Inserate.',
+  h1: 'Immobilien in München',
+  lede:
+    'München durchsuchen: kaufen oder mieten oben, dann die 3D-Karte. Enges Angebot, hohe Nachfrage — Notar und Grundbuch bleiben das Kaufmodell, auch hier.',
+  body: [
+    'München ist Deutschlands teuerster Markt: knappes Bauland an der Isar, BMW, Siemens und ein tiefer Arbeitsmarkt halten die Nachfrage hoch. Altstadt-Lehel und Maxvorstadt sind die Spitzenlagen, Schwabing und das Glockenbachviertel ziehen jüngere Mieter.',
+    'Bayern erhebt die niedrigste Grunderwerbsteuer im Bundesvergleich (3,5 %) — Notar und Grundbucheintragung kommen trotzdem oben drauf, wie überall in Deutschland.',
+    'sivrce veröffentlicht in München nur, was sich so prüfen lässt wie in Georgien. Bis dahin bleibt diese Seite ein Briefing.',
+  ],
+  faqs: [
+    { q: 'Warum ist München so teuer?', a: 'Hohe Löhne, knappes Bauland und anhaltender Zuzug. Der Leerstand ist niedrig, deshalb bleiben Mieten stabil, auch wenn die Rendite gering wirkt.' },
+    { q: 'Dürfen Ausländer in München kaufen?', a: 'Ja. Kein Staatsangehörigkeitsverbot — derselbe notarielle Weg wie im Rest Deutschlands.' },
+  ],
+}
+
+/** Native German hub — Hamburg. Hub-only: no /buy /rent copy exists yet (matches the EN pack). */
+export const DE_HAMBURG_HUB_DE: CountryCopy = {
+  title: 'Immobilien Hamburg — Kauf & Miete | sivrce',
+  description:
+    'Hamburg: Hafenstadt an der Elbe, teurer als Berlin, günstiger als München. Notar, Grundbuch, 5,5 % Grunderwerbsteuer. Verifizierte Neubauten, keine erfundenen Inserate.',
+  h1: 'Immobilien in Hamburg',
+  lede:
+    'Hamburg durchsuchen: kaufen oder mieten oben, dann die 3D-Karte. Hafen, Medien und Luftfahrt tragen die Nachfrage — der Kaufweg bleibt notariell wie überall in Deutschland.',
+  body: [
+    'Der Hafen, Medienunternehmen und die Luftfahrtindustrie treiben die Nachfrage. HafenCity und Blankenese liegen an der Spitze, Eimsbüttel und Wandsbek sind die Familienlagen mit mehr Fläche fürs Geld.',
+    'Hamburgs Grunderwerbsteuer liegt bei 5,5 % — Notar und Grundbucheintragung kommen wie in ganz Deutschland hinzu.',
+    'sivrce veröffentlicht Hamburger Inserate erst, wenn sie sich so prüfen lassen wie in Berlin und Georgien.',
+  ],
+  faqs: [
+    { q: 'Ist Hamburg teurer als Berlin?', a: 'In der Regel ja pro Quadratmeter, aber günstiger als München. Wasserlagen und HafenCity markieren die Spitze.' },
+    { q: 'Dürfen Ausländer in Hamburg kaufen?', a: 'Ja — derselbe notarielle Ablauf wie im übrigen Deutschland.' },
   ],
 }
 
@@ -623,15 +662,22 @@ export function cityPack(country: string, slug: string): CityPack | null {
 
 export function countrySitemapPaths(country: string): string[] {
   if (!country || !(country in MARKETS) || country === 'ge') return []
-  const prefix = MARKETS[country as PathCountryId].pathPrefix
-  if (!prefix) return []
+  const market = MARKETS[country as PathCountryId]
+  if (!market.pathPrefix) return []
+  const prefix = market.pathPrefix
   const out = [prefix]
-  for (const slug of MARKETS[country as PathCountryId].citySlugs) {
+  for (const slug of market.citySlugs) {
     const pack = cityPack(country, slug)
     if (!pack) continue
     out.push(`${prefix}/${slug}`)
     if (pack.buy) out.push(`${prefix}/${slug}/buy`)
     if (pack.rent) out.push(`${prefix}/${slug}/rent`)
+    // Hood pages (/cc/city/hood). DE Berlin hoods are served by /de/berlin/[bezirk] — skip to avoid dup URLs.
+    if (market.countryCode && !(country === 'de' && slug === 'berlin')) {
+      for (const hood of hoodsByCity(market.countryCode, pack.name)) {
+        out.push(`${prefix}/${slug}/${hood.slug}`)
+      }
+    }
   }
   return out
 }

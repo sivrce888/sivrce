@@ -5,6 +5,7 @@ import { pickAds } from '@/lib/ads-db'
 import { isValidLang } from '@/lib/i18n/core'
 import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
 import { requestMarket } from '@/lib/request-market'
+import { countryIsoForMarket } from '@/lib/markets'
 
 export const revalidate = 300
 
@@ -52,9 +53,9 @@ export default async function SearchPage({ params }: { params: Promise<{ lang: s
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const ads = await pickAds(['search_top', 'search_native'], { audience: 'guest', lang })
-  // Market scope: global hub (.com /search) searches the whole world incl.
-  // Georgia; the Georgia catalog (.ge + /ge mirror) stays GE-scoped.
-  const country = (await requestMarket()) === 'global' ? 'all' : 'GE'
+  // Market scope: global hub searches the world; every other host/path
+  // locks /search to that country's ISO (GE, DE, AE, …).
+  const country = countryIsoForMarket(await requestMarket()) ?? 'all'
   return (
     <Suspense fallback={<SearchFallback lang={lang} />}>
       <SearchClient

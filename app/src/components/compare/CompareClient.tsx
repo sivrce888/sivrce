@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
-import { Columns2, Search, X, Eye, Calendar, ArrowUpDown } from "lucide-react"
+import { Columns2, Search, X, ArrowUpDown } from "lucide-react"
 import LocalizedLink from "@/components/LocalizedLink"
 import { formatFloor, formatPerM2 } from "@/data/listings"
 import { areaSym } from "@/lib/listing-format"

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { LISTINGS, type Listing } from '@/data/listings'
-import { getAllListings } from '@/lib/listings-db'
+import { getAllListings, getWorldListings } from '@/lib/listings-db'
 import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { STREETS } from '@/data/tbilisi-streets'
@@ -84,9 +84,11 @@ export default async function sitemap({ id }: { id: string | Promise<string> }):
 }
 
 async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
+  // One inventory, two shards: the ge sitemap lists only GE listings — world
+  // listings publish (and canonicalize) on sivrce.com in countrySitemap().
   let listings: Listing[] = LISTINGS
   try {
-    const rows = await getAllListings(5000)
+    const rows = await getAllListings(5000, { country: 'GE' })
     if (rows.length > 0) listings = rows
   } catch { /* DB unavailable at build — keep static URLs */ }
 
@@ -122,6 +124,8 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/agencies', changeFrequency: 'weekly', priority: 0.6 },
     { path: '/developers', changeFrequency: 'daily', priority: 0.8 },
     { path: '/services', changeFrequency: 'weekly', priority: 0.8 },
+    // Live GDS hotel rates (Amadeus) — worldwide, all locales.
+    { path: '/hotels', changeFrequency: 'daily', priority: 0.8 },
   ]
 
   for (const a of AGENT_PROFILES) {
@@ -277,7 +281,7 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
   return entries.map(toSitemapEntry)
 }
 
-function countrySitemap(): MetadataRoute.Sitemap {
+async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
   const out: MetadataRoute.Sitemap = [
     {
       url: `${COM_ORIGIN}/`,
@@ -325,6 +329,43 @@ function countrySitemap(): MetadataRoute.Sitemap {
   out.push({ url: `${COM_ORIGIN}/de/metro/germany`, changeFrequency: 'monthly', priority: 0.7 })
   for (const s of [...BERLIN_U_STATIONS, ...BERLIN_S_STATIONS]) {
     out.push({ url: `${COM_ORIGIN}/de/metro/${s.slug}`, changeFrequency: 'weekly', priority: 0.6 })
+  }
+  // World listings (every non-GE country) — the sivrce.com half of the unified
+  // inventory. Canonical /en URLs, en + x-default cluster (world listings
+  // publish in English). GE listings live in the ge shard on sivrce.ge.
+  let world: Listing[] = []
+  try {
+    world = await getWorldListings(3000)
+  } catch { /* build-time DB outage */ }
+  const absCom = (src: string) => (src.startsWith('http') ? src : `${COM_ORIGIN}${src.startsWith('/') ? src : `/${src}`}`)
+  for (const l of world) {
+    const url = `${COM_ORIGIN}/en${listingPath(l)}`
+    const poster = absCom(l.img)
+    const video = listingVideoObject(l.video, {
+      name: l.title,
+      description: l.description ?? '',
+      poster,
+      uploadDate: `${l.postedAt}T00:00:00`,
+    })
+    out.push({
+      url,
+      lastModified: new Date(`${l.postedAt}T00:00:00`),
+      changeFrequency: 'daily',
+      priority: l.video ? 0.8 : 0.7,
+      alternates: { languages: { en: url, 'x-default': url } },
+      images: (l.images.length ? l.images : [l.img]).slice(0, 8).map(absCom),
+      ...(video && {
+        videos: [{
+          title: video.name,
+          thumbnail_loc: video.thumbnailUrl,
+          description: video.description,
+          ...(video.contentUrl ? { content_loc: video.contentUrl } : {}),
+          ...(video.embedUrl ? { player_loc: video.embedUrl } : {}),
+          publication_date: l.postedAt,
+          family_friendly: 'yes' as const,
+        }],
+      }),
+    })
   }
   return out
 }
