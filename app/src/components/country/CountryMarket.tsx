@@ -26,7 +26,7 @@ import {
 } from '@/lib/country-copy'
 import DeMarketHome from '@/components/country/DeMarketHome'
 import HoodPage, { hoodMetadata } from '@/components/country/HoodPage'
-import { hoodBySlug, hoodsByCity } from '@/data/world-neighborhoods'
+import { hoodBySlug } from '@/data/world-neighborhoods'
 import ProjectPage, { generateMetadata as projectPageMetadata } from '@/app/[lang]/projects/[slug]/page'
 import { DE_CITIES } from '@/lib/countries/de'
 import { getProject } from '@/data/professionals'

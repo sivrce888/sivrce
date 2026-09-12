@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { MapPin, ChevronDown, Check } from 'lucide-react'
+import { ChevronDown, Check } from 'lucide-react'
 import { Flag, type FlagCode } from '@/components/Flag'
-import { COM_ORIGIN, COUNTRY_IDS, MARKETS, parseCountryPath, type PathCountryId } from '@/lib/markets'
+import { COUNTRY_IDS, MARKETS, parseCountryPath, type PathCountryId } from '@/lib/markets'
 import { useI18n } from '@/lib/i18n/context'
 import { cityBySlug } from '@/lib/map/user-place'
 
