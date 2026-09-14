@@ -46,6 +46,8 @@ function worldProjectToProject(wp: WorldProject): Project {
     rating: 4.5,
     coords: { lat: wp.lat, lng: wp.lng },
     floors: wp.floors,
+    // ponytail: official source link — page renders it as "Official source", zero bundle cost.
+    ...(wp.website ? { sourceUrl: wp.website } : {}),
     description: {
       ka: wp.description,
       en: wp.description,
