@@ -677,8 +677,11 @@ async function applyBatch2(manifest: Map<string, ManifestEntry>): Promise<void> 
 // ── galleries mode ─────────────────────────────────────────────────────────
 async function emitGalleries(manifest: Map<string, ManifestEntry>): Promise<void> {
   const rows: string[] = []
+  const seen = new Set<string>()
   for (const e of [...manifest.values()].sort((a, b) => a.slug.localeCompare(b.slug))) {
-    if (!e.gallery?.length) continue
+    // a slug may sit in both batches — first-wins, matching PROJECTS dedupe
+    if (!e.gallery?.length || seen.has(e.slug)) continue
+    seen.add(e.slug)
     rows.push(`  '${e.slug}': [${e.gallery.map((g) => `'${g}'`).join(', ')}],`)
   }
   const src =
