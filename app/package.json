@@ -114,7 +114,8 @@
     "check:bookings": "tsx src/lib/bookings.check.ts",
     "check:currency": "tsx src/lib/currency.check.ts",
     "check:db": "tsx src/lib/db.check.ts",
-    "check:atmosphere": "tsx src/lib/map/atmosphere.check.ts"
+    "check:atmosphere": "tsx src/lib/map/atmosphere.check.ts",
+    "hotels:doctor": "tsx scripts/hotel-doctor.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.62",
