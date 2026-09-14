@@ -11,7 +11,7 @@ export const ka = {
   'nav.search': 'ძიება',
   'nav.map': '3D რუკა',
   'nav.buildings': 'შენობები',
-  'nav.projects': 'მშენებარე ბინები',
+  'nav.projects': 'პროექტები',
   'nav.services': 'სერვისები',
   'nav.more': 'მეტი',
   'nav.favorites': 'ფავორიტები',

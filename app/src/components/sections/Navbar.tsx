@@ -145,7 +145,7 @@ export default function Navbar({
             // ka labels run ~60px wider than latin — the 2 xl-only links only
             // fit from 2xl, else they overflow under the favorites heart.
             const xlCls = lang === 'ka' ? 'hidden 2xl:inline' : 'hidden xl:inline'
-            const cls = `whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 xl:px-2.5 ${
+            const cls = `whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
               l.mobileOnly ? 'hidden' : ''
             } ${l.xlOnly ? xlCls : ''} ${
               light
