@@ -92,6 +92,10 @@ const AiAdvisor = dynamic(() => import('@/components/listing/AiAdvisor'), {
   ssr: false,
   loading: () => <div className="mt-8 h-[300px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
 })
+const ValuationTerminal = dynamic(() => import('@/components/listing/ValuationTerminal'), {
+  ssr: false,
+  loading: () => <div className="mt-8 h-[340px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+})
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
 /** Same locked pairing as the building page's around grid. */
@@ -1685,6 +1689,17 @@ export default function ListingDetailClient({
 
             {/* AI Advisor — scam radar, instant Q&A, TCO/ROI (lazy chunk) */}
             <AiAdvisor ctx={advisorCtx} isSale={isSale} />
+
+            {/* 10x Institutional Valuation & 3-Scenario Terminal */}
+            {isSale && l.priceUSD > 0 && l.area > 0 && (
+              <ValuationTerminal
+                priceUSD={l.priceUSD}
+                areaSqm={l.area}
+                monthlyRentUSD={rentEst}
+                countryCode={l.country}
+                lang={lang}
+              />
+            )}
           </div>
 
           {/* Right rail: flows; only the contact card pins — price + CTA stay

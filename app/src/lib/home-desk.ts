@@ -26,6 +26,7 @@ import {
 import {
   countryInfo,
   globalCountry,
+  metroBySlug,
   metrosForCountry,
 } from '@/lib/countries/global-os'
 import { COUNTRY_IDS, MARKETS, type PathCountryId } from '@/lib/markets'
@@ -119,6 +120,18 @@ function costFor(id: PathCountryId): DeskCost | null {
   }
 }
 
+/**
+ * The country corpus stores the capital as a slug (`andorra-la-vella`).
+ * Prefer the pinned metro's real name; otherwise title-case the slug rather
+ * than printing a URL fragment at a human.
+ */
+function capitalName(slug: string | undefined, lang: Lang): string | null {
+  if (!slug) return null
+  const pin = metroBySlug(slug)
+  if (pin) return lang === 'ka' ? pin.ka : pin.en
+  return slug.replace(/-/g, ' ').replace(/(^|\s)\p{Ll}/gu, (c) => c.toUpperCase())
+}
+
 function searchHref(cc: string, city?: string): string {
   const q = new URLSearchParams({ country: cc })
   if (city) q.set('city', city)
@@ -161,7 +174,7 @@ export function visitorDesk(cc: string | null | undefined, lang: Lang): VisitorD
     hubPath: market?.pathPrefix ?? null,
     currency: country.currency,
     locale: country.locale,
-    capital: info?.capital ?? null,
+    capital: capitalName(info?.capital, lang),
     languages: info?.languages ?? [],
     population: info?.population ?? null,
     note: info?.realEstateNote ?? null,
