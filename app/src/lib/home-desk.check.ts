@@ -62,6 +62,18 @@ for (const cc of ['MN', 'BT', 'FJ', 'TD']) {
   for (const city of desk.cities) assert.equal(city.href, null, `no hub URL for ${cc}/${city.slug}`)
 }
 
+// ── Capitals render as names, never as the raw corpus slug.
+for (const cc of ['DE', 'AD', 'BA', 'GE', 'AE', 'US', 'MN']) {
+  const cap = visitorDesk(cc, 'en')?.capital
+  if (!cap) continue
+  assert.ok(!cap.includes('-'), `capital still a slug: ${cc} → ${cap}`)
+  assert.equal(cap, cap.trimStart(), `capital padding: ${cc}`)
+  assert.ok(/^\p{Lu}/u.test(cap), `capital not capitalised: ${cc} → ${cap}`)
+}
+assert.equal(visitorDesk('DE', 'en')?.capital, 'Berlin')
+// Pinned metro wins over the slug, so local orthography survives.
+assert.equal(visitorDesk('AD', 'en')?.capital, 'Andorra la Vella')
+
 // ── Every UI language yields a non-empty, non-code country name.
 for (const lang of LANGS) {
   for (const cc of ['DE', 'GE', 'AE', 'JP']) {
