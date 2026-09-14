@@ -126,12 +126,13 @@ function VisitorPanel({ desk, lang }: { desk: VisitorDesk; lang: Lang }) {
                   {t('desk.costTotal', { pct: cost.totalPct })}
                 </p>
                 <p className="mt-1 text-[14px] font-extrabold text-sv-ink/70">{cost.cashLabel}</p>
-                <p className="mt-4 text-[13px] font-semibold leading-relaxed text-sv-ink/60">
-                  <span title={cost.chipTitle} className="font-extrabold text-sv-ink/80">
-                    {cost.taxLabel} · {cost.chip}
-                  </span>{' '}
-                  — {cost.closer}
+                <p
+                  title={cost.chipTitle}
+                  className="mt-4 text-[13px] font-extrabold text-sv-ink/80"
+                >
+                  {cost.taxLabel} · {cost.chip}
                 </p>
+                <p className="mt-1 text-[13px] font-semibold text-sv-ink/55">{cost.closer}</p>
                 <p className="mt-3 text-[12px] font-semibold leading-relaxed text-sv-ink/50">
                   {cost.note}
                 </p>
