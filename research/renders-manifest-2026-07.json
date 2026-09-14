@@ -56,6 +56,13 @@
     "batch": 1
   },
   {
+    "slug": "amsterdam-noord",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "amsterdam-zuidas",
     "status": "failed",
     "source": null,
@@ -154,6 +161,13 @@
     "batch": 1
   },
   {
+    "slug": "astana-exhibition",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "astoria-isani",
     "status": "failed",
     "source": null,
@@ -224,6 +238,13 @@
     "batch": 1
   },
   {
+    "slug": "baku-white-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "bakuriani-prospect",
     "status": "ok",
     "source": "korter",
@@ -253,6 +274,13 @@
   },
   {
     "slug": "belgravia-heights",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "berlin-tSX",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -343,7 +371,21 @@
     "batch": 1
   },
   {
+    "slug": "brisbane-wooloongabba",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "buenos-aires-puerto-nuevo",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bugatti-residences-binghatti",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -529,6 +571,20 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/dighomi-gardens-tbilisi",
+    "batch": 1
+  },
+  {
+    "slug": "diriyah-gate-residences",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "dlf-the-dahlias",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -840,6 +896,13 @@
     "batch": 1
   },
   {
+    "slug": "grand-marina-saigon",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "greater-southern-waterfront",
     "status": "failed",
     "source": null,
@@ -932,6 +995,13 @@
   },
   {
     "slug": "hey-charlottenburg",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "high-top-icc-west",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1218,6 +1288,13 @@
     "batch": 1
   },
   {
+    "slug": "la-grand-ave",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "lagoon-resort",
     "status": "ok",
     "source": "korter",
@@ -1365,6 +1442,13 @@
     "batch": 1
   },
   {
+    "slug": "metro-manila-subway",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "metropol-oval",
     "status": "ok",
     "source": "korter",
@@ -1376,6 +1460,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/the-parallel-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "mexico-city-santa-fe-2",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -1394,6 +1485,13 @@
   },
   {
     "slug": "mumbai-coastal-road",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "munich-oberwiesenfeld",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1464,6 +1562,13 @@
   },
   {
     "slug": "new-alamein",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "new-capital-iconic-tower",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1548,6 +1653,13 @@
   },
   {
     "slug": "nusantara",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nyc-hudson-yards-2",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1680,6 +1792,13 @@
     "batch": 1
   },
   {
+    "slug": "otto-quartier-esslingen",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "oxy-residence",
     "status": "ok",
     "source": "korter",
@@ -1702,6 +1821,13 @@
   },
   {
     "slug": "panorama-park-kutaisi",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "pantai-indah-kapuk-2",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1974,6 +2100,13 @@
     "batch": 1
   },
   {
+    "slug": "sf-transbay",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "shed-21-wellington",
     "status": "failed",
     "source": null,
@@ -1989,6 +2122,13 @@
   },
   {
     "slug": "shenzhen-bay",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "shibuya-upper-west",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2031,6 +2171,13 @@
   },
   {
     "slug": "sobha-hartland",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "sobha-hartland-ii",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2156,6 +2303,13 @@
     "batch": 1
   },
   {
+    "slug": "sultan-haitham-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "summer-365",
     "status": "ok",
     "source": "korter",
@@ -2188,6 +2342,20 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/swissotel-beach-resort-kobuleti-kobuleti",
+    "batch": 1
+  },
+  {
+    "slug": "sydney-metro-west",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "sydney-western-hub",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -2261,6 +2429,20 @@
     "batch": 1
   },
   {
+    "slug": "the-h-firstier-banpo",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "the-one-toronto",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "thu-thiem",
     "status": "failed",
     "source": null,
@@ -2268,7 +2450,28 @@
     "batch": 1
   },
   {
+    "slug": "torch-tower-tokyo",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "toronto-east-harbour",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "tour-montparnasse",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "tour-triangle-paris",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
