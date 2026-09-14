@@ -76,8 +76,8 @@ export function skyFor({ dark, lat, lng, date = new Date() }: AtmosphereInput): 
     'horizon-color': horizonColor,
     'sky-horizon-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.9, 6, 0.8, 12, 0.6],
     'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 6, 0.8, 11, 0.5, 15, 0.28],
-    'sky-color-transition': { duration: 600 },
-    'horizon-color-transition': { duration: 600 },
+    // ponytail: no *-transition keys — this MapLibre build rejects them on sky
+    // ("unknown property"). Sky repaints are debounced to settled moves anyway.
   }
 }
 
