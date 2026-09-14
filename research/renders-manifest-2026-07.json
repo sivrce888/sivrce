@@ -1,5 +1,12 @@
 [
   {
+    "slug": "addis-civic-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "al-marjan-island",
     "status": "failed",
     "source": null,
@@ -29,6 +36,13 @@
   },
   {
     "slug": "allianz-quartier-heidestrasse",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "almaty-ibd",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1085,6 +1099,13 @@
     "batch": 1
   },
   {
+    "slug": "kigali-city-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "kobuleti-wellness-residence",
     "status": "ok",
     "source": "korter",
@@ -1358,6 +1379,13 @@
     "batch": 1
   },
   {
+    "slug": "nairobi-upperhill",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "naples-centrale",
     "status": "failed",
     "source": null,
@@ -1464,6 +1492,13 @@
   },
   {
     "slug": "nuevo-puerto",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nurly-zhol",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
