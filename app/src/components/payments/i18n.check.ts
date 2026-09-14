@@ -17,7 +17,9 @@ for (const l of LANGS) {
   if (l !== 'ka') assert.notEqual(s.boost, ka.boost, `locale ${l} must not show Georgian`)
 }
 assert.equal(getPaymentsStrings('de').boost, 'Boost', 'de native copy')
-assert.equal(getPaymentsStrings('he').boost, getPaymentsStrings('en').boost, 'he→en fallback')
+assert.equal(getPaymentsStrings('he').boost, 'קידום', 'he native copy')
+for (const l of ['ar', 'tr', 'uk', 'hy', 'az'] as const)
+  assert.notEqual(getPaymentsStrings(l).boost, getPaymentsStrings('en').boost, `${l} native copy`)
 assert.ok(getPaymentsStrings('ru').renewHint(7).includes('7'), 'ru renewHint interpolates days')
 
 // 2. Source guards.
@@ -28,7 +30,8 @@ assert.ok(btn.includes('lang = "ka"'), 'button keeps ka default for legacy calle
 
 const grid = readFileSync('src/components/payments/PromoPricingGrid.tsx', 'utf8')
 assert.ok(!grid.includes('?? GRID.ka'), 'grid must not fall back to ka')
-assert.ok(grid.includes('lang === "ka" || lang === "ru" ? lang : "en"'), 'grid en fallback')
+assert.ok(grid.includes('GRID[lang] ? lang : "en"'), 'grid en fallback for unknown langs')
+assert.ok(!/lang === "ka" \?|lang === "ru" \?/.test(grid), 'grid has no inline locale ternaries — copy lives in GRID')
 
 const adv = readFileSync('src/app/[lang]/advertise/page.tsx', 'utf8')
 assert.ok(adv.includes('<PromoPricingGrid lang={lang} />'), 'advertise passes real locale')

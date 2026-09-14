@@ -1,17 +1,19 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { AuthShell } from "@/components/auth/AuthShell"
 import { ResetForm } from "@/components/auth/ResetForm"
+import { authLang, getAuthStrings } from "@/components/auth/i18n"
 import { getSessionUser } from "@/lib/guards"
 
-export const metadata: Metadata = {
-  title: "ახალი პაროლი",
-  robots: { index: false },
-}
-
 export const dynamic = "force-dynamic"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
+  return { title: s.resetMetaTitle, robots: { index: false } }
+}
 
 export default async function ResetPage({
   searchParams,
@@ -23,31 +25,28 @@ export default async function ResetPage({
 
   const { token, email } = await searchParams
   const ok = Boolean(token && email?.includes("@"))
+  const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
 
   return (
     <AuthShell
-      title="ახალი პაროლი"
-      subtitle={
-        ok
-          ? "აირჩიე ძლიერი პაროლი — მინიმუმ 8 სიმბოლო."
-          : "ბმული არასრულია. მოითხოვე ახალი აღდგენის ბმული."
-      }
+      title={s.resetTitle}
+      subtitle={ok ? s.resetSubOk : s.resetSubBad}
       footer={
         <p className="text-[13px] font-medium text-white/50">
           <Link href="/auth/forgot" className="font-bold text-sv-blue-light hover:underline">
-            ახალი ბმულის მოთხოვნა
+            {s.requestNewLink}
           </Link>
         </p>
       }
     >
       {ok ? (
-        <ResetForm email={email!} token={token!} />
+        <ResetForm email={email!} token={token!} s={s} />
       ) : (
         <Link
           href="/auth/forgot"
           className="flex w-full items-center justify-center rounded-full bg-sv-blue px-6 py-3.5 text-[14.5px] font-extrabold text-white"
         >
-          პაროლის აღდგენა
+          {s.forgotTitle}
         </Link>
       )}
     </AuthShell>

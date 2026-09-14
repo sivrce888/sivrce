@@ -133,6 +133,10 @@ export function iconicKeepFarFilter(extra?: unknown): unknown {
 }
 
 export function punchIconicHoles(map: MlMap): void {
+  // Off-Berlin maps have no tower to carve — and the `distance` filter throws
+  // on non-polygon tile fragments there (console noise on every listing map).
+  const c = map.getCenter?.()
+  if (c && (Math.abs(c.lng - FERNSEHTURM.lng) > 0.7 || Math.abs(c.lat - FERNSEHTURM.lat) > 0.5)) return
   const osm = iconicKeepFarFilter(['!=', ['get', 'hide_3d'], true])
   try {
     if (map.getLayer(OSM_BUILDING_3D_ID)) map.setFilter(OSM_BUILDING_3D_ID, osm as never)

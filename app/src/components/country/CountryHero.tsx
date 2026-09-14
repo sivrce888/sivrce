@@ -4,9 +4,6 @@ import CountrySearch, { type CountryCityChip } from '@/components/country/Countr
 import { MARKETS, type PathCountryId } from '@/lib/markets'
 import { marketTrust } from '@/lib/countries/costs'
 import { COUNTRY_NAMES, heroPair, type CountryCopy } from '@/lib/country-copy'
-import { mapHrefForPlace } from '@/lib/map/map-href'
-import { cityBySlug } from '@/lib/map/user-place'
-import { marketCenter } from '@/lib/geo-market'
 import type { Lang } from '@/lib/i18n/core'
 
 const TRUST_DE: [string, string, string] = ['Straßenverifizierte Neubauten', 'Notar & Grundbuch', '3D-Karte']
@@ -28,9 +25,6 @@ export default function CountryHero({
 }) {
   const pair = heroPair(copy.h1)
   const market = MARKETS[country]
-  const pin = city ? cityBySlug(city) : null
-  const cam = pin ?? marketCenter(country)
-  const mapHref = mapHrefForPlace(cam.lat, cam.lng, 12.8, market.countryCode)
   // Trust row names what this market actually verifies — the notaire path in
   // France, Land Registry in the UK, the tapu in Turkey. One source: costs.ts.
   const trust = country === 'de' && lang === 'de' ? TRUST_DE : marketTrust(country)
@@ -73,7 +67,6 @@ export default function CountryHero({
           city={city}
           intent={intent}
           cities={cities}
-          mapHref={mapHref}
           showProjects={country === 'de'}
         />
 

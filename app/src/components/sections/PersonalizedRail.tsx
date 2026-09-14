@@ -93,14 +93,17 @@ export default function PersonalizedRail({
 
         <HScroll aria-label={t.title} step={420} className="gap-6 pb-2 pt-1">
           {recs.map((r, i) => (
-            <div key={r.listing.id} className="relative flex flex-col">
+            <div
+              key={r.listing.id}
+              className="relative flex w-[clamp(16.5rem,82%,23.75rem)] shrink-0 flex-col"
+            >
               {r.reasonLabel ? (
                 <div className="mb-2 inline-flex items-center gap-1.5 self-start rounded-md bg-sv-blue/10 px-2 py-0.5 text-[11px] font-bold text-sv-blue-deep dark:bg-sv-blue/20 dark:text-sv-blue-light">
                   <span className="h-1.5 w-1.5 rounded-full bg-sv-blue animate-pulse" />
                   {r.reasonLabel}
                 </div>
               ) : null}
-              <ListingCard l={r.listing} i={i} animate={false} />
+              <ListingCard l={r.listing} i={i} animate={false} layout="wide" />
             </div>
           ))}
         </HScroll>

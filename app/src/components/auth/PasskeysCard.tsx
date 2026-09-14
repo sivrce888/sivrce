@@ -6,6 +6,8 @@ import { startRegistration } from "@simplewebauthn/browser"
 import { Fingerprint, Plus, Trash2 } from "lucide-react"
 
 import { deletePasskey } from "@/app/auth/actions"
+import { getAuthStrings, type AuthStrings } from "@/components/auth/i18n"
+import type { Lang } from "@/lib/i18n/core"
 
 export type PasskeyRow = {
   credentialID: string
@@ -13,14 +15,15 @@ export type PasskeyRow = {
   credentialBackedUp: boolean
 }
 
-function labelFor(k: PasskeyRow): string {
+function labelFor(k: PasskeyRow, s: AuthStrings): string {
   if (k.credentialBackedUp || k.credentialDeviceType === "multiDevice") {
-    return "სინქრონიზებული Passkey"
+    return s.passkeySynced
   }
-  return "ამ მოწყობილობის Passkey"
+  return s.passkeyThisDevice
 }
 
-export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
+export function PasskeysCard({ keys, lang }: { keys: PasskeyRow[]; lang: Lang }) {
+  const s = getAuthStrings(lang)
   const router = useRouter()
   const [list, setList] = useState(keys)
   // Reset-on-props: server actions + router.refresh() deliver new `keys`, which
@@ -39,7 +42,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
     try {
       const res = await fetch("/api/auth/passkey?op=register", { cache: "no-store" })
       if (!res.ok) {
-        setError("ვერ დაიწყო — სცადე თავიდან")
+        setError(s.passkeyStartFail)
         return
       }
       const optionsJSON = await res.json()
@@ -51,14 +54,14 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
       })
       if (!saved.ok) {
         const body = (await saved.json().catch(() => null)) as { error?: string } | null
-        setError(body?.error ?? "Passkey ვერ დაემატა")
+        setError(body?.error ?? s.passkeyAddFail)
         return
       }
       router.refresh()
     } catch (err) {
       const name = err instanceof Error ? err.name : ""
       if (name !== "NotAllowedError" && name !== "AbortError") {
-        setError("Passkey ვერ დაემატა")
+        setError(s.passkeyAddFail)
       }
     } finally {
       setPending(false)
@@ -66,7 +69,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
   }
 
   async function remove(id: string) {
-    if (!window.confirm("წავშალოთ ეს Passkey?")) return
+    if (!window.confirm(s.passkeyDeleteConfirm)) return
     setList((prev) => prev.filter((k) => k.credentialID !== id))
     await deletePasskey(id)
     router.refresh()
@@ -84,7 +87,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
         <div className="min-w-0 flex-1">
           <h2 className="text-[15px] font-extrabold text-sv-ink">Passkey</h2>
           <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-            Face ID, Touch ID ან Windows Hello — შესვლა პაროლის გარეშე.
+            {s.passkeyHint} — {s.passkeyPasswordless}.
           </p>
         </div>
       </div>
@@ -104,7 +107,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
             <li key={k.credentialID} className="flex items-center gap-3 py-3">
               <Fingerprint className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="text-[13.5px] font-extrabold text-sv-ink">{labelFor(k)}</p>
+                <p className="text-[13.5px] font-extrabold text-sv-ink">{labelFor(k, s)}</p>
                 <p className="font-mono text-[11.5px] font-medium tracking-wide text-sv-ink/60">
                   ••••{k.credentialID.slice(-4)}
                 </p>
@@ -113,7 +116,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
                 type="button"
                 onClick={() => void remove(k.credentialID)}
                 className="grid h-9 w-9 place-items-center rounded-full text-sv-ink/35 transition hover:bg-sv-cloud hover:text-sv-orange-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
-                aria-label="Passkey-ის წაშლა"
+                aria-label={s.passkeyDeleteAria}
               >
                 <Trash2 className="h-4 w-4" aria-hidden />
               </button>
@@ -122,7 +125,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
         </ul>
       ) : (
         <p className="mt-4 text-[13px] font-medium text-sv-ink/60">
-          ჯერ არცერთი არ გაქვს. დაამატე ერთხელ — შემდეგ შესვლა ერთი შეხებით.
+          {s.passkeyEmpty}
         </p>
       )}
 
@@ -133,7 +136,7 @@ export function PasskeysCard({ keys }: { keys: PasskeyRow[] }) {
         className="mt-4 inline-flex items-center gap-2 rounded-full bg-sv-blue px-5 py-2.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
       >
         <Plus className="h-4 w-4" aria-hidden />
-        {pending ? "იტვირთება…" : "Passkey-ის დამატება"}
+        {pending ? s.loading : s.passkeyAdd}
       </button>
     </section>
   )

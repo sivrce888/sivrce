@@ -215,10 +215,13 @@
   },
   {
     "slug": "astoria-isani",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Astoria%2C_Queens",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/astoria-isani-g1.webp"
+    ]
   },
   {
     "slug": "axis-avlabari",
@@ -306,10 +309,13 @@
   },
   {
     "slug": "baku-white-city",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Baku_White_City",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/baku-white-city-g1.webp"
+    ]
   },
   {
     "slug": "bakuriani-prospect",

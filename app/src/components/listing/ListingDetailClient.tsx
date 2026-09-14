@@ -683,6 +683,7 @@ export default function ListingDetailClient({
     priceOriginal: l.priceOriginal,
     currencyOriginal: l.currencyOriginal,
     currencyPreference: uiCurrency,
+    country: l.country,
     rate: liveRate,
     eurRate,
   })

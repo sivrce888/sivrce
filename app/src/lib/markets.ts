@@ -127,7 +127,7 @@ function pathMarket(
 }
 
 /** Locales that prefix country routes on preview (`/en/de`) and sivrce.com (`/de/de`). */
-const COUNTRY_LOCALE_PREFIXES = ['en', 'de', 'ar'] as const
+export const COUNTRY_LOCALE_PREFIXES = ['en', 'de', 'ar'] as const
 
 /** Country root for this request: `/en/de` on preview, `/de` on sivrce.com. */
 export function countryBasePath(country: PathCountryId, pathname: string): string {

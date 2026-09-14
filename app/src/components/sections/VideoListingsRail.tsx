@@ -43,6 +43,7 @@ export default function VideoListingsRail({ items }: { items: Listing[] }) {
                 priceOriginal: l.priceOriginal,
                 currencyOriginal: l.currencyOriginal,
                 currencyPreference: currency,
+                country: l.country,
                 rate,
                 eurRate,
               }).primary

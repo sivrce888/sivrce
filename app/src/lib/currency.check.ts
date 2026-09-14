@@ -2,7 +2,7 @@
  * Self-check: SSR-stable listing prices (hydration contract).
  * Run: npx tsx src/lib/currency.check.ts
  */
-import { AED_PER_USD, EUR_GEL_FALLBACK, USD_GEL_FALLBACK, convertGel, formatMapPin, formatMoney, formatListingPrice, listingToggleCurrencies } from './currency'
+import { AED_PER_USD, EUR_GEL_FALLBACK, USD_GEL_FALLBACK, convertGel, formatMapPin, formatMoney, formatListingPrice, listingToggleCurrencies, marketCurrencyOptions } from './currency'
 
 const usdListing = {
   priceUSD: 1_728_000,
@@ -78,8 +78,25 @@ if (formatMapPin(91_200, 'EUR', USD_GEL_FALLBACK, EUR_GEL_FALLBACK) !== '€30k'
 if (formatMapPin(185_000, 'GEL') !== '185კ₾') throw new Error('formatMapPin GEL')
 if (formatMapPin(85_000, 'USD', 2.7) !== '$31k') throw new Error('formatMapPin USD')
 
+// Market cross: on the UAE market the approx quote is dirhams, in Europe euros -
+// the GEL cross belongs to Georgia only.
+const aedOnAe = formatListingPrice({ ...aedNative, currencyPreference: 'USD' as const, country: 'AE' })
+if (aedOnAe.secondary !== '≈ $649 421') throw new Error(`AED market cross: ${aedOnAe.secondary}`)
+const aedPref = formatListingPrice({ ...aedNative, currencyPreference: 'AED' as const })
+if (aedPref.primary !== 'AED 2 385 000') throw new Error(`AED pref must stay locked: ${aedPref.primary}`)
+if (aedPref.secondary !== '≈ $649 421') throw new Error(`AED pref secondary: ${aedPref.secondary}`)
+const eurOnDe = formatListingPrice({ ...usdListing, country: 'DE' })
+if (eurOnDe.secondary !== '≈ €1 534 737') throw new Error(`DE market cross: ${eurOnDe.secondary}`)
+
+// AED unit helpers mirror the EUR contract.
+if (formatMoney(3040, 'AED', USD_GEL_FALLBACK) !== 'AED 4 135') throw new Error('formatMoney AED')
+if (formatMapPin(3_040_000, 'AED', USD_GEL_FALLBACK) !== 'AED 4.1M') throw new Error('formatMapPin AED M')
+
 if (listingToggleCurrencies({ country: 'DE' }).join() !== 'EUR,USD') throw new Error('DE toggle')
 if (listingToggleCurrencies({ currencyOriginal: 'EUR' }).join() !== 'EUR,USD') throw new Error('EUR-native toggle')
 if (listingToggleCurrencies({ country: 'GE' }).join() !== 'GEL,USD') throw new Error('GE toggle')
+if (listingToggleCurrencies({ country: 'AE' }).join() !== 'AED,USD') throw new Error('AE toggle')
+if (marketCurrencyOptions('AE').join() !== 'AED,USD') throw new Error('AE options')
+if (marketCurrencyOptions(null).join() !== 'USD,EUR,GEL') throw new Error('GE options')
 
 console.log('currency.check.ts: ok')

@@ -7,8 +7,9 @@ import {
   type AuthActionState,
 } from "@/app/auth/actions"
 import { AuthInput } from "@/components/auth/AuthInput"
+import type { AuthStrings } from "@/components/auth/i18n"
 
-export function ForgotForm() {
+export function ForgotForm({ s }: { s: AuthStrings }) {
   const [state, action, pending] = useActionState<AuthActionState, FormData>(
     requestPasswordReset,
     undefined,
@@ -29,7 +30,7 @@ export function ForgotForm() {
 
       <form action={action} className="space-y-3.5">
         <AuthInput
-          label="ელფოსტა"
+          label={s.emailLabel}
           name="email"
           type="email"
           autoComplete="email"
@@ -41,7 +42,7 @@ export function ForgotForm() {
           disabled={pending}
           className="flex w-full items-center justify-center rounded-full bg-sv-blue px-6 py-3.5 text-[14.5px] font-extrabold text-white shadow-glow-blue-sm transition hover:-translate-y-0.5 hover:bg-sv-blue-deep disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
         >
-          {pending ? "იგზავნება…" : "ბმულის გაგზავნა"}
+          {pending ? s.sending : s.sendLink}
         </button>
       </form>
     </div>

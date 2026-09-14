@@ -8,8 +8,9 @@
  */
 
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react'
+import { COUNTRY_LOCALE_PREFIXES, isPathCountry } from '@/lib/markets'
 
-export type Currency = 'GEL' | 'USD' | 'EUR'
+export type Currency = 'GEL' | 'USD' | 'EUR' | 'AED'
 
 /** Hardcoded fallback when live API is unreachable */
 export const USD_GEL_FALLBACK = 2.7
@@ -24,13 +25,43 @@ export type ListingCurrency = Currency | 'AED'
 const RATE_CACHE_KEY = 'sivrce:rate'
 const RATE_TTL = 6 * 60 * 60 * 1000 // 6 hours
 
-const CURRENCIES: readonly Currency[] = ['GEL', 'USD', 'EUR']
+const CURRENCIES: readonly Currency[] = ['GEL', 'USD', 'EUR', 'AED']
+
+/** Chip order per market: local quote first. Georgia keeps the ₾ toggle.
+ *  Accepts both cases — path ids are lowercase ('ae'), listing rows are ISO ('AE'). */
+export function marketCurrencyOptions(country: string | null | undefined): Currency[] {
+  const c = country?.toLowerCase()
+  if (c === 'ae') return ['AED', 'USD']
+  if (c === 'de') return ['EUR', 'USD']
+  if (c && c !== 'ge') return ['EUR', 'USD']
+  return ['USD', 'EUR', 'GEL']
+}
+
+/** Market country from the URL only — never a guess. `de` counts as a market
+ *  on sivrce.com; elsewhere it must be locale-prefixed (`/en/de`). */
+export function marketCountryFromPath(pathname: string, host?: string): string | null {
+  const segs = pathname.split('/').filter(Boolean)
+  if (!segs.length) return null
+  const com = host === 'sivrce.com' || host === 'www.sivrce.com'
+  if (com && isPathCountry(segs[0])) return segs[0]
+  if (segs.length >= 2 && (COUNTRY_LOCALE_PREFIXES as readonly string[]).includes(segs[0]) && isPathCountry(segs[1])) return segs[1]
+  return null
+}
+
+function defaultMarketCurrency(): Currency {
+  // raw pathname — marketCountryFromPath does its own locale-prefix sniffing
+  const country = marketCountryFromPath(window.location.pathname, window.location.hostname)
+  if (country === 'ae') return 'AED'
+  if (country && country !== 'ge') return 'EUR'
+  return 'USD'
+}
 
 /** Toggle chips on a listing. GEL is Georgia-only; euro markets never offer Lari. */
 export function listingToggleCurrencies(opts: {
   country?: string | null
   currencyOriginal?: ListingCurrency | null
 }): Currency[] {
+  if (opts.country === 'AE') return ['AED', 'USD']
   if (opts.currencyOriginal === 'EUR' || opts.country === 'DE') return ['EUR', 'USD']
   if (opts.country && opts.country !== 'GE') return ['EUR', 'USD']
   return ['GEL', 'USD']
@@ -56,7 +87,11 @@ export const CurrencyContext = createContext<CurrencyContextValue | null>(null)
 export function readStoredCurrency(): Currency {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return CURRENCIES.includes(raw as Currency) ? (raw as Currency) : 'USD'
+    if (CURRENCIES.includes(raw as Currency)) return raw as Currency
+  } catch { /* noop */ }
+  // No explicit choice yet — quote in the market's own money.
+  try {
+    return defaultMarketCurrency()
   } catch {
     return 'USD'
   }
@@ -163,15 +198,23 @@ export function useLiveRate(): number {
 const group3 = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 
 export function formatMoney(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK): string {
-  const value = currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : Math.round(gel)
+  const value =
+    currency === 'USD' ? Math.round(gel / rate)
+    : currency === 'EUR' ? Math.round(gel / eurRate)
+    : currency === 'AED' ? Math.round((gel * AED_PER_USD) / rate)
+    : Math.round(gel)
   const formatted = group3(value)
-  return currency === 'USD' ? `$${formatted}` : currency === 'EUR' ? `€${formatted}` : `${formatted}₾`
+  return currency === 'USD' ? `$${formatted}` : currency === 'EUR' ? `€${formatted}` : currency === 'AED' ? `AED ${formatted}` : `${formatted}₾`
 }
 
 /** Compact map pin — dense labels beat full formatMoney. */
 export function formatMapPin(gel: number, currency: Currency = 'GEL', rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK, lang = 'ka'): string {
-  const n = currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : Math.round(gel)
-  const sym = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : null
+  const n =
+    currency === 'USD' ? Math.round(gel / rate)
+    : currency === 'EUR' ? Math.round(gel / eurRate)
+    : currency === 'AED' ? Math.round((gel * AED_PER_USD) / rate)
+    : Math.round(gel)
+  const sym = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'AED' ? 'AED ' : null
   if (!Number.isFinite(n) || n <= 0) return ''
   if (n >= 1_000_000) {
     const m = n / 1_000_000
@@ -185,7 +228,7 @@ export function formatMapPin(gel: number, currency: Currency = 'GEL', rate: numb
 }
 
 export function convertGel(gel: number, currency: Currency, rate: number = USD_GEL_FALLBACK, eurRate: number = EUR_GEL_FALLBACK): number {
-  return currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : Math.round(gel)
+  return currency === 'USD' ? Math.round(gel / rate) : currency === 'EUR' ? Math.round(gel / eurRate) : currency === 'AED' ? Math.round((gel * AED_PER_USD) / rate) : Math.round(gel)
 }
 
 export interface FormattedListingPrice {
@@ -206,6 +249,7 @@ export function formatListingPrice({
   priceOriginal,
   currencyOriginal,
   currencyPreference,
+  country,
   rate = USD_GEL_FALLBACK,
   eurRate = EUR_GEL_FALLBACK,
 }: {
@@ -214,11 +258,14 @@ export function formatListingPrice({
   priceOriginal?: number | null
   currencyOriginal?: ListingCurrency | null
   currencyPreference: Currency
+  /** Market context — picks the ≈ cross: ₾ on Georgia, € in Europe, AED in the Gulf. */
+  country?: string | null
   rate?: number
   eurRate?: number
 }): FormattedListingPrice {
   const orig: ListingCurrency = currencyOriginal ?? 'USD'
   const locked = priceOriginal ?? (orig === 'GEL' ? priceGEL : priceUSD)
+  const mkt = country?.toLowerCase()
   // Each native currency pivots to USD/GEL exactly once — no double-conversion drift.
   const baseUsd =
     orig === 'USD' ? locked
@@ -238,11 +285,30 @@ export function formatListingPrice({
     return { primary: `€${group3(primaryValue)}`, secondary: `≈ ${secondaryFormatted}` }
   }
 
-  const primaryValue = currencyPreference === 'GEL' ? baseGel : baseUsd
-  const secondaryValue = currencyPreference === 'GEL' ? baseUsd : baseGel
+  if (currencyPreference === 'AED') {
+    // AED is USD-pegged — native AED quotes stay locked, the rest pivot once.
+    const primaryValue = orig === 'AED' ? locked : Math.round(baseUsd * AED_PER_USD)
+    const secondaryFormatted = orig === 'GEL' ? `${group3(baseGel)}₾` : `$${group3(baseUsd)}`
+    return { primary: `AED ${group3(primaryValue)}`, secondary: `≈ ${secondaryFormatted}` }
+  }
 
+  const primaryValue = currencyPreference === 'GEL' ? baseGel : baseUsd
+
+  let secondaryFormatted: string
+  if (currencyPreference === 'GEL') {
+    secondaryFormatted = `$${group3(baseUsd)}`
+  } else if (mkt === 'ae' && orig === 'AED') {
+    secondaryFormatted = `$${group3(baseUsd)}`
+  } else if (mkt === 'ae') {
+    secondaryFormatted = `AED ${group3(Math.round(baseUsd * AED_PER_USD))}`
+  } else if (mkt && mkt !== 'ge') {
+    secondaryFormatted = orig === 'EUR' ? `€${group3(locked)}` : `€${group3(Math.round(baseGel / eurRate))}`
+  } else {
+    secondaryFormatted = `${group3(baseGel)}₾`
+  }
+
+  // EUR/AED preferences returned above — only GEL/USD reach here.
   const primaryFormatted = currencyPreference === 'GEL' ? `${group3(primaryValue)}₾` : `$${group3(primaryValue)}`
-  const secondaryFormatted = currencyPreference === 'GEL' ? `$${group3(secondaryValue)}` : `${group3(secondaryValue)}₾`
 
   return {
     primary: primaryFormatted,

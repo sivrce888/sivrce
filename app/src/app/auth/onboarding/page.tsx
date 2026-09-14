@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { AuthShell } from "@/components/auth/AuthShell"
 import { ConfirmRole, RolePicker } from "@/components/settings/RolePicker"
+import { authLang, getAuthStrings } from "@/components/auth/i18n"
 import {
   isProRole,
   isSelfServeRole,
@@ -14,12 +16,12 @@ import { dashboardPathFor, requireUser } from "@/lib/guards"
 import { parsePersonaIntent, PRO_PERSONAS } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
 
-export const metadata: Metadata = {
-  title: "პროფილის ტიპი",
-  robots: { index: false },
-}
-
 export const dynamic = "force-dynamic"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
+  return { title: s.onboardTitle, robots: { index: false } }
+}
 
 /** Focused role picker after pro signup CTAs (`?intent=agent`). */
 export default async function OnboardingPage({
@@ -43,15 +45,20 @@ export default async function OnboardingPage({
     intent && (PRO_PERSONAS as readonly string[]).includes(intent) && pick !== "1"
       ? (intent as SelfServeRole)
       : null
+  const lang = authLang((await cookies()).get("sv-lang")?.value)
+  const s = getAuthStrings(lang)
+  // Role labels are ka-only library data; non-ka gets the bare role title.
+  const confirmTitle =
+    confirmIntent && lang === "ka"
+      ? `გახდი ${ROLE_LABEL_KA[confirmIntent].title}`
+      : confirmIntent
+        ? ROLE_LABEL_KA[confirmIntent].title
+        : s.onboardTitle
 
   return (
     <AuthShell
-      title={confirmIntent ? `გახდი ${ROLE_LABEL_KA[confirmIntent].title}` : "რა გინდა გააკეთო?"}
-      subtitle={
-        confirmIntent
-          ? "ერთი შეხება — პროფილი შემდეგ შეავსებ. შეგიძლია ნებისმიერ დროს შეცვალო პარამეტრებში."
-          : "აირჩიე პროფილის ტიპი. შეგიძლია ნებისმიერ დროს შეცვალო პარამეტრებში."
-      }
+      title={confirmTitle}
+      subtitle={confirmIntent ? s.onboardSubConfirm : s.onboardSub}
       footer={
         <div className="flex flex-col items-center gap-3">
           {confirmIntent ? (
@@ -59,14 +66,14 @@ export default async function OnboardingPage({
               href="/auth/onboarding?pick=1"
               className="text-[13px] font-bold text-white/55 transition hover:text-white hover:underline"
             >
-              სხვა პროფილის ტიპი
+              {s.onboardOtherType}
             </Link>
           ) : null}
           <Link
             href={dashboardPathFor(user.role)}
             className="text-[13px] font-bold text-sv-blue-light transition hover:underline"
           >
-            გამოტოვე — მყიდველად დარჩები
+            {s.onboardSkip}
           </Link>
         </div>
       }

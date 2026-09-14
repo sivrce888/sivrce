@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { DE_CITIES } from './countries/de'
 import {
-  countryNlNeedsGeocode,
   isOfficialGeoQuery,
   mergeNl,
   nlHasStructure,
@@ -165,8 +164,6 @@ assert.equal(nlToSearchPatch(deBerlin).cur, 'EUR')
 assert.equal(nlToSearchPatch(deMitte).bstat, 'add.status.new')
 
 assert.equal(isOfficialGeoQuery('Bebauungsplan Mitte'), true)
-assert.equal(countryNlNeedsGeocode('Alexanderplatz'), true)
-assert.equal(countryNlNeedsGeocode('2 Zimmer Berlin'), false)
 
 const berlin = DE_CITIES.find((c) => c.slug === 'berlin')!
 const r1 = routeCountryNl({
@@ -177,10 +174,13 @@ const r1 = routeCountryNl({
   lat: berlin.center.lat,
   lng: berlin.center.lng,
 })
-assert.equal(r1.go, 'map')
+assert.equal(r1.go, 'search')
+assert.ok(r1.href.startsWith('/search?'))
 assert.ok(r1.href.includes('deal=sale'))
 assert.ok(r1.href.includes('country=DE'))
-assert.ok(r1.href.includes(`lat=${berlin.center.lat.toFixed(5)}`))
+assert.ok(r1.href.includes(`city=${encodeURIComponent(berlin.ka)}`))
+assert.ok(r1.href.includes('max=500000'))
+assert.ok(r1.href.includes('rooms=2'))
 
 const rKind = routeCountryNl({
   q: '',
@@ -191,8 +191,22 @@ const rKind = routeCountryNl({
   lng: berlin.center.lng,
   kind: 'apartment',
 })
-assert.ok(rKind.href.includes('kind=apartment'))
+assert.equal(rKind.go, 'search')
+assert.ok(rKind.href.includes('type=apartment'))
 assert.ok(rKind.href.includes('deal=sale'))
+assert.ok(rKind.href.includes('city=%E1%83%91%E1%83%94%E1%83%A0%E1%83%9A%E1%83%98%E1%83%9C%E1%83%98'))
+
+// Free text with no place and no constraints rides as `q`.
+const rFree = routeCountryNl({
+  q: 'Alexanderplatz',
+  tab: 'buy',
+  country: 'de',
+  cityKa: berlin.ka,
+  lat: berlin.center.lat,
+  lng: berlin.center.lng,
+})
+assert.equal(rFree.go, 'search')
+assert.ok(rFree.href.includes('q=Alexanderplatz'))
 
 const r2 = routeCountryNl({
   q: 'Neubau in Berlin Mitte',

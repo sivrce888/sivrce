@@ -241,13 +241,11 @@ export function Flag({ code, size = 16, className = '' }: { code: FlagCode; size
       className={`inline-block shrink-0 overflow-hidden rounded-full shadow-[inset_0_0_0_1px_rgba(10,16,48,0.12)] ${className}`}
       style={{ width: size, height: size }}
     >
+      {/* No SVG clipPath: duplicate ids across the many flag instances made
+          `url(#…)` resolve into visibility:hidden menus — flags vanished. The
+          wrapper's rounded-full overflow-hidden crops the same circle. */}
       <svg viewBox="0 0 24 24" width={size} height={size}>
-        <defs>
-          <clipPath id={`sv-flag-clip-${code}`}>
-            <circle cx="12" cy="12" r="12" />
-          </clipPath>
-        </defs>
-        <g clipPath={`url(#sv-flag-clip-${code})`}>{art}</g>
+        {art}
       </svg>
     </span>
   )

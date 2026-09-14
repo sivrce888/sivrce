@@ -11,6 +11,8 @@ import type { Lang } from '@/lib/i18n/core'
 export const USD_GEL = 2.7
 /** Static EUR cross — mirrors USD_GEL; lib/currency.tsx holds the live rate. */
 export const EUR_GEL = 3.04
+/** USD-pegged dirham — mirrors lib/currency.tsx; kept local for rate purity. */
+const AED_PER_USD = 3.6725
 
 /** Area-unit symbol per UI language; m² is the international default. */
 const M2_SYM: Partial<Record<Lang, string>> = { ka: 'მ²', ru: 'м²', uk: 'м²', ar: 'م²', he: 'מ״ר' }
@@ -38,6 +40,10 @@ export function formatPerM2(l: Listing, currency?: Currency, lang: Lang = 'ka'):
     const eurPerM2 = Math.round((l.perM2USD * USD_GEL) / EUR_GEL)
     return `€${eurPerM2.toLocaleString('en-US')}/${m2}`
   }
+  if (currency === 'AED') {
+    const aedPerM2 = Math.round(l.perM2USD * AED_PER_USD)
+    return `AED ${aedPerM2.toLocaleString('en-US')}/${m2}`
+  }
   return `$${l.perM2USD.toLocaleString('en-US')}/${m2}`
 }
 
@@ -58,15 +64,25 @@ export function stayCount(l: Pick<Listing, 'rooms' | 'beds'>): {
   return { n: l.rooms, rooms: l.rooms, labelKey: 'spec.rooms', kind: 'rooms' }
 }
 
+/** Singular forms for langs where "1 Bedrooms" reads wrong; other langs are invariant. */
+const SINGULAR: Partial<Record<Lang, Partial<Record<'spec.rooms' | 'spec.beds', string>>>> = {
+  en: { 'spec.rooms': 'Room', 'spec.beds': 'Bedroom' },
+  ru: { 'spec.rooms': 'Комната', 'spec.beds': 'Спальня' },
+  uk: { 'spec.rooms': 'Кімната', 'spec.beds': 'Спальня' },
+}
+
 /** "2 საძინებელი · 3 ოთახი" — bedrooms first, total rooms second. */
 export function stayLine(
   l: Pick<Listing, 'rooms' | 'beds'>,
   t: (k: 'spec.rooms' | 'spec.beds') => string,
+  lang: Lang = 'ka',
 ): string {
   const s = stayCount(l)
   if (s.n <= 0) return ''
-  if (s.kind === 'beds' && s.rooms > 0) return `${s.n} ${t('spec.beds')} · ${s.rooms} ${t('spec.rooms')}`
-  return `${s.n} ${t(s.labelKey)}`
+  const one = SINGULAR[lang]
+  const label = (k: 'spec.rooms' | 'spec.beds', n: number) => (n === 1 && one?.[k]) || t(k)
+  if (s.kind === 'beds' && s.rooms > 0) return `${s.n} ${label('spec.beds', s.n)} · ${s.rooms} ${label('spec.rooms', s.rooms)}`
+  return `${s.n} ${label(s.labelKey, s.n)}`
 }
 
 export function formatFloor(l: Listing, lang: Lang = 'ka'): string {

@@ -9,6 +9,7 @@ import {
 import { Fingerprint } from "lucide-react"
 
 import { signInWithPasskey } from "@/app/auth/actions"
+import type { AuthStrings } from "@/components/auth/i18n"
 
 function cancelled(err: unknown): boolean {
   const name = err instanceof Error ? err.name : ""
@@ -17,7 +18,7 @@ function cancelled(err: unknown): boolean {
 
 const emptySubscribe = () => () => {}
 
-export function PasskeyButton({ callbackUrl }: { callbackUrl: string }) {
+export function PasskeyButton({ callbackUrl, s }: { callbackUrl: string; s: AuthStrings }) {
   const ready = useSyncExternalStore(emptySubscribe, browserSupportsWebAuthn, () => true)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,11 +51,11 @@ export function PasskeyButton({ callbackUrl }: { callbackUrl: string }) {
     try {
       const res = await fetch("/api/auth/passkey?op=login", { cache: "no-store" })
       if (res.status === 429) {
-        setError("ზედმეტად ბევრი მცდელობა — სცადე ცოტა ხანში")
+        setError(s.passkeyTooMany)
         return
       }
       if (!res.ok) {
-        setError("Passkey დროებით მიუწვდომელია")
+        setError(s.passkeyUnavailable)
         return
       }
       const optionsJSON = await res.json()
@@ -62,7 +63,7 @@ export function PasskeyButton({ callbackUrl }: { callbackUrl: string }) {
       const result = await signInWithPasskey(callbackUrl, JSON.stringify(cred))
       if (result?.error) setError(result.error)
     } catch (err) {
-      if (!cancelled(err)) setError("Passkey ვერ დადასტურდა — სცადე თავიდან")
+      if (!cancelled(err)) setError(s.passkeyVerifyFail)
     } finally {
       setPending(false)
     }
@@ -85,7 +86,7 @@ export function PasskeyButton({ callbackUrl }: { callbackUrl: string }) {
         className="flex w-full items-center justify-center gap-2.5 rounded-full bg-sv-navy px-6 py-3.5 text-[14.5px] font-extrabold text-white shadow-glow-navy transition hover:-translate-y-0.5 hover:bg-sv-navy-soft disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
       >
         <Fingerprint className="h-[18px] w-[18px]" aria-hidden />
-        {pending ? "იტვირთება…" : "Face ID / Passkey"}
+        {pending ? s.loading : s.passkeyLabel}
       </button>
       <input
         type="text"
@@ -96,7 +97,7 @@ export function PasskeyButton({ callbackUrl }: { callbackUrl: string }) {
         aria-hidden
       />
       <p className="text-center text-[12px] font-medium text-sv-ink/60">
-        Face ID, Touch ID ან Windows Hello
+        {s.passkeyHint}
       </p>
     </div>
   )
