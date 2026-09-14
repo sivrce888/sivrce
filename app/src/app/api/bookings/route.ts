@@ -4,23 +4,29 @@
  * payment attaches via paymentOrderId). Same armor as tours: same-origin,
  * per-IP rate limit, inline validation, tx advisory lock + overlap re-check.
  *
- * ponytail: GEL-priced daily listings only — the booking row snapshots tetri
- * and server-side FX doesn't exist yet. Non-GEL gets an honest 409, not a
- * guessed rate. Upgrade: cached daily FX snapshot table, then lift the gate.
+ * Booking rows settle in GEL tetri, so a USD/EUR-priced listing is converted
+ * with the shared server FX rate (getFx — same feed and fallbacks as the
+ * client currency context). GET returns the rate it used so the widget can
+ * show the guest the conversion; POST re-fetches and re-snapshots server-side.
+ * A currency with no rate is still an honest 409, never a guessed price.
  */
 
 import { NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { getFx } from "@/lib/fx-server"
 import { checkRateLimit } from "@/lib/inquiries/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import {
   ACTIVE_BOOKING_STATUSES,
   expandBookingNights,
+  gelPerUnit,
+  nightlyTetriOf,
   tbilisiTodayUtc,
 } from "@/lib/bookings"
 import { createStayBooking } from "@/lib/stay-create"
+import { sendStayBookingCreated } from "@/lib/stay-email"
 import { createStayCancelToken, stayBookingRef } from "@/lib/stay-token"
 
 const DAY_MS = 86_400_000
@@ -46,7 +52,9 @@ export async function GET(req: NextRequest) {
     if (!listing || listing.dealType !== "daily") {
       return NextResponse.json({ error: "listing_not_bookable" }, { status: 404 })
     }
-    if (listing.currency !== "GEL") {
+    const fx = await getFx()
+    const gelRate = gelPerUnit(listing.currency, fx)
+    if (gelRate === null) {
       return NextResponse.json({ bookable: false, reason: "currency_unsupported" })
     }
     const settings = listing.dailyRentalSettings
@@ -84,7 +92,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       bookable: true,
-      nightlyTetri: listing.price * 100,
+      nightlyTetri: nightlyTetriOf(listing.price, gelRate),
+      // Conversion disclosure: the widget shows "$120 → ₾312" when these say
+      // the listing is not priced in GEL. No silent re-pricing.
+      priceCurrency: listing.currency,
+      priceNative: listing.price,
+      fxRate: gelRate,
+      fxSource: fx.source,
       windowEnd: toIso,
       nights: [...nights].sort(),
       settings: {
@@ -156,6 +170,8 @@ export async function POST(req: NextRequest) {
       where: { id: listingId, deletedAt: null },
       select: {
         id: true,
+        title: true,
+        ownerId: true,
         price: true,
         currency: true,
         dealType: true,
@@ -165,7 +181,8 @@ export async function POST(req: NextRequest) {
     if (!listing || listing.dealType !== "daily") {
       return NextResponse.json({ error: "listing_not_bookable" }, { status: 404 })
     }
-    if (listing.currency !== "GEL") {
+    const gelRate = gelPerUnit(listing.currency, await getFx())
+    if (gelRate === null) {
       return NextResponse.json({ error: "currency_unsupported" }, { status: 409 })
     }
     const settings = listing.dailyRentalSettings
@@ -192,7 +209,7 @@ export async function POST(req: NextRequest) {
         guestCapacity: settings?.guestCapacity ?? 2,
         instant: settings?.instantBook ?? false,
         pricing: {
-          nightlyTetri: listing.price * 100,
+          nightlyTetri: nightlyTetriOf(listing.price, gelRate),
           cleaningFeeTetri: settings?.cleaningFeeTetri ?? 0,
           securityDepositTetri: settings?.securityDepositTetri ?? 0,
           weeklyDiscountPct: settings?.weeklyDiscountPct ?? 0,
@@ -203,15 +220,50 @@ export async function POST(req: NextRequest) {
     if (!result.ok) {
       return NextResponse.json({ error: result.code }, { status: result.code === "guest_count" ? 400 : 409 })
     }
+    const ref = stayBookingRef(result.booking.id)
+    // Ownership proof for the anonymous guest-cancel endpoint.
+    const cancelToken = createStayCancelToken(result.booking.id)
+
+    // Fire-and-forget, after commit: the mail carries the only durable copy of
+    // the ref + cancel link, and it is the host's only signal a request landed.
+    // Never awaited — a mail outage must not fail a booking that already exists.
+    const hostEmail = listing.ownerId
+      ? (await db.user.findUnique({ where: { id: listing.ownerId }, select: { email: true } }).catch(() => null))
+          ?.email ?? null
+      : null
+    sendStayBookingCreated({
+      booking: {
+        id: result.booking.id,
+        ref,
+        cancelToken,
+        status: result.booking.status,
+        checkIn,
+        checkOut,
+        nights,
+        guestCount: guests,
+        totalTetri: result.booking.totalTetri,
+        guestName,
+        guestPhone,
+        guestEmail: guestEmail || null,
+        guestNotes: guestNotes || null,
+      },
+      listing: {
+        id: listing.id,
+        title: listing.title,
+        checkInHour: settings?.checkInHour ?? 15,
+        checkOutHour: settings?.checkOutHour ?? 11,
+      },
+      hostEmail,
+    })
+
     return NextResponse.json(
       {
         booking: {
           id: result.booking.id,
           status: result.booking.status,
           totalTetri: result.booking.totalTetri,
-          ref: stayBookingRef(result.booking.id),
-          // Ownership proof for the anonymous guest-cancel endpoint.
-          cancelToken: createStayCancelToken(result.booking.id),
+          ref,
+          cancelToken,
         },
       },
       { status: 201 },

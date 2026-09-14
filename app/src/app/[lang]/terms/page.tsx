@@ -5,6 +5,7 @@ import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { isValidLang } from '@/lib/i18n/core'
 import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
+import { jsonLd } from '@/lib/utils'
 
 export const revalidate = 86400
 
@@ -70,8 +71,35 @@ const SECTIONS = [
 ]
 
 export default function TermsPage() {
+  const termsLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': 'https://sivrce.ge/terms#webpage',
+        url: 'https://sivrce.ge/terms',
+        name: 'წესები და პირობები — sivrce',
+        description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
+        inLanguage: 'ka',
+        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', 'h2', 'p'],
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
+          { '@type': 'ListItem', position: 2, name: 'წესები და პირობები', item: 'https://sivrce.ge/terms' },
+        ],
+      },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(termsLd) }} />
       <Navbar />
       <main id="main">
         <PageHero

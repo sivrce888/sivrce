@@ -4,19 +4,19 @@ import { ChevronRight, ExternalLink } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { GERMAN_METRO_SYSTEMS, BERLIN_UBAHN, BERLIN_SBAHN, BERLIN_U_STATIONS, BERLIN_S_STATIONS } from '@/data/germany-metro'
+import { BERLIN_SBAHN, BERLIN_S_STATIONS, BERLIN_UBAHN, BERLIN_U_STATIONS, GERMAN_METRO_SYSTEMS, lineBadge } from '@/data/germany-metro'
 import { jsonLd } from '@/lib/utils'
 import { deOnlyAlternates } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.com'
-const PATH = '/de/metro/germany'
+const PATH = '/en/de/metro/germany'
 
 export const revalidate = 86400
 
 const TITLE = 'Deutsche U-Bahn & Stadtbahnen — Alle Systeme'
 const DESCRIPTION =
   'Alle U-Bahn-, Stadtbahn- und S-Bahn-Systeme in Deutschland: Berlin, München, Hamburg, ' +
-  'Frankfurt, Köln, Stuttgart, Nürnberg und mehr. Übersicht, Stationen und Angebote.'
+  'Frankfurt, Köln, Stuttgart, Nürnberg und mehr. Linien und Stationen im Überblick.'
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -82,12 +82,12 @@ function SystemBadge({ sys }: { sys: typeof GERMAN_METRO_SYSTEMS[number] }) {
   return (
     <div className="flex flex-wrap gap-1">
       {ubahnLines.length > 0 && (
-        <span className="inline-flex items-center gap-1 rounded-full bg-yellow-400 px-2 py-0.5 text-[10px] font-black text-black">
+        <span className="inline-flex items-center gap-1 rounded-full bg-sv-blue/10 px-2 py-0.5 text-[10px] font-black text-sv-blue">
           U · {ubahnLines.length}
         </span>
       )}
       {stadtLines.length > 0 && (
-        <span className="inline-flex items-center gap-1 rounded-full bg-green-700 px-2 py-0.5 text-[10px] font-black text-white">
+        <span className="inline-flex items-center gap-1 rounded-full bg-sv-navy px-2 py-0.5 text-[10px] font-black text-white">
           S · {stadtLines.length}
         </span>
       )}
@@ -104,14 +104,14 @@ export default function GermanyMetroPage() {
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
             <li>
-              <Link href="/de" className="transition-colors hover:text-sv-blue">
+              <Link href="/de/de" className="transition-colors hover:text-sv-blue">
                 Startseite
               </Link>
             </li>
             <li className="flex items-center gap-1.5">
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
-              <Link href="/de/metro" className="transition-colors hover:text-sv-blue">
-                U-Bahn Berlin
+              <Link href="/en/de/metro" className="transition-colors hover:text-sv-blue">
+                U-Bahn & S-Bahn
               </Link>
             </li>
             <li className="flex items-center gap-1.5">
@@ -147,8 +147,8 @@ export default function GermanyMetroPage() {
             {BERLIN_U_STATIONS.length + BERLIN_S_STATIONS.length} Stationen auf sivrce.
           </p>
           <Link
-            href="/de/metro"
-            className="inline-flex items-center gap-2 rounded-module bg-sv-blue px-5 py-2.5 text-[13px] font-black text-white shadow-sm transition-all hover:shadow-md hover:shadow-sv-blue/20"
+            href="/en/de/metro"
+            className="inline-flex items-center gap-2 rounded-module bg-sv-blue px-5 py-2.5 text-[13px] font-black text-white shadow-card transition-all hover:shadow-card-hover"
           >
             Alle Berliner Stationen
             <ExternalLink className="h-3.5 w-3.5" aria-hidden />
@@ -175,26 +175,26 @@ export default function GermanyMetroPage() {
                       <h3 className="text-[17px] font-black text-sv-ink group-hover:text-sv-blue">
                         {sys.name}
                       </h3>
-                      <p className="mt-1 text-[12px] font-bold text-sv-ink/50">Deutschland</p>
+                      <p className="mt-1 text-[12px] font-bold text-sv-ink/60">Deutschland</p>
                     </div>
                     <SystemBadge sys={sys} />
                   </div>
                   <dl className="mb-4 grid grid-cols-2 gap-3">
                     <div>
                       <dd className="text-[16px] font-black text-sv-ink">{sysStations}</dd>
-                      <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/50">Stationen</dt>
+                      <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">Stationen</dt>
                     </div>
                     <div>
                       <dd className="text-[16px] font-black text-sv-ink">{sysLines}</dd>
-                      <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/50">Linien</dt>
+                      <dt className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">Linien</dt>
                     </div>
                   </dl>
                   <div className="flex flex-wrap gap-1.5">
                     {sys.lines.slice(0, 6).map((l) => (
                       <span
                         key={`${sys.citySlug}-${l.name}`}
-                        className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white"
-                        style={{ backgroundColor: l.color }}
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${lineBadge(l.color).cls}`}
+                        style={{ backgroundColor: lineBadge(l.color).bg }}
                       >
                         {l.name}
                       </span>
@@ -217,7 +217,7 @@ export default function GermanyMetroPage() {
             Deutsche Nahverkehrssysteme — Übersicht
           </h2>
           <p className="mt-3 max-w-[860px] text-[15px] font-medium leading-relaxed text-sv-ink/65">
-            Deutschland verfügt über einige der modernsten Nahverkehrssysteme Europas. Die Berliner U-Bahn (BVG) ist mit {BERLIN_UBAHN.length} Linien und {BERLIN_U_STATIONS.length + BERLIN_S_STATIONS.length} erfassten Stationen samt S-Bahn die größte, gefolgt von München, Hamburg und Frankfurt. Das S-Bahn-Netz ergänzt die U-Bahn in allen großen Städten. Auf sivrce finden Sie Wohnungen in Gehweite zu allen Stationen — verifiziert, mit KI-Bewertung und direktem Kontakt zu Eigentümern.
+            Deutschland verfügt über ein dichtes, regional unterschiedlich organisiertes Nahverkehrsnetz. Die Berliner U-Bahn und S-Bahn sind mit {BERLIN_UBAHN.length + BERLIN_SBAHN.length} Linien und {BERLIN_U_STATIONS.length + BERLIN_S_STATIONS.length} erfassten Stationen der umfangreichste Abschnitt dieser Übersicht. München, Hamburg und Frankfurt folgen mit ihren eigenen Systemen. sivrce zeigt Linien und Stationen als Orientierung für die Wohnungssuche; Angebote erscheinen erst, wenn sie veröffentlicht und prüfbar sind.
           </p>
         </section>
       </main>

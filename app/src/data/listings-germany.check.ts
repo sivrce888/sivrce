@@ -8,6 +8,7 @@ import path from 'node:path'
 import { GERMANY_LISTINGS, filterGermanyInventory, germanyListingById } from './listings-germany'
 import { DE_CITIES } from '@/lib/countries/de'
 import { MARKETS } from '@/lib/markets'
+import { parseDeExpose } from '@/lib/countries/de-expose'
 
 const DEALS = new Set(['sale', 'rent', 'daily', 'pledge'])
 const PROPS = new Set(['apartment', 'house', 'villa', 'commercial', 'land', 'hotel'])
@@ -26,6 +27,11 @@ for (const p of PROPS) {
 const cwd = fs.existsSync(path.join(process.cwd(), 'public/images/de'))
   ? process.cwd()
   : path.join(process.cwd(), 'app')
+
+// Sample rows exercise formatting and search fixtures only. Public results
+// must come from the database or sourced project catalog, never this fixture.
+const listingsDb = fs.readFileSync(path.join(cwd, 'src/lib/listings-db.ts'), 'utf8')
+assert.ok(!listingsDb.includes('listings-germany'), 'sample inventory leaked into public runtime')
 
 for (const l of GERMANY_LISTINGS) {
   assert.equal(l.country, 'DE')
@@ -63,6 +69,10 @@ assert.ok(filterGermanyInventory({ deal: 'rent' }).every((l) => l.dealType === '
 assert.ok(filterGermanyInventory({ propType: 'house' }).every((l) => l.propType === 'house'))
 assert.ok(filterGermanyInventory({ cityNames: ['Berlin', 'berlin'] }).every((l) => /berlin/i.test(l.city)))
 assert.ok(filterGermanyInventory({ cityNames: ['München', 'Munich'] }).length > 0)
+
+const torFacts = parseDeExpose(GERMANY_LISTINGS.find((l) => l.id === 'berlin-mitte-torstrasse-140')!.description)
+assert.equal(torFacts.energyClass, 'C', 'torstrasse energy')
+assert.equal(torFacts.yearBuilt, 1902, 'torstrasse year')
 
 console.log(
   `listings-germany: ${GERMANY_LISTINGS.length} listings / ${new Set(GERMANY_LISTINGS.map((l) => l.city)).size} cities / deals ${[...DEALS].join(',')} ✓`,

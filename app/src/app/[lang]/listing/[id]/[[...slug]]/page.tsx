@@ -26,6 +26,8 @@ import { getServerT, langAlternates, langCanonical, OG_LOCALE } from '@/lib/i18n
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { featureLabel, isFeatureKey } from '@/lib/features'
 import { listingCanonicalPath, listingOrigin } from '@/lib/markets'
+import { buyerCostBreakdownByCityName } from '@/lib/countries/de'
+import { parseDeExpose } from '@/lib/countries/de-expose'
 
 /**
  * Listing alternates are absolute per listing origin — GE listings canonicalize
@@ -198,6 +200,16 @@ export default async function ListingPage({ params }: PageProps) {
   const ownerTier = ownerMeta?.tier ?? 'standard'
   // Whole days since posting — feeds the freshness line (60s ISR stays honest).
   const postedDays = daysSince(listing.postedAt)
+  const euroNative = listing.currencyOriginal === 'EUR' && (listing.priceOriginal ?? 0) > 0
+  const offerPrice = euroNative ? Math.round(listing.priceOriginal!) : listing.priceUSD
+  const offerCurrency = euroNative ? 'EUR' : 'USD'
+  const deExpose = listing.country === 'DE'
+    ? parseDeExpose(`${listing.description ?? ''} ${listing.features.join(' ')}`)
+    : null
+  const deCosts =
+    listing.country === 'DE' && listing.dealType === 'sale' && (listing.priceOriginal ?? 0) > 0
+      ? buyerCostBreakdownByCityName(listing.priceOriginal!, listing.city)
+      : null
 
   // Offer validity: 30 days after posting (matches the 30-day listing lifetime)
   const priceValidUntil = new Date(
@@ -257,8 +269,8 @@ export default async function ListingPage({ params }: PageProps) {
     },
     offers: {
       '@type': 'Offer',
-      price: listing.priceUSD,
-      priceCurrency: 'USD',
+      price: offerPrice,
+      priceCurrency: offerCurrency,
       priceValidUntil,
       availability: 'https://schema.org/InStock',
       itemOffered: {
@@ -278,8 +290,8 @@ export default async function ListingPage({ params }: PageProps) {
       ...(listing.dealType === 'rent' && {
         priceSpecification: {
           '@type': 'UnitPriceSpecification',
-          price: listing.priceUSD,
-          priceCurrency: 'USD',
+          price: offerPrice,
+          priceCurrency: offerCurrency,
           unitText: isLandLease(listing.dealType, listing.propType) ? 'ANN' : 'MONTH',
         },
       }),
@@ -290,10 +302,16 @@ export default async function ListingPage({ params }: PageProps) {
       unitCode: 'MTK',
     },
     ...(listing.rooms > 0 && { numberOfRooms: listing.rooms }),
-    ...((listing.isExclusive || listing.isSivrceExclusive) && {
+    ...((listing.isExclusive || listing.isSivrceExclusive || deExpose?.energyClass || deExpose?.yearBuilt) && {
       additionalProperty: [
         ...(listing.isExclusive ? [{ '@type': 'PropertyValue' as const, name: t('badge.exclusive'), value: true }] : []),
         ...(listing.isSivrceExclusive ? [{ '@type': 'PropertyValue' as const, name: t('badge.sivrceExclusive'), value: true }] : []),
+        ...(deExpose?.energyClass
+          ? [{ '@type': 'PropertyValue' as const, name: 'Energieausweis', value: deExpose.energyClass }]
+          : []),
+        ...(deExpose?.yearBuilt
+          ? [{ '@type': 'PropertyValue' as const, name: 'Baujahr', value: deExpose.yearBuilt }]
+          : []),
       ],
     }),
     // ponytail: no `review` node — the aggregate contract exposes only
@@ -309,6 +327,10 @@ export default async function ListingPage({ params }: PageProps) {
     }),
     ...(videoLd && { video: videoLd }),
     inLanguage: lang,
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', '.speakable-lead'],
+    },
   }
 
   const hubPath = listingHubPath(listing)
@@ -346,6 +368,7 @@ export default async function ListingPage({ params }: PageProps) {
         profileRating={profileRating}
         nearbyProjects={nearbyProjects}
         hubLink={hubPath && hubAnchor ? { href: hubPath, anchor: hubAnchor } : null}
+        deCosts={deCosts}
       />
       <script
         type="application/ld+json"

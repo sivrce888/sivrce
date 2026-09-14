@@ -185,30 +185,54 @@ export default async function CareersPage({ params }: { params: Promise<{ lang: 
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const c = COPY[lang] ?? COPY.ka
-  const jobLd = {
+  const careersLd = {
     '@context': 'https://schema.org',
-    '@type': 'JobPosting',
-    title: c.jobTitle,
-    description: c.jobDescription,
-    datePosted: '2026-07-20',
-    hiringOrganization: {
-      '@type': 'Organization',
-      name: 'sivrce',
-      sameAs: 'https://sivrce.ge',
-      logo: 'https://sivrce.ge/logo/lockup-ink.png',
-      email: 'hi@sivrce.ge',
-    },
-    jobLocation: c.cities.map((city) => ({
-      '@type': 'Place',
-      address: { '@type': 'PostalAddress', addressLocality: city.city, addressCountry: 'GE' },
-    })),
-    employmentType: 'CONTRACTOR',
-    directApply: true,
-    url: 'https://sivrce.ge/careers',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': 'https://sivrce.ge/careers#webpage',
+        url: 'https://sivrce.ge/careers',
+        name: c.jobTitle,
+        description: c.jobDescription,
+        inLanguage: lang,
+        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', '.speakable-lead', 'h2'],
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
+          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'კარიერა' : lang === 'ru' ? 'Карьера' : 'Careers', item: 'https://sivrce.ge/careers' },
+        ],
+      },
+      {
+        '@type': 'JobPosting',
+        title: c.jobTitle,
+        description: c.jobDescription,
+        datePosted: '2026-07-20',
+        hiringOrganization: {
+          '@type': 'Organization',
+          name: 'sivrce',
+          sameAs: 'https://sivrce.ge',
+          logo: 'https://sivrce.ge/logo/lockup-ink.png',
+          email: 'hi@sivrce.ge',
+        },
+        jobLocation: c.cities.map((city) => ({
+          '@type': 'Place',
+          address: { '@type': 'PostalAddress', addressLocality: city.city, addressCountry: 'GE' },
+        })),
+        employmentType: 'CONTRACTOR',
+        directApply: true,
+        url: 'https://sivrce.ge/careers',
+      },
+    ],
   }
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(jobLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(careersLd) }} />
       <Navbar />
       <main id="main">
         <PageHero

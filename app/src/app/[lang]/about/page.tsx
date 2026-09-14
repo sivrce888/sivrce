@@ -166,42 +166,67 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
   const hero = HERO[loc]
   const tail = TAIL[loc]
 
-  const orgLd = {
+  const aboutLd = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'sivrce',
-    alternateName: 'სივრცე',
-    url: 'https://sivrce.ge',
-    logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/icon.png', width: 512, height: 512 },
-    description: lang === 'ka'
-      ? 'სივრცე — უძრავი ქონება საქართველოში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, დღიურად ქირავდება.'
-      : lang === 'ru'
-        ? 'sivrce — недвижимость в Грузии. Квартиры, дома и коттеджи — продажа, аренда, посуточная аренда.'
-        : 'sivrce — real estate in Georgia. Apartments, houses and cottages — for sale, for rent, daily rental.',
-    foundingDate: '2025',
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      telephone: CONTACT_PHONE.replace(/\s+/g, ''),
-      email: 'hi@sivrce.ge',
-      availableLanguage: ['ka', 'en', 'ru'],
-    },
-    sameAs: [
-      'https://sivrce.ge',
-    ],
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'თბილისი',
-      addressCountry: 'GE',
-    },
-    areaServed: [
-      { '@type': 'Country', name: 'Georgia' },
+    '@graph': [
+      {
+        '@type': 'AboutPage',
+        '@id': 'https://sivrce.ge/about#webpage',
+        url: 'https://sivrce.ge/about',
+        name: lang === 'ka' ? 'ჩვენ შესახებ — sivrce' : lang === 'ru' ? 'О нас — sivrce' : 'About Us — sivrce',
+        inLanguage: loc,
+        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        about: { '@id': 'https://sivrce.ge/#organization' },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', '.speakable-lead', 'h2'],
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
+          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'ჩვენ შესახებ' : lang === 'ru' ? 'О нас' : 'About Us', item: 'https://sivrce.ge/about' },
+        ],
+      },
+      {
+        '@type': 'Organization',
+        '@id': 'https://sivrce.ge/#organization',
+        name: 'sivrce',
+        alternateName: 'სივრცე',
+        url: 'https://sivrce.ge',
+        logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/icon.png', width: 512, height: 512 },
+        description: lang === 'ka'
+          ? 'სივრცე — უძრავი ქონება საქართველოში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, დღიურად ქირავდება.'
+          : lang === 'ru'
+            ? 'sivrce — недвижимость в Грузии. Квартиры, дома и коттеджи — продажа, аренда, посуточная аренда.'
+            : 'sivrce — real estate in Georgia. Apartments, houses and cottages — for sale, for rent, daily rental.',
+        foundingDate: '2025',
+        contactPoint: {
+          '@type': 'ContactPoint',
+          contactType: 'customer support',
+          telephone: CONTACT_PHONE.replace(/\s+/g, ''),
+          email: 'hi@sivrce.ge',
+          availableLanguage: ['ka', 'en', 'ru'],
+        },
+        sameAs: [
+          'https://sivrce.ge',
+        ],
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'თბილისი',
+          addressCountry: 'GE',
+        },
+        areaServed: [
+          { '@type': 'Country', name: 'Georgia' },
+        ],
+      },
     ],
   }
 
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(orgLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(aboutLd) }} />
       <Navbar />
       <main id="main">
         <PageHero

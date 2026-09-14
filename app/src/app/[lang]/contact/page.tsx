@@ -86,23 +86,39 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
 
   const contactLd = {
     '@context': 'https://schema.org',
-    '@type': 'ContactPage',
-    name: t.ldName,
-    url: 'https://sivrce.ge/contact',
-    inLanguage: loc,
-    isPartOf: { '@id': 'https://sivrce.ge/#website' },
-    about: {
-      '@type': 'Organization',
-      name: 'sivrce',
-      url: 'https://sivrce.ge',
-      email,
-      telephone: phone,
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'თბილისი',
-        addressCountry: 'GE',
+    '@graph': [
+      {
+        '@type': 'ContactPage',
+        '@id': 'https://sivrce.ge/contact#webpage',
+        name: t.ldName,
+        url: 'https://sivrce.ge/contact',
+        inLanguage: loc,
+        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        about: {
+          '@type': 'Organization',
+          name: 'sivrce',
+          url: 'https://sivrce.ge',
+          email,
+          telephone: phone,
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'თბილისი',
+            addressCountry: 'GE',
+          },
+        },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', '.speakable-lead', 'h2'],
+        },
       },
-    },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
+          { '@type': 'ListItem', position: 2, name: t.title, item: 'https://sivrce.ge/contact' },
+        ],
+      },
+    ],
   }
 
   return (

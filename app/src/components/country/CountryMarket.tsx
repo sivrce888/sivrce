@@ -18,9 +18,17 @@ import {
   DE_BERLIN_BUY_DE,
   DE_BERLIN_HUB_DE,
   DE_BERLIN_RENT_DE,
+  DE_COLOGNE_HUB_DE,
+  DE_FRANKFURT_BUY_DE,
+  DE_FRANKFURT_HUB_DE,
+  DE_FRANKFURT_RENT_DE,
+  DE_HAMBURG_BUY_DE,
   DE_HAMBURG_HUB_DE,
+  DE_HAMBURG_RENT_DE,
   DE_HUB_DE,
+  DE_MUNICH_BUY_DE,
   DE_MUNICH_HUB_DE,
+  DE_MUNICH_RENT_DE,
   cityPack,
   type CountryCopy,
 } from '@/lib/country-copy'
@@ -42,15 +50,18 @@ function deProjectSlug(country: PathCountryId, slug: string[] | undefined): stri
 
 export const revalidate = 86400
 
-/** DE cities with a native German hub (no /buy /rent copy yet — mirrors the EN pack). */
-const DE_HUB_ONLY_DE_CITIES = new Set(['munich', 'hamburg'])
-
 type Slug = string[] | undefined
 
 function publicPath(country: PathCountryId, slug: Slug): string {
   const prefix = MARKETS[country].pathPrefix
   if (!slug?.length) return prefix
   return `${prefix}/${slug.join('/')}`
+}
+
+/** Native German pages self-canonicalize under the locale-prefixed market URL. */
+function localizedCountryPath(country: PathCountryId, slug: Slug, lang: Lang): string {
+  const path = publicPath(country, slug)
+  return country === 'de' && lang === 'de' ? `/de${path}` : path
 }
 
 /** Resolve a depth-2 hood path `/{cc}/{city}/{hood}` — intent + DE Berlin bezirk slugs stay excluded. */
@@ -79,15 +90,35 @@ function copyFor(
   }
   const [citySlug, intentRaw] = slug
   if (!citySlug || slug.length > 2) return null
-  if (country === 'de' && lang === 'de' && citySlug === 'berlin') {
+  if (country === 'de' && lang === 'de') {
     const intent = intentRaw ? canonicalIntent(intentRaw) : undefined
-    if (!intentRaw) return { copy: DE_BERLIN_HUB_DE, kind: 'city', city: 'berlin' }
-    if (intent === 'buy') return { copy: DE_BERLIN_BUY_DE, kind: 'intent', city: 'berlin', intent }
-    if (intent === 'rent') return { copy: DE_BERLIN_RENT_DE, kind: 'intent', city: 'berlin', intent }
-    return null
-  }
-  if (country === 'de' && lang === 'de' && !intentRaw && DE_HUB_ONLY_DE_CITIES.has(citySlug)) {
-    return { copy: citySlug === 'munich' ? DE_MUNICH_HUB_DE : DE_HAMBURG_HUB_DE, kind: 'city', city: citySlug }
+    if (citySlug === 'berlin') {
+      if (!intentRaw) return { copy: DE_BERLIN_HUB_DE, kind: 'city', city: 'berlin' }
+      if (intent === 'buy') return { copy: DE_BERLIN_BUY_DE, kind: 'intent', city: 'berlin', intent }
+      if (intent === 'rent') return { copy: DE_BERLIN_RENT_DE, kind: 'intent', city: 'berlin', intent }
+      return null
+    }
+    if (citySlug === 'munich') {
+      if (!intentRaw) return { copy: DE_MUNICH_HUB_DE, kind: 'city', city: 'munich' }
+      if (intent === 'buy') return { copy: DE_MUNICH_BUY_DE, kind: 'intent', city: 'munich', intent }
+      if (intent === 'rent') return { copy: DE_MUNICH_RENT_DE, kind: 'intent', city: 'munich', intent }
+      return null
+    }
+    if (citySlug === 'hamburg') {
+      if (!intentRaw) return { copy: DE_HAMBURG_HUB_DE, kind: 'city', city: 'hamburg' }
+      if (intent === 'buy') return { copy: DE_HAMBURG_BUY_DE, kind: 'intent', city: 'hamburg', intent }
+      if (intent === 'rent') return { copy: DE_HAMBURG_RENT_DE, kind: 'intent', city: 'hamburg', intent }
+      return null
+    }
+    if (citySlug === 'frankfurt') {
+      if (!intentRaw) return { copy: DE_FRANKFURT_HUB_DE, kind: 'city', city: 'frankfurt' }
+      if (intent === 'buy') return { copy: DE_FRANKFURT_BUY_DE, kind: 'intent', city: 'frankfurt', intent }
+      if (intent === 'rent') return { copy: DE_FRANKFURT_RENT_DE, kind: 'intent', city: 'frankfurt', intent }
+      return null
+    }
+    if (citySlug === 'cologne' && !intentRaw) {
+      return { copy: DE_COLOGNE_HUB_DE, kind: 'city', city: 'cologne' }
+    }
   }
   const pack = cityPack(country, citySlug)
   if (!pack) return null
@@ -166,7 +197,7 @@ export async function countryMetadata(
     }
   }
   const path = publicPath(country, slug)
-  const url = `${COM_ORIGIN}${path}`
+  const canonicalUrl = `${COM_ORIGIN}${localizedCountryPath(country, slug, lang)}`
   const market = MARKETS[country]
   const languages: Record<string, string> = {
     en: `${COM_ORIGIN}${path}`,
@@ -176,7 +207,7 @@ export async function countryMetadata(
     country === 'de' &&
     (!slug?.length || slug[0] === 'berlin' || (slug.length === 1 && DE_HUB_ONLY_DE_CITIES.has(slug[0])))
   ) {
-    languages.de = `${COM_ORIGIN}/de${path}`
+    languages.de = canonicalUrl
   }
   if (country === 'ae') {
     languages.ar = `${COM_ORIGIN}/ar${path}`
@@ -184,11 +215,11 @@ export async function countryMetadata(
   return {
     title: { absolute: found.copy.title },
     description: found.copy.description,
-    alternates: { canonical: url, languages },
+    alternates: { canonical: canonicalUrl, languages },
     openGraph: {
       type: 'website',
       locale: lang === 'ar' ? 'ar_AE' : lang === 'de' ? 'de_DE' : `en_${market.countryCode ?? 'US'}`,
-      url,
+      url: canonicalUrl,
       siteName: 'sivrce',
       title: found.copy.title,
       description: found.copy.description,
@@ -214,6 +245,7 @@ function GenericCountryPage({
   country,
   wc,
   slug,
+  lang,
 }: {
   country: PathCountryId
   wc: WorldCountry
@@ -227,8 +259,7 @@ function GenericCountryPage({
     ? citySlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     : null
 
-  const path = publicPath(country, slug)
-  const url = `${COM_ORIGIN}${path}`
+  const url = `${COM_ORIGIN}${publicPath(country, slug)}`
 
   const crumbs = [
     { name: 'sivrce', href: 'https://sivrce.com/' },
@@ -350,7 +381,7 @@ function GenericCountryPage({
         </div>
 
         <Suspense fallback={null}>
-          <MarketListings country={country} city={cityLock} intent={intent} />
+          <MarketListings country={country} city={cityLock} intent={intent} lang={lang} />
         </Suspense>
 
         <div className="mx-auto max-w-4xl px-4 pb-12 sm:px-6 lg:px-8">
@@ -460,22 +491,21 @@ export default async function CountryPage({
     return <GenericCountryPage country={country} wc={wc} slug={slug} lang={lang} />
   }
 
-  const path = publicPath(country, slug)
-  const url = `${COM_ORIGIN}${path}`
+  const url = `${COM_ORIGIN}${localizedCountryPath(country, slug, lang)}`
   const market = MARKETS[country]
   const crumbs = [
     { name: 'sivrce', href: 'https://sivrce.com/' },
-    { name: COUNTRY_NAMES[country], href: `${COM_ORIGIN}${market.pathPrefix}` },
+    { name: COUNTRY_NAMES[country], href: `${COM_ORIGIN}${localizedCountryPath(country, undefined, lang)}` },
   ]
   if (found.city) {
     const pack = cityPack(country, found.city)
     crumbs.push({
       name: pack?.name ?? found.city,
-      href: `${COM_ORIGIN}${market.pathPrefix}/${found.city}`,
+      href: `${COM_ORIGIN}${localizedCountryPath(country, [found.city], lang)}`,
     })
   }
   if (found.intent) {
-    crumbs.push({ name: found.intent === 'buy' ? 'Buy' : 'Rent', href: url })
+    crumbs.push({ name: lang === 'de' ? (found.intent === 'buy' ? 'Kaufen' : 'Mieten') : (found.intent === 'buy' ? 'Buy' : 'Rent'), href: url })
   }
 
   const pin = found.city ? cityBySlug(found.city) : null

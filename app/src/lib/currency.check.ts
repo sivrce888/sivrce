@@ -2,7 +2,7 @@
  * Self-check: SSR-stable listing prices (hydration contract).
  * Run: npx tsx src/lib/currency.check.ts
  */
-import { AED_PER_USD, EUR_GEL_FALLBACK, USD_GEL_FALLBACK, convertGel, formatMapPin, formatMoney, formatListingPrice } from './currency'
+import { AED_PER_USD, EUR_GEL_FALLBACK, USD_GEL_FALLBACK, convertGel, formatMapPin, formatMoney, formatListingPrice, listingToggleCurrencies } from './currency'
 
 const usdListing = {
   priceUSD: 1_728_000,
@@ -77,5 +77,9 @@ if (formatMapPin(91_200, 'EUR', USD_GEL_FALLBACK, EUR_GEL_FALLBACK) !== '€30k'
 // USD/GEL behaviour unchanged (positional defaults still hold).
 if (formatMapPin(185_000, 'GEL') !== '185კ₾') throw new Error('formatMapPin GEL')
 if (formatMapPin(85_000, 'USD', 2.7) !== '$31k') throw new Error('formatMapPin USD')
+
+if (listingToggleCurrencies({ country: 'DE' }).join() !== 'EUR,USD') throw new Error('DE toggle')
+if (listingToggleCurrencies({ currencyOriginal: 'EUR' }).join() !== 'EUR,USD') throw new Error('EUR-native toggle')
+if (listingToggleCurrencies({ country: 'GE' }).join() !== 'GEL,USD') throw new Error('GE toggle')
 
 console.log('currency.check.ts: ok')

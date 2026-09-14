@@ -243,7 +243,6 @@ export default function SearchClient({
   const sellerParam = params.get('seller')
   const seller: 'owner' | 'agency' | undefined =
     sellerParam === 'owner' || sellerParam === 'agency' ? sellerParam : undefined
-  const cur: 'USD' | 'GEL' = params.get('cur') === 'GEL' ? 'GEL' : 'USD'
   // Market scope: URL param wins over the page's market default. Any uppercase
   // ISO passes through ('all' too) — /api/search validates against the market set.
   const rawCountry = params.get('country')?.trim()
@@ -253,6 +252,13 @@ export default function SearchClient({
       ? countryParam
       : countryDefault
   const offGe = Boolean(country && country !== 'GE' && country !== 'all')
+  const curParam = params.get('cur')
+  const cur: 'USD' | 'GEL' | 'EUR' =
+    curParam === 'GEL' || curParam === 'EUR' || curParam === 'USD'
+      ? curParam
+      : country === 'DE'
+        ? 'EUR'
+        : 'USD'
   // Page lives in the URL — shareable and SSR-friendly. Filter changes reset it (see patchParams).
   const page = numParam('page', 1) ?? 1
   // Results mode lives in the URL too (?view=map) — shareable; default list.
@@ -440,7 +446,7 @@ export default function SearchClient({
         if (seller) sp.set('seller', seller)
         if (from) sp.set('from', from)
         if (to) sp.set('to', to)
-        if (cur === 'GEL') sp.set('cur', 'GEL')
+        if (cur !== 'USD') sp.set('cur', cur)
         if (areaActive && west !== undefined && south !== undefined && east !== undefined && north !== undefined) {
           sp.set('west', String(west))
           sp.set('south', String(south))
@@ -595,8 +601,8 @@ export default function SearchClient({
     if (distList.length === 1) chips.push({ key: 'district', label: distList[0]!, clear: () => patchParams({ district: undefined }) })
     else if (distList.length > 1) chips.push({ key: 'district', label: t('loc.nDistricts', { n: distList.length }), clear: () => patchParams({ district: undefined }) })
   }
-  if (minPrice !== undefined) chips.push({ key: 'min', label: `${t('search.min')}. ${cur === 'GEL' ? '₾' : '$'}${minPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('min'); patchParams({ min: undefined }) } })
-  if (maxPrice !== undefined) chips.push({ key: 'max', label: `${t('search.max')}. ${cur === 'GEL' ? '₾' : '$'}${maxPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('max'); patchParams({ max: undefined }) } })
+  if (minPrice !== undefined) chips.push({ key: 'min', label: `${t('search.min')}. ${cur === 'GEL' ? '₾' : cur === 'EUR' ? '€' : '$'}${minPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('min'); patchParams({ min: undefined }) } })
+  if (maxPrice !== undefined) chips.push({ key: 'max', label: `${t('search.max')}. ${cur === 'GEL' ? '₾' : cur === 'EUR' ? '€' : '$'}${maxPrice.toLocaleString('en-US')}`, clear: () => { clearDraft('max'); patchParams({ max: undefined }) } })
   if (beds !== undefined) chips.push({ key: 'beds', label: bedsMax === beds ? `${beds} ${t('spec.beds')}` : t('search.bedsChip', { n: beds }), clear: () => patchParams({ beds: undefined, bmax: undefined }) })
   if (rooms !== undefined && params.get('rooms')) chips.push({ key: 'rooms', label: roomsMax === rooms ? `${rooms} ${t('spec.rooms')}` : t('search.roomsChip', { n: rooms }), clear: () => patchParams({ rooms: undefined, rmax: undefined }) })
   if (minArea !== undefined) chips.push({ key: 'amin', label: `${t('search.min')}. ${minArea} ${t('add.areaUnit.m2')}`, clear: () => { clearDraft('amin'); patchParams({ amin: undefined }) } })
@@ -625,6 +631,8 @@ export default function SearchClient({
   if (seller) chips.push({ key: 'seller', label: t(seller === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency'), clear: () => patchParams({ seller: undefined }) })
   if (from && to) chips.push({ key: 'dates', label: `${from} → ${to}`, clear: () => patchParams({ from: undefined, to: undefined }) })
   if (cur === 'GEL' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '₾', clear: () => patchParams({ cur: undefined }) })
+  if (cur === 'EUR' && country !== 'DE' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '€', clear: () => patchParams({ cur: undefined }) })
+  if (cur === 'USD' && country === 'DE' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '$', clear: () => patchParams({ cur: undefined }) })
   if (areaActive) {
     chips.push({
       key: 'area',
@@ -665,7 +673,7 @@ export default function SearchClient({
     setMenu((m) => (m === id ? null : id))
   }
   const money = (n: number) => {
-    const s = cur === 'GEL' ? '₾' : '$'
+    const s = cur === 'GEL' ? '₾' : cur === 'EUR' ? '€' : '$'
     if (n >= 1_000_000) return `${s}${n % 1_000_000 === 0 ? n / 1_000_000 : (n / 1_000_000).toFixed(1)}m`
     if (n >= 1000) return `${s}${Math.round(n / 1000)}k`
     return `${s}${n}`
@@ -714,7 +722,7 @@ export default function SearchClient({
       <input type="number" min={0} placeholder={t('search.min')} value={drafts.min} onChange={(e) => setDrafts((d) => ({ ...d, min: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.minPrice')} />
       <span className="text-sv-ink/30">—</span>
       <input type="number" min={0} placeholder={t('search.max')} value={drafts.max} onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.maxPrice')} />
-      {!offGe && (
+      {!offGe ? (
       <div className="ml-0.5 flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.currency')}>
         {(['USD', 'GEL'] as const).map((c) => (
           <button key={c} type="button" onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })} aria-pressed={cur === c} aria-label={c === 'USD' ? 'US Dollar' : 'Georgian Lari'} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'}`}>
@@ -722,7 +730,15 @@ export default function SearchClient({
           </button>
         ))}
       </div>
-      )}
+      ) : country === 'DE' ? (
+      <div className="ml-0.5 flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.currency')}>
+        {(['EUR', 'USD'] as const).map((c) => (
+          <button key={c} type="button" onClick={() => patchParams({ cur: c === 'EUR' ? undefined : 'USD' })} aria-pressed={cur === c} aria-label={c === 'EUR' ? 'Euro' : 'US Dollar'} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'}`}>
+            {c === 'EUR' ? '€' : '$'}
+          </button>
+        ))}
+      </div>
+      ) : null}
     </div>
   )
   const areaFields = (

@@ -66,6 +66,15 @@ export default async function ForumIndex() {
     })),
   }
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: 'ფორუმი', item: 'https://sivrce.ge/forum' },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -140,6 +149,7 @@ export default async function ForumIndex() {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(forumLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )
 }

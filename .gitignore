@@ -49,6 +49,7 @@ app/tmp/
 *.tsbuildinfo
 
 # perf / audit (never commit)
+graphify-out/
 .perf/
 shots/
 app/scripts/shots-mobile/
@@ -73,6 +74,8 @@ logo/concepts/
 
 # root scratch assets + screenshots (shots live nowhere in-repo)
 /*.png
+/*.jpg
+/*.jpeg
 /*.docx
 
 # MapLibre ESM worker copies (node scripts/copy-maplibre-worker.mjs)

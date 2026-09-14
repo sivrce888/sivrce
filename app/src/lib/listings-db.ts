@@ -46,8 +46,6 @@ import {
 } from "@/lib/listing-public-id"
 import { HOME_RAIL_BADGE, pickHomeRail, type HomeRailTier } from "@/lib/listings-home-rail"
 import { homeScopeWhere, type HomeScope } from "@/lib/home-scope"
-import { filterGermanyInventory, germanyListingById } from "@/data/listings-germany"
-import { deCityBySlug } from "@/lib/countries/de"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily" | "pledge"
@@ -370,7 +368,7 @@ export async function getListing(id: string): Promise<Listing | null> {
           : [{ id }],
       },
     })
-    if (!row) return germanyListingById(id) ?? null
+    if (!row) return null
     const listing = rowToListing(row as unknown as Record<string, unknown>)
     const meta = await resolveOwnerProfile(row.ownerId, row.sellerType)
     listing.agent = {
@@ -381,7 +379,7 @@ export async function getListing(id: string): Promise<Listing | null> {
       image: meta.image,
     }
     return listing
-  }, germanyListingById(id) ?? null)
+  }, null)
 }
 
 const LOOKUP_SELECT = { id: true, publicId: true } as const
@@ -469,10 +467,11 @@ export async function getListingsOnStreet(streetKa: string, districtKa: string):
 }
 
 /**
- * Active listings within walking radius of a point (Tbilisi metro station pages).
- * Bounding-box WHERE keeps the scan index-friendly; haversine trims the corners.
+ * Active listings within walking radius of a point. Country scope prevents a
+ * transit page from crossing market boundaries; the bounding-box WHERE keeps
+ * the scan index-friendly and haversine trims its corners.
  */
-export async function getListingsNearMetro(lat: number, lng: number, radiusM = 1200): Promise<Listing[]> {
+export async function getListingsNearMetro(lat: number, lng: number, radiusM = 1200, country = "GE"): Promise<Listing[]> {
   const dLat = radiusM / 111_320
   const dLng = radiusM / (111_320 * Math.cos((lat * Math.PI) / 180))
   const rad = Math.PI / 180
@@ -481,7 +480,8 @@ export async function getListingsNearMetro(lat: number, lng: number, radiusM = 1
       where: {
         deletedAt: null,
         status: "active",
-        city: "თბილისი",
+        country,
+        ...(country === "GE" ? { city: "თბილისი" } : {}),
         lat: { gte: lat - dLat, lte: lat + dLat },
         lng: { gte: lng - dLng, lte: lng + dLng },
       },
@@ -875,10 +875,6 @@ export async function getAllListings(limit = 50, scope?: HomeScope | null): Prom
     return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
   }, [])
   if (live.length > 0) return live
-  if (scope?.country === "DE") {
-    const sample = filterGermanyInventory({ cityNames: scope.cityNames, deal: scope.deal })
-    if (sample.length > 0) return sample.slice(0, Math.min(limit, 5000))
-  }
   return getProjectCatalogListings(scope, limit)
 }
 
@@ -912,14 +908,6 @@ const readHomeTierListings = unstable_cache(
       const mapped = rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
       const rail = pickHomeRail(mapped, HOME_RAIL_BADGE[tier], limit)
       if (rail.length > 0) return rail
-      if (scope?.country === "DE") {
-        const sample = pickHomeRail(
-          filterGermanyInventory({ cityNames: scope.cityNames, deal: scope.deal }),
-          HOME_RAIL_BADGE[tier],
-          limit,
-        )
-        if (sample.length > 0) return sample
-      }
       return getProjectCatalogListings(scope, limit)
     }, []),
   ["home-tier-listings-v4"],
@@ -1083,24 +1071,6 @@ export async function filterListings(opts: {
     [],
   )
   if (rows.length === 0) {
-    const isDe =
-      opts.country?.toUpperCase() === "DE" ||
-      Boolean(opts.city && deCityBySlug(opts.city.toLowerCase())) ||
-      Boolean(opts.q && /berlin|germany|ბერლინი|გერმანია/i.test(opts.q))
-
-    if (isDe) {
-      const cityName = opts.city || (opts.q && /berlin|ბერლინი/i.test(opts.q) ? "berlin" : undefined)
-      return filterGermanyInventory({
-        cityNames: cityName ? [cityName] : undefined,
-        deal: opts.dealType,
-        propType: opts.propType,
-        district: opts.district,
-        q: opts.q,
-        minPrice: opts.minPrice,
-        maxPrice: opts.maxPrice,
-        rooms: opts.rooms ? (opts.rooms === "5+" ? 5 : parseInt(opts.rooms, 10) || undefined) : undefined,
-      })
-    }
     const staticHits = staticFilterListings({
       deal: opts.dealType,
       type: opts.propType,

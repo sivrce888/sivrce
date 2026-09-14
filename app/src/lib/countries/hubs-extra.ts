@@ -2111,6 +2111,582 @@ const ZURICH_RENT = intent(
   ],
 )
 
+const BARCELONA_BUY = intent(
+  'Buy',
+  'Barcelona',
+  'Buy an apartment in Barcelona | sivrce',
+  'Buying in Barcelona: Catalonia’s 10% ITP, tiered rates above €600k, nota simple, notario, and tourist-licence phaseout implications.',
+  'Barcelona resales incur Catalonia’s 10% ITP property transfer tax, executed before a notario with title confirmed in the Registro de la Propiedad. Foreign buyers buy freely with an NIE.',
+  [
+    'Catalonia applies a progressive ITP scale: 10% baseline, rising to 11% above €600,000. New-build homes attract 10% IVA plus 1.5% AJD stamp duty. Budget roughly 11.5–12.5% in total closing expenses.',
+    'The nota simple from the land registry confirms encumbrances, community debts, and title boundaries. Eixample, Gràcia, Sarrià-Sant Gervasi, and Poblenou represent distinct micro-markets with high liquidity.',
+  ],
+  [
+    { q: 'Can foreigners buy property in Barcelona?', a: 'Yes. Non-residents need only an NIE (tax identification number) and a Spanish bank account for the notary transfer.' },
+    { q: 'Can I purchase an apartment and operate it as a tourist rental?', a: 'No new tourist licences (HUT) are granted in Barcelona, and existing licences are slated to expire under municipal regulations by November 2028.' },
+  ],
+)
+
+const BARCELONA_RENT = intent(
+  'Rent',
+  'Barcelona',
+  'Rent an apartment in Barcelona | sivrce',
+  'Renting in Barcelona: Catalan tenancy regulations, designated Zonas Tensionadas rent caps, one-to-two months fianza, and long-term contracts.',
+  'Barcelona leases are governed by the Ley de Arrendamientos Urbanos (LAU) and regional Catalan rent caps in designated Zonas Tensionadas, with statutory 5-year tenancy terms for private landlords.',
+  [
+    'Under the LAU, residential contracts for private landlords must offer minimum 5-year terms (7 years if the landlord is an entity). The security deposit (fianza) is legally capped at one month for unfurnished and two months for furnished, deposited with INCASÒL.',
+    'Tenants provide proof of employment or local solvency (last 3 nominas). Agency fees for permanent residential leases cannot legally be charged to the tenant.',
+  ],
+  [
+    { q: 'How much deposit is required in Barcelona?', a: 'Under the LAU, the mandatory statutory deposit is one month for standard housing, up to two months for furnished, registered with INCASÒL.' },
+    { q: 'Are rents capped in Barcelona?', a: 'Yes. Barcelona is designated as a tensioned housing zone (zona tensionada), subjecting new leases to official reference index limits.' },
+  ],
+)
+
+const MILAN_BUY = intent(
+  'Buy',
+  'Milan',
+  'Buy an apartment in Milan | sivrce',
+  'Buying in Milan: notary conveyance, Prezzo-Valore registration tax, APE energy classification, and condominium due diligence from Porta Nuova to Navigli.',
+  'Milan real estate transfers occur before a public notaio, with registration tax computed on the cadastral value (rendita catastale) rather than the commercial purchase price.',
+  [
+    'Under the Italian Prezzo-Valore system for private residential sales, non-resident buyers pay 9% registration tax on the revalued cadastral value (plus fixed €100 mortgage and cadastral taxes), resulting in effective transfer costs far lower than nominal rates.',
+    'Milan requires comprehensive verification of the Attestato di Prestazione Energetica (APE), building permit conformity (conformità urbanistica), and condominium balance statements for any outstanding building renovations.',
+  ],
+  [
+    { q: 'Can foreigners buy freehold apartments in Milan?', a: 'Yes. Italy permits foreign property acquisitions based on reciprocity, requiring a Codice Fiscale and identification before the notary.' },
+    { q: 'What are total buyer closing fees in Milan?', a: 'Expect approximately 9% registration tax on cadastral value (or 2% for primary residence), roughly €2,000–€4,000 in notary fees, and 3–4% plus VAT broker commission if applicable.' },
+  ],
+)
+
+const MILAN_RENT = intent(
+  'Rent',
+  'Milan',
+  'Rent an apartment in Milan | sivrce',
+  'Renting in Milan: 4+4 free market vs 3+2 agreed rent contracts, Cedolare Secca tax regime, SCHUFA/income verification, and utility setups.',
+  'Milan leases predominantly utilize 4+4 year open-market contracts (canone libero) or 3+2 year agreed contracts (canone concordato), registered with the Agenzia delle Entrate.',
+  [
+    'Tenants typically provide proof of employment (busta paga, contratto a tempo indeterminato) and pay a security deposit (deposito cauzionale) capped at three months rent, held in an interest-bearing escrow.',
+    'Contracts must be formally registered with the Agenzia delle Entrate within 30 days. Landlords opting for the Cedolare Secca flat-tax regime agree to freeze rent increases over the contract duration.',
+  ],
+  [
+    { q: 'What is a 4+4 rental contract in Italy?', a: 'The standard Italian lease is four years, automatically renewable for an additional four years unless the landlord terminates under specific statutory grounds.' },
+    { q: 'What are spese condominiali in Milan rentals?', a: 'Spese condominiali are monthly building service charges covering heating, concierge (portineria), elevator, and shared area maintenance, settled annually against actual receipts.' },
+  ],
+)
+
+const MIAMI_BUY = intent(
+  'Buy',
+  'Miami',
+  'Buy a condo or home in Miami | sivrce',
+  'Buying in Miami: Florida condominium milestone inspections (SB 4-D), title insurance, no state income tax, FIRPTA rules, and HOA reserve mandates.',
+  'Miami purchases close through a licensed title company or closing attorney, with Florida offering zero state personal income tax and fee simple ownership for foreign buyers.',
+  [
+    'Florida condominium purchases require strict review of the Structural Integrity Reserve Study (SIRS) and milestone building inspections mandated under Senate Bill 4-D for buildings 30+ years old (25 years within 3 miles of the coast).',
+    'Closing costs for buyers typically run 1.5–2.0% in cash transactions (title insurance, escrow, recording fees) plus prepaid property taxes. Property taxes in Miami-Dade average around 1.8–2.0% of assessed market value annually.',
+  ],
+  [
+    { q: 'Do foreign buyers pay extra property taxes in Florida?', a: 'No. Florida levies no transfer tax on buyers (documentary stamp taxes on deeds are seller-side) and no state income tax. Federal FIRPTA applies upon future sale.' },
+    { q: 'What is the HOA reserve requirement in Florida condominiums?', a: 'Florida law mandates fully funded structural reserves for roofing, plumbing, electrical, and structural components, eliminating developer waivers.' },
+  ],
+)
+
+const MIAMI_RENT = intent(
+  'Rent',
+  'Miami',
+  'Rent an apartment or condo in Miami | sivrce',
+  'Renting in Miami: standard 12-month leases, first/last/security deposits, condominium HOA application approvals, and tenant rights.',
+  'Miami residential rentals operate on annual leases requiring background and credit approval from both the landlord and the condominium homeowners association (HOA).',
+  [
+    'Move-in requirements typically total three months of rent upfront: first month, last month, and a one-month security deposit held in an escrow account. Most condo associations charge an application fee ($100–$250) and take 2–3 weeks for board approval.',
+    'Tenants must carry renters insurance (contents and liability). Utility setup includes Florida Power & Light (FPL) and municipal water services unless included in HOA dues.',
+  ],
+  [
+    { q: 'Can a foreigner rent a condo in Miami without a US credit score?', a: 'Yes. Landlords typically accept foreign bank statements, international passports, or an additional month of security deposit in lieu of a US FICO score.' },
+    { q: 'How long does Miami HOA tenant approval take?', a: 'Condominium associations typically require 10 to 30 days to process background checks and interview prospective tenants.' },
+  ],
+)
+
+const LOS_ANGELES_BUY = intent(
+  'Buy',
+  'Los Angeles',
+  'Buy property in Los Angeles | sivrce',
+  'Buying in Los Angeles: Measure ULA Mansion Tax thresholds, California title & escrow closings, wildfire insurance (FAIR Plan), and Proposition 13.',
+  'Los Angeles real estate transfers via escrow and title insurance companies, with California granting foreign nationals unconstrained fee simple property rights.',
+  [
+    'The City of Los Angeles levies Measure ULA ("Mansion Tax") on transfers over $5M (4%) and over $10M (5.5%), payable by the seller. Buyers must budget for property tax base under Proposition 13 (approx. 1.25% including local bond assessments).',
+    'Due diligence requires natural hazard disclosures (earthquake fault zones, liquefaction, and very high fire severity zones). Properties in hillside or brush areas may require placement through the California FAIR Plan.',
+  ],
+  [
+    { q: 'What is Proposition 13 in California?', a: 'Prop 13 establishes the initial property tax at roughly 1% of the purchase price, capping annual assessment increases to a maximum of 2% inflation.' },
+    { q: 'Does the buyer pay transfer tax in Los Angeles?', a: 'In Los Angeles, county and city documentary transfer taxes, as well as Measure ULA, are customarily paid by the seller, keeping buyer closing costs near 1.5–2%.' },
+  ],
+)
+
+const LOS_ANGELES_RENT = intent(
+  'Rent',
+  'Los Angeles',
+  'Rent an apartment in Los Angeles | sivrce',
+  'Renting in Los Angeles: RSO rent stabilization ordinance, AB 1482 California tenant protection, security deposits (§1950.5 CC), and annual leases.',
+  'Los Angeles rentals are categorized by pre-1978 rent-stabilized buildings (City RSO), modern multi-family units under state AB 1482, and single-family rental homes.',
+  [
+    'Under California Civil Code § 1950.5 (as updated in 2024), residential security deposits are strictly capped at a maximum of one month’s rent for most landlords, eliminating traditional two-month deposit burdens.',
+    'Tenants in RSO units benefit from strict annual rent increase caps tied to the local Consumer Price Index (CPI) and just-cause eviction protections.',
+  ],
+  [
+    { q: 'What is the maximum security deposit in California?', a: 'Under California law effective July 2024, security deposits are capped at one month’s rent for unfurnished and furnished residential properties alike.' },
+    { q: 'What does the LA Rent Stabilization Ordinance (RSO) cover?', a: 'Properties built before October 1978 in the City of Los Angeles are covered by RSO, which caps annual rent increases and requires relocation assistance for no-fault evictions.' },
+  ],
+)
+
+const LYON_BUY = intent(
+  'Buy',
+  'Lyon',
+  'Buy an apartment in Lyon | sivrce',
+  'Buying in Lyon: notaire conveyance, 7–8% frais de notaire on resale, DPE energy ratings, and district yields from Presqu’île to Part-Dieu.',
+  'Lyon property purchases complete before a French notaire with statutory 10-day SRU cooling-off rights and roughly 7–8% acquisition costs on existing apartments.',
+  [
+    'The diagnostic technique dossier (DPE, asbestos, lead, electrical conformity) must be appended to the compromis de vente before any deposit is escrowed with the notaire.',
+    'Presqu’île and Croix-Rousse command premium prices per square metre; Part-Dieu and Gerland provide higher gross rental yields supported by major corporate and biotech employers.',
+  ],
+  [
+    { q: 'What are typical closing costs for buyers in Lyon?', a: 'Expect approximately 7–8% in notary transfer duties on existing properties (droits d’enregistrement), or 2–3% on new-build developments (VEFA) where VAT is included.' },
+    { q: 'Does DPE rating affect buying in Lyon?', a: 'Yes. Energy performance class G is barred from new residential leases, with class F scheduled for restriction by 2028 under French climate laws.' },
+  ],
+)
+
+const LYON_RENT = intent(
+  'Rent',
+  'Lyon',
+  'Rent an apartment in Lyon | sivrce',
+  'Renting in Lyon: encadrement des loyers reference rent limits across Lyon and Villeurbanne, dossier de location requirements, and tenant protections.',
+  'Residential leases in Lyon and Villeurbanne are subject to mandatory rent control (encadrement des loyers), fixing a maximum reference rent per square metre by neighbourhood and construction year.',
+  [
+    'Landlords cannot exceed the upper reference rent (loyer de référence majoré) unless justified by exceptional characteristics (complément de loyer). Security deposits are statutorily capped at 1 month for unfurnished and 2 months for furnished rentals.',
+    'Tenants submit a standard dossier de location including proof of identity, recent tax returns (avis d’imposition), employment contracts, and last three payslips (bulletins de paie).',
+  ],
+  [
+    { q: 'How does rent control work in Lyon?', a: 'Lyon enforces official municipal reference rents per square metre; any excess rent can be formally contested by the tenant before the Commission Départementale de Conciliation.' },
+    { q: 'What is the notice period for tenants leaving a Lyon apartment?', a: 'Because Lyon is classified as a tense housing zone (zone tendue), tenants benefit from a reduced 1-month statutory notice period for unfurnished leases.' },
+  ],
+)
+
+const NICE_BUY = intent(
+  'Buy',
+  'Nice',
+  'Buy an apartment in Nice | sivrce',
+  'Buying in Nice: French Riviera notarial conveyancing, copropriété charges on beachfront properties, DPE requirements, and Carré d’Or to Mont Boron market dynamics.',
+  'Purchasing property in Nice involves standard French notarial execution with roughly 7–8% acquisition duties, with sea-facing Promenade des Anglais and Carré d’Or commanding top international valuations.',
+  [
+    'Condominium due diligence (état daté, carnet d’entretien, and the last 3 years of assemblée générale minutes) is essential to evaluate shared building maintenance and structural reserves on older Riviera facades.',
+    'Foreign buyers purchase freehold without restrictions. Financing through French mortgage lenders typically requires a minimum 20–30% equity down payment for non-residents.',
+  ],
+  [
+    { q: 'Are there restrictions on foreign buyers in Nice?', a: 'No. Foreign buyers enjoy identical property ownership rights as French citizens, completing transactions through a registered notaire.' },
+    { q: 'What recurring taxes apply to Nice property owners?', a: 'Owners pay annual Taxe Foncière (property ownership tax) and copropriété service charges. The Taxe d’Habitation on second homes also applies to non-primary residences.' },
+  ],
+)
+
+const NICE_RENT = intent(
+  'Rent',
+  'Nice',
+  'Rent an apartment in Nice | sivrce',
+  'Renting in Nice: long-term bail d’habitation, seasonal meublé de tourisme registration rules, security deposits, and French tenant rights.',
+  'Renting residential property in Nice operates under standard French lease contracts (bail d’habitation) with strong tenant tenure protections and strict municipal registration controls on furnished holiday lets.',
+  [
+    'Standard unfurnished leases run for a minimum 3-year term with a 1-month deposit, while furnished residential leases (bail meublé) require a 1-year term with up to a 2-month deposit.',
+    'Nice enforces strict change-of-use (changement d’usage) compensation rules for short-term tourist accommodation, directing long-term residential housing stock to permanent local residents and professionals.',
+  ],
+  [
+    { q: 'What documents do tenants need to rent in Nice?', a: 'Tenants provide valid passport/ID, employment verification, last three payslips showing income at least 3x the rent, and tax notices or an eligible French guarantor.' },
+    { q: 'Can a landlord in Nice terminate a lease early?', a: 'Only at the end of the statutory lease term with 6 months notice (unfurnished) or 3 months (furnished), and strictly for genuine sale, repossession for personal occupation, or legitimate breach.' },
+  ],
+)
+
+const MANCHESTER_BUY = intent(
+  'Buy',
+  'Manchester',
+  'Buy an apartment in Manchester | sivrce',
+  'Buying in Manchester: English conveyancing, SDLT stamp duty bands, EWS1 cladding safety certification, and high-yield investment zones in Ancoats and Deansgate.',
+  'Manchester property acquisitions follow English conveyancing law via licensed solicitors, with exchange of contracts creating legally binding obligations prior to formal completion.',
+  [
+    'Buyers pay Stamp Duty Land Tax (SDLT) on a tiered rate, plus a 2% surcharge for non-UK residents and a 5% surcharge for second homes or buy-to-let investments.',
+    'For city-centre multi-storey apartments, lenders and solicitors strictly mandate an EWS1 form (External Wall System fire review) to confirm cladding safety compliance before mortgage release.',
+  ],
+  [
+    { q: 'What is the difference between freehold and leasehold in Manchester?', a: 'Most Manchester apartments are leasehold with 125–999 year terms and annual service charges; terraced houses and suburban properties are typically freehold.' },
+    { q: 'What rental yields are typical in central Manchester?', a: 'Manchester offers gross yields ranging from 5.5% to 7.5% in regeneration districts like Salford Quays, Ancoats, and Victoria North, outperforming London cash-flow metrics.' },
+  ],
+)
+
+const MANCHESTER_RENT = intent(
+  'Rent',
+  'Manchester',
+  'Rent an apartment in Manchester | sivrce',
+  'Renting in Manchester: Assured Shorthold Tenancies under the Renters’ Rights Bill, Tenant Fees Act caps, and deposit protection schemes.',
+  'Renting in Manchester is governed by English tenancy legislation with statutory deposit caps, government-approved tenancy deposit schemes, and landlord licensing in designated council wards.',
+  [
+    'Under the Tenant Fees Act 2019, security deposits are legally capped at five weeks rent (for annual rents below £50,000) and must be placed in a government-backed custodial scheme (DPS, TDS, or MyDeposits) within 30 days.',
+    'Letting agents and landlords are strictly prohibited from charging tenant fees for referencing, administration, or inventory preparation.',
+  ],
+  [
+    { q: 'How much deposit is required to rent in Manchester?', a: 'The maximum legal deposit is five weeks of rent, protected in an accredited deposit scheme with a prescribed certificate provided to the tenant.' },
+    { q: 'Do Manchester landlords require tenant referencing?', a: 'Yes. Standard referencing checks credit history, UK Right to Rent immigration status, employer confirmation, and previous landlord references.' },
+  ],
+)
+
+const EDINBURGH_BUY = intent(
+  'Buy',
+  'Edinburgh',
+  'Buy property in Edinburgh | sivrce',
+  'Buying in Edinburgh: Scottish conveyancing with binding missives, LBTT rates + 8% ADS, mandatory Home Reports, and Georgian stone conservation.',
+  'Property purchases in Edinburgh operate under Scots property law with binding concluded missives and mandatory seller-provided Home Reports, preventing English-style gazumping.',
+  [
+    'Buyers pay Land and Buildings Transaction Tax (LBTT) above £145,000, with an 8% Additional Dwelling Supplement (ADS) applied to second homes and buy-to-let properties.',
+    'Offers are submitted through Scottish solicitors as "offers over" the Home Report valuation, with title deeds and tenement common-repair liabilities registered in the Land Register of Scotland.',
+  ],
+  [
+    { q: 'What is a Home Report in Scotland?', a: 'A legally required pack commissioned by the seller containing a Single Survey, property questionnaire, Energy Performance Certificate (EPC), and market valuation.' },
+    { q: 'How does the Scottish bidding system work?', a: 'Properties set a closing date for blind sealed bids submitted via solicitors; once missives are formally concluded, neither buyer nor seller can withdraw without financial penalty.' },
+  ],
+)
+
+const EDINBURGH_RENT = intent(
+  'Rent',
+  'Edinburgh',
+  'Rent a flat in Edinburgh | sivrce',
+  'Renting in Edinburgh: Scottish Private Residential Tenancy (PRT) rules, city-wide short-term let control zone, and SafeDeposits Scotland protection.',
+  'Edinburgh tenancies are governed by the Scottish Private Residential Tenancy (PRT) system, providing open-ended leases with no arbitrary fixed end dates and statutory rent variation notices.',
+  [
+    'Under a Scottish PRT, tenants can terminate a lease by giving 28 days written notice at any point. Landlords can only evict under 18 specific statutory grounds specified in the Private Housing (Tenancies) (Scotland) Act 2016.',
+    'Deposits are capped at two months rent and must be protected with an approved tenancy deposit scheme such as SafeDeposits Scotland. Edinburgh operates a city-wide Short-Term Let Control Area requiring planning permission for holiday flats.',
+  ],
+  [
+    { q: 'Can a landlord in Edinburgh arbitrarily increase rent?', a: 'Landlords can only increase rent once every 12 months using a formal 3-month notice, which the tenant can refer to a Rent Officer for rent adjudication.' },
+    { q: 'How much notice does a tenant give to leave a Scottish rental?', a: 'Tenants under a standard PRT need only give 28 days written notice to vacate, unless a longer period was mutually agreed in writing.' },
+  ],
+)
+
+const ROTTERDAM_BUY = intent(
+  'Buy',
+  'Rotterdam',
+  'Buy an apartment in Rotterdam | sivrce',
+  'Buying in Rotterdam: Dutch notaris transfer, Overdrachtsbelasting (2% vs 10.4%), Kadaster registration, and VvE reserve fund requirements.',
+  'Rotterdam property purchases are formalized by a Dutch civil-law notary (notaris) and recorded in the national land registry (Kadaster), featuring fee-simple eigen grond across most districts.',
+  [
+    'Transfer tax (Overdrachtsbelasting) is 2% for primary home buyers (0% for eligible first-time buyers under 35 subject to threshold limits) and 10.4% for buy-to-let investors and secondary residences.',
+    'Apartment ownership entails mandatory participation in the Vereniging van Eigenaars (VvE), which legally requires a funded multi-year maintenance plan (MJOP) or annual reserve contributions of at least 0.5% of building rebuild cost.',
+  ],
+  [
+    { q: 'Can foreigners buy property in Rotterdam?', a: 'Yes. There are no nationality restrictions on property ownership in the Netherlands, with transparent notary and Kadaster title protections.' },
+    { q: 'Is ground lease (erfpacht) common in Rotterdam?', a: 'Unlike Amsterdam, the majority of residential property in Rotterdam is on freehold land (eigen grond), eliminating recurring municipal ground lease payments.' },
+  ],
+)
+
+const ROTTERDAM_RENT = intent(
+  'Rent',
+  'Rotterdam',
+  'Rent an apartment in Rotterdam | sivrce',
+  'Renting in Rotterdam: Affordable Rent Act (Wet betaalbare huur), WWS point system ceilings, deposit regulations, and housing permits.',
+  'Renting in Rotterdam follows Dutch tenancy law under the Affordable Rent Act (Wet betaalbare huur), regulating rents through the official WWS point valuation system up to 186 points.',
+  [
+    'Properties scoring up to 186 WWS points fall under regulated rent caps, protecting middle-income and social tenants. Free-market rentals (187+ points) allow negotiated market pricing with statutory annual indexation caps.',
+    'Security deposits (waarborgsom) are statutorily limited to a maximum of two months base cold rent. Certain Rotterdam municipal neighbourhoods require a housing permit (huisvestingsvergunning) based on income criteria.',
+  ],
+  [
+    { q: 'What is the WWS point system in the Netherlands?', a: 'The Woningwaarderingsstelsel (WWS) assigns points based on square metres, energy rating (energielabel), heating, and fixtures to determine the legal maximum rent.' },
+    { q: 'Are indefinite rental contracts mandatory in the Netherlands?', a: 'Under recent Dutch tenancy reform, permanent indefinite rental contracts (vast contract voor onbepaalde tijd) are the statutory standard, with temporary contracts heavily restricted.' },
+  ],
+)
+
+const PORTO_BUY = intent(
+  'Buy',
+  'Porto',
+  'Buy property in Porto | sivrce',
+  'Buying in Porto: Portuguese escritura public deed, progressive IMT rates + 0.8% Stamp Duty, Conservatória registration, and Foz to Boavista pricing.',
+  'Acquiring real estate in Porto completes via a public deed of purchase and sale (escritura) before a notário or Casa Pronta, with title registered in the Conservatória do Registo Predial.',
+  [
+    'Buyers pay Municipal Property Transfer Tax (IMT) on a progressive scale up to 7.5% for residential properties, plus a flat 0.8% Stamp Duty (Imposto de Selo). Budget an additional 1.0–1.5% for notary and registration fees.',
+    'Essential due diligence requires obtaining the Certidão Permanente (land registry certificate), Caderneta Predial (tax registry), Licença de Utilização (occupancy permit), and Energy Certificate (Ficha Técnica de Habitação).',
+  ],
+  [
+    { q: 'What documents do foreign buyers need in Porto?', a: 'Foreign buyers must obtain a Portuguese tax number (NIF), establish a local representative if outside the EU, and open a Portuguese bank account for transaction funds.' },
+    { q: 'Is the Portuguese Golden Visa still available in Porto?', a: 'Direct residential property purchases no longer qualify for the Golden Visa program; investment fund pathways remain available under Portuguese immigration law.' },
+  ],
+)
+
+const PORTO_RENT = intent(
+  'Rent',
+  'Porto',
+  'Rent an apartment in Porto | sivrce',
+  'Renting in Porto: Novo Regime do Arrendamento Urbano (NRAU), Alojamento Local containment zones, deposit rules, and Finanças contract registration.',
+  'Residential leases in Porto are regulated by the Novo Regime do Arrendamento Urbano (NRAU), mandating written contracts officially registered with the Portuguese tax authority (Autoridade Tributária).',
+  [
+    'Under Portuguese tenancy law, standard residential leases require clear terms (typically 1 to 5 years). Landlords may request up to two months of security deposit (caução) plus up to two months of prepaid rent.',
+    'Porto enforces containment zones (zonas de contenção) restricting new Alojamento Local (AL) short-stay holiday licences across central historical parishes, preserving housing for long-term residential tenants.',
+  ],
+  [
+    { q: 'Must all rental contracts in Porto be registered with tax authorities?', a: 'Yes. Landlords must register the lease on the Portal das Finanças and pay 10% stamp duty on one month’s rent, issuing electronic rent receipts (recibos de renda eletrónicos).' },
+    { q: 'Can a landlord in Porto freely terminate a fixed-term contract?', a: 'Landlords must provide statutory written notice (120 days for leases of one year or more) before the contract expiration date to prevent automatic renewal.' },
+  ],
+)
+
+const GENEVA_BUY = intent(
+  'Buy',
+  'Geneva',
+  'Buy property in Geneva | sivrce',
+  'Buying in Geneva: Lex Koller Swiss foreign buyer regulations, Canton of Geneva 3% Droits de mutation, notarial deeds, and Registre foncier precision.',
+  'Real estate conveyancing in Geneva takes place before a Geneva civil notaire and is inscribed in the Registre foncier, governed by Swiss federal Lex Koller foreign purchase limits.',
+  [
+    'The Canton of Geneva levies transfer duties (droits de mutation) of approximately 3% on the purchase price, plus notary fees (~0.5%) and land register registration charges (~0.2%).',
+    'Foreign nationals holding a Swiss B or C residence permit may purchase a primary residence without authorization; non-resident foreign purchases of residential property are restricted under Lex Koller quotas.',
+  ],
+  [
+    { q: 'What is the Lex Koller law in Switzerland?', a: 'Lex Koller restricts the acquisition of residential real estate by persons abroad without Swiss residency, ensuring housing remains primarily for domestic residents.' },
+    { q: 'What is Stockwerkeigentum (PPE) in Geneva?', a: 'PPE (propriété par étages) is the Swiss condominium ownership structure, requiring co-owners to contribute to a statutory renovation fund (fonds de rénovation).' },
+  ],
+)
+
+const GENEVA_RENT = intent(
+  'Rent',
+  'Geneva',
+  'Rent an apartment in Geneva | sivrce',
+  'Renting in Geneva: mandatory official initial rent notification form, 3-month rental guarantee account, LDTR protections, and lease challenge rights.',
+  'Leasing in Geneva is subject to the Swiss Code of Obligations and cantonal LDTR laws, mandating the official initial rent disclosure form allowing tenants to challenge excessive rents within 30 days.',
+  [
+    'The security deposit (garantie de loyer) is legally capped at three months rent and must be deposited into a blocked Swiss bank escrow account in the tenant’s name, earning interest.',
+    'Prospective tenants submit an extensive application dossier including an extract from the debt enforcement register (Office des poursuites), salary statements showing income 3x rent, and residency verification.',
+  ],
+  [
+    { q: 'What is the official rent form in Geneva?', a: 'The Formule officielle notifies the tenant of the previous tenant’s rent and justifies any rent increase; tenants have 30 days from receiving keys to challenge unreasonable increases at the Commission de conciliation.' },
+    { q: 'What are charges in a Geneva rental lease?', a: 'Charges are advance payments (acomptes) for heating, hot water, and building maintenance, reconciled annually against certified consumption statements.' },
+  ],
+)
+
+const THESSALONIKI_BUY = intent(
+  'Buy',
+  'Thessaloniki',
+  'Buy an apartment in Thessaloniki | sivrce',
+  'Buying in Thessaloniki: Greek Notary conveyance, 3.09% transfer tax (FMA), Electronic Building Identity, and Kalamaria to Ladadika waterfront.',
+  'Acquiring property in Thessaloniki completes before a Greek notario and is transcribed into the Hellenic Cadastre (Ktimatologio), with resales paying 3.09% property transfer tax (FMA).',
+  [
+    'Sellers must provide an Electronic Building Identity (Ilektroniki Taftotita Ktirioy) and civil engineer certificate confirming zero illegal construction infractions before the notarial deed.',
+    'Total buyer transaction costs average roughly 6–8%, including 3.09% FMA tax, notary fees (1–1.5%), lawyer fees (1–1.5%), and land registry transcription (0.5%).',
+  ],
+  [
+    { q: 'What is the transfer tax rate in Thessaloniki?', a: 'Property Transfer Tax (FMA) is 3.09% on the objective cadastral tax value or purchase price (whichever is higher).' },
+    { q: 'What is the Greek Golden Visa threshold in Thessaloniki?', a: 'Under updated Greek immigration regulations, Thessaloniki falls into the €800,000 Golden Visa investment threshold tier.' },
+  ],
+)
+
+const THESSALONIKI_RENT = intent(
+  'Rent',
+  'Thessaloniki',
+  'Rent an apartment in Thessaloniki | sivrce',
+  'Renting in Thessaloniki: 3-year statutory residential lease term, electronic Taxisnet contract registration, and student/professional rental demand.',
+  'Residential tenancies in Thessaloniki are governed by Greek lease law, mandating a statutory minimum 3-year term for primary residences and official electronic registration via Taxisnet.',
+  [
+    'Under Greek Law 1703/1987 (as amended), a primary residential lease is legally binding for a minimum of three years, even if a shorter term was written in the contract.',
+    'Security deposits (engyisi) standardly equal 1 to 2 months rent. Landlords must submit the electronic lease declaration to the Independent Authority for Public Revenue (AADE) via Taxisnet within 30 days.',
+  ],
+  [
+    { q: 'What is the minimum legal rental duration in Greece?', a: 'Primary residence leases have a mandatory statutory minimum term of 3 years, protecting tenants against premature lease termination.' },
+    { q: 'What are koinoxrista in Thessaloniki apartments?', a: 'Koinoxrista are shared building maintenance and utility expenses (heating, elevator, cleaning, building lighting), distributed monthly according to unit milliemes.' },
+  ],
+)
+
+const VIENNA_BUY = intent(
+  'Buy',
+  'Vienna',
+  'Buy an apartment in Vienna | sivrce',
+  'Buying in Vienna: Austrian Grundbuch registration, 3.5% Grunderwerbsteuer, 1.1% court entry fee, Notar escrow (Treuhand), and Innere Stadt to Döbling metrics.',
+  'Purchasing property in Vienna requires formal entry in the Austrian public land register (Grundbuch) with secure settlement handled through notarial or attorney escrow (Treuhandkonto).',
+  [
+    'Buyer acquisition costs comprise 3.5% property transfer tax (Grunderwerbsteuer), 1.1% land register entry fee (Grundbucheintragungsgebühr), and roughly 1.5–2.0% in legal/notary fees.',
+    'Foreign buyers from non-EU/EEA countries generally require official authorization from the Vienna Land Acquisition Authority (Grundverkehrsbehörde), confirming legitimate residence or cultural/economic interest.',
+  ],
+  [
+    { q: 'Can foreigners buy property in Vienna?', a: 'EU/EEA citizens enjoy full equality with Austrian citizens; third-country nationals require permission from the Vienna Grundverkehrsbehörde unless exemptions apply.' },
+    { q: 'What is a Treuhandschaft in Austrian property conveyancing?', a: 'A statutory fiduciary escrow arrangement where a registered notary or lawyer safely holds the purchase funds until all Grundbuch registration requirements and clear title are fulfilled.' },
+  ],
+)
+
+const VIENNA_RENT = intent(
+  'Rent',
+  'Vienna',
+  'Rent an apartment in Vienna | sivrce',
+  'Renting in Vienna: Austrian Mietrechtsgesetz (MRG), strict Richtwertmietzins rent ceilings on pre-war Altbau, Kaution caps, and fixed-term lease rules.',
+  'Renting in Vienna is strictly governed by the Austrian Tenancy Act (Mietrechtsgesetz - MRG), capping base rents on pre-war buildings (Altbau) under the official statutory Richtwert system.',
+  [
+    'Under full MRG protection, landlords cannot exceed the statutory reference rent (Richtwert) plus legally permitted location surcharges (Lagezuschlag). Rental deposits (Kaution) are standardly 3 gross monthly rents, held in an interest-bearing escrow.',
+    'Fixed-term rental contracts (befristeter Mietvertrag) must be set for a minimum duration of 3 years, with tenants holding the statutory right to terminate after 1 year with 3 months notice.',
+  ],
+  [
+    { q: 'What is Richtwert rent in Vienna?', a: 'A legally mandated benchmark rent per square metre for category A Altbau apartments (built before 1945), strictly enforced by the Vienna Arbitration Board (Schlichtungsstelle).' },
+    { q: 'Who pays broker fees (Maklerprovision) for rentals in Austria?', a: 'Under the Austrian Bestellerprinzip enacted in 2023, the party who commissions the real estate agent (almost always the landlord) must pay the broker commission.' },
+  ],
+)
+
+const BRUSSELS_BUY = intent(
+  'Buy',
+  'Brussels',
+  'Buy an apartment in Brussels | sivrce',
+  'Buying in Brussels: Belgian notarial conveyancing, 12.5% registration duty with regional abattement allowances, PEB energy certification, and Ixelles to Uccle.',
+  'Property acquisition in Brussels proceeds from the preliminary compromis de vente to the final authentic deed (acte authentique) before a Belgian notaire within a strict 4-month statutory deadline.',
+  [
+    'The Brussels-Capital Region charges 12.5% registration duty (droits d’enregistrement), offset by an abattement tax allowance on the first tranche for qualifying primary residences. Notary fees and administrative search costs add approx. 2–3%.',
+    'Sellers must deliver comprehensive certifications including the PEB energy performance certificate, electrical installation compliance, urbanistic extract (renseignements urbanistiques), and soil certificate (attestation de sol).',
+  ],
+  [
+    { q: 'What is the abattement in the Brussels-Capital Region?', a: 'A tax rebate granting an exemption on the first €200,000 of the purchase price (saving €25,000 in transfer tax) for primary residences valued under €600,000.' },
+    { q: 'Can foreign nationals buy freehold real estate in Brussels?', a: 'Yes. Foreign buyers purchase property without restrictions or extra taxes in Belgium, following standard Belgian civil-law notary procedures.' },
+  ],
+)
+
+const BRUSSELS_RENT = intent(
+  'Rent',
+  'Brussels',
+  'Rent an apartment in Brussels | sivrce',
+  'Renting in Brussels: Belgian 9-year standard lease (bail 3-6-9), rental guarantee escrow accounts, PEB requirements, and annual health indexation.',
+  'Residential tenancies in Brussels operate under the Brussels Housing Code, standardizing the classic 9-year lease (bail 3-6-9) and short-term fixed leases with mandatory contract registration.',
+  [
+    'The statutory rental guarantee (garantie locative) is capped at two months rent if paid into a blocked bank account (or three months via a bank guarantee). Leases must be registered for free with the SPF Finances within two months.',
+    'Rents can only be indexed annually in accordance with the official Belgian Health Index (indice santé) and the property’s PEB energy class rating.',
+  ],
+  [
+    { q: 'What is a bail 3-6-9 in Belgium?', a: 'The standard 9-year residential lease, divided into 3-year triennia; tenants can terminate at any time with 3 months notice, subject to statutory indemnity if terminating in years 1–3.' },
+    { q: 'What is an état des lieux in a Brussels rental?', a: 'A detailed entry inventory and condition report conducted by a certified expert, legally required to establish baseline property condition for deposit return.' },
+  ],
+)
+
+const DUBLIN_BUY = intent(
+  'Buy',
+  'Dublin',
+  'Buy property in Dublin | sivrce',
+  'Buying in Dublin: Irish solicitor conveyancing, Land Registry title transfer, 1–2% Stamp Duty, BER energy ratings, and Silicon Docks to Ballsbridge.',
+  'Dublin real estate transfers require independent solicitor representation and registration with Tailte Éireann (Land Registry), with contract exchange formalizing binding legal commitments.',
+  [
+    'Irish Stamp Duty is levied at 1% on residential purchases up to €1,000,000 and 2% on the balance above €1,000,000. Solicitor legal fees, search costs, and land registry fees typically total 1.0–1.5%.',
+    'All properties must present a valid Building Energy Rating (BER) certificate. Structural surveys are independently commissioned by the buyer prior to signing contracts.',
+  ],
+  [
+    { q: 'Can non-residents buy property in Ireland?', a: 'Yes. Foreign buyers can purchase Irish real estate with no ownership restrictions, requiring a Personal Public Service (PPS) number for tax registration.' },
+    { q: 'What is the Local Property Tax (LPT) in Dublin?', a: 'An annual self-assessed tax based on property valuation bands, collected by the Revenue Commissioners.' },
+  ],
+)
+
+const DUBLIN_RENT = intent(
+  'Rent',
+  'Dublin',
+  'Rent an apartment in Dublin | sivrce',
+  'Renting in Dublin: Rent Pressure Zones (RPZ) 2% cap, Residential Tenancies Board (RTB) registration, security deposits, and Part 4 security of tenure.',
+  'Dublin residential rentals are governed by the Residential Tenancies Act, designating Dublin as a Rent Pressure Zone (RPZ) that caps annual rent increases at a maximum of 2% or inflation.',
+  [
+    'All tenancies must be registered with the Residential Tenancies Board (RTB). Under Part 4 tenancy rights, once a tenant occupies a property for six continuous months, they obtain security of tenure for an unlimited duration.',
+    'Security deposits are legally capped at one month’s rent, and advance rent is limited to one month upfront under Irish residential tenancy legislation.',
+  ],
+  [
+    { q: 'How does the Dublin Rent Pressure Zone (RPZ) work?', a: 'In RPZ areas, landlords cannot raise rents above 2% per year (or the Harmonised Index of Consumer Prices, whichever is lower) unless substantial renovations occurred.' },
+    { q: 'What is the RTB in Ireland?', a: 'The Residential Tenancies Board is the statutory authority that resolves landlord-tenant disputes, maintains the public register of tenancies, and enforces rental regulations.' },
+  ],
+)
+
+const WARSAW_BUY = intent(
+  'Buy',
+  'Warsaw',
+  'Buy an apartment in Warsaw | sivrce',
+  'Buying in Warsaw: Polish notariusz conveyance, Księga Wieczysta land register, 2% PCC transfer tax, developer escrow accounts, and Wola to Mokotów.',
+  'Property conveyancing in Warsaw is executed as a notarial deed (akt notarialny) before a Polish notariusz and registered in the electronic Land and Mortgage Register (Księga Wieczysta).',
+  [
+    'Secondary market transactions incur 2% Civil Law Transactions Tax (PCC), exempt for qualifying first-time buyers. Primary developer purchases are subject to 8% VAT (included in price) and 0% PCC.',
+    'Under the Polish Developer Act (Ustawa Deweloperska), off-plan purchases are safeguarded by mandatory closed or open escrow accounts (rachunek powierniczy) and the Developer Guarantee Fund (DFGW).',
+  ],
+  [
+    { q: 'Can foreigners buy apartments in Warsaw?', a: 'Yes. Foreign nationals can freely purchase independent residential apartments in Warsaw without Ministry of Interior permits.' },
+    { q: 'What is a Księga Wieczysta?', a: 'The official electronic land register confirming ownership, property description, mortgage encumbrances, and third-party rights with statutory public credibility.' },
+  ],
+)
+
+const WARSAW_RENT = intent(
+  'Rent',
+  'Warsaw',
+  'Rent an apartment in Warsaw | sivrce',
+  'Renting in Warsaw: Najem okazjonalny occasional lease frameworks, notarial enforcement declarations, security deposit rules, and expat tenant setups.',
+  'Renting in Warsaw increasingly utilizes the occasional tenancy agreement (najem okazjonalny), requiring a notarial submission to enforcement to protect both parties and streamline dispute resolution.',
+  [
+    'Under najem okazjonalny, the tenant provides a notarial declaration of submission to voluntary eviction (oświadczenie o poddaniu się egzekucji) and designates an alternate residence in Poland.',
+    'Security deposits (kaucja) range between 1 and 2 months rent, returnable within 30 days of lease termination. Utility charges (czynsz administracyjny and media) are settled based on submeter readings.',
+  ],
+  [
+    { q: 'What is najem okazjonalny in Poland?', a: 'A legally robust tenancy format for private landlords that bypasses protracted eviction procedures through upfront notarized tenant declarations.' },
+    { q: 'What are czynsz and media in Polish rental listings?', a: 'Czynsz is the cooperative/community administrative fee (heating, water advance, trash); media covers electricity, gas, and internet.' },
+  ],
+)
+
+const PRAGUE_BUY = intent(
+  'Buy',
+  'Prague',
+  'Buy an apartment in Prague | sivrce',
+  'Buying in Prague: Czech Katastr nemovitostí registration, 0% property acquisition tax, attorney/notary escrow (úschova), and Vinohrady to Karlín metrics.',
+  'Real estate conveyancing in Prague culminates in the registration of ownership rights in the Czech Real Estate Cadastre (Katastr nemovitostí), with zero property transfer tax.',
+  [
+    'The Czech Republic permanently abolished the 4% real estate acquisition tax, meaning buyers pay only cadastral filing fees (CZK 2,000) and attorney/notary escrow charges (~1.0%).',
+    'Ownership exists as direct freehold (osobní vlastnictví) or cooperative housing shares (družstevní vlastnictví). Foreign individuals buy freehold residential property without restrictions.',
+  ],
+  [
+    { q: 'Is there a property transfer tax in the Czech Republic?', a: 'No. The acquisition tax was repealed, significantly reducing buyer closing expenses compared to neighboring European states.' },
+    { q: 'What is advokátní úschova in Prague property deals?', a: 'A secure fiduciary escrow account held by a certified Czech attorney or notary that releases funds only after verified cadastre registration.' },
+  ],
+)
+
+const PRAGUE_RENT = intent(
+  'Rent',
+  'Prague',
+  'Rent an apartment in Prague | sivrce',
+  'Renting in Prague: Czech Civil Code lease contracts, security deposit (jistota) caps, utility billing (poplatky), and tenant protections.',
+  'Renting in Prague is governed by the Czech Civil Code (Občanský zákoník), establishing clear lease terms, statutory deposit caps, and annual utility reconciliations.',
+  [
+    'The security deposit (jistota) is legally capped at a maximum of three times the monthly rent, standardly set at 1 to 2 months rent. Leases are typically signed for a 1-year renewable fixed term.',
+    'Monthly housing expenses split into base cold rent (nájemné) and service/utility charges (poplatky za služby), which landlords must itemize and reconcile annually.',
+  ],
+  [
+    { q: 'How much deposit is required to rent in Prague?', a: 'Standard market practice is 1 to 2 months of rent as a refundable security deposit (jistota), capped at 3 months under Czech law.' },
+    { q: 'Can a landlord in Prague raise the rent annually?', a: 'Landlords may propose rent increases up to 20% over three consecutive years (or in line with an agreed inflation clause), subject to statutory negotiation procedures.' },
+  ],
+)
+
+const STOCKHOLM_BUY = intent(
+  'Buy',
+  'Stockholm',
+  'Buy an apartment in Stockholm | sivrce',
+  'Buying in Stockholm: Swedish Bostadsrätt cooperative ownership, Mäklare bidding, BRF board approval, 0% stamp duty on tenant-owner flats.',
+  'Stockholm apartment purchases primarily involve Bostadsrätt (tenant-owner association shares) conveyed through registered real estate brokers (Fastighetsmäklare) subject to BRF board approval.',
+  [
+    'Buying a Bostadsrätt flat incurs 0% lagfart stamp duty (lagfart at 1.5% applies only to freehold houses/land). The buyer acquires a share in the Bostadsrättsförening (BRF) granting permanent right of occupancy.',
+    'Due diligence centres on the BRF annual report (årsredovisning), evaluating association debt per square metre (belåningsgrad), upcoming interest renewals, and planned major pipe renovations (stambyte).',
+  ],
+  [
+    { q: 'Can a foreigner buy a Bostadsrätt in Stockholm?', a: 'Yes. Foreign buyers can purchase freely, subject to standard approval by the housing association (BRF) board upon verification of financial capability.' },
+    { q: 'How does the bidding process work in Sweden?', a: 'Bidding is conducted openly via SMS/online through the registered broker; bids are non-binding until the formal purchase contract (överlåtelseavtal) is signed.' },
+  ],
+)
+
+const STOCKHOLM_RENT = intent(
+  'Rent',
+  'Stockholm',
+  'Rent an apartment in Stockholm | sivrce',
+  'Renting in Stockholm: first-hand municipal queue contracts vs second-hand subleases (andrahand), BRF sublet rules, and Hyreslagen rent ceilings.',
+  'Renting in Stockholm is split between regulated first-hand leases (förstahand) via the municipal housing agency and second-hand sublets (andrahand) strictly regulated under Swedish rent laws.',
+  [
+    'Second-hand sublets require written authorization from the landlord or BRF board. Under the Rent Act (Hyreslagen), rents for subleased Bostadsrätt units are strictly capped to capital cost plus utility expenses.',
+    'If a sublandlord charges an illegal surcharge (oskälig hyra), the tenant can seek reimbursement of excess rent for up to two years retroactively through the Regional Rent Tribunal (Hyresnämnden).',
+  ],
+  [
+    { q: 'What is an andrahand contract in Stockholm?', a: 'A second-hand sublet contract, typically limited to 1–2 years with BRF board permission, protecting tenants against arbitrary rent gouging.' },
+    { q: 'How much deposit is customary in Stockholm rentals?', a: 'Standard market practice is 1 to 2 months rent held as a security deposit, returnable upon move-out inspection.' },
+  ],
+)
+
 export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<string, CityPack>>> = {
   fr: {
     paris: city(
@@ -2138,6 +2714,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Cheaper than Paris?', a: 'Usually well below on a per-square-metre basis. Not automatically higher yield once vacancy, works and the rent grid are honest.' },
         { q: 'Same notaire rules?', a: 'Yes — one French national sale process. The city briefing is local; the deed is not.' },
       ],
+      { buy: LYON_BUY, rent: LYON_RENT },
     ),
     marseille: city(
       'Marseille',
@@ -2177,6 +2754,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Can I run it as a holiday let?', a: 'Only with registration and, in the restricted zones, an authorisation. Buying “for Airbnb” without checking the commune’s current rules is how people buy a fine.' },
         { q: 'Is a sea view worth the premium?', a: 'It is the most durable price factor on this coast and the least liquid to fake. It also carries the highest maintenance and insurance line.' },
       ],
+      { buy: NICE_BUY, rent: NICE_RENT },
     ),
     toulouse: city(
       'Toulouse',
@@ -2218,6 +2796,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Can I tourist-rent a flat?', a: 'Assume no unless you hold a current HUT licence, and read the 2028 phase-out before you capitalise the income.' },
         { q: 'Language of the deed?', a: 'Spanish and/or Catalan at the notario. Bring a translator if you cannot read the minuta.' },
       ],
+      { buy: BARCELONA_BUY, rent: BARCELONA_RENT },
     ),
     valencia: city(
       'Valencia',
@@ -2299,6 +2878,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Good for yield?', a: 'Some peripheral and student stock cash-flows; Brera trophies do not. Run condominio plus IMU before the brochure.' },
         { q: 'Foreign buyers allowed?', a: 'Yes for ordinary residential. The notaio still needs a codice fiscale and full KYC.' },
       ],
+      { buy: MILAN_BUY, rent: MILAN_RENT },
     ),
     florence: city(
       'Florence',
@@ -2380,6 +2960,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Better yield than London?', a: 'Often on paper. Check service charge, cladding and actual achieved rent rather than a developer spreadsheet.' },
         { q: 'Same solicitors as London?', a: 'England and Wales process, local firms. Still exchange-then-complete, not a notaire.' },
       ],
+      { buy: MANCHESTER_BUY, rent: MANCHESTER_RENT },
     ),
     birmingham: city(
       'Birmingham',
@@ -2406,6 +2987,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Is buying here the same as in England?', a: 'No. Different tax (LBTT), different contract (missives), different survey model (Home Report), different letting rules. Treat it as a separate jurisdiction, because it is one.' },
         { q: 'Can I run a holiday let?', a: 'Only with a licence and, for a whole property in the control area, planning permission for change of use. Assume no until both are in hand.' },
       ],
+      { buy: EDINBURGH_BUY, rent: EDINBURGH_RENT },
     ),
     glasgow: city(
       'Glasgow',
@@ -2461,6 +3043,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Cash only?', a: 'Cash is common, not mandatory. Lenders re-underwrite insurance and HOA health, which is where financed deals fail here.' },
         { q: 'Foreign-buyer tax on the way in?', a: 'No FIRPTA on purchase. Budget documentary stamps, title and the HOA estoppel like a local.' },
       ],
+      { buy: MIAMI_BUY, rent: MIAMI_RENT },
     ),
     'los-angeles': city(
       'Los Angeles',
@@ -2474,6 +3057,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Who pays Measure ULA?', a: 'The seller, on qualifying sales inside the City of Los Angeles. It still affects you as a buyer through pricing and available inventory above the threshold.' },
         { q: 'What is the biggest underwriting mistake here?', a: 'Using the seller’s property-tax figure. Prop 13 reassesses on transfer and the jump can be substantial.' },
       ],
+      { buy: LOS_ANGELES_BUY, rent: LOS_ANGELES_RENT },
     ),
     chicago: city(
       'Chicago',
@@ -2702,6 +3286,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Cheaper than Athens?', a: 'Substantially per square metre, with thinner foreign-buyer liquidity on exit.' },
         { q: 'Does the metro change the model?', a: 'Really along the opened line, speculatively on the extensions. Buy the station that exists.' },
       ],
+      { buy: THESSALONIKI_BUY, rent: THESSALONIKI_RENT },
     ),
   },
   cy: {
@@ -2756,6 +3341,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Commutable to Amsterdam?', a: 'Forty minutes by intercity, and priced like it. Buy Rotterdam for the port economy first; the train is a bonus, not a thesis.' },
         { q: 'Erfpacht here too?', a: 'Far less than Amsterdam. One less file to read, not zero files.' },
       ],
+      { buy: ROTTERDAM_BUY, rent: ROTTERDAM_RENT },
     ),
   },
   pt: {
@@ -2783,6 +3369,7 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Cheaper than Lisbon?', a: 'Meaningfully per square metre, with a smaller foreign-buyer exit pool.' },
         { q: 'Same short-let freeze?', a: 'Same mechanism, different map. Read Porto’s current containment zones, not Lisbon’s.' },
       ],
+      { buy: PORTO_BUY, rent: PORTO_RENT },
     ),
   },
   ch: {
@@ -2810,6 +3397,97 @@ export const EXTRA_CITIES: Partial<Record<keyof typeof EXTRA_NAMES, Record<strin
         { q: 'Live in France instead?', a: 'Half of Geneva does, economically. Cross-border commuting is a tax and currency model of its own — price the franc salary against euro costs, not just the rent gap.' },
         { q: 'Same Lex Koller?', a: 'Federal law, cantonal practice. Geneva administers its own authorization queue with its own timelines.' },
       ],
+      { buy: GENEVA_BUY, rent: GENEVA_RENT },
+    ),
+  },
+  at: {
+    vienna: city(
+      'Vienna',
+      'Vienna is Austria’s federal capital and Europe’s benchmark for tenancy regulation — Innere Stadt, Döbling and Leopoldstadt do not share a cap rate, and pre-war Altbau falls under strict MRG rent ceilings.',
+      [
+        'Austrian property conveyancing operates via notarial or attorney escrow (Treuhand) with title registered in the Grundbuch. Buyers pay 3.5% Grunderwerbsteuer plus a 1.1% land registry fee.',
+        'The Mietrechtsgesetz (MRG) strictly regulates pre-war Altbau apartments under the Richtwert system, setting legally enforceable rent ceilings per square metre. Cash flow models must underwrite statutory limits rather than free-market speculation.',
+      ],
+      [
+        { q: 'Can foreigners buy in Vienna?', a: 'EU/EEA citizens buy freely; non-EU buyers require approval from the Vienna Grundverkehrsbehörde unless holding specific residence qualifications.' },
+        { q: 'What is the MRG Richtwert?', a: 'The statutory benchmark rent per square metre for Altbau properties, capping base rent and heavily limiting location surcharges.' },
+      ],
+      { buy: VIENNA_BUY, rent: VIENNA_RENT },
+    ),
+  },
+  be: {
+    brussels: city(
+      'Brussels',
+      'Brussels is the capital of Belgium and the seat of EU institutions — Ixelles, Uccle and the European Quarter represent high-demand international markets subject to 12.5% registration duty.',
+      [
+        'Conveyancing proceeds from the compromis de vente to the final authentic deed before a Belgian notaire within four months. The Brussels-Capital Region levies 12.5% registration duty with an abattement tax allowance on qualifying primary residences.',
+        'Residential leases standardly follow the 9-year lease framework (bail 3-6-9) or fixed short-term agreements, with rents indexed annually to the Health Index and PEB energy performance ratings.',
+      ],
+      [
+        { q: 'What are notary and registration fees in Brussels?', a: 'Registration duty is 12.5% in Brussels-Capital, with notary fees and administrative charges adding approximately 2–3% on top.' },
+        { q: 'What is the standard lease in Brussels?', a: 'The classic bail 3-6-9 provides a 9-year term divided into 3-year periods, with mandatory tenant deposit protection in a blocked bank account.' },
+      ],
+      { buy: BRUSSELS_BUY, rent: BRUSSELS_RENT },
+    ),
+  },
+  ie: {
+    dublin: city(
+      'Dublin',
+      'Dublin is Ireland’s economic and technology powerhouse — Silicon Docks, Ballsbridge and Ranelagh command premium pricing subject to 1–2% Stamp Duty and strict Rent Pressure Zone rules.',
+      [
+        'Property purchases require solicitor conveyancing and registration with Tailte Éireann (Land Registry). Stamp Duty is 1% up to €1,000,000 and 2% thereafter, keeping upfront transaction taxes lower than continental Europe.',
+        'Dublin is designated as a Rent Pressure Zone (RPZ), capping annual rent increases at 2% or inflation, with mandatory registration through the Residential Tenancies Board (RTB) and Part 4 security of tenure.',
+      ],
+      [
+        { q: 'Can non-residents buy property in Dublin?', a: 'Yes. Non-residents can purchase Irish residential property without restriction, requiring only a Personal Public Service (PPS) number for Revenue registration.' },
+        { q: 'How does rent control work in Dublin?', a: 'Under RPZ legislation, annual rent increases cannot exceed 2% or the HICP inflation rate, protecting long-term residential tenants.' },
+      ],
+      { buy: DUBLIN_BUY, rent: DUBLIN_RENT },
+    ),
+  },
+  pl: {
+    warsaw: city(
+      'Warsaw',
+      'Warsaw is Poland’s financial and corporate center — Mokotów, Śródmieście and Wola drive dynamic rental yields with notarial deed conveyance and 2% PCC tax on secondary resales.',
+      [
+        'Transactions complete before a Polish notariusz and are recorded in the electronic Land and Mortgage Register (Księga Wieczysta). Secondary purchases incur 2% PCC tax, while off-plan developments are protected by escrow accounts under the Developer Act.',
+        'The rental market benefits from strong domestic and international demand, with landlords frequently utilizing the occasional lease (najem okazjonalny) format with notarial execution declarations.',
+      ],
+      [
+        { q: 'Can foreigners buy apartments in Warsaw?', a: 'Yes. Foreign nationals can freely purchase independent residential apartments in Warsaw without requiring a Ministry of Internal Affairs permit.' },
+        { q: 'What is najem okazjonalny?', a: 'An occasional lease contract where the tenant signs a notarized submission to voluntary enforcement, providing structured security for private landlords.' },
+      ],
+      { buy: WARSAW_BUY, rent: WARSAW_RENT },
+    ),
+  },
+  cz: {
+    prague: city(
+      'Prague',
+      'Prague is the historic and economic capital of the Czech Republic — Vinohrady, Karlín and Malá Strana offer prime liquidity with zero property acquisition tax and cadastre transparency.',
+      [
+        'Conveyancing completes with registration in the Czech Real Estate Cadastre (Katastr nemovitostí). Following the abolition of the 4% property transfer tax, transaction costs for buyers are among the lowest in Central Europe.',
+        'Leases are governed by the Czech Civil Code, allowing standard 1-year renewable fixed terms, security deposits capped at 3 months rent, and transparent annual utility reconciliations (poplatky).',
+      ],
+      [
+        { q: 'Is there a property transfer tax in Prague?', a: 'No. The acquisition tax was abolished, meaning buyers pay only cadastral filing and legal escrow fees.' },
+        { q: 'Can foreigners buy property in Prague?', a: 'Yes. Foreign individuals can buy freehold residential real estate without ownership restrictions.' },
+      ],
+      { buy: PRAGUE_BUY, rent: PRAGUE_RENT },
+    ),
+  },
+  se: {
+    stockholm: city(
+      'Stockholm',
+      'Stockholm’s apartment market is dominated by tenant-owner cooperatives (Bostadsrätt) — Östermalm, Södermalm and Vasastan trade with 0% stamp duty via licensed Fastighetsmäklare.',
+      [
+        'Buying an apartment means acquiring shares in a housing cooperative (Bostadsrättsförening - BRF) subject to board approval, with no lagfart stamp duty payable on cooperative apartments.',
+        'The rental market is bifurcated between regulated first-hand municipal leases (förstahand) and strictly controlled second-hand subleases (andrahand) governed by Hyreslagen cost-of-capital caps.',
+      ],
+      [
+        { q: 'Do buyers pay stamp duty on Stockholm apartments?', a: 'No. Bostadsrätt cooperative apartments are exempt from the 1.5% lagfart stamp duty that applies to freehold houses.' },
+        { q: 'How does second-hand renting work in Stockholm?', a: 'Subletting requires BRF board consent, and rents are legally capped based on the owner’s cost of capital plus utilities.' },
+      ],
+      { buy: STOCKHOLM_BUY, rent: STOCKHOLM_RENT },
     ),
   },
 }

@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronRight, LayoutGrid, MapPin, Search, TrendingUp } from 'lucide-react'
+import { ChevronRight, LayoutGrid, Search } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import MetroStationMapIdle from '@/components/MetroStationMapLazy'
 import { Chip } from '@/components/seo/SeoLanding'
-import { formatUSD, type Listing } from '@/data/listings'
+import type { Listing } from '@/data/listings'
 import {
   getBerlinStation,
   DE_METRO_RADIUS_M,
@@ -26,7 +26,7 @@ export const revalidate = 300
 async function resolve(stationSlug: string) {
   const station = getBerlinStation(stationSlug)
   if (!station) return null
-  const listings = await getListingsNearMetro(station.lat, station.lng, DE_METRO_RADIUS_M)
+  const listings = await getListingsNearMetro(station.lat, station.lng, DE_METRO_RADIUS_M, 'DE')
   return { station, listings }
 }
 
@@ -35,21 +35,21 @@ interface PageProps {
 }
 
 function titleOfStation(station: DeMetroStation, count: number): string {
-  const base = `Wohnungen ${station.name}, Berlin`
-  return count > 0 ? `${base} — ${count} Angebote` : `${base} — Kaufen & Mieten`
+  const base = `${station.name}, Berlin — U-Bahn & S-Bahn`
+  return count > 0 ? `${base} · ${count} Angebote in der Nähe` : base
 }
 
 function descriptionOfStation(station: DeMetroStation, listings: Listing[]): string {
   if (listings.length === 0) {
     return (
-      `Wohnungen ${station.name}, Berlin — kaufen und mieten. ` +
-      `Verifizierte Angebote, KI-Bewertung und direkter Kontakt auf sivrce.`
+      `${station.name}, Berlin — Linien, Umstiege und Kartenpunkt für die Wohnungssuche. ` +
+      `Angebote werden nur angezeigt, wenn sie im Umkreis veröffentlicht sind.`
     )
   }
   const s = listings.length
   return (
-    `${s} Angebote bei ${station.name}, Berlin — Preise ab ${formatUSD(Math.min(...listings.map((l) => l.priceUSD)))}. ` +
-    `KI-Bewertung und direkter Kontakt auf sivrce.`
+    `${s} veröffentlichte Angebote nahe ${station.name}, Berlin. ` +
+    `Die Seite verbindet Stationsdaten mit Angeboten im ${DE_METRO_RADIUS_M}-Meter-Umkreis.`
   )
 }
 
@@ -58,33 +58,32 @@ function introOfStation(station: DeMetroStation, listings: Listing[]): string {
   if (listings.length === 0) {
     return (
       `„${station.name}" — Station der Linie ${lines}${station.zone ? ` in Zone ${station.zone}` : ''}. ` +
-      `Derzeit gibt es keine aktiven Angebote in Gehweite, aber das Angebot ändert sich täglich — ` +
-      `sobald ein Angebot erscheint, finden Sie hier Preis, Fotos und KI-Bewertung.`
+      `Derzeit gibt es keine veröffentlichten Angebote im ${DE_METRO_RADIUS_M}-Meter-Umkreis. ` +
+      `Nutzen Sie die Deutschland-Suche oder die Berliner Bezirksübersicht für den aktuellen Markt.`
     )
   }
   return (
     `„${station.name}" — Station der Linie ${lines}${station.zone ? ` in Zone ${station.zone}` : ''}. ` +
     `Der Berliner Nahverkehr (BVG / S-Bahn Berlin) ist dicht getaktet und zuverlässig — ` +
-    `Wohnungen in Stationsnähe sind daher gefragt. Aktuell ${listings.length} Angebote in ${DE_METRO_RADIUS_M}m Gehweite. ` +
-    `Jedes Angebot wird von sivrce verifiziert: Eigentümer-Verifizierung, Fotoauthentizität und KI-Preisbewertung.`
+    `Für die Wohnungssuche liefert die Seite Linien und Lagekontext. Aktuell sind ${listings.length} veröffentlichte Angebote im ${DE_METRO_RADIUS_M}-Meter-Umkreis sichtbar.`
   )
 }
 
 function faqsOfStation(station: DeMetroStation, listings: Listing[]) {
   return [
     {
-      q: `Was kostet eine Wohnung ${station.name}?`,
+      q: `Wie suche ich Wohnungen nahe ${station.name}?`,
       a: listings.length > 0
-        ? `Derzeit ${listings.length} Angebote ab ${formatUSD(Math.min(...listings.map((l) => l.priceUSD)))}. Die KI-Preisbewertung steht auf jeder Angebotskarte.`
-        : `Der Preis hängt von Größe, Etage, Ausstattung und Entfernung zur Station ab. Schauen Sie auf der Bezirksseite nach aktuellen Preisen.`,
+        ? `Diese Seite zeigt ${listings.length} veröffentlichte Angebote im ${DE_METRO_RADIUS_M}-Meter-Umkreis. Für weitere Filter öffnen Sie die Deutschland-Suche.`
+        : `Öffnen Sie die Deutschland-Suche und kombinieren Sie Lage, Budget und Wohnungsart. Sobald ein Angebot im Umkreis veröffentlicht wird, erscheint es hier.`,
     },
     {
       q: `Warum sind Wohnungen ${station.name} gefragt?`,
-      a: `Die Berliner U-Bahn und S-Bahn sind dicht getaktet und zuverlässig — die Fahrzeit ist zu jeder Tageszeit vorhersagbar. Daher sind Wohnungen in Stationsnähe gefragter und verkaufen sich schneller.`,
+      a: `Sie verkürzen Wege und erleichtern die Orientierung im Alltag. Die konkrete Fahrzeit hängt von Linie, Tageszeit und Umstieg ab.`,
     },
     {
-      q: `Wie finde ich verifizierte Angebote ${station.name}?`,
-      a: `Auf dieser Seite sehen Sie alle aktiven Angebote innerhalb von ${DE_METRO_RADIUS_M}m Gehweite. Auf sivrce wird jedes Angebot verifiziert: Eigentümer-Verifizierung, Fotoauthentizität und KI-Preisbewertung.`,
+      q: `Welchen Umkreis nutzt die Seite?`,
+      a: `Angebote werden mit einem Luftlinien-Umkreis von ${DE_METRO_RADIUS_M} Metern zur Station zugeordnet. Gehwege und Fahrzeiten können davon abweichen.`,
     },
   ]
 }
@@ -97,7 +96,7 @@ function stationLd(
   title: string,
   description: string,
 ) {
-  const path = `/de/metro/${station.slug}`
+  const path = `/en/de/metro/${station.slug}`
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -158,7 +157,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!ctx) return {}
   const title = titleOfStation(ctx.station, ctx.listings.length)
   const description = descriptionOfStation(ctx.station, ctx.listings)
-  const path = `/de/metro/${ctx.station.slug}`
+  const path = `/en/de/metro/${ctx.station.slug}`
   return {
     title,
     description,
@@ -173,6 +172,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: title }],
     },
     twitter: { card: 'summary_large_image', title, description, images: ['/images/og-brand.png'] },
+    robots: { index: ctx.listings.length > 0, follow: true },
   }
 }
 
@@ -182,25 +182,16 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
   if (!ctx) notFound()
   const { station, listings } = ctx
 
-  const stats = listings.length > 0
-    ? {
-        count: listings.length,
-        minPrice: Math.min(...listings.map((l) => l.priceUSD)),
-        maxPrice: Math.max(...listings.map((l) => l.priceUSD)),
-        avgPerM2: listings.length > 0 && listings[0].perM2USD
-          ? Math.round(listings.reduce((sum, l) => sum + (l.perM2USD ?? 0), 0) / listings.length)
-          : null,
-      }
-    : null
+  const stats = listings.length > 0 ? { count: listings.length } : null
 
   const faqs = faqsOfStation(station, listings)
   const title = titleOfStation(station, listings.length)
   const description = descriptionOfStation(station, listings)
 
   const crumbs = [
-    { name: 'Startseite', href: '/de' },
-    { name: 'U-Bahn & S-Bahn', href: '/de/metro' },
-    { name: station.name, href: `/de/metro/${station.slug}` },
+    { name: 'Immobilien Deutschland', href: '/de/de' },
+    { name: 'U-Bahn & S-Bahn', href: '/en/de/metro' },
+    { name: station.name, href: `/en/de/metro/${station.slug}` },
   ]
 
   return (
@@ -243,10 +234,6 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
             <dl className="mt-6 flex flex-wrap gap-3">
               {[
                 { icon: LayoutGrid, label: 'Angebote', value: String(stats.count) },
-                ...(stats.avgPerM2
-                  ? [{ icon: TrendingUp, label: 'Durchschnitt', value: `${formatUSD(stats.avgPerM2)}/m²` }]
-                  : []),
-                { icon: MapPin, label: 'Ab', value: formatUSD(stats.minPrice) },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -267,11 +254,11 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
 
         {/* Link mesh */}
         <div className="mb-8 flex flex-wrap gap-2">
-          <Chip label={`Suche: ${station.name}`} href={`/en/search?country=DE&q=${encodeURIComponent(station.name)}`} />
+          <Chip label={`Suche: ${station.name}`} href={`/de/search?country=DE&q=${encodeURIComponent(station.name)}`} />
           {station.interchange && station.lines.length > 1 && (
-            <Chip label={`${station.name} — Alle Linien`} href={`/en/search?country=DE&q=${encodeURIComponent(station.name)}`} active />
+            <Chip label={`${station.name} — Alle Linien`} href={`/de/search?country=DE&q=${encodeURIComponent(station.name)}`} active />
           )}
-          <Chip label="Alle Stationen" href="/de/metro" />
+          <Chip label="Alle Stationen" href="/en/de/metro" />
         </div>
 
         {/* Station map */}
@@ -300,11 +287,11 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
               Noch keine Angebote in der Nähe
             </h2>
             <p className="mx-auto mt-2 max-w-[520px] text-[14px] font-medium leading-relaxed text-sv-ink/60">
-              Das Angebot ändert sich täglich — suchen Sie nach Wohnung, durchstöbern Sie den Bezirk oder besuchen Sie benachbarte Stationen.
+              Aktuell gibt es im Umkreis keine veröffentlichten Angebote. Durchsuchen Sie Deutschland nach Lage und Budget oder öffnen Sie den Berliner Bezirk.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <Chip label={`Suche: ${station.name}`} href={`/en/search?country=DE&q=${encodeURIComponent(station.name)}`} active />
-              <Chip label="Alle Stationen" href="/de/metro" />
+              <Chip label={`Suche: ${station.name}`} href={`/de/search?country=DE&q=${encodeURIComponent(station.name)}`} active />
+              <Chip label="Alle Stationen" href="/en/de/metro" />
             </div>
           </section>
         )}

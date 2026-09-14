@@ -235,7 +235,7 @@ export const DE_BERLIN_RENT_DE: CountryCopy = {
   ],
 }
 
-/** Native German hub — München. Hub-only: no /buy /rent copy exists yet (matches the EN pack). */
+/** Native German hub — München. */
 export const DE_MUNICH_HUB_DE: CountryCopy = {
   title: 'Immobilien München — Kauf & Miete | sivrce',
   description:
@@ -254,7 +254,53 @@ export const DE_MUNICH_HUB_DE: CountryCopy = {
   ],
 }
 
-/** Native German hub — Hamburg. Hub-only: no /buy /rent copy exists yet (matches the EN pack). */
+export const DE_MUNICH_BUY_DE: CountryCopy = {
+  title: 'Wohnung kaufen in München — 3,5 % Grunderwerbsteuer & Lagen | sivrce',
+  description:
+    'Kauf in München: Bayerns günstige 3,5 % Grunderwerbsteuer, Notarablauf, Grundbucheintrag und Renditen von Schwabing bis Bogenhausen.',
+  h1: 'Kaufen in München',
+  lede:
+    'Münchener Eigentumswohnungen durchsuchen: Typ, Stadtviertel, dann 3D-Karte. Bayerns bundesweit niedrigste Grunderwerbsteuer (3,5 %) und notarieller Eigentumsübergang im Überblick.',
+  body: [
+    'Bayern hält die Grunderwerbsteuer bei 3,5 % — der niedrigste Steuersatz aller Bundesländer. Mit Notar- und Grundbuchgebühren liegen die gesetzlichen Kaufnebenkosten bei ca. 5,0–5,5 % vor etwaiger Maklerprovision.',
+    'Altstadt-Lehel, Maxvorstadt, Bogenhausen und Schwabing bilden das Hochpreissegment. Geringe Leerstandsquoten und erstklassige Mieterbonität (DAX-Konzerne, Tech-Hubs, Universitäten) sorgen für verlässliche Cashflows trotz komprimierter Anfangsrenditen.',
+  ],
+  faqs: [
+    {
+      q: 'Warum lohnt sich der Immobilienkauf in München trotz hoher Quadratmeterpreise?',
+      a: 'München profitiert von kontinuierlichem Zuzug qualifizierter Fachkräfte, minimalem Leerstand (< 0,5 %) und hoher Wertbeständigkeit bei der niedrigsten Grunderwerbsteuer Deutschlands (3,5 %).',
+    },
+    {
+      q: 'Wie läuft die Kaufabwicklung beim Münchner Notar ab?',
+      a: 'Der Notar verliest den vollständigen Kaufvertrag, beurkundet die Einigung, veranlasst die Auflassungsvormerkung im Grundbuch und fordert den Kaufpreis erst nach Absicherung der Fälligkeitsvoraussetzungen an.',
+    },
+  ],
+}
+
+export const DE_MUNICH_RENT_DE: CountryCopy = {
+  title: 'Wohnung mieten in München — Mietspiegel & Kaution | sivrce',
+  description:
+    'Mieten in München: Münchner Mietspiegel, Kaution, SCHUFA-Bonitätsnachweis und Stadtviertelvergleich. Verifizierte Mietangebote.',
+  h1: 'Mieten in München',
+  lede:
+    'München ist Deutschlands anspruchsvollster Mietmarkt. Mietverträge orientieren sich am qualifizierten Münchner Mietspiegel mit strengem Mieterschutz nach BGB.',
+  body: [
+    'Wohnungsbesichtigungen in München erfordern vollständige Bewerbungsunterlagen: SCHUFA-Bonitätsauskunft, Selbstauskunft, Einkommensnachweise und Vorvermieterbestätigung.',
+    'Die Kaution beträgt maximal drei Nettokaltmieten (§ 551 BGB), die auf einem insolvenzfesten Mietkautionskonto verwahrt werden müssen. Die Mietpreisbremse findet im gesamten Stadtgebiet Anwendung.',
+  ],
+  faqs: [
+    {
+      q: 'Welche Unterlagen verlangen Vermieter in München?',
+      a: 'Standard sind: ausgefüllte Mieterselbstauskunft, aktuelle SCHUFA-Auskunft, Gehaltsnachweise der letzten 3 Monate und Nachweis über Mietschuldenfreiheit.',
+    },
+    {
+      q: 'Was ist der Unterschied zwischen Kaltmiete und Gesamtmiete?',
+      a: 'Die Kaltmiete (Nettokaltmiete) vergütet den Wohnraum. Die Gesamtmiete (Warmmiete) beinhaltet monatliche Betriebskosten- und Heizkostenvorauszahlungen.',
+    },
+  ],
+}
+
+/** Native German hub — Hamburg. */
 export const DE_HAMBURG_HUB_DE: CountryCopy = {
   title: 'Immobilien Hamburg — Kauf & Miete | sivrce',
   description:
@@ -270,6 +316,136 @@ export const DE_HAMBURG_HUB_DE: CountryCopy = {
   faqs: [
     { q: 'Ist Hamburg teurer als Berlin?', a: 'In der Regel ja pro Quadratmeter, aber günstiger als München. Wasserlagen und HafenCity markieren die Spitze.' },
     { q: 'Dürfen Ausländer in Hamburg kaufen?', a: 'Ja — derselbe notarielle Ablauf wie im übrigen Deutschland.' },
+  ],
+}
+
+export const DE_HAMBURG_BUY_DE: CountryCopy = {
+  title: 'Wohnung kaufen in Hamburg — Grunderwerbsteuer & Lagen | sivrce',
+  description:
+    'Kauf in Hamburg: 5,5 % Grunderwerbsteuer, Notar, Grundbuch und Quartierspreise von HafenCity bis Eimsbüttel. Verifizierte Angebote.',
+  h1: 'Kaufen in Hamburg',
+  lede:
+    'Hamburgs Kaufmarkt durchsuchen: Eigentumswohnungen nach Stadtteil, Typ und 3D-Karte. Notar, 5,5 % Grunderwerbsteuer und Grundbuch stehen unter der Suche.',
+  body: [
+    'Hamburg erhebt 5,5 % Grunderwerbsteuer. Notar- und Grundbuchkosten schlagen mit rund 1,5–2,0 % zu Buche, sodass die Kaufnebenkosten vor Maklerprovision bei etwa 7–8 % liegen. Eigentum geht mit der Umschreibung im Grundbuch über.',
+    'HafenCity, Harvestehude und Blankenese markieren das Premiumsegment; Eimsbüttel, Winterhude und Altona bieten lebendige innerstädtische Quartiere mit stabiler Wertentwicklung. Für Lagen an Elbe und Alsterkanälen sind Hochwasserschutz und Deichverbandsbeiträge relevant.',
+  ],
+  faqs: [
+    {
+      q: 'Wie hoch ist die Grunderwerbsteuer in Hamburg?',
+      a: 'Hamburg erhebt 5,5 % Grunderwerbsteuer auf den notariell beurkundeten Kaufpreis, fällig nach Erhalt des Steuerbescheids vom Finanzamt Hamburg (ca. 4–6 Wochen nach Beurkundung).',
+    },
+    {
+      q: 'Dürfen Nicht-EU-Bürger in Hamburg Eigentum erwerben?',
+      a: 'Ja. Das deutsche Immobilienrecht unterscheidet nicht nach Staatsangehörigkeit. Ausländische Käufer durchlaufen die standardmäßige Identitätsprüfung (GwG) beim Notar.',
+    },
+  ],
+}
+
+export const DE_HAMBURG_RENT_DE: CountryCopy = {
+  title: 'Wohnung mieten in Hamburg — Mietenspiegel & Kaution | sivrce',
+  description:
+    'Mieten in Hamburg: Hamburger Mietenspiegel, Mietkaution nach §551 BGB, Kalt- und Warmmiete sowie Mietpreisbremse. Verifizierte Langzeitmieten.',
+  h1: 'Mieten in Hamburg',
+  lede:
+    'Hamburg ist ein nachfragestarker Mietmarkt unter dem Hamburger Mietenspiegel. Die Kaution ist gesetzlich auf drei Nettokaltmieten gedeckelt, Standardverträge sind unbefristet.',
+  body: [
+    'Die Kaltmiete deckt die reine Raumnutzung; Nebenkosten für Heizung, Wasser und Gebäudereinigung werden als monatliche Vorauszahlung geleistet und jährlich per Betriebskostenabrechnung abgerechnet.',
+    'Vermieter verlangen üblicherweise SCHUFA-Auskunft, die letzten drei Gehaltsnachweise sowie eine Mietschuldenfreiheitsbescheinigung. In neueren Objekten sind Index- oder Staffelmietvereinbarungen verbreitet.',
+  ],
+  faqs: [
+    {
+      q: 'Wie hoch darf die Kaution in Hamburg sein?',
+      a: 'Gemäß § 551 BGB darf die Mietkaution maximal das Dreifache der monatlichen Nettokaltmiete betragen und kann in drei gleichen Monatsraten gezahlt werden.',
+    },
+    {
+      q: 'Gilt die Mietpreisbremse in Hamburg?',
+      a: 'Ja, Hamburg hat das gesamte Stadtgebiet als angespannten Wohnungsmarkt ausgewiesen. Wiedervermietungsmieten dürfen maximal 10 % über der ortsüblichen Vergleichsmiete liegen (Ausnahme: Neubau nach Okt. 2014).',
+    },
+  ],
+}
+
+/** Native German hub — Frankfurt am Main. */
+export const DE_FRANKFURT_HUB_DE: CountryCopy = {
+  title: 'Immobilien Frankfurt — Bankenviertel, Westend, Kauf & Miete | sivrce',
+  description:
+    'Frankfurt am Main: Finanzzentrum, EZB, Notar, Grundbuch, 6,0 % Grunderwerbsteuer (Hessen). Verifizierte Neubauten und Markttransparenz.',
+  h1: 'Immobilien in Frankfurt',
+  lede:
+    'Frankfurt durchsuchen: kaufen oder mieten oben, dann 3D-Karte. Bankenviertel, Westend und Sachsenhausen — Notar und Grundbuch bleiben das Kaufmodell.',
+  body: [
+    'Frankfurt ist das kontinentaleuropäische Finanzzentrum: EZB, Bundesbank, Großbanken und der Flughafen prägen die kaufkräftige Nachfrage nach hochwertigen City-Wohnungen und Neubauprojekten.',
+    'Hessen erhebt 6,0 % Grunderwerbsteuer. Notar und Grundbucheintragung schließen den Kauf rechtskräftig ab.',
+    'sivrce veröffentlicht in Frankfurt nur verifizierte Objekte nach denselben Prüfmaßstäben wie in Berlin und Georgien.',
+  ],
+  faqs: [
+    { q: 'Ist Frankfurt nur für Banker attraktiv?', a: 'Nein. Neben dem Bankensektor sorgen IT-, Beratungs- und Kreativbranchen sowie internationale Institutionen für eine breite, liquide Mieternachfrage.' },
+    { q: 'Wie hoch sind die Kaufnebenkosten in Frankfurt?', a: 'Rund 7,5–8,0 % gesetzliche Nebenkosten (6,0 % Grunderwerbsteuer + 1,5 % Notar/Grundbuch), zzgl. ggf. 3,57 % Makleranteil.' },
+  ],
+}
+
+export const DE_FRANKFURT_BUY_DE: CountryCopy = {
+  title: 'Wohnung kaufen in Frankfurt — 6,0 % Grunderwerbsteuer & Lagen | sivrce',
+  description:
+    'Kauf in Frankfurt: 6,0 % Grunderwerbsteuer (Hessen), Notar, Grundbuch, Bauträgerverordnung (MaBV) und Lagen von Westend bis Sachsenhausen.',
+  h1: 'Kaufen in Frankfurt',
+  lede:
+    'Frankfurter Eigentumswohnungen durchsuchen: Typ, Stadtteil, dann 3D-Karte. Hessens 6,0 % Grunderwerbsteuer und notarielle Absicherung nach BGB und MaBV.',
+  body: [
+    'In Hessen beträgt die Grunderwerbsteuer 6,0 %. Zusammen mit Notar- und Grundbuchgebühren (ca. 1,5–2,0 %) ergeben sich gesetzliche Erwerbsnebenkosten von rund 7,5–8,0 % vor Vermittlungsprovision.',
+    'Westend, Nordend, Holzhausenviertel und Sachsenhausen bilden die gefragtesten Wohnlagen. Neubauprojekte unterliegen der Makler- und Bauträgerverordnung (MaBV), die Ratenzahlungen an den Baufortschritt bindet.',
+  ],
+  faqs: [
+    {
+      q: 'Sind Neubauprojekte in Frankfurt für Anleger sicher abgesichert?',
+      a: 'Ja. Deutsche Bauträgerprojekte sind durch die MaBV streng reguliert: Zahlungen erfolgen ausschließlich nach testierten Bauabschnitten oder gegen Fertigstellungsbürgschaft.',
+    },
+    {
+      q: 'Welche Stadtteile in Frankfurt bieten beste Vermietbarkeit?',
+      a: 'Westend, Nordend, Bornheim, Sachsenhausen und das Europaviertel verfügen über höchste Vermietungsquoten bei überdurchschnittlichen Quadratmetermieten.',
+    },
+  ],
+}
+
+export const DE_FRANKFURT_RENT_DE: CountryCopy = {
+  title: 'Wohnung mieten in Frankfurt — Mietspiegel & Warmmiete | sivrce',
+  description:
+    'Mieten in Frankfurt: Frankfurter Mietspiegel, Kalt- und Warmmiete, Kaution nach BGB und Stadtteilübersicht. Verifizierte Mietangebote.',
+  h1: 'Mieten in Frankfurt',
+  lede:
+    'Frankfurt ist ein international geprägter Mietmarkt mit hoher Fluktuation und solider Nachfrage nach möbliertem und unmöbliertem Wohnraum unter dem Frankfurter Mietspiegel.',
+  body: [
+    'Die Nachfrage nach modernen Wohnungen im Einzugsbereich von Bankenviertel, Westend und Hauptbahnhof ist kontinuierlich hoch. Für unbefristete Standardmietverträge gilt das deutsche Mietrecht mit drei Monaten gesetzlicher Kündigungsfrist für Mieter.',
+    'Die Mietkaution ist auf drei Nettokaltmieten limitiert (§ 551 BGB). Nebenkostenvorauszahlungen werden nach Heizkostenverordnung und Betriebskostenverordnung jährlich präzise abgerechnet.',
+  ],
+  faqs: [
+    {
+      q: 'Können Expats vor ihrem Umzug nach Frankfurt mieten?',
+      a: 'Ja, häufig über Firmenrelocation-Verträge oder zunächst über temporäres möbliertes Wohnen (Wohnen auf Zeit) bis zum Einzug in ein unbefristetes Mietverhältnis.',
+    },
+    {
+      q: 'Was regelt der Frankfurter Mietspiegel?',
+      a: 'Der Frankfurter Mietspiegel liefert die amtliche Übersicht der ortsüblichen Vergleichsmieten differenziert nach Baujahr, Wohnfläche, Ausstattung und Lage.',
+    },
+  ],
+}
+
+/** Native German hub — Köln. */
+export const DE_COLOGNE_HUB_DE: CountryCopy = {
+  title: 'Immobilien Köln — Belgisches Viertel, Ehrenfeld, Kauf & Miete | sivrce',
+  description:
+    'Köln: Millionenstadt am Rhein, Notar, Grundbuch, 6,5 % Grunderwerbsteuer (NRW). Verifizierte Neubauten und Marktübersicht.',
+  h1: 'Immobilien in Köln',
+  lede:
+    'Köln durchsuchen: kaufen oder mieten oben, dann 3D-Karte. Belgisches Viertel, Ehrenfeld, Lindenthal und Deutz — Notar und Grundbuch bilden das Kaufmodell.',
+  body: [
+    'Köln ist die bevölkerungsreichste Stadt Nordrhein-Westfalens mit lebendiger Medien-, Hochschul- und Unternehmenslandschaft. Die Rheinschiene Köln–Düsseldorf bildet eine zusammenhängende Wirtschaftsregion.',
+    'In NRW gilt eine Grunderwerbsteuer von 6,5 %. Der Eigentumserwerb erfolgt über Notarbeurkundung und Grundbucheintragung.',
+    'sivrce erfasst Kölner Projekte und Inserate nach strengen Transparenzkriterien ohne unvollständige Lockangebote.',
+  ],
+  faqs: [
+    { q: 'Welche Kölner Veedel sind bei Mietern besonders beliebt?', a: 'Ehrenfeld, Nippes und das Belgische Viertel ziehen junge Berufstätige und Studierende an; Lindenthal, Sülz und Marienburg sind gefragte Familienlagen.' },
+    { q: 'Dürfen Ausländer in Köln Eigentum kaufen?', a: 'Ja, uneingeschränkt über denselben notariellen Weg wie deutsche Staatsbürger.' },
   ],
 }
 
@@ -292,6 +468,144 @@ const berlinRent: CountryCopy = {
     {
       q: 'Can I rent without a SCHUFA?',
       a: 'Some landlords accept alternatives (employer letter, higher deposit, blocked account). Many will not. Plan extra time.',
+    },
+  ],
+}
+
+const hamburgBuy: CountryCopy = {
+  title: 'Buy an apartment in Hamburg | sivrce',
+  description:
+    'Buying in Hamburg: 5.5% Grunderwerbsteuer, notary, Grundbuch, and neighborhood pricing from HafenCity to Eimsbüttel. sivrce verified inventory.',
+  h1: 'Buy in Hamburg',
+  lede:
+    'Search Hamburg apartments for sale: type, district, then the 3D map. Notary, 5.5% Grunderwerbsteuer and Grundbuch sit under the search. Foreign buyers are allowed.',
+  body: [
+    'Hamburg applies a 5.5% property transfer tax (Grunderwerbsteuer). Notary and land-registry fees add roughly 1.5–2.0%, bringing buyer closing costs to around 7–8% before any broker fee. The contract is executed before a notary and legal ownership transfers upon Grundbuch registration.',
+    'HafenCity and Harvestehude command prime price tags, while Eimsbüttel, Winterhude and Altona provide family-focused and mixed residential stock. Check flood zoning and polder associations (Deichverbände) for properties close to the Elbe and Alster canals.',
+  ],
+  faqs: [
+    {
+      q: 'What is the transfer tax rate in Hamburg?',
+      a: 'Hamburg levies a 5.5% Grunderwerbsteuer on the notarised purchase price, payable directly to the Finanzamt Hamburg within roughly 4–6 weeks of contract signing.',
+    },
+    {
+      q: 'Can non-residents buy freehold property in Hamburg?',
+      a: 'Yes. Germany imposes no nationality restrictions on residential freehold ownership. Non-residents undergo standard KYC and AML identification before the notary.',
+    },
+  ],
+}
+
+const hamburgRent: CountryCopy = {
+  title: 'Rent an apartment in Hamburg | sivrce',
+  description:
+    'Renting in Hamburg: Mietenspiegel, deposit caps (§551 BGB), Kaltmiete vs Warmmiete, and district tenancy trends. sivrce long-term rentals.',
+  h1: 'Rent in Hamburg',
+  lede:
+    'Hamburg is a high-demand rental market governed by the Hamburger Mietenspiegel. Deposits are capped at 3 months cold rent, and standard leases are open-ended.',
+  body: [
+    'Most leases in Hamburg are unfurnished and indefinite. Cold rent (Kaltmiete) covers the space; heating and operating costs (Nebenkosten) are paid monthly as an advance and settled annually via the Betriebskostenabrechnung.',
+    'Tenants must provide SCHUFA credit records, 3 months of salary slips, and landlord references (Mietschuldenfreiheitsbescheinigung). Indexmiete (inflation-linked) and Staffelmiete (scheduled step increases) are common in newer buildings.',
+  ],
+  faqs: [
+    {
+      q: 'How much deposit is legal in Hamburg?',
+      a: 'Under §551 BGB, the security deposit (Mietkaution) cannot exceed three months cold rent (Nettokaltmiete), payable in three equal monthly instalments.',
+    },
+    {
+      q: 'Does the rent cap (Mietpreisbremse) apply in Hamburg?',
+      a: 'Yes. Hamburg enforces the rent brake across the entire city territory, capping new leases at a maximum of 10% above the local comparative rent (Mietenspiegel), with exemptions for newly constructed buildings (first use after Oct 2014).',
+    },
+  ],
+}
+
+const munichBuy: CountryCopy = {
+  title: 'Buy an apartment in Munich | sivrce',
+  description:
+    'Buying in Munich: Bavaria’s 3.5% Grunderwerbsteuer (lowest in Germany), notary, Grundbuch, and district yields from Schwabing to Bogenhausen.',
+  h1: 'Buy in Munich',
+  lede:
+    'Search Munich property for sale: Bavaria offers Germany’s lowest transfer tax at 3.5%. Notary, Grundbuch, and prime district dynamics sit under the search.',
+  body: [
+    'Bavaria charges 3.5% Grunderwerbsteuer — the lowest rate among all German federal states. With notary and Grundbuch registration adding roughly 1.5%, total buyer ancillary costs start at just ~5% before broker commission.',
+    'Munich is Germany’s premier capital-preservation market. Yields in Altstadt-Lehel, Maxvorstadt and Schwabing average 2.5–3.2% gross, backed by global corporate headquarters (BMW, Siemens, Allianz) and structural housing supply constraints.',
+  ],
+  faqs: [
+    {
+      q: 'Why are ancillary purchase costs lower in Munich?',
+      a: 'Bavaria maintains a 3.5% Grunderwerbsteuer, compared to 6.0% in Berlin and 6.5% in North Rhine-Westphalia, saving buyers tens of thousands of euros on closing.',
+    },
+    {
+      q: 'Is Munich property suitable for yield or capital growth?',
+      a: 'Munich is primarily a wealth-preservation and long-term equity growth market. Low vacancy rates (<0.3%) ensure dependable occupancy and stable rental cashflow.',
+    },
+  ],
+}
+
+const munichRent: CountryCopy = {
+  title: 'Rent an apartment in Munich | sivrce',
+  description:
+    'Renting in Munich: Münchner Mietspiegel, 3 months deposit cap, documentation checklist, and neighborhood rental profiles.',
+  h1: 'Rent in Munich',
+  lede:
+    'Munich is Germany’s tightest rental market. Vacancies are under 0.5%, leases are open-ended, and asking rents are benchmarked against the Münchner Mietspiegel.',
+  body: [
+    'Rental demand in Munich is exceptionally competitive. Standard application files (Bewerbungsmappe) require SCHUFA credit reports, employment contracts, identity verification, and proof of income.',
+    'Contracts distinguish clearly between Nettokaltmiete and Warmmiete. Shared apartments (WGs) and furnished corporate flats exist, but unfurnished open-ended contracts remain the gold standard for long-term residents.',
+  ],
+  faqs: [
+    {
+      q: 'What documents are required to rent an apartment in Munich?',
+      a: 'Landlords expect a complete application package: photo ID, last 3 salary statements, SCHUFA-Bonitätsauskunft, and a debt-free confirmation from your previous landlord.',
+    },
+    {
+      q: 'How does the Munich rent index work?',
+      a: 'The Münchner Mietspiegel sets official reference rents based on location, building age, energy performance, and interior amenities, updated biennially.',
+    },
+  ],
+}
+
+const frankfurtBuy: CountryCopy = {
+  title: 'Buy an apartment in Frankfurt | sivrce',
+  description:
+    'Buying in Frankfurt: 6.0% Hessen Grunderwerbsteuer, notary process, financial district towers, and residential belts from Westend to Sachsenhausen.',
+  h1: 'Buy in Frankfurt',
+  lede:
+    'Search Frankfurt real estate for sale: financial district skyline, Westend villas, and suburban commuter belts. Notary, 6.0% transfer tax, and Grundbuch details.',
+  body: [
+    'Hesse imposes a 6.0% Grunderwerbsteuer. Notary and land-registry fees add roughly 1.5–2.0%. Frankfurt offers liquid 1- to 3-room apartments popular with banking, ECB, and management consulting professionals.',
+    'Westend, Holzhausenviertel, and Diplonatenviertel represent the high-end freehold segment, while Sachsenhausen, Nordend, and Bornheim provide lively urban character with strong tenant retention.',
+  ],
+  faqs: [
+    {
+      q: 'What are the total buyer closing costs in Frankfurt?',
+      a: 'Expect roughly 7.5–8.0% in statutory closing costs (6.0% transfer tax + 1.5% notary/registry), plus buyer broker commission (up to 3.57% incl. VAT) when applicable.',
+    },
+    {
+      q: 'Is Frankfurt off-plan property safe for foreign investors?',
+      a: 'Yes. German developer projects are strictly regulated by the Makler- und Bauträgerverordnung (MaBV), ensuring payments are released only upon certified construction milestones.',
+    },
+  ],
+}
+
+const frankfurtRent: CountryCopy = {
+  title: 'Rent an apartment in Frankfurt | sivrce',
+  description:
+    'Renting in Frankfurt: banking hub rental demand, Frankfurter Mietspiegel, corporate furnished vs long-term unfurnished leases.',
+  h1: 'Rent in Frankfurt',
+  lede:
+    'Frankfurt is Germany’s financial capital with high corporate mobility, steady expat inflows, and strong rental yields across inner and commuter districts.',
+  body: [
+    'Frankfurt exhibits high demand for high-spec apartments near the banking quarter (Bankenviertel), Westend, and the central train corridor. Corporate leases and furnished flats command premium yields.',
+    'Standard private tenancies follow German federal tenancy law with open-ended contracts, three months statutory notice for tenants, and deposit caps at three months cold rent.',
+  ],
+  faqs: [
+    {
+      q: 'Can expats rent an apartment in Frankfurt before relocating?',
+      a: 'Yes, often through corporate relocation agreements or initial temporary furnished housing (Wohnen auf Zeit) before transitioning to an open-ended private lease.',
+    },
+    {
+      q: 'What is the difference between Kaltmiete and Warmmiete in Frankfurt?',
+      a: 'Kaltmiete is the net base rent for the premises. Warmmiete includes advance payments for heating, water, refuse collection, and communal building maintenance.',
     },
   ],
 }
@@ -322,6 +636,7 @@ export const DE_CITIES: Record<string, CityPack> = {
       { q: 'Is Hamburg more expensive than Berlin?', a: 'Generally yes on a per-square-metre basis, still below Munich. Waterfront and HafenCity sit at the top of the local range.' },
       { q: 'Can foreigners buy in Hamburg?', a: 'Yes — same notarial process as the rest of Germany.' },
     ],
+    { buy: hamburgBuy, rent: hamburgRent },
   ),
   munich: city(
     'Munich',
@@ -334,6 +649,7 @@ export const DE_CITIES: Record<string, CityPack> = {
       { q: 'Why is Munich so expensive?', a: 'High wages, limited inner land, and persistent inbound jobs. Vacancy is thin, so rents are predictable even when yields look modest.' },
       { q: 'Is Munich good for rental investors?', a: 'Cash yield is compressed. Investors buy scarcity and tenant quality, not a 7% cap rate.' },
     ],
+    { buy: munichBuy, rent: munichRent },
   ),
   cologne: city(
     'Cologne',
@@ -358,6 +674,7 @@ export const DE_CITIES: Record<string, CityPack> = {
       { q: 'Is Frankfurt only for bankers?', a: 'No, but the core prices as if it were. Families often cross into Offenbach or the Taunus rather than shrinking the apartment.' },
       { q: 'Off-plan in Frankfurt?', a: 'Exists, but the legal wrap is still notarial. Escrow marketing from other countries does not replace Grundbuch.' },
     ],
+    { buy: frankfurtBuy, rent: frankfurtRent },
   ),
   stuttgart: city(
     'Stuttgart',
@@ -527,6 +844,52 @@ const dubaiRent: CountryCopy = {
   ],
 }
 
+const abuDhabiBuy: CountryCopy = {
+  title: 'Buy property in Abu Dhabi | sivrce',
+  description:
+    'Buying in Abu Dhabi: investment zones (Saadiyat, Yas, Al Reem), 2% DMT registration fee, TAMM digital deed, and Golden Visa eligibility.',
+  h1: 'Buy in Abu Dhabi',
+  lede:
+    'Foreigners can purchase freehold property in designated Abu Dhabi investment zones with title registered by the Department of Municipalities and Transport (DMT).',
+  body: [
+    'Abu Dhabi charges a 2% municipal registration fee on property transfers — half of Dubai’s 4% Land Department rate. Freehold is designated in world-class master developments including Saadiyat Island (cultural district), Yas Island (entertainment), Al Reem Island, and Al Raha Beach.',
+    'Off-plan purchases are secured under Law No. 3 of 2015 via escrow accounts supervised by the DMT. Properties valued at AED 2M+ ($545k) qualify foreign investors for the 10-year UAE Golden Visa.',
+  ],
+  faqs: [
+    {
+      q: 'Which areas in Abu Dhabi allow 100% foreign freehold ownership?',
+      a: 'Foreigners can buy freehold in designated investment zones: Saadiyat Island, Yas Island, Al Reem Island, Al Maryah Island, Al Raha Beach, Masdar City, and Nurai Island.',
+    },
+    {
+      q: 'What is the property transfer fee in Abu Dhabi?',
+      a: 'The transfer fee is 2% of the purchase price, paid to the Department of Municipalities and Transport (DMT), usually split 1% buyer and 1% seller or as agreed in Form F.',
+    },
+  ],
+}
+
+const abuDhabiRent: CountryCopy = {
+  title: 'Rent in Abu Dhabi | sivrce',
+  description:
+    'Renting in Abu Dhabi: Tawtheeq lease registration, payment cheques, ADDC utilities, and 5% municipal housing fee for expats.',
+  h1: 'Rent in Abu Dhabi',
+  lede:
+    'Renting in Abu Dhabi requires official Tawtheeq registration through the Department of Municipalities and Transport. Leases are typically annual and paid via post-dated cheques.',
+  body: [
+    'Every residential lease must be registered on the Tawtheeq municipal system to activate electricity and water with ADDC and secure residency visas. Expats pay a 5% municipal housing fee based on the annual rent, spread across monthly utility bills.',
+    'Abu Dhabi offers high tenant stability, with long-term residents anchored by federal government institutions, ADNOC and energy majors, aviation, and global universities (NYU Abu Dhabi, Sorbonne).',
+  ],
+  faqs: [
+    {
+      q: 'What is Tawtheeq and why is it mandatory?',
+      a: 'Tawtheeq is the official tenancy registration system in Abu Dhabi. It validates the tenancy contract, establishes tenant rights, and is mandatory for family visa sponsorship and utility connections.',
+    },
+    {
+      q: 'How is rent paid in Abu Dhabi?',
+      a: 'Rent is traditionally paid using 1 to 4 post-dated cheques. Direct debit and monthly digital payment setups are increasingly offered in institutional developer portfolios.',
+    },
+  ],
+}
+
 export const AE_CITIES: Record<string, CityPack> = {
   dubai: city(
     'Dubai',
@@ -552,6 +915,7 @@ export const AE_CITIES: Record<string, CityPack> = {
       { q: 'Is Abu Dhabi cheaper than Dubai?', a: 'Often for comparable villas; trophy Saadiyat and Corniche stock is not a bargain bin. Compare communities, not the emirate average.' },
       { q: 'Foreign freehold?', a: 'Yes in designated investment zones. Confirm the plot’s designation before you pay a reservation fee.' },
     ],
+    { buy: abuDhabiBuy, rent: abuDhabiRent },
   ),
   sharjah: city(
     'Sharjah',

@@ -37,6 +37,7 @@ import {
   parseView,
   parseWikiLodging,
   placeBySlug,
+  SEED_TA,
   wikiLodgingQuery,
   withMargin,
   type FxRates,
@@ -306,9 +307,20 @@ const keys = collectTaKeys(
   41.7151,
   44.8271,
 )
-assert(keys.some((k) => k.key === "g294195-d23527973") && keys.some((k) => k.key === "g294195-d301416"), "wiki + tbilisi seed")
+assert(keys.some((k) => k.key === "g294195-d23527973") && keys.some((k) => k.key === "g294195-d7171589"), "wiki + tbilisi seed")
 assert(keys.some((k) => k.key === "g294195-d111"), "osm taKey collected")
 assert(collectTaKeys([], { geo: null, hotels: [] }, 48.85, 2.35).length === 0, "paris: no ge seed")
+// Seeds are the hand-verified keys; attachOtaPrices only fetches the first 8,
+// so they must lead — an OSM tripadvisor tag must not push them off the edge.
+assert(
+  keys.slice(0, SEED_TA.length).every((k, i) => k.key === SEED_TA[i].key),
+  "verified seeds lead the fetch queue",
+)
+assert(SEED_TA.length > 0 && new Set(SEED_TA.map((s) => s.key)).size === SEED_TA.length, "seed keys unique")
+for (const s of SEED_TA) {
+  assert(parseTaKey(s.key) === s.key, `seed key well-formed: ${s.name}`)
+  assert(keepHotelName(s.name), `seed name usable on a card: ${s.key}`)
+}
 
 const painted = paintOtaPrices(
   [

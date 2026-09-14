@@ -10,7 +10,15 @@ import { readFileSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { rangesOverlap, ACTIVE_BOOKING_STATUSES, expandBookingNights, quoteStay, stayBookingLockKey } from "./bookings"
+import {
+  rangesOverlap,
+  ACTIVE_BOOKING_STATUSES,
+  expandBookingNights,
+  gelPerUnit,
+  nightlyTetriOf,
+  quoteStay,
+  stayBookingLockKey,
+} from "./bookings"
 import { STAY_TRANSITIONS, createStayBooking, transitionStayBooking } from "./stay-create"
 import { createStayCancelToken, verifyStayCancelToken, stayBookingRef } from "./stay-token"
 import { BookingStatus } from "@/generated/prisma/enums"
@@ -134,8 +142,29 @@ for (const def of [
   assert(hits === 2, `settings default "${def}" must appear exactly twice (GET + POST), found ${hits}`)
 }
 
+// FX conversion: booking rows settle in GEL tetri, so a USD/EUR listing is
+// converted once, by the same helper on both halves of the route.
+const fx = { usdGel: 2.7, eurGel: 3.04 }
+assert(gelPerUnit("GEL", fx) === 1, "GEL is its own unit")
+assert(gelPerUnit("USD", fx) === 2.7 && gelPerUnit("EUR", fx) === 3.04, "USD/EUR take the live rate")
+assert(gelPerUnit("TRY", fx) === null, "no rate → not bookable, never a guessed price")
+assert(gelPerUnit("USD", { usdGel: 0, eurGel: 3.04 }) === null, "a zero rate is not a rate")
+assert(nightlyTetriOf(120, 1) === 12_000, "GEL listing converts 1:1")
+assert(nightlyTetriOf(120, 2.7) === 32_400, "USD 120/night → ₾324.00")
+assert(nightlyTetriOf(85, 3.04) === 25_840, "EUR 85/night → ₾258.40")
+assert(Number.isInteger(nightlyTetriOf(99, 2.603066)), "tetri is always a whole number")
+// Both halves of the route must convert identically or the shown total and the
+// booked total diverge — the exact bug the shared helper exists to prevent.
+{
+  const hits = route.split("nightlyTetriOf(listing.price, gelRate)").length - 1
+  assert(hits === 2, `nightlyTetriOf must appear exactly twice (GET + POST), found ${hits}`)
+  assert(!route.includes("listing.price * 100"), "raw price*100 would skip conversion")
+  assert(route.includes("getFx"), "route must source rates from the shared server FX")
+}
+
 // The widget quotes through the same pure function the server snapshots.
 const widget = readFileSync(join(root, "components/listing/StayBooker.tsx"), "utf8")
+assert(widget.includes("fxNote"), "widget must disclose the conversion, not re-price silently")
 assert(widget.includes("quoteStay"), "StayBooker must quote via quoteStay (single pricing source)")
 assert(widget.includes("/api/bookings"), "StayBooker must hit /api/bookings")
 assert(widget.includes("aria-modal"), "StayBooker dialog must be modal")

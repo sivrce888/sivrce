@@ -30,6 +30,7 @@ interface Copy {
   search: string
   liveBadge: string
   browseBadge: string
+  pricesUnavailable: string
   website: string
   gdsQuote: string
   feeIncl: (n: number) => string
@@ -75,6 +76,7 @@ const COPY: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     search: 'ცოცხალი ფასები',
     liveBadge: 'ცოცხალი ფასები',
     browseBadge: 'ღია კატალოგი · OpenStreetMap',
+    pricesUnavailable: 'ამ ძიებაზე ცოცხალი ფასები ამჟამად მიუწვდომელია — გახსენი პარტნიორი ქვემოთ დღევანდელი ტარიფისთვის.',
     website: 'ვებსაიტი',
     gdsQuote: 'sivrce',
     feeIncl: (n) => `ჩათვლით ${n} ₾ sivrce`,
@@ -118,6 +120,7 @@ const COPY: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     search: 'Live rates',
     liveBadge: 'Live rates',
     browseBadge: 'Open directory · OpenStreetMap',
+    pricesUnavailable: 'Live prices are unavailable for this search right now — open a partner below for today’s rate.',
     website: 'Website',
     gdsQuote: 'sivrce',
     feeIncl: (n) => `incl. ${n} ₾ sivrce`,
@@ -161,6 +164,7 @@ const COPY: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     search: 'Живые цены',
     liveBadge: 'Живые цены',
     browseBadge: 'Открытый каталог · OpenStreetMap',
+    pricesUnavailable: 'Живые цены сейчас недоступны для этого поиска — откройте партнёра ниже, чтобы увидеть сегодняшний тариф.',
     website: 'Сайт',
     gdsQuote: 'sivrce',
     feeIncl: (n) => `вкл. ${n} ₾ sivrce`,
@@ -204,6 +208,7 @@ const COPY: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     search: 'Live-Preise',
     liveBadge: 'Live-Preise',
     browseBadge: 'Offenes Verzeichnis · OpenStreetMap',
+    pricesUnavailable: 'Live-Preise sind für diese Suche gerade nicht verfügbar — Partner unten öffnen für den heutigen Tarif.',
     website: 'Website',
     gdsQuote: 'sivrce',
     feeIncl: (n) => `inkl. ${n} ₾ sivrce`,
@@ -535,55 +540,81 @@ async function Results({
   const filtered = applyView(result?.hotels ?? [], view, nights)
   const overFiltered = !stayValid || mode !== 'live' ? false : filtered.length === 0 && (result?.hotels.length ?? 0) > 0
 
-  const hotelsLd =
+  const hotelsItems =
     mode === 'live' && filtered.length
-      ? jsonLd({
-          '@context': 'https://schema.org',
-          '@type': 'ItemList',
-          itemListElement: filtered.slice(0, 10).map((h, i) => ({
+      ? filtered.slice(0, 10).map((h, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'Hotel',
+            name: h.name,
+            address: h.address ?? undefined,
+            offers: {
+              '@type': 'Offer',
+              price: h.providerGel,
+              priceCurrency: 'GEL',
+              availability: 'https://schema.org/InStock',
+              validFrom: checkIn,
+            },
+          },
+        }))
+      : mode === 'browse' && browse.length
+        ? browse.slice(0, 10).map((h, i) => ({
             '@type': 'ListItem',
             position: i + 1,
             item: {
               '@type': 'Hotel',
               name: h.name,
               address: h.address ?? undefined,
-              offers: {
-                '@type': 'Offer',
-                price: h.providerGel,
-                priceCurrency: 'GEL',
-                availability: 'https://schema.org/InStock',
-                validFrom: checkIn,
-              },
+              ...(h.stars ? { starRating: { '@type': 'Rating', ratingValue: h.stars } } : {}),
+              ...(h.providerGel
+                ? {
+                    offers: {
+                      '@type': 'Offer',
+                      price: h.providerGel,
+                      priceCurrency: 'GEL',
+                      availability: 'https://schema.org/InStock',
+                      validFrom: checkIn,
+                    },
+                  }
+                : {}),
             },
-          })),
-        })
-      : mode === 'browse' && browse.length
-        ? jsonLd({
-            '@context': 'https://schema.org',
-            '@type': 'ItemList',
-            itemListElement: browse.slice(0, 10).map((h, i) => ({
-              '@type': 'ListItem',
-              position: i + 1,
-              item: {
-                '@type': 'Hotel',
-                name: h.name,
-                address: h.address ?? undefined,
-                ...(h.stars ? { starRating: { '@type': 'Rating', ratingValue: h.stars } } : {}),
-                ...(h.providerGel
-                  ? {
-                      offers: {
-                        '@type': 'Offer',
-                        price: h.providerGel,
-                        priceCurrency: 'GEL',
-                        availability: 'https://schema.org/InStock',
-                        validFrom: checkIn,
-                      },
-                    }
-                  : {}),
-              },
-            })),
-          })
-        : null
+          }))
+        : []
+
+  const hotelsLd = jsonLd({
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': 'https://sivrce.ge/hotels#webpage',
+        url: 'https://sivrce.ge/hotels',
+        name: copy.title,
+        description: copy.subtitle,
+        inLanguage: lang,
+        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', '.speakable-lead', 'h2'],
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
+          { '@type': 'ListItem', position: 2, name: copy.kicker, item: 'https://sivrce.ge/hotels' },
+        ],
+      },
+      ...(hotelsItems.length
+        ? [
+            {
+              '@type': 'ItemList',
+              itemListElement: hotelsItems,
+            },
+          ]
+        : []),
+    ],
+  })
 
   const header = (
     <>
@@ -658,6 +689,17 @@ async function Results({
       <>
         {hotelsLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: hotelsLd }} /> : null}
         {header}
+        {pricedBrowse.length === 0 ? (
+          // The hero promises live rates; when the OTA feed returns nothing we
+          // say so instead of rendering a price-less directory that looks like
+          // the prices are simply missing. Partner links below still work.
+          <p
+            role="status"
+            className="mb-6 rounded-card border border-sv-orange/25 bg-sv-orange/[0.07] px-5 py-4 text-[13px] font-semibold text-sv-ink/75"
+          >
+            {copy.pricesUnavailable}
+          </p>
+        ) : null}
         <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {browse.map((h) => {
             const book = compareLinks(`${h.name} ${placeEn}`, checkIn, checkOut, adults)[0]

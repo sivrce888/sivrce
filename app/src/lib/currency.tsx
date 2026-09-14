@@ -25,6 +25,16 @@ const RATE_CACHE_KEY = 'sivrce:rate'
 const RATE_TTL = 6 * 60 * 60 * 1000 // 6 hours
 
 const CURRENCIES: readonly Currency[] = ['GEL', 'USD', 'EUR']
+
+/** Toggle chips on a listing. GEL is Georgia-only; euro markets never offer Lari. */
+export function listingToggleCurrencies(opts: {
+  country?: string | null
+  currencyOriginal?: ListingCurrency | null
+}): Currency[] {
+  if (opts.currencyOriginal === 'EUR' || opts.country === 'DE') return ['EUR', 'USD']
+  if (opts.country && opts.country !== 'GE') return ['EUR', 'USD']
+  return ['GEL', 'USD']
+}
 const STORAGE_KEY = 'sivrce:currency'
 const CURRENCY_EVENT = 'sivrce:currency-changed'
 

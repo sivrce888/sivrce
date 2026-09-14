@@ -633,3 +633,24 @@ export function getGermanStation(citySlug: string, slug: string): DeMetroStation
 
 /** Walking radius for station pages — ~10 min on foot. */
 export const DE_METRO_RADIUS_M = 800
+
+/**
+ * Badge style for a line color: text class + background that guarantees
+ * WCAG 4.5:1. Mid-tone official colors are darkened just enough — the hue
+ * stays recognisable, the label stays readable.
+ */
+export function lineBadge(color: string): { cls: string; bg: string } {
+  const n = parseInt(color.slice(1), 16)
+  const ch = (v: number) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
+  const lum = 0.2126 * ch((n >> 16) & 255) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255)
+  // sv-ink (#0F172A, L≈0.0117) is the other candidate — prefer it when it passes 4.5:1
+  if ((lum + 0.05) / 0.0617 >= 4.5) return { cls: 'text-sv-ink', bg: color }
+  if (1.05 / (lum + 0.05) >= 4.5) return { cls: 'text-white', bg: color }
+  // neither passes: darken toward black until white text passes 4.5:1
+  for (let f = 0.95; f >= 0.3; f -= 0.05) {
+    const r = Math.round(((n >> 16) & 255) * f), g = Math.round(((n >> 8) & 255) * f), b = Math.round((n & 255) * f)
+    const l = 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b)
+    if (1.05 / (l + 0.05) >= 4.5) return { cls: 'text-white', bg: `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}` }
+  }
+  return { cls: 'text-white', bg: color }
+}

@@ -253,7 +253,7 @@ export default function MarketHome({
         lang={lang}
       />
       <Suspense fallback={null}>
-        <MarketListings country={country} city={city} intent={intent} />
+        <MarketListings country={country} city={city} intent={intent} lang={lang} />
       </Suspense>
       <FactsBand country={country} />
       <CostAndRules country={country} city={city} />

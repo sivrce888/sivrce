@@ -8,6 +8,7 @@
  */
 
 import { WORLD_PLACES } from "@/data/world-places"
+import { getFx, type FxRates } from "./fx-server"
 
 export type HotelMode = "live" | "browse" | "unconfigured" | "error"
 
@@ -56,14 +57,7 @@ export interface BrowseHotel {
   feeGel?: number
 }
 
-export interface FxRates {
-  usdGel: number
-  eurGel: number
-  source: "live" | "fallback"
-}
-
-/** Mirrors currency.tsx fallbacks so server and client agree pre-hydration. */
-export const FX_FALLBACK: FxRates = { usdGel: 2.7, eurGel: 3.04, source: "fallback" }
+export { FX_FALLBACK, getFx, type FxRates } from "./fx-server"
 
 export function marginPct(): number {
   const raw = Number.parseFloat(process.env.HOTEL_MARGIN_PCT ?? "")
@@ -101,31 +95,6 @@ export function parseStay(checkIn: string, checkOut: string): { nights: number }
 export function placeBySlug(slug: string) {
   const row = WORLD_PLACES.find((p) => p.slug === slug)
   return row ?? null
-}
-
-let fxCache: { at: number; fx: FxRates } | null = null
-const FX_TTL = 6 * 3600_000
-
-/** USD-based live FX (same free endpoint as the client currency context). */
-export async function getFx(): Promise<FxRates> {
-  if (fxCache && Date.now() - fxCache.at < FX_TTL) return fxCache.fx
-  try {
-    const res = await fetch("https://open.er-api.com/v6/latest/USD", {
-      next: { revalidate: 6 * 3600 },
-    })
-    const json = (await res.json()) as { rates?: Record<string, number> }
-    const gel = json.rates?.GEL
-    const eur = json.rates?.EUR
-    if (typeof gel === "number" && typeof eur === "number" && gel > 0 && eur > 0) {
-      const fx: FxRates = { usdGel: gel, eurGel: gel / eur, source: "live" }
-      fxCache = { at: Date.now(), fx }
-      return fx
-    }
-  } catch {
-    // fall through to fallback
-  }
-  fxCache = { at: Date.now(), fx: FX_FALLBACK }
-  return FX_FALLBACK
 }
 
 const amadeusBase = () =>
@@ -664,8 +633,19 @@ export function parseWikiLodging(bindings: { kind?: { value?: string }; name?: {
   return { geo, hotels }
 }
 
-/** ponytail: Wikidata P3134 misses Tbilisi. Key verified live on Xotelo 2026-09-14. */
-const SEED_TA: { name: string; key: string }[] = [{ name: "Rooms Hotel Tbilisi", key: "g294195-d301416" }]
+/**
+ * ponytail: Wikidata P3134 has zero hits near Tbilisi and OSM rarely carries a
+ * tripadvisor tag, so the home market's live OTA prices come from this table.
+ * Every key resolved from its own TripAdvisor review URL and confirmed to
+ * return that hotel's own rate band on Xotelo — 2026-09-14. A wrong d-id still
+ * answers with *some* hotel's rates, so verify the property, not just a 200.
+ */
+export const SEED_TA: { name: string; key: string }[] = [
+  { name: "Rooms Hotel Tbilisi", key: "g294195-d7171589" },
+  { name: "Radisson Blu Iveria Hotel, Tbilisi City Centre", key: "g294195-d1474950" },
+  { name: "Stamba Hotel", key: "g294195-d14136141" },
+  { name: "Sheraton Grand Tbilisi Metechi Palace", key: "g294195-d11934623" },
+]
 
 export function collectTaKeys(
   browse: BrowseHotel[],
@@ -681,11 +661,13 @@ export function collectTaKeys(
     seen.add(k)
     out.push({ name, key: k })
   }
-  for (const h of browse) add(h.name, h.taKey)
-  for (const h of wiki.hotels) add(h.name, hotelTaKey(wiki.geo ?? "", h.ta))
+  // Seeds first: attachOtaPrices only fetches the first 8 keys, and these are
+  // the verified ones — unverified OSM/wiki tags must never crowd them out.
   if (haversineKm(lat, lng, 41.7151, 44.8271) < 20) {
     for (const s of SEED_TA) add(s.name, s.key)
   }
+  for (const h of browse) add(h.name, h.taKey)
+  for (const h of wiki.hotels) add(h.name, hotelTaKey(wiki.geo ?? "", h.ta))
   return out
 }
 
@@ -743,11 +725,19 @@ async function wikiLodging(lat: number, lng: number): Promise<{ geo: string | nu
   return parseWikiLodging(json?.results?.bindings ?? [])
 }
 
+/**
+ * Xotelo scrapes the OTAs live, so it answers in ~7.5s — measured repeatedly,
+ * never under 7. A budget below that silently zeroes out every price on the
+ * page (getJson swallows the abort → no rates → nothing to paint), which is
+ * exactly what a 4s budget did. Keep this comfortably above the real latency.
+ */
+const XOTELO_TIMEOUT_MS = 12_000
+
 async function xoteloRates(key: string, checkIn: string, checkOut: string, adults: number): Promise<XoteloRate[]> {
   const url =
     `https://data.xotelo.com/api/rates?hotel_key=${encodeURIComponent(key)}` +
     `&chk_in=${checkIn}&chk_out=${checkOut}&currency=EUR&adults=${adults}`
-  const json = (await getJson(url, {}, 4000, 1800)) as { result?: { rates?: XoteloRate[] }; error?: unknown } | null
+  const json = (await getJson(url, {}, XOTELO_TIMEOUT_MS, 1800)) as { result?: { rates?: XoteloRate[] }; error?: unknown } | null
   if (!json || json.error || !Array.isArray(json.result?.rates)) return []
   return json.result.rates
 }
