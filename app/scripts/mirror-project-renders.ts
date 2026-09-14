@@ -364,7 +364,7 @@ async function looksLikeHero(buf: Buffer, slug: string): Promise<boolean> {
 async function capture(
   t: Target,
   images: string[],
-  opts: { hero: boolean; gallery: boolean; cap?: number; skipExtras?: number },
+  opts: { hero: boolean; gallery: boolean; cap?: number; skipExtras?: number; heroForce?: boolean },
 ): Promise<{ hero: boolean; gallery: string[] } | null> {
   const cap = opts.cap ?? 0
   let skip = opts.skipExtras ?? 0
@@ -379,7 +379,9 @@ async function capture(
   let hero = false
   const gallery: string[] = []
   for (let i = 0; i < cands.length; i++) {
-    const wantHero = opts.hero && i === 0 && !hadHero
+    // heroForce: overwrite the generated placeholder card (failed entry with a
+    // file on disk never came from a mirror) with the real image
+    const wantHero = opts.hero && i === 0 && (!hadHero || !!opts.heroForce)
     const wantExtra = opts.gallery && gallery.length < cap
     if (!wantHero && !wantExtra) break
     if (!wantHero && (newFiles >= maxNewFiles || newBytes >= maxNewBytes)) break
@@ -540,14 +542,18 @@ async function matchWikipedia(t: Target): Promise<PageHit | null> {
   if (!txt) return null
   try {
     const hits = (JSON.parse(txt) as { query?: { search?: Array<{ title?: string }> } }).query?.search ?? []
-    const want = tokens(name).filter((w) => !STOP.has(w))
+    // slug ∪ name tokens — catches dev-district names ('Astoria' alone → Astoria, Queens)
+    const want = [...new Set([...tokens(name), ...tokens(t.slug)])].filter((w) => !STOP.has(w))
     if (want.length === 0) return null
+    // short names must match fully ('Central Park' ≠ any other Central Park);
+    // longer names tolerate a miss
+    const needAll = want.length <= 3
     for (const h of hits) {
       const title = String(h.title ?? '')
       if (!title) continue
       const have = tokens(title)
       const hitsTok = want.filter((w) => have.includes(w) || have.some((hv) => tokenHit(w, new Set([hv]))))
-      if (hitsTok.length < Math.max(1, Math.ceil(want.length * 0.7))) continue
+      if (hitsTok.length < (needAll ? want.length : Math.ceil(want.length * 0.7))) continue
       const sumTxt = await fetchText(
         `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`,
       )
@@ -752,7 +758,12 @@ async function galleriesMode(
     }
     const hit = (await matchOfficial(t)) ?? (await matchKorter(t)) ?? (await matchWikipedia(t))
     if (!hit) continue
-    const got = await capture(t, hit.images, { hero: true, gallery: true, cap: GALLERY_CAP })
+    const got = await capture(t, hit.images, {
+      hero: true,
+      heroForce: true,
+      gallery: true,
+      cap: GALLERY_CAP,
+    })
     if (!got) continue
     e.status = 'ok'
     e.source = hit.page.includes('korter.ge')
