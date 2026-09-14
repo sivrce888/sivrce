@@ -263,7 +263,8 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(`${l.postedAt}T00:00:00`),
       changeFrequency: 'daily',
       priority: l.video ? 0.8 : 0.7,
-      images: (l.images.length ? l.images : [l.img]).slice(0, 8).map(absMedia),
+      // ponytail: hero only — 8 gallery URLs × thousands of listings blew the 6.7 MB sitemap body / 80 MB server cap.
+      images: [poster],
       ...(video && {
         videos: [{
           title: video.name,
@@ -353,7 +354,8 @@ async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: l.video ? 0.8 : 0.7,
       alternates: { languages: { en: url, 'x-default': url } },
-      images: (l.images.length ? l.images : [l.img]).slice(0, 8).map(absCom),
+      // ponytail: hero only — 8 gallery URLs × thousands of listings blew the 6.7 MB sitemap body / 80 MB server cap.
+      images: [poster],
       ...(video && {
         videos: [{
           title: video.name,

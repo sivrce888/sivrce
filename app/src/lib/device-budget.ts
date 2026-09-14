@@ -1,6 +1,13 @@
 /**
  * Device + map RAM budget. Detect once; never poll performance.memory.
- * Lite: user lock (localStorage sv-lite), ≤4 GB, ≤4 cores, Save-Data, reduced motion.
+ * Lite: user lock (localStorage sv-lite), ≤4 GB, ≤4 cores, Save-Data.
+ *
+ * Reduced motion is deliberately NOT a lite signal. It is an animation
+ * preference, not a hardware budget — a 16 GB / 10-core Mac with "reduce
+ * motion" on was being served antialias:off, pixelRatio 1.25 (visibly soft on
+ * retina), a quarter tile cache and a flat 2D map. Motion is handled where it
+ * belongs: the globals.css reduce-motion block, Reveal.tsx, framer's
+ * MotionConfig, and camMs() for map camera flights.
  */
 
 export const LITE_RAM_GB = 4
@@ -8,7 +15,7 @@ export const LITE_CORES = 4
 export const LITE_TILE_CACHE = 16
 export const FULL_TILE_CACHE = 48
 
-export const LITE_BOOT = `(function(){try{var n=navigator,c=n.connection||n.mozConnection||n.webkitConnection;if(localStorage.getItem('sv-lite')==='1'||(c&&c.saveData)||(n.deviceMemory&&n.deviceMemory<=${LITE_RAM_GB})||(n.hardwareConcurrency&&n.hardwareConcurrency<=${LITE_CORES})||matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.setAttribute('data-lite','')}catch(e){}})();`
+export const LITE_BOOT = `(function(){try{var n=navigator,c=n.connection||n.mozConnection||n.webkitConnection;if(localStorage.getItem('sv-lite')==='1'||(c&&c.saveData)||(n.deviceMemory&&n.deviceMemory<=${LITE_RAM_GB})||(n.hardwareConcurrency&&n.hardwareConcurrency<=${LITE_CORES}))document.documentElement.setAttribute('data-lite','')}catch(e){}})();`
 
 type Nav = Navigator & {
   deviceMemory?: number
@@ -26,8 +33,7 @@ export function isLiteDevice(): boolean {
   const n = navigator as Nav
   if (n.connection?.saveData) return true
   if ((n.deviceMemory ?? 8) <= LITE_RAM_GB) return true
-  if ((n.hardwareConcurrency ?? 8) <= LITE_CORES) return true
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  return (n.hardwareConcurrency ?? 8) <= LITE_CORES
 }
 
 /** MapLibre GPU/RAM caps. Call at map construct time (browser only). */

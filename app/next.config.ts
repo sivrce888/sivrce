@@ -108,6 +108,8 @@ const nextConfig: NextConfig = {
       "./icons/**/*",
       "./mobile/**/*",
       "./scripts/**/*",
+      "**/*.check.ts",
+      "**/*.check.js",
       "**/*.map",
       "node_modules/@capacitor/**/*",
       "node_modules/@capacitor/assets/**/*",

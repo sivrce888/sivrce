@@ -19,6 +19,13 @@ assert.ok(LITE_BOOT.includes("deviceMemory"))
 assert.ok(LITE_BOOT.includes("saveData"))
 assert.ok(LITE_BOOT.includes("hardwareConcurrency"))
 assert.ok(LITE_BOOT.includes("try{"))
+// Reduced motion is an animation preference, never a hardware budget. Folding
+// it back in silently downgrades capable machines to antialias:off + pixelRatio
+// 1.25 + 2D map. Motion is handled by globals.css / Reveal / MotionConfig / camMs.
+assert.ok(
+  !LITE_BOOT.includes("prefers-reduced-motion"),
+  "LITE_BOOT must not treat reduced motion as a lite device",
+)
 
 const root = process.cwd()
 const read = (rel: string) => readFileSync(join(root, rel), "utf8")
@@ -100,7 +107,19 @@ lock("src/app/auth/layout.tsx", [
   "BRAND.colors.navy",
 ], ["LITE_BOOT", "maximumScale"])
 lock("src/lib/map/maplibre-worker.ts", ["/maplibre/maplibre-gl-worker.mjs", "setWorkerUrl", "prewarm"], ["setWorkerCount"])
-lock("src/components/map/Map3D.tsx", ["...mapRuntimeOptions()", "isLiteDevice()", "bindMaplibreWorker(", "bindBerlinGeoTiles(", "bindIconicLandmarks(", "pickBerlinFeature("], ["setWorkerCount"])
+lock("src/components/map/Map3D.tsx", [
+  "...mapRuntimeOptions()",
+  "isLiteDevice()",
+  "bindMaplibreWorker(",
+  "bindBerlinGeoTiles(",
+  "bindIconicLandmarks(",
+  "pickBerlinFeature(",
+  // Motion + atmosphere contract — see src/lib/map/atmosphere.ts
+  "camMs(",
+  "applyAtmosphere(",
+  "setProjection(mapProjection(",
+  'reducedMotion="user"',
+], ["setWorkerCount"])
 lock("src/components/map/BuildingFloorsMap.tsx", ["...mapRuntimeOptions()", "bindMaplibreWorker("], ["setWorkerCount"])
 lock("src/components/search/SearchMapView.tsx", [
   "...mapRuntimeOptions()",

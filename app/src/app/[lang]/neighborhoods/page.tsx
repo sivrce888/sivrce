@@ -4,12 +4,13 @@ import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
 import NeighborhoodsIndex from '@/components/neighborhoods/NeighborhoodsIndex'
 import { AdSlot } from '@/components/ads/AdSlot'
-import { isValidLang } from '@/lib/i18n/core'
-import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import { isValidLang, type Lang } from '@/lib/i18n/core'
+import { NEIGHBORHOODS, pick } from '@/data/neighborhoods'
 import { getDistrictListingCounts, USD_GEL } from '@/lib/listings-db'
 import { getNeighborhoodMarketStats } from '@/lib/market-stats'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
+import { dirLoc } from '@/lib/directory-seo'
 
 export const revalidate = 3600
 
@@ -53,7 +54,8 @@ export default async function NeighborhoodsPage({
   params: Promise<{ lang: string }>
 }) {
   const { lang: raw } = await params
-  const lang = isValidLang(raw) ? raw : 'ka'
+  const lang: Lang = isValidLang(raw) ? raw : 'ka'
+  const loc = dirLoc(lang)
   const counts = await getDistrictListingCounts()
   // Same live source as the detail page so index and detail never contradict.
   const markets = await Promise.all(
@@ -64,18 +66,32 @@ export default async function NeighborhoodsPage({
     const v = markets[i].stats?.avgPerM2USD
     if (v) liveAvg[n.slug] = v
   })
+
+  const hubName = loc === 'ka' ? 'უბნების გზამკვლევი — sivrce' : loc === 'ru' ? 'Районы Грузии — sivrce' : 'Georgia Neighborhood Guides — sivrce'
+  const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : 'Home'
+  const hubLabel = loc === 'ka' ? 'უბნები' : loc === 'ru' ? 'Районы' : 'Neighborhoods'
+
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'უბნების გზამკვლევი — sivrce',
+    name: hubName,
     url: 'https://sivrce.ge/neighborhoods',
     numberOfItems: NEIGHBORHOODS.length,
     itemListElement: NEIGHBORHOODS.map((n, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      name: n.name.ka,
+      name: pick(n.name, loc),
       url: `https://sivrce.ge/neighborhoods/${n.slug}`,
     })),
+  }
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: hubLabel, item: 'https://sivrce.ge/neighborhoods' },
+    ],
   }
 
   return (
@@ -88,6 +104,7 @@ export default async function NeighborhoodsPage({
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )
 }

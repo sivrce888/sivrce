@@ -83,6 +83,25 @@ export default async function ProjectsPage({ params }: PageProps) {
     }),
   }
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : 'Home',
+        item: 'https://sivrce.ge',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: c.h1,
+        item: 'https://sivrce.ge/projects',
+      },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -128,6 +147,7 @@ export default async function ProjectsPage({ params }: PageProps) {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(c.faqs)) }} />
     </div>
   )

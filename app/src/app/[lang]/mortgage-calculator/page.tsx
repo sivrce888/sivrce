@@ -162,6 +162,20 @@ function hubLdFor(loc: DirLoc) {
     '@context': 'https://schema.org',
     '@graph': [
       {
+        '@type': 'WebApplication',
+        name: c.title,
+        applicationCategory: 'FinanceApplication',
+        operatingSystem: 'All',
+        browserRequirements: 'Requires JavaScript. Requires HTML5.',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+        description: c.subtitle,
+        url: 'https://sivrce.ge/mortgage-calculator',
+      },
+      {
         '@type': 'FAQPage',
         inLanguage: c.lang,
         isPartOf: { '@id': 'https://sivrce.ge/#website' },

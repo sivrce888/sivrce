@@ -173,6 +173,17 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
     })),
   }
 
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
+  const hubLabel = lang === 'ka' ? 'აგენტები' : lang === 'ru' ? 'Агенты' : 'Agents'
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: hubLabel, item: 'https://sivrce.ge/agents' },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -241,6 +252,7 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )
 }

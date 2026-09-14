@@ -120,6 +120,16 @@ export default async function AgencyPage({ params }: PageProps) {
     }),
   }
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: 'სააგენტოები', item: 'https://sivrce.ge/agencies' },
+      { '@type': 'ListItem', position: 3, name: agency.name, item: `https://sivrce.ge/agencies/${agency.slug}` },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -209,6 +219,7 @@ export default async function AgencyPage({ params }: PageProps) {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(agencyLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )
 }

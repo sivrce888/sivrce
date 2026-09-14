@@ -20,6 +20,7 @@ export default function NeighborhoodDetail({
   listings,
   market = null,
   weather = null,
+  faqs = [],
 }: {
   n: Neighborhood
   listings: Listing[]
@@ -27,6 +28,7 @@ export default function NeighborhoodDetail({
   market?: { stats: DistrictStats | null; mom: number | null } | null
   /** Server-rendered <WeatherBadge> slot — fetched on the server, shown in the hero. */
   weather?: ReactNode
+  faqs?: { q: string; a: string }[]
 }) {
   const { lang } = useI18n()
   const s = useNb()
@@ -140,7 +142,7 @@ export default function NeighborhoodDetail({
             <h2 className="mb-4 text-[26px] font-black tracking-[-0.02em] text-sv-ink md:text-[32px]">
               {s.aboutTitle}
             </h2>
-            <p className="text-[16px] font-medium leading-relaxed text-sv-ink/75">
+            <p className="speakable-lead text-[16px] font-medium leading-relaxed text-sv-ink/75">
               {pick(n.description, lang)}
             </p>
           </Reveal>
@@ -186,8 +188,33 @@ export default function NeighborhoodDetail({
         </div>
       </section>
 
+      {/* FAQs */}
+      {faqs.length > 0 && (
+        <section aria-label="FAQ" className="bg-sv-cloud py-16 md:py-20">
+          <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+            <h2 className="mb-6 text-[26px] font-black tracking-[-0.02em] text-sv-ink md:text-[32px]">
+              {lang === 'ka' ? 'ხშირი კითხვები' : lang === 'ru' ? 'Частые вопросы' : 'Frequently Asked Questions'}
+            </h2>
+            <div className="grid gap-3 max-w-4xl">
+              {faqs.map((f) => (
+                <details
+                  key={f.q}
+                  className="group rounded-module border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card open:shadow-card-hover"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-extrabold text-sv-ink [&::-webkit-details-marker]:hidden">
+                    {f.q}
+                    <span className="text-sv-blue transition-transform duration-300 group-open:rotate-90">›</span>
+                  </summary>
+                  <p className="mt-3 text-[14px] font-medium leading-relaxed text-sv-ink/60">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* resident reviews */}
-      <section aria-label={s.reviewsAria} className="bg-sv-cloud py-16 md:py-20">
+      <section aria-label={s.reviewsAria} className="bg-sv-surface py-16 md:py-20">
         <div className="mx-auto max-w-[1440px] px-5 md:px-10">
           <ReviewsSection targetType="neighborhood" targetId={n.slug} />
         </div>

@@ -9,7 +9,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useCallback, useMemo, Sus
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
-import { motion } from 'framer-motion'
+import { motion, MotionConfig } from 'framer-motion'
 import * as maplibregl from 'maplibre-gl'
 import {
   type Map as MlMap,
@@ -128,6 +128,7 @@ import {
   tightenAttribution,
 } from '@/lib/map/mapChrome'
 import { isLiteDevice, mapRuntimeOptions } from '@/lib/device-budget'
+import { applyAtmosphere, camMs, mapProjection } from '@/lib/map/atmosphere'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
 import {
   BERLIN_TILE_LAYER_IDS,
@@ -624,6 +625,11 @@ async function ensureLayers(
       'fill-extrusion-opacity': 1,
       'fill-extrusion-vertical-gradient': true,
       'fill-extrusion-color-transition': MAP_FADE,
+    },
+    layout: {
+      // Apple Maps massing reads soft, not CAD-sharp — 1.5 m of corner relief
+      // is enough to catch the sun light without rounding away the footprint.
+      'fill-extrusion-rounded-corner-distance': 1.5,
     },
   })
 
@@ -1216,6 +1222,32 @@ function Map3DInner({
     applyPoiLabelTheme(map, isDark)
   }, [isDark])
 
+  // Sky + sun light follow the camera and the theme. Satellite keeps one style
+  // URL across light/dark, so the style-swap effect never fires there — this is
+  // the only thing that repaints its sky on a theme toggle.
+  // ponytail: two GPU uniform writes per settled move; no rAF loop, and the sun
+  // is sampled at move time rather than ticked — good to the minute, which is
+  // finer than a sky gradient can show.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const paint = () => {
+      const c = map.getCenter()
+      applyAtmosphere(map, { dark: isDark, lat: c.lat, lng: c.lng, lite: isLiteDevice() })
+    }
+    paint()
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const debounced = () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(paint, 800)
+    }
+    map.on('moveend', debounced)
+    return () => {
+      map.off('moveend', debounced)
+      if (timer) clearTimeout(timer)
+    }
+  }, [isDark, ready])
+
   // ponytail: basemap labels = local + user/EN; cheap layout-prop swap.
   useEffect(() => {
     const map = mapRef.current
@@ -1700,7 +1732,7 @@ function Map3DInner({
       zoom: Number.isFinite(zoomQ) && zoomQ >= minZoom ? zoomQ : 16,
       pitch: Number.isFinite(pitchQ) ? pitchQ : view3dRef.current ? 62 : 0,
       bearing: view3dRef.current ? -18 : 0,
-      duration: 900,
+      duration: camMs(900),
       essential: true,
     })
   }, [ready, pinsLoaded, searchParams, allBuildings, minZoom])
@@ -1749,6 +1781,15 @@ function Map3DInner({
       })
       mapRef.current = map
 
+      // minZoom is 1 — mercator at world zoom is a flat rectangle floating on
+      // grey. Globe carries the planet out and hands back to mercator by ~z6.
+      // Set before first paint; mountOverlays re-applies after every setStyle.
+      try {
+        map.setProjection(mapProjection(isLiteDevice()))
+      } catch {
+        /* projection unsupported — mercator is a fine fallback */
+      }
+
       bindMissingImages(map)
 
       // ponytail: inline/sat styles fire style.load before the 1600ms watchdog —
@@ -1763,7 +1804,7 @@ function Map3DInner({
           zoom: Math.max(map.getZoom(), 15.5),
           pitch: three ? 62 : 0,
           bearing: three ? map.getBearing() : 0,
-          duration: 700,
+          duration: camMs(700),
           essential: true,
         })
       }
@@ -2119,6 +2160,15 @@ function Map3DInner({
       const mountOverlays = () => {
         void (async () => {
           applyBrandPaints(map, darkRef.current ? 'dark' : 'light', terrainRef.current)
+          // setStyle resets projection/sky/light — re-derive them from the live
+          // camera every mount, not once at boot.
+          const c = map.getCenter()
+          applyAtmosphere(map, {
+            dark: darkRef.current,
+            lat: c.lat,
+            lng: c.lng,
+            lite: isLiteDevice(),
+          })
           try {
             applyMapLanguage(map, langRef.current)
           } catch {
@@ -2453,7 +2503,7 @@ function Map3DInner({
         const src = map.getSource(PTS_SOURCE_ID) as GeoJSONSource
         const [lng, lat] = f.geometry.coordinates
         void src.getClusterExpansionZoom(clusterId).then((zoom) => {
-          map.easeTo({ center: [lng, lat], zoom, duration: 450 })
+          map.easeTo({ center: [lng, lat], zoom, duration: camMs(450) })
         })
       })
       map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
@@ -2526,7 +2576,7 @@ function Map3DInner({
             zoom: 13.2,
             pitch: cam.pitch,
             bearing: view3dRef.current ? map.getBearing() : 0,
-            duration: 900,
+            duration: camMs(900),
             essential: true,
           })
           return
@@ -2560,7 +2610,7 @@ function Map3DInner({
       zoom,
       pitch: cam.pitch,
       bearing: view3dRef.current ? map.getBearing() : 0,
-      duration: 900,
+      duration: camMs(900),
       essential: true,
     })
   }, [])
@@ -2644,7 +2694,7 @@ function Map3DInner({
         bottom:
           selected && !desktop ? Math.round(window.innerHeight * 0.42) : POI_RAIL_PAD,
       },
-      duration: 280,
+      duration: camMs(280),
     })
   }, [selected, ready])
 
@@ -2663,8 +2713,8 @@ function Map3DInner({
         else if (selected) selectBuilding(null)
         return
       }
-      if (e.key === '+' || e.key === '=') mapRef.current?.zoomIn({ duration: 220 })
-      if (e.key === '-' || e.key === '_') mapRef.current?.zoomOut({ duration: 220 })
+      if (e.key === '+' || e.key === '=') mapRef.current?.zoomIn({ duration: camMs(220) })
+      if (e.key === '-' || e.key === '_') mapRef.current?.zoomOut({ duration: camMs(220) })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -2713,7 +2763,7 @@ function Map3DInner({
       pitch: cam.pitch,
       bearing: cam.bearing,
       ...(mode3d && map.getZoom() < cam.zoom ? { zoom: cam.zoom } : {}),
-      duration: 550,
+      duration: camMs(550),
     })
     muteBasemapExtrusions(map, KEEP_EXTRUDE)
     setBasemapBuildings3d(map, mode3d)
@@ -2746,7 +2796,7 @@ function Map3DInner({
       zoom: cam.zoom,
       pitch: cam.pitch,
       bearing: cam.bearing,
-      duration: 800,
+      duration: camMs(800),
     })
     selectBuilding(null)
   }
@@ -2762,7 +2812,7 @@ function Map3DInner({
   const resetNorth = () => {
     const map = mapRef.current
     if (!map) return
-    map.easeTo({ bearing: 0, duration: 450 })
+    map.easeTo({ bearing: 0, duration: camMs(450) })
   }
 
   const constructionCount = useMemo(
@@ -2783,10 +2833,22 @@ function Map3DInner({
   const segOn = 'bg-sv-blue text-white shadow-glow-blue-sm'
 
   return (
+    // reducedMotion="user" — one wrapper covers every framer spring below
+    // (filter pills, panel slide-ups). Camera flies go through camMs().
+    <MotionConfig reducedMotion="user">
     <div
       ref={shellRef}
       className={`relative flex w-full overflow-hidden ${fullscreen ? 'h-dvh' : 'h-full min-h-0'} ${shellBg}`}
     >
+      {/* The canvas is opaque to assistive tech — announce what changed on it.
+          The full accessible path stays the list view (header “list” link). */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {selected
+          ? `${selected.label || selected.address} · ${t('search.mapInArea', { n: selected.listings.length })}`
+          : pinsLoaded
+            ? t('search.mapInArea', { n: matchListings })
+            : t('map.loading')}
+      </p>
       <div className="relative min-w-0 flex-1">
         {/* ponytail: MapLibre forces position:relative — absolute on the map node collapses to h=0. */}
         <div className="absolute inset-0">
@@ -3049,7 +3111,7 @@ function Map3DInner({
           <button
             type="button"
             aria-label={t('map.zoomIn')}
-            onClick={() => mapRef.current?.zoomIn({ duration: 280 })}
+            onClick={() => mapRef.current?.zoomIn({ duration: camMs(280) })}
             className={`grid h-11 w-full place-items-center transition ${railHover}`}
           >
             <Plus className="h-4 w-4" strokeWidth={2.25} />
@@ -3057,7 +3119,7 @@ function Map3DInner({
           <button
             type="button"
             aria-label={t('map.zoomOut')}
-            onClick={() => mapRef.current?.zoomOut({ duration: 280 })}
+            onClick={() => mapRef.current?.zoomOut({ duration: camMs(280) })}
             className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
           >
             <Minus className="h-4 w-4" strokeWidth={2.25} />
@@ -3230,6 +3292,7 @@ function Map3DInner({
         </motion.div>
       )}
     </div>
+    </MotionConfig>
   )
 }
 

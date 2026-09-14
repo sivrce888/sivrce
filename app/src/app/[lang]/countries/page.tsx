@@ -145,6 +145,15 @@ export default async function CountriesPage({ params }: PageProps) {
     },
   }
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: raw === 'ka' ? 'მთავარი' : 'Home', item: `${COM_ORIGIN}` },
+      { '@type': 'ListItem', position: 2, name: t.h1, item: `${COM_ORIGIN}/countries` },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
@@ -246,6 +255,7 @@ export default async function CountriesPage({ params }: PageProps) {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )
 }

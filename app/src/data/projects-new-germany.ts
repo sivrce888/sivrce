@@ -6,6 +6,7 @@
  * confirms the current number. phone:"" = unpublished (UI hides it) —
  * never a placeholder number. Projects below carry only street- or
  * postal-verified locations (see NEW_PROJECTS_GERMANY).
+ * Photos: Wikimedia Commons, CC/PD — attribution in public/images/projects/CREDITS.md.
  * ponytail: developers only — projects/buildings arrive via the DE adapter
  * ingest (scripts/ingest-de-intel.ts) + OSM/ALKIS pipelines, not hand rows.
  */

@@ -68,6 +68,19 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
     })),
   }
 
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
+  const hubLabel = lang === 'ka' ? 'სერვისები' : lang === 'ru' ? 'Сервисы' : 'Services'
+  const catName = pickLocText(cat.name, lang)
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: hubLabel, item: 'https://sivrce.ge/services' },
+      { '@type': 'ListItem', position: 3, name: catName, item: `https://sivrce.ge/services/${category}` },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -120,6 +133,7 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(listLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )
 }

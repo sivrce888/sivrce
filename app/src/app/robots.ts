@@ -41,6 +41,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
           'ChatGPT-User',
           'OAI-SearchBot',
           'ClaudeBot',
+          'Claude-Web',
           'Anthropic-AI',
           'PerplexityBot',
           'Google-Extended',

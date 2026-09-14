@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync } from 'fs'
 
 const FILE = '/Users/mac/Desktop/sivrce888/research/cities15000.txt'
+const OUT_JSON = '/Users/mac/Desktop/sivrce888/app/src/data/user-place.gen.json'
 const OUT = '/Users/mac/Desktop/sivrce888/app/src/data/user-place.gen.ts'
 
 // GeoNames columns (tab-delimited)
@@ -112,12 +113,24 @@ console.log(`After suburb prune (<${SUBURB_KM}km of bigger city): ${kept.length}
 unique.length = 0
 unique.push(...kept)
 
-// Generate TS file
+// Compact JSON rows: [slug, en, lat, lng, cc]. ka falls back to en —
+// inventory MAP_CITIES keeps real Georgian names for hubs.
+const rows = unique.map((c) => [
+  c.slug,
+  c.en,
+  +c.lat.toFixed(5),
+  +c.lng.toFixed(5),
+  c.cc,
+])
+writeFileSync(OUT_JSON, JSON.stringify(rows))
+
 const ts = `/**
  * AUTO-GENERATED: GeoNames cities15000 -> MAP_CITIES extension
  * Run: node scripts/import-geonames-cities.mjs
  * DO NOT EDIT BY HAND - regenerate instead.
  */
+
+import raw from './user-place.gen.json'
 
 export type MapCityCc = string
 
@@ -130,17 +143,15 @@ export type MapCity = {
   cc: MapCityCc
 }
 
-function city(slug: string, ka: string, en: string, lat: number, lng: number, cc: MapCityCc): MapCity {
-  return { slug, ka, en, lat, lng, cc }
-}
+type Row = [slug: string, en: string, lat: number, lng: number, cc: string]
 
-/** GeoNames cities (population > 15k or admin seats). 25,000+ rows. */
-export const GEONAMES_CITIES = [
-${unique.map(c => `  city('${c.slug}', '${c.ka.replace(/'/g, "\\'")}', '${c.en.replace(/'/g, "\\'")}', ${c.lat}, ${c.lng}, '${c.cc}'),`).join('\n')}
-]
+/** GeoNames cities (population > 15k or admin seats). ka=en; hubs live in user-place.ts. */
+export const GEONAMES_CITIES: MapCity[] = (raw as Row[]).map(([slug, en, lat, lng, cc]) => ({
+  slug, ka: en, en, lat, lng, cc,
+}))
 
 /** Merge with inventory + WORLD_PLACES (inventory wins on slug clash). */
-export function buildMapCities(inventory: MapCity[]): MapCity[] {
+export function buildMapCities(inventory: readonly MapCity[]): MapCity[] {
   const seen = new Set(inventory.map(c => c.slug))
   return [
     ...inventory,
@@ -150,4 +161,4 @@ export function buildMapCities(inventory: MapCity[]): MapCity[] {
 `
 
 writeFileSync(OUT, ts)
-console.log(`Written ${OUT} (${unique.length} cities)`)
+console.log(`Written ${OUT_JSON} + ${OUT} (${unique.length} cities)`)

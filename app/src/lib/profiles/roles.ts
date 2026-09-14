@@ -1,7 +1,9 @@
 /**
  * Seller role labels + static catalog profile links (no DB).
  */
-import { AGENT_PROFILES } from '@/data/professionals'
+// Leaf module on purpose: importing this from '@/data/professionals' dragged the
+// whole new-build catalog (~251 KB gzipped) into the listing + compare chunks.
+import { AGENT_PROFILES } from '@/data/agent-profiles'
 
 export type SellerRole = 'owner' | 'agent' | 'agency' | 'developer'
 

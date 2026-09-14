@@ -10,6 +10,7 @@
 import { cityByName } from '@/lib/map/user-place'
 import { ruPlural } from '@/lib/i18n/core'
 import { isDelivered, type Developer, type Project } from '@/data/professionals'
+import { type Neighborhood, pick as pickNb, overallScore } from '@/data/neighborhoods'
 import {
   cityName,
   cityIn,
@@ -1309,20 +1310,94 @@ export function districtHubCopy(loc: DirLoc, d: DistrictHub, count: number): Dir
     prose: [
       `${d.en} currently has ${count} under-construction ${count === 1 ? 'project' : 'projects'} on sivrce — each shows price per square meter, construction progress in percent and handover date. An apartment in a new building in ${d.en} bought during construction is cheaper than a completed one, and developers offer installment plans.`,
     ],
-    faqTitle: 'Frequently asked questions',
-    faqs: [
-      {
-        q: `How much does an apartment in a new building in ${d.en} cost?`,
-        a: `Prices in ${d.en} vary by project, floor and frame condition — see each project page for current exact prices. Buying during construction is usually cheaper than a completed unit.`,
-      },
-      {
-        q: `How many new developments are being built in ${d.en}?`,
-        a: `There are currently ${count} active ${count === 1 ? 'project' : 'projects'} in ${d.en} on sivrce. The list is updated regularly with new buildings.`,
-      },
-      {
-        q: `Can I buy in ${d.en} with an installment plan?`,
-        a: `Yes — most under-construction projects in ${d.en} offer in-house installment plans: typically 10–30% down with payments until handover, often at 0% interest.`,
-      },
-    ],
-  }
+      faqTitle: 'Frequently asked questions',
+      faqs: [
+        {
+          q: `How much does an apartment in a new building in ${d.en} cost?`,
+          a: `Prices in ${d.en} vary by project, floor and frame condition — see each project page for current exact prices. Buying during construction is usually cheaper than a completed unit.`,
+        },
+        {
+          q: `How many new developments are being built in ${d.en}?`,
+          a: `There are currently ${count} active ${count === 1 ? 'project' : 'projects'} in ${d.en} on sivrce. The list is updated regularly with new buildings.`,
+        },
+        {
+          q: `Can I buy in ${d.en} with an installment plan?`,
+          a: `Yes — most under-construction projects in ${d.en} offer in-house installment plans: typically 10–30% down with payments until handover, often at 0% interest.`,
+        },
+      ],
+    }
 }
+
+export function neighborhoodFaqs(
+  n: Neighborhood,
+  loc: DirLoc,
+  liveAvg?: number,
+): FaqItem[] {
+  const price = liveAvg ?? n.avgPriceM2USD
+  const name = pickNb(n.name, loc)
+  const city = pickNb(n.city, loc)
+  const score = overallScore(n)
+  const s = n.scores
+
+  if (loc === 'ka') {
+    return [
+      {
+        q: `რა ღირს ბინის კვადრატული მეტრი ${name}-ში?`,
+        a: `${name}-ში უძრავი ქონების საშუალო ფასი დაახლოებით $${price.toLocaleString('en-US')}/მ²-ია. ფასები იცვლება კორპუსის ტიპის (ძველი/ახალი აშენებული), სართულის, ხედისა და რემონტის მიხედვით. დეტალური AI შეფასება თითოეულ აქტიურ განცხადებაზე ჩანს.`,
+      },
+      {
+        q: `როგორია ცხოვრების ხარისხი და შეფასება ${name}-ში?`,
+        a: `${name}-ის საერთო საცხოვრებელი ქულაა ${score}/10. ინფრასტრუქტურის შეფასება: ტრანსპორტი ${s.transport}/10, სკოლები და ბაღები ${s.schools}/10, გამწვანება ${s.green}/10, უსაფრთხოება ${s.safety}/10, ღამის ცხოვრება და კაფეები ${s.nightlife}/10.`,
+      },
+      {
+        q: `რატომ ირჩევენ ${name}-ს საცხოვრებლად ან ინვესტიციისთვის?`,
+        a: `${pickNb(n.description, 'ka')} უბანი გამოირჩევა მაღალი ლიკვიდურობით როგორც გრძელვადიანი, ისე დღიური გაქირავების მიმართულებით.`,
+      },
+      {
+        q: `როგორ ვიპოვო ვერიფიცირებული ბინები ${name}-ში?`,
+        a: `sivrce.ge-ზე ${name}-ის ყველა განცხადება გადის გადამოწმებას: მესაკუთრის ვერიფიკაცია, საჯარო რეესტრის საკადასტრო კოდი და AI ფასის შეფასება ბაზრის რეალურ მაჩვენებლებთან შედარებით.`,
+      },
+    ]
+  }
+
+  if (loc === 'ru') {
+    return [
+      {
+        q: `Сколько стоит квадратный метр в районе ${name}?`,
+        a: `Средняя цена недвижимости в районе ${name} составляет около $${price.toLocaleString('en-US')}/м². Точные цены зависят от типа дома, этажа и ремонта. Оценка каждого объекта доступна на карточке объявления на sivrce.ge.`,
+      },
+      {
+        q: `Каков рейтинг качества жизни в районе ${name}?`,
+        a: `Общий индекс комфорта района ${name} составляет ${score}/10. Оценки инфраструктуры: транспорт ${s.transport}/10, школы и детсады ${s.schools}/10, парки и экология ${s.green}/10, безопасность ${s.safety}/10, кафе и досуг ${s.nightlife}/10.`,
+      },
+      {
+        q: `Почему выбирают район ${name} для жизни и инвестиций?`,
+        a: `${pickNb(n.description, 'ru')} Район востребован для долгосрочной и посуточной аренды с высокой доходностью.`,
+      },
+      {
+        q: `Как найти проверенное жилье в ${name}?`,
+        a: `На sivrce.ge все объявления в районе ${name} проходят проверку собственника, кадастровых данных NAPR и алгоритм оценки рыночной цены.`,
+      },
+    ]
+  }
+
+  return [
+    {
+      q: `What is the average price per square meter in ${name}?`,
+      a: `The average real estate price in ${name} is approximately $${price.toLocaleString('en-US')}/m². Actual prices vary by building condition, floor, view, and renovation. Sivrce provides AI-powered price fairness valuations on each listing.`,
+    },
+    {
+      q: `What is the livability score of ${name}?`,
+      a: `The overall livability index for ${name} is ${score}/10. Infrastructure breakdown: transport ${s.transport}/10, schools ${s.schools}/10, green spaces ${s.green}/10, safety ${s.safety}/10, nightlife & dining ${s.nightlife}/10.`,
+    },
+    {
+      q: `Why choose ${name} in ${city} for living or investment?`,
+      a: `${pickNb(n.description, 'en')} The district offers strong rental demand and solid capital appreciation.`,
+    },
+    {
+      q: `How do I find verified apartments in ${name}?`,
+      a: `On sivrce.ge, all listings in ${name} feature owner verification, official cadastral boundary checks via NAPR, and instant AI price estimates.`,
+    },
+  ]
+}
+
