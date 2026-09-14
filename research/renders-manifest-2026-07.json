@@ -189,6 +189,13 @@
     "batch": 1
   },
   {
+    "slug": "ayia-napa-marina",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "aykon-city",
     "status": "failed",
     "source": null,
@@ -207,6 +214,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/bakuriani-prospect-bakuriani",
+    "batch": 1
+  },
+  {
+    "slug": "bangkok-sukhumvit",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -560,6 +574,13 @@
     "batch": 1
   },
   {
+    "slug": "eko-atlantic",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "elbtower-hamburg",
     "status": "failed",
     "source": null,
@@ -568,6 +589,13 @@
   },
   {
     "slug": "elitz-3",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "ellinikon",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -763,6 +791,13 @@
     "batch": 1
   },
   {
+    "slug": "gothenburg-friggaleden",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "grand-city-neukolln-neubau",
     "status": "failed",
     "source": null,
@@ -820,6 +855,13 @@
   },
   {
     "slug": "hafencity-hamburg",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "hagastaden",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1036,6 +1078,13 @@
     "batch": 1
   },
   {
+    "slug": "katowice-spodek",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "kobuleti-wellness-residence",
     "status": "ok",
     "source": "korter",
@@ -1051,6 +1100,27 @@
   },
   {
     "slug": "kokhta-ubani-tsatskhvebi",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "konza-technopolis",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "kota-tua-revival",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "kowloon-east",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1099,10 +1169,24 @@
     "batch": 1
   },
   {
+    "slug": "larnaca-marina-redevelopment",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "le-meridien-sioni-lake-resort-spa-by-archi",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/le-meridien-sioni-lake-resort-spa-by-archi-tbilisi",
+    "batch": 1
+  },
+  {
+    "slug": "liget-budapest",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -1117,6 +1201,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/prime-residence-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "lisbon-beato",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -1163,6 +1254,13 @@
   },
   {
     "slug": "malmoe28",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "manila-bay-reclamation",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1267,6 +1365,13 @@
     "batch": 1
   },
   {
+    "slug": "nelson-mandela-bay",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "neom-the-line",
     "status": "failed",
     "source": null,
@@ -1275,6 +1380,27 @@
   },
   {
     "slug": "neue-bockbrauerei",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "new-admin-capital",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "new-alamein",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "new-clark-city",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1331,6 +1457,20 @@
   },
   {
     "slug": "nhw-schoenhof-viertel",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nuevo-puerto",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nusantara",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1526,6 +1666,13 @@
     "batch": 1
   },
   {
+    "slug": "penang-south-islands",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "petalz",
     "status": "failed",
     "source": null,
@@ -1544,6 +1691,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/pillar-park-samgori-tbilisi",
+    "batch": 1
+  },
+  {
+    "slug": "porto-ribeira",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -1638,6 +1792,13 @@
     "batch": 1
   },
   {
+    "slug": "rio-para-so",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "roma-eur",
     "status": "failed",
     "source": null,
@@ -1716,6 +1877,13 @@
   },
   {
     "slug": "seville-cartuja",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "shed-21-wellington",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1883,6 +2051,13 @@
     "batch": 1
   },
   {
+    "slug": "sugar-wharf",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "summer-365",
     "status": "ok",
     "source": "korter",
@@ -1988,6 +2163,13 @@
     "batch": 1
   },
   {
+    "slug": "thu-thiem",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "tour-montparnasse",
     "status": "failed",
     "source": null,
@@ -2052,6 +2234,13 @@
   },
   {
     "slug": "wasl-gate",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "waterfall-city",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
