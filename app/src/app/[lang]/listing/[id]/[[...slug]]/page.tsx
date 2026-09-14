@@ -87,10 +87,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!l) return {}
   const lang: Lang = raw && isValidLang(raw) ? raw : 'ka'
   const t = getServerT(lang)
-  const price =
-    l.dealType === 'rent' && !isLandLease(l.dealType, l.propType) ? `${formatUSD(l.priceUSD)}${t('detail.perMonth')}`
-      : l.dealType === 'daily' ? `${formatUSD(l.priceUSD)}${t('detail.perDay')}`
-        : formatUSD(l.priceUSD)
+  const per =
+    l.dealType === 'rent' && !isLandLease(l.dealType, l.propType) ? t('detail.perMonth')
+      : l.dealType === 'daily' ? t('detail.perDay') : ''
+  const loc = lang === 'de' ? 'de-DE' : 'en-US'
+  const head =
+    l.currencyOriginal === 'EUR' && l.priceOriginal
+      ? `€${Math.round(l.priceOriginal).toLocaleString(loc)}`
+      : formatUSD(l.priceUSD)
+  const price = `${head}${per}`
   const keyword = listingKeyword(l)
   const exclusiveLead = [
     l.isExclusive && t('badge.exclusive'),
@@ -340,6 +345,7 @@ export default async function ListingPage({ params }: PageProps) {
         land={land}
         profileRating={profileRating}
         nearbyProjects={nearbyProjects}
+        hubLink={hubPath && hubAnchor ? { href: hubPath, anchor: hubAnchor } : null}
       />
       <script
         type="application/ld+json"

@@ -20,7 +20,7 @@ import {
 } from "./cms-studio"
 
 assert(CMS_LAYOUT_ID.length <= 64, "layout id fits SystemConfig")
-assert(HOME_FLOW.length === 16, "homepage flow count")
+assert(HOME_FLOW.length === 17, "homepage flow count")
 assert(
   HOME_FLOW.indexOf(HOME_VIP_FOLLOW) === HOME_FLOW.indexOf(HOME_VIP_LEAD) + 1,
   "SUPER VIP then VIP+ adjacent",

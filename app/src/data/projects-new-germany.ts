@@ -134,12 +134,12 @@ export const NEW_DEVELOPERS_GERMANY: Developer[] = [
   {
     slug: 'gag-koeln',
     name: { ka: 'GAG Köln', en: 'GAG Köln', ru: 'GAG Köln' },
-    city: 'ქელნი',
+    city: 'კელნი',
     yearsActive: 110,
     projectsDone: 100,
     unitsDelivered: 45000,
     description: {
-      ka: 'GAG Immobilien AG — ქელნის მუნიციპალური landlord (~45 000 ბინა, 1913-დან). ქალაქის უდიდესი landlordი, Neubau ყველა Stadtbezirk-ში.',
+      ka: 'GAG Immobilien AG — კელნის მუნიციპალური landlord (~45 000 ბინა, 1913-დან). ქალაქის უდიდესი landlordი, Neubau ყველა Stadtbezirk-ში.',
       en: 'GAG Immobilien AG is Cologne’s municipal landlord (~45,000 units, since 1913). The city’s largest landlord with new-build in every district.',
       de: 'Die GAG Immobilien AG ist Kölns kommunaler Vermieter (rund 45.000 Wohnungen, seit 1913) und größter Vermieter der Stadt mit Neubau in allen Stadtbezirken.',
       ru: 'GAG Immobilien AG — муниципальный арендодатель Кёльна (~45 000 квартир, с 1913). Крупнейший арендодатель города, Neubau во всех районах.',
@@ -478,12 +478,12 @@ export const NEW_DEVELOPERS_GERMANY: Developer[] = [
   {
     slug: 'bauwens',
     name: { ka: 'Bauwens', en: 'Bauwens', ru: 'Bauwens' },
-    city: 'ქელნი',
+    city: 'კელნი',
     yearsActive: 21,
     projectsDone: 50,
     unitsDelivered: 4000,
     description: {
-      ka: 'Bauwens Development — ქელნური დეველოპერი: საცხოვრებელი კვარტალები რაინლანდში, ბერლინსა და ჰამბურგში (Mediapark Cologne-ის რედეველოპმენტის მონაწილე).',
+      ka: 'Bauwens Development — კელნური დეველოპერი: საცხოვრებელი კვარტალები რაინლანდში, ბერლინსა და ჰამბურგში (Mediapark Cologne-ის რედეველოპმენტის მონაწილე).',
       en: 'Bauwens Development is a Cologne developer building residential quarters in the Rhineland, Berlin and Hamburg (a partner in the Mediapark Cologne redevelopment).',
       de: 'Bauwens Development ist ein Kölner Projektentwickler für Wohnquartiere im Rheinland, in Berlin und Hamburg (Partner der Neuentwicklung Kölner Mediapark).',
       ru: 'Bauwens Development — кёльнский девелопер жилых кварталов в Рейнланде, Берлине и Гамбурге (участник редевелопмента Mediapark в Кёльне).',
@@ -877,7 +877,7 @@ export const NEW_PROJECTS_GERMANY: Project[] = [
     sourceUrl: 'https://www.gag-koeln.de/immobiliensuche/neubauprojekte',
     img: '/images/projects/gag-zollstockguertel.webp',
     location: 'Zollstockgürtel, 50969 Köln, Zollstock',
-    city: 'ქელნი',
+    city: 'კელნი',
     district: 'Zollstock',
     priceFromM2: 'მოთხოვნით',
     done: 3,

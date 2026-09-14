@@ -2,7 +2,9 @@
  * Runnable check: npx tsx src/lib/geo-market.check.ts
  */
 import assert from 'node:assert/strict'
-import { COUNTRY_IDS, countryBasePath, intentHref } from './markets'
+import { readFileSync } from 'node:fs'
+import { COUNTRY_IDS, MARKETS, countryBasePath, intentHref } from './markets'
+import { cityBySlug } from './map/user-place'
 import {
   GEO_COOKIE,
   GEO_LAUNCH,
@@ -69,5 +71,22 @@ assert.equal(intentHref('de', 'berlin', 'buy', 'en', '/en/de/berlin'), '/en/de/b
 assert.equal(intentHref('de', 'berlin', 'rent', 'de', '/de/de'), '/de/de/berlin/rent')
 assert.equal(intentHref('de', 'berlin', 'buy', 'de'), '/de/de/berlin/buy')
 assert.equal(intentHref('de', 'berlin', 'buy', 'en'), '/de/berlin/buy')
+
+// ——— bundle lock: geo-market must resolve launched cities off the CLIENT plane ———
+// GeoGate ships this module to the browser. If it ever imports user-place.server
+// again, every visitor downloads ~1.9 MB of GeoNames literals.
+{
+  const src = readFileSync(new URL('./geo-market.ts', import.meta.url), 'utf8')
+  assert.ok(
+    !/from\s+['"]@\/lib\/map\/user-place\.server['"]/.test(src),
+    'geo-market must not import user-place.server (client bundle weight)',
+  )
+  for (const [id, m] of Object.entries(MARKETS)) {
+    for (const slug of [m.defaultCitySlug, ...m.citySlugs]) {
+      if (!slug) continue
+      assert.ok(cityBySlug(slug), `${id}: launched city "${slug}" missing from client MAP_CITIES`)
+    }
+  }
+}
 
 console.log('geo-market.check: ok')

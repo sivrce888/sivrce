@@ -81,6 +81,7 @@ export default function ImportCompetitorPanel() {
       </div>
 
       <textarea
+        aria-label="იმპორტის ბმულები"
         value={urls}
         onChange={(e) => setUrls(e.target.value)}
         rows={2}

@@ -17,12 +17,14 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 import HScroll from '@/components/HScroll'
+import { Flag, type FlagCode } from '@/components/Flag'
 import {
   EMPTY_Q,
   HANDOVER_BUCKETS,
   OTHER_CITY,
   PRICE_BUCKETS,
   facetCities,
+  facetCountries,
   facetCounts,
   facetDistricts,
   facetDevs,
@@ -38,10 +40,26 @@ import { PER_PAGE, ProjectsGrid } from './ProjectsGrid'
 import type { ProjectCard } from './card'
 import { cityName, type DirLoc } from '@/lib/directory-seo-lite'
 
+const COUNTRY_LABELS: Record<string, { ka: string; en: string; ru: string }> = {
+  GE: { ka: 'საქართველო', en: 'Georgia', ru: 'Грузия' },
+  DE: { ka: 'გერმანია', en: 'Germany', ru: 'Германия' },
+  AE: { ka: 'საამიროები', en: 'UAE', ru: 'ОАЭ' },
+  US: { ka: 'აშშ', en: 'USA', ru: 'США' },
+  GB: { ka: 'დიდი ბრიტანეთი', en: 'UK', ru: 'Великобритания' },
+  FR: { ka: 'საფრანგეთი', en: 'France', ru: 'Франция' },
+  ES: { ka: 'ესპანეთი', en: 'Spain', ru: 'Испания' },
+  IT: { ka: 'იტალია', en: 'Italy', ru: 'Италия' },
+  TR: { ka: 'თურქეთი', en: 'Turkey', ru: 'Турция' },
+  SA: { ka: 'საუდის არაბეთი', en: 'Saudi Arabia', ru: 'Саудовская Аравия' },
+  CY: { ka: 'კვიპროსი', en: 'Cyprus', ru: 'Кипр' },
+  GR: { ka: 'საბერძნეთი', en: 'Greece', ru: 'Греция' },
+}
+
 type Labels = {
   aria: string
   searchAria: string
   searchPh: string
+  allCountries: string
   statusBuild: string
   statusDone: string
   other: string
@@ -70,6 +88,7 @@ const L: Record<DirLoc, Labels> = {
     aria: 'პროექტების ფილტრები',
     searchAria: 'ძიება',
     searchPh: 'პროექტი, უბანი, დეველოპერი…',
+    allCountries: 'ყველა ქვეყანა',
     statusBuild: 'მშენებარე',
     statusDone: 'ჩაბარებული',
     other: 'სხვა',
@@ -88,6 +107,7 @@ const L: Record<DirLoc, Labels> = {
     aria: 'Project filters',
     searchAria: 'Search',
     searchPh: 'Project, district, developer…',
+    allCountries: 'All countries',
     statusBuild: 'Under construction',
     statusDone: 'Delivered',
     other: 'Other',
@@ -106,6 +126,7 @@ const L: Record<DirLoc, Labels> = {
     aria: 'Фильтры проектов',
     searchAria: 'Поиск',
     searchPh: 'Проект, район, застройщик…',
+    allCountries: 'Все страны',
     statusBuild: 'Строятся',
     statusDone: 'Сданы',
     other: 'Другие',
@@ -184,14 +205,19 @@ export function ProjectsExplorer({
     else window.history.pushState(null, '', url)
   }
 
-  const cities = useMemo(() => facetCities(projects), [projects])
+  const countries = useMemo(() => facetCountries(projects), [projects])
+  const activeCountryProjects = useMemo(
+    () => (q.country ? projects.filter((p) => (p.country || 'GE').toUpperCase() === q.country.toUpperCase()) : projects),
+    [projects, q.country],
+  )
+  const cities = useMemo(() => facetCities(activeCountryProjects), [activeCountryProjects])
   const topCitySet = useMemo(
     () => new Set(cities.filter((c) => c.value !== OTHER_CITY).map((c) => c.value)),
     [cities],
   )
-  const districts = useMemo(() => facetDistricts(projects), [projects])
-  const devs = useMemo(() => facetDevs(projects), [projects])
-  const counts = useMemo(() => facetCounts(projects), [projects])
+  const districts = useMemo(() => facetDistricts(activeCountryProjects), [activeCountryProjects])
+  const devs = useMemo(() => facetDevs(activeCountryProjects), [activeCountryProjects])
+  const counts = useMemo(() => facetCounts(activeCountryProjects), [activeCountryProjects])
   const otherCityCount = cities.find((c) => c.value === OTHER_CITY)?.count
 
   const filtered = useMemo(
@@ -252,6 +278,38 @@ export function ProjectsExplorer({
               className="h-10 w-56 rounded-control border border-sv-ink/10 bg-sv-surface pl-9 pr-3 text-[13px] font-semibold text-sv-ink placeholder:font-medium placeholder:text-sv-ink/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
             />
           </div>
+
+          {countries.length > 1 && (
+            <div className="flex shrink-0 items-center gap-1.5 rounded-control bg-sv-ink/[0.04] p-1">
+              <button
+                type="button"
+                onClick={() => update({ country: '', city: '', district: '' })}
+                className={`rounded-lg px-2.5 py-1 text-[12px] font-bold transition-colors ${
+                  !q.country ? 'bg-white text-sv-ink shadow-sm dark:bg-sv-navy' : 'text-sv-ink/60 hover:text-sv-ink'
+                }`}
+              >
+                {t.allCountries}
+              </button>
+              {countries.slice(0, 6).map((c) => {
+                const on = q.country.toUpperCase() === c.value
+                const label = COUNTRY_LABELS[c.value]?.[loc] || c.value
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => update({ country: on ? '' : c.value, city: '', district: '' })}
+                    className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-bold transition-colors ${
+                      on ? 'bg-white text-sv-ink shadow-sm dark:bg-sv-navy' : 'text-sv-ink/60 hover:text-sv-ink'
+                    }`}
+                  >
+                    <Flag code={c.value.toLowerCase() as FlagCode} size={13} />
+                    <span>{label}</span>
+                    <span className="opacity-50">({c.count})</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
           <Chip on={q.status === 'build'} onClick={() => update({ status: q.status === 'build' ? '' : 'build' })}>
             {t.statusBuild}

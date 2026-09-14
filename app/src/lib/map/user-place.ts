@@ -690,6 +690,8 @@ const CITY_ALIASES: Record<string, string> = {
   batoum: 'batumi',
   koeln: 'cologne',
   köln: 'cologne',
+  'ქელნი': 'cologne',
+  'კოლონია': 'cologne',
   muenchen: 'munich',
   münchen: 'munich',
   nürnberg: 'nuremberg',

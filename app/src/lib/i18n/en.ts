@@ -32,6 +32,7 @@ export const en: Dict = {
   'nav.currency': 'Currency',
   'nav.themeToggle': 'Toggle theme — light or dark',
   'nav.daily': 'Daily',
+  'nav.hotels': 'Hotels',
   'nav.neighborhoods': 'Neighborhoods',
   'nav.blog': 'Blog',
   'nav.forum': 'Forum',

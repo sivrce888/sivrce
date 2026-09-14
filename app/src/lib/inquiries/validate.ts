@@ -17,7 +17,7 @@ export interface ValidInquiry {
   name: string
   /** Optional email — contact forms collect it, listing inquiries may not */
   email?: string
-  /** Canonical `+995 XXX XX XX XX` */
+  /** Canonical `+995 XXX XX XX XX` or `+49 VV NNNNN` */
   phone: string
   message: string
 }

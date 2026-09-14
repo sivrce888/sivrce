@@ -86,7 +86,7 @@ import {
   mapBootCamera,
   type MapUiSave,
 } from '@/lib/map/map-ui'
-import { applyMapLanguage } from '@/lib/map/map-language'
+import { applyMapLanguage, bilingualTextField } from '@/lib/map/map-language'
 import {
   POI_CATEGORIES,
   POI_COLORS,
@@ -135,6 +135,10 @@ import {
   pickBerlinFeature,
   type BerlinPick,
 } from '@/lib/map/berlin-tiles'
+import {
+  ICONIC_LAYER_ID,
+  bindIconicLandmarks,
+} from '@/lib/map/iconic-landmarks'
 import {
   initialMapCenter,
   nearestMapCity,
@@ -203,7 +207,7 @@ const SOURCE_ID = 'sivrce-buildings'
 const PTS_SOURCE_ID = 'sivrce-buildings-pts'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
-const KEEP_EXTRUDE = new Set([EXTRUDE_ID, FLOORS_FILL_ID])
+const KEEP_EXTRUDE = new Set([EXTRUDE_ID, FLOORS_FILL_ID, ICONIC_LAYER_ID])
 const LABEL_ID = 'sivrce-buildings-label'
 const DOT_ID = 'sivrce-buildings-dot'
 const DOT_ACTIVE_ID = 'sivrce-buildings-dot-active'
@@ -701,7 +705,10 @@ async function ensureLayers(
     // blocks never double-tag (CHUGURETI DISTRICT + ჩუღურეთი).
     maxzoom: 17,
     layout: {
-      'text-field': ['get', 'name'],
+      'text-field': bilingualTextField(
+        ['coalesce', ['get', 'name'], ''],
+        ['coalesce', ['get', 'nameEn'], ''],
+      ) as ExpressionSpecification,
       'text-size': [
         'interpolate', ['linear'], ['zoom'],
         9, 10, 11, 11, 12, 12, 14, 14, 16, 16,
@@ -1209,7 +1216,7 @@ function Map3DInner({
     applyPoiLabelTheme(map, isDark)
   }, [isDark])
 
-  // ponytail: basemap labels follow UI lang (local → English fallback); cheap layout-prop swap.
+  // ponytail: basemap labels = local + user/EN; cheap layout-prop swap.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -1787,6 +1794,7 @@ function Map3DInner({
           TRANSIT_ICON_ID,
           TRANSIT_LABEL_LAYER_ID,
           NBH_LABEL_ID,
+          ICONIC_LAYER_ID,
         ].filter((id) => map.getLayer(id))
         const hits = map.queryRenderedFeatures(e.point, { layers: liveLayers })
         if (hits.length > 0) return
@@ -2129,6 +2137,15 @@ function Map3DInner({
             })
           } catch (err) {
             console.error('[Map3D] berlin tiles', err)
+          }
+          try {
+            bindIconicLandmarks(map, {
+              lite: isLiteDevice(),
+              beforeId: map.getLayer(FILL_ID) ? FILL_ID : EXTRUDE_ID,
+              visible: view3dRef.current,
+            })
+          } catch (err) {
+            console.error('[Map3D] iconic landmarks', err)
           }
           // Style remount resets paint — restore selection focus if a panel is open.
           applyFocusPaint(map, selectedRef.current?.id ?? null)

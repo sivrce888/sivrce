@@ -74,13 +74,41 @@ export async function requireRole(
   return user
 }
 
-/** Run a DB query, returning `fallback` when the DB is unreachable. */
-export async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+/**
+ * How long a public render may wait on one query before taking the fallback.
+ * Reachable-but-slow is the dangerous case the breaker can't see: the
+ * developer/project rails OR together up to 24 `extendedFields->projectSlug`
+ * JSON predicates, which seq-scan listings and pushed those prerenders past
+ * Next's 180s page budget. Static catalogs are the designed fallback, so a
+ * bounded wait is strictly better than a hung function (and a hung Vercel bill).
+ *
+ * Upgrade path: index the JSON attribution
+ * (`CREATE INDEX ON listings ((extended_fields->>'projectSlug'))`) and this
+ * ceiling stops mattering.
+ */
+const QUERY_DEADLINE_MS = 8_000
+
+/**
+ * Run a DB query, returning `fallback` when the DB is unreachable, the query
+ * throws, or it outruns `deadlineMs`. The query itself is not cancelled —
+ * only the caller's wait is bounded.
+ */
+export async function safeQuery<T>(
+  fn: () => Promise<T>,
+  fallback: T,
+  deadlineMs: number = QUERY_DEADLINE_MS,
+): Promise<T> {
   // Circuit breaker: skip instantly during a known outage (DB down).
   if (!(await dbAvailable())) return fallback
+  let timer: ReturnType<typeof setTimeout> | undefined
   try {
-    return await fn()
-  } catch {
-    return fallback
+    return await Promise.race([
+      fn().catch(() => fallback),
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => resolve(fallback), deadlineMs)
+      }),
+    ])
+  } finally {
+    clearTimeout(timer)
   }
 }

@@ -70,10 +70,10 @@ export default async function AdminCrmPage({
             </option>
           ))}
         </select>
-        <input name="name" required placeholder="Lead name" className={inputCls} />
-        <input name="phone" required placeholder="Phone" className={inputCls} />
-        <input name="email" type="email" placeholder="Email (optional)" className={inputCls} />
-        <input name="notes" placeholder="Notes (optional)" className={inputCls} />
+        <input aria-label="Lead name" name="name" required placeholder="Lead name" className={inputCls} />
+        <input aria-label="Phone" name="phone" required placeholder="Phone" className={inputCls} />
+        <input aria-label="Email (optional)" name="email" type="email" placeholder="Email (optional)" className={inputCls} />
+        <input aria-label="Notes (optional)" name="notes" placeholder="Notes (optional)" className={inputCls} />
         <button
           type="submit"
           className="h-10 rounded-[var(--radius-control)] bg-sv-blue px-4 text-[13px] font-bold text-white transition-colors hover:bg-sv-blue-deep"

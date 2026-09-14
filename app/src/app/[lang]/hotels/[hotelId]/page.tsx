@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { MapPin, ChevronLeft, ExternalLink } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
@@ -13,8 +14,9 @@ interface Copy {
   kicker: string
   title: string
   rooms: string
-  feeNote: (fee: string) => string
-  providerRate: string
+  gdsQuote: string
+  feeIncl: (n: number) => string
+  otaFrom: (n: number) => string
   refundable: string
   nonRefundable: string
   perNightShort: string
@@ -26,130 +28,129 @@ interface Copy {
   emptyError: string
   nights: (n: number) => string
   guests: (n: number) => string
+  bookLive: string
 }
 
 const COPY: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
   ka: {
     kicker: 'სასტუმრო',
-    title: 'ცოცხალი ფასები · Amadeus GDS',
-    rooms: 'ნომრები და ფასები',
-    feeNote: (fee) => `მოიცავს ${fee} ₾ sivrce-ის სერვისის საფასურს`,
-    providerRate: 'მომწოდებლის ფასი',
-    refundable: 'თავისუფალი გაუქმება',
-    nonRefundable: 'არა აბრულებს',
+    title: 'ცოცხალი ფასები',
+    rooms: 'ნომრები',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `ჩათვლით ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
+    refundable: 'უფასო გაუქმება',
+    nonRefundable: 'გაუქმების გარეშე',
     perNightShort: '/ღამე',
-    compare: 'შედარება:',
+    compare: 'ცოცხალი ფასები:',
     back: 'ყველა სასტუმრო',
-    map: 'რუკაზე ნახვა',
-    emptyLive: 'ამ თარიღებზე თავისუფალი ნომერი არ არის — სცადეთ სხვა თარიღები.',
-    emptyUnconfigured: 'ცოცხალი ფასები მალე ჩაირთვება — მომწოდებლის გასაღებები მოლოდინშია.',
-    emptyError: 'ფასები ამჟამად მიუწვდომელია — სცადეთ ხელახლა.',
+    map: 'რუკაზე',
+    emptyLive: 'ამ თარიღებზე GDS ნომერი არ არის — შეადარეთ პარტნიორებზე.',
+    emptyUnconfigured: 'GDS ტარიფები გასაღებების შემდეგ — პარტნიორებზე ფასები ახლავეა.',
+    emptyError: 'GDS დროებით მიუწვდომელია — სცადეთ პარტნიორები.',
     nights: (n) => (n === 1 ? '1 ღამე' : `${n} ღამე`),
     guests: (n) => `${n} სტუმარი`,
+    bookLive: 'ცოცხალი ფასი და ჯავშანი',
   },
   en: {
     kicker: 'Hotel',
-    title: 'Live rates · Amadeus GDS',
-    rooms: 'Rooms & rates',
-    feeNote: (fee) => `Includes ${fee} ₾ Sivrce service fee`,
-    providerRate: 'Provider rate',
+    title: 'Live rates',
+    rooms: 'Rooms',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `incl. ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
     refundable: 'Free cancellation',
     nonRefundable: 'Non-refundable',
     perNightShort: '/night',
-    compare: 'Compare:',
+    compare: 'Live prices:',
     back: 'All hotels',
-    map: 'View on map',
-    emptyLive: 'No rooms available for these dates — try different dates.',
-    emptyUnconfigured: 'Live rates arrive here soon — provider keys pending.',
-    emptyError: 'Rates unavailable right now — please retry.',
+    map: 'Map',
+    emptyLive: 'No GDS rooms for these dates — compare live partner rates.',
+    emptyUnconfigured: 'GDS quotes appear once provider keys are set — partner rates are live now.',
+    emptyError: 'GDS unavailable right now — use partner rates.',
     nights: (n) => (n === 1 ? '1 night' : `${n} nights`),
     guests: (n) => `${n} ${n === 1 ? 'guest' : 'guests'}`,
+    bookLive: 'Live price & book',
   },
   ru: {
     kicker: 'Отель',
-    title: 'Живые цены · Amadeus GDS',
-    rooms: 'Номера и цены',
-    feeNote: (fee) => `Включая ${fee} ₾ сервисный сбор sivrce`,
-    providerRate: 'Цена поставщика',
+    title: 'Живые цены',
+    rooms: 'Номера',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `вкл. ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
     refundable: 'Бесплатная отмена',
     nonRefundable: 'Без возврата',
     perNightShort: '/ночь',
-    compare: 'Сравнить:',
+    compare: 'Живые цены:',
     back: 'Все отели',
-    map: 'Открыть на карте',
-    emptyLive: 'На эти даты свободных номеров нет — попробуйте другие.',
-    emptyUnconfigured: 'Живые цены появятся здесь скоро — ключи поставщика на подходе.',
-    emptyError: 'Цены временно недоступны — повторите попытку.',
+    map: 'Карта',
+    emptyLive: 'На эти даты GDS номеров нет — сравните у партнёров.',
+    emptyUnconfigured: 'Котировки GDS появятся после ключей — цены партнёров уже живые.',
+    emptyError: 'GDS временно недоступен — смотрите партнёров.',
     nights: (n) => (n === 1 ? '1 ночь' : `${n} ноч.`),
     guests: (n) => `${n} ${n === 1 ? 'гость' : 'гостей'}`,
+    bookLive: 'Живая цена и бронь',
   },
   de: {
     kicker: 'Hotel',
-    title: 'Live-Preise · Amadeus GDS',
-    rooms: 'Zimmer & Preise',
-    feeNote: (fee) => `Inklusive ${fee} ₾ Sivrce-Servicegebühr`,
-    providerRate: 'Anbieterpreis',
+    title: 'Live-Preise',
+    rooms: 'Zimmer',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `inkl. ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
     refundable: 'Kostenlose Stornierung',
     nonRefundable: 'Nicht erstattbar',
     perNightShort: '/Nacht',
-    compare: 'Vergleichen:',
+    compare: 'Live-Preise:',
     back: 'Alle Hotels',
-    map: 'Auf der Karte',
-    emptyLive: 'Für diese Daten sind keine Zimmer frei — andere Daten versuchen.',
-    emptyUnconfigured: 'Live-Preise folgen in Kürze — Anbieter-Schlüssel ausstehend.',
-    emptyError: 'Preise gerade nicht verfügbar — bitte erneut versuchen.',
+    map: 'Karte',
+    emptyLive: 'Keine GDS-Zimmer für diese Daten — Partnerpreise vergleichen.',
+    emptyUnconfigured: 'GDS-Kurse nach Anbieter-Schlüsseln — Partnerpreise sind jetzt live.',
+    emptyError: 'GDS gerade nicht verfügbar — Partnerpreise nutzen.',
     nights: (n) => (n === 1 ? '1 Nacht' : `${n} Nächte`),
     guests: (n) => `${n} ${n === 1 ? 'Gast' : 'Gäste'}`,
+    bookLive: 'Live-Preis & buchen',
   },
 }
 
 const gel = (n: number) => `${Math.round(n).toLocaleString('en-US')} ₾`
-
-const MONOGRAMS = [
-  'from-sv-blue to-sv-violet',
-  'from-sv-violet to-sv-navy-soft',
-  'from-sv-orange to-sv-violet',
-  'from-sv-blue to-sv-navy-soft',
-]
-const monogram = (id: string) => MONOGRAMS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % MONOGRAMS.length]
 
 interface PageProps {
   params: Promise<{ lang: string; hotelId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-/** Amadeus hotelIds are short opaque codes — reject anything else at the trust boundary. */
 const HOTEL_ID = /^[A-Za-z0-9_-]{1,32}$/
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const [{ lang: raw, hotelId }, sp] = await Promise.all([params, searchParams])
   const lang = isValidLang(raw) ? raw : 'ka'
-  const { checkIn, checkOut, adults } = await stayOf(sp)
+  const { checkIn, checkOut, adults } = stayOf(sp)
   const { hotelName, mode } = await hotelRooms({ hotelId, checkIn, checkOut, adults })
   const name = mode === 'live' ? hotelName : null
   const title = name ? `${name} — live rates` : 'Hotel — live rates'
   const description = name
-    ? `Rooms and live GDS rates for ${name}. Transparent Sivrce service fee, no hidden extras.`
-    : 'Live hotel rates from the Amadeus GDS with a transparent service fee.'
+    ? `Rooms and GDS quotes for ${name}. Book live prices on Google Hotels or Booking.com.`
+    : 'Hotel rooms. Live partner rates; GDS quotes when Amadeus is connected.'
   if (!HOTEL_ID.test(hotelId))
     return pageMeta(`/hotels/${hotelId}`, lang, {
-      ka: { title: 'სასტუმრო — ცოცხალი ფასები', description: 'სასტუმროების ცოცხალი ფასები Amadeus GDS-დან.' },
-      en: { title: 'Hotel — live rates', description: 'Live hotel rates from the Amadeus GDS.' },
+      ka: { title: 'სასტუმრო — ცოცხალი ფასები', description: 'სასტუმროს ნომრები და ცოცხალი ფასები.' },
+      en: { title: 'Hotel — live rates', description: 'Hotel rooms and live rates.' },
     })
   return pageMeta(`/hotels/${hotelId}`, lang, {
     ka: {
       title: name ? `${name} — ცოცხალი ფასები` : 'სასტუმრო — ცოცხალი ფასები',
       description: name
-        ? `${name}-ის ნომრები და ცოცხალი GDS ფასები. გამჭვირვალე sivrce-ის სერვისის საფასური.`
-        : 'სასტუმროების ცოცხალი ფასები Amadeus GDS-დან, გამჭვირვალე სერვისის საფასურით.',
+        ? `${name} — ნომრები და GDS ტარიფი. ჯავშანი Google Hotels / Booking.com-ზე.`
+        : 'სასტუმროს ნომრები. ცოცხალი ფასები პარტნიორებზე.',
     },
     en: { title, description },
   })
 }
 
-async function stayOf(sp: Awaited<PageProps['searchParams']>) {
-  const q = await sp
-  const get = (k: string) => (typeof q[k] === 'string' ? (q[k] as string) : '')
+function stayOf(sp: Awaited<PageProps['searchParams']>) {
+  const get = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : '')
   const adultsRaw = Number.parseInt(get('adults') || '2', 10)
   return {
     checkIn: get('checkIn'),
@@ -167,15 +168,17 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
 
   const citySlug = typeof sp.city === 'string' && placeBySlug(sp.city) ? sp.city : 'tbilisi'
   const place = placeBySlug(citySlug)!
-  const { checkIn, checkOut, adults } = await stayOf(sp)
+  const { checkIn, checkOut, adults } = stayOf(sp)
   const stay = parseStay(checkIn, checkOut)
   if (!stay) redirect(`/${lang}/hotels?city=${encodeURIComponent(citySlug)}`)
 
+  const nameParam = typeof sp.name === 'string' ? sp.name.slice(0, 80) : null
   const { mode, hotels: rooms, hotelName, fx } = await hotelRooms({ hotelId, checkIn, checkOut, adults })
-  const name = hotelName ?? hotelId
-  const links = compareLinks(name, checkIn, checkOut, adults)
+  const name = hotelName ?? nameParam ?? hotelId
+  const links = compareLinks(`${name} ${place.en}`, checkIn, checkOut, adults)
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name} ${place.en}`)}`
   const backParams = new URLSearchParams({ city: citySlug, checkIn, checkOut, adults: String(adults) })
+  const book = links[0]
 
   const hotelLd =
     mode === 'live' && rooms.length
@@ -184,12 +187,12 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
           '@type': 'Hotel',
           name,
           address: rooms[0].address ?? undefined,
-          priceRange: `${gel(rooms[rooms.length - 1].totalGel)} – ${gel(rooms[0].totalGel)}`,
+          priceRange: `${gel(rooms[0].providerGel)} – ${gel(rooms[rooms.length - 1].providerGel)}`,
           makesOffer: {
             '@type': 'Offer',
             priceCurrency: 'GEL',
-            lowPrice: rooms[rooms.length - 1].totalGel,
-            highPrice: rooms[0].totalGel,
+            lowPrice: rooms[0].providerGel,
+            highPrice: rooms[rooms.length - 1].providerGel,
             offerCount: rooms.length,
             validFrom: checkIn,
           },
@@ -200,89 +203,116 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
     <>
       <Navbar />
       {hotelLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: hotelLd }} /> : null}
+
       <PageHero kicker={copy.kicker} title={name} subtitle={`${copy.title} · ${copy.nights(stay.nights)} · ${copy.guests(adults)}`}>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[14px] font-semibold">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[14px] font-bold">
           <Link
             href={`/${lang}/hotels?${backParams}`}
-            className="rounded-control border border-white/20 bg-white/5 px-4 py-2 text-white transition-colors hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-control border border-white/20 bg-white/10 px-5 py-2.5 text-white backdrop-blur-md hover:bg-white/20"
           >
-            ← {copy.back}
+            <ChevronLeft size={16} />
+            {copy.back}
           </Link>
           <a
             href={mapUrl}
             target="_blank"
             rel="noopener"
-            className="rounded-control border border-white/20 bg-white/5 px-4 py-2 text-white transition-colors hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-control border border-white/20 bg-white/10 px-5 py-2.5 text-white backdrop-blur-md hover:bg-white/20"
           >
+            <MapPin size={16} className="text-sv-blue-light" />
             {copy.map}
           </a>
         </div>
       </PageHero>
 
-      <main className="mx-auto max-w-[1100px] px-5 pb-24 pt-10 md:px-10">
-        <div
-          aria-hidden
-          className={`mb-8 flex h-36 items-center justify-center rounded-card bg-gradient-to-br md:h-44 ${monogram(hotelId)}`}
-        >
-          <span className="text-[44px] font-black text-white/90 md:text-[56px]">{name.charAt(0).toUpperCase()}</span>
-        </div>
+      <main className="mx-auto max-w-[1240px] px-5 pb-24 pt-8 md:px-10">
+        <div className="mb-10">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="sv-h2 text-sv-ink">{copy.rooms}</h2>
+            <span className="text-[13px] font-bold text-sv-ink/60">
+              {copy.nights(stay.nights)} · {copy.guests(adults)}
+            </span>
+          </div>
 
-        <h2 className="sv-h2 mb-5 text-sv-ink">{copy.rooms}</h2>
-
-        {mode !== 'live' || rooms.length === 0 ? (
-          <p className="rounded-card bg-sv-surface p-8 text-center text-[16px] font-medium text-sv-ink/60 shadow-card">
-            {mode === 'unconfigured' ? copy.emptyUnconfigured : mode === 'error' ? copy.emptyError : copy.emptyLive}
-          </p>
-        ) : (
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {rooms.map((r) => (
-              <li key={r.offerId ?? r.totalGel} className="flex flex-col gap-3 rounded-card bg-sv-surface p-6 shadow-card">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-[16px] font-extrabold uppercase tracking-[0.04em] text-sv-ink">
-                    {r.roomType ?? name}
-                  </h3>
-                  <span
-                    className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${
-                      r.refundable ? 'bg-sv-blue/10 text-sv-blue' : 'bg-sv-cloud text-sv-ink/50'
-                    }`}
-                  >
-                    {r.refundable ? copy.refundable : copy.nonRefundable}
-                  </span>
-                </div>
-                <div className="mt-auto">
-                  <p className="text-[13px] font-medium text-sv-ink/40">
-                    {copy.providerRate} {gel(r.providerGel)}
-                  </p>
-                  <p className="text-[24px] font-black leading-tight text-sv-ink">{gel(r.totalGel)}</p>
-                  <p className="text-[12px] font-medium text-sv-ink/50">
-                    {copy.feeNote(gel(r.feeGel))} · ≈ {gel(r.totalGel / stay.nights)}{copy.perNightShort}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <p className="mt-10 text-[14px] font-semibold text-sv-ink/60">
-          {copy.compare}{' '}
-          {links.map((l, i) => (
-            <span key={l.name}>
-              {i > 0 ? ' · ' : ''}
+          {mode !== 'live' || rooms.length === 0 ? (
+            <div className="rounded-card bg-sv-surface p-10 text-center shadow-card border border-sv-cloud">
+              <p className="text-[17px] font-bold text-sv-ink">
+                {mode === 'unconfigured' ? copy.emptyUnconfigured : mode === 'error' ? copy.emptyError : copy.emptyLive}
+              </p>
               <a
-                href={l.url}
+                href={book.url}
                 target="_blank"
                 rel="noopener nofollow"
-                className="text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue"
+                className="mt-6 inline-flex items-center gap-2 rounded-control bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
               >
-                {l.name}
+                {copy.bookLive} <ExternalLink size={14} />
               </a>
-            </span>
-          ))}
-        </p>
-        <p className="mt-4 max-w-3xl text-[13px] font-medium leading-relaxed text-sv-ink/40">
-          Amadeus GDS · {fx === 'live' ? 'FX: open.er-api.com' : 'FX: fallback'} · {place.en} ·{' '}
-          {copy.nights(stay.nights)}
-        </p>
+            </div>
+          ) : (
+            <ul className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {rooms.map((r, idx) => (
+                <li
+                  key={r.offerId ?? r.providerGel + idx}
+                  className="flex flex-col justify-between rounded-card bg-sv-surface p-6 shadow-card border border-sv-cloud"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-[18px] font-black leading-snug text-sv-ink">{r.roomType ?? name}</h3>
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-extrabold ${
+                        r.refundable ? 'bg-sv-blue/10 text-sv-blue' : 'bg-sv-cloud text-sv-ink/60'
+                      }`}
+                    >
+                      {r.refundable ? copy.refundable : copy.nonRefundable}
+                    </span>
+                  </div>
+                  <div className="mt-6 border-t border-sv-cloud pt-4 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-sv-ink/40">{copy.gdsQuote}</p>
+                      <p className="text-[28px] font-black leading-none text-sv-ink">{gel(r.totalGel)}</p>
+                      <p className="mt-1 text-[12px] font-medium text-sv-ink/50">
+                        ≈ {gel(r.totalGel / stay.nights)}
+                        {copy.perNightShort}
+                      </p>
+                      <p className="mt-1 text-[12px] font-semibold text-sv-ink/50">
+                        {copy.feeIncl(r.feeGel)} · {copy.otaFrom(r.providerGel)}
+                      </p>
+                    </div>
+                    <a
+                      href={book.url}
+                      target="_blank"
+                      rel="noopener nofollow"
+                      className="rounded-control bg-sv-orange px-5 py-3 text-[14px] font-black text-sv-ink shadow-glow-orange"
+                    >
+                      {copy.bookLive}
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="rounded-card bg-sv-surface p-6 shadow-card border border-sv-cloud">
+          <p className="text-[14px] font-bold text-sv-ink/70">
+            {copy.compare}{' '}
+            {links.map((l, i) => (
+              <span key={l.name}>
+                {i > 0 ? ' · ' : ''}
+                <a
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener nofollow"
+                  className="text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue font-bold"
+                >
+                  {l.name}
+                </a>
+              </span>
+            ))}
+          </p>
+          <p className="mt-3 text-[12px] font-medium leading-relaxed text-sv-ink/40">
+            Amadeus GDS · Xotelo OTA · {fx === 'live' ? 'FX: open.er-api.com' : 'FX: fallback'} · {place.en} · {copy.nights(stay.nights)}
+          </p>
+        </div>
       </main>
       <Footer />
     </>

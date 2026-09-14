@@ -61,5 +61,7 @@ assert(homeSearchHref({ tier: 'diamond' }, null) === '/search?tier=diamond', 'un
 assert(homeScopeCacheKey(null) === '', 'empty cache key')
 assert(homeScopeCacheKey(homeScopeFor('ae')) === 'AE::', 'AE cache key')
 assert(homeScopeForCountry('fr')?.country === 'FR', 'path country ISO')
+assert(cityNamesForSlug('frankfurt').includes('Frankfurt am Main'), 'Frankfurt am Main alias')
+assert(cityNamesForSlug('hanover').includes('Hannover'), 'Hannover alias')
 
 console.log('home-scope.check: ok')

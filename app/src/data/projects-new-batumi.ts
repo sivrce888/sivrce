@@ -147,6 +147,7 @@ export const NEW_DEVELOPERS_BATUMI_REGIONS: Developer[] = [
     },
     verified: false,
     phone: '',
+    website: 'https://sunestate.ge',
   },
   {
     slug: 'schuchmann',

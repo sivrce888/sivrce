@@ -9,7 +9,6 @@
  *  - projects   → listings in the project's city
  */
 
-import { LISTINGS, type Listing } from './listings'
 import { NEW_DEVELOPERS_TBILISI, NEW_PROJECTS_TBILISI } from './projects-new-tbilisi'
 import { NEW_DEVELOPERS_BATUMI_REGIONS, NEW_PROJECTS_BATUMI } from './projects-new-batumi'
 import { NEW_PROJECTS_REGIONS } from './projects-new-regions'
@@ -17,6 +16,7 @@ import { NEW_DEVELOPERS_2026_08, NEW_PROJECTS_2026_08 } from './projects-new-202
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from './projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from './projects-new-germany'
 import { NEW_DEVELOPERS_UAE, NEW_PROJECTS_UAE } from './projects-new-uae'
+import { NEW_DEVELOPERS_SEP_2026, NEW_PROJECTS_SEP_2026 } from './projects-new-sep-2026'
 import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
@@ -69,6 +69,7 @@ function worldDeveloperToDeveloper(w: WorldDeveloperEntry): Developer {
     description: { ka: w.description, en: w.description, ru: w.description },
     verified: w.verified,
     website: w.website,
+    logoUrl: `/images/developers/${w.slug}.webp`,
   }
 }
 
@@ -78,6 +79,8 @@ export interface LocalName {
   ka: string
   en: string
   ru: string
+  /** German brand spelling for DE developers — optional, falls back to en. */
+  de?: string
 }
 
 export interface LocalText {
@@ -170,11 +173,83 @@ const CURRENT_YEAR = new Date().getFullYear()
  * massing study from floors/flats, progress card from done/finish, location
  * card from coords — same first-party pipeline, no hotlinked binaries.
  */
-const DE_PROJECT_SLUGS = new Set([...NEW_PROJECTS_BERLIN, ...NEW_PROJECTS_GERMANY].map((p) => p.slug))
+const DE_GERMAN_CITIES = new Set([
+  'Berlin', 'Munich', 'Frankfurt', 'Hamburg', 'Cologne', 'Stuttgart', 'Düsseldorf',
+  'Leipzig', 'Dresden', 'Nuremberg', 'Hannover', 'Dortmund', 'Essen', 'Bremen',
+  'Bonn', 'Potsdam', 'Augsburg', 'Wiesbaden', 'Mannheim', 'Karlsruhe', 'Münster', 'Bielefeld',
+  'ბერლინი', 'მიუნხენი', 'ფრანკფურტი', 'ჰამბურგი', 'კელნი', 'შტუტგარტი', 'დიუსელდორფი', 'ლაიფციგი',
+])
+
+const DE_PROJECT_SLUGS = new Set([
+  ...NEW_PROJECTS_BERLIN.map((p) => p.slug),
+  ...NEW_PROJECTS_GERMANY.map((p) => p.slug),
+  ...WORLD_PROJECTS.filter((p) => p.cc === 'DE' || DE_GERMAN_CITIES.has(p.city)).map((p) => p.slug),
+])
 
 function withDERenders(p: Project): Project {
   const base = p.img.replace(/\.webp$/, '')
   return { ...p, gallery: [`${base}-massing.webp`, `${base}-timeline.webp`, `${base}-lage.webp`] }
+}
+
+const GEO_RENDER_SLUGS = new Set([
+  // m² Development
+  'downtown-residence',
+  'm2-hippodrome',
+  'm2-mtatsminda-park',
+  'm2-highlight',
+  'm2-at-chkondideli',
+  // Alliance Group
+  'batumi-riviera-tower',
+  'alliance-palace',
+  'alliance-centropolis',
+  'alliance-privilege',
+  'alliance-highline',
+  // ORBI Group
+  'orbi-sea-towers',
+  'orbi-city',
+  'orbi-beach-tower',
+  'orbi-continental',
+  // Axis
+  'axis-towers-vake',
+  'axis-towers',
+  'axis-palace',
+  'axis-chavchavadze-49',
+  'axis-hippodrome',
+  // Archi
+  'archi-dighomi',
+  'archi-central-park',
+  'archi-horizon',
+  'archi-nutsubidze',
+  'archi-grand-avenue',
+  'archi-kikvidze-garden',
+  // Blox
+  'blox-varketili',
+  'blox-sarajishvili',
+  'blox-didi-digomi',
+  'blox-ortachala',
+  // Biograpi
+  'biograpi-sakeni',
+  'biograpi-matiani',
+  'biograpi-hisni',
+  // Domus
+  'domus-park-vake',
+  'domus-trees',
+  // Metropol
+  'metropol-kavtaradze',
+  'metropol-cube',
+  // White Square, Dirsi
+  'white-square-mindeli',
+  'dirsi-riverside',
+])
+
+function withGeoRenders(p: Project): Project {
+  const base = p.img.replace(/\.webp$/, '')
+  const existing = p.gallery ?? []
+  const trio = [`${base}-massing.webp`, `${base}-timeline.webp`, `${base}-lage.webp`]
+  return {
+    ...p,
+    gallery: [...existing, ...trio].filter((g, i, all) => all.indexOf(g) === i),
+  }
 }
 
 /**
@@ -1637,8 +1712,14 @@ export const DEVELOPERS: Developer[] = [
   ...NEW_DEVELOPERS_BERLIN,
   ...NEW_DEVELOPERS_GERMANY,
   ...NEW_DEVELOPERS_UAE,
+  ...NEW_DEVELOPERS_SEP_2026,
   ...WORLD_DEVELOPERS_MAPPED,
-].filter((d, i, all) => all.findIndex((x) => x.slug === d.slug) === i)
+]
+  .filter((d, i, all) => all.findIndex((x) => x.slug === d.slug) === i)
+  .map((d) => ({
+    ...d,
+    logoUrl: d.logoUrl ?? `/images/developers/${d.slug}.webp`,
+  }))
 
 // ——— Agents / agencies ———
 
@@ -1894,6 +1975,7 @@ export const PROJECTS: Project[] = [
     name: 'Archi Dighomi',
     developerSlug: 'archi',
     img: '/images/projects/archi-dighomi.webp',
+    gallery: ['/images/projects/archi-dighomi.webp', '/images/projects/archi-dighomi-3.webp'],
     location: 'პეტრე იბერის შესახვევი, დიღომი, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$980',
@@ -2034,6 +2116,7 @@ export const PROJECTS: Project[] = [
     name: 'Archi Nutsubidze',
     developerSlug: 'archi',
     img: '/images/projects/archi-nutsubidze.webp',
+    gallery: ['/images/projects/archi-nutsubidze.webp', '/images/projects/archi-nutsubidze-2.webp'],
     location: 'Avto Varazi St, 28a, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$1,050',
@@ -3327,6 +3410,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     name: 'Axis Palace',
     developerSlug: 'axis',
     img: '/images/projects/axis-palace.webp',
+    gallery: ['/images/projects/axis-palace.webp', '/images/projects/axis-palace-1.webp', '/images/projects/axis-palace-2.webp'],
     location: 'Sairme St, 51, თბილისი',
     city: 'თბილისი',
     priceFromM2: '$2,200',
@@ -4885,12 +4969,13 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   ...NEW_PROJECTS_BERLIN,
   ...NEW_PROJECTS_GERMANY,
   ...NEW_PROJECTS_UAE,
+  ...NEW_PROJECTS_SEP_2026,
   ...WORLD_PROJECTS_MAPPED,
 ]
   // ponytail: first-wins slug dedupe — WORLD_PROJECTS may re-list GE/DE base projects.
   .filter((p, i, all) => all.findIndex((x) => x.slug === p.slug) === i)
   .map(freshenFinish)
-  .map((p) => (DE_PROJECT_SLUGS.has(p.slug) ? withDERenders(p) : p))
+  .map((p) => (DE_PROJECT_SLUGS.has(p.slug) ? withDERenders(p) : GEO_RENDER_SLUGS.has(p.slug) ? withGeoRenders(p) : p))
 
 export function getDeveloper(slug?: string): Developer | undefined {
   return DEVELOPERS.find((d) => d.slug === slug)
@@ -4906,19 +4991,4 @@ export function getProject(slug: string): Project | undefined {
 
 export function projectsByDeveloper(developerSlug?: string): Project[] {
   return PROJECTS.filter((p) => p.developerSlug === developerSlug)
-}
-
-/** Listings handled by this agent (deterministic: exact ka name match). */
-export function listingsByAgent(kaName: string): Listing[] {
-  return LISTINGS.filter((l) => l.agent.name === kaName)
-}
-
-/** Listings in a city (deterministic) — used for developer/project grids. */
-export function listingsByCity(city: string, limit = 6): Listing[] {
-  return LISTINGS.filter((l) => l.city === city).slice(0, limit)
-}
-
-/** Active listings count for a developer's home city. */
-export function listingCountByCity(city: string): number {
-  return LISTINGS.filter((l) => l.city === city).length
 }

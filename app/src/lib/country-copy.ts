@@ -61,14 +61,14 @@ export const COUNTRY_NAMES: Record<PathCountryId, string> = {
 export const DE_HUB: CountryCopy = {
   title: 'Germany real estate — Berlin & major cities | sivrce',
   description:
-    'sivrce in Germany: Berlin-first guides for buying and renting apartments. Notary, Grundbuch and transfer tax explained. Listings as inventory lands.',
+    'sivrce in Germany: Berlin-first marketplace for buying and renting apartments, houses, commercial and land. Notary, Grundbuch and transfer tax explained. Prices in EUR.',
   h1: 'Real estate in Germany',
   lede:
-    'Search Germany the way you search Georgia: buy or rent, pick a city, open the 3D map. Berlin first — notary, Grundbuch and transfer tax sit under the search. Verified listings as partners join.',
+    'Search Germany the way you search Georgia: buy or rent, pick a city, open the 3D map. Berlin first — notary, Grundbuch and transfer tax sit under the search. Live listings in EUR, plus street-verified new-builds.',
   body: [
     'Germany is a renter-majority market. Yield investors underwrite vacancy and Mietspiegel rules, not tourist occupancy. Berlin, Hamburg, Munich, Frankfurt and Cologne are the first metros on sivrce; each city page is a unique briefing, not a thin doorway.',
-    'A purchase is not a handshake. An independent notary reads the contract, Grunderwerbsteuer (around 6% in Berlin) is due, plus notary and land-register fees. Foreign buyers are not barred from freehold apartments. sivrce will only publish listings we can verify to the same standard as Georgia.',
-    'Until listings arrive, use the city guides for orientation — districts, commute, and the legal path — then follow sivrce.ge for the live Georgian inventory.',
+    'A purchase is not a handshake. An independent notary reads the contract, Grunderwerbsteuer (around 6% in Berlin) is due, plus notary and land-register fees. Foreign buyers are not barred from freehold apartments. sivrce publishes listings we can verify to the same standard as Georgia.',
+    'Use the city guides for districts, commute and the legal path. The map shows official geometry (ALKIS, B-Plan, StEP Wohnen 2040). Super VIP and VIP+ rails are live inventory — developers and Neubau sit below.',
   ],
   faqs: [
     {
@@ -89,11 +89,11 @@ export const DE_HUB_DE: CountryCopy = {
     'sivrce in Deutschland: Berlin zuerst. Kauf und Miete mit Notar, Grundbuch und Grunderwerbsteuer. Inserate nur verifiziert.',
   h1: 'Immobilien in Deutschland',
   lede:
-    'Deutschland durchsuchen wie Georgien: kaufen oder mieten, Stadt wählen, 3D-Karte öffnen. Berlin zuerst — Notar, Grundbuch und Grunderwerbsteuer stehen unter der Suche. Verifizierte Inserate sobald Partner stehen.',
+    'Deutschland durchsuchen wie Georgien: kaufen oder mieten, Stadt wählen, 3D-Karte öffnen. Berlin zuerst — Notar, Grundbuch und Grunderwerbsteuer stehen unter der Suche. Live-Inserate in Euro, plus straßenverifizierte Neubauten.',
   body: [
     'Deutschland ist ein Mietermarkt. Kapitalanleger rechnen mit Leerstand und Mietspiegel, nicht mit Touristenauslastung. Berlin, Hamburg, München, Frankfurt und Köln sind die ersten Metropolen — jede Stadtseite ist ein eigenes Briefing, keine Doorway-Seite.',
     'Ein Kauf ist kein Handschlag. Der Notar verliest den Vertrag, Grunderwerbsteuer (in Berlin 6 %) plus Notar- und Grundbuchkosten werden fällig. Ausländer dürfen Volleigentum erwerben. sivrce veröffentlicht nur, was sich so prüfen lässt wie in Georgien.',
-    'Solange das Inventar wächst: Stadtguides für Lage, Pendeln und den rechtlichen Weg. Die Karte zeigt amtliche Geometrie (ALKIS, B-Plan, StEP Wohnen 2040) — keine erfundenen Gebäude.',
+    'Stadtguides für Lage, Pendeln und den rechtlichen Weg. Die Karte zeigt amtliche Geometrie (ALKIS, B-Plan, StEP Wohnen 2040). Super-VIP- und VIP+-Schienen sind Live-Inventar — Bauträger und Neubau folgen darunter.',
   ],
   faqs: [
     {

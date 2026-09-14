@@ -15,6 +15,9 @@ import {
   OSM_BUILDING_3D_ID,
 } from '@/lib/map/mapChrome'
 import { mapProxyOrigin } from '@/lib/map/map-proxy'
+import { DEFAULT_LANG, isValidLang, type Lang } from '@/lib/i18n/core'
+import { applyMapLanguage } from '@/lib/map/map-language'
+import { ICONIC_LAYER_ID, setIconicLandmarks3d } from '@/lib/map/iconic-landmarks'
 
 // Defaults are first-party proxy paths — browser never sees openfreemap.org.
 export const STYLE_LIGHT =
@@ -83,7 +86,7 @@ const HYBRID_NAME_IDS = [
   'label_other',
 ] as const
 
-/** OFM vector names on photo — bilingual layout kept (name:latin + name:nonlatin). */
+/** OFM vector names on photo — language applied in applyBrandPaints. */
 export async function overlayHybridLabels(
   sat: StyleSpecification,
 ): Promise<StyleSpecification> {
@@ -173,7 +176,7 @@ function tryLayout(map: MlMap, layer: string, prop: string, value: unknown) {
 export function muteBasemapExtrusions(map: MlMap, keep: ReadonlySet<string>) {
   for (const layer of map.getStyle()?.layers ?? []) {
     if (layer.type !== 'fill-extrusion') continue
-    if (keep.has(layer.id) || layer.id === OSM_BUILDING_3D_ID) continue
+    if (keep.has(layer.id) || layer.id === OSM_BUILDING_3D_ID || layer.id === ICONIC_LAYER_ID) continue
     tryLayout(map, layer.id, 'visibility', 'none')
   }
 }
@@ -212,6 +215,7 @@ export function setBasemapBuildings3d(map: MlMap, on: boolean) {
       /* style variant may omit zoom range */
     }
   }
+  setIconicLandmarks3d(map, on)
 }
 
 /**
@@ -537,6 +541,12 @@ function applyCleanPaints(map: MlMap) {
   hideOfmSuburbLabels(map)
 }
 
+function langFromDom(): Lang {
+  if (typeof document === 'undefined') return DEFAULT_LANG
+  const raw = document.documentElement.lang.split('-')[0] ?? ''
+  return isValidLang(raw) ? raw : DEFAULT_LANG
+}
+
 export function applyBrandPaints(
   map: MlMap,
   theme: MapTheme = 'dark',
@@ -551,17 +561,18 @@ export function applyBrandPaints(
     trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#E8E8E8')
     trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.72)
     trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
-    return
-  }
-  if (theme === 'dark') {
+  } else if (theme === 'dark') {
     applyDarkPaints(map)
-    return
-  }
-  if (terrain === 'clean') {
+  } else if (terrain === 'clean') {
     applyCleanPaints(map)
-    return
+  } else {
+    applyLightPaints(map)
   }
-  applyLightPaints(map)
+  try {
+    applyMapLanguage(map, langFromDom())
+  } catch {
+    /* style mid-swap */
+  }
 }
 
 /** Silence OFM sprite gaps (e.g. wood-pattern) — empty 1×1, no visual change.

@@ -172,6 +172,7 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Bauwert — берлинский девелопер, автор Neue Bockbrauerei в Бергманнкице (Кройцберг): ~220 квартир на бывшей пивоварне, сдача 2026.',
     },
     verified: true,
+    website: 'https://www.bauwert.de',
   },
   {
     slug: 'diamona-harnisch',
@@ -235,6 +236,7 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'OTTO WULFF — гамбургская строительная группа (с 1932). В Берлине: HEY Charlottenburg с HAMBURG TEAM (2027).',
     },
     verified: true,
+    website: 'https://www.otto-wulff.de',
   },
   {
     slug: 'groth-gruppe',
@@ -250,6 +252,7 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Groth Gruppe — берлинский девелопер, 14 лет формировавший Neulichterfelde; строит ~420 таунхаусов в квартале.',
     },
     verified: true,
+    website: 'https://www.groth-gruppe.de',
   },
   {
     slug: 'wvm-berlin',
@@ -259,12 +262,13 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
     projectsDone: 20,
     unitsDelivered: 3000,
     description: {
-      ka: 'wvm Group Berlin — საცხოვრებელი დეველოპერი (ბერლინი/ქელნი). Zwieseler Hof კარლსჰორსტში: 321 ბინა (147 გასაყიდი + 174 ქირის), 2027.',
+      ka: 'wvm Group Berlin — საცხოვრებელი დეველოპერი (ბერლინი/კელნი). Zwieseler Hof კარლსჰორსტში: 321 ბინა (147 გასაყიდი + 174 ქირის), 2027.',
       en: 'wvm Group Berlin is a residential developer (Berlin/Cologne). Zwieseler Hof in Karlshorst: 321 units (147 condos + 174 rentals), due 2027.',
       de: 'Die wvm Gruppe Berlin ist ein Wohnentwickler (Berlin/Köln). Zwieseler Hof in Karlshorst: 321 Einheiten (147 Eigentums- und 174 Mietwohnungen), Fertigstellung 2027.',
       ru: 'wvm Group Berlin — жилой девелопер (Берлин/Кёльн). Zwieseler Hof в Карлсхорсте: 321 квартира (147 на продажу + 174 аренда), сдача 2027.',
     },
     verified: true,
+    website: 'https://wvm.de',
   },
   {
     slug: 'liven-berlin',
@@ -280,6 +284,7 @@ export const NEW_DEVELOPERS_BERLIN: Developer[] = [
       ru: 'Liven — молодой эко-девелопер Берлина: дерево-гибрид, фотовольтаика, общие сады. Wohngarten в Нойкёльне у Кройцберга.',
     },
     verified: false,
+    website: 'https://liven.de',
   },
   {
     slug: 'bonava-berlin',

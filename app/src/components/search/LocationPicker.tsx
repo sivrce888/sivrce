@@ -5,7 +5,10 @@ import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Search, MapPin, ChevronLeft, Route, Check, TrainFront, Globe, LocateFixed, History } from 'lucide-react'
 import { GEO_CITIES, GEO_MUNICIPALITIES, geoPickerColumns, geoRaionsOf } from '@/data/georgia-locations'
-import { districtsOf } from '@/data/listings'
+// Client-safe leaf: the geo catalog covers every inventory district
+// (georgia-locations.check locks parity), so the picker no longer pulls
+// the ~1.1 MB LISTINGS catalog into the browser.
+import { geoDistrictsOf as districtsOf } from '@/data/georgia-locations'
 import { useI18n } from '@/lib/i18n/context'
 import {
   compactDistrictParam,
@@ -17,7 +20,7 @@ import {
   type LocationValue,
 } from '@/lib/search-location'
 import type { Suggestion } from '@/components/search/SearchSuggest'
-import { nearestMapCity } from '@/lib/map/user-place'
+import { MAP_CITIES, nearestMapCity } from '@/lib/map/user-place'
 
 export type { LocationValue }
 export { locationLabel }
@@ -34,6 +37,7 @@ type Props = {
   value: LocationValue
   onClose: () => void
   onApply: (v: LocationValue) => void
+  country?: string
   /** Search: many უბანი. Add-listing: one. */
   multi?: boolean
   showMetro?: boolean
@@ -46,6 +50,7 @@ export default function LocationPicker({
   value,
   onClose,
   onApply,
+  country = 'GE',
   multi = true,
   showMetro = false,
   nationwide = true,
@@ -198,11 +203,19 @@ export default function LocationPicker({
     return [...map.entries()]
   }, [])
 
+  const isGe = !country || country.toUpperCase() === 'GE'
+  const countryCities = useMemo(() => {
+    if (isGe) return GEO_CITIES
+    const iso = country.toUpperCase()
+    const hits = MAP_CITIES.filter((c) => c.cc === iso).map((c) => c.en)
+    return hits.length > 0 ? hits : [city || 'Main City']
+  }, [isGe, country, city])
+
   const sidebarCities = useMemo(() => {
-    const list = GEO_CITIES.slice(0, 14)
+    const list = countryCities.slice(0, 14)
     if (city && !list.includes(city)) return [city, ...list]
     return list
-  }, [city])
+  }, [countryCities, city])
 
   const pickCity = (c: string) => {
     setCity(c)

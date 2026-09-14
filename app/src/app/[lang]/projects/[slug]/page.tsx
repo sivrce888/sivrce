@@ -24,20 +24,12 @@ import { PROJECTS, isDelivered } from '@/data/professionals'
 import {
   getLiveProject,
   getLiveDeveloper,
-  projectsLive,
   projectsLiveByDeveloper,
   isValidCoords,
 } from '@/lib/directory-live'
 import { getListingsForProjectSlug } from '@/lib/listings-db'
-import { getMapListings } from '@/lib/map/db-buildings'
-import {
-  clusterListingsToBuildings,
-  ensureFootprints,
-  footprintPin,
-  mergeMapBuildings,
-  projectsToConstructionBuildings,
-  applyLiveProjectPins,
-} from '@/lib/map/buildings'
+import { ensureFootprints, footprintPin } from '@/lib/map/buildings'
+import { projectCluster } from '@/lib/map/project-cluster-index'
 import { buildingFloors, floorsToGeoJSON } from '@/lib/map/floors'
 import { BuildingFloorsMapLazy } from '@/components/map/BuildingFloorsMapLazy'
 import MapEmbed from '@/components/MapEmbed'
@@ -47,6 +39,7 @@ import { jsonLd, ogImage } from '@/lib/utils'
 import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { DE_CITIES } from '@/lib/countries/de'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
+import { cityByName } from '@/lib/map/user-place'
 import {
   MICRO,
   MICRO_DE,
@@ -74,6 +67,11 @@ interface PageProps {
   params: Promise<{ lang: string; slug: string; market?: 'de' }>
 }
 
+function kaAltName(p: { name: string; nameKa?: string; city: string }, lang: string): string {
+  if (lang !== 'ka' && cityByName(p.city)?.cc !== 'GE') return ''
+  return p.nameKa || altName(p.name)
+}
+
 function absImg(src: string, com = false) {
   return src.startsWith('http') ? src : com ? `https://sivrce.com${src}` : `https://sivrce.ge${src}`
 }
@@ -97,7 +95,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const loc = dirLoc(lang)
   const p = await getLiveProject(slug)
   if (!p) return {}
-  const alt = (lang === 'ka' && p.nameKa) || altName(p.name) || ''
+  const alt = (lang === 'ka' && p.nameKa) || kaAltName(p, lang)
   const body = (pickLoc(p.description, lang === 'de' ? 'de' : loc) || `${p.name}, ${p.location}`).replace(/\s+/g, ' ')
   // Both scripts up front — Google/AI bold whichever the query used.
   const description = ((alt && !body.includes(alt) ? `${p.name} (${alt}). ` : '') + body).slice(0, 155)
@@ -162,12 +160,12 @@ export default async function ProjectPage({ params }: PageProps) {
   const micro = isDe ? MICRO_DE : MICRO[loc]
   const chromeLoc = isDe ? 'de' : loc
 
-  const [project, liveProjects] = await Promise.all([getLiveProject(slug), projectsLive()])
+  const project = await getLiveProject(slug)
   if (!project) notFound()
   // Georgian transliteration wins on ka — matches how users actually search.
   const displayName = lang === 'ka' && project.nameKa ? project.nameKa : project.name
 
-  const [dev, listings, aggregate, siblingProjects, mapListings, intel] = await Promise.all([
+  const [dev, listings, aggregate, siblingProjects, intel] = await Promise.all([
     project.developerSlug ? getLiveDeveloper(project.developerSlug) : Promise.resolve(null),
     getListingsForProjectSlug(slug, 6),
     getReviewAggregate('project', slug),
@@ -176,7 +174,6 @@ export default async function ProjectPage({ params }: PageProps) {
           ps.filter((p) => p.slug !== project.slug).slice(0, 4),
         )
       : Promise.resolve([]),
-    getMapListings().catch(() => []),
     // Provenance is additive: a dossier miss must never 500 the project page.
     getEntityProfile('project', slug).catch(() => null),
   ])
@@ -184,14 +181,10 @@ export default async function ProjectPage({ params }: PageProps) {
   const sourcesCopy = sourcesHeading(lang)
 
   // 3D floor stack: live address/coords so the corpus sits on the exact pin.
+  // Shared index — rebuilding every cluster per page was O(listings × projects)
+  // ~840 times per build and blew Next's 180s page budget on world projects.
   await ensureFootprints()
-  const cluster = applyLiveProjectPins(
-    mergeMapBuildings(
-      clusterListingsToBuildings(mapListings),
-      projectsToConstructionBuildings(liveProjects),
-    ),
-    liveProjects,
-  ).find((b) => b.projectSlug === slug || b.projectSlug === project.slug)
+  const cluster = await projectCluster(slug, project.slug)
   const floorsFc = cluster ? floorsToGeoJSON(cluster) : null
   const floorsInfo = cluster ? buildingFloors(cluster) : []
   const isGhost = !!cluster && cluster.status === 'construction' && cluster.listings.length === 0
@@ -209,9 +202,9 @@ export default async function ProjectPage({ params }: PageProps) {
 
   // alternateName: curated ka name or derived translit — the other-script form
   // for entity matching in Google/AI (users search 'არჩი უნივერსი' AND 'Archi Universe').
-  const altNames = [
-    ...new Set([project.name, project.nameKa ? null : altName(project.name)]),
-  ].filter((n): n is string => !!n && n !== displayName)
+  const altNames = [...new Set([project.name, kaAltName(project, lang)])].filter(
+    (n): n is string => !!n && n !== displayName,
+  )
 
   // Market-scoped entity URLs: the DE copy lives on sivrce.com/de, catalog ka
   // city names map to their Latin form for the .com audience.
@@ -329,7 +322,7 @@ export default async function ProjectPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <Navbar />
+      <Navbar marketIso={cityByName(project.city)?.cc} marketCity={cityByName(project.city)?.en} />
       <main id="main">
         {/* Hero */}
         <div className="relative aspect-[16/9] max-h-[520px] w-full overflow-hidden md:aspect-[21/9]">
@@ -667,7 +660,7 @@ export default async function ProjectPage({ params }: PageProps) {
         </section>
         <StickyLeadBar targetType="project" targetId={project.slug} phone={dev?.phone || CONTACT_PHONE} recipientName={project.name} />
       </main>
-      <Footer />
+      <Footer marketIso={cityByName(project.city)?.cc} marketCity={cityByName(project.city)?.en} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />

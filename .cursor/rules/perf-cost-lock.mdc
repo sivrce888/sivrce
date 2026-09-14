@@ -3,7 +3,7 @@ description: RAM + Vercel cost + client perf lock — ponytail lite, no jank reg
 alwaysApply: true
 ---
 
-# Perf / cost lock (FROZEN 2026-09-12)
+# Perf / cost lock (FROZEN 2026-09-14)
 
 Owner mandate: **minimal RAM**, **minimal Vercel spend**, **fast on all devices**, **no freeze/jank**.
 Ponytail level: **`lite`** (not full/ultra unless owner says otherwise).
@@ -14,7 +14,7 @@ Enforced by `scripts/check-repo-weight.mjs` (pre-commit, pre-push `--ci`, `prebu
 
 | Cap | Lock | Now |
 | --- | --- | --- |
-| Git tree | **96 MiB** / **3500** files | ~77 MiB / ~2800 |
+| Git tree | **96 MiB** / **4500** files (file cap raised 2026-09-14: byte cap is the cost guard; ~1900 catalog images are legitimate) | ~59 MiB / ~3300 |
 | Vercel deploy (`.next/server`+`static`, no maps/cache) | **100 MiB** | ~87 MiB after map strip |
 | `.next/server` (no maps) | **80 MiB** | ~71 MiB |
 | `.next/static` | **24 MiB** | ~16 MiB |

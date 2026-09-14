@@ -64,6 +64,7 @@ async function main() {
           { id: 'building-3d', type: 'fill-extrusion' },
           { id: 'other-3d', type: 'fill-extrusion' },
           { id: 'sivrce-buildings-3d', type: 'fill-extrusion' },
+          { id: 'sv-iconic-3d', type: 'fill-extrusion' },
           { id: 'road', type: 'line' },
         ],
       }),
@@ -95,6 +96,7 @@ async function main() {
       setLayerZoomRange: (_id: string, min: number, max: number) => {
         zoomRange = [min, max]
       },
+      setFilter: () => undefined,
     } as unknown as MlMap,
     true,
   )

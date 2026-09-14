@@ -2,12 +2,17 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import SearchClient from '@/components/search/SearchClient'
 import { pickAds } from '@/lib/ads-db'
+import { canCatalogFallback, catalogSearch } from '@/lib/catalog-search'
 import { isValidLang } from '@/lib/i18n/core'
 import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
-import { requestMarket } from '@/lib/request-market'
+import { mapSearchHit } from '@/lib/map-search-hit'
 import { countryIsoForMarket } from '@/lib/markets'
+import { requestMarket } from '@/lib/request-market'
+import { parseSearchParams } from '@/lib/search-filters'
 
-export const revalidate = 300
+function one(v: string | string[] | undefined): string | undefined {
+  return Array.isArray(v) ? v[0] : v
+}
 
 export async function generateMetadata({
   params,
@@ -49,18 +54,52 @@ function SearchFallback({ lang }: { lang: string }) {
   )
 }
 
-export default async function SearchPage({ params }: { params: Promise<{ lang: string }> }) {
+export default async function SearchPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
+  const spIn = await searchParams
   const ads = await pickAds(['search_top', 'search_native'], { audience: 'guest', lang })
-  // Market scope: global hub searches the world; every other host/path
-  // locks /search to that country's ISO (GE, DE, AE, …).
-  const country = countryIsoForMarket(await requestMarket()) ?? 'all'
+  const marketIso = countryIsoForMarket(await requestMarket()) ?? 'all'
+
+  const qs = new URLSearchParams()
+  for (const [k, v] of Object.entries(spIn)) {
+    const s = one(v)
+    if (s) qs.set(k, s)
+  }
+  if (!qs.get('country') && marketIso !== 'all') qs.set('country', marketIso)
+
+  const filters = parseSearchParams(qs)
+  const country = filters.country ?? marketIso
+
+  let initialHits: ReturnType<typeof mapSearchHit>[] | undefined
+  let initialTotal: number | undefined
+  if (canCatalogFallback(filters)) {
+    const cat = await catalogSearch(filters)
+    if (cat && cat.totalHits > 0) {
+      initialHits = cat.hits.map((h) => mapSearchHit(h as Record<string, unknown>))
+      initialTotal = cat.totalHits
+    } else {
+      initialHits = []
+      initialTotal = 0
+    }
+  } else if (filters.country && filters.country !== 'GE') {
+    initialHits = []
+    initialTotal = 0
+  }
+
   return (
     <Suspense fallback={<SearchFallback lang={lang} />}>
       <SearchClient
         ads={{ top: ads.search_top ?? null, native: ads.search_native ?? null }}
         country={country}
+        initialHits={initialHits}
+        initialTotal={initialTotal}
       />
     </Suspense>
   )

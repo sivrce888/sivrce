@@ -32,6 +32,7 @@ export const az: Dict = {
   'nav.currency': 'Valyuta',
   'nav.themeToggle': 'Mövzunu dəyiş — işıqlı və ya tünd',
   'nav.daily': 'Günlük',
+  'nav.hotels': 'Otellər',
   'nav.neighborhoods': 'Məhəllələr',
   'nav.blog': 'Bloq',
   'nav.forum': 'Forum',

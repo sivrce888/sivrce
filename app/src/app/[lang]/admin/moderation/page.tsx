@@ -362,7 +362,7 @@ async function ComplaintsTab({ page, sp }: { page: number; sp: SearchParams }) {
                           <form action={setComplaintStatus} className="flex items-center gap-1.5">
                             <input type="hidden" name="id" value={r.id} />
                             <input type="hidden" name="status" value="resolved" />
-                            <input
+                            <input aria-label="Resolution note…"
                               name="resolution"
                               placeholder="Resolution note…"
                               className={`${rowInputCls} w-[140px]`}
@@ -374,7 +374,7 @@ async function ComplaintsTab({ page, sp }: { page: number; sp: SearchParams }) {
                           <form action={setComplaintStatus} className="flex items-center gap-1.5">
                             <input type="hidden" name="id" value={r.id} />
                             <input type="hidden" name="status" value="dismissed" />
-                            <input
+                            <input aria-label="Dismissal note…"
                               name="resolution"
                               placeholder="Dismissal note…"
                               className={`${rowInputCls} w-[140px]`}
@@ -467,7 +467,7 @@ async function FraudTab({ page, sp }: { page: number; sp: SearchParams }) {
                     <td className={td}>
                       <form action={resolveFraudSignal} className="flex items-center gap-1.5">
                         <input type="hidden" name="id" value={s.id.toString()} />
-                        <input
+                        <input aria-label="Resolution note…"
                           name="resolution"
                           placeholder="Resolution note…"
                           className={`${rowInputCls} w-[140px]`}
@@ -572,13 +572,13 @@ function BlocklistPanel({
       <h3 className="mb-3 text-[13.5px] font-extrabold text-sv-ink">{title}</h3>
       <form action={addBlocklistEntry} className="mb-3 flex flex-wrap items-center gap-2">
         <input type="hidden" name="kind" value={kind} />
-        <input
+        <input aria-label={kind === "email" ? "Email (stored hashed)" : "Value"}
           name="value"
           required
           placeholder={kind === "email" ? "Email (stored hashed)" : "Value"}
           className={`${rowInputCls} min-w-[140px] flex-1`}
         />
-        <input name="reason" placeholder="Reason (optional)" className={`${rowInputCls} flex-1`} />
+        <input aria-label="Reason (optional)" name="reason" placeholder="Reason (optional)" className={`${rowInputCls} flex-1`} />
         <button type="submit" className={rowBtnGhost}>
           Add
         </button>
@@ -646,15 +646,15 @@ async function BansTab({ page, sp }: { page: number; sp: SearchParams }) {
         >
           <label className={formLabelCls}>
             User ID
-            <input name="userId" required maxLength={120} className={formInputCls} />
+            <input aria-label="userId" name="userId" required maxLength={120} className={formInputCls} />
           </label>
           <label className={`${formLabelCls} min-w-[220px] flex-1`}>
             Reason
-            <input name="reason" required className={formInputCls} />
+            <input aria-label="reason" name="reason" required className={formInputCls} />
           </label>
           <label className={formLabelCls}>
             Scope
-            <select name="scope" className={formInputCls}>
+            <select aria-label="scope" name="scope" className={formInputCls}>
               {SHADOW_BAN_SCOPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}

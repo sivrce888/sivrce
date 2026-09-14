@@ -32,10 +32,12 @@ export function cityNamesForSlug(slug: string): string[] {
     names.add(pin.en)
   }
   // Common international/German local spellings
-  if (slug === 'cologne') { names.add('Köln'); names.add('Koeln'); names.add('köln') }
+  if (slug === 'cologne') { names.add('Köln'); names.add('Koeln'); names.add('köln'); names.add('კელნი'); names.add('ქელნი') }
   if (slug === 'munich') { names.add('München'); names.add('Muenchen'); names.add('münchen') }
   if (slug === 'nuremberg') { names.add('Nürnberg'); names.add('Nuernberg'); names.add('nürnberg') }
   if (slug === 'duesseldorf') { names.add('Düsseldorf'); names.add('düsseldorf') }
+  if (slug === 'frankfurt') { names.add('Frankfurt am Main') }
+  if (slug === 'hanover') { names.add('Hannover') }
   if (slug === 'muenster') { names.add('Münster'); names.add('münster') }
   if (slug === 'wuerzburg') { names.add('Würzburg'); names.add('würzburg') }
   if (slug === 'luebeck') { names.add('Lübeck'); names.add('lübeck') }

@@ -194,7 +194,7 @@ sivrce-ზე დღიური განცხადების დამა�
     enExcerpt:
       'How much an apartment in Batumi earns per year, which district is most profitable, and how to model ROI before investing.',
     tags: ['ბათუმი', 'დღიური ქირა', 'ROI'],
-    cover: '/images/np1.webp?v15k',
+    cover: '/images/neighborhoods/batumi.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-06-10',
     readingMinutes: 6,
@@ -334,7 +334,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'How much daily-rental apartment owners earn in Batumi, which district is profitable, and what risks to know.',
     tags: ['ბათუმი', 'ROI', 'ინვესტიცია'],
-    cover: '/images/np2.webp?v15k',
+    cover: '/images/neighborhoods/batumi.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-07-13',
     readingMinutes: 6,
@@ -415,7 +415,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Buying off-plan in Tbilisi: active districts, per-m² prices, developer installment plans and due diligence.',
     tags: ['ახალი პროექტები', 'მშენებარე', 'თბილისი'],
-    cover: '/images/np1.webp?v15k',
+    cover: '/images/de/neubau-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-09-01',
     readingMinutes: 6,
@@ -658,7 +658,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'House rental prices by suburb, 6 questions for the landlord, and city vs outskirts trade-offs.',
     tags: ['სახლი', 'ქირავდება', 'თბილისი'],
-    cover: '/images/np1.webp?v15k',
+    cover: '/images/de/house-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-08',
     readingMinutes: 5,

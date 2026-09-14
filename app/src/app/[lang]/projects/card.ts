@@ -9,6 +9,7 @@
 import { finishMaxYear, getDeveloper, isDelivered, type Project } from '@/data/professionals'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { pickLoc, type DirLoc } from '@/lib/directory-seo'
+import { cityByName, nearestMapCity } from '@/lib/map/user-place'
 
 export interface ProjectCard {
   slug: string
@@ -18,6 +19,7 @@ export interface ProjectCard {
   city: string
   /** Canonical ka district ('' when unknown — never invent). */
   district: string
+  country?: string
   developerSlug?: string
   /** Resolved display name — '' for DB-only developers without a catalog profile. */
   devName: string
@@ -34,6 +36,8 @@ export interface ProjectCard {
 /** Server-side projection: resolves dev name + delivered once so the client grid never imports the catalog. */
 export function toCard(p: Project, loc: DirLoc): ProjectCard {
   const dev = getDeveloper(p.developerSlug)
+  const pin = cityByName(p.city)
+  const cc = pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null) ?? 'GE'
   return {
     slug: p.slug,
     name: loc === 'ka' && p.nameKa ? p.nameKa : p.name,
@@ -41,6 +45,7 @@ export function toCard(p: Project, loc: DirLoc): ProjectCard {
     location: p.location,
     city: p.city,
     district: p.district ?? canonicalizeDistrict(p.location, p.city),
+    country: cc,
     developerSlug: p.developerSlug,
     devName: dev ? pickLoc(dev.name, loc) : '',
     priceFromM2: p.priceFromM2,
@@ -79,6 +84,7 @@ export const SORTS: Sort[] = ['rec', 'price', 'price-desc', 'handover', 'rating'
 
 export interface Q {
   q: string
+  country: string
   city: string
   district: string
   status: '' | 'build' | 'done'
@@ -88,7 +94,7 @@ export interface Q {
   sort: Sort
 }
 
-export const EMPTY_Q: Q = { q: '', city: '', district: '', status: '', price: '', handover: '', dev: '', sort: 'rec' }
+export const EMPTY_Q: Q = { q: '', country: '', city: '', district: '', status: '', price: '', handover: '', dev: '', sort: 'rec' }
 
 /** City chip value for "everything outside the top cities". */
 export const OTHER_CITY = '__other'
@@ -105,6 +111,7 @@ export function parseQ(sp: URLSearchParams): Q {
   const sort = sp.get('sort') as Sort
   return {
     q: sp.get('q')?.slice(0, 60) ?? '',
+    country: sp.get('country')?.slice(0, 8) ?? '',
     city: sp.get('city')?.slice(0, 60) ?? '',
     district: sp.get('district')?.slice(0, 60) ?? '',
     status: status === 'build' || status === 'done' ? status : '',
@@ -118,6 +125,7 @@ export function parseQ(sp: URLSearchParams): Q {
 export function qToSearch(q: Q): string {
   const sp = new URLSearchParams()
   if (q.q) sp.set('q', q.q)
+  if (q.country) sp.set('country', q.country)
   if (q.city) sp.set('city', q.city)
   if (q.district) sp.set('district', q.district)
   if (q.status) sp.set('status', q.status)
@@ -130,7 +138,7 @@ export function qToSearch(q: Q): string {
 }
 
 export function isQActive(q: Q): boolean {
-  return !!(q.q || q.city || q.district || q.status || q.price || q.handover || q.dev) || q.sort !== 'rec'
+  return !!(q.q || q.country || q.city || q.district || q.status || q.price || q.handover || q.dev) || q.sort !== 'rec'
 }
 
 /** Case-insensitive substring over name + location + district + developer (Korter-style quick search). */
@@ -141,6 +149,7 @@ function searchHit(p: ProjectCard, q: string): boolean {
 
 export function matchesCard(p: ProjectCard, q: Q, topCities: ReadonlySet<string>): boolean {
   if (q.q && !searchHit(p, q.q)) return false
+  if (q.country && q.country !== 'all' && q.country !== '*' && p.country && p.country.toUpperCase() !== q.country.toUpperCase()) return false
   if (q.status === 'build' && p.delivered) return false
   if (q.status === 'done' && !p.delivered) return false
   if (q.city && (q.city === OTHER_CITY ? topCities.has(p.city) : p.city !== q.city)) return false
@@ -169,6 +178,24 @@ export function sortCards(items: ProjectCard[], sort: Sort): ProjectCard[] {
   else if (sort === 'progress') s.sort((a, b) => b.done - a.done)
   else s.sort((a, b) => (a.delivered ? Infinity : a.year ?? Infinity) - (b.delivered ? Infinity : b.year ?? Infinity))
   return s
+}
+
+// -- Facets (counts + option lists, derived from the corpus — always in sync) --
+
+export interface CountryFacet {
+  value: string
+  count: number
+}
+
+export function facetCountries(items: ProjectCard[]): CountryFacet[] {
+  const byCountry = new Map<string, number>()
+  for (const p of items) {
+    const c = (p.country || 'GE').toUpperCase()
+    byCountry.set(c, (byCountry.get(c) ?? 0) + 1)
+  }
+  return [...byCountry.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([value, count]) => ({ value, count }))
 }
 
 // -- Facets (counts + option lists, derived from the corpus — always in sync) --

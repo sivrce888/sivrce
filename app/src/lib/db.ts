@@ -33,7 +33,20 @@ function getPool(): Pool {
   return globalForPrisma.pool
 }
 
-function createClient() {
+function createClient(): PrismaClient {
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    return new Proxy({} as PrismaClient, {
+      get(_target, prop) {
+        if (!process.env.DATABASE_URL) {
+          throw new Error("DATABASE_URL environment variable is not set")
+        }
+        const pool = getPool()
+        const client = new PrismaClient({ adapter: new PrismaPg(pool) })
+        return (client as unknown as Record<string | symbol, unknown>)[prop]
+      },
+    })
+  }
   return new PrismaClient({ adapter: new PrismaPg(getPool()) })
 }
 
@@ -70,6 +83,16 @@ export async function dbAvailable(): Promise<boolean> {
   return inflight
 }
 
+/**
+ * Probe verdict deadline. The pool's own connectionTimeoutMillis is 8s, which
+ * is the right ceiling for a real query but far too slow for a health check:
+ * the 3s fail-cache expires mid-probe, so a page with N sequential safeQuery
+ * calls paid N × 8s. Healthy pooler latency is single-digit ms, so 2s is a
+ * generous "it is down" verdict. The underlying query is left to settle on its
+ * own — racing it only bounds how long callers wait for the answer.
+ */
+const PROBE_DEADLINE_MS = 2_000
+
 async function probeDb(): Promise<boolean> {
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
@@ -77,13 +100,16 @@ async function probeDb(): Promise<boolean> {
     return false
   }
   // Same Pool Prisma uses — a second Client was a leaked pooler slot per probe.
-  let ok = false
-  try {
-    await getPool().query("SELECT 1")
-    ok = true
-  } catch {
-    ok = false
-  }
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const ok = await Promise.race([
+    getPool()
+      .query("SELECT 1")
+      .then(() => true)
+      .catch(() => false),
+    new Promise<boolean>((resolve) => {
+      timer = setTimeout(() => resolve(false), PROBE_DEADLINE_MS)
+    }),
+  ]).finally(() => clearTimeout(timer))
   health = { ok, at: Date.now() }
   return ok
 }

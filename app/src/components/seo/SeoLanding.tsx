@@ -36,7 +36,18 @@ import {
 const BASE = 'https://sivrce.ge'
 
 /** Page-chrome strings per locale (content copy lives in lib/seo-pages). */
-const UI = {
+const UI: Record<SeoLoc, {
+  badge: string
+  listings: string
+  avg: string
+  from: string
+  crumbAria: string
+  gridAria: string
+  overview: string
+  faq: string
+  related: string
+  guide: string
+}> = {
   ka: {
     badge: 'AI შეფასებით',
     listings: 'განცხადება',
@@ -61,6 +72,18 @@ const UI = {
     related: 'Related searches',
     guide: 'Neighbourhood guide',
   },
+  de: {
+    badge: 'KI-BEWERTET',
+    listings: 'Inserate',
+    avg: 'Durchschnittspreis',
+    from: 'ab',
+    crumbAria: 'Brotkrumen',
+    gridAria: 'Inserate',
+    overview: 'Marktübersicht',
+    faq: 'Häufig gestellte Fragen',
+    related: 'Verwandte Suchen',
+    guide: 'Stadtteil-Guide',
+  },
   ru: {
     badge: 'AI-оценка',
     listings: 'объявлений',
@@ -73,7 +96,79 @@ const UI = {
     related: 'Похожие запросы',
     guide: 'Гид по району',
   },
-} as const
+  tr: {
+    badge: 'Yapay Zeka Değerlemesi',
+    listings: 'ilan',
+    avg: 'ortalama fiyat',
+    from: 'başlangıç',
+    crumbAria: 'İçerik haritası',
+    gridAria: 'İlanlar',
+    overview: 'Piyasa genel bakış',
+    faq: 'Sık sorulan sorular',
+    related: 'İlgili aramalar',
+    guide: 'Semt rehberi',
+  },
+  ar: {
+    badge: 'تقييم الذكاء الاصطناعي',
+    listings: 'إعلان',
+    avg: 'متوسط السعر',
+    from: 'من',
+    crumbAria: 'مسار التصفح',
+    gridAria: 'الإعلانات',
+    overview: 'نظرة عامة على السوق',
+    faq: 'الأسئلة الشائعة',
+    related: 'عمليات بحث ذات صلة',
+    guide: 'دليل الحي',
+  },
+  uk: {
+    badge: 'ШІ-оцінка',
+    listings: 'оголошень',
+    avg: 'середня ціна',
+    from: 'від',
+    crumbAria: 'Хлібні крихти',
+    gridAria: 'Оголошення',
+    overview: 'огляд ринку',
+    faq: 'Часті запитання',
+    related: 'Схожі пошуки',
+    guide: 'Гід по району',
+  },
+  he: {
+    badge: 'הערכת AI',
+    listings: 'מודעות',
+    avg: 'מחיר ממוצע',
+    from: 'החל מ-',
+    crumbAria: 'פירורי לחם',
+    gridAria: 'מודעות',
+    overview: 'סקירת שוק',
+    faq: 'שאלות נפוצות',
+    related: 'חיפושים קשורים',
+    guide: 'מדריך שכונות',
+  },
+  hy: {
+    badge: 'AI գնահատում',
+    listings: 'հայտարարություն',
+    avg: 'միջին գին',
+    from: 'սկսած',
+    crumbAria: 'Ուղեցույց',
+    gridAria: 'Հայտարարություններ',
+    overview: 'Շուկայի ակնարկ',
+    faq: 'Հաճախ տրվող հարցեր',
+    related: 'Նմանատիպ որոնումներ',
+    guide: 'Թաղամասի ուղեցույց',
+  },
+  az: {
+    badge: 'AI qiymətləndirmə',
+    listings: 'elan',
+    avg: 'orta qiymət',
+    from: 'başlanğıc',
+    crumbAria: 'Naviqasiya',
+    gridAria: 'Elanlar',
+    overview: 'Bazar icmalı',
+    faq: 'Tez-tez verilən suallar',
+    related: 'Əlaqəli axtarışlar',
+    guide: 'Ərazi bələdçisi',
+  },
+}
 
 /** District/city landing → livability guide (chughureti SEO slug ≠ chugureti guide). */
 function guideSlugOf(def: SeoPageDef): string | undefined {
@@ -82,23 +177,36 @@ function guideSlugOf(def: SeoPageDef): string | undefined {
   return undefined
 }
 
-const OG_LOCALE: Record<SeoLoc, string> = { ka: 'ka_GE', en: 'en_US', ru: 'ru_RU' }
+const OG_LOCALE: Record<SeoLoc, string> = {
+  ka: 'ka_GE',
+  en: 'en_US',
+  de: 'de_DE',
+  ru: 'ru_RU',
+  tr: 'tr_TR',
+  ar: 'ar_AE',
+  uk: 'uk_UA',
+  he: 'he_IL',
+  hy: 'hy_AM',
+  az: 'az_AZ',
+}
 
-export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = locPrefix(loc)): Metadata {
+export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = locPrefix(loc), marketIso = 'GE'): Metadata {
   // city-info: curated title — "გორი — უძრავი ქონება, ფასები, გზამკვლევი | sivrce"
   // (avoids the "0 განცხადება" suffix that titleOf would emit for empty listings).
   const isCityInfo = def.kind === 'city-info' && def.city
   const placeName = isCityInfo
-    ? (loc === 'ka' ? def.city!.ka : loc === 'en' ? def.city!.en : def.city!.ru)
+    ? (loc === 'ka' ? def.city!.ka : loc === 'de' ? (def.city!.de ?? def.city!.en) : loc === 'en' ? def.city!.en : def.city!.ru)
     : ''
   const title = isCityInfo
     ? (loc === 'ka'
         ? `${placeName} — უძრავი ქონება, ფასები, გზამკვლევი`
-        : loc === 'en'
-          ? `${placeName} — Real Estate, Prices & Area Guide`
-          : `${placeName} — недвижимость, цены и гид`)
-    : titleOf(def, loc)
-  const description = isCityInfo ? (cityProseOf(def.city!.slug)?.lede ?? '') : descriptionOf(def, loc)
+        : loc === 'de'
+          ? `${placeName} — Immobilien, Preise & Stadtführer`
+          : loc === 'en'
+            ? `${placeName} — Real Estate, Prices & Area Guide`
+            : `${placeName} — недвижимость, цены и гид`)
+    : titleOf(def, loc, marketIso)
+  const description = isCityInfo ? (cityProseOf(def.city!.slug)?.lede ?? '') : descriptionOf(def, loc, marketIso)
   const url = `${urlPrefix}${def.path}`
   return {
     title,
@@ -110,19 +218,19 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = lo
       type: 'website',
       url: `${BASE}${url}`,
       siteName: 'sivrce',
-      locale: OG_LOCALE[loc],
+      locale: OG_LOCALE[loc] ?? 'en_US',
       images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: title }],
     },
     twitter: { card: 'summary_large_image', title, description, images: ['/images/og-brand.png'] },
   }
 }
 
-function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
+function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc), marketIso = 'GE') {
   const crumbs = breadcrumbsOf(def, loc, p)
   // city-info: Place + Breadcrumb + ka FAQPage. No ItemList (empty inventory).
   if (def.kind === 'city-info' && def.city) {
     const prose = cityProseOf(def.city.slug)
-    const placeName = loc === 'ka' ? def.city.ka : loc === 'en' ? def.city.en : def.city.ru
+    const placeName = loc === 'ka' ? def.city.ka : loc === 'de' ? (def.city.de ?? def.city.en) : loc === 'en' ? def.city.en : def.city.ru
     const cityFaqs = loc === 'ka' ? (prose?.faqs ?? []) : []
     return {
       '@context': 'https://schema.org',
@@ -133,7 +241,7 @@ function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
           description: prose?.lede,
           url: `${BASE}${p}${def.path}`,
           inLanguage: loc,
-          address: { '@type': 'PostalAddress', addressCountry: 'GE', addressLocality: placeName },
+          address: { '@type': 'PostalAddress', addressCountry: marketIso === 'all' ? 'GE' : marketIso, addressLocality: placeName },
           ...(prose?.coords && {
             geo: { '@type': 'GeoCoordinates', latitude: prose.coords.lat, longitude: prose.coords.lng },
           }),
@@ -166,8 +274,8 @@ function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc)) {
     '@graph': [
       {
         '@type': 'CollectionPage',
-        name: titleOf(def, loc),
-        description: descriptionOf(def, loc),
+        name: titleOf(def, loc, marketIso),
+        description: descriptionOf(def, loc, marketIso),
         url: `${BASE}${p}${def.path}`,
         inLanguage: loc,
         isPartOf: { '@id': `${BASE}/#website` },
@@ -223,18 +331,20 @@ export default function SeoLanding({
   def,
   loc,
   urlPrefix = locPrefix(loc),
+  marketIso = 'GE',
 }: {
   def: SeoPageDef
   loc: SeoLoc
   /** URL prefix for internal links — differs from loc when a non-ka/en/ru locale falls back to English copy. */
   urlPrefix?: string
+  marketIso?: string
 }) {
   const ui = UI[loc]
   const stats = statsOf(def.listings)
   const crumbs = breadcrumbsOf(def, loc, urlPrefix)
   const chips = linkChipsOf(def, loc, urlPrefix)
   const faqs = faqsOf(def, loc)
-  const h1 = h1Of(def, loc)
+  const h1 = h1Of(def, loc, marketIso)
   // city-info pages: no listings yet, just curated prose. Hide the empty
   // grid + FAQ and substitute a long-form guide instead of a thin shell.
   const isCityInfo = def.kind === 'city-info'
@@ -258,7 +368,7 @@ export default function SeoLanding({
 
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <Navbar />
+      <Navbar marketIso={marketIso} />
       <main id="main" className="sv-pt-nav mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
         {/* Breadcrumbs */}
         <nav aria-label={ui.crumbAria} className="mb-6">
@@ -295,7 +405,7 @@ export default function SeoLanding({
             {h1}
           </h1>
           <p className="speakable-lead mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">
-            {hubProse ? hubProse.lede : isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc)}
+            {hubProse ? hubProse.lede : isCityInfo && cityProse ? cityProse.lede : descriptionOf(def, loc, marketIso)}
           </p>
           {guide && (
             <LocalizedLink
@@ -342,12 +452,13 @@ export default function SeoLanding({
             <SeoFilterableListings
               initialListings={def.listings}
               gridAriaLabel={ui.gridAria}
+              country={marketIso}
               lock={{
                 deal: def.dealSlug ? DEALS[def.dealSlug]?.deal : undefined,
                 type: def.typeSlug ? TYPES[def.typeSlug]?.type : undefined,
-                city: def.city?.ka,
+                city: def.city?.ka ?? def.city?.en,
                 citySlug: def.city?.slug,
-                district: def.district?.ka,
+                district: def.district?.ka ?? def.district?.en,
                 districtSlug: def.district?.slug,
                 rooms: def.rooms,
               }}
@@ -409,7 +520,7 @@ export default function SeoLanding({
         {isCityInfo && cityProse ? (
           <section className="mt-14 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
             <h2 className="text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
-              {def.city![loc === 'ka' ? 'ka' : loc]}
+              {loc === 'ka' ? def.city!.ka : loc === 'de' ? (def.city!.de ?? def.city!.en) : loc === 'en' ? def.city!.en : def.city!.ru}
             </h2>
             <p className="mt-4 max-w-[860px] text-[16px] font-semibold leading-[1.8] text-sv-ink/80">
               {cityProse.lede}

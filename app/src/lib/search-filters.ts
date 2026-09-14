@@ -74,9 +74,9 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
   // Market scope: absent/'all'/garbage = worldwide (explicit scope only —
   // the product UI always sends the market's ISO). Any launched market ISO
   // (MARKET_COUNTRY_ISOS) scopes /search to that country hub.
-  const countryRaw = sp.get("country")
+  const countryRaw = sp.get("country")?.trim().toUpperCase()
   const country =
-    countryRaw && MARKET_COUNTRY_ISOS.has(countryRaw) ? countryRaw : undefined
+    countryRaw && countryRaw !== "ALL" && MARKET_COUNTRY_ISOS.has(countryRaw) ? countryRaw : undefined
 
   const west = num("west")
   const south = num("south")

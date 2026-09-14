@@ -18,6 +18,8 @@ import type { DealType, PropType } from '@/data/listings'
 export interface SlugListing {
   id: string
   publicId?: number | null
+  country?: string
+  title?: string
   dealType: DealType
   propType: PropType
   rooms: number
@@ -36,8 +38,10 @@ const TITLE_TYPE: Record<PropType, DictKey> = {
   hotel: 'prop.hotel',
 }
 
-/** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა ვაკეში" — bedrooms first. */
+/** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა ვაკეში" — bedrooms first.
+ *  World listings keep the authored Latin title (no Mkhedruli auto-title). */
 export function listingKeyword(l: SlugListing): string {
+  if ((l.country ?? 'GE') !== 'GE' && l.title) return l.title
   const dealLabel = l.dealType === 'daily'
     ? 'ქირავდება დღიურად'
     : ka[dealLabelKey(l.dealType, l.propType)]
@@ -67,9 +71,21 @@ export function transliterateKa(s: string): string {
   return out.replace(/[^a-z0-9]+/g, '-').replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '')
 }
 
-/** "iyideba-2-sadzinebliani-bina-vakeshi" */
+const LATIN_FOLD: Record<string, string> = {
+  ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss', á: 'a', à: 'a', â: 'a', é: 'e', è: 'e', ê: 'e',
+  í: 'i', ì: 'i', î: 'i', ó: 'o', ò: 'o', ô: 'o', ú: 'u', ù: 'u', û: 'u', ç: 'c', ñ: 'n',
+}
+
+function slugLatin(s: string): string {
+  let out = ''
+  for (const ch of s.toLowerCase()) out += LATIN_FOLD[ch] ?? ch
+  return out.replace(/[^a-z0-9]+/g, '-').replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '')
+}
+
+/** "iyideba-2-sadzinebliani-bina-vakeshi" — DE/world: umlaut-folded title. */
 export function listingSlug(l: SlugListing): string {
-  return transliterateKa(listingKeyword(l))
+  const kw = listingKeyword(l)
+  return (l.country ?? 'GE') !== 'GE' ? slugLatin(kw) : transliterateKa(kw)
 }
 
 /** Canonical public path. Locale prefix is added by LocalizedLink / callers.

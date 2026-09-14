@@ -27,7 +27,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/danube-properties.svg',
+    logoUrl: '/images/developers/danube-properties.webp',
     website: 'https://www.danubeproperties.com',
   },
   {
@@ -44,7 +44,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/deyaar.svg',
+    logoUrl: '/images/developers/deyaar.webp',
     website: 'https://www.deyaar.ae',
   },
   {
@@ -61,7 +61,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/tiger-properties.svg',
+    logoUrl: '/images/developers/tiger-properties.webp',
     website: 'https://tigergroup.ae',
   },
   {
@@ -78,7 +78,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/nshama.svg',
+    logoUrl: '/images/developers/nshama.webp',
     website: 'https://nshama.ae',
   },
   {
@@ -95,7 +95,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/dubai-properties.svg',
+    logoUrl: '/images/developers/dubai-properties.webp',
     website: 'https://www.dubaiproperties.ae',
   },
   {
@@ -112,7 +112,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/wasl-properties.svg',
+    logoUrl: '/images/developers/wasl-properties.webp',
     website: 'https://waslproperties.ae',
   },
   {
@@ -129,7 +129,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/ithra-dubai.svg',
+    logoUrl: '/images/developers/ithra-dubai.webp',
     website: 'https://www.ithradubai.com',
   },
   {
@@ -146,7 +146,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/arada.svg',
+    logoUrl: '/images/developers/arada.webp',
     website: 'https://arada.com',
   },
   {
@@ -163,7 +163,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/shurooq.svg',
+    logoUrl: '/images/developers/shurooq.webp',
     website: 'https://shurooq.ae',
   },
   {
@@ -180,7 +180,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/reportage-properties.svg',
+    logoUrl: '/images/developers/reportage-properties.webp',
     website: 'https://reportageproperties.com',
   },
   {
@@ -197,7 +197,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/eagle-hills.svg',
+    logoUrl: '/images/developers/eagle-hills.webp',
     website: 'https://www.eaglehills.com',
   },
   {
@@ -214,7 +214,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/bloom-holding.svg',
+    logoUrl: '/images/developers/bloom-holding.webp',
     website: 'https://www.bloomholding.com',
   },
   {
@@ -231,7 +231,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/modon-properties.svg',
+    logoUrl: '/images/developers/modon-properties.webp',
     website: 'https://www.modon.ae',
   },
   {
@@ -248,7 +248,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/q-properties.svg',
+    logoUrl: '/images/developers/q-properties.webp',
   },
   {
     slug: 'seven-tides',
@@ -264,7 +264,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/seven-tides.svg',
+    logoUrl: '/images/developers/seven-tides.webp',
     website: 'https://seventides.com',
   },
   {
@@ -281,7 +281,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/kleindienst-group.svg',
+    logoUrl: '/images/developers/kleindienst-group.webp',
     website: 'https://www.theheartofeurope.com',
   },
   {
@@ -298,7 +298,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/al-hamra.svg',
+    logoUrl: '/images/developers/al-hamra.webp',
     website: 'https://alhamra.ae',
   },
   {
@@ -315,7 +315,7 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     },
     verified: false,
     phone: '',
-    logoUrl: '/images/developers/samana-developers.svg',
+    logoUrl: '/images/developers/samana-developers.webp',
     website: 'https://samanadevelopers.com',
   },
 ]

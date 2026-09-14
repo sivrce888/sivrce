@@ -29,6 +29,10 @@ async function main() {
   assert.equal(aiLabel(89), 'კარგი შეთავაზება')
   assert.equal(aiLabel(75), 'კარგი შეთავაზება')
   assert.equal(aiLabel(74), 'საშუალო')
+  assert.equal(aiLabel(95, 'en'), 'Great price')
+  assert.equal(aiLabel(80, 'de'), 'Gutes Angebot')
+  assert.equal(aiLabel(50, 'en'), 'Fair')
+  assert.equal(aiLabel(95, 'fr'), 'Great price')
 
   if (savedKey) process.env.GOOGLE_GENERATIVE_AI_API_KEY = savedKey
   console.log('ai.check: OK')

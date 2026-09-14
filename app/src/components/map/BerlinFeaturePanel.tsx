@@ -5,7 +5,8 @@
  * Tile props only — no invented government facts.
  */
 
-import { X, Building2, MapPinned, BadgeCheck, LandPlot, Landmark, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
+import { X, Building2, MapPinned, BadgeCheck, LandPlot, Landmark, ExternalLink, Copy, Check } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import { officialBplanPdf } from '@/lib/map/berlin-pdf'
 import type { BerlinPick } from '@/lib/map/berlin-tiles'
@@ -52,9 +53,9 @@ function heightNote(src: string | null, de: boolean): string | null {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4">
-      <dt className="shrink-0 text-sv-ink/50">{label}</dt>
-      <dd className="text-right font-medium text-sv-ink">{value}</dd>
+    <div className="flex items-center justify-between gap-4 py-0.5">
+      <dt className="shrink-0 text-sv-ink/50 text-[13px]">{label}</dt>
+      <dd className="text-right font-semibold text-sv-ink text-[13px]">{value}</dd>
     </div>
   )
 }
@@ -67,6 +68,7 @@ export default function BerlinFeaturePanel({
   onClose: () => void
 }) {
   const { lang } = useI18n()
+  const [copied, setCopied] = useState(false)
   const de = lang === 'de'
   const title = titleOf(feature, de)
   const isParcel = feature.kind === 'alkis_parcel'
@@ -75,43 +77,50 @@ export default function BerlinFeaturePanel({
   const hNote = heightNote(feature.heightSource, de)
   const pdf = officialBplanPdf(feature.doc)
 
+  const handleCopyId = () => {
+    if (!feature.id) return
+    void navigator.clipboard.writeText(feature.id)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <aside
-      className="flex h-full w-full flex-col border-l border-sv-ink/8 bg-sv-surface shadow-panel-dark md:w-[380px]"
+      className="flex h-full w-full flex-col border-t md:border-t-0 md:border-l border-sv-ink/10 bg-sv-surface/98 backdrop-blur-xl shadow-panel-dark md:w-[380px] rounded-t-3xl md:rounded-none transition-transform duration-300"
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-sv-ink/15 md:hidden" aria-hidden />
+      <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-sv-ink/20 md:hidden" aria-hidden />
       <header className="flex items-start justify-between gap-3 border-b border-sv-ink/6 p-5">
-        <div className="flex min-w-0 gap-3">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
-            <Icon className="h-5 w-5" aria-hidden />
+        <div className="flex min-w-0 gap-3.5">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sv-blue/10 text-sv-blue shadow-sm">
+            <Icon className="h-6 w-6" aria-hidden />
           </span>
           <div className="min-w-0">
             <h2 className="truncate font-display text-lg font-black tracking-tight text-sv-ink">{title}</h2>
-            <p className="mt-0.5 text-sm text-sv-ink/55">{kindLabel(feature.kind, de)}</p>
+            <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-sv-ink/55">{kindLabel(feature.kind, de)}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-control text-sv-ink/50 transition hover:bg-sv-ink/5 hover:text-sv-ink"
+          className="grid h-10 w-10 min-h-[44px] min-w-[44px] shrink-0 place-items-center rounded-full text-sv-ink/60 transition hover:bg-sv-ink/5 hover:text-sv-ink active:scale-95"
           aria-label={de ? 'Schließen' : 'Close'}
         >
           <X className="h-5 w-5" />
         </button>
       </header>
 
-      <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
-        <div className="flex items-center gap-2 rounded-module bg-sv-cloud px-3 py-2.5 text-sm text-sv-ink">
+      <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
+        <div className="flex items-center gap-2.5 rounded-xl bg-sv-blue/8 px-3.5 py-2.5 text-xs font-bold text-sv-blue-deep dark:text-sv-blue-light border border-sv-blue/15">
           <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
-          <span className="font-semibold">
+          <span>
             {de ? 'Amtliche Geometrie · Regierungsquelle' : 'Official geometry · government source'}
           </span>
         </div>
 
-        <dl className="space-y-3 text-sm">
+        <dl className="space-y-2 divide-y divide-sv-ink/5 text-sm">
           {feature.status ? <Row label="Status" value={feature.status} /> : null}
           {feature.planart ? <Row label={de ? 'Planart' : 'Plan type'} value={feature.planart} /> : null}
           {feature.bezirk ? <Row label="Bezirk" value={feature.bezirk} /> : null}
@@ -123,11 +132,11 @@ export default function BerlinFeaturePanel({
           {feature.funktion ? <Row label={de ? 'Nutzung' : 'Use'} value={feature.funktion} /> : null}
           {feature.floors != null ? <Row label={de ? 'Geschosse' : 'Storeys'} value={String(feature.floors)} /> : null}
           {feature.height != null && hNote ? (
-            <div className="flex justify-between gap-4">
-              <dt className="text-sv-ink/50">{de ? 'Höhe' : 'Height'}</dt>
-              <dd className="text-right font-medium text-sv-ink tabular-nums">
+            <div className="flex items-center justify-between gap-4 py-0.5">
+              <dt className="text-sv-ink/50 text-[13px]">{de ? 'Höhe' : 'Height'}</dt>
+              <dd className="text-right font-semibold text-sv-ink tabular-nums text-[13px]">
                 {Math.round(feature.height)} m
-                <span className="mt-0.5 block text-xs font-normal text-sv-ink/45">{hNote}</span>
+                <span className="mt-0.5 block text-[11px] font-normal text-sv-ink/45">{hNote}</span>
               </dd>
             </div>
           ) : null}
@@ -137,10 +146,18 @@ export default function BerlinFeaturePanel({
               value={`${Math.round(feature.areaM2).toLocaleString(de ? 'de-DE' : 'en-GB')} m²`}
             />
           ) : null}
-          <div className="flex justify-between gap-4">
-            <dt className="text-sv-ink/50">{de ? 'Quellen-ID' : 'Source id'}</dt>
-            <dd className="max-w-[60%] truncate text-right font-mono text-xs text-sv-ink/80" title={feature.id}>
-              {feature.id}
+          <div className="flex items-center justify-between gap-4 py-1">
+            <dt className="text-sv-ink/50 text-[13px]">{de ? 'Quellen-ID' : 'Source id'}</dt>
+            <dd className="flex items-center gap-1.5 font-mono text-xs text-sv-ink/80">
+              <span className="max-w-[180px] truncate" title={feature.id}>{feature.id}</span>
+              <button
+                type="button"
+                onClick={handleCopyId}
+                className="grid h-7 w-7 place-items-center rounded-md hover:bg-sv-ink/5 text-sv-ink/40 hover:text-sv-ink transition"
+                title={de ? 'ID kopieren' : 'Copy ID'}
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-sv-green" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
             </dd>
           </div>
         </dl>
@@ -150,22 +167,22 @@ export default function BerlinFeaturePanel({
             href={pdf}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-sv-blue hover:text-sv-blue-deep"
+            className="flex items-center justify-center gap-2 rounded-xl bg-sv-navy px-4 py-3 text-xs font-black text-white shadow-sm transition hover:bg-sv-blue hover:shadow active:scale-98"
           >
             <ExternalLink className="h-4 w-4" aria-hidden />
-            {de ? 'Amtlicher Plan (PDF)' : 'Official plan (PDF)'}
+            {de ? 'Amtlichen B-Plan öffnen (PDF)' : 'Open official plan (PDF)'}
           </a>
         ) : null}
 
-        <section className="rounded-module border border-sv-ink/8 p-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-sv-ink/45">
-            {de ? 'Herkunft' : 'Provenance'}
+        <section className="rounded-2xl border border-sv-ink/8 bg-sv-cloud/50 p-4">
+          <h3 className="text-[11px] font-bold uppercase tracking-wider text-sv-ink/45">
+            {de ? 'Herkunft & Integrität' : 'Provenance & Integrity'}
           </h3>
-          <p className="mt-1.5 text-sm text-sv-ink">{SOURCE_LABEL[feature.source]}</p>
-          <p className="mt-1 text-xs leading-relaxed text-sv-ink/50">
+          <p className="mt-1 text-xs font-bold text-sv-ink">{SOURCE_LABEL[feature.source]}</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-sv-ink/60">
             {de
-              ? 'Geometrie aus dem GDI-Berlin-WFS. KI erfindet keine Grundrisse, Flurstücke oder Pläne.'
-              : 'Geometry from live GDI Berlin WFS. AI never invents footprints, lots, or plans.'}
+              ? 'Geometrie direkt aus dem offiziellen Geodatenportal Berlin (GDI-Berlin / ALKIS / StEP Wohnen). Keine KI-Halluzinationen.'
+              : 'Geometry directly from official Berlin Geodata portal (GDI-Berlin / ALKIS / StEP Wohnen). Zero AI hallucinations.'}
           </p>
         </section>
       </div>

@@ -7,7 +7,10 @@
  * (ვაკე → ვაკეში), with a suffix heuristic as fallback for free-form input.
  */
 
-import { CITIES as SEO_CITIES, DEALS as SEO_DEALS, DISTRICTS as SEO_DISTRICTS } from '@/lib/seo-pages'
+// Client-safe leaf on purpose: ListingCard → listing-slug → seo-title reaches
+// every surface, and importing seo-pages here dragged the whole LISTINGS
+// catalog (~1.1 MB) into the browser bundle. seo-title.check locks it.
+import { CITIES as SEO_CITIES, DEALS as SEO_DEALS, DISTRICTS as SEO_DISTRICTS } from '@/lib/directory-seo-lite'
 import type { DealType, PropType } from '@/data/listings'
 import type { Lang } from '@/lib/i18n/context'
 

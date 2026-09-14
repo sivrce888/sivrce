@@ -36,6 +36,7 @@ import { FeatureGlyph } from '@/components/FeatureIcon'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS, featureLabel } from '@/lib/features'
 import { dealLabelKey as dealKeyFor, featuresFor, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapSearchHit } from '@/lib/map-search-hit'
+import { placeLabel, listingTitle } from '@/lib/place-label'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
@@ -122,7 +123,7 @@ function SkeletonCard() {
 /** Compact rail card — thumb + price + one-line meta; 3–4 visible per viewport. */
 function CompactCard({ l }: { l: Listing }) {
   const { format } = useCurrency()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const suffixKey = rentPeriodKey(l.dealType, l.propType)
   const suffix = suffixKey ? t(suffixKey) : ''
   return (
@@ -138,8 +139,8 @@ function CompactCard({ l }: { l: Listing }) {
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
           {format(l.priceGEL)}{suffix}
         </span>
-        <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{l.title}</span>
-        <span className="block text-[12px] font-semibold text-sv-ink/60">{l.area} {t('add.areaUnit.m2')} · {l.city}</span>
+        <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{listingTitle(l.title, l.city, lang)}</span>
+        <span className="block text-[12px] font-semibold text-sv-ink/60">{l.area} {t('add.areaUnit.m2')} · {placeLabel(l.city, lang, l.country)}</span>
       </span>
     </Link>
   )
@@ -245,11 +246,13 @@ export default function SearchClient({
   const cur: 'USD' | 'GEL' = params.get('cur') === 'GEL' ? 'GEL' : 'USD'
   // Market scope: URL param wins over the page's market default. Any uppercase
   // ISO passes through ('all' too) — /api/search validates against the market set.
-  const countryParam = params.get('country')
+  const rawCountry = params.get('country')?.trim()
+  const countryParam = rawCountry ? (rawCountry.toLowerCase() === 'all' ? 'all' : rawCountry.toUpperCase()) : null
   const country =
     countryParam && (countryParam === 'all' || /^[A-Z]{2}$/.test(countryParam))
       ? countryParam
       : countryDefault
+  const offGe = Boolean(country && country !== 'GE' && country !== 'all')
   // Page lives in the URL — shareable and SSR-friendly. Filter changes reset it (see patchParams).
   const page = numParam('page', 1) ?? 1
   // Results mode lives in the URL too (?view=map) — shareable; default list.
@@ -390,8 +393,10 @@ export default function SearchClient({
   const [results, setResults] = useState<Listing[]>(initialHits ?? [])
   // ponytail: hub passes full inventory size — no "24 results" flash pre-fetch.
   const [totalResults, setTotalResults] = useState(initialTotal ?? initialHits?.length ?? 0)
-  const [totalPages, setTotalPages] = useState(0)
-  const [searchLoading, setSearchLoading] = useState(!initialHits?.length)
+  const [totalPages, setTotalPages] = useState(
+    initialTotal && initialTotal > 0 ? Math.ceil(initialTotal / 24) : 0,
+  )
+  const [searchLoading, setSearchLoading] = useState(initialHits == null)
   // Facet counts from Meilisearch (null on the DB fallback → counts hidden).
   const [facets, setFacets] = useState<Record<string, Record<string, number>> | null>(null)
   const fcount = (dim: string, key: string): number | undefined => facets?.[dim]?.[key]
@@ -446,7 +451,10 @@ export default function SearchClient({
         sp.set('page', mapMode ? '1' : String(page))
         sp.set('pageSize', mapMode ? '100' : '24')
 
-        const res = await fetch(`/api/search?${sp.toString()}`)
+        const ac = new AbortController()
+        const kill = window.setTimeout(() => ac.abort(), 10_000)
+        const res = await fetch(`/api/search?${sp.toString()}`, { signal: ac.signal })
+        window.clearTimeout(kill)
         const json = await res.json()
         if (cancelled) return
         if (json.ok && Array.isArray(json.hits)) {
@@ -574,7 +582,7 @@ export default function SearchClient({
   const recentItems = recents.key === recentKey ? recents.items : []
 
   // Skeleton only when there is nothing on screen yet — page 2+ keeps cards visible.
-  const showSkeleton = searchLoading && results.length === 0
+  const showSkeleton = searchLoading && results.length === 0 && initialHits == null
 
   // ——— Active filter chips ———
   const propType = SEARCH_PROP_TYPES.find((p) => p.value === type)
@@ -706,6 +714,7 @@ export default function SearchClient({
       <input type="number" min={0} placeholder={t('search.min')} value={drafts.min} onChange={(e) => setDrafts((d) => ({ ...d, min: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.minPrice')} />
       <span className="text-sv-ink/30">—</span>
       <input type="number" min={0} placeholder={t('search.max')} value={drafts.max} onChange={(e) => setDrafts((d) => ({ ...d, max: e.target.value }))} className={`${inputClass} w-[96px]`} aria-label={t('search.maxPrice')} />
+      {!offGe && (
       <div className="ml-0.5 flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.currency')}>
         {(['USD', 'GEL'] as const).map((c) => (
           <button key={c} type="button" onClick={() => patchParams({ cur: c === 'USD' ? undefined : 'GEL' })} aria-pressed={cur === c} aria-label={c === 'USD' ? 'US Dollar' : 'Georgian Lari'} className={`h-9 w-9 rounded-full text-[13px] font-bold transition-colors ${cur === c ? 'bg-sv-surface text-sv-blue' : 'text-sv-ink/60 hover:text-sv-ink'}`}>
@@ -713,6 +722,7 @@ export default function SearchClient({
           </button>
         ))}
       </div>
+      )}
     </div>
   )
   const areaFields = (
@@ -739,6 +749,7 @@ export default function SearchClient({
       variant="light"
       size={size}
       city={city}
+      mkt={country === 'DE' ? 'de' : undefined}
       value={drafts.q}
       onChange={(v) => setDrafts((d) => ({ ...d, q: v }))}
       onPick={(s) => {
@@ -765,7 +776,15 @@ export default function SearchClient({
         patchParams(suggestionToFilters(s))
       }}
       onSubmit={submitKeyword}
-      placeholder={t('search.keywordPlaceholder')}
+      placeholder={
+        lang === 'de'
+          ? `Wohnung in ${city || (country === 'DE' ? 'Berlin' : 'Deutschland')}… oder Telefon, ID, Kataster`
+          : lang === 'en'
+            ? `Apartments in ${city || (country === 'DE' ? 'Berlin' : country === 'AE' ? 'Dubai' : country === 'US' ? 'New York' : 'Tbilisi')}… or phone, ID, cadastral`
+            : lang === 'ka' && (country === 'DE' || country === 'AE' || country === 'US')
+              ? `ბინა ${city || (country === 'DE' ? 'ბერლინში' : country === 'AE' ? 'დუბაიში' : 'ნიუ-იორკში')}… ან ტელეფონი, ID`
+              : t('search.keywordPlaceholder')
+      }
       ariaLabel={t('search.keyword')}
       className={className}
     />
@@ -1237,7 +1256,7 @@ export default function SearchClient({
 
   return (
     <div className={embed ? 'font-geo' : 'font-geo min-h-screen bg-sv-cloud antialiased'}>
-      {!embed && <Navbar />}
+      {!embed && <Navbar marketIso={country === 'all' ? undefined : country} marketCity={city} />}
       <LocationPicker
         open={locOpen}
         value={locValue}
@@ -1500,6 +1519,15 @@ export default function SearchClient({
             >
               <RotateCcw className="h-4 w-4" aria-hidden /> {t('search.resetFilters')}
             </button>
+            {offGe && deal && deal !== 'sale' && (
+              <button
+                type="button"
+                onClick={() => patchParams({ deal: 'sale' })}
+                className="mt-3 flex h-11 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-6 text-[14px] font-extrabold text-sv-ink transition-all hover:border-sv-blue/40 hover:text-sv-blue"
+              >
+                {t('search.sale')}
+              </button>
+            )}
           </div>
         ) : (
           <div className={view === 'grid' ? 'sv-card-grid' : 'grid grid-cols-1 gap-5'}>
@@ -1547,7 +1575,9 @@ export default function SearchClient({
         {!embed && !showSkeleton && results.length > 0 && (
           <p className="mt-10 flex items-start gap-2 text-[13px] font-semibold leading-relaxed text-sv-ink/65">
             <Home className="mt-0.5 h-4 w-4 shrink-0" />
-            {t('search.seoHint')}
+            {offGe
+              ? `Verified listings and new developments${city ? ` in ${city}` : ''}.`
+              : t('search.seoHint')}
           </p>
         )}
       </div>
@@ -1596,7 +1626,7 @@ export default function SearchClient({
 
       </Shell>
 
-      {!embed && <Footer />}
+      {!embed && <Footer marketIso={country === 'all' ? 'all' : country} marketCity={city} />}
     </div>
   )
 }

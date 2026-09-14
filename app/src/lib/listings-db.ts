@@ -10,10 +10,11 @@
  */
 
 import { db } from "@/lib/db"
+import type { ListingCurrency } from "@/lib/currency"
 import { safeQuery } from "@/lib/guards"
 import { CONTACT_PHONE } from "@/lib/inquiries/phone"
 import { unstable_cache } from "next/cache"
-import { CITIES, districtsOf } from "@/data/listings"
+import { CITIES, districtsOf, filterListings as staticFilterListings } from "@/data/listings"
 import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/enums"
 import { Prisma } from "@/generated/prisma/client"
 import {
@@ -29,6 +30,7 @@ import {
 } from "@/lib/promo-pricing"
 import { aiLabel } from "@/lib/ai-label"
 import { priceEventViews, type PriceEventView } from "@/lib/price-scale"
+import { EUR_GEL } from "@/lib/listing-format"
 import { MAP_CENTER } from "@/lib/map/map-geo"
 import { maskPhone } from "@/lib/inquiries/phone"
 import { resolveOwnerProfile } from "@/lib/profiles/public"
@@ -44,6 +46,8 @@ import {
 } from "@/lib/listing-public-id"
 import { HOME_RAIL_BADGE, pickHomeRail, type HomeRailTier } from "@/lib/listings-home-rail"
 import { homeScopeWhere, type HomeScope } from "@/lib/home-scope"
+import { filterGermanyInventory, germanyListingById } from "@/data/listings-germany"
+import { deCityBySlug } from "@/lib/countries/de"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily" | "pledge"
@@ -109,7 +113,7 @@ export interface Listing {
   /** Locked nominal price originally entered by poster (e.g. 800) */
   priceOriginal?: number | null
   /** Original currency selected by poster ('GEL' | 'USD') */
-  currencyOriginal?: 'GEL' | 'USD' | null
+  currencyOriginal?: ListingCurrency | null
   perM2USD: number
   title: string
   address: string
@@ -156,13 +160,20 @@ export interface Listing {
 // Map a Prisma listing row → public Listing shape
 function rowToListing(row: Record<string, unknown>): Listing {
   const r = row as Record<string, unknown>
-  // Rows store price in their own `currency` (USD default); preserve locked currencyOriginal & priceOriginal.
+  // Rows store price in their own `currency` (USD default); EUR/GEL stay native.
   const rawPrice = (r.price as number) ?? 0
-  const cur = (r.currency as string) === "GEL" ? "GEL" : "USD"
-  const usd = cur === "USD"
-  const priceGEL = usd ? Math.round(rawPrice * USD_GEL) : rawPrice
-  const priceUSD = usd ? rawPrice : Math.round(rawPrice / USD_GEL)
-  const perM2GEL = usd ? Math.round(((r.pricePerSqm as number) ?? 0) * USD_GEL) : ((r.pricePerSqm as number) ?? 0)
+  const rawCur = r.currency as string
+  const orig: "USD" | "GEL" | "EUR" = rawCur === "GEL" ? "GEL" : rawCur === "EUR" ? "EUR" : "USD"
+  const priceGEL =
+    orig === "USD" ? Math.round(rawPrice * USD_GEL)
+    : orig === "EUR" ? Math.round(rawPrice * EUR_GEL)
+    : rawPrice
+  const priceUSD = orig === "USD" ? rawPrice : Math.round(priceGEL / USD_GEL)
+  const rawM2 = (r.pricePerSqm as number) ?? 0
+  const perM2USD =
+    orig === "EUR" ? Math.round((rawM2 * EUR_GEL) / USD_GEL)
+    : orig === "GEL" ? Math.round(rawM2 / USD_GEL)
+    : rawM2
   const ext = (r.extendedFields as {
     project?: string
     floorType?: string
@@ -206,8 +217,8 @@ function rowToListing(row: Record<string, unknown>): Listing {
     priceUSD,
     priceGEL,
     priceOriginal: rawPrice,
-    currencyOriginal: cur,
-    perM2USD: Math.round(perM2GEL / USD_GEL),
+    currencyOriginal: orig,
+    perM2USD,
     title: (r.title as string) ?? "",
     address: (r.address as string) ?? "",
     city: (r.city as string) ?? "",
@@ -359,7 +370,7 @@ export async function getListing(id: string): Promise<Listing | null> {
           : [{ id }],
       },
     })
-    if (!row) return null
+    if (!row) return germanyListingById(id) ?? null
     const listing = rowToListing(row as unknown as Record<string, unknown>)
     const meta = await resolveOwnerProfile(row.ownerId, row.sellerType)
     listing.agent = {
@@ -370,7 +381,7 @@ export async function getListing(id: string): Promise<Listing | null> {
       image: meta.image,
     }
     return listing
-  }, null)
+  }, germanyListingById(id) ?? null)
 }
 
 const LOOKUP_SELECT = { id: true, publicId: true } as const
@@ -748,12 +759,14 @@ export async function getListingsForDeveloper(
 
 import { PROJECTS } from "@/data/professionals"
 import { cityByName, nearestMapCity } from "@/lib/map/user-place"
+import { catalogPlace } from "@/lib/catalog-place"
 
 /** Convert static project catalog entries to high-quality Listing objects when DB inventory is empty. */
 export function getProjectCatalogListings(scope?: HomeScope | null, limit = 8): Listing[] {
   // '*' (worldwide hub) is not a country — the catalog fallback stays unfiltered.
   const targetCountry = scope?.country === "*" ? undefined : scope?.country?.toUpperCase()
   const cityNames = scope?.cityNames?.map((c) => c.toLowerCase())
+  const latin = scope?.country !== "GE"
 
   const matches = PROJECTS.filter((p) => {
     if (targetCountry) {
@@ -770,19 +783,30 @@ export function getProjectCatalogListings(scope?: HomeScope | null, limit = 8): 
     return true
   })
 
-  const pool = matches.length > 0 ? matches : targetCountry ? PROJECTS.filter((p) => {
-    const pin = cityByName(p.city)
-    return (pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null)) === targetCountry
-  }) : PROJECTS
+  const fallbackByCountry = targetCountry
+    ? PROJECTS.filter((p) => {
+        const pin = cityByName(p.city)
+        return (pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null)) === targetCountry
+      })
+    : PROJECTS
+
+  const pool = matches.length > 0 ? matches : fallbackByCountry
 
   return pool.slice(0, limit).map((p, i) => {
-    const rawM2 = typeof p.priceFromM2 === "number" ? p.priceFromM2 : parseInt(String(p.priceFromM2), 10) || 1600
-    const priceUSD = rawM2 * 55
+    const parsedM2 = typeof p.priceFromM2 === "number" ? p.priceFromM2 : parseInt(String(p.priceFromM2), 10)
+    const rawM2 = Number.isFinite(parsedM2) && parsedM2 > 0 ? parsedM2 : 0
+    const priceUSD = rawM2 > 0 ? rawM2 * 55 : 0
     const priceGEL = Math.round(priceUSD * USD_GEL)
-    const desc = typeof p.description === "string" ? p.description : p.description?.en || p.name
+    const pin = cityByName(p.city)
+    const city = catalogPlace(p.city, latin) || (latin ? pin?.en : pin?.ka) || p.city
+    const district = catalogPlace(p.district, latin) || city
+    const desc = typeof p.description === "string"
+      ? p.description
+      : (latin ? p.description?.en : p.description?.ka) || p.description?.en || p.name
     return {
       id: `proj-${p.slug}`,
       publicId: 90000000 + i,
+      country: pin?.cc ?? targetCountry ?? "GE",
       streetHref: null,
       img: p.img || "/images/p1.webp",
       images: [p.img || "/images/p1.webp"],
@@ -791,10 +815,10 @@ export function getProjectCatalogListings(scope?: HomeScope | null, limit = 8): 
       priceOriginal: priceUSD,
       currencyOriginal: "USD" as const,
       perM2USD: rawM2,
-      title: `${p.name} — ${p.city}`,
-      address: p.location || `${p.district || p.city}`,
-      city: p.city,
-      district: p.district || p.city,
+      title: `${p.name} — ${city}`,
+      address: p.location || `${district || city}`,
+      city,
+      district,
       dealType: (scope?.deal ?? "sale") as DealType,
       propType: "apartment" as PropType,
       rooms: 2,
@@ -804,10 +828,10 @@ export function getProjectCatalogListings(scope?: HomeScope | null, limit = 8): 
       floor: 3,
       totalFloors: 8,
       views: 150 + i * 12,
-      badge: "diamond" as Badge,
+      badge: "SUPER VIP" as Badge,
       verified: true,
-      ai: { score: 95, label: "სივრცე VERIFIED" },
-      features: ["ახალი მშენებლობა", "პროექტი"],
+      ai: { score: 95, label: aiLabel(95) },
+      features: latin ? [] : ["ახალი მშენებლობა", "პროექტი"],
       description: desc,
       project: p.name,
       projectCatalog: true,
@@ -815,7 +839,7 @@ export function getProjectCatalogListings(scope?: HomeScope | null, limit = 8): 
       coords: p.coords || { lat: MAP_CENTER.lat, lng: MAP_CENTER.lng },
       postedAt: new Date().toISOString().slice(0, 10),
       agent: {
-        name: p.developerSlug || "სივრცე",
+        name: p.developerSlug || (latin ? "Sivrce" : "სივრცე"),
         phone: CONTACT_PHONE,
         agency: "Developer",
         role: "developer" as const,
@@ -851,6 +875,10 @@ export async function getAllListings(limit = 50, scope?: HomeScope | null): Prom
     return rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
   }, [])
   if (live.length > 0) return live
+  if (scope?.country === "DE") {
+    const sample = filterGermanyInventory({ cityNames: scope.cityNames, deal: scope.deal })
+    if (sample.length > 0) return sample.slice(0, Math.min(limit, 5000))
+  }
   return getProjectCatalogListings(scope, limit)
 }
 
@@ -884,9 +912,17 @@ const readHomeTierListings = unstable_cache(
       const mapped = rows.map((r) => rowToListing(r as unknown as Record<string, unknown>))
       const rail = pickHomeRail(mapped, HOME_RAIL_BADGE[tier], limit)
       if (rail.length > 0) return rail
+      if (scope?.country === "DE") {
+        const sample = pickHomeRail(
+          filterGermanyInventory({ cityNames: scope.cityNames, deal: scope.deal }),
+          HOME_RAIL_BADGE[tier],
+          limit,
+        )
+        if (sample.length > 0) return sample
+      }
       return getProjectCatalogListings(scope, limit)
     }, []),
-  ["home-tier-listings-v3"],
+  ["home-tier-listings-v4"],
   { revalidate: 60 },
 )
 
@@ -1046,6 +1082,44 @@ export async function filterListings(opts: {
       }),
     [],
   )
+  if (rows.length === 0) {
+    const isDe =
+      opts.country?.toUpperCase() === "DE" ||
+      Boolean(opts.city && deCityBySlug(opts.city.toLowerCase())) ||
+      Boolean(opts.q && /berlin|germany|ბერლინი|გერმანია/i.test(opts.q))
+
+    if (isDe) {
+      const cityName = opts.city || (opts.q && /berlin|ბერლინი/i.test(opts.q) ? "berlin" : undefined)
+      return filterGermanyInventory({
+        cityNames: cityName ? [cityName] : undefined,
+        deal: opts.dealType,
+        propType: opts.propType,
+        district: opts.district,
+        q: opts.q,
+        minPrice: opts.minPrice,
+        maxPrice: opts.maxPrice,
+        rooms: opts.rooms ? (opts.rooms === "5+" ? 5 : parseInt(opts.rooms, 10) || undefined) : undefined,
+      })
+    }
+    const staticHits = staticFilterListings({
+      deal: opts.dealType,
+      type: opts.propType,
+      city: opts.city,
+      district: opts.district,
+      country: opts.country,
+      minPrice: opts.minPrice,
+      maxPrice: opts.maxPrice,
+      rooms: opts.rooms ? (opts.rooms === "5+" ? 5 : parseInt(opts.rooms, 10)) : undefined,
+      minArea: opts.minArea,
+      maxArea: opts.maxArea,
+      q: opts.q,
+      sort: opts.sort,
+      includeProjects: opts.includeProjects,
+    })
+    if (staticHits.length > 0) {
+      return staticHits.map((l) => ({ ...l, description: l.description ?? '' })) as unknown as Listing[]
+    }
+  }
   // Default date sort: paid tiers first (Meilisearch path does the same via tierRank).
   const ordered =
     !opts.sort || opts.sort === "date"

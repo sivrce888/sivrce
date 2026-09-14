@@ -2,8 +2,9 @@
 
 /**
  * Nearest metro for client components — server chip wins instantly (zero
- * bytes); static/local coords fall back to a lazily-imported Tbilisi grid so
- * the 1.1 MB POI JSON never joins the initial bundle (device-budget lock).
+ * bytes); static/local coords fall back to a lazily-imported Tbilisi grid
+ * (`lib/map/metro-near`, ~30 KB) so the 869 KB POI JSON never reaches the
+ * browser at all — not even as a lazy chunk (device-budget lock).
  * Reserved rows stay mounted while loading — no layout shift, Apple-style.
  */
 import { useEffect, useState } from 'react'
@@ -26,7 +27,7 @@ export function useNearestMetro(
   useEffect(() => {
     if (chip || !Number.isFinite(lat) || !Number.isFinite(lng)) return
     let live = true
-    void import('@/lib/map/pois').then((m) => {
+    void import('@/lib/map/metro-near').then((m) => {
       if (live) setLocal(m.nearestMetro(lat, lng))
     })
     return () => {

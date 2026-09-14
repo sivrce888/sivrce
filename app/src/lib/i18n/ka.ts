@@ -31,6 +31,7 @@ export const ka = {
   'nav.currency': 'ვალუტა',
   'nav.themeToggle': 'თემის გადართვა — ნათელი ან მუქი',
   'nav.daily': 'დღიურად',
+  'nav.hotels': 'სასტუმროები',
   'nav.neighborhoods': 'უბნები',
   'nav.blog': 'ბლოგი',
   'nav.forum': 'ფორუმი',

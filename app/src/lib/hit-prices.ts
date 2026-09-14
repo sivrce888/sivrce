@@ -3,7 +3,9 @@
  * Hits may be Meili (has priceUSD / pricePerSqmUSD) or DB (price + currency).
  * pricePerSqm is in the listing's own currency unless pricePerSqmUSD is set.
  */
-import { USD_GEL } from '@/data/listings'
+// Source module, not the data/listings re-export: this file is on the client
+// search path, and the re-export drags the whole ~1.1 MB LISTINGS catalog in.
+import { USD_GEL } from '@/lib/listing-format'
 
 export function hitPrices(h: {
   price?: unknown

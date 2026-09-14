@@ -233,12 +233,12 @@ function FallbackFlag({ code }: { code: string }) {
   )
 }
 
-export function Flag({ code, size = 16 }: { code: FlagCode; size?: number }) {
+export function Flag({ code, size = 16, className = '' }: { code: FlagCode; size?: number; className?: string }) {
   const art = FLAG_ART[code] ?? <FallbackFlag code={code} />
   return (
     <span
       aria-hidden
-      className="inline-block shrink-0 overflow-hidden rounded-full shadow-[inset_0_0_0_1px_rgba(10,16,48,0.12)]"
+      className={`inline-block shrink-0 overflow-hidden rounded-full shadow-[inset_0_0_0_1px_rgba(10,16,48,0.12)] ${className}`}
       style={{ width: size, height: size }}
     >
       <svg viewBox="0 0 24 24" width={size} height={size}>

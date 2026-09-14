@@ -32,6 +32,7 @@ export const tr: Dict = {
   'nav.currency': 'Para birimi',
   'nav.themeToggle': 'Temayı değiştir — açık veya koyu',
   'nav.daily': 'Günlük',
+  'nav.hotels': 'Oteller',
   'nav.neighborhoods': 'Mahalleler',
   'nav.blog': 'Blog',
   'nav.forum': 'Forum',

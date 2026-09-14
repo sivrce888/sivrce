@@ -1,6 +1,12 @@
-import { COUNTRY_IDS, MARKETS, isPathCountry, type MarketId, type PathCountryId } from '@/lib/markets'
+import { COUNTRY_IDS, MARKETS, isPathCountry, marketFromIso, type MarketId, type PathCountryId } from '@/lib/markets'
 import { FREEDOM_SQUARE } from '@/lib/map/map-geo'
-import { cityByName, cityBySlug } from '@/lib/map/user-place.server'
+// Client plane on purpose: GeoGate is a client component, and the only cities
+// these helpers can return are launched-market cities, which all live in
+// MAP_CITIES. Importing user-place.server here shipped the 22k GeoNames corpus
+// (~1.9 MB) to every browser. geo-market.check locks the equivalence.
+import { cityByName, cityBySlug } from '@/lib/map/user-place'
+
+export { marketFromIso }
 
 /**
  * IP → launched market + map camera.
@@ -19,17 +25,6 @@ export type GeoLaunchId = PathCountryId
 
 export function isGeoLaunch(v: string | null | undefined): v is GeoLaunchId {
   return !!v && isPathCountry(v)
-}
-
-const ISO_MARKET: Record<string, MarketId> = { GE: 'ge' }
-for (const id of COUNTRY_IDS) {
-  const cc = MARKETS[id].countryCode
-  if (cc) ISO_MARKET[cc] = id
-}
-
-export function marketFromIso(iso: string | null | undefined): MarketId | null {
-  if (!iso) return null
-  return ISO_MARKET[iso.trim().toUpperCase()] ?? null
 }
 
 /** Country hub, or `/{cc}/{city}` when the IP city is a launched city in that market. */

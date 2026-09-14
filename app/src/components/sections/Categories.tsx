@@ -74,7 +74,7 @@ const CATS: {
   { key: 'workspace', icon: Laptop, labelKey: 'home.categories.workspace', brand: CATEGORY_BRAND.workspace, href: '/search?feat=add.f.workspace' },
   { key: 'penthouses', icon: Crown, labelKey: 'home.categories.penthouses', brand: CATEGORY_BRAND.penthouses, href: '/search?feat=add.f.penthouse' },
   { key: 'cabins', icon: Trees, labelKey: 'home.categories.cabins', brand: CATEGORY_BRAND.cabins, href: '/search?type=house&feat=add.f.wooden' },
-  { key: 'hotels', icon: Hotel, labelKey: 'home.categories.hotels', brand: CATEGORY_BRAND.hotels, href: '/search?type=hotel' },
+  { key: 'hotels', icon: Hotel, labelKey: 'home.categories.hotels', brand: CATEGORY_BRAND.hotels, href: '/hotels' },
   { key: 'newProjects', icon: Sparkles, labelKey: 'home.categories.newProjects', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
 ]
 
@@ -154,7 +154,8 @@ async function categoryCounts(): Promise<Record<CatKey, number>> {
       else if (row.propertyType === 'villa') empty.cottages = n
       else if (row.propertyType === 'land') empty.land = n
       else if (row.propertyType === 'commercial') empty.commercial = n
-      else if (row.propertyType === 'hotel') empty.hotels = n
+      // ponytail: home Hotels tile → GDS /hotels, not for-sale hotel buildings.
+      // Listing count would lie. Sale inventory stays on search type=hotel.
     }
     empty.dailyRent = daily
     empty.partyHouses = partyHouses

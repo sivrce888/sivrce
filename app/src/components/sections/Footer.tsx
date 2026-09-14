@@ -1,11 +1,15 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import HScroll from '@/components/HScroll'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
+import { stripLangPrefix } from '@/lib/i18n/core'
 import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
+import { chromeMarket, countryBasePath, countryIsoForMarket, MARKETS, type PathCountryId } from '@/lib/markets'
+import { cityBySlug } from '@/lib/map/user-place'
 import type { SeoLoc } from '@/lib/seo-pages'
 import { FOOTER_COLS } from '@/lib/footer-cols.gen'
 
@@ -24,6 +28,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
       { key: 'footer.re.rent', href: '/rent/apartments' },
       { key: 'add.deal.lease', href: '/lease' },
       { key: 'footer.re.daily', href: '/daily/apartments' },
+      { key: 'nav.hotels', href: '/hotels' },
       { key: 'col.party', href: '/search?deal=daily&feat=add.f.partiesAllowed' },
       { key: 'footer.re.land', href: '/sale/land' },
       { key: 'footer.re.commercial', href: '/sale/commercial' },
@@ -60,9 +65,61 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
   },
 ]
 
-export default function Footer() {
+function regionName(iso: string, lang: string): string {
+  try {
+    const loc = lang === 'ka' ? 'ka' : lang === 'ru' ? 'ru' : 'en'
+    return new Intl.DisplayNames([loc], { type: 'region' }).of(iso) ?? iso
+  } catch {
+    return iso
+  }
+}
+
+export default function Footer({
+  marketIso,
+  marketCity,
+}: {
+  marketIso?: string
+  marketCity?: string
+} = {}) {
   const { t, lang } = useI18n()
+  const pathname = usePathname()
   const loc: SeoLoc = lang === 'en' || lang === 'ru' ? lang : 'ka'
+  const cleanPath = stripLangPrefix(pathname)
+  const market = chromeMarket(cleanPath, marketIso)
+  const offGe = market !== 'ge'
+  const iso = offGe ? (countryIsoForMarket(market) ?? marketIso?.toUpperCase()) : undefined
+  const region = iso ? regionName(iso, lang) : ''
+  const pin =
+    marketCity ||
+    (offGe && market !== 'global' ? cityBySlug(MARKETS[market as PathCountryId].defaultCitySlug) : null)
+  const cityLabel =
+    typeof pin === 'string' ? pin : pin ? (lang === 'ka' ? pin.ka : pin.en) : ''
+
+  const pathId = market !== 'ge' && market !== 'global' ? market : null
+  const searchQ = iso ? `country=${iso}&` : ''
+
+  const cols = offGe
+    ? [
+        {
+          titleKey: 'footer.colRealEstate' as const,
+          links: [
+            { key: 'footer.re.apartments' as const, href: `/search?${searchQ}deal=sale&type=apartment` },
+            { key: 'footer.re.houses' as const, href: `/search?${searchQ}deal=sale&type=house` },
+            { key: 'footer.re.rent' as const, href: `/search?${searchQ}deal=rent` },
+            { key: 'nav.hotels' as const, href: pathId ? `/hotels?city=${MARKETS[pathId].defaultCitySlug}` : '/hotels' },
+            { key: 'footer.sv.projects' as const, href: pathId ? countryBasePath(pathId, pathname) : '/projects' },
+            { key: 'nav.map' as const, href: '/map' },
+          ],
+        },
+        {
+          titleKey: 'footer.colServices' as const,
+          links: COLS[1]!.links.filter((l) => l.href !== '/cadastre'),
+        },
+        COLS[2]!,
+      ]
+    : COLS
+
+  const homeHref = pathId ? countryBasePath(pathId, pathname) : '/'
 
   return (
     <footer data-cms-section="footer" className="relative overflow-hidden border-t border-white/[0.07] bg-sv-navy">
@@ -71,9 +128,11 @@ export default function Footer() {
       <div className="relative mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-20">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
           <div>
-            <Logo light href={localizedHref('/', lang)} />
+            <Logo light href={localizedHref(homeHref, lang)} />
             <p data-cms-key="footer.tagline" className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
-              {t('footer.tagline')}
+              {offGe
+                ? `sivrce — ${region ? `${region}. ` : ''}Buy · rent · new developments.`
+                : t('footer.tagline')}
             </p>
             <div className="mt-6 space-y-1 text-[14px] font-semibold text-white/60">
               <a href={telHref(CONTACT_PHONE)} className="flex items-center gap-2.5 py-1.5 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">
@@ -86,12 +145,12 @@ export default function Footer() {
                 <Mail className="h-4 w-4 text-sv-blue-light" aria-hidden /> hi@sivrce.ge
               </a>
               <span className="flex items-center gap-2.5 py-1.5">
-                <MapPin className="h-4 w-4 text-sv-blue-light" aria-hidden /> {t('footer.location')}
+                <MapPin className="h-4 w-4 text-sv-blue-light" aria-hidden /> {offGe && (cityLabel || region) ? [cityLabel, region].filter(Boolean).join(', ') : t('footer.location')}
               </span>
             </div>
           </div>
 
-          {COLS.map((c) => (
+          {cols.map((c) => (
             <div key={c.titleKey}>
               <p className="text-[13px] font-black uppercase tracking-wider text-white/60">{t(c.titleKey)}</p>
               <ul className="mt-5 space-y-3">
@@ -111,8 +170,7 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Exact-query keyword columns (ss.ge/myhome pattern) — anchors match
-            each hub page's <h1>; only inventory-carrying pages are linked. */}
+        {!offGe && (
         <nav
           aria-label={t('footer.popularSearches')}
           className="mt-14 border-t border-white/[0.07] pt-10"
@@ -161,10 +219,11 @@ export default function Footer() {
             </div>
           )}
         </nav>
+        )}
 
         <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.07] pt-8">
           <p className="text-[13px] font-semibold text-white/55">
-            {t('footer.rights')}
+            {offGe ? '© 2026 Sivrce • sivrce.com' : t('footer.rights')}
           </p>
           <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
             <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.terms')}</Link>

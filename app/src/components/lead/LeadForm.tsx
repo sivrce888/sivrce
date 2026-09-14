@@ -12,7 +12,7 @@ import { useSession } from 'next-auth/react'
 import { useChat } from '@/components/chat/ChatProvider'
 import { stashChatDraft } from '@/components/chat/messages'
 import { useI18n } from '@/lib/i18n/context'
-import { formatPhone, PHONE_RE } from '@/lib/inquiries/phone'
+import { formatPhone, PHONE_RE, PHONE_RE_DE } from '@/lib/inquiries/phone'
 import { cn } from '@/lib/utils'
 import { leadStrings } from './i18n'
 
@@ -53,7 +53,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
   const successRef = useRef<HTMLDivElement>(null)
 
   const nameBad = name.trim().length < 2
-  const phoneBad = !PHONE_RE.test(phone)
+  const phoneBad = !PHONE_RE.test(phone) && !PHONE_RE_DE.test(phone)
   const messageBad = message.trim().length < 10 || message.length > 1000
   const showErr = (field: string, bad: boolean) => (touched[field] || submitAttempted) && bad
 

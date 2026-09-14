@@ -31,11 +31,8 @@ import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import HScroll from '@/components/HScroll'
 import MapEmbed from '@/components/MapEmbed'
-import {
-  getBuilding,
-  buildingDealCounts,
-  relatedBuildings,
-} from '@/data/buildings'
+import { getBuilding, relatedBuildings } from '@/data/buildings'
+import { buildingDealCounts } from '@/data/buildings-listings'
 import { getDeveloper, type Developer } from '@/data/professionals'
 import {
   clusterListingsToBuildings,

@@ -29,7 +29,7 @@ export const NEW_DEVELOPERS_TBILISI: Developer[] = [
     },
     verified: true,
     phone: '+995 500 333 111',
-    logoUrl: '/images/developers/omnia-georgia.svg',
+    logoUrl: '/images/developers/omnia-georgia.webp',
     website: 'https://www.omnia.ge',
   },
   {

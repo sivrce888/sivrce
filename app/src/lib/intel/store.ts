@@ -5,7 +5,7 @@
  * ponytail: Prisma upserts, not a queue/worker split — extract to a worker
  * only when a single cron run exceeds Vercel maxDuration.
  */
-import { db } from "@/lib/db"
+import { db, dbAvailable } from "@/lib/db"
 import {
   ACTIVE_PROJECT_STATUSES,
   coverageScoreOf,
@@ -150,8 +150,16 @@ export async function queueReview(reason: ReviewReason, entityKind?: EntityKind 
   })
 }
 
-/** Entity dossier: facts + evidence + immutable history + quality score. */
+/**
+ * Entity dossier: facts + evidence + immutable history + quality score.
+ *
+ * Public project/developer pages render this, so a DB blip must degrade, not
+ * hang: without the breaker these two queries queue on the single-connection
+ * pool and each pay the 8s connect timeout, which is what pushed those
+ * prerenders past 180s. Callers already treat null as "no dossier".
+ */
 export async function getEntityProfile(entityKind: EntityKind, entityId: string) {
+  if (!(await dbAvailable())) return null
   const [facts, changes] = await Promise.all([
     db.intelFact.findMany({
       where: { entityKind, entityId },

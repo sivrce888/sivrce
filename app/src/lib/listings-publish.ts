@@ -29,6 +29,8 @@ const PROP_TYPES: Set<ListingPropertyType> = new Set([
 export const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
 /** German E.161-style: +49 Vorwahl (2–5) Teilnehmer (3–9). */
 export const PHONE_RE_DE = /^\+49 \d{2,5} \d{3,9}$/
+/** International E.164 compatible phone regex. */
+export const PHONE_RE_INTL = /^\+?[0-9\s\-().]{7,25}$/
 
 const asStr = (v: unknown, max: number): string | null =>
   typeof v === "string" && v.trim().length > 0 && v.length <= max ? v.trim() : null
@@ -48,7 +50,7 @@ export type PublishParsed = {
   deal: string
   propertyType: ListingPropertyType
   /** Listing market — drives phone regex, currency and the country column. */
-  country: "GE" | "DE"
+  country: string
   city: string
   district: string
   address: string
@@ -74,7 +76,8 @@ export type ParseFail = { ok: false; error: string }
 export type ParseOk = { ok: true; data: PublishParsed }
 
 export function parsePublishBody(body: Record<string, unknown>): ParseOk | ParseFail {
-  const country = body.country === "DE" ? ("DE" as const) : ("GE" as const)
+  const rawCountry = typeof body.country === "string" ? body.country.trim().toUpperCase() : "GE"
+  const country = rawCountry && rawCountry.length >= 2 && rawCountry.length <= 8 ? rawCountry : "GE"
   const title = asStr(body.title, 180)
   const dealKey = typeof body.deal === "string" ? body.deal : ""
   const dealType = DEAL_TO_DB[dealKey]
@@ -86,7 +89,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
   const district = asStr(body.district, 120)
   const address = asStr(body.address, 240)
   const name = asStr(body.name, 160)
-  const phoneRe = country === "DE" ? PHONE_RE_DE : PHONE_RE
+  const phoneRe = country === "DE" ? PHONE_RE_DE : country === "GE" ? PHONE_RE : PHONE_RE_INTL
   const phone = typeof body.phone === "string" && phoneRe.test(body.phone) ? body.phone : null
   const area = typeof body.area === "number" && body.area > 0 && body.area <= 100_000 ? body.area : null
   const price = asInt(body.price, 0, 1_000_000_000)

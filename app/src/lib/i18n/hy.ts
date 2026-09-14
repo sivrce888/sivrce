@@ -32,6 +32,7 @@ export const hy: Dict = {
   'nav.currency': 'Արժույթ',
   'nav.themeToggle': 'Փոխարկել թեման՝ բաց կամ մուգ',
   'nav.daily': 'Օրական',
+  'nav.hotels': 'Հյուրանոցներ',
   'nav.neighborhoods': 'Թաղամասեր',
   'nav.blog': 'Բլոգ',
   'nav.forum': 'Ֆորում',

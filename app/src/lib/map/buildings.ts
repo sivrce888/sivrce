@@ -14,6 +14,11 @@
 import type { DealType, Listing, PropType } from '@/data/listings'
 import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
+// ponytail: this is the last client edge into the ~310 KB professionals catalog
+// (Map3D needs `getDeveloper(slug).name.ka` for pin labels and `projectCode` for
+// the building code). It rides a lazily-loaded map chunk, so it costs nothing
+// until a map opens. Upgrade path when that matters: a generated slug → {name,
+// code} index with a drift check, the same pattern as data/user-place.gen.ts.
 import { getDeveloper, projectCode, type Project } from '@/data/professionals'
 import type { MapDealFilter, MapKindFilter, MapStatusFilter } from '@/lib/map/map-href'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'

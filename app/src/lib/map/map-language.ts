@@ -1,15 +1,16 @@
 /**
- * Basemap labels follow UI lang — local name first, English fallback.
- * ponytail: retarget text-field on stock OFM label layers only; sivrce
- * layers (price/label/point_count) never contain `name`, so untouched.
- * OMT fields: name (local) + name:en/name:de/… + name:latin. Ceiling: per-tile
- * `name:ka` when OFM ships it — recheck if Georgian labels vanish abroad.
+ * Basemap labels: place-native + user lang (English fallback).
+ * Germany (Latin script) gets München / Munich — OFM's name:latin+name:nonlatin
+ * pair is a no-op there. Skip the second line when it matches the first.
+ * ponytail: retarget text-field on stock OFM layers only; sivrce layers
+ * (price/label/point_count) never contain `name`, so untouched.
+ * Ceiling: per-tile `name:ka` is sparse abroad — local+en still paints.
  */
 import type { Map as MlMap } from 'maplibre-gl'
 import type { Lang } from '@/lib/i18n/core'
 
-const LANG_FIELD: Record<Lang, string | null> = {
-  ka: null,
+const LANG_FIELD: Record<Lang, string> = {
+  ka: 'name:ka',
   en: 'name:en',
   ru: 'name:ru',
   de: 'name:de',
@@ -21,12 +22,57 @@ const LANG_FIELD: Record<Lang, string | null> = {
   he: 'name:he',
 }
 
-/** Coalesce expr preferring UI lang → English → local → latin. */
+const EN_SCALE = { 'font-scale': 0.82 } as const
+
+/** Two-line label; second line dropped when empty or identical. */
+export function bilingualTextField(localExpr: unknown, enExpr: unknown): unknown {
+  return [
+    'let',
+    'local',
+    localExpr,
+    'en',
+    enExpr,
+    [
+      'case',
+      ['any', ['==', ['var', 'en'], ''], ['==', ['var', 'local'], ['var', 'en']]],
+      ['var', 'local'],
+      ['format', ['var', 'local'], {}, '\n', {}, ['var', 'en'], EN_SCALE],
+    ],
+  ]
+}
+
+/**
+ * Local official name on top (matches street signs).
+ * Second line: UI lang if it differs, else English. Deduped.
+ */
 export function mapLabelField(lang: Lang): unknown {
-  const f = LANG_FIELD[lang]
-  return f
-    ? ['coalesce', ['get', f], ['get', 'name:en'], ['get', 'name'], ['get', 'name:latin']]
-    : ['coalesce', ['get', 'name'], ['get', 'name:en'], ['get', 'name:latin']]
+  const user = LANG_FIELD[lang]
+  return [
+    'let',
+    'local',
+    ['coalesce', ['get', 'name'], ['get', 'name:latin'], ''],
+    'user',
+    ['coalesce', ['get', user], ''],
+    'en',
+    ['coalesce', ['get', 'name:en'], ''],
+    'secondary',
+    [
+      'case',
+      ['all', ['!=', ['var', 'user'], ''], ['!=', ['var', 'user'], ['var', 'local']]],
+      ['var', 'user'],
+      ['var', 'en'],
+    ],
+    [
+      'case',
+      [
+        'any',
+        ['==', ['var', 'secondary'], ''],
+        ['==', ['var', 'local'], ['var', 'secondary']],
+      ],
+      ['var', 'local'],
+      ['format', ['var', 'local'], {}, '\n', {}, ['var', 'secondary'], EN_SCALE],
+    ],
+  ]
 }
 
 /** Rewrite stock label layers in place. Idempotent, sync, no re-fetch. */

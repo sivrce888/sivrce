@@ -1119,7 +1119,7 @@ html[data-lite] .animate-marquee, html[data-lite] .animate-ping, html[data-lite]
 html[data-lite] .animate-scroll-hint, html[data-lite] .sv-skyline-back, html[data-lite] .sv-skyline-front,
 html[data-lite] .sv-comet, html[data-lite] .sv-birds, html[data-lite] .sv-cirrus, html[data-lite] .sv-word,
 html[data-lite] .text-gradient-shimmer, html[data-lite] .sv-sky-in, html[data-lite] .sv-nav-in,
-html[data-lite] .sv-star, html[data-lite] .sv-beacon {
+html[data-lite] .sv-star, html[data-lite] .sv-beacon, html[data-lite] .sv-chat-msg-in, html[data-lite] .sv-heart-pop {
   animation: none !important;
 }
 html[data-lite] [data-reveal] {

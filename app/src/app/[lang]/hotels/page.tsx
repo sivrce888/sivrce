@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { MapPin } from 'lucide-react'
+import { MapPin, Star, ShieldCheck, Zap, ExternalLink, SlidersHorizontal, Phone } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
@@ -31,8 +31,9 @@ interface Copy {
   liveBadge: string
   browseBadge: string
   website: string
-  feeNote: (fee: string) => string
-  providerRate: string
+  gdsQuote: string
+  feeIncl: (n: number) => string
+  otaFrom: (n: number) => string
   refundable: string
   nonRefundable: string
   perNight: (n: number) => string
@@ -47,129 +48,192 @@ interface Copy {
   sortPrice: string
   sortDistance: string
   viewDetails: string
+  bookLive: string
   distance: (km: string) => string
+  propRates: string
+  propRatesSub: string
+  propDirect: string
+  propDirectSub: string
+  propReal: string
+  propRealSub: string
+  propBook: string
+  propBookSub: string
+  popularCities: string
+  partnerHint: string
 }
 
 const COPY: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
   ka: {
     kicker: 'სასტუმროები',
-    title: 'სასტუმროები ცოცხალი ფასებით',
-    subtitle: 'GDS-ის ფასები პირდაპირ ავიაციის სისტემიდან — გამჭვირვალე სერვისის საფასურით, დამატებით გადასახადების გარეშე.',
+    title: 'სასტუმროები — ცოცხალი ფასები და ჯავშანი',
+    subtitle:
+      'რეალური სასტუმროები. ცოცხალი ფასები და ჯავშანი Google Hotels-სა და Booking.com-ზე. პირდაპირი ტელეფონი და საიტი, თუ სასტუმროს აქვს. GDS ტარიფი ბარათზე — როცა Amadeus ჩართულია.',
     city: 'ქალაქი',
     checkIn: 'ჩასვლა',
     checkOut: 'წასვლა',
     guests: 'სტუმრები',
-    search: 'ძებნა',
-    liveBadge: 'ცოცხალი ფასები · Amadeus GDS',
+    search: 'ცოცხალი ფასები',
+    liveBadge: 'ცოცხალი ფასები',
     browseBadge: 'ღია კატალოგი · OpenStreetMap',
     website: 'ვებსაიტი',
-    feeNote: (fee) => `მოიცავს ${fee} ₾ sivrce-ის სერვისის საფასურს`,
-    providerRate: 'მომწოდებლის ფასი',
-    refundable: 'თავისუფალი გაუქმება',
-    nonRefundable: 'არა აბრულებს',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `ჩათვლით ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
+    refundable: 'უფასო გაუქმება',
+    nonRefundable: 'გაუქმების გარეშე',
     perNight: (n) => (n === 1 ? '1 ღამე' : `${n} ღამე`),
     perNightShort: '/ღამე',
-    compare: 'შედარება:',
-    emptyLive: 'ამ თარიღებზე ხელმისაწვდომობა ვერ მოიძებნა — სცადეთ სხვა თარიღები.',
-    emptyUnconfigured: 'ცოცხალი ფასები მალე ჩაირთვება — მომწოდებლის გასაღებები მოლოდინშია.',
-    emptyError: 'ფასები ამჟამად მიუწვდომელია — სცადეთ ხელახლა.',
+    compare: 'ცოცხალი ფასები:',
+    emptyLive: 'ამ თარიღებზე GDS ადგილი ვერ მოიძებნა — შეადარეთ პარტნიორებზე.',
+    emptyUnconfigured: 'GDS ტარიფები გასაღებების შემდეგ გამოჩნდება — პარტნიორებზე ფასები ახლავეა.',
+    emptyError: 'GDS დროებით მიუწვდომელია — სცადეთ პარტნიორები.',
     emptyFiltered: 'ფილტრებს ვერაფერი შეესაბამება — შეცვალეთ პირობები.',
     clearFilters: 'ფილტრების გასუფთავება',
     filters: 'ფილტრები',
     sortPrice: 'ჯერ იაფი',
     sortDistance: 'ცენტრთან ახლოს',
-    viewDetails: 'ნახვა',
+    viewDetails: 'ნომრები',
+    bookLive: 'ცოცხალი ფასი და ჯავშანი',
     distance: (km) => `${km} კმ ცენტრიდან`,
+    propRates: 'ცოცხალი ფასები',
+    propRatesSub: 'Google Hotels და Booking.com',
+    propDirect: 'პირდაპირი კონტაქტი',
+    propDirectSub: 'ტელეფონი და ოფიციალური საიტი',
+    propReal: 'რეალური სასტუმროები',
+    propRealSub: 'OpenStreetMap კატალოგი',
+    propBook: 'ჯავშანი ერთ შეხებით',
+    propBookSub: 'პარტნიორის უსაფრთხო გადახდა',
+    popularCities: 'პოპულარული მიმართულებები:',
+    partnerHint: 'შეადარეთ ცოცხალი ფასები პარტნიორებზე:',
   },
   en: {
     kicker: 'Hotels',
-    title: 'Hotels with live rates',
-    subtitle: 'GDS rates straight from the airline-grade inventory system — transparent service fee, no hidden extras.',
-    city: 'City',
+    title: 'Hotels — live rates and booking',
+    subtitle:
+      'Real hotels. Live prices and booking on Google Hotels and Booking.com. Direct phone and website when the hotel lists them. GDS quotes on-card when Amadeus is connected.',
+    city: 'Destination',
     checkIn: 'Check-in',
     checkOut: 'Check-out',
     guests: 'Guests',
-    search: 'Search',
-    liveBadge: 'Live rates · Amadeus GDS',
+    search: 'Live rates',
+    liveBadge: 'Live rates',
     browseBadge: 'Open directory · OpenStreetMap',
     website: 'Website',
-    feeNote: (fee) => `Includes ${fee} ₾ Sivrce service fee`,
-    providerRate: 'Provider rate',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `incl. ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
     refundable: 'Free cancellation',
     nonRefundable: 'Non-refundable',
     perNight: (n) => (n === 1 ? '1 night' : `${n} nights`),
     perNightShort: '/night',
-    compare: 'Compare:',
-    emptyLive: 'No availability for these dates — try different dates.',
-    emptyUnconfigured: 'Live rates arrive here soon — provider keys pending.',
-    emptyError: 'Rates unavailable right now — please retry.',
-    emptyFiltered: 'Nothing matches these filters — loosen them a little.',
+    compare: 'Live prices:',
+    emptyLive: 'No GDS availability for these dates — compare live partner rates.',
+    emptyUnconfigured: 'GDS quotes appear once provider keys are set — partner rates are live now.',
+    emptyError: 'GDS unavailable right now — use partner rates.',
+    emptyFiltered: 'Nothing matches these filters — loosen criteria.',
     clearFilters: 'Clear filters',
     filters: 'Filters',
-    sortPrice: 'Cheapest first',
+    sortPrice: 'Lowest price',
     sortDistance: 'Closest to centre',
-    viewDetails: 'View details',
+    viewDetails: 'Rooms',
+    bookLive: 'Live price & book',
     distance: (km) => `${km} km from centre`,
+    propRates: 'Live rates',
+    propRatesSub: 'Google Hotels and Booking.com',
+    propDirect: 'Direct contact',
+    propDirectSub: 'Phone and official site',
+    propReal: 'Real hotels',
+    propRealSub: 'OpenStreetMap directory',
+    propBook: 'Book in one tap',
+    propBookSub: 'Secure partner checkout',
+    popularCities: 'Popular destinations:',
+    partnerHint: 'Compare live prices on partners:',
   },
   ru: {
     kicker: 'Отели',
-    title: 'Отели с живыми ценами',
-    subtitle: 'Цены GDS напрямую из системы уровня авиационных бронирований — прозрачный сервисный сбор, без скрытых доплат.',
+    title: 'Отели — живые цены и бронь',
+    subtitle:
+      'Реальные отели. Живые цены и бронь на Google Hotels и Booking.com. Телефон и сайт, если отель их указал. Котировки GDS на карточке — когда подключён Amadeus.',
     city: 'Город',
     checkIn: 'Заезд',
     checkOut: 'Выезд',
     guests: 'Гости',
-    search: 'Найти',
-    liveBadge: 'Живые цены · Amadeus GDS',
+    search: 'Живые цены',
+    liveBadge: 'Живые цены',
     browseBadge: 'Открытый каталог · OpenStreetMap',
     website: 'Сайт',
-    feeNote: (fee) => `Включая ${fee} ₾ сервисный сбор sivrce`,
-    providerRate: 'Цена поставщика',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `вкл. ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
     refundable: 'Бесплатная отмена',
     nonRefundable: 'Без возврата',
     perNight: (n) => (n === 1 ? '1 ночь' : `${n} ноч.`),
     perNightShort: '/ночь',
-    compare: 'Сравнить:',
-    emptyLive: 'Нет доступности на эти даты — попробуйте другие.',
-    emptyUnconfigured: 'Живые цены появятся здесь скоро — ключи поставщика на подходе.',
-    emptyError: 'Цены временно недоступны — повторите попытку.',
-    emptyFiltered: 'Под фильтры ничего не подошло — ослабьте условия.',
+    compare: 'Живые цены:',
+    emptyLive: 'На эти даты GDS нет мест — сравните у партнёров.',
+    emptyUnconfigured: 'Котировки GDS появятся после ключей — цены партнёров уже живые.',
+    emptyError: 'GDS временно недоступен — смотрите партнёров.',
+    emptyFiltered: 'Фильтрам ничего не соответствует.',
     clearFilters: 'Сбросить фильтры',
     filters: 'Фильтры',
     sortPrice: 'Сначала дешёвые',
     sortDistance: 'Ближе к центру',
-    viewDetails: 'Подробнее',
+    viewDetails: 'Номера',
+    bookLive: 'Живая цена и бронь',
     distance: (km) => `${km} км от центра`,
+    propRates: 'Живые цены',
+    propRatesSub: 'Google Hotels и Booking.com',
+    propDirect: 'Прямой контакт',
+    propDirectSub: 'Телефон и официальный сайт',
+    propReal: 'Реальные отели',
+    propRealSub: 'Каталог OpenStreetMap',
+    propBook: 'Бронь в один тап',
+    propBookSub: 'Оплата у партнёра',
+    popularCities: 'Популярные направления:',
+    partnerHint: 'Сравните живые цены у партнёров:',
   },
   de: {
     kicker: 'Hotels',
-    title: 'Hotels mit Live-Preisen',
-    subtitle: 'GDS-Preise direkt aus dem Reservierungssystem der Flugbranche — transparente Servicegebühr, keine versteckten Kosten.',
-    city: 'Stadt',
+    title: 'Hotels — Live-Preise und Buchung',
+    subtitle:
+      'Echte Hotels. Live-Preise und Buchung über Google Hotels und Booking.com. Telefon und Website, wenn das Hotel sie nennt. GDS-Kurse auf der Karte, sobald Amadeus verbunden ist.',
+    city: 'Ziel',
     checkIn: 'Anreise',
     checkOut: 'Abreise',
     guests: 'Gäste',
-    search: 'Suchen',
-    liveBadge: 'Live-Preise · Amadeus GDS',
+    search: 'Live-Preise',
+    liveBadge: 'Live-Preise',
     browseBadge: 'Offenes Verzeichnis · OpenStreetMap',
     website: 'Website',
-    feeNote: (fee) => `Inklusive ${fee} ₾ Sivrce-Servicegebühr`,
-    providerRate: 'Anbieterpreis',
+    gdsQuote: 'sivrce',
+    feeIncl: (n) => `inkl. ${n} ₾ sivrce`,
+    otaFrom: (n) => `OTA ${n} ₾`,
     refundable: 'Kostenlose Stornierung',
     nonRefundable: 'Nicht erstattbar',
     perNight: (n) => (n === 1 ? '1 Nacht' : `${n} Nächte`),
     perNightShort: '/Nacht',
-    compare: 'Vergleichen:',
-    emptyLive: 'Für diese Daten keine Verfügbarkeit — andere Daten versuchen.',
-    emptyUnconfigured: 'Live-Preise folgen in Kürze — Anbieter-Schlüssel ausstehend.',
-    emptyError: 'Preise gerade nicht verfügbar — bitte erneut versuchen.',
-    emptyFiltered: 'Nichts passt zu diesen Filtern — etwas lockern.',
-    clearFilters: 'Filter zurücksetzen',
+    compare: 'Live-Preise:',
+    emptyLive: 'Keine GDS-Verfügbarkeit für diese Daten — Partnerpreise vergleichen.',
+    emptyUnconfigured: 'GDS-Kurse nach Anbieter-Schlüsseln — Partnerpreise sind jetzt live.',
+    emptyError: 'GDS gerade nicht verfügbar — Partnerpreise nutzen.',
+    emptyFiltered: 'Nichts passt zu diesen Filtern.',
+    clearFilters: 'Filter leeren',
     filters: 'Filter',
-    sortPrice: 'Günstigste zuerst',
-    sortDistance: 'Zentrumsnähe',
-    viewDetails: 'Ansehen',
+    sortPrice: 'Günstigste',
+    sortDistance: 'Nächste zur Mitte',
+    viewDetails: 'Zimmer',
+    bookLive: 'Live-Preis & buchen',
     distance: (km) => `${km} km vom Zentrum`,
+    propRates: 'Live-Preise',
+    propRatesSub: 'Google Hotels und Booking.com',
+    propDirect: 'Direktkontakt',
+    propDirectSub: 'Telefon und offizielle Seite',
+    propReal: 'Echte Hotels',
+    propRealSub: 'OpenStreetMap-Verzeichnis',
+    propBook: 'Buchung in einem Tipp',
+    propBookSub: 'Sichere Partnerkasse',
+    popularCities: 'Beliebte Reiseziele:',
+    partnerHint: 'Live-Preise bei Partnern vergleichen:',
   },
 }
 
@@ -178,21 +242,26 @@ const isoDay = (offset: number) => new Date(Date.now() + offset * 86_400_000).to
 
 const CITIES = [...WORLD_PLACES].sort((a, b) => a.en.localeCompare(b.en))
 
-/** Per-night price-cap chips, ₾ — language-neutral labels. */
+const POPULAR_DESTINATIONS = [
+  { slug: 'tbilisi', label: 'Tbilisi' },
+  { slug: 'batumi', label: 'Batumi' },
+  { slug: 'kutaisi', label: 'Kutaisi' },
+  { slug: 'berlin', label: 'Berlin' },
+  { slug: 'dubai', label: 'Dubai' },
+  { slug: 'london', label: 'London' },
+  { slug: 'paris', label: 'Paris' },
+  { slug: 'rome', label: 'Rome' },
+  { slug: 'istanbul', label: 'Istanbul' },
+  { slug: 'vienna', label: 'Vienna' },
+]
+
 const CAPS = [100, 250, 500]
 
-/** Deterministic brand-gradient monogram — no provider photos exist, none invented. */
-const MONOGRAMS = [
-  'from-sv-blue to-sv-violet',
-  'from-sv-violet to-sv-navy-soft',
-  'from-sv-orange to-sv-violet',
-  'from-sv-blue to-sv-navy-soft',
-]
-const monogram = (id: string) => MONOGRAMS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % MONOGRAMS.length]
-
 const chipCls = (active: boolean) =>
-  `rounded-full px-4 py-1.5 text-[12px] font-bold transition-colors ${
-    active ? 'bg-sv-blue text-white' : 'bg-sv-cloud text-sv-ink/60 hover:bg-sv-blue/10 hover:text-sv-blue'
+  `rounded-full px-4 py-1.5 text-[13px] font-bold transition-all shadow-sm ${
+    active
+      ? 'bg-sv-blue text-white shadow-glow-blue-sm'
+      : 'bg-sv-cloud text-sv-ink/70 hover:bg-sv-blue/10 hover:text-sv-blue'
   }`
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
@@ -200,20 +269,20 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const lang = isValidLang(raw) ? raw : 'ka'
   return pageMeta('/hotels', lang, {
     ka: {
-      title: 'სასტუმროები ცოცხალი ფასებით',
-      description: 'სასტუმროების ფასები ცოცხლად, Amadeus GDS-დან. გამჭვირვალე სერვისის საფასური, შედარება Booking-სა და Expedia-სთან.',
+      title: 'სასტუმროები — ცოცხალი ფასები და ჯავშანი',
+      description: 'რეალური სასტუმროები. ცოცხალი ფასები და ჯავშანი Google Hotels-სა და Booking.com-ზე. GDS ტარიფები Amadeus-ით, როცა კავშირი ჩართულია.',
     },
     en: {
-      title: 'Hotels with live rates',
-      description: 'Live hotel rates from the Amadeus GDS. Transparent service fee, side-by-side with Booking.com and Expedia.',
+      title: 'Hotels — live rates and booking',
+      description: 'Real hotels. Live prices and booking on Google Hotels and Booking.com. GDS quotes from Amadeus when connected.',
     },
     ru: {
-      title: 'Отели с живыми ценами',
-      description: 'Живые цены на отели из Amadeus GDS. Прозрачный сервисный сбор, сравнение с Booking.com и Expedia.',
+      title: 'Отели — живые цены и бронь',
+      description: 'Реальные отели. Живые цены и бронь на Google Hotels и Booking.com. Котировки GDS из Amadeus при подключении.',
     },
     de: {
-      title: 'Hotels mit Live-Preisen',
-      description: 'Live-Hotelpreise aus dem Amadeus GDS. Transparente Servicegebühr, Vergleich mit Booking.com und Expedia.',
+      title: 'Hotels — Live-Preise und Buchung',
+      description: 'Echte Hotels. Live-Preise und Buchung über Google Hotels und Booking.com. GDS-Kurse von Amadeus, wenn verbunden.',
     },
   })
 }
@@ -243,7 +312,6 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
   const stay = parseStay(checkIn, checkOut)
   const nights = stay?.nights ?? 2
 
-  // URL state for chips + detail links; chips flip one key and keep the rest.
   const base: Record<string, string> = { city: citySlug, checkIn, checkOut, adults: String(adults) }
   if (view.sort !== 'price') base.sort = view.sort
   if (view.refundOnly) base.refund = '1'
@@ -261,64 +329,107 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
     <>
       <Navbar />
       <PageHero kicker={copy.kicker} title={copy.title} subtitle={copy.subtitle}>
-        <form method="get" className="mt-8 flex flex-wrap items-end gap-3" aria-label={copy.search}>
-          <label className="flex min-w-[10rem] flex-1 flex-col gap-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-sv-blue-light">
-            {copy.city}
-            <select
-              name="city"
-              defaultValue={citySlug}
-              className="rounded-control border border-white/20 bg-sv-surface px-3 py-2.5 text-[15px] font-semibold text-sv-ink"
-            >
-              {CITIES.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.en}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-sv-blue-light">
-            {copy.checkIn}
-            <input
-              type="date"
-              name="checkIn"
-              defaultValue={checkIn}
-              min={isoDay(0)}
-              required
-              className="rounded-control border border-white/20 bg-sv-surface px-3 py-2.5 text-[15px] font-semibold text-sv-ink"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-sv-blue-light">
-            {copy.checkOut}
-            <input
-              type="date"
-              name="checkOut"
-              defaultValue={checkOut}
-              min={isoDay(1)}
-              required
-              className="rounded-control border border-white/20 bg-sv-surface px-3 py-2.5 text-[15px] font-semibold text-sv-ink"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-sv-blue-light">
-            {copy.guests}
-            <select
-              name="adults"
-              defaultValue={String(adults)}
-              className="rounded-control border border-white/20 bg-sv-surface px-3 py-2.5 text-[15px] font-semibold text-sv-ink"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            className="rounded-control bg-sv-orange px-6 py-3 text-[15px] font-black text-sv-ink shadow-glow-orange transition-transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            {copy.search}
-          </button>
-        </form>
+        <div className="mx-auto w-full max-w-4xl">
+          <form method="get" className="mt-8 grid grid-cols-1 gap-3 rounded-card bg-sv-surface/10 p-3 backdrop-blur-md border border-white/15 md:grid-cols-12" aria-label={copy.search}>
+            <label className="flex flex-col gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-sv-blue-light md:col-span-4">
+              {copy.city}
+              <select
+                name="city"
+                defaultValue={citySlug}
+                className="h-11 rounded-control border border-white/20 bg-sv-surface px-3 py-2 text-[15px] font-bold text-sv-ink focus:border-sv-blue focus:outline-none"
+              >
+                {CITIES.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.en} {c.ka !== c.en ? `(${c.ka})` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-sv-blue-light md:col-span-3">
+              {copy.checkIn}
+              <input
+                type="date"
+                name="checkIn"
+                defaultValue={checkIn}
+                min={isoDay(0)}
+                required
+                className="h-11 rounded-control border border-white/20 bg-sv-surface px-3 py-2 text-[14px] font-bold text-sv-ink focus:border-sv-blue focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-sv-blue-light md:col-span-3">
+              {copy.checkOut}
+              <input
+                type="date"
+                name="checkOut"
+                defaultValue={checkOut}
+                min={isoDay(1)}
+                required
+                className="h-11 rounded-control border border-white/20 bg-sv-surface px-3 py-2 text-[14px] font-bold text-sv-ink focus:border-sv-blue focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-sv-blue-light md:col-span-2">
+              {copy.guests}
+              <select
+                name="adults"
+                defaultValue={String(adults)}
+                className="h-11 rounded-control border border-white/20 bg-sv-surface px-3 py-2 text-[15px] font-bold text-sv-ink focus:border-sv-blue focus:outline-none"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="md:col-span-12 mt-1">
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 rounded-control bg-sv-orange px-6 py-3.5 text-[16px] font-black text-sv-ink shadow-glow-orange transition-all hover:scale-[1.01] hover:brightness-105 active:scale-[0.99]"
+              >
+                <Zap size={18} className="shrink-0" />
+                {copy.search}
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[12px] font-bold text-white/80">
+            <span className="text-sv-blue-light">{copy.popularCities}</span>
+            {POPULAR_DESTINATIONS.map((dest) => (
+              <a
+                key={dest.slug}
+                href={`?${qs({ city: dest.slug })}`}
+                className={`rounded-full px-3 py-1 transition-all ${
+                  citySlug === dest.slug
+                    ? 'bg-white text-sv-ink shadow-glow-blue-sm font-extrabold'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                {dest.label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="mx-auto mt-10 grid max-w-5xl grid-cols-2 gap-3 md:grid-cols-4">
+          {(
+            [
+              [copy.propRates, copy.propRatesSub, Zap],
+              [copy.propDirect, copy.propDirectSub, Phone],
+              [copy.propReal, copy.propRealSub, ShieldCheck],
+              [copy.propBook, copy.propBookSub, Star],
+            ] as const
+          ).map(([t, s, Icon]) => (
+            <div key={t} className="flex items-center gap-3 rounded-module border border-white/10 bg-white/5 p-3.5 backdrop-blur-sm">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-sv-blue/20 text-sv-blue-light">
+                <Icon size={20} />
+              </div>
+              <div className="text-left">
+                <p className="text-[13px] font-extrabold text-white">{t}</p>
+                <p className="text-[11px] font-medium text-white/60">{s}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </PageHero>
 
       <main className="mx-auto max-w-[1440px] px-5 pb-24 pt-10 md:px-10">
@@ -348,25 +459,44 @@ function ResultsSkeleton() {
   return (
     <>
       <div className="mb-4 flex items-center justify-between" aria-hidden>
-        <div className="h-9 w-56 animate-pulse rounded bg-sv-cloud" />
+        <div className="h-9 w-56 animate-pulse rounded-lg bg-sv-cloud" />
         <div className="h-7 w-44 animate-pulse rounded-full bg-sv-cloud" />
       </div>
-      <div className="mb-6 flex gap-2" aria-hidden>
-        {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="h-8 w-24 animate-pulse rounded-full bg-sv-cloud" />
-        ))}
-      </div>
-      <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" aria-busy="true">
+      <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3" aria-busy="true">
         {Array.from({ length: 6 }, (_, i) => (
           <li key={i} className="flex flex-col gap-4 rounded-card bg-sv-surface p-5 shadow-card">
-            <div className="h-28 animate-pulse rounded-control bg-sv-cloud" />
+            <div className="h-40 animate-pulse rounded-tile bg-sv-cloud" />
             <div className="h-5 w-3/4 animate-pulse rounded bg-sv-cloud" />
             <div className="h-4 w-1/2 animate-pulse rounded bg-sv-cloud" />
-            <div className="mt-auto h-9 w-1/3 animate-pulse rounded bg-sv-cloud" />
+            <div className="mt-auto h-12 w-full animate-pulse rounded-control bg-sv-cloud" />
           </li>
         ))}
       </ul>
     </>
+  )
+}
+
+function HotelPhoto({ src, name }: { src: string | null; name: string }) {
+  return (
+    <div className="relative mb-4 h-40 w-full overflow-hidden rounded-tile bg-sv-navy">
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element -- ponytail: images unoptimized per next.config
+        <img
+          src={src}
+          alt={name}
+          width={360}
+          height={160}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <p className="flex h-full items-end p-4 text-[48px] font-black leading-none tracking-[-0.04em] text-white/25" aria-hidden>
+          {name.slice(0, 1)}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -398,10 +528,11 @@ async function Results({
   qs: (over?: Record<string, string | null>) => string
 }) {
   const result = stayValid ? await searchHotels({ lat: placeLat, lng: placeLng, checkIn, checkOut, adults }) : null
-  const mode = stayValid ? (result?.mode ?? 'error') : 'live'
-  const links = compareLinks(placeEn, checkIn, checkOut, adults)
-  const filtered = applyView(result?.hotels ?? [], view, nights)
   const browse = result?.browse ?? []
+  const pricedBrowse = browse.filter((h) => h.totalGel && h.totalGel > 0)
+  const mode = stayValid ? (result?.mode ?? 'error') : 'live'
+  const showLive = mode === 'live' || pricedBrowse.length > 0
+  const filtered = applyView(result?.hotels ?? [], view, nights)
   const overFiltered = !stayValid || mode !== 'live' ? false : filtered.length === 0 && (result?.hotels.length ?? 0) > 0
 
   const hotelsLd =
@@ -418,7 +549,7 @@ async function Results({
               address: h.address ?? undefined,
               offers: {
                 '@type': 'Offer',
-                price: h.totalGel,
+                price: h.providerGel,
                 priceCurrency: 'GEL',
                 availability: 'https://schema.org/InStock',
                 validFrom: checkIn,
@@ -438,26 +569,44 @@ async function Results({
                 name: h.name,
                 address: h.address ?? undefined,
                 ...(h.stars ? { starRating: { '@type': 'Rating', ratingValue: h.stars } } : {}),
+                ...(h.providerGel
+                  ? {
+                      offers: {
+                        '@type': 'Offer',
+                        price: h.providerGel,
+                        priceCurrency: 'GEL',
+                        availability: 'https://schema.org/InStock',
+                        validFrom: checkIn,
+                      },
+                    }
+                  : {}),
               },
             })),
           })
         : null
 
-  // Mode is only known after the search resolves, so the title row + filter
-  // chips live here — chips are meaningless in browse mode and stay hidden.
   const header = (
     <>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="sv-h2 text-sv-ink">
-          {placeEn} · {copy.perNight(nights)}
-        </h2>
-        <span className="rounded-full bg-sv-cloud px-4 py-1.5 text-[12px] font-bold text-sv-ink/60">
-          {mode === 'browse' ? copy.browseBadge : copy.liveBadge}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-sv-cloud pb-5">
+        <div>
+          <h2 className="sv-h2 text-sv-ink">
+            {placeEn} · {copy.perNight(nights)}
+          </h2>
+          <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
+            {mode === 'live' ? `${filtered.length}` : `${browse.length}`} · {placeEn}
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-extrabold text-sv-blue shadow-sm">
+          <span className="h-2 w-2 rounded-full bg-sv-blue animate-pulse" />
+          {showLive ? copy.liveBadge : copy.browseBadge}
         </span>
       </div>
       {mode === 'live' ? (
-        <nav aria-label={copy.filters} className="mb-6 flex flex-wrap items-center gap-2">
-          <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-sv-ink/40">{copy.filters}</span>
+        <nav aria-label={copy.filters} className="mb-8 flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1 text-[12px] font-black uppercase tracking-[0.14em] text-sv-ink/40 mr-2">
+            <SlidersHorizontal size={14} />
+            {copy.filters}
+          </span>
           <a href={`?${qs({ sort: null })}`} className={chipCls(view.sort === 'price')} aria-current={view.sort === 'price' ? 'true' : undefined}>
             {copy.sortPrice}
           </a>
@@ -482,81 +631,115 @@ async function Results({
     </>
   )
 
-  const compareRow = (
-    <p className="border-t border-sv-cloud pt-3 text-[13px] font-semibold text-sv-ink/60">
-      {copy.compare}{' '}
-      {links.map((l, i) => (
-        <span key={l.name}>
-          {i > 0 ? ' · ' : ''}
-          <a
-            href={l.url}
-            target="_blank"
-            rel="noopener nofollow"
-            className="text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue"
-          >
-            {l.name}
-          </a>
-        </span>
-      ))}
-    </p>
-  )
+  const partnerRow = (query: string, all = false) => {
+    const items = compareLinks(query, checkIn, checkOut, adults).slice(0, all ? 6 : 4)
+    return (
+      <p className="mt-3 border-t border-sv-cloud pt-3 text-[13px] font-medium text-sv-ink/60">
+        <span className="font-bold text-sv-ink/80 mr-2">{copy.compare}</span>
+        {items.map((l, i) => (
+          <span key={l.name} className="inline-flex items-center gap-1">
+            {i > 0 ? <span className="text-sv-ink/20">·</span> : null}
+            <a
+              href={l.url}
+              target="_blank"
+              rel="noopener nofollow"
+              className="text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue font-semibold hover:text-sv-blue-deep"
+            >
+              {l.name}
+            </a>
+          </span>
+        ))}
+      </p>
+    )
+  }
 
   if (mode === 'browse' && browse.length) {
     return (
       <>
         {hotelsLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: hotelsLd }} /> : null}
         {header}
-        <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {browse.map((h) => (
-            <li
-              key={h.id}
-              className="flex flex-col gap-4 rounded-card bg-sv-surface p-5 shadow-card transition-shadow hover:shadow-card-hover"
-            >
-              <div
-                aria-hidden
-                className={`flex h-28 items-center justify-center rounded-control bg-gradient-to-br ${monogram(h.id)}`}
-              >
-                <span className="text-[30px] font-black text-white/90">{h.name.charAt(0).toUpperCase()}</span>
-              </div>
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-[18px] font-extrabold leading-snug text-sv-ink">{h.name}</h3>
-                {h.stars ? (
-                  <span className="shrink-0 text-[13px] font-bold tracking-[0.1em] text-sv-orange" aria-label={`${h.stars}★`}>
-                    {'★'.repeat(h.stars)}
-                  </span>
+        <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {browse.map((h) => {
+            const book = compareLinks(`${h.name} ${placeEn}`, checkIn, checkOut, adults)[0]
+            return (
+              <li key={h.id} className="flex flex-col rounded-card bg-sv-surface p-5 shadow-card border border-sv-cloud">
+                <HotelPhoto src={h.image} name={h.name} />
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-[19px] font-black leading-snug tracking-[-0.03em] text-sv-ink">{h.name}</h3>
+                  {h.stars ? (
+                    <span className="shrink-0 rounded-full bg-sv-cloud px-2.5 py-1 text-[11px] font-extrabold text-sv-ink">
+                      {h.stars}★
+                    </span>
+                  ) : null}
+                </div>
+                {h.address || h.distanceKm !== null ? (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/60">
+                    <MapPin size={14} className="shrink-0 text-sv-blue" aria-hidden />
+                    <span className="truncate">{h.address ?? placeEn}</span>
+                    {h.distanceKm !== null ? <span>· {copy.distance(h.distanceKm.toFixed(1))}</span> : null}
+                  </p>
                 ) : null}
-              </div>
-              {h.address || h.distanceKm !== null ? (
-                <p className="flex items-center gap-1.5 text-[14px] font-medium text-sv-ink/50">
-                  <MapPin size={14} className="shrink-0 text-sv-blue" aria-hidden />
-                  {h.address}
-                  {h.address && h.distanceKm !== null ? ' · ' : ''}
-                  {h.distanceKm !== null ? copy.distance(h.distanceKm.toFixed(1)) : ''}
-                </p>
-              ) : null}
-              <div className="mt-auto flex flex-col gap-2">
-                {h.website ? (
+                <div className="mt-auto pt-5 flex flex-col gap-3">
+                  {h.totalGel ? (
+                    <div className="rounded-tile bg-sv-cloud/70 p-3.5 border border-sv-cloud">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-sv-ink/40">{copy.gdsQuote}</p>
+                      <p className="text-[26px] font-black leading-tight text-sv-ink">{gel(h.totalGel)}</p>
+                      <p className="text-[13px] font-bold text-sv-ink/70">
+                        ≈ {gel(h.totalGel / nights)}
+                        {copy.perNightShort} · {copy.perNight(nights)}
+                      </p>
+                      <p className="mt-1 text-[12px] font-semibold text-sv-ink/50">
+                        {copy.feeIncl(h.feeGel ?? 0)} · {copy.otaFrom(h.providerGel ?? h.totalGel)}
+                      </p>
+                    </div>
+                  ) : null}
                   <a
-                    href={h.website}
+                    href={book.url}
                     target="_blank"
                     rel="noopener nofollow"
-                    className="w-fit text-[14px] font-bold text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue"
+                    className="inline-flex items-center justify-center gap-2 rounded-control bg-sv-orange px-4 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
                   >
-                    {copy.website} ↗
+                    {copy.bookLive} <ExternalLink size={14} />
                   </a>
-                ) : null}
-                {h.phone ? (
-                  <a href={`tel:${h.phone.replace(/\s/g, '')}`} className="w-fit text-[14px] font-semibold text-sv-ink/60 hover:text-sv-blue">
-                    {h.phone}
-                  </a>
-                ) : null}
-                {compareRow}
-              </div>
-            </li>
-          ))}
+                  {h.taKey ? (
+                    <Link
+                      href={`/${lang}/hotels/${h.taKey}?${qs()}&name=${encodeURIComponent(h.name)}`}
+                      className="inline-flex items-center justify-center rounded-control bg-sv-blue py-2.5 text-[14px] font-extrabold text-white"
+                    >
+                      {copy.viewDetails}
+                    </Link>
+                  ) : null}
+                  <div className="flex items-center justify-between text-[13px] font-bold">
+                    {h.website ? (
+                      <a
+                        href={h.website}
+                        target="_blank"
+                        rel="noopener nofollow"
+                        className="inline-flex items-center gap-1 text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue"
+                      >
+                        {copy.website} <ExternalLink size={12} />
+                      </a>
+                    ) : (
+                      <span />
+                    )}
+                    {h.phone ? (
+                      <a href={`tel:${h.phone.replace(/\s/g, '')}`} className="text-sv-ink/60 hover:text-sv-blue">
+                        {h.phone}
+                      </a>
+                    ) : null}
+                  </div>
+                  {partnerRow(`${h.name} ${placeEn}`)}
+                </div>
+              </li>
+            )
+          })}
         </ul>
-        <p className="mt-10 max-w-3xl text-[13px] font-medium leading-relaxed text-sv-ink/40">
-          OpenStreetMap · © OpenStreetMap contributors (ODbL)
+        <div className="mt-10 rounded-card bg-sv-surface p-6 shadow-card border border-sv-cloud">
+          <p className="text-[14px] font-bold text-sv-ink mb-1">{copy.partnerHint}</p>
+          {partnerRow(placeEn, true)}
+        </div>
+        <p className="mt-6 max-w-3xl text-[12px] font-medium leading-relaxed text-sv-ink/40">
+          OpenStreetMap · Nominatim · Photon · Xotelo OTA · © OpenStreetMap contributors (ODbL)
         </p>
       </>
     )
@@ -567,22 +750,31 @@ async function Results({
       <>
         {hotelsLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: hotelsLd }} /> : null}
         {header}
-        <p className="rounded-card bg-sv-surface p-8 text-center text-[16px] font-medium text-sv-ink/60 shadow-card">
-          {overFiltered
-            ? copy.emptyFiltered
-            : !stayValid || mode === 'live'
-              ? copy.emptyLive
-              : mode === 'unconfigured'
-                ? copy.emptyUnconfigured
-                : copy.emptyError}
-        </p>
-        {overFiltered ? (
-          <p className="mt-4 text-center">
-            <a href={`?${qs({ sort: null, refund: null, max: null })}`} className="text-[14px] font-bold text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue">
-              {copy.clearFilters}
-            </a>
+        <div className="rounded-card bg-sv-surface p-12 text-center shadow-card border border-sv-cloud">
+          <p className="text-[18px] font-bold text-sv-ink">
+            {overFiltered
+              ? copy.emptyFiltered
+              : !stayValid || mode === 'live'
+                ? copy.emptyLive
+                : mode === 'unconfigured'
+                  ? copy.emptyUnconfigured
+                  : copy.emptyError}
           </p>
-        ) : null}
+          <div className="mx-auto mt-8 max-w-2xl rounded-module bg-sv-cloud p-4 text-left">
+            <p className="text-[13px] font-bold text-sv-ink/70 mb-2">{copy.partnerHint}</p>
+            {partnerRow(placeEn, true)}
+          </div>
+          {overFiltered ? (
+            <p className="mt-6">
+              <a
+                href={`?${qs({ sort: null, refund: null, max: null })}`}
+                className="inline-flex items-center gap-2 rounded-control bg-sv-blue px-5 py-2.5 text-[14px] font-bold text-white shadow-glow-blue-sm"
+              >
+                {copy.clearFilters}
+              </a>
+            </p>
+          ) : null}
+        </div>
       </>
     )
   }
@@ -591,61 +783,67 @@ async function Results({
     <>
       {hotelsLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: hotelsLd }} /> : null}
       {header}
-      <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((h) => (
-          <li
-            key={h.offerId ?? h.hotelId}
-            className="flex flex-col gap-4 rounded-card bg-sv-surface p-5 shadow-card transition-shadow hover:shadow-card-hover"
-          >
-            <Link
-              href={`/${lang}/hotels/${h.hotelId}?${qs()}`}
-              className="flex flex-col gap-3"
-              aria-label={`${h.name} — ${copy.viewDetails}`}
-            >
-              <div
-                aria-hidden
-                className={`flex h-28 items-center justify-center rounded-control bg-gradient-to-br ${monogram(h.hotelId)}`}
-              >
-                <span className="text-[30px] font-black text-white/90">{h.name.charAt(0).toUpperCase()}</span>
-              </div>
+      <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {filtered.map((h) => {
+          const book = compareLinks(`${h.name} ${placeEn}`, checkIn, checkOut, adults)[0]
+          return (
+            <li key={h.offerId ?? h.hotelId} className="flex flex-col rounded-card bg-sv-surface p-5 shadow-card border border-sv-cloud">
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-[18px] font-extrabold leading-snug text-sv-ink">{h.name}</h3>
+                <h3 className="text-[19px] font-black leading-snug tracking-[-0.03em] text-sv-ink">{h.name}</h3>
                 <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${
-                    h.refundable ? 'bg-sv-blue/10 text-sv-blue' : 'bg-sv-cloud text-sv-ink/50'
+                  className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-extrabold ${
+                    h.refundable ? 'bg-sv-blue/10 text-sv-blue' : 'bg-sv-cloud text-sv-ink/60'
                   }`}
                 >
                   {h.refundable ? copy.refundable : copy.nonRefundable}
                 </span>
               </div>
               {h.address || h.distanceKm !== null ? (
-                <p className="flex items-center gap-1.5 text-[14px] font-medium text-sv-ink/50">
+                <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sv-ink/60">
                   <MapPin size={14} className="shrink-0 text-sv-blue" aria-hidden />
-                  {h.address}
-                  {h.address && h.distanceKm !== null ? ' · ' : ''}
-                  {h.distanceKm !== null ? copy.distance(h.distanceKm.toFixed(1)) : ''}
+                  <span className="truncate">{h.address ?? placeEn}</span>
+                  {h.distanceKm !== null ? <span>· {copy.distance(h.distanceKm.toFixed(1))}</span> : null}
                 </p>
               ) : null}
-              {h.roomType ? (
-                <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-sv-ink/40">{h.roomType}</p>
-              ) : null}
-              <div className="mt-auto">
-                <p className="text-[13px] font-medium text-sv-ink/40">
-                  {copy.providerRate} {gel(h.providerGel)}
-                </p>
+              {h.roomType ? <p className="mt-1 text-[13px] font-semibold text-sv-ink/50">{h.roomType}</p> : null}
+              <div className="mt-4 rounded-tile bg-sv-cloud/70 p-3.5 border border-sv-cloud">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-sv-ink/40">{copy.gdsQuote}</p>
                 <p className="text-[26px] font-black leading-tight text-sv-ink">{gel(h.totalGel)}</p>
-                <p className="text-[12px] font-medium text-sv-ink/50">
-                  {copy.feeNote(gel(h.feeGel))} · ≈ {gel(h.totalGel / nights)}{copy.perNightShort}
+                <p className="text-[13px] font-bold text-sv-ink/70">
+                  ≈ {gel(h.totalGel / nights)}
+                  {copy.perNightShort} · {copy.perNight(nights)}
+                </p>
+                <p className="mt-1 text-[12px] font-semibold text-sv-ink/50">
+                  {copy.feeIncl(h.feeGel)} · {copy.otaFrom(h.providerGel)}
                 </p>
               </div>
-            </Link>
-            {compareRow}
-          </li>
-        ))}
+              <div className="mt-auto pt-4 flex flex-col gap-2">
+                <a
+                  href={book.url}
+                  target="_blank"
+                  rel="noopener nofollow"
+                  className="inline-flex items-center justify-center gap-2 rounded-control bg-sv-orange px-4 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
+                >
+                  {copy.bookLive} <ExternalLink size={14} />
+                </a>
+                <Link
+                  href={`/${lang}/hotels/${h.hotelId}?${qs()}`}
+                  className="inline-flex items-center justify-center rounded-control bg-sv-blue py-2.5 text-[14px] font-extrabold text-white"
+                >
+                  {copy.viewDetails}
+                </Link>
+                {partnerRow(`${h.name} ${placeEn}`)}
+              </div>
+            </li>
+          )
+        })}
       </ul>
-      <p className="mt-10 max-w-3xl text-[13px] font-medium leading-relaxed text-sv-ink/40">
-        Amadeus GDS · {result?.fx === 'live' ? 'FX: open.er-api.com' : 'FX: fallback'} ·{' '}
-        {result ? `margin ${result.marginPct}%` : ''}
+      <div className="mt-10 rounded-card bg-sv-surface p-6 shadow-card border border-sv-cloud">
+        <p className="text-[14px] font-bold text-sv-ink mb-1">{copy.partnerHint}</p>
+        {partnerRow(placeEn, true)}
+      </div>
+      <p className="mt-6 max-w-3xl text-[13px] font-medium leading-relaxed text-sv-ink/40">
+        Amadeus GDS · Xotelo OTA · {result?.fx === 'live' ? 'FX: open.er-api.com' : 'FX: fallback'} · quote, confirm on partner
       </p>
     </>
   )

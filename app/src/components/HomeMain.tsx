@@ -6,6 +6,7 @@ import Categories from '@/components/sections/Categories'
 import NeighborhoodsRail from '@/components/sections/NeighborhoodsRail'
 import StoriesRail from '@/components/sections/StoriesRail'
 import VideoListingsRail from '@/components/sections/VideoListingsRail'
+import PersonalizedRail from '@/components/sections/PersonalizedRail'
 import Listings from '@/components/sections/Listings'
 import MapSection from '@/components/sections/MapSection'
 import Projects from '@/components/sections/Projects'
@@ -121,28 +122,39 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
   const layout = await getHomeLayout()
   // '*' = worldwide: plain /map (the map has its own country picker), not a bogus ?country=*.
   const mapHref = scope && scope.country !== '*' ? `/map?country=${scope.country}` : '/map'
+  // Slim cards hoisted so PersonalizedRail reuses the same object refs —
+  // React Flight serializes each once (no duplicate RSC payload).
+  const superVipCards = superVip.map(railCard)
+  const vipPlusCards = vipPlus.map(railCard)
+  const storyCards = stories.map(railCard)
+  const videoCards = videos.map(railCard)
+  const seen = new Set<string>()
+  const railCatalog = [...superVipCards, ...vipPlusCards, ...storyCards, ...videoCards].filter(
+    (l) => (seen.has(l.id) ? false : (seen.add(l.id), true)),
+  )
   const nodes: Record<HomeFlowId, ReactNode> = {
     stories: scope ? (
       <>
-        <StoriesRail items={stories.map(railCard)} />
-        <VideoListingsRail items={videos.map(railCard)} />
+        <StoriesRail items={storyCards} />
+        <VideoListingsRail items={videoCards} />
       </>
     ) : null,
     categories: <Categories lang={lang} />,
     listings: (
       <Listings
-        items={superVip.map(railCard)}
+        items={superVipCards}
         rail="superVip"
         href={homeSearchHref({ tier: 'diamond' }, scope)}
       />
     ),
     vip_plus: (
       <Listings
-        items={vipPlus.map(railCard)}
+        items={vipPlusCards}
         rail="vipPlus"
         href={homeSearchHref({ tier: 'super_vip' }, scope)}
       />
     ),
+    personalized: railCatalog.length > 0 ? <PersonalizedRail catalog={railCatalog} /> : null,
     ad_mid: <AdSlot slot="home_mid" lang={lang} />,
     neighborhoods: ge ? <NeighborhoodsRail counts={districtCounts} /> : null,
     map: <MapSection href={mapHref} />,

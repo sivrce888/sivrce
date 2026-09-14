@@ -15,6 +15,11 @@ export type Currency = 'GEL' | 'USD' | 'EUR'
 export const USD_GEL_FALLBACK = 2.7
 /** EUR→GEL cross fallback (≈3.03–3.05, Sept 2026) — live rate overwrites in seconds. */
 export const EUR_GEL_FALLBACK = 3.04
+/** AED is hard-pegged to USD (3.6725 since 1997) — no rate feed needed. */
+export const AED_PER_USD = 3.6725
+/** Currencies a listing can be *quoted* in. Superset of `Currency`, the
+ *  display preference: AE inventory is quoted in AED but shown in GEL/USD/EUR. */
+export type ListingCurrency = Currency | 'AED'
 
 const RATE_CACHE_KEY = 'sivrce:rate'
 const RATE_TTL = 6 * 60 * 60 * 1000 // 6 hours
@@ -183,6 +188,7 @@ export interface FormattedListingPrice {
  * Preserves the listing's original nominal currency & price without drift.
  * - GEL base (e.g. 800 ₾): GEL price stays locked at 800 ₾; USD is dynamically converted.
  * - USD base (e.g. $800): USD price stays locked at $800; GEL is dynamically converted.
+ * - EUR base (e.g. €800, DE market): EUR stays locked; GEL/USD convert through GEL.
  */
 export function formatListingPrice({
   priceUSD,
@@ -196,19 +202,29 @@ export function formatListingPrice({
   priceUSD: number
   priceGEL: number
   priceOriginal?: number | null
-  currencyOriginal?: 'GEL' | 'USD' | null
+  currencyOriginal?: ListingCurrency | null
   currencyPreference: Currency
   rate?: number
   eurRate?: number
 }): FormattedListingPrice {
-  const isOrigGel = currencyOriginal === 'GEL'
-  const baseGel = isOrigGel ? (priceOriginal ?? priceGEL) : Math.round(priceUSD * rate)
-  const baseUsd = !isOrigGel ? (priceOriginal ?? priceUSD) : Math.round(priceGEL / rate)
+  const orig: ListingCurrency = currencyOriginal ?? 'USD'
+  const locked = priceOriginal ?? (orig === 'GEL' ? priceGEL : priceUSD)
+  // Each native currency pivots to USD/GEL exactly once — no double-conversion drift.
+  const baseUsd =
+    orig === 'USD' ? locked
+    : orig === 'AED' ? Math.round(locked / AED_PER_USD)
+    : orig === 'EUR' ? Math.round((locked * eurRate) / rate)
+    : Math.round(priceGEL / rate)
+  const baseGel =
+    orig === 'GEL' ? locked
+    : orig === 'EUR' ? Math.round(locked * eurRate)
+    : Math.round(baseUsd * rate)
 
   if (currencyPreference === 'EUR') {
-    const primaryValue = Math.round(baseGel / eurRate)
+    const primaryValue = orig === 'EUR' ? locked : Math.round(baseGel / eurRate)
     // Secondary shows the listing's native locked figure — never a double conversion.
-    const secondaryFormatted = isOrigGel ? `${group3(baseGel)}₾` : `$${group3(baseUsd)}`
+    // EUR-native listings have no other locked figure, so they fall back to USD.
+    const secondaryFormatted = orig === 'GEL' ? `${group3(baseGel)}₾` : `$${group3(baseUsd)}`
     return { primary: `€${group3(primaryValue)}`, secondary: `≈ ${secondaryFormatted}` }
   }
 

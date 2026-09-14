@@ -13,17 +13,31 @@ import { fileURLToPath } from "node:url"
 import {
   FX_FALLBACK,
   applyView,
+  bestXoteloStay,
   browseQuery,
+  collectTaKeys,
   compareLinks,
+  foldHotelName,
   gelFrom,
   haversineKm,
+  hotelTaKey,
+  keepHotelName,
   marginPct,
+  mergeBrowseHotels,
+  osmImage,
   normalizeAmadeusOffers,
   normalizeHotelRooms,
+  normalizeNominatimHotels,
   normalizeOverpassHotels,
+  normalizePhotonHotels,
+  normalizeXoteloRates,
+  paintOtaPrices,
   parseStay,
+  parseTaKey,
   parseView,
+  parseWikiLodging,
   placeBySlug,
+  wikiLodgingQuery,
   withMargin,
   type FxRates,
 } from "./hotels"
@@ -102,11 +116,15 @@ assert(norm[1].distanceKm === 5.2 && norm[1].address === "Rustaveli 1", "geo + a
 
 // Compare links: dates + adults embedded, affiliate params inject via env.
 const links = compareLinks("Tbilisi", "2026-10-01", "2026-10-03", 2)
-assert(links.length === 2 && links[0].name === "Booking.com" && links[1].name === "Expedia", "two partners")
-assert(links[0].url.includes("ss=Tbilisi") && links[0].url.includes("checkin=2026-10-01"), "booking params")
-assert(links[1].url.includes("d1=2026-10-01") && links[1].url.includes("adults=2"), "expedia params")
+assert(links.length === 6 && links[0].name === "Google Hotels" && links[1].name === "Booking.com", "six partners, Google first")
+assert(links[0].url.includes("google.com/travel/hotels") && links[0].url.includes("start_date=2026-10-01"), "google hotels params")
+assert(links[1].url.includes("ss=Tbilisi") && links[1].url.includes("checkin=2026-10-01"), "booking params")
+assert(links[2].name === "Kayak" && links[2].url.includes("kayak.com/hotels"), "kayak")
+assert(links[3].url.includes("d1=2026-10-01") && links[3].url.includes("adults=2"), "expedia params")
+assert(links[4].name === "Agoda" && links[4].url.includes("los=2"), "agoda nights")
+assert(links[5].name === "Hotels.com" && links[5].url.includes("hotels.com"), "hotels.com")
 process.env.HOTEL_BOOKING_AID = "partner-42"
-assert(compareLinks("Tbilisi", "2026-10-01", "2026-10-03", 2)[0].url.includes("aid=partner-42"), "affiliate aid injected")
+assert(compareLinks("Tbilisi", "2026-10-01", "2026-10-03", 2)[1].url.includes("aid=partner-42"), "affiliate aid injected")
 delete process.env.HOTEL_BOOKING_AID
 
 // Wiring: the page renders JSON-LD from these shapes and the route validates
@@ -180,26 +198,133 @@ const osm = normalizeOverpassHotels(
       id: 1,
       lat: 41.72,
       lon: 44.83,
-      tags: { name: "Near", stars: "4", "addr:street": "Rustaveli", "addr:housenumber": "3", phone: "+995 322 000000", website: "https://near.example" },
+      tags: { name: "Near", stars: "4", "addr:street": "Rustaveli", "addr:housenumber": "3", phone: "+995 322 000000", website: "https://near.example", wikimedia_commons: "File:Near_hotel.jpg" },
     },
     { type: "way", id: 2, center: { lat: 41.71, lon: 44.79 }, tags: { name: "Far Hotel" } },
     { type: "node", id: 3, lat: 41.71, lon: 44.82, tags: { name: "Bad stars", stars: "17" } },
     { type: "node", id: 4, lat: 41.71, lon: 44.82, tags: { amenity: "cafe" } },
     { type: "node", id: 5, tags: { name: "No coords" } },
+    { type: "node", id: 6, lat: 41.71, lon: 44.82, tags: { name: "Hotel" } },
+    { type: "node", id: 7, lat: 41.71, lon: 44.82, tags: { name: "სასტუმრო", "name:en": "Rooms Hotel" } },
   ],
   41.7151,
   44.8271,
 )
-assert(osm.length === 4, "unnamed dropped, rest kept")
+assert(osm.length === 5, "unnamed + generic Hotel dropped, rest kept")
 assert(osm[0].name === "Near" && osm[0].stars === 4 && osm[0].address === "Rustaveli 3", "closest first, stars clamp + address join")
 assert(osm[0].phone === "+995 322 000000" && osm[0].website === "https://near.example", "contacts carried")
+assert(osm[0].image?.includes("Near_hotel.jpg") && osm[0].image?.includes("width=640"), "wikimedia photo")
 assert(osm[0].distanceKm !== null && osm[0].distanceKm < 1, "node coords → distance")
 const far = osm.find((h) => h.id === "2")
 assert(far && far.stars === null && far.address === null && (far.distanceKm ?? 0) > 2, "way center, optional fields null")
 assert(osm.find((h) => h.name === "Bad stars")?.stars === null, "out-of-range stars → null")
+assert(osm.find((h) => h.name === "Rooms Hotel"), "name:en wins over local name")
+assert(!osm.some((h) => h.name === "Hotel"), "generic amenity word dropped")
 assert(osm[osm.length - 1].distanceKm === null, "null distance sorts last")
 const dists = osm.map((h) => h.distanceKm ?? 999)
 assert(dists.every((d, i) => i === 0 || dists[i - 1] <= d), "distance non-decreasing")
 assert(page.includes("browseBadge") && page.includes("ODbL"), "browse mode renders + ODbL attribution present")
+assert(page.includes("partnerRow(placeEn, true)"), "empty + browse footers keep OTA compare even without GDS")
+assert(keepHotelName("Wyndham Grand") && !keepHotelName("Hotel") && !keepHotelName("ab"), "name filter")
 
-console.log("hotels.check: OK — margin, FX, stay, normalize, rooms, view, browse, links, wiring")
+const nom = normalizeNominatimHotels(
+  [
+    { osm_id: 1, lat: "41.716", lon: "44.828", name: "Wyndham Grand", type: "hotel", address: { road: "Gudiashvili", house_number: "3" }, extratags: { stars: "5", website: "https://w.example" } },
+    { osm_id: 2, lat: "41.71", lon: "44.82", name: "Cafe", type: "restaurant" },
+    { osm_id: 3, lat: "41.72", lon: "44.83", name: "Hotel" },
+  ],
+  41.7151,
+  44.8271,
+)
+assert(nom.length === 1 && nom[0].name === "Wyndham Grand" && nom[0].stars === 5 && nom[0].website === "https://w.example" && nom[0].image === null, "nominatim: hotel kept, cafe+generic dropped")
+assert(nom[0].address === "Gudiashvili 3", "nominatim address join")
+
+const ph = normalizePhotonHotels(
+  [
+    { geometry: { coordinates: [44.819, 41.695] }, properties: { osm_id: 9, name: "Hotel Isaka", street: "Nastakiri", housenumber: "6" } },
+    { geometry: { coordinates: [44.82, 41.71] }, properties: { osm_id: 10, name: "Hotel" } },
+    { properties: { osm_id: 11, name: "No geom inn" } },
+  ],
+  41.7151,
+  44.8271,
+)
+assert(ph.length === 2 && ph[0].name === "Hotel Isaka" && ph[0].address === "Nastakiri 6", "photon: named hotel first")
+assert(ph[1].distanceKm === null, "photon missing coords → null distance")
+
+const merged = mergeBrowseHotels(nom, [{ id: "x", name: "Wyndham Grand", stars: null, distanceKm: 9, address: null, phone: null, website: null, image: null }], ph)
+assert(merged.length === 3 && merged[0].name === "Wyndham Grand" && merged[0].website === "https://w.example", "merge: first list wins, dup dropped")
+const prio = mergeBrowseHotels(
+  [{ id: "1", name: "Wyndham Grand", stars: null, distanceKm: 5, address: null, phone: null, website: null, image: null }],
+  [{ id: "2", name: "Hotel Isaka", stars: null, distanceKm: 0.2, address: null, phone: null, website: null, image: null }],
+)
+assert(prio[0].name === "Wyndham Grand" && prio[1].name === "Hotel Isaka", "merge keeps source order, not global distance")
+
+const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "./hotels.ts"), "utf8")
+assert(src.includes("nominatim.openstreetmap.org"), "Nominatim directory")
+assert(src.includes("photon.komoot.io"), "Photon directory")
+assert(src.includes("maps.mail.ru"), "Overpass mail.ru first (DE/kumi flake)")
+assert(src.includes("data.xotelo.com/api/rates"), "Xotelo live OTA")
+assert(src.includes("query.wikidata.org"), "Wikidata TA keys")
+assert(src.includes("google.com/travel/hotels") && src.includes("kayak.com/hotels"), "Google Hotels + Kayak deep links")
+assert(src.includes("sivrce-maps/1.0"), "Nominatim-required User-Agent")
+assert(!src.includes("CURATED_HOTEL_IMAGES") && !src.includes("enrichHotelMeta"), "no stock-photo / fake-rating enrichment")
+assert(!page.includes("enrichHotelMeta") && !detail.includes("enrichHotelMeta"), "pages do not invent OTA markups")
+assert(osmImage({ wikimedia_commons: "File:Foo_bar.jpg" })?.includes("Special:FilePath/Foo_bar.jpg"), "wikimedia FilePath")
+assert(osmImage({ wikimedia_commons: "Category:Hotels" }) === null, "skip commons Category")
+assert(osmImage({ image: "https://cdn.example/h.jpg" }) === "https://cdn.example/h.jpg", "https jpg kept")
+assert(osmImage({ image: "http://cdn.example/h.jpg" }) === null && osmImage({ image: "https://cdn.example/h.svg" }) === null, "http + svg dropped")
+
+assert(parseTaKey("https://www.tripadvisor.com/Hotel_Review-g294195-d301416-Reviews-X") === "g294195-d301416", "ta url")
+assert(parseTaKey("g294195-d23527973") === "g294195-d23527973", "ta key passthrough")
+assert(parseTaKey("301416") === null && hotelTaKey("294195", "23527973") === "g294195-d23527973", "geo+d join")
+assert(foldHotelName("Rooms Hotel Tbilisi") === foldHotelName("rooms-hotel tbilisi"), "fold name")
+
+const xStay = bestXoteloStay(
+  [{ name: "Vio.com", rate: 146 }, { name: "Booking.com", rate: 158 }, { rate: 0 }, { name: "junk" }],
+  2,
+  fx,
+  8,
+)
+assert(xStay && xStay.providerTotal === 292, "xotelo min × nights")
+assert(xStay.providerGel === 888 && xStay.feeGel === 71 && xStay.totalGel === 959, "xotelo margin on stay")
+assert(bestXoteloStay([], 2, fx, 8) === null, "empty rates")
+const xRooms = normalizeXoteloRates("g294195-d301416", "Rooms", [{ code: "BookingCom", name: "Booking.com", rate: 100 }, { rate: -1 }], 2, fx, 8)
+assert(xRooms.length === 1 && xRooms[0].roomType === "Booking.com" && xRooms[0].providerTotal === 200, "xotelo room row")
+
+const wiki = parseWikiLodging([
+  { kind: { value: "c" }, name: { value: "" }, ta: { value: "294195" } },
+  { kind: { value: "h" }, name: { value: "Spark by Hilton Tbilisi Biography" }, ta: { value: "23527973" } },
+  { kind: { value: "h" }, name: { value: "Hotel" }, ta: { value: "99999" } },
+])
+assert(wiki.geo === "294195" && wiki.hotels.length === 1 && wiki.hotels[0].ta === "23527973", "wiki geo + hotel, generic dropped")
+const wikiQ = wikiLodgingQuery(41.7151, 44.8271)
+assert(wikiQ.includes("wikibase:around") && wikiQ.includes("P3134") && wikiQ.includes("Point(44.8271 41.7151)"), "wiki query")
+
+const keys = collectTaKeys(
+  [{ id: "1", name: "Local Inn", stars: null, distanceKm: 1, address: null, phone: null, website: null, image: null, taKey: "g294195-d111" }],
+  wiki,
+  41.7151,
+  44.8271,
+)
+assert(keys.some((k) => k.key === "g294195-d23527973") && keys.some((k) => k.key === "g294195-d301416"), "wiki + tbilisi seed")
+assert(keys.some((k) => k.key === "g294195-d111"), "osm taKey collected")
+assert(collectTaKeys([], { geo: null, hotels: [] }, 48.85, 2.35).length === 0, "paris: no ge seed")
+
+const painted = paintOtaPrices(
+  [
+    { id: "osm", name: "Spark by Hilton Tbilisi Biography", stars: 4, distanceKm: 0.4, address: "X", phone: null, website: null, image: null },
+    { id: "2", name: "No Price Inn", stars: null, distanceKm: 0.1, address: null, phone: null, website: null, image: null },
+  ],
+  [{ name: "Spark by Hilton Tbilisi Biography", key: "g294195-d23527973", providerGel: 480, totalGel: 518, feeGel: 38 }],
+)
+assert(painted[0].totalGel === 518 && painted[0].id === "g294195-d23527973", "priced first, id=taKey")
+assert(painted.some((h) => h.name === "No Price Inn" && !h.totalGel), "unpriced kept")
+assert(page.includes("h.totalGel") && detail.includes("r.totalGel"), "UI shows sivrce quote (provider + margin)")
+const nav = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../components/sections/Navbar.tsx"), "utf8")
+assert(nav.includes("'nav.hotels'") && nav.includes("/hotels"), "Navbar ships Hotels → /hotels")
+assert(nav.includes("!to.startsWith('/hotels')"), "market nav still localizes /hotels (not a country path)")
+assert(nav.includes("{ key: 'nav.services', to: '/services', mobileOnly: true }"), "Services yields desktop slot so 6-cap holds")
+const cats = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../components/sections/Categories.tsx"), "utf8")
+assert(cats.includes("href: '/hotels'"), "home Hotels tile → GDS hub")
+
+console.log("hotels.check: OK — margin, FX, stay, normalize, rooms, view, browse, links, photos, wiring")

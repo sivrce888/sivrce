@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowUpRight, Building2, Home, MapPin, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, Building2, Home, Layers, MapPin, Search, ShieldCheck } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { Reveal } from '@/components/Reveal'
@@ -196,6 +196,24 @@ export default async function BezirkPage({
                 ? `${s.projects} Projekte mit Hausnummer, ${s.pipelineUnits} Wohnungen in der Pipeline und ${s.developers} Bauträger — bezirksgenau aus dem straßenverifizierten Katalog,${s.medianEurM2 !== null ? ` Median ${nfDe.format(s.medianEurM2)} €/m² wo veröffentlicht.` : ' Preise, wo der Bauträger sie nennt.'}`
                 : `${s.projects} address-verified projects, ${s.pipelineUnits} homes in the pipeline and ${s.developers} developers — computed borough-exact from the street-verified catalog,${s.medianEurM2 !== null ? ` median ${nfEn.format(s.medianEurM2)} €/m² where published.` : ' prices where developers publish them.'}`}
             </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {center && (
+                <Link
+                  href={`/map?lat=${center.lat}&lng=${center.lng}&city=berlin`}
+                  className="inline-flex items-center gap-2 rounded-full bg-sv-navy px-5 py-2.5 text-[13px] font-black text-white shadow-card transition-all hover:bg-sv-blue hover:shadow-card-hover active:scale-95"
+                >
+                  <Layers className="h-4 w-4 text-sv-blue-light" aria-hidden />
+                  {de ? `${b.de} auf 3D-Karte erkunden` : `Explore ${b.de} on 3D Map`}
+                </Link>
+              )}
+              <Link
+                href={`/search?country=de&city=berlin`}
+                className="inline-flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-5 py-2.5 text-[13px] font-black text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue active:scale-95"
+              >
+                <Search className="h-4 w-4 text-sv-ink/50" aria-hidden />
+                {de ? 'Berlin Angebote filtern' : 'Filter Berlin listings'}
+              </Link>
+            </div>
           </Reveal>
         </section>
 

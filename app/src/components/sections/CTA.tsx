@@ -23,6 +23,7 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
     { href: '/rent', label: t('nav.rent') },
     { href: '/pledge', label: t('map.pledge') },
     { href: '/daily', label: t('nav.daily') },
+    { href: '/hotels', label: t('nav.hotels') },
     { href: '/advertise', label: t('nav.advertise') },
   ] as const
 

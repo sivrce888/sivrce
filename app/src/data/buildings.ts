@@ -4,7 +4,6 @@
  * ponytail: derive from PROJECTS — one source for photo / coords / copy.
  */
 
-import { LISTINGS, type DealType, type Listing } from './listings'
 import { geoRaionsOf } from './georgia-locations'
 import { TBILISI_QUARTERS } from './tbilisi-quarters'
 import {
@@ -457,15 +456,9 @@ export function getBuildingByCode(code: string): BuildingCatalogEntry | undefine
   return BUILDINGS.find((b) => b.code.toUpperCase() === code.toUpperCase())
 }
 
-export function listingsForBuilding(slug: string): Listing[] {
-  return LISTINGS.filter((l) => l.buildingSlug === slug)
-}
-
-export function buildingDealCounts(slug: string): Record<DealType, number> {
-  const counts: Record<DealType, number> = { sale: 0, rent: 0, daily: 0, pledge: 0 }
-  for (const l of listingsForBuilding(slug)) counts[l.dealType]++
-  return counts
-}
+// listingsForBuilding / buildingDealCounts moved to buildings-listings.ts —
+// they were the only reason this client-reachable module imported the
+// ~1.1 MB LISTINGS catalog (map components pull buildings.ts).
 
 export function buildingDeveloperName(slug: string): string | undefined {
   const b = getBuilding(slug)

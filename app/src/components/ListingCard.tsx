@@ -9,7 +9,8 @@ import {
   Layers, BadgeCheck, Play, Camera, Copy,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
-import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine } from '@/lib/listing-format'
+import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine, priceOnRequestLabel } from '@/lib/listing-format'
+import { listingTitle, placeLabel } from '@/lib/place-label'
 import { listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingShareLines, listingShareText } from '@/lib/listing-share'
@@ -199,7 +200,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     hasCoords: Number.isFinite(l.coords.lat) && Number.isFinite(l.coords.lng),
   })
   const displayScore = scored.score
-  const displayLabel = aiLabel(displayScore)
+  const displayLabel = aiLabel(displayScore, lang)
+  const city = placeLabel(l.city, lang, l.country)
+  const district = placeLabel(l.district, lang, l.country)
+  const title = listingTitle(l.title, l.city, lang)
+  const onRequest = Boolean(l.projectCatalog && l.priceUSD <= 0)
 
   const { photos, multi, more, total } = cardGalleryTeaser(l.images, l.img, l.photoCount)
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
@@ -225,8 +230,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const stay = stayCount(l)
   const stayText = stayLine(l, t)
   const StayIcon = stay.kind === 'beds' ? BedDouble : DoorOpen
-  const displayPrice = `${priceObj.primary}${suffix}`
-  const displaySecondaryPrice = priceObj.secondary
+  const displayPrice = onRequest ? priceOnRequestLabel(lang) : `${priceObj.primary}${suffix}`
+  const displaySecondaryPrice = onRequest ? '' : priceObj.secondary
 
   const navPhoto = (dir: number, e: React.SyntheticEvent) => {
     e.preventDefault()
@@ -287,16 +292,16 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     e.stopPropagation()
     const url = `${window.location.origin}${l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)}`
     const input = {
-      title: l.title,
-      district: l.district,
-      city: l.city,
+      title,
+      district,
+      city,
       area: l.area,
       priceLabel: displayPrice,
       agentName: l.agent.name,
       agency: l.agent.agency,
     }
     if (navigator.share) {
-      navigator.share({ title: l.title, text: listingShareLines(input).join('\n'), url }).catch(() => {})
+      navigator.share({ title, text: listingShareLines(input).join('\n'), url }).catch(() => {})
     } else {
       navigator.clipboard.writeText(listingShareText(input, url)).catch(() => {})
     }
@@ -351,12 +356,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sv-navy/50 to-transparent" />
       {l.video && !(more > 0 && frame === photos.length - 1) ? (
-        <span
-          className="pointer-events-none absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white shadow-glow-blue-sm backdrop-blur-sm"
-          aria-hidden
+        <LocalizedLink
+          href={`${href}?play=1`}
+          className="group/play absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white shadow-glow-blue-sm backdrop-blur-md transition-transform duration-200 hover:scale-110 hover:bg-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          aria-label={t('detail.playVideo')}
+          onClick={(e) => e.stopPropagation()}
         >
-          <Play className="ml-px h-4 w-4 fill-white" />
-        </span>
+          <Play className="ml-0.5 h-4 w-4 fill-white transition-transform group-hover/play:scale-110" />
+        </LocalizedLink>
       ) : null}
       {more > 0 && frame === photos.length - 1 ? (
         <span className="pointer-events-none absolute inset-0 z-[5] grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
@@ -520,9 +527,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
   const publicId = listingPublicId(l)
   const days = postedDaysAgo(l)
   // District sometimes already embeds the city (project catalog addresses).
-  const place = l.district && l.city && l.district.includes(l.city)
-    ? l.district
-    : [l.district, l.city].filter(Boolean).join(', ')
+  const place = district && city && district.includes(city)
+    ? district
+    : [district, city].filter(Boolean).join(', ')
 
   const showPerM2 = l.dealType === 'sale' && l.perM2USD > 0
 
@@ -578,7 +585,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
       <h3 className="mt-2.5 min-h-[2.8em] text-[15px] font-extrabold leading-[1.4] text-sv-ink transition-colors group-hover:text-sv-blue">
         <LocalizedLink
           href={href}
-          aria-label={l.title}
+          aria-label={title}
           onClick={(e) => {
             if (swipedRef.current) {
               e.preventDefault()
@@ -587,7 +594,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
           }}
           className="rounded-sm after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
         >
-          {l.title}
+          {title}
         </LocalizedLink>
       </h3>
 

@@ -122,7 +122,7 @@ export default async function AdminCrmLeadPage({
               </option>
             ))}
           </select>
-          <input name="closedReason" placeholder="Close reason (optional)" className={inputCls} />
+          <input aria-label="Close reason (optional)" name="closedReason" placeholder="Close reason (optional)" className={inputCls} />
           <button type="submit" className={submitCls}>
             Update status
           </button>
@@ -164,7 +164,7 @@ export default async function AdminCrmLeadPage({
                 </option>
               ))}
             </select>
-            <textarea
+            <textarea aria-label="What happened?"
               name="notes"
               required
               rows={3}
@@ -219,7 +219,7 @@ export default async function AdminCrmLeadPage({
           )}
           <form action={addTask} className="mt-5 space-y-3 border-t border-sv-ink/8 pt-4">
             <input type="hidden" name="leadId" value={lead.id} />
-            <input
+            <input aria-label="Task title"
               name="title"
               required
               placeholder="Task title"
@@ -246,7 +246,7 @@ export default async function AdminCrmLeadPage({
                 ))}
               </select>
             </div>
-            <input
+            <input aria-label="Description (optional)"
               name="description"
               placeholder="Description (optional)"
               className={`${inputCls} w-full`}

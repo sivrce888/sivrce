@@ -7,6 +7,7 @@
  * Keyword corpus: research/directory-research-2026-07-19.md (agents 1 + 8).
  */
 
+import { cityByName } from '@/lib/map/user-place'
 import { ruPlural } from '@/lib/i18n/core'
 import { isDelivered, type Developer, type Project } from '@/data/professionals'
 import {
@@ -689,7 +690,10 @@ export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): Faq
     },
     {
       q: `Which frame condition are apartments sold in at ${p.name}?`,
-      a: `New developments in Georgia are typically sold in three conditions: black frame (shell only), white frame (ready for renovation — plaster, wiring, screed) and green frame (near-complete). Confirm the exact condition for ${p.name} with the developer's sales office.`,
+      a:
+        cityByName(p.city)?.cc === 'GE' || !cityByName(p.city)
+          ? `New developments in Georgia are typically sold in three conditions: black frame (shell only), white frame (ready for renovation — plaster, wiring, screed) and green frame (near-complete). Confirm the exact condition for ${p.name} with the developer's sales office.`
+          : `Confirm the finish and handover condition for ${p.name} with the developer's sales office.`,
     },
     {
       q: `Can I buy an apartment in ${p.name} with an installment plan or mortgage?`,

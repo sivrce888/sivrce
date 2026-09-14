@@ -9,6 +9,7 @@ interface SeoFilterableListingsProps {
   initialListings: Listing[]
   gridAriaLabel: string
   lock?: SearchLock
+  country?: string
 }
 
 function FallbackGrid({ listings, aria }: { listings: Listing[]; aria: string }) {
@@ -25,10 +26,11 @@ export default function SeoFilterableListings({
   initialListings,
   gridAriaLabel,
   lock,
+  country,
 }: SeoFilterableListingsProps) {
   return (
     <Suspense fallback={<FallbackGrid listings={initialListings} aria={gridAriaLabel} />}>
-      <SearchClient embed lock={lock} initialHits={initialListings.slice(0, 24)} initialTotal={initialListings.length} />
+      <SearchClient embed country={country} lock={lock} initialHits={initialListings.slice(0, 24)} initialTotal={initialListings.length} />
     </Suspense>
   )
 }

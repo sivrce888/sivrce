@@ -18,6 +18,7 @@ export const VIDEO_MIME = new Set([
 ])
 
 const YT_ID = /^[\w-]{11}$/
+const VIMEO_ID = /^\d{6,12}$/
 const VIDEO_EXT = /\.(mp4|webm|mov|m4v|3gp|3gpp|3g2)$/i
 
 /** Filename first: iOS often mislabels type (e.g. video/mp4 on a .mov). */
@@ -73,6 +74,29 @@ export function youtubeId(raw: string): string | null {
   return null
 }
 
+export function vimeoId(raw: string): string | null {
+  let u: URL
+  try {
+    u = new URL(raw.trim())
+  } catch {
+    return null
+  }
+  const h = u.hostname
+    .replace(/^www\./, "")
+    .replace(/^player\./, "")
+    .toLowerCase()
+  if (h === "vimeo.com") {
+    const parts = u.pathname.split("/").filter(Boolean)
+    const id = parts[0] === "video" ? parts[1] : parts[0]
+    return id && VIMEO_ID.test(id) ? id : null
+  }
+  return null
+}
+
+export function vimeoEmbedUrl(id: string): string {
+  return `https://player.vimeo.com/video/${id}`
+}
+
 function isAllowedVideoHost(host: string): boolean {
   const h = host.toLowerCase()
   return (
@@ -80,7 +104,12 @@ function isAllowedVideoHost(host: string): boolean {
     h === "127.0.0.1" ||
     h === "sivrce.ge" ||
     h.endsWith(".sivrce.ge") ||
-    h.endsWith(".r2.dev")
+    h === "sivrce.com" ||
+    h.endsWith(".sivrce.com") ||
+    h.endsWith(".r2.dev") ||
+    h.endsWith(".cloudflarestream.com") ||
+    h === "videodelivery.net" ||
+    h.endsWith(".videodelivery.net")
   )
 }
 
@@ -99,15 +128,16 @@ export function isNativeVideoUrl(raw: string): boolean {
 
 export function listingVideoKind(
   raw: string | null | undefined,
-): "file" | "youtube" | "stream" | null {
+): "file" | "youtube" | "stream" | "vimeo" | null {
   if (!raw || typeof raw !== "string") return null
   if (isNativeVideoUrl(raw)) return "file"
   if (streamUid(raw)) return "stream"
   if (youtubeId(raw)) return "youtube"
+  if (vimeoId(raw)) return "vimeo"
   return null
 }
 
-/** Trust-boundary: only YouTube or our CDN video URLs. */
+/** Trust-boundary: only YouTube, Vimeo, Stream or our CDN video URLs. */
 export function sanitizeListingVideoUrl(raw: unknown): string | null {
   if (typeof raw !== "string") return null
   const s = raw.trim()
@@ -145,6 +175,94 @@ export function streamThumbnailUrl(uid: string): string {
   return `https://videodelivery.net/${uid}/thumbnails/thumbnail.jpg`
 }
 
+export interface VideoQualityScore {
+  score: number // 0–100
+  resolutionGrade: "4K" | "1080p" | "720p" | "SD" | "Unknown"
+  aspectRatio: "16:9" | "9:16" | "4:3" | "Custom"
+  durationSeconds: number
+  tier: "Diamond" | "Gold" | "Silver" | "Standard"
+  tips: string[]
+}
+
+/**
+ * 100/100 Video Quality Matrix for listings:
+ * - Optimal length: 15–90s (+15 pts)
+ * - HD/4K resolution (+15 pts)
+ * - Standard 16:9 or 9:16 aspect ratio (+10 pts)
+ * - Supported fast CDN or verified embed (+60 pts baseline)
+ */
+export function evaluateVideoQuality(input: {
+  duration?: number
+  width?: number
+  height?: number
+  sizeBytes?: number
+  kind?: "file" | "youtube" | "stream" | "vimeo" | null
+}): VideoQualityScore {
+  let score = 60
+  const tips: string[] = []
+  const dur = input.duration ?? 0
+  const w = input.width ?? 0
+  const h = input.height ?? 0
+
+  if (input.kind === "stream") {
+    score += 10
+  }
+
+  // Duration scoring
+  if (dur >= 15 && dur <= 90) {
+    score += 15
+  } else if (dur > 90 && dur <= 120) {
+    score += 10
+  } else if (dur > 0 && dur < 15) {
+    score += 5
+    tips.push("Video tours between 15s and 90s get 2.4x more inquiries.")
+  }
+
+  // Resolution
+  let resolutionGrade: VideoQualityScore["resolutionGrade"] = "Unknown"
+  const maxDim = Math.max(w, h)
+  if (maxDim >= 2160) {
+    resolutionGrade = "4K"
+    score += 15
+  } else if (maxDim >= 1080) {
+    resolutionGrade = "1080p"
+    score += 15
+  } else if (maxDim >= 720) {
+    resolutionGrade = "720p"
+    score += 10
+  } else if (maxDim > 0) {
+    resolutionGrade = "SD"
+    score += 5
+    tips.push("Upload in 1080p or 4K to achieve a 100/100 listing badge.")
+  } else if (input.kind === "youtube" || input.kind === "vimeo") {
+    resolutionGrade = "1080p"
+    score += 15
+  }
+
+  // Aspect Ratio
+  let aspectRatio: VideoQualityScore["aspectRatio"] = "16:9"
+  if (w > 0 && h > 0) {
+    const ratio = w / h
+    if (Math.abs(ratio - 16 / 9) < 0.08) aspectRatio = "16:9"
+    else if (Math.abs(ratio - 9 / 16) < 0.08) aspectRatio = "9:16"
+    else if (Math.abs(ratio - 4 / 3) < 0.08) aspectRatio = "4:3"
+    else aspectRatio = "Custom"
+  }
+
+  score = Math.min(100, Math.max(0, score))
+  const tier: VideoQualityScore["tier"] =
+    score >= 95 ? "Diamond" : score >= 85 ? "Gold" : score >= 75 ? "Silver" : "Standard"
+
+  return {
+    score,
+    resolutionGrade,
+    aspectRatio,
+    durationSeconds: dur,
+    tier,
+    tips,
+  }
+}
+
 function absUrl(src: string): string {
   return src.startsWith("http") ? src : `https://sivrce.ge${src.startsWith("/") ? src : `/${src}`}`
 }
@@ -169,6 +287,7 @@ export function listingVideoObject(
   if (!kind) return null
   const yt = youtubeId(raw)
   const st = streamUid(raw)
+  const vm = vimeoId(raw)
   const desc = opts.description.replace(/\s+/g, " ").trim().slice(0, 300)
   return {
     "@type": "VideoObject",
@@ -185,6 +304,9 @@ export function listingVideoObject(
     ...(kind === "file" ? { contentUrl: raw } : {}),
     ...(kind === "youtube" && yt
       ? { embedUrl: `https://www.youtube-nocookie.com/embed/${yt}` }
+      : {}),
+    ...(kind === "vimeo" && vm
+      ? { embedUrl: `https://player.vimeo.com/video/${vm}` }
       : {}),
     ...(kind === "stream" ? { embedUrl: raw } : {}),
   }

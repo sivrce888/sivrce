@@ -189,6 +189,10 @@ export function MarketSwitcher({ light = false }: { light?: boolean }) {
               href={href}
               role="menuitemradio"
               aria-checked={on}
+              onClick={() => {
+                document.cookie = `sv-geo-v2=${encodeURIComponent(m.id)}; path=/; max-age=31536000; SameSite=Lax`
+                setOpen(false)
+              }}
               className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-start text-[14px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
                 on ? 'text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
               }`}

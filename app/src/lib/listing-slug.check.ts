@@ -28,6 +28,21 @@ assert.match(
 assert.match(listingPath(l), /^\/listing\/[a-z0-9-]+\//, `unresolvable key: ${listingPath(l)}`)
 assert.ok(listingKeyword({ ...l, dealType: 'buy' as never }).length > 0, 'db dialect must not crash slug')
 
+const de = {
+  id: 'berlin-mitte-torstrasse-140',
+  country: 'DE',
+  title: 'Altbau-Wohnung mit Südbalkon in der Torstraße',
+  dealType: 'sale' as const,
+  propType: 'apartment' as const,
+  rooms: 3,
+  beds: 2,
+  district: 'Mitte',
+  city: 'Berlin',
+}
+assert.equal(listingKeyword(de), de.title)
+assert.equal(listingSlug(de), 'altbau-wohnung-mit-suedbalkon-in-der-torstrasse')
+assert.ok(!listingKeyword(de).includes('იყიდება'), 'DE keyword must stay Latin')
+
 // every listing in the catalog produces a non-empty, url-safe slug
 for (const x of LISTINGS) {
   const s = listingSlug(x)

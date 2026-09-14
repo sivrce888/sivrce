@@ -5,6 +5,7 @@
  */
 
 import { ruPlural, type Lang } from '@/lib/i18n/core'
+import type { DealType, PropType } from '@/data/listings'
 
 export type DirLoc = 'ka' | 'en' | 'ru'
 
@@ -73,6 +74,8 @@ export interface GeoLoc {
   loc: string // locative for H1: თბილისში
   en: string
   ru: string
+  /** German exonym where it differs from `en` (München, Köln). Falls back to `en`. */
+  de?: string
   /** Default ge. DE/AE cities are not Georgia sitemap URLs. */
   market?: 'ge' | 'de' | 'ae'
 }
@@ -107,8 +110,8 @@ export const CITIES: GeoLoc[] = [
   // pages self-throttle (≥1 listing rule); Berlin has city-info prose today.
   { slug: 'berlin', ka: 'ბერლინი', loc: 'ბერლინში', en: 'Berlin', ru: 'Берлин', market: 'de' },
   { slug: 'hamburg', ka: 'ჰამბურგი', loc: 'ჰამბურგში', en: 'Hamburg', ru: 'Гамбург', market: 'de' },
-  { slug: 'munich', ka: 'მიუნხენი', loc: 'მიუნხენში', en: 'Munich', ru: 'Мюнхен', market: 'de' },
-  { slug: 'cologne', ka: 'კელნი', loc: 'კელნში', en: 'Cologne', ru: 'Кёльн', market: 'de' },
+  { slug: 'munich', ka: 'მიუნხენი', loc: 'მიუნხენში', en: 'Munich', de: 'München', ru: 'Мюнхен', market: 'de' },
+  { slug: 'cologne', ka: 'კელნი', loc: 'კელნში', en: 'Cologne', de: 'Köln', ru: 'Кёльн', market: 'de' },
   { slug: 'frankfurt', ka: 'ფრანკფურტი', loc: 'ფრანკფურტში', en: 'Frankfurt', ru: 'Франкфурт', market: 'de' },
   { slug: 'stuttgart', ka: 'შტუტგარტი', loc: 'შტუტგარტში', en: 'Stuttgart', ru: 'Штутгарт', market: 'de' },
   { slug: 'duesseldorf', ka: 'დიუსელდორფი', loc: 'დიუსელდორფში', en: 'Düsseldorf', ru: 'Дюссельдорф', market: 'de' },
@@ -117,8 +120,8 @@ export const CITIES: GeoLoc[] = [
   { slug: 'essen', ka: 'ესენი', loc: 'ესენში', en: 'Essen', ru: 'Эссен', market: 'de' },
   { slug: 'bremen', ka: 'ბრემენი', loc: 'ბრემენში', en: 'Bremen', ru: 'Бремен', market: 'de' },
   { slug: 'dresden', ka: 'დრეზდენი', loc: 'დრეზდენში', en: 'Dresden', ru: 'Дрезден', market: 'de' },
-  { slug: 'hanover', ka: 'ჰანოვერი', loc: 'ჰანოვერში', en: 'Hanover', ru: 'Ганновер', market: 'de' },
-  { slug: 'nuremberg', ka: 'ნიურნბერგი', loc: 'ნიურნბერგში', en: 'Nuremberg', ru: 'Нюрнберг', market: 'de' },
+  { slug: 'hanover', ka: 'ჰანოვერი', loc: 'ჰანოვერში', en: 'Hanover', de: 'Hannover', ru: 'Ганновер', market: 'de' },
+  { slug: 'nuremberg', ka: 'ნიურნბერგი', loc: 'ნიურნბერგში', en: 'Nuremberg', de: 'Nürnberg', ru: 'Нюрнберг', market: 'de' },
   { slug: 'duisburg', ka: 'დუისბურგი', loc: 'დუისბურგში', en: 'Duisburg', ru: 'Дуйсбург', market: 'de' },
   { slug: 'bochum', ka: 'ბოხუმი', loc: 'ბოხუმში', en: 'Bochum', ru: 'Бохум', market: 'de' },
 ]
@@ -290,4 +293,30 @@ export const MICRO_DE: (typeof MICRO)['en'] = {
   next: 'Nächste Seite',
   page: (n) => `Seite ${n}`,
   emptyProjects: 'Noch keine Projekte verfügbar — schau später wieder vorbei',
+}
+
+/* ————— Deal / property-type registries (moved off seo-pages: client-safe) ————— */
+
+export const DEALS: Record<
+  string,
+  { deal: DealType; ka: string; noun: string; en: string; enNoun: string; ru: string; ruNoun: string; de?: string; deNoun?: string }
+> = {
+  sale: { deal: 'sale', ka: 'იყიდება', noun: 'ყიდვა', en: 'for sale', enNoun: 'sale', ru: 'на продажу', ruNoun: 'Продажа', de: 'zum Verkauf', deNoun: 'Kauf' },
+  rent: { deal: 'rent', ka: 'ქირავდება', noun: 'ქირა', en: 'for rent', enNoun: 'rent', ru: 'в аренду', ruNoun: 'Аренда', de: 'zur Miete', deNoun: 'Miete' },
+  // "ბინები დღიურად" — top Georgian real-estate query. Listings below render
+  // /daily, /daily/apartments, /daily/apartments/tbilisi(/old-tbilisi), etc.
+  daily: { deal: 'daily', ka: 'დღიურად', noun: 'დღიური ქირა', en: 'for daily rent', enNoun: 'daily rent', ru: 'посуточно', ruNoun: 'Посуточная аренда', de: 'Tagesmiete', deNoun: 'Tagesmiete' },
+  pledge: { deal: 'pledge', ka: 'გირავდება', noun: 'გირავნება', en: 'for pledge', enNoun: 'pledge', ru: 'под залог', ruNoun: 'Залог', de: 'auf Pfand', deNoun: 'Pfand' },
+  // Display/SEO alias of rent × land (Civil Code იჯარა). Not a 5th DealType.
+  lease: { deal: 'rent', ka: 'გაიცემა იჯარით', noun: 'იჯარა', en: 'for lease', enNoun: 'lease', ru: 'в долгосрочную аренду', ruNoun: 'Аренда', de: 'zur Pacht', deNoun: 'Pacht' },
+}
+
+export const TYPES: Record<
+  string,
+  { type: PropType; ka: string; kaSingle: string; en: string; enSingle: string; ru: string; ruSingle: string; ruGen: string; de?: string; deSingle?: string }
+> = {
+  apartments: { type: 'apartment', ka: 'ბინები', kaSingle: 'ბინა', en: 'Apartments', enSingle: 'apartment', ru: 'Квартиры', ruSingle: 'квартира', ruGen: 'квартир', de: 'Wohnungen', deSingle: 'Wohnung' },
+  houses: { type: 'house', ka: 'სახლები და აგარაკები', kaSingle: 'სახლი', en: 'Houses & Cottages', enSingle: 'house', ru: 'Дома и дачи', ruSingle: 'дом', ruGen: 'домов и дач', de: 'Häuser & Villen', deSingle: 'Haus' },
+  commercial: { type: 'commercial', ka: 'კომერციული ფართები', kaSingle: 'კომერციული ფართი', en: 'Commercial Property', enSingle: 'commercial property', ru: 'Коммерческая недвижимость', ruSingle: 'коммерческое помещение', ruGen: 'коммерческой недвижимости', de: 'Gewerbeimmobilien', deSingle: 'Gewerbeobjekt' },
+  land: { type: 'land', ka: 'მიწის ნაკვეთები', kaSingle: 'მიწის ნაკვეთი', en: 'Land Plots', enSingle: 'land plot', ru: 'Земельные участки', ruSingle: 'участок', ruGen: 'земельных участков', de: 'Grundstücke', deSingle: 'Grundstück' },
 }

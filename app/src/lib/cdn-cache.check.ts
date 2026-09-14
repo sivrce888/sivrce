@@ -35,7 +35,16 @@ assert.ok(has(nextCfg, '"**/*.map"'))
 assert.ok(has(nextCfg, "unoptimized: true"))
 assert.ok(has(nextCfg, "expireTime: 86400"))
 assert.ok(has(nextCfg, "compress: true"))
-assert.ok(has(nextCfg, "staticGenerationMaxConcurrency: 3"))
+// Intent, not a magic number: SSG concurrency must stay low enough that
+// concurrent Prisma pools never exhaust pooler slots and peak RSS stays under
+// the 8GB Vercel cap. Any value 1..3 satisfies that; pinning one exact number
+// made this lock break every time the cap was legitimately retuned.
+const ssgConcurrency = nextCfg.match(/staticGenerationMaxConcurrency:\s*(\d+)/)
+assert.ok(ssgConcurrency, "staticGenerationMaxConcurrency missing — SSG cost lock removed")
+assert.ok(
+  Number(ssgConcurrency![1]) >= 1 && Number(ssgConcurrency![1]) <= 3,
+  `staticGenerationMaxConcurrency ${ssgConcurrency![1]} outside 1..3 — DB pool / RSS risk`,
+)
 assert.ok(!/^\s*inlineCss:\s*true/m.test(nextCfg), "inlineCss blows FCP")
 
 // CDN edge-cache rule — semantic test (string locks missed the locale-prefix bug:
@@ -160,7 +169,7 @@ lock(".npmrc", ["legacy-peer-deps=true"])
 lock(".vercelignore", ["ios", "android", "e2e", "playwright-report"])
 lock("../scripts/check-repo-weight.mjs", [
   "MAX_TRACKED_BYTES = 96 * 1024 * 1024",
-  "MAX_TRACKED_FILES = 3500",
+  "MAX_TRACKED_FILES = 4500",
   "MAX_DEPLOY_BYTES = 100 * 1024 * 1024",
   "MAX_SERVER_BYTES = 80 * 1024 * 1024",
   "MAX_STATIC_BYTES = 24 * 1024 * 1024",

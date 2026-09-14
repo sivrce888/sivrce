@@ -416,6 +416,18 @@ export function countryIsoForMarket(market: MarketId): string | undefined {
   return MARKETS[market].countryCode ?? undefined
 }
 
+/** Reverse of countryIsoForMarket. Unknown ISO → null (not worldwide). */
+const ISO_TO_MARKET: Record<string, MarketId> = { GE: 'ge' }
+for (const id of COUNTRY_IDS) {
+  const cc = MARKETS[id].countryCode
+  if (cc) ISO_TO_MARKET[cc] = id
+}
+
+export function marketFromIso(iso: string | null | undefined): MarketId | null {
+  if (!iso) return null
+  return ISO_TO_MARKET[iso.trim().toUpperCase()] ?? null
+}
+
 /** Canonical web origin for a listing — GE listings on sivrce.ge, world listings on sivrce.com. */
 export function listingOrigin(country?: string): string {
   return country && country !== 'GE' ? COM_ORIGIN : GE_ORIGIN
@@ -467,6 +479,8 @@ export function canonicalIntent(intent: string): 'buy' | 'rent' | null {
   return null
 }
 
+const KNOWN_LANGS: ReadonlySet<string> = new Set(['ka', 'en', 'ru', 'he', 'ar', 'tr', 'uk', 'hy', 'az', 'de'])
+
 /** Country market path after locale strip (`/de/berlin/buy`) or raw (`/en/de/berlin`). */
 export function parseCountryPath(pathname: string): {
   country: PathCountryId
@@ -474,7 +488,7 @@ export function parseCountryPath(pathname: string): {
   intent?: 'buy' | 'rent'
 } | null {
   const segs = pathname.split('/').filter(Boolean)
-  const start = segs[0] === 'en' || segs[0] === 'ar' ? 1 : 0
+  const start = segs.length >= 2 && KNOWN_LANGS.has(segs[0]) && isPathCountry(segs[1]) ? 1 : 0
   const cc = segs[start]
   if (!cc || !isPathCountry(cc)) return null
   const next = segs[start + 1]
@@ -482,4 +496,14 @@ export function parseCountryPath(pathname: string): {
   const intentRaw = city ? segs[start + 2] : undefined
   const intent = intentRaw ? canonicalIntent(intentRaw) ?? undefined : undefined
   return { country: cc, city, intent }
+}
+
+/** Chrome (nav/footer): path country wins, then ISO query (`?country=DE`), else GE. */
+export function chromeMarket(pathname: string, iso?: string | null): MarketId {
+  const parsed = parseCountryPath(pathname)
+  if (parsed?.country) return parsed.country
+  if (iso?.trim().toUpperCase() === 'ALL') return 'global'
+  const m = marketFromIso(iso)
+  if (m && m !== 'global') return m
+  return 'ge'
 }

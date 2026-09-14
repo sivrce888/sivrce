@@ -16,9 +16,10 @@ import { resolve } from "path"
 config({ path: resolve(__dirname, "..", ".env.local") })
 config({ path: resolve(__dirname, "..", ".env") })
 
-import { Prisma, PrismaClient } from "../src/generated/prisma/client"
+import { Prisma, PrismaClient, type ListingTier } from "../src/generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { LISTINGS } from "../src/data/listings"
+import { GERMANY_LISTINGS } from "../src/data/listings-germany"
 import { BUILDINGS } from "../src/data/buildings"
 import { DEVELOPERS, PROJECTS } from "../src/data/professionals"
 import { buildingFootprint } from "../src/lib/map/buildings"
@@ -62,59 +63,78 @@ function mapPropType(
   return "apartment"
 }
 
-async function main() {
-  console.log(`Seeding ${LISTINGS.length} listings...`)
+function mapCurrency(l: (typeof LISTINGS)[number]): "USD" | "GEL" | "EUR" {
+  if (l.currencyOriginal === "EUR") return "EUR"
+  if (l.currencyOriginal === "GEL") return "GEL"
+  return "USD"
+}
 
-  for (const l of LISTINGS) {
-    const existing = await db.listing.findUnique({ where: { id: l.id } })
-    if (existing) {
-      // Keep inventory in sync for demo: trustScore always mirrors mock AI score.
-      if (existing.trustScore !== l.ai.score) {
-        await db.listing.update({ where: { id: l.id }, data: { trustScore: l.ai.score } })
-        console.log(`  trust→${l.ai.score} ${l.id}`)
-      } else {
-        console.log(`  skip ${l.id} (exists)`)
-      }
-      continue
+function seedPrice(l: (typeof LISTINGS)[number]): { price: number; pricePerSqm: number } {
+  if (l.currencyOriginal === "EUR" && l.priceOriginal) {
+    return { price: l.priceOriginal, pricePerSqm: l.area > 0 ? Math.round(l.priceOriginal / l.area) : 0 }
+  }
+  return { price: l.priceGEL, pricePerSqm: Math.round(l.perM2USD * 2.7) }
+}
+
+async function main() {
+  const inventory = [...LISTINGS, ...GERMANY_LISTINGS]
+  console.log(`Seeding ${inventory.length} listings...`)
+
+  for (const l of inventory) {
+    const money = seedPrice(l)
+    const data = {
+      slug: l.id,
+      title: l.title,
+      description: l.description ?? "",
+      dealType: mapDealType(l.dealType),
+      propertyType: mapPropType(l.propType),
+      price: money.price,
+      currency: mapCurrency(l),
+      pricePerSqm: money.pricePerSqm,
+      rooms: l.rooms,
+      bedrooms: l.beds,
+      bathrooms: l.baths,
+      area: l.area,
+      floor: l.floor,
+      totalFloors: l.totalFloors,
+      city: l.city,
+      district: l.district,
+      address: l.address,
+      country: (l.country ?? "GE").toUpperCase(),
+      lat: l.coords.lat,
+      lng: l.coords.lng,
+      images: l.images,
+      features: l.features,
+      agent: l.agent as unknown as object,
+      petsAllowed: l.features.includes("add.f.petsAllowed"),
+      sellerType: l.agent.agency ? "agency" : "owner",
+      views: l.views,
+      verified: true,
+      status: "active" as const,
+      tier: (l.badge === "SUPER VIP"
+        ? "diamond"
+        : l.badge === "VIP+"
+          ? "super_vip"
+          : l.badge === "VIP"
+            ? "vip"
+            : "standard") as ListingTier,
+      trustScore: l.ai.score,
     }
 
-    await db.listing.create({
-      data: {
-        id: l.id,
-        slug: l.id,
-        title: l.title,
-        description: l.description ?? "",
-        dealType: mapDealType(l.dealType),
-        propertyType: mapPropType(l.propType),
-        price: l.priceGEL,
-        pricePerSqm: Math.round(l.perM2USD * 2.7),
-        rooms: l.rooms,
-        bedrooms: l.beds,
-        bathrooms: l.baths,
-        area: l.area,
-        floor: l.floor,
-        totalFloors: l.totalFloors,
-        city: l.city,
-        district: l.district,
-        address: l.address,
-        lat: l.coords.lat,
-        lng: l.coords.lng,
-        images: l.images,
-        features: l.features,
-        agent: l.agent as unknown as object,
-        petsAllowed: l.features.includes("add.f.petsAllowed"),
-        sellerType: l.agent.agency ? "agency" : "owner",
-        views: l.views,
-        verified: true,
-        status: "active",
-        tier: l.badge === "SUPER VIP" ? "diamond" : l.badge === "VIP+" ? "super_vip" : l.badge === "VIP" ? "vip" : "standard",
-        trustScore: l.ai.score,
-      },
+    const existing = await db.listing.findUnique({ where: { id: l.id } })
+    if (existing?.ownerId) {
+      console.log(`  skip ${l.id} (user-owned)`)
+      continue
+    }
+    await db.listing.upsert({
+      where: { id: l.id },
+      update: data,
+      create: { id: l.id, ...data },
     })
     console.log(`  + ${l.id}`)
   }
 
-  console.log(`Done. ${LISTINGS.length} listings seeded.`)
+  console.log(`Done. ${inventory.length} listings seeded.`)
 
   // ——— Map buildings + developers (admin-curated layer for /map) ———
   // Idempotent upserts: reseeding syncs the DB with the static catalog.

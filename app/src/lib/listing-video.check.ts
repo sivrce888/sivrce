@@ -1,10 +1,7 @@
-/**
- * Runnable check: listing video URL sanitizer.
- * Run: npx tsx src/lib/listing-video.check.ts
- */
 import assert from "node:assert/strict"
 import {
   VIDEO_ACCEPT,
+  evaluateVideoQuality,
   extForVideoMime,
   listingVideoKind,
   listingVideoObject,
@@ -14,6 +11,8 @@ import {
   streamEmbedUrl,
   streamThumbnailUrl,
   streamUid,
+  vimeoEmbedUrl,
+  vimeoId,
   youtubeId,
   youtubePoster,
 } from "./listing-video"
@@ -25,8 +24,18 @@ assert.equal(youtubeId("https://www.youtube.com/embed/dQw4w9wgGcQ"), "dQw4w9wgGc
 assert.equal(youtubeId("javascript:alert(1)"), null)
 assert.equal(youtubeId("https://evil.com/watch?v=dQw4w9wgGcQ"), null)
 
+assert.equal(vimeoId("https://vimeo.com/76979871"), "76979871")
+assert.equal(vimeoId("https://player.vimeo.com/video/76979871"), "76979871")
+assert.equal(vimeoId("https://vimeo.com/invalid"), null)
+assert.equal(vimeoEmbedUrl("76979871"), "https://player.vimeo.com/video/76979871")
+assert.equal(listingVideoKind("https://vimeo.com/76979871"), "vimeo")
+
 assert.equal(
   listingVideoKind("https://cdn.sivrce.ge/uploads/2026/09/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.mp4"),
+  "file",
+)
+assert.equal(
+  listingVideoKind("https://cdn.sivrce.com/uploads/2026/09/3f4b2c1a-9b2e-4c3d-8f1a-2b3c4d5e6f7a.mp4"),
   "file",
 )
 assert.equal(listingVideoKind("https://cdn.sivrce.ge/uploads/2026/09/x.webp"), null)
@@ -35,6 +44,7 @@ assert.equal(listingVideoKind("https://youtu.be/dQw4w9wgGcQ"), "youtube")
 
 assert.equal(sanitizeListingVideoUrl("javascript:alert(1)"), null)
 assert.equal(sanitizeListingVideoUrl("https://youtu.be/dQw4w9wgGcQ"), "https://youtu.be/dQw4w9wgGcQ")
+assert.equal(sanitizeListingVideoUrl("https://vimeo.com/76979871"), "https://vimeo.com/76979871")
 assert.equal(sanitizeListingVideoUrl(""), null)
 assert.equal(sanitizeListingVideoUrl("https://example.com/a.mp4"), null)
 
@@ -61,6 +71,16 @@ const ytLd = listingVideoObject("https://youtu.be/dQw4w9wgGcQ", {
 assert.equal(ytLd?.["@type"], "VideoObject")
 assert.equal(ytLd?.embedUrl, "https://www.youtube-nocookie.com/embed/dQw4w9wgGcQ")
 assert.ok(!ytLd?.contentUrl)
+
+const vmLd = listingVideoObject("https://vimeo.com/76979871", {
+  name: "Vimeo tour",
+  description: "High-end penthouse tour",
+  poster: "/images/og-brand.png",
+  uploadDate: "2026-09-01T00:00:00Z",
+})
+assert.equal(vmLd?.["@type"], "VideoObject")
+assert.equal(vmLd?.embedUrl, "https://player.vimeo.com/video/76979871")
+
 assert.equal(listingVideoObject("https://evil.com/x.mp4", {
   name: "x", description: "x", poster: "/x.jpg", uploadDate: "2026-01-01",
 }), null)
@@ -103,5 +123,24 @@ const stLd = listingVideoObject(streamEmbedUrl(UID), {
 assert.equal(stLd?.embedUrl, streamEmbedUrl(UID))
 assert.equal(stLd?.thumbnailUrl, streamThumbnailUrl(UID))
 assert.ok(!stLd?.contentUrl)
+
+// Video Quality Scoring Matrix tests
+const perfectScore = evaluateVideoQuality({
+  duration: 45,
+  width: 1920,
+  height: 1080,
+  kind: "stream",
+})
+assert.equal(perfectScore.score, 100)
+assert.equal(perfectScore.tier, "Diamond")
+assert.equal(perfectScore.resolutionGrade, "1080p")
+assert.equal(perfectScore.aspectRatio, "16:9")
+
+const ytScore = evaluateVideoQuality({
+  kind: "youtube",
+  duration: 30,
+})
+assert.equal(ytScore.score >= 85, true)
+assert.equal(ytScore.resolutionGrade, "1080p")
 
 console.log("listing-video.check: ok")

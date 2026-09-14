@@ -191,7 +191,7 @@ export default function CategoryBar({
   onSelect,
   className = '',
 }: Props) {
-  const { t, b } = useI18n()
+  const { t, b, lang } = useI18n()
 
   const activeId = useMemo(() => {
     for (const item of SEARCH_CATEGORIES) {
@@ -213,7 +213,7 @@ export default function CategoryBar({
 
   return (
     <div className={`w-full ${className}`}>
-      <HScroll size="sm" aria-label="კატეგორიები" className="gap-2 py-1.5">
+      <HScroll size="sm" aria-label={lang === 'ka' ? 'კატეგორიები' : 'Categories'} className="gap-2 py-1.5">
         {SEARCH_CATEGORIES.map((item) => {
           const active = activeId === item.id
           const Icon = item.icon

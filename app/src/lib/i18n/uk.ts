@@ -32,6 +32,7 @@ export const uk: Dict = {
   'nav.currency': 'Валюта',
   'nav.themeToggle': 'Перемкнути тему — світла або темна',
   'nav.daily': 'Подобово',
+  'nav.hotels': 'Готелі',
   'nav.neighborhoods': 'Райони',
   'nav.blog': 'Блог',
   'nav.forum': 'Форум',

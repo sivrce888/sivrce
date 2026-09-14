@@ -17,6 +17,8 @@ import {
   type CompiledHay,
 } from "@/lib/suggest-match"
 import { DEVELOPERS, PROJECTS, getDeveloper } from "@/data/professionals"
+import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from "@/data/projects-new-berlin"
+import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from "@/data/projects-new-germany"
 import { BUILDINGS } from "@/data/buildings"
 import { NEIGHBORHOODS } from "@/data/neighborhoods"
 import { COUNTRIES as WORLD_COUNTRIES } from "@/data/world-countries"
@@ -260,9 +262,46 @@ const CACHE = {
 const BERLIN = "Berlin"
 
 const DE_CITY_ROWS: Row[] = DE_CITIES.map((c) =>
-  mk({ kind: "city", ka: c.de, en: c.de === "München" ? "Munich" : undefined, city: c.de }, [c.de, c.slug]),
+  mk({ kind: "city", ka: c.de, en: c.de === "München" ? "Munich" : undefined, city: c.de }, [c.de, c.slug, c.ka]),
 )
 
+const ALL_DE_DEVELOPERS = [...NEW_DEVELOPERS_BERLIN, ...NEW_DEVELOPERS_GERMANY]
+const ALL_DE_PROJECTS = [...NEW_PROJECTS_BERLIN, ...NEW_PROJECTS_GERMANY]
+
+const DE_DEV_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const d of ALL_DE_DEVELOPERS) {
+    if (!d.slug || seen.has(d.slug)) continue
+    seen.add(d.slug)
+    const label = d.name.en || d.name.ka || d.slug
+    DE_DEV_ROWS.push(
+      mk(
+        { kind: "developer", ka: label, en: d.city, city: d.city, slug: d.slug },
+        [d.name.en, d.name.ka, d.name.de, d.slug, d.city],
+      ),
+    )
+  }
+}
+
+const DE_PROJECT_ROWS: Row[] = []
+{
+  const seen = new Set<string>()
+  for (const p of ALL_DE_PROJECTS) {
+    if (!p.slug || seen.has(p.slug)) continue
+    seen.add(p.slug)
+    DE_PROJECT_ROWS.push(
+      mk(
+        { kind: "project", ka: p.name, en: p.district || p.city, city: p.city, district: p.district, slug: p.slug },
+        [p.name, p.slug, p.city, p.district, p.location],
+      ),
+    )
+  }
+}
+
+const DE_BEZIRK_ROWS: Row[] = BERLIN_BEZIRKE.map((b) =>
+  mk({ kind: "district", ka: b.de, en: "Bezirk · Berlin", city: BERLIN, district: b.slug }, [b.de, b.ka, b.slug]),
+)
 const DE_ORTSTEIL_ROWS: Row[] = BERLIN_ORTSTEILE.map((o) => {
   const bezirkDe = BERLIN_BEZIRKE.find((b) => b.slug === o.bezirk)?.de
   return mk({ kind: "district", ka: o.de, en: bezirkDe, city: BERLIN }, [o.de])
@@ -275,9 +314,18 @@ function deSuggest(q: string, cityFilter?: string): Suggestion[] {
   const partial: Row[] = []
   const pools: Row[][] = cityFilter
     ? cityFilter === BERLIN
-      ? [DE_ORTSTEIL_ROWS, DE_STREET_ROWS]
-      : []
-    : [DE_CITY_ROWS, DE_ORTSTEIL_ROWS, DE_STREET_ROWS]
+      ? [
+          DE_DEV_ROWS.filter((r) => r.city === BERLIN || r.city === "ბერლინი"),
+          DE_PROJECT_ROWS.filter((r) => r.city === BERLIN || r.city === "ბერლინი"),
+          DE_BEZIRK_ROWS,
+          DE_ORTSTEIL_ROWS,
+          DE_STREET_ROWS,
+        ]
+      : [
+          DE_DEV_ROWS.filter((r) => r.city === cityFilter),
+          DE_PROJECT_ROWS.filter((r) => r.city === cityFilter),
+        ]
+    : [DE_CITY_ROWS, DE_DEV_ROWS, DE_PROJECT_ROWS, DE_BEZIRK_ROWS, DE_ORTSTEIL_ROWS, DE_STREET_ROWS]
   for (const pool of pools) {
     for (const r of pool) {
       const hay = r.raw.find((h) => h && h.toLowerCase().includes(ql))

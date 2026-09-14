@@ -99,7 +99,7 @@ export const DE_CITIES: DeCity[] = [
   { slug: "berlin", de: "Berlin", ka: "ბერლინი", state: "Berlin", transferTaxPct: 6.0, center: { lat: 52.52, lng: 13.405 }, buyEurSqm: 5300, rentEurSqm: 15.5 },
   { slug: "hamburg", de: "Hamburg", ka: "ჰამბურგი", state: "Hamburg", transferTaxPct: 5.5, center: { lat: 53.5511, lng: 9.9937 }, buyEurSqm: 6300, rentEurSqm: 15.5 },
   { slug: "munich", de: "München", ka: "მიუნხენი", state: "Bayern", transferTaxPct: 3.5, center: { lat: 48.1351, lng: 11.582 }, buyEurSqm: 8800, rentEurSqm: 23.0 },
-  { slug: "cologne", de: "Köln", ka: "ქელნი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 50.9375, lng: 6.9603 }, buyEurSqm: 4700, rentEurSqm: 13.0 },
+  { slug: "cologne", de: "Köln", ka: "კელნი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 50.9375, lng: 6.9603 }, buyEurSqm: 4700, rentEurSqm: 13.0 },
   { slug: "frankfurt", de: "Frankfurt am Main", ka: "ფრანკფურტი", state: "Hessen", transferTaxPct: 6.0, center: { lat: 50.1109, lng: 8.6821 }, buyEurSqm: 6900, rentEurSqm: 17.5 },
   { slug: "stuttgart", de: "Stuttgart", ka: "შტუტგარტი", state: "Baden-Württemberg", transferTaxPct: 5.0, center: { lat: 48.7758, lng: 9.1829 }, buyEurSqm: 5500, rentEurSqm: 15.0 },
   { slug: "duesseldorf", de: "Düsseldorf", ka: "დიუსელდორფი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.2277, lng: 6.7735 }, buyEurSqm: 5300, rentEurSqm: 14.0 },

@@ -42,13 +42,14 @@ import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { isLandLease, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapHrefForListing } from '@/lib/map/map-href'
 import { avifCardOf, blurProps, cardOf, isCdnMedia, lqipOf } from '@/lib/media'
-import { listingVideoKind, streamEmbedUrl, streamUid, youtubeId } from '@/lib/listing-video'
+import { listingVideoKind, streamEmbedUrl, streamUid, vimeoEmbedUrl, vimeoId, youtubeId } from '@/lib/listing-video'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { priceScaleOf, fairPriceOf, type PriceEventView } from '@/lib/price-scale'
 import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
 // ponytail: type-only — AiAdvisor ships as its own lazy chunk
 import type { PropertyCopilotContext } from '@/lib/ai-copilot'
 import { aiLabel } from '@/lib/ai-label'
+import { listingTitle, placeLabel } from '@/lib/place-label'
 import type { TasPublicDoc } from '@/lib/map/tas-arch'
 import { listingPath } from '@/lib/listing-slug'
 import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
@@ -58,7 +59,6 @@ import { formatUSD, formatGEL, formatViews,
   formatFloor, USD_GEL, postedAgoLabel, areaSym,
 } from '@/lib/listing-format'
 import type { Listing, PropType } from '@/data/listings'
-import { listingHubPath, listingHubAnchor } from '@/lib/seo-pages'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { WalkScore } from '@/components/listing/WalkScore'
@@ -285,8 +285,10 @@ function ListingVideoPlayer({
   const kind = listingVideoKind(url)
   const yt = youtubeId(url)
   const st = streamUid(url)
+  const vm = vimeoId(url)
   const closeRef = useRef<HTMLButtonElement>(null)
   const boxRef = useRef<HTMLDivElement>(null)
+  const videoElemRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null
@@ -295,6 +297,32 @@ function ListingVideoPlayer({
       if (e.key === 'Escape') {
         onClose()
         return
+      }
+      if (e.code === 'Space' || e.key === 'k') {
+        if (videoElemRef.current) {
+          e.preventDefault()
+          if (videoElemRef.current.paused) {
+            void videoElemRef.current.play()
+          } else {
+            videoElemRef.current.pause()
+          }
+        }
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        if (videoElemRef.current) {
+          e.preventDefault()
+          videoElemRef.current.muted = !videoElemRef.current.muted
+        }
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        if (videoElemRef.current && document.fullscreenEnabled) {
+          e.preventDefault()
+          if (!document.fullscreenElement) {
+            void videoElemRef.current.requestFullscreen?.()
+          } else {
+            void document.exitFullscreen?.()
+          }
+        }
       }
       // ponytail: 2-focusable trap (close + player) — no lib, no sentinel divs.
       if (e.key !== 'Tab' || !boxRef.current) return
@@ -365,7 +393,7 @@ function ListingVideoPlayer({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-sv-navy/95 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-sv-navy/95 p-4 backdrop-blur-md"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -382,12 +410,21 @@ function ListingVideoPlayer({
       </button>
       <div
         ref={boxRef}
-        className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-card bg-sv-navy shadow-panel-dark"
+        className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-card bg-sv-navy shadow-panel-dark ring-1 ring-white/10"
         onClick={(e) => e.stopPropagation()}
       >
         {kind === 'youtube' && yt ? (
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0`}
+            title={t('detail.playVideo')}
+            loading="lazy"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 h-full w-full"
+          />
+        ) : kind === 'vimeo' && vm ? (
+          <iframe
+            src={`${vimeoEmbedUrl(vm)}?autoplay=1`}
             title={t('detail.playVideo')}
             loading="lazy"
             allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
@@ -405,6 +442,7 @@ function ListingVideoPlayer({
           />
         ) : kind === 'file' ? (
           <video
+            ref={videoElemRef}
             src={url}
             poster={poster}
             controls
@@ -443,6 +481,7 @@ export default function ListingDetailClient({
   land = null,
   profileRating = null,
   nearbyProjects = [],
+  hubLink = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -459,6 +498,9 @@ export default function ListingDetailClient({
   land?: LandInsights | null
   /** Agent/developer profile review aggregate — null for owner cards. */
   profileRating?: { average: number; count: number } | null
+  /** SEO hub link, resolved on the server — importing lib/seo-pages here
+   *  dragged the ~1.1 MB LISTINGS catalog into the client bundle. */
+  hubLink?: { href: string; anchor: string } | null
   /** Live developments within 5km, same city — server-computed (directory-live.ts). */
   nearbyProjects?: NearbyProject[]
 }) {
@@ -528,8 +570,8 @@ export default function ListingDetailClient({
 
   // Mortgage state
   const [downPct, setDownPct] = useState(20)
-  const [years, setYears] = useState(15)
-  const [rate, setRate] = useState(9.5)
+  const [years, setYears] = useState(l.country === 'DE' ? 25 : 15)
+  const [rate, setRate] = useState(l.country === 'DE' ? 3.8 : 9.5)
   const [siteBoost, setSiteBoost] = useState<{
     hasFootprint: boolean
     hasPermit: boolean
@@ -735,7 +777,10 @@ export default function ListingDetailClient({
   )
   const scoreWhy = scored
   const displayScore = scored.score
-  const displayLabel = aiLabel(displayScore)
+  const displayLabel = aiLabel(displayScore, lang)
+  const city = placeLabel(l.city, lang, l.country)
+  const district = placeLabel(l.district, lang, l.country)
+  const title = listingTitle(l.title, l.city, lang)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
@@ -772,9 +817,9 @@ export default function ListingDetailClient({
 
   const [shareOpen, setShareOpen] = useState(false)
   const shareInput: ListingShareInput = {
-    title: l.title,
-    district: l.district,
-    city: l.city,
+    title,
+    district,
+    city,
     area: l.area,
     priceLabel: priceMain,
     agentName: l.agent.name,
@@ -793,14 +838,18 @@ export default function ListingDetailClient({
           <span aria-hidden className="shrink-0">/</span>
           <LocalizedLink href="/search" className="shrink-0 py-1.5 transition-colors hover:text-sv-blue">{t('search.title')}</LocalizedLink>
           <span aria-hidden className="shrink-0">/</span>
-          <LocalizedLink
-            href={`/search?district=${encodeURIComponent(l.district)}`}
-            className="shrink-0 py-1.5 transition-colors hover:text-sv-blue"
-          >
-            {l.district}
-          </LocalizedLink>
-          <span aria-hidden className="shrink-0">/</span>
-          <span className="truncate py-1.5 text-sv-ink/70">{l.title}</span>
+          {district ? (
+            <>
+              <LocalizedLink
+                href={`/search?district=${encodeURIComponent(l.district)}`}
+                className="shrink-0 py-1.5 transition-colors hover:text-sv-blue"
+              >
+                {district}
+              </LocalizedLink>
+              <span aria-hidden className="shrink-0">/</span>
+            </>
+          ) : null}
+          <span className="truncate py-1.5 text-sv-ink/70">{title}</span>
         </nav>
 
         {/* ————— Gallery ————— */}
@@ -1052,7 +1101,7 @@ export default function ListingDetailClient({
                   </button>
                 </div>
                 <h1 className="mt-2.5 text-balance text-[26px] font-black leading-tight tracking-[-0.02em] text-sv-ink md:text-[34px]">
-                  {l.title}
+                  {title}
                 </h1>
                 {streetHref ? (
                   <LocalizedLink
@@ -1772,11 +1821,11 @@ export default function ListingDetailClient({
                   </p>
                 </div>
                 <LocalizedLink
-                  href={listingHubPath(l) ?? `/search?deal=${l.dealType}&type=${l.propType}`}
+                  href={hubLink?.href ?? `/search?deal=${l.dealType}&type=${l.propType}`}
                   className="hidden shrink-0 items-center gap-2 text-[14px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep sm:flex"
                 >
                   {/* SEO: keyword anchor (matches destination hub <h1>) over generic "See more". */}
-                  {listingHubAnchor(l) ?? t('detail.seeMore')} <ChevronRight className="h-4 w-4" />
+                  {hubLink?.anchor ?? t('detail.seeMore')} <ChevronRight className="h-4 w-4" />
                 </LocalizedLink>
               </div>
               <HScroll

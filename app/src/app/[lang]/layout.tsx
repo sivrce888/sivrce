@@ -323,6 +323,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
       lang={lang}
       dir={RTL_LANGS.has(lang) ? "rtl" : "ltr"}
       suppressHydrationWarning
+      data-market={market}
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
       <link rel="preconnect" href="https://cdn.sivrce.ge" crossOrigin="anonymous" />

@@ -32,6 +32,7 @@ export const he: Dict = {
   'nav.currency': 'מטבע',
   'nav.themeToggle': 'החלפת ערכת נושא — בהירה או כהה',
   'nav.daily': 'יומי',
+  'nav.hotels': 'מלונות',
   'nav.neighborhoods': 'שכונות',
   'nav.blog': 'בלוג',
   'nav.forum': 'פורום',

@@ -2,7 +2,7 @@
  * Self-check: SSR-stable listing prices (hydration contract).
  * Run: npx tsx src/lib/currency.check.ts
  */
-import { EUR_GEL_FALLBACK, USD_GEL_FALLBACK, convertGel, formatMapPin, formatMoney, formatListingPrice } from './currency'
+import { AED_PER_USD, EUR_GEL_FALLBACK, USD_GEL_FALLBACK, convertGel, formatMapPin, formatMoney, formatListingPrice } from './currency'
 
 const usdListing = {
   priceUSD: 1_728_000,
@@ -36,6 +36,38 @@ const eurGel = formatListingPrice({
 })
 if (eurGel.primary !== '€888') throw new Error(`unexpected EUR primary: ${eurGel.primary}`)
 if (eurGel.secondary !== '≈ 2 700₾') throw new Error(`unexpected EUR secondary: ${eurGel.secondary}`)
+
+// EUR-native listing (DE market): the euro figure is LOCKED — never re-read as USD.
+const eurNative = {
+  priceUSD: 520_000,
+  priceGEL: 1_404_000,
+  priceOriginal: 480_000,
+  currencyOriginal: 'EUR' as const,
+  rate: USD_GEL_FALLBACK,
+  eurRate: EUR_GEL_FALLBACK,
+}
+const eurEur = formatListingPrice({ ...eurNative, currencyPreference: 'EUR' as const })
+if (eurEur.primary !== '€480 000') throw new Error(`EUR-native primary drifted: ${eurEur.primary}`)
+// €480 000 × (3.04/2.7) — NOT the $480 000 the old GEL|USD-only engine emitted.
+const eurInUsd = formatListingPrice({ ...eurNative, currencyPreference: 'USD' as const })
+if (eurInUsd.primary !== '$540 444') throw new Error(`EUR→USD conversion wrong: ${eurInUsd.primary}`)
+if (eurInUsd.secondary !== '≈ 1 459 200₾') throw new Error(`EUR→GEL conversion wrong: ${eurInUsd.secondary}`)
+
+// AED-native listing (AE market): AED is pegged to USD, so the peg — not a rate
+// feed — drives the conversion. 2 385 000 AED is NOT $2 385 000.
+const aedNative = {
+  priceUSD: 650_000,
+  priceGEL: 1_755_000,
+  priceOriginal: 2_385_000,
+  currencyOriginal: 'AED' as const,
+  rate: USD_GEL_FALLBACK,
+  eurRate: EUR_GEL_FALLBACK,
+}
+const aedUsd = formatListingPrice({ ...aedNative, currencyPreference: 'USD' as const })
+const expectUsd = Math.round(2_385_000 / AED_PER_USD)
+if (expectUsd !== 649_421) throw new Error(`peg drifted: ${expectUsd}`)
+if (aedUsd.primary !== `$649 421`) throw new Error(`AED→USD wrong: ${aedUsd.primary}`)
+if (aedUsd.secondary !== `≈ 1 753 437₾`) throw new Error(`AED→GEL wrong: ${aedUsd.secondary}`)
 
 // EUR unit helpers mirror the USD contract.
 if (formatMoney(3040, 'EUR', USD_GEL_FALLBACK, EUR_GEL_FALLBACK) !== '€1 000') throw new Error('formatMoney EUR')

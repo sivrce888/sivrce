@@ -81,6 +81,7 @@ assert.equal(poisoned.doc, null, 'tile PDF must pass official host allow-list')
 const map3d = readFileSync(join(process.cwd(), 'src/components/map/Map3D.tsx'), 'utf8')
 assert.ok(!map3d.includes("hit?.source === 'step'"), 'ALKIS/B-Plan clicks must open panel')
 assert.ok(map3d.includes('pickBerlinFeature('))
+assert.ok(map3d.includes('bindIconicLandmarks('))
 
 const search = readFileSync(join(process.cwd(), 'src/components/search/SearchMapView.tsx'), 'utf8')
 assert.ok(search.includes('pickBerlinFeature('))

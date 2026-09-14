@@ -32,6 +32,7 @@ export const ar: Dict = {
   'nav.currency': 'العملة',
   'nav.themeToggle': 'تبديل المظهر — فاتح أو داكن',
   'nav.daily': 'يومي',
+  'nav.hotels': 'فنادق',
   'nav.neighborhoods': 'الأحياء',
   'nav.blog': 'المدونة',
   'nav.forum': 'المنتدى',

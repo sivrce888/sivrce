@@ -19,7 +19,13 @@ import { MARKETS, intentHref, parseCountryPath } from '@/lib/markets'
 import { mapHrefForPlace } from '@/lib/map/map-href'
 import { cityBySlug } from '@/lib/map/user-place'
 
-export default function Navbar() {
+export default function Navbar({
+  marketIso,
+  marketCity,
+}: {
+  marketIso?: string
+  marketCity?: string
+} = {}) {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const { count } = useFavorites()
@@ -71,30 +77,32 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Desktop: deal types + services at every width; 3D map + projects join at
+  // Desktop: deal types + hotels at every width; 3D map + projects join at
   // ≥1280 (xl). Budgeted against the TIGHTEST state — inner-page glass pill
   // with the search icon — not the roomier homepage hero: 1024 fits 4 ka
   // labels and 1280 fits all 6 only while the add-listing CTA is icon-only
   // (its label returns at ≥1366). Rest → hamburger + footer. Keep 6 as the
-  // hard cap.
+  // hard cap. Hotels (GDS /hotels) sits next to Daily; Services lives in the
+  // hamburger + footer so the cap holds.
+  const hotelsTo = citySlug ? `/hotels?city=${citySlug}` : '/hotels'
   const NAV_LINKS: { key: DictKey; to: string; mobileOnly?: boolean; xlOnly?: boolean }[] = market
     ? [
         { key: 'nav.buy', to: intentHref(market.country, citySlug, 'buy', lang) },
         { key: 'nav.rent', to: intentHref(market.country, citySlug, 'rent', lang) },
+        { key: 'nav.hotels', to: hotelsTo },
         { key: 'nav.map', to: mapTo, xlOnly: true },
-        ...(market.country === 'de'
-          ? [{ key: 'nav.projects' as const, to: `${prefix}#new-builds`, xlOnly: true }]
-          : []),
+        { key: 'nav.projects', to: `/projects?country=${market.country.toUpperCase()}`, xlOnly: true },
         { key: 'nav.advertise', to: '/advertise', mobileOnly: true },
       ]
     : [
     { key: 'nav.buy', to: '/sale' },
     { key: 'nav.rent', to: '/rent' },
     { key: 'nav.daily', to: '/daily' },
+    { key: 'nav.hotels', to: hotelsTo },
     { key: 'map.pledge', to: '/pledge', mobileOnly: true },
     { key: 'nav.map', to: '/map', xlOnly: true },
     { key: 'nav.projects', to: '/projects', xlOnly: true },
-    { key: 'nav.services', to: '/services' },
+    { key: 'nav.services', to: '/services', mobileOnly: true },
     { key: 'nav.buildings', to: '/buildings', mobileOnly: true },
     { key: 'nav.neighborhoods', to: '/neighborhoods', mobileOnly: true },
     { key: 'nav.blog', to: '/blog', mobileOnly: true },
@@ -111,7 +119,8 @@ export default function Navbar() {
     if (!path || path === '/') return bare === '/'
     return bare === path || bare.startsWith(`${path}/`)
   }
-  const navHref = (to: string) => (market ? to : localizedHref(to, lang))
+  const navHref = (to: string) =>
+    market && !to.startsWith('/hotels') ? to : localizedHref(to, lang)
 
   return (
     <header data-cms-section="nav" className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">
@@ -124,7 +133,7 @@ export default function Navbar() {
       >
         <div className="shrink-0 flex items-center gap-2 sm:gap-2.5">
           <Logo adaptive href={market ? prefix : localizedHref('/', lang)} />
-          <NavLocationBadge light={light} />
+          <NavLocationBadge light={light} marketIso={marketIso} marketCity={marketCity} />
         </div>
 
         <nav
@@ -165,7 +174,7 @@ export default function Navbar() {
         <div className="ml-auto hidden shrink-0 items-center gap-1 lg:flex">
           {searchEntry && (
             <Link
-              href={localizedHref(market ? mapTo : '/search', lang)}
+              href={localizedHref('/search', lang)}
               data-cms-key="nav.search"
               aria-label={t('nav.search')}
               className={`grid h-11 w-11 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
@@ -192,7 +201,6 @@ export default function Navbar() {
           </Link>
           <ThemeToggle light={light} />
           <CurrencySwitcher light={light} />
-          <MarketSwitcher light={light} />
           <LangSwitcher light={light} />
           <AccountMenu light={light} />
           <Link
@@ -209,7 +217,7 @@ export default function Navbar() {
         <div className="ml-auto flex shrink-0 items-center lg:hidden">
           {searchEntry && (
             <Link
-              href={localizedHref(market ? mapTo : '/search', lang)}
+              href={localizedHref('/search', lang)}
               aria-label={t('nav.search')}
               className={`grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
                 light ? 'text-sv-ink/70' : 'text-sv-ink/70 dark:text-white/85'

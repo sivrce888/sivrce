@@ -120,11 +120,10 @@ const nextConfig: NextConfig = {
     // postbuild strips leftover *.map (check-repo-weight --build).
     serverSourceMaps: false,
     serverMinification: true,
-    // 9 workers × Prisma pools can exhaust pooler slots mid-build;
-    // cap concurrency so SSG DB traffic stays under the connection ceiling.
-    staticGenerationMaxConcurrency: 3,
-    // 1 worker: 2 static-gen workers × 4GB heap jetsam-killed (SIGKILL at
-    // ~1500/2584 pages) on 16GB dev machines and risks the 8GB Vercel cap.
+    // 1 worker + concurrency 1: 3GB heap with 3 concurrent DB-backed pages was
+    // jetsam-killed (SIGKILL ~2230/2742) on 16GB dev machines and risks the 8GB
+    // Vercel cap. Serial page gen halves peak RSS; build time is not user-facing.
+    staticGenerationMaxConcurrency: 1,
     cpus: 1,
     webpackMemoryOptimizations: true,
     // Tree-shake barrel imports (lucide already defaulted by Next).

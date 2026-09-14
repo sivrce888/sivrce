@@ -8,6 +8,7 @@ import { GEO_ALL_PLACES, geoDistrictsOf } from './georgia-locations'
 import { maskPhone } from '@/lib/inquiries/phone'
 import { resolveStaticAgentProfile } from '@/lib/profiles/roles'
 import { parseListingNumber, PUBLIC_ID_BASE } from '@/lib/listing-public-id'
+import type { ListingCurrency } from '@/lib/currency'
 
 export type DealType = 'sale' | 'rent' | 'daily' | 'pledge'
 export type PropType = 'apartment' | 'house' | 'villa' | 'commercial' | 'land' | 'hotel'
@@ -41,7 +42,7 @@ export interface Listing {
   /** Locked nominal price originally entered by poster (e.g. 800) */
   priceOriginal?: number | null
   /** Original currency selected by poster ('GEL' | 'USD') */
-  currencyOriginal?: 'GEL' | 'USD' | null
+  currencyOriginal?: ListingCurrency | null
   perM2USD: number
   title: string
   address: string
@@ -129,8 +130,8 @@ export const LISTINGS: Listing[] = [
   // ——— Homepage 6 (order & figures locked with the homepage) ———
   {
     id: 'vake-chavchavadze-47',
-    img: '/images/p1.webp',
-    images: ['/images/p1.webp', '/images/p4.webp', '/images/p6.webp', '/images/np1.webp'],
+    img: '/images/de/apt-3.webp',
+    images: ['/images/de/apt-3.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/vake.webp', '/images/p1.webp'],
     priceUSD: 285000, priceGEL: 769500, perM2USD: 3167,
     title: 'მოდერნული 2-ოთახიანი პანორამული ხედით',
     address: 'ჭავჭავაძის 47, ვაკე, თბილისი',
@@ -150,8 +151,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'saburtalo-pekin-12',
-    img: '/images/p2.webp',
-    images: ['/images/p2.webp', '/images/p1.webp', '/images/p5.webp', '/images/np2.webp'],
+    img: '/images/de/terrasse-1.webp',
+    images: ['/images/de/terrasse-1.webp', '/images/de/apt-5.webp', '/images/neighborhoods/saburtalo.webp', '/images/p2.webp'],
     priceUSD: 640000, priceGEL: 1728000, perM2USD: 3765,
     title: 'პენტჰაუსი ტერასით, საბურთალო',
     address: 'პეკინის 12, საბურთალო, თბილისი',
@@ -171,8 +172,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tskvarichamia-mshvidoba-8',
-    img: '/images/p3.webp',
-    images: ['/images/p3.webp', '/images/np1.webp', '/images/p2.webp'],
+    img: '/images/de/house-2.webp',
+    images: ['/images/de/house-2.webp', '/images/de/villa-1.webp', '/images/de/land-1.webp', '/images/p3.webp'],
     priceUSD: 420000, priceGEL: 1134000, perM2USD: 2100,
     title: 'ავტორის ვილა აუზით, ცხვარიჭამია',
     address: 'მშვიდობის ქ. 8, თბილისის მიდამო',
@@ -192,8 +193,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'vake-abashidze-34',
-    img: '/images/p4.webp',
-    images: ['/images/p4.webp', '/images/p1.webp', '/images/p6.webp'],
+    img: '/images/de/neubau-1.webp',
+    images: ['/images/de/neubau-1.webp', '/images/de/apt-4.webp', '/images/neighborhoods/vake.webp', '/images/p4.webp'],
     priceUSD: 158500, priceGEL: 427950, perM2USD: 2264,
     title: 'ახალი აშენებული ბინა ვაკეში',
     address: 'აბაშიძის 34, ვაკე, თბილისი',
@@ -213,8 +214,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'mtatsminda-sanapiro-5',
-    img: '/images/p5.webp',
-    images: ['/images/p5.webp', '/images/p2.webp', '/images/p4.webp'],
+    img: '/images/de/apt-6.webp',
+    images: ['/images/de/apt-6.webp', '/images/de/apt-2.webp', '/images/neighborhoods/mtatsminda.webp', '/images/p5.webp'],
     priceUSD: 112000, priceGEL: 302400, perM2USD: 1750,
     title: 'მზიანი სტუდიო მთაწმინდაზე',
     address: 'სანაპიროს 5, მთაწმინდა, თბილისი',
@@ -234,8 +235,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'dighomi-gudamaqari-21',
-    img: '/images/p6.webp',
-    images: ['/images/p6.webp', '/images/p4.webp', '/images/np2.webp'],
+    img: '/images/de/apt-1.webp',
+    images: ['/images/de/apt-1.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/didi-dighomi.webp', '/images/p6.webp'],
     priceUSD: 198000, priceGEL: 534600, perM2USD: 2200,
     title: 'დიზაინერული რემონტით, დიღომი',
     address: 'გუდამაყრის 21, დიღომი, თბილისი',
@@ -257,8 +258,8 @@ export const LISTINGS: Listing[] = [
   // ——— Rent: Tbilisi ———
   {
     id: 'vake-irakli-abashidze-10-rent',
-    img: '/images/p4.webp',
-    images: ['/images/p4.webp', '/images/p5.webp', '/images/p1.webp'],
+    img: '/images/de/loft-1.webp',
+    images: ['/images/de/loft-1.webp', '/images/de/apt-4.webp', '/images/neighborhoods/vake.webp'],
     priceUSD: 1200, priceGEL: 3240, perM2USD: 15,
     title: 'ევრორემონტით 3-ოთახიანი ვაკეში',
     address: 'ი. აბაშიძის 10, ვაკე, თბილისი',
@@ -278,8 +279,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'saburtalo-kavtaradze-3-rent',
-    img: '/images/p6.webp',
-    images: ['/images/p6.webp', '/images/p2.webp'],
+    img: '/images/de/apt-2.webp',
+    images: ['/images/de/apt-2.webp', '/images/de/apt-5.webp', '/images/neighborhoods/saburtalo.webp'],
     priceUSD: 850, priceGEL: 2295, perM2USD: 13,
     title: '2-ოთახიანი ახალ კომპლექსში',
     address: 'ქავთარაძის 3, საბურთალო, თბილისი',
@@ -299,8 +300,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'ortachala-krtsanisi-15-rent',
-    img: '/images/p5.webp',
-    images: ['/images/p5.webp', '/images/p6.webp', '/images/p3.webp'],
+    img: '/images/de/apt-4.webp',
+    images: ['/images/de/apt-4.webp', '/images/de/apt-6.webp', '/images/neighborhoods/ortachala.webp'],
     priceUSD: 650, priceGEL: 1755, perM2USD: 11,
     title: 'მყუდრო ბინა ორთაჭალაში',
     address: 'კრისტესის 15, ორთაჭალა, თბილისი',
@@ -320,8 +321,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'isani-navtlughi-8-rent',
-    img: '/images/p1.webp',
-    images: ['/images/p1.webp', '/images/p5.webp'],
+    img: '/images/de/apt-5.webp',
+    images: ['/images/de/apt-5.webp', '/images/de/apt-1.webp', '/images/neighborhoods/isani.webp'],
     priceUSD: 500, priceGEL: 1350, perM2USD: 10,
     title: '1-ოთახიანი ისანში, მეტროსთან',
     address: 'ნავთლუღის 8, ისანი, თბილისი',
@@ -341,8 +342,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'gldani-mikheil-4-rent',
-    img: '/images/p6.webp',
-    images: ['/images/p6.webp', '/images/p4.webp'],
+    img: '/images/de/apt-6.webp',
+    images: ['/images/de/apt-6.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/gldani.webp'],
     priceUSD: 400, priceGEL: 1080, perM2USD: 8,
     title: 'საოჯახო ბინა გლდანში',
     address: 'მიხეილ გლდანელის 4, გლდანი, თბილისი',
@@ -362,8 +363,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'mtatsminda-foothill-house-rent',
-    img: '/images/p3.webp',
-    images: ['/images/p3.webp', '/images/np1.webp'],
+    img: '/images/de/house-1.webp',
+    images: ['/images/de/house-1.webp', '/images/de/terrasse-1.webp', '/images/neighborhoods/mtatsminda.webp'],
     priceUSD: 2500, priceGEL: 6750, perM2USD: 16,
     title: 'კერძო სახლი მთაწმინდის ძირში',
     address: 'წმ. მიხეილის ქ. 3, მთაწმინდა, თბილისი',
@@ -385,8 +386,8 @@ export const LISTINGS: Listing[] = [
   // ——— Sale: more Tbilisi ———
   {
     id: 'vake-tamarashvili-6',
-    img: '/images/p2.webp',
-    images: ['/images/p2.webp', '/images/p1.webp', '/images/p6.webp'],
+    img: '/images/de/apt-3.webp',
+    images: ['/images/de/apt-3.webp', '/images/de/neubau-1.webp', '/images/neighborhoods/vake.webp'],
     priceUSD: 345000, priceGEL: 931500, perM2USD: 3136,
     title: '4-ოთახიანი თამარაშვილზე, ახალი პროექტი',
     address: 'თამარაშვილის 6, ვაკე, თბილისი',
@@ -406,8 +407,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'saburtalo-nutsubidze-77',
-    img: '/images/p5.webp',
-    images: ['/images/p5.webp', '/images/p2.webp'],
+    img: '/images/de/apt-1.webp',
+    images: ['/images/de/apt-1.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/saburtalo.webp'],
     priceUSD: 95000, priceGEL: 256500, perM2USD: 1583,
     title: '2-ოთახიანი ნუცუბიძის პლატოზე',
     address: 'ნუცუბიძის 77, საბურთალო, თბილისი',
@@ -427,8 +428,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'ortachala-gulia-22',
-    img: '/images/p1.webp',
-    images: ['/images/p1.webp', '/images/p6.webp', '/images/p4.webp'],
+    img: '/images/de/neubau-1.webp',
+    images: ['/images/de/neubau-1.webp', '/images/de/apt-2.webp', '/images/neighborhoods/ortachala.webp'],
     priceUSD: 132000, priceGEL: 356400, perM2USD: 1650,
     title: 'ახალი კომპლექსი ორთაჭალაში, ხედით',
     address: 'გულიას 22, ორთაჭალა, თბილისი',
@@ -448,8 +449,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'isani-berbuta-11',
-    img: '/images/p4.webp',
-    images: ['/images/p4.webp', '/images/p1.webp'],
+    img: '/images/de/apt-2.webp',
+    images: ['/images/de/apt-2.webp', '/images/de/apt-4.webp', '/images/neighborhoods/isani.webp'],
     priceUSD: 88000, priceGEL: 237600, perM2USD: 1467,
     title: '3-ოთახიანი ისანში, გარემონტებული',
     address: 'ბერბუქის 11, ისანი, თბილისი',
@@ -469,8 +470,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'gldani-omar-khizaneishvili-30',
-    img: '/images/p6.webp',
-    images: ['/images/p6.webp', '/images/p5.webp'],
+    img: '/images/de/apt-4.webp',
+    images: ['/images/de/apt-4.webp', '/images/de/neubau-1.webp', '/images/neighborhoods/gldani.webp'],
     priceUSD: 62000, priceGEL: 167400, perM2USD: 1292,
     title: 'სტუდიო გლდანის ახალ კომპლექსში',
     address: 'ხიზანეიშვილის 30, გლდანი, თბილისი',
@@ -490,8 +491,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'dighomi-agmashenebeli-alley-house',
-    img: '/images/p3.webp',
-    images: ['/images/p3.webp', '/images/p6.webp', '/images/np2.webp'],
+    img: '/images/de/house-1.webp',
+    images: ['/images/de/house-1.webp', '/images/de/house-2.webp', '/images/neighborhoods/didi-dighomi.webp'],
     priceUSD: 240000, priceGEL: 648000, perM2USD: 1333,
     title: 'კერძო სახლი დიდ დიღომში',
     address: 'აღმაშენებლის ხეივანი, დიდი დიღომი, თბილისი',
@@ -512,8 +513,8 @@ export const LISTINGS: Listing[] = [
   // ——— Batumi ———
   {
     id: 'batumi-sherif-khimshiashvili-20',
-    img: '/images/np1.webp',
-    images: ['/images/np1.webp', '/images/p2.webp', '/images/p1.webp'],
+    img: '/images/projects/batumi-riviera-tower.webp',
+    images: ['/images/projects/batumi-riviera-tower.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/batumi.webp'],
     priceUSD: 165000, priceGEL: 445500, perM2USD: 2357,
     title: 'ზღვის ხედით ბინა ბათუმში, პირველი ხაზი',
     address: 'შ. ხიმშიაშვილის 20, ბათუმი',
@@ -533,8 +534,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'batumi-gorgiladze-50-rent',
-    img: '/images/np2.webp',
-    images: ['/images/np2.webp', '/images/p4.webp'],
+    img: '/images/de/apt-3.webp',
+    images: ['/images/de/apt-3.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/batumi.webp'],
     priceUSD: 700, priceGEL: 1890, perM2USD: 12,
     title: 'ბათუმის ცენტრში 2-ოთახიანი',
     address: 'გორგილაძის 50, ბათუმი',
@@ -554,8 +555,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'batumi-makhinjauri-house',
-    img: '/images/p3.webp',
-    images: ['/images/p3.webp', '/images/np1.webp', '/images/np2.webp'],
+    img: '/images/de/villa-1.webp',
+    images: ['/images/de/villa-1.webp', '/images/de/house-1.webp', '/images/neighborhoods/batumi.webp'],
     priceUSD: 310000, priceGEL: 837000, perM2USD: 1409,
     title: 'ვილა მახინჯაურში, ზღვის ხედით',
     address: 'მახინჯაური, ბათუმის მიდამო',
@@ -576,8 +577,8 @@ export const LISTINGS: Listing[] = [
   // ——— Kutaisi ———
   {
     id: 'kutaisi-tamar-mefe-14',
-    img: '/images/p5.webp',
-    images: ['/images/p5.webp', '/images/p4.webp', '/images/p6.webp'],
+    img: '/images/de/apt-5.webp',
+    images: ['/images/de/apt-5.webp', '/images/de/loft-1.webp', '/images/neighborhoods/kutaisi.webp'],
     priceUSD: 78000, priceGEL: 210600, perM2USD: 1114,
     title: 'ცენტრალური ბინა ქუთაისში, რემონტით',
     address: 'თამარ მეფის 14, ქუთაისი',
@@ -597,8 +598,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'kutaisi-chavchavadze-rent',
-    img: '/images/p4.webp',
-    images: ['/images/p4.webp', '/images/p5.webp'],
+    img: '/images/de/apt-6.webp',
+    images: ['/images/de/apt-6.webp', '/images/de/apt-1.webp', '/images/neighborhoods/kutaisi.webp'],
     priceUSD: 450, priceGEL: 1215, perM2USD: 8,
     title: 'ქუთაისში ქირავდება 2-ოთახიანი',
     address: 'ჭავჭავაძის გამზ. 21, ქუთაისი',
@@ -620,8 +621,8 @@ export const LISTINGS: Listing[] = [
   // ——— Commercial & land ———
   {
     id: 'tbilisi-avlabari-commercial',
-    img: '/images/np2.webp',
-    images: ['/images/np2.webp', '/images/p6.webp'],
+    img: '/images/de/commercial-1.webp',
+    images: ['/images/de/commercial-1.webp', '/images/de/loft-1.webp', '/images/neighborhoods/old-tbilisi.webp'],
     priceUSD: 195000, priceGEL: 526500, perM2USD: 1625,
     title: 'კომერციული ფართი ავლაბარში, პირველი სართული',
     address: 'ქეთევან დედოფლის გამზ. 45, ავლაბარი, თბილისი',
@@ -641,8 +642,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tbilisi-land-tskneti',
-    img: '/images/np1.webp',
-    images: ['/images/np1.webp', '/images/p3.webp'],
+    img: '/images/de/land-1.webp',
+    images: ['/images/de/land-1.webp', '/images/neighborhoods/mtatsminda.webp'],
     priceUSD: 85000, priceGEL: 229500, perM2USD: 85,
     title: 'მიწის ნაკვეთი წყნეთში, საცხოვრებელი',
     address: 'წყნეთი, თბილისის მიდამო',
@@ -661,8 +662,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tbilisi-land-gldani-lease',
-    img: '/images/np1.webp',
-    images: ['/images/np1.webp', '/images/p3.webp'],
+    img: '/images/de/land-1.webp',
+    images: ['/images/de/land-1.webp', '/images/neighborhoods/gldani.webp'],
     priceUSD: 280, priceGEL: 756, perM2USD: 0,
     title: 'გაიცემა იჯარით სასოფლო მიწა გლდანში',
     address: 'გლდანი, თბილისის მიდამო',
@@ -681,8 +682,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'telavi-land-vineyard-lease',
-    img: '/images/np2.webp',
-    images: ['/images/np2.webp', '/images/np1.webp'],
+    img: '/images/de/land-1.webp',
+    images: ['/images/de/land-1.webp', '/images/de/house-2.webp'],
     priceUSD: 900, priceGEL: 2430, perM2USD: 0,
     title: 'გაიცემა იჯარით ვენახი თელავში',
     address: 'თელავი, კახეთი',
@@ -701,8 +702,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tbilisi-commercial-vake-rent',
-    img: '/images/np1.webp',
-    images: ['/images/np1.webp', '/images/np2.webp'],
+    img: '/images/de/commercial-1.webp',
+    images: ['/images/de/commercial-1.webp', '/images/de/loft-1.webp', '/images/neighborhoods/vake.webp'],
     priceUSD: 1800, priceGEL: 4860, perM2USD: 20,
     title: 'ოფისი ქირავდება ვაკეში, 90 მ²',
     address: 'ჭონქაძის 9, ვაკე, თბილისი',
@@ -724,8 +725,8 @@ export const LISTINGS: Listing[] = [
   // ——— Daily rentals ("ბინები დღიურად") — tourist zones, nightly USD ———
   {
     id: 'tbilisi-old-town-daily-1',
-    img: '/images/p3.webp',
-    images: ['/images/p3.webp', '/images/p5.webp', '/images/p2.webp'],
+    img: '/images/de/apt-3.webp',
+    images: ['/images/de/apt-3.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/old-tbilisi.webp'],
     priceUSD: 65, priceGEL: 175, perM2USD: 0,
     title: 'სტუდიო ძველ თბილისში დღიურად — აივნიანი',
     address: 'ბათუმის ქ. 12, ავლაბარი, თბილისი',
@@ -745,8 +746,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tbilisi-mtatsminda-daily-2',
-    img: '/images/p4.webp',
-    images: ['/images/p4.webp', '/images/p1.webp', '/images/p6.webp'],
+    img: '/images/de/apt-5.webp',
+    images: ['/images/de/apt-5.webp', '/images/de/apt-1.webp', '/images/neighborhoods/vera.webp'],
     priceUSD: 90, priceGEL: 243, perM2USD: 0,
     title: '2-ოთახიანი რუსთაველზე დღიურად',
     address: 'რუსთაველის გამზ. 28, მთაწმინდა, თბილისი',
@@ -766,8 +767,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'batumi-boulevard-daily-1',
-    img: '/images/p2.webp',
-    images: ['/images/p2.webp', '/images/np2.webp', '/images/p5.webp'],
+    img: '/images/de/balkon-1.webp',
+    images: ['/images/de/balkon-1.webp', '/images/de/apt-2.webp', '/images/neighborhoods/batumi.webp'],
     priceUSD: 75, priceGEL: 202, perM2USD: 0,
     title: 'ზღვის ხედით ახალ ბულვარზე დღიურად',
     address: 'რუსთაველის ქ. 90, ახალი ბულვარი, ბათუმი',
@@ -787,8 +788,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'batumi-old-daily-2',
-    img: '/images/p6.webp',
-    images: ['/images/p6.webp', '/images/p3.webp', '/images/np1.webp'],
+    img: '/images/de/apt-4.webp',
+    images: ['/images/de/apt-4.webp', '/images/de/apt-6.webp', '/images/neighborhoods/batumi.webp'],
     priceUSD: 45, priceGEL: 121, perM2USD: 0,
     title: 'ბიუჯეტური სტუდიო ძველ ბათუმში დღიურად',
     address: 'ნინოშვილის ქ. 8, ძველი ბათუმი, ბათუმი',
@@ -808,8 +809,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'batumi-makhinjauri-daily-3',
-    img: '/images/np1.webp',
-    images: ['/images/np1.webp', '/images/p2.webp'],
+    img: '/images/de/house-2.webp',
+    images: ['/images/de/house-2.webp', '/images/de/house-1.webp', '/images/neighborhoods/batumi.webp'],
     priceUSD: 110, priceGEL: 297, perM2USD: 0,
     title: 'ლამაზი სახლი მახინჯაურში დღიურად',
     address: 'მახინჯაური, ბათუმის მიდამო',
@@ -828,8 +829,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'kutaisi-center-daily-1',
-    img: '/images/p5.webp',
-    images: ['/images/p5.webp', '/images/p6.webp'],
+    img: '/images/de/apt-1.webp',
+    images: ['/images/de/apt-1.webp', '/images/de/apt-2.webp', '/images/neighborhoods/kutaisi.webp'],
     priceUSD: 35, priceGEL: 94, perM2USD: 0,
     title: 'სტუდიო ქუთაისის ცენტრში დღიურად',
     address: 'თამარ მეფის ქ. 15, ცენტრი, ქუთაისი',
@@ -849,8 +850,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tbilisi-vake-daily-3',
-    img: '/images/p1.webp',
-    images: ['/images/p1.webp', '/images/p4.webp'],
+    img: '/images/de/apt-2.webp',
+    images: ['/images/de/apt-2.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/vake.webp'],
     priceUSD: 55, priceGEL: 148, perM2USD: 0,
     title: '1-ოთახიანი ვაკეში დღიურად, პარკთან',
     address: 'ირ. აბაშიძის ქ. 24, ვაკე, თბილისი',
@@ -870,8 +871,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tbilisi-saburtalo-daily-4',
-    img: '/images/np2.webp',
-    images: ['/images/np2.webp', '/images/p2.webp'],
+    img: '/images/de/apt-6.webp',
+    images: ['/images/de/apt-6.webp', '/images/de/apt-4.webp', '/images/neighborhoods/saburtalo.webp'],
     priceUSD: 40, priceGEL: 108, perM2USD: 0,
     title: 'ბიუჯეტური ბინა საბურთალოზე დღიურად',
     address: 'ვაჟა-ფშაველას გამზ. 50, საბურთალო, თბილისი',
@@ -892,8 +893,8 @@ export const LISTINGS: Listing[] = [
   // ——— Landmark buildings: Axis, King David, pledge ———
   {
     id: 'axis-towers-sale-1',
-    img: '/images/p2.webp',
-    images: ['/images/p2.webp', '/images/p1.webp', '/images/np1.webp'],
+    img: '/images/projects/axis-towers-vake.webp',
+    images: ['/images/projects/axis-towers-vake.webp', '/images/de/apt-3.webp', '/images/de/terrasse-1.webp'],
     priceUSD: 420000, priceGEL: 1134000, perM2USD: 3500,
     title: 'აქსის თაუერსი — 3 ოთახი, 18/24 სართ.',
     address: 'ჭავჭავაძის გამზ. 37, ვაკე, თბილისი',
@@ -903,7 +904,7 @@ export const LISTINGS: Listing[] = [
     views: 4100, badge: 'SUPER VIP',
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['აქსის თაუერსი', 'პარკინგი', 'კონსიერჟი', 'ფიტნესი'],
-    description: '120 მ², 18-ე სართ. ხედი ვაკის პარკისკენ. პარკინგი, კონსიერჟი.',
+    description: 'აქსის თაუერსში (ჭავჭავაძე 37) იყიდება 120 მ² ბინა მე-18 სართულზე, ვაკის პარკის ხედით. კომპლექსს აქვს მიწისქვეშა პარკინგი, 24/7 კონსიერჟი და ფიტნესი — ვაკეში ყველაზე ლიკვიდური ახალაშენებული.',
     coords: { lat: 41.71174204, lng: 44.75668685 },
     buildingNumber: '37',
     buildingSlug: 'axis-towers',
@@ -913,8 +914,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'axis-towers-rent-1',
-    img: '/images/p2.webp',
-    images: ['/images/p2.webp', '/images/p6.webp'],
+    img: '/images/projects/axis-towers-photo.webp',
+    images: ['/images/projects/axis-towers-photo.webp', '/images/de/apt-5.webp', '/images/de/balkon-1.webp'],
     priceUSD: 2800, priceGEL: 7560, perM2USD: 28,
     title: 'აქსის თაუერსი — 2 ოთახი, 14/24 სართ.',
     address: 'ჭავჭავაძის გამზ. 37, ვაკე, თბილისი',
@@ -924,7 +925,7 @@ export const LISTINGS: Listing[] = [
     views: 2200, badge: 'VIP+',
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['ავეჯით', 'აქსის თაუერსი', 'პარკინგი', 'ტექნიკით'],
-    description: '75 მ², 14-ე სართ. ავეჯი, ტექნიკა, პარკინგი. გრძელვადიანი ქირა.',
+    description: 'აქსის თაუერსში ქირავდება 75 მ² ავეჯიანი ბინა მე-14 სართულზე, სრული ტექნიკითა და პარკინგით. კონსიერჟი და დაცული ტერიტორია. გრძელვადიანი ქირა უპირატესობით.',
     coords: { lat: 41.71175, lng: 44.75670 },
     buildingNumber: '37',
     buildingSlug: 'axis-towers',
@@ -934,8 +935,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'king-david-sale-1',
-    img: '/images/p1.webp',
-    images: ['/images/p1.webp', '/images/p4.webp'],
+    img: '/images/projects/king-david-residences.webp',
+    images: ['/images/projects/king-david-residences.webp', '/images/de/apt-1.webp', '/images/neighborhoods/mtatsminda.webp'],
     priceUSD: 510000, priceGEL: 1377000, perM2USD: 4250,
     title: 'ქინგ დევიდ — 2 ოთახი, 11/18 სართ.',
     address: 'ატონელის 12, მთაწმინდა, თბილისი',
@@ -945,7 +946,7 @@ export const LISTINGS: Listing[] = [
     views: 3600, badge: 'SUPER VIP',
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['ქინგ დევიდ', 'კონსიერჟი', 'პარკინგი', 'ძველი თბილისის ხედი'],
-    description: '120 მ², 11-ე სართ. ხედი ძველ თბილისზე. კონსიერჟი, პარკინგი.',
+    description: 'King David Residences-ში (ატონელი 12) იყიდება 120 მ² ბინა მე-11 სართულზე, ძველი თბილისის პანორამული ხედით. პრემიუმ კომპლექსი კონსიერჟით, პარკინგითა და რეცეფშენით.',
     coords: { lat: 41.6975188, lng: 44.8047485 },
     buildingNumber: '12',
     buildingSlug: 'king-david-residences',
@@ -955,8 +956,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'king-david-daily-1',
-    img: '/images/p1.webp',
-    images: ['/images/p1.webp', '/images/p5.webp'],
+    img: '/images/de/hotel-1.webp',
+    images: ['/images/de/hotel-1.webp', '/images/projects/king-david-residences.webp', '/images/de/apt-2.webp'],
     priceUSD: 180, priceGEL: 486, perM2USD: 0,
     title: 'ქინგ დევიდ — სტუდიო, 8/18 სართ.',
     address: 'ატონელის 12, მთაწმინდა, თბილისი',
@@ -966,7 +967,7 @@ export const LISTINGS: Listing[] = [
     views: 1900, badge: 'VIP',
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['ქინგ დევიდ', 'Wi-Fi', 'კონდიციონერი', 'კონსიერჟი'],
-    description: '45 მ² სტუდიო, 8-ე სართ. Wi-Fi, კონდიციონერი, კონსიერჟი.',
+    description: 'King David-ში დღიურად ქირავდება 45 მ² სტუდიო მე-8 სართულზე — Wi-Fi, კონდიციონერი, კონსიერჟი და ძველი ქალაქის ხედი. ტურისტული ზონის გულში.',
     coords: { lat: 41.69752, lng: 44.80475 },
     buildingNumber: '12',
     buildingSlug: 'king-david-residences',
@@ -976,8 +977,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'abashidze-34-pledge-1',
-    img: '/images/p4.webp',
-    images: ['/images/p4.webp', '/images/p1.webp'],
+    img: '/images/de/apt-4.webp',
+    images: ['/images/de/apt-4.webp', '/images/neighborhoods/vake.webp'],
     priceUSD: 95000, priceGEL: 256500, perM2USD: 1900,
     title: 'აბაშიძის 34 — გირავნობა, 50 მ²',
     address: 'აბაშიძის 34, ვაკე, თბილისი',
@@ -987,7 +988,7 @@ export const LISTINGS: Listing[] = [
     views: 640, badge: null,
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['გირავდება', 'ვაკე', 'ლიფტი'],
-    description: '50 მ², 3-ე სართ. პირობები აგენტთან.',
+    description: 'ვაკეში, აბაშიძის 34-ში, გირავდება 50 მ² 2-ოთახიანი ბინა მე-3 სართულზე, ლიფტით. პირობები და ვადა — აგენტთან.',
     coords: { lat: 41.70745, lng: 44.76569 },
     buildingNumber: '34',
     buildingSlug: 'abashidze-34',
@@ -997,8 +998,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'axis-towers-pledge-1',
-    img: '/images/p2.webp',
-    images: ['/images/p2.webp'],
+    img: '/images/projects/axis-towers-vake.webp',
+    images: ['/images/projects/axis-towers-vake.webp', '/images/de/apt-6.webp'],
     priceUSD: 180000, priceGEL: 486000, perM2USD: 2571,
     title: 'აქსის თაუერსი — გირავნობა, 70 მ²',
     address: 'ჭავჭავაძის გამზ. 37, ვაკე, თბილისი',
@@ -1008,7 +1009,7 @@ export const LISTINGS: Listing[] = [
     views: 1100, badge: 'VIP',
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['გირავდება', 'აქსის თაუერსი', 'პარკინგი'],
-    description: '70 მ², 9-ე სართ. პარკინგი. პირობები აგენტთან.',
+    description: 'აქსის თაუერსში გირავდება 70 მ² ბინა მე-9 სართულზე, პარკინგით. პირობები და ვადა — აგენტთან.',
     coords: { lat: 41.71174, lng: 44.75669 },
     buildingNumber: '37',
     buildingSlug: 'axis-towers',
@@ -1019,8 +1020,8 @@ export const LISTINGS: Listing[] = [
   // ——— Coverage samples: villa + hotel (all prop types) ———
   {
     id: 'lisi-villa-sale-1',
-    img: '/images/p3.webp',
-    images: ['/images/p3.webp', '/images/p5.webp', '/images/np1.webp'],
+    img: '/images/de/villa-1.webp',
+    images: ['/images/de/villa-1.webp', '/images/de/house-2.webp', '/images/neighborhoods/lisi.webp'],
     priceUSD: 420000, priceGEL: 1134000, perM2USD: 2333,
     title: 'ლისის აგარაკი — 180 მ², ეზო და აუზი',
     address: 'ლისის ტბა, თბილისი',
@@ -1040,8 +1041,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'mtsvare-villa-rent-1',
-    img: '/images/p5.webp',
-    images: ['/images/p5.webp', '/images/p3.webp'],
+    img: '/images/de/house-2.webp',
+    images: ['/images/de/house-2.webp', '/images/de/house-1.webp', '/images/de/land-1.webp'],
     priceUSD: 2800, priceGEL: 7560, perM2USD: 18,
     title: 'მცხეთის აგარაკი — ქირავდება, 150 მ²',
     address: 'მცხეთა, თბილისის მიმდებარე',
@@ -1051,7 +1052,7 @@ export const LISTINGS: Listing[] = [
     views: 540, badge: null,
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['აგარაკი', 'ეზო', 'ბუხარი', 'ავეჯით'],
-    description: '150 მ² აგარაკი მცხეთაში, სრულად ავეჯით. გრძელვადიანი ქირა.',
+    description: 'მცხეთაში ქირავდება 150 მ² აგარაკი სრული ავეჯითა და ბუხრით — მშვიდი ეზო, მთის ჰაერი და თბილისამდე 20 წუთი. გრძელვადიანი ქირა ოჯახისთვის.',
     coords: { lat: 41.8451, lng: 44.7183 },
     buildingNumber: '—',
     buildingSlug: 'mtskheta-villa',
@@ -1061,8 +1062,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'batumi-hotel-sale-1',
-    img: '/images/p6.webp',
-    images: ['/images/p6.webp', '/images/p2.webp', '/images/np2.webp'],
+    img: '/images/de/hotel-1.webp',
+    images: ['/images/de/hotel-1.webp', '/images/de/commercial-1.webp', '/images/neighborhoods/batumi.webp'],
     priceUSD: 1250000, priceGEL: 3375000, perM2USD: 2500,
     title: 'ბათუმი — სასტუმრო 500 მ², ბულვარი',
     address: 'ბულვარი, ბათუმი',
@@ -1082,8 +1083,8 @@ export const LISTINGS: Listing[] = [
   },
   {
     id: 'tbilisi-hotel-daily-1',
-    img: '/images/p1.webp',
-    images: ['/images/p1.webp', '/images/p4.webp'],
+    img: '/images/de/hotel-1.webp',
+    images: ['/images/de/hotel-1.webp', '/images/de/apt-3.webp', '/images/neighborhoods/old-tbilisi.webp'],
     priceUSD: 180, priceGEL: 486, perM2USD: 2,
     title: 'ძველი თბილისი — ბუტიკ სასტუმრო, დღიური',
     address: 'კოტე აფხაზის 18, ძველი თბილისი',
@@ -1093,12 +1094,96 @@ export const LISTINGS: Listing[] = [
     views: 1600, badge: 'VIP+',
     ai: { score: 100, label: 'შესანიშნავი ფასი' },
     features: ['სასტუმრო', 'Wi-Fi', 'საუზმე', 'კონდიციონერი'],
-    description: 'ბუტიკ სასტუმრო ძველ თბილისში. დღიური ტარიფი ოთახზე / ობიექტზე — აგენტთან.',
+    description: 'ძველ თბილისში, კოტე აფხაზის 18-ში, ბუტიკ სასტუმრო — 8 ნომერი საუზმით, Wi-Fi-ითა და კონდიციონერით. დღიური ტარიფი ნომერზე ან მთლიან ობიექტზე — აგენტთან.',
     coords: { lat: 41.6908, lng: 44.8015 },
     buildingNumber: '18',
     buildingSlug: 'kote-apkhazi-18',
     postedAt: '2026-07-19',
     agent: AGENTS[2]!,
+    isNew: true,
+  },
+
+  // ——— UAE Listings (Dubai, Abu Dhabi) ———
+  {
+    id: 'dubai-downtown-burj-crown',
+    country: 'AE',
+    img: '/images/projects/burj-daman-timeline.webp',
+    images: ['/images/projects/burj-daman-timeline.webp', '/images/de/apt-3.webp', '/images/de/terrasse-1.webp'],
+    priceUSD: 650000, priceGEL: 1755000, priceOriginal: 2385000, currencyOriginal: 'AED', perM2USD: 6842,
+    title: 'Luxury 2BR Apartment with Burj Khalifa View',
+    address: 'Burj Crown, Downtown Dubai',
+    city: 'Dubai', district: 'Downtown Dubai',
+    dealType: 'sale', propType: 'apartment',
+    rooms: 2, beds: 2, baths: 2, area: 95, floor: 28, totalFloors: 44,
+    views: 8900, badge: 'SUPER VIP', isExclusive: true,
+    ai: { score: 100, label: 'Prime Investment' },
+    features: ['Burj Khalifa View', 'Infinity Pool', 'Valet Parking', 'Concierge', 'Private Balcony'],
+    description: 'Ultra-prime 2-bedroom residence by Emaar in Downtown Dubai with direct views of the Burj Khalifa and Dubai Fountain.',
+    coords: { lat: 25.1972, lng: 55.2744 },
+    postedAt: '2026-06-09',
+    agent: { name: 'Emaar Signature Agent', phone: '+971 4 367 3333', agency: 'Emaar Properties' },
+    isNew: true,
+  },
+  {
+    id: 'dubai-marina-gate-rent',
+    country: 'AE',
+    img: '/images/de/apt-5.webp',
+    images: ['/images/de/apt-5.webp', '/images/de/balkon-1.webp', '/images/projects/palm-jumeirah.webp'],
+    priceUSD: 3800, priceGEL: 10260, priceOriginal: 14000, currencyOriginal: 'AED', perM2USD: 38,
+    title: 'Waterfront 2BR Marina Gate Residence',
+    address: 'Marina Gate 2, Dubai Marina',
+    city: 'Dubai', district: 'Dubai Marina',
+    dealType: 'rent', propType: 'apartment',
+    rooms: 2, beds: 2, baths: 2, area: 100, floor: 15, totalFloors: 64,
+    views: 5400, badge: 'SUPER VIP',
+    ai: { score: 98, label: 'Top Rental Yield' },
+    features: ['Full Marina View', 'Direct Boardwalk Access', 'Equipped Gym', 'Covered Parking'],
+    description: 'Stunning high-floor apartment overlooking the yachts at Dubai Marina. Modern finish with floor-to-ceiling windows.',
+    coords: { lat: 25.0858, lng: 55.1438 },
+    postedAt: '2026-06-07',
+    agent: { name: 'Select Group Broker', phone: '+971 4 456 7890', agency: 'Dubai Marina Homes' },
+    isNew: true,
+  },
+
+  // ——— USA Listings (New York, Miami) ———
+  {
+    id: 'nyc-manhattan-tribeca-loft',
+    country: 'US',
+    img: '/images/de/loft-1.webp',
+    images: ['/images/de/loft-1.webp', '/images/de/apt-1.webp', '/images/de/commercial-1.webp'],
+    priceUSD: 1950000, priceGEL: 5265000, priceOriginal: 1950000, currencyOriginal: 'USD', perM2USD: 15000,
+    title: 'Corner Tribeca Loft with Private Keyed Elevator',
+    address: '120 Hudson Street, Tribeca, New York',
+    city: 'New York', district: 'Manhattan',
+    dealType: 'sale', propType: 'apartment',
+    rooms: 3, beds: 2, baths: 2, area: 130, floor: 6, totalFloors: 10,
+    views: 7300, badge: 'SUPER VIP', isExclusive: true,
+    ai: { score: 99, label: 'Iconic Property' },
+    features: ['Keyed Elevator', 'Cast-iron Columns', '11ft Ceilings', 'Custom Boffi Kitchen', 'Doorman'],
+    description: 'Quintessential Tribeca corner loft with 12 massive south- and west-facing windows, restored original hardwood floors.',
+    coords: { lat: 40.7196, lng: -74.0089 },
+    postedAt: '2026-06-08',
+    agent: { name: 'Alexander Wright', phone: '+1 212 555 0199', agency: 'Manhattan Prime Realty' },
+    isNew: true,
+  },
+  {
+    id: 'miami-brickell-flat-rent',
+    country: 'US',
+    img: '/images/de/terrasse-1.webp',
+    images: ['/images/de/terrasse-1.webp', '/images/de/apt-2.webp', '/images/de/balkon-1.webp'],
+    priceUSD: 4200, priceGEL: 11340, priceOriginal: 4200, currencyOriginal: 'USD', perM2USD: 46,
+    title: 'Bayfront 2BR at SLS Lux Brickell',
+    address: '801 S Miami Ave, Brickell, Miami',
+    city: 'Miami', district: 'Brickell',
+    dealType: 'rent', propType: 'apartment',
+    rooms: 2, beds: 2, baths: 2, area: 92, floor: 32, totalFloors: 58,
+    views: 4600, badge: 'VIP+',
+    ai: { score: 98, label: 'High Demand' },
+    features: ['Biscayne Bay View', 'Rooftop Pool', 'Spa Access', 'Valet', 'Sub-Zero Appliances'],
+    description: 'Modern luxury condo in the financial epicenter of Miami. Smart home automation and sweeping views of Biscayne Bay.',
+    coords: { lat: 25.7663, lng: -80.1932 },
+    postedAt: '2026-06-06',
+    agent: { name: 'Elena Rodriguez', phone: '+1 305 555 0144', agency: 'Miami Luxury Properties' },
     isNew: true,
   },
 ]
@@ -1112,6 +1197,7 @@ export interface ListingFilters {
   type?: PropType
   city?: string
   district?: string
+  country?: string
   minPrice?: number
   maxPrice?: number
   rooms?: number // minimum rooms
@@ -1151,6 +1237,8 @@ export function getListing(id: string): Listing | undefined {
 export function filterListings(f: ListingFilters): Listing[] {
   let out = LISTINGS.filter((l) => {
     if (!f.includeProjects && l.projectCatalog) return false
+    const lCountry = (l.country ?? 'GE').toUpperCase()
+    if (f.country && f.country !== 'all' && f.country !== '*' && lCountry !== f.country.toUpperCase()) return false
     if (f.deal && l.dealType !== f.deal) return false
     if (f.type && l.propType !== f.type) return false
     if (f.city && l.city !== f.city) return false
@@ -1209,11 +1297,11 @@ export function filterListings(f: ListingFilters): Listing[] {
 // ponytail: catalog (competitors) ∪ live listing values. Add DB-only cities when inventory lands.
 
 export const CITIES: string[] = [
-  ...new Set([...GEO_ALL_PLACES, ...LISTINGS.map((l) => l.city)]),
+  ...new Set([...GEO_ALL_PLACES, ...LISTINGS.filter((l) => !l.country || l.country === 'GE').map((l) => l.city)]),
 ]
 
 export function districtsOf(city?: string): string[] {
-  const fromListings = LISTINGS.filter((l) => !city || l.city === city).map((l) => l.district)
+  const fromListings = LISTINGS.filter((l) => (!l.country || l.country === 'GE') && (!city || l.city === city)).map((l) => l.district)
   return [...new Set([...geoDistrictsOf(city), ...fromListings])]
 }
 

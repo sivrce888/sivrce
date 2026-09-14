@@ -142,6 +142,7 @@ assert.ok(matchesCard(tbilisi, { ...EMPTY_Q, district: '' }, new Set()))
 // URL round-trip: parse(qToSearch(q)) === q; junk params degrade to defaults
 const q: typeof EMPTY_Q = {
   q: 'archi',
+  country: 'GE',
   city: 'ბათუმი',
   district: 'საბურთალო',
   status: 'build',
@@ -161,6 +162,7 @@ assert.deepEqual(
 assert.ok(!isQActive(EMPTY_Q))
 assert.ok(isQActive({ ...EMPTY_Q, sort: 'price' }))
 assert.ok(isQActive({ ...EMPTY_Q, q: 'a' }))
+assert.ok(isQActive({ ...EMPTY_Q, country: 'DE' }))
 assert.ok(isQActive({ ...EMPTY_Q, district: 'ვაკე' }))
 
 console.log('projects card.check ✓')

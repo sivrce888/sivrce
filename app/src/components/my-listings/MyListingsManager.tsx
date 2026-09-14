@@ -437,6 +437,7 @@ export default function MyListingsManager({
               />
             </label>
             <select
+              aria-label="დალაგება"
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
               className="h-11 shrink-0 rounded-full border-0 bg-sv-cloud px-4 text-[13px] font-bold text-sv-ink outline-none ring-1 ring-sv-ink/6 focus:ring-sv-blue/25"

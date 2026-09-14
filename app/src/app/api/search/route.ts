@@ -19,6 +19,7 @@ import { listingIdsInBbox } from "@/lib/geo/postgis"
 import { isExactLookupQuery } from "@/lib/listing-public-id"
 import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 import { streetHrefForListing } from "@/lib/street-href"
+import { canCatalogFallback, catalogSearch } from "@/lib/catalog-search"
 
 export const maxDuration = 15
 
@@ -298,5 +299,11 @@ export async function GET(req: Request) {
   }
 
   const dbResult = await dbSearch(filters)
+  if (dbResult.totalHits === 0 && canCatalogFallback(filters)) {
+    const cat = await catalogSearch(filters)
+    if (cat && cat.totalHits > 0) {
+      return Response.json({ ok: true, ...cat }, { headers: CACHE_HEADERS })
+    }
+  }
   return Response.json({ ok: true, ...dbResult }, { headers: CACHE_HEADERS })
 }

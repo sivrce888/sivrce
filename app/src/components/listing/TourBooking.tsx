@@ -112,7 +112,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                 <label className="mb-1 block text-sm font-semibold text-sv-ink/70">{t("tour.date")} *</label>
                 <div className="flex items-center gap-2 rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2">
                   <Calendar className="h-4 w-4 text-sv-ink/30" />
-                  <input type="date" min={today} max={maxDate} value={date} onChange={(e) => onDateChange(e.target.value)} required
+                  <input type="date" min={today} max={maxDate} value={date} onChange={(e) => onDateChange(e.target.value)} required aria-label={t("tour.date")}
                     className="w-full bg-transparent text-sm text-sv-ink outline-none" />
                 </div>
               </div>
@@ -120,7 +120,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                 <label className="mb-1 block text-sm font-semibold text-sv-ink/70">{t("tour.time")} *</label>
                 <div className="flex items-center gap-2 rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2">
                   <Clock className="h-4 w-4 text-sv-ink/30" />
-                  <select value={time} onChange={(e) => setTime(e.target.value)} required
+                  <select value={time} onChange={(e) => setTime(e.target.value)} required aria-label={t("tour.time")}
                     disabled={slots.status !== "ready" || noSlots}
                     className="w-full bg-transparent text-sm text-sv-ink outline-none disabled:opacity-50">
                     <option value="">
@@ -140,7 +140,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                 <label className="mb-1 block text-sm font-semibold text-sv-ink/70">{t("tour.name")} *</label>
                 <div className="flex items-center gap-2 rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2">
                   <User className="h-4 w-4 text-sv-ink/30" />
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder={t("tour.namePh")}
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder={t("tour.namePh")} aria-label={t("tour.name")}
                     className="w-full bg-transparent text-sm text-sv-ink outline-none" />
                 </div>
               </div>
@@ -148,7 +148,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                 <label className="mb-1 block text-sm font-semibold text-sv-ink/70">{t("tour.phone")} *</label>
                 <div className="flex items-center gap-2 rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2">
                   <Phone className="h-4 w-4 text-sv-ink/30" />
-                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder={t("tour.phonePh")}
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder={t("tour.phonePh")} aria-label={t("tour.phone")}
                     className="w-full bg-transparent text-sm text-sv-ink outline-none" />
                 </div>
               </div>
@@ -156,7 +156,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                 <label className="mb-1 block text-sm font-semibold text-sv-ink/70">{t("tour.email")}</label>
                 <div className="flex items-center gap-2 rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2">
                   <Mail className="h-4 w-4 text-sv-ink/30" />
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("tour.emailPh")}
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("tour.emailPh")} aria-label={t("tour.email")}
                     className="w-full bg-transparent text-sm text-sv-ink outline-none" />
                 </div>
               </div>
@@ -164,7 +164,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                 <label className="mb-1 block text-sm font-semibold text-sv-ink/70">{t("tour.notes")}</label>
                 <div className="flex items-start gap-2 rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2">
                   <MessageSquare className="mt-0.5 h-4 w-4 text-sv-ink/30" />
-                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder={t("tour.notesPh")}
+                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder={t("tour.notesPh")} aria-label={t("tour.notes")}
                     className="w-full bg-transparent text-sm text-sv-ink outline-none resize-none" />
                 </div>
               </div>

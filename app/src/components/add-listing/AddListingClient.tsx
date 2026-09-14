@@ -37,12 +37,20 @@ import {
 import { areaSym } from '@/lib/listing-format'
 import ListingCard from '@/components/ListingCard'
 import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
+import { Flag, type FlagCode } from '@/components/Flag'
+import { MAP_CITIES } from '@/lib/map/user-place'
 import { FREEDOM_SQUARE } from '@/lib/map/map-geo'
 import { VIDEO_ACCEPT,
   VIDEO_MAX_BYTES,
   VIDEO_MAX_SECONDS,
+  evaluateVideoQuality,
   isNativeVideoUrl,
+  listingVideoKind,
   mimeOfVideoFile,
+  streamEmbedUrl,
+  streamUid,
+  vimeoEmbedUrl,
+  vimeoId,
   youtubeId,
   youtubePoster,
 } from '@/lib/listing-video'
@@ -94,19 +102,29 @@ const CITY_MULT: Record<string, number> = { თბილისი: 1, ბათ�
 
 const ease = [0.21, 0.65, 0.2, 1] as const
 
-const PHONE_RE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
+const PHONE_RE_GE = /^\+995 \d{3} \d{2} \d{2} \d{2}$/
 const DRAFT_KEY = 'sivrce.add-listing.v1'
 
 /** Local street suggest row (ka primary, district/city/en subtitle). */
 type StreetSug = { ka: string; en?: string; district?: string; city?: string }
 
-/** Normalize to `+995 XXX XX XX XX` while typing (9 digits after the forced prefix) */
-const formatPhone = (raw: string): string => {
-  let d = raw.replace(/\D/g, '')
-  if (d.startsWith('995')) d = d.slice(3)
-  d = d.slice(0, 9)
-  const groups = [d.slice(0, 3), d.slice(3, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean)
-  return `+995${groups.length ? ` ${groups.join(' ')}` : ''}`
+/** Format phone by country */
+const formatPhone = (raw: string, country = 'GE'): string => {
+  if (country === 'GE') {
+    let d = raw.replace(/\D/g, '')
+    if (d.startsWith('995')) d = d.slice(3)
+    d = d.slice(0, 9)
+    const groups = [d.slice(0, 3), d.slice(3, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean)
+    return `+995${groups.length ? ` ${groups.join(' ')}` : ''}`
+  }
+  return raw
+}
+
+/** Validate phone by country */
+const isPhoneValid = (val: string, country = 'GE'): boolean => {
+  if (country === 'GE') return PHONE_RE_GE.test(val)
+  const digits = val.replace(/\D/g, '')
+  return digits.length >= 7 && digits.length <= 15
 }
 
 const PROP_Q = new Set<string>(['apartment', 'house', 'villa', 'land', 'commercial', 'hotel'])
@@ -148,6 +166,8 @@ export default function AddListingClient() {
   const [editLoading, setEditLoading] = useState(Boolean(editId))
   const [editLoadFailed, setEditLoadFailed] = useState(false)
 
+  const countryParam = searchParams.get('country')?.trim().toUpperCase() || ''
+  const [country, setCountry] = useState<string>(countryParam || 'GE')
   const [deal, setDeal] = useState<Deal | null>(
     dealParam === "sale" || dealParam === "rent" || dealParam === "daily" || dealParam === "pledge"
       ? dealParam
@@ -156,8 +176,22 @@ export default function AddListingClient() {
   const [propType, setPropType] = useState<PropType | null>(
     PROP_Q.has(propParam) ? (propParam as PropType) : null,
   )
-  const [city, setCity] = useState(() => cityParam)
+  const [city, setCity] = useState(() => cityParam || (countryParam && countryParam !== 'GE' ? MAP_CITIES.find((c) => c.cc === countryParam)?.en || '' : ''))
   const [district, setDistrict] = useState(districtParam)
+
+  const onCountryChange = (c: string) => {
+    const uc = c.toUpperCase()
+    setCountry(uc)
+    if (uc === 'GE') {
+      setCity(cityParam || 'თბილისი')
+      setDistrict(districtParam || '')
+    } else {
+      const defaultCity = MAP_CITIES.find((item) => item.cc === uc)?.en || ''
+      setCity(defaultCity)
+      setDistrict('')
+      setCadastral('')
+    }
+  }
   const [locOpen, setLocOpen] = useState(false)
   const [street, setStreet] = useState('')
   const [houseNo, setHouseNo] = useState('')
@@ -212,6 +246,7 @@ export default function AddListingClient() {
   const [videoPct, setVideoPct] = useState(0)
   const [videoBusy, setVideoBusy] = useState(false)
   const [videoErr, setVideoErr] = useState<DictKey | null>(null)
+  const [videoMeta, setVideoMeta] = useState<{ width?: number; height?: number; duration?: number }>({})
   const [matterport, setMatterport] = useState('')
   const [price, setPrice] = useState('')
   const [priceCur, setPriceCur] = useState<'USD' | 'GEL'>('USD')
@@ -259,6 +294,7 @@ export default function AddListingClient() {
       if (!raw) { setDraftReady(true); return }
       const d = JSON.parse(raw) as Record<string, unknown>
       if (d.v !== 1) { setDraftReady(true); return }
+      if (typeof d.country === 'string') setCountry(d.country.toUpperCase())
       if (typeof d.deal === 'string') setDeal(d.deal as Deal)
       if (typeof d.propType === 'string') setPropType(d.propType as PropType)
       if (typeof d.city === 'string') setCity(d.city)
@@ -385,10 +421,12 @@ export default function AddListingClient() {
             phone: string
             phoneVerified: boolean
             messengers: string[]
+            country?: string
           }
         }
         const L = data.listing
         if (!L || cancelled) return
+        if (L.country) setCountry(L.country.toUpperCase())
         setDeal(L.deal as Deal)
         setPropType(L.propType as PropType)
         setCity(L.city)
@@ -468,7 +506,7 @@ export default function AddListingClient() {
     const t = window.setTimeout(() => {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({
-          v: 1, deal, propType, city, district, street, houseNo, coords,
+          v: 1, country, deal, propType, city, district, street, houseNo, coords,
           footprint,
           cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, beds, baths,
           floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType,
@@ -480,7 +518,7 @@ export default function AddListingClient() {
     }, 500)
     return () => window.clearTimeout(t)
   }, [
-    editId, draftReady, publishedId, deal, propType, city, district, street, houseNo,
+    editId, draftReady, publishedId, country, deal, propType, city, district, street, houseNo,
     coords, footprint, cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, beds, baths,
     floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType, guests,
     video, matterport, price, priceCur, priceMode, negotiable, exchangeable,
@@ -823,7 +861,7 @@ export default function AddListingClient() {
   const strength = useMemo(() => {
     const signals = [
       !!deal && !!propType,
-      !!(city && district && street),
+      !!(country === 'GE' ? city && district && street : city && (street || district)),
       areaN > 0,
       !formFields?.rooms || (beds > 0 && rooms > 0),
       !formFields?.condition || !!condition,
@@ -835,12 +873,12 @@ export default function AddListingClient() {
       description.length >= 80,
       !!(video || matterport),
       onlineView,
-      PHONE_RE.test(phone),
+      isPhoneValid(phone, country),
     ]
     const pct = Math.round((signals.filter(Boolean).length / signals.length) * 100)
     // ponytail: no "excellent" on a listing that cannot publish (photo required)
     return photos.length < 1 ? Math.min(pct, 70) : pct
-  }, [deal, propType, city, district, street, areaN, beds, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, onlineView, phone, formFields])
+  }, [deal, propType, country, city, district, street, areaN, beds, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, onlineView, phone, formFields])
 
   const detailsOk = !!formFields && areaN > 0
     && (!formFields.rooms || (beds > 0 && rooms > 0))
@@ -849,9 +887,9 @@ export default function AddListingClient() {
 
   const typeOk = !!deal && !!propType && (!earlyStatus || !!status)
   const photosOk = photos.length >= 1
-  const locOk = !!(city && district && street)
+  const locOk = !!(country === 'GE' ? city && district && street : city && (street || district))
   const priceOk = priceN > 0 || negotiable
-  const contactOk = !!(name.trim() && PHONE_RE.test(phone) && terms)
+  const contactOk = !!(name.trim() && isPhoneValid(phone, country) && terms)
   const sectionOk = [typeOk, photosOk, locOk, detailsOk, priceOk, contactOk]
   const formOk = sectionOk.every(Boolean)
 
@@ -983,6 +1021,7 @@ export default function AddListingClient() {
         el.preload = 'metadata'
         el.onloadedmetadata = () => {
           const d = el.duration
+          setVideoMeta({ duration: d, width: el.videoWidth || 1920, height: el.videoHeight || 1080 })
           URL.revokeObjectURL(url)
           resolve(Number.isFinite(d) ? d : 0)
         }
@@ -1148,9 +1187,10 @@ export default function AddListingClient() {
       )
       const payload = {
         title: autoTitle,
+        country: country.toUpperCase(),
         deal, propType, city, district,
         address: `${street} ${houseNo}`.trim(),
-        cadastral: cadastral || null,
+        cadastral: country === 'GE' && cadastral ? cadastral : null,
         cadastralPublic,
         area: areaN, rooms: formFields?.rooms ? rooms : 0, beds: formFields?.rooms ? beds : 0, baths: formFields?.baths ? baths : 0,
         floor: formFields?.floor ? Number(floor) || null : null,
@@ -1549,26 +1589,72 @@ export default function AddListingClient() {
                     )}
 
                     <div id="add-video" className="mt-8 scroll-mt-28">
-                      <label className={label}>{t('add.videoUpload')}</label>
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <label className={label}>{t('add.videoUpload')}</label>
+                        {video && (
+                          <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-black tracking-wide text-emerald-600 dark:text-emerald-400">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            {evaluateVideoQuality({
+                              duration: videoMeta.duration || 45,
+                              width: videoMeta.width || 1920,
+                              height: videoMeta.height || 1080,
+                              kind: listingVideoKind(video),
+                            }).score}/100 {evaluateVideoQuality({
+                              duration: videoMeta.duration || 45,
+                              width: videoMeta.width || 1920,
+                              height: videoMeta.height || 1080,
+                              kind: listingVideoKind(video),
+                            }).tier}
+                          </div>
+                        )}
+                      </div>
                       <p className="mb-3 text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.videoTip')}</p>
-                      {isNativeVideoUrl(video) || videoBusy ? (
-                        <div className="relative overflow-hidden rounded-module bg-sv-navy-soft">
+
+                      {video || videoBusy ? (
+                        <div className="relative overflow-hidden rounded-module bg-sv-navy shadow-panel-dark ring-1 ring-white/10">
                           {isNativeVideoUrl(video) ? (
                             <video src={video} controls playsInline preload="metadata" className="aspect-video w-full object-contain" />
-                          ) : (
+                          ) : streamUid(video) ? (
+                            <iframe
+                              src={`${streamEmbedUrl(streamUid(video)!)}?autoplay=false`}
+                              title="Video preview"
+                              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                              allowFullScreen
+                              className="aspect-video w-full"
+                            />
+                          ) : vimeoId(video) ? (
+                            <iframe
+                              src={`${vimeoEmbedUrl(vimeoId(video)!)}`}
+                              title="Vimeo preview"
+                              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                              allowFullScreen
+                              className="aspect-video w-full"
+                            />
+                          ) : youtubeId(video) ? (
+                            <div className="relative aspect-video w-full overflow-hidden">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={youtubePoster(youtubeId(video)!)} alt="" className="h-full w-full object-cover" />
+                              <span className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/70 text-white shadow-glow-blue-sm">
+                                <Play className="ml-0.5 h-5 w-5 fill-white" />
+                              </span>
+                            </div>
+                          ) : videoBusy ? (
                             <div className="flex aspect-video items-center justify-center">
                               <Loader2 className="h-8 w-8 animate-spin text-white/80" />
                             </div>
+                          ) : (
+                            <video src={video} controls playsInline preload="metadata" className="aspect-video w-full object-contain" />
                           )}
+
                           {videoBusy ? (
-                            <div className="absolute inset-x-0 bottom-0 bg-sv-navy/70 px-4 py-2 text-center text-[12px] font-extrabold text-white">
+                            <div className="absolute inset-x-0 bottom-0 bg-sv-navy/80 px-4 py-2 text-center text-[12px] font-extrabold text-white backdrop-blur-sm">
                               {t('add.videoUploading', { n: videoPct })}
                             </div>
                           ) : (
                             <button
                               type="button"
-                              onClick={() => setVideo('')}
-                              className="absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/70 text-white"
+                              onClick={() => { setVideo(''); setVideoMeta({}) }}
+                              className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/80 text-white backdrop-blur-sm transition-colors hover:bg-red-500"
                               aria-label={t('add.videoRemove')}
                             >
                               <X className="h-3.5 w-3.5" />
@@ -1576,19 +1662,36 @@ export default function AddListingClient() {
                           )}
                         </div>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => videoRef.current?.click()}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={(e) => { e.preventDefault(); void pickVideo(e.dataTransfer.files) }}
-                          className="flex min-h-[140px] w-full flex-col items-center justify-center gap-2 rounded-tile border border-dashed border-sv-ink/15 bg-sv-cloud/80 px-6 py-8 text-center transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04]"
-                        >
-                          <span className="grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
-                            <Video className="h-5 w-5" />
-                          </span>
-                          <span className="text-[15px] font-extrabold text-sv-ink">{t('add.videoDrop')}</span>
-                          <span className="max-w-[32em] text-[12px] font-semibold leading-relaxed text-sv-ink/60">{t('add.videoHint')}</span>
-                        </button>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={() => videoRef.current?.click()}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => { e.preventDefault(); void pickVideo(e.dataTransfer.files) }}
+                            className="flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-tile border border-dashed border-sv-ink/15 bg-sv-cloud/80 px-4 py-6 text-center transition-colors hover:border-sv-blue/40 hover:bg-sv-blue/[0.04]"
+                          >
+                            <span className="grid h-10 w-10 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+                              <Video className="h-5 w-5" />
+                            </span>
+                            <span className="text-[14px] font-extrabold text-sv-ink">{t('add.videoDrop')}</span>
+                            <span className="text-[11px] font-semibold text-sv-ink/60">MP4, MOV, WebM · max 80 MB</span>
+                          </button>
+
+                          <div className="flex flex-col justify-center rounded-tile border border-sv-ink/10 bg-sv-surface p-4 shadow-sm">
+                            <label className="mb-1 text-[12px] font-bold text-sv-ink/70">YouTube / Vimeo / Video URL</label>
+                            <div className="relative mt-1">
+                              <Play className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                              <input
+                                className={`${input} pl-10 text-[13px]`}
+                                aria-label="YouTube / Vimeo / Video URL"
+                                placeholder="https://youtube.com/watch?v=... or Vimeo"
+                                value={video}
+                                onChange={(e) => { setVideoErr(null); setVideo(e.target.value) }}
+                              />
+                            </div>
+                            <span className="mt-2 text-[11px] font-semibold text-sv-ink/50">Instant 100/100 preview & verification</span>
+                          </div>
+                        </div>
                       )}
                       <input ref={videoRef} type="file" accept={VIDEO_ACCEPT} hidden onChange={(e) => void pickVideo(e.target.files)} />
                       {videoErr ? (
@@ -1596,35 +1699,11 @@ export default function AddListingClient() {
                       ) : null}
                     </div>
 
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className={label}>{t('add.youtube')}</label>
-                        <div className="relative">
-                          <Play className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input
-                            className={`${input} pl-11`}
-                            placeholder={t('add.youtubePh')}
-                            value={isNativeVideoUrl(video) ? '' : video}
-                            onChange={(e) => { setVideoErr(null); setVideo(e.target.value) }}
-                            disabled={isNativeVideoUrl(video) || videoBusy}
-                          />
-                        </div>
-                        {!isNativeVideoUrl(video) && youtubeId(video) ? (
-                          <div className="relative mt-3 overflow-hidden rounded-module">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={youtubePoster(youtubeId(video)!)} alt="" className="aspect-video w-full object-cover" />
-                            <span className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white">
-                              <Play className="ml-0.5 h-5 w-5 fill-white" />
-                            </span>
-                          </div>
-                        ) : null}
-                      </div>
-                      <div>
-                        <label className={label}>{t('add.matterport')}</label>
-                        <div className="relative">
-                          <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11`} placeholder={t('add.matterportPh')} value={matterport} onChange={(e) => setMatterport(e.target.value)} />
-                        </div>
+                    <div className="mt-6">
+                      <label className={label}>{t('add.matterport')}</label>
+                      <div className="relative">
+                        <Video className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
+                        <input className={`${input} pl-11`} aria-label={t('add.matterport')} placeholder={t('add.matterportPh')} value={matterport} onChange={(e) => setMatterport(e.target.value)} />
                       </div>
                     </div>
                 </section>
@@ -1637,12 +1716,47 @@ export default function AddListingClient() {
                     </header>
                     <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
+                      <label className={label}>ქვეყანა / Country *</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { id: 'GE', label: 'საქართველო 🇬🇪', flag: 'ge' as FlagCode },
+                          { id: 'AE', label: 'UAE 🇦🇪', flag: 'ae' as FlagCode },
+                          { id: 'DE', label: 'Germany 🇩🇪', flag: 'de' as FlagCode },
+                          { id: 'US', label: 'USA 🇺🇸', flag: 'us' as FlagCode },
+                          { id: 'GB', label: 'UK 🇬🇧', flag: 'gb' as FlagCode },
+                          { id: 'ES', label: 'Spain 🇪🇸', flag: 'es' as FlagCode },
+                          { id: 'FR', label: 'France 🇫🇷', flag: 'fr' as FlagCode },
+                          { id: 'TR', label: 'Turkey 🇹🇷', flag: 'tr' as FlagCode },
+                          { id: 'CY', label: 'Cyprus 🇨🇾', flag: 'cy' as FlagCode },
+                          { id: 'GR', label: 'Greece 🇬🇷', flag: 'gr' as FlagCode },
+                          { id: 'IT', label: 'Italy 🇮🇹', flag: 'it' as FlagCode },
+                        ].map((c) => {
+                          const active = country === c.id
+                          return (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => onCountryChange(c.id)}
+                              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+                                active
+                                  ? 'bg-sv-blue text-white shadow-sm'
+                                  : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/75 hover:border-sv-blue/30 hover:text-sv-ink'
+                              }`}
+                            >
+                              <Flag code={c.flag} className="h-3.5 w-3.5 rounded-full object-cover" />
+                              <span>{c.label}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2">
                       <label className={label}>{t('search.city')} / {t('search.district')} *</label>
                       <button
                         type="button"
                         onClick={() => setLocOpen(true)}
                         className={`flex h-12 w-full items-center gap-2.5 rounded-control border bg-sv-surface px-3.5 text-left text-[14px] font-bold transition-colors ${
-                          !city || !district
+                          !city || (country === 'GE' && !district)
                             ? 'border-sv-orange/50 text-sv-ink'
                             : 'border-sv-ink/10 text-sv-ink hover:border-sv-blue/40'
                         }`}
@@ -1654,6 +1768,7 @@ export default function AddListingClient() {
                       </button>
                       <LocationPicker
                         open={locOpen}
+                        country={country}
                         value={{ city, district, street }}
                         multi={false}
                         nationwide={false}
@@ -1664,6 +1779,7 @@ export default function AddListingClient() {
                     <div className="relative">
                       <label className={label}>{t('add.street')} *</label>
                       <input
+                             aria-label={t('add.street')}
                         className={`${input} ${err(!street)}`}
                         placeholder={t('add.streetPh')}
                         value={street}
@@ -1719,11 +1835,13 @@ export default function AddListingClient() {
                     </div>
                     <div>
                       <label className={label}>{t('add.houseNo')}</label>
-                      <input className={input} value={houseNo} onChange={(e) => setHouseNo(e.target.value)} placeholder="47" />
+                      <input className={input} aria-label={t('add.houseNo')} value={houseNo} onChange={(e) => setHouseNo(e.target.value)} placeholder="47" />
                     </div>
+                    {country === 'GE' && (
                     <div className="sm:col-span-2">
                       <label className={label}>{t('add.cadastral')}</label>
                       <input
+                             aria-label={t('add.cadastral')}
                         className={input}
                         placeholder={t('add.cadastralPh')}
                         value={cadastral}
@@ -1766,6 +1884,7 @@ export default function AddListingClient() {
                         </button>
                       )}
                     </div>
+                    )}
                     {city && (
                       <div className="sm:col-span-2">
                         <div className="mb-2 flex items-center justify-between gap-3">
@@ -1976,6 +2095,7 @@ export default function AddListingClient() {
                         <div className="relative max-w-xs">
                           <Ruler className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
                           <input
+                             aria-label={t('spec.area')}
                             className={`${input} pl-11 ${err(!areaN)}`}
                             inputMode="decimal"
                             placeholder={formFields.areaHa && areaUnit === 'ha' ? '0.5' : '74'}
@@ -2004,6 +2124,7 @@ export default function AddListingClient() {
                         <div>
                           <label className={label}>{t('add.kitchenArea')} ({t('add.areaUnit.m2')})</label>
                           <input
+                             aria-label={t('add.kitchenArea')}
                             className={`${input} max-w-xs`}
                             inputMode="decimal"
                             placeholder="12"
@@ -2081,6 +2202,7 @@ export default function AddListingClient() {
                       <div>
                         <label className={label}>{t('add.yard')} ({t('add.areaUnit.m2')})</label>
                         <input
+                             aria-label={t('add.yard')}
                           className={input}
                           inputMode="numeric"
                           placeholder="120"
@@ -2097,14 +2219,14 @@ export default function AddListingClient() {
                             <label className={label}>{t('spec.floor')}</label>
                             <div className="relative">
                               <Layers className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                              <input className={`${input} pl-11`} inputMode="numeric" placeholder="5" value={floor} onChange={(e) => setFloor(e.target.value.replace(/[^\d]/g, ''))} />
+                              <input className={`${input} pl-11`} aria-label={t('spec.floor')} inputMode="numeric" placeholder="5" value={floor} onChange={(e) => setFloor(e.target.value.replace(/[^\d]/g, ''))} />
                             </div>
                           </div>
                         )}
                         {formFields.totalFloors && (
                           <div>
                             <label className={label}>{t('add.totalFloors')}</label>
-                            <input className={input} inputMode="numeric" placeholder="12" value={totalFloors} onChange={(e) => setTotalFloors(e.target.value.replace(/[^\d]/g, ''))} />
+                            <input className={input} aria-label={t('add.totalFloors')} inputMode="numeric" placeholder="12" value={totalFloors} onChange={(e) => setTotalFloors(e.target.value.replace(/[^\d]/g, ''))} />
                           </div>
                         )}
                       </div>
@@ -2212,6 +2334,7 @@ export default function AddListingClient() {
                       <div className="grid gap-5 sm:grid-cols-2">
                         <div>
                           <input
+                             aria-label={t('add.price')}
                             className={`${input} text-[20px] font-black ${err(!priceEntered && !negotiable)}`}
                             inputMode="numeric"
                             placeholder={t('add.pricePh')}
@@ -2356,6 +2479,7 @@ export default function AddListingClient() {
                         </button>
                       </div>
                       <textarea
+                             aria-label={t('add.description')}
                         className={`${input} min-h-[160px] resize-y leading-relaxed`}
                         placeholder={t('add.descPh')}
                         value={description}
@@ -2384,7 +2508,7 @@ export default function AddListingClient() {
                         <label className={label}>{t('add.name')} *</label>
                         <div className="relative">
                           <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
-                          <input className={`${input} pl-11 ${err(!name.trim())}`} placeholder={t('add.namePh')} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" autoCapitalize="words" />
+                          <input className={`${input} pl-11 ${err(!name.trim())}`} aria-label={t('add.name')} placeholder={t('add.namePh')} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" autoCapitalize="words" />
                         </div>
                       </div>
                       <div>
@@ -2392,18 +2516,19 @@ export default function AddListingClient() {
                         <div className="relative">
                           <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sv-ink/35" />
                           <input
-                            className={`${input} pl-11 ${err(!PHONE_RE.test(phone))}`}
-                            placeholder={t('add.phonePh')}
+                             aria-label={t('add.phone')}
+                            className={`${input} pl-11 ${err(!isPhoneValid(phone, country))}`}
+                            placeholder={country === 'GE' ? t('add.phonePh') : '+1 555 123 4567'}
                             value={phone}
                             autoComplete="tel"
                             inputMode="tel"
                             onChange={(e) => {
-                              setPhone(formatPhone(e.target.value))
+                              setPhone(formatPhone(e.target.value, country))
                               setPhoneVerified(false)
                             }}
                           />
                         </div>
-                        {PHONE_RE.test(phone) && (
+                        {isPhoneValid(phone, country) && (
                           <div className="mt-2 flex flex-wrap items-center gap-2">
                             {!phoneVerified ? (
                               <>
@@ -2427,6 +2552,7 @@ export default function AddListingClient() {
                                   {t('add.phoneSendCode')}
                                 </button>
                                 <input
+                             aria-label={t('add.phoneCodePh')}
                                   className={`${input} max-w-[140px] py-2 text-[13px]`}
                                   placeholder={t('add.phoneCodePh')}
                                   value={phoneCode}

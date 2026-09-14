@@ -99,6 +99,14 @@ export function postedDaysAgo(l: Listing, today = new Date()): number {
   return Math.max(0, Math.round((toUtc(b) - toUtc(a)) / 86_400_000))
 }
 
+/** Catalog rows with no published ask (priceFromM2 = მოთხოვნით). */
+export function priceOnRequestLabel(lang: string): string {
+  if (lang === 'ka') return 'ფასი მოთხოვნით'
+  if (lang === 'de') return 'Preis auf Anfrage'
+  if (lang === 'ru') return 'Цена по запросу'
+  return 'Price on request'
+}
+
 /** Card timestamp. ka is hardcoded — ICU RelativeTimeFormat falls back to English "today". */
 export function postedAgoLabel(days: number, lang: string): string {
   if (lang === 'ka') {

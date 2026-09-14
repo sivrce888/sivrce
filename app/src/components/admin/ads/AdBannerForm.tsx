@@ -256,6 +256,7 @@ export function AdBannerForm({ defaults }: { defaults: AdBannerDefaults }) {
           </div>
           <input
             className={`${inputCls} mt-3`}
+            aria-label="Image URL"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
             placeholder="or paste image URL"
