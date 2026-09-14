@@ -42,6 +42,13 @@
     "batch": 1
   },
   {
+    "slug": "amsterdam-zuidas",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "arabian-ranches-3",
     "status": "failed",
     "source": null,
@@ -1015,6 +1022,13 @@
     "batch": 1
   },
   {
+    "slug": "istanbul-metro",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "jeddah-tower",
     "status": "failed",
     "source": null,
@@ -1037,6 +1051,13 @@
   },
   {
     "slug": "kokhta-ubani-tsatskhvebi",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "krakow-nowa-huta",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1645,6 +1666,13 @@
     "batch": 1
   },
   {
+    "slug": "rotterdam-de-kuip",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "royal-bohema-residence",
     "status": "failed",
     "source": null,
@@ -1995,6 +2023,13 @@
     "batch": 1
   },
   {
+    "slug": "utrecht-stationsgebied",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "verda-mukhiani",
     "status": "ok",
     "source": "korter",
@@ -2006,6 +2041,13 @@
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/vertikal-batumi",
+    "batch": 1
+  },
+  {
+    "slug": "warsaw-centralna",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -2115,6 +2157,13 @@
   },
   {
     "slug": "wohnquadrat-harzer-118",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "wroclaw-nowe-zerniki",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
