@@ -12,10 +12,14 @@
  *
  * Modes:
  *   default        run mirror for selected projects (chunkable)
+ *   --galleries    re-scrape ok entries' provenance page + re-match failed
+ *                  entries for the FULL image set: hero + up to GALLERY_CAP
+ *                  real photos/renders per project (<slug>-g<N>.webp)
+ *   --emit         regenerate src/data/project-galleries.ts from the manifest
  *   --revert       revert FAILED batch-1 img fields back to /images/np1.webp
  *   --apply-batch2 write successful batch-2 img updates into professionals.ts
  *
- * Flags: --batch=1|2 --from=N --limit=M --slugs=a,b,c --dry
+ * Flags: --batch=1|2 --from=N --limit=M --slugs=a,b,c --max-files=N --dry
  * Manifest: ../research/renders-manifest-2026-07.json (upserted per project).
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -38,10 +42,21 @@ const SPACING_MS = 300
 type ManifestEntry = {
   slug: string
   status: 'ok' | 'failed'
-  source: 'official' | 'korter' | null
+  source: 'official' | 'korter' | 'wikipedia' | null
   sourceUrl: string | null
   batch: 1 | 2
+  /** Real mirrored gallery paths, hero excluded — emitted into project-galleries.ts. */
+  gallery?: string[]
 }
+
+// ponytail: 2/project — repo file cap is 4500 and we sit at ~3500; raise only with a
+// lock bump in .cursor/rules/repo-lightweight-lock.mdc (or an R2/CDN mirror).
+const GALLERY_CAP = 2
+let newFiles = 0
+let maxNewFiles = 900
+// byte guard: tracked tree is ~55 of 96 MiB — keep new gallery pixels ≤ ~26 MiB
+let newBytes = 0
+let maxNewBytes = 26 * 1024 * 1024
 
 type Target = {
   slug: string
@@ -281,22 +296,132 @@ function titleOf(html: string): string {
   return (t?.[1] ?? '').toLowerCase()
 }
 
-async function saveWebp(buf: Buffer, slug: string): Promise<boolean> {
+/** All real content images on the page: og/JSON-LD hero first, then <img> srcs. */
+function extractImages(html: string, pageUrl: string): string[] {
+  const out: string[] = []
+  const push = (href: string | undefined | null): void => {
+    if (!href) return
+    const u = resolveUrl(href.trim(), pageUrl)
+    if (!u || !/^https?:/.test(u)) return
+    if (/\.(svg|gif)([?#]|$)/i.test(u)) return
+    // chrome, not content: logos/icons/social badges/sister-site banners
+    if (/logo|icon|favicon|sprite|avatar|placeholder|badge|emoji|\/flags?\//i.test(u)) return
+    const key = u.split('?')[0]!
+    if (out.some((x) => x.split('?')[0] === key)) return
+    out.push(u)
+  }
+  push(extractImage(html, pageUrl))
+  for (const m of html.matchAll(/<img\b[^>]*>/gi)) {
+    const tag = m[0]!
+    const srcset = tag.match(/\bsrcset=["']([^"']+)["']/i)?.[1]
+    if (srcset) {
+      const best = srcset
+        .split(',')
+        .map((s) => s.trim().split(/\s+/))
+        .sort((a, b) => (parseInt(b[b.length - 1]!, 10) || 0) - (parseInt(a[a.length - 1]!, 10) || 0))[0]
+      push(best?.[0])
+    }
+    push(tag.match(/\b(?:data-src|data-original|data-lazy-src)=["']([^"']+)["']/i)?.[1])
+    push(tag.match(/\bsrc=["']([^"']+)["']/i)?.[1])
+  }
+  return out.slice(0, 10)
+}
+
+async function saveWebp(buf: Buffer, slug: string): Promise<number> {
   try {
     await mkdir(OUT_DIR, { recursive: true })
-    await sharp(buf)
+    const out = await sharp(buf)
       .rotate()
       .resize({ width: 960, withoutEnlargement: true })
       .webp({ quality: 64, effort: 6 })
       .toFile(path.join(OUT_DIR, `${slug}.webp`))
-    return true
+    return out.size
+  } catch {
+    return 0
+  }
+}
+
+// ── strategies ─────────────────────────────────────────────────────────────
+type PageHit = { page: string; images: string[] }
+
+/** 16×16 grayscale compare — catches the og:image re-served as the first <img>. */
+async function looksLikeHero(buf: Buffer, slug: string): Promise<boolean> {
+  const heroPath = path.join(OUT_DIR, `${slug}.webp`)
+  if (!existsSync(heroPath)) return false
+  try {
+    const thumb = (b: Buffer): Promise<Buffer> =>
+      sharp(b).resize(16, 16, { fit: 'fill' }).grayscale().raw().toBuffer()
+    const [a, b] = await Promise.all([thumb(buf), thumb(await readFile(heroPath))])
+    let d = 0
+    for (let i = 0; i < a.length; i++) d += Math.abs(a[i]! - b[i]!)
+    return d / a.length < 8
   } catch {
     return false
   }
 }
 
-// ── strategies ─────────────────────────────────────────────────────────────
-async function tryOfficial(t: Target): Promise<string | null> {
+/** Download+convert candidates: candidate 0 is the hero, next `cap` fill the gallery. */
+async function capture(
+  t: Target,
+  images: string[],
+  opts: { hero: boolean; gallery: boolean; cap?: number; skipExtras?: number },
+): Promise<{ hero: boolean; gallery: string[] } | null> {
+  const cap = opts.cap ?? 0
+  let skip = opts.skipExtras ?? 0
+  const seen = new Set<string>()
+  const cands = images.filter((u) => {
+    const key = u.split('?')[0]!
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  const hadHero = existsSync(path.join(OUT_DIR, `${t.slug}.webp`))
+  let hero = false
+  const gallery: string[] = []
+  for (let i = 0; i < cands.length; i++) {
+    const wantHero = opts.hero && i === 0 && !hadHero
+    const wantExtra = opts.gallery && gallery.length < cap
+    if (!wantHero && !wantExtra) break
+    if (!wantHero && (newFiles >= maxNewFiles || newBytes >= maxNewBytes)) break
+    if (!wantHero && skip > 0) {
+      skip--
+      continue
+    }
+    const buf = await fetchBuffer(cands[i]!)
+    if (!buf || buf.length < 5_000) continue
+    const meta = await sharp(buf).metadata().catch(() => null)
+    if (!meta?.width || meta.width < 400) continue
+    const ar = meta.height ? meta.width / meta.height : 1
+    if (ar < 0.45 || ar > 3.2) continue
+    if (wantHero) {
+      const sz = await saveWebp(buf, t.slug)
+      if (!sz) continue
+      hero = true
+      newFiles++
+      newBytes += sz
+    } else if (await looksLikeHero(buf, t.slug)) {
+      continue
+    } else {
+      const rel = `/images/projects/${t.slug}-g${gallery.length + 1}.webp`
+      try {
+        const out = await sharp(buf)
+          .rotate()
+          .resize({ width: 832, withoutEnlargement: true })
+          .webp({ quality: 58, effort: 6 })
+          .toBuffer()
+        await writeFile(path.join(ROOT, 'public', rel), out)
+        gallery.push(rel)
+        newFiles++
+        newBytes += out.length
+      } catch {
+        continue
+      }
+    }
+  }
+  return hero || gallery.length > 0 ? { hero, gallery } : null
+}
+
+async function matchOfficial(t: Target): Promise<PageHit | null> {
   const cfg = DEV_SITES[t.dev ?? '']
   if (!cfg) return null
   const candidates = new Set<string>()
@@ -317,15 +442,12 @@ async function tryOfficial(t: Target): Promise<string | null> {
   const alpha = distinctiveTokens(t).filter((x) => /[a-z]/.test(x) && x.length >= 4)
   const weak = alpha.length === 1 && alpha[0]!.length <= 7
   if (weak && !alpha.some((tok) => titleOf(html).includes(tok))) return null
-  const img = extractImage(html, page)
-  if (!img) return null
-  const buf = await fetchBuffer(img)
-  if (!buf || buf.length < 5_000) return null
-  if (!(await saveWebp(buf, t.slug))) return null
-  return page
+  const images = extractImages(html, page)
+  if (images.length === 0) return null
+  return { page, images }
 }
 
-async function tryKorter(t: Target): Promise<string | null> {
+async function matchKorter(t: Target): Promise<PageHit | null> {
   const cities = new Set<string>()
   const mapped = KORTER_CITY[t.city]
   if (mapped) cities.add(mapped)
@@ -335,18 +457,15 @@ async function tryKorter(t: Target): Promise<string | null> {
   cities.add('batumi')
   const need = distinctiveTokens(t).filter((x) => /[a-z]/.test(x) && x.length >= 4)
 
-  const checkPage = async (url: string): Promise<string | null> => {
+  const checkPage = async (url: string): Promise<PageHit | null> => {
     const html = await fetchText(url)
     if (!html) return null
     const title = titleOf(html)
     // verify the page actually is about this project
     if (need.length > 0 && !need.some((tok) => title.includes(tok))) return null
-    const img = extractImage(html, url)
-    if (!img) return null
-    const buf = await fetchBuffer(img)
-    if (!buf || buf.length < 5_000) return null
-    if (!(await saveWebp(buf, t.slug))) return null
-    return url
+    const images = extractImages(html, url)
+    if (images.length === 0) return null
+    return { page: url, images }
   }
 
   // direct slug variants: full slug, phase number stripped, dev prefix
@@ -405,6 +524,54 @@ async function tryKorter(t: Target): Promise<string | null> {
 }
 
 // ── targets ────────────────────────────────────────────────────────────────
+/**
+ * Public-source fallback for world/landmark rows with no developer page:
+ * enwiki search → tight title match → article image (CC-scraped, public).
+ * Only ≥70% of the name's distinctive tokens may hit — wrong-subject images
+ * are worse than no image.
+ */
+async function matchWikipedia(t: Target): Promise<PageHit | null> {
+  const name = t.name.replace(/\s+/g, ' ').trim()
+  if (!name || !/[a-z]/i.test(name)) return null
+  const api =
+    `https://en.wikipedia.org/w/api.php?action=query&list=search` +
+    `&srsearch=${encodeURIComponent(name)}&srlimit=3&format=json`
+  const txt = await fetchText(api)
+  if (!txt) return null
+  try {
+    const hits = (JSON.parse(txt) as { query?: { search?: Array<{ title?: string }> } }).query?.search ?? []
+    const want = tokens(name).filter((w) => !STOP.has(w))
+    if (want.length === 0) return null
+    for (const h of hits) {
+      const title = String(h.title ?? '')
+      if (!title) continue
+      const have = tokens(title)
+      const hitsTok = want.filter((w) => have.includes(w) || have.some((hv) => tokenHit(w, new Set([hv]))))
+      if (hitsTok.length < Math.max(1, Math.ceil(want.length * 0.7))) continue
+      const sumTxt = await fetchText(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`,
+      )
+      if (!sumTxt) continue
+      const sum = JSON.parse(sumTxt) as {
+        originalimage?: { source?: string }
+        thumbnail?: { source?: string }
+        content_urls?: { desktop?: { page?: string } }
+        type?: string
+      }
+      const img = sum.originalimage?.source ?? sum.thumbnail?.source
+      if (!img) continue
+      // disambiguation/stub summaries carry no real photo — rely on img check above
+      const page =
+        sum.content_urls?.desktop?.page ?? `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`
+      return { page, images: [img] }
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+
 function batch1Targets(): Target[] {
   const files = [
     { arr: NEW_PROJECTS_TBILISI, file: 'tbilisi' as const },
@@ -501,6 +668,112 @@ async function applyBatch2(manifest: Map<string, ManifestEntry>): Promise<void> 
   await writeFile(abs, src)
 }
 
+// ── galleries mode ─────────────────────────────────────────────────────────
+async function emitGalleries(manifest: Map<string, ManifestEntry>): Promise<void> {
+  const rows: string[] = []
+  for (const e of [...manifest.values()].sort((a, b) => a.slug.localeCompare(b.slug))) {
+    if (!e.gallery?.length) continue
+    rows.push(`  '${e.slug}': [${e.gallery.map((g) => `'${g}'`).join(', ')}],`)
+  }
+  const src =
+    `// Generated by scripts/mirror-project-renders.ts --galleries — real photos/renders\n` +
+    `// mirrored from official sources; provenance per slug in research/renders-manifest-2026-07.json.\n` +
+    `export const PROJECT_GALLERIES: Record<string, string[]> = {\n${rows.join('\n')}\n}\n`
+  await writeFile(path.join(ROOT, 'src', 'data', 'project-galleries.ts'), src)
+  console.log(`emitted src/data/project-galleries.ts (${rows.length} projects)`)
+}
+
+async function galleriesMode(
+  manifest: Map<string, ManifestEntry>,
+  only: Set<string> | null,
+  dry: boolean,
+): Promise<void> {
+  // Pass A — ok entries: re-scrape their provenance page for the full gallery.
+  // Sweep 1 gives every covered project one real photo; sweep 2 runs after
+  // pass B so hero-less projects win budget before anyone's second image.
+  let a = 0
+  const runSweep = async (cap: number): Promise<void> => {
+    for (const e of [...manifest.values()].sort((x, y) => x.slug.localeCompare(y.slug))) {
+      if (only && !only.has(e.slug)) continue
+      if (e.status !== 'ok' || !e.sourceUrl) continue
+      const have = e.gallery?.length ?? 0
+      if (have >= cap) continue
+      if (newFiles >= maxNewFiles || newBytes >= maxNewBytes) {
+        console.log(`budget reached (${newFiles}/${maxNewFiles}, ${(newBytes / 1048576).toFixed(1)}MiB) — pass A sweep ${cap} stopping`)
+        break
+      }
+      if (dry) {
+        console.log(`dry ${e.slug} (A${cap}: ${e.sourceUrl})`)
+        continue
+      }
+      const html = await fetchText(e.sourceUrl)
+      if (!html) continue
+      const t: Target = { slug: e.slug, name: e.slug, city: '', file: 'professionals' }
+      const heroMissing = !existsSync(path.join(OUT_DIR, `${e.slug}.webp`))
+      const got = await capture(t, extractImages(html, e.sourceUrl), {
+        hero: heroMissing,
+        gallery: true,
+        cap,
+        skipExtras: have,
+      })
+      if (!got) continue
+      e.gallery = [...(e.gallery ?? []), ...got.gallery].filter((x, i, all) => all.indexOf(x) === i)
+      if (e.gallery.length > have) {
+        a++
+        console.log(`A${cap} ${e.slug} +${e.gallery.length - have}`)
+        await saveManifest(manifest)
+      }
+    }
+  }
+  await runSweep(1)
+
+  // Pass B — failed entries: full re-match (official → korter), hero + gallery.
+  const bySlug = new Map(PROJECTS.map((p) => [p.slug, p]))
+  let b = 0
+  for (const e of [...manifest.values()].sort((x, y) => x.slug.localeCompare(y.slug))) {
+    if (only && !only.has(e.slug)) continue
+    if (e.status !== 'failed') continue
+    const p = bySlug.get(e.slug)
+    if (!p) continue
+    if (newFiles >= maxNewFiles) {
+      console.log(`budget reached (${newFiles}/${maxNewFiles}) — pass B stopping`)
+      break
+    }
+    if (dry) {
+      console.log(`dry ${e.slug} (B: [${p.developerSlug ?? '-'}] ${p.name})`)
+      continue
+    }
+    const t: Target = {
+      slug: p.slug,
+      name: p.name,
+      dev: p.developerSlug,
+      city: p.city,
+      file: 'professionals',
+    }
+    const hit = (await matchOfficial(t)) ?? (await matchKorter(t)) ?? (await matchWikipedia(t))
+    if (!hit) continue
+    const got = await capture(t, hit.images, { hero: true, gallery: true, cap: GALLERY_CAP })
+    if (!got) continue
+    e.status = 'ok'
+    e.source = hit.page.includes('korter.ge')
+      ? 'korter'
+      : hit.page.includes('wikipedia.org')
+        ? 'wikipedia'
+        : 'official'
+    e.sourceUrl = hit.page
+    e.gallery = got.gallery
+    b++
+    console.log(`B ${e.slug} ${e.source} +${got.gallery.length}${got.hero ? ' +hero' : ''}`)
+    await saveManifest(manifest)
+  }
+
+  // Sweep 2 — second images for already-covered projects, budget permitting.
+  await runSweep(GALLERY_CAP)
+  console.log(
+    `\ngalleries done: passA=${a} passB=${b} newFiles=${newFiles}/${maxNewFiles} newBytes=${(newBytes / 1048576).toFixed(1)}/${(maxNewBytes / 1048576).toFixed(0)}MiB`,
+  )
+}
+
 // ── main ───────────────────────────────────────────────────────────────────
 async function main(): Promise<void> {
   const args = process.argv.slice(2)
@@ -518,6 +791,18 @@ async function main(): Promise<void> {
   }
   if (has('apply-batch2')) {
     await applyBatch2(manifest)
+    return
+  }
+  if (has('emit')) {
+    await emitGalleries(manifest)
+    return
+  }
+  if (has('galleries')) {
+    maxNewFiles = Number(flag('max-files') ?? 900)
+    maxNewBytes = Number(flag('max-mb') ?? 26) * 1024 * 1024
+    const only = flag('slugs') ? new Set(flag('slugs')!.split(',')) : null
+    await galleriesMode(manifest, only, has('dry'))
+    await emitGalleries(manifest)
     return
   }
 
@@ -562,12 +847,14 @@ async function main(): Promise<void> {
       console.log(`dry ${t.slug} [${t.dev}] tokens=${distinctiveTokens(t).join(',')}`)
       continue
     }
-    let sourceUrl = await tryOfficial(t)
-    let source: 'official' | 'korter' | null = sourceUrl ? 'official' : null
-    if (!sourceUrl) {
-      sourceUrl = await tryKorter(t)
-      source = sourceUrl ? 'korter' : null
-    }
+    const hit = (await matchOfficial(t)) ?? (await matchKorter(t))
+    const source: 'official' | 'korter' | null = hit
+      ? hit.page.includes('korter.ge')
+        ? 'korter'
+        : 'official'
+      : null
+    if (hit) await capture(t, hit.images, { hero: true, gallery: false })
+    const sourceUrl = hit?.page ?? null
     const status = sourceUrl ? 'ok' : 'failed'
     manifest.set(`${batch}:${t.slug}`, { slug: t.slug, status, source, sourceUrl, batch: batch as 1 | 2 })
     await saveManifest(manifest)
