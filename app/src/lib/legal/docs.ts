@@ -108,7 +108,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         {
           title: '4. Cookies und lokale Speicherung',
           body: [
-            'Technisch notwendige Speicherung (Karteneinstellung „sivrce_map_ui“, Sitzung) sowie — nur nach Einwilligung — Reichweitenmessung. Details: Cookie-Richtlinie. LEGAL_REVIEW_REQUIRED: Einwilligungslösung (Consent-Banner) vor Analytics-Aktivierung im DE-Markt abschalten/ergänzen.',
+            'Technisch notwendige Speicherung (Karteneinstellung „sivrce_map_ui“, Sitzung) sowie — ausschließlich nach ausdrücklicher Einwilligung — Reichweitenmessung. Das Einwilligungsbanner erscheint vor jedem Analyse-Skript; Widerruf jederzeit über „Cookies“ in der Fußzeile. Details: Cookie-Richtlinie.',
           ],
         },
         {
@@ -150,7 +150,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         {
           title: '4. Cookies and local storage',
           body: [
-            'Technically necessary storage (map preference “sivrce_map_ui”, session) and — only with consent — analytics. See the Cookie Policy. LEGAL_REVIEW_REQUIRED: gate analytics behind a consent banner for the DE market before activation.',
+            'Technically necessary storage (map preference “sivrce_map_ui”, session) and — only after an explicit opt-in — analytics. The consent prompt runs before any analytics script; withdraw at any time via “Cookies” in the footer. See the Cookie Policy.',
           ],
         },
         {
@@ -260,7 +260,8 @@ export const LEGAL_DOCS: LegalDoc[] = [
         {
           title: 'Einwilligungspflichtige Cookies',
           body: [
-            'Reichweitenmessung (z. B. Google Analytics über den Google Tag Manager) lädt nur, soweit Sie eingewilligt haben. LEGAL_REVIEW_REQUIRED: Consent-Management-Plattform vor Produktivstart im DE-Markt anschließen; bis dahin Analytics im DE-Markt deaktiviert lassen.',
+            'Reichweitenmessung (Google Analytics 4 über den Google Tag Manager, PostHog) lädt ausschließlich nach Ihrer ausdrücklichen Einwilligung (§ 25 TDDDG, Art. 6 Abs. 1 lit. a DSGVO). Vor Ihrer Entscheidung wird kein Analyse-Skript geladen und kein Analyse-Cookie gesetzt; Ablehnen ist genauso einfach wie Zustimmen.',
+            'Widerruf jederzeit über „Cookies“ in der Fußzeile: Ihre Entscheidung wird gelöscht, vorhandene Analyse-Kennungen (_ga, _gid, _gcl, PostHog) werden entfernt und die Seite wird neu geladen, damit bereits geladene Skripte enden. LEGAL_REVIEW_REQUIRED: Formulierung und Verantwortlichkeiten anwaltlich prüfen lassen.',
           ],
         },
         {
@@ -284,7 +285,8 @@ export const LEGAL_DOCS: LegalDoc[] = [
         {
           title: 'Consent-required cookies',
           body: [
-            'Analytics (e.g. Google Analytics via Google Tag Manager) loads only with your consent. LEGAL_REVIEW_REQUIRED: connect a consent-management platform before DE launch; keep analytics disabled for the DE market until then.',
+            'Analytics (Google Analytics 4 via Google Tag Manager, PostHog) loads only after your explicit opt-in (§ 25 TDDDG, Art. 6(1)(a) GDPR). Before you decide, no analytics script is loaded and no analytics cookie is set; declining is exactly as easy as accepting.',
+            'Withdraw at any time via “Cookies” in the footer: your decision is cleared, existing analytics identifiers (_ga, _gid, _gcl, PostHog) are removed and the page reloads so scripts already running stop. LEGAL_REVIEW_REQUIRED: wording and controller roles to be confirmed by counsel.',
           ],
         },
         {

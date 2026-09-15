@@ -7,7 +7,7 @@ counsel before the DE launch. This file is engineering status, not legal advice.
 | Area | Requirement | Status | Notes |
 |---|---|---|---|
 | Impressum | § 5 DDG provider identification | SCAFFOLD | `/legal/impressum` — owner data marked `[TODO-OWNER]`; **LEGAL_REVIEW_REQUIRED** |
-| Datenschutz | GDPR/DSGVO privacy policy | SCAFFOLD | `/legal/datenschutz` de/en; **LEGAL_REVIEW_REQUIRED**; DPO designation decision open |
+| Datenschutz | GDPR/DSGVO privacy policy | SCAFFOLD | `/legal/datenschutz` de/en — now describes the shipped consent gate accurately; **LEGAL_REVIEW_REQUIRED**; DPO designation decision open |
 | AGB | Terms of use | SCAFFOLD | `/legal/agb`; full clause set (liability, jurisdiction, digital-content) **LEGAL_REVIEW_REQUIRED** |
 | Cookies/ePrivacy | Consent for non-necessary cookies | IMPLEMENTED | `src/lib/consent.ts` + `components/consent/ConsentBanner.tsx`: GTM/GA4/PostHog load only after an explicit opt-in, equal-weight Allow/Decline, one-click withdrawal in the footer (purge + reload). No GTM `<noscript>` iframe. Asserted on every build by `consent.check.ts` |
 | TDDDG | Telemedia data protection | IMPLEMENTED | §25 satisfied by the same gate — zero storage access before consent (verified: fresh origin loads 0 tracker scripts, 0 tracker cookies) |
