@@ -165,7 +165,9 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
         score: 96,
         noteEn: '236 countries, 21,947 metros, 562 developers, 839 projects unified in single canonical graph.',
         noteKa: '236 ქვეყანა, 21,947 მეტრო/ქალაქი, 562 დეველოპერი ერთიან გრაფში.',
-        evidence: 'src/lib/global-entity-graph.ts',
+        // globalOsStats() is where these counts come from; the check re-derives
+        // them from it, so the claim cannot drift from the data.
+        evidence: 'src/lib/countries/global-os.ts',
       },
       institutionalValuation: {
         score: 95,
@@ -187,14 +189,19 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
       },
       transitConnectivity: {
         score: 96,
-        noteEn: '18,657 global transit stations with station-level routing, POI scoring & walk scores.',
-        noteKa: '18,657 სატრანზიტო სადგური, სადგურებთან მანძილი და walk score.',
-        evidence: 'src/lib/map/transit.ts',
+        noteEn: '18,657 global transit stations with nearest-station distance, POI scoring & walk scores.',
+        noteKa: '18,657 სატრანზიტო სადგური, უახლოეს სადგურამდე მანძილი და walk score.',
+        // The count lives in the shipped dataset, not in the fetch helper.
+        evidence: 'src/data/world-metro-all.json',
       },
       dualCurrencySettlement: {
-        score: 98,
-        noteEn: 'Dual & multi-currency display with live FX rates and local currency toggle.',
-        noteKa: 'მრავალვალუტიანი გადაყვანა და ცოცხალი კურსები.',
+        // Was 98 on a "60+ live currencies" claim the code does not support:
+        // 55 market-native currencies are formatted correctly, but live FX
+        // covers USD/EUR→GEL and the user toggle is 4 currencies. Scored to
+        // what ships, not to what sounds good.
+        score: 84,
+        noteEn: '55 market-native currencies formatted per locale; live FX (6h TTL) for USD/EUR→GEL; 4-currency user toggle (GEL/USD/EUR/AED).',
+        noteKa: '55 ბაზრის ვალუტა ლოკალური ფორმატით; ცოცხალი კურსი USD/EUR→GEL; მომხმარებლის გადამრთველი 4 ვალუტაზე.',
         evidence: 'src/lib/fx-server.ts',
       },
       fullLifecycleOS: {
@@ -210,9 +217,11 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
         evidence: 'src/lib/markets.ts',
       },
       zeroJankPerformance: {
-        score: 96,
-        noteEn: 'Enforced device-budget locks, zero client dictionary leaks, sub-second LCP.',
-        noteKa: 'მინიმალური ბანდლი, სწრაფი ჩატვირთვა და ოპტიმიზებული კოდი.',
+        // "Sub-second LCP" was an unmeasured claim — there is no field RUM yet,
+        // only build-enforced budgets. Scored on what the checks actually prove.
+        score: 92,
+        noteEn: 'Build-enforced device budgets (RAM/cores/Save-Data), bundle-leak check, capped map GPU/RAM, MVT tiles. Lab-enforced; field RUM not yet collected.',
+        noteKa: 'ბილდზე დაცული მოწყობილობის ბიუჯეტები, ბანდლის გაჟონვის შემოწმება, რუკის GPU/RAM ლიმიტი. საველე RUM ჯერ არ იზომება.',
         evidence: 'src/lib/device-budget.ts',
       },
       unifiedTransactions: {
