@@ -87,6 +87,16 @@ assert.ok(
   'more listings must score higher',
 )
 
+// The engineering note cites the prebuild check count — re-derived, never typed.
+const prebuildChecks = (
+  (JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8')) as { scripts: { prebuild: string } }).scripts
+    .prebuild.match(/\.check\.ts/g) ?? []
+).length
+assert.ok(
+  sivrce.cells.engineering.note.includes(String(prebuildChecks)),
+  `engineering note must cite the real prebuild check count (${prebuildChecks}): "${sivrce.cells.engineering.note}"`,
+)
+
 // The scan covers the real competitive field: domestic leaders + global players.
 assert.ok(GERMANY_PLAYERS.filter((p) => p.tier === 'local-native').length >= 3, 'scan ≥3 local-native')
 assert.ok(GERMANY_PLAYERS.filter((p) => p.tier === 'global').length >= 2, 'scan ≥2 global')

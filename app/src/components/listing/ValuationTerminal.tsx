@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { calculateValuation10x, type ScenarioProjection } from '@/lib/valuation-10x'
-import { TrendingUp, ShieldCheck, AlertTriangle, Layers, Percent, DollarSign, Calculator } from 'lucide-react'
+import { calculateValuation10x } from '@/lib/valuation-10x'
+import { ShieldCheck, AlertTriangle, Calculator } from 'lucide-react'
 
 interface ValuationTerminalProps {
   priceUSD: number

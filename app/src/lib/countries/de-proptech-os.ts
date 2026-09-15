@@ -10,8 +10,8 @@
  * DB-free, SSR-safe, lightweight, deterministic.
  */
 
-import { DE_CITIES, GRUNDERWERBSTEUER_BY_STATE, DE_NOTARY_PCT, DE_REGISTER_PCT, DE_MAKLER_BUYER_PCT, deCityBySlug } from './de'
-import { DE_ENERGY_CLASSES, type DeEnergyClass } from './de-expose'
+import { GRUNDERWERBSTEUER_BY_STATE, DE_NOTARY_PCT, DE_REGISTER_PCT, DE_MAKLER_BUYER_PCT, deCityBySlug } from './de'
+import { type DeEnergyClass } from './de-expose'
 
 export type { DeEnergyClass }
 
@@ -439,12 +439,12 @@ export function underwriteDeProperty(input: DeUnderwritingInput): DeUnderwriting
   }
 
   // 8. Sivrce Property Intelligence (SPI) Score calculation (0..100)
-  let scoreLocation = 82 // default solid German metro
-  let scoreLiquidity = 80
-  let scoreYield = Math.min(100, Math.max(20, Math.round(grossYieldPct * 18)))
-  let scoreEnergy = energy.energyClass === 'A+' ? 98 : energy.energyClass === 'A' ? 92 : energy.energyClass === 'B' ? 85 : energy.energyClass === 'C' ? 76 : energy.energyClass === 'D' ? 65 : energy.energyClass === 'E' ? 50 : 35
-  let scoreLegal = dscr >= 1.25 ? 90 : dscr >= 1.0 ? 75 : 45
-  let scoreTrust = 95
+  const scoreLocation = 82 // default solid German metro
+  const scoreLiquidity = 80
+  const scoreYield = Math.min(100, Math.max(20, Math.round(grossYieldPct * 18)))
+  const scoreEnergy = energy.energyClass === 'A+' ? 98 : energy.energyClass === 'A' ? 92 : energy.energyClass === 'B' ? 85 : energy.energyClass === 'C' ? 76 : energy.energyClass === 'D' ? 65 : energy.energyClass === 'E' ? 50 : 35
+  const scoreLegal = dscr >= 1.25 ? 90 : dscr >= 1.0 ? 75 : 45
+  const scoreTrust = 95
 
   const spiScore = Math.round(
     scoreLocation * 0.2 +

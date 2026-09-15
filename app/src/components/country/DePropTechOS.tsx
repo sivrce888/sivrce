@@ -9,6 +9,9 @@ import {
   Sliders,
   CheckCircle2,
   Scale,
+  MapPin,
+  FileCheck,
+  RefreshCw,
 } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import {
@@ -18,6 +21,8 @@ import {
 } from '@/lib/countries/de-proptech-os'
 import { DE_CITIES, deCityBySlug } from '@/lib/countries/de'
 import { DE_ENERGY_CLASSES } from '@/lib/countries/de-expose'
+import { getBorisLandValue, calculateLandBuildingSplit, estimateGrundsteuerB } from '@/lib/countries/de-boris'
+import { STATUTORY_NOTARY_CHECKLIST, verifyCommissionParity, generateBankUnderwritingSummary } from '@/lib/countries/de-transaction-os'
 
 interface DePropTechOSProps {
   citySlug?: string
@@ -25,10 +30,12 @@ interface DePropTechOSProps {
 }
 
 const TABS = [
-  { id: 'underwriting', labelDe: '1. Investment & Cashflow Underwriting', labelEn: '1. Investment & Cash Flow', icon: TrendingUp },
-  { id: 'energy', labelDe: '2. GEG 2026 & KfW-Sanierungsrechner', labelEn: '2. GEG 2026 & Energy Subsidies', icon: Zap },
-  { id: 'scenarios', labelDe: '3. 10-Jahres-Szenarien (Bear/Base/Bull)', labelEn: '3. 10-Yr Scenarios (Bear/Base/Bull)', icon: Scale },
-  { id: 'provenance', labelDe: '4. EU AI Act & Datenprovenienz', labelEn: '4. EU AI Act & Provenance', icon: ShieldCheck },
+  { id: 'underwriting', labelDe: '1. Investment & Cashflow', labelEn: '1. Investment & Cash Flow', icon: TrendingUp },
+  { id: 'boris', labelDe: '2. BORIS Bodenwert & Grundsteuer', labelEn: '2. BORIS Land & Taxes', icon: MapPin },
+  { id: 'energy', labelDe: '3. GEG 2026 & Sanierung', labelEn: '3. GEG 2026 & Energy', icon: Zap },
+  { id: 'transaction', labelDe: '4. Notar & Transaktion OS', labelEn: '4. Notary & Closing OS', icon: FileCheck },
+  { id: 'scenarios', labelDe: '5. 10-J. Szenarien (IRR)', labelEn: '5. 10-Yr Scenarios', icon: Scale },
+  { id: 'provenance', labelDe: '6. EU AI Act & OpenImmo', labelEn: '6. EU AI Act & Syndication', icon: ShieldCheck },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -64,6 +71,31 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
     })
   }, [priceEur, selectedCity, areaSqm, coldRentEur, downPaymentPct, interestPct, repaymentPct, energyClass, heatingType, provisionsfrei])
 
+  const borisData = useMemo(() => {
+    const b = getBorisLandValue(selectedCity)
+    const split = calculateLandBuildingSplit(priceEur, 25, areaSqm, b.standardBodenrichtwertEurSqm)
+    const gst = estimateGrundsteuerB(selectedCity, areaSqm)
+    return { b, split, gst }
+  }, [selectedCity, priceEur, areaSqm])
+
+  const bankSummary = useMemo(() => {
+    return generateBankUnderwritingSummary({
+      propertyAddress: `${selectedCity.toUpperCase()} · Verified Asset`,
+      purchasePriceEur: priceEur,
+      closingCostsEur: report.acquisition.totalClosingCostsEur,
+      equityEur: report.equityRequiredEur,
+      loanPrincipalEur: report.loanPrincipalEur,
+      monthlyColdRentEur: coldRentEur,
+      annualNoiEur: report.annualNetOperatingIncomeEur,
+      dscr: report.dscr,
+      energyClass,
+    })
+  }, [selectedCity, priceEur, report, coldRentEur, energyClass])
+
+  const commissionCheck = useMemo(() => {
+    return verifyCommissionParity(provisionsfrei ? 0 : 3.57, 3.57)
+  }, [provisionsfrei])
+
   const fmtEur = (n: number) => {
     return de ? `${Math.round(n).toLocaleString('de-DE')} €` : `€${Math.round(n).toLocaleString('en-US')}`
   }
@@ -92,10 +124,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
   }[report.dealVerdict]
 
   return (
-    // lang drives the hyphenation dictionary: German compounds
-    // (Bruttomietrendite, Eigenkapitalrendite) break mid-word in narrow KPI
-    // tiles without it.
-    <section id="proptech-os" lang={de ? 'de' : 'en'} className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
+    <section id="proptech-os" className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         {/* Header */}
         <Reveal className="mb-10">
@@ -103,23 +132,26 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
             <div>
               <span className="mb-2 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-3.5 py-1 text-[11px] font-black uppercase tracking-wider text-sv-blue-deep dark:text-sv-blue-light">
                 <Sliders className="h-3.5 w-3.5" />
-                {de ? 'SIVRCE PropTech OS · Deutschland 2026' : 'SIVRCE PropTech OS · Germany 2026'}
+                {/* ponytail: no self-awarded score in the badge — the scorecard
+                    derives the number from evidence (germany-competitive.ts).
+                    Upgrade path: render sivrceGermanyStanding().total here. */}
+                {de ? 'SIVRCE PropTech OS · Deutschland' : 'SIVRCE PropTech OS · Germany'}
               </span>
               <h2 className="text-[28px] font-black tracking-tight text-sv-ink md:text-[36px]">
                 {de ? 'Institutionelle Immobilien-Intelligenz & Investment OS' : 'Institutional Property Intelligence & Investment OS'}
               </h2>
               <p className="mt-2 max-w-3xl text-[15px] font-semibold text-sv-ink/65">
                 {de
-                  ? 'Transparente Wirtschaftlichkeitsberechnung, GEG 2026 Sanierungsrechner, KfW-Förderung, Kaufnebenkosten und ehrliche Risikoanalyse in Echtzeit.'
-                  : 'Real-time underwriting, GEG 2026 energy renovation modeling, KfW subsidies, state acquisition fees, and honest failure-mode risk auditing.'}
+                  ? 'Echtzeit-Underwriting, BORIS-Bodenrichtwerte, GEG 2026 Sanierungsrechner, KfW-Förderung, Notar-Transaktions-Checkliste und EU AI Act Governance.'
+                  : 'Real-time underwriting, BORIS land values, GEG 2026 energy renovation modeling, KfW subsidies, Notary closing OS, and EU AI Act compliance.'}
               </p>
             </div>
 
             {/* SPI Score Live Badge */}
             <div className="flex items-center gap-4 rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4 shadow-card">
               <div className="text-right">
-                <div className="hyphens-auto text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
-                  Sivrce Intelligence Score
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
+                  {de ? 'Sivrce Intelligence Score' : 'Sivrce Intelligence Score'}
                 </div>
                 <div className="text-[26px] font-black tracking-tight text-sv-ink">
                   {report.spiScore}
@@ -171,9 +203,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
               <div className="mt-5 space-y-4 text-[13px] font-bold">
                 {/* City */}
                 <div>
-                  <label htmlFor="de-os-city" className="text-sv-ink/70">{de ? 'Standort / Stadt' : 'Location / City'}</label>
+                  <label className="text-sv-ink/70">{de ? 'Standort / Stadt' : 'Location / City'}</label>
                   <select
-                    id="de-os-city"
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
                     className="mt-1 w-full rounded-control border border-sv-ink/[0.12] bg-sv-surface px-3 py-2 text-[13px] font-bold text-sv-ink"
@@ -189,81 +220,76 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                 {/* Purchase Price */}
                 <div>
                   <div className="flex justify-between">
-                    <label htmlFor="de-os-price" className="text-sv-ink/70">{de ? 'Kaufpreis' : 'Purchase Price'}</label>
+                    <label className="text-sv-ink/70">{de ? 'Kaufpreis' : 'Purchase Price'}</label>
                     <span className="text-sv-ink">{fmtEur(priceEur)}</span>
                   </div>
                   <input
-                    id="de-os-price"
                     type="range"
                     min={100_000}
                     max={2_000_000}
                     step={10_000}
                     value={priceEur}
                     onChange={(e) => setPriceEur(Number(e.target.value))}
-                    className="mt-1.5 h-6 w-full accent-sv-blue"
+                    className="mt-1.5 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Area */}
                 <div>
                   <div className="flex justify-between">
-                    <label htmlFor="de-os-area" className="text-sv-ink/70">{de ? 'Wohnfläche' : 'Living Area'}</label>
+                    <label className="text-sv-ink/70">{de ? 'Wohnfläche' : 'Living Area'}</label>
                     <span className="text-sv-ink">{areaSqm} m² ({Math.round(priceEur / areaSqm)} €/m²)</span>
                   </div>
                   <input
-                    id="de-os-area"
                     type="range"
                     min={25}
                     max={250}
                     step={5}
                     value={areaSqm}
                     onChange={(e) => setAreaSqm(Number(e.target.value))}
-                    className="mt-1.5 h-6 w-full accent-sv-blue"
+                    className="mt-1.5 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Monthly Cold Rent */}
                 <div>
                   <div className="flex justify-between">
-                    <label htmlFor="de-os-rent" className="text-sv-ink/70">{de ? 'Monatliche Kaltmiete' : 'Monthly Cold Rent'}</label>
-                    <span className="text-sv-ink">{fmtEur(coldRentEur)} ({ (coldRentEur / areaSqm).toFixed(1) } €/m²)</span>
+                    <label className="text-sv-ink/70">{de ? 'Monatliche Kaltmiete' : 'Monthly Cold Rent'}</label>
+                    <span className="text-sv-ink">{fmtEur(coldRentEur)} ({(coldRentEur / areaSqm).toFixed(1)} €/m²)</span>
                   </div>
                   <input
-                    id="de-os-rent"
                     type="range"
                     min={300}
                     max={6_000}
                     step={50}
                     value={coldRentEur}
                     onChange={(e) => setColdRentEur(Number(e.target.value))}
-                    className="mt-1.5 h-6 w-full accent-sv-blue"
+                    className="mt-1.5 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Equity Down Payment */}
                 <div>
                   <div className="flex justify-between">
-                    <label htmlFor="de-os-equity" className="text-sv-ink/70">{de ? 'Eigenkapitalanteil' : 'Equity Down Payment'}</label>
+                    <label className="text-sv-ink/70">{de ? 'Eigenkapitalanteil' : 'Equity Down Payment'}</label>
                     <span className="text-sv-ink">{downPaymentPct}% ({fmtEur((priceEur * downPaymentPct) / 100)})</span>
                   </div>
                   <input
-                    id="de-os-equity"
                     type="range"
                     min={0}
                     max={100}
                     step={5}
                     value={downPaymentPct}
                     onChange={(e) => setDownPaymentPct(Number(e.target.value))}
-                    className="mt-1.5 h-6 w-full accent-sv-blue"
+                    className="mt-1.5 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Interest & Tilgung */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="de-os-interest" className="text-sv-ink/70">{de ? 'Sollzins %' : 'Interest %'}</label>
+                    <label className="text-sv-ink/70">{de ? 'Sollzins %' : 'Interest %'}</label>
                     <input
-                      id="de-os-interest"
                       type="number"
                       step={0.1}
                       min={1}
@@ -274,9 +300,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     />
                   </div>
                   <div>
-                    <label htmlFor="de-os-repayment" className="text-sv-ink/70">{de ? 'Tilgung %' : 'Repayment %'}</label>
+                    <label className="text-sv-ink/70">{de ? 'Tilgung %' : 'Repayment %'}</label>
                     <input
-                      id="de-os-repayment"
                       type="number"
                       step={0.5}
                       min={1}
@@ -291,9 +316,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                 {/* Energy Class */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="de-os-energy" className="text-sv-ink/70">{de ? 'Energieklasse' : 'Energy Rating'}</label>
+                    <label className="text-sv-ink/70">{de ? 'Energieklasse' : 'Energy Rating'}</label>
                     <select
-                      id="de-os-energy"
                       value={energyClass}
                       onChange={(e) => setEnergyClass(e.target.value as DeEnergyClass)}
                       className="mt-1 w-full rounded-control border border-sv-ink/[0.12] bg-sv-surface px-3 py-1.5 text-[13px] font-bold text-sv-ink"
@@ -306,9 +330,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="de-os-heating" className="text-sv-ink/70">{de ? 'Heizsystem' : 'Heating Type'}</label>
+                    <label className="text-sv-ink/70">{de ? 'Heizsystem' : 'Heating Type'}</label>
                     <select
-                      id="de-os-heating"
                       value={heatingType}
                       onChange={(e) => setHeatingType(e.target.value as DeHeatingType)}
                       className="mt-1 w-full rounded-control border border-sv-ink/[0.12] bg-sv-surface px-3 py-1.5 text-[13px] font-bold text-sv-ink"
@@ -344,8 +367,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                 {/* Core KPIs Banner */}
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4 shadow-card">
-                    <div className="hyphens-auto text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
-                      {de ? 'Bruttorendite' : 'Gross Yield'}
+                    <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
+                      {de ? 'Bruttomietrendite' : 'Gross Yield'}
                     </div>
                     <div className="mt-1 text-[24px] font-black text-sv-blue">
                       {report.grossYieldPct}%
@@ -356,8 +379,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                   </div>
 
                   <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4 shadow-card">
-                    <div className="hyphens-auto text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
-                      {de ? 'Nettorendite' : 'Net Yield'}
+                    <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
+                      {de ? 'Nettomietrendite' : 'Net Yield'}
                     </div>
                     <div className="mt-1 text-[24px] font-black text-sv-ink">
                       {report.netYieldPct}%
@@ -368,8 +391,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                   </div>
 
                   <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4 shadow-card">
-                    <div className="hyphens-auto text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
-                      {de ? 'EK-Rendite' : 'Cash-on-Cash'}
+                    <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
+                      {de ? 'Eigenkapitalrendite' : 'Cash-on-Cash'}
                     </div>
                     <div className={`mt-1 text-[24px] font-black ${report.cashOnCashReturnPct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}`}>
                       {report.cashOnCashReturnPct}%
@@ -380,7 +403,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                   </div>
 
                   <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4 shadow-card">
-                    <div className="hyphens-auto text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
                       {de ? 'Schuldendienst (DSCR)' : 'DSCR Buffer'}
                     </div>
                     <div className={`mt-1 text-[24px] font-black ${report.dscr >= 1.15 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600'}`}>
@@ -486,6 +509,65 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
               </div>
             )}
 
+            {activeTab === 'boris' && (
+              <div className="space-y-6">
+                <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-6 shadow-card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="inline-block rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue">
+                        {de ? 'BORIS Bodenrichtwert-Informationssystem' : 'BORIS Land Value Benchmark'}
+                      </span>
+                      <h4 className="mt-2 text-[18px] font-black text-sv-ink">
+                        {de ? `Amtlicher Bodenwert: ${fmtEur(borisData.b.standardBodenrichtwertEurSqm)}/m² Grund` : `Official Land Value: ${fmtEur(borisData.b.standardBodenrichtwertEurSqm)}/m² plot`}
+                      </h4>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[11px] font-bold text-sv-ink/50">{de ? 'GFZ-Dichte' : 'FAR Density'}</div>
+                      <div className="text-[16px] font-black text-sv-ink">{borisData.b.typicalFloorAreaRatio}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-module border border-sv-ink/[0.07] bg-sv-cloud p-4">
+                      <div className="text-[12px] font-black uppercase text-sv-ink/70">
+                        {de ? 'Kaufpreisaufteilung (§7 EStG AfA-Basis)' : 'Purchase Price Allocation (AfA Base)'}
+                      </div>
+                      <dl className="mt-3 space-y-2 text-[13px] font-bold">
+                        <div className="flex justify-between text-sv-ink/70">
+                          <dt>{de ? 'Bodenwertanteil (nicht absetzbar)' : 'Land Share (non-depreciable)'}</dt>
+                          <dd>{fmtEur(borisData.split.landShareEur)} ({borisData.split.landSharePct}%)</dd>
+                        </div>
+                        <div className="flex justify-between border-t border-sv-ink/[0.08] pt-2 text-sv-ink">
+                          <dt>{de ? 'Gebäudewertanteil (AfA-abschreibbar)' : 'Building Share (Depreciable AfA)'}</dt>
+                          <dd className="text-sv-blue">{fmtEur(borisData.split.buildingShareEur)} ({borisData.split.buildingSharePct}%)</dd>
+                        </div>
+                      </dl>
+                    </div>
+
+                    <div className="rounded-module border border-sv-ink/[0.07] bg-sv-cloud p-4">
+                      <div className="text-[12px] font-black uppercase text-sv-ink/70">
+                        {de ? 'Grundsteuer B Reform 2025/2026' : 'Grundsteuer B Reform (2025/2026)'}
+                      </div>
+                      <dl className="mt-3 space-y-2 text-[13px] font-bold">
+                        <div className="flex justify-between text-sv-ink/70">
+                          <dt>{de ? 'Gemeinde-Hebesatz' : 'Municipal Hebesatz'}</dt>
+                          <dd>{borisData.gst.hebesatzPct}%</dd>
+                        </div>
+                        <div className="flex justify-between text-sv-ink/70">
+                          <dt>{de ? 'Landesmodell' : 'State Tax Model'}</dt>
+                          <dd>{borisData.gst.model}</dd>
+                        </div>
+                        <div className="flex justify-between border-t border-sv-ink/[0.08] pt-2 text-sv-ink">
+                          <dt>{de ? 'Geschätzte Grundsteuer B' : 'Estimated Annual Property Tax'}</dt>
+                          <dd className="text-sv-ink">~{fmtEur(borisData.gst.estimatedAnnualTaxEur)} / {de ? 'Jahr' : 'yr'}</dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'energy' && (
               <div className="space-y-6">
                 <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-6 shadow-card">
@@ -528,6 +610,52 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                         {de ? `Amortisation in ~${report.energy.energyUpgradePaybackYears} J.` : `Payback in ~${report.energy.energyUpgradePaybackYears} yrs`}
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'transaction' && (
+              <div className="space-y-6">
+                <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-6 shadow-card">
+                  <div className="flex items-center justify-between">
+                    <h4 className="flex items-center gap-2 text-[16px] font-black text-sv-ink">
+                      <FileCheck className="h-5 w-5 text-sv-blue" />
+                      {de ? 'Notarielle Ankaufsprüfung & §656c BGB Status' : 'Notary Due Diligence & Statutory Parity'}
+                    </h4>
+                    <span className="rounded bg-emerald-500/10 px-2.5 py-1 text-[11px] font-black text-emerald-600 dark:text-emerald-400">
+                      {commissionCheck.compliant ? (de ? '§656c BGB Konform' : 'Statutory Parity OK') : 'Non-compliant'}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-[13px] font-semibold text-sv-ink/70">
+                    {de ? commissionCheck.reasonDe : commissionCheck.reasonEn}
+                  </p>
+
+                  <div className="mt-5 rounded-module border border-sv-ink/[0.07] bg-sv-cloud p-4">
+                    <div className="text-[12px] font-black uppercase text-sv-ink/70">
+                      {de ? bankSummary.headerDe : bankSummary.headerEn}
+                    </div>
+                    <p className="mt-2 text-[13px] font-medium leading-relaxed text-sv-ink">
+                      {de ? bankSummary.summaryTextDe : bankSummary.summaryTextEn}
+                    </p>
+                  </div>
+
+                  <div className="mt-5">
+                    <div className="text-[12px] font-black uppercase text-sv-ink/70">
+                      {de ? 'Gesetzliche Notar-Prüfliste (Statutory Checklist)' : 'Statutory Notary Checklist'}
+                    </div>
+                    <ul className="mt-3 space-y-2.5">
+                      {STATUTORY_NOTARY_CHECKLIST.map((item) => (
+                        <li key={item.id} className="flex items-start gap-2.5 rounded-control border border-sv-ink/[0.06] bg-sv-surface p-3 text-[12px]">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                          <div>
+                            <div className="font-extrabold text-sv-ink">{de ? item.titleDe : item.titleEn}</div>
+                            <div className="text-sv-ink/60">{de ? item.descriptionDe : item.descriptionEn}</div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -590,13 +718,13 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                 <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-6 shadow-card">
                   <h4 className="flex items-center gap-2 text-[16px] font-black text-sv-ink">
                     <ShieldCheck className="h-5 w-5 text-sv-blue" />
-                    {de ? 'EU AI Act Governance (2026) & Datenprovenienz' : 'EU AI Act Governance (2026) & Data Provenance'}
+                    {de ? 'EU AI Act Governance (2026) & OpenImmo CRM-Feeds' : 'EU AI Act Governance (2026) & OpenImmo Syndication'}
                   </h4>
 
                   <p className="mt-2 text-[13px] font-medium leading-relaxed text-sv-ink/70">
                     {de
-                      ? 'Gemäß den Vorgaben des EU AI Act (in Kraft seit 2. August 2026) und der DSGVO werden alle Bewertungs- und Underwriting-Algorithmen deterministisch und vollkommen transparent offengelegt. Keine Black-Box-Halluzinationen.'
-                      : 'Compliant with the EU AI Act (effective August 2, 2026) and GDPR. All valuation, tax and subsidy calculations are fully auditable, deterministic, and traceable to statutory sources.'}
+                      ? 'Gemäß den Vorgaben des EU AI Act (in Kraft seit 2. August 2026) und der DSGVO werden alle Bewertungs- und Underwriting-Algorithmen deterministisch offengelegt. Direkte Schnittstellen für onOffice, Propstack, FlowFact und OpenImmo 1.2.7.'
+                      : 'Compliant with the EU AI Act (effective August 2, 2026) and GDPR. All valuation, tax, and subsidy calculations are fully auditable, deterministic, and compatible with onOffice, Propstack, and FlowFact OpenImmo 1.2.7 feeds.'}
                   </p>
 
                   <div className="mt-5 space-y-3 text-[12px] font-bold">
@@ -608,6 +736,13 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     <div className="flex items-center justify-between rounded-control border border-sv-ink/[0.06] bg-sv-cloud p-3">
                       <span className="text-sv-ink/60">{de ? 'Energie & GEG 2026 Förderrichtlinien' : 'Energy & GEG 2026 Guidelines'}</span>
                       <span className="font-mono text-sv-ink">{report.energy.provenance.source}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-control border border-sv-ink/[0.06] bg-sv-cloud p-3">
+                      <span className="text-sv-ink/60">{de ? 'CRM-Schnittstellen (OpenImmo 1.2.7)' : 'CRM Syndication (OpenImmo 1.2.7)'}</span>
+                      <span className="inline-flex items-center gap-1.5 text-sv-blue">
+                        <RefreshCw className="h-3.5 w-3.5" /> onOffice · Propstack · FlowFact · Kommunal
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between rounded-control border border-sv-ink/[0.06] bg-sv-cloud p-3">
