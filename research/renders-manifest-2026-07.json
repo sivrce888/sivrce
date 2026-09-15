@@ -1,6 +1,80 @@
 [
   {
+    "slug": "181-fremont",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/181_Fremont",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/181-fremont-g1.webp",
+      "/images/projects/181-fremont-g2.webp"
+    ]
+  },
+  {
+    "slug": "22-bishopsgate",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/22_Bishopsgate",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/22-bishopsgate-g1.webp",
+      "/images/projects/22-bishopsgate-g2.webp"
+    ]
+  },
+  {
+    "slug": "30-hudson-yards",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/30_Hudson_Yards",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/30-hudson-yards-g1.webp"
+    ]
+  },
+  {
+    "slug": "432-park",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/432_Park_Avenue",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/432-park-g1.webp",
+      "/images/projects/432-park-g2.webp"
+    ]
+  },
+  {
+    "slug": "70-vestry",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/70_Vestry",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/70-vestry-g1.webp"
+    ]
+  },
+  {
+    "slug": "abu-dhabi-al-reem",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "accra-ridge",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "addis-civic-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "ain-dubai",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -15,6 +89,20 @@
     "gallery": []
   },
   {
+    "slug": "al-mouj-muscat",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "al-raha-beach",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "alazani-valley-residence",
     "status": "ok",
     "source": "korter",
@@ -26,7 +114,21 @@
     ]
   },
   {
+    "slug": "aldar-hq",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "alexanderplatz-turm",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "algarve-vilamoura",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -38,6 +140,16 @@
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "alliance-residence-batumi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/new-projects-in-batumi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/alliance-residence-batumi-g1.webp"
+    ]
   },
   {
     "slug": "allianz-quartier-heidestrasse",
@@ -54,7 +166,32 @@
     "batch": 1
   },
   {
+    "slug": "almaty-medeu",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "amaala",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "amazon-hq2",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Amazon_HQ2",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/amazon-hq2-g1.webp",
+      "/images/projects/amazon-hq2-g2.webp"
+    ]
+  },
+  {
+    "slug": "amsterdam-houthaven",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -67,11 +204,26 @@
     "sourceUrl": "https://en.wikipedia.org/wiki/Amsterdam-Noord",
     "batch": 1,
     "gallery": [
-      "/images/projects/amsterdam-noord-g1.webp"
+      "/images/projects/amsterdam-noord-g1.webp",
+      "/images/projects/amsterdam-noord-g2.webp"
     ]
   },
   {
     "slug": "amsterdam-zuidas",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "amwaj-islands",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "apple-park",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -91,7 +243,8 @@
     "sourceUrl": "https://archi.ge/en/complex/archi-dighomi-3",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-dighomi-3-g1.webp"
+      "/images/projects/archi-dighomi-3-g1.webp",
+      "/images/projects/archi-dighomi-3-g2.webp"
     ]
   },
   {
@@ -101,7 +254,8 @@
     "sourceUrl": "https://korter.ge/en/archi-isani-2-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-isani-2-g1.webp"
+      "/images/projects/archi-isani-2-g1.webp",
+      "/images/projects/archi-isani-2-g2.webp"
     ]
   },
   {
@@ -111,7 +265,8 @@
     "sourceUrl": "https://korter.ge/en/archi-kikvidze-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-kikvidze-garden-g1.webp"
+      "/images/projects/archi-kikvidze-garden-g1.webp",
+      "/images/projects/archi-kikvidze-garden-g2.webp"
     ]
   },
   {
@@ -121,7 +276,8 @@
     "sourceUrl": "https://archi.ge/en/block/archi-king-tamar",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-king-tamar-g1.webp"
+      "/images/projects/archi-king-tamar-g1.webp",
+      "/images/projects/archi-king-tamar-g2.webp"
     ]
   },
   {
@@ -152,7 +308,8 @@
     "sourceUrl": "https://korter.ge/en/archi-panorama-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-panorama-g1.webp"
+      "/images/projects/archi-panorama-g1.webp",
+      "/images/projects/archi-panorama-g2.webp"
     ]
   },
   {
@@ -162,7 +319,8 @@
     "sourceUrl": "https://korter.ge/en/archi-ramada-batumi-batumi",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-ramada-batumi-g1.webp"
+      "/images/projects/archi-ramada-batumi-g1.webp",
+      "/images/projects/archi-ramada-batumi-g2.webp"
     ]
   },
   {
@@ -172,7 +330,8 @@
     "sourceUrl": "https://archi.ge/en/complex/archi-rivertown",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-rivertown-g1.webp"
+      "/images/projects/archi-rivertown-g1.webp",
+      "/images/projects/archi-rivertown-g2.webp"
     ]
   },
   {
@@ -182,7 +341,8 @@
     "sourceUrl": "https://archi.ge/en/complex/archi-universe",
     "batch": 1,
     "gallery": [
-      "/images/projects/archi-universe-g1.webp"
+      "/images/projects/archi-universe-g1.webp",
+      "/images/projects/archi-universe-g2.webp"
     ]
   },
   {
@@ -214,6 +374,27 @@
     "batch": 1
   },
   {
+    "slug": "atria-business-bay",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "auckland-meadowbank",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "avlabari-residence",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "axis-avlabari",
     "status": "ok",
     "source": "official",
@@ -230,7 +411,8 @@
     "sourceUrl": "https://www.axis.ge/en/project/chavchavadzis-49/41/6",
     "batch": 1,
     "gallery": [
-      "/images/projects/axis-chavchavadze-49-g1.webp"
+      "/images/projects/axis-chavchavadze-49-g1.webp",
+      "/images/projects/axis-chavchavadze-49-g2.webp"
     ]
   },
   {
@@ -240,7 +422,8 @@
     "sourceUrl": "https://www.axis.ge/en/project/axis-hippodrome/42",
     "batch": 1,
     "gallery": [
-      "/images/projects/axis-hippodrome-g1.webp"
+      "/images/projects/axis-hippodrome-g1.webp",
+      "/images/projects/axis-hippodrome-g2.webp"
     ]
   },
   {
@@ -285,21 +468,57 @@
     "batch": 1
   },
   {
+    "slug": "azabudai-hills",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Azabudai_Hills",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/azabudai-hills-g1.webp",
+      "/images/projects/azabudai-hills-g2.webp"
+    ]
+  },
+  {
+    "slug": "azabudai-hills-residences",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Azabudai_Hills",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/azabudai-hills-residences-g1.webp",
+      "/images/projects/azabudai-hills-residences-g2.webp"
+    ]
+  },
+  {
     "slug": "bagrationi-residence-batumi",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/bagrationi-residence-batumi-batumi",
     "batch": 1,
     "gallery": [
-      "/images/projects/bagrationi-residence-batumi-g1.webp"
+      "/images/projects/bagrationi-residence-batumi-g1.webp",
+      "/images/projects/bagrationi-residence-batumi-g2.webp"
+    ]
+  },
+  {
+    "slug": "bahrain-bay",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bahrain_Bay",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/bahrain-bay-g1.webp"
     ]
   },
   {
     "slug": "baku-white-city",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Baku_White_City",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/baku-white-city-g1.webp"
+    ]
   },
   {
     "slug": "bakuriani-prospect",
@@ -308,8 +527,44 @@
     "sourceUrl": "https://korter.ge/en/bakuriani-prospect-bakuriani",
     "batch": 1,
     "gallery": [
-      "/images/projects/bakuriani-prospect-g1.webp"
+      "/images/projects/bakuriani-prospect-g1.webp",
+      "/images/projects/bakuriani-prospect-g2.webp"
     ]
+  },
+  {
+    "slug": "bamboo-tower",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bandra-worli-sealink",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bangalore-embassy",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bangalore-techvillage",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bangkok-rama-9",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "bangkok-sukhumvit",
@@ -319,14 +574,72 @@
     "batch": 1
   },
   {
+    "slug": "barangaroo",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Barangaroo%2C_New_South_Wales",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/barangaroo-g1.webp",
+      "/images/projects/barangaroo-g2.webp"
+    ]
+  },
+  {
+    "slug": "barbados-west-coast",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "barcelo-residences",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "barcelona-22@",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "barcelona-sagrada-familia",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "battersea-power-station",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Battersea_Power_Station",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/battersea-power-station-g1.webp",
+      "/images/projects/battersea-power-station-g2.webp"
+    ]
+  },
+  {
     "slug": "batumi-concept",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/batumi-concept-batumi",
     "batch": 1,
     "gallery": [
-      "/images/projects/batumi-concept-g1.webp"
+      "/images/projects/batumi-concept-g1.webp",
+      "/images/projects/batumi-concept-g2.webp"
     ]
+  },
+  {
+    "slug": "bayz-101",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "beijing-cbd",
@@ -344,6 +657,13 @@
   },
   {
     "slug": "berlin-tSX",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bilbao-guggenheim",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -374,7 +694,8 @@
     "sourceUrl": "https://korter.ge/en/gardani-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/biograpi-gardani-g1.webp"
+      "/images/projects/biograpi-gardani-g1.webp",
+      "/images/projects/biograpi-gardani-g2.webp"
     ]
   },
   {
@@ -391,7 +712,8 @@
     "sourceUrl": "https://korter.ge/en/matiani-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/biograpi-matiani-g1.webp"
+      "/images/projects/biograpi-matiani-g1.webp",
+      "/images/projects/biograpi-matiani-g2.webp"
     ]
   },
   {
@@ -409,6 +731,28 @@
     "batch": 1
   },
   {
+    "slug": "biota-park",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/biota-park-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/biota-park-g1.webp",
+      "/images/projects/biota-park-g2.webp"
+    ]
+  },
+  {
+    "slug": "birmingham-paradise",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Paradise%2C_Birmingham",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/birmingham-paradise-g1.webp",
+      "/images/projects/birmingham-paradise-g2.webp"
+    ]
+  },
+  {
     "slug": "bloom-living",
     "status": "failed",
     "source": null,
@@ -422,7 +766,8 @@
     "sourceUrl": "https://korter.ge/en/blox-avlabari-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/blox-avlabari-g1.webp"
+      "/images/projects/blox-avlabari-g1.webp",
+      "/images/projects/blox-avlabari-g2.webp"
     ]
   },
   {
@@ -440,6 +785,21 @@
     "batch": 1
   },
   {
+    "slug": "bluewaters-residences",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bluewaters_Island",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "bogota-chicó",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "bonava-fritz-kirsch-zeile",
     "status": "failed",
     "source": null,
@@ -447,7 +807,60 @@
     "batch": 1
   },
   {
+    "slug": "bordeaux-bassins",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bosco-verticale",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bosco_Verticale",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/bosco-verticale-g1.webp",
+      "/images/projects/bosco-verticale-g2.webp"
+    ]
+  },
+  {
+    "slug": "brasilia-ponte",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "brickell-heights",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "brisbane-wooloongabba",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bsd-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "bucharest-floreasca",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "budapest-metro-city",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -462,6 +875,38 @@
   },
   {
     "slug": "bugatti-residences-binghatti",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "burj-daman",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "burj-khalifa",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Burj_Khalifa",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/burj-khalifa-g1.webp",
+      "/images/projects/burj-khalifa-g2.webp"
+    ]
+  },
+  {
+    "slug": "bursa-mudanya",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "busan-haeundae",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -496,6 +941,13 @@
     "batch": 1
   },
   {
+    "slug": "buwog-weydenhof",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "buwog-zweiklang",
     "status": "failed",
     "source": null,
@@ -509,11 +961,83 @@
     "sourceUrl": "https://korter.ge/en/calligraphy-towers-batumi",
     "batch": 1,
     "gallery": [
-      "/images/projects/calligraphy-towers-g1.webp"
+      "/images/projects/calligraphy-towers-g1.webp",
+      "/images/projects/calligraphy-towers-g2.webp"
     ]
   },
   {
     "slug": "canada-water",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "cancun-hotel-zone",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "cancun-scenic-tower",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "canninghill-piers",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "cape-town-v-and-a",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "capitaspring",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/CapitaSpring",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "carthage-thalassa",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "casablanca-anfa",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "casablanca-marina",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "casablanca-porte",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "cayan-tower",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -527,17 +1051,39 @@
     "batch": 1
   },
   {
+    "slug": "central-park-tower",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "central-park-tower-nyc",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "chargali-residence",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/chargali-residence-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/chargali-residence-g1.webp"
+      "/images/projects/chargali-residence-g1.webp",
+      "/images/projects/chargali-residence-g2.webp"
     ]
   },
   {
     "slug": "chengdu-tianfu",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "chicago-lakeshore-east-2",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -551,10 +1097,38 @@
     "batch": 1
   },
   {
+    "slug": "city-of-dreams-mediterranean",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "citylife",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "cityzen-tower",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://cityzen.ge/en",
+    "batch": 1
+  },
+  {
+    "slug": "cluj-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "concord-cityplace",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
     "batch": 1
   },
   {
@@ -564,7 +1138,8 @@
     "sourceUrl": "https://korter.ge/en/coordinate-by-keystone-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/coordinate-by-keystone-g1.webp"
+      "/images/projects/coordinate-by-keystone-g1.webp",
+      "/images/projects/coordinate-by-keystone-g2.webp"
     ]
   },
   {
@@ -574,7 +1149,8 @@
     "sourceUrl": "https://korter.ge/en/corner-gldani-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/corner-gldani-g1.webp"
+      "/images/projects/corner-gldani-g1.webp",
+      "/images/projects/corner-gldani-g2.webp"
     ]
   },
   {
@@ -592,13 +1168,50 @@
     "batch": 1
   },
   {
+    "slug": "costa-verde-lima",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "costanera-center",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Costanera_Center",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "covivio-030bln",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "covivio-biesdorf",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "crown-sydney",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "crystal-loft-bakuriani",
     "status": "ok",
     "source": "korter",
     "sourceUrl": "https://korter.ge/en/crystal-loft-bakuriani",
     "batch": 1,
     "gallery": [
-      "/images/projects/crystal-loft-bakuriani-g1.webp"
+      "/images/projects/crystal-loft-bakuriani-g1.webp",
+      "/images/projects/crystal-loft-bakuriani-g2.webp"
     ]
   },
   {
@@ -608,11 +1221,40 @@
     "sourceUrl": "https://korter.ge/en/crystal-resort-bakuriani",
     "batch": 1,
     "gallery": [
-      "/images/projects/crystal-resort-bakuriani-g1.webp"
+      "/images/projects/crystal-resort-bakuriani-g1.webp",
+      "/images/projects/crystal-resort-bakuriani-g2.webp"
     ]
   },
   {
+    "slug": "cuatro-torres",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "curitiba-batel",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "damac-hills",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "damac-towers-paramount",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "dar-es-salaam-peninsula",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -625,8 +1267,16 @@
     "sourceUrl": "https://korter.ge/en/dasan-residence-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/dasan-residence-g1.webp"
+      "/images/projects/dasan-residence-g1.webp",
+      "/images/projects/dasan-residence-g2.webp"
     ]
+  },
+  {
+    "slug": "degewo-am-falkenberg",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "degewo-neulichterfelde",
@@ -634,6 +1284,14 @@
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "delhi-aerocity",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Delhi_Aerocity_metro_station",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "delhi-one",
@@ -670,11 +1328,19 @@
     "sourceUrl": "https://korter.ge/en/dighomi-gardens-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/dighomi-gardens-g1.webp"
+      "/images/projects/dighomi-gardens-g1.webp",
+      "/images/projects/dighomi-gardens-g2.webp"
     ]
   },
   {
     "slug": "diriyah-gate-residences",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "dlf-cyber-city",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -688,13 +1354,21 @@
     "batch": 1
   },
   {
+    "slug": "doha-west-bay",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "domus-gazapkhuli",
     "status": "ok",
     "source": "official",
     "sourceUrl": "https://domusi.com/en/binebi/domus-gazapkhuli/23",
     "batch": 1,
     "gallery": [
-      "/images/projects/domus-gazapkhuli-g1.webp"
+      "/images/projects/domus-gazapkhuli-g1.webp",
+      "/images/projects/domus-gazapkhuli-g2.webp"
     ]
   },
   {
@@ -705,6 +1379,17 @@
     "batch": 1,
     "gallery": [
       "/images/projects/domus-nea-g1.webp"
+    ]
+  },
+  {
+    "slug": "domus-park-vake",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://domusi.com/en/binebi/domus-park-vake/4",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/domus-park-vake-g1.webp",
+      "/images/projects/domus-park-vake-g2.webp"
     ]
   },
   {
@@ -752,6 +1437,13 @@
     "batch": 1
   },
   {
+    "slug": "dubai-frame",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "dubai-hills-estate",
     "status": "failed",
     "source": null,
@@ -760,13 +1452,36 @@
   },
   {
     "slug": "dubai-islands",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Dubai_Islands",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "dubai-marina",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Dubai_Marina",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "dubai-south",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
     "batch": 1
   },
   {
-    "slug": "dubai-south",
+    "slug": "dublin-docklands",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "durban-point",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -780,6 +1495,13 @@
     "batch": 1
   },
   {
+    "slug": "edge-suedkreuz-berlin",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "eko-atlantic",
     "status": "failed",
     "source": null,
@@ -787,7 +1509,21 @@
     "batch": 1
   },
   {
+    "slug": "elbphilharmonie",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "elbtower-hamburg",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "elephant-park",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -818,6 +1554,13 @@
     "batch": 1
   },
   {
+    "slug": "embassy-gardens-nine-elms",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "entrada-sarajishvili",
     "status": "failed",
     "source": null,
@@ -839,7 +1582,21 @@
     "batch": 1
   },
   {
+    "slug": "euroboden-haus-fuer-muenchen",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "euroboden-kopenicker-strasse",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "europacity-berlin",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -853,7 +1610,21 @@
     "batch": 1
   },
   {
+    "slug": "faria-lima",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "fishermans-bend",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "flisvos-marina",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -874,6 +1645,14 @@
     "batch": 1
   },
   {
+    "slug": "four-frankfurt",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://de.wikipedia.org/wiki/Four_(Frankfurt_am_Main)",
+    "batch": 1,
+    "gallery": []
+  },
+  {
     "slug": "freedom-plaza",
     "status": "ok",
     "source": "korter",
@@ -882,6 +1661,49 @@
     "gallery": [
       "/images/projects/freedom-plaza-g1.webp"
     ]
+  },
+  {
+    "slug": "fukuoka-hakata",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "gag-zollstockguertel",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "galataport",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Galataport",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "gangnam-peak",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "gdansk-motlawa",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "georgian-van",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "gesobau-alte-hellersdorfer-strasse",
@@ -940,11 +1762,19 @@
     "batch": 1
   },
   {
-    "slug": "gewobag-allee-der-kosmonauten",
+    "slug": "gewoba-kistner-carre",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "gewobag-allee-der-kosmonauten",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://de.wikipedia.org/wiki/Allee_der_Kosmonauten_(Berlin)",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "gewobag-am-muehlenberg",
@@ -983,10 +1813,11 @@
   },
   {
     "slug": "gewobag-wendenschlossstrasse",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://de.wikipedia.org/wiki/Wendenschlo%C3%9Fstra%C3%9Fe",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "gg-varketili-sukhishvili",
@@ -1016,6 +1847,13 @@
     "batch": 1
   },
   {
+    "slug": "grand-canal-square",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "grand-city-neukolln-neubau",
     "status": "failed",
     "source": null,
@@ -1030,7 +1868,46 @@
     "batch": 1
   },
   {
+    "slug": "grand-tower-frankfurt",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "greater-southern-waterfront",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "green-side-gonio",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/green-side-gonio-batumi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/green-side-gonio-g1.webp",
+      "/images/projects/green-side-gonio-g2.webp"
+    ]
+  },
+  {
+    "slug": "green-square-town-centre",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "greystar-marzahn-mitte",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "griffintown",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1045,6 +1922,13 @@
     "gallery": [
       "/images/projects/gtb-didi-digomi-g1.webp"
     ]
+  },
+  {
+    "slug": "guadalajara-andares",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "gulfstream-seaview",
@@ -1084,6 +1968,13 @@
     ]
   },
   {
+    "slug": "guoco-midtown-modern",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "gwg-krtsanisi",
     "status": "ok",
     "source": "korter",
@@ -1092,6 +1983,21 @@
     "gallery": [
       "/images/projects/gwg-krtsanisi-g1.webp"
     ]
+  },
+  {
+    "slug": "gz-ctf-finance",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Guangzhou_CTF_Finance_Centre",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "hafen-city-hamburg",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "hafencity-hamburg",
@@ -1113,6 +2019,14 @@
   },
   {
     "slug": "hamburg-grasbrook",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://de.wikipedia.org/wiki/Hamburg-Kleiner_Grasbrook",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "hangzhou-qianjiang",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1120,6 +2034,13 @@
   },
   {
     "slug": "hanoi-metro-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "hanoi-west-lake",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1134,6 +2055,13 @@
     "gallery": [
       "/images/projects/harmonica-green-cape-g1.webp"
     ]
+  },
+  {
+    "slug": "hcmc-thao-dien",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "heart-of-europe",
@@ -1191,6 +2119,13 @@
     "batch": 1
   },
   {
+    "slug": "howoge-anne-frank-strasse",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "howoge-barther-strasse",
     "status": "failed",
     "source": null,
@@ -1206,6 +2141,27 @@
   },
   {
     "slug": "howoge-elisabeth-aue",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "howoge-gartenstadt-karlshorst",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "howoge-genslerstrasse-39-47",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "howoge-havelufer-quartier",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1247,7 +2203,21 @@
     "batch": 1
   },
   {
+    "slug": "howoge-lueckstrasse",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "howoge-mahlower-strasse",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "howoge-oberseestrasse-oranke",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1289,6 +2259,27 @@
     "batch": 1
   },
   {
+    "slug": "howoge-sewanstrasse-256",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "howoge-sewanstrasse-38-40",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "howoge-studenthouse-eichbuschallee",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "howoge-vincent-van-gogh-strasse",
     "status": "failed",
     "source": null,
@@ -1296,11 +2287,72 @@
     "batch": 1
   },
   {
+    "slug": "howoge-wiecker-strasse",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "hualing-tbilisi-sea-new-city",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/hualing-tbilisi-sea-new-city-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/hualing-tbilisi-sea-new-city-g1.webp",
+      "/images/projects/hualing-tbilisi-sea-new-city-g2.webp"
+    ]
+  },
+  {
     "slug": "hudayriat-island",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "hudson-yards",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "icc-hk",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "iconsiam",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "in-haus-vera",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/in-haus-vera-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/in-haus-vera-g1.webp",
+      "/images/projects/in-haus-vera-g2.webp"
+    ]
+  },
+  {
+    "slug": "ino",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/ino-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/ino-g1.webp",
+      "/images/projects/ino-g2.webp"
+    ]
   },
   {
     "slug": "instone-berlia",
@@ -1331,7 +2383,21 @@
     "batch": 1
   },
   {
+    "slug": "istanbul-financial-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "istanbul-metro",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "jakarta-mega-kuningan",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1355,6 +2421,43 @@
     ]
   },
   {
+    "slug": "jumeirah-beach-residence",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Jumeirah_Beach",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "jumeirah-islands",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Jumeirah_Islands",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "kafd",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "kampala-marina",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "kanyon-levent",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "katowice-spodek",
     "status": "failed",
     "source": null,
@@ -1363,6 +2466,24 @@
   },
   {
     "slug": "kigali-city-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "king-david-residences",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/king-david-residences-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/king-david-residences-g1.webp",
+      "/images/projects/king-david-residences-g2.webp"
+    ]
+  },
+  {
+    "slug": "king-power-mahanakhon",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1438,6 +2559,13 @@
     "batch": 1
   },
   {
+    "slug": "kuala-lumpur-trx-2",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "kura-rustavi",
     "status": "ok",
     "source": "korter",
@@ -1458,6 +2586,13 @@
     ]
   },
   {
+    "slug": "la-defense",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "la-grand-ave",
     "status": "failed",
     "source": null,
@@ -1475,6 +2610,27 @@
     ]
   },
   {
+    "slug": "lagos-riverside",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "lakhta-center",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "landmark-81",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "larnaca-marina-redevelopment",
     "status": "failed",
     "source": null,
@@ -1490,6 +2646,14 @@
     "gallery": [
       "/images/projects/le-meridien-sioni-lake-resort-spa-by-archi-g1.webp"
     ]
+  },
+  {
+    "slug": "leipzig-city-tunnel",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://de.wikipedia.org/wiki/City-Tunnel_Leipzig",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "liget-budapest",
@@ -1519,6 +2683,13 @@
     ]
   },
   {
+    "slug": "lima-miraflores-2",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "lisbon-beato",
     "status": "failed",
     "source": null,
@@ -1540,7 +2711,42 @@
     "batch": 1
   },
   {
+    "slug": "lodha-world-one",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "london-canary-wharf-2",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "lotte-world-tower",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "louvre-abu-dhabi",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "lusail-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "lyon-confluence",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1581,6 +2787,20 @@
     "batch": 1
   },
   {
+    "slug": "malaga-huelin",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "malmo-hollviken",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "malmoe28",
     "status": "failed",
     "source": null,
@@ -1588,7 +2808,37 @@
     "batch": 1
   },
   {
+    "slug": "mamsha-al-saadiyat",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "manchester-noma",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "manhattan-west",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Manhattan_West",
+    "batch": 1,
+    "gallery": []
+  },
+  {
     "slug": "manila-bay-reclamation",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bay_City%2C_Metro_Manila",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "manila-bgc",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1603,6 +2853,21 @@
     "gallery": [
       "/images/projects/mardi-aquapark-g1.webp"
     ]
+  },
+  {
+    "slug": "marina-bay-sands",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Marina_Bay_Sands",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "marina-gate",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "marseille-euromed",
@@ -1626,6 +2891,13 @@
     "batch": 1
   },
   {
+    "slug": "medellin-lleras",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "mega-gldani",
     "status": "ok",
     "source": "korter",
@@ -1634,6 +2906,20 @@
     "gallery": [
       "/images/projects/mega-gldani-g1.webp"
     ]
+  },
+  {
+    "slug": "melbourne-ardeer",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "merdeka-118",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "metro-manila-subway",
@@ -1680,6 +2966,41 @@
     ]
   },
   {
+    "slug": "miami-worldcenter",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "midtown-production-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "milan-porta-nuova-2",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "milaneo-stuttgart",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "minato-mirai",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "moedani",
     "status": "ok",
     "source": "korter",
@@ -1690,7 +3011,37 @@
     ]
   },
   {
+    "slug": "moscow-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "mudon",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Mudon",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "muenchner-wohnen-neufreimann",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "mumbai-coastal-road",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Coastal_Road_(Mumbai)",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "mumbai-nmc",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1732,7 +3083,28 @@
     ]
   },
   {
+    "slug": "nairobi-green",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "nairobi-upperhill",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nairobi-westlands",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nanjing-zifeng",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1744,6 +3116,38 @@
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "nassau-paradise",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "national-landing-amazon-hq2",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "navi-mumbai-intl-airport",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "ncode-shatberashvili",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/ncode-shatberashvili-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/ncode-shatberashvili-g1.webp",
+      "/images/projects/ncode-shatberashvili-g2.webp"
+    ]
   },
   {
     "slug": "nelson-mandela-bay",
@@ -1803,10 +3207,11 @@
   },
   {
     "slug": "new-group-nutsubidze",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Shalva_Nutsubidze",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "new-group-paliashvili",
@@ -1853,7 +3258,56 @@
     ]
   },
   {
+    "slug": "nhw-elisabethentor",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nhw-mariengaerten",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nhw-nuville",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nhw-riedbogen",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "nhw-schoenhof-viertel",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nice-promenade",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nueva-costanera",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "nuevo-polanco",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -1888,6 +3342,28 @@
     "batch": 1
   },
   {
+    "slug": "ocean-house-palm",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "olympic-sochi",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Sochi_Olympic_Park",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "olympic-village-van",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "olympus-residence-batumi",
     "status": "ok",
     "source": "korter",
@@ -1906,6 +3382,79 @@
     "gallery": [
       "/images/projects/omnia-isani-g1.webp"
     ]
+  },
+  {
+    "slug": "one-at-palm-jumeirah",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "one-bangkok",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/One_Bangkok",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "one-blackfriars",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/One_Blackfriars",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "one-bryant-park",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "one-frankfurt",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "one-limassol",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "one-thousand-museum",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "one-vanderbilt",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "one-zaabeel",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/One_Za'abeel",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "opalz",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "orbi-avant-garde",
@@ -2021,6 +3570,16 @@
     ]
   },
   {
+    "slug": "orbi-palace",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/orbi-palace-bakuriani",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/orbi-palace-g1.webp"
+    ]
+  },
+  {
     "slug": "orbi-plaza",
     "status": "ok",
     "source": "korter",
@@ -2059,6 +3618,13 @@
     "batch": 1
   },
   {
+    "slug": "osaka-2025-expo",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "osaka-umeda",
     "status": "failed",
     "source": null,
@@ -2083,11 +3649,27 @@
     ]
   },
   {
+    "slug": "palais-royale",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Palais_Royale%2C_Mumbai",
+    "batch": 1,
+    "gallery": []
+  },
+  {
     "slug": "palm-beach-towers",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "palm-jumeirah",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Palm_Jumeirah",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "pandion-midtown-4",
@@ -2152,6 +3734,14 @@
     ]
   },
   {
+    "slug": "parque-das-nacoes",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Parque_das_Na%C3%A7%C3%B5es",
+    "batch": 1,
+    "gallery": []
+  },
+  {
     "slug": "passage-gldani",
     "status": "ok",
     "source": "korter",
@@ -2169,6 +3759,20 @@
     "batch": 1
   },
   {
+    "slug": "paya-lebar-quarter",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "pearl-qatar",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "penang-south-islands",
     "status": "failed",
     "source": null,
@@ -2177,6 +3781,13 @@
   },
   {
     "slug": "petalz",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "phuket-andara",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2203,11 +3814,43 @@
     ]
   },
   {
+    "slug": "ping-an-finance",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "piraeus-tower",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "porta-nuova",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "porto-ribeira",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "portofino-batumi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/portofino-batumi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/portofino-batumi-g1.webp",
+      "/images/projects/portofino-batumi-g2.webp"
+    ]
   },
   {
     "slug": "prime-lisi",
@@ -2218,6 +3861,21 @@
     "gallery": [
       "/images/projects/prime-lisi-g1.webp"
     ]
+  },
+  {
+    "slug": "priva-dso",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "puerto-madero",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Puerto_Madero",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "quartier-eins-prenzlauer-berg",
@@ -2235,6 +3893,39 @@
   },
   {
     "slug": "quartier-lilienthal",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "queens-wharf",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Queen's_Wharf%2C_Brisbane",
+    "batch": 1,
+    "gallery": []
+  },
+  {
+    "slug": "raday-revival",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "radisson-residences-batumi",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/radisson-residences-batumi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/radisson-residences-batumi-g1.webp",
+      "/images/projects/radisson-residences-batumi-g2.webp"
+    ]
+  },
+  {
+    "slug": "raemian-one-bailey",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2316,7 +4007,21 @@
     ]
   },
   {
+    "slug": "rio-botafogo",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "rio-para-so",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "rio-vila-olimpica",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2330,7 +4035,21 @@
     "batch": 1
   },
   {
+    "slug": "rizon-im-four",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "roma-eur",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "rome-testaccio",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2368,7 +4087,25 @@
     ]
   },
   {
+    "slug": "roomix-vazha-pshavela",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/roomix-vazha-pshavela-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/roomix-vazha-pshavela-g1.webp",
+      "/images/projects/roomix-vazha-pshavela-g2.webp"
+    ]
+  },
+  {
     "slug": "rotterdam-de-kuip",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "rotterdam-markthal",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2413,7 +4150,84 @@
     "batch": 1
   },
   {
+    "slug": "saga-horn",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "salesforce-tower",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "samana-barari-views",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "san-pedro-garcia",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "sandton-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "santa-fe",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "santiago-nueva-providencia",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "sao-paulo-agua-branca",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "sao-paulo-villa-lobos",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "schoenwalder-strasse-57",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "sentosa-cove",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "seven-palm",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2428,6 +4242,13 @@
   },
   {
     "slug": "sf-transbay",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "shanghai-tower",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2452,6 +4273,13 @@
   },
   {
     "slug": "shenzhen-bay",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "shenzhen-bay-super-hq",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2506,6 +4334,14 @@
     "batch": 1
   },
   {
+    "slug": "smichov-city",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Sm%C3%ADchov_City",
+    "batch": 1,
+    "gallery": []
+  },
+  {
     "slug": "sobha-hartland",
     "status": "failed",
     "source": null,
@@ -2514,6 +4350,13 @@
   },
   {
     "slug": "sobha-hartland-ii",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "sofia-lozenets",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2546,6 +4389,20 @@
     "gallery": [
       "/images/projects/solum-ponichala-g1.webp"
     ]
+  },
+  {
+    "slug": "songdo-ibd",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "southbank-melbourne",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
   },
   {
     "slug": "stadt-und-land-buckower-felder",
@@ -2626,6 +4483,20 @@
   },
   {
     "slug": "stadt-und-land-weinstrasse-9",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "steinway-tower-111w57",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "stockholm-norra-elemasten",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2714,11 +4585,37 @@
     "batch": 1
   },
   {
+    "slug": "tabidze-112",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tabidze-112-tbilisi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/tabidze-112-g1.webp",
+      "/images/projects/tabidze-112-g2.webp"
+    ]
+  },
+  {
     "slug": "tag-weitlingkiez",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "taksim-1453",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "tashkent-city",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Tashkent_City",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "tbilisi-hills",
@@ -2811,7 +4708,22 @@
     ]
   },
   {
+    "slug": "the-abdali",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/New_Abdali",
+    "batch": 1,
+    "gallery": []
+  },
+  {
     "slug": "the-h-firstier-banpo",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "the-hague-scheveningen",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2825,11 +4737,64 @@
     "batch": 1
   },
   {
+    "slug": "the-opus",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "the-shard",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "the-silk-district-london",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "thu-thiem",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "timber-peak-mainz",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "tokyo-midtown",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "tokyo-station-city",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "tonino-lamborghini-tower",
+    "status": "ok",
+    "source": "korter",
+    "sourceUrl": "https://korter.ge/en/tonino-lamborghini-tower-batumi",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/tonino-lamborghini-tower-g1.webp",
+      "/images/projects/tonino-lamborghini-tower-g2.webp"
+    ]
   },
   {
     "slug": "torch-tower-tokyo",
@@ -2846,6 +4811,20 @@
     "batch": 1
   },
   {
+    "slug": "torre-bavaria",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "torre-unicredit",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "tour-montparnasse",
     "status": "failed",
     "source": null,
@@ -2854,6 +4833,13 @@
   },
   {
     "slug": "tour-triangle-paris",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "tower-25",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2877,6 +4863,21 @@
     "batch": 1
   },
   {
+    "slug": "trockland-checkpoint",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "tun-razak-exchange",
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Tun_Razak_Exchange",
+    "batch": 1,
+    "gallery": []
+  },
+  {
     "slug": "turin-lingotto",
     "status": "failed",
     "source": null,
@@ -2892,6 +4893,27 @@
   },
   {
     "slug": "utrecht-stationsgebied",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "valencia-arts-sciences",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "vancouver-burry",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "varso-tower",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2918,7 +4940,49 @@
     ]
   },
   {
+    "slug": "viaduct-harbour",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "victoria-dockside",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "vista-tower-chicago",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "vysoka-tower",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "warsaw-centralna",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "warsaw-praga",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "washington-wharf",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -2947,10 +5011,11 @@
   },
   {
     "slug": "wbm-haus-der-statistik",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://de.wikipedia.org/wiki/Haus_der_Statistik",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "wbm-lange-strasse",
@@ -3016,6 +5081,20 @@
     "batch": 1
   },
   {
+    "slug": "werksviertel-munich",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "west-kowloon",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "white-square-kutaisi",
     "status": "ok",
     "source": "korter",
@@ -3041,6 +5120,13 @@
   },
   {
     "slug": "wohnquadrat-harzer-118",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
+    "slug": "world-trade-center",
     "status": "failed",
     "source": null,
     "sourceUrl": null,
@@ -3095,6 +5181,13 @@
     ]
   },
   {
+    "slug": "zion-krtsanisi-embassies",
+    "status": "failed",
+    "source": null,
+    "sourceUrl": null,
+    "batch": 1
+  },
+  {
     "slug": "zygma",
     "status": "ok",
     "source": "korter",
@@ -3111,7 +5204,8 @@
     "sourceUrl": "https://korter.ge/en/alliance-centropolis-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/alliance-centropolis-g1.webp"
+      "/images/projects/alliance-centropolis-g1.webp",
+      "/images/projects/alliance-centropolis-g2.webp"
     ]
   },
   {
@@ -3121,7 +5215,8 @@
     "sourceUrl": "https://korter.ge/en/alliance-highline-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/alliance-highline-g1.webp"
+      "/images/projects/alliance-highline-g1.webp",
+      "/images/projects/alliance-highline-g2.webp"
     ]
   },
   {
@@ -3131,7 +5226,8 @@
     "sourceUrl": "https://korter.ge/en/alliance-palace-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/alliance-palace-g1.webp"
+      "/images/projects/alliance-palace-g1.webp",
+      "/images/projects/alliance-palace-g2.webp"
     ]
   },
   {
@@ -3141,7 +5237,8 @@
     "sourceUrl": "https://korter.ge/en/alliance-privilege-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/alliance-privilege-g1.webp"
+      "/images/projects/alliance-privilege-g1.webp",
+      "/images/projects/alliance-privilege-g2.webp"
     ]
   },
   {
@@ -3151,7 +5248,8 @@
     "sourceUrl": "https://korter.ge/en/alliance-renaissance-kobuleti",
     "batch": 2,
     "gallery": [
-      "/images/projects/alliance-renaissance-g1.webp"
+      "/images/projects/alliance-renaissance-g1.webp",
+      "/images/projects/alliance-renaissance-g2.webp"
     ]
   },
   {
@@ -3161,7 +5259,8 @@
     "sourceUrl": "https://korter.ge/en/alliance-samgori-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/alliance-samgori-g1.webp"
+      "/images/projects/alliance-samgori-g1.webp",
+      "/images/projects/alliance-samgori-g2.webp"
     ]
   },
   {
@@ -3171,7 +5270,8 @@
     "sourceUrl": "https://korter.ge/en/alpha-home-gldani-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/alpha-home-gldani-g1.webp"
+      "/images/projects/alpha-home-gldani-g1.webp",
+      "/images/projects/alpha-home-gldani-g2.webp"
     ]
   },
   {
@@ -3181,7 +5281,8 @@
     "sourceUrl": "https://korter.ge/en/makhata-tower-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/altergeo-makhata-tower-g1.webp"
+      "/images/projects/altergeo-makhata-tower-g1.webp",
+      "/images/projects/altergeo-makhata-tower-g2.webp"
     ]
   },
   {
@@ -3191,7 +5292,8 @@
     "sourceUrl": "https://korter.ge/en/alto-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/alto-by-real-palace-g1.webp"
+      "/images/projects/alto-by-real-palace-g1.webp",
+      "/images/projects/alto-by-real-palace-g2.webp"
     ]
   },
   {
@@ -3201,7 +5303,8 @@
     "sourceUrl": "https://korter.ge/en/ambassadori-batumi-island-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/ambassadori-batumi-island-g1.webp"
+      "/images/projects/ambassadori-batumi-island-g1.webp",
+      "/images/projects/ambassadori-batumi-island-g2.webp"
     ]
   },
   {
@@ -3232,7 +5335,8 @@
     "sourceUrl": "https://korter.ge/en/tbilisi-acres-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/anagi-tbilisi-acres-g1.webp"
+      "/images/projects/anagi-tbilisi-acres-g1.webp",
+      "/images/projects/anagi-tbilisi-acres-g2.webp"
     ]
   },
   {
@@ -3242,7 +5346,8 @@
     "sourceUrl": "https://korter.ge/en/ande-metropolis-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/ande-metropolis-g1.webp"
+      "/images/projects/ande-metropolis-g1.webp",
+      "/images/projects/ande-metropolis-g2.webp"
     ]
   },
   {
@@ -3252,7 +5357,8 @@
     "sourceUrl": "https://korter.ge/en/lisi-lakers-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/apart-lisi-lakers-g1.webp"
+      "/images/projects/apart-lisi-lakers-g1.webp",
+      "/images/projects/apart-lisi-lakers-g2.webp"
     ]
   },
   {
@@ -3262,7 +5368,8 @@
     "sourceUrl": "https://korter.ge/en/apart-vake-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/apart-vake-g1.webp"
+      "/images/projects/apart-vake-g1.webp",
+      "/images/projects/apart-vake-g2.webp"
     ]
   },
   {
@@ -3272,7 +5379,8 @@
     "sourceUrl": "https://korter.ge/en/apex-dighomi-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/apex-dighomi-g1.webp"
+      "/images/projects/apex-dighomi-g1.webp",
+      "/images/projects/apex-dighomi-g2.webp"
     ]
   },
   {
@@ -3282,7 +5390,8 @@
     "sourceUrl": "https://korter.ge/en/apex-holbruk-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/apex-holbruk-g1.webp"
+      "/images/projects/apex-holbruk-g1.webp",
+      "/images/projects/apex-holbruk-g2.webp"
     ]
   },
   {
@@ -3292,7 +5401,8 @@
     "sourceUrl": "https://korter.ge/en/apex-nutsubidze-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/apex-nutsubidze-g1.webp"
+      "/images/projects/apex-nutsubidze-g1.webp",
+      "/images/projects/apex-nutsubidze-g2.webp"
     ]
   },
   {
@@ -3302,7 +5412,8 @@
     "sourceUrl": "https://korter.ge/en/apex-towers-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/apex-towers-g1.webp"
+      "/images/projects/apex-towers-g1.webp",
+      "/images/projects/apex-towers-g2.webp"
     ]
   },
   {
@@ -3312,7 +5423,8 @@
     "sourceUrl": "https://korter.ge/en/archi-akhmeteli-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-akhmeteli-g1.webp"
+      "/images/projects/archi-akhmeteli-g1.webp",
+      "/images/projects/archi-akhmeteli-g2.webp"
     ]
   },
   {
@@ -3322,7 +5434,8 @@
     "sourceUrl": "https://korter.ge/en/archi-alley-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-alley-g1.webp"
+      "/images/projects/archi-alley-g1.webp",
+      "/images/projects/archi-alley-g2.webp"
     ]
   },
   {
@@ -3332,7 +5445,8 @@
     "sourceUrl": "https://korter.ge/en/archi-central-park-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-central-park-g1.webp"
+      "/images/projects/archi-central-park-g1.webp",
+      "/images/projects/archi-central-park-g2.webp"
     ]
   },
   {
@@ -3349,7 +5463,8 @@
     "sourceUrl": "https://archi.ge/en/complex/grand-avenue",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-grand-avenue-g1.webp"
+      "/images/projects/archi-grand-avenue-g1.webp",
+      "/images/projects/archi-grand-avenue-g2.webp"
     ]
   },
   {
@@ -3359,7 +5474,8 @@
     "sourceUrl": "https://korter.ge/en/archi-guramishvili-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-guramishvili-g1.webp"
+      "/images/projects/archi-guramishvili-g1.webp",
+      "/images/projects/archi-guramishvili-g2.webp"
     ]
   },
   {
@@ -3369,7 +5485,8 @@
     "sourceUrl": "https://archi.ge/en/complex/archi-horizon",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-horizon-g1.webp"
+      "/images/projects/archi-horizon-g1.webp",
+      "/images/projects/archi-horizon-g2.webp"
     ]
   },
   {
@@ -3379,7 +5496,8 @@
     "sourceUrl": "https://korter.ge/en/archi-lilac-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-lilac-g1.webp"
+      "/images/projects/archi-lilac-g1.webp",
+      "/images/projects/archi-lilac-g2.webp"
     ]
   },
   {
@@ -3399,7 +5517,8 @@
     "sourceUrl": "https://korter.ge/en/archi-panorama-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-panorama-g1.webp"
+      "/images/projects/archi-panorama-g1.webp",
+      "/images/projects/archi-panorama-g2.webp"
     ]
   },
   {
@@ -3409,7 +5528,8 @@
     "sourceUrl": "https://archi.ge/en/complex/archi-rivertown",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-rivertown-g1.webp"
+      "/images/projects/archi-rivertown-g1.webp",
+      "/images/projects/archi-rivertown-g2.webp"
     ]
   },
   {
@@ -3419,7 +5539,8 @@
     "sourceUrl": "https://korter.ge/en/archi-rustavi-rustavi",
     "batch": 2,
     "gallery": [
-      "/images/projects/archi-rustavi-g1.webp"
+      "/images/projects/archi-rustavi-g1.webp",
+      "/images/projects/archi-rustavi-g2.webp"
     ]
   },
   {
@@ -3429,7 +5550,8 @@
     "sourceUrl": "https://korter.ge/en/elegance-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/arcon-elegance-g1.webp"
+      "/images/projects/arcon-elegance-g1.webp",
+      "/images/projects/arcon-elegance-g2.webp"
     ]
   },
   {
@@ -3439,7 +5561,8 @@
     "sourceUrl": "https://korter.ge/en/artex-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/artex-g1.webp"
+      "/images/projects/artex-g1.webp",
+      "/images/projects/artex-g2.webp"
     ]
   },
   {
@@ -3449,7 +5572,8 @@
     "sourceUrl": "https://korter.ge/en/park-boulevard-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/as-group-park-boulevard-g1.webp"
+      "/images/projects/as-group-park-boulevard-g1.webp",
+      "/images/projects/as-group-park-boulevard-g2.webp"
     ]
   },
   {
@@ -3459,7 +5583,8 @@
     "sourceUrl": "https://korter.ge/en/avlabari-by-index-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/avlabari-by-index-g1.webp"
+      "/images/projects/avlabari-by-index-g1.webp",
+      "/images/projects/avlabari-by-index-g2.webp"
     ]
   },
   {
@@ -3479,7 +5604,8 @@
     "sourceUrl": "https://korter.ge/en/axis-towers-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/axis-towers-g1.webp"
+      "/images/projects/axis-towers-g1.webp",
+      "/images/projects/axis-towers-g2.webp"
     ]
   },
   {
@@ -3503,7 +5629,8 @@
     "sourceUrl": "https://korter.ge/en/batumi-tower-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/batumi-tower-g1.webp"
+      "/images/projects/batumi-tower-g1.webp",
+      "/images/projects/batumi-tower-g2.webp"
     ]
   },
   {
@@ -3527,7 +5654,8 @@
     "sourceUrl": "https://korter.ge/en/blox-beliashvili-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/blox-beliashvili-g1.webp"
+      "/images/projects/blox-beliashvili-g1.webp",
+      "/images/projects/blox-beliashvili-g2.webp"
     ]
   },
   {
@@ -3537,7 +5665,8 @@
     "sourceUrl": "https://korter.ge/en/blox-didi-digomi-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/blox-didi-digomi-g1.webp"
+      "/images/projects/blox-didi-digomi-g1.webp",
+      "/images/projects/blox-didi-digomi-g2.webp"
     ]
   },
   {
@@ -3547,7 +5676,8 @@
     "sourceUrl": "https://korter.ge/en/blox-gudauri-gudauri",
     "batch": 2,
     "gallery": [
-      "/images/projects/blox-gudauri-g1.webp"
+      "/images/projects/blox-gudauri-g1.webp",
+      "/images/projects/blox-gudauri-g2.webp"
     ]
   },
   {
@@ -3568,7 +5698,8 @@
     "sourceUrl": "https://korter.ge/en/blox-ortachala-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/blox-ortachala-g1.webp"
+      "/images/projects/blox-ortachala-g1.webp",
+      "/images/projects/blox-ortachala-g2.webp"
     ]
   },
   {
@@ -3588,7 +5719,8 @@
     "sourceUrl": "https://korter.ge/en/blox-varketili-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/blox-varketili-g1.webp"
+      "/images/projects/blox-varketili-g1.webp",
+      "/images/projects/blox-varketili-g2.webp"
     ]
   },
   {
@@ -3605,7 +5737,8 @@
     "sourceUrl": "https://korter.ge/en/city-centre-gldani-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/city-center-gldani-g1.webp"
+      "/images/projects/city-center-gldani-g1.webp",
+      "/images/projects/city-center-gldani-g2.webp"
     ]
   },
   {
@@ -3615,7 +5748,8 @@
     "sourceUrl": "https://korter.ge/en/lisi-townhouse-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/console-lisi-townhouse-g1.webp"
+      "/images/projects/console-lisi-townhouse-g1.webp",
+      "/images/projects/console-lisi-townhouse-g2.webp"
     ]
   },
   {
@@ -3625,7 +5759,8 @@
     "sourceUrl": "https://korter.ge/en/console-samgori-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/console-samgori-g1.webp"
+      "/images/projects/console-samgori-g1.webp",
+      "/images/projects/console-samgori-g2.webp"
     ]
   },
   {
@@ -3635,7 +5770,8 @@
     "sourceUrl": "https://korter.ge/en/crystal-park-hotel-bakuriani",
     "batch": 2,
     "gallery": [
-      "/images/projects/crystal-park-hotel-g1.webp"
+      "/images/projects/crystal-park-hotel-g1.webp",
+      "/images/projects/crystal-park-hotel-g2.webp"
     ]
   },
   {
@@ -3645,7 +5781,8 @@
     "sourceUrl": "https://korter.ge/en/davide-abashvili-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/davide-abashvili-varketili-g1.webp"
+      "/images/projects/davide-abashvili-varketili-g1.webp",
+      "/images/projects/davide-abashvili-varketili-g2.webp"
     ]
   },
   {
@@ -3655,7 +5792,8 @@
     "sourceUrl": "https://korter.ge/en/devart-green-gardens-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/devart-green-gardens-g1.webp"
+      "/images/projects/devart-green-gardens-g1.webp",
+      "/images/projects/devart-green-gardens-g2.webp"
     ]
   },
   {
@@ -3679,7 +5817,8 @@
     "sourceUrl": "https://domusi.com/en/binebi/domus-avlabari/27",
     "batch": 2,
     "gallery": [
-      "/images/projects/domus-avlabari-g1.webp"
+      "/images/projects/domus-avlabari-g1.webp",
+      "/images/projects/domus-avlabari-g2.webp"
     ]
   },
   {

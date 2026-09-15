@@ -526,53 +526,65 @@ async function matchKorter(t: Target): Promise<PageHit | null> {
 }
 
 // ── targets ────────────────────────────────────────────────────────────────
+/** Cities whose projects should search de.wikipedia before en. */
+const GERMAN_CITIES = new Set([
+  'berlin', 'munich', 'frankfurt', 'hamburg', 'cologne', 'stuttgart', 'düsseldorf',
+  'duesseldorf', 'leipzig', 'dresden', 'nuremberg', 'hannover', 'dortmund', 'essen',
+  'bremen', 'bonn', 'potsdam', 'augsburg', 'wiesbaden', 'mannheim', 'karlsruhe',
+  'münster', 'bielefeld', 'ბერლინი', 'მიუნხენი', 'ფრანკფურტი', 'ჰამბურგი', 'კელნი',
+  'შტუტგარტი', 'დიუსელდორფი', 'ლაიფციგი', 'დრეზდენი', 'ნიურნბერგი', 'ჰანოვერი',
+])
+
 /**
  * Public-source fallback for world/landmark rows with no developer page:
- * enwiki search → tight title match → article image (CC-scraped, public).
- * Only ≥70% of the name's distinctive tokens may hit — wrong-subject images
- * are worse than no image.
+ * wiki search → tight title match → article image (CC-scraped, public).
+ * German-city rows try de.wikipedia first. Only ≥70% of the name's
+ * distinctive tokens may hit — wrong-subject images are worse than no image.
  */
 async function matchWikipedia(t: Target): Promise<PageHit | null> {
   const name = t.name.replace(/\s+/g, ' ').trim()
   if (!name || !/[a-z]/i.test(name)) return null
-  const api =
-    `https://en.wikipedia.org/w/api.php?action=query&list=search` +
-    `&srsearch=${encodeURIComponent(name)}&srlimit=3&format=json`
-  const txt = await fetchText(api)
-  if (!txt) return null
-  try {
-    const hits = (JSON.parse(txt) as { query?: { search?: Array<{ title?: string }> } }).query?.search ?? []
-    // slug ∪ name tokens — catches dev-district names ('Astoria' alone → Astoria, Queens)
-    const want = [...new Set([...tokens(name), ...tokens(t.slug)])].filter((w) => !STOP.has(w))
-    if (want.length === 0) return null
-    // short names must match fully ('Central Park' ≠ any other Central Park);
-    // longer names tolerate a miss
-    const needAll = want.length <= 3
-    for (const h of hits) {
-      const title = String(h.title ?? '')
-      if (!title) continue
-      const have = tokens(title)
-      const hitsTok = want.filter((w) => have.includes(w) || have.some((hv) => tokenHit(w, new Set([hv]))))
-      if (hitsTok.length < (needAll ? want.length : Math.ceil(want.length * 0.7))) continue
-      const sumTxt = await fetchText(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`,
-      )
-      if (!sumTxt) continue
-      const sum = JSON.parse(sumTxt) as {
-        originalimage?: { source?: string }
-        thumbnail?: { source?: string }
-        content_urls?: { desktop?: { page?: string } }
-        type?: string
+  const langs = GERMAN_CITIES.has(t.city.toLowerCase()) ? ['de', 'en'] : ['en']
+  for (const lang of langs) {
+    const api =
+      `https://${lang}.wikipedia.org/w/api.php?action=query&list=search` +
+      `&srsearch=${encodeURIComponent(name)}&srlimit=3&format=json`
+    const txt = await fetchText(api)
+    if (!txt) continue
+    try {
+      const hits = (JSON.parse(txt) as { query?: { search?: Array<{ title?: string }> } }).query?.search ?? []
+      // slug ∪ name tokens — catches dev-district names ('Astoria' alone → Astoria, Queens)
+      const want = [...new Set([...tokens(name), ...tokens(t.slug)])].filter((w) => !STOP.has(w))
+      if (want.length === 0) return null
+      // short names must match fully ('Central Park' ≠ any other Central Park);
+      // longer names tolerate a miss
+      const needAll = want.length <= 3
+      for (const h of hits) {
+        const title = String(h.title ?? '')
+        if (!title) continue
+        const have = tokens(title)
+        const hitsTok = want.filter((w) => have.includes(w) || have.some((hv) => tokenHit(w, new Set([hv]))))
+        if (hitsTok.length < (needAll ? want.length : Math.ceil(want.length * 0.7))) continue
+        const sumTxt = await fetchText(
+          `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`,
+        )
+        if (!sumTxt) continue
+        const sum = JSON.parse(sumTxt) as {
+          originalimage?: { source?: string }
+          thumbnail?: { source?: string }
+          content_urls?: { desktop?: { page?: string } }
+          type?: string
+        }
+        const img = sum.originalimage?.source ?? sum.thumbnail?.source
+        if (!img) continue
+        // disambiguation/stub summaries carry no real photo — rely on img check above
+        const page =
+          sum.content_urls?.desktop?.page ?? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`
+        return { page, images: [img] }
       }
-      const img = sum.originalimage?.source ?? sum.thumbnail?.source
-      if (!img) continue
-      // disambiguation/stub summaries carry no real photo — rely on img check above
-      const page =
-        sum.content_urls?.desktop?.page ?? `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`
-      return { page, images: [img] }
+    } catch {
+      continue
     }
-  } catch {
-    return null
   }
   return null
 }
@@ -736,10 +748,19 @@ async function galleriesMode(
   }
   await runSweep(1)
 
-  // Pass B — failed entries: full re-match (official → korter), hero + gallery.
+  // Pass B — failed + never-attempted entries: full re-match, hero + gallery.
   const bySlug = new Map(PROJECTS.map((p) => [p.slug, p]))
+  const inManifest = new Set([...manifest.values()].map((e) => e.slug))
+  const pending: ManifestEntry[] = [...manifest.values()].filter((e) => e.status === 'failed')
+  for (const p of PROJECTS) {
+    if (inManifest.has(p.slug)) continue
+    // post-July catalogs never went through the mirror — register and try them
+    const e: ManifestEntry = { slug: p.slug, status: 'failed', source: null, sourceUrl: null, batch: 1 }
+    manifest.set(`1:${p.slug}`, e)
+    pending.push(e)
+  }
   let b = 0
-  for (const e of [...manifest.values()].sort((x, y) => x.slug.localeCompare(y.slug))) {
+  for (const e of pending.sort((x, y) => x.slug.localeCompare(y.slug))) {
     if (only && !only.has(e.slug)) continue
     if (e.status !== 'failed') continue
     const p = bySlug.get(e.slug)
@@ -780,6 +801,7 @@ async function galleriesMode(
     console.log(`B ${e.slug} ${e.source} +${got.gallery.length}${got.hero ? ' +hero' : ''}`)
     await saveManifest(manifest)
   }
+  await saveManifest(manifest)
 
   // Sweep 2 — second images for already-covered projects, budget permitting.
   await runSweep(GALLERY_CAP)
