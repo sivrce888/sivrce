@@ -54,10 +54,13 @@
   },
   {
     "slug": "abu-dhabi-al-reem",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.aldar.com/en/blog/the-best-apartments-in-abu-dhabi-al-reem-island",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/abu-dhabi-al-reem-g1.webp"
+    ]
   },
   {
     "slug": "accra-ridge",
@@ -75,10 +78,13 @@
   },
   {
     "slug": "ain-dubai",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Ain_Dubai",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/ain-dubai-g1.webp"
+    ]
   },
   {
     "slug": "al-marjan-island",
@@ -97,10 +103,13 @@
   },
   {
     "slug": "al-raha-beach",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.aldar.com/en/blog/why-to-move-to-al-raha-beach",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/al-raha-beach-g1.webp"
+    ]
   },
   {
     "slug": "alazani-valley-residence",
@@ -136,10 +145,14 @@
   },
   {
     "slug": "aljada",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.arada.com/en/aljada/",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/aljada-g1.webp",
+      "/images/projects/aljada-g2.webp"
+    ]
   },
   {
     "slug": "alliance-residence-batumi",
@@ -462,10 +475,11 @@
   },
   {
     "slug": "aykon-city",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.damacproperties.com/en/projects/aykon-city-tower-b/",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "azabudai-hills",
@@ -540,10 +554,14 @@
   },
   {
     "slug": "bandra-worli-sealink",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Bandra%E2%80%93Worli_Sea_Link",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/bandra-worli-sealink-g1.webp",
+      "/images/projects/bandra-worli-sealink-g2.webp"
+    ]
   },
   {
     "slug": "bangalore-embassy",
@@ -974,10 +992,11 @@
   },
   {
     "slug": "cancun-hotel-zone",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Hotel_Zone_(Canc%C3%BAn)",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "cancun-scenic-tower",
@@ -1198,10 +1217,13 @@
   },
   {
     "slug": "crown-sydney",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Crown_Sydney",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/crown-sydney-g1.webp"
+    ]
   },
   {
     "slug": "crystal-loft-bakuriani",
@@ -1227,10 +1249,11 @@
   },
   {
     "slug": "cuatro-torres",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Cuatro_Torres_Business_Area",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "curitiba-batel",
@@ -1241,17 +1264,19 @@
   },
   {
     "slug": "damac-hills",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.damacproperties.com/en/communities/damac-hills-2/",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "damac-towers-paramount",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.damacproperties.com/en/projects/damac-towers-by-paramount-hotels-and-resorts-dubai/",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "dar-es-salaam-peninsula",
@@ -1378,7 +1403,8 @@
     "sourceUrl": "https://domusi.com/en/binebi/domus-nea/25",
     "batch": 1,
     "gallery": [
-      "/images/projects/domus-nea-g1.webp"
+      "/images/projects/domus-nea-g1.webp",
+      "/images/projects/domus-nea-g2.webp"
     ]
   },
   {
@@ -1399,7 +1425,8 @@
     "sourceUrl": "https://domusi.com/en/binebi/domus-sera/26",
     "batch": 1,
     "gallery": [
-      "/images/projects/domus-sera-g1.webp"
+      "/images/projects/domus-sera-g1.webp",
+      "/images/projects/domus-sera-g2.webp"
     ]
   },
   {
@@ -1409,7 +1436,8 @@
     "sourceUrl": "https://korter.ge/en/dreamland-oasis-batumi",
     "batch": 1,
     "gallery": [
-      "/images/projects/dreamland-oasis-g1.webp"
+      "/images/projects/dreamland-oasis-g1.webp",
+      "/images/projects/dreamland-oasis-g2.webp"
     ]
   },
   {
@@ -1419,15 +1447,17 @@
     "sourceUrl": "https://korter.ge/en/new-line-batumi",
     "batch": 1,
     "gallery": [
-      "/images/projects/ds-white-line-g1.webp"
+      "/images/projects/ds-white-line-g1.webp",
+      "/images/projects/ds-white-line-g2.webp"
     ]
   },
   {
     "slug": "dubai-creek-harbour",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.emaar.com/en/blog/dubai-creek-harbour-guide",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "dubai-creek-tower",
@@ -1445,10 +1475,11 @@
   },
   {
     "slug": "dubai-hills-estate",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.emaar.com/en/blog/dubai-hills-estate-guide",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "dubai-islands",
@@ -1456,7 +1487,10 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Dubai_Islands",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/dubai-islands-g1.webp",
+      "/images/projects/dubai-islands-g2.webp"
+    ]
   },
   {
     "slug": "dubai-marina",
@@ -1464,7 +1498,10 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Dubai_Marina",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/dubai-marina-g1.webp",
+      "/images/projects/dubai-marina-g2.webp"
+    ]
   },
   {
     "slug": "dubai-south",
@@ -1475,10 +1512,14 @@
   },
   {
     "slug": "dublin-docklands",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Dublin_Docklands",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/dublin-docklands-g1.webp",
+      "/images/projects/dublin-docklands-g2.webp"
+    ]
   },
   {
     "slug": "durban-point",
@@ -1543,15 +1584,17 @@
     "sourceUrl": "https://en.wikipedia.org/wiki/Ellinikon_International_Airport",
     "batch": 1,
     "gallery": [
-      "/images/projects/ellinikon-g1.webp"
+      "/images/projects/ellinikon-g1.webp",
+      "/images/projects/ellinikon-g2.webp"
     ]
   },
   {
     "slug": "emaar-beachfront",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.emaar.com/en/our-communities/emaar-beachfront",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "embassy-gardens-nine-elms",
@@ -1597,17 +1640,19 @@
   },
   {
     "slug": "europacity-berlin",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Europacity_(Berlin)",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "falcon-island",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Falcon_Island",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "faria-lima",
@@ -1618,10 +1663,14 @@
   },
   {
     "slug": "fishermans-bend",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Fishermans_Bend",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/fishermans-bend-g1.webp",
+      "/images/projects/fishermans-bend-g2.webp"
+    ]
   },
   {
     "slug": "flisvos-marina",
@@ -1650,7 +1699,10 @@
     "source": "wikipedia",
     "sourceUrl": "https://de.wikipedia.org/wiki/Four_(Frankfurt_am_Main)",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/four-frankfurt-g1.webp",
+      "/images/projects/four-frankfurt-g2.webp"
+    ]
   },
   {
     "slug": "freedom-plaza",
@@ -1659,7 +1711,8 @@
     "sourceUrl": "https://korter.ge/en/freedom-plaza-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/freedom-plaza-g1.webp"
+      "/images/projects/freedom-plaza-g1.webp",
+      "/images/projects/freedom-plaza-g2.webp"
     ]
   },
   {
@@ -1682,7 +1735,10 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Galataport",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/galataport-g1.webp",
+      "/images/projects/galataport-g2.webp"
+    ]
   },
   {
     "slug": "gangnam-peak",
@@ -1774,7 +1830,10 @@
     "source": "wikipedia",
     "sourceUrl": "https://de.wikipedia.org/wiki/Allee_der_Kosmonauten_(Berlin)",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/gewobag-allee-der-kosmonauten-g1.webp",
+      "/images/projects/gewobag-allee-der-kosmonauten-g2.webp"
+    ]
   },
   {
     "slug": "gewobag-am-muehlenberg",
@@ -1817,7 +1876,10 @@
     "source": "wikipedia",
     "sourceUrl": "https://de.wikipedia.org/wiki/Wendenschlo%C3%9Fstra%C3%9Fe",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/gewobag-wendenschlossstrasse-g1.webp",
+      "/images/projects/gewobag-wendenschlossstrasse-g2.webp"
+    ]
   },
   {
     "slug": "gg-varketili-sukhishvili",
@@ -1826,7 +1888,8 @@
     "sourceUrl": "https://korter.ge/en/5-ilia-sukhishvili-street-tbilisi",
     "batch": 1,
     "gallery": [
-      "/images/projects/gg-varketili-sukhishvili-g1.webp"
+      "/images/projects/gg-varketili-sukhishvili-g1.webp",
+      "/images/projects/gg-varketili-sukhishvili-g2.webp"
     ]
   },
   {
@@ -1836,7 +1899,8 @@
     "sourceUrl": "https://www.inndevelopment.ge/en/project",
     "batch": 1,
     "gallery": [
-      "/images/projects/gldani-inn-g1.webp"
+      "/images/projects/gldani-inn-g1.webp",
+      "/images/projects/gldani-inn-g2.webp"
     ]
   },
   {
@@ -1990,7 +2054,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Guangzhou_CTF_Finance_Centre",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/gz-ctf-finance-g1.webp"
+    ]
   },
   {
     "slug": "hafen-city-hamburg",
@@ -2023,7 +2089,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://de.wikipedia.org/wiki/Hamburg-Kleiner_Grasbrook",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/hamburg-grasbrook-g1.webp"
+    ]
   },
   {
     "slug": "hangzhou-qianjiang",
@@ -2313,10 +2381,11 @@
   },
   {
     "slug": "hudson-yards",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/30_Hudson_Yards",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "icc-hk",
@@ -2327,10 +2396,11 @@
   },
   {
     "slug": "iconsiam",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Iconsiam",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "in-haus-vera",
@@ -2426,7 +2496,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Jumeirah_Beach",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/jumeirah-beach-residence-g1.webp"
+    ]
   },
   {
     "slug": "jumeirah-islands",
@@ -2434,7 +2506,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Jumeirah_Islands",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/jumeirah-islands-g1.webp"
+    ]
   },
   {
     "slug": "kafd",
@@ -2653,7 +2727,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://de.wikipedia.org/wiki/City-Tunnel_Leipzig",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/leipzig-city-tunnel-g1.webp"
+    ]
   },
   {
     "slug": "liget-budapest",
@@ -2733,10 +2809,11 @@
   },
   {
     "slug": "louvre-abu-dhabi",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Louvre_Abu_Dhabi",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "lusail-city",
@@ -2781,10 +2858,11 @@
   },
   {
     "slug": "madrid-nuevo-norte",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Madrid_Nuevo_Norte",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "malaga-huelin",
@@ -2827,7 +2905,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Manhattan_West",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/manhattan-west-g1.webp"
+    ]
   },
   {
     "slug": "manila-bay-reclamation",
@@ -2835,7 +2915,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Bay_City%2C_Metro_Manila",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/manila-bay-reclamation-g1.webp"
+    ]
   },
   {
     "slug": "manila-bgc",
@@ -2860,7 +2942,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Marina_Bay_Sands",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/marina-bay-sands-g1.webp"
+    ]
   },
   {
     "slug": "marina-gate",
@@ -2885,10 +2969,14 @@
   },
   {
     "slug": "masaar",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.arada.com/en/masaar/",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/masaar-g1.webp",
+      "/images/projects/masaar-g2.webp"
+    ]
   },
   {
     "slug": "medellin-lleras",
@@ -2967,10 +3055,11 @@
   },
   {
     "slug": "miami-worldcenter",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Paramount_Miami_Worldcenter",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "midtown-production-city",
@@ -2995,10 +3084,11 @@
   },
   {
     "slug": "minato-mirai",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Minato_Mirai_21",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "moedani",
@@ -3023,7 +3113,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Mudon",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/mudon-g1.webp"
+    ]
   },
   {
     "slug": "muenchner-wohnen-neufreimann",
@@ -3038,7 +3130,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Coastal_Road_(Mumbai)",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/mumbai-coastal-road-g1.webp"
+    ]
   },
   {
     "slug": "mumbai-nmc",
@@ -3133,10 +3227,11 @@
   },
   {
     "slug": "navi-mumbai-intl-airport",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Navi_Mumbai_International_Airport",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "ncode-shatberashvili",
@@ -3211,7 +3306,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Shalva_Nutsubidze",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/new-group-nutsubidze-g1.webp"
+    ]
   },
   {
     "slug": "new-group-paliashvili",
@@ -3315,24 +3412,27 @@
   },
   {
     "slug": "nuevo-puerto",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Puerto_Nuevo%2C_Baja_California",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "nurly-zhol",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Astana-Nurly_Zhol_station",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "nusantara",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Nusantara_Capital_City_Authority",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "nyc-hudson-yards-2",
@@ -3354,7 +3454,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Sochi_Olympic_Park",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/olympic-sochi-g1.webp"
+    ]
   },
   {
     "slug": "olympic-village-van",
@@ -3385,10 +3487,14 @@
   },
   {
     "slug": "one-at-palm-jumeirah",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://omniyat.com/residential/one-at-palm-jumeirah",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/one-at-palm-jumeirah-g1.webp",
+      "/images/projects/one-at-palm-jumeirah-g2.webp"
+    ]
   },
   {
     "slug": "one-bangkok",
@@ -3404,7 +3510,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/One_Blackfriars",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/one-blackfriars-g1.webp"
+    ]
   },
   {
     "slug": "one-bryant-park",
@@ -3429,10 +3537,11 @@
   },
   {
     "slug": "one-thousand-museum",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/One_Thousand_Museum",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "one-vanderbilt",
@@ -3447,7 +3556,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/One_Za'abeel",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/one-zaabeel-g1.webp"
+    ]
   },
   {
     "slug": "opalz",
@@ -3612,10 +3723,14 @@
   },
   {
     "slug": "orla-palm",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://omniyat.com/news/the-orla-duplex-show-residence-a-new-perspective-of-beachfront-living-on-palm-jumeirah-dubai",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/orla-palm-g1.webp",
+      "/images/projects/orla-palm-g2.webp"
+    ]
   },
   {
     "slug": "osaka-2025-expo",
@@ -3669,7 +3784,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Palm_Jumeirah",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/palm-jumeirah-g1.webp"
+    ]
   },
   {
     "slug": "pandion-midtown-4",
@@ -3875,7 +3992,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Puerto_Madero",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/puerto-madero-g1.webp"
+    ]
   },
   {
     "slug": "quartier-eins-prenzlauer-berg",
@@ -3904,7 +4023,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Queen's_Wharf%2C_Brisbane",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/queens-wharf-g1.webp"
+    ]
   },
   {
     "slug": "raday-revival",
@@ -3950,10 +4071,11 @@
   },
   {
     "slug": "red-sea-project",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/The_Red_Sea_Destination",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "redco-bamboo-beach",
@@ -4144,10 +4266,11 @@
   },
   {
     "slug": "safa-one",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.damacproperties.com/en/projects/safa-one-de-grisogono/",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "saga-horn",
@@ -4158,10 +4281,11 @@
   },
   {
     "slug": "salesforce-tower",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Salesforce_Tower",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "samana-barari-views",
@@ -4172,24 +4296,27 @@
   },
   {
     "slug": "san-pedro-garcia",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/San_Pedro_Garza_Garc%C3%ADa",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "sandton-city",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Sandton_City",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "santa-fe",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Santa_Fe%2C_New_Mexico",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "santiago-nueva-providencia",
@@ -4339,21 +4466,31 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Sm%C3%ADchov_City",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/smichov-city-g1.webp"
+    ]
   },
   {
     "slug": "sobha-hartland",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://sobharealty.com/sobha-communities/sobha-hartland",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/sobha-hartland-g1.webp",
+      "/images/projects/sobha-hartland-g2.webp"
+    ]
   },
   {
     "slug": "sobha-hartland-ii",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://sobharealty.com/sobha-communities/sobha-hartland",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/sobha-hartland-ii-g1.webp",
+      "/images/projects/sobha-hartland-ii-g2.webp"
+    ]
   },
   {
     "slug": "sofia-lozenets",
@@ -4511,10 +4648,11 @@
   },
   {
     "slug": "sugar-wharf",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Sugar_Wharf",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "sultan-haitham-city",
@@ -4713,7 +4851,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/New_Abdali",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/the-abdali-g1.webp"
+    ]
   },
   {
     "slug": "the-h-firstier-banpo",
@@ -4738,17 +4878,22 @@
   },
   {
     "slug": "the-opus",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://omniyat.com/mixed-use/the-opus",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/the-opus-g1.webp",
+      "/images/projects/the-opus-g2.webp"
+    ]
   },
   {
     "slug": "the-shard",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/The_Shard",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "the-silk-district-london",
@@ -4759,10 +4904,11 @@
   },
   {
     "slug": "thu-thiem",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Th%E1%BB%A7_Thi%C3%AAm_New_Urban_Area",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "timber-peak-mainz",
@@ -4773,10 +4919,11 @@
   },
   {
     "slug": "tokyo-midtown",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Tokyo_Midtown",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "tokyo-station-city",
@@ -4840,10 +4987,11 @@
   },
   {
     "slug": "tower-25",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Tower_25",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "tower-ketevani",
@@ -4857,10 +5005,14 @@
   },
   {
     "slug": "town-square-dubai",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://nshama.ae/properties/town-square-dubai/",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/town-square-dubai-g1.webp",
+      "/images/projects/town-square-dubai-g2.webp"
+    ]
   },
   {
     "slug": "trockland-checkpoint",
@@ -4875,7 +5027,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://en.wikipedia.org/wiki/Tun_Razak_Exchange",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/tun-razak-exchange-g1.webp"
+    ]
   },
   {
     "slug": "turin-lingotto",
@@ -4900,10 +5054,11 @@
   },
   {
     "slug": "valencia-arts-sciences",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/City_of_Arts_and_Sciences",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "vancouver-burry",
@@ -4941,10 +5096,11 @@
   },
   {
     "slug": "viaduct-harbour",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "wikipedia",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Viaduct_Harbour",
+    "batch": 1,
+    "gallery": []
   },
   {
     "slug": "victoria-dockside",
@@ -5015,7 +5171,9 @@
     "source": "wikipedia",
     "sourceUrl": "https://de.wikipedia.org/wiki/Haus_der_Statistik",
     "batch": 1,
-    "gallery": []
+    "gallery": [
+      "/images/projects/wbm-haus-der-statistik-g1.webp"
+    ]
   },
   {
     "slug": "wbm-lange-strasse",
@@ -5158,10 +5316,14 @@
   },
   {
     "slug": "yas-acres",
-    "status": "failed",
-    "source": null,
-    "sourceUrl": null,
-    "batch": 1
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": "https://www.aldar.com/en/yas-acres-north-bay",
+    "batch": 1,
+    "gallery": [
+      "/images/projects/yas-acres-g1.webp",
+      "/images/projects/yas-acres-g2.webp"
+    ]
   },
   {
     "slug": "yongsan-masterplan",
@@ -5828,7 +5990,8 @@
     "sourceUrl": "https://domusi.com/en/binebi/domus-nea/25",
     "batch": 2,
     "gallery": [
-      "/images/projects/domus-nea-g1.webp"
+      "/images/projects/domus-nea-g1.webp",
+      "/images/projects/domus-nea-g2.webp"
     ]
   },
   {
@@ -5838,7 +6001,8 @@
     "sourceUrl": "https://domusi.com/en/binebi/domus-trees/17",
     "batch": 2,
     "gallery": [
-      "/images/projects/domus-trees-g1.webp"
+      "/images/projects/domus-trees-g1.webp",
+      "/images/projects/domus-trees-g2.webp"
     ]
   },
   {
@@ -5848,7 +6012,8 @@
     "sourceUrl": "https://korter.ge/en/dona-palace-ortachala-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/dona-palace-ortachala-g1.webp"
+      "/images/projects/dona-palace-ortachala-g1.webp",
+      "/images/projects/dona-palace-ortachala-g2.webp"
     ]
   },
   {
@@ -5858,7 +6023,8 @@
     "sourceUrl": "https://korter.ge/en/dona-palace-saburtalo-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/dona-palace-saburtalo-g1.webp"
+      "/images/projects/dona-palace-saburtalo-g1.webp",
+      "/images/projects/dona-palace-saburtalo-g2.webp"
     ]
   },
   {
@@ -5868,7 +6034,8 @@
     "sourceUrl": "https://korter.ge/en/uniq-residence-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/ds-uniq-residence-g1.webp"
+      "/images/projects/ds-uniq-residence-g1.webp",
+      "/images/projects/ds-uniq-residence-g2.webp"
     ]
   },
   {
@@ -5899,7 +6066,8 @@
     "sourceUrl": "https://korter.ge/en/gate-by-artex-batumi",
     "batch": 2,
     "gallery": [
-      "/images/projects/gate-by-artex-g1.webp"
+      "/images/projects/gate-by-artex-g1.webp",
+      "/images/projects/gate-by-artex-g2.webp"
     ]
   },
   {
@@ -5927,7 +6095,8 @@
     "sourceUrl": "https://korter.ge/en/gldani-by-index-tbilisi",
     "batch": 2,
     "gallery": [
-      "/images/projects/gldani-by-index-g1.webp"
+      "/images/projects/gldani-by-index-g1.webp",
+      "/images/projects/gldani-by-index-g2.webp"
     ]
   },
   {

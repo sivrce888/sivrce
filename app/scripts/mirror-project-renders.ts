@@ -93,6 +93,21 @@ const DEV_SITES: Record<string, { base: string; listings: string[] }> = {
   dirsi: { base: 'https://dirsi.ge', listings: ['/en', '/en/projects'] },
   anagi: { base: 'https://anagi.ge', listings: ['/en'] },
   'alliance-group': { base: 'https://alliancegroup.ge', listings: ['/en', '/en/projects'] },
+  // UAE / Gulf — sitemap.xml fallback does the heavy lifting (listing paths vary)
+  'aldar-properties': { base: 'https://www.aldar.com', listings: ['/en/projects'] },
+  'emaar-properties': { base: 'https://www.emaar.com', listings: ['/en-ae', '/projects'] },
+  'danube-properties': { base: 'https://www.danubeproperties.com', listings: ['/projects'] },
+  'damac-properties': { base: 'https://www.damacproperties.com', listings: ['/en/projects', '/projects'] },
+  deyaar: { base: 'https://deyaar.ae', listings: ['/projects', '/en'] },
+  omniyat: { base: 'https://omniyat.com', listings: ['/projects', '/'] },
+  'sobha-realty': { base: 'https://www.sobharealty.com', listings: ['/projects', '/en'] },
+  'tiger-properties': { base: 'https://tigerproperties.ae', listings: ['/projects', '/en'] },
+  'select-group': { base: 'https://selectgroup.ae', listings: ['/projects', '/en'] },
+  'ellington-properties': { base: 'https://ellingtonproperties.ae', listings: ['/projects', '/en'] },
+  arada: { base: 'https://arada.com', listings: ['/projects', '/en'] },
+  nshama: { base: 'https://nshama.ae', listings: ['/projects', '/en'] },
+  'wasl-properties': { base: 'https://waslproperties.ae', listings: ['/projects', '/en'] },
+  'red-sea-global': { base: 'https://www.redseaglobal.com', listings: ['/en', '/projects'] },
 }
 
 // ka city → korter.ge city slug
