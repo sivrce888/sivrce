@@ -229,8 +229,8 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       energy: {
         score: 100,
-        note: 'GEG 2026 Novelle compliance, KfW 261 / BEG 458 subsidies (up to 55%-70% grant), iSFP +5% bonus, and CO2KostAufG 10-step landlord carbon sharing.',
-        evidence: 'src/lib/countries/de-proptech-os.ts',
+        note: 'GEG § 87 Pflichtangaben enforced at publish (no German ad can omit the Energieausweis facts), Anlage 10 class cross-check, GEG 2026 Novelle, KfW 261 / BEG 458 subsidies and CO2KostAufG landlord carbon sharing.',
+        evidence: 'src/lib/countries/de-geg.ts',
       },
       i18n: {
         score: 100,
@@ -260,7 +260,7 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       engineering: {
         score: 100,
-        note: '108 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
+        note: '114 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
         evidence: 'package.json',
       },
     },

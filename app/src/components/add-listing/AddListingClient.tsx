@@ -57,6 +57,25 @@ import { VIDEO_ACCEPT,
 import { knownCityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
 import { naprUniqDigits, ringAreaM2 } from '@/lib/map/napr-parcel'
 import { canonicalizeDistrict } from '@/lib/district-canon'
+import {
+  DE_ENERGY_CLASSES,
+  type DeEnergyClass,
+} from '@/lib/countries/de-expose'
+import {
+  DE_GEG_CERT_LABEL,
+  DE_GEG_CERT_TYPES,
+  DE_GEG_ENERGY_SOURCES,
+  DE_GEG_EXEMPTION_LABEL,
+  DE_GEG_EXEMPTIONS,
+  DE_GEG_SOURCE_LABEL,
+  checkGegPflichtangaben,
+  energyClassFromKwh,
+  gegAppliesTo,
+  isResidentialPropertyType,
+  type DeGegCertType,
+  type DeGegEnergySource,
+  type DeGegExemption,
+} from '@/lib/countries/de-geg'
 
 type Deal = DealType
 /** file optional: existing CDN photos on edit have url only. */
@@ -208,6 +227,7 @@ export default function AddListingClient() {
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [suggestHi, setSuggestHi] = useState(-1)
   const streetListId = useId()
+  const gegId = useId()
   // ponytail: mute one geocode cycle after reverse-fill so pin↔address don't fight
   const muteGeocode = useRef(false)
   /** Latest location fields for async NAPR soft-fill (no stale closures, no dep churn). */
@@ -236,6 +256,14 @@ export default function AddListingClient() {
   const [project, setProject] = useState<DictKey | ''>('')
   const [floorType, setFloorType] = useState<DictKey | ''>('')
   const [kitchenArea, setKitchenArea] = useState('')
+  // GEG § 87 Pflichtangaben — German market only. Empty on every other market,
+  // so nothing here costs a non-German seller a keystroke.
+  const [gegExemption, setGegExemption] = useState<DeGegExemption | ''>('')
+  const [gegCertType, setGegCertType] = useState<DeGegCertType | ''>('')
+  const [gegKwh, setGegKwh] = useState('')
+  const [gegSource, setGegSource] = useState<DeGegEnergySource | ''>('')
+  const [gegYear, setGegYear] = useState('')
+  const [gegClass, setGegClass] = useState<DeEnergyClass | ''>('')
   const [features, setFeatures] = useState<DictKey[]>([])
   const [rentPeriod, setRentPeriod] = useState<number | null>(null)
   const [rentType, setRentType] = useState<DictKey | ''>('')
@@ -880,10 +908,34 @@ export default function AddListingClient() {
     return photos.length < 1 ? Math.min(pct, 70) : pct
   }, [deal, propType, country, city, district, street, areaN, beds, rooms, condition, status, features, photos, priceN, negotiable, description, video, matterport, onlineView, phone, formFields])
 
+  /* ————— GEG § 87 Pflichtangaben (DE market) ————— */
+  const gegRequired = gegAppliesTo(country, deal ?? '', propType ?? '')
+  const gegResidential = isResidentialPropertyType(propType ?? '')
+  const gegInput = useMemo(
+    () => ({
+      exemption: gegExemption || null,
+      certType: gegCertType || null,
+      endenergieKwhSqmYear: gegKwh.trim() === '' ? null : Number(gegKwh.replace(',', '.')),
+      energySource: gegSource || null,
+      yearBuilt: gegYear.trim() === '' ? null : Number(gegYear),
+      energyClass: gegClass || null,
+      residential: gegResidential,
+    }),
+    [gegExemption, gegCertType, gegKwh, gegSource, gegYear, gegClass, gegResidential],
+  )
+  const gegVerdict = useMemo(() => checkGegPflichtangaben(gegInput), [gegInput])
+  const gegOk = !gegRequired || gegVerdict.ok
+  /** Anlage 10 suggestion, so the seller never has to look the class up. */
+  const gegSuggestedClass = useMemo(() => {
+    const kwh = gegInput.endenergieKwhSqmYear
+    return typeof kwh === 'number' && Number.isFinite(kwh) && kwh >= 0 && kwh <= 1000 ? energyClassFromKwh(kwh) : null
+  }, [gegInput])
+
   const detailsOk = !!formFields && areaN > 0
     && (!formFields.rooms || (beds > 0 && rooms > 0))
     && (!formFields.guests || guests > 0)
     && (statusOpts.length === 0 || !!status)
+    && gegOk
 
   const typeOk = !!deal && !!propType && (!earlyStatus || !!status)
   const photosOk = photos.length >= 1
@@ -1216,6 +1268,9 @@ export default function AddListingClient() {
         name: name.trim(), phone, messengers,
         lat: coords.lat, lng: coords.lng,
         ...(projectSlugParam ? { projectSlug: projectSlugParam } : {}),
+        // The API re-validates § 87 independently — this is the seller's input,
+        // not a trusted verdict.
+        ...(gegRequired ? { geg: gegInput } : {}),
       }
       const res = await fetch(editId ? `/api/listings/${encodeURIComponent(editId)}` : '/api/listings', {
         method: editId ? 'PATCH' : 'POST',
@@ -2024,6 +2079,150 @@ export default function AddListingClient() {
                             </button>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/*
+                      GEG § 87 Pflichtangaben — German market only. Legal terms
+                      stay in German in every locale on purpose: they are the
+                      wording the law requires in the ad, and a translated
+                      "Energiebedarfsausweis" is not the disclosure § 87 asks for.
+                    */}
+                    {gegRequired && (
+                      <div className="rounded-card border border-sv-ink/[0.08] bg-sv-surface p-4">
+                        <label className={label}>Energieausweis · Pflichtangaben (§ 87 GEG)</label>
+                        <p className="mb-3 text-[12px] font-semibold text-sv-ink/60">
+                          {lang === 'de'
+                            ? 'Gesetzlich vorgeschrieben für Verkauf und Vermietung in Deutschland. Fehlende Angaben sind eine Ordnungswidrigkeit (bis 10.000 €) — für Sie, nicht für uns.'
+                            : 'Required by German law for sale and rental ads. Missing entries are an administrative offence, fined up to €10,000 — against you, the advertiser.'}
+                        </p>
+
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {DE_GEG_EXEMPTIONS.map((ex) => (
+                            <button
+                              key={ex}
+                              type="button"
+                              onClick={() => setGegExemption(gegExemption === ex ? '' : ex)}
+                              className={`rounded-full px-3.5 py-2.5 text-[12px] font-extrabold transition-all duration-300 ${
+                                gegExemption === ex ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
+                              }`}
+                            >
+                              {DE_GEG_EXEMPTION_LABEL[ex]}
+                            </button>
+                          ))}
+                        </div>
+
+                        {!gegExemption && (
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap gap-2">
+                              {DE_GEG_CERT_TYPES.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => setGegCertType(c)}
+                                  className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                    gegCertType === c ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
+                                  }`}
+                                >
+                                  {DE_GEG_CERT_LABEL[c]}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div>
+                                <label className={label} htmlFor={`${gegId}-geg-kwh`}>
+                                  {gegCertType === 'verbrauch' ? 'Endenergieverbrauch' : 'Endenergiebedarf'} kWh/(m²·a)
+                                </label>
+                                <input
+                                  id={`${gegId}-geg-kwh`}
+                                  className={`${input} ${err(!gegExemption && gegVerdict.missing.includes('endenergie'))}`}
+                                  inputMode="decimal"
+                                  value={gegKwh}
+                                  onChange={(e) => setGegKwh(e.target.value.replace(/[^\d.,]/g, '').slice(0, 6))}
+                                  placeholder="92"
+                                />
+                              </div>
+                              {gegResidential && (
+                                <div>
+                                  <label className={label} htmlFor={`${gegId}-geg-year`}>
+                                    Baujahr laut Energieausweis
+                                  </label>
+                                  <input
+                                    id={`${gegId}-geg-year`}
+                                    className={`${input} ${err(!gegExemption && gegVerdict.missing.includes('yearBuilt'))}`}
+                                    inputMode="numeric"
+                                    value={gegYear}
+                                    onChange={(e) => setGegYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                    placeholder="1998"
+                                  />
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <label className={label}>Wesentlicher Energieträger der Heizung</label>
+                              <div className="flex flex-wrap gap-2">
+                                {DE_GEG_ENERGY_SOURCES.map((s) => (
+                                  <button
+                                    key={s}
+                                    type="button"
+                                    onClick={() => setGegSource(s)}
+                                    className={`rounded-full px-3.5 py-2.5 text-[12px] font-extrabold transition-all duration-300 ${
+                                      gegSource === s ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
+                                    }`}
+                                  >
+                                    {DE_GEG_SOURCE_LABEL[s]}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {gegResidential && (
+                              <div>
+                                <label className={label}>Energieeffizienzklasse</label>
+                                <div className="flex flex-wrap gap-2">
+                                  {DE_ENERGY_CLASSES.map((c) => (
+                                    <button
+                                      key={c}
+                                      type="button"
+                                      onClick={() => setGegClass(c)}
+                                      className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                        gegClass === c ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
+                                      }`}
+                                    >
+                                      {c}
+                                    </button>
+                                  ))}
+                                </div>
+                                {gegSuggestedClass && !gegClass && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setGegClass(gegSuggestedClass)}
+                                    className="mt-2 text-[12px] font-extrabold text-sv-blue underline-offset-2 hover:underline"
+                                  >
+                                    {lang === 'de'
+                                      ? `Laut Anlage 10 GEG entspricht dieser Wert Klasse ${gegSuggestedClass} — übernehmen`
+                                      : `Annex 10 GEG puts this value in class ${gegSuggestedClass} — use it`}
+                                  </button>
+                                )}
+                                {gegVerdict.classMismatch && (
+                                  <p className="mt-2 text-[12px] font-bold text-sv-orange">
+                                    {lang === 'de'
+                                      ? `Hinweis: ${gegVerdict.classMismatch.declared} passt nicht zum Wert — Anlage 10 GEG ergibt ${gegVerdict.classMismatch.derived}. Maßgeblich bleibt Ihr Energieausweis.`
+                                      : `Heads-up: ${gegVerdict.classMismatch.declared} does not match the value — Annex 10 GEG gives ${gegVerdict.classMismatch.derived}. Your certificate stays authoritative.`}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {gegVerdict.disclosure && (
+                              <p className="rounded-control bg-sv-cloud px-3.5 py-2.5 text-[12px] font-semibold text-sv-ink/70">
+                                {gegVerdict.disclosure}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 

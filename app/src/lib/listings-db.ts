@@ -147,6 +147,12 @@ export interface Listing {
   yardArea?: number | null
   condition?: string | null
   buildingStatus?: string | null
+  /**
+   * GEG § 87 Pflichtangaben line for German ads, exactly as it must appear in
+   * the advert. Null when a legal exemption was declared or the market is not
+   * Germany. Never derived here — the publish parser is the only writer.
+   */
+  gegDisclosure?: string | null
   projectCatalog?: boolean
   projectSlug?: string | null
   coords: { lat: number; lng: number }
@@ -185,6 +191,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     sivrceExclusive?: boolean
     video?: string
     cadastral?: string
+    gegDisclosure?: string | null
   } | null) ?? null
   const projectCatalog = Boolean(ext?.projectCatalog)
   const projectSlug = ext?.projectSlug ?? null
@@ -273,6 +280,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
     yardArea: ext?.yardArea ?? null,
     condition: ext?.condition ?? null,
     buildingStatus: ext?.buildingStatus ?? null,
+    gegDisclosure: typeof ext?.gegDisclosure === "string" ? ext.gegDisclosure : null,
     projectCatalog,
     projectSlug,
     coords: { lat: (r.lat as number) ?? MAP_CENTER.lat, lng: (r.lng as number) ?? MAP_CENTER.lng },

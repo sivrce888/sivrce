@@ -92,6 +92,12 @@ export interface Listing {
   condition?: string | null
   /** New / old / under-construction key (extendedFields.buildingStatus) */
   buildingStatus?: string | null
+  /**
+   * GEG § 87 Pflichtangaben line for German ads (extendedFields.gegDisclosure),
+   * rendered verbatim on the detail page. Detail views only — cards and map
+   * pins omit it.
+   */
+  gegDisclosure?: string | null
   coords: { lat: number; lng: number }
   /** Server-computed nearest metro {name, meters, walkMin} — worldwide; cards
    * fall back to local Tbilisi compute when absent (static/local listings). */

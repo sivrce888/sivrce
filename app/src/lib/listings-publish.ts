@@ -7,6 +7,12 @@ import type { ListingDealType, ListingPropertyType } from "@/generated/prisma/cl
 import type { DealType, PropType } from "@/data/listings"
 import { featuresFor } from "@/lib/add-listing-fields"
 import { sanitizeListingVideoUrl } from "@/lib/listing-video"
+import {
+  checkGegPflichtangaben,
+  gegAppliesTo,
+  isResidentialPropertyType,
+  parseGegBody,
+} from "@/lib/countries/de-geg"
 
 export const DEAL_TO_DB: Record<string, ListingDealType> = {
   sale: "buy",
@@ -114,6 +120,22 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
   /** German Postleitzahl — 5 digits, DE market only. */
   const plz = country === "DE" && typeof body.plz === "string" && /^\d{5}$/.test(body.plz) ? body.plz : null
 
+  // GEG § 87: a German sale/rent ad without the Pflichtangaben is an
+  // Ordnungswidrigkeit for the seller (§ 108, up to 10.000 €). Blocked here, at
+  // the trust boundary, so no client can skip it.
+  let geg: ReturnType<typeof parseGegBody> | null = null
+  let gegDisclosure: string | null = null
+  let gegClassMismatch: { declared: string; derived: string } | null = null
+  if (gegAppliesTo(country, dealKey, propertyType)) {
+    geg = parseGegBody(body.geg, isResidentialPropertyType(propertyType))
+    const verdict = checkGegPflichtangaben(geg)
+    if (!verdict.ok) {
+      return { ok: false, error: `geg_required:${verdict.missing.join(",")}` }
+    }
+    gegDisclosure = verdict.disclosure
+    gegClassMismatch = verdict.classMismatch
+  }
+
   return {
     ok: true,
     data: {
@@ -143,6 +165,7 @@ export function parsePublishBody(body: Record<string, unknown>): ParseOk | Parse
       extendedFields: {
         negotiable,
         ...(plz ? { plz } : {}),
+        ...(geg ? { geg, gegDisclosure, gegClassMismatch } : {}),
         exchangeable: body.exchangeable === true,
         condition: asStr(body.condition, 60),
         buildingStatus: asStr(body.buildingStatus, 60),
@@ -340,13 +363,75 @@ export function _checkParsePublishBody() {
     negotiable: false,
     plz: "10119",
   })
-  if (!de.ok) throw new Error(de.error)
-  if (de.data.country !== "DE") throw new Error("de country")
-  if (de.data.extendedFields.plz !== "10119") throw new Error("de plz")
+  if (de.ok) throw new Error("DE sale without GEG § 87 Pflichtangaben must fail")
+  if (!de.error.startsWith("geg_required:")) throw new Error("GEG failure must name the missing duties")
+  // Same ad, now legally compliant.
+  const deGeg = parsePublishBody({
+    title: "2-Zimmer Wohnung Kreuzberg",
+    deal: "sale",
+    propType: "apartment",
+    country: "DE",
+    city: "Berlin",
+    district: "Kreuzberg",
+    address: "Torstraße 12",
+    name: "Anna",
+    phone: "+49 30 1234567",
+    area: 62,
+    price: 329000,
+    images: ["https://cdn.example.com/a.webp"],
+    description: "ok",
+    negotiable: false,
+    plz: "10119",
+    geg: { certType: "bedarf", endenergieKwhSqmYear: 92, energySource: "fernwaerme", yearBuilt: 1998, energyClass: "C" },
+  })
+  if (!deGeg.ok) throw new Error(deGeg.error)
+  if (deGeg.data.country !== "DE") throw new Error("de country")
+  if (deGeg.data.extendedFields.plz !== "10119") throw new Error("de plz")
+  if (typeof deGeg.data.extendedFields.gegDisclosure !== "string") throw new Error("de geg disclosure")
+  if (!String(deGeg.data.extendedFields.gegDisclosure).includes("Energieeffizienzklasse C")) throw new Error("de geg class")
+  // A declared legal exemption publishes with no disclosure owed.
+  const deDenkmal = parsePublishBody({
+    title: "Altbau Baudenkmal",
+    deal: "rent",
+    propType: "apartment",
+    country: "DE",
+    city: "Berlin",
+    district: "Mitte",
+    address: "A 1",
+    name: "A",
+    phone: "+49 30 1234567",
+    area: 50,
+    price: 900,
+    images: ["https://cdn.example.com/a.webp"],
+    negotiable: false,
+    geg: { exemption: "baudenkmal" },
+  })
+  if (!deDenkmal.ok) throw new Error(deDenkmal.error)
+  if (deDenkmal.data.extendedFields.gegDisclosure !== null) throw new Error("exempt ads owe no disclosure")
+  // Bare land has no Energieausweis — § 87 must not block it.
+  const deLand = parsePublishBody({
+    title: "Grundstück",
+    deal: "sale",
+    propType: "land",
+    country: "DE",
+    city: "Berlin",
+    district: "Mitte",
+    address: "A 1",
+    name: "A",
+    phone: "+49 30 1234567",
+    area: 500,
+    price: 250000,
+    images: ["https://cdn.example.com/a.webp"],
+    negotiable: false,
+  })
+  if (!deLand.ok) throw new Error(deLand.error)
+  if ("geg" in deLand.data.extendedFields) throw new Error("land must not carry a GEG block")
+  // Georgian ads are untouched by § 87.
+  if ("geg" in good.data.extendedFields) throw new Error("GE ads must not carry a GEG block")
   const deBadPhone = parsePublishBody({ title: "x", deal: "sale", propType: "apartment", country: "DE", city: "Berlin", district: "Mitte", address: "A 1", name: "A", phone: "+995 555 12 34 56", area: 50, price: 1, images: ["https://cdn.example.com/a.webp"], negotiable: false })
   if (deBadPhone.ok) throw new Error("GE phone must fail on DE market")
   const geBadPhone = parsePublishBody({ title: "x", deal: "sale", propType: "apartment", country: "GE", city: "თბილისი", district: "ვაკე", address: "ჭავჭავაძის 12", name: "გ", phone: "+49 30 1234567", area: 50, price: 1, images: ["https://cdn.example.com/a.webp"], negotiable: false })
   if (geBadPhone.ok) throw new Error("DE phone must fail on GE market")
-  const badPlz = parsePublishBody({ title: "x", deal: "sale", propType: "apartment", country: "DE", city: "Berlin", district: "Mitte", address: "A 1", name: "A", phone: "+49 30 1234567", area: 50, price: 1, images: ["https://cdn.example.com/a.webp"], negotiable: false, plz: "AB123" })
+  const badPlz = parsePublishBody({ title: "x", deal: "sale", propType: "apartment", country: "DE", city: "Berlin", district: "Mitte", address: "A 1", name: "A", phone: "+49 30 1234567", area: 50, price: 1, images: ["https://cdn.example.com/a.webp"], negotiable: false, plz: "AB123", geg: { exemption: "baudenkmal" } })
   if (!badPlz.ok || badPlz.data.extendedFields.plz) throw new Error("junk plz dropped")
 }

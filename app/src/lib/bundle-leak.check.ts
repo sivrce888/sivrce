@@ -109,6 +109,16 @@ const BANNED: { entry: string; forbidden: string; why: string }[] = [
     forbidden: "lib/countries/de.ts",
     why: "DE city catalog must stay server-side; exposé parser is de-expose.ts",
   },
+  {
+    entry: "components/add-listing/AddListingClient.tsx",
+    forbidden: "lib/countries/de-proptech-os.ts",
+    why: "the GEG § 87 fieldset needs de-geg.ts (leaf), not the 557-line underwriting OS",
+  },
+  {
+    entry: "components/add-listing/AddListingClient.tsx",
+    forbidden: "lib/countries/de.ts",
+    why: "the DE city catalog must never ride the publish wizard to a phone",
+  },
 ]
 
 for (const { entry, forbidden, why } of BANNED) {
@@ -137,4 +147,14 @@ assert.deepEqual(
   "bundle-leak: data/agent-profiles.ts must stay a leaf (type-only imports)",
 )
 
-console.log(`bundle-leak: ${BANNED.length} entry/catalog locks + 2 leaf locks ✓`)
+// countries/de-geg.ts rides the publish wizard into the browser. It may reach
+// de-expose (itself a leaf) and nothing else — one convenience import of
+// de-proptech-os would put the whole underwriting OS on a German seller's phone.
+const gegImports = valueImports(join(SRC, "lib/countries/de-geg.ts"))
+assert.deepEqual(
+  gegImports.map((p) => p.replace(SRC + "/", "")),
+  ["lib/countries/de-expose.ts"],
+  "bundle-leak: lib/countries/de-geg.ts must stay a leaf (de-expose only)",
+)
+
+console.log(`bundle-leak: ${BANNED.length} entry/catalog locks + 3 leaf locks ✓`)
