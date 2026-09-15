@@ -6,8 +6,10 @@ build by `src/lib/germany-competitive.check.ts` (`npm run check:germany-competit
 
 ## Integrity contract (why this is not marketing slop)
 
-- **Every SIVRCE score cites a real repo file** (`evidence`). The check fails the
-  build if any cited path does not exist — evidence-gated, never invented.
+- **Every SIVRCE score cites a real repo file** (`evidence`) that the product
+  actually imports. The check fails the build if a cited path is missing *or* if
+  nothing outside the scorecards and self-checks uses it — a module no page
+  ships is a claim, not a capability.
 - **Competitor scores are transparent editorial assessments** of public feature
   sets in the German market, each with a one-line `note` (the why).
 - **Totals are computed from weights** (sum = 1.0), re-derived and asserted on
@@ -36,7 +38,7 @@ SIVRCE leads **9 of 10 dimensions outright**.
 |---|---|---|---|
 | .14 | Official data provenance | 96 | `src/lib/intel/core.ts` — 8 official DE sources fused (ALKIS, StEP Wohnen 2040, BORIS, B-Pläne, Mietspiegel, Statistik BB, Destatis, Handelsregister) with per-fact `IntelEvidence` + refresh cadence |
 | .12 | Purchase-cost transparency | 99 | `src/lib/countries/de.ts` — `buyerCostBreakdown`: Grunderwerbsteuer (16 states) + Makler 3.57% + notary + Grundbuch, rendered on the DE hub and every DE sale listing |
-| .12 | Trust & fraud protection | 95 | `src/lib/trust/scam-radar.ts` — fraud tiers + `truth-engine` FACT/ESTIMATE/UGC labels + dedupe + sivrce-score /100 |
+| .12 | Trust & fraud protection | 95 | `src/lib/trust/scam-radar.ts` — fraud tiers on listing pages + duplicate collapse in search + transparent sivrce-score /100 |
 | .12 | Performance on every device | 96 | `src/lib/device-budget.ts` — lite-device budget (RAM/cores/Save-Data), capped MapLibre GPU/RAM, MVT tiles (browser never gets national GeoJSON) |
 | .10 | Rental-regulation intel | 97 | `src/lib/countries/de.ts` — §551 Kaution cap, Mietpreisbremse +10%, Mietspiegel; Bestellerprinzip (no tenant commission) surfaced on DE rent listings |
 | .10 | Multilingual reach | 98 | `src/lib/currency.tsx` — 10 locales + EUR-native listings/search for DE (German exposés never offer GEL) |

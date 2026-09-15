@@ -6,6 +6,7 @@ import { globalOsStats } from './countries/global-os'
 import { MARKET_COSTS } from './countries/costs'
 import { COUNTRY_IDS, MARKETS } from './markets'
 import worldMetro from '../data/world-metro-all.json'
+import { unshippedEvidence } from './scorecard-evidence'
 
 console.log('global-competitive.check: start')
 
@@ -34,6 +35,17 @@ for (const dim of GLOBAL_DIMENSIONS) {
     `Evidence file for ${dim.id} does not exist: ${fullPath} (repo path: ${cell.evidence})`
   )
 }
+
+// 2a. Evidence must be code the product ships. A module no page imports is a
+//     claim, not a capability — this is how four dead modules kept scoring.
+assert.deepEqual(
+  unshippedEvidence(
+    path.join(appRoot, 'src'),
+    GLOBAL_DIMENSIONS.map((d) => sivrce.cells[d.id].evidence!),
+  ),
+  [],
+  'global card cites modules nothing in the product imports',
+)
 
 // 2b. Every number the sivrce notes claim must come from the shipped data.
 //     A card that cites counts nobody re-derives is marketing, not evidence.

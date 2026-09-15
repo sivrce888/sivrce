@@ -1,6 +1,6 @@
 # SIVRCE Global Competitive Intelligence Scorecard (Top 30 Benchmark)
 
-> **Evidence-Gated Benchmark** — Every count SIVRCE claims (countries, metros, developers, projects, transit stations, market currencies, costed markets, hubs) is re-derived from the shipped data on every prebuild; a claim that drifts fails the build. There is no score floor: the card reports regressions instead of hiding them. Recomputed and asserted by [`app/src/lib/global-competitive.check.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/global-competitive.check.ts).
+> **Evidence-Gated Benchmark** — Every count SIVRCE claims (countries, metros, developers, projects, transit stations, market currencies, costed markets, hubs) is re-derived from the shipped data on every prebuild; a claim that drifts fails the build. There is no score floor: the card reports regressions instead of hiding them. Cited modules must also be imported by the product — evidence that no page ships is a claim, not a capability. Recomputed and asserted by [`app/src/lib/global-competitive.check.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/global-competitive.check.ts).
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Rank | Platform | Focus Market / Region | Total Score | Key Advantage / Differentiator vs SIVRCE |
 | :--- | :--- | :--- | :---: | :--- |
-| **#1** | **SIVRCE** | **Global (74 Hubs, GE, DE, AE, US, UK, EU, APAC)** | **93.8 / 100** | **Unified global graph (236 countries), institutional 3-scenario cashflow engine, AI scam radar, 3D solar physics, 18,657 transit stations, zero-jank speed.** |
+| **#1** | **SIVRCE** | **Global (74 Hubs, GE, DE, AE, US, UK, EU, APAC)** | **93.2 / 100** | **Unified global graph (236 countries), institutional 3-scenario cashflow engine, AI scam radar, 3D solar physics, 18,657 transit stations, zero-jank speed.** |
 | #2 | Funda | Netherlands | 63.3 / 100 | NVM broker monopoly & WOZ data; zero cross-border graph, no 3D solar physics. |
 | #3 | Bayut | UAE | 63.0 / 100 | TruCheck & DLD data; limited to UAE, lacks multi-country graph & institutional IRR models. |
 | #4 | Realestate.com.au | Australia | 62.3 / 100 | PropTrack AVM & REA ecosystem; domestic-only, lacks global cross-border discovery. |
@@ -44,13 +44,13 @@
 
 ## The 10 Core Pillars of SIVRCE Dominance
 
-1. **Global Unified Entity Graph (236 Countries)**: Canonical deduplication and linkage of properties, developers, projects, and transit nodes worldwide ([`global-entity-graph.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/global-entity-graph.ts)).
+1. **Global Unified Entity Graph (236 Countries)**: 236 countries, 21,947 metros, 562 developers and 839 projects in one canonical graph, counted from the shipped data ([`global-os.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/countries/global-os.ts)).
 2. **Institutional 10x Valuation & Scenarios**: Bear / Base / Bull cash flows, NOI, Cap Rates, 5-year IRR forecasts, and localized closing cost deductions ([`valuation-10x.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/valuation-10x.ts)).
-3. **Truth Engine & Scam Radar**: Algorithmic duplicate collapse, price anomaly detection, and cadastral provenance verification ([`truth-engine.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/trust/truth-engine.ts)).
+3. **Scam Radar & Duplicate Collapse**: Fraud tiers on listing pages, duplicate collapse in the search route, transparent /100 listing score ([`scam-radar.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/trust/scam-radar.ts)).
 4. **3D Spatial, Sun/Shadow & Cadastre**: Real-time solar geometry, building footprints, and cadastral parcel inspection ([`sun.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/sun.ts)).
 5. **Transit & Walkability Network**: 18,657 global stations with micro-walking and connectivity calculations ([`map/transit.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/map/transit.ts)).
 6. **Multi-Currency Pricing**: 55 market-native currencies formatted per locale, live FX (6h TTL) for USD/EUR→GEL, 4-currency user toggle ([`fx-server.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/fx-server.ts)). Scored 84 — display breadth is wide, live conversion is not.
-7. **Agent OS & Developer OS**: End-to-end CRM lead management and developer project syndication ([`crm/agent-os.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/crm/agent-os.ts)).
+7. **Seller / Agency / Developer dashboards**: Shared lead inbox, status workflow and listing-ownership rules ([`pro-leads.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/pro-leads.ts)). Scored 88 — real, but narrower than a full CRM.
 8. **Deep Localization (74+ Hubs)**: State taxes, notary splits, mortgage benchmarks, and native multilingual copy ([`markets.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/markets.ts)).
 9. **Zero-Jank Ultralight Performance**: Build-enforced device budgets, bundle-leak check, capped map GPU/RAM, MVT tiles ([`device-budget.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/device-budget.ts)). Lab-enforced; field RUM is not collected yet, so no LCP claim is made.
 10. **Unified Transactions**: Direct stays booking, short-term rentals, sales, and verified leads in a single platform ([`bookings.ts`](file:///Users/mac/Desktop/sivrce888/app/src/lib/bookings.ts)).

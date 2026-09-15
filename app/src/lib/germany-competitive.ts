@@ -239,7 +239,7 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       trust: {
         score: 95,
-        note: 'scam-radar fraud tiers + truth-engine FACT/ESTIMATE/PREDICTION/UGC labels + dedupe + sivrce-score /100.',
+        note: 'scam-radar fraud tiers on listing pages + duplicate collapse in search + transparent sivrce-score /100.',
         evidence: 'src/lib/trust/scam-radar.ts',
       },
       performance: {

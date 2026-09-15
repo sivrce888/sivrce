@@ -22,6 +22,7 @@ import { GERMANY_LISTINGS } from '../data/listings-germany'
 import { NEW_PROJECTS_GERMANY, NEW_DEVELOPERS_GERMANY } from '../data/projects-new-germany'
 import { NEW_PROJECTS_BERLIN, NEW_DEVELOPERS_BERLIN } from '../data/projects-new-berlin'
 import { DE_CITIES } from './countries/de'
+import { unshippedEvidence } from './scorecard-evidence'
 
 // Weights form a proper distribution (sum to 1) — totals depend on it.
 const weightSum = GERMANY_DIMENSIONS.reduce((s, d) => s + d.weight, 0)
@@ -50,6 +51,17 @@ for (const d of GERMANY_DIMENSIONS) {
   assert.ok(ev, `sivrce.${d.id} must cite evidence`)
   assert.ok(fs.existsSync(path.join(cwd, ev!)), `sivrce.${d.id} evidence missing on disk: ${ev}`)
 }
+
+// Evidence must be code the product actually ships, not code that merely
+// exists. A module no page imports is a claim, not a capability.
+assert.deepEqual(
+  unshippedEvidence(
+    path.join(cwd, 'src'),
+    GERMANY_DIMENSIONS.map((d) => sivrce.cells[d.id].evidence!),
+  ),
+  [],
+  'germany card cites modules nothing in the product imports',
+)
 
 // Coverage is MEASURED, not editorial: the declared inventory must equal what
 // the data modules actually ship, and the cell must equal the formula's output.

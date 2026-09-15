@@ -177,9 +177,11 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
       },
       truthAndScamRadar: {
         score: 94,
-        noteEn: 'Automated duplicate collapse, price anomaly detector, cadastral provenance verification.',
-        noteKa: 'დუბლიკატების ამოცნობა, ფასის ანომალიები და საკადასტრო გადამოწმება.',
-        evidence: 'src/lib/trust/truth-engine.ts',
+        noteEn: 'Fraud-tier scam radar on listing pages, duplicate collapse in search, transparent /100 listing score.',
+        noteKa: 'თაღლითობის რადარი განცხადებაზე, დუბლიკატების შერწყმა ძიებაში და გამჭვირვალე ქულა /100.',
+        // scam-radar ships (AiAdvisor + ai-copilot); dedupe-collapse ships in
+        // the search route. The old evidence pointed at a module no page used.
+        evidence: 'src/lib/trust/scam-radar.ts',
       },
       spatialCadastrePhysics: {
         score: 95,
@@ -205,10 +207,14 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
         evidence: 'src/lib/fx-server.ts',
       },
       fullLifecycleOS: {
-        score: 94,
-        noteEn: 'Integrated Agent OS lead management & Developer OS inventory syndication.',
-        noteKa: 'ინტეგრირებული Agent OS და Developer OS პლატფორმა.',
-        evidence: 'src/lib/crm/agent-os.ts',
+        // Was 94 citing a CRM module no route imported. The shipping product is
+        // the seller / agency / developer dashboards on pro-leads: inbound lead
+        // inbox, status workflow, listing ownership. Real, but narrower than a
+        // full CRM — scored accordingly.
+        score: 88,
+        noteEn: 'Seller, agency and developer dashboards with a shared lead inbox, status workflow and listing ownership rules.',
+        noteKa: 'გამყიდველის, სააგენტოსა და დეველოპერის პანელები ერთიანი ლიდების ყუთით და სტატუსებით.',
+        evidence: 'src/lib/pro-leads.ts',
       },
       deepLocalization: {
         score: 96,

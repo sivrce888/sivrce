@@ -43,7 +43,7 @@ const STATUS_CLASS: Record<string, string> = {
   completed: 'bg-sv-blue/10 text-sv-blue-deep',
 }
 
-/** Buyer's booked tours (GET /api/tours). Anon visitors get null — ProfileCard owns the sign-in CTA. */
+/** Buyer's booked tours (GET /api/tours). Anon visitors get null. */
 export default function MyTours() {
   const { lang } = useI18n()
   const s = useAccountStrings()
