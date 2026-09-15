@@ -31,7 +31,9 @@ export default function ValuationTerminal({
     })
   }, [priceUSD, areaSqm, monthlyRentUSD, countryCode])
 
-  const scenario: ScenarioProjection = report.scenarios[selectedScenario.toLowerCase() as 'bear' | 'base' | 'bull']
+  // ponytail: inferred from report.scenarios — the annotation named a type this
+  // file never imported, which is why the build was red.
+  const scenario = report.scenarios[selectedScenario.toLowerCase() as 'bear' | 'base' | 'bull']
 
   const verdictColor =
     report.dealVerdict === 'EXCEPTIONAL'

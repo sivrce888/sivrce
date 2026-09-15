@@ -96,6 +96,10 @@ const ValuationTerminal = dynamic(() => import('@/components/listing/ValuationTe
   ssr: false,
   loading: () => <div className="mt-8 h-[340px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
 })
+const GermanIntelligenceCockpit = dynamic(() => import('@/components/listing/GermanIntelligenceCockpit'), {
+  ssr: false,
+  loading: () => <div className="mt-8 h-[340px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+})
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
 /** Same locked pairing as the building page's around grid. */
@@ -698,7 +702,7 @@ export default function ListingDetailClient({
         : isPledge
           ? t('map.pledge')
           : t('detail.fullPrice')
-  const deExpose = useMemo(
+  const deExposeFacts = useMemo(
     () => parseDeExpose(`${l.description ?? ''} ${l.features.join(' ')}`),
     [l.description, l.features],
   )
@@ -826,14 +830,14 @@ export default function ListingDetailClient({
     ...(l.rooms > 0
       ? [{ icon: DoorOpen, label: t('spec.rooms'), value: String(l.rooms) }]
       : []),
-    ...(deExpose.energyClass
-      ? [{ icon: Leaf, label: 'Energieausweis', value: deExpose.energyClass }]
+    ...(deExposeFacts.energyClass
+      ? [{ icon: Leaf, label: 'Energieausweis', value: deExposeFacts.energyClass }]
       : []),
-    ...(deExpose.yearBuilt
-      ? [{ icon: Calendar, label: lang === 'de' ? 'Baujahr' : 'Year built', value: String(deExpose.yearBuilt) }]
+    ...(deExposeFacts.yearBuilt
+      ? [{ icon: Calendar, label: lang === 'de' ? 'Baujahr' : 'Year built', value: String(deExposeFacts.yearBuilt) }]
       : []),
-    ...(deExpose.kfw
-      ? [{ icon: Leaf, label: 'KfW', value: deExpose.kfw }]
+    ...(deExposeFacts.kfw
+      ? [{ icon: Leaf, label: 'KfW', value: deExposeFacts.kfw }]
       : []),
     ...(l.condition
       ? [{ icon: Layers, label: t('add.condition'), value: conditionLabel(l.condition, t) }]
@@ -1191,6 +1195,18 @@ export default function ListingDetailClient({
                 </div>
               ))}
             </div>
+
+            {/*
+              GEG § 87 Pflichtangaben. The law requires these facts in the ad
+              itself, so they render verbatim as stored at publish time — no
+              re-derivation, no translation of the legal terms.
+            */}
+            {l.gegDisclosure && (
+              <p className="mt-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 text-[12px] font-semibold leading-relaxed text-sv-ink/70 shadow-card">
+                <span className="font-black text-sv-ink/80">Energieausweis · § 87 GEG: </span>
+                {l.gegDisclosure}
+              </p>
+            )}
 
             {/* Price block */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
@@ -1699,6 +1715,21 @@ export default function ListingDetailClient({
                 monthlyRentUSD={rentEst}
                 countryCode={l.country}
                 lang={lang}
+              />
+            )}
+
+            {/* German Energy & Institutional Intelligence Cockpit (GEG 2026 & CO2KostAufG) */}
+            {l.country === 'DE' && l.area > 0 && (
+              <GermanIntelligenceCockpit
+                priceEur={euroNative ? (l.priceOriginal ?? 0) : Math.round(l.priceUSD * (eurRate || 0.92))}
+                areaSqm={l.area}
+                city={l.city}
+                district={l.district}
+                yearBuilt={deExposeFacts.yearBuilt}
+                energyClass={deExposeFacts.energyClass}
+                isSale={isSale}
+                lang={lang}
+                gegDisclosure={l.gegDisclosure}
               />
             )}
           </div>
