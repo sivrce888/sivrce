@@ -33,11 +33,11 @@ export default function ValuationTerminal({
   }, [priceUSD, areaSqm, monthlyRentUSD, countryCode])
 
   // The terminal is lazy-loaded (ssr:false), so a mount IS a visitor seeing
-  // the verdict — count it once, verdict included (trust-signal usage).
+  // the verdict — count it once; props are stable per listing.
   const { capture: captureEvent } = usePostHog()
   useEffect(() => {
     captureEvent('valuation_viewed', { verdict: report.dealVerdict, country: countryCode })
-  }, [])
+  }, [captureEvent, report.dealVerdict, countryCode])
 
   // ponytail: inferred from report.scenarios — the annotation named a type this
   // file never imported, which is why the build was red.

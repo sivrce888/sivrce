@@ -17,19 +17,18 @@
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useConsent } from '@/lib/consent'
+import { usePostHog } from '@/lib/posthog'
 
 function Pageview({ armed }: { armed: boolean }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { capture } = usePostHog()
 
   useEffect(() => {
     if (!armed) return
     const url = `${pathname}${searchParams?.size ? `?${searchParams.toString()}` : ''}`
-    void import('@/lib/posthog').then(({ posthog, posthogReady }) => {
-      if (!posthogReady()) return
-      posthog.capture('$pageview', { $current_url: url })
-    })
-  }, [armed, pathname, searchParams])
+    capture('$pageview', { $current_url: url })
+  }, [armed, pathname, searchParams, capture])
 
   return null
 }
@@ -48,8 +47,7 @@ export default function PostHogProvider({ children }: { children: ReactNode }) {
       initialized.current = true
       // ponytail: posthog-js stays out of the homepage JS until a real tap
       void import('@/lib/posthog').then(({ initPostHog }) => {
-        initPostHog()
-        setArmed(true)
+        void initPostHog().then(() => setArmed(true))
       })
     }
     window.addEventListener("pointerdown", boot, { once: true, passive: true })
