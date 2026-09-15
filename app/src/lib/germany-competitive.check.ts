@@ -9,13 +9,19 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import {
+  DE_INVENTORY,
   GERMANY_DIMENSIONS,
   GERMANY_PLAYERS,
+  germanyCoverageScore,
   germanyDimension,
   germanyScorecard,
   sivrceGermanyStanding,
   weightedTotal,
 } from './germany-competitive'
+import { GERMANY_LISTINGS } from '../data/listings-germany'
+import { NEW_PROJECTS_GERMANY, NEW_DEVELOPERS_GERMANY } from '../data/projects-new-germany'
+import { NEW_PROJECTS_BERLIN, NEW_DEVELOPERS_BERLIN } from '../data/projects-new-berlin'
+import { DE_CITIES } from './countries/de'
 
 // Weights form a proper distribution (sum to 1) — totals depend on it.
 const weightSum = GERMANY_DIMENSIONS.reduce((s, d) => s + d.weight, 0)
@@ -44,6 +50,30 @@ for (const d of GERMANY_DIMENSIONS) {
   assert.ok(ev, `sivrce.${d.id} must cite evidence`)
   assert.ok(fs.existsSync(path.join(cwd, ev!)), `sivrce.${d.id} evidence missing on disk: ${ev}`)
 }
+
+// Coverage is MEASURED, not editorial: the declared inventory must equal what
+// the data modules actually ship, and the cell must equal the formula's output.
+assert.deepEqual(
+  DE_INVENTORY,
+  {
+    listings: GERMANY_LISTINGS.length,
+    cities: DE_CITIES.length,
+    projects: NEW_PROJECTS_BERLIN.length + NEW_PROJECTS_GERMANY.length,
+    developers: NEW_DEVELOPERS_BERLIN.length + NEW_DEVELOPERS_GERMANY.length,
+  },
+  'DE_INVENTORY drifted from the shipped data — update it (the score follows the data, not the other way round)',
+)
+assert.equal(sivrce.cells.coverage.score, germanyCoverageScore(), 'coverage cell must be the measured score')
+// Monotonic and bounded: more inventory never lowers the score, parity caps at 100.
+assert.ok(germanyCoverageScore({ listings: 0, cities: 0, projects: 0, developers: 0 }) === 0, 'empty repo scores 0')
+assert.ok(
+  germanyCoverageScore({ listings: 400_000, cities: 300, projects: 2_000, developers: 500 }) === 100,
+  'incumbent parity scores 100',
+)
+assert.ok(
+  germanyCoverageScore({ ...DE_INVENTORY, listings: DE_INVENTORY.listings * 10 }) > germanyCoverageScore(),
+  'more listings must score higher',
+)
 
 // The scan covers the real competitive field: domestic leaders + global players.
 assert.ok(GERMANY_PLAYERS.filter((p) => p.tier === 'local-native').length >= 3, 'scan ≥3 local-native')

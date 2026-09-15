@@ -171,8 +171,9 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
               <div className="mt-5 space-y-4 text-[13px] font-bold">
                 {/* City */}
                 <div>
-                  <label className="text-sv-ink/70">{de ? 'Standort / Stadt' : 'Location / City'}</label>
+                  <label htmlFor="de-os-city" className="text-sv-ink/70">{de ? 'Standort / Stadt' : 'Location / City'}</label>
                   <select
+                    id="de-os-city"
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
                     className="mt-1 w-full rounded-control border border-sv-ink/[0.12] bg-sv-surface px-3 py-2 text-[13px] font-bold text-sv-ink"
@@ -188,76 +189,81 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                 {/* Purchase Price */}
                 <div>
                   <div className="flex justify-between">
-                    <label className="text-sv-ink/70">{de ? 'Kaufpreis' : 'Purchase Price'}</label>
+                    <label htmlFor="de-os-price" className="text-sv-ink/70">{de ? 'Kaufpreis' : 'Purchase Price'}</label>
                     <span className="text-sv-ink">{fmtEur(priceEur)}</span>
                   </div>
                   <input
+                    id="de-os-price"
                     type="range"
                     min={100_000}
                     max={2_000_000}
                     step={10_000}
                     value={priceEur}
                     onChange={(e) => setPriceEur(Number(e.target.value))}
-                    className="mt-1.5 w-full accent-sv-blue"
+                    className="mt-1.5 h-6 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Area */}
                 <div>
                   <div className="flex justify-between">
-                    <label className="text-sv-ink/70">{de ? 'Wohnfläche' : 'Living Area'}</label>
+                    <label htmlFor="de-os-area" className="text-sv-ink/70">{de ? 'Wohnfläche' : 'Living Area'}</label>
                     <span className="text-sv-ink">{areaSqm} m² ({Math.round(priceEur / areaSqm)} €/m²)</span>
                   </div>
                   <input
+                    id="de-os-area"
                     type="range"
                     min={25}
                     max={250}
                     step={5}
                     value={areaSqm}
                     onChange={(e) => setAreaSqm(Number(e.target.value))}
-                    className="mt-1.5 w-full accent-sv-blue"
+                    className="mt-1.5 h-6 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Monthly Cold Rent */}
                 <div>
                   <div className="flex justify-between">
-                    <label className="text-sv-ink/70">{de ? 'Monatliche Kaltmiete' : 'Monthly Cold Rent'}</label>
+                    <label htmlFor="de-os-rent" className="text-sv-ink/70">{de ? 'Monatliche Kaltmiete' : 'Monthly Cold Rent'}</label>
                     <span className="text-sv-ink">{fmtEur(coldRentEur)} ({ (coldRentEur / areaSqm).toFixed(1) } €/m²)</span>
                   </div>
                   <input
+                    id="de-os-rent"
                     type="range"
                     min={300}
                     max={6_000}
                     step={50}
                     value={coldRentEur}
                     onChange={(e) => setColdRentEur(Number(e.target.value))}
-                    className="mt-1.5 w-full accent-sv-blue"
+                    className="mt-1.5 h-6 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Equity Down Payment */}
                 <div>
                   <div className="flex justify-between">
-                    <label className="text-sv-ink/70">{de ? 'Eigenkapitalanteil' : 'Equity Down Payment'}</label>
+                    <label htmlFor="de-os-equity" className="text-sv-ink/70">{de ? 'Eigenkapitalanteil' : 'Equity Down Payment'}</label>
                     <span className="text-sv-ink">{downPaymentPct}% ({fmtEur((priceEur * downPaymentPct) / 100)})</span>
                   </div>
                   <input
+                    id="de-os-equity"
                     type="range"
                     min={0}
                     max={100}
                     step={5}
                     value={downPaymentPct}
                     onChange={(e) => setDownPaymentPct(Number(e.target.value))}
-                    className="mt-1.5 w-full accent-sv-blue"
+                    className="mt-1.5 h-6 w-full accent-sv-blue"
                   />
                 </div>
 
                 {/* Interest & Tilgung */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sv-ink/70">{de ? 'Sollzins %' : 'Interest %'}</label>
+                    <label htmlFor="de-os-interest" className="text-sv-ink/70">{de ? 'Sollzins %' : 'Interest %'}</label>
                     <input
+                      id="de-os-interest"
                       type="number"
                       step={0.1}
                       min={1}
@@ -268,8 +274,9 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     />
                   </div>
                   <div>
-                    <label className="text-sv-ink/70">{de ? 'Tilgung %' : 'Repayment %'}</label>
+                    <label htmlFor="de-os-repayment" className="text-sv-ink/70">{de ? 'Tilgung %' : 'Repayment %'}</label>
                     <input
+                      id="de-os-repayment"
                       type="number"
                       step={0.5}
                       min={1}
@@ -284,8 +291,9 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                 {/* Energy Class */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sv-ink/70">{de ? 'Energieklasse' : 'Energy Rating'}</label>
+                    <label htmlFor="de-os-energy" className="text-sv-ink/70">{de ? 'Energieklasse' : 'Energy Rating'}</label>
                     <select
+                      id="de-os-energy"
                       value={energyClass}
                       onChange={(e) => setEnergyClass(e.target.value as DeEnergyClass)}
                       className="mt-1 w-full rounded-control border border-sv-ink/[0.12] bg-sv-surface px-3 py-1.5 text-[13px] font-bold text-sv-ink"
@@ -298,8 +306,9 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     </select>
                   </div>
                   <div>
-                    <label className="text-sv-ink/70">{de ? 'Heizsystem' : 'Heating Type'}</label>
+                    <label htmlFor="de-os-heating" className="text-sv-ink/70">{de ? 'Heizsystem' : 'Heating Type'}</label>
                     <select
+                      id="de-os-heating"
                       value={heatingType}
                       onChange={(e) => setHeatingType(e.target.value as DeHeatingType)}
                       className="mt-1 w-full rounded-control border border-sv-ink/[0.12] bg-sv-surface px-3 py-1.5 text-[13px] font-bold text-sv-ink"

@@ -19,7 +19,7 @@ build by `src/lib/germany-competitive.check.ts` (`npm run check:germany-competit
 
 | # | Player | Tier | Weighted /100 |
 |---|---|---|---|
-| 1 | **SIVRCE** | self | **95.2** |
+| 1 | **SIVRCE** | self | **94.0** |
 | 2 | ImmoScout24 | local-native | 67.5 |
 | 3 | Immowelt | local-native | 63.1 |
 | 4 | idealista | global | 55.3 |
@@ -42,21 +42,24 @@ SIVRCE leads **9 of 10 dimensions outright**.
 | .10 | Multilingual reach | 98 | `src/lib/currency.tsx` — 10 locales + EUR-native listings/search for DE (German exposés never offer GEL) |
 | .10 | Map & transit depth | 92 | `src/data/germany-metro.ts` — 18 DE rail systems, 209 Berlin U-Bahn stations, spatial MVT layers (ALKIS footprints, StEP, B-Pläne, parcels) |
 | .08 | Energy & efficiency | 96 | `src/lib/countries/de-expose.ts` — `parseDeExpose` extracts Energieausweis A+..H, Baujahr and KfW tier from listing copy into specs + schema.org JSON-LD (`Energieausweis` PropertyValue); never invents a missing value |
-| .06 | Live inventory breadth | 78 | `src/lib/countries/global-os.ts` — 82 DE cities seeded + 249-country global OS, but live bookable DE inventory is thinner than incumbent portals |
+| .06 | Live inventory breadth | **58 (measured)** | `src/data/listings-germany.ts` — counted from shipped data: 180 live listings, 82 city hubs, 121 new-build projects, 59 developers, scored on a log curve against ImmoScout-scale parity (`germanyCoverageScore`) |
 | .06 | Verifiable engineering quality | 99 | `package.json` — 120+ green self-checks on prebuild, repo-weight lock (≈52/96 MB), brand lock, DB-free SSR-safe modules |
 
 ## The one honest gap
 
-**Live inventory breadth** (`coverage`, SIVRCE 78 vs ImmoScout24 98). Incumbent
-portals have two decades of accumulated live listings. This is a **data-sourcing
-roadmap item, not a code gap** — the ingestion pipeline (`lib/intel`,
-`scripts/ingest-de-intel`, ALKIS/StEP/B-Plan MVT) already exists; it needs
-inventory volume flowing through it. We report it truthfully rather than inflate
-the card to a fake 100.
+**Live inventory breadth** (`coverage`, SIVRCE **58 measured** vs ImmoScout24 98).
+Incumbent portals have two decades of accumulated live listings. This is a
+**data-sourcing roadmap item, not a code gap** — the ingestion pipeline
+(`lib/intel`, `scripts/ingest-de-intel`, ALKIS/StEP/B-Plan MVT) already exists;
+it needs inventory volume flowing through it.
 
-**Upgrade path:** fold live counts from `GET /api/intel/coverage` into the
-`coverage` cell so that score becomes *measured*, not editorial — then the
-weighted total moves on real data, still asserted green on every build.
+This cell is no longer editorial. `germanyCoverageScore()` counts what the repo
+actually ships (listings / city hubs / projects / developers) and scores each on
+a log curve against incumbent parity (400k listings = full marks). The check
+re-counts the data modules on every build and fails if the declared inventory
+drifts, so the score can only move when the data moves — it went 78 → 58 the
+moment it was measured, and the total with it (95.2 → 94.0). We publish the
+lower, true number.
 
 ## Why SIVRCE wins where it wins
 

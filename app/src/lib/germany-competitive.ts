@@ -17,10 +17,60 @@
  * roadmap item, not a code gap, and is reported honestly (never inflated to 100).
  *
  * DB-free, SSR-safe, no new deps.
- * ponytail: one file, weighted sum, evidence-gated. Upgrade path: fold live
- * coverage numbers from /api/intel/coverage into the `coverage` cell once DE
- * inventory ingestion lands, so that score becomes measured, not editorial.
+ * ponytail: one file, weighted sum, evidence-gated. The `coverage` cell is
+ * MEASURED — counted from the shipped DE data modules and re-asserted on every
+ * build (see germanyCoverageScore). Upgrade path: swap the static counts for
+ * live numbers from /api/intel/coverage once DE ingestion runs in production.
  */
+
+/** What the repo actually carries for Germany today. Asserted against the real
+ *  data modules by germany-competitive.check.ts — if inventory grows or shrinks
+ *  and this is not updated, the build fails, so the number cannot drift. */
+export interface DeInventoryCounts {
+  /** Live DE listings a buyer can open today. */
+  listings: number
+  /** DE cities with a seeded market hub. */
+  cities: number
+  /** New-build projects (Berlin + national). */
+  projects: number
+  /** Developers with verified official sources. */
+  developers: number
+}
+
+export const DE_INVENTORY: DeInventoryCounts = {
+  listings: 180,
+  cities: 82,
+  projects: 121,
+  developers: 59,
+}
+
+/**
+ * Incumbent-parity anchors: [points, count that earns all of them]. A portal
+ * carrying ImmoScout-scale inventory (~400k live DE listings) scores the full
+ * 40 on that term. Log scale, because the 100th listing matters far more to a
+ * buyer than the 100,001st.
+ */
+const COVERAGE_ANCHORS: Record<keyof DeInventoryCounts, readonly [number, number]> = {
+  listings: [40, 400_000],
+  cities: [25, 300],
+  projects: [20, 2_000],
+  developers: [15, 500],
+}
+
+/**
+ * Measured live-inventory breadth, 0..100. Editorial scores are fine for
+ * competitors (we can only observe their public product); ours is computed from
+ * what this repo actually ships, so the card moves when the data moves.
+ */
+export function germanyCoverageScore(counts: DeInventoryCounts = DE_INVENTORY): number {
+  let score = 0
+  for (const key of Object.keys(COVERAGE_ANCHORS) as (keyof DeInventoryCounts)[]) {
+    const [points, parity] = COVERAGE_ANCHORS[key]
+    const ratio = Math.log10(Math.max(0, counts[key]) + 1) / Math.log10(parity)
+    score += points * Math.min(1, Math.max(0, ratio))
+  }
+  return Math.round(score)
+}
 
 export type PlayerId =
   | 'sivrce'
@@ -203,9 +253,10 @@ export const GERMANY_PLAYERS: readonly Player[] = [
         evidence: 'src/data/germany-metro.ts',
       },
       coverage: {
-        score: 78,
-        note: '82 DE cities seeded + 249-country global OS, but live bookable DE inventory is thinner than incumbent portals — honest roadmap gap (data sourcing, not code).',
-        evidence: 'src/lib/countries/global-os.ts',
+        // Measured, not asserted: counted from the shipped DE data modules.
+        score: germanyCoverageScore(),
+        note: `Measured from shipped DE data: ${DE_INVENTORY.listings} live listings, ${DE_INVENTORY.cities} city hubs, ${DE_INVENTORY.projects} new-build projects, ${DE_INVENTORY.developers} developers. Incumbent portals carry two decades of accumulated listings — reported honestly, never inflated.`,
+        evidence: 'src/data/listings-germany.ts',
       },
       engineering: {
         score: 99,
