@@ -12,6 +12,9 @@ import { getFx, type FxRates } from "./fx-server"
 
 export type HotelMode = "live" | "browse" | "unconfigured" | "error"
 
+/** Which upstream produced the prices on screen — surfaced for support/debug. */
+export type HotelSource = "liteapi" | "amadeus" | "xotelo" | "none"
+
 export interface HotelResult {
   hotelId: string
   /** Amadeus offer id — the room-row key on detail pages. */
@@ -36,6 +39,8 @@ export interface HotelSearch {
   marginPct: number
   fx: "live" | "fallback"
   hotels: HotelResult[]
+  /** Which upstream the prices came from ("none" = no prices on screen). */
+  source: HotelSource
   /** Populated only in browse mode — OSM directory, no live prices. */
   browse?: BrowseHotel[]
 }
@@ -74,6 +79,160 @@ export function withMargin(providerGel: number, pct: number): { totalGel: number
 export function gelFrom(amount: number, currency: string, fx: FxRates): number {
   const rate = currency === "EUR" ? fx.eurGel : currency === "USD" ? fx.usdGel : currency === "GEL" ? 1 : 0
   return Math.round(amount * rate)
+}
+
+/* ── LiteAPI (Nuitee Connect) ─────────────────────────────────────────────
+ * POST https://api.liteapi.travel/v3.0/hotels/rates, header X-API-Key.
+ * Bookable inventory (search → prebook → book), so this is the path that can
+ * make sivrce merchant of record. Preferred over Amadeus when keyed: better
+ * independent-hotel coverage, and it returns a sellable price directly.
+ * Sandbox and production share the base URL — the key decides which.
+ */
+
+const LITEAPI_BASE = "https://api.liteapi.travel/v3.0"
+/** Their docs recommend 6–12s for rates; we send 6 and allow 15 on the wire. */
+const LITEAPI_TIMEOUT_S = 6
+const LITEAPI_WIRE_MS = 15_000
+
+interface RawLiteRate {
+  name?: string
+  boardName?: string
+  cancellationPolicies?: { refundableTag?: string }
+}
+
+interface RawLiteOffer {
+  offerId?: string
+  rates?: RawLiteRate[]
+  offerRetailRate?: { amount?: number; currency?: string }
+  suggestedSellingPrice?: { amount?: number; currency?: string }
+}
+
+interface RawLiteEntry {
+  hotelId?: string
+  roomTypes?: RawLiteOffer[]
+  hotel?: { name?: string; address?: string; latitude?: number; longitude?: number }
+  name?: string
+  address?: string
+  latitude?: number
+  longitude?: number
+}
+
+/**
+ * Offer → our row. The pricing rule here is the one thing a careless
+ * integration gets wrong: `offerRetailRate` is what WE pay, and
+ * `suggestedSellingPrice` is what LiteAPI requires be shown publicly. So the
+ * guest-facing number is the SSP and our fee is the spread — NOT retail plus
+ * HOTEL_MARGIN_PCT, which would both ignore their revenue rules and misprice
+ * against the market. The flat margin is only a fallback when SSP is absent.
+ */
+export function normalizeLiteApiRates(
+  data: RawLiteEntry[],
+  fx: FxRates,
+  pct: number,
+  origin?: { lat: number; lng: number },
+  /** Detail page: keep every offer as a bookable room row, not just the best. */
+  allOffers = false,
+): HotelResult[] {
+  const out: HotelResult[] = []
+  for (const entry of data) {
+    const hotelId = entry.hotelId
+    const name = entry.hotel?.name ?? entry.name
+    if (!hotelId || !name) continue
+    const lat = entry.hotel?.latitude ?? entry.latitude
+    const lng = entry.hotel?.longitude ?? entry.longitude
+    const distanceKm =
+      origin && typeof lat === "number" && typeof lng === "number"
+        ? haversineKm(origin.lat, origin.lng, lat, lng)
+        : null
+
+    // roomTypes come price-sorted; take the cheapest bookable offer per hotel.
+    let best: HotelResult | null = null
+    for (const offer of entry.roomTypes ?? []) {
+      const pay = offer.offerRetailRate
+      const payAmount = Number(pay?.amount)
+      const payCurrency = pay?.currency
+      if (!Number.isFinite(payAmount) || payAmount <= 0 || !payCurrency) continue
+
+      const providerGel = gelFrom(payAmount, payCurrency, fx)
+      if (providerGel <= 0) continue
+
+      const sspAmount = Number(offer.suggestedSellingPrice?.amount)
+      const sspCurrency = offer.suggestedSellingPrice?.currency
+      let totalGel: number
+      let feeGel: number
+      if (Number.isFinite(sspAmount) && sspAmount >= payAmount && sspCurrency) {
+        totalGel = gelFrom(sspAmount, sspCurrency, fx)
+        feeGel = Math.max(0, totalGel - providerGel)
+      } else {
+        ;({ totalGel, feeGel } = withMargin(providerGel, pct))
+      }
+
+      const rate = offer.rates?.[0]
+      const row: HotelResult = {
+        hotelId,
+        offerId: offer.offerId,
+        name,
+        distanceKm,
+        address: entry.hotel?.address ?? entry.address ?? null,
+        // RFN = refundable, NRFN = non-refundable. Anything else is unknown,
+        // and unknown must read as non-refundable — never promise a refund.
+        refundable: rate?.cancellationPolicies?.refundableTag === "RFN",
+        roomType: rate?.name ?? rate?.boardName ?? null,
+        providerGel,
+        totalGel,
+        feeGel,
+        providerCurrency: payCurrency,
+        providerTotal: Math.round(payAmount * 100) / 100,
+      }
+      if (allOffers) out.push(row)
+      else if (!best || row.totalGel < best.totalGel) best = row
+    }
+    if (best) out.push(best)
+  }
+  out.sort((a, b) => a.totalGel - b.totalGel)
+  return allOffers ? out : out.slice(0, 24)
+}
+
+/** Search by coordinates (listing page) or by hotel id (detail page). */
+async function liteApiRates(
+  input: { checkIn: string; checkOut: string; adults: number } & (
+    | { lat: number; lng: number; hotelIds?: never }
+    | { hotelIds: string[]; lat?: never; lng?: never }
+  ),
+): Promise<RawLiteEntry[] | null> {
+  const key = process.env.LITEAPI_KEY
+  if (!key) return null
+  try {
+    const res = await fetch(`${LITEAPI_BASE}/hotels/rates`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "X-API-Key": key },
+      body: JSON.stringify({
+        checkin: input.checkIn,
+        checkout: input.checkOut,
+        currency: "EUR",
+        // ponytail: fixed GE nationality — rates can vary by it, and our
+        // traffic is Georgia-first. Thread the real one through if it matters.
+        guestNationality: process.env.LITEAPI_GUEST_NATIONALITY ?? "GE",
+        occupancies: [{ adults: input.adults }],
+        ...(input.hotelIds
+          ? { hotelIds: input.hotelIds }
+          : { latitude: input.lat, longitude: input.lng, radius: 8000, limit: 60 }),
+        timeout: LITEAPI_TIMEOUT_S,
+        includeHotelData: true,
+      }),
+      next: { revalidate: 1800 },
+      signal: AbortSignal.timeout(LITEAPI_WIRE_MS),
+    })
+    if (!res.ok) {
+      console.error(`liteapi rates ${res.status}`)
+      return null
+    }
+    const json = (await res.json()) as { data?: RawLiteEntry[] }
+    return json.data ?? []
+  } catch (err) {
+    console.error("liteapi rates failed:", (err as Error).message)
+    return null
+  }
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -769,12 +928,34 @@ export async function searchHotels(input: {
   const pct = marginPct()
   const browse = async (): Promise<HotelSearch> => {
     const dir = await directoryHotels(input.lat, input.lng)
-    if (!dir?.length) return { mode: "error", marginPct: pct, fx: "fallback", hotels: [] }
+    if (!dir?.length) return { mode: "error", marginPct: pct, fx: "fallback", hotels: [], source: "none" }
     const stay = parseStay(input.checkIn, input.checkOut)
-    if (!stay) return { mode: "browse", marginPct: pct, fx: "fallback", hotels: [], browse: dir }
+    if (!stay) return { mode: "browse", marginPct: pct, fx: "fallback", hotels: [], source: "none", browse: dir }
     const { rows, fx } = await attachOtaPrices(dir, { ...input, nights: stay.nights, pct })
-    return { mode: "browse", marginPct: pct, fx: fx.source, hotels: [], browse: rows }
+    const priced = rows.some((r) => r.totalGel)
+    return {
+      mode: "browse",
+      marginPct: pct,
+      fx: fx.source,
+      hotels: [],
+      source: priced ? "xotelo" : "none",
+      browse: rows,
+    }
   }
+
+  // LiteAPI first when keyed: it is the only bookable path, and its rows carry
+  // a sellable price rather than a scraped minimum.
+  if (process.env.LITEAPI_KEY) {
+    const data = await liteApiRates(input)
+    if (data?.length) {
+      const fx = await getFx()
+      const hotels = normalizeLiteApiRates(data, fx, pct, { lat: input.lat, lng: input.lng })
+      if (hotels.length) {
+        return { mode: "live", marginPct: pct, fx: fx.source, hotels, source: "liteapi" }
+      }
+    }
+  }
+
   try {
     const token = await amadeusToken()
     if (!token) return await browse()
@@ -791,7 +972,7 @@ export async function searchHotels(input: {
       .slice(0, 40)
     if (!hotelIds.length) {
       const b = await browse()
-      return b.mode === "browse" ? b : { mode: "live", marginPct: pct, fx: (await getFx()).source, hotels: [] }
+      return b.mode === "browse" ? b : { mode: "live", marginPct: pct, fx: (await getFx()).source, hotels: [], source: "none" }
     }
 
     const offersJson = (await amadeusGet(
@@ -808,7 +989,7 @@ export async function searchHotels(input: {
       const b = await browse()
       if (b.mode === "browse") return b
     }
-    return { mode: "live", marginPct: pct, fx: fx.source, hotels }
+    return { mode: "live", marginPct: pct, fx: fx.source, hotels, source: hotels.length ? "amadeus" : "none" }
   } catch (err) {
     console.error("hotels search failed:", err)
     return await browse()
@@ -824,19 +1005,41 @@ export async function hotelRooms(input: {
   const pct = marginPct()
   const stay = parseStay(input.checkIn, input.checkOut)
   const ta = parseTaKey(input.hotelId)
+
+  // LiteAPI ids are neither TripAdvisor keys nor Amadeus codes, so they must be
+  // resolved here or a LiteAPI-sourced card's "Rooms" link dead-ends.
+  if (!ta && stay && process.env.LITEAPI_KEY) {
+    const data = await liteApiRates({ hotelIds: [input.hotelId], checkIn: input.checkIn, checkOut: input.checkOut, adults: input.adults })
+    if (data?.length) {
+      const fx = await getFx()
+      const hotels = normalizeLiteApiRates(data, fx, pct, undefined, true)
+      if (hotels.length) {
+        const entry = data[0]
+        return {
+          mode: "live",
+          marginPct: pct,
+          fx: fx.source,
+          hotels,
+          source: "liteapi",
+          hotelName: entry.hotel?.name ?? entry.name ?? null,
+        }
+      }
+    }
+  }
+
   if (ta && stay) {
     try {
       const fx = await getFx()
       const hotels = normalizeXoteloRates(ta, ta, await xoteloRates(ta, input.checkIn, input.checkOut, input.adults), stay.nights, fx, pct)
-      return { mode: "live", marginPct: pct, fx: fx.source, hotels, hotelName: null }
+      return { mode: "live", marginPct: pct, fx: fx.source, hotels, source: hotels.length ? "xotelo" : "none", hotelName: null }
     } catch (err) {
       console.error("hotel rooms xotelo failed:", err)
-      return { mode: "error", marginPct: pct, fx: "fallback", hotels: [], hotelName: null }
+      return { mode: "error", marginPct: pct, fx: "fallback", hotels: [], source: "none", hotelName: null }
     }
   }
   try {
     const token = await amadeusToken()
-    if (!token) return { mode: "unconfigured", marginPct: pct, fx: "fallback", hotels: [], hotelName: null }
+    if (!token) return { mode: "unconfigured", marginPct: pct, fx: "fallback", hotels: [], source: "none", hotelName: null }
 
     const json = (await amadeusGet(
       `/v3/shopping/hotel-offers?hotelIds=${encodeURIComponent(input.hotelId)}&adults=${input.adults}` +
@@ -852,11 +1055,12 @@ export async function hotelRooms(input: {
       marginPct: pct,
       fx: fx.source,
       hotels: entry ? normalizeHotelRooms(entry, fx, pct) : [],
+      source: entry ? "amadeus" : "none",
       hotelName: entry?.hotel?.name ?? null,
     }
   } catch (err) {
     console.error("hotel rooms failed:", err)
-    return { mode: "error", marginPct: pct, fx: "fallback", hotels: [], hotelName: null }
+    return { mode: "error", marginPct: pct, fx: "fallback", hotels: [], source: "none", hotelName: null }
   }
 }
 

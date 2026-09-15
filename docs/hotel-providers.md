@@ -5,10 +5,13 @@ it reports exactly which credential is missing or which upstream is failing.
 
 ## Why this document exists
 
-`searchHotels` has two paths:
+`searchHotels` tries three paths in order:
 
-1. **Amadeus GDS** — the primary. Used when `AMADEUS_CLIENT_ID` + `AMADEUS_CLIENT_SECRET` are set.
-2. **OSM directory + Xotelo OTA mins** — the fallback. No key, and the only path running today.
+1. **LiteAPI (Nuitee Connect)** — used when `LITEAPI_KEY` is set. The only
+   *bookable* path (search → prebook → book), so it is the one that lets sivrce
+   be merchant of record. Adapter is written and tested; it needs only a key.
+2. **Amadeus GDS** — used when `AMADEUS_CLIENT_ID` + `AMADEUS_CLIENT_SECRET` are set.
+3. **OSM directory + Xotelo OTA mins** — the fallback. No key, and the only path running today.
 
 Neither Amadeus key is set, so *every* search takes the fallback. The fallback's
 price source (Xotelo) is an unofficial, unauthenticated scraper that rate-limits
@@ -19,7 +22,37 @@ tell the difference, so it stops claiming.
 
 **No amount of code fixes this.** It needs credentials.
 
-## 1. Amadeus Self-Service — do this first
+## 1. LiteAPI — do this first
+
+Free sandbox key, no credit card, and it is the only option that makes hotels
+*bookable* rather than a referral wall.
+
+1. Sign up at <https://liteapi.travel>.
+2. Dashboard → **Developers** → **API Keys** → copy the sandbox key.
+3. Into `app/.env.local`:
+   ```
+   LITEAPI_KEY=<sandbox key>
+   ```
+4. `npm run hotels:doctor` → it runs a real Tbilisi rates search and prints the
+   properties it found.
+
+That doctor output also settles the coverage question no vendor publishes: the
+count it prints **is** the real Tbilisi inventory. Compare it against
+Booking.com for the same dates before committing to this provider.
+
+Production needs a card on file (dashboard → Payment Methods) — same base URL,
+the key decides the environment, so no code change.
+
+### Pricing rule, already implemented
+
+LiteAPI returns two numbers per offer. `offerRetailRate` is what we pay;
+`suggestedSellingPrice` is what their terms require be displayed publicly. The
+adapter shows SSP and books at retail, making the spread the fee.
+`HOTEL_MARGIN_PCT` is only a fallback for offers with no SSP. Applying our flat
+margin on top of retail would both break their revenue rules and misprice
+against the market.
+
+## 2. Amadeus Self-Service
 
 Free, self-serve, keys in minutes. This is the one that actually removes the
 Xotelo dependency.
@@ -58,7 +91,7 @@ Amadeus pricing page, and rates differ per API.
 > Amadeus auto-revokes keys it finds published. Keep them in `.env.local`
 > (gitignored) — never in source.
 
-## 2. Affiliate IDs — the revenue path
+## 3. Affiliate IDs — the extra revenue path
 
 Outbound "book" links currently earn nothing. These IDs are issued in each
 partner's dashboard after approval and **cannot be fabricated** — a link with an
@@ -92,7 +125,7 @@ This is a business/legal call, not a technical one. It bears on how this codebas
 is allowed to interact with Booking.com if the relationship ever goes beyond
 affiliate deep links. Raise it with them in writing rather than assuming.
 
-## 3. Optional
+## 4. Optional
 
 ```
 HOTEL_MARGIN_PCT=8     # 0–30, added to the provider quote. Default 8.
@@ -101,6 +134,7 @@ HOTEL_MARGIN_PCT=8     # 0–30, added to the provider quote. Default 8.
 ## Current state
 
 ```
+LITEAPI_KEY           (not set)   → bookable path never runs
 AMADEUS_CLIENT_ID     (not set)   → GDS path never runs
 AMADEUS_CLIENT_SECRET (not set)
 HOTEL_BOOKING_AID     (not set)   → Booking.com clicks earn nothing
@@ -109,4 +143,30 @@ Xotelo                throttled   → 0 rates, ~7.6s per request
 ```
 
 Hotels is a directory with outbound links: no first-party prices, no revenue.
-Step 1 changes that. Steps 2 monetise it.
+Step 1 changes that in an afternoon. Steps 2–3 add depth and monetise the rest.
+
+## Provider comparison
+
+Scored for this codebase's situation — access is the blocker, Tbilisi is the
+market. Weights: access today 30%, Georgia coverage 25%, bookable 20%, fit with
+existing code 15%, commercials 10%.
+
+| Provider | Score | Access | Bookable |
+|---|---|---|---|
+| LiteAPI (Nuitee) | 80 | Sandbox key, no card, minutes | Yes |
+| RateHawk (ETG) | 72 | Approval → sandbox in 48h | Yes |
+| Amadeus Self-Service | 70 | Already wired | Limited |
+| Travelpayouts / Hotellook | 61 | Free signup | No — redirect only |
+| Hotelbeds APItude | 61 | Enterprise onboarding | Yes |
+| TBO Holidays | 56 | Verified agency account | Yes |
+| Expedia Rapid | 55 | Contract + site review | Yes |
+| Booking.com Demand API | 52 | Managed partner + contract | Gated further |
+
+The Georgia-coverage column is inference from each provider's regional strength,
+not measured fact — nobody publishes Tbilisi property counts. A LiteAPI sandbox
+key measures it for free in minutes; trust that over this table.
+
+**RateHawk is worth starting in parallel**: strongest signal for CIS / Eastern
+Europe / emerging markets, aggregates 200+ suppliers (including Hotelbeds and
+WebBeds) through one integration, no IATA and no volume minimums. It is the slow
+one — certification plus a cited 2–3 months of engineering — so apply early.

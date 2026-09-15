@@ -32,6 +32,7 @@ let fatal = false
 /* ── 1. Which credentials exist ─────────────────────────────────────────── */
 
 const vars = {
+  LITEAPI_KEY: process.env.LITEAPI_KEY,
   AMADEUS_CLIENT_ID: process.env.AMADEUS_CLIENT_ID,
   AMADEUS_CLIENT_SECRET: process.env.AMADEUS_CLIENT_SECRET,
   AMADEUS_ENV: process.env.AMADEUS_ENV,
@@ -51,6 +52,68 @@ const base =
   (vars.AMADEUS_ENV === "prod" ? "https://api.amadeus.com" : "https://test.api.amadeus.com")
 
 async function main() {
+  /* ── 1b. LiteAPI: the bookable path, and the first one tried ────────────── */
+
+  console.log("\nLiteAPI (Nuitee Connect)")
+  if (!process.env.LITEAPI_KEY) {
+    console.log(warn("LITEAPI_KEY not set — skipped, nothing bookable on the site."))
+    console.log("    Free sandbox key, no credit card: https://liteapi.travel → sign up →")
+    console.log("    dashboard → Developers → API Keys → copy the sandbox key.")
+    console.log("    This is the fastest route to real prices AND real bookings.")
+  } else {
+    const t0 = Date.now()
+    try {
+      const res = await fetch("https://api.liteapi.travel/v3.0/hotels/rates", {
+        method: "POST",
+        headers: { "content-type": "application/json", "X-API-Key": process.env.LITEAPI_KEY },
+        body: JSON.stringify({
+          checkin: checkIn,
+          checkout: checkOut,
+          currency: "EUR",
+          guestNationality: process.env.LITEAPI_GUEST_NATIONALITY ?? "GE",
+          occupancies: [{ adults: 2 }],
+          latitude: TBILISI.lat,
+          longitude: TBILISI.lng,
+          radius: 8000,
+          limit: 60,
+          timeout: 6,
+          includeHotelData: true,
+        }),
+        signal: AbortSignal.timeout(20_000),
+      })
+      const ms = Date.now() - t0
+      if (!res.ok) {
+        fatal = true
+        console.log(bad(`rates ${res.status} in ${ms}ms — ${(await res.text()).slice(0, 160)}`))
+        console.log("    401 = bad/expired key. Re-copy it from the dashboard API Keys tab.")
+      } else {
+        const json = (await res.json()) as {
+          data?: { hotelId?: string; hotel?: { name?: string }; roomTypes?: unknown[] }[]
+        }
+        const rows = json.data ?? []
+        const priced = rows.filter((r) => (r.roomTypes?.length ?? 0) > 0)
+        console.log(
+          priced.length
+            ? ok(`${priced.length} Tbilisi hotels with live rates in ${ms}ms`)
+            : warn(`0 priced hotels in ${ms}ms — sandbox inventory may not cover Tbilisi`),
+        )
+        for (const r of priced.slice(0, 3)) {
+          console.log(`      ${r.hotel?.name ?? r.hotelId} — ${r.roomTypes!.length} offers`)
+        }
+        if (priced.length) {
+          console.log(ok("Hotels page will use LiteAPI. Xotelo is off the path entirely."))
+          console.log(
+            "    This also answers the coverage question nobody publishes: that count IS",
+          )
+          console.log("    the real Tbilisi inventory. Compare it against Booking.com for the same dates.")
+        }
+      }
+    } catch (err) {
+      fatal = true
+      console.log(bad(`rates request failed — ${(err as Error).message}`))
+    }
+  }
+
   /* ── 2. Amadeus: token, then a real Tbilisi search ──────────────────────── */
 
   console.log(`\nAmadeus GDS  (${hasAmadeus ? base : "skipped — no keys"})`)

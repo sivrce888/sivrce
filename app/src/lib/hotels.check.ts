@@ -27,6 +27,7 @@ import {
   osmImage,
   normalizeAmadeusOffers,
   normalizeHotelRooms,
+  normalizeLiteApiRates,
   normalizeNominatimHotels,
   normalizeOverpassHotels,
   normalizePhotonHotels,
@@ -291,6 +292,97 @@ assert(xStay.providerGel === 888 && xStay.feeGel === 71 && xStay.totalGel === 95
 assert(bestXoteloStay([], 2, fx, 8) === null, "empty rates")
 const xRooms = normalizeXoteloRates("g294195-d301416", "Rooms", [{ code: "BookingCom", name: "Booking.com", rate: 100 }, { rate: -1 }], 2, fx, 8)
 assert(xRooms.length === 1 && xRooms[0].roomType === "Booking.com" && xRooms[0].providerTotal === 200, "xotelo room row")
+
+/* ── LiteAPI normalization ───────────────────────────────────────────────
+ * Payload shape copied from docs.liteapi.travel "Hotel Rates API JSON Data
+ * Structure" (fetched 2026-09-15) — the adapter cannot be exercised without a
+ * key, so the documented contract is what we pin.
+ */
+const liteRows = normalizeLiteApiRates(
+  [
+    {
+      hotelId: "lp1f2a3",
+      hotel: { name: "Rooms Hotel Tbilisi", address: "Kostava 14", latitude: 41.71, longitude: 44.79 },
+      roomTypes: [
+        {
+          offerId: "offer-expensive",
+          offerRetailRate: { amount: 300, currency: "EUR" },
+          suggestedSellingPrice: { amount: 360, currency: "EUR" },
+          rates: [{ name: "Suite", cancellationPolicies: { refundableTag: "RFN" } }],
+        },
+        {
+          offerId: "offer-cheapest",
+          offerRetailRate: { amount: 197.53, currency: "EUR" },
+          suggestedSellingPrice: { amount: 249.53, currency: "EUR" },
+          rates: [{ name: "Deluxe King", cancellationPolicies: { refundableTag: "NRFN" } }],
+        },
+      ],
+    },
+  ],
+  fx,
+  8,
+  { lat: 41.7151, lng: 44.8271 },
+)
+assert(liteRows.length === 1, "one row per hotel")
+assert(liteRows[0].offerId === "offer-cheapest", "cheapest offer wins, not the first listed")
+// The pricing rule that matters: guest pays SSP, we pay retail, fee is the
+// spread. A flat HOTEL_MARGIN_PCT here would break LiteAPI's revenue rules.
+assert(liteRows[0].providerGel === gelFrom(197.53, "EUR", fx), "providerGel = offerRetailRate")
+assert(liteRows[0].totalGel === gelFrom(249.53, "EUR", fx), "totalGel = suggestedSellingPrice")
+assert(liteRows[0].feeGel === liteRows[0].totalGel - liteRows[0].providerGel, "fee is the SSP spread")
+assert(liteRows[0].totalGel !== withMargin(liteRows[0].providerGel, 8).totalGel, "SSP must override flat margin")
+assert(liteRows[0].refundable === false, "NRFN is not refundable")
+assert(liteRows[0].distanceKm !== null && liteRows[0].distanceKm < 5, "distance from search origin")
+
+// No SSP → fall back to the flat margin rather than selling at cost.
+const liteNoSsp = normalizeLiteApiRates(
+  [
+    {
+      hotelId: "h2",
+      name: "Flat Margin Inn",
+      roomTypes: [{ offerId: "o", offerRetailRate: { amount: 100, currency: "EUR" }, rates: [{ name: "Std", cancellationPolicies: { refundableTag: "RFN" } }] }],
+    },
+  ],
+  fx,
+  8,
+)
+assert(liteNoSsp[0].totalGel === withMargin(gelFrom(100, "EUR", fx), 8).totalGel, "no SSP → flat margin")
+assert(liteNoSsp[0].refundable === true, "RFN is refundable")
+assert(liteNoSsp[0].distanceKm === null, "no origin → no distance claim")
+
+// An SSP below what we pay is bad data — never sell at a loss on it.
+const liteBadSsp = normalizeLiteApiRates(
+  [
+    {
+      hotelId: "h3",
+      name: "Bad Data Inn",
+      roomTypes: [
+        {
+          offerId: "o",
+          offerRetailRate: { amount: 200, currency: "EUR" },
+          suggestedSellingPrice: { amount: 150, currency: "EUR" },
+          rates: [{ name: "Std" }],
+        },
+      ],
+    },
+  ],
+  fx,
+  8,
+)
+assert(liteBadSsp[0].totalGel > liteBadSsp[0].providerGel, "SSP below cost is ignored")
+assert(liteBadSsp[0].refundable === false, "missing cancellation policy reads as non-refundable")
+
+// Junk must be dropped, never rendered as a free room.
+assert(normalizeLiteApiRates([{ hotelId: "x" }], fx, 8).length === 0, "no offers → no row")
+assert(normalizeLiteApiRates([{ name: "No id" }], fx, 8).length === 0, "no hotelId → no row")
+assert(
+  normalizeLiteApiRates(
+    [{ hotelId: "z", name: "Zero", roomTypes: [{ offerId: "o", offerRetailRate: { amount: 0, currency: "EUR" } }] }],
+    fx,
+    8,
+  ).length === 0,
+  "zero-price offer dropped",
+)
 
 const wiki = parseWikiLodging([
   { kind: { value: "c" }, name: { value: "" }, ta: { value: "294195" } },

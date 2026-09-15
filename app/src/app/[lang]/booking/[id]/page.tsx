@@ -18,6 +18,7 @@ import Navbar from "@/components/sections/Navbar"
 import Footer from "@/components/sections/Footer"
 import { PageHero } from "@/components/PageHero"
 import { CancelStayButton } from "@/components/listing/CancelStayButton"
+import { lt } from "@/components/listing/i18n"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { isValidLang } from "@/lib/i18n/core"
@@ -227,7 +228,20 @@ export default async function BookingPage({
               >
                 {t.listing}
               </Link>
-              {cancellable && <CancelStayButton bookingId={booking.id} token={token} lang={lang} />}
+              {cancellable && (
+                // Copy resolved server-side: the client bundle gets four
+                // strings, not the ten-language listing dict.
+                <CancelStayButton
+                  bookingId={booking.id}
+                  token={token}
+                  copy={{
+                    cta: lt(lang, "stayCancelCta"),
+                    confirm: lt(lang, "stayCancelConfirm"),
+                    done: lt(lang, "stayCancelled"),
+                    failed: lt(lang, "stayCancelFail"),
+                  }}
+                />
+              )}
             </div>
           </div>
         </section>
