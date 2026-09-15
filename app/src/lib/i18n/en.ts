@@ -869,4 +869,10 @@ export const en: Dict = {
   "desk.worldAll": "All {n} countries",
   "desk.citiesN": "{n} cities",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "Add sivrce to your Home Screen",
+  "app.install.action": "Install",
+  "app.install.later": "Not now",
+  "app.install.ios": "In Safari, tap Share → “Add to Home Screen”",
+
 }

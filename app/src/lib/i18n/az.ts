@@ -870,4 +870,10 @@ export const az: Dict = {
   "desk.worldAll": "Bütün {n} ölkə",
   "desk.citiesN": "{n} şəhər",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "sivrce-ni əsas ekrana əlavə edin",
+  "app.install.action": "Quraşdır",
+  "app.install.later": "İndi yox",
+  "app.install.ios": "Safari-də: Paylaş → “Əsas Ekrana Əlavə Et”",
+
 }

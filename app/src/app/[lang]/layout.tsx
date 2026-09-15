@@ -22,6 +22,8 @@ import { CONTACT_PHONE } from "@/lib/inquiries/phone";
 import { LITE_BOOT } from "@/lib/device-budget";
 import { GoogleTags } from "@/components/GoogleTags";
 import ConsentBanner from "@/components/consent/ConsentBanner";
+import { NativeShell } from "@/components/native/NativeShell";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 // globals.css lives in app/layout.tsx — import here is silently dropped from
 // production CSS <link>s for the dynamic [lang] segment (see root layout).
 
@@ -359,11 +361,13 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
                 <CmsPreviewBridge />
                 <LocaleSuggest />
                 <ConsentBanner />
+                <InstallPrompt />
               </PostHogProvider>
             </CurrencyProvider>
           </I18nProvider>
           <Toaster position="top-center" />
         </ThemeProvider>
+        <NativeShell />
         <SWRegister />
         {market === "ge" ? (
           <script

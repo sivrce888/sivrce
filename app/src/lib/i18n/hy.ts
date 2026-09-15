@@ -870,4 +870,10 @@ export const hy: Dict = {
   "desk.worldAll": "Բոլոր {n} երկրները",
   "desk.citiesN": "{n} քաղաք",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "Ավելացրեք sivrce-ը գլխավոր էկրանին",
+  "app.install.action": "Տեղադրել",
+  "app.install.later": "Ոչ հիմա",
+  "app.install.ios": "Safari-ում՝ Կիսվել → «Ավելացնել գլխավոր էկրանում»",
+
 }

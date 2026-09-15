@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { GoogleTags } from "@/components/GoogleTags";
 import ConsentBanner from "@/components/consent/ConsentBanner";
+import { NativeShell } from "@/components/native/NativeShell";
 import { BRAND } from "@/lib/brand";
 // globals.css: app/layout.tsx (root). Importing only here used to work; keep
 // root as the single CSS entry so [lang] pages never lose the stylesheet.
@@ -83,6 +84,10 @@ export default function AuthLayout({
           </I18nProvider>
           <Toaster position="top-center" />
         </ThemeProvider>
+        {/* Android hardware back + status-bar theming must work on auth screens
+            too — without it, pressing back in the native app exits instead of
+            returning to where the user came from. */}
+        <NativeShell />
       </body>
     </html>
   );

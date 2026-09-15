@@ -878,6 +878,12 @@ export const ka = {
   "desk.worldAll": "ყველა {n} ქვეყანა",
   "desk.citiesN": "{n} ქალაქი",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "დაამატე sivrce მთავარ ეკრანს",
+  "app.install.action": "დააყენე",
+  "app.install.later": "ახლა არა",
+  "app.install.ios": "Safari-ში დააჭირე „გაზიარებას“ → „მთავარ ეკრანზე დამატებას“",
+
 } as const
 
 export type DictKey = keyof typeof ka

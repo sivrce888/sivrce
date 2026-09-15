@@ -869,4 +869,10 @@ export const he: Dict = {
   "desk.worldAll": "כל {n} המדינות",
   "desk.citiesN": "{n} ערים",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "הוסיפו את sivrce למסך הבית",
+  "app.install.action": "התקנה",
+  "app.install.later": "לא עכשיו",
+  "app.install.ios": "ב-Safari: שיתוף → הוספה למסך הבית",
+
 }

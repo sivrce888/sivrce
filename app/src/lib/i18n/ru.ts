@@ -869,4 +869,10 @@ export const ru: Dict = {
   "desk.worldAll": "Все {n} стран",
   "desk.citiesN": "{n} городов",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "Добавьте sivrce на главный экран",
+  "app.install.action": "Установить",
+  "app.install.later": "Не сейчас",
+  "app.install.ios": "В Safari: «Поделиться» → «На экран „Домой“»",
+
 }

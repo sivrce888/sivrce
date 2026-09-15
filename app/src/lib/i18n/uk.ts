@@ -870,4 +870,10 @@ export const uk: Dict = {
   "desk.worldAll": "Усі {n} країн",
   "desk.citiesN": "{n} міст",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "Додайте sivrce на головний екран",
+  "app.install.action": "Встановити",
+  "app.install.later": "Не зараз",
+  "app.install.ios": "У Safari: «Поділитися» → «На екран „Домів“»",
+
 }

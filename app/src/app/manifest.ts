@@ -1,6 +1,16 @@
 import type { MetadataRoute } from 'next'
 
-export default function manifest(): MetadataRoute.Manifest {
+/**
+ * `handle_links` is a shipped web-manifest member (link capturing in installed
+ * PWAs) that Next's Manifest type has not caught up to. Widening here keeps the
+ * member in the emitted JSON without an `as any` over the whole object, so
+ * every other key stays type-checked.
+ */
+type ManifestWithLinkCapturing = MetadataRoute.Manifest & {
+  handle_links?: 'auto' | 'preferred' | 'not-preferred'
+}
+
+export default function manifest(): ManifestWithLinkCapturing {
   return {
     id: '/',
     name: 'sivrce — უძრავი ქონება ერთ სივრცეში',
@@ -9,6 +19,11 @@ export default function manifest(): MetadataRoute.Manifest {
       'საქართველოს ტექნოლოგიური უძრავი ქონების პლატფორმა — ბინები, სახლები, მიწა და კომერციული ფართები იყიდება და ქირავდება.',
     start_url: '/',
     display: 'standalone',
+    // minimal-ui fallback for Windows/tablet viewports too narrow for standalone
+    display_override: ['standalone', 'minimal-ui'],
+    // Opened links stay in the installed app instead of bouncing to a tab
+    handle_links: 'preferred',
+    launch_handler: { client_mode: 'navigate-existing' },
     background_color: '#050B26',
     theme_color: '#050B26',
     lang: 'ka',

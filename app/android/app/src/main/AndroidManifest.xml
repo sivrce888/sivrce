@@ -18,6 +18,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- App Links: https://sivrce.ge/* opens in the app once
+                 /.well-known/assetlinks.json carries the Play signing cert
+                 (ANDROID_CERT_SHA256S). autoVerify needs that statement to pass. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="sivrce.ge" />
+            </intent-filter>
         </activity>
 
         <provider

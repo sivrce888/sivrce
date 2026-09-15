@@ -869,4 +869,10 @@ export const tr: Dict = {
   "desk.worldAll": "{n} ülkenin tamamı",
   "desk.citiesN": "{n} şehir",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "sivrce’yi ana ekrana ekleyin",
+  "app.install.action": "Yükle",
+  "app.install.later": "Şimdi değil",
+  "app.install.ios": "Safari’de: Paylaş → “Ana Ekrana Ekle”",
+
 }

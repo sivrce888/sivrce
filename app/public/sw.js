@@ -1,16 +1,32 @@
-/* SIVRCE — minimal service worker.
-   Cache-first for static media (/images, /icons, /logo), network-first for pages. */
-const CACHE = 'sivrce-v1'
+/* SIVRCE — service worker v2.
+   Cache-first for static media (/images, /icons, /logo), network-first for
+   pages with navigation preload, offline page as the last resort. */
+const CACHE = 'sivrce-v2'
+const OFFLINE = '/offline'
 const CACHEABLE = /^\/(images|icons|logo)\//
 
-self.addEventListener('install', () => self.skipWaiting())
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches
+      .open(CACHE)
+      .then((c) => c.add(OFFLINE))
+      // Best-effort: a flaky first visit must not fail the install.
+      .catch(() => {}),
+  )
+  self.skipWaiting()
+})
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim()),
+    (async () => {
+      // Navigation preload lets the browser fetch while the SW boots —
+      // without it every navigate waits on the worker first.
+      await self.registration.navigationPreload.enable().catch(() => {})
+      await Promise.all(
+        (await caches.keys()).filter((k) => k !== CACHE).map((k) => caches.delete(k)),
+      )
+      await self.clients.claim()
+    })(),
   )
 })
 
@@ -72,8 +88,27 @@ self.addEventListener('fetch', (e) => {
     return
   }
 
-  // Pages: network-first, cache fallback when offline
+  // Pages: preloaded/network fetch, cached copy, offline page last
   if (request.mode === 'navigate') {
-    e.respondWith(fetch(request).catch(() => caches.match(request)))
+    e.respondWith(
+      (async () => {
+        try {
+          const preloaded = await e.preloadResponse
+          if (preloaded) return preloaded
+        } catch {
+          // preload failed (e.g. unsupported) — fall through to fetch
+        }
+        try {
+          return await fetch(request)
+        } catch {
+          /* offline */
+        }
+        return (
+          (await caches.match(request)) ||
+          (await caches.match(OFFLINE)) ||
+          new Response('offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
+        )
+      })(),
+    )
   }
 })

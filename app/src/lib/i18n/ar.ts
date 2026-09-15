@@ -869,4 +869,10 @@ export const ar: Dict = {
   "desk.worldAll": "كل الـ{n} دولة",
   "desk.citiesN": "{n} مدينة",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "أضِف sivrce إلى الشاشة الرئيسية",
+  "app.install.action": "تثبيت",
+  "app.install.later": "ليس الآن",
+  "app.install.ios": "في Safari: مشاركة ← إضافة إلى الشاشة الرئيسية",
+
 }

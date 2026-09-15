@@ -871,4 +871,10 @@ export const de: Dict = {
   "desk.worldAll": "Alle {n} Länder",
   "desk.citiesN": "{n} Städte",
 
+  // PWA install prompt (native systems)
+  "app.install.title": "sivrce zum Startbildschirm hinzufügen",
+  "app.install.action": "Installieren",
+  "app.install.later": "Nicht jetzt",
+  "app.install.ios": "In Safari: Teilen → „Zum Home-Bildschirm“",
+
 }
