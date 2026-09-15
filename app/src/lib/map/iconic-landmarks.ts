@@ -127,8 +127,13 @@ export function iconicKeepFarFilter(extra?: unknown): unknown {
     type: 'Point',
     coordinates: [FERNSEHTURM.lng, FERNSEHTURM.lat],
   }
-  // literal: raw GeoJSON in a filter array is parsed as an expression otherwise.
-  const far = ['>=', ['distance', ['literal', here]], FERNSEHTURM.hideR]
+  // The GeoJSON goes in RAW, not wrapped in ['literal', …]. Distance.parse
+  // reads args[1] as a plain object before any expression parsing, so a
+  // ['literal', …] wrapper has no `type`/`coordinates` key and the whole filter
+  // is rejected — MapLibre logs it and keeps the previous filter instead of
+  // throwing, which is why the tower kept its 368 m grey chimney while
+  // setFilter's try/catch stayed silent.
+  const far = ['>=', ['distance', here], FERNSEHTURM.hideR]
   return extra ? ['all', extra, far] : far
 }
 

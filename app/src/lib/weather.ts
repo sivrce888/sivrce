@@ -169,3 +169,39 @@ export async function getWeather(
     return null
   }
 }
+
+/* ── European AQI (Open-Meteo air-quality, keyless) — same server-chip contract:
+   decorative, renders nothing on failure, must never break a page. ── */
+
+export interface AirInfo {
+  aqi: number // European AQI, lower is better
+  pm25: number // µg/m³
+}
+
+/** Full EU scale (0–20 sehr gut … >100 extrem) collapsed to 4 bands. */
+export type AqiBand = 'good' | 'moderate' | 'poor' | 'bad'
+
+export function aqiBand(aqi: number): AqiBand {
+  if (aqi <= 40) return 'good'
+  if (aqi <= 60) return 'moderate'
+  if (aqi <= 80) return 'poor'
+  return 'bad'
+}
+
+export async function getAirQuality(coords: { lat: number; lng: number }): Promise<AirInfo | null> {
+  const lat = coords.lat.toFixed(2)
+  const lng = coords.lng.toFixed(2)
+  try {
+    const r = await fetch(
+      `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=european_aqi,pm2_5`,
+      { next: { revalidate: 1800 } },
+    )
+    const d = await r.json()
+    const aqi = d?.current?.european_aqi
+    const pm25 = d?.current?.pm2_5
+    if (typeof aqi !== 'number' || typeof pm25 !== 'number') return null
+    return { aqi: Math.round(aqi), pm25: Math.round(pm25 * 10) / 10 }
+  } catch {
+    return null
+  }
+}

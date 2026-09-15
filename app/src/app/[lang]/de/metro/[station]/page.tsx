@@ -7,6 +7,9 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
 import MetroStationMapIdle from '@/components/MetroStationMapLazy'
+import LiveDepartures from '@/components/LiveDepartures'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
+import { resolveStopId } from '@/lib/de-live'
 import { Chip } from '@/components/seo/SeoLanding'
 import type { Listing } from '@/data/listings'
 import {
@@ -27,7 +30,9 @@ async function resolve(stationSlug: string) {
   const station = getBerlinStation(stationSlug)
   if (!station) return null
   const listings = await getListingsNearMetro(station.lat, station.lng, DE_METRO_RADIUS_M, 'DE')
-  return { station, listings }
+  // VBB stop ID — resolves once per station, then cached 7 d (see de-live.ts).
+  const stopId = await resolveStopId(station.name, station.lat, station.lng)
+  return { station, listings, stopId }
 }
 
 interface PageProps {
@@ -180,7 +185,7 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
   const { station: s } = await params
   const ctx = await resolve(s)
   if (!ctx) notFound()
-  const { station, listings } = ctx
+  const { station, listings, stopId } = ctx
 
   const stats = listings.length > 0 ? { count: listings.length } : null
 
@@ -220,10 +225,22 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
 
         {/* Header */}
         <header className="mb-8">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
-            <SparkMark className="h-3.5 w-3.5" aria-hidden />
-            {station.lines.join(' / ')} · Berlin
-          </span>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
+              <SparkMark className="h-3.5 w-3.5" aria-hidden />
+              {station.lines.join(' / ')} · Berlin
+            </span>
+            <WeatherBadge
+              coords={{ lat: station.lat, lng: station.lng }}
+              label={station.name}
+              lang="de"
+              className="rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-[12px] text-sv-ink/60 shadow-card"
+            />
+            <AirBadge
+              coords={{ lat: station.lat, lng: station.lng }}
+              className="rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-[12px] text-sv-ink/60 shadow-card"
+            />
+          </div>
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             Wohnungen {station.name}
           </h1>
@@ -270,6 +287,13 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
             lines={station.lines}
           />
         </section>
+
+        {/* Live VBB departures — island fetches /api/departures; server shell stays ISR */}
+        {stopId && (
+          <section aria-label="Live-Abfahrten" className="mb-8">
+            <LiveDepartures stopId={stopId} name={station.name} />
+          </section>
+        )}
 
         {/* Listings */}
         {listings.length > 0 ? (
