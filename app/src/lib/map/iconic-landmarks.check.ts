@@ -75,8 +75,18 @@ const ring = hole.coordinates[0]!
 assert.ok(ring.length >= 21)
 const far = JSON.stringify(iconicKeepFarFilter(['!=', ['get', 'hide_3d'], true]))
 assert.ok(far.includes('distance'))
-assert.ok(far.includes('literal'))
 assert.ok(far.includes(String(FERNSEHTURM.hideR)))
+// MapLibre's Distance.parse reads args[1] as raw GeoJSON: a ['literal', …]
+// wrapper makes the filter invalid and MapLibre silently keeps the old one.
+assert.ok(!far.includes('literal'), "distance takes raw GeoJSON, never ['literal', …]")
+const parsedFilter = JSON.parse(far) as unknown[]
+const distExpr = (Array.isArray(parsedFilter[2]) ? parsedFilter[2] : parsedFilter) as unknown[]
+const distArg = (distExpr[1] as unknown[])[1]
+assert.deepEqual(
+  distArg,
+  { type: 'Point', coordinates: [FERNSEHTURM.lng, FERNSEHTURM.lat] },
+  'distance argument is a bare GeoJSON Point',
+)
 const [lng, lat] = (labels[0]!.geometry as GeoJSON.Point).coordinates
 assert.equal(lng, FERNSEHTURM.lng)
 assert.equal(lat, FERNSEHTURM.lat)
@@ -87,7 +97,7 @@ assert.ok(!src.includes('geocode.ts'))
 assert.ok(!src.includes('three'))
 assert.ok(!src.includes('gltf'))
 assert.ok(src.includes('fill-extrusion'))
-assert.ok(src.includes("['distance'"))
+assert.ok(src.includes("['distance', here]"), 'distance keeps its raw-GeoJSON argument')
 assert.ok(src.includes('iconicKeepFarFilter'))
 
 const map3d = readFileSync(join(process.cwd(), 'src/components/map/Map3D.tsx'), 'utf8')

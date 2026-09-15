@@ -44,18 +44,35 @@ export async function generateMetadata({
 }
 
 function faqLdFor(loc: DirLoc | 'de') {
+  const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : loc === 'de' ? 'Startseite' : 'Home'
+  const faqLabel = loc === 'ka' ? 'ხშირი კითხვები' : loc === 'ru' ? 'Частые вопросы' : loc === 'de' ? 'Häufige Fragen' : 'FAQ'
   return {
     '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    inLanguage: loc,
-    isPartOf: { '@id': 'https://sivrce.ge/#website' },
-    mainEntity: FAQ_SECTIONS[loc].flatMap((s) =>
-      s.items.map((item) => ({
-        '@type': 'Question',
-        name: item.q,
-        acceptedAnswer: { '@type': 'Answer', text: item.a },
-      })),
-    ),
+    '@graph': [
+      {
+        '@type': 'FAQPage',
+        inLanguage: loc,
+        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', 'summary'],
+        },
+        mainEntity: FAQ_SECTIONS[loc].flatMap((s) =>
+          s.items.map((item) => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: { '@type': 'Answer', text: item.a },
+          })),
+        ),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
+          { '@type': 'ListItem', position: 2, name: faqLabel, item: 'https://sivrce.ge/faq' },
+        ],
+      },
+    ],
   }
 }
 

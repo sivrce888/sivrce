@@ -46,9 +46,10 @@ export default async function SettingsPage({
   searchParams: Promise<{ intent?: string }>
 }) {
   const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
   const { intent: rawIntent } = await searchParams
   const intent = parsePersonaIntent(rawIntent)
-  const t = getServerT(isValidLang(raw) ? raw : "ka")
+  const t = getServerT(lang)
   const user = await requireUser("/settings")
   const persona = await readPersona(user.role)
   const home = dashboardPathFor(user.role)
@@ -130,7 +131,7 @@ export default async function SettingsPage({
           isPhoneAccount={isPhoneEmail(user.email)}
         />
 
-        <PasskeysCard keys={passkeys} />
+        <PasskeysCard keys={passkeys} lang={lang} />
 
         <LiteModeToggle />
 

@@ -9,6 +9,7 @@ import { getAllListings, getHomeTierListings, type Listing } from '@/lib/listing
 import type { PathCountryId } from '@/lib/markets'
 import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowRight } from 'lucide-react'
+import type { Lang } from '@/lib/i18n/core'
 
 function railCard(l: Listing): Listing {
   const images = l.images.length ? l.images : [l.img]
@@ -21,12 +22,14 @@ export default async function MarketListings({
   city,
   intent,
   label,
+  lang = 'en',
 }: {
   country: PathCountryId
   city?: string
   intent?: 'buy' | 'rent'
   /** Override rail heading (e.g. "Kolonaki · Athens" on a hood page). */
   label?: string
+  lang?: Lang
 }) {
   const scope = homeScopeForCountry(country, city, intent)
   if (!scope) return null
@@ -40,6 +43,7 @@ export default async function MarketListings({
       : []
   const place = label ?? (city ? (cityPack(country, city)?.name ?? city) : COUNTRY_NAMES[country])
   const viewAll = homeSearchHref({}, scope)
+  const de = lang === 'de'
   return (
     <>
       <Listings
@@ -59,14 +63,14 @@ export default async function MarketListings({
               <div>
                 <h2 className="sv-h2 text-sv-ink">{place}</h2>
                 <p className="mt-2 text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
-                  Live listings in {place} only.
+                  {de ? `Aktuelle Inserate nur in ${place}.` : `Live listings in ${place} only.`}
                 </p>
               </div>
               <LocalizedLink
                 href={viewAll}
                 className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep transition-colors hover:text-sv-blue dark:text-sv-blue-light"
               >
-                View all
+                {de ? 'Alle ansehen' : 'View all'}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </LocalizedLink>
             </Reveal>

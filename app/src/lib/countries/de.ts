@@ -267,6 +267,18 @@ export function buyerCostBreakdown(
   }
 }
 
+/** Resolve by German city name or slug (listing.city is "Berlin", not "berlin"). */
+export function buyerCostBreakdownByCityName(
+  priceEur: number,
+  cityName: string,
+  opts?: { withMakler?: boolean },
+): BuyerCostBreakdown | null {
+  const hit = DE_CITIES.find(
+    (c) => c.de === cityName || c.slug === cityName.toLowerCase(),
+  )
+  return hit ? buyerCostBreakdown(priceEur, hit.slug, opts) : null
+}
+
 /**
  * Rental-law anchors Germans check first (§551 / §558 BGB, Mietpreisbremse;
  * Stand 2026). Qualitative rules only — medians come from the city
@@ -284,7 +296,7 @@ export const DE_RENTAL_RULES = {
 } as const
 
 /** Energieausweis efficiency classes (GEG scale, Bedarf or Verbrauch). */
-export const DE_ENERGY_CLASSES = ['A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as const
+export { DE_ENERGY_CLASSES } from './de-expose'
 
 /** KfW-relevant Effizienzhaus tiers buyers meet in Neubau listings (QNG = Nachhaltigkeitssiegel). */
 export const DE_EFFICIENCY_TIERS = ['EH 40', 'EH 55', 'QNG-Plus', 'QNG-Premium'] as const

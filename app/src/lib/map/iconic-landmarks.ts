@@ -127,12 +127,21 @@ export function iconicKeepFarFilter(extra?: unknown): unknown {
     type: 'Point',
     coordinates: [FERNSEHTURM.lng, FERNSEHTURM.lat],
   }
-  // literal: raw GeoJSON in a filter array is parsed as an expression otherwise.
-  const far = ['>=', ['distance', ['literal', here]], FERNSEHTURM.hideR]
+  // The GeoJSON goes in RAW, not wrapped in ['literal', …]. Distance.parse
+  // reads args[1] as a plain object before any expression parsing, so a
+  // ['literal', …] wrapper has no `type`/`coordinates` key and the whole filter
+  // is rejected — MapLibre logs it and keeps the previous filter instead of
+  // throwing, which is why the tower kept its 368 m grey chimney while
+  // setFilter's try/catch stayed silent.
+  const far = ['>=', ['distance', here], FERNSEHTURM.hideR]
   return extra ? ['all', extra, far] : far
 }
 
 export function punchIconicHoles(map: MlMap): void {
+  // Off-Berlin maps have no tower to carve — and the `distance` filter throws
+  // on non-polygon tile fragments there (console noise on every listing map).
+  const c = map.getCenter?.()
+  if (c && (Math.abs(c.lng - FERNSEHTURM.lng) > 0.7 || Math.abs(c.lat - FERNSEHTURM.lat) > 0.5)) return
   const osm = iconicKeepFarFilter(['!=', ['get', 'hide_3d'], true])
   try {
     if (map.getLayer(OSM_BUILDING_3D_ID)) map.setFilter(OSM_BUILDING_3D_ID, osm as never)

@@ -6,6 +6,7 @@ import HScroll from '@/components/HScroll'
 import CountryHero from '@/components/country/CountryHero'
 import MarketListings from '@/components/country/MarketListings'
 import DeProjectCard from '@/components/country/DeProjectCard'
+import DePropTechOS from '@/components/country/DePropTechOS'
 import type { Developer, Project } from '@/data/professionals'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '@/data/projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from '@/data/projects-new-germany'
@@ -237,8 +238,8 @@ function CitiesBand({ de }: { de: boolean }) {
             <span className="inline-flex items-center gap-3 text-[14px] font-bold text-sv-ink/70">
               <Landmark className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
               {de
-                ? 'Wohnungen nahe U-Bahn & S-Bahn — alle Stationen mit Angeboten in Gehweite.'
-                : 'Homes near U-Bahn & S-Bahn — every Berlin station with a listings radar.'}
+                ? 'U-Bahn & S-Bahn in Berlin — alle Stationen, Linien und Kartenpunkte im Überblick.'
+                : 'Berlin U-Bahn & S-Bahn — station, line and map directory.'}
             </span>
             <span className="inline-flex items-center gap-1.5 text-[13px] font-black text-sv-blue">
               {de ? 'Zur Stationsübersicht' : 'Station directory'}
@@ -422,11 +423,12 @@ export default function DeMarketHome({
     <main id="main">
       <CountryHero country="de" copy={copy} city={city} intent={intent} cities={cities} lang={lang} />
       <Suspense fallback={null}>
-        <MarketListings country="de" city={city} intent={intent} />
+        <MarketListings country="de" city={city} intent={intent} lang={lang} />
       </Suspense>
       <StatsBand citySlug={city} de={de} />
       {city === 'berlin' && <BezirkeBand de={de} />}
       <ProjectRail citySlug={city} de={de} />
+      <DePropTechOS citySlug={city} de={de} />
       <CitiesBand de={de} />
       <BuyerCosts citySlug={city} de={de} />
       <DeveloperRail citySlug={city} de={de} />

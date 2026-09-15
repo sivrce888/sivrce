@@ -69,6 +69,7 @@ function MapPinCard({
     priceOriginal: l.priceOriginal,
     currencyOriginal: l.currencyOriginal,
     currencyPreference: currency,
+    country: l.country,
     rate,
     eurRate,
   })
@@ -106,7 +107,7 @@ function MapPinCard({
           <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/60">{price.secondary}</span>
           <span className="mt-1 block truncate text-[13px] font-semibold text-sv-ink/60">
             {stay.n > 0
-              ? `${stayLine(l, t)} · ${l.area} ${areaSym(lang)} · ${l.district}`
+              ? `${stayLine(l, t, lang)} · ${l.area} ${areaSym(lang)} · ${l.district}`
               : `${l.area} ${areaSym(lang)} · ${l.district}`}
           </span>
           <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">{l.title}</span>
@@ -547,6 +548,7 @@ export default function SearchMapView({
                       priceOriginal: l.priceOriginal,
                       currencyOriginal: l.currencyOriginal,
                       currencyPreference: currency,
+                      country: l.country,
                       rate,
                       eurRate,
                     }).primary}
@@ -556,7 +558,7 @@ export default function SearchMapView({
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">
                     {stay.n > 0
-                      ? `${stayLine(l, t)} · ${l.area} ${areaSym(lang)} · ${l.district}`
+                      ? `${stayLine(l, t, lang)} · ${l.area} ${areaSym(lang)} · ${l.district}`
                       : `${l.area} ${areaSym(lang)} · ${l.district}`}
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">

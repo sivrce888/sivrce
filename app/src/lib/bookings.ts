@@ -72,6 +72,27 @@ export function expandBookingNights(checkInIso: string, checkOutIso: string): st
   return out
 }
 
+/**
+ * GEL per one unit of a listing's currency, or null when we have no rate for
+ * it (→ the listing is honestly not bookable rather than guess-priced).
+ * Rates are passed in, never fetched here — this module is client-safe.
+ */
+export function gelPerUnit(currency: string, fx: { usdGel: number; eurGel: number }): number | null {
+  if (currency === "GEL") return 1
+  if (currency === "USD") return fx.usdGel > 0 ? fx.usdGel : null
+  if (currency === "EUR") return fx.eurGel > 0 ? fx.eurGel : null
+  return null
+}
+
+/**
+ * Listing price (whole units of its own currency) → nightly tetri in GEL.
+ * Rounded once here so GET's quote and POST's snapshot can never disagree by
+ * a rounding step — both call this with the same rate.
+ */
+export function nightlyTetriOf(price: number, gelRate: number): number {
+  return Math.round(price * gelRate * 100)
+}
+
 export interface StayQuote {
   nights: number
   subtotalTetri: number

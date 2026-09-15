@@ -1,21 +1,24 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { cookies } from "next/headers"
 
 import { AuthShell } from "@/components/auth/AuthShell"
+import { authLang, getAuthStrings } from "@/components/auth/i18n"
 
-export const metadata: Metadata = {
-  title: "შესვლის შეცდომა",
-  robots: { index: false },
+export async function generateMetadata(): Promise<Metadata> {
+  const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
+  return { title: s.errPageMetaTitle, robots: { index: false } }
 }
 
-export default function AuthErrorPage() {
+export default async function AuthErrorPage() {
+  const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
   return (
     <AuthShell
-      title="შესვლა ვერ მოხერხდა"
-      subtitle="მოხდა მოულოდნელი შეცდომა. სცადე თავიდან — ან დაბრუნდი მთავარ გვერდზე."
+      title={s.errPageTitle}
+      subtitle={s.errPageSub}
       footer={
         <Link href="/" className="text-[13px] font-bold text-white/50 hover:text-white/80">
-          მთავარი
+          {s.home}
         </Link>
       }
     >
@@ -23,7 +26,7 @@ export default function AuthErrorPage() {
         href="/auth/signin"
         className="flex w-full items-center justify-center rounded-full bg-sv-orange px-6 py-3.5 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
       >
-        თავიდან ცდა
+        {s.tryAgain}
       </Link>
     </AuthShell>
   )

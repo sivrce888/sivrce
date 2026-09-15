@@ -11,7 +11,7 @@ export const ka = {
   'nav.search': 'ძიება',
   'nav.map': '3D რუკა',
   'nav.buildings': 'შენობები',
-  'nav.projects': 'მშენებარე ბინები',
+  'nav.projects': 'პროექტები',
   'nav.services': 'სერვისები',
   'nav.more': 'მეტი',
   'nav.favorites': 'ფავორიტები',
@@ -855,6 +855,35 @@ export const ka = {
   'cadastre.faq.a2': 'შეიყვანე საკადასტრო კოდი ძებნის ველში ან დააჭირე ნაკვეთის ადგილს რუკაზე — sivrce ოფიციალურ საზღვრებს საჯარო რეესტრიდან (NAPR) ჩამოტვირთავს და რუკაზე დახაზავს.',
   'cadastre.faq.q3': 'ყველა რეგიონში მუშაობს?',
   'cadastre.faq.a3': 'დიახ — მთელ საქართველოში: თბილისი, ბათუმი, ქუთაისი და ყველა რეგიონი. მონაცემები საჯარო რეესტრის ოფიციალური სერვისიდან მოდის.',
+  // ——— World Desk (sivrce.com global home) ———
+  "desk.kicker": "შენი ბაზარი",
+  "desk.state.deep": "ღია ბაზარი",
+  "desk.state.pinned": "რუკაზე და ძიებაში",
+  "desk.state.discovery": "იძებნება",
+  "desk.hubCta": "გახსენი {country}",
+  "desk.searchCta": "ძიება — {country}",
+  "desk.mapCta": "3D რუკა",
+  "desk.cities": "მთავარი ქალაქები",
+  "desk.cost": "რას იხდის მყიდველი ფასის ზემოდან",
+  "desk.costTotal": "+{pct}% გარიგებისას",
+  "desk.costAsOf": "საჯარო კანონმდებლობა, გადამოწმებული {year}",
+  "desk.rent": "ქირაობა აქ",
+  "desk.currency": "ვალუტა",
+  "desk.capital": "დედაქალაქი",
+  "desk.population": "მოსახლეობა",
+  "desk.noCost": "ამ ქვეყნისთვის გადამოწმებული ყიდვის ხარჯების ცხრილი ჯერ არ გვაქვს — ვაჩვენებთ მხოლოდ ოფიციალურად გამოქვეყნებულს.",
+  "desk.notLaunched": "sivrce-ის ჰაბი აქ ჯერ არ არის. ძიება და 3D რუკა უკვე ფარავს — {country} სრულ გზამკვლევად გაიხსნება ინვენტარის მოსვლისთანავე.",
+  "desk.world": "ყველა ღია ბაზარი",
+  "desk.worldSub": "თითოეულს აქვს თავისი ვალუტა, კანონით დადგენილი ყიდვის გადასახადი და ქალაქების გზამკვლევები.",
+  "desk.worldAll": "ყველა {n} ქვეყანა",
+  "desk.citiesN": "{n} ქალაქი",
+
+  // PWA install prompt (native systems)
+  "app.install.title": "დაამატე sivrce მთავარ ეკრანს",
+  "app.install.action": "დააყენე",
+  "app.install.later": "ახლა არა",
+  "app.install.ios": "Safari-ში დააჭირე „გაზიარებას“ → „მთავარ ეკრანზე დამატებას“",
+
 } as const
 
 export type DictKey = keyof typeof ka

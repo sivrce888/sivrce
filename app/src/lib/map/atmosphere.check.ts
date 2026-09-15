@@ -35,12 +35,25 @@ assert.equal(camMs(0, false), 0)
 // ——— sky ———
 const daySky = skyFor({ dark: false, ...TBILISI, date: NOON })
 const nightSky = skyFor({ dark: true, ...TBILISI, date: NIGHT })
-assert.notEqual(daySky['sky-color'], nightSky['sky-color'], 'day and night skies differ')
-assert.match(String(daySky['sky-color']), /^#[0-9a-f]{6}$/i, 'sky is a hex colour')
-assert.match(String(nightSky['sky-color']), /^#[0-9a-f]{6}$/i)
+/** sky-color is a zoom ramp: space at globe zooms → the real sky by ~z6. */
+const skyAtStreetZoom = (s: ReturnType<typeof skyFor>) => {
+  const ramp = s['sky-color'] as unknown[]
+  assert.equal(ramp[0], 'interpolate', 'sky-color ramps with zoom')
+  return String(ramp[ramp.length - 1])
+}
+assert.notEqual(skyAtStreetZoom(daySky), skyAtStreetZoom(nightSky), 'day and night skies differ')
+assert.match(skyAtStreetZoom(daySky), /^#[0-9a-f]{6}$/i, 'sky is a hex colour')
+assert.match(skyAtStreetZoom(nightSky), /^#[0-9a-f]{6}$/i)
+// Zoomed all the way out the backdrop must be space, not day blue — otherwise
+// the void around the globe reads as a failed render.
+assert.equal(
+  (daySky['sky-color'] as unknown[])[3],
+  (nightSky['sky-color'] as unknown[])[3],
+  'globe backdrop is space in both themes',
+)
 // Dark theme must be honoured even when the real sun is up — the user picked it.
 const darkAtNoon = skyFor({ dark: true, ...TBILISI, date: NOON })
-assert.equal(darkAtNoon['sky-color'], nightSky['sky-color'], 'dark theme wins over wall clock')
+assert.equal(skyAtStreetZoom(darkAtNoon), skyAtStreetZoom(nightSky), 'dark theme wins over wall clock')
 
 // Atmosphere fades out as you zoom in — a hazy street view is a bug, not depth.
 const blend = daySky['atmosphere-blend'] as unknown[]

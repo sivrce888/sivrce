@@ -18,9 +18,17 @@ import {
   DE_BERLIN_BUY_DE,
   DE_BERLIN_HUB_DE,
   DE_BERLIN_RENT_DE,
+  DE_COLOGNE_HUB_DE,
+  DE_FRANKFURT_BUY_DE,
+  DE_FRANKFURT_HUB_DE,
+  DE_FRANKFURT_RENT_DE,
+  DE_HAMBURG_BUY_DE,
   DE_HAMBURG_HUB_DE,
+  DE_HAMBURG_RENT_DE,
   DE_HUB_DE,
+  DE_MUNICH_BUY_DE,
   DE_MUNICH_HUB_DE,
+  DE_MUNICH_RENT_DE,
   cityPack,
   type CountryCopy,
 } from '@/lib/country-copy'
@@ -42,15 +50,18 @@ function deProjectSlug(country: PathCountryId, slug: string[] | undefined): stri
 
 export const revalidate = 86400
 
-/** DE cities with a native German hub (no /buy /rent copy yet — mirrors the EN pack). */
-const DE_HUB_ONLY_DE_CITIES = new Set(['munich', 'hamburg'])
-
 type Slug = string[] | undefined
 
 function publicPath(country: PathCountryId, slug: Slug): string {
   const prefix = MARKETS[country].pathPrefix
   if (!slug?.length) return prefix
   return `${prefix}/${slug.join('/')}`
+}
+
+/** Native German pages self-canonicalize under the locale-prefixed market URL. */
+function localizedCountryPath(country: PathCountryId, slug: Slug, lang: Lang): string {
+  const path = publicPath(country, slug)
+  return country === 'de' && lang === 'de' ? `/de${path}` : path
 }
 
 /** Resolve a depth-2 hood path `/{cc}/{city}/{hood}` — intent + DE Berlin bezirk slugs stay excluded. */
@@ -66,6 +77,34 @@ function hoodFor(country: PathCountryId, slug: Slug): { citySlug: string; hood: 
   return hood ? { citySlug, hood } : null
 }
 
+/**
+ * Cities whose `/de/de/...` URL ships native German copy. Single source of
+ * truth for both the hreflang `de` alternate and the fall-back-to-English
+ * redirect — a city listed here without a buy/rent entry has a German hub
+ * page only.
+ */
+const DE_DE_COPY: Record<string, { hub: CountryCopy; buy?: CountryCopy; rent?: CountryCopy }> = {
+  berlin: { hub: DE_BERLIN_HUB_DE, buy: DE_BERLIN_BUY_DE, rent: DE_BERLIN_RENT_DE },
+  munich: { hub: DE_MUNICH_HUB_DE, buy: DE_MUNICH_BUY_DE, rent: DE_MUNICH_RENT_DE },
+  hamburg: { hub: DE_HAMBURG_HUB_DE, buy: DE_HAMBURG_BUY_DE, rent: DE_HAMBURG_RENT_DE },
+  frankfurt: { hub: DE_FRANKFURT_HUB_DE, buy: DE_FRANKFURT_BUY_DE, rent: DE_FRANKFURT_RENT_DE },
+  cologne: { hub: DE_COLOGNE_HUB_DE },
+}
+
+/** Native German copy for a `/de` path, or null when only the English page exists. */
+function deNativeCopy(slug: Slug): CountryCopy | null {
+  if (!slug?.length) return DE_HUB_DE
+  if (slug.length > 2) return null
+  const [citySlug, intentRaw] = slug
+  const pack = citySlug ? DE_DE_COPY[citySlug] : undefined
+  if (!pack) return null
+  if (!intentRaw) return pack.hub
+  const intent = canonicalIntent(intentRaw)
+  if (intent === 'buy') return pack.buy ?? null
+  if (intent === 'rent') return pack.rent ?? null
+  return null
+}
+
 function copyFor(
   country: PathCountryId,
   slug: Slug,
@@ -79,15 +118,16 @@ function copyFor(
   }
   const [citySlug, intentRaw] = slug
   if (!citySlug || slug.length > 2) return null
-  if (country === 'de' && lang === 'de' && citySlug === 'berlin') {
+  if (country === 'de' && lang === 'de') {
+    const native = deNativeCopy(slug)
     const intent = intentRaw ? canonicalIntent(intentRaw) : undefined
-    if (!intentRaw) return { copy: DE_BERLIN_HUB_DE, kind: 'city', city: 'berlin' }
-    if (intent === 'buy') return { copy: DE_BERLIN_BUY_DE, kind: 'intent', city: 'berlin', intent }
-    if (intent === 'rent') return { copy: DE_BERLIN_RENT_DE, kind: 'intent', city: 'berlin', intent }
-    return null
-  }
-  if (country === 'de' && lang === 'de' && !intentRaw && DE_HUB_ONLY_DE_CITIES.has(citySlug)) {
-    return { copy: citySlug === 'munich' ? DE_MUNICH_HUB_DE : DE_HAMBURG_HUB_DE, kind: 'city', city: citySlug }
+    if (native) {
+      return intent
+        ? { copy: native, kind: 'intent', city: citySlug, intent }
+        : { copy: native, kind: 'city', city: citySlug }
+    }
+    // Listed city, unusable intent (cologne/buy, berlin/garbage) — no German page.
+    if (DE_DE_COPY[citySlug]) return null
   }
   const pack = cityPack(country, citySlug)
   if (!pack) return null
@@ -166,17 +206,15 @@ export async function countryMetadata(
     }
   }
   const path = publicPath(country, slug)
-  const url = `${COM_ORIGIN}${path}`
+  const canonicalUrl = `${COM_ORIGIN}${localizedCountryPath(country, slug, lang)}`
   const market = MARKETS[country]
   const languages: Record<string, string> = {
     en: `${COM_ORIGIN}${path}`,
     'x-default': `${COM_ORIGIN}${path}`,
   }
-  if (
-    country === 'de' &&
-    (!slug?.length || slug[0] === 'berlin' || (slug.length === 1 && DE_HUB_ONLY_DE_CITIES.has(slug[0])))
-  ) {
-    languages.de = `${COM_ORIGIN}/de${path}`
+  // Declare the `de` alternate only where native German copy actually exists.
+  if (country === 'de' && deNativeCopy(slug)) {
+    languages.de = canonicalUrl
   }
   if (country === 'ae') {
     languages.ar = `${COM_ORIGIN}/ar${path}`
@@ -184,11 +222,11 @@ export async function countryMetadata(
   return {
     title: { absolute: found.copy.title },
     description: found.copy.description,
-    alternates: { canonical: url, languages },
+    alternates: { canonical: canonicalUrl, languages },
     openGraph: {
       type: 'website',
       locale: lang === 'ar' ? 'ar_AE' : lang === 'de' ? 'de_DE' : `en_${market.countryCode ?? 'US'}`,
-      url,
+      url: canonicalUrl,
       siteName: 'sivrce',
       title: found.copy.title,
       description: found.copy.description,
@@ -214,6 +252,7 @@ function GenericCountryPage({
   country,
   wc,
   slug,
+  lang,
 }: {
   country: PathCountryId
   wc: WorldCountry
@@ -227,8 +266,7 @@ function GenericCountryPage({
     ? citySlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     : null
 
-  const path = publicPath(country, slug)
-  const url = `${COM_ORIGIN}${path}`
+  const url = `${COM_ORIGIN}${publicPath(country, slug)}`
 
   const crumbs = [
     { name: 'sivrce', href: 'https://sivrce.com/' },
@@ -350,7 +388,7 @@ function GenericCountryPage({
         </div>
 
         <Suspense fallback={null}>
-          <MarketListings country={country} city={cityLock} intent={intent} />
+          <MarketListings country={country} city={cityLock} intent={intent} lang={lang} />
         </Suspense>
 
         <div className="mx-auto max-w-4xl px-4 pb-12 sm:px-6 lg:px-8">
@@ -406,17 +444,10 @@ export default async function CountryPage({
 }) {
   const { lang: raw, slug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
-  // German copy exists for hub + Berlin (incl. buy/rent) and a Munich/Hamburg
-  // hub-only page — everything else (other cities, project pages, Munich/
-  // Hamburg buy or rent) has no /de/de variant; send it to the English URL
-  // instead of a language-mismatched soft-404.
-  if (
-    country === 'de' &&
-    lang === 'de' &&
-    slug?.length &&
-    slug[0] !== 'berlin' &&
-    !(slug.length === 1 && DE_HUB_ONLY_DE_CITIES.has(slug[0]))
-  ) {
+  // Anything without native German copy (other cities, project pages, an
+  // intent page the city does not ship) goes to the English URL instead of a
+  // language-mismatched soft-404. DE_DE_COPY is the single source of truth.
+  if (country === 'de' && lang === 'de' && slug?.length && !deNativeCopy(slug)) {
     redirect(`${MARKETS.de.pathPrefix}/${slug.join('/')}`)
   }
   const projectSlug = deProjectSlug(country, slug)
@@ -460,22 +491,21 @@ export default async function CountryPage({
     return <GenericCountryPage country={country} wc={wc} slug={slug} lang={lang} />
   }
 
-  const path = publicPath(country, slug)
-  const url = `${COM_ORIGIN}${path}`
+  const url = `${COM_ORIGIN}${localizedCountryPath(country, slug, lang)}`
   const market = MARKETS[country]
   const crumbs = [
     { name: 'sivrce', href: 'https://sivrce.com/' },
-    { name: COUNTRY_NAMES[country], href: `${COM_ORIGIN}${market.pathPrefix}` },
+    { name: COUNTRY_NAMES[country], href: `${COM_ORIGIN}${localizedCountryPath(country, undefined, lang)}` },
   ]
   if (found.city) {
     const pack = cityPack(country, found.city)
     crumbs.push({
       name: pack?.name ?? found.city,
-      href: `${COM_ORIGIN}${market.pathPrefix}/${found.city}`,
+      href: `${COM_ORIGIN}${localizedCountryPath(country, [found.city], lang)}`,
     })
   }
   if (found.intent) {
-    crumbs.push({ name: found.intent === 'buy' ? 'Buy' : 'Rent', href: url })
+    crumbs.push({ name: lang === 'de' ? (found.intent === 'buy' ? 'Kaufen' : 'Mieten') : (found.intent === 'buy' ? 'Buy' : 'Rent'), href: url })
   }
 
   const pin = found.city ? cityBySlug(found.city) : null

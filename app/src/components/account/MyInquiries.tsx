@@ -33,7 +33,7 @@ function isMyInquiry(x: unknown): x is MyInquiry {
   )
 }
 
-/** Buyer's sent inquiries (GET /api/inquiries). Anon visitors get null — ProfileCard owns the sign-in CTA. */
+/** Buyer's sent inquiries (GET /api/inquiries). Anon visitors get null. */
 export default function MyInquiries() {
   const { lang } = useI18n()
   const s = useAccountStrings()

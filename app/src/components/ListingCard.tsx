@@ -222,13 +222,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
     priceOriginal: l.priceOriginal,
     currencyOriginal: l.currencyOriginal,
     currencyPreference: currency,
+    country: l.country,
     rate,
     eurRate,
   })
   const suffixKey = rentPeriodKey(l.dealType, l.propType)
   const suffix = suffixKey ? t(suffixKey) : ''
   const stay = stayCount(l)
-  const stayText = stayLine(l, t)
+  const stayText = stayLine(l, t, lang)
   const StayIcon = stay.kind === 'beds' ? BedDouble : DoorOpen
   const displayPrice = onRequest ? priceOnRequestLabel(lang) : `${priceObj.primary}${suffix}`
   const displaySecondaryPrice = onRequest ? '' : priceObj.secondary
@@ -348,7 +349,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
               fetchPriority={eager ? 'high' : 'low'}
               aria-hidden={idx !== frame}
               onError={card ? (e) => { if (e.currentTarget.src !== src) e.currentTarget.src = src } : undefined}
-              className="h-full w-full object-cover"
+              className={`h-full w-full object-cover ${src.includes('/images/projects/') ? 'object-left' : ''}`}
             />
           </picture>
         )

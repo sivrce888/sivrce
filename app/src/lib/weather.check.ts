@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict'
 import { LANGS } from './i18n/core'
 import { CITIES } from './seo-pages'
-import { CITY_COORDS, cityCoords, wmoLabel, weatherIcon, type WeatherIconName } from './weather'
+import { aqiBand, CITY_COORDS, cityCoords, wmoLabel, weatherIcon, type WeatherIconName } from './weather'
 
 // Every registered city resolves to coordinates — city pages never render blind.
 for (const c of CITIES) {
@@ -33,3 +33,13 @@ assert.equal(wmoLabel(82, 'ka'), 'წვიმა')
 assert.equal(wmoLabel(99, 'en'), 'Thunderstorm')
 
 console.log(`weather.check ok — ${CITIES.length} cities, 100 WMO codes × ${LANGS.length} locales`)
+
+// European AQI banding — EU scale collapsed to 4 bands, boundaries inclusive.
+assert.equal(aqiBand(0), 'good')
+assert.equal(aqiBand(40), 'good')
+assert.equal(aqiBand(41), 'moderate')
+assert.equal(aqiBand(60), 'moderate')
+assert.equal(aqiBand(61), 'poor')
+assert.equal(aqiBand(80), 'poor')
+assert.equal(aqiBand(81), 'bad')
+assert.equal(aqiBand(150), 'bad')

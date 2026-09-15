@@ -4,19 +4,19 @@ import { ChevronRight } from 'lucide-react'
 import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { BERLIN_UBAHN, BERLIN_SBAHN, BERLIN_U_STATIONS, BERLIN_S_STATIONS } from '@/data/germany-metro'
+import { BERLIN_SBAHN, BERLIN_S_STATIONS, BERLIN_UBAHN, BERLIN_U_STATIONS, lineBadge } from '@/data/germany-metro'
 import { jsonLd } from '@/lib/utils'
 import { deOnlyAlternates } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.com'
-const PATH = '/de/metro'
+const PATH = '/en/de/metro'
 
 export const revalidate = 86400
 
-const TITLE = `Wohnungen nahe U-Bahn & S-Bahn — Alle ${BERLIN_U_STATIONS.length} Berliner U-Bahn-Stationen`
+const TITLE = `Berliner U-Bahn & S-Bahn — ${BERLIN_U_STATIONS.length + BERLIN_S_STATIONS.length} Stationen im Überblick`
 const DESCRIPTION =
   `Alle ${BERLIN_U_STATIONS.length} U-Bahn-Stationen und ${BERLIN_S_STATIONS.length} wichtige S-Bahn-Stationen in Berlin — ` +
-  'Wohnungen innerhalb 10 Gehminuten. Verifizierte Angebote, KI-Bewertung und direkter Kontakt mit Eigentümern.'
+  'Linien, Umstiege und Kartenpunkte für die Orientierung bei der Wohnungssuche.'
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -82,8 +82,8 @@ function metroLd() {
 function LineBadge({ line }: { line: { name: string; color: string; type: string } }) {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-black uppercase tracking-wide text-white"
-      style={{ backgroundColor: line.color }}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-black uppercase tracking-wide ${lineBadge(line.color).cls}`}
+      style={{ backgroundColor: lineBadge(line.color).bg }}
     >
       {line.type === 'u-bahn' ? 'U' : 'S'} {line.name}
     </span>
@@ -99,7 +99,7 @@ export default function BerlinMetroIndexPage() {
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
             <li>
-              <Link href="/de" className="transition-colors hover:text-sv-blue">
+              <Link href="/de/de" className="transition-colors hover:text-sv-blue">
                 Startseite
               </Link>
             </li>
@@ -117,7 +117,7 @@ export default function BerlinMetroIndexPage() {
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {BERLIN_U_STATIONS.length + BERLIN_S_STATIONS.length} Stationen · {BERLIN_UBAHN.length + BERLIN_SBAHN.length} Linien
           </span>
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
-            Wohnungen nahe U-Bahn & S-Bahn — Berlin
+            U-Bahn & S-Bahn in Berlin
           </h1>
           <p className="mt-3 max-w-[720px] text-[15px] font-semibold text-sv-ink/60 md:text-[16px]">{DESCRIPTION}</p>
         </header>
@@ -125,7 +125,7 @@ export default function BerlinMetroIndexPage() {
         {/* U-Bahn Lines */}
         <section aria-label="U-Bahn Linien" className="mb-12">
           <h2 className="mb-5 flex items-center gap-2.5 text-[22px] font-black tracking-[-0.02em] text-sv-ink">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-yellow-400 text-[14px] font-black text-black">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-sv-blue text-[14px] font-black text-white">
               U
             </span>
             U-Bahn — {BERLIN_UBAHN.length} Linien
@@ -137,7 +137,7 @@ export default function BerlinMetroIndexPage() {
                 <section key={line.name} className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
                   <h3 className="mb-3 flex items-center gap-2 text-[17px] font-black text-sv-ink">
                     <LineBadge line={line} />
-                    <span className="text-sv-ink/50 text-[13px] font-bold">
+                    <span className="text-sv-ink/60 text-[13px] font-bold">
                       {line.stations} Stationen · {line.km} km
                     </span>
                   </h3>
@@ -145,8 +145,8 @@ export default function BerlinMetroIndexPage() {
                     {stations.map((s) => (
                       <Link
                         key={s.slug}
-                        href={`/de/metro/${s.slug}`}
-                        className="group flex items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
+                        href={`/en/de/metro/${s.slug}`}
+                        className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
                       >
                         <span className="min-w-0">
                           <span className="block truncate text-[14px] font-extrabold text-sv-ink group-hover:text-sv-blue">
@@ -176,7 +176,7 @@ export default function BerlinMetroIndexPage() {
         {/* S-Bahn Lines */}
         <section aria-label="S-Bahn Linien">
           <h2 className="mb-5 flex items-center gap-2.5 text-[22px] font-black tracking-[-0.02em] text-sv-ink">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-green-700 text-[14px] font-black text-white">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-sv-navy text-[14px] font-black text-white">
               S
             </span>
             S-Bahn — {BERLIN_SBAHN.length} Linien
@@ -188,7 +188,7 @@ export default function BerlinMetroIndexPage() {
                 <section key={line.name} className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
                   <h3 className="mb-3 flex items-center gap-2 text-[17px] font-black text-sv-ink">
                     <LineBadge line={line} />
-                    <span className="text-sv-ink/50 text-[13px] font-bold">
+                    <span className="text-sv-ink/60 text-[13px] font-bold">
                       {stations.length} Stationen · {line.km} km
                     </span>
                   </h3>
@@ -196,8 +196,8 @@ export default function BerlinMetroIndexPage() {
                     {stations.map((s) => (
                       <Link
                         key={s.slug}
-                        href={`/de/metro/${s.slug}`}
-                        className="group flex items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
+                        href={`/en/de/metro/${s.slug}`}
+                        className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
                       >
                         <span className="min-w-0">
                           <span className="block truncate text-[14px] font-extrabold text-sv-ink group-hover:text-sv-blue">

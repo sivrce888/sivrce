@@ -1,18 +1,23 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { AuthShell } from "@/components/auth/AuthShell"
 import { SignUpForm } from "@/components/auth/SignUpForm"
+import { authLang, getAuthStrings } from "@/components/auth/i18n"
 import { dashboardPathFor, getSessionUser } from "@/lib/guards"
 
-export const metadata: Metadata = {
-  title: "რეგისტრაცია",
-  description: "შექმენი sivrce ანგარიში მობილურის ნომრით, Passkey-ით, Google-ით ან ელფოსტით.",
-  robots: { index: false },
-}
-
 export const dynamic = "force-dynamic"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
+  return {
+    title: s.signupMetaTitle,
+    description: s.signupMetaDesc,
+    robots: { index: false },
+  }
+}
 
 export default async function SignUpPage({
   searchParams,
@@ -25,15 +30,16 @@ export default async function SignUpPage({
     callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : undefined
   if (user) redirect(safeCallback ?? dashboardPathFor(user.role))
 
+  const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
   const googleEnabled = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)
 
   return (
     <AuthShell
-      title="ანგარიშის შექმნა"
-      subtitle="ნომერი საკმარისია. შემდეგ დაამატე Passkey — Face ID-ით შესვლა."
+      title={s.signupTitle}
+      subtitle={s.signupSub}
       footer={
         <p className="text-[13px] font-medium text-white/50">
-          უკვე გაქვს ანგარიში?{" "}
+          {s.haveAccount}{" "}
           <Link
             href={
               safeCallback
@@ -42,12 +48,12 @@ export default async function SignUpPage({
             }
             className="font-bold text-sv-blue-light hover:underline"
           >
-            შესვლა
+            {s.signinTitle}
           </Link>
         </p>
       }
     >
-      <SignUpForm googleEnabled={googleEnabled} callbackUrl={safeCallback ?? "/"} />
+      <SignUpForm googleEnabled={googleEnabled} callbackUrl={safeCallback ?? "/"} s={s} />
     </AuthShell>
   )
 }

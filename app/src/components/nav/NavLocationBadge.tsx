@@ -186,7 +186,6 @@ export function NavLocationBadge({
         }}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Location & Market"
         className={`group flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
           light
             ? 'bg-sv-ink/5 text-sv-ink hover:bg-sv-ink/10'
@@ -200,7 +199,7 @@ export function NavLocationBadge({
         )}
         <span className="max-w-[110px] truncate tracking-tight sm:max-w-[160px]">
           {countryName}
-          {cityName ? <span className="opacity-60"> · {cityName}</span> : null}
+          {cityName ? <span className="hidden opacity-60 sm:inline"> · {cityName}</span> : null}
         </span>
         <ChevronDown className={`h-3 w-3 shrink-0 opacity-60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>

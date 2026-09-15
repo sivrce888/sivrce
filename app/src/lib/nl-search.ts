@@ -7,6 +7,7 @@ import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geoDistrictsOf } from '@/data/georgia-locations'
 import { BERLIN_BEZIRKE, DE_CITIES, bezirkSlugOfOrtsteil } from '@/lib/countries/de'
 import { MARKETS, isPathCountry } from '@/lib/markets'
+import { searchHref } from '@/lib/search-location'
 
 /** ISO market code for the /map `country` filter, or null for Georgia (unscoped). */
 function mapCountryIso(country: string): string | null {
@@ -357,15 +358,7 @@ export function coordsForNlCity(ka: string | undefined): { lat: number; lng: num
   return c ? c.center : null
 }
 
-export function countryNlNeedsGeocode(q: string): boolean {
-  const raw = q.trim()
-  if (raw.length < 3) return false
-  if (isOfficialGeoQuery(raw)) return false
-  const p = parseNlQuery(raw)
-  return !p.city && !nlHasListingConstraints(p)
-}
-
-export type CountryNlRoute = { go: 'projects' | 'map'; href: string }
+export type CountryNlRoute = { go: 'projects' | 'map' | 'search'; href: string }
 
 export function routeCountryNl(p: {
   q: string
@@ -383,6 +376,9 @@ export function routeCountryNl(p: {
     return { go: 'map', href: `/map?lat=${pin.lat.toFixed(5)}&lng=${pin.lng.toFixed(5)}&zoom=12.8&country=DE` }
   }
   const parsed: NlFilters = raw ? parseNlQuery(raw) : {}
+  // Free text with no place and no constraints (e.g. "Alexanderplatz") rides as
+  // `q` — computed before the city fallback below would mask it.
+  const freeText = Boolean(raw) && !parsed.city && !nlHasListingConstraints(parsed)
   if (!parsed.dealType) parsed.dealType = p.tab === 'rent' ? 'rent' : 'sale'
   if (!parsed.city && p.cityKa) parsed.city = p.cityKa
   if (p.kind) parsed.propertyType = p.kind
@@ -397,18 +393,11 @@ export function routeCountryNl(p: {
     parsed.minPrice == null
   if (projectish) return { go: 'projects', href: '#new-builds' }
 
-  const pin = coordsForNlCity(parsed.city) ?? { lat: p.lat, lng: p.lng }
-  const q = new URLSearchParams()
-  q.set('lat', pin.lat.toFixed(5))
-  q.set('lng', pin.lng.toFixed(5))
-  q.set('zoom', '12.8')
-  if (parsed.dealType) q.set('deal', parsed.dealType)
-  if (parsed.propertyType === 'villa') q.set('kind', 'house')
-  else if (parsed.propertyType) q.set('kind', parsed.propertyType)
-  if (parsed.buildingStatus === 'add.status.construction') q.set('status', 'construction')
+  const patch = nlToSearchPatch(parsed)
+  if (freeText) patch.q = raw
   const iso = mapCountryIso(p.country)
-  if (iso) q.set('country', iso)
-  return { go: 'map', href: `/map?${q}` }
+  if (iso) patch.country = iso
+  return { go: 'search', href: searchHref(patch) }
 }
 
 export async function aiParseQuery(query: string): Promise<NlFilters | null> {

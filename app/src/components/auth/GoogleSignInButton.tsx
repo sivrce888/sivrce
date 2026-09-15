@@ -3,7 +3,7 @@ import { signInWithGoogle } from "@/app/auth/actions"
 /** Google OAuth CTA — server action (safe inside client forms). */
 export function GoogleSignInButton({
   redirectTo,
-  label = "Google-ით გაგრძელება",
+  label = "Continue with Google",
 }: {
   redirectTo: string
   label?: string

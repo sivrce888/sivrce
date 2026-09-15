@@ -12,7 +12,7 @@ import { jsonLd } from '@/lib/utils'
 import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { PROJECTS_HUB, dirLoc, faqPageLd } from '@/lib/directory-seo'
-import { toCard } from './card'
+import { toCard } from './to-card'
 import { PER_PAGE, Pager } from './ProjectsGrid'
 import { ProjectsExplorer } from './ProjectsExplorer'
 

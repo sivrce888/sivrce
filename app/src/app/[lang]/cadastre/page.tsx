@@ -68,6 +68,24 @@ export default async function CadastrePage({
         inLanguage: lang,
         isPartOf: { '@id': `${SITE}/#website` },
         about: { '@id': `${SITE}/#organization` },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', 'p'],
+        },
+      },
+      {
+        '@type': 'WebApplication',
+        name: t('cadastre.h1'),
+        description: t('cadastre.meta.description'),
+        url: `${SITE}/cadastre`,
+        applicationCategory: 'RealEstateApplication',
+        operatingSystem: 'All',
+        inLanguage: lang,
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'GEL',
+        },
       },
       {
         '@type': 'Map',

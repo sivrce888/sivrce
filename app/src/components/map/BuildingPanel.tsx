@@ -45,7 +45,7 @@ interface BuildingPanelProps {
 }
 
 export default function BuildingPanel({ building, tab, onTab, floor, highlightId, onFloorClear, onClose }: BuildingPanelProps) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { format } = useCurrency()
   const isConstruction = building.status === 'construction' && building.listings.length === 0
   const byTab =
@@ -338,7 +338,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                       </div>
                       <div className="text-[11px] font-semibold text-sv-ink/35">
                         {l.area} {t('add.areaUnit.m2')} ·{' '}
-                        {stay.n > 0 ? `${stayLine(l, (k) => t(k))} · ` : ''}
+                        {stay.n > 0 ? `${stayLine(l, (k) => t(k), lang)} · ` : ''}
                         {t('search.floor')} {l.floor}/{l.totalFloors}
                       </div>
                     </div>

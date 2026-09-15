@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import HScroll from '@/components/HScroll'
+import { setConsent } from '@/lib/consent'
 import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
 import { stripLangPrefix } from '@/lib/i18n/core'
 import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
@@ -228,7 +229,9 @@ export default function Footer({
           <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
             <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.terms')}</Link>
             <Link href={localizedHref("/privacy", lang)} data-cms-key="footer.privacy" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.privacy')}</Link>
-            <Link href={localizedHref("/privacy#cookies", lang)} data-cms-key="footer.cookies" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.cookies')}</Link>
+            {/* Withdrawal must be as easy as consent (DSGVO Art. 7(3)): one
+                click clears the decision, purges tracker state, reopens the prompt. */}
+            <button type="button" onClick={() => setConsent(null)} data-cms-key="footer.cookies" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.cookies')}</button>
           </div>
         </div>
       </div>

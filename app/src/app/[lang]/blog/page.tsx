@@ -102,7 +102,18 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
             read: 'Read',
           }
   const sorted = await listBlogPosts()
-  const [featured, ...rest] = sorted
+  const featured = sorted[0]
+  const rest = sorted.slice(1)
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
+  const blogLabel = lang === 'ka' ? 'ბლოგი' : lang === 'ru' ? 'Блог' : 'Blog'
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: blogLabel, item: 'https://sivrce.ge/blog' },
+    ],
+  }
 
   return (
     <div className="min-h-screen bg-sv-cloud">
@@ -200,6 +211,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(blogLd(sorted)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )
 }

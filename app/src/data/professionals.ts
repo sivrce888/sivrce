@@ -19,6 +19,8 @@ import { NEW_DEVELOPERS_UAE, NEW_PROJECTS_UAE } from './projects-new-uae'
 import { NEW_DEVELOPERS_SEP_2026, NEW_PROJECTS_SEP_2026 } from './projects-new-sep-2026'
 import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
+import { PROJECT_GALLERIES } from './project-galleries'
+import { CURATED_GALLERIES } from './project-galleries-curated'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
 
 /**
@@ -46,6 +48,8 @@ function worldProjectToProject(wp: WorldProject): Project {
     rating: 4.5,
     coords: { lat: wp.lat, lng: wp.lng },
     floors: wp.floors,
+    // ponytail: official source link — page renders it as "Official source", zero bundle cost.
+    ...(wp.website ? { sourceUrl: wp.website } : {}),
     description: {
       ka: wp.description,
       en: wp.description,
@@ -250,6 +254,13 @@ function withGeoRenders(p: Project): Project {
     ...p,
     gallery: [...existing, ...trio].filter((g, i, all) => all.indexOf(g) === i),
   }
+}
+
+/** Real mirrored photos/renders (scripts/mirror-project-renders.ts --galleries) lead; synthetic cards trail. */
+function withRealGallery(p: Project): Project {
+  const real = [...(PROJECT_GALLERIES[p.slug] ?? []), ...(CURATED_GALLERIES[p.slug] ?? [])]
+  if (!real.length) return p
+  return { ...p, gallery: [...real, ...(p.gallery ?? [])].filter((g, i, all) => all.indexOf(g) === i) }
 }
 
 /**
@@ -4883,6 +4894,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   .filter((p, i, all) => all.findIndex((x) => x.slug === p.slug) === i)
   .map(freshenFinish)
   .map((p) => (DE_PROJECT_SLUGS.has(p.slug) ? withDERenders(p) : GEO_RENDER_SLUGS.has(p.slug) ? withGeoRenders(p) : p))
+  .map(withRealGallery)
 
 export function getDeveloper(slug?: string): Developer | undefined {
   return DEVELOPERS.find((d) => d.slug === slug)

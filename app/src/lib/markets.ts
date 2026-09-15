@@ -127,7 +127,7 @@ function pathMarket(
 }
 
 /** Locales that prefix country routes on preview (`/en/de`) and sivrce.com (`/de/de`). */
-const COUNTRY_LOCALE_PREFIXES = ['en', 'de', 'ar'] as const
+export const COUNTRY_LOCALE_PREFIXES = ['en', 'de', 'ar'] as const
 
 /** Country root for this request: `/en/de` on preview, `/de` on sivrce.com. */
 export function countryBasePath(country: PathCountryId, pathname: string): string {
@@ -256,8 +256,8 @@ export const MARKETS: Record<CountryId, Market> = {
     'hagen',
     'heilbronn',
     'muelheim',
-  ], ['berlin']),
-  ae: pathMarket('ae', 'AE', 'AED', 'en-AE', 'dubai', ['dubai', 'abu-dhabi', 'sharjah', 'ras-al-khaimah'], ['dubai']),
+  ], ['berlin', 'hamburg', 'munich', 'frankfurt']),
+  ae: pathMarket('ae', 'AE', 'AED', 'en-AE', 'dubai', ['dubai', 'abu-dhabi', 'sharjah', 'ras-al-khaimah'], ['dubai', 'abu-dhabi']),
   fr: pathMarket('fr', 'FR', 'EUR', 'en-FR', 'paris', [
     'paris',
     'lyon',
@@ -265,7 +265,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'bordeaux',
     'nice',
     'toulouse',
-  ], ['paris']),
+  ], ['paris', 'lyon', 'nice']),
   es: pathMarket('es', 'ES', 'EUR', 'en-ES', 'madrid', [
     'madrid',
     'barcelona',
@@ -273,7 +273,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'malaga',
     'seville',
     'alicante',
-  ], ['madrid']),
+  ], ['madrid', 'barcelona']),
   it: pathMarket('it', 'IT', 'EUR', 'en-IT', 'rome', [
     'rome',
     'milan',
@@ -281,7 +281,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'turin',
     'naples',
     'bologna',
-  ], ['rome']),
+  ], ['rome', 'milan']),
   gb: pathMarket('gb', 'GB', 'GBP', 'en-GB', 'london', [
     'london',
     'manchester',
@@ -289,7 +289,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'edinburgh',
     'glasgow',
     'leeds',
-  ], ['london']),
+  ], ['london', 'manchester', 'edinburgh']),
   us: pathMarket('us', 'US', 'USD', 'en-US', 'new-york', [
     'new-york',
     'miami',
@@ -297,7 +297,7 @@ export const MARKETS: Record<CountryId, Market> = {
     'chicago',
     'austin',
     'seattle',
-  ], ['new-york']),
+  ], ['new-york', 'miami', 'los-angeles']),
   ca: pathMarket('ca', 'CA', 'CAD', 'en-CA', 'toronto', [
     'toronto',
     'vancouver',
@@ -314,11 +314,11 @@ export const MARKETS: Record<CountryId, Market> = {
     'bodrum',
     'bursa',
   ], ['istanbul']),
-  gr: pathMarket('gr', 'GR', 'EUR', 'en-GR', 'athens', ['athens', 'thessaloniki'], ['athens']),
+  gr: pathMarket('gr', 'GR', 'EUR', 'en-GR', 'athens', ['athens', 'thessaloniki'], ['athens', 'thessaloniki']),
   cy: pathMarket('cy', 'CY', 'EUR', 'en-CY', 'nicosia', ['nicosia', 'limassol'], ['nicosia']),
-  nl: pathMarket('nl', 'NL', 'EUR', 'en-NL', 'amsterdam', ['amsterdam', 'rotterdam'], ['amsterdam']),
-  pt: pathMarket('pt', 'PT', 'EUR', 'en-PT', 'lisbon', ['lisbon', 'porto'], ['lisbon']),
-  ch: pathMarket('ch', 'CH', 'CHF', 'en-CH', 'zurich', ['zurich', 'geneva'], ['zurich']),
+  nl: pathMarket('nl', 'NL', 'EUR', 'en-NL', 'amsterdam', ['amsterdam', 'rotterdam'], ['amsterdam', 'rotterdam']),
+  pt: pathMarket('pt', 'PT', 'EUR', 'en-PT', 'lisbon', ['lisbon', 'porto'], ['lisbon', 'porto']),
+  ch: pathMarket('ch', 'CH', 'CHF', 'en-CH', 'zurich', ['zurich', 'geneva'], ['zurich', 'geneva']),
   // Asia — East
   jp: pathMarket('jp', 'JP', 'JPY', 'ja-JP', 'tokyo', ['tokyo', 'osaka', 'yokohama', 'nagoya', 'fukuoka', 'kyoto']),
   cn: pathMarket('cn', 'CN', 'CNY', 'zh-CN', 'shanghai', ['shanghai', 'beijing', 'guangzhou', 'shenzhen', 'chengdu', 'hangzhou']),
@@ -365,8 +365,8 @@ export const MARKETS: Record<CountryId, Market> = {
   ke: pathMarket('ke', 'KE', 'KES', 'en-KE', 'nairobi', ['nairobi', 'mombasa', 'kisumu']),
   ma: pathMarket('ma', 'MA', 'MAD', 'ar-MA', 'casablanca', ['casablanca', 'marrakech', 'rabat', 'tangier']),
   // Europe — Central & Eastern
-  pl: pathMarket('pl', 'PL', 'PLN', 'pl-PL', 'warsaw', ['warsaw', 'krakow', 'wroclaw', 'poznan', 'gdansk']),
-  cz: pathMarket('cz', 'CZ', 'CZK', 'cs-CZ', 'prague', ['prague', 'brno', 'ostrava', 'plzen']),
+  pl: pathMarket('pl', 'PL', 'PLN', 'pl-PL', 'warsaw', ['warsaw', 'krakow', 'wroclaw', 'poznan', 'gdansk'], ['warsaw']),
+  cz: pathMarket('cz', 'CZ', 'CZK', 'cs-CZ', 'prague', ['prague', 'brno', 'ostrava', 'plzen'], ['prague']),
   hu: pathMarket('hu', 'HU', 'HUF', 'hu-HU', 'budapest', ['budapest', 'debrecen', 'szeged', 'pecs']),
   ro: pathMarket('ro', 'RO', 'RON', 'ro-RO', 'bucharest', ['bucharest', 'cluj-napoca', 'timisoara', 'iasi', 'brasov']),
   bg: pathMarket('bg', 'BG', 'BGN', 'bg-BG', 'sofia', ['sofia', 'plovdiv', 'varna', 'burgas']),
@@ -374,15 +374,15 @@ export const MARKETS: Record<CountryId, Market> = {
   hr: pathMarket('hr', 'HR', 'EUR', 'hr-HR', 'zagreb', ['zagreb', 'split', 'rijeka', 'zadar']),
   ua: pathMarket('ua', 'UA', 'UAH', 'uk-UA', 'kyiv', ['kyiv', 'kharkiv', 'odesa', 'lviv', 'dnipro']),
   // Europe — Nordic
-  se: pathMarket('se', 'SE', 'SEK', 'sv-SE', 'stockholm', ['stockholm', 'goteborg', 'malmo']),
+  se: pathMarket('se', 'SE', 'SEK', 'sv-SE', 'stockholm', ['stockholm', 'goteborg', 'malmo'], ['stockholm']),
   no: pathMarket('no', 'NO', 'NOK', 'nb-NO', 'oslo', ['oslo', 'bergen', 'trondheim', 'stavanger']),
   dk: pathMarket('dk', 'DK', 'DKK', 'da-DK', 'copenhagen', ['copenhagen', 'aarhus', 'odense']),
   fi: pathMarket('fi', 'FI', 'EUR', 'fi-FI', 'helsinki', ['helsinki', 'espoo', 'tampere', 'vantaa']),
   is: pathMarket('is', 'IS', 'ISK', 'is-IS', 'reykjavik', ['reykjavik']),
   // Europe — Western
-  at: pathMarket('at', 'AT', 'EUR', 'de-AT', 'vienna', ['vienna', 'graz', 'salzburg', 'innsbruck']),
-  be: pathMarket('be', 'BE', 'EUR', 'nl-BE', 'brussels', ['brussels', 'antwerp', 'ghent', 'bruges']),
-  ie: pathMarket('ie', 'IE', 'EUR', 'en-IE', 'dublin', ['dublin', 'cork', 'galway', 'limerick']),
+  at: pathMarket('at', 'AT', 'EUR', 'de-AT', 'vienna', ['vienna', 'graz', 'salzburg', 'innsbruck'], ['vienna']),
+  be: pathMarket('be', 'BE', 'EUR', 'nl-BE', 'brussels', ['brussels', 'antwerp', 'ghent', 'bruges'], ['brussels']),
+  ie: pathMarket('ie', 'IE', 'EUR', 'en-IE', 'dublin', ['dublin', 'cork', 'galway', 'limerick'], ['dublin']),
   lu: pathMarket('lu', 'LU', 'EUR', 'lb-LU', 'luxembourg', ['luxembourg']),
   // Europe — Baltics & Malta
   ee: pathMarket('ee', 'EE', 'EUR', 'et-EE', 'tallinn', ['tallinn', 'tartu']),

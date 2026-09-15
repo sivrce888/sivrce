@@ -55,22 +55,27 @@ export function mapLabelField(lang: Lang): unknown {
     ['coalesce', ['get', user], ''],
     'en',
     ['coalesce', ['get', 'name:en'], ''],
-    'secondary',
+    // ponytail: MapLibre let-values can't see sibling bindings, so `secondary`
+    // is bound in a nested let that closes over local/user/en.
     [
-      'case',
-      ['all', ['!=', ['var', 'user'], ''], ['!=', ['var', 'user'], ['var', 'local']]],
-      ['var', 'user'],
-      ['var', 'en'],
-    ],
-    [
-      'case',
+      'let',
+      'secondary',
       [
-        'any',
-        ['==', ['var', 'secondary'], ''],
-        ['==', ['var', 'local'], ['var', 'secondary']],
+        'case',
+        ['all', ['!=', ['var', 'user'], ''], ['!=', ['var', 'user'], ['var', 'local']]],
+        ['var', 'user'],
+        ['var', 'en'],
       ],
-      ['var', 'local'],
-      ['format', ['var', 'local'], {}, '\n', {}, ['var', 'secondary'], EN_SCALE],
+      [
+        'case',
+        [
+          'any',
+          ['==', ['var', 'secondary'], ''],
+          ['==', ['var', 'local'], ['var', 'secondary']],
+        ],
+        ['var', 'local'],
+        ['format', ['var', 'local'], {}, '\n', {}, ['var', 'secondary'], EN_SCALE],
+      ],
     ],
   ]
 }

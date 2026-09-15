@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import HomeMain from '@/components/HomeMain'
 import GlobalHome, { metadata as globalMeta } from '@/components/GlobalHome'
 import { LISTINGS, type Listing } from '@/data/listings'
@@ -53,10 +54,13 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   const market = await requestMarket()
   const { lang: raw } = await params
   if (market === 'global') {
-    const itemListLd = await homeItemListLd(market)
+    const [itemListLd, h] = await Promise.all([homeItemListLd(market), headers()])
+    // Edge geo → the visitor's own market on the World Desk. Absent (crawler,
+    // preview, proxy miss) renders the world index alone; never a guess.
+    const cc = h.get('x-vercel-ip-country') || h.get('cf-ipcountry')
     return (
       <>
-        <GlobalHome />
+        <GlobalHome cc={cc} lang={isValidLang(raw) ? raw : 'en'} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(itemListLd) }}

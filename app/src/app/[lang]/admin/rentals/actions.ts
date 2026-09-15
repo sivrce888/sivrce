@@ -7,6 +7,7 @@ import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { optString, reqEnum, reqString } from "@/lib/admin/validate"
 import { transitionStayBooking } from "@/lib/stay-create"
+import { notifyStayStatusChanged } from "@/lib/stay-email"
 import { db } from "@/lib/db"
 
 /**
@@ -26,6 +27,8 @@ export async function setDailyBookingStatus(fd: FormData) {
     select: { status: true },
   })
   await db.$transaction((tx) => transitionStayBooking(tx, id, status, { cancelReason: reason ?? undefined }))
+  // Same contract as the seller action: notify after commit, never awaited.
+  notifyStayStatusChanged(id, reason)
   await logAdminAction(session, "rentals.booking.set_status", "daily_rental_booking", id, {
     before: { status: before.status },
     after: { status, reason },

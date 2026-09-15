@@ -50,6 +50,8 @@ export function camMs(ms: number, reduce = prefersReducedMotion()): number {
 /** Night sky — brand navy, never pure black (banding on OLED at low bitrate). */
 const NIGHT_SKY = BRAND.colors.navy
 const NIGHT_HORIZON = '#1B2A63'
+/** Backdrop behind the planet at globe zooms. Brand navy doubles as space. */
+const SPACE = BRAND.colors.navy
 
 export type AtmosphereInput = {
   /** User's chosen theme, not the real time of day. */
@@ -72,7 +74,10 @@ export function skyFor({ dark, lat, lng, date = new Date() }: AtmosphereInput): 
   const skyColor = dark ? NIGHT_SKY : sun['sky-color']
   const horizonColor = dark ? mixHex(NIGHT_HORIZON, sun['horizon-color'], 0.25 * day) : sun['horizon-color']
   return {
-    'sky-color': skyColor,
+    // sky-color is also the backdrop *behind* the globe. A day-blue or page-white
+    // void around the planet reads as a broken render; space is space. It fades
+    // back to the real sky by the time the globe has handed off to mercator.
+    'sky-color': ['interpolate', ['linear'], ['zoom'], 0, SPACE, 3, SPACE, 6, skyColor],
     'horizon-color': horizonColor,
     'sky-horizon-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.9, 6, 0.8, 12, 0.6],
     'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 6, 0.8, 11, 0.5, 15, 0.28],

@@ -2852,7 +2852,10 @@ function Map3DInner({
       <div className="relative min-w-0 flex-1">
         {/* ponytail: MapLibre forces position:relative — absolute on the map node collapses to h=0. */}
         <div className="absolute inset-0">
-          <div ref={containerRef} className="h-full w-full" />
+          {/* Space backdrop. The canvas is opaque wherever tiles reach; this only
+              shows through around the globe at world zoom, where a light page
+              background would read as a broken render instead of sky. */}
+          <div ref={containerRef} className="h-full w-full bg-sv-navy" />
         </div>
 
         {!ready && !error && (

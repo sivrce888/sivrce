@@ -39,4 +39,10 @@ for (const helper of ["pageAlternates", "kaOnlyAlternates", "langCanonical"]) {
   }
 }
 
+const countryMarket = readFileSync(new URL("../components/country/CountryMarket.tsx", import.meta.url), "utf8")
+if (!countryMarket.includes("localizedCountryPath") || !countryMarket.includes("canonical: canonicalUrl")) {
+  console.error("seo-canonical: native German country pages must self-canonicalize")
+  process.exit(1)
+}
+
 console.log("seo-canonical: no inline canonical/hreflang contradictions, helpers present ✓")

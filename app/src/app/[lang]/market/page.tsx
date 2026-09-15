@@ -95,12 +95,14 @@ export default async function MarketPage({ params }: { params: Promise<{ lang: s
     temporalCoverage: new Date().toISOString().slice(0, 7),
     isAccessibleForFree: true,
   }
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : lang === 'de' ? 'Startseite' : 'Home'
+  const marketLabel = lang === 'ka' ? 'ბაზრის ანალიტიკა' : lang === 'ru' ? 'Аналитика рынка' : lang === 'de' ? 'Marktanalyse' : 'Market analytics'
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: 'ბაზრის ანალიტიკა', item: 'https://sivrce.ge/market' },
+      { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: marketLabel, item: 'https://sivrce.ge/market' },
     ],
   }
 

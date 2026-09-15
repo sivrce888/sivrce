@@ -198,9 +198,12 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
 export default function HomeMain({
   lang = 'ka',
   market = 'ge',
+  after,
 }: {
   lang?: Lang
   market?: MarketId
+  /** Extra sections inside <main>, below the rails and above the footer. */
+  after?: ReactNode
 }) {
   const scope = homeScopeFor(market)
   // '*' is not an ISO — the hero search box searches the world on the hub.
@@ -215,6 +218,7 @@ export default function HomeMain({
             <HomeBelowFold lang={lang} scope={scope} />
           </div>
         </Suspense>
+        {after}
       </main>
       <Footer />
     </div>

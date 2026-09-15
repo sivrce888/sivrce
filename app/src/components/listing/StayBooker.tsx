@@ -31,10 +31,16 @@ interface Avail {
   bookable: boolean
   reason?: string
   nightlyTetri: number
+  /** Set when the listing is not priced in GEL — drives the conversion note. */
+  priceCurrency?: "GEL" | "USD" | "EUR"
+  priceNative?: number
+  fxRate?: number
   windowEnd: string
   nights: string[]
   settings: StaySettings
 }
+
+const CURRENCY_SIGN: Record<string, string> = { USD: "$", EUR: "€", GEL: "₾" }
 
 const DAY = 86_400_000
 const parseIso = (s: string) => Date.parse(`${s}T00:00:00Z`)
@@ -244,6 +250,13 @@ export function StayBooker({ listingId }: { listingId: string }) {
         })
       : null
   const tooShort = Boolean(s && nights > 0 && nights < s.minNights)
+  const fxNote =
+    data?.bookable && data.priceCurrency && data.priceCurrency !== "GEL" && data.priceNative && data.fxRate
+      ? {
+          native: `${CURRENCY_SIGN[data.priceCurrency] ?? data.priceCurrency}${nf.format(data.priceNative)}`,
+          rate: `₾${data.fxRate.toFixed(2)}/${CURRENCY_SIGN[data.priceCurrency] ?? data.priceCurrency}1`,
+        }
+      : null
 
   const reset = () => {
     setCheckIn("")
@@ -554,6 +567,14 @@ export function StayBooker({ listingId }: { listingId: string }) {
                           <span>{lt(lang, "stayTotal")}</span>
                           <span>{gel(quote.totalTetri)}</span>
                         </div>
+                        {fxNote && (
+                          // Symbol-only on purpose: the conversion is disclosed in
+                          // every language without a copy key to fall out of date.
+                          <p className="flex justify-between text-xs font-semibold text-sv-ink/50">
+                            <span>{fxNote.native} → {gel(data.nightlyTetri)}</span>
+                            <span>{fxNote.rate}</span>
+                          </p>
+                        )}
                         <p className="pt-1 text-xs font-semibold text-sv-ink/50">
                           {lt(lang, instant ? "stayInstantNoCharge" : "stayNoCharge")}
                         </p>

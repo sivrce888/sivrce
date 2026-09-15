@@ -8,7 +8,7 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { Reveal } from '@/components/Reveal'
 import PromoPricingGrid from '@/components/payments/PromoPricingGrid'
 import PriceCompare from '@/components/payments/PriceCompare'
-import {pageAlternates,  } from '@/lib/i18n/server'
+import { pageAlternates } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 import { roleSignupHref } from '@/lib/auth-roles'
 import { formatGel, MONTHLY_RE_TETRI, ADDON_TETRI } from '@/lib/promo-pricing'
@@ -468,15 +468,39 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
         dangerouslySetInnerHTML={{
           __html: jsonLd({
             '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: c.faq.items.map((item) => ({
-              '@type': 'Question',
-              name: item.q,
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: item.a,
+            '@graph': [
+              {
+                '@type': 'WebPage',
+                '@id': 'https://sivrce.ge/advertise#webpage',
+                url: 'https://sivrce.ge/advertise',
+                name: c.metaTitle,
+                description: c.metaDescription,
+                inLanguage: lang,
+                isPartOf: { '@id': 'https://sivrce.ge/#website' },
+                speakable: {
+                  '@type': 'SpeakableSpecification',
+                  cssSelector: ['h1', '.speakable-lead', 'h2'],
+                },
               },
-            })),
+              {
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
+                  { '@type': 'ListItem', position: 2, name: c.metaTitle, item: 'https://sivrce.ge/advertise' },
+                ],
+              },
+              {
+                '@type': 'FAQPage',
+                mainEntity: c.faq.items.map((item) => ({
+                  '@type': 'Question',
+                  name: item.q,
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: item.a,
+                  },
+                })),
+              },
+            ],
           }),
         }}
       />

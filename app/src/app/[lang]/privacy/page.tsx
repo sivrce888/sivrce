@@ -6,6 +6,8 @@ import { Reveal } from '@/components/Reveal'
 import { isValidLang } from '@/lib/i18n/core'
 import {pageAlternates,  } from '@/lib/i18n/server'
 
+import { jsonLd } from '@/lib/utils'
+
 export const revalidate = 86400
 
 type Section = { id?: string; title: string; text: string }
@@ -163,8 +165,35 @@ export default async function PrivacyPage({
   const lang = isValidLang(raw) ? raw : 'ka'
   const m = META[lang] ?? META.ka
   const sections = SECTIONS[lang] ?? SECTIONS.ka
+  const privacyLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': 'https://sivrce.ge/privacy#webpage',
+        url: 'https://sivrce.ge/privacy',
+        name: m.title,
+        description: m.description,
+        inLanguage: lang,
+        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', 'h2', 'p'],
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
+          { '@type': 'ListItem', position: 2, name: m.title, item: 'https://sivrce.ge/privacy' },
+        ],
+      },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-sv-cloud">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(privacyLd) }} />
       <Navbar />
       <main id="main">
         <PageHero tone="light" kicker={m.kicker} title={m.title} subtitle={m.subtitle} />

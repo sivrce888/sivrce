@@ -11,7 +11,7 @@ import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, TramFront, Bus, Columns2, Copy,
-  Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Castle, Dumbbell, Pill,
+  Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Castle, Dumbbell, Pill, Leaf,
   type LucideIcon,
 } from 'lucide-react'
 // ponytail: type-only via import() syntax — device-budget lock keeps pois dynamic-only
@@ -62,7 +62,9 @@ import type { Listing, PropType } from '@/data/listings'
 import { useFavorites } from '@/lib/favorites'
 import { useCompare } from '@/lib/compare'
 import { WalkScore } from '@/components/listing/WalkScore'
-import { useCurrency, formatListingPrice } from '@/lib/currency'
+import { useCurrency, formatListingPrice, listingToggleCurrencies } from '@/lib/currency'
+import { formatEur, parseDeExpose } from '@/lib/countries/de-expose'
+import type { BuyerCostBreakdown } from '@/lib/countries/de'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useListingsByIds } from '@/lib/use-listings-by-ids'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
@@ -89,6 +91,14 @@ const LandProfile = dynamic(() => import('@/components/listing/LandProfile'), {
 const AiAdvisor = dynamic(() => import('@/components/listing/AiAdvisor'), {
   ssr: false,
   loading: () => <div className="mt-8 h-[300px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+})
+const ValuationTerminal = dynamic(() => import('@/components/listing/ValuationTerminal'), {
+  ssr: false,
+  loading: () => <div className="mt-8 h-[340px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
+})
+const GermanIntelligenceCockpit = dynamic(() => import('@/components/listing/GermanIntelligenceCockpit'), {
+  ssr: false,
+  loading: () => <div className="mt-8 h-[340px] rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden />,
 })
 const DAILY_SIGNAL_SET = new Set<string>(DAILY_SIGNAL_KEYS)
 
@@ -482,6 +492,7 @@ export default function ListingDetailClient({
   profileRating = null,
   nearbyProjects = [],
   hubLink = null,
+  deCosts = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -503,6 +514,8 @@ export default function ListingDetailClient({
   hubLink?: { href: string; anchor: string } | null
   /** Live developments within 5km, same city — server-computed (directory-live.ts). */
   nearbyProjects?: NearbyProject[]
+  /** DE sale Kaufnebenkosten — server-computed so de.ts stays off this client. */
+  deCosts?: BuyerCostBreakdown | null
 }) {
   const { data: session, status: authStatus } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -512,6 +525,9 @@ export default function ListingDetailClient({
   const { t, lang } = useI18n()
   const rs = getReviewStrings(lang)
   const { currency, setCurrency, rate: liveRate, eurRate } = useCurrency()
+  const curToggles = listingToggleCurrencies({ country: l.country, currencyOriginal: l.currencyOriginal })
+  const uiCurrency = curToggles.includes(currency) ? currency : curToggles[0]!
+  const euroNative = l.currencyOriginal === 'EUR' && (l.priceOriginal ?? 0) > 0
   const { openChat } = useChat()
   const pendingMessage = useRef(false)
   // ponytail: same scroll+focus as StickyLeadBar — kept for the guest flow.
@@ -650,10 +666,13 @@ export default function ListingDetailClient({
 
   const monthlyUSD = useMemo(() => {
     if (l.dealType !== 'sale') return 0
-    return monthlyPayment(l.priceUSD * (1 - downPct / 100), rate, years)
-  }, [l, downPct, rate, years])
-  const rentEst = useMemo(() => estimateMonthlyRent(l.priceUSD), [l.priceUSD])
-
+    const principal = euroNative ? l.priceOriginal! : l.priceUSD
+    return monthlyPayment(principal * (1 - downPct / 100), rate, years)
+  }, [l, downPct, rate, years, euroNative])
+  const rentEst = useMemo(
+    () => estimateMonthlyRent(euroNative ? l.priceOriginal! : l.priceUSD),
+    [l.priceUSD, l.priceOriginal, euroNative],
+  )
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const isSale = l.dealType === 'sale'
@@ -667,7 +686,8 @@ export default function ListingDetailClient({
     priceGEL: l.priceGEL,
     priceOriginal: l.priceOriginal,
     currencyOriginal: l.currencyOriginal,
-    currencyPreference: currency,
+    currencyPreference: uiCurrency,
+    country: l.country,
     rate: liveRate,
     eurRate,
   })
@@ -682,11 +702,17 @@ export default function ListingDetailClient({
         : isPledge
           ? t('map.pledge')
           : t('detail.fullPrice')
+  const deExposeFacts = useMemo(
+    () => parseDeExpose(`${l.description ?? ''} ${l.features.join(' ')}`),
+    [l.description, l.features],
+  )
   const perM2Label =
-    currency === 'USD'
+    uiCurrency === 'USD'
       ? `$${l.perM2USD.toLocaleString('en-US')}`
-      : currency === 'EUR'
-        ? `€${Math.round(l.priceGEL / l.area / eurRate).toLocaleString('en-US')}`
+      : uiCurrency === 'EUR'
+        ? `€${Math.round(
+            euroNative && l.area > 0 ? l.priceOriginal! / l.area : l.priceGEL / l.area / eurRate,
+          ).toLocaleString(lang === 'de' ? 'de-DE' : 'en-US')}`
         : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`
   const publicId = listingPublicId(l)
   const streetHref = l.streetHref ?? null
@@ -796,13 +822,22 @@ export default function ListingDetailClient({
     { icon: Layers, label: t('spec.type'), value: t(PROP_TYPE_KEY[l.propType]) },
   ]
 
-  /* key strip — area / floor / bedrooms / total rooms */
+  /* key strip — area / floor / bedrooms / total rooms · DE energy/year when known */
   const keySpecs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: Ruler, label: t('spec.area'), value: `${l.area} ${t('add.areaUnit.m2')}` },
     { icon: Building2, label: t('spec.floor'), value: formatFloor(l) },
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
     ...(l.rooms > 0
       ? [{ icon: DoorOpen, label: t('spec.rooms'), value: String(l.rooms) }]
+      : []),
+    ...(deExposeFacts.energyClass
+      ? [{ icon: Leaf, label: 'Energieausweis', value: deExposeFacts.energyClass }]
+      : []),
+    ...(deExposeFacts.yearBuilt
+      ? [{ icon: Calendar, label: lang === 'de' ? 'Baujahr' : 'Year built', value: String(deExposeFacts.yearBuilt) }]
+      : []),
+    ...(deExposeFacts.kfw
+      ? [{ icon: Leaf, label: 'KfW', value: deExposeFacts.kfw }]
       : []),
     ...(l.condition
       ? [{ icon: Layers, label: t('add.condition'), value: conditionLabel(l.condition, t) }]
@@ -1161,6 +1196,18 @@ export default function ListingDetailClient({
               ))}
             </div>
 
+            {/*
+              GEG § 87 Pflichtangaben. The law requires these facts in the ad
+              itself, so they render verbatim as stored at publish time — no
+              re-derivation, no translation of the legal terms.
+            */}
+            {l.gegDisclosure && (
+              <p className="mt-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 text-[12px] font-semibold leading-relaxed text-sv-ink/70 shadow-card">
+                <span className="font-black text-sv-ink/80">Energieausweis · § 87 GEG: </span>
+                {l.gegDisclosure}
+              </p>
+            )}
+
             {/* Price block */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div>
@@ -1183,33 +1230,88 @@ export default function ListingDetailClient({
               </div>
               {/* Currency toggle — group + pressed (no tabpanel exists, so tablist/tab misleads AT) */}
               <div className="flex rounded-control bg-sv-ink/[0.05] p-1" role="group" aria-label={t('detail.currency')}>
-                {(['GEL', 'USD'] as const).map((c) => (
+                {curToggles.map((c) => (
                   <button
                     key={c}
                     type="button"
-                    aria-pressed={currency === c}
+                    aria-pressed={uiCurrency === c}
                     onClick={() => setCurrency(c)}
                     className={`relative rounded-lg px-5 py-2.5 text-[13px] font-extrabold transition-colors ${
-                      currency === c ? 'bg-sv-blue text-white' : 'text-sv-ink/60 hover:text-sv-ink'
+                      uiCurrency === c ? 'bg-sv-blue text-white' : 'text-sv-ink/60 hover:text-sv-ink'
                     }`}
                   >
-                    {currency === c && (
+                    {uiCurrency === c && (
                       <motion.span
                         layoutId="cur-seg"
                         className="absolute inset-0 rounded-lg bg-sv-blue"
                         transition={{ type: 'spring', bounce: 0.18, duration: 0.5 }}
                       />
                     )}
-                    <span className="relative z-10">{c === 'USD' ? '$ USD' : '₾ GEL'}</span>
+                    <span className="relative z-10">
+                      {c === 'USD' ? '$ USD' : c === 'EUR' ? '€ EUR' : '₾ GEL'}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
 
+            {deCosts ? (
+              <div className="mt-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
+                  {lang === 'de' ? 'Kaufnebenkosten' : 'Buyer closing costs'}
+                </div>
+                <dl className="mt-3 space-y-1.5 text-[13px] font-bold">
+                  <div className="flex justify-between text-sv-ink/70">
+                    <dt>Grunderwerbsteuer</dt>
+                    <dd className="tabular-nums">{formatEur(deCosts.transferTax)}</dd>
+                  </div>
+                  <div className="flex justify-between text-sv-ink/70">
+                    <dt>{lang === 'de' ? 'Notar' : 'Notary'}</dt>
+                    <dd className="tabular-nums">{formatEur(deCosts.notary)}</dd>
+                  </div>
+                  <div className="flex justify-between text-sv-ink/70">
+                    <dt>Grundbuch</dt>
+                    <dd className="tabular-nums">{formatEur(deCosts.register)}</dd>
+                  </div>
+                  {deCosts.makler > 0 ? (
+                    <div className="flex justify-between text-sv-ink/70">
+                      <dt>{lang === 'de' ? 'Käufer-Makleranteil' : 'Buyer agent share'}</dt>
+                      <dd className="tabular-nums">{formatEur(deCosts.makler)}</dd>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between border-t border-sv-ink/[0.08] pt-2 text-[15px] font-black text-sv-ink">
+                    <dt>{lang === 'de' ? 'Liquidität beim Notar' : 'Cash at notary'}</dt>
+                    <dd className="tabular-nums">{formatEur(deCosts.total)}</dd>
+                  </div>
+                </dl>
+                <p className="mt-2 text-[12px] font-semibold text-sv-ink/55">
+                  {lang === 'de'
+                    ? `≈ +${deCosts.totalPct} % auf den Kaufpreis. Provisionsfrei streicht die Maklerzeile.`
+                    : `≈ +${deCosts.totalPct}% over price. Provisionsfrei listings drop the agent line.`}
+                </p>
+              </div>
+            ) : null}
+
+            {l.country === 'DE' && isRent && (l.priceOriginal ?? 0) > 0 ? (
+              <p className="mt-3 text-[13px] font-semibold leading-relaxed text-sv-ink/60">
+                {lang === 'de'
+                  ? `Kaution höchstens ${formatEur(l.priceOriginal! * 3)} (3 Kaltmieten, §551 BGB)${
+                      l.propType === 'apartment' || l.propType === 'house'
+                        ? ' · Keine Mieterprovision (Bestellerprinzip).'
+                        : '.'
+                    }`
+                  : `Deposit cap ${formatEur(l.priceOriginal! * 3)} (3 months’ cold rent, §551 BGB)${
+                      l.propType === 'apartment' || l.propType === 'house'
+                        ? ' · No tenant commission (Bestellerprinzip).'
+                        : '.'
+                    }`}
+              </p>
+            ) : null}
+
             {isSale && l.perM2USD > 0 ? (
               <PriceScale
                 scale={priceScale}
-                priceLabel={`$${l.perM2USD.toLocaleString('en-US')}/${areaSym(lang)}`}
+                priceLabel={`${perM2Label}/${areaSym(lang)}`}
               />
             ) : null}
 
@@ -1219,9 +1321,11 @@ export default function ListingDetailClient({
                   {t('detail.fairPrice')}
                 </div>
                 <div className="mt-1 text-[18px] font-black tabular-nums tracking-tight text-sv-ink">
-                  {currency === 'GEL'
+                  {uiCurrency === 'GEL'
                     ? `${formatGEL(Math.round(fairPrice.rangeMin * (liveRate || USD_GEL)))}–${formatGEL(Math.round(fairPrice.rangeMax * (liveRate || USD_GEL)))}`
-                    : `${formatUSD(fairPrice.rangeMin)}–${formatUSD(fairPrice.rangeMax)}`}
+                    : uiCurrency === 'EUR'
+                      ? `${formatEur(fairPrice.rangeMin * ((liveRate || USD_GEL) / eurRate), lang === 'de' ? 'de-DE' : 'en-US')}–${formatEur(fairPrice.rangeMax * ((liveRate || USD_GEL) / eurRate), lang === 'de' ? 'de-DE' : 'en-US')}`
+                      : `${formatUSD(fairPrice.rangeMin)}–${formatUSD(fairPrice.rangeMax)}`}
                 </div>
                 <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">
                   {fairPrice.position === 'above'
@@ -1262,9 +1366,11 @@ export default function ListingDetailClient({
                               : t('detail.evListed')}
                       </span>
                       <span className="ml-auto tabular-nums tracking-tight text-sv-ink">
-                        {currency === 'GEL'
+                        {uiCurrency === 'GEL'
                           ? formatGEL(Math.round(ev.priceUSD * (liveRate || USD_GEL)))
-                          : formatUSD(ev.priceUSD)}
+                          : uiCurrency === 'EUR'
+                            ? formatEur(ev.priceUSD * ((liveRate || USD_GEL) / eurRate), lang === 'de' ? 'de-DE' : 'en-US')
+                            : formatUSD(ev.priceUSD)}
                       </span>
                       {ev.deltaPct !== null ? (
                         <span
@@ -1389,7 +1495,7 @@ export default function ListingDetailClient({
             {/* Description */}
             <div className="mt-8">
               <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.description')}</h2>
-              <p className="mt-3 text-[15px] font-medium leading-[1.8] text-sv-ink/65">
+              <p className="speakable-lead mt-3 text-[15px] font-medium leading-[1.8] text-sv-ink/65">
                 {l.description}
               </p>
             </div>
@@ -1515,7 +1621,11 @@ export default function ListingDetailClient({
                   </span>
                   <div>
                     <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.mortgage')}</h2>
-                    <p className="text-[12px] font-bold text-sv-ink/60">{t('detail.mortgageNote', { rate: USD_GEL })}</p>
+                    <p className="text-[12px] font-bold text-sv-ink/60">
+                      {euroNative
+                        ? (lang === 'de' ? 'Annuität, 25 Jahre · 3,8 % als Startwert (kein Angebot).' : 'Annuity, 25 years · 3.8% starter rate (not an offer).')
+                        : t('detail.mortgageNote', { rate: USD_GEL })}
+                    </p>
                   </div>
                 </div>
 
@@ -1524,7 +1634,7 @@ export default function ListingDetailClient({
                   <div>
                     <div className="mb-2 flex items-center justify-between text-[13px] font-bold">
                       <span className="text-sv-ink/60">{t('detail.downPayment')}</span>
-                      <span className="text-sv-ink">{downPct}% · {formatUSD(Math.round(l.priceUSD * downPct / 100))}</span>
+                      <span className="text-sv-ink">{downPct}% · {euroNative ? formatEur(Math.round((l.priceOriginal ?? 0) * downPct / 100)) : formatUSD(Math.round(l.priceUSD * downPct / 100))}</span>
                     </div>
                     <input
                       type="range" min={0} max={70} step={5} value={downPct}
@@ -1568,22 +1678,26 @@ export default function ListingDetailClient({
                   <div>
                     <div className="text-[11px] font-black uppercase tracking-wider text-sv-blue">{t('detail.monthlyPayment')}</div>
                     <div className="mt-1 text-[28px] font-black tracking-tight text-sv-ink">
-                      {formatUSD(Math.round(monthlyUSD))}
+                      {euroNative ? formatEur(Math.round(monthlyUSD)) : formatUSD(Math.round(monthlyUSD))}
                       <span className="text-[15px] font-extrabold text-sv-ink/60"> {t('detail.perMonth')}</span>
                     </div>
+                    {euroNative ? null : (
                     <div className="text-[13px] font-bold text-sv-ink/60">
                       {t('detail.approxPerMonth', { gel: formatGEL(Math.round(monthlyUSD * USD_GEL)) })}
                     </div>
+                    )}
                     <div className="mt-1 text-[12px] font-bold text-sv-ink/50">
-                      {lt(lang, 'yieldEst', { pct: grossYieldPct(l.priceUSD, rentEst) })}
+                      {lt(lang, 'yieldEst', { pct: grossYieldPct(euroNative ? l.priceOriginal! : l.priceUSD, rentEst) })}
                       {' · '}
-                      {lt(lang, 'yieldRent', { rent: formatUSD(rentEst) })}
+                      {lt(lang, 'yieldRent', { rent: euroNative ? formatEur(rentEst) : formatUSD(rentEst) })}
                     </div>
                   </div>
                   <div className="text-right text-[12px] font-bold leading-relaxed text-sv-ink/60">
                     {t('detail.loanAmount')}<br />
                     <span className="text-[15px] font-black text-sv-ink">
-                      {formatUSD(Math.round(l.priceUSD * (1 - downPct / 100)))}
+                      {euroNative
+                        ? formatEur(Math.round((l.priceOriginal ?? 0) * (1 - downPct / 100)))
+                        : formatUSD(Math.round(l.priceUSD * (1 - downPct / 100)))}
                     </span>
                   </div>
                 </div>
@@ -1592,6 +1706,32 @@ export default function ListingDetailClient({
 
             {/* AI Advisor — scam radar, instant Q&A, TCO/ROI (lazy chunk) */}
             <AiAdvisor ctx={advisorCtx} isSale={isSale} />
+
+            {/* 10x Institutional Valuation & 3-Scenario Terminal */}
+            {isSale && l.priceUSD > 0 && l.area > 0 && (
+              <ValuationTerminal
+                priceUSD={l.priceUSD}
+                areaSqm={l.area}
+                monthlyRentUSD={rentEst}
+                countryCode={l.country}
+                lang={lang}
+              />
+            )}
+
+            {/* German Energy & Institutional Intelligence Cockpit (GEG 2026 & CO2KostAufG) */}
+            {l.country === 'DE' && l.area > 0 && (
+              <GermanIntelligenceCockpit
+                priceEur={euroNative ? (l.priceOriginal ?? 0) : Math.round(l.priceUSD * (eurRate || 0.92))}
+                areaSqm={l.area}
+                city={l.city}
+                district={l.district}
+                yearBuilt={deExposeFacts.yearBuilt}
+                energyClass={deExposeFacts.energyClass}
+                isSale={isSale}
+                lang={lang}
+                gegDisclosure={l.gegDisclosure}
+              />
+            )}
           </div>
 
           {/* Right rail: flows; only the contact card pins — price + CTA stay

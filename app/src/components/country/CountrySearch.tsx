@@ -8,7 +8,7 @@ import { DEAL_BRAND } from '@/lib/category-brand'
 import { MARKETS, countryBasePath, intentHref, type PathCountryId } from '@/lib/markets'
 import { COUNTRY_NAMES } from '@/lib/country-copy'
 import { cityBySlug } from '@/lib/map/user-place'
-import { useI18n } from '@/lib/i18n/context'
+import { useI18n, localizedHref } from '@/lib/i18n/context'
 import { DE_CITIES } from '@/lib/countries/de'
 import SearchSuggest from '@/components/search/SearchSuggest'
 import PropertyTypePicker from '@/components/search/PropertyTypePicker'
@@ -28,14 +28,12 @@ export default function CountrySearch({
   city,
   intent,
   cities,
-  mapHref,
   showProjects = false,
 }: {
   country: PathCountryId
   city?: string
   intent?: 'buy' | 'rent'
   cities: CountryCityChip[]
-  mapHref: string
   showProjects?: boolean
 }) {
   const router = useRouter()
@@ -80,46 +78,24 @@ export default function CountrySearch({
   ]
 
   const submit = async () => {
-    const { countryNlNeedsGeocode, routeCountryNl } = await import('@/lib/nl-search')
+    const { routeCountryNl } = await import('@/lib/nl-search')
     const pin = cityBySlug(citySlug)
     const deCity = country === 'de' ? DE_CITIES.find((c) => c.slug === citySlug) : undefined
-    const lat = pin?.lat ?? deCity?.center.lat
-    const lng = pin?.lng ?? deCity?.center.lng
     const routed = routeCountryNl({
       q,
       tab,
       country,
-      cityKa: deCity?.ka,
-      lat: lat ?? 0,
-      lng: lng ?? 0,
+      cityKa: deCity?.ka ?? pin?.ka,
+      lat: pin?.lat ?? deCity?.center.lat ?? 0,
+      lng: pin?.lng ?? deCity?.center.lng ?? 0,
       kind: propType,
     })
     if (routed.go === 'projects') {
       document.getElementById('new-builds')?.scrollIntoView({ behavior: 'smooth' })
       return
     }
-    const needle = q.trim()
-    if (countryNlNeedsGeocode(needle)) {
-      try {
-        const scoped = `${needle}, ${cityName}, ${COUNTRY_NAMES[country]}`
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(scoped)}`)
-        const json = (await res.json()) as { ok?: boolean; lat?: number; lng?: number }
-        if (json.ok && typeof json.lat === 'number' && typeof json.lng === 'number') {
-          const qs = new URLSearchParams(routed.href.split('?')[1] ?? '')
-          qs.set('lat', json.lat.toFixed(5))
-          qs.set('lng', json.lng.toFixed(5))
-          router.push(`/map?${qs}`)
-          return
-        }
-      } catch {
-        /* fall through */
-      }
-    }
-    if (routed.href.startsWith('/map') && lat != null && lng != null) {
-      router.push(routed.href)
-      return
-    }
-    router.push(mapHref)
+    // Listings first ('search'); map stays for planning-layer queries (B-Plan etc.).
+    router.push(localizedHref(routed.href, lang))
   }
 
   const chipHref = (slug: string) =>
@@ -234,7 +210,7 @@ export default function CountrySearch({
           />
           <button
             type="submit"
-            onMouseEnter={() => router.prefetch(mapHref)}
+            onMouseEnter={() => router.prefetch(localizedHref('/search', lang))}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud active:scale-[0.98] dark:focus-visible:ring-offset-sv-navy lg:w-auto lg:min-w-[112px] lg:shrink-0"
           >
             <Search className="h-[18px] w-[18px]" />

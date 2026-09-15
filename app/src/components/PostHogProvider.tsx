@@ -16,6 +16,7 @@
 
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { useConsent } from '@/lib/consent'
 
 function Pageview({ armed }: { armed: boolean }) {
   const pathname = usePathname()
@@ -36,8 +37,12 @@ function Pageview({ armed }: { armed: boolean }) {
 export default function PostHogProvider({ children }: { children: ReactNode }) {
   const initialized = useRef(false)
   const [armed, setArmed] = useState(false)
+  const consent = useConsent()
 
   useEffect(() => {
+    // Consent gate (TDDDG §25): posthog-js is never imported, and no
+    // identifier is written, until the visitor explicitly opts in.
+    if (consent !== 'granted') return
     const boot = () => {
       if (initialized.current) return
       initialized.current = true
@@ -53,13 +58,13 @@ export default function PostHogProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("pointerdown", boot)
       window.removeEventListener("keydown", boot)
     }
-  }, [])
+  }, [consent])
 
   return (
     <>
       {children}
       <Suspense fallback={null}>
-        <Pageview armed={armed} />
+        <Pageview armed={armed && consent === 'granted'} />
       </Suspense>
     </>
   )

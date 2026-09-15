@@ -4,11 +4,12 @@
  */
 import assert from 'node:assert/strict'
 import {
-  acquisitionCostEstimate,
   BERLIN_BEZIRKE,
   bezirkKaLabel,
   bezirkSlugOfOrtsteil,
+  acquisitionCostEstimate,
   buyerCostBreakdown,
+  buyerCostBreakdownByCityName,
   DE_CITIES,
   DE_EFFICIENCY_TIERS,
   DE_ENERGY_CLASSES,
@@ -68,6 +69,8 @@ assert.equal(bare?.totalPct, 8, 'berlin surcharge w/o makler')
 assert.equal(buyerCostBreakdown(200_000, 'munich')?.transferTax, 7_000, 'bavaria 3.5%')
 assert.equal(buyerCostBreakdown(-5, 'berlin'), null, 'negative → null')
 assert.equal(buyerCostBreakdown(100_000, 'atlantis'), null, 'unknown city → null')
+assert.equal(buyerCostBreakdownByCityName(500_000, 'Berlin')?.transferTax, 30_000, 'city name Berlin')
+assert.equal(buyerCostBreakdownByCityName(500_000, 'Nowhere'), null, 'unknown city name')
 assert.equal(DE_MAKLER_BUYER_PCT, 3.57, 'makler split rate')
 
 // All 16 Bundesländer covered; launch metros mirror their state rate

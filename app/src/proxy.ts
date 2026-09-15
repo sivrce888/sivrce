@@ -107,7 +107,11 @@ function isRootPassthrough(pathname: string): boolean {
     pathname === "/llms.txt" ||
     pathname === "/llms-full.txt" ||
     pathname === "/a8f3c91e2b7d4e6a9c1f0d5b8e4a7c2d.txt" ||
-    pathname.startsWith("/.well-known/")
+    pathname.startsWith("/.well-known/") ||
+    // SW offline fallback — must render for every locale, unrewritten
+    pathname === "/offline" ||
+    // Apple universal-link statement (AASA); JSON like assetlinks
+    pathname === "/apple-app-site-association"
   )
 }
 

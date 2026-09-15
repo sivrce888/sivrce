@@ -17,10 +17,11 @@ import {
   Snowflake,
   Sun,
   Thermometer,
+  Wind,
   type LucideIcon,
 } from 'lucide-react'
 import type { Lang } from '@/lib/i18n/core'
-import { cityCoords, getWeather, weatherIcon, type WeatherIconName } from '@/lib/weather'
+import { aqiBand, cityCoords, getAirQuality, getWeather, weatherIcon, type WeatherIconName } from '@/lib/weather'
 
 const ICONS: Record<WeatherIconName, LucideIcon> = {
   sun: Sun,
@@ -65,6 +66,41 @@ export async function WeatherBadge({
       <Icon className={iconClassName} aria-hidden="true" strokeWidth={2} />
       <span>{w.temp}°</span>
       <span className="sr-only">{w.label}</span>
+    </span>
+  )
+}
+
+/* AirBadge — European AQI chip, same server-rendered contract as WeatherBadge
+   (renders nothing on failure). ponytail: de-only labels; localize when a
+   non-de page adopts it. Colors are brand tokens only (sv-success/orange family). */
+
+const AQI_STYLE: Record<ReturnType<typeof aqiBand>, { text: string; label: string }> = {
+  good: { text: 'text-sv-success', label: 'Luftqualität gut' },
+  moderate: { text: 'text-sv-orange', label: 'Luftqualität mäßig' },
+  poor: { text: 'text-sv-orange-deep', label: 'Luftqualität schlecht' },
+  bad: { text: 'text-sv-orange-deep', label: 'Luftqualität sehr schlecht' },
+}
+
+export async function AirBadge({
+  coords,
+  className = '',
+  iconClassName = 'h-3.5 w-3.5',
+}: {
+  coords: { lat: number; lng: number }
+  className?: string
+  iconClassName?: string
+}) {
+  const air = await getAirQuality(coords)
+  if (!air) return null
+  const band = AQI_STYLE[aqiBand(air.aqi)]
+  return (
+    <span
+      className={`inline-flex items-center gap-1 text-[11px] font-bold tracking-wide ${className}`}
+      title={`${band.label} — PM2.5 ${air.pm25} µg/m³ (Europäischer AQI)`}
+    >
+      <Wind className={`${iconClassName} ${band.text}`} aria-hidden="true" strokeWidth={2} />
+      <span className={band.text}>AQI {air.aqi}</span>
+      <span className="sr-only">{band.label}</span>
     </span>
   )
 }

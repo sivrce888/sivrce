@@ -279,6 +279,10 @@ function seoLd(def: SeoPageDef, loc: SeoLoc, p: string = locPrefix(loc), marketI
         url: `${BASE}${p}${def.path}`,
         inLanguage: loc,
         isPartOf: { '@id': `${BASE}/#website` },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['h1', '.speakable-lead'],
+        },
       },
       {
         '@type': 'ItemList',

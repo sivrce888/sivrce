@@ -9,18 +9,22 @@ import {
   type AuthActionState,
 } from "@/app/auth/actions"
 import { formatPhone, OTP_LEN, normalizePhone } from "@/lib/auth-phone"
+import type { AuthStrings } from "@/components/auth/i18n"
 
 const COOLDOWN_S = 60
 
 export function PhoneAuthForm({
   callbackUrl,
-  submitLabel = "შესვლა",
+  submitLabel,
   children,
+  s,
 }: {
   callbackUrl: string
   submitLabel?: string
   children?: ReactNode
+  s: AuthStrings
 }) {
+  const submit = submitLabel ?? s.phoneSubmitLabel
   const [phone, setPhone] = useState("")
   const [code, setCode] = useState("")
   const [dismissed, setDismissed] = useState(false)
@@ -91,7 +95,7 @@ export function PhoneAuthForm({
           </p>
         ) : (
           <p className="text-center text-[13px] font-medium leading-relaxed text-sv-ink/60">
-            კოდი გაიგზავნა{" "}
+            {s.codeSent}{" "}
             <span className="font-extrabold tabular-nums text-sv-ink">{sentTo}</span>
           </p>
         )}
@@ -101,7 +105,7 @@ export function PhoneAuthForm({
           <input type="hidden" name="phone" value={sentTo} />
           <label className="block">
             <span className="mb-1.5 block text-center text-[12.5px] font-bold tracking-tight text-sv-ink/60">
-              SMS კოდი
+              {s.smsCode}
             </span>
             <input
               ref={codeRef}
@@ -114,7 +118,7 @@ export function PhoneAuthForm({
               pattern={`\\d{${OTP_LEN}}`}
               maxLength={OTP_LEN}
               enterKeyHint="done"
-              aria-label="SMS კოდი"
+              aria-label={s.smsCode}
               value={code}
               onChange={(e) => {
                 autoSubmitAt.current = 0
@@ -129,7 +133,7 @@ export function PhoneAuthForm({
             disabled={authing || code.length < 4}
             className="flex w-full items-center justify-center rounded-full bg-sv-blue px-6 py-3.5 text-[14.5px] font-extrabold text-white shadow-glow-blue-sm transition hover:-translate-y-0.5 hover:bg-sv-blue-deep hover:shadow-glow-blue disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
           >
-            {authing ? "იტვირთება…" : submitLabel}
+            {authing ? s.loading : submit}
           </button>
         </form>
 
@@ -143,7 +147,7 @@ export function PhoneAuthForm({
             }}
             className="text-sv-ink/60 transition hover:text-sv-ink/70"
           >
-            სხვა ნომერი
+            {s.otherNumber}
           </button>
           <form action={sendAction}>
             <input type="hidden" name="phone" value={sentTo} />
@@ -152,7 +156,11 @@ export function PhoneAuthForm({
               disabled={sending || cooldown > 0}
               className="text-sv-blue disabled:text-sv-ink/35"
             >
-              {cooldown > 0 ? `ახალი კოდი ${cooldown} წმ` : sending ? "იგზავნება…" : "ახალი კოდი"}
+              {cooldown > 0
+                ? s.newCodeIn.replace("{n}", String(cooldown))
+                : sending
+                  ? s.sending
+                  : s.newCode}
             </button>
           </form>
         </div>
@@ -171,7 +179,7 @@ export function PhoneAuthForm({
       <form action={sendAction} className="space-y-3.5">
         <label className="block">
           <span className="mb-1.5 block text-[12.5px] font-bold tracking-tight text-sv-ink/60">
-            მობილურის ნომერი
+            {s.phoneLabel}
           </span>
           <span className="relative flex items-center rounded-control border border-sv-ink/10 bg-sv-cloud/80 transition focus-within:border-sv-blue focus-within:bg-sv-surface focus-within:ring-2 focus-within:ring-sv-blue/20">
             <Phone className="ml-3.5 h-4 w-4 shrink-0 text-sv-ink/35" aria-hidden />
@@ -186,7 +194,7 @@ export function PhoneAuthForm({
               autoComplete="tel-national"
               autoFocus
               enterKeyHint="send"
-              aria-label="მობილურის ნომერი"
+              aria-label={s.phoneLabel}
               value={phone.replace(/^\+995\s?/, "")}
               onChange={(e) => setPhone(formatPhone(e.target.value))}
               placeholder="555 12 34 56"
@@ -199,10 +207,10 @@ export function PhoneAuthForm({
           disabled={sending || !ready}
           className="flex w-full items-center justify-center rounded-full bg-sv-blue px-6 py-3.5 text-[14.5px] font-extrabold text-white shadow-glow-blue-sm transition hover:-translate-y-0.5 hover:bg-sv-blue-deep hover:shadow-glow-blue disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"
         >
-          {sending ? "იგზავნება…" : "კოდის მიღება"}
+          {sending ? s.sending : s.getCode}
         </button>
         <p className="text-center text-[12px] font-medium leading-relaxed text-sv-ink/60">
-          ერთი ნომერი — შესვლა და რეგისტრაცია. პაროლი არ გჭირდება.
+          {s.phoneHint}
         </p>
       </form>
       {children}

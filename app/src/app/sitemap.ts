@@ -5,6 +5,7 @@ import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { STREETS } from '@/data/tbilisi-streets'
 import { METRO_STATIONS } from '@/data/tbilisi-metro'
+import { BERLIN_S_STATIONS, BERLIN_U_STATIONS } from '@/data/germany-metro'
 import { listBlogPosts } from '@/lib/blog-live'
 import { listForumThreads } from '@/lib/forum-live'
 import { ListingStatus } from '@/generated/prisma/enums'
@@ -19,7 +20,6 @@ import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
 import { COM_ORIGIN, COUNTRY_IDS } from '@/lib/markets'
 import { countrySitemapPaths } from '@/lib/country-copy'
 import { BERLIN_BEZIRKE, DE_CITIES } from '@/lib/countries/de'
-import { BERLIN_S_STATIONS, BERLIN_U_STATIONS } from '@/data/germany-metro'
 
 const BASE = 'https://sivrce.ge'
 
@@ -205,7 +205,6 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
       path: `/neighborhoods/${n.slug}`,
       changeFrequency: 'monthly',
       priority: 0.6,
-      locale: 'ka',
     })
   }
 
@@ -326,10 +325,10 @@ async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
   }
   // German metro programmatic SEO: station index + all-systems page + 339
   // Berlin U/S-Bahn station pages (de-only — no hreflang cluster).
-  out.push({ url: `${COM_ORIGIN}/de/metro`, changeFrequency: 'weekly', priority: 0.8 })
-  out.push({ url: `${COM_ORIGIN}/de/metro/germany`, changeFrequency: 'monthly', priority: 0.7 })
+  out.push({ url: `${COM_ORIGIN}/en/de/metro`, changeFrequency: 'weekly', priority: 0.8 })
+  out.push({ url: `${COM_ORIGIN}/en/de/metro/germany`, changeFrequency: 'monthly', priority: 0.7 })
   for (const s of [...BERLIN_U_STATIONS, ...BERLIN_S_STATIONS]) {
-    out.push({ url: `${COM_ORIGIN}/de/metro/${s.slug}`, changeFrequency: 'weekly', priority: 0.6 })
+    out.push({ url: `${COM_ORIGIN}/en/de/metro/${s.slug}`, changeFrequency: 'monthly', priority: 0.6 })
   }
   // World listings (every non-GE country) — the sivrce.com half of the unified
   // inventory. Canonical /en URLs, en + x-default cluster (world listings

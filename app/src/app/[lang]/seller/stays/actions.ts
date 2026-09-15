@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { BookingStatus } from "@/generated/prisma/enums"
 import { requireRole } from "@/lib/guards"
 import { transitionStayBooking } from "@/lib/stay-create"
+import { notifyStayStatusChanged } from "@/lib/stay-email"
 import { db } from "@/lib/db"
 
 /** Seller-reachable transitions: confirm a request or cancel as host. */
@@ -26,5 +27,8 @@ export async function sellerSetStayStatus(fd: FormData) {
   })
   if (!owned) throw new Error("Booking not found")
   await db.$transaction((tx) => transitionStayBooking(tx, id, status, { cancelReason: reason }))
+  // Not awaited: the guest learns the decision by mail, but a mail outage must
+  // not fail an action whose status change already committed.
+  notifyStayStatusChanged(id, reason)
   revalidatePath("/seller/stays")
 }

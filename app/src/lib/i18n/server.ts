@@ -43,7 +43,12 @@ export function kaOnlyAlternates(path: string) {
   return { canonical: path, languages: { ka: path, 'x-default': path } }
 }
 
-/** Alternates for de-only content (Berlin metro, German market pages). */
+/**
+ * Alternates for de-only content (Berlin metro, German market pages). Same
+ * German copy is served under every locale prefix (`/{lang}/de/...`); callers
+ * pass the served `/en/de/...` path — a bare `/de/...` would collide with the
+ * German-language site root and 404.
+ */
 export function deOnlyAlternates(path: string) {
   return { canonical: path, languages: { de: path, 'x-default': path } }
 }

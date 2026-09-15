@@ -36,6 +36,18 @@ export function isOwnedMedia(img: string | null | undefined): boolean {
   return !!img && (img.includes('cdn.sivrce.ge') || img.includes('images.sivrce.ge'))
 }
 
+/**
+ * Enforces the module's media contract (see file header) at render time:
+ * first-party paths and our own CDN only. Synced rows can still carry the
+ * source bucket URL (e.g. storage.googleapis.com), which every page blocks via
+ * the img-src CSP — so an unfiltered row renders as a broken image.
+ */
+export function isRenderableImg(img: string | null | undefined): boolean {
+  if (!img) return false
+  if (img.startsWith('/')) return true
+  return isOwnedMedia(img)
+}
+
 export function isValidCoords(lat: number | null | undefined, lng: number | null | undefined): boolean {
   return (
     typeof lat === 'number' &&
@@ -509,7 +521,14 @@ export async function nearbyProjectsLive(
 ): Promise<NearbyProject[]> {
   const all = await projectsLive()
   return all
-    .filter((p) => p.slug !== excludeSlug && p.city === city && isValidCoords(p.coords.lat, p.coords.lng))
+    .filter(
+      (p) =>
+        p.slug !== excludeSlug &&
+        p.city === city &&
+        isValidCoords(p.coords.lat, p.coords.lng) &&
+        // the rail is image-led; a CSP-blocked third-party render is a dead card
+        isRenderableImg(p.img),
+    )
     .map((p) => ({ ...p, distanceKm: haversineKm(coords, p.coords) }))
     .filter((p) => p.distanceKm > 0.03 && p.distanceKm <= 5)
     .sort((a, b) => a.distanceKm - b.distanceKm)
