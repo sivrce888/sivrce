@@ -17,7 +17,7 @@ counsel before the DE launch. This file is engineering status, not legal advice.
 | Data sources | Licensing of open data (dl-de, ODbL) | IMPLEMENTED | `/legal/data-sources` + source registry with per-source license fields |
 | Content policy | UGC rules | SCAFFOLD | `/legal/content-policy` mirrors existing moderation engine |
 | Takedown/DSA | Notice-and-action | PARTIAL | Backend Complaint/ModerationQueue models exist; `/legal/takedown` workflow documented; DSA deadlines **LEGAL_REVIEW_REQUIRED** |
-| DSR | GDPR Art. 15–21 requests | PARTIAL | Self-service account deletion in settings; `/legal/privacy-request` mailto workflow; no export API yet |
+| DSR | GDPR Art. 15–21 requests | IMPLEMENTED | Self-service deletion + one-click data export (`GET /api/account/export`, linked from settings): profile, listings, favorites, searches, reviews, tours, stays, inquiries, forum posts, activity. Credentials never exported; third-party records stay on the `/legal/privacy-request` manual path. Asserted by `account-export.check.ts` |
 | Accessibility | BFSG statement | SCAFFOLD | `/legal/accessibility`; WCAG 2.2 AA targeted in code; audit + **LEGAL_REVIEW_REQUIRED** |
 | Brokerage | § 34c GewO scope | CLEAR | sivrce positions as platform, not broker; re-review if broker services added |
 | Image licensing | No copyrighted scrapes | IMPLEMENTED | media pipeline uses owner-uploaded/derived assets only |

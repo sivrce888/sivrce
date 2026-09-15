@@ -3,7 +3,7 @@
 import { useActionState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { KeyRound, LogOut, Trash2, User } from "lucide-react"
+import { Download, KeyRound, LogOut, Trash2, User } from "lucide-react"
 
 import { signOutToHome } from "@/app/auth/actions"
 import {
@@ -194,6 +194,30 @@ export function AccountForms({
                 გასვლა
               </button>
             </form>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
+        <div className="flex items-start gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
+            <Download size={18} aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[15px] font-extrabold text-sv-ink">ჩემი მონაცემები</h2>
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
+              ჩამოტვირთე ყველაფერი, რაც sivrce-ს შენზე აქვს — პროფილი, განცხადებები,
+              ფავორიტები, ძიებები, ჯავშნები, შეტყობინებები (JSON). პაროლები და სხვა
+              ადამიანების მონაცემები არ შედის.
+            </p>
+            {/* GDPR Art. 15/20: the export must be one click, not a support ticket. */}
+            <a
+              href="/api/account/export"
+              download
+              className="mt-4 inline-block rounded-full border border-sv-ink/12 px-5 py-2.5 text-[13px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+            >
+              ჩამოტვირთვა
+            </a>
           </div>
         </div>
       </section>
