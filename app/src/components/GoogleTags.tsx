@@ -4,14 +4,17 @@ import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { GA_ID, GTM_ID } from '@/lib/analytics'
+import { useConsent } from '@/lib/consent'
 import { isLiteDevice } from '@/lib/device-budget'
 
-/** Skip GTM/GA on lite; otherwise idle so tags never contend with first paint. */
+/** Consent-gated (TDDDG §25): nothing loads until the visitor opts in.
+ *  Then skip on lite devices, otherwise idle so tags never contend with first paint. */
 export function GoogleTags() {
   const [on, setOn] = useState(false)
+  const consent = useConsent()
 
   useEffect(() => {
-    if (isLiteDevice()) return
+    if (consent !== 'granted' || isLiteDevice()) return
     const boot = () => setOn(true)
     const ric = window.requestIdleCallback?.(boot, { timeout: 4000 })
     if (ric == null) {
@@ -19,9 +22,9 @@ export function GoogleTags() {
       return () => window.clearTimeout(t)
     }
     return () => window.cancelIdleCallback?.(ric)
-  }, [])
+  }, [consent])
 
-  if (!on) return null
+  if (!on || consent !== 'granted') return null
   return (
     <>
       <Script id="gtm" strategy="lazyOnload">{`

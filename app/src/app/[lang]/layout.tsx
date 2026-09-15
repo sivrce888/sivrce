@@ -21,7 +21,7 @@ import { jsonLd } from "@/lib/utils";
 import { CONTACT_PHONE } from "@/lib/inquiries/phone";
 import { LITE_BOOT } from "@/lib/device-budget";
 import { GoogleTags } from "@/components/GoogleTags";
-import { GTM_ID } from "@/lib/analytics";
+import ConsentBanner from "@/components/consent/ConsentBanner";
 // globals.css lives in app/layout.tsx — import here is silently dropped from
 // production CSS <link>s for the dynamic [lang] segment (see root layout).
 
@@ -338,16 +338,8 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
         <script id="lite-boot" dangerouslySetInnerHTML={{ __html: LITE_BOOT }} />
         {/* Fonts: next/font display=optional + preload:false — no manual preload
             (was fighting FCP; optional already prevents late-swap LCP). */}
-        {/* Google Tag Manager (noscript) */}
-        <noscript>
-          <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-            title="Google Tag Manager"
-          />
-        </noscript>
+        {/* No GTM <noscript> iframe: without JS there is no way to collect
+            consent, so firing the tag would be an unlawful pre-consent load. */}
         <GoogleTags />
         <a
           href="#main"
@@ -366,6 +358,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
                 <ChatShell>{children}</ChatShell>
                 <CmsPreviewBridge />
                 <LocaleSuggest />
+                <ConsentBanner />
               </PostHogProvider>
             </CurrencyProvider>
           </I18nProvider>

@@ -9,8 +9,8 @@ counsel before the DE launch. This file is engineering status, not legal advice.
 | Impressum | § 5 DDG provider identification | SCAFFOLD | `/legal/impressum` — owner data marked `[TODO-OWNER]`; **LEGAL_REVIEW_REQUIRED** |
 | Datenschutz | GDPR/DSGVO privacy policy | SCAFFOLD | `/legal/datenschutz` de/en; **LEGAL_REVIEW_REQUIRED**; DPO designation decision open |
 | AGB | Terms of use | SCAFFOLD | `/legal/agb`; full clause set (liability, jurisdiction, digital-content) **LEGAL_REVIEW_REQUIRED** |
-| Cookies/ePrivacy | Consent for non-necessary cookies | MISSING | GTM/GA currently loads without a consent gate (`GoogleTags.tsx`); **LEGAL_REVIEW_REQUIRED** — keep analytics OFF for DE hosts until CMP lands |
-| TDDDG | Telemedia data protection | SCAFFOLD | covered inside datenschutz/cookies; **LEGAL_REVIEW_REQUIRED** |
+| Cookies/ePrivacy | Consent for non-necessary cookies | IMPLEMENTED | `src/lib/consent.ts` + `components/consent/ConsentBanner.tsx`: GTM/GA4/PostHog load only after an explicit opt-in, equal-weight Allow/Decline, one-click withdrawal in the footer (purge + reload). No GTM `<noscript>` iframe. Asserted on every build by `consent.check.ts` |
+| TDDDG | Telemedia data protection | IMPLEMENTED | §25 satisfied by the same gate — zero storage access before consent (verified: fresh origin loads 0 tracker scripts, 0 tracker cookies) |
 | Widerruf | Consumer withdrawal (Art. 246a EGBGB) | SCAFFOLD | `/legal/widerruf`; model text + digital-service carve-outs **LEGAL_REVIEW_REQUIRED** |
 | Verbraucherinfo | Art. 246 ff. EGBGB | SCAFFOLD | `/legal/verbraucherinformationen`; OS-Platform link present |
 | Partner disclosure | UWG § 5a ad labeling | PARTIAL | "Gesponsert" labeling in product; `/legal/partner-disclosures` drafted; thresholds **LEGAL_REVIEW_REQUIRED** |
@@ -24,5 +24,6 @@ counsel before the DE launch. This file is engineering status, not legal advice.
 | Data transfers | EU hosting | OPEN | DB/host region decision; **LEGAL_REVIEW_REQUIRED** when DE data subjects onboard |
 
 Owner action list (blocking DE launch): fill `[TODO-OWNER]` fields, engage counsel
-for the six LEGAL_REVIEW_REQUIRED rows, decide CMP vendor, confirm analytics
-stays dark on sivrce.de until consent exists.
+for the LEGAL_REVIEW_REQUIRED rows, decide the EU hosting region. No CMP vendor
+needed — the first-party gate above covers consent, and analytics stays dark
+until the visitor opts in on every host, not just sivrce.de.

@@ -64,7 +64,7 @@ function pairs(body: string): Map<string, string> {
 const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 const files = process.argv.slice(2).length
   ? process.argv.slice(2)
-  : ["src/components/account/i18n.ts", "src/components/compare/i18n.ts", "src/components/entities/i18n.ts",
+  : ["src/components/account/i18n.ts", "src/components/compare/i18n.ts", "src/components/consent/i18n.ts", "src/components/entities/i18n.ts",
      "src/components/favorites/i18n.ts", "src/components/lead/i18n.ts", "src/components/listing/i18n.ts",
      "src/components/market/i18n.ts", "src/components/neighborhoods/i18n.ts", "src/components/payments/i18n.ts",
      "src/components/reviews/i18n.ts", "src/components/search/i18n.ts", "src/lib/cms-blocks.i18n.ts"]
