@@ -6,6 +6,7 @@ import HScroll from '@/components/HScroll'
 import CountryHero from '@/components/country/CountryHero'
 import MarketListings from '@/components/country/MarketListings'
 import DeProjectCard from '@/components/country/DeProjectCard'
+import DePropTechOS from '@/components/country/DePropTechOS'
 import type { Developer, Project } from '@/data/professionals'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '@/data/projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from '@/data/projects-new-germany'
@@ -427,6 +428,7 @@ export default function DeMarketHome({
       <StatsBand citySlug={city} de={de} />
       {city === 'berlin' && <BezirkeBand de={de} />}
       <ProjectRail citySlug={city} de={de} />
+      <DePropTechOS citySlug={city} de={de} />
       <CitiesBand de={de} />
       <BuyerCosts citySlug={city} de={de} />
       <DeveloperRail citySlug={city} de={de} />
