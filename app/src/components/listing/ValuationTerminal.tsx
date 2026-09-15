@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { calculateValuation10x } from '@/lib/valuation-10x'
+import { usePostHog } from '@/lib/posthog'
 import { ShieldCheck, AlertTriangle, Calculator } from 'lucide-react'
 
 interface ValuationTerminalProps {
@@ -30,6 +31,13 @@ export default function ValuationTerminal({
       countryCode,
     })
   }, [priceUSD, areaSqm, monthlyRentUSD, countryCode])
+
+  // The terminal is lazy-loaded (ssr:false), so a mount IS a visitor seeing
+  // the verdict — count it once, verdict included (trust-signal usage).
+  const { capture: captureEvent } = usePostHog()
+  useEffect(() => {
+    captureEvent('valuation_viewed', { verdict: report.dealVerdict, country: countryCode })
+  }, [])
 
   // ponytail: inferred from report.scenarios — the annotation named a type this
   // file never imported, which is why the build was red.

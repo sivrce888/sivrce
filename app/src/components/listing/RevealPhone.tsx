@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { Loader2, Phone, ShieldCheck, MessageCircle } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import { telHref, waHref } from '@/lib/inquiries/phone'
+import { usePostHog } from '@/lib/posthog'
 
 type Props = {
   listingId: string
@@ -27,6 +28,7 @@ export default function RevealPhone({
   className = '',
 }: Props) {
   const { t } = useI18n()
+  const { capture } = usePostHog()
   const [phone, setPhone] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -51,6 +53,7 @@ export default function RevealPhone({
         return
       }
       setPhone(data.phone)
+      capture('phone_revealed', { listing_id: listingId })
     } catch {
       setError(true)
     } finally {
