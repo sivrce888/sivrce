@@ -137,7 +137,7 @@ export const LISTINGS: Listing[] = [
   {
     id: 'vake-chavchavadze-47',
     img: '/images/de/apt-3.webp',
-    images: ['/images/de/apt-3.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/vake.webp', '/images/p1.webp'],
+    images: ['/images/de/apt-3.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/vake.webp', '/images/de/living-1.webp'],
     priceUSD: 285000, priceGEL: 769500, perM2USD: 3167,
     title: 'მოდერნული 2-ოთახიანი პანორამული ხედით',
     address: 'ჭავჭავაძის 47, ვაკე, თბილისი',
@@ -158,7 +158,7 @@ export const LISTINGS: Listing[] = [
   {
     id: 'saburtalo-pekin-12',
     img: '/images/de/terrasse-1.webp',
-    images: ['/images/de/terrasse-1.webp', '/images/de/apt-5.webp', '/images/neighborhoods/saburtalo.webp', '/images/p2.webp'],
+    images: ['/images/de/terrasse-1.webp', '/images/de/apt-5.webp', '/images/neighborhoods/saburtalo.webp', '/images/de/penthouse-1.webp'],
     priceUSD: 640000, priceGEL: 1728000, perM2USD: 3765,
     title: 'პენტჰაუსი ტერასით, საბურთალო',
     address: 'პეკინის 12, საბურთალო, თბილისი',
@@ -179,7 +179,7 @@ export const LISTINGS: Listing[] = [
   {
     id: 'tskvarichamia-mshvidoba-8',
     img: '/images/de/house-2.webp',
-    images: ['/images/de/house-2.webp', '/images/de/villa-1.webp', '/images/de/land-1.webp', '/images/p3.webp'],
+    images: ['/images/de/house-2.webp', '/images/de/villa-1.webp', '/images/de/land-1.webp', '/images/de/garden-1.webp'],
     priceUSD: 420000, priceGEL: 1134000, perM2USD: 2100,
     title: 'ავტორის ვილა აუზით, ცხვარიჭამია',
     address: 'მშვიდობის ქ. 8, თბილისის მიდამო',
@@ -200,7 +200,7 @@ export const LISTINGS: Listing[] = [
   {
     id: 'vake-abashidze-34',
     img: '/images/de/neubau-1.webp',
-    images: ['/images/de/neubau-1.webp', '/images/de/apt-4.webp', '/images/neighborhoods/vake.webp', '/images/p4.webp'],
+    images: ['/images/de/neubau-1.webp', '/images/de/apt-4.webp', '/images/neighborhoods/vake.webp', '/images/de/kitchen-1.webp'],
     priceUSD: 158500, priceGEL: 427950, perM2USD: 2264,
     title: 'ახალი აშენებული ბინა ვაკეში',
     address: 'აბაშიძის 34, ვაკე, თბილისი',
@@ -221,7 +221,7 @@ export const LISTINGS: Listing[] = [
   {
     id: 'mtatsminda-sanapiro-5',
     img: '/images/de/apt-6.webp',
-    images: ['/images/de/apt-6.webp', '/images/de/apt-2.webp', '/images/neighborhoods/mtatsminda.webp', '/images/p5.webp'],
+    images: ['/images/de/apt-6.webp', '/images/de/apt-2.webp', '/images/neighborhoods/mtatsminda.webp', '/images/de/bathroom-1.webp'],
     priceUSD: 112000, priceGEL: 302400, perM2USD: 1750,
     title: 'მზიანი სტუდიო მთაწმინდაზე',
     address: 'სანაპიროს 5, მთაწმინდა, თბილისი',
@@ -242,7 +242,7 @@ export const LISTINGS: Listing[] = [
   {
     id: 'dighomi-gudamaqari-21',
     img: '/images/de/apt-1.webp',
-    images: ['/images/de/apt-1.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/didi-dighomi.webp', '/images/p6.webp'],
+    images: ['/images/de/apt-1.webp', '/images/de/balkon-1.webp', '/images/neighborhoods/didi-dighomi.webp', '/images/de/office-1.webp'],
     priceUSD: 198000, priceGEL: 534600, perM2USD: 2200,
     title: 'დიზაინერული რემონტით, დიღომი',
     address: 'გუდამაყრის 21, დიღომი, თბილისი',
