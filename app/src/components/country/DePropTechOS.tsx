@@ -11,7 +11,6 @@ import {
   Scale,
   MapPin,
   FileCheck,
-  RefreshCw,
 } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import {
@@ -723,8 +722,8 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
 
                   <p className="mt-2 text-[13px] font-medium leading-relaxed text-sv-ink/70">
                     {de
-                      ? 'Gemäß den Vorgaben des EU AI Act (in Kraft seit 2. August 2026) und der DSGVO werden alle Bewertungs- und Underwriting-Algorithmen deterministisch offengelegt. Direkte Schnittstellen für onOffice, Propstack, FlowFact und OpenImmo 1.2.7.'
-                      : 'Compliant with the EU AI Act (effective August 2, 2026) and GDPR. All valuation, tax, and subsidy calculations are fully auditable, deterministic, and compatible with onOffice, Propstack, and FlowFact OpenImmo 1.2.7 feeds.'}
+                      ? 'Gemäß den Vorgaben des EU AI Act (in Kraft seit 2. August 2026) und der DSGVO werden alle Bewertungs- und Underwriting-Algorithmen deterministisch offengelegt. OpenImmo-1.2.7-Ingest für onOffice-, Propstack- und FlowFact-Feeds (Anbindung auf Anfrage).'
+                      : 'Compliant with the EU AI Act (effective August 2, 2026) and GDPR. All valuation, tax, and subsidy calculations are fully auditable, deterministic, and ingest OpenImmo 1.2.7 feeds from onOffice, Propstack, and FlowFact (connection on request).'}
                   </p>
 
                   <div className="mt-5 space-y-3 text-[12px] font-bold">
@@ -739,9 +738,9 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     </div>
 
                     <div className="flex items-center justify-between rounded-control border border-sv-ink/[0.06] bg-sv-cloud p-3">
-                      <span className="text-sv-ink/60">{de ? 'CRM-Schnittstellen (OpenImmo 1.2.7)' : 'CRM Syndication (OpenImmo 1.2.7)'}</span>
+                      <span className="text-sv-ink/60">{de ? 'CRM-Feeds (OpenImmo 1.2.7)' : 'CRM Feeds (OpenImmo 1.2.7)'}</span>
                       <span className="inline-flex items-center gap-1.5 text-sv-blue">
-                        <RefreshCw className="h-3.5 w-3.5" /> onOffice · Propstack · FlowFact · Kommunal
+                        <CheckCircle2 className="h-3.5 w-3.5" /> onOffice · Propstack · FlowFact · Kommunal
                       </span>
                     </div>
 
