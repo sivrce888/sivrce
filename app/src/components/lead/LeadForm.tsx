@@ -13,6 +13,7 @@ import { useChat } from '@/components/chat/ChatProvider'
 import { stashChatDraft } from '@/components/chat/messages'
 import { useI18n } from '@/lib/i18n/context'
 import { formatPhone, PHONE_RE, PHONE_RE_DE } from '@/lib/inquiries/phone'
+import { usePostHog } from '@/lib/posthog'
 import { cn } from '@/lib/utils'
 import { leadStrings } from './i18n'
 
@@ -31,6 +32,7 @@ type Status = 'idle' | 'sending' | 'success'
 
 export function LeadForm({ targetType, targetId, recipientName, className }: LeadFormProps) {
   const { lang } = useI18n()
+  const { capture } = usePostHog()
   const s = leadStrings(lang)
   const uid = useId()
   const pathname = usePathname()
@@ -86,6 +88,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
         return
       }
       setStatus('success')
+      capture('lead_submitted', { target_type: targetType, target_id: targetId })
       // Move focus to the confirmation so AT users don't lose context.
       requestAnimationFrame(() => successRef.current?.focus())
     } catch {
