@@ -168,7 +168,7 @@ export type { MarketId }
 export interface SiteHost {
   market: 'ge' | 'de'
   apex: string
-  defaultLang: 'ka' | 'en'
+  defaultLang: 'ka' | 'en' | 'de'
   defaultCitySlug: string
   homePath: string
 }
@@ -179,9 +179,9 @@ export function siteHostFor(hostname: string): SiteHost {
     return {
       market: 'de',
       apex: COM_ORIGIN,
-      defaultLang: 'en',
+      defaultLang: 'de',
       defaultCitySlug: 'berlin',
-      homePath: '/de',
+      homePath: '/de/de',
     }
   }
   return {
