@@ -25,6 +25,8 @@ export type NlFilters = {
   bedrooms?: number
   minArea?: number
   maxArea?: number
+  /** "kein Erdgeschoss" / "first floor or higher" → search `fmin`. */
+  floorMin?: number
   features?: string[]
   pets?: boolean
   /** Tbilisi metro catchment (`metro=1`). Never set for DE cities — index is GE-only. */
@@ -124,6 +126,9 @@ const FEATURE_RX: [RegExp, string][] = [
   [/loggia|ლოჯ|лоджи/i, 'add.f.loggia'],
   [/balcony|აივან|балкон|balkon/i, 'add.f.balcony'],
   [/furnish|ავეჯ|möbliert|moebliert/i, 'add.f.furniture'],
+  [/garten|garden|hofanteil/i, 'add.f.yard'],
+  [/terrasse|terrace|dachterrasse/i, 'add.f.terrace'],
+  [/keller|basement/i, 'add.f.cellar'],
   [/წვეულებ|ბადაბ|დაბადების\s*დღ|ივენთ|\bpart(?:y|ies)\b|\bbirthday\b|\bevent\s*house\b/i, 'add.f.partiesAllowed'],
 ]
 
@@ -265,6 +270,14 @@ export function parseNlQuery(query: string): NlFilters {
   }
   if (features.length) out.features = features
   if (/pet[- ]?friendly|ცხოველ|pets?\s+allow|haustier/i.test(q)) out.pets = true
+  // "kein Erdgeschoss" & friends → floorMin=1 (ground floor = 0 in the index).
+  if (
+    /kein(?:e?[rs]?)?\s+erdgeschoss|nicht\s+(?:im\s+)?erdgeschoss|erdgeschoss\s+ausgeschlossen|(?:erster|zweiter|1\.|2\.)\s+(?:og|stock)|obergeschoss|hohe(r?s?)\s+etage|(?:first|upper)\s+floor|not\s+(?:on\s+(?:the\s+)?)?ground\s+floor/i.test(
+      q,
+    )
+  ) {
+    out.floorMin = 1
+  }
   if (
     /(?:near|close\s+to)\s+(?:the\s+)?metro|მეტრო|метро|metro\s+nearby|nahe\s+(?:der\s+)?U-Bahn|U-Bahn\s+nähe/i.test(q)
   ) {
@@ -287,6 +300,7 @@ export function nlHasStructure(f: NlFilters): boolean {
       f.bedrooms ||
       f.minArea ||
       f.maxArea ||
+      f.floorMin ||
       f.pets ||
       f.nearMetro ||
       f.investmentGoal ||
@@ -309,6 +323,7 @@ export function nlToSearchPatch(f: NlFilters): Record<string, string | undefined
   if (f.bedrooms) patch.beds = String(f.bedrooms)
   if (f.minArea) patch.amin = String(f.minArea)
   if (f.maxArea) patch.amax = String(f.maxArea)
+  if (f.floorMin) patch.fmin = String(f.floorMin)
   if (f.features?.length) patch.feat = f.features.join(',')
   if (f.pets) patch.pets = '1'
   if (f.nearMetro) patch.metro = '1'
