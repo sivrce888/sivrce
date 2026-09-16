@@ -10,6 +10,7 @@ import { COUNTRY_NAMES } from '@/lib/country-copy'
 import { cityBySlug } from '@/lib/map/user-place'
 import { useI18n, localizedHref } from '@/lib/i18n/context'
 import { DE_CITIES } from '@/lib/countries/de'
+import { usePostHog } from '@/lib/posthog'
 import SearchSuggest from '@/components/search/SearchSuggest'
 import PropertyTypePicker from '@/components/search/PropertyTypePicker'
 import type { PropType } from '@/data/listings'
@@ -18,6 +19,15 @@ const fieldBtn =
   'flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white'
 const fieldCap = 'block truncate text-[10px] font-extrabold uppercase tracking-[0.06em] text-sv-ink/60 dark:text-white/40'
 const fieldVal = 'block truncate text-[14px] font-extrabold tracking-[-0.01em]'
+
+/** Rotating natural-language examples for German users — every one is
+ *  parse-verified against lib/nl-search (see nl-search.check.ts pattern). */
+const DE_NL_EXAMPLES = [
+  '2-Zimmer-Wohnung in Berlin unter 700.000 €',
+  'Mietwohnung mit Balkon in Mitte',
+  'Haus mit Garten in München kaufen',
+  'Ruhige 3-Zimmer-Wohnung in Prenzlauer Berg, kein Erdgeschoss',
+]
 
 type Tab = 'buy' | 'rent' | 'projects'
 
@@ -44,6 +54,16 @@ export default function CountrySearch({
   const citySlug = city ?? picked ?? MARKETS[country].defaultCitySlug
   const [q, setQ] = useState('')
   const [propType, setPropType] = useState<PropType | undefined>(undefined)
+  const { capture } = usePostHog()
+  const deNl = country === 'de' && lang === 'de'
+  const [exIdx, setExIdx] = useState(0)
+
+  // Rotate NL example placeholder while the box is untouched (typing pauses it).
+  useEffect(() => {
+    if (!deNl) return
+    const id = setInterval(() => setExIdx((i) => (i + 1) % DE_NL_EXAMPLES.length), 4000)
+    return () => clearInterval(id)
+  }, [deNl])
 
   useEffect(() => {
     if (city) return
@@ -94,6 +114,7 @@ export default function CountrySearch({
       document.getElementById('new-builds')?.scrollIntoView({ behavior: 'smooth' })
       return
     }
+    if (q.trim()) capture('search_country_submitted', { country, tab, nl: routed.go === 'search' })
     // Listings first ('search'); map stays for planning-layer queries (B-Plan etc.).
     router.push(localizedHref(routed.href, lang))
   }
@@ -193,8 +214,8 @@ export default function CountrySearch({
             onSubmit={() => void submit()}
             placeholder={
               country === 'de'
-                ? lang === 'de'
-                  ? 'Was suchst du?'
+                ? deNl
+                  ? DE_NL_EXAMPLES[exIdx]
                   : 'What are you looking for?'
                 : `${cityName}, ${COUNTRY_NAMES[country]}`
             }

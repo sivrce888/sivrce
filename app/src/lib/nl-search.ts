@@ -40,6 +40,21 @@ export type NlFilters = {
   investmentGoal?: boolean
   /** Quiet / family / lifestyle intent flag */
   lifestyleGoal?: 'family' | 'quiet' | 'central' | 'luxury'
+  /**
+   * Time-to-place catchment. Converted to an estimated bbox — not a routing
+   * isochrone. Never treated as a district pin (Mitte commute ≠ Mitte-only).
+   */
+  commute?: NlCommute
+}
+
+export type NlCommuteMode = 'transit' | 'walk' | 'cycle' | 'drive'
+
+export type NlCommute = {
+  place: string
+  minutes: number
+  mode: NlCommuteMode
+  lat: number
+  lng: number
 }
 
 const CITIES: [string, string][] = [
@@ -121,7 +136,10 @@ for (const city of ['თბილისი', 'ბათუმი', 'ქუთა
 const FEATURE_RX: [RegExp, string][] = [
   [/parking|პარკინგ|ავტოსადგომ|parkplatz|stellplatz/i, 'add.f.parking'],
   [/garage|გარაჟ|ავტოფარეხ/i, 'add.f.garage'],
-  [/bright|ნათელ|ბუნებრივი სინათლ|hell|lichtdurchflutet/i, 'add.f.bright'],
+  [
+    /bright|ნათელ|ბუნებრივი სინათლ|\blots?\s+of\s+(?:natural\s+)?light\b|viel(?:es)?\s+(?:tages)?licht|\bhell(?:e[sn]?)?\b|lichtdurchflutet/i,
+    'add.f.bright',
+  ],
   [/elevator|lift|ლიფტ|aufzug/i, 'add.f.elevator'],
   [/loggia|ლოჯ|лоджи/i, 'add.f.loggia'],
   [/balcony|აივან|балкон|balkon/i, 'add.f.balcony'],
@@ -155,6 +173,94 @@ function findCity(q: string): string | undefined {
     if (lower.includes(foldDe(key)) || q.includes(key)) return city
   }
   return undefined
+}
+
+/** Public map centers (not survey pins) — commute destination lookup. */
+const COMMUTE_PINS: [string, string, number, number][] = [
+  ['mitte', 'Mitte', 52.5219, 13.4132],
+  ['alexanderplatz', 'Alexanderplatz', 52.5219, 13.4132],
+  ['prenzlauer berg', 'Prenzlauer Berg', 52.5388, 13.4244],
+  ['friedrichshain', 'Friedrichshain', 52.5158, 13.454],
+  ['kreuzberg', 'Kreuzberg', 52.4983, 13.4065],
+  ['friedrichshain-kreuzberg', 'Friedrichshain-Kreuzberg', 52.507, 13.43],
+  ['charlottenburg', 'Charlottenburg', 52.5167, 13.3041],
+  ['wilmersdorf', 'Wilmersdorf', 52.487, 13.32],
+  ['charlottenburg-wilmersdorf', 'Charlottenburg-Wilmersdorf', 52.5, 13.31],
+  ['schoneberg', 'Schöneberg', 52.485, 13.355],
+  ['tempelhof', 'Tempelhof', 52.463, 13.385],
+  ['tempelhof-schoneberg', 'Tempelhof-Schöneberg', 52.47, 13.37],
+  ['neukolln', 'Neukölln', 52.4813, 13.4351],
+  ['kopenick', 'Köpenick', 52.446, 13.575],
+  ['treptow-kopenick', 'Treptow-Köpenick', 52.45, 13.52],
+  ['wedding', 'Wedding', 52.5505, 13.3517],
+  ['moabit', 'Moabit', 52.5285, 13.34],
+  ['pankow', 'Pankow', 52.569, 13.404],
+  ['spandau', 'Spandau', 52.534, 13.2],
+  ['steglitz', 'Steglitz', 52.457, 13.322],
+  ['steglitz-zehlendorf', 'Steglitz-Zehlendorf', 52.43, 13.26],
+  ['lichterfelde', 'Lichterfelde', 52.437, 13.314],
+  ['karlshorst', 'Karlshorst', 52.485, 13.526],
+  ['haselhorst', 'Haselhorst', 52.538, 13.227],
+  ['buckow', 'Buckow', 52.432, 13.43],
+  ['grunau', 'Grünau', 52.416, 13.574],
+  ['lichtenberg', 'Lichtenberg', 52.521, 13.48],
+  ['marzahn-hellersdorf', 'Marzahn-Hellersdorf', 52.535, 13.587],
+  ['reinickendorf', 'Reinickendorf', 52.575, 13.35],
+  ['hauptbahnhof', 'Hauptbahnhof', 52.525, 13.369],
+]
+
+function commuteMode(q: string): NlCommuteMode {
+  if (/walk|walking|zu\s*fu[sß]|fussweg|fußweg/i.test(q)) return 'walk'
+  if (/cycl|bike|fahrrad|radweg/i.test(q)) return 'cycle'
+  if (/\bdriv|\bauto\b|\bcar\b|\bpkw\b/i.test(q)) return 'drive'
+  return 'transit'
+}
+
+function resolveCommutePin(placeRaw: string, cityKa?: string): { place: string; lat: number; lng: number } | undefined {
+  const folded = foldDe(placeRaw.replace(/^(?:the|der|die|das|dem)\s+/i, '').trim())
+  if (!folded) return undefined
+  const pin = COMMUTE_PINS.find(([key]) => folded === key || folded.startsWith(`${key} `))
+  if (pin) return { place: pin[1], lat: pin[2], lng: pin[3] }
+  if (cityKa === 'ბერლინი' && /^(zentrum|center|centre|city\s*centre|stadtzentrum)$/.test(folded)) {
+    const berlin = DE_CITIES.find((c) => c.slug === 'berlin')!
+    return { place: 'Mitte', lat: berlin.center.lat, lng: berlin.center.lng }
+  }
+  return undefined
+}
+
+function parseCommute(raw: string, cityKa?: string): NlCommute | undefined {
+  const m =
+    raw.match(
+      /(?:within|inside)\s+(\d+)\s+min(?:ute)?s?\s+(?:of|from|to)\s+([^,.;]+)/i,
+    ) ||
+    raw.match(/innerhalb(?:\s+von)?\s+(\d+)\s+min(?:uten)?\s+(?:von|nach)\s+([^,.;]+)/i) ||
+    raw.match(/(\d+)\s+min(?:uten)?\s+(?:von|nach|to)\s+([^,.;]+)/i)
+  if (!m) return undefined
+  const minutes = Number(m[1])
+  if (!Number.isFinite(minutes) || minutes < 1 || minutes > 180) return undefined
+  const pin = resolveCommutePin(m[2]!.trim(), cityKa)
+  if (!pin) return undefined
+  return { ...pin, minutes, mode: commuteMode(raw) }
+}
+
+/** Estimated Euclidean catchment. Ceiling: over-includes across rivers/transfers. Upgrade → OSRM isochrone. */
+export function commuteBbox(c: NlCommute): { west: number; south: number; east: number; north: number } {
+  const mpm = c.mode === 'walk' ? 80 : c.mode === 'cycle' ? 250 : c.mode === 'drive' ? 500 : 350
+  const radiusM = Math.min(40_000, c.minutes * mpm)
+  const dLat = radiusM / 111_320
+  const dLng = radiusM / (111_320 * Math.cos((c.lat * Math.PI) / 180))
+  const r = (n: number) => Number(n.toFixed(5))
+  return { west: r(c.lng - dLng), south: r(c.lat - dLat), east: r(c.lng + dLng), north: r(c.lat + dLat) }
+}
+
+function haversineM(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6_371_000
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)))
 }
 
 function findDistrict(q: string): string | undefined {
@@ -231,6 +337,17 @@ export function parseNlQuery(query: string): NlFilters {
   else if (/₾|gel\b/.test(q)) out.currency = 'GEL'
   else if (/\$|usd\b/.test(q)) out.currency = 'USD'
 
+  // Apartment/house under a monthly-scale cap with no buy verb → rent, not a €2,000 sale.
+  if (
+    !out.dealType &&
+    out.maxPrice &&
+    out.propertyType !== 'land' &&
+    out.propertyType !== 'commercial'
+  ) {
+    if (out.maxPrice <= 20_000) out.dealType = 'rent'
+    else if (out.maxPrice >= 50_000) out.dealType = 'sale'
+  }
+
   // Investment intent detection
   if (/invest|yield| ROI |рентабельн|ინვესტიც|მომგებიან/i.test(q)) {
     out.investmentGoal = true
@@ -253,8 +370,10 @@ export function parseNlQuery(query: string): NlFilters {
   }
 
   const city = findCity(q)
+  const commute = parseCommute(raw, city)
+  if (commute) out.commute = commute
   const district = findDistrict(raw)
-  const berlin = findBerlinPlace(raw)
+  const berlin = commute ? undefined : findBerlinPlace(raw)
   if (city) out.city = city
   if (district) {
     out.district = district
@@ -263,6 +382,7 @@ export function parseNlQuery(query: string): NlFilters {
     out.district = berlin.district
     if (!out.city) out.city = berlin.city
   }
+  if (commute && !out.city) out.city = 'ბერლინი'
 
   const features: string[] = []
   for (const [rx, key] of FEATURE_RX) {
@@ -279,7 +399,9 @@ export function parseNlQuery(query: string): NlFilters {
     out.floorMin = 1
   }
   if (
-    /(?:near|close\s+to)\s+(?:the\s+)?metro|მეტრო|метро|metro\s+nearby|nahe\s+(?:der\s+)?U-Bahn|U-Bahn\s+nähe/i.test(q)
+    /(?:near|close\s+to)\s+(?:the\s+)?metro|მეტრო|метро|metro\s+nearby|nahe\s+(?:der\s+)?U-Bahn|U-Bahn\s+nähe|U-Bahn\s+unter\s+\d+|unter\s+\d+\s+min(?:uten)?\s+(?:zur\s+)?U-Bahn/i.test(
+      q,
+    )
   ) {
     out.nearMetro = true
   }
@@ -305,6 +427,7 @@ export function nlHasStructure(f: NlFilters): boolean {
       f.nearMetro ||
       f.investmentGoal ||
       f.lifestyleGoal ||
+      f.commute ||
       f.features?.length ||
       f.buildingStatus ||
       f.condition,
@@ -330,6 +453,18 @@ export function nlToSearchPatch(f: NlFilters): Record<string, string | undefined
   if (f.buildingStatus) patch.bstat = f.buildingStatus
   if (f.condition) patch.cond = f.condition
   if (f.currency && f.currency !== 'USD') patch.cur = f.currency
+  if (f.lifestyleGoal) patch.life = f.lifestyleGoal
+  if (f.commute) {
+    const b = commuteBbox(f.commute)
+    patch.west = String(b.west)
+    patch.south = String(b.south)
+    patch.east = String(b.east)
+    patch.north = String(b.north)
+    patch.cplace = f.commute.place
+    patch.cmin = String(f.commute.minutes)
+    patch.cmode = f.commute.mode
+    patch.district = undefined
+  }
   if (f.keywords) patch.q = f.keywords
   return patch
 }
@@ -362,6 +497,8 @@ export function nlHasListingConstraints(f: NlFilters): boolean {
       f.condition ||
       f.pets ||
       f.nearMetro ||
+      f.floorMin ||
+      f.commute ||
       f.investmentGoal ||
       f.lifestyleGoal,
   )
@@ -435,8 +572,16 @@ export async function aiParseQuery(query: string): Promise<NlFilters | null> {
 
 export interface PropertyMatchResult {
   matchPercentage: number
+  matched: number
+  criteria: number
   reasons: string[]
   tradeoffs: string[]
+}
+
+const MONEY_MARK: Record<NonNullable<NlFilters['currency']>, string> = {
+  USD: '$',
+  GEL: '₾',
+  EUR: '€',
 }
 
 export function explainPropertyMatch(
@@ -448,47 +593,164 @@ export function explainPropertyMatch(
     area?: number
     district?: string
     nearMetro?: boolean
-  }
+    features?: string[]
+    floor?: number
+    lat?: number
+    lng?: number
+  },
 ): PropertyMatchResult {
   const reasons: string[] = []
   const tradeoffs: string[] = []
-  let match = 100
-
-  if (query.maxPrice && property.price) {
-    if (property.price <= query.maxPrice) {
-      reasons.push(`Under budget ($${property.price.toLocaleString()} <= $${query.maxPrice.toLocaleString()})`)
+  let matched = 0
+  let criteria = 0
+  const mark = MONEY_MARK[query.currency ?? 'USD']
+  const tick = (ok: boolean, yes: string, no: string) => {
+    criteria += 1
+    if (ok) {
+      matched += 1
+      reasons.push(yes)
     } else {
-      const overPct = Math.round(((property.price - query.maxPrice) / query.maxPrice) * 100)
-      tradeoffs.push(`Slightly over target price (+${overPct}%)`)
-      match -= Math.min(25, overPct * 2)
+      tradeoffs.push(no)
     }
   }
 
-  if (query.bedrooms && property.bedrooms) {
-    if (property.bedrooms >= query.bedrooms) {
-      reasons.push(`Matches bedroom requirement (${property.bedrooms} BR)`)
-    } else {
-      tradeoffs.push(`Fewer bedrooms than requested (${property.bedrooms} vs ${query.bedrooms})`)
-      match -= 20
-    }
+  if (query.maxPrice && property.price) {
+    const ok = property.price <= query.maxPrice
+    const overPct = ok ? 0 : Math.round(((property.price - query.maxPrice) / query.maxPrice) * 100)
+    tick(
+      ok,
+      `Under budget (${mark}${property.price.toLocaleString()} ≤ ${mark}${query.maxPrice.toLocaleString()})`,
+      `Above target price (+${overPct}%)`,
+    )
+  }
+
+  if (query.bedrooms && property.bedrooms != null) {
+    tick(
+      property.bedrooms >= query.bedrooms,
+      `Matches bedroom requirement (${property.bedrooms} BR)`,
+      `Fewer bedrooms than requested (${property.bedrooms} vs ${query.bedrooms})`,
+    )
+  }
+
+  if (query.rooms && property.rooms != null) {
+    tick(
+      property.rooms >= query.rooms,
+      `Matches room requirement (${property.rooms})`,
+      `Fewer rooms than requested (${property.rooms} vs ${query.rooms})`,
+    )
   }
 
   if (query.nearMetro) {
-    if (property.nearMetro) {
-      reasons.push('Located within short walking distance to metro station')
-    } else {
-      tradeoffs.push('Further from metro transport than ideal')
-      match -= 15
+    tick(
+      Boolean(property.nearMetro),
+      'Located within short walking distance to metro station',
+      'Further from metro transport than ideal',
+    )
+  }
+
+  if (query.district) {
+    tick(
+      Boolean(property.district && query.district === property.district),
+      `Located in requested neighborhood (${query.district})`,
+      property.district
+        ? `Different neighborhood (${property.district} vs ${query.district})`
+        : `Neighborhood not tagged (requested ${query.district})`,
+    )
+  }
+
+  if (query.floorMin != null && property.floor != null) {
+    tick(
+      property.floor >= query.floorMin,
+      `Above ground floor (floor ${property.floor})`,
+      `Ground-floor listing (requested floor ≥ ${query.floorMin})`,
+    )
+  }
+
+  for (const feat of query.features ?? []) {
+    const tagged = property.features?.includes(feat) ?? false
+    tick(
+      tagged,
+      `Has requested feature (${feat.replace(/^add\.f\./, '')})`,
+      `Requested feature not tagged (${feat.replace(/^add\.f\./, '')})`,
+    )
+  }
+
+  if (query.lifestyleGoal === 'quiet') {
+    tick(
+      Boolean(property.features?.includes('add.f.quiet')),
+      'Tagged as quiet',
+      'Quiet requested — not tagged on this listing',
+    )
+  }
+
+  if (query.commute && property.lat != null && property.lng != null) {
+    const radiusM =
+      Math.min(
+        40_000,
+        query.commute.minutes *
+          (query.commute.mode === 'walk' ? 80 : query.commute.mode === 'cycle' ? 250 : query.commute.mode === 'drive' ? 500 : 350),
+      )
+    const dist = haversineM({ lat: property.lat, lng: property.lng }, query.commute)
+    tick(
+      dist <= radiusM,
+      `Inside estimated ${query.commute.minutes} min catchment of ${query.commute.place}`,
+      `Outside estimated ${query.commute.minutes} min catchment of ${query.commute.place}`,
+    )
+  }
+
+  const matchPercentage = criteria === 0 ? 100 : Math.round((matched / criteria) * 100)
+  return { matchPercentage, matched, criteria, reasons, tradeoffs }
+}
+
+const COMMUTE_MODES: readonly NlCommuteMode[] = ['transit', 'walk', 'cycle', 'drive']
+
+/** Rebuild intent from a /search URL so result cards can explain the match. */
+export function nlFromSearchParams(sp: URLSearchParams): NlFilters {
+  const deal = sp.get('deal')
+  const type = sp.get('type')
+  const life = sp.get('life')
+  const cplace = sp.get('cplace')
+  const cmin = Number(sp.get('cmin'))
+  const cmodeRaw = sp.get('cmode')
+  const cmode = COMMUTE_MODES.includes(cmodeRaw as NlCommuteMode) ? (cmodeRaw as NlCommuteMode) : 'transit'
+  const west = Number(sp.get('west'))
+  const south = Number(sp.get('south'))
+  const east = Number(sp.get('east'))
+  const north = Number(sp.get('north'))
+  const feat = sp.get('feat')
+  const f: NlFilters = {}
+  if (deal === 'sale' || deal === 'rent' || deal === 'daily' || deal === 'pledge') f.dealType = deal
+  if (type === 'apartment' || type === 'house' || type === 'villa' || type === 'commercial' || type === 'land' || type === 'hotel') {
+    f.propertyType = type
+  }
+  if (sp.get('city')) f.city = sp.get('city')!
+  if (sp.get('district')) f.district = sp.get('district')!
+  const max = Number(sp.get('max'))
+  const min = Number(sp.get('min'))
+  if (Number.isFinite(max) && max > 0) f.maxPrice = max
+  if (Number.isFinite(min) && min > 0) f.minPrice = min
+  const rooms = Number(sp.get('rooms'))
+  const beds = Number(sp.get('beds'))
+  const fmin = Number(sp.get('fmin'))
+  if (Number.isFinite(rooms) && rooms > 0) f.rooms = rooms
+  if (Number.isFinite(beds) && beds > 0) f.bedrooms = beds
+  if (Number.isFinite(fmin) && fmin > 0) f.floorMin = fmin
+  if (feat) f.features = feat.split(',').filter(Boolean)
+  if (sp.get('pets') === '1') f.pets = true
+  if (sp.get('metro') === '1') f.nearMetro = true
+  if (sp.get('bstat')) f.buildingStatus = sp.get('bstat')!
+  if (sp.get('cond')) f.condition = sp.get('cond')!
+  const cur = sp.get('cur')
+  if (cur === 'EUR' || cur === 'GEL' || cur === 'USD') f.currency = cur
+  if (life === 'family' || life === 'quiet' || life === 'central' || life === 'luxury') f.lifestyleGoal = life
+  if (cplace && Number.isFinite(cmin) && cmin > 0 && Number.isFinite(west) && Number.isFinite(south) && Number.isFinite(east) && Number.isFinite(north)) {
+    f.commute = {
+      place: cplace,
+      minutes: cmin,
+      mode: cmode,
+      lat: (south + north) / 2,
+      lng: (west + east) / 2,
     }
   }
-
-  if (query.district && property.district && query.district === property.district) {
-    reasons.push(`Located in requested neighborhood (${property.district})`)
-  }
-
-  return {
-    matchPercentage: Math.max(20, Math.round(match)),
-    reasons,
-    tradeoffs,
-  }
+  return f
 }

@@ -8,6 +8,7 @@ import {
   parseNlQuery,
   routeCountryNl,
   explainPropertyMatch,
+  nlFromSearchParams,
 } from './nl-search'
 
 const a = parseNlQuery('2 bedroom Vake apartment under 250k with parking')
@@ -237,7 +238,40 @@ const matchResult = explainPropertyMatch(
   { price: 195000, bedrooms: 2, district: 'ვაკე', nearMetro: true }
 )
 assert.equal(matchResult.matchPercentage, 100)
+assert.equal(matchResult.matched, 4)
+assert.equal(matchResult.criteria, 4)
 assert.ok(matchResult.reasons.length >= 3)
+
+const enStar = parseNlQuery(
+  '2-bedroom Berlin apartment under €2,000, quiet, balcony, lots of light, within 30 minutes of Mitte',
+)
+assert.equal(enStar.bedrooms, 2)
+assert.equal(enStar.propertyType, 'apartment')
+assert.equal(enStar.city, 'ბერლინი')
+assert.equal(enStar.district, undefined, 'commute destination is not a district pin')
+assert.equal(enStar.maxPrice, 2000)
+assert.equal(enStar.dealType, 'rent')
+assert.equal(enStar.currency, 'EUR')
+assert.equal(enStar.lifestyleGoal, 'quiet')
+assert.ok(enStar.features?.includes('add.f.balcony'))
+assert.ok(enStar.features?.includes('add.f.bright'))
+assert.equal(enStar.commute?.place, 'Mitte')
+assert.equal(enStar.commute?.minutes, 30)
+assert.equal(enStar.commute?.mode, 'transit')
+const enPatch = nlToSearchPatch(enStar)
+assert.equal(enPatch.deal, 'rent')
+assert.equal(enPatch.district, undefined)
+assert.equal(enPatch.cplace, 'Mitte')
+assert.equal(enPatch.cmin, '30')
+assert.ok(enPatch.west && enPatch.south && enPatch.east && enPatch.north)
+assert.equal(enPatch.life, 'quiet')
+
+const fromUrl = nlFromSearchParams(
+  new URLSearchParams(Object.entries(enPatch).filter((e): e is [string, string] => Boolean(e[1]))),
+)
+assert.equal(fromUrl.commute?.place, 'Mitte')
+assert.equal(fromUrl.dealType, 'rent')
+assert.equal(fromUrl.lifestyleGoal, 'quiet')
 
 // § 3 north-star example, in German — the full structured parse must survive.
 const deQ = parseNlQuery(
@@ -245,8 +279,11 @@ const deQ = parseNlQuery(
 )
 assert.equal(deQ.rooms, 2)
 assert.equal(deQ.city, 'ბერლინი')
-assert.equal(deQ.district, 'Mitte')
+assert.equal(deQ.district, undefined, 'innerhalb 30 Minuten von Mitte is commute, not Bezirk Mitte')
+assert.equal(deQ.commute?.place, 'Mitte')
+assert.equal(deQ.commute?.minutes, 30)
 assert.equal(deQ.maxPrice, 2000)
+assert.equal(deQ.dealType, 'rent')
 assert.equal(deQ.currency, 'EUR')
 assert.equal(deQ.lifestyleGoal, 'quiet')
 assert.equal(deQ.floorMin, 1)
@@ -255,6 +292,12 @@ assert.ok(deQ.features!.includes('add.f.bright'))
 const dePatch = nlToSearchPatch(deQ)
 assert.equal(dePatch.fmin, '1')
 assert.equal(dePatch.cur, 'EUR')
+assert.equal(dePatch.deal, 'rent')
+assert.equal(dePatch.cplace, 'Mitte')
+assert.ok(!dePatch.district)
+
+assert.equal(parseNlQuery('2 Zimmer Wohnung in Berlin unter 500.000 €').dealType, 'sale')
+assert.equal(nlToSearchPatch(deBerlin).metro, '1')
 
 // German garden/terrace/cellar wording maps to the real feature keys.
 const gartenQ = parseNlQuery('Haus mit Garten und Terrasse in Potsdam kaufen, Keller bevorzugt')
