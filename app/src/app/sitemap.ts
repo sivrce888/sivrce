@@ -327,6 +327,7 @@ async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
   // German metro programmatic SEO: station index + all-systems page + 339
   // Berlin U/S-Bahn station pages (de-only — no hreflang cluster).
   out.push({ url: `${COM_ORIGIN}/en/de/metro`, changeFrequency: 'weekly', priority: 0.8 })
+  out.push({ url: `${COM_ORIGIN}/en/de/miete-oder-kaufen`, changeFrequency: 'monthly', priority: 0.7 })
   out.push({ url: `${COM_ORIGIN}/en/de/metro/germany`, changeFrequency: 'monthly', priority: 0.7 })
   for (const s of [...BERLIN_U_STATIONS, ...BERLIN_S_STATIONS]) {
     out.push({ url: `${COM_ORIGIN}/en/de/metro/${s.slug}`, changeFrequency: 'monthly', priority: 0.6 })
