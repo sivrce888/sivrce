@@ -105,6 +105,21 @@ function deNativeCopy(slug: Slug): CountryCopy | null {
   return null
 }
 
+/** German intent words visitors actually type, mapped to canonical slugs. */
+const DE_INTENT_ALIAS: Record<string, 'buy' | 'rent'> = {
+  kaufen: 'buy',
+  kauf: 'buy',
+  mieten: 'rent',
+  miete: 'rent',
+}
+
+/** Normalize native German intent words in a `/de` slug (kaufen → buy). */
+export function normalizeDeSlug(slug: Slug): Slug {
+  if (!slug?.length) return slug
+  const aliased = DE_INTENT_ALIAS[slug[slug.length - 1]]
+  return aliased ? [...slug.slice(0, -1), aliased] : slug
+}
+
 function copyFor(
   country: PathCountryId,
   slug: Slug,
@@ -162,8 +177,9 @@ export async function countryMetadata(
   country: PathCountryId,
   params: Promise<{ lang: string; slug?: string[] }>,
 ): Promise<Metadata> {
-  const { lang: raw, slug } = await params
+  const { lang: raw, slug: rawSlug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
+  const slug = normalizeDeSlug(rawSlug)
   const projectSlug = deProjectSlug(country, slug)
   if (projectSlug) {
     return projectPageMetadata({ params: Promise.resolve({ lang, slug: projectSlug, market: 'de' }) })
@@ -442,8 +458,14 @@ export default async function CountryPage({
   country: PathCountryId
   params: Promise<{ lang: string; slug?: string[] }>
 }) {
-  const { lang: raw, slug } = await params
+  const { lang: raw, slug: rawSlug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
+  const slug = normalizeDeSlug(rawSlug)
+  // A bare intent (/de/de/kaufen, /de/de/buy) gets the default city instead
+  // of a dead-end redirect to a path that does not exist.
+  if (country === 'de' && lang === 'de' && slug?.length === 1 && (slug[0] === 'buy' || slug[0] === 'rent')) {
+    redirect(`/de/de/${MARKETS.de.defaultCitySlug}/${slug[0]}`)
+  }
   // Anything without native German copy (other cities, project pages, an
   // intent page the city does not ship) goes to the English URL instead of a
   // language-mismatched soft-404. DE_DE_COPY is the single source of truth.

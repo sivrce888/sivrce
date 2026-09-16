@@ -55,6 +55,12 @@ function swapPathSeg(pathname: string, from: string, to: string): string {
 export function mapCctldPath(cc: PathCountryId, pathname: string): string {
   const clean = sanitizePath(pathname) ?? '/'
   const bare = stripLangPrefix(clean)
+  // German visitors land on native German pages: /de/de/… (lang `de` + market
+  // `de`). Deep subpaths are preserved — the route decides page vs 404, an
+  // honest answer beats silently collapsing every deep link to the market hub.
+  if (cc === 'de') {
+    return bare === '/' ? '/de/de' : `/de/de${bare}`
+  }
   const prefix = MARKETS[cc].pathPrefix
   if (bare === '/') return prefix
   const segs = bare.split('/').filter(Boolean)

@@ -31,9 +31,17 @@ import { jsonLd } from '@/lib/utils'
 
 export const revalidate = 86400
 
-/** buy/sale/rent under /de/berlin belong to CountryPage's intent flow. */
+/** buy/sale/rent under /de/berlin belong to CountryPage's intent flow —
+ *  including the native German words visitors type (CountryPage normalizes
+ *  them, so /de/de/berlin/kaufen serves the German buy page). */
 function isIntentSlug(seg: string): boolean {
-  return canonicalIntent(seg) !== null
+  return (
+    canonicalIntent(seg) !== null ||
+    seg === 'kauf' ||
+    seg === 'kaufen' ||
+    seg === 'miete' ||
+    seg === 'mieten'
+  )
 }
 
 function asCountryParams(lang: string, bezirk: string): Promise<{ lang: string; slug?: string[] }> {
