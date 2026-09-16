@@ -239,4 +239,27 @@ const matchResult = explainPropertyMatch(
 assert.equal(matchResult.matchPercentage, 100)
 assert.ok(matchResult.reasons.length >= 3)
 
+// § 3 north-star example, in German — the full structured parse must survive.
+const deQ = parseNlQuery(
+  'Ruhige 2-Zimmer-Wohnung in Berlin unter 2.000 €, innerhalb 30 Minuten von Mitte, Balkon bevorzugt, helles Bad, kein Erdgeschoss',
+)
+assert.equal(deQ.rooms, 2)
+assert.equal(deQ.city, 'ბერლინი')
+assert.equal(deQ.district, 'Mitte')
+assert.equal(deQ.maxPrice, 2000)
+assert.equal(deQ.currency, 'EUR')
+assert.equal(deQ.lifestyleGoal, 'quiet')
+assert.equal(deQ.floorMin, 1)
+assert.ok(deQ.features!.includes('add.f.balcony'))
+assert.ok(deQ.features!.includes('add.f.bright'))
+const dePatch = nlToSearchPatch(deQ)
+assert.equal(dePatch.fmin, '1')
+assert.equal(dePatch.cur, 'EUR')
+
+// German garden/terrace/cellar wording maps to the real feature keys.
+const gartenQ = parseNlQuery('Haus mit Garten und Terrasse in Potsdam kaufen, Keller bevorzugt')
+for (const key of ['add.f.yard', 'add.f.terrace', 'add.f.cellar']) {
+  assert.ok(gartenQ.features!.includes(key), `missing ${key}`)
+}
+
 console.log('ok: nl-search')
