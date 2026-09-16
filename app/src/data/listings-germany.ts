@@ -25,13 +25,14 @@ const PHOTO: Record<PropType, string[]> = {
   apartment: [
     '/images/de/apt-1.webp', '/images/de/apt-2.webp', '/images/de/apt-3.webp', '/images/de/apt-4.webp',
     '/images/de/apt-5.webp', '/images/de/apt-6.webp', '/images/de/balkon-1.webp', '/images/de/neubau-1.webp',
-    '/images/de/loft-1.webp', '/images/de/terrasse-1.webp',
+    '/images/de/loft-1.webp', '/images/de/terrasse-1.webp', '/images/de/penthouse-1.webp', '/images/de/kitchen-1.webp',
+    '/images/de/living-1.webp', '/images/de/bathroom-1.webp',
   ],
-  house: ['/images/de/house-1.webp', '/images/de/house-2.webp', '/images/de/apt-2.webp', '/images/de/apt-3.webp', '/images/de/balkon-1.webp'],
-  villa: ['/images/de/villa-1.webp', '/images/de/house-1.webp', '/images/de/terrasse-1.webp', '/images/de/apt-1.webp', '/images/de/apt-4.webp'],
-  commercial: ['/images/de/commercial-1.webp', '/images/de/neubau-1.webp', '/images/de/apt-6.webp', '/images/de/loft-1.webp'],
-  land: ['/images/de/land-1.webp', '/images/de/house-2.webp', '/images/de/neubau-1.webp'],
-  hotel: ['/images/de/hotel-1.webp', '/images/de/apt-1.webp', '/images/de/apt-4.webp', '/images/de/terrasse-1.webp', '/images/de/balkon-1.webp'],
+  house: ['/images/de/house-1.webp', '/images/de/house-2.webp', '/images/de/garden-1.webp', '/images/de/kitchen-1.webp', '/images/de/living-1.webp', '/images/de/bathroom-1.webp', '/images/de/balkon-1.webp'],
+  villa: ['/images/de/villa-1.webp', '/images/de/garden-1.webp', '/images/de/penthouse-1.webp', '/images/de/terrasse-1.webp', '/images/de/living-1.webp', '/images/de/kitchen-1.webp', '/images/de/bathroom-1.webp'],
+  commercial: ['/images/de/commercial-1.webp', '/images/de/office-1.webp', '/images/de/neubau-1.webp', '/images/de/apt-6.webp', '/images/de/loft-1.webp'],
+  land: ['/images/de/land-1.webp', '/images/de/garden-1.webp', '/images/de/house-2.webp', '/images/de/neubau-1.webp'],
+  hotel: ['/images/de/hotel-1.webp', '/images/de/penthouse-1.webp', '/images/de/terrasse-1.webp', '/images/de/bathroom-1.webp', '/images/de/balkon-1.webp', '/images/de/living-1.webp'],
 }
 
 type BadgeKey = 'sv' | 'vp' | 'v' | '-'

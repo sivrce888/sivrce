@@ -28,6 +28,12 @@ const FILES: { key: string; file: string }[] = [
   { key: 'neubau-1', file: 'Neubau_Wohnanlage.jpg' },
   { key: 'balkon-1', file: 'Balkon_mit_Stadtblick.jpg' },
   { key: 'terrasse-1', file: 'Dachterrasse.jpg' },
+  { key: 'penthouse-1', file: 'Penthouse_terrace.jpg' },
+  { key: 'kitchen-1', file: 'Modern_design_kitchen.jpg' },
+  { key: 'garden-1', file: 'Private_garden_villa.jpg' },
+  { key: 'living-1', file: 'Modern_living_room_interior.jpg' },
+  { key: 'office-1', file: 'Modern_office_interior.jpg' },
+  { key: 'bathroom-1', file: 'Luxury_bathroom_interior.jpg' },
 ]
 
 async function fetchBuf(url: string): Promise<Buffer | null> {
@@ -65,6 +71,12 @@ const UNSPLASH: Record<string, string> = {
   'neubau-1': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1400&q=80&auto=format&fit=crop',
   'balkon-1': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1400&q=80&auto=format&fit=crop',
   'terrasse-1': 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1400&q=80&auto=format&fit=crop',
+  'penthouse-1': 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=1400&q=80&auto=format&fit=crop',
+  'kitchen-1': 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1400&q=80&auto=format&fit=crop',
+  'garden-1': 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1400&q=80&auto=format&fit=crop',
+  'living-1': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1400&q=80&auto=format&fit=crop',
+  'office-1': 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1400&q=80&auto=format&fit=crop',
+  'bathroom-1': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1400&q=80&auto=format&fit=crop',
 }
 
 async function main() {
