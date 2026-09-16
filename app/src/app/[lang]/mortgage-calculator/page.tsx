@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import LocalizedLink from '@/components/LocalizedLink'
-import { ChevronRight, TrendingUp, Building2 } from 'lucide-react'
+import { ChevronRight, TrendingUp, Building2, Scale } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
@@ -59,6 +59,7 @@ const COPY: Record<DirLoc, {
   faqTitle: string; faqs: { q: string; a: string }[]
   ctaTitle: string; ctaSub: string; ctaButton: string
   crumbHome: string; crumbCalc: string; lang: string
+  sibling: string
   banks: BankRow[]
 }> = {
   ka: {
@@ -85,6 +86,7 @@ const COPY: Record<DirLoc, {
     ctaSub: 'ვერიფიცირებული განცხადებები AI ფასის შეფასებით — თბილისი, ბათუმი, ქუთაისი.',
     ctaButton: 'ვერიფიცირებული ბინები',
     crumbHome: 'მთავარი', crumbCalc: 'იპოთეკის კალკულატორი', lang: 'ka',
+    sibling: 'ქირა თუ ყიდვა? შეადარეთ რიცხვებით →',
     banks: [
       { name: 'Bank of Georgia', local: 'საქართველოს ბანკი', rate: '8.9-12.5%', term: '5-25 წელი', note: 'ყველაზე დიდი პორტფელი; რეზიდენტებისთვის სწრაფი განხილვა' },
       { name: 'TBC Bank', local: 'ტი-ბი-სი ბანკი', rate: '9.2-13%', term: '5-25 წელი', note: 'ციფრული განაცხადი, ონლაინ პრე-აპრუვალი' },
@@ -116,6 +118,7 @@ const COPY: Record<DirLoc, {
     ctaSub: 'Verified listings with AI price estimates — Tbilisi, Batumi, Kutaisi.',
     ctaButton: 'Verified apartments',
     crumbHome: 'Home', crumbCalc: 'Mortgage calculator', lang: 'en',
+    sibling: 'Rent vs buy? Compare with numbers →',
     banks: [
       { name: 'Bank of Georgia', local: 'Bank of Georgia', rate: '8.9-12.5%', term: '5–25 yrs', note: 'Largest portfolio; fast review for residents' },
       { name: 'TBC Bank', local: 'TBC Bank', rate: '9.2-13%', term: '5–25 yrs', note: 'Digital application, online pre-approval' },
@@ -147,6 +150,7 @@ const COPY: Record<DirLoc, {
     ctaSub: 'Верифицированные объявления с ИИ-оценкой цены — Тбилиси, Батуми, Кутаиси.',
     ctaButton: 'Верифицированные квартиры',
     crumbHome: 'Главная', crumbCalc: 'Ипотечный калькулятор', lang: 'ru',
+    sibling: 'Аренда или покупка? Сравните по цифрам →',
     banks: [
       { name: 'Bank of Georgia', local: 'Банк Грузии', rate: '8.9-12.5%', term: '5–25 лет', note: 'Крупнейший портфель; быстрое рассмотрение для резидентов' },
       { name: 'TBC Bank', local: 'Ти-Би-Си Банк', rate: '9.2-13%', term: '5–25 лет', note: 'Цифровая заявка, онлайн пре-аппруваль' },
@@ -214,6 +218,13 @@ export default async function MortgageCalculatorPage({
         <div className="mx-auto max-w-[1100px] px-5 pb-20 md:px-10">
 
         <MortgageCalcClient loc={loc} />
+
+        <div className="mt-4 flex items-center justify-center gap-2 text-[14px] font-bold text-sv-ink/60">
+          <Scale className="h-4 w-4 text-sv-blue" aria-hidden />
+          <LocalizedLink href="/rent-vs-buy" className="underline-offset-4 hover:text-sv-blue hover:underline">
+            {c.sibling}
+          </LocalizedLink>
+        </div>
 
         {/* Bank comparison */}
         <section className="mt-14" aria-label={c.bankSection}>
