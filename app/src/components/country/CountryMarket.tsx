@@ -113,11 +113,14 @@ const DE_INTENT_ALIAS: Record<string, 'buy' | 'rent'> = {
   miete: 'rent',
 }
 
-/** Normalize native German intent words in a `/de` slug (kaufen → buy). */
+/** Normalize native German intent words in a `/de` slug (kaufen → buy).
+ *  Handles both orders: /de/de/berlin/kaufen and /de/de/kaufen/berlin. */
 export function normalizeDeSlug(slug: Slug): Slug {
   if (!slug?.length) return slug
   const aliased = DE_INTENT_ALIAS[slug[slug.length - 1]]
-  return aliased ? [...slug.slice(0, -1), aliased] : slug
+  if (aliased) return [...slug.slice(0, -1), aliased]
+  if (slug.length === 2 && DE_INTENT_ALIAS[slug[0]]) return [slug[1], DE_INTENT_ALIAS[slug[0]]]
+  return slug
 }
 
 function copyFor(
