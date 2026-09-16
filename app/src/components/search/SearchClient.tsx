@@ -38,7 +38,7 @@ import { dealLabelKey as dealKeyFor, featuresFor, rentPeriodKey } from '@/lib/ad
 import { mapSearchHit } from '@/lib/map-search-hit'
 import { placeLabel, listingTitle } from '@/lib/place-label'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
-import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
+import { aiParseQuery, explainPropertyMatch, nlFromSearchParams, nlHasListingConstraints, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
 import { addSearchHistory, clearSearchHistory, getSearchHistory, type SearchHistoryEntry } from '@/lib/search-history'
 import { isSearchTier, SEARCH_TIERS } from '@/lib/listings-home-rail'
@@ -46,8 +46,15 @@ import { tierKeyToBadge } from '@/lib/promo-pricing'
 import {
   type DealType, type PropType, type SortKey, type Listing,
 } from '@/data/listings'
+import { EUR_GEL } from '@/lib/listing-format'
 
 const ease = [0.21, 0.65, 0.2, 1] as const
+
+function listingPriceIn(l: Listing, cur: 'USD' | 'GEL' | 'EUR'): number {
+  if (cur === 'GEL') return l.priceGEL
+  if (cur === 'EUR') return Math.round(l.priceGEL / EUR_GEL)
+  return l.priceUSD
+}
 
 /* Map view is heavy (maplibre) — load only when ?view=map is actually used. */
 const SearchMapView = dynamic(() => import('@/components/search/SearchMapView'), {
@@ -275,6 +282,9 @@ export default function SearchClient({
       west < east &&
       south < north,
   )
+  const cplace = params.get('cplace') || undefined
+  const cmin = numParam('cmin')
+  const life = params.get('life')
   // Daily-rent availability window (only meaningful for the daily deal).
   const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
   const fromRaw = params.get('from') ?? ''
@@ -628,6 +638,13 @@ export default function SearchClient({
   if (tier) chips.push({ key: 'tier', label: tierKeyToBadge(tier) ?? tier, clear: () => patchParams({ tier: undefined }) })
   if (pets) chips.push({ key: 'pets', label: t('search.petsOnly'), clear: () => patchParams({ pets: undefined }) })
   if (nearMetro) chips.push({ key: 'metro', label: t('search.nearMetro'), clear: () => patchParams({ metro: undefined }) })
+  if (life === 'quiet' || life === 'family' || life === 'central' || life === 'luxury') {
+    chips.push({
+      key: 'life',
+      label: life === 'quiet' ? featureLabel('add.f.quiet', t) : life,
+      clear: () => patchParams({ life: undefined }),
+    })
+  }
   if (seller) chips.push({ key: 'seller', label: t(seller === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency'), clear: () => patchParams({ seller: undefined }) })
   if (from && to) chips.push({ key: 'dates', label: `${from} → ${to}`, clear: () => patchParams({ from: undefined, to: undefined }) })
   if (cur === 'GEL' && (minPrice !== undefined || maxPrice !== undefined)) chips.push({ key: 'cur', label: '₾', clear: () => patchParams({ cur: undefined }) })
@@ -636,10 +653,36 @@ export default function SearchClient({
   if (areaActive) {
     chips.push({
       key: 'area',
-      label: t('search.mapSearchArea'),
+      label: cplace && cmin ? `~${cmin} min · ${cplace}` : t('search.mapSearchArea'),
       clear: () =>
-        patchParams({ west: undefined, south: undefined, east: undefined, north: undefined }),
+        patchParams({
+          west: undefined,
+          south: undefined,
+          east: undefined,
+          north: undefined,
+          cplace: undefined,
+          cmin: undefined,
+          cmode: undefined,
+        }),
     })
+  }
+
+  const intent = useMemo(() => nlFromSearchParams(new URLSearchParams(paramsKey)), [paramsKey])
+  const listingMatch = (l: Listing) => {
+    if (!nlHasListingConstraints(intent)) return undefined
+    const r = explainPropertyMatch(intent, {
+      price: listingPriceIn(l, cur),
+      rooms: l.rooms,
+      bedrooms: l.beds,
+      district: l.district,
+      nearMetro: Boolean(l.metroNear),
+      features: l.features,
+      floor: l.floor,
+      lat: l.coords.lat,
+      lng: l.coords.lng,
+    })
+    if (r.criteria === 0) return undefined
+    return { n: r.matched, total: r.criteria, hint: [...r.reasons, ...r.tradeoffs].join(' · ') }
   }
 
   const resetAll = () => {
@@ -1504,6 +1547,9 @@ export default function SearchClient({
                   south: undefined,
                   east: undefined,
                   north: undefined,
+                  cplace: undefined,
+                  cmin: undefined,
+                  cmode: undefined,
                 })
               }
             />
@@ -1549,7 +1595,13 @@ export default function SearchClient({
           <div className={view === 'grid' ? 'sv-card-grid' : 'grid grid-cols-1 gap-5'}>
             {results.flatMap((l, i) => {
               const card = (
-                <ListingCard key={l.id} l={l} i={i} layout={view === 'grid' ? 'wide' : 'list'} />
+                <ListingCard
+                  key={l.id}
+                  l={l}
+                  i={i}
+                  layout={view === 'grid' ? 'wide' : 'list'}
+                  match={listingMatch(l)}
+                />
               )
               if (ads?.native && i === 2) {
                 return [

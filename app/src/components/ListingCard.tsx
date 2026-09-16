@@ -180,9 +180,11 @@ interface ListingCardProps {
   /** grid (default, fixed scroller width) | wide (fills grid cell) | list (horizontal) */
   layout?: 'grid' | 'wide' | 'list'
   animate?: boolean
+  /** Structured-search match: n of criteria, hint = reasons + honest gaps. */
+  match?: { n: number; total: number; hint: string }
 }
 
-export default function ListingCard({ l, i = 0, layout = 'grid', animate = true }: ListingCardProps) {
+export default function ListingCard({ l, i = 0, layout = 'grid', animate = true, match }: ListingCardProps) {
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t, lang } = useI18n()
@@ -676,6 +678,14 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true 
               <Copy className="h-3 w-3" aria-hidden />×{l.dupeCount}
             </span>
           )}
+          {match && match.total > 0 ? (
+            <span
+              title={match.hint}
+              className="shrink-0 rounded-full bg-sv-blue/10 px-2 py-0.5 text-[11px] font-black tabular-nums text-sv-blue-deep"
+            >
+              {match.n}/{match.total}
+            </span>
+          ) : null}
           {l.isNew && (
             <span className="shrink-0 rounded-full bg-sv-orange/10 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-sv-ink">
               {t('card.new')}
