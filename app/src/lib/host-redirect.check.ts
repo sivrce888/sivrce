@@ -55,7 +55,7 @@ assert.deepEqual(comSale, { type: 'redirect', origin: 'same', pathname: '/ge/sal
 
 const comHome = decideHost({ host: 'sivrce.com', pathname: '/', vercelEnv: 'production' })
 assert.deepEqual(comHome, { type: 'rewrite', pathname: '/en', market: 'global' })
-// decideHost keeps / as the hub rewrite; proxy 302s humans by IP/cookie.
+// decideHost keeps / as the hub rewrite; proxy may 302 on cookie, never IP.
 
 const comMap = decideHost({ host: 'sivrce.com', pathname: '/map', vercelEnv: 'production' })
 assert.deepEqual(comMap, { type: 'rewrite', pathname: '/en/map', market: 'global' })
@@ -285,5 +285,14 @@ assert.deepEqual(comGeUpper, { type: 'redirect', origin: 'same', pathname: '/ge/
 // Georgia-locale pages still serve through the mirror untouched.
 const comGeRuDe = decideHost({ host: 'sivrce.com', pathname: '/ge/ru/de', vercelEnv: 'production' })
 assert.deepEqual(comGeRuDe, { type: 'rewrite', pathname: '/ru/de', market: 'ge' })
+
+const comGeorgia = decideHost({ host: 'sivrce.com', pathname: '/georgia/tbilisi', vercelEnv: 'production' })
+assert.deepEqual(comGeorgia, { type: 'redirect', origin: 'same', pathname: '/ge/tbilisi' })
+const comGermany = decideHost({ host: 'sivrce.com', pathname: '/germany/berlin', vercelEnv: 'production' })
+assert.deepEqual(comGermany, { type: 'redirect', origin: 'same', pathname: '/de/berlin' })
+const comUsa = decideHost({ host: 'sivrce.com', pathname: '/usa', vercelEnv: 'production' })
+assert.deepEqual(comUsa, { type: 'redirect', origin: 'same', pathname: '/us' })
+const geGeorgia = decideHost({ host: 'sivrce.ge', pathname: '/georgia', vercelEnv: 'production' })
+assert.deepEqual(geGeorgia, { type: 'redirect', origin: 'same', pathname: '/' })
 
 console.log('host-redirect.check: ok')

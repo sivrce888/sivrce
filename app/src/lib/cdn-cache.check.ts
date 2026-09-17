@@ -26,6 +26,7 @@ assert.ok(build.some((s) => s.join("/") === "sale"))
 assert.ok(build.some((s) => s.join("/") === "sale/apartments/tbilisi"))
 assert.ok(!build.some((s) => s.length >= 4), "district/room pages must stay on-demand ISR")
 assert.match(cdnJson({ ok: true }, 60).headers.get("Cache-Control") ?? "", /s-maxage=60/)
+assert.equal(cdnJson({ ok: true }, 60).headers.get("Vary"), "Host")
 
 const nextCfg = read("next.config.ts")
 assert.ok(has(nextCfg, "productionBrowserSourceMaps: false"))

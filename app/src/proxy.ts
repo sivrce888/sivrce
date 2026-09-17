@@ -17,7 +17,8 @@ import { GE_ORIGIN, MARKET_HEADER, hostKind, isOwnHost, safeRedirectUrl } from "
  * Edge-level defense in depth for protected routes + locale routing
  * + multi-host routing (admin / api / cdn / app / analytics / images)
  * + country paths on sivrce.com (/de /ae /fr /es /it /gb /us /ca /tr
- *   /gr /cy /nl /pt /ch; /uae→/ae, /uk→/gb). Georgia catalog on .com still 308s to sivrce.ge.
+ *   /gr /cy /nl /pt /ch; /uae→/ae, /uk→/gb, /georgia→/ge, /germany→/de).
+ *   Georgia catalog on .com lives at /ge (self-canonical).
  *
  * Route-based i18n: every public page lives under app/[lang]. ka is the
  * canonical default and stays URL-unprefixed — this proxy INTERNALLY
@@ -323,12 +324,12 @@ export function proxy(req: NextRequest) {
     }
     if (decision.type === "rewrite") {
       let nextMarket = decision.market
-      // sivrce.com/ : crawlers + worldwide keep the product hub; humans 302 to market.
+      // sivrce.com/ : crawlers + first visit = worldwide hub. Cookie (explicit
+      // market pick) may 302 back. IP never redirects.
       if (nextMarket === "global" && isComHomePath(pathname) && !preview) {
         const worldwide = req.nextUrl.searchParams.has("worldwide")
         const target = geoLaunchTarget({
           cookie: req.cookies.get(GEO_COOKIE)?.value,
-          iso: req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry"),
           worldwide,
           crawler: isCrawler(req.headers.get("user-agent")),
         })

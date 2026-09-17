@@ -39,8 +39,17 @@ export const COUNTRY_IDS = [
 
 export const COUNTRY_PREFIX_RE = new RegExp(`^/(${COUNTRY_IDS.join('|')})(?=/|$)`)
 
-/** Human aliases → canonical ISO path. */
-export const COUNTRY_ALIAS = { uae: 'ae', uk: 'gb' } as const
+/** Human aliases → canonical ISO path (`/georgia` → `/ge`, `/uae` → `/ae`). */
+export const COUNTRY_ALIAS = {
+  uae: 'ae',
+  uk: 'gb',
+  georgia: 'ge',
+  germany: 'de',
+  france: 'fr',
+  usa: 'us',
+  spain: 'es',
+  italy: 'it',
+} as const
 export type CountryAlias = keyof typeof COUNTRY_ALIAS
 
 /** Company pages that stay on sivrce.com (not Georgia catalog). `search` = the
@@ -70,7 +79,7 @@ export function countryFromPath(pathname: string): PathCountryId | null {
 }
 
 export function isCountryAlias(seg: string): seg is CountryAlias {
-  return seg === 'uae' || seg === 'uk'
+  return Object.hasOwn(COUNTRY_ALIAS, seg)
 }
 
 export function isComPageSeg(seg: string): boolean {

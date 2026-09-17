@@ -148,10 +148,10 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
   }
 
   // Production .ge: locale prefixes (incl. /de, /tr, /uk) stay. Bare country
-  // paths and leftover country-city slugs move to .com. /ge/… (the .com
-  // mirror form) folds to the unprefixed canonical URL.
+  // paths and leftover country-city slugs move to .com. /ge and /georgia
+  // (the .com mirror forms) fold to the unprefixed canonical URL.
   if (!local && kind === 'ge') {
-    if (restFirst === 'ge') {
+    if (restFirst === 'ge' || restFirst === 'georgia') {
       const tail = restSegs.slice(1)
       return { type: 'redirect', origin: 'same', pathname: tail.length ? `/${tail.join('/')}` : '/' }
     }
@@ -174,8 +174,8 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
   }
 
   // Production .com: global hub + country paths + company pages + map.
-  // Georgian catalog lives at /ge (full mirror of sivrce.ge; canonicals stay
-  // on .ge via the market header → metadataBase).
+  // Georgian catalog lives at /ge (full mirror of sivrce.ge). Each surface
+  // self-canonicalizes; hreflang pairs them — never a blind cross-domain canonical.
   if (!local && kind === 'com') {
     if (path === '/' || path === '/en') {
       return { type: 'rewrite', pathname: '/en', market: 'global' }

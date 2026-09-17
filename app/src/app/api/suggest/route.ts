@@ -25,6 +25,8 @@ import { COUNTRIES as WORLD_COUNTRIES } from "@/data/world-countries"
 import POIS from "@/data/georgia-pois.json"
 import { METRO_STATIONS } from "@/data/tbilisi-metro"
 import { WORLD_METROS } from "@/data/world-metros"
+import { hostKind } from "@/lib/site-host"
+import { hostFromRequest } from "@/lib/domain-scope"
 
 /**
  * GET /api/suggest?q= — autocomplete for the search keyword box.
@@ -256,6 +258,7 @@ const METRO_ROWS: Row[] = [
 const CACHE = {
   "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
   "Vercel-CDN-Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
+  Vary: "Host",
 }
 
 /* ————— DE market rows (mkt=de) ————— */
@@ -363,9 +366,11 @@ export async function GET(req: Request) {
   const q = (sp.get("q") ?? "").trim().toLowerCase()
   const cityFilter = (sp.get("city") ?? "").trim() || undefined
   const districtFilter = (sp.get("district") ?? "").trim()
+  const geOnly = hostKind(hostFromRequest(req), process.env.VERCEL_ENV) === "ge"
 
   // DE market — German names, separate pools; never mixed with the GE catalog.
-  if (sp.get("mkt") === "de") {
+  // sivrce.ge ignores mkt=de so Berlin streets cannot leak onto the Georgia surface.
+  if (!geOnly && sp.get("mkt") === "de") {
     if (q.length < 2) {
       if (sp.get("browse") === "1" && cityFilter === BERLIN) {
         const out = (s: string): Suggestion => ({ kind: "street", ka: s, city: BERLIN })
@@ -417,17 +422,19 @@ export async function GET(req: Request) {
       const m = matchPrepared(r.hay, cq)
       if (m) push(r, m.prefix)
     }
-    for (const r of WORLD_CITY_ROWS) {
-      const m = matchPrepared(r.hay, cq)
-      if (m) push(r, m.prefix)
-    }
-    for (const r of COUNTRY_ROWS) {
-      const m = matchPrepared(r.hay, cq)
-      if (m) push(r, m.prefix)
-    }
-    for (const r of WORLD_COUNTRY_ROWS) {
-      const m = matchPrepared(r.hay, cq)
-      if (m) push(r, m.prefix)
+    if (!geOnly) {
+      for (const r of WORLD_CITY_ROWS) {
+        const m = matchPrepared(r.hay, cq)
+        if (m) push(r, m.prefix)
+      }
+      for (const r of COUNTRY_ROWS) {
+        const m = matchPrepared(r.hay, cq)
+        if (m) push(r, m.prefix)
+      }
+      for (const r of WORLD_COUNTRY_ROWS) {
+        const m = matchPrepared(r.hay, cq)
+        if (m) push(r, m.prefix)
+      }
     }
   } else {
     for (const r of DEVELOPER_ROWS) {
@@ -449,6 +456,7 @@ export async function GET(req: Request) {
 
   // Metro = navigable entity (station page) — ranks with buildings, above keywords.
   for (const r of METRO_ROWS) {
+    if (geOnly && r.city && r.city !== "თბილისი") continue
     if (cityFilter && r.city && r.city !== cityFilter) continue
     const m = matchPrepared(r.hay, cq)
     if (m) push(r, m.prefix)

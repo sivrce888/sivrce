@@ -32,7 +32,7 @@ if (offenders.length > 0) {
 }
 
 const server = readFileSync(new URL("./i18n/server.ts", import.meta.url), "utf8")
-for (const helper of ["pageAlternates", "kaOnlyAlternates", "langCanonical"]) {
+for (const helper of ["pageAlternates", "kaOnlyAlternates", "langCanonical", "surfaceAlternates"]) {
   if (!server.includes(`export function ${helper}`)) {
     console.error(`seo-canonical: ${helper} missing from lib/i18n/server.ts`)
     process.exit(1)

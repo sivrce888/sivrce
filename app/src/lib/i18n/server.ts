@@ -32,7 +32,16 @@ export function langCanonical(path: string, lang: Lang): string {
 
 /** Standard alternates block: self-canonical for this locale + full hreflang set. */
 export function pageAlternates(path: string, lang: Lang) {
-  return { canonical: langCanonical(path, lang), languages: langAlternates(path) }
+  return surfaceAlternates(path, lang)
+}
+
+/** Same cluster with a public path prefix (`/ge` on sivrce.com Georgia surface). */
+export function surfaceAlternates(path: string, lang: Lang, prefix = '') {
+  const wrap = (p: string) => (prefix ? `${prefix}${p === '/' ? '' : p}` : p)
+  const languages = Object.fromEntries(
+    Object.entries(langAlternates(path)).map(([l, p]) => [l, wrap(p)]),
+  )
+  return { canonical: wrap(langCanonical(path, lang)), languages }
 }
 
 /**

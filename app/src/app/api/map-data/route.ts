@@ -6,12 +6,14 @@
 import { NextResponse } from 'next/server'
 import { cdnJson } from '@/lib/cdn-cache'
 import { loadMapDataFresh } from '@/lib/map/db-buildings'
+import { enforcedCountry, hostFromRequest, requestKind } from '@/lib/domain-scope'
 
 export const maxDuration = 10
 
 export async function GET(req: Request) {
   try {
-    const country = new URL(req.url).searchParams.get('country') || undefined
+    const kind = requestKind(hostFromRequest(req), process.env.VERCEL_ENV)
+    const country = enforcedCountry(kind, new URL(req.url).searchParams.get('country'))
     const data = await loadMapDataFresh(country)
     return cdnJson({
       listings: data.listings,

@@ -22,28 +22,28 @@ import { jsonLd, ogImages } from '@/lib/utils'
 import ListingDetailClient from '@/components/listing/ListingDetailClient'
 import { pickAd } from '@/lib/ads-db'
 import { nearbyProjectsLive } from '@/lib/directory-live'
-import { getServerT, langAlternates, langCanonical, OG_LOCALE } from '@/lib/i18n/server'
+import { getServerT, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { featureLabel, isFeatureKey } from '@/lib/features'
-import { listingCanonicalPath, listingOrigin } from '@/lib/markets'
+import { COM_ORIGIN, GE_ORIGIN, listingCanonicalPath, listingOrigin } from '@/lib/markets'
+import { georgiaListingAlternates, surfacePathPrefix, type DomainId } from '@/lib/domain-scope'
+import { requestDomain } from '@/lib/request-market'
 import { buyerCostBreakdownByCityName } from '@/lib/countries/de'
 import { parseDeExpose } from '@/lib/countries/de-expose'
 
 /**
- * Listing alternates are absolute per listing origin — GE listings canonicalize
- * on sivrce.ge (full 10-locale cluster) no matter which host serves the page;
- * world listings canonicalize on sivrce.com/en.
+ * Listing alternates are absolute and surface-aware.
+ * World listings canonicalize on sivrce.com/en.
+ * Georgian listings self-canonicalize on the serving domain and hreflang
+ * to the other surface — never a blind .ge ↔ .com canonical.
  */
-function listingAlternates(path: string, lang: Lang, country?: string) {
+function listingAlternates(path: string, lang: Lang, country?: string, domain: DomainId = 'ge') {
   const origin = listingOrigin(country)
   if (country && country !== 'GE') {
     const url = `${origin}${listingCanonicalPath(path, country)}`
     return { canonical: url, languages: { en: url, 'x-default': url } as Record<string, string> }
   }
-  const languages = Object.fromEntries(
-    Object.entries(langAlternates(path)).map(([l, p]) => [l, `${origin}${p}`]),
-  )
-  return { canonical: `${origin}${langCanonical(path, lang)}`, languages }
+  return georgiaListingAlternates(path, lang, domain)
 }
 
 // ponytail: 60s ISR. auth() on this page dynamized every listing view.
@@ -119,8 +119,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const firstImg = l.images[0] ?? ''
   const ogList = firstImg ? ogImages(firstImg) : ['/images/og-brand.png']
   const path = listingPath(l)
-  const origin = listingOrigin(l.country)
-  const canonicalAbs = `${origin}${listingCanonicalPath(path, l.country)}`
+  const domain = await requestDomain()
+  const alts = listingAlternates(path, lang, l.country, domain)
+  const canonicalAbs = alts.canonical
   const videoLd = listingVideoObject(l.video, {
     name: keyword,
     description,
@@ -130,7 +131,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: listingAlternates(path, lang, l.country),
+    alternates: alts,
     openGraph: {
       title,
       description,
@@ -169,8 +170,10 @@ export default async function ListingPage({ params }: PageProps) {
   // bare /listing/id and wrong/garbage slugs all 301 to it — juice consolidates.
   const canonical = listingPath(listing)
   const world = (listing.country ?? 'GE') !== 'GE'
-  const origin = listingOrigin(listing.country)
-  const absCanonical = `${origin}${listingCanonicalPath(canonical, listing.country)}`
+  const domain = await requestDomain()
+  const absCanonical = listingAlternates(canonical, lang, listing.country, domain).canonical
+  const origin = world || domain === 'com' ? COM_ORIGIN : GE_ORIGIN
+  const prefix = surfacePathPrefix(domain, world ? 'global' : 'ge')
   if (
     id !== String(listingPublicId(listing)) ||
     slug?.join('/') !== listingSlug(listing)
@@ -340,15 +343,15 @@ export default async function ListingPage({ params }: PageProps) {
     '@type': 'BreadcrumbList',
     // Middle crumb points at the indexable programmatic hub, not noindex /search.
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: t('detail.home'), item: origin },
+      { '@type': 'ListItem', position: 1, name: t('detail.home'), item: prefix ? `${origin}${prefix}` : origin },
       ...(hubPath && hubAnchor
-        ? [{ '@type': 'ListItem', position: 2, name: hubAnchor, item: `${origin}${listingCanonicalPath(hubPath, listing.country)}` }]
+        ? [{ '@type': 'ListItem', position: 2, name: hubAnchor, item: `${origin}${prefix}${listingCanonicalPath(hubPath, listing.country)}` }]
         : []),
       {
         '@type': 'ListItem',
         position: hubPath ? 3 : 2,
         name: listing.title,
-        item: world ? absCanonical : `${origin}${langCanonical(canonical, lang)}`,
+        item: absCanonical,
       },
     ],
   }

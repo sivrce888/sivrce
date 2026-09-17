@@ -20,6 +20,7 @@ import { isExactLookupQuery } from "@/lib/listing-public-id"
 import { cardPhotoPayload } from "@/lib/card-gallery-teaser"
 import { streetHrefForListing } from "@/lib/street-href"
 import { canCatalogFallback, catalogSearch } from "@/lib/catalog-search"
+import { enforcedCountry, hostFromRequest, requestKind } from "@/lib/domain-scope"
 
 export const maxDuration = 15
 
@@ -246,11 +247,14 @@ function mapDbHit(
 const CACHE_HEADERS = {
   "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
   "Vercel-CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+  Vary: "Host",
 }
 
 export async function GET(req: Request) {
   const url = new URL(req.url)
   const sp = url.searchParams
+  const kind = requestKind(hostFromRequest(req), process.env.VERCEL_ENV)
+  const lockedCountry = enforcedCountry(kind, sp.get("country"))
 
   // Fetch-by-ids (recently-viewed rail). Skips Meilisearch — direct DB lookup,
   // order follows the ids array, capped to keep the URL and query small.
@@ -259,7 +263,12 @@ export async function GET(req: Request) {
     const ids = idsParam.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 12)
     try {
       const rows = await db.listing.findMany({
-        where: { id: { in: ids }, deletedAt: null, status: "active" },
+        where: {
+          id: { in: ids },
+          deletedAt: null,
+          status: "active",
+          ...(lockedCountry ? { country: lockedCountry } : {}),
+        },
         select: LISTING_SELECT,
       })
       const byId = new Map(rows.map((r) => [r.id, r]))
@@ -275,6 +284,7 @@ export async function GET(req: Request) {
   }
 
   const filters = parseSearchParams(sp)
+  filters.country = lockedCountry
 
   // Map viewport → PostGIS ids, then DB path (Meili has no geo filter wired yet).
   if (filters.bbox) {

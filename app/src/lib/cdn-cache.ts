@@ -7,6 +7,7 @@ export function cdnJson(body: unknown, sMaxAge = 3600, status = 200) {
     headers: {
       "Cache-Control": `public, s-maxage=${sMaxAge}, stale-while-revalidate=${sMaxAge * 24}`,
       "Vercel-CDN-Cache-Control": `public, s-maxage=${sMaxAge}, stale-while-revalidate=${sMaxAge * 24}`,
+      Vary: "Host",
     },
   })
 }

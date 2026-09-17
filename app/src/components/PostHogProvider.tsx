@@ -19,6 +19,8 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useConsent } from '@/lib/consent'
 import { usePostHog } from '@/lib/posthog'
 
+import { chromeMarket } from '@/lib/markets'
+
 function Pageview({ armed }: { armed: boolean }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -27,7 +29,15 @@ function Pageview({ armed }: { armed: boolean }) {
   useEffect(() => {
     if (!armed) return
     const url = `${pathname}${searchParams?.size ? `?${searchParams.toString()}` : ''}`
-    capture('$pageview', { $current_url: url })
+    const host = typeof window !== 'undefined' ? window.location.hostname : ''
+    const domain = host.endsWith('sivrce.ge') ? 'ge' : host.endsWith('sivrce.com') ? 'com' : 'dev'
+    const country = searchParams?.get('country') ?? undefined
+    capture('$pageview', {
+      $current_url: url,
+      domain,
+      market: chromeMarket(pathname, country),
+      country: country ?? undefined,
+    })
   }, [armed, pathname, searchParams, capture])
 
   return null

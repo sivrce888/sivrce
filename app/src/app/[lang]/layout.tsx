@@ -12,11 +12,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { SWRegister } from "@/app/sw-register";
 import { BRAND } from "@/lib/brand";
 import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
-import { getServerT, pageAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from "@/lib/i18n/server";
+import { getServerT, surfaceAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from "@/lib/i18n/server";
 import { getDict } from "@/lib/i18n/dicts";
 import { DE_SITE_KEYWORDS, DE_SITE_META, withDeMarketDict } from "@/lib/i18n/de-market";
-import { requestMarket } from "@/lib/request-market";
-import { COM_ORIGIN } from "@/lib/markets";
+import { requestMarket, requestOrigin, requestPathPrefix, requestDomain } from "@/lib/request-market";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
 import { jsonLd } from "@/lib/utils";
 import { CONTACT_PHONE } from "@/lib/inquiries/phone";
@@ -67,7 +66,8 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
   const { lang: raw } = await params;
   const lang: Lang = isValidLang(raw) ? raw : "ka";
   const market = await requestMarket();
-  const origin = market === "ge" ? SITE_URL : COM_ORIGIN;
+  const origin = await requestOrigin();
+  const prefix = await requestPathPrefix();
   // CMS overrides win over coded meta (/admin/content/pages → SEO meta).
   const cms = await getCmsOverrides(lang);
   const deMeta = market === "de" ? DE_SITE_META[lang] : undefined;
@@ -87,7 +87,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
     publisher: SITE_NAME,
     category: "Real Estate",
     alternates: {
-      ...(market === "ge" ? pageAlternates("/", lang) : {}),
+      ...(market === "ge" ? surfaceAlternates("/", lang, prefix) : {}),
       types: {
         "text/plain": `${origin}/llms.txt`,
         "application/rss+xml": `${origin}/rss.xml`,
@@ -317,6 +317,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
   if (!isValidLang(raw)) notFound();
   const lang = raw;
   const market = await requestMarket();
+  const domain = await requestDomain();
   // CMS text overrides for this locale (cached; empty when nothing is overridden).
   const cmsOverrides = await getCmsOverrides(lang);
   // Resolved marketing blocks (override → coded default → ka) — one small map, per lang.
@@ -329,6 +330,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
       dir={RTL_LANGS.has(lang) ? "rtl" : "ltr"}
       suppressHydrationWarning
       data-market={market}
+      data-domain={domain}
       className={`${manrope.variable} ${notoGeorgian.variable} h-full antialiased`}
     >
       <link rel="preconnect" href="https://cdn.sivrce.ge" crossOrigin="anonymous" />

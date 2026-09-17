@@ -9,10 +9,10 @@ import { cityByName, cityBySlug } from '@/lib/map/user-place'
 export { marketFromIso }
 
 /**
- * IP → launched market + map camera.
- * Humans hitting sivrce.com/ 302 to their country product (or /ge).
- * Crawlers + ?worldwide=1 + cookie=global keep the worldwide product hub
- * (same HomeMain shell as sivrce.ge, English).
+ * Sticky market + map camera.
+ * sivrce.com/ stays the worldwide hub unless the visitor already picked a
+ * market (cookie) or ?worldwide=1. IP is never authoritative — a Georgian
+ * user must be able to browse Germany without a surprise 302.
  * Cookie also aims /map at the last opened country path.
  */
 
@@ -58,10 +58,11 @@ export function isCrawler(ua: string | null | undefined): boolean {
 
 /**
  * Where sivrce.com/ should send this request.
- * Cookie wins (sticky + worldwide opt-out), then IP ISO, else hub.
+ * Cookie (explicit pick) + crawler + ?worldwide=1 only. IP ISO is ignored.
  */
 export function geoLaunchTarget(input: {
   cookie?: string | null
+  /** @deprecated ignored — URL/cookie are authoritative; kept so callers compile. */
   iso?: string | null
   worldwide?: boolean
   crawler?: boolean
@@ -71,9 +72,6 @@ export function geoLaunchTarget(input: {
   if (cook === 'global') return 'hub'
   if (cook === 'ge') return 'ge'
   if (isGeoLaunch(cook)) return cook
-  const m = marketFromIso(input.iso)
-  if (m === 'ge') return 'ge'
-  if (m && isGeoLaunch(m)) return m
   return 'hub'
 }
 
