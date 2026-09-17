@@ -21,6 +21,10 @@ export function placeLabel(
 export function listingTitle(title: string, city: string | undefined, lang: string): string {
   if (!city) return title
   const loc = placeLabel(city, lang)
-  if (loc && loc !== city && title.includes(city)) return title.split(city).join(loc)
-  return title
+  if (!loc || loc === city || !title.includes(city)) return title
+  // Swap only completes an otherwise-Latin world title ("Quartier — ბერლინი"
+  // → "Quartier — Berlin"); inside an authored Mkhedruli title it would break
+  // Georgian grammar (ქუთაისის → Kutaisiს), so those stay verbatim.
+  if (MKHEDRULI.test(title.split(city).join(''))) return title
+  return title.split(city).join(loc)
 }

@@ -84,6 +84,7 @@ export const hy: Dict = {
   'search.keyword': 'Որոնման բառ',
   'search.sort': 'Դասակարգում',
   'search.view': 'Տեսք',
+  'search.layout': 'Դասավորություն',
   'search.grid': 'Ցանց',
   'search.list': 'Ցուցակ',
   'search.price': 'Գին',

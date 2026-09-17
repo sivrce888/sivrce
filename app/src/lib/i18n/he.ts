@@ -84,6 +84,7 @@ export const he: Dict = {
   'search.keyword': 'מילת חיפוש',
   'search.sort': 'מיון',
   'search.view': 'תצוגה',
+  'search.layout': 'פריסה',
   'search.grid': 'רשת',
   'search.list': 'רשימה',
   'search.price': 'מחיר',

@@ -715,6 +715,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   return (
     <article
+      ref={reveal.ref}
       data-reveal={animate ? '' : undefined}
       data-in={!animate || reveal.inView || undefined}
       style={

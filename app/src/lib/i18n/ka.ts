@@ -83,6 +83,7 @@ export const ka = {
   'search.keyword': 'საძიებო სიტყვა',
   'search.sort': 'დალაგება',
   'search.view': 'ხედი',
+  'search.layout': 'განლაგება',
   'search.grid': 'ბადე',
   'search.list': 'სია',
   'search.price': 'ფასი',

@@ -86,6 +86,7 @@ export const de: Dict = {
   'search.keyword': 'Suchbegriff',
   'search.sort': 'Sortierung',
   'search.view': 'Ansicht',
+  'search.layout': 'Layout',
   'search.grid': 'Raster',
   'search.list': 'Liste',
   'search.price': 'Preis',

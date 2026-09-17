@@ -84,6 +84,7 @@ export const az: Dict = {
   'search.keyword': 'Axtarış sözü',
   'search.sort': 'Sıralama',
   'search.view': 'Görünüş',
+  'search.layout': 'Düzülüş',
   'search.grid': 'Şəbəkə',
   'search.list': 'Siyahı',
   'search.price': 'Qiymət',

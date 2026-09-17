@@ -84,6 +84,7 @@ export const tr: Dict = {
   'search.keyword': 'Arama kelimesi',
   'search.sort': 'Sıralama',
   'search.view': 'Görünüm',
+  'search.layout': 'Düzen',
   'search.grid': 'Izgara',
   'search.list': 'Liste',
   'search.price': 'Fiyat',

@@ -84,6 +84,7 @@ export const ru: Dict = {
   'search.keyword': 'Поисковый запрос',
   'search.sort': 'Сортировка',
   'search.view': 'Вид',
+  'search.layout': 'Макет',
   'search.grid': 'Сетка',
   'search.list': 'Список',
   'search.price': 'Цена',

@@ -84,6 +84,7 @@ export const uk: Dict = {
   'search.keyword': 'Пошуковий запит',
   'search.sort': 'Сортування',
   'search.view': 'Вигляд',
+  'search.layout': 'Компонування',
   'search.grid': 'Сітка',
   'search.list': 'Список',
   'search.price': 'Ціна',

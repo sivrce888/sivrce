@@ -84,6 +84,7 @@ export const ar: Dict = {
   'search.keyword': 'كلمة البحث',
   'search.sort': 'ترتيب',
   'search.view': 'عرض',
+  'search.layout': 'التخطيط',
   'search.grid': 'شبكة',
   'search.list': 'قائمة',
   'search.price': 'السعر',

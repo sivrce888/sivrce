@@ -1303,7 +1303,7 @@ export default function SearchClient({
       </div>
       <LocalizedLink
         href="/map"
-        className="inline-flex h-11 items-center gap-1.5 rounded-full bg-sv-orange px-3 text-[12px] font-extrabold text-sv-ink shadow-glow-orange transition hover:brightness-110"
+        className="hidden h-11 items-center gap-1.5 rounded-full bg-sv-orange px-3 text-[12px] font-extrabold text-sv-ink shadow-glow-orange transition hover:brightness-110 sm:inline-flex"
       >
         <Layers className="h-3.5 w-3.5" aria-hidden />
         {t('nav.map')}
@@ -1315,7 +1315,7 @@ export default function SearchClient({
 
   return (
     <div className={embed ? 'font-geo' : 'font-geo min-h-screen bg-sv-cloud antialiased'}>
-      {!embed && <Navbar marketIso={country === 'all' ? undefined : country} marketCity={city} />}
+      {!embed && <Navbar marketIso={country === 'all' ? undefined : country} />}
       <LocationPicker
         open={locOpen}
         value={locValue}
@@ -1499,7 +1499,7 @@ export default function SearchClient({
               </select>
               <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sv-ink/60" />
             </div>
-            <div className="flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.view')}>
+            <div className="flex rounded-full bg-sv-ink/[0.045] p-0.5" role="group" aria-label={t('search.layout')}>
               <button
                 onClick={() => setView('grid')}
                 aria-label={t('search.grid')}
