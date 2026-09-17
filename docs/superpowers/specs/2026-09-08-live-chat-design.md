@@ -190,3 +190,86 @@ owner's dev server holds `.next`).
 
 **Rollback**: revert this slice, then `ALTER TABLE chat_messages DROP COLUMN
 deleted_at; DROP TABLE chat_blocks;` — no other table is touched.
+
+---
+
+# Live Chat v5 — competitor sweep: chat · help · contact (2026-09-17)
+
+Brief: "be better than any big competitor — check the biggest, add their
+features to chat, help and contact."
+
+## What the biggest actually ship
+
+| Product | Feature worth stealing | Us before v5 |
+| --- | --- | --- |
+| Zillow / Redfin / Realtor.com | "Request a tour" reachable from the conversation | Tour backend + picker existed on the listing page; chat never mentioned it |
+| Airbnb | Off-platform-payment safety notice in every thread | ✗ |
+| Airbnb / Zillow | "Active now / responds in…" | ✓ shipped in v4 |
+| Booking.com | Canned questions in the guest↔host thread | ✓ buyer icebreakers |
+| ImmobilienScout24 | Landlord **saved replies** (available / viewing / taken) | ✗ — only the buyer had chips |
+| OLX / myhome.ge / ss.ge | Safety-tips line beside every conversation | ✗ |
+| Intercom / Crisp / Zendesk | Ranked article results instead of "no answer" | ✗ — a miss was a dead end |
+| Intercom / Crisp / Tawk.to | Guests **leave a message**, answered by email | ✗ — guests hit a sign-in wall |
+| Zendesk / Intercom | Support hours + stated reply time on the contact surface | ✗ |
+| Idealista / Bayut | In-chat auto-translate, phone reveal | rejected, see below |
+
+## Defect found first (outranks every feature above)
+
+**`/contact` never sent anything.** `ContactForm.onSubmit` called
+`setState('sent')` and returned — no request, no email, no record — while the
+page promised a reply within 24 hours. Every message typed there since the page
+shipped was discarded. The form was also hard-coded Georgian on a ten-locale
+site.
+
+Fixed: real `POST /api/contact` (same-origin, IP rate limit, honeypot, length
+and format validation) + a 10-locale `components/contact/i18n.ts`.
+
+Routing: **signed in** → the message is written into the sender's support chat
+room, so it lands in `/admin/chats` and they get a thread they can follow
+(`roomId` comes back and the success card offers *Open in chat*).
+**Guest** → email to the configured contact inbox. Both notify by email,
+because an unread admin panel must never be the only place a question lives.
+
+## Option analysis (score 0–100)
+
+| # | Option | Score | Verdict |
+| --- | --- | --- | --- |
+| **A** | **Make /contact actually send + i18n** | **100** ✅ | A form that silently eats messages is worse than no form. Nothing else ranks above it. |
+| **B** | **Guest "leave a message" inside the panel** (Intercom/Crisp/Tawk) | **95** ✅ | The sign-in wall was the highest-friction step in the funnel. Reuses A's endpoint — no new API. Live chat still needs an account (rooms are per-user); the reply comes by email. |
+| **C** | **Safety line in every non-support thread** (Airbnb/OLX) | **94** ✅ | Deposit fraud is the #1 loss mode in GE rentals. No dismiss state, no storage: it sits above the first message and scrolls away like the listing card. |
+| **D** | **"Did you mean?" ranked results on a help miss** (Intercom) | **92** ✅ | `faqSearch` returns the top 3 above a 0.2 threshold, weighting a hit in the *question* double — otherwise "tour" ranked a generic location answer above "How do I book a tour?". Verified live. |
+| **E** | **"Book a viewing" chip on listing threads** (Zillow) | **91** ✅ | Deep-links `/listing/<id>#tour-booking` — the real picker, with real availability. Ladder rung 2: reuse, don't rebuild a date picker in a 380 px panel. |
+| **F** | **Seller saved replies** (ImmoScout24) | **89** ✅ | Shown only to the room's `owner` seat, and only while the peer's message is unanswered. Three replies cover ~80 % of first responses. |
+| **G** | **Contact hours + reply time + `ContactPoint` schema** | **85** ✅ | Answers "when will anyone read this?" before the user commits. `hoursAvailable` also feeds answer engines. |
+| H | Dedicated "Chat with us" card on /contact | 45 | The launcher is already on that page. A second button for the same action is noise. |
+| I | In-chat auto-translate (Airbnb/Idealista) | 62 | Real value across 10 locales, but every message becomes an AI call — a per-message bill on the hottest path. Revisit as an explicit per-message "Translate" tap, never automatic. |
+| J | In-chat phone reveal (Bayut/OLX) | 58 | The listing page already reveals it and the thread links there. Copying a possibly-masked `listingPhone` into the room payload duplicates a source of truth. |
+| K | CSAT rating after a support chat (Zendesk) | 55 | Needs a table and an admin surface to be worth anything. Not while `/admin/chats` is read-only. |
+| L | Client-side search on the `/faq` page | 50 | The chat assistant *is* the FAQ search, now with ranked fallbacks. A second search box on a static page adds client JS for a worse version. |
+| M | Live-agent status ("3 agents online") | 35 | Honest only with a staffed rota. Stated hours beat a fake green dot. |
+
+**Shipped: A–G.** Rejected with reasons: H–M.
+
+## Contract additions
+
+| Surface | Who | When | What they do |
+| --- | --- | --- | --- |
+| Safety line | Both sides | Top of every listing/direct thread; never on support | Read it; it scrolls away |
+| Book a viewing | Buyer side | Any listing thread, not blocked | Opens the listing's real tour picker |
+| Seller quick replies | The `owner` seat | Peer's message is the newest and not unsent | One tap answers the three most common questions |
+| Did you mean? | Everyone | Help assistant found no confident answer | Tap a near match, or continue to *Message us* |
+| Guest message form | Guests only | *Message us*, from Help or the tile | Name + email + message → emailed reply. Back returns to Help |
+| /contact hours line | Everyone | Under the channel cards | Knows the hours and the 24 h reply promise before writing |
+
+## Validation
+
+`tsc` clean · `eslint` clean · `faq.check.ts` extended for `faqSearch`
+(ranking, limit, uniqueness, 4 locales) · i18n ×10 complete for 7 new keys,
+both audits green · `/api/contact` exercised live for honeypot (200, no send),
+`bad_name` / `bad_email` / `bad_message` / `bad_json` (400) and cross-origin
+(403) · guest form, ranked fallbacks and the contact page checked in-browser.
+
+**Deliberately not executed:** one successful `/api/contact` send — the local
+`RESEND_API_KEY` is live and would email the real contact inbox. Every branch
+before `sendEmail` is covered above; `sendEmail` itself is the shared adapter
+already used by inquiries, welcome and auction mail.

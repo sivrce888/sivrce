@@ -37,6 +37,8 @@ export interface ChatRoom {
   counterpart: ChatCounterpartInfo | null
   /** sivrce support line — branded header instead of the counterpart name */
   isSupport: boolean
+  /** I hold the "owner" seat — unlocks the seller-side quick replies. */
+  iAmOwner: boolean
   /** Either side blocked the other — the thread is frozen for both. */
   blocked: boolean
   /** I pressed Block, so Unblock is mine to press. */
@@ -310,6 +312,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
                     listing: data.room.listing ?? null,
                     counterpart: null,
                     isSupport: target.kind === "support",
+                    iAmOwner: false,
                     blocked: false,
                     blockedByMe: false,
                     lastMessage: null,

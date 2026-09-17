@@ -38,6 +38,8 @@ const COPY = {
     lede: 'თითოეული ქვეყანა: მეტროები, დეველოპერები, პროექტები, რენდერები და მეტრო — ცოცხალი verified მონაცემებიდან.',
     deep: 'ღია ბაზრები',
     deepSub: 'სრული გზამკვლევი: ქალაქები, ყიდვა/ქირა, ხარჯები და verified განცხადებები.',
+    georgia: 'საქართველო — დროშის ბაზარი',
+    georgiaSub: 'ცოცხალი განცხადებები, 3D რუკა, საკადასტრო რუკა და ყოველდღიური ბინები — სრული პლატფორმა აქ.',
     pinned: 'რუკაზე და ძიებაში',
     pinnedSub: 'დადასტურებული მეტრო-წერტილები — სრული გზამკვლევი იხსნება ინვენტარის მოსვლისთანავე.',
     discovery: 'ასევე იძებნება',
@@ -60,6 +62,8 @@ const COPY = {
     lede: 'Each country: metros, developers, projects, renders and transit — from live verified data.',
     deep: 'Open markets',
     deepSub: 'Full briefings: cities, buy/rent, purchase costs and verified listings.',
+    georgia: 'Georgia — the home market',
+    georgiaSub: 'Live listings, 3D map, cadastral map and daily stays — the full platform, mirrored here.',
     pinned: 'On the map & in search',
     pinnedSub: 'Committed metro pins — full briefings unlock as inventory lands.',
     discovery: 'Also searchable',
@@ -187,7 +191,16 @@ export default async function CountriesPage({ params }: PageProps) {
           <div className="mx-auto max-w-[1440px] px-5 md:px-10">
             <h2 className="sv-h2 text-sv-ink">{t.deep}</h2>
             <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65">{t.deepSub}</p>
-            <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Link
+              href="/ge"
+              className="mt-8 flex flex-col gap-1 rounded-module border border-sv-blue/30 bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/50 hover:shadow-card-hover"
+            >
+              <span className="flex items-center gap-2 text-[15px] font-extrabold text-sv-ink">
+                <Building2 className="h-4 w-4 text-sv-blue" aria-hidden /> {t.georgia}
+              </span>
+              <span className="text-[12px] font-bold leading-relaxed text-sv-ink/55">{t.georgiaSub}</span>
+            </Link>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {deep.map((d) => (
                 <li key={d.id}>
                   <Link

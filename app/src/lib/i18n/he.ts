@@ -837,6 +837,13 @@ export const he: Dict = {
   'chat.presenceAgo': 'פעיל לפני {ago}',
   'chat.expand': 'הגדלה',
   'chat.collapse': 'הקטנה',
+  'chat.safetyTip': 'אין לשלם מראש לפני שראיתם את הנכס, ואין למסור קודי אימות. דווחו על כל דבר חשוד.',
+  'chat.bookViewing': 'קביעת צפייה',
+  'chat.faqDidYouMean': 'התכוונתם ל:',
+  'chat.replyHint': 'תשובה מהירה',
+  'chat.replyAvailable': 'כן, הנכס עדיין פנוי.',
+  'chat.replyViewing': 'תרצו לקבוע צפייה?',
+  'chat.replyTaken': 'מצטערים, הנכס כבר נתפס.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'מפה קדסטרית',

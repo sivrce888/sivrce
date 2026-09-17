@@ -202,6 +202,22 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
       if (lo === DEFAULT_LANG) {
         return { type: 'redirect', origin: 'same', pathname: body.length ? `/ge/${body.join('/')}` : '/ge' }
       }
+      // 1:1 mirror by construction: /ge/<p> must do exactly what sivrce.ge
+      // does with /<p>. Recurse the decision table on the .ge host; redirects
+      // become same-origin — into .com-native space (country paths, cities,
+      // /countries) as-is, back under /ge when they target Georgia paths
+      // (the /ge fold, lowercase). PASS on .ge = serve here under /ge.
+      const inner = decideHost({ host: 'sivrce.ge', pathname: `/${tail.join('/')}`, vercelEnv: input.vercelEnv })
+      if (inner.type === 'redirect') {
+        if (inner.origin === COM_ORIGIN) {
+          return { type: 'redirect', origin: 'same', pathname: inner.pathname }
+        }
+        return {
+          type: 'redirect',
+          origin: 'same',
+          pathname: inner.pathname === '/' ? '/ge' : `/ge${inner.pathname}`,
+        }
+      }
       const target = lo ?? DEFAULT_LANG
       return { type: 'rewrite', pathname: `/${target}${body.length ? `/${body.join('/')}` : ''}`, market: 'ge' }
     }

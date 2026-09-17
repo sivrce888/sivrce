@@ -14,15 +14,17 @@ import {
   FileText,
   BadgeCheck,
   Sparkles,
+  Box,
 } from 'lucide-react'
 import { youtubeId, vimeoId, vimeoEmbedUrl, streamUid, streamEmbedUrl, isNativeVideoUrl } from '@/lib/listing-video'
 
 export interface ProjectMediaItem {
-  type: 'photo' | 'render' | 'floorplan' | 'video'
+  type: 'photo' | 'render' | 'floorplan' | 'video' | 'virtualTour'
   src: string
   title: string
-  category?: 'all' | 'architecture' | 'construction' | 'floorplans' | 'video'
+  category?: 'all' | 'architecture' | 'construction' | 'floorplans' | 'video' | 'virtualTour'
   videoUrl?: string
+  virtualTourUrl?: string
 }
 
 interface ProjectMediaGalleryProps {
@@ -32,6 +34,7 @@ interface ProjectMediaGalleryProps {
   gallery?: string[]
   passportUrl?: string
   videoUrl?: string
+  virtualTourUrl?: string
   lang?: string
 }
 
@@ -42,6 +45,7 @@ export function ProjectMediaGallery({
   gallery = [],
   passportUrl,
   videoUrl,
+  virtualTourUrl,
   lang = 'ka',
 }: ProjectMediaGalleryProps) {
   const isKa = lang === 'ka'
@@ -56,8 +60,11 @@ export function ProjectMediaGallery({
         construction: 'მშენებლობა & 3D',
         floorplans: 'გეგმარება',
         video: 'ვიდეო ტური',
+        virtualTour: '3D ვირტუალური ტური',
         watchVideo: 'ვიდეო ტურის ნახვა',
+        exploreVirtualTour: '3D ტურის გახსნა',
         verifiedTour: 'ვერიფიცირებული ვიდეო მიმოხილვა',
+        verified3D: 'ინტერაქტიული 360° / 3D მოდელი',
         viewAllPhotos: 'გალერეის ნახვა',
         photoCount: (n: number) => `${n} ფოტო / რენდერი`,
         of: 'დან',
@@ -73,8 +80,11 @@ export function ProjectMediaGallery({
         construction: 'Ход стройки и 3D',
         floorplans: 'Планировки',
         video: 'Видеотур',
+        virtualTour: '3D Виртуальный тур',
         watchVideo: 'Смотреть видеотур',
+        exploreVirtualTour: 'Открыть 3D тур',
         verifiedTour: 'Верифицированный видеообзор',
+        verified3D: 'Интерактивная 360° / 3D модель',
         viewAllPhotos: 'Смотреть все фото',
         photoCount: (n: number) => `${n} фото / рендеров`,
         of: 'из',
@@ -90,8 +100,11 @@ export function ProjectMediaGallery({
         construction: 'Baufortschritt & 3D',
         floorplans: 'Grundrisse',
         video: 'Videotour',
+        virtualTour: '3D-Virtuelle Tour',
         watchVideo: 'Videotour ansehen',
+        exploreVirtualTour: '3D-Tour öffnen',
         verifiedTour: 'Verifizierte Videotour',
+        verified3D: 'Interaktives 360° / 3D-Modell',
         viewAllPhotos: 'Alle Fotos ansehen',
         photoCount: (n: number) => `${n} Fotos & Renderings`,
         of: 'von',
@@ -106,8 +119,11 @@ export function ProjectMediaGallery({
       construction: 'Progress & 3D',
       floorplans: 'Floor Plans',
       video: 'Video Tour',
+      virtualTour: '3D Virtual Tour',
       watchVideo: 'Watch Video Tour',
+      exploreVirtualTour: 'Open 3D Virtual Tour',
       verifiedTour: 'Verified Video Tour',
+      verified3D: 'Interactive 360° / 3D Walkthrough',
       viewAllPhotos: 'View All Photos',
       photoCount: (n: number) => `${n} Photos & Renders`,
       of: 'of',
@@ -169,9 +185,10 @@ export function ProjectMediaGallery({
     return items
   }, [heroImage, gallery, passportUrl, projectName])
 
-  const [activeTab, setActiveTab] = useState<'all' | 'architecture' | 'construction' | 'floorplans' | 'video'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'architecture' | 'construction' | 'floorplans' | 'video' | 'virtualTour'>('all')
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const [isPlayingVideo, setIsPlayingVideo] = useState(false)
+  const [isPlaying3D, setIsPlaying3D] = useState(false)
 
   // Filter items based on active tab
   const filteredItems = useMemo(() => {
@@ -182,13 +199,14 @@ export function ProjectMediaGallery({
   // Count per category
   const counts = useMemo(() => {
     return {
-      all: mediaItems.length + (videoUrl ? 1 : 0),
+      all: mediaItems.length + (videoUrl ? 1 : 0) + (virtualTourUrl ? 1 : 0),
       architecture: mediaItems.filter((it) => it.category === 'architecture').length,
       construction: mediaItems.filter((it) => it.category === 'construction').length,
       floorplans: mediaItems.filter((it) => it.category === 'floorplans').length,
       video: videoUrl ? 1 : 0,
+      virtualTour: virtualTourUrl ? 1 : 0,
     }
-  }, [mediaItems, videoUrl])
+  }, [mediaItems, videoUrl, virtualTourUrl])
 
   // Keyboard navigation for Lightbox
   const handleKeyDown = useCallback(
@@ -240,7 +258,9 @@ export function ProjectMediaGallery({
             {t.all}
           </h2>
           <p className="mt-0.5 text-[13px] font-bold text-sv-ink/60">
-            {t.photoCount(mediaItems.length)} {videoUrl ? `· 1 ${t.video}` : ''}
+            {t.photoCount(mediaItems.length)}
+            {videoUrl ? ` · 1 ${t.video}` : ''}
+            {virtualTourUrl ? ` · 1 ${t.virtualTour}` : ''}
           </p>
         </div>
 
@@ -284,8 +304,23 @@ export function ProjectMediaGallery({
                   : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
               }`}
             >
-              <Film className="h-3.5 w-3.5 text-sv-orange" />
+              <Film className="h-3.5 w-3.5" />
               {t.video}
+            </button>
+          )}
+
+          {counts.virtualTour > 0 && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('virtualTour')}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+                activeTab === 'virtualTour'
+                  ? 'bg-sv-blue text-white shadow-sm'
+                  : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
+              }`}
+            >
+              <Box className="h-3.5 w-3.5" />
+              {t.virtualTour}
             </button>
           )}
 
@@ -320,6 +355,69 @@ export function ProjectMediaGallery({
           )}
         </div>
       </div>
+
+      {/* 3D Virtual Tour Showcase */}
+      {virtualTourUrl && (activeTab === 'all' || activeTab === 'virtualTour') && (
+        <div className="mt-8 overflow-hidden rounded-card border border-sv-blue/20 bg-sv-navy text-white shadow-card">
+          <div className="p-4 md:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue/20 px-3 py-1 text-[12px] font-black uppercase tracking-wide text-sv-blue">
+                  <Box className="h-3.5 w-3.5" />
+                  {t.virtualTour}
+                </span>
+                <span className="hidden text-[13px] font-bold text-white/70 sm:inline">
+                  {t.verified3D}
+                </span>
+              </div>
+              {developerName && (
+                <div className="flex items-center gap-1.5 text-[13px] font-bold text-white/80">
+                  <BadgeCheck className="h-4 w-4 text-sv-blue" />
+                  {developerName}
+                </div>
+              )}
+            </div>
+
+            <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-module bg-black">
+              {isPlaying3D ? (
+                <iframe
+                  src={virtualTourUrl}
+                  title={`${projectName} 3D Virtual Tour`}
+                  allow="vr; xr; accelerometer; gyroscope; fullscreen"
+                  allowFullScreen
+                  className="h-full w-full border-0"
+                />
+              ) : (
+                <div className="group relative h-full w-full cursor-pointer" onClick={() => setIsPlaying3D(true)}>
+                  <Image
+                    src={heroImage}
+                    alt={`${projectName} 3D Tour Cover`}
+                    fill
+                    sizes="(max-width: 1440px) 100vw, 1440px"
+                    className="object-cover brightness-75 transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                    <button
+                      type="button"
+                      aria-label={t.exploreVirtualTour}
+                      className="flex h-16 w-16 items-center justify-center rounded-full bg-sv-blue text-white shadow-lg transition-transform duration-300 hover:scale-110 md:h-20 md:w-20"
+                    >
+                      <Box className="h-8 w-8 md:h-10 md:w-10" />
+                    </button>
+                    <h3 className="mt-4 text-[18px] font-black tracking-tight text-white md:text-[22px]">
+                      {projectName}
+                    </h3>
+                    <p className="mt-1 text-[13px] font-bold text-white/80">
+                      {t.exploreVirtualTour}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Video Tour Showcase (When video exists and activeTab is 'all' or 'video') */}
       {videoUrl && (activeTab === 'all' || activeTab === 'video') && (
@@ -396,9 +494,9 @@ export function ProjectMediaGallery({
       )}
 
       {/* Grid of Photos and Renders */}
-      {activeTab !== 'video' && (
+      {activeTab !== 'video' && activeTab !== 'virtualTour' && (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {filteredItems.map((item, idx) => {
+          {filteredItems.map((item) => {
             const globalIndex = mediaItems.findIndex((m) => m.src === item.src)
             return (
               <div
@@ -451,16 +549,16 @@ export function ProjectMediaGallery({
             <button
               type="button"
               onClick={() => setLightboxIdx(null)}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
               aria-label={t.close}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/30"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
 
-          {/* Main Photo Display */}
-          <div className="relative flex flex-1 items-center justify-center px-4 py-2">
-            <div className="relative h-full max-h-[82vh] w-full max-w-6xl">
+          {/* Center Stage */}
+          <div className="relative flex flex-1 items-center justify-center p-4">
+            <div className="relative h-full max-h-[82vh] w-full max-w-[1280px]">
               <Image
                 src={mediaItems[lightboxIdx]!.src}
                 alt={mediaItems[lightboxIdx]!.title}
@@ -471,40 +569,47 @@ export function ProjectMediaGallery({
               />
             </div>
 
-            {/* Left / Right Nav Arrows */}
-            <button
-              type="button"
-              onClick={() => setLightboxIdx((lightboxIdx - 1 + mediaItems.length) % mediaItems.length)}
-              aria-label={t.prev}
-              className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-all hover:scale-110 hover:bg-white/40"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setLightboxIdx((lightboxIdx + 1) % mediaItems.length)}
-              aria-label={t.next}
-              className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-all hover:scale-110 hover:bg-white/40"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
+            {/* Navigation Arrows */}
+            {mediaItems.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setLightboxIdx((prev) => (prev !== null ? (prev - 1 + mediaItems.length) % mediaItems.length : 0))}
+                  className="absolute left-6 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
+                  aria-label={t.prev}
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLightboxIdx((prev) => (prev !== null ? (prev + 1) % mediaItems.length : 0))}
+                  className="absolute right-6 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
+                  aria-label={t.next}
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
           </div>
 
           {/* Bottom Thumbnails Strip */}
-          <div className="flex h-20 items-center justify-center gap-2 overflow-x-auto px-4 py-3">
+          <div className="flex items-center justify-center gap-2 overflow-x-auto px-6 py-4">
             {mediaItems.map((item, idx) => (
               <button
                 key={item.src}
                 type="button"
                 onClick={() => setLightboxIdx(idx)}
-                className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-control border-2 transition-all ${
-                  idx === lightboxIdx
-                    ? 'border-sv-orange scale-105 opacity-100'
-                    : 'border-transparent opacity-50 hover:opacity-80'
+                className={`relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-control border-2 transition-all ${
+                  lightboxIdx === idx ? 'border-sv-orange ring-2 ring-sv-orange/40' : 'border-transparent opacity-60 hover:opacity-100'
                 }`}
               >
-                <Image src={item.src} alt="thumb" fill sizes="80px" className="object-cover" />
+                <Image
+                  src={item.src}
+                  alt={item.title}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
               </button>
             ))}
           </div>

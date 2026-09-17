@@ -1904,8 +1904,11 @@ export default function ListingDetailClient({
               </div>
             ) : null}
 
-            {/* Tour booking */}
-            <div className="mt-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
+            {/* Tour booking — #tour-booking is the chat "Book a viewing" target */}
+            <div
+              id="tour-booking"
+              className="mt-4 scroll-mt-24 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card"
+            >
               <div className="mb-3 text-sm font-black text-sv-ink">{t('detail.tourTitle')}</div>
               <p className="mb-4 text-[13px] font-semibold text-sv-ink/60">{t('detail.tourSubtitle')}</p>
               <TourBooking listingId={l.id} listingTitle={l.title} />

@@ -16,6 +16,7 @@ import {
 import {
   ArrowDown,
   Ban,
+  CalendarClock,
   Check,
   CheckCheck,
   ChevronLeft,
@@ -32,15 +33,17 @@ import {
   RotateCcw,
   Search,
   Send,
+  ShieldCheck,
   Trash2,
   X,
 } from "lucide-react"
 import UserAvatar from "@/components/UserAvatar"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useI18n } from "@/lib/i18n/context"
 import { useChat, type ChatRoom } from "./ChatProvider"
 import FaqView from "./FaqView"
+import GuestMessageView from "./GuestMessageView"
 import { canUnsend, presenceOf } from "@/lib/chat-policy"
 import { useAutoGrow } from "./useAutoGrow"
 import {
@@ -593,6 +596,7 @@ function MessageThread({
   listingId,
   listingTitle,
   isSupport,
+  iAmOwner = false,
   blocked = false,
   blockedByMe = false,
   onUnblock,
@@ -601,6 +605,8 @@ function MessageThread({
   listingId?: string | null
   listingTitle?: string | null
   isSupport?: boolean
+  /** I hold the listing's owner seat — seller quick replies instead of buyer ones. */
+  iAmOwner?: boolean
   /** Either side blocked the other — composer swaps for an explainer. */
   blocked?: boolean
   blockedByMe?: boolean
@@ -952,6 +958,31 @@ function MessageThread({
   const seed = readRoomDraft(roomId) || (listingId ? (peekChatDraft(listingId) ?? "") : "")
   const dividerAt = unreadDividerIndex(messages, openedAtRead, me)
 
+  /**
+   * Quick replies serve whoever is about to be stuck for words: the buyer on
+   * an empty listing thread, or the seller sitting on an unanswered question.
+   * Never both, never on support, never on a frozen thread.
+   */
+  const lastMsg = messages[messages.length - 1]
+  /** The buyer's route to the listing page's real tour picker — always offered. */
+  const showViewing = !!listingId && !iAmOwner && !isSupport && !blocked
+  const quickReplies = (() => {
+    if (isSupport || blocked) return null
+    if (iAmOwner) {
+      return lastMsg && lastMsg.senderId !== me && !lastMsg.deletedAt
+        ? {
+            hint: "chat.replyHint" as const,
+            keys: ["chat.replyAvailable", "chat.replyViewing", "chat.replyTaken"] as const,
+          }
+        : null
+    }
+    if (!listingId || messages.length > 0 || seed) return null
+    return {
+      hint: "chat.suggestHint" as const,
+      keys: ["chat.suggestInterest", "chat.suggestViewing", "chat.suggestAvailable"] as const,
+    }
+  })()
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Connection status — optimistic until the stream proves otherwise */}
@@ -986,6 +1017,14 @@ function MessageThread({
                 {listingTitle}
               </span>
             </a>
+          )}
+          {/* Safety line — every marketplace that handles deposits shows one.
+              No dismiss state: it scrolls away with the rest of the header. */}
+          {!isSupport && (
+            <p className="mb-2 flex items-start gap-2 rounded-control bg-sv-ink/[0.03] px-3 py-2 text-[11.5px] font-semibold leading-relaxed text-sv-ink/55">
+              <ShieldCheck className="mt-px h-3.5 w-3.5 shrink-0 text-sv-blue" aria-hidden />
+              {t("chat.safetyTip")}
+            </p>
           )}
           {page.hasMore && (
             <button
@@ -1071,17 +1110,15 @@ function MessageThread({
         )}
       </div>
 
-      {messages.length === 0 && !isSupport && listingId && !seed && !blocked && (
+      {(quickReplies || showViewing) && (
         <div className="border-t border-sv-ink/[0.06] px-3 pb-1 pt-2">
-          <p className="px-0.5 pb-2 text-[11.5px] font-bold text-sv-ink/60">{t("chat.suggestHint")}</p>
+          {quickReplies && (
+            <p className="px-0.5 pb-2 text-[11.5px] font-bold text-sv-ink/60">
+              {t(quickReplies.hint)}
+            </p>
+          )}
           <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {(
-              [
-                "chat.suggestInterest",
-                "chat.suggestViewing",
-                "chat.suggestAvailable",
-              ] as const
-            ).map((key) => (
+            {(quickReplies?.keys ?? []).map((key) => (
               <button
                 key={key}
                 type="button"
@@ -1091,6 +1128,17 @@ function MessageThread({
                 {t(key)}
               </button>
             ))}
+            {/* Viewings have a real booking flow on the listing page — link to
+                it rather than reinventing a date picker inside the panel. */}
+            {showViewing && (
+              <a
+                href={`/listing/${listingId}#tour-booking`}
+                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 truncate rounded-full border border-sv-orange/30 bg-sv-orange/10 px-3.5 py-2.5 text-[13px] font-bold text-sv-ink transition-colors hover:bg-sv-orange/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-orange active:scale-[0.98] touch-manipulation"
+              >
+                <CalendarClock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {t("chat.bookViewing")}
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -1277,7 +1325,6 @@ function RoomMenu({
 
 export default function ChatWidget() {
   const { t, lang } = useI18n()
-  const router = useRouter()
   const pathname = usePathname()
   const { status } = useSession()
   // Guests get the help assistant only — rooms/support need an account, so
@@ -1303,8 +1350,8 @@ export default function ChatWidget() {
   const panelRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
 
-  /** Room list vs help assistant (pre-room view). */
-  const [view, setView] = useState<"rooms" | "faq">("rooms")
+  /** Room list, help assistant, or the guest leave-a-message form. */
+  const [view, setView] = useState<"rooms" | "faq" | "guest">("rooms")
   /** Room-list filter — rendered only once the list is long enough to need it. */
   const [roomQuery, setRoomQuery] = useState("")
   const visibleRooms =
@@ -1317,15 +1364,17 @@ export default function ChatWidget() {
         })
 
   const openSupport = useCallback(() => {
+    // Guests keep their question instead of meeting a sign-in wall: the same
+    // /api/contact the contact page uses, answered by email.
     if (guest) {
-      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`)
+      setView("guest")
       return
     }
     setView("rooms")
     const existing = rooms.find((r) => r.isSupport)
     if (existing) setActiveRoom(existing.id)
     else openSupportChat()
-  }, [guest, router, pathname, rooms, setActiveRoom, openSupportChat])
+  }, [guest, rooms, setActiveRoom, openSupportChat])
 
   // Mount/close choreography — setState only in rAF/timeout callbacks so the
   // enter transition always has a painted closed frame to animate from.
@@ -1417,7 +1466,9 @@ export default function ChatWidget() {
       : activeRoom.counterpart?.name || activeRoom.listing?.title || activeRoom.title
     : view === "faq"
       ? t("chat.help")
-      : t("chat.title")
+      : view === "guest"
+        ? t("chat.contactSupport")
+        : t("chat.title")
   // Presence outranks the listing line: "is this person around?" is the
   // question a buyer actually has. Never shown on a blocked thread.
   const presence =
@@ -1553,10 +1604,13 @@ export default function ChatWidget() {
         >
           {/* Header */}
           <div className="flex items-center gap-2.5 border-b border-sv-ink/[0.08] px-3 py-2.5">
-            {activeRoomId || (view === "faq" && !guest) ? (
+            {/* Guests have no room list to go back to — but the guest form is
+                reached from Help, so it keeps its Back. */}
+            {activeRoomId || view === "guest" || (view === "faq" && !guest) ? (
               <button
                 onClick={() => {
                   if (activeRoomId) setActiveRoom(null)
+                  else if (view === "guest") setView("faq")
                   else setView("rooms")
                 }}
                 aria-label={t("chat.back")}
@@ -1591,6 +1645,10 @@ export default function ChatWidget() {
             ) : view === "faq" ? (
               <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                 <HelpCircle className="h-4 w-4" aria-hidden />
+              </span>
+            ) : view === "guest" ? (
+              <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+                <LifeBuoy className="h-4 w-4" aria-hidden />
               </span>
             ) : null}
             <div className="min-w-0 flex-1">
@@ -1636,12 +1694,15 @@ export default function ChatWidget() {
               listingId={activeRoom?.listingId}
               listingTitle={activeRoom?.listing?.title}
               isSupport={activeRoom?.isSupport}
+              iAmOwner={activeRoom?.iAmOwner}
               blocked={activeRoom?.blocked}
               blockedByMe={activeRoom?.blockedByMe}
               onUnblock={() => void setRoomBlocked(activeRoomId, false)}
             />
           ) : view === "faq" ? (
             <FaqView key={lang} onContactSupport={openSupport} />
+          ) : view === "guest" ? (
+            <GuestMessageView />
           ) : (
             <div className="flex-1 overflow-y-auto overscroll-contain px-2.5 py-2.5">
               <QuickTiles

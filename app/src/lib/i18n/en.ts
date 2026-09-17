@@ -837,6 +837,13 @@ export const en: Dict = {
   'chat.presenceAgo': 'Active {ago} ago',
   'chat.expand': 'Expand',
   'chat.collapse': 'Shrink',
+  'chat.safetyTip': 'Never pay in advance before seeing the property, and never share verification codes. Report anything suspicious.',
+  'chat.bookViewing': 'Book a viewing',
+  'chat.faqDidYouMean': 'Did you mean?',
+  'chat.replyHint': 'Quick reply',
+  'chat.replyAvailable': 'Yes, it’s still available.',
+  'chat.replyViewing': 'Would you like to arrange a viewing?',
+  'chat.replyTaken': 'Sorry, it’s already taken.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Cadastre map',

@@ -21,7 +21,13 @@ import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
 import { PROJECT_GALLERIES } from './project-galleries'
 import { CURATED_GALLERIES } from './project-galleries-curated'
-import { PROJECT_VIDEOS, DEVELOPER_VIDEOS } from './project-media'
+import {
+  PROJECT_VIDEOS,
+  PROJECT_VIRTUAL_TOURS,
+  PROJECT_FLOORPLANS,
+  DEVELOPER_VIDEOS,
+  DEVELOPER_GALLERIES,
+} from './project-media'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
 
 /**
@@ -267,15 +273,19 @@ function withGeoRenders(p: Project): Project {
   }
 }
 
-/** Real mirrored photos/renders lead; synthetic cards trail; attaches real video tours. */
+/** Real mirrored photos/renders lead; synthetic cards trail; attaches real video tours, virtual 360s & floor plans. */
 function withRealGallery(p: Project): Project {
   const real = [...(PROJECT_GALLERIES[p.slug] ?? []), ...(CURATED_GALLERIES[p.slug] ?? [])]
   const video = p.videoUrl ?? PROJECT_VIDEOS[p.slug]
+  const virtualTour = p.virtualTourUrl ?? PROJECT_VIRTUAL_TOURS[p.slug]
+  const passport = p.passportUrl ?? PROJECT_FLOORPLANS[p.slug]
   const existing = p.gallery ?? []
   const merged = [...real, ...existing].filter((g, i, all) => all.indexOf(g) === i)
   return {
     ...p,
     ...(video ? { videoUrl: video } : {}),
+    ...(virtualTour ? { virtualTourUrl: virtualTour } : {}),
+    ...(passport ? { passportUrl: passport } : {}),
     ...(merged.length > 0 ? { gallery: merged } : {}),
   }
 }
@@ -1748,6 +1758,7 @@ export const DEVELOPERS: Developer[] = [
     ...d,
     logoUrl: d.logoUrl ?? `/images/developers/${d.slug}.webp`,
     videoUrl: d.videoUrl ?? DEVELOPER_VIDEOS[d.slug],
+    gallery: d.gallery ?? DEVELOPER_GALLERIES[d.slug],
   }))
 
 // ——— Agents / agencies ———

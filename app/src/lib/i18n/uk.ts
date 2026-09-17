@@ -838,6 +838,13 @@ export const uk: Dict = {
   'chat.presenceAgo': 'Активність {ago} тому',
   'chat.expand': 'Розгорнути',
   'chat.collapse': 'Згорнути',
+  'chat.safetyTip': 'Ніколи не платіть наперед, не оглянувши обʼєкт, і не повідомляйте коди підтвердження. Повідомляйте про підозріле.',
+  'chat.bookViewing': 'Записатися на огляд',
+  'chat.faqDidYouMean': 'Можливо, ви мали на увазі:',
+  'chat.replyHint': 'Швидка відповідь',
+  'chat.replyAvailable': 'Так, обʼєкт ще вільний.',
+  'chat.replyViewing': 'Бажаєте домовитися про огляд?',
+  'chat.replyTaken': 'На жаль, уже зайнято.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастрова карта',

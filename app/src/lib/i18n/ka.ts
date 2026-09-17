@@ -846,6 +846,13 @@ export const ka = {
   'chat.presenceAgo': 'ბოლოს {ago} წინ',
   'chat.expand': 'გაფართოება',
   'chat.collapse': 'შემცირება',
+  'chat.safetyTip': 'არასდროს გადაიხადო წინასწარ ობიექტის ნახვამდე და არ გაუზიარო პირადი კოდები. საეჭვო შეტყობინება დააფიქსირე.',
+  'chat.bookViewing': 'ნახვის დაჯავშნა',
+  'chat.faqDidYouMean': 'იქნებ ეს გაინტერესებს?',
+  'chat.replyHint': 'სწრაფი პასუხი',
+  'chat.replyAvailable': 'დიახ, ჯერ კიდევ თავისუფალია.',
+  'chat.replyViewing': 'გნებავთ ნახვის დაგეგმვა?',
+  'chat.replyTaken': 'უკვე დაკავებულია, ბოდიშს გიხდით.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'საკადასტრო რუკა',

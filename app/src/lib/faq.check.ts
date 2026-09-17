@@ -3,7 +3,7 @@
  * FAQ assistant matcher — instant keyword coverage, miss fallback, chips.
  */
 import assert from 'node:assert/strict'
-import { FAQ_SECTIONS, faqLoc, faqMatch, faqSuggestions } from './faq'
+import { FAQ_SECTIONS, faqLoc, faqMatch, faqSearch, faqSuggestions } from './faq'
 
 // ——— dataset integrity: every section has QAs, all three locales aligned ———
 for (const loc of ['ka', 'en', 'ru'] as const) {
@@ -77,5 +77,24 @@ const chips = faqSuggestions('ka', 6)
 assert.equal(chips.length, 6)
 assert.ok(new Set(chips.map((c) => c.q)).size === 6, 'suggestions unique')
 assert.equal(faqSuggestions('en', 6).length, 6)
+
+// ——— faqSearch: near misses become "did you mean" chips ———
+assert.deepEqual(faqSearch('', 'en'), [], 'empty query → nothing to suggest')
+assert.deepEqual(faqSearch('asdf qwerty zzz', 'en'), [], 'pure noise suggests nothing')
+const near = faqSearch('tour', 'en')
+assert.ok(near.length > 0 && near.length <= 3, 'one weak token still suggests')
+assert.match(
+  near[0]!.q,
+  /tour/i,
+  'a hit in the question outranks the same word buried in another answer',
+)
+assert.ok(faqSearch('ტური', 'ka').length > 0, 'ka: near miss suggests')
+assert.ok(faqSearch('Energieausweis', 'de').length > 0, 'de: near miss suggests')
+assert.equal(faqSearch('оценка', 'ru', 2).length <= 2, true, 'limit honoured')
+assert.equal(
+  new Set(faqSearch('apartment tbilisi rent', 'en').map((x) => x.q)).size,
+  faqSearch('apartment tbilisi rent', 'en').length,
+  'suggestions are unique',
+)
 
 console.log('faq.check: all assertions passed')

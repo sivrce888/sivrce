@@ -837,6 +837,13 @@ export const tr: Dict = {
   'chat.presenceAgo': '{ago} önce aktifti',
   'chat.expand': 'Büyüt',
   'chat.collapse': 'Küçült',
+  'chat.safetyTip': 'Mülkü görmeden asla ön ödeme yapmayın ve doğrulama kodlarınızı paylaşmayın. Şüpheli her şeyi bildirin.',
+  'chat.bookViewing': 'Görüntüleme planla',
+  'chat.faqDidYouMean': 'Şunu mu demek istediniz?',
+  'chat.replyHint': 'Hızlı yanıt',
+  'chat.replyAvailable': 'Evet, hâlâ müsait.',
+  'chat.replyViewing': 'Bir görüntüleme ayarlamak ister misiniz?',
+  'chat.replyTaken': 'Maalesef, artık müsait değil.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastro haritası',

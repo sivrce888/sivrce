@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react"
 import { LifeBuoy, Send } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
-import { faqLoc, faqMatch, faqSuggestions } from "@/lib/faq"
+import { faqLoc, faqMatch, faqSearch, faqSuggestions, type FaqQA } from "@/lib/faq"
 import { useAutoGrow } from "./useAutoGrow"
 
 /**
@@ -33,6 +33,8 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
   })
   const [input, setInput] = useState("")
   const [missCta, setMissCta] = useState(false)
+  /** Ranked near-matches for the last unanswered question. */
+  const [nearby, setNearby] = useState<FaqQA[]>([])
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const boxRef = useAutoGrow(input, 112) // 112px = max-h-28
@@ -45,7 +47,7 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" })
-  }, [log, missCta])
+  }, [log, missCta, nearby])
 
   const answer = (question: string) => {
     const hit = faqMatch(question, loc)
@@ -54,7 +56,15 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
       { role: "user", text: question },
       hit ? { role: "bot", text: hit.a } : { role: "bot", text: t("chat.faqMiss") },
     ])
-    if (!hit) setMissCta(true)
+    if (hit) {
+      setNearby([])
+      setMissCta(false)
+      return
+    }
+    // A miss offers the closest entries before it offers a human — one tap
+    // beats waiting for support on a question the dataset already answers.
+    setNearby(faqSearch(question, loc))
+    setMissCta(true)
   }
 
   const onSend = (e: FormEvent) => {
@@ -103,12 +113,31 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
             </div>
           </div>
         ))}
+        {nearby.length > 0 && (
+          <div className="mt-3">
+            <p className="px-0.5 pb-1.5 text-[11.5px] font-bold text-sv-ink/60">
+              {t("chat.faqDidYouMean")}
+            </p>
+            <div className="flex flex-col items-start gap-1.5">
+              {nearby.map((qa) => (
+                <button
+                  key={qa.q}
+                  type="button"
+                  onClick={() => answer(qa.q)}
+                  className="min-h-11 max-w-full rounded-control border border-sv-blue/20 bg-sv-blue/[0.06] px-3 py-2 text-start text-[13px] font-bold text-sv-blue-deep transition-colors hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+                >
+                  {qa.q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {missCta && (
           <div className="mt-3 flex justify-center">
             <button
               type="button"
               onClick={onContactSupport}
-              className="inline-flex items-center gap-2 rounded-full bg-sv-blue px-4 py-2 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-sv-blue px-4 py-2 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
             >
               <LifeBuoy className="h-4 w-4" aria-hidden />
               {t("chat.contactSupport")}

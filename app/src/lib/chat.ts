@@ -212,6 +212,8 @@ export interface ChatRoomSummary {
   counterpart: ChatCounterpart | null
   /** True for the listing-less sivrce support line. */
   isSupport: boolean
+  /** I hold the "owner" seat — unlocks the seller-side quick replies. */
+  iAmOwner: boolean
   /** Either side blocked the other — the thread is frozen for both. */
   blocked: boolean
   /** I am the blocker, so the Unblock action is mine to take. */
@@ -307,6 +309,7 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
       listing: r.listing,
       counterpart: byId.get(peerId) ?? null,
       isSupport: r.participants.some((p) => p.userId !== userId && p.role === SUPPORT_ROLE),
+      iAmOwner: r.participants.some((p) => p.userId === userId && p.role === "owner"),
       blocked: blockedByMe.has(peerId) || blockedMe.has(peerId),
       blockedByMe: blockedByMe.has(peerId),
       lastMessage: last

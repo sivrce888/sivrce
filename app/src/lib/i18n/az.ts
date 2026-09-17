@@ -838,6 +838,13 @@ export const az: Dict = {
   'chat.presenceAgo': '{ago} əvvəl aktiv idi',
   'chat.expand': 'Böyüt',
   'chat.collapse': 'Kiçilt',
+  'chat.safetyTip': 'Obyekti görmədən heç vaxt əvvəlcədən ödəniş etməyin və təsdiq kodlarını paylaşmayın. Şübhəli hər şeyi bildirin.',
+  'chat.bookViewing': 'Baxış təyin et',
+  'chat.faqDidYouMean': 'Bunu nəzərdə tuturdunuz?',
+  'chat.replyHint': 'Sürətli cavab',
+  'chat.replyAvailable': 'Bəli, hələ də boşdur.',
+  'chat.replyViewing': 'Baxış təşkil etmək istəyirsiniz?',
+  'chat.replyTaken': 'Təəssüf ki, artıq tutulub.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Kadastr xəritəsi',

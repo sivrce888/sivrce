@@ -229,8 +229,8 @@ export default async function DeveloperPage({ params }: PageProps) {
       })
     : null
 
-  // Every render across the portfolio — hero + gallery art, deduped, capped.
-  const allPhotos = collectPhotos(projects.flatMap((p) => [p.img, p.gallery ?? []]))
+  // Every render across the portfolio — developer gallery + project art, deduped, capped.
+  const allPhotos = collectPhotos([...(dev.gallery ?? []), ...projects.flatMap((p) => [p.img, ...(p.gallery ?? [])])])
   const areaLabels = placeLabels(chromeLoc)
 
   const anchors = [

@@ -44,24 +44,31 @@ export async function generateMetadata({
 const T: Record<DirLoc, {
   kicker: string; title: string; subtitle: string
   email: string; phone: string; address: string; addressValue: string
+  hours: string; chatNote: string
   ldName: string
 }> = {
   ka: {
     kicker: 'კონტაქტი', title: 'დაგვიკავშირდი',
     subtitle: 'კითხვა, შეთავაზება თუ პარტნიორობა — ჩვენი გუნდი გიპასუხებთ 24 საათის განმავლობაში.',
     email: 'ელ. ფოსტა', phone: 'ტელეფონი', address: 'მისამართი', addressValue: 'თბილისი, საქართველო',
+    hours: 'ორშ.–შაბ. 10:00–19:00 (GMT+4)',
+    chatNote: 'ან დაგვიწერე ჩატში — ღილაკი ეკრანის კუთხეშია. ფორმით გამოგზავნილ შეტყობინებას ვპასუხობთ 24 საათში.',
     ldName: 'კონტაქტი — sivrce',
   },
   en: {
     kicker: 'Contact', title: 'Get in touch',
     subtitle: 'A question, an offer or a partnership — our team replies within 24 hours.',
     email: 'Email', phone: 'Phone', address: 'Address', addressValue: 'Tbilisi, Georgia',
+    hours: 'Mon–Sat 10:00–19:00 (GMT+4)',
+    chatNote: 'Or message us in chat — the button sits in the corner of every page. Messages sent from this form are answered within 24 hours.',
     ldName: 'Contact — sivrce',
   },
   ru: {
     kicker: 'Контакты', title: 'Свяжитесь с нами',
     subtitle: 'Вопрос, предложение или партнёрство — наша команда ответит в течение 24 часов.',
     email: 'Эл. почта', phone: 'Телефон', address: 'Адрес', addressValue: 'Тбилиси, Грузия',
+    hours: 'Пн–Сб 10:00–19:00 (GMT+4)',
+    chatNote: 'Или напишите в чат — кнопка в углу каждой страницы. На сообщения из формы отвечаем в течение 24 часов.',
     ldName: 'Контакты — sivrce',
   },
 }
@@ -102,6 +109,21 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
           url: origin,
           email,
           telephone: phone,
+          contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'customer support',
+            email,
+            telephone: phone,
+            availableLanguage: ['ka', 'en', 'ru'],
+            hoursAvailable: {
+              '@type': 'OpeningHoursSpecification',
+              dayOfWeek: [
+                'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+              ],
+              opens: '10:00',
+              closes: '19:00',
+            },
+          },
           address: {
             '@type': 'PostalAddress',
             addressLocality: 'თბილისი',
@@ -162,7 +184,11 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
             })}
           </div>
 
-          <div className="mx-auto mt-12 max-w-2xl">
+          <p className="mt-6 text-center text-[13.5px] font-semibold text-sv-ink/55">
+            {t.hours} · {t.chatNote}
+          </p>
+
+          <div className="mx-auto mt-10 max-w-2xl">
             <Reveal delay={0.1}>
               <ContactForm />
             </Reveal>

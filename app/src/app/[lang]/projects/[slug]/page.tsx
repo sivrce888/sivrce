@@ -553,6 +553,7 @@ export default async function ProjectPage({ params }: PageProps) {
           gallery={project.gallery}
           passportUrl={project.passportUrl}
           videoUrl={project.videoUrl}
+          virtualTourUrl={project.virtualTourUrl}
           lang={chromeLoc}
         />
 

@@ -460,6 +460,44 @@ export function faqMatch(query: string, loc: FaqLoc): FaqQA | null {
   return best
 }
 
+/** A near miss still beats a dead end — half the confidence of a real answer. */
+const NEAR_MISS_THRESHOLD = 0.2
+
+/**
+ * Ranked near-matches for a query that `faqMatch` refused to answer. The
+ * assistant offers these as "did you mean" chips, so an unrecognised question
+ * costs a tap instead of ending the conversation.
+ */
+export function faqSearch(query: string, loc: FaqLoc, limit = 3): FaqQA[] {
+  const queryTokens = tokens(query)
+  if (queryTokens.length === 0) return []
+
+  const scored: { item: FaqQA; score: number }[] = []
+  FAQ_SECTIONS[loc].forEach((section, si) => {
+    section.items.forEach((item, ii) => {
+      const vocab = questionTokens(loc)[si][ii]
+      let hits = 0
+      for (const w of queryTokens) if (vocab.includes(w)) hits++
+      if (hits === 0) return
+      // A word in the *question* is a far stronger signal than the same word
+      // buried in some other entry's answer — without this weighting, "tour"
+      // ranks a general location answer above "How do I book a tour?".
+      const qVocab = tokens(item.q)
+      let qHits = 0
+      for (const w of queryTokens) if (qVocab.includes(w)) qHits++
+      const score = (hits + qHits) / (2 * queryTokens.length)
+      if (hits / queryTokens.length >= NEAR_MISS_THRESHOLD) scored.push({ item, score })
+    })
+  })
+
+  // Stable sort: equal scores keep dataset order (the more general entry first).
+  return scored
+    .map((s, i) => ({ ...s, i }))
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .slice(0, limit)
+    .map((s) => s.item)
+}
+
 /** Round-robin pick of the most general questions — the assistant's chips. */
 export function faqSuggestions(loc: FaqLoc, count = 6): FaqQA[] {
   const out: FaqQA[] = []

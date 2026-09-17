@@ -837,6 +837,13 @@ export const ru: Dict = {
   'chat.presenceAgo': 'Активность {ago} назад',
   'chat.expand': 'Развернуть',
   'chat.collapse': 'Свернуть',
+  'chat.safetyTip': 'Никогда не платите заранее, не посмотрев объект, и не сообщайте коды подтверждения. Сообщайте о подозрительном.',
+  'chat.bookViewing': 'Записаться на просмотр',
+  'chat.faqDidYouMean': 'Возможно, вы имели в виду:',
+  'chat.replyHint': 'Быстрый ответ',
+  'chat.replyAvailable': 'Да, объект ещё свободен.',
+  'chat.replyViewing': 'Хотите назначить просмотр?',
+  'chat.replyTaken': 'К сожалению, уже занято.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Кадастровая карта',

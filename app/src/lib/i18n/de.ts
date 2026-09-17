@@ -839,6 +839,13 @@ export const de: Dict = {
   'chat.presenceAgo': 'Zuletzt vor {ago} aktiv',
   'chat.expand': 'Vergrößern',
   'chat.collapse': 'Verkleinern',
+  'chat.safetyTip': 'Zahlen Sie nie im Voraus, bevor Sie die Immobilie gesehen haben, und geben Sie keine Bestätigungscodes weiter. Melden Sie Verdächtiges.',
+  'chat.bookViewing': 'Besichtigung buchen',
+  'chat.faqDidYouMean': 'Meinten Sie:',
+  'chat.replyHint': 'Schnellantwort',
+  'chat.replyAvailable': 'Ja, die Immobilie ist noch verfügbar.',
+  'chat.replyViewing': 'Möchten Sie eine Besichtigung vereinbaren?',
+  'chat.replyTaken': 'Leider bereits vergeben.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Katasterkarte',

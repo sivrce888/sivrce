@@ -838,6 +838,13 @@ export const hy: Dict = {
   'chat.presenceAgo': 'Ակտիվ {ago} առաջ',
   'chat.expand': 'Ընդլայնել',
   'chat.collapse': 'Փոքրացնել',
+  'chat.safetyTip': 'Երբեք մի վճարեք կանխավճար՝ նախքան գույքը տեսնելը, և մի կիսվեք հաստատման կոդերով: Հաղորդեք կասկածելի ամեն ինչի մասին:',
+  'chat.bookViewing': 'Ամրագրել դիտում',
+  'chat.faqDidYouMean': 'Միգուցե նկատի ունեիք՝',
+  'chat.replyHint': 'Արագ պատասխան',
+  'chat.replyAvailable': 'Այո, դեռ ազատ է:',
+  'chat.replyViewing': 'Ցանկանո՞ւմ եք պայմանավորվել դիտման համար:',
+  'chat.replyTaken': 'Ցավոք, արդեն զբաղված է:',
 
   // ——— Cadastre ———
   'nav.cadastre': 'Կադաստրի քարտեզ',

@@ -837,6 +837,13 @@ export const ar: Dict = {
   'chat.presenceAgo': 'نشط قبل {ago}',
   'chat.expand': 'توسيع',
   'chat.collapse': 'تصغير',
+  'chat.safetyTip': 'لا تدفع مقدمًا قبل معاينة العقار، ولا تشارك رموز التحقق. أبلغ عن أي شيء مريب.',
+  'chat.bookViewing': 'حجز معاينة',
+  'chat.faqDidYouMean': 'هل تقصد:',
+  'chat.replyHint': 'رد سريع',
+  'chat.replyAvailable': 'نعم، العقار ما زال متاحًا.',
+  'chat.replyViewing': 'هل ترغب في تحديد موعد للمعاينة؟',
+  'chat.replyTaken': 'عذرًا، تم حجزه بالفعل.',
 
   // ——— Cadastre ———
   'nav.cadastre': 'خريطة الكاداستر',
