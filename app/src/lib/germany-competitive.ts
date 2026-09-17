@@ -260,7 +260,7 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       engineering: {
         score: 100,
-        note: '121 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
+        note: '122 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
         evidence: 'package.json',
       },
     },
