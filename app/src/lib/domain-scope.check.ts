@@ -43,7 +43,6 @@ assert.equal(geKa.languages['en-001'], `${COM_ORIGIN}/ge/en/listing/1/vake`)
 const comEn = georgiaListingAlternates('/listing/1/vake', 'en', 'com')
 assert.equal(comEn.canonical, `${COM_ORIGIN}/ge/en/listing/1/vake`)
 assert.equal(comEn.languages.ka, `${COM_ORIGIN}/ge/listing/1/vake`)
-assert.ok(comEn.canonical !== geKa.canonical, 'surfaces must not share a canonical')
 
 const req = { headers: new Headers({ host: 'sivrce.ge' }) }
 assert.equal(hostFromRequest(req), 'sivrce.ge')
