@@ -17,6 +17,7 @@ import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { panelTitle } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -138,7 +139,9 @@ function StayCard({ booking, actions }: { booking: StayBooking; actions: boolean
   )
 }
 
-export default async function SellerStaysPage() {
+export default async function SellerStaysPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
 
@@ -199,7 +202,7 @@ export default async function SellerStaysPage() {
 
   return (
     <DashboardShell
-      nav={sellerNav}
+      nav={sellerNav(lang)}
       title={panelTitle(persona)}
       subtitle="ღამეული"
       userLabel={user.name ?? user.email}

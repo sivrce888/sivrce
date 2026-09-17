@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function DeveloperLeadsPage() {
+export default async function DeveloperLeadsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("developer", "/developer")
 
   const listingRows = await safeQuery(
@@ -41,7 +42,7 @@ export default async function DeveloperLeadsPage() {
 
   return (
     <DashboardShell
-      nav={developerNav}
+      nav={developerNav(lang)}
       title="დეველოპერის პანელი"
       subtitle="ლიდები"
       userLabel={user.name ?? user.email}

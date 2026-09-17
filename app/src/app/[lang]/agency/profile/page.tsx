@@ -18,7 +18,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function AgencyProfilePage() {
+export default async function AgencyProfilePage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("agency", "/agency")
 
   const profile = await safeQuery(
@@ -28,7 +29,7 @@ export default async function AgencyProfilePage() {
 
   return (
     <DashboardShell
-      nav={AGENCY_NAV}
+      nav={AGENCY_NAV(lang)}
       title="სააგენტოს პანელი"
       subtitle="პროფილი"
       userLabel={user.name ?? user.email}

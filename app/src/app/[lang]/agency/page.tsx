@@ -25,7 +25,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function AgencyOverviewPage() {
+export default async function AgencyOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("agency", "/agency")
   const { profile, team, ownerIds } = await getAgencyContext(user)
 
@@ -74,7 +75,7 @@ export default async function AgencyOverviewPage() {
 
   return (
     <DashboardShell
-      nav={AGENCY_NAV}
+      nav={AGENCY_NAV(lang)}
       title="სააგენტოს პანელი"
       subtitle={profile?.name}
       userLabel={user.name ?? user.email}

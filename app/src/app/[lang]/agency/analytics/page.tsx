@@ -3,7 +3,7 @@ import { CalendarCheck, Eye, MessagesSquare, TrendingUp } from "lucide-react"
 
 import BarRow from "@/components/agency-dashboard/BarRow"
 import { getAgencyContext } from "@/components/agency-dashboard/data"
-import { AGENCY_NAV, LISTING_STATUS_LABELS } from "@/components/agency-dashboard/nav"
+import { AGENCY_NAV, listingStatusLabels } from "@/components/agency-dashboard/nav"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
 import StatCard from "@/components/dashboard/StatCard"
@@ -26,7 +26,8 @@ export const metadata: Metadata = {
 
 const LISTING_STATUS_ORDER: ListingStatus[] = ["active", "pending", "sold", "expired", "withdrawn"]
 
-export default async function AgencyAnalyticsPage() {
+export default async function AgencyAnalyticsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("agency", "/agency")
   const { ownerIds } = await getAgencyContext(user)
 
@@ -74,7 +75,7 @@ export default async function AgencyAnalyticsPage() {
 
   return (
     <DashboardShell
-      nav={AGENCY_NAV}
+      nav={AGENCY_NAV(lang)}
       title="სააგენტოს პანელი"
       subtitle="ანალიტიკა"
       userLabel={user.name ?? user.email}
@@ -121,7 +122,7 @@ export default async function AgencyAnalyticsPage() {
             {LISTING_STATUS_ORDER.map((status) => (
               <BarRow
                 key={status}
-                label={LISTING_STATUS_LABELS[status]}
+                label={listingStatusLabels(lang)[status]}
                 count={listingCounts.get(status) ?? 0}
                 max={maxListings}
               />

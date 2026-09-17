@@ -10,6 +10,7 @@ import ProjectForm from "@/components/developer-dashboard/ProjectForm"
 import { db } from "@/lib/db"
 import { PROJECT_STATUS_KA, isProjectStatus } from "@/lib/developer-project"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -21,10 +22,14 @@ export const metadata: Metadata = {
 const fmt = new Intl.NumberFormat("ka-GE")
 
 export default async function DeveloperProjectsPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ lang: string }>
   searchParams: Promise<{ new?: string; edit?: string; confirmDelete?: string; err?: string }>
 }) {
+  const { lang: rawLang } = await params
+  const lang = isValidLang(rawLang) ? rawLang : "ka"
   const user = await requireRole("developer", "/developer")
   const q = await searchParams
   const showNew = q.new === "1"
@@ -60,7 +65,7 @@ export default async function DeveloperProjectsPage({
 
   return (
     <DashboardShell
-      nav={developerNav}
+      nav={developerNav(lang)}
       title="დეველოპერის პანელი"
       subtitle="პროექტები"
       userLabel={user.name ?? user.email}
@@ -78,7 +83,7 @@ export default async function DeveloperProjectsPage({
         )}
       </div>
 
-      {showNew ? <ProjectForm project={null} error={formError} /> : null}
+      {showNew ? <ProjectForm project={null} error={formError} lang={lang} /> : null}
       {editing && confirmDelete ? (
         <section className="mb-6 rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
           <p className="text-[16px] font-extrabold text-sv-ink">წავშალოთ „{editing.name}“?</p>
@@ -107,6 +112,7 @@ export default async function DeveloperProjectsPage({
       {editing && !confirmDelete ? (
         <div className="mb-6 space-y-3">
           <ProjectForm
+            lang={lang}
             project={{
               id: editing.id,
               name: editing.name,

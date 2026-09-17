@@ -193,7 +193,7 @@ export default function NeighborhoodDetail({
         <section aria-label="FAQ" className="bg-sv-cloud py-16 md:py-20">
           <div className="mx-auto max-w-[1440px] px-5 md:px-10">
             <h2 className="mb-6 text-[26px] font-black tracking-[-0.02em] text-sv-ink md:text-[32px]">
-              {lang === 'ka' ? 'ხშირი კითხვები' : lang === 'ru' ? 'Частые вопросы' : 'Frequently Asked Questions'}
+              {lang === 'ka' ? 'ხშირი კითხვები' : lang === 'ru' ? 'Частые вопросы' : lang === 'de' ? 'Häufige Fragen' : 'Frequently Asked Questions'}
             </h2>
             <div className="grid gap-3 max-w-4xl">
               {faqs.map((f) => (

@@ -4,6 +4,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { BookOpen, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import type { BlogPost } from '@/data/blog'
+import { blogTitle, blogExcerpt } from '@/data/blog'
 import { useI18n } from '@/lib/i18n/context'
 
 /** Deterministic date — month names come from the home.blog.months block
@@ -15,7 +16,7 @@ function formatBlockDate(iso: string, months: string[]): string {
 }
 
 export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) {
-  const { b } = useI18n()
+  const { b, lang } = useI18n()
   const months = b('home.blog.months').split(',')
   return (
     <section className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
@@ -50,7 +51,7 @@ export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) 
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={art.cover}
-                      alt={art.title}
+                      alt={blogTitle(art, lang)}
                       loading="lazy"
                       decoding="async"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -75,10 +76,10 @@ export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) 
                         </span>
                       </div>
                       <h3 className="mt-2 text-[15px] font-extrabold leading-snug text-sv-ink transition-colors line-clamp-2 group-hover:text-sv-blue">
-                        {art.title}
+                        {blogTitle(art, lang)}
                       </h3>
                       <p className="mt-2 text-[13px] font-medium leading-relaxed text-sv-ink/60 line-clamp-3">
-                        {art.excerpt}
+                        {blogExcerpt(art, lang)}
                       </p>
                     </div>
 

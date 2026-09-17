@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function AgentListingsPage() {
+export default async function AgentListingsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("agent", "/agent")
 
   const listings = await safeQuery(
@@ -65,7 +66,7 @@ export default async function AgentListingsPage() {
 
   return (
     <DashboardShell
-      nav={agentNav}
+      nav={agentNav(lang)}
       title="აგენტის პანელი"
       subtitle="განცხადებები"
       userLabel={user.name ?? user.email}

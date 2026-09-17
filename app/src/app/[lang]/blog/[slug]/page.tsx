@@ -4,15 +4,16 @@ import { notFound } from 'next/navigation'
 import { ChevronRight, Clock, ArrowLeft, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { BLOG_POSTS, relatedPosts } from '@/data/blog'
+import { BLOG_POSTS, relatedPosts, blogTitle, blogExcerpt } from '@/data/blog'
 import { getBlogPost } from '@/lib/blog-live'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
 import { avifCardOf, cardOf } from '@/lib/media'
-import {kaOnlyAlternates,  } from '@/lib/i18n/server'
+import { kaOnlyAlternates } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ lang: string; slug: string }>
 }
 
 export const revalidate = 86400
@@ -25,39 +26,43 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const origin = await requestOrigin()
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
   const post = await getBlogPost(slug)
   if (!post) return {}
+  const t = blogTitle(post, lang)
+  const d = blogExcerpt(post, lang)
+  const locale = lang === 'ka' ? 'ka_GE' : lang === 'de' ? 'de_DE' : lang === 'ru' ? 'ru_RU' : 'en_US'
   return {
-    title: post.title,
-    description: post.excerpt,
+    title: t,
+    description: d,
     alternates: kaOnlyAlternates(`/blog/${post.slug}`),
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
+      title: t,
+      description: d,
       type: 'article',
       url: `${origin}/blog/${post.slug}`,
       siteName: 'sivrce',
-      locale: 'ka_GE',
+      locale,
       publishedTime: `${post.publishedAt}T00:00:00+04:00`,
       modifiedTime: `${post.updatedAt ?? post.publishedAt}T00:00:00+04:00`,
       authors: [post.author],
-      images: [{ url: ogImage(post.cover), width: 1200, height: 630, alt: post.title }],
+      images: [{ url: ogImage(post.cover), width: 1200, height: 630, alt: t }],
     },
-    twitter: { card: 'summary_large_image', title: post.title, description: post.excerpt, images: [ogImage(post.cover)] },
+    twitter: { card: 'summary_large_image', title: t, description: d, images: [ogImage(post.cover)] },
   }
 }
 
-function postLd(post: NonNullable<Awaited<ReturnType<typeof getBlogPost>>>, origin: string) {
+function postLd(post: NonNullable<Awaited<ReturnType<typeof getBlogPost>>>, origin: string, lang: string) {
   const cover = post.cover.startsWith('http') ? post.cover : `https://sivrce.ge${post.cover}`
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: post.title,
+    headline: blogTitle(post, lang),
     ...(post.enTitle ? { alternativeHeadline: post.enTitle } : {}),
-    description: post.excerpt,
+    description: blogExcerpt(post, lang),
     image: cover,
-    inLanguage: 'ka',
+    inLanguage: lang,
     datePublished: `${post.publishedAt}T00:00:00+04:00`,
     dateModified: `${post.updatedAt ?? post.publishedAt}T00:00:00+04:00`,
     // ponytail: Person (not Organization) author — Google YMYL E-E-A-T signal.
@@ -98,9 +103,20 @@ function renderBody(body: string) {
   })
 }
 
+// Tri-lang page chrome (ka/en+de) — de/en render English chrome until the
+// German blog corpus exists; titles/excerpts localize via blogTitle/blogExcerpt.
+const CHROME: Record<string, { crumbHome: string; crumbBlog: string; crumbs: string; minRead: string; dateLocale: string; related: string; ctaTitle: string; ctaSub: string; ctaBtn: string; allArticles: string }> = {
+  ka: { crumbHome: 'მთავარი', crumbBlog: 'ბლოგი', crumbs: 'ბრედკრამბი', minRead: 'წთ კითხვა', dateLocale: 'ka-GE', related: 'მსგავსი სტატიები', ctaTitle: 'მოძებნეთ საკუთარი ბინა', ctaSub: 'ვერიფიცირებული განცხადებები AI ფასის შეფასებითა და 3D რუკით — თბილისი, ბათუმი, ქუთაისი.', ctaBtn: 'ძიება', allArticles: 'ყველა სტატია' },
+  ru: { crumbHome: 'Главная', crumbBlog: 'Блог', crumbs: 'Навигация', minRead: 'мин чтения', dateLocale: 'ru-RU', related: 'Похожие статьи', ctaTitle: 'Найдите свою квартиру', ctaSub: 'Верифицированные объявления с ИИ-оценкой цены и 3D-картой — Тбилиси, Батуми, Кутаиси.', ctaBtn: 'Поиск', allArticles: 'Все статьи' },
+  de: { crumbHome: 'Startseite', crumbBlog: 'Blog', crumbs: 'Brotkrumen', minRead: 'Min. Lesezeit', dateLocale: 'de-DE', related: 'Ähnliche Artikel', ctaTitle: 'Finden Sie Ihre Wohnung', ctaSub: 'Verifizierte Inserate mit KI-Preisschätzung und 3D-Karte — Tiflis, Batumi, Kutaissi.', ctaBtn: 'Suchen', allArticles: 'Alle Artikel' },
+  en: { crumbHome: 'Home', crumbBlog: 'Blog', crumbs: 'Breadcrumb', minRead: 'min read', dateLocale: 'en-US', related: 'Related articles', ctaTitle: 'Find your apartment', ctaSub: 'Verified listings with AI price estimates and a 3D map — Tbilisi, Batumi, Kutaisi.', ctaBtn: 'Search', allArticles: 'All articles' },
+}
+
 export default async function BlogPostPage({ params }: PageProps) {
   const origin = await requestOrigin()
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const c = CHROME[lang] ?? CHROME.en
   const post = await getBlogPost(slug)
   if (!post) notFound()
 
@@ -110,17 +126,17 @@ export default async function BlogPostPage({ params }: PageProps) {
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main" className="sv-pt-nav mx-auto max-w-[760px] px-5 pb-20">
-        <nav aria-label="ბრედკრამბი" className="mb-8">
+        <nav aria-label={c.crumbs} className="mb-8">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
             <li className="flex items-center gap-1.5">
-              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">მთავარი</LocalizedLink>
+              <LocalizedLink href="/" className="transition-colors hover:text-sv-blue">{c.crumbHome}</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
             </li>
             <li className="flex items-center gap-1.5">
-              <LocalizedLink href="/blog" className="transition-colors hover:text-sv-blue">ბლოგი</LocalizedLink>
+              <LocalizedLink href="/blog" className="transition-colors hover:text-sv-blue">{c.crumbBlog}</LocalizedLink>
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
             </li>
-            <li aria-current="page" className="line-clamp-1 text-sv-ink/80">{post.title}</li>
+            <li aria-current="page" className="line-clamp-1 text-sv-ink/80">{blogTitle(post, lang)}</li>
           </ol>
         </nav>
 
@@ -134,15 +150,15 @@ export default async function BlogPostPage({ params }: PageProps) {
               ))}
             </div>
             <h1 className="text-balance text-[28px] font-black leading-tight tracking-[-0.02em] text-sv-ink md:text-[40px]">
-              {post.title}
+              {blogTitle(post, lang)}
             </h1>
             <p className="mt-4 text-[17px] font-semibold leading-relaxed text-sv-ink/60">
-              {post.excerpt}
+              {blogExcerpt(post, lang)}
             </p>
             <div className="mt-6 flex items-center gap-4 border-y border-sv-ink/[0.06] py-4 text-[13px] font-bold text-sv-ink/60">
               <span>{post.author}</span>
-              <span>{new Date(post.publishedAt).toLocaleDateString('ka-GE', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-              <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" aria-hidden /> {post.readingMinutes} წთ კითხვა</span>
+              <span>{new Date(post.publishedAt).toLocaleDateString(c.dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+              <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" aria-hidden /> {post.readingMinutes} {c.minRead}</span>
             </div>
           </header>
 
@@ -155,7 +171,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             src={post.cover}
             srcSet={cardOf(post.cover) ? `${cardOf(post.cover)} 800w, ${post.cover} 2560w` : undefined}
             sizes="(max-width:1024px) 100vw, 820px"
-            alt={post.title}
+            alt={blogTitle(post, lang)}
             fetchPriority="high"
             className="mb-10 aspect-[16/9] w-full rounded-tile object-cover shadow-card"
           />
@@ -165,23 +181,23 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           {/* CTA */}
           <div className="mt-12 rounded-tile bg-sv-navy p-8 text-center md:p-10">
-            <h2 className="text-[22px] font-black text-white md:text-[26px]">მოძებნეთ საკუთარი ბინა</h2>
+            <h2 className="text-[22px] font-black text-white md:text-[26px]">{c.ctaTitle}</h2>
             <p className="mx-auto mt-2 max-w-[420px] text-[14px] font-medium text-white/60">
-              ვერიფიცირებული განცხადებები AI ფასის შეფასებითა და 3D რუკით — თბილისი, ბათუმი, ქუთაისი.
+              {c.ctaSub}
             </p>
             <LocalizedLink
               href="/search"
               className="mt-5 inline-flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-sv-ink shadow-glow-orange transition-transform hover:-translate-y-0.5"
             >
-              ძიება <ArrowRight className="h-4 w-4" aria-hidden />
+              {c.ctaBtn} <ArrowRight className="h-4 w-4" aria-hidden />
             </LocalizedLink>
           </div>
         </article>
 
         {/* Related posts — internal linking */}
         {related.length > 0 && (
-          <section className="mt-16" aria-label="მსგავსი სტატიები">
-            <h2 className="mb-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">მსგავსი სტატიები</h2>
+          <section className="mt-16" aria-label={c.related}>
+            <h2 className="mb-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">{c.related}</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {related.map((p) => (
                 <LocalizedLink
@@ -191,10 +207,10 @@ export default async function BlogPostPage({ params }: PageProps) {
                 >
                   <div className="aspect-[16/10] overflow-hidden bg-sv-ink/10">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.cover} alt={p.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <img src={p.cover} alt={blogTitle(p, lang)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-[14px] font-black leading-snug text-sv-ink line-clamp-3">{p.title}</h3>
+                    <h3 className="text-[14px] font-black leading-snug text-sv-ink line-clamp-3">{blogTitle(p, lang)}</h3>
                   </div>
                 </LocalizedLink>
               ))}
@@ -203,11 +219,11 @@ export default async function BlogPostPage({ params }: PageProps) {
         )}
 
         <LocalizedLink href="/blog" className="mt-12 inline-flex items-center gap-1.5 text-[14px] font-extrabold text-sv-blue-deep">
-          <ArrowLeft className="h-4 w-4" aria-hidden /> ყველა სტატია
+          <ArrowLeft className="h-4 w-4" aria-hidden /> {c.allArticles}
         </LocalizedLink>
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(post, origin)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(post, origin, lang)) }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -215,9 +231,9 @@ export default async function BlogPostPage({ params }: PageProps) {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'მთავარი', item: origin },
-              { '@type': 'ListItem', position: 2, name: 'ბლოგი', item: `${origin}/blog` },
-              { '@type': 'ListItem', position: 3, name: post.title, item: `${origin}/blog/${post.slug}` },
+              { '@type': 'ListItem', position: 1, name: c.crumbHome, item: origin },
+              { '@type': 'ListItem', position: 2, name: c.crumbBlog, item: `${origin}/blog` },
+              { '@type': 'ListItem', position: 3, name: blogTitle(post, lang), item: `${origin}/blog/${post.slug}` },
             ],
           }),
         }}

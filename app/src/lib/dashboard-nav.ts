@@ -7,33 +7,47 @@ import { dashboardPathFor } from "@/lib/guards"
 import { panelTitle, type Persona } from "@/lib/workspace"
 import type { UserRole } from "@/generated/prisma/client"
 
-export const buyerNav: DashboardNavItem[] = [
-  { href: "/account", label: "მიმოხილვა" },
-  { href: "/favorites", label: "ფავორიტები" },
-  { href: "/compare", label: "შედარება" },
-  { href: "/settings", label: "პარამეტრები" },
-]
+const BUYER_L = {
+  ka: ["მიმოხილვა", "ფავორიტები", "შედარება", "პარამეტრები"],
+  en: ["Overview", "Favorites", "Compare", "Settings"],
+  de: ["Überblick", "Favoriten", "Vergleich", "Einstellungen"],
+} as const
 
-const adminNav: DashboardNavItem[] = [
-  { href: "/admin", label: "ადმინი" },
-  { href: "/settings", label: "პარამეტრები" },
-]
+export function buyerNav(lang = "ka"): DashboardNavItem[] {
+  const t = BUYER_L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  return [
+    { href: "/account", label: t[0] },
+    { href: "/favorites", label: t[1] },
+    { href: "/compare", label: t[2] },
+    { href: "/settings", label: t[3] },
+  ]
+}
+
+const ADMIN_L = { ka: ["ადმინი", "პარამეტრები"], en: ["Admin", "Settings"], de: ["Admin", "Einstellungen"] } as const
+
+function adminNav(lang = "ka"): DashboardNavItem[] {
+  const t = ADMIN_L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  return [
+    { href: "/admin", label: t[0] },
+    { href: "/settings", label: t[1] },
+  ]
+}
 
 /** Role-aware sidebar for the shared /settings page. */
-export function settingsNavFor(role: UserRole): DashboardNavItem[] {
+export function settingsNavFor(role: UserRole, lang: string): DashboardNavItem[] {
   switch (role) {
     case "developer":
-      return developerNav
+      return developerNav(lang)
     case "agent":
-      return agentNav
+      return agentNav(lang)
     case "agency":
-      return AGENCY_NAV
+      return AGENCY_NAV(lang)
     case "seller":
-      return sellerNav
+      return sellerNav(lang)
     case "admin":
-      return adminNav
+      return adminNav(lang)
     case "buyer":
-      return buyerNav
+      return buyerNav(lang)
     default: {
       const _exhaustive: never = role
       return _exhaustive

@@ -9,6 +9,7 @@ import { requireRole, safeQuery } from "@/lib/guards"
 import { inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
 import { isRentFocus, panelTitle } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -17,7 +18,9 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function SellerLeadsPage() {
+export default async function SellerLeadsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
   const seeker = isRentFocus(persona) ? "დამქირავებელი" : "მყიდველი"
@@ -46,7 +49,7 @@ export default async function SellerLeadsPage() {
 
   return (
     <DashboardShell
-      nav={sellerNav}
+      nav={sellerNav(lang)}
       title={panelTitle(persona)}
       subtitle="ლიდები"
       userLabel={user.name ?? user.email}

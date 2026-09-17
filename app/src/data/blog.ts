@@ -20,6 +20,16 @@ export interface BlogPost {
   readingMinutes: number
 }
 
+/** Locale-preferring title: ka → title, other locales → enTitle (fallback ka). */
+export function blogTitle(p: Pick<BlogPost, 'title' | 'enTitle'>, lang: string): string {
+  return lang === 'ka' || !p.enTitle ? p.title : p.enTitle
+}
+
+/** Locale-preferring excerpt: ka → excerpt, other locales → enExcerpt (fallback ka). */
+export function blogExcerpt(p: Pick<BlogPost, 'excerpt' | 'enExcerpt'>, lang: string): string {
+  return lang === 'ka' || !p.enExcerpt ? p.excerpt : p.enExcerpt
+}
+
 export const BLOG_POSTS: BlogPost[] = [
   {
     slug: 'binebi-dghiurad-tbilisi',

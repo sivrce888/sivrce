@@ -11,6 +11,77 @@ const field =
   "h-11 rounded-control border border-sv-ink/12 bg-sv-cloud/40 px-4 text-[14px] font-semibold text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
 const label = "text-[12px] font-bold text-sv-ink/60"
 
+const L = {
+  ka: {
+    editHeading: "პროექტის რედაქტირება",
+    newHeading: "ახალი პროექტი",
+    cancel: "გაუქმება",
+    errRequired: "შეავსე სახელი, ქალაქი და უბანი.",
+    nameLabel: "პროექტის სახელი",
+    cityLabel: "ქალაქი",
+    districtLabel: "უბანი",
+    addressLabel: "მისამართი",
+    statusLabel: "სტატუსი",
+    readyByLabel: "ჩაბარება",
+    priceFromLabel: "ფასიდან (₾)",
+    priceSqmLabel: "მ² ფასიდან (₾)",
+    unitsLabel: "ბინები",
+    latLabel: "განედი",
+    lngLabel: "გრძედი",
+    renderLabel: "რენდერი",
+    descLabel: "აღწერა",
+    save: "შენახვა",
+  },
+  en: {
+    editHeading: "Edit project",
+    newHeading: "New project",
+    cancel: "Cancel",
+    errRequired: "Fill in name, city and district.",
+    nameLabel: "Project name",
+    cityLabel: "City",
+    districtLabel: "District",
+    addressLabel: "Address",
+    statusLabel: "Status",
+    readyByLabel: "Ready by",
+    priceFromLabel: "Price from (₾)",
+    priceSqmLabel: "m² price from (₾)",
+    unitsLabel: "Units",
+    latLabel: "Latitude",
+    lngLabel: "Longitude",
+    renderLabel: "Render",
+    descLabel: "Description",
+    save: "Save",
+  },
+  de: {
+    editHeading: "Projekt bearbeiten",
+    newHeading: "Neues Projekt",
+    cancel: "Abbrechen",
+    errRequired: "Bitte Name, Stadt und Viertel ausfüllen.",
+    nameLabel: "Projektname",
+    cityLabel: "Stadt",
+    districtLabel: "Viertel",
+    addressLabel: "Adresse",
+    statusLabel: "Status",
+    readyByLabel: "Fertigstellung",
+    priceFromLabel: "Preis ab (₾)",
+    priceSqmLabel: "m²-Preis ab (₾)",
+    unitsLabel: "Wohnungen",
+    latLabel: "Breitengrad",
+    lngLabel: "Längengrad",
+    renderLabel: "Visualisierung",
+    descLabel: "Beschreibung",
+    save: "Speichern",
+  },
+} as const
+
+/** Status option values are data — only the label is localized. */
+const STATUS_L10N: Record<string, { en: string; de: string }> = {
+  construction: { en: "Under construction", de: "Im Bau" },
+  completed: { en: "Completed", de: "Fertiggestellt" },
+  planned: { en: "Planned", de: "Geplant" },
+  draft: { en: "Draft", de: "Entwurf" },
+}
+
 export type ProjectFormRow = {
   id: string
   name: string
@@ -31,37 +102,42 @@ export type ProjectFormRow = {
 export default function ProjectForm({
   project,
   error,
+  lang = "ka",
 }: {
   project: ProjectFormRow | null
   error?: boolean
+  /** URL locale — server component, so lang is passed in (no useI18n here). */
+  lang?: string
 }) {
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const T = L[loc]
   return (
     <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
       <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-[18px] font-extrabold tracking-tight text-sv-ink">
-          {project ? "პროექტის რედაქტირება" : "ახალი პროექტი"}
+          {project ? T.editHeading : T.newHeading}
         </h2>
         <LocalizedLink
           href="/developer/projects"
           className="text-[12.5px] font-bold text-sv-ink/60 hover:text-sv-blue"
         >
-          გაუქმება
+          {T.cancel}
         </LocalizedLink>
       </div>
       {error ? (
         <p className="mb-4 rounded-control bg-sv-orange/10 px-4 py-2.5 text-[13px] font-semibold text-sv-orange">
-          შეავსე სახელი, ქალაქი და უბანი.
+          {T.errRequired}
         </p>
       ) : null}
       <form action={saveDeveloperProject} className="grid gap-4 sm:grid-cols-2">
         {project ? <input type="hidden" name="id" value={project.id} /> : null}
         <input type="hidden" name="image" value={project?.image ?? PROJECT_PLACEHOLDER_IMG} />
         <label className="grid gap-1.5 sm:col-span-2">
-          <span className={label}>პროექტის სახელი</span>
+          <span className={label}>{T.nameLabel}</span>
           <input name="name" required maxLength={180} defaultValue={project?.name ?? ""} className={field} />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>ქალაქი</span>
+          <span className={label}>{T.cityLabel}</span>
           <input
             name="city"
             required
@@ -71,25 +147,25 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>უბანი</span>
+          <span className={label}>{T.districtLabel}</span>
           <input name="district" required maxLength={120} defaultValue={project?.district ?? ""} className={field} />
         </label>
         <label className="grid gap-1.5 sm:col-span-2">
-          <span className={label}>მისამართი</span>
+          <span className={label}>{T.addressLabel}</span>
           <input name="address" maxLength={240} defaultValue={project?.address ?? ""} className={field} />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>სტატუსი</span>
+          <span className={label}>{T.statusLabel}</span>
           <select name="status" defaultValue={project?.status ?? "construction"} className={field}>
             {PROJECT_STATUSES.map((s) => (
               <option key={s} value={s}>
-                {PROJECT_STATUS_KA[s]}
+                {loc === "ka" ? PROJECT_STATUS_KA[s] : STATUS_L10N[s]?.[loc] ?? PROJECT_STATUS_KA[s]}
               </option>
             ))}
           </select>
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>ჩაბარება</span>
+          <span className={label}>{T.readyByLabel}</span>
           <input
             name="readyBy"
             maxLength={80}
@@ -99,7 +175,7 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>ფასიდან (₾)</span>
+          <span className={label}>{T.priceFromLabel}</span>
           <input
             name="priceFrom"
             type="number"
@@ -110,7 +186,7 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>მ² ფასიდან (₾)</span>
+          <span className={label}>{T.priceSqmLabel}</span>
           <input
             name="pricePerSqmFrom"
             type="number"
@@ -121,7 +197,7 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>ბინები</span>
+          <span className={label}>{T.unitsLabel}</span>
           <input
             name="units"
             type="number"
@@ -132,7 +208,7 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>განედი</span>
+          <span className={label}>{T.latLabel}</span>
           <input
             name="lat"
             inputMode="decimal"
@@ -142,7 +218,7 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5">
-          <span className={label}>გრძედი</span>
+          <span className={label}>{T.lngLabel}</span>
           <input
             name="lng"
             inputMode="decimal"
@@ -152,11 +228,11 @@ export default function ProjectForm({
           />
         </label>
         <label className="grid gap-1.5 sm:col-span-2">
-          <span className={label}>რენდერი</span>
+          <span className={label}>{T.renderLabel}</span>
           <input name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="text-[13px] font-medium text-sv-ink/70 file:mr-3 file:rounded-full file:border-0 file:bg-sv-blue file:px-4 file:py-2 file:text-[12px] file:font-bold file:text-white" />
         </label>
         <label className="grid gap-1.5 sm:col-span-2">
-          <span className={label}>აღწერა</span>
+          <span className={label}>{T.descLabel}</span>
           <textarea
             name="body"
             maxLength={4000}
@@ -170,7 +246,7 @@ export default function ProjectForm({
             type="submit"
             className="inline-flex rounded-full bg-sv-orange px-6 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
-            შენახვა
+            {T.save}
           </button>
         </div>
       </form>

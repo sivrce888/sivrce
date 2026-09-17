@@ -107,8 +107,31 @@ const L = {
   },
 } as const
 
-function Flash({ state }: { state: AccountActionState }) {
+// Server actions + validators return ka message strings (closed set) — map to
+// en/de here rather than threading lang through every action. Unknown → as-is.
+const FLASH_MSG: Record<string, { en: string; de: string }> = {
+  "ანგარიში ვერ მოიძებნა": { en: "Account not found", de: "Konto nicht gefunden" },
+  "ტელეფონის ნომერი სავალდებულოა": { en: "Phone number is required", de: "Telefonnummer ist erforderlich" },
+  "ეს ნომერი უკვე გამოყენებულია": { en: "This number is already in use", de: "Diese Nummer wird bereits verwendet" },
+  "შეიყვანე სახელი და გვარი": { en: "Enter your full name", de: "Geben Sie Ihren Namen ein" },
+  "შეიყვანე სწორი მობილურის ნომერი": { en: "Enter a valid mobile number", de: "Geben Sie eine gültige Mobilnummer ein" },
+  "პროფილი შენახულია": { en: "Profile saved", de: "Profil gespeichert" },
+  "პაროლები არ ემთხვევა": { en: "Passwords do not match", de: "Passwörter stimmen nicht überein" },
+  "შეიყვანე ახლანდელი პაროლი": { en: "Enter your current password", de: "Geben Sie Ihr aktuelles Passwort ein" },
+  "ახლანდელი პაროლი არასწორია": { en: "Current password is incorrect", de: "Aktuelles Passwort ist falsch" },
+  "პაროლი არასწორია": { en: "Password is incorrect", de: "Passwort ist falsch" },
+  "პაროლი შეიცვალა": { en: "Password changed", de: "Passwort geändert" },
+  "პაროლი დაყენებულია": { en: "Password set", de: "Passwort festgelegt" },
+  "ადმინ ანგარიშის წაშლა აქ შეუძლებელია": { en: "Admin accounts cannot be deleted here", de: "Admin-Konten können hier nicht gelöscht werden" },
+  "დასადასტურებლად ჩაწერე „წაშლა“": { en: "Type “წაშლა” to confirm", de: "Geben Sie zur Bestätigung „წაშლა“ ein" },
+  "ანგარიში ვერ წაიშალა — მოგვწერე": { en: "Account could not be deleted — contact us", de: "Konto konnte nicht gelöscht werden — kontaktieren Sie uns" },
+  "გასვლა ვერ მოხერხდა": { en: "Sign out failed", de: "Abmelden fehlgeschlagen" },
+}
+
+function Flash({ state, loc }: { state: AccountActionState; loc: "ka" | "en" | "de" }) {
   if (!state?.error && !state?.ok) return null
+  const raw = state.error ?? state.ok ?? ""
+  const msg = loc === "ka" ? raw : FLASH_MSG[raw]?.[loc] ?? raw
   return (
     <p
       role={state.error ? "alert" : "status"}
@@ -118,7 +141,7 @@ function Flash({ state }: { state: AccountActionState }) {
           : "bg-sv-blue/10 text-sv-blue-deep"
       }`}
     >
-      {state.error ?? state.ok}
+      {msg}
     </p>
   )
 }
@@ -198,7 +221,7 @@ export function AccountForms({
           {!isPhoneAccount ? (
             <p className="text-[12.5px] font-semibold text-sv-ink/60">{t.emailLine(email)}</p>
           ) : null}
-          <Flash state={profile} />
+          <Flash state={profile} loc={loc} />
           <button
             type="submit"
             disabled={savingProfile}
@@ -254,7 +277,7 @@ export function AccountForms({
             required
             minLength={8}
           />
-          <Flash state={pw} />
+          <Flash state={pw} loc={loc} />
           <button
             type="submit"
             disabled={savingPw}
@@ -336,7 +359,7 @@ export function AccountForms({
               required
             />
           ) : null}
-          <Flash state={gone} />
+          <Flash state={gone} loc={loc} />
           <button
             type="submit"
             disabled={removing}

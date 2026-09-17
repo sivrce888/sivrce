@@ -27,7 +27,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function AgentOverviewPage() {
+export default async function AgentOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("agent", "/agent")
 
   const profile = await safeQuery(
@@ -92,7 +93,7 @@ export default async function AgentOverviewPage() {
 
   return (
     <DashboardShell
-      nav={agentNav}
+      nav={agentNav(lang)}
       title="აგენტის პანელი"
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
@@ -208,7 +209,7 @@ export default async function AgentOverviewPage() {
                   </p>
                 </div>
                 <Badge
-                  label={tourStatusLabel[tour.status] ?? tour.status}
+                  label={tourStatusLabel(lang)[tour.status] ?? tour.status}
                   tone={tourStatusTone[tour.status] ?? "neutral"}
                 />
               </li>

@@ -2551,7 +2551,7 @@ export default function AddListingClient() {
                                   {' · '}
                                   {priceMode === 'total'
                                     ? `≈ $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) / areaN)} / ${areaSym(lang)}`
-                                    : `${lang === 'ka' ? 'სრული' : 'Total'}: $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) * areaN)}`}
+                                    : `${lang === 'ka' ? 'სრული' : lang === 'de' ? 'Gesamt' : 'Total'}: $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) * areaN)}`}
                                 </>
                               )}
                             </p>

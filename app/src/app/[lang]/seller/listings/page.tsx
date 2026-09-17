@@ -11,6 +11,7 @@ import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { effectiveTierKey } from "@/lib/promo-pricing"
 import { addListingHref, isRentFocus, panelTitle } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -19,7 +20,9 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function SellerListingsPage() {
+export default async function SellerListingsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
 
@@ -69,7 +72,7 @@ export default async function SellerListingsPage() {
 
   return (
     <DashboardShell
-      nav={sellerNav}
+      nav={sellerNav(lang)}
       title={panelTitle(persona)}
       subtitle="განცხადებები"
       userLabel={user.name ?? user.email}

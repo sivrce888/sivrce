@@ -138,7 +138,7 @@ const L = {
       rent: "ქირავდება",
       daily: "დღიურად",
       mortgage: "იპოთეკა",
-    },
+    } as Record<string, string>,
     sort: {
       updated_desc: "განახლება ↓",
       created_desc: "დამატება ↓",
@@ -157,7 +157,7 @@ const L = {
       color: "ფერი",
       refresh_once: "განახლება",
       facebook: "FB",
-    },
+    } as Record<string, string>,
   },
   en: {
     title: "My listings",
@@ -203,7 +203,7 @@ const L = {
       rent: "For rent",
       daily: "Daily",
       mortgage: "Mortgage",
-    },
+    } as Record<string, string>,
     sort: {
       updated_desc: "Updated ↓",
       created_desc: "Newest ↓",
@@ -222,7 +222,7 @@ const L = {
       color: "Color",
       refresh_once: "Refresh",
       facebook: "FB",
-    },
+    } as Record<string, string>,
   },
   de: {
     title: "Meine Inserate",
@@ -268,7 +268,7 @@ const L = {
       rent: "Zur Miete",
       daily: "Täglich",
       mortgage: "Hypothek",
-    },
+    } as Record<string, string>,
     sort: {
       updated_desc: "Aktualisiert ↓",
       created_desc: "Neueste ↓",
@@ -287,7 +287,7 @@ const L = {
       color: "Farbe",
       refresh_once: "Aktualisieren",
       facebook: "FB",
-    },
+    } as Record<string, string>,
   },
 } as const
 
@@ -626,19 +626,19 @@ export default function MyListingsManager({
 
           <div className="mb-3 flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {DEAL_TABS.map((d) => {
-              const active = dealTab === d.key
+              const active = dealTab === d
               return (
                 <button
-                  key={d.key}
+                  key={d}
                   type="button"
-                  onClick={() => setDealTab(d.key)}
+                  onClick={() => setDealTab(d)}
                   className={`shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${
                     active
                       ? "bg-sv-blue text-white"
                       : "bg-sv-cloud text-sv-ink/60 hover:text-sv-ink"
                   }`}
                 >
-                  {d.label}
+                  {str.dealTab[d]}
                 </button>
               )
             })}
@@ -646,20 +646,20 @@ export default function MyListingsManager({
 
           <div className="mb-5 flex gap-1 overflow-x-auto border-b border-sv-ink/6 pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {TABS.map((t) => {
-              const active = tab === t.key
+              const active = tab === t
               return (
                 <button
-                  key={t.key}
+                  key={t}
                   type="button"
-                  onClick={() => setTab(t.key)}
+                  onClick={() => setTab(t)}
                   className={`shrink-0 border-b-2 px-3.5 py-2.5 text-[13px] font-bold whitespace-nowrap transition ${
                     active
                       ? "border-sv-blue text-sv-blue"
                       : "border-transparent text-sv-ink/60 hover:text-sv-ink/70"
                   }`}
                 >
-                  {t.label}
-                  <span className="ml-1.5 tabular-nums opacity-70">{counts[t.key]}</span>
+                  {str.statusTab[t]}
+                  <span className="ml-1.5 tabular-nums opacity-70">{counts[t]}</span>
                 </button>
               )
             })}
@@ -673,7 +673,7 @@ export default function MyListingsManager({
 
           {filtered.length === 0 ? (
             <p className="rounded-card bg-sv-cloud px-5 py-10 text-center text-[14px] font-semibold text-sv-ink/60">
-              ამ ფილტრში განცხადება არ არის
+              {str.emptyFiltered}
             </p>
           ) : (
             <div className="space-y-3">
@@ -683,6 +683,7 @@ export default function MyListingsManager({
                   listing={l}
                   busy={busyId === l.id}
                   analyticsOpen={analyticsId === l.id}
+                  str={str}
                   formatPrice={(n) => format(priceAsGel(n, l.currency, rate))}
                   onToggleAnalytics={() =>
                     setAnalyticsId((id) => (id === l.id ? null : l.id))
@@ -711,14 +712,7 @@ export default function MyListingsManager({
                   }
                   onSold={() => {
                     const rent = isRentDeal(l.dealType)
-                    if (
-                      !window.confirm(
-                        rent
-                          ? "მოვნიშნოთ გაქირავებულად? განცხადება აღარ გამოჩნდება ძიებაში."
-                          : "მოვნიშნოთ გაყიდულად? განცხადება აღარ გამოჩნდება ძიებაში.",
-                      )
-                    )
-                      return
+                    if (!window.confirm(rent ? str.confirmRented : str.confirmSold)) return
                     void patch(l.id, { status: "sold" })
                   }}
                   onDelete={() => remove(l.id)}
@@ -737,6 +731,7 @@ function ListingManageCard({
   listing: l,
   busy,
   analyticsOpen,
+  str,
   formatPrice,
   onToggleAnalytics,
   onEdit,
@@ -749,6 +744,7 @@ function ListingManageCard({
   listing: ManagedListing
   busy: boolean
   analyticsOpen: boolean
+  str: Strings
   formatPrice: (n: number) => string
   onToggleAnalytics: () => void
   onEdit: () => void
@@ -790,9 +786,9 @@ function ListingManageCard({
             <div className="min-w-0">
               <p className="text-[11px] font-bold tabular-nums text-sv-ink/35">
                 ID {l.id}
-                {DEAL_BADGE[l.dealType] ? (
+                {str.dealTab[l.dealType] ? (
                   <span className="ml-2 font-extrabold text-sv-blue/70">
-                    {DEAL_BADGE[l.dealType]}
+                    {str.dealTab[l.dealType]}
                   </span>
                 ) : null}
               </p>
@@ -803,22 +799,22 @@ function ListingManageCard({
                 {l.title}
               </LocalizedLink>
               <p className="mt-2 text-[20px] font-black tracking-[-0.03em] text-sv-ink tabular-nums">
-                {l.price > 0 ? formatPrice(l.price) : "ფასი მოთხოვნით"}
+                {l.price > 0 ? formatPrice(l.price) : str.priceOnRequest}
               </p>
             </div>
 
             <div className="flex shrink-0 flex-col gap-1.5">
-              <IconBtn label="რედაქტირება" onClick={onEdit} disabled={busy}>
+              <IconBtn label={str.edit} onClick={onEdit} disabled={busy}>
                 <Pencil size={15} />
               </IconBtn>
               <IconBtn
-                label={l.status === "active" ? "გამორთვა" : "ჩართვა"}
+                label={l.status === "active" ? str.disable : str.enable}
                 onClick={onToggle}
                 disabled={busy || l.status === "sold"}
               >
                 {busy ? <Loader2 size={15} className="animate-spin" /> : <Power size={15} />}
               </IconBtn>
-              <IconBtn label="წაშლა" onClick={onDelete} disabled={busy} danger>
+              <IconBtn label={str.delete} onClick={onDelete} disabled={busy} danger>
                 <Trash2 size={15} />
               </IconBtn>
             </div>
@@ -827,7 +823,9 @@ function ListingManageCard({
           <div className="mt-auto">
             <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold text-sv-ink/60">
               <span>{dateTimeFmt.format(new Date(l.createdAt))}</span>
-              <span>ვადა {dateTimeFmt.format(expires)}</span>
+              <span>
+                {str.expires} {dateTimeFmt.format(expires)}
+              </span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.06]">
               <div
@@ -855,7 +853,7 @@ function ListingManageCard({
               className="inline-flex items-center gap-1 rounded-full bg-sv-orange px-2.5 py-1.5 text-[11px] font-extrabold text-sv-ink shadow-glow-orange transition hover:opacity-95 disabled:opacity-50"
             >
               <MessageCircle size={12} strokeWidth={2.4} />
-              კლიენტს
+              {str.sendToClient}
             </button>
             <button
               type="button"
@@ -864,7 +862,7 @@ function ListingManageCard({
               className="inline-flex items-center gap-1 rounded-full bg-sv-navy px-2.5 py-1.5 text-[11px] font-extrabold text-white transition hover:bg-sv-navy-soft disabled:opacity-50"
             >
               <CircleCheck size={12} strokeWidth={2.4} />
-              {isRentDeal(l.dealType) ? "გაქირავებულია" : "გაყიდულია"}
+              {isRentDeal(l.dealType) ? str.rented : str.sold}
             </button>
           </>
         ) : null}
@@ -886,13 +884,13 @@ function ListingManageCard({
                   p.kind === "addon" && p.addon
                     ? formatGel(ADDON_TETRI[p.addon])
                     : renew
-                      ? "გაგრძელება +30 დღე"
+                      ? str.renew30
                       : undefined
                 }
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-extrabold transition active:scale-[0.97] disabled:opacity-50 ${p.className}`}
               >
                 <p.icon size={12} strokeWidth={2.4} />
-                {renew ? `${p.label}+` : p.label}
+                {renew ? `${str.boost[p.key]}+` : str.boost[p.key]}
               </button>
               )
             })
@@ -907,15 +905,15 @@ function ListingManageCard({
           }`}
         >
           <BarChart3 size={13} />
-          ანალიტიკა
+          {str.analytics}
         </button>
       </div>
 
       {analyticsOpen ? (
         <div className="grid grid-cols-3 gap-2 border-t border-sv-ink/5 px-3 py-3 sm:px-4">
-          <Stat icon={Eye} label="ნახვა" value={l.views} tone="blue" />
-          <Stat icon={MessagesSquare} label="ლიდი" value={l.leads} tone="blue" />
-          <Stat icon={Phone} label="ნომერი" value={l.phoneReveals} tone="orange" />
+          <Stat icon={Eye} label={str.statViews} value={l.views} tone="blue" />
+          <Stat icon={MessagesSquare} label={str.statLeads} value={l.leads} tone="blue" />
+          <Stat icon={Phone} label={str.statCalls} value={l.phoneReveals} tone="orange" />
         </div>
       ) : null}
     </article>

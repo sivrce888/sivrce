@@ -222,7 +222,7 @@ export function AdBannerForm({ defaults }: { defaults: AdBannerDefaults }) {
               id="ctaLabel"
               name="ctaLabel"
               defaultValue={defaults.ctaLabel}
-              placeholder="ნახვა"
+              placeholder="See more"
               className={inputCls}
             />
           </Field>

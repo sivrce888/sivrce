@@ -24,7 +24,8 @@ const STATUS_KA: Record<string, string> = {
   closed: "დახურული",
 }
 
-export default async function AgentAnalyticsPage() {
+export default async function AgentAnalyticsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("agent", "/agent")
 
   const listingIds = await safeQuery(
@@ -88,7 +89,7 @@ export default async function AgentAnalyticsPage() {
 
   return (
     <DashboardShell
-      nav={agentNav}
+      nav={agentNav(lang)}
       title="აგენტის პანელი"
       subtitle="ანალიტიკა"
       userLabel={user.name ?? user.email}

@@ -20,7 +20,8 @@ export const metadata: Metadata = {
 
 const fmt = new Intl.NumberFormat("ka-GE")
 
-export default async function DeveloperOverviewPage() {
+export default async function DeveloperOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("developer", "/developer")
 
   const profile = await safeQuery(
@@ -70,7 +71,7 @@ export default async function DeveloperOverviewPage() {
 
   return (
     <DashboardShell
-      nav={developerNav}
+      nav={developerNav(lang)}
       title="დეველოპერის პანელი"
       subtitle={profile?.name}
       userLabel={user.name ?? user.email}

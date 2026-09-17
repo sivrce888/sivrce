@@ -7,6 +7,7 @@ import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { isValidLang } from '@/lib/i18n/core'
 import { listBlogPosts } from '@/lib/blog-live'
+import { blogTitle, blogExcerpt } from '@/data/blog'
 import { jsonLd } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
 import { pageMeta } from '@/lib/i18n/server'
@@ -57,8 +58,9 @@ export async function generateMetadata({
 }
 
 function blogLd(
-  posts: { title: string; slug: string; publishedAt: string; updatedAt?: string; author: string }[],
+  posts: { title: string; enTitle: string; slug: string; publishedAt: string; updatedAt?: string; author: string }[],
   origin: string,
+  lang: string,
 ) {
   return {
     '@context': 'https://schema.org',
@@ -66,10 +68,10 @@ function blogLd(
     name: 'sivrce ბლოგი',
     description: 'უძრავი ქონების გზამკვლევები საქართველოში',
     url: `${origin}/blog`,
-    inLanguage: 'ka',
+    inLanguage: lang,
     blogPost: posts.map((p) => ({
       '@type': 'BlogPosting',
-      headline: p.title,
+      headline: blogTitle(p, lang),
       url: `${origin}/blog/${p.slug}`,
       datePublished: `${p.publishedAt}T00:00:00+04:00`,
       dateModified: `${p.updatedAt ?? p.publishedAt}T00:00:00+04:00`,
@@ -158,7 +160,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={featured.cover}
-              alt={featured.title}
+              alt={blogTitle(featured, lang)}
               fetchPriority="high"
               decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -173,10 +175,10 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
               ))}
             </div>
             <h2 className="text-balance text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
-              {featured.title}
+              {blogTitle(featured, lang)}
             </h2>
             <p className="mt-3 text-[15px] font-medium leading-relaxed text-sv-ink/65">
-              {featured.excerpt}
+              {blogExcerpt(featured, lang)}
             </p>
             <div className="mt-5 flex items-center gap-4 text-[13px] font-bold text-sv-ink/60">
               <span>{new Date(featured.publishedAt).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
@@ -200,7 +202,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={p.cover}
-                  alt={p.title}
+                  alt={blogTitle(p, lang)}
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -215,10 +217,10 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
                   ))}
                 </div>
                 <h3 className="text-[17px] font-black leading-snug tracking-[-0.01em] text-sv-ink">
-                  {p.title}
+                  {blogTitle(p, lang)}
                 </h3>
                 <p className="mt-2 line-clamp-3 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">
-                  {p.excerpt}
+                  {blogExcerpt(p, lang)}
                 </p>
                 <div className="mt-4 flex items-center gap-3 text-[12px] font-bold text-sv-ink/60">
                   <span>{new Date(p.publishedAt).toLocaleDateString(t.locale, { day: 'numeric', month: 'short' })}</span>
@@ -231,7 +233,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
         </div>
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(blogLd(sorted, origin)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(blogLd(sorted, origin, lang)) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )

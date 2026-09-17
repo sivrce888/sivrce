@@ -13,6 +13,7 @@ import { buyerNav } from "@/lib/dashboard-nav"
 import { requireUser } from "@/lib/guards"
 import { isRentFocus, panelTitle, searchHref } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -23,7 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function AccountPage() {
+export default async function AccountPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
   const user = await requireUser("/account")
   const rawPersona = await readPersona(user.role)
   const persona = user.role === "buyer" ? rawPersona : "buyer"
@@ -33,7 +36,7 @@ export default async function AccountPage() {
 
   return (
     <DashboardShell
-      nav={buyerNav}
+      nav={buyerNav(lang)}
       title={panelTitle(persona)}
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}

@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function AgencyToursPage() {
+export default async function AgencyToursPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("agency", "/agency")
   const { ownerIds } = await getAgencyContext(user)
 
@@ -54,7 +55,7 @@ export default async function AgencyToursPage() {
 
   return (
     <DashboardShell
-      nav={AGENCY_NAV}
+      nav={AGENCY_NAV(lang)}
       title="სააგენტოს პანელი"
       subtitle="ვიზიტები"
       userLabel={user.name ?? user.email}
@@ -73,7 +74,7 @@ export default async function AgencyToursPage() {
           ) : (
             <ul className="space-y-3">
               {upcoming.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
+                <TourCard key={tour.id} tour={tour} lang={lang} />
               ))}
             </ul>
           )}
@@ -85,7 +86,7 @@ export default async function AgencyToursPage() {
             </h2>
             <ul className="space-y-3">
               {past.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
+                <TourCard key={tour.id} tour={tour} lang={lang} />
               ))}
             </ul>
           </section>

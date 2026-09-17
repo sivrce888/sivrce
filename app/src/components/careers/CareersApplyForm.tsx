@@ -3,11 +3,99 @@
 import { useState, type FormEvent } from 'react'
 import { Send, CheckCircle2, Loader2, AlertCircle, FileUp, X } from 'lucide-react'
 import { formatPhone, PHONE_RE } from '@/lib/inquiries/phone'
+import { useI18n } from '@/lib/i18n/context'
 
 const CITIES = ['თბილისი', 'ბათუმი'] as const
 const MAX_CV_BYTES = 5 * 1024 * 1024
 
+/** Radio values are data (submitted ka) — only the label is localized. */
+const CITY_L10N: Record<string, { en: string; de: string }> = {
+  'თბილისი': { en: 'Tbilisi', de: 'Tbilisi' },
+  'ბათუმი': { en: 'Batumi', de: 'Batumi' },
+}
+
+const L = {
+  ka: {
+    errPhone: 'ნომერი არასწორია. მაგ.: +995 555 12 34 56',
+    errChooseCv: 'აირჩიე CV (PDF, DOC ან DOCX).',
+    errCvMax: 'CV — მაქს. 5 მბ.',
+    errWait: 'ცოტა დაიცადე და თავიდან სცადე.',
+    errCvTypeMax: 'PDF, DOC ან DOCX — მაქს. 5 მბ.',
+    errCvUpload: 'CV ვერ აიტვირთა. თავიდან სცადე.',
+    errSend: 'ვერ გაიგზავნა. თავიდან სცადე.',
+    successTitle: 'მივიღეთ',
+    successBody: 'მალე დაგიკავშირდებით.',
+    again: 'კიდევ ერთი',
+    nameLabel: 'სახელი და გვარი',
+    namePh: 'შენი სახელი',
+    emailLabel: 'ელ. ფოსტა',
+    phoneLabel: 'ტელეფონი',
+    cityLegend: 'ქალაქი',
+    messageLabel: 'მოკლე შეტყობინება',
+    messagePh: 'მოკლედ შენს შესახებ…',
+    removeAria: 'წაშლა',
+    chooseFile: 'აირჩიე ფაილი',
+    fileHint: 'PDF, DOC, DOCX · მაქს. 5 მბ',
+    errCvType: 'PDF, DOC ან DOCX.',
+    sending: 'იგზავნება…',
+    send: 'გაგზავნა',
+  },
+  en: {
+    errPhone: 'Invalid number. Example: +995 555 12 34 56',
+    errChooseCv: 'Choose a CV (PDF, DOC or DOCX).',
+    errCvMax: 'CV — max. 5 MB.',
+    errWait: 'Please wait a moment and try again.',
+    errCvTypeMax: 'PDF, DOC or DOCX — max. 5 MB.',
+    errCvUpload: 'CV upload failed. Try again.',
+    errSend: 'Couldn’t send. Try again.',
+    successTitle: 'Application received',
+    successBody: 'We’ll be in touch soon.',
+    again: 'Apply again',
+    nameLabel: 'Full name',
+    namePh: 'Your name',
+    emailLabel: 'Email',
+    phoneLabel: 'Phone',
+    cityLegend: 'City',
+    messageLabel: 'Short message',
+    messagePh: 'A few words about you…',
+    removeAria: 'Remove',
+    chooseFile: 'Choose a file',
+    fileHint: 'PDF, DOC, DOCX · max. 5 MB',
+    errCvType: 'PDF, DOC or DOCX.',
+    sending: 'Sending…',
+    send: 'Send',
+  },
+  de: {
+    errPhone: 'Ungültige Nummer. Beispiel: +995 555 12 34 56',
+    errChooseCv: 'Wählen Sie einen Lebenslauf (PDF, DOC oder DOCX).',
+    errCvMax: 'Lebenslauf — max. 5 MB.',
+    errWait: 'Bitte warten Sie einen Moment und versuchen Sie es erneut.',
+    errCvTypeMax: 'PDF, DOC oder DOCX — max. 5 MB.',
+    errCvUpload: 'Lebenslauf-Upload fehlgeschlagen. Bitte erneut versuchen.',
+    errSend: 'Senden fehlgeschlagen. Bitte erneut versuchen.',
+    successTitle: 'Bewerbung erhalten',
+    successBody: 'Wir melden uns in Kürze.',
+    again: 'Erneut bewerben',
+    nameLabel: 'Vor- und Nachname',
+    namePh: 'Ihr Name',
+    emailLabel: 'E-Mail',
+    phoneLabel: 'Telefon',
+    cityLegend: 'Stadt',
+    messageLabel: 'Kurze Nachricht',
+    messagePh: 'Kurz über Sie…',
+    removeAria: 'Entfernen',
+    chooseFile: 'Datei auswählen',
+    fileHint: 'PDF, DOC, DOCX · max. 5 MB',
+    errCvType: 'PDF, DOC oder DOCX.',
+    sending: 'Wird gesendet…',
+    send: 'Senden',
+  },
+} as const
+
 export default function CareersApplyForm() {
+  const { lang } = useI18n()
+  const loc = lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka'
+  const T = L[loc]
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -24,15 +112,15 @@ export default function CareersApplyForm() {
     const city = String(fd.get('city') ?? '')
     const note = String(fd.get('message') ?? '').trim()
     if (!PHONE_RE.test(phone)) {
-      setError('ნომერი არასწორია. მაგ.: +995 555 12 34 56')
+      setError(T.errPhone)
       return
     }
     if (!cv) {
-      setError('აირჩიე CV (PDF, DOC ან DOCX).')
+      setError(T.errChooseCv)
       return
     }
     if (cv.size > MAX_CV_BYTES) {
-      setError('CV — მაქს. 5 მბ.')
+      setError(T.errCvMax)
       return
     }
 
@@ -45,17 +133,17 @@ export default function CareersApplyForm() {
         const code = upRes.status
         setError(
           code === 429
-            ? 'ცოტა დაიცადე და თავიდან სცადე.'
+            ? T.errWait
             : code === 400
-              ? 'PDF, DOC ან DOCX — მაქს. 5 მბ.'
-              : 'CV ვერ აიტვირთა. თავიდან სცადე.',
+              ? T.errCvTypeMax
+              : T.errCvUpload,
         )
         setSending(false)
         return
       }
       const upJson = (await upRes.json()) as { ok?: boolean; url?: string }
       if (!upJson.url) {
-        setError('CV ვერ აიტვირთა. თავიდან სცადე.')
+        setError(T.errCvUpload)
         setSending(false)
         return
       }
@@ -77,14 +165,14 @@ export default function CareersApplyForm() {
         }),
       })
       if (!res.ok) {
-        setError(res.status === 429 ? 'ცოტა დაიცადე და თავიდან სცადე.' : 'ვერ გაიგზავნა. თავიდან სცადე.')
+        setError(res.status === 429 ? T.errWait : T.errSend)
         setSending(false)
         return
       }
       setSent(true)
       setCv(null)
     } catch {
-      setError('ვერ გაიგზავნა. თავიდან სცადე.')
+      setError(T.errSend)
     } finally {
       setSending(false)
     }
@@ -97,17 +185,17 @@ export default function CareersApplyForm() {
           <CheckCircle2 className="h-7 w-7 text-sv-blue" />
         </div>
         <h2 className="mt-5 text-xl font-black tracking-[-0.02em] text-sv-ink text-balance">
-          მივიღეთ
+          {T.successTitle}
         </h2>
         <p className="mt-2 text-[15px] font-medium text-sv-ink/60">
-          მალე დაგიკავშირდებით.
+          {T.successBody}
         </p>
         <button
           type="button"
           onClick={() => setSent(false)}
           className="mt-6 rounded-full bg-sv-orange px-6 py-3 text-sm font-bold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
         >
-          კიდევ ერთი
+          {T.again}
         </button>
       </div>
     )
@@ -131,20 +219,20 @@ export default function CareersApplyForm() {
       <div className="grid gap-5">
         <div>
           <label htmlFor="careers-name" className="mb-2 block text-sm font-bold text-sv-ink">
-            სახელი და გვარი
+            {T.nameLabel}
           </label>
-          <input id="careers-name" name="name" type="text" required autoComplete="name" placeholder="შენი სახელი" className={inputCls} />
+          <input id="careers-name" name="name" type="text" required autoComplete="name" placeholder={T.namePh} className={inputCls} />
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="careers-email" className="mb-2 block text-sm font-bold text-sv-ink">
-              ელ. ფოსტა
+              {T.emailLabel}
             </label>
             <input id="careers-email" name="email" type="email" required autoComplete="email" placeholder="name@example.com" className={inputCls} />
           </div>
           <div>
             <label htmlFor="careers-phone" className="mb-2 block text-sm font-bold text-sv-ink">
-              ტელეფონი
+              {T.phoneLabel}
             </label>
             <input
               id="careers-phone"
@@ -161,7 +249,7 @@ export default function CareersApplyForm() {
           </div>
         </div>
         <fieldset>
-          <legend className="mb-2 block text-sm font-bold text-sv-ink">ქალაქი</legend>
+          <legend className="mb-2 block text-sm font-bold text-sv-ink">{T.cityLegend}</legend>
           <div className="flex flex-wrap gap-3">
             {CITIES.map((city, i) => (
               <label
@@ -169,20 +257,20 @@ export default function CareersApplyForm() {
                 className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-sv-cloud px-4 py-2.5 text-sm font-bold text-sv-ink ring-1 ring-sv-ink/5 has-[:checked]:bg-sv-blue has-[:checked]:text-white has-[:checked]:ring-sv-blue"
               >
                 <input type="radio" name="city" value={city} required defaultChecked={i === 0} className="sr-only" />
-                {city}
+                {loc === 'ka' ? city : CITY_L10N[city]?.[loc] ?? city}
               </label>
             ))}
           </div>
         </fieldset>
         <div>
           <label htmlFor="careers-message" className="mb-2 block text-sm font-bold text-sv-ink">
-            მოკლე შეტყობინება
+            {T.messageLabel}
           </label>
           <textarea
             id="careers-message"
             name="message"
             rows={4}
-            placeholder="მოკლედ შენს შესახებ…"
+            placeholder={T.messagePh}
             className={`${inputCls} resize-none`}
           />
         </div>
@@ -201,7 +289,7 @@ export default function CareersApplyForm() {
                 type="button"
                 onClick={() => setCv(null)}
                 className="grid h-8 w-8 shrink-0 place-items-center rounded-control text-sv-ink/60 transition hover:bg-sv-surface hover:text-sv-ink"
-                aria-label="წაშლა"
+                aria-label={T.removeAria}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -212,8 +300,8 @@ export default function CareersApplyForm() {
               className="flex cursor-pointer flex-col items-center gap-2 rounded-control border border-dashed border-sv-ink/15 bg-sv-cloud px-4 py-6 text-center transition hover:border-sv-blue/40 hover:bg-sv-blue/[0.03]"
             >
               <FileUp className="h-6 w-6 text-sv-blue" />
-              <span className="text-[14px] font-bold text-sv-ink">აირჩიე ფაილი</span>
-              <span className="text-[12px] font-medium text-sv-ink/60">PDF, DOC, DOCX · მაქს. 5 მბ</span>
+              <span className="text-[14px] font-bold text-sv-ink">{T.chooseFile}</span>
+              <span className="text-[12px] font-medium text-sv-ink/60">{T.fileHint}</span>
               <input
                 id="careers-cv"
                 name="cv"
@@ -227,11 +315,11 @@ export default function CareersApplyForm() {
                   if (!f) return
                   const ok = /\.(pdf|docx?)$/i.test(f.name)
                   if (!ok) {
-                    setError('PDF, DOC ან DOCX.')
+                    setError(T.errCvType)
                     return
                   }
                   if (f.size > MAX_CV_BYTES) {
-                    setError('CV — მაქს. 5 მბ.')
+                    setError(T.errCvMax)
                     return
                   }
                   setError(null)
@@ -253,7 +341,7 @@ export default function CareersApplyForm() {
           className="inline-flex items-center justify-center gap-2 rounded-full bg-sv-orange px-6 py-3.5 text-sm font-bold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
         >
           {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {sending ? 'იგზავნება…' : 'გაგზავნა'}
+          {sending ? T.sending : T.send}
         </button>
       </div>
     </form>

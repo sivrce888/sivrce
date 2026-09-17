@@ -24,10 +24,12 @@ const tabs = [
 ] as const
 
 interface LeadsPageProps {
+  params: Promise<{ lang: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
+export default async function AgentLeadsPage({ params, searchParams }: LeadsPageProps) {
+  const { lang } = await params
   const user = await requireRole("agent", "/agent")
   const { status: rawStatus } = await searchParams
   const activeKey = typeof rawStatus === "string" ? rawStatus : "all"
@@ -59,7 +61,7 @@ export default async function AgentLeadsPage({ searchParams }: LeadsPageProps) {
 
   return (
     <DashboardShell
-      nav={agentNav}
+      nav={agentNav(lang)}
       title="აგენტის პანელი"
       subtitle="ლიდები"
       userLabel={user.name ?? user.email}

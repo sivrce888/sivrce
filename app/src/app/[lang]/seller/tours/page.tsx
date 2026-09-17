@@ -16,7 +16,8 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function SellerToursPage() {
+export default async function SellerToursPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
 
@@ -57,7 +58,7 @@ export default async function SellerToursPage() {
 
   return (
     <DashboardShell
-      nav={sellerNav}
+      nav={sellerNav(lang)}
       title={panelTitle(persona)}
       subtitle="ვიზიტები"
       userLabel={user.name ?? user.email}
@@ -77,7 +78,7 @@ export default async function SellerToursPage() {
           ) : (
             <ul className="space-y-3">
               {upcoming.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
+                <TourCard key={tour.id} tour={tour} lang={lang} />
               ))}
             </ul>
           )}
@@ -90,7 +91,7 @@ export default async function SellerToursPage() {
             </h2>
             <ul className="space-y-3">
               {past.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
+                <TourCard key={tour.id} tour={tour} lang={lang} />
               ))}
             </ul>
           </section>

@@ -24,7 +24,8 @@ const STATUS_KA: Record<string, string> = {
   closed: "დახურული",
 }
 
-export default async function DeveloperAnalyticsPage() {
+export default async function DeveloperAnalyticsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
   const user = await requireRole("developer", "/developer")
 
   const listingIds = await safeQuery(
@@ -82,7 +83,7 @@ export default async function DeveloperAnalyticsPage() {
 
   return (
     <DashboardShell
-      nav={developerNav}
+      nav={developerNav(lang)}
       title="დეველოპერის პანელი"
       subtitle="ანალიტიკა"
       userLabel={user.name ?? user.email}

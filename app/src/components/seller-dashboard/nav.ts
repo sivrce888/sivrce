@@ -1,10 +1,19 @@
 import type { DashboardNavItem } from "@/components/dashboard/DashboardShell"
 
-export const sellerNav: DashboardNavItem[] = [
-  { href: "/seller", label: "მიმოხილვა" },
-  { href: "/seller/listings", label: "განცხადებები" },
-  { href: "/seller/leads", label: "ლიდები" },
-  { href: "/seller/tours", label: "ვიზიტები" },
-  { href: "/seller/stays", label: "ღამეული" },
-  { href: "/settings", label: "პარამეტრები" },
-]
+const L = {
+  ka: ["მიმოხილვა", "განცხადებები", "ლიდები", "ვიზიტები", "ღამეული", "პარამეტრები"],
+  en: ["Overview", "Listings", "Leads", "Tours", "Stays", "Settings"],
+  de: ["Überblick", "Inserate", "Anfragen", "Besichtigungen", "Übernachtungen", "Einstellungen"],
+} as const
+
+export function sellerNav(lang = "ka"): DashboardNavItem[] {
+  const t = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  return [
+    { href: "/seller", label: t[0] },
+    { href: "/seller/listings", label: t[1] },
+    { href: "/seller/leads", label: t[2] },
+    { href: "/seller/tours", label: t[3] },
+    { href: "/seller/stays", label: t[4] },
+    { href: "/settings", label: t[5] },
+  ]
+}

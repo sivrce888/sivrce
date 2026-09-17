@@ -34,9 +34,52 @@ import { readPersona } from "@/lib/workspace-cookie"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "პარამეტრები",
+  title: "Settings — sivrce",
   robots: { index: false },
 }
+
+// Tri-lang settings chrome (ka/de/en) — matches the de-market overlay ceiling.
+const C = {
+  ka: {
+    sub: "პარამეტრები",
+    profileType: "პროფილის ტიპი",
+    profileDesc: "ნაგულისხმევი მყიდველია. გამქირავებელი და გამყიდველი ერთ ანგარიშზეა — მათ განცხადების ტიპი განასხვავებს.",
+    spaceTitle: "შენი სივრცე",
+    spaceDesc: "ფავორიტები, შედარება, განცხადებები — ერთ ადგილას.",
+    account: "ანგარიში", favorites: "ფავორიტები", compare: "შედარება", panel: "პანელი",
+    emailTitle: "ელფოსტის შეტყობინებები",
+    emailDesc: "ჩართე და მიიღე ახალი განცხადებები ელფოსტაზე.",
+    off: "გამორთვა", on: "ჩართვა",
+    notifTitle: "ბოლო შეტყობინებები",
+    notifEmpty: "ჯერ ცარიელია. ახალი მოთხოვნები და განახლებები აქ გამოჩნდება.",
+  },
+  en: {
+    sub: "Settings",
+    profileType: "Profile type",
+    profileDesc: "Buyer is the default. Tenant and seller live on one account — the listing type tells them apart.",
+    spaceTitle: "Your space",
+    spaceDesc: "Favorites, compare, listings — in one place.",
+    account: "Account", favorites: "Favorites", compare: "Compare", panel: "Dashboard",
+    emailTitle: "Email notifications",
+    emailDesc: "Turn on and receive new listings by email.",
+    off: "Turn off", on: "Turn on",
+    notifTitle: "Recent notifications",
+    notifEmpty: "Empty for now. New requests and updates will appear here.",
+  },
+  de: {
+    sub: "Einstellungen",
+    profileType: "Profiltyp",
+    profileDesc: "Käufer ist die Voreinstellung. Mieter und Verkäufer teilen sich ein Konto — der Inseratstyp unterscheidet sie.",
+    spaceTitle: "Ihr Bereich",
+    spaceDesc: "Favoriten, Vergleich, Inserate — an einem Ort.",
+    account: "Konto", favorites: "Favoriten", compare: "Vergleich", panel: "Dashboard",
+    emailTitle: "E-Mail-Benachrichtigungen",
+    emailDesc: "Aktivieren und neue Inserate per E-Mail erhalten.",
+    off: "Deaktivieren", on: "Aktivieren",
+    notifTitle: "Letzte Benachrichtigungen",
+    notifEmpty: "Noch leer. Neue Anfragen und Updates erscheinen hier.",
+  },
+} as const
 
 export default async function SettingsPage({
   params,
@@ -50,6 +93,7 @@ export default async function SettingsPage({
   const { intent: rawIntent } = await searchParams
   const intent = parsePersonaIntent(rawIntent)
   const t = getServerT(lang)
+  const c = lang === "de" ? C.de : lang === "en" ? C.en : C.ka
   const user = await requireUser("/settings")
   const persona = await readPersona(user.role)
   const home = dashboardPathFor(user.role)
@@ -107,12 +151,12 @@ export default async function SettingsPage({
 
   return (
     <DashboardShell
-      nav={settingsNavFor(user.role)}
+      nav={settingsNavFor(user.role, lang)}
       title={settingsTitleFor(user.role, persona)}
-      subtitle="პარამეტრები"
+      subtitle={c.sub}
       userLabel={user.name ?? user.email}
     >
-      <h1 className="mb-6 text-[22px] font-black tracking-tight text-sv-ink">პარამეტრები</h1>
+      <h1 className="mb-6 text-[22px] font-black tracking-tight text-sv-ink">{c.sub}</h1>
 
       <div className="grid gap-5">
         <AvatarStudio
@@ -142,9 +186,9 @@ export default async function SettingsPage({
                 <UserCog size={18} aria-hidden />
               </span>
               <div>
-                <h2 className="text-[15px] font-extrabold text-sv-ink">პროფილის ტიპი</h2>
+                <h2 className="text-[15px] font-extrabold text-sv-ink">{c.profileType}</h2>
                 <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-                  ნაგულისხმევი მყიდველია. გამქირავებელი და გამყიდველი ერთ ანგარიშზეა — მათ განცხადების ტიპი განასხვავებს.
+                  {c.profileDesc}
                 </p>
               </div>
             </div>
@@ -163,36 +207,36 @@ export default async function SettingsPage({
               <LayoutDashboard size={18} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="text-[15px] font-extrabold text-sv-ink">შენი სივრცე</h2>
+              <h2 className="text-[15px] font-extrabold text-sv-ink">{c.spaceTitle}</h2>
               <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-                ფავორიტები, შედარება, განცხადებები — ერთ ადგილას.
+                {c.spaceDesc}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
                   href="/account"
                   className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
                 >
-                  ანგარიში
+                  {c.account}
                 </Link>
                 <Link
                   href="/favorites"
                   className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
                 >
                   <Heart size={13} aria-hidden />
-                  ფავორიტები
+                  {c.favorites}
                 </Link>
                 <Link
                   href="/compare"
                   className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
                 >
                   <ArrowLeftRight size={13} aria-hidden />
-                  შედარება
+                  {c.compare}
                 </Link>
                 <Link
                   href={home}
                   className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-sv-blue-deep"
                 >
-                  პანელი
+                  {c.panel}
                 </Link>
               </div>
             </div>
@@ -205,9 +249,9 @@ export default async function SettingsPage({
               <Mail size={18} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="text-[15px] font-extrabold text-sv-ink">ელფოსტის შეტყობინებები</h2>
+              <h2 className="text-[15px] font-extrabold text-sv-ink">{c.emailTitle}</h2>
               <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-                ჩართე და მიიღე ახალი განცხადებები ელფოსტაზე.
+                {c.emailDesc}
               </p>
               <form action={toggleListingAlerts} className="mt-4">
                 <input type="hidden" name="enabled" value={alertsOn ? "0" : "1"} />
@@ -219,7 +263,7 @@ export default async function SettingsPage({
                       : "bg-sv-orange text-sv-ink shadow-glow-orange hover:opacity-95"
                   }`}
                 >
-                  {alertsOn ? "გამორთვა" : "ჩართვა"}
+                  {alertsOn ? c.off : c.on}
                 </button>
               </form>
             </div>
@@ -253,11 +297,11 @@ export default async function SettingsPage({
             <span className="grid h-10 w-10 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
               <Bell size={18} aria-hidden />
             </span>
-            <h2 className="text-[15px] font-extrabold text-sv-ink">ბოლო შეტყობინებები</h2>
+            <h2 className="text-[15px] font-extrabold text-sv-ink">{c.notifTitle}</h2>
           </div>
           {notifications.length === 0 ? (
             <p className="text-[13px] font-medium text-sv-ink/60">
-              ჯერ ცარიელია. ახალი მოთხოვნები და განახლებები აქ გამოჩნდება.
+              {c.notifEmpty}
             </p>
           ) : (
             <ul className="divide-y divide-sv-ink/6">

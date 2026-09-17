@@ -118,7 +118,7 @@ export function ReplyForm({
     e.preventDefault()
     setError(null)
     if (body.trim().length < MIN_BODY) {
-      setError(`მინიმუმ ${MIN_BODY} სიმბოლო`)
+      setError(T.errMin(MIN_BODY))
       return
     }
     setSubmitting(true)
@@ -137,12 +137,12 @@ export function ReplyForm({
       if (!res.ok) {
         setError(
           data?.error === 'rate_limited'
-            ? 'ძალიან ბევრი მოთხოვნა — ცოტა ხანში სცადეთ'
+            ? T.errRateLimited
             : data?.error === 'nest_too_deep'
-              ? 'მხოლოდ ერთი დონის პასუხია შესაძლებელი'
+              ? T.errNestTooDeep
               : data?.error === 'thread_not_found' || data?.error === 'parent_not_found'
-                ? 'თემა ვერ მოიძებნა'
-                : 'ვერ გაიგზავნა — სცადეთ თავიდან',
+                ? T.errThreadNotFound
+                : T.errSend,
         )
         return
       }
@@ -150,7 +150,7 @@ export function ReplyForm({
       onCancel?.()
       router.refresh()
     } catch {
-      setError('ვერ გაიგზავნა — სცადეთ თავიდან')
+      setError(T.errSend)
     } finally {
       setSubmitting(false)
     }
@@ -171,12 +171,12 @@ export function ReplyForm({
       )}
     >
       <h3 className="text-[15px] font-black text-sv-ink">
-        {parentId ? 'პასუხი კომენტარზე' : 'თქვენი პასუხი'}
+        {parentId ? T.replyToHeading : T.yourReplyHeading}
       </h3>
       {!compact && (
         <div className="mt-3">
           <label htmlFor={`${baseId}-name`} className="text-[13px] font-bold text-sv-ink/70">
-            სახელი
+            {T.nameLabel}
           </label>
           <input
             id={`${baseId}-name`}
@@ -190,7 +190,7 @@ export function ReplyForm({
       )}
       <div className={compact ? 'mt-2' : 'mt-3'}>
         <label htmlFor={`${baseId}-body`} className="text-[13px] font-bold text-sv-ink/70">
-          პასუხი
+          {T.replyLabel}
         </label>
         <textarea
           id={`${baseId}-body`}
@@ -198,7 +198,7 @@ export function ReplyForm({
           onChange={(e) => setBody(e.target.value)}
           rows={compact ? 3 : 4}
           maxLength={4000}
-          placeholder="გააზიარეთ გამოცდილება ან რჩევა…"
+          placeholder={T.replyPh}
           className={cn(inputCls, 'h-auto resize-y py-3 leading-relaxed')}
           required
         />
@@ -214,7 +214,7 @@ export function ReplyForm({
           disabled={submitting}
           className="flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 disabled:opacity-60"
         >
-          {submitting ? 'იგზავნება…' : 'გაგზავნა'}
+          {submitting ? T.sending : T.send}
         </button>
         {onCancel && (
           <button
@@ -222,7 +222,7 @@ export function ReplyForm({
             onClick={onCancel}
             className="min-h-[44px] rounded-full px-4 text-[13px] font-bold text-sv-ink/60 hover:text-sv-ink"
           >
-            გაუქმება
+            {T.cancel}
           </button>
         )}
       </div>

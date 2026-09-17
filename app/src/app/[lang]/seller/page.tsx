@@ -16,6 +16,7 @@ import {
   panelTitle,
 } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -24,7 +25,9 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default async function SellerOverviewPage() {
+export default async function SellerOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
   const rent = isRentFocus(persona)
@@ -75,7 +78,7 @@ export default async function SellerOverviewPage() {
 
   return (
     <DashboardShell
-      nav={sellerNav}
+      nav={sellerNav(lang)}
       title={panelTitle(persona)}
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
