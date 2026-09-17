@@ -16,7 +16,7 @@ import {
   Sparkles,
   Box,
 } from 'lucide-react'
-import { youtubeId, vimeoId, vimeoEmbedUrl, streamUid, streamEmbedUrl, isNativeVideoUrl } from '@/lib/listing-video'
+import { videoEmbedFor } from '@/lib/listing-video'
 
 export interface ProjectMediaItem {
   type: 'photo' | 'render' | 'floorplan' | 'video' | 'virtualTour'
@@ -236,18 +236,7 @@ export function ProjectMediaGallery({
     }
   }, [lightboxIdx, handleKeyDown])
 
-  // Video embed helpers
-  const videoEmbed = useMemo(() => {
-    if (!videoUrl) return null
-    const yt = youtubeId(videoUrl)
-    if (yt) return { type: 'youtube', url: `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0` }
-    const vm = vimeoId(videoUrl)
-    if (vm) return { type: 'vimeo', url: `${vimeoEmbedUrl(vm)}?autoplay=1` }
-    const st = streamUid(videoUrl)
-    if (st) return { type: 'stream', url: `${streamEmbedUrl(st)}?autoplay=true` }
-    if (isNativeVideoUrl(videoUrl)) return { type: 'native', url: videoUrl }
-    return null
-  }, [videoUrl])
+  const videoEmbed = videoEmbedFor(videoUrl)
 
   return (
     <section id="gallery" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">

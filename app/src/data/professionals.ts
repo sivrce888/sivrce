@@ -21,13 +21,7 @@ import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
 import { PROJECT_GALLERIES } from './project-galleries'
 import { CURATED_GALLERIES } from './project-galleries-curated'
-import {
-  PROJECT_VIDEOS,
-  PROJECT_VIRTUAL_TOURS,
-  PROJECT_FLOORPLANS,
-  DEVELOPER_VIDEOS,
-  DEVELOPER_GALLERIES,
-} from './project-media'
+import { PROJECT_VIDEOS, PROJECT_FLOORPLANS, DEVELOPER_GALLERIES } from './project-media'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
 
 /**
@@ -194,76 +188,8 @@ const CURRENT_YEAR = new Date().getFullYear()
  * massing study from floors/flats, progress card from done/finish, location
  * card from coords — same first-party pipeline, no hotlinked binaries.
  */
-const DE_GERMAN_CITIES = new Set([
-  'Berlin', 'Munich', 'Frankfurt', 'Hamburg', 'Cologne', 'Stuttgart', 'Düsseldorf',
-  'Leipzig', 'Dresden', 'Nuremberg', 'Hannover', 'Dortmund', 'Essen', 'Bremen',
-  'Bonn', 'Potsdam', 'Augsburg', 'Wiesbaden', 'Mannheim', 'Karlsruhe', 'Münster', 'Bielefeld',
-  'ბერლინი', 'მიუნხენი', 'ფრანკფურტი', 'ჰამბურგი', 'კელნი', 'შტუტგარტი', 'დიუსელდორფი', 'ლაიფციგი',
-])
-
-const DE_PROJECT_SLUGS = new Set([
-  ...NEW_PROJECTS_BERLIN.map((p) => p.slug),
-  ...NEW_PROJECTS_GERMANY.map((p) => p.slug),
-  ...WORLD_PROJECTS.filter((p) => p.cc === 'DE' || DE_GERMAN_CITIES.has(p.city)).map((p) => p.slug),
-])
-
-function withDERenders(p: Project): Project {
-  const base = p.img.replace(/\.webp$/, '')
-  return { ...p, gallery: [`${base}-massing.webp`, `${base}-timeline.webp`, `${base}-lage.webp`] }
-}
-
-const GEO_RENDER_SLUGS = new Set([
-  // m² Development
-  'downtown-residence',
-  'm2-hippodrome',
-  'm2-mtatsminda-park',
-  'm2-highlight',
-  'm2-at-chkondideli',
-  // Alliance Group
-  'batumi-riviera-tower',
-  'alliance-palace',
-  'alliance-centropolis',
-  'alliance-privilege',
-  'alliance-highline',
-  // ORBI Group
-  'orbi-sea-towers',
-  'orbi-city',
-  'orbi-beach-tower',
-  'orbi-continental',
-  // Axis
-  'axis-towers-vake',
-  'axis-towers',
-  'axis-palace',
-  'axis-chavchavadze-49',
-  'axis-hippodrome',
-  // Archi
-  'archi-dighomi',
-  'archi-central-park',
-  'archi-horizon',
-  'archi-nutsubidze',
-  'archi-grand-avenue',
-  'archi-kikvidze-garden',
-  // Blox
-  'blox-varketili',
-  'blox-sarajishvili',
-  'blox-didi-digomi',
-  'blox-ortachala',
-  // Biograpi
-  'biograpi-sakeni',
-  'biograpi-matiani',
-  'biograpi-hisni',
-  // Domus
-  'domus-park-vake',
-  'domus-trees',
-  // Metropol
-  'metropol-kavtaradze',
-  'metropol-cube',
-  // White Square, Dirsi
-  'white-square-mindeli',
-  'dirsi-riverside',
-])
-
-function withGeoRenders(p: Project): Project {
+function withRenderTrio(p: Project): Project {
+  if (!(p.slug in PROJECT_FLOORPLANS)) return p
   const base = p.img.replace(/\.webp$/, '')
   const existing = p.gallery ?? []
   const trio = [`${base}-massing.webp`, `${base}-timeline.webp`, `${base}-lage.webp`]
@@ -277,7 +203,8 @@ function withGeoRenders(p: Project): Project {
 function withRealGallery(p: Project): Project {
   const real = [...(PROJECT_GALLERIES[p.slug] ?? []), ...(CURATED_GALLERIES[p.slug] ?? [])]
   const video = p.videoUrl ?? PROJECT_VIDEOS[p.slug]
-  const virtualTour = p.virtualTourUrl ?? PROJECT_VIRTUAL_TOURS[p.slug]
+  // ponytail: PROJECT_VIRTUAL_TOURS dropped from project-media (fake Matterport IDs); keep project-level URL only
+  const virtualTour = p.virtualTourUrl
   const passport = p.passportUrl ?? PROJECT_FLOORPLANS[p.slug]
   const existing = p.gallery ?? []
   const merged = [...real, ...existing].filter((g, i, all) => all.indexOf(g) === i)
@@ -1757,7 +1684,6 @@ export const DEVELOPERS: Developer[] = [
   .map((d) => ({
     ...d,
     logoUrl: d.logoUrl ?? `/images/developers/${d.slug}.webp`,
-    videoUrl: d.videoUrl ?? DEVELOPER_VIDEOS[d.slug],
     gallery: d.gallery ?? DEVELOPER_GALLERIES[d.slug],
   }))
 
@@ -4922,7 +4848,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
   // ponytail: first-wins slug dedupe — WORLD_PROJECTS may re-list GE/DE base projects.
   .filter((p, i, all) => all.findIndex((x) => x.slug === p.slug) === i)
   .map(freshenFinish)
-  .map((p) => (DE_PROJECT_SLUGS.has(p.slug) ? withDERenders(p) : GEO_RENDER_SLUGS.has(p.slug) ? withGeoRenders(p) : p))
+  .map(withRenderTrio)
   .map(withRealGallery)
 
 export function getDeveloper(slug?: string): Developer | undefined {

@@ -13,6 +13,7 @@ import {
   streamUid,
   vimeoEmbedUrl,
   vimeoId,
+  videoEmbedFor,
   youtubeId,
   youtubePoster,
 } from "./listing-video"
@@ -142,5 +143,11 @@ const ytScore = evaluateVideoQuality({
 })
 assert.equal(ytScore.score >= 85, true)
 assert.equal(ytScore.resolutionGrade, "1080p")
+
+// videoEmbedFor: gallery embed resolution (null for empty/unembeddable)
+assert.equal(videoEmbedFor(undefined), null)
+assert.equal(videoEmbedFor("https://example.com/movie.mp4"), null)
+assert.equal(videoEmbedFor("https://www.youtube.com/watch?v=dQw4w9WgXcQ")?.type, "youtube")
+assert.ok(videoEmbedFor("https://www.youtube.com/watch?v=dQw4w9WgXcQ")?.url.includes("youtube-nocookie.com"))
 
 console.log("listing-video.check: ok")

@@ -129,7 +129,7 @@ const nextConfig: NextConfig = {
     cpus: 1,
     webpackMemoryOptimizations: true,
     // Tree-shake barrel imports (lucide already defaulted by Next).
-    optimizePackageImports: ["framer-motion", "@base-ui/react", "lucide-react"],
+    optimizePackageImports: ["framer-motion", "lucide-react"],
     // Client router cache — back-nav skips RSC refetch (Vercel invocations).
     staleTimes: { dynamic: 30, static: 180 },
     // ponytail: inlineCss OFF — 180KB style in HTML (133KB gzip page) blew past

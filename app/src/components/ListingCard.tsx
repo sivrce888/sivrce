@@ -136,6 +136,7 @@ export function ListingStickerStack({
   sivrceExclusive,
   className = '',
   size = 'sm',
+  max = 2,
 }: {
   urgent?: boolean
   priceDrop?: boolean
@@ -144,34 +145,66 @@ export function ListingStickerStack({
   sivrceExclusive?: boolean
   className?: string
   size?: 'sm' | 'md'
+  /** Photo overlay cap — trust first, then urgency. */
+  max?: number
 }) {
   const { t } = useI18n()
-  if (!urgent && !priceDrop && !inStory && !exclusive && !sivrceExclusive) return null
   const pad = CHIP_PAD[size]
   const icon = CHIP_ICON[size]
-  return (
-    <div className={`flex flex-col items-start gap-1 ${className}`}>
-      <ExclusiveBadges exclusive={exclusive} sivrceExclusive={sivrceExclusive} size={size} />
-      {inStory ? (
-        <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-violet to-sv-blue font-black tracking-wide text-white shadow-glow-blue-sm ${pad}`}>
-          <CircleDot className={icon} aria-hidden />
-          {t('sticker.story')}
-        </span>
-      ) : null}
-      {urgent ? (
-        <span className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep font-black tracking-wide text-sv-ink shadow-glow-orange ${pad}`}>
-          <Zap className={icon} aria-hidden />
-          {t('sticker.urgent')}
-        </span>
-      ) : null}
-      {priceDrop ? (
-        <span className={`flex items-center gap-1 rounded-full bg-sv-navy/90 font-black tracking-wide text-white backdrop-blur ${pad}`}>
-          <TrendingDown className={icon} aria-hidden />
-          {t('sticker.priceDrop')}
-        </span>
-      ) : null}
-    </div>
-  )
+  const chips: ReactNode[] = []
+  if (exclusive) {
+    chips.push(
+      <ExclusiveChip
+        key="ex"
+        compact
+        size={size}
+        label={t('badge.exclusive')}
+        hint={t('badge.exclusiveHint')}
+        chipClass="border border-sv-blue-light/30 bg-gradient-to-r from-sv-navy via-sv-blue to-sv-violet text-white shadow-glow-blue-sm"
+        icon={<Crown className={icon} aria-hidden />}
+      />,
+    )
+  }
+  if (sivrceExclusive) {
+    chips.push(
+      <ExclusiveChip
+        key="sv"
+        compact
+        size={size}
+        label={t('badge.sivrceExclusiveShort')}
+        hint={t('badge.sivrceExclusiveHint')}
+        chipClass="bg-sv-navy text-white"
+        icon={<SparkMark className={`${icon} text-sv-orange`} mono />}
+      />,
+    )
+  }
+  if (urgent) {
+    chips.push(
+      <span key="urgent" className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-orange to-sv-orange-deep font-black tracking-wide text-sv-ink shadow-glow-orange ${pad}`}>
+        <Zap className={icon} aria-hidden />
+        {t('sticker.urgent')}
+      </span>,
+    )
+  }
+  if (priceDrop) {
+    chips.push(
+      <span key="drop" className={`flex items-center gap-1 rounded-full bg-sv-navy/90 font-black tracking-wide text-white backdrop-blur ${pad}`}>
+        <TrendingDown className={icon} aria-hidden />
+        {t('sticker.priceDrop')}
+      </span>,
+    )
+  }
+  if (inStory) {
+    chips.push(
+      <span key="story" className={`flex items-center gap-1 rounded-full bg-gradient-to-r from-sv-violet to-sv-blue font-black tracking-wide text-white shadow-glow-blue-sm ${pad}`}>
+        <CircleDot className={icon} aria-hidden />
+        {t('sticker.story')}
+      </span>,
+    )
+  }
+  const shown = chips.slice(0, Math.max(0, max))
+  if (shown.length === 0) return null
+  return <div className={`flex flex-col items-start gap-1 ${className}`}>{shown}</div>
 }
 
 interface ListingCardProps {
@@ -211,7 +244,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const { photos, multi, more, total } = cardGalleryTeaser(l.images, l.img, l.photoCount)
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
   const [photo, setPhoto] = useState(0)
-  const reveal = useInViewOnce<HTMLElement>('-40px')
+  const { ref: revealRef, inView: revealInView } = useInViewOnce<HTMLElement>('-40px')
   const frame = photos.length ? Math.min(photo, photos.length - 1) : 0
   const imgRef = useRef<HTMLDivElement>(null)
   const touchRef = useRef<{ x: number; y: number } | null>(null)
@@ -312,7 +345,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   // Always visible — hover-hide made chrome look "missing" on desktop
   const actionBtn =
-    'grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue [@media(pointer:fine)]:h-8 [@media(pointer:fine)]:w-8'
+    'grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-colors duration-200 hover:bg-sv-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue [@media(pointer:fine)]:h-8 [@media(pointer:fine)]:w-8'
 
   const imageBlock = (
     <div
@@ -337,7 +370,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             key={`${src}-${idx}`}
             className={`absolute inset-0 ${
               idx === frame ? 'opacity-100' : 'pointer-events-none opacity-0'
-            } ${!multi && idx === frame ? 'group-hover:scale-[1.04]' : ''} transition-[opacity,transform] duration-200 ease-out motion-reduce:duration-0`}
+            } transition-opacity duration-200 ease-out motion-reduce:duration-0`}
           >
             {avif ? <source srcSet={avif} type="image/avif" /> : null}
             <img
@@ -361,7 +394,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       {l.video && !(more > 0 && frame === photos.length - 1) ? (
         <LocalizedLink
           href={`${href}?play=1`}
-          className="group/play absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white shadow-glow-blue-sm backdrop-blur-md transition-transform duration-200 hover:scale-110 hover:bg-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="group/play absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white shadow-glow-blue-sm backdrop-blur-md transition-colors duration-200 hover:bg-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={t('detail.playVideo')}
           onClick={(e) => e.stopPropagation()}
         >
@@ -412,6 +445,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         inStory={l.inStory}
         exclusive={l.isExclusive}
         sivrceExclusive={l.isSivrceExclusive}
+        max={l.badge || l.projectCatalog ? 1 : 2}
         className={`absolute left-3 z-20 ${l.badge || l.projectCatalog ? 'top-14' : 'top-4'}`}
       />
 
@@ -466,7 +500,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             onClick={(e) => navPhoto(-1, e)}
             className="absolute left-3 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 [@media(pointer:coarse)]:hidden"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-colors hover:bg-sv-surface">
               <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
@@ -476,7 +510,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             onClick={(e) => navPhoto(1, e)}
             className="absolute right-3 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 [@media(pointer:coarse)]:hidden"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-all duration-300 hover:scale-110 hover:bg-sv-surface">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sv-ink shadow-glow-navy backdrop-blur transition-colors hover:bg-sv-surface">
               <ChevronRight className="h-3.5 w-3.5" aria-hidden />
             </span>
           </button>
@@ -536,6 +570,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   const showPerM2 = l.dealType === 'sale' && l.perM2USD > 0
 
+  const rail = layout === 'grid'
+
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
       {/* Price first — scannable like ss.ge / myhome with locked nominal currency */}
@@ -559,13 +595,15 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
           </span>
         )}
       </div>
-      {/* ponytail: reserved slot so rent/daily cards match sale height */}
-      <p
-        className={`mt-0.5 min-h-[1.25rem] text-[13px] font-bold tabular-nums text-sv-ink/60 ${showPerM2 ? '' : 'invisible'}`}
-        aria-hidden={!showPerM2}
-      >
-        {showPerM2 ? formatPerM2(l, currency, lang) : '\u00a0'}
-      </p>
+      {/* ponytail: rails reserve the row so mixed sale/rent cards stay even; search/list drop empty air */}
+      {showPerM2 || rail ? (
+        <p
+          className={`mt-0.5 text-[13px] font-bold tabular-nums text-sv-ink/60 ${rail ? 'min-h-[1.25rem]' : ''} ${showPerM2 ? '' : 'invisible'}`}
+          aria-hidden={!showPerM2}
+        >
+          {showPerM2 ? formatPerM2(l, currency, lang) : '\u00a0'}
+        </p>
+      ) : null}
       {/* Lifestyle under price — was photo overlay, covered dots/chevrons */}
       {lifestyle.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-1">
@@ -585,7 +623,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         </div>
       )}
 
-      <h3 className="mt-2.5 min-h-[2.8em] text-[15px] font-extrabold leading-[1.4] text-sv-ink transition-colors group-hover:text-sv-blue">
+      <h3 className={`mt-2.5 text-[15px] font-extrabold leading-[1.4] text-sv-ink transition-colors group-hover:text-sv-blue ${rail ? 'min-h-[2.8em]' : ''}`}>
         <LocalizedLink
           href={href}
           aria-label={title}
@@ -616,17 +654,18 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         )}
       </p>
 
-      {/* Reserved metro row — cards without metro stay same height */}
-      <p
-        className={`mt-1 flex min-h-[1.25rem] min-w-0 items-center gap-1.5 text-[12px] font-bold text-sv-blue dark:text-sv-blue-light ${metro ? '' : 'invisible'}`}
-        aria-hidden={!metro}
-      >
-        <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
-        <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro?.name ?? '\u00a0'}</span>
-        <span className="shrink-0 font-semibold text-sv-blue dark:text-sv-blue-light">
-          · {metro ? formatMetroDist(metro) : '\u00a0'}
-        </span>
-      </p>
+      {metro || rail ? (
+        <p
+          className={`mt-1 flex min-w-0 items-center gap-1.5 text-[12px] font-bold text-sv-blue dark:text-sv-blue-light ${rail ? 'min-h-[1.25rem]' : ''} ${metro ? '' : 'invisible'}`}
+          aria-hidden={!metro}
+        >
+          <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro?.name ?? '\u00a0'}</span>
+          <span className="shrink-0 font-semibold text-sv-blue dark:text-sv-blue-light">
+            · {metro ? formatMetroDist(metro) : '\u00a0'}
+          </span>
+        </p>
+      ) : null}
 
       {/* Specs + AI + meta pinned to bottom — equal card heights in rails */}
       <div className="mt-auto pt-3">
@@ -667,7 +706,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
           <span className="shrink-0 text-[13px] font-black tabular-nums tracking-tight text-sv-ink">
             {displayScore || '—'}
           </span>
-          <span className="min-w-0 flex-1 text-[12px] font-semibold leading-snug text-sv-ink/60">
+          <span className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-snug text-sv-ink/50">
             {displayLabel || t('detail.aiScore')}
           </span>
           {l.verified ? (
@@ -715,9 +754,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   return (
     <article
-      ref={reveal.ref}
+      ref={revealRef}
       data-reveal={animate ? '' : undefined}
-      data-in={!animate || reveal.inView || undefined}
+      data-in={!animate || revealInView || undefined}
       style={
         animate
           ? ({ '--reveal-y': '28px', '--reveal-delay': `${(i % 3) * 0.08}s` } as CSSProperties)
@@ -726,7 +765,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       onTouchStart={onImgTouchStart}
       onTouchMove={onImgTouchMove}
       onTouchEnd={onImgTouchEnd}
-      className={`group @container relative flex min-h-0 flex-col self-stretch overflow-hidden rounded-card border bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover ${sizeClass} ${
+      className={`group @container relative flex min-h-0 flex-col self-stretch overflow-hidden rounded-card border bg-sv-surface shadow-card transition-[transform,box-shadow] duration-500 [@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:shadow-card-hover ${sizeClass} ${
         l.highlighted
           ? 'border-sv-blue/45 ring-2 ring-sv-blue/25'
           : 'border-sv-ink/[0.06]'

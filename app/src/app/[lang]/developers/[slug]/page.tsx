@@ -358,7 +358,6 @@ export default async function DeveloperPage({ params }: PageProps) {
 
         <DeveloperMediaGallery
           developerName={name}
-          developerSlug={dev.slug}
           videoUrl={dev.videoUrl}
           photos={allPhotos}
           projects={projects}

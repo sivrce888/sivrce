@@ -151,6 +151,37 @@ test.describe("API", () => {
     expect(res.status()).toBeGreaterThanOrEqual(400)
   })
 
+  // Contact is the one public write path with no other coverage — and it
+  // shipped once as a form that silently discarded every message.
+  test("contact POST rejects cross-origin", async ({ request }) => {
+    const res = await request.post(`${BASE}/api/contact`, {
+      data: { name: "Alice", email: "a@b.com", message: "hello there friend" },
+      headers: { "Content-Type": "application/json", Origin: "https://evil.example" },
+    })
+    expect(res.status()).toBe(403)
+  })
+
+  test("contact POST validates its fields", async ({ request }) => {
+    const send = (data: Record<string, unknown>) =>
+      request.post(`${BASE}/api/contact`, {
+        data,
+        headers: { "Content-Type": "application/json", Origin: BASE },
+      })
+
+    expect((await send({ name: "A", email: "a@b.com", message: "hello there" })).status()).toBe(400)
+    expect((await send({ name: "Alice", email: "nope", message: "hello there" })).status()).toBe(400)
+    expect((await send({ name: "Alice", email: "a@b.com", message: "hi" })).status()).toBe(400)
+
+    // Honeypot answers 200 and sends nothing, so a bot learns nothing.
+    const bot = await send({
+      name: "Bot",
+      email: "b@b.com",
+      message: "hello there friend",
+      company: "spam-co",
+    })
+    expect(bot.status()).toBe(200)
+  })
+
   test("reviews GET returns data", async ({ request }) => {
     const res = await request.get(`${BASE}/api/reviews?targetType=listing&targetId=1`)
     expect(res.status()).toBe(200)

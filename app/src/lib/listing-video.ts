@@ -126,6 +126,21 @@ export function isNativeVideoUrl(raw: string): boolean {
   return isAllowedVideoHost(u.hostname) && VIDEO_EXT.test(u.pathname)
 }
 
+export type VideoEmbed = { type: "youtube" | "vimeo" | "stream" | "native"; url: string }
+
+/** Embeddable player for a video URL (nocookie/privacy variants), or null. */
+export function videoEmbedFor(raw: string | undefined): VideoEmbed | null {
+  if (!raw) return null
+  const yt = youtubeId(raw)
+  if (yt) return { type: "youtube", url: `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0` }
+  const vm = vimeoId(raw)
+  if (vm) return { type: "vimeo", url: `${vimeoEmbedUrl(vm)}?autoplay=1` }
+  const st = streamUid(raw)
+  if (st) return { type: "stream", url: `${streamEmbedUrl(st)}?autoplay=true` }
+  if (isNativeVideoUrl(raw)) return { type: "native", url: raw }
+  return null
+}
+
 export function listingVideoKind(
   raw: string | null | undefined,
 ): "file" | "youtube" | "stream" | "vimeo" | null {

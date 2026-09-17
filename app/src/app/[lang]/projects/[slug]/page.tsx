@@ -7,7 +7,6 @@ import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone, Landmark, Ar
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
-import HScroll from '@/components/HScroll'
 import { AnchorNav } from '@/components/AnchorNav'
 import { StickyLeadBar } from '@/components/lead/StickyLeadBar'
 import { PlaceContext } from '@/components/entities/PlaceContext'

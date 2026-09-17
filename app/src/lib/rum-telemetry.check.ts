@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { rateMetric, type RumMetric } from './rum-telemetry'
+import { rateMetric } from './rum-telemetry'
 
 assert.equal(rateMetric('LCP', 1100), 'good')
 assert.equal(rateMetric('LCP', 2200), 'needs-improvement')

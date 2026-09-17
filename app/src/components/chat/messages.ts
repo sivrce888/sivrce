@@ -120,10 +120,10 @@ export function splitLinks(text: string): { text: string; href?: string }[] {
   return out.length > 0 ? out : [{ text }]
 }
 
-export type AgoUnit = "now" | "min" | "hour" | "day"
+type AgoUnit = "now" | "min" | "hour" | "day"
 
 /** LeadForm → chat composer continuity. sessionStorage, 2 kB cap. */
-export const CHAT_DRAFT_KEY = "sv-chat-draft"
+const CHAT_DRAFT_KEY = "sv-chat-draft"
 
 export function parseChatDraft(raw: string | null, listingId: string): string | null {
   if (!raw || !listingId) return null

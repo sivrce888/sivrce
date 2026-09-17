@@ -48,7 +48,6 @@ const LARGE_OK = [
   /^app\/public\//,
   /^app\/android\//,
   /^app\/ios\//,
-  /^research\/competitor-locations\//,
   /^scripts\/.*\.json$/,
 ]
 
